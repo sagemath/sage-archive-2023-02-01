@@ -279,9 +279,20 @@ class InfinityCrystalOfMultisegments(Parent, UniqueRepresentation):
                 (1, None, 1)
                 sage: b._sig(1)
                 (None, None, 0)
+
+            TESTS:
+
+            Check that :trac:`23439` is fixed::
+
+                sage: B = crystals.infinity.Multisegments(2)
+                sage: b = B.highest_weight_vector()
+                sage: b._sig(1)
+                (None, None, 0)
+                sage: b.epsilon(1)
+                0
             """
             if not self.value:
-                return (None, None)
+                return (None, None, 0)
             pos = []
             block = self.value[0][0]
             cur = 0

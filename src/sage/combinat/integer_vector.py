@@ -12,7 +12,7 @@ AUTHORS:
 * Federico Poloni (2013) - specialized ``rank()``
 * Travis Scrimshaw (2013-02-04) - Refactored to use ``ClonableIntArray``
 """
-#*****************************************************************************
+# ****************************************************************************
 #       Copyright (C) 2007 Mike Hansen <mhansen@gmail.com>,
 #       Copyright (C) 2012 Travis Scrimshaw <tscrim@ucdavis.edu>
 #
@@ -25,14 +25,12 @@ AUTHORS:
 #
 #  The full text of the GPL is available at:
 #
-#                  http://www.gnu.org/licenses/
-#*****************************************************************************
-from __future__ import print_function, absolute_import, division
-from six.moves import range
-from six import add_metaclass
+#                  https://www.gnu.org/licenses/
+# ****************************************************************************
 
 from sage.combinat.integer_lists import IntegerListsLex
 from itertools import product
+import numbers
 
 from sage.structure.parent import Parent
 from sage.structure.unique_representation import UniqueRepresentation
@@ -61,7 +59,7 @@ def is_gale_ryser(r,s):
     If, given a binary matrix, these two vectors are easy to compute,
     the Gale-Ryser theorem lets us decide whether, given two
     non-negative vectors `r,s`, there exists a binary matrix
-    whose row/colum sums vectors are `r` and `s`.
+    whose row/column sums vectors are `r` and `s`.
 
     This functions answers accordingly.
 
@@ -123,7 +121,8 @@ def is_gale_ryser(r,s):
     #                                same number of 1s           domination
     return len(rstar) <= len(s2) and sum(r2) == sum(s2) and rstar.dominates(s)
 
-def gale_ryser_theorem(p1, p2, algorithm="gale"):
+def gale_ryser_theorem(p1, p2, algorithm="gale",
+                       *, solver=None, integrality_tolerance=1e-3):
     r"""
     Returns the binary matrix given by the Gale-Ryser theorem.
 
@@ -142,6 +141,17 @@ def gale_ryser_theorem(p1, p2, algorithm="gale"):
 
       - ``'ryser'`` implements the construction due to Ryser [Ryser63]_.
       - ``'gale'`` (default) implements the construction due to Gale [Gale57]_.
+
+    - ``solver`` -- (default: ``None``) Specify a Mixed Integer Linear Programming
+      (MILP) solver to be used. If set to ``None``, the default one is used. For
+      more information on MILP solvers and which default solver is used, see
+      the method
+      :meth:`solve <sage.numerical.mip.MixedIntegerLinearProgram.solve>`
+      of the class
+      :class:`MixedIntegerLinearProgram <sage.numerical.mip.MixedIntegerLinearProgram>`.
+
+    - ``integrality_tolerance`` -- parameter for use with MILP solvers over an
+      inexact base ring; see :meth:`MixedIntegerLinearProgram.get_values`.
 
     OUTPUT:
 
@@ -349,7 +359,7 @@ def gale_ryser_theorem(p1, p2, algorithm="gale"):
     elif algorithm == "gale":
         from sage.numerical.mip import MixedIntegerLinearProgram
         k1, k2=len(p1), len(p2)
-        p = MixedIntegerLinearProgram()
+        p = MixedIntegerLinearProgram(solver=solver)
         b = p.new_variable(binary = True)
         for (i,c) in enumerate(p1):
             p.add_constraint(p.sum([b[i,j] for j in range(k2)]) ==c)
@@ -357,11 +367,11 @@ def gale_ryser_theorem(p1, p2, algorithm="gale"):
             p.add_constraint(p.sum([b[j,i] for j in range(k1)]) ==c)
         p.set_objective(None)
         p.solve()
-        b = p.get_values(b)
+        b = p.get_values(b, convert=ZZ, tolerance=integrality_tolerance)
         M = [[0]*k2 for i in range(k1)]
         for i in range(k1):
             for j in range(k2):
-                M[i][j] = int(b[i,j])
+                M[i][j] = b[i,j]
         return matrix(M)
 
     else:
@@ -429,25 +439,6 @@ def list2func(l, default=None):
         return partial(_default_function, l, default)
 
 
-def constant_func(i):
-    """
-    Return the constant function ``i``.
-
-    EXAMPLES::
-
-        sage: f = sage.combinat.integer_vector.constant_func(3)
-        doctest:...: DeprecationWarning: constant_func is deprecated. Use lambda x: i instead
-        See http://trac.sagemath.org/12453 for details.
-        sage: f(-1)
-        3
-        sage: f('asf')
-        3
-    """
-    from sage.misc.superseded import deprecation
-    deprecation(12453, 'constant_func is deprecated. Use lambda x: i instead')
-    return lambda x: i
-
-
 class IntegerVector(ClonableArray):
     """
     An integer vector.
@@ -467,8 +458,7 @@ class IntegerVector(ClonableArray):
             raise ValueError("all entries must be non-negative")
 
 
-@add_metaclass(ClasscallMetaclass)
-class IntegerVectors(Parent):
+class IntegerVectors(Parent, metaclass=ClasscallMetaclass):
     """
     The class of (non-negative) integer vectors.
 
@@ -526,8 +516,8 @@ class IntegerVectors(Parent):
         [5, 0, 0]
         sage: IV53.last()
         [0, 0, 5]
-        sage: IV53.random_element()
-        [4, 0, 1]
+        sage: IV53.random_element().parent() is IV53
+        True
 
     Further examples::
 
@@ -581,6 +571,17 @@ class IntegerVectors(Parent):
         sage: iv = [ IntegerVectors(x[0], x[1], max_part = x[2]-1) for x in essai ]
         sage: all(map(lambda x: x.cardinality() == len(x.list()), iv))
         True
+
+    An example showing the same output by using IntegerListsLex::
+
+        sage: IntegerVectors(4, max_length=2).list()
+        [[4], [3, 1], [2, 2], [1, 3], [0, 4]]
+        sage: list(IntegerListsLex(4, max_length=2))
+        [[4], [3, 1], [2, 2], [1, 3], [0, 4]]
+
+    .. SEEALSO::
+
+        :class: `sage.combinat.integer_lists.invlex.IntegerListsLex`.
     """
     @staticmethod
     def __classcall_private__(cls, n=None, k=None, **kwargs):
@@ -600,6 +601,13 @@ class IntegerVectors(Parent):
             Traceback (most recent call last):
             ...
             ValueError: k and length both specified
+
+        :trac:`29524`::
+
+            sage: IntegerVectors(3, 3/1)
+            Traceback (most recent call last):
+            ...
+            TypeError: 'k' must be an integer or a tuple, got Rational
         """
         if 'length' in kwargs:
             if k is not None:
@@ -615,12 +623,12 @@ class IntegerVectors(Parent):
         if n is None:
             return IntegerVectors_k(k)
 
-        try:
+        if isinstance(k, numbers.Integral):
+            return IntegerVectors_nk(n, k)
+        elif isinstance(k, (tuple, list)):
             return IntegerVectors_nnondescents(n, tuple(k))
-        except TypeError:
-            pass
-
-        return IntegerVectors_nk(n, k)
+        else:
+            raise TypeError("'k' must be an integer or a tuple, got {}".format(type(k).__name__))
 
     def __init__(self, category=None):
         """
@@ -1193,7 +1201,7 @@ class IntegerVectorsConstraints(IntegerVectors):
         """
         self.n = n
         self.k = k
-        if self.k >= 0:
+        if k is not None and self.k >= 0:
             constraints['length'] = self.k
         if 'outer' in constraints:
             constraints['ceiling'] = constraints['outer']
@@ -1259,6 +1267,23 @@ class IntegerVectorsConstraints(IntegerVectors):
             True
         """
         return not self.__eq__(rhs)
+
+    def __hash__(self):
+        """
+        Return the hash of ``self``.
+
+        EXAMPLES::
+
+            sage: hash(IntegerVectors(min_slope=0)) == hash(IntegerVectors(min_slope=0))
+            True
+            sage: hash(IntegerVectors(2, min_slope=0)) == hash(IntegerVectors(2, min_slope=0))
+            True
+            sage: hash(IntegerVectors(2, 3, min_slope=0)) == hash(IntegerVectors(2, 3, min_slope=0))
+            True
+            sage: hash(IntegerVectors(min_slope=0)) != hash(IntegerVectors(min_slope=3))
+            True
+        """
+        return hash((self.n, self.k, tuple(self.constraints.items())))
 
     def __contains__(self, x):
         """
@@ -1467,53 +1492,7 @@ def integer_vectors_nk_fast_iter(n, k):
             yield list(cur)
 
 
-def IntegerVectors_nconstraints(n, **constraints):
-    """
-    EXAMPLES::
-
-        sage: sage.combinat.integer_vector.IntegerVectors_nconstraints(2)
-        doctest:...: DeprecationWarning: this class is deprecated. Use sage.combinat.integer_vector.IntegerVectors_n instead
-        See http://trac.sagemath.org/12453 for details.
-        Integer vectors that sum to 2
-        sage: sage.combinat.integer_vector.IntegerVectors_nconstraints(2, min_slope=0)
-        doctest:...: DeprecationWarning: this class is deprecated. Use sage.combinat.integer_vector.IntegerVectorsConstraints instead
-        See http://trac.sagemath.org/12453 for details.
-        Integer vectors that sum to 2 with constraints: min_slope=0
-    """
-    from sage.misc.superseded import deprecation
-    if len(constraints) == 0:
-        deprecation(12453, 'this class is deprecated. Use sage.combinat.integer_vector.IntegerVectors_n instead')
-        return IntegerVectors_n(n)
-    deprecation(12453, 'this class is deprecated. Use sage.combinat.integer_vector.IntegerVectorsConstraints instead')
-    return IntegerVectorsConstraints(n, **constraints)
-
-
-def IntegerVectors_nkconstraints(n=None, k=None, **constraints):
-    """
-    EXAMPLES::
-
-        sage: sage.combinat.integer_vector.IntegerVectors_nkconstraints(3, 2)
-        doctest:...: DeprecationWarning: this class is deprecated.
-         Use sage.combinat.integer_vector.IntegerVectors_nk instead
-        See http://trac.sagemath.org/12453 for details.
-        Integer vectors of length 2 that sum to 3
-        sage: sage.combinat.integer_vector.IntegerVectors_nkconstraints(3, 2, min_slope=0)
-        doctest:...: DeprecationWarning: this class is deprecated.
-         Use sage.combinat.integer_vector.IntegerVectorsConstraints instead
-        See http://trac.sagemath.org/12453 for details.
-        Integer vectors that sum to 3 with constraints: length=2, min_slope=0
-    """
-    from sage.misc.superseded import deprecation
-    if len(constraints) == 0:
-        if n is None:
-            deprecation(12453, 'this class is deprecated. Use sage.combinat.integer_vector.IntegerVectors_k instead')
-            return IntegerVectors_k(k)
-        deprecation(12453, 'this class is deprecated. Use sage.combinat.integer_vector.IntegerVectors_nk instead')
-        return IntegerVectors_nk(n, k)
-    deprecation(12453, 'this class is deprecated. Use sage.combinat.integer_vector.IntegerVectorsConstraints instead')
-    return IntegerVectorsConstraints(n, k, **constraints)
-
 # October 2012: fixing outdated pickles which use classes being deprecated
-from sage.structure.sage_object import register_unpickle_override
+from sage.misc.persist import register_unpickle_override
 register_unpickle_override('sage.combinat.integer_vector', 'IntegerVectors_nconstraints', IntegerVectorsConstraints)
 register_unpickle_override('sage.combinat.integer_vector', 'IntegerVectors_nkconstraints', IntegerVectorsConstraints)

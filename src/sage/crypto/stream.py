@@ -1,7 +1,6 @@
 """
 Stream Cryptosystems
 """
-from __future__ import absolute_import
 
 #*****************************************************************************
 #       Copyright (C) 2007 David Kohel <kohel@maths.usyd.edu.au>
@@ -12,7 +11,6 @@ from __future__ import absolute_import
 # (at your option) any later version.
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
-from six.moves import range
 
 from .cryptosystem import SymmetricKeyCryptosystem
 from .stream_cipher import LFSRCipher, ShrinkingGeneratorCipher
@@ -23,7 +21,7 @@ from sage.arith.all import gcd, power_mod
 from sage.rings.finite_rings.finite_field_constructor import FiniteField
 from sage.rings.finite_rings.integer_mod_ring import IntegerModFactory
 from sage.rings.polynomial.polynomial_element import is_Polynomial
-from sage.rings.polynomial.polynomial_ring_constructor import PolynomialRing
+
 
 IntegerModRing = IntegerModFactory("IntegerModRing")
 
@@ -60,7 +58,6 @@ class LFSRCryptosystem(SymmetricKeyCryptosystem):
         if field.cardinality() != 2:
             raise NotImplementedError("Not yet implemented.")
         S = BinaryStrings()
-        P = PolynomialRing(FiniteField(2),'x')
         SymmetricKeyCryptosystem.__init__(self, S, S, None)
         self._field = field
 
@@ -73,13 +70,13 @@ class LFSRCryptosystem(SymmetricKeyCryptosystem):
 
         INPUT: A polynomial and initial state of the LFSR.
         """
-        if not isinstance(key, (list,tuple)) and len(key) == 2:
+        if not isinstance(key, (list, tuple)) and len(key) == 2:
             raise TypeError("Argument key (= %s) must be a list of tuple of length 2" % key)
-        poly = key[0]; IS = key[1]
+        poly, IS = key
         if not is_Polynomial(poly):
             raise TypeError("poly (= %s) must be a polynomial." % poly)
-        if not isinstance(IS, (list,tuple)):
-            raise TypeError("IS (= %s) must be an initial in the key space."%K)
+        if not isinstance(IS, (list, tuple)):
+            raise TypeError("IS (= %s) must be an initial in the key space." % IS)
         if len(IS) != poly.degree():
             raise TypeError("The length of IS (= %s) must equal the degree of poly (= %s)" % (IS, poly))
         return LFSRCipher(self, poly, IS)
@@ -125,7 +122,6 @@ class ShrinkingGeneratorCryptosystem(SymmetricKeyCryptosystem):
         if field.cardinality() != 2:
             raise NotImplementedError("Not yet implemented.")
         S = BinaryStrings()
-        P = PolynomialRing(field, 'x')
         SymmetricKeyCryptosystem.__init__(self, S, S, None)
         self._field = field
 
@@ -138,9 +134,10 @@ class ShrinkingGeneratorCryptosystem(SymmetricKeyCryptosystem):
         OUTPUT: The shrinking generator cipher with key stream generator e1
         and decimating cipher e2.
         """
-        if not isinstance(key, (list,tuple)) and len(key) == 2:
+        if not isinstance(key, (list, tuple)) and len(key) == 2:
             raise TypeError("Argument key (= %s) must be a list of tuple of length 2" % key)
-        e1 = key[0]; e2 = key[1]
+        e1 = key[0]
+        e2 = key[1]
         if not isinstance(e1, LFSRCipher) or not isinstance(e2, LFSRCipher):
             raise TypeError("The key (= (%s,%s)) must be a tuple of two LFSR ciphers." % key)
         return ShrinkingGeneratorCipher(self, e1, e2)

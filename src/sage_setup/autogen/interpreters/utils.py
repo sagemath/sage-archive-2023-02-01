@@ -66,12 +66,12 @@ def je(template, **kwargs):
 
 def indent_lines(n, text):
     r"""
-    INPUTS:
+    Indent each line in text by ``n`` spaces.
 
-    - n -- indentation amount
-    - text -- text to indent
+    INPUT:
 
-    Indents each line in text by n spaces.
+    - ``n`` -- indentation amount
+    - ``text`` -- text to indent
 
     EXAMPLES::
 
@@ -91,13 +91,13 @@ def indent_lines(n, text):
 
 def reindent_lines(n, text):
     r"""
-    INPUTS:
+    Strip any existing indentation on the given text (while keeping
+    relative indentation) then re-indents the text by ``n`` spaces.
 
-    - n -- indentation amount
-    - text -- text to indent
+    INPUT:
 
-    Strips any existing indentation on the given text (while keeping
-    relative indentation) then reindents the text by n spaces.
+    - ``n`` -- indentation amount
+    - ``text`` -- text to indent
 
     EXAMPLES::
 

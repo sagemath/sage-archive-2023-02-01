@@ -47,6 +47,7 @@ class LeftZeroSemigroup(UniqueRepresentation, Parent):
         running ._test_associativity() . . . pass
         running ._test_cardinality() . . . pass
         running ._test_category() . . . pass
+        running ._test_construction() . . . pass
         running ._test_elements() . . .
           Running the test suite of self.an_element()
           running ._test_category() . . . pass
@@ -169,7 +170,7 @@ class FreeSemigroup(UniqueRepresentation, Parent):
         sage: S.semigroup_generators()
         Family ('a', 'b', 'c', 'd')
 
-    and with product given by contatenation::
+    and with product given by concatenation::
 
         sage: S('dab') * S('acb')
         'dabacb'
@@ -333,6 +334,7 @@ class QuotientOfLeftZeroSemigroup(UniqueRepresentation, Parent):
         running ._test_associativity() . . . pass
         running ._test_cardinality() . . . pass
         running ._test_category() . . . pass
+        running ._test_construction() . . . pass
         running ._test_elements() . . .
           Running the test suite of self.an_element()
           running ._test_category() . . . pass
@@ -557,6 +559,7 @@ class IncompleteSubquotientSemigroup(UniqueRepresentation,Parent):
             ------------------------------------------------------------
             running ._test_cardinality() . . . pass
             running ._test_category() . . . pass
+            running ._test_construction() . . . pass
             running ._test_elements() . . .
               Running the test suite of self.an_element()
               running ._test_category() . . . pass

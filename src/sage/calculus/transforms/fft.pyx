@@ -25,7 +25,7 @@ from cysignals.memory cimport sig_malloc, sig_free
 import sage.plot.all
 import sage.libs.pari.all
 from sage.rings.integer import Integer
-from sage.rings.complex_number import ComplexNumber
+from sage.rings.complex_mpfr import ComplexNumber
 
 def FastFourierTransform(size, base_ring=None):
     """
@@ -145,7 +145,7 @@ cdef class FastFourierTransform_complex(FastFourierTransform_base):
 
         INPUT:
 
-        - ``i`` -- An integer peresenting the index.
+        - ``i`` -- An integer, the index.
         - ``xy`` -- An object to store as `i`-th element of the array ``self[i]``.
 
         EXAMPLES::

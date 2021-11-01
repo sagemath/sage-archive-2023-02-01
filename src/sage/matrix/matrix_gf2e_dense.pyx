@@ -1,5 +1,10 @@
+# -*- coding: utf-8 -*-
+# distutils: libraries = m4rie M4RI_LIBRARIES m
+# distutils: library_dirs = M4RI_LIBDIR
+# distutils: include_dirs = M4RI_INCDIR
+# distutils: extra_compile_args = M4RI_CFLAGS
 """
-Dense matrices over `\GF{2^e}` for `2 <= e <= 10` using the M4RIE library.
+Dense matrices over `\GF{2^e}` for `2 \leq e \leq 16` using the M4RIE library
 
 The M4RIE library offers two matrix representations:
 
@@ -34,15 +39,11 @@ EXAMPLES::
 
     sage: K.<a> = GF(2^8)
     sage: A = random_matrix(K, 3,4)
-    sage: A
-    [          a^6 + a^5 + a^4 + a^2               a^6 + a^3 + a + 1         a^5 + a^3 + a^2 + a + 1               a^7 + a^6 + a + 1]
-    [                a^7 + a^6 + a^3             a^7 + a^6 + a^5 + 1         a^5 + a^4 + a^3 + a + 1 a^6 + a^5 + a^4 + a^3 + a^2 + 1]
-    [              a^6 + a^5 + a + 1                   a^7 + a^3 + 1               a^7 + a^3 + a + 1   a^7 + a^6 + a^3 + a^2 + a + 1]
-
-    sage: A.echelon_form()
-    [                        1                         0                         0     a^6 + a^5 + a^4 + a^2]
-    [                        0                         1                         0   a^7 + a^5 + a^3 + a + 1]
-    [                        0                         0                         1 a^6 + a^4 + a^3 + a^2 + 1]
+    sage: E = A.echelon_form()
+    sage: A.row_space() == E.row_space()
+    True
+    sage: all(r[r.nonzero_positions()[0]] == 1 for r in E.rows() if r)
+    True
 
 AUTHOR:
 
@@ -54,10 +55,17 @@ TESTS::
     running ._test_new() . . . pass
     running ._test_pickling() . . . pass
 
-TODO:
+Test hashing::
 
-- wrap ``mzd_slice_t``
+    sage: K.<a> = GF(2^4)
+    sage: A = random_matrix(K, 1000, 1000)
+    sage: A.set_immutable()
+    sage: {A:1}
+    {1000 x 1000 dense matrix over Finite Field in a of size 2^4: 1}
 
+.. TODO::
+
+    Wrap ``mzd_slice_t``.
 
 REFERENCES:
 
@@ -72,20 +80,22 @@ REFERENCES:
 # it under the terms of the GNU General Public License as published by
 # the Free Software Foundation, either version 2 of the License, or
 # (at your option) any later version.
-#                  http://www.gnu.org/licenses/
+#                  https://www.gnu.org/licenses/
 #*****************************************************************************
-from __future__ import absolute_import
 
 from cysignals.signals cimport sig_check, sig_on, sig_off
 
 cimport sage.matrix.matrix_dense as matrix_dense
 from sage.structure.element cimport Matrix, Vector
 from sage.structure.element cimport ModuleElement, Element, RingElement
+from sage.structure.richcmp cimport rich_to_bool
+from sage.rings.finite_rings.element_base cimport Cache_base
 
-from sage.rings.all import FiniteField as GF
+from sage.rings.finite_rings.finite_field_constructor import FiniteField as GF
 from sage.misc.randstate cimport randstate, current_randstate
 
 from sage.matrix.matrix_mod2_dense cimport Matrix_mod2_dense
+from .args cimport SparseEntry, MatrixArgs_init
 
 from sage.libs.m4ri cimport m4ri_word, mzd_copy, mzd_init
 from sage.libs.m4rie cimport *
@@ -106,22 +116,13 @@ cdef class M4RIE_finite_field:
     """
     cdef gf2e *ff
 
-    def __cinit__(self):
+    def __dealloc__(self):
         """
         EXAMPLES::
 
             sage: from sage.matrix.matrix_gf2e_dense import M4RIE_finite_field
             sage: K = M4RIE_finite_field(); K
             <sage.matrix.matrix_gf2e_dense.M4RIE_finite_field object at 0x...>
-        """
-        pass
-
-    def __dealloc__(self):
-        """
-        EXAMPLES::
-
-            sage: from sage.matrix.matrix_gf2e_dense import M4RIE_finite_field
-            sage: K = M4RIE_finite_field()
             sage: del K
         """
         if self.ff:
@@ -130,23 +131,12 @@ cdef class M4RIE_finite_field:
 cdef m4ri_word poly_to_word(f):
     return f.integer_representation()
 
-cdef object word_to_poly(w, F):
-    return F.fetch_int(w)
 
 cdef class Matrix_gf2e_dense(matrix_dense.Matrix_dense):
-    ########################################################################
-    # LEVEL 1 functionality
-    ########################################################################
-    def __cinit__(self, parent, entries, copy, coerce, alloc=True):
+    def __cinit__(self, *args, bint alloc=True, **kwds):
         """
-        Create new matrix over `GF(2^e)` for 2<=e<=10.
-
         INPUT:
 
-        - ``parent`` - a :class:`MatrixSpace`.
-        - ``entries`` - may be list or a finite field element.
-        - ``copy`` - ignored, elements are always copied
-        - ``coerce`` - ignored, elements are always coerced
         - ``alloc`` - if ``True`` the matrix is allocated first (default: ``True``)
 
         EXAMPLES::
@@ -157,10 +147,8 @@ cdef class Matrix_gf2e_dense(matrix_dense.Matrix_dense):
             [0 0 0 0]
             [0 0 0 0]
 
-            sage: A.randomize(); A
-            [              a^2       a^3 + a + 1 a^3 + a^2 + a + 1             a + 1]
-            [              a^3                 1       a^3 + a + 1     a^3 + a^2 + 1]
-            [            a + 1           a^3 + 1       a^3 + a + 1 a^3 + a^2 + a + 1]
+            sage: A.randomize()
+            sage: TestSuite(A).run()
 
             sage: K.<a> = GF(2^3)
             sage: A = Matrix(K,3,4); A
@@ -168,19 +156,16 @@ cdef class Matrix_gf2e_dense(matrix_dense.Matrix_dense):
             [0 0 0 0]
             [0 0 0 0]
 
-            sage: A.randomize(); A
-            [    a^2 + a     a^2 + 1     a^2 + a     a^2 + a]
-            [    a^2 + 1 a^2 + a + 1     a^2 + 1         a^2]
-            [    a^2 + a     a^2 + 1 a^2 + a + 1       a + 1]
+            sage: A.randomize()
+            sage: TestSuite(A).run()
         """
-        matrix_dense.Matrix_dense.__init__(self, parent)
-
         cdef M4RIE_finite_field FF
 
-        R = parent.base_ring()
-
+        R = self._base_ring
         f = R.polynomial()
-        cdef m4ri_word poly = sum(int(c)*2**i for i,c in enumerate(f))
+
+        cdef long i
+        cdef m4ri_word poly = sum(((<m4ri_word>c) << i) for (i, c) in enumerate(f))
 
         if alloc and self._nrows and self._ncols:
             if poly in _m4rie_finite_field_cache:
@@ -193,6 +178,7 @@ cdef class Matrix_gf2e_dense(matrix_dense.Matrix_dense):
 
         # cache elements
         self._zero = self._base_ring(0)
+        self._zero_word = poly_to_word(self._zero)
         self._one = self._base_ring(1)
 
     def __dealloc__(self):
@@ -209,67 +195,42 @@ cdef class Matrix_gf2e_dense(matrix_dense.Matrix_dense):
             mzed_free(self._entries)
             self._entries = NULL
 
-    def __init__(self, parent, entries, copy, coerce):
-        """
-        Create new matrix over `GF(2^e)` for 2<=e<=10.
+    def __init__(self, parent, entries=None, copy=None, bint coerce=True):
+        r"""
+        Create new matrix over `GF(2^e)` for `2 \leq e \leq 16`.
 
         INPUT:
 
-        - ``parent`` - a :class:`MatrixSpace`.
-        - ``entries`` - may be list or a finite field element.
-        - ``copy`` - ignored, elements are always copied
-        - ``coerce`` - ignored, elements are always coerced
+        - ``parent`` -- a matrix space over ``GF(2^e)``
+
+        - ``entries`` -- see :func:`matrix`
+
+        - ``copy`` -- ignored (for backwards compatibility)
+
+        - ``coerce`` -- if False, assume without checking that the
+          entries lie in the base ring
 
         EXAMPLES::
 
             sage: K.<a> = GF(2^4)
-            sage: l = [K.random_element() for _ in range(3*4)]; l
-            [a^2 + 1, a^3 + 1, 0, 0, a, a^3 + a + 1, a + 1, a + 1, a^2, a^3 + a + 1, a^3 + a, a^3 + a]
+            sage: l = [K.random_element() for _ in range(3*4)]
 
-            sage: A = Matrix(K, 3, 4, l); A
-            [    a^2 + 1     a^3 + 1           0           0]
-            [          a a^3 + a + 1       a + 1       a + 1]
-            [        a^2 a^3 + a + 1     a^3 + a     a^3 + a]
+            sage: A = Matrix(K, 3, 4, l)
+            sage: l == A.list()
+            True
 
-            sage: A.list()
-            [a^2 + 1, a^3 + 1, 0, 0, a, a^3 + a + 1, a + 1, a + 1, a^2, a^3 + a + 1, a^3 + a, a^3 + a]
-
-            sage: l[0], A[0,0]
-            (a^2 + 1, a^2 + 1)
+            sage: l[0] == A[0,0]
+            True
 
             sage: A = Matrix(K, 3, 3, a); A
             [a 0 0]
             [0 a 0]
             [0 0 a]
         """
-        cdef int i,j
-
-        if entries is None:
-            return
-
-        R = self.base_ring()
-
-        # scalar ?
-        if not isinstance(entries, list):
-            if entries != 0:
-                if self.nrows() != self.ncols():
-                    raise TypeError("self must be a  square matrices for scalar assignment")
-                for i in range(self.nrows()):
-                    self.set_unsafe(i,i, R(entries))
-            return
-
-        # all entries are given as a long list
-        if len(entries) != self._nrows * self._ncols:
-            raise IndexError("The vector of entries has the wrong length.")
-
-        k = 0
-
-        for i from 0 <= i < self._nrows:
-            sig_check()
-            for j from 0 <= j < self._ncols:
-                e = R(entries[k])
-                mzed_write_elem(self._entries, i, j, poly_to_word(e))
-                k = k + 1
+        ma = MatrixArgs_init(parent, entries)
+        for t in ma.iter(coerce, True):
+            se = <SparseEntry>t
+            mzed_write_elem(self._entries, se.i, se.j, poly_to_word(se.entry))
 
     cdef set_unsafe(self, Py_ssize_t i, Py_ssize_t j, value):
         """
@@ -283,16 +244,18 @@ cdef class Matrix_gf2e_dense(matrix_dense.Matrix_dense):
         EXAMPLES::
 
             sage: K.<a> = GF(2^4)
-            sage: A = Matrix(K,3,4,[K.random_element() for _ in range(3*4)]); A
-            [    a^2 + 1     a^3 + 1           0           0]
-            [          a a^3 + a + 1       a + 1       a + 1]
-            [        a^2 a^3 + a + 1     a^3 + a     a^3 + a]
+            sage: l = [K.random_element() for _ in range(3*4)]
+            sage: A = Matrix(K, 3, 4, l)
 
-            sage: A[0,0] = a                     # indirect doctest
-            sage: A
-            [          a     a^3 + 1           0           0]
-            [          a a^3 + a + 1       a + 1       a + 1]
-            [        a^2 a^3 + a + 1     a^3 + a     a^3 + a]
+            sage: i = randrange(3)
+            sage: j = randrange(4)
+            sage: A[i,j] = a                     # indirect doctest
+            sage: A[i,j] == a == A.list()[j + 4*i]
+            True
+            sage: A.list()[:j + 4*i] == l[:j + 4*i]
+            True
+            sage: A.list()[j + 4*i + 1:] == l[j + 4*i + 1:]
+            True
         """
         mzed_write_elem(self._entries, i, j, poly_to_word(value))
 
@@ -307,18 +270,33 @@ cdef class Matrix_gf2e_dense(matrix_dense.Matrix_dense):
         EXAMPLES::
 
             sage: K.<a> = GF(2^4)
-            sage: A = random_matrix(K,3,4)
-            sage: A[2,3]                         # indirect doctest
-            a^3 + a^2 + a + 1
+            sage: l = [K.random_element() for _ in range(3*4)]
+            sage: A = Matrix(K, 3, 4, l)
+            sage: A[2,3] == l[3 + 4*2]           # indirect doctest
+            True
             sage: K.<a> = GF(2^3)
-            sage: m,n  = 3, 4
-            sage: A = random_matrix(K,3,4); A
-            [    a^2 + a     a^2 + 1     a^2 + a     a^2 + a]
-            [    a^2 + 1 a^2 + a + 1     a^2 + 1         a^2]
-            [    a^2 + a     a^2 + 1 a^2 + a + 1       a + 1]
+            sage: l = [K.random_element() for _ in range(3*4)]
+            sage: A = Matrix(K, 3, 4, l)
+            sage: A.list() == l
+            True
         """
         cdef int r = mzed_read_elem(self._entries, i, j)
-        return word_to_poly(r, self._base_ring)
+        cdef Cache_base cache = <Cache_base> self._base_ring._cache
+        return cache.fetch_int(r)
+
+    cdef bint get_is_zero_unsafe(self, Py_ssize_t i, Py_ssize_t j):
+        r"""
+        Return 1 if the entry ``(i, j)`` is zero, otherwise 0.
+
+        EXAMPLES::
+
+            sage: K.<a> = GF(2^4)
+            sage: A = Matrix(K, 2, 2, a)
+            sage: A.zero_pattern_matrix()  # indirect doctest
+            [0 1]
+            [1 0]
+        """
+        return mzed_read_elem(self._entries, i, j) == self._zero_word
 
     cpdef _add_(self, right):
         """
@@ -331,20 +309,12 @@ cdef class Matrix_gf2e_dense(matrix_dense.Matrix_dense):
         EXAMPLES::
 
             sage: K.<a> = GF(2^4)
-            sage: A = random_matrix(K,3,4); A
-            [              a^2       a^3 + a + 1 a^3 + a^2 + a + 1             a + 1]
-            [              a^3                 1       a^3 + a + 1     a^3 + a^2 + 1]
-            [            a + 1           a^3 + 1       a^3 + a + 1 a^3 + a^2 + a + 1]
+            sage: A = random_matrix(K,3,4)
+            sage: B = random_matrix(K,3,4)
 
-            sage: B = random_matrix(K,3,4); B
-            [          a^2 + a           a^2 + 1           a^2 + a     a^3 + a^2 + a]
-            [          a^2 + 1 a^3 + a^2 + a + 1           a^2 + 1               a^2]
-            [    a^3 + a^2 + a           a^2 + 1       a^2 + a + 1       a^3 + a + 1]
-
-            sage: C = A + B; C # indirect doctest
-            [            a a^3 + a^2 + a       a^3 + 1 a^3 + a^2 + 1]
-            [a^3 + a^2 + 1 a^3 + a^2 + a a^3 + a^2 + a       a^3 + 1]
-            [a^3 + a^2 + 1     a^3 + a^2     a^3 + a^2           a^2]
+            sage: C = A + B  # indirect doctest
+            sage: all(C.list()[i] == A.list()[i] + B.list()[i] for i in range(12))
+            True
         """
         cdef Matrix_gf2e_dense A
         A = Matrix_gf2e_dense.__new__(Matrix_gf2e_dense, self._parent, 0, 0, 0, alloc=False)
@@ -360,22 +330,11 @@ cdef class Matrix_gf2e_dense(matrix_dense.Matrix_dense):
 
             sage: from sage.matrix.matrix_gf2e_dense import Matrix_gf2e_dense
             sage: K.<a> = GF(2^4)
-            sage: m,n  = 3, 4
-            sage: MS = MatrixSpace(K,m,n)
-            sage: A = random_matrix(K,3,4); A
-            [              a^2       a^3 + a + 1 a^3 + a^2 + a + 1             a + 1]
-            [              a^3                 1       a^3 + a + 1     a^3 + a^2 + 1]
-            [            a + 1           a^3 + 1       a^3 + a + 1 a^3 + a^2 + a + 1]
-
-            sage: B = random_matrix(K,3,4); B
-            [          a^2 + a           a^2 + 1           a^2 + a     a^3 + a^2 + a]
-            [          a^2 + 1 a^3 + a^2 + a + 1           a^2 + 1               a^2]
-            [    a^3 + a^2 + a           a^2 + 1       a^2 + a + 1       a^3 + a + 1]
-
-            sage: C = A - B; C  # indirect doctest
-            [            a a^3 + a^2 + a       a^3 + 1 a^3 + a^2 + 1]
-            [a^3 + a^2 + 1 a^3 + a^2 + a a^3 + a^2 + a       a^3 + 1]
-            [a^3 + a^2 + 1     a^3 + a^2     a^3 + a^2           a^2]
+            sage: A = random_matrix(K,3,4)
+            sage: B = random_matrix(K,3,4)
+            sage: C = A - B  # indirect doctest
+            sage: all(C.list()[i] == A.list()[i] - B.list()[i] for i in range(12))
+            True
         """
         return self._add_(right)
 
@@ -645,29 +604,9 @@ cdef class Matrix_gf2e_dense(matrix_dense.Matrix_dense):
 
              sage: K.<a> = GF(4)
              sage: A = random_matrix(K,10,10)
-             sage: A
-             [    0 a + 1 a + 1 a + 1     0     1 a + 1     1 a + 1     1]
-             [a + 1 a + 1     a     1     a     a     1 a + 1     1     0]
-             [    a     1 a + 1 a + 1     0 a + 1     a     1     a     a]
-             [a + 1     a     0     0     1 a + 1 a + 1     0 a + 1     1]
-             [    a     0 a + 1     a     a     0 a + 1     a     1 a + 1]
-             [    a     0     a a + 1     a     1 a + 1     a     a     a]
-             [a + 1     a     0     1     0 a + 1 a + 1     a     0 a + 1]
-             [a + 1 a + 1     0 a + 1     a     1 a + 1 a + 1 a + 1     0]
-             [    0     0     0 a + 1     1 a + 1     0 a + 1     1     0]
-             [    1 a + 1     0     1     a     0     0     a a + 1     a]
-
-             sage: a*A # indirect doctest
-             [    0     1     1     1     0     a     1     a     1     a]
-             [    1     1 a + 1     a a + 1 a + 1     a     1     a     0]
-             [a + 1     a     1     1     0     1 a + 1     a a + 1 a + 1]
-             [    1 a + 1     0     0     a     1     1     0     1     a]
-             [a + 1     0     1 a + 1 a + 1     0     1 a + 1     a     1]
-             [a + 1     0 a + 1     1 a + 1     a     1 a + 1 a + 1 a + 1]
-             [    1 a + 1     0     a     0     1     1 a + 1     0     1]
-             [    1     1     0     1 a + 1     a     1     1     1     0]
-             [    0     0     0     1     a     1     0     1     a     0]
-             [    a     1     0     a a + 1     0     0 a + 1     1 a + 1]
+             sage: B = a*A  # indirect doctest
+             sage: all(B.list()[i] == a*A.list()[i] for i in range(100))
+             True
         """
         cdef m4ri_word a = poly_to_word(right)
         cdef Matrix_gf2e_dense C = Matrix_gf2e_dense.__new__(Matrix_gf2e_dense, self._parent, 0, 0, 0)
@@ -679,24 +618,20 @@ cdef class Matrix_gf2e_dense(matrix_dense.Matrix_dense):
         EXAMPLES::
 
             sage: K.<a> = GF(2^4)
-            sage: A = random_matrix(K, 3, 4); A
-            [              a^2       a^3 + a + 1 a^3 + a^2 + a + 1             a + 1]
-            [              a^3                 1       a^3 + a + 1     a^3 + a^2 + 1]
-            [            a + 1           a^3 + 1       a^3 + a + 1 a^3 + a^2 + a + 1]
-
-            sage: -A
-            [              a^2       a^3 + a + 1 a^3 + a^2 + a + 1             a + 1]
-            [              a^3                 1       a^3 + a + 1     a^3 + a^2 + 1]
-            [            a + 1           a^3 + 1       a^3 + a + 1 a^3 + a^2 + a + 1]
+            sage: A = random_matrix(K, 3, 4)
+            sage: B = -A
+            sage: all(B.list()[i] == -A.list()[i] for i in range(12))
+            True
         """
         return self.__copy__()
 
-    cpdef int _cmp_(self, right) except -2:
+    cpdef _richcmp_(self, right, int op):
         """
         EXAMPLES::
 
             sage: K.<a> = GF(2^4)
             sage: A = random_matrix(K,3,4)
+            sage: A[0,0] = 0
             sage: B = copy(A)
             sage: A == B
             True
@@ -705,8 +640,9 @@ cdef class Matrix_gf2e_dense(matrix_dense.Matrix_dense):
             False
         """
         if self._nrows == 0 or self._ncols == 0:
-            return 0
-        return mzed_cmp(self._entries, (<Matrix_gf2e_dense>right)._entries)
+            return rich_to_bool(op, 0)
+        return rich_to_bool(op, mzed_cmp(self._entries,
+                                         (<Matrix_gf2e_dense>right)._entries))
 
     def __copy__(self):
         """
@@ -714,19 +650,14 @@ cdef class Matrix_gf2e_dense(matrix_dense.Matrix_dense):
 
             sage: K.<a> = GF(2^4)
             sage: m,n  = 3, 4
-            sage: A = random_matrix(K,3,4); A
-            [              a^2       a^3 + a + 1 a^3 + a^2 + a + 1             a + 1]
-            [              a^3                 1       a^3 + a + 1     a^3 + a^2 + 1]
-            [            a + 1           a^3 + 1       a^3 + a + 1 a^3 + a^2 + a + 1]
+            sage: A = random_matrix(K,3,4)
+            sage: A2 = copy(A)
+            sage: A2.list() == A.list()
+            True
 
-            sage: A2 = copy(A); A2
-            [              a^2       a^3 + a + 1 a^3 + a^2 + a + 1             a + 1]
-            [              a^3                 1       a^3 + a + 1     a^3 + a^2 + 1]
-            [            a + 1           a^3 + 1       a^3 + a + 1 a^3 + a^2 + a + 1]
-
-            sage: A[0,0] = 1
-            sage: A2[0,0]
-            a^2
+            sage: A[0,0] = 1 if A[0,0] != 1 else 0
+            sage: A2[0,0] == A[0,0]
+            False
         """
         cdef Matrix_gf2e_dense A
         A = Matrix_gf2e_dense.__new__(Matrix_gf2e_dense, self._parent, 0, 0, 0)
@@ -736,19 +667,33 @@ cdef class Matrix_gf2e_dense(matrix_dense.Matrix_dense):
 
         return A
 
+    def __bool__(self):
+        """
+        Return if ``self`` is a zero matrix or not.
+
+        EXAMPLES::
+
+            sage: K.<a> = GF(2^4)
+            sage: A = Matrix(K, 2, 2, a)
+            sage: bool(A)
+            True
+            sage: zero = MatrixSpace(K, 3, 3).zero()
+            sage: bool(zero)
+            False
+        """
+        if self._nrows and self._ncols:
+            return not mzed_is_zero(self._entries)
+        return False
+
     def _list(self):
         """
         EXAMPLES::
 
             sage: K.<a> = GF(2^4)
-            sage: m,n  = 3, 4
-            sage: A = random_matrix(K,3,4); A
-            [              a^2       a^3 + a + 1 a^3 + a^2 + a + 1             a + 1]
-            [              a^3                 1       a^3 + a + 1     a^3 + a^2 + 1]
-            [            a + 1           a^3 + 1       a^3 + a + 1 a^3 + a^2 + a + 1]
-
-            sage: A.list() # indirect doctest
-            [a^2, a^3 + a + 1, a^3 + a^2 + a + 1, a + 1, a^3, 1, a^3 + a + 1, a^3 + a^2 + 1, a + 1, a^3 + 1, a^3 + a + 1, a^3 + a^2 + a + 1]
+            sage: l = [K.random_element() for _ in range(3*4)]
+            sage: A = Matrix(K, 3, 4, l)
+            sage: A.list() == l  # indirect doctest
+            True
         """
         cdef int i,j
         l = []
@@ -776,37 +721,78 @@ cdef class Matrix_gf2e_dense(matrix_dense.Matrix_dense):
         EXAMPLES::
 
             sage: K.<a> = GF(2^4)
-            sage: A = Matrix(K,3,3)
+            sage: total_count = 0
+            sage: from collections import defaultdict
+            sage: dic = defaultdict(Integer)
+            sage: def add_samples():
+            ....:     global dic, total_count
+            ....:     for _ in range(100):
+            ....:         A = Matrix(K,3,3)
+            ....:         A.randomize()
+            ....:         for a in A.list():
+            ....:             dic[a] += 1
+            ....:             total_count += 1.0
+            sage: add_samples()
+            sage: while not all(abs(dic[a]/total_count - 1/16) < 0.01 for a in dic):
+            ....:     add_samples()
 
-            sage: A.randomize(); A
-            [              a^2       a^3 + a + 1 a^3 + a^2 + a + 1]
-            [            a + 1               a^3                 1]
-            [      a^3 + a + 1     a^3 + a^2 + 1             a + 1]
+            sage: def add_sample(density):
+            ....:     global density_sum, total_count
+            ....:     total_count += 1.0
+            ....:     density_sum += random_matrix(K, 1000, 1000, density=density).density()
 
-            sage: K.<a> = GF(2^4)
-            sage: A = random_matrix(K,1000,1000,density=0.1)
-            sage: float(A.density())
-            0.0999...
+            sage: density_sum = 0.0
+            sage: total_count = 0.0
+            sage: add_sample(0.1)
+            sage: while abs(density_sum/total_count - 0.1) > 0.001:
+            ....:     add_sample(0.1)
 
-            sage: A = random_matrix(K,1000,1000,density=1.0)
-            sage: float(A.density())
-            1.0
+            sage: density_sum = 0.0
+            sage: total_count = 0.0
+            sage: add_sample(1.0)
+            sage: while abs(density_sum/total_count - 1.0) > 0.001:
+            ....:     add_sample(1.0)
 
-            sage: A = random_matrix(K,1000,1000,density=0.5)
-            sage: float(A.density())
-            0.4996...
+            sage: density_sum = 0.0
+            sage: total_count = 0.0
+            sage: add_sample(0.5)
+            sage: while abs(density_sum/total_count - 0.5) > 0.001:
+            ....:     add_sample(0.5)
 
         Note, that the matrix is updated and not zero-ed out before
         being randomized::
 
-            sage: A = matrix(K,1000,1000)
-            sage: A.randomize(nonzero=False, density=0.1)
-            sage: float(A.density())
-            0.0936...
+            sage: def add_sample(density, nonzero):
+            ....:     global density_sum, total_count
+            ....:     total_count += 1.0
+            ....:     A = matrix(K, 1000, 1000)
+            ....:     A.randomize(nonzero=nonzero, density=density)
+            ....:     A.randomize(nonzero=nonzero, density=density)
+            ....:     density_sum += A.density()
 
-            sage: A.randomize(nonzero=False, density=0.05)
-            sage: float(A.density())
-            0.135854
+            sage: density_sum = 0.0
+            sage: total_count = 0.0
+            sage: add_sample(0.1, True)
+            sage: while abs(density_sum/total_count - (1 - 0.9^2)) > 0.001:
+            ....:     add_sample(0.1, True)
+
+            sage: density_sum = 0.0
+            sage: total_count = 0.0
+            sage: add_sample(0.1, False)
+            sage: while abs(density_sum/total_count - (1 - 0.9^2)*15/16) > 0.001:
+            ....:     add_sample(0.1, False)
+
+            sage: density_sum = 0.0
+            sage: total_count = 0.0
+            sage: add_sample(0.05, True)
+            sage: while abs(density_sum/total_count - (1 - 0.95^2)) > 0.001:
+            ....:     add_sample(0.05, True)
+
+            sage: density_sum = 0.0
+            sage: total_count = 0.0
+            sage: add_sample(0.5, True)
+            sage: while abs(density_sum/total_count - (1 - 0.5^2)) > 0.001:
+            ....:     add_sample(0.5, True)
         """
         if self._ncols == 0 or self._nrows == 0:
             return
@@ -830,7 +816,7 @@ cdef class Matrix_gf2e_dense(matrix_dense.Matrix_dense):
             _density = 1.0
 
         if _density == 1:
-            if nonzero == False:
+            if not nonzero:
                 sig_on()
                 for i in range(self._nrows):
                     for j in range(self._ncols):
@@ -847,7 +833,7 @@ cdef class Matrix_gf2e_dense(matrix_dense.Matrix_dense):
                         mzed_write_elem(self._entries, i, j, tmp)
                 sig_off()
         else:
-            if nonzero == False:
+            if not nonzero:
                 sig_on()
                 for i in range(self._nrows):
                     for j in range(self._ncols):
@@ -886,35 +872,25 @@ cdef class Matrix_gf2e_dense(matrix_dense.Matrix_dense):
 
             sage: K.<a> = GF(2^4)
             sage: m,n  = 3, 5
-            sage: A = random_matrix(K, 3, 5); A
-            [              a^2       a^3 + a + 1 a^3 + a^2 + a + 1             a + 1               a^3]
-            [                1       a^3 + a + 1     a^3 + a^2 + 1             a + 1           a^3 + 1]
-            [      a^3 + a + 1 a^3 + a^2 + a + 1           a^2 + a           a^2 + 1           a^2 + a]
-
-            sage: A.echelonize(); A
-            [            1             0             0         a + 1       a^2 + 1]
-            [            0             1             0           a^2         a + 1]
-            [            0             0             1 a^3 + a^2 + a           a^3]
+            sage: A = random_matrix(K, 3, 5)
+            sage: R = A.row_space()
+            sage: A.echelonize()
+            sage: all(r[r.nonzero_positions()[0]] == 1 for r in A.rows() if r)
+            True
+            sage: A.row_space() == R
+            True
 
             sage: K.<a> = GF(2^3)
             sage: m,n  = 3, 5
             sage: MS = MatrixSpace(K,m,n)
             sage: A = random_matrix(K, 3, 5)
-
-            sage: copy(A).echelon_form('newton_john')
-            [          1           0       a + 1           0     a^2 + 1]
-            [          0           1 a^2 + a + 1           0           a]
-            [          0           0           0           1 a^2 + a + 1]
-
-            sage: copy(A).echelon_form('naive');
-            [          1           0       a + 1           0     a^2 + 1]
-            [          0           1 a^2 + a + 1           0           a]
-            [          0           0           0           1 a^2 + a + 1]
-
-            sage: copy(A).echelon_form('builtin');
-            [          1           0       a + 1           0     a^2 + 1]
-            [          0           1 a^2 + a + 1           0           a]
-            [          0           0           0           1 a^2 + a + 1]
+            sage: B = copy(A).echelon_form('newton_john')
+            sage: C = copy(A).echelon_form('naive')
+            sage: D = copy(A).echelon_form('builtin')
+            sage: B == C == D
+            True
+            sage: all(r[r.nonzero_positions()[0]] == 1 for r in B.rows() if r)
+            True
         """
         if self._nrows == 0 or self._ncols == 0:
             self.cache('in_echelon_form',True)
@@ -953,7 +929,7 @@ cdef class Matrix_gf2e_dense(matrix_dense.Matrix_dense):
             sig_off()
 
         elif algorithm == 'builtin':
-            self._echelon_in_place_classical()
+            self._echelon_in_place(algorithm="classical")
 
         else:
             raise ValueError("No algorithm '%s'."%algorithm)
@@ -968,7 +944,9 @@ cdef class Matrix_gf2e_dense(matrix_dense.Matrix_dense):
 
             sage: K.<a> = GF(2^8)
             sage: A = random_matrix(K, 15, 15)
-            sage: A.pivots() # indirect doctest
+            sage: while A.rank() != 15:
+            ....:     A = random_matrix(K, 15, 15)
+            sage: A.pivots()  # indirect doctest
             (0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14)
         """
         if not self.fetch('in_echelon_form'):
@@ -979,7 +957,7 @@ cdef class Matrix_gf2e_dense(matrix_dense.Matrix_dense):
         i = 0
         while i < self._nrows:
             for j from i <= j < nc:
-                if self.get_unsafe(i,j):
+                if not self.get_is_zero_unsafe(i,j):
                     pivots.append(j)
                     i += 1
                     break
@@ -992,26 +970,26 @@ cdef class Matrix_gf2e_dense(matrix_dense.Matrix_dense):
         EXAMPLES::
 
             sage: K.<a> = GF(2^3)
-            sage: A = random_matrix(K,3,3); A
-            [        a^2       a + 1 a^2 + a + 1]
-            [      a + 1           0           1]
-            [      a + 1     a^2 + 1       a + 1]
-
-            sage: B = ~A; B
-            [a^2 + a + 1         a^2         a^2]
-            [      a + 1 a^2 + a + 1       a + 1]
-            [          a     a^2 + a a^2 + a + 1]
-
+            sage: A = random_matrix(K, 3, 3)
+            sage: while A.rank() != 3:
+            ....:     A = random_matrix(K, 3, 3)
+            sage: B = ~A
             sage: A*B
             [1 0 0]
             [0 1 0]
             [0 0 1]
+
         """
         cdef Matrix_gf2e_dense A
         A = Matrix_gf2e_dense.__new__(Matrix_gf2e_dense, self._parent, 0, 0, 0)
 
-        if self._nrows and self._nrows == self._ncols:
+        if self.rank() != self._nrows:
+            raise ZeroDivisionError("Matrix does not have full rank.")
+
+        if self._nrows:
+            sig_on()
             mzed_invert_newton_john(A._entries, self._entries)
+            sig_off()
 
         return A
 
@@ -1028,20 +1006,29 @@ cdef class Matrix_gf2e_dense(matrix_dense.Matrix_dense):
         EXAMPLES::
 
             sage: K.<a> = GF(2^3)
-            sage: A = random_matrix(K,3,3); A
-            [        a^2       a + 1 a^2 + a + 1]
-            [      a + 1           0           1]
-            [      a + 1     a^2 + 1       a + 1]
+            sage: A = random_matrix(K,3,3)
+            sage: B = copy(A)
+            sage: B.rescale_row(0, a, 0)
+            sage: B[0] == a*A[0]
+            True
+            sage: B[1:] == A[1:]
+            True
 
-            sage: A.rescale_row(0, a , 0); A
-            [  a + 1 a^2 + a a^2 + 1]
-            [  a + 1       0       1]
-            [  a + 1 a^2 + 1   a + 1]
+            sage: B = copy(A)
+            sage: B.rescale_row(1, 0, 0)
+            sage: B[0] == A[0]
+            True
+            sage: B[2] == A[2]
+            True
+            sage: B[1].is_zero()
+            True
 
-            sage: A.rescale_row(0,0,0); A
-            [      0       0       0]
-            [  a + 1       0       1]
-            [  a + 1 a^2 + 1   a + 1]
+            sage: B = copy(A)
+            sage: B.rescale_row(2, a^2, 2)
+            sage: B.list()[:-1] == A.list()[:-1]
+            True
+            sage: B[2,2] == a^2*A[2,2]
+            True
         """
         cdef m4ri_word x = poly_to_word(multiple)
         mzed_rescale_row(self._entries, row, start_col, x)
@@ -1061,15 +1048,20 @@ cdef class Matrix_gf2e_dense(matrix_dense.Matrix_dense):
         EXAMPLES::
 
             sage: K.<a> = GF(2^3)
-            sage: A = random_matrix(K,3,3); A
-            [        a^2       a + 1 a^2 + a + 1]
-            [      a + 1           0           1]
-            [      a + 1     a^2 + 1       a + 1]
+            sage: A = random_matrix(K,3,3)
+            sage: B = copy(A)
+            sage: B.add_multiple_of_row(0,1,a,0)
+            sage: B[1:] == A[1:]
+            True
+            sage: B[0] == A[0] + a*A[1]
+            True
 
-            sage: A.add_multiple_of_row(0,1,a,0); A
-            [      a   a + 1 a^2 + 1]
-            [  a + 1       0       1]
-            [  a + 1 a^2 + 1   a + 1]
+            sage: B = copy(A)
+            sage: B.add_multiple_of_row(2,1,a,2)
+            sage: B.list()[:-1] == A.list()[:-1]
+            True
+            sage: B[2,2] == A[2,2] + a*A[1,2]
+            True
         """
 
         cdef m4ri_word x = poly_to_word(multiple)
@@ -1089,16 +1081,14 @@ cdef class Matrix_gf2e_dense(matrix_dense.Matrix_dense):
 
             sage: K.<a> = GF(2^3)
             sage: A = random_matrix(K,3,3)
-            sage: A
-            [        a^2       a + 1 a^2 + a + 1]
-            [      a + 1           0           1]
-            [      a + 1     a^2 + 1       a + 1]
-
-            sage: A.swap_rows(0,1); A
-            [      a + 1           0           1]
-            [        a^2       a + 1 a^2 + a + 1]
-            [      a + 1     a^2 + 1       a + 1]
-
+            sage: B = copy(A)
+            sage: B.swap_rows(0,1)
+            sage: B[0] == A[1]
+            True
+            sage: B[1] == A[0]
+            True
+            sage: B[2] == A[2]
+            True
         """
         mzed_row_swap(self._entries, row1, row2)
 
@@ -1115,18 +1105,16 @@ cdef class Matrix_gf2e_dense(matrix_dense.Matrix_dense):
 
             sage: K.<a> = GF(2^3)
             sage: A = random_matrix(K,3,3)
-            sage: A
-            [        a^2       a + 1 a^2 + a + 1]
-            [      a + 1           0           1]
-            [      a + 1     a^2 + 1       a + 1]
-
-            sage: A.swap_columns(0,1); A
-            [      a + 1         a^2 a^2 + a + 1]
-            [          0       a + 1           1]
-            [    a^2 + 1       a + 1       a + 1]
+            sage: B = copy(A)
+            sage: B.swap_columns(0,1)
+            sage: B.column(0) == A.column(1)
+            True
+            sage: B.column(1) == A.column(0)
+            True
+            sage: B.column(2) == A.column(2)
+            True
 
             sage: A = random_matrix(K,4,16)
-
             sage: B = copy(A)
             sage: B.swap_columns(0,1)
             sage: B.swap_columns(0,1)
@@ -1155,25 +1143,12 @@ cdef class Matrix_gf2e_dense(matrix_dense.Matrix_dense):
             sage: K.<a> = GF(2^4)
             sage: MS = MatrixSpace(K,3,3)
             sage: A = random_matrix(K,3,3)
-            sage: B = A.augment(MS(1)); B
-            [              a^2       a^3 + a + 1 a^3 + a^2 + a + 1                 1                 0                 0]
-            [            a + 1               a^3                 1                 0                 1                 0]
-            [      a^3 + a + 1     a^3 + a^2 + 1             a + 1                 0                 0                 1]
-
-            sage: B.echelonize(); B
-            [                1                 0                 0           a^2 + a           a^3 + 1           a^3 + a]
-            [                0                 1                 0     a^3 + a^2 + a a^3 + a^2 + a + 1           a^2 + a]
-            [                0                 0                 1             a + 1               a^3               a^3]
-
-            sage: C = B.matrix_from_columns([3,4,5]); C
-            [          a^2 + a           a^3 + 1           a^3 + a]
-            [    a^3 + a^2 + a a^3 + a^2 + a + 1           a^2 + a]
-            [            a + 1               a^3               a^3]
-
-            sage: C == ~A
+            sage: B = A.augment(MS(1))
+            sage: B.echelonize()
+            sage: C = B.matrix_from_columns([3,4,5])
+            sage: A.rank() < 3 or C == ~A
             True
-
-            sage: C*A == MS(1)
+            sage: A.rank() < 3 or C*A == MS(1)
             True
 
         TESTS::
@@ -1181,13 +1156,11 @@ cdef class Matrix_gf2e_dense(matrix_dense.Matrix_dense):
             sage: K.<a> = GF(2^4)
             sage: A = random_matrix(K,2,3)
             sage: B = random_matrix(K,2,0)
-            sage: A.augment(B)
-            [          a^3 + 1       a^3 + a + 1 a^3 + a^2 + a + 1]
-            [          a^2 + a           a^2 + 1           a^2 + a]
+            sage: A.augment(B) == A
+            True
 
-            sage: B.augment(A)
-            [          a^3 + 1       a^3 + a + 1 a^3 + a^2 + a + 1]
-            [          a^2 + a           a^2 + 1           a^2 + a]
+            sage: B.augment(A) == A
+            True
 
             sage: M = Matrix(K, 0, 0, 0)
             sage: N = Matrix(K, 0, 19, 0)
@@ -1216,50 +1189,38 @@ cdef class Matrix_gf2e_dense(matrix_dense.Matrix_dense):
         A._entries = mzed_concat(A._entries, self._entries, right._entries)
         return A
 
-    def stack(self, Matrix_gf2e_dense other):
-        """
-        Stack ``self`` on top of ``other``.
+    cdef _stack_impl(self, bottom):
+        r"""
+        Stack ``self`` on top of ``bottom``.
 
         INPUT:
 
-        - ``other`` - a matrix
+        - ``bottom`` -- a matrix with the same number of columns as ``self``
 
         EXAMPLES::
 
             sage: K.<a> = GF(2^4)
-            sage: A = random_matrix(K,2,2); A
-            [              a^2       a^3 + a + 1]
-            [a^3 + a^2 + a + 1             a + 1]
-
-            sage: B = random_matrix(K,2,2); B
-            [          a^3             1]
-            [  a^3 + a + 1 a^3 + a^2 + 1]
-
-            sage: A.stack(B)
-            [              a^2       a^3 + a + 1]
-            [a^3 + a^2 + a + 1             a + 1]
-            [              a^3                 1]
-            [      a^3 + a + 1     a^3 + a^2 + 1]
-
-            sage: B.stack(A)
-            [              a^3                 1]
-            [      a^3 + a + 1     a^3 + a^2 + 1]
-            [              a^2       a^3 + a + 1]
-            [a^3 + a^2 + a + 1             a + 1]
+            sage: A = random_matrix(K,2,2)
+            sage: B = random_matrix(K,2,2)
+            sage: C = A.stack(B)
+            sage: C[:2] == A
+            True
+            sage: C[2:] == B
+            True
+            sage: D = B.stack(A)
+            sage: D[:2] == B
+            True
+            sage: D[2:] == A
+            True
 
         TESTS::
 
             sage: A = random_matrix(K,0,3)
             sage: B = random_matrix(K,3,3)
-            sage: A.stack(B)
-            [            a + 1           a^3 + 1       a^3 + a + 1]
-            [a^3 + a^2 + a + 1           a^2 + a           a^2 + 1]
-            [          a^2 + a     a^3 + a^2 + a           a^2 + 1]
-
-            sage: B.stack(A)
-            [            a + 1           a^3 + 1       a^3 + a + 1]
-            [a^3 + a^2 + a + 1           a^2 + a           a^2 + 1]
-            [          a^2 + a     a^3 + a^2 + a           a^2 + 1]
+            sage: A.stack(B) == B
+            True
+            sage: B.stack(A) == B
+            True
 
             sage: M = Matrix(K, 0, 0, 0)
             sage: N = Matrix(K, 19, 0, 0)
@@ -1270,9 +1231,17 @@ cdef class Matrix_gf2e_dense(matrix_dense.Matrix_dense):
             sage: N = Matrix(K, 1, 0, 0)
             sage: M.stack(N)
             []
+
+        Check that we can stack a vector (:trac:`31708`)::
+
+            sage: R.<a> = GF(2^3)
+            sage: M = matrix(R, [[1,1],[0,a+1]])
+            sage: M.stack(vector(R, [a,0]))
+            [    1     1]
+            [    0 a + 1]
+            [    a     0]
         """
-        if self._ncols != other._ncols:
-            raise TypeError("Both numbers of columns must match.")
+        cdef Matrix_gf2e_dense other = <Matrix_gf2e_dense> bottom
 
         if self._nrows == 0:
             return other.__copy__()
@@ -1280,7 +1249,7 @@ cdef class Matrix_gf2e_dense(matrix_dense.Matrix_dense):
             return self.__copy__()
 
         cdef Matrix_gf2e_dense A
-        A = self.new_matrix(nrows = self._nrows + other._nrows)
+        A = self.new_matrix(nrows=self._nrows + other._nrows)
         if self._ncols == 0:
             return A
         A._entries = mzed_stack(A._entries, self._entries, other._entries)
@@ -1378,19 +1347,6 @@ cdef class Matrix_gf2e_dense(matrix_dense.Matrix_dense):
         self.cache('rank', r)
         return r
 
-    def __hash__(self):
-        """
-        EXAMPLES::
-
-            sage: K.<a> = GF(2^4)
-            sage: A = random_matrix(K, 1000, 1000)
-            sage: A.set_immutable()
-            sage: {A:1} #indirect doctest
-            {1000 x 1000 dense matrix over Finite Field in a of size 2^4: 1}
-
-        """
-        return self._hash()
-
     def __reduce__(self):
         """
         EXAMPLES::
@@ -1437,51 +1393,21 @@ cdef class Matrix_gf2e_dense(matrix_dense.Matrix_dense):
         EXAMPLES::
 
             sage: K.<a> = GF(2^2)
-            sage: A = random_matrix(K, 5, 5); A
-            [    0 a + 1 a + 1 a + 1     0]
-            [    1 a + 1     1 a + 1     1]
-            [a + 1 a + 1     a     1     a]
-            [    a     1 a + 1     1     0]
-            [    a     1 a + 1 a + 1     0]
-
-            sage: A1,A0 = A.slice()
-            sage: A0
-            [0 1 1 1 0]
-            [0 1 0 1 0]
-            [1 1 1 0 1]
-            [1 0 1 0 0]
-            [1 0 1 1 0]
-
-            sage: A1
-            [0 1 1 1 0]
-            [1 1 1 1 1]
-            [1 1 0 1 0]
-            [0 1 1 1 0]
-            [0 1 1 1 0]
-
-            sage: A0[2,4]*a + A1[2,4], A[2,4]
-            (a, a)
+            sage: A = random_matrix(K, 5, 5)
+            sage: A0, A1 = A.slice()
+            sage: all(A.list()[i] == A0.list()[i] + a*A1.list()[i] for i in range(25))
+            True
 
             sage: K.<a> = GF(2^3)
-            sage: A = random_matrix(K, 5, 5); A
-            [      a + 1     a^2 + a           1           a     a^2 + a]
-            [      a + 1     a^2 + a         a^2         a^2     a^2 + 1]
-            [a^2 + a + 1 a^2 + a + 1           0 a^2 + a + 1     a^2 + 1]
-            [    a^2 + a           0 a^2 + a + 1           a           a]
-            [        a^2       a + 1           a     a^2 + 1 a^2 + a + 1]
-
-            sage: A0,A1,A2 = A.slice()
-            sage: A0
-            [1 0 1 0 0]
-            [1 0 0 0 1]
-            [1 1 0 1 1]
-            [0 0 1 0 0]
-            [0 1 0 1 1]
+            sage: A = random_matrix(K, 5, 5)
+            sage: A0, A1, A2 = A.slice()
+            sage: all(A.list()[i] == A0.list()[i] + a*A1.list()[i] + a^2*A2.list()[i] for i in range(25))
+            True
 
         Slicing and clinging are inverse operations::
 
             sage: B = matrix(K, 5, 5)
-            sage: B.cling(A0,A1,A2)
+            sage: B.cling(A0, A1, A2)
             sage: B == A
             True
         """
@@ -1530,33 +1456,15 @@ cdef class Matrix_gf2e_dense(matrix_dense.Matrix_dense):
 
             sage: K.<a> = GF(2^2)
             sage: A = matrix(K, 5, 5)
-            sage: A0 = random_matrix(GF(2), 5, 5); A0
-            [0 1 0 1 1]
-            [0 1 1 1 0]
-            [0 0 0 1 0]
-            [0 1 1 0 0]
-            [0 0 0 1 1]
-
-            sage: A1 = random_matrix(GF(2), 5, 5); A1
-            [0 0 1 1 1]
-            [1 1 1 1 0]
-            [0 0 0 1 1]
-            [1 0 0 0 1]
-            [1 0 0 1 1]
-
-            sage: A.cling(A1, A0); A
-            [    0     a     1 a + 1 a + 1]
-            [    1 a + 1 a + 1 a + 1     0]
-            [    0     0     0 a + 1     1]
-            [    1     a     a     0     1]
-            [    1     0     0 a + 1 a + 1]
-
-            sage: A0[0,3]*a + A1[0,3], A[0,3]
-            (a + 1, a + 1)
+            sage: A0 = random_matrix(GF(2), 5, 5)
+            sage: A1 = random_matrix(GF(2), 5, 5)
+            sage: A.cling(A0, A1)
+            sage: all(A.list()[i] == A0.list()[i] + a*A1.list()[i] for i in range(25))
+            True
 
         Slicing and clinging are inverse operations::
 
-            sage: B1, B0 = A.slice()
+            sage: B0, B1 = A.slice()
             sage: B0 == A0 and B1 == A1
             True
 
@@ -1625,7 +1533,7 @@ def unpickle_matrix_gf2e_dense_v0(Matrix_mod2_dense a, base_ring, nrows, ncols):
 
     We can still unpickle pickles from before :trac:`19240`::
 
-        sage: old_pickle = 'x\x9c\x85RKo\xd3@\x10\xae\xdd$$\xdb&\xe5U\x1e-\x8f\xc2\xc9\x12RD#$\xce\xa0\xb4\x80\x07\xa2\xca\xc2\x07\x0e\xd5\xe2:\x1b\xdb\x8acg\x1c\xa7J\x85*!\xa4\x90\xe6\x07p\xe0\xc4\x01q\xe5\xc4\x19\xf5\xd0?\xc1\x81\xdf\x80\xb8q\x0b\xb3\x8eMS\xa1\x82V;;\xb3\xdf\xce\xf7\xcd\x8e\xe6\xb5j\xf7,GT;V\x1cy\x83\xf4\xe0\x9d\xb0Y\x13\xbc)\x82\x9e`\xfd\xa0\xeb\xd9m_\xf0\xbf1\xbe{\x97\xa1\xa2\x9d\xc6\xf0\x0f\x82,\x7f\x9d\xa1\xaa\x81\n\xb9m\x9c\xd7\xf4\xf1d2\x81-h\xc0#(\x03\x83\x15\xdas\xc9*\xc3\x13x\x0cu0\xd28\x97\x9e*(0\x9f\xfa\x1b\xd0\xd2\x7fH\x82\xb5\xf4\xa2@TO\xe19\x01I\xac\x136\x991\x9f\xa4\xf9&\xcd\x07i\xbe\xcb\xd4ib\t\xba\xa4\xf6\x02zIT\xd1\x8f2(u\x15\xfd\x9d<\xee@\x05V\xd3\x94E*\xb0\x0e\x0fH\xad\xa8\xbf\x97\xa0\r\x03\xfd\xf0\xb8\x1aU\xff\x92\x90\xe8?\xa5\xd6\x814_\xa5\xf9(\xcd\xafc\xe99\xe2\xd9\xa0\x06\xd4\xf5\xcf\xf2\xf2!\xbc\xd4\xdf\x90#\xc0\x8f\r\xccM\x1b\xdd\x8b\xa3\xbe\x1d\xf7#QmYv\x1cF{\xcc\x11\x81\x88<\x9b\xa71\xcf:\xce0\xaf\x9d\x96\xe3\x87a\xbb\xdf\xe5\x8e\x1f\xeeX>\xc3\x82\xb9\xb0\xe9\x05^,6=\xe17\xf1\xcc\xd0\xc0"u\xb0d\xe6wDl\xdd\x1fa)e\x8a\xbc\xc0\xe9U\xbd \x16\x8e\x88X\xc7j\x0b\x9e\x05\xc8L\xe5\x1e%.\x98\x8a5\xc4\xc5\xd9\xf7\xdd\xd0\xdf\x0b\xc2\x8eg\xf93.wZ\xb5\xc1\x94B\xf8\xa2#\x82\x98a\xf9\xffY\x12\xe3v\x18L\xff\x14Fl\xeb\x0ff\x10\xc4\xb0\xa2\xb9y\xcd-\xba%\xcd\xa5\x8ajT\xd1\x92\xa9\x0c\x86x\xb6a\xe6h\xf8\x02<g\xaa\xaf\xf6\xdd%\x89\xae\x13z\xfe \xc6\x0b\xfb1^4p\x99\x1e6\xc6\xd4\xebK\xdbx\xf9\xc4\x8f[Iw\xf8\x89\xef\xcbQf\xcfh\xe3\x95\x8c\xebj&\xb9\xe2.\x8f\x0c\\ui\x89\xf1x\xf4\xd6\xc0kf\xc1\xf1v\xad(\xc4\xeb\x89~\xfa\xf0\x06\xa8\xa4\x7f\x93\xf4\xd7\x0c\xbcE#\xad\x92\xfc\xed\xeao\xefX\\\x03'
+        sage: old_pickle = b'x\x9c\x85RKo\xd3@\x10\xae\xdd$$\xdb&\xe5U\x1e-\x8f\xc2\xc9\x12RD#$\xce\xa0\xb4\x80\x07\xa2\xca\xc2\x07\x0e\xd5\xe2:\x1b\xdb\x8acg\x1c\xa7J\x85*!\xa4\x90\xe6\x07p\xe0\xc4\x01q\xe5\xc4\x19\xf5\xd0?\xc1\x81\xdf\x80\xb8q\x0b\xb3\x8eMS\xa1\x82V;;\xb3\xdf\xce\xf7\xcd\x8e\xe6\xb5j\xf7,GT;V\x1cy\x83\xf4\xe0\x9d\xb0Y\x13\xbc)\x82\x9e`\xfd\xa0\xeb\xd9m_\xf0\xbf1\xbe{\x97\xa1\xa2\x9d\xc6\xf0\x0f\x82,\x7f\x9d\xa1\xaa\x81\n\xb9m\x9c\xd7\xf4\xf1d2\x81-h\xc0#(\x03\x83\x15\xdas\xc9*\xc3\x13x\x0cu0\xd28\x97\x9e*(0\x9f\xfa\x1b\xd0\xd2\x7fH\x82\xb5\xf4\xa2@TO\xe19\x01I\xac\x136\x991\x9f\xa4\xf9&\xcd\x07i\xbe\xcb\xd4ib\t\xba\xa4\xf6\x02zIT\xd1\x8f2(u\x15\xfd\x9d<\xee@\x05V\xd3\x94E*\xb0\x0e\x0fH\xad\xa8\xbf\x97\xa0\r\x03\xfd\xf0\xb8\x1aU\xff\x92\x90\xe8?\xa5\xd6\x814_\xa5\xf9(\xcd\xafc\xe99\xe2\xd9\xa0\x06\xd4\xf5\xcf\xf2\xf2!\xbc\xd4\xdf\x90#\xc0\x8f\r\xccM\x1b\xdd\x8b\xa3\xbe\x1d\xf7#QmYv\x1cF{\xcc\x11\x81\x88<\x9b\xa71\xcf:\xce0\xaf\x9d\x96\xe3\x87a\xbb\xdf\xe5\x8e\x1f\xeeX>\xc3\x82\xb9\xb0\xe9\x05^,6=\xe17\xf1\xcc\xd0\xc0"u\xb0d\xe6wDl\xdd\x1fa)e\x8a\xbc\xc0\xe9U\xbd \x16\x8e\x88X\xc7j\x0b\x9e\x05\xc8L\xe5\x1e%.\x98\x8a5\xc4\xc5\xd9\xf7\xdd\xd0\xdf\x0b\xc2\x8eg\xf93.wZ\xb5\xc1\x94B\xf8\xa2#\x82\x98a\xf9\xffY\x12\xe3v\x18L\xff\x14Fl\xeb\x0ff\x10\xc4\xb0\xa2\xb9y\xcd-\xba%\xcd\xa5\x8ajT\xd1\x92\xa9\x0c\x86x\xb6a\xe6h\xf8\x02<g\xaa\xaf\xf6\xdd%\x89\xae\x13z\xfe \xc6\x0b\xfb1^4p\x99\x1e6\xc6\xd4\xebK\xdbx\xf9\xc4\x8f[Iw\xf8\x89\xef\xcbQf\xcfh\xe3\x95\x8c\xebj&\xb9\xe2.\x8f\x0c\\ui\x89\xf1x\xf4\xd6\xc0kf\xc1\xf1v\xad(\xc4\xeb\x89~\xfa\xf0\x06\xa8\xa4\x7f\x93\xf4\xd7\x0c\xbcE#\xad\x92\xfc\xed\xeao\xefX\\\x03'
         sage: loads(old_pickle)
         [    0     a]
         [a + 1     1]

@@ -18,3 +18,18 @@ cdef class InfinityCrystalOfTableauxElement(CrystalOfTableauxElement):
 
 cdef class InfinityCrystalOfTableauxElementTypeD(InfinityCrystalOfTableauxElement):
     pass
+
+cdef class TensorProductOfSuperCrystalsElement(TensorProductOfRegularCrystalsElement):
+    pass
+
+cdef class CrystalOfBKKTableauxElement(TensorProductOfSuperCrystalsElement):
+    pass
+
+cdef class TensorProductOfQueerSuperCrystalsElement(TensorProductOfRegularCrystalsElement):
+    pass
+
+cdef class InfinityQueerCrystalOfTableauxElement(TensorProductOfQueerSuperCrystalsElement):
+    cdef list _row_lengths
+
+cdef Py_ssize_t count_leading(list row, letter)
+

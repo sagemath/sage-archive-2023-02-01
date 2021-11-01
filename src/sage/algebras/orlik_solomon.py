@@ -2,7 +2,7 @@ r"""
 Orlik-Solomon Algebras
 """
 
-#*****************************************************************************
+# ****************************************************************************
 #       Copyright (C) 2015 William Slofstra
 #                          Travis Scrimshaw <tscrimsh at umn.edu>
 #
@@ -10,13 +10,14 @@ Orlik-Solomon Algebras
 # it under the terms of the GNU General Public License as published by
 # the Free Software Foundation, either version 2 of the License, or
 # (at your option) any later version.
-#                  http://www.gnu.org/licenses/
-#*****************************************************************************
+#                  https://www.gnu.org/licenses/
+# ****************************************************************************
 
 from sage.misc.cachefunc import cached_method
 from sage.combinat.free_module import CombinatorialFreeModule
 from sage.categories.algebras import Algebras
 from sage.sets.family import Family
+
 
 class OrlikSolomonAlgebra(CombinatorialFreeModule):
     r"""
@@ -161,7 +162,7 @@ class OrlikSolomonAlgebra(CombinatorialFreeModule):
             sage: OS._repr_term(frozenset([0]))
             'OS{0}'
         """
-        return "OS{{{}}}".format(str(list(m))[1:-1])
+        return "OS{{{}}}".format(', '.join(str(t) for t in sorted(m)))
 
     def _repr_(self):
         """
@@ -193,7 +194,7 @@ class OrlikSolomonAlgebra(CombinatorialFreeModule):
 
     @cached_method
     def algebra_generators(self):
-        """
+        r"""
         Return the algebra generators of ``self``.
 
         These form a family indexed by the ground set `X` of `M`. For
@@ -221,7 +222,7 @@ class OrlikSolomonAlgebra(CombinatorialFreeModule):
 
     @cached_method
     def product_on_basis(self, a, b):
-        """
+        r"""
         Return the product in ``self`` of the basis elements
         indexed by ``a`` and ``b``.
 
@@ -252,7 +253,7 @@ class OrlikSolomonAlgebra(CombinatorialFreeModule):
         subset `S = \{ s_1 < s_2 < \cdots < s_k \}` of the ground set::
 
             sage: G = Graph([[1,2],[1,2],[2,3],[3,4],[4,2]], multiedges=True)
-            sage: M = Matroid(G)
+            sage: M = Matroid(G).regular_matroid()
             sage: E = M.groundset_list()
             sage: OS = M.orlik_solomon_algebra(ZZ)
             sage: G = OS.algebra_generators()
@@ -284,7 +285,7 @@ class OrlikSolomonAlgebra(CombinatorialFreeModule):
 
             return R(coeff) * self.subset_image(ns)
 
-        # r is the accumalator
+        # r is the accumulator
         # we reverse a in the product, so add a sign
         # note that l>=2 here
         if len(a) % 4 < 2:
@@ -343,18 +344,18 @@ class OrlikSolomonAlgebra(CombinatorialFreeModule):
             sage: OS.subset_image(frozenset([(1,2),(3,4),(1,4),(2,3)]))
             0
             sage: OS.subset_image(frozenset([(2,3),(1,2),(3,4)]))
-            OS{(1, 2), (3, 4), (2, 3)}
+            OS{(1, 2), (2, 3), (3, 4)}
             sage: OS.subset_image(frozenset([(1,4),(3,4),(2,3),(3,6),(5,6)]))
-            -OS{(1, 2), (5, 6), (2, 3), (1, 4), (3, 6)}
-             + OS{(1, 2), (5, 6), (3, 4), (1, 4), (3, 6)}
-             - OS{(1, 2), (5, 6), (3, 4), (2, 3), (3, 6)}
+            -OS{(1, 2), (1, 4), (2, 3), (3, 6), (5, 6)}
+             + OS{(1, 2), (1, 4), (3, 4), (3, 6), (5, 6)}
+             - OS{(1, 2), (2, 3), (3, 4), (3, 6), (5, 6)}
             sage: OS.subset_image(frozenset([(1,4),(3,4),(2,3),(3,6),(3,5)]))
-            OS{(1, 2), (5, 6), (2, 3), (1, 4), (3, 5)}
-             - OS{(1, 2), (5, 6), (2, 3), (1, 4), (3, 6)}
-             + OS{(1, 2), (5, 6), (3, 4), (1, 4), (3, 5)}
-             + OS{(1, 2), (5, 6), (3, 4), (1, 4), (3, 6)}
-             - OS{(1, 2), (5, 6), (3, 4), (2, 3), (3, 5)}
-             - OS{(1, 2), (5, 6), (3, 4), (2, 3), (3, 6)}
+            OS{(1, 2), (1, 4), (2, 3), (3, 5), (5, 6)}
+             - OS{(1, 2), (1, 4), (2, 3), (3, 6), (5, 6)}
+             + OS{(1, 2), (1, 4), (3, 4), (3, 5), (5, 6)}
+             + OS{(1, 2), (1, 4), (3, 4), (3, 6), (5, 6)}
+             - OS{(1, 2), (2, 3), (3, 4), (3, 5), (5, 6)}
+             - OS{(1, 2), (2, 3), (3, 4), (3, 6), (5, 6)}
 
         TESTS::
 
@@ -426,8 +427,8 @@ class OrlikSolomonAlgebra(CombinatorialFreeModule):
                     if j == i:
                         switch = True
                 return r
-        else: # So ``S`` is an NBC set.
-            return self.monomial(S)
+        # So ``S`` is an NBC set.
+        return self.monomial(S)
 
     def degree_on_basis(self, m):
         """

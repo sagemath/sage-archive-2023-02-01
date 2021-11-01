@@ -21,14 +21,13 @@ AUTHORS:
 - MuPAD-Combinat developers (algorithms and design inspiration)
 - Travis Scrimshaw (2013-02-03): Removed ``CombinatorialClass``
 """
-#*****************************************************************************
+# ****************************************************************************
 #       Copyright (C) 2007 Mike Hansen       <mhansen@gmail.com>
 #                     2009 Nicolas M. Thiery <nthiery at users.sf.net>
 #
 #  Distributed under the terms of the GNU General Public License (GPL)
-#              http://www.gnu.org/licenses/
-#*****************************************************************************
-from __future__ import absolute_import
+#              https://www.gnu.org/licenses/
+# ****************************************************************************
 
 from sage.categories.infinite_enumerated_sets import InfiniteEnumeratedSets
 from sage.categories.finite_enumerated_sets import FiniteEnumeratedSets
@@ -40,7 +39,6 @@ from .combinat import CombinatorialElement
 from sage.categories.cartesian_product import cartesian_product
 
 from .integer_lists import IntegerListsLex
-from six.moves import builtins
 from sage.rings.integer import Integer
 from sage.combinat.combinatorial_map import combinatorial_map
 
@@ -197,7 +195,7 @@ class Composition(CombinatorialElement):
 
         EXAMPLES::
 
-            sage: loads("x\x9ck`J.NLO\xd5K\xce\xcfM\xca\xccK,\x011\n\xf2\x8b3K2\xf3\xf3\xb8\x9c\x11\xec\xf8\xe4\x9c\xc4\xe2b\xaeBF\xcd\xc6B\xa6\xdaBf\x8dP\xd6\xf8\x8c\xc4\xe2\x8cB\x16? +'\xb3\xb8\xa4\x905\xb6\x90M\x03bZQf^z\xb1^f^Ijzj\x11Wnbvj<\x8cS\xc8\x1e\xcah\xd8\x1aT\xc8\x91\x01d\x18\x01\x19\x9c\x19P\x11\xae\xd4\xd2$=\x00eW0g")
+            sage: loads(b"x\x9ck`J.NLO\xd5K\xce\xcfM\xca\xccK,\x011\n\xf2\x8b3K2\xf3\xf3\xb8\x9c\x11\xec\xf8\xe4\x9c\xc4\xe2b\xaeBF\xcd\xc6B\xa6\xdaBf\x8dP\xd6\xf8\x8c\xc4\xe2\x8cB\x16? +'\xb3\xb8\xa4\x905\xb6\x90M\x03bZQf^z\xb1^f^Ijzj\x11Wnbvj<\x8cS\xc8\x1e\xcah\xd8\x1aT\xc8\x91\x01d\x18\x01\x19\x9c\x19P\x11\xae\xd4\xd2$=\x00eW0g")
             [1, 2, 1]
             sage: loads(dumps( Composition([1,2,1]) ))  # indirect doctest
             [1, 2, 1]
@@ -253,7 +251,7 @@ class Composition(CombinatorialElement):
 
         cocjg = []
         for i in range(n-1):
-            cocjg += [i+1 for _ in range(0, (coofcp[n-i-1]-coofcp[n-i-2]))]
+            cocjg += [i + 1 for _ in range(coofcp[n-i-1]-coofcp[n-i-2])]
         cocjg += [n for j in range(coofcp[0])]
 
         return self.parent()([cocjg[0]] + [cocjg[i]-cocjg[i-1]+1 for i in range(1,len(cocjg))])
@@ -706,8 +704,6 @@ class Composition(CombinatorialElement):
             ....:                 for I in Compositions(n) )
             sage: all( test_meet(n) for n in range(1, 5) )
             True
-            sage: all( test_meet(n) for n in range(5, 9) )  # long time
-            True
 
         TESTS::
 
@@ -858,11 +854,11 @@ class Composition(CombinatorialElement):
             sage: c.fatten(Composition([3,1,1])).__class__ == c.__class__
             True
         """
-        result = [None] * len(grouping)
+        result = []
         j = 0
-        for i in range(len(grouping)):
-            result[i] = sum(self[j:j+grouping[i]])
-            j += grouping[i]
+        for gi in grouping:
+            result.append(sum(self[j:j + gi]))
+            j += gi
         return Compositions()(result)
 
     def fatter(self):
@@ -1084,10 +1080,10 @@ class Composition(CombinatorialElement):
         size `n = 8`::
 
             sage: n = 8
-            sage: all(Composition(from_subset=(S, n)).to_subset() == S \
+            sage: all(Composition(from_subset=(S, n)).to_subset() == S
             ....:     for S in Subsets(n-1))
             True
-            sage: all(Composition(from_subset=(I.to_subset(), n)) == I \
+            sage: all(Composition(from_subset=(I.to_subset(), n)) == I
             ....:     for I in Compositions(n))
             True
         """
@@ -1192,7 +1188,7 @@ class Composition(CombinatorialElement):
             sum_outer += k - overlap
             inner.append(sum_outer + overlap)
 
-        if self != []:
+        if self:
             outer.append(self[-1] + sum_outer + overlap)
         else:
             return SkewPartition([[],[]])
@@ -1200,7 +1196,6 @@ class Composition(CombinatorialElement):
         return SkewPartition(
             [ [x for x in reversed(outer) if x != 0],
               [x for x in reversed(inner) if x != 0] ])
-
 
     def shuffle_product(self, other, overlap=False):
         r"""
@@ -1226,7 +1221,7 @@ class Composition(CombinatorialElement):
 
         OUTPUT:
 
-        An enumerated set (allowing for mutliplicities)
+        An enumerated set (allowing for multiplicities)
 
         EXAMPLES:
 
@@ -1252,23 +1247,26 @@ class Composition(CombinatorialElement):
         composition more than once since a composition can be a shuffle of two
         compositions in several ways. For example::
 
-            sage: S = Composition([1]).shuffle_product([1]); S
+            sage: w1 = Composition([1])
+            sage: S = w1.shuffle_product(w1); S
             Shuffle product of [1] and [1]
             sage: S.list()
             [[1, 1], [1, 1]]
-            sage: O = Composition([1]).shuffle_product([1], overlap=True); O
+            sage: O = w1.shuffle_product(w1, overlap=True); O
             Overlapping shuffle product of [1] and [1]
             sage: O.list()
             [[1, 1], [1, 1], [2]]
 
         TESTS::
 
-            sage: Composition([]).shuffle_product([]).list()
+            sage: empty = Composition([])
+            sage: empty.shuffle_product(empty).list()
             [[]]
         """
         if overlap:
-            from sage.combinat.words.shuffle_product import ShuffleProduct_overlapping
-            return ShuffleProduct_overlapping(self, other)
+            from sage.combinat.shuffle import ShuffleProduct_overlapping
+            return ShuffleProduct_overlapping(self, other,
+                                              Compositions())
         else:
             from sage.combinat.words.shuffle_product import ShuffleProduct_w1w2
             return ShuffleProduct_w1w2(self, other)
@@ -1668,7 +1666,7 @@ class Compositions(UniqueRepresentation, Parent):
         """
         if isinstance(x, Composition):
             return True
-        elif isinstance(x, builtins.list):
+        elif isinstance(x, list):
             for i in x:
                 if (not isinstance(i, (int, Integer))) and i not in ZZ:
                     return False
@@ -1939,11 +1937,11 @@ class Compositions_n(Compositions):
             1
         """
         if self.n >= 1:
-            return 2**(self.n-1)
+            return ZZ(2) ** (self.n-1)
         elif self.n == 0:
-            return 1
+            return ZZ(1)
         else:
-            return 0
+            return ZZ(0)
 
     def random_element(self):
         r"""
@@ -2018,6 +2016,5 @@ def composition_iterator_fast(n):
         else:
             cur.append(Integer(0))
 
-from sage.structure.sage_object import register_unpickle_override
+from sage.misc.persist import register_unpickle_override
 register_unpickle_override('sage.combinat.composition', 'Composition_class', Composition)
-

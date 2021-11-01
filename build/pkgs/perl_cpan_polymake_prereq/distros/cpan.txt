@@ -1,0 +1,6 @@
+XML::Writer
+XML::LibXML
+XML::LibXSLT
+File::Slurp
+JSON
+SVG

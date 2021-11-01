@@ -16,14 +16,6 @@ General Infrastructure
 Programming Utilities
 ---------------------
 
-Python 2 and 3 Compatibility
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-.. toctree::
-   :maxdepth: 1
-
-   sage/misc/six
-
 Special Base Classes, Decorators, etc.
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
@@ -35,11 +27,11 @@ Special Base Classes, Decorators, etc.
    sage/misc/decorators
    sage/misc/constant_function
    sage/misc/classcall_metaclass
-   sage/misc/cython_metaclass
    sage/misc/inherit_comparison
    sage/misc/method_decorator
    sage/misc/object_multiplexer
    sage/misc/fast_methods
+   sage/misc/call
 
 Lists and Iteration, etc.
 ~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -51,11 +43,11 @@ Lists and Iteration, etc.
    sage/misc/converting_dict
    sage/misc/flatten
    sage/misc/search
-   sage/misc/sage_itertools
    sage/misc/mrange
    sage/misc/multireplace
    sage/misc/map_threaded
    sage/arith/srange
+   sage/misc/element_with_label
 
 File and OS Access
 ~~~~~~~~~~~~~~~~~~
@@ -105,8 +97,9 @@ Miscellaneous Useful Functions
 
    sage/misc/misc
    sage/misc/misc_c
+   sage/misc/verbose
 
-Lazyness
+Laziness
 ~~~~~~~~
 
 .. toctree::
@@ -154,7 +147,6 @@ Code Evaluation
 .. toctree::
    :maxdepth: 1
 
-   sage/misc/cython_c
    sage/misc/cython
    sage/misc/inline_fortran
    sage/misc/parser
@@ -176,6 +168,8 @@ Formatted Output
    sage/typeset/character_art_factory
    sage/typeset/ascii_art
    sage/typeset/unicode_art
+   sage/typeset/unicode_characters
+   sage/misc/repr
    sage/misc/sage_input
    sage/misc/table
 
@@ -220,7 +214,6 @@ Interactive Sage Sessions
 .. toctree::
    :maxdepth: 1
 
-   sage/misc/log
    sage/misc/banner
    sage/misc/reset
    sage/misc/viewer
@@ -236,6 +229,14 @@ Distribution
 
    sage/misc/package
    sage/misc/dist
+   sage/features
+   sage/features/bliss
+   sage/features/csdp
+   sage/features/databases
+   sage/features/fes
+   sage/features/gap
+   sage/features/graph_generators
+   sage/features/lrs
 
 Credits
 ~~~~~~~

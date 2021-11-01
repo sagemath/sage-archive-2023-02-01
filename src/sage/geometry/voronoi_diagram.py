@@ -60,7 +60,7 @@ class VoronoiDiagram(SageObject):
     If the vertices are not converted to ``AA`` before, the method throws an error::
 
         sage: polytopes.dodecahedron().vertices_list()[0][0].parent()
-        Number Field in sqrt5 with defining polynomial x^2 - 5
+        Number Field in sqrt5 with defining polynomial x^2 - 5 with sqrt5 = 2.236067977499790?
         sage: VoronoiDiagram(polytopes.dodecahedron().vertices_list())
         Traceback (most recent call last):
         ...
@@ -313,7 +313,7 @@ class VoronoiDiagram(SageObject):
 
         EXAMPLES::
 
-            sage: py_trips = [[a, b] for a in range(1, 50) for b in range(1, 50) if (a^2 + b^2).is_square()]
+            sage: py_trips = [[a, b] for a in range(1, 50) for b in range(1, 50) if ZZ(a^2 + b^2).is_square()]
             sage: v = VoronoiDiagram(py_trips)
             sage: v._are_points_in_regions()
             True

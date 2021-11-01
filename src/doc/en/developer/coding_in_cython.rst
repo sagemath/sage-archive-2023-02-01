@@ -77,40 +77,13 @@ There are several ways to create and build Cython code in Sage.
 
    For example, in order to compile
    ``SAGE_ROOT/src/sage/graphs/chrompoly.pyx``, we see the following
-   lines in ``module_list.py``::
+   lines in ``module_list.py``:
 
-    Extension('sage.graphs.chrompoly',
-              sources = ['sage/graphs/chrompoly.pyx'],
-              libraries = ['gmp']),
+   .. CODE-BLOCK:: python
 
-
-Special Pragmas
-===============
-
-If Cython code is either attached or loaded as a ``.spyx`` file or
-loaded from the notebook as a ``%cython`` block, the following
-pragmas are available:
-
-* clang --- may be either c or c++ indicating whether a C or C++
-  compiler should be used.
-
-* clib --- additional libraries to be linked in, the space separated
-  list is split and passed to distutils.
-
-* cinclude --- additional directories to search for header files. The
-  space separated list is split and passed to distutils.
-
-* cfile -- additional C or C++ files to be compiled
-
-* cargs -- additional parameters passed to the compiler
-
-For example::
-
-    #clang C++
-    #clib givaro
-    #cinclude /usr/local/include/
-    #cargs -ggdb
-    #cfile foo.c
+      Extension('sage.graphs.chrompoly',
+                sources = ['sage/graphs/chrompoly.pyx'],
+                libraries = ['gmp']),
 
 
 Attaching or Loading .spyx Files
@@ -122,7 +95,9 @@ about distutils, etc., is to create a file with the extension
 
 #. Create a file ``power2.spyx``.
 
-#. Put the following in it::
+#. Put the following in it:
+
+   .. CODE-BLOCK:: cython
 
        def is2pow(n):
            while n != 0 and n%2 == 0:
@@ -203,7 +178,9 @@ extension classes you need to write a :meth:`__reduce__` method which typically
 returns a tuple ``(f, args, ...)`` such that ``f(*args)`` returns (a copy of) the
 original object. As an example, the following code snippet is the
 :meth:`~sage.rings.integer.Integer.__reduce__` method from
-:class:`sage.rings.integer.Integer`::
+:class:`sage.rings.integer.Integer`:
+
+.. CODE-BLOCK:: cython
 
     def __reduce__(self):
         '''
@@ -213,7 +190,7 @@ original object. As an example, the following code snippet is the
 
             sage: n = 5
             sage: t = n.__reduce__(); t
-            (<built-in function make_integer>, ('5',))
+            (<cyfunction make_integer at ...>, ('5',))
             sage: t[0](*t[1])
             5
             sage: loads(dumps(n)) == n

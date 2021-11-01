@@ -84,7 +84,7 @@ AUTHORS:
 # 1. Add a new class to Section II below, which you should
 #    do by copying an existing class and modifying it.
 #    Make sure to at least define _eval and _repr_.
-#    NOTES:  (a) define the _eval method only, which you may
+#    NOTE:   (a) define the _eval method only, which you may
 #                assume has as input a *positive* Sage integer (offset > 0).
 #                Each sequence in the OEIS has an offset >= 0, indicating the
 #                value of the first index. The default offset = 1.
@@ -123,10 +123,7 @@ AUTHORS:
 ########################################################################
 
 # just used for handy .load, .save, etc.
-from __future__ import print_function, absolute_import
-from six.moves import range
-from six import integer_types
-
+import sys
 import inspect
 from sage.structure.sage_object import SageObject
 from sage.arith.srange import srange
@@ -136,6 +133,7 @@ from . import partition
 from sage.rings.integer import Integer as Integer_class
 
 Integer = ZZ
+
 
 class SloaneSequence(SageObject):
     r"""
@@ -227,7 +225,7 @@ class SloaneSequence(SageObject):
             ...
             ValueError: input n (=0) must be a positive integer
         """
-        if not isinstance(n, integer_types + (Integer_class,)):
+        if not isinstance(n, (int, Integer_class)):
             raise TypeError("input must be an int or Integer")
         m = ZZ(n)
         if m < self.offset:
@@ -321,16 +319,13 @@ from sage.matrix.matrix_space import MatrixSpace
 from sage.rings.rational_field import QQ
 from sage.combinat import combinat
 from sage.misc.all import prod
-import sage.interfaces.gap as gap
+
 
 # This one should be here!
 class A000001(SloaneSequence):
     def __init__(self):
         r"""
         Number of groups of order `n`.
-
-        Note: The package database_gap must be installed for
-        `n > 50`: run ``sage -i database_gap`` first.
 
         INPUT:
 
@@ -354,7 +349,7 @@ class A000001(SloaneSequence):
             2
             sage: a.list(16)
             [1, 1, 1, 2, 1, 2, 1, 5, 2, 2, 1, 5, 1, 2, 1, 14]
-            sage: a(60)  # optional - database_gap
+            sage: a(60)
             13
 
         AUTHORS:
@@ -379,15 +374,17 @@ class A000001(SloaneSequence):
 
             sage: sloane.A000001._eval(4)
             2
-            sage: sloane.A000001._eval(51) # optional - database_gap
+            sage: sloane.A000001._eval(51)
             1
+            sage: sloane.A000001._eval(5000)
+            Traceback (most recent call last):
+            ...
+            GAPError: Error, the library of groups of size 5000 is not available
         """
         if n <= 50:
-            return self._small[n-1]
-        try:
-            return Integer(gap.gap.eval('NumberSmallGroups(%s)' % n))
-        except Exception:  # help, don't know what to do here? Jaap
-            print("Install database_gap first. See optional packages.")
+            return self._small[n - 1]
+        from sage.libs.gap.libgap import libgap
+        return Integer(libgap.NumberSmallGroups(n))
 
 
 class A000027(SloaneSequence):
@@ -5087,7 +5084,7 @@ class A006882(SloaneSequence):
         self._b += [next(f) for i in range(how_many)]
 
     def df(self):
-        """
+        r"""
         Double factorials n!!: a(n)=n\*a(n-2).
 
         EXAMPLES::
@@ -5612,15 +5609,11 @@ class A001909(ExtremesOfPermanentsSequence):
 
         INPUT:
 
-
-        -  ``n`` - positive integer = 2
-
+        -  ``n`` - positive integer >= 2
 
         OUTPUT:
 
-
         -  ``integer`` - function value
-
 
         EXAMPLES::
 
@@ -5676,15 +5669,11 @@ class A001910(ExtremesOfPermanentsSequence):
 
         INPUT:
 
-
-        -  ``n`` - positive integer = 3
-
+        -  ``n`` - positive integer >= 3
 
         OUTPUT:
 
-
         -  ``integer`` - function value
-
 
         EXAMPLES::
 
@@ -6762,10 +6751,10 @@ class A002275(SloaneSequence):
 
 
 
-# inhomogenous second order recurrences
+# inhomogeneous second order recurrences
 def recur_gen2b(a0,a1,a2,a3,b):
     r"""
-    inhomogenous second-order linear recurrence generator with fixed
+    inhomogeneous second-order linear recurrence generator with fixed
     coefficients and `b = f(n)`
 
     `a(0) = a0`, `a(1) = a1`,
@@ -7615,7 +7604,7 @@ class A001836(SloaneSequence):
 
 # a group of sequences uses this function:
 def recur_gen2(a0,a1,a2,a3):
-    """
+    r"""
     homogeneous general second-order linear recurrence generator with
     fixed coefficients
 
@@ -8619,7 +8608,7 @@ class A061084(SloaneSequence):
 
 # a group of sequences uses this function:
 def recur_gen3(a0,a1,a2,a3,a4,a5):
-    """
+    r"""
     homogeneous general third-order linear recurrence generator with
     fixed coefficients
 
@@ -9020,8 +9009,7 @@ class A109814(SloaneSequence):
 
     .. SEEALSO::
 
-        * `Wikipedia article on polite numbers
-          <http://en.wikipedia.org/wiki/Polite_number>`_.
+        * :wikipedia:`Polite_number`
 
         * `An exercise sheet (with answers) about sums of
           consecutive integers
@@ -9489,18 +9477,13 @@ class A000110(ExponentialNumbers):
             B_n = \sum{k=0}^{n} S(n, k) .
 
 
-
         INPUT:
 
-
-        -  ``n`` - integer = 0
-
+        -  ``n`` - integer >= 0
 
         OUTPUT:
 
-
         -  ``integer`` - `B_n`
-
 
         EXAMPLES::
 
@@ -9549,18 +9532,13 @@ class A000587(ExponentialNumbers):
             C_n = \sum{k=0}^{n} (-1)^k S(n, k) .
 
 
-
         INPUT:
 
-
-        -  ``n`` - integer = 0
-
+        - ``n`` -- integer >= 0
 
         OUTPUT:
 
-
-        -  ``integer`` - `C_n`
-
+        - ``integer`` -- `C_n`
 
         EXAMPLES::
 
@@ -9714,9 +9692,9 @@ class Sloane(SageObject):
         try:
             return self.__trait_names
         except AttributeError:
-            import sage.combinat.sloane_functions
-            xs = inspect.getmembers(sage.combinat.sloane_functions, inspect.isclass)
-            self.__trait_names = [ n for (n, c) in xs if n.startswith('A') and issubclass(c, SloaneSequence) ]
+            xs = inspect.getmembers(sys.modules[__name__], inspect.isclass)
+            self.__trait_names = [n for n, c in xs
+                                  if n.startswith('A') and issubclass(c, SloaneSequence)]
             return self.__trait_names
 
     def __getattribute__(self, name):
@@ -9745,8 +9723,7 @@ class Sloane(SageObject):
             return SageObject.__getattribute__(self, name)
         except AttributeError:
             try:
-                import sage.combinat.sloane_functions
-                f = getattr(sage.combinat.sloane_functions, name)
+                f = getattr(sys.modules[__name__], name)
                 seq = f()
                 setattr(self, name, seq)
                 return seq

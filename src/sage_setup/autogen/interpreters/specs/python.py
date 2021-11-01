@@ -227,13 +227,19 @@ class PythonInterpreter(StackInterpreter):
         self.mc_args = MemoryChunkPythonArguments('args', ty_python)
         self.chunks = [self.mc_args, self.mc_constants, self.mc_stack,
                        self.mc_code]
-        pg = params_gen(A=self.mc_args, C=self.mc_constants, D=self.mc_code,
-                        S=self.mc_stack)
-        self.pg = pg
         self.c_header = ri(0,
             """
             #define CHECK(x) (x != NULL)
             """)
+
+        self.pyx_header = ri(0,
+            """\
+            from cpython.number cimport PyNumber_TrueDivide
+            """)
+
+        pg = params_gen(A=self.mc_args, C=self.mc_constants, D=self.mc_code,
+                        S=self.mc_stack)
+        self.pg = pg
 
         instrs = [
             InstrSpec('load_arg', pg('A[D]', 'S'),
@@ -257,11 +263,17 @@ class PythonInterpreter(StackInterpreter):
                            o0 = PyObject_CallObject(i0, py_args);
                            Py_DECREF(py_args);
                            """))
-            ]
-        for (name, op) in [('add', 'PyNumber_Add'),
-                           ('sub', 'PyNumber_Subtract'),
-                           ('mul', 'PyNumber_Multiply'),
-                           ('div', 'PyNumber_Divide')]:
+        ]
+
+        binops = [
+            ('add', 'PyNumber_Add'),
+            ('sub', 'PyNumber_Subtract'),
+            ('mul', 'PyNumber_Multiply'),
+            ('div', 'PyNumber_TrueDivide'),
+            ('floordiv', 'PyNumber_FloorDivide')
+        ]
+
+        for (name, op) in binops:
             instrs.append(instr_funcall_2args(name, pg('SS', 'S'), op))
         instrs.append(InstrSpec('pow', pg('SS', 'S'),
                                 code='o0 = PyNumber_Power(i0, i1, Py_None);'))

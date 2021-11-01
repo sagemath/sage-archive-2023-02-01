@@ -1,4 +1,4 @@
-""" 
+r"""
 Iwahori-Hecke Algebras
 
 AUTHORS:
@@ -9,14 +9,14 @@ AUTHORS:
   Moved into the category framework and implemented the
   Kazhdan-Lusztig `C` and `C^{\prime}` bases
 """
-#*****************************************************************************
+# ****************************************************************************
 #  Copyright (C) 2013 Brant Jones <brant at math.jmu.edu>
 #                     Daniel Bump <bump at match.stanford.edu>
 #                     Nicolas M. Thiery <nthiery at users.sf.net>
 #
 #  Distributed under the terms of the GNU General Public License (GPL)
-#                  http://www.gnu.org/licenses/
-#*****************************************************************************
+#                  https://www.gnu.org/licenses/
+# ****************************************************************************
 
 from functools import cmp_to_key
 from sage.misc.abstract_method import abstract_method
@@ -24,16 +24,15 @@ from sage.misc.cachefunc import cached_method
 from sage.misc.bindable_class import BindableClass
 from sage.structure.parent import Parent
 from sage.structure.unique_representation import UniqueRepresentation
-from sage.structure.element import parent
 from sage.categories.realizations import Realizations, Category_realization_of_parent
 from sage.categories.all import AlgebrasWithBasis, FiniteDimensionalAlgebrasWithBasis, CoxeterGroups
 from sage.rings.all import ZZ
 from sage.rings.polynomial.laurent_polynomial_ring import LaurentPolynomialRing
-from sage.rings.polynomial.polydict import ETuple
 from sage.arith.all import is_square
-from sage.combinat.root_system.weyl_group import WeylGroup
+from sage.combinat.root_system.coxeter_group import CoxeterGroup
 from sage.combinat.family import Family
 from sage.combinat.free_module import CombinatorialFreeModule
+
 
 def normalized_laurent_polynomial(R, p):
     r"""
@@ -47,14 +46,14 @@ def normalized_laurent_polynomial(R, p):
 
         sage: R.<q>=LaurentPolynomialRing(ZZ)
         sage: [type(c) for c in (q**-1).coefficients()]
-        [<type 'sage.rings.integer.Integer'>]
+        [<class 'sage.rings.integer.Integer'>]
 
     It also happens in any ring when dividing by units::
 
         sage: type ( 3/1 )
-        <type 'sage.rings.rational.Rational'>
+        <class 'sage.rings.rational.Rational'>
         sage: type ( -1/-1 )
-        <type 'sage.rings.rational.Rational'>
+        <class 'sage.rings.rational.Rational'>
 
     This function is a variation on a suggested workaround of Nils Bruin.
 
@@ -62,10 +61,10 @@ def normalized_laurent_polynomial(R, p):
 
         sage: from sage.algebras.iwahori_hecke_algebra import normalized_laurent_polynomial
         sage: type ( normalized_laurent_polynomial(ZZ, 3/1) )
-        <type 'sage.rings.integer.Integer'>
+        <class 'sage.rings.integer.Integer'>
         sage: R.<q>=LaurentPolynomialRing(ZZ)
         sage: [type(c) for c in normalized_laurent_polynomial(R, q**-1).coefficients()]
-        [<type 'sage.rings.integer.Integer'>]
+        [<class 'sage.rings.integer.Integer'>]
         sage: R.<u,v>=LaurentPolynomialRing(ZZ,2)
         sage: p=normalized_laurent_polynomial(R, 2*u**-1*v**-1+u*v)
         sage: ui=normalized_laurent_polynomial(R, u^-1)
@@ -77,7 +76,7 @@ def normalized_laurent_polynomial(R, p):
         u + v^-1 + u^-1
     """
     try:
-        return R({k: R._base(c) for k, c in six.iteritems(p.dict())})
+        return R({k: R._base(c) for k, c in p.dict().items()})
     except (AttributeError, TypeError):
         return R(p)
 
@@ -108,6 +107,7 @@ def index_cmp(x, y):
     if x > y:
         return 1
     return 0
+
 
 sorting_key = cmp_to_key(index_cmp)
 
@@ -153,7 +153,7 @@ class IwahoriHeckeAlgebra(Parent, UniqueRepresentation):
     Iwahori-Hecke algebras are fundamental in many areas of mathematics,
     ranging from the representation theory of Lie groups and quantum groups,
     to knot theory and statistical mechanics. For more information see,
-    for example, [KL79]_, [HKP2010]_, [Jon1987]_ and
+    for example, [KL1979]_, [HKP2010]_, [Jon1987]_ and
     :wikipedia:`Iwahori-Hecke_algebra`.
 
     .. RUBRIC:: Bases
@@ -193,7 +193,7 @@ class IwahoriHeckeAlgebra(Parent, UniqueRepresentation):
     which are uniquely determined by the properties that they are invariant
     under the bar involution on `H` and have triangular transitions matrices
     with polynomial entries of a certain form with the `T`-basis;
-    see [KL79]_ for a precise statement.
+    see [KL1979]_ for a precise statement.
 
     It turns out that the Kazhdan-Lusztig bases can be defined (by
     specialization) in `H` whenever `-q_1 q_2` is a square in the base ring.
@@ -211,9 +211,9 @@ class IwahoriHeckeAlgebra(Parent, UniqueRepresentation):
         sage: elt = Cp[2]*Cp[3]+C[1]; elt
         Cp[2,3] + Cp[1] + (-u*v^-1-u^-1*v)
         sage: c = C(elt); c
-        C[2,3] + C[1] + (u*v^-1+u^-1*v)*C[2] + (u*v^-1+u^-1*v)*C[3] + (u^2*v^-2+2+u^-2*v^2)
+        C[2,3] + C[1] + (u*v^-1+u^-1*v)*C[3] + (u*v^-1+u^-1*v)*C[2] + (u^2*v^-2+2+u^-2*v^2)
         sage: t = T(c); t
-        (u^-2*v^-2)*T[2,3] + (u^-1*v^-1)*T[1] + (u^-2)*T[2] + (u^-2)*T[3] + (-u*v^-1+u^-2*v^2)
+        (u^-2*v^-2)*T[2,3] + (u^-1*v^-1)*T[1] + (u^-2)*T[3] + (u^-2)*T[2] + (-u*v^-1+u^-2*v^2)
         sage: Cp(t)
         Cp[2,3] + Cp[1] + (-u*v^-1-u^-1*v)
         sage: Cp(c)
@@ -233,9 +233,9 @@ class IwahoriHeckeAlgebra(Parent, UniqueRepresentation):
         sage: C(T[1])
         q*C[1] + q^2
         sage: elt = Cp(T[1,2,1]); elt
-        q^3*Cp[1,2,1] - q^2*Cp[1,2] - q^2*Cp[2,1] + q*Cp[1] + q*Cp[2] - 1
+        q^3*Cp[1,2,1] - q^2*Cp[2,1] - q^2*Cp[1,2] + q*Cp[1] + q*Cp[2] - 1
         sage: C(elt)
-        q^3*C[1,2,1] + q^4*C[1,2] + q^4*C[2,1] + q^5*C[1] + q^5*C[2] + q^6
+        q^3*C[1,2,1] + q^4*C[2,1] + q^4*C[1,2] + q^5*C[1] + q^5*C[2] + q^6
 
     With the "normalized presentation", so that `(T_r-q)(T_r+q^{-1}) = 0`::
 
@@ -245,9 +245,9 @@ class IwahoriHeckeAlgebra(Parent, UniqueRepresentation):
         sage: C(T[1])
         C[1] + q
         sage: elt = Cp(T[1,2,1]); elt
-        Cp[1,2,1] - (q^-1)*Cp[1,2] - (q^-1)*Cp[2,1] + (q^-2)*Cp[1] + (q^-2)*Cp[2] - (q^-3)
+        Cp[1,2,1] - (q^-1)*Cp[2,1] - (q^-1)*Cp[1,2] + (q^-2)*Cp[1] + (q^-2)*Cp[2] - (q^-3)
         sage: C(elt)
-        C[1,2,1] + q*C[1,2] + q*C[2,1] + q^2*C[1] + q^2*C[2] + q^3
+        C[1,2,1] + q*C[2,1] + q*C[1,2] + q^2*C[1] + q^2*C[2] + q^3
 
     In the group algebra, so that `(T_r-1)(T_r+1) = 0`::
 
@@ -256,9 +256,9 @@ class IwahoriHeckeAlgebra(Parent, UniqueRepresentation):
         sage: C(T[1])
         C[1] + 1
         sage: Cp(T[1,2,1])
-        Cp[1,2,1] - Cp[1,2] - Cp[2,1] + Cp[1] + Cp[2] - 1
+        Cp[1,2,1] - Cp[2,1] - Cp[1,2] + Cp[1] + Cp[2] - 1
         sage: C(_)
-        C[1,2,1] + C[1,2] + C[2,1] + C[1] + C[2] + 1
+        C[1,2,1] + C[2,1] + C[1,2] + C[1] + C[2] + 1
 
     On the other hand, if the Kazhdan-Lusztig bases are not well-defined (when
     `-q_1 q_2` is not a square), attempting to use the Kazhdan-Lusztig bases
@@ -320,15 +320,15 @@ class IwahoriHeckeAlgebra(Parent, UniqueRepresentation):
         sage: Cp(T1)
         v*Cp[1] - 1
         sage: Cp((v^1 - 1)*T1*T2 - T3)
-        -(v^2-v^3)*Cp[1,2] + (v-v^2)*Cp[1] + (v-v^2)*Cp[2] - v*Cp[3] + v
+        -(v^2-v^3)*Cp[1,2] + (v-v^2)*Cp[1] - v*Cp[3] + (v-v^2)*Cp[2] + v
         sage: C(T1)
         v*C[1] + v^2
         sage: p = C(T2*T3 - v*T1); p
-        v^2*C[2,3] - v^2*C[1] + v^3*C[2] + v^3*C[3] - (v^3-v^4)
+        v^2*C[2,3] - v^2*C[1] + v^3*C[3] + v^3*C[2] - (v^3-v^4)
         sage: Cp(p)
-        v^2*Cp[2,3] - v^2*Cp[1] - v*Cp[2] - v*Cp[3] + (1+v)
+        v^2*Cp[2,3] - v^2*Cp[1] - v*Cp[3] - v*Cp[2] + (1+v)
         sage: Cp(T2*T3 - v*T1)
-        v^2*Cp[2,3] - v^2*Cp[1] - v*Cp[2] - v*Cp[3] + (1+v)
+        v^2*Cp[2,3] - v^2*Cp[1] - v*Cp[3] - v*Cp[2] + (1+v)
 
     In addition to explicitly creating generators, we have two shortcuts to
     basis elements. The first is by using elements of the underlying Coxeter
@@ -426,18 +426,19 @@ class IwahoriHeckeAlgebra(Parent, UniqueRepresentation):
         TESTS::
 
             sage: H = IwahoriHeckeAlgebra("A2", 1)
-            sage: H.coxeter_group() == WeylGroup("A2")
+            sage: W = CoxeterGroup("A2")
+            sage: H.coxeter_group() == W
             True
             sage: H.cartan_type() == CartanType("A2")
             True
             sage: H._q2 == -1
             True
-            sage: H2 = IwahoriHeckeAlgebra(WeylGroup("A2"), QQ(1), base_ring=ZZ)
+            sage: H2 = IwahoriHeckeAlgebra(W, QQ(1), base_ring=ZZ)
             sage: H is H2
             True
         """
         if W not in CoxeterGroups():
-            W = WeylGroup(W)
+            W = CoxeterGroup(W)
         if base_ring is None:
             base_ring = q1.parent()
         else:
@@ -456,7 +457,7 @@ class IwahoriHeckeAlgebra(Parent, UniqueRepresentation):
             sage: TestSuite(H).run()
         """
         self._W = W
-        self._cartan_type = W.cartan_type()
+        self._coxeter_type = W.coxeter_type()
 
         self._q1 = q1
         self._q2 = q2
@@ -464,8 +465,8 @@ class IwahoriHeckeAlgebra(Parent, UniqueRepresentation):
         # Used when multiplying generators: minor speed-up as it avoids the
         # need to constantly add and multiply the parameters when applying the
         # quadratic relation: T^2 = (q1+q2)T - q1*q2
-        self._q_sum = q1+q2
-        self._q_prod = -q1*q2
+        self._q_sum = q1 + q2
+        self._q_prod = -q1 * q2
 
         # If -q1*q2 is a square then it makes sense to talk of he Kazhdan-Lusztig
         # basis of the Iwhaori-Hecke algebra. In this case we set
@@ -484,8 +485,8 @@ class IwahoriHeckeAlgebra(Parent, UniqueRepresentation):
 
         # if 2 is a unit in the base ring then add th A and B bases
         try:
-            base_ring(base_ring.one()/2)
-            self._shorthands.extend(['A','B'])
+            base_ring(base_ring.one() / 2)
+            self._shorthands.extend(['A', 'B'])
         except (TypeError, ZeroDivisionError):
             pass
 
@@ -495,11 +496,11 @@ class IwahoriHeckeAlgebra(Parent, UniqueRepresentation):
             self._category = AlgebrasWithBasis(base_ring)
         Parent.__init__(self, base=base_ring, category=self._category.WithRealizations())
 
-        self._is_generic=False  # needed for initialisation of _KLHeckeBasis
+        self._is_generic = False  # needed for initialisation of _KLHeckeBasis
 
         # The following is used by the bar involution = self._bar_on_coefficients
         try:
-            self._inverse_base_ring_generators = { g: self.base_ring()(g) ** -1
+            self._inverse_base_ring_generators = {g: self.base_ring()(g) ** -1
                     for g in self.base_ring().variable_names()}
         except TypeError:
             self._inverse_base_ring_generators = {}
@@ -512,8 +513,12 @@ class IwahoriHeckeAlgebra(Parent, UniqueRepresentation):
             sage: IwahoriHeckeAlgebra("A2", q1**2, q2**2, base_ring=Frac(R))
             Iwahori-Hecke algebra of type A2 in q1^2,q2^2 over Fraction Field of Multivariate Polynomial Ring in q1, q2 over Rational Field
         """
+        try:
+            ct = self._coxeter_type._repr_(compact=True)
+        except TypeError:
+            ct = repr(self._coxeter_type)
         return "Iwahori-Hecke algebra of type {} in {},{} over {}".format(
-            self._cartan_type._repr_(compact=True), self._q1, self._q2, self.base_ring())
+            ct, self._q1, self._q2, self.base_ring())
 
     def _latex_(self):
         r"""
@@ -533,14 +538,16 @@ class IwahoriHeckeAlgebra(Parent, UniqueRepresentation):
         """
         from sage.misc.latex import latex
         return "\\mathcal{{H}}_{{{},{}}}\\left({}, {}\\right)".format(latex(self._q1),
-                latex(self._q2), latex(self._cartan_type), latex(self.base_ring()))
+                latex(self._q2), latex(self._coxeter_type), latex(self.base_ring()))
 
     def _bar_on_coefficients(self, c):
         r"""
         Given a Laurent polynomial ``c`` return the Laurent polynomial obtained
-        by applying the (generic) bar involution to `c``. This is the ring
-        homomorphism of Laurent polynomial in `ZZ[u,u^{-1},v,v^{-1}]` which
-        sends `u` to `u^{-1}` and `v` to `v^{-1}.
+        by applying the (generic) bar involution to ``c`` .
+
+        This is the ring homomorphism of Laurent polynomials in
+        `\ZZ[u,u^{-1},v,v^{-1}]` which sends `u` to `u^{-1}` and `v`
+        to `v^{-1}.
 
         EXAMPLES::
 
@@ -551,6 +558,17 @@ class IwahoriHeckeAlgebra(Parent, UniqueRepresentation):
         """
         return normalized_laurent_polynomial(self._base, c).substitute(**self._inverse_base_ring_generators)
 
+    def coxeter_type(self):
+        r"""
+        Return the Coxeter type of ``self``.
+
+        EXAMPLES::
+
+            sage: IwahoriHeckeAlgebra("D4", 1).coxeter_type()
+            Coxeter type of ['D', 4]
+        """
+        return self._coxeter_type
+
     def cartan_type(self):
         r"""
         Return the Cartan type of ``self``.
@@ -560,7 +578,10 @@ class IwahoriHeckeAlgebra(Parent, UniqueRepresentation):
             sage: IwahoriHeckeAlgebra("D4", 1).cartan_type()
             ['D', 4]
         """
-        return self._cartan_type
+        try:
+            return self._coxeter_type.cartan_type()
+        except AttributeError:
+            return None
 
     def coxeter_group(self):
         r"""
@@ -569,7 +590,9 @@ class IwahoriHeckeAlgebra(Parent, UniqueRepresentation):
         EXAMPLES::
 
             sage: IwahoriHeckeAlgebra("B2", 1).coxeter_group()
-            Weyl Group of type ['B', 2] (as a matrix group acting on the ambient space)
+            Finite Coxeter group over Number Field in a with defining polynomial x^2 - 2 with a = 1.414213562373095? with Coxeter matrix:
+            [1 4]
+            [4 1]
         """
         return self._W
 
@@ -676,7 +699,8 @@ class IwahoriHeckeAlgebra(Parent, UniqueRepresentation):
                     sage: H.Cp()
                     Iwahori-Hecke algebra of type B2 in 1,-1 over Integer Ring in the Cp-basis
                 """
-                return "%s in the %s-basis"%(self.realization_of(), self._basis_name)
+                return "%s in the %s-basis" % (self.realization_of(),
+                                               self._basis_name)
 
             def __getitem__(self, i):
                 """
@@ -703,7 +727,7 @@ class IwahoriHeckeAlgebra(Parent, UniqueRepresentation):
 
                     sage: H = IwahoriHeckeAlgebra("B2", 1)
                     sage: T = H.T()
-                    sage: G = WeylGroup("B2")
+                    sage: G = H.coxeter_group()
                     sage: T[G.one()]
                     1
                     sage: T[G.simple_reflection(1)]
@@ -888,7 +912,7 @@ class IwahoriHeckeAlgebra(Parent, UniqueRepresentation):
 
         class ElementMethods:
             def bar(self):
-                """
+                r"""
                 Return the bar involution of ``self``.
 
                 The bar involution `\overline{\phantom{x}}` is an antilinear
@@ -916,9 +940,9 @@ class IwahoriHeckeAlgebra(Parent, UniqueRepresentation):
                 Next on a multiple of generators::
 
                     sage: b = (T1*T2*T1).bar(); b
-                    (q^-3)*T[1,2,1] + (q^-3-q^-2)*T[1,2]
-                     + (q^-3-q^-2)*T[2,1] + (q^-3-2*q^-2+q^-1)*T[1]
-                     + (q^-3-2*q^-2+q^-1)*T[2] + (q^-3-2*q^-2+2*q^-1-1)
+                    (q^-3)*T[1,2,1] + (q^-3-q^-2)*T[2,1] + (q^-3-q^-2)*T[1,2]
+                     + (q^-3-2*q^-2+q^-1)*T[1] + (q^-3-2*q^-2+q^-1)*T[2]
+                     + (q^-3-2*q^-2+2*q^-1-1)
                     sage: b.bar() == T1*T2*T1
                     True
 
@@ -934,9 +958,11 @@ class IwahoriHeckeAlgebra(Parent, UniqueRepresentation):
 
                     sage: p = T1*T2 + (1-q+q^-1)*T3 - q^3*T1*T3
                     sage: p.bar()
-                    (q^-2)*T[1,2] - (q^-5)*T[3,1]
-                     - (q^-5-q^-4-q^-2+q^-1)*T[1] + (q^-2-q^-1)*T[2]
-                     - (q^-5-q^-4+q^-2-q^-1-1)*T[3] - (q^-5-2*q^-4+q^-3-1+q)
+                    -(q^-5)*T[3,1] + (q^-2)*T[1,2]
+                     - (q^-5-q^-4-q^-2+q^-1)*T[1]
+                     - (q^-5-q^-4+q^-2-q^-1-1)*T[3]
+                     + (q^-2-q^-1)*T[2]
+                     - (q^-5-2*q^-4+q^-3-1+q)
                     sage: p.bar().bar() == p
                     True
 
@@ -948,11 +974,11 @@ class IwahoriHeckeAlgebra(Parent, UniqueRepresentation):
                     sage: T1,T2,T3 = T.algebra_generators()
                     sage: p = T1*T3 + T2
                     sage: p.bar()
-                        (q1^-2*q2^-2)*T[3,1]
-                      + (-q1^-1*q2^-2+q1^-2*q2^-1)*T[1]
-                      + (q1^-1*q2^-1)*T[2]
-                      + (-q1^-1*q2^-2+q1^-2*q2^-1)*T[3]
-                      + (-q2^-1+q1^-1+q2^-2-2*q1^-1*q2^-1+q1^-2)
+                    (q1^-2*q2^-2)*T[3,1]
+                     + (-q1^-1*q2^-2+q1^-2*q2^-1)*T[1]
+                     + (-q1^-1*q2^-2+q1^-2*q2^-1)*T[3]
+                     + (q1^-1*q2^-1)*T[2]
+                     + (-q2^-1+q1^-1+q2^-2-2*q1^-1*q2^-1+q1^-2)
                     sage: p.bar().bar() == p
                     True
 
@@ -996,8 +1022,9 @@ class IwahoriHeckeAlgebra(Parent, UniqueRepresentation):
                 if B.bar_on_basis is NotImplemented:
                     T = B.realization_of().T()
                     return B(T(self).bar())
-                H=B.realization_of()
-                return sum(H._bar_on_coefficients(c) *  B.bar_on_basis(w) for (w,c) in self)
+                H = B.realization_of()
+                return sum(H._bar_on_coefficients(c) * B.bar_on_basis(w)
+                           for (w, c) in self)
 
             def hash_involution(self):
                 r"""
@@ -1009,7 +1036,7 @@ class IwahoriHeckeAlgebra(Parent, UniqueRepresentation):
                 (-q_1 q_2)^{-\ell(w)} T_w`, for `w` an element of the
                 corresponding Coxeter group.
 
-                This map is defined in [KL79]_ and it is used to
+                This map is defined in [KL1979]_ and it is used to
                 change between the `C` and `C^{\prime}` bases because
                 `\alpha(C_w) = (-1)^{\ell(w)} C_w'`.
 
@@ -1034,7 +1061,7 @@ class IwahoriHeckeAlgebra(Parent, UniqueRepresentation):
                     sage: Cp = H.Cp()
                     sage: p = Cp[1]*Cp[3] + Cp[2]
                     sage: q = p.hash_involution(); q
-                    Cp[3,1] - (v^-1+v)*Cp[1] - Cp[2] - (v^-1+v)*Cp[3] + (v^-2+v^-1+2+v+v^2)
+                    Cp[3,1] - (v^-1+v)*Cp[1] - (v^-1+v)*Cp[3] - Cp[2] + (v^-2+v^-1+2+v+v^2)
                     sage: q.hash_involution() == p
                     True
 
@@ -1043,7 +1070,7 @@ class IwahoriHeckeAlgebra(Parent, UniqueRepresentation):
                     sage: C = H.C()
                     sage: p = C[1]*C[3] + C[2]
                     sage: q = p.hash_involution(); q
-                    C[3,1] + (v^-1+v)*C[1] - C[2] + (v^-1+v)*C[3] + (v^-2-v^-1+2-v+v^2)
+                    C[3,1] + (v^-1+v)*C[1] + (v^-1+v)*C[3] - C[2] + (v^-2-v^-1+2-v+v^2)
                     sage: q.hash_involution() == p
                     True
                 """
@@ -1053,7 +1080,7 @@ class IwahoriHeckeAlgebra(Parent, UniqueRepresentation):
                     return basis(T(self).hash_involution())
 
                 H = basis.realization_of()
-                return basis(sum(H._bar_on_coefficients(c) * basis.hash_involution_on_basis(w) for (w,c) in self))
+                return basis(sum(H._bar_on_coefficients(c) * basis.hash_involution_on_basis(w) for (w, c) in self))
 
             def goldman_involution(self):
                 r"""
@@ -1128,7 +1155,7 @@ class IwahoriHeckeAlgebra(Parent, UniqueRepresentation):
                 """
                 basis = self.parent()
                 if hasattr(basis, 'goldman_involution_on_basis'):
-                    return basis.sum(c * basis.goldman_involution_on_basis(w) for (w,c) in self)
+                    return basis.sum(c * basis.goldman_involution_on_basis(w) for (w, c) in self)
 
                 T = basis.realization_of().T()
                 return basis(T(self).goldman_involution())
@@ -1174,7 +1201,6 @@ class IwahoriHeckeAlgebra(Parent, UniqueRepresentation):
                     sage: selt.specialize_to(GA, 1)
                     T[1,2,1] + 3*T[1] + T[3]
                 """
-                hecke = self.parent().realization_of()
                 q1 = new_hecke._q1
                 q2 = new_hecke._q2
                 new_basis = getattr(new_hecke, self.parent()._basis_name)()
@@ -1186,11 +1212,11 @@ class IwahoriHeckeAlgebra(Parent, UniqueRepresentation):
                 elif num_vars == 1:
                     args = (q1,)
                 else:
-                    return new_basis._from_dict(dict( (w, new_hecke._base(c))
-                                                     for (w,c) in self ))
+                    return new_basis._from_dict({w: new_hecke._base(c)
+                                                 for w, c in self})
 
-                new_coeff = lambda c: new_hecke._base(c(args))
-                return new_basis._from_dict(dict( (w, new_coeff(c)) for (w,c) in self ))
+                return new_basis._from_dict({w: new_hecke._base(c(args))
+                                             for w, c in self})
 
     class _Basis(CombinatorialFreeModule, BindableClass):
         r"""
@@ -1240,9 +1266,9 @@ class IwahoriHeckeAlgebra(Parent, UniqueRepresentation):
                 'T[1,2,3]'
             """
             redword = t.reduced_word()
-            if len(redword) == 0:
+            if not redword:
                 return "1"
-            return self._print_options['prefix'] + '[%s]'%','.join('%d'%i for i in redword)
+            return self._print_options['prefix'] + '[%s]' % ','.join('%d' % i for i in redword)
 
         def _latex_term(self, t):
             r"""
@@ -1257,14 +1283,17 @@ class IwahoriHeckeAlgebra(Parent, UniqueRepresentation):
                 'T_{1}T_{2}T_{3}'
             """
             redword = t.reduced_word()
-            if len(redword) == 0:
+            if not redword:
                 return '1'
-            return ''.join("%s_{%d}"%(self._print_options['prefix'], i) for i in redword)
+            return ''.join("%s_{%d}" % (self._print_options['prefix'], i)
+                           for i in redword)
 
         def product_on_basis(self, w1, w2):
             r"""
-            Return the product of the two  basis elements indexed by ``w1`` and
-            ``w2``. The computation is actually done by converting to the
+            Return the product of the two basis elements indexed by ``w1`` and
+            ``w2``.
+
+            The computation is actually done by converting to the
             `T`-basis, multiplying and then converting back.
 
             EXAMPLES::
@@ -1322,7 +1351,7 @@ class IwahoriHeckeAlgebra(Parent, UniqueRepresentation):
             T[1,2,3,1,2,1]
             sage: T = H.T(prefix="s")
             sage: T.an_element()
-            2*s[1,2,3,2,1] + 3*s[1,2,3,1] + s[1,2,3] + 1
+            s[1,2,3] + 2*s[1] + 3*s[2] + 1
 
         TESTS::
 
@@ -1384,7 +1413,7 @@ class IwahoriHeckeAlgebra(Parent, UniqueRepresentation):
                 i1 = normalized_laurent_polynomial(A._base, A._q1 ** -1)
                 i2 = normalized_laurent_polynomial(A._base, A._q2 ** -1)
             except Exception:
-                raise ValueError("%s and %s must be invertible."%(A._q1, A._q2))
+                raise ValueError("%s and %s must be invertible" % (A._q1, A._q2))
             return (-i1*i2)*self.algebra_generator(i)+(i1+i2)
 
         @cached_method
@@ -1465,11 +1494,12 @@ class IwahoriHeckeAlgebra(Parent, UniqueRepresentation):
                 sage: [T.product_by_generator_on_basis(w, 1, side="left") for w in [s1,s2,s1*s2]]
                 [(q-1)*T[1] + q, T[1,2], (q-1)*T[1,2] + q*T[2]]
             """
-            wi = w.apply_simple_reflection(i, side = side)
+            wi = w.apply_simple_reflection(i, side=side)
             A = self.realization_of()
-            if w.has_descent(i, side = side):
+            if w.has_descent(i, side=side):
                 # 10% faster than a plain addition on the example of #12528
-                return self.sum_of_terms(((w , A._q_sum), (wi, A._q_prod)), distinct=True)
+                return self.sum_of_terms(((w, A._q_sum), (wi, A._q_prod)),
+                                         distinct=True)
             else:
                 return self.monomial(wi)
 
@@ -1488,7 +1518,7 @@ class IwahoriHeckeAlgebra(Parent, UniqueRepresentation):
                 [(q-1)*T[1] + q, T[1,2]]
             """
             return self.linear_combination((self.product_by_generator_on_basis(w, i, side), c)
-                                           for (w,c) in x)
+                                           for (w, c) in x)
 
         def to_C_basis(self, w):
             r"""
@@ -1511,7 +1541,7 @@ class IwahoriHeckeAlgebra(Parent, UniqueRepresentation):
                 sage: C(T(s1*s2)+T(s1)+T(s2)+1)
                 v^2*C[1,2] + (v+v^3)*C[1] + (v+v^3)*C[2] + (1+2*v^2+v^4)
                 sage: C(T(s1*s2*s1))
-                v^3*C[1,2,1] + v^4*C[1,2] + v^4*C[2,1] + v^5*C[1] + v^5*C[2] + v^6
+                v^3*C[1,2,1] + v^4*C[2,1] + v^4*C[1,2] + v^5*C[1] + v^5*C[2] + v^6
             """
             H = self.realization_of()
             generic_T = H._generic_iwahori_hecke_algebra.T()
@@ -1538,7 +1568,7 @@ class IwahoriHeckeAlgebra(Parent, UniqueRepresentation):
                 sage: Cp(T(s1*s2)+T(s1)+T(s2)+1)
                 v^2*Cp[1,2]
                 sage: Cp(T(s1*s2*s1))
-                v^3*Cp[1,2,1] - v^2*Cp[1,2] - v^2*Cp[2,1] + v*Cp[1] + v*Cp[2] - 1
+                v^3*Cp[1,2,1] - v^2*Cp[2,1] - v^2*Cp[1,2] + v*Cp[1] + v*Cp[2] - 1
             """
             H = self.realization_of()
             generic_T = H._generic_iwahori_hecke_algebra.T()
@@ -1556,14 +1586,10 @@ class IwahoriHeckeAlgebra(Parent, UniqueRepresentation):
                 sage: s1,s2,s3 = W.simple_reflections()
                 sage: T = H.T()
                 sage: b = T.bar_on_basis(s1*s2*s3); b
-                (v^-6)*T[1,2,3]
-                 + (v^-6-v^-4)*T[1,2]
-                 + (v^-6-v^-4)*T[3,1]
-                 + (v^-6-v^-4)*T[2,3]
-                 + (v^-6-2*v^-4+v^-2)*T[1]
-                 + (v^-6-2*v^-4+v^-2)*T[2]
-                 + (v^-6-2*v^-4+v^-2)*T[3]
-                 + (v^-6-3*v^-4+3*v^-2-1)
+                (v^-6)*T[1,2,3] + (v^-6-v^-4)*T[3,1]
+                 + (v^-6-v^-4)*T[1,2] + (v^-6-v^-4)*T[2,3]
+                 + (v^-6-2*v^-4+v^-2)*T[1] + (v^-6-2*v^-4+v^-2)*T[3]
+                 + (v^-6-2*v^-4+v^-2)*T[2] + (v^-6-3*v^-4+3*v^-2-1)
                 sage: b.bar()
                 T[1,2,3]
             """
@@ -1575,11 +1601,11 @@ class IwahoriHeckeAlgebra(Parent, UniqueRepresentation):
 
             The hash involution `\alpha` is a `\ZZ`-algebra
             involution of the Iwahori-Hecke algebra determined by
-            `q^{1/2} \mapsto q^{-1/2}`, and `T_w \mapsto 
+            `q^{1/2} \mapsto q^{-1/2}`, and `T_w \mapsto
             (-q_1 q_2)^{-\ell(w)} T_w`, for `w` an element of the
             corresponding Coxeter group.
 
-            This map is defined in [KL79]_ and it is used to change between
+            This map is defined in [KL1979]_ and it is used to change between
             the `C` and `C^{\prime}` bases because
             `\alpha(C_w) = (-1)^{\ell(w)}C^{\prime}_w`.
 
@@ -1611,7 +1637,7 @@ class IwahoriHeckeAlgebra(Parent, UniqueRepresentation):
             indexed by ``w``.
 
             The goldman involution is the algebra involution of the
-            Iwahori-Hecke algebra determined by 
+            Iwahori-Hecke algebra determined by
 
             .. MATH::
 
@@ -1638,16 +1664,17 @@ class IwahoriHeckeAlgebra(Parent, UniqueRepresentation):
                 -T[1] - (1-v^2)
                 sage: h = T[1]*T[2] + (v^3 - v^-1 + 2)*T[3,1,2,3]
                 sage: h.goldman_involution()
-                -(v^-1-2-v^3)*T[1,2,3,2] - (v^-1-2-v+2*v^2-v^3+v^5)*T[1,2,3]
+                -(v^-1-2-v^3)*T[1,2,3,2]
                  - (v^-1-2-v+2*v^2-v^3+v^5)*T[3,1,2]
+                 - (v^-1-2-v+2*v^2-v^3+v^5)*T[1,2,3]
                  - (v^-1-2-v+2*v^2-v^3+v^5)*T[2,3,2]
-                 - (v^-1-3-2*v+4*v^2-2*v^4+2*v^5-v^7)*T[1,2]
                  - (v^-1-2-2*v+4*v^2-2*v^4+2*v^5-v^7)*T[3,1]
-                 - (v^-1-2-2*v+4*v^2-2*v^4+2*v^5-v^7)*T[2,3]
+                 - (v^-1-3-2*v+4*v^2-2*v^4+2*v^5-v^7)*T[1,2]
                  - (v^-1-2-2*v+4*v^2-2*v^4+2*v^5-v^7)*T[3,2]
-                 - (v^-1-3-2*v+5*v^2+v^3-4*v^4+v^5+2*v^6-2*v^7+v^9)*T[1]
-                 - (v^-1-3-3*v+7*v^2+2*v^3-6*v^4+2*v^5+2*v^6-3*v^7+v^9)*T[2]
+                 - (v^-1-2-2*v+4*v^2-2*v^4+2*v^5-v^7)*T[2,3]
+                - (v^-1-3-2*v+5*v^2+v^3-4*v^4+v^5+2*v^6-2*v^7+v^9)*T[1]
                  - (v^-1-2-3*v+6*v^2+2*v^3-6*v^4+2*v^5+2*v^6-3*v^7+v^9)*T[3]
+                 - (v^-1-3-3*v+7*v^2+2*v^3-6*v^4+2*v^5+2*v^6-3*v^7+v^9)*T[2]
                  - (v^-1-3-3*v+8*v^2+3*v^3-9*v^4+6*v^6-3*v^7-2*v^8+3*v^9-v^11)
                 sage: h.goldman_involution().goldman_involution() == h
                 True
@@ -1672,7 +1699,7 @@ class IwahoriHeckeAlgebra(Parent, UniqueRepresentation):
                 sage: R.<q1,q2> = QQ[]
                 sage: H = IwahoriHeckeAlgebra("A2", q1, q2=q2).T(prefix="x")
                 sage: sum(H.algebra_generators())^2
-                x[1,2] + x[2,1] + (q1+q2)*x[1] + (q1+q2)*x[2] + (-2*q1*q2)
+                x[2,1] + x[1,2] + (q1+q2)*x[1] + (q1+q2)*x[2] + (-2*q1*q2)
 
                 sage: H = IwahoriHeckeAlgebra("A2", q1, q2=q2).T(prefix="t")
                 sage: t1,t2 = H.algebra_generators()
@@ -1733,7 +1760,7 @@ class IwahoriHeckeAlgebra(Parent, UniqueRepresentation):
                     (q^-2)*T[2,1] + (q^-2-q^-1)*T[1] + (q^-2-q^-1)*T[2] + (q^-2-2*q^-1+1)
                 """
                 if len(self) != 1:
-                    raise NotImplementedError("inverse only implemented for basis elements (monomials in the generators)"%self)
+                    raise NotImplementedError("inverse only implemented for basis elements (monomials in the generators)" % self)
                 H = self.parent()
                 w = self.support_of_term()
 
@@ -1761,12 +1788,13 @@ class IwahoriHeckeAlgebra(Parent, UniqueRepresentation):
                 sage: C = H.C()
             """
             if IHAlgebra._root is None:
-                raise ValueError('The Kazhdan_Lusztig bases are defined only when -q_1*q_2 is a square')
+                raise ValueError('The Kazhdan_Lusztig bases are defined '
+                                 'only when -q_1*q_2 is a square')
 
             if IHAlgebra._is_generic:
-                klbasis=IwahoriHeckeAlgebra_nonstandard._KLHeckeBasis
+                klbasis = IwahoriHeckeAlgebra_nonstandard._KLHeckeBasis
             else:
-                klbasis=IwahoriHeckeAlgebra._KLHeckeBasis
+                klbasis = IwahoriHeckeAlgebra._KLHeckeBasis
             super(klbasis, self).__init__(IHAlgebra, prefix)
 
             # Define conversion from the KL-basis to the T-basis via
@@ -1846,7 +1874,7 @@ class IwahoriHeckeAlgebra(Parent, UniqueRepresentation):
 
             C^{\prime}_s = (-q_1 q_2)^{-1/2} (T_s + 1).
 
-        See [KL79]_ for more details.
+        See [KL1979]_ for more details.
 
         EXAMPLES::
 
@@ -1862,7 +1890,7 @@ class IwahoriHeckeAlgebra(Parent, UniqueRepresentation):
             sage: T(Cp(s1))
             (v^-1)*T[1] + (v^-1)
             sage: T(Cp(s1)*Cp(s2)*Cp(s1))
-            (v^-3)*T[1,2,1] + (v^-3)*T[1,2] + (v^-3)*T[2,1]
+            (v^-3)*T[1,2,1] + (v^-3)*T[2,1] + (v^-3)*T[1,2]
              + (v^-3+v^-1)*T[1] + (v^-3)*T[2] + (v^-3+v^-1)
 
         ::
@@ -1916,7 +1944,7 @@ class IwahoriHeckeAlgebra(Parent, UniqueRepresentation):
                 sage: Cp[s].hash_involution()
                 -Cp[1] + (v^-1+v)
             """
-            return (-1)**w.length()*self( self.realization_of().C().monomial(w) )
+            return (-1)**w.length() * self(self.realization_of().C().monomial(w))
 
     C_prime = Cp
 
@@ -1954,7 +1982,7 @@ class IwahoriHeckeAlgebra(Parent, UniqueRepresentation):
 
             C_s = (-q_1 q_2)^{1/2} (1 - (-q_1 q_2)^{-1/2} T_s).
 
-        See [KL79]_ for more details.
+        See [KL1979]_ for more details.
 
         EXAMPLES::
 
@@ -1969,7 +1997,8 @@ class IwahoriHeckeAlgebra(Parent, UniqueRepresentation):
             sage: T(C(s1))
             (v^-1)*T[1] - v
             sage: T(C(s1)*C(s2)*C(s1))
-            (v^-3)*T[1,2,1] - (v^-1)*T[1,2] - (v^-1)*T[2,1] + (v^-1+v)*T[1] + v*T[2] - (v+v^3)
+            (v^-3)*T[1,2,1] - (v^-1)*T[2,1] - (v^-1)*T[1,2]
+             + (v^-1+v)*T[1] + v*T[2] - (v+v^3)
 
         ::
 
@@ -2038,14 +2067,14 @@ class IwahoriHeckeAlgebra(Parent, UniqueRepresentation):
                 sage: C[s].hash_involution()
                 -C[1] - (v^-1+v)
             """
-            return (-1)**w.length()*self( self.realization_of().Cp().monomial(w) )
+            return (-1)**w.length() * self(self.realization_of().Cp().monomial(w))
 
     class A(_Basis):
         r"""
         The `A`-basis of an Iwahori-Hecke algebra.
 
         The `A`-basis of the Iwahori-Hecke algebra is the simplest basis
-        that is invariant under the Goldman involution `\#`, up to sign. 
+        that is invariant under the Goldman involution `\#`, up to sign.
         For `w` in the underlying Coxeter group define:
 
         .. MATH::
@@ -2053,7 +2082,7 @@ class IwahoriHeckeAlgebra(Parent, UniqueRepresentation):
             A_w = T_w + (-1)^{\ell(w)}T_w^{\#}
                 = T_w + (-1)^{\ell(w)}T_{w^{-1}}^{-1}
 
-        This gives a basis of the Iwahori-Hecke algebra whenever 2 is a unit 
+        This gives a basis of the Iwahori-Hecke algebra whenever 2 is a unit
         in the base ring. The `A`-basis induces a `\ZZ / 2\ZZ`-grading
         on the Iwahori-Hecke algebra.
 
@@ -2198,8 +2227,8 @@ class IwahoriHeckeAlgebra(Parent, UniqueRepresentation):
             v^2*Cp[1,2] - (1/2*v+1/2*v^3)*Cp[1]
              - (1/2*v+1/2*v^3)*Cp[2] + (1/2+1/2*v^4)
             sage: Cp(A[1,2,1])
-            v^3*Cp[1,2,1] - (1/2*v^2+1/2*v^4)*Cp[1,2]
-             - (1/2*v^2+1/2*v^4)*Cp[2,1] + (1/2*v+1/2*v^5)*Cp[1]
+            v^3*Cp[1,2,1] - (1/2*v^2+1/2*v^4)*Cp[2,1]
+             - (1/2*v^2+1/2*v^4)*Cp[1,2] + (1/2*v+1/2*v^5)*Cp[1]
              + (1/2*v+1/2*v^5)*Cp[2] - (1/2+1/2*v^6)
 
         TESTS::
@@ -2337,13 +2366,14 @@ class IwahoriHeckeAlgebra_nonstandard(IwahoriHeckeAlgebra):
         TESTS::
 
             sage: H1 = sage.algebras.iwahori_hecke_algebra.IwahoriHeckeAlgebra_nonstandard("A2")
-            sage: H2 = sage.algebras.iwahori_hecke_algebra.IwahoriHeckeAlgebra_nonstandard(WeylGroup("A2"))
+            sage: W = CoxeterGroup("A2")
+            sage: H2 = sage.algebras.iwahori_hecke_algebra.IwahoriHeckeAlgebra_nonstandard(W)
             sage: H1 is H2
             True
         """
         if W not in CoxeterGroups():
-            W = WeylGroup(W)
-        return super(IwahoriHeckeAlgebra_nonstandard, cls).__classcall__(cls,W)
+            W = CoxeterGroup(W)
+        return super(IwahoriHeckeAlgebra_nonstandard, cls).__classcall__(cls, W)
 
     def __init__(self, W):
         r"""
@@ -2353,10 +2383,10 @@ class IwahoriHeckeAlgebra_nonstandard(IwahoriHeckeAlgebra):
             sage: TestSuite(H).run()
         """
         self._W = W
-        self._cartan_type = W.cartan_type()
+        self._coxeter_type = W.coxeter_type()
 
         base_ring = LaurentPolynomialRing(ZZ, 'u,v')
-        u,v = base_ring.gens()
+        u, v = base_ring.gens()
 
         # We don't want to call IwahoriHeckeAlgebra.__init__ because this would
         # try and attach a generic Hecke algebra to this algebra leading to
@@ -2391,15 +2421,21 @@ class IwahoriHeckeAlgebra_nonstandard(IwahoriHeckeAlgebra):
             A generic Iwahori-Hecke algebra of type A2 in u,-u^-1*v^2 over
              Multivariate Laurent Polynomial Ring in u, v over Integer Ring
         """
+        try:
+            ct = self._coxeter_type._repr_(compact=True)
+        except TypeError:
+            ct = repr(self._coxeter_type)
         return "A generic Iwahori-Hecke algebra of type {} in {},{} over {}".format(
-                self._cartan_type._repr_(compact=True), self._q1, self._q2, self.base_ring())
+                ct, self._q1, self._q2, self.base_ring())
 
     def _bar_on_coefficients(self, c):
         r"""
         Given a Laurent polynomial ``c`` return the Laurent polynomial obtained
-        by applying the (generic) bar involution to `c``. This is the ring
-        homomorphism of Laurent polynomial in `ZZ[u,u^{-1},v,v^{-1}]` which
-        sends `u` to `u^{-1}` and `v` to `v^{-1}.
+        by applying the (generic) bar involution to ``c`` .
+
+        This is the ring homomorphism of Laurent polynomials in
+        `\ZZ[u,u^{-1},v,v^{-1}]` which sends `u` to `u^{-1}` and `v`
+        to `v^{-1}.
 
         EXAMPLES::
 
@@ -2411,7 +2447,7 @@ class IwahoriHeckeAlgebra_nonstandard(IwahoriHeckeAlgebra):
             sage: GH._bar_on_coefficients(GH.v_inv)
             v
         """
-        return normalized_laurent_polynomial(self._base,c)(self.u_inv,self.v_inv)
+        return normalized_laurent_polynomial(self._base, c)(self.u_inv, self.v_inv)
 
     class _BasesCategory(IwahoriHeckeAlgebra._BasesCategory):
         """
@@ -2471,9 +2507,11 @@ class IwahoriHeckeAlgebra_nonstandard(IwahoriHeckeAlgebra):
                 root = new_hecke._root
                 # is there an easier way than this to convert the
                 # coefficients to the correct base ring for new_hecke?
-                new_coeff = lambda c: new_hecke._base(normalized_laurent_polynomial(hecke._base, c)(q1,root))
+
+                def new_coeff(c):
+                    return new_hecke._base(normalized_laurent_polynomial(hecke._base, c)(q1, root))
                 new_basis = getattr(new_hecke, self.parent()._basis_name)()
-                return new_basis._from_dict(dict( (w, new_coeff(c)) for (w,c) in self ))
+                return new_basis._from_dict({w: new_coeff(c) for w, c in self})
 
     class T(IwahoriHeckeAlgebra.T):
         r"""
@@ -2498,9 +2536,10 @@ class IwahoriHeckeAlgebra_nonstandard(IwahoriHeckeAlgebra):
                 sage: Cp(T(s1)+1)
                 v*Cp[1] + (-u^-1*v^2+1)
                 sage: Cp(T(s1*s2)+T(s1)+T(s2)+1)
-                v^2*Cp[1,2] + (-u^-1*v^3+v)*Cp[1] + (-u^-1*v^3+v)*Cp[2] + (u^-2*v^4-2*u^-1*v^2+1)
+                v^2*Cp[1,2] + (-u^-1*v^3+v)*Cp[1] + (-u^-1*v^3+v)*Cp[2]
+                 + (u^-2*v^4-2*u^-1*v^2+1)
                 sage: Cp(T(s1*s2*s1))
-                v^3*Cp[1,2,1] + (-u^-1*v^4)*Cp[1,2] + (-u^-1*v^4)*Cp[2,1]
+                v^3*Cp[1,2,1] + (-u^-1*v^4)*Cp[2,1] + (-u^-1*v^4)*Cp[1,2]
                  + (u^-2*v^5)*Cp[1] + (u^-2*v^5)*Cp[2] + (-u^-3*v^6)
             """
             A = self.realization_of()
@@ -2513,7 +2552,7 @@ class IwahoriHeckeAlgebra_nonstandard(IwahoriHeckeAlgebra):
             inp = self.monomial(w)
             result = Cp.zero()
             while inp != T0:
-                (x,c) = inp.trailing_item(key=sorting_key)
+                (x, c) = inp.trailing_item(key=sorting_key)
                 inp = inp - c * A._root**x.length() * Cp.to_T_basis(x)
                 result = result + c * A._root**x.length() * Cp.monomial(x)
 
@@ -2560,12 +2599,12 @@ class IwahoriHeckeAlgebra_nonstandard(IwahoriHeckeAlgebra):
                 sage: C(T(s1*s2)+T(s1)+T(s2)+1)
                 v^2*C[1,2] + (u*v+v)*C[1] + (u*v+v)*C[2] + (u^2+2*u+1)
                 sage: C(T(s1*s2*s1))
-                v^3*C[1,2,1] + u*v^2*C[1,2] + u*v^2*C[2,1] + u^2*v*C[1] + u^2*v*C[2] + u^3
+                v^3*C[1,2,1] + u*v^2*C[2,1] + u*v^2*C[1,2] + u^2*v*C[1] + u^2*v*C[2] + u^3
             """
             H = self.realization_of()
             q_w = (-H._q_prod)**w.length()
             return self.sum_of_terms((v, (-1)**v.length()*q_w*H._bar_on_coefficients(c))
-                                     for (v,c) in self.to_Cp_basis(w))
+                                     for (v, c) in self.to_Cp_basis(w))
 
     class Cp(IwahoriHeckeAlgebra.Cp):
         r"""
@@ -2589,17 +2628,17 @@ class IwahoriHeckeAlgebra_nonstandard(IwahoriHeckeAlgebra):
                 sage: Cp.to_T_basis(s1*s2)
                 (v^-2)*T[1,2] + (u^-1)*T[1] + (u^-1)*T[2] + (u^-2*v^2)
                 sage: Cp.to_T_basis(s1*s2*s1)
-                (v^-3)*T[1,2,1] + (u^-1*v^-1)*T[1,2] + (u^-1*v^-1)*T[2,1]
+                (v^-3)*T[1,2,1] + (u^-1*v^-1)*T[2,1] + (u^-1*v^-1)*T[1,2]
                  + (u^-2*v)*T[1] + (u^-2*v)*T[2] + (u^-3*v^3)
                 sage: T(Cp(s1*s2*s1))
-                (v^-3)*T[1,2,1] + (u^-1*v^-1)*T[1,2] + (u^-1*v^-1)*T[2,1]
+                (v^-3)*T[1,2,1] + (u^-1*v^-1)*T[2,1] + (u^-1*v^-1)*T[1,2]
                  + (u^-2*v)*T[1] + (u^-2*v)*T[2] + (u^-3*v^3)
                 sage: T(Cp(s2*s1*s3*s2))
-                (v^-4)*T[2,3,1,2] + (u^-1*v^-2)*T[1,2,1] + (u^-1*v^-2)*T[3,1,2]
-                 + (u^-1*v^-2)*T[2,3,1] + (u^-1*v^-2)*T[2,3,2] + (u^-2)*T[1,2]
-                 + (u^-2)*T[2,1] + (u^-2)*T[3,1] + (u^-2)*T[2,3]
-                 + (u^-2)*T[3,2] + (u^-3*v^2)*T[1] + (u^-1+u^-3*v^2)*T[2]
-                 + (u^-3*v^2)*T[3] + (u^-2*v^2+u^-4*v^4)
+                (v^-4)*T[2,3,1,2] + (u^-1*v^-2)*T[2,3,1] + (u^-1*v^-2)*T[1,2,1]
+                 + (u^-1*v^-2)*T[3,1,2] + (u^-1*v^-2)*T[2,3,2] + (u^-2)*T[2,1]
+                 + (u^-2)*T[3,1] + (u^-2)*T[1,2] + (u^-2)*T[3,2]
+                 + (u^-2)*T[2,3] + (u^-3*v^2)*T[1] + (u^-3*v^2)*T[3]
+                 + (u^-1+u^-3*v^2)*T[2] + (u^-2*v^2+u^-4*v^4)
             """
             A = self.realization_of()
             T = A.T()
@@ -2611,17 +2650,20 @@ class IwahoriHeckeAlgebra_nonstandard(IwahoriHeckeAlgebra):
             s = w.first_descent()
             ws = w.apply_simple_reflection(s)
 
-            cpw_s = self.to_T_basis(ws) * A.v_inv *(Ts[s] - A._q2*T.one())
+            cpw_s = self.to_T_basis(ws) * A.v_inv * (Ts[s] - A._q2 * T.one())
 
             i = 1
-            key_func = lambda x: sorting_key(x.leading_support())
+
+            def key_func(x):
+                return sorting_key(x.leading_support())
+
             while i < len(cpw_s):
-                (x,c) = sorted(cpw_s.terms(), key=key_func)[i].leading_item()
-                mu=normalized_laurent_polynomial(A._base,c)[0,-x.length()]    # the coefficient of v^-len(x)
-                if mu!=0:
-                    cpw_s-=mu*self.to_T_basis(x)
+                (x, c) = sorted(cpw_s.terms(), key=key_func)[i].leading_item()
+                mu = normalized_laurent_polynomial(A._base, c)[0, -x.length()]    # the coefficient of v^-len(x)
+                if mu != 0:
+                    cpw_s -= mu * self.to_T_basis(x)
                 else:
-                    i+=1
+                    i += 1
 
             return cpw_s
 
@@ -2647,18 +2689,17 @@ class IwahoriHeckeAlgebra_nonstandard(IwahoriHeckeAlgebra):
                 sage: C.to_T_basis(s1*s2)
                 (v^-2)*T[1,2] + (-u*v^-2)*T[1] + (-u*v^-2)*T[2] + (u^2*v^-2)
                 sage: C.to_T_basis(s1*s2*s1)
-                (v^-3)*T[1,2,1] + (-u*v^-3)*T[1,2] + (-u*v^-3)*T[2,1]
+                (v^-3)*T[1,2,1] + (-u*v^-3)*T[2,1] + (-u*v^-3)*T[1,2]
                  + (u^2*v^-3)*T[1] + (u^2*v^-3)*T[2] + (-u^3*v^-3)
                 sage: T(C(s1*s2*s1))
-                (v^-3)*T[1,2,1] + (-u*v^-3)*T[1,2] + (-u*v^-3)*T[2,1]
+                (v^-3)*T[1,2,1] + (-u*v^-3)*T[2,1] + (-u*v^-3)*T[1,2]
                  + (u^2*v^-3)*T[1] + (u^2*v^-3)*T[2] + (-u^3*v^-3)
                 sage: T(C(s2*s1*s3*s2))
-                (v^-4)*T[2,3,1,2] + (-u*v^-4)*T[1,2,1] + (-u*v^-4)*T[3,1,2]
-                 + (-u*v^-4)*T[2,3,1] + (-u*v^-4)*T[2,3,2] + (u^2*v^-4)*T[1,2]
-                 + (u^2*v^-4)*T[2,1] + (u^2*v^-4)*T[3,1] + (u^2*v^-4)*T[2,3]
-                 + (u^2*v^-4)*T[3,2] + (-u^3*v^-4)*T[1]
-                 + (-u^3*v^-4-u*v^-2)*T[2] + (-u^3*v^-4)*T[3]
-                 + (u^4*v^-4+u^2*v^-2)
+                (v^-4)*T[2,3,1,2] + (-u*v^-4)*T[2,3,1] + (-u*v^-4)*T[1,2,1]
+                 + (-u*v^-4)*T[3,1,2] + (-u*v^-4)*T[2,3,2] + (u^2*v^-4)*T[2,1]
+                 + (u^2*v^-4)*T[3,1] + (u^2*v^-4)*T[1,2] + (u^2*v^-4)*T[3,2]
+                 + (u^2*v^-4)*T[2,3] + (-u^3*v^-4)*T[1] + (-u^3*v^-4)*T[3]
+                 + (-u^3*v^-4-u*v^-2)*T[2] + (u^4*v^-4+u^2*v^-2)
             """
             # Treat our index as an index for the C'-basis, convert to the T-basis and
             # then apply the Hecke involution to the result. This gives the
@@ -2666,10 +2707,7 @@ class IwahoriHeckeAlgebra_nonstandard(IwahoriHeckeAlgebra):
             # \tau is the Hecke involution.
             return (-1)**w.length()*self.realization_of().Cp().to_T_basis(w).hash_involution()
 
-from sage.structure.sage_object import register_unpickle_override
 
-import six
-
-
+from sage.misc.persist import register_unpickle_override
 register_unpickle_override('sage.algebras.iwahori_hecke_algebra',
                            'IwahoriHeckeAlgebraT', IwahoriHeckeAlgebra)

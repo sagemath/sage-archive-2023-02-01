@@ -59,24 +59,20 @@ AUTHORS:
 
 """
 
-#*****************************************************************************
+# ****************************************************************************
 #       Copyright (C) 2013-2017 Peter Bruin <P.J.Bruin@math.leidenuniv.nl>
 #
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
 # the Free Software Foundation, either version 2 of the License, or
 # (at your option) any later version.
-#                  http://www.gnu.org/licenses/
-#*****************************************************************************
-
-from __future__ import absolute_import, division, print_function
+#                  https://www.gnu.org/licenses/
+# ****************************************************************************
 
 from cypari2.gen cimport Gen as pari_gen
 from cypari2.pari_instance cimport get_var
 from cypari2.paridecl cimport gel, typ, lg, valp, varn, t_POL, t_SER, t_RFRAC, t_VEC
 from sage.libs.pari.all import pari
-
-from sage.misc.superseded import deprecated_function_alias
 
 from sage.rings.polynomial.polynomial_element cimport Polynomial
 from sage.rings.power_series_ring_element cimport PowerSeries
@@ -400,8 +396,8 @@ cdef class PowerSeries_pari(PowerSeries):
         """
         if len(kwds) >= 1:
             name = self._parent.variable_name()
-            if kwds.has_key(name):  # the series variable is specified by a keyword
-                if len(x) > 0:
+            if name in kwds:  # the series variable is specified by a keyword
+                if len(x):
                     raise ValueError("must not specify %s keyword and positional argument" % name)
                 x = [kwds[name]]
                 del kwds[name]
@@ -429,7 +425,7 @@ cdef class PowerSeries_pari(PowerSeries):
         from sage.rings.padics.padic_generic import pAdicGeneric
         from sage.rings.polynomial.polynomial_ring import PolynomialRing_general
         from sage.rings.power_series_ring import PowerSeriesRing_generic
-        from sage.rings.laurent_series_ring import LaurentSeriesRing_generic
+        from sage.rings.laurent_series_ring import LaurentSeriesRing
         if isinstance(Q, pAdicGeneric):
             # Substitution of p-adic numbers in power series is
             # currently not implemented in PARI (2.8.0-development).
@@ -437,7 +433,7 @@ cdef class PowerSeries_pari(PowerSeries):
             if t <= 0:
                 raise ValueError("can only substitute elements of positive valuation")
             return Q(self.polynomial()(a)).add_bigoh(t * self._prec)
-        elif isinstance(Q, (PowerSeriesRing_generic, LaurentSeriesRing_generic)):
+        elif isinstance(Q, (PowerSeriesRing_generic, LaurentSeriesRing)):
             # In Sage, we want an error to be raised when trying to
             # substitute a series of non-positive valuation, but PARI
             # (2.8.0-development) does not do this.  For example,
@@ -678,7 +674,8 @@ cdef class PowerSeries_pari(PowerSeries):
             g = g.truncate()
         if typ(g.g) == t_POL and varn(g.g) == vn:
             # t_POL has 2 codewords.  Use new_ref instead of g[i] for speed.
-            return [R(g.new_ref(gel(g.g, i))) for i in range(2, lg(g.g))]
+            G = g.fixGEN()
+            return [R(g.new_ref(gel(G, i))) for i in range(2, lg(G))]
         else:
             return [R(g)]
 
@@ -729,6 +726,7 @@ cdef class PowerSeries_pari(PowerSeries):
             return []
 
         cdef pari_gen g = self.g
+        g.fixGEN()
         cdef long l, m
 
         R = self.base_ring()

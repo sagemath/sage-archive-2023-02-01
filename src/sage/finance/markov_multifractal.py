@@ -16,7 +16,6 @@ TESTS::
     sage: loads(dumps(msm)) == msm
     True
 """
-from __future__ import absolute_import
 import math
 
 class MarkovSwitchingMultifractal:
@@ -78,6 +77,18 @@ class MarkovSwitchingMultifractal:
                 self.__b == other.__b and
                 self.__gamma_kbar == other.__gamma_kbar and
                 self.__kbar == other.__kbar)
+
+    def __hash__(self):
+        """
+        Return the hash of ``self``.
+
+        EXAMPLES::
+
+            sage: msm = finance.MarkovSwitchingMultifractal(8,1.4,1.0,0.95,3)
+            sage: H = hash(msm)
+        """
+        return hash((self.__m0, self.__sigma, self.__b, self.__gamma_kbar,
+                     self.__kbar))
 
     def __ne__(self, other):
         """
@@ -211,10 +222,14 @@ class MarkovSwitchingMultifractal:
         EXAMPLES::
 
             sage: msm = finance.MarkovSwitchingMultifractal(8,1.4,1.0,0.95,3)
-            sage: msm.simulation(5)
+            sage: m = msm.simulation(5); m  # random
             [0.0059, -0.0097, -0.0101, -0.0110, -0.0067]
-            sage: msm.simulation(3)
+            sage: len(m)
+            5
+            sage: m = msm.simulation(3); m  # random
             [0.0055, -0.0084, 0.0141]
+            sage: len(m)
+            3
         """
         return self.simulations(n, 1)[0]
 

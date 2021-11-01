@@ -23,11 +23,7 @@ AUTHORS:
 #
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
-from __future__ import print_function
 
-from six.moves import range
-
-from sage.combinat.root_system.cartan_type import CartanType
 from sage.combinat.crystals.tensor_product import TensorProductOfRegularCrystalsElement
 
 class TensorProductOfKirillovReshetikhinTableauxElement(TensorProductOfRegularCrystalsElement):
@@ -220,7 +216,7 @@ class TensorProductOfKirillovReshetikhinTableauxElement(TensorProductOfRegularCr
         EXAMPLES::
 
             sage: KRT = crystals.TensorProductOfKirillovReshetikhinTableaux(['D',4,1], [[2,2]])
-            sage: elt = KRT(pathlist=[[3,2,-1,1]]); elt            
+            sage: elt = KRT(pathlist=[[3,2,-1,1]]); elt
             [[2, 1], [3, -1]]
             sage: elt.classical_weight()
             (0, 1, 1, 0)

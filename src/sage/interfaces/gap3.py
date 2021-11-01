@@ -30,7 +30,7 @@ by hand either of the following two versions of GAP3:
 - or you can download GAP3 from the GAP website below. Since GAP3
   is no longer supported, it may not be easy to install this version.
 
-    http://www.gap-system.org/Gap3/Download3/download.html
+    https://www.gap-system.org/Gap3/Download3/download.html
 
 Changing which GAP3 is used
 ---------------------------
@@ -226,11 +226,12 @@ Controlling variable names used by GAP3::
 #
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
-from __future__ import print_function
 
 from sage.misc.cachefunc import cached_method
 from sage.interfaces.expect import Expect
 from sage.interfaces.gap import Gap_generic, GapElement_generic
+from sage.cpython.string import bytes_to_str
+
 
 # gap3_cmd should point to the gap3 executable
 gap3_cmd = 'gap3'
@@ -302,7 +303,7 @@ class Gap3(Gap_generic):
         self.__gap3_command_string = command
         # Explanation of additional command-line options passed to gap3:
         #
-        #     -p invokes the internal programmatic interace, which is how Sage
+        #     -p invokes the internal programmatic interface, which is how Sage
         #     talks to GAP4. This allows reuse some of the GAP4 interface code.
         #
         #     -y -- sets the number of lines of the terminal; controls how many
@@ -349,8 +350,8 @@ class Gap3(Gap_generic):
         # funny-looking patterns in the interface. We compile the patterns
         # now, and use them later for interpreting interface messages.
         self._compiled_full_pattern = self._expect.compile_pattern_list([
-            '@p\d+\.','@@','@[A-Z]','@[123456!"#$%&][^+]*\+', '@e','@c',
-            '@f','@h','@i','@m','@n','@r','@s\d','@w.*\+','@x','@z'])
+            r'@p\d+\.','@@','@[A-Z]',r'@[123456!"#$%&][^+]*\+', '@e','@c',
+            '@f','@h','@i','@m','@n','@r',r'@s\d',r'@w.*\+','@x','@z'])
         self._compiled_small_pattern = self._expect.compile_pattern_list('@J')
         self._expect.expect("@i")
 
@@ -415,7 +416,8 @@ class Gap3(Gap_generic):
         # detect it. So we test for a syntax error explicitly.
         normal_output, error_output = \
             super(Gap3, self)._execute_line(line, wait_for_prompt=True, expect_eof=False)
-        if normal_output.startswith("Syntax error:"):
+        normal = bytes_to_str(normal_output)
+        if normal.startswith("Syntax error:"):
             normal_output, error_output = "", normal_output
         return (normal_output, error_output)
 
@@ -594,7 +596,7 @@ class Gap3(Gap_generic):
         - Finally, you can download GAP3 from the GAP website below. Since
           GAP3 is no longer an officially supported distribution of GAP, it
           may not be easy to install this version.
-            http://www.gap-system.org/Gap3/Download3/download.html
+            https://www.gap-system.org/Gap3/Download3/download.html
 
     - If you have GAP3 installed, then perhaps it is not configured
       correctly. Sage assumes that you can start GAP3 with the command

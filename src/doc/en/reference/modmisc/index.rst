@@ -23,5 +23,8 @@ Miscellaneous Modular-Form-Related Modules
 
    sage/modular/cusps_nf
 
+   sage/modular/hypergeometric_motive
+
+   sage/modular/multiple_zeta
 
 .. include:: ../footer.txt

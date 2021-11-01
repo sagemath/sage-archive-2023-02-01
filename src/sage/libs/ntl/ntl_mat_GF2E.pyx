@@ -1,3 +1,10 @@
+# distutils: libraries = NTL_LIBRARIES gmp m
+# distutils: extra_compile_args = NTL_CFLAGS
+# distutils: include_dirs = NTL_INCDIR
+# distutils: library_dirs = NTL_LIBDIR
+# distutils: extra_link_args = NTL_LIBEXTRA
+# distutils: language = c++
+
 #*****************************************************************************
 #       Copyright (C) 2005 William Stein <wstein@gmail.com>
 #
@@ -24,6 +31,7 @@
 ##############################################################################
 
 from cysignals.signals cimport sig_on, sig_off
+from sage.ext.cplusplus cimport ccrepr
 
 include 'misc.pxi'
 include 'decl.pxi'
@@ -85,8 +93,8 @@ cdef class ntl_mat_GF2E(object):
         cdef unsigned long _nrows, _ncols
         cdef unsigned long i, j
 
-        import sage.matrix.matrix
-        if sage.matrix.matrix.is_Matrix(nrows):
+        from sage.structure.element import is_Matrix
+        if is_Matrix(nrows):
             _nrows = nrows.nrows()
             _ncols = nrows.ncols()
             v     = nrows.list()
@@ -187,7 +195,7 @@ cdef class ntl_mat_GF2E(object):
             '[[[] [1]]\n[[] [1]]\n]'
         """
         self.c.restore_c()
-        return mat_GF2E_to_PyString(&self.x)
+        return ccrepr(self.x)
 
     def __mul__(ntl_mat_GF2E self, other):
         """
@@ -209,7 +217,7 @@ cdef class ntl_mat_GF2E(object):
         if not isinstance(other, ntl_mat_GF2E):
             other = ntl_mat_GF2E(other, self.c)
         if not self.c is (<ntl_mat_GF2E>other).c:
-            raise ValueError("You can not perform arithmetic with matrices over different fields.")
+            raise ValueError("You cannot perform arithmetic with matrices over different fields.")
         sig_on()
         mat_GF2E_mul(r.x, self.x, (<ntl_mat_GF2E>other).x)
         sig_off()
@@ -235,7 +243,7 @@ cdef class ntl_mat_GF2E(object):
         if not isinstance(other, ntl_mat_GF2E):
             other = ntl_mat_GF2E(other, self.c)
         if not self.c is (<ntl_mat_GF2E>other).c:
-            raise ValueError("You can not perform arithmetic with matrices over different fields.")
+            raise ValueError("You cannot perform arithmetic with matrices over different fields.")
         sig_on()
         mat_GF2E_sub(r.x, self.x, (<ntl_mat_GF2E>other).x)
         sig_off()
@@ -260,7 +268,7 @@ cdef class ntl_mat_GF2E(object):
         if not isinstance(other, ntl_mat_GF2E):
             other = ntl_mat_GF2E(other, self.c)
         if not self.c is (<ntl_mat_GF2E>other).c:
-            raise ValueError("You can not perform arithmetic with matrices over different fields.")
+            raise ValueError("You cannot perform arithmetic with matrices over different fields.")
         sig_on()
         mat_GF2E_add(r.x, self.x, (<ntl_mat_GF2E>other).x)
         sig_off()
@@ -381,7 +389,7 @@ cdef class ntl_mat_GF2E(object):
             raise IndexError("array index out of range")
 
         if not (<ntl_GF2E>x).c is self.c:
-            raise ValueError("You can not assign elements from different fields.")
+            raise ValueError("You cannot assign elements from different fields.")
 
         self.c.restore_c()
 
@@ -472,8 +480,13 @@ cdef class ntl_mat_GF2E(object):
             sage: ctx = ntl.GF2EContext([1,1,0,1,1,0,0,0,1])
             sage: m = ntl.mat_GF2E(ctx, 2,2,[ntl.GF2E_random(ctx) for x in range(2*2)])
             sage: ntl.GF2XHexOutput(0)
-            sage: m.list()
+            sage: l = m.list(); l  # random
             [[1 1 0 0 1 0 1 1], [1 1 1 0 1 1 1], [0 1 1 1 1 0 0 1], [0 1 0 1 1 1]]
+            sage: len(l) == 4
+            True
+            sage: all(a.modulus_context() is ctx for a in l)
+            True
+
         """
         return [self[i,j] for i in range(self.NumRows()) for j in range(self.x.NumCols())]
 
@@ -609,7 +622,7 @@ cdef class ntl_mat_GF2E(object):
 
     def image(self):
         """
-        The rows of X are computed as basis of A's row space.  X is is
+        The rows of X are computed as basis of A's row space.  X is
         row echelon form.
 
         EXAMPLES::
@@ -665,21 +678,39 @@ cdef class ntl_mat_GF2E(object):
             sage: k.<a> = GF(2^4)
             sage: ctx = ntl.GF2EContext(k)
             sage: ntl.GF2XHexOutput(1)
-            sage: A = ntl.mat_GF2E(ctx, 100,100)
-            sage: A.randomize()
-            sage: len([e for e in A.list() if e!=0])
-            9346
+            sage: A = ntl.mat_GF2E(ctx, 100, 100)
+            sage: expected_non_zeros = 100 * 100 * (1 - 1.0/2^4)
+            sage: observed = lambda : len([e for e in A.list() if e!=0])
+            sage: n = 0; s = 0
+            sage: def add_samples():
+            ....:     global n, s, A
+            ....:     for i in range(10):
+            ....:         A.randomize()
+            ....:         n += 1
+            ....:         s += observed() - expected_non_zeros
+
+            sage: add_samples()
+            sage: while abs(s*1.0/n) > 10: add_samples()
+            sage: while abs(s*1.0/n) > 5: add_samples()  # long time
 
             sage: A = ntl.mat_GF2E(ctx, 100,100)
             sage: A.randomize(nonzero=True)
             sage: len([e for e in A.list() if e!=0])
             10000
 
-            sage: A = ntl.mat_GF2E(ctx, 100,100)
-            sage: A.randomize(nonzero=True, density=0.1)
-            sage: len([e for e in A.list() if e!=0])
-            994
+            sage: expected_non_zeros = 1000
+            sage: n = 0; s = 0
+            sage: def add_samples():
+            ....:     global n, s, A
+            ....:     for i in range(10):
+            ....:         A = ntl.mat_GF2E(ctx, 100,100)
+            ....:         A.randomize(nonzero=True, density=0.1)
+            ....:         n += 1
+            ....:         s += observed() - expected_non_zeros
 
+            sage: add_samples()
+            sage: while abs(s*1.0/n) > 10: add_samples()
+            sage: while abs(s*1.0/n) > 5: add_samples()  # long time
         """
         cdef long i,j
         cdef GF2E_c tmp

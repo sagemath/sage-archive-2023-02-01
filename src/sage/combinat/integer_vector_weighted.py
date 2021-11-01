@@ -6,15 +6,14 @@ AUTHORS:
 - Mike Hansen (2007): initial version, ported from MuPAD-Combinat
 - Nicolas M. Thiery (2010-10-30): WeightedIntegerVectors(weights) + cleanup
 """
-#*****************************************************************************
+# ****************************************************************************
 #  Copyright (C) 2007 Mike Hansen <mhansen@gmail.com>
 #                2010 Nicolas M. Thiery <nthiery at users.sf.net>
 #
 #  Distributed under the terms of the GNU General Public License (GPL)
 #
-#                  http://www.gnu.org/licenses/
-#*****************************************************************************
-from __future__ import print_function, absolute_import
+#                  https://www.gnu.org/licenses/
+# ****************************************************************************
 
 from sage.structure.unique_representation import UniqueRepresentation
 from sage.structure.parent import Parent
@@ -52,8 +51,9 @@ class WeightedIntegerVectors(Parent, UniqueRepresentation):
         [8, 0, 0]
         sage: WeightedIntegerVectors(8, [1,1,2]).cardinality()
         25
-        sage: WeightedIntegerVectors(8, [1,1,2]).random_element()
-        [1, 1, 3]
+        sage: w = WeightedIntegerVectors(8, [1,1,2]).random_element()
+        sage: w.parent() is WeightedIntegerVectors(8, [1,1,2])
+        True
 
         sage: WeightedIntegerVectors([1,1,2])
         Integer vectors weighted by [1, 1, 2]
@@ -121,14 +121,23 @@ class WeightedIntegerVectors(Parent, UniqueRepresentation):
         EXAMPLES::
 
             sage: WIV = WeightedIntegerVectors(3, [2,1,1])
-            sage: elt = WIV([1, 2, 0]); elt
-            [1, 2, 0]
+            sage: elt = WIV([1, 1, 0]); elt
+            [1, 1, 0]
             sage: elt.parent() is WIV
             True
+            sage: WIV([1, 1, 0])
+            [1, 1, 0]
+            sage: WIV([1, 2, 0])
+            Traceback (most recent call last):
+            ...
+            ValueError: cannot convert [1, 2, 0] into Integer vectors of 3
+             weighted by [2, 1, 1]
+
         """
         if isinstance(lst, IntegerVector):
             if lst.parent() is self:
                 return lst
+        if lst not in self:
             raise ValueError("cannot convert %s into %s" % (lst, self))
         return self.element_class(self, lst)
 
@@ -351,7 +360,7 @@ def iterator_fast(n, l):
     Test that :trac:`20491` is fixed::
 
         sage: type(list(iterator_fast(2, [2]))[0][0])
-        <type 'sage.rings.integer.Integer'>
+        <... 'sage.rings.integer.Integer'>
     """
     if n < 0:
         return
@@ -388,20 +397,5 @@ def iterator_fast(n, l):
             rem -= cur[-1] * l[k]
 
 
-def WeightedIntegerVectors_nweight(n, weight):
-    """
-    Deprecated in :trac:`12453`. Use :class:`WeightedIntegerVectors` instead.
-
-    EXAMPLES::
-
-        sage: sage.combinat.integer_vector_weighted.WeightedIntegerVectors_nweight(7, [2,2])
-        doctest:...: DeprecationWarning: this class is deprecated. Use WeightedIntegerVectors instead
-        See http://trac.sagemath.org/12453 for details.
-        Integer vectors of 7 weighted by [2, 2]
-    """
-    from sage.misc.superseded import deprecation
-    deprecation(12453, 'this class is deprecated. Use WeightedIntegerVectors instead')
-    return WeightedIntegerVectors(n, weight)
-
-from sage.structure.sage_object import register_unpickle_override
+from sage.misc.persist import register_unpickle_override
 register_unpickle_override('sage.combinat.integer_vector_weighted', 'WeightedIntegerVectors_nweight', WeightedIntegerVectors)

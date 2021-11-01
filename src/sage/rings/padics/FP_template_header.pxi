@@ -25,7 +25,7 @@ AUTHORS:
 include "padic_template_element_header.pxi"
 
 from sage.categories.morphism cimport Morphism
-from sage.rings.morphism cimport RingHomomorphism_coercion, RingMap
+from sage.rings.morphism cimport RingHomomorphism, RingMap
 
 cdef class FPElement(pAdicTemplateElement):
     cdef celement unit
@@ -35,12 +35,12 @@ cdef class FPElement(pAdicTemplateElement):
     cdef int _normalize(self) except -1
     cdef int _set_infinity(self) except -1
 
-cdef class pAdicCoercion_ZZ_FP(RingHomomorphism_coercion):
+cdef class pAdicCoercion_ZZ_FP(RingHomomorphism):
     cdef FPElement _zero
     cdef RingMap _section
 cdef class pAdicConvert_FP_ZZ(RingMap):
     pass
-cdef class pAdicCoercion_QQ_FP(RingHomomorphism_coercion):
+cdef class pAdicCoercion_QQ_FP(RingHomomorphism):
     cdef FPElement _zero
     cdef RingMap _section
 cdef class pAdicConvert_FP_QQ(RingMap):
@@ -48,7 +48,7 @@ cdef class pAdicConvert_FP_QQ(RingMap):
 cdef class pAdicConvert_QQ_FP(Morphism):
     cdef FPElement _zero
     cdef RingMap _section
-cdef class pAdicCoercion_FP_frac_field(RingHomomorphism_coercion):
+cdef class pAdicCoercion_FP_frac_field(RingHomomorphism):
     cdef FPElement _zero
     cdef Morphism _section
 cdef class pAdicConvert_FP_frac_field(Morphism):

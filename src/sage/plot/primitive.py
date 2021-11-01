@@ -19,7 +19,7 @@ Plotting primitives
 #*****************************************************************************
 from sage.misc.fast_methods import WithEqualityById
 from sage.structure.sage_object import SageObject
-from sage.misc.misc import verbose
+from sage.misc.verbose import verbose
 
 class GraphicPrimitive(WithEqualityById, SageObject):
     """
@@ -158,7 +158,8 @@ class GraphicPrimitive(WithEqualityById, SageObject):
             sage: c.options()
             {'thickness': 0.6...}
         """
-        if new_options is not None: self._options = new_options
+        if new_options is not None:
+            self._options = new_options
 
     def options(self):
         """
@@ -179,7 +180,7 @@ class GraphicPrimitive(WithEqualityById, SageObject):
         if do_verify:
             A = self._allowed_options()
             t = False
-            K = A.keys() + ['xmin', 'xmax', 'ymin', 'ymax', 'axes']
+            K = list(A) + ['xmin', 'xmax', 'ymin', 'ymax', 'axes']
             for k in O.keys():
                 if not k in K:
                     do_verify = False

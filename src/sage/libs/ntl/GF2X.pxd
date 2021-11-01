@@ -1,10 +1,7 @@
 from .types cimport GF2X_c, GF2_c, GF2XModulus_c, vec_GF2_c, ZZ_c
 
-cdef extern from "ccobject.h":
-    void GF2X_from_str "_from_str<GF2X>"(GF2X_c* dest, char* s)
-    object GF2X_to_PyString "_to_PyString<GF2X>"(GF2X_c *x)
 
-cdef extern from "sage/libs/ntl/ntlwrap.cpp":
+cdef extern from "ntlwrap.h":
     long *GF2XHexOutput_c "(&GF2X::HexOutput)" # work-around for Cython bug
 
     int GF2X_IsOne "IsOne"(GF2X_c x)
@@ -24,6 +21,7 @@ cdef extern from "sage/libs/ntl/ntlwrap.cpp":
     void GF2X_LeftShift "LeftShift"( GF2X_c r, GF2X_c a, long offset)
     void GF2X_RightShift "RightShift"( GF2X_c r, GF2X_c a, long offset)
 
+    void GF2X_trunc "trunc"(GF2X_c r, GF2X_c a, long n)
     void GF2X_DivRem "DivRem"(GF2X_c q, GF2X_c r, GF2X_c a, GF2X_c b)
     void GF2X_div "div" (GF2X_c q, GF2X_c a, GF2X_c b)
     void GF2X_rem "rem" (GF2X_c r, GF2X_c a, GF2X_c b)
@@ -57,7 +55,6 @@ cdef extern from "sage/libs/ntl/ntlwrap.cpp":
     void GF2X_BuildIrred "BuildIrred" (GF2X_c f, long n)
 
     #### GF2XModulus_c
-    void GF2XModulus_from_str "_from_str<GF2XModulus>"(GF2XModulus_c* dest, char* s)
     void GF2XModulus_build "build"(GF2XModulus_c F, GF2X_c f) # MUST be called before using the modulus
     long GF2XModulus_deg "deg"(GF2XModulus_c F)
 

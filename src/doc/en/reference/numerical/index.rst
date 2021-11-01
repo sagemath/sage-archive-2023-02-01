@@ -13,6 +13,7 @@ Numerical Optimization
    sage/numerical/linear_tensor_constraints
    sage/numerical/optimize
    sage/numerical/interactive_simplex_method
+   sage/numerical/gauss_legendre
 
 Linear Optimization (LP) and Mixed Integer Linear Optimization (MIP) Solver backends
 ------------------------------------------------------------------------------------
@@ -51,6 +52,7 @@ Semidefinite Optimization (SDP) Solver backends
 .. toctree::
    :maxdepth: 1
 
+   sage/numerical/backends/generic_sdp_backend
    sage/numerical/backends/cvxopt_sdp_backend
 
 For more details on CVXOPT, see `CVXOPT documentation <http://cvxopt.org/documentation/index.html>`_.

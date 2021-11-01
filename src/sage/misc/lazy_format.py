@@ -1,7 +1,6 @@
 """
 Lazy format strings
 """
-from __future__ import print_function
 
 
 class LazyFormat(str):
@@ -15,7 +14,7 @@ class LazyFormat(str):
 
     An instance of :class:`LazyFormat` behaves like a usual format
     string, except that the evaluation of the ``__repr__`` method of
-    the formated arguments it postponed until actual printing.
+    the formatted arguments it postponed until actual printing.
 
     EXAMPLES:
 
@@ -105,7 +104,7 @@ class LazyFormat(str):
         TESTS::
 
             sage: from sage.misc.lazy_format import LazyFormat
-            sage: form = LazyFormat("<%s>");
+            sage: form = LazyFormat("<%s>")
             sage: form
             unbound LazyFormat("<%s>")
             sage: print(form)

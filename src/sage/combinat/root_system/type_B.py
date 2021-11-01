@@ -9,8 +9,6 @@ Root system data for type B
 #  Distributed under the terms of the GNU General Public License (GPL)
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
-from __future__ import print_function
-from __future__ import absolute_import
 
 from . import ambient_space
 
@@ -341,6 +339,6 @@ class CartanType(CartanType_standard_finite, CartanType_simple, CartanType_cryst
             [[i] for i in range(1, n)] + [[n, n+1]])
 
 # For unpickling backward compatibility (Sage <= 4.1)
-from sage.structure.sage_object import register_unpickle_override
+from sage.misc.persist import register_unpickle_override
 register_unpickle_override('sage.combinat.root_system.type_B', 'ambient_space',  AmbientSpace)
 

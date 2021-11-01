@@ -14,7 +14,6 @@ AUTHORS:
 
 - John H. Palmieri, Travis Scrimshaw (2015-09)
 """
-from __future__ import absolute_import
 
 ########################################################################
 #       Copyright (C) 2015 John H. Palmieri <palmieri@math.washington.edu>
@@ -32,8 +31,8 @@ from sage.categories.algebras import Algebras
 from sage.categories.modules import Modules
 from sage.combinat.free_module import CombinatorialFreeModule
 from sage.sets.family import Family
-from .simplicial_complex import SimplicialComplex
-from .simplicial_set import SimplicialSet_arbitrary
+from sage.topology.simplicial_complex import SimplicialComplex
+from sage.topology.simplicial_set import SimplicialSet_arbitrary
 
 class HomologyVectorSpaceWithBasis(CombinatorialFreeModule):
     r"""
@@ -50,10 +49,10 @@ class HomologyVectorSpaceWithBasis(CombinatorialFreeModule):
 
         This is not intended to be created directly by the user, but
         instead via the methods
-        :meth:`~sage.homology.cell_complex.GenericCellComplex.homology_with_basis` and
-        :meth:`~sage.homology.cell_complex.GenericCellComplex.cohomology_ring`
+        :meth:`~sage.topology.cell_complex.GenericCellComplex.homology_with_basis` and
+        :meth:`~sage.topology.cell_complex.GenericCellComplex.cohomology_ring`
         for the class of :class:`cell
-        complexes<sage.homology.cell_complex.GenericCellComplex>`.
+        complexes<sage.topology.cell_complex.GenericCellComplex>`.
 
     INPUT:
 
@@ -107,25 +106,29 @@ class HomologyVectorSpaceWithBasis(CombinatorialFreeModule):
     This works with simplicial, cubical, and `\Delta`-complexes, and
     also simplicial sets::
 
-        sage: Klein_c = cubical_complexes.KleinBottle()
-        sage: H = Klein_c.cohomology_ring(GF(2))
+        sage: Torus_c = cubical_complexes.Torus()
+        sage: H = Torus_c.cohomology_ring(GF(2))
         sage: x,y = H.basis(1)
         sage: x.cup_product(x)
-        h^{2,0}
-        sage: x.cup_product(y)
         0
-        sage: y.cup_product(y)
+        sage: x.cup_product(y)
         h^{2,0}
+        sage: y.cup_product(y)
+        0
 
         sage: Klein_d = delta_complexes.KleinBottle()
         sage: H = Klein_d.cohomology_ring(GF(2))
-        sage: u,v = H.basis(1)
+        sage: u,v = sorted(H.basis(1))
         sage: u.cup_product(u)
         h^{2,0}
         sage: u.cup_product(v)
         0
         sage: v.cup_product(v)
         h^{2,0}
+
+    An isomorphism between the rings for the cubical model and the
+    `\Delta`-complex model can be obtained by sending `x` to `u+v`,
+    `y` to `v`. ::
 
         sage: X = simplicial_sets.RealProjectiveSpace(6)
         sage: H_X = X.cohomology_ring(GF(2))
@@ -333,7 +336,7 @@ class HomologyVectorSpaceWithBasis(CombinatorialFreeModule):
 
     @cached_method
     def _to_cycle_on_basis(self, i):
-        """
+        r"""
         Return the (co)cycle representative of the basis element
         indexed by ``i``.
 
@@ -411,9 +414,9 @@ class CohomologyRing(HomologyVectorSpaceWithBasis):
 
         This is not intended to be created directly by the user, but
         instead via the
-        :meth:`cohomology ring<sage.homology.cell_complex.GenericCellComplex.cohomology_ring>`
+        :meth:`cohomology ring<sage.topology.cell_complex.GenericCellComplex.cohomology_ring>`
         of a :class:`cell
-        complex<sage.homology.cell_complex.GenericCellComplex>`.
+        complex<sage.topology.cell_complex.GenericCellComplex>`.
 
     INPUT:
 
@@ -548,7 +551,7 @@ class CohomologyRing(HomologyVectorSpaceWithBasis):
             sage: T = cubical_complexes.Torus()
             sage: x,y = T.cohomology_ring(QQ).basis(1)
             sage: x.cup_product(y)
-            -h^{2,0}
+            h^{2,0}
             sage: x.cup_product(x)
             0
 
@@ -567,7 +570,7 @@ class CohomologyRing(HomologyVectorSpaceWithBasis):
 
         and simplicial sets::
 
-            sage: from sage.homology.simplicial_set_examples import RealProjectiveSpace
+            sage: from sage.topology.simplicial_set_examples import RealProjectiveSpace
             sage: RP5 = RealProjectiveSpace(5)
             sage: x = RP5.cohomology_ring(GF(2)).basis()[1,0]
             sage: x**4
@@ -583,7 +586,6 @@ class CohomologyRing(HomologyVectorSpaceWithBasis):
             sage: a.cup_product(y)
             0
         """
-        B = self.basis()
         scomplex = self.complex()
         base_ring = self.base_ring()
         deg_left = li[0]
@@ -753,7 +755,7 @@ class CohomologyRing(HomologyVectorSpaceWithBasis):
                 d[index] = coeff
                 deg_comp[index[0]] = d
 
-            # Do the square on each graded componenet of ``self``.
+            # Do the square on each graded component of ``self``.
             for j in deg_comp:
                 # Make it into an actual element
                 m = j + i

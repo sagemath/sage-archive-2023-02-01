@@ -6,24 +6,29 @@ solves its instance using :class:`MixedIntegerLinearProgram`. Its performance
 can be expected to be slower than when using
 :class:`~sage.sat.solvers.cryptominisat.cryptominisat.CryptoMiniSat`.
 """
-from __future__ import absolute_import
 from .satsolver import SatSolver
 from sage.numerical.mip import MixedIntegerLinearProgram, MIPSolverException
 
 class SatLP(SatSolver):
-    def __init__(self, solver=None):
+    def __init__(self, solver=None, verbose=0, *, integrality_tolerance=1e-3):
         r"""
         Initializes the instance
 
         INPUT:
 
-        - ``solver`` -- (default: ``None``) Specify a Linear Program (LP)
-          solver to be used. If set to ``None``, the default one is used. For
-          more information on LP solvers and which default solver is used, see
+        - ``solver`` -- (default: ``None``) Specify a Mixed Integer Linear Programming
+          (MILP) solver to be used. If set to ``None``, the default one is used. For
+          more information on MILP solvers and which default solver is used, see
           the method
           :meth:`solve <sage.numerical.mip.MixedIntegerLinearProgram.solve>`
           of the class
           :class:`MixedIntegerLinearProgram <sage.numerical.mip.MixedIntegerLinearProgram>`.
+
+        - ``verbose`` -- integer (default: ``0``). Sets the level of verbosity
+          of the LP solver. Set to 0 by default, which means quiet.
+
+        - ``integrality_tolerance`` -- parameter for use with MILP solvers over an
+          inexact base ring; see :meth:`MixedIntegerLinearProgram.get_values`.
 
         EXAMPLES::
 
@@ -31,8 +36,10 @@ class SatLP(SatSolver):
             an ILP-based SAT Solver
         """
         SatSolver.__init__(self)
-        self._LP = MixedIntegerLinearProgram()
+        self._LP = MixedIntegerLinearProgram(solver=solver)
+        self._LP_verbose = verbose
         self._vars = self._LP.new_variable(binary=True)
+        self._integrality_tolerance = integrality_tolerance
 
     def var(self):
         """
@@ -128,13 +135,13 @@ class SatLP(SatSolver):
             False
         """
         try:
-            self._LP.solve()
+            self._LP.solve(log=self._LP_verbose)
         except MIPSolverException:
             return False
 
-        b = self._LP.get_values(self._vars)
+        b = self._LP.get_values(self._vars, convert=bool, tolerance=self._integrality_tolerance)
         n = max(b)
-        return [None]+[bool(b.get(i,0)) for i in range(1,n+1)]
+        return [None]+[b.get(i, False) for i in range(1,n+1)]
 
     def __repr__(self):
         """

@@ -111,12 +111,13 @@ on the Jacobian of this reduction and the order of the Jacobian is
 #  Distributed under the terms of the GNU General Public License (GPL)
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
-from __future__ import print_function
 
 from sage.misc.all import latex
 
 from sage.structure.element import AdditiveGroupElement
+from sage.structure.richcmp import richcmp, op_NE
 from sage.schemes.generic.morphism import SchemeMorphism
+
 
 def cantor_reduction_simple(a, b, f, genus):
     r"""
@@ -146,15 +147,16 @@ def cantor_reduction_simple(a, b, f, genus):
     """
     a2 = (f - b**2) // a
     a2 = a2.monic()
-    b2 = -b % (a2);
+    b2 = -b % (a2)
     if a2.degree() == a.degree():
         # XXX
-        assert a2.degree() == genus+1
+        assert a2.degree() == genus + 1
         print("Returning ambiguous form of degree genus+1.")
         return (a2, b2)
     elif a2.degree() > genus:
         return cantor_reduction_simple(a2, b2, f, genus)
     return (a2, b2)
+
 
 def cantor_reduction(a, b, f, h, genus):
     r"""
@@ -319,12 +321,12 @@ def cantor_composition(D1,D2,f,h,genus):
     if a1 == a2 and b1 == b2:
         # Duplication law:
         d, h1, h3 = a1.xgcd(2*b1 + h)
-        a = (a1 // d)**2;
+        a = (a1 // d)**2
         b = (b1 + h3*((f-h*b1-b1**2) // d)) % (a)
     else:
         d0, _, h2 = a1.xgcd(a2)
         if d0 == 1:
-            a = a1*a2;
+            a = a1 * a2
             b = (b2 + h2*a2*(b1-b2)) % (a)
         else:
             e0 = b1+b2+h
@@ -578,7 +580,7 @@ class JacobianMorphism_divisor_class_field(AdditiveGroupElement, SchemeMorphism)
         """
         return list(self.__polys)[n]
 
-    def __cmp__(self, other):
+    def _richcmp_(self, other, op):
         r"""
         Compare self and other.
 
@@ -630,16 +632,11 @@ class JacobianMorphism_divisor_class_field(AdditiveGroupElement, SchemeMorphism)
             sage: P1 == P2
             False
         """
-        if not isinstance(other, JacobianMorphism_divisor_class_field):
-            try:
-                other = self.parent()(other)
-            except TypeError:
-                return -1
         if self.scheme() != other.scheme():
-            return -1
+            return op == op_NE
         # since divisors are internally represented as Mumford divisors,
         # comparing polynomials is well-defined
-        return cmp(self.__polys, other.__polys)
+        return richcmp(self.__polys, other.__polys, op)
 
     def __bool__(self):
         r"""

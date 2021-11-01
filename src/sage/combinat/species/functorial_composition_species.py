@@ -1,7 +1,6 @@
 """
 Functorial composition species
 """
-from __future__ import absolute_import
 #*****************************************************************************
 #       Copyright (C) 2008 Mike Hansen <mhansen@gmail.com>,
 #
@@ -18,8 +17,6 @@ from __future__ import absolute_import
 #*****************************************************************************
 from .species import GenericCombinatorialSpecies
 from .structure import GenericSpeciesStructure
-from sage.misc.cachefunc import cached_function
-from sage.structure.unique_representation import UniqueRepresentation
 
 class FunctorialCompositionStructure(GenericSpeciesStructure):
     pass

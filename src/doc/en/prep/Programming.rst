@@ -303,8 +303,9 @@ Below, we show that one can get step sizes other than one as well.
 
 ::
 
-    sage: range(3, 23, 2); [3,5..21]
+    sage: range(3, 23, 2)   # py2
     [3, 5, 7, 9, 11, 13, 15, 17, 19, 21]
+    sage: [3,5..21]
     [3, 5, 7, 9, 11, 13, 15, 17, 19, 21]
 
 .. note::
@@ -727,7 +728,7 @@ not have :math:`I=\sqrt{-1}`, decimal points, or division.
     sage: parent(c)
     Real Field with 53 bits of precision
     sage: parent(d)
-    Symbolic Ring
+    Number Field in I with defining polynomial x^2 + 1 with I = 1*I
     sage: parent(e)
-    Symbolic Ring
+    Complex Field with 53 bits of precision
 

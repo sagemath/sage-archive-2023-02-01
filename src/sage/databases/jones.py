@@ -50,7 +50,7 @@ List all fields in the database ramified at 101::
 """
 
 #*****************************************************************************
-#       Sage: System for Algebra and Geometry Experimentation
+#       Sage: Open Source Mathematical Software
 #
 #       Copyright (C) 2005 William Stein <wstein@gmail.com>
 #
@@ -72,10 +72,11 @@ from sage.rings.all import NumberField, RationalField, PolynomialRing
 from sage.misc.misc import powerset
 from sage.env import SAGE_SHARE
 
-from sage.structure.sage_object import load, save
+from sage.misc.persist import load, save
 
+from sage.features.databases import DatabaseJones
 
-JONESDATA = os.path.join(SAGE_SHARE, 'jones')
+JONESDATA = os.path.join(SAGE_SHARE, 'jones')  # should match the filename set in DatabaseJones
 
 
 def sortkey(K):
@@ -107,9 +108,10 @@ class JonesDatabase:
         while filename[j].isalpha() or filename[j] in [".", "_"]:
             j -= 1
         S = sorted([eval(z) for z in filename[i:j + 1].split("-")])
-        data = open(path + "/" + filename).read()
+        with open(path + "/" + filename) as f:
+            data = f.read()
         data = data.replace("^", "**")
-        x = PolynomialRing(RationalField(), 'x').gen()
+        x = PolynomialRing(RationalField(), 'x').gen()  # used next line
         v = eval(data)
         s = tuple(S)
         if s in self.root:
@@ -144,7 +146,6 @@ class JonesDatabase:
         This takes about 5 seconds.
         """
         from sage.misc.misc import sage_makedirs
-        n = 0
         x = PolynomialRing(RationalField(), 'x').gen()
         self.root = {}
         self.root[tuple([])] = [x - 1]
@@ -225,15 +226,12 @@ class JonesDatabase:
             ValueError: S must be a list of primes
         """
         if self.root is None:
-            if os.path.exists(JONESDATA + "/jones.sobj"):
-                self.root = load(JONESDATA + "/jones.sobj")
-            else:
-                raise RuntimeError("You must install the Jones database optional package.")
+            self.root = load(DatabaseJones().absolute_path())
         try:
             S = list(S)
         except TypeError:
             S = [S]
-        if not all([p.is_prime() for p in S]):
+        if not all(p.is_prime() for p in S):
             raise ValueError("S must be a list of primes")
         S.sort()
         s = tuple(S)

@@ -18,18 +18,31 @@ cdef class Polynomial(CommutativeAlgebraElement):
     cpdef _mul_generic(self, right)
     cdef _square_generic(self)
 
-    cpdef bint is_zero(self)
-    cpdef bint is_one(self)
+    cpdef bint is_zero(self) except -1
+    cpdef bint is_one(self) except -1
+    cpdef bint is_term(self) except -1
 
+    cpdef dict _mpoly_dict_recursive(self, tuple variables=*, base_ring=*)
+
+    cpdef _add_(self, other)
+    cpdef _mul_(self, other)
+    cpdef _floordiv_(self, right)
     cpdef Polynomial _mul_trunc_(self, Polynomial right, long n)
     cpdef Polynomial _power_trunc(self, unsigned long n, long prec)
+    cdef Polynomial _mul_term(self, Polynomial term, bint term_on_right)
 
     # UNSAFE, only call from an inplace operator
     # may return a new element if not possible to modify inplace
     cdef _inplace_truncate(self, long n)
 
+    cdef get_coeff_c(self, Py_ssize_t i)
     cdef get_unsafe(self, Py_ssize_t i)
     cpdef long number_of_terms(self)
+
+    # See 23227
+    cpdef _add_(self, right)
+    cpdef _mul_(self, right)
+    cpdef _floordiv_(self, right)
 
     cdef public dict __cached_methods
 

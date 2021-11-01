@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 r"""
 Kirillov-Reshetikhin Tableaux
 
@@ -38,7 +39,6 @@ REFERENCES:
 #
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
-from __future__ import print_function
 
 # This contains both the parent and element classes. These should be split if
 #   the classes grow larger.
@@ -49,7 +49,6 @@ from sage.misc.lazy_attribute import lazy_attribute
 from sage.misc.flatten import flatten
 
 from sage.structure.parent import Parent
-from sage.structure.element_wrapper import ElementWrapper
 
 from sage.categories.loop_crystals import KirillovReshetikhinCrystals
 
@@ -74,8 +73,9 @@ class KirillovReshetikhinTableaux(CrystalOfWords):
     (inverse) filling map.
 
     Whenever `B^{r,s} \cong B(s\Lambda_r)` as a classical crystal (which is
-    the case for `B^{r,s}` in type `A_n^{(1)}`, `B^{n,s}` in type `C_n^{(1)}` and `D_{n+1}^{(2)}`,
-    `B^{n,s}` and `B^{n-1,s}` in type `D_n^{(1)}`) then the filling map is trivial.
+    the case for `B^{r,s}` in type `A_n^{(1)}`, `B^{n,s}` in type `C_n^{(1)}`
+    and `D_{n+1}^{(2)}`, `B^{n,s}` and `B^{n-1,s}` in type `D_n^{(1)}`) then
+    the filling map is trivial.
 
     For `B^{r,s}` in:
 
@@ -130,10 +130,10 @@ class KirillovReshetikhinTableaux(CrystalOfWords):
         be classified by how the special node `0` connects with the
         corresponding classical diagram.
 
-    The classical crystal stucture is given by the usual Kashiwara-Nakashima
+    The classical crystal structure is given by the usual Kashiwara-Nakashima
     tableaux rules. That is to embed this into `B(\Lambda_1)^{\otimes n s}`
     by using the reading word and then applying the classical crystal
-    operator. The affine crystal stucture is given by converting to
+    operator. The affine crystal structure is given by converting to
     the corresponding KR crystal element, performing the affine crystal
     operator, and pulling back to a KR tableau.
 
@@ -1061,7 +1061,7 @@ class KirillovReshetikhinTableauxElement(TensorProductOfRegularCrystalsElement):
             sage: TestSuite(elt).run()
         """
         # Make sure we are a list of letters
-        if list != [] and not isinstance(list[0], (parent.letters.element_class, EmptyLetter)):
+        if list and not isinstance(list[0], (parent.letters.element_class, EmptyLetter)):
             list = [parent.letters(x) for x in list]
         TensorProductOfRegularCrystalsElement.__init__(self, parent, list)
 
@@ -1122,6 +1122,22 @@ class KirillovReshetikhinTableauxElement(TensorProductOfRegularCrystalsElement):
         """
         from sage.typeset.ascii_art import AsciiArt
         return AsciiArt(self._repr_diagram().splitlines())
+
+    def _unicode_art_(self):
+        r"""
+        Return a unicode art representation of ``self``.
+
+        EXAMPLES::
+
+            sage: KRT = crystals.KirillovReshetikhin(['D',4,1], 2, 2, model='KR')
+            sage: unicode_art(KRT(2,1,-4,3))
+            ┌───┬───┐
+            │ 1 │ 3 │
+            ├───┼───┤
+            │ 2 │ 4̄ │
+            └───┴───┘
+        """
+        return self.to_tableau()._unicode_art_()
 
     def to_kirillov_reshetikhin_crystal(self):
         r"""

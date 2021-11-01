@@ -57,7 +57,6 @@ See :trac:`5886`::
     [0 1]...
 
 """
-from __future__ import absolute_import
 
 #*****************************************************************************
 #  Copyright (C) 2005 William Stein <wstein@gmail.com>
@@ -74,8 +73,11 @@ from __future__ import absolute_import
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 
+
 import sage.categories.homset
-import sage.matrix.all as matrix
+from sage.structure.element import is_Matrix
+from sage.matrix.constructor import matrix, identity_matrix
+from sage.matrix.matrix_space import MatrixSpace
 from inspect import isfunction
 from sage.misc.cachefunc import cached_method
 
@@ -169,9 +171,29 @@ class FreeModuleHomspace(sage.categories.homset.HomsetWithBase):
             Codomain: Free module of degree 3 and rank 3 over Integer Ring
             Echelon ...
 
+        The following tests the bug fixed in :trac:`31818`. If there is no 
+        coercion between base rings, one can only define the zero morphism, 
+        as morphism of additive groups. Before one could for example use an 
+        integer matrix to define a morphism from the rational numbers to the
+        integers. ::
+
+            sage: V = QQ^2; W = ZZ^2; m = identity_matrix(2)                                
+            sage: H = V.Hom(W); H(m)                                                        
+            Traceback (most recent call last):
+            ...
+            TypeError: nontrivial morphisms require a coercion map from the base ring of the domain to the base ring of the codomain
+            sage: n = zero_matrix(2); 
+            sage: h = H(n); h                                                                                                                                                                                           
+            Free module morphism defined by the matrix
+            [0 0]
+            [0 0]
+            Domain: Vector space of dimension 2 over Rational Field
+            Codomain: Ambient free module of rank 2 over the principal ideal domain Integer Ring
+            sage: [h(v) for v in V.gens()]                                                                                                                                                                              
+            [(0, 0), (0, 0)]
         """
         from . import free_module_morphism
-        if not sage.matrix.matrix.is_Matrix(A):
+        if not is_Matrix(A):
             # Compute the matrix of the morphism that sends the
             # generators of the domain to the elements of A.
             C = self.codomain()
@@ -180,12 +202,13 @@ class FreeModuleHomspace(sage.categories.homset.HomsetWithBase):
                     v = [C(A(g)) for g in self.domain().gens()]
                 else:
                     v = [C(a) for a in A]
-                A = matrix.matrix([C.coordinates(a) for a in v],
-                                  ncols=C.rank())
+                A = matrix([C.coordinates(a) for a in v], ncols=C.rank())
             except TypeError:
                 # Let us hope that FreeModuleMorphism knows to handle
                 # that case
                 pass
+        if not self.codomain().base_ring().has_coerce_map_from(self.domain().base_ring()) and not A.is_zero():
+            raise TypeError("nontrivial morphisms require a coercion map from the base ring of the domain to the base ring of the codomain")
         return free_module_morphism.FreeModuleMorphism(self, A)
 
     @cached_method
@@ -240,7 +263,7 @@ class FreeModuleHomspace(sage.categories.homset.HomsetWithBase):
             return self.__matrix_space
         except AttributeError:
             R = self.codomain().base_ring()
-            M = matrix.MatrixSpace(R, self.domain().rank(), self.codomain().rank())
+            M = MatrixSpace(R, self.domain().rank(), self.codomain().rank())
             self.__matrix_space = M
             return M
 
@@ -293,7 +316,7 @@ class FreeModuleHomspace(sage.categories.homset.HomsetWithBase):
             Codomain: Ambient free module of rank 5 over the principal ideal domain ...
         """
         if self.is_endomorphism_set():
-            return self(matrix.identity_matrix(self.base_ring(),self.domain().rank()))
+            return self(identity_matrix(self.base_ring(),self.domain().rank()))
         else:
             raise TypeError("Identity map only defined for endomorphisms. Try natural_map() instead.")
 

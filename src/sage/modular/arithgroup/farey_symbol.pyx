@@ -1,4 +1,5 @@
 # distutils: sources = sage/modular/arithgroup/sl2z.cpp sage/modular/arithgroup/farey.cpp
+
 r"""
 Farey Symbol for arithmetic subgroups of `{\rm PSL}_2(\ZZ)`
 
@@ -20,8 +21,6 @@ for speed.
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 
-from __future__ import absolute_import, division
-
 from cpython.object cimport PyObject_RichCompare
 from itertools import groupby
 from cysignals.signals cimport sig_on, sig_off
@@ -40,7 +39,7 @@ from sage.modular.cusps import Cusp
 
 from sage.plot.all import Graphics
 from sage.plot.colors import to_mpl_color
-from sage.plot.misc import options, rename_keyword
+from sage.misc.decorators import options, rename_keyword
 from sage.plot.all import hyperbolic_arc, hyperbolic_triangle, text
 
 from sage.misc.latex import latex
@@ -609,14 +608,10 @@ cdef class Farey:
             sage: FareySymbol(Gamma0(11))._latex_(forced_format = 'xymatrix')
             '\\begin{xy}\\xymatrix{& -\\infty \\ar@{-}@/_1pc/[r]_{1}& 0 \\ar@{-}@/_1pc/[r]_{2}& \\frac{1}{3} \\ar@{-}@/_1pc/[r]_{3}& \\frac{1}{2} \\ar@{-}@/_1pc/[r]_{2}& \\frac{2}{3} \\ar@{-}@/_1pc/[r]_{3}& 1 \\ar@{-}@/_1pc/[r]_{1}& \\infty }\\end{xy}'
 
-            sage: if '\\xymatrix' in sage.misc.latex.latex.mathjax_avoid_list():
-            ....:      'xymatrix' not in FareySymbol(Gamma0(11))._latex_()
-            ....: else:
-            ....:     'xymatrix' in FareySymbol(Gamma0(11))._latex_()
+            sage: 'xymatrix' in FareySymbol(Gamma0(11))._latex_()
             True
         """
-        if forced_format == 'plain' or \
-           (forced_format is None and '\\xymatrix' in latex.mathjax_avoid_list()):
+        if forced_format == 'plain':
             # output not using xymatrix
             s = r'\left( -\infty'
             a = [x._latex_() for x in self.fractions()] + ['\infty']

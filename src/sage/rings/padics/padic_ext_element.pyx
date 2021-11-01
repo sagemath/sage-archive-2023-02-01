@@ -1,4 +1,10 @@
-"""
+# distutils: libraries = NTL_LIBRARIES gmp m
+# distutils: extra_compile_args = NTL_CFLAGS
+# distutils: include_dirs = NTL_INCDIR
+# distutils: library_dirs = NTL_LIBDIR
+# distutils: extra_link_args = NTL_LIBEXTRA
+# distutils: language = c++
+r"""
 p-Adic Extension Element
 
 A common superclass for all elements of extension rings and field of `\ZZ_p` and
@@ -31,11 +37,13 @@ cdef class pAdicExtElement(pAdicGenericElement):
         """
         Sets self from a list.
 
-        The list should either be uniform in type, or all of the entries should be coercible to integers.
-        If any of the entries in L is a list, L will be cast to a ZZ_pEX
+        The list should either be uniform in type, or all of the entries
+        should be coercible to integers. If any of the entries in ``L``
+        is a list, ``L`` will be cast to a ZZ_pEX.
 
         INPUT:
-        L -- a list.
+
+        - ``L`` -- a list
         """
         raise NotImplementedError
 
@@ -264,7 +272,7 @@ cdef class pAdicExtElement(pAdicGenericElement):
 
     def _const_term_test(self):
         """
-        Returns the constant term of a polynomial representing self.
+        Return the constant term of a polynomial representing ``self``.
 
         This function is mainly for troubleshooting, and the meaning
         of the return value will depend on whether self is capped
@@ -288,26 +296,27 @@ cdef class pAdicExtElement(pAdicGenericElement):
         raise NotImplementedError
 
     def _ext_p_list(self, pos):
-        """
-        Returns a list of integers (in the Eisenstein case) or a list
-        of lists of integers (in the unramified case).  self can be
-        reconstructed as a sum of elements of the list times powers of
-        the uniformiser (in the Eisenstein case), or as a sum of
+        r"""
+        Return a list of integers (in the Eisenstein case) or a list
+        of lists of integers (in the unramified case).
+
+        ``self`` can be reconstructed as a sum of elements of the list times
+        powers of the uniformiser (in the Eisenstein case), or as a sum of
         powers of the p times polynomials in the generator (in the
         unramified case).
 
-        Note that zeros are truncated from the returned list, so you
-        must use the valuation() function to completely recover self.
+        Note that zeros are truncated from the returned list, so you must
+        use the :func:`valuation()` function to completely recover ``self``.
 
         INPUT:
 
-            - pos -- bint.  If True, all integers will be in the range [0,p-1],
-              otherwise they will be in the range [(1-p)/2, p/2].
+        - ``pos`` -- boolean; if ``True``, all integers will be in the range
+          `[0,p-1]`, otherwise they will be in the range `[(1-p)/2, p/2]`
 
         OUTPUT:
 
-            - L -- A list of integers or list of lists giving the
-              series expansion of self.
+        - a list of integers or list of lists giving the
+          series expansion of ``self``
 
         EXAMPLES::
 
@@ -325,13 +334,12 @@ cdef class pAdicExtElement(pAdicGenericElement):
         return self.ext_p_list(pos)
 
     def frobenius(self, arithmetic=True):
-        """
-        Returns the image of this element under the Frobenius automorphism
+        r"""
+        Return the image of this element under the Frobenius automorphism
         applied to its parent.
 
         INPUT:
 
-        - ``self`` -- an element of an unramified extension.
         - ``arithmetic`` -- whether to apply the arithmetic Frobenius (acting
           by raising to the `p`-th power on the residue field). If ``False`` is
           provided, the image of geometric Frobenius (raising to the `(1/p)`-th
@@ -367,15 +375,15 @@ cdef class pAdicExtElement(pAdicGenericElement):
             NotImplementedError: Frobenius automorphism only implemented for unramified extensions
         """
         R = self.parent()
-        if R.e() != 1:
+        if R.absolute_e() != 1:
             raise NotImplementedError("Frobenius automorphism only implemented for unramified extensions")
         if self.is_zero(): return self
-        L = self.teichmuller_list()
+        L = self.teichmuller_expansion()
         ppow = R.uniformizer_pow(self.valuation())
         if arithmetic:
             exp = R.prime()
         else:
-            exp = R.prime()**(R.degree()-1)
+            exp = R.prime()**(R.absolute_degree()-1)
         ans = ppow * L[0]**exp
         for m in range(1,len(L)):
             ppow = ppow << 1
@@ -383,7 +391,7 @@ cdef class pAdicExtElement(pAdicGenericElement):
         return ans
 
     cpdef bint _is_base_elt(self, p) except -1:
-        """
+        r"""
         Return ``True`` if this element is an element of Zp or Qp (rather than
         an extension).
 
@@ -400,13 +408,20 @@ cdef class pAdicExtElement(pAdicGenericElement):
         """
         return False
 
-    def residue(self, absprec=1):
+    def residue(self, absprec=1, field=None, check_prec=True):
         r"""
         Reduces this element modulo `\pi^\mathrm{absprec}`.
 
         INPUT:
 
-        - ``absprec`` - a non-negative integer (default: ``1``)
+        - ``absprec`` -- a non-negative integer (default: ``1``)
+
+        - ``field`` -- boolean (default ``None``).  For precision 1, whether to return
+          an element of the residue field or a residue ring.  Currently unused.
+
+        - ``check_prec`` -- boolean (default ``True``).  Whether to raise an error if this
+          element has insufficient precision to determine the reduction.  Errors are never
+          raised for fixed-mod or floating-point types.
 
         OUTPUT:
 
@@ -436,7 +451,7 @@ cdef class pAdicExtElement(pAdicGenericElement):
             sage: a.residue(2)
             Traceback (most recent call last):
             ...
-            NotImplementedError: reduction modulo p^n with n>1.
+            NotImplementedError: reduction modulo p^n with n>1
 
         Eisenstein case::
 
@@ -448,9 +463,9 @@ cdef class pAdicExtElement(pAdicGenericElement):
             sage: a.residue(2)
             Traceback (most recent call last):
             ...
-            NotImplementedError: residue() not implemented in extensions for absprec larger than one.
+            NotImplementedError: residue() not implemented in extensions for absprec larger than one
 
-        TESTS:
+        TESTS::
 
             sage: K = Qp(3,5)
             sage: S.<a> = R[]
@@ -458,35 +473,40 @@ cdef class pAdicExtElement(pAdicGenericElement):
             sage: (a/3).residue(0)
             Traceback (most recent call last):
             ...
-            ValueError: element must have non-negative valuation in order to compute residue.
+            ValueError: element must have non-negative valuation in order to compute residue
 
             sage: R = ZpFM(3,5)
             sage: S.<a> = R[]
-            sage: W.<a> = R.extension(a^2 + 9*a + 1)
+            sage: W.<a> = R.extension(a^2 + 3)
             sage: W.one().residue(0)
             0
             sage: a.residue(-1)
             Traceback (most recent call last):
             ...
-            ValueError: cannot reduce modulo a negative power of the uniformizer.
+            ValueError: cannot reduce modulo a negative power of the uniformizer
             sage: a.residue(16)
             Traceback (most recent call last):
             ...
-            PrecisionError: insufficient precision to reduce modulo p^16.
-
+            NotImplementedError: residue() not implemented in extensions for absprec larger than one
         """
         if absprec < 0:
-            raise ValueError("cannot reduce modulo a negative power of the uniformizer.")
-        if absprec > self.precision_absolute():
-            from precision_error import PrecisionError
-            raise PrecisionError("not enough precision known in order to compute residue.")
+            raise ValueError("cannot reduce modulo a negative power of the uniformizer")
         if self.valuation() < 0:
-            raise ValueError("element must have non-negative valuation in order to compute residue.")
+            raise ValueError("element must have non-negative valuation in order to compute residue")
+        R = self.parent()
+        if check_prec and (R.is_fixed_mod() or R.is_floating_point()):
+            check_prec = False
+        if check_prec and absprec > self.precision_absolute():
+            from precision_error import PrecisionError
+            raise PrecisionError("not enough precision known in order to compute residue")
+        if field and absprec != 1:
+            raise ValueError("field keyword may only be set at precision 1")
 
         if absprec == 0:
             from sage.rings.finite_rings.integer_mod import Mod
             return Mod(0,1)
         elif absprec == 1:
-            return self.parent().residue_field()(self[0])
+            return R.residue_field()(self.expansion(0))
         else:
-            raise NotImplementedError("residue() not implemented in extensions for absprec larger than one.")
+            raise NotImplementedError("residue() not implemented in extensions for absprec larger than one")
+

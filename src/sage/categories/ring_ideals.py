@@ -1,7 +1,6 @@
 r"""
 Ring ideals
 """
-from __future__ import absolute_import
 #*****************************************************************************
 #  Copyright (C) 2005      David Kohel <kohel@maths.usyd.edu>
 #                          William Stein <wstein@math.ucsd.edu>
@@ -32,12 +31,13 @@ class RingIdeals(Category_ideal):
 
     See also: :class:`CommutativeRingIdeals`.
 
-    TODO:
-     - If useful, implement RingLeftIdeals and RingRightIdeals
-       of which RingIdeals would be a subcategory
+    .. TODO::
 
-     - Make RingIdeals(R), return CommutativeRingIdeals(R) when R is
-       commutative
+         - If useful, implement ``RingLeftIdeals`` and ``RingRightIdeals``
+           of which ``RingIdeals`` would be a subcategory.
+
+         - Make ``RingIdeals(R)``, return ``CommutativeRingIdeals(R)``
+           when ``R`` is commutative.
     """
     def __init__(self, R):
         """

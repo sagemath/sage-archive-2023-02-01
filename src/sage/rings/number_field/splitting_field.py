@@ -17,12 +17,10 @@ AUTHORS:
 # (at your option) any later version.
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
-from __future__ import print_function
 
 from sage.rings.integer import Integer
 from sage.arith.all import factorial
 from sage.rings.number_field.all import NumberField
-from sage.rings.number_field.number_field_base import is_NumberField
 from sage.rings.polynomial.all import PolynomialRing
 from sage.rings.rational_field import RationalField, is_RationalField
 from sage.libs.pari.all import pari, PariError
@@ -124,7 +122,7 @@ class SplittingData:
 
 
 def splitting_field(poly, name, map=False, degree_multiple=None, abort_degree=None, simplify=True, simplify_all=False):
-    """
+    r"""
     Compute the splitting field of a given polynomial, defined over a
     number field.
 
@@ -214,6 +212,7 @@ def splitting_field(poly, name, map=False, degree_multiple=None, abort_degree=No
 
     We can enable verbose messages::
 
+        sage: from sage.misc.verbose import set_verbose
         sage: set_verbose(2)
         sage: K.<a> = (x^3 - x + 1).splitting_field()
         verbose 1 (...: splitting_field.py, splitting_field) Starting field: y
@@ -340,7 +339,8 @@ def splitting_field(poly, name, map=False, degree_multiple=None, abort_degree=No
           To:   Number Field in x with defining polynomial x
           Defn: 1 |--> 1)
     """
-    from sage.misc.all import verbose, cputime
+    from sage.misc.all import cputime
+    from sage.misc.verbose import verbose
 
     degree_multiple = Integer(degree_multiple or 0)
     abort_degree = Integer(abort_degree or 0)

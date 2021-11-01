@@ -1,17 +1,16 @@
 r"""
 Loop Crystals
 """
-#*****************************************************************************
+# ****************************************************************************
 #  Copyright (C) 2015   Travis Scrimshaw <tcscrims at gmail.com>
 #
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
 # the Free Software Foundation, either version 2 of the License, or
 # (at your option) any later version.
-#                  http://www.gnu.org/licenses/
-#*****************************************************************************
+#                  https://www.gnu.org/licenses/
+# ****************************************************************************
 
-from __future__ import print_function, division, absolute_import
 
 from sage.misc.abstract_method import abstract_method
 from sage.misc.cachefunc import cached_method
@@ -22,8 +21,6 @@ from sage.categories.tensor import TensorProductsCategory
 from sage.categories.map import Map
 from sage.graphs.dot2tex_utils import have_dot2tex
 from sage.functions.other import ceil
-from sage.rings.all import ZZ
-
 
 class LoopCrystals(Category_singleton):
     r"""
@@ -117,13 +114,16 @@ class LoopCrystals(Category_singleton):
                 sage: G = C.digraph()
                 sage: G.latex_options()  # optional - dot2tex
                 LaTeX options for Digraph on 29 vertices:
-                {...'edge_options': <function <lambda> at 0x...>,...}
+                {...'edge_options': <function ... at ...>...}
                 sage: view(G, tightpage=True)  # optional - dot2tex graphviz, not tested (opens external window)
             """
             G = Crystals().parent_class.digraph(self, subset, index_set)
             if have_dot2tex():
-                f = lambda u_v_label: ({"backward": u_v_label[2] == 0})
-                G.set_latex_options(edge_options=f)
+                def eopt(u_v_label):
+                    if u_v_label[2] == 0:
+                        return {"dir": "back"}
+                    return {}
+                G.set_latex_options(edge_options=eopt)
             return G
 
 # TODO: Should we make "regular" an axiom?
@@ -266,12 +266,30 @@ class KirillovReshetikhinCrystals(Category_singleton):
                 sage: K = crystals.KirillovReshetikhin(['D',4,1],2,1)
                 sage: K.maximal_vector()
                 [[1], [2]]
+
+            TESTS:
+
+            Check that :trac:`23028` is fixed::
+
+                sage: ct = CartanType(['A',8,2]).dual()
+                sage: K = crystals.KirillovReshetikhin(ct, 4, 1)
+                sage: K.maximal_vector()
+                [[1], [2], [3], [4]]
+                sage: K = crystals.KirillovReshetikhin(ct, 4, 2)
+                sage: K.maximal_vector()
+                [[1, 1], [2, 2], [3, 3], [4, 4]]
             """
             R = self.weight_lattice_realization()
             Lambda = R.fundamental_weights()
             r = self.r()
             s = self.s()
-            weight = s*Lambda[r] - s*Lambda[0] * Lambda[r].level() / Lambda[0].level()
+            if self.cartan_type().dual().type() == 'BC':
+                if self.cartan_type().rank() - 1 == r:
+                    weight = 2*s*Lambda[r] - s*Lambda[0]
+                else:
+                    weight = s*Lambda[r] - s*Lambda[0]
+            else:
+                weight = s*Lambda[r] - s*Lambda[0] * Lambda[r].level() / Lambda[0].level()
 
             # First check the module generators as it is likely to be in here
             for b in self.module_generators:
@@ -501,11 +519,26 @@ class KirillovReshetikhinCrystals(Category_singleton):
                 sage: K.is_perfect()
                 True
 
+            TESTS:
+
+            Check that this works correctly for `B^{n,s}`
+            of type `A_{2n}^{(2)\dagger}` (:trac:`24364`)::
+
+                sage: K = crystals.KirillovReshetikhin(CartanType(['A',6,2]).dual(), 3,1)
+                sage: K.is_perfect()
+                True
+                sage: K.is_perfect(1)
+                True
+
             .. TODO::
 
                 Implement a version for tensor products of KR crystals.
             """
+            from sage.rings.integer_ring import ZZ
             if ell is None:
+                if (self.cartan_type().dual().type() == 'BC'
+                    and self.cartan_type().rank() - 1 == self.r()):
+                    return True
                 ell = self.s() / self.cartan_type().c()[self.r()]
                 if ell not in ZZ:
                     return False
@@ -515,6 +548,9 @@ class KirillovReshetikhinCrystals(Category_singleton):
 
             # [FOS2010]_ check
             if self.cartan_type().classical().type() not in ['E','F','G']:
+                if (self.cartan_type().dual().type() == 'BC'
+                    and self.cartan_type().rank() - 1 == self.r()):
+                    return ell == self.s()
                 return ell == self.s() / self.cartan_type().c()[self.r()]
 
             # Check by definition
@@ -566,9 +602,25 @@ class KirillovReshetikhinCrystals(Category_singleton):
                 Traceback (most recent call last):
                 ...
                 ValueError: this crystal is not perfect
+
+            TESTS:
+
+            Check that this works correctly for `B^{n,s}`
+            of type `A_{2n}^{(2)\dagger}` (:trac:`24364`)::
+
+                sage: ct = CartanType(['A',6,2]).dual()
+                sage: K1 = crystals.KirillovReshetikhin(ct, 3,1)
+                sage: K1.level()
+                1
+                sage: K4 = crystals.KirillovReshetikhin(ct, 3,4)
+                sage: K4.level()
+                4
             """
             if not self.is_perfect():
                 raise ValueError("this crystal is not perfect")
+            if (self.cartan_type().dual().type() == 'BC'
+                and self.cartan_type().rank() - 1 == self.r()):
+                return self.s()
             return self.s() / self.cartan_type().c()[self.r()]
 
         def q_dimension(self, q=None, prec=None, use_product=False):
@@ -927,6 +979,7 @@ class KirillovReshetikhinCrystals(Category_singleton):
 
                 if algorithm == 'definition':
                     # Setup
+                    from sage.rings.integer_ring import ZZ
                     energy = ZZ.zero()
                     R_mats = [[K.R_matrix(Kp) for Kp in self.parent().crystals[i+1:]]
                               for i,K in enumerate(self.parent().crystals)]
@@ -1128,6 +1181,7 @@ class LocalEnergyFunction(Map):
             sage: [H(x) for x in hw]
             [0, 1, 2, 1]
         """
+        from sage.rings.integer_ring import ZZ
         self._B = B
         self._Bp = Bp
         self._R_matrix = self._B.R_matrix(self._Bp)

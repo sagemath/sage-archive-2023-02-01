@@ -16,7 +16,9 @@ from sage.combinat.partition import Partitions
 
 class NilCoxeterAlgebra(IwahoriHeckeAlgebra.T):
     r"""
-    Construct the Nil-Coxeter algebra of given type. This is the algebra
+    Construct the Nil-Coxeter algebra of given type.
+
+    This is the algebra
     with generators `u_i` for every node `i` of the corresponding Dynkin
     diagram. It has the usual braid relations (from the Weyl group) as well
     as the quadratic relation `u_i^2 = 0`.
@@ -25,7 +27,7 @@ class NilCoxeterAlgebra(IwahoriHeckeAlgebra.T):
 
     - ``W`` -- a Weyl group
 
-    OPTIONAL ARGUEMENTS:
+    OPTIONAL ARGUMENTS:
 
     - ``base_ring`` -- a ring (default is the rational numbers)
     - ``prefix`` -- a label for the generators (default "u")
@@ -63,18 +65,16 @@ class NilCoxeterAlgebra(IwahoriHeckeAlgebra.T):
         self._base_ring = base_ring
         self._cartan_type = W.cartan_type()
         H = IwahoriHeckeAlgebra(W, 0, 0, base_ring=base_ring)
-        super(IwahoriHeckeAlgebra.T,self).__init__(H, prefix=prefix)
+        super(IwahoriHeckeAlgebra.T, self).__init__(H, prefix=prefix)
 
     def _repr_(self):
         r"""
-        EXAMPLES ::
+        EXAMPLES::
 
             sage: NilCoxeterAlgebra(WeylGroup(['A',3,1])) # indirect doctest
             The Nil-Coxeter Algebra of Type A3~ over Rational Field
-
         """
-
-        return "The Nil-Coxeter Algebra of Type %s over %s"%(self._cartan_type._repr_(compact=True), self.base_ring())
+        return "The Nil-Coxeter Algebra of Type %s over %s" % (self._cartan_type._repr_(compact=True), self.base_ring())
 
     def homogeneous_generator_noncommutative_variables(self, r):
         r"""

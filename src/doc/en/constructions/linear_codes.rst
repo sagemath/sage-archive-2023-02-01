@@ -48,7 +48,7 @@ the four Golay codes
 
     sage: C = codes.GolayCode(GF(3))
     sage: C
-    [12, 6, 6] Extended Golay code over Finite Field of size 3
+    [12, 6, 6] Extended Golay code over GF(3)
     sage: C.minimum_distance()
     6
     sage: C.generator_matrix()
@@ -264,6 +264,7 @@ reverse of ``berlekamp_massey``).
     8/15
     sage: lfsr_connection_polynomial(s)
     x^4 + x + 1
+    sage: from sage.matrix.berlekamp_massey import berlekamp_massey
     sage: berlekamp_massey(s)
     x^4 + x^3 + 1
 

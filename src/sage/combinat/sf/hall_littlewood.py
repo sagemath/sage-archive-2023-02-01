@@ -2,14 +2,7 @@ r"""
 Hall-Littlewood Polynomials
 
 Notation used in the definitions follows mainly [Mac1995]_.
-
-REFERENCES:
-
-.. [Mac1995] \I. G. Macdonald, Symmetric functions and Hall polynomials, second ed.,
-   The Clarendon Press, Oxford University Press, New York, 1995, With contributions
-   by A. Zelevinsky, Oxford Science Publications.
 """
-from __future__ import absolute_import
 #*****************************************************************************
 #       Copyright (C) 2007 Mike Hansen <mhansen@gmail.com>,
 #
@@ -73,7 +66,7 @@ class HallLittlewood(UniqueRepresentation):
 
         - a string representing the class
 
-        EXAMPLES ::
+        EXAMPLES::
 
             sage: SymmetricFunctions(QQ).hall_littlewood(1)
             Hall-Littlewood polynomials with t=1 over Rational Field
@@ -109,7 +102,7 @@ class HallLittlewood(UniqueRepresentation):
 
         - returns the ring of symmetric functions
 
-        EXAMPLES ::
+        EXAMPLES::
 
             sage: HL = SymmetricFunctions(FractionField(QQ['t'])).hall_littlewood()
             sage: HL.symmetric_function_ring()
@@ -130,7 +123,7 @@ class HallLittlewood(UniqueRepresentation):
 
         The base ring of the symmetric functions.
 
-        EXAMPLES ::
+        EXAMPLES::
 
             sage: HL = SymmetricFunctions(QQ['t'].fraction_field()).hall_littlewood(t=1)
             sage: HL.base_ring()
@@ -492,7 +485,7 @@ class HallLittlewood_generic(sfa.SymmetricFunctionAlgebra_generic):
             m.append( [z.coefficient(col_part) for col_part in Plist] )
         return matrix(m)
 
-    def _multiply(self, left, right):
+    def product(self, left, right):
         r"""
         Multiply an element of the Hall-Littlewood symmetric function
         basis ``self`` and another symmetric function
@@ -508,7 +501,7 @@ class HallLittlewood_generic(sfa.SymmetricFunctionAlgebra_generic):
 
         OUTPUT:
 
-        - returns the product of ``left`` and ``right`` expanded in the basis ``self``
+        the product of ``left`` and ``right`` expanded in the basis ``self``
 
         EXAMPLES::
 
@@ -525,9 +518,9 @@ class HallLittlewood_generic(sfa.SymmetricFunctionAlgebra_generic):
             sage: HLQp([2])^2 # indirect doctest
             HLQp[2, 2] + (-t+1)*HLQp[3, 1] + (-t+1)*HLQp[4]
         """
-        return self( self._s(left) * self._s(right) )
+        return self(self._s(left) * self._s(right))
 
-    def hall_littlewood_family( self ):
+    def hall_littlewood_family(self):
         r"""
         The family of Hall-Littlewood bases associated to ``self``
 
@@ -539,7 +532,7 @@ class HallLittlewood_generic(sfa.SymmetricFunctionAlgebra_generic):
 
         - returns the class of Hall-Littlewood bases
 
-        EXAMPLES ::
+        EXAMPLES::
 
             sage: HLP = SymmetricFunctions(FractionField(QQ['t'])).hall_littlewood(1).P()
             sage: HLP.hall_littlewood_family()
@@ -662,7 +655,7 @@ class HallLittlewood_generic(sfa.SymmetricFunctionAlgebra_generic):
                 sage: HLQ([2]).scalar_hl(HLQ([1,1]))
                 0
                 sage: HLP([2]).scalar_hl(HLP([2]))
-                1/(-t + 1)
+                -1/(t - 1)
             """
             parent = self.parent()
             if t is None:
@@ -837,13 +830,13 @@ class HallLittlewood_q(HallLittlewood_generic):
             sage: HLQp = Sym.hall_littlewood().Qp()
             sage: s = Sym.schur(); p = Sym.power()
             sage: HLQ( HLP([2,1]) + HLP([3]) )
-            (1/(t^2-2*t+1))*HLQ[2, 1] + (1/(-t+1))*HLQ[3]
+            (1/(t^2-2*t+1))*HLQ[2, 1] - (1/(t-1))*HLQ[3]
             sage: HLQ(HLQp([2])) # indirect doctest
-            (t/(t^3-t^2-t+1))*HLQ[1, 1] + (1/(-t+1))*HLQ[2]
+            (t/(t^3-t^2-t+1))*HLQ[1, 1] - (1/(t-1))*HLQ[2]
             sage: HLQ(s([2]))
-            (t/(t^3-t^2-t+1))*HLQ[1, 1] + (1/(-t+1))*HLQ[2]
+            (t/(t^3-t^2-t+1))*HLQ[1, 1] - (1/(t-1))*HLQ[2]
             sage: HLQ(p([2]))
-            (1/(t^2-1))*HLQ[1, 1] + (1/(-t+1))*HLQ[2]
+            (1/(t^2-1))*HLQ[1, 1] - (1/(t-1))*HLQ[2]
         """
         HallLittlewood_generic.__init__(self, hall_littlewood)
 
@@ -972,13 +965,12 @@ class HallLittlewood_qp(HallLittlewood_generic):
         """
         t = QQt.gen()
 
-        if part == []:
+        if not part:
             return lambda part2: QQt.one()
 
         res = hall_littlewood(part) # call to symmetrica (returns in variable x)
         f = lambda part2: res.coefficient(part2).subs(x=t)
         return f
-
 
     def _s_cache(self, n):
         r"""
@@ -1009,6 +1001,6 @@ class HallLittlewood_qp(HallLittlewood_generic):
                               lower_triangular=True, ones_on_diagonal=True)
 
 # Unpickling backward compatibility
-sage.structure.sage_object.register_unpickle_override('sage.combinat.sf.hall_littlewood', 'HallLittlewoodElement_p', HallLittlewood_p.Element)
-sage.structure.sage_object.register_unpickle_override('sage.combinat.sf.hall_littlewood', 'HallLittlewoodElement_q', HallLittlewood_q.Element)
-sage.structure.sage_object.register_unpickle_override('sage.combinat.sf.hall_littlewood', 'HallLittlewoodElement_qp', HallLittlewood_qp.Element)
+sage.misc.persist.register_unpickle_override('sage.combinat.sf.hall_littlewood', 'HallLittlewoodElement_p', HallLittlewood_p.Element)
+sage.misc.persist.register_unpickle_override('sage.combinat.sf.hall_littlewood', 'HallLittlewoodElement_q', HallLittlewood_q.Element)
+sage.misc.persist.register_unpickle_override('sage.combinat.sf.hall_littlewood', 'HallLittlewoodElement_qp', HallLittlewood_qp.Element)

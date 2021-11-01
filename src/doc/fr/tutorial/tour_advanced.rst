@@ -39,11 +39,11 @@ irréductibles.
     sage: V.irreducible_components()
     [
     Closed subscheme of Affine Space of dimension 2 over Rational Field defined by:
-      y - 1,
-      x,
-    Closed subscheme of Affine Space of dimension 2 over Rational Field defined by:
       y,
       x - 1,
+    Closed subscheme of Affine Space of dimension 2 over Rational Field defined by:
+      y - 1,
+      x,
     Closed subscheme of Affine Space of dimension 2 over Rational Field defined by:
       x + y + 2,
       2*y^2 + 4*y + 3
@@ -67,12 +67,12 @@ projectif de dimension 3.
     in a, b, c, d over Rational Field
     sage: F.reduced_groebner_bases ()
     [[-c^2 + b*d, -b*c + a*d, -b^2 + a*c],
-     [-c^2 + b*d, b^2 - a*c, -b*c + a*d],
-     [-c^2 + b*d, b*c - a*d, b^2 - a*c, -c^3 + a*d^2],
-     [c^3 - a*d^2, -c^2 + b*d, b*c - a*d, b^2 - a*c],
-     [c^2 - b*d, -b*c + a*d, -b^2 + a*c],
-     [c^2 - b*d, b*c - a*d, -b^2 + a*c, -b^3 + a^2*d],
-     [c^2 - b*d, b*c - a*d, b^3 - a^2*d, -b^2 + a*c],
+     [-b*c + a*d, -c^2 + b*d, b^2 - a*c],
+     [-c^3 + a*d^2, -c^2 + b*d, b*c - a*d, b^2 - a*c],
+     [-c^2 + b*d, b^2 - a*c, b*c - a*d, c^3 - a*d^2],
+     [-b*c + a*d, -b^2 + a*c, c^2 - b*d],
+     [-b^3 + a^2*d, -b^2 + a*c, c^2 - b*d, b*c - a*d],
+     [-b^2 + a*c, c^2 - b*d, b*c - a*d, b^3 - a^2*d],
      [c^2 - b*d, b*c - a*d, b^2 - a*c]]
     sage: F.polyhedralfan()
     Polyhedral fan in 4 dimensions of dimension 4
@@ -443,7 +443,7 @@ Nous pouvons aussi créer des espaces pour :math:`\Gamma_0(N)` et
      0 over Rational Field
     sage: ModularSymbols(Gamma1(11),2)
     Modular Symbols space of dimension 11 for Gamma_1(11) of weight 2 with
-    sign 0 and over Rational Field
+    sign 0 over Rational Field
 
 Calculons quelques polynômes caractéristiques et développements en série de Fourier.
 

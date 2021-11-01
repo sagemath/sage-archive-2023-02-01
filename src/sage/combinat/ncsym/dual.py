@@ -11,7 +11,6 @@ AUTHORS:
 #  Distributed under the terms of the GNU General Public License (GPL)
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
-from six.moves import range
 
 from sage.misc.lazy_attribute import lazy_attribute
 from sage.misc.misc_c import prod
@@ -346,7 +345,7 @@ class SymmetricFunctionsNonCommutingVariablesDual(UniqueRepresentation, Parent):
             return sum(coeff * y[I] for (I, coeff) in x)
 
         def sum_of_partitions(self, la):
-            """
+            r"""
             Return the sum over all sets partitions whose shape is ``la``,
             scaled by `\prod_i m_i!` where `m_i` is the multiplicity
             of `i` in ``la``.
@@ -382,7 +381,7 @@ class SymmetricFunctionsNonCommutingVariablesDual(UniqueRepresentation, Parent):
 
             This is the trailing term of `h_{\lambda}` mapped by `\chi` to
             the `\mathbf{w}` basis and is used by the coercion framework to
-            constuct the preimage `\chi^{-1}`.
+            construct the preimage `\chi^{-1}`.
 
             INPUT:
 

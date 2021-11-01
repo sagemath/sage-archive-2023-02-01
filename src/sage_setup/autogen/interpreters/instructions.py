@@ -14,7 +14,6 @@
 from __future__ import print_function, absolute_import
 
 import re
-import six
 
 from .storage import ty_int
 
@@ -35,7 +34,7 @@ def params_gen(**chunks):
     (meaning to read/write only a single value), an integer, or
     another chunk; if it is a chunk, then the next value is read from that
     chunk to be the len.  Note that specifying len changes the types
-    given to the instruction, so len==None is different than len==1 even
+    given to the instruction, so len=None is different than len=1 even
     though both mean to use a single value.
 
     These parameter specifications are cumbersome to write by hand, so
@@ -198,17 +197,18 @@ class InstrSpec(object):
         r"""
         Initialize an InstrSpec.
 
-        INPUTS:
-            name -- the name of the instruction
-            io -- a pair of lists of parameter specifications for I/O of the
-                  instruction
-            code -- a string containing a snippet of C code to read
-                    from the input variables and write to the output variables
-            uses_error_handler -- True if the instruction calls Python
-                                  and jumps to error: on a Python error
-            handles_own_decref -- True if the instruction handles Python
-                                  objects and includes its own
-                                  reference-counting
+        INPUT:
+
+        - name -- the name of the instruction
+        - io -- a pair of lists of parameter specifications for I/O of the
+          instruction
+        - code -- a string containing a snippet of C code to read
+          from the input variables and write to the output variables
+        - uses_error_handler -- True if the instruction calls Python
+          and jumps to error: on a Python error
+        - handles_own_decref -- True if the instruction handles Python
+          objects and includes its own
+          reference-counting
 
         EXAMPLES::
 
@@ -252,7 +252,7 @@ class InstrSpec(object):
                 if len is None:
                     n_inputs += 1
                     in_effect += 'S'
-                elif isinstance(len, six.integer_types):
+                elif isinstance(len, int):
                     n_inputs += len
                     in_effect += 'S%d' % len
                 else:
@@ -265,7 +265,7 @@ class InstrSpec(object):
                 if len is None:
                     n_outputs += 1
                     out_effect += 'S'
-                elif isinstance(len, six.integer_types):
+                elif isinstance(len, int):
                     n_outputs += len
                     out_effect += 'S%d' % len
                 else:

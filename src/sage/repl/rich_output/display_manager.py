@@ -24,14 +24,14 @@ EXAMPLES::
     The Sage display manager using the doctest backend
 """
 
-#*****************************************************************************
+# ****************************************************************************
 #       Copyright (C) 2015 Volker Braun <vbraun.name@gmail.com>
 #
 #  Distributed under the terms of the GNU General Public License (GPL)
 #  as published by the Free Software Foundation; either version 2 of
 #  the License, or (at your option) any later version.
 #                  http://www.gnu.org/licenses/
-#*****************************************************************************
+# ****************************************************************************
 
 
 import warnings
@@ -40,8 +40,25 @@ from sage.structure.sage_object import SageObject
 from sage.repl.rich_output.output_basic import (
     OutputPlainText, OutputAsciiArt, OutputUnicodeArt, OutputLatex,
 )
+from sage.repl.rich_output.output_browser import (
+    OutputHtml,
+)
 from sage.repl.rich_output.preferences import DisplayPreferences
 
+def _required_threejs_version():
+    """
+    Return the version of threejs that Sage requires.
+
+    EXAMPLES::
+
+        sage: from sage.repl.rich_output.display_manager import _required_threejs_version
+        sage: _required_threejs_version()
+        'r...'
+    """
+    import os
+    import sage.env
+    with open(os.path.join(sage.env.SAGE_EXTCODE, 'threejs', 'threejs-version.txt')) as f:
+        return f.read().strip()
 
 class DisplayException(Exception):
     """
@@ -56,6 +73,7 @@ class DisplayException(Exception):
         DisplayException: foo
     """
     pass
+
 
 class OutputTypeException(DisplayException):
     """
@@ -77,6 +95,7 @@ class OutputTypeException(DisplayException):
         OutputTypeException: foo
     """
     pass
+
 
 class RichReprWarning(UserWarning):
     """
@@ -107,7 +126,7 @@ class restricted_output(object):
 
         In the context, the output is restricted to the output
         container types listed in ``output_classes``. Additionally,
-        display preferences are changed not not show graphics.
+        display preferences are changed not to show graphics.
 
         INPUT:
 
@@ -362,7 +381,7 @@ class DisplayManager(SageObject):
         Boolean.
         """
         return self._backend.is_in_terminal()
-    
+
     def check_backend_class(self, backend_class):
         """
         Check that the current backend is an instance of
@@ -471,7 +490,7 @@ class DisplayManager(SageObject):
         return output
 
     def _preferred_text_formatter(self, obj, plain_text=None, **kwds):
-        """
+        r"""
         Return the preferred textual representation
 
         INPUT:
@@ -487,6 +506,7 @@ class DisplayManager(SageObject):
         One of
         :class:`~sage.repl.rich_output.output_basic.OutputPlainText`,
         :class:`~sage.repl.rich_output.output_basic.OutputAsciiArt`,
+        :class:`~sage.repl.rich_output.output_basic.OutputUnicodeArt`,
         or
         :class:`~sage.repl.rich_output.output_basic.OutputLatex`
         containing the preferred textual representation of ``obj``
@@ -514,8 +534,8 @@ class DisplayManager(SageObject):
             OutputUnicodeArt container
 
             sage: dm.preferences.text = 'latex'
-            sage: dm._preferred_text_formatter([1/42])
-            \newcommand{\Bold}[1]{\mathbf{#1}}\verb|OutputLatex|\phantom{\verb!x!}\verb|container|
+            sage: dm._preferred_text_formatter([1/42])  # doctest backend does not support html
+            OutputPlainText container
 
             sage: del dm.preferences.text   # reset to default
         """
@@ -531,16 +551,16 @@ class DisplayManager(SageObject):
             if type(out) is not OutputUnicodeArt:
                 raise OutputTypeException('backend returned wrong output type, require UnicodeArt')
             return out
-        if want == 'latex' and OutputLatex in supported:
+        if want == 'latex' and OutputHtml in supported:
             out = self._backend.latex_formatter(obj, **kwds)
-            if type(out) is not OutputLatex:
-                raise OutputTypeException('backend returned wrong output type, require Latex')
+            if type(out) is not OutputHtml:
+                raise OutputTypeException('backend returned wrong output type, require Html')
             return out
         if plain_text is not None:
             if type(plain_text) is not OutputPlainText:
                 raise OutputTypeException('backend returned wrong output type, require PlainText')
             return plain_text
-        out =  self._backend.plain_text_formatter(obj, **kwds)
+        out = self._backend.plain_text_formatter(obj, **kwds)
         if type(out) is not OutputPlainText:
             raise OutputTypeException('backend returned wrong output type, require PlainText')
         return out
@@ -574,14 +594,14 @@ class DisplayManager(SageObject):
             sage: from sage.repl.rich_output import get_display_manager
             sage: dm = get_display_manager()
             sage: dm._call_rich_repr(Foo(), {})
-            doctest:...: RichReprWarning: Exception in _rich_repr_ while displaying object: reason
+            doctest:...: ...RichReprWarning: Exception in _rich_repr_ while displaying object: reason
         """
         if rich_repr_kwds:
             # do not ignore errors from invalid options
             return obj._rich_repr_(self, **rich_repr_kwds)
         try:
             return obj._rich_repr_(self)
-        except NotImplementedError as e:
+        except NotImplementedError:
             # don't warn on NotImplementedErrors
             return None
         except Exception as e:
@@ -690,7 +710,7 @@ class DisplayManager(SageObject):
             sage: out = dm.graphics_from_save(plt.save, dict(), '.png', dm.types.OutputImagePng)
             sage: out
             OutputImagePng container
-            sage: out.png.get().startswith('\x89PNG')
+            sage: out.png.get().startswith(b'\x89PNG')
             True
             sage: out.png.filename()   # random
             '/home/user/.sage/temp/localhost.localdomain/23903/tmp_pu5woK.png'
@@ -715,7 +735,7 @@ class DisplayManager(SageObject):
 
     def threejs_scripts(self, online):
         """
-        Return Three.js script tags for the current backend.
+        Return Three.js script tag for the current backend.
 
         INPUT:
 
@@ -723,19 +743,19 @@ class DisplayManager(SageObject):
 
         OUTPUT:
 
-        String containing script tags
+        String containing script tag
 
         .. NOTE::
 
             This base method handles ``online=True`` case only, serving CDN
-            script tags. Location of scripts for offline usage is
+            script tag. Location of script for offline usage is
             backend-specific.
 
         EXAMPLES::
 
             sage: from sage.repl.rich_output import get_display_manager
             sage: get_display_manager().threejs_scripts(online=True)
-            '...<script src="https://cdn.rawgit.com/mrdoob/three.js/...'
+            '...<script src="https://cdn.jsdelivr.net/gh/sagemath/threejs-sage@...'
             sage: get_display_manager().threejs_scripts(online=False)
             Traceback (most recent call last):
             ...
@@ -743,11 +763,9 @@ class DisplayManager(SageObject):
             offline threejs graphics
         """
         if online:
-            from sage.misc.package import installed_packages
-            version = installed_packages()['threejs']
+            version = _required_threejs_version()
             return """
-<script src="https://cdn.rawgit.com/mrdoob/three.js/{0}/build/three.min.js"></script>
-<script src="https://cdn.rawgit.com/mrdoob/three.js/{0}/examples/js/controls/OrbitControls.js"></script>
+<script src="https://cdn.jsdelivr.net/gh/sagemath/threejs-sage@{0}/build/three.min.js"></script>
             """.format(version)
         try:
             return self._backend.threejs_offline_scripts()
@@ -832,8 +850,6 @@ class DisplayManager(SageObject):
         """
         plain_text, rich_output = self._rich_output_formatter(obj, rich_repr_kwds)
         self._backend.display_immediately(plain_text, rich_output)
-
-
 
 
 get_display_manager = DisplayManager.get_instance

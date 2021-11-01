@@ -38,16 +38,14 @@ class StreamlinePlot(GraphicPrimitive):
             sage: r.options()['plot_points']
             2
             sage: r.xpos_array
-            array([ 0.,  1.])
+            array([0., 1.])
             sage: r.yvec_array
-            masked_array(data =
-             [[1.0 1.0]
-             [0.5403023058681398 0.5403023058681398]],
-                         mask =
-             [[False False]
-             [False False]],
-                   fill_value = 1e+20)
-            <BLANKLINE>
+            masked_array(
+              data=[[1.0, 1.0],
+                    [0.5403023058681398, 0.5403023058681398]],
+              mask=[[False, False],
+                    [False, False]],
+              fill_value=1e+20)
 
         TESTS:
 
@@ -153,7 +151,7 @@ def streamline_plot(f_g, xrange, yrange, **options):
     two variables `x` and `y`.
 
     If given two functions `(f(x,y), g(x,y))`, then this function plots
-    steamlines in the vector field over the specified ranges with ``xrange``
+    streamlines in the vector field over the specified ranges with ``xrange``
     being of `x`, denoted by ``xvar`` below, between ``xmin`` and ``xmax``,
     and ``yrange`` similarly (see below). ::
 

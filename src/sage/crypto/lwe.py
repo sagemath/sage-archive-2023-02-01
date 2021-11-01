@@ -21,28 +21,34 @@ We get 30 samples from an LWE oracle parameterised by security parameter
 chosen as in [Reg09]_::
 
     sage: from sage.crypto.lwe import samples
-    sage: samples(30, 20, 'Regev')
-    [((360, 264, 123, 368, 398, 392, 41, 84, 25, 389, 311, 68, 322, 41, 161, 372, 222, 153, 243, 381), 122),
-    ...
-    ((155, 22, 357, 312, 87, 298, 182, 163, 296, 181, 219, 135, 164, 308, 248, 320, 64, 166, 214, 104), 152)]
+    sage: S = samples(30, 20, 'Regev')
+    sage: len(S)
+    30
+    sage: S[0][0].parent(), S[0][1].parent()
+    (Vector space of dimension 20 over Ring of integers modulo 401,
+     Ring of integers modulo 401)
 
 We may also pass classes to the samples function, which is useful for users
 implementing their own oracles::
 
     sage: from sage.crypto.lwe import samples, LindnerPeikert
-    sage: samples(30, 20, LindnerPeikert)
-    [((1275, 168, 1529, 2024, 1874, 1309, 16, 1869, 1114, 1696, 1645, 618, 1372, 1273, 683, 237, 1526, 879, 1305, 1355), 950),
-    ...
-    ((1787, 2033, 1677, 331, 1562, 49, 796, 1002, 627, 98, 91, 711, 1712, 418, 2024, 163, 1773, 184, 1548, 3), 1815)]
+    sage: S = samples(30, 20, LindnerPeikert)
+    sage: len(S)
+    30
+    sage: S[0][0].parent(), S[0][1].parent()
+    (Vector space of dimension 20 over Ring of integers modulo 2053,
+     Ring of integers modulo 2053)
 
 Finally, :func:`samples` also accepts instances of classes::
 
     sage: from sage.crypto.lwe import LindnerPeikert
     sage: lwe = LindnerPeikert(20)
-    sage: samples(30, 20, lwe)
-    [((465, 180, 440, 706, 1367, 106, 1380, 614, 1162, 1354, 1098, 2036, 1974, 1417, 1502, 1431, 863, 1894, 1368, 1771), 618),
-    ...
-    ((1050, 1017, 1314, 1310, 1941, 2041, 484, 104, 1199, 1744, 161, 1905, 679, 1663, 531, 1630, 168, 1559, 1040, 1719), 1006)]
+    sage: S = samples(30, 20, lwe)
+    sage: len(S)
+    30
+    sage: S[0][0].parent(), S[0][1].parent()
+    (Vector space of dimension 20 over Ring of integers modulo 2053,
+     Ring of integers modulo 2053)
 
 Note that Ring-LWE samples are returned as vectors::
 
@@ -50,10 +56,9 @@ Note that Ring-LWE samples are returned as vectors::
     sage: from sage.stats.distributions.discrete_gaussian_polynomial import DiscreteGaussianDistributionPolynomialSampler
     sage: D = DiscreteGaussianDistributionPolynomialSampler(ZZ['x'], euler_phi(16), 5)
     sage: ringlwe = RingLWE(16, 257, D, secret_dist='uniform')
-    sage: samples(30, euler_phi(16), ringlwe)
-    [((41, 78, 232, 79, 223, 85, 26, 68), (195, 99, 106, 57, 93, 113, 23, 68)),
-    ...
-    ((185, 89, 244, 122, 249, 140, 173, 142), (98, 196, 70, 49, 55, 8, 158, 57))]
+    sage: p = samples(30, euler_phi(16), ringlwe)[0][0].parent(); p
+    Vector space of dimension 8 over Ring of integers modulo 257
+    sage: assert all(c.parent() is p for b in samples(30, euler_phi(16), ringlwe) for c in b)
 
 One technical issue when working with these generators is that by default they
 return vectors and scalars over/in rings modulo some `q`. These are represented
@@ -63,10 +68,9 @@ provides the option to balance the representation. In this case vectors and
 scalars over/in the integers are returned::
 
     sage: from sage.crypto.lwe import samples
-    sage: samples(30, 20, 'Regev', balanced=True)
-    [((-105, 43, -25, -16, 57, 141, -108, 92, -173, 4, 179, -191, 164, 101, -16, -175, 172, 10, 147, 1), 114),
-    ...
-    ((-166, -147, 120, -56, 130, 163, 83, 17, -125, -159, -124, 19, 198, -181, -124, -155, 84, -15, -113, 113), 39)]
+    sage: for s in samples(30, 20, 'Regev', balanced=True):
+    ....:     s1 = list(s[0]) + [s[1]]
+    ....:     assert all(-401//2 <= b <= 401//2 for b in s1)
 
 AUTHORS:
 
@@ -86,18 +90,16 @@ REFERENCES:
 
 - [CGW2013]_
 """
-from six.moves import range
 
-from sage.functions.log import exp, log
+from sage.functions.log import log
 from sage.functions.other import sqrt, floor, ceil
-from sage.misc.functional import cyclotomic_polynomial
+from sage.misc.functional import cyclotomic_polynomial, round
 from sage.misc.randstate import set_random_seed
 from sage.misc.prandom import randint
-from sage.misc.misc import get_verbose
 from sage.modules.free_module import FreeModule
 from sage.modules.free_module_element import random_vector, vector
 from sage.numerical.optimize import find_root
-from sage.rings.all import ZZ, RealField, IntegerModRing, RR
+from sage.rings.all import ZZ, IntegerModRing, RR
 from sage.arith.all import next_prime, euler_phi
 from sage.structure.element import parent
 from sage.structure.sage_object import SageObject
@@ -105,6 +107,7 @@ from sage.symbolic.constants import pi
 from sage.symbolic.ring import SR
 from sage.stats.distributions.discrete_gaussian_integer import DiscreteGaussianDistributionIntegerSampler
 from sage.stats.distributions.discrete_gaussian_polynomial import DiscreteGaussianDistributionPolynomialSampler
+
 
 class UniformSampler(SageObject):
     """
@@ -115,8 +118,8 @@ class UniformSampler(SageObject):
         sage: from sage.crypto.lwe import UniformSampler
         sage: sampler = UniformSampler(-2, 2); sampler
         UniformSampler(-2, 2)
-        sage: sampler()
-        -2
+        sage: sampler() in range(-2, 3)
+        True
 
     .. automethod:: __init__
     .. automethod:: __call__
@@ -150,8 +153,8 @@ class UniformSampler(SageObject):
 
             sage: from sage.crypto.lwe import UniformSampler
             sage: sampler = UniformSampler(-12, 12)
-            sage: sampler()
-            -10
+            sage: sampler() in range(-12, 13)
+            True
         """
         return randint(self.lower_bound, self.upper_bound)
 
@@ -173,8 +176,8 @@ class UniformPolynomialSampler(SageObject):
     EXAMPLES::
 
         sage: from sage.crypto.lwe import UniformPolynomialSampler
-        sage: UniformPolynomialSampler(ZZ['x'], 8, -2, 2)()
-        -2*x^7 + x^6 - 2*x^5 - x^3 - 2*x^2 - 2
+        sage: UniformPolynomialSampler(ZZ['x'], 8, -2, 2)().parent()
+        Univariate Polynomial Ring in x over Integer Ring
 
     .. automethod:: __init__
     .. automethod:: __call__
@@ -214,8 +217,8 @@ class UniformPolynomialSampler(SageObject):
 
             sage: from sage.crypto.lwe import UniformPolynomialSampler
             sage: sampler = UniformPolynomialSampler(ZZ['x'], 8, -12, 12)
-            sage: sampler()
-            -10*x^7 + 5*x^6 - 8*x^5 + x^4 - 4*x^3 - 11*x^2 - 10
+            sage: sampler().parent()
+            Univariate Polynomial Ring in x over Integer Ring
         """
         coeff = [self.D() for _ in range(self.n)]
         f = self.P(coeff)
@@ -240,7 +243,7 @@ class LWE(SageObject):
     .. automethod:: __call__
     """
     def __init__(self, n, q, D, secret_dist='uniform', m=None):
-        """
+        r"""
         Construct an LWE oracle in dimension ``n`` over a ring of order
         ``q`` with noise distribution ``D``.
 
@@ -274,20 +277,24 @@ class LWE(SageObject):
 
         and sample 1000 samples::
 
-            sage: L = [lwe() for _ in range(1000)]
+            sage: L = []
+            sage: def add_samples():
+            ....:     global L
+            ....:     L += [lwe() for _ in range(1000)]
+            sage: add_samples()
 
         To test the oracle, we use the internal secret to evaluate the samples
         in the secret::
 
-            sage: S = [ZZ(a.dot_product(lwe._LWE__s) - c) for (a,c) in L]
+            sage: S = lambda : [ZZ(a.dot_product(lwe._LWE__s) - c) for (a,c) in L]
 
         However, while Sage represents finite field elements between 0 and q-1
         we rely on a balanced representation of those elements here. Hence, we
         fix the representation and recover the correct standard deviation of the
         noise::
 
-            sage: sqrt(variance([e if e <= 200 else e-401 for e in S]).n())
-            3.0...
+            sage: while abs(sqrt(variance([e if e <= 200 else e-401 for e in S()]).n()) - 3.0) > 0.01:
+            ....:     add_samples()
 
         If ``m`` is not ``None`` the number of available samples is restricted::
 
@@ -313,7 +320,7 @@ class LWE(SageObject):
             self.__s = vector(self.K, self.n, [self.D() for _ in range(n)])
         else:
             try:
-                lb, ub = map(ZZ,secret_dist)
+                lb, ub = map(ZZ, secret_dist)
                 self.__s = vector(self.K, self.n, [randint(lb,ub) for _ in range(n)])
             except (IndexError, TypeError):
                 raise TypeError("Parameter secret_dist=%s not understood."%(secret_dist))
@@ -342,8 +349,10 @@ class LWE(SageObject):
         EXAMPLES::
 
             sage: from sage.crypto.lwe import DiscreteGaussianDistributionIntegerSampler, LWE
-            sage: LWE(10, 401, DiscreteGaussianDistributionIntegerSampler(3))()
-            ((309, 347, 198, 194, 336, 360, 264, 123, 368, 398), 198)
+            sage: LWE(10, 401, DiscreteGaussianDistributionIntegerSampler(3))()[0].parent()
+            Vector space of dimension 10 over Ring of integers modulo 401
+            sage: LWE(10, 401, DiscreteGaussianDistributionIntegerSampler(3))()[1].parent()
+            Ring of integers modulo 401
         """
         if self.m is not None:
             if self.__i >= self.m:
@@ -460,10 +469,10 @@ class UniformNoiseLWE(LWE):
 
             sage: from sage.crypto.lwe import UniformNoiseLWE
             sage: UniformNoiseLWE(89)
-            LWE(89, 154262477, UniformSampler(0, 351), 'noise', 131)
+            LWE(89, 64311834871, UniformSampler(0, 6577), 'noise', 131)
 
             sage: UniformNoiseLWE(89, instance='encrypt')
-            LWE(131, 154262477, UniformSampler(0, 497), 'noise', 181)
+            LWE(131, 64311834871, UniformSampler(0, 11109), 'noise', 181)
         """
 
         if n<89:
@@ -472,14 +481,16 @@ class UniformNoiseLWE(LWE):
         n2 = n
         C  = 4/sqrt(2*pi)
         kk = floor((n2-2*log(n2, 2)**2)/5)
-        n1 = floor((3*n2-5*kk)/2)
+        n1 = (3*n2-5*kk) // 2
         ke = floor((n1-2*log(n1, 2)**2)/5)
-        l  = floor((3*n1-5*ke)/2)-n2
-        sk = ceil((C*(n1+n2))**(3/2))
-        se = ceil((C*(n1+n2+l))**(3/2))
-        q = next_prime(max(ceil((4*sk)**((n1+n2)/n1)), ceil((4*se)**((n1+n2+l)/(n2+l))), ceil(4*(n1+n2)*se*sk+4*se+1)))
+        l  = (3*n1-5*ke) // 2 - n2
+        sk = ceil((C*(n1+n2))**(ZZ(3)/2))
+        se = ceil((C*(n1+n2+l))**(ZZ(3)/2))
+        q = next_prime(max(ceil((4*sk)**(ZZ(n1+n2)/n1)),
+                           ceil((4*se)**(ZZ(n1+n2+l)/(n2+l))),
+                           ceil(4*(n1+n2)*se*sk+4*se+1)))
 
-        if kk<=0:
+        if kk <= 0:
             raise TypeError("Parameter too small")
 
         if instance == 'key':
@@ -525,7 +536,7 @@ class RingLWE(SageObject):
             sage: from sage.crypto.lwe import RingLWE
             sage: from sage.stats.distributions.discrete_gaussian_polynomial import DiscreteGaussianDistributionPolynomialSampler
             sage: D = DiscreteGaussianDistributionPolynomialSampler(ZZ['x'], n=euler_phi(20), sigma=3.0)
-            sage: RingLWE(N=20, q=next_prime(800), D=D);
+            sage: RingLWE(N=20, q=next_prime(800), D=D)
             RingLWE(20, 809, Discrete Gaussian sampler for polynomials of degree < 8 with σ=3.000000 in each component, x^8 - x^6 + x^4 - x^2 + 1, 'uniform', None)
         """
         self.N  = ZZ(N)
@@ -560,7 +571,7 @@ class RingLWE(SageObject):
 
             sage: from sage.crypto.lwe import DiscreteGaussianDistributionPolynomialSampler, RingLWE
             sage: D = DiscreteGaussianDistributionPolynomialSampler(ZZ['x'], n=8, sigma=3.0)
-            sage: RingLWE(N=16, q=next_prime(400), D=D);
+            sage: RingLWE(N=16, q=next_prime(400), D=D)
             RingLWE(16, 401, Discrete Gaussian sampler for polynomials of degree < 8 with σ=3.000000 in each component, x^8 + 1, 'uniform', None)
         """
         if isinstance(self.secret_dist, str):
@@ -578,8 +589,10 @@ class RingLWE(SageObject):
             sage: n = euler_phi(N)
             sage: D = DiscreteGaussianDistributionPolynomialSampler(ZZ['x'], n, 5)
             sage: ringlwe = RingLWE(N, 257, D, secret_dist='uniform')
-            sage: ringlwe()
-            ((228, 149, 226, 198, 38, 222, 222, 127), (178, 132, 72, 147, 77, 159, 187, 250))
+            sage: ringlwe()[0].parent()
+            Vector space of dimension 8 over Ring of integers modulo 257
+            sage: ringlwe()[1].parent()
+            Vector space of dimension 8 over Ring of integers modulo 257
         """
         if self.m is not None:
             if self.__i >= self.m:
@@ -652,7 +665,7 @@ class RingLWEConverter(SageObject):
             sage: lwe = RingLWEConverter(RingLWE(16, 257, D, secret_dist='uniform'))
             sage: set_random_seed(1337)
             sage: lwe()
-            ((130, 32, 216, 3, 125, 58, 197, 171), 189)
+            ((32, 216, 3, 125, 58, 197, 171, 43), ...)
         """
         self.ringlwe = ringlwe
         self._i = 0
@@ -668,7 +681,7 @@ class RingLWEConverter(SageObject):
             sage: lwe = RingLWEConverter(RingLWE(16, 257, D, secret_dist='uniform'))
             sage: set_random_seed(1337)
             sage: lwe()
-            ((130, 32, 216, 3, 125, 58, 197, 171), 189)
+            ((32, 216, 3, 125, 58, 197, 171, 43), ...)
         """
         R_q = self.ringlwe.R_q
 
@@ -741,15 +754,15 @@ def samples(m, n, lwe, seed=None, balanced=False, **kwds):
     if isinstance(lwe, type):
         lwe = lwe(n, m=m, **kwds)
     else:
-        lwe = lwe
         if lwe.n != n:
-            raise ValueError("Passed LWE instance has n=%d, but n=%d was passed to this function."%(lwe.n, n))
+            raise ValueError("Passed LWE instance has n=%d, but n=%d was passed to this function." % (lwe.n, n))
 
     if balanced is False:
         f = lambda a_c: a_c
     else:
         f = balance_sample
     return [f(lwe()) for _ in range(m)]
+
 
 def balance_sample(s, q=None):
     r"""
@@ -768,19 +781,21 @@ def balance_sample(s, q=None):
     EXAMPLES::
 
         sage: from sage.crypto.lwe import balance_sample, samples, Regev
-        sage: list(map(balance_sample, samples(10, 5, Regev)))
-        [((-9, -4, -4, 4, -4), 4), ((-8, 11, 12, -11, -11), -7),
-        ...
-        ((-11, 12, 0, -6, -3), 7), ((-7, 14, 8, 11, -8), -12)]
+        sage: for s in samples(10, 5, Regev):
+        ....:     b = balance_sample(s)
+        ....:     assert all(-29//2 <= c <= 29//2 for c in b[0])
+        ....:     assert -29//2 <= b[1] <= 29//2
+        ....:     assert all(s[0][j] == b[0][j] % 29 for j in range(5))
+        ....:     assert s[1] == b[1] % 29
 
 
         sage: from sage.crypto.lwe import balance_sample, DiscreteGaussianDistributionPolynomialSampler, RingLWE, samples
         sage: D = DiscreteGaussianDistributionPolynomialSampler(ZZ['x'], 8, 5)
         sage: rlwe = RingLWE(20, 257, D)
-        sage: list(map(balance_sample, samples(10, 8, rlwe)))
-        [((-7, -37, -64, 107, -91, -24, 120, 54), (74, 83, 18, 55, -53, 43, 4, 10)),
-        ...
-        ((-63, 34, 82, -112, 49, 89, -72, -41), (117, 43, 13, -37, 102, 55, -97, 56))]
+        sage: for s in samples(10, 8, rlwe):
+        ....:     b = balance_sample(s)
+        ....:     assert all(-257//2 <= c <= 257//2 for bi in b for c in bi)
+        ....:     assert all(s[i][j] == b[i][j] % 257 for i in range(2) for j in range(8))
 
     .. note::
 

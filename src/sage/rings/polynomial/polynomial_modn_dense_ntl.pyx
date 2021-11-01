@@ -1,5 +1,11 @@
+# distutils: libraries = NTL_LIBRARIES gmp
+# distutils: extra_compile_args = NTL_CFLAGS
+# distutils: include_dirs = NTL_INCDIR
+# distutils: library_dirs = NTL_LIBDIR
+# distutils: extra_link_args = NTL_LIBEXTRA
+# distutils: language = c++
 """
-Dense univariate polynomials over  `\ZZ/n\ZZ`, implemented using NTL.
+Dense univariate polynomials over  `\ZZ/n\ZZ`, implemented using NTL
 
 This implementation is generally slower than the FLINT implementation in
 :mod:`~sage.rings.polynomial.polynomial_zmod_flint`, so we use FLINT by
@@ -26,7 +32,6 @@ AUTHORS:
 # (at your option) any later version.
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
-from __future__ import absolute_import
 
 from cysignals.memory cimport sig_malloc, sig_free
 from cysignals.signals cimport sig_on, sig_off
@@ -34,6 +39,8 @@ from cysignals.signals cimport sig_on, sig_off
 from sage.rings.polynomial.polynomial_element cimport Polynomial, _dict_to_list
 
 from sage.libs.all import pari, pari_gen
+
+from sage.rings.integer cimport smallInteger
 
 from sage.libs.ntl.all import ZZ as ntl_ZZ, ZZX, zero_ZZX, ZZ_p, ZZ_pX
 from sage.rings.rational_field import QQ
@@ -48,7 +55,7 @@ from sage.rings.infinity import infinity
 from . import polynomial_singular_interface
 from sage.interfaces.all import singular as singular_default
 
-from sage.structure.element import generic_power, canonical_coercion, bin_op, coerce_binop
+from sage.structure.element import coerce_binop
 
 from sage.libs.ntl.types cimport NTL_SP_BOUND
 from sage.libs.ntl.ZZ_p cimport *
@@ -294,10 +301,27 @@ cdef class Polynomial_dense_mod_n(Polynomial):
 
     def degree(self, gen=None):
         """
-        Return the degree of this polynomial.  The zero polynomial
-        has degree -1.
+        Return the degree of this polynomial.
+
+        The zero polynomial has degree -1.
+
+        EXAMPLES::
+
+            sage: R.<x> = PolynomialRing(Integers(100), implementation='NTL')
+            sage: (x^3 + 3*x - 17).degree()
+            3
+            sage: R.zero().degree()
+            -1
+
+        TESTS:
+
+        Check output type (see :trac:`25182`)::
+
+            sage: R.<x> = PolynomialRing(Integers(3), implementation='NTL')
+            sage: isinstance(x.degree(), Integer)
+            True
         """
-        return max(self.__poly.degree(), -1)
+        return smallInteger(max(self.__poly.degree(), -1))
 
     cpdef list list(self, bint copy=True):
         """
@@ -501,6 +525,7 @@ def small_roots(self, X=None, beta=1.0, epsilon=None, **kwds):
     We know that the error is `\le 2^{\text{hidden}}-1` and that the modulus
     we are looking for is `\ge \sqrt{N}`::
 
+        sage: from sage.misc.verbose import set_verbose
         sage: set_verbose(2)
         sage: d = f.small_roots(X=2^hidden-1, beta=0.5)[0] # time random
         verbose 2 (<module>) m = 4
@@ -522,7 +547,7 @@ def small_roots(self, X=None, beta=1.0, epsilon=None, **kwds):
     PhD thesis, University of Paderborn, 2003.
     http://www.cs.uni-paderborn.de/uploads/tx_sibibtex/bp.pdf
     """
-    from sage.misc.misc import verbose
+    from sage.misc.verbose import verbose
     from sage.matrix.constructor import Matrix
     from sage.rings.all import RR
 
@@ -543,7 +568,7 @@ def small_roots(self, X=None, beta=1.0, epsilon=None, **kwds):
 
     if epsilon is None:
         epsilon = beta/8
-    verbose("epsilon = %d"%epsilon, level=2)
+    verbose("epsilon = %f"%epsilon, level=2)
 
     m = max(beta**2/(delta * epsilon), 7*beta/delta).ceil()
     verbose("m = %d"%m, level=2)
@@ -802,13 +827,13 @@ cdef class Polynomial_dense_modn_ntl_zz(Polynomial_dense_mod_n):
             x^5 + 95*x^4 + 10*x^3 + 90*x^2 + 5*x + 99
 
         Negative powers will not work::
-        
+
             sage: R.<x> = PolynomialRing(Integers(101), implementation='NTL')
             sage: (x-1)^(-5)
             Traceback (most recent call last):
             ...
             NotImplementedError: Fraction fields not implemented for this type.
-            
+
         We define ``0^0`` to be unity, :trac:`13895`::
 
             sage: R.<x> = PolynomialRing(Integers(100), implementation='NTL')
@@ -986,10 +1011,10 @@ cdef class Polynomial_dense_modn_ntl_zz(Polynomial_dense_mod_n):
 
     def _derivative(self, var=None):
         r"""
-        Returns the formal derivative of self with respect to var.
+        Return the formal derivative of self with respect to ``var``.
 
-        var must be either the generator of the polynomial ring to which
-        this polynomial belongs, or None (either way the behaviour is the
+        ``var`` must be either the generator of the polynomial ring to which
+        this polynomial belongs, or ``None`` (either way the behaviour is the
         same).
 
         .. SEEALSO:: :meth:`.derivative`
@@ -1008,24 +1033,32 @@ cdef class Polynomial_dense_modn_ntl_zz(Polynomial_dense_mod_n):
             ...
             ValueError: cannot differentiate with respect to 2*x
 
+        TESTS::
+
             sage: y = var("y")
             sage: f._derivative(y)
             Traceback (most recent call last):
             ...
             ValueError: cannot differentiate with respect to y
         """
-        if var is not None and var is not self._parent.gen():
-            raise ValueError("cannot differentiate with respect to %s" % var)
+        if var is not None and var != self._parent.gen():
+            raise ValueError('cannot differentiate with respect to {}'.format(var))
 
         cdef Polynomial_dense_modn_ntl_zz r = self._new()
         zz_pX_diff(r.x, self.x)
         return r
 
-    def reverse(self):
+    def reverse(self, degree=None):
         """
-        Reverses the coefficients of self. The reverse of `f(x)` is `x^n f(1/x)`.
+        Return the reverse of the input polynomial thought as a polynomial of
+        degree ``degree``.
 
-        The degree will go down if the constant term is zero.
+        If `f` is a degree-`d` polynomial, its reverse is `x^d f(1/x)`.
+
+        INPUT:
+
+        - ``degree`` (``None`` or an integer) - if specified, truncate or zero
+          pad the list of coefficients to this degree before reversing it.
 
         EXAMPLES::
 
@@ -1033,12 +1066,28 @@ cdef class Polynomial_dense_modn_ntl_zz(Polynomial_dense_mod_n):
             sage: f = x^4 - x - 1
             sage: f.reverse()
             76*x^4 + 76*x^3 + 1
-            sage: f = x^3 - x
-            sage: f.reverse()
+            sage: f.reverse(2)
+            76*x^2 + 76*x
+            sage: f.reverse(5)
+            76*x^5 + 76*x^4 + x
+            sage: g = x^3 - x
+            sage: g.reverse()
             76*x^2 + 1
+
+        TESTS:
+
+        We check that this implementation is compatible with the generic one::
+
+            sage: all(f.reverse(d) == Polynomial.reverse(f, d)
+            ....:     for d in [None, 0, 1, 2, 3, 4, 5])
+            True
         """
         cdef Polynomial_dense_modn_ntl_zz r = self._new()
-        zz_pX_reverse(r.x, self.x)
+
+        if degree is None:
+            zz_pX_reverse(r.x, self.x)
+        else:
+            zz_pX_reverse_hi(r.x, self.x, degree)
         return r
 
     def is_gen(self):
@@ -1520,9 +1569,9 @@ cdef class Polynomial_dense_modn_ntl_ZZ(Polynomial_dense_mod_n):
 
     def _derivative(self, var=None):
         r"""
-        Returns the formal derivative of self with respect to var.
+        Return the formal derivative of self with respect to ``var``.
 
-        var must be either the generator of the polynomial ring to which
+        ``var`` must be either the generator of the polynomial ring to which
         this polynomial belongs, or None (either way the behaviour is the
         same).
 
@@ -1542,26 +1591,33 @@ cdef class Polynomial_dense_modn_ntl_ZZ(Polynomial_dense_mod_n):
             ...
             ValueError: cannot differentiate with respect to 2*x
 
+        TESTS::
+
             sage: y = var("y")
             sage: f._derivative(y)
             Traceback (most recent call last):
             ...
             ValueError: cannot differentiate with respect to y
         """
-        if var is not None and var is not self._parent.gen():
-            raise ValueError("cannot differentiate with respect to %s" % var)
+        if var is not None and var != self._parent.gen():
+            raise ValueError("cannot differentiate with respect to {}".format(var))
 
         cdef Polynomial_dense_modn_ntl_ZZ r = self._new()
         ZZ_pX_diff(r.x, self.x)
         return r
 
 
-    def reverse(self):
+    def reverse(self, degree=None):
         """
-        Reverses the coefficients of self. The reverse of `f(x)` is `x^n
-        f(1/x)`.
+        Return the reverse of the input polynomial thought as a polynomial of
+        degree ``degree``.
 
-        The degree will go down if the constant term is zero.
+        If `f` is a degree-`d` polynomial, its reverse is `x^d f(1/x)`.
+
+        INPUT:
+
+        - ``degree`` (``None`` or an integer) - if specified, truncate or zero
+          pad the list of coefficients to this degree before reversing it.
 
         EXAMPLES::
 
@@ -1572,9 +1628,25 @@ cdef class Polynomial_dense_modn_ntl_ZZ(Polynomial_dense_mod_n):
             sage: f = x^3 + x
             sage: f.reverse()
             x^2 + 1
+            sage: f.reverse(1)
+            1
+            sage: f.reverse(5)
+            x^4 + x^2
+
+        TESTS:
+
+        We check that this implementation is compatible with the generic one::
+
+            sage: all(f.reverse(d) == Polynomial.reverse(f, d)
+            ....:     for d in [None, 0, 1, 2, 3, 4, 5])
+            True
         """
         cdef Polynomial_dense_modn_ntl_ZZ r = self._new()
-        ZZ_pX_reverse(r.x, self.x)
+
+        if degree is None:
+            ZZ_pX_reverse(r.x, self.x)
+        else:
+            ZZ_pX_reverse_hi(r.x, self.x, degree)
         return r
 
     def is_gen(self):

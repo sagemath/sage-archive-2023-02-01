@@ -24,7 +24,7 @@ To create new types of output, you must create your own subclass of
 
 .. warning::
 
-    All rich output data in sublasses of :class:`OutputBase` must be
+    All rich output data in subclasses of :class:`OutputBase` must be
     contained in :class:`~sage.repl.rich_output.buffer.OutputBuffer`
     instances. You must never reference any files on the local file
     system, as there is no guarantee that the notebook server and the
@@ -117,10 +117,6 @@ class OutputPlainText(OutputBase):
             sage: OutputPlainText('foo')
             OutputPlainText container
         """
-        # Internally, all buffers store bytes. Strings/Unicode is always utf-8
-        # encoded.
-        if isinstance(plain_text, unicode):
-            plain_text = plain_text.encode('utf-8')
         self.text = OutputBuffer(plain_text)
 
     @classmethod
@@ -140,7 +136,7 @@ class OutputPlainText(OutputBase):
             sage: from sage.repl.rich_output.output_catalog import OutputPlainText
             sage: OutputPlainText.example()
             OutputPlainText container
-            sage: OutputPlainText.example().text.get()
+            sage: OutputPlainText.example().text.get_str()
             'Example plain text output'
         """
         return cls('Example plain text output')
@@ -158,7 +154,7 @@ class OutputPlainText(OutputBase):
             sage: plain_text.print_to_stdout()
             Example plain text output
         """
-        print(self.text.get())
+        print(self.text.get_str())
 
 
 class OutputAsciiArt(OutputBase):
@@ -201,7 +197,7 @@ class OutputAsciiArt(OutputBase):
             sage: from sage.repl.rich_output.output_catalog import OutputAsciiArt
             sage: OutputAsciiArt.example()
             OutputAsciiArt container
-            sage: OutputAsciiArt.example().ascii_art.get()
+            sage: OutputAsciiArt.example().ascii_art.get_str()
             '[                        *   *   *    * ]\n[      **   **   *    *  *   *  *    *  ]\n[ ***, * , *  , **, ** , *, * , * , *   ]'
         """
         return cls('[                        *   *   *    * ]\n'
@@ -223,7 +219,7 @@ class OutputAsciiArt(OutputBase):
             [      **   **   *    *  *   *  *    *  ]
             [ ***, * , *  , **, ** , *, * , * , *   ]
         """
-        print(self.ascii_art.get())
+        print(self.ascii_art.get_str())
 
 
 class OutputUnicodeArt(OutputBase):
@@ -252,7 +248,7 @@ class OutputUnicodeArt(OutputBase):
         """
         # Internally, all buffers store bytes. Unicode is always utf-8
         # encoded.
-        if isinstance(unicode_art, unicode):
+        if not isinstance(unicode_art, bytes):
             unicode_art = unicode_art.encode('utf-8')
         self.unicode_art = OutputBuffer(unicode_art)
 
@@ -273,8 +269,10 @@ class OutputUnicodeArt(OutputBase):
             sage: from sage.repl.rich_output.output_catalog import OutputUnicodeArt
             sage: OutputUnicodeArt.example()
             OutputUnicodeArt container
-            sage: OutputUnicodeArt.example().unicode_art.get()
-            '\xe2\x8e\x9b-11   0   1\xe2\x8e\x9e\n\xe2\x8e\x9c  3  -1   0\xe2\x8e\x9f\n\xe2\x8e\x9d -1  -1   0\xe2\x8e\xa0'
+            sage: print(OutputUnicodeArt.example().unicode_art.get_unicode())
+            ⎛-11   0   1⎞
+            ⎜  3  -1   0⎟
+            ⎝ -1  -1   0⎠
         """
         return cls(u'⎛-11   0   1⎞\n'
                    u'⎜  3  -1   0⎟\n'
@@ -295,7 +293,7 @@ class OutputUnicodeArt(OutputBase):
             ⎜  3  -1   0⎟
             ⎝ -1  -1   0⎠
         """
-        print(self.unicode_art.get())
+        print(self.unicode_art.get_unicode())
 
 
 class OutputLatex(OutputBase):
@@ -317,44 +315,15 @@ class OutputLatex(OutputBase):
           converted into an
           :class:`~sage.repl.rich_output.buffer.OutputBuffer`. String
           containing the latex equation code. Excludes the surrounding
-          dollar signs / LaTeX equation environment. Also excludes the
-          surrounding MathJax ``<html>`` tag.
+          dollar signs / LaTeX equation environment.
 
         EXAMPLES::
 
             sage: from sage.repl.rich_output.output_catalog import OutputLatex
-            sage: OutputLatex('<html><script type="math/tex; mode=display">1</script></html>')
+            sage: OutputLatex(latex(sqrt(x)))
             OutputLatex container
         """
         self.latex = OutputBuffer(latex)
-
-    def mathjax(self, display=True):
-        r"""
-        Return the LaTeX with a surrounding MathJax HTML code.
-
-        INPUT:
-
-        - ``display`` -- boolean. Whether to return display (as
-          opposed to inline) TeX.
-
-        EXAMPLES::
-
-            sage: from sage.repl.rich_output.output_catalog import OutputLatex
-            sage: rich_output = OutputLatex('1')
-            sage: rich_output.latex
-            buffer containing 1 bytes
-            sage: rich_output.latex.get()
-            '1'
-            sage: rich_output.mathjax()
-            '<html><script type="math/tex; mode=display">1</script></html>'
-            sage: rich_output.mathjax(display=False)
-            '<html><script type="math/tex">1</script></html>'
-        """
-        if display:
-            template  = r'<html><script type="math/tex; mode=display">{0}</script></html>'
-        else:
-            template  = r'<html><script type="math/tex">{0}</script></html>'
-        return template.format(self.latex.get())
 
     def display_equation(self):
         r"""
@@ -370,12 +339,13 @@ class OutputLatex(OutputBase):
             sage: rich_output = OutputLatex('1')
             sage: rich_output.latex
             buffer containing 1 bytes
-            sage: rich_output.latex.get()
+            sage: rich_output.latex.get_str()
             '1'
             sage: rich_output.display_equation()
             '\\begin{equation}\n1\n\\end{equation}'
         """
-        return '\n'.join([r'\begin{equation}', self.latex.get(), r'\end{equation}'])
+        return '\n'.join([r'\begin{equation}', self.latex.get_str(),
+                          r'\end{equation}'])
 
     def inline_equation(self):
         r"""
@@ -391,12 +361,12 @@ class OutputLatex(OutputBase):
             sage: rich_output = OutputLatex('1')
             sage: rich_output.latex
             buffer containing 1 bytes
-            sage: rich_output.latex.get()
+            sage: rich_output.latex.get_str()
             '1'
             sage: rich_output.inline_equation()
             '\\begin{math}\n1\n\\end{math}'
         """
-        return '\n'.join([r'\begin{math}', self.latex.get(), r'\end{math}'])
+        return '\n'.join([r'\begin{math}', self.latex.get_str(), r'\end{math}'])
 
     @classmethod
     def example(cls):
@@ -415,7 +385,7 @@ class OutputLatex(OutputBase):
             sage: from sage.repl.rich_output.output_catalog import OutputLatex
             sage: OutputLatex.example()
             OutputLatex container
-            sage: OutputLatex.example().latex.get()
+            sage: OutputLatex.example().latex.get_str()
             '\\newcommand{\\Bold}[1]{\\mathbf{#1}}\\int \\sin\\left(x\\right)\\,{d x}'
         """
         return cls(r'\newcommand{\Bold}[1]{\mathbf{#1}}'
@@ -434,4 +404,4 @@ class OutputLatex(OutputBase):
             sage: rich_output.print_to_stdout()
             \newcommand{\Bold}[1]{\mathbf{#1}}\int \sin\left(x\right)\,{d x}
         """
-        print(self.latex.get())
+        print(self.latex.get_str())

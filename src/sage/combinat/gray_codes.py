@@ -1,19 +1,9 @@
 r"""
 Gray codes
 
-REFERENCES:
-
-.. [Knuth-TAOCP2A] \D. Knuth "The art of computer programming", fascicules 2A,
-   "generating all n-tuples"
-
-.. [Knuth-TAOCP3A] \D. Knuth "The art of computer programming", fascicule 3A
-   "generating all combinations"
-
 Functions
 ---------
 """
-from __future__ import print_function
-from six.moves import range
 
 
 def product(m):
@@ -26,8 +16,8 @@ def product(m):
     apply the increment ``i`` at the position ``p``. By construction, the
     increment is either ``+1`` or ``-1``.
 
-    This is algorithm H in [Knuth-TAOCP2A]_: loopless reflected mixed-radix Gray
-    generation.
+    This is algorithm H in [Knu2011]_ Section 7.2.1.1, "Generating All
+    `n`-Tuples": loopless reflected mixed-radix Gray generation.
 
     INPUT:
 
@@ -124,7 +114,7 @@ def combinations(n,t):
     The ground set is always `\{0, 1, ..., n-1\}`. Note that ``n`` can be
     infinity in that algorithm.
 
-    See [Knuth-TAOCP3A]_.
+    See [Knu2011]_ Section 7.2.1.3, "Generating All Combinations".
 
     INPUT:
 
@@ -153,12 +143,12 @@ def combinations(n,t):
         sage: for i,j in combinations(4,2):
         ....:     s.remove(i)
         ....:     s.add(j)
-        ....:     print(s)
-        set([1, 2])
-        set([0, 2])
-        set([2, 3])
-        set([1, 3])
-        set([0, 3])
+        ....:     print(sorted(s))
+        [1, 2]
+        [0, 2]
+        [2, 3]
+        [1, 3]
+        [0, 3]
 
     Note that ``n`` can be infinity::
 
@@ -167,22 +157,22 @@ def combinations(n,t):
         sage: for _ in range(10):
         ....:     i,j = next(c)
         ....:     s.remove(i); s.add(j)
-        ....:     print(s)
-        set([0, 1, 3, 4])
-        set([1, 2, 3, 4])
-        set([0, 2, 3, 4])
-        set([0, 1, 2, 4])
-        set([0, 1, 4, 5])
-        set([1, 2, 4, 5])
-        set([0, 2, 4, 5])
-        set([2, 3, 4, 5])
-        set([1, 3, 4, 5])
-        set([0, 3, 4, 5])
+        ....:     print(sorted(s))
+        [0, 1, 3, 4]
+        [1, 2, 3, 4]
+        [0, 2, 3, 4]
+        [0, 1, 2, 4]
+        [0, 1, 4, 5]
+        [1, 2, 4, 5]
+        [0, 2, 4, 5]
+        [2, 3, 4, 5]
+        [1, 3, 4, 5]
+        [0, 3, 4, 5]
         sage: for _ in range(1000):
         ....:     i,j = next(c)
         ....:     s.remove(i); s.add(j)
-        sage: s
-        {0, 4, 13, 14}
+        sage: sorted(s)
+        [0, 4, 13, 14]
 
     TESTS::
 
@@ -230,7 +220,7 @@ def _revolving_door_odd(n,t):
         sage: sum(1 for _ in _revolving_door_odd(10,5)) == binomial(10,5) - 1
         True
     """
-    # note: the numerotation of the steps below follows Kunth TAOCP
+    # note: the numbering of the steps below follows Knuth TAOCP
     c = list(range(t)) + [n]    # the combination (ordered list of numbers of length t+1)
 
     while True:
@@ -275,7 +265,7 @@ def _revolving_door_even(n,t):
         sage: sum(1 for _ in _revolving_door_even(12,6)) == binomial(12,6) - 1
         True
     """
-    # note: the numerotation of the setps below follows Kunth TAOCP
+    # note: the numbering of the steps below follows Knuth TAOCP
 
     c = list(range(t)) + [n]    # the combination (ordered list of numbers of length t+1)
 

@@ -1,7 +1,6 @@
 r"""
 Semigroups
 """
-from __future__ import absolute_import
 #*****************************************************************************
 #  Copyright (C) 2005      David Kohel <kohel@maths.usyd.edu>
 #                          William Stein <wstein@math.ucsd.edu>
@@ -16,14 +15,14 @@ from __future__ import absolute_import
 from sage.misc.abstract_method import abstract_method
 from sage.misc.cachefunc import cached_method
 from sage.misc.lazy_import import LazyImport
-from sage.misc.misc_c import prod
 from sage.categories.category_with_axiom import CategoryWithAxiom, all_axioms
 from sage.categories.algebra_functor import AlgebrasCategory
 from sage.categories.subquotients import SubquotientsCategory
 from sage.categories.cartesian_product import CartesianProductsCategory
 from sage.categories.quotients import QuotientsCategory
 from sage.categories.magmas import Magmas
-from sage.structure.element import generic_power
+from sage.arith.power import generic_power
+
 
 all_axioms += ("HTrivial", "Aperiodic", "LTrivial", "RTrivial", "JTrivial")
 
@@ -118,8 +117,8 @@ class Semigroups(CategoryWithAxiom):
             tester = self._tester(**options)
             S = tester.some_elements()
             from sage.misc.misc import some_tuples
-            for x,y,z in some_tuples(S, 3, tester._max_runs):
-                tester.assert_((x * y) * z == x * (y * z))
+            for x, y, z in some_tuples(S, 3, tester._max_runs):
+                tester.assertEqual((x * y) * z, x * (y * z))
 
         @abstract_method(optional=True)
         def semigroup_generators(self):
@@ -168,6 +167,7 @@ class Semigroups(CategoryWithAxiom):
                 ...
                 AssertionError: Cannot compute an empty product in a semigroup
             """
+            from sage.misc.misc_c import prod
             assert len(args) > 0, "Cannot compute an empty product in a semigroup"
             return prod(args[1:], args[0])
 
@@ -438,7 +438,7 @@ class Semigroups(CategoryWithAxiom):
                                       category=category)
 
         def trivial_representation(self, base_ring=None, side="twosided"):
-            """
+            r"""
             Return the trivial representation of ``self`` over ``base_ring``.
 
             INPUT:
@@ -481,7 +481,7 @@ class Semigroups(CategoryWithAxiom):
 
     class ElementMethods:
 
-        def _pow_(self, n):
+        def _pow_int(self, n):
             """
             Return ``self`` to the `n^{th}` power.
 
@@ -498,18 +498,16 @@ class Semigroups(CategoryWithAxiom):
                 sage: x^0
                 Traceback (most recent call last):
                 ...
-                AssertionError
+                ArithmeticError: only positive powers are supported in a semigroup
 
             TESTS::
 
-                sage: x._pow_(17)
+                sage: x._pow_int(17)
                 'x'
-
             """
-            assert n > 0
+            if n <= 0:
+                raise ArithmeticError("only positive powers are supported in a semigroup")
             return generic_power(self, n)
-
-        __pow__ = _pow_
 
 
     class SubcategoryMethods:
@@ -544,7 +542,7 @@ class Semigroups(CategoryWithAxiom):
 
             .. SEEALSO::
 
-                - :wikipedia:`Green's_relations`
+                - :wikipedia:`Green%27s_relations`
                 - :class:`Semigroups.SubcategoryMethods.RTrivial`
                 - :class:`Semigroups.SubcategoryMethods.JTrivial`
                 - :class:`Semigroups.SubcategoryMethods.HTrivial`
@@ -589,7 +587,7 @@ class Semigroups(CategoryWithAxiom):
 
             .. SEEALSO::
 
-                - :wikipedia:`Green's_relations`
+                - :wikipedia:`Green%27s_relations`
                 - :class:`Semigroups.SubcategoryMethods.LTrivial`
                 - :class:`Semigroups.SubcategoryMethods.JTrivial`
                 - :class:`Semigroups.SubcategoryMethods.HTrivial`
@@ -645,7 +643,7 @@ class Semigroups(CategoryWithAxiom):
 
             .. SEEALSO::
 
-                - :wikipedia:`Green's_relations`
+                - :wikipedia:`Green%27s_relations`
                 - :class:`Semigroups.SubcategoryMethods.LTrivial`
                 - :class:`Semigroups.SubcategoryMethods.RTrivial`
                 - :class:`Semigroups.SubcategoryMethods.HTrivial`
@@ -681,7 +679,7 @@ class Semigroups(CategoryWithAxiom):
 
             .. SEEALSO::
 
-                - :wikipedia:`Green's_relations`
+                - :wikipedia:`Green%27s_relations`
                 - :class:`Semigroups.SubcategoryMethods.RTrivial`
                 - :class:`Semigroups.SubcategoryMethods.LTrivial`
                 - :class:`Semigroups.SubcategoryMethods.JTrivial`
@@ -890,7 +888,7 @@ class Semigroups(CategoryWithAxiom):
             # Once there will be some guarantee on the consistency between
             # gens / monoid/group/*_generators, these methods could possibly
             # be removed in favor of aliases gens -> xxx_generators in
-            # the Algebras.FinitelyGenerated hierachy
+            # the Algebras.FinitelyGenerated hierarchy
             def gens(self):
                 r"""
                 Return the generators of ``self``.

@@ -1,7 +1,6 @@
 """
 Weight lattices and weight spaces
 """
-from __future__ import absolute_import
 #*****************************************************************************
 #       Copyright (C) 2008-2009 Nicolas M. Thiery <nthiery at users.sf.net>
 #
@@ -179,11 +178,18 @@ class WeightSpace(CombinatorialFreeModule):
                                  " implemented for affine root systems")
             basis_keys = tuple(basis_keys) + ("delta",)
 
+            def sortkey(x):
+                return (1 if isinstance(x, str) else 0, x)
+        else:
+            def sortkey(x):
+                return x
+
         self.root_system = root_system
         CombinatorialFreeModule.__init__(self, base_ring,
                                          basis_keys,
                                          prefix = "Lambdacheck" if root_system.dual_side else "Lambda",
                                          latex_prefix = "\\Lambda^\\vee" if root_system.dual_side else "\\Lambda",
+                                         sorting_key=sortkey,
                                          category = WeightLatticeRealizations(base_ring))
 
         if root_system.cartan_type().is_affine() and not extended:
@@ -238,7 +244,7 @@ class WeightSpace(CombinatorialFreeModule):
 
     @cached_method
     def fundamental_weight(self, i):
-        """
+        r"""
         Returns the `i`-th fundamental weight
 
         INPUT:
@@ -304,7 +310,7 @@ class WeightSpace(CombinatorialFreeModule):
 
     @cached_method
     def simple_root(self, j):
-        """
+        r"""
         Returns the `j^{th}` simple root
 
         EXAMPLES::

@@ -1,7 +1,6 @@
 """
 Generic dual bases symmetric functions
 """
-from __future__ import absolute_import
 #*****************************************************************************
 #       Copyright (C) 2007 Mike Hansen <mhansen@gmail.com>
 #                     2012 Mike Zabrocki <mike.zabrocki@gmail.com>
@@ -15,7 +14,7 @@ from __future__ import absolute_import
 #
 #  The full text of the GPL is available at:
 #
-#                  http://www.gnu.org/licenses/
+#                  https://www.gnu.org/licenses/
 #*****************************************************************************
 from sage.categories.morphism import SetMorphism
 from sage.categories.homset import Hom
@@ -23,6 +22,7 @@ from sage.matrix.all import matrix
 import sage.combinat.partition
 import sage.data_structures.blas_dict as blas
 from . import classical
+
 
 class SymmetricFunctionAlgebra_dual(classical.SymmetricFunctionAlgebra_classical):
     def __init__(self, dual_basis, scalar, scalar_name="", basis_name=None, prefix=None):
@@ -333,7 +333,7 @@ class SymmetricFunctionAlgebra_dual(classical.SymmetricFunctionAlgebra_classical
         from sage.rings.rational_field import RationalField
         if (not base_ring.has_coerce_map_from(RationalField())) and self._scalar == sage.combinat.sf.sfa.zee:
             # This is the case when (due to the base ring not being a
-            # \mathbb{Q}-algebra) we cannot use the power-sum basis,
+            # \QQ-algebra) we cannot use the power-sum basis,
             # but (due to zee being the standard zee function) we can
             # use the Schur basis.
 
@@ -491,8 +491,7 @@ class SymmetricFunctionAlgebra_dual(classical.SymmetricFunctionAlgebra_classical
         else:
             return self._inverse_transition_matrices[n]*self._dual_basis.transition_matrix(basis, n)
 
-
-    def _multiply(self, left, right):
+    def product(self, left, right):
         """
         Return product of ``left`` and ``right``.
 
@@ -518,12 +517,10 @@ class SymmetricFunctionAlgebra_dual(classical.SymmetricFunctionAlgebra_classical
             sage: b.dual()
             6*m[1, 1, 1, 1] + 4*m[2, 1, 1] + 3*m[2, 2] + 2*m[3, 1] + m[4]
         """
-
-        #Do the multiplication in the dual basis
-        #and then convert back to self.
+        # Do the multiplication in the dual basis
+        # and then convert back to self.
         eclass = left.__class__
-        d_product = left.dual()*right.dual()
-
+        d_product = left.dual() * right.dual()
         return eclass(self, dual=d_product)
 
     class Element(classical.SymmetricFunctionAlgebra_classical.Element):
@@ -735,7 +732,7 @@ class SymmetricFunctionAlgebra_dual(classical.SymmetricFunctionAlgebra_classical
                 sage: h = m.dual_basis(scalar=zee)
                 sage: a = h([2,1])
                 sage: a.scalar_hl(a)
-                (t + 2)/(-t^4 + 2*t^3 - 2*t + 1)
+                (-t - 2)/(t^4 - 2*t^3 + 2*t - 1)
             """
             return self._dual.scalar_hl(x)
 
@@ -894,6 +891,6 @@ class SymmetricFunctionAlgebra_dual(classical.SymmetricFunctionAlgebra_classical
             return self._dual.expand(n, alphabet)
 
 # Backward compatibility for unpickling
-from sage.structure.sage_object import register_unpickle_override
+from sage.misc.persist import register_unpickle_override
 register_unpickle_override('sage.combinat.sf.dual', 'SymmetricFunctionAlgebraElement_dual',  SymmetricFunctionAlgebra_dual.Element)
 

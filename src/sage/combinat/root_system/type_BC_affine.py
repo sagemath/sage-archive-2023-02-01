@@ -9,8 +9,6 @@ Root system data for type BC affine
 #  Distributed under the terms of the GNU General Public License (GPL)
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
-from __future__ import print_function
-from __future__ import absolute_import
 
 from .cartan_type import CartanType_standard_affine
 from sage.rings.integer_ring import ZZ
@@ -198,7 +196,6 @@ class CartanType(CartanType_standard_affine):
             ret += node(node_dist, 0, label(1))
             return ret
 
-        n = self.n
         ret = "\\draw (0, 0.1 cm) -- +(%s cm,0);\n"%node_dist
         ret += "\\draw (0, -0.1 cm) -- +(%s cm,0);\n"%node_dist
         if dual:
@@ -206,7 +203,6 @@ class CartanType(CartanType_standard_affine):
         else:
             ret += self._latex_draw_arrow_tip(0.5*node_dist-0.2, 0, 180)
         ret += "{\n\\pgftransformxshift{%s cm}\n"%node_dist
-        classical = self.classical()
         ret += self.classical()._latex_dynkin_diagram(label, node, node_dist, dual=dual)
         ret += "}\n" + node(0, 0, label(0))
         return ret

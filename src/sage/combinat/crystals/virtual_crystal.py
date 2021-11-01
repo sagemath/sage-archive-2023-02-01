@@ -24,7 +24,6 @@ AUTHORS:
 #                  http://www.gnu.org/licenses/
 #****************************************************************************
 
-from __future__ import division
 
 from sage.categories.crystals import Crystals
 from sage.categories.finite_crystals import FiniteCrystals
@@ -149,7 +148,7 @@ class VirtualCrystal(Subcrystal):
 
     REFERENCES:
 
-    - [FOS09]_
+    - [FOS2009]_
     - [OSS03]_
     - [OSS2003]_
     """
@@ -264,7 +263,7 @@ class VirtualCrystal(Subcrystal):
         return True
 
     def virtualization(self):
-        """
+        r"""
         Return the virtualization sets `\sigma_i`.
 
         EXAMPLES::
@@ -279,7 +278,7 @@ class VirtualCrystal(Subcrystal):
         return self._virtualization
 
     def scaling_factors(self):
-        """
+        r"""
         Return the scaling factors `\gamma_i`.
 
         EXAMPLES::

@@ -16,7 +16,6 @@ AUTHORS:
 #  Distributed under the terms of the GNU General Public License (GPL)
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
-from __future__ import print_function
 
 import itertools
 
@@ -35,8 +34,9 @@ from sage.misc.cachefunc import cached_method
 
 # TODO: finite set maps should be morphisms in the category of finite sets
 
+
 class FiniteSetMaps(UniqueRepresentation, Parent):
-    """
+    r"""
     Maps between finite sets
 
     Constructs the set of all maps between two sets. The sets can be
@@ -204,8 +204,9 @@ class FiniteSetMaps(UniqueRepresentation, Parent):
         """
         return self.codomain().cardinality()**self.domain().cardinality()
 
+
 class FiniteSetMaps_MN(FiniteSetMaps):
-    """
+    r"""
     The set of all maps from `\{1, 2, \dots, m\}` to `\{1, 2, \dots, n\}`.
 
     Users should use the factory class :class:`FiniteSetMaps` to
@@ -478,7 +479,7 @@ class FiniteSetMaps_Set(FiniteSetMaps_MN):
 
 
 class FiniteSetEndoMaps_N(FiniteSetMaps_MN):
-    """
+    r"""
     The sets of all maps from `\{1, 2, \dots, n\}` to itself
 
     Users should use the factory class :class:`FiniteSetMaps` to

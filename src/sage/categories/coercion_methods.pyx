@@ -5,8 +5,6 @@ The purpose of this Cython module is to hold special coercion methods,
 which are inserted by their respective categories.
 """
 
-from __future__ import absolute_import, division, print_function
-
 from sage.structure.element cimport Element
 cimport cython
 
@@ -45,9 +43,11 @@ def _mul_parent(self, other):
     This is :meth:`Magmas.ElementMethods._mul_parent`, implemented as
     a Cython method in :mod:`sage.categories.coercion_methods`::
 
-        sage: x._mul_parent.im_func is Magmas.ElementMethods._mul_parent.im_func
+        sage: from sage.cpython.getattr import raw_getattr
+        sage: x._mul_parent.__func__ is raw_getattr(Magmas.ElementMethods,
+        ....:                                       '_mul_parent')
         True
-        sage: x._mul_parent.im_func is sage.categories.coercion_methods._mul_parent
+        sage: x._mul_parent.__func__ is sage.categories.coercion_methods._mul_parent
         True
     """
     return (<Element>self)._parent.product(self, other)

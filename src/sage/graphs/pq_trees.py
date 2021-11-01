@@ -91,12 +91,7 @@ This module is used for the recognition of Interval Graphs (see
    our sets satisfying our constraints, or to prove that no such ordering
    exists. This is the whole purpose of this module, and is explained with more
    details in many places, for example in the following document from Hajiaghayi
-   [Haj]_.
-
-REFERENCES:
-
-.. [Haj] \M. Hajiaghayi
-   http://www-math.mit.edu/~hajiagha/pp11.ps
+   [Haj2000]_.
 
 Authors:
 
@@ -113,8 +108,6 @@ Methods and functions
 # Distributed  under  the  terms  of  the  GNU  General  Public  License (GPL) #
 #                         http://www.gnu.org/licenses/                         #
 ################################################################################
-from __future__ import print_function
-from six import iteritems
 
 # Constants, to make the code more readable
 
@@ -542,8 +535,6 @@ class P(PQ):
         n_PARTIAL_ALIGNED       = len(set_PARTIAL_ALIGNED)
         n_PARTIAL_UNALIGNED     = len(set_PARTIAL_UNALIGNED)
 
-        counts = {x: len(y) for x, y in iteritems(sorting)}
-
         # Excludes the situation where there is no solution.
         # read next comment for more explanations
 
@@ -829,8 +820,6 @@ class Q(PQ):
         n_PARTIAL_ALIGNED       = len(set_PARTIAL_ALIGNED)
         n_PARTIAL_UNALIGNED     = len(set_PARTIAL_UNALIGNED)
 
-        counts = {x: len(y) for x, y in iteritems(sorting)}
-
         ###################################################################
         #                                                                 #
         # Picking the good ordering for the children :                    #
@@ -875,7 +864,7 @@ class Q(PQ):
         # From now on, there are at most two pq-trees which are partially filled
         # If there is one which is not aligned to the right, all the others are empty
 
-        # First trivial case, no checking neded
+        # First trivial case, no checking needed
         elif n_FULL == self.number_of_children():
             return FULL, True
 
@@ -1037,7 +1026,6 @@ class Q(PQ):
 
             :meth:`cardinality` -- return the number of orderings
 
-
         EXAMPLES::
 
             sage: from sage.graphs.pq_trees import P, Q
@@ -1049,11 +1037,11 @@ class Q(PQ):
         """
         if len(self._children) == 1:
             c = self._children[0]
-            for o in (c.orderings() if isinstance(c,PQ) else [o]):
+            for o in (c.orderings() if isinstance(c, PQ) else [c]):
                 yield o
         else:
             from itertools import product
-            for o in product(*[x.orderings() if isinstance(x,PQ) else [x]
+            for o in product(*[x.orderings() if isinstance(x, PQ) else [x]
                                for x in self._children]):
                 yield o
                 yield o[::-1]

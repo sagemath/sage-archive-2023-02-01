@@ -1,7 +1,6 @@
 """
 Partition Species
 """
-from __future__ import absolute_import
 #*****************************************************************************
 #       Copyright (C) 2008 Mike Hansen <mhansen@gmail.com>,
 #
@@ -18,15 +17,14 @@ from __future__ import absolute_import
 #*****************************************************************************
 
 from .species import GenericCombinatorialSpecies
-from .generating_series import _integers_from, factorial_stream
+from .generating_series import _integers_from
+from sage.functions.other import factorial
 from .subset_species import SubsetSpeciesStructure
 from .set_species import SetSpecies
 from .structure import GenericSpeciesStructure
-from sage.structure.unique_representation import UniqueRepresentation
-from sage.rings.all import ZZ
-from sage.misc.cachefunc import cached_function
 from sage.combinat.species.misc import accept_size
 from functools import reduce
+
 
 class PartitionSpeciesStructure(GenericSpeciesStructure):
     def __init__(self, parent, labels, list):
@@ -49,7 +47,7 @@ class PartitionSpeciesStructure(GenericSpeciesStructure):
         EXAMPLES::
 
             sage: S = species.PartitionSpecies()
-            sage: a = S.structures(["a","b","c"]).random_element(); a
+            sage: a = S.structures(["a","b","c"])[0]; a
             {{'a', 'b', 'c'}}
         """
         s = GenericSpeciesStructure.__repr__(self)
@@ -246,7 +244,7 @@ class PartitionSpecies(GenericCombinatorialSpecies):
         """
         from sage.combinat.combinat import bell_number
         for n in _integers_from(0):
-            yield self._weight*base_ring(bell_number(n)/factorial_stream[n])
+            yield self._weight * base_ring(bell_number(n) / factorial(n))
 
     def _itgs_iterator(self, base_ring):
         r"""
@@ -260,7 +258,7 @@ class PartitionSpecies(GenericCombinatorialSpecies):
             sage: g.coefficients(10)
             [1, 1, 2, 3, 5, 7, 11, 15, 22, 30]
         """
-        from sage.combinat.partitions import number_of_partitions
+        from sage.combinat.partition import number_of_partitions
         for n in _integers_from(0):
             yield self._weight*base_ring(number_of_partitions(n))
 

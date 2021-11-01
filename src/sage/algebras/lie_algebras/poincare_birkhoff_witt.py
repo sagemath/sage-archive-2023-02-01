@@ -17,12 +17,13 @@ AUTHORS:
 #*****************************************************************************
 
 from sage.misc.cachefunc import cached_method
-from sage.misc.misc_c import prod
+from sage.structure.element import get_coercion_model
+from operator import mul
 from sage.categories.algebras import Algebras
 from sage.monoids.indexed_free_monoid import IndexedFreeAbelianMonoid
 from sage.combinat.free_module import CombinatorialFreeModule
 from sage.sets.family import Family
-from sage.rings.all import ZZ
+
 
 class PoincareBirkhoffWittBasis(CombinatorialFreeModule):
     r"""
@@ -92,9 +93,9 @@ class PoincareBirkhoffWittBasis(CombinatorialFreeModule):
         sage: G[2] * G[3]
         PBW[2]*PBW[3]
         sage: G[3] * G[2]
-        PBW[2]*PBW[3] - PBW[5]
+        PBW[2]*PBW[3] + PBW[5]
         sage: G[-2] * G[3] * G[2]
-        PBW[-2]*PBW[2]*PBW[3] - PBW[-2]*PBW[5]
+        PBW[-2]*PBW[2]*PBW[3] + PBW[-2]*PBW[5]
     """
     @staticmethod
     def __classcall_private__(cls, g, basis_key=None, prefix='PBW', **kwds):
@@ -127,6 +128,8 @@ class PoincareBirkhoffWittBasis(CombinatorialFreeModule):
         """
         if basis_key is not None:
             self._basis_key = basis_key
+        else:
+            self._basis_key_inverse = None
 
         R = g.base_ring()
         self._g = g
@@ -155,8 +158,10 @@ class PoincareBirkhoffWittBasis(CombinatorialFreeModule):
             ....:     return -L.basis().keys().index(x)
             sage: PBW = L.pbw_basis(basis_key=neg_key)
             sage: prod(PBW.gens())  # indirect doctest
-            PBW[alphacheck[1]]*PBW[-alpha[1]]*PBW[alpha[1]]
+            PBW[-alpha[1]]*PBW[alphacheck[1]]*PBW[alpha[1]]
+             - 4*PBW[-alpha[1]]*PBW[alpha[1]]
              + PBW[alphacheck[1]]^2
+             - 2*PBW[alphacheck[1]]
 
         Check that :trac:`23266` is fixed::
 
@@ -164,26 +169,29 @@ class PoincareBirkhoffWittBasis(CombinatorialFreeModule):
             sage: sl2.indices()
             {'e1', 'f1', 'h1'}
             sage: type(sl2.basis().keys())
-            <type 'list'>
+            <... 'list'>
             sage: Usl2 = sl2.pbw_basis()
             sage: Usl2._basis_key(2)
             2
             sage: Usl2._basis_key(3)
             Traceback (most recent call last):
             ...
-            ValueError: 3 is not in list
+            KeyError: 3
         """
-        K = self._g.basis().keys()
-        if isinstance(K, (list, tuple)):
-            return K.index(x)
-        if K.cardinality() == float('inf'):
+        if self._basis_key_inverse is None:
+            K = self._g.basis().keys()
+            if isinstance(K, (list, tuple)) or K.cardinality() < float('inf'):
+                self._basis_key_inverse = {k: i for i,k in enumerate(K)}
+            else:
+                self._basis_key_inverse = False
+        if self._basis_key_inverse is False:
             return x
-        lst = list(K)
-        return lst.index(x)
+        else:
+            return self._basis_key_inverse[x]
 
     def _monoid_key(self, x):
         """
-        Comparison function for the underlying monoid.
+        Comparison key for the underlying monoid.
 
         EXAMPLES::
 
@@ -193,7 +201,7 @@ class PoincareBirkhoffWittBasis(CombinatorialFreeModule):
             sage: PBW = L.pbw_basis(basis_key=neg_key)
             sage: M = PBW.basis().keys()
             sage: prod(M.gens())  # indirect doctest
-            PBW[alphacheck[1]]*PBW[-alpha[1]]*PBW[alpha[1]]
+            PBW[-alpha[1]]*PBW[alphacheck[1]]*PBW[alpha[1]]
         """
         return self._basis_key(x[0])
 
@@ -206,23 +214,22 @@ class PoincareBirkhoffWittBasis(CombinatorialFreeModule):
 
             sage: L = lie_algebras.sl(QQ, 2)
             sage: PBW = L.pbw_basis()
-            sage: E,F,H = PBW.algebra_generators()
-            sage: H*F*F*E  # indirect doctest
-            PBW[alpha[1]]*PBW[-alpha[1]]^2*PBW[alphacheck[1]]
-             - 2*PBW[alpha[1]]*PBW[-alpha[1]]^2
-             - 2*PBW[-alpha[1]]*PBW[alphacheck[1]]^2
-             + 6*PBW[-alpha[1]]*PBW[alphacheck[1]] - 4*PBW[-alpha[1]]
+            sage: E,H,F = PBW.algebra_generators()
+            sage: F*H*H*E  # indirect doctest
+            PBW[alpha[1]]*PBW[alphacheck[1]]^2*PBW[-alpha[1]]
+             + 8*PBW[alpha[1]]*PBW[alphacheck[1]]*PBW[-alpha[1]]
+             - PBW[alphacheck[1]]^3 + 16*PBW[alpha[1]]*PBW[-alpha[1]]
+             - 4*PBW[alphacheck[1]]^2 - 4*PBW[alphacheck[1]]
 
             sage: def neg_key(x):
             ....:     return -L.basis().keys().index(x)
             sage: PBW = L.pbw_basis(basis_key=neg_key)
-            sage: E,F,H = PBW.algebra_generators()
-            sage: E*F*F*H  # indirect doctest
-            PBW[alphacheck[1]]*PBW[-alpha[1]]^2*PBW[alpha[1]]
-             + 2*PBW[alphacheck[1]]^2*PBW[-alpha[1]]
-             + 2*PBW[-alpha[1]]^2*PBW[alpha[1]]
-             + 6*PBW[alphacheck[1]]*PBW[-alpha[1]] + 4*PBW[-alpha[1]]
-
+            sage: E,H,F = PBW.algebra_generators()
+            sage: E*H*H*F  # indirect doctest
+            PBW[-alpha[1]]*PBW[alphacheck[1]]^2*PBW[alpha[1]]
+             - 8*PBW[-alpha[1]]*PBW[alphacheck[1]]*PBW[alpha[1]]
+             + PBW[alphacheck[1]]^3 + 16*PBW[-alpha[1]]*PBW[alpha[1]]
+             - 4*PBW[alphacheck[1]]^2 + 4*PBW[alphacheck[1]]
         """
         return (-len(x), [self._basis_key(l) for l in x.to_word_list()])
 
@@ -253,32 +260,97 @@ class PoincareBirkhoffWittBasis(CombinatorialFreeModule):
             sage: PBW.has_coerce_map_from(L)
             True
             sage: [PBW(g) for g in L.basis()]
-            [PBW[alpha[1]], PBW[-alpha[1]], PBW[alphacheck[1]]]
+            [PBW[alpha[1]], PBW[alphacheck[1]], PBW[-alpha[1]]]
 
         We can go between PBW bases under different sorting orders::
 
             sage: def neg_key(x):
             ....:     return -L.basis().keys().index(x)
             sage: PBW2 = L.pbw_basis(basis_key=neg_key)
-            sage: E,F,H = PBW.algebra_generators()
-            sage: PBW2(E*F*H)
-            PBW[alphacheck[1]]*PBW[-alpha[1]]*PBW[alpha[1]]
+            sage: E,H,F = PBW.algebra_generators()
+            sage: PBW2(E*H*F)
+            PBW[-alpha[1]]*PBW[alphacheck[1]]*PBW[alpha[1]]
+             - 4*PBW[-alpha[1]]*PBW[alpha[1]]
              + PBW[alphacheck[1]]^2
+             - 2*PBW[alphacheck[1]]
+
+        We can lift from another Lie algebra and its PBW basis that
+        coerces into the defining Lie algebra::
+
+            sage: L = lie_algebras.sl(QQ, 2)
+            sage: LZ = lie_algebras.sl(ZZ, 2)
+            sage: L.has_coerce_map_from(LZ) and L != LZ
+            True
+            sage: PBW = L.pbw_basis()
+            sage: PBWZ = LZ.pbw_basis()
+            sage: PBW.coerce_map_from(LZ)
+            Composite map:
+              From: Lie algebra of ['A', 1] in the Chevalley basis
+              To:   Universal enveloping algebra of Lie algebra of ['A', 1] in the Chevalley basis
+               in the Poincare-Birkhoff-Witt basis
+              Defn:   Coercion map:
+                      From: Lie algebra of ['A', 1] in the Chevalley basis
+                      To:   Lie algebra of ['A', 1] in the Chevalley basis
+                    then
+                      Generic morphism:
+                      From: Lie algebra of ['A', 1] in the Chevalley basis
+                      To:   Universal enveloping algebra of Lie algebra of ['A', 1] in the Chevalley basis
+                       in the Poincare-Birkhoff-Witt basis
+            sage: PBW.coerce_map_from(PBWZ)
+            Generic morphism:
+              From: Universal enveloping algebra of Lie algebra of ['A', 1] in the Chevalley basis
+               in the Poincare-Birkhoff-Witt basis
+              To:   Universal enveloping algebra of Lie algebra of ['A', 1] in the Chevalley basis
+               in the Poincare-Birkhoff-Witt basis
+
+        TESTS:
+
+        Check that we can take the preimage (:trac:`23375`)::
+
+            sage: L = lie_algebras.cross_product(QQ)
+            sage: pbw = L.pbw_basis()
+            sage: L(pbw(L.an_element()))
+            X + Y + Z
+            sage: L(pbw(L.an_element())) == L.an_element()
+            True
+            sage: L(prod(pbw.gens()))
+            Traceback (most recent call last):
+            ...
+            ValueError: PBW['X']*PBW['Y']*PBW['Z'] is not in the image
+            sage: L(pbw.one())
+            Traceback (most recent call last):
+            ...
+            ValueError: 1 is not in the image
         """
         if R == self._g:
             # Make this into the lift map
             I = self._indices
-            basis_function = lambda x: self.monomial(I.gen(x))
+            def basis_function(x): return self.monomial(I.gen(x))
+            def inv_supp(m): return None if m.length() != 1 else m.leading_support()
             # TODO: this diagonal, but with a smaller indexing set...
             return self._g.module_morphism(basis_function, codomain=self,
-                                           triangular='upper', unitriangular=True)
+                                           triangular='upper', unitriangular=True,
+                                           inverse_on_support=inv_supp)
 
-        if isinstance(R, PoincareBirkhoffWittBasis) and self._g == R._g:
-            I = self._indices
-            def basis_function(x):
-                return self.prod(self.monomial(I.gen(g)**e) for g,e in x._sorted_items())
-            # TODO: this diagonal, but with a smaller indexing set...
-            return R.module_morphism(basis_function, codomain=self)
+        coerce_map = self._g.coerce_map_from(R)
+        if coerce_map:
+            return self.coerce_map_from(self._g) * coerce_map
+
+        if isinstance(R, PoincareBirkhoffWittBasis):
+            if self._g == R._g:
+                I = self._indices
+                def basis_function(x):
+                    return self.prod(self.monomial(I.gen(g)**e) for g,e in x._sorted_items())
+                # TODO: this diagonal, but with a smaller indexing set...
+                return R.module_morphism(basis_function, codomain=self)
+            coerce_map = self._g.coerce_map_from(R._g)
+            if coerce_map:
+                I = self._indices
+                lift = self.coerce_map_from(self._g)
+                def basis_function(x):
+                    return self.prod(lift(coerce_map(g))**e for g,e in x._sorted_items())
+                # TODO: this diagonal, but with a smaller indexing set...
+                return R.module_morphism(basis_function, codomain=self)
 
         return super(PoincareBirkhoffWittBasis, self)._coerce_map_from_(R)
 
@@ -304,9 +376,7 @@ class PoincareBirkhoffWittBasis(CombinatorialFreeModule):
             sage: L = lie_algebras.sl(QQ, 2)
             sage: PBW = L.pbw_basis()
             sage: PBW.algebra_generators()
-            Finite family {-alpha[1]: PBW[-alpha[1]],
-                           alpha[1]: PBW[alpha[1]],
-                           alphacheck[1]: PBW[alphacheck[1]]}
+            Finite family {alpha[1]: PBW[alpha[1]], alphacheck[1]: PBW[alphacheck[1]], -alpha[1]: PBW[-alpha[1]]}
         """
         G = self._indices.gens()
         return Family(self._indices._indices, lambda x: self.monomial(G[x]),
@@ -330,6 +400,7 @@ class PoincareBirkhoffWittBasis(CombinatorialFreeModule):
         """
         return self._indices.one()
 
+    @cached_method
     def product_on_basis(self, lhs, rhs):
         """
         Return the product of the two basis elements ``lhs`` and ``rhs``.
@@ -406,13 +477,61 @@ class PoincareBirkhoffWittBasis(CombinatorialFreeModule):
 
             sage: L = lie_algebras.sl(QQ, 2)
             sage: PBW = L.pbw_basis()
-            sage: E,F,H = PBW.algebra_generators()
+            sage: E,H,F = PBW.algebra_generators()
             sage: PBW.degree_on_basis(E.leading_support())
             1
-            sage: PBW.degree_on_basis(((H*F)^10).leading_support())
+            sage: m = ((H*F)^10).trailing_support(key=PBW._monomial_key)  # long time
+            sage: PBW.degree_on_basis(m)  # long time
             20
-            sage: ((H*F*E)^4).maximal_degree()
+            sage: ((H*F*E)^4).maximal_degree()  # long time
             12
         """
         return m.length()
+
+    class Element(CombinatorialFreeModule.Element):
+        def _act_on_(self, x, self_on_left):
+            """
+            Return the action of ``self`` on ``x`` by seeing if there is an
+            action of the defining Lie algebra.
+
+            EXAMPLES::
+
+                sage: L = lie_algebras.VirasoroAlgebra(QQ)
+                sage: d = L.basis()
+                sage: x = d[-1]*d[-2]*d[-1] + 3*d[-3]
+                sage: x
+                PBW[-2]*PBW[-1]^2 + PBW[-3]*PBW[-1] + 3*PBW[-3]
+                sage: M = L.verma_module(1/2,3/4)
+                sage: v = M.highest_weight_vector()
+                sage: x * v
+                3*d[-3]*v + d[-3]*d[-1]*v + d[-2]*d[-1]*d[-1]*v
+            """
+            # Try the _acted_upon_ first as it might have a direct PBW action
+            #   implemented that is faster
+            ret = x._acted_upon_(self, not self_on_left)
+            if ret is not None:
+                return ret
+            cm = get_coercion_model()
+            L = self.parent()._g
+            if self_on_left:
+                if cm.discover_action(L, x.parent(), mul):
+                    ret = x.parent().zero()
+                    for mon, coeff in self._monomial_coefficients.items():
+                        term = coeff * x
+                        for k, exp in reversed(mon._sorted_items()):
+                            for _ in range(exp):
+                                term = L.monomial(k) * term
+                        ret += term
+                    return ret
+            else:
+                if cm.discover_action(x.parent(), L, mul):
+                    ret = x.parent().zero()
+                    for mon, coeff in self._monomial_coefficients.items():
+                        term = coeff * x
+                        for k, exp in reversed(mon._sorted_items()):
+                            for _ in range(exp):
+                                term = term * L.monomial(k)
+                        ret += term
+                    return ret
+            return None
 

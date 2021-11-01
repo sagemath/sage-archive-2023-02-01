@@ -24,7 +24,6 @@ Kirillov-Reshetikhin structure, and we extend this to symmetrizable types.
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 
-from sage.misc.cachefunc import cached_method
 from sage.misc.lazy_attribute import lazy_attribute
 from sage.structure.unique_representation import UniqueRepresentation
 from sage.structure.parent import Parent
@@ -271,10 +270,13 @@ class CrystalOfRiggedConfigurations(UniqueRepresentation, Parent):
         """
         vac_num = self._wt[self.index_set()[a]]
 
-        for b in range(self._cartan_matrix.ncols()):
+        for b,nu in enumerate(partitions):
             val = self._cartan_matrix[a,b]
             if val:
-                vac_num -= val * partitions[b].get_num_cells_to_column(i)
+                if i == float('inf'):
+                    vac_num -= val * sum(nu)
+                else:
+                    vac_num -= val * nu.get_num_cells_to_column(i)
 
         return vac_num
 
@@ -359,11 +361,15 @@ class CrystalOfNonSimplyLacedRC(CrystalOfRiggedConfigurations):
         ia = I[a]
         vac_num = self._wt[ia]
 
+        if i == float('inf'):
+            return vac_num - sum(self._cartan_matrix[a,b] * sum(nu)
+                                 for b,nu in enumerate(partitions))
+
         gamma = self._folded_ct.scaling_factors()
         g = gamma[ia]
-        for b in range(self._cartan_matrix.ncols()):
+        for b, nu in enumerate(partitions):
             ib = I[b]
-            q = partitions[b].get_num_cells_to_column(g*i, gamma[ib])
+            q = nu.get_num_cells_to_column(g*i, gamma[ib])
             vac_num -= self._cartan_matrix[a,b] * q / gamma[ib]
 
         return vac_num
@@ -418,7 +424,7 @@ class CrystalOfNonSimplyLacedRC(CrystalOfRiggedConfigurations):
 
     def from_virtual(self, vrc):
         """
-        Convert ``vrc`` in the virtual crystal into a rigged configution of
+        Convert ``vrc`` in the virtual crystal into a rigged configuration of
         the original Cartan type.
 
         INPUT:
@@ -439,7 +445,6 @@ class CrystalOfNonSimplyLacedRC(CrystalOfRiggedConfigurations):
         n = self._cartan_type.rank()
         partitions = [None] * n
         riggings = [None] * n
-        vac_nums = [None] * n
         vindex = self._folded_ct._folding.index_set()
         for a in range(n):
             index = vindex.index(sigma[a][0])
@@ -448,8 +453,3 @@ class CrystalOfNonSimplyLacedRC(CrystalOfRiggedConfigurations):
         return self.element_class(self, partition_list=partitions, rigging_list=riggings)
 
     Element = RCHWNonSimplyLacedElement
-
-# deprecations from trac:18555
-from sage.misc.superseded import deprecated_function_alias
-CrystalOfRiggedConfigurations.global_options = deprecated_function_alias(18555, CrystalOfRiggedConfigurations.options)
-

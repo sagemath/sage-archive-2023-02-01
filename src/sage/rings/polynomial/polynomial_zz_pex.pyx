@@ -1,5 +1,11 @@
+# distutils: libraries = NTL_LIBRARIES gmp
+# distutils: extra_compile_args = NTL_CFLAGS
+# distutils: include_dirs = NTL_INCDIR
+# distutils: library_dirs = NTL_LIBDIR
+# distutils: extra_link_args = NTL_LIBEXTRA
+# distutils: language = c++
 """
-Univariate Polynomials over GF(p^e) via NTL's ZZ_pEX.
+Univariate Polynomials over GF(p^e) via NTL's ZZ_pEX
 
 AUTHOR:
 
@@ -10,14 +16,12 @@ from sage.rings.integer_ring import ZZ
 from sage.rings.integer_ring cimport IntegerRing_class
 
 from sage.libs.ntl.ntl_ZZ_pEContext cimport ntl_ZZ_pEContext_class
-from sage.libs.ntl.ZZ_pE cimport ZZ_pE_to_PyString
 from sage.libs.ntl.ZZ_pE cimport ZZ_pE_to_ZZ_pX
-from sage.libs.ntl.ZZ_pX cimport ZZ_pX_to_PyString
 from sage.libs.ntl.ZZ_pX cimport ZZ_pX_deg, ZZ_pX_coeff
 from sage.libs.ntl.ntl_ZZ_pX cimport ntl_ZZ_pX
-from sage.libs.ntl.ZZ_p cimport ZZ_p_to_PyString
 from sage.libs.ntl.ZZ_p cimport ZZ_p_rep
 from sage.libs.ntl.ntl_ZZ_pContext cimport ntl_ZZ_pContext_class
+from sage.libs.ntl.convert cimport ZZ_to_mpz
 
 # We need to define this stuff before including the templating stuff
 # to make sure the function get_cparent is found since it is used in
@@ -47,6 +51,7 @@ cdef inline ZZ_pE_c_to_list(ZZ_pE_c x):
     cdef ZZ_pX_c c_pX
     cdef ZZ_p_c c_p
     cdef ZZ_c c_c
+    cdef Integer ans
 
     c_pX = ZZ_pE_to_ZZ_pX(x)
     d = ZZ_pX_deg(c_pX)
@@ -54,7 +59,9 @@ cdef inline ZZ_pE_c_to_list(ZZ_pE_c x):
         for 0 <= j <= d:
             c_p = ZZ_pX_coeff(c_pX, j)
             c_c = ZZ_p_rep(c_p)
-            L.append((<IntegerRing_class>ZZ)._coerce_ZZ(&c_c))
+            ans = Integer.__new__(Integer)
+            ZZ_to_mpz(ans.value, &c_c)
+            L.append(ans)
     return L
 
 
@@ -173,7 +180,7 @@ cdef class Polynomial_ZZ_pEX(Polynomial_template):
 
     cpdef list list(self, bint copy=True):
         """
-        Returs the list of coefficients.
+        Return the list of coefficients.
 
         EXAMPLES::
 
@@ -184,7 +191,6 @@ cdef class Polynomial_ZZ_pEX(Polynomial_template):
             True
             sage: P.0.list()
             [0, 1]
-
         """
         cdef Py_ssize_t i
 
@@ -231,25 +237,15 @@ cdef class Polynomial_ZZ_pEX(Polynomial_template):
 
         TESTS:
 
-        The following was fixed at :trac:`10475`::
+        The work around provided in :trac:`10475` is superseded by :trac:`24072`::
 
             sage: F.<x> = GF(4)
             sage: P.<y> = F[]
             sage: p = y^4 + x*y^3 + y^2 + (x + 1)*y + x + 1
-            sage: SR(p)      #indirect doctest
-            y^4 + x*y^3 + y^2 + (x + 1)*y + x + 1
-            sage: p(2)
-            x + 1
-            sage: p(y=2)
-            x + 1
-            sage: p(3,y=2)
+            sage: SR(p)
             Traceback (most recent call last):
             ...
-            TypeError: <type 'sage.rings.polynomial.polynomial_zz_pex.Polynomial_ZZ_pEX'>__call__() takes exactly 1 argument
-            sage: p(x=2)
-            Traceback (most recent call last):
-            ...
-            TypeError: <type 'sage.rings.polynomial.polynomial_zz_pex.Polynomial_ZZ_pEX'>__call__() accepts no named argument except 'y'
+            TypeError: positive characteristic not allowed in symbolic computations
 
         Check that polynomial evaluation works when using logarithmic
         representation of finite field elements (:trac:`16383`)::

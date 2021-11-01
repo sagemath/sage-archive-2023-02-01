@@ -106,7 +106,7 @@ Sage ведет себя немного другим образом.
        Rational Field
        sage: 2//3
        0
-       sage: int(2)/int(3)   # optional - python2
+       sage: int(2)/int(3)   # py2
        0
 
 -  **Большие целые числа:** Python имеет встроенную поддержку целых чисел
@@ -149,10 +149,10 @@ Sage ведет себя немного другим образом.
 
 ::
 
-    [Sage] William A. Stein et al., Sage Mathematics Software (Version 4.3).
-           The Sage Development Team, 2009, http://www.sagemath.org.
+    [Sage] SageMath, the Sage Mathematics Software System (Version 8.7),
+           The Sage Developers, 2019, https://www.sagemath.org.
 
-в раздел библиографии (заменяя 4.3 версией Sage, которую вы используете).
+в раздел библиографии (заменяя 8.7 версией Sage, которую вы используете).
 Кроме того, пожалуйста, постарайтесь отследить, какие компоненты Sage были
 использованы для вычислений, например PARI?, GAP?, Singular? Maxima?, и укажите
 эти системы. Если вы сомневаетесь о том, какое программное обеспечение

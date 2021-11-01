@@ -1,7 +1,6 @@
 r"""
 Semisimple Algebras
 """
-from __future__ import absolute_import
 #*****************************************************************************
 #  Copyright (C) 2011-2015 Nicolas M. Thiery <nthiery at users.sf.net>
 #
@@ -49,7 +48,7 @@ class SemisimpleAlgebras(Category_over_base_ring):
         sage: DihedralGroup(5).algebra(IntegerModRing(7)) in SemisimpleAlgebras
         True
 
-    .. SEEALSO:: `<http://en.wikipedia.org/wiki/Semisimple_algebra>`_
+    .. SEEALSO:: :wikipedia:`Semisimple_algebra`
 
     TESTS::
 

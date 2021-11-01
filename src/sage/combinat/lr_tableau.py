@@ -27,12 +27,12 @@ AUTHORS:
 #                  http://www.gnu.org/licenses/
 #****************************************************************************
 
+from itertools import zip_longest
+
 from sage.categories.finite_enumerated_sets import FiniteEnumeratedSets
-from sage.structure.parent import Parent
-from sage.structure.list_clone import ClonableList
 from sage.combinat.tableau import SemistandardTableau, SemistandardTableaux
 from sage.combinat.partition import Partition, Partitions
-from sage.libs.symmetrica.all import kostka_tab
+
 
 class LittlewoodRichardsonTableau(SemistandardTableau):
     r"""
@@ -248,8 +248,9 @@ class LittlewoodRichardsonTableaux(SemistandardTableaux):
 
 #### common or global functions related to LR tableaux
 
+
 def is_littlewood_richardson(t, heights):
-    """
+    r"""
     Return whether semistandard tableau ``t`` is Littleword-Richardson
     with respect to ``heights``.
 
@@ -301,7 +302,5 @@ def _tableau_join(t1, t2, shift=0):
         sage: _tableau_join([[1,2]],[[None,None,2],[3]],shift=5)
         [[1, 2, 7], [8]]
     """
-    from six.moves import zip_longest
     return [[e1 for e1 in row1] + [e2+shift for e2 in row2 if e2 is not None]
             for (row1, row2) in zip_longest(t1, t2, fillvalue=[])]
-

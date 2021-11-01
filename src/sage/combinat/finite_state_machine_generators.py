@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 r"""
 Common Automata and Transducers (Finite State Machines Generators)
 
@@ -76,19 +77,19 @@ Functions and methods
 ---------------------
 
 """
-#*****************************************************************************
+# ****************************************************************************
 #       Copyright (C) 2014--2015 Clemens Heuberger <clemens.heuberger@aau.at>
 #                     2014--2015 Daniel Krenn <dev@danielkrenn.at>
 #                     2014 Sara Kropf <sara.kropf@aau.at>
 #
-#  Distributed under the terms of the GNU General Public License (GPL)
-#  as published by the Free Software Foundation; either version 2 of
-#  the License, or (at your option) any later version.
-#                http://www.gnu.org/licenses/
-#*****************************************************************************
-from __future__ import print_function
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 2 of the License, or
+# (at your option) any later version.
+#                  https://www.gnu.org/licenses/
+# ****************************************************************************
 
-import collections
+from collections import namedtuple
 import operator
 
 from sage.combinat.finite_state_machine import Automaton, Transducer
@@ -147,7 +148,6 @@ class AutomatonGenerators(object):
         return Automaton([(z, o, _) for _ in input_alphabet],
                          initial_states=[z],
                          final_states=[o])
-
 
     def AnyWord(self, input_alphabet):
         r"""
@@ -410,9 +410,8 @@ class TransducerGenerators(object):
             initial_states=[0],
             final_states=[0])
 
-
     def CountSubblockOccurrences(self, block, input_alphabet):
-        """
+        r"""
         Returns a transducer counting the number of (possibly
         overlapping) occurrences of a block in the input.
 
@@ -706,7 +705,7 @@ class TransducerGenerators(object):
 
 
     def all(self, input_alphabet, number_of_operands=2):
-        """
+        r"""
         Returns a transducer which realizes logical ``and`` over the given
         input alphabet.
 
@@ -758,7 +757,7 @@ class TransducerGenerators(object):
 
 
     def any(self, input_alphabet, number_of_operands=2):
-        """
+        r"""
         Returns a transducer which realizes logical ``or`` over the given
         input alphabet.
 
@@ -810,7 +809,7 @@ class TransducerGenerators(object):
 
 
     def add(self, input_alphabet, number_of_operands=2):
-        """
+        r"""
         Returns a transducer which realizes addition on pairs over the
         given input alphabet.
 
@@ -865,7 +864,7 @@ class TransducerGenerators(object):
 
 
     def sub(self, input_alphabet):
-        """
+        r"""
         Returns a transducer which realizes subtraction on pairs over
         the given input alphabet.
 
@@ -972,7 +971,7 @@ class TransducerGenerators(object):
 
 
     def abs(self, input_alphabet):
-        """
+        r"""
         Returns a transducer which realizes the letter-wise
         absolute value of an input word over the given input alphabet.
 
@@ -1026,7 +1025,7 @@ class TransducerGenerators(object):
             sage: G = transducers.GrayCode()
             sage: G
             Transducer with 3 states
-            sage: for v in srange(0, 10):
+            sage: for v in srange(10):
             ....:     print("{} {}".format(v, G(v.digits(base=2))))
             0 []
             1 [1]
@@ -1059,8 +1058,7 @@ class TransducerGenerators(object):
                           with_final_word_out=[0])
 
 
-    RecursionRule = collections.namedtuple('RecursionRule',
-                                           ['K', 'r', 'k', 's', 't'])
+    RecursionRule = namedtuple('RecursionRule', ['K', 'r', 'k', 's', 't'])
 
 
     def _parse_recursion_equation_(self, equation, base, function, var,
@@ -1256,9 +1254,11 @@ class TransducerGenerators(object):
 
         def convert_output(output):
             for ring in output_rings:
-                if output in ring:
+                try:
                     return ring(output)
-            return(output)
+                except (ValueError,TypeError):
+                    pass
+            return output
 
         def to_list(output):
             if output == 0:
@@ -1297,7 +1297,10 @@ class TransducerGenerators(object):
                              % (polynomial_left,))
 
         [r, base_power_K] = list(polynomial_left)
-        K = log(base_power_K, base=base)
+        try:
+            K = log(base_power_K, base=base)
+        except RuntimeError:
+            K = 1
         try:
             K = K.simplify()
         except AttributeError:
@@ -1397,7 +1400,7 @@ class TransducerGenerators(object):
 
         - ``base`` -- base of the digit expansion.
 
-        - ``function`` -- symbolic function ``f`` occuring in the
+        - ``function`` -- symbolic function ``f`` occurring in the
           recursions.
 
         - ``var`` -- symbolic variable.
@@ -1796,7 +1799,7 @@ class TransducerGenerators(object):
 
         if is_zero is None:
             is_zero = lambda x: not x
-        RuleRight = collections.namedtuple('Rule', ['k', 's', 't'])
+        RuleRight = namedtuple('Rule', ['k', 's', 't'])
         initial_values = {}
         rules = []
         if input_alphabet is None and base in ZZ:
@@ -1942,7 +1945,7 @@ class TransducerGenerators(object):
                        input_alphabet=input_alphabet)
 
         def edge_recursion_digraph(n):
-            """
+            r"""
             Compute the list of outgoing edges of ``n`` in the recursion digraph.
 
             INPUT:
@@ -1986,7 +1989,7 @@ class TransducerGenerators(object):
         if missing_initial_values:
             raise ValueError(
                 "Missing initial values for %s." %
-                sorted(list(missing_initial_values)))
+                sorted(missing_initial_values))
 
         for cycle in recursion_digraph.all_simple_cycles():
             assert cycle[0] is cycle[-1]
@@ -2016,7 +2019,7 @@ class TransducerGenerators(object):
         if superfluous_initial_values:
             raise ValueError(
                 "Superfluous initial values for %s." %
-                sorted(list(superfluous_initial_values)))
+                sorted(superfluous_initial_values))
 
         for state in T.iter_states():
             state.is_final = True

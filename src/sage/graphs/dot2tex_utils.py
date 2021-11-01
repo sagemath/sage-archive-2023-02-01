@@ -7,7 +7,6 @@ This file contains some utility functions for the interface with dot2tex
 #  Distributed under the terms of the GNU General Public License (GPL)
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
-from __future__ import print_function
 
 import re
 from sage.misc.latex import latex
@@ -52,14 +51,14 @@ and check the installation of graphviz and the dot2tex spkg.
 For support, please contact <sage-combinat-devel at googlegroups.com>.
 """
     import_error_string = """
-An error occured when importing dot2tex.
+An error occurred when importing dot2tex.
 
 Please see :meth:`sage.graphs.generic_graph.GenericGraph.layout_graphviz`
 for installation instructions.
 """
     try:
         import dot2tex
-    except ImportError as e:
+    except ImportError:
         print(import_error_string)
         raise # re-raise current exception
     else:

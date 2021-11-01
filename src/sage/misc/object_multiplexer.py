@@ -5,8 +5,7 @@ AUTHORS:
 
 - Martin Albrecht (2011): initial version
 """
-
-#*****************************************************************************
+# ****************************************************************************
 #       Copyright (C) 2011 Martin Albrecht <martinralbrecht@googlemail.com>
 #
 #  Distributed under the terms of the GNU General Public License (GPL)
@@ -18,10 +17,11 @@ AUTHORS:
 #
 #  The full text of the GPL is available at:
 #
-#                  http://www.gnu.org/licenses/
-#*****************************************************************************
+#                  https://www.gnu.org/licenses/
+# ****************************************************************************
 
-class MultiplexFunction:
+
+class MultiplexFunction(object):
     """
     A simple wrapper object for functions that are called on a list of
     objects.
@@ -34,7 +34,7 @@ class MultiplexFunction:
             sage: m = Multiplex(1,1/2)
             sage: f = MultiplexFunction(m,'str')
             sage: f
-            <sage.misc.object_multiplexer.MultiplexFunction instance at 0x...>
+            <sage.misc.object_multiplexer.MultiplexFunction object at 0x...>
         """
         self.multiplexer = multiplexer
         self.name = name
@@ -51,16 +51,17 @@ class MultiplexFunction:
         """
         l = []
         for child in self.multiplexer.children:
-            l.append(getattr(child,self.name)(*args, **kwds))
+            l.append(getattr(child, self.name)(*args, **kwds))
         if all(e is None for e in l):
             return None
         else:
             return tuple(l)
 
-class Multiplex:
+
+class Multiplex(object):
     """
-    Obbject for a list of children such that function calls on this
-    new objects implies that the same function is called on all
+    Object for a list of children such that function calls on this
+    new object implies that the same function is called on all
     children.
     """
     def __init__(self, *args):
@@ -81,12 +82,12 @@ class Multiplex:
             sage: from sage.misc.object_multiplexer import Multiplex
             sage: m = Multiplex(1,1/2)
             sage: m.str
-            <sage.misc.object_multiplexer.MultiplexFunction instance at 0x...>
+            <sage.misc.object_multiplexer.MultiplexFunction object at 0x...>
             sage: m.trait_names
             Traceback (most recent call last):
             ...
             AttributeError: 'Multiplex' has no attribute 'trait_names'
         """
         if name.startswith("__") or name == "trait_names":
-            raise AttributeError("'Multiplex' has no attribute '%s'"%name)
-        return MultiplexFunction(self,name)
+            raise AttributeError("'Multiplex' has no attribute '%s'" % name)
+        return MultiplexFunction(self, name)

@@ -15,18 +15,17 @@ AUTHORS:
 
 - Rudi Pendavingh, Stefan van Zwam (2013-07-01): initial version
 """
-#*****************************************************************************
+# ****************************************************************************
 #       Copyright (C) 2013 Rudi Pendavingh <rudi.pendavingh@gmail.com>
 #       Copyright (C) 2013 Stefan van Zwam <stefanvanzwam@gmail.com>
 #
 #  Distributed under the terms of the GNU General Public License (GPL)
 #  as published by the Free Software Foundation; either version 2 of
 #  the License, or (at your option) any later version.
-#                  http://www.gnu.org/licenses/
-#*****************************************************************************
-from __future__ import absolute_import
+#                  https://www.gnu.org/licenses/
+# ****************************************************************************
 
-include 'sage/data_structures/bitset.pxi'
+from sage.data_structures.bitset_base cimport *
 import sage.matroids.matroid
 import sage.matroids.basis_exchange_matroid
 from .minor_matroid import MinorMatroid
@@ -34,8 +33,11 @@ from .dual_matroid import DualMatroid
 from .circuit_closures_matroid cimport CircuitClosuresMatroid
 from .basis_matroid cimport BasisMatroid
 from .linear_matroid cimport LinearMatroid, RegularMatroid, BinaryMatroid, TernaryMatroid, QuaternaryMatroid
-from .lean_matrix cimport GenericMatrix, BinaryMatrix, TernaryMatrix, QuaternaryMatrix, IntegerMatrix
+from .lean_matrix cimport GenericMatrix, BinaryMatrix, TernaryMatrix, QuaternaryMatrix, PlusMinusOneMatrix, RationalMatrix
+from .graphic_matroid import GraphicMatroid
 
+from sage.rings.rational cimport Rational
+from sage.libs.gmp.mpq cimport mpq_set
 
 #############################################################################
 # BasisMatroid
@@ -287,9 +289,9 @@ def unpickle_quaternary_matrix(version, data):
     return A
 
 
-def unpickle_integer_matrix(version, data):
-    """
-    Reconstruct an ``IntegerMatrix`` object (internal Sage data structure).
+def unpickle_plus_minus_one_matrix(version, data):
+    r"""
+    Reconstruct an ``PlusMinusOneMatrix`` object (internal Sage data structure).
 
     .. WARNING::
 
@@ -298,22 +300,66 @@ def unpickle_integer_matrix(version, data):
     EXAMPLES::
 
         sage: from sage.matroids.lean_matrix import *
-        sage: A = IntegerMatrix(2, 5)
+        sage: A = PlusMinusOneMatrix(2, 5)
         sage: A == loads(dumps(A))  # indirect doctest
         True
+
+    TESTS:
+
+    Check that we can unpickle old ``IntegerMatrix`` pickles::
+
+        sage: p = (b"x\x9ck`J.NLO\xd5\xcbM,)\xca\xcfL)\xd6+\xcd+\xc8L\xce\xce"
+        ....:      b"\xc9\xccK\xe7\x822S\xe33\xf3JR\xd3S\x8b\xe2A\x8a2+\xb8\n"
+        ....:      b"\x19\xbd\x19\xbc\x99\xbc\x99b\x0b\x994\xbc\x81l\xaf\xff@"
+        ....:      b"\xe0\xcd\x98\xda\xde\x16T\xc8\xac\x07\x00\xf0\xe6\x1e\x07")
+        sage: M = loads(p)
+        sage: M
+        PlusMinusOneMatrix instance with 2 rows and 2 columns
+        sage: type(M)
+        <type 'sage.matroids.lean_matrix.PlusMinusOneMatrix'>
+        sage: M.__reduce__()[1][1]
+        (2, 2, [1, 0, -1, 1])
     """
     if version != 0:
         raise TypeError("object was created with newer version of Sage. Please upgrade.")
-    cdef IntegerMatrix A = IntegerMatrix(data[0], data[1])
+    cdef PlusMinusOneMatrix A = PlusMinusOneMatrix(data[0], data[1])
     cdef long i
     for i from 0 <= i < A._nrows * A._ncols:
         A._entries[i] = data[2][i]
     return A
 
 
+from sage.misc.persist import register_unpickle_override
+register_unpickle_override("sage.matroids.unpickling", "unpickle_integer_matrix", unpickle_plus_minus_one_matrix)
+
+def unpickle_rational_matrix(version, data):
+    """
+    Reconstruct a :class:`sage.matroids.lean_matrix.RationalMatrix` object
+    (internal Sage data structure).
+
+    .. WARNING::
+
+        Users should not call this method directly.
+
+    EXAMPLES::
+
+        sage: from sage.matroids.lean_matrix import RationalMatrix
+        sage: A = RationalMatrix(2, 5)
+        sage: A == loads(dumps(A))  # indirect doctest
+        True
+    """
+    if version != 0:
+        raise TypeError("object was created with newer version of Sage; please upgrade")
+    cdef RationalMatrix A = RationalMatrix(data[0], data[1])
+    cdef long i
+    for i in range(A._nrows * A._ncols):
+        mpq_set(A._entries[i], (<Rational?> data[2][i]).value)
+    return A
+
 #############################################################################
 # LinearMatroid and subclasses
 #############################################################################
+
 
 def unpickle_linear_matroid(version, data):
     """
@@ -593,4 +639,45 @@ def unpickle_minor_matroid(version, data):
     M = MinorMatroid(matroid=data[0], contractions=data[1], deletions=data[2])
     if data[3] is not None:
         M.rename(data[3])
+    return M
+
+#############################################################################
+# Graphic Matroids
+#############################################################################
+
+
+def unpickle_graphic_matroid(version, data):
+    """
+    Unpickle a GraphicMatroid.
+
+    *Pickling* is Python's term for the loading and saving of objects.
+    Functions like these serve to reconstruct a saved object. This all happens
+    transparently through the ``load`` and ``save`` commands, and you should
+    never have to call this function directly.
+
+    INPUT:
+
+    - ``version`` -- an integer (currently 0).
+    - ``data`` -- a tuple consisting of a SageMath graph and a name.
+
+    OUTPUT:
+
+    A :class:`GraphicMatroid` instance.
+
+    .. WARNING::
+
+        Users should never call this function directly.
+
+    EXAMPLES::
+
+        sage: M = Matroid(graphs.DiamondGraph())
+        sage: M == loads(dumps(M))
+        True
+    """
+    if version != 0:
+        raise TypeError("object was created with newer version of Sage. Please upgrade.")
+    G, name = data
+    M = GraphicMatroid(G)
+    if name is not None:
+        M.rename(name)
     return M

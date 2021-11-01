@@ -19,8 +19,6 @@ AUTHORS:
 # (at your option) any later version.
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
-from __future__ import print_function
-from six.moves import range
 
 from sage.monoids.string_monoid import BinaryStrings
 from sage.arith.all import is_prime, lcm, primes, random_prime
@@ -150,11 +148,11 @@ def ascii_to_bin(A):
         sage: ascii_to_bin(["A", "b", "c", 1, 2, 3])
         Traceback (most recent call last):
         ...
-        TypeError: sequence item 3: expected string, sage.rings.integer.Integer found
+        TypeError: sequence item 3: expected str..., sage.rings.integer.Integer found
         sage: ascii_to_bin(["Abc", 1, 2, 3])
         Traceback (most recent call last):
         ...
-        TypeError: sequence item 1: expected string, sage.rings.integer.Integer found
+        TypeError: sequence item 1: expected str..., sage.rings.integer.Integer found
     """
     bin = BinaryStrings()
     return bin.encoding("".join(list(A)))
@@ -316,7 +314,7 @@ def carmichael_lambda(n):
 
     A case where `\lambda(n) \neq \varphi(n)`::
 
-        sage: k = randint(1, 1000)
+        sage: k = randint(3, 1000)
         sage: carmichael_lambda(2^k) == 2^(k - 2)
         True
         sage: carmichael_lambda(2^k) == 2^(k - 2) == euler_phi(2^k)
@@ -407,8 +405,9 @@ def carmichael_lambda(n):
     # finish the job
     return lcm(t)
 
+
 def has_blum_prime(lbound, ubound):
-    """
+    r"""
     Determine whether or not there is a Blum prime within the specified closed
     interval.
 

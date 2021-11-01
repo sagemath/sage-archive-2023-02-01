@@ -1,13 +1,13 @@
 r"""
 Singleton categories
 """
-#*****************************************************************************
+# ****************************************************************************
 #  Copyright (C) 2011 Simon King <simon.king@uni-jena.de>
 #                     Nicolas M. Thiery <nthiery at users.sf.net>
 #
 #  Distributed under the terms of the GNU General Public License (GPL)
-#                  http://www.gnu.org/licenses/
-#******************************************************************************
+#                  https://www.gnu.org/licenses/
+# *****************************************************************************
 
 from sage.misc.cachefunc import cached_method, cached_function
 from sage.misc.constant_function import ConstantFunction
@@ -89,7 +89,7 @@ class Category_singleton(Category):
 
     A *singleton* category is a category whose class takes no
     parameters like ``Fields()`` or ``Rings()``. See also the
-    `Singleton design pattern <http://en.wikipedia.org/wiki/Singleton_pattern>`_.
+    `Singleton design pattern <https://en.wikipedia.org/wiki/Singleton_pattern>`_.
 
     This is a subclass of :class:`Category`, with a couple
     optimizations for singleton categories.
@@ -305,7 +305,7 @@ class Category_singleton(Category):
             ...
             AssertionError: <class '__main__.MySubStuff'> is not a direct subclass of <class 'sage.categories.category_singleton.Category_singleton'>
 
-        even if ``MyStuff`` has already been instanciated::
+        even if ``MyStuff`` has already been instantiated::
 
             sage: MyStuff()
             Category of my stuff

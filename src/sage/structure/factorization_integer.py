@@ -1,8 +1,8 @@
 "IntegerFactorization objects"
 
 from sage.structure.factorization import Factorization
-
 from sage.rings.integer_ring import ZZ
+
 
 class IntegerFactorization(Factorization):
     """
@@ -24,13 +24,13 @@ class IntegerFactorization(Factorization):
 
     AUTHOR:
 
-        - Sebastian Pancratz (2010-01-10)
+    - Sebastian Pancratz (2010-01-10)
     """
 
     def __init__(self, x, unit=None, cr=False, sort=True, simplify=True,
-                       unsafe=False):
+                 unsafe=False):
         """
-        Sets ``self`` to the factorization object with list ``x``,
+        Set ``self`` to the factorization object with list ``x``,
         which must be a sorted list of pairs, where each pair contains
         a factor and an exponent.
 
@@ -60,7 +60,7 @@ class IntegerFactorization(Factorization):
         We check that :trac:`13139` is fixed::
 
             sage: from sage.structure.factorization_integer import IntegerFactorization
-            sage: IntegerFactorization([(3,1)],unsafe=True)
+            sage: IntegerFactorization([(3, 1)], unsafe=True)
             3
         """
         if unsafe:
@@ -79,45 +79,26 @@ class IntegerFactorization(Factorization):
                 self.simplify()
 
         else:
-            super(IntegerFactorization, self).__init__(x,
-                unit=unit, cr=cr, sort=sort, simplify=simplify)
+            super(IntegerFactorization, self).__init__(x, unit=unit, cr=cr,
+                                                       sort=sort,
+                                                       simplify=simplify)
 
-    def __sort__(self, _cmp=None, key=None):
+    def __sort__(self, key=None):
         """
         Sort the factors in this factorization.
 
         INPUT:
 
-        - ``_cmp`` - (default: ``None``) comparison function
-        - ``key`` - (default: ``None``) comparison key
+        - ``key`` -- (default: ``None``) comparison key
 
         EXAMPLES::
 
             sage: F = factor(15)
-            sage: F.sort(key = lambda x: -x[0])
-            sage: F
-            5 * 3
-
-        TESTS:
-
-        Using ``_cmp`` is deprecated::
-
-            sage: F = factor(15)
-            sage: F.sort(_cmp = lambda x,y: -cmp(x,y))
-            doctest:...: DeprecationWarning: Please use 'key' to sort.
-            See http://trac.sagemath.org/21145 for details.
+            sage: F.sort(key=lambda x: -x[0])
             sage: F
             5 * 3
         """
-        if _cmp is not None:
-            from functools import cmp_to_key
-            from sage.misc.superseded import deprecation
-            deprecation(21145, "Please use 'key' to sort.")
-            self.__x.sort(key=cmp_to_key(_cmp))
-            return
-        elif 'key' is not None:
+        if key is not None:
             self.__x.sort(key=key)
-            return
         else:
             self.__x.sort()
-            return

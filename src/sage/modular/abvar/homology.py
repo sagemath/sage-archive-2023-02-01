@@ -39,26 +39,25 @@ EXAMPLES::
     sage: a.T(7)
     Hecke operator T_7 on Submodule of rank 2 of Integral Homology of Abelian variety J0(43) of dimension 3
 """
-from __future__ import absolute_import
 
-#*****************************************************************************
+# ****************************************************************************
 #       Copyright (C) 2007 William Stein <wstein@gmail.com>
 #
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
 # the Free Software Foundation, either version 2 of the License, or
 # (at your option) any later version.
-#                  http://www.gnu.org/licenses/
-#*****************************************************************************
+#                  https://www.gnu.org/licenses/
+# ****************************************************************************
 
-
+from sage.structure.richcmp import richcmp_method, richcmp, richcmp_not_equal
 from sage.modular.hecke.all import HeckeModule_free_module
 from sage.rings.all import Integer, ZZ, QQ, CommutativeRing
 
-from .abvar import sqrt_poly
-
 # TODO: we will probably also need homology that is *not* a Hecke module.
 
+
+@richcmp_method
 class Homology(HeckeModule_free_module):
     """
     A homology group of an abelian variety, equipped with a Hecke
@@ -119,9 +118,9 @@ class Homology_abvar(Homology):
             self, base, abvar.level(), weight=2)
         self.__abvar = abvar
 
-    def __cmp__(self, other):
+    def __richcmp__(self, other, op):
         r"""
-        Compare self to other.
+        Compare ``self`` to ``other``.
 
         EXAMPLES::
 
@@ -132,11 +131,11 @@ class Homology_abvar(Homology):
             sage: J0(37).integral_homology() == loads(dumps(J0(37).integral_homology()))
             True
         """
-
         if not isinstance(other, Homology_abvar):
-            return cmp(type(self), type(other))
+            return NotImplemented
         else:
-            return cmp((self.abelian_variety(), self.base_ring()), (other.abelian_variety(), other.base_ring()))
+            return richcmp((self.abelian_variety(), self.base_ring()),
+                           (other.abelian_variety(), other.base_ring()), op)
 
     def _repr_(self):
         """
@@ -270,7 +269,7 @@ class Homology_abvar(Homology):
 
             sage: J = J0(23)
             sage: J.homology(QQ[I]).hecke_matrix(3).parent()
-            Full MatrixSpace of 4 by 4 dense matrices over Number Field in I with defining polynomial x^2 + 1
+            Full MatrixSpace of 4 by 4 dense matrices over Number Field in I with defining polynomial x^2 + 1 with I = 1*I
         """
         raise NotImplementedError
 
@@ -371,7 +370,7 @@ class IntegralHomology(Homology_abvar):
             sage: J0(23).integral_homology()._repr_()
             'Integral Homology of Abelian variety J0(23) of dimension 2'
         """
-        return "Integral Homology of %s"%self.abelian_variety()
+        return "Integral Homology of %s" % self.abelian_variety()
 
     def hecke_matrix(self, n):
         """
@@ -383,10 +382,10 @@ class IntegralHomology(Homology_abvar):
             sage: J0(48).integral_homology().hecke_bound()
             16
             sage: t = J1(13).integral_homology().hecke_matrix(3); t
+            [-2  2  2 -2]
+            [-2  0  2  0]
+            [ 0  0  0 -2]
             [ 0  0  2 -2]
-            [-2 -2  0  2]
-            [-2 -2  0  0]
-            [ 0 -2  2 -2]
             sage: t.base_ring()
             Integer Ring
         """
@@ -409,6 +408,7 @@ class IntegralHomology(Homology_abvar):
         M = self.abelian_variety().modular_symbols(sign=1)
         f = (M.hecke_polynomial(n, var)**2).change_ring(ZZ)
         return f
+
 
 class RationalHomology(Homology_abvar):
     r"""
@@ -446,7 +446,7 @@ class RationalHomology(Homology_abvar):
             sage: J0(23).rational_homology()._repr_()
             'Rational Homology of Abelian variety J0(23) of dimension 2'
         """
-        return "Rational Homology of %s"%self.abelian_variety()
+        return "Rational Homology of %s" % self.abelian_variety()
 
     def hecke_matrix(self, n):
         """
@@ -456,17 +456,17 @@ class RationalHomology(Homology_abvar):
         EXAMPLES::
 
             sage: t = J1(13).homology(QQ).hecke_matrix(3); t
+            [-2  2  2 -2]
+            [-2  0  2  0]
+            [ 0  0  0 -2]
             [ 0  0  2 -2]
-            [-2 -2  0  2]
-            [-2 -2  0  0]
-            [ 0 -2  2 -2]
             sage: t.base_ring()
             Rational Field
             sage: t = J1(13).homology(GF(3)).hecke_matrix(3); t
+            [1 2 2 1]
+            [1 0 2 0]
+            [0 0 0 1]
             [0 0 2 1]
-            [1 1 0 2]
-            [1 1 0 0]
-            [0 1 2 1]
             sage: t.base_ring()
             Finite Field of size 3
         """
@@ -486,19 +486,14 @@ class RationalHomology(Homology_abvar):
             (x + 2) * (x^2 - 2)
         """
         f = self.hecke_operator(n).matrix().characteristic_polynomial(var)
-        return sqrt_poly(f)
-
-        #n = Integer(n)
-        #M = self.abelian_variety().modular_symbols(sign=1)
-        #f = M.hecke_polynomial(n, var)**2
-        #return f
+        _, poly = f.is_square(True)
+        return poly
 
 
 class Homology_over_base(Homology_abvar):
     r"""
     The homology over a modular abelian variety over an arbitrary base
-    commutative ring (not `\ZZ` or
-    `\QQ`).
+    commutative ring (not `\ZZ` or `\QQ`).
     """
     def __init__(self, abvar, base_ring):
         r"""
@@ -537,7 +532,7 @@ class Homology_over_base(Homology_abvar):
             sage: H._repr_()
             'Homology with coefficients in Finite Field of size 5 of Abelian variety J0(23) of dimension 2'
         """
-        return "Homology with coefficients in %s of %s"%(self.base_ring(), self.abelian_variety())
+        return "Homology with coefficients in %s of %s" % (self.base_ring(), self.abelian_variety())
 
     def hecke_matrix(self, n):
         """
@@ -547,15 +542,16 @@ class Homology_over_base(Homology_abvar):
         EXAMPLES::
 
             sage: t = J1(13).homology(GF(3)).hecke_matrix(3); t
+            [1 2 2 1]
+            [1 0 2 0]
+            [0 0 0 1]
             [0 0 2 1]
-            [1 1 0 2]
-            [1 1 0 0]
-            [0 1 2 1]
             sage: t.base_ring()
             Finite Field of size 3
         """
         n = Integer(n)
         return self.abelian_variety()._integral_hecke_matrix(n).change_ring(self.base_ring())
+
 
 class Homology_submodule(Homology):
     """
@@ -589,10 +585,6 @@ class Homology_submodule(Homology):
         if not isinstance(ambient, Homology_abvar):
             raise TypeError("ambient must be the homology of a modular abelian variety")
         self.__ambient = ambient
-        #try:
-        #    if not submodule.is_submodule(ambient):
-        #        raise ValueError, "submodule must be a submodule of the ambient homology group"
-        #except AttributeError:
         submodule = ambient.free_module().submodule(submodule)
         self.__submodule = submodule
         HeckeModule_free_module.__init__(
@@ -609,11 +601,11 @@ class Homology_submodule(Homology):
             sage: G._repr_()
             'Submodule of rank 1 of Integral Homology of Abelian variety J0(37) of dimension 2'
         """
-        return "Submodule of rank %s of %s"%(self.rank(), self.__ambient)
+        return "Submodule of rank %s of %s" % (self.rank(), self.__ambient)
 
-    def __cmp__(self, other):
+    def __richcmp__(self, other, op):
         r"""
-        Compare self to other.
+        Compare ``self`` to ``other``.
 
         EXAMPLES::
 
@@ -623,13 +615,13 @@ class Homology_submodule(Homology):
             Submodule of rank 2 of Integral Homology of Abelian variety J0(37) of dimension 2
             ]
         """
-
         if not isinstance(other, Homology_submodule):
-            return cmp(type(self), type(other))
-        c = cmp(self.__ambient, other.__ambient)
-        if c: return c
-        return cmp(self.__submodule, other.__submodule)
-
+            return NotImplemented
+        lx = self.__ambient
+        rx = other.__ambient
+        if lx != rx:
+            return richcmp_not_equal(lx, rx, op)
+        return richcmp(self.__submodule, other.__submodule, op)
 
     def ambient_hecke_module(self):
         """
@@ -743,5 +735,3 @@ class Homology_submodule(Homology):
             [2, 4]
         """
         return self.__submodule.rank()
-
-

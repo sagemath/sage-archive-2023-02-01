@@ -74,10 +74,11 @@ TESTS::
 # (at your option) any later version.
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
-from __future__ import absolute_import
 
 from libc.string cimport memcpy
 from cysignals.signals cimport sig_on, sig_off
+
+from sage.cpython.string cimport str_to_bytes, char_to_str
 
 from sage.structure.sage_object cimport SageObject
 from sage.structure.richcmp cimport richcmp
@@ -106,10 +107,11 @@ from sage.libs.singular.singular import error_messages
 
 from sage.interfaces.singular import get_docstring
 
-from sage.misc.misc import get_verbose
+from sage.misc.verbose import get_verbose
 
 from sage.structure.sequence import Sequence, Sequence_generic
 from sage.rings.polynomial.multi_polynomial_sequence import PolynomialSequence, PolynomialSequence_generic
+
 
 cdef poly* sage_vector_to_poly(v, ring *r) except <poly*> -1:
     """
@@ -187,7 +189,7 @@ cdef class RingWrap:
             sage: ring(l, ring=P).var_names()
             ['x', 'y', 'z']
         """
-        return [self._ring.names[i] for i in range(self.ngens())]
+        return [char_to_str(self._ring.names[i]) for i in range(self.ngens())]
 
     def npars(self):
         """
@@ -219,9 +221,7 @@ cdef class RingWrap:
             sage: ring(l, ring=P).ordering_string()
             'dp(3),C'
         """
-        return rOrderingString(self._ring)
-
-
+        return char_to_str(rOrderingString(self._ring))
 
     def par_names(self):
         """
@@ -237,7 +237,8 @@ cdef class RingWrap:
             sage: ring(l, ring=P).par_names()
             []
         """
-        return [n_ParameterNames(self._ring.cf)[i] for i in range(self.npars())]
+        return [char_to_str(n_ParameterNames(self._ring.cf)[i])
+                for i in range(self.npars())]
 
     def characteristic(self):
         """
@@ -533,7 +534,7 @@ cdef class Converter(SageObject):
             elif isinstance(a, int) or isinstance(a, long):
                 v = self.append_int(a)
 
-            elif isinstance(a, basestring):
+            elif isinstance(a, str):
                 v = self.append_str(a)
 
             elif isinstance(a, Matrix_mpolynomial_dense):
@@ -544,7 +545,7 @@ cdef class Converter(SageObject):
 
             elif isinstance(a, Matrix_generic_dense) and\
                 is_sage_wrapper_for_singular_ring(a.parent().base_ring()):
-                self.append_matrix(a)
+                v = self.append_matrix(a)
 
             elif isinstance(a, Resolution):
                 v = self.append_resolution(a)
@@ -591,9 +592,9 @@ cdef class Converter(SageObject):
 
             if attributes and a in attributes:
                 for attrib in attributes[a]:
-                    if attrib == "isSB" :
-                        val = int(attributes[a][attrib])
-                        atSet(v, omStrDup("isSB"), <void*><int>val, INT_CMD)
+                    if attrib == "isSB":
+                        val = <long>(attributes[a][attrib])
+                        atSet(v, omStrDup("isSB"), <void*>val, INT_CMD)
                         setFlag(v, FLAG_STD)
                     else:
                         raise NotImplementedError("Support for attribute '%s' not implemented yet."%attrib)
@@ -918,8 +919,8 @@ cdef class Converter(SageObject):
         """
         Append the string ``n`` to the list.
         """
-        cdef char *_n = <char *>n
-        return self._append(omStrDup(_n), STRING_CMD)
+        b = str_to_bytes(n)
+        return self._append(omStrDup(b), STRING_CMD)
 
     cdef to_python(self, leftv* to_convert):
         """
@@ -929,7 +930,7 @@ cdef class Converter(SageObject):
 
         - ``to_convert`` - a Singular ``leftv``
 
-        TEST:
+        TESTS:
 
         Check that negative integers come through unscathed::
 
@@ -937,7 +938,7 @@ cdef class Converter(SageObject):
             sage: C = Curve((x-y)*(y-z)*(z-x))
             sage: I = C.defining_ideal()
             sage: import sage.libs.singular.function_factory
-            sage: freerank = sage.libs.singular.function_factory.ff.poly__lib.freerank
+            sage: freerank = sage.libs.singular.function_factory.ff.polylib__lib.freerank
             sage: freerank(I, true)
             [-1, [x^2*y - x*y^2 - x^2*z + y^2*z + x*z^2 - y*z^2]]
 
@@ -973,7 +974,10 @@ cdef class Converter(SageObject):
             return si2sa_intvec(<intvec *>to_convert.data)
 
         elif rtyp == STRING_CMD:
-            ret = <char *>to_convert.data
+            # TODO: Need to determine what kind of data can be returned by a
+            # STRING_CMD--is it just ASCII strings or can it be an arbitrary
+            # binary?
+            ret = char_to_str(<char *>to_convert.data)
             return ret
         elif rtyp == VECTOR_CMD:
             result = self.to_sage_vector_destructive(
@@ -1253,7 +1257,7 @@ cdef class SingularFunction(SageObject):
             Traceback (most recent call last):
             ...
             RuntimeError: error in Singular function call 'size':
-            Wrong number of arguments (got 2 arguments, arity code is 300)
+            Wrong number of arguments (got 2 arguments, arity code is 302)
             sage: size('foobar', ring=P)
             6
 
@@ -1304,20 +1308,26 @@ cdef class SingularFunction(SageObject):
             ...
             RuntimeError: error in Singular function call 'triangL':
             The input is no groebner basis.
-            leaving triang.lib::triangL
+            leaving triang.lib::triangL (0)
+
+        Flush any stray output -- see :trac:`28622`::
+
+            sage: sys.stdout.flush()
+            ...
 
             sage: G= Ideal(I.groebner_basis())
             sage: triangL(G,attributes={G:{'isSB':1}})
             [[e + d + c + b + a, ...]]
         """
         global dummy_ring
-        
+
         if ring is None:
             ring = self.common_ring(args, ring)
             if ring is None:
                 if dummy_ring is None:
-                    from sage.all import QQ, PolynomialRing
-                    dummy_ring = PolynomialRing(QQ,"dummy",1) # seems a reasonable default
+                    from sage.rings.polynomial.all import PolynomialRing
+                    from sage.rings.rational_field import QQ
+                    dummy_ring = PolynomialRing(QQ, "dummy", implementation="singular") # seems a reasonable default
                 ring = dummy_ring
         if not (isinstance(ring, MPolynomialRing_libsingular) or isinstance(ring, NCPolynomialRing_plural)):
             raise TypeError("Cannot call Singular function '%s' with ring parameter of type '%s'"%(self._name,type(ring)))
@@ -1519,7 +1529,7 @@ cdef inline call_function(SingularFunction self, tuple args, object R, bint sign
 
     if errorreported:
         errorreported = 0
-        raise RuntimeError("error in Singular function call %r:\n%s"%
+        raise RuntimeError("error in Singular function call %r:\n%s" %
             (self._name, "\n".join(error_messages)))
 
     res = argument_list.to_python(_res)
@@ -1544,7 +1554,7 @@ cdef class SingularLibraryFunction(SingularFunction):
     """
     def __init__(self, name):
         """
-        Construct a new Singular kernel function.
+        Construct a new Singular library function.
 
         EXAMPLES::
 
@@ -1559,7 +1569,7 @@ cdef class SingularLibraryFunction(SingularFunction):
         self.call_handler = self.get_call_handler()
 
     cdef BaseCallHandler get_call_handler(self):
-        cdef idhdl* singular_idhdl = ggetid(self._name)
+        cdef idhdl* singular_idhdl = ggetid(str_to_bytes(self._name))
         if singular_idhdl==NULL:
             raise NameError("Singular library function {!r} is not defined".format(self._name))
         if singular_idhdl.typ!=PROC_CMD:
@@ -1570,7 +1580,7 @@ cdef class SingularLibraryFunction(SingularFunction):
         return res
 
     cdef bint function_exists(self):
-        cdef idhdl* singular_idhdl = ggetid(self._name)
+        cdef idhdl* singular_idhdl = ggetid(str_to_bytes(self._name))
         return singular_idhdl!=NULL
 
 cdef class SingularKernelFunction(SingularFunction):
@@ -1606,7 +1616,7 @@ cdef class SingularKernelFunction(SingularFunction):
 
     cdef BaseCallHandler get_call_handler(self):
         cdef int cmd_n = 0
-        arity = IsCmd(self._name, cmd_n) # call by reverence for CMD_n
+        arity = IsCmd(str_to_bytes(self._name), cmd_n) # call by reverence for CMD_n
         if not cmd_n:
             raise NameError("Singular kernel function {!r} is not defined".format(self._name))
 
@@ -1614,7 +1624,7 @@ cdef class SingularKernelFunction(SingularFunction):
 
     cdef bint function_exists(self):
         cdef int cmd_n = -1
-        arity = IsCmd(self._name, cmd_n) # call by reverence for CMD_n
+        arity = IsCmd(str_to_bytes(self._name), cmd_n) # call by reverence for CMD_n
         return cmd_n != -1
 
 
@@ -1661,17 +1671,17 @@ def singular_function(name):
         Traceback (most recent call last):
         ...
         RuntimeError: error in Singular function call 'factorize':
-        Wrong number of arguments (got 0 arguments, arity code is 303)
+        Wrong number of arguments (got 0 arguments, arity code is 305)
         sage: factorize(f, 1, 2)
         Traceback (most recent call last):
         ...
         RuntimeError: error in Singular function call 'factorize':
-        Wrong number of arguments (got 3 arguments, arity code is 303)
+        Wrong number of arguments (got 3 arguments, arity code is 305)
         sage: factorize(f, 1, 2, 3)
         Traceback (most recent call last):
         ...
         RuntimeError: error in Singular function call 'factorize':
-        Wrong number of arguments (got 4 arguments, arity code is 303)
+        Wrong number of arguments (got 4 arguments, arity code is 305)
 
     The Singular function ``list`` can be called with any number of
     arguments::
@@ -1723,8 +1733,8 @@ def singular_function(name):
         sage: matrix = Matrix(P,2,2)
         sage: matrix.randomize(terms=1)
         sage: det = singular_function("det")
-        sage: det(matrix)
-        -3/5*x*y*z
+        sage: det(matrix) == matrix[0, 0] * matrix[1, 1] - matrix[0, 1] * matrix[1, 0]
+        True
         sage: coeffs = singular_function("coeffs")
         sage: coeffs(x*y+y+1,y)
         [    1]
@@ -1830,7 +1840,7 @@ def lib(name):
          si_opt_2 &= ~Sy_bit(V_LOAD_LIB)
          si_opt_2 &= ~Sy_bit(V_REDEFINE)
 
-    cdef char* cname = omStrDup(name)
+    cdef char* cname = omStrDup(str_to_bytes(name))
     sig_on()
     cdef bint failure = iiLibCmd(cname, 1, 1, 1)
     sig_off()
@@ -1859,13 +1869,13 @@ def list_of_functions(packages=False):
     cdef idhdl *ph = NULL
     while h!=NULL:
         if PROC_CMD == IDTYP(h):
-            l.append(h.id)
-        if  PACKAGE_CMD == IDTYP(h):
+            l.append(char_to_str(h.id))
+        if PACKAGE_CMD == IDTYP(h):
             if packages:
                 ph = IDPACKAGE(h).idroot
                 while ph != NULL:
                     if PROC_CMD == IDTYP(ph):
-                        l.append(ph.id)
+                        l.append(char_to_str(ph.id))
                     ph = IDNEXT(ph)
         h = IDNEXT(h)
     return l

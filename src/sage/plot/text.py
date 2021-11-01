@@ -83,9 +83,9 @@ class Text(GraphicPrimitive):
 
             sage: T = text("I like cool constants", (pi,e))
             sage: t=T[0];t
-            Text 'I like cool constants' at the point (3.14159265359,2.71828182846)
+            Text 'I like cool constants' at the point (3.1415926535...,2.7182818284...)
         """
-        return "Text '%s' at the point (%s,%s)"%(self.string, self.x, self.y)
+        return "Text '%s' at the point (%s,%s)" % (self.string, self.x, self.y)
 
     def _allowed_options(self):
         """
@@ -138,8 +138,11 @@ class Text(GraphicPrimitive):
         if options is None:
             options = dict(self.options())
         options_3d = {}
+        for s in ['fontfamily', 'fontsize', 'fontstyle', 'fontweight']:
+            if s in options:
+                options_3d[s] = options.pop(s)
         # TODO: figure out how to implement rather than ignore
-        for s in ['axis_coords', 'clip', 'fontsize', 'horizontal_alignment',
+        for s in ['axis_coords', 'clip', 'horizontal_alignment',
                   'rotation', 'vertical_alignment']:
             if s in options:
                 del options[s]

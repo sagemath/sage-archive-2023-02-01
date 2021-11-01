@@ -5,7 +5,6 @@ AUTHORS:
 
 - Florent Hivert (2011): initial version
 """
-from six import add_metaclass
 
 from sage.categories.finite_enumerated_sets import FiniteEnumeratedSets
 from sage.categories.sets_cat import Sets
@@ -56,8 +55,8 @@ def number_of_rooted_trees(n):
                for k in ZZ.range(1, n)) // (n - 1)
 
 
-@add_metaclass(InheritComparisonClasscallMetaclass)
-class RootedTree(AbstractClonableTree, NormalizedClonableList):
+class RootedTree(AbstractClonableTree, NormalizedClonableList,
+        metaclass=InheritComparisonClasscallMetaclass):
     r"""
     The class for unordered rooted trees.
 
@@ -257,9 +256,8 @@ class RootedTree(AbstractClonableTree, NormalizedClonableList):
         EXAMPLES::
 
             sage: RT = RootedTree
-            sage: hash(RT([[],[[]]]))  # indirect doctest
-            2578595415271398032           # 64-bit
-            1119083152                    # 32-bit
+            sage: hash(RT([[],[[]]])) == hash((2, 0, 1, 0)) # indirect doctest
+            True
         """
         return hash(self.sort_key())
 
@@ -364,7 +362,7 @@ class RootedTree(AbstractClonableTree, NormalizedClonableList):
 
             sage: x = RootedTree([[[], []], []])
             sage: y = RootedTree([[], []])
-            sage: len(uniq(x.graft_list(y)))
+            sage: len(set(x.graft_list(y)))
             4
         """
         resu = []
@@ -407,6 +405,60 @@ class RootedTree(AbstractClonableTree, NormalizedClonableList):
         with self.clone() as t:
             t.append(other)
         return t
+
+    def single_graft(self, x, grafting_function, path_prefix=()):
+        r"""
+        Graft subtrees of `x` on ``self`` using the given function.
+
+        Let `x_1, x_2, \ldots, x_p` be the children of the root of
+        `x`. For each `i`, the subtree of `x` comprising all
+        descendants of `x_i` is joined by a new edge to
+        the vertex of ``self`` specified by the `i`-th path in the
+        grafting function (i.e., by the path
+        ``grafting_function[i]``).
+
+        The number of vertices of the result is the sum of the numbers
+        of vertices of ``self`` and `x` minus one, because the root of
+        `x` is not used.
+
+        This is used to define the product of the Grossman-Larson algebras.
+
+        INPUT:
+
+        - `x` -- a rooted tree
+
+        - ``grafting_function`` -- a list of paths in ``self``
+
+        - ``path_prefix`` -- optional tuple (default ``()``)
+
+        The ``path_prefix`` argument is only used for internal recursion.
+
+        EXAMPLES::
+
+            sage: LT = LabelledRootedTrees()
+            sage: y = LT([LT([],label='b')], label='a')
+            sage: x = LT([LT([],label='d')], label='c')
+            sage: y.single_graft(x,[(0,)])
+            a[b[d[]]]
+            sage: t = LT([LT([],label='b'),LT([],label='c')], label='a')
+            sage: s = LT([LT([],label='d'),LT([],label='e')], label='f')
+            sage: t.single_graft(s,[(0,),(1,)])
+            a[b[d[]], c[e[]]]
+        """
+        P = self.parent()
+        child_grafts = [suby.single_graft(x, grafting_function,
+                                          path_prefix + (i,))
+                        for i, suby in enumerate(self)]
+        try:
+            y1 = P(child_grafts, label=self.label())
+        except AttributeError:
+            y1 = P(child_grafts)
+
+        with y1.clone() as y2:
+            for k in range(len(x)):
+                if grafting_function[k] == path_prefix:
+                    y2.append(x[k])
+        return y2
 
 
 class RootedTrees(UniqueRepresentation, Parent):
@@ -900,9 +952,8 @@ class LabelledRootedTree(AbstractLabelledClonableTree, RootedTree):
         EXAMPLES::
 
             sage: lb = RootedTrees()([[],[[], []]]).canonical_labelling()
-            sage: hash(lb)  # indirect doctest
-            686798862222558969           # 64-bit
-            652936953                    # 32-bit
+            sage: hash(lb) == hash(((2, 1), (0, 2), (2, 3), (0, 4), (0, 5))) # indirect doctest
+            True
         """
         return hash(self.sort_key())
 

@@ -7,7 +7,10 @@ Integer Sequences::
     sage: s = oeis([1,3,19,211]); s                  # optional - internet
     0: A000275: Coefficients of a Bessel function (reciprocal of J_0(z)); also pairs of permutations with rise/rise forbidden.
     sage: s[0].programs() # optional - internet
-    0: (PARI) {a(n) = if( n<0, 0, n!^2 * 4^n * polcoeff( 1 / besselj(0, x + x * O(x^(2*n))), 2*n))}; /* _Michael Somos_, May 17 2004 */
+    [('maple', ...),
+     ('mathematica', ...),
+     ('pari',
+      0: {a(n) = if( n<0, 0, n!^2 * 4^n * polcoeff( 1 / besselj(0, x + x * O(x^(2*n))), 2*n))}; /* _Michael Somos_, May 17 2004 */)]
 
 Combinatorial objects::
 
@@ -67,7 +70,7 @@ Polytopes::
     sage: S = SymmetricGroup(4)
     sage: M = PolynomialRing(QQ, 'x0,x1,x2,x3')
     sage: M.an_element() * S.an_element()
-    x1
+    x0
 
 Graph theory, posets, lattices (:ref:`sage.graphs`, :ref:`sage.combinat.posets`)::
 

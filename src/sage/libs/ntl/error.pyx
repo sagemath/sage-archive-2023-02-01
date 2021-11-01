@@ -1,3 +1,11 @@
+# distutils: libraries = ntl gmp
+# distutils: extra_compile_args = NTL_CFLAGS
+# distutils: include_dirs = NTL_INCDIR
+# distutils: libraries = NTL_LIBRARIES
+# distutils: library_dirs = NTL_LIBDIR
+# distutils: extra_link_args = NTL_LIBEXTRA
+# distutils: language = c++
+
 """
 NTL error handler
 
@@ -21,6 +29,7 @@ AUTHOR:
 
 
 from .ntl_tools cimport ErrorMsgCallback
+from ...cpython.string cimport char_to_str
 
 
 class NTLError(RuntimeError):
@@ -38,7 +47,7 @@ class NTLError(RuntimeError):
 
 
 cdef void NTL_error_callback(const char* s) except *:
-    raise NTLError(s)
+    raise NTLError(char_to_str(s))
 
 
 def setup_NTL_error_callback():

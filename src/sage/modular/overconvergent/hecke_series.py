@@ -1,5 +1,5 @@
 r"""
-Atkin/Hecke series for overconvergent modular forms.
+Atkin/Hecke series for overconvergent modular forms
 
 This file contains a function :func:`~hecke_series` to compute the
 characteristic series `P(t)` modulo `p^m` of the Atkin/Hecke operator `U_p`
@@ -59,7 +59,7 @@ A list containing the characteristic series of the U_23 operator modulo 23^10 on
     + 29197235447073*x + 1, 32737396672905*x^4 + 36141830902187*x^3 + 16514246534976*x^2 + 38886059530878*x + 1]
 """
 
-#*****************************************************************************
+# ****************************************************************************
 #       Copyright (C) 2011 Alan Lauder <lauder@maths.ox.ac.uk>
 #
 # This program is free software: you can redistribute it and/or modify
@@ -68,7 +68,7 @@ A list containing the characteristic series of the U_23 operator modulo 23^10 on
 # (at your option) any later version.
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
-from six.moves import range
+
 from sage.functions.all import floor, ceil
 from sage.arith.all import valuation
 from sage.rings.all import ZZ, Zmod, Infinity, Integer
@@ -78,7 +78,8 @@ from sage.modular.dims import dimension_modular_forms
 from sage.misc.functional import dimension,transpose,charpoly
 from sage.matrix.constructor import matrix, random_matrix
 from sage.matrix.matrix_space import MatrixSpace
-from sage.misc.misc import cputime, verbose
+from sage.misc.misc import cputime
+from sage.misc.verbose import verbose
 
 # AUXILIARY CODE: SPACES OF MODULAR FORMS AND LINEAR ALGEBRA
 
@@ -112,9 +113,10 @@ def compute_G(p, F):
     Fp = (F.truncate_powerseries(ceil(F.prec() / ZZ(p)))).V(p)
     return F / Fp
 
-def low_weight_bases(N,p,m,NN,weightbound):
+
+def low_weight_bases(N, p, m, NN, weightbound):
     r"""
-    Returns a list of integral bases of modular forms of level N and (even)
+    Return a list of integral bases of modular forms of level N and (even)
     weight at most ``weightbound``, as `q`-expansions modulo `(p^m,q^{NN})`.
 
     These forms are obtained by reduction mod `p^m` from an integral basis in
@@ -264,8 +266,14 @@ def random_solution(B,K):
     EXAMPLES::
 
         sage: from sage.modular.overconvergent.hecke_series import random_solution
-        sage: random_solution(5,10)
-        [1, 1, 1, 1, 0]
+        sage: s = random_solution(5,10)
+        sage: sum(s[i]*(i+1) for i in range(5))
+        10
+        sage: S = set()
+        sage: while len(S) != 30:
+        ....:     s = random_solution(5,10)
+        ....:     assert sum(s[i]*(i+1) for i in range(5)) == 10
+        ....:     S.add(tuple(s))
     """
     a = []
     for i in range(B,1,-1):
@@ -444,7 +452,7 @@ def complementary_spaces_modp(N,p,k0,n,elldash,LWBModp,bound):
     """
     CompSpacesCode = []
     ell = dimension_modular_forms(N,k0 + n*(p-1))
-    TotalBasisModp = matrix(GF(p),ell,elldash); # zero matrix
+    TotalBasisModp = matrix(GF(p), ell, elldash)  # zero matrix
 
     for i in range(n+1):
         NewBasisCodemi = random_new_basis_modp(N,p,k0 + i*(p-1),LWBModp,TotalBasisModp,elldash,bound)
@@ -502,7 +510,7 @@ def complementary_spaces(N,p,k0,n,mdash,elldashp,elldash,modformsring,bound):
         [2 + 2*q + 14*q^2 + 19*q^3 + 18*q^4 + O(q^5)],
         [6 + 8*q + 10*q^2 + 23*q^3 + 4*q^4 + O(q^5)]]
     """
-    if modformsring == False:
+    if not modformsring:
         LWB = random_low_weight_bases(N,p,mdash,elldashp,bound)
     else:
         LWB,bound = low_weight_generators(N,p,mdash,elldashp)
@@ -701,15 +709,25 @@ def higher_level_UpGj(p, N, klist, m, modformsring, bound, extra_data=False):
     EXAMPLES::
 
         sage: from sage.modular.overconvergent.hecke_series import higher_level_UpGj
-        sage: higher_level_UpGj(5,3,[4],2,true,6)
-        [
-        [ 1  0  0  0  0  0]
-        [ 0  1  0  0  0  0]
-        [ 0  7  0  0  0  0]
-        [ 0  5 10 20  0  0]
-        [ 0  7 20  0 20  0]
-        [ 0  1 24  0 20  0]
-        ]
+        sage: A = Matrix([
+        ....:     [1,  0,  0,  0,  0,  0],
+        ....:     [0,  1,  0,  0,  0,  0],
+        ....:     [0,  7,  0,  0,  0,  0],
+        ....:     [0,  5, 10, 20,  0,  0],
+        ....:     [0,  7, 20,  0, 20,  0],
+        ....:     [0,  1, 24,  0, 20,  0]])
+        sage: B = Matrix([
+        ....:     [1,  0,  0,  0,  0,  0],
+        ....:     [0,  1,  0,  0,  0,  0],
+        ....:     [0,  7,  0,  0,  0,  0],
+        ....:     [0, 19,  0, 20,  0,  0],
+        ....:     [0,  7, 20,  0, 20,  0],
+        ....:     [0,  1, 24,  0, 20,  0]])
+        sage: C = higher_level_UpGj(5,3,[4],2,true,6)
+        sage: len(C)
+        1
+        sage: C[0] in (A, B)
+        True
         sage: len(higher_level_UpGj(5,3,[4],2,true,6,extra_data=True))
         4
     """
@@ -749,8 +767,8 @@ def higher_level_UpGj(p, N, klist, m, modformsring, bound, extra_data=False):
         T = matrix(S,ell,elldash)
         for i in range(ell):
             ei = R(e[i].list())
-            Gkdivei = Gkdiv*ei; # act by G^kdiv
-            for j in range(0, elldash):
+            Gkdivei = Gkdiv*ei  # act by G^kdiv
+            for j in range(elldash):
                 T[i,j] = Gkdivei[p*j]
 
         verbose("done steps 4b and 5", t)
@@ -1169,7 +1187,7 @@ def hecke_series(p,N,klist,m, modformsring = False, weightbound = 6):
         P = charpoly(A).reverse()
         Plist.append(P)
 
-    if oneweight == True:
+    if oneweight:
         return Plist[0]
     else:
         return Plist

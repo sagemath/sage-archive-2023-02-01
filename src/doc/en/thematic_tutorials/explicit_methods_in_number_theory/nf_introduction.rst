@@ -92,9 +92,9 @@ Using tab completion to get the methods of an object
 ----------------------------------------------------
 
 One you have created a number field :math:`K`, type ``K.[tab key]`` to
-see a list of functions. Type, e.g., ``K.Minkowski_embedding?[tab
-key]`` to see help on the ``Minkowski_embedding`` command. To see
-source code, type ``K.Minkowski_embedding??[tab key]``.
+see a list of functions. Type, e.g., ``K.minkowski_embedding?[tab
+key]`` to see help on the ``minkowski_embedding`` command. To see
+source code, type ``K.minkowski_embedding??[tab key]``.
 
 .. skip
 
@@ -200,13 +200,13 @@ quite simple - just type ``QQ[a]`` where ``a`` is the symbolic expression.
     sage: a = sqrt(2)
     sage: K.<b> = QQ[a]
     sage: K
-    Number Field in sqrt2 with defining polynomial x^2 - 2
+    Number Field in sqrt2 with defining polynomial x^2 - 2 with sqrt2 = 1.414213562373095?
     sage: b
     sqrt2
     sage: (b+1)^2
     2*sqrt2 + 3
     sage: QQ[a/3 + 5]
-    Number Field in a with defining polynomial x^2 - 10*x + 223/9
+    Number Field in a with defining polynomial x^2 - 10*x + 223/9 with a = 5.471404520791032?
 
 
 Coercion: QQ[a] versus QQ(a)
@@ -282,7 +282,7 @@ command
 ::
 
     sage: pretty_print(a)
-    <html><script type="math/tex">\newcommand{\Bold}[1]{\mathbf{#1}}-\frac{1}{2} ...
+    -1/2*(I*sqrt(3) + 1)*(1/6*sqrt(8/3*sqrt(2) + 225) - 5/2)^(1/3) + 1/6*sqrt(2)*(-I*sqrt(3) + 1)/(1/6*sqrt(8/3*sqrt(2) + 225) - 5/2)^(1/3)
 
 .. math::
 

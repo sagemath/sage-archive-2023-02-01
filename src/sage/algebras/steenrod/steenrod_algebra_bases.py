@@ -105,7 +105,6 @@ method for :class:`SteenrodAlgebra_generic
 <sage.algebras.steenrod.steenrod_algebra.SteenrodAlgebra_generic>` in
 :file:`steenrod_algebra.py`.
 """
-from __future__ import absolute_import
 
 #*****************************************************************************
 #  Copyright (C) 2008-2010 John H. Palmieri <palmieri@math.washington.edu>
@@ -342,10 +341,7 @@ def steenrod_algebra_basis(n, basis='milnor', p=2, **kwds):
 
     basis_name = get_basis_name(basis, p, generic=generic)
     if basis_name.find('long') >= 0:
-        long = True
         basis_name = basis_name.rsplit('_', 1)[0]
-    else:
-        long = False
 
     profile = kwds.get("profile", None)
     if (profile is not None and profile != () and profile != ((), ())
@@ -484,12 +480,12 @@ def xi_degrees(n,p=2, reverse=True):
         [307, 18, 1]
     """
     from sage.rings.all import Integer
-    if n <= 0: return []
+    if n <= 0:
+        return []
     N = Integer(n*(p-1) + 1)
-    l = [int((p**d-1)/(p-1)) for d in range(1,N.exact_log(p)+1)]
-    if not reverse:
-        return l
-    l.reverse()
+    l = [(p**d-1)//(p-1) for d in range(1, N.exact_log(p)+1)]
+    if reverse:
+        l.reverse()
     return l
 
 ########################################################
@@ -589,7 +585,7 @@ def milnor_basis(n, p=2, **kwds):
     if not generic:
         for mono in WeightedIntegerVectors(n, xi_degrees(n, reverse=False)):
             exponents = list(mono)
-            while len(exponents) > 0 and exponents[-1] == 0:
+            while exponents and exponents[-1] == 0:
                 exponents.pop(-1)
             # check profile:
             okay = True
@@ -609,23 +605,23 @@ def milnor_basis(n, p=2, **kwds):
         # first find the P part of each basis element.
         # in this part of the code (the P part), all dimensions are
         # divided by 2(p-1).
-        for dim in range(n/(2*(p-1)) + 1):
+        for dim in range(n//(2*(p-1)) + 1):
             if dim == 0:
                 P_result = [[0]]
             else:
                 P_result = []
             for mono in WeightedIntegerVectors(dim, xi_degrees(dim, p=p, reverse=False)):
                 p_mono = list(mono)
-                while len(p_mono) > 0 and p_mono[-1] == 0:
+                while p_mono and p_mono[-1] == 0:
                     p_mono.pop(-1)
-                if len(p_mono) > 0:
+                if p_mono:
                     P_result.append(p_mono)
             # now find the Q part of the basis element.
             # dimensions here are back to normal.
             for p_mono in P_result:
                 deg = n - 2*dim*(p-1)
                 q_degrees = [1+2*(p-1)*d for d in
-                             xi_degrees(int((deg - 1)/(2*(p-1))), p)] + [1]
+                             xi_degrees(int((deg - 1)//(2*(p-1))), p)] + [1]
                 q_degrees_decrease = q_degrees
                 q_degrees.reverse()
                 if deg % (2*(p-1)) <= len(q_degrees):
@@ -721,8 +717,8 @@ def serre_cartan_basis(n, p=2, bound=1, **kwds):
                     new = vec + (last,)
                     result.append(new)
         else: # p odd
-            if n % (2 * (p-1)) == 0 and n/(2 * (p-1)) >= bound:
-                result = [(0, int(n/(2 * (p-1))), 0)]
+            if n % (2 * (p-1)) == 0 and n//(2 * (p-1)) >= bound:
+                result = [(0, int(n//(2 * (p-1))), 0)]
             elif n == 1:
                 result = [(1,)]
             else:
@@ -894,7 +890,6 @@ def atomic_basis(n, basis, **kwds):
         elif basis.find('revz') >= 0:
             return (s+t,s)
 
-    from sage.misc.all import prod
     from sage.rings.infinity import Infinity
     profile = kwds.get("profile", None)
     trunc = kwds.get("truncation_type", None)
@@ -906,7 +901,7 @@ def atomic_basis(n, basis, **kwds):
     else:
         result = []
         degrees_etc = degree_dictionary(n, basis)
-        degrees = degrees_etc.keys()
+        degrees = list(degrees_etc)
         for sigma in restricted_partitions(n, degrees, no_repeats=True):
             big_list = [degrees_etc[part] for part in sigma]
             big_list.sort(key=lambda x: sorting_pair(x[0], x[1], basis))
@@ -1033,7 +1028,7 @@ def atomic_basis_odd(n, basis, p, **kwds):
             return ((),)
         else:
             return (((), ()),)
-    from sage.misc.all import prod
+
     from sage.rings.all import Integer
     from sage.rings.infinity import Infinity
     from sage.combinat.integer_vector_weighted import WeightedIntegerVectors
@@ -1041,7 +1036,7 @@ def atomic_basis_odd(n, basis, p, **kwds):
     trunc = kwds.get("truncation_type", 0)
 
     result = []
-    for dim in range(n/(2*p-2) + 1):
+    for dim in range(n//(2*p-2) + 1):
         P_result = []
         for v in WeightedIntegerVectors(dim, xi_degrees(dim, p=p, reverse=False)):
             mono = []
@@ -1121,7 +1116,7 @@ def steenrod_basis_error_check(dim, p, **kwds):
         sage: steenrod_basis_error_check(40,3) # long time
         sage: steenrod_basis_error_check(80,5) # long time
     """
-    import sage.misc.misc as misc
+    from sage.misc.verbose import verbose
     generic = kwds.get('generic', False if p==2 else True )
 
     if not generic:
@@ -1135,7 +1130,7 @@ def steenrod_basis_error_check(dim, p, **kwds):
 
     for i in range(dim):
         if i % 5 == 0:
-            misc.verbose("up to dimension %s"%i)
+            verbose("up to dimension %s"%i)
         milnor_dim = len(steenrod_algebra_basis.f(i,'milnor',p=p,generic=generic))
         for B in bases:
             if milnor_dim != len(steenrod_algebra_basis.f(i,B,p,generic=generic)):
@@ -1144,7 +1139,7 @@ def steenrod_basis_error_check(dim, p, **kwds):
             if mat.nrows() != 0 and not mat.is_invertible():
                 print("%s invertibility problem in dim %s at p=%s" % (B, i, p))
 
-    misc.verbose("done checking, no profiles")
+    verbose("done checking, no profiles")
 
     bases = ('pst_rlex', 'pst_llex', 'pst_deg', 'pst_revz')
     if not generic:
@@ -1154,11 +1149,11 @@ def steenrod_basis_error_check(dim, p, **kwds):
 
     for i in range(dim):
         if i % 5 == 0:
-            misc.verbose("up to dimension %s"%i)
+            verbose("up to dimension %s"%i)
         for pro in profiles:
             milnor_dim = len(steenrod_algebra_basis.f(i,'milnor',p=p,profile=pro,generic=generic))
             for B in bases:
                 if milnor_dim != len(steenrod_algebra_basis.f(i,B,p,profile=pro,generic=generic)):
                     print("problem with milnor/%s in dimension %s with profile %s" % (B, i, pro))
 
-    misc.verbose("done checking with profiles")
+    verbose("done checking with profiles")

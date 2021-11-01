@@ -1,7 +1,6 @@
 """
 Composition species
 """
-from __future__ import absolute_import
 #*****************************************************************************
 #       Copyright (C) 2008 Mike Hansen <mhansen@gmail.com>,
 #
@@ -19,7 +18,6 @@ from __future__ import absolute_import
 from .species import GenericCombinatorialSpecies
 from .structure import GenericSpeciesStructure
 from .partition_species import PartitionSpecies
-from sage.misc.cachefunc import cached_function
 from sage.structure.unique_representation import UniqueRepresentation
 
 class CompositionSpeciesStructure(GenericSpeciesStructure):
@@ -42,7 +40,7 @@ class CompositionSpeciesStructure(GenericSpeciesStructure):
 
             sage: E = species.SetSpecies(); C = species.CycleSpecies()
             sage: L = E(C)
-            sage: L.structures(['a','b','c']).random_element()
+            sage: L.structures(['a','b','c'])[0]
             F-structure: {{'a', 'b', 'c'}}; G-structures: (('a', 'b', 'c'),)
         """
         f, gs = self._list
@@ -64,7 +62,7 @@ class CompositionSpeciesStructure(GenericSpeciesStructure):
         f, gs = self._list
         pi = self._partition.transport(perm)
         f = f.change_labels(pi._list)
-        g = [g.change_labels(part) for g,part in zip(gs, pi)]
+        g = [g.change_labels(part) for g, part in zip(gs, pi)]  # BUG HERE ?
         return self.__class__(self, self._labels, pi, f, gs)
 
     def change_labels(self, labels):
@@ -82,7 +80,6 @@ class CompositionSpeciesStructure(GenericSpeciesStructure):
 
         EXAMPLES::
 
-            sage: p = PermutationGroupElement((2,3))
             sage: E = species.SetSpecies(); C = species.CycleSpecies()
             sage: L = E(C)
             sage: S = L.structures(['a','b','c']).list()
@@ -94,7 +91,7 @@ class CompositionSpeciesStructure(GenericSpeciesStructure):
         f, gs = self._list
         pi = self._partition.change_labels(labels)
         f = f.change_labels(list(pi))
-        g = [g.change_labels(part) for g,part in zip(gs, pi)]
+        g = [g.change_labels(part) for g, part in zip(gs, pi)]
         return self.__class__(self, labels, pi, f, g)
 
 
@@ -239,7 +236,7 @@ class CompositionSpecies(GenericCombinatorialSpecies, UniqueRepresentation):
             sage: S.isotype_generating_series().coefficients(5) #indirect
             [1, t, t^2 + t, t^3 + t^2 + t, t^4 + t^3 + 2*t^2 + t]
 
-        We do the same thing with set partitions weighed by the number of
+        We do the same thing with set partitions weighted by the number of
         blocks.
 
         ::

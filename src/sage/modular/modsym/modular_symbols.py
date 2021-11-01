@@ -16,7 +16,7 @@ TESTS::
 """
 
 #*****************************************************************************
-#       Sage: System for Algebra and Geometry Experimentation
+#       Sage: Open Source Mathematical Software
 #
 #       Copyright (C) 2005, 2009 William Stein <wstein@gmail.com>
 #
@@ -31,12 +31,12 @@ TESTS::
 #
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
-from six.moves import range
 import sage.modular.cusps as cusps
 from sage.modular.modsym.apply import apply_to_monomial
 from sage.modular.modsym.manin_symbol import ManinSymbol
 from sage.structure.sage_object import SageObject
 import sage.structure.formal_sum as formal_sum
+from sage.structure.richcmp import richcmp_method, richcmp
 from sage.rings.integer_ring import ZZ
 from sage.misc.latex import latex
 
@@ -44,6 +44,8 @@ _C = cusps.Cusps
 
 X, Y = ZZ['X,Y'].gens()
 
+
+@richcmp_method
 class ModularSymbol(SageObject):
     r"""
     The modular symbol `X^i\cdot Y^{k-2-i}\cdot \{\alpha, \beta\}`.
@@ -134,9 +136,9 @@ class ModularSymbol(SageObject):
         return "%s\\left\\{%s, %s\\right\\}"%(polypart,
                   latex(self.__alpha), latex(self.__beta))
 
-    def __cmp__(self, other):
+    def __richcmp__(self, other, op):
         """
-        Compare self to other.
+        Compare ``self`` to ``other``.
 
         EXAMPLES::
 
@@ -155,9 +157,20 @@ class ModularSymbol(SageObject):
             True
         """
         if not isinstance(other, ModularSymbol):
-            return cmp(type(self), type(other))
-        return cmp((self.__space,-self.__i,self.__alpha,self.__beta),
-                   (other.__space,-other.__i,other.__alpha,other.__beta))
+            return NotImplemented
+        return richcmp((self.__space, -self.__i, self.__alpha, self.__beta),
+                       (other.__space,-other.__i,other.__alpha,other.__beta),
+                       op)
+
+    def __hash__(self):
+        """
+        EXAMPLES::
+
+            sage: s = ModularSymbols(11).2.modular_symbol_rep()[0][1]
+            sage: hash(s)  # random
+            -7344656798833624820
+        """
+        return hash((self.__space, self.__i, self.__alpha, self.__beta))
 
     def space(self):
         """
@@ -319,12 +332,12 @@ class ModularSymbol(SageObject):
             sage: s = ModularSymbols(11,2).1.modular_symbol_rep()[0][1]; s
             {-1/8, 0}
             sage: s.manin_symbol_rep()          # indirect doctest
-            -(-8,1) - (1,1)
+            -(1,1) - (-8,1)
             sage: M = ModularSymbols(11,2)
             sage: s = M( (1,9) ); s
             (1,9)
             sage: t = s.modular_symbol_rep()[0][1].manin_symbol_rep(); t
-            -(-9,1) - (1,1)
+            -(1,1) - (-9,1)
             sage: M(t)
             (1,9)
         """
@@ -350,8 +363,9 @@ class ModularSymbol(SageObject):
 
     def manin_symbol_rep(self):
         """
-        Returns a representation of self as a formal sum of Manin symbols.
-        (The result is not cached.)
+        Return a representation of ``self`` as a formal sum of Manin symbols.
+
+        The result is not cached.
 
         EXAMPLES::
 
@@ -359,7 +373,7 @@ class ModularSymbol(SageObject):
             sage: s = M.1.modular_symbol_rep()[0][1]; s
             X^2*{-1/6, 0}
             sage: s.manin_symbol_rep()
-            -[Y^2,(1,1)] - 2*[X*Y,(-1,0)] - [X^2,(-6,1)] - [X^2,(-1,0)]
+            -2*[X*Y,(-1,0)] - [X^2,(-1,0)] - [Y^2,(1,1)] - [X^2,(-6,1)]
             sage: M(s.manin_symbol_rep()) == M([2,-1/6,0])
             True
         """

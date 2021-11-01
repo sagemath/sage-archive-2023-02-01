@@ -1,4 +1,4 @@
-"""
+r"""
 Double Description Algorithm for Cones
 
 This module implements the double description algorithm for extremal
@@ -68,7 +68,6 @@ The implementation works over any exact field that is embedded in
 # Compare with PPL if the base ring is QQ. Can be left enabled since
 # we don't use the Python fallback for polyhedra over QQ unless you
 # construct one by hand.
-from __future__ import division, absolute_import
 
 VERIFY_RESULT = True
 
@@ -78,6 +77,7 @@ from sage.misc.cachefunc import cached_method
 from sage.rings.all import QQ
 from sage.modules.free_module_element import vector
 from sage.matrix.matrix_space import MatrixSpace
+
 
 def random_inequalities(d, n):
     """
@@ -91,7 +91,7 @@ def random_inequalities(d, n):
 
     OUTPUT:
 
-    A random set of inequalites as a :class:`StandardAlgorithm` instance.
+    A random set of inequalities as a :class:`StandardAlgorithm` instance.
 
     EXAMPLES::
 
@@ -246,7 +246,7 @@ class DoubleDescriptionPair:
         return matrix(self.problem.base_ring(), [[a.inner_product(r) for r in self.R] for a in self.A])
 
     def cone(self):
-        """
+        r"""
         Return the cone defined by `A`.
 
         This method is for debugging only. Assumes that the base ring
@@ -415,8 +415,7 @@ class DoubleDescriptionPair:
             sage: A = matrix([[1,sqrt2],[2,0]])
             sage: DD, _  = Problem(A).initial_pair()
             sage: DD.matrix_space(1,2)
-            Full MatrixSpace of 1 by 2 dense matrices over Number Field in sqrt2
-            with defining polynomial x^2 - 2
+            Full MatrixSpace of 1 by 2 dense matrices over Number Field in sqrt2 with defining polynomial x^2 - 2 with sqrt2 = 1.414213562373095?
         """
         return MatrixSpace(self.problem.base_ring(), nrows, ncols)
 
@@ -521,7 +520,7 @@ class Problem:
     pair_class = DoubleDescriptionPair
 
     def __init__(self, A):
-        """
+        r"""
         Base class for implementations of the double description algorithm
 
         It does not make sense to instantiate the base class directly,

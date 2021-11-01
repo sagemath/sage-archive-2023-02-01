@@ -23,7 +23,7 @@ session permanently, since ``SAGE_TMP`` will be removed when leaving Sage!
 This saves a dictionary with ``w`` as one of the keys::
 
     sage: z = load(os.path.join(SAGE_TMP, 'session'))
-    sage: z.keys()
+    sage: list(z)
     ['w']
     sage: z['w']
     2/3
@@ -57,20 +57,17 @@ AUTHOR:
 #  The full text of the GPL is available at:
 #                  http://www.gnu.org/licenses/
 #############################################################################
-from __future__ import print_function, absolute_import
 
 # Standard python imports
-from six.moves import cPickle
+import builtins
 import os
 import types
 
 # We want the caller's locals, but locals() is emulated in Cython
-from six.moves import builtins
 cdef caller_locals = builtins.locals
 
 # Sage imports
-from .misc import embedded
-from sage.structure.sage_object import load, save
+from sage.misc.persist import load, save, loads, dumps
 
 # This module-scope variables is used to save the
 # global state of the sage environment at the moment
@@ -214,8 +211,17 @@ def show_identifiers(hidden=False):
         sage: show_identifiers(hidden=True)        # random output
         ['__', '_i', '_6', '_4', '_3', '_1', '_ii', '__doc__', '__builtins__', '___', '_9', '__name__', '_', 'a', '_i12', '_i14', 'factor', '__file__', '_hello', '_i13', '_i11', '_i10', '_i15', '_i5', '_13', '_10', '_iii', '_i9', '_i8', '_i7', '_i6', '_i4', '_i3', '_i2', '_i1', '_init_cmdline', '_14']
     """
+    from sage.doctest.forker import DocTestTask
     state = caller_locals()
-    return sorted([x for x, v in state.iteritems() if _is_new_var(x, v, hidden)])
+    # Ignore extra variables injected into the global namespace by the doctest
+    # runner
+    _none = object()
+    def _in_extra_globals(name, val):
+        return val == DocTestTask.extra_globals.get(name, _none)
+
+    return sorted([x for x, v in state.items() if _is_new_var(x, v, hidden)
+                   and not _in_extra_globals(x, v)])
+
 
 def save_session(name='sage_session', verbose=False):
     r"""
@@ -310,7 +316,7 @@ def save_session(name='sage_session', verbose=False):
             # doesn't change in the Sage library itself).  Otherwise,
             # we could easily pickle whole sessions but get something
             # not at all useful.
-            _ = cPickle.loads(cPickle.dumps(x, protocol=2))
+            _ = loads(dumps(x, False), False)
             if verbose:
                 print("Saving %s" % k)
             D[k] = x
@@ -319,17 +325,6 @@ def save_session(name='sage_session', verbose=False):
                 print("Not saving {}: {}".format(k, msg))
             pass
     save(D, name)
-    if embedded():
-        # Also save D to the data directory if we're using the notebook.
-        # This is broken for now. Simply print some information to the user
-        # if the user does not save it in the DATA directory.
-        # save(D, '../../data/' + name)
-        if name.find('.sagenb/') <= 0 or name.find('/data/') <= 0:
-            print("To store the session in a common directory that the "
-                  "entire worksheet can access, save it using the command:\n"
-                  "save_session(DATA + '{0}')\n"
-                  "You can later load it by running in any cell:\n"
-                  "load_session(DATA + '{0}')".format(name.rsplit('/', 1)[-1]))
 
 
 def load_session(name='sage_session', verbose=False):
@@ -375,13 +370,6 @@ def load_session(name='sage_session', verbose=False):
     """
     state = caller_locals()
 
-    if embedded():
-        if not os.path.exists(name):
-            nm = '../../data/' + name
-            if not nm.endswith('.sobj'): nm += '.sobj'
-            if os.path.exists(nm):
-                name = nm
     D = load(name)
     for k, x in D.items():
         state[k] = x
-

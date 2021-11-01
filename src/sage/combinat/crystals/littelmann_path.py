@@ -24,7 +24,6 @@ AUTHORS:
 #
 #                  http://www.gnu.org/licenses/
 #****************************************************************************
-from __future__ import print_function
 
 from sage.misc.cachefunc import cached_in_parent_method, cached_method
 from sage.structure.unique_representation import UniqueRepresentation
@@ -118,8 +117,7 @@ class CrystalOfLSPaths(UniqueRepresentation, Parent):
 
     REFERENCES:
 
-    .. [Littelmann95] \P. Littelmann, Paths and root operators in representation
-       theory. Ann. of Math. (2) 142 (1995), no. 3, 499-525.
+    .. [Li1995b]_
     """
 
     @staticmethod
@@ -310,12 +308,12 @@ class CrystalOfLSPaths(UniqueRepresentation, Parent):
                 return self
             q = []
             curr = self.value[0]
-            for i in range(1,len(self.value)):
-                if positively_parallel_weights(curr,self.value[i]):
-                    curr = curr + self.value[i]
+            for v in self.value[1:]:
+                if positively_parallel_weights(curr, v):
+                    curr = curr + v
                 else:
                     q.append(curr)
-                    curr = self.value[i]
+                    curr = v
             q.append(curr)
             return self.parent()(tuple(q))
 
@@ -335,9 +333,9 @@ class CrystalOfLSPaths(UniqueRepresentation, Parent):
                 sage: b.split_step(0,1/3)
                 (1/3*Lambda[1] + 1/3*Lambda[2], 2/3*Lambda[1] + 2/3*Lambda[2])
             """
-            assert which_step in range(len(self.value))
+            assert 0 <= which_step and which_step <= len(self.value)
             v = self.value[which_step]
-            return self.parent()(self.value[:which_step]+tuple([r*v,(1-r)*v])+self.value[which_step+1:])
+            return self.parent()(self.value[:which_step] + (r*v,(1-r)*v) + self.value[which_step+1:])
 
         def reflect_step(self, which_step, i):
             r"""
@@ -353,7 +351,7 @@ class CrystalOfLSPaths(UniqueRepresentation, Parent):
                 (2*Lambda[1] - Lambda[2],)
             """
             assert i in self.index_set()
-            assert which_step in range(len(self.value))
+            assert 0 <= which_step and which_step <= len(self.value)
             return self.parent()(self.value[:which_step]+tuple([self.value[which_step].simple_reflection(i)])+self.value[which_step+1:])
 
         def _string_data(self, i):
@@ -373,7 +371,7 @@ class CrystalOfLSPaths(UniqueRepresentation, Parent):
                 sage: b.f(1).f(2)._string_data(2)
                 ((0, -1, -1),)
             """
-            if len(self.value) == 0:
+            if not self.value:
                 return ()
             # get the i-th simple coroot
             alv = self.value[0].parent().alphacheck()[i]
@@ -383,10 +381,10 @@ class CrystalOfLSPaths(UniqueRepresentation, Parent):
             minima_pos = []
             ps = 0
             psmin = 0
-            for ix in range(len(steps)):
-                ps = ps + steps[ix]
+            for ix, step in enumerate(steps):
+                ps = ps + step
                 if ps < psmin:
-                    minima_pos.append((ix,ps,steps[ix]))
+                    minima_pos.append((ix,ps,step))
                     psmin = ps
             return tuple(minima_pos)
 
@@ -456,7 +454,7 @@ class CrystalOfLSPaths(UniqueRepresentation, Parent):
             assert i in self.index_set()
             data = self._string_data(i)
             # compute the minimum i-height M on the path
-            if len(data) == 0:
+            if not data:
                 M = 0
             else:
                 M = data[-1][1]
@@ -514,10 +512,9 @@ class CrystalOfLSPaths(UniqueRepresentation, Parent):
                 (-Lambda[1] + 1/2*Lambda[2], Lambda[1] - 1/2*Lambda[2]) (-Lambda[1] + 1/2*Lambda[2], Lambda[1] - 1/2*Lambda[2])
                 (-2*Lambda[1] + Lambda[2],) (2*Lambda[1] - Lambda[2],)
             """
-            if len(self.value) == 0:
+            if not self.value:
                 return self
-            dual_path = [-v for v in self.value]
-            dual_path.reverse()
+            dual_path = [-v for v in reversed(self.value)]
             return self.parent()(tuple(dual_path))
 
         def f(self, i, power=1, to_string_end=False, length_only=False):
@@ -912,9 +909,11 @@ class CrystalOfProjectedLevelZeroLSPaths(CrystalOfLSPaths):
 
             .. MATH::
 
-                \pi(t) = \sum_{u'=1}^{u-1} (\sigma_{u'} - \sigma_{u'-1}) \nu_{u'} + (t-\sigma_{u-1}) \nu_{u}
+                \pi(t) = \sum_{u'=1}^{u-1} (\sigma_{u'} - \sigma_{u'-1}) \nu_{u'}
+                + (t-\sigma_{u-1}) \nu_{u}
 
-            for `0<\sigma_1<\sigma_2<\cdots<\sigma_s=1` and `\sigma_{u-1} \le t \le \sigma_{u}` and `1 \le u \le s`.
+            for `0 < \sigma_1 < \sigma_2 < \cdots < \sigma_s=1` and
+            `\sigma_{u-1} \le t \le \sigma_{u}` and `1 \le u \le s`.
             This method returns the tuple of `(\sigma_1,\ldots,\sigma_s)`.
 
             EXAMPLES::
@@ -949,17 +948,21 @@ class CrystalOfProjectedLevelZeroLSPaths(CrystalOfLSPaths):
         @cached_in_parent_method
         def weyl_group_representation(self):
             r"""
-            Transforms the weights in the LS path ``self`` to elements in the Weyl group.
+            Transform the weights in the LS path ``self`` to elements
+            in the Weyl group.
 
             Each LS path can be written as the piecewise linear map:
 
             .. MATH::
 
-                \pi(t) = \sum_{u'=1}^{u-1} (\sigma_{u'} - \sigma_{u'-1}) \nu_{u'} + (t-\sigma_{u-1}) \nu_{u}
+                \pi(t) = \sum_{u'=1}^{u-1} (\sigma_{u'} - \sigma_{u'-1}) \nu_{u'}
+                + (t-\sigma_{u-1}) \nu_{u}
 
-            for `0<\sigma_1<\sigma_2<\cdots<\sigma_s=1` and `\sigma_{u-1} \le t \le \sigma_{u}` and `1 \le u \le s`.
-            Each weight `\nu_u` is also associated to a Weyl group element. This method returns the list
-            of Weyl group elements associated to the `\nu_u` for `1\le u\le s`.
+            for `0 < \sigma_1 < \sigma_2 < \cdots < \sigma_s = 1` and
+            `\sigma_{u-1} \le t \le \sigma_{u}` and `1 \le u \le s`.
+            Each weight `\nu_u` is also associated to a Weyl group element.
+            This method returns the list of Weyl group elements associated
+            to the `\nu_u` for `1\le u\le s`.
 
             EXAMPLES::
 
@@ -1027,12 +1030,6 @@ class CrystalOfProjectedLevelZeroLSPaths(CrystalOfLSPaths):
                 \mathrm{wt}(x_u,x_{u+1}) \rangle.
 
             For more information, see [LNSSS2013]_.
-
-            REFERENCES:
-
-            .. [LNSSS2013] \C. Lenart, S. Naito, D. Sagaki, A. Schilling, M. Shimozono,
-               *A uniform model for Kirillov-Reshetikhin crystals. Extended abstract.*
-               DMTCS proc, to appear ( :arXiv:`1211.6019` )
 
             .. NOTE::
 
@@ -1193,10 +1190,7 @@ class InfinityCrystalOfLSPaths(UniqueRepresentation, Parent):
 
     REFERENCES:
 
-    .. [LZ11] Bin Li and Hechun Zhang.
-       *Path realization of crystal* `B(\infty)`.
-       Front. Math. China, **6** (4), (2011) pp. 689--706.
-       :doi:`10.1007/s11464-010-0073-x`
+    - [LZ2011]_
     """
     @staticmethod
     def __classcall_private__(cls, cartan_type):
@@ -1337,7 +1331,6 @@ class InfinityCrystalOfLSPaths(UniqueRepresentation, Parent):
             endpoint = sum(p for p in value)
             rho = WLR.rho()
             h = WLR.simple_coroots()
-            I = self.parent().index_set()
 
             if not positively_parallel_weights(value[-1], rho):
                 value.append(rho)

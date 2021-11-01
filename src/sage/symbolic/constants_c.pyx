@@ -14,8 +14,6 @@ The constant `e`
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 
-from __future__ import absolute_import, division, print_function
-
 from sage.symbolic.expression cimport Expression
 from sage.symbolic.ring import SR
 
@@ -145,14 +143,14 @@ cdef class E(Expression):
             sage: t.operands()
             [a]
 
-        As opposed to::
+        This applies to the unit argument as well::
 
             sage: u = SR(1).exp()^a; u
             e^a
             sage: u.operator()
-            <built-in function pow>
+            exp
             sage: u.operands()
-            [e, a]
+            [a]
 
         It also works with matrices (see :trac:`4735`)::
 

@@ -11,7 +11,6 @@ AUTHOR:
 
 - John H. Palmieri
 """
-from __future__ import print_function
 
 import re
 
@@ -46,8 +45,9 @@ def have_chomp(program='homsimpl'):
         _have_chomp[program] = have_program(program)
     return _have_chomp[program]
 
+
 class CHomP:
-    """
+    r"""
     Interface to the CHomP package.
 
     :param program: which CHomP program to use
@@ -134,8 +134,8 @@ class CHomP:
             {0: 0, 1: Z x Z, 2: Z}
         """
         from sage.misc.temporary_file import tmp_filename
-        from sage.homology.all import CubicalComplex, cubical_complexes
-        from sage.homology.all import SimplicialComplex, Simplex
+        from sage.topology.cubical_complex import CubicalComplex, cubical_complexes
+        from sage.topology.simplicial_complex import SimplicialComplex, Simplex
         from sage.homology.chain_complex import HomologyGroup
         from subprocess import Popen, PIPE
         from sage.rings.all import QQ, ZZ
@@ -194,12 +194,11 @@ class CHomP:
         try:
             data = complex._chomp_repr_()
         except AttributeError:
-            raise AttributeError("Complex can not be converted to use with CHomP.")
+            raise AttributeError("Complex cannot be converted to use with CHomP.")
 
         datafile = tmp_filename()
-        f = open(datafile, 'w')
-        f.write(data)
-        f.close()
+        with open(datafile, 'w') as f:
+            f.write(data)
 
         #
         #    subcomplex
@@ -229,11 +228,10 @@ class CHomP:
             try:
                 sub = subcomplex._chomp_repr_()
             except AttributeError:
-                raise AttributeError("Subcomplex can not be converted to use with CHomP.")
+                raise AttributeError("Subcomplex cannot be converted to use with CHomP.")
             subfile = tmp_filename()
-            f = open(subfile, 'w')
-            f.write(sub)
-            f.close()
+            with open(subfile, 'w') as f:
+                f.write(sub)
         else:
             subfile = ''
         if verbose:
@@ -254,7 +252,8 @@ class CHomP:
             print("End of CHomP output")
             print("")
         if generators:
-            gens = open(genfile, 'r').read()
+            with open(genfile, 'r') as f:
+                gens = f.read()
             if verbose:
                 print("Generators:")
                 print(gens)
@@ -295,7 +294,7 @@ class CHomP:
                 if hom_str.find("^") != -1:
                     rk_srch = re.search(r'\^([0-9]*)\s?', hom_str)
                     rk = int(rk_srch.group(1))
-                rk += len(re.findall("(Z$)|(Z\s)", hom_str))
+                rk += len(re.findall(r"(Z$)|(Z\s)", hom_str))
                 if mod_p:
                     rk = rk if rk != 0 else 1
                     if verbose:
@@ -421,6 +420,7 @@ class CHomP:
         from subprocess import Popen, PIPE
         print(Popen([program, '-h'], stdout=PIPE).communicate()[0])
 
+
 def homsimpl(complex=None, subcomplex=None, **kwds):
     r"""
     Compute the homology of a simplicial complex using the CHomP
@@ -476,7 +476,7 @@ def homsimpl(complex=None, subcomplex=None, **kwds):
         sage: homsimpl(S1.join(S1), generators=True, base_ring=GF(2))[3][1]  # optional - CHomP
         [('L0', 'L1', 'R0', 'R1') + ('L0', 'L1', 'R0', 'R2') + ('L0', 'L1', 'R1', 'R2') + ('L0', 'L2', 'R0', 'R1') + ('L0', 'L2', 'R0', 'R2') + ('L0', 'L2', 'R1', 'R2') + ('L1', 'L2', 'R0', 'R1') + ('L1', 'L2', 'R0', 'R2') + ('L1', 'L2', 'R1', 'R2')]
     """
-    from sage.homology.all import SimplicialComplex
+    from sage.topology.simplicial_complex import SimplicialComplex
     help = kwds.get('help', False)
     if help:
         return CHomP().help('homsimpl')
@@ -529,7 +529,7 @@ def homcubes(complex=None, subcomplex=None, **kwds):
         sage: homcubes(cubical_complexes.Sphere(1), generators=True, base_ring=GF(2))[1][1]   # optional - CHomP
         [[[1,1] x [0,1]] + [[0,1] x [1,1]] + [[0,1] x [0,0]] + [[0,0] x [0,1]]]
     """
-    from sage.homology.all import CubicalComplex
+    from sage.topology.cubical_complex import CubicalComplex
     help = kwds.get('help', False)
     if help:
         return CHomP().help('homcubes')
@@ -648,7 +648,7 @@ def process_generators_cubical(gen_string, dim):
         sage: len(process_generators_cubical(s, 1))  # only one generator
         1
     """
-    from sage.homology.cubical_complex import Cube
+    from sage.topology.cubical_complex import Cube
     # each dim in gen_string starts with "The generator for
     # H_3 follows:".  So search for "T" to find the
     # end of the current list of generators.
@@ -664,7 +664,7 @@ def process_generators_cubical(gen_string, dim):
         # drop the first coordinate and eliminate duplicates, at least
         # in positive dimensions, drop any line containing a
         # degenerate cube
-        g = re.sub('\([01],', '(', g)
+        g = re.sub(r'\([01],', '(', g)
         if dim > 0:
             lines = g.splitlines()
             newlines = []
@@ -751,7 +751,7 @@ def process_generators_simplicial(gen_string, dim, complex):
         sage: process_generators_simplicial(s, 1, simplicial_complexes.Torus())
         [[(-1, (1, 6)), (1, (1, 4))]]
     """
-    from sage.homology.all import Simplex
+    from sage.topology.simplicial_complex import Simplex
     # each dim in gen_string starts with "The generator for H_3
     # follows:".  So search for "T" to find the end of the current
     # list of generators.

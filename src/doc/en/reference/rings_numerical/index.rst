@@ -19,8 +19,7 @@ special functions when implementations aren't otherwise available.
    :maxdepth: 2
 
    sage/rings/real_mpfr
-   sage/rings/complex_field
-   sage/rings/complex_number
+   sage/rings/complex_mpfr
    sage/rings/complex_mpc
    sage/rings/real_double
    sage/rings/complex_double
@@ -36,7 +35,6 @@ ComplexBallField).
    :maxdepth: 2
 
    sage/rings/real_mpfi
-   sage/rings/real_interval_field
    sage/rings/real_interval_absolute
    sage/rings/complex_interval_field
    sage/rings/complex_interval

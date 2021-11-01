@@ -285,19 +285,19 @@ AUTHORS:
 #                  http://www.gnu.org/licenses/
 #
 ##########################################################################
-from __future__ import print_function
-from __future__ import absolute_import
 
-from .expect import Expect, ExpectElement, ExpectFunction, FunctionElement, AsciiArtString
-from sage.misc.all import prod
-from sage.env import DOT_SAGE, SAGE_LOCAL
+from .expect import Expect, ExpectElement, ExpectFunction, FunctionElement
+from sage.interfaces.interface import AsciiArtString
+from sage.misc.misc_c import prod
+from sage.env import DOT_SAGE, LIE_INFO_DIR
 from sage.interfaces.tab_completion import ExtraTabCompletion
 from sage.docs.instancedoc import instancedoc
 import os
 
 
-COMMANDS_CACHE = '%s/lie_commandlist_cache.sobj'%DOT_SAGE
-HELP_CACHE = '%s/lie_helpdict_cache.sobj'%DOT_SAGE
+COMMANDS_CACHE = '%s/lie_commandlist_cache.sobj' % DOT_SAGE
+HELP_CACHE = '%s/lie_helpdict_cache.sobj' % DOT_SAGE
+
 
 class LiE(ExtraTabCompletion, Expect):
     r"""
@@ -331,7 +331,7 @@ class LiE(ExtraTabCompletion, Expect):
                         prompt = '> ',
 
                         # This is the command that starts up your program
-                        command = "bash "+ SAGE_LOCAL + "/bin/lie",
+                        command = "bash lie",
 
                         server=server,
                         script_subdirectory = script_subdirectory,
@@ -401,8 +401,7 @@ class LiE(ExtraTabCompletion, Expect):
 
 
         for f in filenames:
-            filename = SAGE_LOCAL + "/lib/LiE/" + f
-            info = open(filename)
+            info = open(os.path.join(LIE_INFO_DIR, f))
             prev_command = ""
             help_text = ""
             for line in info:
@@ -440,7 +439,7 @@ class LiE(ExtraTabCompletion, Expect):
                 help_text = ""
                 prev_command = line[1:i]
 
-                #Add the commad
+                #Add the command
                 if t in commands:
                     commands[t].append(line[1:i])
                 else:
@@ -688,9 +687,9 @@ class LiE(ExtraTabCompletion, Expect):
             sage: lie.get('x')       # optional - lie
             '2'
         """
-        cmd = '%s=%s'%(var,value)
+        cmd = '%s=%s' % (var,value)
         out = self.eval(cmd)
-        i = min( out.find('not defined'), out.find('\(in'), out.find('Argument types') )
+        i = min( out.find('not defined'), out.find(r'\(in'), out.find('Argument types') )
         if i != -1:
             raise RuntimeError(out)
 
@@ -705,7 +704,7 @@ class LiE(ExtraTabCompletion, Expect):
             '2'
 
         """
-        s = self.eval('%s'%var)
+        s = self.eval('%s' % var)
         return s
 
     def get_using_file(self, var):
@@ -953,7 +952,7 @@ def lie_version():
         sage: lie_version() # optional - lie
         '2.1'
     """
-    f = open(os.path.join(SAGE_LOCAL, 'lib', 'LiE', 'INFO.0'))
+    f = open(os.path.join(LIE_INFO_DIR, 'INFO.0'))
     lines = f.readlines()
     f.close()
     i = lines.index('@version()\n')

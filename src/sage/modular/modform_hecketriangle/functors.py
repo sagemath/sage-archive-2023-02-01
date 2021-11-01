@@ -6,16 +6,15 @@ AUTHORS:
 - Jonas Jermann (2013): initial version
 
 """
-from __future__ import absolute_import
 
-#*****************************************************************************
+# ****************************************************************************
 #       Copyright (C) 2013-2014 Jonas Jermann <jjermann2@gmail.com>
 #
 #  Distributed under the terms of the GNU General Public License (GPL)
 #  as published by the Free Software Foundation; either version 2 of
 #  the License, or (at your option) any later version.
-#                  http://www.gnu.org/licenses/
-#*****************************************************************************
+#                  https://www.gnu.org/licenses/
+# ****************************************************************************
 
 from sage.rings.all import ZZ, QQ, infinity
 
@@ -46,7 +45,7 @@ def _get_base_ring(ring, var_name="d"):
 
     Otherwise return ``ring``.
 
-    The base ring is used in the construction of the correponding
+    The base ring is used in the construction of the corresponding
     ``FormsRing`` or ``FormsSpace``. In particular in the construction
     of holomorphic forms of degree (0, 1). For (binary)
     operations a general ring element is considered (coerced to)
@@ -214,10 +213,10 @@ class FormsSubSpaceFunctor(ConstructionFunctor):
 
             sage: F(BaseFacade(ZZ))
             Subspace of dimension 1 of CuspForms(n=4, k=12, ep=1) over Integer Ring
-            sage: F(BaseFacade(CC))
-            Subspace of dimension 1 of CuspForms(n=4, k=12, ep=1) over Complex Field with 53 bits of precision
-            sage: F(CC)
-            ModularFormsRing(n=4) over Complex Field with 53 bits of precision
+            sage: F(BaseFacade(QQ))
+            Subspace of dimension 1 of CuspForms(n=4, k=12, ep=1) over Integer Ring
+            sage: F(QQ)
+            ModularFormsRing(n=4) over Integer Ring
 
             sage: ambient_space_functor = FormsSpaceFunctor("holo", group=4, k=0, ep=1)
             sage: F = FormsSubSpaceFunctor(ambient_space_functor, [1])
@@ -225,8 +224,6 @@ class FormsSubSpaceFunctor(ConstructionFunctor):
             FormsSubSpaceFunctor with 1 generator for the ModularFormsFunctor(n=4, k=0, ep=1)
             sage: F(BaseFacade(ZZ))
             Subspace of dimension 1 of ModularForms(n=4, k=0, ep=1) over Integer Ring
-            sage: F(CC)
-            Subspace of dimension 1 of ModularForms(n=4, k=0, ep=1) over Complex Field with 53 bits of precision
         """
 
         ambient_space = self._ambient_space_functor(R)
@@ -488,7 +485,7 @@ class FormsSpaceFunctor(ConstructionFunctor):
 
         if isinstance(other, FormsSpaceFunctor):
             group = _common_subgroup(self._group, other._group)
-            if group == None:
+            if group is None:
                 return None
             analytic_type = self._analytic_type + other._analytic_type
             if (self._k == other._k) and (self._ep == other._ep):
@@ -497,7 +494,7 @@ class FormsSpaceFunctor(ConstructionFunctor):
                 return FormsRingFunctor(analytic_type, group, True)
         elif isinstance(other, FormsRingFunctor):
             group = _common_subgroup(self._group, other._group)
-            if group == None:
+            if group is None:
                 return None
             red_hom = other._red_hom
             analytic_type = self._analytic_type + other._analytic_type
@@ -679,14 +676,14 @@ class FormsRingFunctor(ConstructionFunctor):
 
         if isinstance(other, FormsSpaceFunctor):
             group = _common_subgroup(self._group, other._group)
-            if group == None:
+            if group is None:
                 return None
             red_hom = self._red_hom
             analytic_type = self._analytic_type + other._analytic_type
             return FormsRingFunctor(analytic_type, group, red_hom)
         elif isinstance(other, FormsRingFunctor):
             group = _common_subgroup(self._group, other._group)
-            if group == None:
+            if group is None:
                 return None
             red_hom = self._red_hom & other._red_hom
             analytic_type = self._analytic_type + other._analytic_type
@@ -735,7 +732,7 @@ class BaseFacade(Parent, UniqueRepresentation):
     ring element. Hence we use the ``BaseFacade`` to
     distinguish the two cases.
 
-    Since the ``BaseFacade`` of a ring embedds into that ring,
+    Since the ``BaseFacade`` of a ring embeds into that ring,
     a common base (resp. a coercion) between the two (or even a
     more general ring) can be found, namely the ring
     (not the ``BaseFacade`` of it).

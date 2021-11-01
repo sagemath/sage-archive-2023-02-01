@@ -70,10 +70,10 @@ class TangentSpace(FiniteRankFreeModule):
     vector frames around the point::
 
         sage: Tp.bases()
-        [Basis (d/dx,d/dy) on the Tangent space at Point p on the 2-dimensional
+        [Basis (∂/∂x,∂/∂y) on the Tangent space at Point p on the 2-dimensional
          differentiable manifold M]
         sage: M.frames()
-        [Coordinate frame (M, (d/dx,d/dy))]
+        [Coordinate frame (M, (∂/∂x,∂/∂y))]
 
     At this stage, only one basis has been defined in the tangent space, but
     new bases can be added from vector frames on the manifold by means of the
@@ -82,12 +82,12 @@ class TangentSpace(FiniteRankFreeModule):
 
         sage: c_uv.<u,v> = M.chart()
         sage: c_uv.frame().at(p)
-        Basis (d/du,d/dv) on the Tangent space at Point p on the 2-dimensional
+        Basis (∂/∂u,∂/∂v) on the Tangent space at Point p on the 2-dimensional
          differentiable manifold M
         sage: Tp.bases()
-        [Basis (d/dx,d/dy) on the Tangent space at Point p on the 2-dimensional
+        [Basis (∂/∂x,∂/∂y) on the Tangent space at Point p on the 2-dimensional
          differentiable manifold M,
-         Basis (d/du,d/dv) on the Tangent space at Point p on the 2-dimensional
+         Basis (∂/∂u,∂/∂v) on the Tangent space at Point p on the 2-dimensional
          differentiable manifold M]
 
     All the bases defined on ``Tp`` are on the same footing. Accordingly the
@@ -114,7 +114,7 @@ class TangentSpace(FiniteRankFreeModule):
         Tangent vector at Point p on the
          2-dimensional differentiable manifold M
         sage: v.display()
-        d/dx + 2 d/dy
+        ∂/∂x + 2 ∂/∂y
         sage: v.parent()
         Tangent space at Point p on the
          2-dimensional differentiable manifold M
@@ -205,30 +205,13 @@ class TangentSpace(FiniteRankFreeModule):
             # only if it is a frame on the current manifold:
             if frame.destination_map().is_identity():
                 if point in frame._domain:
-                    basis = self.basis(symbol=frame._symbol,
-                                       latex_symbol=frame._latex_symbol)
-                    # Names of basis vectors set to those of the frame vector
-                    # fields:
-                    for i,v in enumerate(frame._vec):
-                        basis._vec[i]._name = v._name
-                        basis._vec[i]._latex_name = v._latex_name
-                    basis._name = "({})".format(
-                                         ",".join(v._name for v in basis._vec))
-                    basis._latex_name = r"\left({}\right)".format(
-                                   ",".join(v._latex_name for v in basis._vec))
-                    basis._symbol = basis._name
-                    basis._latex_symbol = basis._latex_name
-                    # Names of cobasis linear forms set to those of the coframe
-                    # 1-forms:
                     coframe = frame.coframe()
-                    cobasis = basis.dual_basis()
-                    for i,f in enumerate(coframe._form):
-                        cobasis._form[i]._name = f._name
-                        cobasis._form[i]._latex_name = f._latex_name
-                    cobasis._name = "({})".format(
-                                      ",".join(f._name for f in cobasis._form))
-                    cobasis._latex_name = r"\left({}\right)".format(
-                                ",".join(f._latex_name for f in cobasis._form))
+                    basis = self.basis(frame._symbol,
+                                       latex_symbol=frame._latex_symbol,
+                                       indices=frame._indices,
+                                       latex_indices=frame._latex_indices,
+                                       symbol_dual=coframe._symbol,
+                                       latex_symbol_dual=coframe._latex_symbol)
                     self._frame_bases[frame] = basis
         # The basis induced by the default frame of the manifold subset
         # in which the point has been created is declared the default
@@ -262,7 +245,7 @@ class TangentSpace(FiniteRankFreeModule):
                             if frame is frame2:
                                 basis = basis2
                             if basis is not None:
-                                cauto = auto.add_comp(basis)
+                                cauto = auto.add_comp(basis=basis)
                                 for ind, val in comp._comp.items():
                                     cauto._comp[ind] = val(point)
                         except ValueError:
@@ -300,7 +283,7 @@ class TangentSpace(FiniteRankFreeModule):
             Tangent vector at Point p on the 2-dimensional differentiable
              manifold M
             sage: Tp._an_element_().display()
-            d/dx + 2 d/dy
+            ∂/∂x + 2 ∂/∂y
 
         """
         resu = self.element_class(self)
@@ -354,4 +337,3 @@ class TangentSpace(FiniteRankFreeModule):
 
         """
         return self._point
-

@@ -72,7 +72,6 @@ AUTHORS:
 #
 #                  http://www.gnu.org/licenses/
 ##########################################################################
-from __future__ import print_function
 
 from sage.rings.number_field.number_field import CyclotomicField
 from sage.plot.all import polygon, line, text
@@ -146,7 +145,7 @@ class IndexedSequence(SageObject):
 
     def dict(self):
         """
-        Return a python dict of ``self`` where the keys are elments in the
+        Return a python dict of ``self`` where the keys are elements in the
         indexing set.
 
         EXAMPLES::
@@ -275,7 +274,7 @@ class IndexedSequence(SageObject):
         return line([[RR(I[i]),RR(S[i])] for i in range(len(I)-1)])
 
     def dft(self, chi = lambda x: x):
-        """
+        r"""
         A discrete Fourier transform "over `\QQ`" using exact
         `N`-th roots of unity.
 
@@ -354,7 +353,7 @@ class IndexedSequence(SageObject):
         return IndexedSequence(FT, J)
 
     def idft(self):
-        """
+        r"""
         A discrete inverse Fourier transform. Only works over `\QQ`.
 
         EXAMPLES::
@@ -487,7 +486,7 @@ class IndexedSequence(SageObject):
         return c
 
     def convolution_periodic(self, other):
-        """
+        r"""
         Convolves two collections indexed by a ``range(...)`` of the same
         length (automatically expands the shortest one by extending it
         by 0 if they have different lengths).
@@ -671,7 +670,7 @@ class IndexedSequence(SageObject):
         return IndexedSequence([a[j][0]+I*a[j][1] for j in J],J)
 
     def dwt(self,other="haar",wavelet_k=2):
-        """
+        r"""
         Wraps the gsl ``WaveletTransform.forward`` in :mod:`~sage.calculus.transforms.dwt`
         (written by Joshua Kantor). Assumes the length of the sample is a
         power of 2. Uses the GSL function ``gsl_wavelet_transform_forward()``.
@@ -734,7 +733,7 @@ class IndexedSequence(SageObject):
         return IndexedSequence([RR(a[j]) for j in J],J)
 
     def idwt(self, other="haar", wavelet_k=2):
-        """
+        r"""
         Implements the gsl ``WaveletTransform.backward()`` in
         :mod:`~sage.calculus.transforms.dwt`.
 

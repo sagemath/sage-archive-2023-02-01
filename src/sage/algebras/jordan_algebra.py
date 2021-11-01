@@ -18,11 +18,10 @@ from sage.structure.unique_representation import UniqueRepresentation
 from sage.structure.element import AlgebraElement
 from sage.categories.magmatic_algebras import MagmaticAlgebras
 from sage.misc.cachefunc import cached_method
-#from sage.misc.lazy_attribute import lazy_attribute
-from sage.rings.all import QQ
-from sage.matrix.matrix import is_Matrix
+from sage.structure.element import is_Matrix
 from sage.modules.free_module import FreeModule
 from sage.sets.family import Family
+
 
 class JordanAlgebra(Parent, UniqueRepresentation):
     r"""
@@ -34,7 +33,7 @@ class JordanAlgebra(Parent, UniqueRepresentation):
     - `xy = yx`, and
     - `(xy)(xx) = x(y(xx))` (the Jordan identity).
 
-    See [Ja1971]_, [Ch2012]_, and [McC1978], for example.
+    See [Ja1971]_, [Ch2012]_, and [McC1978]_, for example.
 
     These axioms imply that a Jordan algebra is power-associative and the
     following generalization of Jordan's identity holds [Al1947]_:
@@ -103,7 +102,7 @@ class JordanAlgebra(Parent, UniqueRepresentation):
         sage: (x*y)*(x*x) == x*(y*(x*x))
         True
 
-    Next we constuct a Jordan algebra from a symmetric bilinear form::
+    Next we construct a Jordan algebra from a symmetric bilinear form::
 
         sage: m = matrix([[-2,3],[3,4]])
         sage: J.<a,b,c> = JordanAlgebra(m); J
@@ -235,10 +234,6 @@ class SpecialJordanAlgebra(JordanAlgebra):
         cat = C.Commutative()
         if A in C.Unital():
             cat = cat.Unital()
-            self._no_generic_basering_coercion = True
-            # Remove the preceding line once trac #16492 is fixed
-            # Removing this line will also break some of the input formats,
-            # see trac #16054
         if A in C.WithBasis():
             cat = cat.WithBasis()
         if A in C.FiniteDimensional():
@@ -596,7 +591,6 @@ class JordanAlgebraSymmetricBilinear(JordanAlgebra):
         self._form = form
         self._M = FreeModule(R, form.ncols())
         cat = MagmaticAlgebras(R).Commutative().Unital().FiniteDimensional().WithBasis()
-        self._no_generic_basering_coercion = True # Remove once 16492 is fixed
         Parent.__init__(self, base=R, names=names, category=cat)
 
     def _repr_(self):
@@ -694,6 +688,25 @@ class JordanAlgebraSymmetricBilinear(JordanAlgebra):
             return self.element_class(self, R(args[0]), self._M(args[1:]))
 
         raise ValueError("unable to construct an element from the given data")
+
+    def _coerce_map_from_base_ring(self):
+        """
+        Return a coercion map from the base ring of ``self``.
+
+        TESTS::
+
+            sage: J = JordanAlgebra(Matrix([[0, 1], [1, 1]]))
+            sage: J.coerce_map_from(ZZ)
+            Coercion map:
+              From: Integer Ring
+              To:   Jordan algebra over Integer Ring given by the symmetric bilinear form:
+            [0 1]
+            [1 1]
+        """
+        # Return a DefaultConvertMap_unique; this can pass additional
+        # arguments to _element_constructor_, unlike the map returned
+        # by UnitalAlgebras.ParentMethods._coerce_map_from_base_ring.
+        return self._generic_coerce_map(self.base_ring())
 
     @cached_method
     def basis(self):

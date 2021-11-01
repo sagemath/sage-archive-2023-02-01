@@ -1,3 +1,8 @@
+# distutils: language = c++
+# distutils: libraries = CBLAS_LIBRARIES
+# distutils: library_dirs = CBLAS_LIBDIR
+# distutils: include_dirs = CBLAS_INCDIR
+# distutils: extra_compile_args = -D_XPG6
 """
 Dense matrices over `\ZZ/n\ZZ` for `n < 2^{23}` using LinBox's ``Modular<double>``
 
@@ -7,27 +12,32 @@ AUTHORS:
 - Martin Albrecht
 """
 ###############################################################################
-#   SAGE: Open Source Mathematical Software
 #       Copyright (C) 2011 Burcin Erocal <burcin@erocal.org>
 #       Copyright (C) 2011 Martin Albrecht <martinralbrecht@googlemail.com>
-#  Distributed under the terms of the GNU General Public License (GPL),
-#  version 2 or any later version.  The full text of the GPL is available at:
+#
+#  Distributed under the terms of the GNU General Public License (GPL)
+#  as published by the Free Software Foundation; either version 2 of
+#  the License, or (at your option) any later version.
 #                  http://www.gnu.org/licenses/
-###############################################################################
+#*****************************************************************************
 
 
 from sage.rings.finite_rings.stdint cimport *
 
-from sage.libs.linbox.echelonform cimport BlasMatrixDouble as BlasMatrix
-from sage.libs.linbox.modular cimport ModDoubleField as ModField, ModDoubleFieldElement as ModFieldElement
-from sage.libs.linbox.echelonform cimport EchelonFormDomainDouble as EchelonFormDomain
+from sage.libs.linbox.givaro cimport \
+    Modular_double as ModField, \
+    Poly1Dom, Dense
 
-from sage.libs.linbox.fflas cimport ModDouble_fgemm as Mod_fgemm, ModDouble_fgemv as Mod_fgemv, \
-    ModDoubleDet as ModDet, \
-    ModDoubleRank as ModRank, ModDouble_echelon as Mod_echelon, \
-    ModDouble_applyp as Mod_applyp, \
-    ModDouble_MinPoly as Mod_MinPoly, \
-    ModDouble_CharPoly as Mod_CharPoly
+from sage.libs.linbox.linbox cimport \
+    reducedRowEchelonize, \
+    DenseMatrix_Modular_double as DenseMatrix
+
+from sage.libs.linbox.fflas cimport \
+    fgemm, pfgemm, fgemv, Det, pDet, Rank, pRank, ReducedRowEchelonForm, pReducedRowEchelonForm, applyP, \
+    MinPoly, CharPoly, MinPoly, \
+    ModDoubleDensePolynomial as ModDensePoly
+
+ctypedef Poly1Dom[ModField, Dense] ModDensePolyRing
 
 # Limit for LinBox Modular<double>
 MAX_MODULUS = 2**23
@@ -47,7 +57,7 @@ cdef class Matrix_modn_dense_double(Matrix_modn_dense_template):
     ``Matrix_modn_dense_float`` class is used for smaller moduli.
 
     Routines here are for the most basic access, see the
-    `matrix_modn_dense_template.pxi` file for higher-level routines.
+    ``matrix_modn_dense_template.pxi`` file for higher-level routines.
     """
 
     def __cinit__(self):
@@ -70,31 +80,21 @@ cdef class Matrix_modn_dense_double(Matrix_modn_dense_template):
 
         EXAMPLES::
 
-            sage: A = random_matrix(GF(3016963), 4, 4); A
-            [ 220081 2824836  765701 2282256]
-            [1795330  767112 2967421 1373921]
-            [2757699 1142917 2720973 2877160]
-            [1674049 1341486 2641133 2173280]
-            sage: A[0,0] = 220082r; A
-            [ 220082 2824836  765701 2282256]
-            [1795330  767112 2967421 1373921]
-            [2757699 1142917 2720973 2877160]
-            [1674049 1341486 2641133 2173280]
+            sage: A = random_matrix(GF(3016963), 4, 4)
+            sage: l = A.list()
+            sage: A[0,0] = 220082r
+            sage: A.list()[1:] == l[1:]
+            True
             sage: a = A[0,0]; a
             220082
             sage: ~a
             2859358
 
-            sage: A = random_matrix(Integers(5099106), 4, 4); A
-            [2629491 1237101 2033003 3788106]
-            [4649912 1157595 4928315 4382585]
-            [4252686  978867 2601478 1759921]
-            [1303120 1860486 3405811 2203284]
-            sage: A[0,0] = 220082r; A
-            [ 220082 1237101 2033003 3788106]
-            [4649912 1157595 4928315 4382585]
-            [4252686  978867 2601478 1759921]
-            [1303120 1860486 3405811 2203284]
+            sage: A = random_matrix(Integers(5099106), 4, 4)
+            sage: l = A.list()
+            sage: A[0,0] = 220082r
+            sage: A.list()[1:] == l[1:]
+            True
             sage: a = A[0,0]; a
             220082
             sage: a*a
@@ -110,29 +110,23 @@ cdef class Matrix_modn_dense_double(Matrix_modn_dense_template):
 
         EXAMPLES::
 
-            sage: A = random_matrix(GF(3016963), 4, 4); A
-            [ 220081 2824836  765701 2282256]
-            [1795330  767112 2967421 1373921]
-            [2757699 1142917 2720973 2877160]
-            [1674049 1341486 2641133 2173280]
+            sage: A = random_matrix(GF(3016963), 4, 4)
             sage: K = A.base_ring()
-            sage: A[0,0] = K(220082); A
-            [ 220082 2824836  765701 2282256]
-            [1795330  767112 2967421 1373921]
-            [2757699 1142917 2720973 2877160]
-            [1674049 1341486 2641133 2173280]
+            sage: l = A.list()
+            sage: A[0,0] = K(220082)
+            sage: A.list()[1:] == l[1:]
+            True
             sage: a = A[0,0]; a
             220082
             sage: ~a
             2859358
 
-            sage: A = random_matrix(Integers(5099106), 4, 4); A
-            [2629491 1237101 2033003 3788106]
-            [4649912 1157595 4928315 4382585]
-            [4252686  978867 2601478 1759921]
-            [1303120 1860486 3405811 2203284]
+            sage: A = random_matrix(Integers(5099106), 4, 4)
             sage: K = A.base_ring()
+            sage: l = A.list()
             sage: A[0,0] = K(220081)
+            sage: A.list()[1:] == l[1:]
+            True
             sage: a = A[0,0]; a
             220081
             sage: a*a
@@ -156,31 +150,25 @@ cdef class Matrix_modn_dense_double(Matrix_modn_dense_template):
 
         EXAMPLES::
 
-            sage: A = random_matrix(GF(3016963), 4, 4); A
-            [ 220081 2824836  765701 2282256]
-            [1795330  767112 2967421 1373921]
-            [2757699 1142917 2720973 2877160]
-            [1674049 1341486 2641133 2173280]
-            sage: a = A[0,0]; a
-            220081
-            sage: ~a
-            697224
-            sage: K = A.base_ring()
-            sage: ~K(220081)
-            697224
+            sage: K = GF(3016963)
+            sage: l = [K.random_element() for _ in range(4*4)]
+            sage: A = matrix(K, 4, 4, l)
+            sage: a = A[0,0]
+            sage: a == l[0]
+            True
+            sage: a == 0 or ~a*a == 1
+            True
+            sage: a.parent() is K
+            True
 
-            sage: A = random_matrix(Integers(5099106), 4, 4); A
-            [2629491 1237101 2033003 3788106]
-            [4649912 1157595 4928315 4382585]
-            [4252686  978867 2601478 1759921]
-            [1303120 1860486 3405811 2203284]
-            sage: a = A[0,1]; a
-            1237101
-            sage: a*a
-            3803997
-            sage: K = A.base_ring()
-            sage: K(1237101)^2
-            3803997
+            sage: K = Integers(5099106)
+            sage: l = [K.random_element() for _ in range(4*4)]
+            sage: A = matrix(Integers(5099106), 4, 4, l)
+            sage: a = A[0,1]
+            sage: a == l[1]
+            True
+            sage: a*a == K(Integer(l[1]))^2
+            True
         """
         cdef Matrix_modn_dense_double _self = <Matrix_modn_dense_double>self
         cdef double result = (<Matrix_modn_dense_template>self)._matrix[i][j]

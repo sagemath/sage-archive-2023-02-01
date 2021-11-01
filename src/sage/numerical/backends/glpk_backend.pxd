@@ -27,9 +27,9 @@ cdef class GLPKBackend(GenericBackend):
     cdef int simplex_or_intopt
     cdef search_tree_data_t search_tree_data
     cpdef __copy__(self)
-    cpdef int print_ranges(self, char * filename = *) except -1
+    cpdef int print_ranges(self, filename = *) except -1
     cpdef double get_row_dual(self, int variable)
-    cpdef double get_col_dual(self, int variable)
+    cpdef double get_col_dual(self, int variable) except? -1
     cpdef int get_row_stat(self, int variable) except? -1
     cpdef int get_col_stat(self, int variable) except? -1
     cpdef eval_tab_row(self, int k)

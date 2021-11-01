@@ -2,7 +2,7 @@
 Base class for groups
 """
 
-#*****************************************************************************
+# ****************************************************************************
 #       Copyright (C) 2005 William Stein <wstein@gmail.com>
 #
 #  Distributed under the terms of the GNU General Public License (GPL)
@@ -14,14 +14,16 @@ Base class for groups
 #
 #  The full text of the GPL is available at:
 #
-#                  http://www.gnu.org/licenses/
-#*****************************************************************************
+#                  https://www.gnu.org/licenses/
+# ****************************************************************************
 
 import random
 
 from sage.structure.parent cimport Parent
 from sage.rings.infinity import infinity
 from sage.rings.integer_ring import ZZ
+from sage.misc.lazy_attribute import lazy_attribute
+
 
 def is_Group(x):
     """
@@ -74,9 +76,9 @@ cdef class Group(Parent):
         sage: 4 in G
         Traceback (most recent call last):
         ...
-        NotImplementedError
+        NotImplementedError: cannot construct elements of <sage.groups.group.Group object at ...>
     """
-    def __init__(self, base=None, gens=None, category=None):
+    def __init__(self, base=None, category=None):
         """
         The Python constructor
 
@@ -104,9 +106,6 @@ cdef class Group(Parent):
             sage: h == hash(G)
             True
         """
-        if gens is not None:
-            from sage.misc.superseded import deprecation
-            deprecation(22129, "gens keyword has been deprecated. Define a method gens() instead.")
         from sage.categories.groups import Groups
         if category is None:
             category = Groups()
@@ -151,8 +150,9 @@ cdef class Group(Parent):
 
     def order(self):
         """
-        Returns the number of elements of this group, which is either a
-        positive integer or infinity.
+        Return the number of elements of this group.
+
+        This is either a positive integer or infinity.
 
         EXAMPLES::
 
@@ -162,8 +162,17 @@ cdef class Group(Parent):
             Traceback (most recent call last):
             ...
             NotImplementedError
+
+        TESTS::
+
+            sage: H = SL(2, QQ)
+            sage: H.order()
+            +Infinity
         """
-        raise NotImplementedError
+        try:
+            return self.cardinality()
+        except AttributeError:
+            raise NotImplementedError
 
     def is_finite(self):
         """
@@ -204,7 +213,7 @@ cdef class Group(Parent):
 
         An element of the group.
 
-        EXAMPLES:
+        EXAMPLES::
 
             sage: G = AbelianGroup([2,3,4,5])
             sage: G.an_element()
@@ -213,7 +222,7 @@ cdef class Group(Parent):
         from sage.misc.all import prod
         return prod(self.gens())
 
-    def quotient(self, H):
+    def quotient(self, H, **kwds):
         """
         Return the quotient of this group by the normal subgroup
         `H`.
@@ -251,7 +260,7 @@ cdef class FiniteGroup(Group):
     Generic finite group.
     """
 
-    def __init__(self, base=None, gens=None, category=None):
+    def __init__(self, base=None, category=None):
         """
         The Python constructor
 
@@ -262,9 +271,6 @@ cdef class FiniteGroup(Group):
             sage: G.category()
             Category of finite groups
         """
-        if gens is not None:
-            from sage.misc.superseded import deprecation
-            deprecation(22129, "gens keyword has been deprecated. Define a method gens() instead.")
         from sage.categories.finite_groups import FiniteGroups
         if category is None:
             category = FiniteGroups()
@@ -272,12 +278,12 @@ cdef class FiniteGroup(Group):
             if not isinstance(category, tuple):
                 category = (category,)
             if not any(cat.is_subcategory(FiniteGroups()) for cat in category):
-                raise ValueError("%s is not a subcategory of %s"%(category, FiniteGroups()))
+                raise ValueError("%s is not a subcategory of %s" % (category, FiniteGroups()))
         Parent.__init__(self, base=base, category=category)
 
     def is_finite(self):
         """
-        Return True.
+        Return ``True``.
 
         EXAMPLES::
 

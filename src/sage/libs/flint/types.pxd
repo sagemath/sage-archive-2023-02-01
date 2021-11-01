@@ -1,3 +1,5 @@
+# distutils: depends = flint/flint.h flint/fmpz.h flint/fmpz_poly.h flint/fmpz_mat.h flint/fmpq.h flint/fmpq_poly.h flint/fmpq_mat.h flint/fmpz_mod_poly.h flint/nmod_poly.h flint/fq.h flint/fq_nmod.h flint/ulong_extras.h flint/padic.h flint/padic_poly.h flint/qadic.h flint/fmpz_poly_q.h
+
 """
 Declarations for FLINT types
 """
@@ -14,26 +16,19 @@ Declarations for FLINT types
 
 from sage.libs.gmp.types cimport *
 
-cdef extern from "flint/flint.h":
-    ctypedef mp_limb_t ulong
-    ctypedef mp_limb_signed_t slong
+# Use these typedefs in lieu of flint's ulong and slong macros
+ctypedef mp_limb_t ulong
+ctypedef mp_limb_signed_t slong
+
+
+# flint/flint.h:
+cdef extern from "flint_wrap.h":
     ctypedef void* flint_rand_t
     cdef long FLINT_BITS
     cdef long FLINT_D_BITS
 
-cdef extern from "flint/fmpq.h":
-    ctypedef struct fmpq:
-        pass
-
-    ctypedef fmpq fmpq_t[1]
-
-cdef extern from "flint/fmpq_poly.h":
-    ctypedef struct fmpq_poly_struct:
-        pass
-
-    ctypedef fmpq_poly_struct fmpq_poly_t[1]
-
-cdef extern from "flint/fmpz.h":
+# flint/fmpz.h:
+cdef extern from "flint_wrap.h":
     ctypedef slong fmpz
     ctypedef fmpz fmpz_t[1]
 
@@ -47,26 +42,21 @@ cdef extern from "flint/fmpz.h":
 
     ctypedef fmpz_preinvn_struct[1] fmpz_preinvn_t
 
-
-cdef extern from "flint/fmpz_mat.h":
-    ctypedef struct fmpz_mat_struct:
+# flint/fmpz_mod.h:
+cdef extern from "flint_wrap.h":
+    ctypedef struct fmpz_mod_ctx_struct:
         pass
 
-    ctypedef fmpz_mat_struct fmpz_mat_t[1]
+    ctypedef fmpz_mod_ctx_struct fmpz_mod_ctx_t[1]
 
-cdef extern from "flint/fmpq_mat.h":
-    ctypedef struct fmpq_mat_struct:
+    ctypedef struct fmpz_mod_discrete_log_pohlig_hellman_entry_struct:
         pass
-
-    ctypedef fmpq_mat_struct fmpq_mat_t[1]
-
-cdef extern from "flint/fmpz_mod_poly.h":
-    ctypedef struct fmpz_mod_poly_struct:
+    ctypedef struct fmpz_mod_discrete_log_pohlig_hellman_struct:
         pass
+    ctypedef fmpz_mod_discrete_log_pohlig_hellman_struct fmpz_mod_discrete_log_pohlig_hellman_t[1]
 
-    ctypedef fmpz_mod_poly_struct fmpz_mod_poly_t[1]
-
-cdef extern from "flint/fmpz_poly.h":
+# flint/fmpz_poly.h:
+cdef extern from "flint_wrap.h":
     ctypedef struct fmpz_poly_struct:
         fmpz* coeffs
         long alloc
@@ -74,7 +64,75 @@ cdef extern from "flint/fmpz_poly.h":
 
     ctypedef fmpz_poly_struct fmpz_poly_t[1]
 
-cdef extern from "flint/nmod_poly.h":
+# flint/fmpz_mat.h:
+cdef extern from "flint_wrap.h":
+    ctypedef struct fmpz_mat_struct:
+        pass
+
+    ctypedef fmpz_mat_struct fmpz_mat_t[1]
+
+# flint/fmpq.h:
+cdef extern from "flint_wrap.h":
+    ctypedef struct fmpq:
+        pass
+
+    ctypedef fmpq fmpq_t[1]
+
+# flint/fmpq_poly.h:
+cdef extern from "flint_wrap.h":
+    ctypedef struct fmpq_poly_struct:
+        pass
+
+    ctypedef fmpq_poly_struct fmpq_poly_t[1]
+
+# flint/fmpq_mat.h:
+cdef extern from "flint_wrap.h":
+    ctypedef struct fmpq_mat_struct:
+        pass
+
+    ctypedef fmpq_mat_struct fmpq_mat_t[1]
+
+# flint/fmpz_poly_mat.h:
+cdef extern from "flint_wrap.h":
+    ctypedef struct fmpz_poly_mat_struct:
+        pass
+
+    ctypedef fmpz_poly_mat_struct fmpz_poly_mat_t[1]
+
+# flint/fmpz_mod_poly.h:
+cdef extern from "flint_wrap.h":
+    ctypedef struct fmpz_mod_poly_struct:
+        pass
+    ctypedef fmpz_mod_poly_struct fmpz_mod_poly_t[1]
+
+    ctypedef struct fmpz_mod_poly_res_struct:
+        pass
+    ctypedef fmpz_mod_poly_res_struct fmpz_mod_poly_res_t[1]
+
+    ctypedef struct fmpz_mod_poly_frobenius_powers_2exp_struct:
+        pass
+    ctypedef fmpz_mod_poly_frobenius_powers_2exp_struct fmpz_mod_poly_frobenius_powers_2exp_t[1]
+
+    ctypedef struct fmpz_mod_poly_frobenius_powers_struct:
+        pass
+    ctypedef fmpz_mod_poly_frobenius_powers_struct fmpz_mod_poly_frobenius_powers_t[1]
+
+    ctypedef struct fmpz_mod_poly_matrix_precompute_arg_t:
+        pass
+
+    ctypedef struct fmpz_mod_poly_compose_mod_precomp_preinv_arg_t:
+        pass
+
+    ctypedef struct fmpz_mod_poly_radix_struct:
+        pass
+    ctypedef fmpz_mod_poly_radix_struct fmpz_mod_poly_radix_t[1]
+
+    ctypedef struct fmpz_mod_berlekamp_massey_struct:
+        pass
+    ctypedef fmpz_mod_berlekamp_massey_struct fmpz_mod_berlekamp_massey_t[1]
+
+# flint/nmod_poly.h:
+cdef extern from "flint_wrap.h":
     ctypedef struct nmod_t:
         mp_limb_t n
         mp_limb_t ninv
@@ -96,7 +154,8 @@ cdef extern from "flint/nmod_poly.h":
 
     ctypedef nmod_poly_factor_struct nmod_poly_factor_t[1]
 
-cdef extern from "flint/fq.h":
+# flint/fq.h:
+cdef extern from "flint_wrap.h":
     ctypedef struct fq_ctx_struct:
         fmpz_mod_poly_t modulus
 
@@ -105,7 +164,8 @@ cdef extern from "flint/fq.h":
     ctypedef fmpz_poly_struct fq_struct
     ctypedef fmpz_poly_t fq_t
 
-cdef extern from "flint/fq_nmod.h":
+# flint/fq_nmod.h:
+cdef extern from "flint_wrap.h":
     ctypedef struct fq_nmod_ctx_struct:
         nmod_poly_t modulus
 
@@ -114,18 +174,20 @@ cdef extern from "flint/fq_nmod.h":
     ctypedef nmod_poly_struct fq_nmod_struct
     ctypedef nmod_poly_t fq_nmod_t
 
-cdef extern from "flint/ulong_extras.h":
+# flint/ulong_extras.h:
+cdef extern from "flint_wrap.h":
     ctypedef struct n_factor_t:
         int num
         unsigned long exp[15]
         unsigned long p[15]
 
-cdef extern from "flint/padic.h":
+# flint/padic.h:
+cdef extern from "flint_wrap.h":
     ctypedef struct padic_struct:
         fmpz u
         long v
 
-    ctypedef void* padic_t
+    ctypedef padic_struct padic_t[1]
 
     cdef enum padic_print_mode:
         PADIC_TERSE
@@ -140,11 +202,44 @@ cdef extern from "flint/padic.h":
         long min
         long max
 
-    ctypedef void * padic_ctx_t
+    ctypedef padic_ctx_struct padic_ctx_t[1]
 
     ctypedef struct padic_inv_struct:
         long n
         fmpz *pow
         fmpz *u
 
-    ctypedef void * padic_inv_t
+    ctypedef padic_inv_struct padic_inv_t[1]
+
+# flint/padic_poly.h:
+cdef extern from "flint_wrap.h":
+    ctypedef struct padic_poly_struct:
+        fmpz *coeffs
+        long alloc
+        long length
+        long val
+        long N
+
+    ctypedef padic_poly_struct padic_poly_t[1]
+
+# flint/qadic.h:
+cdef extern from "flint_wrap.h":
+    ctypedef struct qadic_ctx_struct:
+        padic_ctx_struct pctx
+        fmpz *a
+        long *j
+        long len
+        char *var
+
+    ctypedef qadic_ctx_struct qadic_ctx_t[1]
+
+    ctypedef padic_poly_struct qadic_struct
+    ctypedef padic_poly_t qadic_t
+
+# flint/fmpz_poly_q.h:
+cdef extern from "flint_wrap.h":
+    ctypedef struct fmpz_poly_q_struct:
+        fmpz_poly_struct *num
+        fmpz_poly_struct *den
+
+    ctypedef fmpz_poly_q_struct fmpz_poly_q_t[1]

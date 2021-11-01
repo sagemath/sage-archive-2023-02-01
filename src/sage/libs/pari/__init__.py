@@ -161,12 +161,14 @@ exact object. Therefore, you should set the precision for each method
 call individually::
 
     sage: e = pari([0,0,0,-82,0]).ellinit()
-    sage: eta1 = e.elleta(precision=100)[0]
+    sage: eta1 = e.elleta(precision=50)[0]
     sage: eta1.sage()
-    3.6054636014326520859158205642077267748
-    sage: eta1 = e.elleta(precision=180)[0]
+    3.6054636014326520859158205642077267748 # 64-bit
+    3.605463601432652085915820564           # 32-bit
+    sage: eta1 = e.elleta(precision=150)[0]
     sage: eta1.sage()
-    3.60546360143265208591582056420772677481026899659802474544
+    3.605463601432652085915820564207726774810268996598024745444380641429820491740 # 64-bit
+    3.60546360143265208591582056420772677481026899659802474544                    # 32-bit
 
 """
 
@@ -200,6 +202,17 @@ def _get_pari_instance():
     # so we need to reset them.
     from sage.ext.memory import init_memory_functions
     init_memory_functions()
+
+    # PARI sets debugmem=1 by default but we do not want those warning
+    # messages in Sage.
+    P.default("debugmem", 0)
+
+    # Make sure pari doesn't use threads, regardless of how it was compiled.
+    # Threads cause some doctest failures (memory issues). Those could probably
+    # be solved without disabling threads. But that would require figuring out
+    # some sensible values for `threadsizemax`. See
+    # https://pari.math.u-bordeaux.fr/dochtml/html/GP_defaults.html
+    P.default("nbthreads", 1)
 
     return P
 

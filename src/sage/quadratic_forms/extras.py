@@ -1,7 +1,7 @@
 "Quadratic form extras"
 
 from sage.matrix.constructor import matrix
-from sage.matrix.matrix import is_Matrix
+from sage.structure.element import is_Matrix
 from sage.arith.all import legendre_symbol
 from sage.rings.integer_ring import ZZ
 
@@ -47,7 +47,8 @@ def is_triangular_number(n, return_value=False):
 
     TESTS::
 
-        sage: F1 = filter(is_triangular_number, range(1,100*(100+1)/2))
+        sage: F1 = [n for n in range(1,100*(100+1)/2)
+        ....:       if is_triangular_number(n)]
         sage: F2 = [n*(n+1)/2 for n in range(1,100)]
         sage: F1 == F2
         True
@@ -93,12 +94,12 @@ def extend_to_primitive(A_input):
 
         sage: A = Matrix(ZZ, 3, 2, range(6))
         sage: extend_to_primitive(A)
-        [ 0  1  0]
+        [ 0  1 -1]
         [ 2  3  0]
-        [ 4  5 -1]
+        [ 4  5  0]
 
         sage: extend_to_primitive([vector([1,2,3])])
-        [(1, 2, 3), (0, 1, 0), (0, 0, 1)]
+        [(1, 2, 3), (0, 1, 1), (-1, 0, 0)]
 
     """
     ## Deal with a list of vectors

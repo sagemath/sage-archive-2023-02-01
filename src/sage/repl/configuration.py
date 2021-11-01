@@ -10,8 +10,8 @@ the IPython simple prompt is being used::
     sage: import pexpect
     sage: output = pexpect.run(
     ....:     'bash -c \'echo "{0}" | sage\''.format(cmd),
-    ....: )
-    sage: 'In [1]: [False, True]' in output
+    ....: ).decode('utf-8', 'surrogateescape')
+    sage: 'sage: [False, True]' in output
     True
 """
 
@@ -24,7 +24,6 @@ the IPython simple prompt is being used::
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 
-from __future__ import absolute_import
 
 import sys
 import copy
@@ -46,23 +45,23 @@ class SageIpythonConfiguration(object):
         This returns ``True`` during doctests.
 
         EXAMPLES::
-        
+
             sage: from sage.repl.configuration import sage_ipython_config
             sage: sage_ipython_config._doctest_mode()
             True
         """
         from sage.doctest import DOCTEST_MODE
         return DOCTEST_MODE
-    
+
     def _allow_ansi(self):
         """
         Whether to allow ANSI escape sequences
 
-        This returns ``False`` during doctests to avoid ANSI escape 
+        This returns ``False`` during doctests to avoid ANSI escape
         sequences.
 
         EXAMPLES::
-        
+
             sage: from sage.repl.configuration import sage_ipython_config
             sage: sage_ipython_config._allow_ansi()
             False
@@ -73,11 +72,11 @@ class SageIpythonConfiguration(object):
         """
         Return the IPython color palette
 
-        This returns ``'NoColor'`` during doctests to avoid ANSI escape 
+        This returns ``'NoColor'`` during doctests to avoid ANSI escape
         sequences.
 
         EXAMPLES::
-        
+
             sage: from sage.repl.configuration import sage_ipython_config
             sage: sage_ipython_config.simple_prompt()
             True
@@ -91,7 +90,7 @@ class SageIpythonConfiguration(object):
         This returns ``True`` during doctests to avoid ANSI escape sequences.
 
         EXAMPLES::
-        
+
             sage: from sage.repl.configuration import sage_ipython_config
             sage: sage_ipython_config.simple_prompt()
             True
@@ -105,7 +104,7 @@ class SageIpythonConfiguration(object):
         This returns false during doctests to avoid ANSI escape sequences.
 
         EXAMPLES::
-        
+
             sage: from sage.repl.configuration import sage_ipython_config
             sage: sage_ipython_config.term_title()
             False
@@ -117,12 +116,30 @@ class SageIpythonConfiguration(object):
         Return a new default configuration object
 
         EXAMPLES::
-        
+
             sage: from sage.repl.configuration import sage_ipython_config
-            sage: sage_ipython_config.default()
-            {'InteractiveShell': {'colors': ...
+            sage: conf = sage_ipython_config.default()
+            sage: type(conf)
+            <class 'traitlets.config.loader.Config'>
+            sage: 'InteractiveShell' in conf
+            True
         """
         from sage.repl.interpreter import SageTerminalInteractiveShell
+
+        # Use the same config for both InteractiveShell, and its subclass
+        # TerminalInteractiveShell (note: in fact some configs like term_title
+        # only apply to the latter, but we can still use the same config for
+        # both for simplicity's sake; see Trac #28289)
+        InteractiveShell=Config(
+            prompts_class=SagePrompts,
+            ast_node_interactivity='all',
+            colors=self.colors(),
+            simple_prompt=self.simple_prompt(),
+            term_title=self.term_title(),
+            confirm_exit=False,
+            separate_in=''
+        )
+
         cfg = Config(
             TerminalIPythonApp=Config(
                 display_banner=False,
@@ -130,16 +147,13 @@ class SageIpythonConfiguration(object):
                 test_shell=False,
                 shell_class=SageTerminalInteractiveShell,
             ),
-            InteractiveShell=Config(
-                prompts_class=SagePrompts,
-                ast_node_interactivity='all',
-                colors=self.colors(),
-                simple_prompt=self.simple_prompt(),
-                term_title=self.term_title(),
-                confirm_exit=False,
-                separate_in=''
-            ),
+            InteractiveShell=InteractiveShell,
+            TerminalInteractiveShell=InteractiveShell,
             InteractiveShellApp=Config(extensions=[SAGE_EXTENSION]),
+            # TODO: jedi is disabled by default because it causes too many troubles
+            # disabling ticket: https://trac.sagemath.org/ticket/31648
+            # reenabling ticket: https://trac.sagemath.org/ticket/31649
+            IPCompleter=Config(use_jedi=False),
         )
         if self._doctest_mode():
             # Using the file-backed history causes problems in parallel tests
@@ -151,10 +165,13 @@ class SageIpythonConfiguration(object):
         Return a copy of the current configuration
 
         EXAMPLES::
-        
+
             sage: from sage.repl.configuration import sage_ipython_config
-            sage: sage_ipython_config.copy()
-            {'InteractiveShell': {'colors': ...
+            sage: conf = sage_ipython_config.copy()
+            sage: type(conf)
+            <class 'traitlets.config.loader.Config'>
+            sage: 'InteractiveShell' in conf
+            True
         """
         try:
             return copy.deepcopy(get_ipython().config)

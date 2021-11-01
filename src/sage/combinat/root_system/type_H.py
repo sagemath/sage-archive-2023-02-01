@@ -1,7 +1,6 @@
 """
 Root system data for type H
 """
-from __future__ import absolute_import
 #*****************************************************************************
 #       Copyright (C) 2008-2009 Nicolas M. Thiery <nthiery at users.sf.net>,
 #
@@ -40,6 +39,17 @@ class CartanType(CartanType_standard_finite, CartanType_simple):
         """
         assert n in [3, 4]
         CartanType_standard_finite.__init__(self, "H", n)
+
+    def _latex_(self):
+        r"""
+        Return a latex representation of ``self``.
+
+        EXAMPLES::
+
+            sage: latex(CartanType(['H',3]))
+            H_3
+        """
+        return "H_{}".format(self.n)
 
     def coxeter_diagram(self):
         """

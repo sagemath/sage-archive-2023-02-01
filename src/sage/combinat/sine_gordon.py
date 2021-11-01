@@ -58,7 +58,7 @@ from sage.symbolic.constants import pi, I
 from sage.functions.log import exp
 from sage.functions.other import ceil
 from sage.misc.flatten import flatten
-from sage.calculus.var import var
+from sage.symbolic.ring import SR
 from sage.functions.other import real_part, imag_part
 from sage.misc.cachefunc import cached_method
 
@@ -164,7 +164,7 @@ class SineGordonYsystem(SageObject):
 
         EXAMPLES::
 
-            sage: Y = SineGordonYsystem('A',(6,4,3));
+            sage: Y = SineGordonYsystem('A',(6,4,3))
             sage: Y.type()
             'A'
         """
@@ -176,7 +176,7 @@ class SineGordonYsystem(SageObject):
 
         EXAMPLES::
 
-            sage: Y = SineGordonYsystem('A',(6,4,3));
+            sage: Y = SineGordonYsystem('A',(6,4,3))
             sage: Y.F()
             3
         """
@@ -188,7 +188,7 @@ class SineGordonYsystem(SageObject):
 
         EXAMPLES::
 
-            sage: Y = SineGordonYsystem('A',(6,4,3));
+            sage: Y = SineGordonYsystem('A',(6,4,3))
             sage: Y.na()
             (6, 4, 3)
         """
@@ -202,7 +202,7 @@ class SineGordonYsystem(SageObject):
 
         EXAMPLES::
 
-            sage: Y = SineGordonYsystem('A',(6,4,3));
+            sage: Y = SineGordonYsystem('A',(6,4,3))
             sage: Y.rk()
             (106, 17, 4)
         """
@@ -224,7 +224,7 @@ class SineGordonYsystem(SageObject):
 
         EXAMPLES::
 
-            sage: Y = SineGordonYsystem('A',(6,4,3));
+            sage: Y = SineGordonYsystem('A',(6,4,3))
             sage: Y.pa()
             (1, 6, 25)
         """
@@ -245,7 +245,7 @@ class SineGordonYsystem(SageObject):
 
         EXAMPLES::
 
-            sage: Y = SineGordonYsystem('A',(6,4,3));
+            sage: Y = SineGordonYsystem('A',(6,4,3))
             sage: Y.qa()
             (6, 25, 81)
         """
@@ -265,7 +265,7 @@ class SineGordonYsystem(SageObject):
 
         EXAMPLES::
 
-            sage: Y = SineGordonYsystem('A',(6,4,3));
+            sage: Y = SineGordonYsystem('A',(6,4,3))
             sage: Y.r()
             106
         """
@@ -279,7 +279,7 @@ class SineGordonYsystem(SageObject):
 
         EXAMPLES::
 
-            sage: Y = SineGordonYsystem('A',(6,4,3));
+            sage: Y = SineGordonYsystem('A',(6,4,3))
             sage: Y.vertices()
             Ring of integers modulo 106
         """
@@ -302,7 +302,7 @@ class SineGordonYsystem(SageObject):
 
         EXAMPLES::
 
-            sage: Y = SineGordonYsystem('A',(6,4,3));
+            sage: Y = SineGordonYsystem('A',(6,4,3))
             sage: Y.triangulation()
             ((17, 89),
              (17, 72),
@@ -376,7 +376,7 @@ class SineGordonYsystem(SageObject):
 
         EXAMPLES::
 
-            sage: Y = SineGordonYsystem('A',(6,4,3));
+            sage: Y = SineGordonYsystem('A',(6,4,3))
             sage: Y.intervals()
             (((0, 0, 'R'),),
              ((0, 17, 'L'),
@@ -460,8 +460,9 @@ class SineGordonYsystem(SageObject):
 
         EXAMPLES::
 
-            sage: Y = SineGordonYsystem('A',(6,4,3));
-            sage: Y.plot()      # not tested
+            sage: Y = SineGordonYsystem('A',(6,4,3))
+            sage: Y.plot()  # long time 2s
+            Graphics object consisting of 219 graphics primitives
         """
         # Set up plotting options
         if 'radius' in kwds:
@@ -511,10 +512,11 @@ class SineGordonYsystem(SageObject):
                             return sorted((a, b, p))
 
         def plot_arc(radius, p, q, **opts):
+            # TODO: THIS SHOULD USE THE EXISTING PLOT OF ARCS!
             # plot the arc from p to q differently depending on the type of self
             p = ZZ(p)
             q = ZZ(q)
-            t = var('t')
+            t = SR.var('t')
             if p - q in [1, -1]:
                 def f(t):
                     return (radius * cos(t), radius * sin(t))

@@ -1148,6 +1148,13 @@ cdef class Parent(sage.structure.category_object.CategoryObject):
             True
             sage: P(1/2) in ZZ
             False
+
+        Check that :trac:`24209` is fixed::
+
+            sage: I in QQbar
+            True
+            sage: sqrt(-1) in QQbar
+            True
         """
         P = parent(x)
         if P is self or P == self:
@@ -1162,8 +1169,8 @@ cdef class Parent(sage.structure.category_object.CategoryObject):
             elif EQ:
                 return True
             else:
-                from sage.symbolic.expression import is_Expression
-                return is_Expression(EQ)
+                from sage.structure.element import Expression
+                return isinstance(EQ, Expression)
             # if comparing gives an Expression, then it must be an equation.
             # We return *true* here, even though the equation
             # EQ must have evaluated to False for us to get to
@@ -2635,8 +2642,8 @@ cdef class Parent(sage.structure.category_object.CategoryObject):
         elif self_on_left and op is operator.pow:
             S_is_int = parent_is_integers(S)
             if not S_is_int:
-                from sage.rings.finite_rings.integer_mod_ring import is_IntegerModRing
-                if is_IntegerModRing(S):
+                from sage.rings.abc import IntegerModRing
+                if isinstance(S, IntegerModRing):
                     # We allow powering by an IntegerMod by treating it
                     # as an integer.
                     #

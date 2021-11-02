@@ -688,9 +688,10 @@ def linear_transformation(arg0, arg1=None, arg2=None, side='left'):
     from sage.modules.module import is_VectorSpace
     from sage.modules.free_module import VectorSpace
     from sage.categories.homset import Hom
-    from sage.symbolic.ring import SR
-    from sage.modules.vector_callable_symbolic_dense import Vector_callable_symbolic_dense
-    from inspect import isfunction
+    try:
+        from sage.modules.vector_callable_symbolic_dense import Vector_callable_symbolic_dense
+    except ImportError:
+        Vector_callable_symbolic_dense = ()
 
     if not side in ['left', 'right']:
         raise ValueError("side must be 'left' or 'right', not {0}".format(side))
@@ -734,9 +735,8 @@ def linear_transformation(arg0, arg1=None, arg2=None, side='left'):
             arg2 = arg2.transpose()
     elif isinstance(arg2, (list, tuple)):
         pass
-    elif isfunction(arg2):
-        pass
     elif isinstance(arg2, Vector_callable_symbolic_dense):
+        from sage.symbolic.ring import SR
         args = arg2.parent().base_ring()._arguments
         exprs = arg2.change_ring(SR)
         m = len(args)
@@ -758,6 +758,8 @@ def linear_transformation(arg0, arg1=None, arg2=None, side='left'):
         except (ArithmeticError, TypeError) as e:
             msg = 'some image of the function is not in the codomain, because\n' + e.args[0]
             raise ArithmeticError(msg)
+    elif callable(arg2):
+        pass
     else:
         msg = 'third argument must be a matrix, function, or list of images, not {0}'
         raise TypeError(msg.format(arg2))

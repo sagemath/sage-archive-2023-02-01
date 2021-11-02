@@ -249,6 +249,7 @@ from sage.misc.verbose import verbose, get_verbose
 from sage.misc.method_decorator import MethodDecorator
 
 from sage.rings.integer_ring import ZZ
+import sage.rings.abc
 import sage.rings.polynomial.toy_buchberger as toy_buchberger
 import sage.rings.polynomial.toy_variety as toy_variety
 import sage.rings.polynomial.toy_d_basis as toy_d_basis
@@ -2123,9 +2124,23 @@ class MPolynomialIdeal_singular_repr(
             sage: print("possible output from giac", flush=True); I.elimination_ideal([t, s], algorithm="giac") == J
             possible output...
             True
+
+        Check that the passed variables are actually variables of the ring
+        (:trac:`31414`)::
+
+            sage: R.<x,y,z> = QQ[]
+            sage: I = R.ideal(x-y, z)
+            sage: I.elimination_ideal([x, R(0)])
+            Traceback (most recent call last):
+            ...
+            ValueError: not a ring variable: 0
         """
         if not isinstance(variables, (list, tuple)):
             variables = (variables,)
+        gens = self.ring().gens()
+        for v in variables:
+            if v not in gens:
+                raise ValueError("not a ring variable: %s" % v)
 
         if (algorithm is None or algorithm.lower() == 'libsingular'
                 or algorithm == 'libsingular:eliminate'):
@@ -2223,7 +2238,7 @@ class MPolynomialIdeal_singular_repr(
         if not isinstance(J, MPolynomialIdeal):
             raise TypeError("J needs to be a multivariate polynomial ideal")
 
-        if not R is J.ring() and not R == J.ring():
+        if R is not J.ring() and not R == J.ring():
             raise TypeError("base rings do not match")
 
         from sage.libs.singular.function_factory import ff
@@ -4274,7 +4289,6 @@ class MPolynomialIdeal( MPolynomialIdeal_singular_repr, \
             sage: I.groebner_basis('magma:GroebnerBasis') # optional - magma
             [a + (-60)*c^3 + 158/7*c^2 + 8/7*c - 1, b + 30*c^3 + (-79/7)*c^2 + 3/7*c, c^4 + (-10/21)*c^3 + 1/84*c^2 + 1/84*c]
         """
-        from sage.rings.finite_rings.integer_mod_ring import is_IntegerModRing
         from sage.rings.polynomial.multi_polynomial_sequence import PolynomialSequence
         from sage.rings.polynomial.polynomial_ring_constructor import PolynomialRing
 
@@ -4317,7 +4331,7 @@ class MPolynomialIdeal( MPolynomialIdeal_singular_repr, \
                                 deg_bound=deg_bound, mult_bound=mult_bound,
                                 prot=prot, *args, **kwds)]
                     elif (R.term_order().is_global()
-                          and is_IntegerModRing(B)
+                          and isinstance(B, sage.rings.abc.IntegerModRing)
                           and not B.is_field()):
                         verbose("Warning: falling back to very slow toy implementation.", level=0)
 
@@ -4723,7 +4737,7 @@ class MPolynomialIdeal( MPolynomialIdeal_singular_repr, \
         if m <= n:
             raise ValueError("This function requires an overdefined system of polynomials.")
 
-        from sage.rings.all import QQ
+        from sage.rings.rational_field import QQ
         from sage.misc.misc_c import prod
         from sage.rings.power_series_ring import PowerSeriesRing
 

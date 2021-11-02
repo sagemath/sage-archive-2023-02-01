@@ -3,7 +3,7 @@ Gamma and related functions
 """
 
 from sage.symbolic.function import GinacFunction, BuiltinFunction
-from sage.libs.pynac.pynac import (register_symbol, symbol_table)
+from sage.symbolic.expression import register_symbol, symbol_table
 from sage.structure.all import parent as s_parent
 from sage.rings.all import Rational, ComplexField
 from sage.rings.complex_mpfr import is_ComplexNumber
@@ -357,12 +357,12 @@ class Function_gamma_inc(BuiltinFunction):
         TESTS::
 
             sage: b = RBF(1, 1e-10)
-            sage: gamma(b)
-            [1.00000000 +/- 8.07e-10]
-            sage: gamma(CBF(b))
-            [1.00000000 +/- 8.07e-10]
-            sage: gamma(CBF(b), 4)
-            [0.01831564 +/- 2.65e-9]
+            sage: gamma(b) # abs tol 1e-9
+            [1.0000000000 +/- 5.78e-11]
+            sage: gamma(CBF(b)) # abs tol 1e-9
+            [1.0000000000 +/- 5.78e-11]
+            sage: gamma(CBF(b), 4) # abs tol 2e-9
+            [0.018315639 +/- 9.00e-10]
             sage: gamma(CBF(1), b)
             [0.3678794412 +/- 6.54e-11]
         """
@@ -933,7 +933,8 @@ def psi(x, *args, **kwds):
 symbol_table['functions']['psi'] = psi
 
 
-def _swap_psi(a, b): return psi(b, a)
+def _swap_psi(a, b):
+    return psi(b, a)
 register_symbol(_swap_psi, {'giac': 'Psi'})
 
 

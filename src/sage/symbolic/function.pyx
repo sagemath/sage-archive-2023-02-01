@@ -114,9 +114,22 @@ is attempted, and after that ``sin()`` which succeeds::
 """
 
 #*****************************************************************************
-#       Copyright (C) 2008 - 2010 Burcin Erocal <burcin@erocal.org>
-#       Copyright (C) 2008 William Stein <wstein@gmail.com>
-#       Copyright (C) 2016 Vincent Delecroix <vincent.delecroix@u-bordeaux.fr>
+#       Copyright (C) 2008      William Stein <wstein@gmail.com>
+#       Copyright (C) 2008-2012 Burcin Erocal <burcin@erocal.org>
+#       Copyright (C) 2009      Mike Hansen
+#       Copyright (C) 2010      Wilfried Huss
+#       Copyright (C) 2012      Michael Orlitzky
+#       Copyright (C) 2013      Eviatar Bach
+#       Copyright (C) 2013      Robert Bradshaw
+#       Copyright (C) 2014      Jeroen Demeyer
+#       Copyright (C) 2014      Martin von Gagern
+#       Copyright (C) 2015-2020 Frédéric Chapoton
+#       Copyright (C) 2016      Vincent Delecroix <vincent.delecroix@u-bordeaux.fr>
+#       Copyright (C) 2016-2018 Ralf Stephan
+#       Copyright (C) 2018      Erik M. Bray
+#       Copyright (C) 2019      Eric Gourgoulhon
+#       Copyright (C) 2019      Marc Mezzarobba
+#       Copyright (C) 2021      Matthias Koeppe
 #
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -126,24 +139,19 @@ is attempted, and after that ``sin()`` which succeeds::
 #*****************************************************************************
 
 from sage.structure.sage_object cimport SageObject
-from sage.structure.element cimport Element, parent
+from sage.structure.element cimport Element, parent, Expression
 from sage.misc.lazy_attribute import lazy_attribute
 from .expression import (
     call_registered_function, find_registered_function, register_or_update_function,
-    is_Expression
+    get_sfunction_from_hash
 )
-from .ring import SR
+from .expression import get_sfunction_from_serial as get_sfunction_from_serial
 
 from sage.structure.coerce cimport (coercion_model,
         py_scalar_to_element, is_numpy_type, is_mpmath_type)
 from sage.structure.richcmp cimport richcmp
 
-# we keep a database of symbolic functions initialized in a session
-# this also makes the .operator() method of symbolic expressions work
-cdef dict sfunction_serial_dict = {}
-
 from sage.misc.fpickle import pickle_function, unpickle_function
-from sage.ext.fast_eval import FastDoubleFunc
 
 # List of functions which ginac allows us to define custom behavior for.
 # Changing the order of this list could cause problems unpickling old pickles.
@@ -225,10 +233,8 @@ cdef class Function(SageObject):
         if not self._is_registered():
             self._register_function()
 
-            global sfunction_serial_dict
-            sfunction_serial_dict[self._serial] = self
+            from .expression import symbol_table, register_symbol
 
-            from sage.libs.pynac.pynac import symbol_table, register_symbol
             symbol_table['functions'][self._name] = self
 
             register_symbol(self, self._conversions)
@@ -326,7 +332,7 @@ cdef class Function(SageObject):
         try:
             evalf = self._evalf_  # catch AttributeError early
             if any(self._is_numerical(x) for x in args):
-                if not any(is_Expression(x) for x in args):
+                if not any(isinstance(x, Expression) for x in args):
                     p = coercion_model.common_parent(*args)
                     return evalf(*args, parent=p)
         except Exception:
@@ -439,7 +445,7 @@ cdef class Function(SageObject):
             sage: arctan(float(1))
             0.7853981633974483
             sage: type(lambert_w(SR(0)))
-            <type 'sage.symbolic.expression.Expression'>
+            <class 'sage.symbolic.expression.Expression'>
 
         Precision of the result depends on the precision of the input::
 
@@ -508,18 +514,9 @@ cdef class Function(SageObject):
         if self._nargs > 0 and len(args) != self._nargs:
             raise TypeError("Symbolic function %s takes exactly %s arguments (%s given)" % (self._name, self._nargs, len(args)))
 
-        # support fast_float
-        if self._nargs == 1:
-            if isinstance(args[0], FastDoubleFunc):
-                try:
-                    method = getattr(args[0], self._name)
-                except AttributeError:
-                    raise TypeError("cannot handle fast float arguments")
-                else:
-                    return method()
-
         # if the given input is a symbolic expression, we don't convert it back
         # to a numeric type at the end
+        from .ring import SR
         if any(parent(arg) is SR for arg in args):
             symbolic_input = True
         else:
@@ -544,7 +541,7 @@ cdef class Function(SageObject):
 
         else: # coerce == False
             for a in args:
-                if not is_Expression(a):
+                if not isinstance(a, Expression):
                     raise TypeError("arguments must be symbolic expressions")
 
         return call_registered_function(self._serial, self._nargs, args, hold,
@@ -601,6 +598,7 @@ cdef class Function(SageObject):
             sage: sin.default_variable()
             x
         """
+        from .ring import SR
         return SR.var('x')
 
     def _is_numerical(self, x):
@@ -718,47 +716,6 @@ cdef class Function(SageObject):
             'ff'
         """
         return self._conversions.get('maxima', self._name)
-
-    def _fast_float_(self, *vars):
-        """
-        Returns an object which provides fast floating point evaluation of
-        self.
-
-        See sage.ext.fast_eval? for more information.
-
-        EXAMPLES::
-
-            sage: sin._fast_float_()
-            <sage.ext.fast_eval.FastDoubleFunc object at 0x...>
-            sage: sin._fast_float_()(0)
-            0.0
-
-        ::
-
-            sage: ff = cos._fast_float_(); ff
-            <sage.ext.fast_eval.FastDoubleFunc object at 0x...>
-            sage: ff.is_pure_c()
-            True
-            sage: ff(0)
-            1.0
-
-        ::
-
-            sage: ff = erf._fast_float_()
-            sage: ff.is_pure_c()
-            False
-            sage: ff(1.5) # tol 1e-15
-            0.9661051464753108
-            sage: erf(1.5)
-            0.966105146475311
-        """
-        import sage.ext.fast_eval as fast_float
-
-        args = [fast_float.fast_float_arg(n) for n in range(self.number_of_arguments())]
-        try:
-            return self(*args)
-        except TypeError as err:
-            return fast_float.fast_float_func(self, *args)
 
     def _fast_callable_(self, etb):
         r"""
@@ -885,8 +842,7 @@ cdef class GinacFunction(BuiltinFunction):
         # ginac's function registry
         fname = self._ginac_name if self._ginac_name is not None else self._name
         self._serial = find_registered_function(fname, self._nargs)
-        global sfunction_serial_dict
-        return self._serial in sfunction_serial_dict
+        return bool(get_sfunction_from_serial(self._serial))
 
     cdef _register_function(self):
         # We don't need to add anything to GiNaC's function registry
@@ -998,7 +954,7 @@ cdef class BuiltinFunction(Function):
             sage: sin(numpy.int32(0))
             0.0
             sage: type(_)
-            <type 'numpy.float64'>
+            <class 'numpy.float64'>
 
         TESTS::
 
@@ -1083,6 +1039,7 @@ cdef class BuiltinFunction(Function):
             if (self._preserved_arg
                     and isinstance(args[self._preserved_arg-1], Element)):
                 arg_parent = parent(args[self._preserved_arg-1])
+                from .ring import SR
                 if arg_parent is SR:
                     return res
                 from sage.rings.polynomial.polynomial_ring import PolynomialRing_commutative
@@ -1145,12 +1102,11 @@ cdef class BuiltinFunction(Function):
             return False
 
         # if match, get operator from function table
-        global sfunction_serial_dict
-        if serial in sfunction_serial_dict and \
-                sfunction_serial_dict[serial].__class__ == self.__class__:
-                    # if the returned function is of the same type
-                    self._serial = serial
-                    return True
+        sfunc = get_sfunction_from_serial(serial)
+        if sfunc.__class__ == self.__class__:
+            # if the returned function is of the same type
+            self._serial = serial
+            return True
 
         return False
 
@@ -1235,15 +1191,12 @@ cdef class SymbolicFunction(Function):
 
     cdef _is_registered(SymbolicFunction self):
         # see if there is already a SymbolicFunction with the same state
-        cdef Function sfunc
         cdef long myhash = self._hash_()
-        for sfunc in sfunction_serial_dict.itervalues():
-            if isinstance(sfunc, SymbolicFunction) and \
-                    myhash == (<SymbolicFunction>sfunc)._hash_():
-                # found one, set self._serial to be a copy
-                self._serial = sfunc._serial
-                return True
-
+        cdef SymbolicFunction sfunc = get_sfunction_from_hash(myhash)
+        if sfunc is not None:
+            # found one, set self._serial to be a copy
+            self._serial = sfunc._serial
+            return True
         return False
 
     # cache the hash value of this function
@@ -1428,21 +1381,6 @@ cdef class SymbolicFunction(Function):
         SymbolicFunction.__init__(self, name, nargs, latex_name,
                 conversions, evalf_params_first)
 
-
-def get_sfunction_from_serial(serial):
-    """
-    Return an already created :class:`SymbolicFunction` given the serial.
-
-    These are stored in the dictionary ``sage.symbolic.function.sfunction_serial_dict``.
-
-    EXAMPLES::
-
-        sage: from sage.symbolic.function import get_sfunction_from_serial
-        sage: get_sfunction_from_serial(65) #random
-        f
-    """
-    global sfunction_serial_dict
-    return sfunction_serial_dict.get(serial)
 
 def pickle_wrapper(f):
     """

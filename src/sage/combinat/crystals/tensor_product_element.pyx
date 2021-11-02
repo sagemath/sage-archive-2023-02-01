@@ -36,7 +36,7 @@ from sage.structure.parent cimport Parent
 from sage.misc.cachefunc import cached_method, cached_in_parent_method
 from sage.functions.other import ceil
 from sage.combinat.tableau import Tableau
-from sage.rings.all import ZZ
+from sage.rings.integer_ring import ZZ
 
 ##############################################################################
 # Support classes
@@ -1314,7 +1314,7 @@ cdef class CrystalOfBKKTableauxElement(TensorProductOfSuperCrystalsElement):
         return repr(self.to_tableau())
 
     def _repr_diagram(self):
-        """
+        r"""
         Return a string representation of ``self`` as a diagram.
 
         EXAMPLES::

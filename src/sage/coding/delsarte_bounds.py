@@ -134,7 +134,8 @@ def eberlein(n, w, k, u, check=True):
       your own risk.
 
 
-    EXAMPLES:
+    EXAMPLES::
+
         sage: codes.bounds.eberlein(24,10,2,6)
         -9
 
@@ -224,8 +225,9 @@ def _delsarte_LP_building(n, d, d_star, q, isinteger,  solver, maxc = 0):
 
 def _delsarte_cwc_LP_building(n, d, w, solver, isinteger):
     r"""
-    LP builder for Delsarte's LP for constant weight codes, used in
-    delsarte_bound_constant_weight_code; not exported.
+    LP builder for Delsarte's LP for constant weight codes
+
+    It is used in :func:`delsarte_bound_constant_weight_code`; not exported.
 
     INPUT:
 
@@ -273,7 +275,7 @@ def _delsarte_cwc_LP_building(n, d, w, solver, isinteger):
         v_i = binomial(w,i)*binomial(n-w,i)
         return mu_i*eberlein(n,w,i,k)/v_i
 
-    for k in range(1,w+1): 
+    for k in range(1,w+1):
         p.add_constraint(sum([A[2*i]*_q(k,i) for i in range(d//2,w+1)]),min=-1)
 
     return A, p
@@ -281,8 +283,10 @@ def _delsarte_cwc_LP_building(n, d, w, solver, isinteger):
 
 def delsarte_bound_constant_weight_code(n, d, w, return_data=False, solver="PPL", isinteger=False):
     r"""
+    Find the Delsarte bound on a constant weight code.
+
     Find the Delsarte bound on a constant weight code of weight ``w``, length
-    ``n``, lower bound on minimal distance ``d`` 
+    ``n``, lower bound on minimal distance ``d``.
 
     INPUT:
 
@@ -328,7 +332,7 @@ def delsarte_bound_constant_weight_code(n, d, w, return_data=False, solver="PPL"
 
     if d<4:
         raise ValueError("Violated constraint d>=4 for Binary Constant Weight Codes")
-    
+
     if d>=2*w or 2*w>n:
         raise ValueError("Violated constraint d<2w<=n for Binary Constant Weight Codes")
 
@@ -354,9 +358,10 @@ def delsarte_bound_constant_weight_code(n, d, w, return_data=False, solver="PPL"
 
 def delsarte_bound_hamming_space(n, d, q, return_data=False, solver="PPL", isinteger=False):
     r"""
-    Find the Delsarte bound [De1973]_ on codes in Hamming space ``H_q^n``
-    of minimal distance ``d``
+    Find the Delsarte bound on codes in ``H_q^n`` of minimal distance ``d``
 
+    Find the Delsarte bound [De1973]_ on the size of codes in the Hamming space ``H_q^n``
+    of minimal distance ``d``.
 
     INPUT:
 
@@ -558,11 +563,13 @@ def delsarte_bound_additive_hamming_space(n, d, q, d_star=1, q_base=0,
       return A, p, m
    else:
       return m
-  
+
 def _delsarte_Q_LP_building(q,d,solver,isinteger):
     r"""
-    LP builder for Delsarte's LP for codes given Q matrix; used in
-    delsarte_bound_Q_matrix; not exported.
+    LP builder for Delsarte's LP for codes given Q matrix.
+
+    LP builder for Delsarte's LP for codes, given Q matrix;
+    used in :func:`delsarte_bound_Q_matrix`; not exported.
 
     INPUT:
 
@@ -606,7 +613,10 @@ def _delsarte_Q_LP_building(q,d,solver,isinteger):
 
 def delsarte_bound_Q_matrix(q,d,return_data=False, solver="PPL", isinteger=False):
     r"""
-    Find the Delsarte bound on a code with Q matrix ``q`` and lower bound on minimal distance ``d`` 
+    Delsarte bound on a code with Q matrix ``q`` and lower bound on min. dist. ``d``.
+
+    Find the Delsarte bound on a code with Q matrix ``q`` and lower bound on
+    minimal distance ``d``.
 
     INPUT:
 
@@ -641,7 +651,7 @@ def delsarte_bound_Q_matrix(q,d,return_data=False, solver="PPL", isinteger=False
        sage: [j for i,j in p.get_values(a).items()]
        [1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1]
 
-   TESTS::
+   TESTS:
 
        cases for using Hamming scheme Q matrix::
 
@@ -674,4 +684,3 @@ def delsarte_bound_Q_matrix(q,d,return_data=False, solver="PPL", isinteger=False
         return A,p,bd
     else:
         return bd
-

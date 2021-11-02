@@ -77,6 +77,45 @@ def has_latex():
     except Exception:
         return False
 
+def has_xelatex():
+    """
+    Test if xelatex is available.
+
+    EXAMPLES::
+
+        sage: from sage.doctest.external import has_xelatex
+        sage: has_xelatex()   # optional -- xelatex
+        FeatureTestResult('xelatex', True)
+    """
+    from sage.features.latex import xelatex
+    return xelatex().is_present()
+
+def has_pdflatex():
+    """
+    Test if pdflatex is available.
+
+    EXAMPLES::
+
+        sage: from sage.doctest.external import has_pdflatex
+        sage: has_pdflatex()   # optional -- pdflatex
+        FeatureTestResult('pdflatex', True)
+    """
+    from sage.features.latex import pdflatex
+    return pdflatex().is_present()
+
+def has_lualatex():
+    """
+    Test if lualatex is available.
+
+    EXAMPLES::
+
+        sage: from sage.doctest.external import has_lualatex
+        sage: has_lualatex()   # optional -- lualatex
+        FeatureTestResult('lualatex', True)
+    """
+    from sage.features.latex import lualatex
+    return lualatex().is_present()
+
 def has_magma():
     """
     Test if Magma is available.
@@ -274,6 +313,32 @@ def has_imagemagick():
     from sage.features.imagemagick import ImageMagick
     return ImageMagick().is_present()
 
+def has_dvipng():
+    """
+    Test if dvipng is available.
+
+    EXAMPLES::
+
+        sage: from sage.doctest.external import has_dvipng
+        sage: has_dvipng() # optional -- dvipng
+        FeatureTestResult('dvipng', True)
+    """
+    from sage.features.dvipng import dvipng
+    return dvipng().is_present()
+
+def has_pdf2svg():
+    """
+    Test if pdf2svg is available.
+
+    EXAMPLES::
+
+        sage: from sage.doctest.external import has_pdf2svg
+        sage: has_pdf2svg() # optional -- pdf2svg
+        FeatureTestResult('pdf2svg', True)
+    """
+    from sage.features.pdf2svg import pdf2svg
+    return pdf2svg().is_present()
+
 def has_rubiks():
     """
     Test if the rubiks package (``cu2``, ``cubex``, ``dikcube``,
@@ -345,12 +410,14 @@ class AvailableSoftware(object):
         sage: external_software
         ['4ti2',
          'cplex',
+         'dvipng',
          'ffmpeg',
          'graphviz',
          'gurobi',
          'imagemagick',
          'internet',
          'latex',
+         'lualatex',
          'macaulay2',
          'magma',
          'maple',
@@ -358,8 +425,11 @@ class AvailableSoftware(object):
          'matlab',
          'octave',
          'pandoc',
+         'pdf2svg',
+         'pdflatex',
          'rubiks',
-         'scilab']
+         'scilab',
+         'xelatex']
         sage: 'internet' in available_software # random, optional - internet
         True
         sage: available_software.issuperset(set(['internet','latex'])) # random, optional - internet latex

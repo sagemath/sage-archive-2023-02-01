@@ -514,7 +514,8 @@ class FileDocTestSource(DocTestSource):
         self.path = path
         DocTestSource.__init__(self, options)
         base, ext = os.path.splitext(path)
-        if ext in ('.py', '.pyx', '.pxd', '.pxi', '.sage', '.spyx'):
+        valid_code_ext = ('.py', '.pyx', '.pxd', '.pxi', '.sage', '.spyx')
+        if ext in valid_code_ext:
             self.__class__ = dynamic_class('PythonFileSource',(FileDocTestSource,PythonSource))
             self.encoding = "utf-8"
         elif ext == '.tex':
@@ -524,7 +525,9 @@ class FileDocTestSource(DocTestSource):
             self.__class__ = dynamic_class('RestFileSource',(FileDocTestSource,RestSource))
             self.encoding = "utf-8"
         else:
-            raise ValueError("unknown file extension %r"%ext)
+            valid_ext = ", ".join(valid_code_ext + ('.tex', '.rst'))
+            raise ValueError("unknown extension (={}) for the file to test,"
+                    " valid extensions are: {}".format(ext, valid_ext))
 
     def __iter__(self):
         r"""

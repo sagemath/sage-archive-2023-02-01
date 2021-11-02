@@ -4188,7 +4188,7 @@ class Polyhedron_base(Element, ConvexSet_closed):
             P = gale_transform_to_polytope(g, base_ring=self.base_ring(), backend=self.backend())
 
             try:
-                import sage.graphs.graph
+                import sage.graphs.graph  # NOQA
             except ImportError:
                 pass
             else:
@@ -7351,7 +7351,7 @@ class Polyhedron_base(Element, ConvexSet_closed):
             D1._test_bitsets(tester, **options)
             D2._test_bitsets(tester, **options)
             try:
-                import sage.graphs.graph
+                import sage.graphs.graph  # NOQA
             except ImportError:
                 pass
             else:
@@ -7937,7 +7937,7 @@ class Polyhedron_base(Element, ConvexSet_closed):
             check_pyramid_certificate(polar_pyr, cert)
 
             try:
-                import sage.graphs.graph
+                import sage.graphs.graph  # NOQA
             except ImportError:
                 pass
             else:
@@ -10819,7 +10819,7 @@ class Polyhedron_base(Element, ConvexSet_closed):
             return
 
         try:
-            import sage.graphs.graph
+            import sage.graphs.graph  # NOQA
         except ImportError:
             return
 

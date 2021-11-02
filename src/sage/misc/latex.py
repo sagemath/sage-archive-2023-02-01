@@ -80,8 +80,8 @@ def have_latex() -> bool:
         sage: have_latex() # random
         True
     """
-    from sage.misc.sage_ostools import have_program
-    return have_program('latex')
+    from sage.features.latex import latex
+    return latex().is_present()
 
 
 @cached_function
@@ -98,8 +98,8 @@ def have_pdflatex() -> bool:
         sage: have_pdflatex() # random
         True
     """
-    from sage.misc.sage_ostools import have_program
-    return have_program('pdflatex')
+    from sage.features.latex import pdflatex
+    return pdflatex().is_present()
 
 
 @cached_function
@@ -116,8 +116,8 @@ def have_xelatex() -> bool:
         sage: have_xelatex() # random
         True
     """
-    from sage.misc.sage_ostools import have_program
-    return have_program('xelatex')
+    from sage.features.latex import xelatex
+    return xelatex().is_present()
 
 
 @cached_function
@@ -134,9 +134,8 @@ def have_dvipng() -> bool:
         sage: have_dvipng() # random
         True
     """
-    from sage.misc.sage_ostools import have_program
-    return have_program('dvipng')
-
+    from sage.features.dvipng import dvipng
+    return dvipng().is_present()
 
 @cached_function
 def have_convert() -> bool:
@@ -153,8 +152,8 @@ def have_convert() -> bool:
         sage: have_convert() # random
         True
     """
-    from sage.misc.sage_ostools import have_program
-    return have_program('convert')
+    from sage.features.imagemagick import ImageMagick
+    return ImageMagick().is_present()
 
 
 def list_function(x):

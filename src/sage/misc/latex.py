@@ -80,6 +80,9 @@ def have_latex() -> bool:
         sage: have_latex() # random
         True
     """
+    from .superseded import deprecation
+    deprecation(32650, 'the function have_latex() is replaced by: '
+                'from sage.features.latex import latex;latex().is_present()')
     from sage.features.latex import latex
     return latex().is_present()
 
@@ -98,6 +101,9 @@ def have_pdflatex() -> bool:
         sage: have_pdflatex() # random
         True
     """
+    from .superseded import deprecation
+    deprecation(32650, 'the function have_pdflatex() is replaced by: '
+                'from sage.features.latex import pdflatex;pdflatex().is_present()')
     from sage.features.latex import pdflatex
     return pdflatex().is_present()
 
@@ -116,6 +122,9 @@ def have_xelatex() -> bool:
         sage: have_xelatex() # random
         True
     """
+    from .superseded import deprecation
+    deprecation(32650, 'the function have_xelatex() is replaced by: '
+                'from sage.features.latex import xelatex;xelatex().is_present()')
     from sage.features.latex import xelatex
     return xelatex().is_present()
 
@@ -134,6 +143,9 @@ def have_dvipng() -> bool:
         sage: have_dvipng() # random
         True
     """
+    from .superseded import deprecation
+    deprecation(32650, 'the function have_dvipng() is replaced by: '
+                'from sage.features.dvipng import dvipng;dvipng().is_present()')
     from sage.features.dvipng import dvipng
     return dvipng().is_present()
 
@@ -152,6 +164,9 @@ def have_convert() -> bool:
         sage: have_convert() # random
         True
     """
+    from .superseded import deprecation
+    deprecation(32650, 'the function have_convert() is replaced by: '
+                'from sage.features.imagemagick import imagemagick;imagemagick().is_present()')
     from sage.features.imagemagick import ImageMagick
     return ImageMagick().is_present()
 
@@ -699,27 +714,21 @@ def _run_latex_(filename, debug=False, density=150, engine=None, png=False, do_i
         engine = _Latex_prefs._option["engine"]
 
     if not engine or engine == "latex":
-        if not have_latex():
-            print("Error: LaTeX does not seem to be installed.  Download it from")
-            print("ctan.org and try again.")
-            return "Error"
+        from sage.features.latex import latex
+        latex().require()
         command = "latex"
         # 'suffix' is used in the 'convert' command list
         suffix = "ps"
         return_suffix = "dvi"
     elif engine == "pdflatex":
-        if not have_pdflatex():
-            print("Error: PDFLaTeX does not seem to be installed.  Download it from")
-            print("ctan.org and try again.")
-            return "Error"
+        from sage.features.latex import pdflatex
+        pdflatex().require()
         command = "pdflatex"
         suffix = "pdf"
         return_suffix = "pdf"
     elif engine == "xelatex":
-        if not have_xelatex():
-            print("Error: XeLaTeX does not seem to be installed.  Download it from")
-            print("ctan.org and try again.")
-            return "Error"
+        from sage.features.latex import xelatex
+        xelatex().require()
         command = "xelatex"
         suffix = "pdf"
         return_suffix = "pdf"
@@ -727,8 +736,11 @@ def _run_latex_(filename, debug=False, density=150, engine=None, png=False, do_i
         raise ValueError("Unsupported LaTeX engine.")
 
     # if png output + latex, check to see if dvipng or convert is installed.
+    from sage.features.imagemagick import ImageMagick
+    from sage.features.dvipng import dvipng
     if png:
-        if (not engine or engine == "latex") and not (have_dvipng() or have_convert()):
+        if ((not engine or engine == "latex")
+            and not (dvipng().is_present() or ImageMagick().is_present())):
             print()
             print("Error: neither dvipng nor convert (from the ImageMagick suite)")
             print("appear to be installed. Displaying LaTeX, PDFLaTeX output")
@@ -739,22 +751,10 @@ def _run_latex_(filename, debug=False, density=150, engine=None, png=False, do_i
             print("http://www.imagemagick.org to download these programs.")
             return "Error"
     # if png output + pdflatex, check to see if convert is installed.
-        elif engine == "pdflatex" and not have_convert():
-            print()
-            print("Error: convert (from the ImageMagick suite) does not")
-            print("appear to be installed. Displaying PDFLaTeX output")
-            print("requires this program, so please install and try again.")
-            print()
-            print("Go to http://www.imagemagick.org to download it.")
-            return "Error"
-        elif engine == "xelatex" and not have_convert():
-            print()
-            print("Error: convert (from the ImageMagick suite) does not")
-            print("appear to be installed. Displaying XeLaTeX output")
-            print("requires this program, so please install and try again.")
-            print()
-            print("Go to http://www.imagemagick.org to download it.")
-            return "Error"
+        elif engine == "pdflatex":
+            ImageMagick().require()
+        elif engine == "xelatex":
+            ImageMagick().require()
     # check_validity: check to see if the dvi file is okay by trying
     # to convert to a png file.  if this fails, return_suffix will be
     # set to "pdf".  return_suffix is the return value for this
@@ -763,7 +763,7 @@ def _run_latex_(filename, debug=False, density=150, engine=None, png=False, do_i
     # thus if not png output, check validity of dvi output if dvipng
     # or convert is installed.
     else:
-        check_validity = have_dvipng()
+        check_validity = dvipng().is_present()
     # set up filenames, other strings:
     base, filename = os.path.split(filename)
     filename = os.path.splitext(filename)[0]  # get rid of extension
@@ -816,7 +816,7 @@ def _run_latex_(filename, debug=False, density=150, engine=None, png=False, do_i
             e = e and subpcall(convert)
     else:  # latex
         if (png or check_validity):
-            if have_dvipng():
+            if dvipng().is_present():
                 if debug:
                     print(lt)
                     print(dvipng)
@@ -829,7 +829,7 @@ def _run_latex_(filename, debug=False, density=150, engine=None, png=False, do_i
                 # fail also, so we'll still catch the error.)
                 if dvipng_error:
                     if png:
-                        if have_convert():
+                        if ImageMagick().is_present():
                             if debug:
                                 print("'dvipng' failed; trying 'convert' instead...")
                                 print(dvips)

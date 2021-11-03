@@ -1926,19 +1926,19 @@ class Link(SageObject):
             sage: L = Link(B([1]*16 + [2,1,2,1,2,2,2,2,2,2,2,1,2,1,2,-1,2,-2]))
             sage: L.determinant()
             65
+            sage: B = BraidGroup(3)
+            sage: Link(B([1, 2, 1, 1, 2])).determinant()
+            4
 
         TESTS::
 
+            sage: B = BraidGroup(3)
             sage: Link(B([1, 2, 1, -2, -1])).determinant()
-            Traceback (most recent call last):
-            ...
-            NotImplementedError: determinant implemented only for knots
+            0
         """
-        if self.is_knot():
-            a = self.alexander_polynomial()
-            return Integer(abs(a(-1)))
-
-        raise NotImplementedError("determinant implemented only for knots")
+        V = self.seifert_matrix()
+        m = V + V.transpose()
+        return Integer(abs(m.det()))
 
     def is_alternating(self):
         r"""

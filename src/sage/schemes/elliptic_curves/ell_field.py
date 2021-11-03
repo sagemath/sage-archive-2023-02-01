@@ -800,9 +800,8 @@ class EllipticCurve_field(ell_generic.EllipticCurve_generic, ProjectivePlaneCurv
 
             sage: E4 = EllipticCurve([1,2,3,4,5])
             sage: E4._fetch_cached_order(E1.change_ring(QQ))
-            Traceback (most recent call last):
-            ...
-            ValueError: base field must be finite
+            sage: hasattr(E4, '_order')
+            False
         """
         if hasattr(self, '_order') or not hasattr(other, '_order'):
             return

@@ -772,10 +772,10 @@ class EllipticCurve_field(ell_generic.EllipticCurve_generic, ProjectivePlaneCurv
         This method copies the ``_order`` member from ``other``
         to ``self`` if their base field is the same and finite.
 
-        This is used in :meth:`isogeny` and :meth:`isogeny_codomain`
-        to keep track of an already computed curve order: According
-        to Tate's theorem [Tate1966b]_, isogenous elliptic curves
-        over a finite field have the same number of rational points.
+        This is used in :class:`EllipticCurveIsogeny` to keep track of
+        an already computed curve order: According to Tate's theorem
+        [Tate1966b]_, isogenous elliptic curves over a finite field
+        have the same number of rational points.
 
         EXAMPLES::
 
@@ -804,6 +804,8 @@ class EllipticCurve_field(ell_generic.EllipticCurve_generic, ProjectivePlaneCurv
             ...
             ValueError: base field must be finite
         """
+        if hasattr(self, '_order') or not hasattr(other, '_order'):
+            return
         F = self.base_field()
         if F != other.base_field():
             raise ValueError('curves have distinct base fields')
@@ -930,12 +932,9 @@ class EllipticCurve_field(ell_generic.EllipticCurve_generic, ProjectivePlaneCurv
             170141183460469231746191640949390434666
         """
         try:
-            phi = EllipticCurveIsogeny(self, kernel, codomain, degree, model, check=check)
+            return EllipticCurveIsogeny(self, kernel, codomain, degree, model, check=check)
         except AttributeError as e:
             raise RuntimeError("Unable to construct isogeny: %s" % e)
-        if self.base_field().is_finite():
-            phi.codomain()._fetch_cached_order(self)
-        return phi
 
     def isogeny_codomain(self, kernel, degree=None):
         r"""

@@ -3106,77 +3106,82 @@ class RiemannSurface(object):
             zP = self._CC(zP)
             wP = self._CC(wP)
             V_index = find_closest_element(zP, self._vertices)
-            b_index = find_closest_element(zP, self.branch_locus)
-            b = self.branch_locus[b_index]
-            #bl = self.branch_locus+self._differentials_branch_locus
-            #b_index = find_closest_element(zP, bl)
-            #b = bl[b_index]
-         
-            scale = max(b.abs() for b in self.branch_locus)
-            d1 = self._CC(1e-2)*scale
 
-            # We choose the first vertex we want to go to.
-            # If the closest vertex is closer than the nearest branch point, just take that vertex
-            # otherwise we need something smarter.
-            delta = self._RR(2)**(-self._prec+1)
-            if not ((zP-self._vertices[V_index]).abs() < (zP-b).abs() or (zP-b).abs()<=delta):
-                region = self.voronoi_diagram.regions[self.voronoi_diagram.point_region[b_index]]
-                args = [(self._vertices[i]-zP).argument() - (b-zP).argument() for i in region]
-                suitable_vertex_indices = [region[i] 
-                                           for i in range(len(region)) if args[i].abs()-self._RR.pi()/2>=-self._RR(1e-15)]
-                suitable_vertices = [self._vertices[i] for i in suitable_vertex_indices]
-                if suitable_vertices==[]:
-                    raise ValueError("There is no satisfactory choice of V for zP={}".format(zP))
-                V_index = suitable_vertex_indices[find_closest_element(zP, suitable_vertices)]
-            #####
-            zV = self._vertices[V_index]
-
-            if (zP-b).abs() >= d1 or b in self._differentials_branch_locus:
-                wP_index = find_closest_element(wP, self.w_values(zP))
-                d_edge = (zP, zV)
-                u_edge = ((zP, wP_index), (zV, ))
-                initial_continuation = self.homotopy_continuation(d_edge)
-                AJ = -line_int(u_edge)
-            
-                w_end = initial_continuation[-1][1][wP_index]
-                W_index = find_closest_element(w_end, self._wvalues[V_index])
+            if zP==self._vertices[V_index]:
+                W_index = find_closest_element(wP, self._wvalues[V_index])
+                AJ = 0 
             else:
-                zs = zP
-                ws = wP
-
+                b_index = find_closest_element(zP, self.branch_locus)
+                b = self.branch_locus[b_index]
+                #bl = self.branch_locus+self._differentials_branch_locus
+                #b_index = find_closest_element(zP, bl)
+                #b = bl[b_index]
+             
+                scale = max(b.abs() for b in self.branch_locus)
+                d1 = self._CC(1e-2)*scale
+    
+                # We choose the first vertex we want to go to.
+                # If the closest vertex is closer than the nearest branch point, just take that vertex
+                # otherwise we need something smarter.
+                delta = self._RR(2)**(-self._prec+1)
+                if not ((zP-self._vertices[V_index]).abs() < (zP-b).abs() or (zP-b).abs()<=delta):
+                    region = self.voronoi_diagram.regions[self.voronoi_diagram.point_region[b_index]]
+                    args = [(self._vertices[i]-zP).argument() - (b-zP).argument() for i in region]
+                    suitable_vertex_indices = [region[i] 
+                                               for i in range(len(region)) if args[i].abs()-self._RR.pi()/2>=-self._RR(1e-15)]
+                    suitable_vertices = [self._vertices[i] for i in suitable_vertex_indices]
+                    if suitable_vertices==[]:
+                        raise ValueError("There is no satisfactory choice of V for zP={}".format(zP))
+                    V_index = suitable_vertex_indices[find_closest_element(zP, suitable_vertices)]
                 #####
-                # Here we need a block of code to change the vertex if the path
-                # from zP to zV would go through a ramification point of the integrands
-                fl = [c for c in self._differentials_branch_locus if not c==self._CC(Infinity)]
-                ts = [((c-zP)*(zV-zP).conjugate()).real()/(zP-zV).norm()**2 
-                      for c in fl]
-                ds = [(fl[i]-zP-ts[i]*(zV-zP)).abs()
-                      for i in range(len(ts)) if (ts[i]>=0 and ts[i]<=1)]
-                while (len(ds)>=1 and min(ds)<delta):
-                    V_index = suitable_vertex_indices.pop()
-                    zV = self._vertices[V_index]
+                zV = self._vertices[V_index]
+
+                if (zP-b).abs() >= d1 or b in self._differentials_branch_locus:
+                    wP_index = find_closest_element(wP, self.w_values(zP))
+                    d_edge = (zP, zV)
+                    u_edge = ((zP, wP_index), (zV, ))
+                    initial_continuation = self.homotopy_continuation(d_edge)
+                    AJ = -line_int(u_edge)
+            
+                    w_end = initial_continuation[-1][1][wP_index]
+                    W_index = find_closest_element(w_end, self._wvalues[V_index])
+                else:
+                    zs = zP
+                    ws = wP
+
+                    #####
+                    # Here we need a block of code to change the vertex if the path
+                    # from zP to zV would go through a ramification point of the integrands
+                    fl = [c for c in self._differentials_branch_locus if not c==self._CC(Infinity)]
                     ts = [((c-zP)*(zV-zP).conjugate()).real()/(zP-zV).norm()**2 
                           for c in fl]
                     ds = [(fl[i]-zP-ts[i]*(zV-zP)).abs()
                           for i in range(len(ts)) if (ts[i]>=0 and ts[i]<=1)]
-                #####
+                    while (len(ds)>=1 and min(ds)<delta):
+                        V_index = suitable_vertex_indices.pop()
+                        zV = self._vertices[V_index]
+                        ts = [((c-zP)*(zV-zP).conjugate()).real()/(zP-zV).norm()**2 
+                              for c in fl]
+                        ds = [(fl[i]-zP-ts[i]*(zV-zP)).abs()
+                              for i in range(len(ts)) if (ts[i]>=0 and ts[i]<=1)]
+                    #####
 
-                while self._dfdw(zs, ws).abs()==0:
-                    zs = zs+delta*(zV-zs)/(zV-zs).abs()/2
-                    ws_list = self.w_values(zs)
-                    wP_index = find_closest_element(ws, ws_list)
-                    ws = ws_list[wP_index]
-                upstairs_edge = ((zs, ws), zV)
-                AJ, endgs = self._integrate_differentials_iteratively(upstairs_edge, 
-                                                                      cutoff_individually=False)
-                AJ = -AJ
-                g0e = endgs[0]
+                    while self._dfdw(zs, ws).abs()==0:
+                        zs = zs+delta*(zV-zs)/(zV-zs).abs()/2
+                        ws_list = self.w_values(zs)
+                        wP_index = find_closest_element(ws, ws_list)
+                        ws = ws_list[wP_index]
+                    upstairs_edge = ((zs, ws), zV)
+                    AJ, endgs = self._integrate_differentials_iteratively(upstairs_edge, 
+                                                                          cutoff_individually=False)
+                    AJ = -AJ
+                    g0e = endgs[0]
              
-                ws = self.w_values(zV)
-                g0s = [self.cohomology_basis()[0](zV, wi)/self._dfdw(zV, wi) for wi in ws]
-                W_index = find_closest_element(g0e, g0s)
-                if (g0e - self.cohomology_basis()[0](zV, ws[W_index])/self._dfdw(zV, ws[W_index])).abs()>1e-10:
-                    raise ConvergenceError("Integrand continuation failed to get representative values, higher precision required.")
+                    ws = self.w_values(zV)
+                    g0s = [self.cohomology_basis()[0](zV, wi)/self._dfdw(zV, wi) for wi in ws]
+                    W_index = find_closest_element(g0e, g0s)
+                    if (g0e - self.cohomology_basis()[0](zV, ws[W_index])/self._dfdw(zV, ws[W_index])).abs()>1e-10:
+                        raise ConvergenceError("Integrand continuation failed to get representative values, higher precision required.")
 
         uV_index = (V_index, W_index)
         #####
@@ -3245,7 +3250,7 @@ class RiemannSurface(object):
                 print("Done, {}% complete".format(numerical_approx(100*(i+1)/n, 11)))
         return ans
 
-    def reduce_over_period_lattice(self, vector, method="ip", b=None, r=None):
+    def reduce_over_period_lattice(self, vector, method="ip", b=None, r=None, normalised=False):
         r"""
         Reduce a vector over the period lattice. 
         
@@ -3272,6 +3277,10 @@ class RiemannSurface(object):
         - ``r`` -- integer (default: ``b/4``).  as for
           :meth:`homomorphism_basis`, and used in its invocation if
           (re)calculating said basis.
+
+        - ``normalised`` -- logical (default: ``False``). Whether to use the 
+          period matrix with the differentials normalised s.t. the `A`-matrix
+          is the identity. 
           
         OUTPUT:
         
@@ -3312,6 +3321,12 @@ class RiemannSurface(object):
         VR = VectorSpace(self._RR, 2*self.genus)
         VC = VectorSpace(self._CC, self.genus)
         I = self._CC(0,-1)
+        PM = self.period_matrix()
+
+        if normalised:
+            AM = PM[:,0:g]
+            AInv = numerical_inverse(AM)
+            PM = AInv*PM
             
         if method=="svp":
             H = max(max(z.real_part().abs() for z in vector), 
@@ -3330,7 +3345,7 @@ class RiemannSurface(object):
                 return vR
          
             M = Matrix(ZZ, 2*self.genus, 2*self.genus,
-                       [C2Z(c) for c in self.period_matrix().columns()])
+                       [C2Z(c) for c in PM.columns()])
             u = C2Z(vector)
             L = IntegerLattice(M)
             u = VR(u)-VR(L.closest_vector(u))
@@ -3342,7 +3357,7 @@ class RiemannSurface(object):
                 return VR([z.real_part() for z in v]+[z.imag_part() for z in v])
             
             u = C2R(vector)
-            basis_vecs = [C2R(c) for c in self.period_matrix().columns()]
+            basis_vecs = [C2R(c) for c in PM.columns()]
             M = Matrix([[ei.dot_product(ej) for ei in basis_vecs] for ej in basis_vecs])
             v_dot_e = VR([u.dot_product(e) for e in basis_vecs])
             coeffs = M.solve_right(v_dot_e)
@@ -3414,7 +3429,7 @@ class RiemannSurface(object):
 
         OUTPUT:
 
-        A tuple ``(S, B)``, where ``D`` is a new divisor, linearly equivalent 
+        A tuple ``(D, B)``, where ``D`` is a new divisor, linearly equivalent 
         to ``divisor``, but not intersecting ``S``, and ``B`` is a list of tuples
         ``(v, b)`` where ``b`` are the functions giving the linear equivalence,
         added with multiplicity ``v``.
@@ -3526,12 +3541,20 @@ class RiemannSurface(object):
         # not return. One might want to change the way this error is handled. 
         eps = self._RR(2)**(-self._prec+3)
         dl = []
+
+        PZ = PolynomialRing(S._R.base(), 'z').fraction_field()
+        RF = PolynomialRing(PZ, 'w')
+
         for d in divisor.support():
             v = divisor.valuation(d)
             gs = d._prime.gens()
-            gs = [self._R(gi) for gi in gs]
-            g0 = gs[0]
-            gis = gs[1:]
+            
+            g0 = self._R(gs[0])
+            gis = [sum([PZ(gi.list()[i])*RF.gen()**i 
+                        for i in range(len(gi.list()))]) for gi in gs[1:]]
+            #gs = [self._R(gi) for gi in gs]
+            #g0 = gs[0]
+            #gis = gs[1:]
         
             rs = self._CCz(g0).roots()
             rys = []
@@ -3539,13 +3562,15 @@ class RiemannSurface(object):
             for r, m in rs:
                 ys = []
                 for gi in gis:
-                    ers =  [gi(r,y).abs() for y in ys]
+                    ers = [gi(y, r).abs() for y in ys]
+                    #ers =  [gi(r,y).abs() for y in ys]
                     try:
                         ers = min(ers)
                     except:
                         ers = 1
                     if not ers<=eps:
-                        poly = self._CCw(gi(r, self._CCw.gen(0)))
+                        poly = self._CCw(gi(self._CCw.gen(0), r))
+                        #poly = self._CCw(gi(r, self._CCw.gen(0)))
                         if poly==0:
                             nys = []
                         else:

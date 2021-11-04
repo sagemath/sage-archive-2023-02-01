@@ -565,7 +565,7 @@ class Animation(WithEqualityById, SageObject):
             sage: a.gif(savefile=td + 'my_animation_2.gif', show_path=True, use_ffmpeg=True) # optional -- ffmpeg
             Animation saved to .../my_animation_2.gif.
 
-        .. note::
+        .. NOTE::
 
            If neither ffmpeg nor ImageMagick is installed, you will
            get an error message like this::
@@ -634,7 +634,7 @@ class Animation(WithEqualityById, SageObject):
             sage: td = tmp_dir()
             sage: a._gif_from_imagemagick(savefile=td + 'new.gif') # optional -- imagemagick
 
-        .. note::
+        .. NOTE::
 
            If imagemagick is not installed, you will get an error message
            like this::
@@ -760,7 +760,7 @@ class Animation(WithEqualityById, SageObject):
         This method does not return anything. Use :meth:`save` if you
         want to save the figure as an image.
 
-        .. note::
+        .. NOTE::
 
            Currently this is done using an animated gif, though this
            could change in the future. This requires that either
@@ -806,7 +806,7 @@ class Animation(WithEqualityById, SageObject):
 
             sage: a.show(50, 3)           # optional -- ImageMagick
 
-        .. note::
+        .. NOTE::
 
            If you don't have ffmpeg or ImageMagick installed, you will
            get an error message like this::
@@ -892,7 +892,7 @@ class Animation(WithEqualityById, SageObject):
             sage: a.ffmpeg(savefile=td + 'new.mpg', show_path=True) # optional -- ffmpeg
             Animation saved to .../new.mpg.
 
-        .. note::
+        .. NOTE::
 
            If ffmpeg is not installed, you will get an error message
            like this::

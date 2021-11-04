@@ -49,7 +49,7 @@ def has_internet():
     EXAMPLES::
 
         sage: from sage.doctest.external import has_internet
-        sage: has_internet()                                 # random, optional -- internet
+        sage: has_internet()  # random, optional -- internet
         FeatureTestResult('internet', True)
     """
     from sage.features.internet import Internet
@@ -62,20 +62,11 @@ def has_latex():
     EXAMPLES::
 
         sage: from sage.doctest.external import has_latex
-        sage: has_latex() # random, optional - latex
-        True
+        sage: has_latex() # optional - latex
+        FeatureTestResult('latex', True)
     """
-    from sage.misc.latex import _run_latex_, _latex_file_
-    from sage.misc.temporary_file import tmp_filename
-    try:
-        f = tmp_filename(ext='.tex')
-        O = open(f, 'w')
-        O.write(_latex_file_('2+3'))
-        O.close()
-        _run_latex_(f)
-        return True
-    except Exception:
-        return False
+    from sage.features.latex import latex
+    return latex().is_present()
 
 def has_xelatex():
     """
@@ -84,7 +75,7 @@ def has_xelatex():
     EXAMPLES::
 
         sage: from sage.doctest.external import has_xelatex
-        sage: has_xelatex()   # optional -- xelatex
+        sage: has_xelatex()   # optional - xelatex
         FeatureTestResult('xelatex', True)
     """
     from sage.features.latex import xelatex
@@ -97,7 +88,7 @@ def has_pdflatex():
     EXAMPLES::
 
         sage: from sage.doctest.external import has_pdflatex
-        sage: has_pdflatex()   # optional -- pdflatex
+        sage: has_pdflatex()   # optional - pdflatex
         FeatureTestResult('pdflatex', True)
     """
     from sage.features.latex import pdflatex
@@ -110,7 +101,7 @@ def has_lualatex():
     EXAMPLES::
 
         sage: from sage.doctest.external import has_lualatex
-        sage: has_lualatex()   # optional -- lualatex
+        sage: has_lualatex()   # optional - lualatex
         FeatureTestResult('lualatex', True)
     """
     from sage.features.latex import lualatex

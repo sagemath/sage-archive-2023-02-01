@@ -33,4 +33,5 @@ class pdf2svg(Executable):
             True
         """
         Executable.__init__(self, "pdf2svg", executable="pdf2svg",
+                            spkg='pdf2svg',
                             url="http://www.cityinthesky.co.uk/opensource/pdf2svg/")

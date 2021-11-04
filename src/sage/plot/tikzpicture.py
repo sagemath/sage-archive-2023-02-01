@@ -95,10 +95,9 @@ AUTHORS:
 #
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
-from subprocess import run, PIPE
+from subprocess import run
 import os
 
-from sage.misc.temporary_file import tmp_filename
 from sage.structure.sage_object import SageObject
 
 class StandaloneTex(SageObject):
@@ -342,6 +341,20 @@ class StandaloneTex(SageObject):
             sage: filename = tmp_filename('temp','.pdf')
             sage: _ = t.pdf(filename)   # long time (2s) # optional latex
 
+        TESTS:
+
+        We test the behavior when a wrong tex string is provided::
+
+            sage: V = [[1,0,1],[1,0,0],[1,1,0],[0,0,-1],[0,1,0],[-1,0,0],[0,1,1],[0,0,1],[0,-1,0]]
+            sage: P = Polyhedron(vertices=V).polar()
+            sage: s = P.projection().tikz([674,108,-731],112)
+            sage: t = TikzPicture(s[:-1])
+            sage: _ = t.pdf()                 # optional latex
+            Traceback (most recent call last):
+            ...
+            CalledProcessError: Command '...latex -interaction=nonstopmode
+            tikz_...tex' returned non-zero exit status 1.
+
         ACKNOWLEDGEMENT:
 
             The code was adapted and taken from the module :mod:`sage.misc.latex.py`.
@@ -364,6 +377,7 @@ class StandaloneTex(SageObject):
             raise ValueError("program(={}) should be pdflatex or lualatex".format(program))
 
         # set up filenames
+        from sage.misc.temporary_file import tmp_filename
         _filename_tex = tmp_filename('tikz_','.tex')
         with open(_filename_tex, 'w') as f:
             f.write(str(self))
@@ -373,7 +387,20 @@ class StandaloneTex(SageObject):
         # running pdflatex or lualatex
         cmd = [program, '-interaction=nonstopmode', _filename_tex]
         cmd = ' '.join(cmd)
-        run(cmd, shell=True, stdout=PIPE, stderr=PIPE, cwd=base, check=True)
+        result = run(cmd, shell=True, cwd=base, capture_output=True, text=True)
+
+        # If a problem with the tex source occurs, provide the log
+        if result.returncode != 0:
+            print("Command \n"
+                  "   '{}'\n"
+                  "returned non-zero exit status {}.\n"
+                  "Here is the content of the stderr:{}\n"
+                  "Here is the content of the stdout:"
+                  "{}\n".format(result.args,
+                                result.returncode,
+                                result.stderr,
+                                result.stdout))
+        result.check_returncode()
         _filename_pdf = os.path.join(base, _filename+'.pdf')
 
         # move the pdf into the good location
@@ -387,7 +414,7 @@ class StandaloneTex(SageObject):
             from sage.misc.viewer import pdf_viewer
             cmd = [pdf_viewer(), _filename_pdf]
             cmd = ' '.join(cmd)
-            run(cmd, shell=True, cwd=base, stdout=PIPE, stderr=PIPE, check=True)
+            run(cmd, shell=True, cwd=base, capture_output=True, check=True)
 
         return _filename_pdf
 
@@ -442,7 +469,7 @@ class StandaloneTex(SageObject):
                '{0}x{0}'.format(density), '-trim', _filename_pdf,
                _filename_png]
         cmd = ' '.join(cmd)
-        run(cmd, shell=True, stdout=PIPE, stderr=PIPE, check=True)
+        run(cmd, shell=True, capture_output=True, check=True)
 
         # move the png into the good location
         if filename:
@@ -455,7 +482,7 @@ class StandaloneTex(SageObject):
             from sage.misc.viewer import png_viewer
             cmd = [png_viewer(), _filename_png]
             cmd = ' '.join(cmd)
-            run(cmd, shell=True, stdout=PIPE, stderr=PIPE, check=True)
+            run(cmd, shell=True, capture_output=True, check=True)
 
         return _filename_png
 
@@ -505,7 +532,7 @@ class StandaloneTex(SageObject):
         # convert to svg
         cmd = ['pdf2svg', _filename_pdf, _filename_svg]
         cmd = ' '.join(cmd)
-        run(cmd, shell=True, stdout=PIPE, stderr=PIPE, check=True)
+        run(cmd, shell=True, capture_output=True, check=True)
 
         # move the svg into the good location
         if filename:
@@ -518,7 +545,7 @@ class StandaloneTex(SageObject):
             from sage.misc.viewer import browser
             cmd = [browser(), _filename_svg]
             cmd = ' '.join(cmd)
-            run(cmd, shell=True, stdout=PIPE, stderr=PIPE, check=True)
+            run(cmd, shell=True, capture_output=True, check=True)
 
         return _filename_svg
 
@@ -559,6 +586,7 @@ class StandaloneTex(SageObject):
 
         """
         if filename is None:
+            from sage.misc.temporary_file import tmp_filename
             filename = tmp_filename('tikz_','.tex')
         else:
             filename = os.path.abspath(filename)

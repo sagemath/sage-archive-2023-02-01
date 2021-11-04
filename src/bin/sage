@@ -205,6 +205,11 @@ if [ "$1" = '-f' ]; then
     set -- -i "$@"
 fi
 
+if [ "$1" = '-p' ]; then
+    # -f is an alias for -i -p
+    set -- -i "$@"
+fi
+
 if [ "$1" = '-i' ]; then
     shift
     if [ -z "$MAKE" ]; then
@@ -214,21 +219,31 @@ if [ "$1" = '-i' ]; then
     set -e
     cd "$SAGE_ROOT"
 
+    # If there are no further arguments, display usage help.
+    if [ $# -eq 0 ]; then
+        exec build/bin/sage-spkg
+    fi
+
     # Parse options
     PACKAGES=""         # Packages to install
     INSTALL_OPTIONS=""  # Options to sage-spkg
+    TARGET_SUFFIX=""    # Append to the package name in 'make'
     for OPT in "$@"; do
         case "$OPT" in
             -info|--info)
                 echo >&2 "Error: 'sage -i $OPT <package>' is no longer supported, use 'sage --info <package>' instead."
                 exit 2;;
             -f) FORCE_INSTALL=yes;;
+            -p) TARGET_SUFFIX=-no-deps;;
             # Setting SAGE_CHECK here duplicates what we do in sage-spkg
             # but we need it in "make" already when there are (order-only)
             # dependencies on packages providing test infrastructure
             -c) INSTALL_OPTIONS="$INSTALL_OPTIONS $OPT"; export SAGE_CHECK=yes;;
             -w) INSTALL_OPTIONS="$INSTALL_OPTIONS $OPT"; export SAGE_CHECK=warn;;
             -*) INSTALL_OPTIONS="$INSTALL_OPTIONS $OPT";;
+            *.spkg)
+                echo "Error: Installing old-style SPKGs is no longer supported."
+                exit 1;;
             *) PACKAGES="$PACKAGES $OPT";;
         esac
     done
@@ -256,7 +271,7 @@ if [ "$1" = '-i' ]; then
             echo >&2 "Note: if it is an old-style package, installing these is no longer supported"
             exit 1
         fi
-        $MAKE SAGE_SPKG="sage-spkg $INSTALL_OPTIONS" "$PKG"
+        $MAKE SAGE_SPKG="sage-spkg $INSTALL_OPTIONS" "$PKG$TARGET_SUFFIX"
     done
     echo "New packages may have been installed."
     echo "Re-running configure and make in case any dependent packages need updating."
@@ -1027,42 +1042,9 @@ if [ "$1" = '--location' ]; then
     exit 0
 fi
 
-
-install() {
-    maybe_sage_location
-
-    for PKG in "$@"
-    do
-        # Check for options
-        case "$PKG" in
-            -*)
-                INSTALL_OPTIONS="$INSTALL_OPTIONS $PKG"
-                continue;;
-            *.spkg)
-                echo "Error: Installing old-style SPKGs is no longer supported."
-                exit 1;;
-        esac
-        (cd "$SAGE_ROOT" && $MAKE SAGE_SPKG="sage-spkg $INSTALL_OPTIONS" "$PKG"-no-deps)
-        # Do not try to install further packages if one failed
-        if [ $? -ne 0 ]; then
-            exit 1
-        fi
-    done
-    exit 0
-}
-
 if [ "$1" = '-installed' -o "$1" = "--installed" ]; then
     shift
     exec sage-list-packages all --installed-only $@
-fi
-
-if [ "$1" = '-p' ]; then
-    shift
-    # If there are no further arguments, display usage help.
-    if [ $# -eq 0 ]; then
-        exec sage-spkg
-    fi
-    install "$@"
 fi
 
 if [ "$1" = '-sdist' -o "$1" = "--sdist" ]; then

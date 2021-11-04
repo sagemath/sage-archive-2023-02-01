@@ -95,10 +95,9 @@ AUTHORS:
 #
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
-from subprocess import run, PIPE, CalledProcessError
+from subprocess import run, PIPE
 import os
 
-from sage.misc.latex import have_pdflatex, have_convert, have_program
 from sage.misc.temporary_file import tmp_filename
 from sage.structure.sage_object import SageObject
 
@@ -347,19 +346,20 @@ class StandaloneTex(SageObject):
 
             The code was adapted and taken from the module :mod:`sage.misc.latex.py`.
         """
+        from sage.features.latex import lualatex, pdflatex
+
         # Set default program
         if program is None:
-           if have_program('lualatex'):
+           if lualatex().is_present():
                program = 'lualatex'
            else:
                program = 'pdflatex'
 
         # Check availability of programs
-        if program == 'pdflatex' and not have_pdflatex():
-            raise RuntimeError("PDFLaTeX does not seem to be installed. "
-                    "Download it from ctan.org and try again.")
-        elif program == 'lualatex' and not have_program(program):
-            raise RuntimeError("lualatex does not seem to be installed.")
+        if program == 'pdflatex':
+            pdflatex().require()
+        elif program == 'lualatex':
+            lualatex().require()
         elif program not in ['pdflatex','lualatex']:
             raise ValueError("program(={}) should be pdflatex or lualatex".format(program))
 
@@ -430,11 +430,8 @@ class StandaloneTex(SageObject):
 
             The code was adapted and taken from the module :mod:`sage.misc.latex.py`.
         """
-        if not have_convert():
-            raise RuntimeError("convert (from the ImageMagick suite) does not "
-                  "appear to be installed. Converting PDFLaTeX output to png "
-                  "requires this program, so please install and try again. "
-                  "Go to http://www.imagemagick.org to download it.")
+        from sage.features.imagemagick import ImageMagick
+        return ImageMagick().is_present()
 
         _filename_pdf = self.pdf(filename=None, view=False)
         _filename, ext = os.path.splitext(_filename_pdf)
@@ -498,10 +495,8 @@ class StandaloneTex(SageObject):
 
             The code was adapted and taken from the module :mod:`sage.misc.latex.py`.
         """
-        if not have_program('pdf2svg'):
-            raise RuntimeError("pdf2svg does not seem to be installed. "
-                    "Install it for example with ``brew install pdf2svg``"
-                    " or ``apt-get install pdf2svg``.")
+        from sage.features.pdf2svg import pdf2svg
+        pdf2svg().require()
 
         _filename_pdf = self.pdf(filename=None, view=False)
         _filename, ext = os.path.splitext(_filename_pdf)
@@ -782,12 +777,12 @@ class TikzPicture(StandaloneTex):
         .. TODO:: improve the previous example
 
         """
-        from sage.misc.latex import have_pdflatex
-        assert have_pdflatex(), "pdflatex does not seem to be installed"
+        from sage.features.latex import pdflatex
+        pdflatex().require()
         from sage.features.graphviz import Graphviz
-        assert Graphviz().is_present(), "graphviz does not seem to be installed"
-        from sage.graphs.dot2tex_utils import assert_have_dot2tex
-        assert_have_dot2tex()
+        Graphviz().require()
+        from sage.features import PythonModule
+        PythonModule("dot2tex").require()
 
         if merge_multiedges and graph.has_multiple_edges():
             from collections import defaultdict

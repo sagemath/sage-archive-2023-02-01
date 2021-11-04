@@ -45,17 +45,34 @@ class latex(Executable):
             sage: latex().is_functional()             # optional: latex
             FeatureTestResult('latex', True)
         """
-        from sage.misc.latex import _run_latex_, _latex_file_
+        lines = []
+        lines.append(r"\documentclass{article}")
+        lines.append(r"\begin{document}")
+        lines.append(r"$\alpha+2$")
+        lines.append(r"\end{document}")
+        content = '\n'.join(lines)
+
+        # create a simple tex file with the content
         from sage.misc.temporary_file import tmp_filename
-        try:
-            f = tmp_filename(ext='.tex')
-            O = open(f, 'w')
-            O.write(_latex_file_('2+3'))
-            O.close()
-            _run_latex_(f)
+        base_filename_tex = tmp_filename(ext='.tex')
+        with open(base_filename_tex, 'w') as f:
+            f.write(content)
+        import os
+        base, filename_tex = os.path.split(base_filename_tex)
+
+        # running latex
+        from subprocess import run
+        cmd = ['latex', '-interaction=nonstopmode', filename_tex]
+        cmd = ' '.join(cmd)
+        result = run(cmd, shell=True, cwd=base, capture_output=True, text=True)
+
+        # return
+        if result.returncode == 0:
             return FeatureTestResult(self, True)
-        except Exception:
-            return FeatureTestResult(self, False, reason="Running latex on a sample file raised an exception")
+        else:
+            return FeatureTestResult(self, False, reason="Running latex on "
+                        "a sample file returned non-zero "
+                        "exit status {}".format(result.returncode))
 
 class pdflatex(Executable):
     r"""

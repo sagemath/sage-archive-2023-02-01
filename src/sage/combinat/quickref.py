@@ -1,6 +1,5 @@
 r"""
 Combinatorics quickref
-----------------------
 
 Integer Sequences::
 

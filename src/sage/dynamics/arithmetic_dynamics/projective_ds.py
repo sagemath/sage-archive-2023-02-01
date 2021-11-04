@@ -1332,7 +1332,7 @@ class DynamicalSystem_projective(SchemeMorphism_polynomial_projective_space,
             return []
 
         R = self.domain()(P)
-        if R in self.domain(): #Check whether R is a zero-dimensional point
+        if R in self.domain():  # Check whether R is a zero-dimensional point
             Q = R
         else:
             Q = P
@@ -1776,7 +1776,7 @@ class DynamicalSystem_projective(SchemeMorphism_polynomial_projective_space,
 
             #if doing error estimates, compute needed number of iterates
             D = (dim + 1) * (d - 1) + 1
-            #compute upper bound
+            # compute upper bound
             if isinstance(v, RingHomomorphism_im_gens): #archimedean
                 vindex = BR.places(prec=prec).index(v)
                 U = GBR.local_height_arch(vindex, prec=prec) + R(binomial(dim + d, d)).log()
@@ -2012,7 +2012,7 @@ class DynamicalSystem_projective(SchemeMorphism_polynomial_projective_space,
             R = RealField(prec)
             N = kwds.get('N', 10)
             err = kwds.get('error_bound', None)
-            #computes the error bound as defined in Algorithm 3.1 of [WELLS]
+            # computes the error bound as defined in Algorithm 3.1 of [WELLS]
             if Res > 1:
                 if err is not None:
                     err = err / 2
@@ -6328,7 +6328,7 @@ class DynamicalSystem_projective_field(DynamicalSystem_projective,
                         pt = [sum([P[i]*w**i for i in range(d)])]
                         pt.insert(k,1)
                         Q = PS(pt)
-                        #for each periodic point get the entire cycle
+                        # for each periodic point get the entire cycle
                         if Q not in periodic_points:
                             #check periodic not preperiodic and add all points in cycle
                             orb = set([Q])
@@ -6627,7 +6627,7 @@ class DynamicalSystem_projective_field(DynamicalSystem_projective,
                     pt = [sum([P[i]*w**i for i in range(d)])]
                     pt.insert(k,1)
                     Q = PS(pt)
-                    #for each preperiodic point get the entire connected component
+                    # for each preperiodic point get the entire connected component
                     if Q not in preper:
                         for t in DS.connected_rational_component(Q):
                             preper.add(t)

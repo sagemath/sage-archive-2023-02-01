@@ -760,11 +760,11 @@ def automorphism_group_QQ_CRT(rational_function, prime_lower_bound=4, return_fun
                         return(elements, which_group(elements))
                     return elements
             else:
-                N = gcd(orderaut + [12]) #all orders of elements divide N
+                N = gcd(orderaut + [12])  # all orders of elements divide N
                 for order in divisors(N):
                     if order in badorders:
                         continue
-                    #range over all orders
+                    # range over all orders
                     # that are possible over QQ such that we haven't already
                     # found all elements of that order
 
@@ -775,7 +775,7 @@ def automorphism_group_QQ_CRT(rational_function, prime_lower_bound=4, return_fun
                     numelts = min(numeltsoffixedorder)
                     # Have some elts of fixed order mod p for each p
                     if numelts != 0:
-                        #CRT order d elements together and check if
+                        # CRT order d elements together and check if
                         # they are an automorphism
                         autos, M = CRT_automorphisms(automorphisms,
                                 orderelts, order, primepowers)

@@ -707,7 +707,7 @@ def _run_latex_(filename, debug=False, density=150, engine=None, png=False, do_i
         sage: file = os.path.join(SAGE_TMP, "temp.tex")
         sage: with open(file, 'w') as O:
         ....:     _ = O.write(_latex_file_([ZZ['x'], RR]))
-        sage: _run_latex_(file) # random - depends on whether latex is installed
+        sage: _run_latex_(file) # random, optional - latex
         'dvi'
     """
     if engine is None:
@@ -1965,7 +1965,7 @@ def png(x, filename, density=150, debug=False,
     EXAMPLES::
 
         sage: from sage.misc.latex import png
-        sage: png(ZZ[x], os.path.join(SAGE_TMP, "zz.png")) # random - error if no latex
+        sage: png(ZZ[x], os.path.join(SAGE_TMP, "zz.png")) # random, optional - latex
     """
     if not pdflatex:
         engine = "latex"

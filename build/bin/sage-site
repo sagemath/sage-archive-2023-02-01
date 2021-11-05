@@ -155,16 +155,14 @@ if [ "$1" = '-i' ]; then
     # Parse options
     PACKAGES=""         # Packages to install
     INSTALL_OPTIONS=""  # Options to sage-spkg
-    TARGET_SUFFIX=""    # Append to the package name in 'make'
-    TOOLCHAIN="all-toolchain"
+    NO_DEPS=""          # Append to the package name in 'make'
     for OPT in "$@"; do
         case "$OPT" in
             -info|--info)
                 echo >&2 "Error: 'sage -i $OPT <package>' is no longer supported, use 'sage --info <package>' instead."
                 exit 2;;
             -f) FORCE_INSTALL=yes;;
-            -p) TARGET_SUFFIX=-no-deps
-                TOOLCHAIN="";;
+            -p) NO_DEPS=-no-deps;;
             # Setting SAGE_CHECK here duplicates what we do in sage-spkg
             # but we need it in "make" already when there are (order-only)
             # dependencies on packages providing test infrastructure
@@ -188,10 +186,10 @@ if [ "$1" = '-i' ]; then
         done
     fi
 
-    if [ -n "$TOOLCHAIN" ]; then
+    if [ -z "$NO_DEPS" ]; then
         # Make sure that the toolchain is up-to-date
         # (which is a dependency of every package)
-        $MAKE $TOOLCHAIN
+        $MAKE all-toolchain
     fi
 
     # Now install the packages
@@ -204,11 +202,14 @@ if [ "$1" = '-i' ]; then
             echo >&2 "Note: if it is an old-style package, installing these is no longer supported"
             exit 1
         fi
-        $MAKE SAGE_SPKG="sage-spkg $INSTALL_OPTIONS" "$PKG$TARGET_SUFFIX"
+        $MAKE SAGE_SPKG="sage-spkg $INSTALL_OPTIONS" "$PKG$NO_DEPS"
     done
-    echo "New packages may have been installed."
-    echo "Re-running configure and make in case any dependent packages need updating."
-    touch "$SAGE_ROOT/configure" && $MAKE all-build
+
+    if [ -z "$NO_DEPS" ]; then
+        echo "New packages may have been installed."
+        echo "Re-running configure and make in case any dependent packages need updating."
+        touch "$SAGE_ROOT/configure" && $MAKE all-build
+    fi
     exit 0
 fi
 

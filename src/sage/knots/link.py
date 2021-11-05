@@ -1935,6 +1935,10 @@ class Link(SageObject):
             sage: B = BraidGroup(3)
             sage: Link(B([1, 2, 1, -2, -1])).determinant()
             0
+
+        REFERENCES:
+
+        - Definition 6.6.3 in [Cro2004]_
         """
         V = self.seifert_matrix()
         m = V + V.transpose()

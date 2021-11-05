@@ -1722,7 +1722,8 @@ def main():
     # trying to build.
     name, typ = args.document, args.format
     if not name or not type:
-        raise ValueError('both document and format should be given')
+        parser.print_help()
+        sys.exit(1)
 
     # Set up module-wide logging.
     setup_logger(args.verbose, args.color)

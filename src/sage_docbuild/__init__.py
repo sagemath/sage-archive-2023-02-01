@@ -1384,14 +1384,8 @@ def help_description(s="", compact=False):
     builder.  If 'compact' is ``False``, the function adds a final newline
     character.
     """
-    s += "Build or return information about Sage documentation.\n\n"
-    s += "    DOCUMENT    name of the document to build\n"
-    s += "    FORMAT      document output format\n"
-    s += "    COMMAND     document-specific command\n\n"
-    s += "Note that DOCUMENT may have the form 'file=/path/to/FILE',\n"
-    s += "which builds the documentation for the specified file.\n\n"
-    s += "A DOCUMENT and either a FORMAT or a COMMAND are required,\n"
-    s += "unless a list of one or more of these is requested."
+    s += "Build or return information about Sage documentation. "
+    s += "A DOCUMENT and either a FORMAT or a COMMAND are required."
     if not compact:
         s += "\n"
     return s
@@ -1523,7 +1517,7 @@ class help_wrapper(argparse.Action):
         if self.dest == 'commands':
             print(help_commands(values), end="")
         if self.dest == 'all_documents':
-            if values == 'en/reference' or values == 'reference':
+            if values == 'reference':
                 b = ReferenceBuilder('reference')
                 refdir = os.path.join(os.environ['SAGE_DOC_SRC'], 'en', b.name)
                 s = b.get_all_documents(refdir)
@@ -1625,8 +1619,10 @@ def setup_parser():
                           help="if ARG is 'reference', list all subdocuments"
                           " of en/reference. If ARG is 'all', list all main"
                           " documents")
-    parser.add_argument("document", nargs='?', type=str)
-    parser.add_argument("format", nargs='?', type=str, choices=get_formats())
+    parser.add_argument("document", nargs='?', type=str, metavar="DOCUMENT",
+                        help="name of the document to build. It can be either one of the documents listed by -D or 'file=/path/to/FILE' to build documentation for this specific file.")
+    parser.add_argument("format", nargs='?', type=str,
+                        metavar="FORMAT or COMMAND", help='document output format (or command)')
     return parser
 
 

@@ -866,3 +866,20 @@ class WeierstrassIsomorphism(EllipticCurveHom, baseWI):
         urst = baseWI.__mul__(self, w).tuple()
         return WeierstrassIsomorphism(self._domain, urst, self._codomain)
 
+
+def negation_morphism(E):
+    r"""
+    Given an elliptic curve `E`, return the negation endomorphism
+    `[-1]` of `E` as a :class:`WeierstrassIsomorphism`.
+
+    EXAMPLES::
+
+        sage: from sage.schemes.elliptic_curves.weierstrass_morphism import negation_morphism
+        sage: E = EllipticCurve([5,6,7,8,9])
+        sage: neg = negation_morphism(E)
+        sage: neg.rational_maps()
+        (x, -5*x - y - 7)
+    """
+    a1,_,a3,_,_ = E.a_invariants()
+    return WeierstrassIsomorphism(E, (-1, 0, -a1, -a3))
+

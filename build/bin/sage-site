@@ -216,12 +216,12 @@ if [ "$1" = '-info' -o "$1" = '--info' ]; then
     shift
     if [ $# -eq 0 ]; then
         # If there are no further arguments, display usage help.
-        sage-spkg
+        "$SAGE_ROOT"/build/bin/sage-spkg
         exit 0
     fi
     for PKG in "$@"
     do
-        sage-spkg --info "$PKG" || exit $?
+        "$SAGE_ROOT"/build/bin/sage-spkg --info "$PKG" || exit $?
     done
     exit 0
 fi

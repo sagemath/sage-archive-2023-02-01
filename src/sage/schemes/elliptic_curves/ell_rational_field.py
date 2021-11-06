@@ -2376,12 +2376,12 @@ class EllipticCurve_rational_field(EllipticCurve_number_field):
             # progress (see trac #1949).
             X = self.mwrank('-p 100 -S '+str(sat_bound))
             verbose_verbose("Calling mwrank shell.")
-            if not 'The rank and full Mordell-Weil basis have been determined unconditionally' in X:
+            if 'The rank and full Mordell-Weil basis have been determined unconditionally' not in X:
                 msg = 'Generators not provably computed.'
                 if proof:
-                    raise RuntimeError('%s\n%s'%(X,msg))
+                    raise RuntimeError('%s\n%s' % (X, msg))
                 else:
-                    verbose_verbose("Warning -- %s"%msg, level=1)
+                    verbose_verbose("Warning -- %s" % msg, level=1)
                 proved = False
             else:
                 proved = True
@@ -4714,8 +4714,9 @@ class EllipticCurve_rational_field(EllipticCurve_number_field):
         if isinstance(l, list):
             isogs = []
             i = 0
-            while i<len(l):
-                isogenies = [f for f in self.isogenies_prime_degree(l[i]) if not f in isogs]
+            while i < len(l):
+                isogenies = [f for f in self.isogenies_prime_degree(l[i])
+                             if f not in isogs]
                 isogs.extend(isogenies)
                 i += 1
             return isogs
@@ -7064,7 +7065,7 @@ def elliptic_curve_congruence_graph(curves):
     from sage.graphs.graph import Graph
     from sage.arith.all import lcm
     from sage.rings.fast_arith import prime_range
-    from sage.misc.all import prod
+    from sage.misc.misc_c import prod
     G = Graph()
     G.add_vertices([curve.cremona_label() for curve in curves])
     n = len(curves)

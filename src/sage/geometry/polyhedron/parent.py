@@ -14,7 +14,11 @@ from sage.structure.element import get_coercion_model
 from sage.structure.unique_representation import UniqueRepresentation
 from sage.modules.free_module import FreeModule, is_FreeModule
 from sage.misc.cachefunc import cached_method, cached_function
-from sage.rings.all import ZZ, QQ, RDF, CommutativeRing
+from sage.misc.lazy_import import lazy_import
+from sage.rings.integer_ring import ZZ
+from sage.rings.rational_field import QQ
+from sage.rings.real_double import RDF
+from sage.rings.ring import CommutativeRing
 from sage.categories.fields import Fields
 from sage.categories.rings import Rings
 from sage.categories.modules import Modules
@@ -145,7 +149,10 @@ def Polyhedra(ambient_space_or_base_ring=None, ambient_dim=None, backend=None, *
         else:
             raise ValueError("no default backend for computations with {}".format(base_ring))
 
-    from sage.symbolic.ring import SR
+    try:
+        from sage.symbolic.ring import SR
+    except ImportError:
+        SR = None
     if backend == 'ppl' and base_ring is QQ:
         return Polyhedra_QQ_ppl(base_ring, ambient_dim, backend)
     elif backend == 'ppl' and base_ring is ZZ:
@@ -1127,7 +1134,8 @@ class Polyhedra_base(UniqueRepresentation, Parent):
 
 
 
-from sage.geometry.polyhedron.backend_cdd import Polyhedron_QQ_cdd, Polyhedron_RDF_cdd
+from sage.geometry.polyhedron.backend_cdd import Polyhedron_QQ_cdd
+lazy_import('sage.geometry.polyhedron.backend_cdd_rdf', 'Polyhedron_RDF_cdd')
 from sage.geometry.polyhedron.backend_ppl import Polyhedron_ZZ_ppl, Polyhedron_QQ_ppl
 from sage.geometry.polyhedron.backend_normaliz import Polyhedron_normaliz, Polyhedron_ZZ_normaliz, Polyhedron_QQ_normaliz
 from sage.geometry.polyhedron.backend_polymake import Polyhedron_polymake

@@ -6939,10 +6939,10 @@ class DynamicalSystem_projective_field(DynamicalSystem_projective,
 
             sage: P.<x,y> = ProjectiveSpace(GF(7), 1)
             sage: D6 = DynamicalSystem_projective([y^2, x^2])
-            sage: D6.conjugating_set(D6)
+            sage: sorted(D6.conjugating_set(D6))
             [
-            [1 0]  [0 1]  [0 2]  [4 0]  [2 0]  [0 4]
-            [0 1], [1 0], [1 0], [0 1], [0 1], [1 0]
+            [0 1]  [0 2]  [0 4]  [1 0]  [2 0]  [4 0]
+            [1 0], [1 0], [1 0], [0 1], [0 1], [0 1]
             ]
 
         ::

@@ -1397,12 +1397,12 @@ def help_examples(s=""):
     builder.
     """
     s += "Examples:\n"
-    s += "    sage --docbuild -FDC all\n"
+    s += "    sage --docbuild -C all\n"
     s += "    sage --docbuild constructions pdf\n"
     s += "    sage --docbuild reference html -jv3\n"
     s += "    sage --docbuild --mathjax tutorial html\n"
     s += "    sage --docbuild reference print_unincluded_modules\n"
-    s += "    sage --docbuild developer -j html --sphinx-opts -q,-aE --verbose 2"
+    s += "    sage --docbuild developer html --sphinx-opts='-q,-aE' --verbose 2"
     return s
 
 
@@ -1482,9 +1482,11 @@ class help_message_long(argparse.Action):
     """
     def __call__(self, parser, namespace, values, option_string=None):
         help_funcs = [help_usage, help_description, help_documents,
-                      help_formats, help_commands, help_examples]
+                      help_formats, help_commands]
         for f in help_funcs:
             print(f())
+        parser.print_help()
+        print(help_examples())
         sys.exit(0)
 
 
@@ -1605,7 +1607,7 @@ def setup_parser():
     advanced.add_argument("-S", "--sphinx-opts", dest="sphinx_opts",
                         type=str, metavar="OPTS",
                         action="store",
-                        help="pass comma-separated OPTS to sphinx-build")
+                        help="pass comma-separated OPTS to sphinx-build; must precede OPTS with '=', as in '-S=-q,-aE' or '-S=\"-q,-aE\"'")
     advanced.add_argument("-U", "--update-mtimes", dest="update_mtimes",
                         action="store_true",
                         help="before building reference manual, update modification times for auto-generated reST files")

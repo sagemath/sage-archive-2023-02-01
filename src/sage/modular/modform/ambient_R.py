@@ -12,7 +12,7 @@ Modular Forms over a Non-minimal Base Ring
 
 from . import ambient
 from .cuspidal_submodule import CuspidalSubmodule_R
-from sage.rings.all import ZZ
+from sage.rings.integer_ring import ZZ
 from sage.misc.cachefunc import cached_method
 
 class ModularFormsAmbient_R(ambient.ModularFormsAmbient):
@@ -95,6 +95,7 @@ class ModularFormsAmbient_R(ambient.ModularFormsAmbient):
             sage: S = M.cuspidal_subspace()
             sage: 0 in [f.valuation() for f in S.basis()]
             False
+            sage: from sage.modular.dims import dimension_cusp_forms
             sage: len(S.basis()) == dimension_cusp_forms(Gamma1(29), 2)
             True
         """

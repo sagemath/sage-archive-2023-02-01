@@ -164,6 +164,7 @@ Functions and classes
 # (at your option) any later version.
 #                  https://www.gnu.org/licenses/
 # ****************************************************************************
+from __future__ import annotations
 from typing import Iterator
 
 from sage.rings.all import ZZ, QQ, Integer, infinity
@@ -172,7 +173,7 @@ from sage.rings.polynomial.polynomial_element import Polynomial
 from sage.rings.polynomial.polynomial_ring_constructor import PolynomialRing
 from sage.libs.all import pari
 from sage.misc.prandom import randint
-from sage.misc.all import prod
+from sage.misc.misc_c import prod
 from sage.misc.cachefunc import cached_function
 from sage.structure.sage_object import SageObject
 from sage.structure.parent import Parent
@@ -568,7 +569,7 @@ def euler_number(n, algorithm='flint') -> Integer:
     if n < 0:
         raise ValueError("n (=%s) must be a nonnegative integer" % n)
     if algorithm == 'maxima':
-        return ZZ(maxima.euler(n))
+        return ZZ(maxima.euler(n))  # type:ignore
     elif algorithm == 'flint':
         import sage.libs.flint.arith
         return sage.libs.flint.arith.euler_number(n)
@@ -1006,7 +1007,7 @@ def stirling_number2(n, k, algorithm=None) -> Integer:
         from sage.libs.gap.libgap import libgap
         return libgap.Stirling2(n, k).sage()
     elif algorithm == 'maxima':
-        return ZZ(maxima.stirling2(n, k))
+        return ZZ(maxima.stirling2(n, k))  # type:ignore
     else:
         raise ValueError("unknown algorithm: %s" % algorithm)
 
@@ -1524,19 +1525,19 @@ class CombinatorialElement(CombinatorialObject, Element,
             sage: CombinatorialElement(ZZ)
             Traceback (most recent call last):
             ...
-            TypeError: __init__() takes exactly 2 arguments (1 given)
+            TypeError: ...__init__() takes exactly 2 arguments (1 given)
             sage: CombinatorialElement(ZZ, 1, 2)
             Traceback (most recent call last):
             ...
-            TypeError: __init__() takes exactly 2 arguments (3 given)
+            TypeError: ...__init__() takes exactly 2 arguments (3 given)
             sage: CombinatorialElement(ZZ, 1, list=2)
             Traceback (most recent call last):
             ...
-            TypeError: __init__() takes exactly 2 arguments (3 given)
+            TypeError: ...__init__() takes exactly 2 arguments (3 given)
             sage: CombinatorialElement(ZZ, a=1, b=2)
             Traceback (most recent call last):
             ...
-            TypeError: __init__() takes exactly 2 arguments (3 given)
+            TypeError: ...__init__() takes exactly 2 arguments (3 given)
         """
         # There should be one "list" argument, which can be given as
         # positional or keyword argument (in the latter case, the name
@@ -1707,7 +1708,7 @@ class CombinatorialClass(Parent, metaclass=ClasscallMetaclass):
         """
         return hash(repr(self))
 
-    def __cardinality_from_iterator(self) -> Integer:
+    def __cardinality_from_iterator(self) -> Integer | infinity:
         """
         Default implementation of cardinality which just goes through the iterator
         of the combinatorial class to count the number of objects.
@@ -1725,6 +1726,7 @@ class CombinatorialClass(Parent, metaclass=ClasscallMetaclass):
         for _ in self:
             c += one
         return c
+
     cardinality = __cardinality_from_iterator
 
     # __call__, element_class, and _element_constructor_ are poor
@@ -2272,7 +2274,7 @@ class UnionCombinatorialClass(CombinatorialClass):
         """
         return x in self.left_cc or x in self.right_cc
 
-    def cardinality(self) -> Integer:
+    def cardinality(self) -> Integer | infinity:
         """
         EXAMPLES::
 
@@ -2451,6 +2453,43 @@ class MapCombinatorialClass(ImageSubobject, CombinatorialClass):
         if name:
             self.rename(name)
 
+    def cardinality(self) -> Integer | infinity:
+        """
+        Return the cardinality of this combinatorial class
+
+        EXAMPLES::
+
+            sage: R = Permutations(10).map(attrcall('reduced_word'))
+            sage: R.cardinality()
+            3628800
+        """
+        return self.cc.cardinality()
+
+    def __iter__(self) -> Iterator:
+        """
+        Return an iterator over the elements of this combinatorial class
+
+        EXAMPLES::
+
+            sage: R = Permutations(10).map(attrcall('reduced_word'))
+            sage: R.cardinality()
+            3628800
+        """
+        for x in self.cc:
+            yield self.f(x)
+
+    def an_element(self):
+        """
+        Return an element of this combinatorial class
+
+        EXAMPLES::
+
+            sage: R = SymmetricGroup(10).map(attrcall('reduced_word'))
+            sage: R.an_element()
+            [9, 8, 7, 6, 5, 4, 3, 2]
+        """
+        return self.f(self.cc.an_element())
+
 
 ##############################################################################
 class InfiniteAbstractCombinatorialClass(CombinatorialClass):
@@ -2464,7 +2503,7 @@ class InfiniteAbstractCombinatorialClass(CombinatorialClass):
     self._infinite_cclass_slice is supposed to accept any integer as an
     argument and return something which is iterable.
     """
-    def cardinality(self):
+    def cardinality(self) -> Integer | infinity:
         """
         Count the elements of the combinatorial class.
 
@@ -2915,7 +2954,7 @@ def bell_polynomial(n: Integer, k: Integer):
     R = PolynomialRing(ZZ, 'x', n - k + 1)
     vars = R.gens()
     result = R.zero()
-    for p in Partitions(n, length=k):
+    for p in Partitions(n, length=k):  # type:ignore
         factorial_product = 1
         power_factorial_product = 1
         for part, count in p.to_exp_dict().items():

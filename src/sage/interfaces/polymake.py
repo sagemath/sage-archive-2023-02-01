@@ -332,8 +332,10 @@ class PolymakeAbstract(ExtraTabCompletion, Interface):
             r.__sage_dict = z # do this to avoid having the entries of the list be garbage collected
             return r
 
-        from sage.rings.all import Integer, Rational, RDF
-        from sage.rings.number_field.number_field import is_QuadraticField
+        import sage.rings.abc
+        from sage.rings.integer import Integer
+        from sage.rings.rational import Rational
+        from sage.rings.real_double import RDF
 
         def to_str(x):
             if isinstance(x, list):
@@ -350,7 +352,7 @@ class PolymakeAbstract(ExtraTabCompletion, Interface):
             except AttributeError:
                 pass
 
-            if is_QuadraticField(parent):
+            if isinstance(parent, sage.rings.abc.NumberField_quadratic):
                 return x._polymake_init_()
             try:
                 if x.parent().is_exact():
@@ -1561,9 +1563,9 @@ class PolymakeElement(ExtraTabCompletion, InterfaceElement):
 
             r = self._repr_()
             if 'Float' in T1:
-                from sage.rings.all import RDF
+                from sage.rings.real_double import RDF
                 base_ring = RDF
-                str_to_base_ring = lambda s: RDF(s)
+                str_to_base_ring = RDF
             elif 'QuadraticExtension' in T1 and 'r' in r:
                 i = r.find('r')
                 i1 = min((r[i:]+' ').find(' '), (r[i:]+'\n').find('\n'))
@@ -1574,12 +1576,12 @@ class PolymakeElement(ExtraTabCompletion, InterfaceElement):
                 def str_to_base_ring(s):
                     m = re.match(r'(-?[0-9/]+)[+]?((-?[0-9/]+)r([0-9/]+))?', s)
                     a, b = m.group(1), m.group(3)
-                    return base_ring(a) + base_ring(b)*base_ring.gen()
+                    return base_ring(a) + base_ring(b) * base_ring.gen()
 
             elif 'Rational' in T1:
-                from sage.rings.all import QQ
+                from sage.rings.rational_field import QQ
                 base_ring = QQ
-                str_to_base_ring = lambda s: QQ(s)
+                str_to_base_ring = QQ
             else:
                 raise NotImplementedError
 
@@ -2174,17 +2176,17 @@ class PolymakeExpect(PolymakeAbstract, Expect):
         work in an interactive session and often in doc tests, too. However,
         sometimes it hangs, and therefore we remove it from the tests, for now::
 
-            sage: c = polymake.cube(15)             # optional - polymake
-            sage: polymake.eval('print {}->F_VECTOR;'.format(c.name()), timeout=1) # not tested # optional - polymake
+            sage: c = polymake.cube(15)             # optional - polymake_expect
+            sage: polymake.eval('print {}->F_VECTOR;'.format(c.name()), timeout=1) # not tested # optional - polymake_expect
             Traceback (most recent call last):
             ...
             RuntimeError: Polymake fails to respond timely
 
         We verify that after the timeout, polymake is still able to give answers::
 
-            sage: c                                 # optional - polymake
+            sage: c                                 # optional - polymake_expect
             cube of dimension 15
-            sage: c.N_VERTICES                      # optional - polymake
+            sage: c.N_VERTICES                      # optional - polymake_expect
             32768
 
         Note, however, that the recovery after a timeout is not perfect.

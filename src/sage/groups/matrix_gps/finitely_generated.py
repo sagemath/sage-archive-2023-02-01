@@ -294,12 +294,15 @@ def MatrixGroup(*gens, **kwds):
     base_ring = MS.base_ring()
     degree = ZZ(MS.ncols())   # == MS.nrows()
     from sage.libs.gap.libgap import libgap
+    category = kwds.get('category', None)
     try:
         gap_gens = [libgap(matrix_gen) for matrix_gen in gens]
         gap_group = libgap.Group(gap_gens)
-        return FinitelyGeneratedMatrixGroup_gap(degree, base_ring, gap_group)
+        return FinitelyGeneratedMatrixGroup_gap(degree, base_ring, gap_group,
+                                                category=category)
     except (TypeError, ValueError):
-        return FinitelyGeneratedMatrixGroup_generic(degree, base_ring, gens)
+        return FinitelyGeneratedMatrixGroup_generic(degree, base_ring, gens,
+                                                    category=category)
 
 ###################################################################
 #

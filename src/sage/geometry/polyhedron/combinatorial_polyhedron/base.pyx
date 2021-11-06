@@ -313,6 +313,39 @@ cdef class CombinatorialPolyhedron(SageObject):
         sage: CombinatorialPolyhedron(LatticePolytope([], lattice=ToricLattice(3)))
         A -1-dimensional combinatorial polyhedron with 0 facets
     """
+    def __cinit__(self):
+        r"""
+        TESTS:
+
+        Not initializing the class, does not give segmentation fault::
+
+            sage: from sage.geometry.polyhedron.combinatorial_polyhedron.base import CombinatorialPolyhedron
+            sage: C = CombinatorialPolyhedron.__new__(CombinatorialPolyhedron)
+            sage: C.f_vector()
+            Traceback (most recent call last):
+            ...
+            MemoryError: failed to allocate ... bytes
+            sage: C.face_lattice()
+            Traceback (most recent call last):
+            ...
+            MemoryError: failed to allocate ... bytes
+        """
+        self._dimension = -2  # a "NULL" value
+        self._edges = NULL
+        self._ridges = NULL
+        self._face_lattice_incidences = NULL
+        self._equations = ()
+        self._all_faces = None
+        self._mem_tuple = ()
+        # ``_length_edges_list`` should not be touched in an instance
+        # of :class:`CombinatorialPolyhedron`. This number can be altered,
+        # but should probably be a power of `2` (for memory usage).
+        # ``_length_edges_list`` shouldn't be too small for speed and
+        # shouldn't be too large, as ``ridges``, ``edges`` and ``incidences``
+        # each have a memory overhead of
+        # ``self._length_edges_list*2*sizeof(size_t *)``.
+        self._length_edges_list = 16348
+
     def __init__(self, data, Vrep=None, facets=None, unbounded=False, far_face=None, Vrepr=None):
         r"""
         Initialize :class:`CombinatorialPolyhedron`.
@@ -329,29 +362,13 @@ cdef class CombinatorialPolyhedron(SageObject):
             sage: C = CombinatorialPolyhedron(Matrix([[1,0],[0,1]]), Vrepr=['zero', 'one'])
             doctest:...: DeprecationWarning: the keyword ``Vrepr`` is deprecated; use ``Vrep``
             See https://trac.sagemath.org/28608 for details.
+
         """
+        cdef MemoryAllocator mem
         if Vrepr:
             from sage.misc.superseded import deprecation
             deprecation(28608, "the keyword ``Vrepr`` is deprecated; use ``Vrep``", 3)
             Vrep = Vrepr
-        self._dimension = -2  # a "NULL" value
-        self._edges = NULL
-        self._ridges = NULL
-        self._face_lattice_incidences = NULL
-        self._equations = ()
-        self._all_faces = None
-        self._mem_tuple = ()
-        cdef MemoryAllocator mem
-
-        # ``_length_edges_list`` should not be touched in an instance
-        # of :class:`CombinatorialPolyhedron`. This number can be altered,
-        # but should probably be a power of `2` (for memory usage).
-        # ``_length_edges_list`` shouldn't be too small for speed and
-        # shouldn't be too large, as ``ridges``, ``edges`` and ``incidences``
-        # each have a memory overhead of
-        # ``self._length_edges_list*2*sizeof(size_t *)``.
-        self._length_edges_list = 16348
-
         data_modified = None
 
         if isinstance(data, Polyhedron_base):

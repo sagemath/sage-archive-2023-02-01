@@ -621,6 +621,9 @@ cdef int singular_polynomial_subst(poly **p, int var_index, poly *value, ring *r
     - ``r`` - a ring
     """
 
+    if r != currRing:
+        rChangeCurrRing(r)
+
     if p_IsConstant(value, r):
         p[0] = pSubst(p[0], var_index+1, value)
         return 0
@@ -628,8 +631,6 @@ cdef int singular_polynomial_subst(poly **p, int var_index, poly *value, ring *r
     cdef unsigned long exp = p_GetExp(p[0], var_index+1, r) * p_GetMaxExp(value, r)
 
     overflow_check(exp, r)
-    if r != currRing:
-        rChangeCurrRing(r)
 
     cdef int count = singular_polynomial_length_bounded(p[0], 15)
     if unlikely(count >= 15 or exp > 15): sig_on()

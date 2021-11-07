@@ -770,6 +770,16 @@ cdef class MPolynomialRing_libsingular(MPolynomialRing_base):
             sage: S(f)
             (2*abar)*y
 
+        Check that creating element from strings works for transcendental extensions::
+
+            sage: T.<c,d> = QQ[]
+            sage: F = FractionField(T)
+            sage: R.<x,y,z> = F[]
+            sage: R('d*z+x^2*y')
+            x^2*y + d*z
+
+
+
         """
         cdef poly *_p
         cdef poly *mon
@@ -962,7 +972,11 @@ cdef class MPolynomialRing_libsingular(MPolynomialRing_base):
             # let python do the parsing
             d = self.gens_dict()
             if self.base_ring().gen() != 1:
-                d[str(self.base_ring().gen())]=self.base_ring().gen()
+                if hasattr(self.base_ring(), 'gens'):
+                    for gen in self.base_ring().gens():
+                        d[str(gen)] = gen
+                else:
+                    d[str(self.base_ring().gen())] = self.base_ring_gen()
             try:
                 if '/' in element:
                     element = sage_eval(element,d)

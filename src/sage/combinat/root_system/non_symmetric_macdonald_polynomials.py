@@ -940,28 +940,28 @@ class NonSymmetricMacdonaldPolynomials(CherednikOperatorsEigenvectors):
         sage: E = NonSymmetricMacdonaldPolynomials(KL,q, t, -1)
         sage: L0 = E.keys()
         sage: omega = L0.fundamental_weights()
-        sage: P = K['x1,x2,x3']
+        sage: P = K['x0,x1,x2']
         sage: def EE(weight): return E[L0(weight)].expand(P.gens())
 
         sage: EE([0,0,0])
         1
         sage: EE([1,0,0])
-        x1
+        x0
         sage: EE([0,1,0])
-        (t - 1)/(q*t^2 - 1)*x1 + x2
+        (t - 1)/(q*t^2 - 1)*x0 + x1
         sage: EE([0,0,1])
-        (t - 1)/(q*t - 1)*x1 + (t - 1)/(q*t - 1)*x2 + x3
+        (t - 1)/(q*t - 1)*x0 + (t - 1)/(q*t - 1)*x1 + x2
         sage: EE([1,1,0])
-        x1*x2
+        x0*x1
         sage: EE([1,0,1])
-        (t - 1)/(q*t^2 - 1)*x1*x2 + x1*x3
+        (t - 1)/(q*t^2 - 1)*x0*x1 + x0*x2
         sage: EE([0,1,1])
-        (t - 1)/(q*t - 1)*x1*x2 + (t - 1)/(q*t - 1)*x1*x3 + x2*x3
+        (t - 1)/(q*t - 1)*x0*x1 + (t - 1)/(q*t - 1)*x0*x2 + x1*x2
         sage: EE([2,0,0])
-        x1^2 + (q*t - q)/(q*t - 1)*x1*x2 + (q*t - q)/(q*t - 1)*x1*x3
+        x0^2 + (q*t - q)/(q*t - 1)*x0*x1 + (q*t - q)/(q*t - 1)*x0*x2
 
         sage: EE([0,2,0])
-        (t - 1)/(q^2*t^2 - 1)*x1^2 + (q^2*t^3 - q^2*t^2 + q*t^2 - 2*q*t + q - t + 1)/(q^3*t^3 - q^2*t^2 - q*t + 1)*x1*x2 + x2^2 + (q*t^2 - 2*q*t + q)/(q^3*t^3 - q^2*t^2 - q*t + 1)*x1*x3 + (q*t - q)/(q*t - 1)*x2*x3
+        (t - 1)/(q^2*t^2 - 1)*x0^2 + (q^2*t^3 - q^2*t^2 + q*t^2 - 2*q*t + q - t + 1)/(q^3*t^3 - q^2*t^2 - q*t + 1)*x0*x1 + x1^2 + (q*t^2 - 2*q*t + q)/(q^3*t^3 - q^2*t^2 - q*t + 1)*x0*x2 + (q*t - q)/(q*t - 1)*x1*x2
 
     Systematic checks with Sage's implementation of [HHL06]_::
 

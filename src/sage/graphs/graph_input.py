@@ -456,7 +456,7 @@ def from_dict_of_dicts(G, M, loops=False, multiedges=False, weighted=False, conv
 
     TESTS:
 
-    :trac:`32831 is fixed:
+    :trac:`32831` is fixed::
 
         sage: DiGraph({0: {}, 1: {}, 2: {}, 3: {}, 4: {}})
         Digraph on 5 vertices

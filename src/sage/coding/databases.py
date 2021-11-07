@@ -83,7 +83,14 @@ def bounds_on_minimum_distance_in_guava(n, k, F):
         sage: gap_rec = codes.databases.bounds_on_minimum_distance_in_guava(10,5,GF(2))  # optional - gap_packages (Guava package)
         sage: gap_rec.Display()                                                          # optional - gap_packages (Guava package)
         rec(
-          construction := [ <Operation "ShortenedCode">, [ [ <Operation "UUVCode">, [ [ <Operation "DualCode">, [ [ <Operation "RepetitionCode">, [ 8, 2 ] ] ] ], [ <Operation "UUVCode">, [ [ <Operation "DualCode">, [ [ <Operation "RepetitionCode">, [ 4, 2 ] ] ] ], [ <Operation "RepetitionCode">, [ 4, 2 ] ] ] ] ] ], [ 1, 2, 3, 4, 5, 6 ] ] ],
+          construction := [ <Operation "ShortenedCode">,
+            [ [ <Operation "UUVCode">,
+              [ [ <Operation "DualCode">,
+              [ [ <Operation "RepetitionCode">, [ 8, 2 ] ] ] ],
+              [ <Operation "UUVCode">, [ [ <Operation "DualCode">,
+                [ [ <Operation "RepetitionCode">, [ 4, 2 ] ] ] ],
+                [ <Operation "RepetitionCode">, [ 4, 2 ] ] ] ] ] ],
+            [ 1, 2, 3, 4, 5, 6 ] ] ],
           k := 5,
           lowerBound := 4,
           lowerBoundExplanation := ...

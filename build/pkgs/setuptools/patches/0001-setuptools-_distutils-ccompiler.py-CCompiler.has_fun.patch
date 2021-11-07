@@ -1,0 +1,29 @@
+From 423db96cf071ad9e96327e98afac6ace55dd41a5 Mon Sep 17 00:00:00 2001
+From: Matthias Koeppe <mkoeppe@math.ucdavis.edu>
+Date: Sat, 6 Nov 2021 18:50:14 -0700
+Subject: [PATCH] setuptools/_distutils/ccompiler.py (CCompiler.has_function):
+ Do not fail if self.outputdir is set
+
+---
+ setuptools/_distutils/ccompiler.py | 5 ++++-
+ 1 file changed, 4 insertions(+), 1 deletion(-)
+
+diff --git a/setuptools/_distutils/ccompiler.py b/setuptools/_distutils/ccompiler.py
+index 48d160d2..5697f045 100644
+--- a/setuptools/_distutils/ccompiler.py
++++ b/setuptools/_distutils/ccompiler.py
+@@ -802,7 +802,10 @@ int main (int argc, char **argv) {
+         except (LinkError, TypeError):
+             return False
+         else:
+-            os.remove("a.out")
++            output_dir = self.output_dir
++            if output_dir is None:
++                output_dir = ''
++            os.remove(os.path.join(output_dir, "a.out"))
+         finally:
+             for fn in objects:
+                 os.remove(fn)
+-- 
+2.33.0
+

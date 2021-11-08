@@ -19,7 +19,7 @@ See also
   :class:`FiniteCrystals`, :class:`ClassicalCrystals`, :class:`RegularCrystals`,
   :class:`~sage.categories.regular_supercrystals.RegularSuperCrystals`
   -- The categories for crystals
-- :ref:`sage.combinat.root_system`
+- :ref:`sage.combinat.root_system.all`
 """
 # install the docstring of this module to the containing package
 from sage.misc.namespace_package import install_doc

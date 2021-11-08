@@ -27,6 +27,8 @@ Module layout:
 from sage.misc.namespace_package import install_doc
 install_doc(__package__, __doc__)
 
+from . import primer
+
 from sage.misc.lazy_import import lazy_import
 
 from .category import Category

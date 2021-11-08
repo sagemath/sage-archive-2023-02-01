@@ -14,7 +14,7 @@ Quickref
 Introductory material
 ---------------------
 
-- :ref:`sage.combinat.root_system`                -- This overview
+- :ref:`sage.combinat.root_system.all`            -- This overview
 - :class:`CartanType`                             -- An introduction to Cartan types
 - :class:`RootSystem`                             -- An introduction to root systems
 - :ref:`sage.combinat.root_system.plot`           -- A root system visualization tutorial
@@ -25,7 +25,7 @@ Introductory material
 Related material
 ----------------
 
-- :ref:`sage.combinat.crystals`                   -- Crystals
+- :ref:`sage.combinat.crystals.all`               -- Crystals
 
 Cartan datum
 ------------
@@ -39,7 +39,7 @@ Cartan datum
 Root systems
 ------------
 
-- :ref:`sage.combinat.root_system.root_system`
+- :ref:`sage.combinat.root_system.all`
 - :ref:`sage.combinat.root_system.plot`
 - :ref:`sage.combinat.root_system.root_lattice_realizations`
 - :ref:`sage.combinat.root_system.root_lattice_realization_algebras`
@@ -115,6 +115,9 @@ Root system data and code for specific Cartan types
 - :ref:`sage.combinat.root_system.type_super_A`
 - :ref:`sage.combinat.root_system.type_A_infinity`
 """
+# install the docstring of this module to the containing package
+from sage.misc.namespace_package import install_doc
+install_doc(__package__, __doc__)
 
 from sage.misc.lazy_import import lazy_import
 
@@ -139,6 +142,3 @@ from .branching_rules import BranchingRule, branching_rule_from_plethysm, branch
 lazy_import('sage.combinat.root_system.non_symmetric_macdonald_polynomials', 'NonSymmetricMacdonaldPolynomials')
 lazy_import('sage.combinat.root_system.integrable_representations', 'IntegrableRepresentation')
 
-# install the docstring of this module to the containing package
-from sage.misc.namespace_package import install_doc
-install_doc(__package__, __doc__)

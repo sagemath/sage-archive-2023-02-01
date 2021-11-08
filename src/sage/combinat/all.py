@@ -26,7 +26,7 @@ Thematic indexes
 - :ref:`sage.combinat.species.all`
 - :ref:`sage.combinat.designs.all`
 - :ref:`sage.combinat.posets.all`
-- :ref:`sage.combinat.words.all`
+- :ref:`sage.combinat.words`
 
 Utilities
 ---------
@@ -47,6 +47,8 @@ Related topics
 # install the docstring of this module to the containing package
 from sage.misc.namespace_package import install_doc
 install_doc(__package__, __doc__)
+
+from . import quickref, tutorial
 
 from sage.misc.lazy_import import lazy_import
 

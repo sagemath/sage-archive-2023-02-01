@@ -28,6 +28,7 @@
 #include "recurrences_ntl.h"
 #include "recurrences_zn_poly.h"
 
+#include <cassert>
 
 NTL_CLIENT
 

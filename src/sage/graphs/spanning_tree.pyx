@@ -796,7 +796,7 @@ cpdef boruvka(G, wfunction=None, bint check=False, bint by_weight=True):
     return T
 
 
-def random_spanning_tree(G, output_as_graph=False, by_weight=False, weight_function=None):
+def random_spanning_tree(G, output_as_graph=False, by_weight=False, weight_function=None, check_weight=True):
     r"""
     Return a random spanning tree of the graph.
 
@@ -828,6 +828,9 @@ def random_spanning_tree(G, output_as_graph=False, by_weight=False, weight_funct
       ``None``, else ``1`` as a weight. The ``weight_function`` can be used to
       transform the label into a weight (note that, if the weight returned is
       not convertible to a float, an error is raised)
+
+    - ``check_weight`` -- boolean (default: ``True``); whether to check that
+      the ``weight_function`` outputs a number for each edge.
 
     .. SEEALSO::
 
@@ -911,14 +914,11 @@ def random_spanning_tree(G, output_as_graph=False, by_weight=False, weight_funct
             return G.copy()
         return list(G.edge_iterator(label=False))
 
-    if weight_function is not None:
-        by_weight = True
+    by_weight, weight_function = G._get_weight_function(by_weight=by_weight,
+                                                        weight_function=weight_function,
+                                                        check_weight=check_weight)
 
     if by_weight:
-        if weight_function is None:
-            def weight_function(e):
-                return 1 if e[2] is None else e[2]
-
         def next_neighbor(s):
             p = random() * sum(weight_function(e)
                                for e in G.edge_iterator(s, sort_vertices=False))
@@ -927,7 +927,6 @@ def random_spanning_tree(G, output_as_graph=False, by_weight=False, weight_funct
                 if p <= 0:
                     break
             return e[1] if e[0] == s else e[0]
-
     else:
         def next_neighbor(s):
             return G.neighbors(s)[randint(0, G.degree(s) - 1)]

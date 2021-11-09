@@ -54,7 +54,7 @@ SAGE_SPKG_OPTIONS = @SAGE_SPKG_OPTIONS@
 
 # Where the Sage distribution installs documentation.
 # set to empty if --disable-doc is used
-SAGE_DOCS = $(SAGE_LOCAL)
+SAGE_DOCS = @SAGE_DOCS@
 
 # Where the Sage distribution installs Python packages.
 # This can be overridden by 'make SAGE_VENV=/some/venv'.

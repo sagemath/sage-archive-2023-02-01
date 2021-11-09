@@ -98,6 +98,8 @@ AC_ARG_WITH([sage-venv],
             [SAGE_VENV="auto"])
 AC_SUBST([SAGE_VENV])
 
+AC_SUBST([SAGE_DOCS], ['${SAGE_LOCAL}'])dnl Quoted so that it is resolved at build time by shell/Makefile
+
 #---------------------------------------------------------
 
 AC_ARG_ENABLE([build-as-root],
@@ -472,9 +474,12 @@ AC_ARG_ENABLE([r],
 AC_ARG_ENABLE([doc],
   AS_HELP_STRING([--disable-doc],
                  [disable build of the Sage documentation and packages depending on it]), [
+    dnl Disable packages needed for docbuilding
     for pkg in sage_docbuild alabaster babel snowballstemmer idna urllib3 certifi charset_normalizer requests imagesize sphinx sphinxcontrib_devhelp sphinxcontrib_jsmath sphinxcontrib_serializinghtml sphinxcontrib_applehelp sphinxcontrib_htmlhelp sphinxcontrib_qthelp sphinxcontrib_websupport; do
       AS_VAR_SET([SAGE_ENABLE_$pkg], [$enableval])
     done
+    dnl Disable the docbuild by disabling the install tree for documentation
+    AS_VAR_SET([SAGE_DOCS], [])
   ])
 
 dnl Packages that require a special override to use the SPKG

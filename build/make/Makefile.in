@@ -161,7 +161,7 @@ $(SAGE_LOCAL)/$(SPKG_INST_RELDIR)/.dummy:
 
 
 # Filtered by installation tree
-$(foreach tree,SAGE_LOCAL SAGE_VENV SAGE_DOC_PREFIX, \
+$(foreach tree,SAGE_LOCAL SAGE_VENV SAGE_DOCS, \
     $(eval $(tree)_INSTALLED_PACKAGE_INSTS = \
                $(foreach pkgname,$(INSTALLED_PACKAGES), \
                          $(if $(findstring $(tree),$(trees_$(pkgname))), \

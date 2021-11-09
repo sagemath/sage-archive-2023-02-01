@@ -232,11 +232,11 @@ build-start: all-build
 base-toolchain: _clean-broken-gcc base
 	+$(MAKE_REC) toolchain
 
-# All targets except for the base packages
+# All targets except for the base packages and except the documentation
 all-sage: \
 		sagelib \
-		$(INSTALLED_PACKAGE_INSTS) \
-                $(UNINSTALLED_PACKAGES_CLEANS)
+		$(SAGE_LOCAL_INSTALLED_PACKAGE_INSTS) $(SAGE_LOCAL_UNINSTALLED_PACKAGES_CLEANS) \
+		$(SAGE_VENV_INSTALLED_PACKAGE_INSTS)  $(SAGE_VENV_UNINSTALLED_PACKAGES_CLEANS)
 
 # Same but filtered by installation trees:
 all-build-local: toolchain-deps

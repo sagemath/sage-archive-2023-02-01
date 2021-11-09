@@ -336,12 +336,12 @@ doc-html: sagemath_doc_html
 # megabytes of disk space. 'doc-clean' is a prerequisite because the
 # presence of graphics is cached in src/doc/output.
 doc-html-no-plot: doc-clean
-	+$(MAKE_REC) SAGE_SKIP_PLOT_DIRECTIVE=yes doc-html
+	+$(MAKE_REC) SAGE_DOCBUILD_OPTS="$(SAGE_DOCBUILD_OPTS) --no-plot" doc-html
 
 # Using mathjax is actually the default, but this target can be used
 # to override an environment setting of SAGE_DOC_MATHJAX=no
 doc-html-mathjax:
-	+$(MAKE_REC) SAGE_DOC_MATHJAX=yes doc-html
+	+$(MAKE_REC) SAGE_DOCBUILD_OPTS="$(SAGE_DOCBUILD_OPTS) -j" SAGE_DOC_MATHJAX=yes doc-html
 
 # Keep target 'doc-html-jsmath' for backwards compatibility.
 doc-html-jsmath: doc-html-mathjax

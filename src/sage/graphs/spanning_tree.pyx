@@ -885,6 +885,15 @@ def random_spanning_tree(G, output_as_graph=False, by_weight=False, weight_funct
         sage: print(len(foo(K4, 100)))  # random
         16
 
+    Check that the spanning tree returned when using weights is a tree::
+
+        sage: G = graphs.RandomBarabasiAlbert(50, 2)
+        sage: for u, v in G.edge_iterator(labels=False):
+        ....:     G.set_edge_label(u, v, randint(1, 10))
+        sage: T = G.random_spanning_tree(by_weight=True, output_as_graph=True)
+        sage: T.is_tree()
+        True
+
     TESTS::
 
         sage: G = Graph()

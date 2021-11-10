@@ -718,7 +718,7 @@ packages and optional packages should only depend on standard or
 optional packages.
 
 
-.. _section-dependencies:
+.. _section-trees:
 
 Where packages are installed
 ----------------------------

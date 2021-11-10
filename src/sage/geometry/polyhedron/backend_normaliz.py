@@ -583,15 +583,15 @@ class Polyhedron_normaliz(Polyhedron_base):
 
         EXAMPLES::
 
-            sage: p = Polyhedron(backend='normaliz')                       # optional - pynormaliz
+            sage: p = Polyhedron(backend='normaliz')                          # optional - pynormaliz
             sage: from sage.geometry.polyhedron.backend_normaliz import Polyhedron_normaliz   # optional - pynormaliz
             sage: Polyhedron_normaliz._init_from_Hrepresentation(p, [], [])   # optional - pynormaliz
 
         TESTS::
 
-            sage: K.<a> = QuadraticField(2)
-            sage: p = Polyhedron(ieqs=[(1, a, 0)], backend='normaliz')        # optional - pynormaliz
-            sage: p & p == p                                                  # optional - pynormaliz
+            sage: K.<a> = QuadraticField(2)                                                            # optional - sage.rings.number_field
+            sage: p = Polyhedron(ieqs=[(1, a, 0)], backend='normaliz')        # optional - pynormaliz  # optional - sage.rings.number_field
+            sage: p & p == p                                                  # optional - pynormaliz  # optional - sage.rings.number_field
             True
 
         Check that :trac:`30248` is fixed, that maps as input works::

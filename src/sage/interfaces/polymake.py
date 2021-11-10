@@ -2114,7 +2114,7 @@ class PolymakeExpect(PolymakeAbstract, Expect):
 
         EXAMPLES::
 
-            sage: from sage.interfaces.polymake import polymake_expect as polymake
+            sage: from sage.interfaces.polymake import polymake_expect as polymake  # optional - polymake_expect
             sage: p = polymake.cube(3)              # optional - polymake_expect  # indirect doctest
 
         Here we see that remarks printed by polymake are displayed if

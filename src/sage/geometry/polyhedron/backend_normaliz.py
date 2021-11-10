@@ -735,7 +735,7 @@ class Polyhedron_normaliz(Polyhedron_base):
             ....:     return all(P._nmz_result(cone,arg) == P._nmz_result(cone2,arg) for arg in args)
             sage: test_poly(polytopes.simplex(backend='normaliz'))                                  # optional - pynormaliz
             True
-            sage: test_poly(polytopes.dodecahedron(backend='normaliz'))                             # optional - pynormaliz
+            sage: test_poly(polytopes.dodecahedron(backend='normaliz'))                             # optional - pynormaliz  # optional - sage.rings.number_field
             True
             sage: test_poly(Polyhedron(vertices=[[1,0],[0,1]],rays=[[1,1]], backend='normaliz'))    # optional - pynormaliz
             True
@@ -1510,12 +1510,12 @@ class Polyhedron_normaliz(Polyhedron_base):
             sage: s._volume_normaliz(measure='ambient')           # optional - pynormaliz
             0
 
-            sage: P = polytopes.regular_polygon(3, backend='normaliz')          # optional - pynormaliz
-            sage: P._volume_normaliz('ambient') == P.volume(engine='internal')  # optional - pynormaliz
+            sage: P = polytopes.regular_polygon(3, backend='normaliz')          # optional - pynormaliz  # optional - sage.rings.number_field
+            sage: P._volume_normaliz('ambient') == P.volume(engine='internal')  # optional - pynormaliz  # optional - sage.rings.number_field
             True
 
-            sage: P = polytopes.dodecahedron(backend='normaliz')                # optional - pynormaliz
-            sage: P._volume_normaliz('ambient') == P.volume(engine='internal')  # optional - pynormaliz
+            sage: P = polytopes.dodecahedron(backend='normaliz')                # optional - pynormaliz  # optional - sage.rings.number_field
+            sage: P._volume_normaliz('ambient') == P.volume(engine='internal')  # optional - pynormaliz  # optional - sage.rings.number_field
             True
 
             sage: P = Polyhedron(rays=[[1]], backend='normaliz')  # optional - pynormaliz

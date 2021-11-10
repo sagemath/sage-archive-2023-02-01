@@ -334,7 +334,7 @@ def kruskal_iterator(G, by_weight=True, weight_function=None, check_weight=False
     yield from kruskal_iterator_from_edges(G.edge_iterator(), union_find,
                                            by_weight=by_weight,
                                            weight_function=weight_function,
-                                           check_weight=check_weight)
+                                           check_weight=False)
 
 
 @rename_keyword(deprecation=32805, weighted='by_weight')
@@ -471,7 +471,9 @@ def filter_kruskal(G, threshold=10000, by_weight=True, weight_function=None,
         sage: filter_kruskal(Graph(2), check=True)
         []
     """
-    return list(filter_kruskal_iterator(G, threshold=threshold, weight_function=weight_function, check=check))
+    return list(filter_kruskal_iterator(G, threshold=threshold,
+                                        by_weight=by_weight, weight_function=weight_function,
+                                        check_weight=check_weight, check=check))
 
 
 def filter_kruskal_iterator(G, threshold=10000, by_weight=True, weight_function=None,

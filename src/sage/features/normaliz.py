@@ -8,11 +8,11 @@ from .join_feature import JoinFeature
 class pynormaliz(JoinFeature):
     r"""
     A :class:`sage.features.Feature` describing the presence of the
-    Python package ``igraph``.
+    Python package ``PyNormaliz``.
 
     EXAMPLES::
 
-        sage: from sage.features.igraph import pynormaliz
+        sage: from sage.features.normaliz import pynormaliz
         sage: pynormaliz().is_present()                    # optional - pynormaliz
         FeatureTestResult('pynormaliz', True)
     """
@@ -20,7 +20,7 @@ class pynormaliz(JoinFeature):
         r"""
         TESTS::
 
-            sage: from sage.features.igraph import pynormaliz
+            sage: from sage.features.normaliz import pynormaliz
             sage: isinstance(pynormaliz(), pynormaliz)
             True
         """

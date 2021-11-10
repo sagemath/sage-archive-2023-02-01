@@ -3468,9 +3468,27 @@ cdef class RealBall(RingElement):
         if _do_sig(prec(self)): sig_off()
         return res
 
-    def gamma(self):
+    def erfi(self):
         """
-        Return the image of this ball by the Euler Gamma function.
+        Imaginary error function.
+
+        EXAMPLES::
+
+            sage: RBF(1/2).erfi()
+            [0.614952094696511 +/- 2.22e-16]
+        """
+        cdef RealBall res = self._new()
+        if _do_sig(prec(self)): sig_on()
+        arb_hypgeom_erfi(res.value, self.value, prec(self))
+        if _do_sig(prec(self)): sig_off()
+        return res
+
+    def gamma(self, a=None):
+        """
+        Image of this ball by the (incomplete) Euler Gamma function
+
+        For `a` real, return the upper incomplete Gamma function
+        of `\Gamma(self,a)`.
 
         For integer and rational arguments,
         :meth:`~sage.rings.real_arb.RealBallField.gamma` may be faster.
@@ -3479,14 +3497,27 @@ cdef class RealBall(RingElement):
 
             sage: RBF(1/2).gamma()
             [1.772453850905516 +/- ...e-16]
+            sage: RBF(gamma(3/2,sqrt(2)))
+            [0.37118875695353 +/- 3.29e-15]
+            sage: RBF(3/2).gamma(sqrt(2))
+            [0.37118875695353 +/- 3.29e-15]
+            sage: RBF(gamma(3/2,RIF(sqrt(2))))
+            [0.37118875695353 +/- 3.15e-15]
 
         .. SEEALSO::
             :meth:`~sage.rings.real_arb.RealBallField.gamma`
         """
+        cdef RealBall a_ball
         cdef RealBall res = self._new()
-        if _do_sig(prec(self)): sig_on()
-        arb_gamma(res.value, self.value, prec(self))
-        if _do_sig(prec(self)): sig_off()
+        if a is None:
+            if _do_sig(prec(self)): sig_on()
+            arb_gamma(res.value, self.value, prec(self))
+            if _do_sig(prec(self)): sig_off()
+        else:
+            if _do_sig(prec(self)): sig_on()
+            a_ball = RBF(a)
+            arb_hypgeom_gamma_upper(res.value, self.value, a_ball.value, 0, prec(self))
+            if _do_sig(prec(self)): sig_off()
         return res
 
     def log_gamma(self):
@@ -3568,6 +3599,8 @@ cdef class RealBall(RingElement):
         Return the image of this ball by the Hurwitz zeta function.
 
         For ``a = 1`` (or ``a = None``), this computes the Riemann zeta function.
+
+        Otherwise, it computes Hurwitz zeta function.
 
         Use :meth:`RealBallField.zeta` to compute the Riemann zeta function of
         a small integer without first converting it to a real ball.

@@ -1685,8 +1685,8 @@ class Polyhedron_base(Polyhedron_base1):
             [1 0 1 0 0 1]
             [1 0 0 0 1 1]
 
-            sage: P = polytopes.dodecahedron().faces(2)[0].as_polyhedron()
-            sage: P.slack_matrix()
+            sage: P = polytopes.dodecahedron().faces(2)[0].as_polyhedron()                          # optional - sage.rings.number_field
+            sage: P.slack_matrix()                                                                  # optional - sage.rings.number_field
             [1/2*sqrt5 - 1/2               0               0               1 1/2*sqrt5 - 1/2               0]
             [              0               0 1/2*sqrt5 - 1/2 1/2*sqrt5 - 1/2               1               0]
             [              0 1/2*sqrt5 - 1/2               1               0 1/2*sqrt5 - 1/2               0]
@@ -1703,7 +1703,7 @@ class Polyhedron_base(Polyhedron_base1):
 
             sage: Polyhedron().slack_matrix()
             []
-            sage: Polyhedron(base_ring=QuadraticField(2)).slack_matrix().base_ring()
+            sage: Polyhedron(base_ring=QuadraticField(2)).slack_matrix().base_ring()                # optional - sage.rings.number_field
             Number Field in a with defining polynomial x^2 - 2 with a = 1.41...
         """
         if not self.n_Vrepresentation() or not self.n_Hrepresentation():
@@ -2832,8 +2832,8 @@ class Polyhedron_base(Polyhedron_base1):
 
         The polytope has to have rational coordinates::
 
-            sage: S = polytopes.dodecahedron()
-            sage: S.face_fan()
+            sage: S = polytopes.dodecahedron()                                # optional - sage.rings.number_field
+            sage: S.face_fan()                                                # optional - sage.rings.number_field
             Traceback (most recent call last):
             ...
             NotImplementedError: face fan handles only polytopes over the rationals
@@ -8596,8 +8596,11 @@ class Polyhedron_base(Polyhedron_base1):
         The ``output="matrixlist"`` can be used over fields without a
         complete implementation of matrix groups::
 
-            sage: P = polytopes.dodecahedron(); P
-            A 3-dimensional polyhedron in (Number Field in sqrt5 with defining polynomial x^2 - 5 with sqrt5 = 2.236067977499790?)^3 defined as the convex hull of 20 vertices
+            sage: P = polytopes.dodecahedron(); P                                                   # optional - sage.rings.number_field
+            A 3-dimensional polyhedron
+             in (Number Field in sqrt5 with defining polynomial x^2 - 5
+                 with sqrt5 = 2.236067977499790?)^3
+             defined as the convex hull of 20 vertices
             sage: G = P.restricted_automorphism_group(output="matrixlist")
             sage: len(G)
             120
@@ -9507,8 +9510,8 @@ class Polyhedron_base(Polyhedron_base1):
 
         TESTS::
 
-            sage: D = polytopes.dodecahedron()
-            sage: D.facets()[0].as_polyhedron()._test_affine_hull_projection()
+            sage: D = polytopes.dodecahedron()                                  # optional - sage.rings.number_field
+            sage: D.facets()[0].as_polyhedron()._test_affine_hull_projection()  # optional - sage.rings.number_field
         """
         if tester is None:
             tester = self._tester(**options)
@@ -9624,12 +9627,12 @@ class Polyhedron_base(Polyhedron_base1):
 
         Arrangement of affine hull of facets::
 
-            sage: D = polytopes.dodecahedron()
-            sage: E3 = EuclideanSpace(3)
-            sage: submanifolds = [
+            sage: D = polytopes.dodecahedron()                                  # optional - sage.rings.number_field
+            sage: E3 = EuclideanSpace(3)                                        # optional - sage.rings.number_field
+            sage: submanifolds = [                                              # optional - sage.rings.number_field
             ....:     F.as_polyhedron().affine_hull_manifold(name=f'F{i}', orthogonal=True, ambient_space=E3)
             ....:     for i, F in enumerate(D.facets())]
-            sage: sum(FM.plot({}, srange(-2, 2, 0.1), srange(-2, 2, 0.1), opacity=0.2)  # not tested
+            sage: sum(FM.plot({}, srange(-2, 2, 0.1), srange(-2, 2, 0.1), opacity=0.2)  # not tested  # optional - sage.plot  # optional - sage.rings.number_field
             ....:     for FM in submanifolds) + D.plot()
             Graphics3d Object
 
@@ -9769,12 +9772,15 @@ class Polyhedron_base(Polyhedron_base1):
 
         Algebraic polyhedron::
 
-            sage: P = polytopes.dodecahedron(); P
-            A 3-dimensional polyhedron in (Number Field in sqrt5 with defining polynomial x^2 - 5 with sqrt5 = 2.236067977499790?)^3 defined as the convex hull of 20 vertices
-            sage: print("There may be a recompilation warning"); PP = polymake(P); PP # optional - polymake
+            sage: P = polytopes.dodecahedron(); P                                                             # optional - sage.rings.number_field
+            A 3-dimensional polyhedron
+             in (Number Field in sqrt5 with defining polynomial x^2 - 5
+                 with sqrt5 = 2.236067977499790?)^3
+             defined as the convex hull of 20 vertices
+            sage: print("There may be a recompilation warning"); PP = polymake(P); PP  # optional - polymake  # optional - sage.rings.number_field
             There may be a recompilation warning...
             Polytope<QuadraticExtension<Rational>>[...]
-            sage: sorted(PP.VERTICES[:], key=repr)[0]  # optional - polymake
+            sage: sorted(PP.VERTICES[:], key=repr)[0]                                  # optional - polymake  # optional - sage.rings.number_field
             1 -1+1r5 -4+2r5 0
 
         Floating-point polyhedron::

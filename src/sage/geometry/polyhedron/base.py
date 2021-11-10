@@ -8729,16 +8729,18 @@ class Polyhedron_base(Element, ConvexSet_closed, sage.geometry.abc.Polyhedron):
                 Latte().require()
                 engine = 'latte'
             except FeatureNotPresentError:
+                from sage.features.normaliz import pynormaliz
                 try:
-                    PythonModule("PyNormaliz", spkg="pynormaliz").require()
+                    pynormaliz.require()
                     engine = 'normaliz'
                 except FeatureNotPresentError:
                     raise RuntimeError("the induced rational measure can only be computed with the optional packages `latte_int`, or `pynormaliz`")
 
         if engine == 'auto' and measure == 'induced_lattice':
             # Enforce a default choice, change if a better engine is found.
+            from sage.features.normaliz import pynormaliz
             try:
-                PythonModule("PyNormaliz", spkg="pynormaliz").require()
+                pynormaliz.require()
                 engine = 'normaliz'
             except FeatureNotPresentError:
                 try:

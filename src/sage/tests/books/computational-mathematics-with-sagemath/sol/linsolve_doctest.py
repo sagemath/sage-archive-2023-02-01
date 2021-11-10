@@ -19,7 +19,7 @@ Sage example in ./sol/linsolve.tex, line 72::
 Sage example in ./sol/linsolve.tex, line 84::
 
   sage: M = (X*X-a)
-  sage: all(abs(M[i,j]) < 10^-13  # original claim is 10^-14, which sometimes fails
+  sage: all(abs(M[i,j]) < 10^-13
   ....:     for i in range(4) for j in range(4) )
   True
 

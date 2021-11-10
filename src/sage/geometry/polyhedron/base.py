@@ -2055,7 +2055,7 @@ class Polyhedron_base(Polyhedron_base1):
             sage: V = P.Vrepresentation()
             sage: H = P.Hrepresentation()
             sage: parent = P.parent()
-            sage: for V1 in Permutations(V):
+            sage: for V1 in Permutations(V):                                    # optional - sage.combinat
             ....:     P1 = parent._element_constructor_(
             ....:         [V1, [], []], [H, []], Vrep_minimal=True, Hrep_minimal=True)
             ....:     assert P1.is_inscribed()

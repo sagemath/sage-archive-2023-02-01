@@ -1278,7 +1278,7 @@ cdef class FiniteField_ntl_gf2eElement(FinitePolyExtElement):
             a^8 + a^7 + a^4 + a + 1
             a^8 + a^7 + a^4 + a + 1
 
-        Big instances used to take very long before :trac:`32842`::
+        Big instances used to take a very long time before :trac:`32842`::
 
             sage: g = GF(2^61).gen()
             sage: g.log(g^7)

@@ -781,7 +781,7 @@ class Polyhedron_base(Polyhedron_base1):
         EXAMPLES::
 
             sage: square = polytopes.hypercube(2)
-            sage: square.show(point='red')
+            sage: square.show(point='red')         # optional - sage.plot
         """
         self.plot(**kwds).show()
 

@@ -11,11 +11,10 @@ class sagemath_doc_html(StaticFile):
     of the Sage library in HTML format.
     """
     def __init__(self):
-        import os
         from sage.env import SAGE_DOC
         StaticFile.__init__(self, 'sagemath_doc_html',
                             filename='html',
-                            search_path=(os.path.join(SAGE_DOC, "html"),),
+                            search_path=(SAGE_DOC,),
                             spkg='sagemath_doc_html')
 
 

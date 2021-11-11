@@ -3588,6 +3588,32 @@ cdef class RealBall(RingElement):
         arb_hypgeom_li(res.value, self.value, 1, prec(self))
         if _do_sig(prec(self)): sig_off()
         return res
+ 
+    def beta(self, a):
+        """
+        Image of this ball by the complete beta function 
+
+        For `a` real, return the complete Gamma function `B(self,a)`.
+
+        EXAMPLES::
+
+            sage: RBF(sin(3)).beta(sqrt(2/3))
+            [7.407661629415 +/- 1.26e-13]
+
+        .. TODO::
+
+            At the moment RBF(beta(a,b)) does not work, one needs
+            RBF(a).beta(b) for this to work. See :trac:`32851`
+            and :trac:`24641`.
+        """
+        cdef RealBall a_ball, aone
+        cdef RealBall res = self._new()
+        if _do_sig(prec(self)): sig_on()
+        a_ball = RBF(a)
+        aone = RBF(1)
+        arb_hypgeom_beta_lower(res.value, self.value, a_ball.value, aone.value, 0, prec(self))
+        if _do_sig(prec(self)): sig_off()
+        return res
 
     def gamma(self, a=None):
         """

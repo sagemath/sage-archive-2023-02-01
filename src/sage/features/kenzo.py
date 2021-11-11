@@ -3,7 +3,6 @@ r"""
 Check for Kenzo
 """
 
-from sage.libs.ecl import ecl_eval
 from . import Feature, FeatureTestResult
 
 class Kenzo(Feature):
@@ -37,6 +36,7 @@ class Kenzo(Feature):
             sage: Kenzo()._is_present()  # optional - kenzo
             FeatureTestResult('kenzo', True)
         """
+        from sage.libs.ecl import ecl_eval
         # Redirection of ECL and Maxima stdout to /dev/null
         # This is also done in the Maxima library, but we
         # also do it here for redundancy.

@@ -628,14 +628,16 @@ def format(s, embedded=False):
         '<<<identity_matrix\n'
         sage: format('identity_matrix>>>')
         'identity_matrix>>>\n'
-        sage: format('<<<identity_matrix>>>')[:28]
+        sage: format('<<<identity_matrix>>>')
+        '...Definition: identity_matrix(...'
+        sage: format('<<<identity_matrix>>>')[:28]                            # optional - sphinx
         'Definition: identity_matrix('
 
     TESTS:
 
     We check that the todo Sphinx extension is correctly activated::
 
-        sage: sage.misc.sagedoc.format(sage.combinat.ranker.on_fly.__doc__)
+        sage: sage.misc.sagedoc.format(sage.combinat.ranker.on_fly.__doc__)   # optional - sphinx
         "   Returns ...  Todo: add tests as in combinat::rankers\n"
 
     In the following use case, the ``nodetex`` directive would have been ignored prior
@@ -679,7 +681,7 @@ def format(s, embedded=False):
 
     Check that backslashes are preserved in code blocks (:trac:`29140`)::
 
-        sage: format('::\n'
+        sage: format('::\n'                                                   # optional - sphinx
         ....:        '\n'
         ....:        r'    sage: print(r"\\\\.")' '\n'
         ....:        r'    \\\\.')
@@ -1404,7 +1406,7 @@ class _sage_doc:
             "...**File:**...**Type:**...**Definition:** identity_matrix..."
             sage: identity_matrix.__doc__ in browse_sage_doc(identity_matrix, 'rst')
             True
-            sage: browse_sage_doc(identity_matrix, 'html', False)
+            sage: browse_sage_doc(identity_matrix, 'html', False)             # optional - sphinx
             '...div...File:...Type:...Definition:...identity_matrix...'
 
         In the 'text' version, double colons have been replaced with
@@ -1412,7 +1414,7 @@ class _sage_doc:
 
             sage: '::' in browse_sage_doc(identity_matrix, 'rst')
             True
-            sage: '::' in browse_sage_doc(identity_matrix, 'text')
+            sage: '::' in browse_sage_doc(identity_matrix, 'text')            # optional - sphinx
             False
         """
         if output != 'html' and view:

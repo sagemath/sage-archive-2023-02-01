@@ -1,8 +1,22 @@
 r"""
 Check for SageMath Python modules
 """
-from . import PythonModule
+from . import PythonModule, StaticFile
 from .join_feature import JoinFeature
+
+
+class sagemath_doc_html(StaticFile):
+    r"""
+    A :class:`Feature` which describes the presence of the documentation
+    of the Sage library in HTML format.
+    """
+    def __init__(self):
+        import os
+        from sage.env import SAGE_DOC
+        StaticFile.__init__(self, 'sagemath_doc_html',
+                            filename='html',
+                            search_path=(os.path.join(SAGE_DOC, "html"),),
+                            spkg='sagemath_doc_html')
 
 
 class sage__combinat(JoinFeature):
@@ -186,7 +200,8 @@ def sage_features():
          Feature('sage.rings.number_field'),
          Feature('sage.rings.real_double')]
     """
-    for feature in [sage__combinat(),
+    for feature in [sagemath_doc_html(),
+                    sage__combinat(),
                     sage__geometry__polyhedron(),
                     sage__graphs(),
                     sage__plot(),

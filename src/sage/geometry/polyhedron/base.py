@@ -8717,7 +8717,7 @@ class Polyhedron_base(Element, ConvexSet_closed, sage.geometry.abc.Polyhedron):
             sage: Q.volume.is_in_cache()
             True
         """
-        from sage.features import FeatureNotPresentError, PythonModule
+        from sage.features import FeatureNotPresentError
         if measure == 'induced_rational' and engine not in ['auto', 'latte', 'normaliz']:
             raise RuntimeError("the induced rational measure can only be computed with the engine set to `auto`, `latte`, or `normaliz`")
         if measure == 'induced_lattice' and engine not in ['auto', 'latte', 'normaliz']:

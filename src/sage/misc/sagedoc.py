@@ -47,7 +47,6 @@ import sys
 import pydoc
 from sage.misc.temporary_file import tmp_dir
 from .viewer import browser
-from .sphinxify import sphinxify
 import sage.version
 from sage.env import SAGE_DOC, SAGE_SRC
 
@@ -242,7 +241,12 @@ def detex(s, embedded=False):
     if not embedded: # not in the notebook
         s = _rmcmd(s, 'mathop')
         s = _rmcmd(s, 'mathrm')
-        s = sphinxify(s, format='text')
+        try:
+            from .sphinxify import sphinxify
+        except ImportError:
+            s = s.replace('``', '"').replace('`', '') + '\n'
+        else:
+            s = sphinxify(s, format='text')
         # Do math substitutions. The strings to be replaced should be
         # TeX commands like "\\blah". Do a regular expression
         # replacement to replace "\\blah" but not "\\blahxyz", etc.:
@@ -1440,7 +1444,13 @@ class _sage_doc:
 
         # now s should be the reST version of the docstring
         if output == 'html':
-            html = sphinxify(s)
+            try:
+                from .sphinxify import sphinxify
+            except ImportError:
+                from html import escape
+                html = escape(s)
+            else:
+                html = sphinxify(s)
             if view:
                 path = os.path.join(tmp_dir(), "temp.html")
                 filed = open(path, 'w')
@@ -1508,7 +1518,12 @@ class _sage_doc:
         elif output == 'rst':
             return s
         elif output == 'text':
-            return sphinxify(s, format='text')
+            try:
+                from .sphinxify import sphinxify
+            except ImportError:
+                return s
+            else:
+                return sphinxify(s, format='text')
         else:
             raise ValueError("output type {} not recognized".format(output))
 

@@ -12,6 +12,5 @@ if [[ "$SAGE_SPKG_INSTALL_DOCS" != no ]] ; then
     fi
     # install pplpy's documentation
     PPLPY_DOCS=$SAGE_SHARE/doc/pplpy
-    mkdir -p $PPLPY_DOCS
-    cp -r build/html/*  $PPLPY_DOCS
+    sdh_install build/html/* $PPLPY_DOCS
 fi

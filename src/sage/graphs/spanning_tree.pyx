@@ -574,8 +574,7 @@ def filter_kruskal_iterator(G, threshold=10000, by_weight=True, weight_function=
             yield from G.edge_iterator()
             return
 
-        # g = G.to_simple(to_undirected=False, keep_label='min')
-        g = G
+        g = G.to_simple(to_undirected=False, keep_label='min')
     else:
         g = G
 

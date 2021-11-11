@@ -3483,6 +3483,21 @@ cdef class RealBall(RingElement):
         if _do_sig(prec(self)): sig_off()
         return res
 
+    def Ei(self):
+        """
+        Exponential integral 
+
+        EXAMPLES::
+
+            sage: RBF(1).Ei()
+            [1.89511781635594 +/- 4.94e-15]
+        """
+        cdef RealBall res = self._new()
+        if _do_sig(prec(self)): sig_on()
+        arb_hypgeom_ei(res.value, self.value, prec(self))
+        if _do_sig(prec(self)): sig_off()
+        return res
+
     def gamma(self, a=None):
         """
         Image of this ball by the (incomplete) Euler Gamma function

@@ -408,6 +408,11 @@ class DocTestController(SageObject):
                     from sage.features import package_systems
                     options.optional.update(system.name for system in package_systems())
 
+                    from sage.features.sphinx import Sphinx
+                    doc_features = [feature for feature in [Sphinx()]
+                                    if feature.is_present()]
+                    options.optional.update(feature.name for feature in doc_features)
+
                     from sage.features.sagemath import sage_features
                     options.optional.update(feature.name for feature in sage_features())
 

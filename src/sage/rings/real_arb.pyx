@@ -3500,7 +3500,7 @@ cdef class RealBall(RingElement):
 
     def gamma(self, a=None):
         """
-        Image of this ball by the (incomplete) Euler Gamma function
+        Image of this ball by the (upper incomplete) Euler Gamma function
 
         For `a` real, return the upper incomplete Gamma function
         of `\Gamma(self,a)`.
@@ -3533,6 +3533,28 @@ cdef class RealBall(RingElement):
             a_ball = RBF(a)
             arb_hypgeom_gamma_upper(res.value, self.value, a_ball.value, 0, prec(self))
             if _do_sig(prec(self)): sig_off()
+        return res
+
+    def gamma_inc_lower(self, a):
+        """
+        Image of this ball by the lower incomplete Euler Gamma function
+
+        For `a` real, return the lower incomplete Gamma function
+        of `\Gamma(self,a)`.
+
+        EXAMPLES::
+
+            sage: RBF(gamma_inc_lower(1/2,sqrt(2)))
+            [1.60830863772925 +/- 2.75e-15]
+            sage: RBF(7/2).gamma_inc_lower(5)
+            [2.69665515418630 +/- 9.50e-15]
+        """
+        cdef RealBall a_ball
+        cdef RealBall res = self._new()
+        if _do_sig(prec(self)): sig_on()
+        a_ball = RBF(a)
+        arb_hypgeom_gamma_lower(res.value, self.value, a_ball.value, 0, prec(self))
+        if _do_sig(prec(self)): sig_off()
         return res
 
     def log_gamma(self):

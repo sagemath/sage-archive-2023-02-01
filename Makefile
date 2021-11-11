@@ -172,10 +172,10 @@ TESTALL = ./sage -t --all
 PTESTALL = ./sage -t -p --all
 
 # Flags for ./sage -t --all.
-# By default, include all tests marked 'dochtml' -- see
+# By default, include all tests marked 'sagemath_doc_html' -- see
 # https://trac.sagemath.org/ticket/25345 and
 # https://trac.sagemath.org/ticket/26110.
-TESTALL_FLAGS = --optional=sage,dochtml,optional,external,build
+TESTALL_FLAGS = --optional=sage,sagemath_doc_html,optional,external,build
 TESTALL_NODOC_FLAGS = --optional=sage,optional,external,build
 
 test: all

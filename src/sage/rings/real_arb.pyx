@@ -3470,7 +3470,7 @@ cdef class RealBall(RingElement):
 
     def erfi(self):
         """
-        Imaginary error function.
+        Imaginary error function
 
         EXAMPLES::
 
@@ -3485,7 +3485,7 @@ cdef class RealBall(RingElement):
 
     def Ei(self):
         """
-        Exponential integral 
+        Exponential integral
 
         EXAMPLES::
 
@@ -3495,6 +3495,97 @@ cdef class RealBall(RingElement):
         cdef RealBall res = self._new()
         if _do_sig(prec(self)): sig_on()
         arb_hypgeom_ei(res.value, self.value, prec(self))
+        if _do_sig(prec(self)): sig_off()
+        return res
+
+    def Si(self):
+        """
+        Sine integral
+
+        EXAMPLES::
+
+            sage: RBF(1).Si()
+            [0.946083070367183 +/- 9.22e-16]
+        """
+        cdef RealBall res = self._new()
+        if _do_sig(prec(self)): sig_on()
+        arb_hypgeom_si(res.value, self.value, prec(self))
+        if _do_sig(prec(self)): sig_off()
+        return res
+
+    def Ci(self):
+        """
+        Cosine integral
+
+        EXAMPLES::
+
+            sage: RBF(1).Ci()
+            [0.337403922900968 +/- 3.25e-16]
+        """
+        cdef RealBall res = self._new()
+        if _do_sig(prec(self)): sig_on()
+        arb_hypgeom_ci(res.value, self.value, prec(self))
+        if _do_sig(prec(self)): sig_off()
+        return res
+
+
+    def Shi(self):
+        """
+        Hyperbolic sine integral
+
+        EXAMPLES::
+
+            sage: RBF(1).Shi()
+            [1.05725087537573 +/- 2.77e-15]
+        """
+        cdef RealBall res = self._new()
+        if _do_sig(prec(self)): sig_on()
+        arb_hypgeom_shi(res.value, self.value, prec(self))
+        if _do_sig(prec(self)): sig_off()
+        return res
+
+    def Chi(self):
+        """
+        Hyperbolic cosine integral
+
+        EXAMPLES::
+
+            sage: RBF(1).Chi()
+            [0.837866940980208 +/- 4.72e-16]
+        """
+        cdef RealBall res = self._new()
+        if _do_sig(prec(self)): sig_on()
+        arb_hypgeom_chi(res.value, self.value, prec(self))
+        if _do_sig(prec(self)): sig_off()
+        return res
+
+    def li(self):
+        """
+        Logarithmic integral
+
+        EXAMPLES::
+
+            sage: RBF(3).li()
+            [2.16358859466719 +/- 4.72e-15]
+        """
+        cdef RealBall res = self._new()
+        if _do_sig(prec(self)): sig_on()
+        arb_hypgeom_li(res.value, self.value, 0, prec(self))
+        if _do_sig(prec(self)): sig_off()
+        return res
+
+    def Li(self):
+        """
+        Offset logarithmic integral
+
+        EXAMPLES::
+
+            sage: RBF(3).Li()
+            [1.11842481454970 +/- 7.61e-15]
+        """
+        cdef RealBall res = self._new()
+        if _do_sig(prec(self)): sig_on()
+        arb_hypgeom_li(res.value, self.value, 1, prec(self))
         if _do_sig(prec(self)): sig_off()
         return res
 

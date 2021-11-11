@@ -3631,7 +3631,7 @@ cdef class RealBall(RingElement):
             [1.772453850905516 +/- ...e-16]
             sage: RBF(gamma(3/2,sqrt(2)))
             [0.37118875695353 +/- 3.29e-15]
-            sage: RBF(3/2).gamma(sqrt(2))
+            sage: RBF(3/2).gamma_inc(sqrt(2))
             [0.37118875695353 +/- 3.29e-15]
             sage: RBF(gamma(3/2,RIF(sqrt(2))))
             [0.37118875695353 +/- 3.15e-15]
@@ -3651,6 +3651,8 @@ cdef class RealBall(RingElement):
             arb_hypgeom_gamma_upper(res.value, self.value, a_ball.value, 0, prec(self))
             if _do_sig(prec(self)): sig_off()
         return res
+
+    gamma_inc = gamma
 
     def gamma_inc_lower(self, a):
         """
@@ -3754,7 +3756,7 @@ cdef class RealBall(RingElement):
 
         For ``a = 1`` (or ``a = None``), this computes the Riemann zeta function.
 
-        Otherwise, it computes Hurwitz zeta function.
+        Otherwise, it computes the Hurwitz zeta function.
 
         Use :meth:`RealBallField.zeta` to compute the Riemann zeta function of
         a small integer without first converting it to a real ball.

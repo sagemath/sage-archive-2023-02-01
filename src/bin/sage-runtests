@@ -28,7 +28,10 @@ def _get_optional_defaults():
 
 
 if __name__ == "__main__":
-    parser = argparse.ArgumentParser(usage="sage -t [options] filenames")
+    parser = argparse.ArgumentParser(usage="sage -t [options] filenames",
+                                     description="Run all tests in a file or a list of files whose extensions "
+                                                 "are one of the following: "
+                                                 ".py, .pyx, .pxd, .pxi, .sage, .spyx, .tex, .rst.")
     parser.add_argument("-p", "--nthreads", dest="nthreads",
                         type=int, nargs='?', const=0, default=1, metavar="N",
                         help="tests in parallel using N threads with 0 interpreted as max(2, min(8, cpu_count()))")

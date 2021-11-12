@@ -9,8 +9,21 @@ class sagemath_doc_html(StaticFile):
     r"""
     A :class:`Feature` which describes the presence of the documentation
     of the Sage library in HTML format.
+
+    EXAMPLES::
+
+        sage: from sage.features.sagemath import sagemath_doc_html
+        sage: sagemath_doc_html().is_present()  # optional - sagemath_doc_html
+        FeatureTestResult('sagemath_doc_html', True)
     """
     def __init__(self):
+        r"""
+        TESTS::
+
+            sage: from sage.features.sagemath import sagemath_doc_html
+            sage: isinstance(sagemath_doc_html(), sagemath_doc_html)
+            True
+        """
         from sage.env import SAGE_DOC
         StaticFile.__init__(self, 'sagemath_doc_html',
                             filename='html',

@@ -28,7 +28,7 @@ see :trac:`12849`::
 
 Check that sphinx is not imported at Sage start-up::
 
-    sage: "sphinx" in sys.modules
+    sage: os.system("sage -c \"if 'sphinx' in sys.modules: sys.exit(1)\"")
     False
 """
 # ****************************************************************************

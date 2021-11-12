@@ -3591,14 +3591,16 @@ cdef class RealBall(RingElement):
  
     def beta(self, a):
         """
-        Image of this ball by the complete beta function 
+        Image of this ball by the complete beta function
 
         For `a` real, return the complete Gamma function `B(self,a)`.
 
         EXAMPLES::
 
-            sage: RBF(sin(3)).beta(sqrt(2/3))
-            [7.407661629415 +/- 1.26e-13]
+            sage: RBF(sin(3)).beta(RBF(2/3).sqrt())
+            [7.407661629415 +/- 1.07e-13]
+            sage: RealBallField(100)(7/2).beta(1)
+            [0.28571428571428571428571428571 +/- 5.23e-30]
 
         .. TODO::
 
@@ -3609,8 +3611,8 @@ cdef class RealBall(RingElement):
         cdef RealBall a_ball, aone
         cdef RealBall res = self._new()
         if _do_sig(prec(self)): sig_on()
-        a_ball = RBF(a)
-        aone = RBF(1)
+        a_ball = self._parent.coerce(a)
+        aone = self._parent.one()
         arb_hypgeom_beta_lower(res.value, self.value, a_ball.value, aone.value, 0, prec(self))
         if _do_sig(prec(self)): sig_off()
         return res
@@ -3629,15 +3631,18 @@ cdef class RealBall(RingElement):
 
             sage: RBF(1/2).gamma()
             [1.772453850905516 +/- ...e-16]
-            sage: RBF(gamma(3/2,sqrt(2)))
-            [0.37118875695353 +/- 3.29e-15]
-            sage: RBF(3/2).gamma_inc(sqrt(2))
-            [0.37118875695353 +/- 3.29e-15]
-            sage: RBF(gamma(3/2,RIF(sqrt(2))))
-            [0.37118875695353 +/- 3.15e-15]
+            sage: RBF(gamma(3/2, RBF(2).sqrt()))
+            [0.37118875695353 +/- 3.00e-15]
+            sage: RBF(3/2).gamma_inc(RBF(2).sqrt())
+            [0.37118875695353 +/- 3.00e-15]
 
         .. SEEALSO::
             :meth:`~sage.rings.real_arb.RealBallField.gamma`
+
+        TESTS::
+
+            sage: RealBallField(100).gamma(1/2)
+            [1.77245385090551602729816748334 +/- 1.90e-30]
         """
         cdef RealBall a_ball
         cdef RealBall res = self._new()
@@ -3647,7 +3652,7 @@ cdef class RealBall(RingElement):
             if _do_sig(prec(self)): sig_off()
         else:
             if _do_sig(prec(self)): sig_on()
-            a_ball = RBF(a)
+            a_ball = self._parent.coerce(a)
             arb_hypgeom_gamma_upper(res.value, self.value, a_ball.value, 0, prec(self))
             if _do_sig(prec(self)): sig_off()
         return res
@@ -3663,10 +3668,10 @@ cdef class RealBall(RingElement):
 
         EXAMPLES::
 
-            sage: RBF(gamma_inc_lower(1/2,sqrt(2)))
-            [1.60830863772925 +/- 2.75e-15]
-            sage: RBF(7/2).gamma_inc_lower(5)
-            [2.69665515418630 +/- 9.50e-15]
+            sage: RBF(gamma_inc_lower(1/2, RBF(2).sqrt()))
+            [1.608308637729248 +/- 8.14e-16]
+            sage: RealBallField(100)(7/2).gamma_inc_lower(5)
+            [2.6966551541863035516887949614 +/- 8.91e-29]
         """
         cdef RealBall a_ball
         cdef RealBall res = self._new()

@@ -53,7 +53,7 @@ class sage__combinat(JoinFeature):
         # Testing whether sage.combinat itself can be imported is meaningless.
         # Hence, we test a Python module within the package.
         JoinFeature.__init__(self, 'sage.combinat',
-                             [PythonModule('sage.combinat.combinations')])
+                             [PythonModule('sage.combinat.combination')])
 
 
 class sage__geometry__polyhedron(PythonModule):
@@ -188,7 +188,7 @@ class sage__symbolic(JoinFeature):
                              spkg="sagemath_symbolics")
 
 
-def sage_features():
+def sage_features(logger=None):
     """
     Return features corresponding to parts of the Sage library.
 
@@ -220,5 +220,8 @@ def sage_features():
                     sage__rings__number_field(),
                     sage__rings__real_double(),
                     sage__symbolic()]:
-        if feature.is_present():
+        result = feature.is_present()
+        if logger:
+            logger.write(f'{result}, reason: {result.reason}\n')
+        if result:
             yield feature

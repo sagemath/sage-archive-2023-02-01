@@ -529,9 +529,14 @@ $$($(4))/$(SPKG_INST_RELDIR)/$(1)-$(2): $(3)
 $(1): $$($(4))/$(SPKG_INST_RELDIR)/$(1)-$(2)
 
 $(1)-$(4)-no-deps:
-	+$(AM_V_at)sage-logger -p 'SAGE_CHECK=$$(SAGE_CHECK_$(1)) PATH=$$($(4))/bin:$$$$PATH $$(SAGE_SPKG) $$(SAGE_SPKG_OPTIONS) \
+	+@if [ -z '$$($(4))' ]; then \
+	    echo "Error: The installation tree $(4) has been disabled" 2>&1; \
+	    exit 1; \
+	else \
+	    $(AM_V_at)sage-logger -p 'SAGE_CHECK=$$(SAGE_CHECK_$(1)) PATH=$$($(4))/bin:$$$$PATH $$(SAGE_SPKG) $$(SAGE_SPKG_OPTIONS) \
 		$(if $(filter $(1),$(TOOLCHAIN_DEPS)),--keep-existing) \
-		$(1)-$(2) $$($(4))' '$$(SAGE_LOGS)/$(1)-$(2).log'
+		$(1)-$(2) $$($(4))' '$$(SAGE_LOGS)/$(1)-$(2).log'; \
+	fi
 
 $(1)-no-deps: $(1)-$(4)-no-deps
 
@@ -633,7 +638,10 @@ $$($(4))/$(SPKG_INST_RELDIR)/$(1)-$(2): $(3)
 $(1): $$($(4))/$(SPKG_INST_RELDIR)/$(1)-$(2)
 
 $(1)-$(4)-no-deps:
-	@if [ -x '$$(SAGE_ROOT)/build/pkgs/$(1)/spkg-install' ]; then \
+	+@if [ -z '$$($(4))' ]; then \
+	    echo "Error: The installation tree $(4) has been disabled" 2>&1; \
+	    exit 1; \
+	elif [ -x '$$(SAGE_ROOT)/build/pkgs/$(1)/spkg-install' ]; then \
 	    $(AM_V_at)cd '$$(SAGE_ROOT)/build/pkgs/$(1)' && \
 		. '$$(SAGE_ROOT)/src/bin/sage-src-env-config' && \
 		. '$$(SAGE_ROOT)/src/bin/sage-env-config' && \

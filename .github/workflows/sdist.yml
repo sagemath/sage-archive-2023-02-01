@@ -47,6 +47,8 @@ jobs:
   sdists_for_pypi:
 
     runs-on: ubuntu-latest
+    env:
+      CAN_DEPLOY: ${{ secrets.SAGEMATH_PYPI_API_TOKEN != '' }}
     steps:
       - uses: actions/checkout@v2
       - name: Install bootstrap prerequisites
@@ -66,4 +68,4 @@ jobs:
           password: ${{ secrets.SAGEMATH_PYPI_API_TOKEN }}
           skip_existing: true
           verbose: true
-        if: contains(secrets.SAGEMATH_PYPI_API_TOKEN, 'pypi')
+        if: env.CAN_DEPLOY == 'true'

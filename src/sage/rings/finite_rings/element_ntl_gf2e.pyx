@@ -645,12 +645,10 @@ cdef class FiniteField_ntl_gf2eElement(FinitePolyExtElement):
 
             sage: k.<a> = GF(2^18)
             sage: e = k.random_element()
-            sage: e
-            a^15 + a^14 + a^13 + a^11 + a^10 + a^9 + a^6 + a^5 + a^4 + 1
+            sage: e.parent() is k
+            True
             sage: e.is_square()
             True
-            sage: e.sqrt()
-            a^16 + a^15 + a^14 + a^11 + a^9 + a^8 + a^7 + a^6 + a^4 + a^3 + 1
             sage: e.sqrt()^2 == e
             True
         """
@@ -1150,6 +1148,16 @@ cdef class FiniteField_ntl_gf2eElement(FinitePolyExtElement):
 
             sage: k.<a> = GF(2^16)
             sage: copy(a) is a
+            True
+        """
+        return self
+
+    def __deepcopy__(self, memo):
+        """
+        EXAMPLES::
+
+            sage: k.<a> = GF(2^16)
+            sage: deepcopy(a) is a
             True
         """
         return self

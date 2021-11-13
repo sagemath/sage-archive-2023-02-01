@@ -39,7 +39,7 @@ from sage.matrix.constructor import matrix
 from sage.combinat.combinat import catalan_number
 from sage.combinat.combinatorial_map import combinatorial_map
 from sage.functions.trig import cos, sin
-from sage.functions.other import sqrt
+from sage.misc.functional import sqrt
 
 from sage.plot.graphics import Graphics
 from sage.plot.line import line
@@ -97,7 +97,6 @@ class LocalOptions:
         b
         sage: e.options(delim='p'); e
         p
-
 
     This class is temporary, in the future, this class should be integrated in
     sage.structure.global_options.py. We should split global_option in two
@@ -418,7 +417,6 @@ class LocalOptions:
 
     def _dispatch(self, obj, dispatch_to, option, *get_values, **set_values):
         r"""
-
         The *dispatchable* options are options which dispatch related methods
         of the corresponding class. The format for specifying a dispatchable
         option is to include ``dispatch_to = <option name>`` in the
@@ -426,32 +424,25 @@ class LocalOptions:
         class.
 
         The _dispatch method will then call:
+
             obj.``<option name> + '_' + <current value of option>``(
-                *get_values,**set_values
-            )
+                *get_values, **set_values)
 
         Note that the argument ``self`` is necessary here because the
         dispatcher is a method of the options class and not of ``self``.
 
         EXAMPLES::
 
-            sage: from sage.combinat.parallelogram_polyomino import (
-            ....:     LocalOptions
-            ....: )
-            sage: o = LocalOptions(
-            ....:     'Name Example',
-            ....:     delim=dict(
-            ....:         default='b',
-            ....:         values={'b':'the option b', 'p':'the option p'}
-            ....:     )
-            ....: )
+            sage: from sage.combinat.parallelogram_polyomino import LocalOptions
+            sage: delim = {'default': 'b',
+            ....:          'values': {'b': 'option b', 'p': 'option p'}}
+            sage: o = LocalOptions('Name example', delim=delim)
             sage: class Ex:
             ....:     options=o
             ....:     def _repr_b(self): return "b"
             ....:     def _repr_p(self): return "p"
             ....:     def __repr__(self): return self.options._dispatch(
-            ....:         self, '_repr_','delim'
-            ....:     )
+            ....:         self, '_repr_','delim')
             sage: e = Ex(); e
             b
             sage: e.options(delim='p'); e

@@ -383,12 +383,11 @@ def PowerSeriesRing(base_ring, name=None, arg2=None, names=None,
     # if isinstance(name, (int,integer.Integer)) or isinstance(arg2,(int,integer.Integer)):
     #     deprecation(trac_number, "This behavior of PowerSeriesRing is being deprecated in favor of constructing multivariate power series rings. (See Trac ticket #1956.)")
 
-
     # the following is the original, univariate-only code
 
     if isinstance(name, (int, integer.Integer)):
         default_prec = name
-    if not names is None:
+    if names is not None:
         name = names
     name = normalize_names(1, name)
 
@@ -797,7 +796,7 @@ class PowerSeriesRing_generic(UniqueRepresentation, ring.CommutativeRing, Nonexa
             prec = integer.Integer(prec)
             if prec < 0:
                 raise ValueError("prec (= %s) must be non-negative" % prec)
-        from sage.symbolic.series import SymbolicSeries
+        from sage.symbolic.expression import SymbolicSeries
         if isinstance(f, power_series_ring_element.PowerSeries) and f.parent() is self:
             if prec >= f.prec():
                 return f

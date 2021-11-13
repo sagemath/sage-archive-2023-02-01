@@ -49,7 +49,7 @@ from sage.combinat.combinat_cython import (set_partition_iterator,
 from sage.combinat.partition import Partition, Partitions
 from sage.combinat.combinat import bell_number, stirling_number2
 from sage.combinat.permutation import Permutation
-from sage.functions.other import factorial
+from sage.arith.misc import factorial
 from sage.misc.prandom import random, randint
 from sage.probability.probability_distribution import GeneralDiscreteDistribution
 from sage.sets.disjoint_set import DisjointSet

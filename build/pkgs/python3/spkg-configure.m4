@@ -19,11 +19,11 @@ SAGE_SPKG_CONFIGURE([python3], [
    dnl
    dnl However, if we add another package (providing a shared library linked into a Python module)
    dnl that also uses libsqlite3, then we will have to put the DEPCHECK back in.
-   SAGE_SPKG_DEPCHECK([bzip2 xz libffi], [
+   SAGE_SPKG_DEPCHECK([bzip2 liblzma libffi], [
       dnl Check if we can do venv with a system python3
       dnl instead of building our own copy.
       dnl  Trac #31160: We no longer check for readline here.
-      check_modules="sqlite3, ctypes, math, hashlib, crypt, socket, zlib, distutils.core"
+      check_modules="sqlite3, ctypes, math, hashlib, crypt, socket, zlib, distutils.core, ssl"
       AC_CACHE_CHECK([for python3 >= ]MIN_VERSION[, < ]LT_VERSION[ with modules $check_modules], [ac_cv_path_PYTHON3], [
         AS_IF([test x"$ac_path_PYTHON3" != x], [dnl checking explicitly specified $with_python
            AC_MSG_RESULT([])
@@ -44,7 +44,7 @@ SAGE_SPKG_CONFIGURE([python3], [
            AS_IF([test -z "$ac_cv_path_PYTHON3"], [
                AC_MSG_ERROR([the python3 selected using --with-python=$with_python is not suitable])
            ])
-	], [dnl checking the default system python3
+        ], [dnl checking the default system python3
            AC_MSG_RESULT([])
            AC_PATH_PROGS_FEATURE_CHECK([PYTHON3], [python3], [
                 SAGE_CHECK_PYTHON_FOR_VENV([$ac_path_PYTHON3],
@@ -62,7 +62,7 @@ SAGE_SPKG_CONFIGURE([python3], [
                     ])
                 ])
             ])
-	])
+        ])
       ])
       AS_IF([test -z "$ac_cv_path_PYTHON3"], [
           AC_MSG_NOTICE([to try to use a different system python, use ./configure --with-python=/path/to/python])
@@ -118,6 +118,17 @@ To build Sage with a different system python, use ./configure --with-python=/pat
         ])
     ])
     AC_SUBST([PYTHON_FOR_VENV])
+
+    AS_VAR_IF([SAGE_VENV], [auto], [SAGE_VENV=$SAGE_VENV_AUTO])
+    AS_CASE([$SAGE_VENV],
+        [no],  [SAGE_VENV='${SAGE_LOCAL}'],dnl Quoted so that it is resolved at build time by shell/Makefile
+        [yes], [AS_IF([test -n "$PYTHON_FOR_VENV"], [
+                   PYTHON_VERSION=$("$PYTHON_FOR_VENV" -c "import sysconfig; print(sysconfig.get_python_version())")
+                ], [
+                   PYTHON_VERSION=$(echo $(cat build/pkgs/python3/package-version.txt))
+                ])
+                SAGE_VENV='${SAGE_LOCAL}'/var/lib/sage/venv-python$PYTHON_VERSION]
+    )
 
     dnl These temporary directories are created by the check above
     dnl and need to be cleaned up to prevent the "rm -f conftest*"

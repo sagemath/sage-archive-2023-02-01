@@ -856,10 +856,12 @@ class FractionField_generic(ring.Field):
         ::
 
             sage: f = F.random_element(degree=5)
-            sage: f.numerator().degree()
-            5
-            sage: f.denominator().degree()
-            5
+            sage: f.numerator().degree() == f.denominator().degree()
+            True
+            sage: f.denominator().degree() <= 5
+            True
+            sage: while f.numerator().degree() != 5:
+            ....:      f = F.random_element(degree=5)
         """
         return self._element_class(self, self._R.random_element(*args, **kwds),
                                    self._R._random_nonzero_element(*args, **kwds),
@@ -946,7 +948,7 @@ class FractionField_1poly_field(FractionField_generic):
 
             sage: R.<t> = QQ[]; K = R.fraction_field()
             sage: K._element_class
-            <type 'sage.rings.fraction_field_element.FractionFieldElement_1poly_field'>
+            <class 'sage.rings.fraction_field_element.FractionFieldElement_1poly_field'>
         """
         FractionField_generic.__init__(self, R, element_class)
 

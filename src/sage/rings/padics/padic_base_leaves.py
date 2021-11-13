@@ -92,11 +92,11 @@ when cast into the ring.::
     sage: (a * b) // 5^3
     1 + 2*5 + O(5^2)
     sage: type((a * b) // 5^3)
-    <type 'sage.rings.padics.padic_capped_absolute_element.pAdicCappedAbsoluteElement'>
+    <class 'sage.rings.padics.padic_capped_absolute_element.pAdicCappedAbsoluteElement'>
     sage: (a * b) / 5^3
     1 + 2*5 + O(5^2)
     sage: type((a * b) / 5^3)
-    <type 'sage.rings.padics.padic_capped_relative_element.pAdicCappedRelativeElement'>
+    <class 'sage.rings.padics.padic_capped_relative_element.pAdicCappedRelativeElement'>
 
 The fixed modulus type is the leanest of the p-adic rings: it is
 basically just a wrapper around `\ZZ / p^n \ZZ`
@@ -723,8 +723,8 @@ class pAdicFieldCappedRelative(pAdicFieldBaseGeneric, pAdicCappedRelativeFieldGe
 
         EXAMPLES::
 
-            sage: Qp(17,6).random_element()
-            15*17^-8 + 10*17^-7 + 3*17^-6 + 2*17^-5 + 11*17^-4 + 6*17^-3 + O(17^-2)
+            sage: Qp(17,6).random_element().parent() is Qp(17,6)
+            True
         """
         if (algorithm == 'default'):
             k = ZZ.random_element()
@@ -1068,7 +1068,7 @@ class pAdicFieldLattice(pAdicLatticeGeneric, pAdicFieldBaseGeneric):
         EXAMPLES::
 
             sage: K = QpLC(2)
-            sage: K.random_element()   # random
+            sage: K.random_element()   # not tested, known bug (see :trac:`32126`)
             2^-8 + 2^-7 + 2^-6 + 2^-5 + 2^-3 + 1 + 2^2 + 2^3 + 2^5 + O(2^12)
             sage: K.random_element(integral=True)    # random
             2^3 + 2^4 + 2^5 + 2^6 + 2^7 + 2^10 + 2^11 + 2^14 + 2^15 + 2^16 + 2^17 + 2^18 + 2^19 + O(2^20)

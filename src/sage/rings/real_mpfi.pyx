@@ -278,6 +278,7 @@ from .integer_ring import ZZ
 from .rational_field import QQ
 from sage.categories.morphism cimport Map
 
+cimport sage.rings.abc
 cimport sage.rings.real_mpfr as real_mpfr
 
 import math  # for log
@@ -345,7 +346,7 @@ cpdef RealIntervalField_class RealIntervalField(prec=53, sci_not=False):
         return R
 
 
-cdef class RealIntervalField_class(Field):
+cdef class RealIntervalField_class(sage.rings.abc.RealIntervalField):
     """
     Class of the real interval field.
 
@@ -813,8 +814,7 @@ cdef class RealIntervalField_class(Field):
             return True
         if isinstance(S, RealIntervalField_class):
             return (<RealIntervalField_class>S).__prec >= prec
-        from .number_field.number_field import NumberField_quadratic
-        if isinstance(S, NumberField_quadratic):
+        if isinstance(S, sage.rings.abc.NumberField_quadratic):
             return S.discriminant() > 0
 
         # If coercion to RR is possible and there is a _real_mpfi_
@@ -870,19 +870,17 @@ cdef class RealIntervalField_class(Field):
 
         EXAMPLES::
 
-            sage: RIF.random_element()
-            0.15363619378561300?
-            sage: RIF.random_element()
-            -0.50298737524751780?
-            sage: RIF.random_element(-100, 100)
-            60.958996432224126?
+            sage: RIF.random_element().parent() is RIF
+            True
+            sage: -100 <= RIF.random_element(-100, 100) <= 100
+            True
 
         Passes extra positional or keyword arguments through::
 
-            sage: RIF.random_element(min=0, max=100)
-            2.5572702830891970?
-            sage: RIF.random_element(min=-100, max=0)
-            -1.5803457307118123?
+            sage: 0 <= RIF.random_element(min=0, max=100) <= 100
+            True
+            sage: -100 <= RIF.random_element(min=-100, max=0) <= 0
+            True
         """
         return self(self.middle_field().random_element(*args, **kwds))
 
@@ -2182,6 +2180,16 @@ cdef class RealIntervalFieldElement(RingElement):
 
             sage: a = RIF(3.5)
             sage: copy(a) is  a
+            True
+        """
+        return self
+
+    def __deepcopy__(self, memo):
+        """
+        EXAMPLES::
+
+            sage: a = RIF(3.5)
+            sage: deepcopy(a) is  a
             True
         """
         return self

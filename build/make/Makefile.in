@@ -220,7 +220,7 @@ endif
 # the doc build takes the most time and should be started as soon as
 # possible.
 all-start: toolchain-deps
-	+$(MAKE_REC) doc all-sage
+	+$(MAKE_REC) all-sage-docs all-sage
 
 # Build everything except the documentation
 all-build: toolchain-deps

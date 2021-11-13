@@ -66,4 +66,4 @@ jobs:
           password: ${{ secrets.SAGEMATH_PYPI_API_TOKEN }}
           skip_existing: true
           verbose: true
-        #if: contains(secrets.SAGEMATH_PYPI_API_TOKEN, 'pypi')
+        if: contains(secrets.SAGEMATH_PYPI_API_TOKEN, 'pypi')

@@ -1628,7 +1628,8 @@ cdef class ETuple:
             sage: y^(2^32)
             Traceback (most recent call last):
             ...
-            OverflowError: exponent overflow (...)
+            OverflowError: exponent overflow (...)   # 64-bit
+            OverflowError: Python int too large to convert to C unsigned long  # 32-bit
         """
         if self._length!=other._length:
             raise ArithmeticError

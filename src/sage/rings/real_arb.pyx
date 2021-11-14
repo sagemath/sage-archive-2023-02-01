@@ -3491,6 +3491,11 @@ cdef class RealBall(RingElement):
 
             sage: RBF(1).Ei()
             [1.89511781635594 +/- 4.94e-15]
+
+        TESTS::
+
+            sage: RBF(Ei(1))
+            [1.89511781635594 +/- 4.94e-15]
         """
         cdef RealBall res = self._new()
         if _do_sig(prec(self)): sig_on()
@@ -3506,12 +3511,19 @@ cdef class RealBall(RingElement):
 
             sage: RBF(1).Si()
             [0.946083070367183 +/- 9.22e-16]
+
+        TESTS::
+
+            sage: RBF(Si(1))
+            [0.946083070367183 +/- 9.22e-16]
         """
         cdef RealBall res = self._new()
         if _do_sig(prec(self)): sig_on()
         arb_hypgeom_si(res.value, self.value, prec(self))
         if _do_sig(prec(self)): sig_off()
         return res
+
+    sin_integral = Si
 
     def Ci(self):
         """
@@ -3521,6 +3533,11 @@ cdef class RealBall(RingElement):
 
             sage: RBF(1).Ci()
             [0.337403922900968 +/- 3.25e-16]
+
+        TESTS::
+
+            sage: RBF(Ci(1))
+            [0.337403922900968 +/- 3.25e-16]
         """
         cdef RealBall res = self._new()
         if _do_sig(prec(self)): sig_on()
@@ -3528,6 +3545,7 @@ cdef class RealBall(RingElement):
         if _do_sig(prec(self)): sig_off()
         return res
 
+    cos_integral = Ci
 
     def Shi(self):
         """
@@ -3537,12 +3555,19 @@ cdef class RealBall(RingElement):
 
             sage: RBF(1).Shi()
             [1.05725087537573 +/- 2.77e-15]
+
+        TESTS::
+
+            sage: RBF(Shi(1))
+            [1.05725087537573 +/- 2.77e-15]
         """
         cdef RealBall res = self._new()
         if _do_sig(prec(self)): sig_on()
         arb_hypgeom_shi(res.value, self.value, prec(self))
         if _do_sig(prec(self)): sig_off()
         return res
+
+    sinh_integral = Shi
 
     def Chi(self):
         """
@@ -3552,12 +3577,19 @@ cdef class RealBall(RingElement):
 
             sage: RBF(1).Chi()
             [0.837866940980208 +/- 4.72e-16]
+
+        TESTS::
+
+            sage: RBF(Chi(1))
+            [0.837866940980208 +/- 4.72e-16]
         """
         cdef RealBall res = self._new()
         if _do_sig(prec(self)): sig_on()
         arb_hypgeom_chi(res.value, self.value, prec(self))
         if _do_sig(prec(self)): sig_off()
         return res
+
+    cosh_integral = Chi
 
     def li(self):
         """
@@ -3567,12 +3599,21 @@ cdef class RealBall(RingElement):
 
             sage: RBF(3).li()
             [2.16358859466719 +/- 4.72e-15]
+
+        TESTS::
+
+            sage: RBF(li(0))
+            0
+            sage: RBF(Li(0))
+            [-1.04516378011749 +/- 4.23e-15]
         """
         cdef RealBall res = self._new()
         if _do_sig(prec(self)): sig_on()
         arb_hypgeom_li(res.value, self.value, False, prec(self))
         if _do_sig(prec(self)): sig_off()
         return res
+
+    log_integral = li
 
     def Li(self):
         """
@@ -3588,6 +3629,8 @@ cdef class RealBall(RingElement):
         arb_hypgeom_li(res.value, self.value, True, prec(self))
         if _do_sig(prec(self)): sig_off()
         return res
+
+    log_integral_offset = Li
 
     def beta(self, a, z=1):
         """

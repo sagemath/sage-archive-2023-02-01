@@ -19,12 +19,8 @@ class InterfaceFeature(Feature):
 
         sage: also_broken = InterfaceFeature("also_broken_interface", "sage.interfaces.interface")
         sage: also_broken.is_present()
-        Traceback (most recent call last):
-        ...
         FeatureTestResult('also_broken_interface', False)
         sage: _.reason
-        Traceback (most recent call last):
-        ...
         "Interface also_broken_interface cannot be imported: module 'sage.interfaces.interface' has no attribute 'also_broken_interface'"
     """
     @staticmethod

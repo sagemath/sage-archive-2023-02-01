@@ -333,6 +333,32 @@ def has_4ti2():
     from sage.features.four_ti_2 import FourTi2
     return FourTi2().is_present()
 
+def external_features():
+    features = []
+    from sage.features.internet import Internet
+    features.append(Internet())
+    import sage.features.latex
+    features.extend(sage.features.latex.all_features())
+    import sage.features.interfaces
+    features.extend(sage.features.interfaces.all_features())
+    from sage.features.pandoc import Pandoc
+    features.append(Pandoc())
+    from sage.features.graphviz import Graphviz
+    features.append(Graphviz())
+    from sage.features.ffmpeg import FFmpeg
+    features.append(FFmpeg())
+    from sage.features.imagemagick import ImageMagick
+    features.append(ImageMagick())
+    from sage.features.dvipng import dvipng
+    features.append(dvipng())
+    from sage.features.pdf2svg import pdf2svg
+    features.append(pdf2svg())
+    from sage.features.rubiks import Rubiks
+    features.append(Rubiks())
+    from sage.features.four_ti_2 import FourTi2
+    features.append(FourTi2())
+    return features
+
 def external_software():
     """
     Return the alphabetical list of external software supported by this module.
@@ -343,11 +369,7 @@ def external_software():
         sage: sorted(external_software) == external_software
         True
     """
-    supported = list()
-    for func in globals():
-        if func.startswith(prefix):
-            supported.append(func[len(prefix):])
-    return sorted(supported)
+    return sorted(f.name for f in external_features())
 
 external_software = external_software()
 

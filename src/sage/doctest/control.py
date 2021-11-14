@@ -409,11 +409,6 @@ class DocTestController(SageObject):
                     options.optional.update(system.name
                                             for system in package_systems())
 
-                    logger = sys.stderr if options.verbose else None
-                    from sage.features.sagemath import sage_features
-                    options.optional.update(feature.name
-                                            for feature in sage_features(logger=logger))
-
                 # Check that all tags are valid
                 for o in options.optional:
                     if not optionaltag_regex.search(o):
@@ -1247,18 +1242,16 @@ class DocTestController(SageObject):
                     pass
 
             self.log("Using --optional=" + self._optional_tags_string())
-            if self.options.optional is True or 'external' in self.options.optional:
-                self.log("External software to be detected: " + ','.join(external_software))
-
+            self.log("External software to be detected: " + ','.join(external_software))
+            available_software._allow_external = self.options.optional is True or 'external' in self.options.optional
             self.add_files()
             self.expand_files_into_sources()
             self.filter_sources()
             self.sort_sources()
             self.run_doctests()
 
-            if self.options.optional is True or 'external' in self.options.optional:
-                self.log("External software detected for doctesting: "
-                         + ','.join(available_software.seen()))
+            self.log("Features detected for doctesting: "
+                     + ','.join(available_software.seen()))
             self.cleanup()
             return self.reporter.error_status
 

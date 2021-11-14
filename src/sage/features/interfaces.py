@@ -66,49 +66,49 @@ class Magma(InterfaceFeature):
 
     @staticmethod
     def __classcall__(cls):
-        return InterfaceFeature(cls, 'magma', 'sage.interfaces.magma')
+        return InterfaceFeature.__classcall__(cls, 'magma', 'sage.interfaces.magma')
 
 
 class Matlab(InterfaceFeature):
 
     @staticmethod
     def __classcall__(cls):
-        return InterfaceFeature(cls, 'matlab', 'sage.interfaces.matlab')
+        return InterfaceFeature.__classcall__(cls, 'matlab', 'sage.interfaces.matlab')
 
 
 class Mathematica(InterfaceFeature):
 
     @staticmethod
     def __classcall__(cls):
-        return InterfaceFeature(cls, 'mathematica', 'sage.interfaces.mathematica')
+        return InterfaceFeature.__classcall__(cls, 'mathematica', 'sage.interfaces.mathematica')
 
 
 class Maple(InterfaceFeature):
 
     @staticmethod
     def __classcall__(cls):
-        return InterfaceFeature(cls, 'maple', 'sage.interfaces.maple')
+        return InterfaceFeature.__classcall__(cls, 'maple', 'sage.interfaces.maple')
 
 
 class Macaulay2(InterfaceFeature):
 
     @staticmethod
     def __classcall__(cls):
-        return InterfaceFeature(cls, 'macaulay2', 'sage.interfaces.macaulay2')
+        return InterfaceFeature.__classcall__(cls, 'macaulay2', 'sage.interfaces.macaulay2')
 
 
 class Octave(InterfaceFeature):
 
     @staticmethod
     def __classcall__(cls):
-        return InterfaceFeature(cls, 'octave', 'sage.interfaces.octave')
+        return InterfaceFeature.__classcall__(cls, 'octave', 'sage.interfaces.octave')
 
 
 class Scilab(InterfaceFeature):
 
     @staticmethod
     def __classcall__(cls):
-        return InterfaceFeature(cls, 'scilab', 'sage.interfaces.scilab')
+        return InterfaceFeature.__classcall__(cls, 'scilab', 'sage.interfaces.scilab')
 
 
 def all_features():
@@ -119,8 +119,13 @@ def all_features():
 
         sage: from sage.features.interfaces import all_features
         sage: list(all_features())
-        [Feature(<class 'sage.features.interfaces.Magma'>: sage.interfaces.magma), ...,
-         Feature(<class 'sage.features.interfaces.Scilab'>: sage.interfaces.scilab)]
+        [Feature('magma'),
+         Feature('matlab'),
+         Feature('mathematica'),
+         Feature('maple'),
+         Feature('macaulay2'),
+         Feature('octave'),
+         Feature('scilab')]
     """
     return [Magma(),
             Matlab(),

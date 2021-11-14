@@ -341,6 +341,8 @@ def external_features():
     features.extend(sage.features.latex.all_features())
     import sage.features.interfaces
     features.extend(sage.features.interfaces.all_features())
+    from sage.features.mip_backends import CPLEX, Gurobi
+    features.extend([CPLEX(), Gurobi()])
     from sage.features.pandoc import Pandoc
     features.append(Pandoc())
     from sage.features.graphviz import Graphviz

@@ -113,3 +113,23 @@ class Scilab(InterfaceFeature):
     @staticmethod
     def __classcall__(cls):
         return InterfaceFeature(cls, 'scilab', 'sage.interfaces.scilab')
+
+
+def all_features():
+    r"""
+    Return features corresponding to interpreter interfaces.
+
+     EXAMPLES::
+
+        sage: from sage.features.interfaces import all_features
+        sage: list(all_features())
+        [Feature(<class 'sage.features.interfaces.Magma'>: sage.interfaces.magma), ...,
+         Feature(<class 'sage.features.interfaces.Scilab'>: sage.interfaces.scilab)]
+    """
+    return [Magma(),
+            Matlab(),
+            Mathematica(),
+            Maple(),
+            Macaulay2(),
+            Octave(),
+            Scilab()]

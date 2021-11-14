@@ -3570,7 +3570,7 @@ cdef class RealBall(RingElement):
         """
         cdef RealBall res = self._new()
         if _do_sig(prec(self)): sig_on()
-        arb_hypgeom_li(res.value, self.value, 0, prec(self))
+        arb_hypgeom_li(res.value, self.value, False, prec(self))
         if _do_sig(prec(self)): sig_off()
         return res
 
@@ -3585,15 +3585,23 @@ cdef class RealBall(RingElement):
         """
         cdef RealBall res = self._new()
         if _do_sig(prec(self)): sig_on()
-        arb_hypgeom_li(res.value, self.value, 1, prec(self))
+        arb_hypgeom_li(res.value, self.value, True, prec(self))
         if _do_sig(prec(self)): sig_off()
         return res
- 
-    def beta(self, a):
-        """
-        Image of this ball by the complete beta function
 
-        For `a` real, return the complete Gamma function `B(self,a)`.
+    def beta(self, a, z=1):
+        """
+        (Incomplete) beta function
+
+        INPUT:
+
+        - ``a``, ``z`` (optional) -- real balls
+
+        OUTPUT:
+
+        The lower incomplete beta function `B(self, a, z)`.
+
+        With the default value of ``z``, the complete beta function `B(self, a)`.
 
         EXAMPLES::
 
@@ -3601,6 +3609,8 @@ cdef class RealBall(RingElement):
             [7.407661629415 +/- 1.07e-13]
             sage: RealBallField(100)(7/2).beta(1)
             [0.28571428571428571428571428571 +/- 5.23e-30]
+            sage: RealBallField(100)(7/2).beta(1, 1/2)
+            [0.025253813613805268728601584361 +/- 2.53e-31]
 
         .. TODO::
 
@@ -3608,12 +3618,13 @@ cdef class RealBall(RingElement):
             RBF(a).beta(b) for this to work. See :trac:`32851`
             and :trac:`24641`.
         """
-        cdef RealBall a_ball, aone
+        cdef RealBall a_ball, z_ball
         cdef RealBall res = self._new()
         if _do_sig(prec(self)): sig_on()
         a_ball = self._parent.coerce(a)
-        aone = self._parent.one()
-        arb_hypgeom_beta_lower(res.value, self.value, a_ball.value, aone.value, 0, prec(self))
+        z_ball = self._parent.coerce(z)
+        arb_hypgeom_beta_lower(res.value, self.value, a_ball.value,
+                               z_ball.value, False, prec(self))
         if _do_sig(prec(self)): sig_off()
         return res
 
@@ -3622,7 +3633,7 @@ cdef class RealBall(RingElement):
         Image of this ball by the (upper incomplete) Euler Gamma function
 
         For `a` real, return the upper incomplete Gamma function
-        of `\Gamma(self,a)`.
+        `\Gamma(self,a)`.
 
         For integer and rational arguments,
         :meth:`~sage.rings.real_arb.RealBallField.gamma` may be faster.

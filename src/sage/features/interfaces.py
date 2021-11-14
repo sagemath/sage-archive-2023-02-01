@@ -7,7 +7,26 @@ from . import Feature, FeatureTestResult, PythonModule
 
 
 class InterfaceFeature(Feature):
+    r"""
+    TESTS::
 
+        sage: from sage.features.interfaces import InterfaceFeature
+        sage: broken = InterfaceFeature("broken_interface", "sage.interfaces.does_not_exist")
+        sage: broken.is_present()
+        FeatureTestResult('sage.interfaces.does_not_exist', False)
+        sage: _.reason
+        "Failed to import `sage.interfaces.does_not_exist`: No module named 'sage.interfaces.does_not_exist'"
+
+        sage: also_broken = InterfaceFeature("also_broken_interface", "sage.interfaces.interface")
+        sage: also_broken.is_present()
+        Traceback (most recent call last):
+        ...
+        FeatureTestResult('also_broken_interface', False)
+        sage: _.reason
+        Traceback (most recent call last):
+        ...
+        "Interface also_broken_interface cannot be imported: module 'sage.interfaces.interface' has no attribute 'also_broken_interface'"
+    """
     @staticmethod
     def __classcall__(cls, name, module, description=None):
         if isinstance(module, str):
@@ -25,6 +44,10 @@ class InterfaceFeature(Feature):
         m = importlib.import_module(self.module.name)
         try:
             interface = getattr(m, self.name)
+        except Exception as exception:
+            return FeatureTestResult(self, False,
+                                     reason=f"Interface {self.name} cannot be imported: {exception}")
+        try:
             interface('2+3')
             return FeatureTestResult(self, True)
         except Exception as exception:

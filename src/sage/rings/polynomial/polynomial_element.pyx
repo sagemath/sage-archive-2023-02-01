@@ -104,7 +104,6 @@ from sage.rings.integer_ring import ZZ, is_IntegerRing
 from sage.rings.integer cimport Integer, smallInteger
 from sage.libs.gmp.mpz cimport *
 from sage.rings.fraction_field import is_FractionField
-from sage.rings.padics.generic_nodes import is_pAdicRing, is_pAdicField
 from sage.rings.padics.padic_generic import pAdicGeneric
 
 from sage.structure.category_object cimport normalize_names
@@ -7630,9 +7629,9 @@ cdef class Polynomial(CommutativeAlgebraElement):
         back to pari (numpy will fail if some coefficient is infinite,
         for instance).
 
-        If L is SR, then the roots will be radical expressions,
-        computed as the solutions of a symbolic polynomial expression.
-        At the moment this delegates to
+        If L is SR (or one of its subrings), then the roots will be radical
+        expressions, computed as the solutions of a symbolic polynomial
+        expression. At the moment this delegates to
         :meth:`sage.symbolic.expression.Expression.solve`
         which in turn uses Maxima to find radical solutions.
         Some solutions may be lost in this approach.
@@ -7904,8 +7903,7 @@ cdef class Polynomial(CommutativeAlgebraElement):
             else:
                 return [rt for (rt, mult) in rts_mult]
 
-        from sage.symbolic.ring import SR
-        if L is SR:
+        if isinstance(L, sage.rings.abc.SymbolicRing):
             if self.degree() == 2:
                 from sage.misc.functional import sqrt
                 from sage.symbolic.expression import I
@@ -7925,6 +7923,7 @@ cdef class Polynomial(CommutativeAlgebraElement):
                         return l
                     else:
                         return [val for val,m in l]
+            from sage.symbolic.ring import SR
             vname = 'do_not_use_this_name_in_a_polynomial_coefficient'
             var = SR(vname)
             expr = self(var)
@@ -7997,7 +7996,7 @@ cdef class Polynomial(CommutativeAlgebraElement):
                     real_field = RealField(L.prec())
 
                 return self.change_ring(real_field).roots(ring=L, multiplicities=multiplicities, algorithm=algorithm)
-            elif (is_pAdicRing(L) or is_pAdicField(L)) and L.absolute_degree() == 1:
+            elif isinstance(L, (sage.rings.abc.pAdicRing, sage.rings.abc.pAdicField)) and L.absolute_degree() == 1:
                 p = L.prime()
                 n = L.precision_cap()
                 try:

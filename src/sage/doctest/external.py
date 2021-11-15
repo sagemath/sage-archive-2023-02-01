@@ -468,6 +468,14 @@ class AvailableSoftware(object):
                 return False
         return True
 
+    def detectable(self):
+        """
+        Return the list of names of those features for which testing their presence is allowed.
+        """
+        return [feature.name
+                for feature in self._features
+                if self._allow_external or feature not in self._external_features]
+
     def seen(self):
         """
         Return the list of detected external software.
@@ -481,5 +489,6 @@ class AvailableSoftware(object):
         return [feature.name
                 for feature, seen in zip(self._features, self._seen)
                 if seen > 0]
+
 
 available_software = AvailableSoftware()

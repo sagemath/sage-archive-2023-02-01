@@ -70,7 +70,7 @@ else
     (cd "$SITEPACKAGESDIR" && rm -f sage/__init__.py)
     # Likewise, we should remove the egg-link that may have been installed previously.
     (cd "$SITEPACKAGESDIR" && rm -f sagemath-standard.egg-link)
-    time python3 -u setup.py --no-user-cfg build install || exit 1
+    time sdh_pip_install .
 fi
 
 # Trac #33103: The temp.* directories are large after a full build.

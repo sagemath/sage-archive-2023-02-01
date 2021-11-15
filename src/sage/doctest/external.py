@@ -345,29 +345,11 @@ def external_features():
     """
     from sage.features.internet import Internet
     yield Internet()
-    import sage.features.latex
-    yield from sage.features.latex.all_features()
     import sage.features.interfaces
     yield from sage.features.interfaces.all_features()
     from sage.features.mip_backends import CPLEX, Gurobi
     yield CPLEX()
     yield Gurobi()
-    from sage.features.pandoc import Pandoc
-    yield Pandoc()
-    from sage.features.graphviz import Graphviz
-    yield Graphviz()
-    from sage.features.ffmpeg import FFmpeg
-    yield FFmpeg()
-    from sage.features.imagemagick import ImageMagick
-    yield ImageMagick()
-    from sage.features.dvipng import dvipng
-    yield dvipng()
-    from sage.features.pdf2svg import pdf2svg
-    yield pdf2svg()
-    from sage.features.rubiks import Rubiks
-    yield Rubiks()
-    from sage.features.four_ti_2 import FourTi2
-    yield FourTi2()
 
 def external_software():
     """

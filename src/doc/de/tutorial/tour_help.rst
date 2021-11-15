@@ -257,9 +257,7 @@ Quadrat- und Kubikzahlen.
 
 Die elementarste Datenstruktur in Sage ist die Liste. Sie ist -- wie
 der Name schon sagt -- nichts anderes als eine Liste beliebiger
-Objekte. Hier ist eine etwas kompliziertere Liste:
-
-::
+Objekte. Hier ist eine etwas komplizierte Liste::
 
     sage: v = [1, "hello", 2/3, sin(x^3)]
     sage: v

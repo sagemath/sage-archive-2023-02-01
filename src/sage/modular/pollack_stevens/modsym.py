@@ -56,6 +56,7 @@ from .fund_domain import M2Z
 
 minusproj = [1, 0, 0, -1]
 
+
 def _iterate_Up(Phi, p, M, ap, q, aq, check):
     r"""
     Return an overconvergent Hecke-eigensymbol lifting self -- self must be a
@@ -780,8 +781,9 @@ class PSModularSymbolElement(ModuleElement):
         m_map = self._map
         for b in range(1, abs(chi) + 1):
             if gcd(b, chi) == 1:
-                M1 = S0p([1, (b / abs(chi)) % p ** M, 0, 1])
-                new_dist = m_map(M1 * M2Z([a, 1, p, 0])) * M1
+                M1 = S0p([1, (b / abs(chi)) % p**M, 0, 1])
+                new_dist = m_map(M2Z([a * abs(chi) + p * b,
+                                      1, p * abs(chi), 0])) * M1
                 new_dist = new_dist.scale(kronecker(chi, b)).normalize()
                 twisted_dist += new_dist
         return twisted_dist.normalize()

@@ -325,7 +325,7 @@ base: $(inst_patch) $(inst_pkgconf)
 #
 # $ ./sage --docbuild -H
 
-doc: doc-html doc-pdf
+doc: doc-html
 
 # All doc-building is delegated to the script packages
 # sagemath_doc_html, sagemath_doc_pdf

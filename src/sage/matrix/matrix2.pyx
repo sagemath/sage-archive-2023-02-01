@@ -12729,7 +12729,6 @@ cdef class Matrix(Matrix1):
         rational entries::
 
             sage: from sage.misc.prandom import choice
-            sage: set_random_seed()
             sage: n = ZZ.random_element(5)
             sage: ring = choice([ZZ, QQ])
             sage: A = matrix.random(ring, n)
@@ -12749,7 +12748,6 @@ cdef class Matrix(Matrix1):
         entries is harder and requires smaller test cases::
 
             sage: from sage.misc.prandom import choice
-            sage: set_random_seed()
             sage: n = ZZ.random_element(2)
             sage: ring = choice([AA, QQbar])
             sage: A = matrix.random(ring, n)
@@ -14174,7 +14172,6 @@ cdef class Matrix(Matrix1):
 
         All three factors should be the identity when the input matrix is::
 
-            sage: set_random_seed()
             sage: n = ZZ.random_element(6)
             sage: I = matrix.identity(QQ,n)
             sage: P,L,D = I.block_ldlt()
@@ -14183,7 +14180,6 @@ cdef class Matrix(Matrix1):
 
         Ensure that a "random" real symmetric matrix is factored correctly::
 
-            sage: set_random_seed()
             sage: n = ZZ.random_element(6)
             sage: A = matrix.random(QQ, n)
             sage: A = A + A.transpose()
@@ -14194,7 +14190,6 @@ cdef class Matrix(Matrix1):
         Ensure that a "random" complex Hermitian matrix is factored
         correctly::
 
-            sage: set_random_seed()
             sage: n = ZZ.random_element(6)
             sage: F = QuadraticField(-1, 'I')
             sage: A = matrix.random(F, n)
@@ -14207,7 +14202,6 @@ cdef class Matrix(Matrix1):
         factored correctly and that the resulting block-diagonal matrix
         is in fact diagonal::
 
-            sage: set_random_seed()
             sage: n = ZZ.random_element(6)
             sage: F = QuadraticField(-1, 'I')
             sage: A = matrix.random(F, n)
@@ -14220,7 +14214,6 @@ cdef class Matrix(Matrix1):
 
         The factorization should be a no-op on diagonal matrices::
 
-            sage: set_random_seed()
             sage: n = ZZ.random_element(6)
             sage: A = matrix.diagonal(random_vector(QQ, n))
             sage: I = matrix.identity(QQ,n)
@@ -14242,7 +14235,6 @@ cdef class Matrix(Matrix1):
         has a classical factorization that agrees with
         :meth:`indefinite_factorization`::
 
-            sage: set_random_seed()
             sage: n = ZZ.random_element(6)
             sage: A = matrix.random(QQ, n)
             sage: A = A*A.transpose() + matrix.identity(QQ, n)
@@ -14420,7 +14412,6 @@ cdef class Matrix(Matrix1):
         a Hermitian matrix (for a non-Hermitian matrix, both "obviously"
         return ``False``)::
 
-            sage: set_random_seed()
             sage: F = QuadraticField(-1, 'I')
             sage: from sage.misc.prandom import choice
             sage: ring = choice([ZZ, QQ, F, RDF, CDF])
@@ -16828,7 +16819,6 @@ cdef class Matrix(Matrix1):
         Nonnegative matrices are positive operators on the nonnegative
         orthant::
 
-            sage: set_random_seed()
             sage: K = Cone([(1,0,0),(0,1,0),(0,0,1)])
             sage: L = random_matrix(QQ,3).apply_map(abs)
             sage: L.is_positive_operator_on(K)
@@ -16857,7 +16847,6 @@ cdef class Matrix(Matrix1):
 
         The identity matrix is always a positive operator::
 
-            sage: set_random_seed()
             sage: K = random_cone(max_ambient_dim=8)
             sage: R = K.lattice().vector_space().base_ring()
             sage: L = identity_matrix(R, K.lattice_dim())
@@ -16866,7 +16855,6 @@ cdef class Matrix(Matrix1):
 
         The zero matrix is always a positive operator::
 
-            sage: set_random_seed()
             sage: K = random_cone(max_ambient_dim=8)
             sage: R = K.lattice().vector_space().base_ring()
             sage: L = zero_matrix(R, K.lattice_dim())
@@ -16878,7 +16866,6 @@ cdef class Matrix(Matrix1):
         the underlying ring symbolic (the usual case is tested by
         the ``positive_operators_gens`` method)::
 
-            sage: set_random_seed()
             sage: K1 = random_cone(max_ambient_dim=5)
             sage: K2 = random_cone(max_ambient_dim=5)
             sage: all(L.change_ring(SR).is_positive_operator_on(K1, K2)
@@ -17009,7 +16996,6 @@ cdef class Matrix(Matrix1):
 
         The identity matrix is always cross-positive::
 
-            sage: set_random_seed()
             sage: K = random_cone(max_ambient_dim=8)
             sage: R = K.lattice().vector_space().base_ring()
             sage: L = identity_matrix(R, K.lattice_dim())
@@ -17018,7 +17004,6 @@ cdef class Matrix(Matrix1):
 
         The zero matrix is always cross-positive::
 
-            sage: set_random_seed()
             sage: K = random_cone(max_ambient_dim=8)
             sage: R = K.lattice().vector_space().base_ring()
             sage: L = zero_matrix(R, K.lattice_dim())
@@ -17030,7 +17015,6 @@ cdef class Matrix(Matrix1):
         symbolic (the usual case is tested by the
         ``cross_positive_operators_gens`` method)::
 
-            sage: set_random_seed()
             sage: K = random_cone(max_ambient_dim=5)
             sage: all(L.change_ring(SR).is_cross_positive_on(K)
             ....:     for L in K.cross_positive_operators_gens())  # long time
@@ -17149,7 +17133,6 @@ cdef class Matrix(Matrix1):
 
         The identity matrix is always a Z-operator::
 
-            sage: set_random_seed()
             sage: K = random_cone(max_ambient_dim=8)
             sage: R = K.lattice().vector_space().base_ring()
             sage: L = identity_matrix(R, K.lattice_dim())
@@ -17158,7 +17141,6 @@ cdef class Matrix(Matrix1):
 
         The zero matrix is always a Z-operator::
 
-            sage: set_random_seed()
             sage: K = random_cone(max_ambient_dim=8)
             sage: R = K.lattice().vector_space().base_ring()
             sage: L = zero_matrix(R, K.lattice_dim())
@@ -17169,7 +17151,6 @@ cdef class Matrix(Matrix1):
         ``K``, , even if we make the underlying ring symbolic (the usual
         case is tested by the ``Z_operators_gens`` method)::
 
-            sage: set_random_seed()
             sage: K = random_cone(max_ambient_dim=5)
             sage: all(L.change_ring(SR).is_Z_operator_on(K)
             ....:     for L in K.Z_operators_gens())  # long time
@@ -17251,7 +17232,6 @@ cdef class Matrix(Matrix1):
         Diagonal matrices are Lyapunov-like operators on the nonnegative
         orthant::
 
-            sage: set_random_seed()
             sage: K = Cone([(1,0,0),(0,1,0),(0,0,1)])
             sage: L = diagonal_matrix(random_vector(QQ,3))
             sage: L.is_lyapunov_like_on(K)
@@ -17270,7 +17250,6 @@ cdef class Matrix(Matrix1):
 
         The identity matrix is always Lyapunov-like::
 
-            sage: set_random_seed()
             sage: K = random_cone(max_ambient_dim=8)
             sage: R = K.lattice().vector_space().base_ring()
             sage: L = identity_matrix(R, K.lattice_dim())
@@ -17279,7 +17258,6 @@ cdef class Matrix(Matrix1):
 
         The zero matrix is always Lyapunov-like::
 
-            sage: set_random_seed()
             sage: K = random_cone(max_ambient_dim=8)
             sage: R = K.lattice().vector_space().base_ring()
             sage: L = zero_matrix(R, K.lattice_dim())
@@ -17291,7 +17269,6 @@ cdef class Matrix(Matrix1):
         symbolic (the usual case is tested by the
         ``lyapunov_like_basis`` method)::
 
-            sage: set_random_seed()
             sage: K = random_cone(max_ambient_dim=5)
             sage: all(L.change_ring(SR).is_lyapunov_like_on(K)
             ....:     for L in K.lyapunov_like_basis())  # long time
@@ -17329,7 +17306,6 @@ cdef class Matrix(Matrix1):
         A matrix is Lyapunov-like on a cone if and only if both the
         matrix and its negation are cross-positive on the cone::
 
-            sage: set_random_seed()
             sage: K = random_cone(max_ambient_dim=5)
             sage: R = K.lattice().vector_space().base_ring()
             sage: L = random_matrix(R, K.lattice_dim())

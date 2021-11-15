@@ -56,3 +56,6 @@ class Kenzo(Feature):
             return FeatureTestResult(self, False, reason="Unable to make ECL require kenzo")
         return FeatureTestResult(self, True)
 
+
+def all_features():
+    return [Kenzo()]

@@ -334,32 +334,40 @@ def has_4ti2():
     return FourTi2().is_present()
 
 def external_features():
-    features = []
+    r"""
+    Generate the features that are only to be tested if ``--optional=external`` is used.
+
+    EXAMPLES::
+
+        sage: from sage.doctest.external import external_features
+        sage: next(external_features())
+        Feature('internet')
+    """
     from sage.features.internet import Internet
-    features.append(Internet())
+    yield Internet()
     import sage.features.latex
-    features.extend(sage.features.latex.all_features())
+    yield from sage.features.latex.all_features()
     import sage.features.interfaces
-    features.extend(sage.features.interfaces.all_features())
+    yield from sage.features.interfaces.all_features()
     from sage.features.mip_backends import CPLEX, Gurobi
-    features.extend([CPLEX(), Gurobi()])
+    yield CPLEX()
+    yield Gurobi()
     from sage.features.pandoc import Pandoc
-    features.append(Pandoc())
+    yield Pandoc()
     from sage.features.graphviz import Graphviz
-    features.append(Graphviz())
+    yield Graphviz()
     from sage.features.ffmpeg import FFmpeg
-    features.append(FFmpeg())
+    yield FFmpeg()
     from sage.features.imagemagick import ImageMagick
-    features.append(ImageMagick())
+    yield ImageMagick()
     from sage.features.dvipng import dvipng
-    features.append(dvipng())
+    yield dvipng()
     from sage.features.pdf2svg import pdf2svg
-    features.append(pdf2svg())
+    yield pdf2svg()
     from sage.features.rubiks import Rubiks
-    features.append(Rubiks())
+    yield Rubiks()
     from sage.features.four_ti_2 import FourTi2
-    features.append(FourTi2())
-    return features
+    yield FourTi2()
 
 def external_software():
     """

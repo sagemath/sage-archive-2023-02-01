@@ -75,7 +75,7 @@ from sage.ext.fast_callable import fast_callable
 from sage.calculus.functions import jacobian
 
 import sage.rings.abc
-from sage.rings.all import Integer
+from sage.rings.integer import Integer
 from sage.rings.algebraic_closure_finite_field import AlgebraicClosureFiniteField_generic
 from sage.rings.finite_rings.finite_field_constructor import is_FiniteField
 from sage.rings.finite_rings.finite_field_constructor import is_PrimeFiniteField

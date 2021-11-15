@@ -1,4 +1,15 @@
 #!/usr/bin/env bash
+# From sage-spkg.
+# For type=script packages, the build rule in build/make/Makefile sources
+# sage-env but not sage-dist-helpers.
+lib="$SAGE_ROOT/build/bin/sage-dist-helpers"
+source "$lib"
+if [ $? -ne 0 ]; then
+    echo >&2 "Error: failed to source $lib"
+    echo >&2 "Is $SAGE_ROOT the correct SAGE_ROOT?"
+    exit 1
+fi
+
 if [ "$SAGE_EDITABLE" = yes ]; then
     cd "$SAGE_SRC"
 else
@@ -52,9 +63,7 @@ if [ "$SAGE_EDITABLE" = yes ]; then
     # and renamed the distribution to "sagemath-standard").  There is no clean way to uninstall
     # them, so we just use rm.
     (cd "$SITEPACKAGESDIR" && rm -rf sage sage_setup sage-[1-9]*.egg-info sage-[1-9]*.dist-info)
-    # Until https://trac.sagemath.org/ticket/34209 switches us to PEP 660 editable wheels
-    export SETUPTOOLS_ENABLE_FEATURES=legacy-editable
-    time python3 -m pip install --verbose --no-deps --no-index --no-build-isolation --isolated --editable . || exit 1
+    time sdh_pip_editable_install .
 else
     # Make sure that an installed old version of sagelib in which sage is an ordinary package
     # does not shadow the namespace package sage during the build.

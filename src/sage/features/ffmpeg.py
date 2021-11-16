@@ -37,5 +37,5 @@ class FFmpeg(Executable):
                             url="https://www.ffmpeg.org/")
 
 
-def all_packages():
+def all_features():
     return [FFmpeg()]

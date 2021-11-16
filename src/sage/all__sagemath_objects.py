@@ -26,3 +26,9 @@ from copy import copy, deepcopy
 
 true = True
 false = False
+
+
+# For doctesting. These are overwritten later
+
+Integer = int
+RealNumber = float

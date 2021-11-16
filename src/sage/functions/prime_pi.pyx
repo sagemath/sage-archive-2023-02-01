@@ -146,7 +146,7 @@ cdef class PrimePi(BuiltinFunction):
             sage: prime_pi(2^63)
             Traceback (most recent call last):
             ...
-            OverflowError: Python int too large to convert to C long
+            OverflowError: ...to convert...
 
         TESTS:
 

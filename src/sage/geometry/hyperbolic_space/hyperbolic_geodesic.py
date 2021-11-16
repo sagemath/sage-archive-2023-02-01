@@ -1456,7 +1456,7 @@ class HyperbolicGeodesicUHP(HyperbolicGeodesic):
             start_2,end_2 = end_2, start_2
         elif start_2.real() == end_2.real():
             if start_2.imag() > end_2.imag():
-                start_2,end_2 = end_2, start_1
+                start_2,end_2 = end_2, start_2
         if i_start_1 == i_start_2 and i_end_1 == i_end_2:  # Unoriented segments lie on the same geodesic
             if start_1==start_2 and end_1==end_2:
                 return self

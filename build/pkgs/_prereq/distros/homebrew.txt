@@ -8,4 +8,5 @@
 # for use in "sage -info SPKG".
 #
 # Everything on a line after a # character is ignored.
-gcc
+
+# No packages needed

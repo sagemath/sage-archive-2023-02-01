@@ -375,28 +375,16 @@ class AvailableSoftware(object):
 
         sage: from sage.doctest.external import external_software, available_software
         sage: external_software
-        ['4ti2',
-         'cplex',
-         'dvipng',
-         'ffmpeg',
-         'graphviz',
+        ['cplex',
          'gurobi',
-         'imagemagick',
          'internet',
-         'latex',
-         'lualatex',
          'macaulay2',
          'magma',
          'maple',
          'mathematica',
          'matlab',
          'octave',
-         'pandoc',
-         'pdf2svg',
-         'pdflatex',
-         'rubiks',
-         'scilab',
-         'xelatex']
+         'scilab']
         sage: 'internet' in available_software # random, optional - internet
         True
         sage: available_software.issuperset(set(['internet','latex'])) # random, optional - internet latex

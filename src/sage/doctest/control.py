@@ -923,7 +923,7 @@ class DocTestController(SageObject):
             ----------------------------------------------------------------------
             Total time for all tests: ... seconds
                 cpu time: ... seconds
-                cumulative wall time: ... seconds
+                cumulative wall time: ... seconds...
         """
         nfiles = 0
         nother = 0
@@ -999,6 +999,7 @@ class DocTestController(SageObject):
             Total time for all tests: ... seconds
                 cpu time: ... seconds
                 cumulative wall time: ... seconds
+            Features detected...
             0
             sage: DC.cleanup()
         """
@@ -1189,6 +1190,7 @@ class DocTestController(SageObject):
             Total time for all tests: ... seconds
                 cpu time: ... seconds
                 cumulative wall time: ... seconds
+            Features detected...
             0
 
         We check that :trac:`25378` is fixed (testing external packages
@@ -1202,7 +1204,7 @@ class DocTestController(SageObject):
             sage: DC.run()
             Running doctests with ID ...
             Using --optional=external,sage
-            External software to be detected: ...
+            Features to be detected: ...
             Doctesting 1 file.
             sage -t ....py
                 [0 tests, ... s]
@@ -1212,7 +1214,7 @@ class DocTestController(SageObject):
             Total time for all tests: ... seconds
                 cpu time: ... seconds
                 cumulative wall time: ... seconds
-            External software detected for doctesting:...
+            Features detected...
             0
 
         """
@@ -1279,6 +1281,7 @@ def run_doctests(module, options=None):
         Total time for all tests: ... seconds
             cpu time: ... seconds
             cumulative wall time: ... seconds
+        Features detected...
     """
     import sys
     sys.stdout.flush()

@@ -41,7 +41,7 @@ from .base2 import Polyhedron_base2
 
 class Polyhedron_base3(Polyhedron_base2):
     """
-    Methods related to lattice points.
+    Methods related to the combinatorics of a polyhedron.
 
     See :class:`sage.geometry.polyhedron.base.Polyhedron_base`.
 

@@ -809,7 +809,8 @@ from sage.misc.latex import latex
 from sage.misc.lazy_import import lazy_import
 from sage.structure.element import parent
 from sage.modules.free_module_element import vector
-from sage.rings.all import ZZ, QQ
+from sage.rings.integer_ring import ZZ
+from sage.rings.rational_field import QQ
 from sage.combinat.root_system.cartan_type import CartanType
 lazy_import("sage.combinat.root_system.root_lattice_realizations",
             "RootLatticeRealizations")
@@ -1573,7 +1574,7 @@ def barycentric_projection_matrix(n, angle=0):
 
     """
     from sage.matrix.constructor import matrix
-    from sage.functions.other import sqrt
+    from sage.misc.functional import sqrt
     n = ZZ(n)
     if n == 0:
         return matrix(QQ, 0, 1)

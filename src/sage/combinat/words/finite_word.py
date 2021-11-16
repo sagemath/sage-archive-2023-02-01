@@ -1496,7 +1496,7 @@ class FiniteWord_class(Word_class):
         if n == 0:
             return 1
         pn = self.number_of_factors(n)
-        from sage.functions.all import log
+        from sage.functions.log import log
         return log(pn, base=d)/n
 
     def rauzy_graph(self, n):
@@ -3864,7 +3864,7 @@ class FiniteWord_class(Word_class):
         from sage.combinat.words.word import Word
         comp_words = []
         for sp in selfpos:  # list with positions of one occurrence of `self`
-            comp_pos = [i for i in range(lo) if not i in set(sp)]
+            comp_pos = (i for i in range(lo) if i not in set(sp))
             comp_words.append(Word([other[i] for i in comp_pos]))
         return comp_words
 

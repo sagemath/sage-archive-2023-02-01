@@ -574,7 +574,7 @@ class GenericGraph(GenericGraph_pyx):
             True
             sage: G = graphs.RandomGNP(8, .9999)
             sage: H = graphs.CompleteGraph(8)
-            sage: G == H # most often true
+            sage: G == H  # random - most often true
             True
             sage: G = Graph({0: [1, 2, 3, 4, 5, 6, 7]} )
             sage: H = Graph({1: [0], 2: [0], 3: [0], 4: [0], 5: [0], 6: [0], 7: [0]} )
@@ -2415,7 +2415,7 @@ class GenericGraph(GenericGraph_pyx):
             [-4 -3 -1  8]
         """
         from sage.matrix.constructor import diagonal_matrix
-        from sage.functions.all import sqrt
+        from sage.misc.functional import sqrt
 
         if weighted is None:
             weighted = self._weighted
@@ -2470,14 +2470,23 @@ class GenericGraph(GenericGraph_pyx):
         """
         Set a combinatorial embedding dictionary to ``_embedding`` attribute.
 
-        Dictionary is organized with vertex labels as keys and a list of each
-        vertex's neighbors in clockwise order.
+        The dictionary ``embedding`` represents a combinatorial embedding of
+        ``self`` and is organized as a mapping from vertex labels to list of
+        vertex neighbors in clockwise order.
 
-        Dictionary is error-checked for validity.
+        Parameter ``embedding`` is error-checked for validity.
+
+        .. WARNING::
+
+            Combinatorial embeddings are defined for simple graphs only (i.e.,
+            without loops or multiple edges). Therefore, an error is raised when
+            this method is used for a graph with loops or multiple edges.
 
         INPUT:
 
-        - ``embedding`` -- a dictionary
+        - ``embedding`` -- dictionary representing a combinatorial embedding of
+          ``self``. Format: "{v1: [v2,v3], v2: [v1], v3: [v1]}" (clockwise
+          ordering of neighbors at each vertex).
 
         EXAMPLES::
 
@@ -2487,7 +2496,21 @@ class GenericGraph(GenericGraph_pyx):
             Traceback (most recent call last):
             ...
             ValueError: vertices in ['s'] from the embedding do not belong to the graph
+
+        TESTS::
+
+            sage: G = Graph([(0, 0)], loops=True)
+            sage: G.set_embedding({0: [0]})
+            Traceback (most recent call last):
+            ...
+            ValueError: This method is not known to work on graphs with loops. Perhaps this method can be updated to handle them, but in the meantime if you want to use it please disallow loops using allow_loops().
+            sage: G = Graph([(0, 1), (0, 1)], multiedges=True)
+            sage: G.set_embedding({0: [1], 1: [0]})
+            Traceback (most recent call last):
+            ...
+            ValueError: This method is not known to work on graphs with multiedges. Perhaps this method can be updated to handle them, but in the meantime if you want to use it please disallow multiedges using allow_multiple_edges().
         """
+        self._scream_if_not_simple()
         self._check_embedding_validity(embedding, boolean=False)
         self._embedding = embedding
 
@@ -3492,7 +3515,7 @@ class GenericGraph(GenericGraph_pyx):
             True
         """
         if not self._directed:
-            # An undirected graph is antisymmetric only if all it's edges are
+            # An undirected graph is antisymmetric only if all its edges are
             # loops
             return self.size() == len(self.loop_edges())
         if self.has_loops():
@@ -6331,8 +6354,11 @@ class GenericGraph(GenericGraph_pyx):
         By Edmond's theorem, a graph which is `k`-connected always has `k`
         edge-disjoint arborescences, regardless of the root we pick::
 
-            sage: g = digraphs.RandomDirectedGNP(28, .3) # reduced from 30 to 28, cf. #9584
+            sage: g = digraphs.RandomDirectedGNP(11, .3)  # reduced from 30 to 11, cf. #32169
             sage: k = Integer(g.edge_connectivity())
+            sage: while not k:
+            ....:     g = digraphs.RandomDirectedGNP(11, .3)
+            ....:     k = Integer(g.edge_connectivity())
             sage: arborescences = g.edge_disjoint_spanning_trees(k)  # long time (up to 15s on sage.math, 2011)
             sage: all(a.is_directed_acyclic() for a in arborescences)  # long time
             True
@@ -6341,7 +6367,9 @@ class GenericGraph(GenericGraph_pyx):
 
         In the undirected case, we can only ensure half of it::
 
-            sage: g = graphs.RandomGNP(30, .3)
+            sage: g = graphs.RandomGNP(14, .3)  # reduced from 30 to 14, see #32169
+            sage: while not g.is_biconnected():
+            ....:     g = graphs.RandomGNP(14, .3)
             sage: k = Integer(g.edge_connectivity()) // 2
             sage: trees = g.edge_disjoint_spanning_trees(k)
             sage: all(t.is_tree() for t in trees)
@@ -9244,7 +9272,7 @@ class GenericGraph(GenericGraph_pyx):
             0
         """
         from sage.graphs.digraph import DiGraph
-        from sage.functions.other import floor
+        from sage.arith.misc import integer_floor as floor
 
         # Whether we should consider the edges labeled
         if use_edge_labels:
@@ -16181,6 +16209,81 @@ class GenericGraph(GenericGraph_pyx):
                 raise ValueError("the weight function cannot find the "
                                  "weight of " + str(e))
 
+    def _get_weight_function(self, by_weight=False, weight_function=None, check_weight=True):
+        r"""
+        Return an edge weight function.
+
+        An edge weight function is a function that takes as input an edge and
+        outputs its weight.
+
+        This method is a helper function for methods using the weight of edges.
+        It either checks the validity of an input weight function, or returns a
+        valid weight function on the edges.
+
+        INPUT:
+
+        - ``by_weight`` -- boolean (default: ``False``); if ``True``, the edges
+          in the graph are weighted, otherwise all edges have weight 1
+
+        - ``weight_function`` -- function (default: ``None``); a function that
+          takes as input an edge ``(u, v, l)`` and outputs its weight. If not
+          ``None``, ``by_weight`` is automatically set to ``True``. If ``None``
+          and ``by_weight`` is ``True``, we use the edge label ``l``, if ``l``
+          is not ``None``, else ``1`` as a weight.
+
+        - ``check_weight`` -- boolean (default: ``True``); if ``True``, we check
+          that the weight_function outputs a number for each edge
+
+        EXAMPLES:
+
+        The default weight function outputs 1 for each edge::
+
+            sage: G = Graph([(0, 1, 1), (1, 2, 3), (2, 3, 2)])
+            sage: by_weight, weight_function = G._get_weight_function()
+            sage: by_weight
+            False
+            sage: [weight_function(e) for e in G.edges()]
+            [1, 1, 1]
+
+        The standard weight function outputs labels::
+
+            sage: G = Graph([(0, 1, 1), (1, 2, 3), (2, 3, 2)])
+            sage: by_weight, weight_function = G._get_weight_function(by_weight=True)
+            sage: by_weight
+            True
+            sage: [weight_function(e) for e in G.edges()]
+            [1, 3, 2]
+
+        However, it might be more complicated::
+
+            sage: G = Graph([(0, 1, {'name':'a', 'weight':1}), (1, 2, {'name': 'b', 'weight': 3}), (2, 3, {'name': 'c', 'weight': 2})])
+            sage: by_weight, weight_function = G._get_weight_function(weight_function=lambda e:e[2]['weight'])
+            sage: by_weight
+            True
+            sage: [weight_function(e) for e in G.edges()]
+            [1, 3, 2]
+
+        Numeric string as a weight in weight_function::
+
+            sage: G = Graph({0: {1: '123'}})
+            sage: by_weight, weight_function = G._get_weight_function(by_weight=True)
+            Traceback (most recent call last):
+            ...
+            ValueError: the weight function cannot find the weight of (0, 1, '123')
+        """
+        if weight_function is not None:
+            by_weight = True
+        if by_weight:
+            if weight_function is None:
+                def weight_function(e):
+                    return 1 if e[2] is None else e[2]
+            if check_weight:
+                self._check_weight_function(weight_function)
+        else:
+            def weight_function(e):
+                return 1
+        return by_weight, weight_function
+
     def shortest_paths(self, u, by_weight=False, algorithm=None,
                        weight_function=None, check_weight=True, cutoff=None):
         r"""
@@ -16324,20 +16427,12 @@ class GenericGraph(GenericGraph_pyx):
             ...
             ValueError: ('Contradictory paths found:', 'negative weights?')
         """
-        if weight_function is not None:
-            by_weight = True
-        elif by_weight:
-            def weight_function(e):
-                return 1 if e[2] is None else e[2]
-        else:
-            def weight_function(e):
-                return 1
+        by_weight, weight_function = self._get_weight_function(by_weight=by_weight,
+                                                               weight_function=weight_function,
+                                                               check_weight=check_weight)
 
         if algorithm is None and not by_weight:
             algorithm = 'BFS'
-
-        if by_weight and check_weight:
-            self._check_weight_function(weight_function)
 
         if algorithm == 'BFS':
             if by_weight:
@@ -16440,14 +16535,11 @@ class GenericGraph(GenericGraph_pyx):
             return Infinity
 
         if by_weight or weight_function is not None:
-            if weight_function is None:
-                def weight_function(e):
-                    return 1 if e[2] is None else e[2]
-            wt = 0
-
-            for u, v in zip(path[:-1], path[1:]):
-                wt += weight_function((u, v, self.edge_label(u, v)))
-            return wt
+            _, weight_function = self._get_weight_function(by_weight=by_weight,
+                                                           weight_function=weight_function,
+                                                           check_weight=False)
+            return sum(weight_function((u, v, self.edge_label(u, v)))
+                           for u, v in zip(path[:-1], path[1:]))
         else:
             return len(path) - 1
 
@@ -23560,18 +23652,18 @@ class GenericGraph(GenericGraph_pyx):
             sage: P.is_combinatorially_isomorphic(polytopes.cross_polytope(3))
             True
 
-        The EP of a graph with edges is isomorphic
-        to the product of it's connected components with edges::
+        The EP of a graph is isomorphic to the subdirect sum of
+        its connected components EPs::
 
-            sage: n = randint(5, 12)
-            sage: G = Graph()
-            sage: while not G.num_edges():
-            ....:     G = graphs.RandomGNP(n, 0.2)
+            sage: n = randint(3, 6)
+            sage: G1 = graphs.RandomGNP(n, 0.2)
+            sage: n = randint(3, 6)
+            sage: G2 = graphs.RandomGNP(n, 0.2)
+            sage: G = G1.disjoint_union(G2)
             sage: P = G.edge_polytope()
-            sage: components = [G.subgraph(c).edge_polytope()
-            ....:               for c in G.connected_components()
-            ....:               if G.subgraph(c).num_edges()]
-            sage: P.is_combinatorially_isomorphic(product(components))
+            sage: P1 = G1.edge_polytope()
+            sage: P2 = G2.edge_polytope()
+            sage: P.is_combinatorially_isomorphic(P1.subdirect_sum(P2))
             True
 
         All trees on `n` vertices have isomorphic EPs::
@@ -23662,18 +23754,18 @@ class GenericGraph(GenericGraph_pyx):
             sage: P.dim() == n - G.connected_components_number()
             True
 
-        The SEP of a graph with edges is isomorphic
-        to the product of it's connected components with edges::
+        The SEP of a graph is isomorphic to the subdirect sum of
+        its connected components SEP's::
 
-            sage: n = randint(5, 12)
-            sage: G = Graph()
-            sage: while not G.num_edges():
-            ....:     G = graphs.RandomGNP(n, 0.2)
+            sage: n = randint(3, 6)
+            sage: G1 = graphs.RandomGNP(n, 0.2)
+            sage: n = randint(3, 6)
+            sage: G2 = graphs.RandomGNP(n, 0.2)
+            sage: G = G1.disjoint_union(G2)
             sage: P = G.symmetric_edge_polytope()
-            sage: components = [G.subgraph(c).symmetric_edge_polytope()
-            ....:               for c in G.connected_components()
-            ....:               if G.subgraph(c).num_edges()]
-            sage: P.is_combinatorially_isomorphic(product(components))
+            sage: P1 = G1.symmetric_edge_polytope()
+            sage: P2 = G2.symmetric_edge_polytope()
+            sage: P.is_combinatorially_isomorphic(P1.subdirect_sum(P2))
             True
 
         All trees on `n` vertices have isomorphic SEPs::

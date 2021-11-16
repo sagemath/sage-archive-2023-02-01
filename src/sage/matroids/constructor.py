@@ -105,7 +105,8 @@ from itertools import combinations
 from sage.matrix.constructor import Matrix
 from sage.graphs.all import Graph
 from sage.structure.element import is_Matrix
-from sage.rings.all import ZZ, QQ
+from sage.rings.integer_ring import ZZ
+from sage.rings.rational_field import QQ
 from sage.categories.all import Fields, Rings
 from sage.rings.finite_rings.finite_field_base import FiniteField
 import sage.matroids.matroid
@@ -322,9 +323,7 @@ def Matroid(groundset=None, data=None, **kwds):
             sage: M = Matroid('abcd', circuits=['ab', 'acd'])
             sage: M.is_valid()
             True
-            sage: [sorted(C) for C in M.circuits()] # py2
-            [['a']]
-            sage: [sorted(C) for C in M.circuits()] # py3 random
+            sage: [sorted(C) for C in M.circuits()] # random
             [['a']]
 
 
@@ -608,11 +607,7 @@ def Matroid(groundset=None, data=None, **kwds):
             False
             sage: M.is_isomorphic(N)
             True
-            sage: Matrix(N) # py2
-            [1 0 0 1 1 0]
-            [0 1 0 1 1 1]
-            [0 0 1 0 1 1]
-            sage: Matrix(N) # py3 random
+            sage: Matrix(N) # random
             [1 0 0 1 1 0]
             [0 1 0 1 1 1]
             [0 0 1 0 1 1]

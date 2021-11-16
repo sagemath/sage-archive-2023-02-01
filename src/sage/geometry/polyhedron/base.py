@@ -8603,8 +8603,8 @@ class Polyhedron_base(Polyhedron_base1):
              in (Number Field in sqrt5 with defining polynomial x^2 - 5
                  with sqrt5 = 2.236067977499790?)^3
              defined as the convex hull of 20 vertices
-            sage: G = P.restricted_automorphism_group(output="matrixlist")
-            sage: len(G)
+            sage: G = P.restricted_automorphism_group(output="matrixlist")                          # optional - sage.rings.number_field
+            sage: len(G)                                                                            # optional - sage.rings.number_field
             120
 
         Floating-point computations are supported with a simple fuzzy

@@ -341,7 +341,7 @@ cdef class Matrix_numpy_dense(Matrix_dense):
 
         OUTPUT:
 
-        Returns ``True`` if each entry above the diagonal (entries
+        Return ``True`` if each entry above the diagonal (entries
         with a row index less than the column index) is zero.
 
         EXAMPLES::
@@ -367,8 +367,9 @@ cdef class Matrix_numpy_dense(Matrix_dense):
 
     def numpy(self, dtype=None):
         """
-        This method returns a copy of the matrix as a numpy array. It
-        uses the numpy C/api so is very fast.
+        Return a copy of the matrix as a numpy array.
+
+        It uses the numpy C/api so is very fast.
 
         INPUT:
 

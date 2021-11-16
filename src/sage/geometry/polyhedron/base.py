@@ -30,8 +30,6 @@ Base class for polyhedra
 #                  https://www.gnu.org/licenses/
 # ****************************************************************************
 
-import itertools
-
 from sage.structure.element import coerce_binop, is_Vector, is_Matrix
 from sage.cpython.string import bytes_to_str
 

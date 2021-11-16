@@ -771,6 +771,16 @@ class PSModularSymbolElement(ModuleElement):
             sage: D = L.quadratic_twist()          # long time
             sage: L.symbol().evaluate_twisted(1,D) # long time
             (4 + 6*7 + 3*7^2 + O(7^4), 6*7 + 6*7^2 + O(7^3), 6 + O(7^2), 1 + O(7))
+
+        TESTS:
+
+        Check for :trac:`32878`::
+
+            sage: E = EllipticCurve('11a1')
+            sage: L = E.padic_lseries(3, implementation="pollackstevens", precision=4)
+            sage: D = 5
+            sage: L.symbol().evaluate_twisted(1, D)
+            (2 + 3 + 2*3^2 + O(3^4), 2 + 3 + O(3^3), 2 + 3 + O(3^2), 2 + O(3))
         """
         p = self.parent().prime()
         S0p = Sigma0(p)

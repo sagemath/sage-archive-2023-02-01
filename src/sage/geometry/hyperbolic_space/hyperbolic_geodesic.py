@@ -1442,12 +1442,17 @@ class HyperbolicGeodesicUHP(HyperbolicGeodesic):
         """
 
         UHP = self.model()
+        # Both geodesic need to be UHP geodesics for this to work
+        if(other.model()!=UHP):
+            other = other.to_model(UHP)
+        #Get endpoints and ideal endpoints
         i_start_1, i_end_1 = sorted(self.ideal_endpoints(), key=str)
         i_start_2, i_end_2 = sorted(other.ideal_endpoints(), key=str)
         start_1, end_1 = [CC(x.coordinates()) for x in self.endpoints()]
         start_2, end_2 = [CC(x.coordinates()) for x in other.endpoints()]
-        #sort the geodesic endpoints
-        if start_1.real() > end_1.real(): #enforce start_1.real() < end_1.real() and if start_1.real() ==  end_1.real() then start_1.imag() < end_1.imag()
+        #sort the geodesic endpoints according to start_1.real() < end_1.real() and if start_1.real() ==  end_1.real()
+        #then start_1.imag() < end_1.imag()
+        if start_1.real() > end_1.real(): #enforce
             start_1,end_1 = end_1, start_1 
         elif start_1.real() == end_1.real():
             if start_1.imag() > end_1.imag():
@@ -1457,11 +1462,12 @@ class HyperbolicGeodesicUHP(HyperbolicGeodesic):
         elif start_2.real() == end_2.real():
             if start_2.imag() > end_2.imag():
                 start_2,end_2 = end_2, start_2
-        if i_start_1 == i_start_2 and i_end_1 == i_end_2:  # Unoriented segments lie on the same geodesic
+        if i_start_1 == i_start_2 and i_end_1 == i_end_2:
+            # Unoriented segments lie on the same complete geodesic
             if start_1==start_2 and end_1==end_2:
                 return self
-            #check if the common geodesic is vertical 
             if start_1.real() == end_1.real() or end_1.real().is_infinity():
+                #Both geodesics are vertical
                 if start_2.imag() < start_1.imag():
                     #make sure always start_1.imag() <= start_2.imag()
                     start_1,start_2 = start_2,start_1
@@ -1475,6 +1481,7 @@ class HyperbolicGeodesicUHP(HyperbolicGeodesic):
                 else:
                     return UHP.get_geodesic(start_2, end_1)
             else:
+                #Neither geodesic is vertical
                 #make sure always start_1.real() <= start_2.real()
                 if start_2.real()<start_1.real():
                     start_1,start_2 = start_2, start_1
@@ -1486,9 +1493,12 @@ class HyperbolicGeodesicUHP(HyperbolicGeodesic):
                 else:
                     return UHP.get_geodesic(start_2, end_1)
         else:
-            if start_1 == start_2: #asymptotic parallel
+            #Both segments do not have the same complete geodesic
+            if start_1 == start_2:
+                #asymptotic parallel
                 return [UHP.get_point(start_1)]
-            elif end_1 == end_2:  #asymptotic parallel
+            elif end_1 == end_2:
+                #asymptotic parallel
                 return [UHP.get_point(end_1)]
             else:
                 A = self.reflection_involution()
@@ -1496,7 +1506,8 @@ class HyperbolicGeodesicUHP(HyperbolicGeodesic):
                 C = A * B
                 if C.classification() in ['hyperbolic', 'parabolic']:
                     return []
-                else: #the fixed point needs not to lie in both segments of geodesic
+                else:
+                    #the fixed point needs not to lie in both segments of geodesic
                     #make sure always start_1.real() <= start_2.real()
                     if start_2.real()<start_1.real():
                         start_1,start_2 = start_2, start_1

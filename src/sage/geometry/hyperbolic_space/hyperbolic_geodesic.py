@@ -1345,7 +1345,7 @@ class HyperbolicGeodesicUHP(HyperbolicGeodesic):
         empty list::
 
             sage: g = UHP.get_geodesic(4, 5)
-            sage: h = UHP.get_geodesic(5, 7)
+            sage: h = UHP.get_geodesic(6, 7)
             sage: g.intersection(h)
             []
 
@@ -1353,7 +1353,21 @@ class HyperbolicGeodesicUHP(HyperbolicGeodesic):
 
             UHP = HyperbolicPlane().UHP()
             g = UHP.get_geodesic(4.0, 5.0)
-            h = UHP.get_geodesic(5.0, 7.0)
+            h = UHP.get_geodesic(6.0, 7.0)
+            sphinx_plot(g.plot() + h.plot())
+            
+        If the given geodesics are asymptotically parallel, the function returns the common boundary point::
+
+            sage: g = UHP.get_geodesic(4, 5)
+            sage: h = UHP.get_geodesic(5, 7)
+            sage: g.intersection(h)
+            [Boundary point in UHP 5.00000000000000]
+
+        .. PLOT::
+
+            UHP = HyperbolicPlane().UHP()
+            g = UHP.get_geodesic(4.0, 5.0)
+            h = UHP.get_geodesic(6.0, 7.0)
             sphinx_plot(g.plot() + h.plot())
 
         If the given geodesics are identical, return that
@@ -1457,6 +1471,8 @@ class HyperbolicGeodesicUHP(HyperbolicGeodesic):
         elif start_1.real() == end_1.real():
             if start_1.imag() > end_1.imag():
                 start_1,end_1 = end_1, start_1
+        #sort the geodesic endpoints according to start_2.real() < end_2.real() and if start_2.real() ==  end_2.real()
+        #then start_2.imag() < end_2.imag()
         if start_2.real() > end_2.real():
             start_2,end_2 = end_2, start_2
         elif start_2.real() == end_2.real():
@@ -1494,12 +1510,18 @@ class HyperbolicGeodesicUHP(HyperbolicGeodesic):
                     return UHP.get_geodesic(start_2, end_1)
         else:
             #Both segments do not have the same complete geodesic
-            if start_1 == start_2:
+            #make sure always start_1.real() <= start_2.real()
+            if start_2.real()<start_1.real():
+                start_1,start_2 = start_2, start_1
+                end_1, end_2 = end_2, end_1
+            if self.is_asymptotically_parallel(other):
                 #asymptotic parallel
-                return [UHP.get_point(start_1)]
-            elif end_1 == end_2:
-                #asymptotic parallel
-                return [UHP.get_point(end_1)]
+                if start_1 == start_2:
+                    return [UHP.get_point(start_1)]
+                elif end_1 == start_2 or end_1 == end_2:
+                    return [UHP.get_point(end_1)]
+                else:
+                    return []
             else:
                 A = self.reflection_involution()
                 B = other.reflection_involution()
@@ -1508,10 +1530,6 @@ class HyperbolicGeodesicUHP(HyperbolicGeodesic):
                     return []
                 else:
                     #the fixed point needs not to lie in both segments of geodesic
-                    #make sure always start_1.real() <= start_2.real()
-                    if start_2.real()<start_1.real():
-                        start_1,start_2 = start_2, start_1
-                        end_1, end_2 = end_2, end_1
                     if end_1==start_2:
                         return [UHP().get_point(end_1)]
                     else:

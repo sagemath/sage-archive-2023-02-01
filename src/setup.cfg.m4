@@ -75,10 +75,12 @@ scripts =
     bin/sage
     # Other scripts that should be in the path also for OS packaging of sage:
     bin/sage-eval
-    bin/sage-runtests          # because it is useful for doctesting user scripts too
-    bin/sage-fixdoctests       # likewise
-    bin/sage-coverage          # because it is useful for coverage-testing user scripts too
-    bin/sage-cython            # deprecated, might be used in user package install scripts
+    # Included because it is useful for doctesting/coverage testing user scripts too:
+    bin/sage-runtests
+    bin/sage-fixdoctests
+    bin/sage-coverage
+    # The following is deprecated but might still be used in user package install scripts
+    bin/sage-cython
     # Helper scripts invoked by sage script
     # (they would actually belong to something like libexec)
     bin/sage-cachegrind

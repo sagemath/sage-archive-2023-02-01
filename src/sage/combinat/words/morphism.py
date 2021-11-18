@@ -3242,7 +3242,8 @@ class WordMorphism(SageObject):
              if a in immortal_letters}
 
         # Starting with degree d=0, we search for letters with polynomial
-        # growth of degree d, where the equality ``d==len(polynomial)`` holds.
+        # growth of degree d, where the equality ``d==len(polynomial)`` holds
+        # and is an invariant in the while loop
         while True:
 
             # the goal here is to construct the permutation of letters
@@ -3265,10 +3266,11 @@ class WordMorphism(SageObject):
             # permutation and contains only not growing letters
             polynomial_degree_d = [k for k in maybe_not_growing_letters.keys()]
 
+            # If polynomial_degree_d is empty, then there is no letter
+            # of polynomial growth of degree >= d, we can stop the outer
+            # while loop
             if not polynomial_degree_d:
                 break
-
-            polynomial.append(polynomial_degree_d)
 
             # we construct the morphism m without the letters with
             # polynomial growth of degree d, i.e., no such letters in the
@@ -3276,6 +3278,10 @@ class WordMorphism(SageObject):
             m = {a:[b for b in L if b not in polynomial_degree_d]
                 for (a,L) in m.items()
                 if a not in polynomial_degree_d}
+
+            # We update the list ``polynomial`` keeping the invariant
+            # equality ``d==len(polynomial)`` true
+            polynomial.append(polynomial_degree_d)
 
         exponential = [a for a in m]
 

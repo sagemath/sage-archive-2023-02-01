@@ -3263,12 +3263,14 @@ class WordMorphism(SageObject):
                                      if v not in maybe_not_growing_letters.keys()]
 
             # After the inner while loop, maybe_not_growing_letters is a
-            # permutation and contains only not growing letters
+            # permutation and contains only not growing letters for
+            # morphism ``m``. This are letters which have polynomial
+            # growth of degree ``d==len(polynomial)`` for the morphism self.
             polynomial_degree_d = [k for k in maybe_not_growing_letters.keys()]
 
             # If polynomial_degree_d is empty, then there is no letter
-            # of polynomial growth of degree >= d, we can stop the outer
-            # while loop
+            # of polynomial growth of degree >= d for the morphism,
+            # we can stop the outer while loop
             if not polynomial_degree_d:
                 break
 
@@ -3279,7 +3281,7 @@ class WordMorphism(SageObject):
                 for (a,L) in m.items()
                 if a not in polynomial_degree_d}
 
-            # We update the list ``polynomial`` keeping the invariant
+            # We update the list ``polynomial`` keeping the loop invariant
             # equality ``d==len(polynomial)`` true
             polynomial.append(polynomial_degree_d)
 

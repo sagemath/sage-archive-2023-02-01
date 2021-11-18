@@ -3156,9 +3156,9 @@ class WordMorphism(SageObject):
 
         Without doing any linear algebra three cases can be differentiated:
         mortal (ultimately empty or `\alpha=0`); polynomial (`\alpha=1`);
-        exponential (`\alpha > 1`).
+        exponential (`\alpha > 1`). This is what is done in this method.
 
-        Requires this morphism to be an endomorphism.
+        It requires this morphism to be an endomorphism.
 
         OUTPUT:
 
@@ -3235,33 +3235,49 @@ class WordMorphism(SageObject):
                             if a not in immortal_letters]
         polynomial = []
 
-        d = {a:[b for b in self.image(a) if b in immortal_letters]
+        # we construct the morphism m without the mortal letters,
+        # i.e., no mortal letters in the domain alphabet nor in the images
+        m = {a:[b for b in self.image(a) if b in immortal_letters]
              for a in self.domain().alphabet()
              if a in immortal_letters}
 
+        # Starting with degree d=0, we search for letters with polynomial
+        # growth of degree d, where the equality ``d==len(polynomial)`` holds.
         while True:
 
-            letters_in_a_cycle = {a:image_a[0] for (a,image_a) in d.items()
-                                               if len(image_a) == 1}
-            growing_letters = [v for v in letters_in_a_cycle.values()
-                                 if v not in letters_in_a_cycle.keys()]
+            # the goal here is to construct the permutation of letters
+            # containing all letters whose iterated images under morphism m
+            # is always of length 1. To do this we need to remove growing
+            # letters, letters which are mapped to a growing letter, and
+            # letters which are mapped to a letter which is mapped to a
+            # growing letter, etc. This is done in the inner while loop
+            maybe_not_growing_letters = {a:image_a[0] for (a,image_a) in m.items()
+                                                      if len(image_a) == 1}
+            growing_letters = [v for v in maybe_not_growing_letters.values()
+                                 if v not in maybe_not_growing_letters.keys()]
             while growing_letters:
-                letters_in_a_cycle = {k:v for (k,v) in letters_in_a_cycle.items()
-                                          if v not in growing_letters}
-                growing_letters = [v for v in letters_in_a_cycle.values()
-                                     if v not in letters_in_a_cycle.keys()]
-            polynomial_degree_d = [k for k in letters_in_a_cycle.keys()]
+                maybe_not_growing_letters = {k:v for (k,v) in maybe_not_growing_letters.items()
+                                                 if v not in growing_letters}
+                growing_letters = [v for v in maybe_not_growing_letters.values()
+                                     if v not in maybe_not_growing_letters.keys()]
+
+            # After the while loop, maybe_not_growing_letters is a
+            # permutation and contains only not growing letters
+            polynomial_degree_d = [k for k in maybe_not_growing_letters.keys()]
 
             if not polynomial_degree_d:
                 break
 
             polynomial.append(polynomial_degree_d)
 
-            d = {a:[b for b in L if b not in polynomial_degree_d]
-                for (a,L) in d.items()
+            # we construct the morphism m without the letters with
+            # polynomial growth of degree d, i.e., no such letters in the
+            # domain alphabet nor in the images
+            m = {a:[b for b in L if b not in polynomial_degree_d]
+                for (a,L) in m.items()
                 if a not in polynomial_degree_d}
 
-        exponential = [a for a in d]
+        exponential = [a for a in m]
 
         return mortal_letters, polynomial, exponential
 

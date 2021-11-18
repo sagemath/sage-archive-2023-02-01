@@ -70,45 +70,6 @@ dnl Other Python packages that are standard spkg, used in doctests
         | sed "2,\$s/^/    /;"')dnl'
 dnl pycryptosat  # Sage distribution installs it as part of cryptominisat. According to its README on https://pypi.org/project/pycryptosat/: "The pycryptosat python package compiles while compiling CryptoMiniSat. It cannot be compiled on its own, it must be compiled at the same time as CryptoMiniSat."
 
-[options.package_data]
-
-sage.libs.gap =
-    sage.gaprc
-
-sage.interfaces =
-    sage-maxima.lisp
-
-sage.doctest =
-    tests/*
-
-sage =
-    ext_data/*
-    ext_data/kenzo/*
-    ext_data/singular/*
-    ext_data/singular/function_field/*
-    ext_data/images/*
-    ext_data/doctest/*
-    ext_data/doctest/invalid/*
-    ext_data/doctest/rich_output/*
-    ext_data/doctest/rich_output/example_wavefront/*
-    ext_data/gap/*
-    ext_data/gap/joyner/*
-    ext_data/mwrank/*
-    ext_data/notebook-ipython/*
-    ext_data/nbconvert/*
-    ext_data/graphs/*
-    ext_data/pari/*
-    ext_data/pari/dokchitser/*
-    ext_data/pari/buzzard/*
-    ext_data/pari/simon/*
-    ext_data/magma/*
-    ext_data/magma/latex/*
-    ext_data/magma/sage/*
-    ext_data/valgrind/*
-    ext_data/threejs/*
-
-[options.entry_points]
-
 scripts =
     # The sage script
     bin/sage
@@ -157,3 +118,40 @@ scripts =
     bin/sage-startuptime.py
     bin/sage-update-src
     bin/sage-update-version
+
+[options.package_data]
+
+sage.libs.gap =
+    sage.gaprc
+
+sage.interfaces =
+    sage-maxima.lisp
+
+sage.doctest =
+    tests/*
+
+sage =
+    ext_data/*
+    ext_data/kenzo/*
+    ext_data/singular/*
+    ext_data/singular/function_field/*
+    ext_data/images/*
+    ext_data/doctest/*
+    ext_data/doctest/invalid/*
+    ext_data/doctest/rich_output/*
+    ext_data/doctest/rich_output/example_wavefront/*
+    ext_data/gap/*
+    ext_data/gap/joyner/*
+    ext_data/mwrank/*
+    ext_data/notebook-ipython/*
+    ext_data/nbconvert/*
+    ext_data/graphs/*
+    ext_data/pari/*
+    ext_data/pari/dokchitser/*
+    ext_data/pari/buzzard/*
+    ext_data/pari/simon/*
+    ext_data/magma/*
+    ext_data/magma/latex/*
+    ext_data/magma/sage/*
+    ext_data/valgrind/*
+    ext_data/threejs/*

@@ -3262,7 +3262,7 @@ class WordMorphism(SageObject):
                 growing_letters = [v for v in maybe_not_growing_letters.values()
                                      if v not in maybe_not_growing_letters.keys()]
 
-            # After the while loop, maybe_not_growing_letters is a
+            # After the inner while loop, maybe_not_growing_letters is a
             # permutation and contains only not growing letters
             polynomial_degree_d = [k for k in maybe_not_growing_letters.keys()]
 

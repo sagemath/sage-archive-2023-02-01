@@ -494,8 +494,8 @@ def sieve(X, bound):
                 continue
 
             try:
-                rat_points.add(X(point))
                 # checks if this point lies on X or not
+                rat_points.add(X(point))
             except (TypeError, ValueError):
                 pass
 

@@ -1698,7 +1698,7 @@ cdef class Expression(Expression_abc):
             sage: SR(CBF(1))._convert({'parent':RDF})
             1.0
             sage: type(_.pyobject())
-            <class 'sage.rings.real_double.RealDoubleElement'>
+            <class 'sage.rings.real_double...RealDoubleElement...'>
         """
         cdef GEx res = self._gobj.evalf(0, kwds)
         return new_Expression_from_GEx(self._parent, res)
@@ -1793,7 +1793,20 @@ cdef class Expression(Expression_abc):
             Traceback (most recent call last):
             ...
             ValueError: nonzero imaginary part
+
+            sage: from sage.symbolic.function import BuiltinFunction
+            sage: f = BuiltinFunction("bogus_builtin_function")
+            sage: RBF(f(1))
+            Traceback (most recent call last):
+            ...
+            TypeError: unable to convert bogus_builtin_function(1) to a RealBall
+            sage: CBF(f(1))
+            Traceback (most recent call last):
+            ...
+            TypeError: unable to convert bogus_builtin_function(1) to a ComplexBall
         """
+        cdef bint progress = False
+        cdef int i
         # Note that we deliberately don't use _eval_self and don't try going
         # through RIF/CIF in order to avoid unsafe conversions.
         operator = self.operator()
@@ -1827,11 +1840,18 @@ cdef class Expression(Expression_abc):
             # Generic case: walk through the expression. In this case, we do
             # not bother trying to stay in the real field.
             try:
-                res = self.operator()(*[C(a) for a in args])
+                for i in range(len(args)):
+                    if args[i].parent() is not C:
+                        progress = True
+                        args[i] = C(args[i])
             except (TypeError, ValueError):
                 pass
-            else:
-                return R(res)
+            if progress:
+                try:
+                    res = self.operator()(*[C(a) for a in args])
+                    return R(res)
+                except (TypeError, ValueError):
+                    pass
         # Typically more informative and consistent than the exceptions that
         # would propagate
         raise TypeError("unable to convert {!r} to a {!s}".format(

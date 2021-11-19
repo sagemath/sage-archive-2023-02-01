@@ -797,7 +797,7 @@ class Graph(GenericGraph):
           sage: import networkx
           sage: g = networkx.MultiGraph({0:[1,2,3], 2:[4]})
           sage: Graph(g)
-          Graph on 5 vertices
+          Multi-graph on 5 vertices
 
     #. A NetworkX graph::
 
@@ -1096,11 +1096,8 @@ class Graph(GenericGraph):
                 elif isinstance(val, dict):
                     format = 'dict_of_dicts'
         if format is None and hasattr(data, 'adj'):
-            import networkx
-            if isinstance(data, (networkx.DiGraph, networkx.MultiDiGraph)):
-                data = data.to_undirected()
-            elif isinstance(data, (networkx.Graph, networkx.MultiGraph)):
-                format = 'NX'
+            # the input is a networkx (Multi)(Di)Graph
+            format = 'NX'
 
         if (format is None          and
             hasattr(data, 'vcount') and
@@ -1183,29 +1180,15 @@ class Graph(GenericGraph):
             self.name(data.name())
             self.set_vertices(data.get_vertices())
             data._backend.subgraph_given_vertices(self._backend, data)
+
         elif format == 'NX':
-            if convert_empty_dict_labels_to_None is not False:
-                r = lambda x: None if x=={} else x
-            else:
-                r = lambda x: x
+            from sage.graphs.graph_input import from_networkx_graph
+            from_networkx_graph(self, data,
+                                weighted=weighted, multiedges=multiedges, loops=loops,
+                                convert_empty_dict_labels_to_None=convert_empty_dict_labels_to_None)
             if weighted is None:
-                import networkx
-                if isinstance(data, networkx.Graph):
-                    weighted = False
-                    if multiedges is None:
-                        multiedges = False
-                    if loops is None:
-                        loops = False
-                else:
-                    weighted = True
-                    if multiedges is None:
-                        multiedges = True
-                    if loops is None:
-                        loops = True
-            self.allow_loops(loops, check=False)
-            self.allow_multiple_edges(multiedges, check=False)
-            self.add_vertices(data.nodes())
-            self.add_edges((u,v,r(l)) for u,v,l in data.edges(data=True))
+                weighted = self.allows_multiple_edges()
+
         elif format == 'igraph':
             if data.is_directed():
                 raise ValueError("An *undirected* igraph graph was expected. "+
@@ -1547,7 +1530,7 @@ class Graph(GenericGraph):
             sage: G.is_tree(certificate=True, output='edge')
             (False, [(0, 0, None)])
         """
-        if not output in ['vertex', 'edge']:
+        if output not in ['vertex', 'edge']:
             raise ValueError('output must be either vertex or edge')
 
         if not self.order() or not self.is_connected():
@@ -6392,7 +6375,8 @@ class Graph(GenericGraph):
             sage: (G.cliques_get_max_clique_graph()).show(figsize=[2,2])
         """
         import networkx
-        return Graph(networkx.make_max_clique_graph(self.networkx_graph(), create_using=networkx.MultiGraph()))
+        return Graph(networkx.make_max_clique_graph(self.networkx_graph(), create_using=networkx.MultiGraph()),
+                     multiedges=False)
 
     @doc_index("Clique-related methods")
     def cliques_get_clique_bipartite(self, **kwds):
@@ -6515,8 +6499,7 @@ class Graph(GenericGraph):
             return self.order() - my_cover
         else:
             my_cover = set(my_cover)
-            return [u for u in self if not u in my_cover]
-
+            return [u for u in self if u not in my_cover]
 
     @doc_index("Algorithmically hard stuff")
     @rename_keyword(deprecation=32238, verbosity='verbose')
@@ -6773,7 +6756,7 @@ class Graph(GenericGraph):
             if value_only:
                 size_cover_g = g.order() - len(independent)
             else:
-                cover_g = set(uu for uu in g if not uu in independent)
+                cover_g = set(uu for uu in g if uu not in independent)
 
         elif algorithm == "MILP":
 

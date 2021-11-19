@@ -5133,11 +5133,14 @@ cdef class Matrix(Matrix1):
     def _row_ambient_module(self, base_ring=None):
         if base_ring is None:
             base_ring = self.base_ring()
-        x = self.fetch('row_ambient_module_%s'%base_ring)
+            cache_name = 'row_ambient_module'
+        else:
+            cache_name = 'row_ambient_module_%s' % base_ring._repr_()
+        x = self.fetch(cache_name)
         if not x is None:
             return x
         x = sage.modules.free_module.FreeModule(base_ring, self.ncols(), sparse=self.is_sparse())
-        self.cache('row_ambient_module',x)
+        self.cache(cache_name, x)
         return x
 
     def row_module(self, base_ring=None):

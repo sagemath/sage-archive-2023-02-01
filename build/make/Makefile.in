@@ -234,7 +234,6 @@ base-toolchain: _clean-broken-gcc base
 
 # All targets except for the base packages and except the documentation
 all-sage: \
-		sagelib \
 		$(SAGE_LOCAL_INSTALLED_PACKAGE_INSTS) $(SAGE_LOCAL_UNINSTALLED_PACKAGES_CLEANS) \
 		$(SAGE_VENV_INSTALLED_PACKAGE_INSTS)  $(SAGE_VENV_UNINSTALLED_PACKAGES_CLEANS)
 

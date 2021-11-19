@@ -151,3 +151,13 @@ requiring all of Sage to be present.
 
 Declaring doctest-only dependencies: The ``extra_requires`` mechanism
 mentioned above can also be used for this.
+
+
+Version constraints of dependencies
+-----------------------------------
+
+The version information for dependencies comes from the files
+``build/pkgs/*/install-requires.txt`` and
+``build/pkgs/*/package-version.txt``.  We use the ``m4`` macro
+processor to insert the version information in the generated files
+``pyproject.toml``, ``setup.cfg``, ``requirements.txt``.

@@ -34,8 +34,8 @@ The default domain of a symbolic variable is the complex plane::
 
 Here is the list of acceptable features::
 
-    sage: maxima('features')
-    [integer,noninteger,even,odd,rational,irrational,real,imaginary,complex,analytic,increasing,decreasing,oddfun,evenfun,posfun,constant,commutative,lassociative,rassociative,symmetric,antisymmetric,integervalued]
+    sage: ", ".join(map(str, maxima("features")._sage_()))
+    'integer, noninteger, even, odd, rational, irrational, real, imaginary, complex, analytic, increasing, decreasing, oddfun, evenfun, posfun, constant, commutative, lassociative, rassociative, symmetric, antisymmetric, integervalued'
 
 Set positive domain using a relation::
 
@@ -110,8 +110,8 @@ class GenericDeclaration(UniqueRepresentation):
 
     Here is the list of acceptable features::
 
-        sage: maxima('features')
-        [integer,noninteger,even,odd,rational,irrational,real,imaginary,complex,analytic,increasing,decreasing,oddfun,evenfun,posfun,constant,commutative,lassociative,rassociative,symmetric,antisymmetric,integervalued]
+        sage: ", ".join(map(str, maxima("features")._sage_()))
+        'integer, noninteger, even, odd, rational, irrational, real, imaginary, complex, analytic, increasing, decreasing, oddfun, evenfun, posfun, constant, commutative, lassociative, rassociative, symmetric, antisymmetric, integervalued'
 
     Test unique representation behavior::
 
@@ -148,8 +148,9 @@ class GenericDeclaration(UniqueRepresentation):
 
         Here is the list of acceptable features::
 
-            sage: maxima('features')
-            [integer,noninteger,even,odd,rational,irrational,real,imaginary,complex,analytic,increasing,decreasing,oddfun,evenfun,posfun,constant,commutative,lassociative,rassociative,symmetric,antisymmetric,integervalued]
+            sage: ", ".join(map(str, maxima("features")._sage_()))
+            'integer, noninteger, even, odd, rational, irrational, real, imaginary, complex, analytic, increasing, decreasing, oddfun, evenfun, posfun, constant, commutative, lassociative, rassociative, symmetric, antisymmetric, integervalued'
+
         """
         self._var = var
         self._assumption = assumption

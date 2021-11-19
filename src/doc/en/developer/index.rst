@@ -159,6 +159,7 @@ Sage Coding Details
    coding_in_python
    coding_in_cython
    coding_in_other
+   python_packaging
 
 Packaging Third-Party Code
 --------------------------

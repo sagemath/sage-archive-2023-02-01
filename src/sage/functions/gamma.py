@@ -1049,7 +1049,7 @@ class Function_beta(GinacFunction):
         r"""
         TESTS::
 
-            sage: RBF(beta(sin(3),sqrt(RBF(2).add_error(1e-8)/3)))
+            sage: RBF(beta(sin(3),sqrt(RBF(2).add_error(1e-8)/3)))  # abs tol 6e-7
             [7.407662 +/- 6.17e-7]
         """
         return [x, y]

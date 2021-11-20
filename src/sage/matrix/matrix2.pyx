@@ -5130,7 +5130,7 @@ cdef class Matrix(Matrix1):
         """
         return self.row_module()
 
-    def _row_ambient_module(self, base_ring=None):
+    cpdef _row_ambient_module(self, base_ring=None):
         if base_ring is None:
             base_ring = self.base_ring()
             cache_name = 'row_ambient_module'
@@ -5194,7 +5194,7 @@ cdef class Matrix(Matrix1):
         """
         return self.row_module(base_ring=base_ring)
 
-    def _column_ambient_module(self):
+    cpdef _column_ambient_module(self):
         x = self.fetch('column_ambient_module')
         if not x is None:
             return x

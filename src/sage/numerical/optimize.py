@@ -476,7 +476,7 @@ def minimize_constrained(func,cons,x0,gradient=None,algorithm='default', **args)
     Let's find a minimum of `\sin(xy)`::
 
         sage: x,y = var('x y')
-        sage: f = sin(x*y)
+        sage: f(x,y) = sin(x*y)
         sage: minimize_constrained(f, [(None,None),(4,10)],[5,5])
         (4.8..., 4.8...)
 
@@ -498,8 +498,8 @@ def minimize_constrained(func,cons,x0,gradient=None,algorithm='default', **args)
     Check if :trac:`6592` is fixed::
 
         sage: x, y = var('x y')
-        sage: f = (100 - x) + (1000 - y)
-        sage: c = x + y - 479 # > 0
+        sage: f(x,y) = (100 - x) + (1000 - y)
+        sage: c(x,y) = x + y - 479 # > 0
         sage: minimize_constrained(f, [c], [100, 300])
         (805.985..., 1005.985...)
         sage: minimize_constrained(f, c, [100, 300])
@@ -510,7 +510,9 @@ def minimize_constrained(func,cons,x0,gradient=None,algorithm='default', **args)
 
         sage: x,y = SR.var('x,y')
         sage: f(y,x) = x - y
-        sage: minimize_constrained(f, [x, 1-y], (0,0))
+        sage: c1(y,x) = x
+        sage: c2(y,x) = 1-y
+        sage: minimize_constrained(f, [c1, c2], (0,0))
         (1.0, 0.0)
 
     """

@@ -504,6 +504,15 @@ def minimize_constrained(func,cons,x0,gradient=None,algorithm='default', **args)
         (805.985..., 1005.985...)
         sage: minimize_constrained(f, c, [100, 300])
         (805.985..., 1005.985...)
+
+    If ``func`` is symbolic, its minimizer should be in the same order
+    as its arguments (:trac:`32511`)::
+
+        sage: x,y = SR.var('x,y')
+        sage: f(y,x) = x - y
+        sage: minimize_constrained(f, [x, 1-y], (0,0))
+        (1.0, 0.0)
+
     """
     from sage.structure.element import Expression
     from sage.ext.fast_callable import fast_callable
@@ -512,7 +521,7 @@ def minimize_constrained(func,cons,x0,gradient=None,algorithm='default', **args)
     function_type = type(lambda x,y: x+y)
 
     if isinstance(func, Expression):
-        var_list = func.variables()
+        var_list = func.arguments()
         fast_f = fast_callable(func, vars=var_list, domain=float)
         f = lambda p: fast_f(*p)
         gradient_list = func.gradient()

@@ -20654,8 +20654,8 @@ class GenericGraph(GenericGraph_pyx):
 
         A digraph using latex labels for vertices and edges::
 
-            sage: f(x) = -1 / x
-            sage: g(x) = 1 / (x + 1)
+            sage: f = lambda x: -1 / x
+            sage: g = lambda x: 1 / (x + 1)
             sage: G = DiGraph()
             sage: G.add_edges((i, f(i), f) for i in (1, 2, 1/2, 1/4))
             sage: G.add_edges((i, g(i), g) for i in (1, 2, 1/2, 1/4))

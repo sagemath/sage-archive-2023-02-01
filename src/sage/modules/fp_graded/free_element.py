@@ -42,7 +42,7 @@ class FreeGradedModuleElement(IndexedFreeModuleElement):
         sage: M = FreeGradedModule(SteenrodAlgebra(2), (0, 1))
 
         sage: M([0, 0])
-        <0, 0>
+        0
 
         sage: M([1, 0])
         <1, 0>
@@ -75,8 +75,8 @@ class FreeGradedModuleElement(IndexedFreeModuleElement):
         r"""
         The degree of this element.
 
-        OUTPUT: the integer degree of this element, or None if this is the zero
-        element.
+        OUTPUT: the integer degree of this element, or raise an error
+        if this is the zero element.
 
         EXAMPLES::
 
@@ -161,7 +161,10 @@ class FreeGradedModuleElement(IndexedFreeModuleElement):
              <Sq(1,0,1), Sq(1,2)>,
              <Sq(2,0,1), Sq(2,2)>]
         """
-        return '<%s>' % ', '.join(['%s' % c for c in self.coefficients()])
+        if self:
+            return '<%s>' % ', '.join(['%s' % c for c in self.coefficients()])
+        else:
+            return '0'
 
 
     def _lmul_(self, a):
@@ -190,10 +193,10 @@ class FreeGradedModuleElement(IndexedFreeModuleElement):
             sage: a = A2.Sq(3)
             sage: [a*x for x in elements]
             [<Sq(1,1), Sq(1,1), 0>,
-             <0, 0, 0>,
+             0,
              <Sq(3,1), Sq(3,1), Sq(3)>,
              <0, 0, Sq(1,1)>,
-             <0, 0, 0>,
+             0,
              <Sq(3,2), Sq(3,2), Sq(3,1)>,
              <Sq(3,0,1), Sq(3,0,1), Sq(7)>,
              <Sq(1,1,1), Sq(1,1,1), Sq(5,1)>,
@@ -230,7 +233,7 @@ class FreeGradedModuleElement(IndexedFreeModuleElement):
             sage: v = x.vector_presentation(); v
             (1, 0, 0, 0, 0, 1, 0)
             sage: type(v)
-            <type 'sage.modules.vector_mod2_dense.Vector_mod2_dense'>
+            <class 'sage.modules.vector_mod2_dense.Vector_mod2_dense'>
 
             sage: V = M.vector_presentation(7)
             sage: v in V

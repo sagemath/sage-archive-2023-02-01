@@ -28,8 +28,6 @@ AUTHORS:
 from sage.misc.cachefunc import cached_method
 from sage.modules.with_basis.indexed_element import IndexedFreeModuleElement
 
-from .free_element import FreeGradedModuleElement
-
 
 class FPElement(IndexedFreeModuleElement):
     r"""
@@ -70,8 +68,8 @@ class FPElement(IndexedFreeModuleElement):
         r"""
         The degree of this element.
 
-        OUTPUT: The integer degree of this element, or ``None`` if this is the
-        zero element.
+        OUTPUT: The integer degree of this element, or raise an error
+        if this is the zero element.
 
         EXAMPLES::
 
@@ -174,10 +172,10 @@ class FPElement(IndexedFreeModuleElement):
             sage: a = A2.Sq(3)
             sage: [a*x for x in elements]
             [<Sq(1,1), 0>,
-             <0, 0>,
+             0,
              <Sq(3,1), Sq(3)>,
              <0, Sq(1,1)>,
-             <0, 0>,
+             0,
              <Sq(3,2), Sq(3,1)>,
              <Sq(3,0,1), Sq(7)>,
              <Sq(1,1,1), Sq(5,1)>,
@@ -215,7 +213,7 @@ class FPElement(IndexedFreeModuleElement):
             sage: v = x.vector_presentation(); v
             (1, 0, 0, 0, 0, 1, 0)
             sage: type(v)
-            <type 'sage.modules.vector_mod2_dense.Vector_mod2_dense'>
+            <class 'sage.modules.vector_mod2_dense.Vector_mod2_dense'>
 
             sage: V = M.vector_presentation(7)
             sage: v in V
@@ -329,7 +327,7 @@ class FPElement(IndexedFreeModuleElement):
             sage: n = M((Sq(4), Sq(2), 0)); n
             <Sq(4), Sq(2), 0>
             sage: n.normalize()
-            <0, 0, 0>
+            0
             sage: n == n.normalize()
             True
         """

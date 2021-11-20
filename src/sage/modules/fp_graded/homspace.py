@@ -21,7 +21,7 @@ TESTS::
     Module homomorphism of degree 0 defined by sending the generators
       [<1, 0>, <0, 1>]
     to
-      [<0, 0>, <Sq(1), 0>]
+      [0, <Sq(1), 0>]
     sage: homset([L((A.Sq(1), 1)), L((0, A.Sq(2)))])
     Module homomorphism of degree 2 defined by sending the generators
       [<1, 0>, <0, 1>]
@@ -153,14 +153,14 @@ class FPModuleHomspace(Homset):
             Module homomorphism of degree 4 defined by sending the generators
               [<1, 0>, <0, 1>]
             to
-              [<0, 0>, <Sq(4), 0>]
+              [0, <Sq(4), 0>]
 
             sage: K = FPModule(A, [0, 0], [[Sq(2), 0], [0,0], [Sq(4), Sq(2)*Sq(2)]])
             sage: Hom(K, K).an_element(n=3)
             Module homomorphism of degree 3 defined by sending the generators
               [<1, 0>, <0, 1>]
             to
-              [<0, 0>, <Sq(0,1), 0>]
+              [0, <Sq(0,1), 0>]
         """
         return self._basis_elements(n, basis=False)
 
@@ -209,10 +209,10 @@ class FPModuleHomspace(Homset):
             The trivial homomorphism.
 
             sage: z(F.an_element(5))
-            <0, 0>
+            0
 
             sage: z(F.an_element(23))
-            <0, 0>
+            0
         """
         return self.element_class(self, [self.codomain().zero() for g in self.domain().generator_degrees()])
 

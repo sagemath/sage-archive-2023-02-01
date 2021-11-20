@@ -1,17 +1,9 @@
-# TODO:
-#
-# - Test with graded modules over other graded rings. (Should be okay, but add some doctests.)
-#
-#  - In __classcall__/__init__ for FPModules, allow as input a free module or a morphism of free modules?
-
-
-
-
 r"""
 Finitely presented graded modules
 
-This class implements methods for construction and basic manipulation of
-finitely presented graded modules over connected graded algebras.
+This class implements methods for construction and basic manipulation
+of finitely presented graded modules over connected graded algebras
+with a given graded basis.
 
 .. NOTE:: This class was designed for use by
     :class:`sage.modules.fp_graded.fpa_module.FPA_Module`.
@@ -88,16 +80,14 @@ class FPModule(Module, IndexedGenerators, UniqueRepresentation):
 
     INPUT:
 
-    - ``algebra`` -- The algebra over which the module is defined.
+    - ``algebra`` -- the graded connected algebra over which the module is
+      defined. This algebra must be equipped with a graded basis.
 
-    - ``generator_degrees`` -- A tuple of integer degrees.
+    - ``generator_degrees`` -- tuple of integer degrees.
 
-    - ``relations`` -- A tuple of relations.  A relation is a tuple of
+    - ``relations`` -- tuple of relations.  A relation is a tuple of
       coefficients `(c_1, \ldots, c_n)`, ordered so that they
       correspond to the module generators.
-
-    OUTPUT: The finitely presented module over ``algebra`` with
-    presentation given by ``generator_degrees`` and ``relations``.
 
     EXAMPLES::
 
@@ -154,6 +144,16 @@ class FPModule(Module, IndexedGenerators, UniqueRepresentation):
     def __init__(self, algebra, generator_degrees, relations=()):
         r"""
         Create a finitely presented module over a connected graded algebra.
+
+        OUTPUT: The finitely presented module over ``algebra`` with
+        presentation given by ``generator_degrees`` and ``relations``.
+
+        TESTS::
+
+            sage: from sage.modules.fp_graded.module import FPModule
+            sage: A3 = SteenrodAlgebra(2, profile=(4,3,2,1))
+            sage: M = FPModule(A3, [0, 1], [[Sq(2), Sq(1)]])
+            sage: TestSuite(M).run()
         """
         self._generator_degrees = generator_degrees
         self._relations = relations
@@ -178,7 +178,7 @@ class FPModule(Module, IndexedGenerators, UniqueRepresentation):
         self.j = Hom(relationsModule, generatorModule)(rels)
 
         # Call the base class constructors.
-        cat = GradedModules(algebra).WithBasis()
+        cat = GradedModules(algebra).WithBasis().FinitelyPresented()
         IndexedGenerators.__init__(self, keys)
         Module.__init__(self, algebra, category=cat)
         Parent.__init__(self, base=algebra, category=cat)
@@ -407,7 +407,7 @@ class FPModule(Module, IndexedGenerators, UniqueRepresentation):
 
             sage: # Special syntax for creating the zero element:
             sage: z = M(0); z
-            <0, 0, 0>
+            0
             sage: z.is_zero()
             True
 
@@ -497,7 +497,7 @@ class FPModule(Module, IndexedGenerators, UniqueRepresentation):
         """
         # In case there are no relations, the connectivity is the equal to
         # the connectivity of the free module on the generators.
-        if self.j._degree == None:
+        if self.j._degree is None:
             return self._free_module().connectivity()
 
         # We must check that the generator(s) in the free generator module are
@@ -632,6 +632,8 @@ class FPModule(Module, IndexedGenerators, UniqueRepresentation):
     def basis_elements(self, n, verbose=False):
         r"""
         A basis for the vector space of degree ``n`` module elements.
+        Note that this returns a basis as a vector space over the
+        base field.
 
         INPUT:
 

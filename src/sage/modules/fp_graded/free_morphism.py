@@ -35,7 +35,6 @@ from inspect import isfunction
 
 from sage.categories.homset import Hom
 from sage.categories.morphism import Morphism
-from sage.misc.cachefunc import cached_method
 
 
 class FreeGradedModuleMorphism(Morphism):
@@ -49,9 +48,6 @@ class FreeGradedModuleMorphism(Morphism):
 
     - ``values`` -- A list of elements in the codomain.  Each element
         corresponds (by their ordering) to a module generator in the domain.
-
-    OUTPUT: A module homomorphism defined by sending each generator to its
-    corresponding value.
 
     EXAMPLES::
 
@@ -87,6 +83,20 @@ class FreeGradedModuleMorphism(Morphism):
     def __init__(self, parent, values):
         r"""
         Create a homomorphism between finitely generated free graded modules.
+
+        OUTPUT: A module homomorphism defined by sending each
+        generator to its corresponding value.
+
+        TESTS::
+
+            sage: from sage.modules.fp_graded.free_module import FreeGradedModule
+            sage: A = SteenrodAlgebra(2)
+            sage: M = FreeGradedModule(A, (0, 0))
+            sage: N = FreeGradedModule(A, (0,))
+            sage: H = Hom(M, N)
+            sage: g = N.generator(0)
+            sage: TestSuite(H).run()
+            sage: TestSuite(g).run()
         """
         from .free_homspace import FreeGradedModuleHomspace
         if not isinstance(parent, FreeGradedModuleHomspace):
@@ -179,7 +189,7 @@ class FreeGradedModuleMorphism(Morphism):
             sage: f.values()
             [<Sq(5)>, <Sq(3,1)>]
             sage: homspace.zero().values()
-            [<0>, <0>]
+            [0, 0]
         """
         return self._values
 

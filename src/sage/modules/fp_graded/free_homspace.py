@@ -72,8 +72,6 @@ class FreeGradedModuleHomspace(Homset):
         defined by mapping the module generators in the domain to the given
         values.
 
-        OUTPUT: A module homomorphism.
-
         EXAMPLES::
 
             sage: from sage.modules.fp_graded.free_module import FreeGradedModule

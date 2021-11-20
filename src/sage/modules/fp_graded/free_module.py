@@ -1,8 +1,9 @@
 r"""
 Finitely generated free graded left modules over connected graded algebras.
 
-This class implements methods for construction and basic manipulation of
-finitely generated free graded modules over connected graded algebras.
+This class implements methods for construction and basic manipulation
+of finitely generated free graded modules over connected graded
+algebras with a given graded basis.
 
 ==========
 User guide
@@ -83,7 +84,7 @@ Each non-zero element has a well-defined degree::
 But the zero element has not::
 
     sage: zero = M.zero(); zero
-    <0, 0>
+    0
     sage: zero.degree()
     Traceback (most recent call last):
     ...
@@ -104,7 +105,7 @@ or when at least one of them is zero::
 Finally, additive inverses exist::
 
     sage: x - x
-    <0, 0>
+    0
 
 For every integer `n`, the set of module elements of degree `n` form a
 vector space over the ground field `k`.  A basis for this vector space can be
@@ -210,7 +211,7 @@ Any two homomorphisms can be added as long as they are of the same degree::
     Module homomorphism of degree 4 defined by sending the generators
       [<1, 0>, <0, 1>]
     to
-      [<0>, <Sq(0,1)>]
+      [0, <Sq(0,1)>]
 
 or when at least one of them is zero::
 
@@ -282,13 +283,11 @@ class FreeGradedModule(CombinatorialFreeModule):
 
     INPUT:
 
-    - ``algebra`` -- the connected algebra over which the module is defined.
+    - ``algebra`` -- the graded connected algebra over which the module is
+      defined. This algebra must be equipped with a graded basis.
 
-    - ``generator_degrees`` -- a tuple of integers defining
-      the number of generators of the module, and their degrees.
-
-    OUTPUT: The finitely generated free graded module on generators with
-    degrees given by ``generator_degrees``.
+    - ``generator_degrees`` -- tuple of integers defining the number
+      of generators of the module, and their degrees.
 
     TESTS::
 
@@ -301,6 +300,15 @@ class FreeGradedModule(CombinatorialFreeModule):
         r"""
         Create a finitely generated free graded module over a connected graded
         algebra.
+
+        OUTPUT: The finitely generated free graded module on generators with
+        degrees given by ``generator_degrees``.
+
+        TESTS::
+
+            sage: from sage.modules.fp_graded.free_module import FreeGradedModule
+            sage: A = SteenrodAlgebra(2)
+            sage: TestSuite(FreeGradedModule(A, (-2,2,4))).run()
         """
         # If generator_degrees is [d_0, d_1, ...], then
         # the generators are indexed by (0,d_0), (1,d_1), ...
@@ -314,7 +322,7 @@ class FreeGradedModule(CombinatorialFreeModule):
         CombinatorialFreeModule.__init__(self, algebra,
                                          basis_keys=keys,
                                          element_class=FreeGradedModuleElement,
-                                         category=GradedModules(algebra).WithBasis())
+                                         category=GradedModules(algebra).WithBasis().FiniteDimensional())
 
 
     def generator_degrees(self):
@@ -352,7 +360,7 @@ class FreeGradedModule(CombinatorialFreeModule):
             sage: FreeGradedModule(A, ()).is_trivial()
             True
         """
-        return len(self.generator_degrees()) == 0
+        return not len(self.generator_degrees())
 
 
     def connectivity(self):
@@ -405,7 +413,7 @@ class FreeGradedModule(CombinatorialFreeModule):
             sage: M = FreeGradedModule(A, (0,2,4))
 
             sage: zero = M(0); zero
-            <0, 0, 0>
+            0
 
             sage: e = M((Sq(4), Sq(2), 1)); e
             <Sq(4), Sq(2), 1>
@@ -447,12 +455,12 @@ class FreeGradedModule(CombinatorialFreeModule):
         Zero is the only element in the trivial module::
 
             sage: FreeGradedModule(A, ()).an_element()
-            <>
+            0
         """
-        if len(self.generator_degrees()) == 0:
+        if not len(self.generator_degrees()):
             return self.zero()
 
-        if n == None:
+        if n is None:
             n = max(self.generator_degrees()) + 7
 
         coefficients = []
@@ -492,6 +500,8 @@ class FreeGradedModule(CombinatorialFreeModule):
     def basis_elements(self, n):
         r"""
         A basis for the vector space of degree ``n`` module elements.
+        This returns a basis as a vector space over the base field,
+        not a basis as a free module over the algebra.
 
         INPUT:
 
@@ -558,7 +568,7 @@ class FreeGradedModule(CombinatorialFreeModule):
             True
 
             sage: M.element_from_coordinates((0,0,0,0), 5)
-            <0, 0>
+            0
         """
         basis_elements = self.basis_elements(n)
 
@@ -675,13 +685,11 @@ class FreeGradedModule(CombinatorialFreeModule):
             <0, 0, 1>
         """
         try:
-            key = self._generator_keys[index]
+            return self.monomial(self._generator_keys[index])
         except IndexError:
             raise ValueError('the parent module has generators in the index '\
                 'range [0, %s]; generator %s does not exist' %\
                 (len(self.generator_degrees()) - 1, index))
-
-        return self.monomial(self._generator_keys[index])
 
 
     def generators(self):

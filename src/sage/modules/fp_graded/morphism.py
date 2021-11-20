@@ -163,9 +163,6 @@ class FPModuleMorphism(Morphism):
     - ``values`` -- A list of elements in the codomain.  Each element
       corresponds to a module generator in the domain.
 
-    OUTPUT: A module homomorphism defined by sending the generator with
-    index `i` to the corresponding element in ``values``.
-
     .. NOTE:: Never use this constructor explicitly, but rather the parent's
         call method, or this class' __call__ method.  The reason for this
         is that the dynamic type of the element class changes as a
@@ -174,8 +171,10 @@ class FPModuleMorphism(Morphism):
     TESTS::
 
         sage: from sage.modules.fp_graded.module import FPModule
-        sage: # Trying to map the generators of a non-free module into a
-        sage: # free module:
+
+    Trying to map the generators of a non-free module into a
+    free module::
+
         sage: A = SteenrodAlgebra(2)
         sage: F = FPModule(A, [2,3])
         sage: Q = FPModule(A, [2,3], relations=[[Sq(6), Sq(5)]])
@@ -184,8 +183,9 @@ class FPModuleMorphism(Morphism):
          ...
         ValueError: ill-defined homomorphism: degrees do not match
 
-        sage: # Trying to map the generators of a non-free module into a
-        sage: # free module:
+    Trying to map the generators of a non-free module into a
+    free module::
+
         sage: w = Hom(Q, F)( (F((1, 0)), F((0, 1))) )
         Traceback (most recent call last):
          ...
@@ -194,6 +194,19 @@ class FPModuleMorphism(Morphism):
     def __init__(self, parent, values):
         r"""
         Create a homomorphism between finitely presented graded modules.
+
+        OUTPUT: A module homomorphism defined by sending the generator
+        with index `i` to the corresponding element in ``values``.
+
+        TESTS::
+
+            sage: from sage.modules.fp_graded.module import FPModule
+            sage: A2 = SteenrodAlgebra(2, profile=(3,2,1))
+            sage: A3 = SteenrodAlgebra(2, profile=(4,3,2,1))
+            sage: M = FPModule(A2, [0], relations=[[Sq(1)]])
+            sage: N = FPModule(A2, [0], relations=[[Sq(4)],[Sq(1)]])
+            sage: f = Hom(M,N)([A2.Sq(3)*N.generator(0)])
+            sage: TestSuite(f).run()
         """
         from .homspace import FPModuleHomspace
 
@@ -319,7 +332,7 @@ class FPModuleMorphism(Morphism):
             [<Sq(5)>, <Sq(3,1)>]
 
             sage: homspace.zero().values()
-            [<0>, <0>]
+            [0, 0]
         """
         return self._values
 

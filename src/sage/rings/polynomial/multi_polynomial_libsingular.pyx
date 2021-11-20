@@ -4920,7 +4920,8 @@ cdef class MPolynomial_libsingular(MPolynomial):
 
             sage: Pol.<x,y,z> = ZZ[]
             sage: p = -x*y + x*z + 54*x - 2
-            sage: (5*p^2).lcm(3*p) == 15*p^2
+            sage: q = (5*p^2).lcm(3*p)
+            sage: q * q.lc().sign() == 15*p^2
             True
             sage: lcm(2*x, 2*y)
             2*x*y

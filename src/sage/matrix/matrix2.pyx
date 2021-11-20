@@ -5139,7 +5139,7 @@ cdef class Matrix(Matrix1):
             self.cache('row_ambient_module', x)
             return x
 
-        cache_name = 'row_ambient_module_' + base_ring._repr_()
+        cache_name = 'row_ambient_module_' + base_ring.__repr__()
         x = self.fetch(cache_name)
         if x is not None:
             return x

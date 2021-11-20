@@ -5132,12 +5132,16 @@ cdef class Matrix(Matrix1):
 
     cpdef _row_ambient_module(self, base_ring=None):
         if base_ring is None:
-            base_ring = self.base_ring()
-            cache_name = 'row_ambient_module'
-        else:
-            cache_name = 'row_ambient_module_%s' % base_ring._repr_()
+            x = self.fetch('row_ambient_module')
+            if x is not None:
+                return x
+            x = sage.modules.free_module.FreeModule(self.base_ring(), self.ncols(), sparse=self.is_sparse())
+            self.cache('row_ambient_module', x)
+            return x
+
+        cache_name = 'row_ambient_module_' + base_ring._repr_()
         x = self.fetch(cache_name)
-        if not x is None:
+        if x is not None:
             return x
         x = sage.modules.free_module.FreeModule(base_ring, self.ncols(), sparse=self.is_sparse())
         self.cache(cache_name, x)

@@ -3230,64 +3230,60 @@ class WordMorphism(SageObject):
             sage: s.letter_growth_types()
             (['a'], [], [])
         """
-        immortal_letters = set(self.immortal_letters())
-        mortal_letters = [a for a in self.domain().alphabet()
-                            if a not in immortal_letters]
+        immortal = set(self.immortal_letters())
+        mortal = [a for a in self.domain().alphabet()
+                            if a not in immortal]
+
+        # Starting with degree d=0, search for letters with polynomial
+        # growth of degree d.
         polynomial = []
-
-        # we construct the morphism m without the mortal letters,
-        # i.e., no mortal letters in the domain alphabet nor in the images
-        m = {a:[b for b in self.image(a) if b in immortal_letters]
-             for a in self.domain().alphabet()
-             if a in immortal_letters}
-
-        # Starting with degree d=0, we search for letters with polynomial
-        # growth of degree d, where the equality ``d==len(polynomial)`` holds
-        # and is an invariant in the while loop
+        m = {a : [b for b in self.image(a) if b in immortal] for a in immortal}
         while True:
+            # Construct the permutation of letters containing all letters whose
+            # iterated images under morphism m is always of length 1.
+            not_growing = {a : image_a[0] for (a,image_a) in m.items() if len(image_a) == 1}
+            preimages = {}
+            roots = []
+            for k, v in not_growing.items():
+                if v not in not_growing:
+                    roots.append(v)
+                if v not in preimages:
+                    preimages[v] = []
+                preimages[v].append(k)
 
-            # the goal here is to construct the permutation of letters
-            # containing all letters whose iterated images under morphism m
-            # is always of length 1. To do this we need to remove growing
-            # letters, letters which are mapped to a growing letter, and
-            # letters which are mapped to a letter which is mapped to a
-            # growing letter, etc. This is done in the inner while loop
-            maybe_not_growing_letters = {a:image_a[0] for (a,image_a) in m.items()
-                                                      if len(image_a) == 1}
-            growing_letters = [v for v in maybe_not_growing_letters.values()
-                                 if v not in maybe_not_growing_letters.keys()]
-            while growing_letters:
-                maybe_not_growing_letters = {k:v for (k,v) in maybe_not_growing_letters.items()
-                                                 if v not in growing_letters}
-                growing_letters = [v for v in maybe_not_growing_letters.values()
-                                     if v not in maybe_not_growing_letters.keys()]
+            while roots:
+                v = roots.pop()
+                for k in preimages.get(v):
+                    del not_growing[k]
+                    if k in preimages:
+                        roots.append(k)
 
-            # After the inner while loop, maybe_not_growing_letters is a
-            # permutation and contains only not growing letters for
-            # morphism ``m``. This are letters which have polynomial
-            # growth of degree ``d==len(polynomial)`` for the morphism self.
-            polynomial_degree_d = [k for k in maybe_not_growing_letters.keys()]
-
-            # If polynomial_degree_d is empty, then there is no letter
-            # of polynomial growth of degree >= d for the morphism,
-            # we can stop the outer while loop
-            if not polynomial_degree_d:
+            # The letters inside not_growing are the ones with polynomial
+            # growth d. If there is none, then the remaining letters in m
+            # have exponential growth.
+            if not not_growing:
                 break
+            polynomial.append(list(not_growing))
 
-            # we construct the morphism m without the letters with
-            # polynomial growth of degree d, i.e., no such letters in the
-            # domain alphabet nor in the images
-            m = {a:[b for b in L if b not in polynomial_degree_d]
-                for (a,L) in m.items()
-                if a not in polynomial_degree_d}
+            # clean the morphism m for the next iteration by removing the
+            # letters with polynomial growth degree d
+            m = {a : [b for b in L if b not in not_growing] for a, L in m.items()
+                    if a not in not_growing}
 
-            # We update the list ``polynomial`` keeping the loop invariant
-            # equality ``d==len(polynomial)`` true
-            polynomial.append(polynomial_degree_d)
+        exponential = list(m)
 
-        exponential = [a for a in m]
+        # sort the letters as in the input alphabet if possible
+        A = self.domain().alphabet()
+        try:
+            rank = A.rank
+        except AttributeError:
+            pass
+        else:
+            mortal.sort(key=rank)
+            for letters in polynomial: letters.sort(key=rank)
+            exponential.sort(key=rank)
 
-        return mortal_letters, polynomial, exponential
+        return mortal, polynomial, exponential
 
     def abelian_rotation_subspace(self):
         r"""

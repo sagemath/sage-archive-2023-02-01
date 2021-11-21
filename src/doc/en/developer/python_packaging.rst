@@ -83,11 +83,25 @@ that provides these files must be installed in the build
 environment. Also, any C/C++ libraries that the Cython module uses
 must be accessible from the build environment.
 
-Declaring build-time dependencies: Modern Python packaging provides a
+*Declaring build-time dependencies:* Modern Python packaging provides a
 mechanism to declare build-time dependencies on other distribution
 packages via the file ``pyproject.toml`` ("build-system requires"); this
 has superseded the older ``setup_requires`` declaration. (There is no
 mechanism to declare anything regarding the C/C++ libraries.)
+
+While the namespace ``sage.*`` is organized roughly according to
+mathematical fields or categories, how we partition the implementation
+modules into distribution packages has to respect the hard constraints
+that are imposed by the build-time dependencies.
+
+We can define some meaningful small distributions that just consist of
+a single or a few Cython modules. For example, **sagemath-tdlib**
+(https://trac.sagemath.org/ticket/29864) would just package the single
+Cython module that must be linked with ``tdlib``,
+:mod:`sage.graphs.graph_decompositions.tdlib`. Starting with the Sage
+9.6 development cycle, as soon as namespace packages are activated, we
+can start to create these distributions. This is quite a mechanical
+task.
 
 Module-level runtime dependencies
 ---------------------------------
@@ -97,7 +111,7 @@ module are executed when the module is imported. Hence, the imported
 modules must be part of the distribution, or provided by another
 distribution -- which then must be declared as a run-time dependency.
 
-Declaring run-time dependencies: These dependencies are declared in
+*Declaring run-time dependencies:* These dependencies are declared in
 ``setup.cfg`` (generated from ``setup.cfg.m4``) as ``install_requires``.
 
 Other runtime dependencies
@@ -115,7 +129,7 @@ considered "optional functionality", then probably not, and in this
 case it will be up to the user to install the distribution enabling
 this optional functionality.
 
-Declaring optional run-time dependencies: It is possible to declare
+*Declaring optional run-time dependencies:* It is possible to declare
 such optional dependencies as ``extra_requires`` in ``setup.cfg``
 (generated from ``setup.cfg.m4``).  This is a very limited mechanism
 -- in particular it does not affect the build phase of the
@@ -149,7 +163,7 @@ FEATURE`` directives in the doctests.  Adding these directives will
 allow developers to test the distribution separately, without
 requiring all of Sage to be present.
 
-Declaring doctest-only dependencies: The ``extra_requires`` mechanism
+*Declaring doctest-only dependencies:* The ``extra_requires`` mechanism
 mentioned above can also be used for this.
 
 

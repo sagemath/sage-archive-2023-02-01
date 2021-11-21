@@ -35,7 +35,7 @@ which is generated from the directory
 
 Note that the distribution name is not required to be a Python
 identifier. In fact, using dashes (``-``) is preferred to underscores in
-distribution names; ``setuptools`` and other parts of Python's packaging
+distribution names; **setuptools** and other parts of Python's packaging
 infrastructure normalize underscores to dashes. (Using dots in
 distribution names, to indicate ownership by organizations, still
 mentioned in https://www.python.org/dev/peps/pep-0423/, appears to
@@ -161,3 +161,99 @@ The version information for dependencies comes from the files
 ``build/pkgs/*/package-version.txt``.  We use the ``m4`` macro
 processor to insert the version information in the generated files
 ``pyproject.toml``, ``setup.cfg``, ``requirements.txt``.
+
+
+Testing distribution packages
+=============================
+
+Of course, we need tools for testing modularized distributions of
+portions of the Sage library.
+
+1. Modularized distributions must be testable separately!
+
+2. But we want to keep integration testing with other portions of Sage too!
+
+Preparing doctests
+------------------
+
+Enter ``# optional``, the doctest annotation that we also use whenever
+an optional package is needed for a particular test.
+
+This mechanism can also be used for making a doctest conditional on
+the presence of a portion of the Sage library.  The available tags
+take the form of package or module names such as ``sage.combinat``,
+``sage.graphs``, ``sage.plot``, ``sage.rings.number_field``,
+``sage.rings.real_double``, and ``sage.symbolic``.  They are defined
+via "features" in a single file,
+``SAGE_ROOT/src/sage/features/sagemath.py``, which also provides the
+mapping from features to the distributions providing them (actually,
+to SPKG names).  Using this mapping, Sage can issue installation hints
+to the user.
+
+For example, the package ``sage.tensor`` is purely algebraic and has
+no dependency on symbolics. However, there are a small number of
+doctests that depend on the Symbolic Ring for integration
+testing. Hence, these doctests are marked ``# optional -
+sage.symbolic``.
+
+Testing the distribution in virtual environments with tox
+---------------------------------------------------------
+
+So how to test that this works?
+
+Sure, we could go into the installation directory
+``SAGE_VENV/lib/python3.9/site-packages/`` and do ``rm -rf
+sage/symbolic`` and test that things still work. But that's not a good
+way of testing.
+
+Instead, we use a virtual environment in which we only install the
+distribution to be tested (and its Python dependencies).
+
+Let's try it out first with the entire Sage library, represented by
+the distribution **sagemath-standard**.  Note that after Sage has been
+built normally, a set of wheels for all installed Python packages is
+available in ``SAGE_VENV/var/lib/sage/wheels/``::
+
+  $ ls venv/var/lib/sage/wheels
+  Babel-2.9.1-py2.py3-none-any.whl
+  Cython-0.29.24-cp39-cp39-macosx_11_0_x86_64.whl
+  Jinja2-2.11.2-py2.py3-none-any.whl
+  ...
+  sage_conf-9.5b6-py3-none-any.whl
+  ...
+  scipy-1.7.2-cp39-cp39-macosx_11_0_x86_64.whl
+  setuptools-58.2.0-py3-none-any.whl
+  ...
+  wheel-0.37.0-py2.py3-none-any.whl
+  widgetsnbextension-3.5.1-py2.py3-none-any.whl
+  zipp-3.5.0-py3-none-any.whl
+
+Note in particular the wheel for **sage-conf**, which provides
+configuration variable settings and the connection to the non-Python
+packages installed in ``SAGE_LOCAL``.
+
+We can now set up a separate virtual environment, in which we install
+these wheels and our distribution to be tested.  This is where ``tox``
+comes into play: It is the standard Python tool for creating
+disposable virtual environments for testing.  Every distribution in
+``SAGE_ROOT/pkgs/`` provides a configuration file ``tox.ini``.
+
+Following the comments in the file
+``SAGE_ROOT/pkgs/sagemath-standard/tox.ini``, we can try the following
+command::
+
+  $ ./sage -sh -c '(cd pkgs/sagemath-standard && SAGE_NUM_THREADS=16 tox -v -v -v -e py39-sagewheels-nopypi)'
+
+This command does not make any changes to the normal installation of
+Sage. The virtual environment is created in a subdirectory of
+``pkgs/sagemath-standard-no-symbolics/.tox/``. After the command
+finishes, we can start the separate installation of the Sage library
+in its virtual environment::
+
+  $ pkgs/sagemath-standard/.tox/py39-sagewheels-nopypi/bin/sage
+
+We can also run parts of the testsuite::
+
+  $ pkgs/sagemath-standard/.tox/py39-sagewheels-nopypi/bin/sage -tp 4 src/sage/graphs/
+
+The whole ``.tox`` directory can be safely deleted at any time.

@@ -79,13 +79,24 @@ each of them has to be an implicit namespace package (no
 ``__init__.py`` file).
 
 
-In the Sage 9.6 development cycle, several packages are converted to
-implicit namespace packages.
+In the Sage 9.6 development cycle, we still use ordinary packages by
+default, but several packages are converted to implicit namespace
+packages to support modularization.
 
 
 
 Source directories of distribution packages
 ===========================================
+
+The development of the SageMath library uses a monorepo strategy for
+all distribution packages that fill the `sage.*` namespace.  This
+means that the source trees of these distributions are included in a
+single ``git`` repository, in a subdirectory of ``SAGE_ROOT/pkgs``.
+
+All these distribution packages have matching version numbers.  From
+the viewpoint of a single distribution, this means that sometimes
+there will be a new release of some distribution where the only thing
+changing is the version number.
 
 The source directory of a distribution package, such as
 ``SAGE_ROOT/pkgs/sagemath-standard``, contains the following files:

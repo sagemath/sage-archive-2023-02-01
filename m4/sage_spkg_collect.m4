@@ -230,12 +230,12 @@ for DIR in $SAGE_ROOT/build/pkgs/*; do
         in_sdist=no
         uninstall_message=", use \"$srcdir/configure --disable-$SPKG_NAME\" to uninstall"
         stampfile=""
-        for f in "$SAGE_SPKG_INST/$SPKG_NAME"-*; do
+        for f in "$SAGE_LOCAL/var/lib/sage/installed/$SPKG_NAME"-*; do
             AS_IF([test -r "$f"], [
                 AS_IF([test -n "$stampfile"], [
                     AC_MSG_ERROR(m4_normalize([
                         multiple installation records for $SPKG_NAME:
-                        m4_newline($(ls -l "$SAGE_SPKG_INST/$SPKG_NAME"-*))
+                        m4_newline($(ls -l "$SAGE_LOCAL/var/lib/sage/installed/$SPKG_NAME"-*))
                         m4_newline([only one should exist, so please delete some or all
                         of these files and re-run "$srcdir/configure"])
                     ]))
@@ -309,7 +309,7 @@ for DIR in $SAGE_ROOT/build/pkgs/*; do
 
     # Determine whether package is enabled
     AS_VAR_SET([is_installed], [no])
-    for f in "$SAGE_SPKG_INST/${SPKG_NAME}"-*; do
+    for f in "${SAGE_LOCAL}/var/lib/sage/installed/${SPKG_NAME}"-*; do
         AS_IF([test -r "$f"],
               [AS_VAR_SET([is_installed], [yes])])
     done

@@ -79,6 +79,15 @@ download:
 dist: build/make/Makefile
 	./sage --sdist
 
+pypi-sdists: sage_setup
+	./sage --sh build/pkgs/sage_conf/spkg-src
+	./sage --sh build/pkgs/sage_setup/spkg-src
+	./sage --sh build/pkgs/sage_sws2rst/spkg-src
+	./sage --sh build/pkgs/sage_docbuild/spkg-src
+	./sage --sh build/pkgs/sage_setup/spkg-src
+	./sage --sh build/pkgs/sagelib/spkg-src
+	@echo "Built sdists are in upstream/"
+
 # ssl: build Sage, and also install pyOpenSSL. This is necessary for
 # running the secure notebook. This make target requires internet
 # access. Note that this requires that your system have OpenSSL
@@ -172,11 +181,10 @@ TESTALL = ./sage -t --all
 PTESTALL = ./sage -t -p --all
 
 # Flags for ./sage -t --all.
-# By default, include all tests marked 'dochtml' -- see
-# https://trac.sagemath.org/ticket/25345 and
-# https://trac.sagemath.org/ticket/26110.
-TESTALL_FLAGS = --optional=sage,dochtml,optional,external,build
-TESTALL_NODOC_FLAGS = --optional=sage,optional,external,build
+# When the documentation is installed, "optional" also includes all tests marked 'sagemath_doc_html',
+# see https://trac.sagemath.org/ticket/25345, https://trac.sagemath.org/ticket/26110, and
+# https://trac.sagemath.org/ticket/32759
+TESTALL_FLAGS = --optional=sage,optional,external,build
 
 test: all
 	$(TESTALL) --logfile=logs/test.log
@@ -222,25 +230,25 @@ test-nodoc: build
 check-nodoc: test-nodoc
 
 testall-nodoc: build
-	$(TESTALL) $(TESTALL_NODOC_FLAGS) --logfile=logs/testall.log
+	$(TESTALL) $(TESTALL_FLAGS) --logfile=logs/testall.log
 
 testlong-nodoc: build
 	$(TESTALL) --long --logfile=logs/testlong.log
 
 testalllong-nodoc: build
-	$(TESTALL) --long $(TESTALL_NODOC_FLAGS) --logfile=logs/testalllong.log
+	$(TESTALL) --long $(TESTALL_FLAGS) --logfile=logs/testalllong.log
 
 ptest-nodoc: build
 	$(PTESTALL) --logfile=logs/ptest.log
 
 ptestall-nodoc: build
-	$(PTESTALL) $(TESTALL_NODOC_FLAGS) --logfile=logs/ptestall.log
+	$(PTESTALL) $(TESTALL_FLAGS) --logfile=logs/ptestall.log
 
 ptestlong-nodoc: build
 	$(PTESTALL) --long --logfile=logs/ptestlong.log
 
 ptestalllong-nodoc: build
-	$(PTESTALL) --long $(TESTALL_NODOC_FLAGS) --logfile=logs/ptestalllong.log
+	$(PTESTALL) --long $(TESTALL_FLAGS) --logfile=logs/ptestalllong.log
 
 testoptional-nodoc: build
 	$(TESTALL) --logfile=logs/testoptional.log

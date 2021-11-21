@@ -214,6 +214,9 @@ from sage.misc.misc_c import prod
 from sage.misc.mrange import mrange, cartesian_product_iterator
 from sage.groups.group import AbelianGroup as AbelianGroupBase
 from sage.categories.groups import Groups
+from sage.matrix.constructor import matrix
+from sage.matrix.special import diagonal_matrix
+from sage.modules.free_module_element import vector
 
 
 # TODO: this uses perm groups - the AbelianGroupElement instance method
@@ -1729,29 +1732,26 @@ class AbelianGroup_subgroup(AbelianGroup_class):
 
         Check that :trac:`32910` is fixed::
 
-            sage: Zmstar.<a,b> = AbelianGroup(2, [4, 576])
-            sage: Hgens =  [a**2, a*b**2]
-            sage: H = Zmstar.subgroup(Hgens)
-            sage: g = Zmstar.gen(1)**3
-            sage: g in H
-            False
-            sage: a^3*b^2 in H
-            True
+            sage: G.<a,b> = AbelianGroup(2, [4, 576])
+            sage: Hgens = [a^2, a*b^2]
+            sage: H = G.subgroup(Hgens)
+            sage: [g in H for g in (a^3, b^2, b^3, a^3*b^2, "junk")]
+            [False, False, False, True, False]
 
         Check that :trac:`31507` is fixed::
 
             sage: G = AbelianGroup(2, gens_orders=[16, 16])
             sage: f0, f1 = G.gens()
-            sage: H = G.subgroup ([f0*f1^3])
-            sage: f0*f1^2 in H
-            False
-            sage: f0 in H
-            False
+            sage: H = G.subgroup([f0*f1^3])
+            sage: [g in H for g in (f0, f0*f1^2, f0*f1^3, f0*f1^4)]
+            [False, False, True, False]
 
+            sage: G.<a,b> = AbelianGroup(2)
+            sage: Hgens =  [a*b, a*b^-1]
+            sage: H = G.subgroup(Hgens)
+            sage: b**2 in H
+            True
         """
-        from sage.matrix.constructor import matrix
-        from sage.matrix.special import diagonal_matrix
-        from sage.modules.free_module_element import vector
         if not isinstance(x, AbelianGroupElement):
             return False
         if x.parent() is self:
@@ -1760,9 +1760,11 @@ class AbelianGroup_subgroup(AbelianGroup_class):
             amb_inv = self.ambient_group().gens_orders()
             inv_basis = diagonal_matrix(ZZ, amb_inv)
             gens_basis = matrix(
-                ZZ, len(self._gens), len(amb_inv), [g.list() for g in self._gens]
-                )
-            return vector(ZZ, x.list()) in inv_basis.stack(gens_basis).row_module()
+                ZZ, len(self._gens), len(amb_inv),
+                [g.list() for g in self._gens]
+            )
+            return (vector(ZZ, x.list())
+                in inv_basis.stack(gens_basis).row_module())
         return False
 
     def ambient_group(self):

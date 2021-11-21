@@ -37,9 +37,13 @@ or ask on [ask.sagemath.org](https://ask.sagemath.org).
 Supported Platforms
 -------------------
 
-Sage fully supports all major Linux distributions, recent versions of
+Sage attempts to support all major Linux distributions, recent versions of
 macOS, and Windows (using Cygwin, Windows Subsystem for Linux, or
 using virtualization).
+
+Detailed information on supported platforms for a specific version of Sage
+can be found in the section "Availability and installation help" of the
+[release tour](https://wiki.sagemath.org/ReleaseTours) for this version.
 
 We highly appreciate contributions to Sage that fix portability bugs
 and help port Sage to new platforms; let us know at the [sage-devel

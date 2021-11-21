@@ -1729,12 +1729,25 @@ class AbelianGroup_subgroup(AbelianGroup_class):
 
         Check that :trac:`32910` is fixed::
 
-            sage: Zmstar.<a,b> = AbelianGroup(2,[4,576])
-            sage: Hgens =  [a**2,a*b**2]
+            sage: Zmstar.<a,b> = AbelianGroup(2, [4, 576])
+            sage: Hgens =  [a**2, a*b**2]
             sage: H = Zmstar.subgroup(Hgens)
             sage: g = Zmstar.gen(1)**3
             sage: g in H
             False
+            sage: a^3*b^2 in H
+            True
+
+        Check that :trac:`31507` is fixed::
+
+            sage: G = AbelianGroup(2, gens_orders=[16, 16])
+            sage: f0, f1 = G.gens()
+            sage: H = G.subgroup ([f0*f1^3])
+            sage: f0*f1^2 in H
+            False
+            sage: f0 in H
+            False
+
         """
         from sage.matrix.constructor import matrix
         from sage.matrix.special import diagonal_matrix

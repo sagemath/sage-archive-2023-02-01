@@ -238,8 +238,10 @@ Guide](https://doc.sagemath.org/html/en/installation).
    [debian.txt](build/pkgs/_prereq/distros/debian.txt)
    (also for Ubuntu, Linux Mint, etc.),
    [fedora.txt](build/pkgs/_prereq/distros/fedora.txt)
-   (also for Red Hat, CentOS), and
-   [slackware.txt](build/pkgs/_prereq/distros/slackware.txt).
+   (also for Red Hat, CentOS),
+   [opensuse.txt](build/pkgs/_prereq/distros/opensuse.txt)
+   [slackware.txt](build/pkgs/_prereq/distros/slackware.txt), and
+   [void.txt](build/pkgs/_prereq/distros/void.txt).
 
 7. Optional: It is recommended that you have both LaTeX and the
    ImageMagick tools (e.g. the "convert" command) installed since some

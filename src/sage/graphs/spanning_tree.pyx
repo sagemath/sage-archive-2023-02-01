@@ -1112,7 +1112,7 @@ def edge_disjoint_spanning_trees(G, k, by_weight=False, weight_function=None, ch
       ``None``, else ``1`` as a weight.
 
     - ``check_weight`` -- boolean (default: ``True``); if ``True``, we check
-      that the weight_function outputs a number for each edge
+      that the ``weight_function`` outputs a number for each edge
 
     EXAMPLES:
 

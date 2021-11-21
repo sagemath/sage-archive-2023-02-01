@@ -486,9 +486,9 @@ do.
 1. To make a binary distribution with your currently installed packages,
    visit [sagemath/binary-pkg](https://github.com/sagemath/binary-pkg).
 
-2. (**Obsolete, probably broken**) To make your own source tarball of Sage, type:
+2. To make your own source tarball of Sage, type:
 
-        $ sage --sdist
+        $ make dist
 
    The result is placed in the directory `dist/`.
 

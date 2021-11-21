@@ -1724,34 +1724,33 @@ class AbelianGroup_subgroup(AbelianGroup_class):
             True
             sage: a in A
             True
+
+        TESTS:
+
+        Check that :trac:`32910` is fixed::
+
+            sage: Zmstar.<a,b> = AbelianGroup(2,[4,576])
+            sage: Hgens =  [a**2,a*b**2]
+            sage: H = Zmstar.subgroup(Hgens)
+            sage: g = Zmstar.gen(1)**3
+            sage: g in H
+            False
         """
+        from sage.matrix.constructor import matrix
+        from sage.matrix.special import diagonal_matrix
+        from sage.modules.free_module_element import vector
         if not isinstance(x, AbelianGroupElement):
             return False
         if x.parent() is self:
             return True
         elif x in self.ambient_group():
             amb_inv = self.ambient_group().gens_orders()
-            for a in range(len(amb_inv)):
-                if amb_inv[a] == 0 and x.list()[a] != 0:
-                    for g in self._gens:
-                        if g.list()[a] == 0:
-                            continue
-                        if abs(x.list()[a]%g.list()[a]) < abs(x.list()[a]):
-                            if g.list()[a]*x.list()[a] < 0:
-                                x *= g**(x.list()[a]/g.list()[a])
-                            else:
-                                x *= g**((-1)*(x.list()[a]/g.list()[a]))
-                        if x.list()[a] == 0:
-                            break
-                elif x.list()[a] != 0:
-                    for g in self._gens:
-                        if g.list()[a] == 0:
-                            continue
-                        if abs(x.list()[a]%g.list()[a])%abs(amb_inv[a]) < x.list()[a]%abs(amb_inv[a]):
-                            x *= g**((-1)*(x.list()[a]/g.list()[a]))
-                        if x.list()[a] == 0:
-                            break
-            return x == x.parent()(1)
+            inv_basis = diagonal_matrix(ZZ, amb_inv)
+            gens_basis = matrix(
+                ZZ, len(self._gens), len(amb_inv), [g.list() for g in self._gens]
+                )
+            return vector(ZZ, x.list()) in inv_basis.stack(gens_basis).row_module()
+        return False
 
     def ambient_group(self):
         """

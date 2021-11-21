@@ -11,7 +11,7 @@ Modules, packages, distribution packages
 
 The Sage Python library consists of a large number of Python modules,
 organized into a hierarchical set of packages that fill the namespace
-`sage`.  All source files are located in a subdirectory of the
+``sage``.  All source files are located in a subdirectory of the
 directory ``SAGE_ROOT/src/sage/``.
 
 For example,
@@ -22,9 +22,7 @@ For example,
 - the directory containing this file, ``SAGE_ROOT/src/sage/coding/``,
   thus provides the package ``sage.coding``.  This directory contains
   an ``__init__.py`` file, which makes this package an "ordinary"
-  package.  (Later, we will also discuss package directories without
-  ``__init__.py`` files, which provide "implicit" (or "native")
-  "namespace" packages.)
+  package.
 
 There is another notion of "package" in Python, the "distribution
 package" (also known as a "distribution" or a "pip-installable
@@ -40,6 +38,50 @@ infrastructure normalize underscores to dashes. (Using dots in
 distribution names, to indicate ownership by organizations, still
 mentioned in https://www.python.org/dev/peps/pep-0423/, appears to
 have largely fallen out of favor.)
+
+Ordinary vs. implicit namespace packages
+----------------------------------------
+
+Each module of the Sage library must be packaged in exactly one
+distribution package.
+
+An important constraint is that an "ordinary" package (directory with
+``__init__.py`` file) cannot be split into more than one distribution
+package.
+
+By removing the ``__init__.py`` file, however, we can make
+the package an "implicit" (or "native") "namespace" package, following
+https://www.python.org/dev/peps/pep-0420/; in this case,
+``__init__.py`` cannot be used any more for initializing the package.
+
+Whenever there are two distribution packages that provide modules with
+a common prefix of Python packages, that prefix needs to be a native
+namespace package, i.e., there cannot be an ``__init__.py`` file.
+For example,
+
+- **sagemath-tdlib** will provide ``sage.graphs.graph_decompositions.tdlib``,
+
+- **sagemath-rw** will provide ``sage.graphs.graph_decompositions.rankwidth``,
+
+- **sagemath-graphs** will provide all of the rest of
+  ``sage.graphs.graph_decompositions`` (and most of ``sage.graphs``).
+
+Then, none of
+
+- ``sage``,
+
+- ``sage.graphs``,
+
+- ``sage.graphs.graph_decomposition``
+
+can be an ordinary package (with an ``__init__.py`` file), but rather
+each of them has to be an implicit namespace package (no
+``__init__.py`` file).
+
+
+In the Sage 9.6 development cycle, several packages are converted to
+implicit namespace packages.
+
 
 
 Source directories of distribution packages
@@ -60,7 +102,7 @@ The source directory of a distribution package, such as
   ``SAGE_ROOT/bootstrap`` script to generate standard files
   ``pyproject.toml`` etc.)
 
-- ``setup.py`` -- a ``setuptools``-based installation script
+- ``setup.py`` -- a **setuptools**-based installation script
 
 - ``tox.ini`` -- testing infrastructure
 

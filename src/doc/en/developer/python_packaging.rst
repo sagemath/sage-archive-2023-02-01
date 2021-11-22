@@ -24,8 +24,8 @@ For example,
   an ``__init__.py`` file, which makes this package an "ordinary"
   package.
 
-There is another notion of "package" in Python, the "distribution
-package" (also known as a "distribution" or a "pip-installable
+There is another notion of "package" in Python, the **distribution
+package** (also known as a "distribution" or a "pip-installable
 package").  Currently, the entire Sage Python library is provided by a
 single distribution, https://pypi.org/project/sagemath-standard/,
 which is generated from the directory
@@ -37,7 +37,8 @@ distribution names; **setuptools** and other parts of Python's packaging
 infrastructure normalize underscores to dashes. (Using dots in
 distribution names, to indicate ownership by organizations, still
 mentioned in https://www.python.org/dev/peps/pep-0423/, appears to
-have largely fallen out of favor.)
+have largely fallen out of favor, and we will not use it in the SageMath
+project.)
 
 A distribution that provides Python modules in the ``sage.*`` namespace
 (``sage.PAC.KAGE.MODULE``) should be named **sagemath-DISTRI-BUTION**.

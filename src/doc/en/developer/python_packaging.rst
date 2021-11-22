@@ -39,6 +39,41 @@ distribution names, to indicate ownership by organizations, still
 mentioned in https://www.python.org/dev/peps/pep-0423/, appears to
 have largely fallen out of favor.)
 
+A distribution that provides Python modules in the ``sage.*`` namespace
+(``sage.PAC.KAGE.MODULE``) should be named **sagemath-DISTRI-BUTION**.
+Example:
+
+- The distribution https://pypi.org/project/sagemath-categories/
+  provides a small subset of the modules of the Sage library, mostly
+  from the packages ``sage.structure``, ``sage.categories``, and
+  ``sage.misc``.
+
+Other distributions should not use the prefix **sagemath-** in the
+distribution name. Example:
+
+- The distribution https://pypi.org/project/sage-sws2rst/ provides the
+  Python package ``sage_sws2rst``, so it does not fill the ``sage.*``
+  namespace.
+
+A distribution that provides functionality that does not need to
+import anything from the ``sage.*`` namespace should not use the
+``sage.*`` namespace for its own packages/modules. It should be
+positioned as part of the general Python ecosystem instead of as a
+Sage-specific distribution.  Examples:
+
+- The distribution https://pypi.org/project/pplpy/ provides the Python
+  package ``ppl`` and is a much extended version of what used to be
+  ``sage.libs.ppl``, a part of the Sage library. ``sage.libs.ppl`` had
+  dependencies on :mod:`sage.rings` to convert to/from Sage number
+  types. **pplpy** has no such dependencies and is therefore usable in a
+  wider range of Python projects.
+
+- The distribution https://pypi.org/project/memory-allocator/ provides
+  the Python package ``memory_allocator``. This used to be
+  ``sage.ext.memory_allocator``, a part of the Sage library.
+
+
+
 Ordinary vs. implicit namespace packages
 ----------------------------------------
 

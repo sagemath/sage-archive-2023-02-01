@@ -261,7 +261,7 @@ Doctest-only dependencies
 
 Doctests often use examples constructed using functionality provided
 by other portions of the Sage library.  This kind of integration
-testing as one of the strengths of Sage; but it also creates extra
+testing is one of the strengths of Sage; but it also creates extra
 dependencies.
 
 Fortunately, these dependencies are very mild, and we can deal with
@@ -379,3 +379,26 @@ We can also run parts of the testsuite::
   $ pkgs/sagemath-standard/.tox/py39-sagewheels-nopypi/bin/sage -tp 4 src/sage/graphs/
 
 The whole ``.tox`` directory can be safely deleted at any time.
+
+We can do the same with other distributions, for example the large
+distribution **sagemath-standard-no-symbolics**
+(https://trac.sagemath.org/ticket/32601), which is intended to provide
+everything that is currently in the standard Sage library, i.e.,
+without depending on optional packages, but without the packages
+``sage.symbolic``, ``sage.functions``, ``sage.calculus``, etc.
+
+Again we can run the test with ``tox`` in a separate virtual environment::
+
+  $ ./sage -sh -c '(cd pkgs/sagemath-standard-no-symbolics && SAGE_NUM_THREADS=16 tox -v -v -v -e py39-sagewheels-nopypi)'
+
+Some small distributions, for example the ones providing the two
+lowest levels, **sagemath-objects** and **sagemath-categories**
+(https://trac.sagemath.org/ticket/29865), can be installed and tested
+without relying on the wheels from the Sage build::
+
+  $ ./sage -sh -c '(cd pkgs/sagemath-objects && SAGE_NUM_THREADS=16 tox -v -v -v -e py39)'
+
+This command finds the declared build-time and run-time dependencies
+on PyPI, either as source tarballs or as prebuilt wheels, and builds
+and installs the distribution **sagemath-objects** in a virtual
+environment in a subdirectory of ``pkgs/sagemath-objects/.tox``.

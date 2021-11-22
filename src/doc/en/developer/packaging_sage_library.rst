@@ -215,8 +215,10 @@ distribution -- which then must be declared as a run-time dependency.
 *Reducing module-level run-time dependencies:*
 
 - Avoid importing from ``sage.PAC.KAGE.all`` modules when
-  ``sage.PAC.KAGE`` is a namespace package. For example, no Sage
-  library code should import from ``sage.rings.all``.
+  ``sage.PAC.KAGE`` is a namespace package. The main purpose of the
+  ``*.all`` modules is for populating the global interactive
+  environment that is available to users at the ``sage:`` prompt.  For
+  example, no Sage library code should import from ``sage.rings.all``.
 
 - Replace module-level imports by method-level imports.  Note that
   this comes with a small runtime overhead, which can become
@@ -227,6 +229,23 @@ distribution -- which then must be declared as a run-time dependency.
   on demand. It is a runtime error at that time if the imported module
   is not present. This can be convenient compared to local imports in
   methods when the same imports are needed in several methods.
+
+- Avoid the "modularization anti-pattern" of importing a class from
+  another module just to run an ``isinstance(object, Class)`` test, in
+  particular when the module implementing ``Class`` has heavy
+  dependencies.  For example, importing the class
+  :class:`~sage.rings.padics.generic_nodes.pAdicField` (or the
+  function :class:`~sage.rings.padics.generic_nodes.is_pAdicField`)
+  requires the libraries NTL and PARI.
+
+  Instead, provide an abstract base class (ABC) in a module that only
+  has light dependencies, make ``Class`` a subclass of ``ABC``, and
+  use ``isinstance(object, ABC)``. For example, :mod:`sage.rings.abc`
+  provides abstract base classes for many ring (parent) classes,
+  including :class:`sage.rings.abc.pAdicField`.  So we can replace
+  ``isinstance(object, sage.rings.padics.generic_nodes.pAdicField)``
+  and ``sage.rings.padics.generic_nodes.is_pAdicField(object)`` by
+  ``isinstance(object, sage.rings.abc.pAdicField)``.
 
 
 Other runtime dependencies

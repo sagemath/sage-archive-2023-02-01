@@ -1,15 +1,15 @@
 
 .. _chapter-modularization:
 
-===============================================
- Packaging Portions of the Sage Python Library
-===============================================
+============================
+ Packaging the Sage Library
+============================
 
 
 Modules, packages, distribution packages
 ========================================
 
-The Sage Python library consists of a large number of Python modules,
+The Sage library consists of a large number of Python modules,
 organized into a hierarchical set of packages that fill the namespace
 ``sage``.  All source files are located in a subdirectory of the
 directory ``SAGE_ROOT/src/sage/``.
@@ -17,16 +17,14 @@ directory ``SAGE_ROOT/src/sage/``.
 For example,
 
 - the file ``SAGE_ROOT/src/sage/coding/code_bounds.py`` provides the
-  module ``sage.coding.code_bounds``;
+  module ``sage.coding.code_bounds``.
 
 - the directory containing this file, ``SAGE_ROOT/src/sage/coding/``,
-  thus provides the package ``sage.coding``.  This directory contains
-  an ``__init__.py`` file, which makes this package an "ordinary"
-  package.
+  thus provides the package ``sage.coding``.
 
 There is another notion of "package" in Python, the **distribution
 package** (also known as a "distribution" or a "pip-installable
-package").  Currently, the entire Sage Python library is provided by a
+package").  Currently, the entire Sage library is provided by a
 single distribution, https://pypi.org/project/sagemath-standard/,
 which is generated from the directory
 ``SAGE_ROOT/pkgs/sagemath-standard``.
@@ -64,7 +62,7 @@ Sage-specific distribution.  Examples:
 
 - The distribution https://pypi.org/project/pplpy/ provides the Python
   package ``ppl`` and is a much extended version of what used to be
-  ``sage.libs.ppl``, a part of the Sage library. ``sage.libs.ppl`` had
+  ``sage.libs.ppl``, a part of the Sage library. The package ``sage.libs.ppl`` had
   dependencies on :mod:`sage.rings` to convert to/from Sage number
   types. **pplpy** has no such dependencies and is therefore usable in a
   wider range of Python projects.
@@ -74,25 +72,23 @@ Sage-specific distribution.  Examples:
   ``sage.ext.memory_allocator``, a part of the Sage library.
 
 
+Ordinary packages vs. implicit namespace packages
+-------------------------------------------------
 
-Ordinary vs. implicit namespace packages
-----------------------------------------
+Each module of the Sage library must be packaged in exactly one distribution
+package. However, modules in a package may be included in different
+distribution packages. In this regard, there is an important constaint that an
+ordinary package (directory with ``__init__.py`` file) cannot be split into
+more than one distribution package.
 
-Each module of the Sage library must be packaged in exactly one
-distribution package.
+By removing the ``__init__.py`` file, however, we can make the package an
+"implicit" (or "native") "namespace" package, following
+https://www.python.org/dev/peps/pep-0420/. Implicit namespace packages can be
+included in more than one distribution package. Hence whenever there are two
+distribution packages that provide modules with a common prefix of Python
+packages, that prefix needs to be a implicit namespace package, i.e., there
+cannot be an ``__init__.py`` file.
 
-An important constraint is that an "ordinary" package (directory with
-``__init__.py`` file) cannot be split into more than one distribution
-package.
-
-By removing the ``__init__.py`` file, however, we can make
-the package an "implicit" (or "native") "namespace" package, following
-https://www.python.org/dev/peps/pep-0420/; in this case,
-``__init__.py`` cannot be used any more for initializing the package.
-
-Whenever there are two distribution packages that provide modules with
-a common prefix of Python packages, that prefix needs to be a native
-namespace package, i.e., there cannot be an ``__init__.py`` file.
 For example,
 
 - **sagemath-tdlib** will provide ``sage.graphs.graph_decompositions.tdlib``,
@@ -114,6 +110,8 @@ can be an ordinary package (with an ``__init__.py`` file), but rather
 each of them has to be an implicit namespace package (no
 ``__init__.py`` file).
 
+For an implicit namespace package, ``__init__.py`` cannot be used any more for
+initializing the package.
 
 In the Sage 9.6 development cycle, we still use ordinary packages by
 default, but several packages are converted to implicit namespace
@@ -124,8 +122,8 @@ packages to support modularization.
 Source directories of distribution packages
 ===========================================
 
-The development of the SageMath library uses a monorepo strategy for
-all distribution packages that fill the `sage.*` namespace.  This
+The development of the Sage library uses a monorepo strategy for
+all distribution packages that fill the ``sage.*`` namespace.  This
 means that the source trees of these distributions are included in a
 single ``git`` repository, in a subdirectory of ``SAGE_ROOT/pkgs``.
 

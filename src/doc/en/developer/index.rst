@@ -159,7 +159,14 @@ Sage Coding Details
    coding_in_python
    coding_in_cython
    coding_in_other
-   python_packaging
+
+Packaging the Sage Library
+--------------------------
+
+.. toctree::
+   :maxdepth: 3
+
+   packaging_sage_library
 
 Packaging Third-Party Code
 --------------------------

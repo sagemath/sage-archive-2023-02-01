@@ -117,6 +117,10 @@ The source directory of a distribution package, such as
 
 - ``tox.ini`` -- testing infrastructure
 
+The technique of using symbolic links pointing into ``SAGE_ROOT/src``
+has allowed the modularization effort to keep the ``SAGE_ROOT/src``
+tree monolithic: Modularization has been happening behind the scenes
+and will not change where Sage developers find the source files.
 
 Dependencies and distribution packages
 ======================================

@@ -1749,7 +1749,7 @@ class AbelianGroup_subgroup(AbelianGroup_class):
             sage: G.<a,b> = AbelianGroup(2)
             sage: Hgens =  [a*b, a*b^-1]
             sage: H = G.subgroup(Hgens)
-            sage: b**2 in H
+            sage: b^2 in H
             True
         """
         if not isinstance(x, AbelianGroupElement):

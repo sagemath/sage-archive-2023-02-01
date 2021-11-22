@@ -442,3 +442,9 @@ This command finds the declared build-time and run-time dependencies
 on PyPI, either as source tarballs or as prebuilt wheels, and builds
 and installs the distribution **sagemath-objects** in a virtual
 environment in a subdirectory of ``pkgs/sagemath-objects/.tox``.
+
+Building these small distributions serves as a valuable regression
+testsuite.  However, a current issue with both of these distributions
+is that they are not separately testable: The doctests for these
+modules depend on a lot of other functionality from higher-level parts
+of the Sage library.

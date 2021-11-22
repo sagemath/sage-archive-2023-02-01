@@ -4687,7 +4687,7 @@ class AsymptoticRing(Algebra, UniqueRepresentation, WithLocals):
                 self.coefficient_ring)
 
     @staticmethod
-    def B(self, valid_from=0):
+    def B(expression, valid_from=0):
         r""""
         Create a B-term.
 
@@ -4709,7 +4709,7 @@ class AsymptoticRing(Algebra, UniqueRepresentation, WithLocals):
             sage: A.B(2*x^3, {x: 5})
             B(2*x^3, x >= 5)
         """
-        return self.B(valid_from)
+        return expression.B(valid_from)
 
 
 from sage.categories.pushout import ConstructionFunctor

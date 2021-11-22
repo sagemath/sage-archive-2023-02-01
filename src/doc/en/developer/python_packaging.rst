@@ -195,6 +195,13 @@ Cython module that must be linked with ``tdlib``,
 can start to create these distributions. This is quite a mechanical
 task.
 
+*Reducing build-time dependencies:* Sometimes it is possible to
+replace build-time dependencies of a Cython module on a library by a
+runtime dependency.  In other cases, it may be possible to split a
+module that simultaneously depends on several libraries into smaller
+modules, each of which has narrower dependencies.
+
+
 Module-level runtime dependencies
 ---------------------------------
 
@@ -205,6 +212,23 @@ distribution -- which then must be declared as a run-time dependency.
 
 *Declaring run-time dependencies:* These dependencies are declared in
 ``setup.cfg`` (generated from ``setup.cfg.m4``) as ``install_requires``.
+
+*Reducing module-level run-time dependencies:*
+
+- Avoid importing from ``sage.PAC.KAGE.all`` modules when
+  ``sage.PAC.KAGE`` is a namespace package. For example, no Sage
+  library code should import from ``sage.rings.all``.
+
+- Replace module-level imports by method-level imports.  Note that
+  this comes with a small runtime overhead, which can become
+  noticeable if the method is called in tight inner loops.
+
+- Sage provides the ``lazy_import`` mechanism. Lazy imports can be
+  declared at the module level, but the actual importing is only done
+  on demand. It is a runtime error at that time if the imported module
+  is not present. This can be convenient compared to local imports in
+  methods when the same imports are needed in several methods.
+
 
 Other runtime dependencies
 --------------------------
@@ -231,14 +255,6 @@ allows users to write, for example, ``pip install
 sagemath-polyhedra[normaliz]`` instead of ``pip install
 sagemath-polyhedra pynormaliz``.
 
-Lazy module-level imports
--------------------------
-
-Sage provides the ``lazy_import`` mechanism. Lazy imports can be
-declared at the module level, but the actual importing is only done on
-demand. It is a runtime error at that time if the imported module is
-not present. This can be convenient compared to local imports in
-methods when the same imports are needed in several methods.
 
 Doctest-only dependencies
 -------------------------

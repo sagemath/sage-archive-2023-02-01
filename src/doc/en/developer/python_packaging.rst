@@ -245,15 +245,55 @@ considered "optional functionality", then probably not, and in this
 case it will be up to the user to install the distribution enabling
 this optional functionality.
 
+As an example, let us consider designing a distribution that centers
+around the package :mod:`sage.coding`. First, let's see if it uses symbolics::
+
+  (9.5.beta6) $ git grep -E 'sage[.](symbolic|functions|calculus)' src/sage/coding
+  src/sage/coding/code_bounds.py:        from sage.functions.other import ceil
+  ...
+  src/sage/coding/grs_code.py:from sage.symbolic.ring import SR
+  ...
+  src/sage/coding/guruswami_sudan/utils.py:from sage.functions.other import floor
+
+Apparently it does not in a very substantial way:
+
+- The imports of the symbolic functions ``ceil`` and ``floor`` can
+  likely be replaced by :func:`~sage.arith.misc.integer_floor` and
+  :func:`~sage.arith.misc.integer_ceil`.
+
+- Looking at the import of ``SR`` by :mod:`sage.coding.grs_code`, it
+  seems that ``SR`` is used for running some symbolic sum, but the
+  doctests do not show symbolic results, so it is likely that this can
+  be replaced.
+
+- Note though that the above textual search for the module names is
+  merely a heuristic. Looking at the source of "entropy", through
+  ``log`` from :mod:`sage.misc.functional`, a runtime dependency on
+  symbolics comes in. In fact, for this reason, two doctests (I have
+  already marked 2 doctests there as # optional - sage.symbolic.)
+
+So if packaged as **sagemath-coding**, now a domain expert would have
+to decide whether these dependencies on symbolics are strong enough to
+declare a runtime dependency (``install_requires``) on
+**sagemath-symbolics**. This declaration would mean that any user who
+installs **sagemath-coding** (``pip install sagemath-coding``) would
+pull in **sagemath-symbolics**, which has heavy compile-time
+dependencies (ECL/Maxima/FLINT/Singular/...).
+
+The alternative is to consider the use of symbolics by
+**sagemath-coding** merely as something that provides some extra
+features ... which will only be working if the user also has installed
+**sagemath-symbolics**.
+
 *Declaring optional run-time dependencies:* It is possible to declare
 such optional dependencies as ``extra_requires`` in ``setup.cfg``
 (generated from ``setup.cfg.m4``).  This is a very limited mechanism
 -- in particular it does not affect the build phase of the
 distribution in any way. It basically only provides a way to give a
-nickname to a distribution that can be installed as an add-on. It
-allows users to write, for example, ``pip install
-sagemath-polyhedra[normaliz]`` instead of ``pip install
-sagemath-polyhedra pynormaliz``.
+nickname to a distribution that can be installed as an add-on.
+
+In our example, we could declare an ``extra_requires`` so that users
+could use ``pip install sagemath-coding[symbolics]``.
 
 
 Doctest-only dependencies

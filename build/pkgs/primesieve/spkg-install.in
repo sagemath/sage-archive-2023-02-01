@@ -9,7 +9,6 @@ sdh_cmake -DCMAKE_VERBOSE_MAKEFILE=ON \
           -DBUILD_STATIC_LIBS=OFF \
           -DBUILD_SHARED_LIBS=ON \
           -DBUILD_TESTS=ON \
-	  -DCMAKE_INSTALL_PREFIX=$SAGE_LOCAL \
           ${EXTRA_OPTS}
 
 sdh_make_install

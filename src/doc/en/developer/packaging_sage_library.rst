@@ -11,16 +11,16 @@ Modules, packages, distribution packages
 
 The Sage library consists of a large number of Python modules,
 organized into a hierarchical set of packages that fill the namespace
-``sage``.  All source files are located in a subdirectory of the
+:mod:`sage`.  All source files are located in a subdirectory of the
 directory ``SAGE_ROOT/src/sage/``.
 
 For example,
 
 - the file ``SAGE_ROOT/src/sage/coding/code_bounds.py`` provides the
-  module ``sage.coding.code_bounds``;
+  module :mod:`sage.coding.code_bounds`;
 
 - the directory containing this file, ``SAGE_ROOT/src/sage/coding/``,
-  thus provides the package ``sage.coding``.
+  thus provides the package :mod:`sage.coding`.
 
 There is another notion of "package" in Python, the **distribution
 package** (also known as a "distribution" or a "pip-installable
@@ -38,8 +38,8 @@ mentioned in https://www.python.org/dev/peps/pep-0423/, appears to
 have largely fallen out of favor, and we will not use it in the SageMath
 project.)
 
-A distribution that provides Python modules in the ``sage.*`` namespace, say
-mainly from ``sage.PAC.KAGE``, should be named **sagemath-DISTRI-BUTION**.
+A distribution that provides Python modules in the :mod:`sage.*` namespace, say
+mainly from :mod:`sage.PAC.KAGE`, should be named **sagemath-DISTRI-BUTION**.
 Example:
 
 - The distribution https://pypi.org/project/sagemath-categories/
@@ -51,25 +51,25 @@ Other distributions should not use the prefix **sagemath-** in the
 distribution name. Example:
 
 - The distribution https://pypi.org/project/sage-sws2rst/ provides the
-  Python package ``sage_sws2rst``, so it does not fill the ``sage.*``
+  Python package ``sage_sws2rst``, so it does not fill the :mod:`sage.*`
   namespace.
 
 A distribution that provides functionality that does not need to
-import anything from the ``sage.*`` namespace should not use the
-``sage.*`` namespace for its own packages/modules. It should be
+import anything from the :mod:`sage` namespace should not use the
+:mod:`sage` namespace for its own packages/modules. It should be
 positioned as part of the general Python ecosystem instead of as a
 Sage-specific distribution.  Examples:
 
 - The distribution https://pypi.org/project/pplpy/ provides the Python
-  package ``ppl`` and is a much extended version of what used to be
-  ``sage.libs.ppl``, a part of the Sage library. The package ``sage.libs.ppl`` had
+  package :mod:`ppl` and is a much extended version of what used to be
+  :mod:`sage.libs.ppl`, a part of the Sage library. The package :mod:`sage.libs.ppl` had
   dependencies on :mod:`sage.rings` to convert to/from Sage number
   types. **pplpy** has no such dependencies and is therefore usable in a
   wider range of Python projects.
 
 - The distribution https://pypi.org/project/memory-allocator/ provides
-  the Python package ``memory_allocator``. This used to be
-  ``sage.ext.memory_allocator``, a part of the Sage library.
+  the Python package :mod:`memory_allocator`. This used to be
+  :mod:`sage.ext.memory_allocator`, a part of the Sage library.
 
 
 Ordinary packages vs. implicit namespace packages
@@ -91,20 +91,20 @@ cannot be an ``__init__.py`` file.
 
 For example,
 
-- **sagemath-tdlib** will provide ``sage.graphs.graph_decompositions.tdlib``,
+- **sagemath-tdlib** will provide :mod:`sage.graphs.graph_decompositions.tdlib`,
 
-- **sagemath-rw** will provide ``sage.graphs.graph_decompositions.rankwidth``,
+- **sagemath-rw** will provide :mod:`sage.graphs.graph_decompositions.rankwidth`,
 
 - **sagemath-graphs** will provide all of the rest of
-  ``sage.graphs.graph_decompositions`` (and most of ``sage.graphs``).
+  :mod:`sage.graphs.graph_decompositions` (and most of :mod:`sage.graphs`).
 
 Then, none of
 
-- ``sage``,
+- :mod:`sage`,
 
-- ``sage.graphs``,
+- :mod:`sage.graphs`,
 
-- ``sage.graphs.graph_decomposition``
+- :mod:`sage.graphs.graph_decomposition`
 
 can be an ordinary package (with an ``__init__.py`` file), but rather
 each of them has to be an implicit namespace package (no
@@ -122,7 +122,7 @@ Source directories of distribution packages
 ===========================================
 
 The development of the Sage library uses a monorepo strategy for
-all distribution packages that fill the ``sage.*`` namespace.  This
+all distribution packages that fill the :mod:`sage.*` namespace.  This
 means that the source trees of these distributions are included in a
 single ``git`` repository, in a subdirectory of ``SAGE_ROOT/pkgs``.
 
@@ -181,7 +181,7 @@ packages via the file ``pyproject.toml`` ("build-system requires"); this
 has superseded the older ``setup_requires`` declaration. (There is no
 mechanism to declare anything regarding the C/C++ libraries.)
 
-While the namespace ``sage.*`` is organized roughly according to
+While the namespace :mod:`sage.*` is organized roughly according to
 mathematical fields or categories, how we partition the implementation
 modules into distribution packages has to respect the hard constraints
 that are imposed by the build-time dependencies.
@@ -215,17 +215,18 @@ distribution -- which then must be declared as a run-time dependency.
 
 *Reducing module-level run-time dependencies:*
 
-- Avoid importing from ``sage.PAC.KAGE.all`` modules when ``sage.PAC.KAGE`` is
-  a namespace package. The main purpose of the ``*.all`` modules is for
+- Avoid importing from :mod:`sage.PAC.KAGE.all` modules when :mod:`sage.PAC.KAGE` is
+  a namespace package. The main purpose of the :mod:`*.all` modules is for
   populating the global interactive environment that is available to users at
   the ``sage:`` prompt. In particular, no Sage library code should import from
-  ``sage.rings.all``.
+  :mod:`sage.rings.all`.
 
 - Replace module-level imports by method-level imports.  Note that
   this comes with a small runtime overhead, which can become
   noticeable if the method is called in tight inner loops.
 
-- Sage provides the ``lazy_import`` mechanism. Lazy imports can be
+- Sage provides the :func:`~sage.misc.lazy_import.lazy_import`
+  mechanism. Lazy imports can be
   declared at the module level, but the actual importing is only done
   on demand. It is a runtime error at that time if the imported module
   is not present. This can be convenient compared to local imports in
@@ -243,10 +244,17 @@ distribution -- which then must be declared as a run-time dependency.
   has light dependencies, make ``Class`` a subclass of ``ABC``, and
   use ``isinstance(object, ABC)``. For example, :mod:`sage.rings.abc`
   provides abstract base classes for many ring (parent) classes,
-  including :class:`sage.rings.abc.pAdicField`.  So we can replace
-  ``isinstance(object, sage.rings.padics.generic_nodes.pAdicField)``
-  and ``sage.rings.padics.generic_nodes.is_pAdicField(object)`` by
-  ``isinstance(object, sage.rings.abc.pAdicField)``.
+  including :class:`sage.rings.abc.pAdicField`.  So we can replace::
+
+    isinstance(object, sage.rings.padics.generic_nodes.pAdicField)
+
+  and::
+
+    sage.rings.padics.generic_nodes.is_pAdicField(object)
+
+  by::
+
+    isinstance(object, sage.rings.abc.pAdicField)
 
 
 Other runtime dependencies
@@ -276,8 +284,10 @@ around the package :mod:`sage.coding`. First, let's see if it uses symbolics::
 
 Apparently it does not in a very substantial way:
 
-- The imports of the symbolic functions ``ceil`` and ``floor`` can
-  likely be replaced by :func:`~sage.arith.misc.integer_floor` and
+- The imports of the symbolic functions :func:`~sage.functions.other.ceil`
+  and :func:`~sage.functions.other.floor` can
+  likely be replaced by the artithmetic functions
+  :func:`~sage.arith.misc.integer_floor` and
   :func:`~sage.arith.misc.integer_ceil`.
 
 - Looking at the import of ``SR`` by :mod:`sage.coding.grs_code`, it

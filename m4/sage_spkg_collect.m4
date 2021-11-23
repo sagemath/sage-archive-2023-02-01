@@ -199,13 +199,17 @@ for DIR in $SAGE_ROOT/build/pkgs/*; do
         AS_IF([test -n "$t" -a -d "$t/var/lib/sage/installed/" ], [
             for f in "$t/var/lib/sage/installed/$SPKG_NAME"-*; do
                 AS_IF([test -r "$f"], [
-                    AS_IF([test "$is_installed" = "yes"], [
-                        AC_MSG_ERROR(m4_normalize([
-                            multiple installation records for $SPKG_NAME:
-                            m4_newline($(ls -l "$t/var/lib/sage/installed/$SPKG_NAME"-*))
-                            m4_newline([only one should exist, so please delete some or all
-                            of these files and re-run "$srcdir/configure"])
-                        ]))
+                    AS_VAR_IF([SPKG_SOURCE], [normal], [
+                        dnl Only run the multiple installation record test for normal packages,
+                        dnl not for script packages. We actually do not clean up after those...
+                        AS_IF([test "$is_installed" = "yes"], [
+                            AC_MSG_ERROR(m4_normalize([
+                                multiple installation records for $SPKG_NAME:
+                                m4_newline($(ls -l "$t/var/lib/sage/installed/$SPKG_NAME"-*))
+                                m4_newline([only one should exist, so please delete some or all
+                                of these files and re-run "$srcdir/configure"])
+                            ]))
+                        ])
                     ])
                     AS_VAR_SET([is_installed], [yes])
                 ])

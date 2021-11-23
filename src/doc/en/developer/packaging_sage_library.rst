@@ -349,23 +349,20 @@ Hierarchy of distribution packages
 
 .. PLOT::
 
-   dists = ['sagemath-objects', 'sagemath-categories',
-            'sagemath-polyhedra', 'sagemath-standard-no-symbolics',
-            'sagemath-singular', 'sagemath-symbolics',
-            'sagemath-standard', 'sagemath-graphs', 'sagemath-tdlib']
-   covers = [['sagemath-objects','sagemath-categories'],
-             ['sagemath-categories', 'sagemath-polyhedra'],
-             ['sagemath-categories', 'sagemath-graphs'],
-             ['sagemath-categories', 'sagemath-singular'],
-             ['sagemath-graphs', 'sagemath-standard-no-symbolics'],
-             ['sagemath-graphs', 'sagemath-tdlib'],
-             ['sagemath-polyhedra', 'sagemath-standard-no-symbolics'],
-             ['sagemath-standard-no-symbolics', 'sagemath-standard'],
-             ['sagemath-singular', 'sagemath-symbolics'],
-             ['sagemath-symbolics', 'sagemath-standard']]
-   P = Poset((dists,covers))
-   g = P.plot(element_size=1000, element_shape="s")
-   sphinx_plot(g, figsize=(8, 4))
+    def node(label, pos):
+        return text(label, (3*pos[0],2*pos[1]), background_color='pink', color='black')
+    def edge(start, end):
+        return arrow((3*start[0],2*start[1]+.5),(3*end[0],2*end[1]-.5), arrowsize=2)
+    g = Graphics()
+    g += (node("sagemath-objects", (1,0)) + edge((1,0),(1,1)))
+    g += (node("sagemath-categories", (1,1)) + edge((1,1),(0,2)) +
+          edge((1,1),(1,2)) + edge((1,1),(2,2)))
+    g += (node("sagemath-graphs", (0,2)) + node("sagemath-polyhedra", (1,2)) + node("sagemath-singular", (2,2)) +
+          edge((0,2),(0,3)) + edge((0,2),(1,3)) + edge((1,2),(1,3)) + edge((2,2),(2,3)))
+    g += (node("sagemath-tdlib", (0,3)) + node("sagemath-standard-no-symbolics", (1,3)) + node("sagemath-symbolics", (2,3)) +
+          edge((1,3),(1,4)) + edge((2,3),(1,4)))
+    g += node("sagemath-standard", (1,4))
+    sphinx_plot(g, figsize=(8, 4), axes=False)
 
 
 Testing distribution packages

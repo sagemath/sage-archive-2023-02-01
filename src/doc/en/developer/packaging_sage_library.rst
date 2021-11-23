@@ -345,7 +345,7 @@ processor to insert the version information in the generated files
 
 
 Hierarchy of distribution packages
-----------------------------------
+==================================
 
 .. PLOT::
 

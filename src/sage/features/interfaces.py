@@ -1,5 +1,5 @@
 r"""
-Check for working interpreter interfaces
+Features for testing whether interpreter interfaces are functional
 """
 import importlib
 

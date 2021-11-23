@@ -162,6 +162,7 @@ Features
    sage/features/graph_generators
    sage/features/graphviz
    sage/features/imagemagick
+   sage/features/interfaces
    sage/features/internet
    sage/features/kenzo
    sage/features/latex

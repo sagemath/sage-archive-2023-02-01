@@ -246,14 +246,17 @@ distribution -- which then must be declared as a run-time dependency.
   provides abstract base classes for many ring (parent) classes,
   including :class:`sage.rings.abc.pAdicField`.  So we can replace::
 
-    isinstance(object, sage.rings.padics.generic_nodes.pAdicField)
+    from sage.rings.padics.generic_nodes import pAdicField  # heavy dependencies
+    isinstance(object, pAdicField)
 
   and::
 
-    sage.rings.padics.generic_nodes.is_pAdicField(object)
+    from sage.rings.padics.generic_nodes import pAdicField  # heavy dependencies
+    is_pAdicField(object)                                   # deprecated
 
   by::
 
+    import sage.rings.abc                                   # no dependencies
     isinstance(object, sage.rings.abc.pAdicField)
 
 

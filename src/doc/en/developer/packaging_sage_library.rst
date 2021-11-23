@@ -396,16 +396,16 @@ doctest annotation ``# optional``. This mechanism can also be used for making a
 doctest conditional on the presence of a portion of the Sage library.
 
 The available tags take the form of package or module names such as
-``sage.combinat``, ``sage.graphs``, ``sage.plot``, ``sage.rings.number_field``,
-``sage.rings.real_double``, and ``sage.symbolic``.  They are defined via
-"features" in a single file, ``SAGE_ROOT/src/sage/features/sagemath.py``, which
+:mod:`sage.combinat`, :mod:`sage.graphs`, :mod:`sage.plot`, :mod:`sage.rings.number_field`,
+:mod:`sage.rings.real_double`, and :mod:`sage.symbolic`.  They are defined via
+:class:`~sage.features.Feature` subclasses in the module :mod:`sage.features.sagemath`, which
 also provides the mapping from features to the distributions providing them
 (actually, to SPKG names).  Using this mapping, Sage can issue installation
 hints to the user.
 
-For example, the package ``sage.tensor`` is purely algebraic and has
+For example, the package :mod:`sage.tensor` is purely algebraic and has
 no dependency on symbolics. However, there are a small number of
-doctests that depend on the Symbolic Ring for integration
+doctests that depend on :class:`sage.symbolic.ring.SymbolicRing` for integration
 testing. Hence, these doctests are marked ``# optional -
 sage.symbolic``.
 

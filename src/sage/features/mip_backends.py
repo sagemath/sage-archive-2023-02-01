@@ -1,3 +1,7 @@
+r"""
+Features for testing the presence of :class:`MixedIntegerLinearProgram` backends
+"""
+
 from . import Feature, FeatureTestResult
 from .join_feature import JoinFeature
 

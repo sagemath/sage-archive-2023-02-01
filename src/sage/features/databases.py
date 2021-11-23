@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 r"""
-Testing for databases at runtime
+Features for testing the presence of various databases
 """
 
 

@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 r"""
-Check for pandoc
+Feature for testing the presence of ``pandoc``
 """
 # ****************************************************************************
 #       Copyright (C) 2018 Thierry Monteil <sage!lma.metelu.net>

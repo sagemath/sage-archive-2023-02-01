@@ -1,3 +1,7 @@
+r"""
+Features for testing the presence of ``mcqd``
+"""
+
 from . import PythonModule
 from .join_feature import JoinFeature
 

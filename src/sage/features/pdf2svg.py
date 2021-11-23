@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 r"""
-Check for pdf2svg
+Feature for testing the presence of ``pdf2svg``
 """
 # ****************************************************************************
 #       Copyright (C) 2021 Sebastien Labbe <slabqc@gmail.com>

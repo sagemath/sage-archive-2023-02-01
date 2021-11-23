@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 r"""
-Check for graphviz
+Features for testing the presence of ``graphviz``
 """
 # ****************************************************************************
 #       Copyright (C) 2018 Sebastien Labbe <slabqc@gmail.com>

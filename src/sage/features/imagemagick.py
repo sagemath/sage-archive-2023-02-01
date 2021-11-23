@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 r"""
-Check for imagemagick
+Feature for testing the presence of ``imagemagick``
 
 Currently we only check for the presence of ``convert``. When needed other
 commands like ``magick``, ``magick-script``, ``convert``, ``mogrify``,

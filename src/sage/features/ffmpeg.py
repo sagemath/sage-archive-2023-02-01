@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 r"""
-Check for FFmpeg
+Feature for testing the presence of ``ffmpeg``
 """
 # ****************************************************************************
 #       Copyright (C) 2018 Sebastien Labbe <slabqc@gmail.com>

@@ -1,5 +1,5 @@
 r"""
-Check for pynormaliz
+Feature for testing the presence of ``pynormaliz``
 """
 from . import PythonModule
 from .join_feature import JoinFeature

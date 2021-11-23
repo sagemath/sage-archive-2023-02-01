@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 r"""
-Check for lrs
+Feature for testing the presence of ``lrslib``
 """
 
 import os

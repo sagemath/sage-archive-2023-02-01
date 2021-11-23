@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 r"""
-Check for rubiks
+Features for testing the presence of ``rubiks``
 """
 # ****************************************************************************
 # This program is free software: you can redistribute it and/or modify

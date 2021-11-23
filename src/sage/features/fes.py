@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 r"""
-Checks for FES
+Features for testing the presence of ``fes``
 """
 
 from . import CythonFeature, PythonModule

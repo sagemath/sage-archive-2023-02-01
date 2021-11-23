@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 r"""
-Check for pdflatex and equivalent programs
+Features for testing the presence of ``latex`` and equivalent programs
 """
 # ****************************************************************************
 #       Copyright (C) 2021 Sebastien Labbe <slabqc@gmail.com>

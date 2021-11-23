@@ -1,5 +1,5 @@
 r"""
-Check for SageMath Python modules
+Features for testing the presence of Python modules in the Sage library
 """
 from . import PythonModule
 from .join_feature import JoinFeature

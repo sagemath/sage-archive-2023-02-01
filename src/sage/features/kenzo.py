@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 r"""
-Check for Kenzo
+Feature for testing the presence of ``kenzo``
 """
 
 from . import Feature, FeatureTestResult

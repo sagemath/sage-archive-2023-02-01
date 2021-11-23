@@ -1,3 +1,6 @@
+r"""
+Feature for testing the presence of the Python interface to polymake
+"""
 from . import PythonModule
 from .join_feature import JoinFeature
 

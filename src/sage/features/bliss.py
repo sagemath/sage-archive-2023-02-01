@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 r"""
-Checks for bliss
+Features for testing the presence of ``bliss``
 """
 from . import CythonFeature, PythonModule
 from .join_feature import JoinFeature

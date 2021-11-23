@@ -1,3 +1,7 @@
+r"""
+Features for testing the presence of ``4ti2``
+"""
+
 from . import Executable
 from .join_feature import JoinFeature
 

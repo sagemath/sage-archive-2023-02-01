@@ -148,8 +148,8 @@ Features
    :maxdepth: 1
 
    sage/features
-   sage/features/all
    sage/features/join_feature
+   sage/features/all
    sage/features/sagemath
    sage/features/bliss
    sage/features/csdp

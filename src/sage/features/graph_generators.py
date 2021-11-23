@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 r"""
-Check various graph generator programs
+Features for testing the presence of various graph generator programs
 """
 
 import os

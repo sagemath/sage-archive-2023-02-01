@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 r"""
-Check for GAP features
+Features for testing the presence of GAP packages
 """
 
 from . import Feature, FeatureTestResult

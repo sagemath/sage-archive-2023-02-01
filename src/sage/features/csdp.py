@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 r"""
-Testing for CSDP at runtime
+Feature for testing the presence of ``csdp``
 """
 
 import os

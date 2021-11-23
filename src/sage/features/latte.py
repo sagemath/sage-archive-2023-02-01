@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 r"""
-Check for LattE
+Features for testing the presence of ``latte_int``
 """
 from . import Executable
 from .join_feature import JoinFeature

@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 r"""
-Check for dvipng
+Feature for testing the presence of ``dvipng``
 """
 # ****************************************************************************
 #       Copyright (C) 2021 Sebastien Labbe <slabqc@gmail.com>

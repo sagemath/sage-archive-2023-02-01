@@ -162,7 +162,7 @@ class sage__symbolic(JoinFeature):
                              spkg="sagemath_symbolics")
 
 
-def sage_features(logger=None):
+def all_features():
     """
     Return features corresponding to parts of the Sage library.
 
@@ -179,22 +179,14 @@ def sage_features(logger=None):
 
     EXAMPLES::
 
-        sage: from sage.features.sagemath import sage_features
-        sage: list(sage_features())  # random
-        [Feature('sage.graphs'),
-         Feature('sage.plot'),
-         Feature('sage.rings.number_field'),
-         Feature('sage.rings.real_double')]
+        sage: from sage.features.sagemath import all_features
+        sage: list(all_features())
+        [Feature('sage.combinat'), ...]
     """
-    for feature in [sage__combinat(),
-                    sage__geometry__polyhedron(),
-                    sage__graphs(),
-                    sage__plot(),
-                    sage__rings__number_field(),
-                    sage__rings__real_double(),
-                    sage__symbolic()]:
-        result = feature.is_present()
-        if logger:
-            logger.write(f'{result}, reason: {result.reason}\n')
-        if result:
-            yield feature
+    return [sage__combinat(),
+            sage__geometry__polyhedron(),
+            sage__graphs(),
+            sage__plot(),
+            sage__rings__number_field(),
+            sage__rings__real_double(),
+            sage__symbolic()]

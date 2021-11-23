@@ -18,7 +18,6 @@ requires = [
         numpy          \
         pkgconfig      \
         pplpy          \
-        primecount      \
         memory_allocator \
                     ')]
 build-backend = "setuptools.build_meta"

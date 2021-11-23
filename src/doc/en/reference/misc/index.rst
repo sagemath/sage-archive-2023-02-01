@@ -151,6 +151,7 @@ Features
    sage/features/join_feature
    sage/features/all
    sage/features/sagemath
+   sage/features/pkg_systems
    sage/features/bliss
    sage/features/csdp
    sage/features/databases

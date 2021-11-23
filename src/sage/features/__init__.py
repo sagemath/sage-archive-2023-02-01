@@ -3,7 +3,7 @@ r"""
 Testing for features of the environment at runtime
 
 A computation can require a certain package to be installed in the runtime
-environment. Abstractly such a package describes a :class`Feature` which can
+environment. Abstractly such a package describes a :class:`Feature` which can
 be tested for at runtime. It can be of various kinds, most prominently an
 :class:`Executable` in the PATH or an additional package for some installed
 system such as a :class:`GapPackage`.

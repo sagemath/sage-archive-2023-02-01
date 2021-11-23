@@ -8,7 +8,7 @@ from .join_feature import JoinFeature
 
 class MIPBackend(Feature):
     r"""
-    A feature describing whether a :class:`MixedIntegerLinearProgram` backend is available.
+    A :class:`~sage.features.Feature` describing whether a :class:`MixedIntegerLinearProgram` backend is available.
     """
     def _is_present(self):
         r"""
@@ -30,7 +30,7 @@ class MIPBackend(Feature):
 
 class CPLEX(MIPBackend):
     r"""
-    A feature describing whether a :class:`MixedIntegerLinearProgram` backend ``CPLEX`` is available.
+    A :class:`~sage.features.Feature` describing whether the :class:`MixedIntegerLinearProgram` backend ``CPLEX`` is available.
     """
     def __init__(self):
         r"""
@@ -46,7 +46,7 @@ class CPLEX(MIPBackend):
 
 class Gurobi(MIPBackend):
     r"""
-    A feature describing whether a :class:`MixedIntegerLinearProgram` backend ``Gurobi`` is available.
+    A :class:`~sage.features.Feature` describing whether the :class:`MixedIntegerLinearProgram` backend ``Gurobi`` is available.
     """
     def __init__(self):
         r"""
@@ -62,7 +62,7 @@ class Gurobi(MIPBackend):
 
 class COIN(JoinFeature):
     r"""
-    A feature describing whether a :class:`MixedIntegerLinearProgram` backend ``COIN`` is available.
+    A :class:`~sage.features.Feature` describing whether the :class:`MixedIntegerLinearProgram` backend ``COIN`` is available.
     """
     def __init__(self):
         r"""

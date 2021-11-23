@@ -344,6 +344,30 @@ processor to insert the version information in the generated files
 ``pyproject.toml``, ``setup.cfg``, ``requirements.txt``.
 
 
+Hierarchy of distribution packages
+----------------------------------
+
+.. PLOT::
+
+   dists = ['sagemath-objects', 'sagemath-categories',
+            'sagemath-polyhedra', 'sagemath-standard-no-symbolics',
+            'sagemath-singular', 'sagemath-symbolics',
+            'sagemath-standard', 'sagemath-graphs', 'sagemath-tdlib']
+   covers = [['sagemath-objects','sagemath-categories'],
+             ['sagemath-categories', 'sagemath-polyhedra'],
+             ['sagemath-categories', 'sagemath-graphs'],
+             ['sagemath-categories', 'sagemath-singular'],
+             ['sagemath-graphs', 'sagemath-standard-no-symbolics'],
+             ['sagemath-graphs', 'sagemath-tdlib'],
+             ['sagemath-polyhedra', 'sagemath-standard-no-symbolics'],
+             ['sagemath-standard-no-symbolics', 'sagemath-standard'],
+             ['sagemath-singular', 'sagemath-symbolics'],
+             ['sagemath-symbolics', 'sagemath-standard']]
+   P = Poset((dists,covers))
+   g = P.plot(element_size=1000, element_shape="s")
+   sphinx_plot(g, figsize=(8, 4))
+
+
 Testing distribution packages
 =============================
 

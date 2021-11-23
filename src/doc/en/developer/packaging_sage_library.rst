@@ -17,7 +17,7 @@ directory ``SAGE_ROOT/src/sage/``.
 For example,
 
 - the file ``SAGE_ROOT/src/sage/coding/code_bounds.py`` provides the
-  module ``sage.coding.code_bounds``.
+  module ``sage.coding.code_bounds``;
 
 - the directory containing this file, ``SAGE_ROOT/src/sage/coding/``,
   thus provides the package ``sage.coding``.
@@ -38,8 +38,8 @@ mentioned in https://www.python.org/dev/peps/pep-0423/, appears to
 have largely fallen out of favor, and we will not use it in the SageMath
 project.)
 
-A distribution that provides Python modules in the ``sage.*`` namespace
-(``sage.PAC.KAGE.MODULE``) should be named **sagemath-DISTRI-BUTION**.
+A distribution that provides Python modules in the ``sage.*`` namespace, say
+mainly from ``sage.PAC.KAGE``, should be named **sagemath-DISTRI-BUTION**.
 Example:
 
 - The distribution https://pypi.org/project/sagemath-categories/
@@ -77,7 +77,7 @@ Ordinary packages vs. implicit namespace packages
 
 Each module of the Sage library must be packaged in exactly one distribution
 package. However, modules in a package may be included in different
-distribution packages. In this regard, there is an important constaint that an
+distribution packages. In this regard, there is an important constraint that an
 ordinary package (directory with ``__init__.py`` file) cannot be split into
 more than one distribution package.
 
@@ -118,7 +118,6 @@ default, but several packages are converted to implicit namespace
 packages to support modularization.
 
 
-
 Source directories of distribution packages
 ===========================================
 
@@ -156,11 +155,13 @@ has allowed the modularization effort to keep the ``SAGE_ROOT/src``
 tree monolithic: Modularization has been happening behind the scenes
 and will not change where Sage developers find the source files.
 
+
 Dependencies and distribution packages
 ======================================
 
 When preparing a portion of the Sage library as a distribution
 package, dependencies matter.
+
 
 Build-time dependencies
 -----------------------
@@ -214,11 +215,11 @@ distribution -- which then must be declared as a run-time dependency.
 
 *Reducing module-level run-time dependencies:*
 
-- Avoid importing from ``sage.PAC.KAGE.all`` modules when
-  ``sage.PAC.KAGE`` is a namespace package. The main purpose of the
-  ``*.all`` modules is for populating the global interactive
-  environment that is available to users at the ``sage:`` prompt.  For
-  example, no Sage library code should import from ``sage.rings.all``.
+- Avoid importing from ``sage.PAC.KAGE.all`` modules when ``sage.PAC.KAGE`` is
+  a namespace package. The main purpose of the ``*.all`` modules is for
+  populating the global interactive environment that is available to users at
+  the ``sage:`` prompt. In particular, no Sage library code should import from
+  ``sage.rings.all``.
 
 - Replace module-level imports by method-level imports.  Note that
   this comes with a small runtime overhead, which can become
@@ -287,8 +288,8 @@ Apparently it does not in a very substantial way:
 - Note though that the above textual search for the module names is
   merely a heuristic. Looking at the source of "entropy", through
   ``log`` from :mod:`sage.misc.functional`, a runtime dependency on
-  symbolics comes in. In fact, for this reason, two doctests (I have
-  already marked 2 doctests there as # optional - sage.symbolic.)
+  symbolics comes in. In fact, for this reason, two doctests there are
+  already marked as ``# optional - sage.symbolic``.
 
 So if packaged as **sagemath-coding**, now a domain expert would have
 to decide whether these dependencies on symbolics are strong enough to
@@ -300,7 +301,7 @@ dependencies (ECL/Maxima/FLINT/Singular/...).
 
 The alternative is to consider the use of symbolics by
 **sagemath-coding** merely as something that provides some extra
-features ... which will only be working if the user also has installed
+features, which will only be working if the user also has installed
 **sagemath-symbolics**.
 
 *Declaring optional run-time dependencies:* It is possible to declare
@@ -349,26 +350,24 @@ Testing distribution packages
 Of course, we need tools for testing modularized distributions of
 portions of the Sage library.
 
-1. Modularized distributions must be testable separately!
+- Modularized distributions must be testable separately!
 
-2. But we want to keep integration testing with other portions of Sage too!
+- But we want to keep integration testing with other portions of Sage too!
 
 Preparing doctests
 ------------------
 
-Enter ``# optional``, the doctest annotation that we also use whenever
-an optional package is needed for a particular test.
+Whenever an optional package is needed for a particular test, we use the
+doctest annotation ``# optional``. This mechanism can also be used for making a
+doctest conditional on the presence of a portion of the Sage library.
 
-This mechanism can also be used for making a doctest conditional on
-the presence of a portion of the Sage library.  The available tags
-take the form of package or module names such as ``sage.combinat``,
-``sage.graphs``, ``sage.plot``, ``sage.rings.number_field``,
-``sage.rings.real_double``, and ``sage.symbolic``.  They are defined
-via "features" in a single file,
-``SAGE_ROOT/src/sage/features/sagemath.py``, which also provides the
-mapping from features to the distributions providing them (actually,
-to SPKG names).  Using this mapping, Sage can issue installation hints
-to the user.
+The available tags take the form of package or module names such as
+``sage.combinat``, ``sage.graphs``, ``sage.plot``, ``sage.rings.number_field``,
+``sage.rings.real_double``, and ``sage.symbolic``.  They are defined via
+"features" in a single file, ``SAGE_ROOT/src/sage/features/sagemath.py``, which
+also provides the mapping from features to the distributions providing them
+(actually, to SPKG names).  Using this mapping, Sage can issue installation
+hints to the user.
 
 For example, the package ``sage.tensor`` is purely algebraic and has
 no dependency on symbolics. However, there are a small number of

@@ -220,6 +220,11 @@ for DIR in $SAGE_ROOT/build/pkgs/*; do
         ])
     done
 
+    # Determine whether package is enabled
+    AS_VAR_IF([SAGE_ENABLE_${SPKG_NAME}], [if_installed],
+          [AS_VAR_SET([SAGE_ENABLE_${SPKG_NAME}], $is_installed)])
+    AS_VAR_COPY([want_spkg], [SAGE_ENABLE_${SPKG_NAME}])
+
     uninstall_message=""
     SAGE_NEED_SYSTEM_PACKAGES_VAR=SAGE_NEED_SYSTEM_PACKAGES
     # Check consistency of 'DIR/type' file
@@ -320,11 +325,6 @@ for DIR in $SAGE_ROOT/build/pkgs/*; do
     if test "$in_sdist" = yes; then
         SAGE_SDIST_PACKAGES="${SAGE_SDIST_PACKAGES} \\$(printf '\n    ')${SPKG_NAME}"
     fi
-
-    # Determine whether package is enabled
-    AS_VAR_IF([SAGE_ENABLE_${SPKG_NAME}}], [if_installed],
-          [AS_VAR_SET([SAGE_ENABLE_${SPKG_NAME}], $is_installed)])
-    AS_VAR_COPY([want_spkg], [SAGE_ENABLE_${SPKG_NAME}])
 
     spkg_line=" \\$(printf '\n    ')$SPKG_NAME"
     AS_CASE([$is_installed-$want_spkg],

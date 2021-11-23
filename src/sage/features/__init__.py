@@ -5,8 +5,9 @@ Testing for features of the environment at runtime
 A computation can require a certain package to be installed in the runtime
 environment. Abstractly such a package describes a :class:`Feature` which can
 be tested for at runtime. It can be of various kinds, most prominently an
-:class:`Executable` in the PATH or an additional package for some installed
-system such as a :class:`GapPackage`.
+:class:`Executable` in the ``PATH``, a :class:`PythonModule`, or an additional
+package for some installed
+system such as a :class:`~sage.features.gap.GapPackage`.
 
 AUTHORS:
 
@@ -59,7 +60,7 @@ from sage.misc.lazy_string import lazy_string
 
 class TrivialClasscallMetaClass(type):
     """
-    A trivial version of :class:`ClasscallMetaclass` without Cython dependencies.
+    A trivial version of :class:`sage.misc.classcall_metaclass.ClasscallMetaclass` without Cython dependencies.
     """
     def __call__(cls, *args, **kwds):
         r"""
@@ -374,7 +375,8 @@ _cache_package_systems = None
 
 def package_systems():
     """
-    Return a list of ``PackageSystem`` objects representing the available package systems.
+    Return a list of :class:~sage.features.pkg_systems.PackageSystem` objects
+    representing the available package systems.
 
     The list is ordered by decreasing preference.
 
@@ -407,7 +409,7 @@ def package_systems():
 
 class Executable(Feature):
     r"""
-    A feature describing an executable in the PATH.
+    A feature describing an executable in the ``PATH``.
 
     .. NOTE::
 

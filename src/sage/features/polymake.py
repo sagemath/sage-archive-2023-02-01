@@ -7,7 +7,7 @@ from .join_feature import JoinFeature
 
 class JuPyMake(JoinFeature):
     r"""
-    A :class:`sage.features.Feature` describing the presence of the ``JuPyMake``
+    A :class:`~sage.features.Feature` describing the presence of the :mod:`JuPyMake`
     module, a Python interface to the polymake library.
 
     EXAMPLES::

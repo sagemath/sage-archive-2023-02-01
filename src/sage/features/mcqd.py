@@ -8,7 +8,7 @@ from .join_feature import JoinFeature
 
 class Mcqd(JoinFeature):
     r"""
-    A :class:`sage.features.Feature` describing the presence of :mod:`~sage.graphs.mcqd`
+    A :class:`~sage.features.Feature` describing the presence of :mod:`~sage.graphs.mcqd`
 
     EXAMPLES::
 

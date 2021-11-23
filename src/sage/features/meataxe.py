@@ -8,7 +8,7 @@ from .join_feature import JoinFeature
 
 class Meataxe(JoinFeature):
     r"""
-    A :class:`sage.features.Feature` describing the presence of ``meataxe``.
+    A :class:`~sage.features.Feature` describing the presence of ``meataxe``.
 
     EXAMPLES::
 

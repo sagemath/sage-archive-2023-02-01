@@ -17,7 +17,7 @@ from . import Executable
 
 class FFmpeg(Executable):
     r"""
-    A :class:`sage.features.Feature` describing the presence of ``FFmpeg``
+    A :class:`~sage.features.Feature` describing the presence of ``ffmpeg``
 
     EXAMPLES::
 

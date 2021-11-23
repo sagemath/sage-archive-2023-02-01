@@ -24,7 +24,7 @@ sig_off()
 
 class BlissLibrary(CythonFeature):
     r"""
-    A :class:`Feature` which describes whether the Bliss library is
+    A :class:`~sage.features.Feature` which describes whether the Bliss library is
     present and functional.
 
     EXAMPLES::
@@ -48,7 +48,7 @@ class BlissLibrary(CythonFeature):
 
 class Bliss(JoinFeature):
     r"""
-    A :class:`Feature` which describes whether the :mod:`sage.graphs.bliss`
+    A :class:`~sage.features.Feature` which describes whether the :mod:`sage.graphs.bliss`
     module is available in this installation of Sage.
 
     EXAMPLES::

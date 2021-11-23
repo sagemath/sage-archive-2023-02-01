@@ -12,7 +12,7 @@ from sage.cpython.string import str_to_bytes, bytes_to_str
 
 class Lrs(Executable):
     r"""
-    A :class:`sage.features.Feature` describing the presence of the ``lrs``
+    A :class:`~sage.features.Feature` describing the presence of the ``lrs``
     binary which comes as a part of ``lrslib``.
 
     EXAMPLES::

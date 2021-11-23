@@ -17,8 +17,7 @@ from .join_feature import JoinFeature
 
 class dot(Executable):
     r"""
-    A :class:`sage.features.Executable` describing the presence of
-    ``dot``
+    A :class:`~sage.features.Feature` describing the presence of ``dot``
 
     EXAMPLES::
 
@@ -41,8 +40,7 @@ class dot(Executable):
 
 class neato(Executable):
     r"""
-    A :class:`sage.features.Executable` describing the presence of
-    ``neato``
+    A :class:`~sage.features.Feature` describing the presence of ``neato``
 
     EXAMPLES::
 
@@ -65,8 +63,7 @@ class neato(Executable):
 
 class twopi(Executable):
     r"""
-    A :class:`sage.features.Executable` describing the presence of
-    ``twopi``
+    A :class:`~sage.features.Feature` describing the presence of ``twopi``
 
     EXAMPLES::
 
@@ -89,8 +86,9 @@ class twopi(Executable):
 
 class Graphviz(JoinFeature):
     r"""
-    A :class:`sage.features.Feature` describing the presence of
-    ``dot``, ``neato`` and ``twopi``.
+    A :class:`~sage.features.Feature` describing the presence of
+    the ``dot``, ``neato``, and ``twopi`` executables from the
+    ``graphviz`` package.
 
     EXAMPLES::
 

@@ -12,7 +12,7 @@ from sage.env import (
 
 class DatabaseConwayPolynomials(StaticFile):
     r"""
-    A :class:`Feature` which describes the presence of Frank Luebeck's
+    A :class:`~sage.features.Feature` which describes the presence of Frank Luebeck's
     database of Conway polynomials.
 
     EXAMPLES::
@@ -46,7 +46,7 @@ CREMONA_DATA_DIRS = set([CREMONA_MINI_DATA_DIR, CREMONA_LARGE_DATA_DIR])
 
 class DatabaseCremona(StaticFile):
     r"""
-    A :class:`Feature` which describes the presence of John Cremona's
+    A :class:`~sage.features.Feature` which describes the presence of John Cremona's
     database of elliptic curves.
 
     INPUT:
@@ -80,7 +80,7 @@ class DatabaseCremona(StaticFile):
 
 class DatabaseJones(StaticFile):
     r"""
-    A :class:`Feature` which describes the presence of John Jones's tables of number fields.
+    A :class:`~sage.features.Feature` which describes the presence of John Jones's tables of number fields.
 
     EXAMPLES::
 
@@ -104,7 +104,7 @@ class DatabaseJones(StaticFile):
 
 class DatabaseKnotInfo(PythonModule):
     r"""
-    A :class:`Feature` which describes the presence of the databases at the
+    A :class:`~sage.features.Feature` which describes the presence of the databases at the
     web-pages `KnotInfo <https://knotinfo.math.indiana.edu/>`__ and
     `LinkInfo <https://linkinfo.sitehost.iu.edu>`__.
 

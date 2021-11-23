@@ -8,7 +8,7 @@ from . import Feature, FeatureTestResult
 
 class GapPackage(Feature):
     r"""
-    A feature describing the presence of a GAP package.
+    A :class:`~sage.features.Feature` describing the presence of a GAP package.
 
     EXAMPLES::
 

@@ -45,7 +45,7 @@ class Latte_integrate(Executable):
 
 class Latte(JoinFeature):
     r"""
-    A :class:`sage.features.Feature` describing the presence of the ``LattE``
+    A :class:`~sage.features.Feature` describing the presence of the ``LattE``
     binaries which comes as a part of ``latte_int``.
 
     EXAMPLES::

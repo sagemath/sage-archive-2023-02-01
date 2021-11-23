@@ -23,7 +23,7 @@ from .join_feature import JoinFeature
 
 class ImageMagick(JoinFeature):
     r"""
-    A :class:`sage.features.Feature` describing the presence of
+    A :class:`~sage.features.Feature` describing the presence of
     ``ImageMagick``
 
     Currently, only the availability of ``convert`` is checked.

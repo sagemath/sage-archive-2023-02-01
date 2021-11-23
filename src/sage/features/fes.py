@@ -52,7 +52,7 @@ if solutions != 3:
 
 class LibFESLibrary(CythonFeature):
     r"""
-    A :class:`Feature` which describes whether the FES library
+    A :class:`~sage.features.Feature` which describes whether the FES library
     is present and functional.
 
     EXAMPLES::
@@ -74,7 +74,7 @@ class LibFESLibrary(CythonFeature):
 
 class LibFES(JoinFeature):
     r"""
-    A :class:`Feature` which describes whether the :mod:`sage.libs.fes`
+    A :class:`~sage.features.Feature` which describes whether the :mod:`sage.libs.fes`
     module has been enabled for this build of Sage and is functional.
 
     EXAMPLES::

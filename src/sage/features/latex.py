@@ -16,7 +16,7 @@ from . import Executable, FeatureTestResult
 
 class latex(Executable):
     r"""
-    A :class:`sage.features.Feature` describing the presence of ``latex``
+    A :class:`~sage.features.Feature` describing the presence of ``latex``
 
     EXAMPLES::
 
@@ -37,9 +37,9 @@ class latex(Executable):
 
     def is_functional(self):
         r"""
-        Return whether `latex` in the path is functional.
+        Return whether ``latex`` in the path is functional.
 
-        EXAMPLES:
+        EXAMPLES::
 
             sage: from sage.features.latex import latex
             sage: latex().is_functional()             # optional: latex
@@ -76,7 +76,7 @@ class latex(Executable):
 
 class pdflatex(Executable):
     r"""
-    A :class:`sage.features.Feature` describing the presence of ``pdflatex``
+    A :class:`~sage.features.Feature` describing the presence of ``pdflatex``
 
     EXAMPLES::
 
@@ -97,7 +97,7 @@ class pdflatex(Executable):
 
 class xelatex(Executable):
     r"""
-    A :class:`sage.features.Feature` describing the presence of ``xelatex``
+    A :class:`~sage.features.Feature` describing the presence of ``xelatex``
 
     EXAMPLES::
 
@@ -118,7 +118,7 @@ class xelatex(Executable):
 
 class lualatex(Executable):
     r"""
-    A :class:`sage.features.Feature` describing the presence of ``lualatex``
+    A :class:`~sage.features.Feature` describing the presence of ``lualatex``
 
     EXAMPLES::
 

@@ -15,8 +15,7 @@ from .join_feature import JoinFeature
 
 class cu2(Executable):
     r"""
-    A :class:`sage.features.Executable` describing the presence of
-    ``cu2``
+    A :class:`~sage.features.Feature` describing the presence of ``cu2``
 
     EXAMPLES::
 
@@ -38,8 +37,7 @@ class cu2(Executable):
 
 class size222(Executable):
     r"""
-    A :class:`sage.features.Executable` describing the presence of
-    ``size222``
+    A :class:`~sage.features.Feature` describing the presence of ``size222``
 
     EXAMPLES::
 
@@ -61,8 +59,7 @@ class size222(Executable):
 
 class optimal(Executable):
     r"""
-    A :class:`sage.features.Executable` describing the presence of
-    ``optimal``
+    A :class:`~sage.features.Feature` describing the presence of ``optimal``
 
     EXAMPLES::
 
@@ -84,8 +81,7 @@ class optimal(Executable):
 
 class mcube(Executable):
     r"""
-    A :class:`sage.features.Executable` describing the presence of
-    ``mcube``
+    A :class:`~sage.features.Feature` describing the presence of ``mcube``
 
     EXAMPLES::
 
@@ -107,8 +103,7 @@ class mcube(Executable):
 
 class dikcube(Executable):
     r"""
-    A :class:`sage.features.Executable` describing the presence of
-    ``dikcube``
+    A :class:`~sage.features.Feature` describing the presence of ``dikcube``
 
     EXAMPLES::
 
@@ -130,8 +125,7 @@ class dikcube(Executable):
 
 class cubex(Executable):
     r"""
-    A :class:`sage.features.Executable` describing the presence of
-    ``cubex``
+    A :class:`~sage.features.Feature` describing the presence of ``cubex``
 
     EXAMPLES::
 
@@ -153,7 +147,7 @@ class cubex(Executable):
 
 class Rubiks(JoinFeature):
     r"""
-    A :class:`sage.features.Feature` describing the presence of
+    A :class:`~sage.features.Feature` describing the presence of
     ``cu2``, ``cubex``, ``dikcube``, ``mcube``, ``optimal``, and
     ``size222``.
 

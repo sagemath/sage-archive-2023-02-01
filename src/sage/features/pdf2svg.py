@@ -16,7 +16,7 @@ from . import Executable
 
 class pdf2svg(Executable):
     r"""
-    A :class:`sage.features.Feature` describing the presence of ``pdf2svg``
+    A :class:`~sage.features.Feature` describing the presence of ``pdf2svg``
 
     EXAMPLES::
 

@@ -5131,6 +5131,26 @@ cdef class Matrix(Matrix1):
         return self.row_module()
 
     cpdef _row_ambient_module(self, base_ring=None):
+        """
+        Return the parent of the rows.
+
+        INPUT:
+
+        -  ``base_ring`` -- (optional); change the ring of the parent
+
+        EXAMPLES::
+
+            sage: M = Matrix(ZZ, 3, 4)
+            sage: M._row_ambient_module()
+            Ambient free module of rank 4 over the principal ideal domain Integer Ring
+            sage: M._row_ambient_module(QQ)
+            Vector space of dimension 4 over Rational Field
+            sage: M = Matrix(QQ, 4, 5)
+            sage: M._row_ambient_module()
+            Vector space of dimension 5 over Rational Field
+            sage: M._row_ambient_module(ZZ)
+            Ambient free module of rank 5 over the principal ideal domain Integer Ring
+        """
         # We optimize for the case ``base_ring == None``
         # to achieve the (almost) same speed as ``_column_ambient_module``
         # in this case.
@@ -5203,6 +5223,18 @@ cdef class Matrix(Matrix1):
         return self.row_module(base_ring=base_ring)
 
     cpdef _column_ambient_module(self):
+        """
+        Return the parent of the columns.
+
+        EXAMPLES::
+
+            sage: M = Matrix(ZZ, 3, 4)
+            sage: M._column_ambient_module()
+            Ambient free module of rank 3 over the principal ideal domain Integer Ring
+            sage: M = Matrix(QQ, 4, 5)
+            sage: M._column_ambient_module()
+            Vector space of dimension 4 over Rational Field
+        """
         x = self.fetch('column_ambient_module')
         if not x is None:
             return x

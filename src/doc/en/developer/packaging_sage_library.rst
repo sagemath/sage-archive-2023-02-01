@@ -25,7 +25,8 @@ For example,
 There is another notion of "package" in Python, the **distribution
 package** (also known as a "distribution" or a "pip-installable
 package").  Currently, the entire Sage library is provided by a
-single distribution, https://pypi.org/project/sagemath-standard/,
+single distribution,
+`sagemath-standard <https://pypi.org/project/sagemath-standard/>`_,
 which is generated from the directory
 ``SAGE_ROOT/pkgs/sagemath-standard``.
 
@@ -34,7 +35,7 @@ identifier. In fact, using dashes (``-``) is preferred to underscores in
 distribution names; **setuptools** and other parts of Python's packaging
 infrastructure normalize underscores to dashes. (Using dots in
 distribution names, to indicate ownership by organizations, still
-mentioned in https://www.python.org/dev/peps/pep-0423/, appears to
+mentioned in `PEP 423 <https://www.python.org/dev/peps/pep-0423/>`_, appears to
 have largely fallen out of favor, and we will not use it in the SageMath
 project.)
 
@@ -42,17 +43,19 @@ A distribution that provides Python modules in the :mod:`sage.*` namespace, say
 mainly from :mod:`sage.PAC.KAGE`, should be named **sagemath-DISTRI-BUTION**.
 Example:
 
-- The distribution https://pypi.org/project/sagemath-categories/
+- The distribution
+  `sagemath-categories <https://pypi.org/project/sagemath-categories/>`_
   provides a small subset of the modules of the Sage library, mostly
-  from the packages ``sage.structure``, ``sage.categories``, and
-  ``sage.misc``.
+  from the packages :mod:`sage.structure`, :mod:`sage.categories`, and
+  :mod:`sage.misc`.
 
 Other distributions should not use the prefix **sagemath-** in the
 distribution name. Example:
 
-- The distribution https://pypi.org/project/sage-sws2rst/ provides the
-  Python package ``sage_sws2rst``, so it does not fill the :mod:`sage.*`
-  namespace.
+- The distribution `sage-sws2rst <https://pypi.org/project/sage-sws2rst/>`_
+  provides the Python package :mod:`sage_sws2rst`, so it does not fill
+  the :mod:`sage.*` namespace and therefore does not use the prefix
+  **sagemath-**.
 
 A distribution that provides functionality that does not need to
 import anything from the :mod:`sage` namespace should not use the
@@ -60,15 +63,15 @@ import anything from the :mod:`sage` namespace should not use the
 positioned as part of the general Python ecosystem instead of as a
 Sage-specific distribution.  Examples:
 
-- The distribution https://pypi.org/project/pplpy/ provides the Python
+- The distribution `pplpy <https://pypi.org/project/pplpy/>`_ provides the Python
   package :mod:`ppl` and is a much extended version of what used to be
   :mod:`sage.libs.ppl`, a part of the Sage library. The package :mod:`sage.libs.ppl` had
   dependencies on :mod:`sage.rings` to convert to/from Sage number
   types. **pplpy** has no such dependencies and is therefore usable in a
   wider range of Python projects.
 
-- The distribution https://pypi.org/project/memory-allocator/ provides
-  the Python package :mod:`memory_allocator`. This used to be
+- The distribution `memory-allocator <https://pypi.org/project/memory-allocator/>`_
+  provides the Python package :mod:`memory_allocator`. This used to be
   :mod:`sage.ext.memory_allocator`, a part of the Sage library.
 
 
@@ -83,7 +86,7 @@ more than one distribution package.
 
 By removing the ``__init__.py`` file, however, we can make the package an
 "implicit" (or "native") "namespace" package, following
-https://www.python.org/dev/peps/pep-0420/. Implicit namespace packages can be
+`PEP 420 <https://www.python.org/dev/peps/pep-0420/>`_. Implicit namespace packages can be
 included in more than one distribution package. Hence whenever there are two
 distribution packages that provide modules with a common prefix of Python
 packages, that prefix needs to be a implicit namespace package, i.e., there
@@ -137,23 +140,35 @@ The source directory of a distribution package, such as
 - ``sage`` -- a relative symbolic link to the monolithic Sage library
   source tree ``SAGE_ROOT/src/sage/``
 
-- ``MANIFEST.in`` -- controls which files and directories of the
+- `MANIFEST.in <https://packaging.python.org/guides/using-manifest-in/>`_ --
+  controls which files and directories of the
   monolithic Sage library source tree are included in the distribution
 
-- ``pyproject.toml.m4``, ``setup.cfg.m4``, ``requirements.txt.m4`` --
-  Python packaging metadata, declaring the distribution name, dependencies,
-  etc.  (These files are run through the ``m4`` macro processor by the
-  ``SAGE_ROOT/bootstrap`` script to generate standard files
-  ``pyproject.toml`` etc.)
+- `pyproject.toml <https://pip.pypa.io/en/stable/reference/build-system/pyproject-toml/>`_,
+  `setup.cfg <https://setuptools.pypa.io/en/latest/userguide/declarative_config.html>`_,
+  and `requirements.txt <https://pip.pypa.io/en/stable/user_guide/#requirements-files>`_ --
+  standard Python packaging metadata, declaring the distribution name, dependencies,
+  etc.
 
-- ``setup.py`` -- a **setuptools**-based installation script
+- ``README.rst`` -- a description of the distribution
 
-- ``tox.ini`` -- testing infrastructure
+- ``VERSION.txt``, ``LICENSE.txt`` -- relative symbolic links to the same files
+  in ``SAGE_ROOT/src``
+
+- ``setup.py`` -- a `setuptools <https://pypi.org/project/setuptools/>`_-based
+  installation script
+
+- ``tox.ini`` -- configuration for testing with `tox <https://pypi.org/project/tox/>`_
 
 The technique of using symbolic links pointing into ``SAGE_ROOT/src``
 has allowed the modularization effort to keep the ``SAGE_ROOT/src``
 tree monolithic: Modularization has been happening behind the scenes
 and will not change where Sage developers find the source files.
+
+Some of these files may actually be generated from source files with suffix ``.m4`` by the
+``SAGE_ROOT/bootstrap`` script via the ``m4`` macro processor.
+
+
 
 
 Dependencies and distribution packages
@@ -177,7 +192,8 @@ must be accessible from the build environment.
 
 *Declaring build-time dependencies:* Modern Python packaging provides a
 mechanism to declare build-time dependencies on other distribution
-packages via the file ``pyproject.toml`` ("build-system requires"); this
+packages via the file `pyproject.toml <https://pip.pypa.io/en/stable/reference/build-system/pyproject-toml/>`_
+(``[build-system] requires``); this
 has superseded the older ``setup_requires`` declaration. (There is no
 mechanism to declare anything regarding the C/C++ libraries.)
 
@@ -211,7 +227,8 @@ modules must be part of the distribution, or provided by another
 distribution -- which then must be declared as a run-time dependency.
 
 *Declaring run-time dependencies:* These dependencies are declared in
-``setup.cfg`` (generated from ``setup.cfg.m4``) as ``install_requires``.
+``setup.cfg`` (generated from ``setup.cfg.m4``) as
+`install_requires <https://setuptools.pypa.io/en/latest/userguide/dependency_management.html#declaring-required-dependency>`_.
 
 *Reducing module-level run-time dependencies:*
 
@@ -318,13 +335,13 @@ features, which will only be working if the user also has installed
 **sagemath-symbolics**.
 
 *Declaring optional run-time dependencies:* It is possible to declare
-such optional dependencies as ``extra_requires`` in ``setup.cfg``
+such optional dependencies as `extras_require <https://setuptools.pypa.io/en/latest/userguide/dependency_management.html#optional-dependencies>`_ in ``setup.cfg``
 (generated from ``setup.cfg.m4``).  This is a very limited mechanism
 -- in particular it does not affect the build phase of the
 distribution in any way. It basically only provides a way to give a
 nickname to a distribution that can be installed as an add-on.
 
-In our example, we could declare an ``extra_requires`` so that users
+In our example, we could declare an ``extras_require`` so that users
 could use ``pip install sagemath-coding[symbolics]``.
 
 
@@ -343,8 +360,9 @@ FEATURE`` directives in the doctests.  Adding these directives will
 allow developers to test the distribution separately, without
 requiring all of Sage to be present.
 
-*Declaring doctest-only dependencies:* The ``extra_requires`` mechanism
-mentioned above can also be used for this.
+*Declaring doctest-only dependencies:* The
+`extras_require <https://setuptools.pypa.io/en/latest/userguide/dependency_management.html#optional-dependencies>`_
+mechanism mentioned above can also be used for this.
 
 
 Version constraints of dependencies
@@ -352,8 +370,9 @@ Version constraints of dependencies
 
 The version information for dependencies comes from the files
 ``build/pkgs/*/install-requires.txt`` and
-``build/pkgs/*/package-version.txt``.  We use the ``m4`` macro
-processor to insert the version information in the generated files
+``build/pkgs/*/package-version.txt``.  We use the
+`m4 <https://www.gnu.org/software/m4/manual/html_node/index.html>`_
+macro processor to insert the version information in the generated files
 ``pyproject.toml``, ``setup.cfg``, ``requirements.txt``.
 
 
@@ -446,7 +465,8 @@ configuration variable settings and the connection to the non-Python
 packages installed in ``SAGE_LOCAL``.
 
 We can now set up a separate virtual environment, in which we install
-these wheels and our distribution to be tested.  This is where ``tox``
+these wheels and our distribution to be tested.  This is where
+`tox <https://pypi.org/project/tox/>`_
 comes into play: It is the standard Python tool for creating
 disposable virtual environments for testing.  Every distribution in
 ``SAGE_ROOT/pkgs/`` provides a configuration file ``tox.ini``.
@@ -459,7 +479,7 @@ command::
 
 This command does not make any changes to the normal installation of
 Sage. The virtual environment is created in a subdirectory of
-``pkgs/sagemath-standard-no-symbolics/.tox/``. After the command
+``SAGE_ROOT/pkgs/sagemath-standard-no-symbolics/.tox/``. After the command
 finishes, we can start the separate installation of the Sage library
 in its virtual environment::
 
@@ -473,25 +493,27 @@ The whole ``.tox`` directory can be safely deleted at any time.
 
 We can do the same with other distributions, for example the large
 distribution **sagemath-standard-no-symbolics**
-(https://trac.sagemath.org/ticket/32601), which is intended to provide
+(from :trac:`32601`), which is intended to provide
 everything that is currently in the standard Sage library, i.e.,
 without depending on optional packages, but without the packages
-``sage.symbolic``, ``sage.functions``, ``sage.calculus``, etc.
+:mod:`sage.symbolic`, :mod:`sage.functions`, :mod:`sage.calculus`, etc.
 
 Again we can run the test with ``tox`` in a separate virtual environment::
 
   $ ./bootstrap && ./sage -sh -c '(cd pkgs/sagemath-standard-no-symbolics && SAGE_NUM_THREADS=16 tox -v -v -v -e py39-sagewheels-nopypi)'
 
 Some small distributions, for example the ones providing the two
-lowest levels, **sagemath-objects** and **sagemath-categories**
-(https://trac.sagemath.org/ticket/29865), can be installed and tested
+lowest levels, `sagemath-objects <https://pypi.org/project/sagemath-objects/>`_
+and `sagemath-categories <https://pypi.org/project/sagemath-categories/>`_
+(from :trac:`29865`), can be installed and tested
 without relying on the wheels from the Sage build::
 
   $ ./bootstrap && ./sage -sh -c '(cd pkgs/sagemath-objects && SAGE_NUM_THREADS=16 tox -v -v -v -e py39)'
 
 This command finds the declared build-time and run-time dependencies
 on PyPI, either as source tarballs or as prebuilt wheels, and builds
-and installs the distribution **sagemath-objects** in a virtual
+and installs the distribution
+`sagemath-objects <https://pypi.org/project/sagemath-objects/>`_ in a virtual
 environment in a subdirectory of ``pkgs/sagemath-objects/.tox``.
 
 Building these small distributions serves as a valuable regression

@@ -5131,6 +5131,10 @@ cdef class Matrix(Matrix1):
         return self.row_module()
 
     cpdef _row_ambient_module(self, base_ring=None):
+        # We optimize for the case ``base_ring == None``
+        # to achieve the (almost) same speed as ``_column_ambient_module``
+        # in this case.
+        # See :trac:`32901`.
         if base_ring is None:
             x = self.fetch('row_ambient_module')
             if x is not None:

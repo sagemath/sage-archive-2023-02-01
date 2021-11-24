@@ -651,7 +651,7 @@ class QuaternionAlgebra_ab(QuaternionAlgebra_abstract):
             ...
             ValueError: 2 is not invertible in Integer Ring
         """
-        Parent.__init__(self, base=base_ring, category=Algebras(base_ring).Division())
+        Algebra.__init__(self, base_ring, names, category=Algebras(base_ring).Division())
         self._a = a
         self._b = b
         if is_RationalField(base_ring) and a.denominator() == 1 == b.denominator():
@@ -669,7 +669,6 @@ class QuaternionAlgebra_ab(QuaternionAlgebra_abstract):
         else:
             self.Element = QuaternionAlgebraElement_generic
         self._populate_coercion_lists_(coerce_list=[base_ring])
-        self._names = names
         self._gens = [self([0, 1, 0, 0]), self([0, 0, 1, 0]), self([0, 0, 0, 1])]
 
     @cached_method
@@ -1423,7 +1422,8 @@ class QuaternionOrder(Algebra):
 
         self.__basis = basis
         self.__quaternion_algebra = A
-        Parent.__init__(self, base=ZZ, facade=(A,), category=Algebras(ZZ))
+        Parent.__init__(self, base=ZZ, facade=(A,),
+                        category=Algebras(ZZ).Facade())
 
     def gens(self):
         """

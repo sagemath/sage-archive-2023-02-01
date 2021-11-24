@@ -4,14 +4,20 @@ if [ "$SAGE_FAT_BINARY" = yes ]; then
     EXTRA_OPTS="-DWITH_POPCNT=OFF"
 fi
 
-echo "Configuring primecount."
+primc_config(){
+echo "Configuring primecount: building primesieve $1"
 sdh_cmake -DCMAKE_VERBOSE_MAKEFILE=ON \
           -DBUILD_STATIC_LIBS=OFF \
           -DBUILD_SHARED_LIBS=ON \
           -DBUILD_TESTS=ON \
-	  -DBUILD_LIBPRIMESIEVE=OFF \
+	  -DBUILD_LIBPRIMESIEVE=$1 \
 	  -DCMAKE_FIND_ROOT_PATH=$SAGE_LOCAL/lib/cmake \
 	  -DCMAKE_FIND_ROOT_PATH_MODE_LIBRARY=BOTH \
-          ${EXTRA_OPTS}
+	  -DCMAKE_INSTALL_PREFIX=$SAGE_LOCAL \
+          ${EXTRA_OPTS} && sdh_make_install
+}
 
-sdh_make_install
+# we try to use the external primesieve first, and if
+# cmake cannot find it, we build a vendored copy
+
+(primc_config OFF) || primc_config ON

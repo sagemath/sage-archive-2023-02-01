@@ -375,7 +375,7 @@ class QuaternionAlgebra_abstract(Algebra):
         M.set_immutable()
         return M
 
-    def is_commutative(self):
+    def is_commutative(self) -> bool:
         """
         Return ``False`` always, since all quaternion algebras are
         noncommutative.
@@ -388,7 +388,7 @@ class QuaternionAlgebra_abstract(Algebra):
         """
         return False
 
-    def is_division_algebra(self):
+    def is_division_algebra(self) -> bool:
         """
         Return ``True`` if the quaternion algebra is a division algebra (i.e.
         every nonzero element in ``self`` is invertible), and ``False`` if the
@@ -411,7 +411,7 @@ class QuaternionAlgebra_abstract(Algebra):
             raise NotImplementedError("base field must be rational numbers")
         return self.discriminant() != 1
 
-    def is_matrix_ring(self):
+    def is_matrix_ring(self) -> bool:
         """
         Return ``True`` if the quaternion algebra is isomorphic to the 2x2
         matrix ring, and ``False`` if ``self`` is a division algebra (i.e.
@@ -435,7 +435,7 @@ class QuaternionAlgebra_abstract(Algebra):
             raise NotImplementedError("base field must be rational numbers")
         return self.discriminant() == 1
 
-    def is_exact(self):
+    def is_exact(self) -> bool:
         """
         Return ``True`` if elements of this quaternion algebra are represented
         exactly, i.e. there is no precision loss when doing arithmetic. A
@@ -453,7 +453,7 @@ class QuaternionAlgebra_abstract(Algebra):
         """
         return self.base_ring().is_exact()
 
-    def is_field(self, proof=True):
+    def is_field(self, proof=True) -> bool:
         """
         Return ``False`` always, since all quaternion algebras are
         noncommutative and all fields are commutative.
@@ -466,7 +466,7 @@ class QuaternionAlgebra_abstract(Algebra):
         """
         return False
 
-    def is_finite(self):
+    def is_finite(self) -> bool:
         """
         Return ``True`` if the quaternion algebra is finite as a set.
 
@@ -484,7 +484,7 @@ class QuaternionAlgebra_abstract(Algebra):
         """
         return self.base_ring().is_finite()
 
-    def is_integral_domain(self, proof=True):
+    def is_integral_domain(self, proof=True) -> bool:
         """
         Return ``False`` always, since all quaternion algebras are
         noncommutative and integral domains are commutative (in Sage).
@@ -497,7 +497,7 @@ class QuaternionAlgebra_abstract(Algebra):
         """
         return False
 
-    def is_noetherian(self):
+    def is_noetherian(self) -> bool:
         """
         Return ``True`` always, since any quaternion algebra is a noetherian
         ring (because it is a finitely generated module over a field).
@@ -651,7 +651,8 @@ class QuaternionAlgebra_ab(QuaternionAlgebra_abstract):
             ...
             ValueError: 2 is not invertible in Integer Ring
         """
-        Algebra.__init__(self, base_ring, names, category=Algebras(base_ring).Division())
+        cat = Algebras(base_ring).Division().FiniteDimensional()
+        Algebra.__init__(self, base_ring, names, category=cat)
         self._a = a
         self._b = b
         if is_RationalField(base_ring) and a.denominator() == 1 == b.denominator():
@@ -1302,7 +1303,7 @@ def unpickle_QuaternionAlgebra_v0(*key):
     return QuaternionAlgebra(*key)
 
 
-class QuaternionOrder(Algebra):
+class QuaternionOrder(Parent):
     """
     An order in a quaternion algebra.
 
@@ -1423,7 +1424,7 @@ class QuaternionOrder(Algebra):
         self.__basis = basis
         self.__quaternion_algebra = A
         Parent.__init__(self, base=ZZ, facade=(A,),
-                        category=Algebras(ZZ).Facade())
+                        category=Algebras(ZZ).Facade().FiniteDimensional())
 
     def gens(self):
         """

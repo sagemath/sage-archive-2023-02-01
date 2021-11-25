@@ -5,6 +5,7 @@ Disks
 #       Copyright (C) 2006 Alex Clemesha <clemesha@gmail.com>,
 #                          William Stein <wstein@gmail.com>,
 #                     2008 Mike Hansen <mhansen@gmail.com>,
+#                     2021 Javier Honrubia <jhonrubia6@alumno.uned.es>
 #
 #  Distributed under the terms of the GNU General Public License (GPL)
 #
@@ -52,7 +53,7 @@ class Disk(GraphicPrimitive):
         3
         sage: D.x
         1.0
-
+        
     TESTS:
 
     We test creating a disk::
@@ -197,6 +198,7 @@ class Disk(GraphicPrimitive):
             Graphics3d Object
             sage: disk((0,0), 1, (pi/2, 0), fill=False).plot3d(3)
             Graphics3d Object
+            
 
         These examples show that the appropriate options are passed::
 
@@ -256,7 +258,17 @@ def disk(point, radius, angle, **options):
         sage: br = disk((0.0,0.0), 1, (3*pi/2, 2*pi), color='black')
         sage: P  = tl+tr+bl+br
         sage: P.show(xmin=-2,xmax=2,ymin=-2,ymax=2)
-
+make 
+    .. PLOT::
+    
+        from sage.plot.disk import Disk
+        bl = disk((0.0,0.0), 1, (pi, 3*pi/2), color='yellow')
+        tr = disk((0.0,0.0), 1, (0, pi/2), color='yellow')
+        tl = disk((0.0,0.0), 1, (pi/2, pi), color='black')
+        br = disk((0.0,0.0), 1, (3*pi/2, 2*pi), color='black')
+        P  = tl+tr+bl+br
+        sphinx_plot(P)
+    
     The default aspect ratio is 1.0::
 
         sage: disk((0.0,0.0), 1, (pi, 3*pi/2)).aspect_ratio()
@@ -266,13 +278,25 @@ def disk(point, radius, angle, **options):
 
         sage: bl = disk((0.0,0.0), 1, (pi, 3*pi/2), rgbcolor=(1,1,0))
         sage: bl.show(figsize=[5,5])
+        
+    .. PLOT::
+    
+        from sage.plot.disk import Disk
+        bl = disk((0.0,0.0), 1, (pi, 3*pi/2), rgbcolor=(1,1,0))
+        sphinx_plot(bl)
 
     Note that since ``thickness`` defaults to zero, it is best to change
     that option when using ``fill=False``::
 
         sage: disk((2,3), 1, (pi/4,pi/3), hue=.8, alpha=.3, fill=False, thickness=2)
         Graphics object consisting of 1 graphics primitive
-
+        
+    .. PLOT::
+    
+        from sage.plot.disk import Disk
+        D = disk((2,3), 1, (pi/4,pi/3), hue=.8, alpha=.3, fill=False, thickness=2)
+        sphinx_plot(D)
+        
     The previous two examples also illustrate using ``hue`` and ``rgbcolor``
     as ways of specifying the color of the graphic.
 
@@ -285,6 +309,12 @@ def disk(point, radius, angle, **options):
         sage: type(d)
         <... 'sage.plot.plot3d.index_face_set.IndexFaceSet'>
 
+    .. PLOT::
+    
+        from sage.plot.disk import Disk
+        d = disk((1,1,3), 1, (pi,3*pi/2), rgbcolor=(1,0,0))
+        sphinx_plot(d)
+                
     Extra options will get passed on to ``show()``, as long as they are valid::
 
         sage: disk((0, 0), 5, (0, pi/2), xmin=0, xmax=5, ymin=0, ymax=5, figsize=(2,2), rgbcolor=(1, 0, 1))

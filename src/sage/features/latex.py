@@ -12,7 +12,7 @@ Check for pdflatex and equivalent programs
 #                  https://www.gnu.org/licenses/
 # ****************************************************************************
 
-from . import StaticFile, Executable, FeatureTestResult
+from . import StaticFile, Executable, FeatureTestResult, FeatureNotPresentError
 
 class latex(Executable):
     r"""
@@ -147,6 +147,8 @@ class TeXFile(StaticFile):
         sage: from sage.features.latex import TeXFile
         sage: TeXFile('x', 'x.tex').is_present()  # optional: pdflatex
         FeatureTestResult('x', True)
+        sage: TeXFile('nonexisting', 'fajfhjdksf-nonexisting-file.tex').is_present()  # optional: pdflatex
+        FeatureTestResult('nonexisting', False)
     """
     def __init__(self, name, filename, **kwds):
         StaticFile.__init__(self, name, filename, search_path=[], **kwds)

@@ -5159,7 +5159,8 @@ cdef class Matrix(Matrix1):
             x = self.fetch('row_ambient_module')
             if x is not None:
                 return x
-            x = sage.modules.free_module.FreeModule(self.base_ring(), self.ncols(), sparse=self.is_sparse())
+            x = sage.modules.free_module.FreeModule(self._base_ring, self._ncols,
+                                                    sparse=self.is_sparse_c())
             self.cache('row_ambient_module', x)
             return x
 
@@ -5167,7 +5168,8 @@ cdef class Matrix(Matrix1):
         x = self.fetch(cache_name)
         if x is not None:
             return x
-        x = sage.modules.free_module.FreeModule(base_ring, self.ncols(), sparse=self.is_sparse())
+        x = sage.modules.free_module.FreeModule(base_ring, self._ncols,
+                                                sparse=self.is_sparse_c())
         self.cache(cache_name, x)
         return x
 
@@ -5238,8 +5240,8 @@ cdef class Matrix(Matrix1):
         x = self.fetch('column_ambient_module')
         if not x is None:
             return x
-        x = sage.modules.free_module.FreeModule(self.base_ring(), self.nrows(),
-                                                sparse=self.is_sparse())
+        x = sage.modules.free_module.FreeModule(self._base_ring, self._nrows,
+                                                sparse=self.is_sparse_c())
         self.cache('column_ambient_module',x)
         return x
 

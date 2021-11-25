@@ -364,6 +364,18 @@ class WordMorphism(SageObject):
 
             sage: WordMorphism(',,,a->ab,,,b->ba,,')
             WordMorphism: a->ab, b->ba
+
+            sage: WordMorphism({(1,2):'ab', 'a': ['c', (1,2), 'a']})
+            WordMorphism: (1, 2)->ab, a->c,(1, 2),a
+
+            sage: WordMorphism({'a':'a'}, domain=FiniteWords('ab'))
+            Traceback (most recent call last):
+            ...
+            ValueError: invalid input; the keys of the dictionary must coincide with the domain alphabet
+            sage: WordMorphism({'a':'a', 'b':'b'}, domain=FiniteWords('a'))
+            Traceback (most recent call last):
+            ...
+            ValueError: invalid input; the keys of the dictionary must coincide with the domain alphabet
         """
         if isinstance(data, WordMorphism):
             self._domain = data._domain
@@ -399,8 +411,14 @@ class WordMorphism(SageObject):
                     domain = domain.finite_words()
                 elif not isinstance(domain, FiniteWords):
                     raise TypeError("the codomain must be a set of finite words")
+                A = domain.alphabet()
+                if len(self._morph) != A.cardinality() or not all(a in A for a in self._morph):
+                    raise ValueError('invalid input; the keys of the dictionary must coincide with the domain alphabet')
             else:
-                dom_alph.sort()
+                try:
+                    dom_alph.sort()
+                except TypeError:
+                    dom_alph.sort(key=str)
                 domain = FiniteWords(dom_alph)
             self._domain = domain
 
@@ -474,7 +492,11 @@ class WordMorphism(SageObject):
             except Exception:
                 it = [val]
             codom_alphabet.update(it)
-        return FiniteWords(sorted(codom_alphabet))
+        try:
+            codom_alphabet = sorted(codom_alphabet)
+        except TypeError:
+            codom_alphabet = sorted(codom_alphabet, key=str)
+        return FiniteWords(codom_alphabet)
 
     @cached_method
     def __hash__(self):
@@ -1207,7 +1229,8 @@ class WordMorphism(SageObject):
 
     def is_endomorphism(self):
         r"""
-        Returns ``True`` if the codomain is a subset of the domain.
+        Returns whether ``self`` is an endomorphism, that is if the
+        domain coincide with the codomain.
 
         EXAMPLES::
 
@@ -1230,6 +1253,28 @@ class WordMorphism(SageObject):
             True
         """
         return self.codomain() == self.domain()
+
+    def is_self_composable(self):
+        r"""
+        Return whether the codomain of ``self`` is contained in the domain.
+
+        EXAMPLES::
+
+            sage: f = WordMorphism('a->a,b->a')
+            sage: f.is_endomorphism()
+            False
+            sage: f.is_self_composable()
+            True
+        """
+        Adom = self.domain().alphabet()
+        Acodom = self.codomain().alphabet()
+        if Adom == Acodom:
+            return True
+        if Adom.cardinality() < Acodom.cardinality():
+            return False
+        if Adom.cardinality() == Infinity:
+            raise NotImplementedError
+        return all(a in Adom for a in Acodom)
 
     def image(self, letter):
         r"""
@@ -1735,7 +1780,8 @@ class WordMorphism(SageObject):
 
         INPUT:
 
-        -  ``self`` - an endomorphism, must be prolongable on ``letter``
+        -  ``self`` - an endomorphism (or more generally a self-composable
+           morphism), must be prolongable on ``letter``
 
         -  ``letter`` - in the domain of ``self``, the first letter
            of the fixed point.
@@ -1790,6 +1836,14 @@ class WordMorphism(SageObject):
             sage: (m^2).fixed_point(letter='a')
             word: abbabaabbaababbabaababbaabbabaabbaababba...
 
+        6. With a self-composable but not endomorphism
+
+            sage: m = WordMorphism('a->cbc,b->bc,c->b')
+            sage: m.is_endomorphism()
+            False
+            sage: m.fixed_point('b')
+            word: bcbbcbcbbcbbcbcbbcbcbbcbbcbcbbcbbcbcbbcb...
+
         TESTS::
 
             sage: WordMorphism('a->ab,b->,c->ba', codomain=W).fixed_point(letter='b')
@@ -1807,10 +1861,10 @@ class WordMorphism(SageObject):
             sage: WordMorphism('a->aa,b->aac').fixed_point(letter='a')
             Traceback (most recent call last):
             ...
-            TypeError: self (=a->aa, b->aac) is not an endomorphism
+            TypeError: self (=a->aa, b->aac) is not self-composable
         """
-        if not self.is_endomorphism():
-            raise TypeError("self (=%s) is not an endomorphism"%self)
+        if not self.is_self_composable():
+            raise TypeError("self (=%s) is not self-composable"%self)
 
         if not self.is_prolongable(letter=letter):
             raise TypeError("self must be prolongable on %s"%letter)
@@ -1959,7 +2013,8 @@ class WordMorphism(SageObject):
             sage: WordMorphism('a->a,b->bb').periodic_points()
             [[word: bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb...]]
         """
-        assert self.is_endomorphism(), "f should be an endomorphism"
+        if not self.is_endomorphism():
+            raise ValueError("f should be an endomorphism")
 
         if self.is_erasing():
             raise NotImplementedError("f should be non erasing")
@@ -3089,11 +3144,15 @@ class WordMorphism(SageObject):
             no_loops.difference_update(cycle)
         new_morph = {x: [z for z in new_morph[x] if z in no_loops] for x in no_loops}
 
-        # Remove letters ending in a cycle
         # NOTE: here we should actually be using the domain made of the
         # remaining letters in new_morph. However, building the corresponding
         # alphabet and finite words cost much more time than using the same
-        # domain.
+        # domain. Instead we just erase the corresponding letters.
+        for a in self._domain.alphabet():
+            if a not in new_morph:
+                new_morph[a] = self._codomain()
+
+        # Remove letters ending in a cycle
         new_morph = WordMorphism(new_morph, domain=self.domain(), codomain=self.codomain())
         return new_morph.immortal_letters()
 
@@ -3104,7 +3163,7 @@ class WordMorphism(SageObject):
         A letter `a` is *immortal* for the morphism `s` if the length of the
         iterates of `| s^n(a) |` is larger than zero as `n` goes to infinity.
 
-        Requires this morphism to be an endomorphism.
+        Requires this morphism to be self-composable.
 
         EXAMPLES::
 
@@ -3118,9 +3177,12 @@ class WordMorphism(SageObject):
             ['a', 'b']
             sage: WordMorphism('a->', domain=Words('a'), codomain=Words('a')).immortal_letters()
             []
+
+            sage: WordMorphism('a->').immortal_letters()
+            []
         """
-        if not self.is_endomorphism():
-            raise TypeError(f'self ({self}) is not an endomorphism')
+        if not self.is_self_composable():
+            raise TypeError(f'self ({self}) is not an self-composable')
 
         forward = {}
         backward = {letter: set() for letter in self._morph}

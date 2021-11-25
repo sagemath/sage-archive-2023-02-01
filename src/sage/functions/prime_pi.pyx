@@ -10,7 +10,7 @@ AUTHORS:
 - \R. Andrew Ohana (2011): complete rewrite, ~5x speedup
 
 - Dima Pasechnik (2021): removed buggy cython code, replaced it with
-  calls to primecount spkg
+  calls to primecount/primecountpy spkg
 
 
 EXAMPLES::
@@ -34,8 +34,8 @@ EXAMPLES::
 
 from sage.rings.integer cimport Integer
 from sage.symbolic.function cimport BuiltinFunction
-from sage.interfaces.primecount import prime_pi as _prime_pi
-from sage.interfaces.primecount import phi as _phi
+from primecountpy.primecount import prime_pi as _prime_pi
+from primecountpy.primecount import phi as _phi
 
 cdef class PrimePi(BuiltinFunction):
     def __init__(self):

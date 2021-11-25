@@ -180,7 +180,7 @@ cdef class Lfunction:
     def hardy_z_function(self, s):
         """
         Computes the Hardy Z-function of the L-function at s
-        
+
         INPUT:
 
         - ``s`` - a complex number with imaginary part between -0.5 and 0.5
@@ -262,7 +262,7 @@ cdef class Lfunction:
         Use :meth:`find_zeros_via_N` for slower but more rigorous computation.
 
         INPUT:
-        
+
         - ``T1`` -- a real number giving the lower bound
         - ``T2`` -- a real number giving the upper bound
         - ``stepsize`` -- step size to be used for the zero search
@@ -386,7 +386,7 @@ cdef class Lfunction:
 
     cdef c_Complex __hardy_z_function(self,c_Complex s):
         raise NotImplementedError
-    
+
     cdef int __compute_rank(self):
         raise NotImplementedError
 
@@ -479,7 +479,7 @@ cdef class Lfunction_I(Lfunction):
 
     cdef inline c_Complex __value(self,c_Complex s,int derivative):
         return (<c_Lfunction_I *>(self.thisptr)).value(s, derivative, "pure")
-            
+
     cdef inline c_Complex __hardy_z_function(self,c_Complex s):
         return (<c_Lfunction_I *>(self.thisptr)).value(s, 0, "rotated pure")
 
@@ -875,7 +875,7 @@ cdef class Lfunction_Zeta(Lfunction):
 
 def Lfunction_from_character(chi, type="complex"):
     """
-    Given a primitive Dirichlet character, this function returns 
+    Given a primitive Dirichlet character, this function returns
     an lcalc L-function object for the L-function of the character.
 
     INPUT:

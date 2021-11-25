@@ -4529,7 +4529,7 @@ class BTerm(TermWithCoefficient):
         B(42*x^3*y^2, x >= 10, y >= 20)
 
     """
-    def __init__(self, parent, growth, coefficient, valid_from):
+    def __init__(self, parent, growth, valid_from, **kwds):
         r"""
         See :class:`BTerm` for more information.
 
@@ -4574,8 +4574,8 @@ class BTerm(TermWithCoefficient):
             ...
             ValueError: B-Term has valid_from variables defined which do not occur in the term.
         """
-        super().__init__(parent=parent, growth=growth, coefficient=coefficient)
-        self.coefficient = coefficient
+        super().__init__(parent=parent, growth=growth, coefficient=kwds['coefficient'])
+        self.coefficient = kwds['coefficient']
         for variable_name in valid_from.keys():
             if variable_name not in parent.growth_group.variable_names():
                 raise ValueError('B-Term has valid_from variables defined which do not occur in the term.')
@@ -4750,7 +4750,7 @@ class BTerm(TermWithCoefficient):
                 valid_from_new[variable_name] = (other.valid_from[variable_name])
         q = self.growth / other.growth
         coeff_new = self.coefficient + (other.coefficient / q._find_minimum_(valid_from_new))
-        return self.parent()(self.growth, coeff_new, valid_from=valid_from_new)
+        return self.parent()(self.growth, valid_from=valid_from_new, coefficient=coeff_new)
 
 
 class BTermMonoid(TermWithCoefficientMonoid):

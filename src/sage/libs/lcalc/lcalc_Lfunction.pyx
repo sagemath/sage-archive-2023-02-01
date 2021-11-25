@@ -140,32 +140,37 @@ cdef class Lfunction:
 
         EXAMPLES::
 
-            sage: chi = DirichletGroup(5)[2] #This is a quadratic character
+            sage: chi = DirichletGroup(5)[2] # This is a quadratic character
             sage: from sage.libs.lcalc.lcalc_Lfunction import *
-            sage: L=Lfunction_from_character(chi, type="int")
-            sage: L.value(.5)  # abs tol 1e-8
-            0.231750947504016 + 5.75329642226136e-18*I
-            sage: L.value(.2+.4*I) # abs tol 1e-8
-            0.102558603193 + 0.190840777924*I
+            sage: L = Lfunction_from_character(chi, type="int")
+            sage: (L.value(0.5) - 0.231750947504016).abs() < 1e-8
+            True
+            sage: v = L.value(0.2 + 0.4*I)
+            sage: (v - (0.102558603193 + 0.190840777924*I)).abs() < 1e-8
+            True
 
-            sage: L=Lfunction_from_character(chi, type="double")
-            sage: L.value(.6)  # abs tol 1e-8
-            0.274633355856345 + 6.59869267328199e-18*I
-            sage: L.value(.6+I) # abs tol 1e-8
-            0.362258705721 + 0.433888250620*I
-
+            sage: L = Lfunction_from_character(chi, type="double")
+            sage: (L.value(0.6) - 0.274633355856345).abs() < 1e-8
+            True
+            sage: v = L.value(0.6 + I)
+            sage: (v - (0.362258705721 + 0.43388825062*I)).abs() < 1e-8
+            True
             sage: chi = DirichletGroup(5)[1]
-            sage: L=Lfunction_from_character(chi, type="complex")
-            sage: L.value(.5) # abs tol 1e-8
-            0.763747880117 + 0.216964767518*I
-            sage: L.value(.6+5*I) # abs tol 1e-8
-            0.702723260619 - 1.10178575243*I
+            sage: L = Lfunction_from_character(chi, type="complex")
+            sage: v = L.value(0.5)
+            sage: (v - (0.763747880117 + 0.21696476751*I)).abs() < 1e-8
+            True
+            sage: v = L.value(0.6 + 5*I)
+            sage: (v - (0.702723260619 - 1.10178575243*I)).abs() < 1e-8
+            True
 
-            sage: L=Lfunction_Zeta()
-            sage: L.value(.5) # abs tol 1e-8
-            -1.46035450880 + 0.0*I
-            sage: L.value(.4+.5*I)  # abs tol 1e-8
-            -0.450728958517 - 0.780511403019*I
+            sage: L = Lfunction_Zeta()
+            sage: (L.value(0.5) + 1.46035450880).abs() < 1e-8
+            True
+            sage: v = L.value(0.4 + 0.5*I)
+            sage: (v - (-0.450728958517 - 0.780511403019*I)).abs() < 1e-8
+            True
+
         """
         cdef ComplexNumber complexified_s = CCC(s)
         cdef c_Complex z = new_Complex(mpfr_get_d(complexified_s.__re, MPFR_RNDN), mpfr_get_d(complexified_s.__im, MPFR_RNDN))
@@ -185,22 +190,21 @@ cdef class Lfunction:
             sage: chi = DirichletGroup(5)[2]  # Quadratic character
             sage: from sage.libs.lcalc.lcalc_Lfunction import *
             sage: L = Lfunction_from_character(chi, type="int")
-            sage: L.hardy_z_function(0) # abs tol 1e-8
-            0.231750947504 + 0.0*I
-            sage: L.hardy_z_function(.5).imag()  # abs tol 1e-8
-            1.17253174178320e-17
+            sage: (L.hardy_z_function(0) - 0.231750947504).abs() < 1e-8
+            True
+            sage: L.hardy_z_function(0.5).imag().abs() < 1e-8
+            True
             sage: chi = DirichletGroup(5)[1]
             sage: L = Lfunction_from_character(chi, type="complex")
-            sage: L.hardy_z_function(0) # abs tol 1e-8
-            0.793967590477 + 0.0*I
-            sage: L.hardy_z_function(.5).imag()  # abs tol 1e-8
-            0.000000000000000
+            sage: (L.hardy_z_function(0) - 0.793967590477).abs() < 1e-8
+            True
+            sage: L.hardy_z_function(0.5).imag().abs() < 1e-8
+            True
             sage: E = EllipticCurve([-82,0])
             sage: L = Lfunction_from_elliptic_curve(E, number_of_coeffs=40000)
-            sage: L.hardy_z_function(2.1) # abs tol 1e-8
-            -0.00643179176863296 - 1.47189978221606e-19*I
-            sage: L.hardy_z_function(2.1).imag()  # abs tol 1e-8
-            -3.93833660115668e-19
+            sage: (L.hardy_z_function(2.1) - (-0.006431791768)).abs() < 1e-8
+            True
+
         """
         #This takes s -> .5 + I*s
         cdef ComplexNumber complexified_s = CCC(0.5)+ CCC(0,1)*CCC(s)
@@ -347,14 +351,14 @@ cdef class Lfunction:
             sage: chi = DirichletGroup(5)[1]
             sage: L=Lfunction_from_character(chi, type="complex")
             sage: zeros = L.find_zeros_via_N(3)
-            sage: zeros[0] # abs tol 1e-8
-            -4.13290370521286
-            sage: zeros[1] # abs tol 1e-8
-            6.18357819545086
-            sage: zeros[2] # abs tol 1e-8
-            8.45722917442320
 
             sage: L=Lfunction_Zeta()
+            sage: (zeros[0] - (-4.13290370521286)).abs() < 1e-8
+            True
+            sage: (zeros[1]  - 6.18357819545086).abs() < 1e-8
+            True
+            sage: (zeros[2]  - 8.45722917442320).abs() < 1e-8
+            True
             sage: L.find_zeros_via_N(3)
             [14.1347251417..., 21.0220396387..., 25.0108575801...]
         """
@@ -952,10 +956,10 @@ def Lfunction_from_elliptic_curve(E, number_of_coeffs=10000):
         sage: L = Lfunction_from_elliptic_curve(EllipticCurve('37'))
         sage: L
         L-function with real Dirichlet coefficients
-        sage: L.value(0.5).abs() < 1e-8   # "noisy" zero on some platforms (see #9615)
+        sage: L.value(0.5).abs() < 1e-8
         True
-        sage: L.value(0.5, derivative=1)  # abs tol 1e-6
-        0.305999773835200 + 0.0*I
+        sage: (L.value(0.5, derivative=1) - 0.305999773835200).abs() < 1e-6
+        True
 
     """
     import sage.libs.lcalc.lcalc_Lfunction

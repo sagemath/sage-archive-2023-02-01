@@ -140,21 +140,24 @@ cdef class Lfunction:
 
         EXAMPLES::
 
-            sage: chi = DirichletGroup(5)[2] # This is a quadratic character
             sage: from sage.libs.lcalc.lcalc_Lfunction import *
+            sage: chi = DirichletGroup(5)[2] # This is a quadratic character
             sage: L = Lfunction_from_character(chi, type="int")
             sage: (L.value(0.5) - 0.231750947504016).abs() < 1e-8
             True
             sage: v = L.value(0.2 + 0.4*I)
             sage: (v - (0.102558603193 + 0.190840777924*I)).abs() < 1e-8
             True
-
             sage: L = Lfunction_from_character(chi, type="double")
             sage: (L.value(0.6) - 0.274633355856345).abs() < 1e-8
             True
             sage: v = L.value(0.6 + I)
             sage: (v - (0.362258705721 + 0.43388825062*I)).abs() < 1e-8
             True
+
+        ::
+
+            sage: from sage.libs.lcalc.lcalc_Lfunction import *
             sage: chi = DirichletGroup(5)[1]
             sage: L = Lfunction_from_character(chi, type="complex")
             sage: v = L.value(0.5)
@@ -164,6 +167,9 @@ cdef class Lfunction:
             sage: (v - (0.702723260619 - 1.10178575243*I)).abs() < 1e-8
             True
 
+        ::
+
+            sage: from sage.libs.lcalc.lcalc_Lfunction import *
             sage: L = Lfunction_Zeta()
             sage: (L.value(0.5) + 1.46035450880).abs() < 1e-8
             True
@@ -187,19 +193,27 @@ cdef class Lfunction:
 
         EXAMPLES::
 
-            sage: chi = DirichletGroup(5)[2]  # Quadratic character
             sage: from sage.libs.lcalc.lcalc_Lfunction import *
+            sage: chi = DirichletGroup(5)[2]  # Quadratic character
             sage: L = Lfunction_from_character(chi, type="int")
             sage: (L.hardy_z_function(0) - 0.231750947504).abs() < 1e-8
             True
             sage: L.hardy_z_function(0.5).imag().abs() < 1e-8
             True
+
+        ::
+
+            sage: from sage.libs.lcalc.lcalc_Lfunction import *
             sage: chi = DirichletGroup(5)[1]
             sage: L = Lfunction_from_character(chi, type="complex")
             sage: (L.hardy_z_function(0) - 0.793967590477).abs() < 1e-8
             True
             sage: L.hardy_z_function(0.5).imag().abs() < 1e-8
             True
+
+        ::
+
+            sage: from sage.libs.lcalc.lcalc_Lfunction import *
             sage: E = EllipticCurve([-82,0])
             sage: L = Lfunction_from_elliptic_curve(E, number_of_coeffs=40000)
             sage: (L.hardy_z_function(2.1) - (-0.006431791768)).abs() < 1e-8
@@ -220,15 +234,20 @@ cdef class Lfunction:
 
         EXAMPLES::
 
-            sage: chi = DirichletGroup(5)[2] #This is a quadratic character
             sage: from sage.libs.lcalc.lcalc_Lfunction import *
-            sage: L=Lfunction_from_character(chi, type="int")
+            sage: chi = DirichletGroup(5)[2] # This is a quadratic character
+            sage: L = Lfunction_from_character(chi, type="int")
             sage: L.compute_rank()
             0
-            sage: E=EllipticCurve([-82,0])
-            sage: L=Lfunction_from_elliptic_curve(E, number_of_coeffs=40000)
+
+        ::
+
+            sage: from sage.libs.lcalc.lcalc_Lfunction import *
+            sage: E = EllipticCurve([-82,0])
+            sage: L = Lfunction_from_elliptic_curve(E, number_of_coeffs=40000)
             sage: L.compute_rank()
             3
+
         """
         return self.__compute_rank()
 
@@ -274,21 +293,26 @@ cdef class Lfunction:
         EXAMPLES::
 
             sage: from sage.libs.lcalc.lcalc_Lfunction import *
-            sage: chi = DirichletGroup(5)[2] #This is a quadratic character
-            sage: L=Lfunction_from_character(chi, type="int")
+            sage: chi = DirichletGroup(5)[2] # This is a quadratic character
+            sage: L = Lfunction_from_character(chi, type="int")
             sage: L.find_zeros(5,15,.1)
             [6.64845334472..., 9.83144443288..., 11.9588456260...]
-
-            sage: L=Lfunction_from_character(chi, type="double")
+            sage: L = Lfunction_from_character(chi, type="double")
             sage: L.find_zeros(1,15,.1)
             [6.64845334472..., 9.83144443288..., 11.9588456260...]
 
+        ::
+
+            sage: from sage.libs.lcalc.lcalc_Lfunction import *
             sage: chi = DirichletGroup(5)[1]
-            sage: L=Lfunction_from_character(chi, type="complex")
+            sage: L = Lfunction_from_character(chi, type="complex")
             sage: L.find_zeros(-8,8,.1)
             [-4.13290370521..., 6.18357819545...]
 
-            sage: L=Lfunction_Zeta()
+        ::
+
+            sage: from sage.libs.lcalc.lcalc_Lfunction import *
+            sage: L = Lfunction_Zeta()
             sage: L.find_zeros(10,29.1,.1)
             [14.1347251417..., 21.0220396387..., 25.0108575801...]
         """
@@ -340,27 +364,33 @@ cdef class Lfunction:
 
             sage: from sage.libs.lcalc.lcalc_Lfunction import *
             sage: chi = DirichletGroup(5)[2] #This is a quadratic character
-            sage: L=Lfunction_from_character(chi, type="int")
+            sage: L = Lfunction_from_character(chi, type="int")
+            sage: L.find_zeros_via_N(3)
+            [6.64845334472..., 9.83144443288..., 11.9588456260...]
+            sage: L = Lfunction_from_character(chi, type="double")
             sage: L.find_zeros_via_N(3)
             [6.64845334472..., 9.83144443288..., 11.9588456260...]
 
-            sage: L=Lfunction_from_character(chi, type="double")
-            sage: L.find_zeros_via_N(3)
-            [6.64845334472..., 9.83144443288..., 11.9588456260...]
+        ::
 
+            sage: from sage.libs.lcalc.lcalc_Lfunction import *
             sage: chi = DirichletGroup(5)[1]
-            sage: L=Lfunction_from_character(chi, type="complex")
+            sage: L = Lfunction_from_character(chi, type="complex")
             sage: zeros = L.find_zeros_via_N(3)
-
-            sage: L=Lfunction_Zeta()
             sage: (zeros[0] - (-4.13290370521286)).abs() < 1e-8
             True
             sage: (zeros[1]  - 6.18357819545086).abs() < 1e-8
             True
             sage: (zeros[2]  - 8.45722917442320).abs() < 1e-8
             True
+
+        ::
+
+            sage: from sage.libs.lcalc.lcalc_Lfunction import *
+            sage: L = Lfunction_Zeta()
             sage: L.find_zeros_via_N(3)
             [14.1347251417..., 21.0220396387..., 25.0108575801...]
+
         """
 
         # This is the default value for message_stamp, but we have to

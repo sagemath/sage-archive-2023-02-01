@@ -1866,8 +1866,7 @@ class GenericTermMonoid(UniqueRepresentation, Parent, WithLocals):
                 f'but {len(args)+1} were given')
         elif len(args) == 1:
             from sage.misc.superseded import deprecation
-            deprecation(
-                32215,
+            deprecation(32215,
                 "Passing 'coefficient' as a positional argument is deprecated; "
                 "specify it as keyword argument 'coefficient=...'.")
             if 'coefficient' in kwds:

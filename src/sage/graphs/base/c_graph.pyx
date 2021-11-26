@@ -1597,7 +1597,7 @@ cdef class CGraphBackend(GenericGraphBackend):
         The bug in :trac:`14967` and :trac:`14853` is fixed::
 
             sage: DiGraph({0: {}, 1/2: {}})
-            Multi-digraph on 2 vertices
+            Digraph on 2 vertices
             sage: A = Set([RDF.random_element(min=0, max=10) for k in range(10)])
             sage: G = Graph()
             sage: G.add_vertices(A)
@@ -4400,11 +4400,18 @@ cdef class CGraphBackend(GenericGraphBackend):
 
             sage: Graph(graphs.CubeGraph(3)).is_connected()
             True
+
+        TESTS::
+
+            sage: P = posets.PentagonPoset()
+            sage: H = P._hasse_diagram
+            sage: H._backend.is_connected()
+            True
         """
         cdef int v_int
         cdef CGraph cg = self.cg()
 
-        if cg.num_edges() < cg.num_verts - 1:
+        if cg.num_arcs < cg.num_verts - 1:
             return False
 
         v_int = bitset_first(cg.active_vertices)
@@ -4512,7 +4519,7 @@ cdef class CGraphBackend(GenericGraphBackend):
 
         ALGORITHM:
 
-        We pick a vertex at random, think hard and find out that that if we are
+        We pick a vertex at random, think hard and find out that if we are
         to remove the vertex from the graph we must remove all of its
         out-neighbors in the first place. So we put all of its out-neighbours in
         a stack, and repeat the same procedure with the vertex on top of the

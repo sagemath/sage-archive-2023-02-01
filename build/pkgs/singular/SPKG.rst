@@ -13,7 +13,6 @@ License
 
 GPLv2 or GPLv3
 
-
 Upstream Contact
 ----------------
 
@@ -21,21 +20,8 @@ libsingular-devel@mathematik.uni-kl.de
 
 https://www.singular.uni-kl.de/
 
-Dependencies
-------------
-
--  GNU patch
--  readline
--  GMP/MPIR
--  MPFR
--  NTL
--  FLINT
-
-
 Special Update/Build Instructions
 ---------------------------------
-
-See spkg-src to create the source tarball.
 
 Other notes:
 

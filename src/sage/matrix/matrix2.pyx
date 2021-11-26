@@ -90,11 +90,6 @@ from sage.rings.number_field.number_field_base import is_NumberField
 from sage.rings.integer_ring import ZZ, is_IntegerRing
 from sage.rings.integer import Integer
 from sage.rings.rational_field import QQ, is_RationalField
-from sage.rings.real_double import RDF
-from sage.rings.complex_double import CDF
-from sage.rings.real_mpfr import RealField
-from sage.rings.complex_mpfr import ComplexField
-from sage.rings.finite_rings.integer_mod_ring import IntegerModRing
 import sage.rings.abc
 from sage.arith.numerical_approx cimport digits_to_bits
 from copy import copy
@@ -1545,6 +1540,8 @@ cdef class Matrix(Matrix1):
         ring = self.base_ring()
         if algorithm is None:
             # Choose algorithm depending on base ring
+            from sage.rings.real_mpfr import RealField
+            from sage.rings.complex_mpfr import ComplexField
             is_complex = ComplexField(2).has_coerce_map_from(ring)
             if is_complex:
                 if ring.is_exact():
@@ -1985,8 +1982,6 @@ cdef class Matrix(Matrix1):
             sage: A.determinant() == B.determinant()
             True
         """
-        from sage.symbolic.ring import is_SymbolicExpressionRing
-
         cdef Py_ssize_t n
         n = self._ncols
 
@@ -2075,7 +2070,7 @@ cdef class Matrix(Matrix1):
         # is then assumed to not be a variable in the symbolic ring.  But this
         # resulted in further exceptions/ errors.
 
-        var = 'A0123456789' if is_SymbolicExpressionRing(R) else 'x'
+        var = 'A0123456789' if isinstance(R, sage.rings.abc.SymbolicRing) else 'x'
         try:
             charp = self.charpoly(var, algorithm="df")
         except ValueError:
@@ -2136,15 +2131,13 @@ cdef class Matrix(Matrix1):
 
         EXAMPLES::
 
-            sage: A = matrix([[SR(f'a{i}{j}') for i in range(2)]
-            ....:             for j in range(2)]); A
-            [a00 a10]
-            [a01 a11]
+            sage: A = matrix(SR, 2, lambda i, j: f'a{i}{j}'); A
+            [a00 a01]
+            [a10 a11]
             sage: A.quantum_determinant()
             -a01*a10*q + a00*a11
 
-            sage: A = matrix([[SR(f'a{i}{j}') for i in range(3)]
-            ....:             for j in range(3)])
+            sage: A = matrix(SR, 3, lambda i, j: f'a{i}{j}')
             sage: A.quantum_determinant()
             -a02*a11*a20*q^3 + (a01*a12*a20 + a02*a10*a21)*q^2
              + (-a00*a12*a21 - a01*a10*a22)*q + a00*a11*a22
@@ -10208,7 +10201,7 @@ cdef class Matrix(Matrix1):
         """
         from sage.modules.free_module_element import zero_vector
         from sage.matrix.constructor import zero_matrix, matrix
-        from sage.functions.other import sqrt
+        from sage.misc.functional import sqrt
 
         if full:
             QR = self.fetch('QR_factors')
@@ -10724,10 +10717,8 @@ cdef class Matrix(Matrix1):
             sage: mu*G == A
             True
         """
-        import sage.rings.real_double
-        import sage.rings.complex_double
         R = self.base_ring()
-        if R in [sage.rings.real_double.RDF, sage.rings.complex_double.CDF]:
+        if isinstance(R, (sage.rings.abc.RealDoubleField, sage.rings.abc.ComplexDoubleField)):
             Q, R = self.transpose().QR()
             m = R.nrows(); n = R.ncols()
             if m > n:
@@ -14294,7 +14285,6 @@ cdef class Matrix(Matrix1):
         code. The boolean ``semi`` argument exists only to change
         "greater than zero" into "greater than or equal to zero."
         """
-        from sage.symbolic.ring import SR
         from sage.rings.real_lazy import RLF,CLF
 
         R = self.base_ring()
@@ -14303,7 +14293,7 @@ cdef class Matrix(Matrix1):
                 R.has_coerce_map_from(RLF) or
                 CLF.has_coerce_map_from(R) or
                 R.has_coerce_map_from(CLF) or
-                R is SR):
+                isinstance(R, sage.rings.abc.SymbolicRing)):
             # This is necessary to avoid "going through the motions"
             # with e.g. a one-by-one identity matrix over the finite
             # field of order 5^2, which might otherwise look positive-
@@ -14666,7 +14656,7 @@ cdef class Matrix(Matrix1):
             True
         """
         from sage.matrix.special import diagonal_matrix
-        from sage.functions.other import sqrt
+        from sage.misc.functional import sqrt
 
         if check_positivity and not self.is_positive_definite():
             return False
@@ -15026,6 +15016,8 @@ cdef class Matrix(Matrix1):
             sage: matrix(CDF, 2, 2, sparse=True).norm(1)
             0.0
         """
+        from sage.rings.real_double import RDF
+        from sage.rings.complex_double import CDF
 
         if self._nrows == 0 or self._ncols == 0:
             return RDF(0)
@@ -15130,14 +15122,17 @@ cdef class Matrix(Matrix1):
             sage: _ = A.n()
 
         """
+        from sage.rings.real_mpfr import RealField
+        from sage.rings.complex_mpfr import ComplexField
+
         if prec is None:
             prec = digits_to_bits(digits)
 
         try:
-            return self.change_ring(sage.rings.real_mpfr.RealField(prec))
+            return self.change_ring(RealField(prec))
         except (TypeError, ValueError):
             # try to return a complex result
-            return self.change_ring(sage.rings.complex_mpfr.ComplexField(prec))
+            return self.change_ring(ComplexField(prec))
 
     def plot(self, *args, **kwds):
         """
@@ -16910,15 +16905,23 @@ cdef class Matrix(Matrix1):
             ValueError: The base ring of the matrix is neither symbolic nor
             exact.
 
+        Symbolic subrings are fine::
+
+            sage: SCR = SR.subring(no_variables=True); SCR
+            Symbolic Constants Subring
+            sage: K = Cone([(1,2,3), (4,5,6)])
+            sage: L = identity_matrix(SCR, 3)
+            sage: L.is_positive_operator_on(K)
+            True
         """
-        from sage.symbolic.ring import SR
-        from sage.geometry.cone import is_Cone
+        import sage.geometry.abc
 
         if K2 is None:
             K2 = K1
-        if not ( is_Cone(K1) and is_Cone(K2) ):
+        if not (isinstance(K1, sage.geometry.abc.ConvexRationalPolyhedralCone)
+                and isinstance(K2, sage.geometry.abc.ConvexRationalPolyhedralCone)):
             raise TypeError('K1 and K2 must be cones.')
-        if not self.base_ring().is_exact() and not self.base_ring() is SR:
+        if not self.base_ring().is_exact() and not isinstance(self.base_ring(), sage.rings.abc.SymbolicRing):
             msg = 'The base ring of the matrix is neither symbolic nor exact.'
             raise ValueError(msg)
 
@@ -17053,13 +17056,20 @@ cdef class Matrix(Matrix1):
             ValueError: The base ring of the matrix is neither symbolic nor
             exact.
 
-        """
-        from sage.symbolic.ring import SR
-        from sage.geometry.cone import is_Cone
+        Symbolic subrings are fine::
 
-        if not is_Cone(K):
+            sage: SCR = SR.subring(no_variables=True); SCR
+            Symbolic Constants Subring
+            sage: K = Cone([(1,2,3), (4,5,6)])
+            sage: L = identity_matrix(SCR, 3)
+            sage: L.is_cross_positive_on(K)
+            True
+        """
+        import sage.geometry.abc
+
+        if not isinstance(K, sage.geometry.abc.ConvexRationalPolyhedralCone):
             raise TypeError('K must be a cone.')
-        if not self.base_ring().is_exact() and not self.base_ring() is SR:
+        if not self.base_ring().is_exact() and not isinstance(self.base_ring(), sage.rings.abc.SymbolicRing):
             msg = 'The base ring of the matrix is neither symbolic nor exact.'
             raise ValueError(msg)
 
@@ -17307,6 +17317,15 @@ cdef class Matrix(Matrix1):
             ValueError: The base ring of the matrix is neither symbolic nor
             exact.
 
+        Symbolic subrings are fine::
+
+            sage: SCR = SR.subring(no_variables=True); SCR
+            Symbolic Constants Subring
+            sage: K = Cone([(1,2,3), (4,5,6)])
+            sage: L = identity_matrix(SCR, 3)
+            sage: L.is_lyapunov_like_on(K)
+            True
+
         A matrix is Lyapunov-like on a cone if and only if both the
         matrix and its negation are cross-positive on the cone::
 
@@ -17319,14 +17338,12 @@ cdef class Matrix(Matrix1):
             ....:             (-L).is_cross_positive_on(K))  # long time
             sage: actual == expected                         # long time
             True
-
         """
-        from sage.symbolic.ring import SR
-        from sage.geometry.cone import is_Cone
+        import sage.geometry.abc
 
-        if not is_Cone(K):
+        if not isinstance(K, sage.geometry.abc.ConvexRationalPolyhedralCone):
             raise TypeError('K must be a cone.')
-        if not self.base_ring().is_exact() and not self.base_ring() is SR:
+        if not self.base_ring().is_exact() and not isinstance(self.base_ring(), sage.rings.abc.SymbolicRing):
             msg = 'The base ring of the matrix is neither symbolic nor exact.'
             raise ValueError(msg)
 

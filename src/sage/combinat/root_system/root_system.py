@@ -2,7 +2,7 @@ r"""
 Root systems
 ============
 
-See :ref:`sage.combinat.root_system` for an overview.
+See :ref:`sage.combinat.root_system.all` for an overview.
 """
 #*****************************************************************************
 #       Copyright (C) 2007      Mike Hansen <mhansen@gmail.com>,
@@ -20,7 +20,7 @@ from sage.structure.unique_representation import UniqueRepresentation
 from .cartan_type import CartanType
 from sage.rings.integer_ring import ZZ
 from sage.rings.rational_field import QQ
-from sage.misc.all import cached_method
+from sage.misc.cachefunc import cached_method
 from .root_space import RootSpace
 from .weight_space import WeightSpace
 

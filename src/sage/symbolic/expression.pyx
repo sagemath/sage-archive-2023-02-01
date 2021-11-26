@@ -1534,8 +1534,9 @@ cdef class Expression(Expression_abc):
             ValueError: cannot convert sqrt(-3) to int
         """
         from sage.functions.all import floor, ceil
+        from sage.rings.real_mpfi import RIF
         try:
-            rif_self = sage.rings.all.RIF(self)
+            rif_self = RIF(self)
         except TypeError:
             raise ValueError("cannot convert %s to int" % self)
         if rif_self > 0 or (rif_self.contains_zero() and self > 0):
@@ -1697,7 +1698,7 @@ cdef class Expression(Expression_abc):
             sage: SR(CBF(1))._convert({'parent':RDF})
             1.0
             sage: type(_.pyobject())
-            <class 'sage.rings.real_double.RealDoubleElement'>
+            <class 'sage.rings.real_double...RealDoubleElement...'>
         """
         cdef GEx res = self._gobj.evalf(0, kwds)
         return new_Expression_from_GEx(self._parent, res)
@@ -1792,7 +1793,20 @@ cdef class Expression(Expression_abc):
             Traceback (most recent call last):
             ...
             ValueError: nonzero imaginary part
+
+            sage: from sage.symbolic.function import BuiltinFunction
+            sage: f = BuiltinFunction("bogus_builtin_function")
+            sage: RBF(f(1))
+            Traceback (most recent call last):
+            ...
+            TypeError: unable to convert bogus_builtin_function(1) to a RealBall
+            sage: CBF(f(1))
+            Traceback (most recent call last):
+            ...
+            TypeError: unable to convert bogus_builtin_function(1) to a ComplexBall
         """
+        cdef bint progress = False
+        cdef int i
         # Note that we deliberately don't use _eval_self and don't try going
         # through RIF/CIF in order to avoid unsafe conversions.
         operator = self.operator()
@@ -1826,11 +1840,18 @@ cdef class Expression(Expression_abc):
             # Generic case: walk through the expression. In this case, we do
             # not bother trying to stay in the real field.
             try:
-                res = self.operator()(*[C(a) for a in args])
+                for i in range(len(args)):
+                    if args[i].parent() is not C:
+                        progress = True
+                        args[i] = C(args[i])
             except (TypeError, ValueError):
                 pass
-            else:
-                return R(res)
+            if progress:
+                try:
+                    res = self.operator()(*[C(a) for a in args])
+                    return R(res)
+                except (TypeError, ValueError):
+                    pass
         # Typically more informative and consistent than the exceptions that
         # would propagate
         raise TypeError("unable to convert {!r} to a {!s}".format(
@@ -3124,6 +3145,22 @@ cdef class Expression(Expression_abc):
 
         return obj.is_square()
 
+    def is_callable(self):
+        r"""
+        Return ``True`` if ``self`` is a callable symbolic expression.
+
+        EXAMPLES::
+
+            sage: var('a x y z')
+            (a, x, y, z)
+            sage: f(x, y) = a + 2*x + 3*y + z
+            sage: f.is_callable()
+            True
+            sage: (a+2*x).is_callable()
+            False
+        """
+        return isinstance(self.parent(), sage.rings.abc.CallableSymbolicExpressionRing)
+
     def left_hand_side(self):
         """
         If self is a relational expression, return the left hand side
@@ -3558,27 +3595,22 @@ cdef class Expression(Expression_abc):
         if not self.is_relational():
             raise ValueError("self must be a relation")
         cdef operators op = relational_operator(self._gobj)
-        from sage.rings.real_mpfi import is_RealIntervalField
-        from sage.rings.complex_interval_field import is_ComplexIntervalField
-        from sage.rings.all import RIF, CIF
-        from sage.rings.qqbar import is_AlgebraicField, is_AlgebraicRealField, AA, QQbar
         if domain is None:
             is_interval = True
             if self.lhs().is_algebraic() and self.rhs().is_algebraic():
                 if op == equal or op == not_equal:
-                    domain = QQbar
+                    from sage.rings.qqbar import QQbar as domain
                 else:
-                    domain = AA
+                    from sage.rings.qqbar import AA as domain
             else:
                 if op == equal or op == not_equal:
-                    domain = CIF
+                    from sage.rings.qqbar import CIF as domain
                 else:
-                    domain = RIF
+                    from sage.rings.real_mpfi import RIF as domain
         else:
-            is_interval = (isinstance(domain, (sage.rings.abc.RealIntervalField,
-                                               sage.rings.abc.ComplexIntervalField))
-                           or is_AlgebraicField(domain)
-                           or is_AlgebraicRealField(domain))
+            is_interval = isinstance(domain, (sage.rings.abc.RealIntervalField,
+                                              sage.rings.abc.ComplexIntervalField,
+                                              sage.rings.abc.AlgebraicField_common))
         zero = domain(0)
         diff = self.lhs() - self.rhs()
         vars = diff.variables()
@@ -3631,6 +3663,7 @@ cdef class Expression(Expression_abc):
                 except (TypeError, ValueError, ArithmeticError, AttributeError) as ex:
                     errors += 1
                     if k == errors > 3 and isinstance(domain, sage.rings.abc.ComplexIntervalField):
+                        from sage.rings.real_mpfi import RIF
                         domain = RIF.to_prec(domain.prec())
                     # we are plugging in random values above, don't be surprised
                     # if something goes wrong...
@@ -4632,7 +4665,7 @@ cdef class Expression(Expression_abc):
                 symb = vars[0]
             elif len(vars) == 0:
                 return self._parent(0)
-            elif sage.symbolic.callable.is_CallableSymbolicExpression(self):
+            elif self.is_callable():
                 return self.gradient()
             else:
                 raise ValueError("No differentiation variable specified.")
@@ -6654,8 +6687,9 @@ cdef class Expression(Expression_abc):
         except (TypeError, AttributeError):
             pass
         from sage.functions.all import floor, ceil
+        from sage.rings.real_mpfi import RIF
         try:
-            rif_self = sage.rings.all.RIF(self)
+            rif_self = RIF(self)
         except TypeError:
             raise ValueError("could not convert %s to a real number" % self)
         half = 1 / sage.rings.integer.Integer(2)
@@ -12714,7 +12748,6 @@ cdef class Expression(Expression_abc):
             sage: plot(f,0,1)
             Graphics object consisting of 1 graphics primitive
         """
-        from sage.symbolic.callable import is_CallableSymbolicExpression
         from sage.symbolic.ring import is_SymbolicVariable
         from sage.plot.plot import plot
 
@@ -12730,7 +12763,7 @@ cdef class Expression(Expression_abc):
                     break
 
         if param is None:
-            if is_CallableSymbolicExpression(self):
+            if self.is_callable():
                 A = self.arguments()
                 if len(A) == 0:
                     raise ValueError("function has no input arguments")
@@ -13080,10 +13113,8 @@ cdef class Expression(Expression_abc):
         """
         from sage.symbolic.integration.integral import \
             integral, _normalize_integral_input
-        from sage.symbolic.callable import \
-            CallableSymbolicExpressionRing, is_CallableSymbolicExpressionRing
         R = self._parent
-        if is_CallableSymbolicExpressionRing(R):
+        if isinstance(R, sage.rings.abc.CallableSymbolicExpressionRing):
             f = SR(self)
             f, v, a, b = _normalize_integral_input(f, *args)
             # Definite integral with respect to a positional variable.
@@ -13092,6 +13123,7 @@ cdef class Expression(Expression_abc):
                 arguments.remove(v)
                 if arguments:
                     arguments = tuple(arguments)
+                    from sage.symbolic.callable import CallableSymbolicExpressionRing
                     R = CallableSymbolicExpressionRing(arguments, check=False)
                 else:   # all arguments are gone
                     R = SR

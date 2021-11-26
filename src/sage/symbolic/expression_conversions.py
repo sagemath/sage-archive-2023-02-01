@@ -1542,7 +1542,7 @@ class PolynomialConverter(Converter):
         if not any(repr(v) in self.varnames for v in ex.variables()):
             return self.base_ring(ex)
         elif operator == _operator.pow:
-            from sage.rings.all import Integer
+            from sage.rings.integer import Integer
             base, exp = ex.operands()
             return self(base)**Integer(exp)
         if operator == add_vararg:
@@ -1782,10 +1782,10 @@ class FastCallableConverter(Converter):
             if exponent == -1:
                 return self.etb.call(_operator.truediv, 1, operands[0])
             elif exponent == 0.5:
-                from sage.functions.all import sqrt
+                from sage.misc.functional import sqrt
                 return self.etb.call(sqrt, operands[0])
             elif exponent == -0.5:
-                from sage.functions.all import sqrt
+                from sage.misc.functional import sqrt
                 return self.etb.call(_operator.truediv, 1, self.etb.call(sqrt, operands[0]))
         elif operator is _operator.neg:
             return self.etb.call(operator, operands[0])
@@ -1949,7 +1949,7 @@ class RingConverter(Converter):
             base, expt = operands
 
             if expt == Rational(((1,2))):
-                from sage.functions.all import sqrt
+                from sage.misc.functional import sqrt
                 return sqrt(self(base))
             try:
                 expt = Integer(expt)

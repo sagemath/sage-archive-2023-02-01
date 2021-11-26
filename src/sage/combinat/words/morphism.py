@@ -3280,7 +3280,8 @@ class WordMorphism(SageObject):
             pass
         else:
             mortal.sort(key=rank)
-            for letters in polynomial: letters.sort(key=rank)
+            for letters in polynomial:
+                letters.sort(key=rank)
             exponential.sort(key=rank)
 
         return mortal, polynomial, exponential

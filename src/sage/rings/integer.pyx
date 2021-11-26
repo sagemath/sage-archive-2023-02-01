@@ -3529,8 +3529,7 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
 
     def __int__(self):
         """
-        Return the Python int (or long) corresponding to this Sage
-        integer.
+        Return the Python int corresponding to this Sage integer.
 
         EXAMPLES::
 
@@ -3543,9 +3542,9 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
             <... 'int'>
             sage: n = 99028390823409823904823098490238409823490820938
             sage: int(n)
-            99028390823409823904823098490238409823490820938L
+            99028390823409823904823098490238409823490820938
             sage: int(-n)
-            -99028390823409823904823098490238409823490820938L
+            -99028390823409823904823098490238409823490820938
             sage: type(n.__int__())
             <class 'int'>
             sage: int(-1), int(0), int(1)

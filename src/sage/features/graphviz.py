@@ -22,7 +22,7 @@ class dot(Executable):
     EXAMPLES::
 
         sage: from sage.features.graphviz import dot
-        sage: dot().is_present()  # optional: graphviz
+        sage: dot().is_present()  # optional - graphviz
         FeatureTestResult('dot', True)
     """
     def __init__(self):
@@ -45,7 +45,7 @@ class neato(Executable):
     EXAMPLES::
 
         sage: from sage.features.graphviz import neato
-        sage: neato().is_present()  # optional: graphviz
+        sage: neato().is_present()  # optional - graphviz
         FeatureTestResult('neato', True)
     """
     def __init__(self):
@@ -68,7 +68,7 @@ class twopi(Executable):
     EXAMPLES::
 
         sage: from sage.features.graphviz import twopi
-        sage: twopi().is_present()  # optional: graphviz
+        sage: twopi().is_present()  # optional - graphviz
         FeatureTestResult('twopi', True)
     """
     def __init__(self):
@@ -93,7 +93,7 @@ class Graphviz(JoinFeature):
     EXAMPLES::
 
         sage: from sage.features.graphviz import Graphviz
-        sage: Graphviz().is_present()  # optional: graphviz
+        sage: Graphviz().is_present()  # optional - graphviz
         FeatureTestResult('graphviz', True)
     """
     def __init__(self):

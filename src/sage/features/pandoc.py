@@ -22,7 +22,7 @@ class Pandoc(Executable):
     EXAMPLES::
 
         sage: from sage.features.pandoc import Pandoc
-        sage: Pandoc().is_present()  # optional: pandoc
+        sage: Pandoc().is_present()  # optional - pandoc
         FeatureTestResult('pandoc', True)
     """
     def __init__(self):

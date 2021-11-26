@@ -21,7 +21,7 @@ class dvipng(Executable):
     EXAMPLES::
 
         sage: from sage.features.dvipng import dvipng
-        sage: dvipng().is_present()             # optional: dvipng
+        sage: dvipng().is_present()             # optional - dvipng
         FeatureTestResult('dvipng', True)
     """
     def __init__(self):

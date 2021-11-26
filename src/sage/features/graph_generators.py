@@ -16,7 +16,7 @@ class Plantri(Executable):
     EXAMPLES::
 
         sage: from sage.features.graph_generators import Plantri
-        sage: Plantri().is_present()  # optional: plantri
+        sage: Plantri().is_present()  # optional - plantri
         FeatureTestResult('plantri', True)
     """
     def __init__(self):
@@ -38,7 +38,7 @@ class Plantri(Executable):
         EXAMPLES::
 
             sage: from sage.features.graph_generators import Plantri
-            sage: Plantri().is_functional()  # optional: plantri
+            sage: Plantri().is_functional()  # optional - plantri
             FeatureTestResult('plantri', True)
         """
         command = ["plantri", "4"]
@@ -63,7 +63,7 @@ class Buckygen(Executable):
     EXAMPLES::
 
         sage: from sage.features.graph_generators import Buckygen
-        sage: Buckygen().is_present()  # optional: buckygen
+        sage: Buckygen().is_present()  # optional - buckygen
         FeatureTestResult('buckygen', True)
     """
     def __init__(self):
@@ -85,7 +85,7 @@ class Buckygen(Executable):
         EXAMPLES::
 
             sage: from sage.features.graph_generators import Buckygen
-            sage: Buckygen().is_functional()  # optional: buckygen
+            sage: Buckygen().is_functional()  # optional - buckygen
             FeatureTestResult('buckygen', True)
         """
         command = ["buckygen", "-d", "22d"]
@@ -111,7 +111,7 @@ class Benzene(Executable):
     EXAMPLES::
 
         sage: from sage.features.graph_generators import Benzene
-        sage: Benzene().is_present()  # optional: benzene
+        sage: Benzene().is_present()  # optional - benzene
         FeatureTestResult('benzene', True)
     """
     def __init__(self):
@@ -133,7 +133,7 @@ class Benzene(Executable):
         EXAMPLES::
 
             sage: from sage.features.graph_generators import Benzene
-            sage: Benzene().is_functional()  # optional: benzene
+            sage: Benzene().is_functional()  # optional - benzene
             FeatureTestResult('benzene', True)
         """
         devnull = open(os.devnull, 'wb')

@@ -1113,7 +1113,7 @@ framework. Here is a comprehensive list:
 
         The following should yield 4.  See :trac:`2`. ::
 
-            sage: 2+2  # optional: bug
+            sage: 2+2  # optional - bug
             5
             sage: 2+2  # known bug
             5

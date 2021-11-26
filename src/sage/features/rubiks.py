@@ -20,7 +20,7 @@ class cu2(Executable):
     EXAMPLES::
 
         sage: from sage.features.rubiks import cu2
-        sage: cu2().is_present()  # optional: rubiks
+        sage: cu2().is_present()  # optional - rubiks
         FeatureTestResult('cu2', True)
     """
     def __init__(self):
@@ -42,7 +42,7 @@ class size222(Executable):
     EXAMPLES::
 
         sage: from sage.features.rubiks import size222
-        sage: size222().is_present()  # optional: rubiks
+        sage: size222().is_present()  # optional - rubiks
         FeatureTestResult('size222', True)
     """
     def __init__(self):
@@ -64,7 +64,7 @@ class optimal(Executable):
     EXAMPLES::
 
         sage: from sage.features.rubiks import optimal
-        sage: optimal().is_present()  # optional: rubiks
+        sage: optimal().is_present()  # optional - rubiks
         FeatureTestResult('optimal', True)
     """
     def __init__(self):
@@ -86,7 +86,7 @@ class mcube(Executable):
     EXAMPLES::
 
         sage: from sage.features.rubiks import mcube
-        sage: mcube().is_present()  # optional: rubiks
+        sage: mcube().is_present()  # optional - rubiks
         FeatureTestResult('mcube', True)
     """
     def __init__(self):
@@ -108,7 +108,7 @@ class dikcube(Executable):
     EXAMPLES::
 
         sage: from sage.features.rubiks import dikcube
-        sage: dikcube().is_present()  # optional: rubiks
+        sage: dikcube().is_present()  # optional - rubiks
         FeatureTestResult('dikcube', True)
     """
     def __init__(self):
@@ -130,7 +130,7 @@ class cubex(Executable):
     EXAMPLES::
 
         sage: from sage.features.rubiks import cubex
-        sage: cubex().is_present()  # optional: rubiks
+        sage: cubex().is_present()  # optional - rubiks
         FeatureTestResult('cubex', True)
     """
     def __init__(self):
@@ -154,7 +154,7 @@ class Rubiks(JoinFeature):
     EXAMPLES::
 
         sage: from sage.features.rubiks import Rubiks
-        sage: Rubiks().is_present()  # optional: rubiks
+        sage: Rubiks().is_present()  # optional - rubiks
         FeatureTestResult('rubiks', True)
     """
     def __init__(self):

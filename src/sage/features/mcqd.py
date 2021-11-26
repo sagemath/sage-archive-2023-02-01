@@ -13,7 +13,7 @@ class Mcqd(JoinFeature):
     EXAMPLES::
 
         sage: from sage.features.mcqd import Mcqd
-        sage: Mcqd().is_present()  # optional: mcqd
+        sage: Mcqd().is_present()  # optional - mcqd
         FeatureTestResult('mcqd', True)
     """
 

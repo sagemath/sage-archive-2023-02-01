@@ -21,7 +21,7 @@ class pdf2svg(Executable):
     EXAMPLES::
 
         sage: from sage.features.pdf2svg import pdf2svg
-        sage: pdf2svg().is_present()             # optional: pdf2svg
+        sage: pdf2svg().is_present()             # optional - pdf2svg
         FeatureTestResult('pdf2svg', True)
     """
     def __init__(self):

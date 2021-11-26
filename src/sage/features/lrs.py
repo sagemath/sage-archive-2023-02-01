@@ -18,7 +18,7 @@ class Lrs(Executable):
     EXAMPLES::
 
         sage: from sage.features.lrs import Lrs
-        sage: Lrs().is_present()  # optional: lrslib
+        sage: Lrs().is_present()  # optional - lrslib
         FeatureTestResult('lrslib', True)
     """
     def __init__(self):
@@ -39,7 +39,7 @@ class Lrs(Executable):
         EXAMPLES::
 
             sage: from sage.features.lrs import Lrs
-            sage: Lrs().is_functional()  # optional: lrslib
+            sage: Lrs().is_functional()  # optional - lrslib
             FeatureTestResult('lrslib', True)
         """
         from sage.misc.temporary_file import tmp_filename

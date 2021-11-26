@@ -58,7 +58,7 @@ class LibFESLibrary(CythonFeature):
     EXAMPLES::
 
         sage: from sage.features.fes import LibFESLibrary
-        sage: LibFESLibrary().require()  # optional: fes
+        sage: LibFESLibrary().require()  # optional - fes
     """
     def __init__(self):
         r"""
@@ -80,7 +80,7 @@ class LibFES(JoinFeature):
     EXAMPLES::
 
         sage: from sage.features.fes import LibFES
-        sage: LibFES().require()  # optional: fes
+        sage: LibFES().require()  # optional - fes
     """
     def __init__(self):
         r"""

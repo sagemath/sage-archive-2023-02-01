@@ -28,7 +28,7 @@ feature::
 Here we test whether the grape GAP package is available::
 
     sage: from sage.features.gap import GapPackage
-    sage: GapPackage("grape", spkg="gap_packages").is_present()  # optional: gap_packages
+    sage: GapPackage("grape", spkg="gap_packages").is_present()  # optional - gap_packages
     FeatureTestResult('gap_package_grape', True)
 
 Note that a :class:`FeatureTestResult` acts like a bool in most contexts::
@@ -147,7 +147,7 @@ class Feature(TrivialUniqueRepresentation):
         EXAMPLES::
 
             sage: from sage.features.gap import GapPackage
-            sage: GapPackage("grape", spkg="gap_packages").is_present()  # optional: gap_packages
+            sage: GapPackage("grape", spkg="gap_packages").is_present()  # optional - gap_packages
             FeatureTestResult('gap_package_grape', True)
             sage: GapPackage("NOT_A_PACKAGE", spkg="gap_packages").is_present()
             FeatureTestResult('gap_package_NOT_A_PACKAGE', False)

@@ -59,7 +59,7 @@ class DatabaseCremona(StaticFile):
         sage: from sage.features.databases import DatabaseCremona
         sage: DatabaseCremona('cremona_mini').is_present()
         FeatureTestResult('database_cremona_mini_ellcurve', True)
-        sage: DatabaseCremona().is_present()  # optional: database_cremona_ellcurve
+        sage: DatabaseCremona().is_present()  # optional - database_cremona_ellcurve
         FeatureTestResult('database_cremona_ellcurve', True)
     """
     def __init__(self, name="cremona", spkg="database_cremona_ellcurve"):
@@ -85,7 +85,7 @@ class DatabaseJones(StaticFile):
     EXAMPLES::
 
         sage: from sage.features.databases import DatabaseJones
-        sage: bool(DatabaseJones().is_present())  # optional: database_jones_numfield
+        sage: bool(DatabaseJones().is_present())  # optional - database_jones_numfield
         True
     """
     def __init__(self):
@@ -113,7 +113,7 @@ class DatabaseKnotInfo(PythonModule):
     EXAMPLES::
 
         sage: from sage.features.databases import DatabaseKnotInfo
-        sage: DatabaseKnotInfo().is_present()  # optional: database_knotinfo
+        sage: DatabaseKnotInfo().is_present()  # optional - database_knotinfo
         FeatureTestResult('database_knotinfo', True)
     """
     def __init__(self):

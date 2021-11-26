@@ -30,7 +30,7 @@ class BlissLibrary(CythonFeature):
     EXAMPLES::
 
         sage: from sage.features.bliss import BlissLibrary
-        sage: BlissLibrary().require()  # optional: libbliss
+        sage: BlissLibrary().require()  # optional - libbliss
     """
 
     def __init__(self):
@@ -54,7 +54,7 @@ class Bliss(JoinFeature):
     EXAMPLES::
 
         sage: from sage.features.bliss import Bliss
-        sage: Bliss().require()  # optional: bliss
+        sage: Bliss().require()  # optional - bliss
     """
     def __init__(self):
         r"""

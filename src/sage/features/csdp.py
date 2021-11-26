@@ -19,7 +19,7 @@ class CSDP(Executable):
     EXAMPLES::
 
         sage: from sage.features.csdp import CSDP
-        sage: CSDP().is_present()  # optional: csdp
+        sage: CSDP().is_present()  # optional - csdp
         FeatureTestResult('csdp', True)
     """
     def __init__(self):
@@ -40,7 +40,7 @@ class CSDP(Executable):
         EXAMPLES::
 
             sage: from sage.features.csdp import CSDP
-            sage: CSDP().is_functional()  # optional: csdp
+            sage: CSDP().is_functional()  # optional - csdp
             FeatureTestResult('csdp', True)
         """
         from sage.misc.temporary_file import tmp_filename

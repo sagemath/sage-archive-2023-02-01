@@ -21,7 +21,7 @@ class latex(Executable):
     EXAMPLES::
 
         sage: from sage.features.latex import latex
-        sage: latex().is_present()             # optional: latex
+        sage: latex().is_present()             # optional - latex
         FeatureTestResult('latex', True)
     """
     def __init__(self):
@@ -42,7 +42,7 @@ class latex(Executable):
         EXAMPLES::
 
             sage: from sage.features.latex import latex
-            sage: latex().is_functional()             # optional: latex
+            sage: latex().is_functional()             # optional - latex
             FeatureTestResult('latex', True)
         """
         lines = []
@@ -81,7 +81,7 @@ class pdflatex(Executable):
     EXAMPLES::
 
         sage: from sage.features.latex import pdflatex
-        sage: pdflatex().is_present()             # optional: pdflatex
+        sage: pdflatex().is_present()             # optional - pdflatex
         FeatureTestResult('pdflatex', True)
     """
     def __init__(self):
@@ -102,7 +102,7 @@ class xelatex(Executable):
     EXAMPLES::
 
         sage: from sage.features.latex import xelatex
-        sage: xelatex().is_present()             # optional: xelatex
+        sage: xelatex().is_present()             # optional - xelatex
         FeatureTestResult('xelatex', True)
     """
     def __init__(self):
@@ -123,7 +123,7 @@ class lualatex(Executable):
     EXAMPLES::
 
         sage: from sage.features.latex import lualatex
-        sage: lualatex().is_present()             # optional: lualatex
+        sage: lualatex().is_present()             # optional - lualatex
         FeatureTestResult('lualatex', True)
     """
     def __init__(self):

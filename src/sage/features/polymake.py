@@ -13,7 +13,7 @@ class JuPyMake(JoinFeature):
     EXAMPLES::
 
         sage: from sage.features.polymake import JuPyMake
-        sage: JuPyMake().is_present()  # optional: jupymake
+        sage: JuPyMake().is_present()  # optional - jupymake
         FeatureTestResult('jupymake', True)
     """
     def __init__(self):

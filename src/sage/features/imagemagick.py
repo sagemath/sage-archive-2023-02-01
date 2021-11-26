@@ -31,7 +31,7 @@ class ImageMagick(JoinFeature):
     EXAMPLES::
 
         sage: from sage.features.imagemagick import ImageMagick
-        sage: ImageMagick().is_present()  # optional: imagemagick
+        sage: ImageMagick().is_present()  # optional - imagemagick
         FeatureTestResult('imagemagick', True)
     """
     def __init__(self):

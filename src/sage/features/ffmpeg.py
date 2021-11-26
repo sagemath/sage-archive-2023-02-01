@@ -22,7 +22,7 @@ class FFmpeg(Executable):
     EXAMPLES::
 
         sage: from sage.features.ffmpeg import FFmpeg
-        sage: FFmpeg().is_present()  # optional: ffmpeg
+        sage: FFmpeg().is_present()  # optional - ffmpeg
         FeatureTestResult('ffmpeg', True)
     """
     def __init__(self):

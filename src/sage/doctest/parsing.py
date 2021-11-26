@@ -184,8 +184,6 @@ def normalize_long_repr(s):
 # For example, on Python 3 we strip all u prefixes from unicode strings in the
 # expected output, because we never expect to see those on Python 3.
 _repr_fixups = [
-    (lambda g, w: 'u"' in w or "u'" in w,
-     lambda g, w: (g, remove_unicode_u(w))),
     (lambda g, w: 'L' in w or 'l' in w,
      lambda g, w: (g, normalize_long_repr(w)))
 ]

@@ -6,7 +6,7 @@ RUN sudo apt-get update
 RUN sudo apt-get install -y gettext
 ## From dockerfile
 RUN sudo apt-get install -y --no-install-recommends gfortran gcc g++ libstdc++-9-dev sudo openssl
-RUN sudo apt-get install -y wget build-essential automake m4 dpkg-dev python libssl-dev git rdfind
+RUN sudo apt-get install -y wget build-essential automake m4 dpkg-dev python libssl-dev rdfind
 ## Recommended by ./configure
 ### We do not install tox, since it pulls in javascript-common which does not install for some reason
 RUN sudo apt-get install -y libflint-arb-dev libbrial-dev libbrial-groebner-dev libcdd-dev libcdd-tools ecl libec-dev eclib-tools fflas-ffpack flintqs libgc-dev gfan libgiac-dev xcas libgsl-dev libiml-dev lcalc liblfunction-dev libhomfly-dev libopenblas-dev palp pari-gp2c libpari-dev pari-doc pari-elldata pari-galdata pari-galpol pari-seadata libppl-dev ppl-dev python3 libpython3-dev python3-distutils r-base-dev r-cran-lattice librw-dev libsuitesparse-dev libsymmetrica2-dev sympow tachyon libzmq3-dev libzn-poly-dev python3-venv libgf2x-dev cliquer libcliquer-dev gmp-ecm libecm-dev glpk-utils libglpk-dev libbraiding-dev liblrcalc-dev libm4rie-dev libmpc-dev libmpfi-dev libmpfr-dev nauty libntl-dev libplanarity-dev planarity 

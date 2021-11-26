@@ -101,56 +101,6 @@ def RIFtol(*args):
 ansi_escape_sequence = re.compile(r'(\x1b[@-Z\\-~]|\x1b\[.*?[@-~]|\x9b.*?[@-~])')
 
 
-def remove_unicode_u(string):
-    """
-    Given a string, try to remove all unicode u prefixes inside.
-
-    This will help to keep the same doctest results in Python2 and Python3.
-    The input string is typically the documentation of a method or function.
-    This string may contain some letters u that are unicode python2 prefixes.
-    The aim is to remove all of these u and only them.
-
-    INPUT:
-
-    - ``string`` -- either ``unicode`` or ``bytes`` (if ``bytes``, it
-      will be converted to ``unicode`` assuming UTF-8)
-
-    OUTPUT: ``unicode`` string
-
-    EXAMPLES::
-
-        sage: from sage.doctest.parsing import remove_unicode_u as remu
-        sage: remu("u'you'")
-        u"'you'"
-        sage: remu('u')
-        u'u'
-        sage: remu("[u'am', 'stram', u'gram']")
-        u"['am', 'stram', 'gram']"
-        sage: remu('[u"am", "stram", u"gram"]')
-        u'["am", "stram", "gram"]'
-
-    This deals correctly with nested quotes::
-
-        sage: str = '''[u"Singular's stuff", u'good']'''
-        sage: print(remu(str))
-        ["Singular's stuff", 'good']
-
-    TESTS:
-
-    This supports python2 str type as input::
-
-        sage: euro = "'€'"
-        sage: print(remu(euro))
-        '€'
-    """
-    stripped, replacements = cython_strip_string_literals(string,
-                                                          "__remove_unicode_u")
-    string = stripped.replace('u"', '"').replace("u'", "'")
-    for magic, literal in replacements.items():
-        string = string.replace(magic, literal)
-    return string
-
-
 _long_repr_re = re.compile(r'([+-]?[0-9]+)[lL]')
 def normalize_long_repr(s):
     """
@@ -388,8 +338,8 @@ class MarkedOutput(str):
         sage: s.rel_tol
         0.0500000000000000
 
-        sage: MarkedOutput(u"56 µs")
-        u'56 \xb5s'
+        sage: MarkedOutput("56 µs")
+        '56 \xb5s'
     """
     random = False
     rel_tol = 0

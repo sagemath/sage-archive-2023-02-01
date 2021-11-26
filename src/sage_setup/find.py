@@ -79,9 +79,10 @@ def find_python_sources(src_dir, modules=['sage'], distributions=None):
     OUTPUT: Triple consisting of
 
     - the list of package names (corresponding to directories with
-      ``__init__.py``),
+      ``__init__.py`` or namespace packages),
 
-    - Python module names (corresponding to other ``*.py`` files).
+    - Python module names (corresponding to other ``*.py`` files except for
+      those below directories with a file named ``nonamespace`` in it).
 
     - Cython extensions (corresponding to ``*.pyx`` files).
 
@@ -111,6 +112,26 @@ def find_python_sources(src_dir, modules=['sage'], distributions=None):
     Subdirectory without any Python files::
 
         sage: ['sage.doctest.tests' in L for L in (py_packages, py_modules)]
+        [False, False]
+
+    Native namespace package (no ``__init__.py``, PEP 420)::
+
+        sage: ['sage.graphs.graph_decompositions' in L for L in (py_packages, py_modules)]
+        [True, False]
+
+    Python module in a native namespace package::
+
+        sage: ['sage.graphs.graph_decompositions.modular_decomposition' in L for L in (py_packages, py_modules)]
+        [False, True]
+
+    Subdirectory marked with a ``nonamespace`` file::
+
+        sage: ['sage.extdata' in L for L in (py_packages, py_modules)]
+        [False, False]
+
+    Python file (not module) below a directory with a ``nonamespace`` file::
+
+        sage: ['sage.ext_data.nbconvert.postprocess' in L for L in (py_packages, py_modules)]
         [False, False]
 
     Filtering by distribution (distutils package)::
@@ -146,11 +167,14 @@ def find_python_sources(src_dir, modules=['sage'], distributions=None):
         for module in modules:
             for dirpath, dirnames, filenames in os.walk(module):
                 package = dirpath.replace(os.path.sep, '.')
-                if INIT_FILE in filenames:
-                    # Ordinary package.
+                if INIT_FILE in filenames or 'namespace' in filenames:
+                    # Ordinary package or namespace package.
                     if distributions is None or '' in distributions:
                         python_packages.append(package)
-                else:
+                if 'nonamespace' in filenames:
+                    # Marked as "not a namespace package"
+                    # (similar to nodoctest in sage.doctest.control)
+                    dirnames.clear()
                     continue
 
                 def is_in_distributions(filename):
@@ -260,7 +284,37 @@ def _cythonized_dir(src_dir=None, editable_install=None):
     else:
         return Path(SAGE_ROOT) / "build" / "pkgs" / "sagelib" / "src" / "build" / "cythonized"
 
-def find_extra_files(src_dir, modules, cythonized_dir, special_filenames=[]):
+def is_package_or_namespace_package_dir(dirpath):
+    """
+    True when ``dirpath`` is a regular or namespace package.
+
+    EXAMPLES::
+
+        sage: from sage.env import SAGE_SRC
+        sage: from sage_setup.find import is_package_or_namespace_package_dir
+        sage: is_package_or_namespace_package_dir(SAGE_SRC)
+        False
+
+    An ordinary package::
+
+        sage: is_package_or_namespace_package_dir(os.path.join(SAGE_SRC, 'sage', 'structure'))
+        True
+
+    A namespace package::
+
+        sage: is_package_or_namespace_package_dir(os.path.join(SAGE_SRC, 'sage', 'numerical', 'backends'))
+        True
+
+    """
+    PACKAGE_FILES = ("__init__.py", "__init__.pyc", "__init__.pyx", "__init__.pxd")
+    for filename in PACKAGE_FILES:
+        path = os.path.join(dirpath, filename)
+        if os.path.exists(path):
+            return True
+    return os.path.exists(os.path.join(dirpath, 'namespace'))
+
+def find_extra_files(src_dir, modules, cythonized_dir, special_filenames=[], *,
+                     distributions=None):
     """
     Find all extra files which should be installed.
 
@@ -313,7 +367,7 @@ def find_extra_files(src_dir, modules, cythonized_dir, special_filenames=[]):
         os.chdir(src_dir)
         for module in modules:
             for dir, dirnames, filenames in os.walk(module):
-                if not is_package_dir(dir):
+                if not is_package_or_namespace_package_dir(dir):
                     continue
                 sdir = os.path.join(src_dir, dir)
                 cydir = os.path.join(cythonized_dir, dir)
@@ -323,6 +377,10 @@ def find_extra_files(src_dir, modules, cythonized_dir, special_filenames=[]):
                 if os.path.isdir(cydir):  # Not every directory contains Cython files
                     files += [os.path.join(cydir, f) for f in os.listdir(cydir)
                             if f.endswith(".h")]
+
+                if distributions is not None:
+                    files = [f for f in files
+                             if read_distribution(f) in distributions]
 
                 if files:
                     data_files[dir] = files
@@ -367,7 +425,11 @@ def installed_files_by_module(site_packages, modules=('sage',)):
         sage: f2
         'sage/structure/....pyc'
 
-    This takes about 30ms with warm cache:
+    Namespace packages::
+
+        sage: files_by_module['sage.graphs.graph_decompositions']
+
+    This takes about 30ms with warm cache::
 
         sage: timeit('installed_files_by_module(site_packages)',       # random output
         ....:        number=1, repeat=1)

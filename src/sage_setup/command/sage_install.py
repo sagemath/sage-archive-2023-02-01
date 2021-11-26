@@ -35,6 +35,8 @@ class sage_install(install):
 
 class sage_install_and_clean(sage_install):
 
+    all_distributions = None
+
     def run(self):
         sage_install.run(self)
         t = time.time()
@@ -61,7 +63,7 @@ class sage_install_and_clean(sage_install):
             py_modules += cmd_build_py.find_package_modules(package, package_dir)
         # modules is a list of triples (package, module, module_file).
         # Construct the complete module name from this.
-        py_modules = ["{0}.{1}".format(*m) for m in py_modules]
+        py_modules = ["{0}.{1}".format(*m) for m in py_modules] + dist.py_modules
 
         # Determine all files of package data and Cythonized package files
         # example of entries of cmd_build_cython.get_cythonized_package_files():
@@ -84,4 +86,5 @@ class sage_install_and_clean(sage_install):
                     py_modules,
                     dist.ext_modules,
                     data_files,
-                    nobase_data_files)
+                    nobase_data_files,
+                    distributions=self.all_distributions)

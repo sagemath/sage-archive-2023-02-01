@@ -140,6 +140,7 @@ from sage.structure.all import Sequence
 from sage.structure.sage_object import SageObject
 from sage.structure.richcmp import richcmp_method, richcmp
 from sage.geometry.convex_set import ConvexSet_compact
+import sage.geometry.abc
 
 from copy import copy
 from collections.abc import Hashable
@@ -469,7 +470,7 @@ def is_LatticePolytope(x):
     return isinstance(x, LatticePolytopeClass)
 
 @richcmp_method
-class LatticePolytopeClass(ConvexSet_compact, Hashable):
+class LatticePolytopeClass(ConvexSet_compact, Hashable, sage.geometry.abc.LatticePolytope):
     r"""
     Create a lattice polytope.
 
@@ -5519,10 +5520,10 @@ def convex_hull(points):
     vpoints = []
     for p in points:
         v = vector(ZZ, p)
-        if not v in vpoints:
+        if v not in vpoints:
             vpoints.append(v)
     p0 = vpoints[0]
-    vpoints = [p-p0 for p in vpoints]
+    vpoints = [p - p0 for p in vpoints]
     N = ZZ**p0.degree()
     H = N.submodule(vpoints)
     if H.rank() == 0:
@@ -5533,7 +5534,7 @@ def convex_hull(points):
         H_points = [H.coordinates(p) for p in vpoints]
         H_polytope = LatticePolytope(H_points)
         vpoints = (H_polytope.vertices() * H.basis_matrix()).rows(copy=False)
-    vpoints = [p+p0 for p in vpoints]
+    vpoints = [p + p0 for p in vpoints]
     return vpoints
 
 

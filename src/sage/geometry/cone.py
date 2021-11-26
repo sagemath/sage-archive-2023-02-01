@@ -230,6 +230,7 @@ from sage.structure.all import SageObject, parent
 from sage.structure.richcmp import richcmp_method, richcmp
 from sage.geometry.integral_points import parallelotope_points
 from sage.geometry.convex_set import ConvexSet_closed
+import sage.geometry.abc
 
 from sage.misc.lazy_import import lazy_import
 from sage.features import PythonModule
@@ -1097,7 +1098,7 @@ class IntegralRayCollection(SageObject, Hashable, Iterable):
         EXAMPLES::
 
             sage: quadrant = Cone([(1,0), (0,1)])
-            sage: quadrant.plot()
+            sage: quadrant.plot()  # optional - sage.plot
             Graphics object consisting of 9 graphics primitives
         """
         tp = ToricPlotter(options, self.lattice().degree(), self.rays())
@@ -1420,7 +1421,7 @@ def classify_cone_2d(ray0, ray1, check=True):
 # and ``ambient_ray_indices`` keyword parameters. See ``intersection`` method
 # for an example why this is needed.
 @richcmp_method
-class ConvexRationalPolyhedralCone(IntegralRayCollection, Container, ConvexSet_closed):
+class ConvexRationalPolyhedralCone(IntegralRayCollection, Container, ConvexSet_closed, sage.geometry.abc.ConvexRationalPolyhedralCone):
     r"""
     Create a convex rational polyhedral cone.
 
@@ -1519,7 +1520,7 @@ class ConvexRationalPolyhedralCone(IntegralRayCollection, Container, ConvexSet_c
             self._ambient_ray_indices = tuple(ambient_ray_indices)
             superinit(ambient.rays(self._ambient_ray_indices),
                       ambient.lattice())
-        if not PPL is None:
+        if PPL is not None:
             self._PPL_C_Polyhedron = PPL
 
     def _sage_input_(self, sib, coerced):
@@ -3474,7 +3475,7 @@ class ConvexRationalPolyhedralCone(IntegralRayCollection, Container, ConvexSet_c
         EXAMPLES::
 
             sage: quadrant = Cone([(1,0), (0,1)])
-            sage: quadrant.plot()
+            sage: quadrant.plot()  # optional - sage.plot
             Graphics object consisting of 9 graphics primitives
         """
         # What to do with 3-d cones in 5-d? Use some projection method?
@@ -5465,7 +5466,7 @@ class ConvexRationalPolyhedralCone(IntegralRayCollection, Container, ConvexSet_c
             sage: sum(K.random_element() for i in range(10)) in K.lattice()
             True
         """
-        if not ring in [ZZ, QQ]:
+        if ring not in [ZZ, QQ]:
             # This cone theoretically lives in a real vector space,
             # but in Sage, we work over the rationals to avoid
             # numerical issues. Thus ``ring`` must consist of

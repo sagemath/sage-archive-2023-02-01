@@ -110,6 +110,10 @@ except ImportError:
     pari_gen = ()
 
 
+set_rational_from_gen = None
+new_gen_from_rational = None
+
+
 cdef sage.rings.fast_arith.arith_int ai
 ai = sage.rings.fast_arith.arith_int()
 
@@ -650,7 +654,9 @@ cdef class Rational(sage.structure.element.FieldElement):
             mpq_canonicalize(self.value)
 
         elif isinstance(x, pari_gen):
-            from sage.libs.pari.convert_sage import set_rational_from_gen
+            global set_rational_from_gen
+            if set_rational_from_gen is None:
+                from sage.libs.pari.convert_sage import set_rational_from_gen
             set_rational_from_gen(self, x)
 
         elif isinstance(x, list) and len(x) == 1:
@@ -1943,7 +1949,7 @@ cdef class Rational(sage.structure.element.FieldElement):
         if mpq_sgn(self.value) < 0:
             if not extend:
                 raise ValueError("square root of negative number not rational")
-            from sage.functions.other import _do_sqrt
+            from sage.misc.functional import _do_sqrt
             return _do_sqrt(self, prec=prec, all=all)
 
         cdef Rational z = <Rational> Rational.__new__(Rational)
@@ -1965,11 +1971,11 @@ cdef class Rational(sage.structure.element.FieldElement):
         if non_square:
             if not extend:
                 raise ValueError("square root of %s not a rational number" % self)
-            from sage.functions.other import _do_sqrt
+            from sage.misc.functional import _do_sqrt
             return _do_sqrt(self, prec=prec, all=all)
 
         if prec:
-            from sage.functions.other import _do_sqrt
+            from sage.misc.functional import _do_sqrt
             return _do_sqrt(self, prec=prec, all=all)
 
         if all:
@@ -3263,7 +3269,7 @@ cdef class Rational(sage.structure.element.FieldElement):
                 numer = self.numer()
                 rat_part = Rational((numer-2).multifactorial(2)) >> ((numer-1)//2)
                 from sage.symbolic.constants import pi
-                from sage.functions.all import sqrt
+                from sage.misc.functional import sqrt
                 return sqrt(pi) * rat_part
             else:
                 from sage.symbolic.ring import SR
@@ -3777,7 +3783,9 @@ cdef class Rational(sage.structure.element.FieldElement):
             sage: m.type()
             't_FRAC'
         """
-        from sage.libs.pari.convert_sage import new_gen_from_rational
+        global new_gen_from_rational
+        if new_gen_from_rational is None:
+            from sage.libs.pari.convert_sage import new_gen_from_rational
         return new_gen_from_rational(self)
 
     def _interface_init_(self, I=None):
@@ -4297,3 +4305,8 @@ cdef class long_to_Q(Morphism):
             'Native'
         """
         return "Native"
+
+
+# Support Python's numbers abstract base class
+import numbers
+numbers.Rational.register(Rational)

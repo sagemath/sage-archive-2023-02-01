@@ -460,7 +460,7 @@ class WordMorphism(SageObject):
 
     def _build_codomain(self, data):
         r"""
-        Returns a Words domain containing all the letter in the keys of
+        Return a Words domain containing all the letter in the keys of
         data (which must be a dictionary).
 
         TESTS:
@@ -510,7 +510,7 @@ class WordMorphism(SageObject):
 
     def __eq__(self, other):
         r"""
-        Returns ``True`` if ``self`` is equal to ``other``.
+        Return ``True`` if ``self`` is equal to ``other``.
 
         EXAMPLES::
 
@@ -543,7 +543,7 @@ class WordMorphism(SageObject):
 
     def __ne__(self, other):
         r"""
-        Returns whether ``self`` is not equal to ``other``.
+        Return whether ``self`` is not equal to ``other``.
 
         EXAMPLES::
 
@@ -568,7 +568,7 @@ class WordMorphism(SageObject):
 
     def __repr__(self):
         r"""
-        Returns the string representation of the morphism.
+        Return the string representation of the morphism.
 
         EXAMPLES::
 
@@ -587,7 +587,7 @@ class WordMorphism(SageObject):
 
     def __str__(self):
         r"""
-        Returns the morphism in str.
+        Return the morphism in str.
 
         EXAMPLES::
 
@@ -625,7 +625,7 @@ class WordMorphism(SageObject):
 
     def __call__(self, w, order=1, datatype=None):
         r"""
-        Returns the image of ``w`` under self to the given order.
+        Return the image of ``w`` under self to the given order.
 
         INPUT:
 
@@ -942,7 +942,7 @@ class WordMorphism(SageObject):
 
     def __mul__(self, other):
         r"""
-        Returns the morphism ``self``\*``other``.
+        Return the morphism ``self``\*``other``.
 
         EXAMPLES::
 
@@ -998,7 +998,7 @@ class WordMorphism(SageObject):
 
     def __pow__(self, exp):
         r"""
-        Returns the power of ``self`` with exponent = ``exp``.
+        Return the power of ``self`` with exponent = ``exp``.
 
         INPUT:
 
@@ -1055,7 +1055,7 @@ class WordMorphism(SageObject):
 
     def extend_by(self, other):
         r"""
-        Returns ``self`` extended by ``other``.
+        Return ``self`` extended by ``other``.
 
         Let `\varphi_1:A^*\rightarrow B^*` and `\varphi_2:C^*\rightarrow D^*`
         be two morphisms. A morphism `\mu:(A\cup C)^*\rightarrow (B\cup D)^*`
@@ -1105,7 +1105,7 @@ class WordMorphism(SageObject):
 
     def restrict_domain(self, alphabet):
         r"""
-        Returns a restriction of ``self`` to the given alphabet.
+        Return a restriction of ``self`` to the given alphabet.
 
         INPUT:
 
@@ -1138,7 +1138,7 @@ class WordMorphism(SageObject):
 
     def _matrix_(self, R=None):
         r"""
-        Returns the incidence matrix of the morphism over the specified ring.
+        Return the incidence matrix of the morphism over the specified ring.
 
         EXAMPLES::
 
@@ -1168,7 +1168,7 @@ class WordMorphism(SageObject):
 
     def incidence_matrix(self):
         r"""
-        Returns the incidence matrix of the morphism. The order of the rows
+        Return the incidence matrix of the morphism. The order of the rows
         and column are given by the order defined on the alphabet of the
         domain and the codomain.
 
@@ -1201,7 +1201,7 @@ class WordMorphism(SageObject):
 
     def domain(self):
         r"""
-        Returns domain of ``self``.
+        Return domain of ``self``.
 
         EXAMPLES::
 
@@ -1216,7 +1216,7 @@ class WordMorphism(SageObject):
 
     def codomain(self):
         r"""
-        Returns the codomain of ``self``.
+        Return the codomain of ``self``.
 
         EXAMPLES::
 
@@ -1229,7 +1229,7 @@ class WordMorphism(SageObject):
 
     def is_endomorphism(self):
         r"""
-        Returns whether ``self`` is an endomorphism, that is if the
+        Return whether ``self`` is an endomorphism, that is if the
         domain coincide with the codomain.
 
         EXAMPLES::
@@ -1320,7 +1320,7 @@ class WordMorphism(SageObject):
 
     def images(self):
         r"""
-        Returns the list of all the images of the letters of the alphabet
+        Return the list of all the images of the letters of the alphabet
         under ``self``.
 
         EXAMPLES::
@@ -1334,7 +1334,7 @@ class WordMorphism(SageObject):
 
     def reversal(self):
         r"""
-        Returns the reversal of ``self``.
+        Return the reversal of ``self``.
 
         EXAMPLES::
 
@@ -1347,7 +1347,7 @@ class WordMorphism(SageObject):
 
     def is_empty(self):
         r"""
-        Returns ``True`` if the cardinality of the domain is zero and
+        Return ``True`` if the cardinality of the domain is zero and
         ``False`` otherwise.
 
         EXAMPLES::
@@ -1361,7 +1361,7 @@ class WordMorphism(SageObject):
 
     def is_erasing(self):
         r"""
-        Returns ``True`` if ``self`` is an erasing morphism, i.e. the image of a
+        Return ``True`` if ``self`` is an erasing morphism, i.e. the image of a
         letter is the empty word.
 
         EXAMPLES::
@@ -1382,7 +1382,7 @@ class WordMorphism(SageObject):
 
     def is_identity(self):
         r"""
-        Returns ``True`` if ``self`` is the identity morphism.
+        Return ``True`` if ``self`` is the identity morphism.
 
         EXAMPLES::
 
@@ -1424,7 +1424,7 @@ class WordMorphism(SageObject):
 
     def partition_of_domain_alphabet(self):
         r"""
-        Returns a partition of the domain alphabet.
+        Return a partition of the domain alphabet.
 
         Let `\varphi:\Sigma^*\rightarrow\Sigma^*` be an involution. There
         exists a triple of sets `(A, B, C)` such that
@@ -1486,7 +1486,7 @@ class WordMorphism(SageObject):
 
     def is_involution(self):
         r"""
-        Returns ``True`` if ``self`` is an involution, i.e. its square
+        Return ``True`` if ``self`` is an involution, i.e. its square
         is the identity.
 
         INPUT:
@@ -1518,7 +1518,7 @@ class WordMorphism(SageObject):
 
     def pisot_eigenvector_right(self):
         r"""
-        Returns the right eigenvector of the incidence matrix associated
+        Return the right eigenvector of the incidence matrix associated
         to the largest eigenvalue (in absolute value).
 
         Unicity of the result is guaranteed when the multiplicity of the
@@ -1548,7 +1548,7 @@ class WordMorphism(SageObject):
 
     def pisot_eigenvector_left(self):
         r"""
-        Returns the left eigenvector of the incidence matrix associated
+        Return the left eigenvector of the incidence matrix associated
         to the largest eigenvalue (in absolute value).
 
         Unicity of the result is guaranteed when the multiplicity of the
@@ -1578,7 +1578,7 @@ class WordMorphism(SageObject):
 
     def _check_primitive(self):
         r"""
-        Returns ``True`` if all the letters of the domain appear in all the
+        Return ``True`` if all the letters of the domain appear in all the
         images of letters of the domain.
 
         INPUT:
@@ -1609,7 +1609,7 @@ class WordMorphism(SageObject):
 
     def is_primitive(self):
         r"""
-        Returns ``True`` if ``self`` is primitive.
+        Return ``True`` if ``self`` is primitive.
 
         A morphism `\varphi` is *primitive* if there exists
         an positive integer `k` such that for all `\alpha\in\Sigma`,
@@ -1679,7 +1679,7 @@ class WordMorphism(SageObject):
 
     def is_prolongable(self, letter):
         r"""
-        Returns ``True`` if ``self`` is prolongable on ``letter``.
+        Return ``True`` if ``self`` is prolongable on ``letter``.
 
         A morphism `\varphi` is prolongable on a letter `a`
         if `a` is a prefix of `\varphi(a)`.
@@ -1738,7 +1738,7 @@ class WordMorphism(SageObject):
 
     def is_uniform(self, k=None):
         r"""
-        Returns True if self is a `k`-uniform morphism.
+        Return True if self is a `k`-uniform morphism.
 
         Let `k` be a positive integer. A morphism `\phi` is called `k`-uniform
         if for every letter `\alpha`, we have `|\phi(\alpha)| = k`. In other
@@ -1773,7 +1773,7 @@ class WordMorphism(SageObject):
 
     def fixed_point(self, letter):
         r"""
-        Returns the fixed point of ``self`` beginning by the given ``letter``.
+        Return the fixed point of ``self`` beginning by the given ``letter``.
 
         A fixed point of morphism `\varphi` is a word `w` such that
         `\varphi(w) = w`.
@@ -1886,7 +1886,7 @@ class WordMorphism(SageObject):
 
     def fixed_points(self):
         r"""
-        Returns the list of all fixed points of ``self``.
+        Return the list of all fixed points of ``self``.
 
         EXAMPLES::
 
@@ -2191,7 +2191,7 @@ class WordMorphism(SageObject):
 
     def conjugate(self, pos):
         r"""
-        Returns the morphism where the image of the letter by ``self``
+        Return the morphism where the image of the letter by ``self``
         is conjugated of parameter ``pos``.
 
         INPUT:
@@ -2217,7 +2217,7 @@ class WordMorphism(SageObject):
 
     def has_left_conjugate(self):
         r"""
-        Returns ``True`` if all the non empty images of ``self`` begins with
+        Return ``True`` if all the non empty images of ``self`` begins with
         the same letter.
 
         EXAMPLES::
@@ -2252,7 +2252,7 @@ class WordMorphism(SageObject):
 
     def has_right_conjugate(self):
         r"""
-        Returns ``True`` if all the non empty images of ``self`` ends with the
+        Return ``True`` if all the non empty images of ``self`` ends with the
         same letter.
 
         EXAMPLES::
@@ -2275,7 +2275,7 @@ class WordMorphism(SageObject):
 
     def list_of_conjugates(self):
         r"""
-        Returns the list of all the conjugate morphisms of ``self``.
+        Return the list of all the conjugate morphisms of ``self``.
 
         DEFINITION:
 
@@ -2362,7 +2362,7 @@ class WordMorphism(SageObject):
 
     def is_in_classP(self, f=None):
         r"""
-        Returns ``True`` if ``self`` is in class `P` (or `f`-`P`).
+        Return ``True`` if ``self`` is in class `P` (or `f`-`P`).
 
         DEFINITION : Let `A` be an alphabet. We say that a
         primitive substitution `S` is in the *class P* if there
@@ -2440,7 +2440,7 @@ class WordMorphism(SageObject):
 
     def has_conjugate_in_classP(self, f=None):
         r"""
-        Returns ``True`` if ``self`` has a conjugate in class `f`-`P`.
+        Return ``True`` if ``self`` has a conjugate in class `f`-`P`.
 
         DEFINITION : Let `A` be an alphabet. We say that a
         primitive substitution `S` is in the *class P* if there
@@ -2531,7 +2531,7 @@ class WordMorphism(SageObject):
     @cached_method
     def rauzy_fractal_projection(self, eig=None, prec=53):
         r"""
-        Returns a dictionary giving the projection of the canonical basis.
+        Return a dictionary giving the projection of the canonical basis.
 
         See the method :meth:`rauzy_fractal_plot` for more details about the projection.
 
@@ -2644,7 +2644,7 @@ class WordMorphism(SageObject):
 
     def rauzy_fractal_points(self, n=None, exchange=False, eig=None, translate=None, prec=53):
         r"""
-        Returns a dictionary of list of points associated with the pieces
+        Return a dictionary of list of points associated with the pieces
         of the Rauzy fractal of ``self``.
 
         INPUT:
@@ -2753,7 +2753,7 @@ class WordMorphism(SageObject):
     def rauzy_fractal_plot(self, n=None, exchange=False, eig=None, translate=None, prec=53, \
                            colormap='hsv', opacity=None, plot_origin=None, plot_basis=False, point_size=None):
         r"""
-        Returns a plot of the Rauzy fractal associated with a substitution.
+        Return a plot of the Rauzy fractal associated with a substitution.
 
         The substitution does not have to be irreducible.
         The usual definition of a Rauzy fractal requires that
@@ -3210,7 +3210,7 @@ class WordMorphism(SageObject):
 
     def abelian_rotation_subspace(self):
         r"""
-        Returns the subspace on which the incidence matrix of ``self`` acts by
+        Return the subspace on which the incidence matrix of ``self`` acts by
         roots of unity.
 
         EXAMPLES::

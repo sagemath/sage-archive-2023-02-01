@@ -106,15 +106,7 @@ complex_double_element_gamma = None
 complex_double_element_gamma_inc = None
 complex_double_element_zeta = None
 
-
-from . import complex_mpfr
-
-from .complex_mpfr import ComplexField
-cdef CC = ComplexField()
 from .complex_conversion cimport CCtoCDF
-
-from .real_mpfr import RealField
-cdef RR = RealField()
 
 from .real_double cimport RealDoubleElement, double_repr
 from .real_double import RDF
@@ -383,6 +375,7 @@ cdef class ComplexDoubleField_class(sage.rings.abc.ComplexDoubleField):
             sage: CDF((1,2)) # indirect doctest
             1.0 + 2.0*I
         """
+        from . import complex_mpfr
         if isinstance(x, ComplexDoubleElement):
             return x
         elif isinstance(x, tuple):
@@ -450,6 +443,9 @@ cdef class ComplexDoubleField_class(sage.rings.abc.ComplexDoubleField):
         from .rational_field import QQ
         from .real_lazy import RLF
         from .real_mpfr import RR
+        from .complex_mpfr import ComplexField
+        CC = ComplexField()
+
         if S is ZZ or S is QQ or S is RDF or S is RLF:
             return FloatToCDF(S)
         if isinstance(S, sage.rings.abc.RealField):
@@ -530,6 +526,7 @@ cdef class ComplexDoubleField_class(sage.rings.abc.ComplexDoubleField):
         if prec == 53:
             return self
         else:
+            from .complex_mpfr import ComplexField
             return ComplexField(prec)
 
 
@@ -994,7 +991,8 @@ cdef class ComplexDoubleElement(FieldElement):
             True
         """
         # Sending to another computer algebra system is slow anyway, right?
-        return CC(self)._interface_init_(I)
+        from .complex_mpfr import ComplexField
+        return ComplexField()(self)._interface_init_(I)
 
     def _mathematica_init_(self):
         """
@@ -1005,7 +1003,8 @@ cdef class ComplexDoubleElement(FieldElement):
             sage: mathematica(CDF(1e-25, 1e25))  # optional - mathematica
             1.*^-25 + 1.*^25*I
         """
-        return CC(self)._mathematica_init_()
+        from .complex_mpfr import ComplexField
+        return ComplexField()(self)._mathematica_init_()
 
     def _maxima_init_(self, I=None):
         """
@@ -1019,7 +1018,8 @@ cdef class ComplexDoubleElement(FieldElement):
             sage: CDF(.5 + I)._maxima_init_()
             '0.50000000000000000 + 1.0000000000000000*%i'
         """
-        return CC(self)._maxima_init_(I)
+        from .complex_mpfr import ComplexField
+        return ComplexField()(self)._maxima_init_(I)
 
     def _sympy_(self):
         """
@@ -1120,7 +1120,8 @@ cdef class ComplexDoubleElement(FieldElement):
             sage: format(CDF(0, 0), '+#.4')
             '+0.000'
         """
-        return complex_mpfr._format_complex_number(GSL_REAL(self._complex),
+        from .complex_mpfr import _format_complex_number
+        return _format_complex_number(GSL_REAL(self._complex),
                                                      GSL_IMAG(self._complex),
                                                      format_spec)
 

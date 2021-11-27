@@ -407,6 +407,15 @@ DisplayPreferences._add_option(
 
 
 DisplayPreferences._add_option(
+    'display_latex',
+    ('center', 'left'),
+    """
+    Preferred mode of latex displays
+    """
+)
+
+
+DisplayPreferences._add_option(
     'graphics',
     ('disable', 'vector', 'raster'),
     """

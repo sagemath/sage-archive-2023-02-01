@@ -146,6 +146,36 @@ only show the number of style violation warnings::
 *Documentation:* https://pycodestyle.pycqa.org/en/latest/index.html
 
 
+Codespell
+=========
+`Codespell <https://pypi.org/project/codespell/>`_ uses a dictionary to check for
+misspelled words in source code.
+
+Sage defines a configuration for codespell::
+
+  $ ./sage -tox -e codespell -- src/sage/homology/
+  codespell installed: codespell==2.1.0
+  codespell run-test-pre: PYTHONHASHSEED='1285169064'
+  codespell run-test: commands[0] | codespell '--skip=*.png,*.jpg,*.JPG,*.inv,*.dia,*.pdf,*.ico,*#*,*~*,*.bak,*.orig,*.log,*.sobj,*.tar,*.gz,*.pyc,*.o,*.sws,*.so,*.a,.DS_Store' --skip=doc/ca,doc/de,doc/es,doc/hu,doc/ja,doc/ru,doc/fr,doc/it,doc/pt,doc/tr --skip=src/doc/ca,src/doc/de,src/doc/es,src/doc/hu,src/doc/ja,src/doc/ru,src/doc/fr,src/doc/it,src/doc/pt,src/doc/tr '--skip=.git,.tox,worktree*,dist,upstream,logs,local,cythonized,scripts-3,autom4te.cache,tmp,lib.*,*.egg-info' --dictionary=- --dictionary=/Users/mkoeppe/s/sage/sage-rebasing/src/.codespell-dictionary.txt --ignore-words=/Users/mkoeppe/s/sage/sage-rebasing/src/.codespell-ignore.txt sage/homology
+  sage/homology/hochschild_complex.py:271: mone ==> mono, money, none
+  sage/homology/hochschild_complex.py:277: mone ==> mono, money, none
+  sage/homology/hochschild_complex.py:280: mone ==> mono, money, none
+  sage/homology/chain_complex.py:2185: mor ==> more
+  sage/homology/chain_complex.py:2204: mor ==> more
+  sage/homology/chain_complex.py:2210: mor ==> more
+  sage/homology/chain_complex.py:2211: mor ==> more
+  sage/homology/chain_complex.py:2214: mor ==> more
+  sage/homology/chain_complex.py:2215: mor ==> more
+  ERROR: InvocationError for command .../codespell '--skip=*.png,...' --dictionary=- --dictionary=/Users/mkoeppe/s/sage/sage-rebasing/src/.codespell-dictionary.txt --ignore-words=/Users/mkoeppe/s/sage/sage-rebasing/src/.codespell-ignore.txt sage/homology (exited with code 65)
+  ___________ summary ____________
+  ERROR:   codespell: commands failed
+
+*Configuration:*
+
+- ``[testenv:codespell]`` block in ``SAGE_ROOT/src/tox.ini``
+
+- ``SAGE_ROOT/src/.codespell-dictionary.txt`` and ``SAGE_ROOT/src/.codespell-ignore.txt``
+
 
 Pytest
 ======

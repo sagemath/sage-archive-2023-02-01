@@ -153,6 +153,7 @@ class BackendBase(SageObject):
             sage: backend = BackendBase()
             sage: backend.default_preferences()
             Display preferences:
+            * display_latex is not specified
             * graphics is not specified
             * supplemental_plot is not specified
             * text is not specified

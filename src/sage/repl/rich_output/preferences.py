@@ -13,7 +13,7 @@ EXAMPLES::
     sage: from sage.repl.rich_output.preferences import DisplayPreferences
     sage: prefs = DisplayPreferences()
     sage: prefs.available_options()
-    (graphics, supplemental_plot, text)
+    (display_latex, graphics, supplemental_plot, text)
     sage: prefs.text is None
     True
     sage: prefs.text = 'ascii_art'
@@ -21,6 +21,7 @@ EXAMPLES::
     'ascii_art'
     sage: prefs
     Display preferences:
+    * display_latex is not specified
     * graphics is not specified
     * supplemental_plot is not specified
     * text = ascii_art
@@ -50,6 +51,7 @@ Values can also be specified as keyword arguments to the constructor::
 
     sage: DisplayPreferences(text='latex')
     Display preferences:
+    * display_latex is not specified
     * graphics is not specified
     * supplemental_plot is not specified
     * text = latex
@@ -288,6 +290,7 @@ class PreferencesABC(SageObject):
             sage: p2 = DisplayPreferences(graphics='raster')
             sage: DisplayPreferences(p1, p2)
             Display preferences:
+            * display_latex is not specified
             * graphics = raster
             * supplemental_plot is not specified
             * text is not specified
@@ -297,6 +300,7 @@ class PreferencesABC(SageObject):
 
             sage: DisplayPreferences(p2, p1)
             Display preferences:
+            * display_latex is not specified
             * graphics = vector
             * supplemental_plot is not specified
             * text is not specified
@@ -305,6 +309,7 @@ class PreferencesABC(SageObject):
 
             sage: DisplayPreferences(p2, p1, graphics='disable')
             Display preferences:
+            * display_latex is not specified
             * graphics = disable
             * supplemental_plot is not specified
             * text is not specified
@@ -361,7 +366,7 @@ class PreferencesABC(SageObject):
 
             sage: from sage.repl.rich_output.preferences import DisplayPreferences
             sage: DisplayPreferences().available_options()
-            (graphics, supplemental_plot, text)
+            (display_latex, graphics, supplemental_plot, text)
         """
         options = []
         for key, value in self.__class__.__dict__.items():
@@ -381,7 +386,7 @@ class PreferencesABC(SageObject):
 
             sage: from sage.repl.rich_output.preferences import DisplayPreferences
             sage: DisplayPreferences()._repr_()
-            'Display preferences:\n* graphics is not specified\n* supplemental_plot is not specified\n* text is not specified'
+            'Display preferences:\n* display_latex is not specified\n* graphics is not specified\n* supplemental_plot is not specified\n* text is not specified'
         """
         s = ['Display preferences:']
         for opt in self.available_options():

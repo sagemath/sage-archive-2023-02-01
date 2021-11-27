@@ -62,7 +62,7 @@ available::
 Pycodestyle
 ===========
 `Pycodestyle <https://pycodestyle.pycqa.org/en/latest/>`_ (formerly known as pep8)
-checks Python code against the style conventions of `PEP 8 <https://www.python.org/dev/peps/pep-0008/>`.
+checks Python code against the style conventions of `PEP 8 <https://www.python.org/dev/peps/pep-0008/>`_.
 
 Sage defines two configurations for pycodestyle.  The command ``./sage -tox -e pycodestyle-minimal`` uses
 pycodestyle in a minimal configuration.
@@ -148,19 +148,28 @@ only show the number of style violation warnings::
 
 
 Pytest
-===============================
+======
 `Pytest <https://docs.pytest.org/en/stable/>`_ is a testing framework.
-At the moment, Sage is not yet using any tests based on pytest.
+It is included in the Sage distribution as an optional package.
 
-*Installation:* ``pip install -U pytest``, see `documentation <https://docs.pytest.org/en/stable/getting-started.html#installation-and-getting-started>`__ for details.
+Currently, Sage only makes very limited use of pytest, for testing the
+package :mod:`sage.numerical.backends`.
+
+*Installation:*
+
+- (for use with the Sage doctester:) ``./sage -i pytest``.
+
+- (for manual use:) ``pip install -U pytest``, see `documentation <https://docs.pytest.org/en/stable/getting-started.html#installation-and-getting-started>`__ for details.
 
 *Usage:*
 
-- Manual: Run ``pytest path/to/the/test_file.py`` or ``pytest`` to run all tests (from a virtual environment with Sage installed)
+- Tox, Sage doctester: At the end of ``./sage -t`` (or ``./sage --tox -e doctest``), Pytest is automatically invoked.
 
-- VS Code: Install the `Python <https://marketplace.visualstudio.com/items?itemName=ms-python.python>`_ extension and follow the `offical VS Code documentation <https://code.visualstudio.com/docs/python/testing>`__.
+- Manual: Run ``pytest path/to/the/test_file.py`` or ``pytest`` to run all tests (from a virtual environment with the Sage library installed)
 
-*Configuration:* ``conftest.py`` in the source folder
+- VS Code: Install the `Python extension <https://marketplace.visualstudio.com/items?itemName=ms-python.python>`_ and follow the `offical VS Code documentation <https://code.visualstudio.com/docs/python/testing>`__.
+
+*Configuration:* ``SAGE_ROOT/src/conftest.py``
 
 *Documentation:* https://docs.pytest.org/en/stable/index.html
 
@@ -176,9 +185,9 @@ Pyright
 
 - VS Code: Install the `Pylance <https://marketplace.visualstudio.com/items?itemName=ms-python.vscode-pylance>`__ extension.
 
-*Configuration:* ``pyrightconfig.json`` in the root
+*Configuration:* ``SAGE_ROOT/pyrightconfig.json``
 
-*Note*: Currently, only the manifolds package is checked. Further packages can be added in the ``pyrightconfig.json`` file.
+*Note*: Currently, only the package :mod:`sage.manifolds` is checked. Further packages can be added in the ``pyrightconfig.json`` file.
 
 *Documentation:* https://github.com/microsoft/pyright#documentation
 

@@ -1,3 +1,5 @@
+Backported by deleting changes to file tests/unit/resolution_resolvelib/test_resolver.py
+
 From af383922b226f7caeac79f98d7a2991be86ab904 Mon Sep 17 00:00:00 2001
 From: Maurits van Rees <maurits@vanrees.org>
 Date: Tue, 12 Oct 2021 10:36:35 +0200
@@ -92,20 +94,6 @@ index 12f96702024..8e35c3dc838 100644
      # `None` is guaranteed to be the root node by resolvelib.
      visit(None)
  
-diff --git a/tests/unit/resolution_resolvelib/test_resolver.py b/tests/unit/resolution_resolvelib/test_resolver.py
-index 1fcde34a41e..579195b55ea 100644
---- a/tests/unit/resolution_resolvelib/test_resolver.py
-+++ b/tests/unit/resolution_resolvelib/test_resolver.py
-@@ -115,7 +115,7 @@ def test_new_resolver_get_installation_order(
-                 ("three", "four"),
-                 ("four", "five"),
-             ],
--            {None: 0, "one": 1, "two": 1, "three": 2, "four": 3, "five": 4},
-+            {None: 0, "five": 5, "four": 4, "one": 4, "three": 2, "two": 1},
-         ),
-         (
-             "linear",
-
 From 3983756b43dc321d6f6a1c8ab58acd8dcd16db23 Mon Sep 17 00:00:00 2001
 From: Maurits van Rees <maurits@vanrees.org>
 Date: Tue, 12 Oct 2021 13:11:53 +0200

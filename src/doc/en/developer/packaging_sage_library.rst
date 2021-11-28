@@ -171,6 +171,12 @@ When adding a new distribution package that uses a symbolic link pointing into
 Some of these files may actually be generated from source files with suffix ``.m4`` by the
 ``SAGE_ROOT/bootstrap`` script via the ``m4`` macro processor.
 
+For every distribution package, there is also a subdirectory of ``SAGE_ROOT/build/pkgs/``,
+which contains the build infrastructure that is specific to Sage-the-distribution.
+Note that these subdirectories follows a different naming convention,
+using underscores instead of dashes, see :ref:`section-directory-structure`.
+Because the distribution packages are included in the source tree, we set them
+up as "script packages" instead of "normal packages", see :ref:`section-package-source-types`.
 
 
 

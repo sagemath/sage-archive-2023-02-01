@@ -151,51 +151,6 @@ def remove_unicode_u(string):
     return string
 
 
-_type_repr_re = re.compile(r"<type '(?P<name>[^']+)'>")
-
-def normalize_type_repr(s):
-    r"""
-    Convert the repr of type objects (e.g. ``int``, ``float``) from their
-    Python 2 representation to their Python 3 representation.
-
-    In Python 2, the repr of built-in types like ``int`` is like
-    ``<type 'int'>``, whereas user-defined pure Python classes are displayed
-    as ``<class 'classname'>``.  On Python 3 this was normalized so that
-    built-in types are represented the same as user-defined classes (e.g.
-    ``<class 'int'>``.
-
-    This simply normalizes all class/type reprs to the Python 3 convention for
-    the sake of output checking.
-
-    EXAMPLES::
-
-        sage: from sage.doctest.parsing import normalize_type_repr
-        sage: s = "<type 'int'>"
-        sage: normalize_type_repr(s)
-        "<class 'int'>"
-        sage: normalize_type_repr(repr(float))
-        "<class 'float'>"
-
-    This can work on multi-line output as well::
-
-        sage: s = "The desired output was <class 'int'>\n"
-        sage: s += "The received output was <type 'int'>"
-        sage: print(normalize_type_repr(s))
-        The desired output was <class 'int'>
-        The received output was <class 'int'>
-
-    And should work when types are embedded in other nested expressions::
-
-        sage: normalize_type_repr(repr([Integer, float]))
-        "[<class 'sage.rings.integer.Integer'>, <class 'float'>]"
-    """
-
-    def subst(m):
-        return "<class '{0}'>".format(m.group('name'))
-
-    return _type_repr_re.sub(subst, s)
-
-
 _long_repr_re = re.compile(r'([+-]?[0-9]+)[lL]')
 def normalize_long_repr(s):
     """
@@ -218,59 +173,6 @@ def normalize_long_repr(s):
     return _long_repr_re.sub(lambda m: m.group(1), s)
 
 
-_normalize_bound_method_re = re.compile(
-    r'<bound method \S+[.](?P<meth>[^. ]+)\sof\s(?P<obj>.+)>', re.M | re.S)
-
-def normalize_bound_method_repr(s):
-    """
-    Normalize differences between Python 2 and 3 in how bound methods are
-    represented.
-
-    On Python 2 bound methods are represented using the class name of the
-    object the method was bound to, whereas on Python 3 they are represented
-    with the fully-qualified name of the function that implements the method.
-
-    In the context of a doctest it's almost impossible to convert accurately
-    from the latter to the former or vice-versa, so we simplify the reprs of
-    bound methods to just the bare method name.
-
-    This is slightly regressive since it means one can't use the repr of a
-    bound method to test whether some element is getting a method from the
-    correct class (important sometimes in the cases of dynamic classes).
-    However, such tests could be written could be written more explicitly to
-    emphasize that they are testing such behavior.
-
-    EXAMPLES:
-
-    ::
-
-        sage: from sage.doctest.parsing import normalize_bound_method_repr
-        sage: el = Semigroups().example().an_element()
-        sage: el
-        42
-        sage: el.is_idempotent
-        <bound method ....is_idempotent of 42>
-        sage: normalize_bound_method_repr(repr(el.is_idempotent))
-        '<bound method is_idempotent of 42>'
-
-    An example where the object ``repr`` contains whitespace::
-
-        sage: U = DisjointUnionEnumeratedSets(
-        ....:          Family([1, 2, 3], Partitions), facade=False)
-        sage: U._element_constructor_
-        <bound method ...._element_constructor_default of Disjoint union of
-        Finite family {...}>
-        sage: normalize_bound_method_repr(repr(U._element_constructor_))
-        '<bound method _element_constructor_default of Disjoint union of Finite
-        family {...}>'
-    """
-
-    def subst(m):
-        return '<bound method {meth} of {obj}>'.format(**m.groupdict())
-
-    return _normalize_bound_method_re.sub(subst, s)
-
-
 # Collection of fixups applied in the SageOutputChecker.  Each element in this
 # this list a pair of functions applied to the actual test output ('g' for
 # "got") and the expected test output ('w' for "wanted").  The first function
@@ -284,15 +186,8 @@ def normalize_bound_method_repr(s):
 _repr_fixups = [
     (lambda g, w: 'u"' in w or "u'" in w,
      lambda g, w: (g, remove_unicode_u(w))),
-
-    (lambda g, w: '<class' in g and '<type' in w,
-     lambda g, w: (g, normalize_type_repr(w))),
-
     (lambda g, w: 'L' in w or 'l' in w,
-     lambda g, w: (g, normalize_long_repr(w))),
-    (lambda g, w: '<bound method' in w,
-     lambda g, w: (normalize_bound_method_repr(g),
-                   normalize_bound_method_repr(w)))
+     lambda g, w: (g, normalize_long_repr(w)))
 ]
 
 
@@ -386,7 +281,7 @@ def parse_tolerance(source, want):
         sage: from sage.doctest.parsing import parse_tolerance
         sage: marked = parse_tolerance("sage: s.update(abs_tol = .0000001)", "")
         sage: type(marked)
-        <... 'str'>
+        <class 'str'>
         sage: marked = parse_tolerance("sage: s.update(tol = 0.1); s.rel_tol # abs tol     0.01 ", "")
         sage: marked.tol
         0
@@ -1088,14 +983,6 @@ class SageOutputChecker(doctest.OutputChecker):
             [u'Fermat',  u'Euler']
             sage: c = u'you'; c
             u'you'
-
-        Also allowance for the difference in reprs of ``type`` instances (i.e.
-        classes) between Python 2 and Python 3::
-
-            sage: int
-            <class 'int'>
-            sage: float
-            <class 'float'>
         """
         got = self.human_readable_escape_sequences(got)
         got = glpk_simplex_warning_regex.sub('', got)

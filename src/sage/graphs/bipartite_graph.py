@@ -310,26 +310,6 @@ class BipartiteGraph(Graph):
             sage: partition = [list(range(5)), list(range(5, 10))]
             sage: B = BipartiteGraph(P, partition, check=False)
 
-        TESTS:
-
-        Test that the memory leak in :trac:`31313` is fixed::
-
-            sage: A = Matrix(ZZ, 100, 125)
-            sage: for i in range(A.nrows()):
-            ....:     for j in Subsets(A.ncols()).random_element():
-            ....:         A[i, j - 1] = 1
-            sage: def make_bip_graph(A):
-            ....:     G = BipartiteGraph(A)
-            sage: for _ in range(10):
-            ....:     make_bip_graph(A)
-            sage: import gc
-            sage: _ = gc.collect()
-            sage: start_mem = get_memory_usage()
-            sage: for _ in range(10):
-            ....:     make_bip_graph(A)
-            sage: _ = gc.collect()
-            sage: print(round(get_memory_usage() - start_mem))
-            0.0
         """
         if kwds is None:
             kwds = {'loops': False}
@@ -1777,7 +1757,7 @@ class BipartiteGraph(Graph):
             Y = set()
             for u in X:
                 for v in self.neighbors(u):
-                    if not v in Z and not M.has_edge(u, v):
+                    if v not in Z and not M.has_edge(u, v):
                         Y.add(v)
             Z.update(Y)
 
@@ -1785,7 +1765,7 @@ class BipartiteGraph(Graph):
             X = set()
             for u in Y:
                 for v in M.neighbor_iterator(u):
-                    if not v in Z:
+                    if v not in Z:
                         X.add(v)
             Z.update(X)
 

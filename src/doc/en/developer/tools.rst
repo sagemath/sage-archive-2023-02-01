@@ -109,6 +109,11 @@ As of Sage 9.5, the entire Sage library conforms to this configuration::
     pycodestyle-minimal: commands succeeded
     congratulations :)
 
+When preparing a branch for a Sage ticket, developers should verify that ``./sage -tox -e
+pycodestyle-minimal`` passes.  When the Sage patchbot runs on the ticket, it will perform similar
+coding style checks; but running the check locally reduces the turnaround time from hours
+to seconds.
+
 The second configuration is used with the command ``./sage -tox -e pycodestyle`` and runs a
 more thorough check::
 
@@ -143,8 +148,19 @@ more thorough check::
   ___________ summary ____________
   ERROR:   pycodestyle: commands failed
 
+When preparing a branch for a Sage ticket that adds new code,
+developers should verify that ``./sage -tox -e pycodestyle`` does not
+issue warnings for the added code.  This will avoid later cleanup
+tickets as the Sage codebase is moving toward full PEP 8 compliance.
+
+On the other hand, it is usually not advisable to mix coding-style
+fixes with productive changes on the same ticket because this would
+makes it harder for reviewers to evaluate the changes.
+
 By passing the options ``--count -qq`` we can reduce the output to
-only show the number of style violation warnings::
+only show the number of style violation warnings.  This can be helpful
+for planning work on coding-style clean-up tickets that focus on one
+or a few related issues::
 
   $ ./sage -tox -e pycodestyle -- --count -qq src/sage
   pycodestyle installed: pycodestyle==2.8.0

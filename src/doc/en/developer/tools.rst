@@ -21,9 +21,12 @@ Sage includes tox as a standard package and uses it for three purposes:
   :ref:`chapter-portability_testing`.  This is configured in the file
   ``SAGE_ROOT/tox.ini``.
 
-- For testing modularized distributions of the Sage library, as we explain
-  in :ref:`chapter-modularization`.  This is configured in ``tox.ini`` files in subdirectories
-  of ``SAGE_ROOT/pkgs/``, such as ``SAGE_ROOT/pkgs/sagemath-standard/tox.ini``.
+- For testing modularized distributions of the Sage library. This is configured
+  in ``tox.ini`` files in subdirectories of ``SAGE_ROOT/pkgs/``, such as
+  ``SAGE_ROOT/pkgs/sagemath-standard/tox.ini``. Each distribution's configuration
+  defines tox environments for testing the distribution with different Python
+  versions and different ways how the dependencies are provided.
+  We explain this in :ref:`chapter-modularization`.
 
 - As an entry point for testing and linting of the Sage library, as we describe below.
   This is configured in the file ``SAGE_ROOT/src/tox.ini``.
@@ -59,10 +62,40 @@ available::
      -p auto          -- run test environments in parallel
      --help           -- show tox help
 
+
+Doctest
+=======
+
+The command ``./sage -tox -e doctest`` requires that Sage has been
+built already.  ``doctest`` is a special tox environment that runs the
+Sage doctester in the normal Sage environment.  This is equivalent to
+using the command ``./sage -t``; see :ref:`chapter-doctesting`.
+
+
+Coverage
+========
+
+The command ``./sage -tox -e coverage`` requires that Sage has been
+built already.  ``coverage`` is a special tox environment that is
+equivalent to using the command ``./sage --coverageall`` (if no
+arguments are provided) or ``./sage --coverage`` (if arguments are
+provided).
+
+
+Startuptime
+===========
+
+The command ``./sage -tox -e startuptime`` requires that Sage has been
+built already.  ``startuptime`` is a special tox environment that is
+equivalent to using the command ``./sage --startuptime``.
+
+
 Pycodestyle
 ===========
 `Pycodestyle <https://pycodestyle.pycqa.org/en/latest/>`_ (formerly known as pep8)
 checks Python code against the style conventions of `PEP 8 <https://www.python.org/dev/peps/pep-0008/>`_.
+Tox automatically installs pycodestyle in a separate virtual environment
+on the first use.
 
 Sage defines two configurations for pycodestyle.  The command ``./sage -tox -e pycodestyle-minimal`` uses
 pycodestyle in a minimal configuration.

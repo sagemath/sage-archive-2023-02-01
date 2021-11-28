@@ -400,11 +400,11 @@ Sage can be installed onto Linux running on Windows Subsystem for Linux (WSL). T
 - `Upgrade to the Ubuntu 20.10 <https://linuxconfig.org/how-to-upgrade-ubuntu-to-20-10>`_. This step will not be necessary once Ubuntu 20.10 is available in the Microsoft Store.
 
 From this point on, follow the instructions in the :ref:`sec-installation-from-sources-linux-recommended-installation` section.
-It is strongly recommended to put the Sage source files in the Linux file system, for example, in the `/home/username/sage` directory, and not in the Windows file system (e.g. `/mnt/c/...`).
+It is strongly recommended to put the Sage source files in the Linux file system, for example, in the ``/home/username/sage`` directory, and not in the Windows file system (e.g. ``/mnt/c/...``).
 
-You may encounter permission errors of the kind `"[Errno 13] Permission denied: 'build/bdist.linux-x86_64/wheel/<package>.dist-info'"` during `make`.
+You may encounter permission errors of the kind ``"[Errno 13] Permission denied: 'build/bdist.linux-x86_64/wheel/<package>.dist-info'"`` during ``make``.
 This usually comes from a permission conflict between the Windows and Linux file system.
-To fix it create a temporary build folder in the Linux file system using `mkdir -p ~/tmp/sage` and use it for building by `eval SAGE_BUILD_DIR="~/tmp/sage" make`.
+To fix it create a temporary build folder in the Linux file system using ``mkdir -p ~/tmp/sage`` and use it for building by ``eval SAGE_BUILD_DIR="~/tmp/sage" make``.
 Also see the `related Github issue <https://github.com/pypa/packaging-problems/issues/258>`_ for other workarounds.
 
 When the installation is complete, you may be interested in :ref:`sec-launching-wsl-post-installation`.

@@ -430,6 +430,7 @@ class Chart(UniqueRepresentation, SageObject):
 
         - a tuple of variables (as elements of ``SR``)
         - a dictionary with possible keys:
+
           - ``"periods"``: a tuple of periods
 
         TESTS::
@@ -1901,6 +1902,7 @@ class RealChart(Chart):
 
         - a tuple of variables (as elements of ``SR``)
         - a dictionary with possible keys:
+
           - ``"periods"``: a tuple of periods
           - ``"bounds"``: a tuple of coordinate ranges
 

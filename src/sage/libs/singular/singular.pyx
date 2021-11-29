@@ -1524,7 +1524,6 @@ cdef init_libsingular():
     from os.path import dirname
     os.environ["SINGULAR_BIN_DIR"] = dirname(which("Singular"))
 
-    handle = None
     from sage.env import CYGWIN_VERSION
     if not CYGWIN_VERSION:
         handle = dlopen(lib, RTLD_GLOBAL|RTLD_LAZY)
@@ -1535,7 +1534,7 @@ cdef init_libsingular():
     # load SINGULAR
     siInit(lib)
 
-    if handle is not None:
+    if handle:
         dlclose(handle)
 
     # we set and save some global Singular options

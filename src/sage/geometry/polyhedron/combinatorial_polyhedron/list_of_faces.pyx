@@ -127,7 +127,7 @@ cdef class ListOfFaces:
         sage: facets.matrix().dimensions()
         (5, 13)
     """
-    def __init__(self, size_t n_faces, size_t n_atoms, size_t n_coatoms):
+    def __cinit__(self, size_t n_faces, size_t n_atoms, size_t n_coatoms):
         r"""
         Initialize :class:`ListOfFaces`.
 

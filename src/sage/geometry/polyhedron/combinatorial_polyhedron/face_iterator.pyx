@@ -199,7 +199,7 @@ cdef class FaceIterator_base(SageObject):
 
     See :class:`FaceIterator`.
     """
-    def __init__(self, CombinatorialPolyhedron C, bint dual, output_dimension=None):
+    def __cinit__(self, P, dual=None, output_dimension=None):
         r"""
         Initialize :class:`FaceIterator_base`.
 
@@ -218,6 +218,25 @@ cdef class FaceIterator_base(SageObject):
 
             sage: TestSuite(sage.geometry.polyhedron.combinatorial_polyhedron.face_iterator.FaceIterator).run()
         """
+        cdef CombinatorialPolyhedron C
+
+        # Working around that __cinit__ of base and derived class must be the same,
+        # as extension classes do not yet have __new__ in Cython 0.29.
+        if isinstance(P, CombinatorialPolyhedron):
+            C = P
+        else:
+            C = P.combinatorial_polyhedron()
+            if dual is None:
+                # Determine the (likely) faster way, to iterate through all faces.
+                if not P.is_compact() or P.n_facets() <= P.n_vertices():
+                    dual = False
+                else:
+                    dual = True
+
+            if output_dimension is not None and (output_dimension < 0 or output_dimension >= P.dim()):
+                # In those cases the output will be completely handled by :meth:`FaceIterator_geom.__next__`.
+                output_dimension = None
+
         if dual and not C.is_bounded():
             raise ValueError("cannot iterate over dual of unbounded Polyedron")
         cdef int i
@@ -1750,21 +1769,8 @@ cdef class FaceIterator_geom(FaceIterator_base):
             sage: TestSuite(sage.geometry.polyhedron.combinatorial_polyhedron.face_iterator.FaceIterator_geom).run()
         """
         self._requested_dim = output_dimension
-
-        if dual is None:
-            # Determine the (likely) faster way, to iterate through all faces.
-            if not P.is_compact() or P.n_facets() <= P.n_vertices():
-                dual = False
-            else:
-                dual = True
-
         self.P = P
-
-        if output_dimension is not None and (output_dimension < 0 or output_dimension >= P.dim()):
-            # In those cases the output will be completely handled by :meth:`FaceIterator_geom.__next__`.
-            output_dimension = None
-
-        FaceIterator_base.__init__(self, P.combinatorial_polyhedron(), dual, output_dimension)
+        # Base class only has __cinit__ and not __init__
         self.reset()
 
     def reset(self):

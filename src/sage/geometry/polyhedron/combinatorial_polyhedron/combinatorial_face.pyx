@@ -140,7 +140,7 @@ cdef class CombinatorialFace(SageObject):
         sage: face.n_ambient_Hrepresentation()
         11
     """
-    def __init__(self, data, dimension=None, index=None):
+    def __cinit__(self, data, dimension=None, index=None):
         r"""
         Initialize :class:`CombinatorialFace`.
 
@@ -1098,4 +1098,3 @@ cdef class CombinatorialFace(SageObject):
             self.atom_rep = <size_t *> self._mem.allocarray(self.coatoms.n_atoms(), sizeof(size_t))
             self._n_atom_rep = bit_rep_to_Vrep_list(self.face, self.atom_rep)
         return self._n_atom_rep
-

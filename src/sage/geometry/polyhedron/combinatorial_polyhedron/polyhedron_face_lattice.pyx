@@ -110,21 +110,21 @@ cdef class PolyhedronFaceLattice:
     by intersecting with all coatoms. Then each intersection is looked up in
     the sorted level sets.
     """
-    def __init__(self, CombinatorialPolyhedron C):
+    def __cinit__(self, CombinatorialPolyhedron C):
         r"""
         Initialize :class:`PolyhedronFaceLattice`.
 
         See :class:`PolyhedronFaceLattice`.
 
-        EXAMPLES::
+        TESTS:
 
+        Not initializing the class, does not give segmentation fault::
+
+            sage: from sage.geometry.polyhedron.combinatorial_polyhedron.polyhedron_face_lattice import PolyhedronFaceLattice
             sage: P = polytopes.cube()
-            sage: C = CombinatorialPolyhedron(P)
-            sage: C._record_all_faces() # indirect doctests
-            sage: C.face_lattice()
-            Finite lattice containing 28 elements
-
-            sage: TestSuite(sage.geometry.polyhedron.combinatorial_polyhedron.polyhedron_face_lattice.PolyhedronFaceLattice).run()
+            sage: F = PolyhedronFaceLattice.__new__(PolyhedronFaceLattice, P.combinatorial_polyhedron())
+            sage: F.get_face(2, 3)
+            A 2-dimensional face of a 3-dimensional combinatorial polyhedron
         """
         cdef int i
         cdef size_t j
@@ -206,6 +206,22 @@ cdef class PolyhedronFaceLattice:
                 add_face_deep(self.faces[d+1], face_iter.structure.face)
                 d = face_iter.next_dimension()
 
+    def __init__(self, CombinatorialPolyhedron C):
+        r"""
+        Initialize :class:`PolyhedronFaceLattice`.
+
+        See :class:`PolyhedronFaceLattice`.
+
+        EXAMPLES::
+
+            sage: P = polytopes.cube()
+            sage: C = CombinatorialPolyhedron(P)
+            sage: C._record_all_faces() # indirect doctests
+            sage: C.face_lattice()
+            Finite lattice containing 28 elements
+
+            sage: TestSuite(sage.geometry.polyhedron.combinatorial_polyhedron.polyhedron_face_lattice.PolyhedronFaceLattice).run()
+        """
         # Sorting the faces, except for coatoms.
         self._sort()
 

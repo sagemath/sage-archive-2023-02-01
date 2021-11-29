@@ -324,15 +324,15 @@ cdef class CombinatorialPolyhedron(SageObject):
             sage: C.f_vector()
             Traceback (most recent call last):
             ...
-            ValueError: the combinatorial was not initialized
+            ValueError: the combinatorial polyhedron was not initialized
             sage: C.face_lattice()
             Traceback (most recent call last):
             ...
-            ValueError: the combinatorial was not initialized
+            ValueError: the combinatorial polyhedron was not initialized
             sage: C.face_iter()
             Traceback (most recent call last):
             ...
-            ValueError: the combinatorial was not initialized
+            ValueError: the combinatorial polyhedron was not initialized
         """
         self._dimension = -2  # a "NULL" value
         self._edges = NULL
@@ -786,7 +786,7 @@ cdef class CombinatorialPolyhedron(SageObject):
         if self._dimension == -2:
             # Dimension not computed yet.
             if self.n_facets() == -1:
-                raise ValueError("the combinatorial was not initialized")
+                raise ValueError("the combinatorial polyhedron was not initialized")
             elif self.n_facets() == 0:
                 # The dimension of a trivial polyhedron is assumed to contain
                 # exactly one "vertex" and for each dimension one "line" as in

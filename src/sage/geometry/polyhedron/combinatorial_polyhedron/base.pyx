@@ -324,11 +324,15 @@ cdef class CombinatorialPolyhedron(SageObject):
             sage: C.f_vector()
             Traceback (most recent call last):
             ...
-            MemoryError: failed to allocate ... bytes
+            ValueError: the combinatorial was not initialized
             sage: C.face_lattice()
             Traceback (most recent call last):
             ...
-            MemoryError: failed to allocate ... bytes
+            ValueError: the combinatorial was not initialized
+            sage: C.face_iter()
+            Traceback (most recent call last):
+            ...
+            ValueError: the combinatorial was not initialized
         """
         self._dimension = -2  # a "NULL" value
         self._edges = NULL
@@ -337,6 +341,7 @@ cdef class CombinatorialPolyhedron(SageObject):
         self._equations = ()
         self._all_faces = None
         self._mem_tuple = ()
+        self._n_facets = -1
         # ``_length_edges_list`` should not be touched in an instance
         # of :class:`CombinatorialPolyhedron`. This number can be altered,
         # but should probably be a power of `2` (for memory usage).
@@ -780,7 +785,9 @@ cdef class CombinatorialPolyhedron(SageObject):
         """
         if self._dimension == -2:
             # Dimension not computed yet.
-            if self.n_facets() == 0:
+            if self.n_facets() == -1:
+                raise ValueError("the combinatorial was not initialized")
+            elif self.n_facets() == 0:
                 # The dimension of a trivial polyhedron is assumed to contain
                 # exactly one "vertex" and for each dimension one "line" as in
                 # :class:`~sage.geometry.polyhedron.parent.Polyhedron_base`

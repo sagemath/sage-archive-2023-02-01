@@ -86,6 +86,7 @@ config()
                   --disable-python_module \
                   --disable-python-module \
                   --disable-static \
+                  --with-libparse \
                   $SINGULAR_CONFIGURE
 }
 
@@ -98,8 +99,10 @@ build_singular()
     # Possible parallelization bugs in subdirectory Singular
     sdh_make -j1
     sdh_make_install
+    # Trac #32001/#32323: Singular does not install singular.idx
+    sdh_install doc/singular.idx "$SAGE_SHARE/singular/"
 
-    # Singular tarballs made using "make dist" do not contain built documentation.
+    # Singular tarballs made using "make dist" (without --enable-doc-build) do not contain built documentation.
     if [ ! -e doc/doc.tbz2 ]; then
         (cd doc && make singular.hlp && sdh_install singular.hlp "$SAGE_SHARE/info/") || sdh_die "Building documentation failed"
     fi

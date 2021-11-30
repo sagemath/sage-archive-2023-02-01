@@ -11,7 +11,7 @@ Root system data for super type A
 #                  https://www.gnu.org/licenses/
 # ****************************************************************************
 
-from sage.rings.all import ZZ
+from sage.rings.integer_ring import ZZ
 from sage.misc.cachefunc import cached_method
 from . import ambient_space
 from .cartan_type import SuperCartanType_standard
@@ -585,7 +585,9 @@ class CartanType(SuperCartanType_standard):
             Finite family {-2: 1, -1: 1, 0: 1, 1: -1, 2: -1, 3: -1}
         """
         from sage.sets.family import Family
-        def ell(i): return ZZ.one() if i <= 0 else -ZZ.one()
+
+        def ell(i):
+            return ZZ.one() if i <= 0 else -ZZ.one()
         return Family(self.index_set(), ell)
 
     def dynkin_diagram(self):

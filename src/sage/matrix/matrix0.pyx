@@ -5009,7 +5009,7 @@ cdef class Matrix(sage.structure.element.Matrix):
             (1 + O(5^5), O(5))
 
         """
-        M = sage.modules.free_module.FreeModule(self._base_ring, self.ncols(), sparse=self.is_sparse())
+        M = self._row_ambient_module()
         if self.nrows() != v.degree():
             raise ArithmeticError("number of rows of matrix must equal degree of vector")
         cdef Py_ssize_t i
@@ -5043,7 +5043,7 @@ cdef class Matrix(sage.structure.element.Matrix):
             (1 + O(5^5), O(5))
 
         """
-        M = sage.modules.free_module.FreeModule(self._base_ring, self.nrows(), sparse=self.is_sparse())
+        M = self._column_ambient_module()
         if self.ncols() != v.degree():
             raise ArithmeticError("number of columns of matrix must equal degree of vector")
         cdef Py_ssize_t i

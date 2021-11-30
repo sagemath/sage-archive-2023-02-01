@@ -1524,8 +1524,8 @@ cdef init_libsingular():
     from os.path import dirname
     os.environ["SINGULAR_BIN_DIR"] = dirname(which("Singular"))
 
-    from sage.env import CYGWIN_VERSION
-    if not CYGWIN_VERSION:
+    import platform
+    if not platform.system().startswith("CYGWIN"):
         handle = dlopen(lib, RTLD_GLOBAL|RTLD_LAZY)
         if not handle:
             err = dlerror()

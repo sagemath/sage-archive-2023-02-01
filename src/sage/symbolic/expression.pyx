@@ -1240,7 +1240,7 @@ cdef class Expression(Expression_abc):
 
             sage: a = (pi + 2).sin()
             sage: a._maple_init_()
-            'sin((pi)+(2))'
+            'sin((Pi)+(2))'
 
             sage: a = (pi + 2).sin()
             sage: a._mathematica_init_()
@@ -1274,7 +1274,7 @@ cdef class Expression(Expression_abc):
             sage: gap(e + pi^2 + x^3)
             x^3 + pi^2 + e
         """
-        return '"%s"'%repr(self)
+        return '"%s"' % repr(self)
 
     def _singular_init_(self):
         """

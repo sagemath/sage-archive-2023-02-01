@@ -207,7 +207,7 @@ def test_executable(args, input="", timeout=100.0, pydebug_ignore_warnings=False
         True
         sage: err  # optional - sage_spkg
         ''
-        sage: ret  # optional -sage_spkg
+        sage: ret  # optional - sage_spkg
         0
 
     Test ``sage --info [packages]`` and the equivalent

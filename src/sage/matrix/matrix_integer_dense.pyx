@@ -5212,7 +5212,7 @@ cdef class Matrix_integer_dense(Matrix_dense):
 
         EXAMPLES::
 
-            sage: m = matrix(QQ, 3, 2, [1, -2, 3, 4, -1, 0])
+            sage: m = matrix(ZZ, 3, 2, [1, -2, 3, 4, -1, 0])
             sage: m.column(1)
             (-2, 4, 0)
             sage: m.column(1, from_list=True)

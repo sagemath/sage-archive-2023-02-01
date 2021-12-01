@@ -18,7 +18,7 @@ The methods defined here appear in :mod:`sage.graphs.graph_generators`.
 # import from Sage library
 from sage.graphs.graph import Graph
 from sage.rings.rational_field import QQ
-from sage.functions.other import sqrt
+from sage.misc.functional import sqrt
 
 from math import sin, cos, pi
 
@@ -3571,7 +3571,7 @@ def McLaughlinGraph():
     g = Graph()
     for b in B:
         for x in range(1, 23):
-            if not x in b:
+            if x not in b:
                 g.add_edge(b, x)
 
     for b in C:

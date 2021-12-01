@@ -1716,6 +1716,9 @@ REFERENCES:
              C. R. Acad. Sci. Paris Sér. I Math. 296 (1983) 14
              781--784.
 
+.. [Cro2004] Peter R. Cromwell, *Knots and links*, Cambridge University Press (2004).
+             :doi:`10.1017/CBO9780511809767`
+
 .. [CRS2016] Dean Crnković, Sanja Rukavina, and Andrea Švob. *Strongly regular
              graphs from orthogonal groups* `O^+(6,2)` *and* `O^-(6,2)`.
              :arxiv:`1609.07133`
@@ -2871,6 +2874,9 @@ REFERENCES:
             for odd modular subgroups", LMS J. Comput. Math. 17
             (2014), no. 1, 206-208, :doi:`10.1112/S1461157013000338`.
 
+.. [HL2018] Mustafa Hajij and Jesse Levitt, "An Efficient Algorithm to Compute
+            the Colored Jones Polynomial" :arxiv:`1804.07910v2`.
+
 .. [Hli2006] Petr Hlineny, "Equivalence-free exhaustive generation of
              matroid representations", Discrete Applied Mathematics
              154 (2006), pp. 1210-1222.
@@ -3063,6 +3069,10 @@ REFERENCES:
 
 .. [Hutz2015] \B. Hutz. Determination of all rational preperiodic points
               for morphisms of PN. Mathematics of Computation, 84:291 (2015), 289-308.
+
+.. [Hutz2019] \B. Hutz. Multipliers and invariants of endomorphisms of projective
+              space in dimension greater than 1, Journal de Théorie des Nombres de
+              Bordeaux, Tome 32 (2020) no. 2, pp. 439-469.
 
 .. [Huy2005] \D. Huybrechts : *Complex Geometry*, Springer (Berlin)
              (2005).

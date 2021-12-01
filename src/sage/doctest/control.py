@@ -28,6 +28,7 @@ import json
 import re
 import types
 import sage.misc.flatten
+import sage.misc.randstate as randstate
 from sage.structure.sage_object import SageObject
 from sage.env import DOT_SAGE, SAGE_LIB, SAGE_SRC, SAGE_VENV, SAGE_EXTCODE
 from sage.misc.temporary_file import tmp_dir
@@ -41,7 +42,7 @@ from .external import external_software, available_software
 from .parsing import parse_optional_tags
 
 nodoctest_regex = re.compile(r'\s*(#+|%+|r"+|"+|\.\.)\s*nodoctest')
-optionaltag_regex = re.compile(r'^\w+$')
+optionaltag_regex = re.compile(r'^(\w|[.])+$')
 optionalfiledirective_regex = re.compile(r'\s*(#+|%+|r"+|"+|\.\.)\s*sage\.doctest: (.*)')
 
 # Optional tags which are always automatically added
@@ -401,11 +402,17 @@ class DocTestController(SageObject):
                     options.optional.discard('optional')
                     from sage.misc.package import list_packages
                     for pkg in list_packages('optional', local=True).values():
-                        if pkg['installed'] and pkg['installed_version'] == pkg['remote_version']:
-                            options.optional.add(pkg['name'])
+                        if pkg.is_installed() and pkg.installed_version == pkg.remote_version:
+                            options.optional.add(pkg.name)
 
                     from sage.features import package_systems
-                    options.optional.update(system.name for system in package_systems())
+                    options.optional.update(system.name
+                                            for system in package_systems())
+
+                    logger = sys.stderr if options.verbose else None
+                    from sage.features.sagemath import sage_features
+                    options.optional.update(feature.name
+                                            for feature in sage_features(logger=logger))
 
                 # Check that all tags are valid
                 for o in options.optional:
@@ -458,7 +465,8 @@ class DocTestController(SageObject):
         self._init_warn_long()
 
         if self.options.random_seed is None:
-            self.options.random_seed = 0
+            randstate.set_random_seed()
+            self.options.random_seed = randstate.initial_seed()
 
     def __del__(self):
         if getattr(self, 'logfile', None) is not None:

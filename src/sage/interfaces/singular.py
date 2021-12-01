@@ -1576,10 +1576,10 @@ class SingularElement(ExtraTabCompletion, ExpectElement):
             ''
             sage: R = singular('r5').sage_global_ring(); R
             Multivariate Polynomial Ring in a, b, c over Complex Field with 54 bits of precision
-            sage: R.base_ring()('j')
+            sage: R.base_ring()('k')
             Traceback (most recent call last):
             ...
-            NameError: name 'j' is not defined
+            ValueError: given string 'k' is not a complex number
             sage: R.base_ring()('I')
             1.00000000000000*I
 
@@ -1608,7 +1608,7 @@ class SingularElement(ExtraTabCompletion, ExpectElement):
         # extract the ring of coefficients
         singular = self.parent()
         charstr = singular.eval('charstr(basering)').split(',',1)
-        from sage.all import ZZ
+        from sage.rings.integer_ring import ZZ
         is_extension = len(charstr)==2
         if charstr[0] in ['integer', 'ZZ']:
             br = ZZ
@@ -1629,7 +1629,7 @@ class SingularElement(ExtraTabCompletion, ExpectElement):
         else:
             # it ought to be a finite field
             q = ZZ(charstr[0].lstrip('ZZ/'))
-            from sage.all import GF
+            from sage.rings.finite_rings.finite_field_constructor import GF
             if q.is_prime():
                 br = GF(q)
             else:
@@ -1994,7 +1994,7 @@ class SingularElement(ExtraTabCompletion, ExpectElement):
             sage: singular(5).sage()
             5
             sage: type(singular(int(5)).sage())
-            <type 'sage.rings.integer.Integer'>
+            <class 'sage.rings.integer.Integer'>
 
         """
         typ = self.type()

@@ -981,7 +981,7 @@ class MaximaAbstract(ExtraTabCompletion, Interface):
             sage: u.parent()
             Number Field in a with defining polynomial x^2 - 13 with a = 3.605551275463990?
         """
-        from sage.rings.all import Integer
+        from sage.rings.integer import Integer
         from sage.rings.number_field.number_field import QuadraticField
         # Take square-free part so sqrt(n) doesn't get simplified
         # further by maxima
@@ -1216,18 +1216,18 @@ class MaximaAbstractElement(ExtraTabCompletion, InterfaceElement):
             sage: b = a._sage_(); b
             sqrt(2) + 2.5
             sage: type(b)
-            <type 'sage.symbolic.expression.Expression'>
+            <class 'sage.symbolic.expression.Expression'>
 
         We illustrate an automatic coercion::
 
             sage: c = b + sqrt(3); c
             sqrt(3) + sqrt(2) + 2.5
             sage: type(c)
-            <type 'sage.symbolic.expression.Expression'>
+            <class 'sage.symbolic.expression.Expression'>
             sage: d = sqrt(3) + b; d
             sqrt(3) + sqrt(2) + 2.5
             sage: type(d)
-            <type 'sage.symbolic.expression.Expression'>
+            <class 'sage.symbolic.expression.Expression'>
 
             sage: a = sage.calculus.calculus.maxima('x^(sqrt(y)+%pi) + sin(%e + %pi)')
             sage: a._sage_()
@@ -1536,7 +1536,7 @@ class MaximaAbstractElement(ExtraTabCompletion, InterfaceElement):
             sage: gp('intnum(x=0,1,exp(-sqrt(x)))')
             0.52848223531423071361790491935415653021675547587292866196865279321015401702040079
         """
-        from sage.rings.all import Integer
+        from sage.rings.integer import Integer
         v = self.quad_qags(var, a, b, epsrel=desired_relative_error,
                            limit=maximum_num_subintervals)
         return v[0], v[1], Integer(v[2]), Integer(v[3])

@@ -28,20 +28,33 @@ import sage.env
 sage.env.SAGE_SRC = os.getcwd()
 from sage.env import *
 
-from sage_setup.excepthook import excepthook
-sys.excepthook = excepthook
-
-from sage_setup.setenv import setenv
-setenv()
-
 #########################################################
 ### Configuration
 #########################################################
 
-if len(sys.argv) > 1 and sys.argv[1] == "sdist":
+if len(sys.argv) > 1 and (sys.argv[1] == "sdist" or sys.argv[1] == "egg_info"):
     sdist = True
 else:
     sdist = False
+
+if sdist:
+    cmdclass = {}
+else:
+    from sage_setup.excepthook import excepthook
+    sys.excepthook = excepthook
+
+    from sage_setup.setenv import setenv
+    setenv()
+
+    from sage_setup.command.sage_build import sage_build
+    from sage_setup.command.sage_build_cython import sage_build_cython
+    from sage_setup.command.sage_build_ext import sage_build_ext
+    from sage_setup.command.sage_install import sage_install_and_clean
+
+    cmdclass = dict(build=sage_build,
+                    build_cython=sage_build_cython,
+                    build_ext=sage_build_ext,
+                    install=sage_install_and_clean)
 
 #########################################################
 ### Testing related stuff
@@ -52,27 +65,22 @@ import sage.misc.lazy_import_cache
 if os.path.exists(sage.misc.lazy_import_cache.get_cache_file()):
     os.unlink(sage.misc.lazy_import_cache.get_cache_file())
 
-
-from sage_setup.command.sage_build import sage_build
-from sage_setup.command.sage_build_cython import sage_build_cython
-from sage_setup.command.sage_build_ext import sage_build_ext
-
-
 #########################################################
 ### Discovering Sources
 #########################################################
-
-# TODO: This should be quiet by default
-print("Discovering Python/Cython source code....")
-t = time.time()
-
-from sage_setup.optional_extension import is_package_installed_and_updated
 
 if sdist:
     # No need to compute distributions.  This avoids a dependency on Cython
     # just to make an sdist.
     distributions = None
+    python_packages = []
+    python_modules = []
+    cython_modules = []
 else:
+    # TODO: This should be quiet by default
+    print("Discovering Python/Cython source code....")
+    t = time.time()
+    from sage_setup.optional_extension import is_package_installed_and_updated
     distributions = ['']
     optional_packages_with_extensions = ['mcqd', 'bliss', 'tdlib', 'primecount',
                                          'coxeter3', 'fes', 'sirocco', 'meataxe']
@@ -80,17 +88,13 @@ else:
                       for pkg in optional_packages_with_extensions
                       if is_package_installed_and_updated(pkg)]
     log.warn('distributions = {0}'.format(distributions))
+    from sage_setup.find import find_python_sources
+    python_packages, python_modules, cython_modules = find_python_sources(
+        SAGE_SRC, ['sage'], distributions=distributions)
 
-from sage_setup.find import find_python_sources
-python_packages, python_modules, cython_modules = find_python_sources(
-    SAGE_SRC, ['sage'], distributions=distributions)
+    log.debug('python_packages = {0}'.format(python_packages))
+    print("Discovered Python/Cython sources, time: %.2f seconds." % (time.time() - t))
 
-log.debug('python_packages = {0}'.format(python_packages))
-
-print("Discovered Python/Cython sources, time: %.2f seconds." % (time.time() - t))
-
-
-from sage_setup.command.sage_install import sage_install_and_clean
 
 #########################################################
 ### Distutils
@@ -175,8 +179,5 @@ code = setup(
                  'bin/sage-update-src',
                  'bin/sage-update-version',
                  ],
-      cmdclass = dict(build=sage_build,
-                      build_cython=sage_build_cython,
-                      build_ext=sage_build_ext,
-                      install=sage_install_and_clean),
+      cmdclass = cmdclass,
       ext_modules = cython_modules)

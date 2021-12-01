@@ -447,13 +447,17 @@ class DiffForm(TensorField):
             True
 
         """
-        from sage.tensor.modules.format_utilities import (format_unop_txt,
-                                                          format_unop_latex)
+        from sage.tensor.modules.format_utilities import (
+            format_unop_txt,
+            format_unop_latex,
+        )
+
         vmodule = self._vmodule  # shortcut
-        rname = format_unop_txt('d', self._name)
-        rlname = format_unop_latex(r'\mathrm{d}', self._latex_name)
-        resu = vmodule.alternating_form(self._tensor_rank + 1, name=rname,
-                                        latex_name=rlname)
+        rname = format_unop_txt("d", self._name)
+        rlname = format_unop_latex(r"\mathrm{d}", self._latex_name)
+        resu = vmodule.alternating_form(
+            self._tensor_rank + 1, name=rname, latex_name=rlname
+        )
         for dom, rst in self._restrictions.items():
             resu._restrictions[dom] = rst.exterior_derivative()
         return resu
@@ -609,7 +613,10 @@ class DiffForm(TensorField):
         """
         return self._tensor_rank
 
-    def hodge_dual(self, nondegenerate_tensor: Union[PseudoRiemannianMetric, SymplecticForm]) -> DiffForm:
+    def hodge_dual(
+        self,
+        nondegenerate_tensor: Union[PseudoRiemannianMetric, SymplecticForm, None] = None,
+    ) -> DiffForm:
         r"""
         Compute the Hodge dual of the differential form with respect to some non-degenerate
         bilinear form (Riemaninan metric or symplectic form).
@@ -1526,71 +1533,6 @@ class DiffFormParal(FreeModuleAltForm, TensorFieldParal, DiffForm):
         other_r = other.restrict(dom_resu)
         return FreeModuleAltForm.wedge(self_r, other_r)
 
-    def hodge_dual(self, metric):
-        r"""
-        Compute the Hodge dual of the differential form with respect to some
-        metric.
-
-        If the differential form is a `p`-form `A`, its *Hodge dual* with
-        respect to a pseudo-Riemannian metric `g` is the
-        `(n-p)`-form `*A` defined by
-
-        .. MATH::
-
-            *A_{i_1\ldots i_{n-p}} = \frac{1}{p!} A_{k_1\ldots k_p}
-                \epsilon^{k_1\ldots k_p}_{\qquad\ i_1\ldots i_{n-p}}
-
-        where `n` is the manifold's dimension, `\epsilon` is the volume
-        `n`-form associated with `g` (see
-        :meth:`~sage.manifolds.differentiable.metric.PseudoRiemannianMetric.volume_form`)
-        and the indices `k_1,\ldots, k_p` are raised with `g`.
-
-        INPUT:
-
-        - ``metric``: a pseudo-Riemannian metric defined on the same manifold
-          as the current differential form; must be an instance of
-          :class:`~sage.manifolds.differentiable.metric.PseudoRiemannianMetric`
-
-        OUTPUT:
-
-        - the `(n-p)`-form `*A`
-
-        EXAMPLES:
-
-        Hodge dual of a 1-form in the Euclidean space `R^3`::
-
-            sage: M = Manifold(3, 'M', start_index=1)
-            sage: X.<x,y,z> = M.chart()
-            sage: g = M.metric('g')  # the Euclidean metric
-            sage: g[1,1], g[2,2], g[3,3] = 1, 1, 1
-            sage: var('Ax Ay Az')
-            (Ax, Ay, Az)
-            sage: a = M.one_form(Ax, Ay, Az, name='A')
-            sage: sa = a.hodge_dual(g) ; sa
-            2-form *A on the 3-dimensional differentiable manifold M
-            sage: sa.display()
-            *A = Az dx∧dy - Ay dx∧dz + Ax dy∧dz
-            sage: ssa = sa.hodge_dual(g) ; ssa
-            1-form **A on the 3-dimensional differentiable manifold M
-            sage: ssa.display()
-            **A = Ax dx + Ay dy + Az dz
-            sage: ssa == a  # must hold for a Riemannian metric in dimension 3
-            True
-
-        Instead of calling the method :meth:`hodge_dual` on the differential
-        form, one can invoke the method
-        :meth:`~sage.manifolds.differentiable.metric.PseudoRiemannianMetric.hodge_star`
-        of the metric::
-
-            sage: a.hodge_dual(g) == g.hodge_star(a)
-            True
-
-        See the documentation of
-        :meth:`~sage.manifolds.differentiable.metric.PseudoRiemannianMetric.hodge_star`
-        for more examples.
-
-        """
-        return DiffForm.hodge_dual(self, metric)
 
     def interior_product(self, qvect):
         r"""

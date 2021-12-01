@@ -18,7 +18,10 @@ AUTHORS:
 
 from typing import Optional, Tuple
 
-from sage.manifolds.differentiable.symplectic_form import SymplecticForm, SymplecticFormParal
+from sage.manifolds.differentiable.symplectic_form import (
+    SymplecticForm,
+    SymplecticFormParal,
+)
 from sage.manifolds.differentiable.examples.euclidean import EuclideanSpace
 from sage.rings.real_mpfr import RR
 from sage.categories.manifolds import Manifolds
@@ -31,10 +34,19 @@ class SymplecticVectorSpace(EuclideanSpace):
 
     _symplectic_form: SymplecticForm
 
-    def __init__(self, dimension: int, name: Optional[str] = None, latex_name: Optional[str] = None,
-                 coordinates: str ='Cartesian', symbols: Optional[str] = None, symplectic_name: Optional[str] = 'omega',
-                 symplectic_latex_name: Optional[str] = None, start_index: int = 1,
-                 base_manifold: Optional['SymplecticVectorSpace'] = None, names: Optional[Tuple[str]] = None):
+    def __init__(
+        self,
+        dimension: int,
+        name: Optional[str] = None,
+        latex_name: Optional[str] = None,
+        coordinates: str = "Cartesian",
+        symbols: Optional[str] = None,
+        symplectic_name: Optional[str] = "omega",
+        symplectic_latex_name: Optional[str] = None,
+        start_index: int = 1,
+        base_manifold: Optional["SymplecticVectorSpace"] = None,
+        names: Optional[Tuple[str]] = None,
+    ):
         r"""
         INPUT:
 
@@ -84,25 +96,38 @@ class SymplecticVectorSpace(EuclideanSpace):
         dim_half = dimension // 2
 
         if names is not None and symbols is None:
-            symbols = ' '.join(names)
+            symbols = " ".join(names)
 
         if symbols is None:
             if dim_half == 1:
                 symbols = r"q:q p:p"
             else:
-                symbols_list = [f"q{i}:q^{i} p{i}:p_{i}" for i in range(1, dim_half + 1)]
-                symbols = ' '.join(symbols_list)
+                symbols_list = [
+                    f"q{i}:q^{i} p{i}:p_{i}" for i in range(1, dim_half + 1)
+                ]
+                symbols = " ".join(symbols_list)
 
         if name is None:
             name = "V"
 
         category = Manifolds(RR).Smooth()
 
-        EuclideanSpace.__init__(self, dimension, name, latex_name=latex_name,
-                                coordinates=coordinates, symbols=symbols, start_index=start_index,
-                                base_manifold=base_manifold, category=category, init_coord_methods=None)
+        EuclideanSpace.__init__(
+            self,
+            dimension,
+            name,
+            latex_name=latex_name,
+            coordinates=coordinates,
+            symbols=symbols,
+            start_index=start_index,
+            base_manifold=base_manifold,
+            category=category,
+            init_coord_methods=None,
+        )
 
-        self._symplectic_form = SymplecticFormParal(self, symplectic_name, symplectic_latex_name)
+        self._symplectic_form = SymplecticFormParal(
+            self, symplectic_name, symplectic_latex_name
+        )
         for i in range(0, dim_half):
             q_index = 2 * i + 1
             self._symplectic_form.set_comp()[q_index, q_index + 1] = -1

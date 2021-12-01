@@ -46,6 +46,7 @@ if TYPE_CHECKING:
     from sage.manifolds.differentiable.symplectic_form import SymplecticForm
     from sage.manifolds.differentiable.metric import PseudoRiemannianMetric
 
+
 class DiffScalarField(ScalarField):
     r"""
     Differentiable scalar field on a differentiable manifold.
@@ -885,7 +886,9 @@ class DiffScalarField(ScalarField):
 
     lie_der = lie_derivative
 
-    def hodge_dual(self, nondegenerate_tensor: Union[PseudoRiemannianMetric, SymplecticForm]) -> DiffForm:
+    def hodge_dual(
+        self, nondegenerate_tensor: Union[PseudoRiemannianMetric, SymplecticForm]
+    ) -> DiffForm:
         r"""
         Compute the Hodge dual of the scalar field with respect to to some non-degenerate
         bilinear form (Riemaninan metric or symplectic form).
@@ -942,10 +945,16 @@ class DiffScalarField(ScalarField):
             True
 
         """
-        from sage.tensor.modules.format_utilities import format_unop_txt, format_unop_latex
+        from sage.tensor.modules.format_utilities import (
+            format_unop_txt,
+            format_unop_latex,
+        )
+
         result = self * nondegenerate_tensor.volume_form()
-        result.set_name(name=format_unop_txt('*', self._name),
-                    latex_name=format_unop_latex(r'\star ', self._latex_name))
+        result.set_name(
+            name=format_unop_txt("*", self._name),
+            latex_name=format_unop_latex(r"\star ", self._latex_name),
+        )
         return result
 
     def bracket(self, other):

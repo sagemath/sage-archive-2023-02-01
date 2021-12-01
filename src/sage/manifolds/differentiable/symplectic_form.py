@@ -68,9 +68,14 @@ class SymplecticForm(DiffForm):
     _dim_half: int
     _poisson: Optional[PoissonTensorField]
     _vol_form: Optional[DiffForm]
-    _restrictions: Dict[DifferentiableManifold, 'SymplecticForm']
+    _restrictions: Dict[DifferentiableManifold, SymplecticForm]
 
-    def __init__(self, manifold: Union[DifferentiableManifold, VectorFieldModule], name: Optional[str] = None, latex_name: Optional[str] = None):
+    def __init__(
+        self,
+        manifold: Union[DifferentiableManifold, VectorFieldModule],
+        name: Optional[str] = None,
+        latex_name: Optional[str] = None,
+    ):
         r"""
         Construct a symplectic form.
 
@@ -104,12 +109,16 @@ class SymplecticForm(DiffForm):
         if latex_name is None:
             latex_name = name
 
-        DiffForm.__init__(self, vector_field_module, 2, name=name, latex_name=latex_name)
+        DiffForm.__init__(
+            self, vector_field_module, 2, name=name, latex_name=latex_name
+        )
 
         # Check that manifold is even dimensional
         dim = self._ambient_domain.dimension()
         if dim % 2 == 1:
-            raise ValueError(f"the dimension of the manifold must be even but it is {dim}")
+            raise ValueError(
+                f"the dimension of the manifold must be even but it is {dim}"
+            )
         self._dim_half = dim // 2
 
         # Initialization of derived quantities
@@ -125,8 +134,11 @@ class SymplecticForm(DiffForm):
         r"""
         Create an instance of the same class as ``self``.
         """
-        return type(self)(self._vmodule, 'unnamed symplectic form',
-                          latex_name=r'\mbox{unnamed symplectic form}')
+        return type(self)(
+            self._vmodule,
+            "unnamed symplectic form",
+            latex_name=r"\mbox{unnamed symplectic form}",
+        )
 
     def _init_derived(self):
         r"""
@@ -157,7 +169,9 @@ class SymplecticForm(DiffForm):
             self._vol_form._del_derived()
             self._vol_form = None
 
-    def restrict(self, subdomain: DifferentiableManifold, dest_map: Optional[DiffMap] = None) -> DiffForm:
+    def restrict(
+        self, subdomain: DifferentiableManifold, dest_map: Optional[DiffMap] = None
+    ) -> DiffForm:
         r"""
         Return the restriction of the symplectic form to some subdomain.
 
@@ -202,7 +216,9 @@ class SymplecticForm(DiffForm):
             return self._restrictions[subdomain]
 
     @staticmethod
-    def wrap(form: DiffForm, name: Optional[str] = None, latex_name: Optional[str] = None) -> SymplecticForm:
+    def wrap(
+        form: DiffForm, name: Optional[str] = None, latex_name: Optional[str] = None
+    ) -> SymplecticForm:
         r"""
         Define the symplectic form from a differential form.
 
@@ -232,7 +248,9 @@ class SymplecticForm(DiffForm):
         symplectic_form = form.base_module().symplectic_form(name, latex_name)
 
         for dom, rst in form._restrictions.items():
-            symplectic_form._restrictions[dom] = SymplecticForm.wrap(rst, name, latex_name)
+            symplectic_form._restrictions[dom] = SymplecticForm.wrap(
+                rst, name, latex_name
+            )
 
         if isinstance(form, DiffFormParal):
             for frame in form._components:
@@ -240,7 +258,9 @@ class SymplecticForm(DiffForm):
 
         return symplectic_form
 
-    def poisson(self, expansion_symbol: Optional[Expression] = None, order: int = 1) -> PoissonTensorField:
+    def poisson(
+        self, expansion_symbol: Optional[Expression] = None, order: int = 1
+    ) -> PoissonTensorField:
         r"""
         Return the Poisson tensor associated with the symplectic form.
 
@@ -278,23 +298,25 @@ class SymplecticForm(DiffForm):
         """
         if self._poisson is None:
             # Initialize the Poisson tensor
-            poisson_name = f'poisson_{self._name}'
-            poisson_latex_name = f'{self._latex_name}^{{-1}}'
-            self._poisson = self._vmodule.poisson_tensor(poisson_name, poisson_latex_name)
+            poisson_name = f"poisson_{self._name}"
+            poisson_latex_name = f"{self._latex_name}^{{-1}}"
+            self._poisson = self._vmodule.poisson_tensor(
+                poisson_name, poisson_latex_name
+            )
 
         # Update the Poisson tensor
         # TODO: Should this be done instead when a new restriction is added?
         for domain, restriction in self._restrictions.items():
             # Forces the update of the restriction
             self._poisson._restrictions[domain] = restriction.poisson(
-                                             expansion_symbol=expansion_symbol,
-                                             order=order)
+                expansion_symbol=expansion_symbol, order=order
+            )
         return self._poisson
 
     def hamiltonian_vector_field(self, function: DiffScalarField) -> VectorField:
         r"""
         The Hamiltonian vector field `X_f` generated by a function `f: M \to \RR`.
-        
+
         The Hamiltonian vector field is defined by
         .. MATH::
 
@@ -317,7 +339,7 @@ class SymplecticForm(DiffForm):
             Xf = d(f)/dp e_q - d(f)/dq e_p
         """
         return self.poisson().hamiltonian_vector_field(function)
-    
+
     def flat(self, vector_field: VectorField) -> DiffForm:
         r"""
         \omega^\flat: TM -> T^* M
@@ -326,13 +348,15 @@ class SymplecticForm(DiffForm):
         In indicies, `X_i = \omega_{ji} X^j`.
         """
         form = vector_field.down(self)
-        form.set_name(vector_field._name + '_flat', vector_field._latex_name + '^\\flat')
+        form.set_name(
+            vector_field._name + "_flat", vector_field._latex_name + "^\\flat"
+        )
         return form
 
     def sharp(self, form: DiffForm) -> VectorField:
         r"""
         Return the image of the given differential form under the map `\omega^\sharp: T^* M \to TM` defined by
-        .. MATH::     
+        .. MATH::
             `\omega (\omega^\sharp(\alpha), X) = \alpha(X)`
 
         for all `X \in T_m M` and `\alpha \in T^*_m M`.
@@ -345,7 +369,9 @@ class SymplecticForm(DiffForm):
         """
         return self.poisson().sharp(form)
 
-    def poisson_bracket(self, f: DiffScalarField, g: DiffScalarField) -> DiffScalarField:
+    def poisson_bracket(
+        self, f: DiffScalarField, g: DiffScalarField
+    ) -> DiffScalarField:
         r"""
         Return the Poissen bracket
         .. MATH::
@@ -376,7 +402,7 @@ class SymplecticForm(DiffForm):
         - if ``contra = k``, with `1\leq k \leq n`, the tensor field of type
           (k,n-k) formed from `\epsilon` by raising the first k indices with
           the symplectic form (see method
-          :meth:`~sage.manifolds.differentiable.tensorfield.TensorField.up`) 
+          :meth:`~sage.manifolds.differentiable.tensorfield.TensorField.up`)
 
         EXAMPLES:
 
@@ -396,8 +422,8 @@ class SymplecticForm(DiffForm):
                 vol_form = vol_form.wedge(self)
 
             # TODO: Or use something as vol_omega as name?
-            volume_name = f'{self._name}^{self._dim_half}'
-            volume_latex_name = f'{self._latex_name}^{{{self._dim_half}}}'
+            volume_name = f"{self._name}^{self._dim_half}"
+            volume_latex_name = f"{self._latex_name}^{{{self._dim_half}}}"
             vol_form.set_name(volume_name, volume_latex_name)
             self._vol_form = vol_form
 
@@ -475,7 +501,12 @@ class SymplecticFormParal(SymplecticForm, DiffFormParal):
     """
     _poisson: TensorFieldParal
 
-    def __init__(self, manifold: Union[VectorFieldModule, DifferentiableManifold], name: Optional[str], latex_name: Optional[str] = None):
+    def __init__(
+        self,
+        manifold: Union[VectorFieldModule, DifferentiableManifold],
+        name: Optional[str],
+        latex_name: Optional[str] = None,
+    ):
         r"""
         Construct a symplectic form.
 
@@ -506,14 +537,18 @@ class SymplecticFormParal(SymplecticForm, DiffFormParal):
         if name is None:
             name = "omega"
 
-        DiffFormParal.__init__(self, vector_field_module, 2, name=name, latex_name=latex_name)
-        
+        DiffFormParal.__init__(
+            self, vector_field_module, 2, name=name, latex_name=latex_name
+        )
+
         # Check that manifold is even dimensional
         dim = self._ambient_domain.dimension()
         if dim % 2 == 1:
-            raise ValueError(f"the dimension of the manifold must be even but it is {dim}")
+            raise ValueError(
+                f"the dimension of the manifold must be even but it is {dim}"
+            )
         self._dim_half = dim // 2
-        
+
         # Initialization of derived quantities
         SymplecticFormParal._init_derived(self)
 
@@ -559,7 +594,9 @@ class SymplecticFormParal(SymplecticForm, DiffFormParal):
 
         SymplecticForm._del_derived(self)
 
-    def restrict(self, subdomain: DifferentiableManifold, dest_map: Optional[DiffMap] = None) -> 'SymplecticFormParal':
+    def restrict(
+        self, subdomain: DifferentiableManifold, dest_map: Optional[DiffMap] = None
+    ) -> SymplecticFormParal:
         r"""
         Return the restriction of the symplectic form to some subdomain.
 
@@ -600,7 +637,9 @@ class SymplecticFormParal(SymplecticForm, DiffFormParal):
             self._restrictions[subdomain] = SymplecticFormParal.wrap(resu)
         return self._restrictions[subdomain]
 
-    def poisson(self, expansion_symbol: Optional[Expression] = None, order: int = 1) -> TensorFieldParal:
+    def poisson(
+        self, expansion_symbol: Optional[Expression] = None, order: int = 1
+    ) -> TensorFieldParal:
         r"""
         Return the Poisson tensor associated with the symplectic form.
 
@@ -640,9 +679,13 @@ class SymplecticFormParal(SymplecticForm, DiffFormParal):
         super().poisson()
 
         if expansion_symbol is not None:
-            if (self._poisson is not None and bool(self._poisson._components)
-                and list(self._poisson._components.values())[0][0, 0]._expansion_symbol == expansion_symbol
-                    and list(self._poisson._components.values())[0][0, 0]._order == order):
+            if (
+                self._poisson is not None
+                and bool(self._poisson._components)
+                and list(self._poisson._components.values())[0][0, 0]._expansion_symbol
+                == expansion_symbol
+                and list(self._poisson._components.values())[0][0, 0]._order == order
+            ):
                 return self._poisson
 
             if order != 1:
@@ -651,17 +694,18 @@ class SymplecticFormParal(SymplecticForm, DiffFormParal):
             g0 = decompo[0]
             g1 = decompo[1]
 
-            g0m = self._new_instance()   # needed because only metrics have
-            g0m.set_comp()[:] = g0[:]    # an "inverse" method.
+            g0m = self._new_instance()  # needed because only metrics have
+            g0m.set_comp()[:] = g0[:]  # an "inverse" method.
 
             contraction = g1.contract(0, g0m.inverse(), 0)
             contraction = contraction.contract(1, g0m.inverse(), 1)
-            self._poisson = - (g0m.inverse() - expansion_symbol * contraction)
+            self._poisson = -(g0m.inverse() - expansion_symbol * contraction)
             self._poisson.set_calc_order(expansion_symbol, order)
             return self._poisson
 
         from sage.matrix.constructor import matrix
         from sage.tensor.modules.comp import CompFullyAntiSym
+
         # Is the inverse metric up to date ?
         for frame in self._components:
             if frame not in self._poisson._components:
@@ -670,29 +714,45 @@ class SymplecticFormParal(SymplecticForm, DiffFormParal):
                 si = fmodule._sindex
                 nsi = fmodule.rank() + si
                 dom = self._domain
-                comp_poisson = CompFullyAntiSym(fmodule._ring, frame, 2, start_index=si,
-                                    output_formatter=fmodule._output_formatter)
-                comp_poisson_scal = {}  # dict. of scalars representing the components of the poisson tensor (keys: comp. indices)
+                comp_poisson = CompFullyAntiSym(
+                    fmodule._ring,
+                    frame,
+                    2,
+                    start_index=si,
+                    output_formatter=fmodule._output_formatter,
+                )
+                comp_poisson_scal = (
+                    {}
+                )  # dict. of scalars representing the components of the poisson tensor (keys: comp. indices)
                 for i in fmodule.irange():
-                    for j in range(i, nsi):   # symmetry taken into account
-                        comp_poisson_scal[(i,j)] = dom.scalar_field()
+                    for j in range(i, nsi):  # symmetry taken into account
+                        comp_poisson_scal[(i, j)] = dom.scalar_field()
                 for chart in dom.top_charts():
                     # TODO: do the computation without the 'SR' enforcement
                     try:
                         self_matrix = matrix(
-                                  [[self.comp(frame)[i, j, chart].expr(method='SR')
-                                  for j in fmodule.irange()] for i in fmodule.irange()])
+                            [
+                                [
+                                    self.comp(frame)[i, j, chart].expr(method="SR")
+                                    for j in fmodule.irange()
+                                ]
+                                for i in fmodule.irange()
+                            ]
+                        )
                         self_matrix_inv = self_matrix.inverse()
                     except (KeyError, ValueError):
                         continue
                     for i in fmodule.irange():
                         for j in range(i, nsi):
-                            val = chart.simplify(- self_matrix_inv[i-si, j-si], method='SR')
+                            val = chart.simplify(
+                                -self_matrix_inv[i - si, j - si], method="SR"
+                            )
                             comp_poisson_scal[(i, j)].add_expr(val, chart=chart)
                 for i in range(si, nsi):
                     for j in range(i, nsi):
                         comp_poisson[i, j] = comp_poisson_scal[(i, j)]
                 self._poisson._components[frame] = comp_poisson
         return self._poisson
+
 
 # ****************************************************************************************

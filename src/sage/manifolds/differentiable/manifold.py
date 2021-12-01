@@ -453,7 +453,7 @@ from sage.manifolds.manifold import TopologicalManifold
 from sage.manifolds.differentiable.mixed_form_algebra import MixedFormAlgebra
 
 if TYPE_CHECKING:
-  from sage.manifolds.differentiable.vectorfield_module import VectorFieldModule
+    from sage.manifolds.differentiable.vectorfield_module import VectorFieldModule
 
 ###############################################################################
 
@@ -2444,7 +2444,9 @@ class DifferentiableManifold(TopologicalManifold):
             resu[:] = comp
         return resu
 
-    def symplectic_form(self, name: Optional[str] = None, latex_name: Optional[str] = None):
+    def symplectic_form(
+        self, name: Optional[str] = None, latex_name: Optional[str] = None
+    ):
         r"""
         Construct a symplectic form on the current vector field module.
 
@@ -2459,8 +2461,10 @@ class DifferentiableManifold(TopologicalManifold):
             omega = -dq∧dp
         """
         return self.vector_field_module().symplectic_form(name, latex_name)
-        
-    def poisson_tensor(self, name: Optional[str] = None, latex_name: Optional[str] = None):
+
+    def poisson_tensor(
+        self, name: Optional[str] = None, latex_name: Optional[str] = None
+    ):
         r"""
         Construct a Poisson tensor on the current vector field module.
 

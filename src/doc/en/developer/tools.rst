@@ -195,6 +195,21 @@ or a few related issues::
 *Documentation:* https://pycodestyle.pycqa.org/en/latest/index.html
 
 
+Relint
+======
+
+`Relint <https://pypi.org/project/relint/>`_ checks all source files for forbidden
+text patterns specified by regular expressions.
+
+Our configuration of relint flags some outdated Python constructions, plain TeX
+commands when equivalent LaTeX commands are available, common mistakes in
+documentation markup, and modularization anti-patterns.
+
+*Configuration:* ``SAGE_ROOT/src/.relint.yml``
+
+*Documentation:* https://pypi.org/project/relint/
+
+
 Codespell
 =========
 `Codespell <https://pypi.org/project/codespell/>`_ uses a dictionary to check for

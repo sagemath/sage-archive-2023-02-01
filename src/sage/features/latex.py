@@ -21,7 +21,7 @@ class latex(Executable):
     EXAMPLES::
 
         sage: from sage.features.latex import latex
-        sage: latex().is_present()             # optional: latex
+        sage: latex().is_present()             # optional - latex
         FeatureTestResult('latex', True)
     """
     def __init__(self):
@@ -42,7 +42,7 @@ class latex(Executable):
         EXAMPLES:
 
             sage: from sage.features.latex import latex
-            sage: latex().is_functional()             # optional: latex
+            sage: latex().is_functional()             # optional - latex
             FeatureTestResult('latex', True)
         """
         lines = []
@@ -147,7 +147,7 @@ class TeXFile(StaticFile):
         sage: from sage.features.latex import TeXFile
         sage: TeXFile('x', 'x.tex').is_present()  # optional: pdflatex
         FeatureTestResult('x', True)
-        sage: TeXFile('nonexisting', 'fajfhjdksf-nonexisting-file.tex').is_present()  # optional: pdflatex
+        sage: TeXFile('nonexisting', 'xxxxxx-nonexisting-file.tex').is_present()  # optional - pdflatex
         FeatureTestResult('nonexisting', False)
     """
     def __init__(self, name, filename, **kwds):
@@ -161,7 +161,7 @@ class TeXFile(StaticFile):
 
             sage: from sage.features.latex import TeXFile
             sage: feature = TeXFile('latex_class_article', 'article.cls')
-            sage: feature.absolute_path()  # optional: pdflatex
+            sage: feature.absolute_path()  # optional - pdflatex
             '.../latex/base/article.cls'
         """
         from subprocess import run, CalledProcessError, PIPE
@@ -183,7 +183,7 @@ class LaTeXPackage(TeXFile):
     EXAMPLES::
 
         sage: from sage.features.latex import LaTeXPackage
-        sage: LaTeXPackage('graphics').is_present()  # optional: pdflatex
+        sage: LaTeXPackage('graphics').is_present()  # optional - pdflatex
         FeatureTestResult('latex_package_graphics', True)
     """
     @staticmethod

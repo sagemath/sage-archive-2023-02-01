@@ -15,11 +15,6 @@ REFERENCES:
 - [AM1990]_
 - [RS2007]_
 
-TESTS::
-
-    sage: import pytest
-    sage: pytest.main(["symplectic_form_test.py"])
-    TODO: add output
 """
 # *****************************************************************************
 #  Distributed under the terms of the GNU General Public License (GPL)
@@ -91,12 +86,10 @@ class SymplecticForm(DiffForm):
 
         Standard symplectic form on `\RR^2`::
 
+            sage: from sage.manifolds.differentiable.symplectic_form import SymplecticForm
             sage: M.<q, p> = EuclideanSpace(2, "R2", r"\mathbb{R}^2", symbols=r"q:q p:p")
-            sage: omega = M.symplectic_form('omega', r'\omega')
-            sage: omega.set_comp()[1,2] = -1
-            sage: omega.display()
-            omega = -dq/\dp
-
+            sage: omega = SymplecticForm(M, 'omega', r'\omega'); omega
+            Symplectic form omega on the Euclidean plane R2
         """
         try:
             vector_field_module = manifold.vector_field_module()
@@ -173,13 +166,13 @@ class SymplecticForm(DiffForm):
         INPUT:
 
         - ``subdomain`` -- open subset `U` of the symplectic form's domain
-        - ``dest_map`` -- (default: ``None``) destination map
+        - ``dest_map`` -- (default: ``None``) smooth destination map
           `\Phi:\ U \to V`, where `V` is a subdomain of the symplectic form's domain
           If None, the restriction of the initial vector field module is used.
 
         OUTPUT:
 
-        - the restricted form.
+        - the restricted symplectic form.
 
         EXAMPLES::
 
@@ -226,7 +219,7 @@ class SymplecticForm(DiffForm):
             sage: vol_form = M.induced_metric().volume_form()
             sage: omega = SymplecticForm.wrap(vol_form, 'omega', r'\omega')
             sage: omega.display()
-            omega = -4/(y1^4 + y2^4 + 2*(y1^2 + 1)*y2^2 + 2*y1^2 + 1) dy1/\dy2
+            omega = -4/(y1^4 + y2^4 + 2*(y1^2 + 1)*y2^2 + 2*y1^2 + 1) dy1∧dy2
         """
         if form.degree() != 2:
             raise TypeError("the argument must be a form of degree 2")
@@ -249,7 +242,7 @@ class SymplecticForm(DiffForm):
 
     def poisson(self, expansion_symbol: Optional[Expression] = None, order: int = 1) -> PoissonTensorField:
         r"""
-        Return the Poisson tensor associated to the symplectic form.
+        Return the Poisson tensor associated with the symplectic form.
 
         INPUT:
 
@@ -281,7 +274,7 @@ class SymplecticForm(DiffForm):
             sage: poisson = omega.poisson(); poisson
             2-vector field poisson_omega on the 2-dimensional symplectic vector space V
             sage: poisson.display()
-            poisson_omega = -e_q/\e_p
+            poisson_omega = -e_q∧e_p
         """
         if self._poisson is None:
             # Initialize the Poisson tensor
@@ -317,8 +310,8 @@ class SymplecticForm(DiffForm):
             sage: omega = M.symplectic_form()
             sage: f = M.scalar_field({ chart: function('f')(*chart[:]) for chart in M.atlas() }, name='f')
             sage: f.display()
-            f: V --> R
-                (q, p) |--> f(q, p)
+            f: V → ℝ
+               (q, p) ↦ f(q, p)
             sage: Xf = omega.hamiltonian_vector_field(f)
             sage: Xf.display()
             Xf = d(f)/dp e_q - d(f)/dq e_p
@@ -395,7 +388,7 @@ class SymplecticForm(DiffForm):
             sage: vol = omega.volume_form() ; vol
             4-form omega^2 on the 4-dimensional symplectic vector space R4
             sage: vol.display()
-            omega^2 = 2 dq1/\dp1/\dq2/\dp2
+            omega^2 = 2 dq1∧dp1∧dq2∧dp2
         """
         if self._vol_form is None:
             vol_form = self
@@ -462,158 +455,48 @@ class SymplecticForm(DiffForm):
             *b = -dp
             sage: f = M.scalar_field(1, name='f')
             sage: omega.hodge_star(f).display()
-            *f = -dq/\dp
+            *f = -dq∧dp
             sage: omega.hodge_star(omega).display()
-            *omega^1: V --> R
-            (q, p) |--> 1
+            *omega^1: V → ℝ
+               (q, p) ↦ 1
         """
         return pform.hodge_dual(self)
 
 
 class SymplecticFormParal(SymplecticForm, DiffFormParal):
     r"""
-    Pseudo-Riemannian metric with values on a parallelizable manifold.
-
-    An instance of this class is a field of nondegenerate symmetric bilinear
-    forms (metric field) along a differentiable manifold `U` with values in a
-    parallelizable manifold `M` over `\RR`, via a differentiable mapping
-    `\Phi: U \rightarrow M`. The standard case of a metric field *on* a
-    manifold corresponds to `U=M` and `\Phi = \mathrm{Id}_M`. Other common
-    cases are `\Phi` being an immersion and `\Phi` being a curve in `M` (`U` is
-    then an open interval of `\RR`).
-
-    A *metric* `g` is a field on `U`, such that at each
-    point `p\in U`, `g(p)` is a bilinear map of the type:
-
-    .. MATH::
-
-        g(p):\ T_q M\times T_q M  \longrightarrow \RR
-
-    where `T_q M` stands for the tangent space to manifold `M` at the point
-    `q=\Phi(p)`, such that `g(p)` is symmetric:
-    `\forall (u,v)\in  T_q M\times T_q M, \ g(p)(v,u) = g(p)(u,v)`
-    and nondegenerate:
-    `(\forall v\in T_q M,\ \ g(p)(u,v) = 0) \Longrightarrow u=0`.
+    TODO
+    A symplectic form on a parallelizable manifold.
 
     .. NOTE::
 
-        If `M` is not parallelizable, the class :class:`PseudoRiemannianMetric`
+        If `M` is not parallelizable, the class :class:`SymplecticForm`
         should be used instead.
-
-    INPUT:
-
-    - ``vector_field_module`` -- free module `\mathfrak{X}(U,\Phi)` of vector
-      fields along `U` with values on `\Phi(U)\subset M`
-    - ``name`` -- name given to the metric
-    - ``signature`` -- (default: ``None``) signature `S` of the metric as a
-      single integer: `S = n_+ - n_-`, where `n_+` (resp. `n_-`) is the number
-      of positive terms (resp. number of negative terms) in any diagonal
-      writing of the metric components; if ``signature`` is ``None``, `S` is
-      set to the dimension of manifold `M` (Riemannian signature)
-    - ``latex_name`` -- (default: ``None``) LaTeX symbol to denote the metric;
-      if ``None``, it is formed from ``name``
-
-    EXAMPLES:
-
-    Metric on a 2-dimensional manifold::
-
-        sage: M = Manifold(2, 'M', start_index=1)
-        sage: c_xy.<x,y> = M.chart()
-        sage: g = M.metric('g') ; g
-        Riemannian metric g on the 2-dimensional differentiable manifold M
-        sage: latex(g)
-        g
-
-    A metric is a special kind of tensor field and therefore inheritates all the
-    properties from class
-    :class:`~sage.manifolds.differentiable.tensorfield.TensorField`::
-
-        sage: g.parent()
-        Free module T^(0,2)(M) of type-(0,2) tensors fields on the
-         2-dimensional differentiable manifold M
-        sage: g.tensor_type()
-        (0, 2)
-        sage: g.symmetries()  # g is symmetric:
-        symmetry: (0, 1);  no antisymmetry
-
-    Setting the metric components in the manifold's default frame::
-
-        sage: g[1,1], g[1,2], g[2,2] = 1+x, x*y, 1-x
-        sage: g[:]
-        [ x + 1    x*y]
-        [   x*y -x + 1]
-        sage: g.display()
-        g = (x + 1) dx*dx + x*y dx*dy + x*y dy*dx + (-x + 1) dy*dy
-
-    Metric components in a frame different from the manifold's default one::
-
-        sage: c_uv.<u,v> = M.chart()  # new chart on M
-        sage: xy_to_uv = c_xy.transition_map(c_uv, [x+y, x-y]) ; xy_to_uv
-        Change of coordinates from Chart (M, (x, y)) to Chart (M, (u, v))
-        sage: uv_to_xy = xy_to_uv.inverse() ; uv_to_xy
-        Change of coordinates from Chart (M, (u, v)) to Chart (M, (x, y))
-        sage: M.atlas()
-        [Chart (M, (x, y)), Chart (M, (u, v))]
-        sage: M.frames()
-        [Coordinate frame (M, (d/dx,d/dy)), Coordinate frame (M, (d/du,d/dv))]
-        sage: g[c_uv.frame(),:]  # metric components in frame c_uv.frame() expressed in M's default chart (x,y)
-        [ 1/2*x*y + 1/2          1/2*x]
-        [         1/2*x -1/2*x*y + 1/2]
-        sage: g.display(c_uv.frame())
-        g = (1/2*x*y + 1/2) du*du + 1/2*x du*dv + 1/2*x dv*du
-         + (-1/2*x*y + 1/2) dv*dv
-        sage: g[c_uv.frame(),:,c_uv]   # metric components in frame c_uv.frame() expressed in chart (u,v)
-        [ 1/8*u^2 - 1/8*v^2 + 1/2            1/4*u + 1/4*v]
-        [           1/4*u + 1/4*v -1/8*u^2 + 1/8*v^2 + 1/2]
-        sage: g.display(c_uv.frame(), c_uv)
-        g = (1/8*u^2 - 1/8*v^2 + 1/2) du*du + (1/4*u + 1/4*v) du*dv
-         + (1/4*u + 1/4*v) dv*du + (-1/8*u^2 + 1/8*v^2 + 1/2) dv*dv
-
-    As a shortcut of the above command, on can pass just the chart ``c_uv``
-    to ``display``, the vector frame being then assumed to be the coordinate
-    frame associated with the chart::
-
-        sage: g.display(c_uv)
-        g = (1/8*u^2 - 1/8*v^2 + 1/2) du*du + (1/4*u + 1/4*v) du*dv
-         + (1/4*u + 1/4*v) dv*du + (-1/8*u^2 + 1/8*v^2 + 1/2) dv*dv
-
-    The inverse metric is obtained via :meth:`inverse`::
-
-        sage: ig = g.inverse() ; ig
-        Tensor field inv_g of type (2,0) on the 2-dimensional differentiable
-         manifold M
-        sage: ig[:]
-        [ (x - 1)/(x^2*y^2 + x^2 - 1)      x*y/(x^2*y^2 + x^2 - 1)]
-        [     x*y/(x^2*y^2 + x^2 - 1) -(x + 1)/(x^2*y^2 + x^2 - 1)]
-        sage: ig.display()
-        inv_g = (x - 1)/(x^2*y^2 + x^2 - 1) d/dx*d/dx
-         + x*y/(x^2*y^2 + x^2 - 1) d/dx*d/dy + x*y/(x^2*y^2 + x^2 - 1) d/dy*d/dx
-         - (x + 1)/(x^2*y^2 + x^2 - 1) d/dy*d/dy
-
     """
     _poisson: TensorFieldParal
 
     def __init__(self, manifold: Union[VectorFieldModule, DifferentiableManifold], name: Optional[str], latex_name: Optional[str] = None):
         r"""
-        Construct a metric on a parallelizable manifold.
+        Construct a symplectic form.
 
-        TESTS::
+        INPUT:
 
-            sage: M = Manifold(2, 'M')
-            sage: X.<x,y> = M.chart()  # makes M parallelizable
-            sage: XM = M.vector_field_module()
-            sage: from sage.manifolds.differentiable.metric import \
-            ....:                                   PseudoRiemannianMetricParal
-            sage: g = PseudoRiemannianMetricParal(XM, 'g', signature=0); g
-            Lorentzian metric g on the 2-dimensional differentiable manifold M
-            sage: g[0,0], g[1,1] = -(1+x^2), 1+y^2
-            sage: TestSuite(g).run(skip='_test_category')
+        - ``manifold`` -- module `\mathfrak{X}(M)` of vector
+        fields on the manifold `M`, or the manifold `M` itself
+        - ``name`` -- (default: ``omega``) name given to the symplectic form
+        - ``latex_name`` -- (default: ``None``) LaTeX symbol to denote the symplectic form;
+        if ``None``, it is formed from ``name``
 
-        .. TODO::
+        EXAMPLES:
 
-            - add a specific parent to the metrics, to fit with the category
-              framework
+        Standard symplectic form on `\RR^2`::
 
+            sage: from sage.manifolds.differentiable.symplectic_form import SymplecticFormParal
+            sage: M.<q, p> = EuclideanSpace(2, "R2", r"\mathbb{R}^2", symbols=r"q:q p:p")
+            sage: omega = SymplecticFormParal(M, 'omega', r'\omega')
+            sage: omega.set_comp()[1,2] = -1
+            sage: omega.display()
+            omega = -dq∧dp
         """
         try:
             vector_field_module = manifold.vector_field_module()
@@ -640,11 +523,10 @@ class SymplecticFormParal(SymplecticForm, DiffFormParal):
 
         TESTS::
 
-            sage: M = Manifold(3, 'M')
-            sage: X.<x,y,z> = M.chart()  # makes M parallelizable
-            sage: g = M.metric('g')
-            sage: g._init_derived()
-
+            sage: from sage.manifolds.differentiable.symplectic_form import SymplecticFormParal
+            sage: M.<q, p> = EuclideanSpace(2, "R2", r"\mathbb{R}^2", symbols=r"q:q p:p")
+            sage: omega = SymplecticFormParal(M, 'omega', r'\omega')
+            sage: omega._init_derived()
         """
         # Initialization of quantities pertaining to mother classes
         DiffFormParal._init_derived(self)
@@ -661,12 +543,11 @@ class SymplecticFormParal(SymplecticForm, DiffFormParal):
 
         TESTS::
 
-            sage: M = Manifold(3, 'M')
-            sage: X.<x,y,z> = M.chart()  # makes M parallelizable
-            sage: g = M.metric('g')
-            sage: g._del_derived(del_restrictions=False)
-            sage: g._del_derived()
-
+            sage: from sage.manifolds.differentiable.symplectic_form import SymplecticFormParal
+            sage: M.<q, p> = EuclideanSpace(2, "R2", r"\mathbb{R}^2", symbols=r"q:q p:p")
+            sage: omega = SymplecticFormParal(M, 'omega', r'\omega')
+            sage: omega._del_derived(del_restrictions=False)
+            sage: omega._del_derived()
         """
         # Delete derived quantities from mother classes
         DiffFormParal._del_derived(self, del_restrictions=del_restrictions)
@@ -680,18 +561,16 @@ class SymplecticFormParal(SymplecticForm, DiffFormParal):
 
     def restrict(self, subdomain: DifferentiableManifold, dest_map: Optional[DiffMap] = None) -> 'SymplecticFormParal':
         r"""
-        Return the restriction of the metric to some subdomain.
+        Return the restriction of the symplectic form to some subdomain.
 
         If the restriction has not been defined yet, it is constructed here.
 
         INPUT:
 
-        - ``subdomain`` -- open subset `U` of ``self._domain``
+        - ``subdomain`` -- open subset `U` of the symplectic form's domain
         - ``dest_map`` -- (default: ``None``) smooth destination map
-          `\Phi:\ U \rightarrow V`, where `V` is a subdomain of
-          ``self.codomain``
-          If None, the restriction of ``self._vmodule._dest_map`` to `U` is
-          used.
+          `\Phi:\ U \rightarrow V`, where `V` is a subdomain of the symplectic form's domain
+          If None, the restriction of the initial vector field module is used.
 
         OUTPUT:
 
@@ -699,21 +578,18 @@ class SymplecticFormParal(SymplecticForm, DiffFormParal):
 
         EXAMPLES:
 
-        Restriction of a Lorentzian metric on `\RR^2` to the upper half plane::
+        Restriction of the standard symplectic form on `\RR^2` to the upper half plane::
 
-            sage: M = Manifold(2, 'M')
-            sage: X.<x,y> = M.chart()
-            sage: g = M.lorentzian_metric('g')
-            sage: g[0,0], g[1,1] = -1, 1
-            sage: U = M.open_subset('U', coord_def={X: y>0})
-            sage: gU = g.restrict(U); gU
-            Lorentzian metric g on the Open subset U of the 2-dimensional
-             differentiable manifold M
-            sage: gU.signature()
-            0
-            sage: gU.display()
-            g = -dx*dx + dy*dy
-
+            sage: from sage.manifolds.differentiable.symplectic_form import SymplecticFormParal
+            sage: M = EuclideanSpace(2, "R2", r"\mathbb{R}^2", symbols=r"q:q p:p")
+            sage: X.<q, p> = M.chart()
+            sage: omega = SymplecticFormParal(M, 'omega', r'\omega')
+            sage: omega[1,2] = -1
+            sage: U = M.open_subset('U', coord_def={X: q>0})
+            sage: omegaU = omega.restrict(U); omegaU
+            Symplectic form omega on the Open subset U of the Euclidean plane R2
+            sage: omegaU.display()
+            omega = -dq∧dp
         """
         if subdomain == self._domain:
             return self
@@ -726,7 +602,7 @@ class SymplecticFormParal(SymplecticForm, DiffFormParal):
 
     def poisson(self, expansion_symbol: Optional[Expression] = None, order: int = 1) -> TensorFieldParal:
         r"""
-        Return the Poisson tensor associated to the symplectic form.
+        Return the Poisson tensor associated with the symplectic form.
 
         INPUT:
 
@@ -752,13 +628,14 @@ class SymplecticFormParal(SymplecticForm, DiffFormParal):
 
         Poisson tensor of `2`-dimensional symplectic vector space::
 
-            sage: from sage.manifolds.differentiable.examples.symplectic_vector_space import SymplecticVectorSpace
-            sage: M = SymplecticVectorSpace(2)
-            sage: omega = M.symplectic_form()
+            sage: from sage.manifolds.differentiable.symplectic_form import SymplecticFormParal
+            sage: M.<q, p> = EuclideanSpace(2, "R2", r"\mathbb{R}^2", symbols=r"q:q p:p")
+            sage: omega = SymplecticFormParal(M, 'omega', r'\omega')
+            sage: omega[1,2] = -1
             sage: poisson = omega.poisson(); poisson
-            2-vector field poisson_omega on the 2-dimensional symplectic vector space V
+            2-vector field poisson_omega on the Euclidean plane R2
             sage: poisson.display()
-            poisson_omega = -e_q/\e_p
+            poisson_omega = -e_q∧e_p
         """
         super().poisson()
 

@@ -55,11 +55,10 @@ class PoissonTensorField(MultivectorField):
 
         Standard Poisson tensor on `\RR^2`::
 
+            sage: from sage.manifolds.differentiable.poisson_tensor import PoissonTensorField
             sage: M.<q, p> = EuclideanSpace(2, "R2", symbols=r"q:q p:p")
-            sage: poisson = M.poisson_tensor('varpi')
-            sage: poisson.set_comp()[1,2] = -1
-            sage: poisson.display()
-            varpi = -e_q/\e_p
+            sage: poisson = PoissonTensorField(M, 'varpi'); poisson
+            2-vector field varpi on the Euclidean plane R2
         """
         try:
             vector_field_module = manifold.vector_field_module()
@@ -150,8 +149,8 @@ class PoissonTensorField(MultivectorField):
             sage: f = M.scalar_field({ chart: function('f')(*chart[:]) for chart in M.atlas() }, name='f')
             sage: g = M.scalar_field({ chart: function('g')(*chart[:]) for chart in M.atlas() }, name='g')
             sage: poisson.poisson_bracket(f, g).display()
-            poisson(f, g): R2 --> R
-                (q, p) |--> d(f)/dp*d(g)/dq - d(f)/dq*d(g)/dp
+            poisson(f, g): R2 → ℝ
+               (q, p) ↦ d(f)/dp*d(g)/dq - d(f)/dq*d(g)/dp
         """
         poisson_bracket = self.contract(0, f.exterior_derivative()).contract(0, g.exterior_derivative())
         poisson_bracket.set_name(f"poisson({f._name}, {g._name})", '\\{' + f'{f._latex_name}, {g._latex_name}' + '\\}')

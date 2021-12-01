@@ -5,11 +5,6 @@ AUTHORS:
 
 - Tobias Diez (2020): initial version
 
-TESTS::
-
-    sage: import pytest
-    sage: pytest.main(["symplectic_vector_space_test.py"])
-    TODO: add output
 """
 
 # *****************************************************************************
@@ -84,7 +79,7 @@ class SymplecticVectorSpace(EuclideanSpace):
             sage: M.<q, p> = SymplecticVectorSpace(2, symplectic_name='omega')
             sage: omega = M.symplectic_form()
             sage: omega.display()
-            omega = -dq/\dp
+            omega = -dq∧dp
         """
         dim_half = dimension // 2
 
@@ -136,6 +131,6 @@ class SymplecticVectorSpace(EuclideanSpace):
             sage: M.<q, p> = SymplecticVectorSpace(2, symplectic_name='omega')
             sage: omega = M.symplectic_form()
             sage: omega.display()
-            omega = -dq/\dp
+            omega = -dq∧dp
         """
         return self._symplectic_form

@@ -21,11 +21,11 @@ class TestGenericSymplecticForm:
         return SymplecticForm(M, 'omega')
 
     def test_repr(self, omega: SymplecticForm):
-        assert omega._repr_() == 'Symplectic form omega on the 6-dimensional differentiable manifold M'
+        assert str(omega) == 'Symplectic form omega on the 6-dimensional differentiable manifold M'
 
     def test_new_instance_repr(self, omega: SymplecticForm):
         omega1 = omega._new_instance()
-        assert omega1._repr_() == 'Symplectic form unnamed symplectic form on the 6-dimensional differentiable manifold M'
+        assert str(omega1) == 'Symplectic form unnamed symplectic form on the 6-dimensional differentiable manifold M'
 
     def test_new_instance_same_type(self, omega: SymplecticForm):
         omega1 = omega._new_instance()
@@ -47,7 +47,10 @@ class TestCoherenceOfFormulas:
         if request.param == "R2":
             return SymplecticVectorSpace(2, 'R2', symplectic_name='omega')
         elif request.param == "S2":
-            return Sphere(2)
+            sphere = Sphere(2)
+            # Init stereographic coordinates to get a complete atlas
+            sphere.stereographic_coordinates()
+            return sphere
 
     @pytest.fixture()
     def omega(self, M):
@@ -110,11 +113,11 @@ class TestR2VectorSpace:
         return M.symplectic_form()
 
     def test_display(self, omega: SymplecticForm):
-        assert str(omega.display()) == r'omega = -dq/\dp'
+        assert str(omega.display()) == r'omega = -dq∧dp'
 
     def test_poisson(self, omega: SymplecticForm):
         # TODO: Shouldn't this be written with wedge product?
-        assert str(omega.poisson().display()) == r'poisson_omega = -e_q*e_p + e_p*e_q'
+        assert str(omega.poisson().display()) == r'poisson_omega = -e_q∧e_p'
 
     def test_hamiltonian_vector_field(self, M: SymplecticVectorSpace, omega: SymplecticForm):
         H = generic_scalar_field(M, 'H')

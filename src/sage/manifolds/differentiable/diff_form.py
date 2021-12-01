@@ -1569,7 +1569,7 @@ class DiffFormParal(FreeModuleAltForm, TensorFieldParal, DiffForm):
             sage: sa = a.hodge_dual(g) ; sa
             2-form *A on the 3-dimensional differentiable manifold M
             sage: sa.display()
-            *A = Az dx/\dy - Ay dx/\dz + Ax dy/\dz
+            *A = Az dx∧dy - Ay dx∧dz + Ax dy∧dz
             sage: ssa = sa.hodge_dual(g) ; ssa
             1-form **A on the 3-dimensional differentiable manifold M
             sage: ssa.display()

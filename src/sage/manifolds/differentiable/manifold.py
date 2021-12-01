@@ -2447,12 +2447,32 @@ class DifferentiableManifold(TopologicalManifold):
     def symplectic_form(self, name: Optional[str] = None, latex_name: Optional[str] = None):
         r"""
         Construct a symplectic form on the current vector field module.
+
+        EXAMPLES:
+
+        Standard symplectic form on `\RR^2`::
+
+            sage: M.<q, p> = EuclideanSpace(2, "R2", r"\mathbb{R}^2", symbols=r"q:q p:p")
+            sage: omega = M.symplectic_form('omega', r'\omega')
+            sage: omega.set_comp()[1,2] = -1
+            sage: omega.display()
+            omega = -dq∧dp
         """
         return self.vector_field_module().symplectic_form(name, latex_name)
         
     def poisson_tensor(self, name: Optional[str] = None, latex_name: Optional[str] = None):
         r"""
         Construct a Poisson tensor on the current vector field module.
+
+        EXAMPLES:
+
+        Standard Poisson tensor on `\RR^2`::
+
+            sage: M.<q, p> = EuclideanSpace(2, "R2", symbols=r"q:q p:p")
+            sage: poisson = M.poisson_tensor('varpi')
+            sage: poisson.set_comp()[1,2] = -1
+            sage: poisson.display()
+            varpi = -e_q∧e_p
         """
         return self.vector_field_module().poisson_tensor(name, latex_name)
 

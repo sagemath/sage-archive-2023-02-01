@@ -345,6 +345,8 @@ def external_features():
     """
     from sage.features.internet import Internet
     yield Internet()
+    import sage.features.latex
+    yield from sage.features.latex.all_features()
     import sage.features.interfaces
     yield from sage.features.interfaces.all_features()
     from sage.features.mip_backends import CPLEX, Gurobi

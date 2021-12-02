@@ -1056,6 +1056,23 @@ class PolynomialQuotientRing_generic(CommutativeRing):
         return ret
 
     def krull_dimension(self):
+        """
+        Return the Krull dimension.
+
+        This is the Krull dimension of the base ring, unless the
+        quotient is zero.
+
+        EXAMPLES::
+
+            sage: R = PolynomialRing(ZZ,'x').quotient(x**6-1)
+            sage: R.krull_dimension()
+            1
+            sage: R = PolynomialRing(ZZ,'x').quotient(1)
+            sage: R.krull_dimension()
+            -1
+        """
+        if self.is_zero():
+            return -1
         return self.base_ring().krull_dimension()
 
     def modulus(self):
@@ -1888,7 +1905,7 @@ class PolynomialQuotientRing_generic(CommutativeRing):
             # for a finite field, we return the isomorphic simple extensions of
             # the underlying prime field
             N = self.cardinality()
-            from sage.rings.all import GF
+            from sage.rings.finite_rings.finite_field_constructor import GF
             isomorphic_ring = GF(N)
 
             # the map to GF(N) maps our generator to a root of our modulus in the isomorphic_ring

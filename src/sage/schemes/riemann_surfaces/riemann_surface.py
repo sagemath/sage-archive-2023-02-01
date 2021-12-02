@@ -3320,7 +3320,7 @@ class RiemannSurface(object):
             
         VR = VectorSpace(self._RR, 2*self.genus)
         VC = VectorSpace(self._CC, self.genus)
-        I = self._CC(0,-1)
+        I = self._CC(0, 1)
         PM = self.period_matrix()
 
         if normalised:

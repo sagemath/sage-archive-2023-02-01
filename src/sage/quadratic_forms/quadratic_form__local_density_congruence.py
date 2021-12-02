@@ -36,9 +36,7 @@ def count_modp_solutions__by_Gauss_sum(self, p, m):
 
     - `m` -- an integer
 
-    OUTPUT:
-
-    an integer >= 0
+    OUTPUT: an integer >= 0
 
     EXAMPLES::
 
@@ -81,9 +79,7 @@ def local_good_density_congruence_odd(self, p, m, Zvec, NZvec):
 
     - Zvec, NZvec -- non-repeating lists of integers in range(self.dim()) or None
 
-    OUTPUT:
-
-    a rational number
+    OUTPUT: a rational number
 
     EXAMPLES::
 
@@ -123,19 +119,19 @@ def local_good_density_congruence_odd(self, p, m, Zvec, NZvec):
 
     if NZvec is None:
         if m % p:
-            total = Q_Unit_minus_Zvec.count_modp_solutions__by_Gauss_sum(p, m) * p**len(NonUnitVec_minus_Zvec)          # m != 0 (mod p)
+            total = Q_Unit_minus_Zvec.count_modp_solutions__by_Gauss_sum(p, m) * p**len(NonUnitVec_minus_Zvec)
         else:
-            total = (Q_Unit_minus_Zvec.count_modp_solutions__by_Gauss_sum(p, m) - 1) * p**len(NonUnitVec_minus_Zvec)    # m == 0 (mod p)
+            total = (Q_Unit_minus_Zvec.count_modp_solutions__by_Gauss_sum(p, m) - 1) * p**len(NonUnitVec_minus_Zvec)
 
     else:
         UnitVec_minus_ZNZvec = list(UnitVec - (Set(Zvec) + Set(NZvec)))
         NonUnitVec_minus_ZNZvec = list(NonUnitVec - (Set(Zvec) + Set(NZvec)))
         Q_Unit_minus_ZNZvec = self.extract_variables(UnitVec_minus_ZNZvec)
 
-        if m % p:         # m != 0 (mod p)
+        if m % p:
             total = Q_Unit_minus_Zvec.count_modp_solutions__by_Gauss_sum(p, m) * p**len(NonUnitVec_minus_Zvec) \
                 - Q_Unit_minus_ZNZvec.count_modp_solutions__by_Gauss_sum(p, m) * p**len(NonUnitVec_minus_ZNZvec)
-        else:                  # m == 0 (mod p)
+        else:
             total = (Q_Unit_minus_Zvec.count_modp_solutions__by_Gauss_sum(p, m) - 1) * p**len(NonUnitVec_minus_Zvec) \
                 - (Q_Unit_minus_ZNZvec.count_modp_solutions__by_Gauss_sum(p, m) - 1) * p**len(NonUnitVec_minus_ZNZvec)
 
@@ -178,9 +174,7 @@ def local_good_density_congruence_even(self, m, Zvec, NZvec):
 
     - Zvec, NZvec -- non-repeating lists of integers in range(self.dim()) or None
 
-    OUTPUT:
-
-    a rational number
+    OUTPUT: a rational number
 
     EXAMPLES::
 
@@ -347,9 +341,7 @@ def local_good_density_congruence(self, p, m, Zvec=None, NZvec=None):
 
     - Zvec, NZvec -- non-repeating lists of integers in range(self.dim()) or None
 
-    OUTPUT:
-
-    a rational number
+    OUTPUT: a rational number
 
     EXAMPLES::
 
@@ -390,12 +382,10 @@ def local_good_density_congruence(self, p, m, Zvec=None, NZvec=None):
     if (NZvec is not None) and (len(Set(NZvec) + Sn) > n):
         raise RuntimeError("NZvec must be a subset of {0, ..., n-1}.")
 
-    # Check that Q is in local normal form -- should replace this with a diagonalization check?
+    # There was here a commented-out check that Q is in local normal form
     # (it often may not be since the reduction procedure
     # often mixes up the order of the valuations...)
-    #
-    # if (self != self.local_normal_form(p))
-    #    print "Warning in local_good_density_congruence: Q is not in local normal form! \n";
+    # This commented-out code was removed in ticket #32960
 
     # Decide which routine to use to compute the Good-type density
     if p > 2:
@@ -422,9 +412,7 @@ def local_zero_density_congruence(self, p, m, Zvec=None, NZvec=None):
 
     - Zvec, NZvec -- non-repeating lists of integers in range(self.dim()) or None
 
-    OUTPUT:
-
-    a rational number
+    OUTPUT: a rational number
 
     EXAMPLES::
 
@@ -498,9 +486,7 @@ def local_badI_density_congruence(self, p, m, Zvec=None, NZvec=None):
 
     - Zvec, NZvec -- non-repeating lists of integers in range(self.dim()) or None
 
-    OUTPUT:
-
-    a rational number
+    OUTPUT: a rational number
 
     EXAMPLES::
 
@@ -665,9 +651,7 @@ def local_badII_density_congruence(self, p, m, Zvec=None, NZvec=None):
 
     - Zvec, NZvec -- non-repeating lists of integers in range(self.dim()) or None
 
-    OUTPUT:
-
-    a rational number
+    OUTPUT: a rational number
 
     EXAMPLES::
 
@@ -814,9 +798,7 @@ def local_bad_density_congruence(self, p, m, Zvec=None, NZvec=None):
 
     - Zvec, NZvec -- non-repeating lists of integers in range(self.dim()) or None
 
-    OUTPUT:
-
-    a rational number
+    OUTPUT: a rational number
 
     EXAMPLES::
 
@@ -875,9 +857,7 @@ def local_density_congruence(self, p, m, Zvec=None, NZvec=None):
 
     - Zvec, NZvec -- non-repeating lists of integers in range(self.dim()) or None
 
-    OUTPUT:
-
-    a rational number
+    OUTPUT: a rational number
 
     EXAMPLES::
 
@@ -949,9 +929,7 @@ def local_primitive_density_congruence(self, p, m, Zvec=None, NZvec=None):
 
     - Zvec, NZvec -- non-repeating lists of integers in range(self.dim()) or None
 
-    OUTPUT:
-
-    a rational number
+    OUTPUT: a rational number
 
     EXAMPLES::
 

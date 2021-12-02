@@ -239,6 +239,7 @@ import inspect
 import html
 import requests
 from json.decoder import JSONDecodeError
+import itertools
 
 # Combinatorial collections
 from sage.combinat.alternating_sign_matrix import AlternatingSignMatrix, AlternatingSignMatrices
@@ -1920,6 +1921,18 @@ class FindStatCombinatorialStatistic(SageObject):
             [(1,2),(3,4)] => 0
             [(1,3),(2,4)] => 0
             [(1,4),(2,3)] => 1
+
+        TESTS:
+
+        Check that no more terms than asked for are computed::
+
+            sage: st = cached_function(lambda d: randint(1,1000))
+            sage: s = findstat("Dyck paths", st, max_values=100, depth=0)       # optional -- internet
+            sage: len(st.cache)                                                 # optional -- internet
+            100
+            sage: _ = s.first_terms_str(max_values=100)                         # optional -- internet
+            sage: len(st.cache)                                                 # optional -- internet
+            100
         """
         return "\r\n".join(key + " => " + str(val)
                            for key, val in self._first_terms_raw(max_values=max_values))
@@ -2610,7 +2623,7 @@ class FindStatStatisticQuery(FindStatStatistic):
                                   function=function)
         Element.__init__(self, FindStatStatistics()) # this is not completely correct, but it works
 
-    def first_terms(self):
+    def first_terms(self, max_values=FINDSTAT_MAX_SUBMISSION_VALUES):
         """
         Return the pairs of the known terms which contain singletons as a dictionary.
 
@@ -2624,8 +2637,9 @@ class FindStatStatisticQuery(FindStatStatistic):
              sage: r.first_terms()                                              # optional -- internet
              OrderedDict([([], 0), ([(1, 2)], 0)])
         """
-        return OrderedDict((objs[0], vals[0]) for objs, vals in self._known_terms
-                           if len(vals) == 1)
+        return OrderedDict(itertools.islice(((objs[0], vals[0])
+                                             for objs, vals in self._known_terms
+                                             if len(vals) == 1), max_values))
 
     def _first_terms_raw(self, max_values):
         """
@@ -2643,7 +2657,7 @@ class FindStatStatisticQuery(FindStatStatistic):
         """
         to_str = self.domain().to_string()
         return [(to_str(obj), val)
-                for (obj, val), _ in zip(self.first_terms().items(), range(max_values))]
+                for obj, val in self.first_terms(max_values=max_values).items()]
 
     def _generating_functions_dict(self, max_values=FINDSTAT_MAX_VALUES):
         """

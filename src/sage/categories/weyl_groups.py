@@ -195,7 +195,7 @@ class WeylGroups(Category_singleton):
                 sage: W.bruhat_cone(x, y, side='lower')
                 A 6-dimensional polyhedron in QQ^8 defined as the convex hull of 1 vertex and 6 rays
 
-            TESTS:
+            TESTS::
 
                 sage: W = WeylGroup(['A',2])
                 sage: x = W.one()

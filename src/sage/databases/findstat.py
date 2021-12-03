@@ -292,7 +292,7 @@ FINDSTAT_MAX_VALUES = 1000
 # the number of values FindStat needs at least to search for
 FINDSTAT_MIN_VALUES = 3
 # the number of maps that FindStat should compose at most to find a match
-FINDSTAT_MAX_DEPTH = 4
+FINDSTAT_MAX_DEPTH = 10
 # the maximal number of maps that FindStat composes by default to find a match
 FINDSTAT_DEFAULT_DEPTH = 2
 # the number of values FindStat allows to submit at most

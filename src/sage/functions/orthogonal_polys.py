@@ -1911,7 +1911,7 @@ class Func_hermite(GinacFunction):
         ...
         RuntimeError: hermite_eval: The index n must be a nonnegative integer
 
-        sage: _ = var('m x')
+        sage: m,x = SR.var('m,x')
         sage: hermite(m, x).diff(m)
         Traceback (most recent call last):
         ...
@@ -1962,7 +1962,7 @@ class Func_jacobi_P(OrthogonalFunction):
 
         EXAMPLES::
 
-            sage: _ = var('n a b x')
+            sage: n,a,b,x = SR.var('n,a,b,x')
             sage: loads(dumps(jacobi_P))
             jacobi_P
             sage: jacobi_P(n, a, b, x, hold=True)._sympy_()
@@ -1976,7 +1976,7 @@ class Func_jacobi_P(OrthogonalFunction):
         """
         EXAMPLES::
 
-            sage: _ = var('n a b x')
+            sage: n,a,b,x = SR.var('n,a,b,x')
             sage: jacobi_P(1,n,n,n)
             (n + 1)*n
             sage: jacobi_P(2,n,n,n)
@@ -2080,7 +2080,7 @@ class Func_ultraspherical(GinacFunction):
         sage: t = PolynomialRing(RationalField(),"t").gen()
         sage: gegenbauer(3,2,t)
         32*t^3 - 12*t
-        sage: _ = var('x')
+        sage: x = SR.var('x')
         sage: n = ZZ.random_element(5, 5001)
         sage: a = QQ.random_element().abs() + 5
         sage: s = (  (n+1)*ultraspherical(n+1,a,x)
@@ -2093,7 +2093,7 @@ class Func_ultraspherical(GinacFunction):
         sage: ultraspherical(5,9/10,RealField(100)(pi))
         6949.4695419382702451843080687
 
-        sage: _ = var('a n')
+        sage: a,n = SR.var('a,n')
         sage: gegenbauer(2,a,x)
         2*(a + 1)*a*x^2 - a
         sage: gegenbauer(3,a,x)

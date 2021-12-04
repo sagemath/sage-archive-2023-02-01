@@ -5,49 +5,58 @@ import os
 import traceback
 from typing import Optional
 
+
 class RemoteException(Exception):
     """
     Raised if an exception occurred in one of the child processes.
     """
+
     tb: str
+
     def __init__(self, tb: str):
         self.tb = tb
 
     def __str__(self):
         return self.tb
 
+
 class RemoteExceptionWrapper:
     """
-    Used by child processes to capture exceptions thrown during execution and 
+    Used by child processes to capture exceptions thrown during execution and
     report them to the main process, including the correct traceback.
     """
+
     exc: BaseException
     tb: str
 
     def __init__(self, exc: BaseException):
         # We cannot pickle the traceback, thus convert it to a string.
         # Later on unpickling, we set the original tracback as the cause of the exception
-        # This approach is taken from https://bugs.python.org/issue13831 
+        # This approach is taken from https://bugs.python.org/issue13831
         tb = traceback.format_exception(type(exc), exc, exc.__traceback__)
-        tb = ''.join(tb)
+        tb = "".join(tb)
         self.exc = exc
         self.tb = f'\n"""\n{tb}"""'
 
     def __reduce__(self):
+        def _rebuild_exc(exc: BaseException, tb: str):
+            """
+            Reconstructs the exception, putting the original exception as cause.
+            """
+            exc.__cause__ = RemoteException(tb)
+            return exc
+
         return _rebuild_exc, (self.exc, self.tb)
 
-def _rebuild_exc(exc: BaseException, tb: str):
-    """
-    Reconstructs the exception, putting the original exception as cause. 
-    """
-    exc.__cause__ = RemoteException(tb)
-    return exc
 
 class WorkerDiedException(RuntimeError):
     """Raised if a worker process dies unexpected."""
+
     original_exception: Optional[BaseException]
 
-    def __init__(self, message: Optional[str], original_exception: Optional[BaseException] = None):
+    def __init__(
+        self, message: Optional[str], original_exception: Optional[BaseException] = None
+    ):
         super().__init__(message)
         self.original_exception = original_exception
 
@@ -197,7 +206,9 @@ def build_many(target, args, processes=None):
             w._popen.returncode = exitcode
 
         if exitcode != 0:
-            raise WorkerDiedException(f"worker for {task[1]} died with non-zero exit code {w.exitcode}")
+            raise WorkerDiedException(
+                f"worker for {task[1]} died with non-zero exit code {w.exitcode}"
+            )
 
         # Get result from the queue; depending on ordering this may not be
         # *the* result for this worker, but for each completed worker there
@@ -216,7 +227,7 @@ def build_many(target, args, processes=None):
         if result[0] is None:
             # Indicates that an exception occurred in the target function
             exception = result[1]
-            raise WorkerDiedException('', original_exception=exception)
+            raise WorkerDiedException("", original_exception=exception)
         else:
             results.append(result)
 

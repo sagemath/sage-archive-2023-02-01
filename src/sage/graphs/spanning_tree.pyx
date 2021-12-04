@@ -237,6 +237,13 @@ def kruskal(G, by_weight=True, weight_function=None, check_weight=False, check=F
         Traceback (most recent call last):
         ...
         ValueError: the input graph must be undirected
+
+    Rename warning for parameter ``wfunction`` (:trac:`32805`)::
+
+        sage: kruskal(Graph(1), wfunction=lambda e: 2)
+        doctest:...: DeprecationWarning: use the option 'weight_function' instead of 'wfunction'
+        See https://trac.sagemath.org/32805 for details.
+        []
     """
     return list(kruskal_iterator(G, by_weight=by_weight, weight_function=weight_function,
                                      check_weight=check_weight, check=check))
@@ -310,6 +317,13 @@ def kruskal_iterator(G, by_weight=True, weight_function=None, check_weight=False
         Traceback (most recent call last):
         ...
         ValueError: the input graph must be undirected
+
+    Rename warning for parameter ``wfunction`` (:trac:`32805`)::
+
+        sage: list(kruskal_iterator(Graph(1), wfunction=lambda e: 2))
+        doctest:...: DeprecationWarning: use the option 'weight_function' instead of 'wfunction'
+        See https://trac.sagemath.org/32805 for details.
+        []
     """
     from sage.graphs.graph import Graph
     if not isinstance(G, Graph):
@@ -377,9 +391,21 @@ def kruskal_iterator_from_edges(edges, union_find, by_weight=True,
         sage: from sage.graphs.spanning_tree import kruskal_iterator_from_edges
         sage: G = Graph({1:{2:28, 6:10}, 2:{3:16, 7:14}, 3:{4:12}, 4:{5:22, 7:18}, 5:{6:25, 7:24}})
         sage: G.weighted(True)
-        sage: union_set=DisjointSet(G.order())
+        sage: union_set = DisjointSet(G)
         sage: next(kruskal_iterator_from_edges(G.edges(sort=False), union_set, by_weight=G.weighted()))
         (1, 6, 10)
+
+    TESTS:
+
+    Rename warning for parameter ``weighted`` (:trac:`32805`)::
+
+        sage: from sage.graphs.spanning_tree import kruskal_iterator_from_edges
+        sage: G = Graph([(0, 1)])
+        sage: union_set = DisjointSet(G)
+        sage: next(kruskal_iterator_from_edges(G.edges(), union_set, weighted=False))
+        doctest:...: DeprecationWarning: use the option 'by_weight' instead of 'weighted'
+        See https://trac.sagemath.org/32805 for details.
+        (0, 1, None)
     """
     # We sort edges, as specified.
     if weight_function is not None:
@@ -773,6 +799,13 @@ def boruvka(G, by_weight=True, weight_function=None, check_weight=True, check=Fa
         Traceback (most recent call last):
         ...
         ValueError: the input graph must be undirected
+
+    Rename warning for parameter ``wfunction`` (:trac:`32805`)::
+
+        sage: boruvka(Graph(1), wfunction=lambda e: 2)
+        doctest:...: DeprecationWarning: use the option 'weight_function' instead of 'wfunction'
+        See https://trac.sagemath.org/32805 for details.
+        []
     """
     from sage.graphs.graph import Graph
     if not isinstance(G, Graph):

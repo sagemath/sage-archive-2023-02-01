@@ -458,7 +458,7 @@ class GenericCombinatorialSpecies(SageObject):
             ...
             ValueError: only positive exponents are currently supported
         """
-        from sage.rings.all import Integer
+        from sage.rings.integer import Integer
         import operator
         n = Integer(n)
         if n <= 0:
@@ -769,7 +769,7 @@ class GenericCombinatorialSpecies(SageObject):
 
             sage: B = species.BinaryTreeSpecies()
             sage: B.algebraic_equation_system()
-            [-node3^2 + node1, -node1 + node3 - z]
+            [-node3^2 + node1, -node1 + node3 + (-z)]
 
         ::
 

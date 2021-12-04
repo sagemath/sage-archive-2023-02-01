@@ -4376,7 +4376,8 @@ class GenericGraph(GenericGraph_pyx):
         if not by_weight:
             weight_function = lambda e: 1
 
-        wfunction_float = lambda e: float(weight_function(e))
+        def wfunction_float(e):
+            return float(weight_function(e))
 
         if algorithm in ["Kruskal", "Filter_Kruskal", "Kruskal_Boost", "Prim_Boost", "Boruvka"]:
             if self.is_directed():
@@ -4386,13 +4387,13 @@ class GenericGraph(GenericGraph_pyx):
 
             if algorithm == "Kruskal":
                 from .spanning_tree import kruskal
-                return kruskal(g, wfunction=wfunction_float, check=check)
+                return kruskal(g, weight_function=wfunction_float, check_weight=False, check=check)
             if algorithm == "Filter_Kruskal":
                 from .spanning_tree import filter_kruskal
-                return filter_kruskal(g, weight_function=wfunction_float, check=check)
+                return filter_kruskal(g, weight_function=wfunction_float, check_weight=False, check=check)
             elif algorithm == "Boruvka":
                 from .spanning_tree import boruvka
-                return boruvka(g, wfunction=wfunction_float, check=check)
+                return boruvka(g, weight_function=wfunction_float, check_weight=False, check=check)
             else:
                 from sage.graphs.base.boost_graph import min_spanning_tree
                 return min_spanning_tree(g,

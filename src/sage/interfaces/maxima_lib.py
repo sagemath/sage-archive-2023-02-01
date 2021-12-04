@@ -453,7 +453,7 @@ class MaximaLib(MaximaAbstract):
                     maxima_eval("#$%s$" % statement)
         if not reformat:
             return result
-        return ''.join([x.strip() for x in result.split()])
+        return ''.join(x.strip() for x in result.split())
 
     eval = _eval_line
 

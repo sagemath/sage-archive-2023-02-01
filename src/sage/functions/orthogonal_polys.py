@@ -495,8 +495,7 @@ class ChebyshevFunction(OrthogonalFunction):
             sage: chebyshev_T(5,Qp(3)(2))
             2 + 3^2 + 3^3 + 3^4 + 3^5 + O(3^20)
             sage: chebyshev_T(100001/2, 2)
-            doctest:...: RuntimeWarning: mpmath failed, keeping expression unevaluated
-            chebyshev_T(100001/2, 2)
+            ...chebyshev_T(100001/2, 2)
             sage: chebyshev_U._eval_(1.5, Mod(8,9)) is None
             True
         """

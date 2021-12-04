@@ -2328,6 +2328,16 @@ class VectorFieldFreeModule(FiniteRankFreeModule):
     ):
         r"""
         Construct a symplectic form on the current vector field module.
+
+        EXAMPLES:
+
+        Standard symplectic form on `\RR^2`::
+
+            sage: M.<q, p> = EuclideanSpace(2, "R2", r"\mathbb{R}^2", symbols=r"q:q p:p")
+            sage: omega = M.vector_field_module().symplectic_form('omega', r'\omega')
+            sage: omega.set_comp()[1,2] = -1
+            sage: omega.display()
+            omega = -dq∧dp
         """
         from sage.manifolds.differentiable.symplectic_form import SymplecticFormParal
 
@@ -2338,6 +2348,16 @@ class VectorFieldFreeModule(FiniteRankFreeModule):
     ):
         r"""
         Construct a Poisson tensor on the current vector field module.
+
+        EXAMPLES:
+
+        Standard Poisson tensor on `\RR^2`::
+
+            sage: M.<q, p> = EuclideanSpace(2, "R2", symbols=r"q:q p:p")
+            sage: poisson = M.vector_field_module().poisson_tensor('varpi')
+            sage: poisson.set_comp()[1,2] = -1
+            sage: poisson.display()
+            varpi = -e_q∧e_p
         """
         from sage.manifolds.differentiable.poisson_tensor import PoissonTensorFieldParal
 

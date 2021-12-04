@@ -127,12 +127,16 @@ class SymplecticForm(DiffForm):
     def _repr_(self):
         r"""
         String representation of the object.
+
+        TESTS: pytest
         """
         return self._final_repr(f"Symplectic form {self._name} ")
 
     def _new_instance(self):
         r"""
         Create an instance of the same class as ``self``.
+
+        TESTS: pytest
         """
         return type(self)(
             self._vmodule,
@@ -143,6 +147,8 @@ class SymplecticForm(DiffForm):
     def _init_derived(self):
         r"""
         Initialize the derived quantities.
+
+        TESTS: pytest
         """
         # Initialization of quantities pertaining to the mother class
         DiffForm._init_derived(self)
@@ -153,6 +159,8 @@ class SymplecticForm(DiffForm):
     def _del_derived(self):
         r"""
         Delete the derived quantities.
+
+        TESTS: pytest
         """
         # Delete the derived quantities from the mother class
         DiffForm._del_derived(self)
@@ -342,10 +350,29 @@ class SymplecticForm(DiffForm):
 
     def flat(self, vector_field: VectorField) -> DiffForm:
         r"""
-        \omega^\flat: TM -> T^* M
-        defined by `<\omega^\flat(X), Y> = \omega_m (X, Y)`
+        Return the image of the given differential form under the map `\omega^\flat: T M \to T^*M` defined by
+        .. MATH::
+            `<\omega^\flat(X), Y> = \omega_m (X, Y)`
+
         for all `X, Y \in T_m M`.
+
         In indicies, `X_i = \omega_{ji} X^j`.
+
+        INPUT:
+
+        - ``vector_field`` -- the vector field to calculate it's flat of
+
+        EXAMPLES:
+
+            sage: from sage.manifolds.differentiable.examples.symplectic_vector_space import SymplecticVectorSpace
+            sage: M = SymplecticVectorSpace(2)
+            sage: omega = M.symplectic_form()
+            sage: X = M.vector_field_module().an_element()
+            sage: X.set_name('X')
+            sage: X.display()
+            X = 2 e_q + 2 e_p
+            sage: omega.flat(X).display()
+            X_flat = 2 dq - 2 dp
         """
         form = vector_field.down(self)
         form.set_name(
@@ -365,7 +392,21 @@ class SymplecticForm(DiffForm):
         In indicies, `\alpha^i = \varpi^{ij} \alpha_j`, where where `\varpi` is the Poisson tensor associated to the symplectic form.
 
         INPUT:
+
         - ``form`` -- the differential form to calculate it's sharp of
+
+        EXAMPLES:
+
+            sage: from sage.manifolds.differentiable.examples.symplectic_vector_space import SymplecticVectorSpace
+            sage: M = SymplecticVectorSpace(2)
+            sage: omega = M.symplectic_form()
+            sage: X = M.vector_field_module().an_element()
+            sage: alpha = omega.flat(X)
+            sage: alpha.set_name('alpha')
+            sage: alpha.display()
+            alpha = 2 dq - 2 dp
+            sage: omega.sharp(alpha).display()
+            alpha_sharp = 2 e_q + 2 e_p
         """
         return self.poisson().sharp(form)
 
@@ -380,8 +421,20 @@ class SymplecticForm(DiffForm):
         of the given functions.
 
         INPUT:
+
         - ``f`` -- first function
         - ``g`` -- second function
+
+        EXAMPLES:
+
+            sage: M.<q, p> = EuclideanSpace(2, "R2", symbols=r"q:q p:p")
+            sage: poisson = M.poisson_tensor('varpi')
+            sage: poisson.set_comp()[1,2] = -1
+            sage: f = M.scalar_field({ chart: function('f')(*chart[:]) for chart in M.atlas() }, name='f')
+            sage: g = M.scalar_field({ chart: function('g')(*chart[:]) for chart in M.atlas() }, name='g')
+            sage: poisson.poisson_bracket(f, g).display()
+            poisson(f, g): R2 → ℝ
+               (q, p) ↦ d(f)/dp*d(g)/dq - d(f)/dq*d(g)/dp
         """
         return self.poisson().poisson_bracket(f, g)
 

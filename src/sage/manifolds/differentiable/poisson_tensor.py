@@ -178,11 +178,35 @@ class PoissonTensorField(MultivectorField):
 
 
 class PoissonTensorFieldParal(PoissonTensorField, MultivectorFieldParal):
+    r"""
+    A Poisson bivector field `\varpi` on a parallelizable manifold.
+    """
+
     def __init__(
         self,
         manifold: Union[DifferentiableManifold, VectorFieldModule],
         name: Optional[str] = None,
         latex_name: Optional[str] = None,
     ):
+        r"""
+        Construct a Poisson bivector field.
+
+        INPUT:
+
+        - ``manifold`` -- module `\mathfrak{X}(M)` of vector
+        fields on the manifold `M`, or the manifold `M` itself
+        - ``name`` -- (default: ``varpi``) name given to the Poisson tensor
+        - ``latex_name`` -- (default: ``\\varpi``) LaTeX symbol to denote the Poisson tensor;
+        if ``None``, it is formed from ``name``
+
+        EXAMPLES:
+
+        Standard Poisson tensor on `\RR^2`::
+
+            sage: from sage.manifolds.differentiable.poisson_tensor import PoissonTensorFieldParal
+            sage: M.<q, p> = EuclideanSpace(2, "R2", symbols=r"q:q p:p")
+            sage: poisson = PoissonTensorFieldParal(M, 'varpi'); poisson
+            2-vector field varpi on the Euclidean plane R2
+        """
         PoissonTensorField.__init__(self, manifold, name, latex_name)
         MultivectorFieldParal.__init__(self, self._vmodule, 2, name, latex_name)

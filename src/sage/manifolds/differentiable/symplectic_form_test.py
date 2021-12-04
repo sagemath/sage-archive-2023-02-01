@@ -28,19 +28,27 @@ class TestGenericSymplecticForm:
         )
 
     def test_new_instance_repr(self, omega: SymplecticForm):
-        omega1 = omega._new_instance()
+        omega1 = omega._new_instance()  # type: ignore reportPrivateUsage
         assert (
             str(omega1)
             == "Symplectic form unnamed symplectic form on the 6-dimensional differentiable manifold M"
         )
 
     def test_new_instance_same_type(self, omega: SymplecticForm):
-        omega1 = omega._new_instance()
+        omega1 = omega._new_instance()  # type: ignore reportPrivateUsage
         assert type(omega1) == type(omega)
 
     def test_new_instance_same_parent(self, omega: SymplecticForm):
-        omega1 = omega._new_instance()
+        omega1 = omega._new_instance()  # type: ignore reportPrivateUsage
         assert omega1.parent() == omega.parent()
+
+    def test_init_derived_sets_poisson_tensor(self, omega: SymplecticForm):
+        omega._init_derived()  # type: ignore reportPrivateUsage
+        assert omega._poisson is None  # type: ignore reportPrivateUsage
+
+    def test_del_derived_resets_poisson_tensor(self, omega: SymplecticForm):
+        omega._del_derived()  # type: ignore reportPrivateUsage
+        assert omega._poisson is None  # type: ignore reportPrivateUsage
 
 
 class TestCoherenceOfFormulas:

@@ -2081,10 +2081,13 @@ class Func_ultraspherical(GinacFunction):
         sage: gegenbauer(3,2,t)
         32*t^3 - 12*t
         sage: _ = var('x')
-        sage: for N in range(100):
-        ....:     n = ZZ.random_element(5, 5001)
-        ....:     a = QQ.random_element().abs() + 5
-        ....:     assert ((n+1)*ultraspherical(n+1,a,x) - 2*x*(n+a)*ultraspherical(n,a,x) + (n+2*a-1)*ultraspherical(n-1,a,x)).expand().is_zero()
+        sage: n = ZZ.random_element(5, 5001)
+        sage: a = QQ.random_element().abs() + 5
+        sage: s = (  (n+1)*ultraspherical(n+1,a,x)
+        ....:      - 2*x*(n+a)*ultraspherical(n,a,x)
+        ....:      + (n+2*a-1)*ultraspherical(n-1,a,x) )
+        sage: s.expand().is_zero()
+        True
         sage: ultraspherical(5,9/10,3.1416)
         6949.55439044240
         sage: ultraspherical(5,9/10,RealField(100)(pi))

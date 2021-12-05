@@ -2116,7 +2116,7 @@ class DocTestWorker(multiprocessing.Process):
 
         TESTS::
 
-            sage: run_doctests(sage.symbolic.units) # indirect doctest
+            sage: run_doctests(sage.symbolic.units) # indirect doctest  # optional - sage.symbolic
             Running doctests with ID ...
             Doctesting 1 file.
             sage -t .../sage/symbolic/units.py

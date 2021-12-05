@@ -55,7 +55,7 @@ import os
 import shutil
 
 from sage.env import SAGE_SHARE
-from sage.misc.lazy_string import lazy_string
+
 
 class TrivialClasscallMetaClass(type):
     """
@@ -228,28 +228,25 @@ class Feature(TrivialUniqueRepresentation):
 
         OUTPUT:
 
-        A string, a lazy string, or ``None``.  The default implementation always
-        returns a lazy string.
+        A string.
 
         EXAMPLES::
 
             sage: from sage.features import Executable
             sage: Executable(name="CSDP", spkg="csdp", executable="theta", url="https://github.com/dimpase/csdp").resolution()  # optional - sage_spkg
-            l'...To install CSDP...you can try to run...sage -i csdp...Further installation instructions might be available at https://github.com/dimpase/csdp.'
+            '...To install CSDP...you can try to run...sage -i csdp...Further installation instructions might be available at https://github.com/dimpase/csdp.'
         """
-        def find_resolution():
-            if self._cache_resolution is not None:
-                return self._cache_resolution
-            lines = []
-            if self.spkg:
-                for ps in package_systems():
-                    lines.append(ps.spkg_installation_hint(self.spkg, feature=self.name))
-            if self.url:
-                lines.append("Further installation instructions might be available at {url}.".format(url=self.url))
-            self._cache_resolution = "\n".join(lines)
+        if self._cache_resolution is not None:
             return self._cache_resolution
+        lines = []
+        if self.spkg:
+            for ps in package_systems():
+                lines.append(ps.spkg_installation_hint(self.spkg, feature=self.name))
+        if self.url:
+            lines.append("Further installation instructions might be available at {url}.".format(url=self.url))
+        self._cache_resolution = "\n".join(lines)
+        return self._cache_resolution
 
-        return lazy_string(find_resolution)
 
 class FeatureNotPresentError(RuntimeError):
     r"""

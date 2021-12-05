@@ -34,6 +34,7 @@ py_modules =
     sage.env
     sage.version
     sage.misc.package
+    sage.misc.temporary_file
     sage.misc.viewer
 
 packages =

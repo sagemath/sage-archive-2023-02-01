@@ -2,6 +2,7 @@ prune sage
 include sage/env.py
 include sage/version.py
 include sage/misc/package.py
+include sage/misc/temporary_file.py
 include sage/misc/viewer.py
 graft sage/features
 

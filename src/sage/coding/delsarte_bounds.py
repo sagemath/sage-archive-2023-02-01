@@ -445,9 +445,8 @@ def delsarte_bound_hamming_space(n, d, q, return_data=False, solver="PPL", isint
         return bd
 
 
-def delsarte_bound_additive_hamming_space(n, d, q, d_star=1, q_base=0,
-                     return_data=False, solver="PPL", isinteger=False):
-   r"""
+def delsarte_bound_additive_hamming_space(n, d, q, d_star=1, q_base=0, return_data=False, solver="PPL", isinteger=False):
+    r"""
    Find a modified Delsarte bound on additive codes in Hamming space ``H_q^n`` of minimal distance ``d``
 
    Find the Delsarte LP bound on ``F_{q_base}``-dimension of additive codes in
@@ -523,50 +522,51 @@ def delsarte_bound_additive_hamming_space(n, d, q, d_star=1, q_base=0,
                 19,15,7, isinteger=True, solver='glpk')
        3
    """
-   from sage.numerical.mip import MIPSolverException
-   if q_base == 0:
-       q_base = q
+    from sage.numerical.mip import MIPSolverException
+    if q_base == 0:
+        q_base = q
 
-   kk = 0
-   while q_base**kk < q:
-       kk += 1
+    kk = 0
+    while q_base**kk < q:
+        kk += 1
 
-   if q_base**kk != q:
-       print("Wrong q_base=", q_base, " for q=", q, kk)
-       return False
+    if q_base**kk != q:
+        print("Wrong q_base=", q_base, " for q=", q, kk)
+        return False
 
-   # this implementation assumes that our LP solver to be unable to do a hot
-   # restart with an adjusted constraint
+    # this implementation assumes that our LP solver to be unable to do a hot
+    # restart with an adjusted constraint
 
-   m = kk*n  # this is to emulate repeat/until block
-   bd = q**n+1
+    m = kk*n  # this is to emulate repeat/until block
+    bd = q**n+1
 
-   while q_base**m < bd: # need to solve the LP repeatedly, as this is a new constraint!
-       # we might become infeasible. More precisely, after rounding down
-       # to the closest value of q_base^m, the LP, with the constraint that
-       # the objective function is at most q_base^m,
-      A, p = _delsarte_LP_building(n, d, d_star, q, isinteger,  solver, q_base**m)
-      try:
-          bd = p.solve()
-      except MIPSolverException as exc:
-          print("Solver exception:", exc)
-          if return_data:
-              return A, p, False
-          return False
+    while q_base**m < bd:  # need to solve the LP repeatedly, as this is a new constraint!
+        # we might become infeasible. More precisely, after rounding down
+        # to the closest value of q_base^m, the LP, with the constraint that
+        # the objective function is at most q_base^m,
+        A, p = _delsarte_LP_building(n, d, d_star, q, isinteger,  solver, q_base**m)
+        try:
+            bd = p.solve()
+        except MIPSolverException as exc:
+            print("Solver exception:", exc)
+            if return_data:
+                return A, p, False
+            return False
     # rounding the bound down to the nearest power of q_base, for q=q_base^m
     # bd_r = roundres(log(bd, base=q_base))
-      m = -1
-      while q_base**(m+1) < bd:
-        m += 1
-      if q_base**(m+1) == bd:
-        m += 1
+        m = -1
+        while q_base**(m+1) < bd:
+            m += 1
+        if q_base**(m+1) == bd:
+            m += 1
 
-   if return_data:
-       return A, p, m
-   else:
-       return m
+    if return_data:
+        return A, p, m
+    else:
+        return m
 
-def _delsarte_Q_LP_building(q,d,solver,isinteger):
+
+def _delsarte_Q_LP_building(q, d, solver, isinteger):
     r"""
     LP builder for Delsarte's LP for codes given Q matrix.
 
@@ -592,28 +592,28 @@ def _delsarte_Q_LP_building(q,d,solver,isinteger):
     """
     from sage.numerical.mip import MixedIntegerLinearProgram
 
-    n, _ = q.dimensions() # Q is a square matrix
+    n, _ = q.dimensions()  # Q is a square matrix
 
     p = MixedIntegerLinearProgram(maximization=True, solver=solver)
     A = p.new_variable(integer=isinteger, nonnegative=True)
     p.set_objective(sum([A[i] for i in range(n)]))
 
-    p.add_constraint(A[0]==1)
+    p.add_constraint(A[0] == 1)
 
     try:
-        for i in range(1,d):
-            p.add_constraint(A[i]==0)
-    except:
+        for i in range(1, d):
+            p.add_constraint(A[i] == 0)
+    except TypeError:
         for i in d:
-            p.add_constraint(A[i]==0)
+            p.add_constraint(A[i] == 0)
 
-    for k in range(1,n):
-        p.add_constraint(sum([q[k][i]*A[i] for i in range(n)]),min=0)
+    for k in range(1, n):
+        p.add_constraint(sum([q[k][i]*A[i] for i in range(n)]), min=0)
 
     return A, p
 
 
-def delsarte_bound_Q_matrix(q,d,return_data=False, solver="PPL", isinteger=False):
+def delsarte_bound_Q_matrix(q, d, return_data=False, solver="PPL", isinteger=False):
     r"""
     Delsarte bound on a code with Q matrix ``q`` and lower bound on min. dist. ``d``.
 
@@ -675,14 +675,14 @@ def delsarte_bound_Q_matrix(q,d,return_data=False, solver="PPL", isinteger=False
 
     A, p = _delsarte_Q_LP_building(q, d, solver, isinteger)
     try:
-        bd=p.solve()
+        bd = p.solve()
     except MIPSolverException as exc:
         print("Solver exception: {}".format(exc))
         if return_data:
-            return A,p,False
+            return A, p, False
         return False
 
     if return_data:
-        return A,p,bd
+        return A, p, bd
     else:
         return bd

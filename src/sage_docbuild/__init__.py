@@ -1401,9 +1401,8 @@ def help_examples(s=""):
     s += "    sage --docbuild -FDC all\n"
     s += "    sage --docbuild constructions pdf\n"
     s += "    sage --docbuild reference html -jv3\n"
-    s += "    sage --docbuild --mathjax tutorial html\n"
     s += "    sage --docbuild reference print_unincluded_modules\n"
-    s += "    sage --docbuild developer -j html --sphinx-opts -q,-aE --verbose 2"
+    s += "    sage --docbuild developer html --sphinx-opts -q,-aE --verbose 2"
     return s
 
 def get_documents():
@@ -1601,8 +1600,8 @@ def setup_parser():
                         help="include variables prefixed with '_' in reference manual; may be slow, may fail for PDF output")
 
     standard.add_option("-j", "--mathjax", "--jsmath", dest="mathjax",
-                        action="store_true",
-                        help="render math using MathJax; FORMATs: html, json, pickle, web")
+                        default=True, action="store_true",
+                        help="ignored for backwards compatibility")
     standard.add_option("--no-plot", dest="no_plot",
                         action="store_true",
                         help="do not include graphics auto-generated using the '.. plot' markup")
@@ -1769,14 +1768,6 @@ def main():
     sys.excepthook = excepthook
 
     # Process selected options.
-    #
-    # MathJax: this check usually has no practical effect, since
-    # SAGE_DOC_MATHJAX is set to "True" by the script sage-env.
-    # To disable MathJax, set SAGE_DOC_MATHJAX to "no" or "False".
-    if options.mathjax or (os.environ.get('SAGE_DOC_MATHJAX', 'no') != 'no'
-                           and os.environ.get('SAGE_DOC_MATHJAX', 'no') != 'False'):
-        os.environ['SAGE_DOC_MATHJAX'] = 'True'
-
     if options.check_nested:
         os.environ['SAGE_CHECK_NESTED'] = 'True'
 

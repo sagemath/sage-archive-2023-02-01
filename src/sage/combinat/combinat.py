@@ -3133,7 +3133,7 @@ def bernoulli_polynomial(x, n: Integer):
         raise ValueError("The second argument must be a non-negative integer")
 
     if n == 0:
-        return 0 * x + ZZ.one()  # for coercion in the parent of x
+        return x**0   # result should be in the parent of x
 
     if n == 1:
         return x - ZZ.one() / 2

@@ -3057,7 +3057,7 @@ class ParallelogramPolyomino(ClonableList,
                 return [h, w]
         return None
 
-    def get_node_position_from_box(self, box_position, direction, nb_crossed_nodes=[0]):
+    def get_node_position_from_box(self, box_position, direction, nb_crossed_nodes=None):
         r"""
         This function starts from a cell inside a parallelogram polyomino and
         a direction.
@@ -3134,6 +3134,8 @@ class ParallelogramPolyomino(ClonableList,
             [0]
 
         """
+        if nb_crossed_nodes is None:
+            nb_crossed_nodes = [0]
         pos = list(box_position)
         if self[pos[0]][pos[1]] == 0:
             return None
@@ -3149,6 +3151,7 @@ class ParallelogramPolyomino(ClonableList,
         Return True if the box contains a node in the context of the
         Aval-Boussicault bijection between parallelogram polyomino and binary
         tree.
+
         A box is a node if there is no cell on the top of the box in the
         same column or on the left of the box.in the same row.
 

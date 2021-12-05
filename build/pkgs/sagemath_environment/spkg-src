@@ -15,7 +15,7 @@ fi
 # Exit on failure
 set -e
 
-cd build/pkgs/sagemath_categories
+cd build/pkgs/sagemath_environment
 
 cd src
 python3 -u setup.py --no-user-cfg sdist --dist-dir "$SAGE_DISTFILES"

@@ -166,8 +166,14 @@ class SequencePrettyPrinter(SageObject):
             ...
             TypeError: ...matplotlib() got an unexpected keyword argument 'edge_labels'
         """
-        from sage.plot.plot import Graphics
-        from sage.graphs.graph import GenericGraph
+        try:
+            from sage.plot.plot import Graphics
+        except ImportError:
+            Graphics = ()
+        try:
+            from sage.graphs.graph import GenericGraph
+        except ImportError:
+            GenericGraph = ()
         if self.is_homogeneous(GenericGraph):
             args = self._concatenate_graphs()
             kwds = dict()
@@ -324,7 +330,10 @@ def show(*args, **kwds):
         sage: show(1)
         1
     """
-    from sage.graphs.generic_graph import GenericGraph
+    try:
+        from sage.graphs.generic_graph import GenericGraph
+    except ImportError:
+        GenericGraph = ()
     if len(args) == 1 and isinstance(args[0], GenericGraph):
         # Graphs are special, they ride the short bus...
         # Please, somebody help me get rid of this! #18289

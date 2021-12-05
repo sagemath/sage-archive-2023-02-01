@@ -34,6 +34,7 @@ install_requires =
         | sed "2,\$s/^/    /;"')dnl
 
 py_modules =
+    sage.all__sagemath_repl
 
 packages =
     sage.doctest

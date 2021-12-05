@@ -264,7 +264,7 @@ class FiniteWord_class(Word_class):
         """
         if word_options['display'] == 'string':
             ls = word_options['letter_separator']
-            letters = [str(_) for _ in self]
+            letters = [str(a) for a in self]
             if all(len(a) == 1 for a in letters):
                 return ''.join(letters)
             else:

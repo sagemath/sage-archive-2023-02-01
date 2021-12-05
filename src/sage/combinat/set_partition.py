@@ -192,7 +192,7 @@ class AbstractSetPartition(ClonableArray,
         """
         if not isinstance(y, AbstractSetPartition):
             return False
-        return [sorted(_) for _ in self] < [sorted(_) for _ in y]
+        return [sorted(i) for i in self] < [sorted(i) for i in y]
 
     def __gt__(self, y):
         """
@@ -220,7 +220,7 @@ class AbstractSetPartition(ClonableArray,
         """
         if not isinstance(y, AbstractSetPartition):
             return False
-        return [sorted(_) for _ in self] > [sorted(_) for _ in y]
+        return [sorted(i) for i in self] > [sorted(i) for i in y]
 
     def __le__(self, y):
         """
@@ -388,7 +388,7 @@ class AbstractSetPartition(ClonableArray,
             sage: SetPartition([(1, 9, 8), (2, 3, 4, 5, 6, 7)]).standard_form()
             [[1, 8, 9], [2, 3, 4, 5, 6, 7]]
         """
-        return [sorted(_) for _ in self]
+        return [sorted(i) for i in self]
 
     def base_set(self):
         """
@@ -1784,7 +1784,7 @@ class SetPartition(AbstractSetPartition,
             sub_parts = [list(self[i-1]) for i in part] # -1 for indexing
             # Standardizing sub_parts (the cur variable not being reset
             # to 1 gives us the offset we want):
-            mins = [min(_) for _ in sub_parts]
+            mins = [min(i) for i in sub_parts]
             over_max = max(map(max, sub_parts)) + 1
             temp = [[] for _ in range(len(part))]
             while min(mins) != over_max:

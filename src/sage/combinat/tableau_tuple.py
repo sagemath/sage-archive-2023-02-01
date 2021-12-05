@@ -3378,7 +3378,7 @@ class RowStandardTableauTuples_shape(RowStandardTableauTuples):
             return self.shape() == t.shape()
         elif t in RowStandardTableauTuples():
             if all(s in Tableaux() for s in t):
-                return [[len(_) for _ in s] for s in t] == self.shape()
+                return [[len(l) for l in s] for s in t] == self.shape()
             else:
                 return list(self.shape()) == sum(map(len,t))
         else:
@@ -4745,13 +4745,12 @@ class StandardTableauTuples_shape(StandardTableauTuples):
         """
         if isinstance(t, self.element_class):
             return self.shape() == t.shape()
-        elif t in StandardTableauTuples():
+        if t in StandardTableauTuples():
             if all(s in Tableaux() for s in t):
-                return [[len(_) for _ in s] for s in t] == self.shape()
+                return [[len(l) for l in s] for s in t] == self.shape()
             else:
-                return list(self.shape()) == sum(map(len,t))
-        else:
-            return False
+                return list(self.shape()) == sum(map(len, t))
+        return False
 
     def _repr_(self):
         """

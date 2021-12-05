@@ -1038,7 +1038,7 @@ class AffinePermutationTypeA(AffinePermutation):
             alpha = Composition(alpha)
         # TODO: We should probably check that w is of type alpha! probably a different function.
         # Now we actually build the recording tableau.
-        tab = [[] for i in range(self.k+1)]
+        tab = [[] for _ in range(self.k + 1)]
         label = 1
         al_index = 0
         j = 0

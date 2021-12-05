@@ -1430,7 +1430,7 @@ def brouwer_separable_design(k,t,q,x,check=False,verbose=False,explain_construct
     # 2) The blocks of size q+t are a symmetric design
 
     blocks_of_size_q_plus_t = []
-    partition_of_blocks_of_size_t = [[] for i in range(m-t)]
+    partition_of_blocks_of_size_t = [[] for _ in range(m - t)]
 
     relabel = {i+j*m: N1*i+j for i in range(t) for j in range(N1)}
 

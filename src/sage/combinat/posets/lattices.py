@@ -2068,7 +2068,7 @@ class FiniteLatticePoset(FiniteMeetSemilattice, FiniteJoinSemilattice):
             mt = self.meet_matrix()
             zero = 0
             one = n - 1
-            c = [[] for x in range(n)]
+            c = [[] for _ in range(n)]
             for x in range(n):
                 for y in range(x, n):
                     if jn[x][y] == one and mt[x][y] == zero:

@@ -399,7 +399,7 @@ def mutually_orthogonal_latin_squares(k, n, partitions=False, check=True):
         partitions = [[[i*n+j for j in range(n)] for i in range(n)],
                       [[j*n+i for j in range(n)] for i in range(n)]]
         for m in matrices:
-            partition = [[] for i in range(n)]
+            partition = [[] for _ in range(n)]
             for i in range(n):
                 for j in range(n):
                     partition[m[i,j]].append(i*n+j)

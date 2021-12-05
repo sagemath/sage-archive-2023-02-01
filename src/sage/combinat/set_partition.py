@@ -1786,7 +1786,7 @@ class SetPartition(AbstractSetPartition,
             # to 1 gives us the offset we want):
             mins = [min(_) for _ in sub_parts]
             over_max = max(map(max, sub_parts)) + 1
-            temp = [[] for i in range(len(part))]
+            temp = [[] for _ in range(len(part))]
             while min(mins) != over_max:
                 m = min(mins)
                 i = mins.index(m)
@@ -2493,7 +2493,7 @@ class SetPartitions(UniqueRepresentation, Parent):
         # block is before the block of i
         rs = [C_flat.count(i) for i in range(1,n+1)]
         # create the blocks
-        P = [[] for c in R]
+        P = [[] for _ in R]
         for i in range(1, n+1):
             k = rs[i-1]
             # find k-th block which does not yet have a closer

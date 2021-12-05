@@ -2442,7 +2442,7 @@ class PartitionTuples_level_size(PartitionTuples):
             sage: PartitionTuples(level=4,size=4).an_element()
             ([1], [], [], [3])
         """
-        mu = [[] for l in range(self._level)]
+        mu = [[] for _ in range(self._level)]
         if self._size > 0:
             if self._level == 1:
                 mu=[self._size-1,1]
@@ -3103,7 +3103,7 @@ class RegularPartitionTuples_level_size(PartitionTuples_level_size):
             sage: PartitionTuples(level=4, size=4, regular=3).an_element()
             ([1], [], [], [3])
         """
-        mu = [[] for l in range(self._level)]
+        mu = [[] for _ in range(self._level)]
         if self._size > 0:
             if self._level == 1:
                 mu = [[self._size-1,1]]

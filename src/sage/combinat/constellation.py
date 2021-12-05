@@ -1583,7 +1583,7 @@ def perms_canonical_labels_from(x, y, j0, verbose=False):
 
     k = 0
     mapping = [None] * n
-    waiting = [[] for i in range(len(y))]
+    waiting = [[] for _ in range(len(y))]
 
     while k < n:
         if verbose:

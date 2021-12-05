@@ -4345,7 +4345,7 @@ class StrongTableaux(UniqueRepresentation, Parent):
         sh = Core([len(_) for _ in Tlist], k+1)
         for ga in sh.strong_covers():
             T = copy.deepcopy(Tlist)
-            T += [[] for i in range(len(ga)-len(T))]
+            T += [[] for _ in range(len(ga) - len(T))]
             for c in SkewPartition([ga.to_partition(), sh.to_partition()]).cells():
                 T[c[0]] += [v]
             out.append(T)

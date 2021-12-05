@@ -30,6 +30,7 @@ install_requires =
     esyscmd(`sage-get-system-packages install-requires \
         sagemath_objects \
         sagemath_environment \
+        ipython \
         | sed "2,\$s/^/    /;"')dnl
 
 py_modules =

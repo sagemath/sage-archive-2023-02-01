@@ -1,4 +1,7 @@
 prune sage
+
+global-include all__sagemath_environment.py
+
 include sage/env.py
 include sage/version.py
 include sage/misc/package.py

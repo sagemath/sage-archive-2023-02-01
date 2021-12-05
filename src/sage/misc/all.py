@@ -2,6 +2,7 @@ from .lazy_attribute import lazy_attribute, lazy_class_attribute
 from .lazy_import import lazy_import
 
 from .all__sagemath_objects import *
+from .all__sagemath_environment import *
 
 from .misc import (BackslashOperator,
                   cputime,
@@ -16,8 +17,6 @@ lazy_import('sage.misc.misc', 'union',
             deprecation=32096)
 
 from .banner import version, banner
-
-from .temporary_file import tmp_dir, tmp_filename
 
 from .dev_tools import runsnake, import_statements
 

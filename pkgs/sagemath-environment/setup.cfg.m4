@@ -31,8 +31,10 @@ install_requires =
         | sed "2,\$s/^/    /;"')dnl
 
 py_modules =
+    sage.all__sagemath_environment
     sage.env
     sage.version
+    sage.misc.all__sagemath_environment
     sage.misc.package
     sage.misc.temporary_file
     sage.misc.viewer

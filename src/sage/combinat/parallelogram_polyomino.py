@@ -1462,7 +1462,7 @@ class ParallelogramPolyomino(ClonableList,
             return ParallelogramPolyomino._from_dyck_word_delest_viennot_peaks_valleys(dyck)
         raise ValueError("The given bijection is not valid.")
 
-    def _to_binary_tree_Aval_Boussicault(self, position=[0, 0]):
+    def _to_binary_tree_Aval_Boussicault(self, position=None):
         r"""
         Convert to a binary tree using the Aval-Boussicault algorithm.
 
@@ -1498,6 +1498,8 @@ class ParallelogramPolyomino(ClonableList,
             .
         """
         from sage.combinat.binary_tree import BinaryTree
+        if position is None:
+            position = [0, 0]
         if self.size() == 1:
             return BinaryTree()
         result = [BinaryTree(), BinaryTree()]
@@ -2796,7 +2798,7 @@ class ParallelogramPolyomino(ClonableList,
             res += drawing_tool.draw_line([w1, h], [w2, h])
         return res
 
-    def _to_tikz_bounce(self, directions=[0, 1]):
+    def _to_tikz_bounce(self, directions=None):
         r"""
         Return the tikz code to display one or both bounces of ``self``.
 
@@ -2861,6 +2863,8 @@ class ParallelogramPolyomino(ClonableList,
               \draw[color=red, line width=2] (4.000000, 1.000000) --
             (4.000000, 0.000000);
         """
+        if directions is None:
+            directions = [0, 1]
         res = ""
         tikz_options = self.get_tikz_options()
         grid_height = self.height() + 1
@@ -3741,7 +3745,7 @@ class ParallelogramPolyomino(ClonableList,
 
         return G
 
-    def _plot_bounce(self, directions=[0,1]):
+    def _plot_bounce(self, directions=None):
         r"""
         Return a plot of the bounce paths of ``self``.
 
@@ -3765,6 +3769,8 @@ class ParallelogramPolyomino(ClonableList,
             Graphics object consisting of 9 graphics primitives
 
         """
+        if directions is None:
+            directions = [0, 1]
         G = Graphics()
         if 0 in directions:
             a,b = (1,0)

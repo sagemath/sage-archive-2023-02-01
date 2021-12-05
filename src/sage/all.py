@@ -31,17 +31,10 @@ except for the known bad apples::
     sage: [inspect.getmodule(f).__name__ for f in frames if is_not_allowed(f)]
     []
 
-Check that the Sage Notebook is not imported at startup (see :trac:`15335`)::
-
-    sage: sagenb
-    Traceback (most recent call last):
-    ...
-    NameError: name 'sagenb' is not defined
-
 Check lazy import of ``interacts``::
 
     sage: type(interacts)
-    <type 'sage.misc.lazy_import.LazyImport'>
+    <class 'sage.misc.lazy_import.LazyImport'>
     sage: interacts
     <module 'sage.interacts.all' from '...'>
 """
@@ -74,14 +67,6 @@ else:
     deprecationWarning = ('ignore', None, DeprecationWarning, None, 0)
     if deprecationWarning in warnings.filters:
         warnings.filters.remove(deprecationWarning)
-
-# The psutil swap_memory() function tries to collect some statistics
-# that may not be available and that we don't need. Hide the warnings
-# that are emitted if the stats aren't available (Trac #28329). That
-# function is called in two places, so let's install this filter
-# before the first one is imported from sage.misc.all below.
-warnings.filterwarnings('ignore', category=RuntimeWarning,
-  message=r"'sin' and 'sout' swap memory stats couldn't be determined")
 
 # Ignore all deprecations from IPython etc.
 warnings.filterwarnings('ignore', category=DeprecationWarning,
@@ -280,7 +265,7 @@ def quit_sage(verbose=True):
     import sage.libs.flint.flint
     sage.libs.flint.flint.free_flint_stack()
 
-    # Free globally allocated mpir integers.
+    # Free globally allocated gmp integers.
     import sage.rings.integer
     sage.rings.integer.free_integer_pool()
     import sage.algebras.quatalg.quaternion_algebra_element

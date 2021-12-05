@@ -29,3 +29,12 @@ python_requires = >=3.7, <3.10
 install_requires =
     esyscmd(`sage-get-system-packages install-requires \
         | sed "2,\$s/^/    /;"')dnl
+
+py_modules =
+    sage.env
+    sage.version
+    sage.misc.package
+    sage.misc.viewer
+
+packages =
+    sage.features

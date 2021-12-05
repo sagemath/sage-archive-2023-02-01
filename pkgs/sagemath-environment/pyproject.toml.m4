@@ -4,6 +4,5 @@ requires = [
     esyscmd(`sage-get-system-packages install-requires-toml \
         setuptools     \
         wheel          \
-        sage_setup     \
                     ')]
 build-backend = "setuptools.build_meta"

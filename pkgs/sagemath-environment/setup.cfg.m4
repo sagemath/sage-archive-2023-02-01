@@ -38,3 +38,7 @@ py_modules =
 
 packages =
     sage.features
+
+[options.extras_require]
+# sage.env can optionally use sage_conf
+sage_conf = esyscmd(`sage-get-system-packages install-requires sage_conf')

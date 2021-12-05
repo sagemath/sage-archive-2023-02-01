@@ -267,7 +267,13 @@ class FeatureNotPresentError(RuntimeError):
     def __init__(self, feature, reason=None, resolution=None):
         self.feature = feature
         self.reason = reason
-        self.resolution = resolution or feature.resolution()
+        self._resolution = resolution
+
+    @property
+    def resolution(self):
+        if self._resolution:
+            return self._resolution
+        return self.feature.resolution()
 
     def __str__(self):
         r"""
@@ -285,8 +291,9 @@ class FeatureNotPresentError(RuntimeError):
         lines = ["{feature} is not available.".format(feature=self.feature.name)]
         if self.reason:
             lines.append(self.reason)
-        if self.resolution:
-            lines.append(str(self.resolution))
+        resolution = self.resolution
+        if resolution:
+            lines.append(str(resolution))
         return "\n".join(lines)
 
 
@@ -337,7 +344,13 @@ class FeatureTestResult(object):
         self.feature = feature
         self.is_present = is_present
         self.reason = reason
-        self.resolution = resolution or feature.resolution()
+        self._resolution = resolution
+
+    @property
+    def resolution(self):
+        if self._resolution:
+            return self._resolution
+        return self.feature.resolution()
 
     def __bool__(self):
         r"""

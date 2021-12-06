@@ -62,10 +62,8 @@ class TestCoherenceOfFormulas:
         if request.param == "R2":
             return SymplecticVectorSpace(2, "R2", symplectic_name="omega")
         elif request.param == "S2":
-            sphere = Sphere(2)
             # Init stereographic coordinates to get a complete atlas
-            sphere.stereographic_coordinates()
-            return sphere
+            return Sphere(2, coordinates='stereographic')
 
     @pytest.fixture()
     def omega(self, M):

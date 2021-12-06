@@ -1262,6 +1262,8 @@ max_array = EclObject("ARRAY")
 mdiff = EclObject("%DERIVATIVE")
 max_lambert_w = sage_op_dict[sage.functions.log.lambert_w]
 max_harmo = EclObject("$GEN_HARMONIC_NUMBER")
+max_pochhammer = EclObject("$POCHHAMMER")
+
 
 def mrat_to_sage(expr):
     r"""
@@ -1457,6 +1459,22 @@ def max_harmonic_to_sage(expr):
     return sage.functions.log.harmonic_number(max_to_sr(caddr(expr)),
                                               max_to_sr(cadr(expr)))
 
+def max_pochhammer_to_sage(expr):
+    """
+    EXAMPLES::
+
+        sage: from sage.interfaces.maxima_lib import maxima_lib, max_to_sr
+        sage: c=maxima_lib('pochhammer(x,n)')
+        sage: c.ecl()
+        <ECL: (($POCHHAMMER SIMP) $X $N)>
+        sage: max_to_sr(c.ecl())
+        product(-i + x, i, 0, n - 1)
+    """
+    from sage.functions.other import symbolic_product
+    i = SR.var('i')
+    return symbolic_product(max_to_sr(cadr(expr)) - i, i,
+                            0, max_to_sr(caddr(expr)) - 1)
+
 ## The dictionaries
 special_max_to_sage={
     mrat : mrat_to_sage,
@@ -1465,7 +1483,8 @@ special_max_to_sage={
     EclObject("%INTEGRATE") : dummy_integrate,
     max_at : max_at_to_sage,
     mlist : mlist_to_sage,
-    max_harmo : max_harmonic_to_sage
+    max_harmo : max_harmonic_to_sage,
+    max_pochhammer: max_pochhammer_to_sage
 }
 
 special_sage_to_max={

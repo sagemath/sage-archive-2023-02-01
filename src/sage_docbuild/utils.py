@@ -38,15 +38,23 @@ class RemoteExceptionWrapper:
         self.exc = exc
         self.tb = f'\n"""\n{tb}"""'
 
-    def __reduce__(self):
-        def _rebuild_exc(exc: BaseException, tb: str):
-            """
-            Reconstructs the exception, putting the original exception as cause.
-            """
-            exc.__cause__ = RemoteException(tb)
-            return exc
+    @staticmethod
+    def _rebuild_exc(exc: BaseException, tb: str):
+        """
+        Reconstructs the exception, putting the original exception as cause.
+        """
+        exc.__cause__ = RemoteException(tb)
+        return exc
 
-        return _rebuild_exc, (self.exc, self.tb)
+    def __reduce__(self):
+        """
+        TESTS::
+            sage: import pickle
+            sage: from sage_docbuild.utils import RemoteExceptionWrapper
+            sage: pickle.dumps(RemoteExceptionWrapper(ZeroDivisionError()), 0).decode()
+            ...RemoteExceptionWrapper...ZeroDivisionError...
+        """
+        return RemoteExceptionWrapper._rebuild_exc, (self.exc, self.tb)
 
 
 class WorkerDiedException(RuntimeError):
@@ -166,11 +174,12 @@ def build_many(target, args, processes=None):
         WorkerDiedException: worker for 4 died with non-zero exit code -9
     """
     from multiprocessing import Process, Queue, cpu_count, set_start_method
+
     # With OS X, Python 3.8 defaults to use 'spawn' instead of 'fork'
     # in multiprocessing, and Sage docbuilding doesn't work with
     # 'spawn'. See trac #27754.
-    if os.uname().sysname == 'Darwin':
-        set_start_method('fork', force=True)
+    if os.uname().sysname == "Darwin":
+        set_start_method("fork", force=True)
     from queue import Empty
 
     if processes is None:
@@ -213,23 +222,18 @@ def build_many(target, args, processes=None):
         # Get result from the queue; depending on ordering this may not be
         # *the* result for this worker, but for each completed worker there
         # should be *a* result so let's get it
-        result = None
         try:
             result = result_queue.get_nowait()
+            if result[0] is None:
+                # Indicates that an exception occurred in the target function
+                exception = result[1]
+                raise WorkerDiedException("", original_exception=exception)
+            else:
+                results.append(result)
         except Empty:
             # Generally shouldn't happen but could in case of a race condition;
             # don't worry we'll collect any remaining results at the end.
             pass
-
-        if result is None:
-            return None
-
-        if result[0] is None:
-            # Indicates that an exception occurred in the target function
-            exception = result[1]
-            raise WorkerDiedException("", original_exception=exception)
-        else:
-            results.append(result)
 
         # Helps multiprocessing with some internal bookkeeping
         w.join()
@@ -285,8 +289,7 @@ def build_many(target, args, processes=None):
                 except StopIteration:
                     pass
                 else:
-                    w = Process(target=run_worker,
-                                args=((target, result_queue) + task))
+                    w = Process(target=run_worker, args=((target, result_queue) + task))
                     w.start()
                     # Pair the new worker with the task it's performing (mostly
                     # for debugging purposes)

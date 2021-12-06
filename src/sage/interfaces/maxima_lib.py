@@ -1468,22 +1468,22 @@ def max_pochhammer_to_sage(expr):
         sage: c.ecl()
         <ECL: (($POCHHAMMER SIMP) $X $N)>
         sage: max_to_sr(c.ecl())
-        product(-i + x, i, 0, n - 1)
+        product(i + x, i, 0, n - 1)
     """
     from sage.functions.other import symbolic_product
     i = SR.var('i')
-    return symbolic_product(max_to_sr(cadr(expr)) - i, i,
+    return symbolic_product(max_to_sr(cadr(expr)) + i, i,
                             0, max_to_sr(caddr(expr)) - 1)
 
 ## The dictionaries
 special_max_to_sage={
-    mrat : mrat_to_sage,
-    mqapply : mqapply_to_sage,
-    mdiff : mdiff_to_sage,
-    EclObject("%INTEGRATE") : dummy_integrate,
-    max_at : max_at_to_sage,
-    mlist : mlist_to_sage,
-    max_harmo : max_harmonic_to_sage,
+    mrat: mrat_to_sage,
+    mqapply: mqapply_to_sage,
+    mdiff: mdiff_to_sage,
+    EclObject("%INTEGRATE"): dummy_integrate,
+    max_at: max_at_to_sage,
+    mlist: mlist_to_sage,
+    max_harmo: max_harmonic_to_sage,
     max_pochhammer: max_pochhammer_to_sage
 }
 

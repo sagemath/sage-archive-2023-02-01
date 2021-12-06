@@ -3,7 +3,7 @@ Symplectic vector spaces
 
 AUTHORS:
 
-- Tobias Diez (2020): initial version
+- Tobias Diez (2021): initial version
 
 """
 
@@ -136,7 +136,7 @@ class SymplecticVectorSpace(EuclideanSpace):
         r"""
         Return a string representation of ``self``.
 
-        EXAMPLES:
+        EXAMPLES::
 
             sage: from sage.manifolds.differentiable.examples.symplectic_vector_space import SymplecticVectorSpace
             sage: V.<q, p> = SymplecticVectorSpace(2, symplectic_name='omega'); V

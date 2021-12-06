@@ -76,3 +76,11 @@ scripts =
     bin/sage-run
     bin/sage-run-cython
     bin/sage-startuptime.py
+
+[options.package_data]
+
+sage.doctest =
+    tests/*
+
+sage.repl.rich_output =
+    example*

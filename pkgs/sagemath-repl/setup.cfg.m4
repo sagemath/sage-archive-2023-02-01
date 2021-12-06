@@ -39,6 +39,9 @@ py_modules =
 packages =
     sage.doctest
     sage.repl
+    sage.repl.display
+    sage.repl.ipython_kernel
+    sage.repl.rich_output
 
 scripts =
     # The sage script

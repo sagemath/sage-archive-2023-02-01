@@ -171,7 +171,8 @@ The following are some additional files which can be added:
     |   `-- baz.patch
     |-- spkg-check.in
     |-- spkg-configure.m4
-    `-- spkg-src
+    |-- spkg-src
+    `-- trees.txt
 
 We discuss the individual files in the following sections.
 
@@ -385,9 +386,9 @@ begin with ``sdh_``, which stands for "Sage-distribution helper".
 
 - ``sdh_configure [...]``: Runs ``./configure`` with arguments
   ``--prefix="$SAGE_LOCAL"``, ``--libdir="$SAGE_LOCAL/lib"``,
-  ``--disable-maintainer-mode``, and
-  ``--disable-dependency-tracking``. Additional arguments to
-  ``./configure`` may be given as arguments.
+  ``--disable-static``, ``--disable-maintainer-mode``, and
+  ``--disable-dependency-tracking``. Additional arguments to ``./configure``
+  may be given as arguments.
 
 - ``sdh_make [...]``: Runs ``$MAKE`` with the default target.
    Additional arguments to ``$MAKE`` may be given as arguments.
@@ -410,6 +411,16 @@ begin with ``sdh_``, which stands for "Sage-distribution helper".
    ``sdh_pip_install`` actually does the installation via ``pip wheel``,
    creating a wheel file in ``dist/``, followed by
    ``sdh_store_and_pip_install_wheel`` (see below).
+
+- ``sdh_pip_editable_install [...]``: The equivalent of running ``pip install -e``
+   with the given arguments, as well as additional default arguments used for
+   installing packages into Sage with pip. The last argument must be
+   ``.`` to indicate installation from the current directory.
+   See `pip documentation <https://pip.pypa.io/en/stable/cli/pip_install/#editable-installs>`_
+   for more details concerning editable installs.
+
+- ``sdh_pip_uninstall [...]``: Runs ``pip uninstall`` with the given arguments.
+   If unsuccessful, it displays a warning.
 
 - ``sdh_store_and_pip_install_wheel .``: The current directory,
    indicated by the required argument ``.``, must have a subdirectory
@@ -599,46 +610,48 @@ version, then the lower bound should be adjusted.
 
 .. _section-spkg-SPKG-txt:
 
-The SPKG.rst or SPKG.txt File
------------------------------
+The SPKG.rst File
+-----------------
 
-The ``SPKG.txt`` file should follow this pattern:
+The ``SPKG.rst`` file should follow this pattern:
 
 .. CODE-BLOCK:: text
 
-     = PACKAGE_NAME =
+     PACKAGE_NAME: One line description
 
-     == Description ==
+     Description
+     -----------
 
      What does the package do?
 
-     == License ==
+     License
+     -------
 
      What is the license? If non-standard, is it GPLv3+ compatible?
 
-     == Upstream Contact ==
+     Upstream Contact
+     ----------------
 
-     Provide information for upstream contact.
+     Provide information for upstream contact.  Usually just an URL.
 
-     == Dependencies ==
+     Dependencies
+     ------------
 
-     Put a bulleted list of dependencies here:
+     Only put special dependencies here that are not captured by the
+     ``dependencies`` file. Otherwise omit this section.
 
-     * python
-     * readline
+     Special Update/Build Instructions
+     ---------------------------------
 
-     == Special Update/Build Instructions ==
-
-     If the tarball was modified by hand and not via a spkg-src
-     script, describe what was changed.
+     If the tarball was modified by hand and not via an ``spkg-src``
+     script, describe what was changed. Otherwise omit this section.
 
 
-with ``PACKAGE_NAME`` replaced by the package name. Legacy
-``SPKG.txt`` files have an additional changelog section, but this
+with ``PACKAGE_NAME`` replaced by the SPKG name (= the directory name in
+``build/pkgs``).
+
+Legacy ``SPKG.txt`` files have an additional changelog section, but this
 information is now kept in the git repository.
-
-It is now also possible to use an ``SPKG.rst`` file instead, with the same
-sections.
 
 .. _section-dependencies:
 
@@ -710,6 +723,28 @@ correct, the following command should work without errors::
 Finally, note that standard packages should only depend on standard
 packages and optional packages should only depend on standard or
 optional packages.
+
+
+.. _section-trees:
+
+Where packages are installed
+----------------------------
+
+The Sage distribution has the notion of several installation trees.
+
+- ``$SAGE_VENV`` is the default installation tree for all Python packages, i.e.,
+  normal packages with an ``install-requires.txt`` and pip packages
+  with a ``requirements.txt``.
+
+- ``$SAGE_LOCAL`` is the default installation tree for all non-Python packages.
+
+- ``$SAGE_DOCS`` (only set at build time) is an installation tree for the
+  HTML and PDF documentation.
+
+By placing a file ``trees.txt`` in the package directory, the installation tree
+can be overridden.  For example, ``build/pkgs/python3/trees.txt`` contains the
+word ``SAGE_VENV``, and ``build/pkgs/sagemath_doc_html/trees.txt`` contains the
+word ``SAGE_DOCS``.
 
 
 .. _section-spkg-patching:
@@ -1016,9 +1051,10 @@ For Python packages available from PyPI, you can use::
 
 This automatically downloads the most recent version from PyPI and also
 obtains most of the necessary information by querying PyPI.
-The ``dependencies`` file may need editing, and also you may want to set
-lower and upper bounds for acceptable package versions in the file
-``install-requires.txt``.
+The ``dependencies`` file may need editing (watch out for warnings regarding
+``--no-deps`` that Sage issues during installation of the package!).
+Also you may want to set lower and upper bounds for acceptable package versions
+in the file ``install-requires.txt``.
 
 To create a pip package rather than a normal package, you can use::
 

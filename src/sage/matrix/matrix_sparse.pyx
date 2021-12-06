@@ -176,7 +176,7 @@ cdef class Matrix_sparse(matrix.Matrix):
 
             sage: A = matrix(QQ['x,y'], 2, [0,-1,2,-2], sparse=True)
             sage: type(A)
-            <type 'sage.matrix.matrix_generic_sparse.Matrix_generic_sparse'>
+            <class 'sage.matrix.matrix_generic_sparse.Matrix_generic_sparse'>
             sage: B = matrix(QQ['x,y'], 2, [-1,-1,-2,-2], sparse=True)
             sage: A * B
             [2 2]
@@ -239,7 +239,7 @@ cdef class Matrix_sparse(matrix.Matrix):
 
             sage: A = matrix(QQ['x,y'], 2, [0,-1,2,-2], sparse=True)
             sage: type(A)
-            <type 'sage.matrix.matrix_generic_sparse.Matrix_generic_sparse'>
+            <class 'sage.matrix.matrix_generic_sparse.Matrix_generic_sparse'>
             sage: B = matrix(QQ['x,y'], 2, [-1,-1,-2,-2], sparse=True)
             sage: A._multiply_classical_with_cache(B)
             [2 2]
@@ -888,9 +888,13 @@ cdef class Matrix_sparse(matrix.Matrix):
 
             sage: A = random_matrix(ZZ, 100000, density=.00005, sparse=True)  # long time (4s on sage.math, 2012)
             sage: B = A[50000:,:50000]        # long time
-            sage: len(B.nonzero_positions())  # long time
-            17550              # 32-bit
-            125449             # 64-bit
+            sage: count = 0
+            sage: for i, j in A.nonzero_positions():  # long time
+            ....:     if i >= 50000 and j < 50000:
+            ....:         assert B[i-50000, j] == A[i, j]
+            ....:         count += 1
+            sage: count == sum(1 for _ in B.nonzero_positions())  # long time
+            True
 
         We must pass in a list of indices::
 

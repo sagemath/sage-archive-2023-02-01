@@ -129,7 +129,7 @@ def modular_symbol_space(E, sign, base_ring, bound=None):
         Modular Symbols space of dimension 1 for Gamma_0(11) of weight 2 with sign -1 over Finite Field of size 37
 
     """
-    if not sign in [-1,0,1]:
+    if sign not in [-1, 0, 1]:
         raise TypeError('sign must -1, 0 or 1')
     N = E.conductor()
     M = ModularSymbols(N, sign=sign, base_ring=base_ring)
@@ -298,29 +298,37 @@ class ModularSymbolECLIB(ModularSymbol):
             sage: m(0)
             1/5
 
-        If ``nap`` is too small, the normalization in eclib may be incorrect.  See :trac:`31317`::
+        If ``nap`` is too small, the normalization in eclib used to be
+        incorrect (see :trac:`31317`), but since ``eclib`` version
+        v20210310 the value of ``nap`` is increased automatically by
+        ``eclib``::
 
             sage: from sage.schemes.elliptic_curves.ell_modular_symbols import ModularSymbolECLIB
             sage: E = EllipticCurve('1590g1')
             sage: m = ModularSymbolECLIB(E, sign=+1, nap=300)
             sage: [m(a/5) for a in [1..4]]
-            [1001/153, -1001/153, -1001/153, 1001/153]
+            [13/2, -13/2, -13/2, 13/2]
 
-        Those values are incorrect.  The correct values are::
+        These values are correct, and increasing ``nap`` has no
+        effect.  The correct values may verified by the numerical
+        implementation::
 
             sage: m = ModularSymbolECLIB(E, sign=+1, nap=400)
+            sage: [m(a/5) for a in [1..4]]
+            [13/2, -13/2, -13/2, 13/2]
+            sage: m = E.modular_symbol(implementation='num')
             sage: [m(a/5) for a in [1..4]]
             [13/2, -13/2, -13/2, 13/2]
 
         """
         from sage.libs.eclib.newforms import ECModularSymbol
 
-        if not sign in [-1,1]:
+        if sign not in [-1, 1]:
             raise TypeError('sign must -1 or 1')
         self._sign = ZZ(sign)
         self._E = E
         self._scaling = 1 if E.discriminant()>0 else ZZ(1)/2
-        self._implementation="eclib"
+        self._implementation = "eclib"
         self._base_ring = QQ
         # The ECModularSymbol class must be initialized with sign=0 to compute minus symbols
         self._modsym = ECModularSymbol(E, int(sign==1), nap)
@@ -428,11 +436,11 @@ class ModularSymbolSage(ModularSymbol):
             [1, 1, 1, 1, 1, 1, 1, 1]
 
         """
-        if not sign in [-1,1]:
+        if sign not in [-1, 1]:
             raise TypeError('sign must -1 or 1')
         self._sign = ZZ(sign)
         self._E = E
-        self._implementation="sage"
+        self._implementation = "sage"
         self._normalize = normalize
         self._modsym = E.modular_symbol_space(sign=self._sign)
         self._base_ring = self._modsym.base_ring()
@@ -600,7 +608,7 @@ class ModularSymbolSage(ModularSymbol):
             sage: m.__lalg__(3)
             5/2
         """
-        from sage.functions.all import sqrt
+        from sage.misc.functional import sqrt
         # the computation of the L-value could take a lot of time,
         # but then the conductor is so large
         # that the computation of modular symbols for E took even longer

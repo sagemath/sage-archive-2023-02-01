@@ -32,7 +32,7 @@ AUTHORS:
 # ****************************************************************************
 
 from textwrap import dedent
-from sage.misc.superseded import deprecation
+from sage.misc.superseded import deprecation_cython as deprecation
 
 from libc.math cimport isfinite, INFINITY
 from libc.string cimport memset, memcpy

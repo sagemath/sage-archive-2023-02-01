@@ -26,7 +26,7 @@ fmpz* get_coeff (fmpz_poly_t poly, slong i)
         if (zero == NULL)
         {
             zero = malloc(sizeof(fmpz));
-            fmpz_zero(zero);
+            fmpz_init(zero);
         }
         return zero;
     }

@@ -304,12 +304,11 @@ import warnings
 from sage.misc.latex import latex
 from sage.rings.all import ZZ, QQ, RR, CC
 from sage.rings.polynomial.polynomial_ring_constructor import PolynomialRing
-from sage.rings.real_mpfr import is_RealField
-from sage.rings.complex_mpfr import is_ComplexField
+import sage.rings.abc
 
 from sage.symbolic.function import BuiltinFunction, GinacFunction
 from sage.symbolic.expression import Expression
-from sage.symbolic.all import SR
+from sage.symbolic.ring import SR
 from sage.functions.other import factorial, binomial
 from sage.structure.all import parent
 
@@ -672,7 +671,7 @@ class Func_chebyshev_T(ChebyshevFunction):
         except KeyError:
             real_parent = parent(x)
 
-            if not is_RealField(real_parent) and not is_ComplexField(real_parent):
+            if not isinstance(real_parent, (sage.rings.abc.RealField, sage.rings.abc.ComplexField)):
                 # parent is not a real or complex field: figure out a good parent
                 if x in RR:
                     x = RR(x)
@@ -681,7 +680,7 @@ class Func_chebyshev_T(ChebyshevFunction):
                     x = CC(x)
                     real_parent = CC
 
-        if not is_RealField(real_parent) and not is_ComplexField(real_parent):
+        if not isinstance(real_parent, (sage.rings.abc.RealField, sage.rings.abc.ComplexField)):
             raise TypeError("cannot evaluate chebyshev_T with parent {}".format(real_parent))
 
         from sage.libs.mpmath.all import call as mpcall
@@ -1031,7 +1030,7 @@ class Func_chebyshev_U(ChebyshevFunction):
         except KeyError:
             real_parent = parent(x)
 
-            if not is_RealField(real_parent) and not is_ComplexField(real_parent):
+            if not isinstance(real_parent, (sage.rings.abc.RealField, sage.rings.abc.ComplexField)):
                 # parent is not a real or complex field: figure out a good parent
                 if x in RR:
                     x = RR(x)
@@ -1040,7 +1039,7 @@ class Func_chebyshev_U(ChebyshevFunction):
                     x = CC(x)
                     real_parent = CC
 
-        if not is_RealField(real_parent) and not is_ComplexField(real_parent):
+        if not isinstance(real_parent, (sage.rings.abc.RealField, sage.rings.abc.ComplexField)):
             raise TypeError("cannot evaluate chebyshev_U with parent {}".format(real_parent))
 
         from sage.libs.mpmath.all import call as mpcall
@@ -1825,7 +1824,7 @@ class Func_assoc_legendre_Q(BuiltinFunction):
             sage: gen_legendre_Q(2,2,x).subs(x=2).expand()
             9/2*I*pi - 9/2*log(3) + 14/3
         """
-        from sage.functions.all import sqrt
+        from sage.misc.functional import sqrt
         if m == n + 1 or n == 0:
             if m.mod(2).is_zero():
                 denom = (1 - x**2)**(m/2)
@@ -2014,7 +2013,7 @@ class Func_jacobi_P(OrthogonalFunction):
             return legendre_P(n, x)
         if SR(n).is_numeric() and not (n > -1):
             raise ValueError("n must be greater than -1, got n = {0}".format(n))
-        if not n in ZZ:
+        if n not in ZZ:
             return
         from .gamma import gamma
         s = sum(binomial(n,m) * gamma(a+b+n+m+1) / gamma(a+m+1) * ((x-1)/2)**m for m in range(n+1))
@@ -2083,7 +2082,7 @@ class Func_ultraspherical(GinacFunction):
         32*t^3 - 12*t
         sage: _ = var('x')
         sage: for N in range(100):
-        ....:     n = ZZ.random_element().abs() + 5
+        ....:     n = ZZ.random_element(5, 5001)
         ....:     a = QQ.random_element().abs() + 5
         ....:     assert ((n+1)*ultraspherical(n+1,a,x) - 2*x*(n+a)*ultraspherical(n,a,x) + (n+2*a-1)*ultraspherical(n-1,a,x)).expand().is_zero()
         sage: ultraspherical(5,9/10,3.1416)

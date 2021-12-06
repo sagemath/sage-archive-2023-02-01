@@ -5,7 +5,7 @@ EXAMPLES::
 
     sage: v = vector(Integers(8),[1,2,3,4,5])
     sage: type(v)
-    <type 'sage.modules.vector_modn_dense.Vector_modn_dense'>
+    <class 'sage.modules.vector_modn_dense.Vector_modn_dense'>
     sage: v
     (1, 2, 3, 4, 5)
     sage: 3*v
@@ -64,13 +64,13 @@ TESTS::
 
     sage: K = GF(previous_prime(2^31))
     sage: v = vector(K, [42]);  type(v[0])
-    <type 'sage.rings.finite_rings.integer_mod.IntegerMod_int64'>
+    <class 'sage.rings.finite_rings.integer_mod.IntegerMod_int64'>
     sage: ~v[0]
     2096353084
 
     sage: K = GF(next_prime(2^31))
     sage: v = vector(K, [42]);  type(v[0])
-    <type 'sage.rings.finite_rings.integer_mod.IntegerMod_gmp'>
+    <class 'sage.rings.finite_rings.integer_mod.IntegerMod_gmp'>
     sage: ~v[0]
     1482786336
 
@@ -92,10 +92,8 @@ Test that :trac:`28042` is fixed::
     102041
     sage: vector([a,b]) * vector([c,d]) - e
     102041
-    sage: type(vector([a,b]) * vector([c,d])) # py3
+    sage: type(vector([a,b]) * vector([c,d]))
     <class 'sage.rings.finite_rings.integer_mod.IntegerMod_int64'>
-    sage: type(vector([a,b]) * vector([c,d])) # py2
-    <type 'sage.rings.finite_rings.integer_mod.IntegerMod_int64'>
 
 AUTHOR:
 

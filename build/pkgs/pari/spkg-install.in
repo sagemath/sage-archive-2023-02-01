@@ -135,4 +135,4 @@ sdh_make $PARI_MAKEFLAGS gp
 
 
 # install non-parallel (-j1) because of race conditions
-sdh_make_install -j1 install-lib-sta
+sdh_make_install -j1

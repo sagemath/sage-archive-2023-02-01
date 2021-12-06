@@ -146,8 +146,8 @@ for PKG_BASE in $(./sage --package list --has-file SPKG.rst :experimental: | sor
 done >> "$OUTPUT_INDEX"
 cat >> "$OUTPUT_INDEX" <<EOF
 
-Detailed Listing of External Packages
--------------------------------------
+All External Packages
+---------------------
 
 .. toctree::
    :maxdepth: 1
@@ -158,8 +158,10 @@ EOF
 
 OUTPUT_INDEX="$OUTPUT_DIR"/index_alph.rst
 cat >> "$OUTPUT_INDEX" <<EOF
-External Packages (alphabetical order)
-======================================
+Details of external packages
+============================
+
+Packages are in alphabetical order.
 
 .. toctree::
    :maxdepth: 1

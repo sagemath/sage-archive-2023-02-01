@@ -65,7 +65,6 @@ class GaloisGroup_GF(GaloisGroup_cyc):
 
             sage: TestSuite(GF(9).galois_group()).run()
         """
-        self._field = field
         GaloisGroup_cyc.__init__(self, field, (field.degree(),), gen_names="Frob")
 
     def _repr_(self):

@@ -251,10 +251,14 @@ from sage.geometry.point_collection import PointCollection
 from sage.geometry.toric_lattice import ToricLattice, is_ToricLattice
 from sage.geometry.toric_plotter import ToricPlotter
 from sage.graphs.digraph import DiGraph
-from sage.matrix.all import matrix
-from sage.misc.all import cached_method, walltime, prod
-from sage.modules.all import vector, span
-from sage.rings.all import QQ, ZZ
+from sage.matrix.constructor import matrix
+from sage.misc.cachefunc import cached_method
+from sage.misc.misc import walltime
+from sage.misc.misc_c import prod
+from sage.modules.free_module import span
+from sage.modules.free_module_element import vector
+from sage.rings.integer_ring import ZZ
+from sage.rings.rational_field import QQ
 
 
 def is_Fan(x):
@@ -500,7 +504,7 @@ def Fan(cones, rays=None, lattice=None, check=True, normalize=True,
         sage: fan = Fan([c1, c2], allow_arrangement=True)
         sage: fan.ngenerating_cones()
         7
-        sage: fan.plot()
+        sage: fan.plot()  # optional - sage.plot
         Graphics3d Object
 
     Cones of different dimension::
@@ -520,7 +524,7 @@ def Fan(cones, rays=None, lattice=None, check=True, normalize=True,
         sage: c3 = Cone([[0, 1, 1], [1, 0, 1], [0, -1, 1], [-1, 0, 1]])
         sage: c1 = Cone([[0, 0, 1]])
         sage: fan1 = Fan([c1, c3], allow_arrangement=True)
-        sage: fan1.plot()
+        sage: fan1.plot()  # optional - sage.plot
         Graphics3d Object
 
     A 3-d cone and two 2-d cones::
@@ -2966,7 +2970,7 @@ class RationalPolyhedralFan(IntegralRayCollection, Callable, Container):
         EXAMPLES::
 
             sage: fan = toric_varieties.dP6().fan()
-            sage: fan.plot()
+            sage: fan.plot()  # optional - sage.plot
             Graphics object consisting of 31 graphics primitives
         """
         tp = ToricPlotter(options, self.lattice().degree(), self.rays())
@@ -3087,8 +3091,8 @@ class RationalPolyhedralFan(IntegralRayCollection, Callable, Container):
 
             sage: f = Fan([Cone([(1,0,1,0), (0,1,1,0)])])
             sage: f.virtual_rays()
-            N(0, 0, 0, 1),
-            N(0, 0, 1, 0)
+            N(1, 0, 0, 0),
+            N(0, 0, 0, 1)
             in 4-d lattice N
 
             sage: f.rays()
@@ -3097,14 +3101,14 @@ class RationalPolyhedralFan(IntegralRayCollection, Callable, Container):
             in 4-d lattice N
 
             sage: f.virtual_rays([0])
-            N(0, 0, 0, 1)
+            N(1, 0, 0, 0)
             in 4-d lattice N
 
         You can also give virtual ray indices directly, without
         packing them into a list::
 
             sage: f.virtual_rays(0)
-            N(0, 0, 0, 1)
+            N(1, 0, 0, 0)
             in 4-d lattice N
 
         Make sure that :trac:`16344` is fixed and one can compute
@@ -3121,6 +3125,8 @@ class RationalPolyhedralFan(IntegralRayCollection, Callable, Container):
             sage: N = ToricLattice(4)
             sage: for i in range(10):
             ....:      c = Cone([N.random_element() for j in range(i//2)], lattice=N)
+            ....:      if not c.is_strictly_convex():
+            ....:          continue
             ....:      f = Fan([c])
             ....:      assert matrix(f.rays() + f.virtual_rays()).rank() == 4
             ....:      assert f.dim() + len(f.virtual_rays()) == 4

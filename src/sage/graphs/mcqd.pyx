@@ -1,8 +1,8 @@
 # distutils: language = c++
-# sage_setup: distribution = sage-mcqd
+# sage_setup: distribution = sagemath-mcqd
 
 from cysignals.signals cimport sig_on, sig_off
-from sage.ext.memory_allocator cimport MemoryAllocator
+from memory_allocator cimport MemoryAllocator
 
 def mcqd(G):
     """

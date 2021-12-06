@@ -259,14 +259,12 @@ def p_adic_normal_form(G, p, precision=None, partial=False, debug=False):
         precision = G.det().valuation(p) + 4
     R = Zp(p, prec=precision, type='fixed-mod')
     G = G.change_ring(R)
-    G.set_immutable() # is not changed during computation
-    D = copy(G)    # is transformed into jordan form
+    G.set_immutable()  # is not changed during computation
     n = G.ncols()
     # The trivial case
     if n == 0:
         return G.parent().zero(), G.parent().zero()
     # the transformation matrix is called B
-    B = Matrix.identity(R, n)
     if p == 2:
         D, B = _jordan_2_adic(G)
     else:
@@ -533,7 +531,7 @@ def _homogeneous_normal_form(G, w):
             e2 = D[-1,-1].unit_part()
             e = {e1, e2}
             E = [{1,3}, {1,7}, {5,7}, {3,5}]
-            if not e in E:
+            if e not in E:
                 B[-4:,:] = _relations(D[-4:,-4:], 5) * B[-4:,:]
                 D = B * G * B.T
         e1 = D[-2,-2].unit_part()

@@ -6,10 +6,11 @@ AUTHORS:
 - Hartmut Monien (2011-08)
 - Vincent Delecroix (2014-11)
 """
-#*****************************************************************************
+# *****************************************************************************
 #       Copyright (C) 2011 Hartmut Monien <monien@th.physik.uni-bonn.de>,
 #                     2014 Vincent Delecroix <20100.delecroix@gmail.com>,
 #                     2015 Stefan Kraemer <skraemer@th.physik.uni-bonn.de>
+#                     2021 Javier Honrubia <jhonrubia6@alumno.uned.es
 #
 #  Distributed under the terms of the GNU General Public License (GPL)
 #
@@ -21,7 +22,7 @@ AUTHORS:
 #  The full text of the GPL is available at:
 #
 #                  https://www.gnu.org/licenses/
-#*****************************************************************************
+# *****************************************************************************
 
 from sage.plot.bezier_path import BezierPath
 from sage.plot.graphics import Graphics
@@ -32,6 +33,7 @@ from sage.rings.all import CC
 from sage.symbolic.constants import pi
 from sage.functions.trig import cos, sin, tan
 from sage.plot.hyperbolic_arc import HyperbolicArcCore
+
 
 class HyperbolicPolygon(HyperbolicArcCore):
     """
@@ -63,7 +65,7 @@ class HyperbolicPolygon(HyperbolicArcCore):
 
             sage: from sage.plot.hyperbolic_polygon import HyperbolicPolygon
             sage: HP = HyperbolicPolygon([0, 1/2, I], "UHP", {})
-            sage: TestSuite(HP).run()
+            sage: TestSuite(HP).run(skip ="_test_pickling")
         """
         pts = [CC(_) for _ in pts]
         self.path = []
@@ -73,7 +75,7 @@ class HyperbolicPolygon(HyperbolicArcCore):
                 self._UHP_hyperbolic_arc(pts[i], pts[i + 1])
             self._UHP_hyperbolic_arc(pts[-1], pts[0])
         elif model == "PD":
-            self._PD_hyperbolic_arc(pts[0], pts[1],True)
+            self._PD_hyperbolic_arc(pts[0], pts[1], True)
             for i in range(1, len(pts) - 1):
                 self._PD_hyperbolic_arc(pts[i], pts[i + 1])
             self._PD_hyperbolic_arc(pts[-1], pts[0])
@@ -85,7 +87,7 @@ class HyperbolicPolygon(HyperbolicArcCore):
             raise ValueError("%s is not a valid model for Hyperbolic plane" % model)
         self._pts = pts
         BezierPath.__init__(self, self.path, options)
-    
+
     def _repr_(self):
         """
         String representation of HyperbolicPolygon.
@@ -97,40 +99,6 @@ class HyperbolicPolygon(HyperbolicArcCore):
             Hyperbolic polygon (0.000000000000000, 0.500000000000000, 1.00000000000000*I)
         """
         return "Hyperbolic polygon ({})".format(", ".join(map(str, self._pts)))
-    
-    def _bezier_path(self, arc0, z0, first):
-        """
-        Construct the corresponding bezier path of the ``arc0``
-        """
-        ma = arc0._matplotlib_arc()
-        transform = ma.get_transform().get_matrix()
-        cA, cC, cE = transform[0]
-        cB, cD, cF = transform[1]
-        points = []
-        for u in ma._path.vertices:
-            x, y = list(u)
-            points += [(cA * x + cC * y + cE, cB * x + cD * y + cF)]
-        if abs(CC(points[0]) - z0)>0.00001:
-            points.reverse() #order is important
-        if first:
-            self.path.append(points[0: 4])
-            N = 4
-        else:
-            N = 0
-            #the first point is equal to the last of the previous arc
-            del points[0]
-        #Complete the last tuple of control points
-        tail = self.path[-1]
-        ltail = len(tail)
-        while ltail < 3:
-            self.path[-1].append(points[N])
-            ltail +=1
-            N +=1
-        #Add new triplets
-        while N < len(points):
-            self.path.append(points[N: N + 3])
-            N += 3
-        return
 
 
 @rename_keyword(color='rgbcolor')
@@ -149,7 +117,7 @@ def hyperbolic_polygon(pts, model="UHP", **options):
     OPTIONS:
 
     - ``model`` -- default: ``UHP`` Model used for hyperbolic plane
-    
+
     - ``alpha`` -- default: 1
 
     - ``fill`` -- default: ``False``
@@ -208,8 +176,8 @@ def hyperbolic_polygon(pts, model="UHP", **options):
     g = Graphics()
     g._set_extra_kwds(g._extract_kwds_for_show(options))
     g.add_primitive(HyperbolicPolygon(pts, model, options))
-    if model=="PD":
-        g  = g + circle((0,0),1, rgbcolor='black')
+    if model == "PD":
+        g = g + circle((0, 0), 1, rgbcolor='black')
     g.set_aspect_ratio(1)
     return g
 
@@ -271,7 +239,7 @@ def hyperbolic_triangle(a, b, c, model="UHP", **options):
         Graphics object consisting of 2 graphics primitives
 
     .. PLOT::
- 
+
         z1 = CC((cos(pi/3),sin(pi/3)))
         z2 = CC((0.6*cos(3*pi/4),0.6*sin(3*pi/4)))
         z3 = 1
@@ -290,4 +258,3 @@ def hyperbolic_triangle(a, b, c, model="UHP", **options):
 
     """
     return hyperbolic_polygon((a, b, c), model, **options)
-

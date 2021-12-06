@@ -358,7 +358,8 @@ __append_to_doc(
      "RandomToleranceGraph",
      "RandomTree",
      "RandomTreePowerlaw",
-     "RandomTriangulation"])
+     "RandomTriangulation",
+     "RandomUnitDiskGraph"])
 
 __doc__ += """
 **Graphs with a given degree sequence**
@@ -813,7 +814,7 @@ class GraphGenerators():
                     yield copyfun(gg) if copy else gg
         elif augment == 'edges':
             if vertices is None:
-                from sage.rings.all import Integer
+                from sage.rings.integer import Integer
                 vertices = Integer(0)
                 while True:
                     for g in self(vertices, loops=loops, sparse=sparse):
@@ -2252,6 +2253,7 @@ class GraphGenerators():
     RandomTreePowerlaw       = staticmethod(random.RandomTreePowerlaw)
     RandomTree               = staticmethod(random.RandomTree)
     RandomTriangulation      = staticmethod(random.RandomTriangulation)
+    RandomUnitDiskGraph      = staticmethod(random.RandomUnitDiskGraph)
 
 ###########################################################################
 # Maps

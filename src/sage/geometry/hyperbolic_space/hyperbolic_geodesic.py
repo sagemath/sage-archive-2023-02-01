@@ -1040,9 +1040,9 @@ class HyperbolicGeodesic(SageObject):
         return self._model._dist_points(self._start.coordinates(),
                                         self._end.coordinates())
 
-#***********************************************************************
+# ***********************************************************************
 #                       UHP geodesics
-#***********************************************************************
+# ***********************************************************************
 
 
 class HyperbolicGeodesicUHP(HyperbolicGeodesic):
@@ -1152,7 +1152,7 @@ class HyperbolicGeodesicUHP(HyperbolicGeodesic):
             Graphics object consisting of 2 graphics primitives
 
         Plotting a line with ``boundary=False``. ::
-            
+
             sage: g = HyperbolicPlane().UHP().get_geodesic(0, I)
             sage: g.plot(boundary=False)  # optional - sage.plot
             Graphics object consisting of 1 graphics primitive
@@ -1355,7 +1355,7 @@ class HyperbolicGeodesicUHP(HyperbolicGeodesic):
             g = UHP.get_geodesic(4.0, 5.0)
             h = UHP.get_geodesic(6.0, 7.0)
             sphinx_plot(g.plot() + h.plot())
-            
+
         If the given geodesics are asymptotically parallel, the function returns the common boundary point::
 
             sage: g = UHP.get_geodesic(4, 5)
@@ -1385,50 +1385,50 @@ class HyperbolicGeodesicUHP(HyperbolicGeodesic):
             sage: g2 = UHP.get_geodesic(-1/2, Infinity)
             sage: g1.intersection(g2)
             []
-            
+
             sage: UHP = HyperbolicPlane().UHP() #case Ia
             sage: UHP = HyperbolicPlane().UHP()
             sage: g1=UHP.get_geodesic(-1,I)
             sage: g2=UHP.get_geodesic(0,2)
             sage: g1.intersection(g2)
             []
-            
+
             sage: UHP = HyperbolicPlane().UHP() #case Ib
             sage: g1=UHP.get_geodesic(-1,I)
             sage: g2=UHP.get_geodesic(1/2,1/2+2*I)
             sage: g1.intersection(g2)
             []
-            
+
             sage: UHP = HyperbolicPlane().UHP() #case IIa
             sage: g1=UHP.get_geodesic(-1,+1)
             sage: g2=UHP.get_geodesic(-1,2)
             sage: g1.intersection(g2)
             [Boundary point in UHP -1.00000000000000]
-            
+
             sage: UHP = HyperbolicPlane().UHP() #case IIb
             sage: g1=UHP.get_geodesic(-1,+Infinity)
             sage: g2=UHP.get_geodesic(+1,+Infinity)
             sage: g1.intersection(g2)
             [Boundary point in UHP +infinity]
-            
+
             sage: UHP = HyperbolicPlane().UHP() #case IIc
             sage: g1=UHP.get_geodesic(-1,-1+I)
             sage: g2=UHP.get_geodesic(+1,+1+I)
             sage: g1.intersection(g2)
             []
-            
+
             sage: UHP = HyperbolicPlane().UHP() #case IId
             sage: g1=UHP.get_geodesic(-1,+1)
             sage: g2=UHP.get_geodesic(-1,-1+2*I)
             sage: g1.intersection(g2)
             [Boundary point in UHP -1.00000000000000]
-            
+
             sage: UHP = HyperbolicPlane().UHP() #case IIIa
             sage: g1=UHP.get_geodesic(-1,I)
             sage: g2=UHP.get_geodesic(+1,(+cos(pi/3)+I*sin(pi/3)))
             sage: g1.intersection(g2)
             []
-            
+
             sage: UHP = HyperbolicPlane().UHP() #case IIIb
             sage: g1=UHP.get_geodesic(I,2*I)
             sage: g2=UHP.get_geodesic(3*I,4*I)
@@ -1440,82 +1440,82 @@ class HyperbolicGeodesicUHP(HyperbolicGeodesic):
             sage: g2=UHP.get_geodesic(2*I,4*I)
             sage: g1.intersection(g2)
             Geodesic in UHP from 3.00000000000000*I to 4.00000000000000*I
-            
+
             sage: UHP = HyperbolicPlane().UHP() #case IVb
             sage: g1=UHP.get_geodesic(I,3*I)
             sage: g2=UHP.get_geodesic(2*I,4*I)
             sage: g1.intersection(g2)
             Geodesic in UHP from 2.00000000000000*I to 3.00000000000000*I
-            
+
             sage: UHP = HyperbolicPlane().UHP() #case IVc
             sage: g1=UHP.get_geodesic(2*I,infinity)
             sage: g2=UHP.get_geodesic(3*I,infinity)
             sage: g1.intersection(g2)
             Geodesic in UHP from 3.00000000000000*I to +infinity
-                        
+
         """
 
         UHP = self.model()
         # Both geodesic need to be UHP geodesics for this to work
-        if(other.model()!=UHP):
+        if(other.model() != UHP):
             other = other.to_model(UHP)
-        #Get endpoints and ideal endpoints
+        # Get endpoints and ideal endpoints
         i_start_1, i_end_1 = sorted(self.ideal_endpoints(), key=str)
         i_start_2, i_end_2 = sorted(other.ideal_endpoints(), key=str)
         start_1, end_1 = [CC(x.coordinates()) for x in self.endpoints()]
         start_2, end_2 = [CC(x.coordinates()) for x in other.endpoints()]
-        #sort the geodesic endpoints according to start_1.real() < end_1.real() and if start_1.real() ==  end_1.real()
-        #then start_1.imag() < end_1.imag()
-        if start_1.real() > end_1.real(): #enforce
-            start_1,end_1 = end_1, start_1 
+        # sort the geodesic endpoints according to start_1.real() < end_1.real() and if start_1.real() ==  end_1.real()
+        # then start_1.imag() < end_1.imag()
+        if start_1.real() > end_1.real():  # enforce
+            start_1, end_1 = end_1, start_1
         elif start_1.real() == end_1.real():
             if start_1.imag() > end_1.imag():
-                start_1,end_1 = end_1, start_1
-        #sort the geodesic endpoints according to start_2.real() < end_2.real() and if start_2.real() ==  end_2.real()
-        #then start_2.imag() < end_2.imag()
+                start_1, end_1 = end_1, start_1
+        # sort the geodesic endpoints according to start_2.real() < end_2.real() and if start_2.real() ==  end_2.real()
+        # then start_2.imag() < end_2.imag()
         if start_2.real() > end_2.real():
-            start_2,end_2 = end_2, start_2
+            start_2, end_2 = end_2, start_2
         elif start_2.real() == end_2.real():
             if start_2.imag() > end_2.imag():
-                start_2,end_2 = end_2, start_2
+                start_2, end_2 = end_2, start_2
         if i_start_1 == i_start_2 and i_end_1 == i_end_2:
             # Unoriented segments lie on the same complete geodesic
-            if start_1==start_2 and end_1==end_2:
+            if start_1 == start_2 and end_1 == end_2:
                 return self
             if start_1.real() == end_1.real() or end_1.real().is_infinity():
-                #Both geodesics are vertical
+                # Both geodesics are vertical
                 if start_2.imag() < start_1.imag():
-                    #make sure always start_1.imag() <= start_2.imag()
-                    start_1,start_2 = start_2,start_1
+                    # make sure always start_1.imag() <= start_2.imag()
+                    start_1, start_2 = start_2, start_1
                     end_1, end_2 = end_2, end_1
-                if end_1==start_2:
+                if end_1 == start_2:
                     return [UHP.get_point(end_1)]
                 elif end_1.real().is_infinity() and end_2.real().is_infinity():
-                    return UHP.get_geodesic(start_2,end_2) #Case IVe
-                elif end_1.imag()<start_2.imag():
+                    return UHP.get_geodesic(start_2, end_2)
+                elif end_1.imag() < start_2.imag():
                     return []
                 else:
                     return UHP.get_geodesic(start_2, end_1)
             else:
-                #Neither geodesic is vertical
-                #make sure always start_1.real() <= start_2.real()
-                if start_2.real()<start_1.real():
-                    start_1,start_2 = start_2, start_1
+                # Neither geodesic is vertical
+                # make sure always start_1.real() <= start_2.real()
+                if start_2.real() < start_1.real():
+                    start_1, start_2 = start_2, start_1
                     end_1, end_2 = end_2, end_1
-                if end_1==start_2:
+                if end_1 == start_2:
                     return [UHP.get_point(end_1)]
-                elif end_1.real()<start_2.real():
+                elif end_1.real() < start_2.real():
                     return []
                 else:
                     return UHP.get_geodesic(start_2, end_1)
         else:
-            #Both segments do not have the same complete geodesic
-            #make sure always start_1.real() <= start_2.real()
-            if start_2.real()<start_1.real():
-                start_1,start_2 = start_2, start_1
+            # Both segments do not have the same complete geodesic
+            # make sure always start_1.real() <= start_2.real()
+            if start_2.real() < start_1.real():
+                start_1, start_2 = start_2, start_1
                 end_1, end_2 = end_2, end_1
             if self.is_asymptotically_parallel(other):
-                #asymptotic parallel
+                # asymptotic parallel
                 if start_1 == start_2:
                     return [UHP.get_point(start_1)]
                 elif end_1 == start_2 or end_1 == end_2:
@@ -1529,12 +1529,12 @@ class HyperbolicGeodesicUHP(HyperbolicGeodesic):
                 if C.classification() in ['hyperbolic', 'parabolic']:
                     return []
                 else:
-                    #the fixed point needs not to lie in both segments of geodesic
-                    if end_1==start_2:
+                    # the fixed point needs not to lie in both segments of geodesic
+                    if end_1 == start_2:
                         return [UHP().get_point(end_1)]
                     else:
                         P = CC(C.fixed_point_set()[0].coordinates())
-                        if start_1.real()<=P.real()<=end_1.real() and start_2.real()<=P.real()<=end_2.real():
+                        if start_1.real() <= P.real() <= end_1.real() and start_2.real() <= P.real() <= end_2.real():
                             return C.fixed_point_set()
                         else:
                             return []
@@ -1871,7 +1871,7 @@ class HyperbolicGeodesicUHP(HyperbolicGeodesic):
             arccos(7/8)
             sage: h.angle(g)
             arccos(7/8)
-                                                                     
+
         Angle between circle and line. Note that ``1/2*sqrt(2)`` equals
         ``1/4*pi``. ::
 
@@ -2140,9 +2140,9 @@ class HyperbolicGeodesicUHP(HyperbolicGeodesic):
         return matrix([[p1 - p2, (p1 - p2)*(-p0)],
                        [p1 - p0, (p1 - p0)*(-p2)]])
 
-#***********************************************************************
+# ***********************************************************************
 #                       Other geodesics
-#***********************************************************************
+# ***********************************************************************
 
 
 class HyperbolicGeodesicPD(HyperbolicGeodesic):

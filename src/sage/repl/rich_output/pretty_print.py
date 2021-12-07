@@ -12,7 +12,7 @@ EXAMPLES::
     sage: pretty_print(1, 2, 3)
     1 2 3
 
-    sage: pretty_print(x^2 / (x + 1))
+    sage: pretty_print(x^2 / (x + 1))                                                   # optional - sage.symbolic
     x^2/(x + 1)
 
 TESTS::
@@ -23,7 +23,7 @@ TESTS::
 EXAMPLES::
 
     sage: %display ascii_art  # not tested
-    sage: pretty_print(x^2 / (x + 1))
+    sage: pretty_print(x^2 / (x + 1))                                                   # optional - sage.symbolic
        2
       x
     -----
@@ -41,9 +41,9 @@ Printing a graphics object just prints a string, whereas
 :func:`pretty_print` does not print anything and just shows the
 graphics instead::
 
-    sage: print(plot(sin))
+    sage: print(plot(sin))                                                              # optional - sage.symbolic  # optional - sage.plot
     Graphics object consisting of 1 graphics primitive
-    sage: pretty_print(plot(sin))
+    sage: pretty_print(plot(sin))                                                       # optional - sage.symbolic  # optional - sage.plot
 """
 
 # ****************************************************************************

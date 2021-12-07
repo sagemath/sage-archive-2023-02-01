@@ -30,10 +30,9 @@ from memory_allocator cimport MemoryAllocator
 from sage.libs.gmp.mpz cimport *
 from sage.rings.integer_ring import ZZ
 from sage.rings.integer cimport Integer
-from sage.misc.misc_c import prod
 
 
-def chromatic_polynomial(G, return_tree_basis=False):
+def chromatic_polynomial(G, return_tree_basis=False, algorithm='C'):
     """
     Compute the chromatic polynomial of the graph G.
 
@@ -45,6 +44,20 @@ def chromatic_polynomial(G, return_tree_basis=False):
         - If e is an edge of G, G' is the result of deleting the edge e, and G''
           is the result of contracting e, then the chromatic polynomial of G is
           equal to that of G' minus that of G''.
+
+    INPUT:
+
+    - ``G`` -- a Sage graph
+
+    - ``return_tree_basis`` -- boolean (default: ``False``); not used yet
+
+    - ``algorithm`` -- string (default: ``"C"``); the algorithm to use among
+
+      - ``"C"``, an implementation in C by Robert Miller and Gordon Royle.
+
+      - ``"Python"``, an implementation in Python using caching to avoid
+        recomputing the chromatic polynomial of a graph that has already been
+        seen. This seems faster on some dense graphs.
 
     EXAMPLES::
 
@@ -90,6 +103,14 @@ def chromatic_polynomial(G, return_tree_basis=False):
         sage: min(i for i in range(11) if P(i) > 0) == G.chromatic_number()
         True
 
+    Check that algorithms ``"C"`` and ``"Python"`` return the same results::
+
+        sage: G = graphs.RandomGNP(8, randint(1, 9)*0.1)
+        sage: c = G.chromatic_polynomial(algorithm='C')
+        sage: p = G.chromatic_polynomial(algorithm='Python')
+        sage: c == p
+        True
+
     TESTS:
 
     Check that :trac:`21502` is solved::
@@ -101,16 +122,27 @@ def chromatic_polynomial(G, return_tree_basis=False):
 
         sage: Graph([[1, 1]], multiedges=True, loops=True).chromatic_polynomial()
         0
+
+    Giving a wrong algorithm::
+
+        sage: Graph().chromatic_polynomial(algorithm="foo")
+        Traceback (most recent call last):
+        ...
+        ValueError: algorithm must be "C" or "Python"
     """
+    algorithm = algorithm.lower()
+    if algorithm not in ['c', 'python']:
+        raise ValueError('algorithm must be "C" or "Python"')
+    if algorithm == 'python':
+        return chromatic_polynomial_with_cache(G)
+
+    R = ZZ['x']
     if not G:
-        R = ZZ['x']
         return R.one()
     if G.has_loops():
-        R = ZZ['x']
         return R.zero()
     if not G.is_connected():
-        return prod([chromatic_polynomial(g) for g in G.connected_components_subgraphs()])
-    R = ZZ['x']
+        return R.prod([chromatic_polynomial(g) for g in G.connected_components_subgraphs()])
     x = R.gen()
     if G.is_tree():
         return x * (x - 1) ** (G.num_verts() - 1)
@@ -312,3 +344,165 @@ cdef int contract_and_count(int *chords1, int *chords2, int num_chords, int nver
                 j += 1
         contract_and_count(new_chords1, new_chords2, num, nverts - 1, tot, parent)
     mpz_add_ui(tot[nverts], tot[nverts], 1)
+
+
+#
+# Chromatic Polynomial with caching
+#
+
+def chromatic_polynomial_with_cache(G):
+    r"""
+    Return the chromatic polynomial of the graph ``G``.
+
+    The algorithm used is here is the non recursive version of a recursive
+    algorithm based on the following observations of Read:
+
+        - The chromatic polynomial of a tree on `n` vertices is `x(x-1)^{n-1}`.
+
+        - If `e` is an edge of `G`, `G'` is the result of deleting the edge `e`,
+          and `G''` is the result of contracting `e`, then the chromatic
+          polynomial of `G` is equal to that of `G'` minus that of `G''`.
+
+        - If `G` is not connected, its the chromatic polynomial is the product
+          of the chromatic polynomials of its connected components.
+
+    INPUT:
+
+    - ``G`` -- a Sage graph
+
+    EXAMPLES::
+
+        sage: from sage.graphs.chrompoly import chromatic_polynomial_with_cache
+        sage: chromatic_polynomial_with_cache(graphs.CycleGraph(4))
+        x^4 - 4*x^3 + 6*x^2 - 3*x
+        sage: chromatic_polynomial_with_cache(graphs.CycleGraph(3))
+        x^3 - 3*x^2 + 2*x
+        sage: chromatic_polynomial_with_cache(graphs.CubeGraph(3))
+        x^8 - 12*x^7 + 66*x^6 - 214*x^5 + 441*x^4 - 572*x^3 + 423*x^2 - 133*x
+        sage: chromatic_polynomial_with_cache(graphs.PetersenGraph())
+        x^10 - 15*x^9 + 105*x^8 - 455*x^7 + 1353*x^6 - 2861*x^5 + 4275*x^4 - 4305*x^3 + 2606*x^2 - 704*x
+        sage: chromatic_polynomial_with_cache(graphs.CompleteBipartiteGraph(3,3))
+        x^6 - 9*x^5 + 36*x^4 - 75*x^3 + 78*x^2 - 31*x
+
+    TESTS:
+
+    Corner cases::
+
+        sage: from sage.graphs.chrompoly import chromatic_polynomial_with_cache
+        sage: chromatic_polynomial_with_cache(graphs.EmptyGraph())
+        1
+        sage: chromatic_polynomial_with_cache(Graph(1))
+        x
+        sage: chromatic_polynomial_with_cache(Graph(2))
+        x^2
+        sage: chromatic_polynomial_with_cache(Graph(3))
+        x^3
+        sage: chromatic_polynomial_with_cache(Graph([[1, 1]], loops=True))
+        0
+    """
+    if not G:
+        return ZZ['x'].one()
+    if G.has_loops():
+        return ZZ['x'].zero()
+
+    # We ensure that the graph is labeled in [0..n-1]
+    G = G.relabel(inplace=False)
+    G.remove_multiple_edges()
+
+    # We use a digraph to store intermediate values and store the current state
+    # of a vertex (either a graph, a key or a polynomial)
+    from sage.graphs.digraph import DiGraph
+    D = DiGraph(1)
+    D.set_vertex(0, G)
+
+    # We use a cache to avoid computing twice the chromatic polynomial of
+    # isomorphic graphs
+    cdef dict cache = {}
+
+    # We use a stack to order operation in a depth first search fashion
+    cdef list stack = [(True, 0, ('_', ))]
+    cdef bint firstseen
+    cdef int u, v, w, a, b
+    cdef tuple com
+
+    while stack:
+
+        firstseen, v, com = stack.pop()
+
+        if firstseen:
+            g = D.get_vertex(v)
+            key = frozenset(g.canonical_label().edges(labels=False, sort=False))
+            if key in cache:
+                D.set_vertex(v, cache[key])
+
+            elif not g:
+                D.set_vertex(v, ZZ['x'].one())
+                cache[key] = D.get_vertex(v)
+
+            elif g.has_loops():
+                D.set_vertex(v, ZZ['x'].zero())
+                cache[key] = D.get_vertex(v)
+
+            elif not g.is_connected():
+                # We have to compute the product of the chromatic polynomials of
+                # the connected components
+                D.set_vertex(v, key)
+                stack.append((False, v, ('*', )))
+                for h in g.connected_components_subgraphs():
+                    w = D.add_vertex()
+                    D.set_vertex(w, h)
+                    D.add_edge(v, w)
+                    stack.append((True, w, ('_', )))
+
+            elif g.order() == g.size() + 1:
+                # g is a tree
+                x = ZZ['x'].gen()
+                D.set_vertex(v, x*(x - 1)**(g.order() - 1))
+                cache[key] = D.get_vertex(v)
+
+            else:
+                # Otherwise, the chromatic polynomial of g is the chromatic
+                # polynomial of g without edge e minus the chromatic polynomial
+                # of g after the contraction of edge e
+                a = D.add_vertex()
+                b = D.add_vertex()
+                D.add_edge(v, a)
+                D.add_edge(v, b)
+                D.set_vertex(v, key)
+                stack.append((False, v, ('-', a, b)))
+                # We try to select an edge that could disconnect the graph
+                for u, w in g.bridges(labels=False):
+                    break
+                else:
+                    u, w = next(g.edge_iterator(labels=False))
+
+                g.delete_edge(u, w)
+                D.set_vertex(a, g.copy())
+                stack.append((True, a, ('_', )))
+                g.add_edge(u, w)
+                g.merge_vertices([u, w])
+                g.remove_multiple_edges()
+                D.set_vertex(b, g)
+                stack.append((True, b, ('_', )))
+
+        elif com[0] == '*':
+            # We compute the product of the connected components of the graph
+            # and delete the children from D
+            key = D.get_vertex(v)
+            cache[key] = ZZ['x'].prod([D.get_vertex(w) for w in D.neighbor_out_iterator(v)])
+            D.set_vertex(v, cache[key])
+            D.delete_vertices(D.neighbor_out_iterator(v))
+
+        elif com[0] == '-':
+            # We compute the difference of the chromatic polynomials of the 2
+            # children and remove them from D
+            key = D.get_vertex(v)
+            cache[key] = D.get_vertex(com[1]) - D.get_vertex(com[2])
+            D.set_vertex(v, cache[key])
+            D.delete_vertices(D.neighbor_out_iterator(v))
+
+        else:
+            # We should never end here
+            raise ValueError("something goes wrong")
+
+    return D.get_vertex(0)

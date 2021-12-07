@@ -96,7 +96,7 @@ from sage.categories.homset import Hom
 from sage.categories.map import Map
 from sage.misc.latex import latex
 from sage.misc.misc_c import prod
-from sage.misc.all import cartesian_product_iterator
+from sage.misc.mrange import cartesian_product_iterator
 from sage.misc.persist import register_unpickle_override
 
 from sage.structure.category_object import normalize_names

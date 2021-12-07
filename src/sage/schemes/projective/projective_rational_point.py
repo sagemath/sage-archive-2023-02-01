@@ -59,7 +59,7 @@ AUTHORS:
 from sage.arith.all import gcd, srange, next_prime, previous_prime, crt
 from sage.rings.all import ZZ, RR
 from sage.rings.finite_rings.finite_field_constructor import FiniteField as GF
-from sage.misc.all import cartesian_product_iterator
+from sage.misc.mrange import cartesian_product_iterator
 from sage.misc.misc_c import prod
 from sage.misc.mrange import xmrange
 from sage.schemes.generic.scheme import is_Scheme

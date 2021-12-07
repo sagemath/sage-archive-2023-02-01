@@ -12,8 +12,8 @@ AUTHORS:
 
 REFERENCES:
 
-- TO BE CHANGED: ``[AM1990]_``
-- TO BE CHANGED: ``[RS2007]_``
+- [AM1990]_
+- [RS2012]_
 
 """
 # *****************************************************************************
@@ -91,9 +91,8 @@ class SymplecticForm(DiffForm):
 
         Standard symplectic form on `\RR^2`::
 
-            sage: from sage.manifolds.differentiable.symplectic_form import SymplecticForm
             sage: M.<q, p> = EuclideanSpace(2, "R2", r"\mathbb{R}^2", symbols=r"q:q p:p")
-            sage: omega = SymplecticForm(M, 'omega', r'\omega'); omega
+            sage: omega = M.symplectic_form('omega', r'\omega'); omega
             Symplectic form omega on the Euclidean plane R2
         """
         try:
@@ -438,13 +437,13 @@ class SymplecticForm(DiffForm):
 
         EXAMPLES::
 
-            sage: M.<q, p> = EuclideanSpace(2, "R2", symbols=r"q:q p:p")
+            sage: M.<q, p> = EuclideanSpace(2)
             sage: poisson = M.poisson_tensor('varpi')
             sage: poisson.set_comp()[1,2] = -1
             sage: f = M.scalar_field({ chart: function('f')(*chart[:]) for chart in M.atlas() }, name='f')
             sage: g = M.scalar_field({ chart: function('g')(*chart[:]) for chart in M.atlas() }, name='g')
             sage: poisson.poisson_bracket(f, g).display()
-            poisson(f, g): R2 → ℝ
+            poisson(f, g): E^2 → ℝ
                (q, p) ↦ d(f)/dp*d(g)/dq - d(f)/dq*d(g)/dp
         """
         return self.poisson().poisson_bracket(f, g)

@@ -508,7 +508,7 @@ class TopologicalManifold(ManifoldSubset):
     """
     _dim: int
 
-    def __init__(self, n, name, field='real', structure=RealTopologicalStructure(), base_manifold=None,
+    def __init__(self, n, name, field, structure, base_manifold=None,
                  latex_name=None, start_index=0, category=None,
                  unique_tag=None):
         r"""

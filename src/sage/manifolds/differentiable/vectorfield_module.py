@@ -1153,7 +1153,7 @@ class VectorFieldModule(UniqueRepresentation, Parent):
 
         Standard Poisson tensor on `\RR^2`::
 
-            sage: M.<q, p> = EuclideanSpace(2, "R2", symbols=r"q:q p:p")
+            sage: M.<q, p> = EuclideanSpace(2)
             sage: poisson = M.vector_field_module().poisson_tensor('varpi')
             sage: poisson.set_comp()[1,2] = -1
             sage: poisson.display()
@@ -2353,7 +2353,7 @@ class VectorFieldFreeModule(FiniteRankFreeModule):
 
         Standard Poisson tensor on `\RR^2`::
 
-            sage: M.<q, p> = EuclideanSpace(2, "R2", symbols=r"q:q p:p")
+            sage: M.<q, p> = EuclideanSpace(2)
             sage: poisson = M.vector_field_module().poisson_tensor('varpi')
             sage: poisson.set_comp()[1,2] = -1
             sage: poisson.display()

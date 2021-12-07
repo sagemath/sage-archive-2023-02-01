@@ -630,7 +630,7 @@ class DifferentiableManifold(TopologicalManifold):
         sage: TestSuite(M).run()
 
     """
-    def __init__(self, n, name, field='real', structure=RealDifferentialStructure(), base_manifold=None,
+    def __init__(self, n, name, field, structure, base_manifold=None,
                  diff_degree=infinity, latex_name=None, start_index=0,
                  category=None, unique_tag=None):
         r"""
@@ -2454,7 +2454,7 @@ class DifferentiableManifold(TopologicalManifold):
 
         Standard symplectic form on `\RR^2`::
 
-            sage: M.<q, p> = EuclideanSpace(2, "R2", r"\mathbb{R}^2", symbols=r"q:q p:p")
+            sage: M.<q, p> = EuclideanSpace(2)
             sage: omega = M.symplectic_form('omega', r'\omega')
             sage: omega.set_comp()[1,2] = -1
             sage: omega.display()
@@ -2472,7 +2472,7 @@ class DifferentiableManifold(TopologicalManifold):
 
         Standard Poisson tensor on `\RR^2`::
 
-            sage: M.<q, p> = EuclideanSpace(2, "R2", symbols=r"q:q p:p")
+            sage: M.<q, p> = EuclideanSpace(2)
             sage: poisson = M.poisson_tensor('varpi')
             sage: poisson.set_comp()[1,2] = -1
             sage: poisson.display()

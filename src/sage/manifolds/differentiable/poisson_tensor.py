@@ -65,9 +65,9 @@ class PoissonTensorField(MultivectorField):
         Standard Poisson tensor on `\RR^2`::
 
             sage: from sage.manifolds.differentiable.poisson_tensor import PoissonTensorField
-            sage: M.<q, p> = EuclideanSpace(2, "R2", symbols=r"q:q p:p")
-            sage: poisson = PoissonTensorField(M, 'varpi'); poisson
-            2-vector field varpi on the Euclidean plane R2
+            sage: M.<q, p> = EuclideanSpace(2)
+            sage: poisson = M.poisson_tensor('varpi'); poisson
+            2-vector field varpi on the Euclidean plane E^2
         """
         try:
             vector_field_module = manifold.vector_field_module()
@@ -97,7 +97,7 @@ class PoissonTensorField(MultivectorField):
 
         EXAMPLES::
 
-            sage: M.<q, p> = EuclideanSpace(2, "R2", symbols=r"q:q p:p")
+            sage: M.<q, p> = EuclideanSpace(2)
             sage: poisson = M.poisson_tensor('varpi')
             sage: poisson.set_comp()[1,2] = -1
             sage: f = M.scalar_field({ chart: function('f')(*chart[:]) for chart in M.atlas() }, name='f')
@@ -129,7 +129,7 @@ class PoissonTensorField(MultivectorField):
 
         EXAMPLES::
 
-            sage: M.<q, p> = EuclideanSpace(2, "R2", symbols=r"q:q p:p")
+            sage: M.<q, p> = EuclideanSpace(2)
             sage: poisson = M.poisson_tensor('varpi')
             sage: poisson.set_comp()[1,2] = -1
             sage: a = M.one_form(1, 0, name='a')
@@ -164,23 +164,23 @@ class PoissonTensorField(MultivectorField):
 
         EXAMPLES::
 
-            sage: M.<q, p> = EuclideanSpace(2, "R2", symbols=r"q:q p:p")
+            sage: M.<q, p> = EuclideanSpace(2)
             sage: poisson = M.poisson_tensor('varpi')
             sage: poisson.set_comp()[1,2] = -1
             sage: f = M.scalar_field({ chart: function('f')(*chart[:]) for chart in M.atlas() }, name='f')
             sage: g = M.scalar_field({ chart: function('g')(*chart[:]) for chart in M.atlas() }, name='g')
             sage: poisson.poisson_bracket(f, g).display()
-            poisson(f, g): R2 → ℝ
+            poisson(f, g): E^2 → ℝ
                (q, p) ↦ d(f)/dp*d(g)/dq - d(f)/dq*d(g)/dp
         """
-        pb = self.contract(0, f.exterior_derivative()).contract(
+        bracket = self.contract(0, f.exterior_derivative()).contract(
             0, g.exterior_derivative()
         )
-        pb.set_name(
+        bracket.set_name(
             f"poisson({f._name}, {g._name})",
             "\\{" + f"{f._latex_name}, {g._latex_name}" + "\\}",
         )
-        return pb
+        return bracket
 
 
 class PoissonTensorFieldParal(PoissonTensorField, MultivectorFieldParal):
@@ -210,9 +210,9 @@ class PoissonTensorFieldParal(PoissonTensorField, MultivectorFieldParal):
         Standard Poisson tensor on `\RR^2`::
 
             sage: from sage.manifolds.differentiable.poisson_tensor import PoissonTensorFieldParal
-            sage: M.<q, p> = EuclideanSpace(2, "R2", symbols=r"q:q p:p")
+            sage: M.<q, p> = EuclideanSpace(2)
             sage: poisson = PoissonTensorFieldParal(M, 'varpi'); poisson
-            2-vector field varpi on the Euclidean plane R2
+            2-vector field varpi on the Euclidean plane E^2
         """
         PoissonTensorField.__init__(self, manifold, name, latex_name)
         MultivectorFieldParal.__init__(self, self._vmodule, 2, name, latex_name)

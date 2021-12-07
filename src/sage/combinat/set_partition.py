@@ -30,7 +30,7 @@ mutable version see :func:`DisjointSet`.
 #
 #                  https://www.gnu.org/licenses/
 # ****************************************************************************
-
+from itertools import repeat
 from sage.sets.set import Set, Set_generic
 
 import itertools
@@ -1786,7 +1786,7 @@ class SetPartition(AbstractSetPartition,
             # to 1 gives us the offset we want):
             mins = [min(i) for i in sub_parts]
             over_max = max(map(max, sub_parts)) + 1
-            temp = [[] for _ in range(len(part))]
+            temp = [[] for _ in repeat(None, len(part))]
             while min(mins) != over_max:
                 m = min(mins)
                 i = mins.index(m)

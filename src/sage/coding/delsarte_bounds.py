@@ -589,6 +589,34 @@ def _delsarte_Q_LP_building(q, d, solver, isinteger):
       (ILP), rather that an LP solver. Can be very slow if set to
       ``True``.
 
+    EXAMPLES::
+
+        sage: from sage.coding.delsarte_bounds import _delsarte_Q_LP_building
+        sage: from sage.all import *
+        sage: q = Matrix([[codes.bounds.krawtchouk(6,2,i,j) for j in range(7)] for i in range(7)])
+        sage: _, p = _delsarte_Q_LP_building(q, 2, "PPL", False)
+        sage: p.show()
+        Maximization:
+          x_0 + x_1 + x_2 + x_3 + x_4 + x_5 + x_6
+
+        Constraints:
+          constraint_0: 1 <= x_0 <= 1
+          constraint_1: 0 <= x_1 <= 0
+          constraint_2: 0 <= 6 x_0 + 4 x_1 + 2 x_2 - 2 x_4 - 4 x_5 - 6 x_6
+          constraint_3: 0 <= 15 x_0 + 5 x_1 - x_2 - 3 x_3 - x_4 + 5 x_5 + 15 x_6
+          constraint_4: 0 <= 20 x_0 - 4 x_2 + 4 x_4 - 20 x_6
+          constraint_5: 0 <= 15 x_0 - 5 x_1 - x_2 + 3 x_3 - x_4 - 5 x_5 + 15 x_6
+          constraint_6: 0 <= 6 x_0 - 4 x_1 + 2 x_2 - 2 x_4 + 4 x_5 - 6 x_6
+          constraint_7: 0 <= x_0 - x_1 + x_2 - x_3 + x_4 - x_5 + x_6
+        Variables:
+          x_0 is a continuous variable (min=0, max=+oo)
+          x_1 is a continuous variable (min=0, max=+oo)
+          x_2 is a continuous variable (min=0, max=+oo)
+          x_3 is a continuous variable (min=0, max=+oo)
+          x_4 is a continuous variable (min=0, max=+oo)
+          x_5 is a continuous variable (min=0, max=+oo)
+          x_6 is a continuous variable (min=0, max=+oo)
+
     """
     from sage.numerical.mip import MixedIntegerLinearProgram
 

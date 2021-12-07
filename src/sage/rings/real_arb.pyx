@@ -369,6 +369,9 @@ class RealBallField(UniqueRepresentation, sage.rings.abc.RealBallField):
 
         sage: RealBallField().is_finite()
         False
+
+        sage: loads(dumps(RealBallField(60))) is RealBallField(60)
+        True
     """
     Element = RealBall
 

@@ -331,6 +331,9 @@ class ComplexBallField(UniqueRepresentation, sage.rings.abc.ComplexBallField):
 
         sage: ComplexBallField().is_finite()
         False
+
+        sage: loads(dumps(ComplexBallField(60))) is ComplexBallField(60)
+        True
     """
     Element = ComplexBall
 

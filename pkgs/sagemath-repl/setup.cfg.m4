@@ -31,6 +31,7 @@ install_requires =
         sagemath_objects \
         sagemath_environment \
         ipython \
+        ipywidgets \
         | sed "2,\$s/^/    /;"')dnl
 
 py_modules =

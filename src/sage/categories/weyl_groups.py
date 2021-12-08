@@ -210,23 +210,23 @@ class WeylGroups(Category_singleton):
             - [Dye]_
             - [JahStu]_
             """
-            vect = LazyImport('sage.modules.free_module_element', 'vector')
+            from sage.modules.free_module_element import vector
             if side == 'upper':
-                roots = [vect((x * r * x.inverse()).reflection_to_root().to_ambient())
+                roots = [vector((x * r * x.inverse()).reflection_to_root().to_ambient())
                          for z, r in x.bruhat_upper_covers_reflections()
                          if z.bruhat_le(y)]
             elif side == 'lower':
-                roots = [vect((y * r * y.inverse()).reflection_to_root().to_ambient())
+                roots = [vector((y * r * y.inverse()).reflection_to_root().to_ambient())
                          for z, r in y.bruhat_lower_covers_reflections()
                          if x.bruhat_le(z)]
             else:
                 raise ValueError("side must be either 'upper' or 'lower'")
 
-            Polyhe = LazyImport('sage.geometry.polyhedron.constructor', 'Polyhedron')
-            return Polyhe(vertices=[vect([0] * self.degree())],
-                          rays=roots,
-                          ambient_dim=self.degree(),
-                          backend=backend)
+            from sage.geometry.polyhedron.constructor import Polyhedron
+            return Polyhedron(vertices=[vector([0] * self.degree())],
+                              rays=roots,
+                              ambient_dim=self.degree(),
+                              backend=backend)
 
         @cached_method
         def quantum_bruhat_graph(self, index_set=()):

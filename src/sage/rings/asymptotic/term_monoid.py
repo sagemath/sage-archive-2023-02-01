@@ -1866,8 +1866,7 @@ class GenericTermMonoid(UniqueRepresentation, Parent, WithLocals):
                 f'but {len(args)+1} were given')
         elif len(args) == 1:
             from sage.misc.superseded import deprecation
-            deprecation(
-                32215,
+            deprecation(32215,
                 "Passing 'coefficient' as a positional argument is deprecated; "
                 "specify it as keyword argument 'coefficient=...'.")
             if 'coefficient' in kwds:
@@ -4573,7 +4572,7 @@ class BTerm(TermWithCoefficient):
         B(42*x^3*y^2, x >= 10, y >= 20)
 
     """
-    def __init__(self, parent, growth, coefficient, valid_from):
+    def __init__(self, parent, growth, valid_from, **kwds):
         r"""
         See :class:`BTerm` for more information.
 
@@ -4585,12 +4584,12 @@ class BTerm(TermWithCoefficient):
 
             sage: G = MonomialGrowthGroup(ZZ, 'x');
             sage: BT_QQ = TermMonoid('B', G, QQ)
-            sage: BT_QQ(x^3, 3, valid_from={'m': 20})
+            sage: BT_QQ(x^3, coefficient=3, valid_from={'m': 20})
             Traceback (most recent call last):
             ...
             ValueError: B-Term has valid_from variables defined which do
             not occur in the term.
-            sage: BT_QQ(x^3, 0, valid_from={'x': 20})
+            sage: BT_QQ(x^3, coefficient=0, valid_from={'x': 20})
             Traceback (most recent call last):
             ...
             ZeroCoefficientError: Zero coefficient 0 is not allowed in
@@ -4607,20 +4606,20 @@ class BTerm(TermWithCoefficient):
             sage: B = GrowthGroup('x^ZZ * y^ZZ');
             sage: x, y = B('x'), B('y')
             sage: BT_ZZ = TermMonoid('B', B, ZZ)
-            sage: BT_ZZ(x^3, 42, valid_from={'x': 10})
+            sage: BT_ZZ(x^3, coefficient=42, valid_from={'x': 10})
             B(42*x^3, x >= 10)
-            sage: BT_ZZ(x^3, 42, valid_from={'x': 10, 'y': 20})
+            sage: BT_ZZ(x^3, coefficient=42, valid_from={'x': 10, 'y': 20})
             B(42*x^3, x >= 10, y >= 20)
-            sage: BT_ZZ(x^3*y^2, 42, valid_from={'x': 10})
+            sage: BT_ZZ(x^3*y^2, coefficient=42, valid_from={'x': 10})
             Traceback (most recent call last):
             ValueError: B-Term has not defined all variables which occur in the term in valid_from.
-            sage: BT_ZZ(x^3, 42, valid_from={'x': 10, 'z': 20})
+            sage: BT_ZZ(x^3, coefficient=42, valid_from={'x': 10, 'z': 20})
             Traceback (most recent call last):
             ...
             ValueError: B-Term has valid_from variables defined which do not occur in the term.
         """
         # BTerms must have positive cofficients
-        coefficient = abs(coefficient)
+        coefficient = abs(kwds['coefficient'])
 
         super().__init__(parent=parent, growth=growth, coefficient=coefficient)
         self.coefficient = coefficient
@@ -4880,7 +4879,7 @@ class BTerm(TermWithCoefficient):
                 valid_from_new[variable_name] = (other.valid_from[variable_name])
         q = self.growth / other.growth
         coeff_new = self.coefficient + (other.coefficient / q._find_minimum_(valid_from_new))
-        return self.parent()(self.growth, coefficient=coeff_new, valid_from=valid_from_new)
+        return self.parent()(self.growth, valid_from=valid_from_new, coefficient=coeff_new)
 
 
 class BTermMonoid(TermWithCoefficientMonoid):

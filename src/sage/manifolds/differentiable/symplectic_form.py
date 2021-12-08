@@ -91,9 +91,9 @@ class SymplecticForm(DiffForm):
 
         Standard symplectic form on `\RR^2`::
 
-            sage: M.<q, p> = EuclideanSpace(2, "R2", r"\mathbb{R}^2", symbols=r"q:q p:p")
+            sage: M.<q, p> = EuclideanSpace(2)
             sage: omega = M.symplectic_form('omega', r'\omega'); omega
-            Symplectic form omega on the Euclidean plane R2
+            Symplectic form omega on the Euclidean plane E^2
         """
         try:
             vector_field_module = manifold.vector_field_module()
@@ -127,7 +127,11 @@ class SymplecticForm(DiffForm):
         r"""
         String representation of the object.
 
-        TESTS: pytest
+        TESTS::
+
+            sage: M.<q, p> = EuclideanSpace(2)
+            sage: omega = M.symplectic_form('omega', r'\omega'); omega
+            Symplectic form omega on the Euclidean plane E^2
         """
         return self._final_repr(f"Symplectic form {self._name} ")
 
@@ -135,7 +139,11 @@ class SymplecticForm(DiffForm):
         r"""
         Create an instance of the same class as ``self``.
 
-        TESTS: pytest
+        TESTS::
+
+            sage: M.<q, p> = EuclideanSpace(2)
+            sage: omega = M.symplectic_form('omega', r'\omega')._new_instance(); omega
+            Symplectic form unnamed symplectic form on the Euclidean plane E^2
         """
         return type(self)(
             self._vmodule,
@@ -147,7 +155,10 @@ class SymplecticForm(DiffForm):
         r"""
         Initialize the derived quantities.
 
-        TESTS: pytest
+        TESTS::
+
+            sage: M.<q, p> = EuclideanSpace(2)
+            sage: omega = M.symplectic_form('omega', r'\omega')._init_derived()
         """
         # Initialization of quantities pertaining to the mother class
         DiffForm._init_derived(self)
@@ -159,7 +170,10 @@ class SymplecticForm(DiffForm):
         r"""
         Delete the derived quantities.
 
-        TESTS: pytest
+        TESTS::
+
+            sage: M.<q, p> = EuclideanSpace(2)
+            sage: omega = M.symplectic_form('omega', r'\omega')._del_derived()
         """
         # Delete the derived quantities from the mother class
         DiffForm._del_derived(self)

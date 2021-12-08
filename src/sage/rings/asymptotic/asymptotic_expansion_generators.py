@@ -169,6 +169,9 @@ class AsymptoticExpansionGenerators(SageObject):
             ...
             ValueError: precision must be at least 3
         """
+        if precision is None:
+            precision = series_precision()
+
         if precision < 3:
             raise ValueError("precision must be at least 3")
         log_Stirling = AsymptoticExpansionGenerators.log_Stirling(
@@ -559,6 +562,9 @@ class AsymptoticExpansionGenerators(SageObject):
             from .misc import combine_exceptions
             raise combine_exceptions(
                 TypeError('Cannot use k={}.'.format(k)), e)
+
+        if precision is None:
+            precision = series_precision()
 
         S = AsymptoticExpansionGenerators._log_StirlingNegativePowers_(
                 var, precision=max(precision - 2,0))

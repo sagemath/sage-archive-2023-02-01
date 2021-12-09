@@ -203,3 +203,6 @@ src/venv.bak/
 # git worktree
 worktree*
 **/worktree*
+
+# Gitpod
+workspace

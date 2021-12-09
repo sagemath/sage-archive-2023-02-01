@@ -20,7 +20,6 @@ RUN sudo apt-get install -y --no-install-recommends \
     gcc \
     g++ \
     libstdc++-9-dev \
-    sudo \ 
     openssl \
     ## Recommended by ./configure
     libflint-arb-dev \

@@ -50,7 +50,7 @@ cdef QQ, RR, CC, RealField, ComplexField
 from sage.rings.rational_field import QQ
 from sage.rings.real_mpfr import RR, RealField
 from sage.rings.complex_mpfr import ComplexField
-CC = ComplexField(53)
+from sage.rings.cc import CC
 
 cdef _QQx = None
 

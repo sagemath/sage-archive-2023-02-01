@@ -86,7 +86,7 @@ RUN sudo apt-get install -y --no-install-recommends \
 ##
 FROM prepare as prebuild
 USER gitpod
-#COPY --chown=gitpod:gitpod . .
+COPY --chown=gitpod:gitpod . .
 RUN ./bootstrap
 RUN ./configure --prefix=/home/gitpod/sage-prebuild
 ### Hide output since otherwise we would reach log limit

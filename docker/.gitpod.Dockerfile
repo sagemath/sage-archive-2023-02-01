@@ -81,25 +81,25 @@ RUN sudo apt-get install -y --no-install-recommends \
 ### Give prio to brew over other system packages
 ### ENV PATH="/home/linuxbrew/.linuxbrew/bin:$PATH"
 
-###
-### Prebuild non-Python packages that have no (working) system-installed package 
-###
-#FROM prepare as prebuild
-#USER gitpod
-#COPY --chown=gitpod:gitpod . .
-#RUN ./bootstrap
-#RUN ./configure --prefix=/home/gitpod/sage-prebuild
-#### Hide output since otherwise we would reach log limit
-#### Gitpod also puts a timeout at 1h, so we cannot install everything here with `make build-local`
-#RUN MAKE='make -j8' make arb ecl flint cddlib eclib fplll giac gengetopt > /dev/null
-#
+##
+## Prebuild non-Python packages that have no (working) system-installed package 
+##
+FROM prepare as prebuild
+USER gitpod
+COPY --chown=gitpod:gitpod . .
+RUN ./bootstrap
+RUN ./configure --prefix=/home/gitpod/sage-prebuild
+### Hide output since otherwise we would reach log limit
+### Gitpod also puts a timeout at 1h, so we cannot install everything here with `make build-local`
+RUN MAKE='make -j8' make arb ecl flint cddlib eclib fplll giac gengetopt pari > /dev/null
+
 
 ##
 ## Build final image
 ##
 FROM prepare
 # Reuse the prebuild packages
-#COPY --from=prebuild /home/gitpod/sage-prebuild /home/gitpod/sage-prebuild
+COPY --from=prebuild /home/gitpod/sage-prebuild /home/gitpod/sage-prebuild
 ENV PATH=/home/gitpod/sage-prebuild/bin:$PATH
 ENV PKG_CONFIG_PATH=/home/gitpod/sage-prebuild/lib/pkgconfig:$PKG_CONFIG_PATH
 ENV CPPFLAGS="-I/home/gitpod/sage-prebuild/include $CPPFLAGS"

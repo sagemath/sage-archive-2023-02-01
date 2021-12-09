@@ -527,7 +527,7 @@ class StandaloneTex(SageObject):
 
         return _filename_png
 
-    def svg(self, filename=None, view=True):
+    def svg(self, filename=None, view=True, program='pdf2svg'):
         """
         Compiles the latex code with pdflatex and converts to a svg file.
 
@@ -539,6 +539,9 @@ class StandaloneTex(SageObject):
         - ``view`` -- bool (default:``True``), whether to open the file in
           a browser. This option is ignored and automatically set to
           ``False`` if ``filename`` is not ``None``.
+
+        - ``program`` -- string (default:``'pdf2svg'``) ``'pdftocairo'`` or
+          ``'pdf2svg'``.
 
         OUTPUT:
 
@@ -565,17 +568,40 @@ class StandaloneTex(SageObject):
 
             The code was adapted and taken from the module :mod:`sage.misc.latex.py`.
         """
-        from sage.features.pdf2svg import pdf2svg
-        pdf2svg().require()
-
+        # set the temporary filenames
         _filename_pdf = self.pdf(filename=None, view=False)
         _filename, ext = os.path.splitext(_filename_pdf)
         _filename_svg = _filename+'.svg'
 
+        # set the command
+        if program == 'pdftocairo':
+            from sage.features.pdftocairo import pdftocairo
+            pdftocairo().require():
+            cmd = ['pdftocairo', '-svg', _filename_pdf, _filename_svg]
+        elif program == 'pdf2svg':
+            from sage.features.pdf2svg import pdf2svg
+            pdf2svg().require():
+            cmd = ['pdf2svg', _filename_pdf, _filename_svg]
+        else:
+            raise ValueError("program(={}) should be 'pdftocairo' or"
+                    " 'pdf2svg'".format(program))
+
         # convert to svg
-        cmd = ['pdf2svg', _filename_pdf, _filename_svg]
         cmd = ' '.join(cmd)
-        run(cmd, shell=True, capture_output=True, check=True)
+        result = run(cmd, shell=True, capture_output=True, text=True)
+
+        # If a problem occurs, provide the log
+        if result.returncode != 0:
+            print("Command \n"
+                  "   '{}'\n"
+                  "returned non-zero exit status {}.\n"
+                  "Here is the content of the stderr:{}\n"
+                  "Here is the content of the stdout:"
+                  "{}\n".format(result.args,
+                                result.returncode,
+                                result.stderr,
+                                result.stdout))
+        result.check_returncode()
 
         # move the svg into the good location
         if filename:

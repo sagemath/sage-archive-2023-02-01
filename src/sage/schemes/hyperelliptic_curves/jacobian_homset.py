@@ -46,7 +46,7 @@ EXAMPLES::
 #                  https://www.gnu.org/licenses/
 # ****************************************************************************
 
-from sage.rings.all import PolynomialRing, Integer, ZZ
+from sage.rings.polynomial.polynomial_ring_constructor import PolynomialRing, Integer, ZZ
 from sage.rings.integer import is_Integer
 from sage.rings.polynomial.polynomial_element import is_Polynomial
 

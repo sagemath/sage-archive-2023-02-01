@@ -811,7 +811,7 @@ class LiEElement(ExtraTabCompletion, ExpectElement):
             data = sage_eval(str(self).replace('\n', '').strip())
             return sage.matrix.constructor.matrix(data)
         elif t == 'pol':
-            from sage.rings.all import PolynomialRing, QQ
+            from sage.rings.polynomial.polynomial_ring_constructor import PolynomialRing, QQ
 
             # Figure out the number of variables
             s = str(self)

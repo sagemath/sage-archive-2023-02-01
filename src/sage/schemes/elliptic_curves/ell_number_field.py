@@ -90,7 +90,7 @@ from .ell_field import EllipticCurve_field
 from .ell_generic import is_EllipticCurve
 from .ell_point import EllipticCurvePoint_number_field
 from .constructor import EllipticCurve
-from sage.rings.all import PolynomialRing, ZZ, QQ, RealField, Integer
+from sage.rings.polynomial.polynomial_ring_constructor import PolynomialRing, ZZ, QQ, RealField, Integer
 from sage.misc.cachefunc import cached_method
 from sage.misc.misc_c import prod
 

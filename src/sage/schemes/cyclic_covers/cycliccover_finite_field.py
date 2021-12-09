@@ -70,7 +70,7 @@ EXAMPLES::
 from sage.arith.misc import euler_phi
 from sage.functions.other import ceil, binomial, floor
 from sage.functions.log import log
-from sage.rings.all import PolynomialRing, PowerSeriesRing
+from sage.rings.polynomial.polynomial_ring_constructor import PolynomialRing, PowerSeriesRing
 from sage.rings.padics.factory import Zp, Zq, Qq
 from sage.rings.integer_ring import ZZ
 from sage.rings.finite_rings.integer_mod_ring import IntegerModRing

@@ -325,7 +325,7 @@ from sage.geometry.fan import Fan
 from sage.misc.all import latex, prod, cached_method
 from sage.structure.unique_representation import UniqueRepresentation
 from sage.modules.free_module_element import vector
-from sage.rings.all import PolynomialRing, ZZ, QQ
+from sage.rings.polynomial.polynomial_ring_constructor import PolynomialRing, ZZ, QQ
 from sage.rings.quotient_ring_element import QuotientRingElement
 from sage.rings.quotient_ring import QuotientRing_generic
 from sage.schemes.affine.affine_space import AffineSpace

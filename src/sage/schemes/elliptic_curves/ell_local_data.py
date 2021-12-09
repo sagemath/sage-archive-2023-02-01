@@ -89,7 +89,7 @@ AUTHORS:
 from sage.structure.sage_object import SageObject
 from sage.misc.verbose import verbose
 
-from sage.rings.all import PolynomialRing, QQ, ZZ, Integer
+from sage.rings.polynomial.polynomial_ring_constructor import PolynomialRing, QQ, ZZ, Integer
 from sage.rings.number_field.number_field_ideal import is_NumberFieldFractionalIdeal
 
 from sage.rings.number_field.number_field import is_NumberField

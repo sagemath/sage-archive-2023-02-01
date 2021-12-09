@@ -1927,7 +1927,7 @@ class FriCASElement(ExpectElement):
             <BLANKLINE>
                Cannot convert the value from type Any to InputForm .
         """
-        from sage.rings.all import PolynomialRing, RDF, I
+        from sage.rings.polynomial.polynomial_ring_constructor import PolynomialRing, RDF, I
         from sage.rings.real_mpfr import RealField
         from sage.symbolic.ring import SR
         from sage.matrix.constructor import matrix

@@ -348,7 +348,8 @@ class StandaloneTex(SageObject):
             sage: V = [[1,0,1],[1,0,0],[1,1,0],[0,0,-1],[0,1,0],[-1,0,0],[0,1,1],[0,0,1],[0,-1,0]]
             sage: P = Polyhedron(vertices=V).polar()
             sage: s = P.projection().tikz([674,108,-731],112)
-            sage: t = TikzPicture(s[:-1])
+            sage: s_missing_last_character = s[:-1]
+            sage: t = TikzPicture(s_missing_last_character)
             sage: _ = t.pdf()                 # optional latex
             Traceback (most recent call last):
             ...
@@ -686,6 +687,11 @@ class TikzPicture(StandaloneTex):
             sage: _ = tikz.pdf()      # not tested
 
         """
+        from sage.features import PythonModule
+        PythonModule("dot2tex").require()
+        from sage.features.graphviz import Graphviz
+        Graphviz().require()
+
         import dot2tex
         tikz = dot2tex.dot2tex(dotdata,
                                format='tikz',
@@ -826,11 +832,11 @@ class TikzPicture(StandaloneTex):
                 from sage.graphs.graph import Graph
                 graph = Graph(edges, format='list_of_edges', loops=loops)
 
-        default = dict(format='dot2tex', edge_labels=True,
+        options = dict(format='dot2tex', edge_labels=True,
                        color_by_label=False, prog='dot', rankdir='down')
-        default.update(kwds)
+        options.update(kwds)
 
-        graph.latex_options().set_options(**default)
+        graph.latex_options().set_options(**options)
         tikz = graph._latex_()
         return TikzPicture(tikz, standalone_options=["border=4mm"])
 

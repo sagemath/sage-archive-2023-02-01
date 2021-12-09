@@ -1135,7 +1135,8 @@ class Rings(CategoryWithAxiom):
                 # how to pass in names?
                 names = tuple(_gen_names(elts))
                 if len(elts) == 1:
-                    from sage.rings.all import CIF, CLF, RLF
+                    from sage.rings.all import CIF
+                    from sage.rings.real_lazy import CLF, RLF
                     elt = elts[0]
                     try:
                         iv = CIF(elt)

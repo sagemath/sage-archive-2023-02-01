@@ -1,5 +1,5 @@
-ffmpeg - ffmpeg video converter
-===============================
+ffmpeg: ffmpeg video converter
+==============================
 
 Description
 -----------

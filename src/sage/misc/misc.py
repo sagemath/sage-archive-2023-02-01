@@ -72,20 +72,29 @@ def sage_makedirs(dirname, mode=0o777):
     if the directory already exists (unlike ``os.makedirs()``).
     Raise other errors (like permission errors) normally.
 
+    This function is deprecated; use ``os.makedirs(..., exist_ok=True)``
+    instead.
+
     EXAMPLES::
 
-        sage: import os
+        sage: from sage.misc.misc import sage_makedirs
         sage: sage_makedirs(DOT_SAGE) # no output
+        doctest:warning...
+        DeprecationWarning: sage_makedirs is deprecated; use os.makedirs(..., exist_ok=True) instead
+        See https://trac.sagemath.org/32987 for details.
 
     The following fails because we are trying to create a directory in
     place of an ordinary file::
 
         sage: filename = tmp_filename()
-        sage: os.makedirs(filename, exist_ok=True)
+        sage: sage_makedirs(filename)
         Traceback (most recent call last):
         ...
         FileExistsError: [Errno ...] File exists: ...
     """
+    from sage.misc.superseded import deprecation
+    deprecation(32987,
+                'sage_makedirs is deprecated; use os.makedirs(..., exist_ok=True) instead')
     try:
         os.makedirs(dirname)
     except OSError:

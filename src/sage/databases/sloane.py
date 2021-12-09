@@ -357,7 +357,6 @@ def copy_gz_file(gz_source, bz_destination):
     - ``bz_destination`` -- string.  The name of the newly compressed file.
     """
     import gzip
-    import os
 
     # Read the gzipped input
     try:

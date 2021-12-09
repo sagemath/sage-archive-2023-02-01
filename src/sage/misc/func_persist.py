@@ -52,7 +52,6 @@ class func_persist:
     definition to cache values it computes to disk.
     """
     def __init__(self, f, dir='func_persist'):
-        import os
         self.__func = f
         self.__dir = dir
         os.makedirs(dir, exist_ok=True)

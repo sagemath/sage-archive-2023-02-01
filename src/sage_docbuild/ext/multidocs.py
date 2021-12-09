@@ -26,7 +26,6 @@ import sphinx
 from sphinx.application import Sphinx
 from sphinx.util.console import bold
 from sage.env import SAGE_DOC
-import os
 from pathlib import Path
 
 logger = sphinx.util.logging.getLogger(__name__)

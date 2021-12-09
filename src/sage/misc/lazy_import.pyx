@@ -1069,7 +1069,6 @@ def save_cache_file():
         sage: import sage.misc.lazy_import
         sage: sage.misc.lazy_import.save_cache_file()
     """
-    import os
     from sage.misc.temporary_file import atomic_write
 
     global star_imports

@@ -1,7 +1,6 @@
 import os
 from sage.all import save
 from sage.env import SAGE_SHARE
-import os
 
 install_root = os.path.join(SAGE_SHARE, 'odlyzko')
 target = os.path.join(install_root, 'zeros.sobj')

@@ -145,7 +145,6 @@ class JonesDatabase:
 
         This takes about 5 seconds.
         """
-        import os
         x = PolynomialRing(RationalField(), 'x').gen()
         self.root = {}
         self.root[tuple([])] = [x - 1]

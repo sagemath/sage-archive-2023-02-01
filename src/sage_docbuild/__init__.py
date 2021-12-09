@@ -54,7 +54,6 @@ import sphinx.ext.intersphinx
 
 import sage.all
 from sage.misc.cachefunc import cached_method
-import os
 from sage.env import SAGE_DOC_SRC, SAGE_DOC, SAGE_SRC, DOT_SAGE
 
 from .build_options import (LANGUAGES, SPHINXOPTS, OMIT,

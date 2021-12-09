@@ -440,7 +440,6 @@ If this all works, you can then make calls like:
             return False
 
     def _start(self, alt_message=None, block_during_init=True):
-        import os
         self.quit()  # in case one is already running
 
         self._session_number += 1

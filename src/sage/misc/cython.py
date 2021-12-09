@@ -258,7 +258,7 @@ def cython(filename, verbose=0, compile_message=False,
             except OSError:
                 pass
     else:
-        sage_makedirs(target_dir)
+        os.makedirs(target_dir, exist_ok=True)
 
     if create_local_so_file:
         name = base

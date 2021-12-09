@@ -145,7 +145,7 @@ class JonesDatabase:
 
         This takes about 5 seconds.
         """
-        from sage.misc.misc import sage_makedirs
+        import os
         x = PolynomialRing(RationalField(), 'x').gen()
         self.root = {}
         self.root[tuple([])] = [x - 1]
@@ -158,7 +158,7 @@ class JonesDatabase:
                 for Y in os.listdir(Z):
                     if Y[-3:] == ".gp":
                         self._load(Z, Y)
-        sage_makedirs(JONESDATA)
+        os.makedirs(JONESDATA, exist_ok=True)
         save(self.root, JONESDATA + "/jones.sobj")
 
     def unramified_outside(self, S, d=None, var='a'):

@@ -26,7 +26,7 @@ import sphinx
 from sphinx.application import Sphinx
 from sphinx.util.console import bold
 from sage.env import SAGE_DOC
-from sage.misc.misc import sage_makedirs
+import os
 from pathlib import Path
 
 logger = sphinx.util.logging.getLogger(__name__)
@@ -231,7 +231,7 @@ def citation_dir(app: Sphinx) -> Path:
         citedir = (sage_doc / "inventory").joinpath(*tail) 
     else:
         citedir = outdir / "inventory"
-    sage_makedirs(citedir)
+    os.makedirs(citedir, exist_ok=True)
     return citedir
 
 

@@ -375,7 +375,9 @@ class StandaloneTex(SageObject):
 
             sage: from sage.misc.temporary_file import tmp_filename
             sage: filename = tmp_filename('temp','.pdf')
-            sage: _ = t.pdf(filename)   # long time (2s) # optional latex
+            sage: path_to_file = t.pdf(filename)   # long time (2s) # optional latex
+            sage: path_to_file[-4:]                                 # optional latex
+            '.pdf'
 
         TESTS:
 
@@ -488,14 +490,16 @@ class StandaloneTex(SageObject):
 
             sage: from sage.misc.temporary_file import tmp_filename
             sage: filename = tmp_filename('temp','.png')
-            sage: _ = t.png(filename)      # long time (2s) # optional imagemagick
+            sage: path_to_file = t.png(filename) # long time (2s) # optional imagemagick
+            sage: path_to_file[-4:]                               # optional imagemagick
+            '.png'
 
         ACKNOWLEDGEMENT:
 
             The code was adapted and taken from the module :mod:`sage.misc.latex.py`.
         """
         from sage.features.imagemagick import ImageMagick
-        return ImageMagick().is_present()
+        ImageMagick().require()
 
         _filename_pdf = self.pdf(filename=None, view=False)
         _filename, ext = os.path.splitext(_filename_pdf)
@@ -553,7 +557,9 @@ class StandaloneTex(SageObject):
 
             sage: from sage.misc.temporary_file import tmp_filename
             sage: filename = tmp_filename('temp','.svg')
-            sage: _ = t.svg(filename)      # long time (2s) # optional pdf2svg
+            sage: path_to_file = t.svg(filename)   # long time (2s) # optional pdf2svg
+            sage: path_to_file[-4:]                                 # optional pdf2svg
+            '.svg'
 
         ACKNOWLEDGEMENT:
 
@@ -619,7 +625,9 @@ class StandaloneTex(SageObject):
 
             sage: from sage.misc.temporary_file import tmp_filename
             sage: filename = tmp_filename('temp','.tex')
-            sage: _ = t.tex(filename)
+            sage: path_to_file = t.tex(filename)
+            sage: path_to_file[-4:]
+            '.tex'
 
         """
         if filename is None:

@@ -86,7 +86,18 @@ RUN sudo apt-get install -y --no-install-recommends \
 ##
 FROM prepare as prebuild
 USER gitpod
-COPY --chown=gitpod:gitpod . .
+### We cannot copy everything due to https://github.com/gitpod-io/gitpod/issues/7157
+### COPY --chown=gitpod:gitpod . .
+### Thus only selectively copy the files we need
+COPY --chown=gitpod:gitpod ./build ./build
+COPY --chown=gitpod:gitpod ./bootstrap ./bootstrap
+COPY --chown=gitpod:gitpod ./configure.ac ./configure.ac
+COPY --chown=gitpod:gitpod ./src/doc/bootstrap ./src/doc/bootstrap
+COPY --chown=gitpod:gitpod ./src/bin ./src/bin
+COPY --chown=gitpod:gitpod ./m4 ./m4
+COPY --chown=gitpod:gitpod ./pkgs ./pkgs
+COPY --chown=gitpod:gitpod ./sage ./sage
+COPY --chown=gitpod:gitpod ./Makefile ./Makefile
 RUN ./bootstrap
 RUN ./configure --prefix=/home/gitpod/sage-prebuild
 ### Hide output since otherwise we would reach log limit

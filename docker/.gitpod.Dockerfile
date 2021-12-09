@@ -92,7 +92,7 @@ RUN ./bootstrap
 RUN ./configure --prefix=/home/gitpod/sage-prebuild
 ### Hide output since otherwise we would reach log limit
 ### Gitpod also puts a timeout at 1h, so we cannot install everything here with `make build-local`
-RUN MAKE='make -j8' make arb ecl > /dev/null
+RUN MAKE='make -j8' make arb ecl flint cddlib eclib fplll gap giac > /dev/null
 
 ##
 ## Build final image

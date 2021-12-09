@@ -292,6 +292,16 @@ class FreeGradedModule(CombinatorialFreeModule):
     TESTS::
 
         sage: from sage.modules.fp_graded.free_module import FreeGradedModule
+        sage: E.<x,y,z> = ExteriorAlgebra(QQ)
+        sage: M = FreeGradedModule(E, (-1,3))
+        sage: M
+        Finitely presented free left module on 2 generators over The exterior algebra of rank 3 over Rational Field
+        sage: M.generator_degrees()
+        (-1, 3)
+        sage: a, b = M.generators()
+        sage: (x*y*b).degree()
+        5
+
         sage: A = SteenrodAlgebra(2)
         sage: FreeGradedModule(A, (-2,2,4))
         Finitely presented free left module on 3 generators over mod 2 Steenrod algebra, milnor basis

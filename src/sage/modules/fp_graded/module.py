@@ -87,13 +87,26 @@ class FPModule(Module, IndexedGenerators, UniqueRepresentation):
 
     - ``relations`` -- tuple of relations.  A relation is a tuple of
       coefficients `(c_1, \ldots, c_n)`, ordered so that they
-      correspond to the module generators.
+      correspond to the module generators. That is, such a tuple
+      corresponds to the relation
+
+      .. MATH::
+
+          c_1 g_1 + \ldots + c_n g_n = 0
+
+      if the generators are `(g_1, \ldots, g_n)`.
 
     EXAMPLES::
 
         sage: from sage.modules.fp_graded.module import FPModule
-        sage: A3 = SteenrodAlgebra(2, profile=(4,3,2,1))
 
+        sage: E.<x,y> = ExteriorAlgebra(QQ)
+        sage: M = FPModule(E, [0, 1], [[x, 1]])
+        sage: a, b = M.generators()
+        sage: x*a + b == 0
+        True
+
+        sage: A3 = SteenrodAlgebra(2, profile=(4,3,2,1))
         sage: M = FPModule(A3, [0, 1], [[Sq(2), Sq(1)]])
         sage: M.generators()
         [<1, 0>, <0, 1>]
@@ -153,7 +166,7 @@ class FPModule(Module, IndexedGenerators, UniqueRepresentation):
             sage: from sage.modules.fp_graded.module import FPModule
             sage: A3 = SteenrodAlgebra(2, profile=(4,3,2,1))
             sage: M = FPModule(A3, [0, 1], [[Sq(2), Sq(1)]])
-            sage: TestSuite(M).run()
+            sage: TestSuite(M).run(skip = "_test_elements")
         """
         self._generator_degrees = generator_degrees
         self._relations = relations
@@ -903,6 +916,8 @@ class FPModule(Module, IndexedGenerators, UniqueRepresentation):
         """
         return [self.generator(i) for i in range(len(self.generator_degrees()))]
 
+    gens = generators
+
 
     def generator(self, index):
         r"""
@@ -922,6 +937,8 @@ class FPModule(Module, IndexedGenerators, UniqueRepresentation):
             <0, 1>
         """
         return self(self._free_module().generator(index))
+
+    gen = generator
 
 
     def relations(self):

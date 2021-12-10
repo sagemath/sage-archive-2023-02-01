@@ -61,6 +61,22 @@ class SymplecticForm(DiffForm):
 
         If `M` is parallelizable, the class :class:`SymplecticFormParal`
         should be used instead.
+
+    INPUT:
+
+        - ``manifold`` -- module `\mathfrak{X}(M)` of vector
+        fields on the manifold `M`, or the manifold `M` itself
+        - ``name`` -- (default: ``omega``) name given to the symplectic form
+        - ``latex_name`` -- (default: ``None``) LaTeX symbol to denote the symplectic form;
+        if ``None``, it is formed from ``name``
+
+    EXAMPLES:
+
+    Standard symplectic form on `\RR^2`::
+
+        sage: M.<q, p> = EuclideanSpace(2)
+        sage: omega = M.symplectic_form('omega', r'\omega'); omega
+        Symplectic form omega on the Euclidean plane E^2
     """
 
     _name: str
@@ -78,22 +94,6 @@ class SymplecticForm(DiffForm):
     ):
         r"""
         Construct a symplectic form.
-
-        INPUT:
-
-        - ``manifold`` -- module `\mathfrak{X}(M)` of vector
-        fields on the manifold `M`, or the manifold `M` itself
-        - ``name`` -- (default: ``omega``) name given to the symplectic form
-        - ``latex_name`` -- (default: ``None``) LaTeX symbol to denote the symplectic form;
-        if ``None``, it is formed from ``name``
-
-        EXAMPLES:
-
-        Standard symplectic form on `\RR^2`::
-
-            sage: M.<q, p> = EuclideanSpace(2)
-            sage: omega = M.symplectic_form('omega', r'\omega'); omega
-            Symplectic form omega on the Euclidean plane E^2
         """
         try:
             vector_field_module = manifold.vector_field_module()
@@ -296,7 +296,7 @@ class SymplecticForm(DiffForm):
           in ``expansion_symbol``; currently only first order inverse is
           supported
 
-        If ``expansion_symbol`` is set, then the zeroth order symplecic form must be
+        If ``expansion_symbol`` is set, then the zeroth order symplectic form must be
         invertible. Moreover, subsequent calls to this method will return
         a cached value, even when called with the default value (to enable
         computation of derived quantities). To reset, use :meth:`_del_derived`.
@@ -374,11 +374,11 @@ class SymplecticForm(DiffForm):
 
         for all `X, Y \in T_m M`.
 
-        In indicies, `X_i = \omega_{ji} X^j`.
+        In indices, `X_i = \omega_{ji} X^j`.
 
         INPUT:
 
-        - ``vector_field`` -- the vector field to calculate it's flat of
+        - ``vector_field`` -- the vector field to calculate its flat of
 
         EXAMPLES::
 
@@ -410,12 +410,12 @@ class SymplecticForm(DiffForm):
         for all `X \in T_m M` and `\alpha \in T^*_m M`.
         The sharp map is inverse to the flat map.
 
-        In indicies, `\alpha^i = \varpi^{ij} \alpha_j`, where where `\varpi` is
-        the Poisson tensor associated to the symplectic form.
+        In indices, `\alpha^i = \varpi^{ij} \alpha_j`, where `\varpi` is
+        the Poisson tensor associated with the symplectic form.
 
         INPUT:
 
-        - ``form`` -- the differential form to calculate it's sharp of
+        - ``form`` -- the differential form to calculate its sharp of
 
         EXAMPLES::
 
@@ -436,7 +436,7 @@ class SymplecticForm(DiffForm):
         self, f: DiffScalarField, g: DiffScalarField
     ) -> DiffScalarField:
         r"""
-        Return the Poissen bracket
+        Return the Poisson bracket
 
         .. MATH::
 
@@ -515,20 +515,10 @@ class SymplecticForm(DiffForm):
     def hodge_star(self, pform: DiffForm) -> DiffForm:
         r"""
         Compute the Hodge dual of a differential form with respect to the
-        metric.
+        symplectic form.
 
-        If the differential form is a `p`-form `A`, its *Hodge dual* with
-        respect to the metric `g` is the
-        `(n-p)`-form `*A` defined by
-
-        .. MATH::
-
-            *A_{i_1\ldots i_{n-p}} = \frac{1}{p!} A_{k_1\ldots k_p}
-                \epsilon^{k_1\ldots k_p}_{\qquad\ i_1\ldots i_{n-p}}
-
-        where `n` is the manifold's dimension, `\epsilon` is the volume
-        `n`-form associated with `g` (see :meth:`volume_form`) and the indices
-        `k_1,\ldots, k_p` are raised with `g`.
+        See :meth:`~sage.manifolds.differentiable.diff_form.DiffForm.hodge_dual`
+        for the definition and more details.
 
         INPUT:
 
@@ -574,6 +564,25 @@ class SymplecticFormParal(SymplecticForm, DiffFormParal):
 
         If `M` is not parallelizable, the class :class:`SymplecticForm`
         should be used instead.
+
+    INPUT:
+
+        - ``manifold`` -- module `\mathfrak{X}(M)` of vector
+        fields on the manifold `M`, or the manifold `M` itself
+        - ``name`` -- (default: ``omega``) name given to the symplectic form
+        - ``latex_name`` -- (default: ``None``) LaTeX symbol to denote the symplectic form;
+        if ``None``, it is formed from ``name``
+
+    EXAMPLES:
+
+    Standard symplectic form on `\RR^2`::
+
+        sage: from sage.manifolds.differentiable.symplectic_form import SymplecticFormParal
+        sage: M.<q, p> = EuclideanSpace(2, "R2", r"\mathbb{R}^2", symbols=r"q:q p:p")
+        sage: omega = SymplecticFormParal(M, 'omega', r'\omega')
+        sage: omega.set_comp()[1,2] = -1
+        sage: omega.display()
+        omega = -dq∧dp
     """
     _poisson: TensorFieldParal
 
@@ -585,25 +594,6 @@ class SymplecticFormParal(SymplecticForm, DiffFormParal):
     ):
         r"""
         Construct a symplectic form.
-
-        INPUT:
-
-        - ``manifold`` -- module `\mathfrak{X}(M)` of vector
-        fields on the manifold `M`, or the manifold `M` itself
-        - ``name`` -- (default: ``omega``) name given to the symplectic form
-        - ``latex_name`` -- (default: ``None``) LaTeX symbol to denote the symplectic form;
-        if ``None``, it is formed from ``name``
-
-        EXAMPLES:
-
-        Standard symplectic form on `\RR^2`::
-
-            sage: from sage.manifolds.differentiable.symplectic_form import SymplecticFormParal
-            sage: M.<q, p> = EuclideanSpace(2, "R2", r"\mathbb{R}^2", symbols=r"q:q p:p")
-            sage: omega = SymplecticFormParal(M, 'omega', r'\omega')
-            sage: omega.set_comp()[1,2] = -1
-            sage: omega.display()
-            omega = -dq∧dp
         """
         try:
             vector_field_module = manifold.vector_field_module()
@@ -730,7 +720,7 @@ class SymplecticFormParal(SymplecticForm, DiffFormParal):
           in ``expansion_symbol``; currently only first order inverse is
           supported
 
-        If ``expansion_symbol`` is set, then the zeroth order symplecic form must be
+        If ``expansion_symbol`` is set, then the zeroth order symplectic form must be
         invertible. Moreover, subsequent calls to this method will return
         a cached value, even when called with the default value (to enable
         computation of derived quantities). To reset, use :meth:`_del_derived`.

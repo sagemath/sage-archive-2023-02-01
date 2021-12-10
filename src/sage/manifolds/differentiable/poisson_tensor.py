@@ -41,6 +41,23 @@ class PoissonTensorField(MultivectorField):
     where `T^*_m M` stands for the cotangent space to the
     manifold `M` at the point `m`, such that `\varpi_m` is skew-symmetric and the
     Schouten bracket of `\varpi` with itself vanishes.
+
+    INPUT:
+
+        - ``manifold`` -- module `\mathfrak{X}(M)` of vector
+        fields on the manifold `M`, or the manifold `M` itself
+        - ``name`` -- (default: ``varpi``) name given to the Poisson tensor
+        - ``latex_name`` -- (default: ``\\varpi``) LaTeX symbol to denote the Poisson tensor;
+        if ``None``, it is formed from ``name``
+
+    EXAMPLES:
+
+    Standard Poisson tensor on `\RR^2`::
+
+        sage: from sage.manifolds.differentiable.poisson_tensor import PoissonTensorField
+        sage: M.<q, p> = EuclideanSpace(2)
+        sage: poisson = M.poisson_tensor('varpi'); poisson
+        2-vector field varpi on the Euclidean plane E^2
     """
 
     def __init__(
@@ -51,23 +68,6 @@ class PoissonTensorField(MultivectorField):
     ):
         r"""
         Construct a Poisson bivector field.
-
-        INPUT:
-
-        - ``manifold`` -- module `\mathfrak{X}(M)` of vector
-        fields on the manifold `M`, or the manifold `M` itself
-        - ``name`` -- (default: ``varpi``) name given to the Poisson tensor
-        - ``latex_name`` -- (default: ``\\varpi``) LaTeX symbol to denote the Poisson tensor;
-        if ``None``, it is formed from ``name``
-
-        EXAMPLES:
-
-        Standard Poisson tensor on `\RR^2`::
-
-            sage: from sage.manifolds.differentiable.poisson_tensor import PoissonTensorField
-            sage: M.<q, p> = EuclideanSpace(2)
-            sage: poisson = M.poisson_tensor('varpi'); poisson
-            2-vector field varpi on the Euclidean plane E^2
         """
         try:
             vector_field_module = manifold.vector_field_module()
@@ -121,11 +121,11 @@ class PoissonTensorField(MultivectorField):
 
         for all `\alpha, \beta \in T^*_m M`.
 
-        In indicies, `\alpha^i = \varpi^{ij} \alpha_j`.
+        In indices, `\alpha^i = \varpi^{ij} \alpha_j`.
 
         INPUT:
 
-        - ``form`` -- the differential form to calculate it's sharp of
+        - ``form`` -- the differential form to calculate its sharp of
 
         EXAMPLES::
 
@@ -186,6 +186,23 @@ class PoissonTensorField(MultivectorField):
 class PoissonTensorFieldParal(PoissonTensorField, MultivectorFieldParal):
     r"""
     A Poisson bivector field `\varpi` on a parallelizable manifold.
+
+    INPUT:
+
+        - ``manifold`` -- module `\mathfrak{X}(M)` of vector fields on the
+          manifold `M`, or the manifold `M` itself
+        - ``name`` -- (default: ``varpi``) name given to the Poisson tensor
+        - ``latex_name`` -- (default: ``\\varpi``) LaTeX symbol to denote the
+          Poisson tensor; if ``None``, it is formed from ``name``
+
+    EXAMPLES:
+
+    Standard Poisson tensor on `\RR^2`::
+
+        sage: from sage.manifolds.differentiable.poisson_tensor import PoissonTensorFieldParal
+        sage: M.<q, p> = EuclideanSpace(2)
+        sage: poisson = PoissonTensorFieldParal(M, 'varpi'); poisson
+        2-vector field varpi on the Euclidean plane E^2
     """
 
     def __init__(
@@ -196,23 +213,6 @@ class PoissonTensorFieldParal(PoissonTensorField, MultivectorFieldParal):
     ):
         r"""
         Construct a Poisson bivector field.
-
-        INPUT:
-
-        - ``manifold`` -- module `\mathfrak{X}(M)` of vector fields on the
-          manifold `M`, or the manifold `M` itself
-        - ``name`` -- (default: ``varpi``) name given to the Poisson tensor
-        - ``latex_name`` -- (default: ``\\varpi``) LaTeX symbol to denote the
-          Poisson tensor; if ``None``, it is formed from ``name``
-
-        EXAMPLES:
-
-        Standard Poisson tensor on `\RR^2`::
-
-            sage: from sage.manifolds.differentiable.poisson_tensor import PoissonTensorFieldParal
-            sage: M.<q, p> = EuclideanSpace(2)
-            sage: poisson = PoissonTensorFieldParal(M, 'varpi'); poisson
-            2-vector field varpi on the Euclidean plane E^2
         """
         PoissonTensorField.__init__(self, manifold, name, latex_name)
         MultivectorFieldParal.__init__(self, self._vmodule, 2, name, latex_name)

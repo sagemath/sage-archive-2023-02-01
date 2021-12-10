@@ -70,7 +70,7 @@ class SymplecticVectorSpace(EuclideanSpace):
             (``:``); if ``None``, the symbols will be automatically generated
             according to the value of ``coordinates``
         - ``symplectic_name`` -- name (symbol) given to the symplectic form
-        - ``symplecic_latex_name`` -- LaTeX symbol to denote the symplectic form;
+        - ``symplectic_latex_name`` -- LaTeX symbol to denote the symplectic form;
             if none is provided, it is set to ``symplectic_name``
         - ``start_index`` -- lower value of the range of
             indices used for "indexed objects" in the vector space, e.g.

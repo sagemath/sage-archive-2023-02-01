@@ -891,7 +891,7 @@ class DiffScalarField(ScalarField):
     ) -> DiffForm:
         r"""
         Compute the Hodge dual of the scalar field with respect to to some non-degenerate
-        bilinear form (Riemaninan metric or symplectic form).
+        bilinear form (Riemannian metric or symplectic form).
 
         If `M` is the domain of the scalar field (denoted by `f`), `n` is the
         dimension of `M` and `g` is a non-degenerate bilinear form on `M`, the

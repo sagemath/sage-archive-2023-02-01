@@ -3721,7 +3721,7 @@ class TensorField(ModuleElementWithMutability):
     def up(self, non_degenerate_form: Union['PseudoRiemannianMetric', 'SymplecticForm', 'PoissonTensorField'], pos: Optional[int] = None) -> 'TensorField':
         r"""
         Compute a dual of the tensor field by raising some index with the
-        given tensor field (usually, a pseudo-riemaninan metric, a symplectic form or a Poisson tensor).
+        given tensor field (usually, a pseudo-Riemannian metric, a symplectic form or a Poisson tensor).
 
         If `T` is the tensor field, `(k,l)` its type and `p` the position of a
         covariant index (i.e. `k\leq p < k+l`), this method called with
@@ -3874,10 +3874,10 @@ class TensorField(ModuleElementWithMutability):
         else:
             raise ValueError("The non-degenerate form has to be a metric, a symplectic form or a Poisson tensor field")
 
-    def down(self, non_degenerate_form: Union['PseudoRiemannianMetric', 'SymplecticForm'], pos: Optional[int] = None) -> 'TensorField':
+    def down(self, non_degenerate_form: Union[PseudoRiemannianMetric, SymplecticForm], pos: Optional[int] = None) -> TensorField:
         r"""
         Compute a dual of the tensor field by lowering some index with a
-        given non-degenerate form (pseudo-riemaninan metric or symplectic form).
+        given non-degenerate form (pseudo-Riemannian metric or symplectic form).
 
         If `T` is the tensor field, `(k,l)` its type and `p` the position of a
         contravariant index (i.e. `0\leq p < k`), this method called with

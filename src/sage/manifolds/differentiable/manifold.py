@@ -2458,6 +2458,11 @@ class DifferentiableManifold(TopologicalManifold):
             sage: omega.set_comp()[1,2] = -1
             sage: omega.display()
             omega = -dq∧dp
+        
+        OUTPUT:
+
+            - instance of
+            :class:`~sage.manifolds.differentiable.symplectic_form.SymplecticForm`
         """
         return self.vector_field_module().symplectic_form(name, latex_name)
 
@@ -2476,6 +2481,11 @@ class DifferentiableManifold(TopologicalManifold):
             sage: poisson.set_comp()[1,2] = -1
             sage: poisson.display()
             varpi = -e_q∧e_p
+          
+         OUTPUT:
+
+            - instance of
+            :class:`~sage.manifolds.differentiable.poisson_tensor.PoissonTensorField`
         """
         return self.vector_field_module().poisson_tensor(name, latex_name)
 

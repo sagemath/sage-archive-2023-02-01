@@ -619,7 +619,7 @@ class DiffForm(TensorField):
     ) -> DiffForm:
         r"""
         Compute the Hodge dual of the differential form with respect to some non-degenerate
-        bilinear form (Riemaninan metric or symplectic form).
+        bilinear form (Riemannian metric or symplectic form).
 
         If the differential form is a `p`-form `A`, its *Hodge dual* with
         respect to the non-degenerate form `g` is the

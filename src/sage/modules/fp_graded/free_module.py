@@ -294,8 +294,8 @@ class FreeGradedModule(CombinatorialFreeModule):
     By default, if all generators are in distinct degrees, then the
     ``names`` of the generators will have the form ``g_{d}`` where
     ``d`` is the degree of the generator. If the degrees are not
-    distinct, then the generators will be callsed ``g_{d,i}`` where
-    ``d`` is the degree and ``i` is its index in the list of
+    distinct, then the generators will be called ``g_{d,i}`` where
+    ``d`` is the degree and ``i`` is its index in the list of
     generators in that degree.
 
     EXAMPLES::

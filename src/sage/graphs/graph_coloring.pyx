@@ -186,6 +186,8 @@ def all_graph_colorings(G, n, count_only=False, hex_colors=False, vertex_color_d
         1
         1
     """
+    from sage.plot.colors import rainbow
+
     G._scream_if_not_simple(allow_multiple_edges=True)
 
     if not n:

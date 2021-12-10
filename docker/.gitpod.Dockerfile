@@ -117,6 +117,7 @@ ENV PATH=/home/gitpod/sage-prebuild/bin:$PATH
 ENV PKG_CONFIG_PATH=/home/gitpod/sage-prebuild/lib/pkgconfig:$PKG_CONFIG_PATH
 ENV CPPFLAGS="-I/home/gitpod/sage-prebuild/include $CPPFLAGS"
 ENV LDFLAGS="-L/home/gitpod/sage-prebuild/lib $LDFLAGS"
+ENV LD_LIBRARY_PATH="/home/gitpod/sage-prebuild/lib:$LD_LIBRARY_PATH"
 
 # Configure 
 ## Gitpod sets PIP_USER: yes by default, which leads to problems during build (e.g pip not being installed in the venv)

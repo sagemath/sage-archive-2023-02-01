@@ -129,11 +129,8 @@ from sage.misc.flatten import flatten
 from sage.misc.temporary_file import tmp_filename
 from sage.modules.free_module_element import vector
 from sage.numerical.mip import MixedIntegerLinearProgram
-from sage.misc.lazy_import import lazy_import
 lazy_import("sage.plot.plot3d.index_face_set", "IndexFaceSet")
-from sage.misc.lazy_import import lazy_import
 lazy_import("sage.plot.plot3d.all", "line3d, point3d")
-from sage.misc.lazy_import import lazy_import
 lazy_import("sage.plot.plot3d.shapes2", "text3d")
 from sage.rings.integer import Integer
 from sage.rings.integer_ring import ZZ

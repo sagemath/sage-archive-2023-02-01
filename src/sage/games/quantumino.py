@@ -180,9 +180,7 @@ REFERENCES:
 from sage.structure.sage_object import SageObject
 from sage.misc.lazy_import import lazy_import
 lazy_import("sage.plot.all", "Graphics")
-from sage.misc.lazy_import import lazy_import
 lazy_import("sage.plot.plot3d.platonic", "cube")
-from sage.misc.lazy_import import lazy_import
 lazy_import("sage.plot.plot3d.shapes2", "text3d")
 from sage.modules.free_module_element import vector
 from sage.combinat.tiling import Polyomino, TilingSolver

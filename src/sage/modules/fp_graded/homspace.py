@@ -24,7 +24,7 @@ TESTS::
       [c_{1}, c_{3}]
     to
       [Sq(1)*h_{2} + h_{3}, Sq(2)*h_{3}]
-    sage: Hom(F, L) ([L((A.Sq(1), 1)), L((0, A.Sq(2)))]).kernel_morphism()
+    sage: Hom(F, L) ([L((A.Sq(1), 1)), L((0, A.Sq(2)))]).kernel_inclusion()
     Module homomorphism of degree 0 defined by sending the generators
       [g_{3}, g_{4}]
     to

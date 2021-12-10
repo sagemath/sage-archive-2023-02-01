@@ -13,7 +13,7 @@ relations, and uses them to construct a presentation, using the class
 
 This package was designed with homological algebra in mind, and its API
 focuses on maps rather than objects.  A good example of this is the kernel
-function :meth:`sage.modules.fp_graded.morphism.FPModuleMorphism.kernel_morphism`
+function :meth:`sage.modules.fp_graded.morphism.FPModuleMorphism.kernel_inclusion`
 which computes the kernel of a homomorphism `f: M\to N`.  Its return value
 is not an instance of the module class, but rather an injective homomorphism
 `i: K\to M` with the property that `\operatorname{im}(i) = \ker(f)`.

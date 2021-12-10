@@ -66,10 +66,11 @@ class FPElement(IndexedFreeModuleElement):
     @cached_method
     def degree(self):
         r"""
-        The degree of this element.
+        The degree of ``self``.
 
-        OUTPUT: The integer degree of this element, or raise an error
-        if this is the zero element.
+        OUTPUT:
+
+        The integer degree of ``self`` or raise an error if the zero element.
 
         EXAMPLES::
 
@@ -126,7 +127,7 @@ class FPElement(IndexedFreeModuleElement):
 
     def _repr_(self):
         r"""
-        Return a string representation of this element.
+        Return a string representation of ``self``.
 
         EXAMPLES::
 
@@ -152,9 +153,11 @@ class FPElement(IndexedFreeModuleElement):
 
         INPUT:
 
-        - ``a`` -- an element of the algebra this module is defined over.
+        - ``a`` -- an element of the algebra the parent module is defined over
 
-        OUTPUT: the module element `a\cdot x` where `x` is this module element.
+        OUTPUT:
+
+        The module element `a \cdot x` where `x` is ``self``.
 
         EXAMPLES::
 
@@ -186,16 +189,18 @@ class FPElement(IndexedFreeModuleElement):
 
     def vector_presentation(self):
         r"""
-        A coordinate vector representing this module element when it is non-zero.
+        A coordinate vector representing ``self`` when it is non-zero.
 
         These are coordinates with respect to the basis chosen by
         :meth:`sage.modules.fp_graded.module.FPModule.basis_elements`.
         When the element is zero, it has no well defined degree, and this
         function returns ``None``.
 
-        OUTPUT: A vector of elements in the ground field of the algebra for
-        this module when this element is non-zero.  Otherwise, the value
-        ``None``.
+        OUTPUT:
+
+        A vector of elements in the ground field of the algebra for
+        this module when this element is non-zero.  Otherwise, the
+        value ``None``.
 
         .. SEEALSO::
 
@@ -255,8 +260,10 @@ class FPElement(IndexedFreeModuleElement):
         r"""
         Determine if this element is non-zero.
 
-        OUTPUT: The boolean value ``True`` if this element is non-zero, and ``False``
-        otherwise.
+        OUTPUT:
+
+        The boolean value ``True`` if this element is non-zero
+        and ``False`` otherwise.
 
         EXAMPLES::
 
@@ -309,8 +316,10 @@ class FPElement(IndexedFreeModuleElement):
         r"""
         A normalized form of ``self``.
 
-        OUTPUT: An instance of this element class representing the same
-        module element as this element.
+        OUTPUT:
+
+        An instance representing the same module element as ``self`` in
+        normalized form.
 
         EXAMPLES::
 
@@ -336,3 +345,4 @@ class FPElement(IndexedFreeModuleElement):
 
         v = self.vector_presentation()
         return self.parent().element_from_coordinates(v, self.degree())
+

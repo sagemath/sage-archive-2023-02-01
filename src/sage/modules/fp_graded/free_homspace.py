@@ -1,20 +1,16 @@
 r"""
 The set of homomorphisms of finitely generated free graded left modules
 
-This class implements methods for construction and basic manipulation
-of homsets of finitely generated free graded left modules over a
-connected graded `k`-algebra, where `k` is a field.
-
 For an overview of the free module API, see :doc:`free_module`.
 
-TESTS::
+EXAMPLES::
 
     sage: from sage.modules.fp_graded.free_module import FreeGradedModule
-    sage: from sage.misc.sage_unittest import TestSuite
     sage: A = SteenrodAlgebra(2)
     sage: F1 = FreeGradedModule(A, (1,3))
     sage: F2 = FreeGradedModule(A, (2,3))
-    sage: homset = Hom(F1, F2); homset
+    sage: homset = Hom(F1, F2)
+    sage: homset
     Set of Morphisms from Finitely presented free left module on 2 generators ...
     sage: homset([F2((Sq(1), 1)), F2((0, Sq(2)))])
     Module homomorphism of degree 2 defined by sending the generators
@@ -33,7 +29,7 @@ AUTHORS:
 """
 
 #*****************************************************************************
-#       Copyright (C) 2011 Robert R. Bruner <rrb@math.wayne.edu> and
+#       Copyright (C) 2021 Robert R. Bruner <rrb@math.wayne.edu> and
 #                          Michael J. Catanzaro <mike@math.wayne.edu>
 #
 # This program is free software: you can redistribute it and/or modify
@@ -48,6 +44,9 @@ from sage.misc.cachefunc import cached_method
 
 
 class FreeGradedModuleHomspace(Homset):
+    """
+    Homspace between two free graded modules.
+    """
     # In the category framework, Elements of the class FPModule are of the
     # class FPElement, see
     # http://doc.sagemath.org/html/en/thematic_tutorials/coercion_and_categories.html#implementing-the-category-framework-for-the-elements
@@ -57,20 +56,21 @@ class FreeGradedModuleHomspace(Homset):
 
     def _element_constructor_(self, values):
         r"""
-        Construct any element of this homset.
+        Construct an element of ``self``.
 
-        This function is used internally by the ()-method when creating
+        This function is used internally by the call method when creating
         homomorphisms.
 
         INPUT:
 
-        - ``values`` -- A tuple of values (i.e. elements of the
-        codomain for this homset) corresponding bijectively to the generators
-        of the domain of this homset, or the zero integer constant.
+        - ``values`` -- a tuple of values (i.e. elements of the
+          codomain for this homset) corresponding bijectively to the generators
+          of the domain of this homset, or the zero integer constant
 
-        OUTPUT: An instance of the morphism class.  The returned morphism is
-        defined by mapping the module generators in the domain to the given
-        values.
+        OUTPUT:
+
+        An instance of the morphism class.  The returned morphism is defined
+        by mapping the module generators in the domain to the given values.
 
         EXAMPLES::
 
@@ -88,7 +88,7 @@ class FreeGradedModuleHomspace(Homset):
               [<Sq(4), 0>, <0, Sq(3)>]
 
             sage: H(0)
-            The trivial homomorphism.
+            The trivial homomorphism
         """
         from .free_morphism import FreeGradedModuleMorphism
         if isinstance(values, FreeGradedModuleMorphism):
@@ -101,9 +101,7 @@ class FreeGradedModuleHomspace(Homset):
 
     def _an_element_(self):
         r"""
-        Return a morphism belonging to this homspace.
-
-        OUTPUT: A morphism in this homspace.
+        Return a morphism belonging to ``self``.
 
         EXAMPLES::
 
@@ -113,7 +111,7 @@ class FreeGradedModuleHomspace(Homset):
             sage: L = FreeGradedModule(A2, (2,3))
             sage: H = Hom(F, L)
             sage: H._an_element_()
-            The trivial homomorphism.
+            The trivial homomorphism
         """
         return self.zero()
 
@@ -121,10 +119,7 @@ class FreeGradedModuleHomspace(Homset):
     @cached_method
     def zero(self):
         r"""
-        Return the trivial morphism of this homspace.
-
-        OUTPUT: The morphism evaluating to the zero element for any element in
-        the domain.
+        Return the trivial morphism of ``self``.
 
         EXAMPLES::
 
@@ -134,16 +129,14 @@ class FreeGradedModuleHomspace(Homset):
             sage: L = FreeGradedModule(A2, (2,3))
             sage: H = Hom(F, L)
             sage: H.zero()
-            The trivial homomorphism.
+            The trivial homomorphism
         """
         return self.element_class(self, self.codomain().zero())
 
 
     def identity(self):
         r"""
-        Return the identity morphism, if this is an endomorphism set.
-
-        OUTPUT: The identity endomorphism.
+        Return the identity morphism, if ``self`` is an endomorphism set.
 
         EXAMPLES::
 
@@ -152,7 +145,7 @@ class FreeGradedModuleHomspace(Homset):
             sage: L = FreeGradedModule(A2, (2,3))
             sage: H = Hom(L, L)
             sage: H.identity()
-            The identity homomorphism.
+            The identity homomorphism
 
         TESTS::
 

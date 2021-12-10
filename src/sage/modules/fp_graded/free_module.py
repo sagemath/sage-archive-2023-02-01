@@ -1,13 +1,5 @@
 r"""
-Finitely generated free graded left modules over connected graded algebras.
-
-This class implements methods for construction and basic manipulation
-of finitely generated free graded modules over connected graded
-algebras with a given graded basis.
-
-==========
-User guide
-==========
+Finitely generated free graded left modules over connected graded algebras
 
 Let `p` be a prime number. The mod `p` Steenrod algebra `A_p`
 is a connected algebra over the finite field of `p` elements.  All modules
@@ -16,16 +8,19 @@ E.g.::
 
     sage: A = SteenrodAlgebra(p=2)
 
-The constructor of the module class takes as arguments the algebra
-over which the module is defined and an ordered tuple of degrees for
-the generators::
+However, the current implementation can use any connected graded algebra
+that has a graded basis where each graded part is finite dimensional.
+
+A free module is defined by the graded algebra and an ordered tuple
+of degrees for the generators::
 
     sage: from sage.modules.fp_graded.free_module import FreeGradedModule
-    sage: M = FreeGradedModule(algebra=A, generator_degrees=(0,1)); M
-    Finitely presented free left module on 2 generators over mod 2 Steenrod algebra, milnor basis
+    sage: M = FreeGradedModule(algebra=A, generator_degrees=(0,1))
+    sage: M
+    Finitely presented free left module on 2 generators over
+     mod 2 Steenrod algebra, milnor basis
 
-The resulting free module will have generators in the degrees given to its
-constructor::
+The resulting free module will have generators in the degrees as specified::
 
     sage: M.generator_degrees()
     (0, 1)
@@ -37,7 +32,6 @@ connectivity is an integer::
     sage: M.connectivity()
     0
 
----------------
 Module elements
 ---------------
 
@@ -64,16 +58,15 @@ The generators are themselves elements of the module::
     sage: M.generators()
     [<1, 0>, <0, 1>]
 
-Producing elements from a given set of coefficients is possible using the
-module class ()-method::
+Producing elements from a given set of coefficients is possible as usual::
 
-    sage: coeffs=[Sq(5), Sq(1,1)]
+    sage: coeffs = [Sq(5), Sq(1,1)]
     sage: x = M(coeffs); x
     <Sq(5), Sq(1,1)>
 
 The module action produces new elements::
 
-    sage: Sq(2)*x
+    sage: Sq(2) * x
     <Sq(4,1) + Sq(7), Sq(3,1)>
 
 Each non-zero element has a well-defined degree::
@@ -81,7 +74,7 @@ Each non-zero element has a well-defined degree::
     sage: x.degree()
     5
 
-But the zero element has not::
+However the zero element does not::
 
     sage: zero = M.zero(); zero
     0
@@ -133,7 +126,7 @@ coordinates::
     sage: x_ == x
     True
 
---------------------
+
 Module homomorphisms
 --------------------
 
@@ -146,7 +139,12 @@ such homomorphisms using the free function ``Hom``::
     sage: M = FreeGradedModule(A, (0,1))
     sage: N = FreeGradedModule(A, (2,))
     sage: homspace = Hom(M, N); homspace
-    Set of Morphisms from Finitely presented free left module on 2 generators over mod 2 Steenrod algebra, milnor basis to Finitely presented free left module on 1 generator over mod 2 Steenrod algebra, milnor basis in Category of finite dimensional graded modules with basis over mod 2 Steenrod algebra, milnor basis
+    Set of Morphisms from Finitely presented free left module on 2 generators
+      over mod 2 Steenrod algebra, milnor basis
+     to Finitely presented free left module on 1 generator
+      over mod 2 Steenrod algebra, milnor basis
+     in Category of finite dimensional graded modules with basis
+      over mod 2 Steenrod algebra, milnor basis
 
 Just as module elements, homomorphisms are created using the ()-method
 of the homspace object. The only argument is a list of module elements in the
@@ -168,12 +166,12 @@ domain to the `i`-th codomain value given::
 Convenience methods exist for creating the trivial morphism::
 
     sage: homspace.zero()
-    The trivial homomorphism.
+    The trivial homomorphism
 
 as well as the identity endomorphism::
 
     sage: Hom(M, M).identity()
-    The identity homomorphism.
+    The identity homomorphism
 
 Homomorphisms can be evaluated on elements of the domain module::
 
@@ -221,7 +219,7 @@ or when at least one of them is zero::
 Finally, additive inverses exist::
 
     sage: f - f
-    The trivial homomorphism.
+    The trivial homomorphism
 
 The restriction of a homomorphism to the vector space of `n`-dimensional module
 elements is a linear transformation::
@@ -284,10 +282,10 @@ class FreeGradedModule(CombinatorialFreeModule):
     INPUT:
 
     - ``algebra`` -- the graded connected algebra over which the module is
-      defined. This algebra must be equipped with a graded basis.
+      defined; this algebra must be equipped with a graded basis
 
     - ``generator_degrees`` -- tuple of integers defining the number
-      of generators of the module, and their degrees.
+      of generators of the module, and their degrees
 
     TESTS::
 
@@ -295,7 +293,8 @@ class FreeGradedModule(CombinatorialFreeModule):
         sage: E.<x,y,z> = ExteriorAlgebra(QQ)
         sage: M = FreeGradedModule(E, (-1,3))
         sage: M
-        Finitely presented free left module on 2 generators over The exterior algebra of rank 3 over Rational Field
+        Finitely presented free left module on 2 generators over
+         The exterior algebra of rank 3 over Rational Field
         sage: M.generator_degrees()
         (-1, 3)
         sage: a, b = M.generators()
@@ -304,15 +303,13 @@ class FreeGradedModule(CombinatorialFreeModule):
 
         sage: A = SteenrodAlgebra(2)
         sage: FreeGradedModule(A, (-2,2,4))
-        Finitely presented free left module on 3 generators over mod 2 Steenrod algebra, milnor basis
+        Finitely presented free left module on 3 generators over
+         mod 2 Steenrod algebra, milnor basis
     """
     def __init__(self, algebra, generator_degrees):
         r"""
         Create a finitely generated free graded module over a connected graded
         algebra.
-
-        OUTPUT: The finitely generated free graded module on generators with
-        degrees given by ``generator_degrees``.
 
         TESTS::
 
@@ -329,11 +326,12 @@ class FreeGradedModule(CombinatorialFreeModule):
             raise ValueError('the ground ring of the algebra must be a field')
 
         # Call the base class constructor.
+        cat = GradedModules(algebra).WithBasis().FiniteDimensional()
         CombinatorialFreeModule.__init__(self, algebra,
                                          basis_keys=keys,
-                                         element_class=FreeGradedModuleElement,
-                                         category=GradedModules(algebra).WithBasis().FiniteDimensional())
+                                         category=cat)
 
+    Element = FreeGradedModuleElement
 
     def generator_degrees(self):
         r"""
@@ -375,9 +373,11 @@ class FreeGradedModule(CombinatorialFreeModule):
 
     def connectivity(self):
         r"""
-        The connectivity of this module.
+        The connectivity of ``self``.
 
-        OUTPUT: An integer equal to the minimal degree of all the generators, if
+        OUTPUT:
+
+        An integer equal to the minimal degree of all the generators, if
         this module is non-trivial.  Otherwise, `+\infty`.
 
         EXAMPLES::
@@ -401,20 +401,19 @@ class FreeGradedModule(CombinatorialFreeModule):
 
     def _element_constructor_(self, coefficients):
         r"""
-        Construct any element of the module.
-
-        This function is used internally by the ()-method when creating
-        module elements, and should not be called by the user explicitly.
+        Construct any element of ``self``.
 
         INPUT:
 
-        - ``coefficients`` -- A tuple of coefficient (i.e. elements of the
-        algebra for this module), an element of FreeGradedModule, or the zero integer
-        constant.
+        - ``coefficients`` -- a tuple of coefficient (i.e. elements of the
+          algebra for this module), an element of FreeGradedModule, or the
+          zero integer constant
 
-        OUTPUT: An instance of the element class with coefficients from
-        ``coefficients``, the element ``coefficients`` if it already was an
-        element, or the zero module element.
+        OUTPUT:
+
+        An instance of the element class with coefficients from
+        ``coefficients``, the element ``coefficients`` if it already
+        was an element, or the zero module element.
 
         EXAMPLES::
 
@@ -433,26 +432,27 @@ class FreeGradedModule(CombinatorialFreeModule):
         """
         if isinstance(coefficients, self.element_class):
             return coefficients
-        elif not coefficients:
+        if not coefficients:
             return self.zero()
-        else:
-            B = self.basis()
-            return sum(c*B[b] for (c,b) in zip(coefficients, self._generator_keys))
+
+        B = self.basis()
+        return sum(c * B[b] for (c,b) in zip(coefficients, self._generator_keys))
 
 
     def an_element(self, n=None):
         r"""
-        Return an element of the module.
+        Return an element of ``self``.
 
-        This function chooses deterministically an element of the module in the
-        given degree.
+        This function chooses deterministically an element of the module
+        in the given degree.
 
         INPUT:
 
-        - ``n`` --  the degree of the element to construct.  If the default
-          value ``None`` is given, a degree will be chosen by the function.
+        - ``n`` -- (optional) the degree of the element to construct
 
-        OUTPUT: An element of the given degree.
+        OUTPUT:
+
+        An element (of the given degree if specified).
 
         EXAMPLES::
 
@@ -491,7 +491,7 @@ class FreeGradedModule(CombinatorialFreeModule):
 
     def _repr_(self):
         r"""
-        Construct a string representation of the module.
+        Construct a string representation of ``self``.
 
         TESTS::
 
@@ -509,19 +509,24 @@ class FreeGradedModule(CombinatorialFreeModule):
     @cached_method
     def basis_elements(self, n):
         r"""
-        A basis for the vector space of degree ``n`` module elements.
-        This returns a basis as a vector space over the base field,
-        not a basis as a free module over the algebra.
+        Return a basis for the vector space of degree ``n`` module elements.
+
+        .. NOTE::
+
+            This returns a basis as a vector space over the base field,
+            not a basis as a free module over the algebra.
 
         INPUT:
 
-        - ``n`` -- an integer.
+        - ``n`` -- an integer
 
-        OUTPUT: A sequence of homogeneous module elements of degree ``n``
-        which is a basis for the vector space of all degree ``n`` module
-        elements.
+        OUTPUT:
+
+        A sequence of homogeneous module elements of degree ``n``, which
+        is a basis for the vector space of all degree ``n`` module elements.
 
         .. SEEALSO::
+
             :meth:`vector_presentation`, :meth:`element_from_coordinates`
 
         EXAMPLES::
@@ -557,12 +562,15 @@ class FreeGradedModule(CombinatorialFreeModule):
 
         INPUT:
 
-        - ``coordinates`` -- a sequence of elements of the ground field.
-        - ``n`` -- an integer.
+        - ``coordinates`` -- a sequence of elements of the ground field
+        - ``n`` -- an integer
 
-        OUTPUT: A module element of degree ``n``.
+        OUTPUT:
+
+        A module element of degree ``n``.
 
         .. SEEALSO::
+
             :meth:`vector_presentation`, and :meth:`basis_elements`.
 
         EXAMPLES::
@@ -583,8 +591,8 @@ class FreeGradedModule(CombinatorialFreeModule):
         basis_elements = self.basis_elements(n)
 
         if len(coordinates) != len(basis_elements):
-            raise ValueError('the given coordinate vector has incorrect length: %d.  '
-                  'It should have length %d' % (len(coordinates), len(basis_elements)))
+            raise ValueError('the given coordinate vector has incorrect length (%d); '
+                  'it should have length %d' % (len(coordinates), len(basis_elements)))
 
         # Adding the condition `if c != 0` improved performance dramatically in this
         # real life example:
@@ -601,15 +609,16 @@ class FreeGradedModule(CombinatorialFreeModule):
         # and the total running time of the entire computation dropped from
         # 57 to 21 seconds by adding the optimization.
         #
-        element = sum([c*element for c, element in zip(coordinates, basis_elements) if c != 0])
-        if element == 0:
+        element = sum(c*element for c, element in zip(coordinates, basis_elements) if c)
+
+        if not element:
             # The previous sum was over the empty list, yielding the integer
             # 0 as a result, rather than a module element.
             # Fix this by returning the zero element.
             return self.zero()
-        else:
-            # The sum defining element is of the correct type, so return it.
-            return element
+
+        # The sum defining element is of the correct type, so return it.
+        return element
 
 
     def __getitem__(self, n):
@@ -628,6 +637,7 @@ class FreeGradedModule(CombinatorialFreeModule):
             4
 
         .. SEEALSO::
+
             This function is an alias for :meth:`vector_presentation`.
         """
         return self.vector_presentation(n)
@@ -636,11 +646,12 @@ class FreeGradedModule(CombinatorialFreeModule):
     @cached_method
     def vector_presentation(self, n):
         r"""
-        A vector space over the ground field of the module algebra,
-        isomorphic to the degree ``n`` elements of this module.
+        Return a vector space over the ground field of the module algebra
+        isomorphic to the degree ``n`` elements of ``self``.
 
-        Let `\mathcal{k}` be the ground field of the algebra over this module is defined,
-        and let `M_n` be the vector space of module elements of degree ``n``.
+        Let `\mathcal{k}` be the ground field of the algebra over this module
+        is defined, and let `M_n` be the vector space of module elements of
+        degree ``n``.
 
         The return value of this function is the vector space
         `\mathcal{k}^{r}` where `r = dim(M_n)`.
@@ -651,13 +662,16 @@ class FreeGradedModule(CombinatorialFreeModule):
 
         INPUT:
 
-        - ``n`` -- an integer degree.
+        - ``n`` -- an integer degree
 
-        OUTPUT: A vector space over the ground field of the algebra over which
-        this module is defined, isomorphic to the vector space of module
+        OUTPUT:
+
+        A vector space over the ground field of the algebra over which
+        ``self`` is defined, isomorphic to the vector space of module
         elements of degree ``n``.
 
         .. SEEALSO::
+
             :meth:`basis_elements`, :meth:`element_from_coordinates`
 
         EXAMPLES::
@@ -680,8 +694,6 @@ class FreeGradedModule(CombinatorialFreeModule):
         r"""
         Return the module generator with the given index.
 
-        OUTPUT: An instance of the element class of this parent.
-
         EXAMPLES::
 
             sage: from sage.modules.fp_graded.free_module import *
@@ -697,17 +709,14 @@ class FreeGradedModule(CombinatorialFreeModule):
         try:
             return self.monomial(self._generator_keys[index])
         except IndexError:
-            raise ValueError('the parent module has generators in the index '\
-                'range [0, %s]; generator %s does not exist' %\
+            raise ValueError('the parent module has generators in the index '
+                'range [0, %s]; generator %s does not exist' %
                 (len(self.generator_degrees()) - 1, index))
 
 
     def generators(self):
         r"""
         Return all the module generators.
-
-        OUTPUT: A list consisting instances of the element class of this
-        parent.
 
         EXAMPLES::
 
@@ -723,8 +732,8 @@ class FreeGradedModule(CombinatorialFreeModule):
     def _Hom_(self, Y, category):
         r"""
         The internal hook used by the free function
-        :meth:`sage.categories.homset.hom.Hom` to create homsets involving this
-        parent.
+        :meth:`sage.categories.homset.hom.Hom` to create homsets
+        involving ``self``.
 
         TESTS::
 
@@ -732,7 +741,12 @@ class FreeGradedModule(CombinatorialFreeModule):
             sage: A = SteenrodAlgebra(2)
             sage: M = FreeGradedModule(A, (0,1))
             sage: M._Hom_(M, category=None)
-            Set of Morphisms from Finitely presented free left module on 2 generators over mod 2 Steenrod algebra, milnor basis to Finitely presented free left module on 2 generators over mod 2 Steenrod algebra, milnor basis in Category of finite dimensional graded modules with basis over mod 2 Steenrod algebra, milnor basis
+            Set of Morphisms from Finitely presented free left module on 2 generators
+              over mod 2 Steenrod algebra, milnor basis
+             to Finitely presented free left module on 2 generators
+              over mod 2 Steenrod algebra, milnor basis
+             in Category of finite dimensional graded modules with basis
+              over mod 2 Steenrod algebra, milnor basis
         """
         from .free_homspace import FreeGradedModuleHomspace
         return FreeGradedModuleHomspace(self, Y, category)
@@ -740,13 +754,15 @@ class FreeGradedModule(CombinatorialFreeModule):
 
     def suspension(self, t):
         r"""
-        Suspend the module by the given integer degree.
+        Suspend ``self`` by the given degree ``t``.
 
         INPUT:
 
-        - ``t`` -- An integer.
+        - ``t`` -- an integer
 
-        OUTPUT: A module which is isomorphic to this module by a shift
+        OUTPUT:
+
+        A module which is isomorphic to this module by a shift
         of degrees by the integer ``t``.
 
         EXAMPLES::
@@ -765,9 +781,11 @@ class FreeGradedModule(CombinatorialFreeModule):
 
     def to_fp_module(self):
         """
-        Create a finitely presented module from this free module.
+        Create a finitely presented module from ``self``.
 
-        OUTPUT: the finitely presented module having same set of generators
+        OUTPUT:
+
+        The finitely presented module having same set of generators
         as this module, no relations.
 
         EXAMPLES::
@@ -776,10 +794,11 @@ class FreeGradedModule(CombinatorialFreeModule):
             sage: A = SteenrodAlgebra(2)
             sage: F = FreeGradedModule(A, (-2,2,4))
             sage: F.to_fp_module()
-            Finitely presented left module on 3 generators and 0 relations over mod 2 Steenrod algebra, milnor basis
+            Finitely presented left module on 3 generators and 0 relations over
+             mod 2 Steenrod algebra, milnor basis
         """
         from .module import FPModule
         return FPModule(algebra=self.base_ring(),
-                   generator_degrees=self.generator_degrees(),
-                   relations=())
-        
+                        generator_degrees=self.generator_degrees(),
+                        relations=())
+

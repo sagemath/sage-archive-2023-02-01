@@ -5,9 +5,6 @@ This class implements methods for construction and basic
 manipulation of homsets of finitely presented graded modules over a connected
 graded `k`-algebra, where `k` is a field.
 
-.. NOTE:: This class is intended for private use by
-    :class:`sage.modules.fp_steenrod.fpa_homspace.FPA_ModuleHomspace`.
-
 TESTS::
 
     sage: from sage.modules.fp_graded.module import FPModule
@@ -72,16 +69,18 @@ class FPModuleHomspace(Homset):
 
     def _element_constructor_(self, values):
         r"""
-        Constructs a morphism contained in this homset.
+        Construct a morphism contained in ``self``.
 
-        This function is not part of the public API, but is used by :meth:Hom
-        method to create morphisms.
+        This function is not part of the public API, but is used by
+        :meth:`Hom` method to create morphisms.
 
         INPUT:
 
-        - ``values`` -- An iterable of FPElements of the codomain.
+        - ``values`` -- an iterable of FPElements of the codomain
 
-        OUTPUT: A module homomorphism in this homspace sending the generators
+        OUTPUT:
+
+        A module homomorphism in this homspace sending the generators
         of the domain module to the given values.
 
         EXAMPLES::
@@ -97,7 +96,7 @@ class FPModuleHomspace(Homset):
             sage: f = homset._element_constructor_([v1, v2])
 
         Rather than calling ``_element_constructor_`` explicitly, one
-        can call it implicitly, using the ``call`` syntax::
+        should call it implicitly using the syntax::
 
             sage: f = homset([v1, v2]); f
               Module homomorphism of degree 2 defined by sending the generators
@@ -114,7 +113,7 @@ class FPModuleHomspace(Homset):
         And there is a convenient way of making the trivial homomorphism::
 
             sage: z = homset(0); z
-            The trivial homomorphism.
+            The trivial homomorphism
         """
         if isinstance(values, self.element_class):
             return values
@@ -126,13 +125,15 @@ class FPModuleHomspace(Homset):
 
     def an_element(self, n=0):
         r"""
-        Create a homomorphism belonging to this homset.
+        Create a homomorphism belonging to ``self``.
 
         INPUT:
 
-        - ``n`` -- an integer degree.  (optional, default: 0)
+        - ``n`` -- (default: 0) an integer degree
 
-        OUTPUT: A module homomorphism of degree ``n``.
+        OUTPUT:
+
+        A module homomorphism of degree ``n``.
 
         EXAMPLES::
 
@@ -171,9 +172,11 @@ class FPModuleHomspace(Homset):
 
         INPUT:
 
-        - ``n`` -- an integer degree.
+        - ``n`` -- an integer degree
 
-        OUTPUT: A basis for the set of all module homomorphisms of degree ``n``.
+        OUTPUT:
+
+        A basis for the set of all module homomorphisms of degree ``n``.
 
         EXAMPLES::
 
@@ -196,7 +199,7 @@ class FPModuleHomspace(Homset):
 
     def zero(self):
         r"""
-        Create the trivial homomorphism in this homset.
+        Create the trivial homomorphism in ``self``.
 
         EXAMPLES::
 
@@ -206,20 +209,20 @@ class FPModuleHomspace(Homset):
             sage: L = FPModule(A2, [2,3], [[Sq(2),Sq(1)], [0,Sq(2)]])
 
             sage: z = Hom(F, L).zero(); z
-            The trivial homomorphism.
+            The trivial homomorphism
 
             sage: z(F.an_element(5))
             0
-
             sage: z(F.an_element(23))
             0
         """
-        return self.element_class(self, [self.codomain().zero() for g in self.domain().generator_degrees()])
+        ngens = len(self.domain().generator_degrees())
+        return self.element_class(self, [self.codomain().zero()] * ngens)
 
 
     def identity(self):
         r"""
-        Create the identity homomorphism.
+        Create The identity homomorphism
 
         EXAMPLES::
 
@@ -228,7 +231,7 @@ class FPModuleHomspace(Homset):
             sage: L = FPModule(A2, [2,3], [[Sq(2),Sq(1)], [0,Sq(2)]])
 
             sage: id = Hom(L, L).identity(); id
-            The identity homomorphism.
+            The identity homomorphism
 
             sage: e = L.an_element(5)
             sage: e == id(e)
@@ -253,19 +256,21 @@ class FPModuleHomspace(Homset):
         r"""
         Compute a basis for the vector space of degree ``n`` homomorphisms.
 
-        This function is private and used by :meth:`basis_elements` and
+        This function is private for use by :meth:`basis_elements` and
         :meth:`an_element`.
 
         INPUT:
 
-        - ``n`` -- an integer degree.
-        - ``basis`` -- boolean to decide if a basis should be returned, or just
-          a single homomorphism.
+        - ``n`` -- an integer degree
+        - ``basis`` -- boolean; decide if a basis should be returned or just
+          a single homomorphism
 
-        OUTPUT: A basis for the set of all module homomorphisms of degree ``n``
-        if ``basis`` is True.  Otherwise a single element is returned.  In the
-        latter case, this homomorphism is non-trivial if the vector space of all
-        homomorphisms is non-trivial.
+        OUTPUT:
+
+        A basis for the set of all module homomorphisms of degree ``n``
+        if ``basis`` is ``True``. Otherwise a single element is returned.
+        In the latter case, this homomorphism is non-trivial if the vector
+        space of all homomorphisms is non-trivial.
 
         TESTS::
 
@@ -302,9 +307,9 @@ class FPModuleHomspace(Homset):
               [<Sq(0,2,0,1)>]
 
             Hom(FPA_Module([0], A, [[Sq(1)]]), FPA_Module([-2], A, [[Sq(1)]])).an_element(0)
-            The trivial homomorphism.
+            The trivial homomorphism
 
-        Test corner cases involving trivial modules:
+        Test corner cases involving trivial modules::
 
             sage: F = FPModule(A, [0]) # A module without relations.
             sage: Z0 = FPModule(A, []) # A trivial module.
@@ -313,7 +318,7 @@ class FPModuleHomspace(Homset):
             Hom(FPA_Module([-1], A), F)._basis_elements(0, basis=True)
             []
             Hom(FPA_Module([-1], A), F)._basis_elements(0, basis=False)
-            The trivial homomorphism.
+            The trivial homomorphism
 
             sage: from itertools import product
             sage: for D,C in product([(F, 'Free'), (Hko, 'Hko'), (Z0, 'Trivial'), (Z1, 'Trivial with redundant generator')], repeat=2):
@@ -353,17 +358,17 @@ class FPModuleHomspace(Homset):
               [<Sq(0,0,1)>]]
             Hom(Free, Trivial):
               basis==False:
-              The trivial homomorphism.
+              The trivial homomorphism
               basis==True:
               []
             Hom(Free, Trivial with redundant generator):
               basis==False:
-              The trivial homomorphism.
+              The trivial homomorphism
               basis==True:
               []
             Hom(Hko, Free):
               basis==False:
-              The trivial homomorphism.
+              The trivial homomorphism
               basis==True:
               []
             Hom(Hko, Hko):
@@ -379,56 +384,56 @@ class FPModuleHomspace(Homset):
               [<Sq(0,0,1)>]]
             Hom(Hko, Trivial):
               basis==False:
-              The trivial homomorphism.
+              The trivial homomorphism
               basis==True:
               []
             Hom(Hko, Trivial with redundant generator):
               basis==False:
-              The trivial homomorphism.
+              The trivial homomorphism
               basis==True:
               []
             Hom(Trivial, Free):
               basis==False:
-              The trivial homomorphism.
+              The trivial homomorphism
               basis==True:
               []
             Hom(Trivial, Hko):
               basis==False:
-              The trivial homomorphism.
+              The trivial homomorphism
               basis==True:
               []
             Hom(Trivial, Trivial):
               basis==False:
-              The trivial homomorphism.
+              The trivial homomorphism
               basis==True:
               []
             Hom(Trivial, Trivial with redundant generator):
               basis==False:
-              The trivial homomorphism.
+              The trivial homomorphism
               basis==True:
               []
             Hom(Trivial with redundant generator, Free):
               basis==False:
-              The trivial homomorphism.
+              The trivial homomorphism
               basis==True:
               []
             Hom(Trivial with redundant generator, Hko):
               basis==False:
-              The trivial homomorphism.
+              The trivial homomorphism
               basis==True:
               []
             Hom(Trivial with redundant generator, Trivial):
               basis==False:
-              The trivial homomorphism.
+              The trivial homomorphism
               basis==True:
               []
             Hom(Trivial with redundant generator, Trivial with redundant generator):
               basis==False:
-              The trivial homomorphism.
+              The trivial homomorphism
               basis==True:
               []
         """
-        from .morphism import _CreateRelationsMatrix
+        from .morphism import _create_relations_matrix
 
         M = self.domain()
         N = self.codomain()
@@ -443,7 +448,7 @@ class FPModuleHomspace(Homset):
                 return []
             else:
                 # Since the vector space of homomorphisms is trivial, it contains
-                # only the trivial homomorphism.
+                # only The trivial homomorphism
                 return self.zero()
 
         # Deal with the trivial cases first.  Note that this covers the case
@@ -473,7 +478,7 @@ class FPModuleHomspace(Homset):
             # case above.
             target_degs = [r.degree() + n for r in M.relations()]
 
-            block_matrix, R = _CreateRelationsMatrix(
+            block_matrix, R = _create_relations_matrix(
                 N, [r.coefficients() for r in M.relations()], source_degs, target_degs)
 
             ker = R.right_kernel()
@@ -494,7 +499,7 @@ class FPModuleHomspace(Homset):
 
         # If the code above found a non-trivial homomorphism and ``basis==False``,
         # it will have terminated by now.
-        if len(res) == 0:
+        if not res:
             return _trivial_case()
         else:
             return res

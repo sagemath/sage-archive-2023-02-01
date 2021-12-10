@@ -1,11 +1,6 @@
 r"""
 Elements of finitely generated free graded left modules
 
-This class implements construction and basic manipulation of 
-elements of the Sage parent
-:class:`sage.modules.fp_graded.free_module.FreeModule`, which models
-free graded left modules over connected algebras.
-
 For an overview of the free module API, see :doc:`free_module`.
 
 AUTHORS:
@@ -73,9 +68,11 @@ class FreeGradedModuleElement(IndexedFreeModuleElement):
 
     def degree(self):
         r"""
-        The degree of this element.
+        The degree of ``self``.
 
-        OUTPUT: the integer degree of this element, or raise an error
+        OUTPUT:
+
+        The integer degree of this element, or raise an error
         if this is the zero element.
 
         EXAMPLES::
@@ -107,8 +104,7 @@ class FreeGradedModuleElement(IndexedFreeModuleElement):
             raise ValueError("the zero element does not have a well-defined degree")
         degrees = []
         try:
-            for g, c in zip(self.parent().generator_degrees(),
-                            self.coefficients()):
+            for g, c in zip(self.parent().generator_degrees(), self.coefficients()):
                 if c:
                     degrees.append(g + c.degree())
         except ValueError:
@@ -121,8 +117,8 @@ class FreeGradedModuleElement(IndexedFreeModuleElement):
 
 
     def lift_to_free(self):
-        """
-        This returns the module itself.
+        r"""
+        Return ``self``.
 
         It is provided for compatibility with the method of the same
         name for :class:`sage.modules.fp_graded.module.FPModule`.
@@ -143,7 +139,7 @@ class FreeGradedModuleElement(IndexedFreeModuleElement):
 
     def _repr_(self):
         r"""
-        Return a string representation of this element.
+        Return a string representation of ``self``.
 
         EXAMPLES::
 
@@ -173,9 +169,11 @@ class FreeGradedModuleElement(IndexedFreeModuleElement):
 
         INPUT:
 
-        - ``a`` -- an element of the algebra this module is defined over.
+        - ``a`` -- an element of the algebra the parent module is defined over
 
-        OUTPUT: the module element `a\cdot x` where `x` is this module element.
+        OUTPUT:
+
+        The module element `a \cdot x` where `x` is this module element.
 
         EXAMPLES::
 
@@ -207,14 +205,16 @@ class FreeGradedModuleElement(IndexedFreeModuleElement):
     @cached_method
     def vector_presentation(self):
         r"""
-        A coordinate vector representing this module element when it is non-zero.
+        A coordinate vector representing ``self`` when it is non-zero.
 
         These are coordinates with respect to the basis chosen by
         :meth:`sage.modules.fp_graded.free_module.FreeGradedModule.basis_elements`.
         When the element is zero, it has no well defined degree, and this
         function returns ``None``.
 
-        OUTPUT: A vector of elements in the ground field of the algebra for
+        OUTPUT:
+
+        A vector of elements in the ground field of the algebra for
         this module when this element is non-zero.  Otherwise, the value
         ``None``.
 
@@ -265,8 +265,9 @@ class FreeGradedModuleElement(IndexedFreeModuleElement):
         if self.is_zero():
              return None
 
-        bas_gen = self.parent().basis_elements(self.degree())
-        base_vec = self.parent().vector_presentation(self.degree())
+        P = self.parent()
+        bas_gen = P.basis_elements(self.degree())
+        base_vec = P.vector_presentation(self.degree())
 
         base_dict = dict(zip(bas_gen, base_vec.basis()))
 
@@ -275,7 +276,9 @@ class FreeGradedModuleElement(IndexedFreeModuleElement):
 
         vector = base_vec.zero()
         for summand_index, algebra_element in sparse_coeffs:
+            g = P.generator(summand_index)
             for scalar_coefficient, monomial in zip(algebra_element.coefficients(), algebra_element.monomials()):
-                vector += scalar_coefficient*base_dict[monomial*self.parent().generator(summand_index)]
+                vector += scalar_coefficient * base_dict[monomial * g]
 
         return vector
+

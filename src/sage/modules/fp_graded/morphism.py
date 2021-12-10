@@ -1,14 +1,6 @@
 r"""
 Homomorphisms of finitely presented graded modules
 
-This class implements construction and basic manipulation of elements of the
-Sage parent :class:`sage.modules.fp_graded.homspace.FPModuleHomspace`,
-which models homomorphisms of finitely presented graded modules over connected
-algebras.
-
-.. NOTE:: This class is intended for private use by its derived class
-          :class:`sage.modules.fp_steenrod.fpa_morphism.FPA_ModuleMorphism`.
-
 AUTHORS:
 
 - Robert R. Bruner, Michael J. Catanzaro (2012): Initial version.
@@ -29,19 +21,13 @@ AUTHORS:
 #                  https://www.gnu.org/licenses/
 # ****************************************************************************
 
-from __future__ import absolute_import
-from __future__ import print_function
-
-import sys
-
-from sage.categories.homset import End
-from sage.categories.homset import Hom
+from sage.categories.homset import End, Hom
 from sage.categories.morphism import Morphism
 from sage.misc.cachefunc import cached_method
 from sage.rings.infinity import PlusInfinity
 
 
-def _CreateRelationsMatrix(module, relations, source_degs, target_degs):
+def _create_relations_matrix(module, relations, source_degs, target_degs):
     r"""
     The action by the given relations can be written as multiplication by
     the matrix `R = (r_{ij})_{i,j}` where each entry is an algebra element and
@@ -54,17 +40,17 @@ def _CreateRelationsMatrix(module, relations, source_degs, target_degs):
 
     INPUT:
 
-    - ``module`` -- The module where the relations acts.
-    - ``relations`` -- A list of lists of algebra coefficients defining the
-      matrix `R`.
-    - ``source_degs`` -- A list of integer degrees.  Its length should be
-      equal to the number of columns of `R`.
-    - ``target_degs`` -- A list of integer degrees.  Its length should be
-      equal to the number of rows of `R`.
+    - ``module`` -- the module where the relations acts
+    - ``relations`` -- a list of lists of algebra coefficients defining the
+      matrix `R`
+    - ``source_degs`` -- a list of integer degrees; its length should be
+      equal to the number of columns of `R`
+    - ``target_degs`` -- a list of integer degrees; its length should be
+      equal to the number of rows of `R`
 
-    Furthermore must the degrees given by the input satisfy the following:
+    Furthermore must the degrees given by the input satisfy the following::
 
-        `\text{source_degs[j]} + \deg(r_{i,j}) = \text{target_degs[i]}`
+        source_degs[j] + deg(r[i,j]) = target_degs[i]
 
     for all `i, j`.
 
@@ -80,9 +66,9 @@ def _CreateRelationsMatrix(module, relations, source_degs, target_degs):
     TESTS::
 
         sage: from sage.modules.fp_graded.module import FPModule
-        sage: from sage.modules.fp_graded.morphism import _CreateRelationsMatrix
+        sage: from sage.modules.fp_graded.morphism import _create_relations_matrix
         sage: A = SteenrodAlgebra(p=2)
-        sage: blocks, R = _CreateRelationsMatrix(FPModule(A, [0]), [[Sq(2)]], [4], [6])
+        sage: blocks, R = _create_relations_matrix(FPModule(A, [0]), [[Sq(2)]], [4], [6])
 
         sage: blocks
           [[Vector space morphism represented by the matrix:
@@ -106,7 +92,7 @@ def _CreateRelationsMatrix(module, relations, source_degs, target_degs):
     """
     from sage.matrix.constructor import matrix
 
-    if len(relations) == 0:
+    if not relations:
         raise ValueError('no relations given, can not build matrix')
 
     # Create the block matrix of linear transformations.
@@ -142,8 +128,8 @@ def _CreateRelationsMatrix(module, relations, source_degs, target_degs):
 
     # Create a matrix from the matrix of linear transformations.
     entries = []
-    for j in range(len(block_matrix[0])):
-        for n in range(block_matrix[0][j].domain().dimension()):
+    for j, block in enumerate(block_matrix[0]):
+        for n in range(block.domain().dimension()):
             column = []
             for i in range(len(block_matrix)):
                 lin_trans = block_matrix[i][j]
@@ -159,14 +145,9 @@ class FPModuleMorphism(Morphism):
 
     INPUT:
 
-    - ``parent`` -- A homspace of finitely presented graded modules.
-    - ``values`` -- A list of elements in the codomain.  Each element
-      corresponds to a module generator in the domain.
-
-    .. NOTE:: Never use this constructor explicitly, but rather the parent's
-        call method, or this class' __call__ method.  The reason for this
-        is that the dynamic type of the element class changes as a
-        consequence of the category system.
+    - ``parent`` -- a homspace of finitely presented graded modules
+    - ``values`` -- a list of elements in the codomain; each element
+      corresponds to a module generator in the domain
 
     TESTS::
 
@@ -195,7 +176,9 @@ class FPModuleMorphism(Morphism):
         r"""
         Create a homomorphism between finitely presented graded modules.
 
-        OUTPUT: A module homomorphism defined by sending the generator
+        OUTPUT:
+
+        A module homomorphism defined by sending the generator
         with index `i` to the corresponding element in ``values``.
 
         TESTS::
@@ -213,7 +196,8 @@ class FPModuleMorphism(Morphism):
         if not isinstance(parent, FPModuleHomspace):
             raise TypeError('parent (=%s) must be a fp module hom space' % parent)
 
-        self.free_morphism = Hom(parent.domain().j.codomain(), parent.codomain().j.codomain())([v.lift_to_free() for v in values])
+        Homspace = Hom(parent.domain().j.codomain(), parent.codomain().j.codomain())
+        self.free_morphism = Homspace([v.lift_to_free() for v in values])
         self._values = values
 
         # Call the base class constructor.
@@ -229,13 +213,11 @@ class FPModuleMorphism(Morphism):
 
     def change_ring(self, algebra):
         r"""
-        Change the base ring of this module homomorphism.
+        Change the base ring of ``self``.
 
         INPUT:
 
-        - ``algebra`` -- a graded algebra.
-
-        OUTPUT: An instance of this class.
+        - ``algebra`` -- a graded algebra
 
         EXAMPLES::
 
@@ -268,9 +250,11 @@ class FPModuleMorphism(Morphism):
 
     def degree(self):
         r"""
-        The degree of this homomorphism.
+        The degree of ``self``.
 
-        OUTPUT: The integer degree of this homomorphism.
+        OUTPUT:
+
+        The integer degree of ``self``.
 
         EXAMPLES::
 
@@ -312,10 +296,11 @@ class FPModuleMorphism(Morphism):
 
     def values(self):
         r"""
-        The values under this homomorphism of the module generators of the
-        domain module.
+        The values under ``self`` of the module generators of the domain module.
 
-        OUTPUT: A sequence of module elements of the codomain.
+        OUTPUT:
+
+        A sequence of module elements of the codomain.
 
         EXAMPLES::
 
@@ -339,22 +324,7 @@ class FPModuleMorphism(Morphism):
 
     def _richcmp_(self, other, op):
         r"""
-        Compare this homomorphism to the given homomorphism.
-
-        Implementation of this function allows Sage to make sense of the ==
-        operator for instances of this class.
-
-        INPUT:
-
-        - ``other`` -- An instance of this class.
-
-        - ``op`` -- An integer specifying the comparison operation to be
-          carried out: If ``op`` == 2, then return ``True`` if and only if the
-          homomorphisms are equal.  If ``op`` == 3, then return ``True `` if
-          and only if the homomorphisms are not equal.  Otherwise,
-          return ``False``.
-
-        OUTPUT: A boolean.
+        Compare ``self`` to ``other``.
 
         EXAMPLES::
 
@@ -388,7 +358,7 @@ class FPModuleMorphism(Morphism):
 
     def __add__(self, g):
         r"""
-        The pointwise sum of this and the given homomorphism.
+        The pointwise sum of ``self`` and ``g``.
 
         Pointwise addition of two homomorphisms `f` and `g` with the same domain
         and codomain is given by the formula `(f+g)(x) = f(x) + g(x)` for
@@ -396,8 +366,7 @@ class FPModuleMorphism(Morphism):
 
         INPUT:
 
-        - ``g`` -- A homomorphism with the same domain and codomain as this
-          homomorphism.
+        - ``g`` -- a homomorphism with the same domain and codomain as ``self``
 
         EXAMPLES::
 
@@ -432,7 +401,7 @@ class FPModuleMorphism(Morphism):
 
     def __neg__(self):
         r"""
-        The additive inverse of this homomorphism with respect to the group
+        The additive inverse of ``self`` with respect to the group
         structure given by pointwise sum.
 
         EXAMPLES::
@@ -457,7 +426,7 @@ class FPModuleMorphism(Morphism):
 
     def __sub__(self, g):
         r"""
-        The difference between this and the given homomorphism, with
+        The difference between ``self`` and ``g`` with
         respect to the group structure given by pointwise sum.
 
         EXAMPLES::
@@ -487,8 +456,7 @@ class FPModuleMorphism(Morphism):
 
     def __mul__(self, g):
         r"""
-        The composition of the given homomorphism ``g``, followed by this
-        homomorphisms.
+        The composition of ``g`` followed by ``self``.
 
         EXAMPLES::
 
@@ -527,10 +495,11 @@ class FPModuleMorphism(Morphism):
     @cached_method
     def is_zero(self):
         r"""
-        Decide if this homomomorphism is the zero homomorphism.
+        Decide if ``self`` is the zero homomorphism.
 
-        OUTPUT: The boolean value ``True`` if this homomorphism is trivial, and
-        ``False`` otherwise.
+        OUTPUT:
+
+        The boolean value ``True`` if ``self`` is trivial and ``False`` otherwise.
 
         EXAMPLES::
 
@@ -547,13 +516,15 @@ class FPModuleMorphism(Morphism):
             sage: (f-f).is_zero()
             True
         """
-        return all([x.is_zero() for x in self._values])
+        return all(x.is_zero() for x in self._values)
+
+    __bool__ = is_zero
 
 
     @cached_method
     def is_identity(self):
         r"""
-        Decide if this homomomorphism is the identity endomorphism.
+        Decide if ``self`` is the identity endomorphism.
 
         EXAMPLES::
 
@@ -568,15 +539,13 @@ class FPModuleMorphism(Morphism):
             False
 
             sage: id = Hom(M, M)(M.generators()); id
-            The identity homomorphism.
+            The identity homomorphism
 
             sage: id.is_identity()
             True
         """
-        if self.parent().is_endomorphism_set():
-            return self.parent().identity() == self
-        else:
-            return False
+        return (self.parent().is_endomorphism_set() and
+                self.parent().identity() == self)
 
 
     def __call__(self, x):
@@ -585,9 +554,11 @@ class FPModuleMorphism(Morphism):
 
         INPUT:
 
-        -  ``x``  - An element of the domain of the homomorphism.
+        -  ``x`` -- an element of the domain of the homomorphism
 
-        OUTPUT: The module element of the codomain which is the value of ``x``
+        OUTPUT:
+
+        The module element of the codomain which is the value of ``x``
         under this homomorphism.
 
         EXAMPLES::
@@ -614,7 +585,7 @@ class FPModuleMorphism(Morphism):
 
     def _repr_(self):
         r"""
-        A string representation of this homomorphism.
+        A string representation of ``self``.
 
         EXAMPLES::
 
@@ -624,16 +595,17 @@ class FPModuleMorphism(Morphism):
             sage: N = FPModule(A, [2], [[Sq(4)]])
             sage: values = [Sq(5)*N.generator(0), Sq(3,1)*N.generator(0)]
             sage: Hom(M, N)(values)._repr_()
-            'Module homomorphism of degree 7 defined by sending the generators\n  [<1, 0>, <0, 1>]\nto\n  [<Sq(5)>, <Sq(3,1)>]'
+            'Module homomorphism of degree 7 defined by sending the generators\n
+              [<1, 0>, <0, 1>]\nto\n  [<Sq(5)>, <Sq(3,1)>]'
             sage: Hom(M, N).zero()._repr_()
-            'The trivial homomorphism.'
+            'The trivial homomorphism'
             sage: Hom(M, M).identity()._repr_()
-            'The identity homomorphism.'
+            'The identity homomorphism'
         """
         if self.is_zero():
-            return "The trivial homomorphism."
+            return "The trivial homomorphism"
         elif self.is_identity():
-            return "The identity homomorphism."
+            return "The identity homomorphism"
         else:
             return "Module homomorphism of degree %d defined by sending "\
                 "the generators\n  %s\nto\n  %s" % (self.degree(), self.domain().generators(), self._values)
@@ -642,8 +614,7 @@ class FPModuleMorphism(Morphism):
     @cached_method
     def vector_presentation(self, n):
         r"""
-        The restriction of this homomorphism to the domain module elements of
-        degree ``n``.
+        The restriction of ``self`` to the domain module elements of degree ``n``.
 
         The restriction of a non-zero module homomorphism to the vectorspace of
         module elements of degree `n` is a linear function into the vectorspace
@@ -656,9 +627,11 @@ class FPModuleMorphism(Morphism):
 
         INPUT:
 
-        - ``n`` -- An integer degree.
+        - ``n`` -- an integer degree
 
-        OUTPUT: A linear function of finite dimensional vectorspaces over the
+        OUTPUT:
+
+        A linear function of finite dimensional vector spaces over the
         ground field of the algebra for this module.  The domain is isomorphic
         to the vectorspace of domain elements of degree ``n`` of this free
         module, via the choice of basis given by
@@ -741,20 +714,22 @@ class FPModuleMorphism(Morphism):
 
         values = [self(e) for e in self.domain().basis_elements(n)]
 
-        return Hom(D_n, C_n)([
-            C_n.zero() if e.is_zero() else e.vector_presentation() for e in values])
+        return Hom(D_n, C_n)([C_n.zero() if e.is_zero() else e.vector_presentation()
+                              for e in values])
 
 
     def solve(self, x):
         r"""
-        Find an element in the inverse image of the given element.
+        Find an element in the inverse image of ``x``.
 
         INPUT:
 
-        - ``x`` -- An element of the codomain of this morphism.
+        - ``x`` -- an element of the codomain of this morphism
 
-        OUTPUT: An element of the domain which maps to ``x`` under this
-        morphism, or ``None`` if ``x`` was not in the image of this morphism.
+        OUTPUT:
+
+        An element of the domain which maps to ``x`` under this morphism
+        or ``None`` if ``x`` was not in the image of this morphism.
 
         EXAMPLES::
 
@@ -770,7 +745,8 @@ class FPModuleMorphism(Morphism):
             sage: y == f(x)
             True
 
-        Trying to lift an element which is not in the image results in a ``None`` value::
+        Trying to lift an element which is not in the image results
+        in a ``None`` value::
 
             sage: z = f.solve(Sq(1)*N.generator(0))
             sage: z is None
@@ -815,13 +791,13 @@ class FPModuleMorphism(Morphism):
 
         INPUT:
 
-        - ``f`` -- A homomorphism with codomain equal to the codomain of this
-          homomorphism.
-        - ``verbose`` -- A boolean to enable progress messages. (optional,
-          default: ``False``)
+        - ``f`` -- a homomorphism with codomain equal to the codomain of ``self``
+        - ``verbose`` -- boolean (default: ``False``); enable progress messages
 
-        OUTPUT: A homomorphism `g` with the property that this homomorphism
-        equals `f\circ g`.  If no lift exist, ``None`` is returned.
+        OUTPUT:
+
+        A homomorphism `g` with the property that ``self`` equals `f \circ g`.
+        If no lift exist, ``None`` is returned.
 
         ALGORITHM:
 
@@ -836,7 +812,9 @@ class FPModuleMorphism(Morphism):
 
         Let `k \in \ker(f)` solve the matrix equation:
 
-            `R\cdot k = R\cdot x`.
+        .. MATH::
+
+            R \cdot k = R \cdot x.
 
         Define a module homomorphism by sending the generators of `L` to 
         `x_1 - k_1, \ldots, x_N - k_N`.  This is well defined, and is also a 
@@ -875,7 +853,7 @@ class FPModuleMorphism(Morphism):
             sage: # We can construct a splitting of `q` manually:
             sage: split = Hom(HZ,A_plus_HZ)([A_plus_HZ.generator(1)])
             sage: q*split
-            The identity homomorphism.
+            The identity homomorphism
             sage: # Thus, lifting the identity homomorphism over `q` should be possible:
             sage: id = Hom(HZ,HZ).identity()
             sage: j = id.lift(q); j
@@ -884,7 +862,7 @@ class FPModuleMorphism(Morphism):
             to
               [<0, 1>]
             sage: q*j
-            The identity homomorphism.
+            The identity homomorphism
 
         Lifting over the inclusion of the image sub module::
 
@@ -898,14 +876,15 @@ class FPModuleMorphism(Morphism):
             to
               [<1>]
 
-        When a lift cannot be found, the ``None`` value is returned.  By setting the
-        verbose argument to ``True``, an explanation of why the lifting failed will
-        be displayed::
+        When a lift cannot be found, the ``None`` value is returned.  By
+        setting the verbose argument to ``True``, an explanation of why
+        the lifting failed will be displayed::
 
             sage: F2 = FPModule(A, [0,0])
             sage: non_surjection = Hom(F2, F2)([F2([1, 0]), F2([0, 0])])
             sage: lift = Hom(F2, F2).identity().lift(non_surjection, verbose=True)
-            The generators of the domain of this homomorphism do not map into the image of the homomorphism we are lifting over.
+            The generators of the domain of this homomorphism do not map into
+             the image of the homomorphism we are lifting over.
             sage: lift is None
             True
 
@@ -916,23 +895,26 @@ class FPModuleMorphism(Morphism):
             sage: # The trivial map often involved in corner cases..
             sage: trivial_map = Hom(FPModule(A, [0]), FPModule(A, [])).zero()
             sage: trivial_map.lift(trivial_map)
-            The trivial homomorphism.
+            The trivial homomorphism
 
             sage: F = FPModule(A, [0])
             sage: HZ = FPModule(A, [0], relations=[[Sq(1)]])
             sage: f = Hom(F,HZ)(HZ.generators())
             sage: split = Hom(HZ, HZ).identity().lift(f, verbose=True)
-            The homomorphism cannot be lifted in any way such that the relations of the domain are respected: matrix equation has no solutions
+            The homomorphism cannot be lifted in any way such that the relations
+             of the domain are respected: matrix equation has no solutions
             sage: split is None
             True
 
             sage: Hom(F, F).identity().lift(f, verbose=true)
             Traceback (most recent call last):
             ...
-            ValueError: the codomains of this homomorphism and the homomorphism we are lifting over are different
+            ValueError: the codomains of this homomorphism and the homomorphism
+             we are lifting over are different
 
             sage: f.lift(Hom(HZ, HZ).zero(), verbose=True)
-            This homomorphism cannot lift over a trivial homomorphism since it is non-trivial.
+            This homomorphism cannot lift over a trivial homomorphism since
+             it is non-trivial.
 
             sage: Ap = SteenrodAlgebra(p=2, profile=(2,2,2,1))
             sage: Hko = FPModule(Ap, [0], [[Sq(2)], [Sq(1)]])
@@ -976,8 +958,8 @@ class FPModuleMorphism(Morphism):
 
         # It is an error to call this function with incompatible arguments.
         if not f.codomain() is N:
-            raise ValueError('the codomains of this homomorphism and the homomorphism '\
-                'we are lifting over are different')
+            raise ValueError('the codomains of this homomorphism and the homomorphism '
+                             'we are lifting over are different')
 
         # The trivial map lifts over any other map.
         if self.is_zero():
@@ -986,7 +968,8 @@ class FPModuleMorphism(Morphism):
         # A non-trivial map never lifts over the trivial map.
         if f.is_zero():
             if verbose:
-                print('This homomorphism cannot lift over a trivial homomorphism since it is non-trivial.')
+                print('This homomorphism cannot lift over a trivial homomorphism'
+                      ' since it is non-trivial.')
             return None
 
         xs = [f.solve(self(g)) for g in L.generators()]
@@ -995,7 +978,7 @@ class FPModuleMorphism(Morphism):
         # hope finding a lift.
         if None in xs:
             if verbose:
-                print('The generators of the domain of this homomorphism do '\
+                print('The generators of the domain of this homomorphism do '
                       'not map into the image of the homomorphism we are lifting over.')
             return None
 
@@ -1040,7 +1023,7 @@ class FPModuleMorphism(Morphism):
         if all_zero:
             return Hom(L, M)(xs)
 
-        block_matrix, R = _CreateRelationsMatrix(
+        block_matrix, R = _create_relations_matrix(
             K, [r.coefficients() for r in L.relations()], source_degs, target_degs)
 
         try:
@@ -1077,16 +1060,17 @@ class FPModuleMorphism(Morphism):
 
     def split(self, verbose=False):
         r"""
-        A split of this homomorphism.
+        Return a split of ``self``.
 
         INPUT:
 
-        - ``verbose`` -- A boolean to enable progress messages. (optional,
-          default: ``False``)
+        - ``verbose`` --  boolean (default: ``False``); enable progress messages
 
-        OUTPUT: A homomorphism with the property that the composite
-        homomorphism `self \circ f = id` is the identity homomorphism.  If no
-        such split exist, ``None`` is returned.
+        OUTPUT:
+
+        A homomorphism with the property that the composite homomorphism
+        `S \circ f = id`, where `S` is ``self``, is The identity homomorphism
+        If no such split exist, ``None`` is returned.
 
         EXAMPLES::
 
@@ -1102,7 +1086,7 @@ class FPModuleMorphism(Morphism):
               [<0, 1>]
             sage: # Verify that `s` is a splitting:
             sage: p*s
-            The identity homomorphism.
+            The identity homomorphism
 
         TESTS::
 
@@ -1110,10 +1094,12 @@ class FPModuleMorphism(Morphism):
             sage: N = FPModule(A, [0], [[Sq(1)]])
             sage: p = Hom(F, N)([N.generator(0)])
             sage: p.split(verbose=True) is None
-            The homomorphism cannot be lifted in any way such that the relations of the domain are respected: matrix equation has no solutions
+            The homomorphism cannot be lifted in any way such that the relations
+             of the domain are respected: matrix equation has no solutions
             True
 
         .. SEEALSO::
+
             :meth:`lift`
         """
         id = End(self.codomain()).identity()
@@ -1122,8 +1108,8 @@ class FPModuleMorphism(Morphism):
 
     def homology(self, f, top_dim=None, verbose=False):
         r"""
-        Compute the sub-quotient module `H(self, f) = \ker(self)/\operatorname{im}(f)`, in
-        a range of degrees.
+        Compute the sub-quotient module `H(self, f) =
+        \ker(self)/\operatorname{im}(f)` in a range of degrees.
 
         For a pair of composable morphisms `f: M\to N` and `g: N \to Q` of
         finitely presented modules, the homology module is a finitely
@@ -1131,23 +1117,21 @@ class FPModuleMorphism(Morphism):
 
         INPUT:
 
-        - ``f`` -- A homomorphism with codomain equal to the domain of this
-          homomorphism, and image contained in the kernel of this homomorphism.
+        - ``f`` -- a homomorphism with codomain equal to the domain of ``self``
+          and image contained in the kernel of this homomorphism
+        - ``top_dim`` -- integer (optional); used by this function to stop the
+          computation at the given degree
+        - ``verbose`` -- boolean (default: ``False``) enable progress messages
 
-        - ``top_dim`` -- An integer used by this function to stop the
-          computation at the given degree, or the value ``None`` if no termination
-          should be enforced.  (optional, default: ``None``)
+        OUTPUT:
 
-        - ``verbose`` -- A boolean to enable progress messages.  (optional,
-          default: ``False``)
-
-        OUTPUT: A quotient homomorphism `\ker(self) \to H`, where `H` is
-        isomorphic to `H(self, f)` in degrees less than or equal to ``top_dim``.
+        A quotient homomorphism `\ker(self) \to H`, where `H` is isomorphic
+        to `H(self, f)` in degrees less than or equal to ``top_dim``.
 
         .. NOTE::
 
-            If the algebra for this module is finite, then no ``top_dim``
-            needs to be specified in order to ensure that this function terminates.
+            If the algebra for this module is finite, then no ``top_dim`` needs
+            to be specified in order to ensure that this function terminates.
 
         EXAMPLES::
 
@@ -1160,7 +1144,8 @@ class FPModuleMorphism(Morphism):
             sage: g = Hom(F, M)([A.Sq(4)*A.Sq(1,2)*M.generator(0)])
             sage: ho = f.homology(g)
             sage: ho.codomain()
-            Finitely presented left module on 1 generator and 5 relations over sub-Hopf algebra of mod 2 Steenrod algebra, milnor basis, profile function [3, 2, 1]
+            Finitely presented left module on 1 generator and 5 relations over
+             sub-Hopf algebra of mod 2 Steenrod algebra, milnor basis, profile function [3, 2, 1]
             sage: ho.codomain().is_trivial()
             False
         """
@@ -1168,8 +1153,8 @@ class FPModuleMorphism(Morphism):
         f_ = f.lift(k)
         if f_ is None:
             raise ValueError('the image of the given homomorphism is not contained '
-                 'in the kernel of this homomorphism.  The homology is '
-                 'therefore not defined for this pair of maps')
+                             'in the kernel of this homomorphism; the homology is '
+                             'therefore not defined for this pair of maps')
 
         return f_.cokernel()
 
@@ -1180,10 +1165,11 @@ class FPModuleMorphism(Morphism):
 
         INPUT:
 
-        - ``t`` -- An integer by which the morphism is suspended.
+        - ``t`` -- an integer by which the morphism is suspended
 
-        OUTPUT: The morphism which is the suspension of this morphism by the
-        degree ``t``.
+        OUTPUT:
+
+        The morphism which is the suspension of ``self`` by the degree ``t``.
 
         EXAMPLES::
 
@@ -1219,17 +1205,19 @@ class FPModuleMorphism(Morphism):
         """
         if t == 0:
             return self
-        else:
-            D = self.domain().suspension(t)
-            C = self.codomain().suspension(t)
-            return Hom(D, C)([C(x.lift_to_free().dense_coefficient_list()) for x in self._values])
+
+        D = self.domain().suspension(t)
+        C = self.codomain().suspension(t)
+        return Hom(D, C)([C(x.lift_to_free().dense_coefficient_list()) for x in self._values])
 
 
     def cokernel(self):
         r"""
-        Compute the cokernel of this homomorphism.
+        Compute the cokernel of ``self``.
 
-        OUTPUT: The natural projection from the codomain of this homomorphism
+        OUTPUT:
+
+        The natural projection from the codomain of this homomorphism
         to its cokernel.
 
         EXAMPLES::
@@ -1264,18 +1252,17 @@ class FPModuleMorphism(Morphism):
 
     def kernel(self, top_dim=None, verbose=False):
         r"""
-        Compute the kernel of this homomorphism.
+        Compute the kernel of ``self``.
 
         INPUT:
 
-        - ``top_dim`` -- An integer used by this function to stop the
-          computation at the given degree, or the value ``None`` if no
-          termination should be enforced.  (optional, default: ``None``)
+        - ``top_dim`` -- integer (optional); used by this function to stop the
+          computation at the given degree
+        - ``verbose`` -- boolean (default: ``False``) enable progress messages
 
-        - ``verbose`` -- A boolean to enable progress messages. (optional,
-          default: ``False``)
+        OUTPUT:
 
-        OUTPUT: A homomorphism into `\ker(self)` which is an isomorphism in
+        A homomorphism into `\ker(self)` which is an isomorphism in
         degrees less than or equal to ``top_dim``.
 
         .. NOTE::
@@ -1304,9 +1291,11 @@ class FPModuleMorphism(Morphism):
 
             sage: K = f.kernel(verbose=True, top_dim=17)
             1. Computing the generators of the kernel presentation:
-            Resolving the kernel in the range of dimensions [0, 17]: 0 1 2 3 4 5 6 7 8 9 10 11 12 13 14 15 16 17.
+            Resolving the kernel in the range of dimensions [0, 17]:
+             0 1 2 3 4 5 6 7 8 9 10 11 12 13 14 15 16 17.
             2. Computing the relations of the kernel presentation:
-            Resolving the kernel in the range of dimensions [7, 17]: 7 8 9 10 11 12 13 14 15 16 17.
+            Resolving the kernel in the range of dimensions [7, 17]:
+             7 8 9 10 11 12 13 14 15 16 17.
 
             sage: K.domain().generators()
             [<1>]
@@ -1339,19 +1328,18 @@ class FPModuleMorphism(Morphism):
 
     def image(self, top_dim=None, verbose=False):
         r"""
-        Compute the image of this homomorphism.
+        Compute the image of ``self``.
 
         INPUT:
 
-        - ``top_dim`` -- An integer used by this function to stop the
-          computation at the given degree, or the value ``None`` if no
-          termination should be enforced.  (optional, default: ``None``)
+        - ``top_dim`` -- integer (optional); used by this function to stop the
+          computation at the given degree
+        - ``verbose`` -- boolean (default: ``False``) enable progress messages
 
-        - ``verbose`` -- A boolean to enable progress messages. (optional,
-          default: ``False``)
+        OUTPUT:
 
-        OUTPUT: A homomorphism into `\operatorname{im}(self)` which is an
-        isomorphism in degrees less than or equal to ``top_dim``.
+        A homomorphism into `\operatorname{im}(self)` that is an
+        isomorphism in degrees less than or equal to ``top_dim``
 
         .. NOTE::
 
@@ -1379,9 +1367,11 @@ class FPModuleMorphism(Morphism):
             sage: f = H([F2([1]), F2([0])])
             sage: K = f.image(verbose=True, top_dim=17)
             1. Computing the generators of the image presentation:
-            Resolving the image in the range of dimensions [0, 17]: 0 1 2 3 4 5 6 7 8 9 10 11 12 13 14 15 16 17.
+            Resolving the image in the range of dimensions [0, 17]:
+             0 1 2 3 4 5 6 7 8 9 10 11 12 13 14 15 16 17.
             2. Computing the relations of the image presentation:
-            Resolving the kernel in the range of dimensions [0, 17]: 0 1 2 3 4 5 6 7 8 9 10 11 12 13 14 15 16 17.
+            Resolving the kernel in the range of dimensions [0, 17]:
+             0 1 2 3 4 5 6 7 8 9 10 11 12 13 14 15 16 17.
 
             sage: K.is_injective()  # long time
             True
@@ -1410,16 +1400,13 @@ class FPModuleMorphism(Morphism):
 
     def is_injective(self, top_dim=None, verbose=False):
         r"""
-        Return ``True`` if and only if this homomorphism has a trivial kernel.
+        Return ``True`` if and only if ``self`` has a trivial kernel.
 
         INPUT:
 
-        - ``top_dim`` -- An integer used by this function to stop the
-          computation at the given degree, or the value ``None`` if no termination
-          should be enforced.  (optional, default: ``None``)
-
-        - ``verbose`` -- A boolean to enable progress messages. (optional,
-          default: ``False``)
+        - ``top_dim`` -- integer (optional); used by this function to stop the
+          computation at the given degree
+        - ``verbose`` -- boolean (default: ``False``) enable progress messages
 
         EXAMPLES::
 
@@ -1446,7 +1433,7 @@ class FPModuleMorphism(Morphism):
 
     def is_surjective(self):
         r"""
-        Return ``True`` if and only if this homomorphism has a trivial cokernel.
+        Return ``True`` if and only if ``self`` has a trivial cokernel.
 
         EXAMPLES::
 
@@ -1470,21 +1457,19 @@ class FPModuleMorphism(Morphism):
 
     def _resolve_kernel(self, top_dim=None, verbose=False):
         r"""
-        Resolve the kernel of this homomorphism by a free module.
+        Resolve the kernel of ``self`` by a free module.
 
         INPUT:
 
-        - ``top_dim`` -- An integer used by this function to stop the
-          computation at the given degree, or the value ``None`` if no termination
-          should be enforced.  (optional, default: ``None``)
+        - ``top_dim`` -- integer (optional); used by this function to stop the
+          computation at the given degree
+        - ``verbose`` -- boolean (default: ``False``) enable progress messages
 
-        - ``verbose`` -- A boolean to enable progress messages. (optional,
-          default: ``False``)
+        OUTPUT:
 
-        OUTPUT: A homomorphism `j: F \rightarrow D` where `D` is the domain of
-        this homomorphism, `F` is free and such that
-        `\ker(self) = \operatorname{im}(j)` in all degrees less than or equal
-        to ``top_dim``.
+        A homomorphism `j: F \rightarrow D` where `D` is the domain of ``self``,
+        where `F` is free and such that `\ker(self) = \operatorname{im}(j)`
+        in all degrees less than or equal to ``top_dim``.
 
         .. NOTE::
 
@@ -1563,7 +1548,6 @@ class FPModuleMorphism(Morphism):
 
             if verbose:
                 print(' %d' % n, end='')
-                sys.stdout.flush()
 
             # We have taken care of the case when self is zero, so the
             # vector presentation exists.
@@ -1609,19 +1593,18 @@ class FPModuleMorphism(Morphism):
 
     def _resolve_image(self, top_dim=None, verbose=False):
         r"""
-        Resolve the image of this homomorphism by a free module.
+        Resolve the image of ``self`` by a free module.
 
         INPUT:
 
-        - ``top_dim`` -- An integer used by this function to stop the
-          computation at the given degree, or the value ``None`` if no termination
-          should be enforced.  (optional, default: ``None``)
+        - ``top_dim`` -- integer (optional); used by this function to stop the
+          computation at the given degree
+        - ``verbose`` -- boolean (default: ``False``) enable progress messages
 
-        - ``verbose`` -- A boolean to enable progress messages. (optional,
-          default: ``False``)
+        OUTPUT:
 
-        OUTPUT: A homomorphism `j: F \rightarrow C` where `C` is the codomain
-        of this homomorphism, `F` is free, and
+        A homomorphism `j: F \rightarrow C` where `C` is the codomain
+        of ``self``, where `F` is free, and
         `\operatorname{im}(self) = \operatorname{im}(j)` in all degrees less
         than or equal to ``top_dim``.
 
@@ -1701,7 +1684,6 @@ class FPModuleMorphism(Morphism):
 
             if verbose:
                 print(' %d' % n, end='')
-                sys.stdout.flush()
 
             self_n = self.vector_presentation(n - self_degree)
             image_n = self_n.image()
@@ -1746,10 +1728,12 @@ class FPModuleMorphism(Morphism):
 
     def to_fp_module(self):
         r"""
-        Create a finitely presented module from this morphism.
+        Create a finitely presented module from ``self``.
 
-        OUTPUT: The finitely presented module having presentation
-        equal to this morphism, as long as the domain and codomain are free.
+        OUTPUT:
+
+        The finitely presented module having presentation equal to ``self``
+        as long as the domain and codomain are free.
 
         EXAMPLES::
 
@@ -1760,7 +1744,8 @@ class FPModuleMorphism(Morphism):
             sage: v = F2([Sq(2)])
             sage: pres = Hom(F1, F2)([v])
             sage: M = pres.to_fp_module(); M
-            Finitely presented left module on 1 generator and 1 relation over mod 2 Steenrod algebra, milnor basis
+            Finitely presented left module on 1 generator and 1 relation over
+             mod 2 Steenrod algebra, milnor basis
             sage: M.generator_degrees()
             (0,)
             sage: M.relations()

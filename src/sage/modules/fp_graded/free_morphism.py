@@ -1,12 +1,6 @@
 r"""
 Homomorphisms of finitely generated free graded left modules
 
-This class implements construction and basic manipulation of elements
-of the Sage parent
-:class:`sage.modules.fp_graded.free_homspace.FreeGradedModuleHomspace`,
-which models homomorphisms of free graded left modules over connected
-algebras.
-
 For an overview of the free module API, see :doc:`free_module`.
 
 AUTHORS:
@@ -29,8 +23,6 @@ AUTHORS:
 #                  https://www.gnu.org/licenses/
 # ****************************************************************************
 
-from __future__ import absolute_import
-
 from inspect import isfunction
 
 from sage.categories.homset import Hom
@@ -43,11 +35,11 @@ class FreeGradedModuleMorphism(Morphism):
 
     INPUT:
 
-    - ``parent`` -- A homspace in the category of finitely generated free
-        modules.
+    - ``parent`` -- a homspace in the category of finitely generated free
+      modules
 
-    - ``values`` -- A list of elements in the codomain.  Each element
-        corresponds (by their ordering) to a module generator in the domain.
+    - ``values`` -- a list of elements in the codomain; each element
+      corresponds (by their ordering) to a module generator in the domain
 
     EXAMPLES::
 
@@ -82,10 +74,7 @@ class FreeGradedModuleMorphism(Morphism):
 
     def __init__(self, parent, values):
         r"""
-        Create a homomorphism between finitely generated free graded modules.
-
-        OUTPUT: A module homomorphism defined by sending each
-        generator to its corresponding value.
+        Initialize ``self``.
 
         TESTS::
 
@@ -102,7 +91,6 @@ class FreeGradedModuleMorphism(Morphism):
         if not isinstance(parent, FreeGradedModuleHomspace):
             raise TypeError('the parent (%s) must be a f.p. free module homset' % parent)
 
-
         # Get the values.
         C = parent.codomain()
         D = parent.domain()
@@ -115,8 +103,8 @@ class FreeGradedModuleMorphism(Morphism):
 
         # Check the homomorphism is well defined.
         if len(D.generator_degrees()) != len(_values):
-            raise ValueError('the number of values must equal the number of '\
-                'generators in the domain.  Invalid argument: %s' % _values)
+            raise ValueError('the number of values must equal the number of '
+                'generators in the domain; invalid argument: %s' % _values)
 
         # Compute the degree.
         if all(v.is_zero() for v in _values):
@@ -142,9 +130,11 @@ class FreeGradedModuleMorphism(Morphism):
 
     def degree(self):
         r"""
-        The degree of this homomorphism.
+        The degree of ``self``.
 
-        OUTPUT: The degree of this homomorphism. Raise an error if this is
+        OUTPUT:
+
+        The degree of this homomorphism. Raise an error if this is
         the trivial homomorphism.
 
         EXAMPLES::
@@ -173,10 +163,12 @@ class FreeGradedModuleMorphism(Morphism):
 
     def values(self):
         r"""
-        The values under this homomorphism corresponding to the generators of
+        The values under ``self`` corresponding to the generators of
         the domain module.
 
-        OUTPUT: A sequence of elements of the codomain module.
+        OUTPUT:
+
+        A sequence of elements of the codomain module.
 
         EXAMPLES::
 
@@ -198,18 +190,6 @@ class FreeGradedModuleMorphism(Morphism):
         r"""
         Compare this homomorphism to the given homomorphism.
 
-        INPUT:
-
-        - ``other`` -- An instance of this class.
-
-        - ``op`` -- An integer specifying the comparison operation to be
-          carried out: If ``op`` == 2, then return ``True`` if and only if the
-          homomorphisms are equal.  If ``op`` == 3, then return ``True `` if
-          and only if the homomorphisms are not equal.  Otherwise,
-          return ``False``.
-
-        OUTPUT: A boolean.
-
         EXAMPLES::
 
             sage: from sage.modules.fp_graded.free_module import FreeGradedModule
@@ -223,7 +203,6 @@ class FreeGradedModuleMorphism(Morphism):
             sage: f._richcmp_(f, op=3)
             False
         """
-
         try:
             same = (self - other).is_zero()
         except ValueError:
@@ -242,19 +221,15 @@ class FreeGradedModuleMorphism(Morphism):
 
     def _add_(self, g):
         r"""
-        The pointwise sum of this and the given homomorphism.
+        The pointwise sum of `self`` and ``g``.
 
-        Pointwise addition of two homomorphisms `f` and `g` with the same domain
-        and codomain is given by the formula `(f+g)(x) = f(x) + g(x)` for
-        every `x` in the domain of `f`.
+        Pointwise addition of two homomorphisms `f` and `g` with the same
+        domain and codomain is given by the formula `(f+g)(x) = f(x) + g(x)`
+        for every `x` in the domain of `f`.
 
         INPUT:
 
-        - ``g`` -- A homomorphism with the same domain and codomain as this
-          homomorphism.
-
-        OUTPUT: The pointwise sum homomorphism of this and the given
-        homomorphism.
+        - ``g`` -- a homomorphism with the same domain and codomain as ``self``
 
         EXAMPLES::
 
@@ -290,10 +265,8 @@ class FreeGradedModuleMorphism(Morphism):
 
     def _neg_(self):
         r"""
-        The additive inverse of this homomorphism with respect to the group
+        The additive inverse of ``self`` with respect to the group
         structure given by pointwise sum.
-
-        OUTPUT: An instance of this class.
 
         EXAMPLES::
 
@@ -316,9 +289,7 @@ class FreeGradedModuleMorphism(Morphism):
 
     def _sub_(self, g):
         r"""
-        The pointwise difference between this and the given homomorphism.
-
-        OUTPUT: An instance of this class.
+        The pointwise difference between ``self`` and ``g``.
 
         EXAMPLES::
 
@@ -331,7 +302,7 @@ class FreeGradedModuleMorphism(Morphism):
             sage: values2 = [Sq(5)*N.generator(0), Sq(3,1)*N.generator(0)]
             sage: g = homspace(values2)
             sage: f - g
-            The trivial homomorphism.
+            The trivial homomorphism
         """
         return self + (-g)
 
@@ -340,11 +311,7 @@ class FreeGradedModuleMorphism(Morphism):
     # "multiplication" by morphisms from different homsets.
     def __mul__(self, g):
         r"""
-        The composition of the given homomorphism ``g``, followed by this
-        homomorphism.
-
-        OUTPUT: A homomorphism from the domain of this homomorphism, into the
-        codomain of the homomorphism ``g``.
+        The composition of ``g`` followed by ``self``.
 
         EXAMPLES::
 
@@ -386,9 +353,11 @@ class FreeGradedModuleMorphism(Morphism):
 
     def is_zero(self):
         r"""
-        Decide if this homomomorphism is trivial.
+        Decide if ``self`` is trivial.
 
-        OUTPUT: The boolean value ``True`` if this homomorphism is trivial, and
+        OUTPUT:
+
+        The boolean value ``True`` if this homomorphism is trivial, and
         ``False`` otherwise.
 
         EXAMPLES::
@@ -406,13 +375,17 @@ class FreeGradedModuleMorphism(Morphism):
         """
         return all(v.is_zero() for v in self.values())
 
+    __bool__ = is_zero
+
 
     def is_identity(self):
         r"""
-        Decide if this homomomorphism is the identity endomorphism.
+        Return if ``self`` is the identity endomorphism.
 
-        OUTPUT: The boolean value ``True`` if this homomorphism is the
-        identity, and ``False`` otherwise.
+        OUTPUT:
+
+        The boolean value ``True`` if this homomorphism is the identity
+        and ``False`` otherwise.
 
         EXAMPLES::
 
@@ -425,15 +398,12 @@ class FreeGradedModuleMorphism(Morphism):
             sage: f.is_identity()
             False
             sage: id = Hom(M, M)(M.generators()); id
-            The identity homomorphism.
+            The identity homomorphism
             sage: id.is_identity()
             True
         """
-        if self.parent().is_endomorphism_set():
-            return self.parent().identity() == self
-        else:
-            return False
-
+        return (self.parent().is_endomorphism_set() and
+                self.parent().identity() == self)
 
     def __call__(self, x):
         r"""
@@ -441,9 +411,11 @@ class FreeGradedModuleMorphism(Morphism):
 
         INPUT:
 
-        - ``x`` -- An element of the domain of this morphism.
+        - ``x`` -- an element of the domain of this morphism
 
-        OUTPUT: The module element of the codomain which is the value of ``x``
+        OUTPUT:
+
+        The module element of the codomain which is the value of ``x``
         under this homomorphism.
 
         EXAMPLES::
@@ -462,15 +434,15 @@ class FreeGradedModuleMorphism(Morphism):
         if x.parent() != self.domain():
             raise ValueError('cannot evaluate morphism on element not in the domain')
 
-        value = sum([c*v for c, v in zip(
-            x.dense_coefficient_list(), self.values())], self.codomain()(0))
+        value = sum((c * v for c, v in zip(x.dense_coefficient_list(), self.values())),
+                    self.codomain().zero())
 
         return value
 
 
     def _repr_(self):
         r"""
-        A string representation of this homomorphism.
+        A string representation of ``self``.
 
         EXAMPLES::
 
@@ -481,18 +453,19 @@ class FreeGradedModuleMorphism(Morphism):
             sage: values = [Sq(5)*N.generator(0), Sq(3,1)*N.generator(0)]
 
             sage: Hom(M, N)(values)._repr_()
-            'Module homomorphism of degree 7 defined by sending the generators\n  [<1, 0>, <0, 1>]\nto\n  [<Sq(5)>, <Sq(3,1)>]'
+            'Module homomorphism of degree 7 defined by sending the generators\n
+              [<1, 0>, <0, 1>]\nto\n  [<Sq(5)>, <Sq(3,1)>]'
 
             sage: Hom(M, N).zero()._repr_()
-            'The trivial homomorphism.'
+            'The trivial homomorphism'
 
             sage: Hom(M, M).identity()._repr_()
-            'The identity homomorphism.'
+            'The identity homomorphism'
         """
         if self.is_zero():
-            return "The trivial homomorphism."
+            return "The trivial homomorphism"
         elif self.is_identity():
-            return "The identity homomorphism."
+            return "The identity homomorphism"
         else:
             r = "Module homomorphism of degree {} defined by sending the generators\n  {}\nto\n  {}"
             return r.format(self.degree(), self.domain().generators(), self.values())
@@ -500,8 +473,7 @@ class FreeGradedModuleMorphism(Morphism):
 
     def vector_presentation(self, n):
         r"""
-        The restriction of this homomorphism to the domain module elements of
-        degree ``n``.
+        The restriction of ``self`` to the domain module elements of degree ``n``.
 
         The restriction of a non-zero module homomorphism to the vector space of
         module elements of degree `n` is a linear function into the vector space
@@ -514,9 +486,11 @@ class FreeGradedModuleMorphism(Morphism):
 
         INPUT:
 
-        - ``n`` -- An integer degree.
+        - ``n`` -- an integer degree
 
-        OUTPUT: A linear function of finite dimensional vector spaces over the
+        OUTPUT:
+
+        A linear function of finite dimensional vector spaces over the
         ground field of the algebra for this module.  The domain is isomorphic
         to the vector space of domain elements of degree ``n`` of this free
         module, via the choice of basis given by
@@ -579,10 +553,11 @@ class FreeGradedModuleMorphism(Morphism):
 
     def to_fp_module(self):
         r"""
-        Create a finitely presented module from this morphism.
+        Create a finitely presented module from ``self``.
 
-        OUTPUT: The finitely presented module having presentation
-        equal to this morphism.
+        OUTPUT:
+
+        The finitely presented module with presentation equal to ``self``.
 
         EXAMPLES::
 
@@ -593,7 +568,8 @@ class FreeGradedModuleMorphism(Morphism):
             sage: v = F2([Sq(2)])
             sage: pres = Hom(F1, F2)([v])
             sage: M = pres.to_fp_module(); M
-            Finitely presented left module on 1 generator and 1 relation over mod 2 Steenrod algebra, milnor basis
+            Finitely presented left module on 1 generator and 1 relation over
+             mod 2 Steenrod algebra, milnor basis
             sage: M.generator_degrees()
             (0,)
             sage: M.relations()
@@ -603,3 +579,4 @@ class FreeGradedModuleMorphism(Morphism):
         return FPModule(algebra=self.base_ring(),
                          generator_degrees=self.codomain().generator_degrees(),
                          relations=tuple([r.dense_coefficient_list() for r in self.values()]))
+

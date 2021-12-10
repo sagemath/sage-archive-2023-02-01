@@ -463,6 +463,21 @@ class FPModule(Module, IndexedGenerators, UniqueRepresentation):
         return self._free_module()._repr_term(m)
 
 
+    def _latex_term(self, m):
+        """
+        Return a LaTeX representing the generator indexed by ``m``.
+
+        EXAMPLES::
+
+            sage: from sage.modules.fp_graded.module import FPModule
+            sage: A = SteenrodAlgebra(2)
+            sage: M = FPModule(A, [0,2,4], [[Sq(4),Sq(2),0]])
+            sage: M._latex_term((2,4))
+            'g_{4}'
+        """
+        return self._free_module()._latex_term(m)
+
+
     def connectivity(self):
         r"""
         The connectivity of ``self``.

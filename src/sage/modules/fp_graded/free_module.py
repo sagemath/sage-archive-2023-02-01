@@ -364,6 +364,8 @@ class FreeGradedModule(CombinatorialFreeModule):
         else:
             degs_and_indices = ['{},{}'.format(i[0],i[1]) for i in degs_and_indices]
 
+        # _latex_term is defined to be the same as _repr_term, so the
+        # names should be valid LaTeX.
         if names is None:
             names = tuple('g_{{{}}}'.format(s) for s in degs_and_indices)
         elif isinstance(names, str):
@@ -583,6 +585,9 @@ class FreeGradedModule(CombinatorialFreeModule):
             'b'
         """
         return self._names[m[0]]
+
+
+    _latex_term = _repr_term
 
 
     @cached_method

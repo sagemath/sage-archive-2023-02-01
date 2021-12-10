@@ -921,7 +921,7 @@ class FPModuleMorphism(Morphism):
             sage: f = Hom(Hko, Hko)([(Ap.Sq(0,0,3) + Ap.Sq(0,2,0,1))*Hko.generator(0)])
             sage: f*f == 0
             True
-            sage: k = f.kernel() # long time
+            sage: k = f.kernel_morphism() # long time
             sage: f.lift(k) # long time
             Module homomorphism of degree 21 defined by sending the generators
               [g_{0}]
@@ -991,7 +991,7 @@ class FPModuleMorphism(Morphism):
 
         # Compute the kernel of f.  The equations we will solve will live in
         # this submodule.
-        iK = f.kernel(top_dim=max([r.degree() + lift_deg for r in L.relations()]))
+        iK = f.kernel_morphism(top_dim=max([r.degree() + lift_deg for r in L.relations()]))
 
         source_degs = [g.degree() + lift_deg for g in L.generators()]
         target_degs = [r.degree() + lift_deg for r in L.relations()]
@@ -1149,14 +1149,14 @@ class FPModuleMorphism(Morphism):
             sage: ho.codomain().is_trivial()
             False
         """
-        k = self.kernel(top_dim, verbose)
+        k = self.kernel_morphism(top_dim, verbose)
         f_ = f.lift(k)
         if f_ is None:
             raise ValueError('the image of the given homomorphism is not contained '
                              'in the kernel of this homomorphism; the homology is '
                              'therefore not defined for this pair of maps')
 
-        return f_.cokernel()
+        return f_.cokernel_morphism()
 
 
     def suspension(self, t):
@@ -1211,7 +1211,7 @@ class FPModuleMorphism(Morphism):
         return Hom(D, C)([C(x.lift_to_free().dense_coefficient_list()) for x in self._values])
 
 
-    def cokernel(self):
+    def cokernel_morphism(self):
         r"""
         Compute the cokernel of ``self``.
 
@@ -1228,7 +1228,7 @@ class FPModuleMorphism(Morphism):
             sage: F = FPModule(A1, [0])
 
             sage: r = Hom(F, M)([A1.Sq(1)*M.generator(0)])
-            sage: co = r.cokernel(); co
+            sage: co = r.cokernel_morphism(); co
             Module homomorphism of degree 0 defined by sending the generators
               [g_{0}]
             to
@@ -1250,7 +1250,7 @@ class FPModuleMorphism(Morphism):
         return projection
 
 
-    def kernel(self, top_dim=None, verbose=False):
+    def kernel_morphism(self, top_dim=None, verbose=False):
         r"""
         Compute the kernel of ``self``.
 
@@ -1278,7 +1278,7 @@ class FPModuleMorphism(Morphism):
             sage: L = FPModule(A3, [2,3], [[Sq(2),Sq(1)], [0,Sq(2)]]);
             sage: H = Hom(F, L);
 
-            sage: H([L((A3.Sq(1), 1)), L((0, A3.Sq(2)))]).kernel() # long time
+            sage: H([L((A3.Sq(1), 1)), L((0, A3.Sq(2)))]).kernel_morphism() # long time
             Module homomorphism of degree 0 defined by sending the generators
               [g_{3}, g_{4}]
             to
@@ -1289,7 +1289,7 @@ class FPModuleMorphism(Morphism):
             sage: H = Hom(M, F2)
             sage: f = H([F2([1]), F2([0])])
 
-            sage: K = f.kernel(verbose=True, top_dim=17)
+            sage: K = f.kernel_morphism(verbose=True, top_dim=17)
             1. Computing the generators of the kernel presentation:
             Resolving the kernel in the range of dimensions [0, 17]:
              0 1 2 3 4 5 6 7 8 9 10 11 12 13 14 15 16 17.
@@ -1452,7 +1452,7 @@ class FPModuleMorphism(Morphism):
             True
 
         """
-        return self.cokernel().is_zero()
+        return self.cokernel_morphism().is_zero()
 
 
     def _resolve_kernel(self, top_dim=None, verbose=False):

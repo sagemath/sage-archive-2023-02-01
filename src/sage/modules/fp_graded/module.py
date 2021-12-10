@@ -13,7 +13,7 @@ relations, and uses them to construct a presentation, using the class
 
 This package was designed with homological algebra in mind, and its API
 focuses on maps rather than objects.  A good example of this is the kernel
-function :meth:`sage.modules.fp_graded.morphism.FPModuleMorphism.kernel`
+function :meth:`sage.modules.fp_graded.morphism.FPModuleMorphism.kernel_morphism`
 which computes the kernel of a homomorphism `f: M\to N`.  Its return value
 is not an instance of the module class, but rather an injective homomorphism
 `i: K\to M` with the property that `\operatorname{im}(i) = \ker(f)`.
@@ -1068,9 +1068,10 @@ class FPModule(Module, IndexedGenerators, UniqueRepresentation):
                         relations=self._relations)
 
 
-    def submodule(self, spanning_elements):
+    def submodule_inclusion(self, spanning_elements):
         r"""
-        Return the submodule of ``self`` spanned by the given elements.
+        Return the inclusion morphism of the submodule of ``self`` spanned
+        by the given elements.
 
         INPUT:
 
@@ -1086,7 +1087,7 @@ class FPModule(Module, IndexedGenerators, UniqueRepresentation):
             sage: A2 = SteenrodAlgebra(2, profile=(3,2,1))
 
             sage: M = FPModule(A2, [0,1], [[Sq(2),Sq(1)]])
-            sage: i = M.submodule([M.generator(0)])
+            sage: i = M.submodule_inclusion([M.generator(0)])
             sage: i.codomain() is M
             True
             sage: i.is_injective()

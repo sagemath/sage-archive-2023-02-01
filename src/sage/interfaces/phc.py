@@ -40,8 +40,10 @@ from sage.misc.all import tmp_filename
 from sage.rings.real_mpfr import RR
 from sage.rings.all import CC
 from sage.rings.integer import Integer
-from sage.plot.line import line
-from sage.plot.point import point
+from sage.misc.lazy_import import lazy_import
+lazy_import("sage.plot.line", "line")
+from sage.misc.lazy_import import lazy_import
+lazy_import("sage.plot.point", "point")
 
 
 def get_solution_dicts(output_file_contents, input_ring, get_failures = True):

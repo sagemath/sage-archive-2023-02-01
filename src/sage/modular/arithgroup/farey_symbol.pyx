@@ -37,10 +37,13 @@ from .congroup_gamma import is_Gamma
 from .congroup_sl2z import SL2Z
 from sage.modular.cusps import Cusp
 
-from sage.plot.all import Graphics
-from sage.plot.colors import to_mpl_color
+from sage.misc.lazy_import import lazy_import
+lazy_import("sage.plot.all", "Graphics")
+from sage.misc.lazy_import import lazy_import
+lazy_import("sage.plot.colors", "to_mpl_color")
 from sage.misc.decorators import options, rename_keyword
-from sage.plot.all import hyperbolic_arc, hyperbolic_triangle, text
+from sage.misc.lazy_import import lazy_import
+lazy_import("sage.plot.all", "hyperbolic_arc, hyperbolic_triangle, text")
 
 from sage.misc.latex import latex
 from sage.misc.lazy_attribute import lazy_attribute

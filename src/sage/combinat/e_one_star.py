@@ -215,10 +215,14 @@ from sage.structure.sage_object import SageObject
 from sage.combinat.words.morphism import WordMorphism
 from sage.matrix.constructor import matrix
 from sage.modules.free_module_element import vector
-from sage.plot.all import Graphics
-from sage.plot.colors import Color
-from sage.plot.polygon import polygon
-from sage.plot.line import line
+from sage.misc.lazy_import import lazy_import
+lazy_import("sage.plot.all", "Graphics")
+from sage.misc.lazy_import import lazy_import
+lazy_import("sage.plot.colors", "Color")
+from sage.misc.lazy_import import lazy_import
+lazy_import("sage.plot.polygon", "polygon")
+from sage.misc.lazy_import import lazy_import
+lazy_import("sage.plot.line", "line")
 from sage.rings.integer_ring import ZZ
 from sage.misc.latex import LatexExpr
 from sage.misc.cachefunc import cached_method

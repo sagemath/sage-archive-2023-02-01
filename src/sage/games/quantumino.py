@@ -178,7 +178,8 @@ REFERENCES:
 # ****************************************************************************
 
 from sage.structure.sage_object import SageObject
-from sage.plot.all import Graphics
+from sage.misc.lazy_import import lazy_import
+lazy_import("sage.plot.all", "Graphics")
 from sage.plot.plot3d.platonic import cube
 from sage.plot.plot3d.shapes2 import text3d
 from sage.modules.free_module_element import vector

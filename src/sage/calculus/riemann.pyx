@@ -28,7 +28,8 @@ Development supported by NSF award No. 0702939.
 from cysignals.signals cimport sig_on, sig_off
 
 from sage.misc.decorators import options
-from sage.plot.all import list_plot, Graphics
+from sage.misc.lazy_import import lazy_import
+lazy_import("sage.plot.all", "list_plot, Graphics")
 
 from sage.ext.fast_callable import fast_callable
 
@@ -38,7 +39,8 @@ from sage.arith.srange import srange
 
 from sage.calculus.interpolation import spline
 
-from sage.plot.complex_plot import ComplexPlot
+from sage.misc.lazy_import import lazy_import
+lazy_import("sage.plot.complex_plot", "ComplexPlot")
 
 from sage.calculus.integration import numerical_integral
 

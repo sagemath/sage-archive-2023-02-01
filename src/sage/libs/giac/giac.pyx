@@ -159,8 +159,10 @@ from sage.rings.integer cimport Integer
 from sage.rings.rational cimport Rational
 from sage.structure.element cimport Matrix
 
-from sage.plot.line import line
-from sage.plot.scatter_plot import scatter_plot
+from sage.misc.lazy_import import lazy_import
+lazy_import("sage.plot.line", "line")
+from sage.misc.lazy_import import lazy_import
+lazy_import("sage.plot.scatter_plot", "scatter_plot")
 
 from sage.symbolic.expression import symbol_table
 from sage.calculus.calculus import symbolic_expression_from_string, SR_parser_giac

@@ -21,7 +21,7 @@ import sage.rings.abc
 from sage.geometry.triangulation.point_configuration import PointConfiguration
 from sage.modules.free_module_element import vector
 from sage.misc.lazy_import import lazy_import
-lazy_import("sage.plot.all", "line, point, rainbow, plot")
+lazy_import("sage.plot.all", ["line", "point", "rainbow", "plot"])
 
 
 class VoronoiDiagram(SageObject):

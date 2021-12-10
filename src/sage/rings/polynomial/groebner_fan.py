@@ -72,7 +72,7 @@ from sage.rings.integer import Integer
 from sage.rings.integer_ring import ZZ
 from sage.modules.free_module_element import vector
 from sage.misc.lazy_import import lazy_import
-lazy_import("sage.plot.all", "line, Graphics, polygon")
+lazy_import("sage.plot.all", ["line", "Graphics", "polygon"])
 from sage.plot.plot3d.shapes2 import line3d
 from sage.geometry.polyhedron.constructor import Polyhedron
 from sage.geometry.fan import Fan

@@ -217,11 +217,8 @@ from sage.matrix.constructor import matrix
 from sage.modules.free_module_element import vector
 from sage.misc.lazy_import import lazy_import
 lazy_import("sage.plot.all", "Graphics")
-from sage.misc.lazy_import import lazy_import
 lazy_import("sage.plot.colors", "Color")
-from sage.misc.lazy_import import lazy_import
 lazy_import("sage.plot.polygon", "polygon")
-from sage.misc.lazy_import import lazy_import
 lazy_import("sage.plot.line", "line")
 from sage.rings.integer_ring import ZZ
 from sage.misc.latex import LatexExpr

@@ -51,23 +51,14 @@ from sage.misc.sage_eval import sage_eval
 from sage.misc.table import table
 from sage.misc.lazy_import import lazy_import
 lazy_import("sage.plot.circle", "circle")
-from sage.misc.lazy_import import lazy_import
 lazy_import("sage.plot.complex_plot", "complex_plot")
-from sage.misc.lazy_import import lazy_import
 lazy_import("sage.plot.disk", "disk")
-from sage.misc.lazy_import import lazy_import
 lazy_import("sage.plot.graphics", "Graphics")
-from sage.misc.lazy_import import lazy_import
-lazy_import("sage.plot.line", "(line, line2d)")
-from sage.misc.lazy_import import lazy_import
+lazy_import("sage.plot.line", ["line", "line2d"])
 lazy_import("sage.plot.matrix_plot", "matrix_plot")
-from sage.misc.lazy_import import lazy_import
-lazy_import("sage.plot.plot", "(graphics_array, parametric_plot, plot)")
-from sage.misc.lazy_import import lazy_import
-lazy_import("sage.plot.point", "(point, points)")
-from sage.misc.lazy_import import lazy_import
+lazy_import("sage.plot.plot", ["graphics_array", "parametric_plot", "plot"])
+lazy_import("sage.plot.point", ["point", "points"])
 lazy_import("sage.plot.polygon", "polygon2d")
-from sage.misc.lazy_import import lazy_import
 lazy_import("sage.plot.text", "text")
 from sage.repl.rich_output.pretty_print import (pretty_print, show)
 from sage.rings.complex_double import CDF

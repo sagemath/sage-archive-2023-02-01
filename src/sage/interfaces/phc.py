@@ -42,7 +42,6 @@ from sage.rings.all import CC
 from sage.rings.integer import Integer
 from sage.misc.lazy_import import lazy_import
 lazy_import("sage.plot.line", "line")
-from sage.misc.lazy_import import lazy_import
 lazy_import("sage.plot.point", "point")
 
 

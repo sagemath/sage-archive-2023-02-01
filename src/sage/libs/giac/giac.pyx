@@ -161,7 +161,6 @@ from sage.structure.element cimport Matrix
 
 from sage.misc.lazy_import import lazy_import
 lazy_import("sage.plot.line", "line")
-from sage.misc.lazy_import import lazy_import
 lazy_import("sage.plot.scatter_plot", "scatter_plot")
 
 from sage.symbolic.expression import symbol_table

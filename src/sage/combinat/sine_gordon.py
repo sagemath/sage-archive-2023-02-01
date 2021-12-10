@@ -49,17 +49,11 @@ from sage.rings.all import NN
 from sage.functions.trig import cos, sin
 from sage.misc.lazy_import import lazy_import
 lazy_import("sage.plot.plot", "parametric_plot")
-from sage.misc.lazy_import import lazy_import
 lazy_import("sage.plot.graphics", "Graphics")
-from sage.misc.lazy_import import lazy_import
 lazy_import("sage.plot.polygon", "polygon2d")
-from sage.misc.lazy_import import lazy_import
 lazy_import("sage.plot.circle", "circle")
-from sage.misc.lazy_import import lazy_import
 lazy_import("sage.plot.bezier_path", "bezier_path")
-from sage.misc.lazy_import import lazy_import
 lazy_import("sage.plot.point", "point")
-from sage.misc.lazy_import import lazy_import
 lazy_import("sage.plot.line", "line")
 from sage.symbolic.constants import pi, I
 from sage.functions.log import exp

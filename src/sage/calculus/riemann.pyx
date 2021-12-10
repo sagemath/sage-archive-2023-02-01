@@ -29,7 +29,7 @@ from cysignals.signals cimport sig_on, sig_off
 
 from sage.misc.decorators import options
 from sage.misc.lazy_import import lazy_import
-lazy_import("sage.plot.all", "list_plot, Graphics")
+lazy_import("sage.plot.all", ["list_plot", "Graphics"])
 
 from sage.ext.fast_callable import fast_callable
 
@@ -39,7 +39,6 @@ from sage.arith.srange import srange
 
 from sage.calculus.interpolation import spline
 
-from sage.misc.lazy_import import lazy_import
 lazy_import("sage.plot.complex_plot", "ComplexPlot")
 
 from sage.calculus.integration import numerical_integral

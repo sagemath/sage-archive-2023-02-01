@@ -75,7 +75,7 @@ AUTHORS:
 
 from sage.rings.number_field.number_field import CyclotomicField
 from sage.misc.lazy_import import lazy_import
-lazy_import("sage.plot.all", "polygon, line, text")
+lazy_import("sage.plot.all", ["polygon", "line", "text"])
 from sage.groups.abelian_gps.abelian_group import AbelianGroup
 from sage.groups.perm_gps.permgroup_element import is_PermutationGroupElement
 from sage.rings.integer_ring import ZZ

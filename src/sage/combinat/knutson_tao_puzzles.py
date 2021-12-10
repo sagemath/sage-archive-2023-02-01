@@ -41,15 +41,11 @@ from __future__ import annotations
 
 from sage.misc.lazy_import import lazy_import
 lazy_import("sage.plot.graphics", "Graphics")
-from sage.misc.lazy_import import lazy_import
 lazy_import("sage.plot.polygon", "polygon")
-from sage.misc.lazy_import import lazy_import
 lazy_import("sage.plot.line", "line")
-from sage.misc.lazy_import import lazy_import
 lazy_import("sage.plot.text", "text")
 from sage.rings.polynomial.polynomial_ring_constructor import PolynomialRing
 from sage.rings.finite_rings.integer_mod_ring import Integers
-from sage.misc.lazy_import import lazy_import
 lazy_import("sage.plot.plot", "graphics_array")
 from sage.misc.cachefunc import cached_method
 from sage.structure.unique_representation import UniqueRepresentation

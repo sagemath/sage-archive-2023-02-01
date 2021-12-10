@@ -43,11 +43,8 @@ from sage.misc.functional import sqrt
 
 from sage.misc.lazy_import import lazy_import
 lazy_import("sage.plot.graphics", "Graphics")
-from sage.misc.lazy_import import lazy_import
 lazy_import("sage.plot.line", "line")
-from sage.misc.lazy_import import lazy_import
 lazy_import("sage.plot.text", "text")
-from sage.misc.lazy_import import lazy_import
 lazy_import("sage.plot.point", "point")
 
 import pprint

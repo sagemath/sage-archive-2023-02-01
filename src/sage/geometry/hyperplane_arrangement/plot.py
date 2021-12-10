@@ -110,13 +110,9 @@ from sage.plot.plot3d.parametric_plot3d import parametric_plot3d
 from sage.plot.plot3d.shapes2 import text3d
 from sage.misc.lazy_import import lazy_import
 lazy_import("sage.plot.graphics", "Graphics")
-from sage.misc.lazy_import import lazy_import
 lazy_import("sage.plot.line", "line")
-from sage.misc.lazy_import import lazy_import
 lazy_import("sage.plot.text", "text")
-from sage.misc.lazy_import import lazy_import
 lazy_import("sage.plot.point", "point")
-from sage.misc.lazy_import import lazy_import
 lazy_import("sage.plot.plot", "parametric_plot")
 from sage.symbolic.ring import SR
 

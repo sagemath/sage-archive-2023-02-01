@@ -197,7 +197,7 @@ from sage.misc.html import HtmlFragment
 from sage.misc.misc import get_main_globals
 from sage.modules.all import random_vector, vector
 from sage.misc.lazy_import import lazy_import
-lazy_import("sage.plot.all", "Graphics, arrow, line, point, rainbow, text")
+lazy_import("sage.plot.all", ["Graphics", "arrow", "line", "point", "rainbow", "text"])
 from sage.rings.all import Infinity, PolynomialRing, QQ, RDF, ZZ
 from sage.structure.all import SageObject
 from sage.symbolic.ring import SR

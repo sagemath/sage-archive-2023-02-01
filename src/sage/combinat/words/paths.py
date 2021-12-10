@@ -187,7 +187,7 @@ from sage.combinat.words.words import FiniteWords
 from sage.combinat.words.word import FiniteWord_class
 from sage.combinat.words.alphabet import build_alphabet
 from sage.misc.lazy_import import lazy_import
-lazy_import("sage.plot.all", "arrow, line, polygon, point, Graphics")
+lazy_import("sage.plot.all", ["arrow", "line", "polygon", "point", "Graphics"])
 from sage.modules.free_module_element import vector
 from sage.rings.all import ZZ, RR, QuadraticField
 from .word_datatypes import (WordDatatype_str,

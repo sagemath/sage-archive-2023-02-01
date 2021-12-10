@@ -12,10 +12,15 @@ tasks:
       mkdir -p ~/.ssh
       echo $PRIVATE_SSH_KEY > ~/.ssh/id_rsa
       chmod 600 ~/.ssh/id_rsa
+      # Disable pyenv since it would interfer with sages build process
+      pyenv shell --unset
     init: |
       # Setup trac repo
       git remote add trac git@trac.sagemath.org:sage.git -t master
       git remote set-url --push trac git@trac.sagemath.org:sage.git
+
+      # Disable pyenv since it would interfer with sages build process
+      pyenv shell --unset
 
       # Start build
       ./bootstrap

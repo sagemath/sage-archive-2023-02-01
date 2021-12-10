@@ -34,6 +34,7 @@ vscode:
   extensions:
     - ms-pyright.pyright
     - ms-python.python
+    - trond-snekvik.simple-rst
     - lextudio.restructuredtext
     - streetsidesoftware.code-spell-checker
     - ms-toolsai.jupyter

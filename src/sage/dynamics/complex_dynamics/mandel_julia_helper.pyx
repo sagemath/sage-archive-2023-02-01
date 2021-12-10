@@ -20,8 +20,7 @@ AUTHORS:
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 
-from sage.misc.lazy_import import lazy_import
-lazy_import("sage.plot.colors", "Color")
+from sage.plot.colors import Color
 from sage.repl.image import Image
 from copy import copy
 from cysignals.signals cimport sig_check

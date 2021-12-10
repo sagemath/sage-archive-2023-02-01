@@ -473,7 +473,7 @@ class EllipticCurve_rational_field(EllipticCurve_number_field):
         if not options:
             from sage.interfaces.mwrank import mwrank
         else:
-            from sage.interfaces.all import Mwrank
+            from sage.interfaces.mwrank import Mwrank
             mwrank = Mwrank(options=options)
         return mwrank(list(self.a_invariants()))
 

@@ -342,7 +342,7 @@ class SymplecticForm(DiffForm):
 
         .. MATH::
 
-            X_f \contr \omega + df = 0.
+            X_f \lrcorner \omega + df = 0.
 
         INPUT:
 
@@ -568,7 +568,6 @@ class SymplecticForm(DiffForm):
 
 class SymplecticFormParal(SymplecticForm, DiffFormParal):
     r"""
-    TODO
     A symplectic form on a parallelizable manifold.
 
     .. NOTE::

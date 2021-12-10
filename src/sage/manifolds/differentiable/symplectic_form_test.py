@@ -82,7 +82,7 @@ class TestCoherenceOfFormulas:
         self, M: DifferentiableManifold, omega: SymplecticForm
     ):
         H = generic_scalar_field(M, "H")
-        # X_H \contr \omega + \dif H = 0
+        # X_H \lrcorner \omega + \dif H = 0
         assert omega.contract(0, omega.hamiltonian_vector_field(H)) == -H.differential()
 
     def test_poisson_bracket_as_contraction_symplectic_form(

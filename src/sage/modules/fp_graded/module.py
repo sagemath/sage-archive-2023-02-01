@@ -1096,6 +1096,13 @@ class FPModule(Module, IndexedGenerators, UniqueRepresentation):
 
         The inclusion of the submodule into this module.
 
+        Because a submodule of a finitely presented module need not be
+        finitely presented, this method will only work if the
+        underlying algebra is finite-dimensional. Indeed, the current
+        implementation only works if the algebra has a ``top_class``
+        method, which gets used in
+        :meth:`sage.modules.fp_graded.morphism._resolve_kernel`.
+
         EXAMPLES::
 
             sage: from sage.modules.fp_graded.module import FPModule

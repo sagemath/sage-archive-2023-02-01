@@ -1473,8 +1473,10 @@ class FPModuleMorphism(Morphism):
 
         .. NOTE::
 
-            If the algebra for this module is finite, then no ``top_dim``
-            needs to be specified in order to ensure that this function terminates.
+            If the algebra for this module is finite and has a
+            ``top_class`` method, then no ``top_dim`` needs to be
+            specified in order to ensure that this function
+            terminates.
 
         TESTS::
 
@@ -1528,8 +1530,14 @@ class FPModuleMorphism(Morphism):
                 print ('The domain of the morphism is trivial, so there is nothing to resolve.')
             return j
 
-        limit = PlusInfinity() if not self.base_ring().is_finite() else\
-            (self.base_ring().top_class().degree() + max(self.domain().generator_degrees()))
+        # TODO:
+        #
+        # Handle algebras which are finite dimensional but which have
+        # no top_class method, for example exterior algebras.
+        if not self.base_ring().dimension() < PlusInfinity():
+           limit = PlusInfinity()
+        else:
+            limit = (self.base_ring().top_class().degree() + max(self.domain().generator_degrees()))
 
         if not top_dim is None:
             limit = min(top_dim, limit)

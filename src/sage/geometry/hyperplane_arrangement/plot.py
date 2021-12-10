@@ -106,8 +106,10 @@ EXAMPLES::
 
 from copy import copy
 from colorsys import hsv_to_rgb
-from sage.plot.plot3d.parametric_plot3d import parametric_plot3d
-from sage.plot.plot3d.shapes2 import text3d
+from sage.misc.lazy_import import lazy_import
+lazy_import("sage.plot.plot3d.parametric_plot3d", "parametric_plot3d")
+from sage.misc.lazy_import import lazy_import
+lazy_import("sage.plot.plot3d.shapes2", "text3d")
 from sage.misc.lazy_import import lazy_import
 lazy_import("sage.plot.graphics", "Graphics")
 lazy_import("sage.plot.line", "line")

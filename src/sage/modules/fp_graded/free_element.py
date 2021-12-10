@@ -40,13 +40,13 @@ class FreeGradedModuleElement(IndexedFreeModuleElement):
         0
 
         sage: M([1, 0])
-        <1, 0>
+        g_{0}
 
         sage: M([0, 1])
-        <0, 1>
+        g_{1}
 
         sage: M([Sq(1), 1])
-        <Sq(1), 1>
+        Sq(1)*g_{0} + g_{1}
     """
 
     def coefficients(self):
@@ -57,9 +57,9 @@ class FreeGradedModuleElement(IndexedFreeModuleElement):
 
             sage: from sage.modules.fp_graded.free_module import FreeGradedModule
             sage: A = SteenrodAlgebra()
-            sage: M = FreeGradedModule(SteenrodAlgebra(2), (0, 1))
+            sage: M.<Y,Z> = FreeGradedModule(SteenrodAlgebra(2), (0, 1))
             sage: x = M.an_element(7); x
-            <Sq(0,0,1), Sq(3,1)>
+            Sq(0,0,1)*Y + Sq(3,1)*Z
             sage: x.coefficients()
             [Sq(0,0,1), Sq(3,1)]
         """
@@ -81,7 +81,7 @@ class FreeGradedModuleElement(IndexedFreeModuleElement):
             sage: A = SteenrodAlgebra(2)
             sage: M = FreeGradedModule(A, (0,1))
             sage: x = M.an_element(7); x
-            <Sq(0,0,1), Sq(3,1)>
+            Sq(0,0,1)*g_{0} + Sq(3,1)*g_{1}
             sage: x.degree()
             7
 
@@ -137,32 +137,6 @@ class FreeGradedModuleElement(IndexedFreeModuleElement):
         return self
 
 
-    def _repr_(self):
-        r"""
-        Return a string representation of ``self``.
-
-        EXAMPLES::
-
-            sage: from sage.modules.fp_graded.free_module import FreeGradedModule
-            sage: A = SteenrodAlgebra(2)
-            sage: M = FreeGradedModule(A, (0,1))
-            sage: [M.an_element(n) for n in range(1,10)]
-            [<Sq(1), 1>,
-             <Sq(2), Sq(1)>,
-             <Sq(0,1), Sq(2)>,
-             <Sq(1,1), Sq(3)>,
-             <Sq(2,1), Sq(4)>,
-             <Sq(0,2), Sq(5)>,
-             <Sq(0,0,1), Sq(3,1)>,
-             <Sq(1,0,1), Sq(1,2)>,
-             <Sq(2,0,1), Sq(2,2)>]
-        """
-        if self:
-            return '<%s>' % ', '.join(['%s' % c for c in self.coefficients()])
-        else:
-            return '0'
-
-
     def _lmul_(self, a):
         r"""
         Act by left multiplication on this element by ``a``.
@@ -179,26 +153,26 @@ class FreeGradedModuleElement(IndexedFreeModuleElement):
 
             sage: from sage.modules.fp_graded.free_module import *
             sage: A2 = SteenrodAlgebra(2, profile=(3,2,1))
-            sage: M = FreeGradedModule(A2, (0,0,3))
+            sage: M.<x0,y0,z3> = FreeGradedModule(A2, (0,0,3))
             sage: A2.Sq(2)*M.generator(1)
-            <0, Sq(2), 0>
+            Sq(2)*y0
             sage: A2.Sq(2)*(A2.Sq(1)*A2.Sq(2)*M.generator(1) + M.generator(2))
-            <0, Sq(2,1), Sq(2)>
+            Sq(2,1)*y0 + Sq(2)*z3
 
         TESTS::
 
             sage: elements = [M.an_element(n) for n in range(1,10)]
             sage: a = A2.Sq(3)
             sage: [a*x for x in elements]
-            [<Sq(1,1), Sq(1,1), 0>,
+            [Sq(1,1)*x0 + Sq(1,1)*y0,
              0,
-             <Sq(3,1), Sq(3,1), Sq(3)>,
-             <0, 0, Sq(1,1)>,
+             Sq(3,1)*x0 + Sq(3,1)*y0 + Sq(3)*z3,
+             Sq(1,1)*z3,
              0,
-             <Sq(3,2), Sq(3,2), Sq(3,1)>,
-             <Sq(3,0,1), Sq(3,0,1), Sq(7)>,
-             <Sq(1,1,1), Sq(1,1,1), Sq(5,1)>,
-             <0, 0, Sq(3,2)>]
+             Sq(3,2)*x0 + Sq(3,2)*y0 + Sq(3,1)*z3,
+             Sq(3,0,1)*x0 + Sq(3,0,1)*y0 + Sq(7)*z3,
+             Sq(1,1,1)*x0 + Sq(1,1,1)*y0 + Sq(5,1)*z3,
+             Sq(3,2)*z3]
         """
         return self.parent()((a*c for c in self.coefficients()))
 
@@ -247,7 +221,7 @@ class FreeGradedModuleElement(IndexedFreeModuleElement):
 
             sage: basis = M.basis_elements(7)
             sage: x_ = sum( [c*b for (c,b) in zip(v, basis)] ); x_
-            <Sq(0,0,1), Sq(3,1)>
+            Sq(0,0,1)*g_{0} + Sq(3,1)*g_{1}
             sage: x == x_
             True
 

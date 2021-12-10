@@ -88,13 +88,15 @@ class FPModule(Module, IndexedGenerators, UniqueRepresentation):
         sage: a, b = M.generators()
         sage: x*a + b == 0
         True
+        sage: (x*a + b).normalize()
+        0
 
         sage: A3 = SteenrodAlgebra(2, profile=(4,3,2,1))
         sage: M = FPModule(A3, [0, 1], [[Sq(2), Sq(1)]])
         sage: M.generators()
-        [<1, 0>, <0, 1>]
+        [g_{0}, g_{1}]
         sage: M.relations()
-        [<Sq(2), Sq(1)>]
+        [Sq(2)*g_{0} + Sq(1)*g_{1}]
         sage: M.is_trivial()
         False
 
@@ -107,7 +109,7 @@ class FPModule(Module, IndexedGenerators, UniqueRepresentation):
         True
     """
     @staticmethod
-    def __classcall_private__(cls, algebra, generator_degrees, relations=()):
+    def __classcall_private__(cls, algebra, generator_degrees, relations=(), names=None):
         r"""
         Normalize input to ensure a unique representation.
 
@@ -122,10 +124,10 @@ class FPModule(Module, IndexedGenerators, UniqueRepresentation):
         return super(FPModule, cls).__classcall__(cls,
             algebra=algebra,
             generator_degrees=tuple(generator_degrees),
-            relations=tuple([tuple([algebra(x) for x in r]) for r in relations]))
+            relations=tuple([tuple([algebra(x) for x in r]) for r in relations]),
+            names=names)
 
-
-    def __init__(self, algebra, generator_degrees, relations=()):
+    def __init__(self, algebra, generator_degrees, relations=(), names=None):
         r"""
         Create a finitely presented module over a connected graded algebra.
 
@@ -144,7 +146,7 @@ class FPModule(Module, IndexedGenerators, UniqueRepresentation):
         self._generator_keys = keys
 
         # The free module on the generators of the module.
-        generator_module = FreeGradedModule(algebra, generator_degrees)
+        generator_module = FreeGradedModule(algebra, generator_degrees, names)
         # Use the coefficients given for the relations and make module elements
         # from them.  Filter out the zero elements, as they are redundant.
         rels = [v for v in [generator_module(r) for r in relations] if not v.is_zero()]
@@ -172,12 +174,12 @@ class FPModule(Module, IndexedGenerators, UniqueRepresentation):
 
             sage: from sage.modules.fp_graded.module import FPModule
             sage: A = SteenrodAlgebra()
-            sage: M = FPModule(A, [0, 1], [[Sq(2), Sq(1)]])
+            sage: M.<x,y> = FPModule(A, [0, 1], [[Sq(2), Sq(1)]])
             sage: M.generators()
-            [<1, 0>, <0, 1>]
+            [x, y]
             sage: F = M._free_module()
             sage: F.generators()
-            [<1, 0>, <0, 1>]
+            [x, y]
         """
         return self.j.codomain()
 
@@ -239,7 +241,7 @@ class FPModule(Module, IndexedGenerators, UniqueRepresentation):
             sage: M.generator_degrees()
             (0,)
             sage: M.relations()
-            [<Sq(2)>]
+            [Sq(2)*g_{0}]
         """
         return cls(algebra=morphism.base_ring(),
                    generator_degrees=morphism.codomain().generator_degrees(),
@@ -334,9 +336,9 @@ class FPModule(Module, IndexedGenerators, UniqueRepresentation):
             sage: from sage.modules.fp_graded.module import FPModule
             sage: M = FPModule(SteenrodAlgebra(2), [0,1], [[Sq(4), Sq(3)]])
             sage: M._monomial((0,0))
-            <1, 0>
+            g_{0}
             sage: M._monomial((1,1))
-            <0, 1>
+            g_{1}
         """
         return self._from_dict({index: self.base_ring().one()}, remove_zeros=False)
 
@@ -354,9 +356,9 @@ class FPModule(Module, IndexedGenerators, UniqueRepresentation):
             sage: from sage.modules.fp_graded.module import FPModule
             sage: M = FPModule(SteenrodAlgebra(2), [0,1], [[Sq(4), Sq(3)]])
             sage: M.monomial((0,0))
-            <1, 0>
+            g_{0}
             sage: M.monomial((1,1))
-            <0, 1>
+            g_{1}
         """
         # Should use a real Map, as soon as combinatorial_classes are enumerated sets, and therefore parents
         from sage.categories.poor_man_map import PoorManMap
@@ -384,11 +386,11 @@ class FPModule(Module, IndexedGenerators, UniqueRepresentation):
 
             sage: from sage.modules.fp_graded.module import FPModule
             sage: A = SteenrodAlgebra(2)
-            sage: M = FPModule(A, [0,2,4], [[Sq(4), Sq(2), 0]])
+            sage: M.<a0,a2,a4> = FPModule(A, [0,2,4], [[Sq(4), Sq(2), 0]])
 
             sage: # Creating an element from coefficients:
             sage: e = M((Sq(6), 0, Sq(2))); e
-            <Sq(6), 0, Sq(2)>
+            Sq(6)*a0 + Sq(2)*a4
             sage: e in M
             True
 
@@ -400,7 +402,7 @@ class FPModule(Module, IndexedGenerators, UniqueRepresentation):
 
             sage: # Creating an element from another element returns a reference to itself:
             sage: M(e)
-            <Sq(6), 0, Sq(2)>
+            Sq(6)*a0 + Sq(2)*a4
             sage: e is M(e)
             True
         """
@@ -444,6 +446,21 @@ class FPModule(Module, IndexedGenerators, UniqueRepresentation):
             %(len(self._free_module().generator_degrees()), "" if len(self._free_module().generator_degrees()) == 1 else "s",
               len(self.j.values()), "" if len(self.j.values()) == 1 else "s",
               self.base_ring())
+
+
+    def _repr_term(self, m):
+        """
+        Return a string representing the generator indexed by ``m``.
+
+        EXAMPLES::
+
+            sage: from sage.modules.fp_graded.module import FPModule
+            sage: A = SteenrodAlgebra(2)
+            sage: M = FPModule(A, [0,2,4], [[Sq(4),Sq(2),0]])
+            sage: M._repr_term((2,4))
+            'g_{4}'
+        """
+        return self._free_module()._repr_term(m)
 
 
     def connectivity(self):
@@ -603,16 +620,16 @@ class FPModule(Module, IndexedGenerators, UniqueRepresentation):
             sage: M = FPModule(A2, [0,2,4], [[0, Sq(5), Sq(3)], [Sq(7), 0, Sq(2)*Sq(1)]])
 
             sage: [M.an_element(i) for i in range(10)]
-            [<1, 0, 0>,
-             <Sq(1), 0, 0>,
-             <Sq(2), 1, 0>,
-             <Sq(0,1), Sq(1), 0>,
-             <Sq(1,1), Sq(2), 1>,
-             <Sq(2,1), Sq(0,1), Sq(1)>,
-             <Sq(0,2), Sq(1,1), Sq(2)>,
-             <Sq(0,0,1), Sq(2,1), Sq(0,1)>,
-             <Sq(1,0,1), Sq(6), Sq(1,1)>,
-             <Sq(2,0,1), Sq(4,1), Sq(2,1)>]
+            [g_{0},
+             Sq(1)*g_{0},
+             Sq(2)*g_{0} + g_{2},
+             Sq(0,1)*g_{0} + Sq(1)*g_{2},
+             Sq(1,1)*g_{0} + Sq(2)*g_{2} + g_{4},
+             Sq(2,1)*g_{0} + Sq(0,1)*g_{2} + Sq(1)*g_{4},
+             Sq(0,2)*g_{0} + Sq(1,1)*g_{2} + Sq(2)*g_{4},
+             Sq(0,0,1)*g_{0} + Sq(2,1)*g_{2} + Sq(0,1)*g_{4},
+             Sq(1,0,1)*g_{0} + Sq(6)*g_{2} + Sq(1,1)*g_{4},
+             Sq(2,0,1)*g_{0} + Sq(4,1)*g_{2} + Sq(2,1)*g_{4}]
         """
         a_free_element = self._free_module().an_element(n)
         return self(a_free_element)
@@ -644,22 +661,22 @@ class FPModule(Module, IndexedGenerators, UniqueRepresentation):
 
             sage: from sage.modules.fp_graded.module import FPModule
             sage: A2 = SteenrodAlgebra(2, profile=(3,2,1))
-            sage: M = FPModule(A2, [0,2], [[Sq(4), Sq(2)], [0, Sq(6)]])
+            sage: M.<m0,m2> = FPModule(A2, [0,2], [[Sq(4), Sq(2)], [0, Sq(6)]])
 
             sage: M.basis_elements(4)
-            [<Sq(1,1), 0>, <Sq(4), 0>]
+            [Sq(1,1)*m0, Sq(4)*m0]
 
             sage: M.basis_elements(5)
-            [<Sq(2,1), 0>, <Sq(5), 0>, <0, Sq(0,1)>]
+            [Sq(2,1)*m0, Sq(5)*m0, Sq(0,1)*m2]
 
             sage: M.basis_elements(25)
             []
 
             sage: M.basis_elements(0)
-            [<1, 0>]
+            [m0]
 
             sage: M.basis_elements(2)
-            [<Sq(2), 0>, <0, 1>]
+            [Sq(2)*m0, m2]
 
         TESTS::
 
@@ -704,7 +721,7 @@ class FPModule(Module, IndexedGenerators, UniqueRepresentation):
             sage: M.vector_presentation(12).dimension()
             3
             sage: x = M.element_from_coordinates((0,1,0), 12); x
-            <Sq(0,4)>
+            Sq(0,4)*g_{0}
 
         Applying the inverse function brings us back to the coordinate form::
 
@@ -754,7 +771,7 @@ class FPModule(Module, IndexedGenerators, UniqueRepresentation):
             sage: M = FPModule(A, [0,2,4], [[Sq(4),Sq(2),0]])
 
             sage: M[4]
-            [<Sq(1,1), 0, 0>, <Sq(4), 0, 0>, <0, 0, 1>]
+            [Sq(1,1)*g_{0}, Sq(4)*g_{0}, g_{4}]
 
         .. SEEALSO::
 
@@ -885,13 +902,13 @@ class FPModule(Module, IndexedGenerators, UniqueRepresentation):
             sage: from sage.modules.fp_graded.module import FPModule
             sage: A4 = SteenrodAlgebra(2, profile=(4,3,2,1))
 
-            sage: M = FPModule(A4, [0,2,3])
+            sage: M = FPModule(A4, [0,0,2,3])
             sage: M.generators()
-            [<1, 0, 0>, <0, 1, 0>, <0, 0, 1>]
+            [g_{0,0}, g_{0,1}, g_{2,0}, g_{3,0}]
 
-            sage: N = FPModule(A4, [0, 1], [[Sq(2), Sq(1)]])
+            sage: N = FPModule(A4, [0, 1], [[Sq(2), Sq(1)]], names='h')
             sage: N.generators()
-            [<1, 0>, <0, 1>]
+            [h_{0}, h_{1}]
 
             sage: Z = FPModule(A4, [])
             sage: Z.generators()
@@ -913,11 +930,11 @@ class FPModule(Module, IndexedGenerators, UniqueRepresentation):
 
             sage: M = FPModule(A4, [0,2,3])
             sage: M.generator(0)
-            <1, 0, 0>
+            g_{0}
 
-            sage: N = FPModule(A4, [0, 1], [[Sq(2), Sq(1)]])
+            sage: N = FPModule(A4, [0, 1], [[Sq(2), Sq(1)]], names='h')
             sage: N.generator(1)
-            <0, 1>
+            h_{1}
         """
         return self(self._free_module().generator(index))
 
@@ -939,7 +956,7 @@ class FPModule(Module, IndexedGenerators, UniqueRepresentation):
 
             sage: N = FPModule(A4, [0, 1], [[Sq(2), Sq(1)]])
             sage: N.relations()
-            [<Sq(2), Sq(1)>]
+            [Sq(2)*g_{0} + Sq(1)*g_{1}]
 
             sage: Z = FPModule(A4, [])
             sage: Z.relations()
@@ -958,7 +975,7 @@ class FPModule(Module, IndexedGenerators, UniqueRepresentation):
             sage: A4 = SteenrodAlgebra(2, profile=(4,3,2,1))
             sage: N = FPModule(A4, [0, 1], [[Sq(2), Sq(1)]])
             sage: N.relation(0)
-            <Sq(2), Sq(1)>
+            Sq(2)*g_{0} + Sq(1)*g_{1}
         """
         return self.j.values()[index]
 
@@ -991,9 +1008,9 @@ class FPModule(Module, IndexedGenerators, UniqueRepresentation):
 
             sage: # There are more relations in M than in M_min:
             sage: M.relations()
-            [<Sq(2), Sq(1)>, <0, Sq(2)>, <Sq(3), 0>]
+            [Sq(2)*g_{0} + Sq(1)*g_{1}, Sq(2)*g_{1}, Sq(3)*g_{0}]
             sage: M_min.relations()
-            [<Sq(2), Sq(1)>, <0, Sq(2)>]
+            [Sq(2)*g_{0} + Sq(1)*g_{1}, Sq(2)*g_{1}]
 
         TESTS::
 
@@ -1031,14 +1048,14 @@ class FPModule(Module, IndexedGenerators, UniqueRepresentation):
             sage: X.generator_degrees()
             (4,)
             sage: X.relations()
-            [<Sq(1)>]
+            [Sq(1)*g_{4}]
 
             sage: M = FPModule(A, [2,3], [[Sq(2), Sq(1)], [0, Sq(2)]])
             sage: Q = M.suspension(1)
             sage: Q.generator_degrees()
             (3, 4)
             sage: Q.relations()
-            [<Sq(2), Sq(1)>, <0, Sq(2)>]
+            [Sq(2)*g_{3} + Sq(1)*g_{4}, Sq(2)*g_{4}]
             sage: Q = M.suspension(-3)
             sage: Q.generator_degrees()
             (-1, 0)
@@ -1077,7 +1094,7 @@ class FPModule(Module, IndexedGenerators, UniqueRepresentation):
             sage: i.domain().generator_degrees()
             (0,)
             sage: i.domain().relations()
-            [<Sq(3)>]
+            [Sq(3)*g_{0}]
         """
         # Create the free graded module on the set of spanning elements.
         degs = [x.degree() for x in spanning_elements]
@@ -1126,9 +1143,9 @@ class FPModule(Module, IndexedGenerators, UniqueRepresentation):
             sage: M = FPModule(A2, [0,1], [[Sq(2), Sq(1)]])
             sage: M.resolution(0)
             [Module homomorphism of degree 0 defined by sending the generators
-               [<1, 0>, <0, 1>]
+               [g_{0}, g_{1}]
              to
-               (<1, 0>, <0, 1>)]
+               (g_{0}, g_{1})]
             sage: res = M.resolution(4, verbose=True)
             Computing f_1 (1/4)
             Computing f_2 (2/4)
@@ -1144,25 +1161,25 @@ class FPModule(Module, IndexedGenerators, UniqueRepresentation):
             5
             sage: res
             [Module homomorphism of degree 0 defined by sending the generators
-               [<1, 0>, <0, 1>]
+               [g_{0}, g_{1}]
              to
-               (<1, 0>, <0, 1>),
+               (g_{0}, g_{1}),
              Module homomorphism of degree 0 defined by sending the generators
-               [<1>]
+               [g_{2}]
              to
-               (<Sq(2), Sq(1)>,),
+               (Sq(2)*g_{0} + Sq(1)*g_{1},),
              Module homomorphism of degree 0 defined by sending the generators
-               [<1>]
+               [g_{8}]
              to
-               (<Sq(3,1)>,),
+               (Sq(3,1)*g_{2},),
              Module homomorphism of degree 0 defined by sending the generators
-               [<1, 0>, <0, 1>]
+               [g_{9}, g_{10}]
              to
-               (<Sq(1)>, <Sq(2)>),
+               (Sq(1)*g_{8}, Sq(2)*g_{8}),
              Module homomorphism of degree 0 defined by sending the generators
-               [<1, 0>, <0, 1>]
+               [g_{10}, g_{12}]
              to
-               (<Sq(1), 0>, <Sq(0,1), Sq(2)>)]
+               (Sq(1)*g_{9}, Sq(0,1)*g_{9} + Sq(2)*g_{10})]
             sage: for i in range(len(res)-1):
             ....:     assert (res[i]*res[i+1]).is_zero(), 'the result is not a complex'
         """

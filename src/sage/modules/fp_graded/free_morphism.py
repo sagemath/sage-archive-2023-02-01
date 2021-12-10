@@ -45,18 +45,18 @@ class FreeGradedModuleMorphism(Morphism):
 
         sage: from sage.modules.fp_graded.free_module import FreeGradedModule
         sage: A = SteenrodAlgebra(2)
-        sage: F1 = FreeGradedModule(A, (4,5))
-        sage: F2 = FreeGradedModule(A, (3,4))
-        sage: F3 = FreeGradedModule(A, (2,3))
+        sage: F1 = FreeGradedModule(A, (4,5), names='b')
+        sage: F2 = FreeGradedModule(A, (3,4), names='c')
+        sage: F3 = FreeGradedModule(A, (2,3), names='d')
         sage: H1 = Hom(F1, F2)
         sage: H2 = Hom(F2, F3)
         sage: f = H1( ( F2((Sq(4), 0)), F2((0, Sq(4))) ) )
         sage: g = H2( ( F3((Sq(2), 0)), F3((Sq(3), Sq(2))) ) )
         sage: g*f
         Module homomorphism of degree 4 defined by sending the generators
-          [<1, 0>, <0, 1>]
+          [b_{4}, b_{5}]
         to
-          [<Sq(0,2) + Sq(3,1) + Sq(6), 0>, <Sq(1,2) + Sq(7), Sq(0,2) + Sq(3,1) + Sq(6)>]
+          [(Sq(0,2)+Sq(3,1)+Sq(6))*d_{2}, (Sq(1,2)+Sq(7))*d_{2} + (Sq(0,2)+Sq(3,1)+Sq(6))*d_{3}]
 
     TESTS::
 
@@ -179,7 +179,7 @@ class FreeGradedModuleMorphism(Morphism):
             sage: values = [Sq(5)*N.generator(0), Sq(3,1)*N.generator(0)]
             sage: f = homspace(values)
             sage: f.values()
-            [<Sq(5)>, <Sq(3,1)>]
+            [Sq(5)*g_{2}, Sq(3,1)*g_{2}]
             sage: homspace.zero().values()
             [0, 0]
         """
@@ -278,9 +278,9 @@ class FreeGradedModuleMorphism(Morphism):
             sage: f = homspace(values)
             sage: f_inverse = -f; f_inverse
             Module homomorphism of degree 7 defined by sending the generators
-              [<1, 0>, <0, 1>]
+              [g_{0}, g_{1}]
             to
-              [<Sq(5)>, <Sq(3,1)>]
+              [Sq(5)*g_{2}, Sq(3,1)*g_{2}]
             sage: (f + f_inverse).is_zero()
             True
         """
@@ -325,9 +325,9 @@ class FreeGradedModuleMorphism(Morphism):
             sage: g = Hom(N, M)(values2)
             sage: fg = f * g; fg
             Module homomorphism of degree 7 defined by sending the generators
-              [<1>]
+              [g_{2}]
             to
-              [<Sq(4,1) + Sq(7)>]
+              [(Sq(4,1)+Sq(7))*g_{2}]
             sage: fg.is_endomorphism()
             True
 
@@ -427,9 +427,9 @@ class FreeGradedModuleMorphism(Morphism):
             sage: values = [Sq(5)*N.generator(0), Sq(3,1)*N.generator(0)]
             sage: f = Hom(M, N)(values)
             sage: f.__call__(M.generator(0))
-            <Sq(5)>
+            Sq(5)*g_{2}
             sage: f.__call__(M.generator(1))
-            <Sq(3,1)>
+            Sq(3,1)*g_{2}
         """
         if x.parent() != self.domain():
             raise ValueError('cannot evaluate morphism on element not in the domain')
@@ -454,7 +454,7 @@ class FreeGradedModuleMorphism(Morphism):
 
             sage: Hom(M, N)(values)._repr_()
             'Module homomorphism of degree 7 defined by sending the generators\n
-              [<1, 0>, <0, 1>]\nto\n  [<Sq(5)>, <Sq(3,1)>]'
+              [g_{0}, g_{1}]\nto\n  [Sq(5)*g_{2}, Sq(3,1)*g_{2}]'
 
             sage: Hom(M, N).zero()._repr_()
             'The trivial homomorphism'
@@ -573,7 +573,7 @@ class FreeGradedModuleMorphism(Morphism):
             sage: M.generator_degrees()
             (0,)
             sage: M.relations()
-            [<Sq(2)>]
+            [Sq(2)*g_{0}]
         """
         from .module import FPModule
         return FPModule(algebra=self.base_ring(),

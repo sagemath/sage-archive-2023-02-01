@@ -48,26 +48,26 @@ is referred to as the coefficients of `x`.
 Module elements are displayed by their algebra coefficients::
 
     sage: M.an_element(n=5)
-    <Sq(2,1), Sq(4)>
+    Sq(2,1)*g_{0} + Sq(4)*g_{1}
 
     sage: M.an_element(n=15)
-    <Sq(0,0,0,1), Sq(1,2,1)>
+    Sq(0,0,0,1)*g_{0} + Sq(1,2,1)*g_{1}
 
 The generators are themselves elements of the module::
 
     sage: M.generators()
-    [<1, 0>, <0, 1>]
+    [g_{0}, g_{1}]
 
 Producing elements from a given set of coefficients is possible as usual::
 
     sage: coeffs = [Sq(5), Sq(1,1)]
     sage: x = M(coeffs); x
-    <Sq(5), Sq(1,1)>
+    Sq(5)*g_{0} + Sq(1,1)*g_{1}
 
 The module action produces new elements::
 
     sage: Sq(2) * x
-    <Sq(4,1) + Sq(7), Sq(3,1)>
+    (Sq(4,1)+Sq(7))*g_{0} + Sq(3,1)*g_{1}
 
 Each non-zero element has a well-defined degree::
 
@@ -86,9 +86,9 @@ However the zero element does not::
 Any two elements can be added as long as they are in the same degree::
 
     sage: y = M.an_element(5); y
-    <Sq(2,1), Sq(4)>
+    Sq(2,1)*g_{0} + Sq(4)*g_{1}
     sage: x + y
-    <Sq(2,1) + Sq(5), Sq(1,1) + Sq(4)>
+    (Sq(2,1)+Sq(5))*g_{0} + (Sq(1,1)+Sq(4))*g_{1}
 
 or when at least one of them is zero::
 
@@ -105,7 +105,7 @@ vector space over the ground field `k`.  A basis for this vector space can be
 computed::
 
     sage: M.basis_elements(5)
-    [<Sq(2,1), 0>, <Sq(5), 0>, <0, Sq(1,1)>, <0, Sq(4)>]
+    [Sq(2,1)*g_{0}, Sq(5)*g_{0}, Sq(1,1)*g_{1}, Sq(4)*g_{1}]
 
 together with a corresponding vector space presentation::
 
@@ -122,7 +122,7 @@ coordinates::
 
     sage: x_ = M.element_from_coordinates((0,1,1,0), 5)
     sage: x_
-    <Sq(5), Sq(1,1)>
+    Sq(5)*g_{0} + Sq(1,1)*g_{1}
     sage: x_ == x
     True
 
@@ -137,7 +137,7 @@ To create a homomorphism, first create the object modelling the set of all
 such homomorphisms using the free function ``Hom``::
 
     sage: M = FreeGradedModule(A, (0,1))
-    sage: N = FreeGradedModule(A, (2,))
+    sage: N.<c2> = FreeGradedModule(A, (2,))
     sage: homspace = Hom(M, N); homspace
     Set of Morphisms from Finitely presented free left module on 2 generators
       over mod 2 Steenrod algebra, milnor basis
@@ -150,8 +150,7 @@ Just as module elements, homomorphisms are created using the ()-method
 of the homspace object. The only argument is a list of module elements in the
 codomain, corresponding to the module generators of the domain::
 
-    sage: g = N([1])  # the generator of the codomain module.
-    sage: values = [Sq(2)*g, Sq(2)*Sq(1)*g]
+    sage: values = [Sq(2)*c2, Sq(2)*Sq(1)*c2]
     sage: f = homspace(values)
 
 The resulting homomorphism is the one sending the `i`-th generator of the
@@ -159,9 +158,9 @@ domain to the `i`-th codomain value given::
 
     sage: f
     Module homomorphism of degree 4 defined by sending the generators
-      [<1, 0>, <0, 1>]
+      [g_{0}, g_{1}]
     to
-      [<Sq(2)>, <Sq(0,1) + Sq(3)>]
+      [Sq(2)*c2, (Sq(0,1)+Sq(3))*c2]
 
 Convenience methods exist for creating the trivial morphism::
 
@@ -176,10 +175,10 @@ as well as the identity endomorphism::
 Homomorphisms can be evaluated on elements of the domain module::
 
     sage: v1 = f(Sq(7)*M.generator(0)); v1
-    <Sq(3,2)>
+    Sq(3,2)*c2
 
     sage: v2 = f(Sq(17)*M.generator(1)); v2
-    <Sq(11,3) + Sq(13,0,1) + Sq(17,1)>
+    (Sq(11,3)+Sq(13,0,1)+Sq(17,1))*c2
 
 and they respect the module action::
 
@@ -204,12 +203,12 @@ but just as module elements, the trivial homomorphism does not::
 
 Any two homomorphisms can be added as long as they are of the same degree::
 
-    sage: f2 = homspace([Sq(2)*g, Sq(3)*g])
+    sage: f2 = homspace([Sq(2)*c2, Sq(3)*c2])
     sage: f + f2
     Module homomorphism of degree 4 defined by sending the generators
-      [<1, 0>, <0, 1>]
+      [g_{0}, g_{1}]
     to
-      [0, <Sq(0,1)>]
+      [0, Sq(0,1)*c2]
 
 or when at least one of them is zero::
 
@@ -287,7 +286,19 @@ class FreeGradedModule(CombinatorialFreeModule):
     - ``generator_degrees`` -- tuple of integers defining the number
       of generators of the module, and their degrees
 
-    TESTS::
+    - ``names`` -- optional, the names of the generators. If ``names``
+      is a comma-separated string like ``'a, b, c'``, then those will
+      be the names. Otherwise, for example if ``names`` is ``abc``,
+      then the names will be ``abc_{d,i}``.
+
+    By default, if all generators are in distinct degrees, then the
+    ``names`` of the generators will have the form ``g_{d}`` where
+    ``d`` is the degree of the generator. If the degrees are not
+    distinct, then the generators will be callsed ``g_{d,i}`` where
+    ``d`` is the degree and ``i` is its index in the list of
+    generators in that degree.
+
+    EXAMPLES::
 
         sage: from sage.modules.fp_graded.free_module import FreeGradedModule
         sage: E.<x,y,z> = ExteriorAlgebra(QQ)
@@ -301,12 +312,28 @@ class FreeGradedModule(CombinatorialFreeModule):
         sage: (x*y*b).degree()
         5
 
+    ``names`` of generators::
+
+        sage: M.generators()
+        [g_{-1}, g_{3}]
+        sage: FreeGradedModule(E, (0, 0, 2)).generators()
+        [g_{0,0}, g_{0,1}, g_{2,0}]
+        sage: FreeGradedModule(E, (0, 0, 2), names='x, y, z').generators()
+        [x, y, z]
+        sage: FreeGradedModule(E, (0, 0, 2), names='xyz').generators()
+        [xyz_{0,0}, xyz_{0,1}, xyz_{2,0}]
+
+    ``names`` can also be defined implicitly using Sage's ``M.<...>`` syntax::
+
         sage: A = SteenrodAlgebra(2)
-        sage: FreeGradedModule(A, (-2,2,4))
+        sage: M.<x,y,z> = FreeGradedModule(A, (-2,2,4))
+        sage: M
         Finitely presented free left module on 3 generators over
          mod 2 Steenrod algebra, milnor basis
+        sage: M.gens()
+        (x, y, z)
     """
-    def __init__(self, algebra, generator_degrees):
+    def __init__(self, algebra, generator_degrees, names=None):
         r"""
         Create a finitely generated free graded module over a connected graded
         algebra.
@@ -321,6 +348,34 @@ class FreeGradedModule(CombinatorialFreeModule):
         # the generators are indexed by (0,d_0), (1,d_1), ...
         keys = list(enumerate(generator_degrees))
         self._generator_keys = keys
+
+        degs_and_indices = []
+        degs_so_far = {}
+        for i in generator_degrees:
+            try:
+                idx = degs_so_far[i] + 1
+                degs_so_far[i] += 1
+            except KeyError:
+                idx = 0
+                degs_so_far[i] = 0
+            degs_and_indices.append((i, idx))
+        if not degs_so_far or max(degs_so_far.values()) == 0:
+            degs_and_indices = [str(i[0]) for i in degs_and_indices]
+        else:
+            degs_and_indices = ['{},{}'.format(i[0],i[1]) for i in degs_and_indices]
+
+        if names is None:
+            names = tuple('g_{{{}}}'.format(s) for s in degs_and_indices)
+        elif isinstance(names, str):
+            if names.find(',') == -1:
+                names = tuple('{}_{{{}}}'.format(names, s) for s in degs_and_indices)
+            else:
+                names = tuple(s.strip() for s in names.split(','))
+        else:
+            names = tuple(names)
+        self._names = names
+
+        self._names_dict = dict(zip(keys, degs_and_indices))
 
         if not algebra.base_ring().is_field():
             raise ValueError('the ground ring of the algebra must be a field')
@@ -343,7 +398,7 @@ class FreeGradedModule(CombinatorialFreeModule):
 
         EXAMPLES::
 
-            sage: from sage.modules.fp_graded.free_module import *
+            sage: from sage.modules.fp_graded.free_module import FreeGradedModule
             sage: A = SteenrodAlgebra(2)
             sage: M = FreeGradedModule(A, (-2,2,4))
             sage: M.generator_degrees()
@@ -361,7 +416,7 @@ class FreeGradedModule(CombinatorialFreeModule):
 
         EXAMPLES::
 
-            sage: from sage.modules.fp_graded.free_module import *
+            sage: from sage.modules.fp_graded.free_module import FreeGradedModule
             sage: A = SteenrodAlgebra(2)
             sage: FreeGradedModule(A, (-2,2,4)).is_trivial()
             False
@@ -382,7 +437,7 @@ class FreeGradedModule(CombinatorialFreeModule):
 
         EXAMPLES::
 
-            sage: from sage.modules.fp_graded.free_module import *
+            sage: from sage.modules.fp_graded.free_module import FreeGradedModule
             sage: A = SteenrodAlgebra(2)
             sage: M = FreeGradedModule(A, (-2,2,4))
             sage: M.connectivity()
@@ -417,15 +472,15 @@ class FreeGradedModule(CombinatorialFreeModule):
 
         EXAMPLES::
 
-            sage: from sage.modules.fp_graded.free_module import *
+            sage: from sage.modules.fp_graded.free_module import FreeGradedModule
             sage: A = SteenrodAlgebra(2)
-            sage: M = FreeGradedModule(A, (0,2,4))
+            sage: M.<a,b,c> = FreeGradedModule(A, (0,2,4))
 
             sage: zero = M(0); zero
             0
 
             sage: e = M((Sq(4), Sq(2), 1)); e
-            <Sq(4), Sq(2), 1>
+            Sq(4)*a + Sq(2)*b + c
 
             sage: e is M(e)
             True
@@ -456,11 +511,11 @@ class FreeGradedModule(CombinatorialFreeModule):
 
         EXAMPLES::
 
-            sage: from sage.modules.fp_graded.free_module import *
+            sage: from sage.modules.fp_graded.free_module import FreeGradedModule
             sage: A = SteenrodAlgebra(2)
             sage: M = FreeGradedModule(A, (0,2,4))
             sage: M.an_element(172)
-            <Sq(0,0,2,0,1,0,1), Sq(0,4,0,0,1,0,1), Sq(7,1,0,0,1,0,1)>
+            Sq(0,0,2,0,1,0,1)*g_{0} + Sq(0,4,0,0,1,0,1)*g_{2} + Sq(7,1,0,0,1,0,1)*g_{4}
 
         Zero is the only element in the trivial module::
 
@@ -495,7 +550,7 @@ class FreeGradedModule(CombinatorialFreeModule):
 
         TESTS::
 
-            sage: from sage.modules.fp_graded.free_module import *
+            sage: from sage.modules.fp_graded.free_module import FreeGradedModule
             sage: A = SteenrodAlgebra(2)
             sage: M = FreeGradedModule(A, (0,2,4))
             sage: M._repr_()
@@ -504,6 +559,30 @@ class FreeGradedModule(CombinatorialFreeModule):
         return "Finitely presented free left module on %s generator%s over %s"\
             %(len(self.generator_degrees()), "" if len(self.generator_degrees()) == 1 else "s",
               self.base_ring())
+
+
+    def _repr_term(self, m):
+        """
+        Return a string representing the generator indexed by ``m``.
+
+        INPUT:
+
+        - ``m`` -- a key corresponding to a generator. This will be a
+          pair ``(idx, deg)`` where ``deg`` is the generator's degree
+          and ``idx`` is its index in the list of all generators.
+
+        TESTS::
+
+            sage: from sage.modules.fp_graded.free_module import FreeGradedModule
+            sage: A = SteenrodAlgebra(2)
+            sage: M = FreeGradedModule(A, (0,2,4))
+            sage: M._repr_term((1,2))
+            'g_{2}'
+            sage: M.<a,b,c> = FreeGradedModule(A, (0,2,4))
+            sage: M._repr_term((1,2))
+            'b'
+        """
+        return self._names[m[0]]
 
 
     @cached_method
@@ -531,19 +610,19 @@ class FreeGradedModule(CombinatorialFreeModule):
 
         EXAMPLES::
 
-            sage: from sage.modules.fp_graded.free_module import *
+            sage: from sage.modules.fp_graded.free_module import FreeGradedModule
             sage: A = SteenrodAlgebra(2)
-            sage: M = FreeGradedModule(A, (0,2,4))
+            sage: M.<m0, m2, m4> = FreeGradedModule(A, (0,2,4))
             sage: M.basis_elements(8)
-            [<Sq(1,0,1), 0, 0>,
-             <Sq(2,2), 0, 0>,
-             <Sq(5,1), 0, 0>,
-             <Sq(8), 0, 0>,
-             <0, Sq(0,2), 0>,
-             <0, Sq(3,1), 0>,
-             <0, Sq(6), 0>,
-             <0, 0, Sq(1,1)>,
-             <0, 0, Sq(4)>]
+            [Sq(1,0,1)*m0,
+             Sq(2,2)*m0,
+             Sq(5,1)*m0,
+             Sq(8)*m0,
+             Sq(0,2)*m2,
+             Sq(3,1)*m2,
+             Sq(6)*m2,
+             Sq(1,1)*m4,
+             Sq(4)*m4]
         """
         basis_n = []
         for i, generator_degree in enumerate(self.generator_degrees()):
@@ -575,11 +654,11 @@ class FreeGradedModule(CombinatorialFreeModule):
 
         EXAMPLES::
 
-            sage: from sage.modules.fp_graded.free_module import *
+            sage: from sage.modules.fp_graded.free_module import FreeGradedModule
             sage: A = SteenrodAlgebra(2)
             sage: M = FreeGradedModule(A, (0,1))
             sage: x = M.element_from_coordinates((0,1,0,1), 5); x
-            <Sq(5), Sq(4)>
+            Sq(5)*g_{0} + Sq(4)*g_{1}
             sage: basis = M.basis_elements(5)
             sage: y = 0*basis[0] + 1*basis[1] + 0*basis[2] + 1*basis[3]
             sage: x == y
@@ -628,7 +707,7 @@ class FreeGradedModule(CombinatorialFreeModule):
 
         EXAMPLES::
 
-            sage: from sage.modules.fp_graded.free_module import *
+            sage: from sage.modules.fp_graded.free_module import FreeGradedModule
             sage: A = SteenrodAlgebra(2)
             sage: M = FreeGradedModule(A, (0,2,4))
             sage: V = M[4]; V
@@ -676,13 +755,13 @@ class FreeGradedModule(CombinatorialFreeModule):
 
         EXAMPLES::
 
-            sage: from sage.modules.fp_graded.free_module import *
+            sage: from sage.modules.fp_graded.free_module import FreeGradedModule
             sage: A1 = SteenrodAlgebra(2, profile=[2,1])
-            sage: M = FreeGradedModule(A1, (0,))
+            sage: M.<x> = FreeGradedModule(A1, (0,))
             sage: M.vector_presentation(3)
             Vector space of dimension 2 over Finite Field of size 2
             sage: M.basis_elements(3)
-            [<Sq(0,1)>, <Sq(3)>]
+            [Sq(0,1)*x, Sq(3)*x]
             sage: [M.vector_presentation(i).dimension() for i in range(-2, 9)]
             [0, 0, 1, 1, 1, 2, 1, 1, 1, 0, 0]
         """
@@ -696,15 +775,15 @@ class FreeGradedModule(CombinatorialFreeModule):
 
         EXAMPLES::
 
-            sage: from sage.modules.fp_graded.free_module import *
+            sage: from sage.modules.fp_graded.free_module import FreeGradedModule
             sage: A = SteenrodAlgebra(2)
             sage: M = FreeGradedModule(A, (0,2,4))
             sage: M.generator(0)
-            <1, 0, 0>
+            g_{0}
             sage: M.generator(1)
-            <0, 1, 0>
+            g_{2}
             sage: M.generator(2)
-            <0, 0, 1>
+            g_{4}
         """
         try:
             return self.monomial(self._generator_keys[index])
@@ -713,6 +792,8 @@ class FreeGradedModule(CombinatorialFreeModule):
                 'range [0, %s]; generator %s does not exist' %
                 (len(self.generator_degrees()) - 1, index))
 
+    gen = generator
+
 
     def generators(self):
         r"""
@@ -720,11 +801,11 @@ class FreeGradedModule(CombinatorialFreeModule):
 
         EXAMPLES::
 
-            sage: from sage.modules.fp_graded.free_module import *
+            sage: from sage.modules.fp_graded.free_module import FreeGradedModule
             sage: A = SteenrodAlgebra(2)
-            sage: M = FreeGradedModule(A, (0,1))
+            sage: M = FreeGradedModule(A, (-2,1))
             sage: M.generators()
-            [<1, 0>, <0, 1>]
+            [g_{-2}, g_{1}]
         """
         return [self.generator(i) for i in range(len(self.generator_degrees()))]
 
@@ -767,7 +848,7 @@ class FreeGradedModule(CombinatorialFreeModule):
 
         EXAMPLES::
 
-            sage: from sage.modules.fp_graded.free_module import *
+            sage: from sage.modules.fp_graded.free_module import FreeGradedModule
             sage: A = SteenrodAlgebra(2)
             sage: M = FreeGradedModule(A, (0,2,4))
             sage: M.suspension(4).generator_degrees()

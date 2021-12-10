@@ -7,16 +7,16 @@ EXAMPLES::
 
     sage: from sage.modules.fp_graded.free_module import FreeGradedModule
     sage: A = SteenrodAlgebra(2)
-    sage: F1 = FreeGradedModule(A, (1,3))
-    sage: F2 = FreeGradedModule(A, (2,3))
+    sage: F1 = FreeGradedModule(A, (1,3), names='g')
+    sage: F2 = FreeGradedModule(A, (2,3), names='h')
     sage: homset = Hom(F1, F2)
     sage: homset
     Set of Morphisms from Finitely presented free left module on 2 generators ...
     sage: homset([F2((Sq(1), 1)), F2((0, Sq(2)))])
     Module homomorphism of degree 2 defined by sending the generators
-      [<1, 0>, <0, 1>]
+      [g_{1}, g_{3}]
     to
-      [<Sq(1), 1>, <0, Sq(2)>]
+      [Sq(1)*h_{2} + h_{3}, Sq(2)*h_{3}]
     sage: TestSuite(homset).run()
 
 AUTHORS:
@@ -83,9 +83,9 @@ class FreeGradedModuleHomspace(Homset):
             sage: values = (A2.Sq(4)*L.generator(0), A2.Sq(3)*L.generator(1))
             sage: f = H(values); f
             Module homomorphism of degree 5 defined by sending the generators
-              [<1, 0>, <0, 1>]
+              [g_{1}, g_{3}]
             to
-              [<Sq(4), 0>, <0, Sq(3)>]
+              [Sq(4)*g_{2}, Sq(3)*g_{5}]
 
             sage: H(0)
             The trivial homomorphism

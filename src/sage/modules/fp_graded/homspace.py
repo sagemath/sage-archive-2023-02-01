@@ -10,25 +10,25 @@ TESTS::
     sage: from sage.modules.fp_graded.module import FPModule
     sage: from sage.misc.sage_unittest import TestSuite
     sage: A = SteenrodAlgebra(2, profile=(3,2,1))
-    sage: F = FPModule(A, [1,3])
-    sage: L = FPModule(A, [2,3], [[Sq(2),Sq(1)], [0,Sq(2)]])
+    sage: F = FPModule(A, [1,3], names='c')
+    sage: L = FPModule(A, [2,3], [[Sq(2),Sq(1)], [0,Sq(2)]], names='h')
     sage: homset = Hom(F, L); homset
     Set of Morphisms from Finitely presented left module on 2 generators ...
     sage: homset.an_element()
     Module homomorphism of degree 0 defined by sending the generators
-      [<1, 0>, <0, 1>]
+      [c_{1}, c_{3}]
     to
-      [0, <Sq(1), 0>]
+      [0, Sq(1)*h_{2}]
     sage: homset([L((A.Sq(1), 1)), L((0, A.Sq(2)))])
     Module homomorphism of degree 2 defined by sending the generators
-      [<1, 0>, <0, 1>]
+      [c_{1}, c_{3}]
     to
-      [<Sq(1), 1>, <0, Sq(2)>]
+      [Sq(1)*h_{2} + h_{3}, Sq(2)*h_{3}]
     sage: Hom(F, L) ([L((A.Sq(1), 1)), L((0, A.Sq(2)))]).kernel()
     Module homomorphism of degree 0 defined by sending the generators
-      [<1, 0>, <0, 1>]
+      [g_{3}, g_{4}]
     to
-      (<0, 1>, <Sq(0,1), 0>)
+      (c_{3}, Sq(0,1)*c_{1})
 
 AUTHORS:
 
@@ -100,9 +100,9 @@ class FPModuleHomspace(Homset):
 
             sage: f = homset([v1, v2]); f
               Module homomorphism of degree 2 defined by sending the generators
-                [<1, 0>, <0, 1>]
+                [g_{1}, g_{3}]
               to
-                [<Sq(1), 1>, <0, Sq(2)>]
+                [Sq(1)*g_{2} + g_{3}, Sq(2)*g_{3}]
 
         One can construct a homomorphism from another homomorhism::
 
@@ -143,25 +143,25 @@ class FPModuleHomspace(Homset):
 
             sage: Hom(HZ, HZ).an_element(3)
             Module homomorphism of degree 3 defined by sending the generators
-              [<1>]
+              [g_{0}]
             to
-              [<Sq(0,1)>]
+              [Sq(0,1)*g_{0}]
 
         TESTS::
 
             sage: K = FPModule(A, [0, 0], [[Sq(2), 0]]) # Using a zero coefficient in the relations.
             sage: Hom(K, K).an_element(4)
             Module homomorphism of degree 4 defined by sending the generators
-              [<1, 0>, <0, 1>]
+              [g_{0,0}, g_{0,1}]
             to
-              [0, <Sq(4), 0>]
+              [0, Sq(4)*g_{0,0}]
 
             sage: K = FPModule(A, [0, 0], [[Sq(2), 0], [0,0], [Sq(4), Sq(2)*Sq(2)]])
             sage: Hom(K, K).an_element(n=3)
             Module homomorphism of degree 3 defined by sending the generators
-              [<1, 0>, <0, 1>]
+              [g_{0,0}, g_{0,1}]
             to
-              [0, <Sq(0,1), 0>]
+              [0, Sq(0,1)*g_{0,0}]
         """
         return self._basis_elements(n, basis=False)
 
@@ -186,13 +186,13 @@ class FPModuleHomspace(Homset):
 
             sage: Hom(Hko, Hko).basis_elements(21)
             [Module homomorphism of degree 21 defined by sending the generators
-               [<1>]
+               [g_{0}]
              to
-               [<Sq(0,0,3) + Sq(0,2,0,1)>],
+               [(Sq(0,0,3)+Sq(0,2,0,1))*g_{0}],
              Module homomorphism of degree 21 defined by sending the generators
-               [<1>]
+               [g_{0}]
              to
-               [<Sq(8,2,1)>]]
+               [Sq(8,2,1)*g_{0}]]
         """
         return self._basis_elements(n, basis=True)
 
@@ -279,32 +279,32 @@ class FPModuleHomspace(Homset):
             sage: Hko = FPModule(A, [0], relations=[[Sq(2)], [Sq(1)]])
             sage: Hom(Hko, Hko)._basis_elements(21, basis=True)
             [Module homomorphism of degree 21 defined by sending the generators
-               [<1>]
+               [g_{0}]
              to
-               [<Sq(0,0,3) + Sq(0,2,0,1)>],
+               [(Sq(0,0,3)+Sq(0,2,0,1))*g_{0}],
              Module homomorphism of degree 21 defined by sending the generators
-               [<1>]
+               [g_{0}]
              to
-               [<Sq(8,2,1)>]]
+               [Sq(8,2,1)*g_{0}]]
 
             sage: Hom(Hko, Hko)._basis_elements(21, basis=False)
             Module homomorphism of degree 21 defined by sending the generators
-              [<1>]
+              [g_{0}]
             to
-              [<Sq(0,0,3) + Sq(0,2,0,1)>]
+              [(Sq(0,0,3)+Sq(0,2,0,1))*g_{0}]
 
             sage: F = FPModule(A, [0])
             sage: Hom(F, Hko)._basis_elements(21, basis=False)
             Module homomorphism of degree 21 defined by sending the generators
-              [<1>]
+              [g_{0}]
             to
-              [<Sq(0,2,0,1)>]
+              [Sq(0,2,0,1)*g_{0}]
 
             sage: Hom(F, Hko)._basis_elements(21, basis=False)
             Module homomorphism of degree 21 defined by sending the generators
-              [<1>]
+              [g_{0}]
             to
-              [<Sq(0,2,0,1)>]
+              [Sq(0,2,0,1)*g_{0}]
 
             Hom(FPA_Module([0], A, [[Sq(1)]]), FPA_Module([-2], A, [[Sq(1)]])).an_element(0)
             The trivial homomorphism
@@ -328,34 +328,34 @@ class FPModuleHomspace(Homset):
             Hom(Free, Free):
               basis==False:
               Module homomorphism of degree 7 defined by sending the generators
-              [<1>]
+              [g_{0}]
             to
-              [<Sq(0,0,1)>]
+              [Sq(0,0,1)*g_{0}]
               basis==True:
               [Module homomorphism of degree 7 defined by sending the generators
-              [<1>]
+              [g_{0}]
             to
-              [<Sq(0,0,1)>], Module homomorphism of degree 7 defined by sending the generators
-              [<1>]
+              [Sq(0,0,1)*g_{0}], Module homomorphism of degree 7 defined by sending the generators
+              [g_{0}]
             to
-              [<Sq(1,2)>], Module homomorphism of degree 7 defined by sending the generators
-              [<1>]
+              [Sq(1,2)*g_{0}], Module homomorphism of degree 7 defined by sending the generators
+              [g_{0}]
             to
-              [<Sq(4,1)>], Module homomorphism of degree 7 defined by sending the generators
-              [<1>]
+              [Sq(4,1)*g_{0}], Module homomorphism of degree 7 defined by sending the generators
+              [g_{0}]
             to
-              [<Sq(7)>]]
+              [Sq(7)*g_{0}]]
             Hom(Free, Hko):
               basis==False:
               Module homomorphism of degree 7 defined by sending the generators
-              [<1>]
+              [g_{0}]
             to
-              [<Sq(0,0,1)>]
+              [Sq(0,0,1)*g_{0}]
               basis==True:
               [Module homomorphism of degree 7 defined by sending the generators
-              [<1>]
+              [g_{0}]
             to
-              [<Sq(0,0,1)>]]
+              [Sq(0,0,1)*g_{0}]]
             Hom(Free, Trivial):
               basis==False:
               The trivial homomorphism
@@ -374,14 +374,14 @@ class FPModuleHomspace(Homset):
             Hom(Hko, Hko):
               basis==False:
               Module homomorphism of degree 7 defined by sending the generators
-              [<1>]
+              [g_{0}]
             to
-              [<Sq(0,0,1)>]
+              [Sq(0,0,1)*g_{0}]
               basis==True:
               [Module homomorphism of degree 7 defined by sending the generators
-              [<1>]
+              [g_{0}]
             to
-              [<Sq(0,0,1)>]]
+              [Sq(0,0,1)*g_{0}]]
             Hom(Hko, Trivial):
               basis==False:
               The trivial homomorphism

@@ -38,7 +38,7 @@ class FPElement(IndexedFreeModuleElement):
 
         sage: from sage.modules.fp_graded.module import FPModule
         sage: FPModule(SteenrodAlgebra(2), [0])([Sq(2)])
-        <Sq(2)>
+        Sq(2)*g_{0}
     """
     def lift_to_free(self):
         r"""
@@ -51,11 +51,11 @@ class FPElement(IndexedFreeModuleElement):
             sage: M = FPModule(SteenrodAlgebra(2), [0,1], [[Sq(4), Sq(3)]])
             sage: x = M([Sq(1), 1])
             sage: x
-            <Sq(1), 1>
+            Sq(1)*g_{0} + g_{1}
             sage: x.parent()
             Finitely presented left module on 2 generators and 1 relation over mod 2 Steenrod algebra, milnor basis
             sage: x.lift_to_free()
-            <Sq(1), 1>
+            Sq(1)*g_{0} + g_{1}
             sage: x.lift_to_free().parent()
             Finitely presented free left module on 2 generators over mod 2 Steenrod algebra, milnor basis
         """
@@ -79,7 +79,7 @@ class FPElement(IndexedFreeModuleElement):
             sage: x = M.an_element(7)
 
             sage: x
-            <Sq(0,0,1), Sq(3,1)>
+            Sq(0,0,1)*g_{0} + Sq(3,1)*g_{1}
             sage: x.degree()
             7
 
@@ -125,28 +125,6 @@ class FPElement(IndexedFreeModuleElement):
         return [self[i] for i in sorted(self.parent().basis().keys())]
 
 
-    def _repr_(self):
-        r"""
-        Return a string representation of ``self``.
-
-        EXAMPLES::
-
-            sage: from sage.modules.fp_graded.module import FPModule
-            sage: M = FPModule(SteenrodAlgebra(2), [0,1], [[Sq(4), Sq(3)]])
-            sage: [M.an_element(n) for n in range(1,10)]
-            [<Sq(1), 1>,
-             <Sq(2), Sq(1)>,
-             <Sq(0,1), Sq(2)>,
-             <Sq(1,1), Sq(3)>,
-             <Sq(2,1), Sq(4)>,
-             <Sq(0,2), Sq(5)>,
-             <Sq(0,0,1), Sq(3,1)>,
-             <Sq(1,0,1), Sq(1,2)>,
-             <Sq(2,0,1), Sq(2,2)>]
-        """
-        return self.lift_to_free()._repr_()
-
-
     def _lmul_(self, a):
         r"""
         Act by left multiplication on this element by ``a``.
@@ -165,24 +143,24 @@ class FPElement(IndexedFreeModuleElement):
             sage: A2 = SteenrodAlgebra(2, profile=(3,2,1))
             sage: M = FPModule(A2, [0,3], [[Sq(2)*Sq(4), Sq(3)]])
             sage: A2.Sq(2)*M.generator(1)
-            <0, Sq(2)>
+            Sq(2)*g_{3}
             sage: A2.Sq(2)*(A2.Sq(1)*A2.Sq(2)*M.generator(0) + M.generator(1))
-            <Sq(2,1), Sq(2)>
+            Sq(2,1)*g_{0} + Sq(2)*g_{3}
 
         TESTS::
 
             sage: elements = [M.an_element(n) for n in range(1,10)]
             sage: a = A2.Sq(3)
             sage: [a*x for x in elements]
-            [<Sq(1,1), 0>,
+            [Sq(1,1)*g_{0},
              0,
-             <Sq(3,1), Sq(3)>,
-             <0, Sq(1,1)>,
+             Sq(3,1)*g_{0} + Sq(3)*g_{3},
+             Sq(1,1)*g_{3},
              0,
-             <Sq(3,2), Sq(3,1)>,
-             <Sq(3,0,1), Sq(7)>,
-             <Sq(1,1,1), Sq(5,1)>,
-             <0, Sq(3,2)>]
+             Sq(3,2)*g_{0} + Sq(3,1)*g_{3},
+             Sq(3,0,1)*g_{0} + Sq(7)*g_{3},
+             Sq(1,1,1)*g_{0} + Sq(5,1)*g_{3},
+             Sq(3,2)*g_{3}]
         """
         return self.parent()(a*self.lift_to_free())
 
@@ -212,7 +190,7 @@ class FPElement(IndexedFreeModuleElement):
 
             sage: from sage.modules.fp_graded.module import FPModule
             sage: A2 = SteenrodAlgebra(2, profile=(3,2,1))
-            sage: M = FPModule(A2, (0,1))
+            sage: M.<m0,m1> = FPModule(A2, (0,1))
 
             sage: x = M.an_element(7)
             sage: v = x.vector_presentation(); v
@@ -232,7 +210,7 @@ class FPElement(IndexedFreeModuleElement):
 
             sage: basis = M.basis_elements(7)
             sage: x_ = sum( [c*b for (c,b) in zip(v, basis)] ); x_
-            <Sq(0,0,1), Sq(3,1)>
+            Sq(0,0,1)*m0 + Sq(3,1)*m1
             sage: x == x_
             True
 
@@ -298,7 +276,7 @@ class FPElement(IndexedFreeModuleElement):
             sage: M = FPModule(SteenrodAlgebra(2), [0,1], [[Sq(4), Sq(3)]])
             sage: x = M([Sq(1), 1])
             sage: x
-            <Sq(1), 1>
+            Sq(1)*g_{0} + g_{1}
             sage: x == x
             True
             sage: x == M.zero()
@@ -324,17 +302,17 @@ class FPElement(IndexedFreeModuleElement):
         EXAMPLES::
 
             sage: from sage.modules.fp_graded.module import FPModule
-            sage: M = FPModule(SteenrodAlgebra(2), [0,2,4], [[Sq(4),Sq(2),0]])
+            sage: M.<a0,b2,c4> = FPModule(SteenrodAlgebra(2), [0,2,4], [[Sq(4),Sq(2),0]])
 
             sage: m = M((Sq(6), 0, Sq(2))); m
-            <Sq(6), 0, Sq(2)>
+            Sq(6)*a0 + Sq(2)*c4
             sage: m.normalize()
-            <Sq(6), 0, Sq(2)>
+            Sq(6)*a0 + Sq(2)*c4
             sage: m == m.normalize()
             True
 
             sage: n = M((Sq(4), Sq(2), 0)); n
-            <Sq(4), Sq(2), 0>
+            Sq(4)*a0 + Sq(2)*b2
             sage: n.normalize()
             0
             sage: n == n.normalize()

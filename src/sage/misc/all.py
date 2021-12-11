@@ -3,6 +3,7 @@ from .lazy_import import lazy_import
 
 from .all__sagemath_objects import *
 from .all__sagemath_environment import *
+from .all__sagemath_repl import *
 
 from .misc import (BackslashOperator,
                   cputime,
@@ -62,10 +63,6 @@ from .mathml import mathml
 
 from .defaults import (set_default_variable_name,
                        series_precision, set_series_precision)
-
-from .sage_eval import sage_eval, sageobj
-
-from .sage_input import sage_input
 
 lazy_import("sage.misc.cython", "cython_lambda")
 lazy_import("sage.misc.cython", "cython_compile", "cython")

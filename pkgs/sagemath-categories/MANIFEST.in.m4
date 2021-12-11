@@ -6,6 +6,7 @@ include(`../sagemath_objects/src/MANIFEST.in')
 # Extra in sagemath-categories:
 global-include all__sagemath_categories.py
 graft sage/categories
+exclude sage/categories/__init__.py
 include sage/misc/prandom.*              # dep of sage/rings/ring
 include sage/rings/ideal.*
 include sage/rings/ring.*

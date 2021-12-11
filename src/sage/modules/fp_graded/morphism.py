@@ -1539,7 +1539,7 @@ class FPModuleMorphism(Morphism):
         else:
             limit = (self.base_ring().top_class().degree() + max(self.domain().generator_degrees()))
 
-        if not top_dim is None:
+        if top_dim is not None:
             limit = min(top_dim, limit)
 
         if limit == PlusInfinity():
@@ -1676,7 +1676,7 @@ class FPModuleMorphism(Morphism):
         limit = PlusInfinity() if not self.base_ring().is_finite() else\
             (self.base_ring().top_class().degree() + max(degree_values))
 
-        if not top_dim is None:
+        if top_dim is not None:
             limit = min(top_dim, limit)
 
         if limit == PlusInfinity():

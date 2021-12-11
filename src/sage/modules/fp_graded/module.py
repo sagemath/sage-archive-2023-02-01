@@ -529,7 +529,7 @@ class FPModule(Module, IndexedGenerators, UniqueRepresentation):
 
         previous = None
         for k in X:
-            if previous != None and k == previous:
+            if previous is not None and k == previous:
                 continue
             if not self.j.vector_presentation(k - self.j._degree).is_surjective():
                 return k
@@ -858,7 +858,7 @@ class FPModule(Module, IndexedGenerators, UniqueRepresentation):
 
                 # assert: isinstance(FreeElement, relation)
                 v = (a*relation).vector_presentation()
-                if not v is None:
+                if v is not None:
                     spanning_set.append(v)
 
         R_n = F_n.subspace(spanning_set)

@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 r"""
-Check for pdflatex and equivalent programs
+Features for testing the presence of ``latex`` and equivalent programs
 """
 # ****************************************************************************
 #       Copyright (C) 2021 Sebastien Labbe <slabqc@gmail.com>
@@ -16,12 +16,12 @@ from . import Executable, FeatureTestResult
 
 class latex(Executable):
     r"""
-    A :class:`sage.features.Feature` describing the presence of ``latex``
+    A :class:`~sage.features.Feature` describing the presence of ``latex``
 
     EXAMPLES::
 
         sage: from sage.features.latex import latex
-        sage: latex().is_present()             # optional: latex
+        sage: latex().is_present()             # optional - latex
         FeatureTestResult('latex', True)
     """
     def __init__(self):
@@ -37,12 +37,12 @@ class latex(Executable):
 
     def is_functional(self):
         r"""
-        Return whether `latex` in the path is functional.
+        Return whether ``latex`` in the path is functional.
 
-        EXAMPLES:
+        EXAMPLES::
 
             sage: from sage.features.latex import latex
-            sage: latex().is_functional()             # optional: latex
+            sage: latex().is_functional()             # optional - latex
             FeatureTestResult('latex', True)
         """
         lines = []
@@ -76,12 +76,12 @@ class latex(Executable):
 
 class pdflatex(Executable):
     r"""
-    A :class:`sage.features.Feature` describing the presence of ``pdflatex``
+    A :class:`~sage.features.Feature` describing the presence of ``pdflatex``
 
     EXAMPLES::
 
         sage: from sage.features.latex import pdflatex
-        sage: pdflatex().is_present()             # optional: pdflatex
+        sage: pdflatex().is_present()             # optional - pdflatex
         FeatureTestResult('pdflatex', True)
     """
     def __init__(self):
@@ -97,12 +97,12 @@ class pdflatex(Executable):
 
 class xelatex(Executable):
     r"""
-    A :class:`sage.features.Feature` describing the presence of ``xelatex``
+    A :class:`~sage.features.Feature` describing the presence of ``xelatex``
 
     EXAMPLES::
 
         sage: from sage.features.latex import xelatex
-        sage: xelatex().is_present()             # optional: xelatex
+        sage: xelatex().is_present()             # optional - xelatex
         FeatureTestResult('xelatex', True)
     """
     def __init__(self):
@@ -118,12 +118,12 @@ class xelatex(Executable):
 
 class lualatex(Executable):
     r"""
-    A :class:`sage.features.Feature` describing the presence of ``lualatex``
+    A :class:`~sage.features.Feature` describing the presence of ``lualatex``
 
     EXAMPLES::
 
         sage: from sage.features.latex import lualatex
-        sage: lualatex().is_present()             # optional: lualatex
+        sage: lualatex().is_present()             # optional - lualatex
         FeatureTestResult('lualatex', True)
     """
     def __init__(self):
@@ -136,3 +136,10 @@ class lualatex(Executable):
         """
         Executable.__init__(self, "lualatex", executable="lualatex",
                             url="https://www.latex-project.org/")
+
+
+def all_features():
+    return [latex(),
+            pdflatex(),
+            xelatex(),
+            lualatex()]

@@ -64,19 +64,47 @@ class SymplecticForm(DiffForm):
 
     INPUT:
 
-        - ``manifold`` -- module `\mathfrak{X}(M)` of vector
-        fields on the manifold `M`, or the manifold `M` itself
-        - ``name`` -- (default: ``omega``) name given to the symplectic form
-        - ``latex_name`` -- (default: ``None``) LaTeX symbol to denote the symplectic form;
-        if ``None``, it is formed from ``name``
+    - ``manifold`` -- module `\mathfrak{X}(M)` of vector fields on the
+      manifold `M`, or the manifold `M` itself
+    - ``name`` -- (default: ``omega``) name given to the symplectic form
+    - ``latex_name`` -- (default: ``None``) LaTeX symbol to denote the
+      symplectic form; if ``None``, it is formed from ``name``
 
     EXAMPLES:
 
-    Standard symplectic form on `\RR^2`::
+    A symplectic form on the 2-sphere::
 
-        sage: M.<q, p> = EuclideanSpace(2)
-        sage: omega = M.symplectic_form('omega', r'\omega'); omega
-        Symplectic form omega on the Euclidean plane E^2
+        sage: M.<x,y> = manifolds.Sphere(2, coordinates='stereographic')
+        sage: stereoN = M.stereographic_coordinates(pole='north')
+        sage: stereoS = M.stereographic_coordinates(pole='south')
+        sage: omega = M.symplectic_form(name='omega', latex_name=r'\omega')
+        sage: omega
+        Symplectic form omega on the 2-sphere S^2 of radius 1 smoothly embedded
+         in the Euclidean space E^3
+
+    ``omega`` is initialized by providing its single nonvanishing component
+    w.r.t. the vector frame associated to ``stereoN``, which is the default
+    frame on ``M``::
+
+        sage: omega[1, 2] = 1/(1 + x^2 + y^2)^2
+
+    The components w.r.t. the vector frame associated to ``stereoS`` are
+    obtained thanks to the method
+    :meth:`~sage.manifolds.differentiable.tensorfield.TensorField.add_comp_by_continuation`::
+
+        sage: omega.add_comp_by_continuation(stereoS.frame(),
+        ....:                  stereoS.domain().intersection(stereoN.domain()))
+        sage: omega.display()
+        omega = (x^2 + y^2 + 1)^(-2) dx∧dy
+        sage: omega.display(stereoS)
+        omega = -1/(xp^4 + yp^4 + 2*(xp^2 + 1)*yp^2 + 2*xp^2 + 1) dxp∧dyp
+
+    ``omega`` is an exact 2-form (this is trivial here, since ``M`` is
+    2-dimensional)::
+
+        sage: diff(omega).display()
+        domega = 0
+
     """
 
     _name: str
@@ -94,6 +122,16 @@ class SymplecticForm(DiffForm):
     ):
         r"""
         Construct a symplectic form.
+
+        TESTS::
+
+            sage: from sage.manifolds.differentiable.symplectic_form import SymplecticForm
+            sage: M = manifolds.Sphere(2, coordinates='stereographic')
+            sage: omega = SymplecticForm(M, name='omega', latex_name=r'\omega')
+            sage: omega
+            Symplectic form omega on the 2-sphere S^2 of radius 1 smoothly
+             embedded in the Euclidean space E^3
+
         """
         try:
             vector_field_module = manifold.vector_field_module()
@@ -303,7 +341,8 @@ class SymplecticForm(DiffForm):
 
         OUTPUT:
 
-        - the Poisson tensor
+        - the Poisson tensor, as an instance of
+          :meth:`~sage.manifolds.differentiable.poisson_tensor.PoissonTensorField`
 
         EXAMPLES:
 
@@ -567,19 +606,20 @@ class SymplecticFormParal(SymplecticForm, DiffFormParal):
 
     INPUT:
 
-        - ``manifold`` -- module `\mathfrak{X}(M)` of vector
-        fields on the manifold `M`, or the manifold `M` itself
-        - ``name`` -- (default: ``omega``) name given to the symplectic form
-        - ``latex_name`` -- (default: ``None``) LaTeX symbol to denote the symplectic form;
-        if ``None``, it is formed from ``name``
+    - ``manifold`` -- module `\mathfrak{X}(M)` of vector fields on the
+      manifold `M`, or the manifold `M` itself
+    - ``name`` -- (default: ``omega``) name given to the symplectic form
+    - ``latex_name`` -- (default: ``None``) LaTeX symbol to denote the
+      symplectic form; if ``None``, it is formed from ``name``
 
     EXAMPLES:
 
     Standard symplectic form on `\RR^2`::
 
-        sage: from sage.manifolds.differentiable.symplectic_form import SymplecticFormParal
-        sage: M.<q, p> = EuclideanSpace(2, "R2", r"\mathbb{R}^2", symbols=r"q:q p:p")
-        sage: omega = SymplecticFormParal(M, 'omega', r'\omega')
+        sage: M.<q, p> = EuclideanSpace(name="R2", latex_name=r"\mathbb{R}^2")
+        sage: omega = M.symplectic_form(name='omega', latex_name=r'\omega')
+        sage: omega
+        Symplectic form omega on the Euclidean plane R2
         sage: omega.set_comp()[1,2] = -1
         sage: omega.display()
         omega = -dq∧dp
@@ -594,6 +634,15 @@ class SymplecticFormParal(SymplecticForm, DiffFormParal):
     ):
         r"""
         Construct a symplectic form.
+
+        TESTS::
+
+            sage: from sage.manifolds.differentiable.symplectic_form import SymplecticFormParal
+            sage: M = EuclideanSpace(2)
+            sage: omega = SymplecticFormParal(M, name='omega', latex_name=r'\omega')
+            sage: omega
+            Symplectic form omega on the Euclidean plane E^2
+
         """
         try:
             vector_field_module = manifold.vector_field_module()
@@ -625,7 +674,7 @@ class SymplecticFormParal(SymplecticForm, DiffFormParal):
         TESTS::
 
             sage: from sage.manifolds.differentiable.symplectic_form import SymplecticFormParal
-            sage: M.<q, p> = EuclideanSpace(2, "R2", r"\mathbb{R}^2", symbols=r"q:q p:p")
+            sage: M = EuclideanSpace(2)
             sage: omega = SymplecticFormParal(M, 'omega', r'\omega')
             sage: omega._init_derived()
         """
@@ -727,7 +776,8 @@ class SymplecticFormParal(SymplecticForm, DiffFormParal):
 
         OUTPUT:
 
-        - the Poisson tensor
+        - the Poisson tensor, , as an instance of
+          :meth:`~sage.manifolds.differentiable.poisson_tensor.PoissonTensorFieldParal`
 
         EXAMPLES:
 

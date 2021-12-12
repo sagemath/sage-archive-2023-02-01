@@ -40,24 +40,53 @@ class PoissonTensorField(MultivectorField):
 
     where `T^*_m M` stands for the cotangent space to the
     manifold `M` at the point `m`, such that `\varpi_m` is skew-symmetric and the
-    Schouten bracket of `\varpi` with itself vanishes.
+    Schouten-Nijenhuis bracket (cf.
+    :meth:`~sage.manifolds.differentiable.multivectorfield.MultivectorField.bracket`)
+    of `\varpi` with itself vanishes.
 
     INPUT:
 
-        - ``manifold`` -- module `\mathfrak{X}(M)` of vector
-        fields on the manifold `M`, or the manifold `M` itself
-        - ``name`` -- (default: ``varpi``) name given to the Poisson tensor
-        - ``latex_name`` -- (default: ``\\varpi``) LaTeX symbol to denote the Poisson tensor;
-        if ``None``, it is formed from ``name``
+    - ``manifold`` -- module `\mathfrak{X}(M)` of vector fields on the
+      manifold `M`, or the manifold `M` itself
+    - ``name`` -- (default: ``varpi``) name given to the Poisson tensor
+    - ``latex_name`` -- (default: ``\\varpi``) LaTeX symbol to denote
+      the Poisson tensor; if ``None``, it is formed from ``name``
 
     EXAMPLES:
 
-    Standard Poisson tensor on `\RR^2`::
+    A Poisson tensor on the 2-sphere::
 
-        sage: from sage.manifolds.differentiable.poisson_tensor import PoissonTensorField
-        sage: M.<q, p> = EuclideanSpace(2)
-        sage: poisson = M.poisson_tensor('varpi'); poisson
-        2-vector field varpi on the Euclidean plane E^2
+        sage: M.<x,y> = manifolds.Sphere(2, coordinates='stereographic')
+        sage: stereoN = M.stereographic_coordinates(pole='north')
+        sage: stereoS = M.stereographic_coordinates(pole='south')
+        sage: varpi = M.poisson_tensor(name='varpi', latex_name=r'\varpi')
+        sage: varpi
+        2-vector field varpi on the 2-sphere S^2 of radius 1 smoothly embedded
+         in the Euclidean space E^3
+
+    ``varpi`` is initialized by providing its single nonvanishing component
+    w.r.t. the vector frame associated to ``stereoN``, which is the
+    default frame on ``M``::
+
+        sage: varpi[1, 2] = 1
+
+    The components w.r.t. the vector frame associated to ``stereoS`` are
+    obtained thanks to the method
+    :meth:`~sage.manifolds.differentiable.tensorfield.TensorField.add_comp_by_continuation`::
+
+        sage: varpi.add_comp_by_continuation(stereoS.frame(),
+        ....:                  stereoS.domain().intersection(stereoN.domain()))
+        sage: varpi.display()
+        varpi = ∂/∂x∧∂/∂y
+        sage: varpi.display(stereoS)
+        varpi = (-xp^4 - 2*xp^2*yp^2 - yp^4) ∂/∂xp∧∂/∂yp
+
+    The Schouten-Nijenhuis bracket of a Poisson tensor with itself vanishes
+    (this is trivial here, since ``M`` is 2-dimensional)::
+
+        sage: varpi.bracket(varpi).display()
+        [varpi,varpi] = 0
+
     """
 
     def __init__(
@@ -68,6 +97,16 @@ class PoissonTensorField(MultivectorField):
     ):
         r"""
         Construct a Poisson bivector field.
+
+        TESTS::
+
+            sage: from sage.manifolds.differentiable.poisson_tensor import PoissonTensorField
+            sage: M = manifolds.Sphere(2, coordinates='stereographic')
+            sage: varpi = PoissonTensorField(M, name='varpi', latex_name=r'\varpi')
+            sage: varpi
+            2-vector field varpi on the 2-sphere S^2 of radius 1 smoothly
+             embedded in the Euclidean space E^3
+
         """
         try:
             vector_field_module = manifold.vector_field_module()
@@ -100,7 +139,7 @@ class PoissonTensorField(MultivectorField):
             sage: M.<q, p> = EuclideanSpace(2)
             sage: poisson = M.poisson_tensor('varpi')
             sage: poisson.set_comp()[1,2] = -1
-            sage: f = M.scalar_field({ chart: function('f')(*chart[:]) for chart in M.atlas() }, name='f')
+            sage: f = M.scalar_field(function('f')(q, p), name='f')
             sage: Xf = poisson.hamiltonian_vector_field(f)
             sage: Xf.display()
             Xf = d(f)/dp e_q - d(f)/dq e_p
@@ -167,8 +206,8 @@ class PoissonTensorField(MultivectorField):
             sage: M.<q, p> = EuclideanSpace(2)
             sage: poisson = M.poisson_tensor('varpi')
             sage: poisson.set_comp()[1,2] = -1
-            sage: f = M.scalar_field({ chart: function('f')(*chart[:]) for chart in M.atlas() }, name='f')
-            sage: g = M.scalar_field({ chart: function('g')(*chart[:]) for chart in M.atlas() }, name='g')
+            sage: f = M.scalar_field(function('f')(q, p), name='f')
+            sage: g = M.scalar_field(function('g')(q, p), name='g')
             sage: poisson.poisson_bracket(f, g).display()
             poisson(f, g): E^2 → ℝ
                (q, p) ↦ d(f)/dp*d(g)/dq - d(f)/dq*d(g)/dp
@@ -189,20 +228,24 @@ class PoissonTensorFieldParal(PoissonTensorField, MultivectorFieldParal):
 
     INPUT:
 
-        - ``manifold`` -- module `\mathfrak{X}(M)` of vector fields on the
-          manifold `M`, or the manifold `M` itself
-        - ``name`` -- (default: ``varpi``) name given to the Poisson tensor
-        - ``latex_name`` -- (default: ``\\varpi``) LaTeX symbol to denote the
-          Poisson tensor; if ``None``, it is formed from ``name``
+    - ``manifold`` -- module `\mathfrak{X}(M)` of vector fields on the
+      manifold `M`, or the manifold `M` itself
+    - ``name`` -- (default: ``varpi``) name given to the Poisson tensor
+    - ``latex_name`` -- (default: ``\\varpi``) LaTeX symbol to denote the
+      Poisson tensor; if ``None``, it is formed from ``name``
 
     EXAMPLES:
 
     Standard Poisson tensor on `\RR^2`::
 
-        sage: from sage.manifolds.differentiable.poisson_tensor import PoissonTensorFieldParal
         sage: M.<q, p> = EuclideanSpace(2)
-        sage: poisson = PoissonTensorFieldParal(M, 'varpi'); poisson
+        sage: varpi = M.poisson_tensor(name='varpi', latex_name=r'\varpi')
+        sage: varpi[1,2] = -1
+        sage: varpi
         2-vector field varpi on the Euclidean plane E^2
+        sage: varpi.display()
+        varpi = -e_q∧e_p
+
     """
 
     def __init__(
@@ -213,6 +256,15 @@ class PoissonTensorFieldParal(PoissonTensorField, MultivectorFieldParal):
     ):
         r"""
         Construct a Poisson bivector field.
+
+        TESTS::
+
+            sage: from sage.manifolds.differentiable.poisson_tensor import PoissonTensorFieldParal
+            sage: M.<q, p> = EuclideanSpace(2)
+            sage: poisson = PoissonTensorFieldParal(M, name='varpi', latex_name=r'\varpi')
+            sage: poisson
+            2-vector field varpi on the Euclidean plane E^2
+
         """
         PoissonTensorField.__init__(self, manifold, name, latex_name)
         MultivectorFieldParal.__init__(self, self._vmodule, 2, name, latex_name)

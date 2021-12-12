@@ -1129,15 +1129,22 @@ class VectorFieldModule(UniqueRepresentation, Parent):
         r"""
         Construct a symplectic form on the current vector field module.
 
+        OUTPUT:
+
+        - instance of
+          :class:`~sage.manifolds.differentiable.symplectic_form.SymplecticForm`
+
         EXAMPLES:
 
-        Standard symplectic form on `\RR^2`::
+        Symplectic form on the 2-sphere::
 
-            sage: M.<q, p> = EuclideanSpace(2, "R2", r"\mathbb{R}^2", symbols=r"q:q p:p")
-            sage: omega = M.vector_field_module().symplectic_form('omega', r'\omega')
-            sage: omega.set_comp()[1,2] = -1
-            sage: omega.display()
-            omega = -dq∧dp
+            sage: M = manifolds.Sphere(2, coordinates='stereographic')
+            sage: XM = M.vector_field_module()
+            sage: omega = XM.symplectic_form(name='omega', latex_name=r'\omega')
+            sage: omega
+            Symplectic form omega on the 2-sphere S^2 of radius 1 smoothly
+             embedded in the Euclidean space E^3
+
         """
         from sage.manifolds.differentiable.symplectic_form import SymplecticForm
 
@@ -1149,15 +1156,21 @@ class VectorFieldModule(UniqueRepresentation, Parent):
         r"""
         Construct a Poisson tensor on the current vector field module.
 
+        OUTPUT:
+
+        - instance of
+          :class:`~sage.manifolds.differentiable.poisson_tensor.PoissonTensorField`
+
         EXAMPLES:
 
-        Standard Poisson tensor on `\RR^2`::
+        Poisson tensor on the 2-sphere::
 
-            sage: M.<q, p> = EuclideanSpace(2)
-            sage: poisson = M.vector_field_module().poisson_tensor('varpi')
-            sage: poisson.set_comp()[1,2] = -1
-            sage: poisson.display()
-            varpi = -e_q∧e_p
+            sage: M = manifolds.Sphere(2, coordinates='stereographic')
+            sage: XM = M.vector_field_module()
+            sage: varpi = XM.poisson_tensor(name='varpi', latex_name=r'\varpi')
+            sage: varpi
+            2-vector field varpi on the 2-sphere S^2 of radius 1 smoothly embedded in the Euclidean space E^3
+
         """
         from sage.manifolds.differentiable.poisson_tensor import PoissonTensorField
 
@@ -2329,11 +2342,16 @@ class VectorFieldFreeModule(FiniteRankFreeModule):
         r"""
         Construct a symplectic form on the current vector field module.
 
+        OUTPUT:
+
+        - instance of
+          :class:`~sage.manifolds.differentiable.symplectic_form.SymplecticFormParal`
+
         EXAMPLES:
 
         Standard symplectic form on `\RR^2`::
 
-            sage: M.<q, p> = EuclideanSpace(2, "R2", r"\mathbb{R}^2", symbols=r"q:q p:p")
+            sage: M.<q, p> = EuclideanSpace(2)
             sage: omega = M.vector_field_module().symplectic_form('omega', r'\omega')
             sage: omega.set_comp()[1,2] = -1
             sage: omega.display()
@@ -2348,6 +2366,11 @@ class VectorFieldFreeModule(FiniteRankFreeModule):
     ):
         r"""
         Construct a Poisson tensor on the current vector field module.
+
+        OUTPUT:
+
+        - instance of
+          :class:`~sage.manifolds.differentiable.poisson_tensor.PoissonTensorFieldParal`
 
         EXAMPLES:
 

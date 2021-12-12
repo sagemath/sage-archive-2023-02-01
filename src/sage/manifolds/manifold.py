@@ -2684,7 +2684,7 @@ class TopologicalManifold(ManifoldSubset):
 
 _manifold_id = Integer(0)
 
-def Manifold(dim, name, latex_name=None, field='real', structure='smooth',
+def Manifold(dim, name, latex_name=None, field='real', structure=None,
              start_index=0, **extra_kwds):
     r"""
     Construct a manifold of a given type over a topological field.
@@ -2838,6 +2838,15 @@ def Manifold(dim, name, latex_name=None, field='real', structure='smooth',
         sage: M.diff_degree()
         +Infinity
 
+    Other parameters can change the default of the parameter ``structure``::
+
+        sage: M = Manifold(3, 'M', diff_degree=0); M
+        3-dimensional topological manifold M
+        sage: M = Manifold(3, 'M', diff_degree=2); M
+        3-dimensional differentiable manifold M
+        sage: M = Manifold(3, 'M', metric_name='g'); M
+        3-dimensional Riemannian manifold M
+
     For a complex smooth manifold, we have to set the parameter ``field``::
 
         sage: M = Manifold(3, 'M', field='complex'); M
@@ -2955,6 +2964,20 @@ def Manifold(dim, name, latex_name=None, field='real', structure='smooth',
 
     _manifold_id += 1
     unique_tag = lambda: getrandbits(128)*_manifold_id
+
+    if structure is None:
+        if any(extra_kwds.get(x, None) is not None
+               for x in ('metric_name', 'metric_latex_name', 'signature')):
+            structure = 'pseudo-Riemannian'
+
+    if structure is None:
+        diff_degree = extra_kwds.get('diff_degree', infinity)
+        if diff_degree == infinity:
+            structure = 'smooth'
+        elif diff_degree > 0:
+            structure = 'differentiable'
+        else:
+            structure = 'topological'
 
     if structure in ['topological', 'top']:
         if field == 'real' or isinstance(field, sage.rings.abc.RealField):

@@ -1022,12 +1022,12 @@ def findstat(query=None, values=None, distribution=None, domain=None,
         sage: findstat("Permutations", lambda x: 1, depth="x")
         Traceback (most recent call last):
         ...
-        ValueError: the depth of a FindStat query must be a non-negative integer less than or equal to 4
+        ValueError: the depth of a FindStat query must be a non-negative integer less than or equal to 10
 
         sage: findstat("Permutations", lambda x: 1, depth=100)
         Traceback (most recent call last):
         ...
-        ValueError: the depth of a FindStat query must be a non-negative integer less than or equal to 4
+        ValueError: the depth of a FindStat query must be a non-negative integer less than or equal to 10
 
         sage: S = Permutation
         sage: findstat([(S([1,2]), 1), ([S([1,3,2]), S([1,2])], [2,3])])        # optional -- internet

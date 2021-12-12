@@ -1824,7 +1824,7 @@ class Func_assoc_legendre_Q(BuiltinFunction):
             sage: gen_legendre_Q(2,2,x).subs(x=2).expand()
             9/2*I*pi - 9/2*log(3) + 14/3
         """
-        from sage.functions.all import sqrt
+        from sage.misc.functional import sqrt
         if m == n + 1 or n == 0:
             if m.mod(2).is_zero():
                 denom = (1 - x**2)**(m/2)
@@ -2013,7 +2013,7 @@ class Func_jacobi_P(OrthogonalFunction):
             return legendre_P(n, x)
         if SR(n).is_numeric() and not (n > -1):
             raise ValueError("n must be greater than -1, got n = {0}".format(n))
-        if not n in ZZ:
+        if n not in ZZ:
             return
         from .gamma import gamma
         s = sum(binomial(n,m) * gamma(a+b+n+m+1) / gamma(a+m+1) * ((x-1)/2)**m for m in range(n+1))
@@ -2337,7 +2337,7 @@ class Func_gen_laguerre(OrthogonalFunction):
             sage: maxima(gen_laguerre(1,2,x, hold=True))
             3*(1-_SAGE_VAR_x/3)
             sage: maxima(gen_laguerre(n, a, gen_laguerre(n, a, x)))
-            gen_laguerre(_SAGE_VAR_n,_SAGE_VAR_a,gen_laguerre(_SAGE_VAR_n,_SAGE_VAR_a,_SAGE_VAR_x))
+            gen_laguerre(_SAGE_VAR_n,_SAGE_VAR_a, gen_laguerre(_SAGE_VAR_n,_SAGE_VAR_a,_SAGE_VAR_x))
         """
         OrthogonalFunction.__init__(self, "gen_laguerre", nargs=3, latex_name=r"L",
                 conversions={'maxima':'gen_laguerre', 'mathematica':'LaguerreL',

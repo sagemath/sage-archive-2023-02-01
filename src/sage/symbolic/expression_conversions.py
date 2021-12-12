@@ -525,7 +525,7 @@ class InterfaceInit(Converter):
             sage: a = df.subs(x=exp(x)); a
             D[0](f)(e^x)
             sage: b = maxima(a); b
-            %at('diff('f(_SAGE_VAR__symbol0),_SAGE_VAR__symbol0,1),_SAGE_VAR__symbol0=%e^_SAGE_VAR_x)
+            %at('diff('f(_SAGE_VAR__symbol0),_SAGE_VAR__symbol0,1), _SAGE_VAR__symbol0 = %e^_SAGE_VAR_x)
             sage: bool(b.sage() == a)
             True
 
@@ -534,7 +534,7 @@ class InterfaceInit(Converter):
             sage: a = df.subs(x=4); a
             D[0](f)(4)
             sage: b = maxima(a); b
-            %at('diff('f(_SAGE_VAR__symbol0),_SAGE_VAR__symbol0,1),_SAGE_VAR__symbol0=4)
+            %at('diff('f(_SAGE_VAR__symbol0),_SAGE_VAR__symbol0,1), _SAGE_VAR__symbol0 = 4)
             sage: bool(b.sage() == a)
             True
 
@@ -554,7 +554,7 @@ class InterfaceInit(Converter):
             sage: a = f_x.subs(x=4); a
             D[0](f)(4, y)
             sage: b = maxima(a); b
-            %at('diff('f(_SAGE_VAR__symbol0,_SAGE_VAR_y),_SAGE_VAR__symbol0,1),_SAGE_VAR__symbol0=4)
+            %at('diff('f(_SAGE_VAR__symbol0,_SAGE_VAR_y),_SAGE_VAR__symbol0,1), _SAGE_VAR__symbol0 = 4)
             sage: bool(b.sage() == a)
             True
 
@@ -563,7 +563,7 @@ class InterfaceInit(Converter):
             sage: a = f_x.subs(x=4).subs(y=8); a
             D[0](f)(4, 8)
             sage: b = maxima(a); b
-            %at('diff('f(_SAGE_VAR__symbol0,8),_SAGE_VAR__symbol0,1),_SAGE_VAR__symbol0=4)
+            %at('diff('f(_SAGE_VAR__symbol0,8),_SAGE_VAR__symbol0,1), _SAGE_VAR__symbol0 = 4)
             sage: bool(b.sage() == a)
             True
 
@@ -1542,7 +1542,7 @@ class PolynomialConverter(Converter):
         if not any(repr(v) in self.varnames for v in ex.variables()):
             return self.base_ring(ex)
         elif operator == _operator.pow:
-            from sage.rings.all import Integer
+            from sage.rings.integer import Integer
             base, exp = ex.operands()
             return self(base)**Integer(exp)
         if operator == add_vararg:
@@ -1782,10 +1782,10 @@ class FastCallableConverter(Converter):
             if exponent == -1:
                 return self.etb.call(_operator.truediv, 1, operands[0])
             elif exponent == 0.5:
-                from sage.functions.all import sqrt
+                from sage.misc.functional import sqrt
                 return self.etb.call(sqrt, operands[0])
             elif exponent == -0.5:
-                from sage.functions.all import sqrt
+                from sage.misc.functional import sqrt
                 return self.etb.call(_operator.truediv, 1, self.etb.call(sqrt, operands[0]))
         elif operator is _operator.neg:
             return self.etb.call(operator, operands[0])
@@ -1949,7 +1949,7 @@ class RingConverter(Converter):
             base, expt = operands
 
             if expt == Rational(((1,2))):
-                from sage.functions.all import sqrt
+                from sage.misc.functional import sqrt
                 return sqrt(self(base))
             try:
                 expt = Integer(expt)

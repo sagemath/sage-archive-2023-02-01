@@ -11,7 +11,7 @@ http://sites.math.rutgers.edu/~asbuch/lrcalc/
 License
 -------
 
-GNU General Public License V2+
+GNU General Public License V3
 
 
 Upstream Contact

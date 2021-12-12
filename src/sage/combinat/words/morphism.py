@@ -3146,6 +3146,146 @@ class WordMorphism(SageObject):
 
         return sorted(forward, key=self.domain().alphabet().rank)
 
+    def letter_growth_types(self):
+        r"""
+        Return the mortal, polynomial and exponential growing letters.
+
+        The growth of `| s^n(a) |` as `n` goes to `\infty` is always of the
+        form `\alpha^n n^\beta` (where `\alpha` is a Perron number and
+        `\beta` an integer).
+
+        Without doing any linear algebra three cases can be differentiated:
+        mortal (ultimately empty or `\alpha=0`); polynomial (`\alpha=1`);
+        exponential (`\alpha > 1`). This is what is done in this method.
+
+        It requires this morphism to be an endomorphism.
+
+        OUTPUT:
+
+        The output is a 3-tuple of lists (mortal, polynomial, exponential)
+        where:
+
+        - ``mortal``: list of mortal letters
+        - ``polynomial``: a list of lists where ``polynomial[i]`` is the
+          list of letters with growth `n^i`.
+        - ``exponential``: list of at least exponentionally growing letters
+
+        EXAMPLES::
+
+            sage: s = WordMorphism('a->abc,b->bc,c->c')
+            sage: mortal, poly, expo = s.letter_growth_types()
+            sage: mortal
+            []
+            sage: poly
+            [['c'], ['b'], ['a']]
+            sage: expo
+            []
+
+        When three mortal letters (c, d, and e), and two letters (a, b) are
+        not growing::
+
+            sage: s = WordMorphism('a->bc,b->cac,c->de,d->,e->')
+            sage: s^20
+            WordMorphism: a->cacde, b->debcde, c->, d->, e->
+            sage: mortal, poly, expo = s.letter_growth_types()
+            sage: mortal
+            ['c', 'd', 'e']
+            sage: poly
+            [['a', 'b']]
+            sage: expo
+            []
+
+        ::
+
+            sage: s = WordMorphism('a->abcd,b->bc,c->c,d->a')
+            sage: mortal, poly, expo = s.letter_growth_types()
+            sage: mortal
+            []
+            sage: poly
+            [['c'], ['b']]
+            sage: expo
+            ['a', 'd']
+
+        TESTS::
+
+            sage: s = WordMorphism('a->a')
+            sage: s.letter_growth_types()
+            ([], [['a']], [])
+
+        ::
+
+            sage: s = WordMorphism('a->b,b->a')
+            sage: s.letter_growth_types()
+            ([], [['a', 'b']], [])
+
+        ::
+
+            sage: s = WordMorphism('a->abcd,b->cd,c->dd,d->')
+            sage: s.letter_growth_types()
+            (['b', 'c', 'd'], [['a']], [])
+
+        ::
+
+            sage: s = WordMorphism('a->', domain=Words('a'), codomain=Words('a'))
+            sage: s.letter_growth_types()
+            (['a'], [], [])
+        """
+        immortal = set(self.immortal_letters())
+        mortal = [a for a in self.domain().alphabet()
+                            if a not in immortal]
+
+        # Starting with degree d=0, search for letters with polynomial
+        # growth of degree d.
+        polynomial = []
+        m = {a : [b for b in self.image(a) if b in immortal] for a in immortal}
+        while True:
+            # Construct the permutation of letters containing all letters whose
+            # iterated images under morphism m is always of length 1.
+            not_growing = {a : image_a[0] for (a,image_a) in m.items() if len(image_a) == 1}
+            preimages = {}
+            roots = []
+            for k, v in not_growing.items():
+                if v not in not_growing:
+                    roots.append(v)
+                if v not in preimages:
+                    preimages[v] = []
+                preimages[v].append(k)
+
+            while roots:
+                v = roots.pop()
+                for k in preimages.get(v):
+                    del not_growing[k]
+                    if k in preimages:
+                        roots.append(k)
+
+            # The letters inside not_growing are the ones with polynomial
+            # growth d. If there is none, then the remaining letters in m
+            # have exponential growth.
+            if not not_growing:
+                break
+            polynomial.append(list(not_growing))
+
+            # clean the morphism m for the next iteration by removing the
+            # letters with polynomial growth degree d
+            m = {a : [b for b in L if b not in not_growing] for a, L in m.items()
+                    if a not in not_growing}
+
+        exponential = list(m)
+
+        # sort the letters as in the input alphabet if possible
+        A = self.domain().alphabet()
+        try:
+            rank = A.rank
+        except AttributeError:
+            pass
+        else:
+            mortal.sort(key=rank)
+            for letters in polynomial:
+                letters.sort(key=rank)
+            exponential.sort(key=rank)
+
+        return mortal, polynomial, exponential
+
     def abelian_rotation_subspace(self):
         r"""
         Returns the subspace on which the incidence matrix of ``self`` acts by

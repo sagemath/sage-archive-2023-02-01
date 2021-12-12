@@ -155,7 +155,6 @@ def find_python_sources(src_dir, modules=['sage'], distributions=None):
     from setuptools import Extension
 
     PYMOD_EXT = get_extensions('source')[0]
-    INIT_FILE = '__init__' + PYMOD_EXT
 
     python_packages = []
     python_modules = []
@@ -167,7 +166,7 @@ def find_python_sources(src_dir, modules=['sage'], distributions=None):
         for module in modules:
             for dirpath, dirnames, filenames in os.walk(module):
                 package = dirpath.replace(os.path.sep, '.')
-                if INIT_FILE in filenames or 'namespace' in filenames:
+                if is_package_or_namespace_package_dir(dirpath):
                     # Ordinary package or namespace package.
                     if distributions is None or '' in distributions:
                         python_packages.append(package)
@@ -306,12 +305,7 @@ def is_package_or_namespace_package_dir(dirpath):
         True
 
     """
-    PACKAGE_FILES = ("__init__.py", "__init__.pyc", "__init__.pyx", "__init__.pxd")
-    for filename in PACKAGE_FILES:
-        path = os.path.join(dirpath, filename)
-        if os.path.exists(path):
-            return True
-    return os.path.exists(os.path.join(dirpath, 'namespace'))
+    return True
 
 def find_extra_files(src_dir, modules, cythonized_dir, special_filenames=[], *,
                      distributions=None):
@@ -357,8 +351,6 @@ def find_extra_files(src_dir, modules, cythonized_dir, special_filenames=[], *,
         sage: extras["sage/ext/interpreters"]
         ['.../src/sage/ext/interpreters/wrapper_cdf.pxd', ...wrapper_cdf.h...]
     """
-    from Cython.Utils import is_package_dir
-
     data_files = {}
     cy_exts = ('.pxd', '.pxi', '.pyx')
 
@@ -377,6 +369,9 @@ def find_extra_files(src_dir, modules, cythonized_dir, special_filenames=[], *,
                 if os.path.isdir(cydir):  # Not every directory contains Cython files
                     files += [os.path.join(cydir, f) for f in os.listdir(cydir)
                             if f.endswith(".h")]
+                else:
+                    files += [os.path.join(sdir, f) for f in filenames
+                              if f.endswith(".h")]
 
                 if distributions is not None:
                     files = [f for f in files
@@ -387,6 +382,7 @@ def find_extra_files(src_dir, modules, cythonized_dir, special_filenames=[], *,
     finally:
         os.chdir(cwd)
 
+    print(f"find_extra_files => {data_files}")
     return data_files
 
 

@@ -400,9 +400,9 @@ class CharacteristicCohomologyClassRingElement(IndexedFreeModuleElement):
             sage: x = var('x')
             sage: k = TM.characteristic_cohomology_class(1+x^2, class_type='multiplicative')
             sage: k._latex_()
-            '\\left(1 + p_1^{2} - 2p_2\\right)\\left(TM\\right)'
+            '\\left(1 + p_1^{2} - 2 p_2\\right)\\left(TM\\right)'
             sage: latex(k)
-            \left(1 + p_1^{2} - 2p_2\right)\left(TM\right)
+            \left(1 + p_1^{2} - 2 p_2\right)\left(TM\right)
         """
         if self._latex_name is None:
             latex = r'\left(' + super()._latex_() + r'\right)'

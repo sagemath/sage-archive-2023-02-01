@@ -1188,3 +1188,236 @@ def spanning_trees(g, labels=False):
     if g.order() and g.is_connected():
         forest = Graph([g, g.bridges()], format='vertices_and_edges')
         yield from _recursive_spanning_trees(Graph(g, immutable=False, loops=False), forest, labels)
+
+def edge_disjoint_spanning_trees(G, k, by_weight=False, weight_function=None, check_weight=True):
+    r"""
+    Return `k` edge-disjoint spanning trees of minimum cost.
+
+    This method implements the Roskind-Tarjan algorithm for finding `k`
+    minimum-cost edge-disjoint spanning trees in simple undirected graphs
+    [RT1985]_. When edge weights are taken into account, the algorithm ensures
+    that the sum of the weights of the returned spanning trees is minimized. The
+    time complexity of the algorithm is in `O(k^2n^2)` for the unweighted case
+    and otherwise in `O(m\log{m} + k^2n^2)`.
+
+    This method raises an error if the graph does not contain the requested
+    number of spanning trees.
+
+    INPUT:
+
+    - ``G`` -- a simple undirected graph
+
+    - ``k`` -- the requested number of edge-disjoint spanning trees
+
+    - ``by_weight`` -- boolean (default: ``False``); if ``True``, the edges in
+      the graph are weighted, otherwise all edges have weight 1
+
+    - ``weight_function`` -- function (default: ``None``); a function that takes
+      as input an edge ``(u, v, l)`` and outputs its weight. If not ``None``,
+      ``by_weight`` is automatically set to ``True``. If ``None`` and
+      ``by_weight`` is ``True``, we use the edge label ``l``, if ``l`` is not
+      ``None``, else ``1`` as a weight.
+
+    - ``check_weight`` -- boolean (default: ``True``); if ``True``, we check
+      that the ``weight_function`` outputs a number for each edge
+
+    EXAMPLES:
+
+    Example from [RT1985]_::
+
+        sage: from sage.graphs.spanning_tree import edge_disjoint_spanning_trees
+        sage: G = Graph({'a': ['b', 'c', 'd', 'e'], 'b': ['c', 'e'], 'c': ['d'], 'd': ['e']})
+        sage: F = edge_disjoint_spanning_trees(G, 2)
+        sage: F
+        [Graph on 5 vertices, Graph on 5 vertices]
+        sage: [f.is_tree() for f in F]
+        [True, True]
+
+    This method raises an error if the graph does not contain the required
+    number of trees::
+
+        sage: edge_disjoint_spanning_trees(G, 3)
+        Traceback (most recent call last):
+        ...
+        EmptySetError: this graph does not contain the required number of trees/arborescences
+
+    A clique of order `n` has `\lfloor n/2 \rfloor` edge disjoint spanning
+    trees::
+
+        sage: for n in range(1, 10):
+        ....:     g = graphs.CompleteGraph(n)
+        ....:     F = edge_disjoint_spanning_trees(g, n//2)
+
+    The sum of the weights of the returned spanning trees is minimum::
+
+        sage: g = graphs.CompleteGraph(5)
+        sage: for u, v in g.edges(labels=False):
+        ....:     g.set_edge_label(u, v, 1)
+        sage: g.set_edge_label(0, 1, 33)
+        sage: g.set_edge_label(1, 3, 33)
+        sage: F = edge_disjoint_spanning_trees(g, 2, by_weight=True)
+        sage: sum(F[0].edge_labels()) + sum(F[1].edge_labels())
+        8
+
+    TESTS:
+
+    A graph with a single vertex has a spanning tree::
+
+        sage: from sage.graphs.spanning_tree import edge_disjoint_spanning_trees
+        sage: edge_disjoint_spanning_trees(Graph(1), 1)
+        [Graph on 1 vertex]
+
+    Check parameter `k`::
+
+        sage: G = graphs.CompleteGraph(4)
+        sage: edge_disjoint_spanning_trees(G, -1)
+        Traceback (most recent call last):
+        ...
+        ValueError: parameter k must be a non-negative integer
+        sage: edge_disjoint_spanning_trees(G, 0)
+        []
+        sage: edge_disjoint_spanning_trees(G, 1)
+        [Graph on 4 vertices]
+
+    This method is for undirected graphs only::
+
+        sage: edge_disjoint_spanning_trees(DiGraph(), 1)
+        Traceback (most recent call last):
+        ...
+        ValueError: this method is for undirected graphs only
+    """
+    if G.is_directed():
+        raise ValueError("this method is for undirected graphs only")
+    G._scream_if_not_simple()
+
+    from sage.categories.sets_cat import EmptySetError
+    from sage.graphs.graph import Graph
+    msg_no_solution = "this graph does not contain the required number of trees/arborescences"
+    if k < 0:
+        raise ValueError("parameter k must be a non-negative integer")
+    elif not k:
+        return []
+    elif k == 1:
+        E = G.min_spanning_tree()
+        if not E and G.order() != 1:
+            raise EmptySetError(msg_no_solution)
+        return [Graph([G, E], format="vertices_and_edges")]
+    elif k > 1 + min(G.degree()) // 2:
+        raise EmptySetError(msg_no_solution)
+
+    # Initialization of data structures
+
+    # - partition[0] is used to maitain known clumps.
+    # - partition[i], 1 <= i <= k, is used to check if a given edge has both its
+    #   endpoints in the same tree of forest Fi.
+    partition = [DisjointSet_of_hashables(G) for _ in range(k + 1)]
+
+    # Mapping from edge to forests:
+    # - edge_index[e] == i if edge e is in Fi, and 0 if not in any Fi
+    # This mapping is sufficient to extract the spanning trees.
+    edge_index = {frozenset(e): 0 for e in G.edge_iterator(labels=False)}
+
+    # Data structure to maintain the edge sets of each forest.
+    # This is not a requirement of the algorithm as we can use the mapping
+    # edge_index. However, it is convenient to maintain the forest as graphs to
+    # simplify some operations.
+    H = Graph([G, []], format="vertices_and_edges")
+    F = [H.copy() for _ in range(k + 1)]
+
+    # We consider the edges by increasing weight
+    by_weight, weight_function = G._get_weight_function(by_weight=by_weight,
+                                                        weight_function=weight_function,
+                                                        check_weight=check_weight)
+    if not by_weight:
+        weight_function = None
+
+    for x, y, _ in G.edges(sort=by_weight, key=weight_function):
+        # {x, y} is edge e0 in the algorithm
+
+        if partition[0].find(x) == partition[0].find(y):
+            # x and y are in a same clump. That is x and y are in a same tree
+            # in every forest Fi. We proceed with the next edge.
+            continue
+
+        # else, we apply the labeling algorithm
+
+        # Label assigned to each edge by the labeling algorithm
+        edge_label = {}
+
+        # We use a queue of edges
+        queue = [(x, y)]
+        queue_begin = 0
+        queue_end = 1
+
+        # We find the tree Ti in Fi containing x, root Ti at x and
+        # compute the parent pi(v) of every vertex in Ti
+        p = [{x: x} for _ in range(k + 1)]
+        for i in range(1, k + 1):
+            # BFS will consider only vertices of the tree Ti of Fi containing x
+            for u, v in F[i].breadth_first_search(x, edges=True):
+                p[i][v] = u
+
+        # and we search for an augmenting sequence
+        augmenting_sequence_found = False
+        while queue_begin < queue_end:
+            e = queue[queue_begin]
+            queue_begin += 1
+            fe = frozenset(e)
+            i = (edge_index[fe] % k) + 1
+            v, w = e
+            if partition[i].find(v) != partition[i].find(w):
+                # v and w are in different subtrees of Fi. We have detected an
+                # augmenting sequence since we can join the two subtrees.
+                augmenting_sequence_found = True
+                break
+            else:
+                # One of v and w is in the subtree of labeled edges in Fi
+                if v == x or (v in p[i] and frozenset((v, p[i][v])) in edge_label):
+                    u = w
+                else:
+                    u = v
+
+                # Let F(e) be the unique path joining v and w.
+                # We find the unlabeled edges of Fi(e) by ascending through the
+                # tree one vertex at a time from z toward x, until reaching
+                # either x or a previously labeled edge.
+    
+                # Stack of edges to be labeled
+                edges_to_label = []
+                while u != x and (u in p[i] and frozenset((u, p[i][u])) not in edge_label):
+                    edges_to_label.append((u, p[i][u]))
+                    u = p[i][u]
+
+                # We now label edges
+                while edges_to_label:
+                    ep = edges_to_label.pop()
+                    edge_label[frozenset(ep)] = fe
+                    queue.append(ep)
+                    queue_end += 1
+
+        if augmenting_sequence_found:
+            # We perform the corresponding augmentation
+            partition[i].union(v, w)
+
+            while fe in edge_label:
+                F[edge_index[fe]].delete_edge(fe)
+                F[i].add_edge(fe)
+                e, edge_index[fe], i = edge_label[fe], i, edge_index[fe]
+                fe = frozenset(e)
+
+            # Finally, add edge e = e0 = (x, y) to Fi
+            F[i].add_edge(e)
+            edge_index[fe] = i
+
+        else:
+            # x and y are in a same tree in every Fi, so in a same clump
+            partition[0].union(x, y)
+
+    res = [F[i] for i in range(1, k + 1) if F[i].size() == G.order() - 1]
+    if len(res) != k:
+        raise EmptySetError(msg_no_solution)
+
+    for f in res:
+        for u, v in f.edges(labels=False):
+            f.set_edge_label(u, v, G.edge_label(u, v))
+    return res

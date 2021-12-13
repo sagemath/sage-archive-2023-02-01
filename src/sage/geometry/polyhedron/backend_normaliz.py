@@ -2228,25 +2228,25 @@ class Polyhedron_QQ_normaliz(Polyhedron_normaliz, Polyhedron_QQ):
         the ring of class functions of the ``acting_group`` of the polytope.
 
         As in [Stap2011]_, when ``self`` is the polytope `P`,
-        `H^*(t) = (\sum_{m \geq 0} \chi\_{mP} t^m)(\det(I-\rho(t)))`.
+        `H^*(t) = (\sum_{m \geq 0} \chi_{mP} t^m)(\det(I-\rho(t)))`.
         The irreducible characters of ``acting_group`` form an orthonormal basis
-        for the ring of class functions with values in `\mathbb C`.
+        for the ring of class functions with values in `\CC`.
         The coefficients of `H^*(t)` are expressed in this basis.
 
         INPUT:
 
         - ``acting_group`` -- (default=None) a permgroup object. A subgroup of
-          `self`'s `restricted_automorphism_group` output as a permutation.
-           If ``None``, it is set to the full `restricted_automorphism_group`
-           of `self`. The acting group should always use output='permutation'.
+          ``self``'s ``restricted_automorphism_group`` output as a permutation.
+           If ``None``, it is set to the full ``restricted_automorphism_group``
+           of ``self``. The acting group should always use output='permutation'.
 
         - ``output`` -- string. an output option. The allowed values are:
 
             * ``None`` (default): returns the rational function `H^*(t)`. `H^*` is
               a rational function in `t` with coefficients in the ring of
               class functions.
-            * ``'e_series_list'``: string. Returns a list of the ehrhart_series
-              for the fixed_subpolytopes of each conjugacy class representative.
+            * ``'e_series_list'``: string. Returns a list of the ehrhart series
+              for the fixed subpolytopes of each conjugacy class representative.
             * ``'determinant_vec'``: string. Returns a list of the determinants
               of `Id-\rho*t` for each conjugacy class representative.
             * ``'Hstar_as_lin_comb'``: string. Returns a vector of the coefficients
@@ -2291,7 +2291,7 @@ class Polyhedron_QQ_normaliz(Polyhedron_normaliz, Polyhedron_QQ):
         The next example is Example 7.6 in [Stap2011]_, and shows that `H^*`
         is not always a polynomial. Let P be the polytope with vertices
         `\pm(0,0,1),\pm(1,0,1), \pm(0,1,1), \pm(1,1,1)` and let
-        G = `\mathbb Z / 2\mathbb Z` act on P as follows::
+        G = `\Zmod{2}` act on P as follows::
 
             sage: P = Polyhedron(vertices=[[0,0,1],[0,0,-1],[1,0,1],[-1,0,-1],[0,1,1],  # optional - pynormaliz
             ....: [0,-1,-1],[1,1,1],[-1,-1,-1]],backend='normaliz')                     # optional - pynormaliz

@@ -979,16 +979,16 @@ class Polyhedron_QQ(Polyhedron_base):
         the ring of class functions of the ``acting_group``
         of this polytope.
 
-        Here, `H^*(t) = \sum\_{m} \chi\_{m\text{self}}t^m \det(Id-\rho(t))`.
+        Here, `H^*(t) = \sum_{m} \chi_{m\text{self}}t^m \det(Id-\rho(t))`.
         The irreducible characters of ``acting_group`` form an orthonormal basis
-        for the ring of class functions with values in `\mathbb C`.
+        for the ring of class functions with values in `\CC`.
         The coefficients of `H^*(t)` are expressed in this basis.
 
         INPUT:
 
         - ``acting_group`` -- (default=None) a permgroup object. A subgroup of
-          the polytope's `restricted_automorphism_group` permutation. If
-          ``None``, it is set to the full `restricted_automorphism_group` of the
+          the polytope's ``restricted_automorphism_group``. If
+          ``None``, it is set to the full ``restricted_automorphism_group`` of the
           polytope. The acting group should always use output='permutation'.
 
         - ``output`` -- string. an output option. The allowed values are:
@@ -1041,7 +1041,7 @@ class Polyhedron_QQ(Polyhedron_base):
         The next example is Example 7.6 in [Stap2011]_, and shows that `H^*` is not always
         a polynomial. Let P be the polytope with vertices
         `\pm(0,0,1),\pm(1,0,1), \pm(0,1,1), \pm(1,1,1)` and let
-        G = `\mathbb Z / 2\mathbb Z` act on P as follows::
+        G = `\Zmod{2}` act on P as follows::
 
             sage: P = Polyhedron(vertices=[[0,0,1],[0,0,-1],[1,0,1],[-1,0,-1],[0,1,1],   # optional - pynormaliz
             ....: [0,-1,-1],[1,1,1],[-1,-1,-1]],backend='normaliz')                      # optional - pynormaliz
@@ -1093,8 +1093,8 @@ class Polyhedron_QQ(Polyhedron_base):
         INPUT:
 
         - ``acting_group`` -- (default=None) a permgroup object. A subgroup of
-          `self`'s `restricted_automorphism_group` output as a permutation.
-          If ``None``, it is set to the full `restricted_automorphism_group`
+          `self`'s ``restricted_automorphism_group`` output as a permutation.
+          If ``None``, it is set to the full ``restricted_automorphism_group``
           of `self`. The acting group should always use output='permutation'.
 
         - ``output`` -- string. an output option. The allowed values are:

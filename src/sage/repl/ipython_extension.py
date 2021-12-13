@@ -427,8 +427,7 @@ class SageCustomizations(object):
         self.auto_magics = SageMagics(shell)
         self.shell.register_magics(self.auto_magics)
 
-        import sage.misc.edit_module as edit_module
-        self.shell.set_hook('editor', edit_module.edit_devel)
+        self.shell.set_hook('editor', LazyImport("sage.misc.edit_module", "edit_devel"))
 
         self.init_inspector()
         self.init_line_transforms()

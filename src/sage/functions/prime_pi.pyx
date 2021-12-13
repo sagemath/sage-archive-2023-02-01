@@ -154,11 +154,17 @@ cdef class PrimePi(BuiltinFunction):
 
             sage: prime_pi(642763101936913)
             19439675999019
+            sage: prime_pi(10.5)
+            4
         """
+        from sage.functions.other import floor
         try:
             z = Integer(x)
         except TypeError:
-            return None
+            try:
+                z = Integer(floor(x))
+            except TypeError:
+                return None
         return _prime_pi(z)
 
     def plot(self, xmin=0, xmax=100, vertical_lines=True, **kwds):

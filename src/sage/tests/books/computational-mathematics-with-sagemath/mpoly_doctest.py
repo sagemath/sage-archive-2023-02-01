@@ -110,7 +110,7 @@ Sage example in ./mpoly.tex, line 575::
 Sage example in ./mpoly.tex, line 584::
 
   sage: J.variety()
-  [{y: 2, z: 1, x: 3}]
+  [{z: 1, y: 2, x: 3}]
 
 Sage example in ./mpoly.tex, line 596::
 

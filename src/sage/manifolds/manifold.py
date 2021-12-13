@@ -2986,8 +2986,6 @@ def Manifold(dim, name, latex_name=None, field='real', structure=None,
             structure = TopologicalStructure()
         if 'ambient' in extra_kwds:
             ambient = extra_kwds['ambient']
-            if not isinstance(ambient, TopologicalManifold):
-                raise TypeError("ambient must be a manifold")
             return TopologicalSubmanifold(dim, name, field, structure,
                                           ambient=ambient,
                                           latex_name=latex_name,
@@ -3011,8 +3009,6 @@ def Manifold(dim, name, latex_name=None, field='real', structure=None,
             structure = DifferentialStructure()
         if 'ambient' in extra_kwds:
             ambient = extra_kwds['ambient']
-            if not isinstance(ambient, DifferentiableManifold):
-                raise TypeError("ambient must be a differentiable manifold")
             return DifferentiableSubmanifold(dim, name, field, structure,
                                              ambient=ambient,
                                              diff_degree=diff_degree,
@@ -3049,10 +3045,8 @@ def Manifold(dim, name, latex_name=None, field='real', structure=None,
                 signature = dim - 2  # default value for a Lorentzian manifold
         if 'ambient' in extra_kwds:
             ambient = extra_kwds['ambient']
-            if not isinstance(ambient, (PseudoRiemannianManifold, DegenerateManifold)):
-                raise TypeError("ambient must be a pseudo-Riemannian manifold")
             if structure == 'degenerate_metric':
-                return DegenerateSubmanifold(dim, name, ambient = ambient,
+                return DegenerateSubmanifold(dim, name, ambient=ambient,
                                                metric_name=metric_name,
                                                signature=signature,
                                                diff_degree=diff_degree,
@@ -3060,7 +3054,7 @@ def Manifold(dim, name, latex_name=None, field='real', structure=None,
                                                metric_latex_name=metric_latex_name,
                                                start_index=start_index,
                                                unique_tag=unique_tag())
-            return PseudoRiemannianSubmanifold(dim, name, ambient = ambient,
+            return PseudoRiemannianSubmanifold(dim, name, ambient=ambient,
                                                metric_name=metric_name,
                                                signature=signature,
                                                diff_degree=diff_degree,

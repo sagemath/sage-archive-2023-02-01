@@ -195,6 +195,9 @@ class TopologicalSubmanifold(TopologicalManifold):
                                      latex_name=latex_name,
                                      start_index=start_index,
                                      category=category)
+        if not (ambient is None
+                or isinstance(ambient, TopologicalManifold)):
+            raise TypeError("ambient must be a manifold")
         self._init_immersion(ambient=ambient)
 
     def _init_immersion(self, ambient=None):

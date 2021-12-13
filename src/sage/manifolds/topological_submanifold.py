@@ -223,7 +223,10 @@ class TopologicalSubmanifold(TopologicalManifold):
             self._ambient = self
         else:
             self._ambient = ambient
-            self._codim = ambient._dim-self._dim
+            self._codim = ambient._dim - self._dim
+            if self._codim < 0:
+                raise ValueError("the submanifold must be of smaller "
+                                 + "dimension than its ambient manifold")
         self._immersed = False
         self._embedded = False
         self._adapted_charts = None

@@ -2988,9 +2988,6 @@ def Manifold(dim, name, latex_name=None, field='real', structure=None,
             ambient = extra_kwds['ambient']
             if not isinstance(ambient, TopologicalManifold):
                 raise TypeError("ambient must be a manifold")
-            if dim>ambient._dim:
-                raise ValueError("the submanifold must be of smaller "
-                                 + "dimension than its ambient manifold")
             return TopologicalSubmanifold(dim, name, field, structure,
                                           ambient=ambient,
                                           latex_name=latex_name,
@@ -3016,9 +3013,6 @@ def Manifold(dim, name, latex_name=None, field='real', structure=None,
             ambient = extra_kwds['ambient']
             if not isinstance(ambient, DifferentiableManifold):
                 raise TypeError("ambient must be a differentiable manifold")
-            if dim>ambient._dim:
-                raise ValueError("the submanifold must be of smaller "
-                                 + "dimension than its ambient manifold")
             return DifferentiableSubmanifold(dim, name, field, structure,
                                              ambient=ambient,
                                              diff_degree=diff_degree,
@@ -3057,9 +3051,6 @@ def Manifold(dim, name, latex_name=None, field='real', structure=None,
             ambient = extra_kwds['ambient']
             if not isinstance(ambient, (PseudoRiemannianManifold, DegenerateManifold)):
                 raise TypeError("ambient must be a pseudo-Riemannian manifold")
-            if dim>ambient._dim:
-                raise ValueError("the submanifold must be of smaller "
-                                 + "dimension than its ambient manifold")
             if structure == 'degenerate_metric':
                 return DegenerateSubmanifold(dim, name, ambient = ambient,
                                                metric_name=metric_name,

@@ -534,6 +534,10 @@ class TopologicalManifold(ManifoldSubset):
 
         """
         # Initialization of the attributes _dim, _field, _field_type:
+        if not isinstance(n, (int, Integer)):
+            raise TypeError("the manifold dimension must be an integer")
+        if n < 1:
+            raise ValueError("the manifold dimension must be strictly positive")
         self._dim = n
         if field == 'real':
             self._field = RR
@@ -2955,12 +2959,6 @@ def Manifold(dim, name, latex_name=None, field='real', structure=None,
     from sage.manifolds.differentiable.degenerate_submanifold import DegenerateSubmanifold
 
     global _manifold_id
-
-    # Some sanity checks
-    if not isinstance(dim, (int, Integer)):
-        raise TypeError("the manifold dimension must be an integer")
-    if dim < 1:
-        raise ValueError("the manifold dimension must be strictly positive")
 
     _manifold_id += 1
     unique_tag = lambda: getrandbits(128)*_manifold_id

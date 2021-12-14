@@ -1380,7 +1380,7 @@ class FreeQuadraticModule_integer_symmetric(FreeQuadraticModule_submodule_with_b
         r"""
         Return the quadratic form given by `q(x)=(x,x)`.
 
-        Examples::
+        EXAMPLES::
 
             sage: L = IntegralLattice("A2")
             sage: q = L.quadratic_form()
@@ -1396,7 +1396,7 @@ class FreeQuadraticModule_integer_symmetric(FreeQuadraticModule_submodule_with_b
         r"""
         Return the minimum of this lattice.
 
-        .. Math::
+        .. MATH::
 
             \min\{x^2 | x \in L\setminus \{0\}\}
 
@@ -1422,10 +1422,9 @@ class FreeQuadraticModule_integer_symmetric(FreeQuadraticModule_submodule_with_b
         r"""
         Return the maximum of this lattice.
 
-        .. Math::
+        .. MATH::
 
             \max\{x^2 | x \in L\setminus \{0\}\}
-
 
         EXAMPLES::
 

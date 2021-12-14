@@ -42,14 +42,14 @@ class SymplecticForm(DiffForm):
     r"""
     A symplectic form on a differentiable manifold.
 
-    An instance of this class is a field `\omega` of nondegenerate skew-symmetric bilinear
-    forms on a differentiable manifold `M` over `\RR`.
+    An instance of this class is a closed nondegenerate differential `2`-form `\omega`
+    on a differentiable manifold `M` over `\RR`.
 
-    That is, at each point `m \in M`, `\omega_m` is a bilinear map of the type:
+    In particular, at each point `m \in M`, `\omega_m` is a bilinear map of the type:
 
     .. MATH::
 
-        \omega_m:\ T_m M \times T_m M  \to \RR
+        \omega_m:\ T_m M \times T_m M  \to \RR,
 
     where `T_m M` stands for the tangent space to the
     manifold `M` at the point `m`, such that `\omega_m` is skew-symmetric:

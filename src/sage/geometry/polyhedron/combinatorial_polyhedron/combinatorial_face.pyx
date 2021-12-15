@@ -64,6 +64,8 @@ AUTHOR:
 #                  https://www.gnu.org/licenses/
 # ****************************************************************************
 
+from cysignals.memory           cimport check_allocarray, sig_free
+
 from sage.misc.superseded        import deprecated_function_alias
 
 import numbers
@@ -72,12 +74,14 @@ from .conversions               cimport bit_rep_to_Vrep_list
 from .base                      cimport CombinatorialPolyhedron
 from .face_iterator             cimport FaceIterator_base
 from .polyhedron_face_lattice   cimport PolyhedronFaceLattice
-from .face_data_structure       cimport face_len_atoms, face_init, face_copy, face_issubset
+from .face_data_structure       cimport face_len_atoms, face_init, face_free, face_copy, face_issubset
 from .face_list_data_structure  cimport bit_rep_to_coatom_rep
 from .list_of_faces              cimport face_as_combinatorial_polyhedron
 
+
 cdef extern from "Python.h":
     int unlikely(int) nogil  # Defined by Cython
+
 
 cdef class CombinatorialFace(SageObject):
     r"""
@@ -140,7 +144,7 @@ cdef class CombinatorialFace(SageObject):
         sage: face.n_ambient_Hrepresentation()
         11
     """
-    def __init__(self, data, dimension=None, index=None):
+    def __cinit__(self, data, dimension=None, index=None):
         r"""
         Initialize :class:`CombinatorialFace`.
 
@@ -161,6 +165,9 @@ cdef class CombinatorialFace(SageObject):
         """
         cdef FaceIterator_base it
         cdef PolyhedronFaceLattice all_faces
+        self.face_is_initialized = False
+        self.atom_rep = NULL
+        self.coatom_rep = NULL
 
         if isinstance(data, FaceIterator_base):
             assert dimension is None and index is None, "dimension and index must be ``None``, when providing a face iterator"
@@ -168,14 +175,14 @@ cdef class CombinatorialFace(SageObject):
             # Copy data from FaceIterator.
             it = data
             self._dual              = it.dual
-            self._mem               = MemoryAllocator()
             self.atoms              = it.atoms
             self.coatoms            = it.coatoms
 
             if it.structure.face_status == 0:
                 raise LookupError("face iterator not set to a face")
 
-            face_init(self.face, self.coatoms.n_atoms(), self.coatoms.n_coatoms(), self._mem)
+            face_init(self.face, self.coatoms.n_atoms(), self.coatoms.n_coatoms())
+            self.face_is_initialized = True
             face_copy(self.face, it.structure.face)
 
             self._dimension         = it.structure.current_dimension
@@ -199,11 +206,11 @@ cdef class CombinatorialFace(SageObject):
 
             # Copy data from PolyhedronFaceLattice.
             self._dual              = all_faces.dual
-            self._mem               = MemoryAllocator()
             self.atoms              = all_faces.atoms
             self.coatoms            = all_faces.coatoms
 
-            face_init(self.face, self.coatoms.n_atoms(), self.coatoms.n_coatoms(), self._mem)
+            face_init(self.face, self.coatoms.n_atoms(), self.coatoms.n_coatoms())
+            self.face_is_initialized = True
             face_copy(self.face, all_faces.faces[dimension+1].faces[index])
 
             self._dimension         = dimension
@@ -235,6 +242,12 @@ cdef class CombinatorialFace(SageObject):
         if self._dual:
             # Reverse the hash index in dual mode to respect inclusion of faces.
             self._hash_index = -self._hash_index - 1
+
+    def __dealloc__(self):
+        if self.face_is_initialized:
+            face_free(self.face)
+        sig_free(self.atom_rep)
+        sig_free(self.coatom_rep)
 
     def _repr_(self):
         r"""
@@ -1085,7 +1098,7 @@ cdef class CombinatorialFace(SageObject):
         Return its length.
         """
         if self.coatom_rep is NULL:
-            self.coatom_rep = <size_t *> self._mem.allocarray(self.coatoms.n_faces(), sizeof(size_t))
+            self.coatom_rep = <size_t *> check_allocarray(self.coatoms.n_faces(), sizeof(size_t))
             self._n_coatom_rep = bit_rep_to_coatom_rep(self.face, self.coatoms.data, self.coatom_rep)
         return self._n_coatom_rep
 
@@ -1095,7 +1108,6 @@ cdef class CombinatorialFace(SageObject):
         Return its length.
         """
         if self.atom_rep is NULL:
-            self.atom_rep = <size_t *> self._mem.allocarray(self.coatoms.n_atoms(), sizeof(size_t))
+            self.atom_rep = <size_t *> check_allocarray(self.coatoms.n_atoms(), sizeof(size_t))
             self._n_atom_rep = bit_rep_to_Vrep_list(self.face, self.atom_rep)
         return self._n_atom_rep
-

@@ -103,7 +103,7 @@ from sage.rings.integer                cimport smallInteger
 from cysignals.signals                 cimport sig_check, sig_block, sig_unblock
 from sage.matrix.matrix_integer_dense  cimport Matrix_integer_dense
 
-from .face_data_structure cimport face_len_atoms, face_init
+from .face_data_structure cimport face_len_atoms, face_init_with_allocator
 from .face_iterator cimport iter_t, parallel_f_vector
 
 cdef extern from "Python.h":
@@ -469,7 +469,7 @@ cdef class CombinatorialPolyhedron(SageObject):
             if not self._bounded:
                 mem = MemoryAllocator()
                 self._mem_tuple += (mem,)
-                face_init(self._far_face, self.bitrep_facets().n_atoms(), self._n_facets, mem)
+                face_init_with_allocator(self._far_face, self.bitrep_facets().n_atoms(), self._n_facets, mem)
                 Vrep_list_to_bit_rep(tuple(far_face), self._far_face)
 
         elif isinstance(data, numbers.Integral):
@@ -505,7 +505,7 @@ cdef class CombinatorialPolyhedron(SageObject):
             if not self._bounded:
                 mem = MemoryAllocator()
                 self._mem_tuple += (mem,)
-                face_init(self._far_face, self.bitrep_facets().n_atoms(), self._n_facets, mem)
+                face_init_with_allocator(self._far_face, self.bitrep_facets().n_atoms(), self._n_facets, mem)
                 Vrep_list_to_bit_rep(tuple(far_face), self._far_face)
 
         else:
@@ -549,7 +549,7 @@ cdef class CombinatorialPolyhedron(SageObject):
             if not self._bounded:
                 mem = MemoryAllocator()
                 self._mem_tuple += (mem,)
-                face_init(self._far_face, self.bitrep_facets().n_atoms(), self._n_facets, mem)
+                face_init_with_allocator(self._far_face, self.bitrep_facets().n_atoms(), self._n_facets, mem)
                 Vrep_list_to_bit_rep(tuple(far_face), self._far_face)
 
         if not self._bounded:
@@ -3272,7 +3272,7 @@ cdef class CombinatorialPolyhedron(SageObject):
         cdef FaceIterator face_iter
         cdef int dim = self.dimension()
 
-        cdef size_t **edges = <size_t**> mem.malloc(sizeof(size_t**))
+        cdef size_t **edges = <size_t**> mem.malloc(sizeof(size_t*))
         cdef size_t counter = 0         # the number of edges so far
         cdef size_t current_length = 1  # dynamically enlarge **edges
         cdef int output_dim_init = 1 if do_edges else dim - 2

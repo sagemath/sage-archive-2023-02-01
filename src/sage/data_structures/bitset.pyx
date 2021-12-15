@@ -297,7 +297,7 @@ cdef class FrozenBitset:
         if capacity is None:
             bitset_init(self._bitset, 1)
         else:
-            bitset_init(self._bitset, capacity)
+            bitset_init(self._bitset, <mp_bitcnt_t> capacity)
 
     def __dealloc__(self):
         """

@@ -169,13 +169,15 @@ cdef class PolyhedronFaceLattice:
         self.faces = <face_list_t*> self._mem.allocarray(self.dimension + 2, sizeof(face_list_t))
         for i in range(self.dimension + 2):
             if i == self.dimension and self.dimension > 0:
-                face_list_shallow_init(self.faces[i],
-                                       self.f_vector[i], self.coatoms.n_atoms(),
-                                       self.coatoms.n_coatoms(), self._mem)
+                face_list_shallow_init_with_allocator(
+                        self.faces[i],
+                        self.f_vector[i], self.coatoms.n_atoms(),
+                        self.coatoms.n_coatoms(), self._mem)
             else:
-                face_list_init(self.faces[i],
-                               self.f_vector[i], self.coatoms.n_atoms(),
-                               self.coatoms.n_coatoms(), self._mem)
+                face_list_init_with_allocator(
+                        self.faces[i],
+                        self.f_vector[i], self.coatoms.n_atoms(),
+                        self.coatoms.n_coatoms(), self._mem)
 
         # The universe.
         for j in range(self.coatoms.n_atoms()):
@@ -189,7 +191,7 @@ cdef class PolyhedronFaceLattice:
 
         # Attributes for iterating over the incidences.
         self.is_incidence_initialized = 0
-        face_init(self.incidence_face, self.coatoms.n_atoms(), self.coatoms.n_coatoms(), self._mem)
+        face_init_with_allocator(self.incidence_face, self.coatoms.n_atoms(), self.coatoms.n_coatoms(), self._mem)
 
         # Adding all faces, using the iterator.
         for i in range(1, self.dimension):

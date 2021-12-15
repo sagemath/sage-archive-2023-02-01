@@ -9,8 +9,8 @@ from .face_iterator             cimport FaceIterator
 cdef class CombinatorialFace(SageObject):
     cdef readonly bint _dual        # if 1, then iterate over dual Polyhedron
     cdef face_t face                # the face in bit-rep
+    cdef bint face_is_initialized
 
-    cdef MemoryAllocator _mem
     cdef size_t *atom_rep           # a place where atom-representation of face will be stored
     cdef size_t _n_atom_rep
     cdef size_t *coatom_rep         # a place where coatom-representation of face will be stored

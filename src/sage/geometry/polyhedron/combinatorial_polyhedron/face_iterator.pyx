@@ -281,12 +281,12 @@ cdef class FaceIterator_base(SageObject):
         # Initialize ``new_faces``.
         self.structure.new_faces = <face_list_t*> self._mem.allocarray((self.structure.dimension), sizeof(face_list_t))
         for i in range(self.structure.dimension-1):
-            face_list_init(self.structure.new_faces[i],
-                           self.coatoms.n_faces(), self.coatoms.n_atoms(),
+            face_list_init_with_allocator(self.structure.new_faces[i],
+                                          self.coatoms.n_faces(), self.coatoms.n_atoms(),
                            self.coatoms.n_coatoms(), self._mem)
 
         # We start with the coatoms
-        face_list_shallow_init(self.structure.new_faces[self.structure.dimension-1],
+        face_list_shallow_init_with_allocator(self.structure.new_faces[self.structure.dimension-1],
                                self.coatoms.n_faces(), self.coatoms.n_atoms(),
                                self.coatoms.n_coatoms(), self._mem)
 
@@ -296,7 +296,7 @@ cdef class FaceIterator_base(SageObject):
 
         # Initialize ``visited_all``.
         self.structure.visited_all = <face_list_t*> self._mem.allocarray((self.structure.dimension), sizeof(face_list_t))
-        face_list_shallow_init(self.structure.visited_all[self.structure.dimension-1],
+        face_list_shallow_init_with_allocator(self.structure.visited_all[self.structure.dimension-1],
                                self.coatoms.n_faces(), self.coatoms.n_atoms(),
                                self.coatoms.n_coatoms(), self._mem)
         self.structure.visited_all[self.structure.dimension-1].n_faces = 0

@@ -138,7 +138,7 @@ cdef class ListOfFaces:
             sage: TestSuite(sage.geometry.polyhedron.combinatorial_polyhedron.list_of_faces.ListOfFaces).run()
         """
         self._mem = MemoryAllocator()
-        face_list_init(self.data, n_faces, n_atoms, n_coatoms, self._mem)
+        face_list_init_with_allocator(self.data, n_faces, n_atoms, n_coatoms, self._mem)
 
     def _test_alignment(self):
         r"""

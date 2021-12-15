@@ -110,7 +110,7 @@ cdef class PolyhedronFaceLattice:
     by intersecting with all coatoms. Then each intersection is looked up in
     the sorted level sets.
     """
-    def __init__(self, CombinatorialPolyhedron C):
+    def __cinit__(self, CombinatorialPolyhedron C):
         r"""
         Initialize :class:`PolyhedronFaceLattice`.
 
@@ -128,7 +128,12 @@ cdef class PolyhedronFaceLattice:
         """
         cdef int i
         cdef size_t j
-        self._mem = MemoryAllocator()
+        self.f_vector = NULL
+        self.atom_rep = NULL
+        self.coatom_rep = NULL
+        self.faces = NULL
+        self.is_incidence_initialized = -1
+
         self.dimension = C.dimension()
         self.dual = False
         if C.bitrep_facets().n_faces() > C.bitrep_Vrep().n_faces():
@@ -143,7 +148,7 @@ cdef class PolyhedronFaceLattice:
 
         # copy f_vector for later use
         f_vector = C.f_vector()
-        self.f_vector = <size_t *> self._mem.allocarray(self.dimension + 2, sizeof(size_t))
+        self.f_vector = <size_t *> check_allocarray(self.dimension + 2, sizeof(size_t))
         if self.dual:
             for i in range(-1, self.dimension + 1):
                 self.f_vector[i+1] = f_vector[-i-2]
@@ -162,22 +167,19 @@ cdef class PolyhedronFaceLattice:
             self.coatoms = face_iter.coatoms
 
         cdef size_t n_atoms = self.atoms.n_faces()
-        self.atom_rep = <size_t *> self._mem.allocarray(self.coatoms.n_atoms(), sizeof(size_t))
-        self.coatom_rep = <size_t *> self._mem.allocarray(self.coatoms.n_faces(), sizeof(size_t))
+        self.atom_rep = <size_t *> check_allocarray(self.coatoms.n_atoms(), sizeof(size_t))
+        self.coatom_rep = <size_t *> check_allocarray(self.coatoms.n_faces(), sizeof(size_t))
 
         # Setting up a pointer to raw data of ``faces``:
-        self.faces = <face_list_t*> self._mem.allocarray(self.dimension + 2, sizeof(face_list_t))
-        for i in range(self.dimension + 2):
-            if i == self.dimension and self.dimension > 0:
-                face_list_shallow_init_with_allocator(
-                        self.faces[i],
-                        self.f_vector[i], self.coatoms.n_atoms(),
-                        self.coatoms.n_coatoms(), self._mem)
-            else:
-                face_list_init_with_allocator(
-                        self.faces[i],
-                        self.f_vector[i], self.coatoms.n_atoms(),
-                        self.coatoms.n_coatoms(), self._mem)
+        self.faces = <face_list_t*> check_allocarray(self.dimension + 2, sizeof(face_list_t))
+
+        # We modify ``self.dimension`` to keep track how far we got with allocating, in case of error.
+        self.dimension = -2
+        for i in range(C.dimension() + 2):
+            face_list_init(self.faces[i], self.f_vector[i],
+                           self.coatoms.n_atoms(), self.coatoms.n_coatoms())
+            self.dimension = i - 1
+        # Note that ``self.dimension == C.dimension()`` in case we got until this point.
 
         # The universe.
         for j in range(self.coatoms.n_atoms()):
@@ -186,12 +188,11 @@ cdef class PolyhedronFaceLattice:
         # The coatoms.
         if self.dimension > 0:
             # Note that in the other cases, this was fully initialized above.
-            # Not just shallow.
-            face_list_shallow_copy(self.faces[self.dimension], self.coatoms.data)
+            face_list_copy(self.faces[self.dimension], self.coatoms.data)
 
         # Attributes for iterating over the incidences.
+        face_init(self.incidence_face, self.coatoms.n_atoms(), self.coatoms.n_coatoms())
         self.is_incidence_initialized = 0
-        face_init_with_allocator(self.incidence_face, self.coatoms.n_atoms(), self.coatoms.n_coatoms(), self._mem)
 
         # Adding all faces, using the iterator.
         for i in range(1, self.dimension):
@@ -210,6 +211,18 @@ cdef class PolyhedronFaceLattice:
 
         # Sorting the faces, except for coatoms.
         self._sort()
+
+    def __dealloc__(self):
+        cdef int i
+        sig_free(self.f_vector)
+        sig_free(self.atom_rep)
+        sig_free(self.coatom_rep)
+        if self.faces:
+            for i in range(self.dimension + 2):
+                face_list_free(self.faces[i])
+            sig_free(self.faces)
+        if self.is_incidence_initialized != -1:
+            face_free(self.incidence_face)
 
     cdef int _sort(self) except -1:
         r"""

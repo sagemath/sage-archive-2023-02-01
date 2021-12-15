@@ -93,6 +93,11 @@ class SymplecticVectorSpace(EuclideanSpace):
             sage: omega.display()
             omega = -dq∧dp
         """
+        # Check that manifold is even dimensional
+        if dimension % 2 == 1:
+            raise ValueError(
+                f"the dimension of the manifold must be even but it is {dimension}"
+            )
         dim_half = dimension // 2
 
         if names is not None and symbols is None:

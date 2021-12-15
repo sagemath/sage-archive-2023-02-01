@@ -25,6 +25,7 @@ REFERENCES:
 from __future__ import annotations
 from six.moves import range
 from typing import Dict, Union, Optional
+from math import factorial
 
 from sage.symbolic.expression import Expression
 from sage.manifolds.differentiable.diff_form import DiffForm, DiffFormParal
@@ -141,7 +142,7 @@ class SymplecticForm(DiffForm):
         if name is None:
             name = "omega"
             if latex_name is None:
-                latex_name = "\\omega"
+                latex_name = r"\omega"
 
         if latex_name is None:
             latex_name = name
@@ -485,8 +486,8 @@ class SymplecticForm(DiffForm):
 
         INPUT:
 
-        - ``f`` -- first function
-        - ``g`` -- second function
+        - ``f`` -- function inserted in the first slot
+        - ``g`` -- function inserted in the second slot
 
         EXAMPLES::
 
@@ -503,9 +504,8 @@ class SymplecticForm(DiffForm):
 
     def volume_form(self, contra: int = 0) -> TensorField:
         r"""
-        Liouville volume form `\omega^n` associated with the symplectic form `\omega`,
-        where `2n` is the dimension of the manifold).
-        TODO: Decide about normalization
+        Liouville volume form `\frac{1}{n!}\omega^n` associated with the 
+        symplectic form `\omega`, where `2n` is the dimension of the manifold.
 
         INPUT:
 
@@ -514,7 +514,7 @@ class SymplecticForm(DiffForm):
 
         OUTPUT:
 
-        - if ``contra = 0``: volume form associated to the symplectic form
+        - if ``contra = 0``: volume form associated with the symplectic form
         - if ``contra = k``, with `1\leq k \leq n`, the tensor field of type
           (k,n-k) formed from `\epsilon` by raising the first k indices with
           the symplectic form (see method
@@ -528,18 +528,18 @@ class SymplecticForm(DiffForm):
             sage: M = SymplecticVectorSpace(4, 'R4')
             sage: omega = M.symplectic_form()
             sage: vol = omega.volume_form() ; vol
-            4-form omega^2 on the 4-dimensional symplectic vector space R4
+            4-form mu_omega on the 4-dimensional symplectic vector space R4
             sage: vol.display()
-            omega^2 = 2 dq1∧dp1∧dq2∧dp2
+            mu_omega = dq1∧dp1∧dq2∧dp2
         """
         if self._vol_form is None:
             vol_form = self
             for _ in range(1, self._dim_half):
                 vol_form = vol_form.wedge(self)
+            vol_form = vol_form / factorial(self._dim_half)
 
-            # TODO: Or use something as vol_omega as name?
-            volume_name = f"{self._name}^{self._dim_half}"
-            volume_latex_name = f"{self._latex_name}^{{{self._dim_half}}}"
+            volume_name = f"mu_{self._name}"
+            volume_latex_name = f"\\mu_{self._latex_name}"
             vol_form.set_name(volume_name, volume_latex_name)
             self._vol_form = vol_form
 
@@ -589,7 +589,7 @@ class SymplecticForm(DiffForm):
             sage: omega.hodge_star(f).display()
             *f = -dq∧dp
             sage: omega.hodge_star(omega).display()
-            *omega^1: V → ℝ
+            *omega: V → ℝ
                (q, p) ↦ 1
         """
         return pform.hodge_dual(self)

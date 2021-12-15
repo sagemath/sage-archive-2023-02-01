@@ -14,9 +14,19 @@ class RemoteException(Exception):
     tb: str
 
     def __init__(self, tb: str):
+        """
+        Initialize the exception.
+
+        INPUT:
+
+        - ``tb`` -- the traceback of the exception.
+        """
         self.tb = tb
 
     def __str__(self):
+        """
+        Return a string representation of the exception.
+        """
         return self.tb
 
 
@@ -30,6 +40,15 @@ class RemoteExceptionWrapper:
     tb: str
 
     def __init__(self, exc: BaseException):
+        """
+        Initialize the exception wrapper.
+
+        INPUT:
+
+        - ``exc`` -- the exception to wrap.
+        """
+        self.exc = exc
+        self.tb = traceback.format_exc()
         # We cannot pickle the traceback, thus convert it to a string.
         # Later on unpickling, we set the original tracback as the cause of the exception
         # This approach is taken from https://bugs.python.org/issue13831

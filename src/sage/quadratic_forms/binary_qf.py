@@ -1497,10 +1497,52 @@ class BinaryQF(SageObject):
             sage: xy = Q.solve_integer(n)
             sage: xy is None or Q(*xy) == n
             True
+
+        Test for square discriminants specifically (:trac:`33026`)::
+
+            sage: n = randrange(-10^3, 10^3)
+            sage: Q = BinaryQF([n, randrange(-10^3, 10^3), 0][::(-1)**randrange(2)])
+            sage: U = random_matrix(ZZ, 2, 2, 'unimodular')
+            sage: U.rescale_row(0, choice((+1,-1))); assert U.det() in (+1,-1)
+            sage: Q = Q.matrix_action_right(U)
+            sage: Q.discriminant().is_square()
+            True
+            sage: xy = Q.solve_integer(n)
+            sage: Q(*xy) == n
+            True
         """
         n = ZZ(n)
+
         if self.is_negative_definite():  # not supported by PARI
             return (-self).solve_integer(-n)
+
+        if self.is_reducible():  # square discriminant; not supported by PARI
+            if self._a:
+                # https://math.stackexchange.com/a/980075
+                w = self.discriminant().sqrt()
+                r = (-self._b + (w if w != self._b else -w)) / (2*self._a)
+                p,q = r.as_integer_ratio()
+                g,u,v = p.xgcd(q)
+                M = Matrix(ZZ, [[v,p],[-u,q]])
+            elif self._c:
+                M = Matrix(ZZ, [[0,1],[1,0]])
+            else:
+                M = Matrix(ZZ, [[1,0],[0,1]])
+            assert M.is_unit()
+            Q = self.matrix_action_right(M)
+            assert not Q._c
+
+            # at this point, Q = a*x^2 + b*x*y
+            if not n:
+                return tuple(M.columns()[1])
+            for x in n.divisors():
+                try:
+                    y = ZZ((n//x - Q._a*x) / Q._b)
+                except TypeError:
+                    continue
+                return tuple(row[0]*x + row[1]*y for row in M.rows())
+
+            return None
 
         flag = 2  # single solution, possibly imprimitive
         sol = self.__pari__().qfbsolve(n, flag)

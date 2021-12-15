@@ -1,5 +1,4 @@
 cimport cython
-from memory_allocator           cimport MemoryAllocator
 from sage.structure.sage_object cimport SageObject
 from .list_of_faces             cimport ListOfFaces
 from .face_data_structure       cimport face_t

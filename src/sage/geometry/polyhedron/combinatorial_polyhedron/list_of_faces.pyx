@@ -127,7 +127,7 @@ cdef class ListOfFaces:
         sage: facets.matrix().dimensions()
         (5, 13)
     """
-    def __init__(self, size_t n_faces, size_t n_atoms, size_t n_coatoms):
+    def __cinit__(self, size_t n_faces, size_t n_atoms, size_t n_coatoms):
         r"""
         Initialize :class:`ListOfFaces`.
 
@@ -137,8 +137,13 @@ cdef class ListOfFaces:
 
             sage: TestSuite(sage.geometry.polyhedron.combinatorial_polyhedron.list_of_faces.ListOfFaces).run()
         """
-        self._mem = MemoryAllocator()
-        face_list_init_with_allocator(self.data, n_faces, n_atoms, n_coatoms, self._mem)
+        self.is_initialized = False
+        face_list_init(self.data, n_faces, n_atoms, n_coatoms)
+        self.is_initialized = True
+
+    def __dealoc__(self):
+        if self.is_initialized:
+            face_list_free(self.data)
 
     def _test_alignment(self):
         r"""

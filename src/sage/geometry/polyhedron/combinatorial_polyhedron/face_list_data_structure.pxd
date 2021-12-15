@@ -34,28 +34,6 @@ ctypedef face_list_s face_list_t[1]
 # Face List Initialization
 #############################################################################
 
-cdef inline int face_list_init_with_allocator(face_list_t faces, size_t n_faces, size_t n_atoms, size_t n_coatoms, MemoryAllocator mem) except -1:
-    """
-    Sets the initial values for a list of faces with given number of faces
-    and number of atoms.
-    """
-    face_list_shallow_init_with_allocator(faces, n_faces, n_atoms, n_coatoms, mem)
-    cdef size_t i
-    for i in range(n_faces):
-        face_init_with_allocator(faces.faces[i], n_atoms, n_coatoms, mem)
-
-cdef inline int face_list_shallow_init_with_allocator(face_list_t faces, size_t n_faces, size_t n_atoms, size_t n_coatoms, MemoryAllocator mem) except -1:
-    """
-    Initialize ``faces`` completely, but only set up memory for the pointers to the faces.
-    """
-    faces.n_faces = n_faces
-    faces.total_n_faces = n_faces
-    faces.n_atoms = n_atoms
-    faces.n_coatoms = n_coatoms
-    faces.faces = <face_t *> mem.allocarray(n_faces, sizeof(face_t))
-    faces.is_not_new_face = <bint *> mem.allocarray(n_faces, sizeof(bint))
-    faces.polyhedron_is_simple = False
-
 cdef inline int face_list_init(face_list_t faces, size_t n_faces, size_t n_atoms, size_t n_coatoms) except -1:
     """
     Sets the initial values for a list of faces with given number of faces

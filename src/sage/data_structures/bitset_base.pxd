@@ -184,24 +184,6 @@ cdef inline bint bitset_init(fused_bitset_t bits, mp_bitcnt_t size) except -1:
         bits.non_zero_chunks_are_initialized = False
         bits.non_zero_chunks = <mp_bitcnt_t*> check_allocarray((bits.limbs*LIMB_SIZE) / ALIGNMENT, sizeof(mp_bitcnt_t))
 
-cdef inline bint bitset_init_with_allocator(fused_bitset_t bits, mp_bitcnt_t size, MemoryAllocator mem) except -1:
-    """
-    Allocate an empty bitset of size ``size``.
-
-    Size must be at least 1.
-
-    Note that ``sparse_bitset_t`` is assumed to be allocated over-aligned.
-    """
-    if size <= 0:
-        raise ValueError("bitset capacity must be greater than 0")
-
-    bits.size = size
-    bits.limbs = ((size - 1) / (8*ALIGNMENT) + 1) * (ALIGNMENT/LIMB_SIZE)
-    bits.bits = <mp_limb_t*> mem.aligned_calloc(ALIGNMENT, bits.limbs, LIMB_SIZE)
-    if fused_bitset_t is sparse_bitset_t:
-        bits.non_zero_chunks_are_initialized = False
-        bits.non_zero_chunks = <mp_bitcnt_t*> mem.allocarray((bits.limbs*LIMB_SIZE)/ALIGNMENT, sizeof(mp_bitcnt_t))
-
 cdef inline bint bitset_check_alignment(fused_bitset_t bits):
     """
     Return whether the bitset is aligned correctly.

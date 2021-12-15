@@ -31,18 +31,6 @@ ctypedef fused algorithm_variant:
 # Face Initialization
 #############################################################################
 
-cdef inline bint face_init_with_allocator(face_t face, mp_bitcnt_t n_atoms, mp_bitcnt_t n_coatoms, MemoryAllocator mem) except -1:
-    """
-    Initialize and clear ``face`` using the memory allocator.
-    """
-    if n_coatoms == 0:
-        # Special case for trivial polyhedra.
-        n_coatoms += 1
-    if n_atoms == 0:
-        n_atoms += 1
-    bitset_init_with_allocator(face.atoms, n_atoms, mem)
-    bitset_init_with_allocator(face.coatoms, n_coatoms, mem)
-
 cdef inline bint face_init(face_t face, mp_bitcnt_t n_atoms, mp_bitcnt_t n_coatoms) except -1:
     """
     Initialize and clear ``face``.
@@ -53,11 +41,7 @@ cdef inline bint face_init(face_t face, mp_bitcnt_t n_atoms, mp_bitcnt_t n_coato
     if n_atoms == 0:
         n_atoms += 1
     bitset_init(face.atoms, n_atoms)
-
-    # An intermediate workaround while ``face_init_with_allocator`` is still in use.
-    cdef mp_bitcnt_t n_coatoms2 = (((n_coatoms - 1) / (8*ALIGNMENT) + 1) * (ALIGNMENT/LIMB_SIZE)) * LIMB_SIZE * 8
-
-    bitset_init(face.coatoms, n_coatoms2)
+    bitset_init(face.coatoms, n_coatoms)
 
 cdef inline void face_free(face_t face):
     """

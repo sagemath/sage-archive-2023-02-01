@@ -138,8 +138,11 @@ cdef inline void face_list_delete_faces_by_array(face_list_t faces, bint *delete
         if not delete[i]:
             faces.faces[n_newfaces][0] = faces.faces[i][0]
             n_newfaces += 1
+        else:
+            face_free(faces.faces[i])
 
     faces.n_faces = n_newfaces
+    faces.total_n_faces = n_newfaces
 
 cdef inline void face_list_delete_faces_by_face(face_list_t faces, face_t face):
     r"""
@@ -156,8 +159,11 @@ cdef inline void face_list_delete_faces_by_face(face_list_t faces, face_t face):
         if face_atom_in(face, i):
             faces.faces[n_newfaces][0] = faces.faces[i][0]
             n_newfaces += 1
+        else:
+            face_free(faces.faces[i])
 
     faces.n_faces = n_newfaces
+    faces.total_n_faces = n_newfaces
 
 
 #############################################################################

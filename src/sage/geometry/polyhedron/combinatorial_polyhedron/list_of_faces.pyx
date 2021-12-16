@@ -141,9 +141,25 @@ cdef class ListOfFaces:
         face_list_init(self.data, n_faces, n_atoms, n_coatoms)
         self.is_initialized = True
 
-    def __dealoc__(self):
-        if self.is_initialized:
-            face_list_free(self.data)
+    def __dealloc__(self):
+        r"""
+        TESTS::
+
+            sage: from sage.geometry.polyhedron.combinatorial_polyhedron.list_of_faces import ListOfFaces
+            sage: ListOfFaces(-1, -1, -1)  # indirect doctest
+            Traceback (most recent call last):
+            ...
+            OverflowError: can't convert negative value to size_t
+
+            sage: from memory_allocator.test import TestMemoryAllocator
+            sage: t = TestMemoryAllocator()
+            sage: m = t.size_t_max()
+            sage: ListOfFaces(1, m, 1)
+            Traceback (most recent call last):
+            ...
+            MemoryError: failed to allocate ...
+        """
+        face_list_free(self.data)
 
     def _test_alignment(self):
         r"""

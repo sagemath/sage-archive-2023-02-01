@@ -18,6 +18,8 @@ import os
 
 from collections import defaultdict
 
+from sage.misc.namespace_package import is_package_or_sage_namespace_package_dir as is_package_or_namespace_package_dir
+
 
 def read_distribution(src_file):
     """
@@ -283,29 +285,6 @@ def _cythonized_dir(src_dir=None, editable_install=None):
     else:
         return Path(SAGE_ROOT) / "build" / "pkgs" / "sagelib" / "src" / "build" / "cythonized"
 
-def is_package_or_namespace_package_dir(dirpath):
-    """
-    True when ``dirpath`` is a regular or namespace package.
-
-    EXAMPLES::
-
-        sage: from sage.env import SAGE_SRC
-        sage: from sage_setup.find import is_package_or_namespace_package_dir
-        sage: is_package_or_namespace_package_dir(SAGE_SRC)
-        False
-
-    An ordinary package::
-
-        sage: is_package_or_namespace_package_dir(os.path.join(SAGE_SRC, 'sage', 'structure'))
-        True
-
-    A namespace package::
-
-        sage: is_package_or_namespace_package_dir(os.path.join(SAGE_SRC, 'sage', 'numerical', 'backends'))
-        True
-
-    """
-    return True
 
 def find_extra_files(src_dir, modules, cythonized_dir, special_filenames=[], *,
                      distributions=None):

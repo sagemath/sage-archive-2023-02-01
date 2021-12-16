@@ -679,8 +679,8 @@ class FileDocTestSource(DocTestSource):
             sage: FDS.in_lib
             True
         """
-        return bool(self.options.force_lib or
-                    is_package_or_sage_namespace_package_dir(os.path.dirname(self.path)))
+        return (self.options.force_lib
+                or is_package_or_sage_namespace_package_dir(os.path.dirname(self.path)))
 
     def create_doctests(self, namespace):
         r"""

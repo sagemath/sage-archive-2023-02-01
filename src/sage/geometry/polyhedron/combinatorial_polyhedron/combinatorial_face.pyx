@@ -65,6 +65,7 @@ AUTHOR:
 # ****************************************************************************
 
 from cysignals.memory           cimport check_allocarray, sig_free
+from libc.string cimport memset
 
 from sage.misc.superseded        import deprecated_function_alias
 
@@ -165,7 +166,7 @@ cdef class CombinatorialFace(SageObject):
         """
         cdef FaceIterator_base it
         cdef PolyhedronFaceLattice all_faces
-        self.face_is_initialized = False
+        memset(&self.face, 0, sizeof(face_t))
         self.atom_rep = NULL
         self.coatom_rep = NULL
 
@@ -182,7 +183,6 @@ cdef class CombinatorialFace(SageObject):
                 raise LookupError("face iterator not set to a face")
 
             face_init(self.face, self.coatoms.n_atoms(), self.coatoms.n_coatoms())
-            self.face_is_initialized = True
             face_copy(self.face, it.structure.face)
 
             self._dimension         = it.structure.current_dimension
@@ -210,7 +210,6 @@ cdef class CombinatorialFace(SageObject):
             self.coatoms            = all_faces.coatoms
 
             face_init(self.face, self.coatoms.n_atoms(), self.coatoms.n_coatoms())
-            self.face_is_initialized = True
             face_copy(self.face, all_faces.faces[dimension+1].faces[index])
 
             self._dimension         = dimension
@@ -237,15 +236,23 @@ cdef class CombinatorialFace(SageObject):
             for i in range(-1,self._ambient_dimension+1):
                 self._hash_index += all_faces.f_vector[i+1]
         else:
-            raise NotImplementedError("data must be face iterator or a list of all faces")
+            raise ValueError("data must be face iterator or a list of all faces")
 
         if self._dual:
             # Reverse the hash index in dual mode to respect inclusion of faces.
             self._hash_index = -self._hash_index - 1
 
     def __dealloc__(self):
-        if self.face_is_initialized:
-            face_free(self.face)
+        r"""
+        TESTS::
+
+            sage: from sage.geometry.polyhedron.combinatorial_polyhedron.combinatorial_face import CombinatorialFace
+            sage: CombinatorialFace(2)  # indirect doctest
+            Traceback (most recent call last):
+            ...
+            ValueError: data must be face iterator or a list of all faces
+        """
+        face_free(self.face)
         sig_free(self.atom_rep)
         sig_free(self.coatom_rep)
 

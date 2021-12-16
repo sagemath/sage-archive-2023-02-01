@@ -222,12 +222,11 @@ cdef class FaceIterator_base(SageObject):
 
             sage: TestSuite(sage.geometry.polyhedron.combinatorial_polyhedron.face_iterator.FaceIterator).run()
         """
+        # Note that all values are set to zero at the time ``__cinit__`` is called:
+        # https://cython.readthedocs.io/en/latest/src/userguide/special_methods.html#initialisation-methods
+        # In particular, ``__dealloc__`` will not do harm in this case.
+
         cdef CombinatorialPolyhedron C
-        self.structure.atom_rep = NULL
-        self.structure.coatom_rep = NULL
-        self.structure.first_time = NULL
-        self.structure.new_faces = NULL
-        self.structure.visited_all = NULL
 
         # Working around that __cinit__ of base and derived class must be the same,
         # as extension classes do not yet have __new__ in Cython 0.29.
@@ -305,26 +304,20 @@ cdef class FaceIterator_base(SageObject):
         # We may assume ``dimension > 0`` and ``n_faces > 0``.
 
         # Initialize ``new_faces``.
-        # We modify ``self.structure.dimension`` to keep track how far we got with allocating, in case of error.
-        self.structure.new_faces = <face_list_t*> check_allocarray((self.structure.dimension), sizeof(face_list_t))
-        self.structure.dimension = 0
-        for i in range(C.dimension()):
+        self.structure.new_faces = <face_list_t*> check_calloc((self.structure.dimension), sizeof(face_list_t))
+        for i in range(self.structure.dimension):
             face_list_init(self.structure.new_faces[i],
                            self.coatoms.n_faces(), self.coatoms.n_atoms(),
                            self.coatoms.n_coatoms())
-            self.structure.dimension = i + 1
-        # Note that ``self.structure.dimension == C.dimension()`` in case we got until this point.
 
         face_list_copy(self.structure.new_faces[self.structure.dimension-1], self.coatoms.data)
 
         # Initialize ``visited_all``.
-        self.structure.face_status = -1
-        self.structure.visited_all = <face_list_t*> check_allocarray((self.structure.dimension), sizeof(face_list_t))
+        self.structure.visited_all = <face_list_t*> check_calloc((self.structure.dimension), sizeof(face_list_t))
         face_list_shallow_init(self.structure.visited_all[self.structure.dimension-1],
                                self.coatoms.n_faces(), self.coatoms.n_atoms(),
                                self.coatoms.n_coatoms())
         self.structure.visited_all[self.structure.dimension-1].n_faces = 0
-        self.structure.face_status = 0
 
         if not C.is_bounded():
             # Treating the far face as if we had visited all its elements.
@@ -355,13 +348,21 @@ cdef class FaceIterator_base(SageObject):
             self.structure.new_faces[self.structure.dimension -1].polyhedron_is_simple = False
 
     def __dealloc__(self):
+        """
+        TESTS::
+
+            sage: from sage.geometry.polyhedron.combinatorial_polyhedron.face_iterator import FaceIterator_base
+            sage: FaceIterator_base(2)  # indirect doctest
+            Traceback (most recent call last):
+            ...
+            AttributeError: 'sage.rings.integer.Integer' object has no attribute 'combinatorial_polyhedron'
+        """
         cdef int i
         sig_free(self.structure.atom_rep)
         sig_free(self.structure.coatom_rep)
         sig_free(self.structure.first_time)
         if self.structure.visited_all:
-            if self.structure.face_status != -1:
-                face_list_shallow_free(self.structure.visited_all[self.structure.dimension - 1])
+            face_list_shallow_free(self.structure.visited_all[self.structure.dimension - 1])
             sig_free(self.structure.visited_all)
         if self.structure.new_faces:
             for i in range(self.structure.dimension):

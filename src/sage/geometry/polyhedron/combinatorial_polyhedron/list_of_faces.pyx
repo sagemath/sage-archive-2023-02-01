@@ -137,9 +137,11 @@ cdef class ListOfFaces:
 
             sage: TestSuite(sage.geometry.polyhedron.combinatorial_polyhedron.list_of_faces.ListOfFaces).run()
         """
-        self.is_initialized = False
+        # Note that all values are set to zero at the time ``__cinit__`` is called:
+        # https://cython.readthedocs.io/en/latest/src/userguide/special_methods.html#initialisation-methods
+        # In particular, ``__dealloc__`` will not do harm in this case.
+
         face_list_init(self.data, n_faces, n_atoms, n_coatoms)
-        self.is_initialized = True
 
     def __dealloc__(self):
         r"""

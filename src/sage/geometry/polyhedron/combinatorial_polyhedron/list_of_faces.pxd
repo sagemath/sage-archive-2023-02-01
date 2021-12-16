@@ -6,7 +6,6 @@ cdef class ListOfFaces:
     # ``data`` points to the raw data.
     # It will be of "type" ``uint64_t[n_faces][face_length]``
     cdef face_list_t data
-    cdef bint is_initialized
 
     cpdef ListOfFaces __copy__(self)
 

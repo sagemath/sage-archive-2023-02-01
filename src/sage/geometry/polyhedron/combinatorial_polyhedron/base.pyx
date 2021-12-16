@@ -86,7 +86,6 @@ AUTHOR:
 import numbers
 from memory_allocator cimport MemoryAllocator
 from cysignals.memory cimport check_malloc, check_allocarray, check_reallocarray, check_calloc, sig_free
-from libc.string cimport memset
 
 from sage.rings.integer             import Integer
 from sage.graphs.graph              import Graph
@@ -340,17 +339,14 @@ cdef class CombinatorialPolyhedron(SageObject):
             ...
             ValueError: the combinatorial polyhedron was not initialized
         """
+        # Note that all values are set to zero at the time ``__cinit__`` is called:
+        # https://cython.readthedocs.io/en/latest/src/userguide/special_methods.html#initialisation-methods
+        # In particular, ``__dealloc__`` will not do harm in this case.
+
         self._dimension = -2  # a "NULL" value
-        self._edges = NULL
-        self._ridges = NULL
-        self._face_lattice_incidences = NULL
         self._equations = ()
         self._all_faces = None
         self._n_facets = -1
-
-        # If the pointers in ``self._far_face`` point to zero,
-        # we can free them, even if we never call ``face_init``.
-        memset(&self._far_face, 0, sizeof(face_t))
 
         # ``_length_edges_list`` should not be touched in an instance
         # of :class:`CombinatorialPolyhedron`. This number can be altered,

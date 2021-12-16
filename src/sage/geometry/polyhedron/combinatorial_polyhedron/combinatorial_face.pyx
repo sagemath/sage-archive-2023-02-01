@@ -65,7 +65,6 @@ AUTHOR:
 # ****************************************************************************
 
 from cysignals.memory           cimport check_allocarray, sig_free
-from libc.string cimport memset
 
 from sage.misc.superseded        import deprecated_function_alias
 
@@ -164,11 +163,12 @@ cdef class CombinatorialFace(SageObject):
 
             sage: TestSuite(sage.geometry.polyhedron.combinatorial_polyhedron.combinatorial_face.CombinatorialFace).run()
         """
+        # Note that all values are set to zero at the time ``__cinit__`` is called:
+        # https://cython.readthedocs.io/en/latest/src/userguide/special_methods.html#initialisation-methods
+        # In particular, ``__dealloc__`` will not do harm in this case.
+
         cdef FaceIterator_base it
         cdef PolyhedronFaceLattice all_faces
-        memset(&self.face, 0, sizeof(face_t))
-        self.atom_rep = NULL
-        self.coatom_rep = NULL
 
         if isinstance(data, FaceIterator_base):
             assert dimension is None and index is None, "dimension and index must be ``None``, when providing a face iterator"

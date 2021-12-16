@@ -80,11 +80,12 @@ def find_python_sources(src_dir, modules=['sage'], distributions=None):
 
     OUTPUT: Triple consisting of
 
-    - the list of package names (corresponding to directories with
-      ``__init__.py`` or namespace packages),
+    - the list of package names (corresponding to ordinary packages
+      or namespace packages, according to
+      :func:`sage.misc.namespace_package.is_package_or_sage_namespace_package_dir`)
 
-    - Python module names (corresponding to other ``*.py`` files except for
-      those below directories with a file named ``nonamespace`` in it).
+    - Python module names (corresponding to ``*.py`` files in ordinary
+      or namespace packages)
 
     - Cython extensions (corresponding to ``*.pyx`` files).
 
@@ -116,27 +117,28 @@ def find_python_sources(src_dir, modules=['sage'], distributions=None):
         sage: ['sage.doctest.tests' in L for L in (py_packages, py_modules)]
         [False, False]
 
-    Native namespace package (no ``__init__.py``, PEP 420)::
-
-        sage: ['sage.graphs.graph_decompositions' in L for L in (py_packages, py_modules)]
-        [True, False]
-
-    Python module in a native namespace package::
-
-        sage: ['sage.graphs.graph_decompositions.modular_decomposition' in L for L in (py_packages, py_modules)]
-        [False, True]
-
-    Subdirectory marked with a ``nonamespace`` file::
+    Another subdirectory that is neither an ordinary nor a namespace package::
 
         sage: ['sage.extdata' in L for L in (py_packages, py_modules)]
         [False, False]
 
-    Python file (not module) below a directory with a ``nonamespace`` file::
+    Package designated to become an implicit namespace package (no ``__init__.py``, PEP 420,
+    but with an ``all.py`` file per Sage library conventions)::
+
+        sage: ['sage.graphs.graph_decompositions' in L for L in (py_packages, py_modules)]
+        [True, False]
+
+    Python module in a package designated to become an implicit namespace package::
+
+        sage: ['sage.graphs.graph_decompositions.modular_decomposition' in L for L in (py_packages, py_modules)]
+        [False, True]
+
+    Python file (not module) in a directory that is neither an ordinary nor a namespace package::
 
         sage: ['sage.ext_data.nbconvert.postprocess' in L for L in (py_packages, py_modules)]
         [False, False]
 
-    Filtering by distribution (distutils package)::
+    Filtering by distribution (distribution package)::
 
         sage: find_python_sources(SAGE_SRC, distributions=['sagemath-tdlib'])
         ([], [], [<setuptools.extension.Extension('sage.graphs.graph_decompositions.tdlib')...>])
@@ -168,15 +170,11 @@ def find_python_sources(src_dir, modules=['sage'], distributions=None):
         for module in modules:
             for dirpath, dirnames, filenames in os.walk(module):
                 package = dirpath.replace(os.path.sep, '.')
-                if is_package_or_namespace_package_dir(dirpath):
-                    # Ordinary package or namespace package.
-                    if distributions is None or '' in distributions:
-                        python_packages.append(package)
-                if 'nonamespace' in filenames:
-                    # Marked as "not a namespace package"
-                    # (similar to nodoctest in sage.doctest.control)
-                    dirnames.clear()
+                if not is_package_or_namespace_package_dir(dirpath):
                     continue
+                # Ordinary package or namespace package.
+                if distributions is None or '' in distributions:
+                    python_packages.append(package)
 
                 def is_in_distributions(filename):
                     if distributions is None:
@@ -361,7 +359,6 @@ def find_extra_files(src_dir, modules, cythonized_dir, special_filenames=[], *,
     finally:
         os.chdir(cwd)
 
-    print(f"find_extra_files => {data_files}")
     return data_files
 
 

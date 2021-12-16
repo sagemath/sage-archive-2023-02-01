@@ -96,6 +96,12 @@ include sage/misc/package.*
 graft sage/repl
 graft sage/server
 
+global-exclude *.c
+global-exclude *.cpp
+include sage/cpython/debugimpl.c
+include sage/misc/inherit_comparison_impl.c
+
+global-exclude __pycache__
 global-exclude *.py[co]
 global-exclude *.bak
 global-exclude *.so

@@ -15,6 +15,49 @@ cdef class Matrix_double_sparse(Matrix_generic_sparse):
         <class 'sage.matrix.matrix_double_sparse.Matrix_double_sparse'>
 
     """
+
+    def is_hermitian(self, tolerance=1e-12):
+        r"""
+        Return whether or not the matrix is Hermitian, up to the
+        entry-wise ``tolerance``.
+
+        A matrix is said to be Hermitian if it is equal to its
+        conjugate-transpose. We default to a small but non-zero
+        entry-wise tolerance because, otherwise, numerical issues
+        can cause false negatives (Trac #33023).
+
+        Otherwise this method is identical to the superclass method,
+        which simply defers to :meth:`_is_hermitian`.
+
+        INPUT:
+
+        - ``tolerance`` - a real number; the maximum difference we'll
+          tolerate between entries of the given matrix and its conjugate-
+          transpose.
+
+        OUTPUT:
+
+        A boolean, either ``True`` or ``False``.
+
+        EXAMPLES::
+
+            sage: A = matrix(RDF,
+            ....:            [ [1, 1e-13],
+            ....:              [0, 1    ] ],
+            ....:            sparse=True)
+            sage: A.is_hermitian()
+            True
+
+        TESTS::
+
+            sage: A = matrix.random(CDF, 2, sparse=True)
+            sage: (A*A.conjugate_transpose()).is_hermitian()
+            True
+
+        """
+        return self._is_hermitian(skew=False, tolerance=tolerance)
+
+
     def cholesky(self):
         r"""
         Returns the Cholesky decomposition of a Hermitian matrix.
@@ -79,11 +122,11 @@ cdef class Matrix_double_sparse(Matrix_generic_sparse):
             sage: A = matrix.random(RDF, n, sparse=True)
             sage: I = matrix.identity(RDF, n, sparse=True)
             sage: A = A*A.transpose() + I
-            sage: L = A.cholesky()                    # known bug, 33031
-            sage: (A - L*L.T).norm(1) < 1e-10         # known bug, 33031
+            sage: L = A.cholesky()
+            sage: (A - L*L.T).norm(1) < 1e-10
             True
-            sage: B = A.change_ring(RR)               # known bug, 33031
-            sage: (B.cholesky() - L).norm(1) < 1e-10  # known bug, 33031
+            sage: B = A.change_ring(RR)
+            sage: (B.cholesky() - L).norm(1) < 1e-10
             True
 
         ::
@@ -92,11 +135,11 @@ cdef class Matrix_double_sparse(Matrix_generic_sparse):
             sage: A = matrix.random(CDF, n, sparse=True)
             sage: I = matrix.identity(CDF, n, sparse=True)
             sage: A = A*A.conjugate_transpose() + I
-            sage: L = A.cholesky()                    # known bug, 33031
-            sage: (A - L*L.H).norm(1) < 1e-10         # known bug, 33031
+            sage: L = A.cholesky()
+            sage: (A - L*L.H).norm(1) < 1e-10
             True
-            sage: B = A.change_ring(CC)               # known bug, 33031
-            sage: (B.cholesky() - L).norm(1) < 1e-10  # known bug, 33031
+            sage: B = A.change_ring(CC)
+            sage: (B.cholesky() - L).norm(1) < 1e-10
             True
         """
         cdef Matrix L # output matrix
@@ -105,7 +148,6 @@ cdef class Matrix_double_sparse(Matrix_generic_sparse):
         if L is not None:
             return L
 
-        # The superclass method does this, so we should too...
         if not self.is_hermitian():
             raise ValueError("matrix is not Hermitian")
 

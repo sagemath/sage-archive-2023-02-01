@@ -126,13 +126,12 @@ cdef class PolyhedronFaceLattice:
             sage: F.get_face(2, 3)
             A 2-dimensional face of a 3-dimensional combinatorial polyhedron
         """
+        # Note that all values are set to zero at the time ``__cinit__`` is called:
+        # https://cython.readthedocs.io/en/latest/src/userguide/special_methods.html#initialisation-methods
+        # In particular, ``__dealloc__`` will not do harm in this case.
+
         cdef int i
         cdef size_t j
-        self.f_vector = NULL
-        self.atom_rep = NULL
-        self.coatom_rep = NULL
-        self.faces = NULL
-        self.is_incidence_initialized = -1
 
         self.dimension = C.dimension()
         self.dual = False
@@ -171,15 +170,11 @@ cdef class PolyhedronFaceLattice:
         self.coatom_rep = <size_t *> check_allocarray(self.coatoms.n_faces(), sizeof(size_t))
 
         # Setting up a pointer to raw data of ``faces``:
-        self.faces = <face_list_t*> check_allocarray(self.dimension + 2, sizeof(face_list_t))
+        self.faces = <face_list_t*> check_calloc(self.dimension + 2, sizeof(face_list_t))
 
-        # We modify ``self.dimension`` to keep track how far we got with allocating, in case of error.
-        self.dimension = -2
-        for i in range(C.dimension() + 2):
+        for i in range(self.dimension + 2):
             face_list_init(self.faces[i], self.f_vector[i],
                            self.coatoms.n_atoms(), self.coatoms.n_coatoms())
-            self.dimension = i - 1
-        # Note that ``self.dimension == C.dimension()`` in case we got until this point.
 
         # The universe.
         for j in range(self.coatoms.n_atoms()):
@@ -192,7 +187,6 @@ cdef class PolyhedronFaceLattice:
 
         # Attributes for iterating over the incidences.
         face_init(self.incidence_face, self.coatoms.n_atoms(), self.coatoms.n_coatoms())
-        self.is_incidence_initialized = 0
 
         # Adding all faces, using the iterator.
         for i in range(1, self.dimension):
@@ -229,6 +223,15 @@ cdef class PolyhedronFaceLattice:
         self._sort()
 
     def __dealloc__(self):
+        """
+        TESTS::
+
+            sage: from sage.geometry.polyhedron.combinatorial_polyhedron.polyhedron_face_lattice import PolyhedronFaceLattice
+            sage: PolyhedronFaceLattice()  # indirect doctest
+            Traceback (most recent call last):
+            ...
+            TypeError: __cinit__() takes exactly 1 positional argument (0 given)
+        """
         cdef int i
         sig_free(self.f_vector)
         sig_free(self.atom_rep)
@@ -237,8 +240,7 @@ cdef class PolyhedronFaceLattice:
             for i in range(self.dimension + 2):
                 face_list_free(self.faces[i])
             sig_free(self.faces)
-        if self.is_incidence_initialized != -1:
-            face_free(self.incidence_face)
+        face_free(self.incidence_face)
 
     cdef int _sort(self) except -1:
         r"""

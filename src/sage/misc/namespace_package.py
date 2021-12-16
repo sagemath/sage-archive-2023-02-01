@@ -37,23 +37,23 @@ def is_package_or_sage_namespace_package_dir(path):
     :mod:`sage.cpython` is an ordinary package::
 
         sage: from sage.misc.namespace_package import is_package_or_sage_namespace_package_dir
-        sage: d = os.path.dirname(sage.cpython.__file__); d
+        sage: directory = os.path.dirname(sage.cpython.__file__); directory
         '.../sage/cpython'
-        sage: is_package_or_sage_namespace_package_dir(d)
+        sage: is_package_or_sage_namespace_package_dir(directory)
         True
 
     :mod:`sage` is designated to become an implicit namespace package::
 
-        sage: d = os.path.dirname(sage.env.__file__); d
+        sage: directory = os.path.dirname(sage.env.__file__); directory
         '.../sage'
-        sage: is_package_or_sage_namespace_package_dir(d)
+        sage: is_package_or_sage_namespace_package_dir(directory)
         True
 
     Not a package::
 
-        sage: d = os.path.join(os.path.dirname(sage.symbolic.__file__), 'ginac'); d
+        sage: directory = os.path.join(os.path.dirname(sage.symbolic.__file__), 'ginac'); directory
         '.../sage/symbolic/ginac'
-        sage: is_package_or_sage_namespace_package_dir(d)
+        sage: is_package_or_sage_namespace_package_dir(directory)
         False
     """
     if os.path.exists(os.path.join(path, '__init__.py')):  # ordinary package

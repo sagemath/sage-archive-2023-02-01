@@ -86,7 +86,7 @@ AUTHOR:
 import numbers
 from memory_allocator cimport MemoryAllocator
 from cysignals.memory cimport check_malloc, check_allocarray, check_reallocarray, check_calloc, sig_free
-
+from libc.string cimport memset
 
 from sage.rings.integer             import Integer
 from sage.graphs.graph              import Graph
@@ -348,9 +348,9 @@ cdef class CombinatorialPolyhedron(SageObject):
         self._all_faces = None
         self._n_facets = -1
 
-        # We ensure below that self._bounded is false only after
-        # self._far_face is allocated.
-        self._bounded = True
+        # If the pointers in ``self._far_face`` point to zero,
+        # we can free them, even if we never call ``face_init``.
+        memset(&self._far_face, 0, sizeof(face_t))
 
         # ``_length_edges_list`` should not be touched in an instance
         # of :class:`CombinatorialPolyhedron`. This number can be altered,
@@ -392,10 +392,10 @@ cdef class CombinatorialPolyhedron(SageObject):
             self._dimension = data.dimension()
 
             if not data.is_compact():
-                unbounded = True
+                self._bounded = False
                 far_face = tuple(i for i in range(data.n_Vrepresentation()) if not data.Vrepresentation()[i].is_vertex())
             else:
-                unbounded = False
+                self._bounded = True
 
             P = data
             data = data.incidence_matrix()
@@ -407,7 +407,7 @@ cdef class CombinatorialPolyhedron(SageObject):
                 data_modified = data
         elif isinstance(data, LatticePolytopeClass):
             # input is ``LatticePolytope``
-            unbounded = False
+            self._bounded = True
             Vrep = data.vertices()
             self._n_Vrepresentation = len(Vrep)
             facets = tuple(data.facet_normals())
@@ -415,7 +415,7 @@ cdef class CombinatorialPolyhedron(SageObject):
             data = data.incidence_matrix()
         elif isinstance(data, ConvexRationalPolyhedralCone):
             # input is ``Cone``
-            unbounded = True
+            self._bounded = False
             Vrep = tuple(data.rays()) + (data.lattice().zero(),)
             self._n_Vrepresentation = len(Vrep)
             facets = tuple(data.facet_normals())
@@ -430,6 +430,8 @@ cdef class CombinatorialPolyhedron(SageObject):
             # Input is different from ``Polyhedron`` and ``LatticePolytope``.
             if unbounded and not far_face:
                 raise ValueError("must specify far face for unbounded polyhedron")
+
+            self._bounded = not unbounded
 
         if Vrep:
             # store vertices names
@@ -492,16 +494,15 @@ cdef class CombinatorialPolyhedron(SageObject):
             self._n_facets = self.bitrep_facets().n_faces()
 
             # Initialize far_face if unbounded.
-            if unbounded:
+            if not self._bounded:
                 face_init(self._far_face, self.bitrep_facets().n_atoms(), self._n_facets)
-                self._bounded = False
                 Vrep_list_to_bit_rep(tuple(far_face), self._far_face)
 
         elif isinstance(data, numbers.Integral):
             # To construct a trivial polyhedron, equal to its affine hull,
             # one can give an Integer as Input.
             if data < -1:
-                ValueError("any polyhedron must have dimension at least -1")
+                raise ValueError("any polyhedron must have dimension at least -1")
             self._dimension = data
 
             if self._dimension == 0:
@@ -527,9 +528,8 @@ cdef class CombinatorialPolyhedron(SageObject):
             self._n_facets = self._n_Hrepresentation
 
             # Initialize far_face if unbounded.
-            if unbounded:
+            if not self._bounded:
                 face_init(self._far_face, self.bitrep_facets().n_atoms(), self._n_facets)
-                self._bounded = False
                 Vrep_list_to_bit_rep(tuple(far_face), self._far_face)
 
         else:
@@ -570,9 +570,8 @@ cdef class CombinatorialPolyhedron(SageObject):
             self._bitrep_Vrep = facets_tuple_to_bit_rep_of_Vrep(facets, n_Vrepresentation)
 
             # Initialize far_face if unbounded.
-            if unbounded:
+            if not self._bounded:
                 face_init(self._far_face, self.bitrep_facets().n_atoms(), self._n_facets)
-                self._bounded = False
                 Vrep_list_to_bit_rep(tuple(far_face), self._far_face)
 
         if not self._bounded:
@@ -581,6 +580,14 @@ cdef class CombinatorialPolyhedron(SageObject):
             self._far_face_tuple = ()
 
     def __dealloc__(self):
+        """
+        TESTS::
+
+            sage: CombinatorialPolyhedron(-2)  # indirect doctest
+            Traceback (most recent call last):
+            ...
+            ValueError: any polyhedron must have dimension at least -1
+        """
         if not self._bounded:
             face_free(self._far_face)
         self._free_edges(&self._edges, self._n_edges)

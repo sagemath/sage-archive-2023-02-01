@@ -104,7 +104,7 @@ cdef inline int face_list_shallow_copy(face_list_t dst, face_list_t src) except 
 
     cdef size_t i
     for i in range(src.n_faces):
-        dst.faces[i] = src.faces[i]
+        dst.faces[i][0] = src.faces[i][0]
 
 cdef inline int add_face_shallow(face_list_t faces, face_t face) nogil except -1:
     """

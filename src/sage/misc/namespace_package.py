@@ -42,6 +42,14 @@ def is_package_or_sage_namespace_package_dir(path):
         sage: is_package_or_sage_namespace_package_dir(directory)
         True
 
+    :mod:`sage.libs.mpfr` only has an ``__init__.pxd`` file, but we consider
+    it a package directory for consistency with Cython::
+
+        sage: directory = os.path.join(os.path.dirname(sage.libs.all.__file__), 'mpfr'); directory
+        '.../sage/libs/mpfr'
+        sage: is_package_or_sage_namespace_package_dir(directory)
+        True
+
     :mod:`sage` is designated to become an implicit namespace package::
 
         sage: directory = os.path.dirname(sage.env.__file__); directory
@@ -56,10 +64,12 @@ def is_package_or_sage_namespace_package_dir(path):
         sage: is_package_or_sage_namespace_package_dir(directory)
         False
     """
-    if os.path.exists(os.path.join(path, '__init__.py')):  # ordinary package
+    if os.path.exists(os.path.join(path, '__init__.py')):   # ordinary package
         return True
-    if os.path.exists(os.path.join(path, 'all.py')):       # complete namespace package
+    if os.path.exists(os.path.join(path, '__init__.pxd')):  # for consistency with Cython
+        return True
+    if os.path.exists(os.path.join(path, 'all.py')):        # complete namespace package
         return True
     for _ in glob.iglob(os.path.join(path, 'all__*.py')):
-        return True                                        # partial namespace package
+        return True                                         # partial namespace package
     return False

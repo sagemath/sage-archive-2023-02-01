@@ -745,10 +745,28 @@ class DiffForm(TensorField):
         See the documentation of
         :meth:`~sage.manifolds.differentiable.metric.PseudoRiemannianMetric.hodge_star`
         for more examples.
+
+        TESTS:
+        Fall back to use (ambient) metric::
+
+            sage: M = Manifold(3, 'M', start_index=1, structure='Riemannian')
+            sage: X.<x,y,z> = M.chart()
+            sage: g = M.metric()
+            sage: g[1,1], g[2,2], g[3,3] = 1, 1, 1
+            sage: var('Ax Ay Az')
+            (Ax, Ay, Az)
+            sage: a = M.one_form(Ax, Ay, Az, name='A')
+            sage: a.hodge_dual().display()
+            *A = Az dx∧dy - Ay dx∧dz + Ax dy∧dz
         """
         from sage.functions.other import factorial
-        from sage.tensor.modules.format_utilities import format_unop_txt, \
-                                                         format_unop_latex
+        from sage.tensor.modules.format_utilities import (
+            format_unop_txt,
+            format_unop_latex,
+        )
+
+        if nondegenerate_tensor is None:
+            nondegenerate_tensor = self._vmodule._ambient_domain.metric()
 
         p = self.tensor_type()[1]
         eps = nondegenerate_tensor.volume_form(p)
@@ -759,8 +777,10 @@ class DiffForm(TensorField):
             result = self.contract(*range(p), eps, *range(p))
             if p > 1:
                 result = result / factorial(p)
-        result.set_name(name=format_unop_txt('*', self._name),
-                    latex_name=format_unop_latex(r'\star ', self._latex_name))
+        result.set_name(
+            name=format_unop_txt("*", self._name),
+            latex_name=format_unop_latex(r"\star ", self._latex_name),
+        )
         return result
 
     def interior_product(self, qvect):

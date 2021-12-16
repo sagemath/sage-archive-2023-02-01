@@ -25,7 +25,6 @@ REFERENCES:
 from __future__ import annotations
 from six.moves import range
 from typing import Dict, Union, Optional
-from math import factorial
 
 from sage.symbolic.expression import Expression
 from sage.manifolds.differentiable.diff_form import DiffForm, DiffFormParal
@@ -533,6 +532,8 @@ class SymplecticForm(DiffForm):
             mu_omega = dq1∧dp1∧dq2∧dp2
         """
         if self._vol_form is None:
+            from sage.functions.other import factorial
+
             vol_form = self
             for _ in range(1, self._dim_half):
                 vol_form = vol_form.wedge(self)

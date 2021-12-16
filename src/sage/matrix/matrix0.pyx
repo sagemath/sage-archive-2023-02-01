@@ -4042,14 +4042,18 @@ cdef class Matrix(sage.structure.element.Matrix):
             # even after taking numerical issues into account.
             for (i,j) in self.nonzero_positions():
                 d = self.get_unsafe(i,j) - s*self.get_unsafe(j,i).conjugate()
-                if d.abs() > tolerance:
+
+                # avoid abs() which is missing for finite fields.
+                if d > tolerance or -d > tolerance:
                     self.cache(key, False)
                     return False
         else:
             for i in range(self._nrows):
                 for j in range(i+1):
-                    d = self.get_unsafe(i,j) - s*self.get_unsafe(j,i).conjugate()
-                    if d.abs() > tolerance:
+                    d = (   self.get_unsafe(i,j)
+                          - s*self.get_unsafe(j,i).conjugate() )
+                    # avoid abs() which is missing for finite fields.
+                    if d > tolerance or -d > tolerance:
                         self.cache(key, False)
                         return False
 

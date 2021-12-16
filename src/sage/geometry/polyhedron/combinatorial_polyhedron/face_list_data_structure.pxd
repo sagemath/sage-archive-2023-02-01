@@ -17,7 +17,7 @@ cdef extern from "Python.h":
 from .face_data_structure             cimport *
 from libc.string                      cimport memset
 from cysignals.signals                cimport sig_check
-from cysignals.memory                 cimport check_allocarray, sig_free
+from cysignals.memory                 cimport check_allocarray, check_calloc, sig_free
 
 cdef struct face_list_s:
     face_t* faces
@@ -52,7 +52,7 @@ cdef inline int face_list_shallow_init(face_list_t faces, size_t n_faces, size_t
     faces.total_n_faces = n_faces
     faces.n_atoms = n_atoms
     faces.n_coatoms = n_coatoms
-    faces.faces = <face_t *> check_allocarray(n_faces, sizeof(face_t))
+    faces.faces = <face_t *> check_calloc(n_faces, sizeof(face_t))
     faces.is_not_new_face = <bint *> check_allocarray(n_faces, sizeof(bint))
     faces.polyhedron_is_simple = False
 
@@ -61,8 +61,9 @@ cdef inline void face_list_free(face_list_t faces):
     Free faces.
     """
     cdef size_t i
-    for i in range(faces.total_n_faces):
-        face_free(faces.faces[i])
+    if faces.faces is not NULL:
+        for i in range(faces.total_n_faces):
+            face_free(faces.faces[i])
     face_list_shallow_free(faces)
 
 cdef inline void face_list_shallow_free(face_list_t faces):

@@ -4032,12 +4032,26 @@ cdef class Matrix(sage.structure.element.Matrix):
         if skew:
             s = -1
         cdef Py_ssize_t i,j
-        for i in range(self._nrows):
-            for j in range(i+1):
+
+        if self.is_sparse_c():
+            # The dense algorithm checks all of the on-or-below-diagonal
+            # entries, of which there are (n^2 + n)/2. If the matrix
+            # is sparse, however, we can get away with checking only
+            # the non-zero positions. This will be faster if the matrix
+            # is truly sparse (if there are not so many of those positions)
+            # even after taking numerical issues into account.
+            for (i,j) in self.nonzero_positions():
                 d = self.get_unsafe(i,j) - s*self.get_unsafe(j,i).conjugate()
                 if d.abs() > tolerance:
                     self.cache(key, False)
                     return False
+        else:
+            for i in range(self._nrows):
+                for j in range(i+1):
+                    d = self.get_unsafe(i,j) - s*self.get_unsafe(j,i).conjugate()
+                    if d.abs() > tolerance:
+                        self.cache(key, False)
+                        return False
 
         self.cache(key, True)
         return True

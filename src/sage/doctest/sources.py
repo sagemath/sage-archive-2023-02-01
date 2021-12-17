@@ -27,7 +27,7 @@ import doctest
 from sage.cpython.string import bytes_to_str
 from sage.repl.load import load
 from sage.misc.lazy_attribute import lazy_attribute
-from sage.misc.namespace_package import is_package_or_sage_namespace_package_dir
+from sage.misc.package_dir import is_package_or_sage_namespace_package_dir
 from .parsing import SageDocTestParser
 from .util import NestedName
 from sage.structure.dynamic_class import dynamic_class
@@ -652,7 +652,7 @@ class FileDocTestSource(DocTestSource):
 
         Such files aren't loaded before running tests.
 
-        This uses :func:`~sage.misc.namespace_package.is_package_or_sage_namespace_package_dir`
+        This uses :func:`~sage.misc.package_dir.is_package_or_sage_namespace_package_dir`
         but can be overridden via :class:`~sage.doctest.control.DocTestDefaults`.
 
         EXAMPLES::

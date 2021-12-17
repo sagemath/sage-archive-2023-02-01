@@ -106,9 +106,11 @@ class gosper_iterator(object):
             sage: c = Integer(randint(-100,100)); d = Integer(randint(-100,100));
             sage: from sage.rings.continued_fraction_gosper import gosper_iterator
             sage: ig = iter(gosper_iterator(a,b,c,d,continued_fraction(pi))); icf = iter(continued_fraction((a*pi+b)/(c*pi+d)));
-            sage: lg = [next(ig) for _ in range(10)]; lcf = [next(icf) for _ in range(10)];
-            sage: lg == lcf
-            True
+            sage: for i in range(10):
+            ....:     try:
+            ....:         assert next(ig) == next(icf)
+            ....:     except StopIteration:
+            ....:         pass
         """
         return self
 
@@ -123,7 +125,10 @@ class gosper_iterator(object):
             sage: from sage.rings.continued_fraction_gosper import gosper_iterator
             sage: ig = iter(gosper_iterator(a,b,c,d,continued_fraction(pi))); icf = iter(continued_fraction((a*pi+b)/(c*pi+d)));
             sage: for i in range(10):
-            ....:     assert next(ig) == next(icf)
+            ....:     try:
+            ....:         assert next(ig) == next(icf)
+            ....:     except StopIteration:
+            ....:         pass
         """
         while True:
             if self.currently_read >= self.input_preperiod_length:

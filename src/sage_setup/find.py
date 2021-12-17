@@ -18,7 +18,7 @@ import os
 
 from collections import defaultdict
 
-from sage.misc.namespace_package import is_package_or_sage_namespace_package_dir as is_package_or_namespace_package_dir
+from sage.misc.package_dir import is_package_or_sage_namespace_package_dir as is_package_or_namespace_package_dir
 
 
 def read_distribution(src_file):

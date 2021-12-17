@@ -282,11 +282,11 @@ distribution -- which then must be declared as a run-time dependency.
     sage: object = Qp(5)
 
     sage: from sage.rings.padics.generic_nodes import pAdicFieldGeneric
-    sage: %timeit isinstance(object, pAdicFieldGeneric)            # fast                           # random
+    sage: %timeit isinstance(object, pAdicFieldGeneric)            # fast                           # not tested
     68.7 ns ± 2.29 ns per loop (...)
 
     sage: import sage.rings.abc
-    sage: %timeit isinstance(object, sage.rings.abc.pAdicField)    # also fast                      # random
+    sage: %timeit isinstance(object, sage.rings.abc.pAdicField)    # also fast                      # not tested
     122 ns ± 1.9 ns per loop (...)
 
 - If it is not possible or desired to create an abstract base class for
@@ -308,10 +308,10 @@ distribution -- which then must be declared as a run-time dependency.
     ....:        return False
     ....:    return isinstance(x, Pluffe)
 
-    sage: %timeit is_Scheme_or_Pluffe(sZZ)                         # fast                           # random
+    sage: %timeit is_Scheme_or_Pluffe(sZZ)                         # fast                           # not tested
     111 ns ± 1.15 ns per loop (...)
 
-    sage: %timeit is_Scheme_or_Pluffe(ZZ)                          # slow                           # random
+    sage: %timeit is_Scheme_or_Pluffe(ZZ)                          # slow                           # not tested
     143 µs ± 2.58 µs per loop (...)
 
   The :func:`~sage.misc.lazy_import.lazy_import` mechanism can be used to simplify
@@ -320,10 +320,10 @@ distribution -- which then must be declared as a run-time dependency.
 
     sage: lazy_import('xxxx_does_not_exist', 'Pluffe')
 
-    sage: %timeit isinstance(sZZ, (Scheme, Pluffe))                # fast                           # random
+    sage: %timeit isinstance(sZZ, (Scheme, Pluffe))                # fast                           # not tested
     95.2 ns ± 0.636 ns per loop (...)
 
-    sage: %timeit isinstance(ZZ, (Scheme, Pluffe))                 # slow                           # random
+    sage: %timeit isinstance(ZZ, (Scheme, Pluffe))                 # slow                           # not tested
     158 µs ± 654 ns per loop (...)
 
   It is faster to do the import only once, for example when loading the module,
@@ -337,10 +337,10 @@ distribution -- which then must be declared as a run-time dependency.
     ....:     # Set to empty tuple of types for isinstance
     ....:     Pluffe = ()
 
-    sage: %timeit isinstance(sZZ, (Scheme, Pluffe))                # fast                           # random
+    sage: %timeit isinstance(sZZ, (Scheme, Pluffe))                # fast                           # not tested
     95.9 ns ± 1.52 ns per loop (...)
 
-    sage: %timeit isinstance(ZZ, (Scheme, Pluffe))                 # fast                           # random
+    sage: %timeit isinstance(ZZ, (Scheme, Pluffe))                 # fast                           # not tested
     126 ns ± 1.9 ns per loop (...)
 
 

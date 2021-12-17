@@ -91,8 +91,8 @@ ssl: all
 # Cleaning up
 ###############################################################################
 
-SAGE_ROOT ?= $(CURDIR)
-SAGE_SRC ?= $(SAGE_ROOT)/src
+SAGE_ROOT = $(CURDIR)
+SAGE_SRC = $(SAGE_ROOT)/src
 
 clean:
 	@echo "Deleting package build directories..."

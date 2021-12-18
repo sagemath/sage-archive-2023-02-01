@@ -12,7 +12,7 @@ Features for testing the presence of ``latex`` and equivalent programs
 #                  https://www.gnu.org/licenses/
 # ****************************************************************************
 
-from . import Executable, FeatureTestResult
+from . import StaticFile, Executable, FeatureTestResult, FeatureNotPresentError
 
 class latex(Executable):
     r"""
@@ -138,8 +138,72 @@ class lualatex(Executable):
                             url="https://www.latex-project.org/")
 
 
+class TeXFile(StaticFile):
+    r"""
+    A :class:`sage.features.Feature` describing the presence of a TeX file
+
+    EXAMPLES::
+
+        sage: from sage.features.latex import TeXFile
+        sage: TeXFile('x', 'x.tex').is_present()  # optional: pdflatex
+        FeatureTestResult('x', True)
+        sage: TeXFile('nonexisting', 'xxxxxx-nonexisting-file.tex').is_present()  # optional - pdflatex
+        FeatureTestResult('nonexisting', False)
+    """
+    def __init__(self, name, filename, **kwds):
+        StaticFile.__init__(self, name, filename, search_path=[], **kwds)
+
+    def absolute_path(self):
+        r"""
+        The absolute path of the file.
+
+        EXAMPLES::
+
+            sage: from sage.features.latex import TeXFile
+            sage: feature = TeXFile('latex_class_article', 'article.cls')
+            sage: feature.absolute_path()  # optional - pdflatex
+            '.../latex/base/article.cls'
+        """
+        from subprocess import run, CalledProcessError, PIPE
+        try:
+            proc = run(['kpsewhich', self.filename],
+                       stdout=PIPE, stderr=PIPE,
+                       universal_newlines=True, check=True)
+            return proc.stdout.strip()
+        except CalledProcessError:
+            raise FeatureNotPresentError(self,
+                                         reason="{filename!r} not found by kpsewhich".format(filename=self.filename))
+
+
+class LaTeXPackage(TeXFile):
+    r"""
+    A :class:`sage.features.Feature` describing the presence of a LaTeX package
+    (``.sty`` file).
+
+    EXAMPLES::
+
+        sage: from sage.features.latex import LaTeXPackage
+        sage: LaTeXPackage('graphics').is_present()  # optional - pdflatex
+        FeatureTestResult('latex_package_graphics', True)
+    """
+    @staticmethod
+    def __classcall__(cls, package_name, **kwds):
+        """
+        TESTS::
+
+            sage: from sage.features.latex import LaTeXPackage
+            sage: LaTeXPackage('graphics') is LaTeXPackage('graphics')
+            True
+        """
+        return TeXFile.__classcall__(cls,
+                                     f'latex_package_{package_name}'.replace('-', '_'),
+                                     f'{package_name}.sty',
+                                     **kwds)
+
+
 def all_features():
     return [latex(),
             pdflatex(),
             xelatex(),
-            lualatex()]
+            lualatex(),
+            LaTeXPackage("tkz-graph")]

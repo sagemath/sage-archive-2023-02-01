@@ -37,5 +37,5 @@ config.add_section('gui_support')
 for backend in ('gtk', 'gtkagg', 'tkagg', 'wxagg', 'macosx', 'windowing'):
     config.set('gui_support', backend,  graphical_backend)
 
-with open('src/setup.cfg', 'w') as configfile:
+with open('src/mplsetup.cfg', 'w') as configfile:
     config.write(configfile)

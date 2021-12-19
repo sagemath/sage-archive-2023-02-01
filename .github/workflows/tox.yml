@@ -108,7 +108,6 @@ jobs:
     runs-on: ${{ matrix.os }}
     strategy:
       fail-fast: false
-      max-parallel: 4
       matrix:
         stage: ["1", "2", "2-optional-0-g", "2-optional-h-o", "2-optional-p", "2-optional-q-z", "2-experimental-0-g", "2-experimental-h-o", "2-experimental-p", "2-experimental-q-z"]
         # python3_xcode is only accepted if enough packages are available from the system

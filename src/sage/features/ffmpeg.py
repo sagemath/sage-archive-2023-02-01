@@ -34,6 +34,7 @@ class FFmpeg(Executable):
             True
         """
         Executable.__init__(self, "ffmpeg", executable="ffmpeg",
+                            spkg="ffmpeg",
                             url="https://www.ffmpeg.org/")
 
 

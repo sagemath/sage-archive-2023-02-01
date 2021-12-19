@@ -44,7 +44,7 @@ class ImageMagick(JoinFeature):
         """
         JoinFeature.__init__(self, "imagemagick",
                              [Executable("convert", executable="convert")],
-                             spkg="_recommended",
+                             spkg="imagemagick",
                              url="https://www.imagemagick.org/")
 
 

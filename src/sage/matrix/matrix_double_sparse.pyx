@@ -116,7 +116,7 @@ cdef class Matrix_double_sparse(Matrix_generic_sparse):
             # handle the case where cvxopt is not present. The
             # superclass method is slow, but no longer raises an
             # error, so let's try that.
-            L = super().cholesky()
+            return super().cholesky()
 
         cdef list idx_pairs = self.nonzero_positions(copy=False)
         cdef list row_idxs = [r for (r, c) in idx_pairs]

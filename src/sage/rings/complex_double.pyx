@@ -443,8 +443,7 @@ cdef class ComplexDoubleField_class(sage.rings.abc.ComplexDoubleField):
         from .rational_field import QQ
         from .real_lazy import RLF
         from .real_mpfr import RR
-        from .complex_mpfr import ComplexField
-        CC = ComplexField()
+        from .cc import CC
 
         if S is ZZ or S is QQ or S is RDF or S is RLF:
             return FloatToCDF(S)
@@ -2408,8 +2407,9 @@ cdef class ComplexDoubleElement(FieldElement):
                 from .infinity import unsigned_infinity
                 return unsigned_infinity
             try:
-                from sage.rings.all import Integer, CC
+                from .integer import Integer
                 if Integer(GSL_REAL(self._complex)) < 0:
+                    from .cc import CC
                     return CC(self).gamma()
             except TypeError:
                 pass

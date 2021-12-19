@@ -1124,7 +1124,7 @@ cdef class Expression(Expression_abc):
         return AsciiArt(self._sympy_character_art(False).splitlines())
 
     def _unicode_art_(self):
-        u"""
+        """
         Unicode art magic method.
 
         See :mod:`sage.typeset.unicode_art` for details.

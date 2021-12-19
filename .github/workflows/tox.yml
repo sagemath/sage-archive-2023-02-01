@@ -111,58 +111,19 @@ jobs:
       max-parallel: 4
       matrix:
         stage: ["1", "2", "2-optional-0-g", "2-optional-h-o", "2-optional-p", "2-optional-q-z", "2-experimental-0-g", "2-experimental-h-o", "2-experimental-p", "2-experimental-q-z"]
-        tox_system_factor: [homebrew-macos, conda-forge-macos]
-        tox_packages_factor: [minimal, standard, maximal]
-        # As of 2021-03, default xcode is 12.4
+        # python3_xcode is only accepted if enough packages are available from the system
+        # --> to test "minimal", we would need https://trac.sagemath.org/ticket/30949
+        tox_env: [homebrew-macos-usrlocal-minimal, homebrew-macos-usrlocal-standard, homebrew-macos-usrlocal-maximal, homebrew-macos-python3_xcode-standard, conda-forge-macos-minimal, conda-forge-macos-standard, conda-forge-macos-maximal]
+        # As of 2021-12, default xcode
+        # - on macos-10.15:               12.4
+        # - on macos-latest (= macos-11): 13.1
         # https://github.com/actions/virtual-environments/blob/main/images/macos/macos-10.15-Readme.md#xcode
         xcode_version_factor: [default]
-        os: [ macos-10.15, macos-11.0 ]
-        include:
-          # Test xcode 11.7 only on macos-10.15
-          - tox_system_factor: homebrew-macos
-            tox_packages_factor: minimal
-            xcode_version_factor: 11.7
-            os: macos-10.15
-          - tox_system_factor: homebrew-macos
-            tox_packages_factor: standard
-            xcode_version_factor: 11.7
-            os: macos-10.15
-          # python3_xcode is only accepted if enough packages are available from the system
-          # --> to test "minimal", we will need https://trac.sagemath.org/ticket/30949
-          - tox_system_factor: homebrew-macos-python3_xcode
-            tox_packages_factor: standard
-            xcode_version_factor: 11.7
-            os: macos-10.15
-          - tox_system_factor: homebrew-macos-python3_xcode
-            tox_packages_factor: standard
-            xcode_version_factor: default
-            os: macos-10.15
-          - tox_system_factor: homebrew-macos-python3_xcode
-            tox_packages_factor: standard
-            xcode_version_factor: default
-            os: macos-11.0
-          - tox_system_factor: homebrew-macos-python3_xcode-nokegonly
-            tox_packages_factor: standard
-            xcode_version_factor: default
-            os: macos-11.0
-          # likewise for python3_pythonorg
-          - tox_system_factor: homebrew-macos-python3_pythonorg
-            tox_packages_factor: standard
-            xcode_version_factor: default
-            os: macos-11.0
-          # conda-forge-macos-environment
-          - tox_system_factor: conda-forge-macos
-            tox_packages_factor: environment
-            xcode_version_factor: default
-            os: macos-11.0
-          - tox_system_factor: conda-forge-macos
-            tox_packages_factor: environment-optional
-            xcode_version_factor: default
-            os: macos-11.0
+        os: [ macos-10.15, macos-latest ]
     env:
-      TOX_ENV: local-${{ matrix.tox_system_factor }}-${{ matrix.tox_packages_factor }}
-      LOCAL_ARTIFACT_NAME: sage-local-commit-${{ github.sha }}-tox-local-${{ matrix.tox_system_factor }}-${{ matrix.tox_packages_factor }}-${{ matrix.os }}-xcode_${{ matrix.xcode_version_factor }}
-      LOGS_ARTIFACT_NAME: logs-commit-${{ github.sha }}-tox-local-${{ matrix.tox_system_factor }}-${{ matrix.tox_packages_factor }}-${{ matrix.os }}-xcode_${{ matrix.xcode_version_factor }}
+      TOX_ENV: local-${{ matrix.tox_env }}
+      LOCAL_ARTIFACT_NAME: sage-local-commit-${{ github.sha }}-tox-local-${{ matrix.tox_env }}-${{ matrix.os }}-xcode_${{ matrix.xcode_version_factor }}
+      LOGS_ARTIFACT_NAME: logs-commit-${{ github.sha }}-tox-local-${{ matrix.tox_env }}--${{ matrix.os }}-xcode_${{ matrix.xcode_version_factor }}
     steps:
       - uses: actions/checkout@v2
       - name: Select Xcode version
@@ -171,13 +132,6 @@ jobs:
       - name: Install test prerequisites
         run: |
           brew install tox
-      - name: Install python3 from python.org
-        # As of 2020-03-30 (https://github.com/actions/virtual-environments/blob/master/images/macos/macos-10.15-Readme.md),
-        # Python 3.7.7 is installed on GitHub Actions runners.  But we install our own copy from the python.org binary package.
-        run: |
-          curl -o python3.pkg https://www.python.org/ftp/python/3.7.7/python-3.7.7-macosx10.9.pkg
-          sudo installer -verbose -pkg python3.pkg -target /
-        if: contains(matrix.tox_system_factor, 'python3_pythonorg')
       - uses: actions/download-artifact@v2
         with:
           path: sage-local-artifact

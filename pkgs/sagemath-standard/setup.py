@@ -80,7 +80,7 @@ else:
     t = time.time()
     from sage_setup.optional_extension import is_package_installed_and_updated
     distributions = ['']
-    optional_packages_with_extensions = ['mcqd', 'bliss', 'tdlib', 'primecount',
+    optional_packages_with_extensions = ['mcqd', 'bliss', 'tdlib',
                                          'coxeter3', 'fes', 'sirocco', 'meataxe']
     distributions += ['sagemath-{}'.format(pkg)
                       for pkg in optional_packages_with_extensions

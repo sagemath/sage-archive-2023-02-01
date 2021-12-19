@@ -81,7 +81,7 @@ else:
     t = time.time()
 
     # Exclude a few files if the corresponding distribution is not loaded
-    optional_packages = ['mcqd', 'bliss', 'tdlib', 'primecount',
+    optional_packages = ['mcqd', 'bliss', 'tdlib',
                          'coxeter3', 'fes', 'sirocco', 'meataxe']
     not_installed_packages = [package for package in optional_packages
                               if not is_package_installed_and_updated(package)]

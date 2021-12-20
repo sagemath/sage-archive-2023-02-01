@@ -1,7 +1,7 @@
 import sage.all
 from sage.manifolds.differentiable.symplectic_form import SymplecticForm
-from sage.manifolds.differentiable.examples.symplectic_vector_space import (
-    SymplecticVectorSpace,
+from sage.manifolds.differentiable.examples.symplectic_space import (
+    StandardSymplecticSpace,
 )
 import pytest
 
@@ -9,14 +9,14 @@ import pytest
 class TestR2VectorSpace:
     @pytest.fixture
     def M(self):
-        return SymplecticVectorSpace(2, "R2", symplectic_name="omega")
+        return StandardSymplecticSpace(2, "R2", symplectic_name="omega")
 
     @pytest.fixture
-    def omega(self, M: SymplecticVectorSpace):
+    def omega(self, M: StandardSymplecticSpace):
         return M.symplectic_form()
 
-    def test_repr(self, M: SymplecticVectorSpace):
-        assert str(M) == "2-dimensional symplectic vector space R2"
+    def test_repr(self, M: StandardSymplecticSpace):
+        assert str(M) == "Standard symplectic vector space R2"
 
     def test_display(self, omega: SymplecticForm):
         assert str(omega.display()) == r"omega = -dq∧dp"
@@ -25,14 +25,14 @@ class TestR2VectorSpace:
 class TestR4VectorSpace:
     @pytest.fixture
     def M(self):
-        return SymplecticVectorSpace(4, "R4", symplectic_name="omega")
+        return StandardSymplecticSpace(4, "R4", symplectic_name="omega")
 
     @pytest.fixture
-    def omega(self, M: SymplecticVectorSpace):
+    def omega(self, M: StandardSymplecticSpace):
         return M.symplectic_form()
 
-    def test_repr(self, M: SymplecticVectorSpace):
-        assert str(M) == "4-dimensional symplectic vector space R4"
+    def test_repr(self, M: StandardSymplecticSpace):
+        assert str(M) == "Standard symplectic vector space R4"
 
     def test_display(self, omega: SymplecticForm):
         assert str(omega.display()) == r"omega = -dq1∧dp1 - dq2∧dp2"

@@ -15,21 +15,20 @@ AUTHORS:
 #  the License, or (at your option) any later version.
 #                  https://www.gnu.org/licenses/
 # *****************************************************************************
+from __future__ import annotations
 
 from typing import Optional, Tuple
 
-from sage.manifolds.differentiable.symplectic_form import (
-    SymplecticForm,
-    SymplecticFormParal,
-)
-from sage.manifolds.differentiable.examples.euclidean import EuclideanSpace
-from sage.rings.real_mpfr import RR
 from sage.categories.manifolds import Manifolds
+from sage.manifolds.differentiable.examples.euclidean import EuclideanSpace
+from sage.manifolds.differentiable.symplectic_form import (SymplecticForm,
+                                                           SymplecticFormParal)
+from sage.rings.real_mpfr import RR
 
 
-class SymplecticVectorSpace(EuclideanSpace):
+class StandardSymplecticSpace(EuclideanSpace):
     r"""
-    A symplectic vector space is a vector space over `\RR` equipped with a constant symplectic form.
+    The vector space `\RR^{2n}` equipped with its standard symplectic form.
     """
 
     _symplectic_form: SymplecticForm
@@ -44,14 +43,15 @@ class SymplecticVectorSpace(EuclideanSpace):
         symplectic_name: Optional[str] = "omega",
         symplectic_latex_name: Optional[str] = None,
         start_index: int = 1,
-        base_manifold: Optional["SymplecticVectorSpace"] = None,
+        base_manifold: Optional[StandardSymplecticSpace] = None,
         names: Optional[Tuple[str]] = None,
     ):
         r"""
         INPUT:
 
         - ``dimension`` -- dimension of the space over the real field (has to be even)
-        - ``name`` -- name (symbol) given to the underlying vector space; if ``None``, the name will be set to ``'V'``
+        - ``name`` -- name (symbol) given to the underlying vector space;
+            if ``None``, the name will be set to ``'Rn'``, where ``n`` is the ``dimension``
         - ``latex_name`` -- LaTeX symbol to denote the underlying vector space; if ``None``, it is set to ``name``
         - ``coordinates`` -- (default: ``'Cartesian'``) the
             type of coordinates to be initialized at the Euclidean space
@@ -87,8 +87,8 @@ class SymplecticVectorSpace(EuclideanSpace):
 
         Standard symplectic form on `\RR^2`::
 
-            sage: from sage.manifolds.differentiable.examples.symplectic_vector_space import SymplecticVectorSpace
-            sage: M.<q, p> = SymplecticVectorSpace(2, symplectic_name='omega')
+            sage: from sage.manifolds.differentiable.examples.symplectic_space import StandardSymplecticSpace
+            sage: M.<q, p> = StandardSymplecticSpace(2, symplectic_name='omega')
             sage: omega = M.symplectic_form()
             sage: omega.display()
             omega = -dq∧dp
@@ -113,7 +113,7 @@ class SymplecticVectorSpace(EuclideanSpace):
                 symbols = " ".join(symbols_list)
 
         if name is None:
-            name = "V"
+            name = f"R{dimension}"
 
         category = Manifolds(RR).Smooth()
 
@@ -143,11 +143,11 @@ class SymplecticVectorSpace(EuclideanSpace):
 
         EXAMPLES::
 
-            sage: from sage.manifolds.differentiable.examples.symplectic_vector_space import SymplecticVectorSpace
-            sage: V.<q, p> = SymplecticVectorSpace(2, symplectic_name='omega'); V
-            2-dimensional symplectic vector space V
+            sage: from sage.manifolds.differentiable.examples.symplectic_space import StandardSymplecticSpace
+            sage: V.<q, p> = StandardSymplecticSpace(2, symplectic_name='omega'); V
+            Standard symplectic vector space R2
         """
-        return f"{self._dim}-dimensional symplectic vector space {self._name}"
+        return f"Standard symplectic vector space {self._name}"
 
     def symplectic_form(self) -> SymplecticForm:
         r"""
@@ -157,8 +157,8 @@ class SymplecticVectorSpace(EuclideanSpace):
 
         Standard symplectic form on `\RR^2`::
 
-            sage: from sage.manifolds.differentiable.examples.symplectic_vector_space import SymplecticVectorSpace
-            sage: M.<q, p> = SymplecticVectorSpace(2, symplectic_name='omega')
+            sage: from sage.manifolds.differentiable.examples.symplectic_space import StandardSymplecticSpace
+            sage: M.<q, p> = StandardSymplecticSpace(2, symplectic_name='omega')
             sage: omega = M.symplectic_form()
             sage: omega.display()
             omega = -dq∧dp

@@ -7,8 +7,8 @@ from sage.manifolds.manifold import Manifold
 from sage.manifolds.differentiable.manifold import DifferentiableManifold
 from sage.manifolds.differentiable.examples.sphere import Sphere
 from sage.manifolds.differentiable.symplectic_form import SymplecticForm
-from sage.manifolds.differentiable.examples.symplectic_vector_space import (
-    SymplecticVectorSpace,
+from sage.manifolds.differentiable.examples.symplectic_space import (
+    StandardSymplecticSpace,
 )
 from sage.symbolic.function_factory import function
 from sage.manifolds.differentiable.scalarfield import DiffScalarField
@@ -60,14 +60,14 @@ class TestCoherenceOfFormulas:
     @pytest.fixture(params=["R2", "S2"])
     def M(self, request: FixtureRequest):
         if request.param == "R2":
-            return SymplecticVectorSpace(2, "R2", symplectic_name="omega")
+            return StandardSymplecticSpace(2, "R2", symplectic_name="omega")
         elif request.param == "S2":
             # Init stereographic coordinates to get a complete atlas
             return Sphere(2, coordinates='stereographic')
 
     @pytest.fixture()
     def omega(self, M):
-        if isinstance(M, SymplecticVectorSpace):
+        if isinstance(M, StandardSymplecticSpace):
             return M.symplectic_form()
         else:
             return SymplecticForm.wrap(M.metric().volume_form(), "omega")
@@ -134,7 +134,7 @@ def generic_scalar_field(M: DifferentiableManifold, name: str) -> DiffScalarFiel
 class TestR2VectorSpace:
     @pytest.fixture
     def M(self):
-        return SymplecticVectorSpace(2, "R2", symplectic_name="omega")
+        return StandardSymplecticSpace(2, "R2", symplectic_name="omega")
 
     @pytest.fixture
     def omega(self, M):
@@ -148,13 +148,13 @@ class TestR2VectorSpace:
         assert str(omega.poisson().display()) == r"poisson_omega = -e_q∧e_p"
 
     def test_hamiltonian_vector_field(
-        self, M: SymplecticVectorSpace, omega: SymplecticForm
+        self, M: StandardSymplecticSpace, omega: SymplecticForm
     ):
         H = generic_scalar_field(M, "H")
         XH = omega.hamiltonian_vector_field(H)
         assert str(XH.display()) == r"XH = d(H)/dp e_q - d(H)/dq e_p"
 
-    def test_flat(self, M: SymplecticVectorSpace, omega: SymplecticForm):
+    def test_flat(self, M: StandardSymplecticSpace, omega: SymplecticForm):
         X = M.vector_field(1, 2, name="X")
         assert str(X.display()) == r"X = e_q + 2 e_p"
         assert str(omega.flat(X).display()) == r"X_flat = 2 dq - dp"

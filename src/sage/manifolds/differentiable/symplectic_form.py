@@ -352,7 +352,7 @@ class SymplecticForm(DiffForm):
             sage: M = StandardSymplecticSpace(2)
             sage: omega = M.symplectic_form()
             sage: poisson = omega.poisson(); poisson
-            2-vector field poisson_omega on the Standard symplectic vector space R2
+            2-vector field poisson_omega on the Standard symplectic space R2
             sage: poisson.display()
             poisson_omega = -e_q∧e_p
         """
@@ -527,7 +527,7 @@ class SymplecticForm(DiffForm):
             sage: M = StandardSymplecticSpace(4)
             sage: omega = M.symplectic_form()
             sage: vol = omega.volume_form() ; vol
-            4-form mu_omega on the Standard symplectic vector space R4
+            4-form mu_omega on the Standard symplectic space R4
             sage: vol.display()
             mu_omega = dq1∧dp1∧dq2∧dp2
         """

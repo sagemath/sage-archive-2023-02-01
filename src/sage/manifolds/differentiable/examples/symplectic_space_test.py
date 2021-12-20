@@ -16,7 +16,7 @@ class TestR2VectorSpace:
         return M.symplectic_form()
 
     def test_repr(self, M: StandardSymplecticSpace):
-        assert str(M) == "Standard symplectic vector space R2"
+        assert str(M) == "Standard symplectic space R2"
 
     def test_display(self, omega: SymplecticForm):
         assert str(omega.display()) == r"omega = -dq∧dp"
@@ -32,7 +32,7 @@ class TestR4VectorSpace:
         return M.symplectic_form()
 
     def test_repr(self, M: StandardSymplecticSpace):
-        assert str(M) == "Standard symplectic vector space R4"
+        assert str(M) == "Standard symplectic space R4"
 
     def test_display(self, omega: SymplecticForm):
         assert str(omega.display()) == r"omega = -dq1∧dp1 - dq2∧dp2"

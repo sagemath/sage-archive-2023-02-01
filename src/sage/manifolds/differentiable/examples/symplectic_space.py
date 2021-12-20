@@ -145,9 +145,9 @@ class StandardSymplecticSpace(EuclideanSpace):
 
             sage: from sage.manifolds.differentiable.examples.symplectic_space import StandardSymplecticSpace
             sage: V.<q, p> = StandardSymplecticSpace(2, symplectic_name='omega'); V
-            Standard symplectic vector space R2
+            Standard symplectic space R2
         """
-        return f"Standard symplectic vector space {self._name}"
+        return f"Standard symplectic space {self._name}"
 
     def symplectic_form(self) -> SymplecticForm:
         r"""

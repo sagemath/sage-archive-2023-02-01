@@ -348,8 +348,7 @@ class SymplecticForm(DiffForm):
 
         Poisson tensor of `2`-dimensional symplectic vector space::
 
-            sage: from sage.manifolds.differentiable.examples.symplectic_space import StandardSymplecticSpace
-            sage: M = StandardSymplecticSpace(2)
+            sage: M = manifolds.StandardSymplecticSpace(2)
             sage: omega = M.symplectic_form()
             sage: poisson = omega.poisson(); poisson
             2-vector field poisson_omega on the Standard symplectic space R2
@@ -389,8 +388,7 @@ class SymplecticForm(DiffForm):
 
         EXAMPLES::
 
-            sage: from sage.manifolds.differentiable.examples.symplectic_space import StandardSymplecticSpace
-            sage: M = StandardSymplecticSpace(2)
+            sage: M = manifolds.StandardSymplecticSpace(2)
             sage: omega = M.symplectic_form()
             sage: f = M.scalar_field({ chart: function('f')(*chart[:]) for chart in M.atlas() }, name='f')
             sage: f.display()
@@ -421,8 +419,7 @@ class SymplecticForm(DiffForm):
 
         EXAMPLES::
 
-            sage: from sage.manifolds.differentiable.examples.symplectic_space import StandardSymplecticSpace
-            sage: M = StandardSymplecticSpace(2)
+            sage: M = manifolds.StandardSymplecticSpace(2)
             sage: omega = M.symplectic_form()
             sage: X = M.vector_field_module().an_element()
             sage: X.set_name('X')
@@ -458,8 +455,7 @@ class SymplecticForm(DiffForm):
 
         EXAMPLES::
 
-            sage: from sage.manifolds.differentiable.examples.symplectic_space import StandardSymplecticSpace
-            sage: M = StandardSymplecticSpace(2)
+            sage: M = manifolds.StandardSymplecticSpace(2)
             sage: omega = M.symplectic_form()
             sage: X = M.vector_field_module().an_element()
             sage: alpha = omega.flat(X)
@@ -523,8 +519,7 @@ class SymplecticForm(DiffForm):
 
         Volume form on `\RR^4`::
 
-            sage: from sage.manifolds.differentiable.examples.symplectic_space import StandardSymplecticSpace
-            sage: M = StandardSymplecticSpace(4)
+            sage: M = manifolds.StandardSymplecticSpace(4)
             sage: omega = M.symplectic_form()
             sage: vol = omega.volume_form() ; vol
             4-form mu_omega on the Standard symplectic space R4
@@ -577,8 +572,7 @@ class SymplecticForm(DiffForm):
 
         Hodge dual of any form on the symplectic vector space `R^2`::
 
-            sage: from sage.manifolds.differentiable.examples.symplectic_space import StandardSymplecticSpace
-            sage: M = StandardSymplecticSpace(2)
+            sage: M = manifolds.StandardSymplecticSpace(2)
             sage: omega = M.symplectic_form()
             sage: a = M.one_form(1, 0, name='a')
             sage: omega.hodge_star(a).display()

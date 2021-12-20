@@ -87,8 +87,7 @@ class StandardSymplecticSpace(EuclideanSpace):
 
         Standard symplectic form on `\RR^2`::
 
-            sage: from sage.manifolds.differentiable.examples.symplectic_space import StandardSymplecticSpace
-            sage: M.<q, p> = StandardSymplecticSpace(2, symplectic_name='omega')
+            sage: M.<q, p> = manifolds.StandardSymplecticSpace(2, symplectic_name='omega')
             sage: omega = M.symplectic_form()
             sage: omega.display()
             omega = -dq∧dp
@@ -143,8 +142,7 @@ class StandardSymplecticSpace(EuclideanSpace):
 
         EXAMPLES::
 
-            sage: from sage.manifolds.differentiable.examples.symplectic_space import StandardSymplecticSpace
-            sage: V.<q, p> = StandardSymplecticSpace(2, symplectic_name='omega'); V
+            sage: V.<q, p> = manifolds.StandardSymplecticSpace(2, symplectic_name='omega'); V
             Standard symplectic space R2
         """
         return f"Standard symplectic space {self._name}"
@@ -157,8 +155,7 @@ class StandardSymplecticSpace(EuclideanSpace):
 
         Standard symplectic form on `\RR^2`::
 
-            sage: from sage.manifolds.differentiable.examples.symplectic_space import StandardSymplecticSpace
-            sage: M.<q, p> = StandardSymplecticSpace(2, symplectic_name='omega')
+            sage: M.<q, p> = manifolds.StandardSymplecticSpace(2, symplectic_name='omega')
             sage: omega = M.symplectic_form()
             sage: omega.display()
             omega = -dq∧dp

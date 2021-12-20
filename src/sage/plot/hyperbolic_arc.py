@@ -72,7 +72,7 @@ And for a more detailed explanation on hyperbolic arcs see
 
 from sage.plot.bezier_path import BezierPath
 from sage.plot.circle import circle
-from sage.plot.arc import arc
+from sage.plot.arc import arc, Arc
 from sage.misc.decorators import options, rename_keyword
 from sage.rings.all import CC
 from sage.symbolic.constants import pi
@@ -141,61 +141,74 @@ class HyperbolicArcCore(BezierPath):
         the hyperbolic arc between the complex numbers ``z0`` and ``z3``
         in the hyperbolic plane.
         """
-        z0, z3 = (CC(z0), CC(z3))
-        p = (abs(z0)*abs(z0)-abs(z3)*abs(z3)) / (z0-z3).real()/2
-        r = abs(z0 - p)
+        # z0, z3 = (CC(z0), CC(z3))
+        # p = (abs(z0)*abs(z0)-abs(z3)*abs(z3)) / (z0-z3).real()/2
+        # r = abs(z0 - p)
 
-        if abs(z3-z0) / r < 0.1:
-            self.path.append([(z0.real(), z0.imag()), (z3.real(), z3.imag())])
-            return
+        # if abs(z3-z0) / r < 0.1:
+        #     self.path.append([(z0.real(), z0.imag()), (z3.real(), z3.imag())])
+        #     return
 
-        if z0.imag() == 0 and z3.imag() == 0:
-            p = (z0.real() + z3.real()) / 2
-            zm = CC(p, r)
-            self._UHP_hyperbolic_arc(z0, zm, first)
-            self._UHP_hyperbolic_arc(zm, z3)
-            return
-        else:
-            zm = ((z0+z3) / 2 - p) / abs((z0+z3) / 2 - p) * r + p
-            t = (8*zm-4*(z0+z3)).imag()/3/(z3-z0).real()
-            z1 = z0 + t*CC(z0.imag(), (p-z0.real()))
-            z2 = z3 - t*CC(z3.imag(), (p-z3.real()))
+        # if z0.imag() == 0 and z3.imag() == 0:
+        #     p = (z0.real() + z3.real()) / 2
+        #     zm = CC(p, r)
+        #     self._UHP_hyperbolic_arc(z0, zm, first)
+        #     self._UHP_hyperbolic_arc(zm, z3)
+        #     return
+        # else:
+        #     zm = ((z0+z3) / 2 - p) / abs((z0+z3) / 2 - p) * r + p
+        #     t = (8*zm-4*(z0+z3)).imag()/3/(z3-z0).real()
+        #     z1 = z0 + t*CC(z0.imag(), (p-z0.real()))
+        #     z2 = z3 - t*CC(z3.imag(), (p-z3.real()))
 
-        if first:
-            self.path.append([(z0.real(), z0.imag()),
-                              (z1.real(), z1.imag()),
-                              (z2.real(), z2.imag()),
-                              (z3.real(), z3.imag())])
-            first = False
-        else:
-            self.path.append([(z1.real(), z1.imag()),
-                              (z2.real(), z2.imag()),
-                              (z3.real(), z3.imag())])
+        # if first:
+        #     self.path.append([(z0.real(), z0.imag()),
+        #                       (z1.real(), z1.imag()),
+        #                       (z2.real(), z2.imag()),
+        #                       (z3.real(), z3.imag())])
+        #     first = False
+        # else:
+        #     self.path.append([(z1.real(), z1.imag()),
+        #                       (z2.real(), z2.imag()),
+        #                       (z3.real(), z3.imag())])
+        from sage.geometry.hyperbolic_space.hyperbolic_interface import HyperbolicPlane
+        UHP = HyperbolicPlane().UHP()
+        g = UHP.get_geodesic(z0, z3)
+        p = g.plot()
+        arc = p[0]
+        self._bezier_path(arc, z0, first)
 
     def _PD_hyperbolic_arc(self, z0, z3, first=False):
         """
         Construct a hyperbolic arc between the complez numbers ``z0``
         and ``z3`` in the Poincare Disc model
         """
-        z0, z3 = (CC(z0), CC(z3))
-        phi0 = z0.arg()
-        phi3 = z3.arg()
-        if abs(phi0 - phi3) < 0.000001 or (abs(abs(phi0 - phi3) - pi.n())) < 0.000001:
-            # The points lie in a geodesic of the first kind
-            self.path.append([(z0.real(), z0.imag()), (z3.real(), z3.imag())])
-        else:
-            # The points lie in a geodesic of the second kind
-            T = self._CenterAndRadiusOrthogonalcirclegiven2points(z0, z3)
-            a1 = (z0 - T[0]).arg()
-            a2 = (z3 - T[0]).arg()
-            if (T[0]).real() > 0:
-                if a1 < 0:
-                    a1 = a1 + 2*pi
-                if a2 < 0:
-                    a2 = a2 + 2*pi
-            pic = arc((T[0].real(), T[0].imag()), T[1], sector=(a1, a2))[0]
-            # Transform arc into a bezier path
-            self._bezier_path(pic, z0, first)
+        # z0, z3 = (CC(z0), CC(z3))
+        # phi0 = z0.arg()
+        # phi3 = z3.arg()
+        # if abs(phi0 - phi3) < 0.000001 or (abs(abs(phi0 - phi3) - pi.n())) < 0.000001:
+        #     # The points lie in a geodesic of the first kind
+        #     self.path.append([(z0.real(), z0.imag()), (z3.real(), z3.imag())])
+        # else:
+        #     # The points lie in a geodesic of the second kind
+        #     T = self._CenterAndRadiusOrthogonalcirclegiven2points(z0, z3)
+        #     a1 = (z0 - T[0]).arg()
+        #     a2 = (z3 - T[0]).arg()
+        #     if (T[0]).real() > 0:
+        #         if a1 < 0:
+        #             a1 = a1 + 2*pi
+        #         if a2 < 0:
+        #             a2 = a2 + 2*pi
+        #     pic = arc((T[0].real(), T[0].imag()), T[1], sector=(a1, a2))[0]
+        #     # Transform arc into a bezier path
+        #     self._bezier_path(pic, z0, first)
+
+        from sage.geometry.hyperbolic_space.hyperbolic_interface import HyperbolicPlane
+        PD = HyperbolicPlane().PD()
+        g = PD.get_geodesic(z0, z3)
+        p = g.plot()
+        arc = p[0]
+        self._bezier_path(arc, z0, first)
 
     def _bezier_path(self, arc0, z0, first=False):
         """
@@ -208,7 +221,10 @@ class HyperbolicArcCore(BezierPath):
         - ```z0, z3`` -- hyperbolic arc end points
         """
         import numpy as np
-        points = arc0.bezier_path()[0].vertices
+        if(isinstance(arc0, BezierPath)):
+            points = arc0.vertices
+        else:
+            points = arc0.bezier_path()[0].vertices
         if abs(CC(points[0][0], points[0][1]) - z0) > 0.00001:
             points = np.flipud(points)  # order is important
         if first:
@@ -218,17 +234,18 @@ class HyperbolicArcCore(BezierPath):
             N = 0
             # the first point is equal to the last of the previous arc
             points = np.delete(points, 0, 0)
-        # Complete the last tuple of control points
-        tail = self.path[-1]
-        ltail = len(tail)
-        while ltail < 3:
-            np.append(self.path[-1], points[N])  # self.path[-1].append(points[N])
-            ltail += 1
-            N += 1
-        # Add new triplets
-        while N < len(points):
-            self.path.append(points[N: N + 3])
-            N += 3
+        if(isinstance(arc0, Arc)):
+            # Complete the last tuple of control points
+            tail = self.path[-1]
+            ltail = len(tail)
+            while ltail < 3:
+                self.path[-1] = np.append(self.path[-1], points[N])  # self.path[-1].append(points[N])
+                ltail += 1
+                N += 1
+            # Add new triplets
+            while N < len(points):
+                self.path.append(points[N: N + 3])
+                N += 3
         return
 
     def _CenterAndRadiusOrthogonalcirclegiven2points(self, z1, z2):
@@ -343,7 +360,7 @@ def hyperbolic_arc(a, b, model="UHP", **options):
 
     Show a hyperbolic arc from `1/2` to `i` with a red thick line::
 
-        sage: hyperbolic_arc(1/2, I, color='red', thickness=2)
+        sage: HyperbolicPlane().UHP().get_geodesic(-3, 19)
         Graphics object consisting of 1 graphics primitive
 
     .. PLOT::

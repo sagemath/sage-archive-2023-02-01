@@ -89,7 +89,8 @@ from sage.rings.infinity import infinity
 from sage.rings.all import CC
 from sage.rings.real_mpfr import RR
 from sage.plot.arc import arc
-from sage.plot.line import line
+#from sage.plot.line import line
+from sage.plot.bezier_path import bezier_path
 from sage.symbolic.constants import pi
 from sage.modules.free_module_element import vector
 from sage.matrix.constructor import matrix
@@ -1036,9 +1037,9 @@ class HyperbolicGeodesic(SageObject):
         return self._model._dist_points(self._start.coordinates(),
                                         self._end.coordinates())
 
-#***********************************************************************
+# ***********************************************************************
 #                       UHP geodesics
-#***********************************************************************
+# ***********************************************************************
 
 
 class HyperbolicGeodesicUHP(HyperbolicGeodesic):
@@ -1148,7 +1149,7 @@ class HyperbolicGeodesicUHP(HyperbolicGeodesic):
             Graphics object consisting of 2 graphics primitives
 
         Plotting a line with ``boundary=False``. ::
-            
+
             sage: g = HyperbolicPlane().UHP().get_geodesic(0, I)
             sage: g.plot(boundary=False)  # optional - sage.plot
             Graphics object consisting of 1 graphics primitive
@@ -1182,12 +1183,13 @@ class HyperbolicGeodesicUHP(HyperbolicGeodesic):
             elif end_2 == CC(infinity):
                 end_2 = (real(end_1), (imag(end_1) + 10))
                 end_1 = (real(end_1), imag(end_1))
-            pic = line((end_1, end_2), **opts)
+            # pic = line((end_1, end_2), **opts)
+            pic = bezier_path([[(end_1[0],end_1[1]),(end_2[0],end_2[1])]],**opts)
             if boundary:
                 cent = min(bd_1, bd_2)
                 bd_dict = {'bd_min': cent - 3, 'bd_max': cent + 3}
                 bd_pic = self._model.get_background_graphic(**bd_dict)
-                pic = bd_pic + pic
+                pic += bd_pic
             return pic
         else:
             center = (bd_1 + bd_2) / 2  # Circle center
@@ -1209,7 +1211,7 @@ class HyperbolicGeodesicUHP(HyperbolicGeodesic):
                 bd_dict = {'bd_min': midpoint - length, 'bd_max': midpoint +
                            length}
                 bd_pic = self._model.get_background_graphic(**bd_dict)
-                pic = bd_pic + pic
+                pic += bd_pic
             return pic
 
     def ideal_endpoints(self):
@@ -1694,7 +1696,7 @@ class HyperbolicGeodesicUHP(HyperbolicGeodesic):
             arccos(7/8)
             sage: h.angle(g)
             arccos(7/8)
-                                                                     
+
         Angle between circle and line. Note that ``1/2*sqrt(2)`` equals
         ``1/4*pi``. ::
 
@@ -1963,9 +1965,9 @@ class HyperbolicGeodesicUHP(HyperbolicGeodesic):
         return matrix([[p1 - p2, (p1 - p2)*(-p0)],
                        [p1 - p0, (p1 - p0)*(-p2)]])
 
-#***********************************************************************
+# ***********************************************************************
 #                       Other geodesics
-#***********************************************************************
+# ***********************************************************************
 
 
 class HyperbolicGeodesicPD(HyperbolicGeodesic):
@@ -2058,7 +2060,8 @@ class HyperbolicGeodesicPD(HyperbolicGeodesic):
         bd_1, bd_2 = [CC(k.coordinates()) for k in self.ideal_endpoints()]
         # Check to see if it's a line
         if abs(bd_1 + bd_2) < EPSILON:
-            pic = line([end_1, end_2], **opts)
+            # pic = line([end_1, end_2], **opts)
+            pic = bezier_path([[(real(end_1),imag(end_1)), (real(end_2),imag(end_2))]], **opts)
         else:
             # If we are here, we know it's not a line
             # So we compute the center and radius of the circle
@@ -2135,7 +2138,8 @@ class HyperbolicGeodesicKM(HyperbolicGeodesic):
         opts = {'axes': False, 'aspect_ratio': 1}
         opts.update(self.graphics_options())
         opts.update(options)
-        pic = line([k.coordinates() for k in self.endpoints()], **opts)
+        # pic = line([k.coordinates() for k in self.endpoints()], **opts)
+        pic = bezier_path([[k.coordinates() for k in self.endpoints()]], **opts)
         if boundary:
             pic += self._model.get_background_graphic()
         return pic

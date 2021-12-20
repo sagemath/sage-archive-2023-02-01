@@ -58,6 +58,49 @@ cdef class Matrix_double_sparse(Matrix_generic_sparse):
         return self._is_hermitian(skew=False, tolerance=tolerance)
 
 
+    def is_skew_hermitian(self, tolerance=1e-12):
+        r"""
+        Return whether or not the matrix is skew-Hermitian, up to the
+        entry-wise ``tolerance``.
+
+        A matrix is said to be skew-Hermitian if it is equal to the
+        negation of its conjugate-transpose. We default to a small but
+        non-zero entry-wise tolerance because, otherwise, numerical
+        issues can cause false negatives (Trac #33023).
+
+        Otherwise this method is identical to the superclass method,
+        which simply defers to :meth:`_is_hermitian` (passing
+        ``skew=True``).
+
+        INPUT:
+
+        - ``tolerance`` - a real number; the maximum difference we'll
+          tolerate between entries of the given matrix and the
+          negation of its conjugate-transpose.
+
+        OUTPUT:
+
+        A boolean, either ``True`` or ``False``.
+
+        EXAMPLES::
+
+            sage: A = matrix(RDF,
+            ....:            [ [0, 1e-13],
+            ....:              [0, 0    ] ],
+            ....:            sparse=True)
+            sage: A.is_skew_hermitian()
+            True
+
+        TESTS::
+
+            sage: A = matrix.random(CDF, 2, sparse=True)
+            sage: (A - A.conjugate_transpose()).is_skew_hermitian()
+            True
+
+        """
+        return self._is_hermitian(skew=True, tolerance=tolerance)
+
+
     def cholesky(self):
         r"""
         Returns the Cholesky decomposition of a Hermitian matrix.

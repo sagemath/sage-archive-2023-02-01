@@ -20,6 +20,6 @@ SAGE_SPKG_CONFIGURE([givaro], [
            ])
         ])
     ])
-    m4_pushdef([SAGE_GIVARO_LTVER])
+    m4_popdef([SAGE_GIVARO_LTVER])
     m4_popdef([SAGE_GIVARO_MINVER])
 ])

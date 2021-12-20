@@ -1777,13 +1777,13 @@ class GenericGraph(GenericGraph_pyx):
 
             if self.is_directed():
                 for u, v, l in self.edge_iterator():
-                    if not v in d[u]:
+                    if v not in d[u]:
                         d[u][v] = []
                     d[u][v].append(l)
 
             else:
                 for u, v, l in self.edge_iterator():
-                    if not v in d[u]:
+                    if v not in d[u]:
                         d[u][v] = []
                         d[v][u] = []
 
@@ -3105,7 +3105,7 @@ class GenericGraph(GenericGraph_pyx):
             sage: D.edges()
             [(0, 1, None)]
         """
-        if not keep_label in ['any', 'min', 'max']:
+        if keep_label not in ['any', 'min', 'max']:
             raise ValueError("variable keep_label must be 'any', 'min', or 'max'")
 
         # TODO: this should be much faster for c_graphs, but for now we just do this
@@ -4686,7 +4686,7 @@ class GenericGraph(GenericGraph_pyx):
              [(4, 3, 'e'), (3, 2, 'b'), (2, 1, 'a'), (1, 4, 'f')]]
 
         """
-        if not output in ['vertex', 'edge']:
+        if output not in ['vertex', 'edge']:
             raise ValueError('output must be either vertex or edge')
 
         if self.is_directed():
@@ -7673,7 +7673,7 @@ class GenericGraph(GenericGraph_pyx):
         if use_edge_labels or algorithm is None:
             # We force the algorithm to 'MILP'
             algorithm = 'MILP'
-        elif not algorithm in ['MILP', 'backtrack']:
+        elif algorithm not in ['MILP', 'backtrack']:
             raise ValueError("algorithm must be either 'backtrack' or 'MILP'")
 
         if self.order() < 2:
@@ -7704,7 +7704,7 @@ class GenericGraph(GenericGraph_pyx):
             elif len(zeros) == 1:
                 if new_s is None:
                     new_s = zeros.pop()
-                elif not new_s in zeros:
+                elif new_s not in zeros:
                     return (0, None) if use_edge_labels else None
 
             zeros = [u for u in g if not g.out_degree(u)]
@@ -7713,7 +7713,7 @@ class GenericGraph(GenericGraph_pyx):
             elif len(zeros) == 1:
                 if new_t is None:
                     new_t = zeros.pop()
-                elif not new_t in zeros:
+                elif new_t not in zeros:
                     return (0, None) if use_edge_labels else None
 
         else:
@@ -7725,27 +7725,26 @@ class GenericGraph(GenericGraph_pyx):
                 return (0, None) if use_edge_labels else None
 
             elif len(ones) == 2:
-                if not new_s is None and not new_s in ones:
+                if new_s is not None and new_s not in ones:
                     return (0, None) if use_edge_labels else None
-                if not new_t is None and not new_t in ones:
+                if new_t is not None and new_t not in ones:
                     return (0, None) if use_edge_labels else None
 
                 # Set new_s and new_t if possible
                 if new_s is None and new_t is None:
                     new_s,new_t = ones
-                elif not new_s is None and new_t is None:
+                elif new_s is not None and new_t is None:
                     new_t = ones[1] if new_s == ones[0] else ones[0]
-                elif new_s is None and not new_t is None:
+                elif new_s is None and new_t is not None:
                     new_s = ones[1] if new_t == ones[0] else ones[0]
 
             elif len(ones) == 1:
-                if not new_s is None and not new_t is None and not (new_s in ones or new_t in ones):
+                if new_s is not None and new_t is not None and not (new_s in ones or new_t in ones):
                     return (0, None) if use_edge_labels else None
-                elif new_s is None and (new_t is None or (not new_t is None and not new_t in ones)):
+                elif new_s is None and (new_t is None or (new_t is not None and new_t not in ones)):
                     new_s = ones.pop()
-                elif new_t is None and not new_s is None and not new_s in ones:
+                elif new_t is None and new_s is not None and new_s not in ones:
                     new_t = ones.pop()
-
 
         if not use_edge_labels and algorithm == "backtrack":
             path = g.longest_path(s=new_s, t=new_t, algorithm="backtrack")
@@ -10652,7 +10651,7 @@ class GenericGraph(GenericGraph_pyx):
         ::
 
             sage: D = DiGraph({0: [1, 2], 3: [0]})
-            sage: list(D.neighbor_iterator(0))
+            sage: sorted(D.neighbor_iterator(0))
             [1, 2, 3]
 
         ::
@@ -10918,7 +10917,8 @@ class GenericGraph(GenericGraph_pyx):
 
         if self.is_directed():
             out_edges = self.edge_boundary(vertices)
-            in_edges = self.edge_boundary([v for v in self if not v in vertices])
+            in_edges = self.edge_boundary([v for v in self
+                                           if v not  in vertices])
             self.delete_vertices(vertices[1:])
             self.add_edges((u, v0, l) for (u0, v0, l) in out_edges if u0 != u)
             self.add_edges((v0, u, l) for (v0, u0, l) in in_edges if u0 != u)
@@ -13619,7 +13619,7 @@ class GenericGraph(GenericGraph_pyx):
                         nb1 = [u for u in g.neighbor_iterator(v) if pos_in_peo[u] > pos_in_peo[v]]
                         for xi in nb1:
                             for yi in nb1:
-                                if not yi in neighbors_subsets[xi]:
+                                if yi not in neighbors_subsets[xi]:
                                     new_tup = (pos_in_peo[xi], pos_in_peo[yi])
                                     if max_tup < new_tup:
                                         max_tup = new_tup
@@ -13645,7 +13645,7 @@ class GenericGraph(GenericGraph_pyx):
         # ----------------
 
         # 1- The graph is not chordal
-        if not hole is None:
+        if hole is not None:
             # There was a bug there once, so it's better to check the
             # answer is valid, especially when it is so cheap ;-)
 
@@ -14478,7 +14478,7 @@ class GenericGraph(GenericGraph_pyx):
             else:
                 implementation = 'sparse_copy'
 
-        if not implementation in ['networkx', 'boost', 'dense_copy', 'sparse_copy']:
+        if implementation not in ['networkx', 'boost', 'dense_copy', 'sparse_copy']:
             raise ValueError("the implementation can only be 'networkx', "
                              "'boost', 'sparse_copy', 'dense_copy' or None")
 
@@ -14602,7 +14602,7 @@ class GenericGraph(GenericGraph_pyx):
             else:
                 implementation = 'sparse_copy'
 
-        if not implementation in ['networkx', 'boost', 'dense_copy', 'sparse_copy']:
+        if implementation not in ['networkx', 'boost', 'dense_copy', 'sparse_copy']:
             raise ValueError("the implementation can only be 'networkx', "
                              "'boost', 'sparse_copy', 'dense_copy' or None")
 
@@ -16714,6 +16714,10 @@ class GenericGraph(GenericGraph_pyx):
             Floyd-Warshall algorithm. Works also with weighted graphs, even with
             negative weights (but no negative cycle is allowed).
 
+          - ``'Floyd-Warshall_SciPy'``: the SciPy implementation of the
+            Floyd-Warshall algorithm. Works also with weighted graphs, even with
+            negative weights (but no negative cycle is allowed).
+
           - ``'Dijkstra_NetworkX'``: the Dijkstra algorithm, implemented in
             NetworkX. It works with weighted graphs, but no negative weight is
             allowed.
@@ -16818,7 +16822,8 @@ class GenericGraph(GenericGraph_pyx):
             sage: d5, _ = g.shortest_path_all_pairs(algorithm="Dijkstra_Boost")
             sage: d6, _ = g.shortest_path_all_pairs(algorithm="Johnson_Boost")
             sage: d7, _ = g.shortest_path_all_pairs(algorithm="Floyd-Warshall_Boost")
-            sage: d1 == d2 == d3 == d4 == d5 == d6 == d7
+            sage: d8, _ = g.shortest_path_all_pairs(algorithm="Floyd-Warshall_SciPy")
+            sage: d1 == d2 == d3 == d4 == d5 == d6 == d7 == d8
             True
 
         Checking that distances are equal regardless of the algorithm used::
@@ -16831,7 +16836,8 @@ class GenericGraph(GenericGraph_pyx):
             sage: d5, _ = g.shortest_path_all_pairs(algorithm="Dijkstra_Boost")
             sage: d6, _ = g.shortest_path_all_pairs(algorithm="Johnson_Boost")
             sage: d7, _ = g.shortest_path_all_pairs(algorithm="Floyd-Warshall_Boost")
-            sage: d1 == d2 == d3 == d4 == d5 == d6 == d7
+            sage: d8, _ = g.shortest_path_all_pairs(algorithm="Floyd-Warshall_SciPy")
+            sage: d1 == d2 == d3 == d4 == d5 == d6 == d7 == d8
             True
 
         Checking that weighted distances are equal regardless of the algorithm
@@ -16846,7 +16852,8 @@ class GenericGraph(GenericGraph_pyx):
             sage: d3, _ = g.shortest_path_all_pairs(algorithm="Dijkstra_Boost")
             sage: d4, _ = g.shortest_path_all_pairs(algorithm="Johnson_Boost")
             sage: d5, _ = g.shortest_path_all_pairs(algorithm="Floyd-Warshall_Boost")
-            sage: d1 == d2 == d3 == d4 == d5
+            sage: d6, _ = g.shortest_path_all_pairs(algorithm="Floyd-Warshall_SciPy")
+            sage: d1 == d2 == d3 == d4 == d5 == d6
             True
 
         Checking a random path is valid::
@@ -16884,6 +16891,9 @@ class GenericGraph(GenericGraph_pyx):
              {0: {0: None, 1: 0, 2: 1}, 1: {1: None, 2: 1}, 2: {2: None}})
             sage: g.shortest_path_all_pairs(algorithm='Floyd-Warshall-Cython')
             ({0: {0: 0, 1: 1, 2: 2}, 1: {1: 0, 2: 1}, 2: {2: 0}},
+             {0: {0: None, 1: 0, 2: 1}, 1: {1: None, 2: 1}, 2: {2: None}})
+            sage: g.shortest_path_all_pairs(algorithm='Floyd-Warshall_SciPy')
+            ({0: {0: 0.0, 1: 1.0, 2: 2.0}, 1: {1: 0.0, 2: 1.0}, 2: {2: 0.0}},
              {0: {0: None, 1: 0, 2: 1}, 1: {1: None, 2: 1}, 2: {2: None}})
 
         In order to change the default behavior if the graph is disconnected,
@@ -16931,6 +16941,8 @@ class GenericGraph(GenericGraph_pyx):
             ...
             RuntimeError: Dijkstra algorithm does not work with negative weights, use Bellman-Ford instead
         """
+        from sage.rings.infinity import Infinity
+
         if weight_function is not None:
             by_weight = True
 
@@ -16976,6 +16988,38 @@ class GenericGraph(GenericGraph_pyx):
             from sage.graphs.base.boost_graph import floyd_warshall_shortest_paths
             return floyd_warshall_shortest_paths(self, weight_function, distances=True, predecessors=True)
 
+        elif algorithm == "Floyd-Warshall_SciPy":
+            # Turn the graph to a n x n matrix
+            n = self.order()
+            int_to_vertex = list(self)
+            vertex_to_int = {u: i for i, u in enumerate(int_to_vertex)}
+            if by_weight:
+                M = [[float('inf')]*n for _ in range(n)]
+                for i in range(n):
+                    M[i][i] = 0
+                for e in self.edges(sort=False):
+                    u = vertex_to_int[e[0]]
+                    v = vertex_to_int[e[1]]
+                    M[u][v] = min(M[u][v], weight_function(e))
+                    if not self.is_directed():
+                        M[v][u] = M[u][v]
+            else:
+                M = self.adjacency_matrix(vertices=int_to_vertex)
+
+            # We call the Floyd-Warshall method from SciPy
+            from numpy import array as np_array
+            from scipy.sparse.csgraph import floyd_warshall
+            dd, pp = floyd_warshall(np_array(M), directed=self.is_directed(),
+                                    return_predecessors=True, unweighted=not by_weight)
+
+            # and format the result
+            dist = {int_to_vertex[i]: {int_to_vertex[j]: dd[i, j] for j in range(n) if dd[i, j] != +Infinity}
+                        for i in range(n)}
+            pred = {int_to_vertex[i]: {int_to_vertex[j]: (int_to_vertex[pp[i, j]] if i != j else None)
+                                           for j in range(n) if (i == j or pp[i, j] != -9999)}
+                        for i in range(n)}
+            return dist, pred
+
         elif algorithm == "Johnson_Boost":
             from sage.graphs.base.boost_graph import johnson_shortest_paths
             return johnson_shortest_paths(self, weight_function, distances=True, predecessors=True)
@@ -17004,8 +17048,6 @@ class GenericGraph(GenericGraph_pyx):
 
         elif algorithm != "Floyd-Warshall-Python":
             raise ValueError('unknown algorithm "{}"'.format(algorithm))
-
-        from sage.rings.infinity import Infinity
 
         if self.is_directed():
             neighbor = self.neighbor_out_iterator
@@ -17585,11 +17627,11 @@ class GenericGraph(GenericGraph_pyx):
         You can get edges of the DFS tree instead of the vertices using the
         ``edges`` parameter::
 
-            sage: D = DiGraph({1: [2, 3], 2: [4], 3: [4], 4: [1, 5], 5: [2, 6]})
-            sage: list(D.depth_first_search(1, edges=True))
-            [(1, 3), (3, 4), (4, 5), (5, 6), (5, 2)]
-            sage: list(D.depth_first_search(1, ignore_direction=True, edges=True))
-            [(1, 4), (4, 5), (5, 6), (5, 2), (4, 3)]
+            sage: D = digraphs.Path(5)
+            sage: list(D.depth_first_search(2, edges=True))
+            [(2, 3), (3, 4)]
+            sage: list(D.depth_first_search(2, edges=True, ignore_direction=True))
+            [(2, 3), (3, 4), (2, 1), (1, 0)]
 
         TESTS::
 
@@ -19105,7 +19147,7 @@ class GenericGraph(GenericGraph_pyx):
         # Check each vertex position is in pos, add position randomly within the
         # plot range if none is defined
         for v in self:
-            if not v in pos:
+            if v not in pos:
                 pos[v] = [xmin + dx * random(), ymin + dy * random()]
         return pos
 

@@ -259,7 +259,7 @@ def disk(point, radius, angle, **options):
         sage: br = disk((0.0,0.0), 1, (3*pi/2, 2*pi), color='black')
         sage: P  = tl+tr+bl+br
         sage: P.show(xmin=-2,xmax=2,ymin=-2,ymax=2)
-make
+
     .. PLOT::
 
         from sage.plot.disk import Disk

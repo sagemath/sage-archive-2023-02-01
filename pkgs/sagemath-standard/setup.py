@@ -74,7 +74,7 @@ if sdist:
     distributions = None
 else:
     distributions = ['']
-    optional_packages_with_extensions = ['mcqd', 'bliss', 'tdlib', 'primecount',
+    optional_packages_with_extensions = ['mcqd', 'bliss', 'tdlib',
                                          'coxeter3', 'fes', 'sirocco', 'meataxe']
     distributions += ['sagemath-{}'.format(pkg)
                       for pkg in optional_packages_with_extensions

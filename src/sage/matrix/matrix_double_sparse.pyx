@@ -156,10 +156,9 @@ cdef class Matrix_double_sparse(Matrix_generic_sparse):
 
         Test the properties of a Cholesky factorization using "random"
         symmetric/Hermitian positive-definite matrices. We also
-        compare with the factorizations obtained over ``RR`` or
-        ``CC``, which (when cvxopt is available) use a different
-        implementation. This ensures that both implementations return
-        comparable answers::
+        compare with the dense factorizations, which, when cvxopt is
+        available, use a different implementation. This ensures that
+        both implementations return comparable answers::
 
             sage: n = ZZ.random_element(1,5)
             sage: A = matrix.random(RDF, n, sparse=True)
@@ -168,7 +167,7 @@ cdef class Matrix_double_sparse(Matrix_generic_sparse):
             sage: L = A.cholesky()
             sage: (A - L*L.T).norm(1) < 1e-10
             True
-            sage: B = A.change_ring(RR)
+            sage: B = A.dense_matrix()
             sage: (B.cholesky() - L).norm(1) < 1e-10
             True
 
@@ -181,7 +180,7 @@ cdef class Matrix_double_sparse(Matrix_generic_sparse):
             sage: L = A.cholesky()
             sage: (A - L*L.H).norm(1) < 1e-10
             True
-            sage: B = A.change_ring(CC)
+            sage: B = A.dense_matrix()
             sage: (B.cholesky() - L).norm(1) < 1e-10
             True
         """

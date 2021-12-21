@@ -8,4 +8,4 @@ Poisson Manifolds
 
    sage/manifolds/differentiable/symplectic_form
 
-   sage/manifolds/differentiable/examples/symplectic_vector_space
+   sage/manifolds/differentiable/examples/symplectic_space

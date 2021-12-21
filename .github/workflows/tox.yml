@@ -112,7 +112,7 @@ jobs:
         stage: ["1", "2", "2-optional-0-g", "2-optional-h-o", "2-optional-p", "2-optional-q-z", "2-experimental-0-g", "2-experimental-h-o", "2-experimental-p", "2-experimental-q-z"]
         # python3_xcode is only accepted if enough packages are available from the system
         # --> to test "minimal", we would need https://trac.sagemath.org/ticket/30949
-        tox_env: [homebrew-macos-usrlocal-minimal, homebrew-macos-usrlocal-standard, homebrew-macos-usrlocal-maximal, homebrew-macos-python3_xcode-standard, conda-forge-macos-minimal, conda-forge-macos-standard, conda-forge-macos-maximal]
+        tox_env: [homebrew-macos-usrlocal-minimal, homebrew-macos-usrlocal-standard, homebrew-macos-usrlocal-maximal, homebrew-macos-usrlocal-python3_xcode-standard, conda-forge-macos-minimal, conda-forge-macos-standard, conda-forge-macos-maximal]
         # As of 2021-12, default xcode
         # - on macos-10.15:               12.4
         # - on macos-latest (= macos-11): 13.1

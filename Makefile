@@ -96,9 +96,11 @@ SAGE_SRC = $(SAGE_ROOT)/src
 
 clean:
 	@echo "Deleting package build directories..."
-	if [ -x "$(SAGE_SRC)"/bin/sage-env-config ]; then \
+	if [ -f "$(SAGE_SRC)"/bin/sage-env-config ]; then \
 	    . "$(SAGE_SRC)"/bin/sage-env-config; \
-            rm -rf "$(SAGE_LOCAL)/var/tmp/sage/build"; \
+	    if [ -n "$$SAGE_LOCAL" ]; then \
+	        rm -rf "$$SAGE_LOCAL/var/tmp/sage/build"; \
+	    fi; \
 	fi
 
 # "c_lib", ".cython_version", "build" in $(SAGE_SRC) are from old sage versions

@@ -7951,7 +7951,6 @@ class GenericGraph(GenericGraph_pyx):
         Then for digraphs::
 
             sage: from operator import itemgetter
-            sage: set_random_seed(0)
             sage: n = 20
             sage: g = DiGraph()
             sage: g.allow_multiple_edges(False)

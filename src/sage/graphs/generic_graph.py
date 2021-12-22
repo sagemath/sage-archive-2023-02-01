@@ -7235,7 +7235,7 @@ class GenericGraph(GenericGraph_pyx):
             g = graphs.PetersenGraph()
             sphinx_plot(g.plot(edge_colors={"red": g.longest_path().edges(sort=False)}))
 
-        Let us compute longest paths on a random graph with random
+        Let us compute the longest path on a random graph with random
         weights, and ensure the resulting graph is indeed a path::
 
             sage: g = graphs.RandomGNP(15, 0.3)

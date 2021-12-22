@@ -7235,7 +7235,7 @@ class GenericGraph(GenericGraph_pyx):
             g = graphs.PetersenGraph()
             sphinx_plot(g.plot(edge_colors={"red": g.longest_path().edges(sort=False)}))
 
-        Let us compute longest paths on a random graphs with random
+        Let us compute longest paths on a random graph with random
         weights, and ensure the resulting graph is indeed a path::
 
             sage: g = graphs.RandomGNP(15, 0.3)
@@ -7939,10 +7939,10 @@ class GenericGraph(GenericGraph_pyx):
             sage: g = Graph()
             sage: g.allow_multiple_edges(False)
             sage: for u, v in graphs.RandomGNP(n,.2).edges(labels=False, sort=False):
-            ....:      g.add_edge(u, v, ZZ.random_element(1,100))
+            ....:      g.add_edge(u, v, ZZ.random_element(1,100000))
             sage: for u, v in graphs.CycleGraph(n).edges(labels=False, sort=False):
             ....:      if not g.has_edge(u, v):
-            ....:          g.add_edge(u, v, ZZ.random_element(1,100))
+            ....:          g.add_edge(u, v, ZZ.random_element(1,100000))
             sage: v1 = g.traveling_salesman_problem(constraint_generation=False, use_edge_labels=True)
             sage: v2 = g.traveling_salesman_problem(use_edge_labels=True)
             sage: sum(v1.edge_labels()) == sum(v2.edge_labels())
@@ -7955,10 +7955,10 @@ class GenericGraph(GenericGraph_pyx):
             sage: g = DiGraph()
             sage: g.allow_multiple_edges(False)
             sage: for u, v in digraphs.RandomDirectedGNP(n, .2).edges(labels=False, sort=False):
-            ....:      g.add_edge(u, v, ZZ.random_element(1,100))
+            ....:      g.add_edge(u, v, ZZ.random_element(1,100000))
             sage: for u, v in digraphs.Circuit(n).edges(labels=False, sort=False):
             ....:      if not g.has_edge(u, v):
-            ....:          g.add_edge(u, v, ZZ.random_element(1,100))
+            ....:          g.add_edge(u, v, ZZ.random_element(1,100000))
             sage: v2 = g.traveling_salesman_problem(use_edge_labels=True)
             sage: v1 = g.traveling_salesman_problem(constraint_generation=False, use_edge_labels=True)
             sage: sum(v1.edge_labels()) == sum(v2.edge_labels())

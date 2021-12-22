@@ -263,13 +263,6 @@ cdef inline void bitset_copy_flex(fused_bitset_t dst, fused_bitset_t src):
     Set additional limbs in dst to zero.
 
     We assume ``dst.limbs >= src.limbs``.
-
-    TESTS:
-
-    Check that :trac:`33012` is fixed::
-
-        sage: polytopes.hypercube(8).combinatorial_polyhedron().pyramid()
-        A 9-dimensional combinatorial polyhedron with 17 facets
     """
     mpn_copyi(dst.bits, src.bits, src.limbs)
     mpn_zero(dst.bits + src.limbs, dst.limbs - src.limbs)

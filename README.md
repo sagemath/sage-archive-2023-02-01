@@ -5,7 +5,7 @@
 >   "Creating a Viable Open Source Alternative to
 >    Magma, Maple, Mathematica, and MATLAB"
 
->   Copyright (C) 2005-2020 The Sage Development Team
+>   Copyright (C) 2005-2021 The Sage Development Team
 
    https://www.sagemath.org
 
@@ -37,9 +37,13 @@ or ask on [ask.sagemath.org](https://ask.sagemath.org).
 Supported Platforms
 -------------------
 
-Sage fully supports all major Linux distributions, recent versions of
+Sage attempts to support all major Linux distributions, recent versions of
 macOS, and Windows (using Cygwin, Windows Subsystem for Linux, or
 using virtualization).
+
+Detailed information on supported platforms for a specific version of Sage
+can be found in the section "Availability and installation help" of the
+[release tour](https://wiki.sagemath.org/ReleaseTours) for this version.
 
 We highly appreciate contributions to Sage that fix portability bugs
 and help port Sage to new platforms; let us know at the [sage-devel
@@ -234,8 +238,10 @@ Guide](https://doc.sagemath.org/html/en/installation).
    [debian.txt](build/pkgs/_prereq/distros/debian.txt)
    (also for Ubuntu, Linux Mint, etc.),
    [fedora.txt](build/pkgs/_prereq/distros/fedora.txt)
-   (also for Red Hat, CentOS), and
-   [slackware.txt](build/pkgs/_prereq/distros/slackware.txt).
+   (also for Red Hat, CentOS),
+   [opensuse.txt](build/pkgs/_prereq/distros/opensuse.txt)
+   [slackware.txt](build/pkgs/_prereq/distros/slackware.txt), and
+   [void.txt](build/pkgs/_prereq/distros/void.txt).
 
 7. Optional: It is recommended that you have both LaTeX and the
    ImageMagick tools (e.g. the "convert" command) installed since some
@@ -500,9 +506,9 @@ do.
 1. To make a binary distribution with your currently installed packages,
    visit [sagemath/binary-pkg](https://github.com/sagemath/binary-pkg).
 
-2. (**Obsolete, probably broken**) To make your own source tarball of Sage, type:
+2. To make your own source tarball of Sage, type:
 
-        $ sage --sdist
+        $ make dist
 
    The result is placed in the directory `dist/`.
 

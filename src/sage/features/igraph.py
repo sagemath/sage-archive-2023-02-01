@@ -27,3 +27,6 @@ class python_igraph(JoinFeature):
         JoinFeature.__init__(self, 'python_igraph',
                              [PythonModule('igraph', spkg="python_igraph",
                                             url="http://igraph.org")])
+
+def all_features():
+    return [python_igraph()]

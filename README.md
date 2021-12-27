@@ -116,8 +116,7 @@ you to install a standard Linux distribution such as Ubuntu within
 your Windows.  Then all instructions for installation in Linux apply.
 
 As another alternative, you can also run Linux on Windows using Docker
-(see above) or other virtualization solutions such as the [Sage
-virtual appliance](https://wiki.sagemath.org/SageAppliance).
+(see above) or other virtualization solutions.
 
 [macOS] Preparing the Platform
 ------------------------------

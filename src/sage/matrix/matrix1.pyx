@@ -884,6 +884,17 @@ cdef class Matrix(Matrix0):
         return x
 
     def _row_ambient_module(self, base_ring=None):
+        r"""
+        TESTS::
+
+            sage: M = matrix(Zmod(5), 2, 3)
+            sage: M._row_ambient_module()
+            doctest:warning
+            ...
+            DeprecationWarning: the method _row_ambient_module is deprecated use row_ambient_module (without underscore) instead
+            See https://trac.sagemath.org/32984 for details.
+            Vector space of dimension 3 over Ring of integers modulo 5
+        """
         from sage.misc.superseded import deprecation
         deprecation(32984, 'the method _row_ambient_module is deprecated use row_ambient_module (without underscore) instead')
         return self.row_ambient_module(base_ring)
@@ -904,12 +915,13 @@ cdef class Matrix(Matrix0):
             sage: M.column_ambient_module()
             Ambient free module of rank 3 over the principal ideal domain Integer Ring
             sage: M.column_ambient_module(QQ)
+            Vector space of dimension 3 over Rational Field
 
             sage: M = Matrix(QQ, 4, 5)
             sage: M.column_ambient_module()
             Vector space of dimension 4 over Rational Field
             sage: M.column_ambient_module(ZZ)
-
+            Ambient free module of rank 4 over the principal ideal domain Integer Ring
         """
         if base_ring is not None or sparse is not None:
             if base_ring is None:
@@ -929,6 +941,17 @@ cdef class Matrix(Matrix0):
         return x
 
     def _column_ambient_module(self):
+        r"""
+        TESTS::
+
+            sage: M = matrix(Zmod(5), 2, 3)
+            sage: M._column_ambient_module()
+            doctest:warning
+            ...
+            DeprecationWarning: the method _column_ambient_module is deprecated use column_ambient_module (without underscore) instead
+            See https://trac.sagemath.org/32984 for details.
+            Vector space of dimension 2 over Ring of integers modulo 5
+        """
         from sage.misc.superseded import deprecation
         deprecation(32984, 'the method _column_ambient_module is deprecated use column_ambient_module (without underscore) instead')
         return self.column_ambient_module()

@@ -671,100 +671,14 @@ Step-by-step installation procedure
 General procedure
 ~~~~~~~~~~~~~~~~~
 
-Installation from source is (potentially) very easy, because the distribution
-contains (essentially) everything on which Sage depends.
+#. Follow the procedure in :file:`README.md`.
 
-Make sure there are **no spaces** in the path name for the directory in which
-you build:
-several of Sage's components will not build if there are spaces in the path.
-Running Sage from a directory with spaces in its name will also fail.
-
-#. Go to https://www.sagemath.org/download-source.html, select a mirror,
-   and download the file :file:`sage-x.y.tar.gz`.
-
-   This compressed archive file contains the source code for Sage and
-   the source for all programs on which Sage depends.
-
-   Download it into any directory you have write access to, preferably on a
-   fast filesystem, avoiding
-   `NFS <https://en.wikipedia.org/wiki/Network_File_System>`_ and the like.
-   On personal computers, any subdirectory of your :envvar:`HOME` directory
-   should do. Note that once you have built Sage (by running ``make``,
-   as described below), you will not be able to move or rename its
-   directory without breaking Sage.
-
-#. Extract the archive::
-
-       $ tar xvf sage-x.y.tar.gz
-
-   This creates a directory :file:`sage-x.y`.
-
-#. Change into that directory::
-
-       $ cd sage-x.y
-
-   This is Sage's home directory.
-   It is also referred to as :envvar:`SAGE_ROOT` or the top level Sage
-   directory.
-
-#. Optional, but highly recommended:
-   Read the :file:`README.md` file there.
-
-#. Optional:  Set various other environment variables that influence the
-   build process; see :ref:`section_envvar`.
-
-   Some environment variables deserve a special mention: :envvar:`CC`,
-   :envvar:`CXX` and :envvar:`FC`;
-   and on macOS, :envvar:`OBJC` and :envvar:`OBJCXX`. Those variables
-   defining your compilers
-   can be set at configuration time and their values will be recorded for
-   further use at runtime. Those initial values are over-ridden if Sage builds
-   its own compiler or they are set to a different value again before calling
-   Sage. Note that some packages will ignore the compiler settings and use
-   values deemed safe for that package on a particular OS.
-
-#. Run the configure script to set some options that
-   influence the build process.
-
-   - Choose the installation hierarchy (:envvar:`SAGE_LOCAL`).
-     The default is the ``local`` subdirectory of :envvar:`SAGE_ROOT`::
-
-       $ ./configure --prefix=SAGE_LOCAL
-
-     Note that in Sage's build process, ``make`` builds **and**
-     installs (``make install`` is a no-op).  Therefore the
-     installation hierarchy must be writable by the user.
-
-   - Other options are available; see::
-
-       $ ./configure --help
-
-#. Start the build process::
-
-       $ make
-
-   or if your system supports multiprocessing and you want to use several
-   processes to build Sage::
-
-       $ MAKE='make -jNUM' make
-
-   to tell the ``make`` program to run ``NUM`` jobs in parallel when building
-   Sage. This compiles Sage and all its dependencies.
-
-   .. NOTE::
-
-      macOS allows changing directories without using exact capitalization.
-      Beware of this convenience when compiling for macOS. Ignoring exact
-      capitalization when changing into :envvar:`SAGE_ROOT` can lead to build
-      errors for dependencies requiring exact capitalization in path names.
-
-   Note that you do not need to be logged in as root, since no files are
+#. Additional remarks:
+   You do not need to be logged in as root, since no files are
    changed outside of the :file:`sage-x.y` directory.
    In fact, **it is inadvisable to build Sage as root**, as the root account
    should only be used when absolutely necessary and mistyped commands can have
    serious consequences if you are logged in as root.
-   There has been a bug reported (see :trac:`9551`) in Sage which would have
-   overwritten a system file had the user been logged in as root.
 
    Typing ``make`` performs the usual steps for each Sage's dependency,
    but installs all the resulting files into the local build tree.

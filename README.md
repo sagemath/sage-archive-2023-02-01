@@ -151,6 +151,9 @@ Guide](https://doc.sagemath.org/html/en/installation).
 
 1. Decide on the source/build directory (`SAGE_ROOT`):
 
+    - On personal computers, any subdirectory of your :envvar:`HOME`
+      directory should do.
+
     - For example, you could use `SAGE_ROOT=~/sage/sage-x.y`, which we
       will use as the running example below, where `x.y` is the
       current Sage version.
@@ -162,10 +165,25 @@ Guide](https://doc.sagemath.org/html/en/installation).
     - After starting the build, you cannot move the source/build
       directory without breaking things.
 
+    - You may want to avoid slow filesystems such as
+      [NFS](https://en.wikipedia.org/wiki/Network_File_System) and
+      the like.
+
+   -  [macOS] macOS allows changing directories without using exact capitalization.
+      Beware of this convenience when compiling for macOS. Ignoring exact
+      capitalization when changing into :envvar:`SAGE_ROOT` can lead to build
+      errors for dependencies requiring exact capitalization in path names.
+
     - [Cygwin] Avoid building in home directories of Windows domain
       users or in paths with capital letters.
 
 2. Download/unpack the sources.
+
+    - Go to https://www.sagemath.org/download-source.html, select a mirror,
+      and download the file :file:`sage-x.y.tar.gz`.
+
+      This compressed archive file contains the source code for Sage and
+      the source for all programs on which Sage depends.
 
     - After downloading the source tarball `sage-x.y.tar.gz` into
       `~/sage/`:
@@ -198,21 +216,27 @@ Guide](https://doc.sagemath.org/html/en/installation).
 
         $ cd sage*/
 
-4. Optionally, decide on the installation prefix (`SAGE_LOCAL`):
+4. [Git] If you cloned the Sage repository using `git`, bootstrap the
+   source tree using:
+
+        $ make configure
+
+5. Optionally, decide on the installation prefix (`SAGE_LOCAL`):
 
     - Traditionally, and by default, Sage is installed into the
       subdirectory hierarchy rooted at `SAGE_ROOT/local`.
 
     - This can be changed using `./configure --prefix=SAGE_LOCAL`,
       where `SAGE_LOCAL` is the desired installation prefix, which
-      must be writable by the user.  (See the installation manual for
-      options if you want to install into shared locations such as
-      `/usr/local/`.  Do not attempt to build Sage as root.)
+      must be writable by the user.
 
-5. [Git] If you cloned the Sage repository using `git`, bootstrap the
-   source tree using:
+    - Note that in Sage's build process, `make` builds **and**
+      installs (`make install` is a no-op).  Therefore the
+      installation hierarchy must be writable by the user.
 
-        $ make configure
+    - See the installation manual for options if you want to
+      install into shared locations such as `/usr/local/`.
+      Do not attempt to build Sage as `root`.
 
 6. [Linux, Cygwin] Install the required minimal build prerequisites.
 
@@ -263,6 +287,11 @@ Guide](https://doc.sagemath.org/html/en/installation).
 
    To reduce the terminal output during the build, type `export V=0`.
    (`V` stands for "verbosity".)
+
+   Some environment variables deserve a special mention: `CC`,
+   `CXX` and `FC`. These variables defining your compilers
+   can be set at configuration time and their values will be recorded for
+   further use at build time and runtime.
 
    For an in-depth discussion of more environment variables for
    building Sage, see [the installation

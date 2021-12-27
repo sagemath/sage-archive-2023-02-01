@@ -347,7 +347,8 @@ Cygwin prerequisite installation
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 Sage can be built only on the 64-bit version of Cygwin.  See
-``README.md`` for the most up-to-date instructions for building Sage
+the file `README.md <https://github.com/sagemath/sage/#readme>`_
+in ``SAGE_ROOT`` for the most up-to-date instructions for building Sage
 on Cygwin.
 
 Although it is possible to install Sage's dependencies using the Cygwin
@@ -671,7 +672,8 @@ Step-by-step installation procedure
 General procedure
 ~~~~~~~~~~~~~~~~~
 
-#. Follow the procedure in :file:`README.md`.
+#. Follow the procedure in the file `README.md <https://github.com/sagemath/sage/#readme>`_
+   in ``SAGE_ROOT``.
 
 #. Additional remarks:
    You do not need to be logged in as root, since no files are

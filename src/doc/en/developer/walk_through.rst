@@ -85,21 +85,7 @@ to the develop branch (latest development release)::
     [user@localhost sage]$ git checkout develop
 
 You will then need to `compile Sage
-<http://doc.sagemath.org/html/en/installation/source.html>`_ in order to use it. If
-you cloned, you will need to remain on the internet for it to download various
-packages of Sage::
-
-    [user@localhost sage]$ make
-
-.. NOTE::
-
-    If your system supports multiprocessing and you want to use multiple
-    processors to build Sage, replace the last line above by::
-
-    [user@localhost sage]$ MAKE='make -jNUM' make
-
-    to tell the ``make`` program to run ``NUM`` jobs in parallel when
-    building Sage.
+<http://doc.sagemath.org/html/en/installation/source.html>`_ in order to use it.
 
 .. NOTE::
 

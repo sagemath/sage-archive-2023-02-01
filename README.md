@@ -325,8 +325,13 @@ Guide](https://doc.sagemath.org/html/en/installation).
    `./configure --help`).
 
 12. Type `make`.  That's it! Everything is automatic and
-   non-interactive; but it will take a few hours (on a recent
-   computer).
+   non-interactive.
+
+   If you followed the above instructions, in particular regarding the
+   installation of system packages recommended by the output of
+   `./configure` (step 10), and regarding the parallel build (step 9),
+   building Sage takes less than one hour on a modern computer.
+   (Otherwise, it can take much longer.)
 
    The build should work fine on all fully supported platforms. If it
    does not, we want to know!

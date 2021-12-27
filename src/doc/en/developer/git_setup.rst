@@ -35,8 +35,9 @@ Windows (Cygwin)
     Windows installations of ``git``.
 
 Windows (WSL)
-    Install the package using the Linux distribution's package manager.
-    Do not attempt to use native Windows installations of ``git``.
+    We strongly recommend to install the package using the Linux
+    distribution's package manager.  Native Windows installations of
+    ``git`` may also work, but there are possible pitfalls.
 
 macOS
     Install the Xcode Command Line Tools.

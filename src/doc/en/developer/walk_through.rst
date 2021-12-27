@@ -8,7 +8,7 @@ Sage Development Process
 
 This section is a concise overview of the Sage development process. In
 it, we will see how to make changes to the Sage source code and record
-them in the git revision control system.
+them in the ``git`` revision control system.
 
 In the following section on :ref:`chapter-git_trac` we will look at
 communicating these changes back to the Sage project.  We also have a handy
@@ -69,7 +69,7 @@ Obtaining the Sage Source Code
 
 Obviously one needs the Sage source code to develop.  You can use your
 local installation of Sage, or (to start without Sage) download it
-from github which is a public read-only mirror (=faster) of our
+from GitHub which is a public read-only mirror (=faster) of our
 internal git repository::
 
     [user@localhost ~]$ git clone https://github.com/sagemath/sage.git
@@ -103,8 +103,8 @@ packages of Sage::
 
 .. NOTE::
 
-    Mac OS X allows changing directories without using exact capitalization.
-    Beware of this convenience when compiling for OS X. Ignoring exact
+    macOS allows changing directories without using exact capitalization.
+    Beware of this convenience when compiling for macOS. Ignoring exact
     capitalization when changing into :envvar:`SAGE_ROOT` can lead to build
     errors for dependencies requiring exact capitalization in path names.
 

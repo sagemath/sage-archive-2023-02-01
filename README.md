@@ -169,7 +169,7 @@ Guide](https://doc.sagemath.org/html/en/installation).
       [NFS](https://en.wikipedia.org/wiki/Network_File_System) and
       the like.
 
-   -  [macOS] macOS allows changing directories without using exact capitalization.
+    - [macOS] macOS allows changing directories without using exact capitalization.
       Beware of this convenience when compiling for macOS. Ignoring exact
       capitalization when changing into :envvar:`SAGE_ROOT` can lead to build
       errors for dependencies requiring exact capitalization in path names.
@@ -240,31 +240,31 @@ Guide](https://doc.sagemath.org/html/en/installation).
 
 6. [Linux, Cygwin] Install the required minimal build prerequisites.
 
-   * Compilers: `gcc`, `gfortran`, `g++` (a matching set of these
-     three will avoid the compilation of Sage-specific compilers -
-     unless they are too old).  See the Installation Manual for a
-     discussion of suitable compilers.
+    * Compilers: `gcc`, `gfortran`, `g++` (a matching set of these
+      three will avoid the compilation of Sage-specific compilers -
+      unless they are too old).  See the Installation Manual for a
+      discussion of suitable compilers.
 
-   * Build tools: GNU `make`, GNU `m4`, `perl` (including
-     ``ExtUtils::MakeMaker``), `ranlib`, `git`, `tar`, `bc`
+    * Build tools: GNU `make`, GNU `m4`, `perl` (including
+      ``ExtUtils::MakeMaker``), `ranlib`, `git`, `tar`, `bc`
 
-   * Python 3.4 or later, or Python 2.7, a full installation including
-     `urllib`; but ideally version 3.7.x, 3.8.x, or 3.9.x, which will
-     avoid having to build Sage's own copy of Python 3.
+    * Python 3.4 or later, or Python 2.7, a full installation including
+      `urllib`; but ideally version 3.7.x, 3.8.x, or 3.9.x, which will
+      avoid having to build Sage's own copy of Python 3.
 
-   We have collected lists of system packages that provide these build
-   prerequisites. See, in the folder
-   [build/pkgs/_prereq/distros](build/pkgs/_prereq/distros),
-   the files
-   [arch.txt](build/pkgs/_prereq/distros/arch.txt),
-   [cygwin.txt](build/pkgs/_prereq/distros/cygwin.txt),
-   [debian.txt](build/pkgs/_prereq/distros/debian.txt)
-   (also for Ubuntu, Linux Mint, etc.),
-   [fedora.txt](build/pkgs/_prereq/distros/fedora.txt)
-   (also for Red Hat, CentOS),
-   [opensuse.txt](build/pkgs/_prereq/distros/opensuse.txt)
-   [slackware.txt](build/pkgs/_prereq/distros/slackware.txt), and
-   [void.txt](build/pkgs/_prereq/distros/void.txt).
+    We have collected lists of system packages that provide these build
+    prerequisites. See, in the folder
+    [build/pkgs/_prereq/distros](build/pkgs/_prereq/distros),
+    the files
+    [arch.txt](build/pkgs/_prereq/distros/arch.txt),
+    [cygwin.txt](build/pkgs/_prereq/distros/cygwin.txt),
+    [debian.txt](build/pkgs/_prereq/distros/debian.txt)
+    (also for Ubuntu, Linux Mint, etc.),
+    [fedora.txt](build/pkgs/_prereq/distros/fedora.txt)
+    (also for Red Hat, CentOS),
+    [opensuse.txt](build/pkgs/_prereq/distros/opensuse.txt)
+    [slackware.txt](build/pkgs/_prereq/distros/slackware.txt), and
+    [void.txt](build/pkgs/_prereq/distros/void.txt).
 
 7. Optional: It is recommended that you have both LaTeX and the
    ImageMagick tools (e.g. the "convert" command) installed since some
@@ -278,22 +278,22 @@ Guide](https://doc.sagemath.org/html/en/installation).
 9. Optional, but highly recommended: Set some environment variables to
    customize the build.
 
-   For example, the `MAKE` environment variable controls whether to
-   run several jobs in parallel.  On a machine with 4 processors, say,
-   typing `export MAKE="make -j4"` will configure the build script to
-   perform a parallel compilation of Sage using 4 jobs. On some
-   powerful machines, you might even consider `-j16`, as building with
-   more jobs than CPU cores can speed things up further.
+    For example, the `MAKE` environment variable controls whether to
+    run several jobs in parallel.  On a machine with 4 processors, say,
+    typing `export MAKE="make -j4"` will configure the build script to
+    perform a parallel compilation of Sage using 4 jobs. On some
+    powerful machines, you might even consider `-j16`, as building with
+    more jobs than CPU cores can speed things up further.
 
-   To reduce the terminal output during the build, type `export V=0`.
+    To reduce the terminal output during the build, type `export V=0`.
    (`V` stands for "verbosity".)
 
-   Some environment variables deserve a special mention: `CC`,
+    Some environment variables deserve a special mention: `CC`,
    `CXX` and `FC`. These variables defining your compilers
    can be set at configuration time and their values will be recorded for
    further use at build time and runtime.
 
-   For an in-depth discussion of more environment variables for
+    For an in-depth discussion of more environment variables for
    building Sage, see [the installation
    guide](https://doc.sagemath.org/html/en/installation/source.html#environment-variables).
 
@@ -301,40 +301,40 @@ Guide](https://doc.sagemath.org/html/en/installation).
    For example, to build Sage with `gf2x` package supplied by Sage,
    use `./configure --with-system-gf2x=no`.
 
-   At the end of a successful `./configure` run, you may see messages
-   recommending to install extra system packages using your package
-   manager.
+    At the end of a successful `./configure` run, you may see messages
+    recommending to install extra system packages using your package
+    manager.
 
-   For a large [list of Sage
-   packages](https://trac.sagemath.org/ticket/27330), Sage is able to
-   detect whether an installed system package is suitable for use with
-   Sage; in that case, Sage will not build another copy from source.
+    For a large [list of Sage
+    packages](https://trac.sagemath.org/ticket/27330), Sage is able to
+    detect whether an installed system package is suitable for use with
+    Sage; in that case, Sage will not build another copy from source.
 
-   Sometimes, the messages will recommend to install packages that are
-   already installed on your system. See the earlier configure
-   messages or the file `config.log` for explanation.  Also, the
-   messages may recommend to install packages that are actually not
-   available; only the most recent releases of your distribution will
-   have all of these recommended packages.
+    Sometimes, the messages will recommend to install packages that are
+    already installed on your system. See the earlier configure
+    messages or the file `config.log` for explanation.  Also, the
+    messages may recommend to install packages that are actually not
+    available; only the most recent releases of your distribution will
+    have all of these recommended packages.
 
 11. Optional: If you choose to install the additional system packages,
-   a re-run of `./configure` will test whether the versions installed
-   are usable for Sage; if they are, this will reduce the compilation
-   time and disk space needed by Sage. The usage of packages may be
-   adjusted by `./configure` parameters (check again the output of
-   `./configure --help`).
+    a re-run of `./configure` will test whether the versions installed
+    are usable for Sage; if they are, this will reduce the compilation
+    time and disk space needed by Sage. The usage of packages may be
+    adjusted by `./configure` parameters (check again the output of
+    `./configure --help`).
 
 12. Type `make`.  That's it! Everything is automatic and
    non-interactive.
 
-   If you followed the above instructions, in particular regarding the
-   installation of system packages recommended by the output of
-   `./configure` (step 10), and regarding the parallel build (step 9),
-   building Sage takes less than one hour on a modern computer.
-   (Otherwise, it can take much longer.)
+    If you followed the above instructions, in particular regarding the
+    installation of system packages recommended by the output of
+    `./configure` (step 10), and regarding the parallel build (step 9),
+    building Sage takes less than one hour on a modern computer.
+    (Otherwise, it can take much longer.)
 
-   The build should work fine on all fully supported platforms. If it
-   does not, we want to know!
+    The build should work fine on all fully supported platforms. If it
+    does not, we want to know!
 
 13. Type `./sage` to try it out.
 

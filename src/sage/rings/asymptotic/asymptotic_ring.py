@@ -2889,10 +2889,12 @@ class AsymptoticExpansion(CommutativeAlgebraElement):
             sage: asy.compare_with_values('n', lambda k: 1/(3+3/k), srange(5,10))
             [(5, 0.2777...), (6, 0.28571...), (7, 0.29166...), (8, 0.29629...),
             (9, 0.30000...)]
-            sage: B = A.term_monoid('B')
-            doctest:...: FutureWarning: This class/method/function is marked as experimental.
+            sage: basy = asy.exact_part() + 1/3*A.B(asy.error_part())
+            doctest:warning
             ...
-            sage: basy = asy.exact_part() + A(B(asy.error_part().summands.pop().growth, coefficient=1/3))
+            FutureWarning: This class/method/function is marked as experimental.
+            It, its functionality or its interface might change without a formal deprecation.
+            See https://trac.sagemath.org/31922 for details.
             sage: basy.compare_with_values('n', lambda k: 1/(3+3/k), [2^k for k in srange(8)])
             [(1, 0.500...), (2, 0.666...), (4, 0.800...), (8, 0.888...),
             (16, 0.941...), (32, 0.969...), (64, 0.984...), (128, 0.992...)]
@@ -3439,11 +3441,6 @@ class AsymptoticExpansion(CommutativeAlgebraElement):
 
             sage: AR.<x, z> = AsymptoticRing(growth_group='x^ZZ * z^ZZ', coefficient_ring=ZZ)
             sage: AR.B(2*x^2, {x: 10}) # indirect doctest
-            doctest:warning
-            ...
-            FutureWarning: This class/method/function is marked as experimental.
-            It, its functionality or its interface might change without a formal deprecation.
-            See https://trac.sagemath.org/31922 for details.
             B(2*x^2, x >= 10)
             sage: expr = 42*x^42 + x^10 + AR.B(x^2, 20); expr # indirect doctest
             42*x^42 + x^10 + B(x^2, x >= 20, z >= 20)

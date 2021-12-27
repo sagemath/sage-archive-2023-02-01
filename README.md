@@ -482,7 +482,7 @@ Relocation
 
 It is not supported to move the `SAGE_ROOT` or `SAGE_LOCAL` directory
 after starting the build.  If you do move the directories, you will
-have to rebuilt Sage again from scratch.
+have to rebuild Sage again from scratch.
 
 If you copy the `sage` script or make a symbolic link to it, you
 should modify the script to reflect this (as instructed at the top of

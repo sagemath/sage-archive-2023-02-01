@@ -1382,4 +1382,4 @@ the directory where you want to install Sage.
 
 
 
-**This page was last updated in December 2020 (Sage 9.3).**
+**This page was last updated in December 2021 (Sage 9.5).**

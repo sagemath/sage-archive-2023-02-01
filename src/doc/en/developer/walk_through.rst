@@ -229,7 +229,7 @@ to rebuild the Sage library and then start Sage. This should be quite
 fast. If you made changes to
 :ref:`third-party packages <chapter-packaging>`, then you have to run ::
 
-    [user@localhost sage]$ make
+    [user@localhost sage]$ make build
 
 as if you were `installing Sage from scratch
 <http://doc.sagemath.org/html/en/installation/source.html>`_.
@@ -244,13 +244,13 @@ the first time.
     <http://doc.sagemath.org/html/en/developer/manual_git.html#checking-out-tickets>`_,
     it may depend on changes to third-party packages, so ``./sage -br``
     may fail.  If this happens (and you believe the code in this branch
-    should compile), try running ``make``.
+    should compile), try running ``make build``.
 
 Rarely there are conflicts with other packages,
 or with the already-installed older version of the package that you
 changed, in that case you do have to recompile everything using::
 
-    [user@localhost sage]$ make distclean && make
+    [user@localhost sage]$ make distclean && make build
 
 Also, don't forget to run the tests (see :ref:`chapter-doctesting`)
 and build the documentation (see :ref:`chapter-sage_manuals`).

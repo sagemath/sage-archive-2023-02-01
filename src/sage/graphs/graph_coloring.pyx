@@ -66,8 +66,6 @@ Methods
 
 from copy import copy
 from sage.combinat.matrices.dlxcpp import DLXCPP
-from sage.misc.lazy_import import lazy_import
-lazy_import("sage.plot.colors", "rainbow")
 from libcpp.vector cimport vector
 from libcpp.pair cimport pair
 

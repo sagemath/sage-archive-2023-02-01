@@ -3936,7 +3936,7 @@ cdef class Matrix_double_dense(Matrix_dense):
 
         v_numpy = numpy.array([self._python_dtype(i) for i in v], dtype=self._numpy_dtype)
 
-        M = self._column_ambient_module()
+        M = self.column_ambient_module()
         ans = numpy.dot(self._matrix_numpy, v_numpy)
         return M(ans)
 

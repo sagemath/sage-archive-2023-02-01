@@ -64,11 +64,11 @@ before you forget!
 
 .. _section-walkthrough-sage-source:
 
-Obtaining the Sage Source Code
-==============================
+Obtaining and Compiling the Sage Source Code
+============================================
 
 Obviously one needs the Sage source code to develop.  You can use your
-local installation of Sage, or (to start without Sage) download it
+local installation of Sage, or (to start from scratch) download it
 from GitHub which is a public read-only mirror (=faster) of our
 internal git repository::
 
@@ -84,8 +84,10 @@ to the develop branch (latest development release)::
     [user@localhost ~]$ cd sage
     [user@localhost sage]$ git checkout develop
 
-You will then need to `compile Sage
-<http://doc.sagemath.org/html/en/installation/source.html>`_ in order to use it.
+Next, compile Sage, following the instruction in the file
+`README.md <https://github.com/sagemath/sage/#readme>`_ in ``SAGE_ROOT``.
+Additional details can be found in `the Sage installation guide
+<http://doc.sagemath.org/html/en/installation/source.html>`_.
 
 .. NOTE::
 

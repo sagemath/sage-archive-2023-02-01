@@ -26,7 +26,7 @@ classifiers =
     Topic :: Scientific/Engineering :: Mathematics
 
 [options]
-python_requires = >=3.7, <3.10
+python_requires = >=3.7, <3.11
 install_requires =
     sage_conf
     esyscmd(`sage-get-system-packages install-requires \

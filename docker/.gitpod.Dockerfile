@@ -3,74 +3,22 @@
 ##
 FROM gitpod/workspace-full as prepare
 
+USER gitpod
+# Only copy build, for package information needed for the system package install.
+# configure.ac is needed because build/sage_bootstrap uses it to recognize SAGE_ROOT.
+COPY --chown=gitpod:gitpod ./configure.ac ./configure.ac
+COPY --chown=gitpod:gitpod ./build ./build
+
 # Install system packages
 RUN sudo apt-get update
-RUN sudo apt-get install -y --no-install-recommends \ 
-    ## From main dockerfile and/or needed for bootstrap
-    wget \
-    build-essential \
-    automake \
-    m4 \
-    dpkg-dev \
-    python \
-    libssl-dev \
-    rdfind \
-    gettext \
-    gfortran \
-    gcc \
-    g++ \
-    libstdc++-9-dev \
-    openssl \
-    ## Recommended by ./configure
-    libflint-arb-dev \
-    libbrial-dev libbrial-groebner-dev \
-    libcdd-dev libcdd-tools \
-    ecl eclib-tools \
-    libec-dev \ 
-    fflas-ffpack \
-    flintqs \
-    libgc-dev \
-    gfan \
-    libgiac-dev \
-    xcas \
-    libgsl-dev \
-    libiml-dev \
-    lcalc \
-    liblfunction-dev \
-    libhomfly-dev \
-    libopenblas-dev \
-    palp \
-    # pari is not recognized even if installed
-    #pari-gp2c libpari-dev pari-doc pari-elldata pari-galdata pari-galpol pari-seadata
-    libppl-dev ppl-dev \
-    python3 libpython3-dev python3-distutils python3-venv \
-    r-base-dev r-cran-lattice \
-    librw-dev \
-    libsuitesparse-dev \
-    libsymmetrica2-dev \
-    sympow \
-    tachyon \
-    libzmq3-dev \
-    libzn-poly-dev \
-    libgf2x-dev \
-    cliquer \
-    libcliquer-dev \
-    gmp-ecm \
-    libecm-dev \
-    glpk-utils \
-    libglpk-dev \
-    libbraiding-dev \
-    liblrcalc-dev \
-    libm4rie-dev \
-    libmpc-dev \
-    libmpfi-dev \
-    libmpfr-dev \
-    nauty \
-    libntl-dev \
-    libplanarity-dev \
-    planarity
-    ## We do not install tox, since it pulls in javascript-common which does not install for some reason
-    #tox
+RUN sudo apt-get install -y --no-install-recommends \
+        $(build/bin/sage-get-system-packages debian \
+            _bootstrap \
+            $(PATH=build/bin:$PATH build/bin/sage-package list \
+                 --has-file=spkg-configure.m4 :standard: \
+              | grep -E -v "pari|tox" ))
+    # We do not install pari, as it is not recognized even if installed
+    # We do not install tox, since it pulls in javascript-common which does not install for some reason
 
 ## Homebrew has some more up-to-date packages (but sage is not yet able to find them)
 ### RUN brew update && brew upgrade
@@ -89,9 +37,7 @@ USER gitpod
 ### We cannot copy everything due to https://github.com/gitpod-io/gitpod/issues/7157
 ### COPY --chown=gitpod:gitpod . .
 ### Thus only selectively copy the files we need
-COPY --chown=gitpod:gitpod ./build ./build
 COPY --chown=gitpod:gitpod ./bootstrap ./bootstrap
-COPY --chown=gitpod:gitpod ./configure.ac ./configure.ac
 COPY --chown=gitpod:gitpod ./src/doc/bootstrap ./src/doc/bootstrap
 COPY --chown=gitpod:gitpod ./src/bin ./src/bin
 COPY --chown=gitpod:gitpod ./m4 ./m4

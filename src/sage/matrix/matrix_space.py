@@ -139,9 +139,9 @@ def get_matrix_class(R, nrows, ncols, sparse, implementation):
         sage: get_matrix_class(CDF, 2, 3, False, 'numpy')
         <class 'sage.matrix.matrix_complex_double_dense.Matrix_complex_double_dense'>
 
-        sage: get_matrix_class(GF(25,'x'), 4, 4, False, 'meataxe')         # optional: meataxe
+        sage: get_matrix_class(GF(25,'x'), 4, 4, False, 'meataxe')         # optional - meataxe
         <class 'sage.matrix.matrix_gfpn_dense.Matrix_gfpn_dense'>
-        sage: get_matrix_class(IntegerModRing(3), 4, 4, False, 'meataxe')  # optional: meataxe
+        sage: get_matrix_class(IntegerModRing(3), 4, 4, False, 'meataxe')  # optional - meataxe
         <class 'sage.matrix.matrix_gfpn_dense.Matrix_gfpn_dense'>
         sage: get_matrix_class(IntegerModRing(4), 4, 4, False, 'meataxe')
         Traceback (most recent call last):
@@ -181,7 +181,7 @@ def get_matrix_class(R, nrows, ncols, sparse, implementation):
         <class 'sage.matrix.matrix_mod2_dense.Matrix_mod2_dense'>
         sage: type(matrix(GF(64,'z'), 2, range(4)))
         <class 'sage.matrix.matrix_gf2e_dense.Matrix_gf2e_dense'>
-        sage: type(matrix(GF(125,'z'), 2, range(4)))     # optional: meataxe
+        sage: type(matrix(GF(125,'z'), 2, range(4)))     # optional - meataxe
         <class 'sage.matrix.matrix_gfpn_dense.Matrix_gfpn_dense'>
 
     """
@@ -392,6 +392,10 @@ def get_matrix_class(R, nrows, ncols, sparse, implementation):
             pass
         else:
             return matrix_integer_sparse.Matrix_integer_sparse
+
+    if R is sage.rings.real_double.RDF or R is sage.rings.complex_double.CDF:
+        from . import matrix_double_sparse
+        return matrix_double_sparse.Matrix_double_sparse
 
     # the fallback
     return matrix_generic_sparse.Matrix_generic_sparse

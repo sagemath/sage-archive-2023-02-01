@@ -197,7 +197,6 @@ Guide](https://doc.sagemath.org/html/en/installation).
 
             $ cd sage-x.y/  # adapt x.y
 
-
     - [Git] Alternatively, clone the Sage git repository:
 
             $ ORIG=https://github.com/sagemath/sage.git
@@ -475,7 +474,6 @@ SAGE_ROOT                 Root directory (sage-x.y in Sage tarball)
 └── VERSION.txt
 ```
 For more details see [our Developer's Guide](https://doc.sagemath.org/html/en/developer/coding_basics.html#files-and-directory-structure).
-
 
 Build System
 ------------

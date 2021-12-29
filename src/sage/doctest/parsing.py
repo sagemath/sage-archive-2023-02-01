@@ -27,7 +27,6 @@ import re
 import doctest
 from collections import defaultdict
 from sage.repl.preparse import preparse, strip_string_literals
-from Cython.Build.Dependencies import strip_string_literals as cython_strip_string_literals
 from functools import reduce
 
 
@@ -55,6 +54,7 @@ backslash_replacer = re.compile(r"""(\s*)sage:(.*)\\\ *
 \ *(((\.){4}:)|((\.){3}))?\ *""")
 
 _RIFtol = None
+
 
 def RIFtol(*args):
     """
@@ -89,6 +89,7 @@ def RIFtol(*args):
         except ImportError:
             from warnings import warn
             warn("RealIntervalField not available, ignoring all tolerance specifications in doctests")
+
             def fake_RIFtol(*args):
                 return 0
             _RIFtol = fake_RIFtol

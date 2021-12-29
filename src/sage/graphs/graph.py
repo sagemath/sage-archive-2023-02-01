@@ -797,7 +797,7 @@ class Graph(GenericGraph):
           sage: import networkx
           sage: g = networkx.MultiGraph({0:[1,2,3], 2:[4]})
           sage: Graph(g)
-          Graph on 5 vertices
+          Multi-graph on 5 vertices
 
     #. A NetworkX graph::
 
@@ -1096,11 +1096,8 @@ class Graph(GenericGraph):
                 elif isinstance(val, dict):
                     format = 'dict_of_dicts'
         if format is None and hasattr(data, 'adj'):
-            import networkx
-            if isinstance(data, (networkx.DiGraph, networkx.MultiDiGraph)):
-                data = data.to_undirected()
-            elif isinstance(data, (networkx.Graph, networkx.MultiGraph)):
-                format = 'NX'
+            # the input is a networkx (Multi)(Di)Graph
+            format = 'NX'
 
         if (format is None          and
             hasattr(data, 'vcount') and
@@ -1183,29 +1180,15 @@ class Graph(GenericGraph):
             self.name(data.name())
             self.set_vertices(data.get_vertices())
             data._backend.subgraph_given_vertices(self._backend, data)
+
         elif format == 'NX':
-            if convert_empty_dict_labels_to_None is not False:
-                r = lambda x: None if x=={} else x
-            else:
-                r = lambda x: x
+            from sage.graphs.graph_input import from_networkx_graph
+            from_networkx_graph(self, data,
+                                weighted=weighted, multiedges=multiedges, loops=loops,
+                                convert_empty_dict_labels_to_None=convert_empty_dict_labels_to_None)
             if weighted is None:
-                import networkx
-                if isinstance(data, networkx.Graph):
-                    weighted = False
-                    if multiedges is None:
-                        multiedges = False
-                    if loops is None:
-                        loops = False
-                else:
-                    weighted = True
-                    if multiedges is None:
-                        multiedges = True
-                    if loops is None:
-                        loops = True
-            self.allow_loops(loops, check=False)
-            self.allow_multiple_edges(multiedges, check=False)
-            self.add_vertices(data.nodes())
-            self.add_edges((u,v,r(l)) for u,v,l in data.edges(data=True))
+                weighted = self.allows_multiple_edges()
+
         elif format == 'igraph':
             if data.is_directed():
                 raise ValueError("An *undirected* igraph graph was expected. "+
@@ -1547,7 +1530,7 @@ class Graph(GenericGraph):
             sage: G.is_tree(certificate=True, output='edge')
             (False, [(0, 0, None)])
         """
-        if not output in ['vertex', 'edge']:
+        if output not in ['vertex', 'edge']:
             raise ValueError('output must be either vertex or edge')
 
         if not self.order() or not self.is_connected():
@@ -3158,7 +3141,7 @@ class Graph(GenericGraph):
 
             sage: g = graphs.CompleteBipartiteGraph(3,4)
             sage: o = g.minimum_outdegree_orientation()
-            sage: max(o.out_degree()) == ceil((4*3)/(3+4))
+            sage: max(o.out_degree()) == integer_ceil((4*3)/(3+4))
             True
         """
         self._scream_if_not_simple()
@@ -3281,7 +3264,7 @@ class Graph(GenericGraph):
         out-degree at most `\lceil \frac {d(v)} 2 \rceil`::
 
             sage: g = graphs.RandomGNP(40, .4)
-            sage: b = lambda v: ceil(g.degree(v)/2)
+            sage: b = lambda v: integer_ceil(g.degree(v)/2)
             sage: D = g.bounded_outdegree_orientation(b)
             sage: all( D.out_degree(v) <= b(v) for v in g )
             True
@@ -3304,12 +3287,12 @@ class Graph(GenericGraph):
 
         Hence this is possible ::
 
-            sage: d = g.bounded_outdegree_orientation(ceil(mad/2))
+            sage: d = g.bounded_outdegree_orientation(integer_ceil(mad/2))
 
         While this is not::
 
             sage: try:
-            ....:     g.bounded_outdegree_orientation(ceil(mad/2-1))
+            ....:     g.bounded_outdegree_orientation(integer_ceil(mad/2-1))
             ....:     print("Error")
             ....: except ValueError:
             ....:     pass
@@ -3320,7 +3303,7 @@ class Graph(GenericGraph):
 
             sage: for i in range(30):      # long time (up to 6s on sage.math, 2012)
             ....:     g = graphs.RandomGNP(40, .4)
-            ....:     b = lambda v: ceil(g.degree(v)/2)
+            ....:     b = lambda v: integer_ceil(g.degree(v)/2)
             ....:     D = g.bounded_outdegree_orientation(b)
             ....:     if not (
             ....:          all( D.out_degree(v) <= b(v) for v in g ) or
@@ -4200,14 +4183,15 @@ class Graph(GenericGraph):
             for v in g:
                 p.add_constraint(p.sum(b[frozenset(e)] for e in self.edge_iterator(vertices=[v], labels=False)
                                            if e[0] != e[1]), max=1)
+
+            p.solve(log=verbose)
+            b = p.get_values(b, convert=bool, tolerance=integrality_tolerance)
             if value_only:
                 if use_edge_labels:
-                    return p.solve(objective_only=True, log=verbose)
+                    return sum(w for fe, w in W.items() if b[fe])
                 else:
-                    return Integer(round(p.solve(objective_only=True, log=verbose)))
+                    return Integer(sum(1 for fe in L if b[fe]))
             else:
-                p.solve(log=verbose)
-                b = p.get_values(b, convert=bool, tolerance=integrality_tolerance)
                 return [(u, v, L[frozenset((u, v))]) for u, v in L if b[frozenset((u, v))]]
 
         else:
@@ -4318,7 +4302,7 @@ class Graph(GenericGraph):
             p.set_objective(p.sum(m[vh] for vh in H))
 
         try:
-            p.solve(log = verbose)
+            p.solve(log=verbose)
         except MIPSolverException:
             return False
 
@@ -4543,12 +4527,12 @@ class Graph(GenericGraph):
         of each vertex. The ISR of such a family defines a 3-coloring::
 
             sage: g = 3 * graphs.PetersenGraph()
-            sage: n = g.order()/3
-            sage: f = [[i,i+n,i+2*n] for i in range(n)]
+            sage: n = g.order() / 3
+            sage: f = [[i, i + n, i + 2*n] for i in range(n)]
             sage: isr = g.independent_set_of_representatives(f)
-            sage: c = [floor(i/n) for i in isr]
-            sage: color_classes = [[],[],[]]
-            sage: for v,i in enumerate(c):
+            sage: c = [integer_floor(i / n) for i in isr]
+            sage: color_classes = [[], [], []]
+            sage: for v, i in enumerate(c):
             ....:   color_classes[i].append(v)
             sage: for classs in color_classes:
             ....:   g.subgraph(classs).size() == 0
@@ -6391,7 +6375,8 @@ class Graph(GenericGraph):
             sage: (G.cliques_get_max_clique_graph()).show(figsize=[2,2])
         """
         import networkx
-        return Graph(networkx.make_max_clique_graph(self.networkx_graph(), create_using=networkx.MultiGraph()))
+        return Graph(networkx.make_max_clique_graph(self.networkx_graph(), create_using=networkx.MultiGraph()),
+                     multiedges=False)
 
     @doc_index("Clique-related methods")
     def cliques_get_clique_bipartite(self, **kwds):
@@ -6514,8 +6499,7 @@ class Graph(GenericGraph):
             return self.order() - my_cover
         else:
             my_cover = set(my_cover)
-            return [u for u in self if not u in my_cover]
-
+            return [u for u in self if u not in my_cover]
 
     @doc_index("Algorithmically hard stuff")
     @rename_keyword(deprecation=32238, verbosity='verbose')
@@ -6772,7 +6756,7 @@ class Graph(GenericGraph):
             if value_only:
                 size_cover_g = g.order() - len(independent)
             else:
-                cover_g = set(uu for uu in g if not uu in independent)
+                cover_g = set(uu for uu in g if uu not in independent)
 
         elif algorithm == "MILP":
 
@@ -6787,11 +6771,11 @@ class Graph(GenericGraph):
             for u,v in g.edge_iterator(labels=None):
                 p.add_constraint(b[u] + b[v], min=1)
 
+            p.solve(log=verbose)
+            b = p.get_values(b, convert=bool, tolerance=integrality_tolerance)
             if value_only:
-                size_cover_g = p.solve(objective_only=True, log=verbose)
+                size_cover_g = sum(1 for v in g if b[v])
             else:
-                p.solve(log=verbose)
-                b = p.get_values(b, convert=bool, tolerance=integrality_tolerance)
                 cover_g = set(v for v in g if b[v])
         else:
             raise ValueError('the algorithm must be "Cliquer", "MILP" or "mcqd"')
@@ -7955,7 +7939,7 @@ class Graph(GenericGraph):
 
         And also the min cut::
 
-            sage: g.edge_connectivity() == min(t.edge_labels())
+            sage: g.edge_connectivity() == min(t.edge_labels()) or not g.is_connected()
             True
 
         TESTS:
@@ -8211,8 +8195,8 @@ class Graph(GenericGraph):
 
             sage: g = graphs.CycleGraph(6)
             sage: m = g.magnitude_function()
-            sage: t = var('t')
-            sage: m(exp(-t))
+            sage: t = var('t')                                                  # optional - sage.symbolic
+            sage: m(exp(-t))                                                    # optional - sage.symbolic
             6/(2*e^(-t) + 2*e^(-2*t) + e^(-3*t) + 1)
 
         TESTS::
@@ -8367,7 +8351,7 @@ class Graph(GenericGraph):
             True
 
             sage: G = graphs.PetersenGraph().copy(immutable=True)
-            sage: list(G.perfect_matchings())
+            sage: [sorted(m) for m in G.perfect_matchings()]
             [[(0, 1), (2, 3), (4, 9), (5, 7), (6, 8)],
              [(0, 1), (2, 7), (3, 4), (5, 8), (6, 9)],
              [(0, 4), (1, 2), (3, 8), (5, 7), (6, 9)],
@@ -8385,14 +8369,52 @@ class Graph(GenericGraph):
         if not self:
             yield []
             return
-        # if every connected component has an even number of vertices
-        if not any(len(cc) % 2 for cc in self.connected_components()):
-            v = next(self.vertex_iterator())
-            for e in self.edges_incident(v, labels=labels):
-                Gp = self.copy(immutable=False)
-                Gp.delete_vertices([e[0], e[1]])
-                for mat in Gp.perfect_matchings(labels):
-                    yield [e] + mat
+        if self.order() % 2 or any(len(cc) % 2 for cc in self.connected_components()):
+            return
+
+        def rec(G):
+            """
+            Iterator over all perfect matchings of a simple graph `G`.
+            """
+            if not G:
+                yield []
+                return
+            if G.order() % 2 == 0:
+                v = next(G.vertex_iterator())
+                Nv = list(G.neighbor_iterator(v))
+                G.delete_vertex(v)
+                for u in Nv:
+                    Nu = list(G.neighbor_iterator(u))
+                    G.delete_vertex(u)
+                    for partial_matching in rec(G):
+                        partial_matching.append((u, v))
+                        yield partial_matching
+                    G.add_vertex(u)
+                    G.add_edges((u, nu) for nu in Nu)
+                G.add_vertex(v)
+                G.add_edges((v, nv) for nv in Nv)
+
+        # We create a mutable copy of the graph and remove its loops, if any
+        G = self.copy(immutable=False)
+        G.allow_loops(False)
+
+        # We create a mapping from frozen unlabeled edges to (labeled) edges.
+        # This ease for instance the manipulation of multiedges (if any)
+        edges = {}
+        for e in G.edges(labels=labels):
+            f = frozenset(e[:2])
+            if f in edges:
+                edges[f].append(e)
+            else:
+                edges[f] = [e]
+
+        # We now get rid of multiple edges, if any
+        G.allow_multiple_edges(False)
+
+        # For each unlabeled matching, we yield all its possible labelings
+        for m in rec(G):
+            for pm in itertools.product(*[edges[frozenset(e)] for e in m]):
+                yield pm
 
     @doc_index("Leftovers")
     def has_perfect_matching(self, algorithm="Edmonds", solver=None, verbose=0,
@@ -9371,6 +9393,7 @@ class Graph(GenericGraph):
     from sage.graphs.graph_decompositions.rankwidth import rank_decomposition
     from sage.graphs.graph_decompositions.tree_decomposition import treewidth
     from sage.graphs.graph_decompositions.vertex_separation import pathwidth
+    from sage.graphs.graph_decompositions.tree_decomposition import treelength
     from sage.graphs.graph_decompositions.clique_separators import atoms_and_clique_separators
     from sage.graphs.matchpoly import matching_polynomial
     from sage.graphs.cliquer import all_max_clique as cliques_maximum
@@ -9389,6 +9412,7 @@ class Graph(GenericGraph):
     from sage.graphs.connectivity import is_triconnected
     from sage.graphs.comparability import is_comparability
     from sage.graphs.comparability import is_permutation
+    from sage.graphs.convexity_properties import geodetic_closure
     from sage.graphs.domination import is_dominating
     from sage.graphs.domination import is_redundant
     from sage.graphs.domination import private_neighbors
@@ -9408,6 +9432,7 @@ _additional_categories = {
     "rank_decomposition"        : "Algorithmically hard stuff",
     "treewidth"                 : "Algorithmically hard stuff",
     "pathwidth"                 : "Algorithmically hard stuff",
+    "treelength"                : "Algorithmically hard stuff",
     "matching_polynomial"       : "Algorithmically hard stuff",
     "all_max_clique"            : "Clique-related methods",
     "cliques_maximum"           : "Clique-related methods",
@@ -9441,7 +9466,8 @@ _additional_categories = {
     "edge_isoperimetric_number" : "Expansion properties",
     "vertex_isoperimetric_number" : "Expansion properties",
     "fractional_chromatic_number" : "Coloring",
-    "fractional_chromatic_index" : "Coloring"
+    "fractional_chromatic_index" : "Coloring",
+    "geodetic_closure"          : "Leftovers"
     }
 
 __doc__ = __doc__.replace("{INDEX_OF_METHODS}",gen_thematic_rest_table_index(Graph,_additional_categories))

@@ -244,30 +244,21 @@ html_favicon = 'favicon.ico'
 html_common_static_path = [os.path.join(SAGE_DOC_SRC, 'common', 'static'),
                            THEBE_DIR, 'static']
 
-# We use MathJax to build the documentation unless the environment
-# variable SAGE_DOC_MATHJAX is set to "no" or "False".  (Note that if
-# the user does not set this variable, then the script sage-env sets
-# it to "True".)
+# We use MathJax to build the documentation.
+extensions.append('sphinx.ext.mathjax')
+mathjax_path = 'MathJax.js?config=TeX-AMS_HTML-full,../mathjax_sage.js'
 
-if (os.environ.get('SAGE_DOC_MATHJAX', 'no') not in ['no', 'False']):
-    extensions.append('sphinx.ext.mathjax')
-    mathjax_path = 'MathJax.js?config=TeX-AMS_HTML-full,../mathjax_sage.js'
+from sage.misc.latex_macros import sage_mathjax_macros
+html_theme_options['mathjax_macros'] = sage_mathjax_macros()
 
-    from sage.misc.latex_macros import sage_mathjax_macros
-    html_theme_options['mathjax_macros'] = sage_mathjax_macros()
+mathjax_relative = os.path.basename(MATHJAX_DIR)
 
-    mathjax_relative = os.path.basename(MATHJAX_DIR)
-
-    # It would be really nice if sphinx would copy the entire mathjax
-    # directory, (so we could have a _static/mathjax directory), rather than
-    # the contents of the directory
-
-    html_common_static_path.append(MATHJAX_DIR)
-    exclude_patterns += ['**/'+os.path.join(mathjax_relative, i)
-                         for i in ('docs', 'README*', 'test', 'unpacked', 'LICENSE')]
-else:
-     extensions.append('sphinx.ext.imgmath')
-
+# It would be really nice if sphinx would copy the entire mathjax
+# directory, (so we could have a _static/mathjax directory), rather than
+# the contents of the directory
+html_common_static_path.append(MATHJAX_DIR)
+exclude_patterns += ['**/' + os.path.join(mathjax_relative, i)
+                     for i in ('docs', 'README*', 'test', 'unpacked', 'LICENSE')]
 
 # If not '', a 'Last updated on:' timestamp is inserted at every page bottom,
 # using the given strftime format.
@@ -415,6 +406,7 @@ latex_elements['preamble'] = r"""
     \DeclareUnicodeCharacter{22C1}{\ensuremath{\bigvee}}
     \DeclareUnicodeCharacter{22C2}{\ensuremath{\bigcap}}
     \DeclareUnicodeCharacter{22C3}{\ensuremath{\bigcup}}
+    \DeclareUnicodeCharacter{2323}{\ensuremath{\smile}}  % cup product
     \DeclareUnicodeCharacter{00B1}{\ensuremath{\pm}}
     \DeclareUnicodeCharacter{2A02}{\ensuremath{\bigotimes}}
     \DeclareUnicodeCharacter{2297}{\ensuremath{\otimes}}
@@ -635,6 +627,7 @@ def check_nested_class_picklability(app, what, name, obj, skip, options):
                          'sage.misc.nested_class.NestedClassMetaclass.' % (
                         v.__module__ + '.' + name + '.' + nm))
 
+
 def skip_member(app, what, name, obj, skip, options):
     """
     To suppress Sphinx warnings / errors, we
@@ -645,9 +638,6 @@ def skip_member(app, what, name, obj, skip, options):
       inserted into its module by
       :class:`sage.misc.NestedClassMetaclass` only for pickling.  The
       class will be properly documented inside its surrounding class.
-
-    - Don't include
-      sagenb.notebook.twist.userchild_download_worksheets.zip.
 
     - Optionally, check whether pickling is broken for nested classes.
 
@@ -671,14 +661,12 @@ def skip_member(app, what, name, obj, skip, options):
             if objname.split('.')[-1] == name.split('.')[-1]:
                 return True
 
-    if name.find("userchild_download_worksheets.zip") != -1:
-        return True
-
     if 'SAGE_DOC_UNDERSCORE' in os.environ:
         if name.split('.')[-1].startswith('_'):
             return False
 
     return skip
+
 
 def process_dollars(app, what, name, obj, options, docstringlines):
     r"""

@@ -1286,8 +1286,7 @@ cdef class Matrix(Matrix0):
         if from_list:
             return self.columns(copy=False)[i]
         cdef Py_ssize_t j
-        V = sage.modules.free_module.FreeModule(self._base_ring,
-                                     self._nrows, sparse=self.is_sparse())
+        V = self._column_ambient_module()
         tmp = [self.get_unsafe(j, i) for j in range(self._nrows)]
         return V(tmp, coerce=False, copy=False, check=False)
 
@@ -1344,8 +1343,7 @@ cdef class Matrix(Matrix0):
         if from_list:
             return self.rows(copy=False)[i]
         cdef Py_ssize_t j
-        V = sage.modules.free_module.FreeModule(self._base_ring,
-                                      self._ncols, sparse=self.is_sparse())
+        V = self._row_ambient_module()
         tmp = [self.get_unsafe(i,j) for j in range(self._ncols)]
         return V(tmp, coerce=False, copy=False, check=False)
 
@@ -2393,16 +2391,15 @@ cdef class Matrix(Matrix0):
             :meth:`get_is_zero_unsafe` for derived matrix classes.
         """
         if ring is None:
-            from sage.rings.all import ZZ
+            from sage.rings.integer_ring import ZZ
             ring = ZZ
 
-        cdef object zero = ring.zero()
         cdef object one = ring.one()
         cdef Py_ssize_t i, j
 
         from sage.matrix.matrix_space import MatrixSpace
         MZ = MatrixSpace(ring, self._nrows, self._ncols, sparse=False)
-        cdef Matrix M =  MZ(zero, None, None)  # initialize with zeros
+        cdef Matrix M = MZ(ring.zero())
 
         for i from 0 <= i < self._nrows:
             for j from 0 <= j < self._ncols:
@@ -2644,11 +2641,10 @@ cdef class Matrix(Matrix0):
         """
         if (sparse is None or self.is_sparse() == sparse):
             if self._nrows == nrows and self._ncols == ncols:
-                return self._parent(entries=entries, coerce=coerce, copy=copy)
+                return self._parent(entries, coerce=coerce, copy=copy)
             elif self._nrows == ncols and self._ncols == nrows:
-                return self._parent.transposed(entries=entries, coerce=coerce, copy=copy)
-        return self.matrix_space(nrows, ncols, sparse)(entries=entries,
-                                             coerce=coerce, copy=copy)
+                return self._parent.transposed(entries, coerce=coerce, copy=copy)
+        return self.matrix_space(nrows, ncols, sparse)(entries, coerce=coerce, copy=copy)
 
     def block_sum(self, Matrix other):
         """

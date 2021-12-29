@@ -422,7 +422,7 @@ cdef class Matrix_double_dense(Matrix_dense):
         Note that if this matrix is (nearly) singular, finding
         its inverse will not help much and will give slightly different
         answers on similar platforms depending on the hardware
-        and tuning options given to ATLAS::
+        and other factors::
 
             sage: A = matrix(RDF,3,range(1,10));A
             [1.0 2.0 3.0]
@@ -1109,9 +1109,9 @@ cdef class Matrix_double_dense(Matrix_dense):
 
         Below example illustrates the change in behaviour of ``LU()``. ::
 
-            sage: m == P*L*U
+            sage: (m - P*L*U).norm() < 1e-14
             True
-            sage: P*m == L*U
+            sage: (P*m - L*U).norm() < 1e-14
             False
 
         :trac:`10839` made this routine available for rectangular matrices.  ::

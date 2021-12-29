@@ -5,7 +5,7 @@
 >   "Creating a Viable Open Source Alternative to
 >    Magma, Maple, Mathematica, and MATLAB"
 
->   Copyright (C) 2005-2020 The Sage Development Team
+>   Copyright (C) 2005-2021 The Sage Development Team
 
    https://www.sagemath.org
 
@@ -37,9 +37,13 @@ or ask on [ask.sagemath.org](https://ask.sagemath.org).
 Supported Platforms
 -------------------
 
-Sage fully supports all major Linux distributions, recent versions of
+Sage attempts to support all major Linux distributions, recent versions of
 macOS, and Windows (using Cygwin, Windows Subsystem for Linux, or
 using virtualization).
+
+Detailed information on supported platforms for a specific version of Sage
+can be found in the section "Availability and installation help" of the
+[release tour](https://wiki.sagemath.org/ReleaseTours) for this version.
 
 We highly appreciate contributions to Sage that fix portability bugs
 and help port Sage to new platforms; let us know at the [sage-devel
@@ -234,27 +238,21 @@ Guide](https://doc.sagemath.org/html/en/installation).
    [debian.txt](build/pkgs/_prereq/distros/debian.txt)
    (also for Ubuntu, Linux Mint, etc.),
    [fedora.txt](build/pkgs/_prereq/distros/fedora.txt)
-   (also for Red Hat, CentOS), and
-   [slackware.txt](build/pkgs/_prereq/distros/slackware.txt).
+   (also for Red Hat, CentOS),
+   [opensuse.txt](build/pkgs/_prereq/distros/opensuse.txt)
+   [slackware.txt](build/pkgs/_prereq/distros/slackware.txt), and
+   [void.txt](build/pkgs/_prereq/distros/void.txt).
 
-7. Optional, but highly recommended: Make sure your system has an SSL
-   library and its development files installed.
-
-   Like Python, on which it is based, Sage uses the OpenSSL library
-   for added performance if made available by the operating system. It
-   has been shown that Sage can be successfully built against other
-   SSL libraries, with some of its features disabled.
-
-8. Optional: It is recommended that you have both LaTeX and the
+7. Optional: It is recommended that you have both LaTeX and the
    ImageMagick tools (e.g. the "convert" command) installed since some
    plotting functionality benefits from it.
 
-9. Optionally, review the configuration options, which includes
+8. Optionally, review the configuration options, which includes
    many optional packages:
 
         $ ./configure --help
 
-10. Optional, but highly recommended: Set some environment variables to
+9. Optional, but highly recommended: Set some environment variables to
    customize the build.
 
    For example, the `MAKE` environment variable controls whether to
@@ -271,7 +269,7 @@ Guide](https://doc.sagemath.org/html/en/installation).
    building Sage, see [the installation
    guide](https://doc.sagemath.org/html/en/installation/source.html#environment-variables).
 
-11. Type `./configure`, followed by any options that you wish to use.
+10. Type `./configure`, followed by any options that you wish to use.
    For example, to build Sage with `gf2x` package supplied by Sage,
    use `./configure --with-system-gf2x=no`.
 
@@ -291,37 +289,37 @@ Guide](https://doc.sagemath.org/html/en/installation).
    available; only the most recent releases of your distribution will
    have all of these recommended packages.
 
-12. Optional: If you choose to install the additional system packages,
+11. Optional: If you choose to install the additional system packages,
    a re-run of `./configure` will test whether the versions installed
    are usable for Sage; if they are, this will reduce the compilation
    time and disk space needed by Sage. The usage of packages may be
    adjusted by `./configure` parameters (check again the output of
    `./configure --help`).
 
-13. Type `make`.  That's it! Everything is automatic and
+12. Type `make`.  That's it! Everything is automatic and
    non-interactive; but it will take a few hours (on a recent
    computer).
 
    The build should work fine on all fully supported platforms. If it
    does not, we want to know!
 
-14. Type `./sage` to try it out.
+13. Type `./sage` to try it out.
 
-15. Optional: Type `make ptestlong` to test all examples in the documentation
+14. Optional: Type `make ptestlong` to test all examples in the documentation
    (over 200,000 lines of input!) -- this takes from 10 minutes to
    several hours. Don't get too disturbed if there are 2 to 3 failures,
    but always feel free to email the section of `logs/ptestlong.log` that
    contains errors to the [sage-support mailing list](https://groups.google.com/group/sage-support).
    If there are numerous failures, there was a serious problem with your build.
 
-16. The HTML version of the [documentation](https://doc.sagemath.org/html/en/index.html)
+15. The HTML version of the [documentation](https://doc.sagemath.org/html/en/index.html)
    is built during the compilation process of Sage and resides in the directory
    `local/share/doc/sage/html/`.
 
-17. Optional: If you want to build the PDF version of the documentation,
+16. Optional: If you want to build the PDF version of the documentation,
     run `make doc-pdf` (this requires LaTeX to be installed).
 
-18. Optional: You might install optional packages of interest to you: type
+17. Optional: You might install optional packages of interest to you: type
    `./sage --optional` to get a list.
 
 Troubleshooting
@@ -357,9 +355,9 @@ Simplified directory layout (only essential files/directories):
 SAGE_ROOT                 Root directory (sage-x.y.z in Sage tarball)
 ├── build
 │   └── pkgs              Every package is a subdirectory here
-│       ├── atlas
+│       ├── 4ti2/
 │       …
-│       └── zn_poly
+│       └── zn_poly/
 ├── configure             Top-level configure script
 ├── COPYING.txt           Copyright information
 ├── pkgs                  Source trees of Python distribution packages
@@ -367,44 +365,62 @@ SAGE_ROOT                 Root directory (sage-x.y.z in Sage tarball)
 │   │   ├── sage_conf.py
 │   │   └── setup.py
 │   ├── sage-docbuild
-│   │   ├── sage_docbuild
+│   │   ├── sage_docbuild/
+│   │   └── setup.py
+│   ├── sage-setup
+│   │   ├── sage_setup/
 │   │   └── setup.py
 │   ├── sage-sws2rst
-│   │   ├── sage_sws2rst
+│   │   ├── sage_sws2rst/
 │   │   └── setup.py
 │   └── sagemath-standard
-│       ├── bin
-│       ├── sage
+│       ├── bin/
+│       ├── sage -> ../../src/sage
 │       └── setup.py
-├── local  (SAGE_LOCAL)   Compiled packages are installed here
+├── local  (SAGE_LOCAL)   Installation hierarchy for non-Python packages
 │   ├── bin               Executables
 │   ├── include           C/C++ headers
-│   ├── lib               Shared libraries
+│   ├── lib               Shared libraries, architecture-dependent data
 │   ├── share             Databases, architecture-independent data, docs
 │   │   └── doc           Viewable docs of Sage and of some components
 │   └── var
-│       ├── lib/sage      List of installed packages
-│       └── tmp/sage      Temporary files when building Sage
+│       ├── lib/sage
+│       │   ├── installed/
+│       │   │             Records of installed non-Python packages
+│       │   ├── scripts/  Scripts for uninstalling installed packages
+│       │   └── venv-python3.9  (SAGE_VENV)
+│       │       │         Installation hierarchy (virtual environment)
+│       │       │         for Python packages
+│       │       ├── bin/  Executables and installed scripts
+│       │       ├── lib/python3.9/site-packages/
+│       │       │         Python modules/packages are installed here
+│       │       └── var/lib/sage/
+│       │           └── wheels/
+│       │                 Python wheels for all installed Python packages
+│       │
+│       └── tmp/sage/     Temporary files when building Sage
 ├── logs
 │   ├── dochtml.log       Log of the documentation build
 │   ├── install.log       Full install log
 │   └── pkgs              Build logs of individual packages
-│       ├── atlas-3.10.1.p7.log
+│       ├── alabaster-0.7.12.log
 │       …
-│       └── zn_poly-0.9.p11.log
-├── m4                    M4 macros for configure
+│       └── zn_poly-0.9.2.log
+├── m4                    M4 macros for generating the configure script
 │   └── *.m4
 ├── Makefile              Running "make" uses this file
+├── prefix -> SAGE_LOCAL  Convenience symlink to the installation tree
 ├── README.md             This file
 ├── sage                  Script to start Sage
 ├── src                   Monolithic Sage library source tree
-│   ├── bin               Scripts that Sage uses internally
-│   ├── doc               Sage documentation sources
-│   └── sage              The Sage library source code
+│   ├── bin/              Scripts that Sage uses internally
+│   ├── doc/              Sage documentation sources
+│   └── sage/             The Sage library source code
 ├── upstream              Source tarballs of packages
-│   ├── atlas-3.10.1.tar.bz2
+│   ├── Babel-2.9.1.tar.gz
 │   …
-│   └── zn_poly-0.9.tar.bz2
+│   └── zn_poly-0.9.2.tar.gz
+├── venv -> SAGE_VENV     Convenience symlink to the virtual environment
 └── VERSION.txt
 ```
 For more details see [our Developer's Guide](https://doc.sagemath.org/html/en/developer/coding_basics.html#files-and-directory-structure).
@@ -490,9 +506,9 @@ do.
 1. To make a binary distribution with your currently installed packages,
    visit [sagemath/binary-pkg](https://github.com/sagemath/binary-pkg).
 
-2. (**Obsolete, probably broken**) To make your own source tarball of Sage, type:
+2. To make your own source tarball of Sage, type:
 
-        $ sage --sdist
+        $ make dist
 
    The result is placed in the directory `dist/`.
 

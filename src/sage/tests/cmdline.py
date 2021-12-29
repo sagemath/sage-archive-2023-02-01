@@ -264,7 +264,7 @@ def test_executable(args, input="", timeout=100.0, pydebug_ignore_warnings=False
         sage: dir = tmp_dir(); name = 'sage_test_file.sage'
         sage: fullname = os.path.join(dir, name)
         sage: F = open(fullname, 'w')
-        sage: _ = F.write("from __future__ import print_function\nk.<a> = GF(5^3); print(a^124)\n")
+        sage: _ = F.write("k.<a> = GF(5^3); print(a^124)\n")
         sage: F.close()
         sage: (out, err, ret) = test_executable(["sage", fullname])
         sage: print(out)
@@ -729,7 +729,7 @@ def test_executable(args, input="", timeout=100.0, pydebug_ignore_warnings=False
         ....:     _ = F.write(s)
         sage: L = ["sage", "--ipynb2rst", input, output]
         sage: _ = test_executable(L)                        # optional - pandoc
-        sage: print(open(output, 'r').read() == t)          # optional - pandoc
+        sage: print(open(output, 'r').read() == t)          # optional - pandoc  # known bug #32697
         True
     """
     pexpect_env = dict(os.environ)
@@ -766,6 +766,7 @@ def test_executable(args, input="", timeout=100.0, pydebug_ignore_warnings=False
             rfd.append(fderr)
         if len(rfd) == 0:
             break
+        timeout = float(timeout)
         rlist = select.select(rfd, [], [], timeout)[0]
 
         if len(rlist) == 0:

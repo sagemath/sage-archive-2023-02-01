@@ -5175,12 +5175,12 @@ class Graph(GenericGraph):
             algorithm = 'DHV'
 
         if algorithm == 'DHV':
-            by_weight, w_func = self._get_weight_function(by_weight=by_weight,
-                                                          weight_function=weight_function,
-                                                          check_weight=check_weight)
+            by_weight, weight_function = self._get_weight_function(by_weight=by_weight,
+                                                                   weight_function=weight_function,
+                                                                   check_weight=check_weight)
             if by_weight:
                 from sage.graphs.base.boost_graph import radius_DHV
-                return radius_DHV(self, weight_function=w_func,
+                return radius_DHV(self, weight_function=weight_function,
                                   check_weight=False)
             else:
                 from sage.graphs.distances_all_pairs import radius_DHV

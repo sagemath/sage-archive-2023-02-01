@@ -1536,11 +1536,10 @@ class BinaryQF(SageObject):
             if not n:
                 return tuple(M.columns()[1])
             for x in n.divisors():
-                try:
-                    y = ZZ((n//x - Q._a*x) / Q._b)
-                except TypeError:
-                    continue
-                return tuple(row[0]*x + row[1]*y for row in M.rows())
+                y_num = n // x - Q._a * x
+                if Q._b.divides(y_num):
+                    y = y_num // Q._b
+                    return tuple(row[0]*x + row[1]*y for row in M.rows())
 
             return None
 

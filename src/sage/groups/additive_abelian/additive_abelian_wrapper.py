@@ -252,6 +252,15 @@ class AdditiveAbelianGroupWrapper(addgp.AdditiveAbelianGroup_fixed_gens):
             sage: el = A.random_element()
             sage: A.discrete_exp(A.discrete_log(el)) == el
             True
+
+        TESTS:
+
+        Check that :meth:`_discrete_exp` still works (for now)::
+
+            sage: A._discrete_exp(list(range(1,6)))
+            doctest:warning ...
+            DeprecationWarning: _discrete_exp is deprecated. ...
+            (1, 2, 3, 4, 5)
         """
         from sage.misc.verbose import verbose
         v = self.V()(v)
@@ -377,7 +386,8 @@ class AdditiveAbelianGroupWrapper(addgp.AdditiveAbelianGroup_fixed_gens):
 
         ::
 
-            sage: V = Zmod(8)**2; G = AdditiveAbelianGroupWrapper(V, [[2,2],[4,0]], [4, 2])
+            sage: V = Zmod(8)**2
+            sage: G = AdditiveAbelianGroupWrapper(V, [[2,2],[4,0]], [4, 2])
             sage: G.discrete_log(V([6, 2]))
             (1, 1)
             sage: G.discrete_log(V([6, 4]))
@@ -392,6 +402,18 @@ class AdditiveAbelianGroupWrapper(addgp.AdditiveAbelianGroup_fixed_gens):
             Traceback (most recent call last):
             ...
             NotImplementedError: No black-box discrete log for infinite abelian groups
+
+        TESTS:
+
+        Check that :meth:`_discrete_log` still works (for now)::
+
+            sage: orders = [2, 2*3, 2*3*5, 2*3*5*7, 2*3*5*7*11]
+            sage: G = AdditiveAbelianGroup(orders)
+            sage: A = AdditiveAbelianGroupWrapper(G.0.parent(), G.gens(), orders)
+            sage: A._discrete_log(sum(i*g for i,g in enumerate(G.gens(),1)))
+            doctest:warning ...
+            DeprecationWarning: _discrete_log is deprecated. ...
+            (1, 2, 3, 4, 5)
         """
         from sage.arith.misc import CRT_list
         from sage.rings.infinity import Infinity
@@ -430,7 +452,8 @@ class AdditiveAbelianGroupWrapper(addgp.AdditiveAbelianGroup_fixed_gens):
 
         EXAMPLES::
 
-            sage: V = Zmod(8)**2; G = AdditiveAbelianGroupWrapper(V, [[2,2],[4,0]], [4, 2])
+            sage: V = Zmod(8)**2
+            sage: G = AdditiveAbelianGroupWrapper(V, [[2,2],[4,0]], [4, 2])
             sage: G(V([6,2]))
             (6, 2)
             sage: G([1,1])

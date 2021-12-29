@@ -16,7 +16,9 @@ RUN sudo apt-get install -y --no-install-recommends \
             _bootstrap \
             $(PATH=build/bin:$PATH build/bin/sage-package list \
                  --has-file=spkg-configure.m4 :standard: \
-              | grep -E -v "pari|tox" ))
+              | grep -E -v "pari|tox|flint" ))
+    # As of 2021-12, gitpod uses ubuntu-focal. To save space, we filter out some packages that are
+    # too old and will be rejected by our configure script.
     # We do not install pari, as it is not recognized even if installed
     # We do not install tox, since it pulls in javascript-common which does not install for some reason
 

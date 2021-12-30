@@ -633,7 +633,7 @@ def special_points(
           show_alt: Checkbox(value=False, description='Altitudes')
           show_ab: Checkbox(value=False, description='Angle Bisectors')
           show_incircle: Checkbox(value=False, description='Incircle')
-          show_euler: Checkbox(value=False, description=u"Euler's Line")
+          show_euler: Checkbox(value=False, description="Euler's Line")
     """
     import math
     # Return the intersection point of the bisector of the angle <(A[a],A[c],A[b]) and the unit circle. Angles given in radians.

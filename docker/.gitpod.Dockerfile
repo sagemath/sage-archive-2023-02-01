@@ -17,9 +17,8 @@ RUN sudo apt-get install -y --no-install-recommends \
             $(PATH=build/bin:$PATH build/bin/sage-package list \
                  --has-file=spkg-configure.m4 :standard: \
               | grep -E -v "pari|tox|flint" ))
-    # As of 2021-12, gitpod uses ubuntu-focal. To save space, we filter out some packages that are
+    # As of 2021-12, gitpod uses ubuntu-focal. To save space, we filter out some packages (pari, flint) that are
     # too old and will be rejected by our configure script.
-    # We do not install pari, as it is not recognized even if installed
     # We do not install tox, since it pulls in javascript-common which does not install for some reason
 
 ## Homebrew has some more up-to-date packages (but sage is not yet able to find them)
@@ -50,10 +49,10 @@ RUN ./bootstrap
 RUN mkdir -p sage-local && sudo ln -s /home/gitpod/sage-local /workspace/sage-local
 RUN ./configure --prefix=/workspace/sage-local --with-sage-venv
 ### V=0 since otherwise we would reach log limit
-### Gitpod also puts a timeout at 1h, so we cannot install everything here with `make build-local`
-RUN MAKE='make -j8' make V=0 \
-    arb ecl flint cddlib eclib fplll giac gengetopt singular \
-    pari pari_elldata pari_galdata pari_galpol pari_seadata
+### Gitpod also puts a timeout at 1h
+### So we use the construction timeout ... || true
+### to make sure we are below this limit and ensure that the docker build doesn't fail due to hitting this limit
+RUN MAKE='make -j8' timeout 45m make build-local V=0  || true
 
 ##
 ## Build final image

@@ -1503,13 +1503,20 @@ class BinaryQF(SageObject):
             sage: n = randrange(-10^3, 10^3)
             sage: Q = BinaryQF([n, randrange(-10^3, 10^3), 0][::(-1)**randrange(2)])
             sage: U = random_matrix(ZZ, 2, 2, 'unimodular')
-            sage: U.rescale_row(0, choice((+1,-1))); assert U.det() in (+1,-1)
+            sage: U.rescale_row(0, choice((+1,-1)))
+            sage: assert U.det() in (+1,-1)
             sage: Q = Q.matrix_action_right(U)
             sage: Q.discriminant().is_square()
             True
             sage: xy = Q.solve_integer(n)
             sage: Q(*xy) == n
             True
+
+        Also test the `n=0` special case separately::
+
+            sage: xy = Q.solve_integer(0)
+            sage: Q(*xy)
+            0
         """
         n = ZZ(n)
 

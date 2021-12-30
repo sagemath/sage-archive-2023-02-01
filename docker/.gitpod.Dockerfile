@@ -47,25 +47,20 @@ COPY --chown=gitpod:gitpod ./pkgs ./pkgs
 COPY --chown=gitpod:gitpod ./sage ./sage
 COPY --chown=gitpod:gitpod ./Makefile ./Makefile
 RUN ./bootstrap
-RUN ./configure --prefix=/home/gitpod/sage-prebuild
-### Hide output since otherwise we would reach log limit
+RUN sudo mkdir -p /workspace/sage-local && sudo chown gitpod:gitpod /workspace/sage-local
+RUN ./configure --prefix=/workspace/sage-local --with-sage-venv
+### V=0 since otherwise we would reach log limit
 ### Gitpod also puts a timeout at 1h, so we cannot install everything here with `make build-local`
-RUN MAKE='make -j8' make \
+RUN MAKE='make -j8' make V=0 \
     arb ecl flint cddlib eclib fplll giac gengetopt singular \
-    pari pari_elldata pari_galdata pari_galpol pari_seadata \
-    > /dev/null
+    pari pari_elldata pari_galdata pari_galpol pari_seadata
 
 ##
 ## Build final image
 ##
 FROM prepare
 # Reuse the prebuild packages
-COPY --from=prebuild /home/gitpod/sage-prebuild /home/gitpod/sage-prebuild
-ENV PATH=/home/gitpod/sage-prebuild/bin:$PATH
-ENV PKG_CONFIG_PATH=/home/gitpod/sage-prebuild/lib/pkgconfig:$PKG_CONFIG_PATH
-ENV CPPFLAGS="-I/home/gitpod/sage-prebuild/include $CPPFLAGS"
-ENV LDFLAGS="-L/home/gitpod/sage-prebuild/lib $LDFLAGS"
-ENV LD_LIBRARY_PATH="/home/gitpod/sage-prebuild/lib:$LD_LIBRARY_PATH"
+COPY --from=prebuild /workspace/sage-local /workspace/sage-local
 
 # Configure 
 ## Gitpod sets PIP_USER: yes by default, which leads to problems during build (e.g pip not being installed in the venv)

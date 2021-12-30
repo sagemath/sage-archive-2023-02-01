@@ -52,7 +52,7 @@ RUN ./configure --prefix=/workspace/sage-local --with-sage-venv
 ### Gitpod also puts a timeout at 1h
 ### So we use the construction timeout ... || true
 ### to make sure we are below this limit and ensure that the docker build doesn't fail due to hitting this limit
-RUN MAKE='make -j8' timeout 45m make build-local V=0  || true
+RUN MAKE='make -j16' timeout 45m make build-local V=0  || true
 
 ##
 ## Build final image

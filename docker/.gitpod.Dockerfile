@@ -47,7 +47,7 @@ COPY --chown=gitpod:gitpod ./pkgs ./pkgs
 COPY --chown=gitpod:gitpod ./sage ./sage
 COPY --chown=gitpod:gitpod ./Makefile ./Makefile
 RUN ./bootstrap
-RUN sudo mkdir -p /workspace/sage-local && sudo chown gitpod:gitpod /workspace/sage-local
+RUN mkdir -p sage-local && sudo ln -s /home/gitpod/sage-local /workspace/sage-local
 RUN ./configure --prefix=/workspace/sage-local --with-sage-venv
 ### V=0 since otherwise we would reach log limit
 ### Gitpod also puts a timeout at 1h, so we cannot install everything here with `make build-local`
@@ -60,7 +60,7 @@ RUN MAKE='make -j8' make V=0 \
 ##
 FROM prepare
 # Reuse the prebuild packages
-COPY --from=prebuild /workspace/sage-local /workspace/sage-local
+COPY --from=prebuild /home/gitpod/sage-local /home/gitpod/sage-local
 
 # Configure 
 ## Gitpod sets PIP_USER: yes by default, which leads to problems during build (e.g pip not being installed in the venv)

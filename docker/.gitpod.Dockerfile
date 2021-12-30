@@ -60,7 +60,7 @@ RUN MAKE='make -j8' make V=0 \
 ##
 FROM prepare
 # Reuse the prebuild packages
-COPY --from=prebuild /home/gitpod/sage-local /home/gitpod/sage-local
+COPY --chown=gitpod:gitpod --from=prebuild /home/gitpod/sage-local /home/gitpod/sage-local
 
 # Configure 
 ## Gitpod sets PIP_USER: yes by default, which leads to problems during build (e.g pip not being installed in the venv)

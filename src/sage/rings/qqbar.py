@@ -1449,7 +1449,7 @@ class AlgebraicRealField(Singleton, AlgebraicField_common, sage.rings.abc.Algebr
             sage: AA(0) in z
             False
 
-        TESTS:
+        TESTS::
 
             sage: AA.random_element('junk')
             Traceback (most recent call last):
@@ -1466,7 +1466,6 @@ class AlgebraicRealField(Singleton, AlgebraicField_common, sage.rings.abc.Algebr
             sage: v = random_vector(AA, degree=2, poly_degree=3)
             sage: v in AA^2
             True
-
         """
         return QQbar.random_element(poly_degree, *args, **kwds).real()
 
@@ -1951,7 +1950,7 @@ class AlgebraicField(Singleton, AlgebraicField_common, sage.rings.abc.AlgebraicF
             sage: (len(r) == 3) and all(z in AA for z in r)
             True
 
-        TESTS:
+        TESTS::
 
             sage: QQbar.random_element('junk')
             Traceback (most recent call last):

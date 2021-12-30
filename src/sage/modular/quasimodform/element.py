@@ -65,16 +65,16 @@ class QuasiModularFormsElement(ModuleElement):
     """
     def __init__(self, parent, polynomial):
         r"""
-        INPUTS:
+        INPUT:
 
-        - ``parent`` - A quasimodular forms ring.
+        - ``parent`` - a quasimodular forms ring
         - ``polynomial`` - a polynomial `f_0 + f_1 E_2 + ... + f_n E_2^n` where
           each `f_i` are modular forms ring elements and `E_2` correspond to the
-          weight 2 Eisenstein series.
+          weight 2 Eisenstein series
 
         OUTPUT:
 
-        - ``QuasiModularFormsElement``
+        ``QuasiModularFormsElement``
 
         TESTS::
 

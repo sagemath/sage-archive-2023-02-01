@@ -440,7 +440,7 @@ class QuasiModularFormsElement(ModuleElement):
 
     def homogeneous_components(self):
         r"""
-        Return a dictionnary where the values are the homogeneous components of
+        Return a dictionary where the values are the homogeneous components of
         the given graded form and the keys are the weights of those components.
 
         EXAMPLES::
@@ -458,13 +458,13 @@ class QuasiModularFormsElement(ModuleElement):
         QM = self.parent()
         poly_self = self.to_polynomial()
         pol_hom_comp = poly_self.homogeneous_components()
-        return { k : QM.from_polynomial(pol) for k, pol in pol_hom_comp.items()}
+        return {k: QM.from_polynomial(pol) for k, pol in pol_hom_comp.items()}
 
     def serre_derivative(self):
         r"""
         Return the Serre derivative of the given quasimodular form.
 
-        If the form is not homogeneous, then this method sums the serre
+        If the form is not homogeneous, then this method sums the Serre
         derivative of each homogeneous component.
 
         EXAMPLES::

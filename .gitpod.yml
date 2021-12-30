@@ -6,7 +6,6 @@ image:
 tasks:
   - name: Setup
     before: |
-      mv /home/gitpod/sage-local /workspace/sage-local
       # Setup ssh key for authentication with trac
       ## In order to use this, generate a new key with `ssh-keygen -f tempkey` and save the private key to gitpod `gp env PRIVATE_SSH_KEY="$(<tempkey)"` (or by following https://www.gitpod.io/docs/environment-variables#using-the-account-settings)
       ## then follow https://doc.sagemath.org/html/en/developer/trac.html#linking-your-public-key-to-your-trac-account to register the public key with trac.
@@ -16,6 +15,8 @@ tasks:
       # Disable pyenv since it would interfer with sages build process
       pyenv shell --unset
     init: |
+      mv /home/gitpod/sage-local /workspace/sage-local
+
       # Setup trac repo
       git remote add trac git@trac.sagemath.org:sage.git -t master
       git remote set-url --push trac git@trac.sagemath.org:sage.git

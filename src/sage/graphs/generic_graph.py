@@ -4297,69 +4297,17 @@ class GenericGraph(GenericGraph_pyx):
         raised::
 
             sage: g = Graph([(0, 1, 1), (1, 2, 'a')], weighted=True)
-            sage: g.min_spanning_tree(algorithm="Prim_Boost")
+            sage: g.min_spanning_tree()
             Traceback (most recent call last):
             ...
             ValueError: the weight function cannot find the weight of (1, 2, 'a')
-            sage: g.min_spanning_tree(algorithm="Prim_fringe")
-            Traceback (most recent call last):
-            ...
-            ValueError: the weight function cannot find the weight of (1, 2, 'a')
-            sage: g.min_spanning_tree(algorithm="Prim_edge")
-            Traceback (most recent call last):
-            ...
-            ValueError: the weight function cannot find the weight of (1, 2, 'a')
-            sage: g.min_spanning_tree(algorithm="Kruskal")
-            Traceback (most recent call last):
-            ...
-            ValueError: the weight function cannot find the weight of (1, 2, 'a')
-            sage: g.min_spanning_tree(algorithm="Filter_Kruskal")
-            Traceback (most recent call last):
-            ...
-            ValueError: the weight function cannot find the weight of (1, 2, 'a')
-            sage: g.min_spanning_tree(algorithm="Kruskal_Boost")
-            Traceback (most recent call last):
-            ...
-            ValueError: the weight function cannot find the weight of (1, 2, 'a')
-            sage: g.min_spanning_tree(algorithm="NetworkX")
-            Traceback (most recent call last):
-            ...
-            ValueError: the weight function cannot find the weight of (1, 2, 'a')
-            sage: g.min_spanning_tree(algorithm="Boruvka")
-            Traceback (most recent call last):
-            ...
-            ValueError: the weight function cannot find the weight of (1, 2, 'a')
-
             sage: g = Graph([(0, 1, 1), (1, 2, [1, 2, 3])], weighted=True)
+            sage: g.min_spanning_tree()
+            Traceback (most recent call last):
+            ...
+            ValueError: the weight function cannot find the weight of (1, 2, [1, 2, 3])
 
-            sage: g.min_spanning_tree(algorithm="Prim_Boost")
-            Traceback (most recent call last):
-            ...
-            ValueError: the weight function cannot find the weight of (1, 2, [1, 2, 3])
-            sage: g.min_spanning_tree(algorithm="Prim_fringe")
-            Traceback (most recent call last):
-            ...
-            ValueError: the weight function cannot find the weight of (1, 2, [1, 2, 3])
-            sage: g.min_spanning_tree(algorithm="Prim_edge")
-            Traceback (most recent call last):
-            ...
-            ValueError: the weight function cannot find the weight of (1, 2, [1, 2, 3])
-            sage: g.min_spanning_tree(algorithm="Kruskal")
-            Traceback (most recent call last):
-            ...
-            ValueError: the weight function cannot find the weight of (1, 2, [1, 2, 3])
-            sage: g.min_spanning_tree(algorithm="Filter_Kruskal")
-            Traceback (most recent call last):
-            ...
-            ValueError: the weight function cannot find the weight of (1, 2, [1, 2, 3])
-            sage: g.min_spanning_tree(algorithm="Kruskal_Boost")
-            Traceback (most recent call last):
-            ...
-            ValueError: the weight function cannot find the weight of (1, 2, [1, 2, 3])
-            sage: g.min_spanning_tree(algorithm="NetworkX")
-            Traceback (most recent call last):
-            ...
-            ValueError: the weight function cannot find the weight of (1, 2, [1, 2, 3])
+        Special case of the empty graph::
 
             sage: graphs.EmptyGraph().min_spanning_tree()
             []

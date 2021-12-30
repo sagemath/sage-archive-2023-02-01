@@ -27,7 +27,7 @@ tasks:
       # Start build
       ./bootstrap
       ./configure --enable-editable --prefix=/workspace/sage-local --with-sage-venv
-      MAKE='make -j8' make build
+      MAKE='make -j8' make build V=0
     env: 
       SAGE_NUM_THREADS: 4
 

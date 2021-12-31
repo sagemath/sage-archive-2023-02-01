@@ -13,6 +13,7 @@ tasks:
       echo $PRIVATE_SSH_KEY | sed 's/\(-----\(BEGIN\|END\) OPENSSH PRIVATE KEY-----\)/\n\1\n/g' > ~/.ssh/id_rsa
       sed -i '/^$/d' ~/.ssh/id_rsa
       chmod 600 ~/.ssh/id_rsa
+      unset PRIVATE_SSH_KEY
       # Disable pyenv since it would interfere with sages build process
       pyenv shell --unset
     init: |

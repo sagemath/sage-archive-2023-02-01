@@ -64,5 +64,5 @@ COPY --chown=gitpod:gitpod --from=prebuild /home/gitpod/sage-local /home/gitpod/
 # Configure 
 ## Gitpod sets PIP_USER: yes by default, which leads to problems during build (e.g pip not being installed in the venv)
 RUN unset PIP_USER
-## Gitpod installs pyenv by default, and sage's pip install targets the pyenv python for some reason
-RUN pyenv global system
+## Gitpod installs pyenv by default (in the full workspace image), and sage's pip install targets the pyenv python for some reason
+## RUN pyenv global system

@@ -462,6 +462,28 @@ class FunctionFieldDivisor(ModuleElement):
 
     valuation = multiplicity
 
+    def is_effective(self):
+        """
+        Return whether this divisor has non-negative multiplicity at all places.
+
+        EXAMPLES::
+
+            sage: K.<x> = FunctionField(GF(4)); _.<Y> = K[]
+            sage: L.<y> = K.extension(Y^3 + x^3*Y + x)
+            sage: p1, p2 = L.places()[:2]
+            sage: D = 2*p1 + 3*p2
+            sage: D.is_effective()
+            True
+            sage: E = D - 4*p2
+            sage: E.is_effective()
+            False
+        """
+        data = self._data
+        for place in data:
+            if data[place] < 0:
+                return False
+        return True
+
     def degree(self):
         """
         Return the degree of the divisor.

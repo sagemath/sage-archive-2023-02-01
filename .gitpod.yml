@@ -16,7 +16,7 @@ tasks:
       unset PRIVATE_SSH_KEY
       ssh-keyscan -H trac.sagemath.org >> ~/.ssh/known_hosts
       # Disable pyenv since it would interfere with sages build process
-      pyenv shell --unset
+      # pyenv shell --unset
     init: |
       # Reuse non-Python packages compiled during the docker build
       mv /home/gitpod/sage-local /workspace/sage-local
@@ -26,7 +26,7 @@ tasks:
       git remote set-url --push trac git@trac.sagemath.org:sage.git
 
       # Disable pyenv since it would interfere with sages build process
-      pyenv shell --unset
+      # pyenv shell --unset
 
       # Start build
       ./bootstrap

@@ -1,7 +1,7 @@
 ##
 ## Install system packages
 ##
-FROM gitpod/workspace-full as prepare
+FROM gitpod/workspace-base as prepare
 
 USER gitpod
 # Only copy build, for package information needed for the system package install.

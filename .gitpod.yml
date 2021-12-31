@@ -14,6 +14,7 @@ tasks:
       sed -i '/^$/d' ~/.ssh/id_rsa
       chmod 600 ~/.ssh/id_rsa
       unset PRIVATE_SSH_KEY
+      ssh-keyscan -H trac.sagemath.org >> ~/.ssh/known_hosts
       # Disable pyenv since it would interfere with sages build process
       pyenv shell --unset
     init: |

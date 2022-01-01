@@ -604,8 +604,8 @@ class SageArgSpecVisitor(ast.NodeVisitor):
             sage: import ast, sage.misc.sageinspect as sms
             sage: visitor = sms.SageArgSpecVisitor()
             sage: vis = lambda x: visitor.visit_Str(ast.parse(x).body[0].value)
-            sage: [vis(s) for s in ['"abstract"', "u'syntax'", r'''r"tr\ee"''']]
-            ['abstract', u'syntax', 'tr\\ee']
+            sage: [vis(s) for s in ['"abstract"', "'syntax'", r'''r"tr\ee"''']]
+            ['abstract', 'syntax', 'tr\\ee']
         """
         return node.s
 

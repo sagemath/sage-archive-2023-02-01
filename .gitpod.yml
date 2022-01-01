@@ -20,6 +20,7 @@ tasks:
     init: |
       # Reuse non-Python packages compiled during the docker build
       mv /home/gitpod/sage-local /workspace/sage-local
+      ln -s /workspace/sage-local /home/gitpod/sage-local
 
       # Setup trac repo
       git remote add trac git@trac.sagemath.org:sage.git -t master
@@ -30,7 +31,7 @@ tasks:
 
       # Start build
       ./bootstrap
-      ./configure --enable-editable --prefix=/workspace/sage-local --with-sage-venv
+      ./configure --enable-editable --prefix=$HOME/sage-local --with-sage-venv
       ## Gitpod has a timeout of 1h, so make sure we are below this to ensure that the prebuild is always successful
       MAKE='make -j16' timeout 35m make build V=0 || true
     env: 

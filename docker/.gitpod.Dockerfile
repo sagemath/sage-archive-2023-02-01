@@ -46,8 +46,7 @@ COPY --chown=gitpod:gitpod ./pkgs ./pkgs
 COPY --chown=gitpod:gitpod ./sage ./sage
 COPY --chown=gitpod:gitpod ./Makefile ./Makefile
 RUN ./bootstrap
-RUN mkdir -p sage-local && sudo mkdir -p /workspace && sudo ln -s /home/gitpod/sage-local /workspace/sage-local
-RUN ./configure --prefix=/workspace/sage-local --with-sage-venv
+RUN ./configure --prefix=$HOME/sage-local --with-sage-venv
 ### V=0 since otherwise we would reach log limit
 ### Gitpod also puts a timeout at 1h
 ### So we use the construction timeout ... || true

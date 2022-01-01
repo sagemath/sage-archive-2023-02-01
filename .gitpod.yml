@@ -1,6 +1,5 @@
 # Use custom docker image. https://www.gitpod.io/docs/config-docker
-image:
-  file: docker/.gitpod.Dockerfile
+image: ghcr.io/mkoeppe/sage/sage-docker-gitpod-standard-with-targets:9.5.beta9-3-g76b5e76ab2
 
 # Start up tasks. https://www.gitpod.io/docs/config-start-tasks/
 tasks:
@@ -18,8 +17,11 @@ tasks:
       # Disable pyenv since it would interfere with sages build process
       # pyenv shell --unset
     init: |
-      # Reuse non-Python packages compiled during the docker build
-      mv /home/gitpod/sage-local /workspace/sage-local
+      # Only /workspace is preserved during build.
+      # If the Docker image contains a built SAGE_LOCAL, move it into the workspace.
+      if [ ! -d /workspace/sage-local -a -d /home/gitpod/sage-local ]; then
+        mv /home/gitpod/sage-local /workspace/sage-local
+      fi
       ln -s /workspace/sage-local /home/gitpod/sage-local
 
       # Setup trac repo

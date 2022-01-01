@@ -117,12 +117,8 @@ def has_magma():
         sage: has_magma() # random, optional - magma
         True
     """
-    from sage.interfaces.magma import magma
-    try:
-        magma('2+3')
-        return True
-    except Exception:
-        return False
+    from sage.features.interfaces import Magma
+    return Magma().is_present()
 
 def has_matlab():
     """
@@ -134,12 +130,8 @@ def has_matlab():
         sage: has_matlab() # random, optional - matlab
         True
     """
-    from sage.interfaces.matlab import matlab
-    try:
-        matlab('2+3')
-        return True
-    except Exception:
-        return False
+    from sage.features.interfaces import Matlab
+    return Matlab().is_present()
 
 def has_mathematica():
     """
@@ -151,12 +143,8 @@ def has_mathematica():
         sage: has_mathematica() # random, optional - mathematica
         True
     """
-    from sage.interfaces.mathematica import mathematica
-    try:
-        mathematica('2+3')
-        return True
-    except Exception:
-        return False
+    from sage.features.interfaces import Mathematica
+    return Mathematica().is_present()
 
 def has_maple():
     """
@@ -168,12 +156,8 @@ def has_maple():
         sage: has_maple() # random, optional - maple
         True
     """
-    from sage.interfaces.maple import maple
-    try:
-        maple('2+3')
-        return True
-    except Exception:
-        return False
+    from sage.features.interfaces import Maple
+    return Maple().is_present()
 
 def has_macaulay2():
     """
@@ -185,12 +169,8 @@ def has_macaulay2():
         sage: has_macaulay2() # random, optional - macaulay2
         True
     """
-    from sage.interfaces.macaulay2 import macaulay2
-    try:
-        macaulay2('2+3')
-        return True
-    except Exception:
-        return False
+    from sage.features.interfaces import Macaulay2
+    return Macaulay2().is_present()
 
 def has_octave():
     """
@@ -202,12 +182,8 @@ def has_octave():
         sage: has_octave() # random, optional - octave
         True
     """
-    from sage.interfaces.octave import octave
-    try:
-        octave('2+3')
-        return True
-    except Exception:
-        return False
+    from sage.features.interfaces import Octave
+    return Octave().is_present()
 
 def has_pandoc():
     """

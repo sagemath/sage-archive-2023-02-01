@@ -43,10 +43,15 @@ EOF
 RUN sed -i.bak $DIST_UPGRADE /etc/apt/sources.list && apt-get update && DEBIAN_FRONTEND=noninteractive apt-get -y dist-upgrade
 EOF
         fi
+        if [ -n "$__SUDO" ]; then
+            SUDO="sudo"
+        else
+            unset SUDO
+        fi
         EXISTS="2>/dev/null >/dev/null apt-cache show"
-        UPDATE="apt-get update &&"
-        INSTALL="DEBIAN_FRONTEND=noninteractive apt-get install -qqq --no-install-recommends --yes"
-        CLEAN="&& apt-get clean"
+        UPDATE="$SUDO apt-get update &&"
+        INSTALL="$SUDO DEBIAN_FRONTEND=noninteractive apt-get install -qqq --no-install-recommends --yes"
+        CLEAN="&& $SUDO apt-get clean"
         ;;
     fedora*|redhat*|centos*)
         cat <<EOF

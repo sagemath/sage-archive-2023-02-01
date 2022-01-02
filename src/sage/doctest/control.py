@@ -408,20 +408,6 @@ class DocTestController(SageObject):
                     from sage.features import package_systems
                     options.optional.update(system.name
                                             for system in package_systems())
-
-<<<<<<< HEAD
-                    from sage.features.sphinx import Sphinx
-                    doc_features = [feature for feature in [Sphinx()]
-                                    if feature.is_present()]
-                    options.optional.update(feature.name for feature in doc_features)
-
-                    logger = sys.stderr if options.verbose else None
-                    from sage.features.sagemath import sage_features
-                    options.optional.update(feature.name
-                                            for feature in sage_features(logger=logger))
-
-=======
->>>>>>> 9.5.beta9
                 # Check that all tags are valid
                 for o in options.optional:
                     if not optionaltag_regex.search(o):

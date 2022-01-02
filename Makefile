@@ -122,6 +122,10 @@ bootstrap-clean:
 	rm -f src/environment.yml
 	rm -f environment-optional.yml
 	rm -f src/environment-optional.yml
+	rm -f src/Pipfile
+	rm -f src/pyproject.toml
+	rm -f src/requirements.txt
+	rm -f src/setup.cfg
 
 # Remove absolutely everything which isn't part of the git repo
 maintainer-clean: distclean bootstrap-clean

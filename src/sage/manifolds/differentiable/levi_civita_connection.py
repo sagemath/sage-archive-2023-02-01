@@ -820,9 +820,14 @@ class LeviCivitaConnection(AffineConnection):
 
         """
         if self._ricci is None:
+            if name is None:
+                name = "Ric(" + self._metric._name + ")"
+            if latex_name is None:
+                latex_name = r"\mathrm{Ric}\left(" + \
+                    self._metric._latex_name + r"\right)"
             manif = self._domain
             riem = self.riemann()
-            resu = self._domain.tensor_field(0,2, sym=(0,1))
+            resu = manif.tensor_field(0,2, sym=(0,1),name=name,latex_name=latex_name)
             for frame in self._coefficients:
                 cric = resu.add_comp(frame)
                 criem = riem.comp(frame)
@@ -833,17 +838,5 @@ class LeviCivitaConnection(AffineConnection):
                         for k in manif.irange():
                             rsum += criem[[k,i,k,j]]
                         cric[i,j] = rsum
-            if name is None:
-                resu._name = "Ric(" + self._metric._name + ")"
-            else:
-                resu._name = name
-            if latex_name is None:
-                resu._latex_name = r"\mathrm{Ric}\left(" + \
-                                         self._metric._latex_name + r"\right)"
-            else:
-                resu._latex_name = latex_name
-            for rst in resu._restrictions.values():
-                rst._name = resu._name
-                rst._latex_name = resu._latex_name
             self._ricci = resu
         return self._ricci

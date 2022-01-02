@@ -48,7 +48,6 @@ jobs:
       TOX_ENV: docker-${{ matrix.tox_system_factor }}-${{ matrix.tox_packages_factor }}
       LOGS_ARTIFACT_NAME: logs-commit-${{ github.sha }}-tox-docker-${{ matrix.tox_system_factor }}-${{ matrix.tox_packages_factor }}
       DOCKER_TARGETS: configured with-targets with-targets-optional
-      EXTRA_DOCKER_TAGS: ${{ env.GITHUB_REF_NAME }}
       # Test all non-dummy optional packages, but do not test huge packages
       # and do not test packages that require external software
       TARGETS_OPTIONAL: "$( echo $(export PATH=build/bin:$PATH && (sage-package list :optional: --has-file spkg-install.in && sage-package list :optional: --has-file spkg-install && sage-package list :optional: --has-file requirements.txt) | grep -v ^_ | grep -v  database_stein_watkins\\$ | grep -v polytopes_db_4d | grep -v cplex | grep -v gurobi | grep '^[${{ matrix.targets_pattern }}]' ) )"
@@ -87,7 +86,7 @@ jobs:
               echo "DOCKER_CONFIG_FILE=$HOME/.docker/config.json" >> $GITHUB_ENV
             fi
       - run: |
-          set -o pipefail; EXTRA_DOCKER_BUILD_ARGS="--build-arg USE_MAKEFLAGS=\"-k V=0 SAGE_NUM_THREADS=3\"" tox -e $TOX_ENV -- $TARGETS 2>&1 | sed "/^configure: notice:/s|^|::warning file=artifacts/$LOGS_ARTIFACT_NAME/config.log::|;/^configure: warning:/s|^|::warning file=artifacts/$LOGS_ARTIFACT_NAME/config.log::|;/^configure: error:/s|^|::error file=artifacts/$LOGS_ARTIFACT_NAME/config.log::|;"
+          set -o pipefail; EXTRA_DOCKER_TAGS="$GITHUB_REF_NAME" EXTRA_DOCKER_BUILD_ARGS="--build-arg USE_MAKEFLAGS=\"-k V=0 SAGE_NUM_THREADS=3\"" tox -e $TOX_ENV -- $TARGETS 2>&1 | sed "/^configure: notice:/s|^|::warning file=artifacts/$LOGS_ARTIFACT_NAME/config.log::|;/^configure: warning:/s|^|::warning file=artifacts/$LOGS_ARTIFACT_NAME/config.log::|;/^configure: error:/s|^|::error file=artifacts/$LOGS_ARTIFACT_NAME/config.log::|;"
       - name: Copy logs from the docker image or build container
         run: |
           mkdir -p "artifacts/$LOGS_ARTIFACT_NAME"

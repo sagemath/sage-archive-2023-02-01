@@ -48,6 +48,7 @@ jobs:
       TOX_ENV: docker-${{ matrix.tox_system_factor }}-${{ matrix.tox_packages_factor }}
       LOGS_ARTIFACT_NAME: logs-commit-${{ github.sha }}-tox-docker-${{ matrix.tox_system_factor }}-${{ matrix.tox_packages_factor }}
       DOCKER_TARGETS: configured with-targets with-targets-optional
+      EXTRA_DOCKER_TAGS: ${{ env.GITHUB_REF_NAME }}
       # Test all non-dummy optional packages, but do not test huge packages
       # and do not test packages that require external software
       TARGETS_OPTIONAL: "$( echo $(export PATH=build/bin:$PATH && (sage-package list :optional: --has-file spkg-install.in && sage-package list :optional: --has-file spkg-install && sage-package list :optional: --has-file requirements.txt) | grep -v ^_ | grep -v  database_stein_watkins\\$ | grep -v polytopes_db_4d | grep -v cplex | grep -v gurobi | grep '^[${{ matrix.targets_pattern }}]' ) )"

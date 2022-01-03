@@ -1,5 +1,5 @@
 # Use custom docker image. https://www.gitpod.io/docs/config-docker
-image: ghcr.io/mkoeppe/sage/sage-docker-gitpod-standard-with-targets:dev
+image: ghcr.io/sagemath/sage/sage-docker-gitpod-standard-with-targets:dev
 
 # Start up tasks. https://www.gitpod.io/docs/config-start-tasks/
 tasks:

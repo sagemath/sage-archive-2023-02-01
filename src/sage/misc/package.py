@@ -449,7 +449,7 @@ def is_package_installed(package, exclude_pip=True):
     return any(p == package for p in installed_packages(exclude_pip))
 
 
-def is_package_installed_and_updated(package: str):
+def is_package_installed_and_updated(package: str) -> bool:
     r"""
     Return whether the given package is installed and up-to-date.
 

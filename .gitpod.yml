@@ -16,6 +16,22 @@ tasks:
       ssh-keyscan -H trac.sagemath.org >> ~/.ssh/known_hosts
       if [ -d /workspace/sage-local ]; then
         ## Prebuild init script has been run. Run "make" again in case it timed out.
+        # First set the installation records to the same mtime so that no rebuilds due to dependencies
+        # among these packages are triggered.  This is from .github/workflows/extract-sage-local.sh
+        SAGE_LOCAL=$HOME/sage-local
+        dummy="$SAGE_LOCAL"/var/lib/sage/installed/.dummy
+        if [ -f "$dummy" ]; then
+            touch "$dummy"
+            for tree in "$SAGE_LOCAL" "$SAGE_LOCAL"/var/lib/sage/venv*; do
+                inst="$tree"/var/lib/sage/installed
+                if [ -d "$inst" ]; then
+                    # -r is --reference; the macOS version of touch does not accept the long option.
+                    (cd "$inst" && touch -r "$dummy" .dummy *)
+                fi
+            done
+        fi
+        unset SAGE_LOCAL
+        # Now run make.
         MAKE='make -j24' timeout 51m make build V=0
       fi
     init: |

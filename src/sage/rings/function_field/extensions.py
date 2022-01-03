@@ -128,9 +128,7 @@ class ConstantFieldExtension(RingExtension_generic):
             sage: [pl.degree() for pl in d.support()]
             [2]
         """
-        from sage.rings.ring_extension_conversion import backend_morphism
-
-        embedF = backend_morphism(self.defining_morphism())
+        embedF = self.defining_morphism()
 
         O_ext = self.maximal_order()
         Oinf_ext = self.maximal_order_infinite()

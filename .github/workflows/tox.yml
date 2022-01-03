@@ -82,7 +82,7 @@ jobs:
             shopt -s extglob
             case "$GITHUB_REF_NAME" in
               +([0-9]).+([0-9])?(.+([0-9])) )
-                EXTRA_DOCKER_TAGS="latest $EXTRA_DOCKER_TAGS";;
+                EXTRA_DOCKER_TAGS="latest dev $EXTRA_DOCKER_TAGS";;
               +([0-9]).+([0-9])?(.+([0-9])).@(beta|rc)+([0-9]) )
                 EXTRA_DOCKER_TAGS="dev $EXTRA_DOCKER_TAGS";;
             esac

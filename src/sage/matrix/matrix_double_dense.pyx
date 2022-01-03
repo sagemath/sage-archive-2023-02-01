@@ -3687,6 +3687,14 @@ cdef class Matrix_double_dense(Matrix_dense):
             ...
             ValueError: matrix is not Hermitian
 
+        ::
+
+            sage: A = matrix(CDF, [[1+I]])
+            sage: A.cholesky()
+            Traceback (most recent call last):
+            ...
+            ValueError: matrix is not Hermitian
+
         """
         from sage.rings.real_double import RDF
         from sage.rings.complex_double import CDF
@@ -3849,10 +3857,16 @@ cdef class Matrix_double_dense(Matrix_dense):
             sage: R.is_positive_definite()
             False
 
-        A non-Hermitian matrix will never be positive definite.  ::
+        A non-Hermitian matrix will never be positive definite::
 
             sage: T = matrix(CDF, 8, 8, range(64))
             sage: T.is_positive_definite()
+            False
+
+        ::
+
+            sage: A = matrix(CDF, [[1+I]])
+            sage: A.is_positive_definite()
             False
 
         AUTHOR:

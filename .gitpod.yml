@@ -21,10 +21,10 @@ tasks:
     init: |
       # Only /workspace is preserved during build.
       # If the Docker image contains a built SAGE_LOCAL, move it into the workspace.
-      if [ ! -d /workspace/sage-local -a -d /home/gitpod/sage-local ]; then
-        mv /home/gitpod/sage-local /workspace/sage-local
+      if [ ! -d /workspace/sage-local -a -d $HOME/sage-local ]; then
+        mv $HOME/sage-local /workspace/sage-local
       fi
-      ln -s /workspace/sage-local /home/gitpod/sage-local
+      ln -s /workspace/sage-local $HOME/sage-local
 
       # Setup trac repo
       git remote add trac git@trac.sagemath.org:sage.git -t master

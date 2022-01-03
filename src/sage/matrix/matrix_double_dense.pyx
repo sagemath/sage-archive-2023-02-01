@@ -3678,13 +3678,15 @@ cdef class Matrix_double_dense(Matrix_dense):
             sage: A.cholesky()
             []
 
-        The Cholesky factorization is only defined for square matrices.  ::
+        The Cholesky factorization is only defined for Hermitian (in
+        particular, square) matrices::
 
             sage: A = matrix(RDF, 4, 5, range(20))
             sage: A.cholesky()
             Traceback (most recent call last):
             ...
-            ValueError: Cholesky decomposition requires a square matrix, not a 4 x 5 matrix
+            ValueError: matrix is not Hermitian
+
         """
         from sage.rings.real_double import RDF
         from sage.rings.complex_double import CDF
@@ -3692,33 +3694,32 @@ cdef class Matrix_double_dense(Matrix_dense):
         cdef Matrix_double_dense L
         cache_cholesky = 'cholesky'
         cache_posdef = 'positive_definite'
+        L = self.fetch(cache_cholesky)
+        if L is not None:
+            return L
 
-        if not self.is_square():
-            msg = "Cholesky decomposition requires a square matrix, not a {0} x {1} matrix"
+        if not self.is_hermitian():
             self.cache(cache_posdef, False)
-            raise ValueError(msg.format(self.nrows(), self.ncols()))
+            raise ValueError("matrix is not Hermitian")
+
         if self._nrows == 0:   # special case
             self.cache(cache_posdef, True)
             L = self.__copy__()
             L.set_immutable()
             return L
 
-        L = self.fetch(cache_cholesky)
-        if L is None:
-            L = self._new()
-            global scipy
-            if scipy is None:
-                import scipy
-            import scipy.linalg
-            from numpy.linalg import LinAlgError
-            try:
-                L._matrix_numpy = scipy.linalg.cholesky(self._matrix_numpy, lower=1)
-            except LinAlgError:
-                self.cache(cache_posdef, False)
-                raise ValueError("matrix is not positive definite")
-            L.set_immutable()
-            self.cache(cache_cholesky, L)
-            self.cache(cache_posdef, True)
+        L = self._new()
+        from scipy.linalg import cholesky
+        from numpy.linalg import LinAlgError
+        try:
+            L._matrix_numpy = cholesky(self._matrix_numpy, lower=1)
+        except LinAlgError:
+            self.cache(cache_posdef, False)
+            raise ValueError("matrix is not positive definite")
+        L.set_immutable()
+        self.cache(cache_cholesky, L)
+        self.cache(cache_posdef, True)
+
         return L
 
     def is_positive_definite(self):

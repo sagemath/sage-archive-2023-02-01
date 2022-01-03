@@ -290,7 +290,8 @@ class AdditiveAbelianGroupWrapper(addgp.AdditiveAbelianGroup_fixed_gens):
 
     _discrete_exp = deprecated_function_alias(32384, discrete_exp)
 
-    def _discrete_log_pgroup(self, p, aa, b):
+    @staticmethod
+    def _discrete_log_pgroup(p, vals, aa, b):
         r"""
         Attempt to express an element of p-power order in terms of
         generators of a p-subgroup of this group.
@@ -309,15 +310,11 @@ class AdditiveAbelianGroupWrapper(addgp.AdditiveAbelianGroup_fixed_gens):
             sage: G = AdditiveAbelianGroup([5, 5**2, 5**4, 5**4])
             sage: (a, b, c, d) = gs = G.gens()
             sage: A = AdditiveAbelianGroupWrapper(a.parent(), gs, [g.order() for g in gs])
-            sage: A._discrete_log_pgroup(5, gs, a + 17 * b + 123 * c + 456 * d)
+            sage: AdditiveAbelianGroupWrapper._discrete_log_pgroup(5, [1,2,4,4], gs, a + 17*b + 123*c + 456*d)
             (1, 17, 123, 456)
         """
-        from sage.arith.misc import valuation
-        from sage.functions.other import ceil
-        from sage.misc.functional import sqrt
         from itertools import product as iproduct
 
-        vals = [valuation(a.order(), p) for a in aa]
         qq = lambda j, k: vector(p ** (j + max(0, v - k)) for a, v in zip(aa, vals))
         subbasis = lambda j, k: [q * a for q, a in zip(qq(j, k), aa)]
         dotprod = lambda xs, ys: sum(x * y for x, y in zip(xs, ys))
@@ -326,14 +323,14 @@ class AdditiveAbelianGroupWrapper(addgp.AdditiveAbelianGroup_fixed_gens):
 
             assert k - j == 1
             aajk = subbasis(j, k)
-            assert all(a.order() in (1, p) for a in aajk)
-            idxs = [i for i, a in enumerate(aajk) if a.order() == p]
+            assert not any(p*a for a in aajk)  # orders are in {1,p}
+            idxs = [i for i, a in enumerate(aajk) if a]
 
             rs = [([0], [0]) for i in range(len(aajk))]
             for i in range(len(idxs)):
                 rs[idxs[i]] = (range(p), [0]) if i % 2 else ([0], range(p))
             if len(idxs) % 2:
-                m = ceil(sqrt(p))
+                m = p.isqrt() + 1  # hence m^2 >= p
                 rs[idxs[-1]] = range(0, p, m), range(m)
 
             tab = {}
@@ -443,20 +440,24 @@ class AdditiveAbelianGroupWrapper(addgp.AdditiveAbelianGroup_fixed_gens):
 
         if gens is None:
             gens = self.gens()
+            ords = self.generator_orders()
+        else:
+            ords = [g.order() for g in gens]
 
         gens = [g if parent(g) is self.universe() else g.element() for g in gens]
         x = x if parent(x) is self.universe() else x.element()
 
         crt_data = [[] for _ in gens]
-        for p, e in self.order().factor():
-            cofactor = self.order() // p ** e
+        for p in self.exponent().prime_factors():
+            cofactor = self.exponent().prime_to_m_part(p)
             pgens = [cofactor * g for g in gens]
             y = cofactor * x
 
-            plog = self._discrete_log_pgroup(p, pgens, y)
+            pvals = [o.valuation(p) for o in ords]
+            plog = self._discrete_log_pgroup(p, pvals, pgens, y)
 
-            for i, (r, g) in enumerate(zip(plog, pgens)):
-                crt_data[i].append((r, ZZ(g.order())))
+            for i, (r, v) in enumerate(zip(plog, pvals)):
+                crt_data[i].append((r, p**v))
 
         res = vector(CRT_list(*map(list, zip(*l))) for l in crt_data)
         assert x == sum(r * g for r, g in zip(res, gens))

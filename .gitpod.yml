@@ -35,8 +35,8 @@ tasks:
       ./configure --enable-editable --enable-download-from-upstream-url --prefix=$HOME/sage-local --with-sage-venv
       ## Gitpod has a timeout of 1h, so make sure we are below this to ensure that the prebuild is always successful
       MAKE='make -j24' timeout 51m make build V=0 || echo "(ignoring error)"
-    env: 
-      SAGE_NUM_THREADS: 4
+    env:
+      SAGE_NUM_THREADS: 8
 
 # Preinstalled VS Code extensions. https://www.gitpod.io/docs/vscode-extensions
 vscode:

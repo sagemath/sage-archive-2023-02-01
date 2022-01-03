@@ -2814,7 +2814,7 @@ cdef class Matrix_double_dense(Matrix_dense):
         self.cache(key, hermitian)
         return hermitian
 
-    def is_hermitian(self, tol = 1e-12, algorithm = 'orthonormal'):
+    def is_hermitian(self, tol = 1e-12, algorithm = "naive"):
         r"""
         Return ``True`` if the matrix is equal to its conjugate-transpose.
 
@@ -2824,9 +2824,8 @@ cdef class Matrix_double_dense(Matrix_dense):
           absolute value of the difference between two matrix entries
           for which they will still be considered equal.
 
-        - ``algorithm`` - default: 'orthonormal' - set to 'orthonormal'
-          for a stable procedure and set to 'naive' for a fast
-          procedure.
+        - ``algorithm`` -- string (default: "naive"); either "naive"
+          or "orthonormal"
 
         OUTPUT:
 
@@ -3594,7 +3593,7 @@ cdef class Matrix_double_dense(Matrix_dense):
 
         EXAMPLES:
 
-        A real matrix that is symmetric and positive definite.  ::
+        A real matrix that is symmetric, Hermitian, and positive definite::
 
             sage: M = matrix(RDF,[[ 1,  1,    1,     1,     1],
             ....:                 [ 1,  5,   31,   121,   341],
@@ -3602,6 +3601,8 @@ cdef class Matrix_double_dense(Matrix_dense):
             ....:                 [ 1,121, 1555,  7381, 22621],
             ....:                 [ 1,341, 4681, 22621, 69905]])
             sage: M.is_symmetric()
+            True
+            sage: M.is_hermitian()
             True
             sage: L = M.cholesky()
             sage: L.round(6).zero_at(10^-10)

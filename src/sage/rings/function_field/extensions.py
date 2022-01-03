@@ -114,7 +114,7 @@ class ConstantFieldExtension(RingExtension_generic):
 
         OUTPUT: divisor of the top function field
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: K.<x> = FunctionField(GF(2)); R.<t> = K[]
             sage: F.<y> = K.extension(t^3 - x^2*(x^2 + x + 1)^2)
@@ -131,7 +131,6 @@ class ConstantFieldExtension(RingExtension_generic):
         from sage.rings.ring_extension_conversion import backend_morphism
 
         embedF = backend_morphism(self.defining_morphism())
-        Div_ext = self.divisor_group()
 
         O_ext = self.maximal_order()
         Oinf_ext = self.maximal_order_infinite()
@@ -153,7 +152,7 @@ class ConstantFieldExtension(RingExtension_generic):
 
         OUTPUT: a divisor of the top function field
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: K.<x> = FunctionField(GF(2)); R.<t> = K[]
             sage: F.<y> = K.extension(t^3 - x^2*(x^2 + x + 1)^2)

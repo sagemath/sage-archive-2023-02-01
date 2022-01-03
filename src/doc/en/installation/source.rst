@@ -380,7 +380,7 @@ include:
 Ubuntu on Windows Subsystem for Linux (WSL) prerequisite installation
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-Sage can be installed onto linux running on Windows Subsystem for Linux (WSL). These instructions describe a fresh install of Ubuntu 20.10, but other distibutions or installation methods should work too, though have not been tested.
+Sage can be installed onto Linux running on Windows Subsystem for Linux (WSL). These instructions describe a fresh install of Ubuntu 20.10, but other distibutions or installation methods should work too, though have not been tested.
 
 - Enable hardware-assisted virtualization in the EFI or BIOS of your system. Refer to your system (or motherboard) maker's documentation for instructions on how to do this.
 
@@ -400,6 +400,12 @@ Sage can be installed onto linux running on Windows Subsystem for Linux (WSL). T
 - `Upgrade to the Ubuntu 20.10 <https://linuxconfig.org/how-to-upgrade-ubuntu-to-20-10>`_. This step will not be necessary once Ubuntu 20.10 is available in the Microsoft Store.
 
 From this point on, follow the instructions in the :ref:`sec-installation-from-sources-linux-recommended-installation` section.
+It is strongly recommended to put the Sage source files in the Linux file system, for example, in the ``/home/username/sage`` directory, and not in the Windows file system (e.g. ``/mnt/c/...``).
+
+You may encounter permission errors of the kind ``"[Errno 13] Permission denied: 'build/bdist.linux-x86_64/wheel/<package>.dist-info'"`` during ``make``.
+This usually comes from a permission conflict between the Windows and Linux file system.
+To fix it create a temporary build folder in the Linux file system using ``mkdir -p ~/tmp/sage`` and use it for building by ``eval SAGE_BUILD_DIR="~/tmp/sage" make``.
+Also see the `related Github issue <https://github.com/pypa/packaging-problems/issues/258>`_ for other workarounds.
 
 When the installation is complete, you may be interested in :ref:`sec-launching-wsl-post-installation`.
 
@@ -1181,14 +1187,6 @@ Here are some of the more commonly used variables affecting the build process:
   This option may not be supported by all spkgs.
   Some spkgs might also assume that certain programs are available on the
   system (for example, ``latex`` or ``pdflatex``).
-
-- :envvar:`SAGE_DOC_MATHJAX` - by default, any LaTeX code in Sage's
-  documentation is processed by MathJax.
-  If this variable is set to ``no``, then MathJax is not used -- instead,
-  math is processed using LaTeX and converted by dvipng to image files,
-  and then those files are included into the documentation.
-  Typically, building the documentation using LaTeX and dvipng takes longer
-  and uses more memory and disk space than using MathJax.
 
 - :envvar:`SAGE_DOCBUILD_OPTS` - the value of this variable is passed as an
   argument to ``sage --docbuild all html`` or ``sage --docbuild all pdf`` when

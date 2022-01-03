@@ -14,6 +14,10 @@ tasks:
       chmod 600 ~/.ssh/id_rsa
       unset PRIVATE_SSH_KEY
       ssh-keyscan -H trac.sagemath.org >> ~/.ssh/known_hosts
+      if [ -d /workspace/sage-local ]; then
+        ## Prebuild init script has been run. Run "make" again in case it timed out.
+        MAKE='make -j24' timeout 51m make build V=0
+      fi
     init: |
       # Only /workspace is preserved during build.
       # If the Docker image contains a built SAGE_LOCAL, move it into the workspace.
@@ -30,7 +34,7 @@ tasks:
       ./bootstrap
       ./configure --enable-editable --enable-download-from-upstream-url --prefix=$HOME/sage-local --with-sage-venv
       ## Gitpod has a timeout of 1h, so make sure we are below this to ensure that the prebuild is always successful
-      MAKE='make -j24' timeout 51m make build V=0 || true
+      MAKE='make -j24' timeout 51m make build V=0 || echo "(ignoring error)"
     env: 
       SAGE_NUM_THREADS: 4
 

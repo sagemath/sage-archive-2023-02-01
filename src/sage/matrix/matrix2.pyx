@@ -12626,6 +12626,9 @@ cdef class Matrix(Matrix1):
             sage: all( matrix(R,[]).cholesky() == matrix(R,[])
             ....:      for R in (RR,CC,RDF,CDF,ZZ,QQ,AA,QQbar) )
             True
+            sage: all( matrix(R,[]).cholesky().is_immutable()
+            ....:      for R in (RR,CC,RDF,CDF,ZZ,QQ,AA,QQbar) )
+            True
 
         """
         cdef Matrix C # output matrix
@@ -12642,7 +12645,9 @@ cdef class Matrix(Matrix1):
             # The trivial matrix has a trivial cholesky decomposition.
             # We special-case this after is_hermitian() to ensure that
             # the matrix is square.
-            return self
+            C = self.__copy__()
+            C.set_immutable()
+            return C
 
         # Use classical=True to ensure that we don't get a permuted L.
         cdef Matrix L  # block_ldlt() results

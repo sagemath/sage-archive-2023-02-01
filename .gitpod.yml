@@ -30,7 +30,7 @@ tasks:
       ./bootstrap
       ./configure --enable-editable --enable-download-from-upstream-url --prefix=$HOME/sage-local --with-sage-venv
       ## Gitpod has a timeout of 1h, so make sure we are below this to ensure that the prebuild is always successful
-      MAKE='make -j16' timeout 35m make build V=0 || true
+      MAKE='make -j24' timeout 51m make build V=0 || true
     env: 
       SAGE_NUM_THREADS: 4
 

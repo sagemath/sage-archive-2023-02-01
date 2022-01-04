@@ -414,7 +414,8 @@ class ModularForm_abstract(ModuleElement):
             sage: f.coefficient(4)
             -1472
         """
-        return self.q_expansion(n+1)[Integer(n)]
+        n = ZZ(n)
+        return self.q_expansion(n+1)[n]
 
     def padded_list(self, n):
         """

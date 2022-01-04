@@ -21,20 +21,7 @@ tasks:
         # but only /workspace is preserved; and the $HOME/sage-local may contain a resurrected
         # copy of sage-local.  Replace it again by a symlink.
         rm -Rf $HOME/sage-local
-        ln -sf $(pwd)/local $HOME/sage-local
-        # First set the installation records to the same mtime so that no rebuilds due to dependencies
-        # among these packages are triggered.  This is from .github/workflows/extract-sage-local.sh
-        dummy="$SAGE_LOCAL"/var/lib/sage/installed/.dummy
-        if [ -f "$dummy" ]; then
-            touch "$dummy"
-            for tree in "$SAGE_LOCAL" "$SAGE_LOCAL"/var/lib/sage/venv*; do
-                inst="$tree"/var/lib/sage/installed
-                if [ -d "$inst" ]; then
-                    # -r is --reference; the macOS version of touch does not accept the long option.
-                    (cd "$inst" && touch -r "$dummy" .dummy *)
-                fi
-            done
-        fi
+        ln -sf "$SAGE_LOCAL" $HOME/sage-local
         unset SAGE_LOCAL
         # Now run make.
         MAKE='make -j24' timeout 51m make build V=0
@@ -46,7 +33,8 @@ tasks:
             mv $HOME/sage-local local
         fi
         rm -Rf $HOME/sage-local
-        ln -sf $(pwd)/local $HOME/sage-local
+        ln -sf $SAGE_LOCAL $HOME/sage-local
+        unset SAGE_LOCAL
       fi
     init: |
       # Setup trac repo

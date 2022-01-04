@@ -4,7 +4,11 @@ image: ghcr.io/sagemath/sage/sage-docker-gitpod-standard-with-targets:dev
 # We use the following layout:
 #
 # $HOME/sage            Source tree used by the Docker build; see SAGE_ROOT/tox.ini (gitpod).
-#                       - We delete it in every invocation of the 'before' script.
+#                       - We delete it in every invocation of the 'before' script
+#                         and replace it by a symlink to /workspace/...
+#                         (This symlink is needed because the package-removal scripts
+#                         ({prefix,venv}/var/lib/sage/scripts/*/{spkg-piprm,spkg-prerm,spkg-postrm)
+#                         hardcode SAGE_ROOT and SAGE_SRC from package installation time)
 # $HOME/sage/logs       Logs of the Docker build.
 #                       - In the first invocation of the 'before' script, we move it
 #                         to /workspace/.../logs
@@ -59,8 +63,9 @@ tasks:
           mv $HOME/sage/logs logs
         fi
       fi
-      # Remove the source tree used by the Docker build
+      # Remove the source tree used by the Docker build and replace it by a symlink
       rm -Rf $HOME/sage
+      ln -s $(pwd) $HOME/sage
     init: |
       # Setup trac repo
       git remote add trac git@trac.sagemath.org:sage.git -t master

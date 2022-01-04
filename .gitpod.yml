@@ -50,7 +50,7 @@ tasks:
         # Only /workspace is preserved during build.
         # If the Docker image contains a built SAGE_LOCAL, use it to populate the SAGE_LOCAL in the workspace.
         if [ -d $HOME/sage-local ]; then
-            mv $HOME/sage-local local
+          mv $HOME/sage-local local
         fi
         rm -Rf $HOME/sage-local
         ln -sf $(pwd)/local $HOME/sage-local

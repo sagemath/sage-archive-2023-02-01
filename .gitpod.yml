@@ -14,6 +14,8 @@ tasks:
       chmod 600 ~/.ssh/id_rsa
       unset PRIVATE_SSH_KEY
       ssh-keyscan -H trac.sagemath.org >> ~/.ssh/known_hosts
+      ## No need for pyenv
+      pyenv shell --unset
       if [ -d local ]; then
         echo "Prebuild init script has been run. Running "make" again in case the build had timed out."
         # The init script has already populated the SAGE_LOCAL,

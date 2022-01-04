@@ -1275,20 +1275,20 @@ class RecurrenceParser(object):
 
         ::
 
+            sage: RP.parse_direct_arguments(2, 1, {(i, 0): 0, (0, 1/2): 0}, {})
+            Traceback (most recent call last):
+            ...
+            ValueError: Keys [(I, 0), (0, 1/2)] for coefficients are not valid
+            since one of their components is no integer.
+
+        ::
+
             sage: RP.parse_direct_arguments(2, 1, {(-1, 0): 0, (42, 0): 0}, {})
             Traceback (most recent call last):
             ...
             ValueError: Keys [(-1, 0), (42, 0)] for coefficients are not valid since
             their first component is either smaller than 0 or larger than
             or equal to 4.
-
-        ::
-
-            sage: RP.parse_direct_arguments(2, 1, {(i, 0): 0, (0, 1/2): 0}, {})
-            Traceback (most recent call last):
-            ...
-            ValueError: Keys [(I, 0), (0, 1/2)] for coefficients are not valid
-            since one of their components is no integer.
 
         ::
 
@@ -1329,19 +1329,19 @@ class RecurrenceParser(object):
                              % (invalid_coeffs, coefficient_ring)) from None
 
         coeffs_keys = coeffs.keys()
-        invalid_coeffs_keys = [key for key in coeffs_keys if key[0] < 0 or key[0] >= k**M]
-        if invalid_coeffs_keys:
-            raise ValueError("Keys %s for coefficients are not valid "
-                             "since their first component is either smaller than 0 "
-                             " or larger than or equal to %s."
-                             % (invalid_coeffs_keys, k**M)) from None
-
         invalid_coeffs_keys = [key for key in coeffs_keys
                                if key[0] not in ZZ or key[1] not in ZZ]
         if invalid_coeffs_keys:
             raise ValueError("Keys %s for coefficients are not valid "
                              "since one of their components is no integer."
                              % (invalid_coeffs_keys,)) from None
+
+        invalid_coeffs_keys = [key for key in coeffs_keys if key[0] < 0 or key[0] >= k**M]
+        if invalid_coeffs_keys:
+            raise ValueError("Keys %s for coefficients are not valid "
+                             "since their first component is either smaller than 0 "
+                             " or larger than or equal to %s."
+                             % (invalid_coeffs_keys, k**M)) from None
 
         invalid_initial_values = [value for value in initial_values.values()
                                   if value not in coefficient_ring]

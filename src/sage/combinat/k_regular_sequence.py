@@ -1198,10 +1198,6 @@ class RecurrenceParser(object):
 
             sage: from sage.combinat.k_regular_sequence import RecurrenceParser
             sage: RP = RecurrenceParser(2, ZZ)
-            sage: var('n')
-            n
-            sage: function('f')
-            f
             sage: RP.parse_direct_arguments(2, 1,
             ....:     {(0, -2): 3, (0, 0): 1, (0, 1): 2,
             ....:      (1, -2): 6, (1, 0): 4, (1, 1): 5,

@@ -527,7 +527,7 @@ class StandaloneTex(SageObject):
 
         return _filename_png
 
-    def svg(self, filename=None, view=True, program='pdf2svg'):
+    def svg(self, filename=None, view=True, program='pdftocairo'):
         """
         Compiles the latex code with pdflatex and converts to a svg file.
 
@@ -540,7 +540,7 @@ class StandaloneTex(SageObject):
           a browser. This option is ignored and automatically set to
           ``False`` if ``filename`` is not ``None``.
 
-        - ``program`` -- string (default:``'pdf2svg'``) ``'pdftocairo'`` or
+        - ``program`` -- string (default:``'pdftocairo'``) ``'pdftocairo'`` or
           ``'pdf2svg'``.
 
         OUTPUT:
@@ -559,9 +559,12 @@ class StandaloneTex(SageObject):
         ::
 
             sage: from sage.misc.temporary_file import tmp_filename
-            sage: filename = tmp_filename('temp','.svg')
-            sage: path_to_file = t.svg(filename)   # long time (2s)   # optional pdf2svg
-            sage: path_to_file[-4:]                # long time (fast) # optional pdf2svg
+            sage: filename = tmp_filename('temp', '.svg')
+            sage: path_to_file = t.svg(filename, program='pdf2svg')   # long time (2s)   # optional pdf2svg
+            sage: path_to_file[-4:]                                   # long time (fast) # optional pdf2svg
+            '.svg'
+            sage: path_to_file = t.svg(filename, program='pdftocairo') # long time (2s)   # optional pdftocairo
+            sage: path_to_file[-4:]                                    # long time (fast) # optional pdftocairo
             '.svg'
 
         ACKNOWLEDGEMENT:

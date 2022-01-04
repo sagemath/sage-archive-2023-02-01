@@ -37,7 +37,7 @@ tasks:
       ## No need for pyenv
       pyenv shell --unset
       if [ -d local ]; then
-        echo "Prebuild init script has been run. Running "make" again in case the build had timed out."
+        mkdir -p logs && echo '### .gitpod.yml Setup.before: Prebuild init script has been run. Running "make" again in case the build had timed out.' >> logs/install.log
         # The init script has already populated the SAGE_LOCAL,
         # but only /workspace is preserved; and the $HOME/sage-local may contain a resurrected
         # copy of sage-local.  Replace it again by a symlink.
@@ -67,6 +67,7 @@ tasks:
       git remote set-url --push trac git@trac.sagemath.org:sage.git
 
       # Start build
+      mkdir -p logs && echo '### .gitpod.yml Setup.init: Starting build' >> logs/install.log
       ./bootstrap
       ./configure --enable-editable --enable-download-from-upstream-url --prefix=$HOME/sage-local --with-sage-venv
       ## Gitpod has a timeout of 1h, so make sure we are below this to ensure that the prebuild is always successful

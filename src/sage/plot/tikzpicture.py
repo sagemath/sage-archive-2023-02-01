@@ -510,7 +510,20 @@ class StandaloneTex(SageObject):
                '{0}x{0}'.format(density), '-trim', _filename_pdf,
                _filename_png]
         cmd = ' '.join(cmd)
-        run(cmd, shell=True, capture_output=True, check=True)
+        result = run(cmd, shell=True, capture_output=True, text=True)
+
+        # If a problem occurs, provide the log
+        if result.returncode != 0:
+            print("Command \n"
+                  "   '{}'\n"
+                  "returned non-zero exit status {}.\n"
+                  "Here is the content of the stderr:{}"
+                  "Here is the content of the stdout:"
+                  "{}".format(result.args,
+                                result.returncode,
+                                result.stderr,
+                                result.stdout))
+        result.check_returncode()
 
         # move the png into the good location
         if filename:
@@ -598,9 +611,9 @@ class StandaloneTex(SageObject):
             print("Command \n"
                   "   '{}'\n"
                   "returned non-zero exit status {}.\n"
-                  "Here is the content of the stderr:{}\n"
+                  "Here is the content of the stderr:{}"
                   "Here is the content of the stdout:"
-                  "{}\n".format(result.args,
+                  "{}".format(result.args,
                                 result.returncode,
                                 result.stderr,
                                 result.stdout))

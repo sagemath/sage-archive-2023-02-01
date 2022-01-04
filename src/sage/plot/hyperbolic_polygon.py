@@ -25,13 +25,9 @@ AUTHORS:
 # *****************************************************************************
 
 from sage.plot.bezier_path import BezierPath
-from sage.plot.graphics import Graphics
 from sage.plot.circle import circle
-from sage.plot.arc import arc
 from sage.misc.decorators import options, rename_keyword
 from sage.rings.all import CC
-from sage.symbolic.constants import pi
-from sage.functions.trig import cos, sin, tan
 from sage.plot.hyperbolic_arc import HyperbolicArcCore
 
 
@@ -70,6 +66,16 @@ class HyperbolicPolygon(HyperbolicArcCore):
         pts = [CC(_) for _ in pts]
         self.path = []
         if model == "UHP":
+            if(pts[0].is_infinity()):
+                # Check for more than one Infinite vertex
+                for i in range(1, len(pts)):
+                    if(pts[i].is_infinity()):
+                        raise ValueError("No more than one infinite vertex allowed")
+            else:
+                # If any Infinity vertex exist it must be the first
+                for i in range(1, len(pts)):
+                    if(pts[i].is_infinity()):
+                        pts = pts[i:] + pts[0:i]
             self._UHP_hyperbolic_arc(pts[0], pts[1], True)
             for i in range(1, len(pts) - 1):
                 self._UHP_hyperbolic_arc(pts[i], pts[i + 1])
@@ -150,6 +156,16 @@ def hyperbolic_polygon(pts, model="UHP", **options):
     .. PLOT::
 
         sphinx_plot(hyperbolic_polygon([-1,3*I,2+2*I,1+I], fill=True, color='red'))
+
+    With vertex at Infinity::
+
+        sage: hyperbolic_polygon([-1,0,1,Infinity], color='green'))
+        Graphics object consisting of 1 graphics primitive
+
+    .. PLOT::
+
+        from sage.rings.infinity import infinity
+        sphinx_plot(hyperbolic_polygon([-1,0,1,infinity], color='green'))
 
     Poincare disc model is supported via the parameter ``model``.
     Show a hyperbolic polygon in the Poincare disc model with coordinates

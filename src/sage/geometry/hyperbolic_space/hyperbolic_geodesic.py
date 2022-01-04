@@ -1183,8 +1183,10 @@ class HyperbolicGeodesicUHP(HyperbolicGeodesic):
             elif end_2 == CC(infinity):
                 end_2 = (real(end_1), (imag(end_1) + 10))
                 end_1 = (real(end_1), imag(end_1))
-            # pic = line((end_1, end_2), **opts)
-            pic = bezier_path([[(end_1[0],end_1[1]),(end_2[0],end_2[1])]],**opts)
+            else:
+                end_1 = (real(end_1), imag(end_1))
+                end_2 = (real(end_2), imag(end_2))
+            pic = bezier_path([[end_1,end_2]],**opts)
             if boundary:
                 cent = min(bd_1, bd_2)
                 bd_dict = {'bd_min': cent - 3, 'bd_max': cent + 3}
@@ -1242,10 +1244,10 @@ class HyperbolicGeodesicUHP(HyperbolicGeodesic):
         M = self._model
         # infinity is the first endpoint, so the other ideal endpoint
         # is just the real part of the second coordinate
-        if start == infinity:
+        if CC(start).is_infinity():
             return [M.get_point(start), M.get_point(x2)]
         # Same idea as above
-        if end == infinity:
+        if CC(end).is_infinity():
             return [M.get_point(x1), M.get_point(end)]
         # We could also have a vertical line with two interior points
         if x1 == x2:

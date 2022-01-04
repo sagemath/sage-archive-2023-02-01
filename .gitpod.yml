@@ -35,6 +35,12 @@ tasks:
         rm -Rf $HOME/sage-local
         ln -sf $SAGE_LOCAL $HOME/sage-local
         unset SAGE_LOCAL
+        # Also remove the source tree used by the Docker build
+        # but keep the logs
+        if [ -d $HOME/sage/logs ]; then
+          mv $HOME/sage/logs /workspace/sage/logs
+        fi
+        rm -Rf $HOME/sage
       fi
     init: |
       # Setup trac repo

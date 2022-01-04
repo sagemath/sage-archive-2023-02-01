@@ -20,31 +20,25 @@ checked in this module.
 from . import Executable, FeatureTestResult
 from .join_feature import JoinFeature
 
-class ImageMagick(JoinFeature):
+class convert(Executable):
     r"""
-    A :class:`~sage.features.Feature` describing the presence of
-    ``ImageMagick``
-
-    Currently, only the availability of ``convert`` is checked.
+    A :class:`~sage.features.Feature` describing the presence of ``convert``
 
     EXAMPLES::
 
-        sage: from sage.features.imagemagick import ImageMagick
-        sage: ImageMagick().is_present()  # optional - imagemagick
-        FeatureTestResult('imagemagick', True)
+        sage: from sage.features.imagemagick import convert
+        sage: convert().is_present()  # optional - imagemagick
+        FeatureTestResult('convert', True)
     """
     def __init__(self):
         r"""
         TESTS::
 
-            sage: from sage.features.imagemagick import ImageMagick
-            sage: isinstance(ImageMagick(), ImageMagick)
+            sage: from sage.features.imagemagick import convert
+            sage: isinstance(convert(), convert)
             True
         """
-        JoinFeature.__init__(self, "imagemagick",
-                             [Executable("convert", executable="convert")],
-                             spkg="imagemagick",
-                             url="https://www.imagemagick.org/")
+        Executable.__init__(self, "convert", executable="convert")
 
     def is_functional(self):
         r"""
@@ -52,9 +46,9 @@ class ImageMagick(JoinFeature):
 
         EXAMPLES::
 
-            sage: from sage.features.imagemagick import ImageMagick
-            sage: ImageMagick().is_functional()   # optional - imagemagick
-            FeatureTestResult('imagemagick', True)
+            sage: from sage.features.imagemagick import convert
+            sage: convert().is_functional()   # optional - imagemagick
+            FeatureTestResult('convert', True)
 
         """
         # Create the content of 1-pixel png file
@@ -103,6 +97,31 @@ class ImageMagick(JoinFeature):
         # The command seems functional
         return FeatureTestResult(self, True)
 
+class ImageMagick(JoinFeature):
+    r"""
+    A :class:`~sage.features.Feature` describing the presence of
+    ``ImageMagick``
+
+    Currently, only the availability of ``convert`` is checked.
+
+    EXAMPLES::
+
+        sage: from sage.features.imagemagick import ImageMagick
+        sage: ImageMagick().is_present()  # optional - imagemagick
+        FeatureTestResult('imagemagick', True)
+    """
+    def __init__(self):
+        r"""
+        TESTS::
+
+            sage: from sage.features.imagemagick import ImageMagick
+            sage: isinstance(ImageMagick(), ImageMagick)
+            True
+        """
+        JoinFeature.__init__(self, "imagemagick",
+                             [convert()],
+                             spkg="imagemagick",
+                             url="https://www.imagemagick.org/")
 
 def all_features():
     return [ImageMagick()]

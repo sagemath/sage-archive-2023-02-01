@@ -490,8 +490,8 @@ class StandaloneTex(SageObject):
 
             sage: from sage.misc.temporary_file import tmp_filename
             sage: filename = tmp_filename('temp','.png')
-            sage: path_to_file = t.png(filename) # long time (2s) # optional imagemagick
-            sage: path_to_file[-4:]                               # optional imagemagick
+            sage: path_to_file = t.png(filename) # long time (2s)   # optional imagemagick
+            sage: path_to_file[-4:]              # long time (fast) # optional imagemagick
             '.png'
 
         ACKNOWLEDGEMENT:
@@ -560,8 +560,8 @@ class StandaloneTex(SageObject):
 
             sage: from sage.misc.temporary_file import tmp_filename
             sage: filename = tmp_filename('temp','.svg')
-            sage: path_to_file = t.svg(filename)   # long time (2s) # optional pdf2svg
-            sage: path_to_file[-4:]                                 # optional pdf2svg
+            sage: path_to_file = t.svg(filename)   # long time (2s)   # optional pdf2svg
+            sage: path_to_file[-4:]                # long time (fast) # optional pdf2svg
             '.svg'
 
         ACKNOWLEDGEMENT:
@@ -576,11 +576,11 @@ class StandaloneTex(SageObject):
         # set the command
         if program == 'pdftocairo':
             from sage.features.pdftocairo import pdftocairo
-            pdftocairo().require():
+            pdftocairo().require()
             cmd = ['pdftocairo', '-svg', _filename_pdf, _filename_svg]
         elif program == 'pdf2svg':
             from sage.features.pdf2svg import pdf2svg
-            pdf2svg().require():
+            pdf2svg().require()
             cmd = ['pdf2svg', _filename_pdf, _filename_svg]
         else:
             raise ValueError("program(={}) should be 'pdftocairo' or"

@@ -457,7 +457,7 @@ class FunctionFieldDivisor(ModuleElement):
             -3
         """
         if place not in self._data:
-            return 0
+            return Integer(0)
         return self._data[place]
 
     valuation = multiplicity

@@ -4478,7 +4478,7 @@ class RationalFunctionField(FunctionField):
             sage: K.genus()
             0
         """
-        return 0
+        return Integer(0)
 
     def change_variable_name(self, name):
         r"""

@@ -89,7 +89,8 @@ class convert(Executable):
         if result.returncode != 0:
             return FeatureTestResult(self, False, reason="Running convert on "
                         "a sample file returned non-zero "
-                        "exit status {}".format(result.returncode))
+                        "exit status '{}' with stderr "
+                        "'{}'".format(result.returncode, result.stderr))
 
         # If necessary, run more tests here
         # ...

@@ -225,6 +225,11 @@ Donald Knuth [Knuth1]_ considered the problem of packing 45 Y pentaminoes into a
 
     sage: T = TilingSolver([y], box=(15,15), reusable=True, reflection=True)
     sage: T.number_of_solutions()                      # not tested
+    1696
+
+Up to the symmetries of the square, there are 212 distinct solutions::
+
+    sage: 1696 // 8
     212
 
 Animation of Donald Knuth's dancing links

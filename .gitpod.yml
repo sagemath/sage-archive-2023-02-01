@@ -14,11 +14,11 @@ tasks:
       chmod 600 ~/.ssh/id_rsa
       unset PRIVATE_SSH_KEY
       ssh-keyscan -H trac.sagemath.org >> ~/.ssh/known_hosts
-      if [ -d local ]; then
-        ## Prebuild init script has been run. Run "make" again in case it timed out.
+      SAGE_LOCAL=/workspace/sage/local
+      if [ -d "$SAGE_LOCAL" ]; then
+        echo "Prebuild init script has been run. Running "make" again in case the build had timed out."
         # First set the installation records to the same mtime so that no rebuilds due to dependencies
         # among these packages are triggered.  This is from .github/workflows/extract-sage-local.sh
-        SAGE_LOCAL=local
         dummy="$SAGE_LOCAL"/var/lib/sage/installed/.dummy
         if [ -f "$dummy" ]; then
             touch "$dummy"

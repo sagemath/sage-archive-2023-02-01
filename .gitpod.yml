@@ -40,9 +40,8 @@ tasks:
       if [ ! -d local -a -d $HOME/sage-local ]; then
         mv $HOME/sage-local local
       fi
-      if [ ! -d $HOME/sage-local ]; then
-        ln -sf $(pwd)/local $HOME/sage-local
-      fi
+      rm -Rf $HOME/sage-local
+      ln -sf $(pwd)/local $HOME/sage-local
       # Setup trac repo
       git remote add trac git@trac.sagemath.org:sage.git -t master
       git remote set-url --push trac git@trac.sagemath.org:sage.git

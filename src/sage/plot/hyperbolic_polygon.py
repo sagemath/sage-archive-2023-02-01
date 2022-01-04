@@ -246,6 +246,17 @@ def hyperbolic_triangle(a, b, c, model="UHP", **options):
         P = hyperbolic_triangle(0, 1, 2+i, fill=true, rgbcolor='red', linestyle='--')
         sphinx_plot(P)
 
+    A hyperbolic triangle with a vertex at Infinity
+
+        sage: hyperbolic_triangle(-5,Infinity,5)
+        Graphics object consisting of 1 graphics primitive
+
+    .. PLOT::
+
+        from sage.rings.infinity import infinity
+        sphinx_plot(hyperbolic_triangle(-5,infinity,5))
+
+
     It can also plot a hyperbolic triangle in the Poincare Disc model::
 
         sage: z1 = CC((cos(pi/3),sin(pi/3)))

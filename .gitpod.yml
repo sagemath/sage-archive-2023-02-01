@@ -14,11 +14,11 @@ tasks:
       chmod 600 ~/.ssh/id_rsa
       unset PRIVATE_SSH_KEY
       ssh-keyscan -H trac.sagemath.org >> ~/.ssh/known_hosts
-      if [ -d /workspace/sage-local ]; then
+      if [ -d local ]; then
         ## Prebuild init script has been run. Run "make" again in case it timed out.
         # First set the installation records to the same mtime so that no rebuilds due to dependencies
         # among these packages are triggered.  This is from .github/workflows/extract-sage-local.sh
-        SAGE_LOCAL=$HOME/sage-local
+        SAGE_LOCAL=local
         dummy="$SAGE_LOCAL"/var/lib/sage/installed/.dummy
         if [ -f "$dummy" ]; then
             touch "$dummy"
@@ -37,11 +37,12 @@ tasks:
     init: |
       # Only /workspace is preserved during build.
       # If the Docker image contains a built SAGE_LOCAL, move it into the workspace.
-      if [ ! -d /workspace/sage-local -a -d $HOME/sage-local ]; then
-        mv $HOME/sage-local /workspace/sage-local
+      if [ ! -d local -a -d $HOME/sage-local ]; then
+        mv $HOME/sage-local local
       fi
-      ln -s /workspace/sage-local $HOME/sage-local
-
+      if [ ! -d $HOME/sage-local ]; then
+        ln -sf $(pwd)/local $HOME/sage-local
+      fi
       # Setup trac repo
       git remote add trac git@trac.sagemath.org:sage.git -t master
       git remote set-url --push trac git@trac.sagemath.org:sage.git

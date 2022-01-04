@@ -14,15 +14,13 @@ tasks:
       chmod 600 ~/.ssh/id_rsa
       unset PRIVATE_SSH_KEY
       ssh-keyscan -H trac.sagemath.org >> ~/.ssh/known_hosts
-      SAGE_LOCAL=/workspace/sage/local
-      if [ -d "$SAGE_LOCAL" ]; then
+      if [ -d local ]; then
         echo "Prebuild init script has been run. Running "make" again in case the build had timed out."
         # The init script has already populated the SAGE_LOCAL,
         # but only /workspace is preserved; and the $HOME/sage-local may contain a resurrected
         # copy of sage-local.  Replace it again by a symlink.
         rm -Rf $HOME/sage-local
-        ln -sf "$SAGE_LOCAL" $HOME/sage-local
-        unset SAGE_LOCAL
+        ln -sf $(pwd)/local $HOME/sage-local
         # Now run make.
         MAKE='make -j24' timeout 51m make build V=0
       else
@@ -33,11 +31,10 @@ tasks:
             mv $HOME/sage-local local
         fi
         rm -Rf $HOME/sage-local
-        ln -sf $SAGE_LOCAL $HOME/sage-local
-        unset SAGE_LOCAL
+        ln -sf $(pwd)/local $HOME/sage-local
         # Save the logs of the source tree used by the Docker build
         if [ -d $HOME/sage/logs ]; then
-          mv $HOME/sage/logs /workspace/sage/logs
+          mv $HOME/sage/logs logs
         fi
       fi
       # Remove the source tree used by the Docker build

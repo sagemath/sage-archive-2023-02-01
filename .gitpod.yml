@@ -17,6 +17,11 @@ tasks:
       SAGE_LOCAL=/workspace/sage/local
       if [ -d "$SAGE_LOCAL" ]; then
         echo "Prebuild init script has been run. Running "make" again in case the build had timed out."
+        # The init script has already populated the SAGE_LOCAL,
+        # but only /workspace is preserved; and the $HOME/sage-local may contain a resurrected
+        # copy of sage-local.  Replace it again by a symlink.
+        rm -Rf $HOME/sage-local
+        ln -sf $(pwd)/local $HOME/sage-local
         # First set the installation records to the same mtime so that no rebuilds due to dependencies
         # among these packages are triggered.  This is from .github/workflows/extract-sage-local.sh
         dummy="$SAGE_LOCAL"/var/lib/sage/installed/.dummy
@@ -33,15 +38,17 @@ tasks:
         unset SAGE_LOCAL
         # Now run make.
         MAKE='make -j24' timeout 51m make build V=0
+      else
+        # Prebuild init script has not been run
+        # Only /workspace is preserved during build.
+        # If the Docker image contains a built SAGE_LOCAL, use it to populate the SAGE_LOCAL in the workspace.
+        if [ -d $HOME/sage-local ]; then
+            mv $HOME/sage-local local
+        fi
+        rm -Rf $HOME/sage-local
+        ln -sf $(pwd)/local $HOME/sage-local
       fi
     init: |
-      # Only /workspace is preserved during build.
-      # If the Docker image contains a built SAGE_LOCAL, move it into the workspace.
-      if [ ! -d local -a -d $HOME/sage-local ]; then
-        mv $HOME/sage-local local
-      fi
-      rm -Rf $HOME/sage-local
-      ln -sf $(pwd)/local $HOME/sage-local
       # Setup trac repo
       git remote add trac git@trac.sagemath.org:sage.git -t master
       git remote set-url --push trac git@trac.sagemath.org:sage.git

@@ -445,6 +445,10 @@ class Animation(WithEqualityById, SageObject):
           ``None``; in this case, a temporary directory will be
           created for storing the frames.
 
+        OUTPUT:
+
+        Absolute path to the directory containing the PNG images
+
         EXAMPLES::
 
             sage: a = animate([plot(x^2 + n) for n in range(4)], ymin=0, ymax=4)
@@ -654,22 +658,38 @@ class Animation(WithEqualityById, SageObject):
             savefile += '.gif'
         savefile = os.path.abspath(savefile)
 
-        d = self.png()
-        cmd = ( 'cd "%s"; sage-native-execute convert -dispose Background '
-                '-delay %s -loop %s *.png "%s"' ) % ( d, int(delay),
+        # running the command
+        directory = self.png()
+        cmd = ( 'sage-native-execute convert -dispose Background '
+                '-delay %s -loop %s *.png "%s"' ) % (int(delay),
                     int(iterations), savefile )
-        from subprocess import check_call, CalledProcessError
-        try:
-            check_call(cmd, shell=True)
-            if show_path:
-                print("Animation saved to file %s." % savefile)
-        except (CalledProcessError, OSError):
+        from subprocess import run
+        result = run(cmd, shell=True, cwd=directory, capture_output=True, text=True)
+
+        # If a problem with the command occurs, print the log before
+        # raising an error
+        if result.returncode:
+            print("Command \n"
+                  "   '{}'\n"
+                  "returned non-zero exit status {}.\n"
+                  "Here is the content of the stderr:{}"
+                  "Here is the content of the stdout:"
+                  "{}".format(result.args,
+                                result.returncode,
+                                result.stderr,
+                                result.stdout))
             raise OSError("Error: Cannot generate GIF animation. "
-                    "Verify that convert (ImageMagick) or ffmpeg is "
-                    "installed, and that the objects passed to the "
-                    "animate command can be saved in PNG image format. "
-                    "See www.imagemagick.org and www.ffmpeg.org for "
-                    "more information.")
+                    "The convert command (ImageMagick) is present but does "
+                    "not seem to be functional. Verify that the objects "
+                    "passed to the animate command can be saved in PNG "
+                    "image format. "
+                    "See www.imagemagick.org more information.")
+
+        # Alternate way of raising the error (less verbose)
+        #result.check_returncode()
+
+        if show_path:
+            print("Animation saved to file %s." % savefile)
 
     def _rich_repr_(self, display_manager, **kwds):
         """

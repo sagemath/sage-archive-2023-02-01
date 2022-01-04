@@ -21,8 +21,8 @@ tasks:
         # copy of sage-local.  Replace it again by a symlink.
         rm -Rf $HOME/sage-local
         ln -sf $(pwd)/local $HOME/sage-local
-        # Now run make.
-        MAKE='make -j24' timeout 51m make build V=0
+        # Now run make. No timeout here.
+        MAKE='make -j24' make build V=0
       else
         # Prebuild init script has not been run
         # Only /workspace is preserved during build.

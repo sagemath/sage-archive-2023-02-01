@@ -668,6 +668,7 @@ class kRegularSequence(RecognizableSeries):
                                [0 0|0 1]},
              (1, 1, 1, 1))
         """
+        from itertools import chain
         from sage.matrix.constructor import Matrix
         from sage.matrix.special import zero_matrix
         from sage.modules.free_module_element import vector
@@ -684,9 +685,9 @@ class kRegularSequence(RecognizableSeries):
         result = P.element_class(
             P,
             {r: Matrix.block([[B[0], -B[r+1]], [Z, self.mu[r]]]) for r in A},
-            vector(tuple(self.left) +
-                   (dim*(0,) if include_n else tuple(-self.left))),
-            vector(2*tuple(self.right)))
+            vector(chain(self.left,
+                         (dim*(0,) if include_n else -self.left))),
+            vector(chain(self.right, self.right)))
 
         return result
 

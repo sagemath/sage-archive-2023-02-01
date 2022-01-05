@@ -453,7 +453,9 @@ class kRegularSequence(RecognizableSeries):
             ...
             ValueError: a=-1 is not nonnegative.
         """
+        from itertools import chain
         from sage.rings.integer_ring import ZZ
+
         zero = ZZ(0)
         a = ZZ(a)
         if not isinstance(b, dict):
@@ -483,11 +485,12 @@ class kRegularSequence(RecognizableSeries):
         # suffices as well.
         kernel = list(b)
 
-        def pad(T, d):
+        def prepend_zeros(T, d, zero):
             di = kernel.index(d)
-            return (di*dim)*(0,) + T
+            return di*[zero] + T
 
-        Z = self.mu[0].parent().zero()
+        zero_M = self.mu[0].parent().zero()
+        zero_L = self.left.parent().zero()
 
         blocks = {r: [] for r in A}
         ci = 0
@@ -497,22 +500,22 @@ class kRegularSequence(RecognizableSeries):
                 d, f = (a*r + c).quo_rem(k)
                 if d not in kernel:
                     kernel.append(d)
-                di = kernel.index(d)
-                blocks[r].append(di*[Z] + [self.mu[f]])
+                blocks[r].append(prepend_zeros([self.mu[f]], d, zero_M))
             ci += 1
 
-        ndim = len(kernel) * dim
         result = P.element_class(
             P,
-            {r: Matrix.block([pad_right(row, len(kernel), zero=Z)
+            {r: Matrix.block([pad_right(row, len(kernel), zero=zero_M)
                               for row in blocks[r]])
              for r in A},
-            sum(c_j * vector(
-                    pad_right(pad(tuple(self.left), b_j), ndim, zero=zero))
+            sum(c_j * vector(chain.from_iterable(
+                pad_right(prepend_zeros([self.left], b_j, zero_L),
+                          len(kernel), zero=zero_L)))
                 for b_j, c_j in b.items()),
-            vector(sum((tuple(self.__getitem__(c, multiply_left=False))
-                        if c >= 0 else dim*(zero,)
-                        for c in kernel), tuple())))
+            vector(chain.from_iterable(
+                (self.__getitem__(c, multiply_left=False)
+                 if c >= 0 else dim*(zero,))
+                for c in kernel)))
 
         return result
 

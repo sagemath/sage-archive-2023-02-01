@@ -326,10 +326,9 @@ class kRegularSequence(RecognizableSeries):
             sage: C.subsequence(2, 0)
             2-regular sequence 0, 2, 4, 6, 8, 10, 12, 14, 16, 18, ...
 
-            sage: S = C.subsequence(3, 1)
-            sage: S
+            sage: S31 = C.subsequence(3, 1); S31
             2-regular sequence 1, 4, 7, 10, 13, 16, 19, 22, 25, 28, ...
-            sage: S.linear_representation()
+            sage: S31.linear_representation()
             ((1, 0),
              Finite family {0: [ 0  1]
                                [-2  3],
@@ -342,10 +341,9 @@ class kRegularSequence(RecognizableSeries):
 
         ::
 
-            sage: S = C.subsequence(1, -1)
-            sage: S
+            sage: Srs = C.subsequence(1, -1); Srs
             2-regular sequence 0, 0, 1, 2, 3, 4, 5, 6, 7, 8, ...
-            sage: S.linear_representation()
+            sage: Srs.linear_representation()
             ((1, 0, 0),
              Finite family {0: [ 0  1  0]
                                [-2  3  0]
@@ -358,10 +356,46 @@ class kRegularSequence(RecognizableSeries):
         We can build :meth:`backward_differences` manually by passing
         a dictionary for the parameter ``b``::
 
-            sage: C.subsequence(1, {0: 1, -1: -1})
+            sage: Sbd = C.subsequence(1, {0: 1, -1: -1}); Sbd
             2-regular sequence 0, 1, 1, 1, 1, 1, 1, 1, 1, 1, ...
 
-        TESTS::
+        TESTS:
+
+        We check if the linear representation of the subsequences above
+        indeed represent the correct vector valued sequences::
+
+            sage: var('n')
+            n
+
+            sage: def v(n):
+            ....:     return vector([3*n + 1, 6*n + 1])
+            sage: S31.mu[0] * v(n) == v(2*n)
+            True
+            sage: S31.mu[1] * v(n) == v(2*n + 1)
+            True
+
+            sage: function('delta_0')
+            delta_0
+
+            sage: def simplify_delta(expr):
+            ....:     return expr.subs({delta_0(2*n): delta_0(n), delta_0(2*n + 1): 0})
+
+            sage: def v(n):
+            ....:     return vector([n -1 + delta_0(n), 2*n - 1 + delta_0(n), 4*n + 1])
+            sage: simplify_delta(v(2*n) - Srs.mu[0]*v(n)).is_zero()
+            True
+            sage: simplify_delta(v(2*n + 1) - Srs.mu[1]*v(n)).is_zero()
+            True
+
+            sage: def v(n):
+            ....:     return vector([1 - delta_0(n), 1])
+
+            sage: simplify_delta(v(2*n) - Sbd.mu[0]*v(n)).is_zero()
+            True
+            sage: simplify_delta(v(2*n + 1) - Sbd.mu[1]*v(n)).is_zero()
+            True
+
+        We check some corner-cases::
 
             sage: C.subsequence(0, 4)
             2-regular sequence 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, ...

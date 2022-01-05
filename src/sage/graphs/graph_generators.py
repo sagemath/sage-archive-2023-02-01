@@ -1553,9 +1553,9 @@ class GraphGenerators():
 
         Wrong input, ``"-c 3"`` instead of ``"-c3"``::
 
-            sage: list(graphs.plantri_gen("6 -c3"))
+            sage: list(graphs.plantri_gen("6 -c3"))  # optional plantri
             [Graph on 6 vertices, Graph on 6 vertices]
-            sage: list(graphs.plantri_gen("6 -c 3"))
+            sage: list(graphs.plantri_gen("6 -c 3"))  # optional plantri
             Traceback (most recent call last):
             ...
             AttributeError: invalid options '6 -c 3'

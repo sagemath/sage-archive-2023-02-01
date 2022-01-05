@@ -47,6 +47,7 @@ tasks:
       ssh-keyscan -H trac.sagemath.org >> ~/.ssh/known_hosts
       ## No need for pyenv
       pyenv shell --unset
+      pyenv global system
       if [ -d local ]; then
         mkdir -p logs && echo '### .gitpod.yml Setup.before: Prebuild init script has been run. Running "make" again in case the build had timed out.' >> logs/install.log
         # The init script has already populated the SAGE_LOCAL,

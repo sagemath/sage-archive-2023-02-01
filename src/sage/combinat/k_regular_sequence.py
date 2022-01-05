@@ -104,7 +104,7 @@ from sage.misc.cachefunc import cached_function, cached_method
 
 def pad_right(T, length, zero=0):
     r"""
-    Pad ``T`` to the right by ``zero``s to have
+    Pad ``T`` to the right by using ``zero`` to have
     at least the given ``length``.
 
     INPUT:

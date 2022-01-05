@@ -485,12 +485,8 @@ class kRegularSequence(RecognizableSeries):
         # suffices as well.
         kernel = list(b)
 
-        def prepend_zeros(T, d, zero):
-            di = kernel.index(d)
-            return di*[zero] + T
-
         zero_M = self.mu[0].parent().zero()
-        zero_L = self.left.parent().zero()
+        zero_R = self.right.parent().zero()
 
         blocks = {r: [] for r in A}
         ci = 0
@@ -507,7 +503,7 @@ class kRegularSequence(RecognizableSeries):
                 d, f = (a*r + c).quo_rem(k)
                 if d not in kernel:
                     kernel.append(d)
-                blocks[r].append(prepend_zeros([self.mu[f]], d, zero_M))
+                blocks[r].append(kernel.index(d)*[zero_M] + [self.mu[f]])
             ci += 1
 
         result = P.element_class(
@@ -515,13 +511,11 @@ class kRegularSequence(RecognizableSeries):
             {r: Matrix.block([pad_right(row, len(kernel), zero=zero_M)
                               for row in blocks[r]])
              for r in A},
-            sum(c_j * vector(chain.from_iterable(
-                pad_right(prepend_zeros([self.left], b_j, zero_L),
-                          len(kernel), zero=zero_L)))
-                for b_j, c_j in b.items()),
             vector(chain.from_iterable(
-                (self.__getitem__(c, multiply_left=False)
-                 if c >= 0 else dim*(zero,))
+                b.get(c, 0)*self.left
+                for c in kernel)),
+            vector(chain.from_iterable(
+                (self.__getitem__(c, multiply_left=False) if c >= 0 else zero_R)
                 for c in kernel)))
 
         return result

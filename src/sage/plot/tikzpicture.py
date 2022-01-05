@@ -388,8 +388,8 @@ class StandaloneTex(SageObject):
             sage: _ = t.pdf()                 # optional latex
             Traceback (most recent call last):
             ...
-            CalledProcessError: Command '...latex -interaction=nonstopmode
-            tikz_...tex' returned non-zero exit status 1.
+            CalledProcessError: Command '['...latex', '-interaction=nonstopmode',
+            'tikz_...tex']' returned non-zero exit status 1.
 
         ACKNOWLEDGEMENT:
 
@@ -422,8 +422,7 @@ class StandaloneTex(SageObject):
 
         # running pdflatex or lualatex
         cmd = [program, '-interaction=nonstopmode', _filename_tex]
-        cmd = ' '.join(cmd)
-        result = run(cmd, shell=True, cwd=base, capture_output=True, text=True)
+        result = run(cmd, cwd=base, capture_output=True, text=True)
 
         # If a problem with the tex source occurs, provide the log
         if result.returncode != 0:
@@ -432,10 +431,10 @@ class StandaloneTex(SageObject):
                   "returned non-zero exit status {}.\n"
                   "Here is the content of the stderr:{}\n"
                   "Here is the content of the stdout:"
-                  "{}\n".format(result.args,
+                  "{}\n".format(' '.join(result.args),
                                 result.returncode,
-                                result.stderr,
-                                result.stdout))
+                                result.stderr.strip(),
+                                result.stdout.strip()))
         result.check_returncode()
         _filename_pdf = os.path.join(base, _filename+'.pdf')
 
@@ -448,9 +447,9 @@ class StandaloneTex(SageObject):
         # open the tmp pdf
         elif view:
             from sage.misc.viewer import pdf_viewer
-            cmd = [pdf_viewer(), _filename_pdf]
-            cmd = ' '.join(cmd)
-            run(cmd, shell=True, cwd=base, capture_output=True, check=True)
+            cmd = pdf_viewer().split()
+            cmd.append(_filename_pdf)
+            run(cmd, cwd=base, capture_output=True, check=True)
 
         return _filename_pdf
 
@@ -506,20 +505,19 @@ class StandaloneTex(SageObject):
         cmd = ['convert', '-density',
                '{0}x{0}'.format(density), '-trim', _filename_pdf,
                _filename_png]
-        cmd = ' '.join(cmd)
-        result = run(cmd, shell=True, capture_output=True, text=True)
+        result = run(cmd, capture_output=True, text=True)
 
         # If a problem occurs, provide the log
         if result.returncode != 0:
             print("Command \n"
                   "   '{}'\n"
                   "returned non-zero exit status {}.\n"
-                  "Here is the content of the stderr:{}"
+                  "Here is the content of the stderr:{}\n"
                   "Here is the content of the stdout:"
-                  "{}".format(result.args,
+                  "{}\n".format(' '.join(result.args),
                                 result.returncode,
-                                result.stderr,
-                                result.stdout))
+                                result.stderr.strip(),
+                                result.stdout.strip()))
         result.check_returncode()
 
         # move the png into the good location
@@ -531,9 +529,9 @@ class StandaloneTex(SageObject):
         # open the tmp png
         elif view:
             from sage.misc.viewer import png_viewer
-            cmd = [png_viewer(), _filename_png]
-            cmd = ' '.join(cmd)
-            run(cmd, shell=True, capture_output=True, check=True)
+            cmd = png_viewer().split()
+            cmd.append(_filename_png)
+            run(cmd, capture_output=True, check=True)
 
         return _filename_png
 
@@ -600,20 +598,19 @@ class StandaloneTex(SageObject):
                     " 'pdf2svg'".format(program))
 
         # convert to svg
-        cmd = ' '.join(cmd)
-        result = run(cmd, shell=True, capture_output=True, text=True)
+        result = run(cmd, capture_output=True, text=True)
 
         # If a problem occurs, provide the log
         if result.returncode != 0:
             print("Command \n"
                   "   '{}'\n"
                   "returned non-zero exit status {}.\n"
-                  "Here is the content of the stderr:{}"
+                  "Here is the content of the stderr:{}\n"
                   "Here is the content of the stdout:"
-                  "{}".format(result.args,
+                  "{}\n".format(' '.join(result.args),
                                 result.returncode,
-                                result.stderr,
-                                result.stdout))
+                                result.stderr.strip(),
+                                result.stdout.strip()))
         result.check_returncode()
 
         # move the svg into the good location
@@ -625,9 +622,9 @@ class StandaloneTex(SageObject):
         # open the tmp svg
         elif view:
             from sage.misc.viewer import browser
-            cmd = [browser(), _filename_svg]
-            cmd = ' '.join(cmd)
-            run(cmd, shell=True, capture_output=True, check=True)
+            cmd = browser().split()
+            cmd.append(_filename_svg)
+            run(cmd, capture_output=True, check=True)
 
         return _filename_svg
 

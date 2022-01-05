@@ -608,7 +608,7 @@ class kRegularSequence(RecognizableSeries):
         INPUT:
 
         - ``include_n`` -- (default: ``False``) a boolean. If set, then
-          the `n`th entry of the result is the sum of the entries up
+          the `n`-th entry of the result is the sum of the entries up
           to index `n` (included).
 
         - ``minimize`` -- (default: ``None``) a boolean or ``None``.

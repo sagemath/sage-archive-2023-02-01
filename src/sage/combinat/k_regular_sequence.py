@@ -486,27 +486,27 @@ class kRegularSequence(RecognizableSeries):
         def pad(T, d):
             di = kernel.index(d)
             return (di*dim)*(0,) + T
-        def mu_line(r, i, c):
-            d, f = (a*r + c).quo_rem(k)
-            if d not in kernel:
-                kernel.append(d)
-            return pad(tuple(self.mu[f].rows()[i]), d)
 
-        lines = {r: [] for r in A}
+        Z = self.mu[0].parent().zero()
+
+        blocks = {r: [] for r in A}
         ci = 0
         while ci < len(kernel):
             c = kernel[ci]
             for r in A:
-                for i in srange(dim):
-                    lines[r].append(mu_line(r, i, c))
+                d, f = (a*r + c).quo_rem(k)
+                if d not in kernel:
+                    kernel.append(d)
+                di = kernel.index(d)
+                blocks[r].append(di*[Z] + [self.mu[f]])
             ci += 1
 
         ndim = len(kernel) * dim
         result = P.element_class(
             P,
-            dict((r, Matrix([pad_right(row, ndim, zero=zero)
-                             for row in lines[r]]))
-                 for r in A),
+            {r: Matrix.block([pad_right(row, len(kernel), zero=Z)
+                              for row in blocks[r]])
+             for r in A},
             sum(c_j * vector(
                     pad_right(pad(tuple(self.left), b_j), ndim, zero=zero))
                 for b_j, c_j in b.items()),

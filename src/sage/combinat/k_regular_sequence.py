@@ -292,8 +292,8 @@ class kRegularSequence(RecognizableSeries):
         - ``b`` -- an integer
 
           Alternatively, this is allowed to be a dictionary
-          `b_j \mapsto c_j`. If so, the result will be the sum
-          of all `c_j(an+b_j)`.
+          `b_j \mapsto c_j`. If so and applied on `f(n)`,
+          the result will be the sum of all `c_j \cdot f(an+b_j)`.
 
         - ``minimize`` -- (default: ``None``) a boolean or ``None``.
           If ``True``, then :meth:`minimized` is called after the operation,

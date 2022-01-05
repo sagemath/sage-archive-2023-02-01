@@ -660,11 +660,11 @@ class Animation(WithEqualityById, SageObject):
 
         # running the command
         directory = self.png()
-        cmd = ( 'sage-native-execute convert -dispose Background '
-                '-delay %s -loop %s *.png "%s"' ) % (int(delay),
-                    int(iterations), savefile )
+        cmd = ['sage-native-execute', 'convert', '-dispose', 'Background',
+                '-delay', '%s' % int(delay), '-loop', '%s' % int(iterations),
+                '*.png', savefile]
         from subprocess import run
-        result = run(cmd, shell=True, cwd=directory, capture_output=True, text=True)
+        result = run(cmd, cwd=directory, capture_output=True, text=True)
 
         # If a problem with the command occurs, print the log before
         # raising an error

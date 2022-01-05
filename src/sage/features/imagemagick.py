@@ -71,7 +71,7 @@ class convert(Executable):
         with open(base_filename_png, 'wb') as f:
             f.write(content)
 
-        # Filenames
+        # Set up filenames
         import os
         base, filename_png = os.path.split(base_filename_png)
         filename, _png = os.path.splitext(filename_png)
@@ -79,11 +79,9 @@ class convert(Executable):
 
         # running command convert (taken from sage/plot/animate.py)
         from subprocess import run
-        delay = 20
-        iterations = 0
-        cmd = ('convert -dispose Background -delay {} '
-               '-loop {} *.png "{}"').format(int(delay), int(iterations), filename_gif)
-        result = run(cmd, shell=True, cwd=base, capture_output=True, text=True)
+        cmd = ['convert', '-dispose', 'Background', '-delay', '20',
+                '-loop', '0', filename_png, filename_gif]
+        result = run(cmd, cwd=base, capture_output=True, text=True)
 
         # If an error occured, return False
         if result.returncode != 0:
@@ -109,6 +107,8 @@ class ImageMagick(JoinFeature):
 
         sage: from sage.features.imagemagick import ImageMagick
         sage: ImageMagick().is_present()  # optional - imagemagick
+        FeatureTestResult('imagemagick', True)
+        sage: ImageMagick().is_functional()  # optional - imagemagick
         FeatureTestResult('imagemagick', True)
     """
     def __init__(self):

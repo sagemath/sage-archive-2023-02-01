@@ -45,7 +45,27 @@ We check that ridiculous operations are being avoided::
       in the current implementation -- some fiddly adjustments will be
       needed in order to be able to pass extra arguments to the
       subquotient's init method.
+
+AUTHORS:
+
+- David Loeffler (2010)
+- Lorenz Panny (2017): :meth:`AdditiveAbelianGroupWrapper.discrete_log`
 """
+
+# ****************************************************************************
+#       Copyright (C) 2010 David Loeffler
+#
+#  Distributed under the terms of the GNU General Public License (GPL)
+#
+#    This code is distributed in the hope that it will be useful,
+#    but WITHOUT ANY WARRANTY; without even the implied warranty of
+#    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+#    General Public License for more details.
+#
+#  The full text of the GPL is available at:
+#
+#                  https://www.gnu.org/licenses/
+# ****************************************************************************
 
 from . import additive_abelian_group as addgp
 from sage.rings.integer_ring import ZZ

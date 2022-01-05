@@ -312,7 +312,7 @@ class kRegularSequence(RecognizableSeries):
         EXAMPLES::
 
             sage: Seq2 = kRegularSequenceSpace(2, ZZ)
-            sage: C = Seq2((Matrix([[2, 0], [2, 1]]), Matrix([[0, 1], [-2, 3]])),
+            sage: C = Seq2((Matrix([[2, 0], [0, 1]]), Matrix([[2, 1], [0, 1]])),
             ....:          vector([1, 0]), vector([0, 1]))
             sage: C
             2-regular sequence 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, ...

@@ -669,14 +669,11 @@ class Animation(WithEqualityById, SageObject):
         # If a problem with the command occurs, print the log before
         # raising an error
         if result.returncode:
-            print("Command \n"
-                  "   '{}'\n"
-                  "returned non-zero exit status {}"
-                  "(with stderr '{}' and stdout"
-                  " '{}')".format(result.args,
-                                  result.returncode,
-                                  result.stderr,
-                                  result.stdout))
+            print('Command "{}" returned non-zero exit status "{}" '
+                  '(with stderr "{}" and stdout "{}").'.format(result.args,
+                                        result.returncode,
+                                        result.stderr.strip(),
+                                        result.stdout.strip()))
             raise OSError("Error: Cannot generate GIF animation. "
                     "The convert command (ImageMagick) is present but does "
                     "not seem to be functional. Verify that the objects "

@@ -84,11 +84,13 @@ class convert(Executable):
         result = run(cmd, cwd=base, capture_output=True, text=True)
 
         # If an error occured, return False
-        if result.returncode != 0:
-            return FeatureTestResult(self, False, reason="Running convert on "
-                        "a sample file returned non-zero "
-                        "exit status '{}' with stderr "
-                        "'{}'".format(result.returncode, result.stderr))
+        if result.returncode:
+            return FeatureTestResult(self, False, reason='Running command "{}" '
+                        'returned non-zero exit status "{}" with stderr '
+                        '"{}" and stdout "{}".'.format(result.args,
+                                                       result.returncode,
+                                                       result.stderr.strip(),
+                                                       result.stdout.strip()))
 
         # If necessary, run more tests here
         # ...

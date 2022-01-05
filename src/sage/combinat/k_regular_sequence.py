@@ -646,19 +646,25 @@ class kRegularSequence(RecognizableSeries):
 
         TESTS::
 
-            sage: E.mu[0], E.mu[1], E.left, E.right
-            (
-            [0 1]  [0 0]
-            [0 1], [0 1], (1, 0), (1, 1)
-            )
+            sage: E.linear_representation()
+            ((1, 0),
+             Finite family {0: [0 1]
+                               [0 1],
+                            1: [0 0]
+                               [0 1]},
+             (1, 1))
             sage: P = E.partial_sums(minimize=False)
-            sage: P.mu[0], P.mu[1], P.left, P.right
-            (
-            [ 0  1  0  0]  [0 1 0 0]
-            [ 0  2  0 -1]  [0 2 0 0]
-            [ 0  0  0  1]  [0 0 0 0]
-            [ 0  0  0  1], [0 0 0 1], (1, 0, -1, 0), (1, 1, 1, 1)
-            )
+            sage: P.linear_representation()
+            ((1, 0, -1, 0),
+             Finite family {0: [ 0  1  0  0]
+                               [ 0  2  0 -1]
+                               [ 0  0  0  1]
+                               [ 0  0  0  1],
+                            1: [0 1 0 0]
+                               [0 2 0 0]
+                               [0 0 0 0]
+                               [0 0 0 1]},
+             (1, 1, 1, 1))
         """
         from sage.matrix.constructor import Matrix
         from sage.matrix.special import zero_matrix

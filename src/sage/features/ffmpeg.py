@@ -75,7 +75,9 @@ class FFmpeg(Executable):
 
         # running the command (taken from sage/plot/animate.py)
         from subprocess import run
-        cmd = ['ffmpeg', '-y', '-f', 'image2', '-r', '5', '-i',
+        # the `-nostdin` is needed to avoid the command to hang, see
+        # https://stackoverflow.com/questions/16523746/ffmpeg-hangs-when-run-in-background
+        cmd = ['ffmpeg', '-nostdin', '-y', '-f', 'image2', '-r', '5', '-i',
                filename_png, '-pix_fmt', 'rgb24', '-loop', '0',
                filename_gif]
         result = run(cmd, cwd=base, capture_output=True, text=True)

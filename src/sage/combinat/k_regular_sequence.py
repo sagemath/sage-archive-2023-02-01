@@ -497,6 +497,13 @@ class kRegularSequence(RecognizableSeries):
         while ci < len(kernel):
             c = kernel[ci]
             for r in A:
+                # We now compute the contributions of v(an+c)[an >= 0] to
+                # the linear representation by using
+                #   v(a(kn+r)+c) [a(kn+r)+c >= 0]
+                #   = v(kan+ar+c) [kan+ar+c >= 0]
+                #   = v(k(an+d)+f) [an+d >= 0]
+                #   = mu[f] v(an+d) [an+d >= 0]
+                # where v(n) = self.__getitem__(n, multiply_left=False).
                 d, f = (a*r + c).quo_rem(k)
                 if d not in kernel:
                     kernel.append(d)

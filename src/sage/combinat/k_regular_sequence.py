@@ -492,7 +492,7 @@ class kRegularSequence(RecognizableSeries):
                 kernel.append(d)
             return pad(tuple(self.mu[f].rows()[i]), d)
 
-        lines = dict((r, []) for r in A)
+        lines = {r: [] for r in A}
         ci = 0
         while ci < len(kernel):
             c = kernel[ci]

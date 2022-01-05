@@ -35,7 +35,6 @@ shows the picture itself::
 
     sage: t
     \documentclass[tikz]{standalone}
-    \usepackage{amsmath}
     \begin{document}
     \begin{tikzpicture}
     \draw[very thick,orange,->] (0,0) -- (1,1);
@@ -79,7 +78,6 @@ show the image directly below the cell in png or svg format::
 
     sage: t
     \documentclass[tikz]{standalone}
-    \usepackage{amsmath}
     \begin{document}
     \begin{tikzpicture}%
             [x={(0.249656cm, -0.577639cm)},
@@ -137,7 +135,7 @@ import os
 from sage.structure.sage_object import SageObject
 
 class StandaloneTex(SageObject):
-    def __init__(self, content, standalone_options=None, usepackage=['amsmath'],
+    def __init__(self, content, standalone_options=None, usepackage=None,
             usetikzlibrary=None, macros=None, use_sage_preamble=False):
         r"""
         See :mod:`sage.plot.tikzpicture` for full information.
@@ -156,7 +154,7 @@ class StandaloneTex(SageObject):
         """
         self._content = content
         self._standalone_options = [] if standalone_options is None else standalone_options
-        self._usepackage = usepackage
+        self._usepackage = [] if usepackage is None else usepackage
         self._usetikzlibrary = [] if usetikzlibrary is None else usetikzlibrary
         self._macros = [] if macros is None else macros
         if use_sage_preamble:
@@ -309,7 +307,6 @@ class StandaloneTex(SageObject):
             sage: print(t)
             \RequirePackage{luatex85}
             \documentclass[tikz]{standalone}
-            \usepackage{amsmath}
             \begin{document}
             \begin{tikzpicture}
             \draw (0,0) -- (1,1);
@@ -699,7 +696,7 @@ class TikzPicture(StandaloneTex):
       and ending with ``r'\end{tikzpicture}'``
     - ``standalone_options`` -- list of strings (default: ``[]``),
       latex document class standalone configuration options.
-    - ``usepackage`` -- list of strings (default: ``['amsmath']``), latex
+    - ``usepackage`` -- list of strings (default: ``[]``), latex
       packages.
     - ``usetikzlibrary`` -- list of strings (default: ``[]``), tikz libraries
       to use.
@@ -723,7 +720,6 @@ class TikzPicture(StandaloneTex):
         sage: t = TikzPicture(s)
         sage: t
         \documentclass[tikz]{standalone}
-        \usepackage{amsmath}
         \begin{document}
         \begin{tikzpicture}
         \draw[very thick,orange,->] (0,0) -- (1,1);
@@ -990,7 +986,6 @@ class TikzPicture(StandaloneTex):
             sage: TikzPicture.from_graph_with_pos(G, merge_label_function=f)
             \documentclass[tikz]{standalone}
             \standaloneconfig{border=4mm}
-            \usepackage{amsmath}
             \begin{document}
             \begin{tikzpicture}
             [auto,scale=1]

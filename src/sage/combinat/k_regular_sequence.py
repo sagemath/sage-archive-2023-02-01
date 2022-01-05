@@ -675,15 +675,14 @@ class kRegularSequence(RecognizableSeries):
         k = P.k
         dim = self.dimension()
 
-        B = dict((r, sum(self.mu[a] for a in A[r:])) for r in A)
+        B = {r: sum(self.mu[a] for a in A[r:]) for r in A}
         Z = zero_matrix(dim)
         B[k] = Z
         W = B[0].stack(Z)
 
         result = P.element_class(
             P,
-            dict((r, W.augment((-B[r+1]).stack(self.mu[r])))
-                 for r in A),
+            {r: W.augment((-B[r+1]).stack(self.mu[r])) for r in A},
             vector(tuple(self.left) +
                    (dim*(0,) if include_n else tuple(-self.left))),
             vector(2*tuple(self.right)))

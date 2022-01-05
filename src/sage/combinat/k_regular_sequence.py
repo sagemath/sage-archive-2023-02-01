@@ -520,6 +520,98 @@ class kRegularSequence(RecognizableSeries):
 
         return result
 
+    def shift_left(self, b=1, **kwds):
+        r"""
+        Return the sequence obtained by shifting
+        this `k`-regular sequence `b` steps to the left.
+
+        INPUT:
+
+        - ``b`` -- an integer
+
+        - ``minimize`` -- (default: ``None``) a boolean or ``None``.
+          If ``True``, then :meth:`minimized` is called after the operation,
+          if ``False``, then not. If this argument is ``None``, then
+          the default specified by the parent's ``minimize_results`` is used.
+
+        OUTPUT:
+
+        A :class:`kRegularSequence`
+
+        .. NOTE::
+
+            If `b` is negative (i.e., actually a right-shift), then the
+            coefficients when accessing negative indices are `0`.
+
+        EXAMPLES::
+
+            sage: Seq2 = kRegularSequenceSpace(2, ZZ)
+            sage: C = Seq2((Matrix([[2, 0], [0, 1]]), Matrix([[2, 1], [0, 1]])),
+            ....:          vector([1, 0]), vector([0, 1])); C
+            2-regular sequence 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, ...
+
+            sage: C.shift_left()
+            2-regular sequence 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, ...
+            sage: C.shift_left(3)
+            2-regular sequence 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, ...
+            sage: C.shift_left(-2)
+            2-regular sequence 0, 0, 0, 1, 2, 3, 4, 5, 6, 7, ...
+
+        TESTS:
+
+            sage: C.shift_left(0) == C  # not tested, #21319
+            sage: C.shift_left(2).shift_right(2)
+            2-regular sequence 0, 0, 2, 3, 4, 5, 6, 7, 8, 9, ...
+        """
+        return self.subsequence(1, b, **kwds)
+
+    def shift_right(self, b=1, **kwds):
+        r"""
+        Return the sequence obtained by shifting
+        this `k`-regular sequence `b` steps to the right.
+
+        INPUT:
+
+        - ``b`` -- an integer
+
+        - ``minimize`` -- (default: ``None``) a boolean or ``None``.
+          If ``True``, then :meth:`minimized` is called after the operation,
+          if ``False``, then not. If this argument is ``None``, then
+          the default specified by the parent's ``minimize_results`` is used.
+
+        OUTPUT:
+
+        A :class:`kRegularSequence`
+
+        .. NOTE::
+
+            If `b` is positive (i.e., indeed a right-shift), then the
+            coefficients when accessing negative indices are `0`.
+
+        EXAMPLES::
+
+            sage: Seq2 = kRegularSequenceSpace(2, ZZ)
+            sage: C = Seq2((Matrix([[2, 0], [0, 1]]), Matrix([[2, 1], [0, 1]])),
+            ....:          vector([1, 0]), vector([0, 1])); C
+            2-regular sequence 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, ...
+
+            sage: C.shift_right()
+            2-regular sequence 0, 0, 1, 2, 3, 4, 5, 6, 7, 8, ...
+            sage: C.shift_right(3)
+            2-regular sequence 0, 0, 0, 0, 1, 2, 3, 4, 5, 6, ...
+            sage: C.shift_right(-2)
+            2-regular sequence 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, ...
+
+        TESTS:
+
+            sage: C.shift_right(0) == C  # not tested, #21319
+            sage: C.shift_right().shift_left()
+            2-regular sequence 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, ...
+            sage: C.shift_right(2).shift_left(2)
+            2-regular sequence 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, ...
+        """
+        return self.subsequence(1, -b, **kwds)
+
     def backward_differences(self, **kwds):
         r"""
         Return the sequence of backward differences of this

@@ -656,14 +656,16 @@ class kRegularSequence(RecognizableSeries):
             sage: P = E.partial_sums(minimize=False)
             sage: P.linear_representation()
             ((1, 0, -1, 0),
-             Finite family {0: [ 0  1  0  0]
-                               [ 0  2  0 -1]
-                               [ 0  0  0  1]
-                               [ 0  0  0  1],
-                            1: [0 1 0 0]
-                               [0 2 0 0]
-                               [0 0 0 0]
-                               [0 0 0 1]},
+             Finite family {0: [ 0  1| 0  0]
+                               [ 0  2| 0 -1]
+                               [-----+-----]
+                               [ 0  0| 0  1]
+                               [ 0  0| 0  1],
+                            1: [0 1|0 0]
+                               [0 2|0 0]
+                               [---+---]
+                               [0 0|0 0]
+                               [0 0|0 1]},
              (1, 1, 1, 1))
         """
         from sage.matrix.constructor import Matrix
@@ -678,11 +680,10 @@ class kRegularSequence(RecognizableSeries):
         B = {r: sum(self.mu[a] for a in A[r:]) for r in A}
         Z = zero_matrix(dim)
         B[k] = Z
-        W = B[0].stack(Z)
 
         result = P.element_class(
             P,
-            {r: W.augment((-B[r+1]).stack(self.mu[r])) for r in A},
+            {r: Matrix.block([[B[0], -B[r+1]], [Z, self.mu[r]]]) for r in A},
             vector(tuple(self.left) +
                    (dim*(0,) if include_n else tuple(-self.left))),
             vector(2*tuple(self.right)))

@@ -323,11 +323,13 @@ class kRegularSequence(RecognizableSeries):
             sage: S = C.subsequence(3, 1)
             sage: S
             2-regular sequence 1, 4, 7, 10, 13, 16, 19, 22, 25, 28, ...
-            sage: S.mu[0], S.mu[1], S.left, S.right
-            (
-            [ 0  1]  [ 6 -2]
-            [-2  3], [10 -3], (1, 0), (1, 1)
-            )
+            sage: S.linear_representation()
+            ((1, 0),
+             Finite family {0: [ 0  1]
+                               [-2  3],
+                            1: [ 6 -2]
+                               [10 -3]},
+             (1, 1))
 
             sage: C.subsequence(3, 2)
             2-regular sequence 2, 5, 8, 11, 14, 17, 20, 23, 26, 29, ...
@@ -337,12 +339,15 @@ class kRegularSequence(RecognizableSeries):
             sage: S = C.subsequence(1, -1)
             sage: S
             2-regular sequence 0, 0, 1, 2, 3, 4, 5, 6, 7, 8, ...
-            sage: S.mu[0], S.mu[1], S.left, S.right
-            (
-            [ 0  1  0]  [ -2   2   0]
-            [-2  3  0]  [  0   0   1]
-            [-4  4  1], [ 12 -12   5], (1, 0, 0), (0, 0, 1)
-            )
+            sage: S.linear_representation()
+            ((1, 0, 0),
+             Finite family {0: [ 0  1  0]
+                               [-2  3  0]
+                               [-4  4  1],
+                            1: [ -2   2   0]
+                               [  0   0   1]
+                               [ 12 -12   5]},
+             (0, 0, 1))
 
         We can build :meth:`backward_differences` manually by passing
         a dictionary for the parameter ``b``::

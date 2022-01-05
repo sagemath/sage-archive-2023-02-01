@@ -372,9 +372,14 @@ class StandaloneTex(SageObject):
 
             sage: from sage.misc.temporary_file import tmp_filename
             sage: filename = tmp_filename('temp','.pdf')
-            sage: path_to_file = t.pdf(filename)   # long time (2s) # optional latex
-            sage: path_to_file[-4:]                                 # optional latex
+            sage: path_to_file = t.pdf(filename)   # long time (2s)   # optional latex
+            sage: path_to_file[-4:]                # long time (fast) # optional latex
             '.pdf'
+
+        The filename may contain spaces::
+
+            sage: filename = tmp_filename('filename with spaces','.pdf')
+            sage: path_to_file = t.pdf(filename)   # long time (2s)   # optional latex
 
         TESTS:
 

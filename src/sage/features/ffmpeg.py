@@ -71,25 +71,39 @@ class FFmpeg(Executable):
         import os
         base, filename_png = os.path.split(base_filename_png)
         filename, _png = os.path.splitext(filename_png)
-        filename_gif = filename + '.gif'
 
-        # running the command (taken from sage/plot/animate.py)
-        from subprocess import run
-        # the `-nostdin` is needed to avoid the command to hang, see
+        # Setting a list of commands (taken from sage/plot/animate.py)
+        # The `-nostdin` is needed to avoid the command to hang, see
         # https://stackoverflow.com/questions/16523746/ffmpeg-hangs-when-run-in-background
-        cmd = ['ffmpeg', '-nostdin', '-y', '-f', 'image2', '-r', '5', '-i',
-               filename_png, '-pix_fmt', 'rgb24', '-loop', '0',
-               filename_gif]
-        result = run(cmd, cwd=base, capture_output=True, text=True)
+        commands = []
+        for ext in ['.avi', '.flv', '.gif', '.mkv', '.mov', #'.mpg',
+                '.mp4', '.ogg', '.ogv', '.webm', '.wmv']:
 
-        # If an error occured, return False
-        if result.returncode:
-            return FeatureTestResult(self, False, reason='Running command "{}" '
-                        'returned non-zero exit status "{}" with stderr '
-                        '"{}" and stdout "{}".'.format(result.args,
-                                                       result.returncode,
-                                                       result.stderr.strip(),
-                                                       result.stdout.strip()))
+            cmd = ['ffmpeg', '-nostdin', '-y', '-f', 'image2', '-r', '5',
+                    '-i', filename_png, '-pix_fmt', 'rgb24', '-loop', '0',
+                    filename + ext]
+            commands.append(cmd)
+
+        for ext in ['.avi', '.flv', '.gif', '.mkv', '.mov', '.mpg',
+                '.mp4', '.ogg', '.ogv', '.webm', '.wmv']:
+
+            cmd = ['ffmpeg', '-nostdin', '-y', '-f', 'image2', '-i',
+                    filename_png, filename + ext]
+            commands.append(cmd)
+
+        # Running the commands and reporting any issue encountered
+        from subprocess import run
+        for cmd in commands:
+            result = run(cmd, cwd=base, capture_output=True, text=True)
+
+            # If an error occurred, return False
+            if result.returncode:
+                return FeatureTestResult(self, False, reason='Running command "{}" '
+                            'returned non-zero exit status "{}" with stderr '
+                            '"{}" and stdout "{}".'.format(result.args,
+                                                            result.returncode,
+                                                            result.stderr.strip(),
+                                                            result.stdout.strip()))
 
         # If necessary, run more tests here
         # ...

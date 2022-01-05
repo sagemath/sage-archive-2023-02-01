@@ -83,7 +83,7 @@ class convert(Executable):
                 '-loop', '0', filename_png, filename_gif]
         result = run(cmd, cwd=base, capture_output=True, text=True)
 
-        # If an error occured, return False
+        # If an error occurred, return False
         if result.returncode:
             return FeatureTestResult(self, False, reason='Running command "{}" '
                         'returned non-zero exit status "{}" with stderr '

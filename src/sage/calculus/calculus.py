@@ -2085,12 +2085,11 @@ def dummy_pochhammer(*args):
         sage: from sage.calculus.calculus import dummy_pochhammer
         sage: s,t = var('s,t')
         sage: dummy_pochhammer(s,t)
-        product(i + s, i, 0, t - 1)
+        gamma(s + t)/gamma(s)
     """
-    x, n = args
-    from sage.functions.other import symbolic_product
-    i = SR.var('i')
-    return symbolic_product(x + i, i, 0, n - 1)
+    x, y = args
+    from sage.functions.gamma import gamma
+    return gamma(x + y) / gamma(x)
 
 #######################################################
 #

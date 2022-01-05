@@ -122,14 +122,14 @@ def pad_right(T, length, zero=0):
     EXAMPLES::
 
         sage: from sage.combinat.k_regular_sequence import pad_right
-        sage: pad_right((1,2,3), 10)
+        sage: pad_right((1, 2, 3), 10)
         (1, 2, 3, 0, 0, 0, 0, 0, 0, 0)
-        sage: pad_right((1,2,3), 2)
+        sage: pad_right((1, 2, 3), 2)
         (1, 2, 3)
 
     TESTS::
 
-        sage: pad_right([1,2,3], 10)
+        sage: pad_right([1, 2, 3], 10)
         [1, 2, 3, 0, 0, 0, 0, 0, 0, 0]
     """
     return T + type(T)(zero for _ in range(length - len(T)))

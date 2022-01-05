@@ -1,5 +1,12 @@
 # Use custom docker image. https://www.gitpod.io/docs/config-docker
-image: ghcr.io/sagemath/sage/sage-docker-gitpod-standard-with-targets:dev
+image:
+# Each of these two options works:
+# - Directly use the "-with-targets" image built by .github/workflows/tox.yml
+#   image: ghcr.io/sagemath/sage/sage-docker-gitpod-standard-with-targets:dev
+# - or go through a custom Dockerfile, which builds a smaller image
+#   based on the "-with-system-packages" image built by .github/workflows/tox.yml
+#   with the built SAGE_LOCAL from the "-with-targets" image copied in.
+    file: docker/.gitpod.Dockerfile
 
 # We use the following layout:
 #

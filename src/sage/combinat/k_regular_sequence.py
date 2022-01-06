@@ -474,7 +474,6 @@ class kRegularSequence(RecognizableSeries):
         P = self.parent()
         A = P.alphabet()
         k = P.k
-        dim = self.dimension()
 
         # Below, we use a dynamic approach to find the shifts of the
         # sequences in the kernel. According to [AS2003]_, the static range

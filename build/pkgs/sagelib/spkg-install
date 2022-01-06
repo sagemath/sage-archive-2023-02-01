@@ -56,6 +56,12 @@ else
     time python3 -u setup.py --no-user-cfg build install || exit 1
 fi
 
+# Trac #33103: The temp.* directories are large after a full build.
+# We remove them to save space; they are not needed for fast rebuilds.
+for build_tree in build/pkgs/sagelib/src/build src/build; do
+    rm -rf $build_tree/temp.*
+done
+
 if [ "$UNAME" = "CYGWIN" ]; then
     sage-rebase.sh "$SAGE_LOCAL" 2>/dev/null;
 fi

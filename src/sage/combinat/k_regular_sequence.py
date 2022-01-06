@@ -296,7 +296,7 @@ class kRegularSequence(RecognizableSeries):
           the result will be the sum of all `c_j \cdot f(an+b_j)`.
 
         - ``minimize`` -- (default: ``None``) a boolean or ``None``.
-          If ``True``, then :meth:`minimized` is called after the operation,
+          If ``True``, then :meth:`~RecognizableSeries.minimized` is called after the operation,
           if ``False``, then not. If this argument is ``None``, then
           the default specified by the parent's ``minimize_results`` is used.
 
@@ -528,7 +528,7 @@ class kRegularSequence(RecognizableSeries):
         - ``b`` -- an integer
 
         - ``minimize`` -- (default: ``None``) a boolean or ``None``.
-          If ``True``, then :meth:`minimized` is called after the operation,
+          If ``True``, then :meth:`~RecognizableSeries.minimized` is called after the operation,
           if ``False``, then not. If this argument is ``None``, then
           the default specified by the parent's ``minimize_results`` is used.
 
@@ -573,7 +573,7 @@ class kRegularSequence(RecognizableSeries):
         - ``b`` -- an integer
 
         - ``minimize`` -- (default: ``None``) a boolean or ``None``.
-          If ``True``, then :meth:`minimized` is called after the operation,
+          If ``True``, then :meth:`~RecognizableSeries.minimized` is called after the operation,
           if ``False``, then not. If this argument is ``None``, then
           the default specified by the parent's ``minimize_results`` is used.
 
@@ -618,7 +618,7 @@ class kRegularSequence(RecognizableSeries):
         INPUT:
 
         - ``minimize`` -- (default: ``None``) a boolean or ``None``.
-          If ``True``, then :meth:`minimized` is called after the operation,
+          If ``True``, then :meth:`~RecognizableSeries.minimized` is called after the operation,
           if ``False``, then not. If this argument is ``None``, then
           the default specified by the parent's ``minimize_results`` is used.
 
@@ -659,7 +659,7 @@ class kRegularSequence(RecognizableSeries):
         INPUT:
 
         - ``minimize`` -- (default: ``None``) a boolean or ``None``.
-          If ``True``, then :meth:`minimized` is called after the operation,
+          If ``True``, then :meth:`~RecognizableSeries.minimized` is called after the operation,
           if ``False``, then not. If this argument is ``None``, then
           the default specified by the parent's ``minimize_results`` is used.
 
@@ -702,7 +702,7 @@ class kRegularSequence(RecognizableSeries):
           to index `n` (included).
 
         - ``minimize`` -- (default: ``None``) a boolean or ``None``.
-          If ``True``, then :meth:`minimized` is called after the operation,
+          If ``True``, then :meth:`~RecognizableSeries.minimized` is called after the operation,
           if ``False``, then not. If this argument is ``None``, then
           the default specified by the parent's ``minimize_results`` is used.
 

@@ -313,7 +313,7 @@ class kRegularSequence(RecognizableSeries):
 
             sage: Seq2 = kRegularSequenceSpace(2, ZZ)
 
-        We consider the sequnence `C` with `C(n) = n` and
+        We consider the sequence `C` with `C(n) = n` and
         the following linear representation
         corresponding to the vector `(n, 1)`::
 

@@ -557,7 +557,7 @@ class kRegularSequence(RecognizableSeries):
             sage: C.shift_left(-2)
             2-regular sequence 0, 0, 0, 1, 2, 3, 4, 5, 6, 7, ...
 
-        TESTS:
+        TESTS::
 
             sage: C.shift_left(0) == C  # not tested, #21319
             sage: C.shift_left(2).shift_right(2)
@@ -602,7 +602,7 @@ class kRegularSequence(RecognizableSeries):
             sage: C.shift_right(-2)
             2-regular sequence 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, ...
 
-        TESTS:
+        TESTS::
 
             sage: C.shift_right(0) == C  # not tested, #21319
             sage: C.shift_right().shift_left()

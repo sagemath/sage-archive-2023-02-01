@@ -469,7 +469,6 @@ class kRegularSequence(RecognizableSeries):
         elif a < 0:
             raise ValueError('a={} is not nonnegative.'.format(a))
 
-        from sage.arith.srange import srange
         from sage.matrix.constructor import Matrix
         from sage.modules.free_module_element import vector
         P = self.parent()

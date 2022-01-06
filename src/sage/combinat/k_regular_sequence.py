@@ -485,8 +485,14 @@ class kRegularSequence(RecognizableSeries):
 
         zero_M = self.mu[0].parent().zero()
         zero_R = self.right.parent().zero()
+        # Let v(n) = self.__getitem__(n, multiply_left=False)
+        rule = {}
+        # We will construct `kernel` and `rule` in such a way that for all
+        # c in `kernel`,
+        #     rule[r, c] = (f, d)
+        # holds for some 0 <= f < r and some d in `kernel` such that
+        #     v(a(kn+r)+c) [a(kn+r) +c >= 0] = mu[f] v(an+d) [an+d >= 0].
 
-        blocks = {r: [] for r in A}
         ci = 0
         while ci < len(kernel):
             c = kernel[ci]
@@ -496,18 +502,20 @@ class kRegularSequence(RecognizableSeries):
                 #   v(a(kn+r)+c) [a(kn+r)+c >= 0]
                 #   = v(kan+ar+c) [kan+ar+c >= 0]
                 #   = v(k(an+d)+f) [an+d >= 0]
-                #   = mu[f] v(an+d) [an+d >= 0]
-                # where v(n) = self.__getitem__(n, multiply_left=False).
+                #   = mu[f] v(an+d) [an+d >= 0].
                 d, f = (a*r + c).quo_rem(k)
                 if d not in kernel:
                     kernel.append(d)
-                blocks[r].append(kernel.index(d)*[zero_M] + [self.mu[f]])
+                rule[r, c] = (d, f)
             ci += 1
+
+        def matrix_row(r, c):
+            d, f = rule[r, c]
+            return [self.mu[f] if d == j else zero_M for j in kernel]
 
         result = P.element_class(
             P,
-            {r: Matrix.block([pad_right(row, len(kernel), zero=zero_M)
-                              for row in blocks[r]])
+            {r: Matrix.block([matrix_row(r, c) for c in kernel])
              for r in A},
             vector(chain.from_iterable(
                 b.get(c, 0)*self.left

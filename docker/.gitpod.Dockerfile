@@ -1,6 +1,7 @@
 ARG BASE_GITHUB_REPOSITORY=sagemath/sage
 ARG BASE_TAG=dev
 FROM ghcr.io/${BASE_GITHUB_REPOSITORY}/sage-docker-gitpod-standard-with-targets:${BASE_TAG} as with-targets
+RUN sudo rm -rf /var/lib/apt/lists/*
 # Fast doc rebuilds do not work because
 # "loading pickled environment... failed; source directory has changed"
 # So remove the intermediate output to save space (1GB), but keep the built HTML documentation.

@@ -58,9 +58,7 @@ fi
 
 # Trac #33103: The temp.* directories are large after a full build.
 # We remove them to save space; they are not needed for fast rebuilds.
-for build_tree in build/pkgs/sagelib/src/build src/build; do
-    rm -rf $build_tree/temp.*
-done
+rm -rf build/temp.*
 
 if [ "$UNAME" = "CYGWIN" ]; then
     sage-rebase.sh "$SAGE_LOCAL" 2>/dev/null;

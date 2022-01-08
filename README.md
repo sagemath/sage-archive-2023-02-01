@@ -400,7 +400,6 @@ SAGE_ROOT                 Root directory (sage-x.y.z in Sage tarball)
 │       │
 │       └── tmp/sage/     Temporary files when building Sage
 ├── logs
-│   ├── dochtml.log       Log of the documentation build
 │   ├── install.log       Full install log
 │   └── pkgs              Build logs of individual packages
 │       ├── alabaster-0.7.12.log

@@ -564,7 +564,6 @@ class FastCallablePlotWrapper:
         Evaluation never fails and always returns a ``float``::
 
             sage: from sage.plot.misc import FastCallablePlotWrapper
-            sage: set_random_seed()
             sage: f = x
             sage: ff = fast_callable(f, vars=[x], domain=CDF)
             sage: fff = FastCallablePlotWrapper(ff, imag_tol=1e-8)

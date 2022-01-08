@@ -561,7 +561,7 @@ class FastCallablePlotWrapper:
 
         TESTS:
 
-        Evaluation never fails and always returns a ``float``:
+        Evaluation never fails and always returns a ``float``::
 
             sage: from sage.plot.misc import FastCallablePlotWrapper
             sage: set_random_seed()

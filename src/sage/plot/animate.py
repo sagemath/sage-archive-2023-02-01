@@ -667,7 +667,7 @@ class Animation(WithEqualityById, SageObject):
         result = run(cmd, cwd=directory, capture_output=True, text=True)
 
         # If a problem with the command occurs, print the log before
-        # raising an error
+        # raising an error (more verbose than result.check_returncode())
         if result.returncode:
             print('Command "{}" returned non-zero exit status "{}" '
                   '(with stderr "{}" and stdout "{}").'.format(result.args,
@@ -680,9 +680,6 @@ class Animation(WithEqualityById, SageObject):
                     "passed to the animate command can be saved in PNG "
                     "image format. "
                     "See www.imagemagick.org more information.")
-
-        # Alternate way of raising the error (less verbose)
-        #result.check_returncode()
 
         if show_path:
             print("Animation saved to file %s." % savefile)

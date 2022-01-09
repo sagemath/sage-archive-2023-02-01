@@ -152,7 +152,7 @@ different installations of SageMath, you can use the additional option
 The ``jupyter kernelspec`` approach by default does lead to about 2Gb of
 SageMath documentation being copied into your personal jupyter configuration
 directory. You can avoid that by instead putting a symlink in the relevant spot.
- and
+and
 
 .. CODE-BLOCK:: bash
 

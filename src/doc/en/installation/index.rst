@@ -103,6 +103,8 @@ SageMath release.
   elementary SageMath computations.
 
 
+More information:
+
 .. toctree::
    :maxdepth: 2
 

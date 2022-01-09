@@ -7,8 +7,9 @@ If you are reading this manual at https://doc.sagemath.org/, note that
 it was built at the time the most recent stable release of SageMath
 was made.
 
-Information and details regarding supported platforms may have become
-afterwards and can be found in the section "Availability and installation help" of the
+More up-to-date information and details regarding supported platforms
+may have become available afterwards and can be found in the section
+"Availability and installation help" of the
 `release tour <https://wiki.sagemath.org/ReleaseTours>`_ for each
 SageMath release.
 

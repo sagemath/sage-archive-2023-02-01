@@ -31,6 +31,8 @@ import numbers
 
 # TODO: create _allowed_options for 3D point classes to
 # improve bad option handling in plot3d?
+
+
 class Point(GraphicPrimitive_xydata):
     """
     Primitive class for the point graphics type.  See point?, point2d?
@@ -90,16 +92,16 @@ class Point(GraphicPrimitive_xydata):
             sage: P[0]._allowed_options()['size']
             'How big the point is (i.e., area in points^2=(1/72 inch)^2).'
         """
-        return {'alpha':'How transparent the point is.',
+        return {'alpha': 'How transparent the point is.',
                 'faceted': 'If True color the edge of the point. (only for 2D plots)',
-                'hue':'The color given as a hue.',
-                'legend_color':'The color of the legend text',
-                'legend_label':'The label for this item in the legend.',
-                'marker':'the marker symbol for 2D plots only (see documentation of plot() for details)',
-                'markeredgecolor':'the color of the marker edge (only for 2D plots)',
-                'rgbcolor':'The color as an RGB tuple.',
+                'hue': 'The color given as a hue.',
+                'legend_color': 'The color of the legend text',
+                'legend_label': 'The label for this item in the legend.',
+                'marker': 'the marker symbol for 2D plots only (see documentation of plot() for details)',
+                'markeredgecolor': 'the color of the marker edge (only for 2D plots)',
+                'rgbcolor': 'The color as an RGB tuple.',
                 'size': 'How big the point is (i.e., area in points^2=(1/72 inch)^2).',
-                'zorder':'The layer level in which to draw'}
+                'zorder': 'The layer level in which to draw'}
 
     def _plot3d_options(self, options=None):
         """
@@ -125,7 +127,7 @@ class Point(GraphicPrimitive_xydata):
             del options['size']
         if options.pop('faceted', False):
             raise NotImplementedError("3D points cannot be faceted.")
-        for o in ('marker', 'markeredgecolor'): # remove 2D options
+        for o in ('marker', 'markeredgecolor'):  # remove 2D options
             if o in options:
                 del options[o]
 
@@ -151,6 +153,12 @@ class Point(GraphicPrimitive_xydata):
             Point set defined by 1 point(s)
             sage: b=a.plot3d()
 
+        .. PLOT::
+
+            A=point((1,1))
+            a=A[0]
+            sphinx_plot(a.plot3d())
+
         One point with a height::
 
             sage: A=point((1,1))
@@ -160,12 +168,24 @@ class Point(GraphicPrimitive_xydata):
             sage: b.loc[2]
             3.0
 
+        .. PLOT::
+
+            A=point((1,1))
+            a=A[0]
+            sphinx_plot(a.plot3d(z=3))
+
         Multiple points::
 
             sage: P=point([(0,0), (1,1)])
             sage: p=P[0]; p
             Point set defined by 2 point(s)
             sage: q=p.plot3d(size=22)
+
+        .. PLOT::
+
+            P=point([(0,0), (1,1)])
+            p=P[0]
+            sphinx_plot(p.plot3d(size=22))
 
         Multiple points with different heights::
 
@@ -176,6 +196,12 @@ class Point(GraphicPrimitive_xydata):
             2.0
             sage: q.all[1].loc[2]
             3.0
+
+        .. PLOT::
+
+            P=point([(0,0), (1,1)])
+            p=P[0]
+            sphinx_plot(p.plot3d(z=[2,3]))
 
         Note that keywords passed must be valid point3d options::
 
@@ -235,7 +261,7 @@ class Point(GraphicPrimitive_xydata):
             sage: p=P[0]; p
             Point set defined by 2 point(s)
         """
-        return "Point set defined by %s point(s)"%len(self.xdata)
+        return "Point set defined by %s point(s)" % len(self.xdata)
 
     def __getitem__(self, i):
         """
@@ -251,7 +277,7 @@ class Point(GraphicPrimitive_xydata):
         """
         return self.xdata[i], self.ydata[i]
 
-    def _render_on_subplot(self,subplot):
+    def _render_on_subplot(self, subplot):
         r"""
         TESTS:
 
@@ -263,21 +289,21 @@ class Point(GraphicPrimitive_xydata):
         """
         options = self.options()
 
-        #Convert the color to a hex string so that the scatter
-        #method does not interpret it as a list of 3 floating
-        #point color specifications when there are
-        #three points. This is mentioned in the matplotlib 0.98
-        #documentation and fixes #2076
+        # Convert the color to a hex string so that the scatter
+        # method does not interpret it as a list of 3 floating
+        # point color specifications when there are
+        # three points. This is mentioned in the matplotlib 0.98
+        # documentation and fixes #2076
         from matplotlib.colors import rgb2hex
         c = rgb2hex(to_mpl_color(options['rgbcolor']))
 
         a = float(options['alpha'])
         z = int(options.pop('zorder', 0))
         s = int(options['size'])
-        faceted = options['faceted'] #faceted=True colors the edge of point
+        faceted = options['faceted']  # faceted=True colors the edge of point
         markeredgecolor = options['markeredgecolor']
 
-        scatteroptions={}
+        scatteroptions = {}
         if not faceted and markeredgecolor is None:
             scatteroptions['edgecolors'] = 'none'
         elif markeredgecolor is not None:
@@ -310,20 +336,36 @@ def point(points, **kwds):
         sage: point((1,2))
         Graphics object consisting of 1 graphics primitive
 
+    .. PLOT::
+
+        sphinx_plot(point((1,2)))
+
     ::
 
         sage: point((1,2,3))
         Graphics3d Object
+
+    .. PLOT::
+
+        sphinx_plot(point((1,2,3)))
 
     ::
 
         sage: point([(0,0), (1,1)])
         Graphics object consisting of 1 graphics primitive
 
+    .. PLOT::
+
+        sphinx_plot(point([(0,0), (1,1)]))
+
     ::
 
         sage: point([(0,0,1), (1,1,1)])
         Graphics3d Object
+
+    .. PLOT::
+
+        sphinx_plot(point([(0,0,1), (1,1,1)]))
 
     Extra options will get passed on to show(), as long as they are valid::
 
@@ -349,10 +391,11 @@ def point(points, **kwds):
         from sage.plot.plot3d.shapes2 import point3d
         return point3d(points, **kwds)
 
+
 @rename_keyword(color='rgbcolor', pointsize='size')
 @options(alpha=1, aspect_ratio='automatic', faceted=False,
         legend_color=None, legend_label=None, marker='o',
-        markeredgecolor=None, rgbcolor=(0,0,1), size=10)
+        markeredgecolor=None, rgbcolor=(0, 0, 1), size=10)
 def point2d(points, **options):
     r"""
     A point of size ``size`` defined by point = `(x, y)`.
@@ -390,11 +433,20 @@ def point2d(points, **options):
         sage: point((0.5, 0.5), rgbcolor=hue(0.75))
         Graphics object consisting of 1 graphics primitive
 
+    .. PLOT::
+
+        sphinx_plot(point((0.5, 0.5), rgbcolor=hue(0.75)))
+
     Points with customized markers and edge colors::
 
         sage: r = [(random(), random()) for _ in range(10)]
         sage: point(r, marker='d', markeredgecolor='red', size=20)
         Graphics object consisting of 1 graphics primitive
+
+    .. PLOT::
+
+        r = [(random(), random()) for _ in range(10)]
+        sphinx_plot(point(r, marker='d', markeredgecolor='red', size=20))
 
     Passing an empty list returns an empty plot::
 
@@ -410,21 +462,43 @@ def point2d(points, **options):
         Point set defined by 1 point(s)
         sage: b = a.plot3d(z=3)
 
+    .. PLOT::
+
+        A = point((1, 1))
+        a = A[0]
+        b = a.plot3d(z=3)
+        sphinx_plot(b)
+
     This is also true with multiple points::
 
         sage: P = point([(0, 0), (1, 1)])
         sage: p = P[0]
         sage: q = p.plot3d(z=[2,3])
 
+    .. PLOT::
+
+        P = point([(0, 0), (1, 1)])
+        p = P[0]
+        q = p.plot3d(z=[2,3])
+        sphinx_plot(q)
+
     Here are some random larger red points, given as a list of tuples::
 
         sage: point(((0.5, 0.5), (1, 2), (0.5, 0.9), (-1, -1)), rgbcolor=hue(1), size=30)
         Graphics object consisting of 1 graphics primitive
 
+    .. PLOT::
+
+        sphinx_plot(point(((0.5, 0.5), (1, 2), (0.5, 0.9), (-1, -1)), rgbcolor=hue(1), size=30))
+
     And an example with a legend::
 
         sage: point((0, 0), rgbcolor='black', pointsize=40, legend_label='origin')
         Graphics object consisting of 1 graphics primitive
+
+    .. PLOT::
+
+        sphinx_plot(point((0, 0), rgbcolor='black', pointsize=40, legend_label='origin'))
 
     The legend can be colored::
 
@@ -432,17 +506,31 @@ def point2d(points, **options):
         sage: P + plot(x^2, (x, 0, 1), legend_label='plot', legend_color='green')
         Graphics object consisting of 2 graphics primitives
 
+    .. PLOT::
+
+        P = points([(0, 0), (1, 0)], pointsize=40, legend_label='origin', legend_color='red')
+        Q = P + plot(x**2, (x, 0, 1), legend_label='plot', legend_color='green')
+        sphinx_plot(Q)
+
     Extra options will get passed on to show(), as long as they are valid::
 
         sage: point([(cos(theta), sin(theta)) for theta in srange(0, 2*pi, pi/8)], frame=True)
         Graphics object consisting of 1 graphics primitive
         sage: point([(cos(theta), sin(theta)) for theta in srange(0, 2*pi, pi/8)]).show(frame=True) # These are equivalent
 
+    .. PLOT::
+
+        sphinx_plot(point([(cos(theta), sin(theta)) for theta in srange(0, 2*pi, pi/8)], frame=True))
+
     For plotting data, we can use a logarithmic scale, as long as we are sure
     not to include any nonpositive points in the logarithmic direction::
 
         sage: point([(1, 2),(2, 4),(3, 4),(4, 8),(4.5, 32)], scale='semilogy', base=2)
         Graphics object consisting of 1 graphics primitive
+
+    .. PLOT::
+
+        sphinx_plot(point([(1, 2),(2, 4),(3, 4),(4, 8),(4.5, 32)], scale='semilogy', base=2))
 
     Since Sage Version 4.4 (:trac:`8599`), the size of a 2d point can be
     given by the argument ``size`` instead of ``pointsize``. The argument
@@ -463,10 +551,22 @@ def point2d(points, **options):
         sage: point(sqrt(2) + I, pointsize=100)
         Graphics object consisting of 1 graphics primitive
 
+    .. PLOT::
+
+        sphinx_plot(point(1 + I, pointsize=100))
+
+    .. PLOT::
+
+        sphinx_plot(point(sqrt(2) + I, pointsize=100))
+
     We can also plot a list of complex numbers::
 
         sage: point([I, 1 + I, 2 + 2*I], pointsize=100)
         Graphics object consisting of 1 graphics primitive
+
+    .. PLOT::
+
+        sphinx_plot(point([I, 1 + I, 2 + 2*I], pointsize=100))
 
     TESTS::
 

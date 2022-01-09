@@ -20,22 +20,22 @@ checked in this module.
 from . import Executable, FeatureTestResult
 from .join_feature import JoinFeature
 
-class convert(Executable):
+class Convert(Executable):
     r"""
     A :class:`~sage.features.Feature` describing the presence of ``convert``
 
     EXAMPLES::
 
-        sage: from sage.features.imagemagick import convert
-        sage: convert().is_present()  # optional - imagemagick
+        sage: from sage.features.imagemagick import Convert
+        sage: Convert().is_present()  # optional - imagemagick
         FeatureTestResult('convert', True)
     """
     def __init__(self):
         r"""
         TESTS::
 
-            sage: from sage.features.imagemagick import convert
-            sage: isinstance(convert(), convert)
+            sage: from sage.features.imagemagick import Convert
+            sage: isinstance(Convert(), Convert)
             True
         """
         Executable.__init__(self, "convert", executable="convert")
@@ -46,8 +46,8 @@ class convert(Executable):
 
         EXAMPLES::
 
-            sage: from sage.features.imagemagick import convert
-            sage: convert().is_functional()   # optional - imagemagick
+            sage: from sage.features.imagemagick import Convert
+            sage: Convert().is_functional()   # optional - imagemagick
             FeatureTestResult('convert', True)
 
         """
@@ -122,7 +122,7 @@ class ImageMagick(JoinFeature):
             True
         """
         JoinFeature.__init__(self, "imagemagick",
-                             [convert()],
+                             [Convert()],
                              spkg="imagemagick",
                              url="https://www.imagemagick.org/")
 

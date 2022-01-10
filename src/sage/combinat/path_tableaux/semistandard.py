@@ -85,9 +85,10 @@ from sage.combinat.skew_tableau import SkewTableau, SkewTableaux
 from sage.combinat.tableau import Tableau
 from sage.combinat.gelfand_tsetlin_patterns import GelfandTsetlinPattern
 from sage.combinat.partition import _Partitions
-from sage.rings.all import NN
+from sage.rings.semirings.non_negative_integer_semiring import NN
 
 ###############################################################################
+
 
 class SemistandardPathTableau(PathTableau):
     r"""

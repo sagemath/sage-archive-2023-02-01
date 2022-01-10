@@ -19,7 +19,8 @@ from sage.combinat.partition import _Partitions, Partitions_n
 from sage.combinat.tableau import Tableau, StandardTableaux_size, StandardTableaux_shape, StandardTableaux
 from sage.algebras.group_algebra import GroupAlgebra_class
 from sage.categories.weyl_groups import WeylGroups
-from sage.rings.all import QQ, PolynomialRing
+from sage.rings.polynomial.polynomial_ring_constructor import PolynomialRing
+from sage.rings.rational_field import QQ
 from sage.arith.all import factorial
 from sage.matrix.constructor import matrix
 from sage.modules.free_module_element import vector

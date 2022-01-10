@@ -41,17 +41,12 @@ AUTHORS:
 
 from sage.categories.homset import Homset
 from sage.misc.cachefunc import cached_method
-
+from sage.modules.fp_graded.free_morphism import FreeGradedModuleMorphism
 
 class FreeGradedModuleHomspace(Homset):
     """
     Homspace between two free graded modules.
     """
-    # In the category framework, Elements of the class FPModule are of the
-    # class FPElement, see
-    # http://doc.sagemath.org/html/en/thematic_tutorials/coercion_and_categories.html#implementing-the-category-framework-for-the-elements
-    from .free_morphism import FreeGradedModuleMorphism
-
     Element = FreeGradedModuleMorphism
 
     def _element_constructor_(self, values):

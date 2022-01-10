@@ -109,21 +109,21 @@ class FreeGradedModuleMorphism(Morphism):
         # Compute the degree.
         if all(v.is_zero() for v in _values):
             # The zero homomorphism does not get a degree.
-            _degree = None
+            degree = None
         else:
             degrees = []
             for i, value in enumerate(_values):
                 if not value.is_zero():
                     x = value.degree()
                     xx = D.generator_degrees()[i]
-                    degrees.append(x-xx)
+                    degrees.append(x - xx)
 
-            _degree = min(degrees)
-            if _degree != max(degrees):
+            degree = min(degrees)
+            if degree != max(degrees):
                 raise ValueError('ill-defined homomorphism: degrees do not match')
 
-        self._degree = _degree
-        self._values = _values
+        self._degree = degree
+        self._values = tuple(_values)
 
         Morphism.__init__(self, parent)
 
@@ -179,9 +179,9 @@ class FreeGradedModuleMorphism(Morphism):
             sage: values = [Sq(5)*N.generator(0), Sq(3,1)*N.generator(0)]
             sage: f = homspace(values)
             sage: f.values()
-            [Sq(5)*g_{2}, Sq(3,1)*g_{2}]
+            (Sq(5)*G[2], Sq(3,1)*G[2])
             sage: homspace.zero().values()
-            [0, 0]
+            (0, 0)
         """
         return self._values
 
@@ -278,13 +278,13 @@ class FreeGradedModuleMorphism(Morphism):
             sage: f = homspace(values)
             sage: f_inverse = -f; f_inverse
             Module homomorphism of degree 7 defined by sending the generators
-              [g_{0}, g_{1}]
+              [G[0], g_{1}]
             to
-              [Sq(5)*g_{2}, Sq(3,1)*g_{2}]
+              [Sq(5)*G[2], Sq(3,1)*G[2]]
             sage: (f + f_inverse).is_zero()
             True
         """
-        return self.parent()([-x for x in self.values()])
+        return self.parent()([-x for x in self._values])
 
 
     def _sub_(self, g):
@@ -325,9 +325,9 @@ class FreeGradedModuleMorphism(Morphism):
             sage: g = Hom(N, M)(values2)
             sage: fg = f * g; fg
             Module homomorphism of degree 7 defined by sending the generators
-              [g_{2}]
+              [G[2]]
             to
-              [(Sq(4,1)+Sq(7))*g_{2}]
+              [(Sq(4,1)+Sq(7))*G[2]]
             sage: fg.is_endomorphism()
             True
 
@@ -373,7 +373,7 @@ class FreeGradedModuleMorphism(Morphism):
             sage: (f-f).is_zero()
             True
         """
-        return all(v.is_zero() for v in self.values())
+        return all(not v for v in self._values)
 
     __bool__ = is_zero
 
@@ -427,14 +427,14 @@ class FreeGradedModuleMorphism(Morphism):
             sage: values = [Sq(5)*N.generator(0), Sq(3,1)*N.generator(0)]
             sage: f = Hom(M, N)(values)
             sage: f.__call__(M.generator(0))
-            Sq(5)*g_{2}
+            Sq(5)*G[2]
             sage: f.__call__(M.generator(1))
-            Sq(3,1)*g_{2}
+            Sq(3,1)*G[2]
         """
         if x.parent() != self.domain():
             raise ValueError('cannot evaluate morphism on element not in the domain')
 
-        value = sum((c * v for c, v in zip(x.dense_coefficient_list(), self.values())),
+        value = sum((c * v for c, v in zip(x.dense_coefficient_list(), self._values)),
                     self.codomain().zero())
 
         return value
@@ -454,7 +454,7 @@ class FreeGradedModuleMorphism(Morphism):
 
             sage: Hom(M, N)(values)._repr_()
             'Module homomorphism of degree 7 defined by sending the generators\n
-              [g_{0}, g_{1}]\nto\n  [Sq(5)*g_{2}, Sq(3,1)*g_{2}]'
+              [G[0], g_{1}]\nto\n  [Sq(5)*G[2], Sq(3,1)*G[2]]'
 
             sage: Hom(M, N).zero()._repr_()
             'The trivial homomorphism'
@@ -468,7 +468,7 @@ class FreeGradedModuleMorphism(Morphism):
             return "The identity homomorphism"
         else:
             r = "Module homomorphism of degree {} defined by sending the generators\n  {}\nto\n  {}"
-            return r.format(self.degree(), self.domain().generators(), self.values())
+            return r.format(self.degree(), self.domain().generators(), self._values)
 
 
     def vector_presentation(self, n):
@@ -548,10 +548,10 @@ class FreeGradedModuleMorphism(Morphism):
         C_n = self.codomain().vector_presentation(n + self.degree())
 
         values = [self(e) for e in self.domain().basis_elements(n)]
-        return Hom(D_n, C_n)([
-            C_n.zero() if e.is_zero() else e.vector_presentation() for e in values])
+        return Hom(D_n, C_n)([C_n.zero() if e.is_zero() else e.vector_presentation()
+                              for e in values])
 
-    def to_fp_module(self):
+    def fp_module(self):
         r"""
         Create a finitely presented module from ``self``.
 
@@ -561,22 +561,22 @@ class FreeGradedModuleMorphism(Morphism):
 
         EXAMPLES::
 
-            sage: from sage.modules.fp_graded.free_module import *
+            sage: from sage.modules.fp_graded.free_module import FreeGradedModule
             sage: A = SteenrodAlgebra(2)
             sage: F1 = FreeGradedModule(A, (2,))
             sage: F2 = FreeGradedModule(A, (0,))
             sage: v = F2([Sq(2)])
             sage: pres = Hom(F1, F2)([v])
-            sage: M = pres.to_fp_module(); M
+            sage: M = pres.fp_module(); M
             Finitely presented left module on 1 generator and 1 relation over
              mod 2 Steenrod algebra, milnor basis
             sage: M.generator_degrees()
             (0,)
             sage: M.relations()
-            [Sq(2)*g_{0}]
+            [Sq(2)*G[0]]
         """
         from .module import FPModule
         return FPModule(algebra=self.base_ring(),
-                         generator_degrees=self.codomain().generator_degrees(),
-                         relations=tuple([r.dense_coefficient_list() for r in self.values()]))
+                        generator_degrees=self.codomain().generator_degrees(),
+                        relations=tuple([r.dense_coefficient_list() for r in self._values]))
 

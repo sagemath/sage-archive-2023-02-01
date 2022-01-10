@@ -313,6 +313,13 @@ class CombinatorialFreeModule(UniqueRepresentation, Module, IndexedGenerators):
         if prefix is None:
             prefix = "B"
 
+        if keywords.get('latex_names', None) is not None:
+            latex_names = keywords['latex_names']
+            if isinstance(latex_names, str):
+                latex_names = latex_names.split(',')
+            latex_names = tuple(latex_names)
+            keywords['latex_names'] = latex_names
+
         return super(CombinatorialFreeModule, cls).__classcall__(cls,
             base_ring, basis_keys, category=category, prefix=prefix, names=names,
             **keywords)
@@ -413,9 +420,9 @@ class CombinatorialFreeModule(UniqueRepresentation, Module, IndexedGenerators):
             ValueError: keyy is not a valid print option.
         """
         # Make sure R is a ring with unit element
-        from sage.categories.all import Rings
+        from sage.categories.rings import Rings
         if R not in Rings():
-            raise TypeError("Argument R must be a ring.")
+            raise TypeError("argument R must be a ring")
 
         if element_class is not None:
             self.Element = element_class
@@ -438,7 +445,7 @@ class CombinatorialFreeModule(UniqueRepresentation, Module, IndexedGenerators):
             kwds['sorting_key'] = kwds.pop('monomial_key')
         if 'monomial_reverse' in kwds:
             kwds['sorting_reverse'] = kwds.pop('monomial_reverse')
-        IndexedGenerators.__init__(self, basis_keys, prefix, **kwds)
+        IndexedGenerators.__init__(self, basis_keys, prefix, names=names, **kwds)
 
         if category is None:
             category = ModulesWithBasis(R)

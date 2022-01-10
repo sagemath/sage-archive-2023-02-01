@@ -170,7 +170,7 @@ class FPModuleMorphism(Morphism):
         sage: w = Hom(Q, F)( (F((1, 0)), F((0, 1))) )
         Traceback (most recent call last):
          ...
-        ValueError: relation Sq(6)*g_{2} + Sq(5)*g_{3} is not sent to zero
+        ValueError: relation Sq(6)*G[2] + Sq(5)*g_{3} is not sent to zero
     """
     def __init__(self, parent, values):
         r"""
@@ -198,7 +198,7 @@ class FPModuleMorphism(Morphism):
 
         Homspace = Hom(parent.domain().j.codomain(), parent.codomain().j.codomain())
         self.free_morphism = Homspace([v.lift_to_free() for v in values])
-        self._values = values
+        self._values = tuple(values)
 
         # Call the base class constructor.
         Morphism.__init__(self, parent)
@@ -229,9 +229,9 @@ class FPModuleMorphism(Morphism):
 
             sage: f = Hom(M,N)([A2.Sq(3)*N.generator(0)]); f
             Module homomorphism of degree 3 defined by sending the generators
-              [g_{0}]
+              [G[0]]
             to
-              [Sq(3)*g_{0}]
+              [Sq(3)*G[0]]
 
             sage: f.base_ring()
             sub-Hopf algebra of mod 2 Steenrod algebra, milnor basis, profile function [3, 2, 1]
@@ -314,10 +314,10 @@ class FPModuleMorphism(Morphism):
             sage: f = homspace(values)
 
             sage: f.values()
-            [Sq(5)*g_{2}, Sq(3,1)*g_{2}]
+            (Sq(5)*G[2], Sq(3,1)*G[2])
 
             sage: homspace.zero().values()
-            [0, 0]
+            (0, 0)
         """
         return self._values
 
@@ -415,9 +415,9 @@ class FPModuleMorphism(Morphism):
             sage: f = homspace(values)
             sage: f_inverse = f.__neg__(); f_inverse
             Module homomorphism of degree 7 defined by sending the generators
-              [g_{0}, g_{1}]
+              [G[0], g_{1}]
             to
-              [Sq(5)*g_{2}, Sq(3,1)*g_{2}]
+              [Sq(5)*G[2], Sq(3,1)*G[2]]
             sage: (f + f_inverse).is_zero()
             True
         """
@@ -439,17 +439,17 @@ class FPModuleMorphism(Morphism):
             sage: g = Hom(M, N)( [Sq(0,1)*N.generator(0)] )
             sage: f.__sub__(g)
             Module homomorphism of degree 3 defined by sending the generators
-              [g_{0}]
+              [G[0]]
             to
-              [(Sq(0,1)+Sq(3))*g_{0}]
+              [(Sq(0,1)+Sq(3))*G[0]]
 
             sage: f = Hom(M, N)( [Sq(4)*N.generator(0)] ) # the zero map
             sage: g = Hom(M, N)( [Sq(1,1)*N.generator(0)] )
             sage: f.__sub__(g)
             Module homomorphism of degree 4 defined by sending the generators
-              [g_{0}]
+              [G[0]]
             to
-              [Sq(1,1)*g_{0}]
+              [Sq(1,1)*G[0]]
         """
         return self.__add__(g.__neg__())
 
@@ -468,9 +468,9 @@ class FPModuleMorphism(Morphism):
             sage: g = Hom(N, M)( [Sq(2,2)*M.generator(0)] )
             sage: fg = f.__mul__(g); fg
             Module homomorphism of degree 10 defined by sending the generators
-              [g_{0}]
+              [G[0]]
             to
-              [(Sq(0,1,1)+Sq(1,3)+Sq(3,0,1))*g_{0}]
+              [(Sq(0,1,1)+Sq(1,3)+Sq(3,0,1))*G[0]]
             sage: fg.is_endomorphism()
             True
 
@@ -572,10 +572,10 @@ class FPModuleMorphism(Morphism):
             sage: f = Hom(M, N)(values)
 
             sage: f.__call__(M.generator(0))
-            Sq(5)*g_{2}
+            Sq(5)*G[2]
 
             sage: f.__call__(M.generator(1))
-            Sq(3,1)*g_{2}
+            Sq(3,1)*G[2]
         """
         if x.parent() != self.domain():
             raise ValueError('cannot evaluate morphism on element not in domain')
@@ -594,21 +594,24 @@ class FPModuleMorphism(Morphism):
             sage: M = FPModule(A, [0,1], [[Sq(2), Sq(1)]])
             sage: N = FPModule(A, [2], [[Sq(4)]])
             sage: values = [Sq(5)*N.generator(0), Sq(3,1)*N.generator(0)]
-            sage: Hom(M, N)(values)._repr_()
-            'Module homomorphism of degree 7 defined by sending the generators\n
-              [g_{0}, g_{1}]\nto\n  [Sq(5)*g_{2}, Sq(3,1)*g_{2}]'
-            sage: Hom(M, N).zero()._repr_()
-            'The trivial homomorphism'
-            sage: Hom(M, M).identity()._repr_()
-            'The identity homomorphism'
+            sage: Hom(M, N)(values)
+            Module homomorphism of degree 7 defined by sending the generators
+              [G[0], g_{1}]
+            to
+              [Sq(5)*G[2], Sq(3,1)*G[2]]
+            sage: Hom(M, N).zero()
+            The trivial homomorphism
+            sage: Hom(M, M).identity()
+            The identity homomorphism
         """
         if self.is_zero():
             return "The trivial homomorphism"
         elif self.is_identity():
             return "The identity homomorphism"
         else:
-            return "Module homomorphism of degree %d defined by sending "\
-                "the generators\n  %s\nto\n  %s" % (self.degree(), self.domain().generators(), self._values)
+            return ("Module homomorphism of degree %d defined by sending "
+                    "the generators\n  %s\nto\n  %s"
+                    % (self.degree(), self.domain().generators(), self._values))
 
 
     @cached_method
@@ -739,9 +742,9 @@ class FPModuleMorphism(Morphism):
             sage: N = FPModule(A, [0], [[Sq(2,2)]])
             sage: f = Hom(M, N)( [Sq(2)*N.generator(0)] )
             sage: y = Sq(1,1)*N.generator(0); y
-            Sq(1,1)*g_{0}
+            Sq(1,1)*G[0]
             sage: x = f.solve(y); x
-            Sq(2)*g_{0}
+            Sq(2)*G[0]
             sage: y == f(x)
             True
 
@@ -841,9 +844,9 @@ class FPModuleMorphism(Morphism):
             True
             sage: f_
             Module homomorphism of degree 1 defined by sending the generators
-              [g_{0}]
+              [G[0]]
             to
-              [Sq(1)*g_{0}]
+              [Sq(1)*G[0]]
 
         A split projection::
 
@@ -858,7 +861,7 @@ class FPModuleMorphism(Morphism):
             sage: id = Hom(HZ,HZ).identity()
             sage: j = id.lift(q); j
             Module homomorphism of degree 0 defined by sending the generators
-              [g_{0}]
+              [G[0]]
             to
               [g_{0,1}]
             sage: q*j
@@ -872,9 +875,9 @@ class FPModuleMorphism(Morphism):
             sage: im = f.image(top_dim=10)
             sage: f.lift(im)
             Module homomorphism of degree 2 defined by sending the generators
-              [g_{0}]
+              [G[0]]
             to
-              [g_{2}]
+              [G[2]]
 
         When a lift cannot be found, the ``None`` value is returned.  By
         setting the verbose argument to ``True``, an explanation of why
@@ -924,7 +927,7 @@ class FPModuleMorphism(Morphism):
             sage: k = f.kernel_inclusion() # long time
             sage: f.lift(k) # long time
             Module homomorphism of degree 21 defined by sending the generators
-              [g_{0}]
+              [G[0]]
             to
               [Sq(1)*g_{20}]
 
@@ -1081,7 +1084,7 @@ class FPModuleMorphism(Morphism):
             sage: p = Hom(M, N)([N.generator(0), N.generator(0)])
             sage: s = p.split(); s
             Module homomorphism of degree 0 defined by sending the generators
-              [g_{0}]
+              [G[0]]
             to
               [g_{0,1}]
             sage: # Verify that `s` is a splitting:
@@ -1230,9 +1233,9 @@ class FPModuleMorphism(Morphism):
             sage: r = Hom(F, M)([A1.Sq(1)*M.generator(0)])
             sage: co = r.cokernel_projection(); co
             Module homomorphism of degree 0 defined by sending the generators
-              [g_{0}]
+              [G[0]]
             to
-              [g_{0}]
+              [G[0]]
 
             sage: co.domain().is_trivial()
             False
@@ -1319,11 +1322,11 @@ class FPModuleMorphism(Morphism):
         j1 = j0._resolve_kernel(top_dim, verbose)
 
         # Create a module isomorphic to the ker(self).
-        K = j1.to_fp_module()
+        K = j1.fp_module()
 
         # Return an injection of K into the domain of self such that
         # its image equals ker(self).
-        return Hom(K, j0.codomain())(j0.values())
+        return Hom(K, j0.codomain())(j0._values)
 
 
     def image(self, top_dim=None, verbose=False):
@@ -1359,7 +1362,7 @@ class FPModuleMorphism(Morphism):
             Module homomorphism of degree 0 defined by sending the generators
               [g_{3}]
             to
-              (Sq(1)*g_{2} + g_{3},)
+              (Sq(1)*G[2] + g_{3},)
 
             sage: M = FPModule(A3, [0,7], [[Sq(1), 0], [Sq(2), 0], [Sq(4), 0], [Sq(8), Sq(1)], [0, Sq(7)], [0, Sq(0,1,1)+Sq(4,2)]])
             sage: F2 = FPModule(A3, [0], [[Sq(1)], [Sq(2)], [Sq(4)], [Sq(8)], [Sq(15)]])
@@ -1378,7 +1381,7 @@ class FPModuleMorphism(Morphism):
             sage: K.domain().generator_degrees()
             (0,)
             sage: K.domain().relations()
-            [Sq(1)*g_{0}, Sq(2)*g_{0}, Sq(4)*g_{0}, Sq(8)*g_{0}]
+            [Sq(1)*G[0], Sq(2)*G[0], Sq(4)*G[0], Sq(8)*G[0]]
             sage: K.domain().is_trivial()
             False
 
@@ -1391,11 +1394,11 @@ class FPModuleMorphism(Morphism):
         j1 = j0._resolve_kernel(top_dim, verbose)
 
         # Create a module isomorphic to the im(self).
-        I = j1.to_fp_module()
+        I = j1.fp_module()
 
         # Return an injection of I into the codomain of self such that
         # its image equals im(self)
-        return Hom(I, j0.codomain())(j0.values())
+        return Hom(I, j0.codomain())(j0._values)
 
 
     def is_injective(self, top_dim=None, verbose=False):
@@ -1484,7 +1487,7 @@ class FPModuleMorphism(Morphism):
             sage: A = SteenrodAlgebra(2)
             sage: F = FPModule(A, [0,0])
             sage: L = FPModule(A, [0,0], [[Sq(3),Sq(0,1)], [0,Sq(2)]])
-            sage: f = Hom(F, L)([L([Sq(2),0]), L([0, Sq(2)])])
+            sage: f = Hom(F, L)([L([Sq(2), 0]), L([0, Sq(2)])])
             sage: f._resolve_kernel()
             Traceback (most recent call last):
             ...
@@ -1516,7 +1519,7 @@ class FPModuleMorphism(Morphism):
         if self.is_zero():
             # Epsilon: F_0 -> M
             M = self.domain()
-            F_0 = self.domain().j.codomain().to_fp_module()
+            F_0 = self.domain().j.codomain().as_fp_module()
             epsilon = Hom(F_0, M)(tuple(M.generators()))
             return epsilon
 
@@ -1592,7 +1595,7 @@ class FPModuleMorphism(Morphism):
 
             # Create a new homomorphism which is surjective onto the kernel
             # in all degrees less than, and including `n`.
-            j = Hom(F_, self.domain()) (j.values() + new_values)
+            j = Hom(F_, self.domain()) (j._values + new_values)
 
         if verbose:
             print('.')
@@ -1634,13 +1637,13 @@ class FPModuleMorphism(Morphism):
             ValueError: a top dimension must be specified for this calculation to terminate
             sage: f._resolve_image(top_dim=20)
             Module homomorphism of degree 0 defined by sending the generators
-              [g_{2}]
+              [G[2]]
             to
               (Sq(2)*g_{0,0},)
             sage: A3 = SteenrodAlgebra(2, profile=(4,3,2,1))
             sage: f.change_ring(A3)._resolve_image() # long time
             Module homomorphism of degree 0 defined by sending the generators
-              [g_{2}]
+              [G[2]]
             to
               (Sq(2)*g_{0,0},)
         """
@@ -1672,7 +1675,7 @@ class FPModuleMorphism(Morphism):
                 print ('The homomorphism is trivial, so there is nothing to resolve.')
             return j
 
-        degree_values = [0] + [v.degree() for v in self.values() if v]
+        degree_values = [0] + [v.degree() for v in self._values if v]
         limit = PlusInfinity() if not self.base_ring().is_finite() else\
             (self.base_ring().top_class().degree() + max(degree_values))
 
@@ -1728,13 +1731,13 @@ class FPModuleMorphism(Morphism):
 
             # Create a new homomorphism which is surjective onto the image
             # in all degrees less than, and including `n`.
-            j = Hom(F_, self.codomain()) (j.values() + new_values)
+            j = Hom(F_, self.codomain()) (j._values + new_values)
 
         if verbose:
             print('.')
         return j
 
-    def to_fp_module(self):
+    def fp_module(self):
         r"""
         Create a finitely presented module from ``self``.
 
@@ -1751,17 +1754,17 @@ class FPModuleMorphism(Morphism):
             sage: F2 = FPModule(A, (0,))
             sage: v = F2([Sq(2)])
             sage: pres = Hom(F1, F2)([v])
-            sage: M = pres.to_fp_module(); M
+            sage: M = pres.fp_module(); M
             Finitely presented left module on 1 generator and 1 relation over
              mod 2 Steenrod algebra, milnor basis
             sage: M.generator_degrees()
             (0,)
             sage: M.relations()
-            [Sq(2)*g_{0}]
+            [Sq(2)*G[0]]
 
             sage: F3 = FPModule(A, (0,), [[Sq(4)]])
             sage: pres = Hom(F1, F3)([v])
-            sage: pres.to_fp_module()
+            sage: pres.fp_module()
             Traceback (most recent call last):
             ...
             ValueError: this is not a morphism between free modules
@@ -1771,5 +1774,5 @@ class FPModuleMorphism(Morphism):
         from .module import FPModule
         return FPModule(algebra=self.base_ring(),
                          generator_degrees=self.codomain().generator_degrees(),
-                         relations=tuple([r.coefficients() for r in self.values()]))
+                         relations=tuple([r.coefficients() for r in self._values]))
 

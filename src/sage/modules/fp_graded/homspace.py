@@ -50,11 +50,7 @@ AUTHORS:
 #                  https://www.gnu.org/licenses/
 # ****************************************************************************
 
-from __future__ import absolute_import
-
-from sage.categories.homset import Homset
-
-from sage.categories.homset import Hom
+from sage.categories.homset import Homset, Hom
 
 
 class FPModuleHomspace(Homset):
@@ -62,9 +58,6 @@ class FPModuleHomspace(Homset):
     # not happen at the top level.
     from .morphism import FPModuleMorphism
 
-    # In the category framework, Elements of the class FPModuleHomspace are of the
-    # class FPModuleMorphism, see
-    # http://doc.sagemath.org/html/en/thematic_tutorials/coercion_and_categories.html#implementing-the-category-framework-for-the-elements
     Element = FPModuleMorphism
 
     def _element_constructor_(self, values):
@@ -328,34 +321,34 @@ class FPModuleHomspace(Homset):
             Hom(Free, Free):
               basis==False:
               Module homomorphism of degree 7 defined by sending the generators
-              [g_{0}]
+              (G[0],)
             to
-              [Sq(0,0,1)*g_{0}]
+              (Sq(0,0,1)*G[0],),
               basis==True:
               [Module homomorphism of degree 7 defined by sending the generators
-              [g_{0}]
+              (G[0],)
             to
-              [Sq(0,0,1)*g_{0}], Module homomorphism of degree 7 defined by sending the generators
-              [g_{0}]
+              (Sq(0,0,1)*G[0],), Module homomorphism of degree 7 defined by sending the generators
+              (G[0],)
             to
-              [Sq(1,2)*g_{0}], Module homomorphism of degree 7 defined by sending the generators
-              [g_{0}]
+              (Sq(1,2)*G[0],), Module homomorphism of degree 7 defined by sending the generators
+              (G[0],)
             to
-              [Sq(4,1)*g_{0}], Module homomorphism of degree 7 defined by sending the generators
-              [g_{0}]
+              (Sq(4,1)*G[0],), Module homomorphism of degree 7 defined by sending the generators
+              (G[0],)
             to
-              [Sq(7)*g_{0}]]
+              (Sq(7)*G[0],)]
             Hom(Free, Hko):
               basis==False:
               Module homomorphism of degree 7 defined by sending the generators
               [g_{0}]
             to
-              [Sq(0,0,1)*g_{0}]
+              (Sq(0,0,1)*G[0],)]
               basis==True:
               [Module homomorphism of degree 7 defined by sending the generators
               [g_{0}]
             to
-              [Sq(0,0,1)*g_{0}]]
+              (Sq(0,0,1)*G[0],)]
             Hom(Free, Trivial):
               basis==False:
               The trivial homomorphism
@@ -374,14 +367,14 @@ class FPModuleHomspace(Homset):
             Hom(Hko, Hko):
               basis==False:
               Module homomorphism of degree 7 defined by sending the generators
-              [g_{0}]
+              (G[0],)
             to
-              [Sq(0,0,1)*g_{0}]
+              (Sq(0,0,1)*G[0],)]
               basis==True:
               [Module homomorphism of degree 7 defined by sending the generators
-              [g_{0}]
+              (G[0],)
             to
-              [Sq(0,0,1)*g_{0}]]
+              (Sq(0,0,1)*G[0],)]
             Hom(Hko, Trivial):
               basis==False:
               The trivial homomorphism

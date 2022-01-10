@@ -109,7 +109,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        stage: ["1", "2", "2-optional-0-g", "2-optional-h-o", "2-optional-p", "2-optional-q-z", "2-experimental-0-g", "2-experimental-h-o", "2-experimental-p", "2-experimental-q-z"]
+        stage: ["1", "2", "2-optional-0-o", "2-optional-p-z", "2-experimental-0-o", "2-experimental-p-z"]
         # python3_xcode is only accepted if enough packages are available from the system
         # --> to test "minimal", we would need https://trac.sagemath.org/ticket/30949
         tox_env: [homebrew-macos-usrlocal-minimal, homebrew-macos-usrlocal-standard, homebrew-macos-usrlocal-maximal, homebrew-macos-usrlocal-python3_xcode-standard, conda-forge-macos-minimal, conda-forge-macos-standard, conda-forge-macos-maximal]

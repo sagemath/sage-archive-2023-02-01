@@ -240,7 +240,7 @@ def _cythonized_dir(src_dir=None, editable_install=None):
         sage: from sage.env import SAGE_SRC
         sage: _cythonized_dir(SAGE_SRC)  # optional - build
         PosixPath('...')
-        sage: _cythonized_dir(SAGE_SRC, editable_install=False)
+        sage: _cythonized_dir(SAGE_SRC, editable_install=False) # optional - build
         PosixPath('.../build/cythonized')
 
     """
@@ -301,7 +301,7 @@ def find_extra_files(src_dir, modules, cythonized_dir, special_filenames=[]):
         sage: extras["sage/libs/mpfr"]
         [...sage/libs/mpfr/types.pxd...]
         sage: extras["sage/ext/interpreters"]
-        ['.../src/sage/ext/interpreters/wrapper_cdf.pxd', ...wrapper_cdf.h...]
+        ['.../sage/ext/interpreters/wrapper_cdf.pxd', ...wrapper_cdf.h...]
     """
     from Cython.Utils import is_package_dir
 

@@ -475,6 +475,12 @@ class kRegularSequence(RecognizableSeries):
         A = P.alphabet()
         k = P.k
 
+        # Below, we use a dynamic approach to find the shifts of the
+        # sequences in the kernel. According to [AS2003]_, the static range
+        #    [min(b, 0), max(a, a + b))
+        # suffices. However, it seems that the smaller set
+        #    [min(b, 0), max(a, a + (b-1)//k + 1)) \cup {b}
+        # suffices as well.
         kernel = list(b)
 
         zero_M = self.mu[0].parent().zero()

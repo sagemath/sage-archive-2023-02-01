@@ -105,7 +105,7 @@ def builder_helper(type):
         sage: from sage_docbuild import builder_helper, build_ref_doc
         sage: from sage_docbuild import _build_many as build_many
         sage: helper = builder_helper("html")
-        sage: try:
+        sage: try:     # optional - build
         ....:     build_many(build_ref_doc, [("docname", "en", "html", {})])
         ....: except Exception as E:
         ....:     "Non-exception during docbuild: abort pool operation" in str(E)
@@ -203,7 +203,7 @@ class DocBuilder(object):
 
             sage: from sage_docbuild import DocBuilder
             sage: b = DocBuilder('tutorial')
-            sage: b._doctrees_dir()
+            sage: b._doctrees_dir()  # optional - build
             '.../doctrees/en/tutorial'
         """
         d = os.path.join(SAGE_DOC, 'doctrees', self.lang, self.name)
@@ -374,7 +374,7 @@ class AllBuilder(object):
 
             sage: from sage_docbuild import AllBuilder
             sage: documents = AllBuilder().get_all_documents()
-            sage: 'en/tutorial' in documents
+            sage: 'en/tutorial' in documents  # optional - build
             True
             sage: documents[0] == 'en/reference'
             True
@@ -602,8 +602,8 @@ class ReferenceBuilder(AllBuilder):
 
             sage: from sage_docbuild import ReferenceBuilder
             sage: b = ReferenceBuilder('reference')
-            sage: refdir = os.path.join(os.environ['SAGE_DOC_SRC'], 'en', b.name)
-            sage: sorted(b.get_all_documents(refdir))
+            sage: refdir = os.path.join(os.environ['SAGE_DOC_SRC'], 'en', b.name)  # optional - build
+            sage: sorted(b.get_all_documents(refdir))  # optional - build
             ['reference/algebras',
              'reference/arithgroup',
              ...,
@@ -1091,7 +1091,7 @@ class ReferenceSubBuilder(DocBuilder):
 
             sage: from sage_docbuild import ReferenceSubBuilder
             sage: ReferenceSubBuilder("reference").auto_rest_filename("sage.combinat.partition")
-            '.../doc/en/reference/sage/combinat/partition.rst'
+            '.../en/reference/sage/combinat/partition.rst'
         """
         return self.dir + os.path.sep + module_name.replace('.', os.path.sep) + '.rst'
 

@@ -15,7 +15,7 @@ from sage.structure.unique_representation import UniqueRepresentation
 from sage.structure.parent import Parent
 from sage.structure.indexed_generators import IndexedGenerators, parse_indices_names
 from sage.modules.module import Module
-from sage.rings.all import Integer
+from sage.rings.integer import Integer
 from sage.structure.element import parent
 from sage.modules.with_basis.indexed_element import IndexedFreeModuleElement
 from sage.sets.finite_enumerated_set import FiniteEnumeratedSet
@@ -338,7 +338,7 @@ class CombinatorialFreeModule(UniqueRepresentation, Module, IndexedGenerators):
 
             sage: A.element_class.mro()
             [<class 'sage.categories.examples.algebras_with_basis.FreeAlgebra_with_category.element_class'>,
-             <... 'sage.modules.with_basis.indexed_element.IndexedFreeModuleElement'>,
+             <class 'sage.modules.with_basis.indexed_element.IndexedFreeModuleElement'>,
              ...]
             sage: a,b,c = A.algebra_generators()
             sage: a * b
@@ -1152,7 +1152,7 @@ class CombinatorialFreeModule_Tensor(CombinatorialFreeModule):
         The basis of T is indexed by tuples of basis indices of F and G::
 
             sage: T.basis().keys()
-            Image of Cartesian product of {1, 2}, {3, 4} by <... 'tuple'>
+            Image of Cartesian product of {1, 2}, {3, 4} by <class 'tuple'>
             sage: T.basis().keys().list()
             [(1, 3), (1, 4), (2, 3), (2, 4)]
 
@@ -1386,7 +1386,7 @@ class CombinatorialFreeModule_Tensor(CombinatorialFreeModule):
                 sage: f =   F.monomial(1) + 2 * F.monomial(2)
                 sage: g = 2*G.monomial(3) +     G.monomial(4)
                 sage: latex(tensor([f, g])) # indirect doctest
-                2x_{1} \otimes y_{3} + x_{1} \otimes y_{4} + 4x_{2} \otimes y_{3} + 2x_{2} \otimes y_{4}
+                2 x_{1} \otimes y_{3} + x_{1} \otimes y_{4} + 4 x_{2} \otimes y_{3} + 2 x_{2} \otimes y_{4}
             """
             symb = " \\otimes "
             return symb.join(module._latex_term(t) for (module, t) in zip(self._sets, term))

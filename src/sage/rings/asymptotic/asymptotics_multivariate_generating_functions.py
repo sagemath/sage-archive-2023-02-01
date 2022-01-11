@@ -1578,7 +1578,7 @@ class FractionWithFactoredDenominator(RingElement):
             (1, [(x*y + x + y - 1, 2)])
             sage: alpha = [4, 3]
             sage: decomp = F.asymptotic_decomposition(alpha); decomp
-            (0, []) + (-2*r*(1/x + 1) - 1/2/x - 1/2, [(x*y + x + y - 1, 1)])
+            (0, []) + (... - 1/2, [(x*y + x + y - 1, 1)])
             sage: F1 = decomp[1]
             sage: p = {y: 1/3, x: 1/2}
             sage: asy = F1.asymptotics(p, alpha, 2, verbose=True)
@@ -1765,7 +1765,7 @@ class FractionWithFactoredDenominator(RingElement):
         from sage.modules.free_module_element import vector
         from sage.symbolic.constants import pi
         from sage.symbolic.relation import solve
-        from sage.rings.all import CC
+        from sage.rings.cc import CC
         from sage.rings.rational_field import QQ
 
         R = self.denominator_ring
@@ -2144,7 +2144,7 @@ class FractionWithFactoredDenominator(RingElement):
         from sage.matrix.constructor import matrix
         from sage.misc.mrange import xmrange
         from sage.modules.free_module_element import vector
-        from sage.rings.all import CC
+        from sage.rings.cc import CC
         from sage.arith.misc import binomial
         from sage.rings.rational_field import QQ
         from sage.symbolic.constants import pi
@@ -2727,7 +2727,7 @@ class FractionWithFactoredDenominator(RingElement):
             sage: F = FFPD(G, Hfac)
             sage: alpha = var('a1, a2')
             sage: F.smooth_critical_ideal(alpha)
-            Ideal (y^2 + 2*a1/a2*y - 1, x + ((-a2)/a1)*y + (-a1 + a2)/a1) of
+            Ideal (y^2 + (2*a1)/a2*y - 1, x + (-a2)/a1*y + (-a1 + a2)/a1) of
              Multivariate Polynomial Ring in x, y over Fraction Field of
              Multivariate Polynomial Ring in a1, a2 over Rational Field
 
@@ -2737,7 +2737,7 @@ class FractionWithFactoredDenominator(RingElement):
             sage: F = FFPD(G, Hfac)
             sage: alpha = [7/3, var('a')]
             sage: F.smooth_critical_ideal(alpha)
-            Ideal (y^2 + 14/3/a*y - 1, x + (-3/7*a)*y + 3/7*a - 1) of Multivariate Polynomial Ring in x, y over Fraction Field of Univariate Polynomial Ring in a over Rational Field
+            Ideal (y^2 + 14/(3*a)*y - 1, x + (-3*a)/7*y + (3*a - 7)/7) of Multivariate Polynomial Ring in x, y over Fraction Field of Univariate Polynomial Ring in a over Rational Field
         """
         from sage.rings.polynomial.polynomial_ring_constructor import PolynomialRing
 

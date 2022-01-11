@@ -1111,14 +1111,14 @@ class BipartiteGraph(Graph):
 
             sage: x = polygen(QQ)
             sage: g = BipartiteGraph(graphs.CompleteBipartiteGraph(16, 16))
-            sage: bool(factorial(16) * laguerre(16, x^2) == g.matching_polynomial(algorithm='rook'))
+            sage: bool(factorial(16) * laguerre(16, x^2) == g.matching_polynomial(algorithm='rook'))    # optional - sage.symbolic
             True
 
         Compute the matching polynomial of a line with `60` vertices::
 
-            sage: from sage.functions.orthogonal_polys import chebyshev_U
+            sage: from sage.functions.orthogonal_polys import chebyshev_U                               # optional - sage.symbolic
             sage: g = next(graphs.trees(60))
-            sage: chebyshev_U(60, x/2) == BipartiteGraph(g).matching_polynomial(algorithm='rook')
+            sage: chebyshev_U(60, x/2) == BipartiteGraph(g).matching_polynomial(algorithm='rook')       # optional - sage.symbolic
             True
 
         The matching polynomial of a tree is equal to its characteristic
@@ -1757,7 +1757,7 @@ class BipartiteGraph(Graph):
             Y = set()
             for u in X:
                 for v in self.neighbors(u):
-                    if not v in Z and not M.has_edge(u, v):
+                    if v not in Z and not M.has_edge(u, v):
                         Y.add(v)
             Z.update(Y)
 
@@ -1765,7 +1765,7 @@ class BipartiteGraph(Graph):
             X = set()
             for u in Y:
                 for v in M.neighbor_iterator(u):
-                    if not v in Z:
+                    if v not in Z:
                         X.add(v)
             Z.update(X)
 

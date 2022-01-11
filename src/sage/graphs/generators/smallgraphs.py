@@ -1044,7 +1044,9 @@ def BidiakisCube():
 
         sage: g.is_planar()
         True
-        sage: bool(g.characteristic_polynomial() == expand((x - 3) * (x - 2) * (x^4) * (x + 1) * (x + 2) * (x^2 + x - 4)^2))
+        sage: char_poly = g.characteristic_polynomial()
+        sage: x = char_poly.parent()('x')
+        sage: char_poly == (x - 3) * (x - 2) * (x^4) * (x + 1) * (x + 2) * (x^2 + x - 4)^2
         True
         sage: g.chromatic_number()
         3
@@ -3571,7 +3573,7 @@ def McLaughlinGraph():
     g = Graph()
     for b in B:
         for x in range(1, 23):
-            if not x in b:
+            if x not in b:
                 g.add_edge(b, x)
 
     for b in C:

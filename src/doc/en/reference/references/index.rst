@@ -1716,6 +1716,9 @@ REFERENCES:
              C. R. Acad. Sci. Paris Sér. I Math. 296 (1983) 14
              781--784.
 
+.. [Cro2004] Peter R. Cromwell, *Knots and links*, Cambridge University Press (2004).
+             :doi:`10.1017/CBO9780511809767`
+
 .. [CRS2016] Dean Crnković, Sanja Rukavina, and Andrea Švob. *Strongly regular
              graphs from orthogonal groups* `O^+(6,2)` *and* `O^-(6,2)`.
              :arxiv:`1609.07133`
@@ -4959,6 +4962,11 @@ REFERENCES:
             *Algorithmic aspects of vertex elimination*,
             Proceedings of seventh annual ACM symposium on Theory of computing,
             Pages 245-254, ACM 1975. :doi:`10.1145/800116.803775`.
+
+.. [RT1985] James Roskind and Robert Endre Tarjan.
+            *A note on finding minimum-cost edge-disjoint spanning trees*.
+            Mathematics of Operations Research, 10(4):701-708, 1985.
+            :doi:`10.1287/moor.10.4.701`
 
 .. [RTL76] Donald J. Rose, Robert Endre Tarjan and George S. Lueker.
            *Algorithmic aspects of vertex elimination on graphs*.

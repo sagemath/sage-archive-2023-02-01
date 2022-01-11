@@ -562,6 +562,14 @@ def unpickle_global(module, name):
         ImportError: cannot import some_old_class from sage.some_old_module, call
         register_unpickle_override('sage.some_old_module', 'some_old_class', ...)
         to fix this
+
+    TESTS:
+
+    Test that :func:`register_unpickle_override` calls in lazily imported modules
+    are respected::
+
+        sage: unpickle_global('sage.combinat.root_system.type_A', 'ambient_space')
+        <class 'sage.combinat.root_system.type_A.AmbientSpace'>
     """
     unpickler = unpickle_override.get((module, name))
     if unpickler is not None:
@@ -582,6 +590,12 @@ def unpickle_global(module, name):
         __import__(module)
     except ImportError:
         error()
+
+    # Importing the module may have run register_unpickle_override.
+    unpickler = unpickle_override.get((module, name))
+    if unpickler is not None:
+        return unpickler[0]
+
     mod = sys.modules[module]
     return getattr(mod, name)
 
@@ -758,7 +772,7 @@ class SagePickler(_BasePickler):
 
     The following line demonstrates what would happen without :trac:`28444`::
 
-        sage: loads(b'x\x9ck`J\x8e\x8f\xcfM\xcc\xcc\x8b\x8f\xe7r\xcb\xcf\xe7*d\x0cej`/dj\r*d\xd6\x03\x00\x89\xc5\x08{', encoding='ASCII') #py3
+        sage: loads(b'x\x9ck`J\x8e\x8f\xcfM\xcc\xcc\x8b\x8f\xe7r\xcb\xcf\xe7*d\x0cej`/dj\r*d\xd6\x03\x00\x89\xc5\x08{', encoding='ASCII')
         Traceback (most recent call last):
         ...
         UnicodeDecodeError: 'ascii' codec can...t decode byte 0x80 in position 0: ordinal not in range(128)
@@ -948,11 +962,10 @@ def loads(s, compress=True, **kwargs):
 
     The following line demonstrates what would happen without :trac:`28444`::
 
-        sage: loads(b'x\x9ck`J\x8e\x8f\xcfM\xcc\xcc\x8b\x8f\xe7r\xcb\xcf\xe7*d\x0cej`/dj\r*d\xd6\x03\x00\x89\xc5\x08{', encoding='ASCII') #py3
+        sage: loads(b'x\x9ck`J\x8e\x8f\xcfM\xcc\xcc\x8b\x8f\xe7r\xcb\xcf\xe7*d\x0cej`/dj\r*d\xd6\x03\x00\x89\xc5\x08{', encoding='ASCII')
         Traceback (most recent call last):
         ...
         UnicodeDecodeError: 'ascii' codec can...t decode byte 0x80 in position 0: ordinal not in range(128)
-
     """
     if not isinstance(s, bytes):
         raise TypeError("s must be bytes")

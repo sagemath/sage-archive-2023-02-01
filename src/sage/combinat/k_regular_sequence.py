@@ -748,7 +748,7 @@ class kRegularSequenceSpace(RecognizableSeriesSpace):
         except OverflowError:
             raise ValueError('value {} of index is negative'.format(n)) from None
 
-    def from_recurrence(self, *args, offset=0):
+    def from_recurrence(self, *args, **kwds):
         r"""
         Construct the unique `k`-regular sequence which fulfills the given
         recurrence relations and initial values. The recurrence relations have to
@@ -770,9 +770,9 @@ class kRegularSequenceSpace(RecognizableSeriesSpace):
         or via the parameters of the `k`-recursive sequence as described in the input
         block below::
 
-            sage: Seq2.from_recurrence(1, 0,
-            ....:     {(0, 0): 2, (1, 0): 3, (1, -1): 4},
-            ....:     {0: 0, 1: 1})
+            sage: Seq2.from_recurrence(M=1, m=0,
+            ....:     coeffs={(0, 0): 2, (1, 0): 3, (1, -1): 4},
+            ....:     initial_values={0: 0, 1: 1})
             2-regular sequence 0, 0, 0, 1, 2, 3, 4, 10, 6, 17, ...
 
         INPUT:
@@ -986,7 +986,7 @@ class kRegularSequenceSpace(RecognizableSeriesSpace):
             2-regular sequence 1, 1, 2, 3, 0, 0, 0, 0, 0, 0, ...
         """
         RP = RecurrenceParser(self.k, self.coefficient_ring())
-        mu, left, right = RP(*args, offset=offset)
+        mu, left, right = RP(*args, **kwds)
         return self(mu, left, right)
 
 
@@ -1588,10 +1588,6 @@ class RecurrenceParser(object):
 
             sage: from sage.combinat.k_regular_sequence import RecurrenceParser
             sage: RP = RecurrenceParser(2, ZZ)
-            sage: var('n')
-            n
-            sage: function('f')
-            f
             sage: RP.parse_direct_arguments(2, 1,
             ....:     {(0, -2): 3, (0, 0): 1, (0, 1): 2,
             ....:      (1, -2): 6, (1, 0): 4, (1, 1): 5,
@@ -1669,20 +1665,20 @@ class RecurrenceParser(object):
 
         ::
 
+            sage: RP.parse_direct_arguments(2, 1, {(i, 0): 0, (0, 1/2): 0}, {})
+            Traceback (most recent call last):
+            ...
+            ValueError: Keys [(I, 0), (0, 1/2)] for coefficients are not valid
+            since one of their components is no integer.
+
+        ::
+
             sage: RP.parse_direct_arguments(2, 1, {(-1, 0): 0, (42, 0): 0}, {})
             Traceback (most recent call last):
             ...
             ValueError: Keys [(-1, 0), (42, 0)] for coefficients are not valid since
             their first component is either smaller than 0 or larger than
             or equal to 4.
-
-        ::
-
-            sage: RP.parse_direct_arguments(2, 1, {(i, 0): 0, (0, 1/2): 0}, {})
-            Traceback (most recent call last):
-            ...
-            ValueError: Keys [(I, 0), (0, 1/2)] for coefficients are not valid
-            since one of their components is no integer.
 
         ::
 
@@ -1723,19 +1719,19 @@ class RecurrenceParser(object):
                              % (invalid_coeffs, coefficient_ring)) from None
 
         coeffs_keys = coeffs.keys()
-        invalid_coeffs_keys = [key for key in coeffs_keys if key[0] < 0 or key[0] >= k**M]
-        if invalid_coeffs_keys:
-            raise ValueError("Keys %s for coefficients are not valid "
-                             "since their first component is either smaller than 0 "
-                             " or larger than or equal to %s."
-                             % (invalid_coeffs_keys, k**M)) from None
-
         invalid_coeffs_keys = [key for key in coeffs_keys
                                if key[0] not in ZZ or key[1] not in ZZ]
         if invalid_coeffs_keys:
             raise ValueError("Keys %s for coefficients are not valid "
                              "since one of their components is no integer."
                              % (invalid_coeffs_keys,)) from None
+
+        invalid_coeffs_keys = [key for key in coeffs_keys if key[0] < 0 or key[0] >= k**M]
+        if invalid_coeffs_keys:
+            raise ValueError("Keys %s for coefficients are not valid "
+                             "since their first component is either smaller than 0 "
+                             " or larger than or equal to %s."
+                             % (invalid_coeffs_keys, k**M)) from None
 
         invalid_initial_values = [value for value in initial_values.values()
                                   if value not in coefficient_ring]

@@ -2407,8 +2407,9 @@ class RecurrenceParser(object):
             sage: from collections import namedtuple
             sage: from sage.combinat.k_regular_sequence import RecurrenceParser
             sage: RP = RecurrenceParser(2, ZZ)
-            sage: RRD = namedtuple('recurrence_rules_dim', ['dim'])
-            sage: recurrence_rules = RRD(dim=5)
+            sage: RRD = namedtuple('recurrence_rules_dim',
+            ....:                  ['dim', 'inhomogeneities'])
+            sage: recurrence_rules = RRD(dim=5, inhomogeneities={})
             sage: RP.left(recurrence_rules)
             (1, 0, 0, 0, 0)
 
@@ -2416,8 +2417,20 @@ class RecurrenceParser(object):
 
             :meth:`kRegularSequenceSpace.from_recurrence`
         """
+        from sage.functions.other import floor
         from sage.modules.free_module_element import vector
+
         dim = recurrence_rules.dim
+        inhomogeneities = recurrence_rules.inhomogeneities
+
+        if not all(S.is_trivial_zero() for S in inhomogeneities.values()):
+            k = self.k
+            M = recurrence_rules.M
+            m = recurrence_rules.m
+            ll = recurrence_rules.ll
+            uu = recurrence_rules.uu
+            dim = dim + (floor((k**(M-1) - k**m + uu)/k**M) - floor(ll/k**M) + 1) * \
+                      sum(S.mu[0].ncols() for S in inhomogeneities.values())
 
         return vector([1] + (dim - 1)*[0])
 

@@ -1025,6 +1025,18 @@ class kRegularSequenceSpace(RecognizableSeriesSpace):
             ....:     f(2*n) == 0, f(2*n + 1) == 0,
             ....:     f(0) == 1, f(1) == 1, f(2) == 2, f(3) == 3], f, n, offset=2)
             2-regular sequence 1, 1, 2, 3, 0, 0, 0, 0, 0, 0, ...
+
+        ::
+
+            sage: S = Seq2((random_matrix(ZZ, 3, 3), random_matrix(ZZ, 3, 3)),
+            ....:     left=vector([randint(-2, 2) for i in srange(3)]),
+            ....:     right=vector([randint(-2, 2) for i in srange(3)]))
+            sage: T = Seq2.from_recurrence(M=3, m=2,
+            ....:     coeffs={},
+            ....:     initial_values={0: S[0]},
+            ....:     inhomogeneities={i: S.subsequence(2**3, i) for i in srange(2**3)})
+            sage: all(S[i] == T[i] for i in srange(100))
+            True
         """
         RP = RecurrenceParser(self.k, self.coefficient_ring())
         mu, left, right = RP(*args, **kwds)

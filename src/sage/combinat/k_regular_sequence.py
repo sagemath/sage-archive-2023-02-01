@@ -1876,7 +1876,7 @@ class RecurrenceParser(object):
         initial_values = self.values(
             M=M, m=m, l=l, u=u, ll=ll, coeffs=coeffs,
             initial_values=initial_values, last_value_needed=last_value_needed,
-            offset=offset)
+            offset=offset, inhomogeneities=inhomogeneities)
 
         recurrence_rules = namedtuple('recurrence_rules',
                                       ['M', 'm', 'l', 'u', 'll', 'uu', 'dim',
@@ -1888,7 +1888,7 @@ class RecurrenceParser(object):
                                 offset=offset, n1=n1, inhomogeneities=inhomogeneities)
 
     def values(self, *, M, m, l, u, ll, coeffs,
-               initial_values, last_value_needed, offset):
+               initial_values, last_value_needed, offset, inhomogeneities):
         r"""
         Determine enough values of the corresponding recursive sequence by
         applying the recurrence relations given in :meth:`kRegularSequenceSpace.from_recurrence`
@@ -1913,6 +1913,10 @@ class RecurrenceParser(object):
         - ``last_value_needed`` -- last initial value which is needed to
           determine the linear representation
 
+        - ``inhomogeneities`` -- a dictionary mapping integers ``r`` to the
+          inhomogeneity `g_r` as given in [HKL2021]_, Corollary D. All
+          inhomogeneities have to be regular sequences from ``self``.
+
         OUTPUT:
 
         A dictionary mapping integers ``n`` to the ``n``-th value of the
@@ -1927,7 +1931,7 @@ class RecurrenceParser(object):
             sage: RP.values(M=1, m=0, l=0, u=1, ll=0,
             ....:     coeffs={(0, 0): 1, (1, 0): 1, (1, 1): 1},
             ....:     initial_values={0: 0, 1: 1, 2: 1}, last_value_needed=20,
-            ....:     offset=0)
+            ....:     offset=0, inhomogeneities={})
             {0: 0, 1: 1, 2: 1, 3: 2, 4: 1, 5: 3, 6: 2, 7: 3, 8: 1, 9: 4, 10: 3,
             11: 5, 12: 2, 13: 5, 14: 3, 15: 4, 16: 1, 17: 5, 18: 4, 19: 7, 20: 3}
 
@@ -1942,7 +1946,7 @@ class RecurrenceParser(object):
             sage: RP.values(M=1, m=0, l=0, u=1, ll=0,
             ....:     coeffs={(0, 0): 1, (1, 0): 1, (1, 1): 1},
             ....:     initial_values={0: 0, 1: 2}, last_value_needed=20,
-            ....:     offset=0)
+            ....:     offset=0, inhomogeneities={})
             {0: 0, 1: 2, 2: 2, 3: 4, 4: 2, 5: 6, 6: 4, 7: 6, 8: 2, 9: 8, 10: 6,
             11: 10, 12: 4, 13: 10, 14: 6, 15: 8, 16: 2, 17: 10, 18: 8, 19: 14,
             20: 6}
@@ -1951,7 +1955,8 @@ class RecurrenceParser(object):
 
             sage: RP.values(M=1, m=0, l=0, u=1, ll=0,
             ....:     coeffs={(0, 0): 1, (1, 0): 1, (1, 1): 1},
-            ....:     initial_values={}, last_value_needed=20, offset=0)
+            ....:     initial_values={}, last_value_needed=20, offset=0,
+            ....:     inhomogeneities={})
             Traceback (most recent call last):
             ...
             ValueError: Initial values for arguments in [0, 1] are missing.
@@ -1960,7 +1965,8 @@ class RecurrenceParser(object):
 
             sage: RP.values(M=1, m=0, l=0, u=1, ll=0,
             ....:     coeffs={(0, 0): 1, (1, 0): 1, (1, 1): 1},
-            ....:     initial_values={0: 0}, last_value_needed=20, offset=0)
+            ....:     initial_values={0: 0}, last_value_needed=20, offset=0,
+            ....:     inhomogeneities={})
             Traceback (most recent call last):
             ...
             ValueError: Initial values for arguments in [1] are missing.
@@ -1970,7 +1976,7 @@ class RecurrenceParser(object):
             sage: RP.values(M=1, m=0, l=0, u=1, ll=0,
             ....:     coeffs={(0, 0): 1, (1, 0): 1, (1, 1): 1},
             ....:     initial_values={0: 0, 2: 1}, last_value_needed=20,
-            ....:     offset=0)
+            ....:     offset=0, inhomogeneities={})
             Traceback (most recent call last):
             ...
             ValueError: Initial values for arguments in [1] are missing.
@@ -1980,7 +1986,7 @@ class RecurrenceParser(object):
             sage: RP.values(M=1, m=0, l=0, u=1, ll=0,
             ....:     coeffs={(0, 0): 1, (1, 0): 1, (1, 1): 1},
             ....:     initial_values={0: 0, 1: 2, 2:0}, last_value_needed=20,
-            ....:     offset=0)
+            ....:     offset=0, inhomogeneities={})
             Traceback (most recent call last):
             ...
             ValueError: Initial value for argument 2 does not match with the given
@@ -1991,7 +1997,7 @@ class RecurrenceParser(object):
             sage: RP.values(M=1, m=0, l=-2, u=2, ll=-2,
             ....:     coeffs={(0, -2): 1, (0, 2): 1, (1, -2): 1, (1, 2): 1},
             ....:     initial_values={0: 0, 1: 2, 2: 4, 3: 3, 4: 2},
-            ....:     last_value_needed=20, offset=2)
+            ....:     last_value_needed=20, offset=2, inhomogeneities={})
             {-2: 0, -1: 0, 0: 0, 1: 2, 2: 4, 3: 3, 4: 2, 5: 2, 6: 4, 7: 4,
             8: 8, 9: 8, 10: 7, 11: 7, 12: 10, 13: 10, 14: 10, 15: 10, 16: 11,
             17: 11, 18: 11, 19: 11, 20: 18}
@@ -2000,14 +2006,14 @@ class RecurrenceParser(object):
 
             sage: RP.values(M=1, m=0, l=0, u=0, ll=0,
             ....:     coeffs={}, initial_values={}, last_value_needed=10,
-            ....:     offset=0)
+            ....:     offset=0, inhomogeneities={})
             {0: 0, 1: 0, 2: 0, 3: 0, 4: 0, 5: 0, 6: 0, 7: 0, 8: 0, 9: 0, 10: 0}
 
         ::
 
             sage: RP.values(M=1, m=0, l=0, u=0, ll=0,
             ....:     coeffs={(0, 0): 0, (1, 1): 0}, initial_values={},
-            ....:     last_value_needed=10, offset=0)
+            ....:     last_value_needed=10, offset=0, inhomogeneities={})
             {0: 0, 1: 0, 2: 0, 3: 0, 4: 0, 5: 0, 6: 0, 7: 0, 8: 0, 9: 0, 10: 0}
         """
         from sage.arith.srange import srange
@@ -2027,6 +2033,13 @@ class RecurrenceParser(object):
             except KeyError:
                 return 0
 
+        @cached_function
+        def inhomogeneity(r, n):
+            try:
+                return inhomogeneities[r][n]
+            except KeyError:
+                return 0
+
         def f(n):
             f_n = values[n]
             if f_n is not None and f_n != "pending":
@@ -2041,7 +2054,7 @@ class RecurrenceParser(object):
                     missing_values.append(n)
                 return sum([coeff(r, j)*f(k**m*q + j)
                             for j in srange(l, u + 1)
-                            if coeff(r, j)])
+                            if coeff(r, j)]) + inhomogeneity(r, q)
 
         for n in srange(last_value_needed + 1):
             values.update({n: f(n)})
@@ -2053,8 +2066,8 @@ class RecurrenceParser(object):
         for n in keys_initial:
             q, r = ZZ(n).quo_rem(k**M)
             if (q >= offset and
-                values[n] != sum([coeff(r, j)*values[k**m*q + j]
-                                  for j in srange(l, u + 1)])):
+                values[n] != (sum([coeff(r, j)*values[k**m*q + j]
+                                  for j in srange(l, u + 1)])) + inhomogeneity(r, q)):
                 raise ValueError("Initial value for argument %s does not match with "
                                  "the given recurrence relations."
                                  % (n,)) from None

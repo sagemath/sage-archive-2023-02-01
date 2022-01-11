@@ -2331,9 +2331,10 @@ class RecurrenceParser(object):
             :meth:`kRegularSequenceSpace.from_recurrence`
         """
         from sage.arith.srange import srange
+        from sage.functions.other import floor
         from sage.matrix.constructor import Matrix
         from sage.matrix.matrix_space import MatrixSpace
-        from sage.matrix.special import block_matrix, zero_matrix
+        from sage.matrix.special import block_matrix, block_diagonal_matrix, zero_matrix
         from sage.modules.free_module_element import vector
 
         coefficient_ring = self.coefficient_ring
@@ -2347,6 +2348,7 @@ class RecurrenceParser(object):
         n1 = recurrence_rules.n1
         dim_without_corr = dim - n1
         coeffs = recurrence_rules.coeffs
+        inhomogeneities = recurrence_rules.inhomogeneities
         ind = self.ind(M, m, ll, uu)
 
         @cached_function
@@ -2372,9 +2374,7 @@ class RecurrenceParser(object):
 
         mat = Matrix(coefficient_ring, dim_without_corr, dim_without_corr, entry)
 
-        if n1 == 0 or not correct_offset:
-            return mat
-        else:
+        if n1 > 0 and correct_offset:
             W = Matrix(coefficient_ring, dim_without_corr, 0)
             for i in srange(n1):
                 W = W.augment(
@@ -2386,8 +2386,36 @@ class RecurrenceParser(object):
                 J = J.stack(vector([int(j*k == i - rem) for j in srange(n1)]))
 
             Mat = MatrixSpace(coefficient_ring, dim, dim)
-            return Mat(block_matrix([[mat, W],
-                                     [zero_matrix(n1, dim_without_corr), J]]))
+            mat = Mat(block_matrix([[mat, W],
+                                    [zero_matrix(n1, dim_without_corr), J]]))
+
+        if not all(S.is_trivial_zero() for S in inhomogeneities.values()):
+            lower = floor(ll/k**M)
+            upper = floor((k**(M-1) - k**m + uu)/k**M)
+            shifted_inhomogeneities = {}
+            current_row = 0
+            for i in inhomogeneities.keys():
+                for b in srange(lower, upper + 1):
+                    S_b = inhomogeneities[i].subsequence(1, b)
+                    shifted_inhomogeneities.update({(i, b): (S_b, current_row)})
+                    current_row += S_b.mu[0].ncols()
+
+            mat = block_diagonal_matrix(mat, *[S[0].mu[rem]
+                                               for S in shifted_inhomogeneities.values()])
+
+            for i in srange(dim):
+                j, d = ind[i]
+                if j == M - 1:
+                    rem_d = k**(M-1)*rem + (d%k**M)
+                    dd = d // k**M
+                    if rem_d < k**M and rem_d in inhomogeneities.keys():
+                        mat[ind[(j, d)],
+                            dim + shifted_inhomogeneities[(rem_d, dd)][1]] = 1
+                    elif rem_d >= k**M and rem_d - k in inhomogeneities.keys():
+                        mat[ind[(j, d)],
+                            dim + shifted_inhomogeneities[(rem_d - k, dd+1)][1]] = 1
+
+        return mat
 
     def left(self, recurrence_rules):
         r"""
@@ -2488,6 +2516,7 @@ class RecurrenceParser(object):
             (1, 1, 2, 1, 2, 2, 4, 2, 4, 6, 0, 4, 4, 1, 0, 0)
         """
         from itertools import chain
+
         from sage.arith.srange import srange
         from sage.functions.other import floor
         from sage.modules.free_module_element import vector

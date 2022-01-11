@@ -25,8 +25,9 @@ You can now run and edit Sage's code. Contributing your changes follows the norm
 :ref:`Git workflow <chapter-manual-git>`.
 For this to work, you first have to authorize Gitpod with Trac:
 
- 1. In the running Gitpod workspace, generate a new SSH key pair by `ssh-keygen -f tempkey`.
- 2. Save the private key as a secure environment variable in Gitpod using `gp env PRIVATE_SSH_KEY="$(<tempkey)"`,
+ 1. In the running Gitpod workspace, generate a new SSH key pair by ``ssh-keygen -f tempkey``.
+ 2. Save the private key as a secure environment variable in Gitpod using
+    ``gp env PRIVATE_SSH_KEY="$(<tempkey)"``,
     or by using `Gitpod UI <https://www.gitpod.io/docs/environment-variables#using-the-account-settings>`_.
  3. Register the public key with Trac following the instructions in :ref:`section-trac-ssh-key`.
 

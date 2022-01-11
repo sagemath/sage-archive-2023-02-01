@@ -230,6 +230,7 @@ import operator
 
 import sage.categories.fields
 
+from sage.misc.lazy_string import lazy_string
 from sage.rings.integer_ring import ZZ
 from sage.rings.rational_field import QQ
 from sage.rings.real_mpfi import RealIntervalField, RealIntervalField_class
@@ -548,7 +549,7 @@ class RealBallField(UniqueRepresentation, sage.rings.abc.RealBallField):
             return self.element_class(self, _mid, rad)
         except (TypeError, ValueError):
             pass
-        raise TypeError("unable to convert {!r} to a RealBall".format(mid))
+        raise TypeError(lazy_string("unable to convert %s to a RealBall", mid))
 
     def _repr_option(self, key):
         """

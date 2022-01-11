@@ -630,6 +630,8 @@ class RealBallField(UniqueRepresentation, sage.rings.abc.RealBallField):
         """
         return self._prec
 
+    prec = precision
+
     def is_exact(self):
         """
         Real ball fields are not exact.

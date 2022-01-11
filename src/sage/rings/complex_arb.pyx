@@ -699,6 +699,8 @@ class ComplexBallField(UniqueRepresentation, sage.rings.abc.ComplexBallField):
         """
         return self._prec
 
+    prec = precision
+
     def is_exact(self):
         """
         Complex ball fields are not exact.

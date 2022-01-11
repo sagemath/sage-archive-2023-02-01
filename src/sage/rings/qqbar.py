@@ -559,6 +559,7 @@ import sage.rings.abc
 import sage.rings.number_field.number_field_base
 from sage.misc.fast_methods import Singleton
 from sage.misc.cachefunc import cached_method
+from sage.misc.lazy_string import lazy_string
 from sage.structure.coerce import parent_is_numerical, parent_is_real_numerical
 from sage.structure.sage_object import SageObject
 from sage.structure.richcmp import (richcmp, richcmp_method,
@@ -4169,7 +4170,7 @@ class AlgebraicNumber_base(sage.structure.element.FieldElement):
 
         if self.parent() is AA and self < 0 and not extend:
             if not all:
-                raise ValueError("%s is not a square in AA, being negative. Use extend = True for a square root in QQbar." % self)
+                raise ValueError(lazy_string("%s is not a square in AA, being negative. Use extend = True for a square root in QQbar.", self))
             else:
                 return []
 
@@ -4630,7 +4631,7 @@ class AlgebraicNumber_base(sage.structure.element.FieldElement):
             elif self.imag().is_zero():
                 return field(self.real())
             else:
-                raise TypeError("unable to convert {} to real interval".format(self))
+                raise TypeError(lazy_string("unable to convert %s to real interval", self))
         else:
             return field(val)
 
@@ -5480,11 +5481,11 @@ class AlgebraicReal(AlgebraicNumber_base):
         """
         if self._value.lower().ceiling() > self._value.upper().floor():
             # The value is known to be non-integral.
-            raise ValueError("Cannot coerce non-integral Algebraic Real %s to Integer" % self)
+            raise ValueError(lazy_string("Cannot coerce non-integral Algebraic Real %s to Integer", self))
 
         self.exactify()
         if not isinstance(self._descr, ANRational):
-            raise ValueError("Cannot coerce irrational Algebraic Real %s to Integer" % self)
+            raise ValueError(lazy_string("Cannot coerce irrational Algebraic Real %s to Integer", self))
 
         return ZZ(self._descr._value)
 
@@ -5614,7 +5615,7 @@ class AlgebraicReal(AlgebraicNumber_base):
         """
         self.exactify()
         if not isinstance(self._descr, ANRational):
-            raise ValueError("Cannot coerce irrational Algebraic Real %s to Rational" % self)
+            raise ValueError(lazy_string("Cannot coerce irrational Algebraic Real %s to Rational", self))
 
         return QQ(self._descr._value)
 

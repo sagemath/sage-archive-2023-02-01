@@ -834,6 +834,10 @@ class kRegularSequenceSpace(RecognizableSeriesSpace):
         - ``offset`` -- an integer (default: ``0``). See explanation of
           ``equations`` above.
 
+        - ``inhomogeneities`` -- a dictionary mapping integers ``r`` to the
+          inhomogeneity `g_r` as given in [HKL2021]_, Corollary D. All
+          inhomogeneities have to be regular sequences from ``self``.
+
         OUTPUT: a :class:`kRegularSequence`
 
         EXAMPLES:
@@ -1749,7 +1753,7 @@ class RecurrenceParser(object):
 
         return (M, m, coeffs, initial_values)
 
-    def parameters(self, M, m, coeffs, initial_values, offset=0):
+    def parameters(self, M, m, coeffs, initial_values, offset=0, inhomogeneities={}):
         r"""
         Determine parameters from recurrence relations as admissible in
         :meth:`kRegularSequenceSpace.from_recurrence`.
@@ -1789,7 +1793,7 @@ class RecurrenceParser(object):
             (3, 0): 10, (3, 1): 11}, initial_values={0: 1, 1: 2, 2: 1, 3: 4,
             4: 12, 5: 30, 6: 48, 7: 66, 8: 75, 9: 204, 10: 333, 11: 462,
             12: 216, 13: 594, -6: 0, -5: 0, -4: 0, -3: 0, -2: 0, -1: 0},
-            offset=1, n1=3)
+            offset=1, n1=3, inhomogeneities={})
 
         .. SEEALSO::
 
@@ -1815,13 +1819,14 @@ class RecurrenceParser(object):
             sage: RP.parameters(1, 0, {(0, 0): 1},
             ....: {0: 1, 1: 0}, 0)
             recurrence_rules(M=1, m=0, l=0, u=0, ll=0, uu=0, dim=1,
-            coeffs={(0, 0): 1}, initial_values={0: 1, 1: 0}, offset=0, n1=0)
+            coeffs={(0, 0): 1}, initial_values={0: 1, 1: 0}, offset=0, n1=0,
+            inhomogeneities={})
 
         Finally, also for the zero-sequence the output is as expected::
 
             sage: RP.parameters(1, 0, {}, {0: 0}, 0)
             recurrence_rules(M=1, m=0, l=0, u=0, ll=0, uu=0, dim=1,
-            coeffs={}, initial_values={0: 0}, offset=0, n1=0)
+            coeffs={}, initial_values={0: 0}, offset=0, n1=0, inhomogeneities={})
 
         ::
 
@@ -1829,7 +1834,7 @@ class RecurrenceParser(object):
             ....: {(0, 0): 0, (1, 1): 0}, {0: 0}, 0)
             recurrence_rules(M=1, m=0, l=0, u=0, ll=0, uu=0, dim=1,
             coeffs={(0, 0): 0, (1, 1): 0}, initial_values={0: 0},
-            offset=0, n1=0)
+            offset=0, n1=0, inhomogeneities={})
         """
         from collections import namedtuple
 
@@ -1875,11 +1880,12 @@ class RecurrenceParser(object):
 
         recurrence_rules = namedtuple('recurrence_rules',
                                       ['M', 'm', 'l', 'u', 'll', 'uu', 'dim',
-                                       'coeffs', 'initial_values', 'offset', 'n1'])
+                                       'coeffs', 'initial_values', 'offset', 'n1',
+                                       'inhomogeneities'])
 
         return recurrence_rules(M=M, m=m, l=l, u=u, ll=ll, uu=uu, dim=dim,
                                 coeffs=coeffs, initial_values=initial_values,
-                                offset=offset, n1=n1)
+                                offset=offset, n1=n1, inhomogeneities=inhomogeneities)
 
     def values(self, *, M, m, l, u, ll, coeffs,
                initial_values, last_value_needed, offset):

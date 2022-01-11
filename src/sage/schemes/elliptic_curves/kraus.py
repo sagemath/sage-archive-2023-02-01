@@ -21,12 +21,12 @@ than the minimal valuation at that prime; we provide a function to
 return such a model.
 
 The implementation of this functionality is based on work of Kraus
-[Kraus]_ which gives a local condition for when a pair of number field
+[Kra1989]_ which gives a local condition for when a pair of number field
 elements \(c_4\), \(c_6\) belong to a Weierstrass model which is
 integral at a prime \(P\), together with a global version. Only primes
 dividing 2 or 3 are hard to deal with. In order to compute the
 corresponding integral model one then needs to combine together the
-local transformations implicit in [Kraus]_ into a single global one.
+local transformations implicit in [Kra1989]_ into a single global one.
 
 Various utility functions relating to the testing and use of Kraus's
 conditions are included here.
@@ -34,12 +34,6 @@ conditions are included here.
 AUTHORS:
 
 - John Cremona (2015)
-
-REFERENCES:
-
-.. [Kraus] Kraus, Alain, Quelques remarques à propos des invariants
-   \(c_4\), \(c_6\) et \(\Delta\) d'une courbe elliptique, Acta
-   Arith. 54 (1989), 75-80.
 """
 
 ##############################################################################
@@ -57,7 +51,6 @@ REFERENCES:
 #
 #                  https://www.gnu.org/licenses/
 ##############################################################################
-from __future__ import print_function
 
 from sage.schemes.elliptic_curves.all import EllipticCurve
 
@@ -816,7 +809,7 @@ def check_Kraus_global(c4, c6, assume_nonsingular=False, debug=False):
     a1list = [d[1] for d in dat]
     a1 = K.solve_CRT(a1list,P2list, check=True)
     # See comment below: this is needed for when we combine with the primes above 3.
-    if not a1 in three: # three.divides(a1) causes a segfault
+    if a1 not in three:  # three.divides(a1) causes a segfault
         a1 = 3*a1
 
     # Using this a1, recompute the local a3's:

@@ -15,7 +15,6 @@ from sage.categories.sets_cat import Sets
 from sage.categories.homsets import HomsetsCategory
 from sage.rings.infinity import Infinity
 from sage.rings.integer import Integer
-from sage.interfaces.gap import gap
 
 class SimplicialSets(Category_singleton):
     r"""
@@ -86,7 +85,7 @@ class SimplicialSets(Category_singleton):
 
             EXAMPLES::
 
-                sage: from sage.homology.simplicial_set import AbstractSimplex, SimplicialSet
+                sage: from sage.topology.simplicial_set import AbstractSimplex, SimplicialSet
                 sage: v = AbstractSimplex(0)
                 sage: w = AbstractSimplex(0)
                 sage: e = AbstractSimplex(1)
@@ -110,7 +109,7 @@ class SimplicialSets(Category_singleton):
 
             EXAMPLES::
 
-                sage: from sage.homology.simplicial_set import AbstractSimplex, SimplicialSet
+                sage: from sage.topology.simplicial_set import AbstractSimplex, SimplicialSet
                 sage: v = AbstractSimplex(0, name='v_0')
                 sage: w = AbstractSimplex(0, name='w_0')
                 sage: e = AbstractSimplex(1)
@@ -137,7 +136,7 @@ class SimplicialSets(Category_singleton):
                 ...
                 ValueError: the point is not a simplex in this simplicial set
             """
-            from sage.homology.simplicial_set import SimplicialSet
+            from sage.topology.simplicial_set import SimplicialSet
             if point.dimension() != 0:
                 raise ValueError('the "point" is not a zero-simplex')
             if point not in self._simplices:
@@ -159,7 +158,7 @@ class SimplicialSets(Category_singleton):
                         Simplicial set endomorphism of Torus
                           Defn: Identity map
                     """
-                    from sage.homology.simplicial_set_morphism import SimplicialSetMorphism
+                    from sage.topology.simplicial_set_morphism import SimplicialSetMorphism
                     return SimplicialSetMorphism(domain=self.domain(),
                                                  codomain=self.codomain(),
                                                  identity=True)
@@ -197,7 +196,7 @@ class SimplicialSets(Category_singleton):
 
                 EXAMPLES::
 
-                    sage: from sage.homology.simplicial_set import AbstractSimplex, SimplicialSet
+                    sage: from sage.topology.simplicial_set import AbstractSimplex, SimplicialSet
                     sage: v = AbstractSimplex(0, name='*')
                     sage: e = AbstractSimplex(1)
                     sage: S1 = SimplicialSet({e: (v, v)}, base_point=v)
@@ -221,7 +220,7 @@ class SimplicialSets(Category_singleton):
                 - ``domain`` -- optional, default ``None``. Use
                   this to specify a particular one-point space as
                   the domain. The default behavior is to use the
-                  :func:`sage.homology.simplicial_set.Point`
+                  :func:`sage.topology.simplicial_set.Point`
                   function to use a standard one-point space.
 
                 EXAMPLES::
@@ -251,13 +250,12 @@ class SimplicialSets(Category_singleton):
                       To:   Classifying space of Multiplicative Abelian group isomorphic to C5
                       Defn: Constant map at 1
                 """
-                from sage.homology.simplicial_set_examples import Point
+                from sage.topology.simplicial_set_examples import Point
                 if domain is None:
                     domain = Point()
                 else:
                     if len(domain._simplices) > 1:
                         raise ValueError('domain has more than one nondegenerate simplex')
-                src = domain.base_point()
                 target = self.base_point()
                 return domain.Hom(self).constant_map(point=target)
 
@@ -324,6 +322,12 @@ class SimplicialSets(Category_singleton):
                     6
                     sage: pi.is_abelian()
                     False
+
+                The sphere has a trivial fundamental group::
+
+                    sage: S2 = simplicial_sets.Sphere(2)
+                    sage: S2.fundamental_group()
+                    Finitely presented group <  |  >
                 """
                 # Import this here to prevent importing libgap upon startup.
                 from sage.groups.free_group import FreeGroup
@@ -338,7 +342,7 @@ class SimplicialSets(Category_singleton):
                 gens = [e for e in edges if e not in spanning_tree]
 
                 if not gens:
-                    return gap.TrivialGroup()
+                    return FreeGroup([]).quotient([])
 
                 gens_dict = dict(zip(gens, range(len(gens))))
                 FG = FreeGroup(len(gens), 'e')
@@ -487,7 +491,7 @@ class SimplicialSets(Category_singleton):
 
                     EXAMPLES::
 
-                        sage: from sage.homology.simplicial_set import AbstractSimplex, SimplicialSet
+                        sage: from sage.topology.simplicial_set import AbstractSimplex, SimplicialSet
                         sage: v = AbstractSimplex(0, name='v_0')
                         sage: w = AbstractSimplex(0, name='w_0')
                         sage: e = AbstractSimplex(1)
@@ -500,7 +504,7 @@ class SimplicialSets(Category_singleton):
                         sage: Z.is_pointed()
                         False
                     """
-                    from sage.homology.simplicial_set import SimplicialSet
+                    from sage.topology.simplicial_set import SimplicialSet
                     return SimplicialSet(self.face_data())
 
                 def fat_wedge(self, n):
@@ -526,7 +530,7 @@ class SimplicialSets(Category_singleton):
                         sage: S1.fat_wedge(4).homology()
                         {0: 0, 1: Z x Z x Z x Z, 2: Z^6, 3: Z x Z x Z x Z}
                     """
-                    from sage.homology.simplicial_set_examples import Point
+                    from sage.topology.simplicial_set_examples import Point
                     if n == 0:
                         return Point()
                     if n == 1:
@@ -557,6 +561,6 @@ class SimplicialSets(Category_singleton):
                         sage: X.homology(reduced=False)
                         {0: Z, 1: 0, 2: Z x Z, 3: Z}
                     """
-                    from sage.homology.simplicial_set_constructions import SmashProductOfSimplicialSets_finite
+                    from sage.topology.simplicial_set_constructions import SmashProductOfSimplicialSets_finite
                     return SmashProductOfSimplicialSets_finite((self,) + others)
 

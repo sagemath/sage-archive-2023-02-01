@@ -17,22 +17,21 @@ EXAMPLES::
     sage: buf = OutputBuffer('this is the buffer content');  buf
     buffer containing 26 bytes
     sage: buf.get().decode('ascii')
-    u'this is the buffer content'
+    'this is the buffer content'
     sage: type(buf.get()) is bytes
     True
 """
-#*****************************************************************************
+# ****************************************************************************
 #       Copyright (C) 2015 Volker Braun <vbraun.name@gmail.com>
 #
 #  Distributed under the terms of the GNU General Public License (GPL)
 #  as published by the Free Software Foundation; either version 2 of
 #  the License, or (at your option) any later version.
-#                  http://www.gnu.org/licenses/
-#*****************************************************************************
+#                  https://www.gnu.org/licenses/
+# ****************************************************************************
 
 
 import os
-import six
 from sage.structure.sage_object import SageObject
 
 
@@ -135,7 +134,6 @@ class OutputBuffer(SageObject):
             sage: stat.S_IMODE(os.stat(tmp).st_mode) & (stat.S_IWUSR | stat.S_IWGRP | stat.S_IWOTH)
             0
         """
-        import os
         from sage.env import SAGE_EXTCODE
         filename = os.path.abspath(filename)
         if filename.startswith(os.path.abspath(SAGE_EXTCODE)):
@@ -175,10 +173,10 @@ class OutputBuffer(SageObject):
 
             sage: from sage.repl.rich_output.buffer import OutputBuffer
             sage: c = OutputBuffer('test1234').get(); c.decode('ascii')
-            u'test1234'
+            'test1234'
             sage: type(c) is bytes
             True
-            sage: c = OutputBuffer(u'été').get()
+            sage: c = OutputBuffer('été').get()
             sage: type(c) is bytes
             True
         """
@@ -200,9 +198,9 @@ class OutputBuffer(SageObject):
 
             sage: from sage.repl.rich_output.buffer import OutputBuffer
             sage: OutputBuffer('test1234').get().decode('ascii')
-            u'test1234'
+            'test1234'
             sage: OutputBuffer('test1234').get_unicode()
-            u'test1234'
+            'test1234'
         """
         return self.get().decode('utf-8')
 
@@ -228,15 +226,11 @@ class OutputBuffer(SageObject):
             'test1234'
             sage: type(c) is str
             True
-            sage: c = OutputBuffer(u'été').get_str()
+            sage: c = OutputBuffer('été').get_str()
             sage: type(c) is str
             True
         """
-
-        if six.PY2:
-            return self.get()
-        else:
-            return self.get_unicode()
+        return self.get_unicode()
 
     def filename(self, ext=None):
         """

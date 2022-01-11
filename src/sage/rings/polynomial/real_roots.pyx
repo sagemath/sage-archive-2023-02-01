@@ -130,12 +130,14 @@ from https://wiki.sagemath.org/days4schedule .
 # This may be vastly faster than the exact calculations carried out
 # by this algorithm!  Is it enough faster to be faster than, say,
 # Pari's floating-point algorithms?)
-from __future__ import print_function, absolute_import
 
 from copy import copy
 import time
 
-from sage.rings.all import ZZ, QQ, RR, AA, RealField, RealIntervalField, RIF, RDF, infinity
+from sage.rings.integer_ring import ZZ
+from sage.rings.rational_field import QQ
+from sage.rings.infinity import infinity
+from sage.rings.all import RR, AA, RealField, RealIntervalField, RIF, RDF
 from sage.arith.all import binomial, factorial
 from sage.misc.randstate import randstate
 from sage.modules.all import vector, FreeModule

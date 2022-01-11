@@ -5,16 +5,14 @@ AUTHORS:
 
 - Travis Scrimshaw (08-04-2013): Initial version
 """
-#*****************************************************************************
+# ****************************************************************************
 #       Copyright (C) 2013 Travis Scrimshaw <tscrim at ucdavis.edu>
 #
 #  Distributed under the terms of the GNU General Public License (GPL)
-#                  http://www.gnu.org/licenses/
-#*****************************************************************************
-from six.moves import range
+#                  https://www.gnu.org/licenses/
+# ****************************************************************************
 
 from sage.misc.cachefunc import cached_method
-#from sage.misc.lazy_attribute import lazy_attribute
 from sage.misc.misc_c import prod
 from sage.structure.parent import Parent
 from sage.structure.unique_representation import UniqueRepresentation
@@ -22,7 +20,7 @@ from sage.categories.graded_hopf_algebras import GradedHopfAlgebras
 from sage.categories.rings import Rings
 from sage.categories.fields import Fields
 
-from sage.functions.other import factorial
+from sage.arith.misc import factorial
 from sage.combinat.free_module import CombinatorialFreeModule
 from sage.combinat.ncsym.bases import NCSymBases, MultiplicativeNCSymBases, NCSymBasis_abstract
 from sage.combinat.set_partition import SetPartitions
@@ -31,7 +29,7 @@ from sage.combinat.posets.posets import Poset
 from sage.combinat.sf.sf import SymmetricFunctions
 from sage.matrix.matrix_space import MatrixSpace
 from sage.sets.set import Set
-from sage.rings.all import ZZ
+from sage.rings.integer_ring import ZZ
 from functools import reduce
 
 def matchings(A, B):
@@ -1700,22 +1698,6 @@ class SymmetricFunctionsNonCommutingVariables(UniqueRepresentation, Parent):
                                 remove_zeros=False)
 
     cp = coarse_powersum
-
-    def q(self):
-        r"""
-        Old name for the `\mathbf{cp}`-basis. Deprecated in :trac:`18371`.
-
-        EXAMPLES::
-
-            sage: NCSym = SymmetricFunctionsNonCommutingVariables(QQ)
-            sage: NCSym.q()
-            doctest:...: DeprecationWarning: q is deprecated, use instead cp or coarse_powersum.
-            See http://trac.sagemath.org/18371 for details.
-            Symmetric functions in non-commuting variables over the Rational Field in the coarse_powersum basis
-        """
-        from sage.misc.superseded import deprecation
-        deprecation(18371, 'q is deprecated, use instead cp or coarse_powersum.')
-        return self.cp()
 
     class x_basis(NCSymBasis_abstract):
         r"""

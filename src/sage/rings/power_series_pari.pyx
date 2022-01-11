@@ -18,21 +18,21 @@ not the type of the parents::
     sage: type(R)
     <class 'sage.rings.power_series_ring.PowerSeriesRing_domain_with_category'>
     sage: type(q)
-    <type 'sage.rings.power_series_pari.PowerSeries_pari'>
+    <class 'sage.rings.power_series_pari.PowerSeries_pari'>
     sage: type(S)
     <class 'sage.rings.power_series_ring.PowerSeriesRing_over_field_with_category'>
     sage: type(t)
-    <type 'sage.rings.power_series_pari.PowerSeries_pari'>
+    <class 'sage.rings.power_series_pari.PowerSeries_pari'>
 
 If `k` is a finite field implemented using PARI, this is the default
 implementation for power series over `k`::
 
     sage: k.<c> = GF(5^12)
     sage: type(c)
-    <type 'sage.rings.finite_rings.element_pari_ffelt.FiniteFieldElement_pari_ffelt'>
+    <class 'sage.rings.finite_rings.element_pari_ffelt.FiniteFieldElement_pari_ffelt'>
     sage: A.<x> = k[[]]
     sage: type(x)
-    <type 'sage.rings.power_series_pari.PowerSeries_pari'>
+    <class 'sage.rings.power_series_pari.PowerSeries_pari'>
 
 .. WARNING::
 
@@ -59,24 +59,20 @@ AUTHORS:
 
 """
 
-#*****************************************************************************
+# ****************************************************************************
 #       Copyright (C) 2013-2017 Peter Bruin <P.J.Bruin@math.leidenuniv.nl>
 #
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
 # the Free Software Foundation, either version 2 of the License, or
 # (at your option) any later version.
-#                  http://www.gnu.org/licenses/
-#*****************************************************************************
-
-from __future__ import absolute_import, division, print_function
+#                  https://www.gnu.org/licenses/
+# ****************************************************************************
 
 from cypari2.gen cimport Gen as pari_gen
 from cypari2.pari_instance cimport get_var
 from cypari2.paridecl cimport gel, typ, lg, valp, varn, t_POL, t_SER, t_RFRAC, t_VEC
 from sage.libs.pari.all import pari
-
-from sage.misc.superseded import deprecated_function_alias
 
 from sage.rings.polynomial.polynomial_element cimport Polynomial
 from sage.rings.power_series_ring_element cimport PowerSeries
@@ -678,7 +674,8 @@ cdef class PowerSeries_pari(PowerSeries):
             g = g.truncate()
         if typ(g.g) == t_POL and varn(g.g) == vn:
             # t_POL has 2 codewords.  Use new_ref instead of g[i] for speed.
-            return [R(g.new_ref(gel(g.g, i))) for i in range(2, lg(g.g))]
+            G = g.fixGEN()
+            return [R(g.new_ref(gel(G, i))) for i in range(2, lg(G))]
         else:
             return [R(g)]
 
@@ -729,6 +726,7 @@ cdef class PowerSeries_pari(PowerSeries):
             return []
 
         cdef pari_gen g = self.g
+        g.fixGEN()
         cdef long l, m
 
         R = self.base_ring()

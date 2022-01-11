@@ -57,13 +57,14 @@ def outerproduct_schur_symmetrica(parta, partb):
     """
     you enter two PARTITION objects, and the result is
     a SCHUR object, which is the expansion of the product
-    of the two schurfunctions, labbeled by
+    of the two schurfunctions, labeled by
     the two PARTITION objects parta and partb.
     Of course this can also be interpreted as the decomposition of the
-    outer tensor product of two irreducibe representations of the
+    outer tensor product of two irreducible representations of the
     symmetric group.
 
-    EXAMPLES:
+    EXAMPLES::
+
         sage: symmetrica.outerproduct_schur([2],[2])
         s[2, 2] + s[3, 1] + s[4]
     """
@@ -116,6 +117,7 @@ def newtrans_symmetrica(perm):
     """
     computes the decomposition of a schubertpolynomial labeled by
     the permutation perm, as a sum of Schurfunction.
+
     FIXME!
     """
     cdef OP cperm = callocobject(), cresult = callocobject()
@@ -140,7 +142,8 @@ def compute_schur_with_alphabet_symmetrica(part, length, alphabet='x'):
     partition PART as a POLYNOM erg. The INTEGER length specifies the
     length of the alphabet.
 
-    EXAMPLES:
+    EXAMPLES::
+
         sage: symmetrica.compute_schur_with_alphabet(2,2)
         x0^2 + x0*x1 + x1^2
         sage: symmetrica.compute_schur_with_alphabet([2],2)
@@ -179,13 +182,14 @@ def compute_schur_with_alphabet_symmetrica(part, length, alphabet='x'):
 
 def compute_homsym_with_alphabet_symmetrica(n, length, alphabet='x'):
     """
-    computes the expansion of a homogenous(=complete) symmetric
+    computes the expansion of a homogeneous(=complete) symmetric
     function labeled by a INTEGER number as a POLYNOM erg.
     The object number may also be a  PARTITION or a HOM_SYM object.
     The INTEGER laenge specifies the length of the alphabet.
     Both routines are the same.
 
-    EXAMPLES:
+    EXAMPLES::
+
         sage: symmetrica.compute_homsym_with_alphabet(3,1,'x')
         x^3
         sage: symmetrica.compute_homsym_with_alphabet([2,1],1,'x')
@@ -231,7 +235,8 @@ def compute_elmsym_with_alphabet_symmetrica(n, length, alphabet='x'):
     The INTEGER length specifies the length of the alphabet.
     Both routines are the same.
 
-    EXAMPLES:
+    EXAMPLES::
+
         sage: a = symmetrica.compute_elmsym_with_alphabet(2,2); a
         x0*x1
         sage: a.parent()
@@ -279,7 +284,8 @@ def compute_monomial_with_alphabet_symmetrica(n, length, alphabet='x'):
     function labeled by a PARTITION number as a POLYNOM erg.
     The INTEGER laenge specifies the length of the alphabet.
 
-    EXAMPLES:
+    EXAMPLES::
+
         sage: symmetrica.compute_monomial_with_alphabet([2,1],2,'x')
         x0^2*x1 + x0*x1^2
         sage: symmetrica.compute_monomial_with_alphabet([1,1,1],2,'x')
@@ -325,7 +331,8 @@ def compute_powsym_with_alphabet_symmetrica(n, length, alphabet='x'):
     or a POW_SYM label as a POLYNOM erg.
     The INTEGER laenge specifies the length of the alphabet.
 
-    EXAMPLES:
+    EXAMPLES::
+
         sage: symmetrica.compute_powsym_with_alphabet(2,2,'x')
         x0^2 + x1^2
         sage: symmetrica.compute_powsym_with_alphabet(2,2,'x').parent()
@@ -365,7 +372,8 @@ def compute_powsym_with_alphabet_symmetrica(n, length, alphabet='x'):
 
 def compute_schur_with_alphabet_det_symmetrica(part, length, alphabet='x'):
     """
-    EXAMPLES:
+    EXAMPLES::
+
         sage: symmetrica.compute_schur_with_alphabet_det(2,2)
         x0^2 + x0*x1 + x1^2
         sage: symmetrica.compute_schur_with_alphabet_det([2],2)

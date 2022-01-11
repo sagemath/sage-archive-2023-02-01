@@ -11,7 +11,7 @@ AUTHORS:
 - Travis Scrimshaw (2012-10-25): Added virtual rigged configurations
 """
 
-#*****************************************************************************
+# ****************************************************************************
 #       Copyright (C) 2010-2012 Travis Scrimshaw <tscrim@ucdavis.edu>
 #
 #  Distributed under the terms of the GNU General Public License (GPL)
@@ -23,19 +23,17 @@ AUTHORS:
 #
 #  The full text of the GPL is available at:
 #
-#                  http://www.gnu.org/licenses/
-#*****************************************************************************
-from __future__ import print_function, division
-
+#                  https://www.gnu.org/licenses/
+# ****************************************************************************
 from sage.misc.cachefunc import cached_method
 from sage.structure.list_clone import ClonableArray
 from sage.rings.integer import Integer
 from sage.rings.integer_ring import ZZ
-from sage.combinat.rigged_configurations.rigged_partition import RiggedPartition, \
-  RiggedPartitionTypeB
+from sage.combinat.rigged_configurations.rigged_partition import RiggedPartition, RiggedPartitionTypeB
+
 
 ####################################################
-## Base classes for rigged configuration elements ##
+#  Base classes for rigged configuration elements  #
 ####################################################
 
 class RiggedConfigurationElement(ClonableArray):
@@ -450,7 +448,7 @@ class RiggedConfigurationElement(ClonableArray):
         if Partitions.options.convention == "French":
             baseline = lambda s: 0
         else:
-            baseline = lambda s: len(s)
+            baseline = len
         from sage.typeset.ascii_art import AsciiArt
         s = repr(self[0]).splitlines()
         ret = AsciiArt(s, baseline=baseline(s))
@@ -546,7 +544,6 @@ class RiggedConfigurationElement(ClonableArray):
         if M[a,a] != 2:
             k = None
             set_vac_num = True
-            rigged_index = None
             if new_rigging[-1] != -M[a,a] // 2:
                 return None
             new_list.pop()
@@ -597,7 +594,7 @@ class RiggedConfigurationElement(ClonableArray):
             else:
                 # Update the vacancy numbers and the rigging
                 for i in range(len(new_vac_nums)):
-                    if new_list[i] < k:
+                    if k is not None and new_list[i] < k:
                         break
 
                     new_vac_nums[i] += M[a,b]
@@ -651,7 +648,7 @@ class RiggedConfigurationElement(ClonableArray):
         # Update the vacancy numbers and the rigging
         value = self.parent()._cartan_matrix[b,a]
         for i in range(len(new_vac_nums)):
-            if new_list[i] < k:
+            if k is not None and new_list[i] < k:
                 break
 
             new_vac_nums[i] += value
@@ -1770,7 +1767,7 @@ class KRRiggedConfigurationElement(RiggedConfigurationElement):
              1[ ]0         0[ ][ ]0  -1[ ]-1
                            0[ ]0
 
-        We check that the bijection commutes with the right spliting map::
+        We check that the bijection commutes with the right splitting map::
 
             sage: RC = RiggedConfigurations(['A', 3, 1], [[1,1], [2,2]])
             sage: all(rc.right_split().to_tensor_product_of_kirillov_reshetikhin_tableaux()
@@ -2388,15 +2385,15 @@ class KRRCTypeA2DualElement(KRRCNonSimplyLacedElement):
             ....:     for mg in RC.module_generators)
             True
         """
-        #return self.to_virtual_configuration().cocharge() / self.parent()._folded_ct.gamma[0]
-        vct = self.parent()._folded_ct
+        # return self.to_virtual_configuration().cocharge() / self.parent()._folded_ct.gamma[0]
         cc = ZZ.zero()
         rigging_sum = ZZ.zero()
-        #sigma = vct.folding_orbit()
-        #gammatilde = list(vct.scaling_factors())
-        #gammatilde[-1] = 2
+        # vct = self.parent()._folded_ct
+        # sigma = vct.folding_orbit()
+        # gammatilde = list(vct.scaling_factors())
+        # gammatilde[-1] = 2
         for a, p in enumerate(self):
-            t_check = 1 # == len(sigma[a+1]) * gammatilde[a+1] / gammatilde[0]
+            t_check = 1  # == len(sigma[a+1]) * gammatilde[a+1] / gammatilde[0]
             for pos, i in enumerate(p._list):
                 # Add the rigging
                 rigging_sum += t_check * p.rigging[pos]

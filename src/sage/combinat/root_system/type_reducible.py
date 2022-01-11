@@ -1,16 +1,14 @@
 """
 Root system data for reducible Cartan types
 """
-#*****************************************************************************
+# ****************************************************************************
 #       Copyright (C) 2008-2009 Daniel Bump
 #       Copyright (C) 2008-2009 Justin Walker
 #       Copyright (C) 2008-2009 Nicolas M. Thiery <nthiery at users.sf.net>,
 #
 #  Distributed under the terms of the GNU General Public License (GPL)
-#                  http://www.gnu.org/licenses/
-#*****************************************************************************
-from __future__ import print_function
-from __future__ import absolute_import
+#                  https://www.gnu.org/licenses/
+# ****************************************************************************
 
 from sage.misc.cachefunc import cached_method
 from sage.combinat.root_system.cartan_type import CartanType_abstract, CartanType_simple, CartanType_finite, CartanType_simply_laced, CartanType_crystallographic
@@ -58,7 +56,7 @@ class CartanType(SageObject, CartanType_abstract):
     super classes (see :meth:`~sage.combinat.root_system.cartan_type.CartanType_abstract._add_abstract_superclass`)::
 
         sage: t.__class__.mro()
-        [<class 'sage.combinat.root_system.type_reducible.CartanType_with_superclass'>, <class 'sage.combinat.root_system.type_reducible.CartanType'>, <... 'sage.structure.sage_object.SageObject'>, <class 'sage.combinat.root_system.cartan_type.CartanType_finite'>, <class 'sage.combinat.root_system.cartan_type.CartanType_crystallographic'>, <class 'sage.combinat.root_system.cartan_type.CartanType_abstract'>, <... 'object'>]
+        [<class 'sage.combinat.root_system.type_reducible.CartanType_with_superclass'>, <class 'sage.combinat.root_system.type_reducible.CartanType'>, <class 'sage.structure.sage_object.SageObject'>, <class 'sage.combinat.root_system.cartan_type.CartanType_finite'>, <class 'sage.combinat.root_system.cartan_type.CartanType_crystallographic'>, <class 'sage.combinat.root_system.cartan_type.CartanType_abstract'>, <class 'object'>]
 
     The index set of the reducible Cartan type is obtained by
     relabelling successively the nodes of the Dynkin diagrams of
@@ -136,7 +134,7 @@ class CartanType(SageObject, CartanType_abstract):
                                if all(isinstance(t, cls) for t in types) )
         self._add_abstract_superclass(super_classes)
 
-    def _repr_(self, compact = True): # We should make a consistent choice here
+    def _repr_(self, compact=True):  # We should make a consistent choice here
         """
         EXAMPLES::
 
@@ -146,7 +144,7 @@ class CartanType(SageObject, CartanType_abstract):
            sage: CartanType("A2",CartanType("F4~").dual())
            A2xF4~*
         """
-        return  "x".join(t._repr_(compact = True) for t in self._types)
+        return "x".join(t._repr_(compact=True) for t in self._types)
 
     def _latex_(self):
         r"""
@@ -163,9 +161,10 @@ class CartanType(SageObject, CartanType_abstract):
         r"""
         EXAMPLES::
 
-            sage: hash(CartanType(['A',1],['B',2]))
-            1110723648           # 32-bit
-            -6896789355307447232 # 64-bit
+            sage: ct0 = CartanType(['A',1],['B',2])
+            sage: ct1 = CartanType(['A',2],['B',3])
+            sage: hash(ct0) != hash(ct1)
+            True
         """
         return hash(repr(self._types))
 

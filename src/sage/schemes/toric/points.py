@@ -24,21 +24,20 @@ EXAMPLES::
     [[0 : 0 : 1], [1 : 0 : 0], [0 : 1 : 0], [0 : 1 : 1], [0 : 1 : 2]]
 """
 
-#*****************************************************************************
+# ****************************************************************************
 #       Copyright (C) 2013 Volker Braun <vbraun.name@gmail.com>
 #
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
 # the Free Software Foundation, either version 2 of the License, or
 # (at your option) any later version.
-#                  http://www.gnu.org/licenses/
-#*****************************************************************************
-from __future__ import print_function
+#                  https://www.gnu.org/licenses/
+# ****************************************************************************
 
 import itertools
 from copy import copy
 
-from sage.misc.all import prod
+from sage.misc.misc_c import prod
 from sage.misc.cachefunc import cached_method
 from sage.arith.all import gcd
 from sage.rings.polynomial.polynomial_ring_constructor import PolynomialRing
@@ -227,12 +226,12 @@ class NaiveFinitePointEnumerator(object):
 
     def _Chow_group_torsion(self):
         r"""
-        Return the relations coming from the torison part of the Chow group
+        Return the relations coming from the torsion part of the Chow group.
 
         OUTPUT:
 
         A tuple containing the non-identity elements of
-        $Hom(A_{d-1,\text{tors}}, F^\times)$
+        `Hom(A_{d-1,\text{tors}}, F^\times)`
 
         EXAMPLES::
 
@@ -437,7 +436,7 @@ class FiniteFieldPointEnumerator(NaiveFinitePointEnumerator):
 
         A finite field element.
 
-        EXAMPLES:
+        EXAMPLES::
 
             sage: point_set = toric_varieties.P2(base_ring=GF(5^2, 'a')).point_set()
             sage: ffe = point_set._finite_field_enumerator()
@@ -677,7 +676,7 @@ class FiniteFieldPointEnumerator(NaiveFinitePointEnumerator):
             [(0, 0), (0, 1)]
         """
         from sage.matrix.constructor import matrix, block_matrix, identity_matrix
-        from sage.rings.all import ZZ
+        from sage.rings.integer_ring import ZZ
         nrays = len(self.rays())
         N = self.multiplicative_group_order()
         # Want cokernel of the log rescalings in (ZZ/N)^(#rays). But
@@ -767,7 +766,7 @@ class NaiveSubschemePointEnumerator(object):
 
         INPUT:
 
-        - ``polynomials`` -- list/tuple/iterabel of polynomials. The
+        - ``polynomials`` -- list/tuple/iterable of polynomials. The
           defining polynomials.
 
         - ``ambient`` -- enumerator for ambient space points.
@@ -987,7 +986,7 @@ class FiniteFieldSubschemePointEnumerator(NaiveSubschemePointEnumerator):
             sage: point_set = X.point_set()
             sage: ffe = point_set._enumerator()
             sage: list(ffe)   # indirect doctest
-            [(1, 4, 3), (1, 1, 6), (1, 2, 5)]
+            [(1, 1, 6), (1, 2, 5), (1, 4, 3)]
         """
         for cone, nonzero_coordinates, cokernel in self.ambient.cone_points_iter():
             R = PolynomialRing(self.ambient.ring, cokernel.ngens(), 't')
@@ -1031,4 +1030,3 @@ class FiniteFieldSubschemePointEnumerator(NaiveSubschemePointEnumerator):
             for log_t in self.solutions(inhomogeneous, log_range):
                 n += 1
         return n
-

@@ -1,5 +1,7 @@
 .. nodoctest
 
+.. highlight:: shell-session
+
 .. _chapter-doctesting:
 
 =======================
@@ -20,7 +22,9 @@ level Sage directory is::
 See the section :ref:`chapter-testing` for information on Sage's
 automated testing process. The general syntax for doctesting is as
 follows. To doctest a module in the library of a version of Sage, use
-this syntax::
+this syntax:
+
+.. CODE-BLOCK:: text
 
     /path/to/sage-x.y.z/sage -t [--long] /path/to/sage-x.y.z/path/to/module.py[x]
 
@@ -101,6 +105,12 @@ In all of the above terminal sessions, we used a local installation of
 Sage to test its own modules. Even if we have a system-wide Sage
 installation, using that version to doctest the modules of a local
 installation is a recipe for confusion.
+
+You can also run the Sage doctester as follows::
+
+   [jdemeyer@sage sage-6.0]$ ./sage -tox -e doctest -- src/sage/games/sudoku.py
+
+See :ref:`chapter-tools` for more information about tox.
 
 
 Troubleshooting
@@ -332,7 +342,9 @@ argument, the module ``sage/crypto/mq/sr.py`` took about five
 seconds. With this optional argument, it required 82 seconds to run
 through all tests in that module. Here is a snippet of a function in
 the module ``sage/crypto/mq/sr.py`` with a doctest that has been flagged
-as taking a long time::
+as taking a long time:
+
+.. CODE-BLOCK:: python
 
     def test_consistency(max_n=2, **kwargs):
         r"""
@@ -507,7 +519,9 @@ In any case, this will test the Sage library with multiple threads::
     [jdemeyer@sage sage-6.0]$ make ptestlong
 
 Any of the following commands would also doctest the Sage library or
-one of its clones::
+one of its clones:
+
+.. CODE-BLOCK:: text
 
     make test
     make check
@@ -654,12 +668,14 @@ Doctesting from Within Sage
 
 You can run doctests from within Sage, which can be useful since you
 don't have to wait for Sage to start.  Use the ``run_doctests``
-function in the global namespace, passing it either a string or a module::
+function in the global namespace, passing it either a string or a module:
+
+.. CODE-BLOCK:: ipycon
 
     sage: run_doctests(sage.combinat.affine_permutation)
     Running doctests with ID 2018-02-07-13-23-13-89fe17b1.
     Git branch: develop
-    Using --optional=dochtml,sage
+    Using --optional=sagemath_doc_html,sage
     Doctesting 1 file.
     sage -t /opt/sage/sage_stable/src/sage/combinat/affine_permutation.py
         [338 tests, 4.32 s]
@@ -680,7 +696,9 @@ Run Long Doctests
 
 Ideally, doctests should not take any noticeable amount of time. If
 you really need longer-running doctests (anything beyond about one
-second) then you should mark them as::
+second) then you should mark them as:
+
+.. CODE-BLOCK:: text
 
     sage: my_long_test()  # long time
 
@@ -785,6 +803,60 @@ You can also pass in an explicit amount of time::
 Finally, you can disable any warnings about long tests with
 ``--warn-long 0``.
 
+Doctests start from a random seed::
+
+    [kliem@sage sage-9.2]$ sage -t src/sage/doctest/tests/random_seed.rst
+    Running doctests with ID 2020-06-23-23-22-59-49f37a55.
+    ...
+    Doctesting 1 file.
+    sage -t --warn-long 89.5 --random-seed=112986622569797306072457879734474628454 src/sage/doctest/tests/random_seed.rst
+    **********************************************************************
+    File "src/sage/doctest/tests/random_seed.rst", line 3, in sage.doctest.tests.random_seed
+    Failed example:
+        randint(5, 10)
+    Expected:
+        9
+    Got:
+        8
+    **********************************************************************
+    1 item had failures:
+       1 of   2 in sage.doctest.tests.random_seed
+        [1 test, 1 failure, 0.00 s]
+    ----------------------------------------------------------------------
+    sage -t --warn-long 89.5 --random-seed=112986622569797306072457879734474628454 src/sage/doctest/tests/random_seed.rst  # 1 doctest failed
+    ----------------------------------------------------------------------
+    Total time for all tests: 0.0 seconds
+        cpu time: 0.0 seconds
+        cumulative wall time: 0.0 seconds
+
+This seed can be set explicitly to reproduce possible failures::
+
+    [kliem@sage sage-9.2]$ sage -t --warn-long 89.5 --random-seed=112986622569797306072457879734474628454 src/sage/doctest/tests/random_seed.rst
+    Running doctests with ID 2020-06-23-23-24-28-14a52269.
+    ...
+    Doctesting 1 file.
+    sage -t --warn-long 89.5 --random-seed=112986622569797306072457879734474628454 src/sage/doctest/tests/random_seed.rst
+    **********************************************************************
+    File "src/sage/doctest/tests/random_seed.rst", line 3, in sage.doctest.tests.random_seed
+    Failed example:
+        randint(5, 10)
+    Expected:
+        9
+    Got:
+        8
+    **********************************************************************
+    1 item had failures:
+       1 of   2 in sage.doctest.tests.random_seed
+        [1 test, 1 failure, 0.00 s]
+    ----------------------------------------------------------------------
+    sage -t --warn-long 89.5 --random-seed=112986622569797306072457879734474628454 src/sage/doctest/tests/random_seed.rst  # 1 doctest failed
+    ----------------------------------------------------------------------
+    Total time for all tests: 0.0 seconds
+        cpu time: 0.0 seconds
+        cumulative wall time: 0.0 seconds
+
+It can also be set explicitly using the environment variable
+``SAGE_DOCTEST_RANDOM_SEED``.
 
 .. _section-optional-doctest-flag:
 
@@ -799,7 +871,7 @@ optional packages.
 
 By default, Sage only runs doctests that are not marked with the ``optional`` tag.  This is equivalent to running ::
 
-    [roed@sage sage-6.0]$ sage -t --optional=dochtml,sage src/sage/rings/real_mpfr.pyx
+    [roed@sage sage-6.0]$ sage -t --optional=sagemath_doc_html,sage src/sage/rings/real_mpfr.pyx
     Running doctests with ID 2012-06-21-16-18-30-a368a200.
     Doctesting 1 file.
     sage -t src/sage/rings/real_mpfr.pyx
@@ -813,7 +885,7 @@ By default, Sage only runs doctests that are not marked with the ``optional`` ta
 
 If you want to also run tests that require magma, you can do the following::
 
-    [roed@sage sage-6.0]$ sage -t --optional=dochtml,sage,magma src/sage/rings/real_mpfr.pyx
+    [roed@sage sage-6.0]$ sage -t --optional=sagemath_doc_html,sage,magma src/sage/rings/real_mpfr.pyx
     Running doctests with ID 2012-06-21-16-18-30-a00a7319
     Doctesting 1 file.
     sage -t src/sage/rings/real_mpfr.pyx
@@ -825,7 +897,7 @@ If you want to also run tests that require magma, you can do the following::
         cpu time: 4.0 seconds
         cumulative wall time: 8.4 seconds
 
-In order to just run the tests that are marked as requiring magma, omit ``sage`` and ``dochtml``::
+In order to just run the tests that are marked as requiring magma, omit ``sage`` and ``sagemath_doc_html``::
 
     [roed@sage sage-6.0]$ sage -t --optional=magma src/sage/rings/real_mpfr.pyx
     Running doctests with ID 2012-06-21-16-18-33-a2bc1fdf
@@ -843,7 +915,7 @@ If you want Sage to detect external software or other capabilities
 (such as magma, latex, internet) automatically and run all of the
 relevant tests, then add ``external``::
 
-    $ sage -t --optional=external src/sage/rings/real_mpfr.pyx 
+    $ sage -t --optional=external src/sage/rings/real_mpfr.pyx
     Running doctests with ID 2016-03-16-14-10-21-af2ebb67.
     Using --optional=external
     External software to be detected: cplex,gurobi,internet,latex,macaulay2,magma,maple,mathematica,matlab,octave,scilab
@@ -924,8 +996,6 @@ as well as testing the Sage notebook::
         [304 tests, 69.0 s]
     ...
 
-If you want to just run the notebook tests, use the ``--sagenb`` flag instead.
-
 
 Debugging Tools
 ---------------
@@ -969,8 +1039,8 @@ a Python exception occurs.  As an example, I modified
     152                     ainvs = [K(0),K(0),K(0)] + ainvs
     153                 self.__ainvs = tuple(ainvs)
     154                 if self.discriminant() == 0:
-    155                     raise ArithmeticError, \
-    156  ->                       "Invariants %s define a singular curve."%ainvs
+    155                     raise ArithmeticError(
+    156  ->                     "Invariants %s define a singular curve."%ainvs)
     157                 PP = projective_space.ProjectiveSpace(2, K, names='xyz');
     158                 x, y, z = PP.coordinate_ring().gens()
     159                 a1, a2, a3, a4, a6 = ainvs
@@ -1000,7 +1070,7 @@ appear in real time use the ``--verbose`` flag).  To have doctests run
 under the control of gdb, use the ``--gdb`` flag::
 
     [roed@sage sage-6.0]$ sage -t --gdb src/sage/schemes/elliptic_curves/constructor.py
-    gdb -x /home/roed/sage-6.0.b5/local/bin/sage-gdb-commands --args python /home/roed/sage-6.0.b5/local/bin/sage-runtests --serial --nthreads 1 --timeout 1048576 --optional dochtml,sage --stats_path /home/roed/.sage/timings2.json src/sage/schemes/elliptic_curves/constructor.py
+    gdb -x /home/roed/sage-6.0.b5/local/bin/sage-gdb-commands --args python /home/roed/sage-6.0.b5/local/bin/sage-runtests --serial --nthreads 1 --timeout 1048576 --optional sagemath_doc_html,sage --stats_path /home/roed/.sage/timings2.json src/sage/schemes/elliptic_curves/constructor.py
     GNU gdb 6.8-debian
     Copyright (C) 2008 Free Software Foundation, Inc.
     License GPLv3+: GNU GPL version 3 or later <http://gnu.org/licenses/gpl.html>
@@ -1227,8 +1297,8 @@ code loads the globals from that file into the namespace before
 running tests.  To disable this behaviour (and require imports to be
 explicitly specified), use the ``--force-lib`` option.
 
-Auxilliary files
-^^^^^^^^^^^^^^^^
+Auxiliary files
+^^^^^^^^^^^^^^^
 
 To specify a logfile (rather than use the default which is created for
 ``sage -t --all``), use the ``--logfile`` flag::

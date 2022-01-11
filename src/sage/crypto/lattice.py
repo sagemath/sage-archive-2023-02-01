@@ -160,7 +160,7 @@ def gen_lattice(type='modular', n=4, m=8, q=11, seed=None,
         sage: sage.crypto.gen_lattice(type='ideal', seed=1234, quotient=cos(x))
         Traceback (most recent call last):
         ...
-        TypeError: unable to convert cos(x) to an integer
+        TypeError: self must be a numeric expression
         sage: sage.crypto.gen_lattice(type='ideal', seed=1234, quotient=x^23-1)
         Traceback (most recent call last):
         ...
@@ -222,7 +222,8 @@ def gen_lattice(type='modular', n=4, m=8, q=11, seed=None,
         set_random_seed(seed)
 
     if type == 'random':
-        if n != 1: raise ValueError('random bases require n = 1')
+        if n != 1:
+            raise ValueError('random bases require n = 1')
 
     ZZ = IntegerRing()
     ZZ_q = IntegerModRing(q)
@@ -272,8 +273,10 @@ def gen_lattice(type='modular', n=4, m=8, q=11, seed=None,
 
     # switch from representatives 0,...,(q-1) to (1-q)/2,....,(q-1)/2
     def minrep(a):
-        if abs(a-q) < abs(a): return a-q
-        else: return a
+        if abs(a-q) < abs(a):
+            return a-q
+        else:
+            return a
     A_prime = A[n:m].lift().apply_map(minrep)
 
     if not dual:

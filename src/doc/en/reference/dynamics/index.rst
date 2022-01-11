@@ -8,8 +8,7 @@ Discrete dynamics
 
    cellular_automata
    complex_dynamics
-   flat_surfaces
-   interval_exchanges
+   sage/dynamics/finite_dynamical_system
    sage/sandpiles/sandpile
 
 .. SEEALSO::
@@ -29,6 +28,7 @@ Arithmetic Dynamical Systems
    sage/dynamics/arithmetic_dynamics/projective_ds
    sage/dynamics/arithmetic_dynamics/product_projective_ds
    sage/dynamics/arithmetic_dynamics/wehlerK3
+   sage/dynamics/arithmetic_dynamics/berkovich_ds
 
 
 .. SEEALSO::

@@ -172,7 +172,7 @@ class CyclicRepresentation(QuantumGroupRepresentation):
             sage: K = crystals.ProjectedLevelZeroLSPaths(La[1])
             sage: A = AdjointRepresentation(R, K)
             sage: latex(A)
-            V\left( -2\Lambda_{0} + \Lambda_{1} \right)
+            V\left( -2 \Lambda_{0} + \Lambda_{1} \right)
         """
         try:
             mg = self.basis().keys().module_generator()
@@ -278,15 +278,19 @@ class AdjointRepresentation(CyclicRepresentation):
         sage: A = AdjointRepresentation(R, K)
         sage: A
         V(-Lambda[0] + Lambda[4])
+
+    Sort the summands uniformly in Python 2 and Python 3::
+
+        sage: A.print_options(sorting_key=lambda x: str(x))
         sage: v = A.an_element(); v
-        3*B[(-Lambda[0] + Lambda[3] - Lambda[4],)]
-         + 2*B[(Lambda[0] - Lambda[1] + Lambda[4],)]
+        2*B[(-Lambda[0] + Lambda[3] - Lambda[4],)]
          + 2*B[(-Lambda[0] + Lambda[4],)]
+         + 3*B[(Lambda[0] - Lambda[1] + Lambda[4],)]
         sage: v.e(0)
-        2*B[(Lambda[0] - Lambda[1] + Lambda[4],)]
-         + 3*B[(Lambda[0] - Lambda[1] + Lambda[3] - Lambda[4],)]
+        2*B[(Lambda[0] - Lambda[1] + Lambda[3] - Lambda[4],)]
+         + 2*B[(Lambda[0] - Lambda[1] + Lambda[4],)]
         sage: v.f(0)
-        2*B[(-Lambda[0] + Lambda[4],)]
+        3*B[(-Lambda[0] + Lambda[4],)]
 
     REFERENCES:
 

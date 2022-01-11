@@ -16,13 +16,13 @@ Base class for groups
 #
 #                  https://www.gnu.org/licenses/
 # ****************************************************************************
-from __future__ import absolute_import
 
 import random
 
 from sage.structure.parent cimport Parent
 from sage.rings.infinity import infinity
 from sage.rings.integer_ring import ZZ
+from sage.misc.lazy_attribute import lazy_attribute
 
 
 def is_Group(x):
@@ -213,16 +213,16 @@ cdef class Group(Parent):
 
         An element of the group.
 
-        EXAMPLES:
+        EXAMPLES::
 
             sage: G = AbelianGroup([2,3,4,5])
             sage: G.an_element()
             f0*f1*f2*f3
         """
-        from sage.misc.all import prod
+        from sage.misc.misc_c import prod
         return prod(self.gens())
 
-    def quotient(self, H):
+    def quotient(self, H, **kwds):
         """
         Return the quotient of this group by the normal subgroup
         `H`.

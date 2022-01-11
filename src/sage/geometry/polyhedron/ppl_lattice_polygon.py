@@ -1,5 +1,5 @@
 """
-Fast Lattice Polygons using PPL.
+Fast Lattice Polygons using PPL
 
 See :mod:`ppl_lattice_polytope` for the implementation of
 arbitrary-dimensional lattice polytopes. This module is about the
@@ -19,11 +19,10 @@ is in general not possible in higher dimensions.
 ########################################################################
 
 from sage.rings.integer_ring import ZZ
-from sage.misc.all import cached_method, cached_function
-from sage.modules.all import (vector, zero_vector)
+from sage.misc.cachefunc import cached_method, cached_function
+from sage.modules.free_module_element import vector, zero_vector
 from sage.matrix.constructor import (matrix, zero_matrix, block_matrix)
-from sage.libs.ppl import (C_Polyhedron, Generator_System_iterator,
-                           Poly_Con_Relation)
+from ppl import C_Polyhedron, Poly_Con_Relation
 from sage.geometry.polyhedron.lattice_euclidean_group_element import (
     LatticeEuclideanGroupElement)
 from sage.geometry.polyhedron.ppl_lattice_polytope import (
@@ -303,8 +302,7 @@ class LatticePolygon_PPL_class(LatticePolytope_PPL_class):
             return self._find_isomorphism_degenerate(polytope)
 
         polytope_origin = polytope_vertices[0]
-        origin_P = C_Polyhedron(next(Generator_System_iterator(
-            polytope.minimized_generators())))
+        origin_P = C_Polyhedron(next(iter(polytope.minimized_generators())))
 
         neighbors = []
         for c in polytope.minimized_constraints():
@@ -409,11 +407,11 @@ class LatticePolygon_PPL_class(LatticePolytope_PPL_class):
 
             sage: from sage.geometry.polyhedron.ppl_lattice_polytope import LatticePolytope_PPL
             sage: P = LatticePolytope_PPL((1,0), (0,1), (0,0), (2,2))
-            sage: P.plot()
+            sage: P.plot()  # optional - sage.plot
             Graphics object consisting of 6 graphics primitives
-            sage: LatticePolytope_PPL([0], [1]).plot()
+            sage: LatticePolytope_PPL([0], [1]).plot()  # optional - sage.plot
             Graphics object consisting of 3 graphics primitives
-            sage: LatticePolytope_PPL([0]).plot()
+            sage: LatticePolytope_PPL([0]).plot()  # optional - sage.plot
             Graphics object consisting of 2 graphics primitives
         """
         from sage.plot.point import point2d

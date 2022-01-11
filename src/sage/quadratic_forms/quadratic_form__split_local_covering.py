@@ -5,14 +5,14 @@ Split Local Covering
 ## Routines that look for a split local covering for a given quadratic ##
 ## form in 4 variables.                                                ##
 #########################################################################
-from __future__ import print_function
 
 from copy import deepcopy
 
 from sage.quadratic_forms.extras import extend_to_primitive
 from sage.quadratic_forms.quadratic_form import QuadraticForm__constructor, is_QuadraticForm
 
-from sage.rings.real_mpfr import RealField_class, RealField
+import sage.rings.abc
+from sage.rings.real_mpfr import RealField
 from sage.rings.real_double import RDF
 from sage.matrix.matrix_space import MatrixSpace
 from sage.matrix.constructor import matrix
@@ -85,7 +85,7 @@ def cholesky_decomposition(self, bit_prec = 53):
     """
 
     ## Check that the precision passed is allowed.
-    if isinstance(self.base_ring(), RealField_class) and (self.base_ring().prec() < bit_prec):
+    if isinstance(self.base_ring(), sage.rings.abc.RealField) and (self.base_ring().prec() < bit_prec):
         raise RuntimeError("Oops! The precision requested is greater than that of the given quadratic form!")
 
     ## 1. Initialization
@@ -95,7 +95,6 @@ def cholesky_decomposition(self, bit_prec = 53):
     Q = MS(R(0.5)) * MS(self.matrix())               ## Initialize the real symmetric matrix A with the matrix for Q(x) = x^t * A * x
 
     ## DIAGNOSTIC
-    #print "After 1:  Q is \n" + str(Q)
 
     ## 2. Loop on i
     for i in range(n):
@@ -188,11 +187,11 @@ def vectors_by_length(self, bound):
     ## (So theta_vec[i] will have all vectors v with Q(v) = i.)
     theta_vec = [[] for i in range(bound + 1)]
 
-    ## Initialize Q with zeros and Copy the Cholesky array into Q
+    # Initialize Q with zeros and Copy the Cholesky array into Q
     Q = self.cholesky_decomposition()
 
 
-    ## 1. Initialize
+    # 1. Initialize
     T = n * [RDF(0)]    ## Note: We index the entries as 0 --> n-1
     U = n * [RDF(0)]
     i = n-1
@@ -201,36 +200,21 @@ def vectors_by_length(self, bound):
 
     L = n * [0]
     x = n * [0]
-    Z = RDF(0)
 
-    ## 2. Compute bounds
+    # 2. Compute bounds
     Z = (T[i] / Q[i][i]).sqrt(extend=False)
     L[i] = ( Z - U[i]).floor()
     x[i] = (-Z - U[i]).ceil()
 
     done_flag = False
-    Q_val_double = RDF(0)
     Q_val = 0 ## WARNING: Still need a good way of checking overflow for this value...
 
-    ## Big loop which runs through all vectors
+    # Big loop which runs through all vectors
     while not done_flag:
 
         ## 3b. Main loop -- try to generate a complete vector x (when i=0)
         while (i > 0):
-            #print " i = ", i
-            #print " T[i] = ", T[i]
-            #print " Q[i][i] = ", Q[i][i]
-            #print " x[i] = ", x[i]
-            #print " U[i] = ", U[i]
-            #print " x[i] + U[i] = ", (x[i] + U[i])
-            #print " T[i-1] = ", T[i-1]
-
             T[i-1] = T[i] - Q[i][i] * (x[i] + U[i]) * (x[i] + U[i])
-
-            #print " T[i-1] = ",  T[i-1]
-            #print " x = ", x
-            #print
-
             i = i - 1
             U[i] = 0
             for j in range(i+1, n):
@@ -249,29 +233,20 @@ def vectors_by_length(self, bound):
                 i += 1
                 x[i] += 1
 
-        ## 4. Solution found (This happens when i = 0)
-        #print "-- Solution found! --"
-        #print " x = ", x
-        #print " Q_val = Q(x) = ", Q_val
+        # 4. Solution found (This happens when i = 0)
         Q_val_double = Theta_Precision - T[0] + Q[0][0] * (x[0] + U[0]) * (x[0] + U[0])
         Q_val = Q_val_double.round()
 
-        ## SANITY CHECK: Roundoff Error is < 0.001
+        # SANITY CHECK: Roundoff Error is < 0.001
         if abs(Q_val_double -  Q_val) > 0.001:
             print(" x = ", x)
             print(" Float = ", Q_val_double, "   Long = ", Q_val)
             raise RuntimeError("The roundoff error is bigger than 0.001, so we should use more precision somewhere...")
 
-        #print " Float = ", Q_val_double, "   Long = ", Q_val, "  XX "
-        #print " The float value is ", Q_val_double
-        #print " The associated long value is ", Q_val
-
         if (Q_val <= bound):
-            #print " Have vector ",  x, " with value ", Q_val
             theta_vec[Q_val].append(deepcopy(x))
 
-
-        ## 5. Check if x = 0, for exit condition. =)
+        # 5. Check if x = 0, for exit condition. =)
         j = 0
         done_flag = True
         while (j < n):
@@ -279,18 +254,13 @@ def vectors_by_length(self, bound):
                 done_flag = False
             j += 1
 
-
         ## 3a. Increment (and carry if we go out of bounds)
         x[i] += 1
         while (x[i] > L[i]) and (i < n-1):
             i += 1
             x[i] += 1
 
-
-    #print " Leaving ThetaVectors()"
     return theta_vec
-
-
 
 
 def complementary_subform_to_vector(self, v):
@@ -320,25 +290,25 @@ def complementary_subform_to_vector(self, v):
         sage: Q1 = DiagonalQuadraticForm(ZZ, [1,3,5,7])
         sage: Q1.complementary_subform_to_vector([1,0,0,0])
         Quadratic form in 3 variables over Integer Ring with coefficients:
-        [ 3 0 0 ]
+        [ 7 0 0 ]
         [ * 5 0 ]
-        [ * * 7 ]
+        [ * * 3 ]
 
     ::
 
         sage: Q1.complementary_subform_to_vector([1,1,0,0])
         Quadratic form in 3 variables over Integer Ring with coefficients:
-        [ 12 0 0 ]
+        [ 7 0 0 ]
         [ * 5 0 ]
-        [ * * 7 ]
+        [ * * 12 ]
 
     ::
 
         sage: Q1.complementary_subform_to_vector([1,1,1,1])
         Quadratic form in 3 variables over Integer Ring with coefficients:
-        [ 624 -480 -672 ]
-        [ * 880 -1120 ]
-        [ * * 1008 ]
+        [ 880 -480 -160 ]
+        [ * 624 -96 ]
+        [ * * 240 ]
 
     """
     n = self.dim()
@@ -356,15 +326,13 @@ def complementary_subform_to_vector(self, v):
         raise TypeError("Oops, v cannot be the zero vector! =(")
 
     ## Make the change of basis matrix
-    new_basis = extend_to_primitive(matrix(ZZ,n,1,v))
+    new_basis = extend_to_primitive(matrix(ZZ, n, 1, v))
 
     ## Change Q (to Q1) to have v as its nz-th basis vector
     Q1 = Q(new_basis)
 
     ## Pick out the value Q(v) of the vector
     d = Q1[0, 0]
-
-    #print Q1
 
     ## For each row/column, perform elementary operations to cancel them out.
     for i in range(1,n):
@@ -374,14 +342,8 @@ def complementary_subform_to_vector(self, v):
         if Q1[i,0] % d != 0:
             Q1 = Q1.multiply_variable(d / GCD(d, Q1[i, 0]//2), i)
 
-        #print "After scaling at i =", i
-        #print Q1
-
         ## Now perform the (symmetric) elementary operations to cancel out the (i,0) entries/
         Q1 = Q1.add_symmetric(-(Q1[i,0]/2) / (GCD(d, Q1[i,0]//2)), i, 0)
-
-        #print "After cancelling at i =", i
-        #print Q1
 
     ## Check that we're done!
     done_flag = True
@@ -427,15 +389,15 @@ def split_local_cover(self):
         sage: Q1.split_local_cover()
         Quadratic form in 3 variables over Integer Ring with coefficients:
         [ 3 0 0 ]
-        [ * 7 0 ]
-        [ * * 5 ]
+        [ * 5 0 ]
+        [ * * 7 ]
 
     """
     ## 0. If a split local cover already exists, then return it.
     if hasattr(self, "__split_local_cover"):
         if is_QuadraticForm(self.__split_local_cover):  ## Here the computation has been done.
             return self.__split_local_cover
-        elif isinstance(self.__split_local_cover, Integer):    ## Here it indexes the values already tried!
+        elif self.__split_local_cover in ZZ:    ## Here it indexes the values already tried!
             current_length = self.__split_local_cover + 1
             Length_Max = current_length + 5
     else:
@@ -451,10 +413,7 @@ def split_local_cover(self):
 
         ## 2. Check if any of the primitive ones produce a split local cover
         for v in current_vectors:
-            #print "current length = ", current_length
-            #print "v = ", v
             Q = QuadraticForm__constructor(ZZ, 1, [current_length]) + self.complementary_subform_to_vector(v)
-            #print Q
             if Q.local_representation_conditions() == self.local_representation_conditions():
                 self.__split_local_cover = Q
                 return Q

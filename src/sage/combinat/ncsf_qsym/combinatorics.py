@@ -1,7 +1,6 @@
 r"""
 Common combinatorial tools
 
-
 REFERENCES:
 
 .. [NCSF] Gelfand, Krob, Lascoux, Leclerc, Retakh, Thibon,
@@ -10,19 +9,19 @@ REFERENCES:
 .. [QSCHUR] Haglund, Luoto, Mason, van Willigenburg,
    *Quasisymmetric Schur functions*, J. Comb. Theory Ser. A 118 (2011), 463-490.
    http://www.sciencedirect.com/science/article/pii/S0097316509001745 ,
-   :arXiv:`0810.2489v2`.
+   :arxiv:`0810.2489v2`.
 
 .. [Tev2007] Lenny Tevlin,
    *Noncommutative Analogs of Monomial Symmetric Functions,
    Cauchy Identity, and Hall Scalar Product*,
-   :arXiv:`0712.2201v1`.
+   :arxiv:`0712.2201v1`.
 """
 from sage.misc.misc_c import prod
-from sage.functions.other import factorial
+from sage.arith.misc import factorial
 from sage.misc.cachefunc import cached_function
 from sage.combinat.composition import Composition, Compositions
 from sage.combinat.composition_tableau import CompositionTableaux
-from sage.rings.all import ZZ
+from sage.rings.integer_ring import ZZ
 
 
 # The following might call for defining a morphism from ``structure

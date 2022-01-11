@@ -14,8 +14,6 @@ functions are for internal use by routines elsewhere in the Sage library.
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 
-from __future__ import absolute_import
-
 from cysignals.memory cimport check_allocarray, sig_free
 
 import random
@@ -29,7 +27,7 @@ arith_int = sage.rings.fast_arith.arith_int()
 from sage.matrix.matrix_integer_dense cimport Matrix_integer_dense
 from sage.modular.modsym.p1list import lift_to_sl2z
 from sage.matrix.matrix_space import MatrixSpace
-from sage.rings.all import ZZ
+from sage.rings.integer_ring import ZZ
 Mat2Z = MatrixSpace(ZZ,2)
 
 cdef Matrix_integer_dense genS, genT, genI

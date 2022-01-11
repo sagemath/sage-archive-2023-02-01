@@ -10,19 +10,17 @@ TESTS:
 We create some rings and run the test suite for them. We skip the Smith form
 tests because they take a few minutes as of mid 2018, see :trac:`25431`::
 
-    sage: R = ZpLC(2)
+    sage: R1 = ZpLC(2)
     doctest:...: FutureWarning: This class/method/function is marked as experimental. It, its functionality or its interface might change without a formal deprecation.
     See http://trac.sagemath.org/23505 for details.
-    sage: TestSuite(R).run(skip=['_test_teichmuller', '_test_matrix_smith']) # long time
+    sage: R2 = ZpLF(2)
+    sage: R3 = QpLC(2)
+    sage: R4 = QpLF(2)
 
-    sage: R = ZpLF(2)
-    sage: TestSuite(R).run(skip=['_test_teichmuller', '_test_matrix_smith']) # long time
-
-    sage: R = QpLC(2)
-    sage: TestSuite(R).run(skip=['_test_teichmuller', '_test_matrix_smith']) # long time
-
-    sage: R = QpLF(2)
-    sage: TestSuite(R).run(skip=['_test_teichmuller', '_test_matrix_smith']) # long time
+    sage: TestSuite(R1).run(skip=['_test_teichmuller', '_test_matrix_smith']) # long time
+    sage: TestSuite(R2).run(skip=['_test_teichmuller', '_test_matrix_smith']) # long time
+    sage: TestSuite(R3).run(skip=['_test_teichmuller', '_test_matrix_smith']) # long time
+    sage: TestSuite(R4).run(skip=['_test_teichmuller', '_test_matrix_smith']) # long time
 """
 
 # ****************************************************************************
@@ -43,7 +41,7 @@ from sage.rings.integer import Integer
 from sage.rings.integer_ring import ZZ
 from sage.rings.rational_field import QQ
 from sage.rings.infinity import Infinity
-
+from sage.structure.richcmp import rich_to_bool, richcmp
 from sage.rings.padics.padic_generic_element import pAdicGenericElement
 from sage.rings.padics.lattice_precision import pRational
 
@@ -210,7 +208,7 @@ class pAdicLatticeElement(pAdicGenericElement):
         EXAMPLES::
 
             sage: K = QpLC(7)
-            sage: K.random_element()._is_base_elt(7)
+            sage: K.random_element()._is_base_elt(7)  # not tested, known bug (see :trac:`32126`)
             True
         """
         return p == self._parent.prime()
@@ -293,11 +291,11 @@ class pAdicLatticeElement(pAdicGenericElement):
             sage: a.residue(-1)
             Traceback (most recent call last):
             ...
-            ValueError: cannot reduce modulo a negative power of p.
+            ValueError: cannot reduce modulo a negative power of p
             sage: a.residue(5)
             Traceback (most recent call last):
             ...
-            PrecisionError: not enough precision known in order to compute residue.
+            PrecisionError: not enough precision known in order to compute residue
             sage: a.residue(5, check_prec=False)
             8
 
@@ -307,11 +305,11 @@ class pAdicLatticeElement(pAdicGenericElement):
         if not isinstance(absprec, Integer):
             absprec = Integer(absprec)
         if check_prec and absprec > self.precision_absolute():
-            raise PrecisionError("not enough precision known in order to compute residue.")
+            raise PrecisionError("not enough precision known in order to compute residue")
         elif absprec < 0:
-            raise ValueError("cannot reduce modulo a negative power of p.")
+            raise ValueError("cannot reduce modulo a negative power of p")
         if self.valuation() < 0:
-            raise ValueError("element must have non-negative valuation in order to compute residue.")
+            raise ValueError("element must have non-negative valuation in order to compute residue")
         if field is None:
             field = (absprec == 1)
         elif field and absprec != 1:
@@ -431,14 +429,14 @@ class pAdicLatticeElement(pAdicGenericElement):
             sage: y.valuation(secure=True)
             Traceback (most recent call last):
             ...
-            PrecisionError: Not enough precision
+            PrecisionError: not enough precision
         """
         val = self._value.valuation()
         prec = self.precision_absolute()
         if val < prec: 
             return val
         elif secure:
-            raise PrecisionError("Not enough precision")
+            raise PrecisionError("not enough precision")
         else:
             return prec
 
@@ -469,13 +467,13 @@ class pAdicLatticeElement(pAdicGenericElement):
             sage: y.precision_relative(secure=True)
             Traceback (most recent call last):
             ...
-            PrecisionError: Not enough precision
+            PrecisionError: not enough precision
         """
         if not secure and self.is_zero():
             return ZZ(0)
         return self.precision_absolute() - self.valuation(secure=secure)
 
-    def _cmp_(self, other):
+    def _richcmp_(self, other, op):
         r"""
         Compare this element with ``other``.
 
@@ -496,10 +494,10 @@ class pAdicLatticeElement(pAdicGenericElement):
             sage: z - x
             2^7 + O(2^10)
         """
-        if (self-other).is_zero():
-            return 0
+        if (self - other).is_zero():
+            return rich_to_bool(op, 0)
         else:
-            return QQ(self.lift())._cmp_(QQ(other.lift()))
+            return richcmp(QQ(self.lift()), QQ(other.lift()), op)
 
     def is_equal_to(self, other, prec):
         r"""
@@ -791,8 +789,8 @@ class pAdicLatticeElement(pAdicGenericElement):
         with the same parent.
 
         When ``infer_precision`` is set to ``False``, the precision on the
-        newly created variable is independant as if the variable were created
-        by hand by setting independantly the value of the absolute precision.
+        newly created variable is independent as if the variable were created
+        by hand by setting independently the value of the absolute precision.
         In particular, if ``self`` used to share diffused digits of precision 
         with other variables, they are not preserved.
 
@@ -909,7 +907,7 @@ class pAdicLatticeElement(pAdicGenericElement):
         its absolute precision.
         If a rational is returned, its denominator will be a power of `p`.
 
-        EXAMPLES:
+        EXAMPLES::
 
            sage: R = ZpLC(7)
            sage: a = R(8); a.lift()
@@ -1019,7 +1017,7 @@ class pAdicLatticeElement(pAdicGenericElement):
             sage: c.unit_part()
             Traceback (most recent call last):
             ...
-            PrecisionError: Not enough precision
+            PrecisionError: not enough precision
         """
         v = self.valuation(secure=True)
         return self >> v
@@ -1048,7 +1046,7 @@ class pAdicLatticeElement(pAdicGenericElement):
             sage: c.val_unit()
             Traceback (most recent call last):
             ...
-            PrecisionError: Not enough precision
+            PrecisionError: not enough precision
         """
         v = self.valuation(secure=True)
         return v, self >> v
@@ -1195,7 +1193,7 @@ class pAdicLatticeElement(pAdicGenericElement):
             [4, 1, 4, 4, 1, 0, 0, 0, 0, 0]
         """
         if lift_mode != 'simple':
-            raise NotImplementedError("Other modes than 'simple' are not implemented yet")
+            raise NotImplementedError("other modes than 'simple' are not implemented yet")
         prec = self.precision_absolute()
         val = self.valuation()
         expansion = self._value.list(prec)
@@ -1205,7 +1203,7 @@ class pAdicLatticeElement(pAdicGenericElement):
             try:
                 return expansion[n-val]
             except KeyError:
-                raise PrecisionError("The digit in position %s is not determined" % n)
+                raise PrecisionError("the digit in position %s is not determined" % n)
         if start_val is None:
             if self._parent.is_field():
                 start_val = val

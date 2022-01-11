@@ -20,7 +20,7 @@ cdef class LieSubalgebraElementWrapper(LieAlgebraElementWrapper):
 cdef class StructureCoefficientsElement(LieAlgebraMatrixWrapper):
     cpdef bracket(self, right)
     cpdef _bracket_(self, right)
-    cpdef to_vector(self)
+    cpdef to_vector(self, bint sparse=*)
     cpdef dict monomial_coefficients(self, bint copy=*)
     #cpdef lift(self)
 
@@ -45,6 +45,7 @@ cdef class UntwistedAffineLieAlgebraElement(Element):
 
 cdef class LieObject(SageObject):
     cdef tuple _word
+    cdef public tuple _index_word
     cpdef tuple to_word(self)
 
 cdef class LieGenerator(LieObject):

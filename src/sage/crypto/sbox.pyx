@@ -1,8 +1,6 @@
 r"""
 S-Boxes and Their Algebraic Representations
 """
-from __future__ import print_function, division
-
 cimport cython
 from cysignals.memory cimport check_allocarray, sig_free
 
@@ -190,7 +188,7 @@ cdef class SBox(SageObject):
             if R.characteristic() != 2:
                 raise TypeError("only polynomials over rings with characteristic 2 allowed")
             S = [poly(v) for v in sorted(R)]
-        elif len(args) == 1 and isinstance(args[0], (list, tuple)):
+        elif len(args) == 1:  # iterables
             S = args[0]
         elif len(args) > 1:
             S = args
@@ -556,6 +554,56 @@ cdef class SBox(SageObject):
         for i in range(1 << self.m):
             yield self._S[i]
 
+    def derivative(self, u):
+        r"""
+        Return the derivative in direction of ``u``
+
+        INPUT:
+
+        - ``u`` -- either an integer or a tuple/list of `\GF{2}` elements
+          of length equal to ``m``
+
+
+        The derivative of `F` in direction of `u` is defined as
+        `x \mapsto F(x) + F(x + u)`.
+
+        EXAMPLES::
+
+            sage: from sage.crypto.sbox import SBox
+            sage: s = SBox(0,1,2,3)
+            sage: s.derivative(1)
+            (1, 1, 1, 1)
+            sage: u = [1,0]
+            sage: s.derivative(u)
+            (1, 1, 1, 1)
+            sage: v = vector(GF(2), [1,0])
+            sage: s.derivative(v)
+            (1, 1, 1, 1)
+            sage: s.derivative(4)
+            Traceback (most recent call last):
+            ...
+            IndexError: list index out of range
+            sage: from sage.crypto.sboxes import PRESENT
+            sage: PRESENT.derivative(1).max_degree() < PRESENT.max_degree()
+            True
+        """
+        from sage.structure.element import is_Vector
+        nvars = self.m
+
+        if isinstance(u, (tuple, list)):
+            v = ZZ(u, base=2)
+        elif is_Vector(u):
+            if u.base_ring() != GF(2):
+                raise TypeError("base ring of input vector must be GF(2)")
+            elif u.parent().dimension() != nvars:
+                raise TypeError("input vector must be an element of a vector space with dimension %d" % (nvars,))
+            v = ZZ(u.list(), base=2)
+        else:
+            v = u
+
+        return SBox([self(x) ^ self(x ^ v)
+                     for x in range(1 << self.input_size())])
+
     @cached_method
     def difference_distribution_table(self):
         """
@@ -600,16 +648,6 @@ cdef class SBox(SageObject):
         A.set_immutable()
 
         return A
-
-    def difference_distribution_matrix(self):
-        """
-        Deprecated in :trac:`25708` for :meth:`difference_distribution_table`.
-        """
-        from sage.misc.superseded import deprecation
-        deprecation(25708,
-            "difference_distribution_matrix is deprecated."
-            "Please use difference_distribution_table instead.")
-        return self.difference_distribution_table()
 
     def maximal_difference_probability_absolute(self):
         """
@@ -754,16 +792,6 @@ cdef class SBox(SageObject):
 
         A.set_immutable()
         return A
-
-    def linear_approximation_matrix(self, scale="absolute_bias"):
-        """
-        Deprecated in :trac:`25708` for :meth:`linear_approximation_table`.
-        """
-        from sage.misc.superseded import deprecation
-        deprecation(25708,
-            "linear_approximation_matrix is deprecated."
-            "Please use linear_approximation_table instead.")
-        return self.linear_approximation_table(scale=scale)
 
     def maximal_linear_bias_absolute(self):
         r"""
@@ -1423,16 +1451,6 @@ cdef class SBox(SageObject):
 
         return A
 
-    def autocorrelation_matrix(self):
-        """
-        Deprecated in :trac:`25708` for :meth:`autocorrelation_table`.
-        """
-        from sage.misc.superseded import deprecation
-        deprecation(25708,
-            "autocorrelation_matrix is deprecated."
-            "Please use autocorrelation_table instead.")
-        return self.autocorrelation_table()
-
     @cached_method
     def boomerang_connectivity_table(self):
         r"""
@@ -1498,17 +1516,6 @@ cdef class SBox(SageObject):
         A = matrix(ZZ, nrows, ncols, L)
         A.set_immutable()
         return A
-
-    def boomerang_connectivity_matrix(self):
-        """
-        Deprecated in :trac:`25708` for :meth:`boomerang_connectivity_table`.
-        """
-        from sage.misc.superseded import deprecation
-        deprecation(25708,
-            "boomerang_connectivity_matrix is deprecated."
-            "Please use boomerang_connectivity_table instead.")
-        return self.boomerang_connectivity_table()
-
 
     def boomerang_uniformity(self):
         """

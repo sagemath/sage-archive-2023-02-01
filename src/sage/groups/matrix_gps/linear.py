@@ -50,18 +50,19 @@ AUTHORS:
 REFERENCES: See [KL1990]_ and [Car1972]_.
 """
 
-#*****************************************************************************
+# ****************************************************************************
 #       Copyright (C) 2006 David Joyner and William Stein <wstein@gmail.com>
 #       Copyright (C) 2013 Volker Braun <vbraun.name@gmail.com>
 #
 #  Distributed under the terms of the GNU General Public License (GPL)
 #
-#                  http://www.gnu.org/licenses/
-#*****************************************************************************
+#                  https://www.gnu.org/licenses/
+# ****************************************************************************
 
 from sage.misc.latex import latex
 from sage.groups.matrix_gps.named_group import (
     normalize_args_vectorspace, NamedMatrixGroup_generic, NamedMatrixGroup_gap )
+from sage.categories.fields import Fields
 from sage.categories.groups import Groups
 from sage.groups.matrix_gps.finitely_generated import FinitelyGeneratedMatrixGroup_gap
 
@@ -145,19 +146,25 @@ def GL(n, R, var='a'):
 
         sage: groups.matrix.GL(2, 3)
         General Linear Group of degree 2 over Finite Field of size 3
+        sage: groups.matrix.GL(1, ZZ).category()
+        Category of groups
+        sage: groups.matrix.GL(1, QQ).category()
+        Category of infinite groups
     """
     degree, ring = normalize_args_vectorspace(n, R, var='a')
     try:
         if ring.is_finite():
             cat = Groups().Finite()
-        else:
+        elif n > 1 or ring in Fields():
             cat = Groups().Infinite()
+        else:
+            cat = Groups()
     except AttributeError:
         cat = Groups()
     name = 'General Linear Group of degree {0} over {1}'.format(degree, ring)
-    ltx  = 'GL({0}, {1})'.format(degree, latex(ring))
+    ltx = 'GL({0}, {1})'.format(degree, latex(ring))
     try:
-        cmd  = 'GL({0}, {1})'.format(degree, ring._gap_init_())
+        cmd = 'GL({0}, {1})'.format(degree, ring._gap_init_())
         return LinearMatrixGroup_gap(degree, ring, False, name, ltx, cmd,
                                      category=cat)
     except ValueError:

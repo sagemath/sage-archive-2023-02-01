@@ -56,25 +56,25 @@ EXAMPLES::
 
     sage: H3.<x,y,z> = HyperplaneArrangements(QQ)
     sage: A = H3([(1,0,0), 0], [(0,0,1), 5])
-    sage: A.plot(hyperplane_opacities=0.5, hyperplane_labels=True, hyperplane_legend=False)
+    sage: A.plot(hyperplane_opacities=0.5, hyperplane_labels=True, hyperplane_legend=False)  # optional - sage.plot
     Graphics3d Object
 
     sage: c = H3([(1,0,0),0], [(0,0,1),5])
-    sage: c.plot(ranges=10)
+    sage: c.plot(ranges=10)  # optional - sage.plot
     Graphics3d Object
-    sage: c.plot(ranges=[[9.5,10], [-3,3]])
+    sage: c.plot(ranges=[[9.5,10], [-3,3]])  # optional - sage.plot
     Graphics3d Object
-    sage: c.plot(ranges=[[[9.5,10], [-3,3]], [[-6,6], [-5,5]]])
+    sage: c.plot(ranges=[[[9.5,10], [-3,3]], [[-6,6], [-5,5]]])  # optional - sage.plot
     Graphics3d Object
 
 
     sage: H2.<s,t> = HyperplaneArrangements(QQ)
     sage: h = H2([(1,1),0], [(1,-1),0], [(0,1),2])
-    sage: h.plot(ranges=20)
+    sage: h.plot(ranges=20)  # optional - sage.plot
     Graphics object consisting of 3 graphics primitives
-    sage: h.plot(ranges=[-1, 10])
+    sage: h.plot(ranges=[-1, 10])  # optional - sage.plot
     Graphics object consisting of 3 graphics primitives
-    sage: h.plot(ranges=[[-1, 1], [-5, 5], [-1, 10]])
+    sage: h.plot(ranges=[[-1, 1], [-5, 5], [-1, 10]])  # optional - sage.plot
     Graphics object consisting of 3 graphics primitives
 
     sage: a = hyperplane_arrangements.coordinate(3)
@@ -83,27 +83,26 @@ EXAMPLES::
     sage: opts['label_offsets'] = [(0,2,2), (2,0,2), (2,2,0)]
     sage: opts['hyperplane_legend'] = False
     sage: opts['hyperplane_opacities'] = 0.7
-    sage: a.plot(**opts)
+    sage: a.plot(**opts)  # optional - sage.plot
     Graphics3d Object
     sage: opts['hyperplane_labels'] = 'short'
-    sage: a.plot(**opts)
+    sage: a.plot(**opts)  # optional - sage.plot
     Graphics3d Object
 
     sage: H.<u> = HyperplaneArrangements(QQ)
     sage: pts = H(3*u+4, 2*u+5, 7*u+1)
-    sage: pts.plot(hyperplane_colors=['yellow','black','blue'])
+    sage: pts.plot(hyperplane_colors=['yellow','black','blue'])  # optional - sage.plot
     Graphics object consisting of 3 graphics primitives
-    sage: pts.plot(point_sizes=[50,100,200], hyperplane_colors='blue')
+    sage: pts.plot(point_sizes=[50,100,200], hyperplane_colors='blue')  # optional - sage.plot
     Graphics object consisting of 3 graphics primitives
 
     sage: H.<x,y,z> = HyperplaneArrangements(QQ)
     sage: a = H(x, y+1, y+2)
-    sage: a.plot(hyperplane_labels=True,label_colors='blue',label_fontsize=18)
+    sage: a.plot(hyperplane_labels=True,label_colors='blue',label_fontsize=18)  # optional - sage.plot
     Graphics3d Object
-    sage: a.plot(hyperplane_labels=True,label_colors=['red','green','black'])
+    sage: a.plot(hyperplane_labels=True,label_colors=['red','green','black'])  # optional - sage.plot
     Graphics3d Object
 """
-from __future__ import print_function
 
 from copy import copy
 from colorsys import hsv_to_rgb
@@ -114,7 +113,7 @@ from sage.plot.line import line
 from sage.plot.text import text
 from sage.plot.point import point
 from sage.plot.plot import parametric_plot
-from sage.symbolic.all import SR
+from sage.symbolic.ring import SR
 
 
 def plot(hyperplane_arrangement, **kwds):
@@ -145,7 +144,7 @@ def plot(hyperplane_arrangement, **kwds):
     EXAMPLES::
 
         sage: B = hyperplane_arrangements.semiorder(4)
-        sage: B.plot()
+        sage: B.plot()  # optional - sage.plot
         Displaying the essentialization.
         Graphics3d Object
     """
@@ -333,37 +332,37 @@ def plot_hyperplane(hyperplane, **kwds):
 
         sage: H1.<x> = HyperplaneArrangements(QQ)
         sage: a = 3*x + 4
-        sage: a.plot()    # indirect doctest
+        sage: a.plot()    # indirect doctest  # optional - sage.plot
         Graphics object consisting of 3 graphics primitives
-        sage: a.plot(point_size=100,hyperplane_label='hello')
+        sage: a.plot(point_size=100,hyperplane_label='hello')  # optional - sage.plot
         Graphics object consisting of 3 graphics primitives
 
     
         sage: H2.<x,y> = HyperplaneArrangements(QQ)
         sage: b = 3*x + 4*y + 5
-        sage: b.plot()
+        sage: b.plot()  # optional - sage.plot
         Graphics object consisting of 2 graphics primitives
-        sage: b.plot(ranges=(1,5),label_offset=(2,-1))
+        sage: b.plot(ranges=(1,5),label_offset=(2,-1))  # optional - sage.plot
         Graphics object consisting of 2 graphics primitives
         sage: opts = {'hyperplane_label':True, 'label_color':'green',
         ....:         'label_fontsize':24, 'label_offset':(0,1.5)}
-        sage: b.plot(**opts)
+        sage: b.plot(**opts)  # optional - sage.plot
         Graphics object consisting of 2 graphics primitives
 
         sage: H3.<x,y,z> = HyperplaneArrangements(QQ)
         sage: c = 2*x + 3*y + 4*z + 5
-        sage: c.plot()
+        sage: c.plot()  # optional - sage.plot
         Graphics3d Object
-        sage: c.plot(label_offset=(1,0,1), color='green', label_color='red', frame=False)
+        sage: c.plot(label_offset=(1,0,1), color='green', label_color='red', frame=False)  # optional - sage.plot
         Graphics3d Object
         sage: d = -3*x + 2*y + 2*z + 3
-        sage: d.plot(opacity=0.8)
+        sage: d.plot(opacity=0.8)  # optional - sage.plot
         Graphics3d Object
         sage: e = 4*x + 2*z + 3
-        sage: e.plot(ranges=[[-1,1],[0,8]], label_offset=(2,2,1), aspect_ratio=1)
+        sage: e.plot(ranges=[[-1,1],[0,8]], label_offset=(2,2,1), aspect_ratio=1)  # optional - sage.plot
         Graphics3d Object
     """
-    if hyperplane.base_ring().characteristic() != 0:
+    if hyperplane.base_ring().characteristic():
         raise NotImplementedError('base field must have characteristic zero')
     elif hyperplane.dimension() not in [0, 1, 2]: # dimension of hyperplane, not ambient space
         raise ValueError('can only plot hyperplanes in dimensions 1, 2, 3')
@@ -424,54 +423,47 @@ def plot_hyperplane(hyperplane, **kwds):
     elif hyperplane.dimension() == 1: # a line in the plane
         pnt = hyperplane.point()
         w = hyperplane.linear_part().matrix()
-        x, y = hyperplane.A()
-        d = hyperplane.b()
         t = SR.var('t')
         if ranges_set:
-            if type(ranges) in [list,tuple]:
+            if isinstance(ranges, (list, tuple)):
                 t0, t1 = ranges
             else:  # ranges should be a single positive number
                 t0, t1 = -ranges, ranges
         else: # default
             t0, t1 = -3, 3
-        p = parametric_plot(pnt+t*w[0], (t,t0,t1), **kwds)
+        p = parametric_plot(pnt + t * w[0], (t, t0, t1), **kwds)
         if has_hyp_label:
             if has_offset:
                 b0, b1 = label_offset
             else:
                 b0, b1 = 0, 0.2
-            label = text(label,(pnt[0]+b0,pnt[1]+b1),
+            label = text(label,(pnt[0] + b0, pnt[1] + b1),
                     color=label_color,fontsize=label_fontsize)
             p += label
     elif hyperplane.dimension() == 2: # a plane in 3-space
         pnt = hyperplane.point()
         w = hyperplane.linear_part().matrix()
-        a, b, c = hyperplane.A()
-        d = hyperplane.b()
-        s,t = SR.var('s t')
+        s, t = SR.var('s t')
         if ranges_set:
-            if type(ranges) in [list,tuple]:
+            if isinstance(ranges, (list, tuple)):
                 s0, s1 = ranges[0]
                 t0, t1 = ranges[1]
-            else: # ranges should be a single positive integers
+            else:  # ranges should be a single positive integers
                 s0, s1 = -ranges, ranges
                 t0, t1 = -ranges, ranges
-        else: # default
+        else:  # default
             s0, s1 = -3, 3
             t0, t1 = -3, 3
-        p = parametric_plot3d(pnt+s*w[0]+t*w[1],(s,s0,s1),(t,t0,t1),**kwds)
+        p = parametric_plot3d(pnt+s*w[0]+t*w[1], (s,s0,s1), (t,t0,t1), **kwds)
         if has_hyp_label: 
             if has_offset:
                 b0, b1, b2 = label_offset
             else:
                 b0, b1, b2 = 0, 0, 0
-            label = text3d(label,(pnt[0]+b0,pnt[1]+b1,pnt[2]+b2),
-                    color=label_color,fontsize=label_fontsize)
+            label = text3d(label,(pnt[0]+b0, pnt[1]+b1, pnt[2]+b2),
+                    color=label_color, fontsize=label_fontsize)
             p += label
     return p
-
-
-
 
 
 def legend_3d(hyperplane_arrangement, hyperplane_colors, length):

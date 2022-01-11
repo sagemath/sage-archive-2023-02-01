@@ -40,7 +40,8 @@ The Cayley graph of the Weyl Group of type ['D', 4]::
 from sage.groups.matrix_gps.finitely_generated import FinitelyGeneratedMatrixGroup_gap
 from sage.groups.matrix_gps.group_element import MatrixGroupElement_gap
 from sage.groups.perm_gps.permgroup import PermutationGroup_generic
-from sage.rings.all import ZZ, QQ
+from sage.rings.integer_ring import ZZ
+from sage.rings.rational_field import QQ
 from sage.interfaces.gap import gap
 from sage.misc.cachefunc import cached_method
 from sage.combinat.root_system.cartan_type import CartanType
@@ -764,10 +765,11 @@ class WeylGroupElement(MatrixGroupElement_gap):
             return MatrixGroupElement_gap._latex_(self)
         else:
             redword = self.reduced_word()
-            if len(redword) == 0:
+            if not redword:
                 return "1"
             else:
-                return "".join(["%s_{%d}"%(self._parent._prefix, i) for i in redword])
+                return "".join("%s_{%d}" % (self._parent._prefix, i)
+                               for i in redword)
 
     def __eq__(self, other):
         """
@@ -785,9 +787,9 @@ class WeylGroupElement(MatrixGroupElement_gap):
         subclasses overriding __cmp__ with something slow for specific
         purposes.
         """
-        return self.__class__ == other.__class__ and \
-               self._parent   == other._parent   and \
-               self.matrix()  == other.matrix()
+        return (self.__class__ == other.__class__ and
+                self._parent   == other._parent and
+                self.matrix()  == other.matrix())
 
     def _richcmp_(self, other, op):
         """
@@ -1128,9 +1130,7 @@ class WeylGroup_permutation(UniqueRepresentation, PermutationGroup_generic):
             sage: W.has_coerce_map_from(W5)
             False
         """
-        if isinstance(P, WeylGroup_gens) and P.cartan_type() is self.cartan_type():
-            return True
-        return super(WeylGroup_permutation, self)._coerce_map_from_(P)
+        return isinstance(P, WeylGroup_gens) and P.cartan_type() is self.cartan_type()
 
     @cached_method
     def rank(self):
@@ -1153,12 +1153,12 @@ class WeylGroup_permutation(UniqueRepresentation, PermutationGroup_generic):
 
             sage: W = WeylGroup(['A',4], implementation="permutation")
             sage: W.simple_reflection(1)
-            (1,11)(2,6)(7,9)(8,10)(12,16)(17,19)(18,20)
+            (1,11)(2,5)(6,8)(9,10)(12,15)(16,18)(19,20)
             sage: W.simple_reflections()
-            Finite family {1: (1,11)(2,6)(7,9)(8,10)(12,16)(17,19)(18,20),
-                           2: (1,6)(2,12)(3,7)(5,8)(11,16)(13,17)(15,18),
-                           3: (2,7)(3,13)(4,5)(6,9)(12,17)(14,15)(16,19),
-                           4: (3,5)(4,14)(7,8)(9,10)(13,15)(17,18)(19,20)}
+            Finite family {1: (1,11)(2,5)(6,8)(9,10)(12,15)(16,18)(19,20),
+                           2: (1,5)(2,12)(3,6)(7,9)(11,15)(13,16)(17,19),
+                           3: (2,6)(3,13)(4,7)(5,8)(12,16)(14,17)(15,18),
+                           4: (3,7)(4,14)(6,9)(8,10)(13,17)(16,19)(18,20)}
         """
         return self.gens()[self._index_set_inverse[i]]
 
@@ -1261,10 +1261,10 @@ class WeylGroup_permutation(UniqueRepresentation, PermutationGroup_generic):
              (0, 1, 0),
              (0, 0, 1),
              (1, 1, 0),
-             (0, 2, 1),
              (0, 1, 1),
-             (2, 2, 1),
+             (0, 2, 1),
              (1, 1, 1),
+             (2, 2, 1),
              (1, 2, 1))
         """
         return self.roots()[:self.number_of_reflections()]

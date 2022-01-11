@@ -2,7 +2,7 @@
 r"""
 Element class for Pollack-Stevens' Modular Symbols
 
-This is the class of elements in the spaces of Pollack-Steven's modular symbols as described in [PS]_.
+This is the class of elements in the spaces of Pollack-Steven's modular symbols as described in [PS2011]_.
 
 EXAMPLES::
 
@@ -28,16 +28,14 @@ EXAMPLES::
     [(-1, 0, 0), (1, 0, 0), (-9, -6, -4)]
 
 """
-#*****************************************************************************
+# ****************************************************************************
 #        Copyright (C) 2012 Robert Pollack <rpollack@math.bu.edu>
 #
 #  Distributed under the terms of the GNU General Public License (GPL)
 #  as published by the Free Software Foundation; either version 2 of
 #  the License, or (at your option) any later version.
-#                  http://www.gnu.org/licenses/
-#******************************************************************************
-from __future__ import print_function
-from __future__ import absolute_import
+#                  https://www.gnu.org/licenses/
+# *****************************************************************************
 import operator
 from sage.structure.element import ModuleElement
 from sage.structure.richcmp import op_EQ, op_NE
@@ -48,7 +46,7 @@ from sage.rings.padics.factory import Qp
 from sage.rings.polynomial.all import PolynomialRing
 from sage.rings.padics.padic_generic import pAdicGeneric
 from sage.arith.all import next_prime, gcd, kronecker
-from sage.misc.misc import verbose
+from sage.misc.verbose import verbose
 from sage.rings.padics.precision_error import PrecisionError
 
 from sage.categories.action import Action
@@ -57,6 +55,7 @@ from .sigma0 import Sigma0
 from .fund_domain import M2Z
 
 minusproj = [1, 0, 0, -1]
+
 
 def _iterate_Up(Phi, p, M, ap, q, aq, check):
     r"""
@@ -209,8 +208,9 @@ class PSModularSymbolElement(ModuleElement):
 
     def values(self):
         r"""
-        Return the values of the symbol self on our chosen generators
-        (generators are listed in ``self.dict().keys()``)
+        Return the values of the symbol ``self`` on our chosen generators.
+
+        The generators are listed in ``self.dict()``.
 
         EXAMPLES::
 
@@ -230,7 +230,7 @@ class PSModularSymbolElement(ModuleElement):
 
     def _normalize(self, **kwds):
         """
-        Normalize all of the values of the symbol self
+        Normalize all of the values of the symbol ``self``.
 
         EXAMPLES::
 
@@ -486,7 +486,7 @@ class PSModularSymbolElement(ModuleElement):
             sage: phi.hecke(101) == phi * E.ap(101)
             True
 
-            sage: all([phi.hecke(p, algorithm='naive') == phi * E.ap(p) for p in [2,3,5,101]]) # long time
+            sage: all(phi.hecke(p, algorithm='naive') == phi * E.ap(p) for p in [2,3,5,101]) # long time
             True
         """
         return self.__class__(self._map.hecke(ell, algorithm),
@@ -771,6 +771,16 @@ class PSModularSymbolElement(ModuleElement):
             sage: D = L.quadratic_twist()          # long time
             sage: L.symbol().evaluate_twisted(1,D) # long time
             (4 + 6*7 + 3*7^2 + O(7^4), 6*7 + 6*7^2 + O(7^3), 6 + O(7^2), 1 + O(7))
+
+        TESTS:
+
+        Check for :trac:`32878`::
+
+            sage: E = EllipticCurve('11a1')
+            sage: L = E.padic_lseries(3, implementation="pollackstevens", precision=4)
+            sage: D = 5
+            sage: L.symbol().evaluate_twisted(1, D)
+            (2 + 3 + 2*3^2 + O(3^4), 2 + 3 + O(3^3), 2 + 3 + O(3^2), 2 + O(3))
         """
         p = self.parent().prime()
         S0p = Sigma0(p)
@@ -781,8 +791,9 @@ class PSModularSymbolElement(ModuleElement):
         m_map = self._map
         for b in range(1, abs(chi) + 1):
             if gcd(b, chi) == 1:
-                M1 = S0p([1, (b / abs(chi)) % p ** M, 0, 1])
-                new_dist = m_map(M1 * M2Z([a, 1, p, 0])) * M1
+                M1 = S0p([1, (b / abs(chi)) % p**M, 0, 1])
+                new_dist = m_map(M2Z([a * abs(chi) + p * b,
+                                      1, p * abs(chi), 0])) * M1
                 new_dist = new_dist.scale(kronecker(chi, b)).normalize()
                 twisted_dist += new_dist
         return twisted_dist.normalize()
@@ -1295,12 +1306,12 @@ class PSModularSymbolElement_symk(PSModularSymbolElement):
                 twotor = g in manin.reps_with_two_torsion()
                 threetor = g in manin.reps_with_three_torsion()
                 if twotor:
-                    # See [PS] section 4.1
+                    # See [PS2011] section 4.1
                     gam = manin.two_torsion_matrix(g)
                     mu = self._map[g].lift(p, M, new_base_ring)
                     D[g] = (mu - mu * gam) * half
                 elif threetor:
-                    # See [PS] section 4.1
+                    # See [PS2011] section 4.1
                     gam = manin.three_torsion_matrix(g)
                     mu = self._map[g].lift(p, M, new_base_ring)
                     D[g] = (2 * mu - mu * gam - mu * (gam ** 2)) * half
@@ -1321,7 +1332,7 @@ class PSModularSymbolElement_symk(PSModularSymbolElement):
             ## t now should be sum Phi(D_i) | (gamma_i - 1) - sum
             ## Phi(D'_i) - sum Phi(D''_i)
 
-            ## (Here I'm using the opposite sign convention of [PS1]
+            ## (Here I'm using the opposite sign convention of [PS2011]
             ## regarding D'_i and D''_i)
 
             D[manin.gen(0)] = -t.solve_difference_equation()  # Check this!
@@ -1385,16 +1396,16 @@ class PSModularSymbolElement_symk(PSModularSymbolElement):
 
         1) The denominators in the Hecke eigenvalue
         2) the denominators appearing when solving the difference equation,
-        3) those denominators who might be also present in self.
+        3) those denominators who might be also present in ``self``.
 
-        INPUT :
+        INPUT:
 
         - ``p`` -- working prime
         - ``M`` -- precision
         - ``alpha`` -- the Up-eigenvalue
         - ``check`` -- whether to check that ``self`` is a `T_q` eigensymbol
 
-        OUTPUT :
+        OUTPUT:
 
         A tuple (newM, eisenloss, q, aq), where ``newM`` is the new precision, `q` is
         a prime different from `p`, and ``aq`` is the eigenvalue of `T_q` of the eigensymbol.

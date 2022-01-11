@@ -11,13 +11,12 @@ Tornaria Methods for Computing with Quadratic Forms
 # (at your option) any later version.
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
-from six.moves import range
 
 from sage.rings.integer_ring import ZZ
 from sage.misc.functional import is_odd
 
 from sage.libs.pari.all import pari
-from sage.misc.all import prod
+from sage.misc.misc_c import prod
 from sage.arith.all import (factor, gcd, prime_to_m_part, CRT_vectors,
         hilbert_symbol, kronecker_symbol)
 
@@ -137,9 +136,9 @@ def adjoint(self):
 
     """
     if is_odd(self.dim()):
-        return QuadraticForm(self.matrix().adjoint()*2)
+        return QuadraticForm(self.matrix().adjoint_classical()*2)
     else:
-        return QuadraticForm(self.matrix().adjoint())
+        return QuadraticForm(self.matrix().adjoint_classical())
 
 
 def antiadjoint(self):

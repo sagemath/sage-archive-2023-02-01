@@ -5,8 +5,6 @@ AUTHORS:
 
 - Chris Berg, Jeff Ferreira (2012-9): Initial version
 """
-from six.moves import range
-from six import add_metaclass
 
 from sage.sets.disjoint_union_enumerated_sets import DisjointUnionEnumeratedSets
 from sage.sets.non_negative_integers import NonNegativeIntegers
@@ -23,8 +21,7 @@ from sage.combinat.backtrack import GenericBacktracker
 import copy
 
 
-@add_metaclass(ClasscallMetaclass)
-class CompositionTableau(CombinatorialElement):
+class CompositionTableau(CombinatorialElement, metaclass=ClasscallMetaclass):
     r"""
     A composition tableau.
 
@@ -412,7 +409,7 @@ class CompositionTableaux(UniqueRepresentation, Parent):
         if shape is not None:
             # use in (and not isinstance) below so that lists can be used as
             # shorthand
-            if not shape in Compositions():
+            if shape not in Compositions():
                 raise ValueError("shape must be a composition")
             if any(i == 0 for i in shape):
                 raise ValueError("shape must have non-zero parts")
@@ -478,8 +475,8 @@ class CompositionTableaux(UniqueRepresentation, Parent):
             ...
             ValueError: [[1], [1, 2]] is not an element of Composition Tableaux of size 3 and maximum entry 3.
         """
-        if not t in self:
-            raise ValueError("%s is not an element of %s."%(t, self))
+        if t not in self:
+            raise ValueError("%s is not an element of %s." % (t, self))
 
         return self.element_class(self, t)
 

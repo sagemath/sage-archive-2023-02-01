@@ -91,12 +91,7 @@ This module is used for the recognition of Interval Graphs (see
    our sets satisfying our constraints, or to prove that no such ordering
    exists. This is the whole purpose of this module, and is explained with more
    details in many places, for example in the following document from Hajiaghayi
-   [Haj]_.
-
-REFERENCES:
-
-.. [Haj] \M. Hajiaghayi
-   http://www-math.mit.edu/~hajiagha/pp11.ps
+   [Haj2000]_.
 
 Authors:
 
@@ -111,9 +106,8 @@ Methods and functions
 #      Copyright (C) 2012 Nathann Cohen <nathann.cohen@gail.com>               #
 #                                                                              #
 # Distributed  under  the  terms  of  the  GNU  General  Public  License (GPL) #
-#                         http://www.gnu.org/licenses/                         #
+#                         https://www.gnu.org/licenses/                        #
 ################################################################################
-from __future__ import print_function
 
 # Constants, to make the code more readable
 
@@ -226,7 +220,7 @@ class PQ:
             if isinstance(e, list):
                 e = Set(e)
 
-            if not e in self._children:
+            if e not in self._children:
                 self._children.append(e)
 
     def reverse(self):
@@ -515,7 +509,8 @@ class P(PQ):
         # code slightly more readable :-)                             #
         ###############################################################
 
-        seq = [set_contiguous(x, v) for x in self]
+        for x in self:
+            set_contiguous(x, v)
         self.flatten()
         seq = [set_contiguous(x, v) for x in self]
 
@@ -800,7 +795,8 @@ class Q(PQ):
         # code slightly more readable :-)                             #
         ###############################################################
 
-        seq = [set_contiguous(x, v) for x in self]
+        for x in self:
+            set_contiguous(x, v)
         self.flatten()
         seq = [set_contiguous(x, v) for x in self]
 
@@ -870,7 +866,7 @@ class Q(PQ):
         # From now on, there are at most two pq-trees which are partially filled
         # If there is one which is not aligned to the right, all the others are empty
 
-        # First trivial case, no checking neded
+        # First trivial case, no checking needed
         elif n_FULL == self.number_of_children():
             return FULL, True
 

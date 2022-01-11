@@ -2,9 +2,8 @@ r"""
 Root systems
 ============
 
-See :ref:`sage.combinat.root_system` for an overview.
+See :ref:`sage.combinat.root_system.all` for an overview.
 """
-from __future__ import absolute_import
 #*****************************************************************************
 #       Copyright (C) 2007      Mike Hansen <mhansen@gmail.com>,
 #                               Justin Walker <justin at mac.com>
@@ -19,8 +18,9 @@ from __future__ import absolute_import
 from sage.structure.sage_object import SageObject
 from sage.structure.unique_representation import UniqueRepresentation
 from .cartan_type import CartanType
-from sage.rings.all import ZZ, QQ
-from sage.misc.all import cached_method
+from sage.rings.integer_ring import ZZ
+from sage.rings.rational_field import QQ
+from sage.misc.cachefunc import cached_method
 from .root_space import RootSpace
 from .weight_space import WeightSpace
 
@@ -207,13 +207,13 @@ class RootSystem(UniqueRepresentation, SageObject):
         sage: W = L.weyl_group()
         sage: S3 = [ w.action(id) for w in W.classical() ]
         sage: [L.classical()(x) for x in S3]
-        [(1, 2, 3), (3, 2, 1), (3, 1, 2), (2, 1, 3), (2, 3, 1), (1, 3, 2)]
+        [(1, 2, 3), (3, 1, 2), (2, 3, 1), (2, 1, 3), (1, 3, 2), (3, 2, 1)]
 
     And the action of `s_0` on these yields::
 
         sage: s = W.simple_reflections()
         sage: [L.classical()(s[0].action(x)) for x in S3]
-        [(0, 2, 4), (-2, 2, 6), (-1, 1, 6), (0, 1, 5), (-2, 3, 5), (-1, 3, 4)]
+        [(0, 2, 4), (-1, 1, 6), (-2, 3, 5), (0, 1, 5), (-1, 3, 4), (-2, 2, 6)]
 
     We can also plot various components of the ambient spaces::
 
@@ -330,7 +330,8 @@ class RootSystem(UniqueRepresentation, SageObject):
             self.dual_side = False
             # still fails for CartanType G2xA1
             try:
-                self.dual = RootSystem(self._cartan_type.dual(), as_dual_of=self);
+                self.dual = RootSystem(self._cartan_type.dual(),
+                                       as_dual_of=self)
             except Exception:
                 pass
         else:

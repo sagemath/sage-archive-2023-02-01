@@ -1,3 +1,5 @@
+.. highlight:: shell-session
+
 .. _chapter-walkthrough:
 
 ========================
@@ -6,7 +8,7 @@ Sage Development Process
 
 This section is a concise overview of the Sage development process. In
 it, we will see how to make changes to the Sage source code and record
-them in the git revision control system.
+them in the ``git`` revision control system.
 
 In the following section on :ref:`chapter-git_trac` we will look at
 communicating these changes back to the Sage project.  We also have a handy
@@ -16,8 +18,8 @@ of commonly used git commands that you can print out and leave on your
 desk.  We have some :ref:`recommended references and tutorials
 <section-git-tutorials>` as well.
 
-You can alternatively fork and create a pull request at
-`github <http://github.com/sagemath/sage>`_ which will automatically fetch
+You can alternatively fork and create a merge request at
+`GitLab <https://gitlab.com/sagemath/sage>`_ which will automatically fetch
 your code and open a ticket on our trac server.
 
 
@@ -62,15 +64,15 @@ before you forget!
 
 .. _section-walkthrough-sage-source:
 
-Obtaining the Sage Source Code
-==============================
+Obtaining and Compiling the Sage Source Code
+============================================
 
 Obviously one needs the Sage source code to develop.  You can use your
-local installation of Sage, or (to start without Sage) download it
-from github which is a public read-only mirror (=faster) of our
+local installation of Sage, or (to start from scratch) download it
+from GitHub which is a public read-only mirror (=faster) of our
 internal git repository::
 
-    [user@localhost ~]$ git clone git://github.com/sagemath/sage.git
+    [user@localhost ~]$ git clone https://github.com/sagemath/sage.git
     Cloning into 'sage'...
     [...]
     Checking connectivity... done.
@@ -82,27 +84,15 @@ to the develop branch (latest development release)::
     [user@localhost ~]$ cd sage
     [user@localhost sage]$ git checkout develop
 
-You will then need to `compile Sage
-<http://doc.sagemath.org/html/en/installation/source.html>`_ in order to use it. If
-you cloned, you will need to remain on the internet for it to download various
-packages of Sage::
-
-    [user@localhost sage]$ make
+Next, compile Sage, following the instruction in the file
+`README.md <https://github.com/sagemath/sage/#readme>`_ in ``SAGE_ROOT``.
+Additional details can be found in `the Sage installation guide
+<http://doc.sagemath.org/html/en/installation/source.html>`_.
 
 .. NOTE::
 
-    If your system supports multiprocessing and you want to use multiple
-    processors to build Sage, replace the last line above by::
-
-    [user@localhost sage]$ MAKE='make -jNUM' make
-
-    to tell the ``make`` program to run ``NUM`` jobs in parallel when
-    building Sage.
-
-.. NOTE::
-
-    Mac OS X allows changing directories without using exact capitalization.
-    Beware of this convenience when compiling for OS X. Ignoring exact
+    macOS allows changing directories without using exact capitalization.
+    Beware of this convenience when compiling for macOS. Ignoring exact
     capitalization when changing into :envvar:`SAGE_ROOT` can lead to build
     errors for dependencies requiring exact capitalization in path names.
 
@@ -241,7 +231,7 @@ to rebuild the Sage library and then start Sage. This should be quite
 fast. If you made changes to
 :ref:`third-party packages <chapter-packaging>`, then you have to run ::
 
-    [user@localhost sage]$ make
+    [user@localhost sage]$ make build
 
 as if you were `installing Sage from scratch
 <http://doc.sagemath.org/html/en/installation/source.html>`_.
@@ -256,13 +246,13 @@ the first time.
     <http://doc.sagemath.org/html/en/developer/manual_git.html#checking-out-tickets>`_,
     it may depend on changes to third-party packages, so ``./sage -br``
     may fail.  If this happens (and you believe the code in this branch
-    should compile), try running ``make``.
+    should compile), try running ``make build``.
 
 Rarely there are conflicts with other packages,
 or with the already-installed older version of the package that you
 changed, in that case you do have to recompile everything using::
 
-    [user@localhost sage]$ make distclean && make
+    [user@localhost sage]$ make distclean && make build
 
 Also, don't forget to run the tests (see :ref:`chapter-doctesting`)
 and build the documentation (see :ref:`chapter-sage_manuals`).
@@ -275,7 +265,7 @@ and build the documentation (see :ref:`chapter-sage_manuals`).
     additional changes to files. To minimize the impact of switching between branches,
     install ccache using the command ::
 
-        ./sage -i ccache
+        [user@localhost sage]$ ./sage -i ccache
 
     Recythonization will still occur when rebuilding, but the recompilation stage
     first checks whether previously compiled files are cached for reuse before
@@ -324,7 +314,9 @@ snapshot with the ``git commit`` command::
 
 This will open an editor for you to write your commit message. The
 commit message should generally have a one-line description, followed
-by an empty line, followed by further explanatory text::
+by an empty line, followed by further explanatory text:
+
+.. CODE-BLOCK:: text
 
     Added the last twin prime
 

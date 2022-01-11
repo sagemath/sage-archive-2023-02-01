@@ -23,24 +23,23 @@ as `F_q`-elements.
         Relative field extension between Finite Field in aa of size 2^4 and Finite Field in a of size 2^2
 """
 
-#*****************************************************************************
+# ****************************************************************************
 #       Copyright (C) 2016 David Lucas <david.lucas@inria.fr>
 #
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
 # the Free Software Foundation, either version 2 of the License, or
 # (at your option) any later version.
-#                  http://www.gnu.org/licenses/
-#*****************************************************************************
+#                  https://www.gnu.org/licenses/
+# ****************************************************************************
 
 from sage.misc.cachefunc import cached_method
-from sage.rings.integer import Integer
-from sage.rings.finite_rings.finite_field_constructor import GF
 from sage.structure.sage_object import SageObject
 from sage.categories.homset import Hom
 from sage.matrix.constructor import column_matrix
 from sage.modules.free_module_element import vector
 from sage.misc.superseded import experimental
+
 
 class RelativeFiniteFieldExtension(SageObject):
     r"""
@@ -121,7 +120,7 @@ class RelativeFiniteFieldExtension(SageObject):
         if not s.divides(sm):
             raise ValueError("relative_field has to be a subfield of absolute_field")
         H = Hom(relative_field, absolute_field)
-        if embedding is not None and not embedding in H:
+        if embedding is not None and embedding not in H:
             raise ValueError("embedding has to be an embedding from relative_field to absolute_field")
         elif embedding is not None:
             self._phi = embedding
@@ -232,7 +231,7 @@ class RelativeFiniteFieldExtension(SageObject):
             sage: FE._flattened_relative_field_representation(b)
             (1, 0, 1, 1)
         """
-        if not b in self.absolute_field():
+        if b not in self.absolute_field():
             raise ValueError("The input has to be an element of the absolute field")
         return self._representation_matrix() * vector(b)
 
@@ -255,19 +254,18 @@ class RelativeFiniteFieldExtension(SageObject):
             sage: FE.relative_field_representation(b)
             (1, a + 1)
         """
-        if not b in self.absolute_field():
+        if b not in self.absolute_field():
             raise ValueError("The input has to be an element of the absolute field")
         s = self.relative_field_degree()
         if s == 1:
             return vector(b)
-        else:
-            Fq = self.relative_field()
-            vect = self._flattened_relative_field_representation(b)
-            sm = self.absolute_field_degree()
-            list_elts = []
-            for i in range(0, sm, s):
-                list_elts.append(Fq(vect[i:i+s]))
-            return vector(Fq, list_elts)
+        Fq = self.relative_field()
+        vect = self._flattened_relative_field_representation(b)
+        sm = self.absolute_field_degree()
+        list_elts = []
+        for i in range(0, sm, s):
+            list_elts.append(Fq(vect[i:i + s]))
+        return vector(Fq, list_elts)
 
     def absolute_field_representation(self, a):
         r"""
@@ -299,7 +297,6 @@ class RelativeFiniteFieldExtension(SageObject):
         betas = self.absolute_field_basis()
         phi = self.embedding()
         b = self.absolute_field().zero()
-        F = self.prime_field()
         flattened_relative_field_rep_list = []
         for i in a:
             tmp = vector(i).list()
@@ -447,7 +444,7 @@ class RelativeFiniteFieldExtension(SageObject):
 
     def extension_degree(self):
         r"""
-        Return `m`, the extension degree of the absiolute field over
+        Return `m`, the extension degree of the absolute field over
         the relative field.
 
         EXAMPLES::

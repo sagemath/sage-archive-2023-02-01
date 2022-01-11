@@ -5,15 +5,13 @@ from sage.rings.integer_ring import ZZ
 from sage.rings.rational_field import QQ
 from sage.arith.all import kronecker_symbol, legendre_symbol, prime_divisors, is_prime, fundamental_discriminant
 from sage.symbolic.constants import pi
-from sage.misc.all import prod
+from sage.misc.misc_c import prod
 from sage.quadratic_forms.special_values import gamma__exact, zeta__exact, quadratic_L_function__exact
-from sage.functions.all import floor
-
 
 
 def parity(self, allow_rescaling_flag=True):
     """
-    Returns the parity ("even" or "odd") of an integer-valued quadratic
+    Return the parity ("even" or "odd") of an integer-valued quadratic
     form over `ZZ`, defined up to similitude/rescaling of the form so that
     its Jordan component of smallest scale is unimodular.  After this
     rescaling, we say a form is even if it only represents even numbers,
@@ -35,7 +33,7 @@ def parity(self, allow_rescaling_flag=True):
 
     OUTPUT:
 
-        One of the strings: "even" or "odd"
+    One of the strings: "even" or "odd"
 
     EXAMPLES::
 

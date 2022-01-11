@@ -11,11 +11,10 @@ Numerical computation of newforms
 # (at your option) any later version.
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
-from six import integer_types
 
 from sage.arith.all              import prime_range
 from sage.matrix.constructor     import matrix
-from sage.misc.misc              import verbose
+from sage.misc.verbose           import verbose
 from sage.misc.cachefunc         import cached_method
 from sage.misc.prandom           import randint
 from sage.modular.arithgroup.all import Gamma0
@@ -72,24 +71,24 @@ class NumericalEigenforms(SageObject):
         sage: n = numerical_eigenforms(23)
         sage: n == loads(dumps(n))
         True
-        sage: n.ap(2)  # rel tol 2e-15
-        [3.0, 0.6180339887498941, -1.618033988749895]
-        sage: n.systems_of_eigenvalues(7)  # rel tol 2e-15
+        sage: n.ap(2)  # abs tol 1e-12
+        [3.0, -1.6180339887498947, 0.6180339887498968]
+        sage: n.systems_of_eigenvalues(7)  # abs tol 2e-12
         [
-        [-1.618033988749895, 2.23606797749979, -3.23606797749979],
-        [0.6180339887498941, -2.2360679774997902, 1.2360679774997883],
+        [-1.6180339887498947, 2.2360679774997894, -3.2360679774997894],
+        [0.6180339887498968, -2.236067977499788, 1.2360679774997936],
         [3.0, 4.0, 6.0]
         ]
-        sage: n.systems_of_abs(7)
+        sage: n.systems_of_abs(7)  # abs tol 2e-12
         [
-        [0.6180339887..., 2.236067977..., 1.236067977...],
-        [1.6180339887..., 2.236067977..., 3.236067977...],
+        [0.6180339887498943, 2.2360679774997894, 1.2360679774997887],
+        [1.6180339887498947, 2.23606797749979, 3.2360679774997894],
         [3.0, 4.0, 6.0]
         ]
-        sage: n.eigenvalues([2,3,5])  # rel tol 2e-15
-        [[3.0, 0.6180339887498941, -1.618033988749895],
-         [4.0, -2.2360679774997902, 2.23606797749979],
-         [6.0, 1.2360679774997883, -3.23606797749979]]
+        sage: n.eigenvalues([2,3,5])  # rel tol 2e-12
+        [[3.0, -1.6180339887498947, 0.6180339887498968],
+         [4.0, 2.2360679774997894, -2.236067977499788],
+         [6.0, -3.2360679774997894, 1.2360679774997936]]
     """
     def __init__(self, group, weight=2, eps=1e-20,
                  delta=1e-2, tp=[2,3,5]):
@@ -101,7 +100,7 @@ class NumericalEigenforms(SageObject):
             sage: numerical_eigenforms(61) # indirect doctest
             Numerical Hecke eigenvalues for Congruence Subgroup Gamma0(61) of weight 2
         """
-        if isinstance(group, integer_types + (Integer,)):
+        if isinstance(group, (int, Integer)):
             group = Gamma0(Integer(group))
         self._group  = group
         self._weight = Integer(weight)
@@ -212,9 +211,10 @@ class NumericalEigenforms(SageObject):
 
             sage: n = numerical_eigenforms(61, eps=2.0)
             sage: evectors = n._eigenvectors()
-            sage: evalues = diagonal_matrix(CDF, [-283.0, 108.522012456, 142.0])
-            sage: diff = n._hecke_matrix*evectors - evectors*evalues
-            sage: sum([abs(diff[i,j]) for i in range(5) for j in range(3)]) < 1.0e-9
+            sage: evalues = [(matrix((n._hecke_matrix*evectors).column(i))/matrix(evectors.column(i)))[0, 0]
+            ....:            for i in range(evectors.ncols())]
+            sage: diff = n._hecke_matrix*evectors - evectors*diagonal_matrix(evalues)
+            sage: sum(abs(a) for a in diff.list()) < 1.0e-9
             True
         """
         verbose('Finding eigenvector basis')
@@ -295,7 +295,7 @@ class NumericalEigenforms(SageObject):
             EXAMPLES::
 
                 sage: numerical_eigenforms(61)._easy_vector() # indirect doctest
-                (1.0, 1.0, 0.0, 0.0, 0.0)
+                (1.0, 0.0, 0.0, 0.0, 1.0)
             """
             R = M.rows()
             v = [len(support(r, delta)) for r in R]
@@ -309,14 +309,14 @@ class NumericalEigenforms(SageObject):
 
         while True:
             s = set(support(e, delta))
-            zp = [i for i in range(e.degree()) if not i in s]
-            if len(zp) == 0:
+            zp = [j for j in range(e.degree()) if j not in s]
+            if not zp:
                 break
             C = E.matrix_from_columns(zp)
             # best row
             i, f = best_row(C)
             x[i] += 1   # simplistic
-            e = x*E
+            e = x * E
 
         self.__easy_vector = x
         return x
@@ -444,7 +444,7 @@ class NumericalEigenforms(SageObject):
 
         EXAMPLES::
 
-            sage: numerical_eigenforms(61).systems_of_eigenvalues(10)  # rel tol 6e-14
+            sage: numerical_eigenforms(61).systems_of_eigenvalues(10)  # rel tol 1e-11
             [
             [-1.4811943040920152, 0.8060634335253695, 3.1563251746586642, 0.6751308705666477],
             [-1.0, -2.0000000000000027, -3.000000000000003, 1.0000000000000044],
@@ -471,7 +471,7 @@ class NumericalEigenforms(SageObject):
 
         EXAMPLES::
 
-            sage: numerical_eigenforms(61).systems_of_abs(10)  # rel tol 6e-14
+            sage: numerical_eigenforms(61).systems_of_abs(10)  # rel tol 1e-11
             [
             [0.3111078174659775, 2.903211925911551, 2.525427560843529, 3.214319743377552],
             [1.0, 2.0000000000000027, 3.000000000000003, 1.0000000000000044],
@@ -502,7 +502,7 @@ def support(v, eps):
         []
 
         sage: sage.modular.modform.numerical.support( numerical_eigenforms(61)._easy_vector(), 0.5 )
-        [0, 1]
+        [0, 4]
 
     """
     return [i for i in range(v.degree()) if abs(v[i]) > eps]

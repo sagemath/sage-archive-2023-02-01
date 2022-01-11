@@ -65,11 +65,10 @@ AUTHORS:
 #  the License, or (at your option) any later version.
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
-from __future__ import print_function, absolute_import
 
 from sage.misc.cachefunc import cached_method
 
-from sage.structure.element cimport coercion_model
+from sage.structure.coerce cimport coercion_model
 from sage.structure.parent cimport Parent
 from sage.structure.category_object import check_default_category
 from sage.structure.sequence import Sequence
@@ -104,6 +103,7 @@ cdef class Ring(ParentWithGens):
         running ._test_cardinality() . . . pass
         running ._test_category() . . . pass
         running ._test_characteristic() . . . pass
+        running ._test_construction() . . . pass
         running ._test_distributivity() . . . pass
         running ._test_divides() . . . pass
         running ._test_elements() . . .
@@ -140,15 +140,17 @@ cdef class Ring(ParentWithGens):
 
         sage: QQ['x'].category()
         Join of Category of euclidean domains and Category of commutative algebras over
-        (number fields and quotient fields and metric spaces) and Category of infinite sets
+         (number fields and quotient fields and metric spaces) and Category of infinite sets
         sage: QQ['x','y'].category()
         Join of Category of unique factorization domains and Category of commutative algebras over
-        (number fields and quotient fields and metric spaces) and Category of infinite sets
+         (number fields and quotient fields and metric spaces) and Category of infinite sets
         sage: PolynomialRing(MatrixSpace(QQ,2),'x').category()
         Category of infinite algebras over (finite dimensional algebras with basis over
-        (number fields and quotient fields and metric spaces) and infinite sets)
+         (number fields and quotient fields and metric spaces) and infinite sets)
         sage: PolynomialRing(SteenrodAlgebra(2),'x').category()
-        Category of infinite algebras over graded hopf algebras with basis over Finite Field of size 2
+        Category of infinite algebras over (super hopf algebras with basis
+         over Finite Field of size 2 and supercocommutative super coalgebras
+         over Finite Field of size 2)
 
     TESTS::
 
@@ -158,8 +160,26 @@ cdef class Ring(ParentWithGens):
         True
         sage: CDF._repr_option('element_is_atomic')
         False
-    """
-    def __init__(self, base, names=None, normalize=True, category = None):
+
+    Check that categories correctly implement `is_finite` and `cardinality`::
+
+        sage: QQ.is_finite()
+        False
+        sage: GF(2^10,'a').is_finite()
+        True
+        sage: R.<x> = GF(7)[]
+        sage: R.is_finite()
+        False
+        sage: S.<y> = R.quo(x^2+1)
+        sage: S.is_finite()
+        True
+
+        sage: Integers(7).cardinality()
+        7
+        sage: QQ.cardinality()
+        +Infinity
+     """
+    def __init__(self, base, names=None, normalize=True, category=None):
         """
         Initialize ``self``.
 
@@ -589,7 +609,7 @@ cdef class Ring(ParentWithGens):
             return I
         return self._zero_ideal
 
-    def quotient(self, I, names=None):
+    def quotient(self, I, names=None, **kwds):
         """
         Create the quotient of this ring by a twosided ideal ``I``.
 
@@ -600,6 +620,9 @@ cdef class Ring(ParentWithGens):
         - ``names`` -- (optional) names of the generators of the quotient (if
           there are multiple generators, you can specify a single character
           string and the generators are named in sequence starting with 0).
+
+        - further named arguments that may be passed to the quotient ring
+          constructor.
 
         EXAMPLES::
 
@@ -619,12 +642,11 @@ cdef class Ring(ParentWithGens):
             False
         """
         import sage.rings.quotient_ring
-        return sage.rings.quotient_ring.QuotientRing(self, I, names=names)
+        return sage.rings.quotient_ring.QuotientRing(self, I, names=names, **kwds)
 
-    def quo(self, I, names=None):
+    def quo(self, I, names=None, **kwds):
         """
-        Create the quotient of `R` by the ideal `I`.  This is a synonym for
-        :meth:`.quotient`
+        Create the quotient of `R` by the ideal `I`.  This is a synonym for :meth:`.quotient`
 
         EXAMPLES::
 
@@ -637,7 +659,7 @@ cdef class Ring(ParentWithGens):
             sage: a == b
             False
         """
-        return self.quotient(I, names=names)
+        return self.quotient(I, names=names, **kwds)
 
     def __truediv__(self, I):
         """
@@ -653,7 +675,7 @@ cdef class Ring(ParentWithGens):
         """
         raise TypeError("Use self.quo(I) or self.quotient(I) to construct the quotient ring.")
 
-    def quotient_ring(self, I, names=None):
+    def quotient_ring(self, I, names=None, **kwds):
         """
         Return the quotient of self by the ideal `I` of ``self``.
         (Synonym for ``self.quotient(I)``.)
@@ -665,6 +687,9 @@ cdef class Ring(ParentWithGens):
         - ``names`` -- (optional) names of the generators of the quotient. (If
           there are multiple generators, you can specify a single character
           string and the generators are named in sequence starting with 0.)
+
+        - further named arguments that may be passed to the quotient ring
+          constructor.
 
         OUTPUT:
 
@@ -687,7 +712,7 @@ cdef class Ring(ParentWithGens):
             sage: a == b
             False
         """
-        return self.quotient(I, names)
+        return self.quotient(I, names, **kwds)
 
     def zero(self):
         """
@@ -895,47 +920,6 @@ cdef class Ring(ParentWithGens):
         """
         return False
 
-    def is_finite(self):
-        """
-        Return ``True`` if this ring is finite.
-
-        EXAMPLES::
-
-            sage: QQ.is_finite()
-            False
-            sage: GF(2^10,'a').is_finite()
-            True
-            sage: R.<x> = GF(7)[]
-            sage: R.is_finite()
-            False
-            sage: S.<y> = R.quo(x^2+1)
-            sage: S.is_finite()
-            True
-        """
-        if self.is_zero():
-            return True
-        return super(Ring, self).is_finite()
-
-    def cardinality(self):
-        """
-        Return the cardinality of the underlying set.
-
-        OUTPUT:
-
-        Either an integer or ``+Infinity``.
-
-        EXAMPLES::
-
-            sage: Integers(7).cardinality()
-            7
-            sage: QQ.cardinality()
-            +Infinity
-        """
-        if not self.is_finite():
-            from .infinity import Infinity
-            return Infinity
-        raise NotImplementedError
-
     def is_integral_domain(self, proof = True):
         """
         Return ``True`` if this ring is an integral domain.
@@ -1017,17 +1001,6 @@ cdef class Ring(ParentWithGens):
             raise NotImplementedError
         else:
             return False
-
-    def is_ring(self):
-        """
-        Return ``True`` since ``self`` is a ring.
-
-        EXAMPLES::
-
-            sage: QQ.is_ring()
-            True
-        """
-        return True
 
     def is_noetherian(self):
         """
@@ -1140,7 +1113,7 @@ cdef class Ring(ParentWithGens):
             for P, e in f.factor():
                 if P.degree() == 1:
                     return -P[0]
-            from sage.rings.all import ZZ
+            from sage.rings.integer_ring import ZZ
             raise ValueError("no %s root of unity in %r" % (ZZ(n).ordinal_str(), self))
 
     def zeta_order(self):
@@ -1210,8 +1183,8 @@ cdef class Ring(ParentWithGens):
 
         EXAMPLES::
 
-            sage: ZZ._random_nonzero_element()
-            -8
+            sage: ZZ._random_nonzero_element() != 0
+            True
         """
         while True:
             x = self.random_element(*args, **kwds)
@@ -1317,6 +1290,24 @@ cdef class CommutativeRing(Ring):
         Ring.__init__(self, base_ring, names=names, normalize=normalize,
                       category=category)
 
+    def localization(self, additional_units, names=None, normalize=True, category=None):
+        """
+        Return the localization of ``self`` at the given additional units.
+
+        EXAMPLES::
+
+            sage: R.<x, y> = GF(3)[]
+            sage: R.localization((x*y, x**2+y**2))
+            Multivariate Polynomial Ring in x, y over Finite Field of size 3 localized at (y, x, x^2 + y^2)
+            sage: ~y in _
+            True
+        """
+        if not self.is_integral_domain():
+            raise TypeError("self must be an integral domain.")
+
+        from sage.rings.localization import Localization
+        return Localization(self, additional_units)
+
     def fraction_field(self):
         """
         Return the fraction field of ``self``.
@@ -1374,29 +1365,6 @@ cdef class CommutativeRing(Ring):
         except (NotImplementedError,TypeError):
             return coercion_model.division_parent(self)
 
-    def __pow__(self, n, _):
-        """
-        Return the free module of rank `n` over this ring.  If n is a tuple of
-        two elements, creates a matrix space.
-
-        EXAMPLES::
-
-            sage: QQ^5
-            Vector space of dimension 5 over Rational Field
-            sage: Integers(20)^1000
-            Ambient free module of rank 1000 over Ring of integers modulo 20
-
-            sage: QQ^(2,3)
-            Full MatrixSpace of 2 by 3 dense matrices over Rational Field
-        """
-        if isinstance(n, tuple):
-            m, n = n
-            from sage.matrix.matrix_space import MatrixSpace
-            return MatrixSpace(self, m, n)
-        else:
-            import sage.modules.all
-            return sage.modules.all.FreeModule(self, n)
-
     def is_commutative(self):
         """
         Return ``True``, since this ring is commutative.
@@ -1438,20 +1406,20 @@ cdef class CommutativeRing(Ring):
             sage: ZZ.krull_dimension()
             1
             sage: type(R); type(QQ); type(ZZ)
-            <type 'sage.rings.ring.CommutativeRing'>
+            <class 'sage.rings.ring.CommutativeRing'>
             <class 'sage.rings.rational_field.RationalField_with_category'>
-            <type 'sage.rings.integer_ring.IntegerRing_class'>
+            <class 'sage.rings.integer_ring.IntegerRing_class'>
 
         All orders in number fields have Krull dimension 1, including
         non-maximal orders::
 
             sage: K.<i> = QuadraticField(-1)
             sage: R = K.maximal_order(); R
-            Gaussian Integers in Number Field in i with defining polynomial x^2 + 1
+            Gaussian Integers in Number Field in i with defining polynomial x^2 + 1 with i = 1*I
             sage: R.krull_dimension()
             1
             sage: R = K.order(2*i); R
-            Order in Number Field in i with defining polynomial x^2 + 1
+            Order in Number Field in i with defining polynomial x^2 + 1 with i = 1*I
             sage: R.is_maximal()
             False
             sage: R.krull_dimension()
@@ -1523,10 +1491,10 @@ cdef class CommutativeRing(Ring):
         if name is None:
             name = str(poly.parent().gen(0))
         for key, val in kwds.items():
-            if key not in ['structure', 'implementation', 'prec', 'embedding']:
-                raise TypeError("extension() got an unexpected keyword argument '%s'"%key)
+            if key not in ['structure', 'implementation', 'prec', 'embedding', 'latex_name', 'latex_names']:
+                raise TypeError("extension() got an unexpected keyword argument '%s'" % key)
             if not (val is None or isinstance(val, list) and all(c is None for c in val)):
-                raise NotImplementedError("ring extension with prescripted %s is not implemented"%key)
+                raise NotImplementedError("ring extension with prescribed %s is not implemented" % key)
         R = self[name]
         I = R.ideal(R(poly.list()))
         return R.quotient(I, name)
@@ -1858,14 +1826,6 @@ cdef class IntegralDomain(CommutativeRing):
             True
             sage: R.<x> = PolynomialRing(QQ); R.is_field()
             False
-
-        An example where we raise a ``NotImplementedError``::
-
-            sage: R = IntegralDomain(ZZ)
-            sage: R.is_field()
-            Traceback (most recent call last):
-            ...
-            NotImplementedError: cannot construct elements of <sage.rings.ring.IntegralDomain object at ...>
         """
         if self.is_finite():
             return True
@@ -1947,7 +1907,7 @@ cdef class DedekindDomain(IntegralDomain):
 
             sage: K.<i> = QuadraticField(-1)
             sage: R = K.order(2*i); R
-            Order in Number Field in i with defining polynomial x^2 + 1
+            Order in Number Field in i with defining polynomial x^2 + 1 with i = 1*I
             sage: R.is_maximal()
             False
             sage: R.krull_dimension()
@@ -2089,7 +2049,7 @@ cdef class PrincipalIdealDomain(IntegralDomain):
 
             sage: QQ.gcd(ZZ(42), ZZ(48)); type(QQ.gcd(ZZ(42), ZZ(48)))
             6
-            <type 'sage.rings.rational.Rational'>
+            <class 'sage.rings.rational.Rational'>
             sage: QQ.gcd(1/2, 1/3)
             1/6
 
@@ -2131,7 +2091,7 @@ cdef class PrincipalIdealDomain(IntegralDomain):
 
             sage: QQ.content(ZZ(42), ZZ(48)); type(QQ.content(ZZ(42), ZZ(48)))
             6
-            <type 'sage.rings.rational.Rational'>
+            <class 'sage.rings.rational.Rational'>
             sage: QQ.content(1/2, 1/3)
             1/6
             sage: factor(1/2); factor(1/3); factor(1/6)
@@ -2517,7 +2477,7 @@ cdef class CommutativeAlgebra(CommutativeRing):
     """
     Generic commutative algebra
     """
-    def __init__(self, base_ring, names=None, normalize=True, category = None):
+    def __init__(self, base_ring, names=None, normalize=True, category=None):
         r"""
         Standard init function. This just checks that the base is a commutative
         ring and then passes the buck.
@@ -2578,6 +2538,4 @@ def is_Ring(x):
         sage: is_Ring(MS)
         True
     """
-    # TODO: use the idiom `x in _Rings` as soon as all rings will be
-    # in the category Rings()
-    return isinstance(x, Ring) or x in _Rings
+    return x in _Rings

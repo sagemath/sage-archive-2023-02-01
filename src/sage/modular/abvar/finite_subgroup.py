@@ -96,8 +96,6 @@ TESTS::
 # (at your option) any later version.
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
-from __future__ import print_function
-from __future__ import absolute_import
 
 from sage.modular.abvar.torsion_point import TorsionPoint
 from sage.modules.module import Module
@@ -107,7 +105,7 @@ from sage.structure.sequence import Sequence
 from sage.structure.richcmp import richcmp_method, richcmp
 from sage.rings.all import QQ, ZZ, QQbar, Integer
 from sage.arith.all import lcm
-from sage.misc.all import prod
+from sage.misc.misc_c import prod
 from sage.structure.element import coercion_model
 
 
@@ -577,7 +575,7 @@ class FiniteSubgroup(Module):
             sage: J0(43).cuspidal_subgroup().gens()
             [[(0, 1/7, 0, 6/7, 0, 5/7)]]
             sage: J1(13).cuspidal_subgroup().gens()
-            [[(1/19, 0, 0, 9/19)], [(0, 1/19, 1/19, 18/19)]]
+            [[(1/19, 0, 9/19, 9/19)], [(0, 1/19, 0, 9/19)]]
             sage: J0(22).torsion_subgroup(6).gens()
             [[(1/6, 0, 0, 0)], [(0, 1/6, 0, 0)], [(0, 0, 1/6, 0)], [(0, 0, 0, 1/6)]]
         """
@@ -776,7 +774,7 @@ class FiniteSubgroup(Module):
             ...
             ValueError: object is immutable; please change a copy instead.
             sage: type(v[0])
-            <type 'sage.rings.integer.Integer'>
+            <class 'sage.rings.integer.Integer'>
 
         ::
 

@@ -13,11 +13,10 @@ Elements of Arithmetic Subgroups
 #                  https://www.gnu.org/licenses/
 #
 ################################################################################
-from __future__ import absolute_import
 
 from sage.structure.element cimport MultiplicativeGroupElement, MonoidElement, Element
 from sage.structure.richcmp cimport richcmp
-from sage.rings.all import ZZ
+from sage.rings.integer_ring import ZZ
 from sage.modular.cusps import Cusp
 
 from sage.matrix.matrix_space import MatrixSpace
@@ -255,7 +254,7 @@ cdef class ArithmeticSubgroupElement(MultiplicativeGroupElement):
             [4 5]
             [3 4]
             sage: type(x.matrix())
-            <type 'sage.matrix.matrix_integer_dense.Matrix_integer_dense'>
+            <class 'sage.matrix.matrix_integer_dense.Matrix_integer_dense'>
         """
         return self.__x
 

@@ -7,13 +7,11 @@ Factory for symbolic functions
 #       Copyright (C) 2009 Burcin Erocal <burcin@erocal.org>
 #  Distributed under the terms of the GNU General Public License (GPL),
 #  version 2 or any later version.  The full text of the GPL is available at:
-#                  http://www.gnu.org/licenses/
+#                  https://www.gnu.org/licenses/
 ###############################################################################
-from __future__ import print_function
-from six import string_types
 
-from sage.symbolic.function import SymbolicFunction, sfunctions_funcs, \
-        unpickle_wrapper
+from sage.symbolic.function import (SymbolicFunction, sfunctions_funcs,
+                                    unpickle_wrapper)
 
 
 def function_factory(name, nargs=0, latex_name=None, conversions=None,
@@ -65,7 +63,7 @@ def function_factory(name, nargs=0, latex_name=None, conversions=None,
                 sage: f._maxima_init_()
                 "'f"
             """
-            return "'%s"%self.name()
+            return "'%s" % self.name()
 
         def _fricas_init_(self):
             """
@@ -80,7 +78,7 @@ def function_factory(name, nargs=0, latex_name=None, conversions=None,
                 sage: f._fricas_init_()
                 'operator("f")'
             """
-            return 'operator("%s")'%self.name()
+            return 'operator("%s")' % self.name()
 
         def _sympy_(self):
             from sympy import Function
@@ -106,9 +104,10 @@ def function_factory(name, nargs=0, latex_name=None, conversions=None,
         if func:
             if not callable(func):
                 raise ValueError(func_name + "_func" + " parameter must be callable")
-            setattr(NewSymbolicFunction, '_%s_'%func_name, func)
+            setattr(NewSymbolicFunction, '_%s_' % func_name, func)
 
     return NewSymbolicFunction()
+
 
 def unpickle_function(name, nargs, latex_name, conversions, evalf_params_first,
         pickled_funcs):
@@ -148,14 +147,13 @@ def unpickle_function(name, nargs, latex_name, conversions, evalf_params_first,
     args = [name, nargs, latex_name, conversions, evalf_params_first] + funcs
     return function_factory(*args)
 
-def function(s, *args, **kwds):
+
+def function(s, **kwds):
     r"""
     Create a formal symbolic function with the name *s*.
 
     INPUT:
 
-    - ``args`` - arguments to the function, if specified returns the new
-      function evaluated at the given arguments (deprecated as of :trac:`17447`)
     - ``nargs=0`` - number of arguments the function accepts, defaults to
       variable number of arguments, or 0
     - ``latex_name`` - name used when printing in latex mode
@@ -201,7 +199,7 @@ def function(s, *args, **kwds):
         sage: foo(x, y) + foo(y, z)^2
         foo(y, z)^2 + foo(x, y)
 
-    In Sage 4.0, you need to use :meth:`substitute_function` to
+    You need to use :meth:`substitute_function` to
     replace all occurrences of a function with another::
 
         sage: g.substitute_function(cr, cos)
@@ -210,7 +208,7 @@ def function(s, *args, **kwds):
         sage: g.substitute_function(cr, (sin(x) + cos(x)).function(x))
         b*(cos(a) - sin(a))
 
-    In Sage 4.0, basic arithmetic with unevaluated functions is no
+    Basic arithmetic with unevaluated functions is no
     longer supported::
 
         sage: x = var('x')
@@ -218,7 +216,7 @@ def function(s, *args, **kwds):
         sage: 2*f
         Traceback (most recent call last):
         ...
-        TypeError: unsupported operand parent(s) for *: 'Integer Ring' and '<class 'sage.symbolic.function_factory.NewSymbolicFunction'>'
+        TypeError: unsupported operand parent(s) for *: 'Integer Ring' and '<class 'sage.symbolic.function_factory...NewSymbolicFunction'>'
 
     You now need to evaluate the function in order to do the arithmetic::
 
@@ -247,7 +245,6 @@ def function(s, *args, **kwds):
     Defining custom methods for automatic or numeric evaluation, derivation,
     conjugation, etc. is supported::
 
-
         sage: def ev(self, x): return 2*x
         sage: foo = function("foo", nargs=1, eval_func=ev)
         sage: foo(x)
@@ -271,22 +268,28 @@ def function(s, *args, **kwds):
         sage: foo(x).conjugate()
         2*x
 
-        sage: def deriv(self, *args,**kwds): print("{} {}".format(args, kwds)); return args[kwds['diff_param']]^2
+        sage: def deriv(self, *args,**kwds):
+        ....:     print("{} {}".format(args, kwds))
+        ....:     return args[kwds['diff_param']]^2
         sage: foo = function("foo", nargs=2, derivative_func=deriv)
         sage: foo(x,y).derivative(y)
         (x, y) {'diff_param': 1}
         y^2
 
-        sage: def pow(self, x, power_param=None): print("{} {}".format(x, power_param)); return x*power_param
+        sage: def pow(self, x, power_param=None):
+        ....:     print("{} {}".format(x, power_param))
+        ....:     return x*power_param
         sage: foo = function("foo", nargs=1, power_func=pow)
         sage: foo(y)^(x+y)
         y x + y
         (x + y)*y
 
-        sage: def expand(self, *args, **kwds): print("{} {}".format(args, kwds)); return sum(args[0]^i for i in range(kwds['order']))
+        sage: def expand(self, *args, **kwds):
+        ....:     print("{} {}".format(args, sorted(kwds.items())))
+        ....:     return sum(args[0]^i for i in range(kwds['order']))
         sage: foo = function("foo", nargs=1, series_func=expand)
         sage: foo(y).series(y, 5)
-        (y,) {'var': y, 'options': 0, 'at': 0, 'order': 5}
+        (y,) [('at', 0), ('options', 0), ('order', 5), ('var', y)]
         y^4 + y^3 + y^2 + y + 1
 
         sage: def my_print(self, *args): return "my args are: " + ', '.join(map(repr, args))
@@ -331,10 +334,10 @@ def function(s, *args, **kwds):
         sage: E
         E
     """
-    if not isinstance(s, string_types):
+    if not isinstance(s, str):
         raise TypeError("expect string as first argument")
 
-    # create the function
+    # create the function or functions
     if ',' in s:
         names = s.split(',')
     elif ' ' in s:
@@ -343,44 +346,8 @@ def function(s, *args, **kwds):
         names = [s]
     names = [sn.strip() for sn in names if sn.strip()]
 
-    funcs = [function_factory(name, **kwds) for name in names]
+    funcs = tuple(function_factory(name, **kwds) for name in names)
 
-    if len(args) > 0:
-        from sage.misc.superseded import deprecation
-        deprecation(17447, "Calling function('f',x) is deprecated. Use function('f')(x) instead.")
-        res = [f(*args) for f in funcs]
-    else:
-        res = funcs
-
-    if len(res) == 1:
-        return res[0]
-    return tuple(res)
-
-def deprecated_custom_evalf_wrapper(func):
-    """
-    This is used while pickling old symbolic functions that define a custom
-    evalf method.
-
-    The protocol for numeric evaluation functions was changed to include a
-    ``parent`` argument instead of ``prec``. This function creates a wrapper
-    around the old custom method, which extracts the precision information
-    from the given ``parent``, and passes it on to the old function.
-
-    EXAMPLES::
-
-        sage: from sage.symbolic.function_factory import deprecated_custom_evalf_wrapper as dcew
-        sage: def old_func(x, prec=0): print("x: %s, prec: %s" % (x, prec))
-        sage: new_func = dcew(old_func)
-        sage: new_func(5, parent=RR)
-        x: 5, prec: 53
-        sage: new_func(0r, parent=ComplexField(100))
-        x: 0, prec: 100
-    """
-    def new_evalf(*args, **kwds):
-        parent = kwds['parent']
-        if parent:
-            prec = parent.prec()
-        else:
-            prec = 53
-        return func(*args, prec=prec)
-    return new_evalf
+    if len(funcs) == 1:
+        return funcs[0]
+    return funcs

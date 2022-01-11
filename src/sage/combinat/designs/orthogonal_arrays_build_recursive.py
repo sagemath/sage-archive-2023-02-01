@@ -30,9 +30,6 @@ called.
 Functions
 ---------
 """
-from __future__ import print_function, absolute_import
-from six.moves import range
-from builtins import zip
 
 from .orthogonal_arrays import orthogonal_array, wilson_construction, is_orthogonal_array
 
@@ -50,7 +47,7 @@ def construction_3_3(k,n,m,i,explain_construction=False):
 
     INPUT:
 
-    - ``k,n,m,i`` (integers) such that the following designs are available :
+    - ``k,n,m,i`` (integers) such that the following designs are available:
       `OA(k,n)`, `OA(k,m)`, `OA(k,m+1)`, `OA(k,r)`.
 
     - ``explain_construction`` (boolean) -- return a string describing
@@ -328,14 +325,14 @@ def construction_3_6(k,n,m,i,explain_construction=False):
     assert is_orthogonal_array(OA,k,n*m+i)
     return OA
 
-def OA_and_oval(q):
+def OA_and_oval(q, *, solver=None, integrality_tolerance=1e-3):
     r"""
     Return a `OA(q+1,q)` whose blocks contains `\leq 2` zeroes in the last `q`
     columns.
 
     This `OA` is build from a projective plane of order `q`, in which there
-    exists an oval `O` of size `q+1` (i.e. a set of `q+1` points no three of which
-    are [colinear/contained in a common set of the projective plane]).
+    exists an oval `O` of size `q+1` (i.e. a set of `q+1` points no three of
+    which are [colinear/contained in a common set of the projective plane]).
 
     Removing an element `x\in O` and all sets that contain it, we obtain a
     `TD(q+1,q)` in which `O` intersects all columns except one. As `O` is an
@@ -344,6 +341,17 @@ def OA_and_oval(q):
     INPUT:
 
     - ``q`` -- a prime power
+
+    - ``solver`` -- (default: ``None``) Specify a Mixed Integer Linear
+      Programming (MILP) solver to be used. If set to ``None``, the default one
+      is used. For more information on MILP solvers and which default solver is
+      used, see the method :meth:`solve
+      <sage.numerical.mip.MixedIntegerLinearProgram.solve>` of the class
+      :class:`MixedIntegerLinearProgram
+      <sage.numerical.mip.MixedIntegerLinearProgram>`.
+
+    - ``integrality_tolerance`` -- parameter for use with MILP solvers over an
+      inexact base ring; see :meth:`MixedIntegerLinearProgram.get_values`.
 
     .. NOTE::
 
@@ -365,14 +373,14 @@ def OA_and_oval(q):
 
     # We compute the oval with a linear program
     from sage.numerical.mip import MixedIntegerLinearProgram
-    p = MixedIntegerLinearProgram()
+    p = MixedIntegerLinearProgram(solver=solver)
     b = p.new_variable(binary=True)
     V = B.ground_set()
     p.add_constraint(p.sum([b[i] for i in V]) == q+1)
     for bl in B:
         p.add_constraint(p.sum([b[i] for i in bl]) <= 2)
     p.solve()
-    b = p.get_values(b)
+    b = p.get_values(b, convert=bool, tolerance=integrality_tolerance)
     oval = [x for x,i in b.items() if i]
     assert len(oval) == q+1
 
@@ -383,11 +391,11 @@ def OA_and_oval(q):
     # We build the TD by relabelling the point set, and removing those which
     # contain x.
     r = {}
-    B = list(B)
-    # (this is to make sure that the first set containing x in B is the one
-    # which contains no other oval point)
 
-    B.sort(key=lambda b:int(any([xx in oval for xx in b])))
+    # Make sure that the first set containing x in B is the one
+    # which contains no other oval point
+    B = sorted(B, key=lambda b: any(xx in oval for xx in b))
+
     BB = []
     for b in B:
         if x in b:
@@ -537,7 +545,7 @@ def construction_q_x(k,q,x,check=True,explain_construction=False):
     relabel = {i:j for j,i in enumerate(points_to_keep)}
 
     # PBD is a (n,[q,q-x-1,q-x+1,x+2])-PBD
-    PBD = [[relabel[xx] for xx in B if not xx in points_to_delete] for B in TD]
+    PBD = [[relabel[xx] for xx in B if xx not in points_to_delete] for B in TD]
 
     # Taking the unique block of size x+2
     assert list(map(len,PBD)).count(x+2)==1
@@ -709,9 +717,9 @@ def thwart_lemma_3_5(k,n,m,a,b,c,d=0,complement=False,explain_construction=False
     OA = [list(B[3:]+B[:3]) for B in OA]
 
     # Set of values in the axb square
-    third_complement= set([B[-1] for B in OA if B[-3] < a and B[-2] < b])
+    third_complement = set(B[-1] for B in OA if B[-3] < a and B[-2] < b)
 
-    assert n-len(third_complement) >= c
+    assert n - len(third_complement) >= c
 
     # The keepers
     first_set  = list(range(a))
@@ -786,7 +794,6 @@ def thwart_lemma_4_1(k,n,m,explain_construction=False):
       T. G. Ostrom and F. A. Sherk.
       Canad. Math. Bull vol7 num.4 (1964)
     """
-    from sage.combinat.designs.designs_pyx import is_orthogonal_array
     from sage.rings.finite_rings.finite_field_constructor import FiniteField
     from sage.arith.all import is_prime_power
     from .block_design import DesarguesianProjectivePlaneDesign
@@ -803,13 +810,14 @@ def thwart_lemma_4_1(k,n,m,explain_construction=False):
 
     q = n
     K = FiniteField(q, 'x')
-    relabel = {x:i for i,x in enumerate(K)}
-    PG = DesarguesianProjectivePlaneDesign(q,check=False,point_coordinates=False).blocks(copy=False)
+    relabel = {x: i for i, x in enumerate(K)}
+    PG = DesarguesianProjectivePlaneDesign(q, check=False,
+                                           point_coordinates=False).blocks()
 
     if q % 3 == 0:
         t = K.one()
-    elif q%3 == 1:
-        t = K.multiplicative_generator()**((q-1)//3)
+    elif q % 3 == 1:
+        t = K.multiplicative_generator()**((q - 1)//3)
     else:
         raise ValueError("q(={}) must be congruent to 0 or 1 mod 3".format(q))
 
@@ -902,7 +910,7 @@ def three_factor_product(k,n1,n2,n3,check=False,explain_construction=False):
         - The product of the blocks of a `n_1`-parallel class of `OA(k,n_2)`
           with an `OA(k,n_1)` can be done in such a way that it yields `n_1n_2`
           parallel classes of `OA(k,n_1n_2)`. Those classes cover exactly the
-          pairs that woud have been covered with the usual product.
+          pairs that would have been covered with the usual product.
 
           This can be achieved by simple cyclic permutations. Let us build the
           product of the `n_1`-parallel class `\mathcal P\subseteq OA(k,n_2)`
@@ -1077,12 +1085,10 @@ def three_factor_product(k,n1,n2,n3,check=False,explain_construction=False):
 
         # Check our stuff before we return it
         if check:
-            profile = [i for i in range(g2*g1) for _ in range(g1)]
             for classs in new_g1_parallel_classes:
-                assert_c_partition(classs,k,g2*g1,g1)
-            profile = list(range(g2*g1))
+                assert_c_partition(classs, k, g2 * g1, g1)
             for classs in new_parallel_classes:
-                assert_c_partition(classs,k,g2*g1,1)
+                assert_c_partition(classs, k, g2 * g1, 1)
 
         return new_g1_parallel_classes, new_parallel_classes
 
@@ -1163,7 +1169,7 @@ def _reorder_matrix(matrix):
         sage: all(set(M2[i][0] for i in range(N)) == set(range(N)) for i in range(k))
         True
 
-        sage: M =[list(range(10))]*10
+        sage: M = [list(range(10))] * 10
         sage: N = k = 10
         sage: M2 = _reorder_matrix(M)
         sage: all(set(M2[i][0] for i in range(N)) == set(range(N)) for i in range(k))
@@ -1582,8 +1588,8 @@ def brouwer_separable_design(k,t,q,x,check=False,verbose=False,explain_construct
 
         else:
             assert e2 == 1, "equivalent to x!=1"
-            # Extending the x partitions into bocks of size t with each of the
-            # new x points.
+            # Extending the x partitions into blocks of size t with
+            # each of the new x points.
 
             for i,partition in enumerate(partition_of_blocks_of_size_t):
                 for B in partition:

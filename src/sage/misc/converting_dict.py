@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 r"""
 Converting Dictionary
 
@@ -27,29 +28,25 @@ result no matter how a generator is identified::
 
     sage: K.<x,y> = QQ[]
     sage: I = ideal([x^2+2*y-5,x+y+3])
-    sage: v = I.variety(AA)[0]; v
-    {x: 4.464101615137755?, y: -7.464101615137755?}
+    sage: V = sorted(I.variety(AA), key=str)
+    sage: v = V[0]
+    sage: v['x'], v['y']
+    (-2.464101615137755?, -0.535898384862246?)
     sage: list(v)[0].parent()
     Multivariate Polynomial Ring in x, y over Algebraic Real Field
-    sage: v[x]
-    4.464101615137755?
-    sage: v["y"]
-    -7.464101615137755?
 """
 
-#*****************************************************************************
+# ****************************************************************************
 #       Copyright (C) 2015 Martin von Gagern <Martin.vGagern@gmx.net>
 #
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
 # the Free Software Foundation, either version 2 of the License, or
 # (at your option) any later version.
-#                  http://www.gnu.org/licenses/
-#*****************************************************************************
-from __future__ import absolute_import
-from six import iteritems
+#                  https://www.gnu.org/licenses/
+# ****************************************************************************
 
-import collections
+from collections.abc import Mapping
 
 
 class KeyConvertingDict(dict):
@@ -290,11 +287,11 @@ class KeyConvertingDict(dict):
             if len(args) != 1:
                 raise TypeError("update expected at most 1 argument")
             arg = args[0]
-            if isinstance(arg, collections.Mapping):
+            if isinstance(arg, Mapping):
                 seq = ((f(k), arg[k]) for k in arg)
             else:
                 seq = ((f(k), v) for k, v in arg)
             u(seq)
         if kwds:
-            seq = ((f(k), v) for k, v in iteritems(kwds))
+            seq = ((f(k), v) for k, v in kwds.items())
             u(seq)

@@ -1,27 +1,29 @@
 # -*- coding: utf-8 -*-
 r"""
-Check for imagemagick
+Feature for testing the presence of ``imagemagick``
 
 Currently we only check for the presence of ``convert``. When needed other
 commands like ``magick``, ``magick-script``, ``convert``, ``mogrify``,
 ``identify``, ``composite``, ``montage``, ``compare``, etc. could be also
 checked in this module.
 """
-#*****************************************************************************
+# ****************************************************************************
 #       Copyright (C) 2018 Sebastien Labbe <slabqc@gmail.com>
 #
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
 # the Free Software Foundation, either version 2 of the License, or
 # (at your option) any later version.
-#                  http://www.gnu.org/licenses/
-#*****************************************************************************
+#                  https://www.gnu.org/licenses/
+# ****************************************************************************
 
 from . import Executable
+from .join_feature import JoinFeature
 
-class ImageMagick(Executable):
+
+class ImageMagick(JoinFeature):
     r"""
-    A :class:`sage.features.Feature` describing the presence of
+    A :class:`~sage.features.Feature` describing the presence of
     ``ImageMagick``
 
     Currently, only the availability of ``convert`` is checked.
@@ -29,8 +31,8 @@ class ImageMagick(Executable):
     EXAMPLES::
 
         sage: from sage.features.imagemagick import ImageMagick
-        sage: ImageMagick().is_present()  # optional: imagemagick
-        FeatureTestResult('convert', True)
+        sage: ImageMagick().is_present()  # optional - imagemagick
+        FeatureTestResult('imagemagick', True)
     """
     def __init__(self):
         r"""
@@ -40,6 +42,11 @@ class ImageMagick(Executable):
             sage: isinstance(ImageMagick(), ImageMagick)
             True
         """
-        Executable.__init__(self, "convert", executable="convert",
-                url="https://www.imagemagick.org/")
+        JoinFeature.__init__(self, "imagemagick",
+                             [Executable("convert", executable="convert")],
+                             spkg="imagemagick",
+                             url="https://www.imagemagick.org/")
 
+
+def all_features():
+    return [ImageMagick()]

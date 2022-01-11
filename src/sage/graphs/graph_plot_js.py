@@ -2,11 +2,14 @@ r"""
 Graph plotting in Javascript with d3.js
 
 This module implements everything that can be used to draw graphs with `d3.js
-<http://d3js.org/>`_ in Sage.
+<https://d3js.org/>`_ in Sage.
 
 On Python's side, this is mainly done by wrapping a graph's edges and vertices
 in a structure that can then be used in the javascript code. This javascript
 code is then inserted into a .html file to be opened by a browser.
+
+In the browser, the displayed page contains at the bottom right a menu
+that allows to save the picture under the svg file format.
 
 What Sage feeds javascript with is a "graph" object with the following content:
 
@@ -62,7 +65,7 @@ Authors:
 
 - Nathann Cohen, Brice Onfroy -- July 2013 --
   Initial version of the Sage code,
-  Javascript code, using examples from `d3.js <http://d3js.org/>`_.
+  Javascript code, using examples from `d3.js <https://d3js.org/>`_.
 
 - Thierry Monteil (June 2014): allow offline use of d3.js provided by d3js spkg.
 
@@ -98,7 +101,7 @@ def gen_html_code(G,
                   vertex_size=7,
                   edge_thickness=4):
     r"""
-    Creates a .html file showing the graph using `d3.js <http://d3js.org/>`_.
+    Create a .html file showing the graph using `d3.js <https://d3js.org/>`_.
 
     This function returns the name of the .html file. If you want to visualize
     the actual graph use :meth:`~sage.graphs.generic_graph.GenericGraph.show`.
@@ -189,6 +192,19 @@ def gen_html_code(G,
     :trac:`17370`::
 
         sage: filename = gen_html_code(graphs.CompleteBipartiteGraph(4, 5))
+
+    In the generated html code, the source (resp. target) of a link is the index
+    of the node in the list defining the names of the nodes. We check that the
+    order is correct (:trac:`27460`)::
+
+        sage: filename = gen_html_code(DiGraph({1: [10]}))
+        sage: with open(filename, 'r') as f:
+        ....:     data = f.read()
+        sage: nodes = data.partition('"nodes":')[2]; nodes
+        ...[{..."name": "10"...}, {..."name": "1"...}]...
+        sage: links = data.partition('"links":')[2]
+        sage: '"source": 1' in links and '"target": 0' in links
+        True
     """
     directed = G.is_directed()
     multiple_edges = G.has_multiple_edges()
@@ -206,9 +222,8 @@ def gen_html_code(G,
             color[v_to_id[v]] = i
 
     # Vertex list
-    nodes = []
-    for v in G.vertices():
-        nodes.append({"name": str(v), "group": str(color[v_to_id[v]])})
+    # Data for vertex v must be at position v_to_id[v] in list nodes
+    nodes = [{"name": str(v), "group": str(color[v_to_id[v]])} for v in G]
 
     # Edge colors.
     edge_color_default = "#aaa"
@@ -258,6 +273,7 @@ def gen_html_code(G,
                 curve = (1 if seen[u, v] % 2 else -1) * (seen[u, v] // 2) * 15
 
         # Adding the edge to the list
+        # The source (resp. target) is the index of u (resp. v) in list nodes
         edges.append({"source": v_to_id[u],
                       "target": v_to_id[v],
                       "strength": 0,
@@ -312,8 +328,7 @@ def gen_html_code(G,
 
     # Writes the temporary .html file
     filename = tmp_filename(ext='.html')
-    f = open(filename, 'w')
-    f.write(js_code)
-    f.close()
+    with open(filename, 'w') as f:
+        f.write(js_code)
 
     return filename

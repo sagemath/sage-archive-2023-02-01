@@ -5,7 +5,7 @@ This file contains a variety of constructions which builds the generator matrix
 of special (or random) linear codes and wraps them in a
 :class:`sage.coding.linear_code.LinearCode` object. These constructions are
 therefore not rich objects such as
-:class:`sage.coding.grs.GeneralizedReedSolomonCode`.
+:class:`sage.coding.grs_code.GeneralizedReedSolomonCode`.
 
 All codes available here can be accessed through the ``codes`` object::
 
@@ -16,52 +16,53 @@ REFERENCES:
 
 - [HP2003]_
 
-AUTHOR:
+AUTHORS:
 
 - David Joyner (2007-05): initial version
 
-- " (2008-02): added cyclic codes, Hamming codes
+- David Joyner (2008-02): added cyclic codes, Hamming codes
 
-- " (2008-03): added BCH code, LinearCodeFromCheckmatrix, ReedSolomonCode, WalshCode,
+- David Joyner (2008-03): added BCH code, LinearCodeFromCheckmatrix, ReedSolomonCode, WalshCode,
   DuadicCodeEvenPair, DuadicCodeOddPair, QR codes (even and odd)
 
-- " (2008-09) fix for bug in BCHCode reported by F. Voloch
+- David Joyner (2008-09) fix for bug in BCHCode reported by F. Voloch
 
-- " (2008-10) small docstring changes to WalshCode and walsh_matrix
+- David Joyner (2008-10) small docstring changes to WalshCode and walsh_matrix
 
 """
-
-#*****************************************************************************
+# ****************************************************************************
 #       Copyright (C) 2007 David Joyner <wdjoyner@gmail.com>
 #
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
 # the Free Software Foundation, either version 2 of the License, or
 # (at your option) any later version.
-#                  http://www.gnu.org/licenses/
-#*****************************************************************************
-from __future__ import print_function, absolute_import
+#                  https://www.gnu.org/licenses/
+# ****************************************************************************
+
+from sage.misc.misc_c import prod
+from sage.arith.all import quadratic_residues, gcd
+
+from sage.structure.sequence import Sequence, Sequence_generic
 
 from sage.matrix.matrix_space import MatrixSpace
 from sage.matrix.constructor import matrix
 from sage.matrix.special import random_matrix
+
 from sage.rings.finite_rings.finite_field_constructor import FiniteField as GF
-from sage.misc.all import prod
-from .linear_code import LinearCode
-from sage.structure.sequence import Sequence, Sequence_generic
-from sage.arith.all import quadratic_residues, gcd
+from sage.rings.finite_rings.integer_mod import Mod
 from sage.rings.finite_rings.integer_mod_ring import IntegerModRing
 from sage.rings.polynomial.polynomial_ring_constructor import PolynomialRing
 from sage.rings.integer import Integer
-from sage.rings.finite_rings.integer_mod import Mod
 
+from .linear_code import LinearCode
 
 ############### utility functions ################
 
 
 def _is_a_splitting(S1, S2, n, return_automorphism=False):
     r"""
-    Check wether ``(S1,S2)`` is a splitting of `\ZZ/n\ZZ`.
+    Check whether ``(S1,S2)`` is a splitting of `\ZZ/n\ZZ`.
 
     A splitting of `R = \ZZ/n\ZZ` is a pair of subsets of `R` which is a
     partition of `R \\backslash \{0\}` and such that there exists an element `r`
@@ -105,8 +106,8 @@ def _is_a_splitting(S1, S2, n, return_automorphism=False):
         ....:     res,aut= _is_a_splitting(P[0],P[1],7,return_automorphism=True)
         ....:     if res:
         ....:         print((aut, P))
-        (6, {{1, 2, 3}, {4, 5, 6}})
         (3, {{1, 2, 4}, {3, 5, 6}})
+        (6, {{1, 2, 3}, {4, 5, 6}})
         (6, {{1, 3, 5}, {2, 4, 6}})
         (6, {{1, 4, 5}, {2, 3, 6}})
 
@@ -180,7 +181,6 @@ def _is_a_splitting(S1, S2, n, return_automorphism=False):
     else:
         return False
 
-
 def _lift2smallest_field(a):
     """
     INPUT: a is an element of a finite field GF(q)
@@ -212,12 +212,12 @@ def _lift2smallest_field(a):
     if d == k:
         return a, FF
     p = FF.characteristic()
-    F = GF(p**d,"z")
-    b = pol.roots(F,multiplicities=False)[0]
+    F = GF((p, d), "z")
+    b = pol.roots(F, multiplicities=False)[0]
     return b, F
 
 
-def permutation_action(g,v):
+def permutation_action(g, v):
     r"""
     Returns permutation of rows g\*v. Works on lists, matrices,
     sequences and vectors (by permuting coordinates). The code requires
@@ -290,7 +290,6 @@ def permutation_action(g,v):
         return gv
     return V(gv)
 
-
 def walsh_matrix(m0):
     """
     This is the generator matrix of a Walsh code. The matrix of
@@ -324,9 +323,7 @@ def walsh_matrix(m0):
         return matrix(GF(2), m, 2**m, [[0]*2**(m-1) + [1]*2**(m-1)] + row2)
     raise ValueError("%s must be an integer > 0."%m0)
 
-
 ##################### main constructions #####################
-
 
 def DuadicCodeEvenPair(F,S1,S2):
     r"""
@@ -432,8 +429,6 @@ def DuadicCodeOddPair(F,S1,S2):
     C2 = CyclicCode(length = n, generator_pol = gg2)
     return C1,C2
 
-
-
 def ExtendedQuadraticResidueCode(n,F):
     r"""
     The extended quadratic residue code (or XQR code) is obtained from
@@ -484,7 +479,7 @@ def from_parity_check_matrix(H):
     dimension `n-h` and length `n`.
 
     EXAMPLES::
-    
+
         sage: C = codes.HammingCode(GF(2), 3); C
         [7, 4] Hamming Code over GF(2)
         sage: H = C.parity_check_matrix(); H
@@ -498,7 +493,6 @@ def from_parity_check_matrix(H):
     """
     Cd = LinearCode(H)
     return Cd.dual_code()
-
 
 def QuadraticResidueCode(n,F):
     r"""
@@ -603,11 +597,13 @@ def QuadraticResidueCodeEvenPair(n,F):
     n = Integer(n)
     if n <= 2 or not n.is_prime():
         raise ValueError("the argument n must be an odd prime")
-    Q = quadratic_residues(n); Q.remove(0)       # non-zero quad residues
-    N = [x for x in srange(1,n) if x not in Q]   # non-zero quad non-residues
+    Q = quadratic_residues(n)
+    Q.remove(0)       # non-zero quad residues
+    N = [x for x in srange(1, n) if x not in Q]   # non-zero quad non-residues
     if q not in Q:
         raise ValueError("the order of the finite field must be a quadratic residue modulo n")
     return DuadicCodeEvenPair(F,Q,N)
+
 
 def QuadraticResidueCodeOddPair(n,F):
     """
@@ -661,11 +657,13 @@ def QuadraticResidueCodeOddPair(n,F):
     n = Integer(n)
     if n <= 2 or not n.is_prime():
         raise ValueError("the argument n must be an odd prime")
-    Q = quadratic_residues(n); Q.remove(0)       # non-zero quad residues
-    N = [x for x in srange(1,n) if x not in Q]   # non-zero quad non-residues
+    Q = quadratic_residues(n)
+    Q.remove(0)       # non-zero quad residues
+    N = [x for x in srange(1, n) if x not in Q]   # non-zero quad non-residues
     if q not in Q:
         raise ValueError("the order of the finite field must be a quadratic residue modulo n")
     return DuadicCodeOddPair(F,Q,N)
+
 
 def random_linear_code(F, length, dimension):
     r"""
@@ -691,7 +689,6 @@ def random_linear_code(F, length, dimension):
         G = random_matrix(F, dimension, length)
         if G.rank() == dimension:
             return LinearCode(G)
-
 
 def ToricCode(P,F):
     r"""
@@ -765,7 +762,6 @@ def ToricCode(P,F):
     # now B0 *should* be a full rank matrix
     MS = MatrixSpace(F,k,n)
     return LinearCode(MS(B))
-
 
 def WalshCode(m):
     r"""

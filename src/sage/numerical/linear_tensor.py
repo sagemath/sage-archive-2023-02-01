@@ -3,9 +3,9 @@ Matrix/Vector-Valued Linear Functions: Parents
 
 In Sage, matrices assume that the base is a ring. Hence, we cannot
 construct matrices whose entries are linear functions in Sage. Really,
-they should be thought of as the tensor product of the R-module of
-linear functions and the R-module of vector/matrix spaces (`R` is
-``QQ`` or ``RDF`` for our purposes).
+they should be thought of as the tensor product of the `R`-module of
+linear functions and the `R`-vector/matrix space, with the latter viewed
+as an `R`-module (`R` is usually ``QQ`` or ``RDF`` for our purposes).
 
 You should not construct any tensor products by calling the parent
 directly. This is also why none of the classes are imported in the
@@ -387,7 +387,7 @@ class LinearTensorParent_class(Parent):
             sage: LT({1:[1, 2]})    # indirect doctest
             (1.0, 2.0)*x_1
             sage: type(_)
-            <type 'sage.numerical.linear_tensor_element.LinearTensor'>
+            <class 'sage.numerical.linear_tensor_element.LinearTensor'>
 
         Construct from scalar:
 
@@ -415,10 +415,7 @@ class LinearTensorParent_class(Parent):
         """
         M = self.free_module()
         if is_LinearTensor(x):
-            if x.parent() is self:
-                return x
-            else:
-                x = x.dict()
+            x = x.dict()
         elif is_LinearFunction(x):
             x = dict([key, self._convert_constant(value)] for key, value in x.dict().items())
         elif isinstance(x, dict):

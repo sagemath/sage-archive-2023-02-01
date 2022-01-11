@@ -18,7 +18,7 @@ AUTHORS:
 
 REFERENCE:
 
-.. [Godsil93] Chris Godsil (1993) Algebraic Combinatorics.
+[God1993]_
 
 
 Methods
@@ -41,7 +41,7 @@ from cysignals.signals cimport sig_on, sig_off
 from sage.rings.polynomial.polynomial_ring import polygen
 from sage.rings.integer_ring import ZZ
 from sage.rings.integer cimport Integer
-from sage.misc.all import prod
+from sage.misc.misc_c import prod
 
 from sage.libs.flint.fmpz cimport *
 from sage.libs.flint.fmpz_poly cimport *
@@ -54,7 +54,7 @@ def matching_polynomial(G, complement=True, name=None):
     Computes the matching polynomial of the graph `G`.
 
     If `p(G, k)` denotes the number of `k`-matchings (matchings with `k` edges)
-    in `G`, then the matching polynomial is defined as [Godsil93]_:
+    in `G`, then the matching polynomial is defined as [God1993]_:
 
     .. MATH::
 
@@ -79,18 +79,18 @@ def matching_polynomial(G, complement=True, name=None):
     ALGORITHM:
 
     The algorithm used is a recursive one, based on the following observation
-    [Godsil93]_:
+    [God1993]_:
 
     - If `e` is an edge of `G`, `G'` is the result of deleting the edge `e`, and
       `G''` is the result of deleting each vertex in `e`, then the matching
       polynomial of `G` is equal to that of `G'` minus that of `G''`.
 
       (the algorithm actually computes the *signless* matching polynomial, for
-      which the recursion is the same when one replaces the substraction by an
+      which the recursion is the same when one replaces the subtraction by an
       addition. It is then converted into the matching polynomial and returned)
 
     Depending on the value of ``complement``, Godsil's duality theorem
-    [Godsil93]_ can also be used to compute `\mu(x)` :
+    [God1993]_ can also be used to compute `\mu(x)` :
 
     .. MATH::
 
@@ -328,9 +328,9 @@ def complete_poly(n):
 
     Checking the numerical results up to 20::
 
-        sage: from sage.functions.orthogonal_polys import hermite
-        sage: p = lambda n: 2^(-n/2)*hermite(n, x/sqrt(2))
-        sage: all(p(i) == complete_poly(i) for i in range(2, 20))
+        sage: from sage.functions.orthogonal_polys import hermite       # optional - sage.symbolic
+        sage: p = lambda n: 2^(-n/2)*hermite(n, x/sqrt(2))              # optional - sage.symbolic
+        sage: all(p(i) == complete_poly(i) for i in range(2, 20))       # optional - sage.symbolic
         True
     """
     # global complete_matching_polys # if we do eventually make it a C array...

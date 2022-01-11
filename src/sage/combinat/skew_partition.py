@@ -104,7 +104,7 @@ is an involution::
     [4, 3, 1] / [2]
 
 The :meth:`jacobi_trudi()` method computes the Jacobi-Trudi matrix. See
-[Mac95]_ for a definition and discussion.
+[Mac1995]_ for a definition and discussion.
 
 ::
 
@@ -121,11 +121,6 @@ This example shows how to compute the corners of a skew partition.
     [(0, 2), (1, 0)]
     sage: SkewPartition([[4,3,1],[2]]).outer_corners()
     [(0, 3), (1, 2), (2, 0)]
-
-REFERENCES:
-
-.. [Mac95] Macdonald I.-G., (1995), "Symmetric Functions and Hall
-   Polynomials", Oxford Science Publication
 
 AUTHORS:
 
@@ -146,9 +141,6 @@ AUTHORS:
 #
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
-from __future__ import print_function
-
-from six.moves import range
 
 from sage.structure.global_options import GlobalOptions
 from sage.structure.parent import Parent
@@ -156,7 +148,8 @@ from sage.structure.unique_representation import UniqueRepresentation
 from sage.categories.infinite_enumerated_sets import InfiniteEnumeratedSets
 from sage.categories.finite_enumerated_sets import FiniteEnumeratedSets
 
-from sage.rings.all import ZZ, QQ
+from sage.rings.integer_ring import ZZ
+from sage.rings.rational_field import QQ
 from sage.sets.set import Set
 from sage.graphs.digraph import DiGraph
 from sage.matrix.matrix_space import MatrixSpace
@@ -458,11 +451,16 @@ class SkewPartition(CombinatorialElement):
               ┌┐
             ┌┬┴┘
             └┘
+
+        TESTS::
+
+            sage: unicode_art(SkewPartition([[],[]]))
+            ∅
         """
         from sage.typeset.unicode_art import UnicodeArt
         out, inn = self
         inn = inn + [0] * (len(out) - len(inn))
-        if not self._list:
+        if not any(self._list):
             return UnicodeArt(u'∅')
         if self.parent().options.convention == "French":
             s, t, b, l, r, tr, tl, br, bl, x, h = list(u' ┴┬├┤┘└┐┌┼─')
@@ -696,7 +694,7 @@ class SkewPartition(CombinatorialElement):
         l_out = len(lam)
         l_in = len(mu)
         mu += [0]*(l_out-l_in)
-        
+
         if l_out == 0:
             return True
         else:
@@ -710,7 +708,7 @@ class SkewPartition(CombinatorialElement):
                 else:
                     u += 1
 
-            # Find the least v strictly greater than u for which 
+            # Find the least v strictly greater than u for which
             # lam[v] != mu[v-1]+1
             v = u + 1
             v_test = True
@@ -925,21 +923,13 @@ class SkewPartition(CombinatorialElement):
         In other words, the Frobenius rank of `\lambda / \mu` is the
         number of rows in the Jacobi-Trudi matrix of `\lambda / \mu`
         which don't contain `h_0`. Further definitions have been
-        considered in [Stan2002]_ (where Frobenius rank is just being
+        considered in [Sta2002]_ (where Frobenius rank is just being
         called rank).
 
         If `\mu` is the empty shape, then the Frobenius rank of
         `\lambda / \mu` is just the usual Frobenius rank of the
         partition `\lambda` (see
         :meth:`~sage.combinat.partition.Partition.frobenius_rank()`).
-
-        REFERENCES:
-
-        .. [Stan2002] Richard P. Stanley,
-           *The rank and minimal border strip decompositions of a
-           skew partition*,
-           J. Combin. Theory Ser. A 100 (2002), pp. 349-375.
-           :arxiv:`math/0109092v1`.
 
         EXAMPLES::
 
@@ -1015,7 +1005,7 @@ class SkewPartition(CombinatorialElement):
             sage: s.to_list()
             [[4, 3, 1], [2]]
             sage: type(s.to_list())
-            <... 'list'>
+            <class 'list'>
         """
         return [list(_) for _ in list(self)]
 
@@ -1514,9 +1504,9 @@ class SkewPartitions(UniqueRepresentation, Parent):
         if not all(i>0 for i in rowL) or not all(i>0 for i in colL):
             raise ValueError("row and column length must be positive")
         if rowL == []:
-            return self.element_class(self, [[],[]])
+            return self.element_class(self, [[], []])
         colL_new = colL[:]
-        resIn  = []
+        resIn = []
         resOut = []
         inPOld = len(colL)
         for row in rowL:
@@ -1527,12 +1517,13 @@ class SkewPartitions(UniqueRepresentation, Parent):
             resIn.append(inP)
             resOut.append(len(colL_new))
             for iCol in range(inP, len(colL_new)):
-                colL_new[iCol] -= 1;
+                colL_new[iCol] -= 1
                 if colL_new[iCol] < 0:
                     raise ValueError("Incompatible row and column length : %s and %s"%(rowL, colL))
-            while colL_new != [] and colL_new[-1] == 0:
+            while colL_new and colL_new[-1] == 0:
                 colL_new.pop()
         return self.element_class(self, [resOut, [x for x in resIn if x]])
+
 
 class SkewPartitions_all(SkewPartitions):
     """
@@ -1723,13 +1714,10 @@ class SkewPartitions_n(SkewPartitions):
             sage: [ sp for sp in s if sp.row_lengths() == [2,1] ]
             [[2, 1] / []]
         """
-        nn = len(co)
         result = 1
-        for i in range(nn-1):
-            comb    = min(co[i], co[i+1])
-            comb   += 1 - overlap
-            result *= comb
-
+        shift = 1 - overlap
+        for i in range(len(co) - 1):
+            result *= min(co[i], co[i + 1]) + shift
         return result
 
     def cardinality(self):
@@ -1934,7 +1922,3 @@ class SkewPartitions_rowlengths(SkewPartitions):
 
 from sage.misc.persist import register_unpickle_override
 register_unpickle_override('sage.combinat.skew_partition', 'SkewPartition_class', SkewPartition)
-
-# Deprecations from trac:18555. July 2016
-from sage.misc.superseded import deprecated_function_alias
-SkewPartitions.global_options=deprecated_function_alias(18555, SkewPartitions.options)

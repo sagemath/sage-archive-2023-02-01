@@ -1,7 +1,6 @@
 """
 Witt symmetric functions
 """
-from __future__ import absolute_import
 #*****************************************************************************
 #       Copyright (C) 2007 Mike Hansen <mhansen@gmail.com>
 #                     2012 Mike Zabrocki <mike.zabrocki@gmail.com>
@@ -19,7 +18,7 @@ from __future__ import absolute_import
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 from . import multiplicative
-from sage.matrix.all import matrix
+from sage.matrix.constructor import matrix
 
 class SymmetricFunctionAlgebra_witt(multiplicative.SymmetricFunctionAlgebra_multiplicative):
     r"""
@@ -107,7 +106,7 @@ class SymmetricFunctionAlgebra_witt(multiplicative.SymmetricFunctionAlgebra_mult
     REFERENCES:
 
     .. [HazWitt1] Michiel Hazewinkel. *Witt vectors. Part 1*.
-       :arXiv:`0804.3888v1`
+       :arxiv:`0804.3888v1`
 
     .. [DoranIV1996] William F. Doran IV.
        *A Proof of Reutenauer's `-q_{(n)}` Conjecture*.
@@ -116,7 +115,7 @@ class SymmetricFunctionAlgebra_witt(multiplicative.SymmetricFunctionAlgebra_mult
 
     .. [BorWi2004] James Borger, Ben Wieland.
        *Plethystic algebra*.
-       :arXiv:`math/0407227v1`
+       :arxiv:`math/0407227v1`
 
     .. [GriRei18]_
 
@@ -372,11 +371,11 @@ class SymmetricFunctionAlgebra_witt(multiplicative.SymmetricFunctionAlgebra_mult
         sage: s(w([4]))
         -s[1, 1, 1, 1] - s[2, 1, 1] - s[2, 2] - s[3, 1]
         sage: [type(coeff) for a, coeff in h(w([4]))]
-        [<... 'sage.rings.integer.Integer'>,
-         <... 'sage.rings.integer.Integer'>,
-         <... 'sage.rings.integer.Integer'>,
-         <... 'sage.rings.integer.Integer'>,
-         <... 'sage.rings.integer.Integer'>]
+        [<class 'sage.rings.integer.Integer'>,
+         <class 'sage.rings.integer.Integer'>,
+         <class 'sage.rings.integer.Integer'>,
+         <class 'sage.rings.integer.Integer'>,
+         <class 'sage.rings.integer.Integer'>]
 
         sage: w(h[3])
         w[1, 1, 1] + w[2, 1] + w[3]

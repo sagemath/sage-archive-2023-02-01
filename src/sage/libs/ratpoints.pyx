@@ -1,3 +1,4 @@
+# distutils: libraries = ratpoints
 r"""
 Hyperelliptic Curve Point Finding, via ratpoints (deprecated)
 
@@ -9,12 +10,10 @@ This module is deprecated, use PARI instead::
     [[-2, 0], [-2, -1], [-1, 1], [-1, -2], [0, 0], [0, -1], [1, 0], [1, -1], [3, 5], [3, -6], [4, 8], [4, -9], [-3/4, 7/8], [-3/4, -15/8]]
 """
 
-from __future__ import print_function
-
 from cysignals.memory cimport sig_malloc, sig_realloc, sig_free
 from cysignals.signals cimport sig_on, sig_off
 
-from sage.misc.superseded import deprecation
+from sage.misc.superseded import deprecation_cython as deprecation
 deprecation(24531, "the module sage.libs.ratpoints is deprecated; use pari.ellratpoints or pari.hyperellratpoints instead")
 
 

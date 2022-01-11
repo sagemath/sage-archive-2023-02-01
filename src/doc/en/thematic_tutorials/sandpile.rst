@@ -86,18 +86,18 @@ and two have gone to vertex 3, since the edge from 1 to 3 has weight `2`.
 Vertex 3 in the new configuration is now unstable.  The Sage code for this
 example follows. ::
 
-    sage: g = {'sink':{},
-    ....:      1:{'sink':1, 2:1, 3:2},
+    sage: g = {0:{},
+    ....:      1:{0:1, 2:1, 3:2},
     ....:      2:{1:1, 3:1},
     ....:      3:{1:1, 2:1}}
-    sage: S = Sandpile(g, 'sink')   # create the sandpile
+    sage: S = Sandpile(g, 0)   # create the sandpile
     sage: S.show(edge_labels=true)  # display the graph
 
 Create the configuration::
 
     sage: c = SandpileConfig(S, {1:5, 2:0, 3:1})
     sage: S.out_degree()
-    {1: 4, 2: 2, 3: 2, 'sink': 0}
+    {0: 0, 1: 4, 2: 2, 3: 2}
 
 Fire vertex `1`::
 
@@ -162,12 +162,12 @@ Laplacian.
 **Example.** (Continued.) ::
 
     sage: S.vertices()  # the ordering of the vertices
-    [1, 2, 3, 'sink']
+    [0, 1, 2, 3]
     sage: S.laplacian()
-    [ 4 -1 -2 -1]
-    [-1  2 -1  0]
-    [-1 -1  2  0]
     [ 0  0  0  0]
+    [-1  4 -1 -2]
+    [ 0 -1  2 -1]
+    [ 0 -1 -1  2]
     sage: S.reduced_laplacian()
     [ 4 -1 -2]
     [-1  2 -1]
@@ -324,9 +324,9 @@ sink.
     [1, 1, 3]
     sage: S.reduced_laplacian().dense_matrix().smith_form()
     (
-    [1 0 0]  [ 0  0  1]  [3 1 4]
-    [0 1 0]  [ 1  0  0]  [4 1 6]
-    [0 0 3], [ 0  1 -1], [4 1 5]
+    [1 0 0]  [ 1  0  0]  [1 3 5]
+    [0 1 0]  [ 0  1  0]  [1 4 6]
+    [0 0 3], [ 0 -1  1], [1 4 7]
     )
 
 Adding the identity to any recurrent configuration and stabilizing yields
@@ -669,21 +669,25 @@ faithful representation of the sandpile group on `\CC^n`.
 Approximation to the zero set (setting ``x_0 = 1``)::
 
     sage: S.solve()
-    [[-0.707107 + 0.707107*I, 0.707107 - 0.707107*I],
-    [-0.707107 - 0.707107*I, 0.707107 + 0.707107*I],
-    [-I, -I],
-    [I, I],
-    [0.707107 + 0.707107*I, -0.707107 - 0.707107*I],
-    [0.707107 - 0.707107*I, -0.707107 + 0.707107*I],
-    [1, 1],
-    [-1, -1]]
+    [[-0.707107000000000 + 0.707107000000000*I,
+      0.707107000000000 - 0.707107000000000*I],
+     [-0.707107000000000 - 0.707107000000000*I,
+      0.707107000000000 + 0.707107000000000*I],
+     [-I, -I],
+     [I, I],
+     [0.707107000000000 + 0.707107000000000*I,
+      -0.707107000000000 - 0.707107000000000*I],
+     [0.707107000000000 - 0.707107000000000*I,
+      -0.707107000000000 + 0.707107000000000*I],
+     [1, 1],
+     [-1, -1]]
     sage: len(_) == S.group_order()
     True
 
 The zeros are generated as a group by a single vector::
 
     sage: S.points()
-    [[(1/2*I + 1/2)*sqrt(2), -(1/2*I + 1/2)*sqrt(2)]]
+    [[-(1/2*I + 1/2)*sqrt(2), (1/2*I + 1/2)*sqrt(2)]]
 
 
 Resolutions
@@ -798,9 +802,9 @@ Initialization
 
 There are three main classes for sandpile structures in Sage: ``Sandpile``,
 ``SandpileConfig``, and ``SandpileDivisor``.  Initialization for ``Sandpile``
-has the form
+has the form ::
 
-.. code-block:: python
+.. skip
 
     sage: S = Sandpile(graph, sink)
 
@@ -1380,12 +1384,12 @@ EXAMPLES::
 
     sage: s = sandpiles.Cycle(5)
     sage: s.group_gens()
-    [{1: 1, 2: 1, 3: 1, 4: 0}]
+    [{1: 0, 2: 1, 3: 1, 4: 1}]
     sage: s.group_gens()[0].order()
     5
     sage: s = sandpiles.Complete(5)
     sage: s.group_gens(False)
-    [[2, 2, 3, 2], [2, 3, 2, 2], [3, 2, 2, 2]]
+    [[2, 3, 2, 2], [2, 2, 3, 2], [2, 2, 2, 3]]
     sage: [i.order() for i in s.group_gens()]
     [5, 5, 5]
     sage: s.invariant_factors()
@@ -1459,50 +1463,7 @@ EXAMPLES::
     avalanche_polynomial     -- The avalanche polynomial.
     betti                    -- The Betti table for the homogeneous toppling ideal.
     betti_complexes          -- The support-complexes with non-trivial homology.
-    burning_config           -- The minimal burning configuration.
-    burning_script           -- A script for the minimal burning configuration.
-    canonical_divisor        -- The canonical divisor.
-    dict                     -- A dictionary of dictionaries representing a directed graph.
-    genus                    -- The genus: (# non-loop edges) - (# vertices) + 1.
-    groebner                 -- A Groebner basis for the homogeneous toppling ideal.
-    group_gens               -- A minimal list of generators for the sandpile group.
-    group_order              -- The size of the sandpile group.
-    h_vector                 -- The number of superstable configurations in each degree.
-    help                     -- List of Sandpile-specific methods (not inherited from "Graph").
-    hilbert_function         -- The Hilbert function of the homogeneous toppling ideal.
-    ideal                    -- The saturated homogeneous toppling ideal.
-    identity                 -- The identity configuration.
-    in_degree                -- The in-degree of a vertex or a list of all in-degrees.
-    invariant_factors        -- The invariant factors of the sandpile group.
-    is_undirected            -- Is the underlying graph undirected?
-    jacobian_representatives -- Representatives for the elements of the Jacobian group.
-    laplacian                -- The Laplacian matrix of the graph.
-    markov_chain             -- The sandpile Markov chain for configurations or divisors.
-    max_stable               -- The maximal stable configuration.
-    max_stable_div           -- The maximal stable divisor.
-    max_superstables         -- The maximal superstable configurations.
-    min_recurrents           -- The minimal recurrent elements.
-    nonsink_vertices         -- The nonsink vertices.
-    nonspecial_divisors      -- The nonspecial divisors.
-    out_degree               -- The out-degree of a vertex or a list of all out-degrees.
-    picard_representatives   -- Representatives of the divisor classes of degree d in the Picard group.
-    points                   -- Generators for the multiplicative group of zeros of the sandpile ideal.
-    postulation              -- The postulation number of the toppling ideal.
-    recurrents               -- The recurrent configurations.
-    reduced_laplacian        -- The reduced Laplacian matrix of the graph.
-    reorder_vertices         -- A copy of the sandpile with vertex names permuted.
-    resolution               -- A minimal free resolution of the homogeneous toppling ideal.
-    ring                     -- The ring containing the homogeneous toppling ideal.
-    show                     -- Draw the underlying graph.
-    show3d                   -- Draw the underlying graph.
-    sink                     -- The sink vertex.
-    smith_form               -- The Smith normal form for the Laplacian.
-    solve                    -- Approximations of the complex affine zeros of the sandpile ideal.
-    stable_configs           -- Generator for all stable configurations.
-    stationary_density       -- The stationary density of the sandpile.
-    superstables             -- The superstable configurations.
-    symmetric_recurrents     -- The symmetric recurrent configurations.
-    tutte_polynomial         -- The Tutte polynomial of the underlying graph.
+    ...
     unsaturated_ideal        -- The unsaturated, homogeneous toppling ideal.
     version                  -- The version number of Sage Sandpiles.
     zero_config              -- The all-zero configuration.
@@ -2054,7 +2015,7 @@ single generator for the group of solutions.
 
     sage: S = sandpiles.Complete(4)
     sage: S.points()
-    [[1, I, -I], [I, 1, -I]]
+    [[-I, I, 1], [-I, 1, I]]
 
 ---
 
@@ -2347,7 +2308,18 @@ EXAMPLES::
 
     sage: S = Sandpile({0: {}, 1: {2: 2}, 2: {0: 4, 1: 1}}, 0)
     sage: S.solve()
-    [[-0.707107 + 0.707107*I, 0.707107 - 0.707107*I], [-0.707107 - 0.707107*I, 0.707107 + 0.707107*I], [-I, -I], [I, I], [0.707107 + 0.707107*I, -0.707107 - 0.707107*I], [0.707107 - 0.707107*I, -0.707107 + 0.707107*I], [1, 1], [-1, -1]]
+    [[-0.707107000000000 + 0.707107000000000*I,
+      0.707107000000000 - 0.707107000000000*I],
+     [-0.707107000000000 - 0.707107000000000*I,
+      0.707107000000000 + 0.707107000000000*I],
+     [-I, -I],
+     [I, I],
+     [0.707107000000000 + 0.707107000000000*I,
+      -0.707107000000000 - 0.707107000000000*I],
+     [0.707107000000000 - 0.707107000000000*I,
+      -0.707107000000000 + 0.707107000000000*I],
+     [1, 1],
+     [-1, -1]]
     sage: len(_)
     8
     sage: S.group_order()
@@ -3595,14 +3567,14 @@ boolean
 
 EXAMPLES::
 
-    sage: S = Sandpile({'a':[1,'b'], 'b':[1,'a'], 1:['a']},'a')
-    sage: c = SandpileConfig(S, {'b':1, 1:2})
+    sage: S = Sandpile({'a':['c','b'], 'b':['c','a'], 'c':['a']},'a')
+    sage: c = SandpileConfig(S, {'b':1, 'c':2})
     sage: c
-    {1: 2, 'b': 1}
+    {'b': 1, 'c': 2}
     sage: c.values()
-    [2, 1]
+    [1, 2]
     sage: S.nonsink_vertices()
-    [1, 'b']
+    ['b', 'c']
 
 ---
 
@@ -3995,6 +3967,7 @@ OUTPUT:
 SandpileDivisor
 
 EXAMPLES::
+
     sage: S = sandpiles.Cycle(3)
     sage: D = SandpileDivisor(S, [1,2,3])
     sage: D.dualize()
@@ -4241,7 +4214,7 @@ EXAMPLES::
     sage: D.is_linearly_equivalent([0,1,1])
     True
     sage: D.is_linearly_equivalent([0,1,1],True)
-    (1, 0, 0)
+    (0, -1, -1)
     sage: v = vector(D.is_linearly_equivalent([0,1,1],True))
     sage: vector(D.values()) - s.laplacian()*v
     (0, 1, 1)
@@ -4675,14 +4648,14 @@ boolean
 
 EXAMPLES::
 
-    sage: S = Sandpile({'a':[1,'b'], 'b':[1,'a'], 1:['a']},'a')
-    sage: D = SandpileDivisor(S, {'a':0, 'b':1, 1:2})
+    sage: S = Sandpile({'a':['c','b'], 'b':['c','a'], 'c':['a']},'a')
+    sage: D = SandpileDivisor(S, {'a':0, 'b':1, 'c':2})
     sage: D
-    {'a': 0, 1: 2, 'b': 1}
+    {'a': 0, 'b': 1, 'c': 2}
     sage: D.values()
-    [2, 0, 1]
+    [0, 1, 2]
     sage: S.vertices()
-    [1, 'a', 'b']
+    ['a', 'b', 'c']
 
 
 ---
@@ -4911,6 +4884,8 @@ Other
     EXAMPLES::
 
         sage: S = random_DAG(5, 0.3)
+        doctest:...: DeprecationWarning: method random_DAG is deprecated. Please use digraphs.RandomDirectedAcyclicGraph instead.
+        See https://trac.sagemath.org/30479 for details.
 
 ---
 
@@ -4965,12 +4940,12 @@ Other
 
         sage: P = matrix([[2,3,-7,-3],[5,2,-5,5],[8,2,5,4],[-5,-9,6,6]])
         sage: wilmes_algorithm(P)
-        [ 1642   -13 -1627    -1]
-        [   -1  1980 -1582  -397]
+        [ 3279   -79 -1599 -1600]
+        [   -1  1539  -136 -1402]
         [    0    -1  1650 -1649]
         [    0     0 -1658  1658]
 
-    NOTES:
+    NOTE:
 
     The algorithm is due to John Wilmes.
 
@@ -4984,7 +4959,7 @@ Documentation for each method is available through the Sage online help system:
 ::
 
     sage: SandpileConfig.fire_vertex?
-    Base Class:     <type 'instancemethod'>
+    Base Class:     <class 'instancemethod'>
     String Form:    <unbound method SandpileConfig.fire_vertex>
     Namespace:      Interactive
     File:           /usr/local/sage-4.7/local/lib/python2.6/site-packages/sage/sandpiles/sandpile.py

@@ -29,8 +29,6 @@ Authors:
 #
 #                  http://www.gnu.org/licenses/
 #****************************************************************************
-from __future__ import print_function, absolute_import
-from six import add_metaclass, iteritems
 
 from sage.structure.unique_representation import UniqueRepresentation
 from sage.categories.finite_enumerated_sets import FiniteEnumeratedSets
@@ -41,8 +39,7 @@ from sage.combinat.skew_tableau import SkewTableau, SemistandardSkewTableaux
 from sage.combinat.partition import Partition, Partitions
 from sage.combinat.root_system.weyl_group import WeylGroup
 from sage.combinat.core import Core
-from sage.rings.all import ZZ
-from sage.misc.misc import uniq
+from sage.rings.integer_ring import ZZ
 from sage.functions.generalized import sgn
 from sage.misc.flatten import flatten
 from sage.combinat.skew_partition import SkewPartition
@@ -260,8 +257,8 @@ def WeakTableaux(k, shape , weight, representation = "core"):
         raise NotImplementedError("The representation option needs to be 'core', 'bounded', or 'factorized_permutation'")
 
 #Abstract class for the elements of weak tableau
-@add_metaclass(InheritComparisonClasscallMetaclass)
-class WeakTableau_abstract(ClonableList):
+class WeakTableau_abstract(ClonableList,
+        metaclass=InheritComparisonClasscallMetaclass):
     r"""
     Abstract class for the various element classes of WeakTableau.
     """
@@ -815,7 +812,7 @@ class WeakTableau_core(WeakTableau_abstract):
         if not self.parent()._weight == WeakTableau_bounded.from_core_tableau(self,self.k).weight():
             raise ValueError("The weight of the parent does not agree with the weight of the tableau!")
         t = SkewTableau(list(self))
-        if not t in SemistandardSkewTableaux():
+        if t not in SemistandardSkewTableaux():
             raise ValueError("The tableau is not semistandard!")
         outer = Core(t.outer_shape(),self.k+1)
         inner = Core(t.inner_shape(),self.k+1)
@@ -829,7 +826,7 @@ class WeakTableau_core(WeakTableau_abstract):
         r"""
         Return the bounded representation of the weak `k`-tableau ``self``.
 
-        Each restricted sutableaux of the output is a `k`-bounded partition.
+        Each restricted subtableau of the output is a `k`-bounded partition.
 
         EXAMPLES::
 
@@ -918,7 +915,11 @@ class WeakTableau_core(WeakTableau_abstract):
             sage: t.residues_of_entries(1)
             [2, 3]
         """
-        return uniq([(j - i)%(self.k+1) for i in range(len(self)) for j in range(len(self[i])) if self[i][j] == v])
+        S = set((j - i) % (self.k+1)
+                for i in range(len(self))
+                for j in range(len(self[i]))
+                if self[i][j] == v)
+        return sorted(S)
 
     def dictionary_of_coordinates_at_residues(self, v):
         r"""
@@ -1017,7 +1018,7 @@ class WeakTableau_core(WeakTableau_abstract):
             r = self[0].count(1) - i - 1
             for v in range(1,mu[i]):
                 D = self.dictionary_of_coordinates_at_residues(v+1)
-                new_D = {a: b for (a, b) in iteritems(D)
+                new_D = {a: b for (a, b) in D.items()
                          if all(x not in already_used for x in b)}
                 r = (r - min([self.k+1 - (x-r)%(self.k+1) for x in new_D]))%(self.k+1)
                 standard_cells.append(new_D[r][-1])
@@ -1274,7 +1275,7 @@ class WeakTableaux_core(WeakTableaux_abstract):
             sage: TestSuite(T).run()
         """
         self.k = k
-        self._skew = shape[1]!=[]
+        self._skew = bool(shape[1])
         self._outer_shape = shape[0]
         self._inner_shape = shape[1]
         self._shape = (self._outer_shape, self._inner_shape)
@@ -1537,7 +1538,7 @@ class WeakTableau_bounded(WeakTableau_abstract):
             ValueError: The tableaux is not semistandard!
         """
         t = SkewTableau(list(self))
-        if not t in SemistandardSkewTableaux():
+        if t not in SemistandardSkewTableaux():
             raise ValueError("The tableaux is not semistandard!")
         if not self.parent()._weight == tuple(t.weight()):
             raise ValueError("The weight of the parent does not agree with the weight of the tableau!")
@@ -1740,7 +1741,7 @@ class WeakTableaux_bounded(WeakTableaux_abstract):
             sage: TestSuite(T).run()
         """
         self.k = k
-        self._skew = shape[1]!=[]
+        self._skew = bool(shape[1])
         self._outer_shape = Partition(shape[0])
         self._inner_shape = Partition(shape[1])
         self._shape = (self._outer_shape, self._inner_shape)
@@ -1817,7 +1818,7 @@ class WeakTableau_factorized_permutation(WeakTableau_abstract):
         """
         W = WeylGroup(['A', k, 1], prefix='s')
         if len(t) > 0:
-            if isinstance(t[0], list) or isinstance(t[0], tuple):
+            if isinstance(t[0], (list, tuple)):
                 w_tuple = tuple(W.from_reduced_word(p) for p in t)
             else:
                 w_tuple = tuple(W(r) for r in t)
@@ -1968,7 +1969,7 @@ class WeakTableau_factorized_permutation(WeakTableau_abstract):
             sage: t = WeakTableau([[2,0],[3,2]], 3, representation = 'factorized_permutation')
             Traceback (most recent call last):
             ...
-            ValueError: Error! this only works on type 'A' affine Grassmannian elements
+            ValueError: this only works on type 'A' affine Grassmannian elements
 
             sage: T = WeakTableaux(3, [4,1], [2,1], representation = 'factorized_permutation')
             sage: t = T([[2],[1],[0]])
@@ -2161,7 +2162,7 @@ class WeakTableaux_factorized_permutation(WeakTableaux_abstract):
             sage: TestSuite(T).run() # long time
         """
         self.k = k
-        self._skew = shape[1]!=[]
+        self._skew = bool(shape[1])
         self._outer_shape = Core(shape[0], k+1)
         self._inner_shape = Core(shape[1], k+1)
         self._shape = (self._outer_shape, self._inner_shape)
@@ -2203,8 +2204,7 @@ class WeakTableaux_factorized_permutation(WeakTableaux_abstract):
 
 ######## END weak tableaux BEGIN strong tableaux
 
-@add_metaclass(InheritComparisonClasscallMetaclass)
-class StrongTableau(ClonableList):
+class StrongTableau(ClonableList, metaclass=InheritComparisonClasscallMetaclass):
     r"""
     A (standard) strong `k`-tableau is a (saturated) chain in Bruhat order.
 
@@ -2369,14 +2369,15 @@ class StrongTableau(ClonableList):
         """
         if isinstance(T, cls):
             return T
-        outer_shape = Core([len(t) for t in T], k+1)
-        inner_shape = Core([x for x in [row.count(None) for row in T] if x], k+1)
-        Te = [v for row in T for v in row if v is not None]+[0]
+        outer_shape = Core([len(t) for t in T], k + 1)
+        loop = (row.count(None) for row in T)
+        inner_shape = Core([x for x in loop if x], k + 1)
+        Te = [v for row in T for v in row if v is not None] + [0]
         count_marks = tuple(Te.count(-(i+1)) for i in range(-min(Te)))
-        if not all( v==1 for v in count_marks ):
+        if not all(v == 1 for v in count_marks):
             # if T is not standard -> turn into standard
-            if weight is not None and tuple(weight)!=count_marks:
-                raise ValueError("Weight = %s and tableau = %s do not agree"%(weight, T))
+            if weight is not None and tuple(weight) != count_marks:
+                raise ValueError("Weight = %s and tableau = %s do not agree" % (weight, T))
             tijseq = StrongTableaux.marked_CST_to_transposition_sequence(T, k)
             if tijseq is None or len(tijseq)<sum(list(count_marks)):
                 raise ValueError("Unable to parse strong marked tableau : %s"%T)
@@ -2517,7 +2518,7 @@ class StrongTableau(ClonableList):
         T = self.to_standard_list()
         size = Core([len(t) for t in T], self.k+1).length()
         inner_size = Core([y for y in (len([x for x in row if x is None]) for row in T) if y > 0], self.k+1).length()
-        if len(uniq([v for v in flatten(list(T)) if v in ZZ and v<0]))!=size-inner_size:
+        if len(set(v for v in flatten(list(T)) if v in ZZ and v < 0)) != size - inner_size:
             return False # TT does not have exactly self.size() marked cells
         for i in range(len(T)):
             for j in range(len(T[i])):
@@ -2546,7 +2547,7 @@ class StrongTableau(ClonableList):
             sage: all( T._is_valid_standard() for T in StrongTableaux.standard_marked_iterator(4, 6))
             True
 
-        Inner shape is not a a 3-core::
+        Inner shape is not a 3-core::
 
             sage: StrongTableau([[None, None, None], [-1]], 2)
             Traceback (most recent call last):
@@ -2568,10 +2569,10 @@ class StrongTableau(ClonableList):
             True
         """
         Tshapes = intermediate_shapes(self.to_unmarked_standard_list())
-        if not all( Partition(la).is_core(self.k+1) for la in Tshapes):
+        if not all(Partition(la).is_core(self.k + 1) for la in Tshapes):
             return False
-        Tsizes =[Core(lam, self.k+1).length() for lam in Tshapes]
-        return all(Tsizes[i]==Tsizes[i+1]-1 for i in range(len(Tsizes)-1))
+        Tsizes = [Core(lam, self.k + 1).length() for lam in Tshapes]
+        return all(Tsizes[i] == Tsizes[i+1]-1 for i in range(len(Tsizes)-1))
 
     def is_column_strict_with_weight( self, mu ):
         """
@@ -3174,7 +3175,7 @@ class StrongTableau(ClonableList):
             sage: StrongTableau([],4).height_of_ribbon(1)
             0
         """
-        return len(uniq([c[0] for c in self.cells_of_marked_ribbon(v)]))
+        return len(set(c[0] for c in self.cells_of_marked_ribbon(v)))
 
     def number_of_connected_components(self, v):
         r"""
@@ -4053,7 +4054,7 @@ class StrongTableaux(UniqueRepresentation, Parent):
             sage: StrongTableaux( 4, [[2,1], [1]] ).shape()
             ([2, 1], [1])
         """
-        if self._inner_shape != []:
+        if self._inner_shape:
             return (self._outer_shape, self._inner_shape)
         return self._outer_shape
 
@@ -4449,7 +4450,7 @@ class StrongTableaux(UniqueRepresentation, Parent):
             nextv = ST.entries_by_content(i + 1)
             for c in ST.cells_by_content(i):
                 v = T[c[0]][c[1]]
-                if not v in nextv:
+                if v not in nextv:
                     if v in dout:
                         dout[v] += [c]
                     else:
@@ -4457,7 +4458,7 @@ class StrongTableaux(UniqueRepresentation, Parent):
         return dout
 
     @classmethod
-    def marked_CST_to_transposition_sequence( self, T, k ):
+    def marked_CST_to_transposition_sequence(self, T, k):
         """
         Return a list of transpositions corresponding to ``T``.
 
@@ -4533,7 +4534,7 @@ class StrongTableaux(UniqueRepresentation, Parent):
                     MM = [[LL[a][b] for b in range(len(LL[a])) if (a,b) in mcells]
                           for a in range(len(mP))]
                     transeq = self.marked_CST_to_transposition_sequence(MM, k)
-                    if not transeq is None:
+                    if transeq is not None:
                         return [[j-l, j+1]] + transeq
 
     @classmethod
@@ -4636,9 +4637,3 @@ def intermediate_shapes(t):
     for i in range(len(t.weight())+1):
         shapes += [ t.restrict(i).outer_shape()]
     return shapes
-
-# Deprecations from trac:18555. July 2016
-from sage.misc.superseded import deprecated_function_alias
-
-
-StrongTableaux.global_options = deprecated_function_alias(18555, StrongTableaux.options)

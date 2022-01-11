@@ -46,7 +46,8 @@ from sage.misc.flatten import flatten
 from sage.ext.fast_callable import fast_callable
 from sage.rings.semirings.non_negative_integer_semiring import NN
 from sage.functions.log import log, exp
-from sage.functions.other import floor, sqrt, ceil
+from sage.functions.other import floor, ceil
+from sage.misc.functional import sqrt
 
 
 
@@ -717,7 +718,7 @@ def genfiles_mpfr(integrator, driver, f, ics, initial, final, delta,
         sage: l[16]
         '    int nfun = 0;\n'
         sage: l[26]
-        '\tmpfr_set_str(v[2], "0.0000000000000000000000000000000000000000000000000000", 10, TIDES_RND);\n'
+        '\tmpfr_set_str(v[2], "0.000000000000000000000000000000000000000000000000000", 10, TIDES_RND);\n'
         sage: l[30]
         '\tmpfr_init2(tolabs, TIDES_PREC); \n'
         sage: l[34]

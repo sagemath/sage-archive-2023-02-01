@@ -61,7 +61,6 @@ Note that the function is recomputed each time::
 #THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
 #(INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 #OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
-from __future__ import print_function, absolute_import
 
 from cpython.object cimport PyObject_Call, PyObject_RichCompare
 
@@ -115,12 +114,9 @@ def lazy_string(f, *args, **kwargs):
         sage: s == 'this is a test'
         determining string representation
         True
-        sage: unicode(s)  # py2
-        determining string representation
-        u'this is a test'
-
     """
     return _LazyString(f, args, kwargs)
+
 
 def _make_lazy_string(ftype, fpickle, args, kwargs):
     """
@@ -188,12 +184,7 @@ cdef class _LazyString(object):
         sage: s == 'this is a test'
         determining string representation
         True
-        sage: unicode(s)  # py2
-        determining string representation
-        u'this is a test'
-
     """
-
     def __init__(self, f, args, kwargs):
         """
         INPUT:
@@ -212,8 +203,6 @@ cdef class _LazyString(object):
             l'laziness5'
             sage: lazy_string("This is %s", ZZ)
             l'This is Integer Ring'
-            sage: lazy_string(u"This is %s", ZZ)
-            lu'This is Integer Ring'
         """
         self.func = f
         self.args = <tuple?>args
@@ -340,18 +329,6 @@ cdef class _LazyString(object):
             sage: _ = os.path.exists(tmp)
         """
         return str(self)
-
-    def __unicode__(self):
-        """
-        EXAMPLES::
-
-            sage: from sage.misc.lazy_string import lazy_string
-            sage: f = lambda: "laziness"
-            sage: s = lazy_string(f)
-            sage: unicode(s)  # indirect doctest py2 only
-            u'laziness'
-        """
-        return unicode(self.val())
 
     def __add__(self, other):
         """

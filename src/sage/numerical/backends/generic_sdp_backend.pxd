@@ -24,14 +24,14 @@ cdef class GenericSDPBackend:
     cpdef row(self, int i)
     cpdef int ncols(self)
     cpdef int nrows(self)
-    cpdef problem_name(self, char * name = *)
+    cpdef problem_name(self, name=*)
     cpdef row_name(self, int index)
     cpdef col_name(self, int index)
     cpdef solver_parameter(self, name, value=*)
     cpdef zero(self)
     cpdef base_ring(self)
 
-    cpdef obj_constant_term
+    cdef obj_constant_term
     cdef dict matrices_dim
 
-cpdef GenericSDPBackend get_solver(solver = ?)
+cpdef GenericSDPBackend get_solver(solver=?, base_ring=?)

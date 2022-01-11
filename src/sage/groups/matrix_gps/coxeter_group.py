@@ -18,7 +18,6 @@ AUTHORS:
 #
 #                  http://www.gnu.org/licenses/
 ##############################################################################
-from six.moves import range
 
 from sage.structure.unique_representation import UniqueRepresentation
 from sage.categories.coxeter_groups import CoxeterGroups
@@ -28,10 +27,11 @@ from sage.groups.matrix_gps.group_element import MatrixGroupElement_generic
 from sage.matrix.args import SparseEntry
 from sage.matrix.matrix_space import MatrixSpace
 
-from sage.rings.all import ZZ
+import sage.rings.abc
+from sage.rings.integer_ring import ZZ
 from sage.rings.infinity import infinity
 from sage.rings.universal_cyclotomic_field import UniversalCyclotomicField
-from sage.rings.number_field.number_field import QuadraticField, is_QuadraticField
+from sage.rings.number_field.number_field import QuadraticField
 
 from sage.misc.cachefunc import cached_method
 
@@ -186,8 +186,7 @@ class CoxeterMatrixGroup(UniqueRepresentation, FinitelyGeneratedMatrixGroup_gene
         [2 2 3 2 1]
         sage: W = CoxeterGroup(['H',3], implementation="reflection")
         sage: W
-        Finite Coxeter group over Number Field in a with defining polynomial
-        x^2 - 5 with Coxeter matrix:
+        Finite Coxeter group over Number Field in a with defining polynomial x^2 - 5 with a = 2.236067977499790? with Coxeter matrix:
         [1 3 2]
         [3 1 5]
         [2 5 1]
@@ -282,7 +281,7 @@ class CoxeterMatrixGroup(UniqueRepresentation, FinitelyGeneratedMatrixGroup_gene
                     return 2
                 else:
                     return E(2 * x) + ~E(2 * x)
-        elif is_QuadraticField(base_ring):
+        elif isinstance(base_ring, sage.rings.abc.NumberField_quadratic):
 
             def val(x):
                 if x == -1:
@@ -328,8 +327,7 @@ class CoxeterMatrixGroup(UniqueRepresentation, FinitelyGeneratedMatrixGroup_gene
         EXAMPLES::
 
             sage: CoxeterGroup([[1,3,2],[3,1,4],[2,4,1]])
-            Finite Coxeter group over Number Field in a with
-            defining polynomial x^2 - 2 with Coxeter matrix:
+            Finite Coxeter group over Number Field in a with defining polynomial x^2 - 2 with a = 1.414213562373095? with Coxeter matrix:
             [1 3 2]
             [3 1 4]
             [2 4 1]

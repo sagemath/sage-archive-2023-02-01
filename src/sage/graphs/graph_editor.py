@@ -1,8 +1,7 @@
 r"""
 Graph editor
 """
-from __future__ import absolute_import
-#*****************************************************************************
+# ****************************************************************************
 #      Copyright (C) 2009   Radoslav Kirov
 #
 #  Distributed under the terms of the GNU General Public License (GPL)
@@ -14,14 +13,12 @@ from __future__ import absolute_import
 #
 #  The full text of the GPL is available at:
 #
-#                  http://www.gnu.org/licenses/
-#*****************************************************************************
+#                  https://www.gnu.org/licenses/
+# ****************************************************************************
 import sys
 
 from .graph_generators import graphs
 from sage.misc.html import html
-
-from sage.server.support import EMBEDDED_MODE
 
 
 def graph_to_js(g):
@@ -52,7 +49,7 @@ def graph_to_js(g):
     string += 'num_vertices=' + str(len(vertex_list)) + ';'
     string += 'edges=['
     for i, e in enumerate(g.edges()):
-        if(i != 0):
+        if i:
             string += ','
         string += '[' + str(vertex_list.index(e[0])) + ',' + str(vertex_list.index(e[1])) + ']'
     string += '];'
@@ -67,7 +64,7 @@ def graph_to_js(g):
     if max_y == 0:
         max_y = 1
     for i, v in enumerate(vertex_list):
-        if(i != 0):
+        if i:
             string += ','
         new_pos = [float(pos[v][0] - min_x) / (max_x - min_x),
                    1.0 - float(pos[v][1] - min_y) / (max_y - min_y)]
@@ -75,6 +72,7 @@ def graph_to_js(g):
     string += '];'
     string = string.replace(' ', '')
     return string
+
 
 def graph_editor(graph=None, graph_name=None,
                  replace_input=True, **layout_options):
@@ -108,10 +106,9 @@ def graph_editor(graph=None, graph_name=None,
     if graph is None:
         graph = graphs.CompleteGraph(2)
 
-    if not EMBEDDED_MODE:
-        return "This graph editor only runs in the Sage notebook."
+    return "This graph editor only runs in the deprecated Sage notebook."
 
-    graph.layout(save_pos = True, **layout_options)
+    graph.layout(save_pos=True, **layout_options)
 
     if graph_name is None:
         graph_name = ''

@@ -1,12 +1,10 @@
 r"""
 Decorate interface for parallel computation
 """
-from __future__ import print_function, absolute_import
-from six import integer_types
 
 import types
 
-from sage.rings.all import Integer
+from sage.rings.integer import Integer
 
 from .reference import parallel_iter as p_iter_reference
 from .use_fork import p_iter_fork
@@ -70,7 +68,7 @@ class Parallel(object):
 
         self.p_iter = None
 
-        if isinstance(p_iter, integer_types + (Integer,)):
+        if isinstance(p_iter, (int, Integer)):
             p_iter, ncpus = 'fork', p_iter
 
         if ncpus is None:
@@ -410,7 +408,6 @@ def parallel(p_iter='fork', ncpus=None, **kwds):
        Currently, parallel methods do not work with the
        multiprocessing implementation.
     """
-    import types
     if isinstance(p_iter, types.FunctionType):
         return Parallel()(p_iter)
     return Parallel(p_iter, ncpus, **kwds)

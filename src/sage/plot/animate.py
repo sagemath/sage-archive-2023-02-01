@@ -18,10 +18,10 @@ alternative which works without any extra dependencies.
 
 .. WARNING::
 
-    Note that ImageMagick and FFmpeg are not included with Sage, and
+    Note that ``ImageMagick`` and ``FFmpeg`` are not included with Sage, and
     must be installed by the user.  On unix systems, type ``which
     convert`` at a command prompt to see if ``convert`` (part of the
-    ImageMagick suite) is installed.  If it is, you will be given its
+    ``ImageMagick`` suite) is installed.  If it is, you will be given its
     location.  Similarly, you can check for ``ffmpeg`` with ``which
     ffmpeg``.  See the websites of ImageMagick_ or FFmpeg_ for
     installation instructions.
@@ -45,7 +45,7 @@ Animate as an APNG_::
 
     sage: a.apng()  # long time
 
-An animated :class:`sage.plot.graphics.GraphicsArray` of rotating ellipses::
+An animated :class:`sage.plot.multigraphics.GraphicsArray` of rotating ellipses::
 
     sage: E = animate((graphics_array([[ellipse((0,0),a,b,angle=t,xmin=-3,xmax=3)+circle((0,0),3,color='blue') for a in range(1,3)] for b in range(2,4)]) for t in sxrange(0,pi/4,.15)))
     sage: str(E)    # animations produced from a generator do not have a known length
@@ -96,28 +96,27 @@ AUTHORS:
 - John Palmieri
 - Niles Johnson (2013-12): Expand to animate more graphics objects
 - Martin von Gagern (2014-12): Added APNG support
+- Joshua Campbell (2020): interactive animation via Three.js viewer
 
 REFERENCES:
 
-- `ImageMagick <http://www.imagemagick.org>`_
-- `FFmpeg <http://www.ffmpeg.org>`_
+- `ImageMagick <https://www.imagemagick.org>`_
+- `FFmpeg <https://www.ffmpeg.org>`_
 - `APNG <https://wiki.mozilla.org/APNG_Specification>`_
-- `browsers which support it <http://caniuse.com/#feat=apng>`_
+- `browsers which support it <https://caniuse.com/#feat=apng>`_
 
 """
 
 ############################################################################
 #  Copyright (C) 2007 William Stein <wstein@gmail.com>
 #  Distributed under the terms of the GNU General Public License (GPL)
-#                  http://www.gnu.org/licenses/
+#                  https://www.gnu.org/licenses/
 ############################################################################
-from __future__ import print_function, absolute_import
 
+import builtins
 import os
 import struct
 import zlib
-
-import six
 
 from sage.misc.fast_methods import WithEqualityById
 from sage.structure.sage_object import SageObject
@@ -265,7 +264,6 @@ class Animation(WithEqualityById, SageObject):
         for kwds in kwds_tuple:
             new_kwds.update(kwds)
 
-        from six.moves import builtins
         for name in ['xmin', 'xmax', 'ymin', 'ymax']:
             values = [v for v in [kwds.get(name, None) for kwds in kwds_tuple] if v is not None]
             if values:
@@ -475,10 +473,10 @@ class Animation(WithEqualityById, SageObject):
 
     def graphics_array(self, ncols=3):
         r"""
-        Return a :class:`sage.plot.graphics.GraphicsArray` with plots of the
+        Return a :class:`sage.plot.multigraphics.GraphicsArray` with plots of the
         frames of this animation, using the given number of columns.
         The frames must be acceptable inputs for
-        :class:`sage.plot.graphics.GraphicsArray`.
+        :class:`sage.plot.multigraphics.GraphicsArray`.
 
 
         EXAMPLES::
@@ -560,14 +558,14 @@ class Animation(WithEqualityById, SageObject):
             sage: td = tmp_dir()
             sage: a.gif()              # not tested
             sage: a.gif(savefile=td + 'my_animation.gif', delay=35, iterations=3)  # optional -- ImageMagick
-            sage: with open(td + 'my_animation.gif', 'rb') as f: print('\x21\xf9\x04\x08\x23\x00' in f.read())  # optional -- ImageMagick
+            sage: with open(td + 'my_animation.gif', 'rb') as f: print(b'\x21\xf9\x04\x08\x23\x00' in f.read())  # optional -- ImageMagick
             True
             sage: a.gif(savefile=td + 'my_animation.gif', show_path=True) # optional -- ImageMagick
             Animation saved to .../my_animation.gif.
             sage: a.gif(savefile=td + 'my_animation_2.gif', show_path=True, use_ffmpeg=True) # optional -- ffmpeg
             Animation saved to .../my_animation_2.gif.
 
-        .. note::
+        .. NOTE::
 
            If neither ffmpeg nor ImageMagick is installed, you will
            get an error message like this::
@@ -577,56 +575,101 @@ class Animation(WithEqualityById, SageObject):
               packages, so please install one of them and try again.
 
               See www.imagemagick.org and www.ffmpeg.org for more information.
-
-        REFERENCES:
-
-        - `ImageMagick <http://www.imagemagick.org>`_
-        - `FFmpeg <http://www.ffmpeg.org>`_
         """
-        from sage.misc.sage_ostools import have_program
-        have_convert = have_program('convert')
-        have_ffmpeg = self._have_ffmpeg()
-        if use_ffmpeg or not have_convert:
-            if have_ffmpeg:
-                self.ffmpeg(savefile=savefile, show_path=show_path,
-                            output_format='.gif', delay=delay,
-                            iterations=iterations)
-            else:
-                if not have_convert:
-                    msg = """
-Error: Neither ImageMagick nor ffmpeg appears to be installed. Saving an
-animation to a GIF file or displaying an animation requires one of these
-packages, so please install one of them and try again.
+        from sage.features.imagemagick import ImageMagick
+        from sage.features.ffmpeg import FFmpeg
 
-See www.imagemagick.org and www.ffmpeg.org for more information."""
-                else:
-                    msg = """
-Error: ffmpeg does not appear to be installed.  Download it from
-www.ffmpeg.org, or use 'convert' to produce gifs instead."""
-                raise OSError(msg)
+        if not ImageMagick().is_present() and not FFmpeg().is_present():
+            raise OSError("Error: Neither ImageMagick nor ffmpeg appear to "
+                    "be installed. Saving an animation to a GIF file or "
+                    "displaying an animation requires one of these "
+                    "packages, so please install one of them and try "
+                    "again. See www.imagemagick.org and www.ffmpeg.org "
+                    "for more information.")
+
+        if use_ffmpeg or not ImageMagick().is_present():
+            self.ffmpeg(savefile=savefile, show_path=show_path,
+                        output_format='.gif', delay=delay,
+                        iterations=iterations)
         else:
-            if not savefile:
-                savefile = tmp_filename(ext='.gif')
-            if not savefile.endswith('.gif'):
-                savefile += '.gif'
-            savefile = os.path.abspath(savefile)
-            d = self.png()
-            cmd = ( 'cd "%s"; sage-native-execute convert -dispose Background '
-                    '-delay %s -loop %s *.png "%s"' ) % ( d, int(delay),
-                        int(iterations), savefile )
-            from subprocess import check_call, CalledProcessError
-            try:
-                check_call(cmd, shell=True)
-                if show_path:
-                    print("Animation saved to file %s." % savefile)
-            except (CalledProcessError, OSError):
-                msg = """
-Error: Cannot generate GIF animation.  Verify that convert
-(ImageMagick) or ffmpeg is installed, and that the objects passed to
-the animate command can be saved in PNG image format.
+            self._gif_from_imagemagick(savefile=savefile, show_path=show_path,
+                        delay=delay, iterations=iterations)
 
-See www.imagemagick.org and www.ffmpeg.org for more information."""
-                raise OSError(msg)
+    def _gif_from_imagemagick(self, savefile=None, show_path=False,
+            delay=20, iterations=0):
+        r"""
+        Return a movie showing an animation composed from rendering
+        the frames in ``self``.
+
+        This method will only work if ``imagemagick`` is installed (command
+        ``convert``). See https://www.imagemagick.org for information
+        about ``imagemagick``.
+
+        INPUT:
+
+        - ``savefile`` -- file that the mpeg gets saved to.
+
+        .. warning::
+
+            This will overwrite ``savefile`` if it already exists.
+
+        - ``show_path`` -- boolean (default: ``False``); if ``True``,
+          print the path to the saved file
+
+        - ``delay`` - (default: 20) delay in hundredths of a
+           second between frames
+
+        - ``iterations`` - integer (default: 0); number of iterations
+          of animation. If 0, loop forever.
+
+        If ``savefile`` is not specified: in notebook mode, display
+        the animation; otherwise, save it to a default file name.  Use
+        :func:`sage.misc.verbose.set_verbose` with ``level=1`` to see
+        additional output.
+
+        EXAMPLES::
+
+            sage: a = animate([sin(x + float(k)) for k in srange(0,2*pi,0.7)],
+            ....:             xmin=0, xmax=2*pi, ymin=-1, ymax=1, figsize=[2,1])
+            sage: td = tmp_dir()
+            sage: a._gif_from_imagemagick(savefile=td + 'new.gif') # optional -- imagemagick
+
+        .. NOTE::
+
+           If imagemagick is not installed, you will get an error message
+           like this::
+
+              FeatureNotPresentError: imagemagick is not available.
+              Executable 'convert' not found on PATH.
+              Further installation instructions might be available at
+              https://www.imagemagick.org/.
+
+        """
+        from sage.features.imagemagick import ImageMagick
+        ImageMagick().require()
+
+        if not savefile:
+            savefile = tmp_filename(ext='.gif')
+        if not savefile.endswith('.gif'):
+            savefile += '.gif'
+        savefile = os.path.abspath(savefile)
+
+        d = self.png()
+        cmd = ( 'cd "%s"; sage-native-execute convert -dispose Background '
+                '-delay %s -loop %s *.png "%s"' ) % ( d, int(delay),
+                    int(iterations), savefile )
+        from subprocess import check_call, CalledProcessError
+        try:
+            check_call(cmd, shell=True)
+            if show_path:
+                print("Animation saved to file %s." % savefile)
+        except (CalledProcessError, OSError):
+            raise OSError("Error: Cannot generate GIF animation. "
+                    "Verify that convert (ImageMagick) or ffmpeg is "
+                    "installed, and that the objects passed to the "
+                    "animate command can be saved in PNG image format. "
+                    "See www.imagemagick.org and www.ffmpeg.org for "
+                    "more information.")
 
     def _rich_repr_(self, display_manager, **kwds):
         """
@@ -717,7 +760,7 @@ See www.imagemagick.org and www.ffmpeg.org for more information."""
         This method does not return anything. Use :meth:`save` if you
         want to save the figure as an image.
 
-        .. note::
+        .. NOTE::
 
            Currently this is done using an animated gif, though this
            could change in the future. This requires that either
@@ -763,7 +806,7 @@ See www.imagemagick.org and www.ffmpeg.org for more information."""
 
             sage: a.show(50, 3)           # optional -- ImageMagick
 
-        .. note::
+        .. NOTE::
 
            If you don't have ffmpeg or ImageMagick installed, you will
            get an error message like this::
@@ -785,60 +828,47 @@ See www.imagemagick.org and www.ffmpeg.org for more information."""
         dm = get_display_manager()
         dm.display_immediately(self, **kwds)
 
-    def _have_ffmpeg(self):
-        """
-        Return True if the program 'ffmpeg' is installed.  See
-        www.ffmpeg.org to download ffmpeg.
-
-        EXAMPLES::
-
-            sage: a = animate([plot(sin, -1,1)], xmin=0, ymin=0)
-            sage: a._have_ffmpeg() # random: depends on whether ffmpeg is installed
-            False
-        """
-        from sage.misc.sage_ostools import have_program
-        return have_program('ffmpeg')
 
     def ffmpeg(self, savefile=None, show_path=False, output_format=None,
                ffmpeg_options='', delay=None, iterations=0, pix_fmt='rgb24'):
         r"""
-        Returns a movie showing an animation composed from rendering
-        the frames in self.
+        Return a movie showing an animation composed from rendering
+        the frames in ``self``.
 
-        This method will only work if ffmpeg is installed.  See
-        http://www.ffmpeg.org for information about ffmpeg.
+        This method will only work if ``ffmpeg`` is installed.  See
+        https://www.ffmpeg.org for information about ``ffmpeg``.
 
         INPUT:
 
-        -  ``savefile`` - file that the mpeg gets saved to.
+        - ``savefile`` -- file that the mpeg gets saved to.
 
-        .. warning:
+        .. warning::
 
             This will overwrite ``savefile`` if it already exists.
 
-        - ``show_path`` - boolean (default: False); if True, print the
-          path to the saved file
+        - ``show_path`` -- boolean (default: ``False``); if ``True``,
+          print the path to the saved file
 
-        - ``output_format`` - string (default: None); format and
-          suffix to use for the video.  This may be 'mpg', 'mpeg',
-          'avi', 'gif', or any other format that ffmpeg can handle.
-          If this is None and the user specifies ``savefile`` with a
+        - ``output_format`` - string (default: ``None``); format and
+          suffix to use for the video.  This may be ``'mpg'``, ``'mpeg'``,
+          ``'avi'``, ``'gif'``, or any other format that ``ffmpeg`` can handle.
+          If this is ``None`` and the user specifies ``savefile`` with a
           suffix, say ``savefile='animation.avi'``, try to determine the
-          format ('avi' in this case) from that file name.  If no file
-          is specified or if the suffix cannot be determined, 'mpg' is
+          format (``'avi'`` in this case) from that file name.  If no file
+          is specified or if the suffix cannot be determined, ``'mpg'`` is
           used.
 
-        - ``ffmpeg_options`` - string (default: ''); this string is
+        - ``ffmpeg_options`` - string (default: ``''``); this string is
           passed directly to ffmpeg.
 
-        - ``delay`` - integer (default: None); delay in hundredths of a
+        - ``delay`` - integer (default: ``None``); delay in hundredths of a
           second between frames.  The framerate is 100/delay.
           This is not supported for mpeg files: for mpegs, the frame
           rate is always 25 fps.
 
         - ``iterations`` - integer (default: 0); number of iterations
           of animation. If 0, loop forever.  This is only supported
-          for animated gif output and requires ffmpeg version 0.9 or
+          for animated gif output and requires ``ffmpeg`` version 0.9 or
           later.  For older versions, set ``iterations=None``.
 
         - ``pix_fmt`` - string (default: 'rgb24'); used only for gif
@@ -848,7 +878,7 @@ See www.imagemagick.org and www.ffmpeg.org for more information."""
 
         If ``savefile`` is not specified: in notebook mode, display
         the animation; otherwise, save it to a default file name.  Use
-        :func:`sage.misc.misc.set_verbose` with ``level=1`` to see
+        :func:`sage.misc.verbose.set_verbose` with ``level=1`` to see
         additional output.
 
         EXAMPLES::
@@ -862,91 +892,85 @@ See www.imagemagick.org and www.ffmpeg.org for more information."""
             sage: a.ffmpeg(savefile=td + 'new.mpg', show_path=True) # optional -- ffmpeg
             Animation saved to .../new.mpg.
 
-        .. note::
+        .. NOTE::
 
            If ffmpeg is not installed, you will get an error message
            like this::
 
-              Error: ffmpeg does not appear to be installed. Saving an animation to
-              a movie file in any format other than GIF requires this software, so
-              please install it and try again.
-
-              See www.ffmpeg.org for more information.
-
+              FeatureNotPresentError: ffmpeg is not available.
+              Executable 'ffmpeg' not found on PATH.
+              Further installation instructions might be available at https://www.ffmpeg.org/.
 
         TESTS::
 
             sage: a.ffmpeg(output_format='gif',delay=30,iterations=5)     # optional -- ffmpeg
         """
-        if not self._have_ffmpeg():
-            msg = """Error: ffmpeg does not appear to be installed. Saving an animation to
-a movie file in any format other than GIF requires this software, so
-please install it and try again."""
-            raise OSError(msg)
-        else:
-            if savefile is None:
-                if output_format is None:
-                    output_format = '.mpg'
-                else:
-                    if output_format[0] != '.':
-                        output_format = '.'+output_format
-                savefile = tmp_filename(ext=output_format)
+        from sage.features.ffmpeg import FFmpeg
+        FFmpeg().require()
+
+        if savefile is None:
+            if output_format is None:
+                output_format = '.mpg'
             else:
-                if output_format is None:
-                    suffix = os.path.splitext(savefile)[1]
-                    if len(suffix) > 0:
-                        output_format = suffix
-                    else:
-                        output_format = '.mpg'
-            if not savefile.endswith(output_format):
-                savefile += output_format
-            early_options = ''
-            if output_format == '.gif':
-                # We try to set reasonable options for gif output.
-                #
-                # Older versions of ffmpeg (before 0.9, summer 2011)
-                # use the option -loop_output instead of -loop.
-                # Setting iterations=None is a way of preventing sage
-                # from adding the -loop option.  A separate
-                # -loop_output option can be added with the
-                # ffmpeg_options argument.
-                if iterations is not None:
-                    loop_cmd = '-loop {0} '.format(iterations)
+                if output_format[0] != '.':
+                    output_format = '.'+output_format
+            savefile = tmp_filename(ext=output_format)
+        else:
+            if output_format is None:
+                suffix = os.path.splitext(savefile)[1]
+                if len(suffix) > 0:
+                    output_format = suffix
                 else:
-                    loop_cmd = ''
-                # A pix_fmt value is required for some but not all
-                # ffmpeg installations.  Setting pix_fmt=None will
-                # prevent sage from adding this option, and it may be
-                # controlled separately through ffmpeg_options.
-                if pix_fmt is not None:
-                    pix_fmt_cmd = '-pix_fmt {0} '.format(pix_fmt)
-                else:
-                    pix_fmt_cmd = ''
-                ffmpeg_options += ' {0}{1}'.format(pix_fmt_cmd,loop_cmd)
-            if delay is not None and output_format != '.mpeg' and output_format != '.mpg':
-                early_options += ' -r %s ' % int(100/delay)
-            savefile = os.path.abspath(savefile)
-            pngdir = self.png()
-            pngs = os.path.join(pngdir, "%08d.png")
-            # For ffmpeg, it seems that some options, like '-g ... -r
-            # ...', need to come before the input file names, while
-            # some options, like '-pix_fmt rgb24', need to come
-            # afterwards.  Hence 'early_options' and 'ffmpeg_options'
-            cmd = 'cd "%s"; sage-native-execute ffmpeg -y -f image2 %s -i %s %s %s' % (pngdir, early_options, pngs, ffmpeg_options, savefile)
-            from subprocess import check_call, CalledProcessError, PIPE
-            try:
-                if sage.misc.misc.get_verbose() > 0:
-                    set_stderr = None
-                else:
-                    set_stderr = PIPE
-                sage.misc.misc.verbose("Executing '%s'" % cmd,level=1)
-                sage.misc.misc.verbose("\n---- ffmpeg output below ----\n")
-                check_call(cmd, shell=True, stderr=set_stderr)
-                if show_path:
-                    print("Animation saved to file %s." % savefile)
-            except (CalledProcessError, OSError):
-                print("Error running ffmpeg.")
-                raise
+                    output_format = '.mpg'
+        if not savefile.endswith(output_format):
+            savefile += output_format
+        early_options = ''
+        if output_format == '.gif':
+            # We try to set reasonable options for gif output.
+            #
+            # Older versions of ffmpeg (before 0.9, summer 2011)
+            # use the option -loop_output instead of -loop.
+            # Setting iterations=None is a way of preventing sage
+            # from adding the -loop option.  A separate
+            # -loop_output option can be added with the
+            # ffmpeg_options argument.
+            if iterations is not None:
+                loop_cmd = '-loop {0} '.format(iterations)
+            else:
+                loop_cmd = ''
+            # A pix_fmt value is required for some but not all
+            # ffmpeg installations.  Setting pix_fmt=None will
+            # prevent sage from adding this option, and it may be
+            # controlled separately through ffmpeg_options.
+            if pix_fmt is not None:
+                pix_fmt_cmd = '-pix_fmt {0} '.format(pix_fmt)
+            else:
+                pix_fmt_cmd = ''
+            ffmpeg_options += ' {0}{1}'.format(pix_fmt_cmd,loop_cmd)
+        if delay is not None and output_format != '.mpeg' and output_format != '.mpg':
+            early_options += ' -r %s ' % int(100/delay)
+        savefile = os.path.abspath(savefile)
+        pngdir = self.png()
+        pngs = os.path.join(pngdir, "%08d.png")
+        # For ffmpeg, it seems that some options, like '-g ... -r
+        # ...', need to come before the input file names, while
+        # some options, like '-pix_fmt rgb24', need to come
+        # afterwards.  Hence 'early_options' and 'ffmpeg_options'
+        cmd = 'cd "%s"; sage-native-execute ffmpeg -y -f image2 %s -i %s %s %s' % (pngdir, early_options, pngs, ffmpeg_options, savefile)
+        from subprocess import check_call, CalledProcessError, PIPE
+        try:
+            if sage.misc.verbose.get_verbose() > 0:
+                set_stderr = None
+            else:
+                set_stderr = PIPE
+            sage.misc.verbose.verbose("Executing '%s'" % cmd,level=1)
+            sage.misc.verbose.verbose("\n---- ffmpeg output below ----\n")
+            check_call(cmd, shell=True, stderr=set_stderr)
+            if show_path:
+                print("Animation saved to file %s." % savefile)
+        except (CalledProcessError, OSError):
+            print("Error running ffmpeg.")
+            raise
 
     def apng(self, savefile=None, show_path=False, delay=20, iterations=0):
         r"""
@@ -1022,7 +1046,9 @@ please install it and try again."""
           files.
 
         If filename is None, then in notebook mode, display the
-        animation; otherwise, save the animation to a GIF file.  If
+        animation; otherwise, save the animation to a GIF file. If
+        filename ends in '.html', save an :meth:`interactive` version of
+        the animation to an HTML file that uses the Three.js viewer.  If
         filename ends in '.sobj', save to an sobj file.  Otherwise,
         try to determine the format from the filename extension
         ('.mpg', '.gif', '.avi', etc.).  If the format cannot be
@@ -1030,7 +1056,7 @@ please install it and try again."""
 
         For GIF files, either ffmpeg or the ImageMagick suite must be
         installed.  For other movie formats, ffmpeg must be installed.
-        An sobj file can be saved with no extra software installed.
+        sobj and HTML files can be saved with no extra software installed.
 
         EXAMPLES::
 
@@ -1046,6 +1072,9 @@ please install it and try again."""
             sage: a.save(td + 'wave0.sobj')
             sage: a.save(td + 'wave1.sobj', show_path=True)
             Animation saved to file .../wave1.sobj.
+            sage: a.save(td + 'wave0.html', online=True)
+            sage: a.save(td + 'wave1.html', show_path=True, online=True)
+            Animation saved to file .../wave1.html.
 
         TESTS:
 
@@ -1053,26 +1082,30 @@ please install it and try again."""
         GIF image (see :trac:`18176`)::
 
             sage: a.save(td + 'wave.gif')   # optional -- ImageMagick
-            sage: with open(td + 'wave.gif', 'rb') as f: print('!\xf9\x04\x08\x14\x00' in f.read())  # optional -- ImageMagick
+            sage: with open(td + 'wave.gif', 'rb') as f: print(b'!\xf9\x04\x08\x14\x00' in f.read())  # optional -- ImageMagick
             True
-            sage: with open(td + 'wave.gif', 'rb') as f: print('!\xff\x0bNETSCAPE2.0\x03\x01\x00\x00\x00' in f.read())  # optional -- ImageMagick
+            sage: with open(td + 'wave.gif', 'rb') as f: print(b'!\xff\x0bNETSCAPE2.0\x03\x01\x00\x00\x00' in f.read())  # optional -- ImageMagick
             True
             sage: a.save(td + 'wave.gif', delay=35)   # optional -- ImageMagick
-            sage: with open(td + 'wave.gif', 'rb') as f: print('!\xf9\x04\x08\x14\x00' in f.read())  # optional -- ImageMagick
+            sage: with open(td + 'wave.gif', 'rb') as f: print(b'!\xf9\x04\x08\x14\x00' in f.read())  # optional -- ImageMagick
             False
-            sage: with open(td + 'wave.gif', 'rb') as f: print('!\xf9\x04\x08\x23\x00' in f.read())  # optional -- ImageMagick
+            sage: with open(td + 'wave.gif', 'rb') as f: print(b'!\xf9\x04\x08\x23\x00' in f.read())  # optional -- ImageMagick
             True
             sage: a.save(td + 'wave.gif', iterations=3)   # optional -- ImageMagick
-            sage: with open(td + 'wave.gif', 'rb') as f: print('!\xff\x0bNETSCAPE2.0\x03\x01\x00\x00\x00' in f.read())  # optional -- ImageMagick
+            sage: with open(td + 'wave.gif', 'rb') as f: print(b'!\xff\x0bNETSCAPE2.0\x03\x01\x00\x00\x00' in f.read())  # optional -- ImageMagick
             False
-            sage: with open(td + 'wave.gif', 'rb') as f: print('!\xff\x0bNETSCAPE2.0\x03\x01\x03\x00\x00' in f.read())  # optional -- ImageMagick
+            sage: with open(td + 'wave.gif', 'rb') as f:  # optional -- ImageMagick
+            ....:      check1 = b'!\xff\x0bNETSCAPE2.0\x03\x01\x02\x00\x00'
+            ....:      check2 = b'!\xff\x0bNETSCAPE2.0\x03\x01\x03\x00\x00'
+            ....:      data = f.read()
+            ....:      print(check1 in data or check2 in data)
             True
         """
         if filename is None:
             suffix = '.gif'
         else:
             suffix = os.path.splitext(filename)[1]
-            if len(suffix) == 0:
+            if not suffix:
                 suffix = '.gif'
 
         if filename is None or suffix == '.gif':
@@ -1082,8 +1115,69 @@ please install it and try again."""
             SageObject.save(self, filename)
             if show_path:
                 print("Animation saved to file %s." % filename)
+        elif suffix == '.html':
+            self.interactive(**kwds).save(filename)
+            if show_path:
+                print("Animation saved to file %s." % filename)
         else:
             self.ffmpeg(savefile=filename, show_path=show_path, **kwds)
+
+    def interactive(self, **kwds):
+        r"""
+        Create an interactive depiction of the animation.
+
+        INPUT:
+
+        - ``**kwds`` -- any of the viewing options accepted by show() are valid
+          as keyword arguments to this function and they will behave in the same
+          way. Those that are animation-related and recognized by the Three.js
+          viewer are: ``animate``, ``animation_controls``, ``auto_play``,
+          ``delay``, and ``loop``.
+
+        OUTPUT:
+
+        A 3D graphics object which, by default, will use the Three.js viewer.
+
+        EXAMPLES::
+
+            sage: frames = [point3d((sin(x), cos(x), x)) for x in (0, pi/16, .., 2*pi)]
+            sage: animate(frames).interactive(online=True)
+            Graphics3d Object
+
+        Works with frames that are 2D or 3D graphics objects or convertible to
+        2D or 3D graphics objects via a ``plot`` or ``plot3d`` method::
+
+            sage: frames = [dodecahedron(), circle(center=(0, 0), radius=1), x^2]
+            sage: animate(frames).interactive(online=True, delay=100)
+            Graphics3d Object
+
+        .. SEEALSO::
+
+            :ref:`threejs_viewer`
+
+        """
+        from sage.plot.plot3d.base import Graphics3d, KeyframeAnimationGroup
+        # Attempt to convert frames to Graphics3d objects.
+        g3d_frames = []
+        for i, frame in enumerate(self._frames):
+            if not isinstance(frame, Graphics3d):
+                try:
+                    frame = frame.plot3d()
+                except (AttributeError, TypeError):
+                    try:
+                        frame = frame.plot().plot3d()
+                    except (AttributeError, TypeError):
+                        frame = None
+                if not isinstance(frame, Graphics3d):
+                    raise TypeError("Could not convert frame {} to Graphics3d".format(i))
+            g3d_frames.append(frame)
+        # Give preference to this method's keyword arguments over those provided
+        # to animate or the constructor.
+        kwds = dict(self._kwds, **kwds)
+        # Three.js is the only viewer that supports animation at present.
+        if 'viewer' not in kwds:
+            kwds['viewer'] = 'threejs'
+        return KeyframeAnimationGroup(g3d_frames, **kwds)
 
 
 class APngAssembler(object):
@@ -1122,15 +1216,9 @@ class APngAssembler(object):
         ....:             png = os.path.join(pngdir, "{:08d}.png".format(i))
         ....:             apng.add_frame(png, delay=10*i + 10)
         ....:     return outfile
-        ....:
         sage: assembleAPNG()  # long time
         '...png'
-
-    REFERENCES:
-
-    - `APNG <https://wiki.mozilla.org/APNG_Specification>`_
     """
-
     magic = b"\x89PNG\x0d\x0a\x1a\x0a"
     mustmatch = frozenset([b"IHDR", b"PLTE", b"bKGD", b"cHRM", b"gAMA",
                            b"pHYs", b"sBIT", b"tRNS"])
@@ -1531,10 +1619,8 @@ class APngAssembler(object):
             else: # for PNG magic
                 b.append(ord(h[0]))
                 h = h[1:]
-        if six.PY2:
-            return ''.join(map(chr, b))
-        else:
-            return bytes(b)
+
+        return bytes(b)
 
     @classmethod
     def _testData(cls, name, asFile):

@@ -29,7 +29,7 @@ AUTHORS:
 Index
 -----
 
-This module's main function is the following :
+This module's main function is the following:
 
 .. csv-table::
     :class: contentstable
@@ -38,7 +38,7 @@ This module's main function is the following :
 
     | :func:`steiner_quadruple_system` | Return a Steiner Quadruple System on `n` points
 
-This function redistributes its work among 6 constructions :
+This function redistributes its work among 6 constructions:
 
 .. csv-table::
     :class: contentstable
@@ -59,8 +59,6 @@ require, i.e. `SQS_{14}` and `SQS_{38}` as well as the systems of pairs
 Functions
 ---------
 """
-from __future__ import print_function
-from six.moves import range
 
 from sage.misc.cachefunc import cached_function
 from sage.combinat.designs.incidence_structures import IncidenceStructure
@@ -257,7 +255,7 @@ def three_n_minus_four(B):
     for a in range(2):
         for aa in range(n-2):
             for aaa in range(n-2):
-                aaaa= -(a+aa+aaa)%(n-2)
+                aaaa = -(a+aa+aaa) % (n-2)
                 Y.append([r(0,aa),r(1,aaa), r(2,aaaa),3*(n-2)+a])
 
     # Line 4.
@@ -547,14 +545,15 @@ def _missing_pair(n,l):
         sage: _missing_pair(6, [(0,1), (4,5)])
         (2, 3)
     """
-    l = [x for X in l for x in X]
+    l = set(x for X in l for x in X)
     for x in range(n):
-        if not x in l:
+        if x not in l:
             break
 
-    assert not x in l
-    assert not x+1 in l
-    return (x,x+1)
+    assert x not in l
+    assert x + 1 not in l
+    return (x, x + 1)
+
 
 def barP(eps, m):
     r"""
@@ -639,7 +638,7 @@ def barP_system(m):
         # pairs. Those are added to 'last', a new list of pairs
 
         last = []
-        for n in range(0, (m-3)//2+1):
+        for n in range((m - 3) // 2 + 1):
             pairs.append([p for p in P(2*n,m) if not isequal(p,(2*n,(4*n+1)%(2*m)))])
             last.append((2*n,(4*n+1)%(2*m)))
             pairs.append([p for p in P(2*n+1,m) if not isequal(p,(2*m-2-2*n,2*m-3-4*n))])
@@ -661,7 +660,7 @@ def barP_system(m):
 
         # Now the points must be relabeled
         relabel = {}
-        for n in range(0, (m-3)//2+1):
+        for n in range((m - 3) // 2 + 1):
             relabel[2*n] = (4*n)%(2*m)
             relabel[4*n+1] = (4*n+1)%(2*m)
             relabel[2*m-2-2*n] = (4*n+2)%(2*m)
@@ -723,7 +722,7 @@ def steiner_quadruple_system(n, check = False):
         sqs = IncidenceStructure(14, _SQS14(), copy = False, check = False)
     elif n == 38:
         sqs = IncidenceStructure(38, _SQS38(), copy = False, check = False)
-    elif n%12 in [4,8]:
+    elif n%12 in [4, 8]:
         nn =  n // 2
         sqs = two_n(steiner_quadruple_system(nn, check = False))
     elif n%18 in [4,10]:
@@ -732,13 +731,13 @@ def steiner_quadruple_system(n, check = False):
     elif (n%36) == 34:
         nn = (n+8) // 3
         sqs = three_n_minus_eight(steiner_quadruple_system(nn, check = False))
-    elif (n%36) == 26 :
+    elif (n%36) == 26:
         nn = (n+4) // 3
         sqs = three_n_minus_four(steiner_quadruple_system(nn, check = False))
-    elif n%24 in [2,10]:
+    elif n%24 in [2, 10]:
         nn = (n+6) // 4
         sqs = four_n_minus_six(steiner_quadruple_system(nn, check = False))
-    elif n%72 in [14,38]:
+    elif n%72 in [14, 38]:
         nn = (n+10) // 12
         sqs = twelve_n_minus_ten(steiner_quadruple_system(nn, check = False))
     else:

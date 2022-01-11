@@ -20,13 +20,12 @@ AUTHOR:
 
 - William Stein (2008)
 """
-from __future__ import absolute_import
 
 from sage.rings.all import RDF, CDF, Integer
-from sage.modules.all import vector
+from sage.modules.free_module_element import vector
 I = CDF.gen()
 
-from .time_series cimport TimeSeries
+from sage.stats.time_series cimport TimeSeries
 
 cdef extern from "math.h":
     double exp(double)
@@ -72,6 +71,8 @@ def stationary_gaussian_simulation(s, N, n=1):
 
         sage: set_random_seed(0)
         sage: sim = finance.stationary_gaussian_simulation(s, N)[0]
+        doctest:warning...
+        DeprecationWarning: the package sage.finance is deprecated...
 
     Note that indeed the autocovariance sequence approximates ``s`` well::
 
@@ -207,7 +208,7 @@ def fractional_gaussian_noise_simulation(double H, double sigma2, N, n=1):
 
 def fractional_brownian_motion_simulation(double H, double sigma2, N, n=1):
     """
-    Returns the partial sums of a fractional Gaussian noise simulation
+    Return the partial sums of a fractional Gaussian noise simulation
     with the same input parameters.
 
     INPUT:

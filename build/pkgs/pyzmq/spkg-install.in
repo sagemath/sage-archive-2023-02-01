@@ -1,0 +1,10 @@
+cd src
+
+# Generate setup.cfg
+cat > setup.cfg <<EOF
+[global]
+no_libzmq_extension = True
+EOF
+
+# Configure and install
+sdh_pip_install .

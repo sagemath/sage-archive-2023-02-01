@@ -33,14 +33,14 @@ UHP for convenience::
     [1 0]
 """
 
-#***********************************************************************
+# **********************************************************************
 #       Copyright (C) 2013 Greg Laun <glaun@math.umd.edu>
 #
 #  Distributed under the terms of the GNU General Public License (GPL)
 #  as published by the Free Software Foundation; either version 2 of
 #  the License, or (at your option) any later version.
-#                  http://www.gnu.org/licenses/
-#***********************************************************************
+#                  https://www.gnu.org/licenses/
+# **********************************************************************
 
 from copy import copy
 from sage.categories.homset import Hom
@@ -50,12 +50,14 @@ from sage.matrix.constructor import matrix
 from sage.modules.free_module_element import vector
 from sage.rings.infinity import infinity
 from sage.misc.latex import latex
-from sage.rings.all import RDF
-from sage.functions.other import imag, sqrt
+from sage.rings.real_double import RDF
+from sage.functions.other import imag
+from sage.misc.functional import sqrt
 from sage.functions.all import arccosh, sign
 
 from sage.geometry.hyperbolic_space.hyperbolic_constants import EPSILON
 from sage.geometry.hyperbolic_space.hyperbolic_geodesic import HyperbolicGeodesic
+
 
 class HyperbolicIsometry(Morphism):
     r"""
@@ -655,7 +657,13 @@ class HyperbolicIsometryUHP(HyperbolicIsometry):
             sage: bool(UHP.dist(I2(p), p) < 10**-9)
             True
         """
-        return self.codomain().get_point(moebius_transform(self._matrix, p.coordinates()))
+        coords = p.coordinates()
+        # We apply complex conjugation to the point for negative determinants
+        # We check the coordinate is not equal to infinity. If we use !=, then
+        #   it cannot determine it is not infinity, so it also returns False.
+        if not (coords == infinity) and bool(self._matrix.det() < 0):
+            coords = coords.conjugate()
+        return self.codomain().get_point(moebius_transform(self._matrix, coords))
 
     def preserves_orientation(self): #UHP
         r"""
@@ -912,7 +920,11 @@ class HyperbolicIsometryPD(HyperbolicIsometry):
             sage: bool(PD.dist(I2(q), q) < 10**-9)
             True
         """
-        _image = moebius_transform(self._matrix, p.coordinates())
+        coords = p.coordinates()
+        # We apply complex conjugation to the point for negative determinants
+        if bool(self._matrix.det() < 0):
+            coords = coords.conjugate()
+        _image = moebius_transform(self._matrix, coords)
         return self.codomain().get_point(_image)
 
     def __mul__(self, other): #PD
@@ -1020,7 +1032,7 @@ class HyperbolicIsometryKM(HyperbolicIsometry):
 #####################################################################
 ## Helper functions
 
-from sage.misc.superseded import deprecated_function_alias
+
 def moebius_transform(A, z):
     r"""
     Given a matrix ``A`` in `GL(2, \CC)` and a point ``z`` in the complex
@@ -1039,7 +1051,7 @@ def moebius_transform(A, z):
 
         sage: from sage.geometry.hyperbolic_space.hyperbolic_model import moebius_transform
         sage: moebius_transform(matrix(2,[1,2,3,4]),2 + I)
-        2/109*I + 43/109
+        -2/109*I + 43/109
         sage: y = var('y')
         sage: moebius_transform(matrix(2,[1,0,0,1]),x + I*y)
         x + I*y
@@ -1069,19 +1081,15 @@ def moebius_transform(A, z):
         ...
         TypeError: A must be an invertible 2x2 matrix over the complex numbers or a symbolic ring
     """
-    if A.ncols() == 2 and A.nrows() == 2 and A.det() != 0:
-        (a, b, c, d) = A.list()
+    if A.ncols() == 2 == A.nrows() and A.det() != 0:
+        a, b, c, d = A.list()
         if z == infinity:
             if c == 0:
                 return infinity
-            return a/c
-        if a*d - b*c < 0:
-            w = z.conjugate()  # Reverses orientation
-        else:
-            w = z
-        if c*z + d == 0:
+            return a / c
+        if c * z + d == 0:
             return infinity
-        return (a*w + b) / (c*w + d)
+        return (a * z + b) / (c * z + d)
     raise TypeError("A must be an invertible 2x2 matrix over the"
                     " complex numbers or a symbolic ring")
-mobius_transform = deprecated_function_alias(19855, moebius_transform)
+

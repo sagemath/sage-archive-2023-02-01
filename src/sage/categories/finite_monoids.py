@@ -1,12 +1,12 @@
 r"""
-Finite Monoids
+Finite monoids
 """
-#*****************************************************************************
+# ****************************************************************************
 #  Copyright (C) 2008 Teresa Gomez-Diaz (CNRS) <Teresa.Gomez-Diaz@univ-mlv.fr>
 #
 #  Distributed under the terms of the GNU General Public License (GPL)
-#                  http://www.gnu.org/licenses/
-#******************************************************************************
+#                  https://www.gnu.org/licenses/
+# *****************************************************************************
 
 from sage.categories.category_with_axiom import CategoryWithAxiom
 
@@ -157,7 +157,7 @@ class FiniteMonoids(CategoryWithAxiom):
                 3: Vector space of dimension 1 over Finite Field of size 5,
                 4: Vector space of dimension 1 over Finite Field of size 5}
             """
-            from sage.homology.simplicial_set_examples import Nerve
+            from sage.topology.simplicial_set_examples import Nerve
             return Nerve(self)
 
         def rhodes_radical_congruence(self, base_ring=None):

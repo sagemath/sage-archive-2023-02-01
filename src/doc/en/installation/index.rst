@@ -40,7 +40,7 @@ installing it:
   elementary SageMath computations.
 
 - `Docker images <https://hub.docker.com/r/sagemath/sagemath/>`_: SageMath in a
-  container for more expericenced users.
+  container for more experienced users.
 
 The rest of this document describes how to install SageMath from pre-built
 binaries and from sources.
@@ -53,7 +53,6 @@ binaries and from sources.
    conda
    source
    launching
-   standard_packages
    troubles
 
 This work is licensed under a `Creative Commons Attribution-Share Alike

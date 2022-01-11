@@ -3,7 +3,7 @@ r"""
 Pollack-Stevens' Modular Symbols Spaces
 
 This module contains a class for spaces of modular symbols that use Glenn
-Stevens' conventions, as explained in [PS]_.
+Stevens' conventions, as explained in [PS2011]_.
 
 There are two main differences between the modular symbols in this directory
 and the ones in :mod:`sage.modular.modsym`:
@@ -55,13 +55,6 @@ classical modular symbols (or even elliptic curves) as follows::
     [0, 1, 0, 0, 0, -1, 1, 0, 0]
     sage: phi.parent()
     Space of modular symbols for Congruence Subgroup Gamma0(37) with sign 0 and values in Sym^0 Q^2
-
-REFERENCES:
-
-.. [PS] Overconvergent modular symbols and p-adic L-functions
-   Robert Pollack, Glenn Stevens
-   Annales Scientifiques de l'Ecole Normale Superieure, serie 4, 44 fascicule 1 (2011), 1--42.
-
 """
 #*****************************************************************************
 #       Copyright (C) 2012 Robert Pollack <rpollack@math.bu.edu>
@@ -71,8 +64,6 @@ REFERENCES:
 #  the License, or (at your option) any later version.
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
-from __future__ import print_function
-from __future__ import absolute_import
 from sage.modules.module import Module
 from sage.modular.dirichlet import DirichletCharacter
 from sage.modular.arithgroup.all import Gamma0
@@ -758,7 +749,7 @@ class PollackStevensModularSymbolspace(Module):
         ## now we compute nu_infty of Prop 5.1 of [PS1]
         t = self.coefficient_module().zero()
         for g in manin.gens()[1:]:
-            if (not g in manin.reps_with_two_torsion()) and (not g in manin.reps_with_three_torsion()):
+            if (g not in manin.reps_with_two_torsion()) and (g not in manin.reps_with_three_torsion()):
                 t += D[g] * manin.gammas[g] - D[g]
             else:
                 # this was previously MR.reps_with_two_torsion() but there is no variable MR defined...
@@ -832,7 +823,7 @@ def cusps_from_mat(g):
     You can also just give the matrix of ``g``::
 
         sage: type(g)
-        <type 'sage.modular.arithgroup.arithgroup_element.ArithmeticSubgroupElement'>
+        <class 'sage.modular.arithgroup.arithgroup_element.ArithmeticSubgroupElement'>
         sage: cusps_from_mat(g.matrix())
         (+Infinity, 0)
 

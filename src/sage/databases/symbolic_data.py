@@ -64,7 +64,7 @@ from sage.rings.polynomial.polynomial_ring_constructor import PolynomialRing
 
 class SymbolicData:
     """
-    Database of ideals as distributed by the The SymbolicData Project
+    Database of ideals as distributed by The SymbolicData Project
     (http://symbolicdata.org).
 
     This class needs the optional ``database_symbolic_data`` package to be
@@ -84,7 +84,7 @@ class SymbolicData:
 
     def get_ideal(self, name, base_ring=QQ, term_order="degrevlex"):
         """
-        Returns the ideal given by 'name' over the base ring given by
+        Return the ideal given by 'name' over the base ring given by
         'base_ring' in a polynomial ring with the term order given by
         'term_order'.
 
@@ -201,7 +201,8 @@ class SymbolicData:
              'Curves__curve10_20',
              'Curves__curve10_30']
         """
-        if hasattr(self,"__ideals"): return self.__ideals
+        if hasattr(self,"__ideals"):
+            return self.__ideals
         try:
             __ideals = [s.replace('.xml','') for s in  os.listdir(self.__intpath)]
             __ideals += [s.replace('.xml','') for s in  os.listdir(self.__genpath)]

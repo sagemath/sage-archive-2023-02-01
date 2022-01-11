@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 r"""
-Overconvergent p-adic modular forms for small primes
+Overconvergent `p`-adic modular forms for small primes
 
 This module implements computations of Hecke operators and `U_p`-eigenfunctions
 on `p`-adic overconvergent modular forms of tame level 1, where `p` is one of
@@ -169,16 +169,12 @@ classical) does not apply.
 #                     2008-9 David Loeffler <d.loeffler.01@cantab.net>
 #
 #  Distributed under the terms of the GNU General Public License (GPL)
-#                  http://www.gnu.org/licenses/
+#                  https://www.gnu.org/licenses/
 #*****************************************************************************
-from __future__ import print_function, absolute_import
-from six.moves import range
-from six import integer_types
 
 from sage.matrix.all        import matrix, MatrixSpace, diagonal_matrix
-from sage.misc.misc         import verbose
+from sage.misc.verbose      import verbose
 from sage.misc.cachefunc    import cached_method
-from sage.misc.superseded   import deprecated_function_alias
 from sage.modular.all       import (trivial_character, EtaProduct,
                                     j_invariant_qexp, hecke_operator_on_qexp)
 from sage.modular.arithgroup.all import is_Gamma0, is_Gamma1
@@ -188,7 +184,10 @@ from sage.modules.module    import Module
 from sage.structure.element import Vector, ModuleElement
 from sage.structure.richcmp import richcmp
 from sage.plot.plot         import plot
-from sage.rings.all         import (O, Infinity, ZZ, QQ, pAdicField, PolynomialRing, PowerSeriesRing, is_pAdicField)
+from sage.rings.integer_ring import ZZ
+from sage.rings.rational_field import QQ
+import sage.rings.abc
+from sage.rings.all         import (O, Infinity, pAdicField, PolynomialRing, PowerSeriesRing)
 import weakref
 
 from .weightspace import WeightSpace_constructor as WeightSpace, WeightCharacter
@@ -299,7 +298,7 @@ class OverconvergentModularFormsSpace(Module):
 
         self._p = prime
 
-        if not ( base_ring == QQ or is_pAdicField(base_ring) ):
+        if not ( base_ring == QQ or isinstance(base_ring, sage.rings.abc.pAdicField) ):
             raise TypeError("Base ring must be QQ or a p-adic field")
 
         if base_ring != QQ and base_ring.prime() != self._p:
@@ -733,12 +732,10 @@ class OverconvergentModularFormsSpace(Module):
             sage: M10(M(f))
             3-adic overconvergent modular form of weight-character 0 with q-expansion 27*q + 324*q^2 + 2430*q^3 + 13716*q^4 + O(q^5)
         """
-        if isinstance(input, integer_types):
+        if isinstance(input, int):
             input = ZZ(input)
 
         if isinstance(input, OverconvergentModularFormElement):
-            if input.parent() is self:
-                return input
             return self._coerce_from_ocmf(input)
 
         elif isinstance(input, ModularFormElement):
@@ -995,7 +992,8 @@ class OverconvergentModularFormsSpace(Module):
                         else:
                             mat[i,j] = 0 # computations are exact for weight 0, and we know these terms are zero
         if use_recurrence:
-            if m != self.prime(): raise ValueError("Recurrence method not valid when m != p")
+            if m != self.prime():
+                raise ValueError("Recurrence method not valid when m != p")
             for j in range(self.prime(), n):
                 # can only apply recurrence if have i,j both >= p.
                 if j >= self.prec():
@@ -1018,12 +1016,12 @@ class OverconvergentModularFormsSpace(Module):
                             mat[i,j] = mat[i,j] + mat[i-u-1, j-v-1]*self.recurrence_matrix()[u,v]
 
         else:
-            if( n*self.prime() > self.prec()):
+            if n * self.prime() > self.prec():
                 raise ValueError("n is too large")
             for j in range(self.prime(), n):
                 l = self._convert_to_basis(self.hecke_operator(self._basis_cache[j], m))
                 for i in range(n):
-                    mat[i,j] = l[i]
+                    mat[i, j] = l[i]
         return mat
 
     def slopes(self, n, use_recurrence=False):
@@ -1038,9 +1036,9 @@ class OverconvergentModularFormsSpace(Module):
             [0, 2, 4, 6, 8]
         """
         if self.base_ring() == QQ:
-            slopelist=self.cps_u(n).truncate().newton_slopes(self.prime())
-        elif is_pAdicField(self.base_ring()):
-            slopelist=self.cps_u(n).truncate().newton_slopes()
+            slopelist = self.cps_u(n).truncate().newton_slopes(self.prime())
+        elif isinstance(self.base_ring(), sage.rings.abc.pAdicField):
+            slopelist = self.cps_u(n).truncate().newton_slopes()
         else:
             print("slopes are only defined for base field QQ or a p-adic field")
         return [-i for i in slopelist]
@@ -1091,17 +1089,16 @@ class OverconvergentModularFormsSpace(Module):
         eigenfunctions = []
         verbose("Expected %s eigenvalues, got %s" % (n, len(eigenvalues)))
         for (r, d) in eigenvalues:
-            v = r.valuation()
             if d != 1:
                 continue
 
-            mr = (m.__pari__() - r.__pari__())
+            mr = m.__pari__() - r.__pari__()
             # Annoying thing: r isn't quite as precise as it claims to be
             # (bug reported to sage-support list)
             while F(mr.matdet()) != 0:
                 verbose("p-adic solver returned wrong result in slope %s; refining" % r.valuation(), level=2)
                 r = r - cp(r)/cp.derivative()(r)
-                mr2 = (m.__pari__() - r.__pari__())
+                mr2 = m.__pari__() - r.__pari__()
                 if mr2.matdet().valuation(self.prime()) > mr.matdet().valuation(self.prime()):
                     mr = mr2
                 else:
@@ -1410,7 +1407,8 @@ class OverconvergentModularFormElement(ModuleElement):
             ...
             TypeError: slope only defined for eigenfunctions
         """
-        if not self.is_eigenform(): raise TypeError("slope only defined for eigenfunctions")
+        if not self.is_eigenform():
+            raise TypeError("slope only defined for eigenfunctions")
         return self._slope
 
     def eigenvalue(self):
@@ -1430,8 +1428,8 @@ class OverconvergentModularFormElement(ModuleElement):
             ...
             TypeError: eigenvalue only defined for eigenfunctions
         """
-
-        if not self.is_eigenform(): raise TypeError("eigenvalue only defined for eigenfunctions")
+        if not self.is_eigenform():
+            raise TypeError("eigenvalue only defined for eigenfunctions")
         return self._eigenvalue
 
     def q_expansion(self, prec=None):
@@ -1484,10 +1482,10 @@ class OverconvergentModularFormElement(ModuleElement):
             ...
             ValueError: Precision too large for space
         """
-
-
-        if prec > self.prec(): raise ValueError("Precision too large for space")
-        if prec is None: prec = self.prec()
+        if prec > self.prec():
+            raise ValueError("Precision too large for space")
+        if prec is None:
+            prec = self.prec()
         return self._gexp.padded_list(prec)
 
     def prime(self):
@@ -1579,7 +1577,7 @@ class OverconvergentModularFormElement(ModuleElement):
         s = self.parent().radius()
 
         F = self.parent().base_ring()
-        if not is_pAdicField(F):
+        if not isinstance(F, sage.rings.abc.pAdicField):
             F = pAdicField(p)
 
         for i in range(self.prec()):
@@ -1600,7 +1598,7 @@ class OverconvergentModularFormElement(ModuleElement):
             sage: (3^18 * (M.2)).valuation()
             18
         """
-        if is_pAdicField(self.parent().base_ring()):
+        if isinstance(self.parent().base_ring(), sage.rings.abc.pAdicField):
             v = lambda u: u.normalized_valuation()
         else:
             v = lambda u: u.valuation(self.parent().prime())
@@ -1619,7 +1617,7 @@ class OverconvergentModularFormElement(ModuleElement):
         """
         p = self.prime()
         F = self.parent().base_ring()
-        if not is_pAdicField(F):
+        if not isinstance(F, sage.rings.abc.pAdicField):
             F = pAdicField(p)
         s = self.parent().radius()
         p = self.prime()
@@ -1642,7 +1640,8 @@ class OverconvergentModularFormElement(ModuleElement):
             sage: f.valuation_plot()
             Graphics object consisting of 1 graphics primitive
         """
-        if rmax is None: rmax = ZZ(self.prime())/ZZ(1 + self.prime())
+        if rmax is None:
+            rmax = ZZ(self.prime())/ZZ(1 + self.prime())
         return plot(self.r_ord, (0, rmax) )
 
     def weight(self):
@@ -1671,8 +1670,10 @@ class OverconvergentModularFormElement(ModuleElement):
             1
         """
         from sage.rings.infinity import Infinity
-        if self.is_zero(): return ZZ(1)
-        else: return Infinity
+        if self.is_zero():
+            return ZZ(1)
+        else:
+            return Infinity
 
     def base_extend(self, R):
         r"""

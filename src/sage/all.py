@@ -19,30 +19,23 @@ We exclude the dependencies and check to see that there are no others
 except for the known bad apples::
 
     sage: allowed = [
-    ....:     'IPython', 'prompt_toolkit',     # sage dependencies
+    ....:     'IPython', 'prompt_toolkit', 'jedi',     # sage dependencies
     ....:     'threading', 'multiprocessing',  # doctest dependencies
+    ....:     'pytz', 'importlib.resources',   # doctest dependencies
     ....:     '__main__', 'sage.doctest',      # doctesting
+    ....:     'signal', 'enum', 'types'        # may appear in Python 3
     ....: ]
     sage: def is_not_allowed(frame):
     ....:     module = inspect.getmodule(frame)
     ....:     if module is None: return False
     ....:     return not any(module.__name__.startswith(name) for name in allowed)
     sage: [inspect.getmodule(f).__name__ for f in frames if is_not_allowed(f)]
-    ['sage.combinat.species.generating_series']
-
-
-Check that the Sage Notebook is not imported at startup (see
-:trac:`15335`)::
-
-    sage: sagenb
-    Traceback (most recent call last):
-    ...
-    NameError: name 'sagenb' is not defined
+    []
 
 Check lazy import of ``interacts``::
 
     sage: type(interacts)
-    <type 'sage.misc.lazy_import.LazyImport'>
+    <class 'sage.misc.lazy_import.LazyImport'>
     sage: interacts
     <module 'sage.interacts.all' from '...'>
 """
@@ -56,16 +49,55 @@ Check lazy import of ``interacts``::
 #                  https://www.gnu.org/licenses/
 # ****************************************************************************
 
-# Future statements which apply to this module. We delete the
-# future globals because we do not want these to appear in the sage.all
-# namespace. This deleting does not affect the parsing of this module.
-from __future__ import absolute_import, division, print_function
-del absolute_import, division, print_function
-
 import os
 import sys
 import operator
 import math
+
+############ setup warning filters before importing Sage stuff ####
+import warnings
+
+__with_pydebug = hasattr(sys, 'gettotalrefcount')   # This is a Python debug build (--with-pydebug)
+if __with_pydebug:
+    # a debug build does not install the default warning filters. Sadly, this breaks doctests so we
+    # have to re-add them:
+    warnings.filterwarnings('ignore', category=PendingDeprecationWarning)
+    warnings.filterwarnings('ignore', category=ImportWarning)
+    warnings.filterwarnings('ignore', category=ResourceWarning)
+else:
+    deprecationWarning = ('ignore', None, DeprecationWarning, None, 0)
+    if deprecationWarning in warnings.filters:
+        warnings.filters.remove(deprecationWarning)
+
+# Ignore all deprecations from IPython etc.
+warnings.filterwarnings('ignore', category=DeprecationWarning,
+    module='(IPython|ipykernel|jupyter_client|jupyter_core|nbformat|notebook|ipywidgets|storemagic|jedi)')
+
+# scipy 1.18 introduced reprecation warnings on a number of things they are moving to
+# numpy, e.g. DeprecationWarning: scipy.array is deprecated
+#             and will be removed in SciPy 2.0.0, use numpy.array instead
+# This affects networkx 2.2 up and including 2.4 (cf. :trac:29766)
+warnings.filterwarnings('ignore', category=DeprecationWarning,
+    module='(scipy|networkx)')
+
+# However, be sure to keep OUR deprecation warnings
+warnings.filterwarnings('default', category=DeprecationWarning,
+    message=r'[\s\S]*See https?://trac\.sagemath\.org/[0-9]* for details.')
+
+# Ignore Python 3.9 deprecation warnings
+warnings.filterwarnings('ignore', category=DeprecationWarning,
+    module='ast')
+
+# Ignore packaging 20.5 deprecation warnings
+warnings.filterwarnings('ignore', category=DeprecationWarning,
+    module='(.*[.]_vendor[.])?packaging')
+
+# Ignore numpy warnings triggered by pythran
+warnings.filterwarnings('ignore', category=DeprecationWarning,
+                        module='pythran')
+
+################ end setup warnings ###############################
+
 
 from sage.env import SAGE_ROOT, SAGE_SRC, SAGE_DOC_SRC, SAGE_LOCAL, DOT_SAGE, SAGE_ENV
 
@@ -80,6 +112,7 @@ from time                import sleep
 from functools import reduce  # in order to keep reduce in python3
 
 import sage.misc.lazy_import
+
 from sage.misc.all       import *         # takes a while
 from sage.typeset.all    import *
 from sage.repl.all       import *
@@ -114,7 +147,7 @@ from sage.interfaces.all import *
 from sage.functions.all  import *
 from sage.calculus.all   import *
 
-import sage.tests.all as tests
+lazy_import('sage.tests', 'all', as_='tests', deprecation=27337)
 from sage.cpython.all    import *
 
 from sage.crypto.all     import *
@@ -136,11 +169,13 @@ from sage.dynamics.all   import *
 
 from sage.homology.all   import *
 
+from sage.topology.all   import *
+
 from sage.quadratic_forms.all import *
 
 from sage.games.all      import *
 
-from sage.media.all      import *
+lazy_import('sage.media.wav', 'Wave', as_='wave', deprecation=12673)
 
 from sage.logic.all      import *
 
@@ -149,14 +184,14 @@ from sage.numerical.all  import *
 from sage.stats.all      import *
 import sage.stats.all as stats
 
-import sage.finance.all  as finance
+lazy_import("sage.finance", "all", as_="finance", deprecation=32427)
 
 from sage.parallel.all   import *
 
 from sage.ext.fast_callable  import fast_callable
 from sage.ext.fast_eval      import fast_float
 
-sage.misc.lazy_import.lazy_import('sage.sandpiles.all', '*', globals())
+from sage.sandpiles.all import *
 
 from sage.tensor.all     import *
 
@@ -170,21 +205,14 @@ from sage.manifolds.all import *
 
 from cysignals.alarm import alarm, cancel_alarm
 
-# Lazily import notebook functions and interacts (#15335)
-lazy_import('sagenb.notebook.notebook_object', 'notebook')
-lazy_import('sagenb.notebook.notebook_object', 'inotebook')
-lazy_import('sagenb.notebook.sage_email', 'email')
+# Lazily import interacts (#15335)
 lazy_import('sage.interacts', 'all', 'interacts')
-from sage.interacts.debugger import debug
-# interact decorator from SageNB (will be overridden by Jupyter)
-lazy_import('sagenb.notebook.interact', 'interact')
 
 from copy import copy, deepcopy
 
 # The code executed here uses a large amount of Sage components
 from sage.rings.qqbar import _init_qqbar
 _init_qqbar()
-
 
 ###########################################################
 #### WARNING:
@@ -202,6 +230,8 @@ ZZ = IntegerRing()
 true = True
 false = False
 oo = infinity
+from sage.rings.imaginary_unit import I
+i = I
 
 from sage.misc.copying import license
 copying = license
@@ -240,7 +270,7 @@ def quit_sage(verbose=True):
     import sage.libs.flint.flint
     sage.libs.flint.flint.free_flint_stack()
 
-    # Free globally allocated mpir integers.
+    # Free globally allocated gmp integers.
     import sage.rings.integer
     sage.rings.integer.free_integer_pool()
     import sage.algebras.quatalg.quaternion_algebra_element
@@ -270,45 +300,6 @@ sage.misc.lazy_import.save_cache_file()
 # sys.settrace(poison_currRing)
 
 
-# Write a file indicating that Sage was started up successfully.
-# This is called by the sage-starts script.
-def _write_started_file():
-    """
-    Write a ``sage-started.txt`` file if it does not exist.  The
-    contents of this file do not matter, only its existence.
-
-    The non-existence of this file will be used as a trigger to run
-    ``sage-starts`` during the Sage build.
-
-    TESTS:
-
-    Check that the file exists when Sage is running::
-
-        sage: started_file = os.path.join(SAGE_LOCAL, 'etc', 'sage-started.txt')
-        sage: os.path.isfile(started_file)
-        True
-    """
-    started_file = os.path.join(SAGE_LOCAL, 'etc', 'sage-started.txt')
-
-    # Current time with a resolution of 1 second
-    import datetime
-    t = datetime.datetime.now().replace(microsecond=0)
-
-    O = open(started_file, 'w')
-    O.write("Sage {} was started at {}\n".format(sage.version.version, t))
-    O.close()
-
-
-import warnings
-warnings.filters.remove(('ignore', None, DeprecationWarning, None, 0))
-# Ignore all deprecations from IPython etc.
-warnings.filterwarnings('ignore',
-    module='.*(IPython|ipykernel|jupyter_client|jupyter_core|nbformat|notebook|ipywidgets|storemagic)')
-# However, be sure to keep OUR deprecation warnings
-warnings.filterwarnings('default',
-    r'[\s\S]*See https\?://trac.sagemath.org/[0-9]* for details.')
-
-
 # Set a new random number seed as the very last thing
 # (so that printing initial_seed() and using that seed
 # in set_random_seed() will result in the same sequence you got at
@@ -318,6 +309,7 @@ set_random_seed()
 
 # From now on it is ok to resolve lazy imports
 sage.misc.lazy_import.finish_startup()
+
 
 def sage_globals():
     r"""

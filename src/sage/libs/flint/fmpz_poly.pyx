@@ -1,3 +1,4 @@
+# distutils: extra_compile_args = -D_XPG6
 """
 FLINT fmpz_poly class wrapper
 
@@ -254,7 +255,7 @@ cdef class Fmpz_poly(SageObject):
             sage: f**(3/2)
             Traceback (most recent call last):
             ...
-            TypeError: rational is not an integer
+            TypeError: unable to convert rational 3/2 to an integer
         """
         cdef long nn = pyobject_to_long(n)
         if not isinstance(self, Fmpz_poly):
@@ -453,6 +454,6 @@ cdef class Fmpz_poly(SageObject):
             sage: Fmpz_poly([-1,0,0,1])._sage_()
             x^3 - 1
         """
-        from sage.rings.all import ZZ
+        from sage.rings.integer_ring import ZZ
         return ZZ[var](self.list())
 

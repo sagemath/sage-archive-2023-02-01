@@ -285,9 +285,9 @@ ought to be chosen. A typical example is
     sage: I.groebner_basis() is I.groebner_basis()
     True
     sage: type(I.gens)
-    <type 'sage.misc.cachefunc.CachedMethodCallerNoArgs'>
+    <class 'sage.misc.cachefunc.CachedMethodCallerNoArgs'>
     sage: type(I.groebner_basis)
-    <type 'sage.misc.cachefunc.CachedMethodCaller'>
+    <class 'sage.misc.cachefunc.CachedMethodCaller'>
 
 By :trac:`12951`, the cached_method decorator is also supported on non-c(p)def
 methods of extension classes, as long as they either support attribute assignment
@@ -414,9 +414,6 @@ the parent as its first argument::
 # (at your option) any later version.
 #                  https://www.gnu.org/licenses/
 # ****************************************************************************
-from __future__ import print_function, absolute_import
-
-from cpython cimport PyObject
 
 cdef extern from "methodobject.h":
     cdef int METH_NOARGS, METH_O
@@ -461,9 +458,9 @@ def _cached_function_unpickle(module, name, cache=None):
 
     TESTS::
 
-        sage: type(cunningham_prime_factors)
-        <type 'sage.misc.cachefunc.CachedFunction'>
-        sage: loads(dumps(cunningham_prime_factors)) is cunningham_prime_factors #indirect doctest
+        sage: type(hilbert_class_polynomial)
+        <class 'sage.misc.cachefunc.CachedFunction'>
+        sage: loads(dumps(hilbert_class_polynomial)) is hilbert_class_polynomial #indirect doctest
         True
 
     Verify that the ``cache`` parameter works::
@@ -516,7 +513,7 @@ cdef class NonpicklingDict(dict):
             sage: d = NonpicklingDict()
             sage: d[0] = 0
             sage: d.__reduce__()
-            (<type 'sage.misc.cachefunc.NonpicklingDict'>, ())
+            (<class 'sage.misc.cachefunc.NonpicklingDict'>, ())
 
         """
         return NonpicklingDict, ()
@@ -824,11 +821,10 @@ cdef class CachedFunction(object):
 
         TESTS::
 
-            sage: type(cunningham_prime_factors)
-            <type 'sage.misc.cachefunc.CachedFunction'>
-            sage: loads(dumps(cunningham_prime_factors)) is cunningham_prime_factors #indirect doctest
+            sage: type(hilbert_class_polynomial)
+            <class 'sage.misc.cachefunc.CachedFunction'>
+            sage: loads(dumps(hilbert_class_polynomial)) is hilbert_class_polynomial  #indirect doctest
             True
-
         """
         return _cached_function_unpickle, (self.__module__, self.__name__, self.cache)
 
@@ -861,7 +857,7 @@ cdef class CachedFunction(object):
 
             sage: from sage.misc.sageinspect import sage_getfile
             sage: type(I.groebner_basis)
-            <type 'sage.misc.cachefunc.CachedMethodCaller'>
+            <class 'sage.misc.cachefunc.CachedMethodCaller'>
             sage: os.path.exists(sage_getfile(I.groebner_basis))
             True
 
@@ -911,7 +907,7 @@ cdef class CachedFunction(object):
 
             sage: from sage.misc.sageinspect import sage_getsource
             sage: g = CachedFunction(number_of_partitions)
-            sage: 'bober' in sage_getsource(g)  # indirect doctest
+            sage: 'flint' in sage_getsource(g)  # indirect doctest
             True
 
         """
@@ -928,7 +924,7 @@ cdef class CachedFunction(object):
             sage: P.<x,y> = QQ[]
             sage: I = P*[x,y]
             sage: from sage.misc.sageinspect import sage_getsourcelines
-            sage: l = "        elif algorithm == 'macaulay2:gb':\n"
+            sage: l = '        elif algorithm.startswith("macaulay2:"):\n'
             sage: l in sage_getsourcelines(I.groebner_basis)[0] # indirect doctest
             True
 
@@ -1322,7 +1318,7 @@ cdef class WeakCachedFunction(CachedFunction):
         sage: mod_ring(1,algorithm="default") is mod_ring(1,algorithm="algorithm") is mod_ring(1) is mod_ring(1,'default')
         True
 
-    TESTS::
+    TESTS:
 
     Check that :trac:`16316` has been fixed, i.e., caching works for
     immutable unhashable objects which define
@@ -1449,7 +1445,7 @@ class CachedMethodPickle(object):
         of the instance (provided that it has a ``__dict__``).
         Hence, when pickling the instance, it would be attempted
         to pickle that attribute as well, but this is a problem,
-        since functions can not be pickled, currently. Therefore,
+        since functions cannot be pickled, currently. Therefore,
         we replace the actual cached method by a place holder,
         that kills itself as soon as any attribute is requested.
         Then, the original cached attribute is reinstated. But the
@@ -1499,9 +1495,9 @@ class CachedMethodPickle(object):
         sage: __main__.A = A
         sage: a = A()
         sage: type(a.f)
-        <type 'sage.misc.cachefunc.CachedMethodCallerNoArgs'>
+        <class 'sage.misc.cachefunc.CachedMethodCallerNoArgs'>
         sage: type(a.g)
-        <type 'sage.misc.cachefunc.CachedMethodCaller'>
+        <class 'sage.misc.cachefunc.CachedMethodCaller'>
 
     We demonstrate that both implementations can be pickled and
     preserve the cache. For that purpose, we assign nonsense to the
@@ -1691,7 +1687,7 @@ cdef class CachedMethodCaller(CachedFunction):
         sage: a.bar
         Cached version of <function ...bar at 0x...>
         sage: type(a.bar)
-        <type 'sage.misc.cachefunc.CachedMethodCaller'>
+        <class 'sage.misc.cachefunc.CachedMethodCaller'>
         sage: a.bar(2) is a.bar(x=2)
         True
 
@@ -2158,7 +2154,7 @@ cdef class CachedMethodCallerNoArgs(CachedFunction):
         sage: I.gens
         Cached version of <function ...gens at 0x...>
         sage: type(I.gens)
-        <type 'sage.misc.cachefunc.CachedMethodCallerNoArgs'>
+        <class 'sage.misc.cachefunc.CachedMethodCallerNoArgs'>
         sage: I.gens is I.gens
         True
         sage: I.gens() is I.gens()
@@ -2252,7 +2248,7 @@ cdef class CachedMethodCallerNoArgs(CachedFunction):
 
     def __reduce__(self):
         """
-        Since functions can not be pickled, the cached method caller
+        Since functions cannot be pickled, the cached method caller
         is pickled by a :class:`CachedMethodPickle`, that replaces
         itself by an actual :class:`CachedMethodCallerNoArgs` as soon
         as it is asked to do anything.
@@ -2379,7 +2375,7 @@ cdef class CachedMethodCallerNoArgs(CachedFunction):
 
         .. NOTE::
 
-            Recall that a cached method without arguments can not cache
+            Recall that a cached method without arguments cannot cache
             the return value ``None``.
 
         EXAMPLES::
@@ -2441,7 +2437,7 @@ cdef class CachedMethodCallerNoArgs(CachedFunction):
             sage: b1.f is b1.f
             True
             sage: type(b1.f)
-            <type 'sage.misc.cachefunc.CachedMethodCallerNoArgs'>
+            <class 'sage.misc.cachefunc.CachedMethodCallerNoArgs'>
 
         Any instance of ``Bar`` gets its own instance of
         :class:`CachedMethodCaller``::
@@ -2557,7 +2553,7 @@ cdef class CachedMethod(object):
         sage: P.<a,b,c,d> = QQ[]
         sage: I = P*[a,b]
         sage: type(I.__class__.gens)
-        <type 'sage.misc.cachefunc.CachedMethodCallerNoArgs'>
+        <class 'sage.misc.cachefunc.CachedMethodCallerNoArgs'>
 
     So, you would hardly ever see an instance of this class alive.
 
@@ -2603,7 +2599,7 @@ cdef class CachedMethod(object):
         sage: len(b.f.cache)
         1
 
-    Cached methods can not be copied like usual methods, see :trac:`12603`.
+    Cached methods cannot be copied like usual methods, see :trac:`12603`.
     Copying them can lead to very surprising results::
 
         sage: class A:
@@ -2656,7 +2652,7 @@ cdef class CachedMethod(object):
         of the ``CachedMethodCaller``::
 
             sage: type(a.f)
-            <type 'sage.misc.cachefunc.CachedMethodCaller'>
+            <class 'sage.misc.cachefunc.CachedMethodCaller'>
             sage: a.f.cache is a._cache__f
             True
 
@@ -2671,7 +2667,7 @@ cdef class CachedMethod(object):
         it is not additionally stored as an attribute of ``a``::
 
             sage: type(a.f0)
-            <type 'sage.misc.cachefunc.CachedMethodCallerNoArgs'>
+            <class 'sage.misc.cachefunc.CachedMethodCallerNoArgs'>
             sage: a.f0.cache
             4
             sage: sorted(n for n in dir(a) if not n.startswith('__'))
@@ -2747,7 +2743,7 @@ cdef class CachedMethod(object):
             sage: a.f()
             4
 
-        Note that we can not provide a direct test, since ``a.f`` is
+        Note that we cannot provide a direct test, since ``a.f`` is
         an instance of :class:`CachedMethodCaller`.  But during its
         initialisation, this method was called in order to provide the
         cached method caller with its cache, and, if possible, assign
@@ -2782,9 +2778,9 @@ cdef class CachedMethod(object):
             ....:         return x^n
             sage: a = Foo()
             sage: type(a.f)
-            <type 'sage.misc.cachefunc.CachedMethodCallerNoArgs'>
+            <class 'sage.misc.cachefunc.CachedMethodCallerNoArgs'>
             sage: type(a.g)
-            <type 'sage.misc.cachefunc.CachedMethodCaller'>
+            <class 'sage.misc.cachefunc.CachedMethodCaller'>
 
         By :trac:`8611`, it is attempted to set the
         CachedMethodCaller as an attribute of the instance ``a``,
@@ -2895,7 +2891,7 @@ cdef class CachedSpecialMethod(CachedMethod):
         ....:
         sage: c = C()
         sage: type(C.__hash__)
-        <type 'sage.misc.cachefunc.CachedMethodCallerNoArgs'>
+        <class 'sage.misc.cachefunc.CachedMethodCallerNoArgs'>
 
     The hash is computed only once, subsequent calls will use the value from
     the cache. This was implemented in :trac:`12601`.
@@ -2922,7 +2918,7 @@ cdef class CachedSpecialMethod(CachedMethod):
             ....:         return int(5)
             sage: c = C()
             sage: type(C.__hash__)
-            <type 'sage.misc.cachefunc.CachedMethodCallerNoArgs'>
+            <class 'sage.misc.cachefunc.CachedMethodCallerNoArgs'>
             sage: hash(c)       # indirect doctest
             compute hash
             5
@@ -3020,7 +3016,7 @@ def cached_method(f, name=None, key=None, do_pickle=None):
         ....:         return x*2
         sage: c = C()
         sage: type(C.__hash__)
-        <type 'sage.misc.cachefunc.CachedMethodCallerNoArgs'>
+        <class 'sage.misc.cachefunc.CachedMethodCallerNoArgs'>
         sage: hash(c)
         compute hash
         5
@@ -3291,7 +3287,7 @@ cdef class CachedInParentMethod(CachedMethod):
         if not hasattr(P,'__cached_methods'):
             raise TypeError("The parent of this element does not allow attribute assignment\n" +
                             "    and does not descend from the Parent base class.\n" +
-                            "    Can not use CachedInParentMethod.")
+                            "    Cannot use CachedInParentMethod.")
         if P.__cached_methods is None:
             P.__cached_methods = {}
         return (<dict>P.__cached_methods).setdefault(self._cache_name, default)
@@ -3353,7 +3349,7 @@ class FileCache(object):
             1
         """
         from sage.misc.misc import sage_makedirs
-        if len(dir) == 0 or dir[-1] != '/':
+        if not dir or dir[-1] != '/':
             dir += '/'
         self._dir = dir
         sage_makedirs(dir)

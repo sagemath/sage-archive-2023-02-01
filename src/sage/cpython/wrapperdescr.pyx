@@ -17,18 +17,18 @@ Pure Python classes have normal methods, not slot wrappers::
     ....:     def __add__(self, other):
     ....:         return NotImplemented
     sage: X.__add__
-    <unbound method X.__add__>
+    <function X.__add__ at ...>
 """
 
-#*****************************************************************************
+# ****************************************************************************
 #       Copyright (C) 2017 Jeroen Demeyer <J.Demeyer@UGent.be>
 #
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
 # the Free Software Foundation, either version 2 of the License, or
 # (at your option) any later version.
-#                  http://www.gnu.org/licenses/
-#*****************************************************************************
+#                  https://www.gnu.org/licenses/
+# ****************************************************************************
 
 from .string import bytes_to_str
 
@@ -77,7 +77,7 @@ def wrapperdescr_call(slotwrapper, self, *args, **kwds):
         sage: wrapperdescr_call(Integer.__mul__, 1, 2, 3)
         Traceback (most recent call last):
         ...
-        TypeError: expected 1 arguments, got 2
+        TypeError: expected 1 arg..., got 2
         sage: wrapperdescr_call(Integer.__mul__, 6, other=9)
         Traceback (most recent call last):
         ...

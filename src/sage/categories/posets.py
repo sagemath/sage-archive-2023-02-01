@@ -28,7 +28,7 @@ class Posets(Category):
         An example of a poset: sets ordered by inclusion
 
     The partial order is implemented by the mandatory method
-    :meth:`~posets.ParentMethods.le`::
+    :meth:`~Posets.ParentMethods.le`::
 
         sage: x = P(Set([1,3])); y = P(Set([1,2,3]))
         sage: x, y
@@ -41,8 +41,8 @@ class Posets(Category):
         False
 
     The other comparison methods are called
-    :meth:`~posets.ParentMethods.lt`, :meth:`~posets.ParentMethods.ge`,
-    :meth:`~posets.ParentMethods.gt`, following Python's naming
+    :meth:`~Posets.ParentMethods.lt`, :meth:`~Posets.ParentMethods.ge`,
+    :meth:`~Posets.ParentMethods.gt`, following Python's naming
     convention in :mod:`operator`. Default implementations are
     provided::
 
@@ -407,7 +407,7 @@ class Posets(Category):
                 ....:     for P in P4)
                 True
             """
-            if not v in I:
+            if v not in I:
                 if all(u in I for u in self.lower_covers(v)):
                     from sage.sets.set import Set
                     return I.union(Set({v}))

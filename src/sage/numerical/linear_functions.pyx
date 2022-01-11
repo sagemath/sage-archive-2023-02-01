@@ -11,12 +11,12 @@ either equalities or less-or-equal. For example::
     sage: f = 1 + x[1] + 2*x[2];  f     #  a linear function
     1 + x_0 + 2*x_1
     sage: type(f)
-    <type 'sage.numerical.linear_functions.LinearFunction'>
+    <class 'sage.numerical.linear_functions.LinearFunction'>
 
     sage: c = (0 <= f);  c    # a constraint
     0 <= 1 + x_0 + 2*x_1
     sage: type(c)
-    <type 'sage.numerical.linear_functions.LinearConstraint'>
+    <class 'sage.numerical.linear_functions.LinearConstraint'>
 
 Note that you can use this module without any reference to linear
 programming, it only implements linear functions over a base ring and
@@ -89,7 +89,7 @@ See :trac:`12091`::
     2*x_0 <= x_1 <= x_2
 """
 
-#*****************************************************************************
+# ****************************************************************************
 #       Copyright (C) 2012 Nathann Cohen <nathann.cohen@gmail.com>
 #       Copyright (C) 2012 Volker Braun <vbraun.name@gmail.com>
 #       Copyright (C) 2016 Jeroen Demeyer <jdemeyer@cage.ugent.be>
@@ -98,9 +98,8 @@ See :trac:`12091`::
 # it under the terms of the GNU General Public License as published by
 # the Free Software Foundation, either version 2 of the License, or
 # (at your option) any later version.
-#                  http://www.gnu.org/licenses/
-#*****************************************************************************
-from __future__ import print_function
+#                  https://www.gnu.org/licenses/
+# ****************************************************************************
 
 from cpython.object cimport Py_EQ, Py_GE, Py_LE, Py_GT, Py_LT
 
@@ -138,6 +137,7 @@ cpdef is_LinearFunction(x):
         False
     """
     return isinstance(x, LinearFunction)
+
 
 def is_LinearConstraint(x):
     """
@@ -529,7 +529,7 @@ cdef class LinearFunctionsParent_class(Parent):
 
         sage: from sage.numerical.linear_functions import LinearFunctionsParent_class
         sage: LinearFunctionsParent_class
-        <type 'sage.numerical.linear_functions.LinearFunctionsParent_class'>
+        <class 'sage.numerical.linear_functions.LinearFunctionsParent_class'>
     """
     def __cinit__(self):
         """
@@ -649,7 +649,7 @@ cdef class LinearFunctionsParent_class(Parent):
             sage: LF.gen(23)
             x_23
         """
-        return LinearFunction(self, {i:1})
+        return LinearFunction(self, {i: 1})
 
     def _repr_(self):
         """
@@ -660,11 +660,11 @@ cdef class LinearFunctionsParent_class(Parent):
             sage: MixedIntegerLinearProgram().linear_functions_parent()
             Linear functions over Real Double Field
         """
-        return 'Linear functions over '+str(self.base_ring())
+        return 'Linear functions over ' + str(self.base_ring())
 
     cpdef _element_constructor_(self, x):
         """
-        Construt a :class:`LinearFunction` from ``x``.
+        Construct a :class:`LinearFunction` from ``x``.
 
         EXAMPLES::
 
@@ -672,11 +672,10 @@ cdef class LinearFunctionsParent_class(Parent):
             sage: LF = p.linear_functions_parent()
             sage: LF._element_constructor_(123)
             123
-            sage: p(123)    # indirect doctest
-            doctest:...: DeprecationWarning: ...
+            sage: LF(123)    # indirect doctest
             123
             sage: type(_)
-            <type 'sage.numerical.linear_functions.LinearFunction'>
+            <class 'sage.numerical.linear_functions.LinearFunction'>
 
             sage: p_QQ = MixedIntegerLinearProgram(solver='ppl')
             sage: LF_QQ = p_QQ.linear_functions_parent()
@@ -690,10 +689,7 @@ cdef class LinearFunctionsParent_class(Parent):
             False
         """
         if is_LinearFunction(x):
-            if x.parent() is self:
-                return x
-            else:
-                return LinearFunction(self, (<LinearFunction>x)._f)
+            return LinearFunction(self, (<LinearFunction>x)._f)
         return LinearFunction(self, x)
 
     cpdef _coerce_map_from_(self, R):
@@ -717,11 +713,8 @@ cdef class LinearFunctionsParent_class(Parent):
             sage: parent._coerce_map_from_(int)
             True
         """
-        if R in [int, float, long, complex]:
-            return True
-        from sage.rings.real_mpfr import mpfr_prec_min
-        from sage.rings.all import RealField
-        if RealField(mpfr_prec_min()).has_coerce_map_from(R):
+        from sage.structure.coerce import parent_is_real_numerical
+        if parent_is_real_numerical(R) or R is complex:
             return True
         return False
 
@@ -810,7 +803,7 @@ cdef class LinearFunction(LinearFunctionOrConstraint):
 
     cpdef iteritems(self):
         """
-        Iterate over the index, coefficient pairs
+        Iterate over the index, coefficient pairs.
 
         OUTPUT:
 
@@ -823,11 +816,11 @@ cdef class LinearFunction(LinearFunctionOrConstraint):
             sage: p = MixedIntegerLinearProgram(solver = 'ppl')
             sage: x = p.new_variable()
             sage: f = 0.5 + 3/2*x[1] + 0.6*x[3]
-            sage: for id, coeff in f.iteritems():
+            sage: for id, coeff in sorted(f.iteritems()):
             ....:     print('id = {}   coeff = {}'.format(id, coeff))
+            id = -1   coeff = 1/2
             id = 0   coeff = 3/2
             id = 1   coeff = 3/5
-            id = -1   coeff = 1/2
         """
         return self._f.iteritems()
 
@@ -940,11 +933,11 @@ cdef class LinearFunction(LinearFunctionOrConstraint):
             -1*x_0 + 8*x_3
         """
         P = self.parent()
-        return P(dict([(id,-coeff) for (id, coeff) in self._f.iteritems()]))
+        return P({id: -coeff for id, coeff in self._f.iteritems()})
 
     cpdef _sub_(self, b):
         r"""
-        Defining the - operator (substraction).
+        Defining the - operator (subtraction).
 
         EXAMPLES::
 
@@ -956,8 +949,8 @@ cdef class LinearFunction(LinearFunctionOrConstraint):
             -16 + x_0 - 5*x_2 - 10*x_3
         """
         e = dict(self._f)
-        for (id,coeff) in b.dict().iteritems():
-            e[id] = self._f.get(id,0) - coeff
+        for id, coeff in b.dict().iteritems():
+            e[id] = self._f.get(id, 0) - coeff
         P = self.parent()
         return P(e)
 
@@ -1044,8 +1037,9 @@ cdef class LinearFunction(LinearFunctionOrConstraint):
         EXAMPLES::
 
             sage: p = MixedIntegerLinearProgram()
-            sage: f = p(1);  type(f)
-            <type 'sage.numerical.linear_functions.LinearFunction'>
+            sage: LF = p.linear_functions_parent()
+            sage: f = LF(1);  type(f)
+            <class 'sage.numerical.linear_functions.LinearFunction'>
             sage: f._coeff_formatter(1)
             ''
             sage: f._coeff_formatter(1, constant_term=True)
@@ -1056,21 +1050,24 @@ cdef class LinearFunction(LinearFunctionOrConstraint):
             '12.3*'
 
             sage: p = MixedIntegerLinearProgram(solver='ppl')
-            sage: f = p(1)
+            sage: LF = p.linear_functions_parent()
+            sage: f = LF(1)
             sage: f._coeff_formatter(13/45)
             '13/45*'
 
             sage: from sage.rings.number_field.number_field import QuadraticField
             sage: K.<sqrt5> = QuadraticField(5, 'sqrt5')
             sage: p = MixedIntegerLinearProgram(solver='interactivelp', base_ring=K)
-            sage: f = p(1)
+            sage: LF = p.linear_functions_parent()
+            sage: f = LF(1)
             sage: f._coeff_formatter(sqrt5)
             'sqrt5*'
 
             sage: from sage.rings.all import AA
             sage: sqrt5 = AA(5).sqrt()
             sage: p = MixedIntegerLinearProgram(solver='interactivelp', base_ring=AA)
-            sage: f = p(1)
+            sage: LF = p.linear_functions_parent()
+            sage: f = LF(1)
             sage: f._coeff_formatter(sqrt5)
             '2.236067977499790?*'
         """
@@ -1078,7 +1075,7 @@ cdef class LinearFunction(LinearFunctionOrConstraint):
         if coeff == R.one() and not constant_term:
             return ''
         try:
-            from sage.rings.all import ZZ
+            from sage.rings.integer_ring import ZZ
             coeff = ZZ(coeff)    # print as integer if possible
         except (TypeError, ValueError):
             pass
@@ -1267,11 +1264,11 @@ cdef class LinearConstraintsParent_class(Parent):
             sage: MixedIntegerLinearProgram().linear_constraints_parent()
             Linear constraints over Real Double Field
         """
-        return 'Linear constraints over '+str(self.linear_functions_parent().base_ring())
+        return 'Linear constraints over ' + str(self.linear_functions_parent().base_ring())
 
     cpdef _element_constructor_(self, left, right=None, equality=False):
         """
-        Construt a :class:`LinearConstraint`.
+        Construct a :class:`LinearConstraint`.
 
         INPUT:
 
@@ -1305,7 +1302,7 @@ cdef class LinearConstraintsParent_class(Parent):
             x_0 == x_1 == x_2
 
             sage: type(_)
-            <type 'sage.numerical.linear_functions.LinearConstraint'>
+            <class 'sage.numerical.linear_functions.LinearConstraint'>
 
         TESTS::
 
@@ -1637,10 +1634,10 @@ cdef class LinearConstraint(LinearFunctionOrConstraint):
             sage: LC(b[3])
             trivial constraint starting with x_0
         """
-        comparator = ( ' == ' if self.equality else ' <= ' )
+        comparator = (' == ' if self.equality else ' <= ')
         result = comparator.join(map(str, self))
         if self.is_trivial():
-            return 'trivial constraint starting with '+result
+            return 'trivial constraint starting with ' + result
         return result
 
     def __nonzero__(self):

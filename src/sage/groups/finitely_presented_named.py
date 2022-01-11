@@ -52,21 +52,21 @@ You can also import the desired functions::
     sage: CyclicPresentation(4)
     Finitely presented group < a | a^4 >
 """
-#*****************************************************************************
+# ****************************************************************************
 #       Copyright (C) 2013 Davis Shurbert <davis.sprout@gmail.com>
 #
 #  Distributed under the terms of the GNU General Public License (GPL)
-#                  http://www.gnu.org/licenses/
-#*****************************************************************************
+#                  https://www.gnu.org/licenses/
+# ****************************************************************************
 
-from sage.rings.all      import Integer
+from sage.rings.integer import Integer
 from sage.groups.free_group import FreeGroup
 from sage.groups.finitely_presented import FinitelyPresentedGroup
 from sage.libs.gap.libgap import libgap
 from sage.matrix.constructor import diagonal_matrix
 from sage.modules.fg_pid.fgp_module import FGP_Module
 from sage.rings.integer_ring import ZZ
-from sage.sets.set import Set
+
 
 def CyclicPresentation(n):
     r"""
@@ -181,7 +181,7 @@ def FinitelyGeneratedAbelianPresentation(int_list):
         sage: gg = (C2.direct_product(C4)[0]).direct_product(C8)[0]
         sage: gg.is_isomorphic(G.as_permutation_group())
         True
-        sage: all([groups.presentation.FGAbelian([i]).as_permutation_group().is_isomorphic(groups.presentation.Cyclic(i).as_permutation_group()) for i in [2..35]])
+        sage: all(groups.presentation.FGAbelian([i]).as_permutation_group().is_isomorphic(groups.presentation.Cyclic(i).as_permutation_group()) for i in [2..35])
         True
     """
     from sage.groups.free_group import _lexi_gen
@@ -273,7 +273,8 @@ def FinitelyGeneratedHeisenbergPresentation(n=1, p=0):
     y = F.gens()[n:2*n] # list of generators x1, x2, ..., xn
     z = F.gen(n*2)
 
-    def commutator(a, b): return a * b * a**-1 * b**-1
+    def commutator(a, b):
+        return a * b * a**-1 * b**-1
     # First set of relations: [xi, yi] = z
     r1 = [commutator(x[i], y[i]) * z**-1 for i in range(n)]
     # Second set of relations: [z, xi] = 1
@@ -363,9 +364,10 @@ def DiCyclicPresentation(n):
         sage: Q = groups.presentation.DiCyclic(2)
         sage: Q.as_permutation_group().is_isomorphic(QuaternionGroup())
         True
-        sage: all([groups.presentation.DiCyclic(i).as_permutation_group(
-        ....: ).is_isomorphic(groups.permutation.DiCyclic(i)) for i in [5,8,12,2^5]])
-        True
+        sage: for i in [5, 8, 12, 32]:
+        ....:     A = groups.presentation.DiCyclic(i).as_permutation_group()
+        ....:     B = groups.permutation.DiCyclic(i)
+        ....:     assert A.is_isomorphic(B)
         sage: groups.presentation.DiCyclic(1)
         Traceback (most recent call last):
         ...
@@ -447,6 +449,7 @@ def QuaternionPresentation():
         sage: Q.order(), Q.is_abelian()
         (8, False)
         sage: Q.is_isomorphic(groups.presentation.DiCyclic(2))
+        #I  Forcing finiteness test
         True
     """
     F = FreeGroup(['a','b'])
@@ -521,7 +524,7 @@ def BinaryDihedralPresentation(n):
     Build a binary dihedral group of order `4n` as a finitely presented group.
 
     The binary dihedral group `BD_n` has the following presentation
-    (note that there is a typo in [Sun]_):
+    (note that there is a typo in [Sun2010]_):
 
     .. MATH::
 
@@ -546,6 +549,12 @@ def BinaryDihedralPresentation(n):
         ....:     P = groups.presentation.BinaryDihedral(n)
         ....:     M = groups.matrix.BinaryDihedral(n)
         ....:     assert P.is_isomorphic(M)
+        #I  Forcing finiteness test
+        #I  Forcing finiteness test
+        #I  Forcing finiteness test
+        #I  Forcing finiteness test
+        #I  Forcing finiteness test
+        #I  Forcing finiteness test
     """
     F = FreeGroup('x,y,z')
     x,y,z = F.gens()

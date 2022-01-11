@@ -14,22 +14,25 @@ Helpers for creating matrices
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 
-from __future__ import absolute_import, generator_stop
-
 cimport cython
 from cpython.sequence cimport PySequence_Fast
 from cysignals.signals cimport sig_check
-from cypari2.gen cimport Gen
-from cypari2.types cimport typ, t_MAT, t_VEC, t_COL, t_VECSMALL, t_LIST, t_STR, t_CLOSURE
 
-from .matrix_space import MatrixSpace
-from sage.rings.all import ZZ, RDF, CDF
-from sage.structure.coerce cimport is_numpy_type, py_scalar_parent
-from sage.structure.element cimport (coercion_model,
-        Element, RingElement, coercion_model)
+MatrixSpace = None
+
+from sage.rings.integer_ring import ZZ
+from sage.structure.coerce cimport (coercion_model,
+        is_numpy_type, py_scalar_parent)
+from sage.structure.element cimport Element, RingElement, Vector
 from sage.arith.long cimport pyobject_to_long
 from sage.misc.misc_c import sized_iter
 from sage.categories import monoids
+
+
+try:
+    from cypari2.gen import Gen
+except ImportError:
+    Gen = ()
 
 
 CommutativeMonoids = monoids.Monoids().Commutative()
@@ -82,7 +85,7 @@ cdef class SparseEntry:
         sage: SparseEntry(1/3, 2/3, x)
         Traceback (most recent call last):
         ...
-        TypeError: rational is not an integer
+        TypeError: unable to convert rational 1/3 to an integer
     """
 
     def __init__(self, i, j, entry):
@@ -236,6 +239,12 @@ cdef class MatrixArgs:
         [0 1 1]
         [1 0 1]
         [1 1 0]
+
+        sage: ma = MatrixArgs([vector([0,1], sparse=True), vector([0,0], sparse=True)], sparse=True)
+        sage: ma.finalized(); ma.matrix()
+        <MatrixArgs for Full MatrixSpace of 2 by 2 sparse matrices over Integer Ring; typ=SEQ_SPARSE; entries=[SparseEntry(0, 1, 1)]>
+        [0 1]
+        [0 0]
 
     Test invalid input::
 
@@ -925,6 +934,9 @@ cdef class MatrixArgs:
             self.sparse = (self.typ & MA_FLAG_SPARSE) != 0
 
         if self.space is None:
+            global MatrixSpace
+            if MatrixSpace is None:
+                from .matrix_space import MatrixSpace
             self.space = MatrixSpace(self.base, self.nrows, self.ncols,
                     sparse=self.sparse, **self.kwds)
 
@@ -981,7 +993,7 @@ cdef class MatrixArgs:
         """
         cdef list seqsparse = []
         cdef list values = []
-        cdef long maxrow = -1, maxcol = -1  # Maximum occuring value for indices
+        cdef long maxrow = -1, maxcol = -1  # Maximum occurring value for indices
         cdef long i, j
         for (i0, j0), x in self.entries.items():
             sig_check()
@@ -1056,6 +1068,9 @@ cdef class MatrixArgs:
             raise TypeError('numpy matrix must be either c_contiguous or f_contiguous')
 
         from .constructor import matrix
+        from sage.rings.real_double import RDF
+        from sage.rings.complex_double import CDF
+
         if 'float32' in str_dtype:
             m = matrix(RDF, inrows, incols, 0)
             m._replace_self_with_numpy32(e)
@@ -1096,6 +1111,21 @@ cdef class MatrixArgs:
             return 0
         elif self.ncols != -1 and self.base is not None:
             # Everything known => OK
+            return 0
+
+        # When sparse and given a list of sparse vectors, convert to a sparse sequence
+        cdef long i, j
+        if isinstance(e[0], Vector) and all(vec.is_sparse() for vec in e):
+            if self.base is None:
+                self.base = coercion_model.common_parent(*[(<Vector>vec)._parent._base
+                                                           for vec in e])
+            self.entries = []
+            for i, row in enumerate(e):
+                for j, val in (<Vector?>row).iteritems():
+                    self.entries.append(make_SparseEntry(i, j, val))
+
+            self.set_ncols(max((<Vector>vec)._parent.ambient_module().rank() for vec in e))
+            self.typ = MA_ENTRIES_SEQ_SPARSE
             return 0
 
         # Process everything and convert to SEQ_FLAT
@@ -1161,6 +1191,29 @@ cdef class MatrixArgs:
         change ``self.entries``.
 
         If the entries are invalid, return ``MA_ENTRIES_UNKNOWN``.
+
+        TESTS:
+
+        Check that :trac:`26655` is fixed::
+
+            sage: F.<a> = GF(9)
+            sage: M = MatrixSpace(F, 2, 2)
+            sage: A = M([[1, a], [0, 1]])
+            sage: M(pari(A))
+            [1 a]
+            [0 1]
+
+        Constructing a matrix from a PARI ``t_VEC`` or ``t_COL`` with
+        ``t_VEC`` or ``t_COL`` elements is currently not supported::
+
+            sage: M(pari([1, a, 0, 1]))
+            Traceback (most recent call last):
+            ...
+            NameError: name 'a' is not defined
+            sage: M(pari([[1, a], [0, 1]]))
+            Traceback (most recent call last):
+            ...
+            NameError: name 'a' is not defined
         """
         # Check basic Python types. This is very fast, so it doesn't
         # hurt to do these first.
@@ -1202,20 +1255,8 @@ cdef class MatrixArgs:
                 return MA_ENTRIES_NDARRAY
             return MA_ENTRIES_SCALAR
         if isinstance(self.entries, Gen):  # PARI object
-            t = typ((<Gen>self.entries).g)
-            if t == t_MAT:
-                self.entries = self.entries.Col().sage()
-                return MA_ENTRIES_SEQ_SEQ
-            elif t in [t_VEC, t_COL, t_VECSMALL, t_LIST]:
-                self.entries = self.entries.sage()
-                return MA_ENTRIES_SEQ_FLAT
-            elif t == t_CLOSURE:
-                return MA_ENTRIES_CALLABLE
-            elif t == t_STR:
-                return MA_ENTRIES_UNKNOWN
-            else:
-                self.entries = self.entries.sage()
-                return MA_ENTRIES_SCALAR
+            from sage.libs.pari.convert_sage import pari_typ_to_entries_type
+            return pari_typ_to_entries_type(self)
         if isinstance(self.entries, MatrixArgs):
             # Prevent recursion
             return MA_ENTRIES_UNKNOWN
@@ -1244,7 +1285,7 @@ cdef class MatrixArgs:
         if not self.entries:
             return MA_ENTRIES_SEQ_FLAT
         x = self.entries[0]
-        if isinstance(x, (list, tuple)):
+        if isinstance(x, (list, tuple, Vector)):
             return MA_ENTRIES_SEQ_SEQ
         if type(x) is SparseEntry:
             return MA_ENTRIES_SEQ_SPARSE

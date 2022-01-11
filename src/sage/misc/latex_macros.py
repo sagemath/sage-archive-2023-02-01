@@ -14,12 +14,9 @@ suitable for parsing by MathJax.  The LaTeX macros are produced using
 the ``_latex_`` method for each Sage object listed in ``macros``, and
 the MathJax macros are produced from the LaTeX macros.  The list of
 LaTeX macros is used in the file
-``SAGE_DOC_SRC/common/conf.py`` to add to the preambles of
+``sage.docs.conf`` to add to the preambles of
 both the LaTeX file used to build the PDF version of the documentation
-and the LaTeX file used to build the HTML version.  The list of
-MathJax macros is used in the file
-``sagenb/notebook/tutorial.py`` to define MathJax macros for use
-in the live documentation (and also in the notebook).
+and the LaTeX file used to build the HTML version.
 
 Any macro defined here may be used in docstrings or in the tutorial
 (or other pieces of documentation).  In a docstring, for example,
@@ -76,7 +73,8 @@ def produce_latex_macro(name, *sample_args):
          sage: produce_latex_macro('sage.rings.finite_rings.finite_field_constructor.FiniteField', 3)
          '\\newcommand{\\FiniteField}[1]{\\Bold{F}_{#1}}'
     """
-    from sage.misc.latex import LatexCall
+    from sage.misc.latex import LatexCall  # type: ignore
+    # this import is used inside a string below
     names_split = name.rsplit('.', 1)
     if len(names_split) == 1:
         module = 'sage.all'
@@ -91,7 +89,7 @@ def produce_latex_macro(name, *sample_args):
         args += str(x) + ','
     args += ')'
     exec('from ' + module + ' import ' + real_name)
-    if count > 0:
+    if count:
         defn = '[' + str(count) + ']{'
         defn += eval('str(LatexCall()(' + real_name + args + '))') + '}'
     else:
@@ -101,6 +99,7 @@ def produce_latex_macro(name, *sample_args):
         count += 1
         defn = defn.replace(str(x), "#" + str(count))
     return newcommand + defn
+
 
 def convert_latex_macro_to_mathjax(macro):
     r"""

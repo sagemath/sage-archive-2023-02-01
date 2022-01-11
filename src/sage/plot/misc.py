@@ -15,7 +15,7 @@
 
 from sage.ext.fast_eval import fast_float
 
-from sage.structure.element import is_Vector
+from sage.structure.element import is_Vector, Expression
 
 def setup_for_eval_on_grid(funcs, ranges, plot_points=None, return_vars=False):
     """
@@ -78,6 +78,13 @@ def setup_for_eval_on_grid(funcs, ranges, plot_points=None, return_vars=False):
         ...
         ValueError: Some variable ranges specify variables while others do not
 
+    Beware typos: a comma which should be a period, for instance::
+
+        sage: sage.plot.misc.setup_for_eval_on_grid(x+y, [(x, 1, 2), (y, 0,1, 0.2)], plot_points=[4,9,10])
+        Traceback (most recent call last):
+        ...
+        ValueError: At least one variable range has more than 3 entries: each should either have 2 or 3 entries, with one of the forms (xmin, xmax) or (x, xmin, xmax)
+
         sage: sage.plot.misc.setup_for_eval_on_grid(x+y, [(y,1,-1),(x,-1,1)], plot_points=5)
         (<sage.ext...>, [(1.0, -1.0, 0.5), (-1.0, 1.0, 0.5)])
         sage: sage.plot.misc.setup_for_eval_on_grid(x+y, [(x,1,-1),(x,-1,1)], plot_points=5)
@@ -93,6 +100,8 @@ def setup_for_eval_on_grid(funcs, ranges, plot_points=None, return_vars=False):
         sage: sage.plot.misc.setup_for_eval_on_grid(x+y, [(y,1,-1),(x,-1,1)], return_vars=True)
         (<sage.ext...>, [(1.0, -1.0, 2.0), (-1.0, 1.0, 2.0)], [y, x])
     """
+    if max(map(len, ranges)) > 3:
+        raise ValueError("At least one variable range has more than 3 entries: each should either have 2 or 3 entries, with one of the forms (xmin, xmax) or (x, xmin, xmax)")
     if max(map(len, ranges)) != min(map(len, ranges)):
         raise ValueError("Some variable ranges specify variables while others do not")
 
@@ -178,19 +187,17 @@ def unify_arguments(funcs):
         sage: sage.plot.misc.unify_arguments((x+y,x-y))
         ((x, y), (x, y))
     """
-    from sage.symbolic.callable import is_CallableSymbolicExpression
-
     vars=set()
     free_variables=set()
     if not isinstance(funcs, (list, tuple)):
-        funcs=[funcs]
+        funcs = [funcs]
 
     for f in funcs:
-        if is_CallableSymbolicExpression(f):
-            f_args=set(f.arguments())
+        if isinstance(f, Expression) and f.is_callable():
+            f_args = set(f.arguments())
             vars.update(f_args)
         else:
-            f_args=set()
+            f_args = set()
 
         try:
             free_vars = set(f.variables()).difference(f_args)
@@ -199,7 +206,7 @@ def unify_arguments(funcs):
         except AttributeError:
             # we probably have a constant
             pass
-    return tuple(sorted(vars, key=lambda x: str(x))), tuple(sorted(free_variables, key=lambda x: str(x)))
+    return tuple(sorted(vars, key=str)), tuple(sorted(free_variables, key=str))
 
 
 def _multiple_of_constant(n, pos, const):

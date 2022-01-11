@@ -879,6 +879,43 @@ class kRegularSequenceSpace(RecognizableSeriesSpace):
             ....:     f(20) == 8, f(21) == 4, f(22) == 4, f(23) == 8], f, n, offset=3)
             2-regular sequence 1, 2, 2, 4, 2, 4, 6, 0, 4, 4, ...
 
+        Binary sum of digits `S(n)`, characterized by the recurrence relations
+        `S(4n) = S(2n)`, `S(4n + 1) = S(2n + 1)`, `S(4n + 2) = S(2n + 1)` and
+        `S(4n + 3) = -S(2n) + 2S(2n + 1)`::
+
+            sage: S = Seq2.from_recurrence([
+            ....:     f(4*n) == f(2*n),
+            ....:     f(4*n + 1) == f(2*n + 1),
+            ....:     f(4*n + 2) == f(2*n + 1),
+            ....:     f(4*n + 3) == -f(2*n) + 2*f(2*n + 1),
+            ....:     f(0) == 0, f(1) == 1], f, n)
+            sage: S
+            2-regular sequence 0, 1, 1, 2, 1, 2, 2, 3, 1, 2, ...
+
+        In order to check if this sequence is indeed the binary sum of digits,
+        we construct directly via its linear representation and compare it
+        with ``S``::
+
+            sage: S2 = Seq2(
+            ....:     (Matrix([[1, 0], [0, 1]]), Matrix([[1, 0], [1, 1]])),
+            ....:     left=vector([0, 1]), right=vector([1, 0]))
+            sage: (S - S2).is_trivial_zero()
+            True
+
+        Alternatively, we can also use the simpler but inhomogeneous recurrence relations
+        `S(2n) = S(n)` and `S(2n+1) = S(n) + 1` via direct parameters::
+
+            sage: one = Seq2((Matrix([[1]]), Matrix([[1]])),
+            ....:     left=vector([1]), right=vector([1]))
+            sage: S = Seq2.from_recurrence(M=1, m=0,
+            ....:     coeffs={(0, 0): 1, (1, 0): 1},
+            ....:     initial_values={0: 0, 1: 1},
+            ....:     inhomogeneities={1: one})
+            sage: S
+            2-regular sequence 0, 1, 1, 2, 1, 2, 2, 3, 1, 2, ...
+            sage: (S - S2).is_trivial_zero()
+            True
+
         Number of Non-Zero Elements in the Generalized Pascal's Triangle (see [LRS2017]_)::
 
             sage: Seq2 = kRegularSequenceSpace(2, QQ)

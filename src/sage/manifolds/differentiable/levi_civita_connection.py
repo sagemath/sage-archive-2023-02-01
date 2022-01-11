@@ -10,6 +10,8 @@ AUTHORS:
 
 - Eric Gourgoulhon, Michal Bejger (2013-2015) : initial version
 - Marco Mancini (2015) : parallelization of some computations
+- Marius Gerbershagen (2022) : use the first Bianchi identity in the
+  computation of the Riemann tensor
 
 REFERENCES:
 
@@ -662,9 +664,11 @@ class LeviCivitaConnection(AffineConnection):
             if name is None:
                 name = "Riem(" + self._metric._name + ")"
             if latex_name is None:
-                latex_name = r"\mathrm{Riem}\left(" + self._metric._latex_name + r"\right)"
+                latex_name = (r"\mathrm{Riem}\left(" + self._metric._latex_name
+                              + r"\right)")
             manif = self._domain
-            resu = manif.tensor_field(1, 3, antisym=(2,3), name=name, latex_name=latex_name)
+            resu = manif.tensor_field(1, 3, antisym=(2,3), name=name,
+                                      latex_name=latex_name)
             for frame, gam in self._coefficients.items():
                 # The computation is performed only on the top frames:
                 for oframe in self._coefficients:
@@ -688,37 +692,41 @@ class LeviCivitaConnection(AffineConnection):
                                 for k in manif.irange(start=j):
                                     for l in manif.irange(start=k+1):
                                         ind_list.append((i,j,k,l))
-                        ind_step = max(1,int(len(ind_list)/nproc/2))
-                        local_list = lol(ind_list,ind_step)
+                        ind_step = max(1, int(len(ind_list)/nproc/2))
+                        local_list = lol(ind_list, ind_step)
                         # definition of the list of input parameters
                         listParalInput = []
                         for ind_part in local_list:
-                            listParalInput.append((frame,gam,gam_gam,gam_sc,use_Bianchi,ind_part))
+                            listParalInput.append((frame, gam, gam_gam, gam_sc,
+                                                    use_Bianchi, ind_part))
 
                         # definition of the parallel function
-                        @parallel(p_iter='multiprocessing',ncpus=nproc)
-                        def make_Reim(frame,gam,gam_gam,gam_sc,use_Bianchi,local_list_ijkl):
-                            def compute_component(i,j,k,l,frame,gam,gam_gam,gam_sc):
+                        @parallel(p_iter='multiprocessing', ncpus=nproc)
+                        def make_Riem(frame, gam, gam_gam, gam_sc, use_Bianchi,
+                                      local_list_ijkl):
+                            def compute_component(i,j,k,l, frame, gam, gam_gam, gam_sc):
                                 return frame[k](gam[[i,j,l]]) - frame[l](gam[[i,j,k]]) + \
                                        gam_gam[[i,k,j,l]] - gam_gam[[i,l,j,k]] - gam_sc[[i,j,k,l]]
                             partial = []
                             for i,j,k,l in local_list_ijkl:
-                                R_ijkl = compute_component(i,j,k,l,frame,gam,gam_gam,gam_sc)
-                                partial.append([i,j,k,l,R_ijkl])
+                                R_ijkl = compute_component(i,j,k,l, frame, gam, gam_gam, gam_sc)
+                                partial.append([i,j,k,l, R_ijkl])
                                 if j == k:
-                                    partial.append([i,l,k,l,compute_component(i,l,k,l,frame,gam,gam_gam,gam_sc)])
+                                    partial.append([i,l,k,l, compute_component(i,l,k,l, frame,
+                                                                               gam, gam_gam, gam_sc)])
                                 else:
-                                    R_ikjl = compute_component(i,k,j,l,frame,gam,gam_gam,gam_sc)
-                                    partial.append([i,k,j,l,R_ikjl])
+                                    R_ikjl = compute_component(i,k,j,l, frame, gam, gam_gam, gam_sc)
+                                    partial.append([i,k,j,l, R_ikjl])
                                     if use_Bianchi:
-                                        partial.append([i,l,j,k,R_ikjl - R_ijkl])
+                                        partial.append([i,l,j,k, R_ikjl - R_ijkl])
                                     else:
-                                        partial.append([i,l,j,k,compute_component(i,l,j,k,frame,gam,gam_gam,gam_sc)])
+                                        partial.append([i,l,j,k, compute_component(i,l,j,k, frame,
+                                                                                   gam, gam_gam, gam_sc)])
                             return partial
                         # Computation and assignation of values
-                        for ii,val in make_Reim(listParalInput):
+                        for ii,val in make_Riem(listParalInput):
                             for jj in val:
-                                res[jj[0],jj[1],jj[2],jj[3]] = jj[4]
+                                res[jj[0], jj[1], jj[2], jj[3]] = jj[4]
 
                     else:
                         # sequential
@@ -827,7 +835,8 @@ class LeviCivitaConnection(AffineConnection):
                     self._metric._latex_name + r"\right)"
             manif = self._domain
             riem = self.riemann()
-            resu = manif.tensor_field(0,2, sym=(0,1),name=name,latex_name=latex_name)
+            resu = manif.tensor_field(0, 2, sym=(0,1), name=name,
+                                      latex_name=latex_name)
             for frame in self._coefficients:
                 cric = resu.add_comp(frame)
                 criem = riem.comp(frame)

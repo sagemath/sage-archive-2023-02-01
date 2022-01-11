@@ -9,6 +9,8 @@ AUTHORS:
 - Michal Bejger (2015) : class :class:`ExpressionNice`
 - Eric Gourgoulhon (2015, 2017) : simplification functions
 - Travis Scrimshaw (2016): review tweaks
+- Marius Gerbershagen (2022) : skip simplification of expressions with a single
+  number or symbolic variable
 
 """
 

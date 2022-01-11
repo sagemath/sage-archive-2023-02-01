@@ -17,6 +17,8 @@ AUTHORS:
 - Pablo Angulo (2016) : Schouten, Cotton and Cotton-York tensors
 - Florentin Jaffredo (2018) : series expansion for the inverse metric
 - Hans Fotsing Tetsing (2019) : degenerate metrics
+- Marius Gerbershagen (2022) : compute volume forms with contravariant indices
+  only as needed
 
 REFERENCES:
 
@@ -1774,7 +1776,8 @@ class PseudoRiemannianMetric(TensorField):
         if not orient:
             raise ValueError('{} must admit an orientation'.format(dom))
         if contra > ndim:
-            raise ValueError('The number of contravariant indices is greater than the manifold dimension')
+            raise ValueError('The number of contravariant indices is greater '
+                             'than the manifold dimension')
         if self._vol_forms == []:
             # a new computation is necessary
             # The result is constructed on the vector field module,

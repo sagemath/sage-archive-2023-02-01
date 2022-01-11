@@ -55,9 +55,11 @@ class build_py(setuptools_build_py):
         # TODO: A target to only build wheels of tricky packages
         # (that use native libraries shared with other packages).
         SETMAKE = 'if [ -z "$MAKE" ]; then export MAKE="make -j$(PATH=build/bin:$PATH build/bin/sage-build-num-threads | cut -d" " -f 2)"; fi'
-        cmd = f'cd {SAGE_ROOT} && {SETENV} && {SETMAKE} && $MAKE V=0 build-local'
+        TARGETS = 'build'
+        cmd = f'cd {SAGE_ROOT} && {SETENV} && {SETMAKE} && $MAKE V=0 {TARGETS}'
+        print(f"Running {cmd}", flush=True)
         if os.system(cmd) != 0:
-            raise DistutilsSetupError("make build-local failed")
+            raise DistutilsSetupError(f"make {TARGETS} failed")
 
         # Install configuration
         shutil.copyfile(os.path.join(SAGE_ROOT, 'pkgs', 'sage-conf', 'sage_conf.py'),

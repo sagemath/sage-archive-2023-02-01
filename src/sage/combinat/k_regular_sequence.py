@@ -930,12 +930,12 @@ class kRegularSequenceSpace(RecognizableSeriesSpace):
         Finally, the same sequence can also be obtained via direct parameters
         without symbolic equations::
 
-            sage: Seq2.from_recurrence(2, 1,
-            ....:     {(0, 0): 5/3, (0, 1): -1/3,
-            ....:      (1, 0): 4/3, (1, 1): 1/3,
-            ....:      (2, 0): 1/3, (2, 1): 4/3,
-            ....:      (3, 0): -1/3, (3, 1): 5/3},
-            ....:     {0: 1, 1: 2})
+            sage: Seq2.from_recurrence(M=2, m=1,
+            ....:     coeffs={(0, 0): 5/3, (0, 1): -1/3,
+            ....:             (1, 0): 4/3, (1, 1): 1/3,
+            ....:             (2, 0): 1/3, (2, 1): 4/3,
+            ....:             (3, 0): -1/3, (3, 1): 5/3},
+            ....:     initial_values={0: 1, 1: 2})
             2-regular sequence 1, 2, 3, 3, 4, 5, 5, 4, 5, 7, ...
 
         TESTS::

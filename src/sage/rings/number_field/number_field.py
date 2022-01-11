@@ -238,8 +238,8 @@ from sage.libs.pari.all import pari, pari_gen
 
 from sage.rings.rational_field import QQ
 from sage.rings.integer_ring import ZZ
-RIF = sage.rings.real_mpfi.RealIntervalField()
-CIF = sage.rings.complex_interval_field.ComplexIntervalField()
+from sage.rings.real_mpfi import RIF
+from sage.rings.cif import CIF
 from sage.rings.real_double import RDF
 from sage.rings.complex_double import CDF
 from sage.rings.real_lazy import RLF, CLF
@@ -5100,7 +5100,7 @@ class NumberField_generic(WithEqualityById, number_field_base.NumberField):
         """
         KSgens, ords = self.selmer_generators(S=S, m=m, proof=proof, orders=True)
         one = self.one()
-        from sage.misc.all import cartesian_product_iterator
+        from sage.misc.mrange import cartesian_product_iterator
         for ev in cartesian_product_iterator([range(o) for o in ords]):
             yield prod([p ** e for p, e in zip(KSgens, ev)], one)
 

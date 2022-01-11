@@ -421,7 +421,7 @@ cdef class Matrix(Matrix0):
         Tries to coerce this matrix to a singular matrix.
         """
         if singular is None:
-            from sage.interfaces.all import singular as singular_default
+            from sage.interfaces.singular import singular as singular_default
             singular = singular_default
         try:
             self.base_ring()._singular_(singular)
@@ -1286,8 +1286,7 @@ cdef class Matrix(Matrix0):
         if from_list:
             return self.columns(copy=False)[i]
         cdef Py_ssize_t j
-        V = sage.modules.free_module.FreeModule(self._base_ring,
-                                     self._nrows, sparse=self.is_sparse())
+        V = self._column_ambient_module()
         tmp = [self.get_unsafe(j, i) for j in range(self._nrows)]
         return V(tmp, coerce=False, copy=False, check=False)
 
@@ -1344,8 +1343,7 @@ cdef class Matrix(Matrix0):
         if from_list:
             return self.rows(copy=False)[i]
         cdef Py_ssize_t j
-        V = sage.modules.free_module.FreeModule(self._base_ring,
-                                      self._ncols, sparse=self.is_sparse())
+        V = self._row_ambient_module()
         tmp = [self.get_unsafe(i,j) for j in range(self._ncols)]
         return V(tmp, coerce=False, copy=False, check=False)
 

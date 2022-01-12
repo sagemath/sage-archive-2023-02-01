@@ -2468,7 +2468,7 @@ class RecurrenceParser(object):
             current_row = 0
             for i in inhomogeneities.keys():
                 for b in srange(lower, upper + 1):
-                    S_b = inhomogeneities[i].subsequence(1, b)
+                    S_b = inhomogeneities[i].subsequence(1, b, minimize=False)
                     shifted_inhomogeneities.update({(i, b): (S_b, current_row)})
                     current_row += S_b.mu[0].ncols()
 
@@ -2612,7 +2612,7 @@ class RecurrenceParser(object):
             uu = recurrence_rules.uu
             lower = floor(ll/k**M)
             upper = floor((k**(M-1) - k**m + uu)/k**M)
-            shifted_inhomogeneities = [S.subsequence(1, b)
+            shifted_inhomogeneities = [S.subsequence(1, b, minimize=False)
                                        for S in inhomogeneities.values()
                                        for b in srange(lower, upper + 1)]
             right = vector(chain(right, *[S.right for S in shifted_inhomogeneities]))

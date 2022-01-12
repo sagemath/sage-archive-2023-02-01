@@ -2236,7 +2236,10 @@ class RecurrenceParser(object):
 
             :meth:`kRegularSequenceSpace.from_recurrence`
         """
+        from itertools import chain
+
         from sage.arith.srange import srange
+        from sage.functions.other import floor
         from sage.modules.free_module_element import vector
 
         k = self.k
@@ -2456,21 +2459,6 @@ class RecurrenceParser(object):
 
         mat = Matrix(coefficient_ring, dim_without_corr, dim_without_corr, entry)
 
-        if n1 > 0 and correct_offset:
-            W = Matrix(coefficient_ring, dim_without_corr, 0)
-            for i in srange(n1):
-                W = W.augment(
-                    self.v_eval_n(recurrence_rules, k*i + rem) -
-                    mat*self.v_eval_n(recurrence_rules, i))
-
-            J = Matrix(coefficient_ring, 0, n1)
-            for i in srange(n1):
-                J = J.stack(vector([int(j*k == i - rem) for j in srange(n1)]))
-
-            Mat = MatrixSpace(coefficient_ring, dim, dim)
-            mat = Mat(block_matrix([[mat, W],
-                                    [zero_matrix(n1, dim_without_corr), J]]))
-
         if not all(S.is_trivial_zero() for S in inhomogeneities.values()):
             lower = floor(ll/k**M)
             upper = floor((k**(M-1) - k**m + uu)/k**M)
@@ -2485,17 +2473,35 @@ class RecurrenceParser(object):
             mat = block_diagonal_matrix(mat, *[S[0].mu[rem]
                                                for S in shifted_inhomogeneities.values()])
 
-            for i in srange(dim):
+            for i in srange(dim_without_corr):
                 j, d = ind[i]
                 if j == M - 1:
                     rem_d = k**(M-1)*rem + (d%k**M)
                     dd = d // k**M
                     if rem_d < k**M and rem_d in inhomogeneities.keys():
                         mat[ind[(j, d)],
-                            dim + shifted_inhomogeneities[(rem_d, dd)][1]] = 1
+                            dim_without_corr + shifted_inhomogeneities[(rem_d, dd)][1]] = 1
                     elif rem_d >= k**M and rem_d - k in inhomogeneities.keys():
                         mat[ind[(j, d)],
-                            dim + shifted_inhomogeneities[(rem_d - k, dd+1)][1]] = 1
+                            dim_without_corr + shifted_inhomogeneities[(rem_d - k, dd+1)][1]] = 1
+
+            dim += current_row
+            dim_without_corr += current_row
+
+        if n1 > 0 and correct_offset:
+            W = Matrix(coefficient_ring, dim_without_corr, 0)
+            for i in srange(n1):
+                W = W.augment(
+                    self.v_eval_n(recurrence_rules, k*i + rem) -
+                    mat*self.v_eval_n(recurrence_rules, i))
+
+            J = Matrix(coefficient_ring, 0, n1)
+            for i in srange(n1):
+                J = J.stack(vector([int(j*k == i - rem) for j in srange(n1)]))
+
+            Mat = MatrixSpace(coefficient_ring, dim, dim)
+            mat = Mat(block_matrix([[mat, W],
+                                    [zero_matrix(n1, dim_without_corr), J]]))
 
         return mat
 

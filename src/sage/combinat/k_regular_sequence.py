@@ -864,7 +864,7 @@ class kRegularSequenceSpace(RecognizableSeriesSpace):
 
         Number of Unbordered Factors in the Thue--Morse Sequence::
 
-            sage: Seq2.from_recurrence([
+            sage: UB = Seq2.from_recurrence([
             ....:     f(8*n) == 2*f(4*n),
             ....:     f(8*n + 1) == f(4*n + 1),
             ....:     f(8*n + 2) == f(4*n + 1) + f(4*n + 3),
@@ -878,6 +878,7 @@ class kRegularSequenceSpace(RecognizableSeriesSpace):
             ....:     f(10) == 4, f(11) == 4, f(12) == 12, f(13) == 0, f(14) == 4,
             ....:     f(15) == 4, f(16) == 8, f(17) == 4, f(18) == 8, f(19) == 0,
             ....:     f(20) == 8, f(21) == 4, f(22) == 4, f(23) == 8], f, n, offset=3)
+            sage: UB
             2-regular sequence 1, 2, 2, 4, 2, 4, 6, 0, 4, 4, ...
 
         Binary sum of digits `S(n)`, characterized by the recurrence relations
@@ -1059,6 +1060,28 @@ class kRegularSequenceSpace(RecognizableSeriesSpace):
             ....:     initial_values={0: 0, 1: 1},
             ....:     inhomogeneities={0: SB, 1: P})
             sage: (U - Seq2(SB)).is_trivial_zero()
+            True
+
+        Number of Unbordered Factors in the Thue--Morse Sequence, but partly
+        encoded with inhomogeneities::
+
+            sage: UB2 = Seq2.from_recurrence([
+            ....:     f(8*n) == 2*f(4*n),
+            ....:     f(8*n + 1) == f(4*n + 1),
+            ....:     f(8*n + 2) == f(4*n + 1),
+            ....:     f(8*n + 3) == -f(4*n + 1) + f(4*n + 2),
+            ....:     f(8*n + 4) == 2*f(4*n + 2),
+            ....:     f(8*n + 5) == f(4*n + 3),
+            ....:     f(8*n + 6) == -f(4*n + 1),
+            ....:     f(8*n + 7) == 2*f(4*n + 1) + f(4*n + 3),
+            ....:     f(0) == 1, f(1) == 2, f(2) == 2, f(3) == 4, f(4) == 2,
+            ....:     f(5) == 4, f(6) == 6, f(7) == 0, f(8) == 4, f(9) == 4,
+            ....:     f(10) == 4, f(11) == 4, f(12) == 12, f(13) == 0, f(14) == 4,
+            ....:     f(15) == 4, f(16) == 8, f(17) == 4, f(18) == 8, f(19) == 0,
+            ....:     f(20) == 8, f(21) == 4, f(22) == 4, f(23) == 8], f, n, offset=3,
+            ....:     inhomogeneities={2: UB.subsequence(4, 3), 3: -UB.subsequence(4, 1),
+            ....:                      6: UB.subsequence(4, 2) + UB.subsequence(4, 3)})
+            sage: (UB2 - Seq2(UB)).is_trivial_zero()
             True
         """
         RP = RecurrenceParser(self.k, self.coefficient_ring())

@@ -65,6 +65,8 @@ AUTHORS:
 
 from copy import copy
 
+from sage.structure.sequence import Sequence
+
 from sage.schemes.elliptic_curves.hom import EllipticCurveHom
 
 from sage.rings.all import PolynomialRing, Integer, LaurentSeriesRing
@@ -74,7 +76,8 @@ from sage.schemes.elliptic_curves.ell_generic import is_EllipticCurve
 
 from sage.rings.number_field.number_field_base import is_NumberField
 
-from sage.schemes.elliptic_curves.weierstrass_morphism import WeierstrassIsomorphism, isomorphisms
+from sage.schemes.elliptic_curves.weierstrass_morphism \
+        import WeierstrassIsomorphism, isomorphisms, baseWI
 
 from sage.sets.set import Set
 
@@ -1018,6 +1021,67 @@ class EllipticCurveIsogeny(EllipticCurveHom):
         # Inheritance house keeping
 
         self.__perform_inheritance_housekeeping()
+
+    def _eval(self, P):
+        r"""
+        Less strict evaluation method for internal use.
+
+        In particular, this can be used to evaluate ``self`` at a
+        point defined over an extension field.
+
+        INPUT: a sequence of 3 coordinates defining a point on ``self``
+
+        OUTPUT: the result of evaluating ``self'' at the given point
+
+        EXAMPLES::
+
+            sage: E = EllipticCurve([1,0]); E
+            Elliptic Curve defined by y^2 = x^3 + x over Rational Field
+            sage: phi = E.isogeny(E(0,0))
+            sage: P = E.change_ring(QQbar).lift_x(QQbar.random_element())
+            sage: phi._eval(P).curve()
+            Elliptic Curve defined by y^2 = x^3 + (-4)*x over Algebraic Field
+
+        ::
+
+            sage: E = EllipticCurve(j=Mod(0,419))
+            sage: K = next(filter(bool, E(0).division_points(5)))
+            sage: psi = E.isogeny(K)
+            sage: Ps = E.change_ring(GF(419**2))(0).division_points(5)
+            sage: {psi._eval(P).curve() for P in Ps}
+            {Elliptic Curve defined by y^2 = x^3 + 140*x + 214 over Finite Field in z2 of size 419^2}
+        """
+        if self._domain.defining_polynomial()(*P):
+            raise ValueError(f'{P} not on {self._domain}')
+
+        if not P:
+            k = Sequence(tuple(P)).universe()
+            return self._codomain(0).change_ring(k)
+
+        Q = P.xy()
+        pre_iso = self.get_pre_isomorphism()
+        if pre_iso is not None:
+            Q = baseWI.__call__(pre_iso, Q)
+
+        if self.__algorithm == 'velu':
+            compute = self.__compute_via_velu
+        elif self.__algorithm == 'kohel':
+            compute = self.__compute_via_kohel
+        else:
+            raise NotImplementedError
+
+        try:
+            Q = compute(*Q)
+        except ZeroDivisionError:
+            Q = (0,1,0)
+
+        post_iso = self.get_post_isomorphism()
+        if post_iso is not None:
+            Q = baseWI.__call__(post_iso, Q)
+
+        k = Sequence(tuple(P) + tuple(Q)).universe()
+        return self._codomain.base_extend(k).point(Q)
+
 
     def _call_(self, P):
         r"""
@@ -2534,17 +2598,10 @@ class EllipticCurveIsogeny(EllipticCurveHom):
 
         """
         # first check if this point is in the kernel:
-
         if 0 == self.__inner_kernel_polynomial(x=xP):
             return self.__intermediate_codomain(0)
 
-        (xP_out, yP_out) = self.__compute_via_kohel(xP, yP)
-
-        # xP_out and yP_out do not always get evaluated to field
-        # elements but rather constant polynomials, so we do some
-        # explicit casting
-
-        return (self.__base_field(xP_out), self.__base_field(yP_out))
+        return self.__compute_via_kohel(xP, yP)
 
     def __compute_via_kohel(self, xP, yP):
         r"""
@@ -2571,9 +2628,7 @@ class EllipticCurveIsogeny(EllipticCurveHom):
         a = self.__phi(xP)
         b = self.__omega(xP, yP)
         c = self.__psi(xP)
-        cc = self.__mpoly_ring(c)
-
-        return (a/c**2, b/cc**3)
+        return (a/c**2, b/c**3)
 
     def __initialize_rational_maps_via_kohel(self):
         r"""
@@ -2595,7 +2650,7 @@ class EllipticCurveIsogeny(EllipticCurveHom):
 
         """
         x = self.__poly_ring.gen()
-        y = self.__mpoly_ring.gen(1)
+        y = self.__xyfield.gen(1)
         return self.__compute_via_kohel(x,y)
 
     #

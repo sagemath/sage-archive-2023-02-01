@@ -78,7 +78,12 @@ jobs:
               echo "DOCKER_PUSH_REPOSITORY=docker.pkg.github.com/${{ github.repository }}/" >> $GITHUB_ENV
               echo "DOCKER_CONFIG_FILE=$HOME/.docker/config.json" >> $GITHUB_ENV
             fi
-            EXTRA_DOCKER_TAGS="$GITHUB_REF_NAME"
+            # From the docker documentation via .ci/update-env.sh:
+            # "A tag name must be valid ASCII and may
+            # contain lowercase and uppercase letters, digits, underscores, periods and
+            # dashes. A tag name may not start with a period or a dash and may contain a
+            # maximum of 128 characters."
+            EXTRA_DOCKER_TAGS=`echo $GITHUB_REF_NAME | tr -d '[:space:]' | tr -c '[:alnum:]_.-' '-' | sed 's/^[-.]*//' | cut -c1-128`
             shopt -s extglob
             case "$GITHUB_REF_NAME" in
               +([0-9]).+([0-9])?(.+([0-9])) )

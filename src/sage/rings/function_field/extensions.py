@@ -108,9 +108,24 @@ class ConstantFieldExtension(FunctionFieldExtension):
             embedF = embedF_base
 
         self._embedk = embedk
+        self._F_ext = F_ext
         self._k = k
 
         super().__init__(embedF, is_backend_exposed=True)
+
+    def top(self):
+        """
+        Return the top function field of this extension.
+
+        EXAMPLES::
+
+            sage: K.<x> = FunctionField(GF(2)); R.<t> = K[]
+            sage: F.<y> = K.extension(t^3 - x^2*(x^2 + x + 1)^2)
+            sage: E = F.extension_constant_field(GF(2^3))
+            sage: E.top()
+            Function field in y defined by y^3 + x^6 + x^4 + x^2
+        """
+        return self._F_ext
 
     def conorm_place(self, p):
         """

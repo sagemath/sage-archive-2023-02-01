@@ -476,11 +476,23 @@ class kRegularSequence(RecognizableSeries):
         k = P.k
 
         # Below, we use a dynamic approach to find the shifts of the
-        # sequences in the kernel. According to [AS2003]_, the static range
+        # sequences in the kernel. Note that according to [AS2003]_,
+        # the static range
         #    [min(b, 0), max(a, a + b))
-        # suffices. However, it seems that the smaller set
-        #    [min(b, 0), max(a, a + (b-1)//k + 1)) \cup {b}
-        # suffices as well.
+        # suffices. With B = |b| and A = max(a, B), we here obtain the range
+        #    [-B, A]
+        # because of the following estimates:
+        # Let -B <= c <= A und set d = floor((ar+c) / k). Then
+        #   -B = floor(-B)
+        #      <= floor(-B / k)
+        #      <= floor(c / k)
+        #      <= d
+        #      <= (ar+c) / k
+        #      <= (A(k-1) + A) / k
+        #      = A
+        # holds.
+        # For list-valued b, we use B = max{|beta| : beta in b} above.
+
         kernel = list(b)
 
         zero_M = self.mu[0].parent().zero()

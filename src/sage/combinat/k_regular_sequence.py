@@ -849,9 +849,10 @@ class kRegularSequenceSpace(RecognizableSeriesSpace):
             n
             sage: function('f')
             f
-            sage: Seq2.from_recurrence([
+            sage: SB = Seq2.from_recurrence([
             ....:     f(2*n) == f(n), f(2*n + 1) == f(n) + f(n + 1),
             ....:     f(0) == 0, f(1) == 1], f, n)
+            sage: SB
             2-regular sequence 0, 1, 1, 2, 1, 3, 2, 3, 1, 4, ...
 
         Number of Odd Entries in Pascal's Triangle::
@@ -919,12 +920,13 @@ class kRegularSequenceSpace(RecognizableSeriesSpace):
         Number of Non-Zero Elements in the Generalized Pascal's Triangle (see [LRS2017]_)::
 
             sage: Seq2 = kRegularSequenceSpace(2, QQ)
-            sage: Seq2.from_recurrence([
+            sage: P = Seq2.from_recurrence([
             ....:     f(4*n) == 5/3*f(2*n) - 1/3*f(2*n + 1),
             ....:     f(4*n + 1) == 4/3*f(2*n) + 1/3*f(2*n + 1),
             ....:     f(4*n + 2) == 1/3*f(2*n) + 4/3*f(2*n + 1),
             ....:     f(4*n + 3) == -1/3*f(2*n) + 5/3*f(2*n + 1),
             ....:     f(0) == 1, f(1) == 2], f, n)
+            sage: P
             2-regular sequence 1, 2, 3, 3, 4, 5, 5, 4, 5, 7, ...
 
         Finally, the same sequence can also be obtained via direct parameters
@@ -1036,6 +1038,26 @@ class kRegularSequenceSpace(RecognizableSeriesSpace):
             ....:     initial_values={0: S[0]},
             ....:     inhomogeneities={i: S.subsequence(2**3, i) for i in srange(2**3)})
             sage: all(S[i] == T[i] for i in srange(100))
+            True
+
+        Connection between the Stern--Brocot sequence and the number
+        of non-zero elements in the generalized Pascal's triangle (see
+        [LRS2017]_)::
+
+            sage: U = Seq2.from_recurrence(M=1, m=0,
+            ....:     coeffs={(0, 0): 1},
+            ....:     initial_values={0: 0, 1: 1},
+            ....:     inhomogeneities={1: P})
+            sage: (U - Seq2(SB)).is_trivial_zero()
+            True
+
+        ::
+
+            sage: U = Seq2.from_recurrence(M=1, m=0,
+            ....:     coeffs={},
+            ....:     initial_values={0: 0, 1: 1},
+            ....:     inhomogeneities={0: SB, 1: P})
+            sage: (U - Seq2(SB)).is_trivial_zero()
             True
         """
         RP = RecurrenceParser(self.k, self.coefficient_ring())

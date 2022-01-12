@@ -2517,6 +2517,7 @@ class RecurrenceParser(object):
 
             :meth:`kRegularSequenceSpace.from_recurrence`
         """
+        from sage.arith.srange import srange
         from sage.functions.other import floor
         from sage.modules.free_module_element import vector
 
@@ -2529,8 +2530,11 @@ class RecurrenceParser(object):
             m = recurrence_rules.m
             ll = recurrence_rules.ll
             uu = recurrence_rules.uu
-            dim = dim + (floor((k**(M-1) - k**m + uu)/k**M) - floor(ll/k**M) + 1) * \
-                      sum(S.mu[0].ncols() for S in inhomogeneities.values())
+            lower = floor(ll/k**M)
+            upper = floor((k**(M-1) - k**m + uu)/k**M)
+            dim = dim + sum(inhomogeneities[i].subsequence(1, b, minimize=False).mu[0].ncols()
+                            for i in inhomogeneities.keys()
+                            for b in srange(lower, upper + 1))
 
         return vector([1] + (dim - 1)*[0])
 

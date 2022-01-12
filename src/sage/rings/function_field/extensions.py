@@ -56,7 +56,15 @@ from sage.rings.ring_extension import RingExtension_generic
 
 from .constructor import FunctionField
 
-class ConstantFieldExtension(RingExtension_generic):
+
+class FunctionFieldExtension(RingExtension_generic):
+    """
+    Abstract base class of function field extensions.
+    """
+    pass
+
+
+class ConstantFieldExtension(FunctionFieldExtension):
     """
     Constant field extension.
 

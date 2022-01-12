@@ -3471,8 +3471,6 @@ class FunctionField_global(FunctionField_simple):
         return n
 
 
-
-
 @handle_AA_and_QQbar
 def _singular_normal(ideal):
     r"""

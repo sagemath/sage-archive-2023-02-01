@@ -479,10 +479,7 @@ class FunctionFieldDivisor(ModuleElement):
             False
         """
         data = self._data
-        for place in data:
-            if data[place] < 0:
-                return False
-        return True
+        return all(data[place] >= 0 for place in data)
 
     def degree(self):
         """

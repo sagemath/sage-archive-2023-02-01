@@ -2496,17 +2496,16 @@ class RecurrenceParser(object):
             mat = block_diagonal_matrix(mat, *[S[0].mu[rem]
                                                for S in shifted_inhomogeneities.values()])
 
-            for i in srange(dim_without_corr):
-                j, d = ind[i]
-                if j == M - 1:
-                    rem_d = k**(M-1)*rem + (d%k**M)
-                    dd = d // k**M
-                    if rem_d < k**M and rem_d in inhomogeneities.keys():
-                        mat[ind[(j, d)],
-                            dim_without_corr + shifted_inhomogeneities[(rem_d, dd)][1]] = 1
-                    elif rem_d >= k**M and rem_d - k in inhomogeneities.keys():
-                        mat[ind[(j, d)],
-                            dim_without_corr + shifted_inhomogeneities[(rem_d - k, dd+1)][1]] = 1
+            for i in srange(dim_without_corr - k**(M-1) + k**m - uu + ll - 1, dim_without_corr):
+                j, d = ind[i] # j = M - 1
+                rem_d = k**(M-1)*rem + (d%k**M)
+                dd = d // k**M
+                if rem_d < k**M and rem_d in inhomogeneities.keys():
+                    mat[ind[(j, d)],
+                        dim_without_corr + shifted_inhomogeneities[(rem_d, dd)][1]] = 1
+                elif rem_d >= k**M and rem_d - k in inhomogeneities.keys():
+                    mat[ind[(j, d)],
+                        dim_without_corr + shifted_inhomogeneities[(rem_d - k, dd+1)][1]] = 1
 
             dim += current_row
             dim_without_corr += current_row

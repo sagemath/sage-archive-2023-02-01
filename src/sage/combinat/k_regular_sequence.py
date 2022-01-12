@@ -1874,6 +1874,11 @@ class RecurrenceParser(object):
         - ``initial_values`` -- a dictionary mapping integers ``n`` to the
           ``n``-th value of the sequence
 
+        - ``inhomogeneities`` -- (default: ``{}``) a dictionary
+          mapping integers ``r`` to the inhomogeneity `g_r` as given
+          in [HKL2021]_, Corollary D. All inhomogeneities have to be
+          regular sequences from ``self``.
+
         EXAMPLES::
 
             sage: from sage.combinat.k_regular_sequence import RecurrenceParser

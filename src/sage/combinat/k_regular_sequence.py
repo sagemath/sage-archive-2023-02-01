@@ -2246,10 +2246,20 @@ class RecurrenceParser(object):
         uu = recurrence_rules.uu
         dim = recurrence_rules.dim - recurrence_rules.n1
         initial_values = recurrence_rules.initial_values
+        inhomogeneities = recurrence_rules.inhomogeneities
         ind = self.ind(M, m, ll, uu)
 
-        return vector(
-            [initial_values[k**ind[i][0]*n + ind[i][1]] for i in srange(dim)])
+        v = vector([initial_values[k**ind[i][0]*n + ind[i][1]] for i in srange(dim)])
+
+        if not all(S.is_trivial_zero() for S in inhomogeneities.values()):
+            lower = floor(ll/k**M)
+            upper = floor((k**(M-1) - k**m + uu)/k**M)
+            shifted_inhomogeneities = [S.subsequence(1, b, minimize=False)
+                                       for S in inhomogeneities.values()
+                                       for b in srange(lower, upper + 1)]
+            v = vector(chain(v, *[S.right for S in shifted_inhomogeneities]))
+
+        return v
 
     def matrix(self, recurrence_rules, rem, correct_offset=True):
         r"""
@@ -2591,31 +2601,13 @@ class RecurrenceParser(object):
             sage: RP.right(UB_rules)
             (1, 1, 2, 1, 2, 2, 4, 2, 4, 6, 0, 4, 4, 1, 0, 0)
         """
-        from itertools import chain
-
-        from sage.arith.srange import srange
-        from sage.functions.other import floor
         from sage.modules.free_module_element import vector
 
         n1 = recurrence_rules.n1
-        inhomogeneities = recurrence_rules.inhomogeneities
         right = self.v_eval_n(recurrence_rules, 0)
 
         if n1 >= 1:
             right = vector(list(right) + [1] + (n1 - 1)*[0])
-
-        if not all(S.is_trivial_zero() for S in inhomogeneities.values()):
-            k = self.k
-            M = recurrence_rules.M
-            m = recurrence_rules.m
-            ll = recurrence_rules.ll
-            uu = recurrence_rules.uu
-            lower = floor(ll/k**M)
-            upper = floor((k**(M-1) - k**m + uu)/k**M)
-            shifted_inhomogeneities = [S.subsequence(1, b, minimize=False)
-                                       for S in inhomogeneities.values()
-                                       for b in srange(lower, upper + 1)]
-            right = vector(chain(right, *[S.right for S in shifted_inhomogeneities]))
 
         return right
 

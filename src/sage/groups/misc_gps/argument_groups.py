@@ -46,7 +46,7 @@ from sage.structure.factory import UniqueFactory
 from sage.structure.parent import Parent
 from sage.structure.richcmp import richcmp_by_eq_and_lt
 from sage.structure.unique_representation import UniqueRepresentation
-
+import sage.rings.abc
 
 class AbstractArgument(MultiplicativeGroupElement):
     r"""
@@ -1825,16 +1825,10 @@ class ArgumentGroupFactory(UniqueFactory):
             sage: ArgumentGroup('Arg_CC') is ArgumentGroup(domain=CC)  # indirect doctest
             True
         """
-        from sage.rings.complex_arb import ComplexBallField
-        from sage.rings.complex_mpfr import ComplexField_class
-        from sage.rings.complex_interval_field import ComplexIntervalField_class
         from sage.rings.integer_ring import ZZ
         from sage.misc.misc import exactly_one_is_true
         from sage.rings.qqbar import AA
         from sage.rings.rational_field import QQ
-        from sage.rings.real_arb import RealBallField
-        from sage.rings.real_mpfr import RealField_class
-        from sage.rings.real_mpfi import RealIntervalField_class
 
         if not exactly_one_is_true(
                 (data is not None,
@@ -1870,13 +1864,13 @@ class ArgumentGroupFactory(UniqueFactory):
 
         if domain is not None:
             if domain in (ZZ, QQ, AA) \
-               or isinstance(domain, (RealField_class,
-                                      RealIntervalField_class,
-                                      RealBallField)):
+               or isinstance(domain, (sage.rings.abc.RealField,
+                                      sage.rings.abc.RealIntervalField,
+                                      sage.rings.abc.RealBallField)):
                 return (SignGroup, ()), kwds
-            elif isinstance(domain, (ComplexField_class,
-                                     ComplexIntervalField_class,
-                                     ComplexBallField)):
+            elif isinstance(domain, (sage.rings.abc.ComplexField,
+                                     sage.rings.abc.ComplexIntervalField,
+                                     sage.rings.abc.ComplexBallField)):
                 return (UnitCircleGroup, (domain._real_field(),)), kwds
             else:
                 return (ArgumentByElementGroup, (domain,)), kwds

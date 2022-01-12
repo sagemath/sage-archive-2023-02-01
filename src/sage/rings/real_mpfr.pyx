@@ -2168,19 +2168,6 @@ cdef class RealNumber(sage.structure.element.RingElement):
         mpfr_free_str(s)
         return t
 
-    def __hex__(self):
-        """
-        TESTS::
-
-            sage: hex(RR(-1/3))  # py2
-            doctest:...:
-            DeprecationWarning: use the method .hex instead
-            See http://trac.sagemath.org/24568 for details.
-            '-0x5.5555555555554p-4'
-        """
-        deprecation(24568, 'use the method .hex instead')
-        return self.hex()
-
     def __copy__(self):
         """
         Return copy of ``self`` - since ``self`` is immutable, we just return
@@ -6122,3 +6109,8 @@ def create_RealField(*args, **kwds):
     deprecation(24511, "Please import create_RealField from sage.rings.real_field")
     from sage.rings.real_field import create_RealField as cr
     return cr(*args, **kwds)
+
+
+# Support Python's numbers abstract base class
+import numbers
+numbers.Real.register(RealNumber)

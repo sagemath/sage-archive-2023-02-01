@@ -408,9 +408,12 @@ To check that :trac:`27092` is fixed::
 """
 
 import re
-from sage.arith.all import algdep
-from sage.rings.all import RR, Integer, CC, QQ, RealDoubleElement
-from sage.rings.real_mpfr import create_RealNumber
+from sage.arith.misc import algdep
+from sage.rings.integer import Integer
+from sage.rings.rational_field import QQ
+from sage.rings.real_double import RealDoubleElement
+from sage.rings.real_mpfr import RR, create_RealNumber
+from sage.rings.cc import CC
 
 from sage.misc.latex import latex
 from sage.misc.parser import Parser, LookupNameMaker
@@ -2198,7 +2201,7 @@ def symbolic_expression_from_maxima_string(x, equals_sub=False, maxima=maxima):
         sage: sefms('?%at(f(x),x=2)#1')
         f(2) != 1
         sage: a = sage.calculus.calculus.maxima("x#0"); a
-        x#0
+        x # 0
         sage: a.sage()
         x != 0
 

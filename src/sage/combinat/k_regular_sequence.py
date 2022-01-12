@@ -894,7 +894,7 @@ class kRegularSequenceSpace(RecognizableSeriesSpace):
             2-regular sequence 0, 1, 1, 2, 1, 2, 2, 3, 1, 2, ...
 
         In order to check if this sequence is indeed the binary sum of digits,
-        we construct directly via its linear representation and compare it
+        we construct it directly via its linear representation and compare it
         with ``S``::
 
             sage: S2 = Seq2(
@@ -1030,6 +1030,7 @@ class kRegularSequenceSpace(RecognizableSeriesSpace):
 
         ::
 
+            sage: set_random_seed()
             sage: S = Seq2((random_matrix(ZZ, 3, 3), random_matrix(ZZ, 3, 3)),
             ....:     left=vector([randint(-2, 2) for i in srange(3)]),
             ....:     right=vector([randint(-2, 2) for i in srange(3)]))

@@ -27,8 +27,8 @@ Constant field extension of the rational function field over rational numbers::
 
 Constant field extension of a function field over a finite field::
 
-    sage: K.<x> = FunctionField(GF(2)); R.<t> = K[]
-    sage: F.<y> = K.extension(t^3 - x^2*(x^2 + x + 1)^2)
+    sage: K.<x> = FunctionField(GF(2)); R.<Y> = K[]
+    sage: F.<y> = K.extension(Y^3 - x^2*(x^2 + x + 1)^2)
     sage: E = F.extension_constant_field(GF(2^3))
     sage: E
     Function field in y defined by y^3 + x^6 + x^4 + x^2 over its base
@@ -81,8 +81,8 @@ class ConstantFieldExtension(FunctionFieldExtension):
 
         TESTS::
 
-            sage: K.<x> = FunctionField(GF(2)); R.<t> = K[]
-            sage: F.<y> = K.extension(t^3 - x^2*(x^2 + x + 1)^2)
+            sage: K.<x> = FunctionField(GF(2)); R.<Y> = K[]
+            sage: F.<y> = K.extension(Y^3 - x^2*(x^2 + x + 1)^2)
             sage: E = F.extension_constant_field(GF(2^3))
             sage: TestSuite(E).run(skip=['_test_elements', '_test_pickling'])
         """
@@ -119,8 +119,8 @@ class ConstantFieldExtension(FunctionFieldExtension):
 
         EXAMPLES::
 
-            sage: K.<x> = FunctionField(GF(2)); R.<t> = K[]
-            sage: F.<y> = K.extension(t^3 - x^2*(x^2 + x + 1)^2)
+            sage: K.<x> = FunctionField(GF(2)); R.<Y> = K[]
+            sage: F.<y> = K.extension(Y^3 - x^2*(x^2 + x + 1)^2)
             sage: E = F.extension_constant_field(GF(2^3))
             sage: E.top()
             Function field in y defined by y^3 + x^6 + x^4 + x^2
@@ -139,8 +139,8 @@ class ConstantFieldExtension(FunctionFieldExtension):
 
         EXAMPLES::
 
-            sage: K.<x> = FunctionField(GF(2)); R.<t> = K[]
-            sage: F.<y> = K.extension(t^3 - x^2*(x^2 + x + 1)^2)
+            sage: K.<x> = FunctionField(GF(2)); R.<Y> = K[]
+            sage: F.<y> = K.extension(Y^3 - x^2*(x^2 + x + 1)^2)
             sage: E = F.extension_constant_field(GF(2^3))
             sage: p = F.get_place(3)
             sage: d = E.conorm_place(p)
@@ -175,8 +175,8 @@ class ConstantFieldExtension(FunctionFieldExtension):
 
         EXAMPLES::
 
-            sage: K.<x> = FunctionField(GF(2)); R.<t> = K[]
-            sage: F.<y> = K.extension(t^3 - x^2*(x^2 + x + 1)^2)
+            sage: K.<x> = FunctionField(GF(2)); R.<Y> = K[]
+            sage: F.<y> = K.extension(Y^3 - x^2*(x^2 + x + 1)^2)
             sage: E = F.extension_constant_field(GF(2^3))
             sage: p1 = F.get_place(3)
             sage: p2 = F.get_place(2)

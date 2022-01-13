@@ -267,20 +267,12 @@ def _get_shared_lib_path(*libnames: str) -> Optional[str]:
 
     EXAMPLES::
 
-        sage: import sys
-        sage: from fnmatch import fnmatch
         sage: from sage.env import _get_shared_lib_path
-        sage: lib_filename = _get_shared_lib_path("Singular", "singular-Singular")
-        sage: if sys.platform == 'cygwin':
-        ....:     pattern = "*/cygSingular-*.dll"
-        ....: elif sys.platform == 'darwin':
-        ....:     pattern = "*/libSingular-*.dylib"
-        ....: else:
-        ....:     pattern = "*/lib*Singular-*.so"
-        sage: fnmatch(str(lib_filename), pattern)
+        sage: "gap" in _get_shared_lib_path("gap")
         True
         sage: _get_shared_lib_path("an_absurd_lib") is None
         True
+
     """
 
     for libname in libnames:
@@ -343,16 +335,6 @@ if DOT_SAGE is not None and ' ' in DOT_SAGE:
         print("is to set the environment variable HOME to a")
         print("directory with no spaces that you have write")
         print("permissions to before you start sage.")
-
-
-CYGWIN_VERSION = None
-if UNAME[:6] == 'CYGWIN':
-    import re
-    _uname = os.uname()
-    if len(_uname) >= 2:
-        m = re.match(r'(\d+\.\d+\.\d+)\(.+\)', _uname[2])
-        if m:
-            CYGWIN_VERSION = tuple(map(int, m.group(1).split('.')))
 
 
 def sage_include_directories(use_sources=False):

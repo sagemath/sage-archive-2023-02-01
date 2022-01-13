@@ -90,7 +90,7 @@ def pip_remote_version(pkg, pypi_url=DEFAULT_PYPI, ignore_URLError=False):
 
         sage: from sage.misc.package import pip_remote_version
         sage: pip_remote_version('beautifulsoup4') # optional - internet # not tested
-        u'...'
+        '...'
 
     These tests are reliable since the tested package does not exist::
 
@@ -386,9 +386,9 @@ def installed_packages(exclude_pip=True):
     EXAMPLES::
 
         sage: sorted(installed_packages().keys())  # optional - build
-        [...'alabaster', ...'sage_conf', ...]
-        sage: installed_packages()['alabaster']  # optional - build, random
-        '0.7.12'
+        [...'gmpy2', ...'sage_conf', ...]
+        sage: installed_packages()['gmpy2']  # optional - build, random
+        '2.1.0b5'
 
     .. SEEALSO::
 
@@ -506,7 +506,7 @@ def standard_packages():
     """
     from sage.misc.superseded import deprecation
     deprecation(30747,
-                'the functions standard_packages, optional_packages, experimental_packages'
+                'the functions standard_packages, optional_packages, experimental_packages '
                 'are deprecated, use sage.features instead')
     pkgs = list_packages('standard', local=True).values()
     return (sorted(pkg.name for pkg in pkgs if pkg.is_installed()),
@@ -543,7 +543,7 @@ def optional_packages():
     """
     from sage.misc.superseded import deprecation
     deprecation(30747,
-                'the functions standard_packages, optional_packages, experimental_packages'
+                'the functions standard_packages, optional_packages, experimental_packages '
                 'are deprecated, use sage.features instead')
     pkgs = list_packages('optional', local=True)
     pkgs = pkgs.values()
@@ -576,7 +576,7 @@ def experimental_packages():
     """
     from sage.misc.superseded import deprecation
     deprecation(30747,
-                'the functions standard_packages, optional_packages, experimental_packages'
+                'the functions standard_packages, optional_packages, experimental_packages '
                 'are deprecated, use sage.features instead')
     pkgs = list_packages('experimental', local=True).values()
     return (sorted(pkg.name for pkg in pkgs if pkg.is_installed()),

@@ -74,9 +74,7 @@ from sage.plot.bezier_path import BezierPath
 from sage.plot.circle import circle
 from sage.plot.arc import Arc
 from sage.misc.decorators import options, rename_keyword
-from sage.rings.all import CC
-from sage.symbolic.constants import pi
-from sage.functions.trig import cos, sin, tan
+from sage.rings.cc import CC
 
 
 class HyperbolicArcCore(BezierPath):

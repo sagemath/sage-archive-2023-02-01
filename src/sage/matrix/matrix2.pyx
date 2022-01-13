@@ -814,6 +814,16 @@ cdef class Matrix(Matrix1):
             sage: m = matrix(SR, [0.0])
             sage: m.solve_right(b, check=True)
             (0)
+
+        ::
+
+            sage: SC = SR.subring(no_variables=True)
+            sage: m = matrix(SC, [0])
+            sage: b = vector(SC, [1])
+            sage: m.solve_right(b)
+            Traceback (most recent call last):
+            ...
+            ValueError: matrix equation has no solutions
         """
         try:
             L = B.base_ring()
@@ -848,8 +858,8 @@ cdef class Matrix(Matrix1):
 
         # If our field is inexact, checking the answer is doomed in
         # most cases. But here we handle the special ones.
-        from sage.symbolic.ring import SR
-        if K is SR:
+        from sage.symbolic.ring import SymbolicRing
+        if isinstance(K, SymbolicRing):
             # Elements of SR "remember" whether or not they are exact.
             # If every element in the system is exact, we can probably
             # still check the solution over the inexact ring SR.

@@ -408,6 +408,10 @@ cdef class Matrix(Matrix1):
             Traceback (most recent call last):
             ...
             ValueError: matrix equation has no solutions
+
+
+        In this case, turning off the ``check`` leads to a wrong result::
+
             sage: A.solve_left(b, check=False)
             (2)
 
@@ -809,8 +813,15 @@ cdef class Matrix(Matrix1):
             Traceback (most recent call last):
             ...
             ValueError: matrix equation has no solutions
+
+        In this case, turning off the ``check`` leads to a wrong result::
+
             sage: m.solve_right(b, check=False)
             (0)
+
+        In the following, we have an inexact entry in the matrix, so
+        the ``check`` is still skipped leading to a wrong result::
+
             sage: m = matrix(SR, [0.0])
             sage: m.solve_right(b, check=True)
             (0)

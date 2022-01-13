@@ -1056,6 +1056,11 @@ class RecurrenceParser(object):
             else:
                 [r, base_power_M] = list(polynomial_left)
                 M_new = log(base_power_M, base=k)
+                if M_new not in ZZ:
+                    raise ValueError("Term %s in the equation %s: "
+                                     "%s is not a power of %s."
+                                     % (left_side, eq,
+                                        base_power_M, k)) from None
                 if M and M != M_new:
                     raise ValueError(("Term {0} in the equation {1}: "
                                       "{2} does not equal {3}. Expected "
@@ -1065,11 +1070,6 @@ class RecurrenceParser(object):
                                           base_power_M, k**M)) from None
                 elif not M:
                     M = M_new
-                    if M not in ZZ:
-                        raise ValueError("Term %s in the equation %s: "
-                                         "%s is not a power of %s."
-                                         % (left_side, eq,
-                                            base_power_M, k)) from None
                     if M < 1:
                         raise ValueError(("Term {0} in the equation {1}: "
                                           "{2} is less than {3}. Modulus must "

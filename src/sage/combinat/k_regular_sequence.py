@@ -1010,6 +1010,11 @@ class RecurrenceParser(object):
                                  % (op, eq, poly)) from None
             d, base_power_m = list(poly)
             m = log(base_power_m, base=k)
+            if m not in ZZ:
+                raise ValueError("Term %s in the equation %s: "
+                                 "%s is not a power of %s."
+                                 % (summand, eq,
+                                    k**m, k)) from None
             return [coeff, m, d]
 
         if not equations:
@@ -1110,11 +1115,6 @@ class RecurrenceParser(object):
                                                   k**new_m, k**m)) from None
                         elif m is None:
                             m = new_m
-                            if m not in ZZ:
-                                raise ValueError("Term %s in the equation %s: "
-                                                 "%s is not a power of %s."
-                                                 % (summand, eq,
-                                                    k**m, k)) from None
                             if M <= m:
                                 raise ValueError("Term %s in the equation %s: "
                                                  "%s is not smaller than %s."

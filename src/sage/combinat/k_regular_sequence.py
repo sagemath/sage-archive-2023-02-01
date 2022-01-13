@@ -977,7 +977,7 @@ class RecurrenceParser(object):
             else:
                 raise ValueError('Term %s in the equation %s '
                                  'does not contain %s.'
-                                 % (op, eq, function)) from None
+                                 % (op, eq, function))
 
         def parse_one_summand(summand, eq):
             if summand.operator() == mul_vararg:
@@ -986,18 +986,18 @@ class RecurrenceParser(object):
                 coeff, op = 1, summand
             else:
                 raise ValueError('Term %s in the equation %s is not a valid summand.'
-                                 % (summand, eq)) from None
+                                 % (summand, eq))
             if coeff not in coefficient_ring:
                 raise ValueError("Term %s in the equation %s: "
                                  "%s is not a valid coefficient "
                                  "since it is not in %s."
-                                 % (summand, eq, coeff, coefficient_ring)) from None
+                                 % (summand, eq, coeff, coefficient_ring))
             if len(op.operands()) > 1:
                 raise ValueError('Term %s in the equation %s has more than one argument.'
-                                 % (op, eq)) from None
+                                 % (op, eq))
             elif len(op.operands()) == 0:
                 raise ValueError('Term %s in the equation %s has no argument.'
-                                 % (op, eq)) from None
+                                 % (op, eq))
             try:
                 poly = ZZ[var](op.operands()[0])
             except TypeError:
@@ -1007,35 +1007,35 @@ class RecurrenceParser(object):
             if poly.degree() != 1:
                 raise ValueError("Term %s in the equation %s: "
                                  "polynomial %s does not have degree 1."
-                                 % (op, eq, poly)) from None
+                                 % (op, eq, poly))
             d, base_power_m = list(poly)
             m = log(base_power_m, base=k)
             if m not in ZZ:
                 raise ValueError("Term %s in the equation %s: "
                                  "%s is not a power of %s."
                                  % (summand, eq,
-                                    k**m, k)) from None
+                                    k**m, k))
             return [coeff, m, d]
 
         if not equations:
-            raise ValueError("List of recurrence equations is empty.") from None
+            raise ValueError("List of recurrence equations is empty.")
 
         for eq in equations:
             try:
                 if eq.operator() != operator.eq:
                     raise ValueError("%s is not an equation with ==."
-                                     % eq) from None
+                                     % eq)
             except AttributeError:
                 raise ValueError("%s is not a symbolic expression."
                                  % eq) from None
             left_side, right_side = eq.operands()
             if left_side.operator() != function:
                 raise ValueError("Term %s in the equation %s is not an evaluation of %s."
-                                 % (left_side, eq, function)) from None
+                                 % (left_side, eq, function))
             if  len(left_side.operands()) != 1:
                 raise ValueError("Term %s in the equation %s does not have "
                                  "one argument."
-                                 % (left_side, eq)) from None
+                                 % (left_side, eq))
             try:
                 polynomial_left = ZZ[var](left_side.operands()[0])
             except TypeError:
@@ -1047,16 +1047,16 @@ class RecurrenceParser(object):
             if polynomial_left.degree()  > 1:
                 raise ValueError("Term %s in the equation %s: "
                                  "%s is not a polynomial in %s of degree smaller than 2."
-                                 % (left_side, eq, polynomial_left, var)) from None
+                                 % (left_side, eq, polynomial_left, var))
             if polynomial_left in ZZ:
                 if right_side not in coefficient_ring:
                     raise ValueError("Initial value %s given by the equation %s "
                                      "is not in %s."
-                                     % (right_side, eq, coefficient_ring)) from None
+                                     % (right_side, eq, coefficient_ring))
                 if (polynomial_left in initial_values.keys() and
                     initial_values[polynomial_left] != right_side):
                     raise ValueError("Initial value %s is given twice."
-                                     % (function(polynomial_left))) from None
+                                     % (function(polynomial_left)))
                 initial_values.update({polynomial_left: right_side})
             else:
                 [r, base_power_M] = list(polynomial_left)
@@ -1065,14 +1065,14 @@ class RecurrenceParser(object):
                     raise ValueError("Term %s in the equation %s: "
                                      "%s is not a power of %s."
                                      % (left_side, eq,
-                                        base_power_M, k)) from None
+                                        base_power_M, k))
                 if M and M != M_new:
                     raise ValueError(("Term {0} in the equation {1}: "
                                       "{2} does not equal {3}. Expected "
                                       "subsequence modulo {3} as in another "
                                       "equation, got subsequence modulo {2}.").format(
                                           left_side, eq,
-                                          base_power_M, k**M)) from None
+                                          base_power_M, k**M))
                 elif not M:
                     M = M_new
                     if M < 1:
@@ -1080,18 +1080,18 @@ class RecurrenceParser(object):
                                           "{2} is less than {3}. Modulus must "
                                           "be at least {3}.").format(
                                               left_side, eq,
-                                              base_power_M, k)) from None
+                                              base_power_M, k))
                 if r in remainders:
                     raise ValueError("There are more than one recurrence relation for %s."
-                                     % (left_side,)) from None
+                                     % (left_side,))
                 if r >= k**M:
                     raise ValueError("Term %s in the equation %s: "
                                      "remainder %s is not smaller than modulus %s."
-                                     % (left_side, eq, r, k**M)) from None
+                                     % (left_side, eq, r, k**M))
                 elif r < 0:
                     raise ValueError("Term %s in the equation %s: "
                                      "remainder %s is smaller than 0."
-                                     % (left_side, eq, r)) from None
+                                     % (left_side, eq, r))
                 else:
                     remainders.add(r)
                 if right_side != 0:
@@ -1102,7 +1102,7 @@ class RecurrenceParser(object):
                         summands = right_side.operands()
                     else:
                         raise ValueError("%s is not a valid right hand side."
-                                         % (right_side,)) from None
+                                         % (right_side,))
                     for summand in summands:
                         coeff, new_m, d = parse_one_summand(summand, eq)
                         if m is not None and m != new_m:
@@ -1112,18 +1112,18 @@ class RecurrenceParser(object):
                                               "summand or equation, got subsequence "
                                               "modulo {2}.").format(
                                                   summand, eq,
-                                                  k**new_m, k**m)) from None
+                                                  k**new_m, k**m))
                         elif m is None:
                             m = new_m
                             if M <= m:
                                 raise ValueError("Term %s in the equation %s: "
                                                  "%s is not smaller than %s."
                                                  % (summand, eq,
-                                                    k**m, k**M)) from None
+                                                    k**m, k**M))
                         coeffs.update({(r, d): coeff})
 
         if not M:
-            raise ValueError("No recurrence relations are given.") from None
+            raise ValueError("No recurrence relations are given.")
         elif M and m is None: # for the zero sequence
             m = M - 1
 
@@ -1253,13 +1253,13 @@ class RecurrenceParser(object):
         dim = (k**M - 1)/(k - 1) + (M - m)*(uu - ll - k**m + 1) + n1
 
         if not initial_values:
-            raise ValueError("No initial values are given.") from None
+            raise ValueError("No initial values are given.")
         keys_initial = initial_values.keys()
         values_not_in_ring = [n for n in keys_initial
                               if initial_values[n] not in coefficient_ring]
         if values_not_in_ring:
             raise ValueError("Initial values for arguments in %s are not in %s."
-                             % (values_not_in_ring, coefficient_ring)) from None
+                             % (values_not_in_ring, coefficient_ring))
 
         last_value_needed = max(
             k**(M-1) - k**m + uu + (n1 > 0)*k**(M-1)*(k*(n1 - 1) + k - 1), # for matrix W
@@ -1439,7 +1439,7 @@ class RecurrenceParser(object):
 
         if missing_values:
             raise ValueError("Initial values for arguments in %s are missing."
-                             % (list(set(missing_values)),)) from None
+                             % (list(set(missing_values)),))
 
         for n in keys_initial:
             q, r = ZZ(n).quo_rem(k**M)
@@ -1448,7 +1448,7 @@ class RecurrenceParser(object):
                                   for j in srange(l, u + 1)])):
                 raise ValueError("Initial value for argument %s does not match with "
                                  "the given recurrence relations."
-                                 % (n,)) from None
+                                 % (n,))
 
         values.update({n: 0 for n in srange(ll, 0)})
 

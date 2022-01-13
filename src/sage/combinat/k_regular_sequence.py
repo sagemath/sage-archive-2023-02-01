@@ -1039,16 +1039,15 @@ class RecurrenceParser(object):
                                  "%s is not a polynomial in %s of degree smaller than 2."
                                  % (left_side, eq, polynomial_left, var)) from None
             if polynomial_left in ZZ:
-                if right_side in coefficient_ring:
-                    if (polynomial_left in initial_values.keys() and
-                        initial_values[polynomial_left] != right_side):
-                        raise ValueError("Initial value %s is given twice."
-                                         % (function(polynomial_left))) from None
-                    initial_values.update({polynomial_left: right_side})
-                else:
+                if right_side not in coefficient_ring:
                     raise ValueError("Initial value %s given by the equation %s "
                                      "is not in %s."
                                      % (right_side, eq, coefficient_ring)) from None
+                if (polynomial_left in initial_values.keys() and
+                    initial_values[polynomial_left] != right_side):
+                    raise ValueError("Initial value %s is given twice."
+                                     % (function(polynomial_left))) from None
+                initial_values.update({polynomial_left: right_side})
             else:
                 [r, base_power_M] = list(polynomial_left)
                 M_new = log(base_power_M, base=k)

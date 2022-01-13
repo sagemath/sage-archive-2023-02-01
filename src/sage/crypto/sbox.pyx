@@ -431,6 +431,7 @@ cdef class SBox(SageObject):
             ...
             TypeError: cannot apply SBox to 1/2
         """
+        # Handle integer inputs
         if type(X) == int:
             return self._S[<int> X]
         if isinstance(X, Integer):
@@ -438,21 +439,29 @@ cdef class SBox(SageObject):
         if isinstance(X, integer_types):
             return self._S[ZZ(X)]
 
-        cdef int i
+        # Handle non-integer inputs: vectors, to-integer-coercible elements
+        #cdef int i
         if isinstance(X, Element):
             K = X.parent()
+            if K.base_ring().characteristic() != 2:
+                try:
+                    X = ZZ(X)
+                    return K(self._S[<Integer> X])
+                except TypeError:
+                    raise TypeError("cannot apply SBox to %s" % (X,))
+                raise TypeError("the characteristic of the base field must be 2")
             V = None
             try:
-                V = K.vector_space()
+                V = K.vector_space(map=False)
             except AttributeError:
                 try:
                     return self._S[ZZ(X)]
                 except TypeError:
                     pass
+            except TypeError:
+                V = K.vector_space()
             if V is not None:
                 X = V(X)
-                if V.base_ring().characteristic() != 2:
-                    raise TypeError("the characteristic of the base field must be 2")
         else:
             K = None
 
@@ -461,6 +470,7 @@ cdef class SBox(SageObject):
         cdef Py_ssize_t ell
         try:
             ell = len(X)
+            X = list(X)
         except TypeError:
             # This will not pass the next test and ultimately raise an error
             ell = -1

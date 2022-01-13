@@ -1074,14 +1074,14 @@ class RecurrenceParser(object):
                                      "%s is not a power of %s."
                                      % (left_side, eq,
                                         base_power_M, k)) from None
-                if M and M != M_new:
+                if M is not None and M != M_new:
                     raise ValueError(("Term {0} in the equation {1}: "
                                       "{2} does not equal {3}. Expected "
                                       "subsequence modulo {3} as in another "
                                       "equation, got subsequence modulo {2}.").format(
                                           left_side, eq,
                                           base_power_M, k**M))
-                elif not M:
+                elif M is None:
                     M = M_new
                     if M < 1:
                         raise ValueError(("Term {0} in the equation {1}: "

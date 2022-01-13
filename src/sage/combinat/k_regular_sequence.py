@@ -987,11 +987,13 @@ class RecurrenceParser(object):
             else:
                 raise ValueError('Term %s in the equation %s is not a valid summand.'
                                  % (summand, eq))
-            if coeff not in coefficient_ring:
+            try:
+                coeff = coefficient_ring(coeff)
+            except (TypeError, ValueError):
                 raise ValueError("Term %s in the equation %s: "
                                  "%s is not a valid coefficient "
                                  "since it is not in %s."
-                                 % (summand, eq, coeff, coefficient_ring))
+                                 % (summand, eq, coeff, coefficient_ring)) from None
             if len(op.operands()) > 1:
                 raise ValueError('Term %s in the equation %s has more than one argument.'
                                  % (op, eq))
@@ -1010,7 +1012,9 @@ class RecurrenceParser(object):
                                  % (op, eq, poly))
             d, base_power_m = list(poly)
             m = log(base_power_m, base=k)
-            if m not in ZZ:
+            try:
+                m = ZZ(m)
+            except (TypeError, ValueError):
                 raise ValueError("Term %s in the equation %s: "
                                  "%s is not a power of %s."
                                  % (summand, eq,
@@ -1049,7 +1053,9 @@ class RecurrenceParser(object):
                                  "%s is not a polynomial in %s of degree smaller than 2."
                                  % (left_side, eq, polynomial_left, var))
             if polynomial_left in ZZ:
-                if right_side not in coefficient_ring:
+                try:
+                    right_side = coefficient_ring(right_side)
+                except (TypeError, ValueError):
                     raise ValueError("Initial value %s given by the equation %s "
                                      "is not in %s."
                                      % (right_side, eq, coefficient_ring))
@@ -1061,11 +1067,13 @@ class RecurrenceParser(object):
             else:
                 [r, base_power_M] = list(polynomial_left)
                 M_new = log(base_power_M, base=k)
-                if M_new not in ZZ:
+                try:
+                    M_new = ZZ(M_new)
+                except (TypeError, ValueError):
                     raise ValueError("Term %s in the equation %s: "
                                      "%s is not a power of %s."
                                      % (left_side, eq,
-                                        base_power_M, k))
+                                        base_power_M, k)) from None
                 if M and M != M_new:
                     raise ValueError(("Term {0} in the equation {1}: "
                                       "{2} does not equal {3}. Expected "
@@ -1255,8 +1263,14 @@ class RecurrenceParser(object):
         if not initial_values:
             raise ValueError("No initial values are given.")
         keys_initial = initial_values.keys()
-        values_not_in_ring = [n for n in keys_initial
-                              if initial_values[n] not in coefficient_ring]
+        values_not_in_ring = []
+        def converted_value(n, v):
+            try:
+                return coefficient_ring(v)
+            except (TypeError, ValueError):
+                values_not_in_ring.append(n)
+        initial_values = {n: converted_value(n, v)
+                          for n, v in initial_values.items()}
         if values_not_in_ring:
             raise ValueError("Initial values for arguments in %s are not in %s."
                              % (values_not_in_ring, coefficient_ring))

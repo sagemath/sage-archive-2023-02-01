@@ -953,6 +953,34 @@ class RecurrenceParser(object):
 
             sage: RP.parse_recurrence([f(2*n) == 0, f(2*n + 1) == 0], f, n)
             (1, 0, {}, {})
+
+        We check that the output is of the correct type (:trac:`33158`)::
+
+            sage: RP = RecurrenceParser(2, QQ)
+            sage: equations = [
+            ....:     f(4*n) == 5/3*f(2*n) - 1/3*f(2*n + 1),
+            ....:     f(4*n + 1) == 4/3*f(2*n) + 1/3*f(2*n + 1),
+            ....:     f(4*n + 2) == 1/3*f(2*n) + 4/3*f(2*n + 1),
+            ....:     f(4*n + 3) == -1/3*f(2*n) + 5/3*f(2*n + 1),
+            ....:     f(0) == 1, f(1) == 2]
+            sage: M, m, coeffs, initial_values = RP.parse_recurrence(equations, f, n)
+            sage: M.parent()
+            Integer Ring
+            sage: m.parent()
+            Integer Ring
+            sage: all(v.parent() == QQ for v in coeffs.values())
+            True
+            sage: all(v.parent() == QQ for v in initial_values.values())
+            True
+
+        This results in giving the correct (see :trac:`33158`) minimization in::
+
+            sage: Seq2 = kRegularSequenceSpace(2, QQ)
+            sage: P = Seq2.from_recurrence(equations, f, n)
+            sage: P
+            2-regular sequence 1, 2, 3, 3, 4, 5, 5, 4, 5, 7, ...
+            sage: P.minimized()
+            2-regular sequence 1, 2, 3, 3, 4, 5, 5, 4, 5, 7, ...
         """
         from sage.arith.srange import srange
         from sage.functions.log import log

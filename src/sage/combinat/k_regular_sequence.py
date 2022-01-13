@@ -987,6 +987,11 @@ class RecurrenceParser(object):
             else:
                 raise ValueError('Term %s in the equation %s is not a valid summand.'
                                  % (summand, eq)) from None
+            if coeff not in coefficient_ring:
+                raise ValueError("Term %s in the equation %s: "
+                                 "%s is not a valid coefficient "
+                                 "since it is not in %s."
+                                 % (summand, eq, coeff, coefficient_ring)) from None
             if len(op.operands()) > 1:
                 raise ValueError('Term %s in the equation %s has more than one argument.'
                                  % (op, eq)) from None
@@ -1095,11 +1100,6 @@ class RecurrenceParser(object):
                                          % (right_side,)) from None
                     for summand in summands:
                         coeff, new_m, d = parse_one_summand(summand, eq)
-                        if coeff not in coefficient_ring:
-                            raise ValueError("Term %s in the equation %s: "
-                                             "%s is not a valid coefficient "
-                                             "since it is not in %s."
-                                             % (summand, eq, coeff, coefficient_ring)) from None
                         if m is not None and m != new_m:
                             raise ValueError(("Term {0} in the equation {1}: "
                                               "{2} does not equal {3}. Expected "

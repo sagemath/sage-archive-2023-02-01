@@ -703,6 +703,11 @@ cdef class Polynomial(CommutativeAlgebraElement):
             sage: T.<z> = GF(31337)[]
             sage: _ = g(z)
 
+        This was about ten times slower prior to :trac:`33165`::
+
+            sage: U.<u,v> = GF(31337)[]
+            sage: _ = g(u)
+
         AUTHORS:
 
         -  David Joyner (2005-04-10)
@@ -774,6 +779,11 @@ cdef class Polynomial(CommutativeAlgebraElement):
             # and returning the result. See #33165.
             if isinstance(a, Polynomial) and a.is_gen() and a.base_ring() is self.base_ring():
                 return a.parent()(self)
+            if is_MPolynomialRing(parent(a)) and a.is_generator() and a.base_ring() is self.base_ring():
+                P = a.parent()
+                num = P.gens().index(a)
+                tup = lambda i: (0,)*num + (i,) + (0,)*(P.ngens()-num-1)
+                return P({tup(i): c for i,c in enumerate(self)})
             if isinstance(a, PolynomialQuotientRingElement) and a.lift().is_gen():
                 Q = a.parent()
                 if Q.polynomial_ring() is self.parent():

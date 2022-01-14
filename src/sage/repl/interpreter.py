@@ -423,7 +423,7 @@ def SagePreparseTransformer(lines):
         sage: from sage.repl.interpreter import get_test_shell
         sage: shell = get_test_shell()
         sage: shell.run_cell(bad_syntax)
-          File "<string>", line unknown
+          File...<string>...
         SyntaxError: Mismatched ']'
         <BLANKLINE>
         sage: shell.quit()

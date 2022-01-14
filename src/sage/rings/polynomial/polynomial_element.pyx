@@ -119,6 +119,7 @@ from sage.rings.ideal import is_Ideal
 from sage.rings.polynomial.polynomial_ring_constructor import PolynomialRing
 from sage.rings.polynomial.polynomial_ring import is_PolynomialRing
 from sage.rings.polynomial.multi_polynomial_ring import is_MPolynomialRing
+from sage.rings.polynomial.polynomial_quotient_ring_element import PolynomialQuotientRingElement
 from sage.misc.cachefunc import cached_function
 
 from sage.categories.map cimport Map
@@ -689,6 +690,14 @@ cdef class Polynomial(CommutativeAlgebraElement):
             sage: Polynomial.__call__(x, [])
             x
 
+        This was about a hundred times slower prior to :trac:`33165`::
+
+            sage: R.<x> = GF(31337)[]
+            sage: f = R.random_element(degree=99)
+            sage: g = R.random_element(degree=999)
+            sage: S.<y> = R.quotient(f)
+            sage: _ = g(y)
+
         AUTHORS:
 
         -  David Joyner (2005-04-10)
@@ -751,6 +760,15 @@ cdef class Polynomial(CommutativeAlgebraElement):
             if eval_coeffs:
                 pol = pol.map_coefficients(lambda c: c(*args, **kwds),
                                             new_base_ring=cst.parent())
+
+        # If a is the generator of a quotient of this polynomial ring,
+        # the code below wastes a lot of time on unnecessary intermediate
+        # reductions. We can do much better by simply doing the reduction
+        # once and returning the result. See #33165.
+        if isinstance(a, PolynomialQuotientRingElement):
+            Q = a.parent()
+            if Q.polynomial_ring() is self.parent() and a == Q.gen():
+                return Q(self)
 
         # Coerce a once and for all to a parent containing the coefficients.
         # This can save lots of coercions when the common parent is the

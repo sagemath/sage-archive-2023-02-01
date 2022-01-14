@@ -2461,7 +2461,7 @@ class Polyhedron_base(Polyhedron_base4):
                 new_ring = None
                 try:
                     new_ring = self.base_ring().composite_fields()[0]
-                except:
+                except (KeyError, AttributeError, TypeError):
                     # This isn't about testing composite fields.
                     pass
                 if new_ring:

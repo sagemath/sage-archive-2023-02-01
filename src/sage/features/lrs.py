@@ -43,6 +43,8 @@ class Lrs(Executable):
             FeatureTestResult('lrslib', True)
         """
         from sage.misc.temporary_file import tmp_filename
+
+        # Check #1
         tf_name = tmp_filename()
         with open(tf_name, 'wb') as tf:
             tf.write(str_to_bytes("V-representation\nbegin\n 1 1 rational\n 1 \nend\nvolume"))
@@ -61,6 +63,22 @@ class Lrs(Executable):
                 reason="Output of `{command}` did not contain the expected result {expected}.".format(
                     command=" ".join(command),
                     expected=" or ".join(expected_list)))
+
+        # Check #2
+        # Checking whether `lrsnash` can handle the new input format
+        # This test is currently done in build/pkgs/lrslib/spkg-configure.m4
+        tf_name = tmp_filename()
+        with open(tf_name, 'w') as tf:
+            tf.write("1 1\n \n 0\n \n 0\n")
+        command = ['lrsnash', tf_name]
+        result = subprocess.run(command, capture_output=True, text=True)
+        if result.returncode:
+            return FeatureTestResult(self, False, reason='Running command "{}" '
+                        'returned non-zero exit status "{}" with stderr '
+                        '"{}" and stdout "{}".'.format(' '.join(result.args),
+                                                        result.returncode,
+                                                        result.stderr.strip(),
+                                                        result.stdout.strip()))
 
         return FeatureTestResult(self, True)
 

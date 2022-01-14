@@ -12014,3 +12014,47 @@ cdef class PolynomialBaseringInjection(Morphism):
 
         """
         return False
+
+def polynomial_is_variable(x):
+    r"""
+    Test whether the given polynomial is a variable of its parent ring.
+
+    Implemented for instances of :class:`Polynomial` and :class:`MPolynomial`.
+
+    .. SEEALSO::
+
+        - :meth:`sage.rings.polynomial.polynomial_element.Polynomial.is_gen`
+        - :meth:`sage.rings.polynomial.multi_polynomial.MPolynomial.is_generator`
+
+    EXAMPLES::
+
+        sage: from sage.rings.polynomial.polynomial_element import polynomial_is_variable
+        sage: R.<x> = QQ[]
+        sage: polynomial_is_variable(x)
+        True
+        sage: polynomial_is_variable(x^2)
+        False
+
+    ::
+
+        sage: R.<y,z> = QQ[]
+        sage: polynomial_is_variable(y)
+        True
+        sage: polynomial_is_variable(z)
+        True
+        sage: polynomial_is_variable(y^2)
+        False
+        sage: polynomial_is_variable(y+z)
+        False
+
+    ::
+
+        sage: polynomial_is_variable(42)
+        False
+    """
+    if isinstance(x, Polynomial):
+        return x.is_gen()
+    from sage.rings.polynomial.multi_polynomial import MPolynomial
+    if isinstance(x, MPolynomial):
+        return x.is_generator()
+    return False

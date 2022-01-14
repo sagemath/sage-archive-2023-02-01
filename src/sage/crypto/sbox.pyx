@@ -439,7 +439,7 @@ cdef class SBox(SageObject):
         if isinstance(X, integer_types):
             return self._S[ZZ(X)]
 
-        # Handle non-integer inputs: vectors, to-integer-coercible elements
+        # Handle non-integer inputs: vectors, finite field elements to-integer-coercible elements
         #cdef int i
         if isinstance(X, Element):
             K = X.parent()
@@ -460,6 +460,7 @@ cdef class SBox(SageObject):
                     pass
             except TypeError:
                 V = K.vector_space()
+            # convert finite field element to vector
             if V is not None:
                 X = V(X)
         else:

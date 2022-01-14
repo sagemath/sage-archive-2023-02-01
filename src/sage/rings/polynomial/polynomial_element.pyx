@@ -698,6 +698,11 @@ cdef class Polynomial(CommutativeAlgebraElement):
             sage: S.<y> = R.quotient(f)
             sage: _ = g(y)
 
+        This was about a thousand times slower prior to :trac:`33165`::
+
+            sage: T.<z> = GF(31337)[]
+            sage: _ = g(z)
+
         AUTHORS:
 
         -  David Joyner (2005-04-10)
@@ -761,14 +766,18 @@ cdef class Polynomial(CommutativeAlgebraElement):
                 pol = pol.map_coefficients(lambda c: c(*args, **kwds),
                                             new_base_ring=cst.parent())
 
-        # If a is the generator of a quotient of this polynomial ring,
-        # the code below wastes a lot of time on unnecessary intermediate
-        # reductions. We can do much better by simply doing the reduction
-        # once and returning the result. See #33165.
-        if isinstance(a, PolynomialQuotientRingElement):
-            Q = a.parent()
-            if Q.polynomial_ring() is self.parent() and a == Q.gen():
-                return Q(self)
+        else:
+            # If a is a generator of an isomorphic polynomial ring (or quotient
+            # of an isomorphic polynomial ring), the code below wastes a lot of
+            # time on conversions and unnecessary intermediate reductions.
+            # We can do dramatically better by simply doing the conversion once
+            # and returning the result. See #33165.
+            if isinstance(a, Polynomial) and a.is_gen() and a.base_ring() is self.base_ring():
+                return a.parent()(self)
+            if isinstance(a, PolynomialQuotientRingElement) and a.lift().is_gen():
+                Q = a.parent()
+                if Q.polynomial_ring() is self.parent():
+                    return Q(self)
 
         # Coerce a once and for all to a parent containing the coefficients.
         # This can save lots of coercions when the common parent is the

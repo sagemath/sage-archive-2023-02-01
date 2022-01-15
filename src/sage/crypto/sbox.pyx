@@ -1044,6 +1044,12 @@ cdef class SBox(SageObject):
 
             sage: f(a^2 + 1), S(5)
             (a^2 + 1, 5)
+
+        NOTE:
+
+            The method-internal call to the S-box initially used a different
+            endianess for handling finite field elements. This changed in
+            https://trac.sagemath.org/ticket/25633, by calling the S-box directly.
         """
         if self.m != self.n:
             raise TypeError("Lagrange interpolation only supported if"

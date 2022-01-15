@@ -2176,8 +2176,8 @@ class FindStatStatistic(Element,
         TESTS::
 
             sage: findstat(41)._data()                                          # optional -- internet, indirect doctest
-            {'Bibliography': {'MathSciNet:1288802': {'Author': 'de M\xe9dicis, A., Viennot, X. G.',
-               'Title': 'Moments des $q$-polyn\xf4mes de Laguerre et la bijection de Foata-Zeilberger'},
+            {'Bibliography': {'MathSciNet:1288802': {'Author': 'de Médicis, A., Viennot, X. G.',
+               'Title': 'Moments des $q$-polynômes de Laguerre et la bijection de Foata-Zeilberger'},
               'MathSciNet:1418763': {'Author': 'Simion, R., Stanton, D.',
                'Title': 'Octabasic Laguerre polynomials and permutation statistics'}},
              'Code': 'def statistic(x):\r\n    return len(x.nestings())',
@@ -2605,7 +2605,7 @@ class FindStatStatisticQuery(FindStatStatistic):
         FindStatFunction.__init__(self, FINDSTAT_STATISTIC_PADDED_IDENTIFIER % 0,
                                   data={"Bibliography": {},
                                         "Code": _get_code_from_callable(function),
-                                        "Description" : "",
+                                        "Description": "",
                                         "Domain": domain,
                                         "Name": "a new statistic on %s" % domain.name("plural"),
                                         "References": "",
@@ -3524,7 +3524,7 @@ class FindStatMapQuery(FindStatMap):
         FindStatFunction.__init__(self, FINDSTAT_MAP_PADDED_IDENTIFIER % 0,
                                   data={"Bibliography": {},
                                         "Code": _get_code_from_callable(function),
-                                        "Description" : "",
+                                        "Description": "",
                                         "Domain": domain,
                                         "Codomain": codomain,
                                         "Name": "a new map from %s to %s" % (domain.name("plural"), codomain.name("plural")),
@@ -4645,7 +4645,7 @@ class FindStatCollections(UniqueRepresentation, Parent):
                 data["Code"] = _SupportedFindStatCollections[data["NameWiki"]]
             else:
                 print("%s provides a new collection:" % FindStat())
-                print("    %s: %s" %(id, data["NamePlural"]))
+                print("    %s: %s" % (id, data["NamePlural"]))
                 print("To use it with this interface, it has to be added to the dictionary")
                 print("    _SupportedFindStatCollections in src/sage/databases/findstat.py")
                 print("of the SageMath distribution.  Please open a ticket on trac!")

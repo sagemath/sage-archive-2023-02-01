@@ -391,7 +391,7 @@ class CFiniteSequence(FieldElement,
             rem = num % den
             if den != 1:
                 self._a = R(num / den).list()
-                self._aa = R(rem / den).list()[:self._deg]  # needed for _get_item_
+                self._aa = (rem.valuation() * [0] + R(rem / den).list())[:self._deg]  # needed for _get_item_
             else:
                 self._a = num.list()
             if len(self._a) < alen:
@@ -634,6 +634,9 @@ class CFiniteSequence(FieldElement,
             sage: s=C(1/((1-x^2)*(1-x^6)*(1-x^8)*(1-x^12)))
             sage: s[999998]
             289362268629630
+            sage: s = C.from_recurrence([1,1],[1,1,1])
+            sage: s[0:5]
+            [1, 1, 1, 2, 3]
         """
         if isinstance(key, slice):
             m = max(key.start, key.stop)

@@ -205,9 +205,9 @@ class SchemeMorphism_polynomial_affine_space(SchemeMorphism_polynomial):
                 raise ValueError("there must be %s polynomials"%target.ngens())
             try:
                 polys = [source_ring(poly) for poly in polys]
-            except TypeError: # maybe given quotient ring elements
+            except TypeError:  # maybe given quotient ring elements
                 try:
-                   polys = [source_ring(poly.lift()) for poly in polys]
+                    polys = [source_ring(poly.lift()) for poly in polys]
                 except (TypeError, AttributeError):
                     # must be a rational function since we cannot have
                     # rational functions for quotient rings

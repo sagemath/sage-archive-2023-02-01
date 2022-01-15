@@ -1779,9 +1779,12 @@ cdef class SBox(SageObject):
             sage: S = SBox([0,1,3,6,7,4,5,2])
             sage: S.is_monomial_function()
             False
-            sage: S.interpolation_polynomial()
+            sage: S_poly = S.interpolation_polynomial(); S_poly
             (a + 1)*x^6 + (a^2 + a + 1)*x^5 + (a^2 + a)*x^4
              + (a^2 + 1)*x^3 + a*x^2 + a*x
+
+            sage: all([S(x) == S_poly(x) for x in S_poly.base_ring()])
+            True
 
             sage: S = SBox(0,3,2,1)
             sage: S.interpolation_polynomial()

@@ -1175,7 +1175,7 @@ cdef class PowComputer_ZZ_pX(PowComputer_ext):
         cdef ZZ_c tmp, q, u_q
         cdef ZZ_pX_c xnew_q
         cdef ntl_ZZ_pContext_class c
-        cdef long mini, minval
+        cdef long mini = 0, minval = 0
         if absprec == 0:
             return 1
         if absprec < 0:

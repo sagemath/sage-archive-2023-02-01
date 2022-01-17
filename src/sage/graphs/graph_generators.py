@@ -1070,7 +1070,7 @@ class GraphGenerators():
             sage: g[0][1].laplacian_matrix(normalized=True).charpoly()==g[0][1].laplacian_matrix(normalized=True).charpoly()  # optional - sage.symbolic
             True
         """
-        from sage.graphs.all import graphs as graph_gen
+        from sage.graphs.graph_generators import graphs as graph_gen
         if graphs is None:
             graph_list=graph_gen(vertices, property=lambda _: True)
         elif callable(graphs):

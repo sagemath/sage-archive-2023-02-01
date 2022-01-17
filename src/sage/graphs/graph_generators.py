@@ -775,7 +775,7 @@ class GraphGenerators():
             def property(x):
                 return True
 
-        from sage.graphs.all import Graph
+        from sage.graphs.graph import Graph
         from copy import copy as copyfun
 
         if degree_sequence is not None:

@@ -54,11 +54,11 @@ class Lrs(Executable):
 
         expected_list = ["Volume= 1", "Volume=1"]
         if all(result.stdout.find(expected) == -1 for expected in expected_list):
-            print(result.stdout)
             return FeatureTestResult(self, False,
-                reason="Output of `{command}` did not contain the expected result {expected}.".format(
+                reason="Output of `{command}` did not contain the expected result {expected}; output: {result.stdout}".format(
                     command=" ".join(command),
-                    expected=" or ".join(expected_list)))
+                    expected=" or ".join(expected_list),
+                    result=result))
 
         # Check #2
         # Checking whether `lrsnash` can handle the new input format

@@ -1045,7 +1045,7 @@ cdef class SBox(SageObject):
             sage: f(a^2 + 1), S(5)
             (a^2 + 1, 5)
 
-        NOTE:
+        .. NOTE::
 
             The method-internal call to the S-box initially used a different
             endianess for handling finite field elements. This changed in

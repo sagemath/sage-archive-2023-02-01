@@ -22348,7 +22348,7 @@ class GenericGraph(GenericGraph_pyx):
         from sage.groups.perm_gps.partn_ref.refinement_graphs import search_tree
         from sage.groups.perm_gps.permgroup import PermutationGroup
         from sage.graphs.graph import Graph
-        from sage.graphs.digraph import Digraph
+        from sage.graphs.digraph import DiGraph
         from itertools import chain
         dig = (self._directed or self.has_loops())
 
@@ -22850,7 +22850,7 @@ class GenericGraph(GenericGraph_pyx):
             partition2 = other_vertices
         G_to = {u: i for i,u in enumerate(self_vertices)}
         from sage.graphs.graph import Graph
-        from sage.graphs.digraph import Digraph
+        from sage.graphs.digraph import DiGraph
         DoDG = DiGraph if self._directed else Graph
         H = DoDG(len(self_vertices), loops=G.allows_loops())
         HB = H._backend
@@ -23101,7 +23101,7 @@ class GenericGraph(GenericGraph_pyx):
         # algorithm == 'sage':
         from sage.groups.perm_gps.partn_ref.refinement_graphs import search_tree
         from sage.graphs.graph import Graph
-        from sage.graphs.digraph import Digraph
+        from sage.graphs.digraph import DiGraph
         from itertools import chain
 
         dig = (self.has_loops() or self._directed)
@@ -24100,7 +24100,7 @@ def graph_isom_equivalent_non_edge_labeled_graph(g, partition=None, standard_lab
         False
     """
     from sage.graphs.graph import Graph
-    from sage.graphs.digraph import Digraph
+    from sage.graphs.digraph import DiGraph
     from itertools import chain
 
     g_has_multiple_edges = g.has_multiple_edges()

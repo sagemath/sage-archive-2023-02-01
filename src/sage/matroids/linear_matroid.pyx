@@ -6033,7 +6033,7 @@ cdef class RegularMatroid(LinearMatroid):
         """
         # NEW VERSION, Uses Sage'S Graph Isomorphism
         from sage.graphs.graph import Graph
-        from sage.graphs.digraph import Digraph
+        from sage.graphs.digraph import DiGraph
         if self._r_hypergraph is not None:
             return (self._hypergraph_vertex_partition, self._hypergraph_tuples, self._r_hypergraph)
         cdef Matrix P = self._projection()

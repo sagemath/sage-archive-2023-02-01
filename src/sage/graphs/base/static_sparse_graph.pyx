@@ -231,7 +231,7 @@ cdef int init_short_digraph(short_digraph g, G, edge_labelled=False, vertex_list
     cdef int isdigraph
 
     from sage.graphs.graph import Graph
-    from sage.graphs.digraph import Digraph
+    from sage.graphs.digraph import DiGraph
 
     if isinstance(G, DiGraph):
         isdigraph = 1

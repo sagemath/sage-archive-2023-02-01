@@ -2300,10 +2300,10 @@ class RecurrenceParser(object):
             sage: recurrence_rules = RR(M=3, m=0, ll=-8, uu=14,
             ....:                       inhomogeneities={0: S})
             sage: RP.shifted_inhomogeneities(recurrence_rules)
-            [2-regular sequence 0, 0, 1, 1, 2, 1, 2, 2, 3, 1, ...,
-             2-regular sequence 0, 1, 1, 2, 1, 2, 2, 3, 1, 2, ...,
-             2-regular sequence 1, 1, 2, 1, 2, 2, 3, 1, 2, 2, ...,
-             2-regular sequence 1, 2, 1, 2, 2, 3, 1, 2, 2, 3, ...]
+            {(0, -1): (2-regular sequence 0, 0, 1, 1, 2, 1, 2, 2, 3, 1, ..., 0),
+             (0, 0): (2-regular sequence 0, 1, 1, 2, 1, 2, 2, 3, 1, 2, ..., 4),
+             (0, 1): (2-regular sequence 1, 1, 2, 1, 2, 2, 3, 1, 2, 2, ..., 6),
+             (0, 2): (2-regular sequence 1, 2, 1, 2, 2, 3, 1, 2, 2, 3, ..., 9)}
 
         .. SEEALSO::
 
@@ -2322,14 +2322,18 @@ class RecurrenceParser(object):
         lower = floor(ll/k**M)
         upper = floor((k**(M-1) - k**m + uu)/k**M)
 
-        shifted_inhomogeneities = [S.subsequence(1, b)
-                                   for S in inhomogeneities.values()
-                                   for b in srange(lower, upper + 1)]
+        shifted_inhomogeneities = {}
+        current_row = 0
+        for i in inhomogeneities.keys():
+            for b in srange(lower, upper + 1):
+                S_b = inhomogeneities[i].subsequence(1, b)
+                shifted_inhomogeneities.update({(i, b): (S_b, current_row)})
+                current_row += S_b.mu[0].ncols()
 
         CR = self.coefficient_ring
-        assert(all([S.left[0] == CR(1) for S in shifted_inhomogeneities]) and
-               all([all(a == CR(0) for a in S.left[1:])
-                    for S in shifted_inhomogeneities]))
+        assert(all([S[0].left[0] == CR(1) for S in shifted_inhomogeneities.values()]) and
+               all([all(a == CR(0) for a in S[0].left[1:])
+                    for S in shifted_inhomogeneities.values()]))
 
         return shifted_inhomogeneities
 
@@ -2384,7 +2388,7 @@ class RecurrenceParser(object):
         if not all(S.is_trivial_zero() for S in inhomogeneities.values()):
             Seq = list(inhomogeneities.values())[0].parent()
             W = Seq.indices()
-            shifted_inhomogeneities = self.shifted_inhomogeneities(recurrence_rules)
+            shifted_inhomogeneities = [S[0] for S in self.shifted_inhomogeneities(recurrence_rules).values()]
             vv = [(S._mu_of_word_(W(ZZ(n).digits(k))) * S.right) for S in shifted_inhomogeneities]
             v = vector(chain(v, *vv))
 
@@ -2586,15 +2590,7 @@ class RecurrenceParser(object):
         mat = Matrix(coefficient_ring, dim_without_corr, dim_without_corr, entry)
 
         if not all(S.is_trivial_zero() for S in inhomogeneities.values()):
-            lower = floor(ll/k**M)
-            upper = floor((k**(M-1) - k**m + uu)/k**M)
-            shifted_inhomogeneities = {}
-            current_row = 0
-            for i in inhomogeneities.keys():
-                for b in srange(lower, upper + 1):
-                    S_b = inhomogeneities[i].subsequence(1, b)
-                    shifted_inhomogeneities.update({(i, b): (S_b, current_row)})
-                    current_row += S_b.mu[0].ncols()
+            shifted_inhomogeneities = self.shifted_inhomogeneities(recurrence_rules)
 
             mat = block_diagonal_matrix(mat, *[S[0].mu[rem]
                                                for S in shifted_inhomogeneities.values()])
@@ -2610,8 +2606,10 @@ class RecurrenceParser(object):
                     mat[ind[(j, d)],
                         dim_without_corr + shifted_inhomogeneities[(rem_d - k**M, dd+1)][1]] = 1
 
-            dim += current_row
-            dim_without_corr += current_row
+            dim_of_inhom = shifted_inhomogeneities[list(shifted_inhomogeneities)[-1]][1] + \
+                shifted_inhomogeneities[list(shifted_inhomogeneities)[-1]][0].mu[0].ncols()
+            dim += dim_of_inhom
+            dim_without_corr += dim_of_inhom
 
         if n1 > 0 and correct_offset:
             W = Matrix(coefficient_ring, dim_without_corr, 0)
@@ -2667,7 +2665,10 @@ class RecurrenceParser(object):
 
         if not all(S.is_trivial_zero() for S in inhomogeneities.values()):
             shifted_inhomogeneities = self.shifted_inhomogeneities(recurrence_rules)
-            dim = dim + sum(S.mu[0].ncols() for S in shifted_inhomogeneities)
+            dim += shifted_inhomogeneities[list(shifted_inhomogeneities)[-1]][1] + \
+                shifted_inhomogeneities[
+                    list(shifted_inhomogeneities)[-1]
+                ][0].mu[0].ncols()
 
         return vector([1] + (dim - 1)*[0])
 

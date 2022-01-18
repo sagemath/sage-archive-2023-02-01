@@ -831,12 +831,13 @@ class kRegularSequenceSpace(RecognizableSeriesSpace):
 
         Optional keyword-only argument:
 
-        - ``offset`` -- an integer (default: ``0``). See explanation of
+        - ``offset`` -- (default: ``0``) an integer. See explanation of
           ``equations`` above.
 
-        - ``inhomogeneities`` -- a dictionary mapping integers ``r`` to the
-          inhomogeneity `g_r` as given in [HKL2021]_, Corollary D. All
-          inhomogeneities have to be regular sequences from ``self``.
+        - ``inhomogeneities`` -- (default: ``{}``) a dictionary
+          mapping integers ``r`` to the inhomogeneity `g_r` as given
+          in [HKL2021]_, Corollary D. All inhomogeneities have to be
+          regular sequences from ``self``.
 
         OUTPUT: a :class:`kRegularSequence`
 

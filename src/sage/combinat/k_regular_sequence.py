@@ -2053,9 +2053,8 @@ class RecurrenceParser(object):
         - ``last_value_needed`` -- last initial value which is needed to
           determine the linear representation
 
-        - ``inhomogeneities`` -- a dictionary mapping integers ``r`` to the
-          inhomogeneity `g_r` as given in [HKL2021]_, Corollary D. All
-          inhomogeneities have to be regular sequences from ``self``.
+        - ``inhomogeneities`` -- a dictionary mapping integers ``r``
+          to the inhomogeneity `g_r` as given in [HKL2021]_, Corollary D.
 
         OUTPUT:
 

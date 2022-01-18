@@ -908,8 +908,7 @@ class kRegularSequenceSpace(RecognizableSeriesSpace):
         Alternatively, we can also use the simpler but inhomogeneous recurrence relations
         `S(2n) = S(n)` and `S(2n+1) = S(n) + 1` via direct parameters::
 
-            sage: one = Seq2((Matrix([[1]]), Matrix([[1]])),
-            ....:     left=vector([1]), right=vector([1]))
+            sage: one = Seq2.one_hadamard()
             sage: S = Seq2.from_recurrence(M=1, m=0,
             ....:     coeffs={(0, 0): 1, (1, 0): 1},
             ....:     initial_values={0: 0, 1: 1},

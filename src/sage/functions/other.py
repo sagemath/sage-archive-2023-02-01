@@ -1156,7 +1156,8 @@ class Function_real_part(GinacFunction):
         GinacFunction.__init__(self, "real_part",
                                conversions=dict(maxima='realpart',
                                                 sympy='re',
-                                                giac='re'),
+                                                mathematica='Re',
+                                                giac='re', fricas='real'),
                                alt_name="real")
 
     def __call__(self, x, **kwargs):
@@ -1217,6 +1218,8 @@ class Function_imag_part(GinacFunction):
         GinacFunction.__init__(self, "imag_part",
                                conversions=dict(maxima='imagpart',
                                                 sympy='im',
+                                                mathematica='Im',
+                                                fricas='imag',
                                                 giac='im'),
                                alt_name="imag")
 
@@ -1231,6 +1234,7 @@ class Function_imag_part(GinacFunction):
             return x.imag
         else:
             return GinacFunction.__call__(self, x, **kwargs)
+
 
 imag = imag_part = imaginary = Function_imag_part()
 
@@ -1316,7 +1320,10 @@ class Function_conjugate(GinacFunction):
         """
         GinacFunction.__init__(self, "conjugate",
                                conversions=dict(sympy='conjugate',
-                                                giac='conj'))
+                                                giac='conj',
+                                                mathematica='Conjugate',
+                                                fricas='conjugate'))
+
 
 conjugate = Function_conjugate()
 
@@ -2046,12 +2053,13 @@ class Function_cases(GinacFunction):
         from sympy import Piecewise as pw
         args = []
         for tup in l.operands():
-            cond,expr = tup.operands()
+            cond, expr = tup.operands()
             if SR(cond).is_numeric():
                 args.append((SR(expr)._sympy_(), bool(SR(cond)._sympy_())))
             else:
                 args.append((SR(expr)._sympy_(), SR(cond)._sympy_()))
         return pw(*args)
+
 
 cases = Function_cases()
 

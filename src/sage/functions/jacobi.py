@@ -185,17 +185,12 @@ class Jacobi(BuiltinFunction):
                              "'ds', 'dc', 'sn', 'sd', 'sc', 'cn', 'cd', 'cs'.")
         self.kind = kind
         BuiltinFunction.__init__(self,
-                                 name='jacobi_{}'.format(kind),
-                                 nargs=2, evalf_params_first=False,
-                                 conversions=dict(maple=
-                                                  ('Jacobi{}'
-                                                   .format(kind.upper())),
-                                                  mathematica=
-                                                  ('Jacobi{}'
-                                                   .format(kind.upper())),
-                                                  maxima=
-                                                  ('jacobi_{}'
-                                                   .format(kind))))
+            name='jacobi_{}'.format(kind),
+            nargs=2, evalf_params_first=False,
+            conversions=dict(maple=('Jacobi{}'.format(kind.upper())),
+                             mathematica=('Jacobi{}'.format(kind.upper())),
+                             fricas=('jacobi{}'.format(kind.capitalize())),
+                             maxima=('jacobi_{}'.format(kind))))
 
     def _eval_(self, x, m):
         r"""

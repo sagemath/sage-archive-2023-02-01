@@ -92,8 +92,6 @@ class RationalField(Singleton, number_field_base.NumberField):
         Traceback (most recent call last):
         ...
         TypeError: unable to convert 'sage' to a rational
-        sage: QQ(u'-5/7')
-        -5/7
 
     Conversion from the reals to the rationals is done by default using
     continued fractions.
@@ -845,7 +843,7 @@ class RationalField(Singleton, number_field_base.NumberField):
         for i in range(len(S)):
             if S[i] == self.places()[0]:
                 S[i] = -1
-        if not b in self:
+        if b not in self:
             raise TypeError("second argument must be a rational number")
         b = self(b)
         if b == 0:
@@ -1488,7 +1486,7 @@ class RationalField(Singleton, number_field_base.NumberField):
         """
         from sage.rings.all import Infinity
         from sage.arith.misc import legendre_symbol
-        if not a in self:
+        if a not in self:
             raise TypeError(str(a) + " must be an element of " + str(self))
         if p.parent() == ZZ.ideal_monoid():
             p = p.gen()

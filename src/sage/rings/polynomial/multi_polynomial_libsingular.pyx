@@ -250,6 +250,7 @@ from sage.interfaces.macaulay2 import macaulay2 as macaulay2_default, is_Macaula
 from sage.misc.all import prod as mul
 from sage.misc.sage_eval import sage_eval
 
+
 cimport cypari2.gen
 from . import polynomial_element
 
@@ -558,7 +559,7 @@ cdef class MPolynomialRing_libsingular(MPolynomialRing_base):
             sage: k.<a> = GF(2^8)
             sage: P.<x,y> = PolynomialRing(k,2)
             sage: P._coerce_(a)
-            (a)
+            a
 
             sage: z = QQ['z'].0
             sage: K.<s> = NumberField(z^2 - 2)
@@ -769,6 +770,16 @@ cdef class MPolynomialRing_libsingular(MPolynomialRing_base):
             sage: S(f)
             (2*abar)*y
 
+        Check that creating element from strings works for transcendental extensions::
+
+            sage: T.<c,d> = QQ[]
+            sage: F = FractionField(T)
+            sage: R.<x,y,z> = F[]
+            sage: R('d*z+x^2*y')
+            x^2*y + d*z
+
+
+
         """
         cdef poly *_p
         cdef poly *mon
@@ -961,7 +972,11 @@ cdef class MPolynomialRing_libsingular(MPolynomialRing_base):
             # let python do the parsing
             d = self.gens_dict()
             if self.base_ring().gen() != 1:
-                d[str(self.base_ring().gen())]=self.base_ring().gen()
+                if hasattr(self.base_ring(), 'gens'):
+                    for gen in self.base_ring().gens():
+                        d[str(gen)] = gen
+                else:
+                    d[str(self.base_ring().gen())] = self.base_ring_gen()
             try:
                 if '/' in element:
                     element = sage_eval(element,d)
@@ -1652,7 +1667,7 @@ cdef class MPolynomialRing_libsingular(MPolynomialRing_base):
             else:
                 raise ArithmeticError("Cannot divide these coefficients.")
         else:
-            p_SetCoeff0(res, n_Init(1, r), r)
+            p_SetCoeff0(res, n_Init(1, r.cf), r)
         return new_MP(self, res)
 
     def monomial_divides(self, MPolynomial_libsingular a, MPolynomial_libsingular b):
@@ -1805,7 +1820,7 @@ cdef class MPolynomialRing_libsingular(MPolynomialRing_base):
                     if r is not currRing:
                         rChangeCurrRing(r)
                     flt = pMDivide(f._poly, h._poly)
-                    p_SetCoeff(flt, n_Init(1, r), r)
+                    p_SetCoeff(flt, n_Init(1, r.cf), r)
                     return (new_MP(self, flt), h)
         return (self._zero_element, self._zero_element)
 
@@ -1964,7 +1979,7 @@ cdef class MPolynomial_libsingular(MPolynomial):
             sage: F.<a> = GF(7^2)
             sage: R.<x,y> = F[]
             sage: p = a*x^2 + y + a^3; p
-            (a)*x^2 + y + (-2*a - 3)
+            a*x^2 + y + (-2*a - 3)
             sage: q = copy(p)
             sage: p == q
             True
@@ -2885,7 +2900,7 @@ cdef class MPolynomial_libsingular(MPolynomial):
                     flag = 1
             if flag == 0:
                 newptemp = p_LmInit(p,r)
-                p_SetCoeff(newptemp,n_Copy(p_GetCoeff(p,r),r),r)
+                p_SetCoeff(newptemp,n_Copy(p_GetCoeff(p,r),r.cf),r)
                 for i from 0<=i<gens:
                     if exps[i] != -1:
                         p_SetExp(newptemp,i+1,0,r)
@@ -3187,7 +3202,7 @@ cdef class MPolynomial_libsingular(MPolynomial):
             t = pNext(p)
             p.next = NULL
             coeff = si2sa(p_GetCoeff(p, _ring), _ring, base)
-            p_SetCoeff(p, n_Init(1,_ring), _ring)
+            p_SetCoeff(p, n_Init(1,_ring.cf), _ring)
             p_Setm(p, _ring)
             yield (coeff, new_MP(parent, p))
             p = t
@@ -3504,6 +3519,19 @@ cdef class MPolynomial_libsingular(MPolynomial):
             ....:             assert y.subs(d) == y.subs(**ds) == vy
             ....:             assert z.subs(d) == z.subs(**ds) == vz
             ....:             assert (x+y).subs(d) == (x+y).subs(**ds) == vx+vy
+
+        Check that substitution doesn't crash in transcendental extensions::
+
+            sage: F = PolynomialRing(QQ,'c,d').fraction_field()
+            sage: F.inject_variables()
+            Defining c, d
+            sage: R.<x,y,z> = F[]
+            sage: f = R(d*z^2 + c*y*z^2)
+            sage: f.subs({x:z^2,y:1})
+            (c + d)*z^2
+            sage: f.subs({z:x+1})
+            c*x^2*y + d*x^2 + (2*c)*x*y + (2*d)*x + c*y + d
+
         """
         cdef int mi, i, need_map, try_symbolic
 
@@ -3716,7 +3744,7 @@ cdef class MPolynomial_libsingular(MPolynomial):
         while p:
             t = pNext(p)
             p.next = NULL
-            p_SetCoeff(p, n_Init(1,_ring), _ring)
+            p_SetCoeff(p, n_Init(1,_ring.cf), _ring)
             p_Setm(p, _ring)
             l.append( new_MP(parent,p) )
             p = t
@@ -3993,7 +4021,7 @@ cdef class MPolynomial_libsingular(MPolynomial):
         if self._poly == NULL:
             return self._parent._zero_element
         _p = p_Head(self._poly, _ring)
-        p_SetCoeff(_p, n_Init(1,_ring), _ring)
+        p_SetCoeff(_p, n_Init(1,_ring.cf), _ring)
         p_Setm(_p,_ring)
         return new_MP(self._parent, _p)
 
@@ -4142,7 +4170,7 @@ cdef class MPolynomial_libsingular(MPolynomial):
         elif p_IsOne(_right._poly, r):
             return self
 
-        if n_GetChar(r) > 1<<29:
+        if n_GetChar(r.cf) > 1<<29:
             raise NotImplementedError("Division of multivariate polynomials over prime fields with characteristic > 2^29 is not implemented.")
 
         if r.cf.type != n_unknown:
@@ -4153,7 +4181,7 @@ cdef class MPolynomial_libsingular(MPolynomial):
                 while p:
                     if p_DivisibleBy(_right._poly, p, r):
                         temp = p_MDivide(p, _right._poly, r)
-                        p_SetCoeff0(temp, n_Copy(p_GetCoeff(p, r), r), r)
+                        p_SetCoeff0(temp, n_Copy(p_GetCoeff(p, r), r.cf), r)
                         quo = p_Add_q(quo, temp, r)
                     p = pNext(p)
                 return new_MP(parent, quo)
@@ -4226,10 +4254,10 @@ cdef class MPolynomial_libsingular(MPolynomial):
             sage: K.<s> = NumberField(p^3-2)
             sage: KXY.<x,y> = K[]
             sage: factor(x^3 - 2*y^3)
-            (x + (-s)*y) * (x^2 + (s)*x*y + (s^2)*y^2)
+            (x + (-s)*y) * (x^2 + s*x*y + (s^2)*y^2)
             sage: k = (x^3-2*y^3)^5*(x+s*y)^2*(2/3 + s^2)
             sage: k.factor()
-            ((s^2 + 2/3)) * (x + (s)*y)^2 * (x + (-s)*y)^5 * (x^2 + (s)*x*y + (s^2)*y^2)^5
+            ((s^2 + 2/3)) * (x + s*y)^2 * (x + (-s)*y)^5 * (x^2 + s*x*y + (s^2)*y^2)^5
 
         This shows that ticket :trac:`2780` is fixed, i.e. that the unit
         part of the factorization is set correctly::
@@ -4320,7 +4348,7 @@ cdef class MPolynomial_libsingular(MPolynomial):
             sage: q=y^11 + (a)*y^10 + (a + 1)*x*y^3
             sage: f = p*q
             sage: f.factor()
-            x * y^3 * (y^8 + (a)*y^7 + (a + 1)*x) * (x^7*y^3 + x*y^9 + (a)*x^8 + (a)*y^4)
+            x * y^3 * (y^8 + a*y^7 + (a + 1)*x) * (x^7*y^3 + x*y^9 + a*x^8 + a*y^4)
 
         We test several examples which were known to return wrong
         results in the past (see :trac:`10902`)::
@@ -4458,7 +4486,7 @@ cdef class MPolynomial_libsingular(MPolynomial):
             except Exception:
                 raise NotImplementedError("Factorization of multivariate polynomials over %s is not implemented."%self._parent._base)
 
-        if n_GetChar(_ring) > 1<<29:
+        if n_GetChar(_ring.cf) > 1<<29:
             raise NotImplementedError("Factorization of multivariate polynomials over prime fields with characteristic > 2^29 is not implemented.")
 
         # I make a temporary copy of the poly in self because singclap_factorize appears to modify it's parameter
@@ -4842,7 +4870,7 @@ cdef class MPolynomial_libsingular(MPolynomial):
             if _ring.cf.type == n_Znm or _ring.cf.type == n_Zn or _ring.cf.type == n_Z2m :
                 raise NotImplementedError("GCD over rings not implemented.")
 
-        if n_GetChar(_ring) > 1<<29:
+        if n_GetChar(_ring.cf) > 1<<29:
             raise NotImplementedError("GCD of multivariate polynomials over prime fields with characteristic > 2^29 is not implemented.")
 
         cdef int count = singular_polynomial_length_bounded(self._poly,20) \
@@ -4892,7 +4920,8 @@ cdef class MPolynomial_libsingular(MPolynomial):
 
             sage: Pol.<x,y,z> = ZZ[]
             sage: p = -x*y + x*z + 54*x - 2
-            sage: (5*p^2).lcm(3*p) == 15*p^2
+            sage: q = (5*p^2).lcm(3*p)
+            sage: q * q.lc().sign() == 15*p^2
             True
             sage: lcm(2*x, 2*y)
             2*x*y
@@ -4915,7 +4944,7 @@ cdef class MPolynomial_libsingular(MPolynomial):
         else:
             _g = <MPolynomial_libsingular>g
 
-        if n_GetChar(_ring) > 1<<29:
+        if n_GetChar(_ring.cf) > 1<<29:
             raise NotImplementedError("LCM of multivariate polynomials over prime fields with characteristic > 2^29 is not implemented.")
 
         cdef int count = singular_polynomial_length_bounded(self._poly,20) \
@@ -4995,7 +5024,7 @@ cdef class MPolynomial_libsingular(MPolynomial):
             py_rem = self - right*py_quo
             return py_quo, py_rem
 
-        if n_GetChar(r) > 1<<29:
+        if n_GetChar(r.cf) > 1<<29:
             raise NotImplementedError("Division of multivariate polynomials over prime fields with characteristic > 2^29 is not implemented.")
 
         cdef int count = singular_polynomial_length_bounded(self._poly,15)
@@ -5450,7 +5479,7 @@ cdef class MPolynomial_libsingular(MPolynomial):
             raise TypeError("second parameter needs to be an element of self.parent() or None")
 
 
-        if n_GetChar(_ring) > 1<<29:
+        if n_GetChar(_ring.cf) > 1<<29:
             raise NotImplementedError("Resultants of multivariate polynomials over prime fields with characteristic > 2^29 is not implemented.")
 
         if is_IntegerRing(self._parent._base):

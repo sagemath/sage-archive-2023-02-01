@@ -278,6 +278,7 @@ from .integer_ring import ZZ
 from .rational_field import QQ
 from sage.categories.morphism cimport Map
 
+cimport sage.rings.abc
 cimport sage.rings.real_mpfr as real_mpfr
 
 import math  # for log
@@ -534,6 +535,7 @@ cdef class RealIntervalField_class(sage.rings.abc.RealIntervalField):
         self.__lower_field = RealField(prec, sci_not, "RNDD")
         self.__middle_field = RealField(prec, sci_not, "RNDN")
         self.__upper_field = RealField(prec, sci_not, "RNDU")
+        self._multiplicative_order = None
         from sage.categories.fields import Fields
         Field.__init__(self, self, category=Fields().Infinite())
         self._populate_coercion_lists_(convert_method_name="_real_mpfi_")
@@ -813,8 +815,7 @@ cdef class RealIntervalField_class(sage.rings.abc.RealIntervalField):
             return True
         if isinstance(S, RealIntervalField_class):
             return (<RealIntervalField_class>S).__prec >= prec
-        from .number_field.number_field import NumberField_quadratic
-        if isinstance(S, NumberField_quadratic):
+        if isinstance(S, sage.rings.abc.NumberField_quadratic):
             return S.discriminant() > 0
 
         # If coercion to RR is possible and there is a _real_mpfi_
@@ -4322,7 +4323,6 @@ cdef class RealIntervalFieldElement(RingElement):
     ############################
     # Special Functions
     ############################
-
 
     def sqrt(self):
         """

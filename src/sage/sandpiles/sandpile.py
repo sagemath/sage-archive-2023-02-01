@@ -450,7 +450,7 @@ class Sandpile(DiGraph):
             group_gens               -- A minimal list of generators for the sandpile group.
             group_order              -- The size of the sandpile group.
             h_vector                 -- The number of superstable configurations in each degree.
-            help                     -- List of Sandpile-specific methods (not inherited from "Graph").
+            help                     -- List of Sandpile-specific methods (not inherited from ...Graph...).
             hilbert_function         -- The Hilbert function of the homogeneous toppling ideal.
             ideal                    -- The saturated homogeneous toppling ideal.
             identity                 -- The identity configuration.
@@ -1025,10 +1025,9 @@ class Sandpile(DiGraph):
             sage: s.out_degree(2)
             3
         """
-        if not v is None:
+        if v is not None:
             return self._out_degrees[v]
-        else:
-            return self._out_degrees
+        return self._out_degrees
 
     def _set_in_degrees(self):
         """
@@ -1065,10 +1064,9 @@ class Sandpile(DiGraph):
             sage: s.in_degree(2)
             3
         """
-        if not v is None:
+        if v is not None:
             return self._in_degrees[v]
-        else:
-            return self._in_degrees
+        return self._in_degrees
 
     def _set_burning_config(self):
         r"""

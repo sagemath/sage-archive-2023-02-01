@@ -574,7 +574,8 @@ class WordGenerator(object):
             return w
 
         elif construction_method == "function":
-            from sage.functions.other import sqrt, floor
+            from sage.functions.other import floor
+            from sage.misc.functional import sqrt
             phi = (1 + sqrt(5))/2 # the golden ratio
             f = lambda n:a if floor((n+2)*phi) - floor((n+1)*phi) == 2 else b
             return W(f)
@@ -1752,7 +1753,7 @@ class WordGenerator(object):
             sage: words.s_adic(tmword, repeat('a'), [tm,fib])
             word: abbaababbaabbaabbaababbaababbaabbaababba...
 
-        The correspondance of the indices may be given as a dict::
+        The correspondence of the indices may be given as a dict::
 
             sage: words.s_adic(tmword, repeat('a'), {0:tm,1:fib})
             word: abbaababbaabbaabbaababbaababbaabbaababba...

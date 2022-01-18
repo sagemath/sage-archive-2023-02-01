@@ -68,6 +68,15 @@ Maxima has some flags that affect how the result gets simplified (By default, be
     sage: maxima_calculus("besselexpand:true")
     true
 
+The output is parseable (i. e. :trac:`31796` is fixed)::
+
+    sage: foo = maxima_calculus('a and (b or c)') ; foo
+    a and (b or c)
+    sage: bar = maxima_calculus(foo) ; bar
+    a and (b or c)
+    sage: bar == foo
+    True
+
 """
 
 # ****************************************************************************
@@ -82,8 +91,8 @@ Maxima has some flags that affect how the result gets simplified (By default, be
 #
 #  The full text of the GPL is available at:
 #
-#                  http://www.gnu.org/licenses/
-#*****************************************************************************
+#                  https://www.gnu.org/licenses/
+# ****************************************************************************
 
 from sage.symbolic.ring import SR
 
@@ -96,8 +105,8 @@ from sage.docs.instancedoc import instancedoc
 from sage.env import MAXIMA_FAS
 
 
-## We begin here by initializing Maxima in library mode
-## i.e. loading it into ECL
+# We begin here by initializing Maxima in library mode
+# i.e. loading it into ECL
 ecl_eval("(setf *load-verbose* NIL)")
 if MAXIMA_FAS:
     ecl_eval("(require 'maxima \"{}\")".format(MAXIMA_FAS))
@@ -110,7 +119,7 @@ ecl_eval("(set-locale-subdir)")
 ecl_eval("(set-pathnames)")
 ecl_eval("(defun add-lineinfo (x) x)")
 ecl_eval('(defun principal nil (cond ($noprincipal (diverg)) ((not pcprntd) (merror "Divergent Integral"))))')
-ecl_eval("(remprop 'mfactorial 'grind)") # don't use ! for factorials (#11539)
+ecl_eval("(remprop 'mfactorial 'grind)")  # don't use ! for factorials (#11539)
 ecl_eval("(setf $errormsg nil)")
 
 # The following is an adaptation of the "retrieve" function in maxima
@@ -453,7 +462,7 @@ class MaximaLib(MaximaAbstract):
                     maxima_eval("#$%s$" % statement)
         if not reformat:
             return result
-        return ''.join([x.strip() for x in result.split()])
+        return ' '.join(x.strip() for x in result.split())
 
     eval = _eval_line
 
@@ -1388,12 +1397,12 @@ def max_at_to_sage(expr):
         sage: from sage.interfaces.maxima_lib import maxima_lib, max_at_to_sage
         sage: a=maxima_lib("'at(f(x,y,z),[x=1,y=2,z=3])")
         sage: a
-        'at(f(x,y,z),[x=1,y=2,z=3])
+        'at(f(x,y,z),[x = 1,y = 2,z = 3])
         sage: max_at_to_sage(a.ecl())
         f(1, 2, 3)
         sage: a=maxima_lib("'at(f(x,y,z),x=1)")
         sage: a
-        'at(f(x,y,z),x=1)
+        'at(f(x,y,z),x = 1)
         sage: max_at_to_sage(a.ecl())
         f(1, y, z)
     """
@@ -1607,18 +1616,18 @@ def sr_to_max(expr):
             # This should be safe if we treated all special operators above
             #furthermore, this should already use any _maxima_ methods on op, so use any
             #conversion methods that are registered in pynac.
-            op_max=maxima(op).ecl()
+            op_max = maxima(op).ecl()
             if op_max in max_op_dict:
                 raise RuntimeError("Encountered operator mismatch in sr-to-maxima translation")
-            sage_op_dict[op]=op_max
-            max_op_dict[op_max]=op
+            sage_op_dict[op] = op_max
+            max_op_dict[op_max] = op
         return EclObject(([sage_op_dict[op]],
                      [sr_to_max(o) for o in expr.operands()]))
     elif expr.is_symbol() or expr._is_registered_constant_():
-        if not expr in sage_sym_dict:
-            sym_max=maxima(expr).ecl()
-            sage_sym_dict[expr]=sym_max
-            max_sym_dict[sym_max]=expr
+        if expr not in sage_sym_dict:
+            sym_max = maxima(expr).ecl()
+            sage_sym_dict[expr] = sym_max
+            max_sym_dict[sym_max] = expr
         return sage_sym_dict[expr]
     else:
         try:
@@ -1686,7 +1695,7 @@ def max_to_sr(expr):
             max_sym_dict[expr]=sage_symbol
         return max_sym_dict[expr]
     else:
-        e=expr.python()
-        if isinstance(e,float):
+        e = expr.python()
+        if isinstance(e, float):
             return sage.rings.real_double.RealDoubleElement(e)
         return e

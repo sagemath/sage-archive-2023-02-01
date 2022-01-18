@@ -2547,9 +2547,9 @@ class RecurrenceParser(object):
                 if rem_d < k**M and rem_d in inhomogeneities.keys():
                     mat[ind[(j, d)],
                         dim_without_corr + shifted_inhomogeneities[(rem_d, dd)][1]] = 1
-                elif rem_d >= k**M and rem_d - k in inhomogeneities.keys():
+                elif rem_d >= k**M and rem_d - k**M in inhomogeneities.keys():
                     mat[ind[(j, d)],
-                        dim_without_corr + shifted_inhomogeneities[(rem_d - k, dd+1)][1]] = 1
+                        dim_without_corr + shifted_inhomogeneities[(rem_d - k**M, dd+1)][1]] = 1
 
             dim += current_row
             dim_without_corr += current_row

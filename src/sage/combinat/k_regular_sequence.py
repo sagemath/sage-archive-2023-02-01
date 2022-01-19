@@ -837,7 +837,7 @@ class kRegularSequenceSpace(RecognizableSeriesSpace):
         - ``inhomogeneities`` -- (default: ``{}``) a dictionary
           mapping integers ``r`` to the inhomogeneity `g_r` as given
           in [HKL2021]_, Corollary D. All inhomogeneities have to be
-          regular sequences from ``self``.
+          regular sequences from ``self`` or elements of ``coefficient_ring``.
 
         OUTPUT: a :class:`kRegularSequence`
 
@@ -908,14 +908,13 @@ class kRegularSequenceSpace(RecognizableSeriesSpace):
         Alternatively, we can also use the simpler but inhomogeneous recurrence relations
         `S(2n) = S(n)` and `S(2n+1) = S(n) + 1` via direct parameters::
 
-            sage: one = Seq2.one_hadamard()
-            sage: S = Seq2.from_recurrence(M=1, m=0,
+            sage: S3 = Seq2.from_recurrence(M=1, m=0,
             ....:     coeffs={(0, 0): 1, (1, 0): 1},
             ....:     initial_values={0: 0, 1: 1},
-            ....:     inhomogeneities={1: one})
-            sage: S
+            ....:     inhomogeneities={1: 1})
+            sage: S3
             2-regular sequence 0, 1, 1, 2, 1, 2, 2, 3, 1, 2, ...
-            sage: (S - S2).is_trivial_zero()
+            sage: (S3 - S2).is_trivial_zero()
             True
 
         Number of Non-Zero Elements in the Generalized Pascal's Triangle (see [LRS2017]_)::
@@ -1934,6 +1933,37 @@ class RecurrenceParser(object):
 
         TESTS::
 
+            sage: var('n')
+            n
+            sage: RP.parameters(1, 0, {(0, 0): 1}, {}, 0,
+            ....:     {-1: 0, 1: 0, 10: 0, I: 0, n: 0})
+            Traceback (most recent call last):
+            ...
+            ValueError: Indices [-1, 10, I, n] for inhomogeneities are
+            no integers between 0 and 1.
+
+        ::
+
+            sage: RP.parameters(1, 0, {(0, 0): 1}, {}, 0,
+            ....:     {0: n})
+            Traceback (most recent call last):
+            ...
+            ValueError: Inhomogeneities {0: n} are neither 2-regular sequences
+            nor elements of Integer Ring.
+
+        ::
+
+            sage: Seq3 = kRegularSequenceSpace(3, ZZ)
+            sage: RP.parameters(1, 0, {(0, 0): 1}, {}, 0,
+            ....:     {0: Seq3.some_elements()[0]})
+            Traceback (most recent call last):
+            ...
+            ValueError: Inhomogeneities {0: 3-regular sequence 0, 0, 0, 0, 0, 0,
+            0, 0, 0, 0, ...} are neither 2-regular sequences nor elements of
+            Integer Ring.
+
+        ::
+
             sage: RP.parameters(1, 0, {(0, 0): 1}, {}, 0)
             Traceback (most recent call last):
             ...
@@ -1971,6 +2001,7 @@ class RecurrenceParser(object):
         """
         from collections import namedtuple
 
+        from sage.arith.srange import srange
         from sage.functions.other import ceil, floor
 
         coefficient_ring = self.coefficient_ring
@@ -1992,6 +2023,23 @@ class RecurrenceParser(object):
         uu = max([ceil((u*k**(M-m) + k**M - k**m)/(k**(M-m) - 1)) - 1, k**m - 1])
         n1 = offset - floor(ll/k**M)
         dim = (k**M - 1)/(k - 1) + (M - m)*(uu - ll - k**m + 1) + n1
+
+        if inhomogeneities:
+            invalid_indices = [i for i in inhomogeneities
+                               if i not in srange(k**M)]
+            if invalid_indices:
+                raise ValueError(f"Indices {invalid_indices} for inhomogeneities are no "
+                                 f"integers between 0 and {k**M - 1}.")
+            Seq = kRegularSequenceSpace(k, coefficient_ring)
+            inhomogeneities.update({i: inhomogeneities[i] * Seq.one_hadamard()
+                                    for i in inhomogeneities
+                                    if inhomogeneities[i] in coefficient_ring})
+            invalid = {i: inhomogeneities[i] for i in inhomogeneities
+                       if not (isinstance(inhomogeneities[i].parent(), kRegularSequenceSpace) and
+                               inhomogeneities[i].parent().k == k)}
+            if invalid:
+                raise ValueError(f"Inhomogeneities {invalid} are neither {k}-regular "
+                                 f"sequences nor elements of {coefficient_ring}.")
 
         if not initial_values:
             raise ValueError("No initial values are given.")

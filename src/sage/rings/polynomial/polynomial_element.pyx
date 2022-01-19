@@ -8928,10 +8928,11 @@ cdef class Polynomial(CommutativeAlgebraElement):
 
         if p.degree() == 0:
             raise ArithmeticError("The polynomial, p, must have positive degree.")
-        k = 0
-        while self % p == 0:
-            k = k + 1
-            self //= p
+        k = -1
+        rem = self.parent().zero()
+        while rem.is_zero():
+            self, rem = self.quo_rem(p)
+            k += 1
         return sage.rings.integer.Integer(k)
 
     def ord(self, p=None):

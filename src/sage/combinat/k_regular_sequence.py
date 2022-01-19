@@ -2331,9 +2331,9 @@ class RecurrenceParser(object):
                 current_row += S_b.mu[0].ncols()
 
         CR = self.coefficient_ring
-        assert(all([S[0].left[0] == CR(1) for S in shifted_inhomogeneities.values()]) and
-               all([all(a == CR(0) for a in S[0].left[1:])
-                    for S in shifted_inhomogeneities.values()]))
+        assert (all([S[0].left[0] == CR(1) for S in shifted_inhomogeneities.values()]) and
+                all([all(a == CR(0) for a in S[0].left[1:])
+                     for S in shifted_inhomogeneities.values()]))
 
         return shifted_inhomogeneities
 

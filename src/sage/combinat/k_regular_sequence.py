@@ -2428,7 +2428,8 @@ class RecurrenceParser(object):
             Seq = list(inhomogeneities.values())[0].parent()
             W = Seq.indices()
             shifted_inhomogeneities = [S[0] for S in self.shifted_inhomogeneities(recurrence_rules).values()]
-            vv = [(S._mu_of_word_(W(ZZ(n).digits(k))) * S.right) for S in shifted_inhomogeneities]
+            vv = [(S.coefficient_of_word(W(ZZ(n).digits(k)), multiply_left=False))
+                  for S in shifted_inhomogeneities]
             v = vector(chain(v, *vv))
 
         return v
@@ -2639,11 +2640,10 @@ class RecurrenceParser(object):
                 rem_d = k**(M-1)*rem + (d%k**M)
                 dd = d // k**M
                 if rem_d < k**M and rem_d in inhomogeneities.keys():
-                    mat[ind[(j, d)],
-                        dim_without_corr + shifted_inhomogeneities[(rem_d, dd)][1]] = 1
+                    mat[i, dim_without_corr + shifted_inhomogeneities[(rem_d, dd)][1]] = 1
                 elif rem_d >= k**M and rem_d - k**M in inhomogeneities.keys():
-                    mat[ind[(j, d)],
-                        dim_without_corr + shifted_inhomogeneities[(rem_d - k**M, dd+1)][1]] = 1
+                    mat[i, dim_without_corr +
+                        shifted_inhomogeneities[(rem_d - k**M, dd + 1)][1]] = 1
 
             dim_of_inhom = shifted_inhomogeneities[list(shifted_inhomogeneities)[-1]][1] + \
                 shifted_inhomogeneities[list(shifted_inhomogeneities)[-1]][0].mu[0].ncols()

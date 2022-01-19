@@ -2311,6 +2311,7 @@ class RecurrenceParser(object):
         """
         from sage.arith.srange import srange
         from sage.functions.other import floor
+        from sage.modules.free_module_element import vector
 
         k = self.k
         M = recurrence_rules.M

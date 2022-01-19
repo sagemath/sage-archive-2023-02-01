@@ -931,6 +931,12 @@ class RecognizableSeries(ModuleElement):
         This method implements the minimization algorithm presented in
         Chapter 2 of [BR2010a]_.
 
+        .. NOTE::
+
+            Due to the algorithm, the vector :meth:`RecognizableSeries.left`
+            is always `(1, 0, \ldots, 0)`, i.e., the first vector of the
+            standard basis.
+
         EXAMPLES::
 
             sage: from itertools import islice
@@ -948,6 +954,8 @@ class RecognizableSeries(ModuleElement):
             [3 0]  [ 0  1]
             [6 1], [-6  5], (1, 0), (0, 1)
             )
+            sage: M.left == vector([1, 0])
+            True
             sage: all(c == d and v == w
             ....:     for (c, v), (d, w) in islice(zip(iter(S), iter(M)), 20))
             True

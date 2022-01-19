@@ -2326,7 +2326,7 @@ class RecurrenceParser(object):
         current_row = 0
         for i in inhomogeneities.keys():
             for b in srange(lower, upper + 1):
-                S_b = inhomogeneities[i].subsequence(1, b)
+                S_b = inhomogeneities[i].subsequence(1, b, minimize=True)
                 shifted_inhomogeneities.update({(i, b): (S_b, current_row)})
                 current_row += S_b.mu[0].ncols()
 

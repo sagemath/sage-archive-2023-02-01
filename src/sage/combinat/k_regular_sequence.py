@@ -2297,13 +2297,15 @@ class RecurrenceParser(object):
             2-regular sequence 0, 1, 1, 2, 1, 2, 2, 3, 1, 2, ...
             sage: RR = namedtuple('recurrence_rules',
             ....:                  ['M', 'm', 'll', 'uu', 'inhomogeneities'])
-            sage: recurrence_rules = RR(M=3, m=0, ll=-8, uu=14,
+            sage: recurrence_rules = RR(M=3, m=0, ll=-14, uu=14,
             ....:                       inhomogeneities={0: S})
             sage: RP.shifted_inhomogeneities(recurrence_rules)
-            {(0, -1): (2-regular sequence 0, 0, 1, 1, 2, 1, 2, 2, 3, 1, ..., 0),
-             (0, 0): (2-regular sequence 0, 1, 1, 2, 1, 2, 2, 3, 1, 2, ..., 4),
-             (0, 1): (2-regular sequence 1, 1, 2, 1, 2, 2, 3, 1, 2, 2, ..., 6),
-             (0, 2): (2-regular sequence 1, 2, 1, 2, 2, 3, 1, 2, 2, 3, ..., 9)}
+            {(0, -2): (2-regular sequence 0, 0, 0, 1, 1, 2, 1, 2, 2, 3, ..., 0),
+             (0, -1): (2-regular sequence 0, 0, 1, 1, 2, 1, 2, 2, 3, 1, ..., 5),
+             (0, 0): (2-regular sequence 0, 1, 1, 2, 1, 2, 2, 3, 1, 2, ..., 9),
+             (0, 1): (2-regular sequence 1, 1, 2, 1, 2, 2, 3, 1, 2, 2, ..., 11),
+             (0, 2): (2-regular sequence 1, 2, 1, 2, 2, 3, 1, 2, 2, 3, ..., 14),
+             (0, 3): (2-regular sequence 2, 1, 2, 2, 3, 1, 2, 2, 3, 2, ..., 18)}
 
         .. SEEALSO::
 
@@ -2321,7 +2323,7 @@ class RecurrenceParser(object):
         inhomogeneities = recurrence_rules.inhomogeneities
 
         lower = floor(ll/k**M)
-        upper = floor((k**(M-1) - k**m + uu)/k**M)
+        upper = floor((k**(M-1) - k**m + uu)/k**M) + 1
 
         shifted_inhomogeneities = {}
         current_row = 0

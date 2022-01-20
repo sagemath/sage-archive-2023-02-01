@@ -142,8 +142,8 @@ SAGE_SPKG_CONFIGURE_BASE([gcc], [
                     # Install our own GCC if the system-provided one is older than gcc-4.8.
                     SAGE_SHOULD_INSTALL_GCC([you have $CXX version $GXX_VERSION, which is quite old])
                 ],
-                [1[[2-9]].*], [
-                    # Install our own GCC if the system-provided one is newer than 11.x.
+                [1[[3-9]].*], [
+                    # Install our own GCC if the system-provided one is newer than 12.x.
                     # See https://trac.sagemath.org/ticket/29456
                     SAGE_SHOULD_INSTALL_GCC([$CXX is g++ version $GXX_VERSION, which is too recent for this version of Sage])
                 ],

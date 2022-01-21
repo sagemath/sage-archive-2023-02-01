@@ -799,6 +799,21 @@ class WeierstrassIsomorphism(EllipticCurveHom, baseWI):
         """
         return self._poly_ring(1)
 
+    def is_separable(self):
+        r"""
+        Determine whether or not this isogeny is separable.
+
+        Since :class:`WeierstrassIsomorphism` only implements
+        isomorphisms, this method always returns ``True``.
+
+        EXAMPLES::
+
+            sage: E = EllipticCurve(GF(31337), [0,1])
+            sage: {f.is_separable() for f in E.automorphisms()}
+            {True}
+        """
+        return True
+
     def dual(self):
         """
         Return the dual isogeny of this isomorphism.

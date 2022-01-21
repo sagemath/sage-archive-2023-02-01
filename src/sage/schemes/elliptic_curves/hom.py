@@ -407,27 +407,22 @@ class EllipticCurveHom(Morphism):
         r"""
         Determine whether or not this morphism is separable.
 
-        .. NOTE::
+        Implemented by child classes. For examples, see:
 
-           This method currently always returns ``True`` as Sage does
-           not yet implement inseparable isogenies. This will probably
-           change in the future.
+        - :meth:`EllipticCurveIsogeny.is_separable`
+        - :meth:`sage.schemes.elliptic_curves.weierstrass_morphism.WeierstrassIsomorphism.is_separable`
+        - :meth:`sage.schemes.elliptic_curves.hom_composite.EllipticCurveHom_composite.is_separable`
+        - :meth:`sage.schemes.elliptic_curves.hom_scalar.EllipticCurveHom_scalar.is_separable`
 
-        EXAMPLES::
+        TESTS::
 
-            sage: E = EllipticCurve(GF(17), [0,0,0,3,0])
-            sage: phi = EllipticCurveIsogeny(E,  E((0,0)))
-            sage: phi.is_separable()
-            True
-
-        ::
-
-            sage: E = EllipticCurve('11a1')
-            sage: phi = EllipticCurveIsogeny(E, E.torsion_points())
-            sage: phi.is_separable()
-            True
+            sage: from sage.schemes.elliptic_curves.hom import EllipticCurveHom
+            sage: EllipticCurveHom.is_separable(None)
+            Traceback (most recent call last):
+            ...
+            NotImplementedError: ...
         """
-        return True
+        raise NotImplementedError('children must implement')
 
     def is_surjective(self):
         r"""

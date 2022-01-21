@@ -2030,6 +2030,7 @@ class RecurrenceParser(object):
             if invalid_indices:
                 raise ValueError(f"Indices {invalid_indices} for inhomogeneities are no "
                                  f"integers between 0 and {k**M - 1}.")
+
             Seq = kRegularSequenceSpace(k, coefficient_ring)
             inhomogeneities.update({i: inhomogeneities[i] * Seq.one_hadamard()
                                     for i in inhomogeneities
@@ -2346,14 +2347,9 @@ class RecurrenceParser(object):
             sage: RR = namedtuple('recurrence_rules',
             ....:                  ['M', 'm', 'll', 'uu', 'inhomogeneities'])
             sage: recurrence_rules = RR(M=3, m=0, ll=-14, uu=14,
-            ....:                       inhomogeneities={0: S})
+            ....:                       inhomogeneities={0: S, 1: S})
             sage: RP.shifted_inhomogeneities(recurrence_rules)
-            {(0, -2): (2-regular sequence 0, 0, 0, 1, 1, 2, 1, 2, 2, 3, ..., 0),
-             (0, -1): (2-regular sequence 0, 0, 1, 1, 2, 1, 2, 2, 3, 1, ..., 5),
-             (0, 0): (2-regular sequence 0, 1, 1, 2, 1, 2, 2, 3, 1, 2, ..., 9),
-             (0, 1): (2-regular sequence 1, 1, 2, 1, 2, 2, 3, 1, 2, 2, ..., 11),
-             (0, 2): (2-regular sequence 1, 2, 1, 2, 2, 3, 1, 2, 2, 3, ..., 14),
-             (0, 3): (2-regular sequence 2, 1, 2, 2, 3, 1, 2, 2, 3, 2, ..., 18)}
+            {0: 2-regular sequence 4, 5, 7, 9, 11, 11, 11, 12, 13, 13, ...}
 
         TESTS::
 
@@ -2376,21 +2372,17 @@ class RecurrenceParser(object):
             ....:     f(10) == 4, f(11) == 4, f(12) == 12, f(13) == 0, f(14) == 4,
             ....:     f(15) == 4, f(16) == 8, f(17) == 4, f(18) == 8, f(19) == 0,
             ....:     f(20) == 8, f(21) == 4, f(22) == 4, f(23) == 8], f, n, offset=3)
+            sage: inhomogeneities={2: UB.subsequence(4, 3), 3: -UB.subsequence(4, 1),
+            ....:                  6: UB.subsequence(4, 2) + UB.subsequence(4, 3)}
             sage: recurrence_rules_UB = RR(M=3, m=2, ll=0, uu=9,
-            ....:     inhomogeneities={2: UB.subsequence(4, 3), 3: -UB.subsequence(4, 1),
-            ....:                      6: UB.subsequence(4, 2) + UB.subsequence(4, 3)})
-            sage: RP.shifted_inhomogeneities(recurrence_rules_UB)
-            {(2, 0): (2-regular sequence 4, 0, 4, 4, 0, 8, 4, 4, 4, 8, ..., 0),
-             (2, 1): (2-regular sequence 0, 4, 4, 0, 8, 4, 4, 4, 8, 0, ..., 6),
-             (2, 2): (2-regular sequence 4, 4, 0, 8, 4, 4, 4, 8, 0, 16, ..., 14),
-             (3, 0): (2-regular sequence -2, -4, -4, 0, -4, -4, 0, -4, -4, 0, ..., 23),
-             (3, 1): (2-regular sequence -4, -4, 0, -4, -4, 0, -4, -4, 0, -4, ..., 29),
-             (3, 2): (2-regular sequence -4, 0, -4, -4, 0, -4, -4, 0, -4, -8, ..., 35),
-             (6, 0): (2-regular sequence 6, 6, 8, 8, 8, 12, 8, 12, 8, 12, ..., 43),
-             (6, 1): (2-regular sequence 6, 8, 8, 8, 12, 8, 12, 8, 12, 12, ..., 49),
-             (6, 2): (2-regular sequence 8, 8, 8, 12, 8, 12, 8, 12, 12, 24, ..., 56)}
-            sage: RP.shifted_inhomogeneities(recurrence_rules_UB)[(6, 2)][0].mu[0].ncols()
-            9
+            ....:                          inhomogeneities=inhomogeneities)
+            sage: shifted_inhomog = RP.shifted_inhomogeneities(recurrence_rules_UB)
+            sage: shifted_inhomog
+            {2: 2-regular sequence 8, 8, 8, 12, 12, 16, 12, 16, 12, 24, ...,
+             3: 2-regular sequence -10, -8, -8, -8, -8, -8, -8, -8, -8, -12, ...,
+             6: 2-regular sequence 20, 22, 24, 28, 28, 32, 28, 32, 32, 48, ...}
+            sage: shifted_inhomog[2].mu[0].ncols() == 3*inhomogeneities[2].mu[0].ncols()
+            True
 
         .. SEEALSO::
 

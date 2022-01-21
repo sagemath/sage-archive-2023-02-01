@@ -1194,6 +1194,14 @@ class kRegularSequenceSpace(RecognizableSeriesSpace):
             ....:     f(0) == 1, f(1) == 1, f(2) == 2, f(3) == 3], f, n, offset=2)
             2-regular sequence 1, 1, 2, 3, 0, 0, 0, 0, 0, 0, ...
 
+        Check if inhomogeneities `0` do not change the sequence::
+
+            sage: Seq2.from_recurrence([
+            ....:     f(2*n) == 0, f(2*n + 1) == 0,
+            ....:     f(0) == 1, f(1) == 1, f(2) == 2, f(3) == 3], f, n, offset=2,
+            ....:     inhomogeneities={0: 0, 1: Seq2.zero()})
+            2-regular sequence 1, 1, 2, 3, 0, 0, 0, 0, 0, 0, ...
+
         ::
 
             sage: set_random_seed()
@@ -2084,14 +2092,15 @@ class RecurrenceParser(object):
             sage: RP.parameters(2, 1,
             ....: {(0, -2): 3, (0, 0): 1, (0, 1): 2, (1, -2): 6, (1, 0): 4,
             ....: (1, 1): 5, (2, -2): 9, (2, 0): 7, (2, 1): 8, (3, -2): 12,
-            ....: (3, 0): 10, (3, 1): 11}, {0: 1, 1: 2, 2: 1, 3: 4}, 0)
+            ....: (3, 0): 10, (3, 1): 11}, {0: 1, 1: 2, 2: 1, 3: 4}, 0, {0: 1})
             recurrence_rules(M=2, m=1, l=-2, u=1, ll=-6, uu=3, dim=14,
             coeffs={(0, -2): 3, (0, 0): 1, (0, 1): 2, (1, -2): 6, (1, 0): 4,
             (1, 1): 5, (2, -2): 9, (2, 0): 7, (2, 1): 8, (3, -2): 12,
             (3, 0): 10, (3, 1): 11}, initial_values={0: 1, 1: 2, 2: 1, 3: 4,
-            4: 12, 5: 30, 6: 48, 7: 66, 8: 75, 9: 204, 10: 333, 11: 462,
-            12: 216, 13: 594, -6: 0, -5: 0, -4: 0, -3: 0, -2: 0, -1: 0},
-            offset=1, n1=3, inhomogeneities={})
+            4: 13, 5: 30, 6: 48, 7: 66, 8: 77, 9: 208, 10: 340, 11: 472,
+            12: 220, 13: 600, -6: 0, -5: 0, -4: 0, -3: 0, -2: 0, -1: 0},
+            offset=1, n1=3, inhomogeneities={0: 2-regular sequence 1, 1, 1, 1,
+            1, 1, 1, 1, 1, 1, ...})
 
         .. SEEALSO::
 
@@ -2368,6 +2377,15 @@ class RecurrenceParser(object):
             ....:     coeffs={(0, 0): 0, (1, 1): 0}, initial_values={},
             ....:     last_value_needed=10, offset=0, inhomogeneities={})
             {0: 0, 1: 0, 2: 0, 3: 0, 4: 0, 5: 0, 6: 0, 7: 0, 8: 0, 9: 0, 10: 0}
+
+        ::
+
+            sage: Seq2 = kRegularSequenceSpace(2, ZZ)
+            sage: RP.values(M=1, m=0, l=0, u=0, ll=0,
+            ....:     coeffs={(0, 0): 0, (1, 1): 0}, initial_values={},
+            ....:     last_value_needed=10, offset=0,
+            ....:     inhomogeneities={0: Seq2.one_hadamard()})
+            {0: 1, 1: 0, 2: 1, 3: 0, 4: 1, 5: 0, 6: 1, 7: 0, 8: 1, 9: 0, 10: 1}
         """
         from sage.arith.srange import srange
         from sage.rings.integer_ring import ZZ
@@ -2905,6 +2923,16 @@ class RecurrenceParser(object):
             sage: recurrence_rules = RRD(dim=5, inhomogeneities={})
             sage: RP.left(recurrence_rules)
             (1, 0, 0, 0, 0)
+
+        ::
+
+            sage: Seq2 = kRegularSequenceSpace(2, ZZ)
+            sage: RRD = namedtuple('recurrence_rules_dim',
+            ....:                  ['M', 'm', 'll', 'uu', 'dim', 'inhomogeneities'])
+            sage: recurrence_rules = RRD(M=3, m=2, ll=0, uu=9, dim=5,
+            ....:                        inhomogeneities={0: Seq2.one_hadamard()})
+            sage: RP.left(recurrence_rules)
+            (1, 0, 0, 0, 0, 0, 0, 0)
 
         .. SEEALSO::
 

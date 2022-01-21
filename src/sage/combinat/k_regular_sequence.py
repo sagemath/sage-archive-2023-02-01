@@ -2410,19 +2410,9 @@ class RecurrenceParser(object):
         lower = floor(ll/k**M)
         upper = floor((k**(M-1) - k**m + uu)/k**M) + 1
 
-        shifted_inhomogeneities = {}
-        current_row = 0
-        for i in inhomogeneities.keys():
-            for b in srange(lower, upper + 1):
-                S_b = inhomogeneities[i].subsequence(1, b, minimize=True)
-                shifted_inhomogeneities.update({(i, b): (S_b, current_row)})
-                current_row += S_b.mu[0].ncols()
-
-        CR = self.coefficient_ring
-        assert all([S[0].left[0] == CR(1) and S[0].left[1:] == vector(len(S[0].left[1:])*[CR(0)])
-                    for S in shifted_inhomogeneities.values()])
-
-        return shifted_inhomogeneities
+        return {i: inhomogeneities[i].subsequence(1, {b: 1 for b in srange(lower, upper + 1)},
+                                                  minimize=False)
+                for i in inhomogeneities}
 
     def v_eval_n(self, recurrence_rules, n):
         r"""
@@ -2475,9 +2465,9 @@ class RecurrenceParser(object):
         if not all(S.is_trivial_zero() for S in inhomogeneities.values()):
             Seq = list(inhomogeneities.values())[0].parent()
             W = Seq.indices()
-            shifted_inhomogeneities = [S[0] for S in self.shifted_inhomogeneities(recurrence_rules).values()]
+            shifted_inhomogeneities = self.shifted_inhomogeneities(recurrence_rules)
             vv = [(S.coefficient_of_word(W(ZZ(n).digits(k)), multiply_left=False))
-                  for S in shifted_inhomogeneities]
+                  for S in shifted_inhomogeneities.values()]
             v = vector(chain(v, *vv))
 
         return v
@@ -2633,6 +2623,8 @@ class RecurrenceParser(object):
 
             :meth:`kRegularSequenceSpace.from_recurrence`
         """
+        from itertools import chain
+
         from sage.arith.srange import srange
         from sage.functions.other import floor
         from sage.matrix.constructor import Matrix
@@ -2679,24 +2671,41 @@ class RecurrenceParser(object):
 
         if not all(S.is_trivial_zero() for S in inhomogeneities.values()):
             shifted_inhomogeneities = self.shifted_inhomogeneities(recurrence_rules)
+            lower = floor(ll/k**M)
+            upper = floor((k**(M-1) - k**m + uu)/k**M) + 1
 
-            mat = block_diagonal_matrix(mat, *[S[0].mu[rem]
-                                               for S in shifted_inhomogeneities.values()])
-
-            for i in srange(dim_without_corr - k**(M-1) + k**m - uu + ll - 1, dim_without_corr):
-                j, d = ind[i] # j = M - 1
+            def wanted_inhomogeneity(row):
+                j, d = ind[row]
+                if j != M - 1:
+                    return (None, None)
                 rem_d = k**(M-1)*rem + (d%k**M)
                 dd = d // k**M
                 if rem_d < k**M and rem_d in inhomogeneities.keys():
-                    mat[i, dim_without_corr + shifted_inhomogeneities[(rem_d, dd)][1]] = 1
+                    return (rem_d, dd)
                 elif rem_d >= k**M and rem_d - k**M in inhomogeneities.keys():
-                    mat[i, dim_without_corr +
-                        shifted_inhomogeneities[(rem_d - k**M, dd + 1)][1]] = 1
+                    return (rem_d - k**M, dd + 1)
+                else:
+                    return (None, None)
 
-            dim_of_inhom = shifted_inhomogeneities[list(shifted_inhomogeneities)[-1]][1] + \
-                shifted_inhomogeneities[list(shifted_inhomogeneities)[-1]][0].mu[0].ncols()
-            dim += dim_of_inhom
-            dim_without_corr += dim_of_inhom
+            def left_for_inhomogeneity(wanted):
+                return list(chain(*[(wanted[1] == i and wanted[0] == r)*inhomogeneities[r].left
+                                    for r in inhomogeneities
+                                    for i in srange(lower, upper + 1)]))
+
+            def matrix_row(row):
+                wanted = wanted_inhomogeneity(row)
+                return list(mat[row]) + left_for_inhomogeneity(wanted)
+
+            mat = Matrix([matrix_row(row) for row in srange(dim_without_corr)])
+            mat_inhomog = block_diagonal_matrix([S.mu[rem]
+                                                 for S in shifted_inhomogeneities.values()])
+
+            mat = block_matrix([[mat],
+                                [block_matrix([[zero_matrix(mat_inhomog.nrows(), dim_without_corr),
+                                                mat_inhomog]])]])
+
+            dim_without_corr = mat.ncols()
+            dim = dim_without_corr + n1
 
         if n1 > 0 and correct_offset:
             W = Matrix(coefficient_ring, dim_without_corr, 0)
@@ -2752,10 +2761,8 @@ class RecurrenceParser(object):
 
         if not all(S.is_trivial_zero() for S in inhomogeneities.values()):
             shifted_inhomogeneities = self.shifted_inhomogeneities(recurrence_rules)
-            dim += shifted_inhomogeneities[list(shifted_inhomogeneities)[-1]][1] + \
-                shifted_inhomogeneities[
-                    list(shifted_inhomogeneities)[-1]
-                ][0].mu[0].ncols()
+            dim += sum(shifted_inhomogeneities[i].mu[0].ncols()
+                       for i in shifted_inhomogeneities)
 
         return vector([1] + (dim - 1)*[0])
 

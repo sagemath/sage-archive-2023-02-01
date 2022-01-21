@@ -414,9 +414,9 @@ class WebsiteBuilder(DocBuilder):
 
     def pdf(self):
         """
-        # Install in website_dir a symlink to the directory containing pdf
-        # files. This symlink is necessary to access pdf documentation files
-        # within Jupyter (see trac #33206).
+        # Install in the directory one level up to website_dir a symlink to the
+        # directory containing pdf files. This symlink is necessary to access
+        # pdf documentation files within Jupyter (see trac #33206).
         """
         super().pdf()
 
@@ -424,7 +424,7 @@ class WebsiteBuilder(DocBuilder):
         pdf_doc_dir = os.path.join(SAGE_DOC, 'pdf')
 
         try:
-            os.symlink(pdf_doc_dir, os.path.join(html_output_dir, 'pdf'))
+            os.symlink(pdf_doc_dir, os.path.join(html_output_dir, '..', 'pdf'))
         except FileExistsError:
             pass
 

@@ -77,7 +77,7 @@ from sage.schemes.elliptic_curves.ell_generic import is_EllipticCurve
 from sage.rings.number_field.number_field_base import is_NumberField
 
 from sage.schemes.elliptic_curves.weierstrass_morphism \
-        import WeierstrassIsomorphism, isomorphisms, baseWI
+        import WeierstrassIsomorphism, isomorphisms, baseWI, negation_morphism
 
 from sage.sets.set import Set
 
@@ -1272,9 +1272,7 @@ class EllipticCurveIsogeny(EllipticCurveHom):
 
         """
         output = copy(self)
-        E2 = output.__E2
-        iso = WeierstrassIsomorphism(E2, (-1,0,-E2.a1(),-E2.a3()))
-        output._set_post_isomorphism(iso)
+        output._set_post_isomorphism(negation_morphism(output.__E2))
         return output
 
     #
@@ -1345,8 +1343,8 @@ class EllipticCurveIsogeny(EllipticCurveHom):
             sage: E = EllipticCurve(QQ, [0,0,0,1,0])
             sage: phi = EllipticCurveIsogeny(E, x)
             sage: old_ratl_maps = phi.rational_maps()
-            sage: from sage.schemes.elliptic_curves.weierstrass_morphism import WeierstrassIsomorphism
-            sage: phi.set_post_isomorphism(WeierstrassIsomorphism(phi.codomain(), (-1,0,0,0)))
+            sage: from sage.schemes.elliptic_curves.weierstrass_morphism import negation_morphism
+            sage: phi.set_post_isomorphism(negation_morphism(phi.codomain()))
             ...
             sage: old_ratl_maps == phi.rational_maps()
             False
@@ -3218,7 +3216,7 @@ class EllipticCurveIsogeny(EllipticCurveHom):
         from sage.misc.superseded import deprecation
         deprecation(32388, 'Elliptic-curve isogenies will be immutable in a future release of Sage.'
                           ' Use -phi instead of phi.switch_sign() to obtain the negated isogeny.')
-        self._set_post_isomorphism(WeierstrassIsomorphism(self.__E2, (-1,0,-self.__E2.a1(),-self.__E2.a3())))
+        self._set_post_isomorphism(negation_morphism(self.__E2))
 
     def dual(self):
         r"""

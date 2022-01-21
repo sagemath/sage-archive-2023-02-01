@@ -870,10 +870,10 @@ class WeierstrassIsomorphism(EllipticCurveHom, baseWI):
 
         ::
 
-            sage: from sage.schemes.elliptic_curves.weierstrass_morphism import WeierstrassIsomorphism
+            sage: from sage.schemes.elliptic_curves.weierstrass_morphism import WeierstrassIsomorphism, identity_morphism
             sage: E = EllipticCurve(QuadraticField(-1), [1,0])
             sage: t = WeierstrassIsomorphism(E, (i,0,0,0))
-            sage: -t^2 == WeierstrassIsomorphism(E, (1,0,0,0))
+            sage: -t^2 == identity_morphism(E)
             True
         """
         a1,_,a3,_,_ = self._domain.a_invariants()
@@ -881,6 +881,23 @@ class WeierstrassIsomorphism(EllipticCurveHom, baseWI):
         urst = baseWI.__mul__(self, w).tuple()
         return WeierstrassIsomorphism(self._domain, urst, self._codomain)
 
+
+def identity_morphism(E):
+    r"""
+    Given an elliptic curve `E`, return the identity morphism
+    on `E` as a :class:`WeierstrassIsomorphism`.
+
+    EXAMPLES::
+
+        sage: from sage.schemes.elliptic_curves.weierstrass_morphism import identity_morphism
+        sage: E = EllipticCurve([5,6,7,8,9])
+        sage: id_ = identity_morphism(E)
+        sage: id_.rational_maps()
+        (x, y)
+    """
+    R = E.base_ring()
+    zero = R.zero()
+    return WeierstrassIsomorphism(E, (R.one(), zero, zero, zero))
 
 def negation_morphism(E):
     r"""
@@ -895,6 +912,6 @@ def negation_morphism(E):
         sage: neg.rational_maps()
         (x, -5*x - y - 7)
     """
-    a1,_,a3,_,_ = E.a_invariants()
-    return WeierstrassIsomorphism(E, (-1, 0, -a1, -a3))
+    R = E.base_ring()
+    return WeierstrassIsomorphism(E, (-R.one(), R.zero(), -E.a1(), -E.a3()))
 

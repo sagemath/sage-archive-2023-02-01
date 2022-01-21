@@ -93,7 +93,7 @@ from sage.rings.number_field import number_field_base
 from sage.schemes.elliptic_curves.ell_generic import EllipticCurve_generic
 from sage.schemes.elliptic_curves.hom import EllipticCurveHom
 from sage.schemes.elliptic_curves.ell_curve_isogeny import EllipticCurveIsogeny
-from sage.schemes.elliptic_curves.weierstrass_morphism import WeierstrassIsomorphism
+from sage.schemes.elliptic_curves.weierstrass_morphism import WeierstrassIsomorphism, identity_morphism
 
 from sage.misc.superseded import experimental_warning
 experimental_warning(32744, 'EllipticCurveHom_composite is experimental code.')
@@ -266,7 +266,7 @@ class EllipticCurveHom_composite(EllipticCurveHom):
         self._phis = _compute_factored_isogeny(kernel)
 
         if not self._phis:
-            self._phis = [WeierstrassIsomorphism(E, (1,0,0,0))]
+            self._phis = [identity_morphism(E)]
 
         if codomain is not None:
             if not isinstance(codomain, EllipticCurve_generic):
@@ -362,7 +362,7 @@ class EllipticCurveHom_composite(EllipticCurveHom):
             E = phi.codomain()
 
         if not maps:
-            maps = (WeierstrassIsomorphism(E, (1,0,0,0)),)
+            maps = (identity_morphism(E),)
 
         if len(maps) == 1 and not strict:
             return maps[0]

@@ -126,11 +126,11 @@ class EllipticCurveHom(Morphism):
 
         ::
 
-            sage: from sage.schemes.elliptic_curves.weierstrass_morphism import WeierstrassIsomorphism
+            sage: from sage.schemes.elliptic_curves.weierstrass_morphism import WeierstrassIsomorphism, identity_morphism
             sage: E = EllipticCurve([9,9])
             sage: F = E.change_ring(GF(71))
-            sage: wE = WeierstrassIsomorphism(E, (1,0,0,0))
-            sage: wF = WeierstrassIsomorphism(F, (1,0,0,0))
+            sage: wE = identity_morphism(E)
+            sage: wF = identity_morphism(F)
             sage: mE = E.multiplication_by_m_isogeny(1)
             sage: mF = F.multiplication_by_m_isogeny(1)
             sage: [mE == wE, mF == wF]

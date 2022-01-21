@@ -188,8 +188,8 @@ class TateCurve(SageObject):
 
     def __sk(self, k, prec):
         q = self.parameter(prec=prec)
-        return sum([n ** k * q ** n / (1 - q ** n)
-                    for n in range(1, prec + 1)])
+        return sum(n ** k * q ** n / (1 - q ** n)
+                   for n in range(1, prec + 1))
 
     def __delta(self, prec):
         q = self.parameter(prec=prec)
@@ -284,8 +284,8 @@ class TateCurve(SageObject):
         qE = self.parameter(prec=prec)
         n = qE.valuation()
         R = Qp(p, prec)
-        e2 = Csq * (1 - 24 * sum([qE**i / (1 - qE**i)**2
-                                  for i in range(1, prec // n + 5)]))
+        e2 = Csq * (1 - 24 * sum(qE**i / (1 - qE**i)**2
+                                 for i in range(1, prec // n + 5)))
         return R(e2)
 
     def is_split(self) -> bool:
@@ -345,15 +345,15 @@ class TateCurve(SageObject):
         # of Elliptic curves, p. 425)
 
         powers_of_q = [(n, q**n) for n in range(1, precn)]
-        xx = un / (1 - un)**2 + sum([qn * un / (1 - qn * un)**2 +
-                                     qn / un / (1 - qn / un)**2 -
-                                     2 * qn / (1 - qn)**2
-                                     for n, qn in powers_of_q])
+        xx = un / (1 - un)**2 + sum(qn * un / (1 - qn * un)**2 +
+                                    qn / un / (1 - qn / un)**2 -
+                                    2 * qn / (1 - qn)**2
+                                    for n, qn in powers_of_q)
 
-        yy = un**2 / (1 - un)**3 + sum([qn**2 * un**2 / (1 - qn * un)**3 -
-                                        qn / un / (1 - qn / un)**3 +
-                                        qn / (1 - qn)**2
-                                        for n, qn in powers_of_q])
+        yy = un**2 / (1 - un)**3 + sum(qn**2 * un**2 / (1 - qn * un)**3 -
+                                       qn / un / (1 - qn / un)**3 +
+                                       qn / (1 - qn)**2
+                                       for n, qn in powers_of_q)
 
         return self.curve(prec=prec)([xx, yy])
 

@@ -304,7 +304,7 @@ class EllipticCurveHom_scalar(EllipticCurveHom):
             sage: phi == -psi
             True
 
-        TESTS:
+        TESTS::
 
             sage: from sage.schemes.elliptic_curves.weierstrass_morphism import negation_morphism
             sage: from sage.schemes.elliptic_curves.hom_composite import EllipticCurveHom_composite

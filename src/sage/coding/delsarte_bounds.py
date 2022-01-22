@@ -598,7 +598,7 @@ def _delsarte_Q_LP_building(q, d, solver, isinteger):
         sage: p.show()
         Maximization:
           x_0 + x_1 + x_2 + x_3 + x_4 + x_5 + x_6
-
+        <BLANKLINE>
         Constraints:
           constraint_0: 1 <= x_0 <= 1
           constraint_1: 0 <= x_1 <= 0
@@ -616,7 +616,6 @@ def _delsarte_Q_LP_building(q, d, solver, isinteger):
           x_4 is a continuous variable (min=0, max=+oo)
           x_5 is a continuous variable (min=0, max=+oo)
           x_6 is a continuous variable (min=0, max=+oo)
-
     """
     from sage.numerical.mip import MixedIntegerLinearProgram
 

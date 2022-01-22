@@ -2870,15 +2870,15 @@ class RecurrenceParser(object):
 
             def matrix_row(row):
                 wanted = wanted_inhomogeneity(row)
-                return list(mat[row]) + left_for_inhomogeneity(wanted)
+                return left_for_inhomogeneity(wanted)
 
-            mat = Matrix([matrix_row(row) for row in srange(dim_without_corr)])
+            mat_upper_right = Matrix([matrix_row(row) for row in srange(dim_without_corr)])
             mat_inhomog = block_diagonal_matrix([S.mu[rem]
                                                  for S in shifted_inhomogeneities.values()])
 
-            mat = block_matrix([[mat],
-                                [block_matrix([[zero_matrix(mat_inhomog.nrows(), dim_without_corr),
-                                                mat_inhomog]])]])
+            mat = block_matrix([[mat, mat_upper_right],
+                                [zero_matrix(mat_inhomog.nrows(), dim_without_corr),
+                                 mat_inhomog]])
 
             dim_without_corr = mat.ncols()
             dim = dim_without_corr + n1

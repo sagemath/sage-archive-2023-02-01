@@ -2864,8 +2864,8 @@ class RecurrenceParser(object):
                     return (None, None)
 
             def left_for_inhomogeneity(wanted):
-                return list(chain(*[(wanted == (r, i))*inhomogeneities[r].left
-                                    for r in inhomogeneities
+                return list(chain(*[(wanted == (r, i))*inhomogeneity.left
+                                    for r, inhomogeneity in inhomogeneities.items()
                                     for i in srange(lower, upper + 1)]))
 
             def matrix_row(row):

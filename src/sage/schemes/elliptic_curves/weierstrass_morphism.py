@@ -460,6 +460,19 @@ class WeierstrassIsomorphism(EllipticCurveHom, baseWI):
             sage: w = WeierstrassIsomorphism(None,(1,0,0,-1),F)
             sage: w._domain==E
             True
+
+        TESTS:
+
+        Check for :trac:`33215`::
+
+            sage: E = EllipticCurve(GF(71^2),[5,5])
+            sage: from sage.schemes.elliptic_curves.weierstrass_morphism import WeierstrassIsomorphism
+            sage: iso = WeierstrassIsomorphism(E, (1,2,3,4))
+            sage: ~iso  # indirect doctest
+            Elliptic-curve morphism:
+              From: Elliptic Curve defined by y^2 + 6*x*y + 8*y = x^3 + 68*x^2 + 64*x + 7 over Finite Field in z2 of size 71^2
+              To:   Elliptic Curve defined by y^2 = x^3 + 5*x + 5 over Finite Field in z2 of size 71^2
+              Via:  (u,r,s,t) = (1, 69, 68, 2)
         """
         from .ell_generic import is_EllipticCurve
 

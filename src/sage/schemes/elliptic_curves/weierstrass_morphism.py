@@ -465,15 +465,27 @@ class WeierstrassIsomorphism(EllipticCurveHom, baseWI):
 
         if E is not None:
             if not is_EllipticCurve(E):
-                raise ValueError("First argument must be an elliptic curve or None")
+                raise ValueError("first argument must be an elliptic curve or None")
         if F is not None:
             if not is_EllipticCurve(F):
-                raise ValueError("Third argument must be an elliptic curve or None")
+                raise ValueError("third argument must be an elliptic curve or None")
         if urst is not None:
             if len(urst) != 4:
-                raise ValueError("Second argument must be [u,r,s,t] or None")
+                raise ValueError("second argument must be [u,r,s,t] or None")
         if len([par for par in [E, urst, F] if par is not None]) < 2:
-            raise ValueError("At most 1 argument can be None")
+            raise ValueError("at most 1 argument can be None")
+
+        inps = []
+        if E is not None:
+            inps.append(E.base_ring())
+        if F is not None:
+            inps.append(F.base_ring())
+        if urst is not None:
+            inps += list(urst)
+        base_ring = get_coercion_model().common_parent(*inps)
+
+        if urst is not None:
+            urst = Sequence(urst, base_ring)
 
         if F is None:  # easy case
             baseWI.__init__(self, *urst)
@@ -487,7 +499,7 @@ class WeierstrassIsomorphism(EllipticCurveHom, baseWI):
         elif urst is None:  # try to construct the morphism
             urst = isomorphisms(E, F, True)
             if urst is None:
-                raise ValueError("Elliptic curves not isomorphic.")
+                raise ValueError("elliptic curves not isomorphic")
             baseWI.__init__(self, *urst)
 
         else:  # none of the parameters is None:
@@ -495,7 +507,6 @@ class WeierstrassIsomorphism(EllipticCurveHom, baseWI):
             if F != EllipticCurve(baseWI.__call__(self, list(E.a_invariants()))):
                 raise ValueError("second argument is not an isomorphism from first argument to third argument")
 
-        base_ring = get_coercion_model().common_parent(E.base_ring(), F.base_ring(), *urst)
         self._mpoly_ring = PolynomialRing(base_ring, ['x','y'])
         self._poly_ring = PolynomialRing(base_ring, ['x'])
 
@@ -844,12 +855,13 @@ class WeierstrassIsomorphism(EllipticCurveHom, baseWI):
         ::
 
             sage: from sage.schemes.elliptic_curves.weierstrass_morphism import WeierstrassIsomorphism
-            sage: E = EllipticCurve(QuadraticField(-3), [0,1])
+            sage: K.<a> = QuadraticField(-3)
+            sage: E = EllipticCurve(K, [0,1])
             sage: w = WeierstrassIsomorphism(E, (CyclotomicField(3).gen(),0,0,0))
             sage: w.tuple()
-            (zeta3, 0, 0, 0)
+            (1/2*a - 1/2, 0, 0, 0)
             sage: (-w).tuple()
-            (-zeta3, 0, 0, 0)
+            (-1/2*a + 1/2, 0, 0, 0)
             sage: (-w)^3 == -(w^3)
             True
 

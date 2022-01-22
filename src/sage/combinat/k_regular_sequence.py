@@ -2856,9 +2856,9 @@ class RecurrenceParser(object):
                     return (None, None)
                 rem_d = k**(M-1)*rem + (d%k**M)
                 dd = d // k**M
-                if rem_d < k**M and rem_d in inhomogeneities.keys():
+                if rem_d < k**M:
                     return (rem_d, dd)
-                elif rem_d >= k**M and rem_d - k**M in inhomogeneities.keys():
+                elif rem_d >= k**M:
                     return (rem_d - k**M, dd + 1)
                 else:
                     return (None, None)

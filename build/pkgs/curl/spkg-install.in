@@ -15,6 +15,6 @@ if [ "$UNAME" = "Darwin" ]; then
     fi
 fi
 
-sdh_configure $CURL_CONFIGURE --with-openssl
+sdh_configure $CURL_CONFIGURE
 sdh_make
 sdh_make_install

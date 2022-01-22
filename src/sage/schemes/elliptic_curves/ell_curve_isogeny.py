@@ -3318,7 +3318,7 @@ class EllipticCurveIsogeny(EllipticCurveHom):
 
         # trac 7096
         # this should take care of the case when the isogeny is not normalized.
-        u = self.formal()[1]
+        u = self.formal(prec=2)[1]
         isom = WeierstrassIsomorphism(E2pr, (u/F(d), 0, 0, 0))
 
         E2 = isom.codomain()
@@ -3341,8 +3341,8 @@ class EllipticCurveIsogeny(EllipticCurveHom):
         # the composition has the degree as a leading coefficient in
         # the formal expansion.
 
-        phi_sc = self.formal()[1]
-        phihat_sc = phi_hat.formal()[1]
+        phi_sc = self.formal(prec=2)[1]
+        phihat_sc = phi_hat.formal(prec=2)[1]
 
         sc = phi_sc * phihat_sc/F(d)
 

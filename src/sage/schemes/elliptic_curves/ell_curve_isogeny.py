@@ -2025,8 +2025,13 @@ class EllipticCurveIsogeny(EllipticCurveHom):
         X = 0
         Y = 0
 
-        a1 = self.__E1.a1()
-        a3 = self.__E1.a3()
+        if self.__pre_isomorphism is None:
+            E = self.__E1
+        else:
+            E = self.__pre_isomorphism.codomain()
+
+        a1 = E.a1()
+        a3 = E.a3()
 
         # next iterate over the 2torsion points of the kernel
         for Qvalues in ker_2tor.values():

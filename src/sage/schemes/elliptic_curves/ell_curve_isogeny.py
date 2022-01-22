@@ -2018,6 +2018,20 @@ class EllipticCurveIsogeny(EllipticCurveHom):
             sage: phi._EllipticCurveIsogeny__compute_via_velu(x, y)
             ((x^4 - 2*x^3 + x^2 - 3*x)/(x^3 - 2*x^2 + 3*x - 2),
              (x^5*y - 2*x^3*y - x^2*y - 2*x*y + 2*y)/(x^5 + 3*x^3 + 3*x^2 + x - 1))
+
+        TESTS:
+
+        Check for :trac:`33214`::
+
+            sage: z2 = GF(71^2).gen()
+            sage: E = EllipticCurve(GF(71^2), [5,5])
+            sage: phi = E.isogeny(E.lift_x(0))
+            sage: from sage.schemes.elliptic_curves.weierstrass_morphism import WeierstrassIsomorphism
+            sage: pre = WeierstrassIsomorphism(None, (z2,7,8,9), E)
+            sage: phi = phi * pre
+            sage: P = phi.domain()(1, 46*z2+49)
+            sage: phi(P)  # indirect doctest
+            (33 : 61*z2 + 10 : 1)
         """
         ker_2tor = self.__kernel_2tor
         ker_non2tor = self.__kernel_non2tor

@@ -933,7 +933,7 @@ class RecognizableSeries(ModuleElement):
 
         .. NOTE::
 
-            Due to the algorithm, the vector :meth:`RecognizableSeries.left`
+            Due to the algorithm, the left vector of the result
             is always `(1, 0, \ldots, 0)`, i.e., the first vector of the
             standard basis.
 

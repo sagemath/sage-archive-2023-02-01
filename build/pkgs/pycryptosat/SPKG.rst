@@ -1,5 +1,5 @@
 pycryptosat: Python module of cryptominisat
-===========================
+===========================================
 
 Description
 -----------

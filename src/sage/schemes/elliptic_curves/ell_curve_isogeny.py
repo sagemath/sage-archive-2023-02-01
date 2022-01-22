@@ -3341,10 +3341,9 @@ class EllipticCurveIsogeny(EllipticCurveHom):
         # the composition has the degree as a leading coefficient in
         # the formal expansion.
 
-        phi_sc = self.formal(prec=2)[1]
         phihat_sc = phi_hat.formal(prec=2)[1]
 
-        sc = phi_sc * phihat_sc/F(d)
+        sc = u * phihat_sc/F(d)
 
         if sc == 0:
             raise RuntimeError("Bug in computing dual isogeny: sc = 0")

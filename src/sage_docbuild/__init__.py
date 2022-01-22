@@ -423,8 +423,11 @@ class WebsiteBuilder(DocBuilder):
         html_output_dir = self._output_dir('html')
         pdf_doc_dir = os.path.join(SAGE_DOC, 'pdf')
 
+        # relative path is preferable for symlinks
+        dst = os.path.join(html_output_dir, '..')
+        relpath = os.path.relpath(pdf_doc_dir, dst)
         try:
-            os.symlink(pdf_doc_dir, os.path.join(html_output_dir, '..', 'pdf'))
+            os.symlink(relpath, os.path.join(dst, 'pdf'))
         except FileExistsError:
             pass
 

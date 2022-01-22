@@ -1046,7 +1046,7 @@ class RecurrenceParser(object):
                 raise ValueError("Term %s in the equation %s: "
                                  "%s is not a power of %s."
                                  % (summand, eq,
-                                    k**m, k))
+                                    k**m, k)) from None
             return [coeff, m, d]
 
         if not equations:
@@ -1086,7 +1086,7 @@ class RecurrenceParser(object):
                 except (TypeError, ValueError):
                     raise ValueError("Initial value %s given by the equation %s "
                                      "is not in %s."
-                                     % (right_side, eq, coefficient_ring))
+                                     % (right_side, eq, coefficient_ring)) from None
                 if (polynomial_left in initial_values.keys() and
                     initial_values[polynomial_left] != right_side):
                     raise ValueError("Initial value %s is given twice."

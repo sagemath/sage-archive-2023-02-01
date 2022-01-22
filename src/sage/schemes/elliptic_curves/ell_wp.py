@@ -128,12 +128,9 @@ def weierstrass_p(E, prec=20, algorithm=None):
 
     # if the algorithm is not set, try to determine algorithm from input
     if algorithm is None:
-        if p == 0 or p > prec + 4:
-            algorithm = "fast"
-        elif p > prec + 2:
-            algorithm = "pari"
-        else:
+        if 0 < p <= prec + 2:
             raise NotImplementedError("currently no algorithms for computing the Weierstrass p-function for that characteristic / precision pair is implemented. Lower the precision below char(k) - 2")
+        algorithm = "pari"
 
     if algorithm == "pari":
         if 0 < p <= prec + 2:

@@ -280,9 +280,6 @@ def quit_sage(verbose=True):
     import sage.algebras.quatalg.quaternion_algebra_element
     sage.algebras.quatalg.quaternion_algebra_element._clear_globals()
 
-    from sage.libs.all import symmetrica
-    symmetrica.end()
-
 
 from sage.misc.persist import register_unpickle_override
 register_unpickle_override('sage.categories.category', 'Sets', Sets)

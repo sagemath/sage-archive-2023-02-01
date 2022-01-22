@@ -712,7 +712,7 @@ class Hrepresentation(PolyhedronRepresentation):
             ....:     print(latex(h))
             x_{0} + x_{1} - x_{2} = 1
             x_{0} \geq 0
-            2x_{0} + x_{1} \geq -1
+            2 x_{0} + x_{1} \geq -1
         """
         return self.repr_pretty(latex=True)
 
@@ -791,8 +791,8 @@ class Inequality(Hrepresentation):
             sage: Q = Polyhedron(ieqs=[[0,2,0,3]])
             sage: Q.inequalities()[0].is_facet_defining_inequality(P)
             True
-            sage: Q = Polyhedron(ieqs=[[0,AA(2).sqrt(),0,3]])
-            sage: Q.inequalities()[0].is_facet_defining_inequality(P)
+            sage: Q = Polyhedron(ieqs=[[0,AA(2).sqrt(),0,3]])                   # optional - sage.rings.number_field
+            sage: Q.inequalities()[0].is_facet_defining_inequality(P)           # optional - sage.rings.number_field
             True
             sage: Q = Polyhedron(ieqs=[[1,1,0,0]])
             sage: Q.inequalities()[0].is_facet_defining_inequality(P)
@@ -893,9 +893,9 @@ class Inequality(Hrepresentation):
 
         Test that :trac:`21105` has been fixed::
 
-            sage: K.<cbrt2> = NumberField(x^3 - 2, 'a', embedding=1.26)
-            sage: P = Polyhedron(vertices=[(1,1,cbrt2),(cbrt2,1,1)])
-            sage: P.inequalities()
+            sage: K.<cbrt2> = NumberField(x^3 - 2, 'a', embedding=1.26)         # optional - sage.rings.number_field
+            sage: P = Polyhedron(vertices=[(1,1,cbrt2),(cbrt2,1,1)])            # optional - sage.rings.number_field
+            sage: P.inequalities()                                              # optional - sage.rings.number_field
             (An inequality (-cbrt2^2 - cbrt2 - 1, 0, 0) x + cbrt2^2 + cbrt2 + 2 >= 0,
              An inequality (cbrt2^2 + cbrt2 + 1, 0, 0) x - cbrt2^2 + cbrt2 + 1 >= 0)
         """

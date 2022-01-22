@@ -1098,7 +1098,7 @@ class IntegralRayCollection(SageObject, Hashable, Iterable):
         EXAMPLES::
 
             sage: quadrant = Cone([(1,0), (0,1)])
-            sage: quadrant.plot()
+            sage: quadrant.plot()  # optional - sage.plot
             Graphics object consisting of 9 graphics primitives
         """
         tp = ToricPlotter(options, self.lattice().degree(), self.rays())
@@ -1520,7 +1520,7 @@ class ConvexRationalPolyhedralCone(IntegralRayCollection, Container, ConvexSet_c
             self._ambient_ray_indices = tuple(ambient_ray_indices)
             superinit(ambient.rays(self._ambient_ray_indices),
                       ambient.lattice())
-        if not PPL is None:
+        if PPL is not None:
             self._PPL_C_Polyhedron = PPL
 
     def _sage_input_(self, sib, coerced):
@@ -3475,7 +3475,7 @@ class ConvexRationalPolyhedralCone(IntegralRayCollection, Container, ConvexSet_c
         EXAMPLES::
 
             sage: quadrant = Cone([(1,0), (0,1)])
-            sage: quadrant.plot()
+            sage: quadrant.plot()  # optional - sage.plot
             Graphics object consisting of 9 graphics primitives
         """
         # What to do with 3-d cones in 5-d? Use some projection method?
@@ -5466,7 +5466,7 @@ class ConvexRationalPolyhedralCone(IntegralRayCollection, Container, ConvexSet_c
             sage: sum(K.random_element() for i in range(10)) in K.lattice()
             True
         """
-        if not ring in [ZZ, QQ]:
+        if ring not in [ZZ, QQ]:
             # This cone theoretically lives in a real vector space,
             # but in Sage, we work over the rationals to avoid
             # numerical issues. Thus ``ring`` must consist of

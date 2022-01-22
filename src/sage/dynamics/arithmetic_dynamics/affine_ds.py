@@ -42,7 +42,7 @@ from sage.dynamics.arithmetic_dynamics.generic_ds import DynamicalSystem
 from sage.matrix.constructor import identity_matrix
 from sage.misc.cachefunc import cached_method
 from sage.misc.classcall_metaclass import typecall
-from sage.rings.all import Integer
+from sage.rings.integer import Integer
 from sage.rings.finite_rings.finite_field_constructor import is_PrimeFiniteField
 from sage.rings.finite_rings.finite_field_constructor import is_FiniteField
 from sage.rings.fraction_field import FractionField
@@ -980,12 +980,12 @@ class DynamicalSystem_affine_finite_field(DynamicalSystem_affine_field,
         orbit = []
         index = 1
         Q = P
-        while not Q in orbit:
+        while Q not in orbit:
             orbit.append(Q)
             Q = self(Q)
             index += 1
         I = orbit.index(Q)
-        return([I, index-I-1])
+        return([I, index - I - 1])
 
     def cyclegraph(self):
         r"""

@@ -328,9 +328,9 @@ REFERENCES:
 from sage.categories.fields import Fields
 from sage.categories.manifolds import Manifolds
 from sage.categories.homset import Hom
-from sage.rings.all import CC
-from sage.rings.real_mpfr import RR, RealField_class
-from sage.rings.complex_mpfr import ComplexField_class
+import sage.rings.abc
+from sage.rings.cc import CC
+from sage.rings.real_mpfr import RR
 from sage.misc.prandom import getrandbits
 from sage.misc.cachefunc import cached_method
 from sage.rings.integer import Integer
@@ -545,9 +545,9 @@ class TopologicalManifold(ManifoldSubset):
             if field not in Fields():
                 raise TypeError("the argument 'field' must be a field")
             self._field = field
-            if isinstance(field, RealField_class):
+            if isinstance(field, sage.rings.abc.RealField):
                 self._field_type = 'real'
-            elif isinstance(field, ComplexField_class):
+            elif isinstance(field, sage.rings.abc.ComplexField):
                 self._field_type = 'complex'
             else:
                 self._field_type = 'neither_real_nor_complex'
@@ -669,7 +669,7 @@ class TopologicalManifold(ManifoldSubset):
             sage: p in V
             True
             sage: p.coord()
-            (-pi - 1, 0)
+            (-pi - 1, 2)
 
         """
         from sage.rings.infinity import Infinity
@@ -2957,7 +2957,7 @@ def Manifold(dim, name, latex_name=None, field='real', structure='smooth',
     unique_tag = lambda: getrandbits(128)*_manifold_id
 
     if structure in ['topological', 'top']:
-        if field == 'real' or isinstance(field, RealField_class):
+        if field == 'real' or isinstance(field, sage.rings.abc.RealField):
             structure = RealTopologicalStructure()
         else:
             structure = TopologicalStructure()
@@ -2985,7 +2985,7 @@ def Manifold(dim, name, latex_name=None, field='real', structure='smooth',
                                  "not compatible with a smooth structure")
         else:
             diff_degree = infinity
-        if field == 'real' or isinstance(field, RealField_class):
+        if field == 'real' or isinstance(field, sage.rings.abc.RealField):
             structure = RealDifferentialStructure()
         else:
             structure = DifferentialStructure()

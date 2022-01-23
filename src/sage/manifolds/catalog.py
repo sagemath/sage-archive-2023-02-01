@@ -266,18 +266,17 @@ def RealProjectiveSpace(dim=2):
 
     This is the topological space of lines through the origin in `k^{d+1}`
     for a field `k`. The standard atlas consists of `d+2` charts, which sends
-    the set `U_i = \{[x_1, x_2, \ldots, x_{d+1}] : x_i \neq 0 \}` to 
-    `k^{d}` by dividing by `x_i` and omitting the `i`th coordinate `x_i/x_i = 1`.
-    
+    the set `U_i = \{[x_1, x_2, \ldots, x_{d+1}] : x_i \neq 0 \}` to
+    `k^{d}` by dividing by `x_i` and omitting the `i`th coordinate
+    `x_i/x_i = 1`.
+
     INPUT:
 
     - ``dim`` -- (default: ``2``) the dimension of projective space
-    - ``field`` -- (default: ``RR``) the field of coordinates
 
     OUTPUT:
 
-    - ``P`` -- the projective space `P_{d}(k)` where `d =```dim``
-      and `k =```field``.
+    - ``P`` -- the projective space `RP^d` where `d =```dim``.
 
     EXAMPLES::
 
@@ -312,7 +311,7 @@ def RealProjectiveSpace(dim=2):
         sage: C1(r)
         (1/2, 3/2)
         sage: C2(r)
-        (1/3, 2/3) 
+        (1/3, 2/3)
 
         sage: p = P.point((2,3), chart = C1)
         sage: p in C0.domain() and p in C1.domain() and p in C2.domain()
@@ -328,7 +327,7 @@ def RealProjectiveSpace(dim=2):
         sage: p, q = P.point((2,)), P.point((0,))
         sage: p in C0.domain()
         True
-        sage: p in C1.domain() 
+        sage: p in C1.domain()
         True
         sage: q in C0.domain()
         True
@@ -351,11 +350,11 @@ def RealProjectiveSpace(dim=2):
     from itertools import combinations
 
     P = Manifold(dim, "P",
-                 structure = 'topological',
+                 structure='topological',
                  latex_name=f"RP^{dim}")
 
     # the trailing whitespace in the string is intentional for defining charts
-    names = [f'x_{i} ' for i in range(dim+1)] 
+    names = [f'x_{i} ' for i in range(dim + 1)]
 
     # create the charts
     for i in range(dim+1):
@@ -367,23 +366,23 @@ def RealProjectiveSpace(dim=2):
     P.declare_union(P.subsets())
 
     # define the transition maps
-    for i,j in combinations(range(dim+1), 2):
+    for i, j in combinations(range(dim+1), 2):
 
         Ci, Cj = P.atlas()[i], P.atlas()[j]
 
-        gi = Ci._first_ngens(-1) # all of the generators
+        gi = Ci._first_ngens(-1)  # all of the generators
         gj = Cj._first_ngens(-1)
 
         xi = gj[i]
-        xj = gi[j - 1] # use index j - 1 because i < j and xi is omitted from gi
+        xj = gi[j - 1]  # use index j - 1 because i < j and xi is omitted in gi
 
         # the corresponding coordinates in k^{dim+1}
         d_plus_one_coords = [g/xj for g in gi[:i]] + [1/xj] + [g/xj for g in gi[i:]]
         cj_new_coords = d_plus_one_coords[:j] + d_plus_one_coords[j+1:]
 
-        Ci_to_Cj = Ci.transition_map(Cj, cj_new_coords, 
-                                     restrictions1 = xj != 0,
-                                     restrictions2 = xi != 0)
+        Ci_to_Cj = Ci.transition_map(Cj, cj_new_coords,
+                                     restrictions1=xj != 0,
+                                     restrictions2=xi != 0)
 
         Cj_to_Ci = Ci_to_Cj.inverse()
 

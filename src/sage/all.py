@@ -265,8 +265,6 @@ def quit_sage(verbose=True):
     import gc
     gc.collect()
 
-    from sage.interfaces.quit import expect_quitall
-    expect_quitall(verbose=verbose)
 
 
 from sage.misc.persist import register_unpickle_override

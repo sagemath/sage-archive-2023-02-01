@@ -268,9 +268,6 @@ def quit_sage(verbose=True):
     from sage.interfaces.quit import expect_quitall
     expect_quitall(verbose=verbose)
 
-    import sage.matrix.matrix_mod2_dense
-    sage.matrix.matrix_mod2_dense.free_m4ri()
-
     import sage.libs.flint.flint
     sage.libs.flint.flint.free_flint_stack()
 

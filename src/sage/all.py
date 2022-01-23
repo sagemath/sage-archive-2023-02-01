@@ -268,9 +268,6 @@ def quit_sage(verbose=True):
     from sage.interfaces.quit import expect_quitall
     expect_quitall(verbose=verbose)
 
-    import sage.algebras.quatalg.quaternion_algebra_element
-    sage.algebras.quatalg.quaternion_algebra_element._clear_globals()
-
 
 from sage.misc.persist import register_unpickle_override
 register_unpickle_override('sage.categories.category', 'Sets', Sets)

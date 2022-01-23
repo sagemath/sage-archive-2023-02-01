@@ -497,11 +497,7 @@ class TateCurve(SageObject):
         C, r, s, t = self._isomorphism(prec=prec)
         xx = r + C ** 2 * P[0]
         yy = t + s * C ** 2 * P[0] + C ** 3 * P[1]
-        try:
-            Eq([xx, yy])
-        except Exception:
-            raise RuntimeError(f"Bug : Point ({xx, yy}) does not lie on the curve ")
-
+        assert Eq.defining_polynomial()(xx, yy, 1) == 0, f"bug: point ({xx}, {yy}) does not lie on the curve {Eq}"
         tt = -xx / yy
         eqhat = Eq.formal()
         eqlog = eqhat.log(prec + 3)

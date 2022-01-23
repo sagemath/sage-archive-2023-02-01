@@ -268,9 +268,6 @@ def quit_sage(verbose=True):
     from sage.interfaces.quit import expect_quitall
     expect_quitall(verbose=verbose)
 
-    # Free globally allocated gmp integers.
-    import sage.rings.integer
-    sage.rings.integer.free_integer_pool()
     import sage.algebras.quatalg.quaternion_algebra_element
     sage.algebras.quatalg.quaternion_algebra_element._clear_globals()
 

@@ -268,9 +268,6 @@ def quit_sage(verbose=True):
     from sage.interfaces.quit import expect_quitall
     expect_quitall(verbose=verbose)
 
-    import sage.libs.flint.flint
-    sage.libs.flint.flint.free_flint_stack()
-
     # Free globally allocated gmp integers.
     import sage.rings.integer
     sage.rings.integer.free_integer_pool()

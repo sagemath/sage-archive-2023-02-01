@@ -38,6 +38,7 @@ _lazy_import('sage.manifolds.differentiable.examples.real_line', 'OpenInterval')
 _lazy_import('sage.manifolds.differentiable.examples.real_line', 'RealLine')
 _lazy_import('sage.manifolds.differentiable.examples.euclidean', 'EuclideanSpace')
 _lazy_import('sage.manifolds.differentiable.examples.sphere', 'Sphere')
+_lazy_import('sage.rings.real_mpfr','RealField_class')
 
 def Minkowski(positive_spacelike=True, names=None):
     """
@@ -258,7 +259,7 @@ def Torus(R=2, r=1, names=None):
     M.induced_metric()
     return M
 
-def ProjectiveSpace(dim=2, field=RR):
+def RealProjectiveSpace(dim=2):
     r"""
     Generate projective space of dimension ``dim`` over
     ``field``.
@@ -280,8 +281,7 @@ def ProjectiveSpace(dim=2, field=RR):
 
     EXAMPLES::
 
-        sage: load('projective-space.sage')
-        sage: P = ProjectiveSpace(); P
+        sage: P = manifolds.RealProjectiveSpace(); P
         2-dimensional topological manifold P
 
         sage: C0, C1, C2 = P.atlas()[:3]
@@ -322,7 +322,7 @@ def ProjectiveSpace(dim=2, field=RR):
         sage: C2(p)
         (2/3, 1/3)
 
-        sage: P = ProjectiveSpace(1); P
+        sage: P = manifolds.RealProjectiveSpace(1); P
         1-dimensional topological manifold P
         sage: C0, C1 = P.atlas()[:2]
         sage: p, q = P.point((2,)), P.point((0,))
@@ -351,9 +351,8 @@ def ProjectiveSpace(dim=2, field=RR):
     from itertools import combinations
 
     P = Manifold(dim, "P",
-                 field = field,
                  structure = 'topological',
-                 latex_name=f"P_{dim}{latex(field)}")
+                 latex_name=f"RP^{dim}")
 
     # the trailing whitespace in the string is intentional for defining charts
     names = [f'x_{i} ' for i in range(dim+1)] 
@@ -366,7 +365,6 @@ def ProjectiveSpace(dim=2, field=RR):
 
     # this atlas is a global atlas
     P.declare_union(P.subsets())
-    #P.declare_union(map(lambda x: x.domain(), P.atlas()))
 
     # define the transition maps
     for i,j in combinations(range(dim+1), 2):
@@ -376,23 +374,17 @@ def ProjectiveSpace(dim=2, field=RR):
         gi = Ci._first_ngens(-1) # all of the generators
         gj = Cj._first_ngens(-1)
 
-        # Ci to Cj:
+        xi = gj[i]
         xj = gi[j - 1] # use index j - 1 because i < j and xi is omitted from gi
 
         # the corresponding coordinates in k^{dim+1}
         d_plus_one_coords = [g/xj for g in gi[:i]] + [1/xj] + [g/xj for g in gi[i:]]
         cj_new_coords = d_plus_one_coords[:j] + d_plus_one_coords[j+1:]
 
-        Ci_to_Cj = Ci.transition_map(Cj, cj_new_coords, restrictions1 = xj != 0)
+        Ci_to_Cj = Ci.transition_map(Cj, cj_new_coords, 
+                                     restrictions1 = xj != 0,
+                                     restrictions2 = xi != 0)
 
-        #Cj_to_Ci = Ci_to_Cj.inverse()
-
-        # Ci to Cj:
-        xi = gj[i]
-        d_plus_one_coords = [g/xi for g in gj[:j]] + [1/xi] + [g/xi for g in gj[j:]]
-        ci_new_coords = d_plus_one_coords[:i] + d_plus_one_coords[i+1:]
-
-        Cj_to_Ci = Cj.transition_map(Ci, ci_new_coords, restrictions1 = xi != 0)
-
+        Cj_to_Ci = Ci_to_Cj.inverse()
 
     return P

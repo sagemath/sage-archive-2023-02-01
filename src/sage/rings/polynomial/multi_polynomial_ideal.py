@@ -4560,8 +4560,7 @@ class MPolynomialIdeal( MPolynomialIdeal_singular_repr, \
             Requires computation of a Groebner basis, which can be a very
             expensive operation.
         """
-        g = f.reduce(self.groebner_basis())
-        return self.ring()(g).is_zero()
+        return self.reduce(f).is_zero()
 
     def homogenize(self, var='h'):
         """
@@ -5165,3 +5164,48 @@ class MPolynomialIdeal( MPolynomialIdeal_singular_repr, \
         result = [h(*map_ideal) for h in result]
 
         return result_ring.ideal(result)
+
+
+class MPolynomialIdeal_quotient(MPolynomialIdeal):
+    r"""
+    An ideal in a quotient of a multivariate polynomial ring.
+
+    EXAMPLES::
+
+        sage: Q.<x,y,z,w> = QQ['x,y,z,w'].quotient(['x*y-z^2', 'y^2-w^2'])
+        sage: I = ideal(x + y^2 + z - 1)
+        sage: I
+        Ideal (w^2 + x + z - 1) of Quotient of Multivariate Polynomial Ring
+        in x, y, z, w over Rational Field by the ideal (x*y - z^2, y^2 - w^2)
+    """
+
+    def reduce(self, f):
+        r"""
+        Reduce an element modulo a Gröbner basis for this ideal.
+        This returns 0 if and only if the element is in this ideal. In any
+        case, this reduction is unique up to monomial orders.
+
+        EXAMPLES::
+
+            sage: R.<T,U,V,W,X,Y,Z> = PolynomialRing(QQ, order='lex')
+            sage: I = R.ideal([T^2+U^2-1, V^2+W^2-1, X^2+Y^2+Z^2-1])
+            sage: Q.<t,u,v,w,x,y,z> = R.quotient(I)
+            sage: J = Q.ideal([u*v-x, u*w-y, t-z])
+            sage: J.reduce(t^2 - z^2)
+            0
+            sage: J.reduce(u^2)
+            -z^2 + 1
+            sage: t^2 - z^2 in J
+            True
+            sage: u^2 in J
+            False
+        """
+        Q = self.ring()
+        gb = self.groebner_basis()
+        # In quotient rings, gb is not a Gröbner basis of self, but gb0 is
+        # a (possibly non-reduced) Gröbner basis of the preimage of self in
+        # the cover ring (see :trac:`33217`). We only use Gröbner bases of
+        # pre-existing ideals to potentially take advantage of caching.
+        gb0 = Q.defining_ideal().groebner_basis() + [g.lift() for g in gb]
+        f0 = f.lift().reduce(gb0)
+        return Q._element_constructor_from_element_class(f0, reduce=False)

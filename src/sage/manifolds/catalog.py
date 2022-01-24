@@ -14,7 +14,7 @@ They are:
 - :func:`Torus`: torus embedded in Euclidean space
 - :func:`Minkowski`: 4-dimensional Minkowski space
 - :func:`Kerr`: Kerr spacetime
-- :func:`ProjectiveSpace`: projective space over a field
+- :func:`RealProjectiveSpace`: `n`-dimensional real projective space
 
 AUTHORS:
 
@@ -282,6 +282,8 @@ def RealProjectiveSpace(dim=2):
 
         sage: P = manifolds.RealProjectiveSpace(); P
         2-dimensional topological manifold P
+        sage: latex(P)
+        \mathbb{RP}^2
 
         sage: C0, C1, C2 = P.atlas()[:3]
         sage: p = P.point((2,0), chart = C0)
@@ -351,7 +353,7 @@ def RealProjectiveSpace(dim=2):
 
     P = Manifold(dim, "P",
                  structure='topological',
-                 latex_name=f"RP^{dim}")
+                 latex_name=r"\mathbb{RP}^" + str(dim))
 
     # the trailing whitespace in the string is intentional for defining charts
     names = [f'x_{i} ' for i in range(dim + 1)]
@@ -368,7 +370,8 @@ def RealProjectiveSpace(dim=2):
     # define the transition maps
     for i, j in combinations(range(dim+1), 2):
 
-        Ci, Cj = P.atlas()[i], P.atlas()[j]
+        Ci = P.atlas()[i]
+        Cj = P.atlas()[j]
 
         gi = Ci._first_ngens(-1)  # all of the generators
         gj = Cj._first_ngens(-1)

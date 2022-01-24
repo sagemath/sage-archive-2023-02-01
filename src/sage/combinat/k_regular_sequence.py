@@ -1204,15 +1204,15 @@ class kRegularSequenceSpace(RecognizableSeriesSpace):
 
         ::
 
-            sage: set_random_seed()
-            sage: S = Seq2((random_matrix(ZZ, 3, 3), random_matrix(ZZ, 3, 3)),
-            ....:     left=vector([randint(-2, 2) for i in srange(3)]),
-            ....:     right=vector([randint(-2, 2) for i in srange(3)]))
+            sage: S = Seq2([matrix([[3/2, -1, 1], [0, 1/2, 1/2], [0, -1, 2]]),
+            ....:           matrix([[-1, 0, 1], [1, 5, -5], [-4, 0, 0]])],
+            ....:     left=vector([1, 2, 3]),
+            ....:     right=vector([0, 1, 1]))
             sage: T = Seq2.from_recurrence(M=3, m=2,
             ....:     coeffs={},
             ....:     initial_values={0: S[0]},
             ....:     inhomogeneities={i: S.subsequence(2**3, i) for i in srange(2**3)})
-            sage: all(S[i] == T[i] for i in srange(100))
+            sage: (S - T).is_trivial_zero()
             True
 
         Connection between the Stern--Brocot sequence and the number

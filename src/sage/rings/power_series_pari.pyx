@@ -95,7 +95,7 @@ cdef PowerSeries_pari construct_from_pari(parent, pari_gen g):
     v = parent.variable_name()
     if t == t_SER and varn(g.g) == get_var(v):
         prec = lg(g.g) - 2 + valp(g.g)
-    elif t == t_RFRAC:
+    elif t == t_RFRAC and pari.denominator(t) != 1:
         prec = parent.default_prec()
         g = g.Ser(v, prec - g.valuation(v))
     else:

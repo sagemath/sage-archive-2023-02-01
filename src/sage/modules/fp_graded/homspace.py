@@ -15,20 +15,23 @@ TESTS::
     sage: homset = Hom(F, L); homset
     Set of Morphisms from Finitely presented left module on 2 generators ...
     sage: homset.an_element()
-    Module homomorphism of degree 0 defined by sending the generators
-      [c_{1}, c_{3}]
-    to
-      [0, Sq(1)*h_{2}]
+    Module morphism:
+      From: Finitely presented left module on 2 generators and 0 relations over sub-Hopf algebra of mod 2 Steenrod algebra, milnor basis, profile function [3, 2, 1]
+      To:   Finitely presented left module on 2 generators and 2 relations over sub-Hopf algebra of mod 2 Steenrod algebra, milnor basis, profile function [3, 2, 1]
+      Defn: c[1] |--> 0
+            c[3] |--> Sq(1)*h[2]
     sage: homset([L((A.Sq(1), 1)), L((0, A.Sq(2)))])
-    Module homomorphism of degree 2 defined by sending the generators
-      [c_{1}, c_{3}]
-    to
-      [Sq(1)*h_{2} + h_{3}, Sq(2)*h_{3}]
+    Module morphism:
+      From: Finitely presented left module on 2 generators and 0 relations over sub-Hopf algebra of mod 2 Steenrod algebra, milnor basis, profile function [3, 2, 1]
+      To:   Finitely presented left module on 2 generators and 2 relations over sub-Hopf algebra of mod 2 Steenrod algebra, milnor basis, profile function [3, 2, 1]
+      Defn: c[1] |--> Sq(1)*h[2] + h[3]
+            c[3] |--> Sq(2)*h[3]
     sage: Hom(F, L) ([L((A.Sq(1), 1)), L((0, A.Sq(2)))]).kernel_inclusion()
-    Module homomorphism of degree 0 defined by sending the generators
-      [g_{3}, g_{4}]
-    to
-      (c_{3}, Sq(0,1)*c_{1})
+    Module morphism:
+      From: Finitely presented left module on 2 generators and 1 relation over sub-Hopf algebra of mod 2 Steenrod algebra, milnor basis, profile function [3, 2, 1]
+      To:   Finitely presented left module on 2 generators and 0 relations over sub-Hopf algebra of mod 2 Steenrod algebra, milnor basis, profile function [3, 2, 1]
+      Defn: g[3] |--> c[3]
+            g[4] |--> Sq(0,1)*c[1]
 
 AUTHORS:
 
@@ -92,10 +95,11 @@ class FPModuleHomspace(Homset):
         should call it implicitly using the syntax::
 
             sage: f = homset([v1, v2]); f
-              Module homomorphism of degree 2 defined by sending the generators
-                [g_{1}, g_{3}]
-              to
-                [Sq(1)*g_{2} + g_{3}, Sq(2)*g_{3}]
+            Module morphism:
+              From: Finitely presented left module on 2 generators and 0 relations over sub-Hopf algebra of mod 2 Steenrod algebra, milnor basis, profile function [3, 2, 1]
+              To:   Finitely presented left module on 2 generators and 2 relations over sub-Hopf algebra of mod 2 Steenrod algebra, milnor basis, profile function [3, 2, 1]
+              Defn: g[1] |--> Sq(1)*g[2] + g[3]
+                    g[3] |--> Sq(2)*g[3]
 
         One can construct a homomorphism from another homomorhism::
 
@@ -105,8 +109,8 @@ class FPModuleHomspace(Homset):
 
         And there is a convenient way of making the trivial homomorphism::
 
-            sage: z = homset(0); z
-            The trivial homomorphism
+            sage: homset(0) == 0
+            True
         """
         if isinstance(values, self.element_class):
             return values
@@ -135,26 +139,22 @@ class FPModuleHomspace(Homset):
             sage: HZ = FPModule(A, [0], relations=[[Sq(1)]])
 
             sage: Hom(HZ, HZ).an_element(3)
-            Module homomorphism of degree 3 defined by sending the generators
-              [g_{0}]
-            to
-              [Sq(0,1)*g_{0}]
+            Module endomorphism of Finitely presented left module on 1 generator and 1 relation over mod 2 Steenrod algebra, milnor basis
+              Defn: g[0] |--> Sq(0,1)*g[0]
 
         TESTS::
 
             sage: K = FPModule(A, [0, 0], [[Sq(2), 0]]) # Using a zero coefficient in the relations.
             sage: Hom(K, K).an_element(4)
-            Module homomorphism of degree 4 defined by sending the generators
-              [g_{0,0}, g_{0,1}]
-            to
-              [0, Sq(4)*g_{0,0}]
+            Module endomorphism of Finitely presented left module on 2 generators and 1 relation over mod 2 Steenrod algebra, milnor basis
+              Defn: g(0, 0) |--> 0
+                    g(0, 1) |--> Sq(4)*g(0, 0)
 
             sage: K = FPModule(A, [0, 0], [[Sq(2), 0], [0,0], [Sq(4), Sq(2)*Sq(2)]])
             sage: Hom(K, K).an_element(n=3)
-            Module homomorphism of degree 3 defined by sending the generators
-              [g_{0,0}, g_{0,1}]
-            to
-              [0, Sq(0,1)*g_{0,0}]
+            Module endomorphism of Finitely presented left module on 2 generators and 2 relations over mod 2 Steenrod algebra, milnor basis
+              Defn: g(0, 0) |--> 0
+                    g(0, 1) |--> Sq(0,1)*g(0, 0)
         """
         return self._basis_elements(n, basis=False)
 
@@ -178,14 +178,10 @@ class FPModuleHomspace(Homset):
             sage: Hko = FPModule(A, [0], relations=[[Sq(2)], [Sq(1)]])
 
             sage: Hom(Hko, Hko).basis_elements(21)
-            [Module homomorphism of degree 21 defined by sending the generators
-               [g_{0}]
-             to
-               [(Sq(0,0,3)+Sq(0,2,0,1))*g_{0}],
-             Module homomorphism of degree 21 defined by sending the generators
-               [g_{0}]
-             to
-               [Sq(8,2,1)*g_{0}]]
+            [Module endomorphism of Finitely presented left module on 1 generator and 2 relations over mod 2 Steenrod algebra, milnor basis
+               Defn: g[0] |--> (Sq(0,0,3)+Sq(0,2,0,1))*g[0],
+             Module endomorphism of Finitely presented left module on 1 generator and 2 relations over mod 2 Steenrod algebra, milnor basis
+               Defn: g[0] |--> Sq(8,2,1)*g[0]]
         """
         return self._basis_elements(n, basis=True)
 
@@ -201,9 +197,7 @@ class FPModuleHomspace(Homset):
             sage: F = FPModule(A2, [1,3])
             sage: L = FPModule(A2, [2,3], [[Sq(2),Sq(1)], [0,Sq(2)]])
 
-            sage: z = Hom(F, L).zero(); z
-            The trivial homomorphism
-
+            sage: z = Hom(F, L).zero()
             sage: z(F.an_element(5))
             0
             sage: z(F.an_element(23))
@@ -223,11 +217,13 @@ class FPModuleHomspace(Homset):
             sage: A2 = SteenrodAlgebra(2, profile=(3,2,1))
             sage: L = FPModule(A2, [2,3], [[Sq(2),Sq(1)], [0,Sq(2)]])
 
-            sage: id = Hom(L, L).identity(); id
-            The identity homomorphism
+            sage: one = Hom(L, L).identity(); one
+            Module endomorphism of Finitely presented left module on 2 generators and 2 relations over sub-Hopf algebra of mod 2 Steenrod algebra, milnor basis, profile function [3, 2, 1]
+              Defn: g[2] |--> g[2]
+                    g[3] |--> g[3]
 
             sage: e = L.an_element(5)
-            sage: e == id(e)
+            sage: e == one(e)
             True
 
         It is an error to call this function when the homset is not a
@@ -271,36 +267,27 @@ class FPModuleHomspace(Homset):
             sage: A = SteenrodAlgebra(2)
             sage: Hko = FPModule(A, [0], relations=[[Sq(2)], [Sq(1)]])
             sage: Hom(Hko, Hko)._basis_elements(21, basis=True)
-            [Module homomorphism of degree 21 defined by sending the generators
-               [g_{0}]
-             to
-               [(Sq(0,0,3)+Sq(0,2,0,1))*g_{0}],
-             Module homomorphism of degree 21 defined by sending the generators
-               [g_{0}]
-             to
-               [Sq(8,2,1)*g_{0}]]
+            [Module endomorphism of Finitely presented left module on 1 generator and 2 relations over mod 2 Steenrod algebra, milnor basis
+               Defn: g[0] |--> (Sq(0,0,3)+Sq(0,2,0,1))*g[0],
+             Module endomorphism of Finitely presented left module on 1 generator and 2 relations over mod 2 Steenrod algebra, milnor basis
+               Defn: g[0] |--> Sq(8,2,1)*g[0]]
 
             sage: Hom(Hko, Hko)._basis_elements(21, basis=False)
-            Module homomorphism of degree 21 defined by sending the generators
-              [g_{0}]
-            to
-              [(Sq(0,0,3)+Sq(0,2,0,1))*g_{0}]
+            Module endomorphism of Finitely presented left module on 1 generator and 2 relations over mod 2 Steenrod algebra, milnor basis
+              Defn: g[0] |--> (Sq(0,0,3)+Sq(0,2,0,1))*g[0]
 
             sage: F = FPModule(A, [0])
             sage: Hom(F, Hko)._basis_elements(21, basis=False)
-            Module homomorphism of degree 21 defined by sending the generators
-              [g_{0}]
-            to
-              [Sq(0,2,0,1)*g_{0}]
+            Module morphism:
+              From: Finitely presented left module on 1 generator and 0 relations over mod 2 Steenrod algebra, milnor basis
+              To:   Finitely presented left module on 1 generator and 2 relations over mod 2 Steenrod algebra, milnor basis
+              Defn: g[0] |--> Sq(0,2,0,1)*g[0]
 
             sage: Hom(F, Hko)._basis_elements(21, basis=False)
-            Module homomorphism of degree 21 defined by sending the generators
-              [g_{0}]
-            to
-              [Sq(0,2,0,1)*g_{0}]
-
-            Hom(FPA_Module([0], A, [[Sq(1)]]), FPA_Module([-2], A, [[Sq(1)]])).an_element(0)
-            The trivial homomorphism
+            Module morphism:
+              From: Finitely presented left module on 1 generator and 0 relations over mod 2 Steenrod algebra, milnor basis
+              To:   Finitely presented left module on 1 generator and 2 relations over mod 2 Steenrod algebra, milnor basis
+              Defn: g[0] |--> Sq(0,2,0,1)*g[0]
 
         Test corner cases involving trivial modules::
 
@@ -308,10 +295,13 @@ class FPModuleHomspace(Homset):
             sage: Z0 = FPModule(A, []) # A trivial module.
             sage: Z1 = FPModule(A, [0], [[1]]) # A trivial module with a redundant generator and relation.
 
-            Hom(FPA_Module([-1], A), F)._basis_elements(0, basis=True)
+            sage: Hom(FPModule(A, [-1]), F)._basis_elements(0, basis=True)
             []
-            Hom(FPA_Module([-1], A), F)._basis_elements(0, basis=False)
-            The trivial homomorphism
+            sage: Hom(FPModule(A, [-1]), F)._basis_elements(0, basis=False)
+            Module morphism:
+              From: Finitely presented left module on 1 generator and 0 relations over mod 2 Steenrod algebra, milnor basis
+              To:   Finitely presented left module on 1 generator and 0 relations over mod 2 Steenrod algebra, milnor basis
+              Defn: g[-1] |--> 0
 
             sage: from itertools import product
             sage: for D,C in product([(F, 'Free'), (Hko, 'Hko'), (Z0, 'Trivial'), (Z1, 'Trivial with redundant generator')], repeat=2):
@@ -320,109 +310,126 @@ class FPModuleHomspace(Homset):
             ....:     print('  basis==True:\n  %s' % Hom(D[0], C[0])._basis_elements(n=7, basis=True))
             Hom(Free, Free):
               basis==False:
-              Module homomorphism of degree 7 defined by sending the generators
-              (G[0],)
-            to
-              (Sq(0,0,1)*G[0],),
+              Module endomorphism of Finitely presented left module on 1 generator and 0 relations over mod 2 Steenrod algebra, milnor basis
+              Defn: g[0] |--> Sq(0,0,1)*g[0]
               basis==True:
-              [Module homomorphism of degree 7 defined by sending the generators
-              (G[0],)
-            to
-              (Sq(0,0,1)*G[0],), Module homomorphism of degree 7 defined by sending the generators
-              (G[0],)
-            to
-              (Sq(1,2)*G[0],), Module homomorphism of degree 7 defined by sending the generators
-              (G[0],)
-            to
-              (Sq(4,1)*G[0],), Module homomorphism of degree 7 defined by sending the generators
-              (G[0],)
-            to
-              (Sq(7)*G[0],)]
+              [Module endomorphism of Finitely presented left module on 1 generator and 0 relations over mod 2 Steenrod algebra, milnor basis
+              Defn: g[0] |--> Sq(0,0,1)*g[0], Module endomorphism of Finitely presented left module on 1 generator and 0 relations over mod 2 Steenrod algebra, milnor basis
+              Defn: g[0] |--> Sq(1,2)*g[0], Module endomorphism of Finitely presented left module on 1 generator and 0 relations over mod 2 Steenrod algebra, milnor basis
+              Defn: g[0] |--> Sq(4,1)*g[0], Module endomorphism of Finitely presented left module on 1 generator and 0 relations over mod 2 Steenrod algebra, milnor basis
+              Defn: g[0] |--> Sq(7)*g[0]]
             Hom(Free, Hko):
               basis==False:
-              Module homomorphism of degree 7 defined by sending the generators
-              [g_{0}]
-            to
-              (Sq(0,0,1)*G[0],)]
+              Module morphism:
+              From: Finitely presented left module on 1 generator and 0 relations over mod 2 Steenrod algebra, milnor basis
+              To:   Finitely presented left module on 1 generator and 2 relations over mod 2 Steenrod algebra, milnor basis
+              Defn: g[0] |--> Sq(0,0,1)*g[0]
               basis==True:
-              [Module homomorphism of degree 7 defined by sending the generators
-              [g_{0}]
-            to
-              (Sq(0,0,1)*G[0],)]
+              [Module morphism:
+              From: Finitely presented left module on 1 generator and 0 relations over mod 2 Steenrod algebra, milnor basis
+              To:   Finitely presented left module on 1 generator and 2 relations over mod 2 Steenrod algebra, milnor basis
+              Defn: g[0] |--> Sq(0,0,1)*g[0]]
             Hom(Free, Trivial):
               basis==False:
-              The trivial homomorphism
+              Module morphism:
+              From: Finitely presented left module on 1 generator and 0 relations over mod 2 Steenrod algebra, milnor basis
+              To:   Finitely presented left module on 0 generators and 0 relations over mod 2 Steenrod algebra, milnor basis
+              Defn: g[0] |--> 0
               basis==True:
               []
             Hom(Free, Trivial with redundant generator):
               basis==False:
-              The trivial homomorphism
+              Module morphism:
+              From: Finitely presented left module on 1 generator and 0 relations over mod 2 Steenrod algebra, milnor basis
+              To:   Finitely presented left module on 1 generator and 1 relation over mod 2 Steenrod algebra, milnor basis
+              Defn: g[0] |--> 0
               basis==True:
               []
             Hom(Hko, Free):
               basis==False:
-              The trivial homomorphism
+              Module morphism:
+              From: Finitely presented left module on 1 generator and 2 relations over mod 2 Steenrod algebra, milnor basis
+              To:   Finitely presented left module on 1 generator and 0 relations over mod 2 Steenrod algebra, milnor basis
+              Defn: g[0] |--> 0
               basis==True:
               []
             Hom(Hko, Hko):
               basis==False:
-              Module homomorphism of degree 7 defined by sending the generators
-              (G[0],)
-            to
-              (Sq(0,0,1)*G[0],)]
+              Module endomorphism of Finitely presented left module on 1 generator and 2 relations over mod 2 Steenrod algebra, milnor basis
+              Defn: g[0] |--> Sq(0,0,1)*g[0]
               basis==True:
-              [Module homomorphism of degree 7 defined by sending the generators
-              (G[0],)
-            to
-              (Sq(0,0,1)*G[0],)]
+              [Module endomorphism of Finitely presented left module on 1 generator and 2 relations over mod 2 Steenrod algebra, milnor basis
+              Defn: g[0] |--> Sq(0,0,1)*g[0]]
             Hom(Hko, Trivial):
               basis==False:
-              The trivial homomorphism
+              Module morphism:
+              From: Finitely presented left module on 1 generator and 2 relations over mod 2 Steenrod algebra, milnor basis
+              To:   Finitely presented left module on 0 generators and 0 relations over mod 2 Steenrod algebra, milnor basis
+              Defn: g[0] |--> 0
               basis==True:
               []
             Hom(Hko, Trivial with redundant generator):
               basis==False:
-              The trivial homomorphism
+              Module morphism:
+              From: Finitely presented left module on 1 generator and 2 relations over mod 2 Steenrod algebra, milnor basis
+              To:   Finitely presented left module on 1 generator and 1 relation over mod 2 Steenrod algebra, milnor basis
+              Defn: g[0] |--> 0
               basis==True:
               []
             Hom(Trivial, Free):
               basis==False:
-              The trivial homomorphism
+              Module morphism:
+              From: Finitely presented left module on 0 generators and 0 relations over mod 2 Steenrod algebra, milnor basis
+              To:   Finitely presented left module on 1 generator and 0 relations over mod 2 Steenrod algebra, milnor basis
               basis==True:
               []
             Hom(Trivial, Hko):
               basis==False:
-              The trivial homomorphism
+              Module morphism:
+              From: Finitely presented left module on 0 generators and 0 relations over mod 2 Steenrod algebra, milnor basis
+              To:   Finitely presented left module on 1 generator and 2 relations over mod 2 Steenrod algebra, milnor basis
               basis==True:
               []
             Hom(Trivial, Trivial):
               basis==False:
-              The trivial homomorphism
+              Module endomorphism of Finitely presented left module on 0 generators and 0 relations over mod 2 Steenrod algebra, milnor basis
               basis==True:
               []
             Hom(Trivial, Trivial with redundant generator):
               basis==False:
-              The trivial homomorphism
+              Module morphism:
+              From: Finitely presented left module on 0 generators and 0 relations over mod 2 Steenrod algebra, milnor basis
+              To:   Finitely presented left module on 1 generator and 1 relation over mod 2 Steenrod algebra, milnor basis
               basis==True:
               []
             Hom(Trivial with redundant generator, Free):
               basis==False:
-              The trivial homomorphism
+              Module morphism:
+              From: Finitely presented left module on 1 generator and 1 relation over mod 2 Steenrod algebra, milnor basis
+              To:   Finitely presented left module on 1 generator and 0 relations over mod 2 Steenrod algebra, milnor basis
+              Defn: g[0] |--> 0
               basis==True:
               []
             Hom(Trivial with redundant generator, Hko):
               basis==False:
-              The trivial homomorphism
+              Module morphism:
+              From: Finitely presented left module on 1 generator and 1 relation over mod 2 Steenrod algebra, milnor basis
+              To:   Finitely presented left module on 1 generator and 2 relations over mod 2 Steenrod algebra, milnor basis
+              Defn: g[0] |--> 0
               basis==True:
               []
             Hom(Trivial with redundant generator, Trivial):
               basis==False:
-              The trivial homomorphism
+              Module morphism:
+              From: Finitely presented left module on 1 generator and 1 relation over mod 2 Steenrod algebra, milnor basis
+              To:   Finitely presented left module on 0 generators and 0 relations over mod 2 Steenrod algebra, milnor basis
+              Defn: g[0] |--> 0
               basis==True:
               []
             Hom(Trivial with redundant generator, Trivial with redundant generator):
               basis==False:
-              The trivial homomorphism
+              Module endomorphism of Finitely presented left module on 1 generator and 1 relation over mod 2 Steenrod algebra, milnor basis
+              Defn: g[0] |--> 0
               basis==True:
               []
         """

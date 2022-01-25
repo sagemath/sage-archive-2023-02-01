@@ -545,11 +545,11 @@ class IndexedGenerators(object):
             sage: F = CombinatorialFreeModule(QQ, [('a', 'b'), (0,1,2)], prefix="")
             sage: e = F.basis()
             sage: latex(2*e[(0,1,2)])    # indirect doctest
-            2\left(0, 1, 2\right)
+            2 \left(0, 1, 2\right)
 
             sage: F.<a,b,c> = CombinatorialFreeModule(QQ, latex_names='x,y,z')
             sage: latex(a + 2*b)
-            x + 2y
+            x + 2 y
         """
         from sage.misc.latex import latex
 

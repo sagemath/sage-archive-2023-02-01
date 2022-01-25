@@ -38,7 +38,6 @@ _lazy_import('sage.manifolds.differentiable.examples.real_line', 'OpenInterval')
 _lazy_import('sage.manifolds.differentiable.examples.real_line', 'RealLine')
 _lazy_import('sage.manifolds.differentiable.examples.euclidean', 'EuclideanSpace')
 _lazy_import('sage.manifolds.differentiable.examples.sphere', 'Sphere')
-_lazy_import('sage.rings.real_mpfr','RealField_class')
 
 def Minkowski(positive_spacelike=True, names=None):
     """
@@ -261,11 +260,10 @@ def Torus(R=2, r=1, names=None):
 
 def RealProjectiveSpace(dim=2):
     r"""
-    Generate projective space of dimension ``dim`` over
-    ``field``.
+    Generate projective space of dimension ``dim`` over the reals.
 
-    This is the topological space of lines through the origin in `k^{d+1}`
-    for a field `k`. The standard atlas consists of `d+2` charts, which sends
+    This is the topological space of lines through the origin in 
+    `\Bold{R}^{d+1}`. The standard atlas consists of `d+2` charts, which sends
     the set `U_i = \{[x_1, x_2, \ldots, x_{d+1}] : x_i \neq 0 \}` to
     `k^{d}` by dividing by `x_i` and omitting the `i`th coordinate
     `x_i/x_i = 1`.

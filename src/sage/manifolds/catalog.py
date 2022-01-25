@@ -280,14 +280,14 @@ def RealProjectiveSpace(dim=2):
 
     EXAMPLES::
 
-        sage: P = manifolds.RealProjectiveSpace(); P
-        2-dimensional topological manifold P
-        sage: latex(P)
-        \mathbb{RP}^2
+        sage: RP2 = manifolds.RealProjectiveSpace(); RP2
+        2-dimensional topological manifold RP2
+        sage: latex(RP2)
+        \mathbb{RP}^{2}
 
-        sage: C0, C1, C2 = P.atlas()[:3]
-        sage: p = P.point((2,0), chart = C0)
-        sage: q = P.point((0,3), chart = C0)
+        sage: C0, C1, C2 = RP2.atlas()[:3]
+        sage: p = RP2.point((2,0), chart = C0)
+        sage: q = RP2.point((0,3), chart = C0)
         sage: p in C0.domain()
         True
         sage: p in C1.domain()
@@ -305,7 +305,7 @@ def RealProjectiveSpace(dim=2):
         sage: C2(q)
         (1/3, 0)
 
-        sage: r = P.point((2,3))
+        sage: r = RP2.point((2,3))
         sage: r in C0.domain() and r in C1.domain() and r in C2.domain()
         True
         sage: C0(r)
@@ -315,7 +315,7 @@ def RealProjectiveSpace(dim=2):
         sage: C2(r)
         (1/3, 2/3)
 
-        sage: p = P.point((2,3), chart = C1)
+        sage: p = RP2.point((2,3), chart = C1)
         sage: p in C0.domain() and p in C1.domain() and p in C2.domain()
         True
         sage: C0(p)
@@ -323,10 +323,10 @@ def RealProjectiveSpace(dim=2):
         sage: C2(p)
         (2/3, 1/3)
 
-        sage: P = manifolds.RealProjectiveSpace(1); P
-        1-dimensional topological manifold P
-        sage: C0, C1 = P.atlas()[:2]
-        sage: p, q = P.point((2,)), P.point((0,))
+        sage: RP1 = manifolds.RealProjectiveSpace(1); RP1
+        1-dimensional topological manifold RP1
+        sage: C0, C1 = RP1.atlas()[:2]
+        sage: p, q = RP1.point((2,)), RP1.point((0,))
         sage: p in C0.domain()
         True
         sage: p in C1.domain()
@@ -338,7 +338,7 @@ def RealProjectiveSpace(dim=2):
         sage: C1(p)
         (1/2,)
 
-        sage: p, q = P.point((3,), chart = C1), P.point((0,), chart = C1)
+        sage: p, q = RP1.point((3,), chart = C1), RP1.point((0,), chart = C1)
         sage: p in C0.domain()
         True
         sage: q in C0.domain()
@@ -351,42 +351,48 @@ def RealProjectiveSpace(dim=2):
     from sage.manifolds.manifold import Manifold
     from itertools import combinations
 
-    P = Manifold(dim, "P",
+    P = Manifold(dim, f"RP{dim}",
                  structure='topological',
-                 latex_name=r"\mathbb{RP}^" + str(dim))
+                 latex_name=r"\mathbb{{RP}}^{{{}}}".format(dim))
 
     # the trailing whitespace in the string is intentional for defining charts
     names = [f'x_{i} ' for i in range(dim + 1)]
 
+    charts = dict()
+
     # create the charts
     for i in range(dim+1):
-        U = P.open_subset(f'U{i}')
+        U = P.open_subset(name=f'U{i}', latex_name=f'U_{i}')
         # The chart where we assert that x_i == 1
-        C = U.chart(''.join(names[:i] + names[i+1:]))
+        charts[i] = U.chart(''.join(names[:i] + names[i+1:]))
 
     # this atlas is a global atlas
     P.declare_union(P.subsets())
 
     # define the transition maps
-    for i, j in combinations(range(dim+1), 2):
+    for i in range(dim):
 
-        Ci = P.atlas()[i]
-        Cj = P.atlas()[j]
+        Ci = charts[i]
+        gi = Ci[:]
 
-        gi = Ci._first_ngens(-1)  # all of the generators
-        gj = Cj._first_ngens(-1)
+        for j in range(i, dim+1):
+            Cj = charts[j]
+            gj = Cj[:]
 
-        xi = gj[i]
-        xj = gi[j - 1]  # use index j - 1 because i < j and xi is omitted in gi
+            xi = gj[i]
+            xj = gi[j - 1]  # use index j - 1 because i < j and xi is omitted in gi
 
-        # the corresponding coordinates in k^{dim+1}
-        d_plus_one_coords = [g/xj for g in gi[:i]] + [1/xj] + [g/xj for g in gi[i:]]
-        cj_new_coords = d_plus_one_coords[:j] + d_plus_one_coords[j+1:]
+            # the corresponding coordinates in R^{dim+1}
+            d_plus_one_coords = [g/xj for g in gi[:i]] + [1/xj] + [g/xj for g in gi[i:]]
+            cj_new_coords = d_plus_one_coords[:j] + d_plus_one_coords[j+1:]
 
-        Ci_to_Cj = Ci.transition_map(Cj, cj_new_coords,
-                                     restrictions1=xj != 0,
-                                     restrictions2=xi != 0)
+            Ci_to_Cj = Ci.transition_map(Cj, cj_new_coords,
+                                         restrictions1=xj != 0,
+                                         restrictions2=xi != 0)
 
-        Cj_to_Ci = Ci_to_Cj.inverse()
+            d_plus_one_coords = [g/xi for g in gj[:j]] + [1/xi] + [g/xi for g in gj[j:]]
+            ci_new_coords = d_plus_one_coords[:i] + d_plus_one_coords[i+1:]
+
+            Cj_to_Ci = Ci_to_Cj.set_inverse(*ci_new_coords, check=False)
 
     return P

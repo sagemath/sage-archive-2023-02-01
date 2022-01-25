@@ -285,7 +285,7 @@ def RealProjectiveSpace(dim=2):
         sage: latex(RP2)
         \mathbb{RP}^{2}
 
-        sage: C0, C1, C2 = RP2.atlas()[:3]
+        sage: C0, C1, C2 = RP2.top_charts()
         sage: p = RP2.point((2,0), chart = C0)
         sage: q = RP2.point((0,3), chart = C0)
         sage: p in C0.domain()
@@ -325,7 +325,7 @@ def RealProjectiveSpace(dim=2):
 
         sage: RP1 = manifolds.RealProjectiveSpace(1); RP1
         1-dimensional topological manifold RP1
-        sage: C0, C1 = RP1.atlas()[:2]
+        sage: C0, C1 = RP1.top_charts()
         sage: p, q = RP1.point((2,)), RP1.point((0,))
         sage: p in C0.domain()
         True
@@ -349,7 +349,6 @@ def RealProjectiveSpace(dim=2):
     """
 
     from sage.manifolds.manifold import Manifold
-    from itertools import combinations
 
     P = Manifold(dim, f"RP{dim}",
                  structure='topological',
@@ -358,26 +357,24 @@ def RealProjectiveSpace(dim=2):
     # the trailing whitespace in the string is intentional for defining charts
     names = [f'x_{i} ' for i in range(dim + 1)]
 
-    charts = dict()
+    U0 = P.open_subset(name='U0', latex_name='U_0')
+
+    charts = {0: U0.chart(''.join(names[1:]))}
 
     # create the charts
-    for i in range(dim+1):
-        U = P.open_subset(name=f'U{i}', latex_name=f'U_{i}')
+    for j in range(1, dim+1):
+        U = P.open_subset(name=f'U{j}', latex_name=f'U_{j}')
+        
         # The chart where we assert that x_i == 1
-        charts[i] = U.chart(''.join(names[:i] + names[i+1:]))
+        Cj = U.chart(''.join(names[:j] + names[j+1:]))
+        gj = Cj[:]
 
-    # this atlas is a global atlas
-    P.declare_union(P.subsets())
+        charts[j] = Cj
 
-    # define the transition maps
-    for i in range(dim):
+        for i in range(j):
 
-        Ci = charts[i]
-        gi = Ci[:]
-
-        for j in range(i, dim+1):
-            Cj = charts[j]
-            gj = Cj[:]
+            Ci = charts[i]
+            gi = Ci[:]
 
             xi = gj[i]
             xj = gi[j - 1]  # use index j - 1 because i < j and xi is omitted in gi
@@ -394,5 +391,8 @@ def RealProjectiveSpace(dim=2):
             ci_new_coords = d_plus_one_coords[:i] + d_plus_one_coords[i+1:]
 
             Cj_to_Ci = Ci_to_Cj.set_inverse(*ci_new_coords, check=False)
+
+    # this atlas is a global atlas
+    P.declare_union(P.subsets())
 
     return P

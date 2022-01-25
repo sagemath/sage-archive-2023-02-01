@@ -287,23 +287,6 @@ class FPModule(UniqueRepresentation, IndexedGenerators, Module):
         return FPModule(algebra, self.generator_degrees(), relations)
 
 
-    def __contains__(self, x):  # Probably can be removed
-        """
-        EXAMPLES::
-
-            sage: from sage.modules.fp_graded.module import FPModule
-            sage: M = FPModule(SteenrodAlgebra(2), [0,1], [[Sq(4), Sq(3)]])
-            sage: x = M([Sq(1), 1])
-            sage: x in M
-            True
-            sage: N = FPModule(SteenrodAlgebra(2), [0], [[Sq(2)]])
-            sage: y = Sq(2)*N.generator(0)
-            sage: y in M
-            False
-        """
-        return parent(x) is self
-
-
     def _from_dict(self, d, coerce=False, remove_zeros=True):
         r"""
         Construct an element of ``self`` from an ``{index: coefficient}``

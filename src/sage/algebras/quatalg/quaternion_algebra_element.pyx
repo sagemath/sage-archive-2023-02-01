@@ -55,7 +55,7 @@ from sage.libs.flint.ntl_interface cimport *
 cdef mpz_t T1, T2, t3, t4, t5, t6, t7, t8, s1, s2, U1, U2
 cdef fmpz_poly_t fT1, fT2, ft3, ft4, ft5, ft6, ft7, ft8, fs1, fs2, fU1, fU2
 
-def _clear_globals():
+cdef _clear_globals():
     """
     Clear all global variables allocated for optimization of
     quaternion algebra arithmetic.
@@ -92,7 +92,7 @@ def _clear_globals():
     fmpz_poly_clear(fU1)
     fmpz_poly_clear(fU2)
 
-def _init_globals():
+cdef _init_globals():
     """
     Initialize all global variables allocated for optimization of
     quaternion algebra arithmetic, and register a hook to eventually

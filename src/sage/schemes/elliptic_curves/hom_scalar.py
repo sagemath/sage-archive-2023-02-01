@@ -133,7 +133,7 @@ from sage.rings.integer_ring import ZZ
 from sage.rings.polynomial.polynomial_ring_constructor import PolynomialRing
 
 from sage.schemes.elliptic_curves.ell_generic import EllipticCurve_generic
-from sage.schemes.elliptic_curves.weierstrass_morphism import WeierstrassIsomorphism, negation_morphism
+from sage.schemes.elliptic_curves.weierstrass_morphism import negation_morphism
 from sage.schemes.elliptic_curves.hom import EllipticCurveHom
 
 from sage.misc.superseded import experimental_warning

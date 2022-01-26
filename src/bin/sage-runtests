@@ -99,7 +99,9 @@ if __name__ == "__main__":
         help="print a summary at the end of each file of optional tests that were skipped")
 
     parser.add_argument("--stats_path", "--stats-path", default=os.path.join(DOT_SAGE, "timings2.json"),
-                        help="path to a json dictionary for the latest run storing a timing for each file")
+                        help="path to a json dictionary for timings and failure status for each file from previous runs; it will be updated in this run")
+    parser.add_argument("--baseline_stats_path", "--baseline-stats-path", default=None,
+                        help="path to a json dictionary for timings and failure status for each file, to be used as a baseline; it will not be updated")
 
     class GCAction(argparse.Action):
         def __call__(self, parser, namespace, values, option_string=None):

@@ -1,0 +1,2 @@
+dev-tex/latexmk
+app-text/texlive

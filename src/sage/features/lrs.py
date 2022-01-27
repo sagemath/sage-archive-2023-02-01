@@ -47,7 +47,12 @@ class Lrs(Executable):
         with open(tf_name, 'w') as tf:
             tf.write("V-representation\nbegin\n 1 1 rational\n 1 \nend\nvolume")
         command = ['lrs', tf_name]
-        result = subprocess.run(command, capture_output=True, text=True)
+        try:
+            result = subprocess.run(command, capture_output=True, text=True)
+        except OSError as e:
+            return FeatureTestResult(self, False, reason='Running command "{}" '
+                        'raised an OSError "{}" '.format(' '.join(command), e))
+
         if result.returncode:
             return FeatureTestResult(self, False,
                 reason="Call to `{command}` failed with exit code {result.returncode}.".format(command=" ".join(command), result=result))
@@ -67,7 +72,11 @@ class Lrs(Executable):
         with open(tf_name, 'w') as tf:
             tf.write("1 1\n \n 0\n \n 0\n")
         command = ['lrsnash', tf_name]
-        result = subprocess.run(command, capture_output=True, text=True)
+        try:
+            result = subprocess.run(command, capture_output=True, text=True)
+        except OSError as e:
+            return FeatureTestResult(self, False, reason='Running command "{}" '
+                        'raised an OSError "{}" '.format(' '.join(command), e))
         if result.returncode:
             return FeatureTestResult(self, False, reason='Running command "{}" '
                         'returned non-zero exit status "{}" with stderr '

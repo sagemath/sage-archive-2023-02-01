@@ -6,3 +6,5 @@ texlive-xetex
 latexmk
 # to render text with LaTeX in Matplotlib
 dvipng
+# for tgtermes.sty used in doc-pdf
+tex-gyre

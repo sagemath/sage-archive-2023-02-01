@@ -380,6 +380,7 @@ class AvailableSoftware(object):
         sage: from sage.doctest.external import external_software, available_software
         sage: external_software
         ['cplex',
+         'ffmpeg',
          'gurobi',
          'internet',
          'latex',

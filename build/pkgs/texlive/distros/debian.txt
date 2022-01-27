@@ -1,2 +1,8 @@
+# to generate pdf documentation
+texlive-latex-extra
+# to convert Jupyter notebooks to pdf
+texlive-xetex
+# to generate pdf documentation
 latexmk
-texlive
+# to render text with LaTeX in Matplotlib
+dvipng

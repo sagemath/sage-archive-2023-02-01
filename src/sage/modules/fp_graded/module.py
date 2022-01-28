@@ -141,6 +141,18 @@ class FPModule(UniqueRepresentation, IndexedGenerators, Module):
             sage: A3 = SteenrodAlgebra(2, profile=(4,3,2,1))
             sage: M = FPModule(A3, [0, 1], [[Sq(2), Sq(1)]])
             sage: TestSuite(M).run()
+
+        Checking containment::
+
+            sage: from sage.modules.fp_graded.module import FPModule
+            sage: M = FPModule(SteenrodAlgebra(2), [0,1], [[Sq(4), Sq(3)]])
+            sage: x = M([Sq(1), 1])
+            sage: x in M
+            True
+            sage: N = FPModule(SteenrodAlgebra(2), [0], [[Sq(2)]])
+            sage: y = Sq(2) * N.generator(0)
+            sage: y in M
+            False
         """
         self._relations = relations
         self._generator_degrees = generator_degrees
@@ -385,25 +397,28 @@ class FPModule(UniqueRepresentation, IndexedGenerators, Module):
             sage: A = SteenrodAlgebra(2)
             sage: M.<a0,a2,a4> = FPModule(A, [0,2,4], [[Sq(4), Sq(2), 0]])
 
-            sage: # Creating an element from coefficients:
+        Creating an element from coefficients::
+
             sage: e = M((Sq(6), 0, Sq(2))); e
             Sq(6)*a0 + Sq(2)*a4
             sage: e in M
             True
 
-            sage: # Special syntax for creating the zero element:
+        Creating the zero element::
+
             sage: z = M(0); z
             0
             sage: z.is_zero()
             True
 
-            sage: # Creating an element from another element returns a reference to itself:
+        Idempotent on elements belonging to the module::
+
             sage: M(e)
             Sq(6)*a0 + Sq(2)*a4
             sage: e is M(e)
             True
         """
-        if isinstance(x, self.element_class):
+        if parent(x) is self:
             return x
         if not self._generator_degrees: # the trivial module
             return self.zero()

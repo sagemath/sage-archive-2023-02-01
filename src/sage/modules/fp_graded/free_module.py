@@ -345,6 +345,15 @@ class FreeGradedModule(CombinatorialFreeModule):
                               names=None, prefix=None, **kwds):
         """
         Normalize input to ensure a unique representation.
+
+        EXAMPLES::
+
+            sage: E.<x,y> = ExteriorAlgebra(QQ)
+            sage: from sage.modules.fp_graded.free_module import FreeGradedModule
+            sage: M1 = FreeGradedModule(E, [1, 0, 2], names='a,b,c')
+            sage: M2.<a,b,c> = FreeGradedModule(E, (1, 0, 2))
+            sage: M1 is M2
+            True
         """
         if algebra.base_ring() not in Fields():
             raise ValueError('the ground ring of the algebra must be a field')

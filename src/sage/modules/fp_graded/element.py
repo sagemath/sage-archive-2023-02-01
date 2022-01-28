@@ -283,6 +283,18 @@ class FPElement(IndexedFreeModuleElement):
             False
             sage: x-x == M.zero()
             True
+            sage: x != x
+            False
+
+        Comparing elements in different modules::
+
+            sage: x = Sq(2) * M.generator(0)
+            sage: N = FPModule(SteenrodAlgebra(2), [0], [[Sq(2)]])
+            sage: y = Sq(2) * N.generator(0)
+            sage: x == y
+            False
+            sage: x != y
+            True
         """
         try:
             return (self - other).is_zero()

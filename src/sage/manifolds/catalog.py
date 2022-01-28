@@ -274,7 +274,7 @@ def RealProjectiveSpace(dim=2):
 
     OUTPUT:
 
-    - ``P`` -- the projective space `RP^d` where `d =` ``dim``.
+    - ``P`` -- the projective space `\Bold{RP}^d` where `d =` ``dim``.
 
     EXAMPLES::
 

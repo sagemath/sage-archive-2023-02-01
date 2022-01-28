@@ -8,3 +8,5 @@ latexmk
 dvipng
 # for tgtermes.sty used in doc-pdf
 tex-gyre
+# for use of rsfs font in pdf documentation
+texlive-fonts-recommended

@@ -170,7 +170,7 @@ class FPModuleMorphism(Morphism):
         sage: w = Hom(Q, F)( (F((1, 0)), F((0, 1))) )
         Traceback (most recent call last):
          ...
-        ValueError: relation Sq(6)*G[2] + Sq(5)*g_{3} is not sent to zero
+        ValueError: relation Sq(6)*g[2] + Sq(5)*g[3] is not sent to zero
     """
     def __init__(self, parent, values):
         r"""
@@ -228,10 +228,10 @@ class FPModuleMorphism(Morphism):
             sage: N = FPModule(A2, [0], relations=[[Sq(4)],[Sq(1)]])
 
             sage: f = Hom(M,N)([A2.Sq(3)*N.generator(0)]); f
-            Module homomorphism of degree 3 defined by sending the generators
-              [G[0]]
-            to
-              [Sq(3)*G[0]]
+            Module morphism:
+              From: Finitely presented left module on 1 generator and 1 relation over sub-Hopf algebra of mod 2 Steenrod algebra, milnor basis, profile function [3, 2, 1]
+              To:   Finitely presented left module on 1 generator and 2 relations over sub-Hopf algebra of mod 2 Steenrod algebra, milnor basis, profile function [3, 2, 1]
+              Defn: g[0] |--> Sq(3)*g[0]
 
             sage: f.base_ring()
             sub-Hopf algebra of mod 2 Steenrod algebra, milnor basis, profile function [3, 2, 1]
@@ -275,7 +275,7 @@ class FPModuleMorphism(Morphism):
             Traceback (most recent call last):
             ...
             ValueError: the zero morphism does not have a well-defined degree
-    
+
         TESTS::
 
             sage: M = FPModule(SteenrodAlgebra(p=2), [7])
@@ -314,7 +314,7 @@ class FPModuleMorphism(Morphism):
             sage: f = homspace(values)
 
             sage: f.values()
-            (Sq(5)*G[2], Sq(3,1)*G[2])
+            (Sq(5)*g[2], Sq(3,1)*g[2])
 
             sage: homspace.zero().values()
             (0, 0)
@@ -414,10 +414,11 @@ class FPModuleMorphism(Morphism):
             sage: values = [Sq(5)*N.generator(0), Sq(3,1)*N.generator(0)]
             sage: f = homspace(values)
             sage: f_inverse = f.__neg__(); f_inverse
-            Module homomorphism of degree 7 defined by sending the generators
-              [G[0], g_{1}]
-            to
-              [Sq(5)*G[2], Sq(3,1)*G[2]]
+            Module morphism:
+              From: Finitely presented left module on 2 generators and 1 relation over mod 2 Steenrod algebra, milnor basis
+              To:   Finitely presented left module on 1 generator and 1 relation over mod 2 Steenrod algebra, milnor basis
+              Defn: g[0] |--> Sq(5)*g[2]
+                    g[1] |--> Sq(3,1)*g[2]
             sage: (f + f_inverse).is_zero()
             True
         """
@@ -438,18 +439,18 @@ class FPModuleMorphism(Morphism):
             sage: f = Hom(M, N)( [Sq(3)*N.generator(0)] )
             sage: g = Hom(M, N)( [Sq(0,1)*N.generator(0)] )
             sage: f.__sub__(g)
-            Module homomorphism of degree 3 defined by sending the generators
-              [G[0]]
-            to
-              [(Sq(0,1)+Sq(3))*G[0]]
+            Module morphism:
+              From: Finitely presented left module on 1 generator and 0 relations over mod 2 Steenrod algebra, milnor basis
+              To:   Finitely presented left module on 1 generator and 1 relation over mod 2 Steenrod algebra, milnor basis
+              Defn: g[0] |--> (Sq(0,1)+Sq(3))*g[0]
 
             sage: f = Hom(M, N)( [Sq(4)*N.generator(0)] ) # the zero map
             sage: g = Hom(M, N)( [Sq(1,1)*N.generator(0)] )
             sage: f.__sub__(g)
-            Module homomorphism of degree 4 defined by sending the generators
-              [G[0]]
-            to
-              [Sq(1,1)*G[0]]
+            Module morphism:
+              From: Finitely presented left module on 1 generator and 0 relations over mod 2 Steenrod algebra, milnor basis
+              To:   Finitely presented left module on 1 generator and 1 relation over mod 2 Steenrod algebra, milnor basis
+              Defn: g[0] |--> Sq(1,1)*g[0]
         """
         return self.__add__(g.__neg__())
 
@@ -467,10 +468,8 @@ class FPModuleMorphism(Morphism):
             sage: f = Hom(M, N)( [Sq(2)*N.generator(0)] )
             sage: g = Hom(N, M)( [Sq(2,2)*M.generator(0)] )
             sage: fg = f.__mul__(g); fg
-            Module homomorphism of degree 10 defined by sending the generators
-              [G[0]]
-            to
-              [(Sq(0,1,1)+Sq(1,3)+Sq(3,0,1))*G[0]]
+            Module endomorphism of Finitely presented left module on 1 generator and 1 relation over mod 2 Steenrod algebra, milnor basis
+              Defn: g[0] |--> (Sq(0,1,1)+Sq(1,3)+Sq(3,0,1))*g[0]
             sage: fg.is_endomorphism()
             True
 
@@ -538,10 +537,12 @@ class FPModuleMorphism(Morphism):
             sage: f.is_identity()
             False
 
-            sage: id = Hom(M, M)(M.generators()); id
-            The identity homomorphism
+            sage: one = Hom(M, M)(M.generators()); one
+            Module endomorphism of Finitely presented left module on 2 generators and 1 relation over mod 2 Steenrod algebra, milnor basis
+              Defn: g[0] |--> g[0]
+                    g[1] |--> g[1]
 
-            sage: id.is_identity()
+            sage: one.is_identity()
             True
         """
         return (self.parent().is_endomorphism_set() and
@@ -572,10 +573,10 @@ class FPModuleMorphism(Morphism):
             sage: f = Hom(M, N)(values)
 
             sage: f.__call__(M.generator(0))
-            Sq(5)*G[2]
+            Sq(5)*g[2]
 
             sage: f.__call__(M.generator(1))
-            Sq(3,1)*G[2]
+            Sq(3,1)*g[2]
         """
         if x.parent() != self.domain():
             raise ValueError('cannot evaluate morphism on element not in domain')
@@ -583,35 +584,38 @@ class FPModuleMorphism(Morphism):
         return self.codomain()(self.free_morphism(x.lift_to_free()))
 
 
-    def _repr_(self):
-        r"""
-        A string representation of ``self``.
-
-        EXAMPLES::
-
-            sage: from sage.modules.fp_graded.module import *
-            sage: A = SteenrodAlgebra(2)
-            sage: M = FPModule(A, [0,1], [[Sq(2), Sq(1)]])
-            sage: N = FPModule(A, [2], [[Sq(4)]])
-            sage: values = [Sq(5)*N.generator(0), Sq(3,1)*N.generator(0)]
-            sage: Hom(M, N)(values)
-            Module homomorphism of degree 7 defined by sending the generators
-              [G[0], g_{1}]
-            to
-              [Sq(5)*G[2], Sq(3,1)*G[2]]
-            sage: Hom(M, N).zero()
-            The trivial homomorphism
-            sage: Hom(M, M).identity()
-            The identity homomorphism
+    def _repr_type(self):
         """
-        if self.is_zero():
-            return "The trivial homomorphism"
-        elif self.is_identity():
-            return "The identity homomorphism"
-        else:
-            return ("Module homomorphism of degree %d defined by sending "
-                    "the generators\n  %s\nto\n  %s"
-                    % (self.degree(), self.domain().generators(), self._values))
+        TESTS::
+
+            sage: from sage.modules.fp_graded.module import FPModule
+            sage: A2 = SteenrodAlgebra(2, profile=(3,2,1))
+            sage: A3 = SteenrodAlgebra(2, profile=(4,3,2,1))
+            sage: M = FPModule(A2, [0], relations=[[Sq(1)]])
+            sage: N = FPModule(A2, [0], relations=[[Sq(4)],[Sq(1)]])
+            sage: f = Hom(M,N)([A2.Sq(3)*N.generator(0)])
+            sage: f._repr_type()
+            'Module'
+        """
+        return "Module"
+
+
+    def _repr_defn(self):
+        """
+        TESTS::
+
+            sage: from sage.modules.fp_graded.module import FPModule
+            sage: A2 = SteenrodAlgebra(2, profile=(3,2,1))
+            sage: A3 = SteenrodAlgebra(2, profile=(4,3,2,1))
+            sage: M = FPModule(A2, [0], relations=[[Sq(1)]])
+            sage: N = FPModule(A2, [0], relations=[[Sq(4)],[Sq(1)]])
+            sage: f = Hom(M,N)([A2.Sq(3)*N.generator(0)])
+            sage: f._repr_defn()
+            'g[0] |--> Sq(3)*g[0]'
+        """
+        s = '\n'.join(['%s |--> %s'%(x, y) for (x, y) in
+                       zip(self.domain().generators(), self._values)])
+        return s
 
 
     @cached_method
@@ -742,9 +746,9 @@ class FPModuleMorphism(Morphism):
             sage: N = FPModule(A, [0], [[Sq(2,2)]])
             sage: f = Hom(M, N)( [Sq(2)*N.generator(0)] )
             sage: y = Sq(1,1)*N.generator(0); y
-            Sq(1,1)*G[0]
+            Sq(1,1)*g[0]
             sage: x = f.solve(y); x
-            Sq(2)*G[0]
+            Sq(2)*g[0]
             sage: y == f(x)
             True
 
@@ -810,7 +814,7 @@ class FPModuleMorphism(Morphism):
 
         The linear function sending `g_i` to `x_i` for every `i` is well
         defined if and only if the vector `x = (x_1,\ldots, x_N)` lies
-        in the nullspace of the coefficient matrix `R = (r_{ij})` given by the 
+        in the nullspace of the coefficient matrix `R = (r_{ij})` given by the
         relations of `L`.
 
         Let `k \in \ker(f)` solve the matrix equation:
@@ -819,8 +823,8 @@ class FPModuleMorphism(Morphism):
 
             R \cdot k = R \cdot x.
 
-        Define a module homomorphism by sending the generators of `L` to 
-        `x_1 - k_1, \ldots, x_N - k_N`.  This is well defined, and is also a 
+        Define a module homomorphism by sending the generators of `L` to
+        `x_1 - k_1, \ldots, x_N - k_N`.  This is well defined, and is also a
         lift of this homomorphism over `f`.
 
         Note that it does not matter how we choose the initial elements `x_i`:
@@ -843,10 +847,10 @@ class FPModuleMorphism(Morphism):
             sage: f*f_ == k
             True
             sage: f_
-            Module homomorphism of degree 1 defined by sending the generators
-              [G[0]]
-            to
-              [Sq(1)*G[0]]
+            Module morphism:
+              From: Finitely presented left module on 1 generator and 0 relations over mod 2 Steenrod algebra, milnor basis
+              To:   Finitely presented left module on 1 generator and 1 relation over mod 2 Steenrod algebra, milnor basis
+              Defn: g[0] |--> Sq(1)*g[0]
 
         A split projection::
 
@@ -855,17 +859,20 @@ class FPModuleMorphism(Morphism):
             sage: q = Hom(A_plus_HZ, HZ)([HZ([1]), HZ([1])])
             sage: # We can construct a splitting of `q` manually:
             sage: split = Hom(HZ,A_plus_HZ)([A_plus_HZ.generator(1)])
-            sage: q*split
-            The identity homomorphism
-            sage: # Thus, lifting the identity homomorphism over `q` should be possible:
-            sage: id = Hom(HZ,HZ).identity()
-            sage: j = id.lift(q); j
-            Module homomorphism of degree 0 defined by sending the generators
-              [G[0]]
-            to
-              [g_{0,1}]
+            sage: (q*split).is_identity()
+            True
+
+        Thus, lifting the identity homomorphism over `q` should be possible::
+
+            sage: one = Hom(HZ,HZ).identity()
+            sage: j = one.lift(q); j
+            Module morphism:
+              From: Finitely presented left module on 1 generator and 1 relation over mod 2 Steenrod algebra, milnor basis
+              To:   Finitely presented left module on 2 generators and 1 relation over mod 2 Steenrod algebra, milnor basis
+              Defn: g[0] |--> g(0, 1)
             sage: q*j
-            The identity homomorphism
+            Module endomorphism of Finitely presented left module on 1 generator and 1 relation over mod 2 Steenrod algebra, milnor basis
+              Defn: g[0] |--> g[0]
 
         Lifting over the inclusion of the image sub module::
 
@@ -874,10 +881,10 @@ class FPModuleMorphism(Morphism):
             sage: f = Hom(M,M)([Sq(2)*M.generator(0)])
             sage: im = f.image(top_dim=10)
             sage: f.lift(im)
-            Module homomorphism of degree 2 defined by sending the generators
-              [G[0]]
-            to
-              [G[2]]
+            Module morphism:
+              From: Finitely presented left module on 1 generator and 1 relation over mod 2 Steenrod algebra, milnor basis
+              To:   Finitely presented left module on 1 generator and 2 relations over mod 2 Steenrod algebra, milnor basis
+              Defn: g[0] |--> g[2]
 
         When a lift cannot be found, the ``None`` value is returned.  By
         setting the verbose argument to ``True``, an explanation of why
@@ -897,8 +904,8 @@ class FPModuleMorphism(Morphism):
             sage: A = SteenrodAlgebra(2)
             sage: # The trivial map often involved in corner cases..
             sage: trivial_map = Hom(FPModule(A, [0]), FPModule(A, [])).zero()
-            sage: trivial_map.lift(trivial_map)
-            The trivial homomorphism
+            sage: trivial_map.lift(trivial_map) == 0
+            True
 
             sage: F = FPModule(A, [0])
             sage: HZ = FPModule(A, [0], relations=[[Sq(1)]])
@@ -926,10 +933,10 @@ class FPModuleMorphism(Morphism):
             True
             sage: k = f.kernel_inclusion() # long time
             sage: f.lift(k) # long time
-            Module homomorphism of degree 21 defined by sending the generators
-              [G[0]]
-            to
-              [Sq(1)*g_{20}]
+            Module morphism:
+              From: Finitely presented left module on 1 generator and 2 relations over sub-Hopf algebra of mod 2 Steenrod algebra, milnor basis, profile function [2, 2, 2, 1]
+              To:   Finitely presented left module on 3 generators and 12 relations over sub-Hopf algebra of mod 2 Steenrod algebra, milnor basis, profile function [2, 2, 2, 1]
+              Defn: g[0] |--> Sq(1)*g[20]
 
         Corner cases involving trivial maps::
 
@@ -1083,13 +1090,14 @@ class FPModuleMorphism(Morphism):
             sage: N = FPModule(A, [0], [[Sq(1)]])
             sage: p = Hom(M, N)([N.generator(0), N.generator(0)])
             sage: s = p.split(); s
-            Module homomorphism of degree 0 defined by sending the generators
-              [G[0]]
-            to
-              [g_{0,1}]
+            Module morphism:
+              From: Finitely presented left module on 1 generator and 1 relation over mod 2 Steenrod algebra, milnor basis
+              To:   Finitely presented left module on 2 generators and 1 relation over mod 2 Steenrod algebra, milnor basis
+              Defn: g[0] |--> g(0, 1)
             sage: # Verify that `s` is a splitting:
             sage: p*s
-            The identity homomorphism
+            Module endomorphism of Finitely presented left module on 1 generator and 1 relation over mod 2 Steenrod algebra, milnor basis
+              Defn: g[0] |--> g[0]
 
         TESTS::
 
@@ -1182,23 +1190,25 @@ class FPModuleMorphism(Morphism):
             sage: F2 = FPModule(A, [5])
 
             sage: f = Hom(F1, F2)( ( F2([Sq(4)]), F2([Sq(5)]) ) ); f
-            Module homomorphism of degree 5 defined by sending the generators
-              [g_{4}, g_{5}]
-            to
-              (Sq(4)*g_{5}, Sq(5)*g_{5})
+            Module morphism:
+              From: Finitely presented left module on 2 generators and 0 relations over mod 2 Steenrod algebra, milnor basis
+              To:   Finitely presented left module on 1 generator and 0 relations over mod 2 Steenrod algebra, milnor basis
+              Defn: g[4] |--> Sq(4)*g[5]
+                    g[5] |--> Sq(5)*g[5]
 
             sage: e1 = F1([1, 0])
             sage: e2 = F1([0, 1])
             sage: f(e1)
-            Sq(4)*g_{5}
+            Sq(4)*g[5]
             sage: f(e2)
-            Sq(5)*g_{5}
+            Sq(5)*g[5]
 
             sage: sf = f.suspension(4); sf
-            Module homomorphism of degree 5 defined by sending the generators
-              [g_{8}, g_{9}]
-            to
-              [Sq(4)*g_{9}, Sq(5)*g_{9}]
+            Module morphism:
+              From: Finitely presented left module on 2 generators and 0 relations over mod 2 Steenrod algebra, milnor basis
+              To:   Finitely presented left module on 1 generator and 0 relations over mod 2 Steenrod algebra, milnor basis
+              Defn: g[8] |--> Sq(4)*g[9]
+                    g[9] |--> Sq(5)*g[9]
 
             sage: sf.domain() is f.domain().suspension(4)
             True
@@ -1232,10 +1242,10 @@ class FPModuleMorphism(Morphism):
 
             sage: r = Hom(F, M)([A1.Sq(1)*M.generator(0)])
             sage: co = r.cokernel_projection(); co
-            Module homomorphism of degree 0 defined by sending the generators
-              [G[0]]
-            to
-              [G[0]]
+            Module morphism:
+              From: Finitely presented left module on 1 generator and 1 relation over sub-Hopf algebra of mod 2 Steenrod algebra, milnor basis, profile function [2, 1]
+              To:   Finitely presented left module on 1 generator and 2 relations over sub-Hopf algebra of mod 2 Steenrod algebra, milnor basis, profile function [2, 1]
+              Defn: g[0] |--> g[0]
 
             sage: co.domain().is_trivial()
             False
@@ -1282,10 +1292,11 @@ class FPModuleMorphism(Morphism):
             sage: H = Hom(F, L);
 
             sage: H([L((A3.Sq(1), 1)), L((0, A3.Sq(2)))]).kernel_inclusion() # long time
-            Module homomorphism of degree 0 defined by sending the generators
-              [g_{3}, g_{4}]
-            to
-              (g_{3}, Sq(0,1)*g_{1})
+            Module morphism:
+              From: Finitely presented left module on 2 generators and 1 relation over sub-Hopf algebra of mod 2 Steenrod algebra, milnor basis, profile function [4, 3, 2, 1]
+              To:   Finitely presented left module on 2 generators and 0 relations over sub-Hopf algebra of mod 2 Steenrod algebra, milnor basis, profile function [4, 3, 2, 1]
+              Defn: g[3] |--> g[3]
+                    g[4] |--> Sq(0,1)*g[1]
 
             sage: M = FPModule(A3, [0,7], [[Sq(1), 0], [Sq(2), 0], [Sq(4), 0], [Sq(8), Sq(1)], [0, Sq(7)], [0, Sq(0,1,1)+Sq(4,2)]])
             sage: F2 = FPModule(A3, [0], [[Sq(1)], [Sq(2)], [Sq(4)], [Sq(8)], [Sq(15)]])
@@ -1301,18 +1312,18 @@ class FPModuleMorphism(Morphism):
              7 8 9 10 11 12 13 14 15 16 17.
 
             sage: K.domain().generators()
-            [g_{7}]
+            (g[7],)
             sage: K.domain().relations()
-            [(Sq(0,1)+Sq(3))*g_{7},
-             (Sq(0,0,1)+Sq(1,2)+Sq(4,1))*g_{7},
-             Sq(9)*g_{7},
-             (Sq(0,1,1)+Sq(4,2))*g_{7}]
+            ((Sq(0,1)+Sq(3))*g[7],
+             (Sq(0,0,1)+Sq(1,2)+Sq(4,1))*g[7],
+             Sq(9)*g[7],
+             (Sq(0,1,1)+Sq(4,2))*g[7])
 
             sage: K
-            Module homomorphism of degree 0 defined by sending the generators
-              [g_{7}]
-            to
-              (g_{7},)
+            Module morphism:
+              From: Finitely presented left module on 1 generator and 4 relations over sub-Hopf algebra of mod 2 Steenrod algebra, milnor basis, profile function [4, 3, 2, 1]
+              To:   Finitely presented left module on 2 generators and 6 relations over sub-Hopf algebra of mod 2 Steenrod algebra, milnor basis, profile function [4, 3, 2, 1]
+              Defn: g[7] |--> g[7]
         """
         if verbose:
             print('1. Computing the generators of the kernel presentation:')
@@ -1359,10 +1370,10 @@ class FPModuleMorphism(Morphism):
             sage: H = Hom(F, L);
 
             sage: H([L((A3.Sq(1), 1)), L((0, A3.Sq(2)))]).image() # long time
-            Module homomorphism of degree 0 defined by sending the generators
-              [g_{3}]
-            to
-              (Sq(1)*G[2] + g_{3},)
+            Module morphism:
+              From: Finitely presented left module on 1 generator and 1 relation over sub-Hopf algebra of mod 2 Steenrod algebra, milnor basis, profile function [4, 3, 2, 1]
+              To:   Finitely presented left module on 2 generators and 2 relations over sub-Hopf algebra of mod 2 Steenrod algebra, milnor basis, profile function [4, 3, 2, 1]
+              Defn: g[3] |--> Sq(1)*g[2] + g[3]
 
             sage: M = FPModule(A3, [0,7], [[Sq(1), 0], [Sq(2), 0], [Sq(4), 0], [Sq(8), Sq(1)], [0, Sq(7)], [0, Sq(0,1,1)+Sq(4,2)]])
             sage: F2 = FPModule(A3, [0], [[Sq(1)], [Sq(2)], [Sq(4)], [Sq(8)], [Sq(15)]])
@@ -1381,7 +1392,7 @@ class FPModuleMorphism(Morphism):
             sage: K.domain().generator_degrees()
             (0,)
             sage: K.domain().relations()
-            [Sq(1)*G[0], Sq(2)*G[0], Sq(4)*G[0], Sq(8)*G[0]]
+            (Sq(1)*g[0], Sq(2)*g[0], Sq(4)*g[0], Sq(8)*g[0])
             sage: K.domain().is_trivial()
             False
 
@@ -1493,16 +1504,20 @@ class FPModuleMorphism(Morphism):
             ...
             ValueError: a top dimension must be specified for this calculation to terminate
             sage: f._resolve_kernel(top_dim=20)
-            Module homomorphism of degree 0 defined by sending the generators
-              [g_{0,0}, g_{3,0}, g_{3,1}]
-            to
-              (g_{0,1}, Sq(0,1)*g_{0,0}, Sq(3)*g_{0,0})
+            Module morphism:
+              From: Finitely presented left module on 3 generators and 0 relations over mod 2 Steenrod algebra, milnor basis
+              To:   Finitely presented left module on 2 generators and 0 relations over mod 2 Steenrod algebra, milnor basis
+              Defn: g(0, 0) |--> g(0, 1)
+                    g(3, 0) |--> Sq(0,1)*g(0, 0)
+                    g(3, 1) |--> Sq(3)*g(0, 0)
             sage: A3 = SteenrodAlgebra(2, profile=(4,3,2,1))
             sage: f.change_ring(A3)._resolve_kernel()  # long time
-            Module homomorphism of degree 0 defined by sending the generators
-              [g_{0,0}, g_{3,0}, g_{3,1}]
-            to
-              (g_{0,1}, Sq(0,1)*g_{0,0}, Sq(3)*g_{0,0})
+            Module morphism:
+              From: Finitely presented left module on 3 generators and 0 relations over sub-Hopf algebra of mod 2 Steenrod algebra, milnor basis, profile function [4, 3, 2, 1]
+              To:   Finitely presented left module on 2 generators and 0 relations over sub-Hopf algebra of mod 2 Steenrod algebra, milnor basis, profile function [4, 3, 2, 1]
+              Defn: g(0, 0) |--> g(0, 1)
+                    g(3, 0) |--> Sq(0,1)*g(0, 0)
+                    g(3, 1) |--> Sq(3)*g(0, 0)
         """
         # Let
         #
@@ -1636,16 +1651,16 @@ class FPModuleMorphism(Morphism):
             ...
             ValueError: a top dimension must be specified for this calculation to terminate
             sage: f._resolve_image(top_dim=20)
-            Module homomorphism of degree 0 defined by sending the generators
-              [G[2]]
-            to
-              (Sq(2)*g_{0,0},)
+            Module morphism:
+              From: Finitely presented left module on 1 generator and 0 relations over mod 2 Steenrod algebra, milnor basis
+              To:   Finitely presented left module on 2 generators and 2 relations over mod 2 Steenrod algebra, milnor basis
+              Defn: g[2] |--> Sq(2)*g(0, 0)
             sage: A3 = SteenrodAlgebra(2, profile=(4,3,2,1))
             sage: f.change_ring(A3)._resolve_image() # long time
-            Module homomorphism of degree 0 defined by sending the generators
-              [G[2]]
-            to
-              (Sq(2)*g_{0,0},)
+            Module morphism:
+              From: Finitely presented left module on 1 generator and 0 relations over sub-Hopf algebra of mod 2 Steenrod algebra, milnor basis, profile function [4, 3, 2, 1]
+              To:   Finitely presented left module on 2 generators and 2 relations over sub-Hopf algebra of mod 2 Steenrod algebra, milnor basis, profile function [4, 3, 2, 1]
+              Defn: g[2] |--> Sq(2)*g(0, 0)
         """
         # Let
         #
@@ -1760,7 +1775,7 @@ class FPModuleMorphism(Morphism):
             sage: M.generator_degrees()
             (0,)
             sage: M.relations()
-            [Sq(2)*G[0]]
+            (Sq(2)*g[0],)
 
             sage: F3 = FPModule(A, (0,), [[Sq(4)]])
             sage: pres = Hom(F1, F3)([v])

@@ -42,32 +42,32 @@ of degree `n` has the form
 
     x = \sum_{i=1}^N a_i\cdot g_i\,,
 
-where `a_i\in A_{n-\deg(g_i)}` for all `i`.  The ordered set `\{a_i\}` 
+where `a_i\in A_{n-\deg(g_i)}` for all `i`.  The ordered set `\{a_i\}`
 is referred to as the coefficients of `x`.
 
 Module elements are displayed by their algebra coefficients::
 
     sage: M.an_element(n=5)
-    Sq(2,1)*G[0] + Sq(4)*G[1]
+    Sq(2,1)*g[0] + Sq(4)*g[1]
 
     sage: M.an_element(n=15)
-    Sq(0,0,0,1)*G[0] + Sq(1,2,1)*G[1]
+    Sq(0,0,0,1)*g[0] + Sq(1,2,1)*g[1]
 
 The generators are themselves elements of the module::
 
     sage: M.generators()
-    (G[0], G[1])
+    (g[0], g[1])
 
 Producing elements from a given set of coefficients is possible as usual::
 
     sage: coeffs = [Sq(5), Sq(1,1)]
     sage: x = M(coeffs); x
-    Sq(5)*G[0] + Sq(1,1)*G[1]
+    Sq(5)*g[0] + Sq(1,1)*g[1]
 
 The module action produces new elements::
 
     sage: Sq(2) * x
-    (Sq(4,1)+Sq(7))*G[0] + Sq(3,1)*G[1]
+    (Sq(4,1)+Sq(7))*g[0] + Sq(3,1)*g[1]
 
 Each non-zero element has a well-defined degree::
 
@@ -86,9 +86,9 @@ However the zero element does not::
 Any two elements can be added as long as they are in the same degree::
 
     sage: y = M.an_element(5); y
-    Sq(2,1)*G[0] + Sq(4)*G[1]
+    Sq(2,1)*g[0] + Sq(4)*g[1]
     sage: x + y
-    (Sq(2,1)+Sq(5))*G[0] + (Sq(1,1)+Sq(4))*G[1]
+    (Sq(2,1)+Sq(5))*g[0] + (Sq(1,1)+Sq(4))*g[1]
 
 or when at least one of them is zero::
 
@@ -105,7 +105,7 @@ vector space over the ground field `k`.  A basis for this vector space can be
 computed::
 
     sage: M.basis_elements(5)
-    (Sq(2,1)*G[0], Sq(5)*G[0], Sq(1,1)*G[1], Sq(4)*G[1])
+    (Sq(2,1)*g[0], Sq(5)*g[0], Sq(1,1)*g[1], Sq(4)*g[1])
 
 together with a corresponding vector space presentation::
 
@@ -122,7 +122,7 @@ coordinates::
 
     sage: x_ = M.element_from_coordinates((0,1,1,0), 5)
     sage: x_
-    Sq(5)*G[0] + Sq(1,1)*G[1]
+    Sq(5)*g[0] + Sq(1,1)*g[1]
     sage: x_ == x
     True
 
@@ -157,20 +157,27 @@ The resulting homomorphism is the one sending the `i`-th generator of the
 domain to the `i`-th codomain value given::
 
     sage: f
-    Module homomorphism of degree 4 defined by sending the generators
-      (G[0], G[1])
-    to
-      (Sq(2)*c2, (Sq(0,1)+Sq(3))*c2)
+    Free module morphism:
+      From: Free graded left module on 2 generators over mod 2 Steenrod algebra, milnor basis
+      To:   Free graded left module on 1 generator over mod 2 Steenrod algebra, milnor basis
+      Defn: g[0] |--> Sq(2)*c2
+            g[1] |--> (Sq(0,1)+Sq(3))*c2
 
 Convenience methods exist for creating the trivial morphism::
 
     sage: homspace.zero()
-    The trivial homomorphism
+    Free module morphism:
+      From: Free graded left module on 2 generators over mod 2 Steenrod algebra, milnor basis
+      To:   Free graded left module on 1 generator over mod 2 Steenrod algebra, milnor basis
+      Defn: g[0] |--> 0
+            g[1] |--> 0
 
 as well as the identity endomorphism::
 
     sage: Hom(M, M).identity()
-    The identity homomorphism
+    Free module endomorphism of Free graded left module on 2 generators over mod 2 Steenrod algebra, milnor basis
+      Defn: g[0] |--> g[0]
+            g[1] |--> g[1]
 
 Homomorphisms can be evaluated on elements of the domain module::
 
@@ -205,10 +212,11 @@ Any two homomorphisms can be added as long as they are of the same degree::
 
     sage: f2 = homspace([Sq(2)*c2, Sq(3)*c2])
     sage: f + f2
-    Module homomorphism of degree 4 defined by sending the generators
-      (G[0], G[1])
-    to
-      (0, Sq(0,1)*c2)
+    Free module morphism:
+      From: Free graded left module on 2 generators over mod 2 Steenrod algebra, milnor basis
+      To:   Free graded left module on 1 generator over mod 2 Steenrod algebra, milnor basis
+      Defn: g[0] |--> 0
+            g[1] |--> Sq(0,1)*c2
 
 or when at least one of them is zero::
 
@@ -217,8 +225,8 @@ or when at least one of them is zero::
 
 Finally, additive inverses exist::
 
-    sage: f - f
-    The trivial homomorphism
+    sage: f - f == 0
+    True
 
 The restriction of a homomorphism to the vector space of `n`-dimensional module
 elements is a linear transformation::
@@ -315,9 +323,9 @@ class FreeGradedModule(CombinatorialFreeModule):
     ``names`` of generators::
 
         sage: M.generators()
-        (G[-1], G[3])
+        (g[-1], g[3])
         sage: FreeGradedModule(E, (0, 0, 2)).generators()
-        (G(0, 0), G(0, 1), G(2, 0))
+        (g(0, 0), g(0, 1), g(2, 0))
         sage: FreeGradedModule(E, (0, 0, 2), names='x, y, z').generators()
         (x, y, z)
         sage: FreeGradedModule(E, (0, 0, 2), names='xyz').generators()
@@ -354,7 +362,7 @@ class FreeGradedModule(CombinatorialFreeModule):
             if names is not None and len(names) != len(generator_degrees):
                 raise ValueError("the names do not correspond to the generators")
         if prefix is None:
-            prefix = 'G'
+            prefix = 'g'
         return super(cls, FreeGradedModule).__classcall__(cls, algebra=algebra,
                                                           generator_degrees=generator_degrees,
                                                           category=category, names=names,
@@ -550,7 +558,7 @@ class FreeGradedModule(CombinatorialFreeModule):
             sage: A = SteenrodAlgebra(2)
             sage: M = FreeGradedModule(A, (0,2,4))
             sage: M.an_element(172)
-            Sq(0,0,2,0,1,0,1)*G[0] + Sq(0,4,0,0,1,0,1)*G[2] + Sq(7,1,0,0,1,0,1)*G[4]
+            Sq(0,0,2,0,1,0,1)*g[0] + Sq(0,4,0,0,1,0,1)*g[2] + Sq(7,1,0,0,1,0,1)*g[4]
 
         Zero is the only element in the trivial module::
 
@@ -650,7 +658,7 @@ class FreeGradedModule(CombinatorialFreeModule):
             sage: A = SteenrodAlgebra(2)
             sage: M = FreeGradedModule(A, (0,1))
             sage: x = M.element_from_coordinates((0,1,0,1), 5); x
-            Sq(5)*G[0] + Sq(4)*G[1]
+            Sq(5)*g[0] + Sq(4)*g[1]
             sage: basis = M.basis_elements(5)
             sage: y = 0*basis[0] + 1*basis[1] + 0*basis[2] + 1*basis[3]
             sage: x == y
@@ -770,11 +778,11 @@ class FreeGradedModule(CombinatorialFreeModule):
             sage: A = SteenrodAlgebra(2)
             sage: M = FreeGradedModule(A, (0,2,4))
             sage: M.generator(0)
-            G[0]
+            g[0]
             sage: M.generator(1)
-            G[2]
+            g[2]
             sage: M.generator(2)
-            G[4]
+            g[4]
         """
         try:
             return self.gens()[index]
@@ -796,7 +804,7 @@ class FreeGradedModule(CombinatorialFreeModule):
             sage: A = SteenrodAlgebra(2)
             sage: M = FreeGradedModule(A, (-2,1))
             sage: M.generators()
-            (G[-2], G[1])
+            (g[-2], g[1])
         """
         return self.gens()
 

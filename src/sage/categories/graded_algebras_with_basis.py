@@ -117,7 +117,7 @@ class GradedAlgebrasWithBasis(GradedModulesCategory):
                 sage: Cl = CliffordAlgebra(Q)
                 sage: M = Cl.free_graded_module((0, 2, 3))
                 sage: M.gens()
-                (g_{0}, g_{2}, g_{3})
+                (g[0], g[2], g[3])
             """
             from sage.modules.fp_graded.free_module import FreeGradedModule
             return FreeGradedModule(self, generator_degrees, names)

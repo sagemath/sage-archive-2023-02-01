@@ -31,7 +31,7 @@ class FreeGradedModuleElement(IndexedFreeModuleElement):
     Create a module element of a finitely generated free graded left module
     over a connected graded algebra.
 
-    EXAMPLES::  
+    EXAMPLES::
 
         sage: from sage.modules.fp_graded.free_module import FreeGradedModule
         sage: M = FreeGradedModule(SteenrodAlgebra(2), (0, 1))
@@ -40,13 +40,13 @@ class FreeGradedModuleElement(IndexedFreeModuleElement):
         0
 
         sage: M([1, 0])
-        g_{0}
+        g[0]
 
         sage: M([0, 1])
-        g_{1}
+        g[1]
 
         sage: M([Sq(1), 1])
-        Sq(1)*g_{0} + g_{1}
+        Sq(1)*g[0] + g[1]
     """
 
     def coefficients(self):
@@ -81,7 +81,7 @@ class FreeGradedModuleElement(IndexedFreeModuleElement):
             sage: A = SteenrodAlgebra(2)
             sage: M = FreeGradedModule(A, (0,1))
             sage: x = M.an_element(7); x
-            Sq(0,0,1)*g_{0} + Sq(3,1)*g_{1}
+            Sq(0,0,1)*g[0] + Sq(3,1)*g[1]
             sage: x.degree()
             7
 
@@ -221,7 +221,7 @@ class FreeGradedModuleElement(IndexedFreeModuleElement):
 
             sage: basis = M.basis_elements(7)
             sage: x_ = sum( [c*b for (c,b) in zip(v, basis)] ); x_
-            Sq(0,0,1)*g_{0} + Sq(3,1)*g_{1}
+            Sq(0,0,1)*g[0] + Sq(3,1)*g[1]
             sage: x == x_
             True
 
@@ -229,10 +229,10 @@ class FreeGradedModuleElement(IndexedFreeModuleElement):
 
             sage: M.zero().vector_presentation() is None
             True
-        """        
+        """
         # We cannot represent the zero element since it does not have a degree,
         # and we therefore do not know which vector space it belongs to.
-        # 
+        #
         # In this case, we could return the integer value 0 since coercion would
         # place it inside any vector space.  However, this will not work for
         # homomorphisms, so we we return None to be consistent.

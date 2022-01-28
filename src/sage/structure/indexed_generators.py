@@ -549,7 +549,7 @@ class IndexedGenerators(object):
 
             sage: F.<a,b,c> = CombinatorialFreeModule(QQ, latex_names='x,y,z')
             sage: latex(a + 2*b)
-            x + 2y
+            x + 2 y
         """
         from sage.misc.latex import latex
 

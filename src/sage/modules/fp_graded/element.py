@@ -38,7 +38,7 @@ class FPElement(IndexedFreeModuleElement):
 
         sage: from sage.modules.fp_graded.module import FPModule
         sage: FPModule(SteenrodAlgebra(2), [0])([Sq(2)])
-        Sq(2)*g_{0}
+        Sq(2)*g[0]
     """
     def lift_to_free(self):
         r"""
@@ -51,13 +51,13 @@ class FPElement(IndexedFreeModuleElement):
             sage: M = FPModule(SteenrodAlgebra(2), [0,1], [[Sq(4), Sq(3)]])
             sage: x = M([Sq(1), 1])
             sage: x
-            Sq(1)*g_{0} + g_{1}
+            Sq(1)*g[0] + g[1]
             sage: x.parent()
             Finitely presented left module on 2 generators and 1 relation over mod 2 Steenrod algebra, milnor basis
             sage: x.lift_to_free()
-            Sq(1)*g_{0} + g_{1}
+            Sq(1)*g[0] + g[1]
             sage: x.lift_to_free().parent()
-            Finitely presented free left module on 2 generators over mod 2 Steenrod algebra, milnor basis
+            Free graded left module on 2 generators over mod 2 Steenrod algebra, milnor basis
         """
         C = self.parent().j.codomain()
         return C(self.coefficients())
@@ -79,7 +79,7 @@ class FPElement(IndexedFreeModuleElement):
             sage: x = M.an_element(7)
 
             sage: x
-            Sq(0,0,1)*g_{0} + Sq(3,1)*g_{1}
+            Sq(0,0,1)*g[0] + Sq(3,1)*g[1]
             sage: x.degree()
             7
 
@@ -143,24 +143,24 @@ class FPElement(IndexedFreeModuleElement):
             sage: A2 = SteenrodAlgebra(2, profile=(3,2,1))
             sage: M = FPModule(A2, [0,3], [[Sq(2)*Sq(4), Sq(3)]])
             sage: A2.Sq(2)*M.generator(1)
-            Sq(2)*g_{3}
+            Sq(2)*g[3]
             sage: A2.Sq(2)*(A2.Sq(1)*A2.Sq(2)*M.generator(0) + M.generator(1))
-            Sq(2,1)*g_{0} + Sq(2)*g_{3}
+            Sq(2,1)*g[0] + Sq(2)*g[3]
 
         TESTS::
 
             sage: elements = [M.an_element(n) for n in range(1,10)]
             sage: a = A2.Sq(3)
             sage: [a*x for x in elements]
-            [Sq(1,1)*g_{0},
+            [Sq(1,1)*g[0],
              0,
-             Sq(3,1)*g_{0} + Sq(3)*g_{3},
-             Sq(1,1)*g_{3},
+             Sq(3,1)*g[0] + Sq(3)*g[3],
+             Sq(1,1)*g[3],
              0,
-             Sq(3,2)*g_{0} + Sq(3,1)*g_{3},
-             Sq(3,0,1)*g_{0} + Sq(7)*g_{3},
-             Sq(1,1,1)*g_{0} + Sq(5,1)*g_{3},
-             Sq(3,2)*g_{3}]
+             Sq(3,2)*g[0] + Sq(3,1)*g[3],
+             Sq(3,0,1)*g[0] + Sq(7)*g[3],
+             Sq(1,1,1)*g[0] + Sq(5,1)*g[3],
+             Sq(3,2)*g[3]]
         """
         return self.parent()(a*self.lift_to_free())
 
@@ -276,7 +276,7 @@ class FPElement(IndexedFreeModuleElement):
             sage: M = FPModule(SteenrodAlgebra(2), [0,1], [[Sq(4), Sq(3)]])
             sage: x = M([Sq(1), 1])
             sage: x
-            Sq(1)*g_{0} + g_{1}
+            Sq(1)*g[0] + g[1]
             sage: x == x
             True
             sage: x == M.zero()

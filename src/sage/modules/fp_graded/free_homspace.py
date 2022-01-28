@@ -11,12 +11,13 @@ EXAMPLES::
     sage: F2 = FreeGradedModule(A, (2,3), names='h')
     sage: homset = Hom(F1, F2)
     sage: homset
-    Set of Morphisms from Finitely presented free left module on 2 generators ...
+    Set of Morphisms from Free graded left module on 2 generators ...
     sage: homset([F2((Sq(1), 1)), F2((0, Sq(2)))])
-    Module homomorphism of degree 2 defined by sending the generators
-      [g_{1}, g_{3}]
-    to
-      [Sq(1)*h_{2} + h_{3}, Sq(2)*h_{3}]
+    Free module morphism:
+      From: Free graded left module on 2 generators over mod 2 Steenrod algebra, milnor basis
+      To:   Free graded left module on 2 generators over mod 2 Steenrod algebra, milnor basis
+      Defn: g[1] |--> Sq(1)*h[2] + h[3]
+            g[3] |--> Sq(2)*h[3]
     sage: TestSuite(homset).run()
 
 AUTHORS:
@@ -77,13 +78,18 @@ class FreeGradedModuleHomspace(Homset):
 
             sage: values = (A2.Sq(4)*L.generator(0), A2.Sq(3)*L.generator(1))
             sage: f = H(values); f
-            Module homomorphism of degree 5 defined by sending the generators
-              [g_{1}, g_{3}]
-            to
-              [Sq(4)*g_{2}, Sq(3)*g_{5}]
+            Free module morphism:
+              From: Free graded left module on 2 generators over sub-Hopf algebra of mod 2 Steenrod algebra, milnor basis, profile function [3, 2, 1]
+              To:   Free graded left module on 2 generators over sub-Hopf algebra of mod 2 Steenrod algebra, milnor basis, profile function [3, 2, 1]
+              Defn: g[1] |--> Sq(4)*g[2]
+                    g[3] |--> Sq(3)*g[5]
 
             sage: H(0)
-            The trivial homomorphism
+            Free module morphism:
+              From: Free graded left module on 2 generators over sub-Hopf algebra of mod 2 Steenrod algebra, milnor basis, profile function [3, 2, 1]
+              To:   Free graded left module on 2 generators over sub-Hopf algebra of mod 2 Steenrod algebra, milnor basis, profile function [3, 2, 1]
+              Defn: g[1] |--> 0
+                    g[3] |--> 0
         """
         from .free_morphism import FreeGradedModuleMorphism
         if isinstance(values, FreeGradedModuleMorphism):
@@ -106,7 +112,11 @@ class FreeGradedModuleHomspace(Homset):
             sage: L = FreeGradedModule(A2, (2,3))
             sage: H = Hom(F, L)
             sage: H._an_element_()
-            The trivial homomorphism
+            Free module morphism:
+              From: Free graded left module on 2 generators over sub-Hopf algebra of mod 2 Steenrod algebra, milnor basis, profile function [3, 2, 1]
+              To:   Free graded left module on 2 generators over sub-Hopf algebra of mod 2 Steenrod algebra, milnor basis, profile function [3, 2, 1]
+              Defn: g[1] |--> 0
+                    g[3] |--> 0
         """
         return self.zero()
 
@@ -124,7 +134,11 @@ class FreeGradedModuleHomspace(Homset):
             sage: L = FreeGradedModule(A2, (2,3))
             sage: H = Hom(F, L)
             sage: H.zero()
-            The trivial homomorphism
+            Free module morphism:
+              From: Free graded left module on 2 generators over sub-Hopf algebra of mod 2 Steenrod algebra, milnor basis, profile function [3, 2, 1]
+              To:   Free graded left module on 2 generators over sub-Hopf algebra of mod 2 Steenrod algebra, milnor basis, profile function [3, 2, 1]
+              Defn: g[1] |--> 0
+                    g[3] |--> 0
         """
         return self.element_class(self, self.codomain().zero())
 
@@ -140,7 +154,9 @@ class FreeGradedModuleHomspace(Homset):
             sage: L = FreeGradedModule(A2, (2,3))
             sage: H = Hom(L, L)
             sage: H.identity()
-            The identity homomorphism
+            Free module endomorphism of Free graded left module on 2 generators over sub-Hopf algebra of mod 2 Steenrod algebra, milnor basis, profile function [3, 2, 1]
+              Defn: g[2] |--> g[2]
+                    g[3] |--> g[3]
 
         TESTS::
 

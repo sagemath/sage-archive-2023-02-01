@@ -915,7 +915,7 @@ class FPModule(UniqueRepresentation, IndexedGenerators, Module):
 
             sage: M = FPModule(A4, [0,0,2,3])
             sage: M.generators()
-            (g(0, 0), g(0, 1), g(2, 0), g(3, 0))
+            (g[0, 0], g[0, 1], g[2, 0], g[3, 0])
 
             sage: N = FPModule(A4, [0, 1], [[Sq(2), Sq(1)]], names='h')
             sage: N.generators()

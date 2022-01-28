@@ -869,7 +869,7 @@ class FPModuleMorphism(Morphism):
             Module morphism:
               From: Finitely presented left module on 1 generator and 1 relation over mod 2 Steenrod algebra, milnor basis
               To:   Finitely presented left module on 2 generators and 1 relation over mod 2 Steenrod algebra, milnor basis
-              Defn: g[0] |--> g(0, 1)
+              Defn: g[0] |--> g[0, 1]
             sage: q*j
             Module endomorphism of Finitely presented left module on 1 generator and 1 relation over mod 2 Steenrod algebra, milnor basis
               Defn: g[0] |--> g[0]
@@ -1093,7 +1093,7 @@ class FPModuleMorphism(Morphism):
             Module morphism:
               From: Finitely presented left module on 1 generator and 1 relation over mod 2 Steenrod algebra, milnor basis
               To:   Finitely presented left module on 2 generators and 1 relation over mod 2 Steenrod algebra, milnor basis
-              Defn: g[0] |--> g(0, 1)
+              Defn: g[0] |--> g[0, 1]
             sage: # Verify that `s` is a splitting:
             sage: p*s
             Module endomorphism of Finitely presented left module on 1 generator and 1 relation over mod 2 Steenrod algebra, milnor basis
@@ -1507,17 +1507,17 @@ class FPModuleMorphism(Morphism):
             Module morphism:
               From: Finitely presented left module on 3 generators and 0 relations over mod 2 Steenrod algebra, milnor basis
               To:   Finitely presented left module on 2 generators and 0 relations over mod 2 Steenrod algebra, milnor basis
-              Defn: g(0, 0) |--> g(0, 1)
-                    g(3, 0) |--> Sq(0,1)*g(0, 0)
-                    g(3, 1) |--> Sq(3)*g(0, 0)
+              Defn: g[0, 0] |--> g[0, 1]
+                    g[3, 0] |--> Sq(0,1)*g[0, 0]
+                    g[3, 1] |--> Sq(3)*g[0, 0]
             sage: A3 = SteenrodAlgebra(2, profile=(4,3,2,1))
             sage: f.change_ring(A3)._resolve_kernel()  # long time
             Module morphism:
               From: Finitely presented left module on 3 generators and 0 relations over sub-Hopf algebra of mod 2 Steenrod algebra, milnor basis, profile function [4, 3, 2, 1]
               To:   Finitely presented left module on 2 generators and 0 relations over sub-Hopf algebra of mod 2 Steenrod algebra, milnor basis, profile function [4, 3, 2, 1]
-              Defn: g(0, 0) |--> g(0, 1)
-                    g(3, 0) |--> Sq(0,1)*g(0, 0)
-                    g(3, 1) |--> Sq(3)*g(0, 0)
+              Defn: g[0, 0] |--> g[0, 1]
+                    g[3, 0] |--> Sq(0,1)*g[0, 0]
+                    g[3, 1] |--> Sq(3)*g[0, 0]
         """
         # Let
         #
@@ -1654,13 +1654,13 @@ class FPModuleMorphism(Morphism):
             Module morphism:
               From: Finitely presented left module on 1 generator and 0 relations over mod 2 Steenrod algebra, milnor basis
               To:   Finitely presented left module on 2 generators and 2 relations over mod 2 Steenrod algebra, milnor basis
-              Defn: g[2] |--> Sq(2)*g(0, 0)
+              Defn: g[2] |--> Sq(2)*g[0, 0]
             sage: A3 = SteenrodAlgebra(2, profile=(4,3,2,1))
             sage: f.change_ring(A3)._resolve_image() # long time
             Module morphism:
               From: Finitely presented left module on 1 generator and 0 relations over sub-Hopf algebra of mod 2 Steenrod algebra, milnor basis, profile function [4, 3, 2, 1]
               To:   Finitely presented left module on 2 generators and 2 relations over sub-Hopf algebra of mod 2 Steenrod algebra, milnor basis, profile function [4, 3, 2, 1]
-              Defn: g[2] |--> Sq(2)*g(0, 0)
+              Defn: g[2] |--> Sq(2)*g[0, 0]
         """
         # Let
         #

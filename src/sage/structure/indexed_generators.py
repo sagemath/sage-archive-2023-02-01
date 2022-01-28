@@ -93,6 +93,10 @@ class IndexedGenerators(object):
     - ``string_quotes`` -- bool (default: ``True``), if ``True`` then
       display string indices with quotes
 
+    - ``iterate_key`` -- bool (default: ``False``) iterate through
+      the elements of the key and print the result as comma separated
+      objects for string output
+
     .. NOTE::
 
         These print options may also be accessed and modified using the
@@ -153,7 +157,8 @@ class IndexedGenerators(object):
                                'tensor_symbol': None,
                                'string_quotes': True,
                                'sorting_key': lambda x: x,
-                               'sorting_reverse': False}
+                               'sorting_reverse': False,
+                               'iterate_key': False}
         # 'bracket': its default value here is None, meaning that
         # the value of self._repr_option_bracket is used; the default
         # value of that attribute is True -- see immediately before
@@ -213,6 +218,7 @@ class IndexedGenerators(object):
         - ``string_quotes``
         - ``sorting_key``
         - ``sorting_reverse``
+        - ``iterate_key``
 
         See the documentation for :class:`IndexedGenerators` for
         descriptions of the effects of setting each of these options.
@@ -233,7 +239,7 @@ class IndexedGenerators(object):
         TESTS::
 
             sage: sorted(F.print_options().items())
-            [('bracket', '('),
+            [('bracket', '('), ('iterate_key', False),
              ('latex_bracket', False), ('latex_names', None),
              ('latex_prefix', None), ('latex_scalar_mult', None),
              ('names', None), ('prefix', 'x'),
@@ -329,6 +335,7 @@ class IndexedGenerators(object):
         - ``bracket``
         - ``scalar_mult``
         - ``names``
+        - ``iterate_key``
 
         Alternatively, one can use the :meth:`print_options` method
         to achieve the same effect.  To modify the bracket setting,
@@ -355,6 +362,15 @@ class IndexedGenerators(object):
             sage: e['a'] + 2*e['b']
             F[a] + 2*F[b]
 
+            sage: F = CombinatorialFreeModule(QQ, ['aa', 'bb', 'cc'], prefix="F")
+            sage: e = F.basis()
+            sage: F.print_options(iterate_key=True)
+            sage: e['aa'] + 2*e['bb']
+            F['a', 'a'] + 2*F['b', 'b']
+            sage: F.print_options(string_quotes=False)
+            sage: e['aa'] + 2*e['bb']
+            F[a, a] + 2*F[b, b]
+
             sage: QS3 = CombinatorialFreeModule(QQ, Permutations(3), prefix="")
             sage: original_print_options = QS3.print_options()
             sage: a = 2*QS3([1,2,3])+4*QS3([3,2,1])
@@ -373,6 +389,10 @@ class IndexedGenerators(object):
             sage: a              # indirect doctest
             2 *@* |[1, 2, 3]| + 4 *@* |[3, 2, 1]|
 
+            sage: QS3.print_options(bracket="|", scalar_mult="*", iterate_key=True)
+            sage: a              # indirect doctest
+            2*|1, 2, 3| + 4*|3, 2, 1|
+
             sage: QS3.print_options(**original_print_options) # reset
 
         TESTS::
@@ -385,6 +405,14 @@ class IndexedGenerators(object):
             sage: F.<a,b,c> = CombinatorialFreeModule(QQ)
             sage: a + 2*b
             a + 2*b
+
+            sage: F = CombinatorialFreeModule(QQ, ZZ)
+            sage: e = F.basis()
+            sage: 3*e[1] + 2*e[-2]
+            2*B[-2] + 3*B[1]
+            sage: F.print_options(iterate_key=True)
+            sage: 3*e[1] + 2*e[-2]
+            2*B[-2] + 3*B[1]
         """
         ret = self._parse_names(m, False)
         if ret is not None:
@@ -408,7 +436,17 @@ class IndexedGenerators(object):
         else:
             left = bracket
             right = bracket
+        iterate_key = self._print_options.get('iterate_key', False)
         quotes = self._print_options.get('string_quotes', True)
+        if iterate_key:
+            try:
+                m = iter(m)
+            except TypeError:
+                pass  # not iterable, so fallback to normal behavior
+            else:
+                if not quotes:
+                    return self.prefix() + left + (', '.join(str(val) for val in m)) + right
+                return self.prefix() + left + (', '.join(repr(val) for val in m)) + right
         if not quotes and isinstance(m, str):
             return self.prefix() + left + m + right
         return self.prefix() + left + repr(m) + right # mind the (m), to accept a tuple for m

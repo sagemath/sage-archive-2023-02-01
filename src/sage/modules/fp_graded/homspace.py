@@ -147,14 +147,14 @@ class FPModuleHomspace(Homset):
             sage: K = FPModule(A, [0, 0], [[Sq(2), 0]]) # Using a zero coefficient in the relations.
             sage: Hom(K, K).an_element(4)
             Module endomorphism of Finitely presented left module on 2 generators and 1 relation over mod 2 Steenrod algebra, milnor basis
-              Defn: g(0, 0) |--> 0
-                    g(0, 1) |--> Sq(4)*g(0, 0)
+              Defn: g[0, 0] |--> 0
+                    g[0, 1] |--> Sq(4)*g[0, 0]
 
             sage: K = FPModule(A, [0, 0], [[Sq(2), 0], [0,0], [Sq(4), Sq(2)*Sq(2)]])
             sage: Hom(K, K).an_element(n=3)
             Module endomorphism of Finitely presented left module on 2 generators and 2 relations over mod 2 Steenrod algebra, milnor basis
-              Defn: g(0, 0) |--> 0
-                    g(0, 1) |--> Sq(0,1)*g(0, 0)
+              Defn: g[0, 0] |--> 0
+                    g[0, 1] |--> Sq(0,1)*g[0, 0]
         """
         return self._basis_elements(n, basis=False)
 

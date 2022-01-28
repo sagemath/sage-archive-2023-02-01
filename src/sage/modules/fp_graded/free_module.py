@@ -325,11 +325,11 @@ class FreeGradedModule(CombinatorialFreeModule):
         sage: M.generators()
         (g[-1], g[3])
         sage: FreeGradedModule(E, (0, 0, 2)).generators()
-        (g(0, 0), g(0, 1), g(2, 0))
+        (g[0, 0], g[0, 1], g[2, 0])
         sage: FreeGradedModule(E, (0, 0, 2), names='x, y, z').generators()
         (x, y, z)
         sage: FreeGradedModule(E, (0, 0, 2), names='xyz').generators()
-        (xyz(0, 0), xyz(0, 1), xyz(2, 0))
+        (xyz[0, 0], xyz[0, 1], xyz[2, 0])
 
     ``names`` can also be defined implicitly using Sage's ``M.<...>`` syntax::
 
@@ -398,8 +398,7 @@ class FreeGradedModule(CombinatorialFreeModule):
             keys.append((i, idx))
         if unique:
             keys = [i[0] for i in keys]
-        else:
-            kwds['bracket'] = False
+        kwds['iterate_key'] = True
 
         # Call the base class constructor.
         CombinatorialFreeModule.__init__(self, algebra,

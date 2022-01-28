@@ -50,6 +50,7 @@ from sage.misc.lazy_attribute import lazy_attribute
 from sage.structure.element import parent
 
 from sage.modules.fp_graded.free_module import FreeGradedModule
+from sage.modules.fp_graded.free_morphism import FreeGradedModuleMorphism
 from sage.modules.fp_graded.free_element import FreeGradedModuleElement
 from sage.modules.fp_graded.element import FPElement
 
@@ -222,9 +223,9 @@ class FPModule(UniqueRepresentation, IndexedGenerators, Module):
             Finitely presented left module on 3 generators and 0 relations over
              mod 2 Steenrod algebra, milnor basis
         """
-        return cls(algebra=free_module.base_ring(),
-                   generator_degrees=free_module.generator_degrees(),
-                   relations=())
+        return cls(free_module.base_ring(),
+                   free_module.generator_degrees(),
+                   ())
 
 
     @classmethod
@@ -259,9 +260,9 @@ class FPModule(UniqueRepresentation, IndexedGenerators, Module):
             sage: M.relations()
             (Sq(2)*g[0],)
         """
-        return cls(algebra=morphism.base_ring(),
-                   generator_degrees=morphism.codomain().generator_degrees(),
-                   relations=tuple([r.coefficients() for r in morphism.values()]))
+        return cls(morphism.base_ring(),
+                   morphism.codomain().generator_degrees(),
+                   tuple([r.coefficients() for r in morphism.values()]))
 
 
     def change_ring(self, algebra):
@@ -1091,9 +1092,9 @@ class FPModule(UniqueRepresentation, IndexedGenerators, Module):
             sage: Q.generator_degrees()
             (2, 3)
         """
-        return FPModule(algebra=self.base_ring(),
-                        generator_degrees=tuple([g + t for g in self._generator_degrees]),
-                        relations=self._relations)
+        return FPModule(self.base_ring(),
+                        tuple([g + t for g in self._generator_degrees]),
+                        self._relations)
 
 
     def submodule_inclusion(self, spanning_elements):

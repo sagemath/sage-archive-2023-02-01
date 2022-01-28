@@ -1519,6 +1519,7 @@ class FPModuleMorphism(Morphism):
                     g[3, 0] |--> Sq(0,1)*g[0, 0]
                     g[3, 1] |--> Sq(3)*g[0, 0]
         """
+        from .module import FPModule
         # Let
         #
         #  1) `j` be a homomorphism into `\ker(self)`, and
@@ -1539,7 +1540,7 @@ class FPModuleMorphism(Morphism):
             return epsilon
 
         # Create the trivial module F_ to start with.
-        F_ = self.domain().__class__(self.base_ring(), ())
+        F_ = FPModule(self.base_ring(), ())
         j = Hom(F_, self.domain())(())
 
         dim = self.domain().connectivity()
@@ -1588,8 +1589,8 @@ class FPModuleMorphism(Morphism):
             if j.is_zero():
                 # The map j is not onto in degree `n` of the kernel.
                 new_generator_degrees = tuple(kernel_n.dimension()*(n,))
-                F_ = self.domain().__class__(self.base_ring(),
-                                             generator_degrees + new_generator_degrees)
+                F_ = FPModule(self.base_ring(),
+                              generator_degrees + new_generator_degrees)
 
                 new_values = tuple([
                     self.domain().element_from_coordinates(q, n) for q in kernel_n.basis()])
@@ -1602,8 +1603,8 @@ class FPModuleMorphism(Morphism):
 
                 # The map j is not onto in degree `n` of the kernel.
                 new_generator_degrees = tuple(Q_n.dimension()*(n,))
-                F_ = self.domain().__class__(self.base_ring(),
-                                             generator_degrees + new_generator_degrees)
+                F_ = FPModule(self.base_ring(),
+                              generator_degrees + new_generator_degrees)
 
                 new_values = tuple([
                     self.domain().element_from_coordinates(Q_n.lift(q), n) for q in Q_n.basis()])
@@ -1662,6 +1663,7 @@ class FPModuleMorphism(Morphism):
               To:   Finitely presented left module on 2 generators and 2 relations over sub-Hopf algebra of mod 2 Steenrod algebra, milnor basis, profile function [4, 3, 2, 1]
               Defn: g[2] |--> Sq(2)*g[0, 0]
         """
+        from .module import FPModule
         # Let
         #
         #  1) `j` be a homomorphism into `\im(self)`, and
@@ -1675,7 +1677,7 @@ class FPModuleMorphism(Morphism):
         #
 
         # Create the trivial module F_ to start with.
-        F_ = self.domain().__class__(self.base_ring(), ())
+        F_ = FPModule(self.base_ring(), ())
         j = Hom(F_, self.codomain())(())
 
         dim = self.codomain().connectivity()
@@ -1722,8 +1724,8 @@ class FPModuleMorphism(Morphism):
             if j.is_zero():
                 # The map j is not onto in degree `n` of the image.
                 new_generator_degrees = tuple(image_n.dimension()*(n,))
-                F_ = self.domain().__class__(self.base_ring(),
-                                             generator_degrees + new_generator_degrees)
+                F_ = FPModule(self.base_ring(),
+                              generator_degrees + new_generator_degrees)
 
                 new_values = tuple([
                     self.codomain().element_from_coordinates(q, n) for q in image_n.basis()])
@@ -1738,8 +1740,8 @@ class FPModuleMorphism(Morphism):
 
                 # The map j is not onto in degree `n` of the image.
                 new_generator_degrees = tuple(Q_n.dimension()*(n,))
-                F_ = self.domain().__class__(self.base_ring(),
-                                             generator_degrees + new_generator_degrees)
+                F_ = FPModule(self.base_ring(),
+                              generator_degrees + new_generator_degrees)
 
                 new_values = tuple([
                     self.codomain().element_from_coordinates(Q_n.lift(q), n) for q in Q_n.basis()])
@@ -1787,7 +1789,6 @@ class FPModuleMorphism(Morphism):
         if self.domain().has_relations() or self.codomain().has_relations():
             raise ValueError("this is not a morphism between free modules")
         from .module import FPModule
-        return FPModule(algebra=self.base_ring(),
-                         generator_degrees=self.codomain().generator_degrees(),
-                         relations=tuple([r.coefficients() for r in self._values]))
-
+        return FPModule(self.base_ring(),
+                        self.codomain().generator_degrees(),
+                        tuple([r.coefficients() for r in self._values]))

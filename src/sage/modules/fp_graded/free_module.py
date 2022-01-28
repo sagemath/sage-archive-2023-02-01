@@ -886,7 +886,4 @@ class FreeGradedModule(CombinatorialFreeModule):
              mod 2 Steenrod algebra, milnor basis
         """
         from .module import FPModule
-        return FPModule(algebra=self.base_ring(),
-                        generator_degrees=self.generator_degrees(),
-                        relations=())
-
+        return FPModule(self.base_ring(), self.generator_degrees(), ())

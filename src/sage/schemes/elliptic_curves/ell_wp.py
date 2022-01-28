@@ -53,9 +53,12 @@ AUTHORS:
 from sage.rings.laurent_series_ring import LaurentSeriesRing
 from sage.rings.power_series_ring import PowerSeriesRing
 
+# Note: Part of the documentation is replicated in ell_field.py for
+# users' convenience. Make sure to keep the two copies synchronized.
+
 def weierstrass_p(E, prec=20, algorithm=None):
     r"""
-    Computes the Weierstrass `\wp`-function on an elliptic curve.
+    Compute the Weierstrass `\wp`-function on an elliptic curve.
 
     INPUT:
 
@@ -63,10 +66,9 @@ def weierstrass_p(E, prec=20, algorithm=None):
 
     - ``prec`` -- precision
 
-    - ``algorithm`` -- string (default:``None``) an algorithm identifier
-      indicating the ``pari``, ``fast`` or ``quadratic`` algorithm.
-      If the algorithm is ``None``, then this function determines the
-      best algorithm to use.
+    - ``algorithm`` -- string or ``None`` (default: ``None``):
+      a choice of algorithm among ``"pari"``, ``"fast"``, ``"quadratic"``;
+      or ``None`` to let this function determine the best algorithm to use.
 
     OUTPUT:
 

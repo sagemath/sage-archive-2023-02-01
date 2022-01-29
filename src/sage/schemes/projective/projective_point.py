@@ -174,13 +174,17 @@ class SchemeMorphism_point_projective_ring(SchemeMorphism_point):
                 # Over integral domains, any tuple with at least one
                 # non-zero coordinate is a valid projective point.
                 if not any(v):
-                    raise ValueError(f"{v} does not define a point in {X.codomain()} since all entries are zero")
+                    raise ValueError(f"{v} does not define a point "
+                                     f"in {X.codomain()} "
+                                     "since all entries are zero")
             else:
                 # Over rings with zero divisors, a more careful check
                 # is required: We test whether the coordinates of the
                 # point generate the unit ideal. See #31576.
                 if 1 not in R.ideal(v):
-                    raise ValueError(f"{v} does not define a point in {X.codomain()} since it is a multiple of a zero divisor")
+                    raise ValueError(f"{v} does not define a point "
+                                     f"in {X.codomain()} "
+                                     "since it is a multiple of a zero divisor")
 
             X.extended_codomain()._check_satisfies_equations(v)
 
@@ -1120,7 +1124,9 @@ class SchemeMorphism_point_projective_field(SchemeMorphism_point_projective_ring
                     v[last] = R.one()
                     break
             if all_zero:
-                raise ValueError(f"{v} does not define a point in {X.codomain()} since all entries are zero")
+                raise ValueError(f"{v} does not define a point "
+                                 f"in {X.codomain()} "
+                                 "since all entries are zero")
 
             X.extended_codomain()._check_satisfies_equations(v)
 

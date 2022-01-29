@@ -2217,8 +2217,6 @@ def power_mod(a, n, m):
 
     n = Integer(n)
     if not n:
-        if not a:
-            raise ArithmeticError("0^0 is undefined.")
         return a.parent().one()
     if n < 0:
         a = inverse_mod(a, m)

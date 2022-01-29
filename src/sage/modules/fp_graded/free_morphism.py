@@ -586,6 +586,5 @@ class FreeGradedModuleMorphism(Morphism):
             (Sq(2)*g[0],)
         """
         from .module import FPModule
-        return FPModule(self.base_ring(),
-                        self.codomain().generator_degrees(),
-                        tuple([r.dense_coefficient_list() for r in self._values]))
+        return FPModule(self)
+

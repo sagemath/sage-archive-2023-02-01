@@ -13,7 +13,7 @@ relations, and uses them to construct a presentation, using the class
 
 This package was designed with homological algebra in mind, and its API
 focuses on maps rather than objects.  A good example of this is the kernel
-function :meth:`sage.modules.fp_graded.morphism.FPModuleMorphism.kernel_inclusion`
+function :meth:`sage.modules.fp_graded.morphism.FPModuleMorphism.kernel_inclusion`,
 which computes the kernel of a homomorphism `f: M\to N`.  Its return value
 is not an instance of the module class, but rather an injective homomorphism
 `i: K\to M` with the property that `\operatorname{im}(i) = \ker(f)`.
@@ -39,6 +39,7 @@ AUTHORS:
 # ****************************************************************************
 
 from sage.categories.homset import Hom
+from sage.categories.morphism import Morphism
 from sage.misc.cachefunc import cached_method
 from sage.rings.infinity import PlusInfinity
 from sage.categories.graded_modules import GradedModules
@@ -63,7 +64,13 @@ class FPModule(UniqueRepresentation, IndexedGenerators, Module):
 
     INPUT:
 
-    - ``algebra`` -- the graded connected algebra over which the module is
+    One of the following:
+
+    - ``arg0`` -- a morphism such that the module is the cokernel
+
+    Otherwise:
+
+    - ``arg0`` -- the graded connected algebra over which the module is
       defined; this algebra must be equipped with a graded basis
 
     - ``generator_degrees`` -- tuple of integer degrees
@@ -109,7 +116,7 @@ class FPModule(UniqueRepresentation, IndexedGenerators, Module):
         True
     """
     @staticmethod
-    def __classcall_private__(cls, algebra, generator_degrees, relations=(), names=None):
+    def __classcall_private__(cls, arg0, generator_degrees=None, relations=(), names=None):
         r"""
         Normalize input to ensure a unique representation.
 
@@ -125,13 +132,28 @@ class FPModule(UniqueRepresentation, IndexedGenerators, Module):
         if names is not None:
             from sage.structure.category_object import normalize_names
             names = normalize_names(-1, names)
-        return super(FPModule, cls).__classcall__(cls,
-            algebra=algebra,
-            generator_degrees=tuple(generator_degrees),
-            relations=tuple([tuple([algebra(x) for x in r]) for r in relations]),
-            names=names)
 
-    def __init__(self, algebra, generator_degrees, relations=(), names=None):
+        # If given a morphism, then that defines a module
+        if isinstance(arg0, Morphism):
+            return super(FPModule, cls).__classcall__(cls, arg0, names=names)
+
+        if generator_degrees is None:
+            raise ValueError("the generator_degrees must be specified")
+
+        # The free module on the generators of the module.
+        generator_module = FreeGradedModule(arg0, generator_degrees, names=names)
+        # Use the coefficients given for the relations and make module elements
+        # from them.  Filter out the zero elements, as they are redundant.
+        rels = [v for v in [generator_module(r) for r in relations] if not v.is_zero()]
+
+        # The free module for the relations of the module.
+        relations_module = FreeGradedModule(arg0, tuple([r.degree() for r in rels]))
+
+        # The module we want to model is the cokernel of the following morphism
+        j = Hom(relations_module, generator_module)(rels)
+        return super(FPModule, cls).__classcall__(cls, j, names=names)
+
+    def __init__(self, j, names):
         r"""
         Create a finitely presented module over a connected graded algebra.
 
@@ -154,25 +176,14 @@ class FPModule(UniqueRepresentation, IndexedGenerators, Module):
             sage: y in M
             False
         """
-        self._relations = relations
-        self._generator_degrees = generator_degrees
+        self._j = j
+        codomain = j.codomain()
 
-        # The free module on the generators of the module.
-        generator_module = FreeGradedModule(algebra, generator_degrees, names=names)
-        # Use the coefficients given for the relations and make module elements
-        # from them.  Filter out the zero elements, as they are redundant.
-        rels = [v for v in [generator_module(r) for r in relations] if not v.is_zero()]
-
-        # The free module for the relations of the module.
-        relations_module = FreeGradedModule(algebra,
-                                            tuple([r.degree() for r in rels]))
-
-        # The module we want to model is the cokernel of the
-        # following morphism.
-        self.j = Hom(relations_module, generator_module)(rels)
+        self._generator_degrees = codomain.generator_degrees()
+        algebra = codomain.base_ring()
 
         # Call the base class constructors.
-        keys = generator_module.basis().keys()
+        keys = j.codomain().basis().keys()
         cat = GradedModules(algebra).WithBasis().FinitelyPresented()
         IndexedGenerators.__init__(self, keys)
         Module.__init__(self, algebra, category=cat)
@@ -197,7 +208,7 @@ class FPModule(UniqueRepresentation, IndexedGenerators, Module):
             sage: F.generators()
             (x, y)
         """
-        return self.j.codomain()
+        return self._j.codomain()
 
 
     @classmethod
@@ -295,7 +306,7 @@ class FPModule(UniqueRepresentation, IndexedGenerators, Module):
             True
         """
         # self.relations() consists of module elements. We need to extra the coefficients.
-        relations = tuple(r.coefficients() for r in self.relations())
+        relations = tuple(r.coefficients() for r in self._j.values())
         return FPModule(algebra, self.generator_degrees(), relations)
 
 
@@ -457,7 +468,7 @@ class FPModule(UniqueRepresentation, IndexedGenerators, Module):
         return "Finitely presented left module on %s generator%s and %s relation%s over %s"\
             %(len(self._free_module().generator_degrees()),
               "" if len(self._free_module().generator_degrees()) == 1 else "s",
-              len(self.j.values()), "" if len(self.j.values()) == 1 else "s",
+              len(self._j.values()), "" if len(self._j.values()) == 1 else "s",
               self.base_ring())
 
 
@@ -532,7 +543,7 @@ class FPModule(UniqueRepresentation, IndexedGenerators, Module):
         """
         # In case there are no relations, the connectivity is the equal to
         # the connectivity of the free module on the generators.
-        if self.j._degree is None:
+        if self._j._degree is None:
             return self._free_module().connectivity()
 
         # We must check that the generator(s) in the free generator module are
@@ -544,7 +555,7 @@ class FPModule(UniqueRepresentation, IndexedGenerators, Module):
         for k in X:
             if previous is not None and k == previous:
                 continue
-            if not self.j.vector_presentation(k - self.j._degree).is_surjective():
+            if not self._j.vector_presentation(k - self._j._degree).is_surjective():
                 return k
             previous = k
 
@@ -621,7 +632,7 @@ class FPModule(UniqueRepresentation, IndexedGenerators, Module):
             sage: N_min.has_relations()
             False
         """
-        return not self.j.is_zero()
+        return not self._j.is_zero()
 
 
     def an_element(self, n=None):
@@ -846,7 +857,7 @@ class FPModule(UniqueRepresentation, IndexedGenerators, Module):
 
         if verbose:
             num_total_iterations = 0
-            for relation in self.j.values():
+            for relation in self._j.values():
                 if relation.is_zero():
                     continue
 
@@ -855,7 +866,7 @@ class FPModule(UniqueRepresentation, IndexedGenerators, Module):
             progress = 0
             iteration_count = 0
 
-        for relation in self.j.values():
+        for relation in self._j.values():
             if relation.is_zero():
                 continue
 
@@ -988,7 +999,7 @@ class FPModule(UniqueRepresentation, IndexedGenerators, Module):
             sage: Z.relations()
             ()
         """
-        return self.j.values()
+        return self._j.values()
 
 
     def relation(self, index):
@@ -1003,7 +1014,7 @@ class FPModule(UniqueRepresentation, IndexedGenerators, Module):
             sage: N.relation(0)
             Sq(2)*g[0] + Sq(1)*g[1]
         """
-        return self.j.values()[index]
+        return self._j.values()[index]
 
 
     def min_presentation(self, top_dim=None, verbose=False):
@@ -1091,9 +1102,10 @@ class FPModule(UniqueRepresentation, IndexedGenerators, Module):
             sage: Q.generator_degrees()
             (2, 3)
         """
+        relations = tuple([r.dense_coefficient_list() for r in self._j._values])
         return FPModule(self.base_ring(),
                         tuple([g + t for g in self._generator_degrees]),
-                        self._relations)
+                        relations)
 
 
     def submodule_inclusion(self, spanning_elements):
@@ -1135,6 +1147,7 @@ class FPModule(UniqueRepresentation, IndexedGenerators, Module):
         # Create the free graded module on the set of spanning elements.
         degs = [x.degree() for x in spanning_elements]
         F = FPModule(self.base_ring(), tuple(degs))
+        #F = FreeGradedModule(self.base_ring(), tuple(degs))
 
         # The submodule is the module generated by the spanning elements.
         return Hom(F, self)(spanning_elements).image()
@@ -1241,8 +1254,8 @@ class FPModule(UniqueRepresentation, IndexedGenerators, Module):
 
         # f_1: F_1 -> F_0
         _print_progress(1, k)
-        F_1 = FPModule.from_free_module(self.j.domain())
-        pres = Hom(F_1, F_0)(tuple([ F_0(x.coefficients()) for x in self.j.values() ]))
+        F_1 = FPModule.from_free_module(self._j.domain())
+        pres = Hom(F_1, F_0)(tuple([ F_0(x.coefficients()) for x in self._j.values() ]))
 
         ret_complex.append(pres)
 

@@ -196,7 +196,7 @@ class FPModuleMorphism(Morphism):
         if not isinstance(parent, FPModuleHomspace):
             raise TypeError('parent (=%s) must be a fp module hom space' % parent)
 
-        Homspace = Hom(parent.domain().j.codomain(), parent.codomain().j.codomain())
+        Homspace = Hom(parent.domain()._j.codomain(), parent.codomain()._j.codomain())
         self.free_morphism = Homspace([v.lift_to_free() for v in values])
         self._values = tuple(values)
 
@@ -1535,7 +1535,7 @@ class FPModuleMorphism(Morphism):
         if self.is_zero():
             # Epsilon: F_0 -> M
             M = self.domain()
-            F_0 = self.domain().j.codomain().as_fp_module()
+            F_0 = self.domain()._j.codomain().as_fp_module()
             epsilon = Hom(F_0, M)(tuple(M.generators()))
             return epsilon
 

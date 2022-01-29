@@ -42,8 +42,8 @@ class FPElement(IndexedFreeModuleElement):
     """
     def lift_to_free(self):
         r"""
-        A lift of this element to the free module F,
-        if this element is in a quotient of F.
+        Return the lift of ``self`` to the free module ``F``,
+        where ``self`` is in a quotient of ``F``.
 
         EXAMPLES::
 
@@ -59,7 +59,7 @@ class FPElement(IndexedFreeModuleElement):
             sage: x.lift_to_free().parent()
             Free graded left module on 2 generators over mod 2 Steenrod algebra, milnor basis
         """
-        C = self.parent().j.codomain()
+        C = self.parent()._j.codomain()
         return C(self.coefficients())
 
 

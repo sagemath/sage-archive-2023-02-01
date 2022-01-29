@@ -106,6 +106,20 @@ class SchemeMorphism_point_projective_ring(SchemeMorphism_point):
             ...
             ValueError: [0, 0, 0, 0] does not define a point in Projective Space of dimension 3 over Integer Ring since all entries are zero
 
+        ::
+
+            sage: P = ProjectiveSpace(3, Zmod(15))
+            sage: P(3,5,9,10)
+            (3 : 5 : 9 : 10)
+
+        ::
+
+            sage: P = ProjectiveSpace(3, Zmod(15))
+            sage: P(0,5,10,15)
+            Traceback (most recent call last):
+            ...
+            ValueError: [0, 5, 10, 0] does not define a point in Projective Space of dimension 3 over Ring of integers modulo 15 since it is a multiple of a zero divisor
+
         It is possible to avoid the possibly time-consuming checks, but be careful!! ::
 
             sage: P = ProjectiveSpace(3, QQ)

@@ -100,11 +100,11 @@ class SchemeMorphism_point_projective_ring(SchemeMorphism_point):
 
         ::
 
-            sage: P = ProjectiveSpace(3, QQ)
+            sage: P = ProjectiveSpace(3, ZZ)
             sage: P(0,0,0,0)
             Traceback (most recent call last):
             ...
-            ValueError: [0, 0, 0, 0] does not define a valid point since all entries are 0
+            ValueError: [0, 0, 0, 0] does not define a point in Projective Space of dimension 3 over Integer Ring since all entries are zero
 
         It is possible to avoid the possibly time-consuming checks, but be careful!! ::
 
@@ -1047,7 +1047,7 @@ class SchemeMorphism_point_projective_field(SchemeMorphism_point_projective_ring
             sage: P(0, 0, 0, 0)
             Traceback (most recent call last):
             ...
-            ValueError: [0, 0, 0, 0] does not define a valid point since all entries are 0
+            ValueError: [0, 0, 0, 0] does not define a point in Projective Space of dimension 3 over Rational Field since all entries are zero
 
         ::
 
@@ -1120,7 +1120,7 @@ class SchemeMorphism_point_projective_field(SchemeMorphism_point_projective_ring
                     v[last] = R.one()
                     break
             if all_zero:
-                raise ValueError("%s does not define a valid point since all entries are 0"%repr(v))
+                raise ValueError(f"{v} does not define a point in {X.codomain()} since all entries are zero")
 
             X.extended_codomain()._check_satisfies_equations(v)
 

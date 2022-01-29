@@ -50,7 +50,6 @@ from sage.misc.lazy_attribute import lazy_attribute
 from sage.structure.element import parent
 
 from sage.modules.fp_graded.free_module import FreeGradedModule
-from sage.modules.fp_graded.free_morphism import FreeGradedModuleMorphism
 from sage.modules.fp_graded.free_element import FreeGradedModuleElement
 from sage.modules.fp_graded.element import FPElement
 

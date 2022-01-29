@@ -173,6 +173,7 @@ class CombinatorialFreeModule(UniqueRepresentation, Module, IndexedGenerators):
         sage: original_print_options = F.print_options()
         sage: sorted(original_print_options.items())
         [('bracket', None),
+         ('iterate_key', False),
          ('latex_bracket', False), ('latex_names', None),
          ('latex_prefix', None), ('latex_scalar_mult', None),
          ('names', None), ('prefix', 'x'),

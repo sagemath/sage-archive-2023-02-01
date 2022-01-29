@@ -2189,9 +2189,7 @@ def power_mod(a, n, m):
     TESTS::
 
         sage: power_mod(0,0,5)
-        Traceback (most recent call last):
-        ...
-        ArithmeticError: 0^0 is undefined.
+        1
         sage: power_mod(11,1,0)
         Traceback (most recent call last):
         ...

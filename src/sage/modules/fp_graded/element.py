@@ -122,7 +122,7 @@ class FPElement(IndexedFreeModuleElement):
             sage: y.coefficients()
             [0, Sq(2)]
         """
-        return [self[i] for i in sorted(self.parent().basis().keys())]
+        return [self[i] for i in sorted(self.parent().indices())]
 
 
     def _lmul_(self, a):

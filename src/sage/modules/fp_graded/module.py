@@ -54,10 +54,11 @@ from sage.modules.fp_graded.free_module import FreeGradedModule
 from sage.modules.fp_graded.free_element import FreeGradedModuleElement
 from sage.modules.fp_graded.element import FPElement
 
-# These are not free modules over the algebra, but they are free as
-# vector spaces. They have a distinguished set of generators over the
-# algebra, and as long as the algebra has a vector space basis
-# implemented in Sage, the modules will have a vector space basis as well.
+# Note that some of the methods below assume that the base ring is a
+# field and that the graded algebra has a chosen vector space basis in
+# each degree. See for example :meth:`basis_elements`,
+# :meth:`element_from_coordinates`, :meth:`__getitem__`,
+# :meth:`vector_presentation`, and possibly others.
 class FPModule(UniqueRepresentation, IndexedGenerators, Module):
     r"""
     Create a finitely presented module over a connected graded algebra.
@@ -66,7 +67,9 @@ class FPModule(UniqueRepresentation, IndexedGenerators, Module):
 
     One of the following:
 
-    - ``arg0`` -- a morphism such that the module is the cokernel
+    - ``arg0`` -- a morphism such that the module is the cokernel, or
+      a free graded module, in which case the output is the same
+      module, viewed as finitely presented
 
     Otherwise:
 
@@ -114,6 +117,16 @@ class FPModule(UniqueRepresentation, IndexedGenerators, Module):
         ()
         sage: Z.is_trivial()
         True
+
+        sage: from sage.modules.fp_graded.free_module import FreeGradedModule
+        sage: F = FreeGradedModule(E, [0, 1])
+        sage: one = Hom(F, F).identity()
+        sage: Z = FPModule(one)
+        sage: Z.is_trivial()
+        True
+
+        sage: FPModule(FreeGradedModule(E, [0, 1]))
+        Finitely presented left module on 2 generators and 0 relations over The exterior algebra of rank 2 over Rational Field
     """
     @staticmethod
     def __classcall_private__(cls, arg0, generator_degrees=None, relations=(), names=None):
@@ -136,6 +149,11 @@ class FPModule(UniqueRepresentation, IndexedGenerators, Module):
         # If given a morphism, then that defines a module
         if isinstance(arg0, Morphism):
             return super(FPModule, cls).__classcall__(cls, arg0, names=names)
+
+        if isinstance(arg0, FreeGradedModule):
+            zero = FreeGradedModule(arg0.base_ring(), ())
+            j = zero.Hom(arg0).zero()
+            return super(FPModule, cls).__classcall__(cls, j, names=names)
 
         if generator_degrees is None:
             raise ValueError("the generator_degrees must be specified")
@@ -184,7 +202,7 @@ class FPModule(UniqueRepresentation, IndexedGenerators, Module):
 
         # Call the base class constructors.
         keys = j.codomain().basis().keys()
-        cat = GradedModules(algebra).WithBasis().FinitelyPresented()
+        cat = GradedModules(algebra).FinitelyPresented()
         IndexedGenerators.__init__(self, keys)
         Module.__init__(self, algebra, category=cat)
 
@@ -209,70 +227,6 @@ class FPModule(UniqueRepresentation, IndexedGenerators, Module):
             (x, y)
         """
         return self._j.codomain()
-
-
-    @classmethod
-    def from_free_module(cls, free_module):
-        r"""
-        Initialize from a finitely generated free module.
-
-        INPUT:
-
-        - ``free_module`` -- a finitely generated free module
-
-        OUTPUT: the finitely presented module having same set of generators
-        as ``free_module``, and no relations.
-
-        EXAMPLES::
-
-            sage: from sage.modules.fp_graded.free_module import FreeGradedModule
-            sage: from sage.modules.fp_graded.module import FPModule
-            sage: A = SteenrodAlgebra(2)
-            sage: F = FreeGradedModule(A, (-2,2,4))
-            sage: FPModule.from_free_module(F)
-            Finitely presented left module on 3 generators and 0 relations over
-             mod 2 Steenrod algebra, milnor basis
-        """
-        return cls(free_module.base_ring(),
-                   free_module.generator_degrees(),
-                   ())
-
-
-    @classmethod
-    def from_free_module_morphism(cls, morphism):
-        r"""
-        Create a finitely presented module from a morphism of finitely
-        generated free modules.
-
-        INPUT:
-
-        - ``morphism`` -- a morphism between finitely generated free modules
-
-        OUTPUT:
-
-        The finitely presented module having presentation equal to the
-        homomorphism ``morphism``.
-
-        EXAMPLES::
-
-            sage: from sage.modules.fp_graded.free_module import FreeGradedModule
-            sage: from sage.modules.fp_graded.module import FPModule
-            sage: A = SteenrodAlgebra(2)
-            sage: F1 = FreeGradedModule(A, (2,))
-            sage: F2 = FreeGradedModule(A, (0,))
-            sage: v = F2([Sq(2)])
-            sage: pres = Hom(F1, F2)([v])
-            sage: M = FPModule.from_free_module_morphism(pres); M
-            Finitely presented left module on 1 generator and 1 relation over
-             mod 2 Steenrod algebra, milnor basis
-            sage: M.generator_degrees()
-            (0,)
-            sage: M.relations()
-            (Sq(2)*g[0],)
-        """
-        return cls(morphism.base_ring(),
-                   morphism.codomain().generator_degrees(),
-                   tuple([r.coefficients() for r in morphism.values()]))
 
 
     def change_ring(self, algebra):
@@ -1245,7 +1199,7 @@ class FPModule(UniqueRepresentation, IndexedGenerators, Module):
         ret_complex = []
 
         # Epsilon: F_0 -> M
-        F_0 = FPModule.from_free_module(self._free_module())
+        F_0 = FPModule(self._free_module())
         epsilon = Hom(F_0, self)(self.generators())
         ret_complex.append(epsilon)
 
@@ -1254,7 +1208,7 @@ class FPModule(UniqueRepresentation, IndexedGenerators, Module):
 
         # f_1: F_1 -> F_0
         _print_progress(1, k)
-        F_1 = FPModule.from_free_module(self._j.domain())
+        F_1 = FPModule(self._j.domain())
         pres = Hom(F_1, F_0)(tuple([ F_0(x.coefficients()) for x in self._j.values() ]))
 
         ret_complex.append(pres)
@@ -1266,8 +1220,8 @@ class FPModule(UniqueRepresentation, IndexedGenerators, Module):
             _print_progress(i, k)
 
             f = ret_complex[i-1]
-            ret_complex.append(FPModuleMorphism._resolve_kernel(f, top_dim=top_dim,
-                                                                verbose=verbose))
+            ret_complex.append(f._resolve_kernel(top_dim=top_dim,
+                                                 verbose=verbose))
 
         return ret_complex
 

@@ -256,3 +256,22 @@ class FreeGradedModuleElement(IndexedFreeModuleElement):
 
         return vector
 
+    def lift_to_free(self):
+        r"""
+        Return the lift of ``self`` to a free module, which is ``self``
+        since the parent is a free module.
+
+        This is included for compatibility with
+        :class:`~sage.modules.fp_graded.element.FPElement`.
+
+        EXAMPLES::
+
+            sage: from sage.modules.fp_graded.free_module import *
+            sage: A2 = SteenrodAlgebra(2, profile=(3,2,1))
+            sage: M = FreeGradedModule(A2, (0,1))
+            sage: x = M.an_element(7)
+            sage: x.lift_to_free() is x
+            True
+        """
+        return self
+

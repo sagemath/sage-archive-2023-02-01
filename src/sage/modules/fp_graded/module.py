@@ -856,14 +856,18 @@ class FPModule(UniqueRepresentation, IndexedGenerators, Module):
 
             sage: from sage.modules.fp_graded.module import FPModule
             sage: A = SteenrodAlgebra(2)
-            sage: F = FPModule(A, [1,3]);
-            sage: L = FPModule(A, [2,3], [[Sq(2),Sq(1)], [0,Sq(2)]]);
+            sage: F = FPModule(A, [1,3])
+            sage: L = FPModule(A, [2,3], [[Sq(2),Sq(1)], [0,Sq(2)]])
 
-            sage: homset = Hom(F, L); homset
+            sage: Hom(F, L)
+            Set of Morphisms from Finitely presented left module on 2 generators ...
+
+            sage: M = A.free_graded_module((2,1))
+            sage: Hom(F, M)
             Set of Morphisms from Finitely presented left module on 2 generators ...
         """
         from .homspace import FPModuleHomspace
-        if not isinstance(Y, self.__class__):
+        if not isinstance(Y, (FPModule, FreeGradedModule)):
             raise ValueError('cannot create homspace between incompatible types:\n%s  ->\n%s' % (self.__class__, type(Y)))
         if Y.base_ring() != self.base_ring():
             raise ValueError('the modules are not defined over the same base ring')
@@ -1110,18 +1114,15 @@ class FPModule(UniqueRepresentation, IndexedGenerators, Module):
         return Hom(F, self)(spanning_elements).image()
 
 
-    def resolution(self, k, top_dim=None, verbose=False, as_free=False):
+    def resolution(self, k, top_dim=None, verbose=False):
         r"""
-        Return a resolution of this module of length ``k``.
+        Return a free resolution of this module of length ``k``.
 
         INPUT:
 
         - ``k`` -- an non-negative integer
         - ``verbose`` -- (default: ``False``) a boolean to control if
           log messages should be emitted
-        - ``as_free`` -- (default: ``False``) if ``True``, return as
-          many morphisms as possible (all but the 0th one) as
-          morphisms between free modules
 
         OUTPUT:
 
@@ -1150,25 +1151,25 @@ class FPModule(UniqueRepresentation, IndexedGenerators, Module):
 
             sage: E.<x,y> = ExteriorAlgebra(QQ)
             sage: triv = FPModule(E, [0], [[x], [y]]) # trivial module
-            sage: triv.res(3)
-            [Module morphism:
-               From: Finitely presented left module on 1 generator and 0 relations over The exterior algebra of rank 2 over Rational Field
+            sage: triv.resolution(3)
+            [Free module morphism:
+               From: Free graded left module on 1 generator over The exterior algebra of rank 2 over Rational Field
                To:   Finitely presented left module on 1 generator and 2 relations over The exterior algebra of rank 2 over Rational Field
                Defn: g[0] |--> g[0],
-             Module morphism:
-               From: Finitely presented left module on 2 generators and 0 relations over The exterior algebra of rank 2 over Rational Field
-               To:   Finitely presented left module on 1 generator and 0 relations over The exterior algebra of rank 2 over Rational Field
+             Free module morphism:
+               From: Free graded left module on 2 generators over The exterior algebra of rank 2 over Rational Field
+               To:   Free graded left module on 1 generator over The exterior algebra of rank 2 over Rational Field
                Defn: g[1, 0] |--> x*g[0]
                      g[1, 1] |--> y*g[0],
-             Module morphism:
-               From: Finitely presented left module on 3 generators and 0 relations over The exterior algebra of rank 2 over Rational Field
-               To:   Finitely presented left module on 2 generators and 0 relations over The exterior algebra of rank 2 over Rational Field
+             Free module morphism:
+               From: Free graded left module on 3 generators over The exterior algebra of rank 2 over Rational Field
+               To:   Free graded left module on 2 generators over The exterior algebra of rank 2 over Rational Field
                Defn: g[2, 0] |--> x*g[1, 0]
                      g[2, 1] |--> y*g[1, 0] + x*g[1, 1]
                      g[2, 2] |--> y*g[1, 1],
-             Module morphism:
-               From: Finitely presented left module on 4 generators and 0 relations over The exterior algebra of rank 2 over Rational Field
-               To:   Finitely presented left module on 3 generators and 0 relations over The exterior algebra of rank 2 over Rational Field
+             Free module morphism:
+               From: Free graded left module on 4 generators over The exterior algebra of rank 2 over Rational Field
+               To:   Free graded left module on 3 generators over The exterior algebra of rank 2 over Rational Field
                Defn: g[3, 0] |--> x*g[2, 0]
                      g[3, 1] |--> y*g[2, 0] + x*g[2, 1]
                      g[3, 2] |--> y*g[2, 1] + x*g[2, 2]
@@ -1177,8 +1178,8 @@ class FPModule(UniqueRepresentation, IndexedGenerators, Module):
             sage: A2 = SteenrodAlgebra(2, profile=(3,2,1))
             sage: M = FPModule(A2, [0,1], [[Sq(2), Sq(1)]])
             sage: M.resolution(0)
-            [Module morphism:
-               From: Finitely presented left module on 2 generators and 0 relations over sub-Hopf algebra of mod 2 Steenrod algebra, milnor basis, profile function [3, 2, 1]
+            [Free module morphism:
+               From: Free graded left module on 2 generators over sub-Hopf algebra of mod 2 Steenrod algebra, milnor basis, profile function [3, 2, 1]
                To:   Finitely presented left module on 2 generators and 1 relation over sub-Hopf algebra of mod 2 Steenrod algebra, milnor basis, profile function [3, 2, 1]
                Defn: g[0] |--> g[0]
                      g[1] |--> g[1]]
@@ -1196,37 +1197,41 @@ class FPModule(UniqueRepresentation, IndexedGenerators, Module):
             sage: len(res)
             5
             sage: res
-            [Module morphism:
-               From: Finitely presented left module on 2 generators and 0 relations over sub-Hopf algebra of mod 2 Steenrod algebra, milnor basis, profile function [3, 2, 1]
+            [Free module morphism:
+               From: Free graded left module on 2 generators over sub-Hopf algebra of mod 2 Steenrod algebra, milnor basis, profile function [3, 2, 1]
                To:   Finitely presented left module on 2 generators and 1 relation over sub-Hopf algebra of mod 2 Steenrod algebra, milnor basis, profile function [3, 2, 1]
                Defn: g[0] |--> g[0]
                      g[1] |--> g[1],
-             Module morphism:
-               From: Finitely presented left module on 1 generator and 0 relations over sub-Hopf algebra of mod 2 Steenrod algebra, milnor basis, profile function [3, 2, 1]
-               To:   Finitely presented left module on 2 generators and 0 relations over sub-Hopf algebra of mod 2 Steenrod algebra, milnor basis, profile function [3, 2, 1]
+             Free module morphism:
+               From: Free graded left module on 1 generator over sub-Hopf algebra of mod 2 Steenrod algebra, milnor basis, profile function [3, 2, 1]
+               To:   Free graded left module on 2 generators over sub-Hopf algebra of mod 2 Steenrod algebra, milnor basis, profile function [3, 2, 1]
                Defn: g[2] |--> Sq(2)*g[0] + Sq(1)*g[1],
-             Module morphism:
-               From: Finitely presented left module on 1 generator and 0 relations over sub-Hopf algebra of mod 2 Steenrod algebra, milnor basis, profile function [3, 2, 1]
-               To:   Finitely presented left module on 1 generator and 0 relations over sub-Hopf algebra of mod 2 Steenrod algebra, milnor basis, profile function [3, 2, 1]
+             Free module morphism:
+               From: Free graded left module on 1 generator over sub-Hopf algebra of mod 2 Steenrod algebra, milnor basis, profile function [3, 2, 1]
+               To:   Free graded left module on 1 generator over sub-Hopf algebra of mod 2 Steenrod algebra, milnor basis, profile function [3, 2, 1]
                Defn: g[8] |--> Sq(3,1)*g[2],
-             Module morphism:
-               From: Finitely presented left module on 2 generators and 0 relations over sub-Hopf algebra of mod 2 Steenrod algebra, milnor basis, profile function [3, 2, 1]
-               To:   Finitely presented left module on 1 generator and 0 relations over sub-Hopf algebra of mod 2 Steenrod algebra, milnor basis, profile function [3, 2, 1]
+             Free module morphism:
+               From: Free graded left module on 2 generators over sub-Hopf algebra of mod 2 Steenrod algebra, milnor basis, profile function [3, 2, 1]
+               To:   Free graded left module on 1 generator over sub-Hopf algebra of mod 2 Steenrod algebra, milnor basis, profile function [3, 2, 1]
                Defn: g[9] |--> Sq(1)*g[8]
                      g[10] |--> Sq(2)*g[8],
-             Module morphism:
-               From: Finitely presented left module on 2 generators and 0 relations over sub-Hopf algebra of mod 2 Steenrod algebra, milnor basis, profile function [3, 2, 1]
-               To:   Finitely presented left module on 2 generators and 0 relations over sub-Hopf algebra of mod 2 Steenrod algebra, milnor basis, profile function [3, 2, 1]
+             Free module morphism:
+               From: Free graded left module on 2 generators over sub-Hopf algebra of mod 2 Steenrod algebra, milnor basis, profile function [3, 2, 1]
+               To:   Free graded left module on 2 generators over sub-Hopf algebra of mod 2 Steenrod algebra, milnor basis, profile function [3, 2, 1]
                Defn: g[10] |--> Sq(1)*g[9]
                      g[12] |--> Sq(0,1)*g[9] + Sq(2)*g[10]]
             sage: for i in range(len(res)-1):
             ....:     assert (res[i]*res[i+1]).is_zero(), 'the result is not a complex'
 
-            sage: res2 = M.resolution(2, as_free=True)
-            sage: [type(f) for f in res]
-            [<class 'sage.modules.fp_graded.homspace.FPModuleHomspace_with_category_with_equality_by_id.element_class'>,
-            <class 'sage.modules.fp_graded.free_homspace.FreeGradedModuleHomspace_with_category_with_equality_by_id.element_class'>]
-            <class 'sage.modules.fp_graded.free_homspace.FreeGradedModuleHomspace_with_category_with_equality_by_id.element_class'>]
+        TESTS::
+
+            sage: A2 = SteenrodAlgebra(2, profile=(3,2,1))
+            sage: M = FPModule(A2, [0,1], [[Sq(2), Sq(1)]])
+            sage: res2 = M.resolution(2)
+            sage: [type(f) for f in res2]
+            [<class 'sage.modules.fp_graded.free_homspace.FreeGradedModuleHomspace_with_category_with_equality_by_id.element_class'>,
+             <class 'sage.modules.fp_graded.free_homspace.FreeGradedModuleHomspace_with_category_with_equality_by_id.element_class'>,
+             <class 'sage.modules.fp_graded.free_homspace.FreeGradedModuleHomspace_with_category_with_equality_by_id.element_class'>]
         """
         def _print_progress(i, k):
             if verbose:
@@ -1238,7 +1243,7 @@ class FPModule(UniqueRepresentation, IndexedGenerators, Module):
         ret_complex = []
 
         # Epsilon: F_0 -> M
-        F_0 = FPModule(self._free_module())
+        F_0 = self._free_module()
         epsilon = Hom(F_0, self)(self.generators())
         ret_complex.append(epsilon)
 
@@ -1247,7 +1252,7 @@ class FPModule(UniqueRepresentation, IndexedGenerators, Module):
 
         # f_1: F_1 -> F_0
         _print_progress(1, k)
-        F_1 = FPModule(self._j.domain())
+        F_1 = self._j.domain()
         pres = Hom(F_1, F_0)(tuple([ F_0(x.coefficients()) for x in self._j.values() ]))
 
         ret_complex.append(pres)
@@ -1260,8 +1265,5 @@ class FPModule(UniqueRepresentation, IndexedGenerators, Module):
             ret_complex.append(f._resolve_kernel(top_dim=top_dim,
                                                  verbose=verbose))
 
-        if as_free:
-            return ret_complex[0:1] + [f._lift_to_free_morphism() for f in ret_complex[1:]]
-        else:
-            return ret_complex
+        return ret_complex
 

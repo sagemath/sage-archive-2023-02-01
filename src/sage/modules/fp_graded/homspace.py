@@ -111,10 +111,32 @@ class FPModuleHomspace(Homset):
 
             sage: homset(0) == 0
             True
+
+        TESTS::
+
+            sage: A2 = SteenrodAlgebra(2, profile=(3,2,1))
+            sage: F = A2.free_graded_module((1,3))
+            sage: L = A2.free_graded_module((2,5))
+            sage: H = Hom(F, L)
+
+            sage: values = (A2.Sq(4)*L.generator(0), A2.Sq(3)*L.generator(1))
+            sage: f = H(values); f
+            Free module morphism:
+              From: Free graded left module on 2 generators over sub-Hopf algebra of mod 2 Steenrod algebra, milnor basis, profile function [3, 2, 1]
+              To:   Free graded left module on 2 generators over sub-Hopf algebra of mod 2 Steenrod algebra, milnor basis, profile function [3, 2, 1]
+              Defn: g[1] |--> Sq(4)*g[2]
+                    g[3] |--> Sq(3)*g[5]
+
+            sage: H(0)
+            Free module morphism:
+              From: Free graded left module on 2 generators over sub-Hopf algebra of mod 2 Steenrod algebra, milnor basis, profile function [3, 2, 1]
+              To:   Free graded left module on 2 generators over sub-Hopf algebra of mod 2 Steenrod algebra, milnor basis, profile function [3, 2, 1]
+              Defn: g[1] |--> 0
+                    g[3] |--> 0
         """
         if isinstance(values, self.element_class):
             return values
-        elif values == 0:
+        elif values == 0 or all(v.is_zero() for v in values):
             return self.zero()
         else:
             return self.element_class(self, values)
@@ -209,7 +231,7 @@ class FPModuleHomspace(Homset):
 
     def identity(self):
         r"""
-        Create The identity homomorphism
+        Return the identity homomorphism.
 
         EXAMPLES::
 
@@ -231,6 +253,28 @@ class FPModuleHomspace(Homset):
 
             sage: F = FPModule(A2, [1,3])
             sage: Hom(F,L).identity()
+            Traceback (most recent call last):
+            ...
+            TypeError: this homspace does not consist of endomorphisms
+
+        An example with free graded modules::
+
+            sage: A2 = SteenrodAlgebra(2, profile=(3,2,1))
+            sage: L = A2.free_graded_module((2,3))
+            sage: H = Hom(L, L)
+            sage: H.identity()
+            Free module endomorphism of Free graded left module on 2 generators
+             over sub-Hopf algebra of mod 2 Steenrod algebra, milnor basis, profile function [3, 2, 1]
+              Defn: g[2] |--> g[2]
+                    g[3] |--> g[3]
+
+        TESTS::
+
+            sage: A2 = SteenrodAlgebra(2, profile=(3,2,1))
+            sage: L = A2.free_graded_module((2,3))
+            sage: F = A2.free_graded_module((1,3))
+            sage: H = Hom(F, L)
+            sage: H.identity()
             Traceback (most recent call last):
             ...
             TypeError: this homspace does not consist of endomorphisms

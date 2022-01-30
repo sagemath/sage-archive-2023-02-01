@@ -836,6 +836,11 @@ class FreeGradedModule(CombinatorialFreeModule):
               over mod 2 Steenrod algebra, milnor basis
              in Category of finite dimensional graded modules with basis
               over mod 2 Steenrod algebra, milnor basis
+
+            sage: from sage.modules.fp_graded.module import FPModule
+            sage: F = FPModule(A, [1,3])
+            sage: Hom(M, F)
+            Set of Morphisms from Free graded left module on 2 generators ...
         """
         from .free_homspace import FreeGradedModuleHomspace
         return FreeGradedModuleHomspace(self, Y, category)
@@ -868,23 +873,20 @@ class FreeGradedModule(CombinatorialFreeModule):
             generator_degrees=tuple([g + t for g in self.generator_degrees()]))
 
 
-    def as_fp_module(self):
+    def has_relations(self):
         r"""
-        Create a finitely presented module from ``self``.
+        Return ``False`` as this has no relations.
 
-        OUTPUT:
-
-        The finitely presented module having same set of generators
-        as this module, no relations.
+        This is for compatibility with
+        :class:`~sage.modules.fp_graded.module.FPModule`.
 
         EXAMPLES::
 
             sage: from sage.modules.fp_graded.free_module import FreeGradedModule
             sage: A = SteenrodAlgebra(2)
             sage: F = FreeGradedModule(A, (-2,2,4))
-            sage: F.as_fp_module()
-            Finitely presented left module on 3 generators and 0 relations over
-             mod 2 Steenrod algebra, milnor basis
+            sage: F.has_relations()
+            False
         """
-        from .module import FPModule
-        return FPModule(self.base_ring(), self.generator_degrees(), ())
+        return False
+

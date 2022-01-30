@@ -23,15 +23,14 @@ AUTHORS:
 #                  https://www.gnu.org/licenses/
 # ****************************************************************************
 
-from inspect import isfunction
-
 from sage.categories.homset import Hom
 from sage.categories.morphism import Morphism
+from sage.modules.fp_graded.morphism import FPModuleMorphism
 
-
-class FreeGradedModuleMorphism(Morphism):
+class FreeGradedModuleMorphism(FPModuleMorphism):
     r"""
-    Create a homomorphism between finitely generated free graded modules.
+    Create a homomorphism from a finitely generated free graded module
+    to a graded module.
 
     INPUT:
 
@@ -92,31 +91,20 @@ class FreeGradedModuleMorphism(Morphism):
         if not isinstance(parent, FreeGradedModuleHomspace):
             raise TypeError('the parent (%s) must be a f.p. free module homset' % parent)
 
-        # Get the values.
-        C = parent.codomain()
-        D = parent.domain()
-        if isfunction(values):
-            _values = [C(values(g)) for g in D.generators()]
-        elif values == 0:
-            _values = len(D.generator_degrees())*[C(0)]
-        else:
-            _values = [C(a) for a in values]
-
-        # Check the homomorphism is well defined.
-        if len(D.generator_degrees()) != len(_values):
-            raise ValueError('the number of values must equal the number of '
-                'generators in the domain; invalid argument: %s' % _values)
+        self._free_morphism = self
+        FPModuleMorphism.__init__(self, parent, values, check=False)
 
         # Compute the degree.
-        if all(v.is_zero() for v in _values):
+        if all(v.is_zero() for v in self._values):
             # The zero homomorphism does not get a degree.
             degree = None
         else:
             degrees = []
-            for i, value in enumerate(_values):
-                if not value.is_zero():
-                    x = value.degree()
-                    xx = D.generator_degrees()[i]
+            gen_deg = parent.domain().generator_degrees()
+            for i, val in enumerate(self._values):
+                if val:
+                    x = val.degree()
+                    xx = gen_deg[i]
                     degrees.append(x - xx)
 
             degree = min(degrees)
@@ -124,9 +112,6 @@ class FreeGradedModuleMorphism(Morphism):
                 raise ValueError('ill-defined homomorphism: degrees do not match')
 
         self._degree = degree
-        self._values = tuple(_values)
-
-        Morphism.__init__(self, parent)
 
 
     def degree(self):
@@ -160,64 +145,6 @@ class FreeGradedModuleMorphism(Morphism):
             # The zero morphism has no degree.
             raise ValueError("the zero morphism does not have a well-defined degree")
         return self._degree
-
-
-    def values(self):
-        r"""
-        The values under ``self`` corresponding to the generators of
-        the domain module.
-
-        OUTPUT:
-
-        A sequence of elements of the codomain module.
-
-        EXAMPLES::
-
-            sage: from sage.modules.fp_graded.free_module import FreeGradedModule
-            sage: A = SteenrodAlgebra(2)
-            sage: homspace = Hom(FreeGradedModule(A, (0,1)), FreeGradedModule(A, (2,)))
-            sage: N = homspace.codomain()
-            sage: values = [Sq(5)*N.generator(0), Sq(3,1)*N.generator(0)]
-            sage: f = homspace(values)
-            sage: f.values()
-            (Sq(5)*g[2], Sq(3,1)*g[2])
-            sage: homspace.zero().values()
-            (0, 0)
-        """
-        return self._values
-
-
-    def _richcmp_(self, other, op):
-        r"""
-        Compare this homomorphism to the given homomorphism.
-
-        EXAMPLES::
-
-            sage: from sage.modules.fp_graded.free_module import FreeGradedModule
-            sage: A = SteenrodAlgebra(2)
-            sage: homspace = Hom(FreeGradedModule(A, (0,1)), FreeGradedModule(A, (2,)))
-            sage: N = homspace.codomain()
-            sage: values = [Sq(5)*N.generator(0), Sq(3,1)*N.generator(0)]
-            sage: f = homspace(values)
-            sage: f._richcmp_(f, op=2)
-            True
-            sage: f._richcmp_(f, op=3)
-            False
-        """
-        try:
-            same = (self - other).is_zero()
-        except ValueError:
-            return False
-
-        # Equality
-        if op == 2:
-            return same
-
-        # Non-equality
-        if op == 3:
-            return not same
-
-        return False
 
 
     def _add_(self, g):
@@ -262,120 +189,6 @@ class FreeGradedModuleMorphism(Morphism):
 
         v = [self(x) + g(x) for x in self.domain().generators()]
         return self.parent()(v)
-
-
-    def _neg_(self):
-        r"""
-        The additive inverse of ``self`` with respect to the group
-        structure given by pointwise sum.
-
-        EXAMPLES::
-
-            sage: from sage.modules.fp_graded.free_module import FreeGradedModule
-            sage: A = SteenrodAlgebra(2)
-            sage: homspace = Hom(FreeGradedModule(A, (0,1)), FreeGradedModule(A, (2,)))
-            sage: N = homspace.codomain()
-            sage: values = [Sq(5)*N.generator(0), Sq(3,1)*N.generator(0)]
-            sage: f = homspace(values)
-            sage: f_inverse = -f; f_inverse
-            Free module morphism:
-              From: Free graded left module on 2 generators over mod 2 Steenrod algebra, milnor basis
-              To:   Free graded left module on 1 generator over mod 2 Steenrod algebra, milnor basis
-              Defn: g[0] |--> Sq(5)*g[2]
-                    g[1] |--> Sq(3,1)*g[2]
-            sage: (f + f_inverse).is_zero()
-            True
-        """
-        return self.parent()([-x for x in self._values])
-
-
-    def _sub_(self, g):
-        r"""
-        The pointwise difference between ``self`` and ``g``.
-
-        EXAMPLES::
-
-            sage: from sage.modules.fp_graded.free_module import FreeGradedModule
-            sage: A = SteenrodAlgebra(2)
-            sage: homspace = Hom(FreeGradedModule(A, (0,1)), FreeGradedModule(A, (2,)))
-            sage: N = homspace.codomain()
-            sage: values = [Sq(5)*N.generator(0), Sq(3,1)*N.generator(0)]
-            sage: f = homspace(values)
-            sage: values2 = [Sq(5)*N.generator(0), Sq(3,1)*N.generator(0)]
-            sage: g = homspace(values2)
-            sage: f - g == 0
-            True
-        """
-        return self + (-g)
-
-
-    # Define __mul__ rather than _mul_, since we want to allow
-    # "multiplication" by morphisms from different homsets.
-    def __mul__(self, g):
-        r"""
-        The composition of ``g`` followed by ``self``.
-
-        EXAMPLES::
-
-            sage: from sage.modules.fp_graded.free_module import FreeGradedModule
-            sage: A = SteenrodAlgebra(2)
-            sage: M = FreeGradedModule(A, (0,1))
-            sage: N = FreeGradedModule(A, (2,))
-            sage: values = [Sq(5)*N.generator(0), Sq(3,1)*N.generator(0)]
-            sage: f = Hom(M, N)(values)
-            sage: values2 = [Sq(2)*M.generator(0)]
-            sage: g = Hom(N, M)(values2)
-            sage: fg = f * g; fg
-            Free module endomorphism of Free graded left module on 1 generator over mod 2 Steenrod algebra, milnor basis
-              Defn: g[2] |--> (Sq(4,1)+Sq(7))*g[2]
-            sage: fg.is_endomorphism()
-            True
-
-        TESTS::
-
-            sage: fg == f.__mul__(g)
-            True
-            sage: from sage.modules.fp_graded.free_module import FreeGradedModule
-            sage: A = SteenrodAlgebra(2)
-            sage: M = FreeGradedModule(A, (0,1))
-            sage: values = [Sq(5)*N.generator(0), Sq(3,1)*N.generator(0)]
-            sage: f = Hom(M, N)(values)
-            sage: f * f
-            Traceback (most recent call last):
-            ...
-            ValueError: morphisms are not composable
-        """
-        if self.parent().domain() != g.parent().codomain():
-            raise ValueError('morphisms are not composable')
-        homset = Hom(g.parent().domain(), self.parent().codomain())
-        return homset([self(g(x)) for x in g.domain().generators()])
-
-
-    def is_zero(self):
-        r"""
-        Decide if ``self`` is trivial.
-
-        OUTPUT:
-
-        The boolean value ``True`` if this homomorphism is trivial, and
-        ``False`` otherwise.
-
-        EXAMPLES::
-
-            sage: from sage.modules.fp_graded.free_module import FreeGradedModule
-            sage: A = SteenrodAlgebra(2)
-            sage: M = FreeGradedModule(A, (0,1))
-            sage: N = FreeGradedModule(A, (2,))
-            sage: values = [Sq(5)*N.generator(0), Sq(3,1)*N.generator(0)]
-            sage: f = Hom(M, N)(values)
-            sage: f.is_zero()
-            False
-            sage: (f-f).is_zero()
-            True
-        """
-        return all(not v for v in self._values)
-
-    __bool__ = is_zero
 
 
     def is_identity(self):
@@ -461,106 +274,6 @@ class FreeGradedModuleMorphism(Morphism):
         """
         return "Free module"
 
-
-    def _repr_defn(self):
-        """
-        TESTS::
-
-            sage: from sage.modules.fp_graded.free_module import FreeGradedModule
-            sage: A = SteenrodAlgebra(2)
-            sage: F1 = FreeGradedModule(A, (4,5), names='b')
-            sage: F2 = FreeGradedModule(A, (3,4), names='c')
-            sage: H = Hom(F1, F2)
-            sage: f = H((F2((Sq(4), 0)), F2((0, Sq(4)))))
-            sage: print(f._repr_defn())
-            b[4] |--> Sq(4)*c[3]
-            b[5] |--> Sq(4)*c[4]
-        """
-        s = '\n'.join(['%s |--> %s'%(x, y) for (x, y) in
-                       zip(self.domain().generators(), self._values)])
-        return s
-
-
-    def vector_presentation(self, n):
-        r"""
-        Return the restriction of ``self`` to the domain module elements
-        of degree ``n``.
-
-        The restriction of a non-zero module homomorphism to the free module
-        of module elements of degree `n` is a linear function into the free
-        module of elements of degree `n+d` belonging to the codomain.
-        Here `d` is the degree of this homomorphism.
-
-        When this homomorphism is zero, it has no well defined degree so the
-        function cannot be presented since we do not know the degree of its
-        codomain.  In this case, an error is raised.
-
-        INPUT:
-
-        - ``n`` -- an integer degree
-
-        OUTPUT:
-
-        A linear function of finite dimensional free moduless over the
-        ground field of the algebra for this module.  The domain is isomorphic
-        to the free module of domain elements of degree ``n`` of ``self``
-        via the choice of basis given by
-        :meth:`sage.modules.fp_graded.free_module.FreeGradedModule.basis_elements`.
-        If the morphism is zero, an error is raised.
-
-        .. SEEALSO::
-
-            :meth:`sage.modules.fp_graded.free_module.FreeGradedModule.vector_presentation`,
-            :meth:`sage.modules.fp_graded.free_module.FreeGradedModule.basis_elements`.
-
-        EXAMPLES::
-
-            sage: from sage.modules.fp_graded.free_module import FreeGradedModule
-            sage: A = SteenrodAlgebra(2)
-            sage: M = FreeGradedModule(A, (0,1))
-            sage: N = FreeGradedModule(A, (2,))
-            sage: values = [Sq(5)*N.generator(0), Sq(3,1)*N.generator(0)]
-            sage: f = Hom(M, N)(values)
-            sage: f.vector_presentation(0)
-            Vector space morphism represented by the matrix:
-            [0 1]
-            Domain: Vector space of dimension 1 over Finite Field of size 2
-            Codomain: Vector space of dimension 2 over Finite Field of size 2
-            sage: f.vector_presentation(1)
-            Vector space morphism represented by the matrix:
-            [0 0 0]
-            [0 1 0]
-            Domain: Vector space of dimension 2 over Finite Field of size 2
-            Codomain: Vector space of dimension 3 over Finite Field of size 2
-            sage: f.vector_presentation(2)
-            Vector space morphism represented by the matrix:
-            [0 0 1 1]
-            [0 0 0 0]
-            Domain: Vector space of dimension 2 over Finite Field of size 2
-            Codomain: Vector space of dimension 4 over Finite Field of size 2
-
-        TESTS::
-
-            sage: F = FreeGradedModule(A, (0,))
-            sage: z = Hom(F, F)([0])
-            sage: z.is_zero()
-            True
-            sage: z.vector_presentation(0)
-            Traceback (most recent call last):
-            ...
-            ValueError: the zero map has no vector presentation
-        """
-        # The trivial map has no degree, so we can not create the codomain
-        # of the linear transformation.
-        if self.is_zero():
-            raise ValueError("the zero map has no vector presentation")
-
-        D_n = self.domain().vector_presentation(n)
-        C_n = self.codomain().vector_presentation(n + self.degree())
-
-        values = [self(e) for e in self.domain().basis_elements(n)]
-        return Hom(D_n, C_n)([C_n.zero() if e.is_zero() else e.vector_presentation()
-                              for e in values])
 
     def fp_module(self):
         r"""

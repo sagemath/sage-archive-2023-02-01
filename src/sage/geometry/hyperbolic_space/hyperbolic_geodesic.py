@@ -89,7 +89,6 @@ from sage.rings.infinity import infinity
 from sage.rings.cc import CC
 from sage.rings.real_mpfr import RR
 from sage.plot.arc import arc
-#from sage.plot.line import line
 from sage.plot.bezier_path import bezier_path
 from sage.symbolic.constants import pi
 from sage.modules.free_module_element import vector
@@ -697,12 +696,12 @@ class HyperbolicGeodesic(SageObject):
         ::
 
             sage: KM = H.KM()
-            sage: KM.get_geodesic((0,0), (0, 1/2)).complete()
+            sage: KM.get_geodesic(-I, 1).complete()
             Geodesic in KM from (0, -1) to (0, 1)
 
         .. PLOT::
 
-            g = HyperbolicPlane().KM().get_geodesic((0.0,0.0), (0.0, 0.5))
+            g = HyperbolicPlane().KM().get_geodesic(CC(0,-1), CC(0, 1))
             h = g.complete()
             sphinx_plot(g.plot()+h.plot(linestyle='dashed'))
 
@@ -1190,7 +1189,7 @@ class HyperbolicGeodesicUHP(HyperbolicGeodesic):
             else:
                 end_1 = (real(end_1), imag(end_1))
                 end_2 = (real(end_2), imag(end_2))
-            pic = bezier_path([[end_1,end_2]],**opts)
+            pic = bezier_path([[end_1, end_2]], **opts)
             if boundary:
                 cent = min(bd_1, bd_2)
                 bd_dict = {'bd_min': cent - 3, 'bd_max': cent + 3}
@@ -2239,8 +2238,7 @@ class HyperbolicGeodesicPD(HyperbolicGeodesic):
         bd_1, bd_2 = [CC(k.coordinates()) for k in self.ideal_endpoints()]
         # Check to see if it's a line
         if abs(bd_1 + bd_2) < EPSILON:
-            # pic = line([end_1, end_2], **opts)
-            pic = bezier_path([[(real(end_1),imag(end_1)), (real(end_2),imag(end_2))]], **opts)
+            pic = bezier_path([[(real(end_1), imag(end_1)), (real(end_2), imag(end_2))]], **opts)
         else:
             # If we are here, we know it's not a line
             # So we compute the center and radius of the circle
@@ -2291,10 +2289,10 @@ class HyperbolicGeodesicKM(HyperbolicGeodesic):
     .. PLOT::
 
         KM = HyperbolicPlane().KM()
-        g = KM.get_geodesic((0.1,0.9),
-                            (-0.1,-0.9))
-        h = KM.get_geodesic((-0.707106781,-0.707106781),
-                            (0.707106781,-0.707106781))
+        g = KM.get_geodesic(CC(0.1,0.9),
+                            CC(-0.1,-0.9))
+        h = KM.get_geodesic(CC(-0.707106781,-0.707106781),
+                            CC(0.707106781,-0.707106781))
         sphinx_plot(g.plot(color='orange')+h.plot())
 
     """
@@ -2305,20 +2303,20 @@ class HyperbolicGeodesicKM(HyperbolicGeodesic):
 
         EXAMPLES::
 
-            sage: HyperbolicPlane().KM().get_geodesic((0,0), (1,0)).plot()  # optional - sage.plot
+            sage: HyperbolicPlane().KM().get_geodesic(0, 1).plot()  # optional - sage.plot
             Graphics object consisting of 2 graphics primitives
 
         .. PLOT::
 
             KM = HyperbolicPlane().KM()
-            sphinx_plot(KM.get_geodesic((0,0), (1,0)).plot())
+            sphinx_plot(KM.get_geodesic(CC(0,0), CC(1,0)).plot())
 
         """
         opts = {'axes': False, 'aspect_ratio': 1}
         opts.update(self.graphics_options())
         opts.update(options)
-        # pic = line([k.coordinates() for k in self.endpoints()], **opts)
-        pic = bezier_path([[k.coordinates() for k in self.endpoints()]], **opts)
+        end_1, end_2 = [CC(k.coordinates()) for k in self.endpoints()]
+        pic = bezier_path([[(real(end_1), imag(end_1)), (real(end_2), imag(end_2))]], **opts)
         if boundary:
             pic += self._model.get_background_graphic()
         return pic

@@ -27,7 +27,7 @@ AUTHORS:
 from sage.plot.bezier_path import BezierPath
 from sage.plot.circle import circle
 from sage.misc.decorators import options, rename_keyword
-from sage.rings.all import CC
+from sage.rings.cc import CC
 from sage.plot.hyperbolic_arc import HyperbolicArcCore
 
 
@@ -86,7 +86,10 @@ class HyperbolicPolygon(HyperbolicArcCore):
                 self._PD_hyperbolic_arc(pts[i], pts[i + 1])
             self._PD_hyperbolic_arc(pts[-1], pts[0])
         elif model == "KM":
-            raise NotImplementedError("Klein disc model is not yet implemented")
+            self._KM_hyperbolic_arc(pts[0], pts[1], True)
+            for i in range(1, len(pts) - 1):
+                self._KM_hyperbolic_arc(pts[i], pts[i + 1])
+            self._KM_hyperbolic_arc(pts[-1], pts[0])
         elif model == "HM":
             raise NotImplementedError("Hyperboloid model is not yet implemented")
         else:
@@ -187,12 +190,25 @@ def hyperbolic_polygon(pts, model="UHP", **options):
 
         P = hyperbolic_polygon([1,I,-1,-I], model="PD", color='green', fill=True, linestyle="-")
         sphinx_plot(P)
+
+    Klein model is also supported via the paraeter ``model``.
+    Show a hyperbolic polygon in the Klein model with coordinates
+    `1`, `e^{i\pi/3}` , `e^{i2\pi/3}` , `-1` , `e^{i4\pi/3}` , `e^{i5\pi/3}`::
+
+        sage: hyperbolic_polygon([1,(cos(pi/3),sin(pi/3)),(cos(2*pi/3),sin(2*pi/3)),-1,(cos(4*pi/3),sin(4*pi/3)),(cos(5*pi/3),sin(5*pi/3))],model="KM", fill=True, color='purple')
+        Graphics object consisting of 2 graphics primitives
+
+    .. PLOT::
+
+        P = hyperbolic_polygon([1,(cos(pi/3),sin(pi/3)),(cos(2*pi/3),sin(2*pi/3)),-1,(cos(4*pi/3),sin(4*pi/3)),(cos(5*pi/3),sin(5*pi/3))],model="KM", fill=True, color='purple')
+        sphinx_plot(P)
+
     """
     from sage.plot.all import Graphics
     g = Graphics()
     g._set_extra_kwds(g._extract_kwds_for_show(options))
     g.add_primitive(HyperbolicPolygon(pts, model, options))
-    if model == "PD":
+    if model == "PD" or model == "KM":
         g = g + circle((0, 0), 1, rgbcolor='black')
     g.set_aspect_ratio(1)
     return g
@@ -246,7 +262,7 @@ def hyperbolic_triangle(a, b, c, model="UHP", **options):
         P = hyperbolic_triangle(0, 1, 2+i, fill=true, rgbcolor='red', linestyle='--')
         sphinx_plot(P)
 
-    A hyperbolic triangle with a vertex at Infinity
+    A hyperbolic triangle with a vertex at Infinity::
 
         sage: hyperbolic_triangle(-5,Infinity,5)
         Graphics object consisting of 1 graphics primitive

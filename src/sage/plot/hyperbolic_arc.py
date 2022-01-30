@@ -112,7 +112,11 @@ class HyperbolicArcCore(BezierPath):
                 raise ValueError("%s is not a valid point in the PD model" % (B,))
             self._PD_hyperbolic_arc(A, B, True)
         elif model == "KM":
-            raise NotImplementedError("Klein disc model is not yet implemented")
+            if A.abs() > 1:
+                raise ValueError("%s is not a valid point in the KM model" % (A,))
+            if B.abs() > 1:
+                raise ValueError("%s is not a valid point in the KM model" % (B,))
+            self._KM_hyperbolic_arc(A, B, True)
         elif model == "HM":
             raise NotImplementedError("Hyperboloid model is not yet implemented")
         else:
@@ -154,6 +158,19 @@ class HyperbolicArcCore(BezierPath):
         from sage.geometry.hyperbolic_space.hyperbolic_interface import HyperbolicPlane
         PD = HyperbolicPlane().PD()
         g = PD.get_geodesic(z0, z3)
+        p = g.plot()
+        the_arc = p[0]
+        self._bezier_path(the_arc, z0, z3, first)
+
+    def _KM_hyperbolic_arc(self, z0, z3, first=False):
+        """
+        Construct Bezier path as an approximation to
+        the hyperbolic arc between the complex numbers ``z0`` and ``z3``
+        in the hyperbolic plane.
+        """
+        from sage.geometry.hyperbolic_space.hyperbolic_interface import HyperbolicPlane
+        KM = HyperbolicPlane().KM()
+        g = KM.get_geodesic(z0, z3)
         p = g.plot()
         the_arc = p[0]
         self._bezier_path(the_arc, z0, z3, first)
@@ -210,7 +227,6 @@ class HyperbolicArcCore(BezierPath):
                 tail = self.path[-1]
                 ltail = len(tail)
                 while ltail < 3:
-                    # self.path[-1] = np.append(self.path[-1], [points[N]], axis=0)
                     self.path[-1].append(points[N])
                     ltail += 1
                     N += 1
@@ -328,10 +344,12 @@ def hyperbolic_arc(a, b, model="UHP", **options):
         from sage.rings.infinity import infinity
         sphinx_plot(hyperbolic_arc(CC(1,1), infinity, color='brown'))
 
+    We can also plot hyperbolic arcs in other models.
+
     Show a hyperbolic arc from `i` to `-1` in red, another hyperbolic arc
     from `e^{i\pi/3}` to `0.6*e^{i 3\pi/4}` with dashed style in green,
     and finally a hyperbolic arc from `-0.5+0.5i` to `0.5-0.5i` together
-    with the disc frontier::
+    with the disc frontier in the PD model::
 
         sage: z1 = CC(0,1)
         sage: z2 = CC(-1,0)
@@ -359,12 +377,43 @@ def hyperbolic_arc(a, b, model="UHP", **options):
         P = a1 + a2 + a3
         sphinx_plot(P)
 
+    Show a hyperbolic arc from `i` to `-1` in red, another hyperbolic arc
+    from `e^{i\pi/3}` to `0.6*e^{i 3\pi/4}` with dashed style in green,
+    and finally a hyperbolic arc from `-0.5+0.5i` to `0.5-0.5i` together
+    with the disc frontier in the KM model::
+
+        sage: z1 = CC(0,1)
+        sage: z2 = CC(-1,0)
+        sage: z3 = CC((cos(pi/3),sin(pi/3)))
+        sage: z4 = CC((0.6*cos(3*pi/4),0.6*sin(3*pi/4)))
+        sage: z5 = CC(-0.5,0.5)
+        sage: z6 = CC(0.5,-0.5)
+        sage: a1 = hyperbolic_arc(z1, z2, model="KM", color="red")
+        sage: a2 = hyperbolic_arc(z3, z4, model="KM", color="green")
+        sage: a3 = hyperbolic_arc(z5, z6, model="KM", linestyle="--")
+        sage: a1 + a2 + a3
+        Graphics object consisting of 6 graphics primitives
+
+    .. PLOT::
+
+        z1 = CC(0,1)
+        z2 = CC(-1,0)
+        z3 = CC((cos(pi/3),sin(pi/3)))
+        z4 = CC((0.6*cos(3*pi/4),0.6*sin(3*pi/4)))
+        z5 = CC(-0.5,0.5)
+        z6 = CC(0.5,-0.5)
+        a1 = hyperbolic_arc(z1, z2, model="KM", color="red")
+        a2 = hyperbolic_arc(z3, z4, model="KM", color="green")
+        a3 = hyperbolic_arc(z5, z6, model="KM", linestyle="--")
+        P = a1 + a2 + a3
+        sphinx_plot(P)
+
     """
     from sage.plot.all import Graphics
     g = Graphics()
     g._set_extra_kwds(g._extract_kwds_for_show(options))
     g.add_primitive(HyperbolicArc(a, b, model, options))
-    if model == "PD":
-        g = g + circle((0, 0), 1, rgbcolor='black')
+    if model == "PD" or model == "KM":
+        g = g + circle((0, 0), 1, axes=False, color='black')
     g.set_aspect_ratio(1)
     return g

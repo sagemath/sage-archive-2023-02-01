@@ -159,9 +159,7 @@ class kRegularSequence(RecognizableSeries):
         r"""
         Return a representation string of this `k`-regular sequence.
 
-        OUTPUT:
-
-        A string
+        OUTPUT: a string
 
         TESTS::
 
@@ -187,9 +185,7 @@ class kRegularSequence(RecognizableSeries):
 
         - ``n`` -- a nonnegative integer
 
-        OUTPUT:
-
-        An element of the universe of the sequence
+        OUTPUT: an element of the universe of the sequence
 
         EXAMPLES::
 
@@ -771,13 +767,13 @@ class kRegularSequence(RecognizableSeries):
 
 class kRegularSequenceSpace(RecognizableSeriesSpace):
     r"""
-    The space of `k`-regular Sequences over the given ``coefficients``.
+    The space of `k`-regular Sequences over the given ``coefficient_ring``.
 
     INPUT:
 
     - ``k`` -- an integer at least `2` specifying the base
 
-    - ``coefficient_ring`` -- a (semi-)ring.
+    - ``coefficient_ring`` -- a (semi-)ring
 
     - ``category`` -- (default: ``None``) the category of this
       space
@@ -847,9 +843,7 @@ class kRegularSequenceSpace(RecognizableSeriesSpace):
         r"""
         Return a representation string of this `k`-regular sequence space.
 
-        OUTPUT:
-
-        A string
+        OUTPUT: a string
 
         TESTS::
 
@@ -867,9 +861,7 @@ class kRegularSequenceSpace(RecognizableSeriesSpace):
 
         - ``n`` -- a nonnegative integer
 
-        OUTPUT:
-
-        A word
+        OUTPUT: a word
 
         TESTS::
 
@@ -891,12 +883,37 @@ class kRegularSequenceSpace(RecognizableSeriesSpace):
 
     def from_recurrence(self, *args, **kwds):
         r"""
-        Construct a `k`-regular sequence that fulfills the recurrence relations
-        given in ``equations``.
+        Construct the unique `k`-regular sequence which fulfills the given
+        recurrence relations and initial values. The recurrence relations have to
+        have the specific shape of `k`-recursive sequences as described in [HKL2021]_,
+        and are either given as symbolic equations, e.g.,
+
+        ::
+
+            sage: Seq2 = kRegularSequenceSpace(2, ZZ)
+            sage: var('n')
+            n
+            sage: function('f')
+            f
+            sage: Seq2.from_recurrence([
+            ....:     f(2*n) == 2*f(n), f(2*n + 1) == 3*f(n) + 4*f(n - 1),
+            ....:     f(0) == 0, f(1) == 1], f, n)
+            2-regular sequence 0, 0, 0, 1, 2, 3, 4, 10, 6, 17, ...
+
+        or via the parameters of the `k`-recursive sequence as described in the input
+        block below::
+
+            sage: Seq2.from_recurrence(M=1, m=0,
+            ....:     coeffs={(0, 0): 2, (1, 0): 3, (1, -1): 4},
+            ....:     initial_values={0: 0, 1: 1})
+            2-regular sequence 0, 0, 0, 1, 2, 3, 4, 10, 6, 17, ...
 
         INPUT:
 
         Positional arguments:
+
+        If the recurrence relations are represented by symbolic equations, then
+        the following arguments are required:
 
         - ``equations`` -- A list of equations where the elements have
           either the form
@@ -914,22 +931,43 @@ class kRegularSequenceSpace(RecognizableSeriesSpace):
           or the form
 
           - ``f(k) == t`` for some integer ``k`` and some ``t`` from the (semi)ring
-            ``coefficients``.
+            ``coefficient_ring``.
 
           The recurrence relations above uniquely determine a `k`-regular sequence;
           see [HKL2021]_ for further information.
 
         - ``function`` -- symbolic function ``f`` occurring in the equations
 
-        - ``var`` -- symbolic variable (``n`` in the above description of ``equations``)
+        - ``var`` -- symbolic variable (``n`` in the above description of
+          ``equations``)
 
-        Keyword-only argument:
+        The following second representation of the recurrence relations is
+        particularly useful for cases where ``coefficient_ring`` is not
+        compatible with :class:`sage.symbolic.ring.SymbolicRing`. Then the
+        following arguments are required:
 
-        - ``offset`` -- an integer (default: ``0``). See explanation for ``equations`` above.
+        - ``M`` -- parameter of the recursive sequences,
+          see [HKL2021]_, Definition 3.1, as well as in the description of
+          ``equations`` above
 
-        OUTPUT:
+        - ``m`` -- parameter of the recursive sequences,
+          see [HKL2021]_, Definition 3.1, as well as in the description of
+          ``equations`` above
 
-        A :class:`kRegularSequence`.
+        - ``coeffs`` -- a dictionary where ``coeffs[(r, j)]`` is the
+          coefficient `c_{r,j}` as given in the description of ``equations`` above.
+          If ``coeffs[(r, j)]`` is not given for some ``r`` and ``j``, then it is
+          assumed to be zero.
+
+        - ``initial_values`` -- a dictionary mapping integers ``n`` to the
+          ``n``-th value of the sequence
+
+        Optional keyword-only argument:
+
+        - ``offset`` -- an integer (default: ``0``). See explanation of
+          ``equations`` above.
+
+        OUTPUT: a :class:`kRegularSequence`
 
         EXAMPLES:
 
@@ -979,6 +1017,17 @@ class kRegularSequenceSpace(RecognizableSeriesSpace):
             ....:     f(4*n + 2) == 1/3*f(2*n) + 4/3*f(2*n + 1),
             ....:     f(4*n + 3) == -1/3*f(2*n) + 5/3*f(2*n + 1),
             ....:     f(0) == 1, f(1) == 2], f, n)
+            2-regular sequence 1, 2, 3, 3, 4, 5, 5, 4, 5, 7, ...
+
+        Finally, the same sequence can also be obtained via direct parameters
+        without symbolic equations::
+
+            sage: Seq2.from_recurrence(2, 1,
+            ....:     {(0, 0): 5/3, (0, 1): -1/3,
+            ....:      (1, 0): 4/3, (1, 1): 1/3,
+            ....:      (2, 0): 1/3, (2, 1): 4/3,
+            ....:      (3, 0): -1/3, (3, 1): 5/3},
+            ....:     {0: 1, 1: 2})
             2-regular sequence 1, 2, 3, 3, 4, 5, 5, 4, 5, 7, ...
 
         TESTS::
@@ -1076,7 +1125,7 @@ class kRegularSequenceSpace(RecognizableSeriesSpace):
 
 class RecurrenceParser(object):
     r"""
-    A parser for symbolic recurrence relations that allow
+    A parser for recurrence relations that allow
     the construction of a `k`-linear representation
     for the sequence satisfying these recurrence relations.
 
@@ -1111,24 +1160,16 @@ class RecurrenceParser(object):
 
         INPUT:
 
-        - ``equations`` -- see :meth:`kRegularSequenceSpace.from_recurrence`
+        All parameters are explained in the high-level method
+        :meth:`kRegularSequenceSpace.from_recurrence`.
 
-        - ``function`` -- see :meth:`kRegularSequenceSpace.from_recurrence`
+        OUTPUT: a tuple consisting of
 
-        - ``var`` -- see :meth:`kRegularSequenceSpace.from_recurrence`
+        - ``M``, ``m`` -- see :meth:`kRegularSequenceSpace.from_recurrence`
 
-        OUTPUT:
+        - ``coeffs`` -- see :meth:`kRegularSequenceSpace.from_recurrence`
 
-        A tuple consisting of
-
-        - ``M``, ``m`` -- parameters of the recursive sequences,
-          see [HKL2021]_, Definition 3.1
-
-        - ``coeffs`` -- a dictionary mapping ``(r, j)`` to the coefficients
-          `c_{r, j}` as given in [HKL2021]_, Equation (3.1)
-
-        - ``initial_values`` -- a dictionary mapping integers ``n`` to the
-          ``n``-th value of the sequence
+        - ``initial_values`` -- see :meth:`kRegularSequenceSpace.from_recurrence`
 
         EXAMPLES::
 
@@ -1664,27 +1705,194 @@ class RecurrenceParser(object):
 
         return (M, m, coeffs, initial_values)
 
-    def parameters(self, M, m, coeffs, initial_values, offset):
+    def parse_direct_arguments(self, M, m, coeffs, initial_values):
+        r"""
+        Check whether the direct arguments as admissible in
+        :meth:`kRegularSequenceSpace.from_recurrence` are valid.
+
+        INPUT:
+
+        All parameters are explained in the high-level method
+        :meth:`kRegularSequenceSpace.from_recurrence`.
+
+        OUTPUT: a tuple consisting of the input parameters
+
+        EXAMPLES::
+
+            sage: from sage.combinat.k_regular_sequence import RecurrenceParser
+            sage: RP = RecurrenceParser(2, ZZ)
+            sage: RP.parse_direct_arguments(2, 1,
+            ....:     {(0, -2): 3, (0, 0): 1, (0, 1): 2,
+            ....:      (1, -2): 6, (1, 0): 4, (1, 1): 5,
+            ....:      (2, -2): 9, (2, 0): 7, (2, 1): 8,
+            ....:      (3, -2): 12, (3, 0): 10, (3, 1): 11},
+            ....:     {0: 1, 1: 2, 2: 1})
+            (2, 1, {(0, -2): 3, (0, 0): 1, (0, 1): 2,
+            (1, -2): 6, (1, 0): 4, (1, 1): 5,
+            (2, -2): 9, (2, 0): 7, (2, 1): 8,
+            (3, -2): 12, (3, 0): 10, (3, 1): 11},
+            {0: 1, 1: 2, 2: 1})
+
+        Stern--Brocot Sequence::
+
+            sage: RP.parse_direct_arguments(1, 0,
+            ....:     {(0, 0): 1, (1, 0): 1, (1, 1): 1},
+            ....:     {0: 0, 1: 1})
+            (1, 0, {(0, 0): 1, (1, 0): 1, (1, 1): 1}, {0: 0, 1: 1})
+
+        .. SEEALSO::
+
+            :meth:`kRegularSequenceSpace.from_recurrence`
+
+        TESTS:
+
+        The following tests check that the equations are well-formed::
+
+            sage: RP.parse_direct_arguments(1/2, 0, {}, {})
+            Traceback (most recent call last):
+            ...
+            ValueError: 1/2 is not a positive integer.
+
+        ::
+
+            sage: RP.parse_direct_arguments(0, 0, {}, {})
+            Traceback (most recent call last):
+            ....
+            ValueError: 0 is not a positive integer.
+
+        ::
+
+            sage: RP.parse_direct_arguments(1, 1/2, {}, {})
+            Traceback (most recent call last):
+            ...
+            ValueError: 1/2 is not a non-negative integer.
+
+        ::
+
+            sage: RP.parse_direct_arguments(1, -1, {}, {})
+            Traceback (most recent call last):
+            ...
+            ValueError: -1 is not a non-negative integer.
+
+        ::
+
+            sage: RP.parse_direct_arguments(1, 1, {}, {})
+            Traceback (most recent call last):
+            ...
+            ValueError: 1 is not larger than 1.
+
+        ::
+
+            sage: RP.parse_direct_arguments(1, 42, {}, {})
+            Traceback (most recent call last):
+            ...
+            ValueError: 1 is not larger than 42.
+
+        ::
+
+            sage: RP.parse_direct_arguments(2, 1, {(0, 0): 1/2, (1, 0): i}, {})
+            Traceback (most recent call last):
+            ...
+            ValueError: Coefficients [1/2, I] are not valid since they are not
+            in Integer Ring.
+
+        ::
+
+            sage: RP.parse_direct_arguments(2, 1, {(i, 0): 0, (0, 1/2): 0}, {})
+            Traceback (most recent call last):
+            ...
+            ValueError: Keys [(I, 0), (0, 1/2)] for coefficients are not valid
+            since one of their components is no integer.
+
+        ::
+
+            sage: RP.parse_direct_arguments(2, 1, {(-1, 0): 0, (42, 0): 0}, {})
+            Traceback (most recent call last):
+            ...
+            ValueError: Keys [(-1, 0), (42, 0)] for coefficients are not valid since
+            their first component is either smaller than 0 or larger than
+            or equal to 4.
+
+        ::
+
+            sage: RP.parse_direct_arguments(2, 1, {}, {0: 1/2, 1: i})
+            Traceback (most recent call last):
+            ...
+            ValueError: Initial values [1/2, I] are not valid since they are
+            not in Integer Ring.
+
+        ::
+
+            sage: RP.parse_direct_arguments(2, 1, {}, {1/2: 0, i: 0})
+            Traceback (most recent call last):
+            ...
+            ValueError: Keys [1/2, I] for the initial values are not valid since
+            they are no integers.
+        """
+        from sage.rings.integer_ring import ZZ
+
+        if M not in ZZ or M < 1:
+            raise ValueError("%s is not a positive integer."
+                             % (M,)) from None
+        if m not in ZZ or m < 0:
+            raise ValueError("%s is not a non-negative integer."
+                             % (m,)) from None
+        if M <= m:
+            raise ValueError("%s is not larger than %s."
+                             % (M, m)) from None
+
+        coefficient_ring = self.coefficient_ring
+        k = self.k
+
+        invalid_coeffs = [coeff for coeff in coeffs.values()
+                          if coeff not in coefficient_ring]
+        if invalid_coeffs:
+            raise ValueError("Coefficients %s are not valid "
+                             "since they are not in %s."
+                             % (invalid_coeffs, coefficient_ring)) from None
+
+        coeffs_keys = coeffs.keys()
+        invalid_coeffs_keys = [key for key in coeffs_keys
+                               if key[0] not in ZZ or key[1] not in ZZ]
+        if invalid_coeffs_keys:
+            raise ValueError("Keys %s for coefficients are not valid "
+                             "since one of their components is no integer."
+                             % (invalid_coeffs_keys,)) from None
+
+        invalid_coeffs_keys = [key for key in coeffs_keys if key[0] < 0 or key[0] >= k**M]
+        if invalid_coeffs_keys:
+            raise ValueError("Keys %s for coefficients are not valid "
+                             "since their first component is either smaller than 0 "
+                             " or larger than or equal to %s."
+                             % (invalid_coeffs_keys, k**M)) from None
+
+        invalid_initial_values = [value for value in initial_values.values()
+                                  if value not in coefficient_ring]
+        if invalid_initial_values:
+            raise ValueError("Initial values %s are not valid "
+                             "since they are not in %s."
+                             % (invalid_initial_values, coefficient_ring)) from None
+
+        invalid_initial_keys = [key for key in initial_values.keys()
+                                if key not in ZZ]
+        if invalid_initial_keys:
+            raise ValueError("Keys %s for the initial values are not valid "
+                             "since they are no integers."
+                             % (invalid_initial_keys,)) from None
+
+        return (M, m, coeffs, initial_values)
+
+    def parameters(self, M, m, coeffs, initial_values, offset=0):
         r"""
         Determine parameters from recurrence relations as admissible in
         :meth:`kRegularSequenceSpace.from_recurrence`.
 
         INPUT:
 
-        - ``M``, ``m``, ``offset`` -- parameters of the recursive sequences,
-          see [HKL2021]_, Definition 3.1, as well as :meth:`kRegularSequenceSpace.from_recurrence`
+        All parameters are explained in the high-level method
+        :meth:`kRegularSequenceSpace.from_recurrence`.
 
-        - ``coeffs`` -- a dictionary where ``coeffs[(r, j)]`` is the
-          coefficient `c_{r,j}` as given in :meth:`kRegularSequenceSpace.from_recurrence`.
-          If ``coeffs[(r, j)]`` is not given for some ``r`` and ``j``,
-          then it is assumed to be zero.
-
-        - ``initial_values`` -- a dictionary mapping integers ``n`` to the
-          ``n``-th value of the sequence
-
-        OUTPUT:
-
-        A namedtuple ``recurrence_rules`` consisting of
+        OUTPUT: a namedtuple ``recurrence_rules`` consisting of
 
         - ``M``, ``m``, ``l``, ``u``, ``offset`` -- parameters of the recursive
           sequences, see [HKL2021]_, Definition 3.1
@@ -2052,9 +2260,7 @@ class RecurrenceParser(object):
 
         - ``n`` -- an integer
 
-        OUTPUT:
-
-        A vector.
+        OUTPUT: a vector
 
         EXAMPLES:
 
@@ -2103,9 +2309,7 @@ class RecurrenceParser(object):
           ``True``, then the resulting linear representation has no
           offset.  See [HKL2021]_ for more information.
 
-        OUTPUT:
-
-        A matrix.
+        OUTPUT: a matrix
 
         EXAMPLES:
 
@@ -2308,9 +2512,7 @@ class RecurrenceParser(object):
           :meth:`parameters`; it only needs to contain a field
           ``dim`` (a positive integer)
 
-        OUTPUT:
-
-        A vector.
+        OUTPUT: a vector
 
         EXAMPLES::
 
@@ -2341,9 +2543,7 @@ class RecurrenceParser(object):
         - ``recurrence_rules`` -- a namedtuple generated by
           :meth:`parameters`
 
-        OUTPUT:
-
-        A vector.
+        OUTPUT: a vector
 
         .. SEEALSO::
 
@@ -2396,7 +2596,7 @@ class RecurrenceParser(object):
 
         return right
 
-    def __call__(self, equations, function, var, *, offset=0):
+    def __call__(self, *args, **kwds):
         r"""
         Construct a `k`-linear representation that fulfills the recurrence relations
         given in ``equations``.
@@ -2408,11 +2608,9 @@ class RecurrenceParser(object):
         INPUT:
 
         All parameters are explained in the high-level method
-        :meth:`kRegularSequenceSpace.from_recurrence`
+        :meth:`kRegularSequenceSpace.from_recurrence`.
 
-        OUTPUT:
-
-        A linear representation ``(left, mu, right)``.
+        OUTPUT: a linear representation ``(left, mu, right)``
 
         Many examples can be found in
         :meth:`kRegularSequenceSpace.from_recurrence`.
@@ -2425,8 +2623,39 @@ class RecurrenceParser(object):
             n
             sage: function('f')
             f
+
             sage: RP([f(2*n) == f(n), f(2*n + 1) == f(n) + f(n + 1),
             ....:     f(0) == 0, f(1) == 1], f, n)
+            ([
+              [1 0 0]  [1 1 0]
+              [1 1 0]  [0 1 0]
+              [0 1 0], [0 1 1]
+             ],
+             (1, 0, 0),
+             (0, 1, 1))
+
+            sage: RP(equations=[f(2*n) == f(n), f(2*n + 1) == f(n) + f(n + 1),
+            ....:     f(0) == 0, f(1) == 1], function=f, var=n)
+            ([
+              [1 0 0]  [1 1 0]
+              [1 1 0]  [0 1 0]
+              [0 1 0], [0 1 1]
+             ],
+             (1, 0, 0),
+             (0, 1, 1))
+
+            sage: RP(1, 0, {(0, 0): 1, (1, 0): 1, (1, 1): 1}, {0: 0, 1: 1})
+            ([
+              [1 0 0]  [1 1 0]
+              [1 1 0]  [0 1 0]
+              [0 1 0], [0 1 1]
+             ],
+             (1, 0, 0),
+             (0, 1, 1))
+
+            sage: RP(M=1, m=0,
+            ....:    coeffs={(0, 0): 1, (1, 0): 1, (1, 1): 1},
+            ....:    initial_values={0: 0, 1: 1})
             ([
               [1 0 0]  [1 1 0]
               [1 1 0]  [0 1 0]
@@ -2438,8 +2667,25 @@ class RecurrenceParser(object):
         from sage.arith.srange import srange
 
         k = self.k
-        M, m, coeffs, initial_values = self.parse_recurrence(equations, function, var)
-        recurrence_rules = self.parameters(M, m, coeffs, initial_values, offset)
+        if len(args) == 3:
+            M, m, coeffs, initial_values = self.parse_recurrence(*args)
+        elif len(args) == 0 and all(kwd in kwds for kwd in ['equations', 'function', 'var']):
+            args = (kwds.pop('equations'),
+                    kwds.pop('function'),
+                    kwds.pop('var'))
+            M, m, coeffs, initial_values = self.parse_recurrence(*args)
+        elif len(args) == 4:
+            M, m, coeffs, initial_values = self.parse_direct_arguments(*args)
+        elif len(args) == 0 and all(kwd in kwds for kwd in ['M', 'm', 'coeffs', 'initial_values']):
+            args = (kwds.pop('M'),
+                    kwds.pop('m'),
+                    kwds.pop('coeffs'),
+                    kwds.pop('initial_values'))
+            M, m, coeffs, initial_values = self.parse_direct_arguments(*args)
+        else:
+            raise ValueError("Number of positional arguments must be three or four or all arguments provided as keywords.")
+
+        recurrence_rules = self.parameters(M, m, coeffs, initial_values, **kwds)
 
         mu = [self.matrix(recurrence_rules, rem)
               for rem in srange(k)]

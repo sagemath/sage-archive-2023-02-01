@@ -47,7 +47,7 @@ AUTHORS:
 from sage.categories.homset import Hom
 from sage.categories.morphism import Morphism
 from sage.misc.cachefunc import cached_method
-from sage.rings.infinity import PlusInfinity
+from sage.rings.infinity import infinity
 from sage.categories.graded_modules import GradedModules
 from sage.modules.module import Module
 from sage.structure.indexed_generators import IndexedGenerators
@@ -519,7 +519,7 @@ class FPModule(UniqueRepresentation, IndexedGenerators, Module):
                 return k
             previous = k
 
-        return PlusInfinity()
+        return infinity
 
 
     def is_trivial(self):
@@ -555,7 +555,7 @@ class FPModule(UniqueRepresentation, IndexedGenerators, Module):
             sage: C.is_trivial()
             True
         """
-        return self.connectivity() == PlusInfinity()
+        return self.connectivity() == infinity
 
 
     def has_relations(self):

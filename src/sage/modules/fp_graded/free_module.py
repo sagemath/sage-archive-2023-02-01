@@ -286,7 +286,7 @@ AUTHORS:
 from sage.misc.cachefunc import cached_method
 from sage.modules.free_module import FreeModule
 from sage.modules.fp_graded.free_element import FreeGradedModuleElement
-from sage.rings.infinity import PlusInfinity
+from sage.rings.infinity import infinity
 from sage.categories.graded_modules import GradedModules
 from sage.categories.fields import Fields
 from sage.combinat.free_module import CombinatorialFreeModule
@@ -510,7 +510,7 @@ class FreeGradedModule(CombinatorialFreeModule):
             sage: M.connectivity()
             +Infinity
         """
-        return min(self.generator_degrees() + (PlusInfinity(),))
+        return min(self.generator_degrees() + (infinity,))
 
 
     def _element_constructor_(self, coefficients):

@@ -1738,7 +1738,7 @@ class FPModuleMorphism(Morphism):
                 print ('The domain of the morphism is trivial, so there is nothing to resolve.')
             return j
 
-        if not self.base_ring().dimension() < infinity:
+        if not R.dimension() < infinity:
             limit = infinity
         else:
             limit = _top_dim(R) + max(domain.generator_degrees())
@@ -1878,9 +1878,8 @@ class FPModuleMorphism(Morphism):
             return j
 
         degree_values = [0] + [v.degree() for v in self._values if v]
-        # TODO: Change this to test finite dimensional (not a finite algebra)!!
-        limit = (infinity if not R.is_finite() else
-                 (_top_dim(self.base_ring()) + max(degree_values)))
+        limit = (infinity if not R.dimension() < infinity else
+                 (_top_dim(R) + max(degree_values)))
 
         if top_dim is not None:
             limit = min(top_dim, limit)
@@ -2026,10 +2025,9 @@ def _top_dim(algebra):
     r"""
     The top dimension of ``algebra``
 
-    This returns ``PlusInfinity`` if the algebra is
-    infinite-dimensional. If the algebra has a ``top_class``
-    method, then it is used in the computation; otherwise the
-    computation may be slow.
+    This returns infinity if the algebra is infinite-dimensional. If
+    the algebra has a ``top_class`` method, then it is used in the
+    computation; otherwise the computation may be slow.
 
     EXAMPLES::
 

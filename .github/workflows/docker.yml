@@ -67,7 +67,7 @@ on:
            ]
 
 jobs:
-  docker:
+  linux:
     runs-on: ubuntu-latest
     strategy:
       fail-fast: false
@@ -102,15 +102,15 @@ jobs:
           sudo DEBIAN_FRONTEND=noninteractive apt-get install tox
           sudo apt-get clean
           df -h
-      - name: Try to login to docker.pkg.github.com
+      - name: Try to login to ghcr.io
         # https://docs.github.com/en/actions/reference/workflow-commands-for-github-actions#setting-an-environment-variable
         run: |
             TOKEN="${{ secrets.DOCKER_PKG_GITHUB_TOKEN }}"
             if [ -z "$TOKEN" ]; then
               TOKEN="${{ secrets.GITHUB_TOKEN }}"
             fi
-            if echo "$TOKEN" | docker login docker.pkg.github.com -u ${{ github.actor }} --password-stdin; then
-              echo "DOCKER_PUSH_REPOSITORY=docker.pkg.github.com/${{ github.repository }}/" >> $GITHUB_ENV
+            if echo "$TOKEN" | docker login ghcr.io -u ${{ github.actor }} --password-stdin; then
+              echo "DOCKER_PUSH_REPOSITORY=ghcr.io/${{ github.repository }}/" >> $GITHUB_ENV
               echo "DOCKER_CONFIG_FILE=$HOME/.docker/config.json" >> $GITHUB_ENV
             fi
             # From the docker documentation via .ci/update-env.sh:

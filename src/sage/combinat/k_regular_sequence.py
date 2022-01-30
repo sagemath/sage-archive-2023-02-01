@@ -98,6 +98,7 @@ Classes and Methods
 
 from .recognizable_series import RecognizableSeries
 from .recognizable_series import RecognizableSeriesSpace
+from .recognizable_series import minimize_result
 from sage.misc.cachefunc import cached_function, cached_method
 
 
@@ -244,6 +245,528 @@ class kRegularSequence(RecognizableSeries):
         """
         from itertools import count
         return iter(self[n] for n in count())
+
+    @minimize_result
+    def subsequence(self, a, b):
+        r"""
+        Return the subsequence with indices `an+b` of this
+        `k`-regular sequence.
+
+        INPUT:
+
+        - ``a`` -- a nonnegative integer
+
+        - ``b`` -- an integer
+
+          Alternatively, this is allowed to be a dictionary
+          `b_j \mapsto c_j`. If so and applied on `f(n)`,
+          the result will be the sum of all `c_j \cdot f(an+b_j)`.
+
+        - ``minimize`` -- (default: ``None``) a boolean or ``None``.
+          If ``True``, then :meth:`~RecognizableSeries.minimized` is called after the operation,
+          if ``False``, then not. If this argument is ``None``, then
+          the default specified by the parent's ``minimize_results`` is used.
+
+        OUTPUT:
+
+        A :class:`kRegularSequence`
+
+        .. NOTE::
+
+            If `b` is negative (i.e., right-shift), then the
+            coefficients when accessing negative indices are `0`.
+
+        EXAMPLES::
+
+            sage: Seq2 = kRegularSequenceSpace(2, ZZ)
+
+        We consider the sequence `C` with `C(n) = n` and
+        the following linear representation
+        corresponding to the vector `(n, 1)`::
+
+            sage: C = Seq2((Matrix([[2, 0], [0, 1]]), Matrix([[2, 1], [0, 1]])),
+            ....:          vector([1, 0]), vector([0, 1])); C
+            2-regular sequence 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, ...
+
+        We now extract various subsequences of `C`::
+
+            sage: C.subsequence(2, 0)
+            2-regular sequence 0, 2, 4, 6, 8, 10, 12, 14, 16, 18, ...
+
+            sage: S31 = C.subsequence(3, 1); S31
+            2-regular sequence 1, 4, 7, 10, 13, 16, 19, 22, 25, 28, ...
+            sage: S31.linear_representation()
+            ((1, 0),
+             Finite family {0: [ 0  1]
+                               [-2  3],
+                            1: [ 6 -2]
+                               [10 -3]},
+             (1, 1))
+
+            sage: C.subsequence(3, 2)
+            2-regular sequence 2, 5, 8, 11, 14, 17, 20, 23, 26, 29, ...
+
+        ::
+
+            sage: Srs = C.subsequence(1, -1); Srs
+            2-regular sequence 0, 0, 1, 2, 3, 4, 5, 6, 7, 8, ...
+            sage: Srs.linear_representation()
+            ((1, 0, 0),
+             Finite family {0: [ 0  1  0]
+                               [-2  3  0]
+                               [-4  4  1],
+                            1: [ -2   2   0]
+                               [  0   0   1]
+                               [ 12 -12   5]},
+             (0, 0, 1))
+
+        We can build :meth:`backward_differences` manually by passing
+        a dictionary for the parameter ``b``::
+
+            sage: Sbd = C.subsequence(1, {0: 1, -1: -1}); Sbd
+            2-regular sequence 0, 1, 1, 1, 1, 1, 1, 1, 1, 1, ...
+
+        TESTS:
+
+        We check if the linear representation of the subsequences above
+        indeed represent the correct vector valued sequences::
+
+            sage: var('n')
+            n
+
+            sage: def v(n):
+            ....:     return vector([3*n + 1, 6*n + 1])
+            sage: S31.mu[0] * v(n) == v(2*n)
+            True
+            sage: S31.mu[1] * v(n) == v(2*n + 1)
+            True
+
+            sage: function('delta_0')
+            delta_0
+
+            sage: def simplify_delta(expr):
+            ....:     return expr.subs({delta_0(2*n): delta_0(n), delta_0(2*n + 1): 0})
+
+            sage: def v(n):
+            ....:     return vector([n -1 + delta_0(n), 2*n - 1 + delta_0(n), 4*n + 1])
+            sage: simplify_delta(v(2*n) - Srs.mu[0]*v(n)).is_zero()
+            True
+            sage: simplify_delta(v(2*n + 1) - Srs.mu[1]*v(n)).is_zero()
+            True
+
+            sage: def v(n):
+            ....:     return vector([1 - delta_0(n), 1])
+
+            sage: simplify_delta(v(2*n) - Sbd.mu[0]*v(n)).is_zero()
+            True
+            sage: simplify_delta(v(2*n + 1) - Sbd.mu[1]*v(n)).is_zero()
+            True
+
+        We check some corner-cases::
+
+            sage: C.subsequence(0, 4)
+            2-regular sequence 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, ...
+
+        ::
+
+            sage: C.subsequence(1, 0, minimize=False) is C
+            True
+
+        The following test that the range for `c` in the code
+        is sufficient::
+
+            sage: C.subsequence(1, -1, minimize=False)
+            2-regular sequence 0, 0, 1, 2, 3, 4, 5, 6, 7, 8, ...
+            sage: C.subsequence(1, -2, minimize=False)
+            2-regular sequence 0, 0, 0, 1, 2, 3, 4, 5, 6, 7, ...
+            sage: C.subsequence(2, -1, minimize=False)
+            2-regular sequence 0, 1, 3, 5, 7, 9, 11, 13, 15, 17, ...
+            sage: C.subsequence(2, -2, minimize=False)
+            2-regular sequence 0, 0, 2, 4, 6, 8, 10, 12, 14, 16, ...
+
+            sage: C.subsequence(2, 21, minimize=False)
+            2-regular sequence 21, 23, 25, 27, 29, 31, 33, 35, 37, 39, ...
+            sage: C.subsequence(2, 20, minimize=False)
+            2-regular sequence 20, 22, 24, 26, 28, 30, 32, 34, 36, 38, ...
+            sage: C.subsequence(2, 19, minimize=False)
+            2-regular sequence 19, 21, 23, 25, 27, 29, 31, 33, 35, 37, ...
+            sage: C.subsequence(2, -9, minimize=False)
+            2-regular sequence 0, 0, 0, 0, 0, 1, 3, 5, 7, 9, ...
+
+            sage: C.subsequence(3, 21, minimize=False)
+            2-regular sequence 21, 24, 27, 30, 33, 36, 39, 42, 45, 48, ...
+            sage: C.subsequence(3, 20, minimize=False)
+            2-regular sequence 20, 23, 26, 29, 32, 35, 38, 41, 44, 47, ...
+            sage: C.subsequence(3, 19, minimize=False)
+            2-regular sequence 19, 22, 25, 28, 31, 34, 37, 40, 43, 46, ...
+            sage: C.subsequence(3, 18, minimize=False)
+            2-regular sequence 18, 21, 24, 27, 30, 33, 36, 39, 42, 45, ...
+
+            sage: C.subsequence(10, 2, minimize=False)
+            2-regular sequence 2, 12, 22, 32, 42, 52, 62, 72, 82, 92, ...
+            sage: C.subsequence(10, 1, minimize=False)
+            2-regular sequence 1, 11, 21, 31, 41, 51, 61, 71, 81, 91, ...
+            sage: C.subsequence(10, 0, minimize=False)
+            2-regular sequence 0, 10, 20, 30, 40, 50, 60, 70, 80, 90, ...
+            sage: C.subsequence(10, -1, minimize=False)
+            2-regular sequence 0, 9, 19, 29, 39, 49, 59, 69, 79, 89, ...
+            sage: C.subsequence(10, -2, minimize=False)
+            2-regular sequence 0, 8, 18, 28, 38, 48, 58, 68, 78, 88, ...
+
+        ::
+
+            sage: C.subsequence(-1, 0)
+            Traceback (most recent call last):
+            ...
+            ValueError: a=-1 is not nonnegative.
+        """
+        from itertools import chain
+        from sage.rings.integer_ring import ZZ
+
+        zero = ZZ(0)
+        a = ZZ(a)
+        if not isinstance(b, dict):
+            b = {ZZ(b): ZZ(1)}
+
+        if a == 0:
+            return sum(c_j * self[b_j] * self.parent().one_hadamard()
+                       for b_j, c_j in b.items())
+        elif a == 1 and len(b) == 1 and zero in b:
+            return b[zero] * self
+        elif a < 0:
+            raise ValueError('a={} is not nonnegative.'.format(a))
+
+        from sage.matrix.constructor import Matrix
+        from sage.modules.free_module_element import vector
+        P = self.parent()
+        A = P.alphabet()
+        k = P.k
+
+        # Below, we use a dynamic approach to find the shifts of the
+        # sequences in the kernel. Note that according to [AS2003]_,
+        # the static range
+        #    [min(b, 0), max(a, a + b))
+        # suffices. With B = |b| and A = max(a, B), we here obtain the range
+        #    [-B, A]
+        # because of the following estimates:
+        # Let -B <= c <= A und set d = floor((ar+c) / k). Then
+        #   -B = floor(-B)
+        #      <= floor(-B / k)
+        #      <= floor(c / k)
+        #      <= d
+        #      <= (ar+c) / k
+        #      <= (A(k-1) + A) / k
+        #      = A
+        # holds.
+        # For list-valued b, we use B = max{|beta| : beta in b} above.
+
+        kernel = list(b)
+
+        zero_M = self.mu[0].parent().zero()
+        zero_R = self.right.parent().zero()
+        # Let v(n) = self.__getitem__(n, multiply_left=False)
+        rule = {}
+        # We will construct `kernel` and `rule` in such a way that for all
+        # c in `kernel`,
+        #     rule[r, c] = (f, d)
+        # holds for some 0 <= f < r and some d in `kernel` such that
+        #     v(a(kn+r)+c) [a(kn+r) +c >= 0] = mu[f] v(an+d) [an+d >= 0].
+
+        ci = 0
+        while ci < len(kernel):
+            c = kernel[ci]
+            for r in A:
+                # We now compute the contributions of v(an+c)[an >= 0] to
+                # the linear representation by using
+                #   v(a(kn+r)+c) [a(kn+r)+c >= 0]
+                #   = v(kan+ar+c) [kan+ar+c >= 0]
+                #   = v(k(an+d)+f) [an+d >= 0]
+                #   = mu[f] v(an+d) [an+d >= 0].
+                d, f = (a*r + c).quo_rem(k)
+                if d not in kernel:
+                    kernel.append(d)
+                rule[r, c] = (d, f)
+            ci += 1
+
+        def matrix_row(r, c):
+            d, f = rule[r, c]
+            return [self.mu[f] if d == j else zero_M for j in kernel]
+
+        result = P.element_class(
+            P,
+            {r: Matrix.block([matrix_row(r, c) for c in kernel])
+             for r in A},
+            vector(chain.from_iterable(
+                b.get(c, 0)*self.left
+                for c in kernel)),
+            vector(chain.from_iterable(
+                (self.__getitem__(c, multiply_left=False) if c >= 0 else zero_R)
+                for c in kernel)))
+
+        return result
+
+    def shift_left(self, b=1, **kwds):
+        r"""
+        Return the sequence obtained by shifting
+        this `k`-regular sequence `b` steps to the left.
+
+        INPUT:
+
+        - ``b`` -- an integer
+
+        - ``minimize`` -- (default: ``None``) a boolean or ``None``.
+          If ``True``, then :meth:`~RecognizableSeries.minimized` is called after the operation,
+          if ``False``, then not. If this argument is ``None``, then
+          the default specified by the parent's ``minimize_results`` is used.
+
+        OUTPUT:
+
+        A :class:`kRegularSequence`
+
+        .. NOTE::
+
+            If `b` is negative (i.e., actually a right-shift), then the
+            coefficients when accessing negative indices are `0`.
+
+        EXAMPLES::
+
+            sage: Seq2 = kRegularSequenceSpace(2, ZZ)
+            sage: C = Seq2((Matrix([[2, 0], [0, 1]]), Matrix([[2, 1], [0, 1]])),
+            ....:          vector([1, 0]), vector([0, 1])); C
+            2-regular sequence 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, ...
+
+            sage: C.shift_left()
+            2-regular sequence 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, ...
+            sage: C.shift_left(3)
+            2-regular sequence 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, ...
+            sage: C.shift_left(-2)
+            2-regular sequence 0, 0, 0, 1, 2, 3, 4, 5, 6, 7, ...
+
+        TESTS::
+
+            sage: C.shift_left(0) == C  # not tested, #21319
+            sage: C.shift_left(2).shift_right(2)
+            2-regular sequence 0, 0, 2, 3, 4, 5, 6, 7, 8, 9, ...
+        """
+        return self.subsequence(1, b, **kwds)
+
+    def shift_right(self, b=1, **kwds):
+        r"""
+        Return the sequence obtained by shifting
+        this `k`-regular sequence `b` steps to the right.
+
+        INPUT:
+
+        - ``b`` -- an integer
+
+        - ``minimize`` -- (default: ``None``) a boolean or ``None``.
+          If ``True``, then :meth:`~RecognizableSeries.minimized` is called after the operation,
+          if ``False``, then not. If this argument is ``None``, then
+          the default specified by the parent's ``minimize_results`` is used.
+
+        OUTPUT:
+
+        A :class:`kRegularSequence`
+
+        .. NOTE::
+
+            If `b` is positive (i.e., indeed a right-shift), then the
+            coefficients when accessing negative indices are `0`.
+
+        EXAMPLES::
+
+            sage: Seq2 = kRegularSequenceSpace(2, ZZ)
+            sage: C = Seq2((Matrix([[2, 0], [0, 1]]), Matrix([[2, 1], [0, 1]])),
+            ....:          vector([1, 0]), vector([0, 1])); C
+            2-regular sequence 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, ...
+
+            sage: C.shift_right()
+            2-regular sequence 0, 0, 1, 2, 3, 4, 5, 6, 7, 8, ...
+            sage: C.shift_right(3)
+            2-regular sequence 0, 0, 0, 0, 1, 2, 3, 4, 5, 6, ...
+            sage: C.shift_right(-2)
+            2-regular sequence 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, ...
+
+        TESTS::
+
+            sage: C.shift_right(0) == C  # not tested, #21319
+            sage: C.shift_right().shift_left()
+            2-regular sequence 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, ...
+            sage: C.shift_right(2).shift_left(2)
+            2-regular sequence 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, ...
+        """
+        return self.subsequence(1, -b, **kwds)
+
+    def backward_differences(self, **kwds):
+        r"""
+        Return the sequence of backward differences of this
+        `k`-regular sequence.
+
+        INPUT:
+
+        - ``minimize`` -- (default: ``None``) a boolean or ``None``.
+          If ``True``, then :meth:`~RecognizableSeries.minimized` is called after the operation,
+          if ``False``, then not. If this argument is ``None``, then
+          the default specified by the parent's ``minimize_results`` is used.
+
+        OUTPUT:
+
+        A :class:`kRegularSequence`
+
+        .. NOTE::
+
+            The coefficient to the index `-1` is `0`.
+
+        EXAMPLES::
+
+            sage: Seq2 = kRegularSequenceSpace(2, ZZ)
+            sage: C = Seq2((Matrix([[2, 0], [2, 1]]), Matrix([[0, 1], [-2, 3]])),
+            ....:          vector([1, 0]), vector([0, 1]))
+            sage: C
+            2-regular sequence 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, ...
+            sage: C.backward_differences()
+            2-regular sequence 0, 1, 1, 1, 1, 1, 1, 1, 1, 1, ...
+
+        ::
+
+            sage: E = Seq2((Matrix([[0, 1], [0, 1]]), Matrix([[0, 0], [0, 1]])),
+            ....:          vector([1, 0]), vector([1, 1]))
+            sage: E
+            2-regular sequence 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, ...
+            sage: E.backward_differences()
+            2-regular sequence 1, -1, 1, -1, 1, -1, 1, -1, 1, -1, ...
+        """
+        return self.subsequence(1, {0: 1, -1: -1}, **kwds)
+
+    def forward_differences(self, **kwds):
+        r"""
+        Return the sequence of forward differences of this
+        `k`-regular sequence.
+
+        INPUT:
+
+        - ``minimize`` -- (default: ``None``) a boolean or ``None``.
+          If ``True``, then :meth:`~RecognizableSeries.minimized` is called after the operation,
+          if ``False``, then not. If this argument is ``None``, then
+          the default specified by the parent's ``minimize_results`` is used.
+
+        OUTPUT:
+
+        A :class:`kRegularSequence`
+
+        EXAMPLES::
+
+            sage: Seq2 = kRegularSequenceSpace(2, ZZ)
+            sage: C = Seq2((Matrix([[2, 0], [2, 1]]), Matrix([[0, 1], [-2, 3]])),
+            ....:          vector([1, 0]), vector([0, 1]))
+            sage: C
+            2-regular sequence 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, ...
+            sage: C.forward_differences()
+            2-regular sequence 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, ...
+
+        ::
+
+            sage: E = Seq2((Matrix([[0, 1], [0, 1]]), Matrix([[0, 0], [0, 1]])),
+            ....:          vector([1, 0]), vector([1, 1]))
+            sage: E
+            2-regular sequence 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, ...
+            sage: E.forward_differences()
+            2-regular sequence -1, 1, -1, 1, -1, 1, -1, 1, -1, 1, ...
+        """
+        return self.subsequence(1, {1: 1, 0: -1}, **kwds)
+
+    @minimize_result
+    def partial_sums(self, include_n=False):
+        r"""
+        Return the sequence of partial sums of this
+        `k`-regular sequence. That is, the `n`th entry of the result
+        is the sum of the first `n` entries in the original sequence.
+
+        INPUT:
+
+        - ``include_n`` -- (default: ``False``) a boolean. If set, then
+          the `n`-th entry of the result is the sum of the entries up
+          to index `n` (included).
+
+        - ``minimize`` -- (default: ``None``) a boolean or ``None``.
+          If ``True``, then :meth:`~RecognizableSeries.minimized` is called after the operation,
+          if ``False``, then not. If this argument is ``None``, then
+          the default specified by the parent's ``minimize_results`` is used.
+
+        OUTPUT:
+
+        A :class:`kRegularSequence`
+
+        EXAMPLES::
+
+            sage: Seq2 = kRegularSequenceSpace(2, ZZ)
+
+            sage: E = Seq2((Matrix([[0, 1], [0, 1]]), Matrix([[0, 0], [0, 1]])),
+            ....:          vector([1, 0]), vector([1, 1]))
+            sage: E
+            2-regular sequence 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, ...
+            sage: E.partial_sums()
+            2-regular sequence 0, 1, 1, 2, 2, 3, 3, 4, 4, 5, ...
+            sage: E.partial_sums(include_n=True)
+            2-regular sequence 1, 1, 2, 2, 3, 3, 4, 4, 5, 5, ...
+
+        ::
+
+            sage: C = Seq2((Matrix([[2, 0], [2, 1]]), Matrix([[0, 1], [-2, 3]])),
+            ....:          vector([1, 0]), vector([0, 1]))
+            sage: C
+            2-regular sequence 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, ...
+            sage: C.partial_sums()
+            2-regular sequence 0, 0, 1, 3, 6, 10, 15, 21, 28, 36, ...
+            sage: C.partial_sums(include_n=True)
+            2-regular sequence 0, 1, 3, 6, 10, 15, 21, 28, 36, 45, ...
+
+        TESTS::
+
+            sage: E.linear_representation()
+            ((1, 0),
+             Finite family {0: [0 1]
+                               [0 1],
+                            1: [0 0]
+                               [0 1]},
+             (1, 1))
+            sage: P = E.partial_sums(minimize=False)
+            sage: P.linear_representation()
+            ((1, 0, -1, 0),
+             Finite family {0: [ 0  1| 0  0]
+                               [ 0  2| 0 -1]
+                               [-----+-----]
+                               [ 0  0| 0  1]
+                               [ 0  0| 0  1],
+                            1: [0 1|0 0]
+                               [0 2|0 0]
+                               [---+---]
+                               [0 0|0 0]
+                               [0 0|0 1]},
+             (1, 1, 1, 1))
+        """
+        from itertools import chain
+        from sage.matrix.constructor import Matrix
+        from sage.matrix.special import zero_matrix
+        from sage.modules.free_module_element import vector
+
+        P = self.parent()
+        A = P.alphabet()
+        k = P.k
+        dim = self.dimension()
+
+        B = {r: sum(self.mu[a] for a in A[r:]) for r in A}
+        Z = zero_matrix(dim)
+        B[k] = Z
+
+        result = P.element_class(
+            P,
+            {r: Matrix.block([[B[0], -B[r+1]], [Z, self.mu[r]]]) for r in A},
+            vector(chain(self.left,
+                         (dim*(0,) if include_n else -self.left))),
+            vector(chain(self.right, self.right)))
+
+        return result
 
 
 class kRegularSequenceSpace(RecognizableSeriesSpace):

@@ -12807,35 +12807,24 @@ cdef class Expression(Expression_abc):
         EXAMPLES::
 
             sage: x = var('x', domain='real')
-            sage: s = abs((1+I*x)^4); s
-            abs(I*x + 1)^4
-            sage: f = s._plot_fast_callable(x); f
-            <sage.ext.interpreters.wrapper_py.Wrapper_py object at ...>
-            sage: f(10)
-            10201
-            sage: abs((I*10+1)^4)
-            10201
+            sage: s = abs((1+I*x)^4)
+            sage: f = s._plot_fast_callable(x)
+            sage: f(10) == abs((I*10+1)^4)
+            True
             sage: plot(s)
             Graphics object consisting of 1 graphics primitive
 
-        Check that :trac:`19797` is fixed::
-
-            sage: b = f(10.0)
-            sage: b
-            10201.0000000000
-            sage: parent(b)
-            Real Field with 53 bits of precision
-
         Check that :trac:`15030` is fixed::
 
-            sage: abs(log(x))._plot_fast_callable(x)(-0.2)
+            sage: abs(log(x))._plot_fast_callable(x)(-0.2) # abs tol 1e-10
             3.52985761682672
             sage: f = function('f', evalf_func=lambda self,x,parent: I*x)
             sage: plot(abs(f(x)), 0,5)
             Graphics object consisting of 1 graphics primitive
         """
         from sage.ext.fast_callable import fast_callable
-        return fast_callable(self, vars=vars, expect_one_var=True)
+        from sage.rings.complex_double import CDF
+        return fast_callable(self, vars=vars, expect_one_var=True, domain=CDF)
 
     ############
     # Calculus #

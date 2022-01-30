@@ -1572,13 +1572,13 @@ class EllipticCurvePoint_field(SchemeMorphism_point_abelian_variety_field):
 
         An example over a number field::
 
-            sage: P,Q = EllipticCurve('11a1').change_ring(CyclotomicField(5)).torsion_subgroup().gens()  # long time (10s)
-            sage: P,Q = (P.element(), Q.element())  # long time
-            sage: (P.order(),Q.order())  # long time
+            sage: P,Q = EllipticCurve('11a1').change_ring(CyclotomicField(5)).torsion_subgroup().gens()
+            sage: P,Q = (P.element(), Q.element())
+            sage: (P.order(),Q.order())
             (5, 5)
-            sage: P.weil_pairing(Q,5)  # long time
+            sage: P.weil_pairing(Q,5)
             zeta5^2
-            sage: Q.weil_pairing(P,5)  # long time
+            sage: Q.weil_pairing(P,5)
             zeta5^3
 
         TESTS:

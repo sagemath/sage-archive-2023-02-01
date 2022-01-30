@@ -88,8 +88,6 @@ class GradedAlgebrasWithBasis(GradedModulesCategory):
             """
             Create a finitely generated free graded module over ``self``
 
-            This is only implemented when the ground ring is a field.
-
             INPUTS:
 
             - ``generator_degrees`` -- tuple of integers defining the
@@ -99,13 +97,13 @@ class GradedAlgebrasWithBasis(GradedModulesCategory):
               ``names`` is a comma-separated string like ``'a, b,
               c'``, then those will be the names. Otherwise, for
               example if ``names`` is ``abc``, then the names will be
-              ``abc_{d,i}``.
+              ``abc[d,i]``.
 
             By default, if all generators are in distinct degrees,
             then the ``names`` of the generators will have the form
-            ``g_{d}`` where ``d`` is the degree of the generator. If
+            ``g[d]`` where ``d`` is the degree of the generator. If
             the degrees are not distinct, then the generators will be
-            called ``g_{d,i}`` where ``d`` is the degree and ``i`` is
+            called ``g[d,i]`` where ``d`` is the degree and ``i`` is
             its index in the list of generators in that degree.
 
             See :mod:`sage.modules.fp_graded.free_module` for more
@@ -118,9 +116,12 @@ class GradedAlgebrasWithBasis(GradedModulesCategory):
                 sage: M = Cl.free_graded_module((0, 2, 3))
                 sage: M.gens()
                 (g[0], g[2], g[3])
+                sage: N.<xy, z> = Cl.free_graded_module((1, 2))
+                sage: N.generators()
+                (xy, z)
             """
             from sage.modules.fp_graded.free_module import FreeGradedModule
-            return FreeGradedModule(self, generator_degrees, names)
+            return FreeGradedModule(self, generator_degrees, names=names)
 
 
     class ElementMethods:

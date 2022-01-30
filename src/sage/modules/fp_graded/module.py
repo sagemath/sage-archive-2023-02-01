@@ -1,14 +1,14 @@
 r"""
 Finitely presented graded modules
 
-Let `R` be a connected graded algebra.  A finitely presented module over `R`
-is isomorphic to the cokernel of an `R`-linear homomorphism `f: F_1 \to F_0`
-of finitely generated free modules: The generators of `F_0` corresponds to the
-generators of the module, and the generators of `F_1` corresponds to its
-relations, via the map `f`.
+Let `R` be a connected graded algebra.  A finitely presented module
+over `R` is a module isomorphic to the cokernel of an `R`-linear
+homomorphism `f: F_1 \to F_0` of finitely generated free modules: the
+generators of `F_0` correspond to the generators of the module, and
+the generators of `F_1` correspond to its relations, via the map `f`.
 
-The class constructor of this module class is given a set of generators and
-relations, and uses them to construct a presentation, using the class
+The class constructor of this module class takes a set of generators and
+relations and uses them to construct a presentation, using the class
 :class:`sage.modules.fp_graded.free_morphism.FreeGradedModuleMorphism`.
 
 This package was designed with homological algebra in mind, and its API
@@ -1147,7 +1147,7 @@ class FPModule(UniqueRepresentation, IndexedGenerators, Module):
 
             sage: E.<x,y> = ExteriorAlgebra(QQ)
             sage: triv = FPModule(E, [0], [[x], [y]]) # trivial module
-            sage: triv.res(3)
+            sage: triv.resolution(3)
             [Module morphism:
                From: Finitely presented left module on 1 generator and 0 relations over The exterior algebra of rank 2 over Rational Field
                To:   Finitely presented left module on 1 generator and 2 relations over The exterior algebra of rank 2 over Rational Field
@@ -1220,10 +1220,10 @@ class FPModule(UniqueRepresentation, IndexedGenerators, Module):
             ....:     assert (res[i]*res[i+1]).is_zero(), 'the result is not a complex'
 
             sage: res2 = M.resolution(2, as_free=True)
-            sage: [type(f) for f in res]
+            sage: [type(f) for f in res2]
             [<class 'sage.modules.fp_graded.homspace.FPModuleHomspace_with_category_with_equality_by_id.element_class'>,
-            <class 'sage.modules.fp_graded.free_homspace.FreeGradedModuleHomspace_with_category_with_equality_by_id.element_class'>]
-            <class 'sage.modules.fp_graded.free_homspace.FreeGradedModuleHomspace_with_category_with_equality_by_id.element_class'>]
+             <class 'sage.modules.fp_graded.free_homspace.FreeGradedModuleHomspace_with_category_with_equality_by_id.element_class'>,
+             <class 'sage.modules.fp_graded.free_homspace.FreeGradedModuleHomspace_with_category_with_equality_by_id.element_class'>]
         """
         def _print_progress(i, k):
             if verbose:

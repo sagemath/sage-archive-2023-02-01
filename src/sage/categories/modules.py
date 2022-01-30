@@ -363,7 +363,7 @@ class Modules(Category_module):
                 sage: A = SteenrodAlgebra(2)
                 sage: from sage.modules.fp_graded.module import FPModule
                 sage: FPModule(A, [0, 1], [[Sq(2), Sq(1)]]).category()
-                Category of finitely presented graded modules with basis over mod 2 Steenrod algebra, milnor basis
+                Category of finitely presented graded modules over mod 2 Steenrod algebra, milnor basis
 
             TESTS::
 

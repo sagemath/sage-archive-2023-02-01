@@ -1,14 +1,14 @@
 r"""
 Finitely presented graded modules
 
-Let `R` be a connected graded algebra.  A finitely presented module over `R`
-is isomorphic to the cokernel of an `R`-linear homomorphism `f: F_1 \to F_0`
-of finitely generated free modules: The generators of `F_0` corresponds to the
-generators of the module, and the generators of `F_1` corresponds to its
-relations, via the map `f`.
+Let `R` be a connected graded algebra.  A finitely presented module
+over `R` is a module isomorphic to the cokernel of an `R`-linear
+homomorphism `f: F_1 \to F_0` of finitely generated free modules: the
+generators of `F_0` correspond to the generators of the module, and
+the generators of `F_1` correspond to its relations, via the map `f`.
 
-The class constructor of this module class is given a set of generators and
-relations, and uses them to construct a presentation, using the class
+The class constructor of this module class takes a set of generators and
+relations and uses them to construct a presentation, using the class
 :class:`sage.modules.fp_graded.free_morphism.FreeGradedModuleMorphism`.
 
 This package was designed with homological algebra in mind, and its API

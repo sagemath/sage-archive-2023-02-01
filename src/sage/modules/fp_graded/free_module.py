@@ -1,15 +1,22 @@
 r"""
 Finitely generated free graded left modules over connected graded algebras
 
-Let `p` be a prime number. The mod `p` Steenrod algebra `A_p`
-is a connected algebra over the finite field of `p` elements.  All modules
-presented here will be defined over `A_p`, or one of its sub-Hopf algebras.
-E.g.::
+Let `A` be a connected graded algebra. Some methods here require in
+addition that `A` be an algebra over a field and that Sage has a
+description of a basis for `A`.
+
+For example, let `p` be a prime number. The mod `p` Steenrod algebra
+`A_p` is a connected algebra over the finite field of `p` elements.
+Many of the modules presented here will be defined over `A_p`, or one
+of its sub-Hopf algebras.  E.g.::
 
     sage: A = SteenrodAlgebra(p=2)
 
-However, the current implementation can use any connected graded algebra
-that has a graded basis where each graded part is finite dimensional.
+However, the current implementation can use any connected graded
+algebra that has a graded basis where each graded part is finite
+dimensional. Another good family is the exterior algebras::
+
+    sage: E.<x,y,z> = ExteriorAlgebra(QQ)
 
 A free module is defined by the graded algebra and an ordered tuple
 of degrees for the generators::
@@ -20,10 +27,26 @@ of degrees for the generators::
     Free graded left module on 2 generators over
      mod 2 Steenrod algebra, milnor basis
 
-The resulting free module will have generators in the degrees as specified::
+    sage: F.<a,b,c> = E.free_graded_module((0,3,6))
+    sage: F
+    Free graded left module on 3 generators over
+     The exterior algebra of rank 3 over Rational Field
+
+The resulting free modules will have generators in the degrees as specified::
 
     sage: M.generator_degrees()
     (0, 1)
+    sage: F.generator_degrees()
+    (0, 3, 6)
+
+The default names for the generators are ``g[degree]`` if they are in
+distinct degrees, ``g[degree, i]`` otherwise. They can be given other
+names, as was done when creating the module ``F``::
+
+    sage: M.generators()
+    (g[0], g[1])
+    sage: F.generators()
+    (a, b, c)
 
 The connectivity of a module over a connected graded algebra is the minimum
 degree of all its module generators.  Thus, if the module is non-trivial, the
@@ -45,26 +68,13 @@ of degree `n` has the form
 where `a_i\in A_{n-\deg(g_i)}` for all `i`.  The ordered set `\{a_i\}`
 is referred to as the coefficients of `x`.
 
-Module elements are displayed by their algebra coefficients::
-
-    sage: M.an_element(n=5)
-    Sq(2,1)*g[0] + Sq(4)*g[1]
-
-    sage: M.an_element(n=15)
-    Sq(0,0,0,1)*g[0] + Sq(1,2,1)*g[1]
-
-The generators are themselves elements of the module::
-
-    sage: M.generators()
-    (g[0], g[1])
-
-Producing elements from a given set of coefficients is possible as usual::
+You can produce module elements from a given set of coefficients::
 
     sage: coeffs = [Sq(5), Sq(1,1)]
     sage: x = M(coeffs); x
     Sq(5)*g[0] + Sq(1,1)*g[1]
 
-The module action produces new elements::
+You can also use the module action::
 
     sage: Sq(2) * x
     (Sq(4,1)+Sq(7))*g[0] + Sq(3,1)*g[1]
@@ -112,7 +122,7 @@ together with a corresponding free module presentation::
     sage: M.vector_presentation(5)
     Vector space of dimension 4 over Finite Field of size 2
 
-Given any element, its coordinates with resepct to this basis can be computed::
+Given any element, its coordinates with respect to this basis can be computed::
 
     sage: v = x.vector_presentation(); v
     (0, 1, 1, 0)
@@ -133,7 +143,7 @@ Module homomorphisms
 Homomorphisms of free graded `A`-modules `M\to N` are linear maps of their
 underlying free `k`-module which commute with the `A`-module structure.
 
-To create a homomorphism, first create the object modelling the set of all
+To create a homomorphism, first create the object modeling the set of all
 such homomorphisms using the free function ``Hom``::
 
     sage: M = FreeGradedModule(A, (0,1))

@@ -631,8 +631,8 @@ class Polyomino(SageObject):
             sage: p.bounding_box()
             [[0, 0, 0], [1, 2, 1]]
         """
-        return [[min(_) for _ in zip(*self)],
-                [max(_) for _ in zip(*self)]]
+        return [[min(w) for w in zip(*self)],
+                [max(w) for w in zip(*self)]]
 
     def __hash__(self):
         r"""

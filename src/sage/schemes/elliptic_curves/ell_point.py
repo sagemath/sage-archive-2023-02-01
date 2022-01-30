@@ -1515,7 +1515,7 @@ class EllipticCurvePoint_field(SchemeMorphism_point_abelian_variety_field):
             t = 1/(t*vee)
         return t
 
-    def weil_pairing(self, Q, n, algorithm='pari'):
+    def weil_pairing(self, Q, n, algorithm=None):
         r"""
         Compute the Weil pairing of this point with another point `Q`
         on the same curve.
@@ -1527,8 +1527,10 @@ class EllipticCurvePoint_field(SchemeMorphism_point_abelian_variety_field):
         - ``n`` -- an integer `n` such that `nP = nQ = (0:1:0)`, where
           `P` is ``self``.
 
-        - ``algorithm`` (default: ``pari``) -- choices are ``pari``
-          and ``sage``. PARI is usually significantly faster.
+        - ``algorithm`` (default: ``None``) -- choices are ``pari``
+          and ``sage``. PARI is usually significantly faster, but it
+          only works over finite fields. When ``None`` is given, a
+          suitable algorithm is chosen automatically.
 
         OUTPUT:
 
@@ -1619,6 +1621,12 @@ class EllipticCurvePoint_field(SchemeMorphism_point_abelian_variety_field):
 
         if Q.curve() is not E:
             raise ValueError("points must both be on the same curve")
+
+        if algorithm is None:
+            if E.base_field().is_finite():
+                algorithm = 'pari'
+            else:
+                algorithm = 'sage'
 
         if algorithm == 'pari':
             if pari.ellmul(E,P,n) != [0] or pari.ellmul(E,Q,n) != [0]:

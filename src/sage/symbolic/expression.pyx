@@ -3589,6 +3589,20 @@ cdef class Expression(Expression_abc):
             False
             sage: (m==m1).test_relation()
             False
+
+        Try the examples from :trac:`31424` and :trac:`31665`::
+
+            sage: k = 26
+            sage: bool(2/(2*pi)^(2*k) <= abs(bernoulli(2*k)/factorial(2*k)))
+            True
+            sage: t = log(17179815199/17179869184) + 727717503781781876485802\
+            ....: 752874818120860129694543334299450155913077668355/2315841784\
+            ....: 74632390847141970017375815706539969331281128078915168015826\
+            ....: 259279872
+            sage: v = -53985/17179869184
+            sage: bool(abs(t) < 1.213*2^-56*v^4)
+            True
+
         """
         cdef int k, eq_count = 0
         cdef bint is_interval
@@ -3604,9 +3618,17 @@ cdef class Expression(Expression_abc):
                     from sage.rings.qqbar import AA as domain
             else:
                 if op == equal or op == not_equal:
-                    from sage.rings.qqbar import CIF as domain
+                    from sage.rings.complex_interval_field import \
+                        ComplexIntervalField
+                    # We don't want to be in the business of trying to
+                    # ensure enough precision to solve EVERY problem,
+                    # but since there are two real-life examples in
+                    # Trac tickets 31424 and 31665 that are aided by
+                    # a bump, we reluctantly enter that game.
+                    domain = ComplexIntervalField(128)
                 else:
-                    from sage.rings.real_mpfi import RIF as domain
+                    from sage.rings.real_mpfi import RealIntervalField
+                    domain = RealIntervalField(128)
         else:
             is_interval = isinstance(domain, (sage.rings.abc.RealIntervalField,
                                               sage.rings.abc.ComplexIntervalField,

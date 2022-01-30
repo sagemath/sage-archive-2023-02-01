@@ -216,6 +216,9 @@ REFERENCES:
 .. [AM1969] \M. F. Atiyah and I. G. Macdonald, "Introduction to commutative
             algebra", Addison-Wesley, 1969.
 
+ .. [AM1990] \R. Abraham and J. E. Marsden, "Foundations of Mechanics", 
+            Addison-Wesley, 1980.
+
 .. [AM1974] \J. F. Adams and H. R. Margolis, "Sub-Hopf-algebras of the
             Steenrod algebra," Proc. Cambridge Philos. Soc. 76 (1974),
             45-52.
@@ -4948,6 +4951,9 @@ REFERENCES:
 
 .. [RSS] :wikipedia:`Residual_sum_of_squares`, accessed 13th
          October 2009.
+
+.. [RS2012] G. Rudolph and M. Schmidt, "Differential Geometry and Mathematical Physics. 
+            Part I. Manifolds, Lie Groups and Hamiltonian Systems", Springer, 2012.
 
 .. [RSW2011] Victor Reiner, Franco Saliola, Volkmar Welker.
              *Spectra of Symmetrized Shuffling Operators*.

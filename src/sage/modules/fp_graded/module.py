@@ -1110,7 +1110,7 @@ class FPModule(UniqueRepresentation, IndexedGenerators, Module):
         return Hom(F, self)(spanning_elements).image()
 
 
-    def resolution(self, k, top_dim=None, verbose=False):
+    def resolution(self, k, top_dim=None, verbose=False, as_free=False):
         r"""
         Return a resolution of this module of length ``k``.
 
@@ -1119,6 +1119,9 @@ class FPModule(UniqueRepresentation, IndexedGenerators, Module):
         - ``k`` -- an non-negative integer
         - ``verbose`` -- (default: ``False``) a boolean to control if
           log messages should be emitted
+        - ``as_free`` -- (default: ``False``) if ``True``, return as
+          many morphisms as possible (all but the 0th one) as
+          morphisms between free modules
 
         OUTPUT:
 
@@ -1144,6 +1147,33 @@ class FPModule(UniqueRepresentation, IndexedGenerators, Module):
         EXAMPLES::
 
             sage: from sage.modules.fp_graded.module import FPModule
+
+            sage: E.<x,y> = ExteriorAlgebra(QQ)
+            sage: triv = FPModule(E, [0], [[x], [y]]) # trivial module
+            sage: triv.res(3)
+            [Module morphism:
+               From: Finitely presented left module on 1 generator and 0 relations over The exterior algebra of rank 2 over Rational Field
+               To:   Finitely presented left module on 1 generator and 2 relations over The exterior algebra of rank 2 over Rational Field
+               Defn: g[0] |--> g[0],
+             Module morphism:
+               From: Finitely presented left module on 2 generators and 0 relations over The exterior algebra of rank 2 over Rational Field
+               To:   Finitely presented left module on 1 generator and 0 relations over The exterior algebra of rank 2 over Rational Field
+               Defn: g[1, 0] |--> x*g[0]
+                     g[1, 1] |--> y*g[0],
+             Module morphism:
+               From: Finitely presented left module on 3 generators and 0 relations over The exterior algebra of rank 2 over Rational Field
+               To:   Finitely presented left module on 2 generators and 0 relations over The exterior algebra of rank 2 over Rational Field
+               Defn: g[2, 0] |--> x*g[1, 0]
+                     g[2, 1] |--> y*g[1, 0] + x*g[1, 1]
+                     g[2, 2] |--> y*g[1, 1],
+             Module morphism:
+               From: Finitely presented left module on 4 generators and 0 relations over The exterior algebra of rank 2 over Rational Field
+               To:   Finitely presented left module on 3 generators and 0 relations over The exterior algebra of rank 2 over Rational Field
+               Defn: g[3, 0] |--> x*g[2, 0]
+                     g[3, 1] |--> y*g[2, 0] + x*g[2, 1]
+                     g[3, 2] |--> y*g[2, 1] + x*g[2, 2]
+                     g[3, 3] |--> y*g[2, 2]]
+
             sage: A2 = SteenrodAlgebra(2, profile=(3,2,1))
             sage: M = FPModule(A2, [0,1], [[Sq(2), Sq(1)]])
             sage: M.resolution(0)
@@ -1191,6 +1221,12 @@ class FPModule(UniqueRepresentation, IndexedGenerators, Module):
                      g[12] |--> Sq(0,1)*g[9] + Sq(2)*g[10]]
             sage: for i in range(len(res)-1):
             ....:     assert (res[i]*res[i+1]).is_zero(), 'the result is not a complex'
+
+            sage: res2 = M.resolution(2, as_free=True)
+            sage: [type(f) for f in res]
+            [<class 'sage.modules.fp_graded.homspace.FPModuleHomspace_with_category_with_equality_by_id.element_class'>,
+            <class 'sage.modules.fp_graded.free_homspace.FreeGradedModuleHomspace_with_category_with_equality_by_id.element_class'>]
+            <class 'sage.modules.fp_graded.free_homspace.FreeGradedModuleHomspace_with_category_with_equality_by_id.element_class'>]
         """
         def _print_progress(i, k):
             if verbose:
@@ -1216,8 +1252,6 @@ class FPModule(UniqueRepresentation, IndexedGenerators, Module):
 
         ret_complex.append(pres)
 
-        from .morphism import FPModuleMorphism
-
         # f_i: F_i -> F_i-1, for i > 1
         for i in range(2, k+1):
             _print_progress(i, k)
@@ -1226,5 +1260,8 @@ class FPModule(UniqueRepresentation, IndexedGenerators, Module):
             ret_complex.append(f._resolve_kernel(top_dim=top_dim,
                                                  verbose=verbose))
 
-        return ret_complex
+        if as_free:
+            return ret_complex[0:1] + [f._lift_to_free_morphism() for f in ret_complex[1:]]
+        else:
+            return ret_complex
 

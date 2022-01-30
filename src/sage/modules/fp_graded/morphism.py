@@ -23,9 +23,8 @@ AUTHORS:
 
 from sage.categories.homset import End, Hom
 from sage.categories.morphism import Morphism
-from sage.misc.cachefunc import cached_method
+from sage.misc.cachefunc import cached_method, cached_function
 from sage.rings.infinity import PlusInfinity
-
 
 def _create_relations_matrix(module, relations, source_degs, target_degs):
     r"""
@@ -169,7 +168,7 @@ class FPModuleMorphism(Morphism):
 
         sage: w = Hom(Q, F)( (F((1, 0)), F((0, 1))) )
         Traceback (most recent call last):
-         ...
+        ...
         ValueError: relation Sq(6)*g[2] + Sq(5)*g[3] is not sent to zero
     """
     def __init__(self, parent, values):
@@ -1489,10 +1488,9 @@ class FPModuleMorphism(Morphism):
 
         .. NOTE::
 
-            If the algebra for this module is finite and has a
-            ``top_class`` method, then no ``top_dim`` needs to be
-            specified in order to ensure that this function
-            terminates.
+            If the algebra for this module is finite, then no
+            ``top_dim`` needs to be specified in order to ensure that
+            this function terminates.
 
         TESTS::
 
@@ -1551,14 +1549,10 @@ class FPModuleMorphism(Morphism):
                 print ('The domain of the morphism is trivial, so there is nothing to resolve.')
             return j
 
-        # TODO:
-        #
-        # Handle algebras which are finite dimensional but which have
-        # no top_class method, for example exterior algebras.
         if not self.base_ring().dimension() < PlusInfinity():
            limit = PlusInfinity()
         else:
-            limit = (self.base_ring().top_class().degree() + max(self.domain().generator_degrees()))
+            limit = _top_dim(self.base_ring()) + max(self.domain().generator_degrees())
 
         if top_dim is not None:
             limit = min(top_dim, limit)
@@ -1696,7 +1690,7 @@ class FPModuleMorphism(Morphism):
 
         degree_values = [0] + [v.degree() for v in self._values if v]
         limit = PlusInfinity() if not self.base_ring().is_finite() else\
-            (self.base_ring().top_class().degree() + max(degree_values))
+            (_top_dim(self.base_ring()) + max(degree_values))
 
         if top_dim is not None:
             limit = min(top_dim, limit)
@@ -1795,3 +1789,65 @@ class FPModuleMorphism(Morphism):
                         self.codomain().generator_degrees(),
                         tuple([r.coefficients() for r in self._values]))
 
+
+    def _lift_to_free_morphism(self):
+        """
+        If ``self`` is a map between finitely presented modules which are
+        actually free, then return this morphism as a
+        FreeGradedModuleMorphism. Otherwise raise an error.
+
+        EXAMPLES::
+
+            sage: from sage.modules.fp_graded.module import FPModule
+            sage: A2 = SteenrodAlgebra(2, profile=(3,2,1))
+            sage: M = FPModule(A2, [0], relations=[[Sq(1)]])
+            sage: N = FPModule(A2, [0], relations=[[Sq(4)],[Sq(1)]])
+            sage: f = Hom(M,N)([A2.Sq(3)*N.generator(0)])
+            sage: f._lift_to_free_morphism()
+            Traceback (most recent call last):
+            ...
+            ValueError: the domain and/or codomain are not free
+            sage: MF = FPModule(A2, [0, 1])
+            sage: f = Hom(MF, MF)([A2.Sq(3) * MF.generator(0), A2.Sq(0, 1) * MF.generator(1)])
+            sage: f._lift_to_free_morphism()
+            Free module endomorphism of Free graded left module on 2 generators over sub-Hopf algebra of mod 2 Steenrod algebra, milnor basis, profile function [3, 2, 1]
+              Defn: g[0] |--> Sq(3)*g[0]
+                    g[1] |--> Sq(0,1)*g[1]
+        """
+        if self.domain().relations() or self.codomain().relations():
+            raise ValueError("the domain and/or codomain are not free")
+        M = self.domain()._free_module()
+        N = self.codomain()._free_module()
+        return Hom(M, N)([N(v.coefficients()) for v in self.values()])
+
+
+@cached_function
+def _top_dim(algebra):
+    r"""
+    The top dimension of ``algebra``
+
+    This returns ``PlusInfinity`` if the algebra is
+    infinite-dimensional. If the algebra has a ``top_class``
+    method, then it is used in the computation; otherwise the
+    computation may be slow.
+
+    EXAMPLES::
+
+        sage: from sage.modules.fp_graded.morphism import _top_dim
+        sage: E.<x,y,z> = ExteriorAlgebra(QQ)
+        sage: _top_dim(E)
+        3
+
+        sage: _top_dim(SteenrodAlgebra(2, profile=(3,2,1)))
+        23
+    """
+    if not algebra.dimension() < PlusInfinity():
+        return PlusInfinity()
+    try:
+        alg_top_dim = algebra.top_class().degree()
+    except AttributeError:
+        # This could be very slow, but it should handle the case
+        # when the algebra is finite-dimensional but has no
+        # top_class method, e.g., exterior algebras.
+        alg_top_dim = max(a.degree() for a in algebra.basis())
+    return alg_top_dim

@@ -447,6 +447,20 @@ class FPModuleMorphism(Morphism):
             True
             sage: ff + f == f
             True
+
+            sage: N = A.free_graded_module((2,))
+            sage: v = N.generator(0)
+            sage: homspace = Hom(A.free_graded_module((0,1)), N)
+            sage: values = [Sq(5)*v, Sq(3,1)*v]
+            sage: f = homspace(values)
+            sage: ff = f + f
+            sage: ff.is_zero()
+            True
+            sage: ff + f == f
+            True
+            sage: ff = f + f
+            sage: ff.is_zero()
+            True
         """
         if self.domain() != g.domain():
             raise ValueError('morphisms do not have the same domain')
@@ -569,7 +583,7 @@ class FPModuleMorphism(Morphism):
             sage: v = N.generator(0)
             sage: values = [Sq(5)*v, Sq(3,1)*v]
             sage: f = Hom(M, N)(values)
-            sage: values2 = [Sq(2)*v]
+            sage: values2 = [Sq(2)*M.generator(0)]
             sage: g = Hom(N, M)(values2)
             sage: fg = f * g; fg
             Free module endomorphism of Free graded left module on 1 generator over mod 2 Steenrod algebra, milnor basis
@@ -665,6 +679,20 @@ class FPModuleMorphism(Morphism):
               Defn: g[0] |--> g[0]
                     g[1] |--> g[1]
 
+            sage: one.is_identity()
+            True
+
+            sage: M = A.free_graded_module((0,1))
+            sage: N = A.free_graded_module((2,))
+            sage: v = N.generator(0)
+            sage: values = [Sq(5)*v, Sq(3,1)*v]
+            sage: f = Hom(M, N)(values)
+            sage: f.is_identity()
+            False
+            sage: one = Hom(M, M)(M.generators()); one
+            Free module endomorphism of Free graded left module on 2 generators over mod 2 Steenrod algebra, milnor basis
+              Defn: g[0] |--> g[0]
+                    g[1] |--> g[1]
             sage: one.is_identity()
             True
         """

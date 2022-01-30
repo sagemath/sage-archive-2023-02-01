@@ -2,8 +2,8 @@ r"""
 Finitely generated free graded left modules over connected graded algebras
 
 Let `A` be a connected graded algebra. Some methods here require in
-addition that `A` be an algebra over a field and that Sage has a
-description of a basis for `A`.
+addition that `A` be an algebra over a field or a PID and that Sage
+has a description of a basis for `A`.
 
 For example, let `p` be a prime number. The mod `p` Steenrod algebra
 `A_p` is a connected algebra over the finite field of `p` elements.

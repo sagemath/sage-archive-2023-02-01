@@ -7,9 +7,10 @@ homomorphism `f: F_1 \to F_0` of finitely generated free modules: the
 generators of `F_0` correspond to the generators of the module, and
 the generators of `F_1` correspond to its relations, via the map `f`.
 
-The class constructor of this module class takes a set of generators and
-relations and uses them to construct a presentation, using the class
-:class:`sage.modules.fp_graded.free_morphism.FreeGradedModuleMorphism`.
+This module class takes as input a set of generators and relations
+and uses them to construct a presentation, using the class
+:class:`~sage.modules.fp_graded.free_morphism.FreeGradedModuleMorphism`.
+It also allows such a morphism as input.
 
 This package was designed with homological algebra in mind, and its API
 focuses on maps rather than objects.  A good example of this is the kernel
@@ -17,6 +18,11 @@ function :meth:`sage.modules.fp_graded.morphism.FPModuleMorphism.kernel_inclusio
 which computes the kernel of a homomorphism `f: M\to N`.  Its return value
 is not an instance of the module class, but rather an injective homomorphism
 `i: K\to M` with the property that `\operatorname{im}(i) = \ker(f)`.
+
+.. NOTE::
+
+    Some methods here require in addition that `R` be an algebra over a
+    field or a PID and that Sage has a description of a basis for `R`.
 
 AUTHORS:
 

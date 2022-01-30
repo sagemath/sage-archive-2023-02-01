@@ -220,10 +220,10 @@ class FPElement(IndexedFreeModuleElement):
             True
         """
         # We cannot represent the zero element since it does not have a degree,
-        # and we therefore do not know which vector space it belongs to.
+        # and we therefore do not know which free module it belongs to.
         #
         # In this case, we could return the integer value 0 since coercion would
-        # place it inside any vector space.  However, this will not work for
+        # place it inside any free module.  However, this will not work for
         # homomorphisms, so we return None to be consistent.
         try:
             degree = self.lift_to_free().degree()

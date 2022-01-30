@@ -483,12 +483,13 @@ class FreeGradedModuleMorphism(Morphism):
 
     def vector_presentation(self, n):
         r"""
-        The restriction of ``self`` to the domain module elements of degree ``n``.
+        Return the restriction of ``self`` to the domain module elements
+        of degree ``n``.
 
-        The restriction of a non-zero module homomorphism to the vector space of
-        module elements of degree `n` is a linear function into the vector space
-        of elements of degree `n+d` belonging to the codomain.  Here `d` is the
-        degree of this homomorphism.
+        The restriction of a non-zero module homomorphism to the free module
+        of module elements of degree `n` is a linear function into the free
+        module of elements of degree `n+d` belonging to the codomain.
+        Here `d` is the degree of this homomorphism.
 
         When this homomorphism is zero, it has no well defined degree so the
         function cannot be presented since we do not know the degree of its
@@ -500,10 +501,10 @@ class FreeGradedModuleMorphism(Morphism):
 
         OUTPUT:
 
-        A linear function of finite dimensional vector spaces over the
+        A linear function of finite dimensional free moduless over the
         ground field of the algebra for this module.  The domain is isomorphic
-        to the vector space of domain elements of degree ``n`` of this free
-        module, via the choice of basis given by
+        to the free module of domain elements of degree ``n`` of ``self``
+        via the choice of basis given by
         :meth:`sage.modules.fp_graded.free_module.FreeGradedModule.basis_elements`.
         If the morphism is zero, an error is raised.
 

@@ -100,14 +100,14 @@ Finally, additive inverses exist::
     sage: x - x
     0
 
-For every integer `n`, the set of module elements of degree `n` form a
-vector space over the ground field `k`.  A basis for this vector space can be
-computed::
+For every integer `n`, the set of module elements of degree `n` form
+a free module over the ground ring `k`.  A basis for this free module
+can be computed::
 
     sage: M.basis_elements(5)
     (Sq(2,1)*g[0], Sq(5)*g[0], Sq(1,1)*g[1], Sq(4)*g[1])
 
-together with a corresponding vector space presentation::
+together with a corresponding free module presentation::
 
     sage: M.vector_presentation(5)
     Vector space of dimension 4 over Finite Field of size 2
@@ -131,7 +131,7 @@ Module homomorphisms
 --------------------
 
 Homomorphisms of free graded `A`-modules `M\to N` are linear maps of their
-underlying `k`-vector spaces which commute with the `A`-module structure.
+underlying free `k`-module which commute with the `A`-module structure.
 
 To create a homomorphism, first create the object modelling the set of all
 such homomorphisms using the free function ``Hom``::
@@ -146,9 +146,9 @@ such homomorphisms using the free function ``Hom``::
      in Category of finite dimensional graded modules with basis
       over mod 2 Steenrod algebra, milnor basis
 
-Just as module elements, homomorphisms are created using the ()-method
-of the homspace object. The only argument is a list of module elements in the
-codomain, corresponding to the module generators of the domain::
+Just as module elements, homomorphisms are created using the homspace
+object. The only argument is a list of module elements in the codomain,
+corresponding to the module generators of the domain::
 
     sage: values = [Sq(2)*c2, Sq(2)*Sq(1)*c2]
     sage: f = homspace(values)
@@ -228,8 +228,8 @@ Finally, additive inverses exist::
     sage: f - f == 0
     True
 
-The restriction of a homomorphism to the vector space of `n`-dimensional module
-elements is a linear transformation::
+The restriction of a homomorphism to the free module of `n`-dimensional
+module elements is a linear transformation::
 
     sage: f_4 = f.vector_presentation(4); f_4
     Vector space morphism represented by the matrix:
@@ -274,7 +274,7 @@ AUTHORS:
 # ****************************************************************************
 
 from sage.misc.cachefunc import cached_method
-from sage.modules.free_module import VectorSpace
+from sage.modules.free_module import FreeModule
 from sage.modules.fp_graded.free_element import FreeGradedModuleElement
 from sage.rings.infinity import PlusInfinity
 from sage.categories.graded_modules import GradedModules
@@ -597,12 +597,13 @@ class FreeGradedModule(CombinatorialFreeModule):
     @cached_method
     def basis_elements(self, n):
         r"""
-        Return a basis for the vector space of degree ``n`` module elements.
+        Return a basis for the free module of degree ``n`` module elements.
 
         .. NOTE::
 
-            This returns a basis as a vector space over the base field,
-            not a basis as a free module over the algebra.
+            Suppose ``self`` is a module over the graded algebra `A` with
+            base ring `R`. This returns a basis as a free module over `R`,
+            not a basis as a free module over `A`.
 
         INPUT:
 
@@ -611,7 +612,7 @@ class FreeGradedModule(CombinatorialFreeModule):
         OUTPUT:
 
         A sequence of homogeneous module elements of degree ``n``, which
-        is a basis for the vector space of all degree ``n`` module elements.
+        is a basis for the free module of all degree ``n`` module elements.
 
         .. SEEALSO::
 
@@ -710,7 +711,7 @@ class FreeGradedModule(CombinatorialFreeModule):
 
     def __getitem__(self, n):
         r"""
-        A vector space isomorphic to the vector space of module elements of
+        A free module isomorphic to the free module of module elements of
         degree ``n``.
 
         EXAMPLES::
@@ -733,14 +734,14 @@ class FreeGradedModule(CombinatorialFreeModule):
     @cached_method
     def vector_presentation(self, n):
         r"""
-        Return a vector space over the ground field of the module algebra
+        Return a free module over the ground ring of the module algebra
         isomorphic to the degree ``n`` elements of ``self``.
 
-        Let `\mathcal{k}` be the ground field of the algebra over this module
-        is defined, and let `M_n` be the vector space of module elements of
+        Let `\mathcal{k}` be the ground ring of the algebra over this module
+        is defined, and let `M_n` be the free module of module elements of
         degree ``n``.
 
-        The return value of this function is the vector space
+        The return value of this function is the free module
         `\mathcal{k}^{r}` where `r = dim(M_n)`.
 
         The isomorphism between `k^{r}` and `M_n` is given by the
@@ -753,8 +754,8 @@ class FreeGradedModule(CombinatorialFreeModule):
 
         OUTPUT:
 
-        A vector space over the ground field of the algebra over which
-        ``self`` is defined, isomorphic to the vector space of module
+        A free module over the ground field of the algebra over which
+        ``self`` is defined, isomorphic to the free module of module
         elements of degree ``n``.
 
         .. SEEALSO::
@@ -773,7 +774,7 @@ class FreeGradedModule(CombinatorialFreeModule):
             sage: [M.vector_presentation(i).dimension() for i in range(-2, 9)]
             [0, 0, 1, 1, 1, 2, 1, 1, 1, 0, 0]
         """
-        return VectorSpace(self.base_ring().base_ring(), len(self.basis_elements(n)))
+        return FreeModule(self.base_ring().base_ring(), len(self.basis_elements(n)))
 
 
     def generator(self, index):

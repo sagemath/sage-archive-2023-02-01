@@ -55,13 +55,13 @@ from sage.modules.fp_graded.free_element import FreeGradedModuleElement
 from sage.modules.fp_graded.element import FPElement
 
 # Note that some of the methods below assume that the base ring is a
-# field and that the graded algebra has a chosen vector space basis in
+# field and that the graded algebra has a chosen free module basis in
 # each degree. See for example :meth:`basis_elements`,
 # :meth:`element_from_coordinates`, :meth:`__getitem__`,
 # :meth:`vector_presentation`, and possibly others.
 class FPModule(UniqueRepresentation, IndexedGenerators, Module):
     r"""
-    Create a finitely presented module over a connected graded algebra.
+    A finitely presented module over a connected graded algebra.
 
     INPUT:
 
@@ -629,9 +629,12 @@ class FPModule(UniqueRepresentation, IndexedGenerators, Module):
     @cached_method
     def basis_elements(self, n, verbose=False):
         r"""
-        A basis for the vector space of degree ``n`` module elements.
-        Note that this returns a basis as a vector space over the
-        base field.
+        Return a basis for the free module of degree ``n`` module elements.
+
+        .. NOTE::
+
+            Suppose ``self`` is a module over the graded algebra `A` with
+            base ring `R`. This returns a basis as a free module over `R`.
 
         INPUT:
 
@@ -642,7 +645,7 @@ class FPModule(UniqueRepresentation, IndexedGenerators, Module):
         OUTPUT:
 
         A list of homogeneous module elements of degree ``n`` which is
-        a basis for the vector space of all degree ``n`` module elements.
+        a basis for the free module of all degree ``n`` module elements.
 
         .. SEEALSO::
 
@@ -686,8 +689,8 @@ class FPModule(UniqueRepresentation, IndexedGenerators, Module):
     @cached_method
     def element_from_coordinates(self, coordinates, n):
         r"""
-        The module element in degree ``n`` having the given coordinates with
-        respect to the basis returned by :meth:`basis_elements`.
+        Return the module element in degree ``n`` having the given coordinates
+        with respect to the basis returned by :meth:`basis_elements`.
 
         This function is inverse to
         :meth:`sage.modules.fp_graded.element.FPElement.vector_presentation`.
@@ -744,7 +747,7 @@ class FPModule(UniqueRepresentation, IndexedGenerators, Module):
 
     def __getitem__(self, n):
         r"""
-        A basis for the vector space of degree ``n`` module elements.
+        Return a basis for the free module of degree ``n`` module elements.
 
         INPUT:
 
@@ -753,7 +756,7 @@ class FPModule(UniqueRepresentation, IndexedGenerators, Module):
         OUTPUT:
 
         A list of homogeneous module elements of degree ``n`` which is
-        a basis for the vector space of all degree ``n`` module elements.
+        a basis for the free module of all degree ``n`` module elements.
 
         EXAMPLES::
 
@@ -774,8 +777,8 @@ class FPModule(UniqueRepresentation, IndexedGenerators, Module):
     @cached_method
     def vector_presentation(self, n, verbose=False):
         r"""
-        A vector space isomorphic to the vector space of module elements of
-        degree ``n``.
+        Return a free module isomorphic to the free module of module
+        elements of degree ``n``.
 
         INPUT:
 
@@ -870,7 +873,7 @@ class FPModule(UniqueRepresentation, IndexedGenerators, Module):
 
     def generator_degrees(self):
         r"""
-        The degrees of the generators for ``self``.
+        Return the degrees of the generators for ``self``.
 
         EXAMPLES::
 
@@ -886,7 +889,7 @@ class FPModule(UniqueRepresentation, IndexedGenerators, Module):
 
     def generators(self):
         r"""
-        The generators of ``self``.
+        Return the generators of ``self``.
 
         EXAMPLES::
 
@@ -973,7 +976,7 @@ class FPModule(UniqueRepresentation, IndexedGenerators, Module):
 
     def min_presentation(self, top_dim=None, verbose=False):
         r"""
-        A minimal presentation of ``self``.
+        Return a minimal presentation of ``self``.
 
         OUTPUT:
 
@@ -1019,7 +1022,7 @@ class FPModule(UniqueRepresentation, IndexedGenerators, Module):
 
     def suspension(self, t):
         r"""
-        The suspension of ``self`` by degree ``t``.
+        Return the suspension of ``self`` by degree ``t``.
 
         INPUT:
 
@@ -1069,7 +1072,7 @@ class FPModule(UniqueRepresentation, IndexedGenerators, Module):
 
         INPUT:
 
-        -  ``spanning_elements``  -- an iterable of elements
+        - ``spanning_elements``  -- an iterable of elements
 
         OUTPUT:
 
@@ -1109,7 +1112,7 @@ class FPModule(UniqueRepresentation, IndexedGenerators, Module):
 
     def resolution(self, k, top_dim=None, verbose=False):
         r"""
-        A resolution of this module of length ``k``.
+        Return a resolution of this module of length ``k``.
 
         INPUT:
 

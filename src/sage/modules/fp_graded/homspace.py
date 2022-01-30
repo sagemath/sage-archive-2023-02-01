@@ -161,7 +161,7 @@ class FPModuleHomspace(Homset):
 
     def basis_elements(self, n):
         r"""
-        Compute a basis for the vector space of degree ``n`` morphisms.
+        Return a basis for the free module of degree ``n`` morphisms.
 
         INPUT:
 
@@ -243,7 +243,7 @@ class FPModuleHomspace(Homset):
 
     def _basis_elements(self, n, basis):
         r"""
-        Compute a basis for the vector space of degree ``n`` homomorphisms.
+        Return a basis for the free module of degree ``n`` homomorphisms.
 
         This function is private for use by :meth:`basis_elements` and
         :meth:`an_element`.
@@ -443,11 +443,11 @@ class FPModuleHomspace(Homset):
             The return value if there are no non-trivial homomorphisms.
             '''
             if basis:
-                # Since the vector space of homomorphisms is trivial, the basis
+                # Since the free module of homomorphisms is trivial, the basis
                 # is the empty set.
                 return []
             else:
-                # Since the vector space of homomorphisms is trivial, it contains
+                # Since the free module of homomorphisms is trivial, it contains
                 # only The trivial homomorphism
                 return self.zero()
 

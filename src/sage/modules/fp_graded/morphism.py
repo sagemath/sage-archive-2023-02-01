@@ -621,7 +621,8 @@ class FPModuleMorphism(Morphism):
     @cached_method
     def vector_presentation(self, n):
         r"""
-        The restriction of ``self`` to the domain module elements of degree ``n``.
+        The restriction of ``self`` to the domain module elements
+        of degree ``n``.
 
         The restriction of a non-zero module homomorphism to the vectorspace of
         module elements of degree `n` is a linear function into the vectorspace
@@ -638,7 +639,7 @@ class FPModuleMorphism(Morphism):
 
         OUTPUT:
 
-        A linear function of finite dimensional vector spaces over the
+        A linear function of finite dimensional free modules over the
         ground field of the algebra for this module.  The domain is isomorphic
         to the vectorspace of domain elements of degree ``n`` of this free
         module, via the choice of basis given by
@@ -950,6 +951,7 @@ class FPModuleMorphism(Morphism):
             True
 
         .. SEEALSO::
+
             :meth:`split`
         """
         from sage.modules.free_module_element import vector
@@ -1792,3 +1794,4 @@ class FPModuleMorphism(Morphism):
         return FPModule(self.base_ring(),
                         self.codomain().generator_degrees(),
                         tuple([r.coefficients() for r in self._values]))
+

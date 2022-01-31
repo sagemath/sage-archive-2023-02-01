@@ -3483,7 +3483,7 @@ class EllipticCurvePoint_finite_field(EllipticCurvePoint_field):
 
     def discrete_log(self, Q, ord=None):
         r"""
-        Returns the discrete logarithm of `Q` to base `P` = ``self``,
+        Return the discrete logarithm of `Q` to base `P` = ``self``,
         that is, an integer `x` such that `xP = Q`.
 
         A :class:`ValueError` is raised if there is no solution.

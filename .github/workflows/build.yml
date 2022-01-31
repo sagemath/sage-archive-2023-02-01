@@ -16,9 +16,9 @@ jobs:
       - name: Setup environment
         run: |
           # Populate SAGE_LOCAL based on the built SAGE_LOCAL contained in the Docker image 
-          mv sage/local local
-          rm -Rf sage/local
-          ln -sf local sage/local
+          mv /sage/local local
+          rm -Rf /sage/local
+          ln -sf local /sage/local
       
       - name: Build
         run: |

@@ -35,4 +35,4 @@ jobs:
           SAGE_NUM_THREADS: 2
 
       - name: Test
-        run: ./sage -t --all
+        run: ./sage -t --all -p0

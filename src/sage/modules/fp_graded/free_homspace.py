@@ -70,39 +70,3 @@ class FreeGradedModuleHomspace(FPModuleHomspace):
                     g[3] |--> 0
         """
         return self.zero()
-
-
-    @cached_method
-    def zero(self):
-        r"""
-        Return the trivial morphism of ``self``.
-
-        EXAMPLES::
-
-            sage: from sage.modules.fp_graded.free_module import FreeGradedModule
-            sage: A2 = SteenrodAlgebra(2, profile=(3,2,1))
-            sage: F = FreeGradedModule(A2, (1,3))
-            sage: L = FreeGradedModule(A2, (2,3))
-            sage: H = Hom(F, L)
-            sage: H.zero()
-            Free module morphism:
-              From: Free graded left module on 2 generators over sub-Hopf algebra of mod 2 Steenrod algebra, milnor basis, profile function [3, 2, 1]
-              To:   Free graded left module on 2 generators over sub-Hopf algebra of mod 2 Steenrod algebra, milnor basis, profile function [3, 2, 1]
-              Defn: g[1] |--> 0
-                    g[3] |--> 0
-        """
-        return self.element_class(self, self.codomain().zero())
-
-
-    def identity(self):
-        r"""
-        Return the identity morphism, if ``self`` is an endomorphism set.
-
-        EXAMPLES::
-
-        """
-        if self.is_endomorphism_set():
-            return self.element_class(self, self.codomain().generators())
-        else:
-            raise TypeError('this homspace does not consist of endomorphisms')
-

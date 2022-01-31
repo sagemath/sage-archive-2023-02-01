@@ -13,18 +13,12 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v2
 
-      - name: Test
-        run:
-          ls -la
-          ls /sage
-
       - name: Setup environment
         run: |
           # Populate SAGE_LOCAL based on the built SAGE_LOCAL contained in the Docker image 
-          ls $HOME
-          mv $HOME/sage-local local
-          rm -Rf $HOME/sage-local
-          ln -sf $(pwd)/local $HOME/sage-local
+          mv sage/local local
+          rm -Rf sage/local
+          ln -sf local sage/local
       
       - name: Build
         run: |

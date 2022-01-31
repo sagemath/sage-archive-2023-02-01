@@ -1,4 +1,4 @@
-name: Build
+name: Build & Test
 
 on:
   push:
@@ -15,10 +15,8 @@ jobs:
 
       - name: Test
         run:
-          pwd
-          id -u
-          id -un
           ls -la
+          ls /sage
 
       - name: Setup environment
         run: |

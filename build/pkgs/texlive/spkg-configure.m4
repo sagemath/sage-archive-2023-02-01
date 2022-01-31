@@ -1,5 +1,11 @@
 SAGE_SPKG_CONFIGURE([texlive], [
-    dnl pdflatex --version
+    sage_spkg_install_texlive=no
+    AC_PATH_PROG([PDFLATEX], [pdflatex])
+    AS_IF([test -z "$PDFLATEX"], [sage_spkg_install_texlive=yes])
+    AC_PATH_PROG([LATEXMK], [latexmk])
+    AS_IF([test -z "$LATEXMK"], [sage_spkg_install_texlive=yes])
+    AC_PATH_PROG([DVIPNG], [dvipng])
+    AS_IF([test -z "$DVIPNG"], [sage_spkg_install_texlive=yes])
     m4_foreach([latex_package],
                [fontspec,xunicode,xltxtra,amssymb,amsfonts,graphicx,mathrsfs,
                 textcomp,tikz,tikz-qtree,iftex,tkz-berge,tkz-graph,xy,babel,

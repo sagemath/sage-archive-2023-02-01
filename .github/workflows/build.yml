@@ -1,0 +1,40 @@
+name: Build
+
+on:
+  push:
+  workflow_dispatch:
+    # Allow to run manually
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    container: ghcr.io/sagemath/sage/sage-docker-ubuntu-focal-standard-with-targets:9.5
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v2
+
+      - name: Test
+        run:
+          pwd
+          id -u
+          id -un
+          ls -la
+
+      - name: Setup environment
+        run: |
+          # Populate SAGE_LOCAL based on the built SAGE_LOCAL contained in the Docker image 
+          ls $HOME
+          mv $HOME/sage-local local
+          rm -Rf $HOME/sage-local
+          ln -sf $(pwd)/local $HOME/sage-local
+      
+      - name: Build
+        run: |
+          ./bootstrap
+          ./configure --enable-build-as-root
+          make build
+        env:
+          MAKE: make -j2
+
+      - name: Test
+        run: ./sage -t --all

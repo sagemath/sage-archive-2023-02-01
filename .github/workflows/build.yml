@@ -27,6 +27,7 @@ jobs:
           make build
         env:
           MAKE: make -j2
+          SAGE_NUM_THREADS: 2
 
       - name: Test
         run: ./sage -t --all

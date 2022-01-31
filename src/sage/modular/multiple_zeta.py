@@ -621,8 +621,13 @@ def basis_f_iterator(n):
          (2, word: f7),
          (3, word: f5),
          (4, word: f3)]
+
+    TESTS::
+
+        sage: list(basis_f_iterator(0))
+        [(0, word: )]
     """
-    if n < 2:
+    if n and n < 2:
         return
     for k in range(n // 2 + 1):
         for start in basis_f_odd_iterator(n - 2 * k):
@@ -1229,6 +1234,11 @@ class Multizetas(CombinatorialFreeModule):
 
                 sage: Multizeta(7).simplify_full()
                 352/151*ζ(2,2,3) + 672/151*ζ(2,3,2) + 528/151*ζ(3,2,2)
+
+            TESTS::
+
+                sage: Multizetas(QQ).one().simplify_full()
+                ζ()
             """
             if basis is None:
                 basis = self.parent().basis_brown

@@ -10,6 +10,11 @@ jobs:
     runs-on: ubuntu-latest
     container: ghcr.io/sagemath/sage/sage-docker-ubuntu-focal-standard-with-targets:9.5
     steps:
+      - name: Cancel previous runs
+        uses: styfle/cancel-workflow-action@0.9.1
+        with:
+          access_token: ${{ github.token }}
+
       - name: Checkout
         uses: actions/checkout@v2
 

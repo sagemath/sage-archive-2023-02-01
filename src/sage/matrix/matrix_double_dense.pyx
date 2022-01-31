@@ -2765,16 +2765,6 @@ cdef class Matrix_double_dense(Matrix_dense):
             sage: A._is_hermitian_orthonormal(skew=True)
             True
 
-        TESTS:
-
-        The tolerance must be strictly positive::
-
-            sage: A = matrix(RDF, 2, range(4))
-            sage: A._is_hermitian_orthonormal(tol = -3.1)
-            Traceback (most recent call last):
-            ...
-            ValueError: tolerance must be positive, not -3.1
-
         AUTHOR:
 
         - Rob Beezer (2011-03-30)
@@ -2783,8 +2773,6 @@ cdef class Matrix_double_dense(Matrix_dense):
         import sage.rings.complex_double
         global numpy
         tol = float(tol)
-        if tol <= 0:
-            raise ValueError('tolerance must be positive, not {0}'.format(tol))
 
         key = ("_is_hermitian_orthonormal", tol, skew)
         h = self.fetch(key)
@@ -2919,14 +2907,6 @@ cdef class Matrix_double_dense(Matrix_dense):
 
         TESTS:
 
-        The tolerance must be strictly positive. ::
-
-            sage: A = matrix(RDF, 2, range(4))
-            sage: A.is_hermitian(tol = -3.1)
-            Traceback (most recent call last):
-            ...
-            ValueError: tolerance must be positive, not -3.1
-
         The ``algorithm`` keyword gets checked. ::
 
             sage: A = matrix(RDF, 2, range(4))
@@ -3046,14 +3026,6 @@ cdef class Matrix_double_dense(Matrix_dense):
             False
 
         TESTS:
-
-        The tolerance must be strictly positive.  ::
-
-            sage: A = matrix(RDF, 2, range(4))
-            sage: A.is_skew_hermitian(tol = -3.1)
-            Traceback (most recent call last):
-            ...
-            ValueError: tolerance must be positive, not -3.1
 
         The ``algorithm`` keyword gets checked.  ::
 

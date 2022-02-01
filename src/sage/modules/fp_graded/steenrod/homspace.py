@@ -1,0 +1,64 @@
+r"""
+The set of homomorphisms of finitely presented graded modules over the Steenrod algebra
+
+This class implements methods for construction and basic
+manipulation of homsets of finitely presented graded modules over the
+mod `p` Steenrod algebra.
+
+For an overview of the API, see :doc:`module`.
+
+TESTS::
+
+    sage: from sage.modules.fp_graded.steenrod.module import FPA_Module
+    sage: from sage.misc.sage_unittest import TestSuite
+    sage: A = SteenrodAlgebra(2, profile=(3,2,1))
+    sage: F = FPA_Module(A, [1,3])
+    sage: L = FPA_Module(A, [2,3], [[Sq(2),Sq(1)], [0,Sq(2)]])
+    sage: homset = Hom(F, L); homset
+    Set of Morphisms from Finitely presented left module on 2 generators ...
+    sage: homset.an_element()
+    Module morphism:
+      From: Finitely presented left module on 2 generators and 0 relations over sub-Hopf algebra of mod 2 Steenrod algebra, milnor basis, profile function [3, 2, 1]
+      To:   Finitely presented left module on 2 generators and 2 relations over sub-Hopf algebra of mod 2 Steenrod algebra, milnor basis, profile function [3, 2, 1]
+      Defn: g[1] |--> 0
+            g[3] |--> Sq(1)*g[2]
+    sage: homset([L((Sq(1), 1)), L((0, Sq(2)))])
+    Module morphism:
+      From: Finitely presented left module on 2 generators and 0 relations over sub-Hopf algebra of mod 2 Steenrod algebra, milnor basis, profile function [3, 2, 1]
+      To:   Finitely presented left module on 2 generators and 2 relations over sub-Hopf algebra of mod 2 Steenrod algebra, milnor basis, profile function [3, 2, 1]
+      Defn: g[1] |--> Sq(1)*g[2] + g[3]
+            g[3] |--> Sq(2)*g[3]
+    sage: Hom(F, L) ([L((Sq(1), 1)), L((0, Sq(2)))]).kernel_inclusion()
+    Module morphism:
+      From: Finitely presented left module on 2 generators and 1 relation over sub-Hopf algebra of mod 2 Steenrod algebra, milnor basis, profile function [3, 2, 1]
+      To:   Finitely presented left module on 2 generators and 0 relations over sub-Hopf algebra of mod 2 Steenrod algebra, milnor basis, profile function [3, 2, 1]
+      Defn: g[3] |--> g[3]
+            g[4] |--> Sq(0,1)*g[1]
+    sage: TestSuite(homset).run()
+
+AUTHORS:
+
+- Robert R. Bruner, Michael J. Catanzaro (2012): Initial version.
+- Sverre Lunoee--Nielsen and Koen van Woerden (2019-11-29): Updated the
+  original software to Sage version 8.9.
+- Sverre Lunoee--Nielsen (2020-07-01): Refactored the code and added
+  new documentation and tests.
+
+"""
+
+#*****************************************************************************
+#       Copyright (C) 2011 Robert R. Bruner <rrb@math.wayne.edu> and
+#                          Michael J. Catanzaro <mike@math.wayne.edu>
+#
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 2 of the License, or
+# (at your option) any later version.
+#                  https://www.gnu.org/licenses/
+# ****************************************************************************
+
+from sage.modules.fp_graded.homspace import FPModuleHomspace
+from .morphism import FPA_ModuleMorphism
+
+class FPA_ModuleHomspace(FPModuleHomspace):
+    Element = FPA_ModuleMorphism

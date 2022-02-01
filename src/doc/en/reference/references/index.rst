@@ -4100,6 +4100,10 @@ REFERENCES:
              nombres, Journ. Arithm. 1980, Cambridge Univ. Press,
              1982, 151--193.
 
+.. [Mar1983] \H. R. Margolis, *Spectra and the Steenrod Algebra: Modules
+             over the Steenrod Algebra and the Stable Homotopy Category*,
+             North-Holland Mathematical Library.  Vol. (29), Elsevier, 1983.
+
 .. [Mar2004] \S. Marcus, Quasiperiodic infinite words,
              Bull. Eur. Assoc.  Theor. Comput. Sci. 82 (2004) 170-174.
 

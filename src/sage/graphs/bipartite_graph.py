@@ -1202,6 +1202,15 @@ class BipartiteGraph(Graph):
             sage: all((u in B.left and v in B.right) for u, v in m)
             True
 
+        Multiple edges are taken into account::
+
+            sage: B = BipartiteGraph({0: [5, 7], 1: [4, 6, 7], 2: [4, 5, 8], 3: [4, 5, 6], 6: [9], 8: [9]})
+            sage: B.allow_multiple_edges(True)
+            sage: B.add_edge(0, 7)
+            sage: len(list(B.perfect_matchings()))
+            10
+
+
         Empty graph::
 
             sage: list(BipartiteGraph().perfect_matchings())

@@ -5,31 +5,27 @@ on:
   workflow_dispatch:
     # Allow to run manually
 
+concurrency:
+  # Cancel previous runs of this workflow for the same branc
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
 jobs:
   build:
     runs-on: ubuntu-latest
     container: ghcr.io/sagemath/sage/sage-docker-ubuntu-focal-standard-with-targets:9.5
     steps:
-      - name: Cancel previous runs
-        uses: styfle/cancel-workflow-action@0.9.1
-        with:
-          access_token: ${{ github.token }}
-
       - name: Checkout
         uses: actions/checkout@v2
 
-      - name: Setup environment
+      - name: Prepare
         run: |
-          # Populate SAGE_LOCAL based on the built SAGE_LOCAL contained in the Docker image 
-          mv /sage/local local
-          rm -Rf /sage/local
-          ln -sf "$(pwd)"/local /sage/local
+          # Reuse built SAGE_LOCAL contained in the Docker image 
+          ./bootstrap
+          ./configure --enable-build-as-root --prefix=/sage/local
       
       - name: Build
-        run: |
-          ./bootstrap
-          ./configure --enable-build-as-root
-          make build
+        run: make build
         env:
           MAKE: make -j2
           SAGE_NUM_THREADS: 2

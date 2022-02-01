@@ -321,6 +321,14 @@ class BipartiteGraph(Graph):
             Traceback (most recent call last):
             ...
             TypeError: input graph is not bipartite with respect to the given partition
+            sage: G = BipartiteGraph({2:[1], 3:[1], 4:[5]}, partition=([2,3,4],[1]))
+            Traceback (most recent call last):
+            ...
+            ValueError: not all vertices appear in partition
+            sage: G = BipartiteGraph({2:[1], 3:[1], 4:[5]}, partition=([2,3,4],[1, 2]))
+            Traceback (most recent call last):
+            ...
+            ValueError: the parts are not disjoint
         """
         if kwds is None:
             kwds = {'loops': False}
@@ -398,6 +406,13 @@ class BipartiteGraph(Graph):
                     if set(data) != verts:
                         data = data.subgraph(verts)
             Graph.__init__(self, data, *args, **kwds)
+            if partition is not None:
+                # Some error checking.
+                if left & right:
+                    raise ValueError("the parts are not disjoint")
+                if len(left) + len(right) != self.num_verts():
+                    raise ValueError("not all vertices appear in partition")
+
             import networkx
             if isinstance(data, (networkx.MultiGraph, networkx.Graph)):
                 if hasattr(data, "node_type"):

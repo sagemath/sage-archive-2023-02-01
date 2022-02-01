@@ -2506,6 +2506,12 @@ class RecurrenceParser(object):
 
         return ind
 
+    @cached_method(key=lambda self, recurrence_rules:
+                   (recurrence_rules.M,
+                    recurrence_rules.m,
+                    recurrence_rules.ll,
+                    recurrence_rules.uu,
+                    tuple(recurrence_rules.inhomogeneities.items())))
     def shifted_inhomogeneities(self, recurrence_rules):
         r"""
         Return a dictionary of all needed shifted inhomogeneities as described

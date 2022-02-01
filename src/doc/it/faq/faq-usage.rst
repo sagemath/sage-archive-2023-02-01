@@ -591,7 +591,7 @@ produce il grafico corretto solo per valori di `x` positivi. La
 *ragione* per cui ciò avviene è che Sage restituisce dei numeri
 complessi per le radici dispari di numeri negativi, quando queste sono
 approssimate, il che è una `convenzione standard
-<https://en.wikipedia.org/wiki/Cube_root#Complex_numbers>`_::
+<:wikipedia:`Cube_root#Complex_numbers`>`_::
 
     sage: numerical_approx( (-1)^(1/3) )
     0.500000000000000 + 0.866025403784439*I

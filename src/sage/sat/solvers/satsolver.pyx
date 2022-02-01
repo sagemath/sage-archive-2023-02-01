@@ -315,7 +315,7 @@ def SAT(solver=None, *args, **kwds):
     Return a :class:`SatSolver` instance.
 
     Through this class, one can define and solve `SAT
-    <https://en.wikipedia.org/wiki/Boolean_satisfiability_problem>`__ problems.
+    <:wikipedia:`Boolean_satisfiability_problem`>`__ problems.
 
     INPUT:
 

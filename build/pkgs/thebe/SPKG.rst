@@ -9,7 +9,7 @@ front end, and make it work outside of the notebook context.
 
 This is used by Sage's Sphinx-based documentation build system to
 produce html documentation that can be turned live (see
-https://trac.sagemath.org/ticket/20690).
+:trac:`ticket/20690`).
 
 License
 -------

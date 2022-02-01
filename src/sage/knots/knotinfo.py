@@ -42,7 +42,7 @@ Also, note that the braid notation is used according to Sage, even thought in
 the source where it is taken from, the braid generators are assumed to have a
 negative crossing which would be opposite to the convention in Sage (see definition
 3 of `Gittings, T., "Minimum Braids: A Complete Invariant of Knots and Links
-<https://arxiv.org/abs/math/0401051>`__).
+<:arxiv:`math/0401051`>`__).
 
 For different conventions regarding normalization of the polynomial invariants see
 the according documentation of :meth:`KnotInfoBase.homfly_polynomial`,

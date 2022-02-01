@@ -15,7 +15,7 @@ Install from Source Code
    :depth: 2
 
 More familiarity with computers may be required to build Sage from
-the `source code <https://en.wikipedia.org/wiki/Source_code>`_.
+the `source code <:wikipedia:`Source_code`>`_.
 If you do have all the :ref:`pre-requisite tools <section-prereqs>`,
 the process should be completely
 painless, basically consisting in extracting the source tarball and typing
@@ -43,13 +43,13 @@ for some operating systems, rather than compiling from source.
 Supported platforms
 -------------------
 
-Sage runs on all major `Linux <https://en.wikipedia.org/wiki/Linux>`_
+Sage runs on all major `Linux <:wikipedia:`Linux`>`_
 distributions, `macOS <https://www.apple.com/macosx/>`_ , and Windows
 (via the `Cygwin <https://cygwin.com/>`_ Linux API layer).
 
 Other installation options for Windows are using the Windows Subsystem
 for Linux (WSL), or with the aid of a `virtual machine
-<https://en.wikipedia.org/wiki/Virtual_machine>`_.
+<:wikipedia:`Virtual_machine`>`_.
 
 .. _section-prereqs:
 
@@ -72,8 +72,8 @@ with less (be sure to have some swap space in this case).
 Command-line tools
 ^^^^^^^^^^^^^^^^^^
 
-In addition to standard `POSIX <https://en.wikipedia.org/wiki/POSIX>`_ utilities
-and the `bash <https://en.wikipedia.org/wiki/Bash_(Unix_shell)>`_ shell,
+In addition to standard `POSIX <:wikipedia:`POSIX`>`_ utilities
+and the `bash <:wikipedia:`Bash_(Unix_shell)`>`_ shell,
 the following standard command-line development tools must be installed on your
 computer:
 
@@ -203,7 +203,7 @@ or::
 
 on the command line. If it gives an error (or returns nothing), then
 either ``perl`` is not installed, or it is installed but not in your
-`PATH <https://en.wikipedia.org/wiki/PATH_%28variable%29>`_.
+`PATH <:wikipedia:`PATH_%28variable%29`>`_.
 
 .. _sec-installation-from-sources-linux-recommended-installation:
 
@@ -224,7 +224,7 @@ The method of installing additional software varies from distribution to
 distribution, but on a `Debian <https://www.debian.org/>`_ based system (e.g.
 `Ubuntu <https://www.ubuntu.com/>`_ or `Mint <https://www.linuxmint.com/>`_),
 you would use
-`apt-get <https://en.wikipedia.org/wiki/Advanced_Packaging_Tool>`_.
+`apt-get <:wikipedia:`Advanced_Packaging_Tool`>`_.
 
 On Debian ("buster" or newer) or Ubuntu ("bionic" or newer):
 
@@ -246,7 +246,7 @@ On Arch Linux:
 .. literalinclude:: arch.txt
 
 In addition to these, if you don't want Sage to build optional packages that might
-be available from your OS, cf. the growing list of such packages on :trac:`27330`,
+be available from your OS, cf. the growing list of such packages on ssfdsfsfsf,
 install on Debian ("buster" or newer) or Ubuntu ("bionic" or newer):
 
 .. literalinclude:: debian-optional.txt
@@ -260,8 +260,8 @@ On Arch Linux:
 .. literalinclude:: arch-optional.txt
 
 On other Linux systems, you might use
-`rpm <https://en.wikipedia.org/wiki/RPM_Package_Manager>`_,
-`yum <https://en.wikipedia.org/wiki/Yellowdog_Updater,_Modified>`_,
+`rpm <:wikipedia:`RPM_Package_Manager`>`_,
+`yum <:wikipedia:`Yellowdog_Updater,_Modified`>`_,
 or other package managers.
 
 .. _section_macprereqs:
@@ -589,7 +589,7 @@ but provide additional capabilities:
 - **LaTeX**: highly recommended.
 
 It is highly recommended that you have
-`LaTeX <https://en.wikipedia.org/wiki/LaTeX>`_
+`LaTeX <:wikipedia:`LaTeX`>`_
 installed, but it is not required.
 The most popular packaging is `TeX Live <https://www.tug.org/texlive/>`_,
 which can be installed following the directions on their web site.
@@ -908,7 +908,7 @@ Make targets
 ------------
 
 To build Sage from scratch, you would typically execute ``make`` in Sage's home
-directory to build Sage and its `HTML <https://en.wikipedia.org/wiki/HTML>`_
+directory to build Sage and its `HTML <:wikipedia:`HTML`>`_
 documentation.
 The ``make`` command is pretty smart, so if your build of Sage is interrupted,
 then running ``make`` again should cause it to pick up where it left off.

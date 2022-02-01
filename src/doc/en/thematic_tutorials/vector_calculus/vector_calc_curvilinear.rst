@@ -278,7 +278,7 @@ We may expand each component::
 
 As a test, we may check that these formulas coincide with those of Wikipedia's
 article `Del in cylindrical and spherical coordinates
-<https://en.wikipedia.org/wiki/Del_in_cylindrical_and_spherical_coordinates#Del_formula>`__.
+<:wikipedia:`Del_in_cylindrical_and_spherical_coordinates#Del_formula`>`__.
 
 Using cylindrical coordinates
 -----------------------------
@@ -393,7 +393,7 @@ The Laplacian of a vector field::
 
 Again, we may check that the above formulas coincide with those of Wikipedia's
 article `Del in cylindrical and spherical coordinates
-<https://en.wikipedia.org/wiki/Del_in_cylindrical_and_spherical_coordinates#Del_formula>`__.
+<:wikipedia:`Del_in_cylindrical_and_spherical_coordinates#Del_formula`>`__.
 
 Changing coordinates
 --------------------

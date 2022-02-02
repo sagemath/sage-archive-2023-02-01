@@ -686,7 +686,7 @@ cdef class MultiModularBasis_base(object):
         return z
 
     def precomputation_list(self):
-        """
+        r"""
         Return a list of the precomputed coefficients
         `\prod_j=1^{i-1} m_j^{-1} (mod m_i)`
         where `m_i` are the prime moduli.
@@ -822,8 +822,7 @@ cdef class MultiModularBasis_base(object):
             sage: from sage.arith.multi_modular import MultiModularBasis_base
             sage: mm = MultiModularBasis_base([10007, 10009])
             sage: mm[1]
-            10009             # 64-bit
-            10009L            # 32-bit
+            10009
             sage: mm[-1]
             Traceback (most recent call last):
             ...

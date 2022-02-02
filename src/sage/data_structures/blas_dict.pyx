@@ -361,7 +361,7 @@ cpdef dict sum_of_monomials(monomials, scalar):
 
     INPUT:
 
-    - ``monomials`` -- a list of indices representing the monomials
+    - ``monomials`` -- a list (or iterable) of indices representing the monomials
     - ``scalar`` -- the scalar for each monomial
 
     EXAMPLES::

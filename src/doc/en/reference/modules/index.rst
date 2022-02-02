@@ -72,4 +72,7 @@ Finitely presented graded modules
    sage/modules/fp_graded/morphism
    sage/modules/fp_graded/homspace
 
+   sage/modules/fp_graded/steenrod/module
+   sage/modules/fp_graded/steenrod/morphism
+
 .. include:: ../footer.txt

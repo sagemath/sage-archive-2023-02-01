@@ -329,6 +329,10 @@ class BipartiteGraph(Graph):
             Traceback (most recent call last):
             ...
             ValueError: the parts are not disjoint
+            sage: G = BipartiteGraph({2:[1], 3:[1], 4:[5]}, partition=([2, 3, 4], [1, 7]))
+            Traceback (most recent call last):
+            ...
+            LookupError: vertex (7) is not a vertex of the graph
         """
         if kwds is None:
             kwds = {'loops': False}

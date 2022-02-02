@@ -1003,8 +1003,18 @@ class BipartiteGraph(Graph):
             return True
 
     def complement(self):
-        """
+        r"""
         Return a complement of this graph.
+
+        Given a simple :class:`~sage.graphs.bipartite_graph.BipartiteGraph`
+        `G = (L \cup R, E)` with vertex set `L\cup R` and edge set `E`, this
+        method returns a :class:`~sage.graphs.graph.Graph` `H = (V, F)`, where
+        `V = L\cup R` and `F` is the set of edges of a complete graph of order
+        `|V|` minus the edges in `E`.
+
+        ..SEEALSO::
+
+            :meth:`~sage.graphs.bipartite_graph.BipartiteGraph.complement_bipartite`
 
         EXAMPLES::
 
@@ -1013,11 +1023,54 @@ class BipartiteGraph(Graph):
             Graph on 5 vertices
             sage: G.edges(labels=False)
             [(1, 3), (1, 5), (2, 3), (2, 4), (2, 5), (4, 5)]
+            sage: B.size() + G.size() == graphs.CompleteGraph(B.order()).size()
+            True
         """
         # This is needed because complement() of generic graph
         # would return a graph of class BipartiteGraph that is
         # not bipartite. See ticket #12376.
         return Graph(self).complement()
+
+    def complement_bipartite(self):
+        r"""
+        Return the bipartite complement of this bipartite graph.
+
+        Given a simple :class:`~sage.graphs.bipartite_graph.BipartiteGraph`
+        `G = (L \cup R, E)` with vertex set `L\cup R` and edge set `E`, this
+        method returns a :class:`~sage.graphs.bipartite_graph.BipartiteGraph`
+        `H = (L\cup R, F)`, where `F` is the set of edges of a complete
+        bipartite graph between vertex sets `L` and `R` minus the edges in `E`.
+
+        ..SEEALSO::
+
+            :meth:`~sage.graphs.bipartite_graph.BipartiteGraph.complement`
+
+        EXAMPLES:
+
+            sage: B = BipartiteGraph({0: [1, 2, 3]})
+            sage: C = B.complement_bipartite()
+            sage: C
+            Bipartite graph on 4 vertices
+            sage: C.is_bipartite()
+            True
+            sage: B.left == C.left and B.right == C.right
+            True
+            sage: C.size() == len(B.left)*len(B.right) - B.size()
+            True
+            sage: G = B.complement()
+            sage: G.is_bipartite()
+            False
+        """
+        self._scream_if_not_simple()
+
+        E = [e for e in itertools.product(self.left, self.right) if not self.has_edge(e)]
+        H = BipartiteGraph([self, E], format='vertices_and_edges', partition=[self.left, self.right])
+
+        if self.name():
+            H.name("complement-bipartite({})".format(self.name()))
+        if self.is_immutable():
+            return H.copy(immutable=True)
+        return H
 
     def to_undirected(self):
         """

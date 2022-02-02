@@ -121,8 +121,16 @@ class FPElement(IndexedFreeModuleElement):
             sage: y = Sq(2) * M.generator(1)
             sage: y.coefficients()
             [0, Sq(2)]
+
+        TESTS::
+
+            sage: F.<x,y> = FPModule(A, (2, 0))
+            sage: x.degree()
+            2
+            sage: y.degree()
+            0
         """
-        return [self[i] for i in sorted(self.parent().indices())]
+        return [self[i] for i in self.parent().indices()]
 
 
     def _lmul_(self, a):

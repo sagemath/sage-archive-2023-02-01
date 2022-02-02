@@ -150,6 +150,9 @@ class FPModuleMorphism(Morphism):
     - ``parent`` -- a homspace of finitely presented graded modules
     - ``values`` -- a list of elements in the codomain; each element
       corresponds to a module generator in the domain
+    - ``check`` -- boolean (default: ``True``); if ``True``, check
+      that the morphism is well-defined.
+
 
     TESTS::
 
@@ -1409,7 +1412,7 @@ class FPModuleMorphism(Morphism):
 
         D = self.domain().suspension(t)
         C = self.codomain().suspension(t)
-        return Hom(D, C)([C(x.lift_to_free().dense_coefficient_list()) for x in self._values])
+        return Hom(D, C)([C(x.lift_to_free().coefficients()) for x in self._values])
 
 
     def cokernel_projection(self):
@@ -1871,8 +1874,9 @@ class FPModuleMorphism(Morphism):
                 print ('The codomain of the morphism is trivial, so there is nothing to resolve.')
             return j
 
-        self_degree = self.degree()
-        if self_degree is None:
+        try:
+            self_degree = self.degree()
+        except ValueError:
             if verbose:
                 print ('The homomorphism is trivial, so there is nothing to resolve.')
             return j

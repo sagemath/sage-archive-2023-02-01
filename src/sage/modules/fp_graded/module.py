@@ -135,7 +135,7 @@ class FPModule(UniqueRepresentation, IndexedGenerators, Module):
         Finitely presented left module on 2 generators and 0 relations over The exterior algebra of rank 2 over Rational Field
     """
     @staticmethod
-    def __classcall_private__(cls, arg0, generator_degrees=None, relations=(), names=None):
+    def __classcall__(cls, arg0, generator_degrees=None, relations=(), names=None):
         r"""
         Normalize input to ensure a unique representation.
 
@@ -265,9 +265,7 @@ class FPModule(UniqueRepresentation, IndexedGenerators, Module):
             sage: N.change_ring(A) is M
             True
         """
-        # self.relations() consists of module elements. We need to extra the coefficients.
-        relations = tuple(r.coefficients() for r in self._j.values())
-        return FPModule(algebra, self.generator_degrees(), relations)
+        return FPModule(self._j.change_ring(algebra))
 
 
     def _from_dict(self, d, coerce=False, remove_zeros=True):
@@ -1069,7 +1067,7 @@ class FPModule(UniqueRepresentation, IndexedGenerators, Module):
             sage: Q.generator_degrees()
             (2, 3)
         """
-        relations = tuple([r.dense_coefficient_list() for r in self._j._values])
+        relations = tuple([r.coefficients() for r in self._j._values])
         return FPModule(self.base_ring(),
                         tuple([g + t for g in self._generator_degrees]),
                         relations)

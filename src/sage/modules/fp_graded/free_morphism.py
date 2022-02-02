@@ -176,7 +176,7 @@ class FreeGradedModuleMorphism(FPModuleMorphism):
         if x.parent() != self.domain():
             raise ValueError('cannot evaluate morphism on element not in the domain')
 
-        value = sum((c * v for c, v in zip(x.dense_coefficient_list(), self._values)),
+        value = sum((c * v for c, v in zip(x.coefficients(), self._values)),
                     self.codomain().zero())
 
         return value

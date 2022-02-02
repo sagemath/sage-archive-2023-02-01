@@ -17,8 +17,8 @@ not necessarily finitely presented.
 
 The mod `p` Steenrod algebra is non-Noetherian, but it is the
 union of a countable set of finite sub-Hopf algebras
-([Marg1983]_ Ch. 15, Sect. 1, Prop 7), and is therefore an example of a
-`P`-algebra ([Marg1983]_ Ch. 13).
+([Mar1983]_ Ch. 15, Sect. 1, Prop 7), and is therefore an example of a
+`P`-algebra ([Mar1983]_ Ch. 13).
 
 Any finitely presented module over the Steenrod algebra is
 defined over one of these finite sub-Hopf algebras.  Similarly, any homomorphism
@@ -553,13 +553,13 @@ where the first version of this software appeared::
 The result of the calculation is a list of all the maps in the resolution::
 
     sage: [f.domain() for f in res]
-    [Finitely presented left module on 1 generator and 0 relations over mod 2 Steenrod algebra, milnor basis,
-     Finitely presented left module on 2 generators and 0 relations over mod 2 Steenrod algebra, milnor basis,
-     Finitely presented left module on 2 generators and 0 relations over mod 2 Steenrod algebra, milnor basis,
-     Finitely presented left module on 2 generators and 0 relations over mod 2 Steenrod algebra, milnor basis,
-     Finitely presented left module on 3 generators and 0 relations over mod 2 Steenrod algebra, milnor basis,
-     Finitely presented left module on 4 generators and 0 relations over mod 2 Steenrod algebra, milnor basis,
-     Finitely presented left module on 4 generators and 0 relations over mod 2 Steenrod algebra, milnor basis]
+    [Free graded left module on 1 generator over mod 2 Steenrod algebra, milnor basis,
+     Free graded left module on 2 generators over mod 2 Steenrod algebra, milnor basis,
+     Free graded left module on 2 generators over mod 2 Steenrod algebra, milnor basis,
+     Free graded left module on 2 generators over mod 2 Steenrod algebra, milnor basis,
+     Free graded left module on 3 generators over mod 2 Steenrod algebra, milnor basis,
+     Free graded left module on 4 generators over mod 2 Steenrod algebra, milnor basis,
+     Free graded left module on 4 generators over mod 2 Steenrod algebra, milnor basis]
 
     sage: def is_complex(res):
     ....:     for i in range(len(res)-1):
@@ -585,16 +585,19 @@ The result of the calculation is a list of all the maps in the resolution::
     [(0,), (0,), (2, 1), (2, 4), (3, 7), (4, 8, 12), (5, 9, 13, 14)]
 
     sage: [r.values() for r in res]
-    [[<1>],
-     [<Sq(2)>, <Sq(1)>],
-     [<0, Sq(1)>, <Sq(2), Sq(3)>],
-     [<Sq(1), 0>, <Sq(2,1), Sq(3)>],
-     [<Sq(1), 0>, <Sq(2,1), Sq(1)>, <0, Sq(2,1)>],
-     [<Sq(1), 0, 0>, <Sq(2,1), Sq(1), 0>, <0, Sq(2,1), Sq(1)>, <0, 0, Sq(2)>],
-     [<Sq(1), 0, 0, 0>,
-      <Sq(2,1), Sq(1), 0, 0>,
-      <0, Sq(2,1), Sq(1), 0>,
-      <0, 0, Sq(0,1), Sq(2)>]]
+    [(g[0],),
+     (Sq(2)*g[0], Sq(1)*g[0]),
+     (Sq(1)*g[1], Sq(3)*g[1] + Sq(2)*g[2]),
+     (Sq(1)*g[2], Sq(2,1)*g[2] + Sq(3)*g[4]),
+     (Sq(1)*g[3], Sq(2,1)*g[3] + Sq(1)*g[7], Sq(2,1)*g[7]),
+     (Sq(1)*g[4],
+      Sq(2,1)*g[4] + Sq(1)*g[8],
+      Sq(2,1)*g[8] + Sq(1)*g[12],
+      Sq(2)*g[12]),
+     (Sq(1)*g[5],
+      Sq(2,1)*g[5] + Sq(1)*g[9],
+      Sq(2,1)*g[9] + Sq(1)*g[13],
+      Sq(0,1)*g[13] + Sq(2)*g[14])]
 
 -----------------------
 Example: Counting lifts

@@ -1411,7 +1411,7 @@ class FPModuleMorphism(Morphism):
 
         D = self.domain().suspension(t)
         C = self.codomain().suspension(t)
-        return Hom(D, C)([C(x.lift_to_free().dense_coefficient_list()) for x in self._values])
+        return Hom(D, C)([C(x.lift_to_free().coefficients()) for x in self._values])
 
 
     def cokernel_projection(self):

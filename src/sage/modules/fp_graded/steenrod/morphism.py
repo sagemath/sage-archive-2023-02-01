@@ -239,6 +239,45 @@ class FPA_ModuleMorphism(FPModuleMorphism):
         return self._action(FPModuleMorphism.kernel_inclusion, verbose)
 
 
+    def cokernel_projection(self, verbose=False):
+        r"""
+        Compute the map to the cokernel of ``self``.
+
+        OUTPUT:
+
+        The natural projection from the codomain of this homomorphism
+        to its cokernel.
+
+        EXAMPLES::
+
+            sage: from sage.modules.fp_graded.steenrod.module import FPA_Module
+            sage: A1 = SteenrodAlgebra(2, profile=(2,1))
+            sage: M = FPA_Module(A1, [0], [[Sq(2)]])
+            sage: F = FPA_Module(A1, [0])
+
+            sage: r = Hom(F, M)([A1.Sq(1)*M.generator(0)])
+            sage: co = r.cokernel_projection(); co
+            Module morphism:
+              From: Finitely presented left module on 1 generator and 1 relation over sub-Hopf algebra of mod 2 Steenrod algebra, milnor basis, profile function [2, 1]
+              To:   Finitely presented left module on 1 generator and 2 relations over sub-Hopf algebra of mod 2 Steenrod algebra, milnor basis, profile function [2, 1]
+              Defn: g[0] |--> g[0]
+
+            sage: co.domain().is_trivial()
+            False
+        """
+        from .module import FPA_Module
+        new_relations = [x.coefficients() for x in self.codomain().relations()] +\
+            [x.coefficients() for x in self._values]
+
+        coker = FPA_Module(self.base_ring(),
+                    self.codomain().generator_degrees(),
+                    relations=tuple(new_relations))
+
+        projection = Hom(self.codomain(), coker)(coker.generators())
+
+        return projection
+
+
     def image(self, verbose=False):
         r"""
         Compute the image of this homomorphism.
@@ -364,7 +403,7 @@ class FPA_ModuleMorphism(FPModuleMorphism):
             sage: L = FPA_Module(A, [0], [[Sq(3)]])
             sage: f = Hom(F, L)([L([Sq(2)])])
             sage: f._action(FPModuleMorphism._resolve_image, verbose=True)
-            Computing the kernel using the profile:
+            Computing using the profile:
             (2, 1)
             Resolving the image in the range of dimensions [0, 8]: 0 1 2 3 4 5 6 7 8.
             Module morphism:
@@ -375,7 +414,7 @@ class FPA_ModuleMorphism(FPModuleMorphism):
         small_profile = self.profile()
 
         if verbose:
-            print('Computing the kernel using the profile:')
+            print('Computing using the profile:')
             print(small_profile)
 
         algebra = self.base_ring()

@@ -1067,7 +1067,7 @@ class FPModule(UniqueRepresentation, IndexedGenerators, Module):
             sage: Q.generator_degrees()
             (2, 3)
         """
-        relations = tuple([r.dense_coefficient_list() for r in self._j._values])
+        relations = tuple([r.coefficients() for r in self._j._values])
         return FPModule(self.base_ring(),
                         tuple([g + t for g in self._generator_degrees]),
                         relations)

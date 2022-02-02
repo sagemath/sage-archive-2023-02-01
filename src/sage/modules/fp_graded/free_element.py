@@ -62,8 +62,18 @@ class FreeGradedModuleElement(IndexedFreeModuleElement):
             Sq(0,0,1)*Y + Sq(3,1)*Z
             sage: x.coefficients()
             [Sq(0,0,1), Sq(3,1)]
+
+        TESTS:
+
+        A module with generators in the "wrong" order::
+
+            sage: M.<Y,Z> = FreeGradedModule(SteenrodAlgebra(2), (1, 0))
+            sage: a = Sq(0,0,1)*Y + Sq(3,1)*Z
+            sage: a.coefficients()
+            [Sq(0,0,1), Sq(3,1)]
         """
-        return self.dense_coefficient_list()
+        order = self.parent()._indices
+        return self.dense_coefficient_list(order)
 
 
     def degree(self):

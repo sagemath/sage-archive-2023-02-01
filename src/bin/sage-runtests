@@ -108,6 +108,8 @@ if __name__ == "__main__":
     # The --serial option is only really for internal use, better not
     # document it.
     parser.add_argument("--serial", action="store_true", default=False, help=argparse.SUPPRESS)
+    # Same for --die_timeout
+    parser.add_argument("--die_timeout", type=int, default=-1, help=argparse.SUPPRESS)
 
     parser.add_argument("filenames", help="file names", nargs='*')
 

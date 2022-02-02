@@ -237,6 +237,7 @@ doesn't hurt::
     sage: kwds2 = deepcopy(kwds)
     sage: kwds2['env']['DOCTEST_TEST_PID_FILE'] = F  # Doctester will write its PID in this file
     sage: subprocess.call(["sage", "-tp", "1000000", "--timeout=120",  # long time
+    ....:      "--die_timeout=4", "--optional=sage",
     ....:      "--warn-long", "0", "99seconds.rst", "interrupt_diehard.rst"], **kwds2)
     Running doctests...
     Doctesting 2 files using 1000000 threads...
@@ -250,13 +251,13 @@ doesn't hurt::
 
 Even though the doctester master process has exited, the child process
 is still alive, but it should be killed automatically
-in max(60, 120 * 0.05) = 60 seconds::
+after the `die_timeout` given above (4 seconds)::
 
     sage: pid = int(open(F).read())    # long time
     sage: time.sleep(2)                # long time
     sage: os.kill(pid, signal.SIGQUIT) # long time; 2 seconds passed => still alive
-    sage: time.sleep(63)               # long time
-    sage: os.kill(pid, signal.SIGQUIT) # long time; 65 seconds passed => dead
+    sage: time.sleep(2)                # long time
+    sage: os.kill(pid, signal.SIGQUIT) # long time; 4 seconds passed => dead
     Traceback (most recent call last):
     ...
     ProcessLookupError: ...

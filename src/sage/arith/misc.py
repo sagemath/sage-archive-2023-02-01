@@ -1932,7 +1932,7 @@ def xgcd(a, b):
         sage: xgcd(y^2, a*y+b)
         (1, a^2/b^2, ((-a)/b^2)*y + 1/b)
         sage: xgcd((b+g)*y^2, (a+g)*y+b)
-        (1, (a^2 + (2*g)*a + 3)/(b^3 + (g)*b^2), ((-a + (-g))/b^2)*y + 1/b)
+        (1, (a^2 + (2*g)*a + 3)/(b^3 + g*b^2), ((-a + (-g))/b^2)*y + 1/b)
 
     Here is an example of a xgcd for two polynomials over the integers, where the linear
     combination is not the gcd but the gcd multiplied by the resultant::
@@ -2034,7 +2034,6 @@ def xkcd(n=""):
     from sage.misc.html import html
     from ssl import SSLContext
 
-    # import compatible with py2 and py3
     from urllib.request import urlopen
     from urllib.error import HTTPError, URLError
 

@@ -106,11 +106,11 @@ Sage to test its own modules. Even if we have a system-wide Sage
 installation, using that version to doctest the modules of a local
 installation is a recipe for confusion.
 
-If your system Python has the ``tox`` package, you can also run the Sage
-doctester as follows::
+You can also run the Sage doctester as follows::
 
-   [jdemeyer@sage sage-6.0]$ cd src
-   [jdemeyer@sage src]$ tox -- sage/games/sudoku.py
+   [jdemeyer@sage sage-6.0]$ ./sage -tox -e doctest -- src/sage/games/sudoku.py
+
+See :ref:`chapter-tools` for more information about tox.
 
 
 Troubleshooting
@@ -675,7 +675,7 @@ function in the global namespace, passing it either a string or a module:
     sage: run_doctests(sage.combinat.affine_permutation)
     Running doctests with ID 2018-02-07-13-23-13-89fe17b1.
     Git branch: develop
-    Using --optional=dochtml,sage
+    Using --optional=sagemath_doc_html,sage
     Doctesting 1 file.
     sage -t /opt/sage/sage_stable/src/sage/combinat/affine_permutation.py
         [338 tests, 4.32 s]
@@ -855,6 +855,9 @@ This seed can be set explicitly to reproduce possible failures::
         cpu time: 0.0 seconds
         cumulative wall time: 0.0 seconds
 
+It can also be set explicitly using the environment variable
+``SAGE_DOCTEST_RANDOM_SEED``.
+
 .. _section-optional-doctest-flag:
 
 Run Optional Doctests
@@ -868,7 +871,7 @@ optional packages.
 
 By default, Sage only runs doctests that are not marked with the ``optional`` tag.  This is equivalent to running ::
 
-    [roed@sage sage-6.0]$ sage -t --optional=dochtml,sage src/sage/rings/real_mpfr.pyx
+    [roed@sage sage-6.0]$ sage -t --optional=sagemath_doc_html,sage src/sage/rings/real_mpfr.pyx
     Running doctests with ID 2012-06-21-16-18-30-a368a200.
     Doctesting 1 file.
     sage -t src/sage/rings/real_mpfr.pyx
@@ -882,7 +885,7 @@ By default, Sage only runs doctests that are not marked with the ``optional`` ta
 
 If you want to also run tests that require magma, you can do the following::
 
-    [roed@sage sage-6.0]$ sage -t --optional=dochtml,sage,magma src/sage/rings/real_mpfr.pyx
+    [roed@sage sage-6.0]$ sage -t --optional=sagemath_doc_html,sage,magma src/sage/rings/real_mpfr.pyx
     Running doctests with ID 2012-06-21-16-18-30-a00a7319
     Doctesting 1 file.
     sage -t src/sage/rings/real_mpfr.pyx
@@ -894,7 +897,7 @@ If you want to also run tests that require magma, you can do the following::
         cpu time: 4.0 seconds
         cumulative wall time: 8.4 seconds
 
-In order to just run the tests that are marked as requiring magma, omit ``sage`` and ``dochtml``::
+In order to just run the tests that are marked as requiring magma, omit ``sage`` and ``sagemath_doc_html``::
 
     [roed@sage sage-6.0]$ sage -t --optional=magma src/sage/rings/real_mpfr.pyx
     Running doctests with ID 2012-06-21-16-18-33-a2bc1fdf
@@ -1067,7 +1070,7 @@ appear in real time use the ``--verbose`` flag).  To have doctests run
 under the control of gdb, use the ``--gdb`` flag::
 
     [roed@sage sage-6.0]$ sage -t --gdb src/sage/schemes/elliptic_curves/constructor.py
-    gdb -x /home/roed/sage-6.0.b5/local/bin/sage-gdb-commands --args python /home/roed/sage-6.0.b5/local/bin/sage-runtests --serial --nthreads 1 --timeout 1048576 --optional dochtml,sage --stats_path /home/roed/.sage/timings2.json src/sage/schemes/elliptic_curves/constructor.py
+    gdb -x /home/roed/sage-6.0.b5/local/bin/sage-gdb-commands --args python /home/roed/sage-6.0.b5/local/bin/sage-runtests --serial --nthreads 1 --timeout 1048576 --optional sagemath_doc_html,sage --stats_path /home/roed/.sage/timings2.json src/sage/schemes/elliptic_curves/constructor.py
     GNU gdb 6.8-debian
     Copyright (C) 2008 Free Software Foundation, Inc.
     License GPLv3+: GNU GPL version 3 or later <http://gnu.org/licenses/gpl.html>

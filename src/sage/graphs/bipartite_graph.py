@@ -1007,12 +1007,20 @@ class BipartiteGraph(Graph):
         Return a complement of this graph.
 
         Given a simple :class:`~sage.graphs.bipartite_graph.BipartiteGraph`
-        `G = (L \cup R, E)` with vertex set `L\cup R` and edge set `E`, this
-        method returns a :class:`~sage.graphs.graph.Graph` `H = (V, F)`, where
+        `G = (L, R, E)` with vertex set `L\cup R` and edge set `E`, this method
+        returns a :class:`~sage.graphs.graph.Graph` `H = (V, F)`, where
         `V = L\cup R` and `F` is the set of edges of a complete graph of order
         `|V|` minus the edges in `E`.
 
-        ..SEEALSO::
+        .. WARNING::
+
+            This method returns the complement of a bipartite graph
+            `G = (V = L \cup R, E)` with respect the complete graph of order
+            `|V|`. If looking for the complement with respect the complete
+            bipartite graph `K = (L, R, L\times R)`, use method
+            :meth:`~sage.graphs.bipartite_graph.BipartiteGraph.complement_bipartite`.
+
+        .. SEEALSO::
 
             :meth:`~sage.graphs.bipartite_graph.BipartiteGraph.complement_bipartite`
 
@@ -1036,12 +1044,12 @@ class BipartiteGraph(Graph):
         Return the bipartite complement of this bipartite graph.
 
         Given a simple :class:`~sage.graphs.bipartite_graph.BipartiteGraph`
-        `G = (L \cup R, E)` with vertex set `L\cup R` and edge set `E`, this
+        `G = (L, R, E)` with vertex set `L\cup R` and edge set `E`, this
         method returns a :class:`~sage.graphs.bipartite_graph.BipartiteGraph`
         `H = (L\cup R, F)`, where `F` is the set of edges of a complete
         bipartite graph between vertex sets `L` and `R` minus the edges in `E`.
 
-        ..SEEALSO::
+        .. SEEALSO::
 
             :meth:`~sage.graphs.bipartite_graph.BipartiteGraph.complement`
 

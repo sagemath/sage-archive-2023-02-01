@@ -262,7 +262,7 @@ class SchemeMorphism_polynomial_affine_space(SchemeMorphism_polynomial):
         """
         from sage.schemes.affine.affine_point import SchemeMorphism_point_affine
         if check:
-            if not isinstance(x, SchemeMorphism_point_affine):
+            if not isinstance(x, SchemeMorphism_point_affine) or self.domain() != x.codomain():
                 try:
                     x = self.domain()(x)
                 except (TypeError, NotImplementedError):

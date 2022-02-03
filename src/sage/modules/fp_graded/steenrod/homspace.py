@@ -9,11 +9,11 @@ For an overview of the API, see :doc:`module`.
 
 TESTS::
 
-    sage: from sage.modules.fp_graded.steenrod.module import FPA_Module
+    sage: from sage.modules.fp_graded.steenrod.module import SteenrodFPModule
     sage: from sage.misc.sage_unittest import TestSuite
     sage: A = SteenrodAlgebra(2, profile=(3,2,1))
-    sage: F = FPA_Module(A, [1,3])
-    sage: L = FPA_Module(A, [2,3], [[Sq(2),Sq(1)], [0,Sq(2)]])
+    sage: F = SteenrodFPModule(A, [1,3])
+    sage: L = SteenrodFPModule(A, [2,3], [[Sq(2),Sq(1)], [0,Sq(2)]])
     sage: homset = Hom(F, L); homset
     Set of Morphisms from Finitely presented left module on 2 generators ...
     sage: homset.an_element()
@@ -58,7 +58,7 @@ AUTHORS:
 # ****************************************************************************
 
 from sage.modules.fp_graded.homspace import FPModuleHomspace
-from .morphism import FPA_ModuleMorphism
+from .morphism import SteenrodFPModuleMorphism
 
-class FPA_ModuleHomspace(FPModuleHomspace):
-    Element = FPA_ModuleMorphism
+class SteenrodFPModuleHomspace(FPModuleHomspace):
+    Element = SteenrodFPModuleMorphism

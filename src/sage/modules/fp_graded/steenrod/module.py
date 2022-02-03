@@ -59,8 +59,8 @@ The constructor of the module class takes as arguments an ordered tuple of
 degrees and the algebra over which the module is defined, together with an
 optional set of relations::
 
-    sage: from sage.modules.fp_graded.steenrod.module import FPA_Module
-    sage: F = FPA_Module(A, [0, 1, 7]); F  # A free module
+    sage: from sage.modules.fp_graded.steenrod.module import SteenrodFPModule
+    sage: F = SteenrodFPModule(A, [0, 1, 7]); F  # A free module
     Finitely presented left module on 3 generators and 0 relations over mod 2 Steenrod algebra, milnor basis
 
 Denote the module generators of an `A`-module `M` by `g_1,\ldots, g_N`.
@@ -76,7 +76,7 @@ relations, the coefficients for each relation is given to the constructor::
 
     sage: r1 = [Sq(8), Sq(7), 0]   # First relation
     sage: r2 = [Sq(7), 0, 1]       # Second relation
-    sage: M = FPA_Module(A, [0, 1, 7], relations=[r1, r2]); M
+    sage: M = SteenrodFPModule(A, [0, 1, 7], relations=[r1, r2]); M
     Finitely presented left module on 3 generators and 2 relations over mod 2 Steenrod algebra, milnor basis
 
 The resulting module will have three generators in the degrees we gave them::
@@ -96,7 +96,7 @@ given by its base ring::
 
     sage: M.base_ring()
     mod 2 Steenrod algebra, milnor basis
-    sage: FPA_Module(SteenrodAlgebra(p=2,profile=(3,2,1)), [0]).base_ring()
+    sage: SteenrodFPModule(SteenrodAlgebra(p=2,profile=(3,2,1)), [0]).base_ring()
     sub-Hopf algebra of mod 2 Steenrod algebra, milnor basis, profile function
     [3, 2, 1]
 
@@ -241,7 +241,7 @@ underlying `\GF{p}`-vectorspaces which commute with the `A`-module structure.
 To create a homomorphism, first create the object modeling the set of all
 such homomorphisms using the free function ``Hom``::
 
-    sage: Hko = FPA_Module(A, [0], [[Sq(2)], [Sq(1)]])
+    sage: Hko = SteenrodFPModule(A, [0], [[Sq(2)], [Sq(1)]])
     sage: homspace = Hom(Hko, Hko); homspace
     Set of Morphisms from Finitely presented left module on 1 generator and 2 relations over mod 2 Steenrod algebra, milnor basis to Finitely presented left module on 1 generator and 2 relations over mod 2 Steenrod algebra, milnor basis in Category of finitely presented graded modules over mod 2 Steenrod algebra, milnor basis
 
@@ -408,7 +408,7 @@ Homological algebra
 
 The category of modules over `A` is Abelian, so kernels, images and cokernels
 all exist and can be computed through the API belonging to the homomorphism class
-:class:`sage.modules.fp_graded.steenrod.morphism.FPA_ModuleMorphism`.
+:class:`sage.modules.fp_graded.steenrod.morphism.SteenrodFPModuleMorphism`.
 
 .. NOTE:: Functions like :meth:`kernel`, :meth:`cokernel`, :meth:`image`,
     :meth:`homology` compute sub- and quotient modules related to homomorphisms,
@@ -436,10 +436,10 @@ relation in two ways: First explicitly, and then as the cokernel of a
 homomorphism of free modules.  We then construct a candidate for an isomorphism
 and check that it is both injective and surjective::
 
-    sage: HZ = FPA_Module(A, [0], [[Sq(1)]]); HZ
+    sage: HZ = SteenrodFPModule(A, [0], [[Sq(1)]]); HZ
     Finitely presented left module on 1 generator and 1 relation over mod 2 Steenrod algebra, milnor basis
 
-    sage: F = FPA_Module(A, [0])
+    sage: F = SteenrodFPModule(A, [0])
     sage: j = Hom(F, F)([Sq(1)*F.generator(0)])
     sage: coker = j.cokernel_projection() # the natural quotient homomorphism onto the cokernel.
     sage: hz = coker.codomain(); hz
@@ -632,10 +632,10 @@ commuting triangle:
 We begin by defining the modules and the homomorphisms `f` and `q`.  In the following,
 we let `L = \Sigma^{28}Hko`::
 
-    sage: from sage.modules.fp_graded.steenrod.module import FPA_Module
+    sage: from sage.modules.fp_graded.steenrod.module import SteenrodFPModule
     sage: A = SteenrodAlgebra(2)
-    sage: Hko = FPA_Module(A, [0], [[Sq(2)],[Sq(1)]])
-    sage: HZ = FPA_Module(A, [0], [[Sq(1)]])
+    sage: Hko = SteenrodFPModule(A, [0], [[Sq(2)],[Sq(1)]])
+    sage: HZ = SteenrodFPModule(A, [0], [[Sq(1)]])
     sage: L = Hko.suspension(28)
 
     sage: # The projection:
@@ -783,16 +783,16 @@ re-ordering of list elements), so the following comparison is reassuring::
 TESTS:
 
     sage: A = SteenrodAlgebra(2)
-    sage: K = FPA_Module(A, [1,3]); K
+    sage: K = SteenrodFPModule(A, [1,3]); K
     Finitely presented left module on 2 generators and 0 relations ...
     sage: K.category()
     Category of finitely presented graded modules over mod 2 Steenrod algebra, milnor basis
-    sage: L = FPA_Module(A, [2,3], [[Sq(2),Sq(1)], [0,Sq(2)]]);L
+    sage: L = SteenrodFPModule(A, [2,3], [[Sq(2),Sq(1)], [0,Sq(2)]]);L
     Finitely presented left module on 2 generators and 2 relations ...
-    sage: M = FPA_Module(A, [2,3], [[Sq(2),Sq(1)]]);M
+    sage: M = SteenrodFPModule(A, [2,3], [[Sq(2),Sq(1)]]);M
     Finitely presented left module on 2 generators and 1 relation ...
     sage: K.element_class
-    <class 'sage.modules.fp_graded.steenrod.module.FPA_Module_with_category.element_class'>
+    <class 'sage.modules.fp_graded.steenrod.module.SteenrodFPModule_with_category.element_class'>
     sage: m = M((0,1)); m
     g[3]
     sage: K.is_parent_of(m)
@@ -802,7 +802,7 @@ TESTS:
     sage: M.is_parent_of(m)
     True
 
-    sage: FPA_Module(ZZ, [0])
+    sage: SteenrodFPModule(ZZ, [0])
     Traceback (most recent call last):
     ...
     ValueError: the ground ring of the algebra must be a field
@@ -832,7 +832,7 @@ from sage.algebras.steenrod.steenrod_algebra import SteenrodAlgebra_generic
 from sage.modules.fp_graded.module import FPModule
 from .profile import enveloping_profile_elements
 
-class FPA_Module(FPModule):
+class SteenrodFPModule(FPModule):
     r"""
     Create a finitely presented module over the Steenrod algebra.
 
@@ -851,8 +851,8 @@ class FPA_Module(FPModule):
 
     TESTS:
 
-        sage: from sage.modules.fp_graded.steenrod.module import FPA_Module
-        sage: FPA_Module(SteenrodAlgebra(2), (0,))
+        sage: from sage.modules.fp_graded.steenrod.module import SteenrodFPModule
+        sage: SteenrodFPModule(SteenrodAlgebra(2), (0,))
         Finitely presented left module on 1 generator and 0 relations over mod 2 Steenrod algebra, milnor basis
 
     """
@@ -862,10 +862,10 @@ class FPA_Module(FPModule):
 
         TESTS::
 
-            sage: from sage.modules.fp_graded.steenrod.module import FPA_Module
+            sage: from sage.modules.fp_graded.steenrod.module import SteenrodFPModule
             sage: A = SteenrodAlgebra(2)
-            sage: F = FPA_Module(A, [1,3])
-            sage: L = FPA_Module(A, [2,3], [[Sq(2),Sq(1)], [0,Sq(2)]])
+            sage: F = SteenrodFPModule(A, [1,3])
+            sage: L = SteenrodFPModule(A, [2,3], [[Sq(2),Sq(1)], [0,Sq(2)]])
 
             sage: Hom(F, L)
             Set of Morphisms from Finitely presented left module on 2 generators ...
@@ -874,8 +874,8 @@ class FPA_Module(FPModule):
             sage: Hom(F, M)
             Set of Morphisms from Finitely presented left module on 2 generators ...
         """
-        from .homspace import FPA_ModuleHomspace
-        return FPA_ModuleHomspace(self, other, category=category)
+        from .homspace import SteenrodFPModuleHomspace
+        return SteenrodFPModuleHomspace(self, other, category=category)
 
 
     def change_ring(self, algebra):
@@ -894,11 +894,11 @@ class FPA_Module(FPModule):
 
         EXAMPLES::
 
-            sage: from sage.modules.fp_graded.steenrod.module import FPA_Module
+            sage: from sage.modules.fp_graded.steenrod.module import SteenrodFPModule
             sage: A = SteenrodAlgebra(2)
             sage: A1 = SteenrodAlgebra(2, profile=(2,1))
 
-            sage: M = FPA_Module(A, [0,1], [[Sq(2), Sq(1)]])
+            sage: M = SteenrodFPModule(A, [0,1], [[Sq(2), Sq(1)]])
             sage: N = M.change_ring(A1); N
             Finitely presented left module on 2 generators and 1 relation over
              sub-Hopf algebra of mod 2 Steenrod algebra, milnor basis, profile function [2, 1]
@@ -908,7 +908,7 @@ class FPA_Module(FPModule):
             sage: N.change_ring(A) is M
             True
         """
-        return FPA_Module(self._j.change_ring(algebra))
+        return SteenrodFPModule(self._j.change_ring(algebra))
 
 
     def profile(self):
@@ -922,7 +922,7 @@ class FPA_Module(FPModule):
 
             sage: from sage.modules.fp_graded.steenrod.module import *
             sage: A = SteenrodAlgebra(2)
-            sage: M = FPA_Module(A, [0,1], [[Sq(2),Sq(1)],[0,Sq(2)],[Sq(3),0]])
+            sage: M = SteenrodFPModule(A, [0,1], [[Sq(2),Sq(1)],[0,Sq(2)],[Sq(3),0]])
             sage: M.profile()
             (2, 1)
 
@@ -930,7 +930,7 @@ class FPA_Module(FPModule):
 
             sage: from sage.modules.fp_graded.steenrod.module import *
             sage: A = SteenrodAlgebra(2)
-            sage: X = FPA_Module(A, [0])
+            sage: X = SteenrodFPModule(A, [0])
             sage: X.profile()
             (1,)
 
@@ -961,7 +961,7 @@ class FPA_Module(FPModule):
 
             sage: from sage.modules.fp_graded.steenrod.module import *
             sage: A = SteenrodAlgebra(2)
-            sage: M = FPA_Module(A, [0,1], [[Sq(2),Sq(1)],[0,Sq(2)],[Sq(3),0]])
+            sage: M = SteenrodFPModule(A, [0,1], [[Sq(2),Sq(1)],[0,Sq(2)],[Sq(3),0]])
 
             sage: i = M.min_pres()
             sage: i.codomain() is M
@@ -1009,7 +1009,7 @@ class FPA_Module(FPModule):
 
             sage: from sage.modules.fp_graded.steenrod.module import *
             sage: A = SteenrodAlgebra(2)
-            sage: Hko = FPA_Module(A, [0], [[Sq(1)], [Sq(2)]])
+            sage: Hko = SteenrodFPModule(A, [0], [[Sq(1)], [Sq(2)]])
 
             sage: res = Hko.resolution(5, verbose=True)
             Computing f_1 (1/5)
@@ -1030,7 +1030,7 @@ class FPA_Module(FPModule):
              Free graded left module on 4 generators over mod 2 Steenrod algebra, milnor basis]
 
             sage: # When there are no relations, the resolution is trivial:
-            sage: M = FPA_Module(A, [0])
+            sage: M = SteenrodFPModule(A, [0])
             sage: M.resolution(4)
             [Free module morphism:
                From: Free graded left module on 1 generator over mod 2 Steenrod algebra, milnor basis
@@ -1075,7 +1075,7 @@ class FPA_Module(FPModule):
 
             sage: from sage.modules.fp_graded.steenrod.module import *
             sage: A1 = algebra=SteenrodAlgebra(p=2, profile=[2,1])
-            sage: M = FPA_Module(A1, [0])
+            sage: M = SteenrodFPModule(A1, [0])
             sage: M.export_module_definition()
             8 0 1 2 3 3 4 5 6
             0 1 1 1
@@ -1088,7 +1088,7 @@ class FPA_Module(FPModule):
             3 2 1 6
             4 2 1 6
             5 2 1 7
-            sage: N = FPA_Module(A1, [0], [[Sq(1)]])
+            sage: N = SteenrodFPModule(A1, [0], [[Sq(1)]])
             sage: N.export_module_definition()
             4 0 2 3 5
             1 1 1 2
@@ -1101,7 +1101,7 @@ class FPA_Module(FPModule):
             2 2 1 3
             0 3 1 2
             sage: A2 = SteenrodAlgebra(p=2, profile=[3,2,1])
-            sage: Hko = FPA_Module(A2, [0], [[Sq(1)], [Sq(2)]])
+            sage: Hko = SteenrodFPModule(A2, [0], [[Sq(1)], [Sq(2)]])
             sage: Hko.export_module_definition()
             8 0 4 6 7 10 11 13 17
             2 1 1 3

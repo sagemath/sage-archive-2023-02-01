@@ -35,7 +35,7 @@ from sage.modules.fp_graded.morphism import FPModuleMorphism
 from .profile import enveloping_profile_elements
 
 
-class FPA_ModuleMorphism(FPModuleMorphism):
+class SteenrodFPModuleMorphism(FPModuleMorphism):
     r"""
     Create a homomorphism between finitely presented graded modules over
     the mod `p` Steenrod algebra.
@@ -60,12 +60,12 @@ class FPA_ModuleMorphism(FPModuleMorphism):
 
     TESTS:
 
-        sage: from sage.modules.fp_graded.steenrod.module import FPA_Module
+        sage: from sage.modules.fp_graded.steenrod.module import SteenrodFPModule
         sage: # Trying to map the generators of a non-free module into a
         sage: # free module:
         sage: A = SteenrodAlgebra(2)
-        sage: F.<a2,a3> = FPA_Module(A, [2,3])
-        sage: Q.<x2,x3> = FPA_Module(A, [2,3], relations=[[Sq(6), Sq(5)]])
+        sage: F.<a2,a3> = SteenrodFPModule(A, [2,3])
+        sage: Q.<x2,x3> = SteenrodFPModule(A, [2,3], relations=[[Sq(6), Sq(5)]])
         sage: Hom(F, Q)((Sq(1)*x2, x3))
         Traceback (most recent call last):
          ...
@@ -83,11 +83,11 @@ class FPA_ModuleMorphism(FPModuleMorphism):
         r"""
         TESTS::
 
-            sage: from sage.modules.fp_graded.steenrod.module import FPA_Module
+            sage: from sage.modules.fp_graded.steenrod.module import SteenrodFPModule
             sage: A2 = SteenrodAlgebra(2, profile=(3,2,1))
             sage: A3 = SteenrodAlgebra(2, profile=(4,3,2,1))
-            sage: M = FPA_Module(A2, [0], relations=[[Sq(1)]])
-            sage: N = FPA_Module(A2, [0], relations=[[Sq(4)],[Sq(1)]])
+            sage: M = SteenrodFPModule(A2, [0], relations=[[Sq(1)]])
+            sage: N = SteenrodFPModule(A2, [0], relations=[[Sq(4)],[Sq(1)]])
             sage: f = Hom(M,N)([A2.Sq(3)*N.generator(0)])
             sage: TestSuite(f).run()
         """
@@ -100,9 +100,9 @@ class FPA_ModuleMorphism(FPModuleMorphism):
 
         EXAMPLES::
 
-            sage: from sage.modules.fp_graded.steenrod.module import FPA_Module
+            sage: from sage.modules.fp_graded.steenrod.module import SteenrodFPModule
             sage: A = SteenrodAlgebra(2)
-            sage: M = FPA_Module(A, [0,1], [[Sq(2),Sq(1)], [0,Sq(2)]])
+            sage: M = SteenrodFPModule(A, [0,1], [[Sq(2),Sq(1)], [0,Sq(2)]])
             sage: one = Hom(M,M).identity()
             sage: one.profile()
             (2, 1)
@@ -165,17 +165,17 @@ class FPA_ModuleMorphism(FPModuleMorphism):
 
         EXAMPLES::
 
-            sage: from sage.modules.fp_graded.steenrod.module import FPA_Module
+            sage: from sage.modules.fp_graded.steenrod.module import SteenrodFPModule
             sage: A = SteenrodAlgebra(2)
-            sage: M = FPA_Module(A, [0,1], [[Sq(2),Sq(1)], [0,Sq(2)]])
-            sage: S = FPA_Module(A, [0], [[Sq(2)]])
+            sage: M = SteenrodFPModule(A, [0,1], [[Sq(2),Sq(1)], [0,Sq(2)]])
+            sage: S = SteenrodFPModule(A, [0], [[Sq(2)]])
             sage: f = Hom(S, M)([M([0,1])])
             sage: f.is_injective()
             True
             sage: g = Hom(S, M).zero()
             sage: g.is_injective()
             False
-            sage: z = Hom(FPA_Module(A, []), M).zero()
+            sage: z = Hom(SteenrodFPModule(A, []), M).zero()
             sage: z.is_injective()
             True
             sage: z.is_zero()
@@ -205,10 +205,10 @@ class FPA_ModuleMorphism(FPModuleMorphism):
 
         EXAMPLES::
 
-            sage: from sage.modules.fp_graded.steenrod.module import FPA_Module
+            sage: from sage.modules.fp_graded.steenrod.module import SteenrodFPModule
             sage: A = SteenrodAlgebra(2)
-            sage: M = FPA_Module(A, [0,1], [[Sq(2),Sq(1)], [0,Sq(2)]])
-            sage: S = FPA_Module(A, [0], [[Sq(2)]])
+            sage: M = SteenrodFPModule(A, [0,1], [[Sq(2),Sq(1)], [0,Sq(2)]])
+            sage: S = SteenrodFPModule(A, [0], [[Sq(2)]])
             sage: f = Hom(S, M)([M([0,1])])
             sage: f.is_injective()
             True
@@ -250,10 +250,10 @@ class FPA_ModuleMorphism(FPModuleMorphism):
 
         EXAMPLES::
 
-            sage: from sage.modules.fp_graded.steenrod.module import FPA_Module
+            sage: from sage.modules.fp_graded.steenrod.module import SteenrodFPModule
             sage: A1 = SteenrodAlgebra(2, profile=(2,1))
-            sage: M = FPA_Module(A1, [0], [[Sq(2)]])
-            sage: F = FPA_Module(A1, [0])
+            sage: M = SteenrodFPModule(A1, [0], [[Sq(2)]])
+            sage: F = SteenrodFPModule(A1, [0])
 
             sage: r = Hom(F, M)([A1.Sq(1)*M.generator(0)])
             sage: co = r.cokernel_projection(); co
@@ -265,12 +265,12 @@ class FPA_ModuleMorphism(FPModuleMorphism):
             sage: co.domain().is_trivial()
             False
         """
-        from .module import FPA_Module
+        from .module import SteenrodFPModule
         new_relations = ([x.dense_coefficient_list()
                           for x in self.codomain().relations()] +
                          [x.dense_coefficient_list() for x in self._values])
 
-        coker = FPA_Module(self.base_ring(),
+        coker = SteenrodFPModule(self.base_ring(),
                     self.codomain().generator_degrees(),
                     relations=tuple(new_relations))
 
@@ -293,10 +293,10 @@ class FPA_ModuleMorphism(FPModuleMorphism):
 
         EXAMPLES::
 
-            sage: from sage.modules.fp_graded.steenrod.module import FPA_Module
+            sage: from sage.modules.fp_graded.steenrod.module import SteenrodFPModule
             sage: A = SteenrodAlgebra(2)
-            sage: M = FPA_Module(A, [0,1], [[Sq(2),Sq(1)], [0,Sq(2)]])
-            sage: S = FPA_Module(A, [0], [[Sq(2)]])
+            sage: M = SteenrodFPModule(A, [0,1], [[Sq(2),Sq(1)], [0,Sq(2)]])
+            sage: S = SteenrodFPModule(A, [0], [[Sq(2)]])
             sage: f = Hom(S, M)([M([0,1])])
             sage: f.is_injective()
             True
@@ -345,10 +345,10 @@ class FPA_ModuleMorphism(FPModuleMorphism):
 
         TESTS:
 
-            sage: from sage.modules.fp_graded.steenrod.module import FPA_Module
+            sage: from sage.modules.fp_graded.steenrod.module import SteenrodFPModule
             sage: A = SteenrodAlgebra(2)
-            sage: F = FPA_Module(A, [0,0])
-            sage: L = FPA_Module(A, [0,0], [[Sq(3),Sq(0,1)], [0,Sq(2)]])
+            sage: F = SteenrodFPModule(A, [0,0])
+            sage: L = SteenrodFPModule(A, [0,0], [[Sq(3),Sq(0,1)], [0,Sq(2)]])
             sage: f = Hom(F, L)([L([Sq(2),0]), L([0, Sq(2)])])
             sage: f._resolve_kernel()
             Module morphism:
@@ -376,10 +376,10 @@ class FPA_ModuleMorphism(FPModuleMorphism):
 
         TESTS:
 
-            sage: from sage.modules.fp_graded.steenrod.module import FPA_Module
+            sage: from sage.modules.fp_graded.steenrod.module import SteenrodFPModule
             sage: A = SteenrodAlgebra(2)
-            sage: F = FPA_Module(A, [0,0])
-            sage: L = FPA_Module(A, [0,0], [[Sq(3),Sq(0,1)], [0,Sq(2)]])
+            sage: F = SteenrodFPModule(A, [0,0])
+            sage: L = SteenrodFPModule(A, [0,0], [[Sq(3),Sq(0,1)], [0,Sq(2)]])
             sage: f = Hom(F, L)([L([Sq(2),0]), L([0, Sq(2)])])
             sage: f._resolve_image()
             Module morphism:
@@ -397,11 +397,11 @@ class FPA_ModuleMorphism(FPModuleMorphism):
 
         TESTS:
 
-            sage: from sage.modules.fp_graded.steenrod.module import FPA_Module
+            sage: from sage.modules.fp_graded.steenrod.module import SteenrodFPModule
             sage: from sage.modules.fp_graded.morphism import FPModuleMorphism
             sage: A = SteenrodAlgebra(2)
-            sage: F = FPA_Module(A, [0])
-            sage: L = FPA_Module(A, [0], [[Sq(3)]])
+            sage: F = SteenrodFPModule(A, [0])
+            sage: L = SteenrodFPModule(A, [0], [[Sq(3)]])
             sage: f = Hom(F, L)([L([Sq(2)])])
             sage: f._action(FPModuleMorphism._resolve_image, verbose=True)
             Computing using the profile:
@@ -430,19 +430,19 @@ class FPA_ModuleMorphism(FPModuleMorphism):
             verbose=verbose)
 
         # Change back to the original algebra and also from FPModule
-        # to FPA_Module, and return the result.
+        # to SteenrodFPModule, and return the result.
         #
         # This is very clunky. Clean it up!
         f = fp_result.change_ring(self.base_ring())
-        from .module import FPA_Module
+        from .module import SteenrodFPModule
         try:
-            M = FPA_Module(f.domain()._j)
+            M = SteenrodFPModule(f.domain()._j)
         except AttributeError: # f.domain() is free
-            M = FPA_Module(f.domain())
+            M = SteenrodFPModule(f.domain())
         try:
-            N = FPA_Module(f.codomain()._j)
+            N = SteenrodFPModule(f.codomain()._j)
         except AttributeError:
-            N = FPA_Module(f.codomain())
+            N = SteenrodFPModule(f.codomain())
         new_values = [N.linear_combination(zip(N.generators(),
                                                v.dense_coefficient_list()))
                       for v in f.values()]

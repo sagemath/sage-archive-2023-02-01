@@ -1341,7 +1341,7 @@ class LazyModuleElement(Element):
 
             sage: L.<x, y> = LazyTaylorSeriesRing(QQ)
             sage: log((1 + x/(1-y))).polynomial(3)
-            1/3*x^3 - x^2*y + x*y^2 + (-1/2)*x^2 + x*y + x
+            1/3*x^3 - x^2*y + x*y^2 - 1/2*x^2 + x*y + x
 
         TESTS::
 
@@ -1378,7 +1378,7 @@ class LazyModuleElement(Element):
 
             sage: L.<x,y> = LazyTaylorSeriesRing(QQ)
             sage: sin(x/(1-y)).polynomial(3)
-            (-1/6)*x^3 + x*y^2 + x*y + x
+            -1/6*x^3 + x*y^2 + x*y + x
 
         TESTS::
 
@@ -1404,7 +1404,7 @@ class LazyModuleElement(Element):
 
             sage: L.<x,y> = LazyTaylorSeriesRing(QQ)
             sage: cos(x/(1-y)).polynomial(4)
-            1/24*x^4 + (-3/2)*x^2*y^2 - x^2*y + (-1/2)*x^2 + 1
+            1/24*x^4 - 3/2*x^2*y^2 - x^2*y - 1/2*x^2 + 1
 
         TESTS::
 
@@ -1494,7 +1494,7 @@ class LazyModuleElement(Element):
             sage: sec(z)
             1 + 1/2*z^2 + 5/24*z^4 + 61/720*z^6 + O(z^7)
 
-            sage: L.<x, y> = LazyTaylorSeriesRing(QQ)
+            sage: L.<x,y> = LazyTaylorSeriesRing(QQ)
             sage: sec(x/(1-y)).polynomial(4)
             5/24*x^4 + 3/2*x^2*y^2 + x^2*y + 1/2*x^2 + 1
 
@@ -1518,7 +1518,7 @@ class LazyModuleElement(Element):
             sage: arcsin(z)
             z + 1/6*z^3 + 3/40*z^5 + 5/112*z^7 + O(z^8)
 
-            sage: L.<x, y> = LazyTaylorSeriesRing(QQ)
+            sage: L.<x,y> = LazyTaylorSeriesRing(QQ)
             sage: asin(x/(1-y))
             x + x*y + (1/6*x^3+x*y^2) + (1/2*x^3*y+x*y^3)
              + (3/40*x^5+x^3*y^2+x*y^4) + (3/8*x^5*y+5/3*x^3*y^3+x*y^5)
@@ -1555,7 +1555,7 @@ class LazyModuleElement(Element):
             sage: arccos(z/(1-z))
             1/2*pi - z - z^2 - 7/6*z^3 - 3/2*z^4 - 83/40*z^5 - 73/24*z^6 + O(z^7)
 
-            sage: L.<x, y> = LazyTaylorSeriesRing(SR)
+            sage: L.<x,y> = LazyTaylorSeriesRing(SR)
             sage: arccos(x/(1-y))
             1/2*pi + (-x) + (-x*y) + ((-1/6)*x^3-x*y^2) + ((-1/2)*x^3*y-x*y^3)
              + ((-3/40)*x^5-x^3*y^2-x*y^4) + ((-3/8)*x^5*y+(-5/3)*x^3*y^3-x*y^5) + O(x,y)^7
@@ -1579,7 +1579,7 @@ class LazyModuleElement(Element):
             sage: arctan(z)
             z - 1/3*z^3 + 1/5*z^5 - 1/7*z^7 + O(z^8)
 
-            sage: L.<x, y> = LazyTaylorSeriesRing(QQ)
+            sage: L.<x,y> = LazyTaylorSeriesRing(QQ)
             sage: atan(x/(1-y))
             x + x*y + (-1/3*x^3+x*y^2) + (-x^3*y+x*y^3) + (1/5*x^5-2*x^3*y^2+x*y^4)
              + (x^5*y-10/3*x^3*y^3+x*y^5) + (-1/7*x^7+3*x^5*y^2-5*x^3*y^4+x*y^6) + O(x,y)^8
@@ -1617,7 +1617,7 @@ class LazyModuleElement(Element):
             sage: arccot(z/(1-z))
             1/2*pi - z - z^2 - 2/3*z^3 + 4/5*z^5 + 4/3*z^6 + O(z^7)
 
-            sage: L.<x, y> = LazyTaylorSeriesRing(SR)
+            sage: L.<x,y> = LazyTaylorSeriesRing(SR)
             sage: acot(x/(1-y))
             1/2*pi + (-x) + (-x*y) + (1/3*x^3-x*y^2) + (x^3*y-x*y^3)
              + ((-1/5)*x^5+2*x^3*y^2-x*y^4) + (-x^5*y+10/3*x^3*y^3-x*y^5) + O(x,y)^7
@@ -1643,7 +1643,7 @@ class LazyModuleElement(Element):
             sage: sinh(z)
             z + 1/6*z^3 + 1/120*z^5 + 1/5040*z^7 + O(z^8)
 
-            sage: L.<x, y> = LazyTaylorSeriesRing(QQ)
+            sage: L.<x,y> = LazyTaylorSeriesRing(QQ)
             sage: sinh(x/(1-y))
             x + x*y + (1/6*x^3+x*y^2) + (1/2*x^3*y+x*y^3)
              + (1/120*x^5+x^3*y^2+x*y^4) + (1/24*x^5*y+5/3*x^3*y^3+x*y^5)
@@ -1671,7 +1671,7 @@ class LazyModuleElement(Element):
             sage: cosh(z)
             1 + 1/2*z^2 + 1/24*z^4 + 1/720*z^6 + O(z^7)
 
-            sage: L.<x, y> = LazyTaylorSeriesRing(QQ)
+            sage: L.<x,y> = LazyTaylorSeriesRing(QQ)
             sage: cosh(x/(1-y))
             1 + 1/2*x^2 + x^2*y + (1/24*x^4+3/2*x^2*y^2) + (1/6*x^4*y+2*x^2*y^3)
              + (1/720*x^6+5/12*x^4*y^2+5/2*x^2*y^4) + O(x,y)^7
@@ -1698,11 +1698,10 @@ class LazyModuleElement(Element):
             sage: tanh(z)
             z - 1/3*z^3 + 2/15*z^5 - 17/315*z^7 + O(z^8)
 
-            sage: L.<x, y> = LazyTaylorSeriesRing(QQ)
+            sage: L.<x,y> = LazyTaylorSeriesRing(QQ)
             sage: tanh(x/(1-y))
             x + x*y + (-1/3*x^3+x*y^2) + (-x^3*y+x*y^3) + (2/15*x^5-2*x^3*y^2+x*y^4)
              + (2/3*x^5*y-10/3*x^3*y^3+x*y^5) + (-17/315*x^7+2*x^5*y^2-5*x^3*y^4+x*y^6) + O(x,y)^8
-
 
         TESTS::
 
@@ -1800,7 +1799,6 @@ class LazyModuleElement(Element):
             sage: L.<z> = LazyLaurentSeriesRing(SR); x = var("x")
             sage: csch(z)[0:6] == csch(x).series(x, 6).coefficients(sparse=False)
             True
-
         """
         from sage.arith.misc import bernoulli
         from .lazy_series_ring import LazyLaurentSeriesRing
@@ -1824,7 +1822,7 @@ class LazyModuleElement(Element):
             sage: asinh(z)
             z - 1/6*z^3 + 3/40*z^5 - 5/112*z^7 + O(z^8)
 
-            sage: L.<x, y> = LazyTaylorSeriesRing(QQ)
+            sage: L.<x,y> = LazyTaylorSeriesRing(QQ)
             sage: asinh(x/(1-y))
             x + x*y + (-1/6*x^3+x*y^2) + (-1/2*x^3*y+x*y^3) + (3/40*x^5-x^3*y^2+x*y^4)
              + (3/8*x^5*y-5/3*x^3*y^3+x*y^5) + (-5/112*x^7+9/8*x^5*y^2-5/2*x^3*y^4+x*y^6) + O(x,y)^8
@@ -1890,6 +1888,11 @@ class LazyModuleElement(Element):
             1 + z + z^2 + z^3 + z^4 + z^5 + z^6 + O(z^7)
             sage: z.hypergeometric([], []) - exp(z)
             O(z^7)
+
+            sage: L.<x,y> = LazyTaylorSeriesRing(QQ)
+            sage: (x+y).hypergeometric([1, 1], [1]).polynomial(4)
+            x^4 + 4*x^3*y + 6*x^2*y^2 + 4*x*y^3 + y^4 + x^3 + 3*x^2*y
+             + 3*x*y^2 + y^3 + x^2 + 2*x*y + y^2 + x + y + 1
 
         TESTS::
 
@@ -3165,6 +3168,13 @@ class LazyTaylorSeries(LazyCauchyProductSeries):
         So, there are `3! 2! 2/3 = 8` mappings from a three element
         set to a two element set.
 
+        We perform the composition with a lazy Laurent series::
+
+            sage: N.<w> = LazyLaurentSeriesRing(QQ)
+            sage: f1 = 1/(1-w); f2 = cot(w/(1-w))
+            sage: p(f1, f2)
+            w^-1 + 1 + 5/3*w + 8/3*w^2 + 164/45*w^3 + 23/5*w^4 + 5227/945*w^5 + O(w^6)
+
         TESTS::
 
             sage: L.<x,y> = LazyTaylorSeriesRing(ZZ)
@@ -3273,6 +3283,70 @@ class LazyTaylorSeries(LazyCauchyProductSeries):
                 poly = unicode_art(*([parenthesize(m) for m in mons] + bigO), sep = " + ")
 
         return poly
+
+    def polynomial(self, degree=None, names=None):
+        r"""
+        Return ``self`` as a polynomial if ``self`` is actually so.
+
+        INPUT:
+
+        - ``degree`` -- ``None`` or an integer
+        - ``names`` -- names of the variables; if it is ``None``, the name of
+          the variables of the series is used
+
+        OUTPUT:
+
+        If ``degree`` is not ``None``, the terms of the series of degree greater
+        than ``degree`` are truncated first. If ``degree`` is ``None`` and the
+        series is not a polynomial polynomial, a ``ValueError`` is raised.
+
+        EXAMPLES::
+
+            sage: L.<x,y> = LazyTaylorSeriesRing(ZZ)
+            sage: f = x^2 + y*x - x + 2; f
+            2 + (-x) + (x^2+x*y)
+            sage: f.polynomial()
+            x^2 + x*y - x + 2
+
+        TESTS::
+
+            sage: g = 1 / (1 + x + y + x*y)
+            sage: g3 = g.truncate(4); g3
+            1 + (-x-y) + (x^2+x*y+y^2) + (-x^3-x^2*y-x*y^2-y^3)
+            sage: g.polynomial()
+            Traceback (most recent call last):
+            ...
+            ValueError: not a polynomial
+            sage: g3.polynomial()
+            -x^3 - x^2*y - x*y^2 - y^3 + x^2 + x*y + y^2 - x - y + 1
+            sage: L.zero().polynomial()
+            0
+            sage: g3.polynomial() == g.polynomial(3)
+            True
+            sage: g3.polynomial(0)
+            1
+        """
+        from sage.rings.polynomial.polynomial_ring_constructor import PolynomialRing
+        S = self.parent()
+        if names is None:
+            names = S.variable_names()
+        R = PolynomialRing(S.base_ring(), names=names)
+
+        if degree is None:
+            if isinstance(self._coeff_stream, Stream_zero):
+                return R.zero()
+            elif (isinstance(self._coeff_stream, Stream_exact)
+                  and not self._coeff_stream._constant):
+                m = self._coeff_stream._degree
+            else:
+                raise ValueError("not a polynomial")
+        else:
+            m = degree + 1
+
+        if names is None:
+            names = S.variable_names()
+
+        return R.sum(self[:m])
 
 
 class LazySymmetricFunction(LazyCauchyProductSeries):

@@ -25,6 +25,7 @@ AUTHORS:
 
 from sage.misc.cachefunc import cached_method
 from sage.modules.with_basis.indexed_element import IndexedFreeModuleElement
+from sage.categories.finite_dimensional_modules_with_basis import FiniteDimensionalModulesWithBasis
 
 class FreeGradedModuleElement(IndexedFreeModuleElement):
     r"""
@@ -49,9 +50,17 @@ class FreeGradedModuleElement(IndexedFreeModuleElement):
         Sq(1)*g[0] + g[1]
     """
 
-    def coefficients(self):
+    def dense_coefficient_list(self, order=None):
         """
         Return a list of all coefficients of ``self``.
+
+        INPUT:
+
+        - ``order`` -- (optional) an ordering of the basis indexing set
+
+        Note that this includes *all* of the coefficients, not just
+        the nonzero ones. By default they appear in the same order as
+        the module generators.
 
         EXAMPLES::
 
@@ -60,7 +69,7 @@ class FreeGradedModuleElement(IndexedFreeModuleElement):
             sage: M.<Y,Z> = FreeGradedModule(SteenrodAlgebra(2), (0, 1))
             sage: x = M.an_element(7); x
             Sq(0,0,1)*Y + Sq(3,1)*Z
-            sage: x.coefficients()
+            sage: x.dense_coefficient_list()
             [Sq(0,0,1), Sq(3,1)]
 
         TESTS:
@@ -69,11 +78,12 @@ class FreeGradedModuleElement(IndexedFreeModuleElement):
 
             sage: M.<Y,Z> = FreeGradedModule(SteenrodAlgebra(2), (1, 0))
             sage: a = Sq(0,0,1)*Y + Sq(3,1)*Z
-            sage: a.coefficients()
+            sage: a.dense_coefficient_list()
             [Sq(0,0,1), Sq(3,1)]
         """
-        order = self.parent()._indices
-        return self.dense_coefficient_list(order)
+        if order is None:
+            order = self.parent()._indices
+        return FiniteDimensionalModulesWithBasis.ElementMethods.dense_coefficient_list(self, order)
 
 
     def degree(self):
@@ -114,7 +124,8 @@ class FreeGradedModuleElement(IndexedFreeModuleElement):
             raise ValueError("the zero element does not have a well-defined degree")
         degrees = []
         try:
-            for g, c in zip(self.parent().generator_degrees(), self.coefficients()):
+            for g, c in zip(self.parent().generator_degrees(),
+                            self.dense_coefficient_list()):
                 if c:
                     degrees.append(g + c.degree())
         except ValueError:
@@ -184,7 +195,7 @@ class FreeGradedModuleElement(IndexedFreeModuleElement):
              Sq(1,1,1)*x0 + Sq(1,1,1)*y0 + Sq(5,1)*z3,
              Sq(3,2)*z3]
         """
-        return self.parent()((a*c for c in self.coefficients()))
+        return self.parent()((a*c for c in self.dense_coefficient_list()))
 
     @cached_method
     def vector_presentation(self):
@@ -256,7 +267,8 @@ class FreeGradedModuleElement(IndexedFreeModuleElement):
         base_dict = dict(zip(bas_gen, base_vec.basis()))
 
         # Create a sparse representation of the element.
-        sparse_coeffs = [x for x in enumerate(self.coefficients()) if not x[1].is_zero()]
+        sparse_coeffs = [x for x in enumerate(self.dense_coefficient_list())
+                         if not x[1].is_zero()]
 
         vector = base_vec.zero()
         for summand_index, algebra_element in sparse_coeffs:

@@ -60,7 +60,7 @@ class FPElement(IndexedFreeModuleElement):
             Free graded left module on 2 generators over mod 2 Steenrod algebra, milnor basis
         """
         C = self.parent()._j.codomain()
-        return C(self.coefficients())
+        return C(self.dense_coefficient_list())
 
 
     @cached_method
@@ -100,15 +100,32 @@ class FPElement(IndexedFreeModuleElement):
             Traceback (most recent call last):
             ...
             ValueError: the zero element does not have a well-defined degree
+
+        Testing that the order of the coefficients agrees with the
+        order of the generators::
+
+            sage: F.<x,y> = FPModule(SteenrodAlgebra(), (2, 0))
+            sage: x.degree()
+            2
+            sage: y.degree()
+            0
         """
         if self.is_zero():
             raise ValueError("the zero element does not have a well-defined degree")
         return self.lift_to_free().degree()
 
 
-    def coefficients(self):
+    def dense_coefficient_list(self, order=None):
         """
         Return a list of all coefficients of ``self``.
+
+        INPUT:
+
+        - ``order`` -- (optional) an ordering of the basis indexing set
+
+        Note that this includes *all* of the coefficients, not just
+        the nonzero ones. By default they appear in the same order as
+        the module generators.
 
         EXAMPLES::
 
@@ -116,21 +133,15 @@ class FPElement(IndexedFreeModuleElement):
             sage: A = SteenrodAlgebra()
             sage: M = FPModule(SteenrodAlgebra(2), [0,1], [[Sq(4), Sq(3)]])
             sage: x = M([Sq(1), 1])
-            sage: x.coefficients()
+            sage: x.dense_coefficient_list()
             [Sq(1), 1]
             sage: y = Sq(2) * M.generator(1)
-            sage: y.coefficients()
+            sage: y.dense_coefficient_list()
             [0, Sq(2)]
-
-        TESTS::
-
-            sage: F.<x,y> = FPModule(A, (2, 0))
-            sage: x.degree()
-            2
-            sage: y.degree()
-            0
         """
-        return [self[i] for i in self.parent().indices()]
+        if order is None:
+            order = self.parent().indices()
+        return [self[i] for i in order]
 
 
     def _lmul_(self, a):

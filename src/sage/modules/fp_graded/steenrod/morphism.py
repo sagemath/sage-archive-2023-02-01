@@ -268,7 +268,7 @@ class FPA_ModuleMorphism(FPModuleMorphism):
         from .module import FPA_Module
         new_relations = ([x.dense_coefficient_list()
                           for x in self.codomain().relations()] +
-                         [x.dense_coefficient_list() for x in self._values]
+                         [x.dense_coefficient_list() for x in self._values])
 
         coker = FPA_Module(self.base_ring(),
                     self.codomain().generator_degrees(),

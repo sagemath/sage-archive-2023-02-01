@@ -133,7 +133,7 @@ class FPA_ModuleMorphism(FPModuleMorphism):
         """
         def _flatten(f):
             return [coeffifient for value in f.values()\
-                for coeffifient in value.coefficients()]
+                for coeffifient in value.dense_coefficient_list()]
 
         elements = _flatten(self.domain()._j) +\
             _flatten(self.codomain()._j) +\
@@ -266,8 +266,9 @@ class FPA_ModuleMorphism(FPModuleMorphism):
             False
         """
         from .module import FPA_Module
-        new_relations = [x.coefficients() for x in self.codomain().relations()] +\
-            [x.coefficients() for x in self._values]
+        new_relations = ([x.dense_coefficient_list()
+                          for x in self.codomain().relations()] +
+                         [x.dense_coefficient_list() for x in self._values]
 
         coker = FPA_Module(self.base_ring(),
                     self.codomain().generator_degrees(),
@@ -442,5 +443,7 @@ class FPA_ModuleMorphism(FPModuleMorphism):
             N = FPA_Module(f.codomain()._j)
         except AttributeError:
             N = FPA_Module(f.codomain())
-        new_values = [sum(a*b for (a,b) in zip(v.coefficients(), N.generators())) for v in f.values()]
+        new_values = [N.linear_combination(zip(N.generators(),
+                                               v.dense_coefficient_list()))
+                      for v in f.values()]
         return Hom(M, N)(new_values)

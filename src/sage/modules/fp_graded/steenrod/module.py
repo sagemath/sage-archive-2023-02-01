@@ -117,7 +117,7 @@ are called ``g[degree]]``::
 
     sage: e = M.an_element(n=15); e
     Sq(0,0,0,1)*g[0] + Sq(1,2,1)*g[1] + Sq(8)*g[7]
-    sage: e.coefficients()
+    sage: e.dense_coefficient_list()
     [Sq(0,0,0,1), Sq(1,2,1), Sq(8)]
 
 The generators are themselves elements of the module::
@@ -936,7 +936,7 @@ class FPA_Module(FPModule):
 
         """
         elements = [coeffifient for value in self._j.values()\
-                for coeffifient in value.coefficients()]
+                for coeffifient in value.dense_coefficient_list()]
 
         elements = [a for a in elements if a not in (0, 1)]
 

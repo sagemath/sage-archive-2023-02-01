@@ -738,7 +738,7 @@ class FreeGradedModule(CombinatorialFreeModule):
         # and the total running time of the entire computation dropped from
         # 57 to 21 seconds by adding the optimization.
         #
-        element = sum(c * element for c, element in zip(coordinates, basis_elements) if c)
+        element = self.linear_combination(zip(basis_elements, coordinates))
 
         if not element:
             # The previous sum was over the empty list, yielding the integer

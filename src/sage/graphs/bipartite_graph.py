@@ -1266,21 +1266,23 @@ class BipartiteGraph(Graph):
             if not G:
                 yield []
                 return
-            if len(G.left) == len(G.right):
-                # Take an element from the right set
-                v = next(iter(G.right))
-                Nv = G.neighbors(v)
-                G.delete_vertex(v)
-                for u in Nv:
-                    Nu = G.neighbors(u)
-                    G.delete_vertex(u)
-                    for partial_matching in rec(G):
-                        partial_matching.append((u, v))
-                        yield partial_matching
-                    G.add_vertex(u, left=True)
-                    G.add_edges((u, nu) for nu in Nu)
-                G.add_vertex(v, right=True)
-                G.add_edges((nv, v) for nv in Nv)
+            # Take an element from the right set
+            v = next(iter(G.right))
+            Nv = G.neighbors(v)
+            # We must have at least one vertex in Nv
+            if not Nv:
+                return
+            G.delete_vertex(v)
+            for u in Nv:
+                Nu = G.neighbors(u)
+                G.delete_vertex(u)
+                for partial_matching in rec(G):
+                    partial_matching.append((u, v))
+                    yield partial_matching
+                G.add_vertex(u, left=True)
+                G.add_edges((u, nu) for nu in Nu)
+            G.add_vertex(v, right=True)
+            G.add_edges((nv, v) for nv in Nv)
 
         # We create a mutable copy of self
         G = self.copy(immutable=False)

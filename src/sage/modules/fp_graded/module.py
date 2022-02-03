@@ -746,7 +746,7 @@ class FPModule(UniqueRepresentation, IndexedGenerators, Module):
         free_element = self._free_module().element_from_coordinates(
             M_n.lift(coordinates), n)
 
-        return self(free_element.coefficients())
+        return self(free_element.dense_coefficient_list())
 
 
     def __getitem__(self, n):
@@ -1067,7 +1067,7 @@ class FPModule(UniqueRepresentation, IndexedGenerators, Module):
             sage: Q.generator_degrees()
             (2, 3)
         """
-        relations = tuple([r.coefficients() for r in self._j._values])
+        relations = tuple([r.dense_coefficient_list() for r in self._j._values])
         return FPModule(self.base_ring(),
                         tuple([g + t for g in self._generator_degrees]),
                         relations)
@@ -1257,7 +1257,8 @@ class FPModule(UniqueRepresentation, IndexedGenerators, Module):
         # f_1: F_1 -> F_0
         _print_progress(1, k)
         F_1 = self._j.domain()
-        pres = Hom(F_1, F_0)(tuple([ F_0(x.coefficients()) for x in self._j.values() ]))
+        pres = Hom(F_1, F_0)(tuple([ F_0(x.dense_coefficient_list())
+                                     for x in self._j.values()]))
 
         ret_complex.append(pres)
 

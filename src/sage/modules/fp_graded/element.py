@@ -230,7 +230,9 @@ class FPElement(IndexedFreeModuleElement):
             sage: basis = M.basis_elements(7)
             sage: x_ = sum( [c*b for (c,b) in zip(v, basis)] ); x_
             Sq(0,0,1)*m0 + Sq(3,1)*m1
-            sage: x == x_
+            sage: x__ = M.linear_combination(zip(basis, v)); x__
+            Sq(0,0,1)*m0 + Sq(3,1)*m1
+            sage: x == x_ == x__
             True
 
         TESTS::

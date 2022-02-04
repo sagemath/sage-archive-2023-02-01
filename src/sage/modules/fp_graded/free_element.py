@@ -83,7 +83,7 @@ class FreeGradedModuleElement(IndexedFreeModuleElement):
         """
         if order is None:
             order = self.parent()._indices
-        return FiniteDimensionalModulesWithBasis.ElementMethods.dense_coefficient_list(self, order)
+        return super().dense_coefficient_list(order)
 
 
     def degree(self):

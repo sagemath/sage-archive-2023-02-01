@@ -33,7 +33,7 @@ jobs:
       - name: Deploy to Netlify
         uses: nwtgck/actions-netlify@v1.2
         with:
-          publish-dir: './local/share/doc/sage/html/en'
+          publish-dir: './sage/local/share/doc/sage/html/en'
           production-branch: master
           github-token: ${{ secrets.GITHUB_TOKEN }}
           enable-pull-request-comment: false # We don't have github pull-requests

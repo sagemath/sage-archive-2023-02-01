@@ -764,13 +764,13 @@ class Macaulay2(ExtraTabCompletion, Expect):
             sage: shell.run_cell('macaulay2.help("try")')  # optional - macaulay2
             try -- catch an error
             ****...
-            The object "try" is a "keyword".
+            The object "try" is a...
 
             sage: from sage.repl.interpreter import get_test_shell
             sage: shell = get_test_shell()
             sage: shell.run_cell('macaulay2.help("errorDepth")')  # optional - macaulay2
             errorDepth...
-            The object "errorDepth" is an "integer".
+            The object "errorDepth" is a...
         """
         r = self.eval('help "%s"' % s)
         end = r.rfind("\n\nDIV")
@@ -1799,7 +1799,7 @@ class Macaulay2FunctionElement(FunctionElement):
             Type:        Macaulay2FunctionElement
             String form: resolution
             File:        ...
-            Docstring:  
+            Docstring:
             resolution -- projective resolution
             ****...
             <BLANKLINE>

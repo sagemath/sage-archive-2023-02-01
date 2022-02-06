@@ -235,10 +235,13 @@ cdef class Polynomial_zmod_flint(Polynomial_template):
 
         The following test from :trac:`12173` used to be horribly slow::
 
-            sage: a = ZZ['x'](range(100000))
-            sage: R = Integers(3)['x']
-            sage: R(a)  # long time (7s on sage.math, 2013)
-            2*x^99998 + ... + x
+            sage: a = ZZ['x'](range(100000)) # long time
+            sage: R = Integers(3)['x']       # long time
+            sage: p = R(a)                   # long time
+            sage: p[99998]                   # long time
+            2
+            sage: p[1]                       # long time
+            1
         """
         sig_on()
         fmpz_poly_get_nmod_poly(&self.x, x)

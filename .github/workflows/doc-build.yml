@@ -23,19 +23,25 @@ jobs:
           # Reuse built SAGE_LOCAL contained in the Docker image 
           ./bootstrap
           ./configure --enable-build-as-root --prefix=/sage/local --with-sage-venv
-      
+
       - name: Build
         run: make doc-html
         env:
           MAKE: make -j2
           SAGE_NUM_THREADS: 2
 
+      - name: Copy docs
+        run: |
+          # For some reason the deploy step below cannot find /sage/...
+          # So copy everything from there to local folder
+          mkdir -p ./docs
+          cp -r /sage/local/share/doc/sage/html/en ./docs
+
       - name: Deploy to Netlify
-        uses: jsmrcaga/action-netlify-deploy@v1.7.2
-        with:
-          build_directory: '/sage/local/share/doc/sage/html/en'
-          install_command: 'echo "Install"'
-          build_command: 'echo "Build"'
-          deploy_alias: ${{ github.ref_name }} # Base deploy URL on branch name
+        uses: netlify/actions/cli@master
+        with: 
+          args: deploy --dir=docs --alias="${NETLIFY_ALIAS}"
+        env:
+          NETLIFY_ALIAS: ${{ github.ref_name }}
           NETLIFY_AUTH_TOKEN: ${{ secrets.NETLIFY_AUTH_TOKEN }}
           NETLIFY_SITE_ID: ${{ secrets.NETLIFY_SITE_ID }}

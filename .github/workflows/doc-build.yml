@@ -31,14 +31,11 @@ jobs:
           SAGE_NUM_THREADS: 2
 
       - name: Deploy to Netlify
-        uses: nwtgck/actions-netlify@v1.2
+        uses: jsmrcaga/action-netlify-deploy@v1.7.2
         with:
-          publish-dir: '/sage/local/share/doc/sage/html/en'
-          production-branch: master
-          github-token: ${{ secrets.GITHUB_TOKEN }}
-          enable-pull-request-comment: false # We don't have github pull-requests
-          enable-commit-comment: false # Don't comment on commit to reduce noise
-          alias: ${{ github.ref_name }} # Base deploy URL on branch name
-        env:
+          build_directory: '/sage/local/share/doc/sage/html/en'
+          install_command: 'echo "Install"'
+          build_command: 'echo "Build"'
+          deploy_alias: ${{ github.ref_name }} # Base deploy URL on branch name
           NETLIFY_AUTH_TOKEN: ${{ secrets.NETLIFY_AUTH_TOKEN }}
           NETLIFY_SITE_ID: ${{ secrets.NETLIFY_SITE_ID }}

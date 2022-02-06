@@ -110,7 +110,13 @@ ansi_escape_sequence = re.compile(r'(\x1b[@-Z\\-~]|\x1b\[.*?[@-~]|\x9b.*?[@-~])'
 # fixup, which is applied if the test function passes.  In most fixups only one
 # of the expected or received outputs are normalized, depending on the
 # application.
-_repr_fixups = []
+_repr_fixups = [
+    (lambda g, w: "Long-step" in g,
+     lambda g, w: (glpk_simplex_warning_regex.sub('', g), w)),
+
+    (lambda g, w: "dylib" in g,
+     lambda g, w: (ld_warning_regex.sub('', g), w))
+]
 
 
 def parse_optional_tags(string):
@@ -908,8 +914,7 @@ class SageOutputChecker(doctest.OutputChecker):
             'you'
         """
         got = self.human_readable_escape_sequences(got)
-        got = glpk_simplex_warning_regex.sub('', got)
-        got = ld_warning_regex.sub('', got)
+
         if isinstance(want, MarkedOutput):
             if want.random:
                 return True

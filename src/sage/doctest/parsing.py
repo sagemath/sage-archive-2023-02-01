@@ -40,7 +40,7 @@ optional_regex = re.compile(r'(arb216|arb218|py2|py3|long time|not implemented|n
 # See :trac:`29317`.
 glpk_simplex_warning_regex = re.compile(r'(Long-step dual simplex will be used)')
 # :trac:`31204` -- suppress warning about ld and OS version for dylib files.
-ld_warning_regex = re.compile(r'.*dylib.*was built for newer macOS version.*than being linked.*')
+ld_warning_regex = re.compile(r'^.*dylib.*was built for newer macOS version.*than being linked.*')
 find_sage_prompt = re.compile(r"^(\s*)sage: ", re.M)
 find_sage_continuation = re.compile(r"^(\s*)\.\.\.\.:", re.M)
 find_python_continuation = re.compile(r"^(\s*)\.\.\.([^\.])", re.M)

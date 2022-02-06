@@ -73,7 +73,7 @@ FROM \${BASE_IMAGE} as with-system-packages
 EOF
         # slackpkg install ignores packages that it does not know, so we do not have to filter
         EXISTS="true"
-        UPDATE="slackpkg update &&"
+        UPDATE="(yes|slackpkg update) &&"
         INSTALL="slackpkg install"
         ;;
     arch*)

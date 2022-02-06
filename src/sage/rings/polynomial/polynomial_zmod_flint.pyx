@@ -238,10 +238,12 @@ cdef class Polynomial_zmod_flint(Polynomial_template):
             sage: a = ZZ['x'](range(100000))
             sage: R = Integers(3)['x']
             sage: p = R(a)
-            sage: p[99998]
-            2
-            sage: p[1]
-            1
+            sage: d, v = p.degree(), p.valuation()
+            sage: d, v
+            (99998, 1)
+            sage: p[d], p[v]
+            (2, 1)
+
         """
         sig_on()
         fmpz_poly_get_nmod_poly(&self.x, x)

@@ -37,6 +37,7 @@ jobs:
           production-branch: master
           github-token: ${{ secrets.GITHUB_TOKEN }}
           enable-pull-request-comment: false # We don't have github pull-requests
+          enable-commit-comment: false # Don't comment on commit to reduce noise
           alias: ${{ github.ref_name }} # Base deploy URL on branch name
         env:
           NETLIFY_AUTH_TOKEN: ${{ secrets.NETLIFY_AUTH_TOKEN }}

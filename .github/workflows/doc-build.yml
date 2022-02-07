@@ -39,7 +39,7 @@ jobs:
           cp -r -L /sage/local/share/doc/sage/html/en/* ./docs
 
       - name: Deploy to Netlify preview
-        id: deploy-neflify
+        id: deploy-netlify
         if: github.ref != 'refs/heads/master'
         uses: netlify/actions/cli@master
         with:
@@ -56,7 +56,7 @@ jobs:
           NETLIFY_SITE_ID: ${{ secrets.NETLIFY_SITE_ID }}
 
       - name: Deploy to Netlify production
-        id: deploy-neflify
+        id: deploy-netlify
         if: github.ref == 'refs/heads/master'
         uses: netlify/actions/cli@master
         with:
@@ -67,4 +67,4 @@ jobs:
 
       - name: Report deployment url
         run: |
-          echo "::notice::The documentation has being automatically deployed to Netlify.%0A%0A✅ Preview: ${{ steps.deploy-neflify.outputs.NETLIFY_URL }}"
+          echo "::notice::The documentation has being automatically deployed to Netlify.%0A%0A✅ Preview: ${{ steps.deploy-netlify.outputs.NETLIFY_URL }}"

@@ -36,7 +36,7 @@ jobs:
           # So copy everything from there to local folder
           # We also need to replace the symlinks because netlify is not following them
           mkdir -p ./docs
-          cp -r -L /sage/local/share/doc/sage/html/en ./docs
+          cp -r -L /sage/local/share/doc/sage/html/en/* ./docs
 
       - name: Deploy to Netlify
         id: deploy-neflify

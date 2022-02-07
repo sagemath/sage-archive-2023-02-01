@@ -12556,6 +12556,16 @@ cdef class Matrix(Matrix1):
             sage: A.cholesky()
             [   1.0    0.0]
             [-1.0*I    1.0]
+
+        Try the trivial case (:trac:`33107`)::
+
+            sage: all( matrix(R,[]).cholesky() == matrix(R,[])
+            ....:      for R in (RR,CC,RDF,CDF,ZZ,QQ,AA,QQbar) )
+            True
+            sage: all( matrix(R,[]).cholesky().is_immutable()
+            ....:      for R in (RR,CC,RDF,CDF,ZZ,QQ,AA,QQbar) )
+            True
+
         """
         cdef Matrix C # output matrix
         C = self.fetch('cholesky')
@@ -12566,6 +12576,14 @@ cdef class Matrix(Matrix1):
 
         if not self.is_hermitian():
             raise ValueError("matrix is not Hermitian")
+
+        if n == 0:
+            # The trivial matrix has a trivial cholesky decomposition.
+            # We special-case this after is_hermitian() to ensure that
+            # the matrix is square.
+            C = self.__copy__()
+            C.set_immutable()
+            return C
 
         # Use classical=True to ensure that we don't get a permuted L.
         cdef Matrix L  # block_ldlt() results

@@ -1050,7 +1050,7 @@ class FreeQuadraticModule_integer_symmetric(FreeQuadraticModule_submodule_with_b
         # https://arxiv.org/abs/1208.2481
         # and trac:11940
         if not self.is_even() and (p is None or p==2):
-            raise ValueError("This lattice must be even to admit an even overlattice")
+            raise ValueError("this lattice must be even to admit an even overlattice")
         from sage.rings.finite_rings.finite_field_constructor import GF
         L = self
         if p is None:
@@ -1389,7 +1389,7 @@ class FreeQuadraticModule_integer_symmetric(FreeQuadraticModule_submodule_with_b
             [ 2 -2 ]
             [ * 2 ]
         """
-        return QuadraticForm(2*self.gram_matrix())
+        return QuadraticForm(2 * self.gram_matrix())
 
     @cached_method
     def minimum(self):
@@ -1409,8 +1409,8 @@ class FreeQuadraticModule_integer_symmetric(FreeQuadraticModule_submodule_with_b
             -Infinity
         """
         p, n = self.signature_pair()
-        if self.rank()==0:
-          raise ValueError("The empty set does not have a minimum")
+        if self.rank() == 0:
+          raise ValueError("the empty set does not have a minimum")
         if n != 0:
             from sage.rings.infinity import MinusInfinity
             return MinusInfinity()
@@ -1434,15 +1434,14 @@ class FreeQuadraticModule_integer_symmetric(FreeQuadraticModule_submodule_with_b
             sage: L.twist(-1).maximum()
             -2
         """
-        if self.rank()==0:
-          raise ValueError("The empty set does not have a maximum.")
+        if self.rank() == 0:
+          raise ValueError("the empty set does not have a maximum")
         p, n = self.signature_pair()
         if p != 0:
             from sage.rings.infinity import PlusInfinity
             return PlusInfinity()
         mpari = (-self.gram_matrix()).__pari__().qfminim(None, 0)[1]
         return -mpari
-
 
     min = minimum
     max = maximum
@@ -1458,14 +1457,14 @@ class FreeQuadraticModule_integer_symmetric(FreeQuadraticModule_submodule_with_b
             True
             sage: G = matrix(ZZ,3,[0,1,0, 1,0,0, 0,0,7])
             sage: V = matrix(ZZ,3,[-14,-15,-15, -4,1,16, -5,-5,-4])
-            sage: L = IntegralLattice(V*G*V.T)
+            sage: L = IntegralLattice(V * G * V.T)
             sage: L.lll().gram_matrix()
             [0 0 1]
             [0 7 0]
             [1 0 0]
         """
         p, n = self.signature_pair()
-        if p*n != 0:
+        if p * n != 0:
             from sage.env import SAGE_EXTCODE
             from sage.interfaces.gp import gp
             from sage.libs.pari import pari
@@ -1474,14 +1473,13 @@ class FreeQuadraticModule_integer_symmetric(FreeQuadraticModule_submodule_with_b
             m = gp.eval('qflllgram_indefgoon(%s)'%m)
             # convert the output string to sage
             G, U = pari(m).sage()
-            assert G == U.T*self.gram_matrix()*U
             U = U.T
         else:
             e = 1
             if n != 0:
                 e = -1
-            U = (e*self.gram_matrix().change_ring(ZZ)).LLL_gram().T
-        return self.sublattice(U*self.basis_matrix())
+            U = (e * self.gram_matrix().change_ring(ZZ)).LLL_gram().T
+        return self.sublattice(U * self.basis_matrix())
 
     lll = LLL
 
@@ -1508,14 +1506,14 @@ class FreeQuadraticModule_integer_symmetric(FreeQuadraticModule_submodule_with_b
             [[(0, 0)], [], [(1, 1), (0, 1), (1, 0)]]
         """
         p, m = self.signature_pair()
-        if p*m != 0:
-            raise NotImplementedError("The lattice has to be positive definite.")
-        e = 1
+        if p * m != 0:
+            raise NotImplementedError("the lattice has to be positive definite")
+        e = 2
         if m != 0:
-            e = -1
-        q = QuadraticForm(e*2*self.gram_matrix())
+            e = -2
+        q = QuadraticForm(e * self.gram_matrix())
         short = q.short_vector_list_up_to_length(n, *kwargs)
-        return [[self(v*self.basis_matrix()) for v in L] for L in short]
+        return [[self(v * self.basis_matrix()) for v in L] for L in short]
 
     def twist(self, s, discard_basis=False):
         r"""

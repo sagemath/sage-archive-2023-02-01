@@ -626,7 +626,7 @@ class ReferenceTopBuilder(DocBuilder):
                       html)
 
         # From index.html, we want the preamble and the tail.
-        html_end_preamble = html.find(r'<section id=".*">')
+        html_end_preamble = html.find(r'<section')
         html_bottom = html.rfind(r'</section>') + len(r'</section>')
 
         # For the content, we modify doc/en/reference/index.rst, which

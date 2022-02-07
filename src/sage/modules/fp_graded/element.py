@@ -140,7 +140,7 @@ class FPElement(IndexedFreeModuleElement):
             [0, Sq(2)]
         """
         if order is None:
-            order = self.parent().indices()
+            order = self.parent()._indices
         return [self[i] for i in order]
 
 

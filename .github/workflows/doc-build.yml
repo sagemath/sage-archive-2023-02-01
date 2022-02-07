@@ -67,4 +67,4 @@ jobs:
 
       - name: Report deployment url
         run: |
-          echo "::notice::The documentation has being automatically deployed to Netlify.\n\n✅ Preview: ${{ steps.deploy-neflify.outputs.NETLIFY_URL }}"
+          echo "::notice::The documentation has being automatically deployed to Netlify.%0A%0A✅ Preview: ${{ steps.deploy-neflify.outputs.NETLIFY_URL }}"

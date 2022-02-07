@@ -31,7 +31,7 @@ Introduction to Sage
 --------------------
 
 * `Introductory Sage Tutorial (PREP) <../prep/Intro-Tutorial.html>`_
-* `Sage's main tutorial <../tutorial/>`_
+* `Sage's main tutorial <../tutorial/index.html>`_
 
 .. _programming_design:
 

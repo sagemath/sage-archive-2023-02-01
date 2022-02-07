@@ -1,16 +1,18 @@
 {% extends "basic/layout.html" %}
 
 {% block rootrellink %}
-  {% if docstitle.startswith('Sage Documentation') %}
-    <a href="http://www.sagemath.org"><img src="{{ pathto('_static/logo_sagemath_black.svg', 1) }}" height="28" style="vertical-align: middle" title="Sage Logo"></a>
-  {% else %}
-    {% if pathto(master_doc).endswith('.html') %}
-      <a href="{{ '../' + pathto(master_doc) }}"><img src="{{ pathto('_static/logo_sagemath_black.svg', 1) }}" height="28" style="vertical-align: middle" title="Sage Logo"></a>
+  <li class="nav-item nav-item-0">
+    <a href="http://www.sagemath.org"><img src="{{ pathto('_static/logo_sagemath_black.svg', 1) }}" class="sage-logo" title="Sage Logo"></a>
+    {% if website %}
+      <a href="index.html">{{ documentation_title|e }}</a>{{ reldelim1 }}
     {% else %}
-      <a href="{{ '../' + pathto(master_doc, 1) + '.html' }}"><img src="{{ pathto('_static/logo_sagemath_black.svg', 1) }}" height="28" style="vertical-align: middle" title="Sage Logo"></a>
+      <a href="{{ documentation_root }}">{{ documentation_title|e }}</a>{{ reldelim1 }}
+      {% if refsub %}
+      <a href="{{ reference_root }}">{{ reference_title|e }}</a>{{ reldelim1 }}
+      {% endif %}
+      <a href="{{ pathto(root_doc)|e }}">{{ shorttitle|e }}</a>{{ reldelim1 }}
     {% endif %}
-  {% endif %}
-  {{ super() }}
+  </li>
 {% endblock %}
 
 {% block extrahead %}

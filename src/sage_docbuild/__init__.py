@@ -810,9 +810,12 @@ class ReferenceSubBuilder(DocBuilder):
         Pickle the current reference cache for later retrieval.
         """
         cache = self.get_cache()
-        with open(self.cache_filename(), 'wb') as file:
-            pickle.dump(cache, file)
-        logger.debug("Saved the reference cache: %s", self.cache_filename())
+        try:
+            with open(self.cache_filename(), 'wb') as file:
+                pickle.dump(cache, file)
+            logger.debug("Saved the reference cache: %s", self.cache_filename())
+        except PermissionError:
+            logger.debug("Permission denied for the reference cache: %s", self.cache_filename())
 
     def get_sphinx_environment(self):
         """

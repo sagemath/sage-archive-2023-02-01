@@ -31,6 +31,7 @@ class MaximaFunctionElementWrapper(MaximaFunctionElement):
         return super(MaximaFunctionElementWrapper, self).__call__(*args,
                 **kwds).sage()
 
+
 class MaximaWrapper(SageObject):
     def __init__(self, exp):
         """
@@ -89,12 +90,15 @@ class MaximaWrapper(SageObject):
             self._maxima_exp = self._exp._maxima_()
         if s[0] == '_':
             return getattr(self._maxima_exp, s)
-        if s == 'trait_names':  # SageNB backward compatibility
-            return self._maxima_()._tab_completion
-        else:
-            # add a wrapper function which converts the result back to
-            # a Sage expression
-            return MaximaFunctionElementWrapper(self._maxima_exp, s)
+        # add a wrapper function which converts the result back to
+        # a Sage expression
+        return MaximaFunctionElementWrapper(self._maxima_exp, s)
+
+    def __dir__(self):
+        """
+        Enable the tab completions.
+        """
+        return self._maxima_()._tab_completion()
 
     def sage(self):
         """

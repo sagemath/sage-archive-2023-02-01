@@ -40,8 +40,14 @@ jobs:
 
       - name: Deploy to Netlify
         uses: netlify/actions/cli@master
-        with: 
-          args: deploy --dir=docs --alias="${NETLIFY_ALIAS}"
+        with:
+          # We could use  --alias="${NETLIFY_ALIAS}" to fix the deploy url to the branch name.
+          # However, netlify currently doesn't support updates to a deploy with alias
+          # https://github.com/netlify/cli/issues/948
+          # https://github.com/netlify/cli/issues/1984
+          # Note that even if this feature is implemented, one would also need to first process the branch name
+          # to workaround the bug https://github.com/netlify/cli/issues/969.
+          args: deploy --dir=docs
         env:
           NETLIFY_ALIAS: ${{ github.ref_name }}
           NETLIFY_AUTH_TOKEN: ${{ secrets.NETLIFY_AUTH_TOKEN }}

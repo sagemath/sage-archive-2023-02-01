@@ -207,6 +207,9 @@ def make_parser():
         '--has-file', action='append', default=[], metavar='FILENAME', dest='has_files',
         help=('only include packages that have this file in their metadata directory'
               '(examples: SPKG.rst, spkg-configure.m4, distros/debian.txt)'))
+    parser_list.add_argument(
+        '--exclude', action='append', default=[], metavar='PACKAGE_NAME',
+        help='exclude package from list')
     parser_name = subparsers.add_parser(
         'name', epilog=epilog_name,
         formatter_class=argparse.RawDescriptionHelpFormatter,
@@ -327,7 +330,7 @@ def run():
     if args.subcommand == 'config':
         app.config()
     elif args.subcommand == 'list':
-        app.list_cls(*args.package_class, has_files=args.has_files)
+        app.list_cls(*args.package_class, has_files=args.has_files, exclude=args.exclude)
     elif args.subcommand == 'name':
         app.name(args.tarball_filename)
     elif args.subcommand == 'tarball':

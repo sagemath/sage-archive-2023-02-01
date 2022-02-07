@@ -39,6 +39,7 @@ jobs:
           cp -r -L /sage/local/share/doc/sage/html/en ./docs
 
       - name: Deploy to Netlify
+        id: deploy-neflify
         uses: netlify/actions/cli@master
         with:
           # We could use  --alias="${NETLIFY_ALIAS}" to fix the deploy url to the branch name.
@@ -52,3 +53,7 @@ jobs:
           NETLIFY_ALIAS: ${{ github.ref_name }}
           NETLIFY_AUTH_TOKEN: ${{ secrets.NETLIFY_AUTH_TOKEN }}
           NETLIFY_SITE_ID: ${{ secrets.NETLIFY_SITE_ID }}
+
+      - name: Report deployment url
+        run: |
+          echo "::notice::The documentation has being automatically deployed to Netlify.\n\n✅ Preview: ${{ steps.deploy-neflify.outputs.NETLIFY_URL }}"

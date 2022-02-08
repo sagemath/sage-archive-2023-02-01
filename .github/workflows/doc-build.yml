@@ -14,6 +14,7 @@ jobs:
   build-docs:
     runs-on: ubuntu-latest
     container: ghcr.io/sagemath/sage/sage-docker-ubuntu-focal-standard-with-targets:9.5
+    if: github.repository == 'sagemath/sagetrac-mirror'
     steps:
       - name: Checkout
         uses: actions/checkout@v2

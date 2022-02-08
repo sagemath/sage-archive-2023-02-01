@@ -1,5 +1,6 @@
 dev-tex/latexmk
 app-text/texlive
+app-text/dvipng
 dev-texlive/texlive-langcjk
 dev-texlive/texlive-langcyrillic
 dev-texlive/texlive-langenglish

@@ -196,6 +196,7 @@ from sage.rings.quotient_ring import QuotientRing_generic
 from sage.rings.polynomial.polynomial_quotient_ring import PolynomialQuotientRing_generic
 from sage.rings.finite_rings.integer_mod_ring import IntegerModRing_generic
 from sage.rings.padics.padic_generic import pAdicGeneric
+from sage.rings.function_field.function_field import FunctionField
 from sage.categories.number_fields import NumberFields
 from sage.categories.finite_fields import FiniteFields
 from sage.categories.modules import Modules
@@ -389,6 +390,10 @@ class RingDerivationModule(Module, UniqueRepresentation):
                 pass
             constants, sharp = self._base_derivation._constants
             self._constants = (constants, False)  # can we do better?
+        elif isinstance(domain, FunctionField):
+            from sage.rings.function_field.maps import FunctionFieldDerivation
+            self.Element = FunctionFieldDerivation
+            #self._gens = [self.Element()]
         else:
             raise NotImplementedError("derivations over this ring is not implemented")
         if self._basis is None:

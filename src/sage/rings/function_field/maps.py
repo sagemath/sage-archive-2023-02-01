@@ -61,6 +61,7 @@ from sage.categories.sets_cat import Sets
 
 from sage.rings.infinity import infinity
 from sage.rings.morphism import RingHomomorphism
+from sage.rings.derivation import RingDerivationModule, RingDerivation
 
 from sage.modules.free_module_element import vector
 
@@ -69,7 +70,7 @@ from sage.functions.other import binomial
 from sage.matrix.constructor import matrix
 
 
-class FunctionFieldDerivation(Map):
+class FunctionFieldDerivation(RingDerivation):
     r"""
     Base class for derivations on function fields.
 
@@ -110,8 +111,9 @@ class FunctionFieldDerivation(Map):
         from .function_field import is_FunctionField
         if not is_FunctionField(K):
             raise ValueError("K must be a function field")
+        parent = RingDerivationModule(K, K)
+        RingDerivation.__init__(self, parent)
         self.__field = K
-        Map.__init__(self, Hom(K,K,Sets()))
 
     def _repr_type(self):
         r"""

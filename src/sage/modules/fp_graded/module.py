@@ -1023,7 +1023,7 @@ class FPModule(UniqueRepresentation, IndexedGenerators, Module):
             sage: T_min.is_trivial()
             True
             sage: T_min
-            Finitely presented left module on 0 generators and 0 relations over ...
+            Finitely presented left module on 0 generators and ...
         """
         return Hom(self, self).identity().image(top_dim, verbose)
 
@@ -1156,22 +1156,22 @@ class FPModule(UniqueRepresentation, IndexedGenerators, Module):
             sage: E.<x,y> = ExteriorAlgebra(QQ)
             sage: triv = FPModule(E, [0], [[x], [y]]) # trivial module
             sage: triv.resolution(3)
-            [Free module morphism:
+            [Module morphism:
                From: Free graded left module on 1 generator over The exterior algebra of rank 2 over Rational Field
                To:   Finitely presented left module on 1 generator and 2 relations over The exterior algebra of rank 2 over Rational Field
                Defn: g[0] |--> g[0],
-             Free module morphism:
+             Module morphism:
                From: Free graded left module on 2 generators over The exterior algebra of rank 2 over Rational Field
                To:   Free graded left module on 1 generator over The exterior algebra of rank 2 over Rational Field
                Defn: g[1, 0] |--> x*g[0]
                      g[1, 1] |--> y*g[0],
-             Free module morphism:
+             Module morphism:
                From: Free graded left module on 3 generators over The exterior algebra of rank 2 over Rational Field
                To:   Free graded left module on 2 generators over The exterior algebra of rank 2 over Rational Field
                Defn: g[2, 0] |--> x*g[1, 0]
                      g[2, 1] |--> y*g[1, 0] + x*g[1, 1]
                      g[2, 2] |--> y*g[1, 1],
-             Free module morphism:
+             Module morphism:
                From: Free graded left module on 4 generators over The exterior algebra of rank 2 over Rational Field
                To:   Free graded left module on 3 generators over The exterior algebra of rank 2 over Rational Field
                Defn: g[3, 0] |--> x*g[2, 0]
@@ -1182,7 +1182,7 @@ class FPModule(UniqueRepresentation, IndexedGenerators, Module):
             sage: A2 = SteenrodAlgebra(2, profile=(3,2,1))
             sage: M = FPModule(A2, [0,1], [[Sq(2), Sq(1)]])
             sage: M.resolution(0)
-            [Free module morphism:
+            [Module morphism:
                From: Free graded left module on 2 generators over sub-Hopf algebra of mod 2 Steenrod algebra, milnor basis, profile function [3, 2, 1]
                To:   Finitely presented left module on 2 generators and 1 relation over sub-Hopf algebra of mod 2 Steenrod algebra, milnor basis, profile function [3, 2, 1]
                Defn: g[0] |--> g[0]
@@ -1201,25 +1201,25 @@ class FPModule(UniqueRepresentation, IndexedGenerators, Module):
             sage: len(res)
             5
             sage: res
-            [Free module morphism:
+            [Module morphism:
                From: Free graded left module on 2 generators over sub-Hopf algebra of mod 2 Steenrod algebra, milnor basis, profile function [3, 2, 1]
                To:   Finitely presented left module on 2 generators and 1 relation over sub-Hopf algebra of mod 2 Steenrod algebra, milnor basis, profile function [3, 2, 1]
                Defn: g[0] |--> g[0]
                      g[1] |--> g[1],
-             Free module morphism:
+             Module morphism:
                From: Free graded left module on 1 generator over sub-Hopf algebra of mod 2 Steenrod algebra, milnor basis, profile function [3, 2, 1]
                To:   Free graded left module on 2 generators over sub-Hopf algebra of mod 2 Steenrod algebra, milnor basis, profile function [3, 2, 1]
                Defn: g[2] |--> Sq(2)*g[0] + Sq(1)*g[1],
-             Free module morphism:
+             Module morphism:
                From: Free graded left module on 1 generator over sub-Hopf algebra of mod 2 Steenrod algebra, milnor basis, profile function [3, 2, 1]
                To:   Free graded left module on 1 generator over sub-Hopf algebra of mod 2 Steenrod algebra, milnor basis, profile function [3, 2, 1]
                Defn: g[8] |--> Sq(3,1)*g[2],
-             Free module morphism:
+             Module morphism:
                From: Free graded left module on 2 generators over sub-Hopf algebra of mod 2 Steenrod algebra, milnor basis, profile function [3, 2, 1]
                To:   Free graded left module on 1 generator over sub-Hopf algebra of mod 2 Steenrod algebra, milnor basis, profile function [3, 2, 1]
                Defn: g[9] |--> Sq(1)*g[8]
                      g[10] |--> Sq(2)*g[8],
-             Free module morphism:
+             Module morphism:
                From: Free graded left module on 2 generators over sub-Hopf algebra of mod 2 Steenrod algebra, milnor basis, profile function [3, 2, 1]
                To:   Free graded left module on 2 generators over sub-Hopf algebra of mod 2 Steenrod algebra, milnor basis, profile function [3, 2, 1]
                Defn: g[10] |--> Sq(1)*g[9]

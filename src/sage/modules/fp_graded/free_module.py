@@ -167,7 +167,7 @@ The resulting homomorphism is the one sending the `i`-th generator of the
 domain to the `i`-th codomain value given::
 
     sage: f
-    Free module morphism:
+    Module morphism:
       From: Free graded left module on 2 generators over mod 2 Steenrod algebra, milnor basis
       To:   Free graded left module on 1 generator over mod 2 Steenrod algebra, milnor basis
       Defn: g[0] |--> Sq(2)*c2
@@ -176,7 +176,7 @@ domain to the `i`-th codomain value given::
 Convenience methods exist for creating the trivial morphism::
 
     sage: homspace.zero()
-    Free module morphism:
+    Module morphism:
       From: Free graded left module on 2 generators over mod 2 Steenrod algebra, milnor basis
       To:   Free graded left module on 1 generator over mod 2 Steenrod algebra, milnor basis
       Defn: g[0] |--> 0
@@ -185,7 +185,7 @@ Convenience methods exist for creating the trivial morphism::
 as well as the identity endomorphism::
 
     sage: Hom(M, M).identity()
-    Free module endomorphism of Free graded left module on 2 generators over mod 2 Steenrod algebra, milnor basis
+    Module endomorphism of Free graded left module on 2 generators over mod 2 Steenrod algebra, milnor basis
       Defn: g[0] |--> g[0]
             g[1] |--> g[1]
 
@@ -222,7 +222,7 @@ Any two homomorphisms can be added as long as they are of the same degree::
 
     sage: f2 = homspace([Sq(2)*c2, Sq(3)*c2])
     sage: f + f2
-    Free module morphism:
+    Module morphism:
       From: Free graded left module on 2 generators over mod 2 Steenrod algebra, milnor basis
       To:   Free graded left module on 1 generator over mod 2 Steenrod algebra, milnor basis
       Defn: g[0] |--> 0

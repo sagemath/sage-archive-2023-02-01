@@ -121,14 +121,14 @@ class FPModuleHomspace(Homset):
 
             sage: values = (A2.Sq(4)*L.generator(0), A2.Sq(3)*L.generator(1))
             sage: f = H(values); f
-            Free module morphism:
+            Module morphism:
               From: Free graded left module on 2 generators over sub-Hopf algebra of mod 2 Steenrod algebra, milnor basis, profile function [3, 2, 1]
               To:   Free graded left module on 2 generators over sub-Hopf algebra of mod 2 Steenrod algebra, milnor basis, profile function [3, 2, 1]
               Defn: g[1] |--> Sq(4)*g[2]
                     g[3] |--> Sq(3)*g[5]
 
             sage: H(0)
-            Free module morphism:
+            Module morphism:
               From: Free graded left module on 2 generators over sub-Hopf algebra of mod 2 Steenrod algebra, milnor basis, profile function [3, 2, 1]
               To:   Free graded left module on 2 generators over sub-Hopf algebra of mod 2 Steenrod algebra, milnor basis, profile function [3, 2, 1]
               Defn: g[1] |--> 0
@@ -233,7 +233,7 @@ class FPModuleHomspace(Homset):
             sage: L = FreeGradedModule(A2, (2,3))
             sage: H = Hom(F, L)
             sage: H.zero()
-            Free module morphism:
+            Module morphism:
               From: Free graded left module on 2 generators over sub-Hopf algebra of mod 2 Steenrod algebra, milnor basis, profile function [3, 2, 1]
               To:   Free graded left module on 2 generators over sub-Hopf algebra of mod 2 Steenrod algebra, milnor basis, profile function [3, 2, 1]
               Defn: g[1] |--> 0
@@ -278,7 +278,7 @@ class FPModuleHomspace(Homset):
             sage: L = A2.free_graded_module((2,3))
             sage: H = Hom(L, L)
             sage: H.identity()
-            Free module endomorphism of Free graded left module on 2 generators
+            Module endomorphism of Free graded left module on 2 generators
              over sub-Hopf algebra of mod 2 Steenrod algebra, milnor basis, profile function [3, 2, 1]
               Defn: g[2] |--> g[2]
                     g[3] |--> g[3]

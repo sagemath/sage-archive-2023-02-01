@@ -784,7 +784,7 @@ TESTS:
 
     sage: A = SteenrodAlgebra(2)
     sage: K = SteenrodFPModule(A, [1,3]); K
-    Finitely presented left module on 2 generators and 0 relations ...
+    Finitely presented left module on 2 generators ...
     sage: K.category()
     Category of finitely presented graded modules over mod 2 Steenrod algebra, milnor basis
     sage: L = SteenrodFPModule(A, [2,3], [[Sq(2),Sq(1)], [0,Sq(2)]]);L
@@ -827,6 +827,7 @@ AUTHORS:
 #                  https://www.gnu.org/licenses/
 # ****************************************************************************
 
+from sage.categories.homset import Hom
 from sage.rings.infinity import infinity
 from sage.algebras.steenrod.steenrod_algebra import SteenrodAlgebra_generic
 from sage.modules.fp_graded.module import FPModule
@@ -1029,20 +1030,20 @@ class SteenrodFPModule(FPModule):
              Free graded left module on 3 generators over mod 2 Steenrod algebra, milnor basis,
              Free graded left module on 4 generators over mod 2 Steenrod algebra, milnor basis]
 
-            sage: # When there are no relations, the resolution is trivial:
+        When there are no relations, the resolution is trivial::
+
             sage: M = SteenrodFPModule(A, [0])
             sage: M.resolution(4)
-            [Free module morphism:
+            [Module morphism:
                From: Free graded left module on 1 generator over mod 2 Steenrod algebra, milnor basis
                To:   Finitely presented left module on 1 generator and 0 relations over mod 2 Steenrod algebra, milnor basis
                Defn: g[0] |--> g[0],
-             Free module morphism:
+             Module morphism:
                From: Free graded left module on 0 generators over mod 2 Steenrod algebra, milnor basis
                To:   Free graded left module on 1 generator over mod 2 Steenrod algebra, milnor basis,
-             Free module endomorphism of Free graded left module on 0 generators over mod 2 Steenrod algebra, milnor basis,
-             Free module endomorphism of Free graded left module on 0 generators over mod 2 Steenrod algebra, milnor basis,
-             Free module endomorphism of Free graded left module on 0 generators over mod 2 Steenrod algebra, milnor basis]
-
+             Module endomorphism of Free graded left module on 0 generators over mod 2 Steenrod algebra, milnor basis,
+             Module endomorphism of Free graded left module on 0 generators over mod 2 Steenrod algebra, milnor basis,
+             Module endomorphism of Free graded left module on 0 generators over mod 2 Steenrod algebra, milnor basis]
         """
         algebra = self.base_ring()
         finite_algebra = SteenrodAlgebra_generic(algebra.prime(), profile=self.profile())

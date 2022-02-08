@@ -52,7 +52,7 @@ class FreeGradedModuleMorphism(FPModuleMorphism):
         sage: f = H1((F2((Sq(4), 0)), F2((0, Sq(4)))))
         sage: g = H2((F3((Sq(2), 0)), F3((Sq(3), Sq(2)))))
         sage: g*f
-        Free module morphism:
+        Module morphism:
           From: Free graded left module on 2 generators over mod 2 Steenrod algebra, milnor basis
           To:   Free graded left module on 2 generators over mod 2 Steenrod algebra, milnor basis
           Defn: b[4] |--> (Sq(0,2)+Sq(3,1)+Sq(6))*d[2]
@@ -191,13 +191,13 @@ class FreeGradedModuleMorphism(FPModuleMorphism):
             sage: type(f)
             <class 'sage.modules.fp_graded.free_homspace.FreeGradedModuleHomspace_with_category_with_equality_by_id.element_class'>
             sage: f._repr_type()
-            'Free module'
+            'Module'
             sage: f
-            Free module endomorphism of Free graded left module on 2 generators over mod 2 Steenrod algebra, milnor basis
+            Module endomorphism of Free graded left module on 2 generators over mod 2 Steenrod algebra, milnor basis
               Defn: g[0] |--> g[0]
                     g[1] |--> g[1]
         """
-        return "Free module"
+        return "Module"
 
 
     def fp_module(self):

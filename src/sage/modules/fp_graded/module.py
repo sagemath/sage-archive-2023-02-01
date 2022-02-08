@@ -210,7 +210,7 @@ class FPModule(UniqueRepresentation, IndexedGenerators, Module):
         keys = j.codomain().basis().keys()
         cat = GradedModules(algebra).FinitelyPresented()
         IndexedGenerators.__init__(self, keys)
-        Module.__init__(self, algebra, category=cat)
+        Module.__init__(self, algebra, category=cat, names=names)
 
         from sage.combinat.family import Family
         self._spanning_set = Family(self._indices, self.monomial)

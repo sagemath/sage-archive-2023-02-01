@@ -921,7 +921,7 @@ class SteenrodFPModule(FPModule):
 
         EXAMPLES::
 
-            sage: from sage.modules.fp_graded.steenrod.module import *
+            sage: from sage.modules.fp_graded.steenrod.module import SteenrodFPModule
             sage: A = SteenrodAlgebra(2)
             sage: M = SteenrodFPModule(A, [0,1], [[Sq(2),Sq(1)],[0,Sq(2)],[Sq(3),0]])
             sage: M.profile()
@@ -929,7 +929,7 @@ class SteenrodFPModule(FPModule):
 
         TESTS:
 
-            sage: from sage.modules.fp_graded.steenrod.module import *
+            sage: from sage.modules.fp_graded.steenrod.module import SteenrodFPModule
             sage: A = SteenrodAlgebra(2)
             sage: X = SteenrodFPModule(A, [0])
             sage: X.profile()
@@ -960,7 +960,7 @@ class SteenrodFPModule(FPModule):
 
         EXAMPLES::
 
-            sage: from sage.modules.fp_graded.steenrod.module import *
+            sage: from sage.modules.fp_graded.steenrod.module import SteenrodFPModule
             sage: A = SteenrodAlgebra(2)
             sage: M = SteenrodFPModule(A, [0,1], [[Sq(2),Sq(1)],[0,Sq(2)],[Sq(3),0]])
 
@@ -1008,7 +1008,7 @@ class SteenrodFPModule(FPModule):
 
         EXAMPLES::
 
-            sage: from sage.modules.fp_graded.steenrod.module import *
+            sage: from sage.modules.fp_graded.steenrod.module import SteenrodFPModule
             sage: A = SteenrodAlgebra(2)
             sage: Hko = SteenrodFPModule(A, [0], [[Sq(1)], [Sq(2)]])
 
@@ -1034,9 +1034,7 @@ class SteenrodFPModule(FPModule):
 
             sage: M = SteenrodFPModule(A, [0])
             sage: M.resolution(4)
-            [Module morphism:
-               From: Free graded left module on 1 generator over mod 2 Steenrod algebra, milnor basis
-               To:   Free graded left module on 1 generator over mod 2 Steenrod algebra, milnor basis
+            [Module endomorphism of Free graded left module on 1 generator over mod 2 Steenrod algebra, milnor basis
                Defn: g[0] |--> g[0],
              Module morphism:
                From: Free graded left module on 0 generators over mod 2 Steenrod algebra, milnor basis
@@ -1057,7 +1055,8 @@ class SteenrodFPModule(FPModule):
             verbose=verbose)
 
         # Change rings back to the original Steenrod algebra.
-        return [j.change_ring(self.base_ring()) for j in res]
+        # Also convert the maps and modules from FPModule to SteenrodFPModule.
+        return [_convert_map(j.change_ring(self.base_ring())) for j in res]
 
 
     def export_module_definition(self, powers_of_two_only=True):
@@ -1074,7 +1073,7 @@ class SteenrodFPModule(FPModule):
 
         EXAMPLES::
 
-            sage: from sage.modules.fp_graded.steenrod.module import *
+            sage: from sage.modules.fp_graded.steenrod.module import SteenrodFPModule
             sage: A1 = algebra=SteenrodAlgebra(p=2, profile=[2,1])
             sage: M = SteenrodFPModule(A1, [0])
             sage: M.export_module_definition()
@@ -1182,3 +1181,49 @@ class SteenrodFPModule(FPModule):
                             len(values),
                             " ".join(["%d" % x for x in values])))
                     element_index += 1
+
+
+def _convert_map(f):
+    """
+    Convert ``f`` to map of instances of :class:`SteenrodFPModule`
+
+    INPUT:
+
+    - ``f`` -- map between instances of :class:`FPModule
+      ~sage.modules.fp_module.module.FPModule`
+
+    The base ring should be the Steenrod algebra of a sub-Hopf
+    algebra, but the code does not check this.
+
+    EXAMPLES::
+
+        sage: from sage.modules.fp_graded.steenrod.module import _convert_map
+        sage: from sage.modules.fp_graded.module import FPModule
+        sage: A1 = SteenrodAlgebra(profile=[2,1])
+        sage: M.<x,y> = FPModule(A1, [0, 1])
+        sage: f = Hom(M, M).identity()
+        sage: g = _convert_map(f)
+        sage: type(f.parent())
+        <class 'sage.modules.fp_graded.homspace.FPModuleHomspace_with_category_with_equality_by_id'>
+        sage: type(g.parent())
+        <class 'sage.modules.fp_graded.steenrod.homspace.SteenrodFPModuleHomspace_with_category_with_equality_by_id'>
+        sage: g.is_identity()
+        True
+        sage: g.domain().variable_names()
+        ('x', 'y')
+    """
+    D = f.domain()
+    if D.has_relations():
+        D = SteenrodFPModule(D._j, names=D._names)
+    else:
+        D = SteenrodFPModule(D.base_ring(),
+                             D._generator_degrees,
+                             names=D._names)
+    C = f.codomain()
+    if C.has_relations():
+        C = SteenrodFPModule(C._j, names=C._names)
+    else:
+        C = SteenrodFPModule(C.base_ring(),
+                             C._generator_degrees,
+                             names=C._names)
+    return Hom(D, C)([C(x.dense_coefficient_list()) for x in f.values()])

@@ -1088,8 +1088,8 @@ class FiniteDimensionalAlgebrasWithBasis(CategoryWithAxiom_over_base_ring):
 
         def __invert__(self):
             r"""
-            Return the inverse of ``self`` if ``self`` if it
-            exists, and otherwise raise an error.
+            Return the inverse of ``self`` if it exists, and
+            otherwise raise an error.
 
             .. WARNING::
 
@@ -1109,6 +1109,15 @@ class FiniteDimensionalAlgebrasWithBasis(CategoryWithAxiom_over_base_ring):
                  + 3/40*[2, 3, 1] + 3/40*[3, 1, 2] - 1/20*[3, 2, 1]
                 sage: a * b
                 [1, 2, 3]
+                sage: ~b == a
+                True
+
+                sage: a = 3 * QS3.one()
+                sage: b = ~a
+                sage: b * a == QS3.one()
+                True
+                sage: b == 1/3 * QS3.one()
+                True
                 sage: ~b == a
                 True
 
@@ -1136,18 +1145,30 @@ class FiniteDimensionalAlgebrasWithBasis(CategoryWithAxiom_over_base_ring):
                 Traceback (most recent call last):
                 ...
                 ValueError: cannot invert self (= 2*[1, 2, 3])
+
+            TESTS:
+
+            An algebra that does not define ``one_basis()``::
+
+                sage: I = DescentAlgebra(QQ, 3).I()
+                sage: a = 3 * I.one()
+                sage: ~a == 1/3 * I.one()
+                True
             """
             alg = self.parent()
             R = alg.base_ring()
+            ob = None
             try:
                 ob = alg.one_basis()
+            except (AttributeError, TypeError, ValueError):
+                pass
+            if ob is not None:
                 mc = self.monomial_coefficients(copy=False)
                 if len(mc) == 1 and ob in mc:
-                    return alg.term(ob, R(~mc[ob]))
-            except AttributeError:
-                pass
-            except (ValueError, TypeError):
-                raise ValueError("cannot invert self (= %s)" % self)
+                    try:
+                        return alg.term(ob, R(~mc[ob]))
+                    except (ValueError, TypeError):
+                        raise ValueError("cannot invert self (= %s)" % self)
 
             e = alg.one().to_vector()
             A = self.to_matrix()

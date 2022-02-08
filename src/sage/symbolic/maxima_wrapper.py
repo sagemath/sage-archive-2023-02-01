@@ -97,6 +97,13 @@ class MaximaWrapper(SageObject):
     def __dir__(self):
         """
         Enable the tab completions.
+
+        EXAMPLES::
+
+            sage: t = sin(x) + cos(x)
+            sage: u = t.maxima_methods()
+            sage: 'zeta' in u.__dir__()
+            True
         """
         return self._maxima_()._tab_completion()
 

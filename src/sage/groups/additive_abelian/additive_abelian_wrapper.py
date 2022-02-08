@@ -444,8 +444,9 @@ class AdditiveAbelianGroupWrapper(addgp.AdditiveAbelianGroup_fixed_gens):
         else:
             ords = [g.order() for g in gens]
 
-        gens = [g if parent(g) is self.universe() else g.element() for g in gens]
-        x = x if parent(x) is self.universe() else x.element()
+        unwrap = lambda a: self._universe(a.element() if parent(a) is self else a)
+        gens = tuple(map(unwrap, gens))
+        x = unwrap(x)
 
         crt_data = [[] for _ in gens]
         for p in self.exponent().prime_factors():

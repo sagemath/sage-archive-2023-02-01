@@ -319,7 +319,7 @@ class SteenrodFPModuleMorphism(FPModuleMorphism):
             sage: g = Hom(S, M)([M([Sq(3),Sq(2)])])
             sage: j = g.image(); j
             Module morphism:
-              From: Finitely presented left module on 0 generators and 0 relations over mod 2 Steenrod algebra, milnor basis
+              From: Free graded left module on 0 generators over mod 2 Steenrod algebra, milnor basis
               To:   Finitely presented left module on 2 generators and 2 relations over mod 2 Steenrod algebra, milnor basis
 
         So ``g`` had to be trivial::
@@ -352,8 +352,8 @@ class SteenrodFPModuleMorphism(FPModuleMorphism):
             sage: f = Hom(F, L)([L([Sq(2),0]), L([0, Sq(2)])])
             sage: f._resolve_kernel()
             Module morphism:
-              From: Finitely presented left module on 3 generators and 0 relations over mod 2 Steenrod algebra, milnor basis
-              To:   Finitely presented left module on 2 generators and 0 relations over mod 2 Steenrod algebra, milnor basis
+              From: Free graded left module on 3 generators over mod 2 Steenrod algebra, milnor basis
+              To:   Free graded left module on 2 generators over mod 2 Steenrod algebra, milnor basis
               Defn: g[0, 0] |--> g[0, 1]
                     g[3, 0] |--> Sq(0,1)*g[0, 0]
                     g[3, 1] |--> Sq(3)*g[0, 0]
@@ -383,7 +383,7 @@ class SteenrodFPModuleMorphism(FPModuleMorphism):
             sage: f = Hom(F, L)([L([Sq(2),0]), L([0, Sq(2)])])
             sage: f._resolve_image()
             Module morphism:
-              From: Finitely presented left module on 1 generator and 0 relations over mod 2 Steenrod algebra, milnor basis
+              From: Free graded left module on 1 generator over mod 2 Steenrod algebra, milnor basis
               To:   Finitely presented left module on 2 generators and 2 relations over mod 2 Steenrod algebra, milnor basis
               Defn: g[2] |--> Sq(2)*g[0, 0]
         """
@@ -408,7 +408,7 @@ class SteenrodFPModuleMorphism(FPModuleMorphism):
             (2, 1)
             Resolving the image in the range of dimensions [0, 8]: 0 1 2 3 4 5 6 7 8.
             Module morphism:
-              From: Finitely presented left module on 1 generator and 0 relations over mod 2 Steenrod algebra, milnor basis
+              From: Free graded left module on 1 generator over mod 2 Steenrod algebra, milnor basis
               To:   Finitely presented left module on 1 generator and 1 relation over mod 2 Steenrod algebra, milnor basis
               Defn: g[2] |--> Sq(2)*g[0]
         """

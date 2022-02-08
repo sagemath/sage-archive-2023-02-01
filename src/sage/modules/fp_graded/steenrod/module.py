@@ -61,7 +61,7 @@ optional set of relations::
 
     sage: from sage.modules.fp_graded.steenrod.module import SteenrodFPModule
     sage: F = SteenrodFPModule(A, [0, 1, 7]); F  # A free module
-    Finitely presented left module on 3 generators and 0 relations over mod 2 Steenrod algebra, milnor basis
+    Free graded left module on 3 generators over mod 2 Steenrod algebra, milnor basis
 
 Denote the module generators of an `A`-module `M` by `g_1,\ldots, g_N`.
 A homogeneous relation of degree `n` has the form
@@ -784,7 +784,7 @@ TESTS:
 
     sage: A = SteenrodAlgebra(2)
     sage: K = SteenrodFPModule(A, [1,3]); K
-    Finitely presented left module on 2 generators ...
+    Free graded left module on 2 generators over ...
     sage: K.category()
     Category of finitely presented graded modules over mod 2 Steenrod algebra, milnor basis
     sage: L = SteenrodFPModule(A, [2,3], [[Sq(2),Sq(1)], [0,Sq(2)]]);L
@@ -854,7 +854,7 @@ class SteenrodFPModule(FPModule):
 
         sage: from sage.modules.fp_graded.steenrod.module import SteenrodFPModule
         sage: SteenrodFPModule(SteenrodAlgebra(2), (0,))
-        Finitely presented left module on 1 generator and 0 relations over mod 2 Steenrod algebra, milnor basis
+        Free graded left module on 1 generator over mod 2 Steenrod algebra, milnor basis
 
     """
     def _Hom_(self, other, category=None):
@@ -869,11 +869,11 @@ class SteenrodFPModule(FPModule):
             sage: L = SteenrodFPModule(A, [2,3], [[Sq(2),Sq(1)], [0,Sq(2)]])
 
             sage: Hom(F, L)
-            Set of Morphisms from Finitely presented left module on 2 generators ...
+            Set of Morphisms from Free graded left module on 2 generators ...
 
             sage: M = A.free_graded_module((2,1))
             sage: Hom(F, M)
-            Set of Morphisms from Finitely presented left module on 2 generators ...
+            Set of Morphisms from Free graded left module on 2 generators ...
         """
         from .homspace import SteenrodFPModuleHomspace
         return SteenrodFPModuleHomspace(self, other, category=category)
@@ -1036,7 +1036,7 @@ class SteenrodFPModule(FPModule):
             sage: M.resolution(4)
             [Module morphism:
                From: Free graded left module on 1 generator over mod 2 Steenrod algebra, milnor basis
-               To:   Finitely presented left module on 1 generator and 0 relations over mod 2 Steenrod algebra, milnor basis
+               To:   Free graded left module on 1 generator over mod 2 Steenrod algebra, milnor basis
                Defn: g[0] |--> g[0],
              Module morphism:
                From: Free graded left module on 0 generators over mod 2 Steenrod algebra, milnor basis

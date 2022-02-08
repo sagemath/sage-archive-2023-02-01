@@ -15,23 +15,23 @@ TESTS::
     sage: F = SteenrodFPModule(A, [1,3])
     sage: L = SteenrodFPModule(A, [2,3], [[Sq(2),Sq(1)], [0,Sq(2)]])
     sage: homset = Hom(F, L); homset
-    Set of Morphisms from Finitely presented left module on 2 generators ...
+    Set of Morphisms from Free graded left module on 2 generators ...
     sage: homset.an_element()
     Module morphism:
-      From: Finitely presented left module on 2 generators and 0 relations over sub-Hopf algebra of mod 2 Steenrod algebra, milnor basis, profile function [3, 2, 1]
+      From: Free graded left module on 2 generators over sub-Hopf algebra of mod 2 Steenrod algebra, milnor basis, profile function [3, 2, 1]
       To:   Finitely presented left module on 2 generators and 2 relations over sub-Hopf algebra of mod 2 Steenrod algebra, milnor basis, profile function [3, 2, 1]
       Defn: g[1] |--> 0
             g[3] |--> Sq(1)*g[2]
     sage: homset([L((Sq(1), 1)), L((0, Sq(2)))])
     Module morphism:
-      From: Finitely presented left module on 2 generators and 0 relations over sub-Hopf algebra of mod 2 Steenrod algebra, milnor basis, profile function [3, 2, 1]
+      From: Free graded left module on 2 generators over sub-Hopf algebra of mod 2 Steenrod algebra, milnor basis, profile function [3, 2, 1]
       To:   Finitely presented left module on 2 generators and 2 relations over sub-Hopf algebra of mod 2 Steenrod algebra, milnor basis, profile function [3, 2, 1]
       Defn: g[1] |--> Sq(1)*g[2] + g[3]
             g[3] |--> Sq(2)*g[3]
     sage: Hom(F, L) ([L((Sq(1), 1)), L((0, Sq(2)))]).kernel_inclusion()
     Module morphism:
       From: Finitely presented left module on 2 generators and 1 relation over sub-Hopf algebra of mod 2 Steenrod algebra, milnor basis, profile function [3, 2, 1]
-      To:   Finitely presented left module on 2 generators and 0 relations over sub-Hopf algebra of mod 2 Steenrod algebra, milnor basis, profile function [3, 2, 1]
+      To:   Free graded left module on 2 generators over sub-Hopf algebra of mod 2 Steenrod algebra, milnor basis, profile function [3, 2, 1]
       Defn: g[3] |--> g[3]
             g[4] |--> Sq(0,1)*g[1]
     sage: TestSuite(homset).run()

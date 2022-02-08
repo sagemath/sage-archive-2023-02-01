@@ -538,7 +538,7 @@ class FPModuleMorphism(Morphism):
             sage: g = Hom(M, N)( [Sq(0,1)*N.generator(0)] )
             sage: f - g
             Module morphism:
-              From: Finitely presented left module on 1 generator and 0 relations over mod 2 Steenrod algebra, milnor basis
+              From: Free graded left module on 1 generator over mod 2 Steenrod algebra, milnor basis
               To:   Finitely presented left module on 1 generator and 1 relation over mod 2 Steenrod algebra, milnor basis
               Defn: g[0] |--> (Sq(0,1)+Sq(3))*g[0]
 
@@ -546,7 +546,7 @@ class FPModuleMorphism(Morphism):
             sage: g = Hom(M, N)( [Sq(1,1)*N.generator(0)] )
             sage: f - g
             Module morphism:
-              From: Finitely presented left module on 1 generator and 0 relations over mod 2 Steenrod algebra, milnor basis
+              From: Free graded left module on 1 generator over mod 2 Steenrod algebra, milnor basis
               To:   Finitely presented left module on 1 generator and 1 relation over mod 2 Steenrod algebra, milnor basis
               Defn: g[0] |--> Sq(1,1)*g[0]
 
@@ -1038,7 +1038,7 @@ class FPModuleMorphism(Morphism):
             True
             sage: f_
             Module morphism:
-              From: Finitely presented left module on 1 generator and 0 relations over mod 2 Steenrod algebra, milnor basis
+              From: Free graded left module on 1 generator over mod 2 Steenrod algebra, milnor basis
               To:   Finitely presented left module on 1 generator and 1 relation over mod 2 Steenrod algebra, milnor basis
               Defn: g[0] |--> Sq(1)*g[0]
 
@@ -1382,8 +1382,8 @@ class FPModuleMorphism(Morphism):
 
             sage: f = Hom(F1, F2)( ( F2([Sq(4)]), F2([Sq(5)]) ) ); f
             Module morphism:
-              From: Finitely presented left module on 2 generators and 0 relations over mod 2 Steenrod algebra, milnor basis
-              To:   Finitely presented left module on 1 generator and 0 relations over mod 2 Steenrod algebra, milnor basis
+              From: Free graded left module on 2 generators over mod 2 Steenrod algebra, milnor basis
+              To:   Free graded left module on 1 generator over mod 2 Steenrod algebra, milnor basis
               Defn: g[4] |--> Sq(4)*g[5]
                     g[5] |--> Sq(5)*g[5]
 
@@ -1396,8 +1396,8 @@ class FPModuleMorphism(Morphism):
 
             sage: sf = f.suspension(4); sf
             Module morphism:
-              From: Finitely presented left module on 2 generators and 0 relations over mod 2 Steenrod algebra, milnor basis
-              To:   Finitely presented left module on 1 generator and 0 relations over mod 2 Steenrod algebra, milnor basis
+              From: Free graded left module on 2 generators over mod 2 Steenrod algebra, milnor basis
+              To:   Free graded left module on 1 generator over mod 2 Steenrod algebra, milnor basis
               Defn: g[8] |--> Sq(4)*g[9]
                     g[9] |--> Sq(5)*g[9]
 
@@ -1487,7 +1487,7 @@ class FPModuleMorphism(Morphism):
             sage: H([L((A3.Sq(1), 1)), L((0, A3.Sq(2)))]).kernel_inclusion() # long time
             Module morphism:
               From: Finitely presented left module on 2 generators and 1 relation over sub-Hopf algebra of mod 2 Steenrod algebra, milnor basis, profile function [4, 3, 2, 1]
-              To:   Finitely presented left module on 2 generators and 0 relations over sub-Hopf algebra of mod 2 Steenrod algebra, milnor basis, profile function [4, 3, 2, 1]
+              To:   Free graded left module on 2 generators over sub-Hopf algebra of mod 2 Steenrod algebra, milnor basis, profile function [4, 3, 2, 1]
               Defn: g[3] |--> g[3]
                     g[4] |--> Sq(0,1)*g[1]
 
@@ -1698,7 +1698,7 @@ class FPModuleMorphism(Morphism):
             sage: f._resolve_kernel(top_dim=20)
             Module morphism:
               From: Free graded left module on 3 generators over mod 2 Steenrod algebra, milnor basis
-              To:   Finitely presented left module on 2 generators and 0 relations over mod 2 Steenrod algebra, milnor basis
+              To:   Free graded left module on 2 generators over mod 2 Steenrod algebra, milnor basis
               Defn: g[0, 0] |--> g[0, 1]
                     g[3, 0] |--> Sq(0,1)*g[0, 0]
                     g[3, 1] |--> Sq(3)*g[0, 0]
@@ -1706,7 +1706,7 @@ class FPModuleMorphism(Morphism):
             sage: f.change_ring(A3)._resolve_kernel()  # long time
             Module morphism:
               From: Free graded left module on 3 generators over sub-Hopf algebra of mod 2 Steenrod algebra, milnor basis, profile function [4, 3, 2, 1]
-              To:   Finitely presented left module on 2 generators and 0 relations over sub-Hopf algebra of mod 2 Steenrod algebra, milnor basis, profile function [4, 3, 2, 1]
+              To:   Free graded left module on 2 generators over sub-Hopf algebra of mod 2 Steenrod algebra, milnor basis, profile function [4, 3, 2, 1]
               Defn: g[0, 0] |--> g[0, 1]
                     g[3, 0] |--> Sq(0,1)*g[0, 0]
                     g[3, 1] |--> Sq(3)*g[0, 0]

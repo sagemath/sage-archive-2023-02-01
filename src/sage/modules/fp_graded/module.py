@@ -132,7 +132,7 @@ class FPModule(UniqueRepresentation, IndexedGenerators, Module):
         True
 
         sage: FPModule(FreeGradedModule(E, [0, 1]))
-        Finitely presented left module on 2 generators and 0 relations over The exterior algebra of rank 2 over Rational Field
+        Free graded left module on 2 generators over The exterior algebra of rank 2 over Rational Field
     """
     @staticmethod
     def __classcall__(cls, arg0, generator_degrees=None, relations=(), names=None):
@@ -420,14 +420,19 @@ class FPModule(UniqueRepresentation, IndexedGenerators, Module):
             Finitely presented left module on 2 generators and 2 relations over
              mod 2 Steenrod algebra, milnor basis
             sage: F = FPModule(A, [2]); F
-            Finitely presented left module on 1 generator and 0 relations over
+            Free graded left module on 1 generator over
              mod 2 Steenrod algebra, milnor basis
         """
-        return "Finitely presented left module on %s generator%s and %s relation%s over %s"\
-            %(len(self._free_module().generator_degrees()),
-              "" if len(self._free_module().generator_degrees()) == 1 else "s",
-              len(self._j.values()), "" if len(self._j.values()) == 1 else "s",
-              self.base_ring())
+        if self.has_relations():
+            return "Finitely presented left module on %s generator%s and %s relation%s over %s"\
+                %(len(self._free_module().generator_degrees()),
+                  "" if len(self._free_module().generator_degrees()) == 1 else "s",
+                  len(self._j.values()), "" if len(self._j.values()) == 1 else "s",
+                  self.base_ring())
+        return ("Free graded left module on %s generator%s over %s"
+                %(len(self._generator_degrees),
+                  "" if len(self._generator_degrees) == 1 else "s",
+                  self.base_ring()))
 
 
     def _repr_term(self, m):
@@ -864,11 +869,11 @@ class FPModule(UniqueRepresentation, IndexedGenerators, Module):
             sage: L = FPModule(A, [2,3], [[Sq(2),Sq(1)], [0,Sq(2)]])
 
             sage: Hom(F, L)
-            Set of Morphisms from Finitely presented left module on 2 generators ...
+            Set of Morphisms from Free graded left module on 2 generators ...
 
             sage: M = A.free_graded_module((2,1))
             sage: Hom(F, M)
-            Set of Morphisms from Finitely presented left module on 2 generators ...
+            Set of Morphisms from Free graded left module on 2 generators ...
         """
         from .homspace import FPModuleHomspace
         if not isinstance(Y, (FPModule, FreeGradedModule)):
@@ -1023,7 +1028,7 @@ class FPModule(UniqueRepresentation, IndexedGenerators, Module):
             sage: T_min.is_trivial()
             True
             sage: T_min
-            Finitely presented left module on 0 generators and ...
+            Free graded left module on 0 generators over ...
         """
         return Hom(self, self).identity().image(top_dim, verbose)
 

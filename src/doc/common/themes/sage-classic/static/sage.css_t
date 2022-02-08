@@ -1,7 +1,6 @@
 /*
- * Sage theme style sheet. This style sheet is borrowed from the Sphinx classic
- * theme style sheet distributed as the file themes/classic/static/classic.css_t
- * in Sphinx 4.4.0.
+ * This style sheet is borrowed from the Sphinx classic theme style sheet
+ * distributed as the file themes/classic/static/classic.css_t in Sphinx 4.4.0.
  *
  * Customizations for Sage follow from the end of the original style sheet.
  *

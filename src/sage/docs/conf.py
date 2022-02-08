@@ -201,11 +201,10 @@ multidocs_is_master = True
 # Options for HTML output
 # -----------------------
 
-# HTML theme (e.g., 'default', 'sphinxdoc').  We use a custom Sage
-# theme to set a Pygments style, stylesheet, and insert MathJax macros. See
-# the directory doc/common/themes/sage/ for files comprising the custom Sage
-# theme.
-html_theme = 'sage'
+# Sage default HTML theme. We use a custom theme to set a Pygments style,
+# stylesheet, and insert MathJax macros. See the directory
+# doc/common/themes/sage-classic/ for files comprising the custom theme.
+html_theme = 'sage-classic'
 
 # Theme options are theme-specific and customize the look and feel of
 # a theme further.  For a list of options available for each theme,

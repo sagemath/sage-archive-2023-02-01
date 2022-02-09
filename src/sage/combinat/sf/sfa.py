@@ -226,6 +226,7 @@ from sage.categories.tensor import tensor
 from sage.combinat.free_module import CombinatorialFreeModule
 from sage.matrix.constructor import matrix
 from sage.misc.misc_c import prod
+from sage.data_structures.blas_dict import coerce_remove_zeros
 from copy import copy
 from functools import reduce
 
@@ -716,14 +717,19 @@ class SymmetricFunctionsBases(Category_realization_of_parent):
                 Traceback (most recent call last):
                 ...
                 ValueError: not a valid skew partition
+
+                sage: s = SymmetricFunctions(GF(2)).s()
+                sage: s.skew_schur([[3,2,1],[2,1]])
+                s[1, 1, 1] + s[3]
             """
             from sage.combinat.skew_partition import SkewPartitions
             if x not in SkewPartitions():
                 raise ValueError("not a valid skew partition")
             import sage.libs.lrcalc.lrcalc as lrcalc
             s = self.realization_of().schur()
+            R = self.base_ring()
             skewschur = lrcalc.skew(x[0], x[1])
-            return self(s._from_dict(skewschur))
+            return self(s.element_class(s, coerce_remove_zeros(skewschur, R)))
 
         def Eulerian(self, n, j, k=None):
             """
@@ -5256,6 +5262,15 @@ class SymmetricFunctionAlgebra_generic_Element(CombinatorialFreeModule.Element):
             Traceback (most recent call last):
             ...
             ValueError: x needs to be a symmetric function
+
+            sage: s = SymmetricFunctions(QQ['t']).s()
+            sage: f = s[3,2,1].skew_by(s[2,1]); f
+            s[1, 1, 1] + 2*s[2, 1] + s[3]
+            sage: f / 2
+            1/2*s[1, 1, 1] + s[2, 1] + 1/2*s[3]
+            sage: s = SymmetricFunctions(GF(2)).s()
+            sage: s[3,2,1].skew_by(s[2,1])
+            s[1, 1, 1] + s[3]
         """
         parent = self.parent()
         Sym = parent.realization_of()
@@ -5263,7 +5278,15 @@ class SymmetricFunctionAlgebra_generic_Element(CombinatorialFreeModule.Element):
             raise ValueError("x needs to be a symmetric function")
         s = Sym.schur()
         zero = s.zero()
-        f = lambda part1, part2: s([part1,part2]) if part1.contains(part2) else zero
+        R = parent.base_ring()
+        import sage.libs.lrcalc.lrcalc as lrcalc
+        def f(part1, part2):
+            if not part1.contains(part2):
+                return zero
+            skewschur = lrcalc.skew(part1, part2)
+            for k in skewschur:
+                skewschur[k] = R(skewschur[k])
+            return s._from_dict(skewschur)
         return parent(s._apply_multi_module_morphism(s(self), s(x), f))
 
     def hl_creation_operator(self, nu, t = None):

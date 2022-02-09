@@ -421,3 +421,31 @@ cdef dict remove_zeros(dict D):
         del D[index]
     return D
 
+cpdef dict coerce_remove_zeros(dict D, R):
+    """
+    Remove all keys whose value is zero from ``D``
+    after coercing into the ring ``R``.
+
+    .. WARNING::
+
+        This modifies the input ``D``.
+
+    EXAMPLES::
+
+        sage: from sage.data_structures.blas_dict import coerce_remove_zeros
+        sage: d = {1: -2, 2: -4, 3: -3}
+        sage: coerce_remove_zeros(d, GF(2))
+        {3: 1}
+    """
+    cdef list for_removal = []
+    cdef object index, val
+    for index in D:
+        val = R(D[index])
+        if val:
+            D[index] = val
+        else:
+            for_removal.append(index)
+    for index in for_removal:
+        del D[index]
+    return D
+

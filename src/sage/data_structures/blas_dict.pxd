@@ -8,4 +8,5 @@ cpdef dict linear_combination(dict_factor_iter, bint factor_on_left=*)
 cpdef dict sum_of_monomials(monomials, scalar)
 cpdef dict sum_of_terms(index_coeff_pairs)
 cdef inline dict remove_zeros(dict D)
+cpdef dict coerce_remove_zeros(dict D, R)
 

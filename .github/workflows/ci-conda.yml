@@ -27,7 +27,7 @@ jobs:
           ./bootstrap
 
       - name: Setup Conda
-      - uses: conda-incubator/setup-miniconda@v2
+        uses: conda-incubator/setup-miniconda@v2
         with:
           python-version: 3.8
           mamba-version: "*"

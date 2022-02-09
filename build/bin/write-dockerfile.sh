@@ -49,7 +49,7 @@ EOF
         CLEAN="&& apt-get clean"
         if [ -n "$EXTRA_REPOSITORY" ]; then
             cat <<EOF
-RUN $INSTALL software-properties-common
+RUN $UPDATE $INSTALL software-properties-common
 RUN add-apt-repository $EXTRA_REPOSITORY
 EOF
         fi

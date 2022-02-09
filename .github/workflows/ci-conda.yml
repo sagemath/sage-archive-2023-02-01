@@ -1,0 +1,46 @@
+name: Build & Test using Conda
+
+on:
+  pull_request:
+    types: [opened, synchronize]
+  push:
+    tags:
+      - '*'
+    branches:
+      - 'public/build/**-runci'
+  workflow_dispatch:
+    # Allow to run manually
+
+jobs:
+  test:
+    name: Conda
+    runs-on: ubuntu-latest
+    
+    steps:
+      - uses: actions/checkout@v2
+
+      - name: Prepare
+        # Create conda environment file
+        run: |
+          apt-get update
+          apt-get install -y gettext autoconf automake libtool pkg-config
+          ./bootstrap
+
+      - name: Setup Conda
+      - uses: conda-incubator/setup-miniconda@v2
+        with:
+          python-version: 3.8
+          mamba-version: "*"
+          channels: conda-forge,defaults
+          channel-priority: true
+          activate-environment: sage-build
+          environment-file: environment.yml
+
+      - run: |
+          conda info
+          conda list
+          mamba install conda-build
+          conde build ./src
+
+      - name: Test
+        run: ./sage -t --all p0

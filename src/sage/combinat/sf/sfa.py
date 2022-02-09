@@ -1729,7 +1729,10 @@ class SymmetricFunctionAlgebra_generic(CombinatorialFreeModule):
         # broken for most coeff ring
         res = 0
         if orthogonal:
-            # could check which of x and y has less terms
+            # check which of x and y has less terms as we assume the
+            #   base ring is commutative
+            if len(x._monomial_coefficients) > len(y._monomial_coefficients):
+                x, y = y, x
             # for mx, cx in x:
             for mx, cx in x._monomial_coefficients.items():
                 if mx not in y._monomial_coefficients:
@@ -1738,12 +1741,12 @@ class SymmetricFunctionAlgebra_generic(CombinatorialFreeModule):
                     # cy = y[mx]
                     cy = y._monomial_coefficients[mx]
                 # might as well call f(mx)
-                res += cx*cy*f(mx, mx)
+                res += cx * cy * f(mx, mx)
             return res
         else:
             for mx, cx in x._monomial_coefficients.items():
                 for my, cy in y._monomial_coefficients.items():
-                    res += cx*cy*f(mx,my)
+                    res += cx * cy * f(mx, my)
             return res
 
     def _from_element(self, x):

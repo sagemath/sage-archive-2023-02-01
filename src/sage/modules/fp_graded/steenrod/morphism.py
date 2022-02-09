@@ -36,67 +36,18 @@ from .profile import enveloping_profile_elements
 
 
 class SteenrodFPModuleMorphism(FPModuleMorphism):
-    r"""
-    Create a homomorphism between finitely presented graded modules over
-    the mod `p` Steenrod algebra.
-
-    INPUT:
-
-    - ``parent`` -- A homspace object.
-
-    - ``values`` -- A list of elements in the codomain.  Each element
-      corresponds to a module generator in the domain.
-
-    - ``check`` -- boolean (default: ``True``); if ``True``, check
-      that the morphism is well-defined.
-
-    OUTPUT: A module homomorphism defined by sending the generator with
-    index `i` to the corresponding element in ``values``.
-
-    .. NOTE:: Never use this constructor explicitly, but rather the parent's
-        call method, or this class' __call__ method.  The reason for this
-        is that the dynamic type of the element class changes as a
-        consequence of the category system.
-
-    TESTS:
-
-        sage: from sage.modules.fp_graded.steenrod.module import SteenrodFPModule
-        sage: # Trying to map the generators of a non-free module into a
-        sage: # free module:
-        sage: A = SteenrodAlgebra(2)
-        sage: F.<a2,a3> = SteenrodFPModule(A, [2,3])
-        sage: Q.<x2,x3> = SteenrodFPModule(A, [2,3], relations=[[Sq(6), Sq(5)]])
-        sage: Hom(F, Q)((Sq(1)*x2, x3))
-        Traceback (most recent call last):
-         ...
-        ValueError: ill-defined homomorphism: degrees do not match
-
-    Trying to map the generators of a non-free module into a free module::
-
-        sage: w = Hom(Q, F)((a2, a3))
-        Traceback (most recent call last):
-         ...
-        ValueError: relation Sq(6)*x2 + Sq(5)*x3 is not sent to zero
-
-    """
-    def __init__(self, parent, values, check=True):
-        r"""
-        TESTS::
-
-            sage: from sage.modules.fp_graded.steenrod.module import SteenrodFPModule
-            sage: A2 = SteenrodAlgebra(2, profile=(3,2,1))
-            sage: A3 = SteenrodAlgebra(2, profile=(4,3,2,1))
-            sage: M = SteenrodFPModule(A2, [0], relations=[[Sq(1)]])
-            sage: N = SteenrodFPModule(A2, [0], relations=[[Sq(4)],[Sq(1)]])
-            sage: f = Hom(M,N)([A2.Sq(3)*N.generator(0)])
-            sage: TestSuite(f).run()
-        """
-        FPModuleMorphism.__init__(self, parent, values, check)
-
 
     def profile(self):
         r"""
         A finite profile over which this homomorphism can be defined.
+
+        This is in some ways the key method for these morphisms. As
+        discussed in the "Theoretical background" section of
+        :mod:`sage.modules.fp_graded.steenrod.module`, any
+        homomorphism of finitely presented modules over the Steenrod
+        algebra can be defined over a finite-dimensional sub-Hopf
+        algebra, and this method identifies such a sub-Hopf algebra
+        and returns its profile function.
 
         EXAMPLES::
 
@@ -124,12 +75,11 @@ class SteenrodFPModuleMorphism(FPModuleMorphism):
             sage: one_fin.domain()
             Finitely presented left module on 2 generators and 2 relations over sub-Hopf algebra of mod 2 Steenrod algebra, milnor basis, profile function [2, 1]
 
-        And if we change back to the full Steenrod algebra, we are back were
+        And if we change back to the full Steenrod algebra, we are back where
         we started::
 
             sage: one_fin.change_ring(A) == one
             True
-
         """
         def _flatten(f):
             return [coeffifient for value in f.values()\
@@ -141,7 +91,8 @@ class SteenrodFPModuleMorphism(FPModuleMorphism):
 
         elements = [a for a in elements if a not in (0, 1)]
 
-        profile = enveloping_profile_elements(elements)
+        profile = enveloping_profile_elements(elements,
+                                              char=self.base_ring().characteristic())
 
         # Avoid returning the zero profile because it triggers a corner case
         # in FPModule.resolution().
@@ -197,6 +148,9 @@ class SteenrodFPModuleMorphism(FPModuleMorphism):
 
         INPUT:
 
+        - ``top_dim`` -- stop the computation at this degree
+          (optional, default ``None``, in which case the ending degree
+          is determined automatically using :meth:`profile`)
         - ``verbose`` -- A boolean to control if log messages should be emitted.
           (optional, default: ``False``)
 
@@ -337,6 +291,9 @@ class SteenrodFPModuleMorphism(FPModuleMorphism):
 
         INPUT:
 
+        - ``top_dim`` -- stop the computation at this degree
+          (optional, default ``None``, in which case the ending degree
+          is determined automatically using :meth:`profile`)
         - ``verbose`` -- A boolean to enable progress messages. (optional,
           default: ``False``)
 
@@ -367,6 +324,9 @@ class SteenrodFPModuleMorphism(FPModuleMorphism):
 
         INPUT:
 
+        - ``top_dim`` -- stop the computation at this degree
+          (optional, default ``None``, in which case the ending degree
+          is determined automatically using :meth:`profile`)
         - ``verbose`` -- A boolean to enable progress messages. (optional,
           default: ``False``)
 

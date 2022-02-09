@@ -1,5 +1,5 @@
 r"""
-The set of homomorphisms of finitely presented graded modules over the Steenrod algebra
+Homsets of finitely presented graded modules over the Steenrod algebra
 
 This class implements methods for construction and basic
 manipulation of homsets of finitely presented graded modules over the

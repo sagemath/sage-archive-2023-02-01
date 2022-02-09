@@ -1,5 +1,5 @@
 r"""
-Finitely presented modules over the Steenrod algebra
+Finitely presented graded modules over the Steenrod algebra
 
 This package allows the user to define finitely presented modules
 over the mod `p` Steenrod Algebra, elements of them, and
@@ -11,22 +11,22 @@ free resolutions of modules.
 Theoretical background
 ======================
 
-The category of finitely presented graded modules over an arbitrary non-Noetherian
-graded ring `R` is not Abelian in general, since kernels of homomorphisms are
-not necessarily finitely presented.
+The category of finitely presented graded modules over an arbitrary
+non-Noetherian graded ring `R` is not Abelian in general, since
+kernels of homomorphisms are not necessarily finitely presented.
 
 The mod `p` Steenrod algebra is non-Noetherian, but it is the
 union of a countable set of finite sub-Hopf algebras
 ([Mar1983]_ Ch. 15, Sect. 1, Prop 7), and is therefore an example of a
 `P`-algebra ([Mar1983]_ Ch. 13).
 
-Any finitely presented module over the Steenrod algebra is
-defined over one of these finite sub-Hopf algebras.  Similarly, any homomorphism
-between finitely presented modules over the Steenrod algebra is
-defined over a finite sub-Hopf algebra of the Steenrod algebra.
-Further, tensoring up from the category of modules over a sub-Hopf
-algebra is an exact functor, since the Steenrod algebra is free over
-any sub-Hopf algebra.
+Any finitely presented module over the Steenrod algebra is defined
+over one of these finite sub-Hopf algebras.  Similarly, any
+homomorphism between finitely presented modules over the Steenrod
+algebra is defined over a finite sub-Hopf algebra of the Steenrod
+algebra.  Further, tensoring up from the category of modules over a
+sub-Hopf algebra is an exact functor, since the Steenrod algebra is
+free over any sub-Hopf algebra.
 
 It follows that kernels, cokernels, images, and, more generally, any finite
 limits or colimits can be computed in the category of modules over the
@@ -50,7 +50,7 @@ User guide
 
 Let `p` be a prime number.  The mod `p` Steenrod algebra `A`
 is a connected algebra over `\GF{p}`, the finite field of `p` elements.
-All modules presented here will be defined over `A`, or one of its sub-Hopf
+All modules presented here will be defined over `A` or one of its sub-Hopf
 algebras.  E.g.::
 
     sage: A = SteenrodAlgebra(p=2)
@@ -63,15 +63,16 @@ optional set of relations::
     sage: F = SteenrodFPModule(A, [0, 1, 7]); F  # A free module
     Free graded left module on 3 generators over mod 2 Steenrod algebra, milnor basis
 
-Denote the module generators of an `A`-module `M` by `g_1,\ldots, g_N`.
+Denote the module generators of an `A`-module `M` by `g_{d_1},\ldots, g_{d_N}`,
+where subscripts denote their degrees.
 A homogeneous relation of degree `n` has the form
 
 .. MATH::
 
-    \sum_{i=1}^N a_i\cdot g_i = 0
+    \sum_{i=1}^N a_i\cdot g_{d_i} = 0
 
-where the homogeneous coefficients `a_1,\ldots a_N` in `A`, such that
-`\deg(a_i) + \deg(g_i) = n` for `i=1\ldots N`.  To create a module with
+where the homogeneous coefficients `a_1,\ldots a_N` lie in `A`, such that
+`\deg(a_i) + \deg(g_{d_i}) = n` for `i=1\ldots N`.  To create a module with
 relations, the coefficients for each relation is given to the constructor::
 
     sage: r1 = [Sq(8), Sq(7), 0]   # First relation
@@ -110,7 +111,7 @@ Module elements
 ---------------
 
 Module elements are displayed in terms of generators, which by default
-are called ``g[degree]]``::
+are called ``g[degree]``::
 
     sage: M.an_element(n=5)
     Sq(2,1)*g[0] + Sq(4)*g[1]
@@ -139,7 +140,7 @@ The module action produces new elements::
     sage: Sq(2)*x
     Sq(14,1)*g[0] + (Sq(7,1)+Sq(10))*g[7]
 
-Each non-zero element has a well-defined degree::
+Each non-zero homogeneous element has a well-defined degree::
 
     sage: x.degree()
     15
@@ -153,36 +154,19 @@ But the zero element does not::
     ...
     ValueError: the zero element does not have a well-defined degree
 
-Any two elements can be added as long as they have the same degree::
-
-    sage: y = M.an_element(15); y
-    Sq(0,0,0,1)*g[0] + Sq(1,2,1)*g[1] + Sq(8)*g[7]
-    sage: x + y
-    (Sq(0,0,0,1)+Sq(15))*g[0] + (Sq(1,2,1)+Sq(4,1,1)+Sq(7,0,1)+Sq(11,1))*g[1]
-
-or when at least one of them is zero::
-
-    sage: x + zero == x
-    True
-
-Finally, additive inverses exist::
-
-    sage: x - x == 0
-    True
-
 At this point it may be useful to point out that elements are not reduced to
 a minimal representation when they are created.  A normalization can be
 enforced, however::
 
-    sage: g3 = M([0, 0, 1]); g3
+    sage: g7 = M([0, 0, 1]); g7
     g[7]
-    sage: g3.normalize()
+    sage: g7.normalize()
     Sq(7)*g[0]
-    sage: g3 == g3.normalize()
+    sage: g7 == g7.normalize()
     True
 
     sage: m = M([Sq(7), 0, 0])
-    sage: sum = m + g3; sum     # m and g3 are related by `m = \operatorname{Sq}^7(g_1) = g_3`,
+    sage: sum = m + g7; sum     # m and g7 are related by `m = \operatorname{Sq}^7(g_0) = g_7`,
     Sq(7)*g[0] + g[7]
     sage: sum == 0              # so their sum should zero.
     True
@@ -190,7 +174,7 @@ enforced, however::
     0
 
 For every integer `n`, the set of module elements of degree `n` form a
-vectorspace over the ground field `\GF{p}`.  A basis for this vectorspace can be
+vector space over the ground field `\GF{p}`.  A basis for this vector space can be
 computed::
 
     sage: M.basis_elements(7)
@@ -202,11 +186,11 @@ computed::
      Sq(3,1)*g[1],
      Sq(6)*g[1])
 
-Note that the third generator `g_3` of degree 7 having coordinates <0,0,1>
+Note that the third generator `g_7` of degree 7
 is apparently missing from the basis above.  This is because of the relation
-`\operatorname{Sq}^7(g_1) = g_3`.
+`\operatorname{Sq}^7(g_0) = g_7`.
 
-A vectorspace presentation can be produced::
+A vector space presentation can be produced::
 
     sage: M.vector_presentation(5)
     Vector space quotient V/W of dimension 4 over Finite Field of size 2 where
@@ -236,16 +220,18 @@ Module homomorphisms
 -------------------------------------
 
 Homomorphisms of `A`-modules `M\to N` are linear maps of their
-underlying `\GF{p}`-vectorspaces which commute with the `A`-module structure.
+underlying `\GF{p}`-vector spaces which commute with the `A`-module
+structure. Homomorphisms are required to be homogeneneous but need not
+be degree zero.
 
 To create a homomorphism, first create the object modeling the set of all
-such homomorphisms using the free function ``Hom``::
+such homomorphisms using the function ``Hom``::
 
     sage: Hko = SteenrodFPModule(A, [0], [[Sq(2)], [Sq(1)]])
     sage: homspace = Hom(Hko, Hko); homspace
     Set of Morphisms from Finitely presented left module on 1 generator and 2 relations over mod 2 Steenrod algebra, milnor basis to Finitely presented left module on 1 generator and 2 relations over mod 2 Steenrod algebra, milnor basis in Category of finitely presented graded modules over mod 2 Steenrod algebra, milnor basis
 
-Just as module elements, homomorphisms are created using the ()-method
+Just as with module elements, homomorphisms are created using the ()-method
 of the homspace object.  The only argument is a list of module elements in the
 codomain, corresponding to the module generators of the domain::
 
@@ -271,10 +257,10 @@ Homomorphisms can be evaluated on elements of the domain module::
 
 and they respect the module action::
 
-    sage: v1 == Sq(4)*f(gen)
+    sage: f(Sq(4)*gen) == Sq(4)*f(gen)
     True
 
-    sage: v2 == Sq(2)*Sq(4)*f(gen)
+    sage: f(Sq(2)*Sq(4)*gen) == Sq(2)*Sq(4)*f(gen)
     True
 
 Convenience methods exist for creating the trivial morphism::
@@ -299,13 +285,15 @@ as well as the identity endomorphism::
     True
     sage: one(x) == x
     True
+    sage: one.is_identity()
+    True
 
 Any non-trivial homomorphism has a well defined degree::
 
     sage: f.degree()
     7
 
-but just as module elements, the trivial homomorphism does not::
+but just as for module elements, the trivial homomorphism does not::
 
     sage: zero_map = homspace.zero()
     sage: zero_map.degree()
@@ -328,12 +316,22 @@ or when at least one of them is zero::
     sage: f + zero_map == f
     True
 
+but not if they have different degrees::
+
+    sage: F = SteenrodFPModule(A, [0])
+    sage: b4 = Hom(F, F)([Sq(4) * F.generator(0)])
+    sage: b8 = Hom(F, F)([Sq(8) * F.generator(0)])
+    sage: b4 + b8
+    Traceback (most recent call last):
+    ...
+    ValueError: morphisms do not have the same degree
+
 Finally, additive inverses exist::
 
     sage: (f - f) == 0
     True
 
-The restriction of a homomorphism to the vectorspace of `n`-dimensional module
+The restriction of a homomorphism to the vector space of `n`-dimensional module
 elements is a linear transformation::
 
     sage: f_21 = f.vector_presentation(21); f_21
@@ -380,7 +378,7 @@ modules::
     sage: f_21.codomain() is Hko.vector_presentation(21 + f.degree())
     True
 
-Elements in the pre-image of homomorphism can be found::
+Elements in the preimage of a homomorphism can be found::
 
     sage: f.solve(Sq(2)*Sq(4)*Sq(7)*gen)
     Sq(0,2)*g[0]
@@ -406,24 +404,34 @@ Homomorphisms can be composed as expected::
 Homological algebra
 -------------------
 
-The category of modules over `A` is Abelian, so kernels, images and cokernels
-all exist and can be computed through the API belonging to the homomorphism class
+The category of modules over `A` is Abelian, so kernels, images and
+cokernels all exist and can be computed through the API belonging to
+the homomorphism class
 :class:`sage.modules.fp_graded.steenrod.morphism.SteenrodFPModuleMorphism`.
 
-.. NOTE:: Functions like :meth:`kernel`, :meth:`cokernel`, :meth:`image`,
-    :meth:`homology` compute sub- and quotient modules related to homomorphisms,
-    but they do not return instances of the module class.  Rather, they return
-    the natural homomorphisms which connect these modules to the modules that
-    gave rise to them.
+.. NOTE:: Methods for morphisms like
+    :meth:`~sage.modules.fp_graded.steenrod.morphism.SteenrodFPModuleMorphism.kernel_inclusion`,
+    :meth:`~sage.modules.fp_graded.steenrod.morphism.SteenrodFPModuleMorphism.cokernel_projection`,
+    :meth:`~sage.modules.fp_graded.steenrod.morphism.SteenrodFPModuleMorphism.image`,
+    :meth:`~sage.modules.fp_graded.steenrod.morphism.SteenrodFPModuleMorphism.homology`
+    compute sub- and quotient modules related to homomorphisms, but
+    they do not return instances of the module class.  Rather, they
+    return the natural homomorphisms which connect these modules to
+    the modules that gave rise to them.
 
-    E.g. the function :meth:`kernel` returns an injective homomorphism
-    which is onto the kernel submodule we asked it to compute.  On the other
-    hand, the function :meth:`cokernel` provides a surjective homomorphism onto
-    the cokernel module.
+    E.g. the function
+    :meth:`~sage.modules.fp_graded.steenrod.morphism.SteenrodFPModuleMorphism.kernel_inclusion`
+    returns an injective homomorphism which is onto the kernel
+    submodule we asked it to compute.  On the other hand, the function
+    :meth:`~sage.modules.fp_graded.steenrod.morphism.SteenrodFPModuleMorphism.cokernel_projection`
+    provides a surjective homomorphism onto the cokernel module.
 
-    In each case, getting a reference to the module instance requires calling
-    :meth:`domain` or :meth:`codomain` on the returned homomorphism, depending
-    on the case.
+    In each case, getting a reference to the module instance requires
+    calling
+    :meth:`~sage.modules.fp_graded.steenrod.morphism.SteenrodFPModuleMorphism.domain`
+    or
+    :meth:`~sage.modules.fp_graded.steenrod.morphism.SteenrodFPModuleMorphism.codomain`
+    on the returned homomorphism, depending on the case.
 
     Refer to each function's documentation for specific details.
 
@@ -432,7 +440,7 @@ Cokernels
 .....................................
 
 In the following example, we define a cyclic module `H\ZZ` with one
-relation in two ways: First explicitly, and then as the cokernel of a
+relation in two ways: first explicitly, and then as the cokernel of a
 homomorphism of free modules.  We then construct a candidate for an isomorphism
 and check that it is both injective and surjective::
 
@@ -455,8 +463,8 @@ and check that it is both injective and surjective::
 Kernels
 .......
 
-When computing the kernel of a homomorphism `f`, the result is an injective homomorphism
-into the domain of `f`::
+When computing the kernel of a homomorphism `f`, the result is an
+injective homomorphism into the domain of `f`::
 
     sage: k = f.kernel_inclusion(); k
     Module morphism:
@@ -638,7 +646,8 @@ we let `L = \Sigma^{28}Hko`::
     sage: HZ = SteenrodFPModule(A, [0], [[Sq(1)]])
     sage: L = Hko.suspension(28)
 
-    sage: # The projection:
+The projection::
+
     sage: q = Hom(HZ, Hko)([Hko.generator(0)])
     sage: q
     Module morphism:
@@ -646,7 +655,8 @@ we let `L = \Sigma^{28}Hko`::
       To:   Finitely presented left module on 1 generator and 2 relations over mod 2 Steenrod algebra, milnor basis
       Defn: g[0] |--> g[0]
 
-    sage: # The map to lift over `q`:
+The map to lift over `q`::
+
     sage: f = Hom(L, Hko)([Sq(0,2,1,1)*Hko.generator(0)])
     sage: f
     Module morphism:
@@ -658,10 +668,10 @@ we let `L = \Sigma^{28}Hko`::
     False
 
 We will count the number of different lifts in two ways.  First, we will simply
-compute the vectorspace of all possible maps `L \to H\ZZ`, and then check which
+compute the vector space of all possible maps `L \to H\ZZ`, and then check which
 of those become `f` when composed with `q`::
 
-    sage: basis = Hom(L, HZ).basis_elements(0)   # The basis for the vectorspace of degree 0 maps L -> HZ
+    sage: basis = Hom(L, HZ).basis_elements(0)   # The basis for the vector space of degree 0 maps L -> HZ
 
     sage: from itertools import product
 
@@ -729,7 +739,7 @@ There is an exact sequence
 which means that the indeterminacy of choosing a lift for
 `f\in \operatorname{Hom}_A(L, Hko)` is represented by an element in
 `\operatorname{Hom}_A(L,\ker(f))`.  Therefore, we can proceed to count the
-number of lifts by computing this vectorspace of homomorphisms::
+number of lifts by computing this vector space of homomorphisms::
 
     sage: iK = q.kernel_inclusion()
     sage: K = iK.domain()
@@ -740,7 +750,7 @@ number of lifts by computing this vectorspace of homomorphisms::
     sage: ind = Hom(L, K).basis_elements(0); len(ind)
     2
 
-So now we know that the vectorspace of indeterminacies is 2-dimensional over the
+So now we know that the vector space of indeterminacies is 2-dimensional over the
 field of two elements.  This means that there are four distinct lifts of `f` over
 `q`, and we can construct these by taking the one lift we already found, and add
 to it all the different elements in the image of `iK_*`::
@@ -839,13 +849,13 @@ class SteenrodFPModule(FPModule):
 
     INPUT:
 
-    - ``generator_degrees`` -- A tuple integer degrees.
+    - ``generator_degrees`` -- tuple of integer degrees
 
-    - ``algebra`` -- The Steenrod algebra over which the module is defined.
+    - ``algebra`` -- the Steenrod algebra over which the module is defined
 
-    - ``relations`` -- A tuple of relations.  A relation is a tuple of
+    - ``relations`` -- tuple of relations; a relation is a tuple of
       coefficients `(c_1, \ldots, c_n)` corresponding to the module
-      generators.
+      generators
 
     OUTPUT: The finitely presented module over ``algebra`` with
     presentation given by ``generator_degrees`` and ``relations``.
@@ -916,7 +926,12 @@ class SteenrodFPModule(FPModule):
         r"""
         A finite profile over which this module can be defined.
 
-        .. NOTE:: The profile produced by this function is reasonably small,
+        Any finitely presented module over the Steenrod algebra can be
+        defined over a finite-dimensional sub-Hopf algebra, and this
+        method identifies such a sub-Hopf algebra and returns its
+        profile function.
+
+        .. NOTE:: The profile produced by this function is reasonably small
            but is not guaranteed to be minimal.
 
         EXAMPLES::
@@ -934,14 +949,14 @@ class SteenrodFPModule(FPModule):
             sage: X = SteenrodFPModule(A, [0])
             sage: X.profile()
             (1,)
-
         """
         elements = [coeffifient for value in self._j.values()\
                 for coeffifient in value.dense_coefficient_list()]
 
         elements = [a for a in elements if a not in (0, 1)]
 
-        profile = enveloping_profile_elements(elements)
+        profile = enveloping_profile_elements(elements,
+                                              char=self.base_ring().characteristic())
 
         # Avoid returning the zero profile because it triggers a corner case
         # in FPModule.resolution().
@@ -951,7 +966,7 @@ class SteenrodFPModule(FPModule):
         return (1,) if profile == (0,) else profile
 
 
-    def min_pres(self, verbose=False):
+    def minimal_presentation(self, verbose=False):
         r"""
         A minimal presentation of this module.
 
@@ -964,7 +979,7 @@ class SteenrodFPModule(FPModule):
             sage: A = SteenrodAlgebra(2)
             sage: M = SteenrodFPModule(A, [0,1], [[Sq(2),Sq(1)],[0,Sq(2)],[Sq(3),0]])
 
-            sage: i = M.min_pres()
+            sage: i = M.minimal_presentation()
             sage: i.codomain() is M
             True
 
@@ -985,13 +1000,16 @@ class SteenrodFPModule(FPModule):
 
     def resolution(self, k, top_dim=None, verbose=False):
         r"""
-        A resolution of this module of the given length.
+        A free resolution of this module of the given length.
 
         INPUT:
 
-        - ``k`` -- An non-negative integer.
-        - ``verbose`` -- A boolean to control if log messages should be emitted.
-          (optional, default: ``False``)
+        - ``k`` -- non-negative integer
+        - ``top_dim`` -- stop the computation at this degree
+          (optional, default ``None``, in which case the ending degree
+          is determined automatically)
+        - ``verbose`` -- ``True`` if log messages should be emitted.
+          (optional, default ``False``)
 
         OUTPUT: A list of homomorphisms `[\epsilon, f_1, \ldots, f_k]` such that
 
@@ -999,12 +1017,14 @@ class SteenrodFPModule(FPModule):
 
             `\epsilon: F_0\to M`,
 
-          where each `F_i` is a finitely generated free module, and the
-          sequence
+        where each `F_i` is a finitely generated free module, and the
+        sequence
 
             `F_k \xrightarrow{f_k} F_{k-1} \xrightarrow{f_{k-1}} \ldots \rightarrow F_0 \xrightarrow{\epsilon} M \rightarrow 0`
 
-          is exact.
+        is exact. Note that the 0th element in this list is the map
+        `\epsilon`, and the rest of the maps are between free
+        modules.
 
         EXAMPLES::
 

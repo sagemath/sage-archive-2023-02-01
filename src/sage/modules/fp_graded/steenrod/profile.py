@@ -34,7 +34,7 @@ from sage.rings.integer_ring import ZZ
 
 def profile_elt(elt, char=2):
     """
-    Finds the smallest sub-Hopf algebra containing the element passed.
+    The smallest sub-Hopf algebra containing the element passed
 
     INPUT:
 
@@ -164,13 +164,14 @@ def find_min_profile(prof, char=2):
 
     OUTPUT:
 
-    -  ``p`` - A valid profile containing ``p``.
+    -  ``prof_out`` - A valid profile containing ``prof``.
 
 
     A profile function `e` must satisfy `e(r) \geq \min( e(r-i) - i,
     e(i))` for all `0 < i < r`, and at odd primes, if `k(i+j) = 1`,
     then either `e(i) \leq j` or `k(j) = 1` for all `i \geq 1`, `j
-    \geq 0`. We use these inequalities to generate ``p`` from ``prof``.
+    \geq 0`. We use these inequalities to generate ``prof_out`` from
+    ``prof``.
 
     EXAMPLES::
 
@@ -194,8 +195,8 @@ def find_min_profile(prof, char=2):
     if char == 2:
         if not prof:
             return (0,)
-        # Add a zero to the front so that the pseudo-profile new is
-        # indexed starting with 1.
+        # Add a zero to the front so that the relevant part of the
+        # pseudo-profile new is indexed starting with 1.
         new = [0] + list(prof)
         # new is probably too short. Increase its length by using the
         # defining inequality for a profile function:

@@ -1130,6 +1130,9 @@ class FPModule(UniqueRepresentation, IndexedGenerators, Module):
         INPUT:
 
         - ``k`` -- an non-negative integer
+        - ``top_dim`` -- stop the computation at this degree
+          (optional, default ``None``, but required if the algebra is
+          not finite-dimensional)
         - ``verbose`` -- (default: ``False``) a boolean to control if
           log messages should be emitted
 
@@ -1152,7 +1155,9 @@ class FPModule(UniqueRepresentation, IndexedGenerators, Module):
             \xrightarrow{\mathit{f_{k-1}}} \ldots \rightarrow F_0
             \xrightarrow{\epsilon} M \rightarrow 0
 
-        is exact.
+        is exact. Note that the 0th element in this list is the map
+        `\epsilon`, and the rest of the maps are between free
+        modules.
 
         EXAMPLES::
 

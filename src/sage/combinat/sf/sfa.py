@@ -226,7 +226,7 @@ from sage.categories.tensor import tensor
 from sage.combinat.free_module import CombinatorialFreeModule
 from sage.matrix.constructor import matrix
 from sage.misc.misc_c import prod
-from sage.data_structures.blas_dict import coerce_remove_zeros
+from sage.data_structures.blas_dict import coerce_remove_zeros, linear_combination
 from copy import copy
 from functools import reduce
 
@@ -5280,14 +5280,11 @@ class SymmetricFunctionAlgebra_generic_Element(CombinatorialFreeModule.Element):
         zero = s.zero()
         R = parent.base_ring()
         import sage.libs.lrcalc.lrcalc as lrcalc
-        def f(part1, part2):
-            if not part1.contains(part2):
-                return zero
-            skewschur = lrcalc.skew(part1, part2)
-            for k in skewschur:
-                skewschur[k] = R(skewschur[k])
-            return s._from_dict(skewschur)
-        return parent(s._apply_multi_module_morphism(s(self), s(x), f))
+        ret = linear_combination((coerce_remove_zeros(lrcalc.skew(p1, p2), R), c1 * c2)
+                                 for p1, c1 in s(self)._monomial_coefficients.items()
+                                 for p2, c2 in s(x)._monomial_coefficients.items()
+                                 if p1.contains(p2))
+        return parent(s.element_class(s, ret))
 
     def hl_creation_operator(self, nu, t = None):
         r"""

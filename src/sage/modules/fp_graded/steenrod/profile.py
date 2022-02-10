@@ -217,17 +217,24 @@ def find_min_profile(prof, char=2):
         return tuple(e[1:])
 
     # odd primes:
-    pP, pQ = list(prof[0]), list(prof[1])
+    pP = list(prof[0])
+    pQ = list(prof[1])
     P = find_min_profile(pP, char=2)
     if not pQ:
         return (P, tuple(pQ))
     # newQ: dictionary of the form {index: value} where value is
     # either 1 or 2.
-    newQ = dict(enumerate(pQ))
+    maxP = max(P)
+    newQ = list(pQ) + [None] * maxP
     for j in range(len(pQ)):
-        for i in range(1, max(P)+1):
-            if P[i-1] > j and newQ[j] == 2:
-                newQ[i+j] = 2
-    # Convert the dictionary back to a list.
-    Q = [newQ[i] for i in sorted(newQ)]
-    return (P, tuple(Q))
+        if newQ[j] == 2:
+            for i in range(maxP):
+                if P[i] > j:
+                    newQ[i+1+j] = 2
+    # Strip all of the None values
+    # Do it from the back to minimize reshuffles and keep the index matching
+    for i in range(len(newQ)-1, len(pQ)-1, -1):
+        if newQ[i] is None:
+            del newQ[i]
+    return (P, tuple(newQ))
+

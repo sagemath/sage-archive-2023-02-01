@@ -129,7 +129,7 @@ usage() {
     echo "                           --optional - controls which optional tests are run"
     echo "                           --help - show all testing options"
     echo "  -v, --version       -- display Sage version information"
-    if [ -n "$SAGE_ROOT" ]; then
+    if [ -d "$SAGE_ROOT" ]; then
         exec "$SAGE_ROOT/build/bin/sage-site" "-h"
     fi
     exit 0
@@ -555,7 +555,7 @@ usage_advanced() {
     echo "                         files are named sage-omega.PID can be found in"
     echo "                         \$DOT_SAGE"
     echo "  --valgrind          -- this is an alias for --memcheck"
-    if [ -n "$SAGE_ROOT" ]; then
+    if [ -d "$SAGE_ROOT" ]; then
         exec "$SAGE_ROOT/build/bin/sage-site" "--advanced"
     fi
     echo
@@ -1131,7 +1131,7 @@ case "$1" in
     -*)
         # Delegate further option handling to the non-installed sage-site script.
         # (These options become unavailable if the directory $SAGE_ROOT is removed.)
-        if [ -n "$SAGE_ROOT" ]; then
+        if [ -d "$SAGE_ROOT" ]; then
             exec "$SAGE_ROOT/build/bin/sage-site" "$@"
             # fallthrough if there is no sage-site script
         fi

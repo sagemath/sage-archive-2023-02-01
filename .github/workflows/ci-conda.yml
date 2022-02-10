@@ -11,6 +11,11 @@ on:
   workflow_dispatch:
     # Allow to run manually
 
+concurrency:
+  # Cancel previous runs of this workflow for the same branch
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
 jobs:
   test:
     name: Conda
@@ -19,12 +24,30 @@ jobs:
     steps:
       - uses: actions/checkout@v2
 
+      - name: Check for Miniconda
+        id: check_conda
+        run: echo ::set-output name=installed::$(which miniconda)
+
+      - name: Install Miniconda
+        if: steps.check_conda.outputs.installed == ''
+        run: |
+          wget https://repo.anaconda.com/miniconda/Miniconda3-py39_4.10.3-Linux-x86_64.sh -O ~/miniconda.sh
+          bash ~/miniconda.sh -b -p $HOME/miniconda
+          echo "CONDA=$HOME/miniconda" >> $GITHUB_ENV
+
       - name: Prepare
         # Create conda environment file
         run: |
           apt-get update
           apt-get install -y gettext autoconf automake libtool pkg-config
           ./bootstrap
+
+      - name: Cache conda packages
+        uses: actions/cache@v2
+        with:
+          path: ~/conda_pkgs_dir
+          key:
+            ${{ runner.os }}-conda-${{ hashFiles('environment-python.yml') }}
 
       - name: Setup Conda
         uses: conda-incubator/setup-miniconda@v2
@@ -34,13 +57,17 @@ jobs:
           channels: conda-forge,defaults
           channel-priority: true
           activate-environment: sage-build
-          environment-file: environment.yml
+          environment-file: environment-python.yml
 
-      - run: |
+      - shell: bash -l {0}
+        run: |
           conda info
           conda list
-          mamba install conda-build
-          conde build ./src
+          ./configure --with-python=$CONDA_PREFIX/bin/python --with-system-gcc=force --enable-build-as-root
+          make ecl
+          pip install --no-build-isolation -v -v -e pkgs/sage-conf pkgs/sage-setup 
+          pip install --no-build-isolation -v -v -e src
 
       - name: Test
+        shell: bash -l {0}
         run: ./sage -t --all p0

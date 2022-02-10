@@ -24,6 +24,7 @@
 /environment-optional.yml
 /src/environment.yml
 /src/environment-optional.yml
+/environment-python.yml
 
 /src/setup.cfg
 /src/requirements.txt

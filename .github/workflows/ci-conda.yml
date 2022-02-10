@@ -64,7 +64,7 @@ jobs:
           conda info
           conda list
           ./configure --with-python=$CONDA_PREFIX/bin/python --with-system-gcc=force --enable-build-as-root
-          make ecl
+          make ecl gap
           pip install --no-build-isolation -v -v -e pkgs/sage-conf pkgs/sage-setup 
           pip install --no-build-isolation -v -v -e src
         env:

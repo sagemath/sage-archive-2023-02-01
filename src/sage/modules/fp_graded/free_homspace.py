@@ -70,3 +70,4 @@ class FreeGradedModuleHomspace(FPModuleHomspace):
                     g[3] |--> 0
         """
         return self.zero()
+

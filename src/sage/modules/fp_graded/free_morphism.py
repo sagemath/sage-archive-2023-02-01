@@ -237,7 +237,7 @@ class FreeGradedModuleMorphism(FPModuleMorphism):
         if self.codomain().has_relations():
             raise ValueError("this is not a morphism between free modules")
         try:
-            FPModule = self.base_ring()._fp_graded_module
+            FPModule = self.base_ring()._fp_graded_module_class
         except AttributeError:
             from .module import FPModule
         return FPModule(self)

@@ -1448,7 +1448,7 @@ class FPModuleMorphism(Morphism):
                          [x.dense_coefficient_list() for x in self._values])
 
         try:
-            FPModule = self.base_ring()._fp_graded_module
+            FPModule = self.base_ring()._fp_graded_module_class
         except AttributeError:
             from .module import FPModule
 
@@ -1470,7 +1470,7 @@ class FPModuleMorphism(Morphism):
 
         - ``top_dim`` -- integer (optional); used by this function to stop the
           computation at the given degree
-        - ``verbose`` -- boolean (default: ``False``) enable progress messages
+        - ``verbose`` -- boolean (default: ``False``); enable progress messages
 
         OUTPUT:
 
@@ -1680,44 +1680,35 @@ class FPModuleMorphism(Morphism):
 
         OUTPUT:
 
-        A homomorphism `j: F \rightarrow D` where `D` is the domain of ``self``,
-        where `F` is free and such that `\ker(self) = \operatorname{im}(j)`
+        A homomorphism `j: F \rightarrow D`, where `D` is the domain of
+        ``self`` and `F` is free and such that `\ker(self) = \operatorname{im}(j)`
         in all degrees less than or equal to ``top_dim``.
 
         .. NOTE::
 
-            If the algebra for this module is finite, then no
+            If the algebra for this module is finite dimensional, then no
             ``top_dim`` needs to be specified in order to ensure that
             this function terminates.
 
         TESTS::
 
             sage: from sage.modules.fp_graded.module import FPModule
-            sage: A = SteenrodAlgebra(2)
-            sage: F = FPModule(A, [0,0])
-            sage: L = FPModule(A, [0,0], [[Sq(3),Sq(0,1)], [0,Sq(2)]])
-            sage: f = Hom(F, L)([L([Sq(2), 0]), L([0, Sq(2)])])
+            sage: s = SymmetricFunctions(QQ).s()
+            sage: F = s.free_graded_module([0,0])
+            sage: L = FPModule(s, [0,0], [[s[3],s[2,1]], [0,s[2]]])
+            sage: f = Hom(F, L)([L([s[2], 0]), L([0, s[2]])])
             sage: f._resolve_kernel()
             Traceback (most recent call last):
             ...
             ValueError: a top dimension must be specified for this calculation to terminate
-            sage: f._resolve_kernel(top_dim=20)
+            sage: f._resolve_kernel(top_dim=10)
             Module morphism:
               From: Free graded left module on 3 generators over mod 2 Steenrod algebra, milnor basis
               To:   Free graded left module on 2 generators over mod 2 Steenrod algebra, milnor basis
               Defn: g[0, 0] |--> g[0, 1]
                     g[3, 0] |--> Sq(0,1)*g[0, 0]
                     g[3, 1] |--> Sq(3)*g[0, 0]
-            sage: A3 = SteenrodAlgebra(2, profile=(4,3,2,1))
-            sage: f.change_ring(A3)._resolve_kernel()  # long time
-            Module morphism:
-              From: Free graded left module on 3 generators over sub-Hopf algebra of mod 2 Steenrod algebra, milnor basis, profile function [4, 3, 2, 1]
-              To:   Free graded left module on 2 generators over sub-Hopf algebra of mod 2 Steenrod algebra, milnor basis, profile function [4, 3, 2, 1]
-              Defn: g[0, 0] |--> g[0, 1]
-                    g[3, 0] |--> Sq(0,1)*g[0, 0]
-                    g[3, 1] |--> Sq(3)*g[0, 0]
         """
-        from .free_module import FreeGradedModule
         # Let
         #
         #  1) `j` be a homomorphism into `\ker(self)`, and
@@ -1836,28 +1827,21 @@ class FPModuleMorphism(Morphism):
 
         TESTS::
 
-            sage: from sage.modules.fp_graded.module import *
-            sage: A = SteenrodAlgebra(2)
-            sage: F = FPModule(A, [0,0])
-            sage: L = FPModule(A, [0,0], [[Sq(3),Sq(0,1)], [0,Sq(2)]])
-            sage: f = Hom(F, L)([L([Sq(2),0]), L([0, Sq(2)])])
+            sage: from sage.modules.fp_graded.module import FPModule
+            sage: s = SymmetricFunctions(QQ).s()
+            sage: F = s.free_graded_module([0,0])
+            sage: L = FPModule(s, [0,0], [[s[3],s[2,1]], [0,s[2]]])
+            sage: f = Hom(F, L)([L([s[2], 0]), L([0, s[2]])])
             sage: f._resolve_image()
             Traceback (most recent call last):
             ...
             ValueError: a top dimension must be specified for this calculation to terminate
-            sage: f._resolve_image(top_dim=20)
+            sage: f._resolve_image(top_dim=10)
             Module morphism:
-              From: Free graded left module on 1 generator over mod 2 Steenrod algebra, milnor basis
-              To:   Finitely presented left module on 2 generators and 2 relations over mod 2 Steenrod algebra, milnor basis
-              Defn: g[2] |--> Sq(2)*g[0, 0]
-            sage: A3 = SteenrodAlgebra(2, profile=(4,3,2,1))
-            sage: f.change_ring(A3)._resolve_image() # long time
-            Module morphism:
-              From: Free graded left module on 1 generator over sub-Hopf algebra of mod 2 Steenrod algebra, milnor basis, profile function [4, 3, 2, 1]
-              To:   Finitely presented left module on 2 generators and 2 relations over sub-Hopf algebra of mod 2 Steenrod algebra, milnor basis, profile function [4, 3, 2, 1]
-              Defn: g[2] |--> Sq(2)*g[0, 0]
+              From: Free graded left module on 1 generator over Symmetric Functions over Rational Field in the Schur basis
+              To:   Finitely presented left module on 2 generators and 2 relations over Symmetric Functions over Rational Field in the Schur basis
+              Defn: s[]*g[2] |--> s[2]*g[0, 0]
         """
-        from .free_module import FreeGradedModule
         # Let
         #
         #  1) `j` be a homomorphism into `\im(self)`, and
@@ -1999,7 +1983,7 @@ class FPModuleMorphism(Morphism):
         if self.domain().has_relations() or self.codomain().has_relations():
             raise ValueError("this is not a morphism between free modules")
         try:
-            FPModule = self.base_ring()._fp_graded_module
+            FPModule = self.base_ring()._fp_graded_module_class
         except AttributeError:
             from .module import FPModule
         return FPModule(self.base_ring(),

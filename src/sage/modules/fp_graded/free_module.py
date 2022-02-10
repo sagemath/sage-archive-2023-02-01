@@ -352,8 +352,8 @@ class FreeGradedModule(CombinatorialFreeModule):
         sage: M.gens()
         (x, y, z)
     """
-    def __classcall_private__(cls, algebra, generator_degrees, category=None,
-                              names=None, prefix=None, **kwds):
+    def __classcall__(cls, algebra, generator_degrees, category=None,
+                      names=None, prefix=None, **kwds):
         """
         Normalize input to ensure a unique representation.
 
@@ -461,7 +461,7 @@ class FreeGradedModule(CombinatorialFreeModule):
         """
         # We use the base class to avoid the category mixed one
         return type(self).__base__(algebra, self.generator_degrees(),
-                                   names=self._names)
+                                   prefix=self.prefix(), names=self._names)
 
 
     def _repr_(self):

@@ -843,9 +843,187 @@ from sage.categories.homset import Hom
 from sage.rings.infinity import infinity
 from sage.algebras.steenrod.steenrod_algebra import SteenrodAlgebra_generic
 from sage.modules.fp_graded.module import FPModule
+from sage.modules.fp_graded.free_module import FreeGradedModule
 from .profile import enveloping_profile_elements
 
-class SteenrodFPModule(FPModule):
+class SteenrodModuleMixin:
+    """
+    Mixin class for common methods of the Steenrod algebra modules.
+    """
+    def profile(self):
+        r"""
+        Return a finite profile over which ``self`` can be defined.
+
+        Any finitely presented module over the Steenrod algebra can be
+        defined over a finite-dimensional sub-Hopf algebra, and this
+        method identifies such a sub-Hopf algebra and returns its
+        profile function.
+
+        .. NOTE::
+
+            The profile produced by this function is reasonably small
+            but is not guaranteed to be minimal.
+
+        EXAMPLES::
+
+            sage: from sage.modules.fp_graded.steenrod.module import SteenrodFPModule
+            sage: A = SteenrodAlgebra(2)
+            sage: M = SteenrodFPModule(A, [0,1], [[Sq(2),Sq(1)],[0,Sq(2)],[Sq(3),0]])
+            sage: M.profile()
+            (2, 1)
+
+        TESTS::
+
+            sage: from sage.modules.fp_graded.steenrod.module import SteenrodFPModule
+            sage: A = SteenrodAlgebra(2)
+            sage: X = SteenrodFPModule(A, [0])
+            sage: X.profile()
+            (1,)
+        """
+        elements = [coeffifient for value in self.relations()
+                    for coeffifient in value.dense_coefficient_list()]
+
+        elements = [a for a in elements if a not in (0, 1)]
+
+        profile = enveloping_profile_elements(elements,
+                                              char=self.base_ring().characteristic())
+
+        # Avoid returning the zero profile because it triggers a corner case
+        # in FPModule.resolution().
+        #
+        # XXX todo: Fix FPModule_class.resolution().
+        #
+        return (1,) if profile == (0,) else profile
+
+    def export_module_definition(self, powers_of_two_only=True):
+        r"""
+        Return the module to the input
+        `format used by R. Bruner's Ext software
+        <http://www.math.wayne.edu/~rrb/cohom/modfmt.html>`_ as a string.
+
+        INPUT:
+
+        - ``powers_of_two_only`` -- boolean (default: ``True``); if the
+          output should contain the action of all Steenrod squaring operations
+          (restricted by the profile), or only the action of the operations
+          of degree equal to a power of two
+
+        EXAMPLES::
+
+            sage: from sage.modules.fp_graded.steenrod.module import SteenrodFPModule
+            sage: A1 = algebra=SteenrodAlgebra(p=2, profile=[2,1])
+            sage: M = SteenrodFPModule(A1, [0])
+            sage: print(M.export_module_definition())
+            8 0 1 2 3 3 4 5 6
+            0 1 1 1
+            2 1 1 4
+            3 1 1 5
+            6 1 1 7
+            0 2 1 2
+            1 2 2 3 4
+            2 2 1 5
+            3 2 1 6
+            4 2 1 6
+            5 2 1 7
+            sage: N = SteenrodFPModule(A1, [0], [[Sq(1)]])
+            sage: print(N.export_module_definition())
+            4 0 2 3 5
+            1 1 1 2
+            0 2 1 1
+            2 2 1 3
+            sage: print(N.export_module_definition(powers_of_two_only=False))
+            4 0 2 3 5
+            1 1 1 2
+            0 2 1 1
+            2 2 1 3
+            0 3 1 2
+            sage: A2 = SteenrodAlgebra(p=2, profile=[3,2,1])
+            sage: Hko = SteenrodFPModule(A2, [0], [[Sq(1)], [Sq(2)]])
+            sage: print(Hko.export_module_definition())
+            8 0 4 6 7 10 11 13 17
+            2 1 1 3
+            4 1 1 5
+            1 2 1 2
+            5 2 1 6
+            0 4 1 1
+            2 4 1 4
+            3 4 1 5
+            6 4 1 7
+
+        """
+        if not self.base_ring().is_finite():
+            raise (ValueError, 'this module is not defined over a finite algebra')
+            return
+
+        if self.base_ring().characteristic() != 2:
+            raise (ValueError, 'this function is not implemented for odd primes')
+            return
+
+        n = self.connectivity()
+        if n == infinity:
+            print('The module connectivity is infinite, so there is ' +
+                  'nothing to export.')
+            return
+
+        limit = self.base_ring().top_class().degree() + max(self.generator_degrees())
+
+        # Create a list of bases, one for every module degree we consider.
+        vector_space_basis = [self.basis_elements(i) for i in range(n, limit+1)]
+        # print (vector_space_basis)
+
+        additive_generator_degrees = []
+        additive_generator_global_indices = [0]
+        for dim, basis_vectors in enumerate(vector_space_basis):
+            additive_generator_global_indices.append(
+                len(basis_vectors) + additive_generator_global_indices[-1])
+            additive_generator_degrees += len(basis_vectors) * [dim + n]
+
+        # Print the degrees of the additive generators.
+        ret = '%d %s' % (len(additive_generator_degrees),
+                         ' '.join(['%d' % x for x in additive_generator_degrees]))
+
+        # A private function which transforms a vector in a given dimension
+        # to a vector of global indices for the basis elements corresponding
+        # to the non-zero entries in the vector.  E.g.
+        # _GetIndices(dim=2, vec=(1,0,1)) will return a vector of length two,
+        # (a, b), where a is the index of the first vector in the basis for
+        # the 2-dimensional part of the module, and b is the index of the
+        # last vector in the same part.
+        def _GetIndices(dim, vec):
+            if len(vector_space_basis[dim]) != len(vec):
+                raise ValueError('the given vector\n%s\nhas the wrong size, it should be %d' % (str(vec), len(vector_space_basis[dim])))
+            base_index = additive_generator_global_indices[dim]
+            return [base_index + a for a,c in enumerate(vec) if c != 0]
+
+        profile = self.base_ring()._profile
+        if powers_of_two_only:
+            powers = [2**i for i in range(profile[0])]
+        else:
+            powers = range(1, 2**profile[0])
+
+        R = self.base_ring()
+        for k in powers:
+            Sqk = R.Sq(k)
+            images = [[(Sqk*x).vector_presentation() for x in D]
+                      for D in vector_space_basis]
+
+            element_index = 0
+
+            # Note that the variable dim is relative to the bottom dimension, n.
+            for dim, image in enumerate(images):
+                for im in image:
+                    if im != 0 and im != None:
+                        values = _GetIndices(dim + k, im)
+
+                        ret += "\n%d %d %d %s" % (
+                            element_index,
+                            k,
+                            len(values),
+                            " ".join(["%d" % x for x in values]))
+                    element_index += 1
+        return ret
+
+class SteenrodFPModule(FPModule, SteenrodModuleMixin):
     r"""
     Create a finitely presented module over the Steenrod algebra.
 
@@ -887,85 +1065,6 @@ class SteenrodFPModule(FPModule):
         """
         from .homspace import SteenrodFPModuleHomspace
         return SteenrodFPModuleHomspace(self, other, category=category)
-
-
-    def change_ring(self, algebra):
-        r"""
-        Change the base ring of ``self``.
-
-        INPUT:
-
-        - ``algebra`` -- a connected graded algebra
-
-        OUTPUT:
-
-        The finitely presented module over ``algebra`` defined with the
-        exact same number of generators of the same degrees and relations
-        as ``self``.
-
-        EXAMPLES::
-
-            sage: from sage.modules.fp_graded.steenrod.module import SteenrodFPModule
-            sage: A = SteenrodAlgebra(2)
-            sage: A1 = SteenrodAlgebra(2, profile=(2,1))
-
-            sage: M = SteenrodFPModule(A, [0,1], [[Sq(2), Sq(1)]])
-            sage: N = M.change_ring(A1); N
-            Finitely presented left module on 2 generators and 1 relation over
-             sub-Hopf algebra of mod 2 Steenrod algebra, milnor basis, profile function [2, 1]
-
-        Changing back yields the original module::
-
-            sage: N.change_ring(A) is M
-            True
-        """
-        return SteenrodFPModule(self._j.change_ring(algebra))
-
-
-    def profile(self):
-        r"""
-        Return a finite profile over which ``self`` can be defined.
-
-        Any finitely presented module over the Steenrod algebra can be
-        defined over a finite-dimensional sub-Hopf algebra, and this
-        method identifies such a sub-Hopf algebra and returns its
-        profile function.
-
-        .. NOTE::
-
-            The profile produced by this function is reasonably small
-            but is not guaranteed to be minimal.
-
-        EXAMPLES::
-
-            sage: from sage.modules.fp_graded.steenrod.module import SteenrodFPModule
-            sage: A = SteenrodAlgebra(2)
-            sage: M = SteenrodFPModule(A, [0,1], [[Sq(2),Sq(1)],[0,Sq(2)],[Sq(3),0]])
-            sage: M.profile()
-            (2, 1)
-
-        TESTS::
-
-            sage: from sage.modules.fp_graded.steenrod.module import SteenrodFPModule
-            sage: A = SteenrodAlgebra(2)
-            sage: X = SteenrodFPModule(A, [0])
-            sage: X.profile()
-            (1,)
-        """
-        elements = [coeffifient for value in self._j.values()
-                    for coeffifient in value.dense_coefficient_list()]
-
-        elements = [a for a in elements if a not in (0, 1)]
-
-        profile = enveloping_profile_elements(elements,
-                                              char=self.base_ring().characteristic())
-
-        # Avoid returning the zero profile because it triggers a corner case
-        # in FPModule.resolution().
-        #
-        # XXX todo: Fix FPModule_class.resolution().
-        #
-        return (1,) if profile == (0,) else profile
 
 
     def minimal_presentation(self, verbose=False):
@@ -1085,127 +1184,31 @@ class SteenrodFPModule(FPModule):
         return [j.change_ring(self.base_ring()) for j in res]
 
 
-    def export_module_definition(self, powers_of_two_only=True):
+class SteenrodFreeModule(FreeGradedModule, SteenrodModuleMixin):
+    def _Hom_(self, Y, category):
         r"""
-        Export the module to the input
-        `format used by R. Bruner's Ext software
-        <http://www.math.wayne.edu/~rrb/cohom/modfmt.html>`_.
+        The internal hook used by the free function
+        :meth:`sage.categories.homset.hom.Hom` to create homsets
+        involving ``self``.
 
-        INPUT:
+        TESTS::
 
-        - ``powers_of_two_only`` -- boolean (default: ``True``); if the
-          output should contain the action of all Steenrod squaring operations
-          (restricted by the profile), or only the action of the operations
-          of degree equal to a power of two
+            sage: from sage.modules.fp_graded.free_module import FreeGradedModule
+            sage: A = SteenrodAlgebra(2)
+            sage: M = FreeGradedModule(A, (0,1))
+            sage: M._Hom_(M, category=None)
+            Set of Morphisms from Free graded left module on 2 generators
+              over mod 2 Steenrod algebra, milnor basis
+             to Free graded left module on 2 generators
+              over mod 2 Steenrod algebra, milnor basis
+             in Category of finite dimensional graded modules with basis
+              over mod 2 Steenrod algebra, milnor basis
 
-        EXAMPLES::
-
-            sage: from sage.modules.fp_graded.steenrod.module import SteenrodFPModule
-            sage: A1 = algebra=SteenrodAlgebra(p=2, profile=[2,1])
-            sage: M = SteenrodFPModule(A1, [0])
-            sage: M.export_module_definition()
-            8 0 1 2 3 3 4 5 6
-            0 1 1 1
-            2 1 1 4
-            3 1 1 5
-            6 1 1 7
-            0 2 1 2
-            1 2 2 3 4
-            2 2 1 5
-            3 2 1 6
-            4 2 1 6
-            5 2 1 7
-            sage: N = SteenrodFPModule(A1, [0], [[Sq(1)]])
-            sage: N.export_module_definition()
-            4 0 2 3 5
-            1 1 1 2
-            0 2 1 1
-            2 2 1 3
-            sage: N.export_module_definition(powers_of_two_only=False)
-            4 0 2 3 5
-            1 1 1 2
-            0 2 1 1
-            2 2 1 3
-            0 3 1 2
-            sage: A2 = SteenrodAlgebra(p=2, profile=[3,2,1])
-            sage: Hko = SteenrodFPModule(A2, [0], [[Sq(1)], [Sq(2)]])
-            sage: Hko.export_module_definition()
-            8 0 4 6 7 10 11 13 17
-            2 1 1 3
-            4 1 1 5
-            1 2 1 2
-            5 2 1 6
-            0 4 1 1
-            2 4 1 4
-            3 4 1 5
-            6 4 1 7
-
+            sage: from sage.modules.fp_graded.module import FPModule
+            sage: F = FPModule(A, [1,3])
+            sage: Hom(M, F)
+            Set of Morphisms from Free graded left module on 2 generators ...
         """
-        if not self.base_ring().is_finite():
-            raise (ValueError, 'this module is not defined over a finite algebra')
-            return
-
-        if self.base_ring().characteristic() != 2:
-            raise (ValueError, 'this function is not implemented for odd primes')
-            return
-
-        n = self.connectivity()
-        if n == infinity:
-            print('The module connectivity is infinite, so there is ' +
-                  'nothing to export.')
-            return
-
-        limit = self.base_ring().top_class().degree() + max(self.generator_degrees())
-
-        # Create a list of bases, one for every module degree we consider.
-        vector_space_basis = [self.basis_elements(i) for i in range(n, limit+1)]
-        # print (vector_space_basis)
-
-        additive_generator_degrees = []
-        additive_generator_global_indices = [0]
-        for dim, basis_vectors in enumerate(vector_space_basis):
-            additive_generator_global_indices.append(
-                len(basis_vectors) + additive_generator_global_indices[-1])
-            additive_generator_degrees += len(basis_vectors)*[dim + n]
-
-        # Print the degrees of the additive generators.
-        print('%d %s' % (
-            len(additive_generator_degrees),
-            ' '.join(['%d' % x for x in additive_generator_degrees])))
-
-        # A private function which transforms a vector in a given dimension
-        # to a vector of global indices for the basis elements corresponding
-        # to the non-zero entries in the vector.  E.g.
-        # _GetIndices(dim=2, vec=(1,0,1)) will return a vector of length two,
-        # (a, b), where a is the index of the first vector in the basis for
-        # the 2-dimensional part of the module, and b is the index of the
-        # last vector in the same part.
-        def _GetIndices(dim, vec):
-            if len(vector_space_basis[dim]) != len(vec):
-                raise ValueError('the given vector\n%s\nhas the wrong size, it should be %d' % (str(vec), len(vector_space_basis[dim])))
-            base_index = additive_generator_global_indices[dim]
-            return [base_index + a for a,c in enumerate(vec) if c != 0]
-
-        profile = self.base_ring()._profile
-        powers = [2**i for i in range(profile[0])] if powers_of_two_only else\
-            range(1, 2**profile[0])
-
-        for k in powers:
-            images = [[(self.base_ring().Sq(k)*x).vector_presentation() for x in D]\
-                      for D in vector_space_basis]
-
-            element_index = 0
-
-            # Note that the variable dim is relative to the bottom dimension, n.
-            for dim, image in enumerate(images):
-                for im in image:
-                    if im != 0 and im != None:
-                        values = _GetIndices(dim + k, im)
-
-                        print ("%d %d %d %s" % (
-                            element_index,
-                            k,
-                            len(values),
-                            " ".join(["%d" % x for x in values])))
-                    element_index += 1
+        from sage.modules.fp_graded.steenrod.homspace import SteenrodFreeModuleHomspace
+        return SteenrodFreeModuleHomspace(self, Y, category)
 

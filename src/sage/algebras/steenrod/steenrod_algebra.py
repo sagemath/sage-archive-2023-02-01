@@ -631,8 +631,9 @@ class SteenrodAlgebra_generic(CombinatorialFreeModule):
                                          scalar_mult=' ')
 
         # For the graded modules
-        from sage.modules.fp_graded.steenrod.module import SteenrodFPModule
-        self._fp_graded_module = SteenrodFPModule
+        from sage.modules.fp_graded.steenrod.module import SteenrodFPModule, SteenrodFreeModule
+        self._fp_graded_module_class = SteenrodFPModule
+        self._free_graded_module_class = SteenrodFreeModule
 
     def _basis_key_iterator(self):
         """

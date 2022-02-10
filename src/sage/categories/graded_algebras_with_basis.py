@@ -120,8 +120,11 @@ class GradedAlgebrasWithBasis(GradedModulesCategory):
                 sage: N.generators()
                 (xy, z)
             """
-            from sage.modules.fp_graded.free_module import FreeGradedModule
-            return FreeGradedModule(self, generator_degrees, names=names)
+            try:
+                return self._free_graded_module_class(self, generator_degrees, names=names)
+            except AttributeError:
+                from sage.modules.fp_graded.free_module import FreeGradedModule
+                return FreeGradedModule(self, generator_degrees, names=names)
 
 
     class ElementMethods:

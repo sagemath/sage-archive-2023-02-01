@@ -131,7 +131,7 @@ class FPModule(UniqueRepresentation, IndexedGenerators, Module):
         sage: Z.is_trivial()
         True
 
-        sage: FPModule(FreeGradedModule(E, [0, 1]))
+        sage: FPModule(E.free_graded_module([0, 1]))
         Free graded left module on 2 generators over The exterior algebra of rank 2 over Rational Field
     """
     @staticmethod
@@ -154,12 +154,13 @@ class FPModule(UniqueRepresentation, IndexedGenerators, Module):
 
         # If given a morphism, then that defines a module
         if isinstance(arg0, Morphism):
+            if arg0.is_zero():
+                # This morphism defines a free module, so just use the codomain
+                return arg0.codomain()
             return super(FPModule, cls).__classcall__(cls, arg0, names=names)
 
         if isinstance(arg0, FreeGradedModule):
-            zero = arg0.base_ring().free_graded_module(())
-            j = zero.Hom(arg0).zero()
-            return super(FPModule, cls).__classcall__(cls, j, names=names)
+            return arg0
 
         if generator_degrees is None:
             raise ValueError("the generator_degrees must be specified")
@@ -268,8 +269,26 @@ class FPModule(UniqueRepresentation, IndexedGenerators, Module):
 
             sage: N.change_ring(A) is M
             True
+
+        TESTS:
+
+        Subclasses preserve their type::
+
+            sage: from sage.modules.fp_graded.steenrod.module import SteenrodFPModule
+            sage: A = SteenrodAlgebra(2)
+            sage: A1 = SteenrodAlgebra(2, profile=(2,1))
+
+            sage: M = SteenrodFPModule(A, [0,1], [[Sq(2), Sq(1)]])
+            sage: N = M.change_ring(A1)
+            sage: isinstance(N, SteenrodFPModule)
+            True
+
+        Changing back yields the original module::
+
+            sage: N.change_ring(A) is M
+            True
         """
-        return type(self).__base__(self._j.change_ring(algebra))
+        return type(self).__base__(self._j.change_ring(algebra), names=self._names)
 
 
     def _from_dict(self, d, coerce=False, remove_zeros=True):
@@ -1240,9 +1259,9 @@ class FPModule(UniqueRepresentation, IndexedGenerators, Module):
             sage: M = FPModule(A2, [0,1], [[Sq(2), Sq(1)]])
             sage: res2 = M.resolution(2)
             sage: [type(f) for f in res2]
-            [<class 'sage.modules.fp_graded.free_homspace.FreeGradedModuleHomspace_with_category_with_equality_by_id.element_class'>,
-             <class 'sage.modules.fp_graded.free_homspace.FreeGradedModuleHomspace_with_category_with_equality_by_id.element_class'>,
-             <class 'sage.modules.fp_graded.free_homspace.FreeGradedModuleHomspace_with_category_with_equality_by_id.element_class'>]
+            [<class '...SteenrodFreeModuleHomspace...'>,
+             <class '...SteenrodFreeModuleHomspace...'>,
+             <class '...SteenrodFreeModuleHomspace...'>]
         """
         def _print_progress(i, k):
             if verbose:

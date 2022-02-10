@@ -396,8 +396,8 @@ class RingDerivationModule(Module, UniqueRepresentation):
             self._gens = self._basis = [ None ]
             self._dual_basis = [ domain.gen() ]
         elif isinstance(domain, FunctionField):
-            self._base_derivation = RingDerivationModule(domain.base_ring(), defining_morphism)
             if domain.is_separable():
+                self._base_derivation = RingDerivationModule(domain.base_ring(), defining_morphism)
                 from sage.rings.function_field.maps import FunctionFieldDerivation_separable
                 self.Element = FunctionFieldDerivation_separable
                 try:
@@ -410,9 +410,13 @@ class RingDerivationModule(Module, UniqueRepresentation):
                 except NotImplementedError:
                     pass
             else:
-                #from sage.rings.function_field.maps import FunctionFieldDerivation_inseparable
-                #self.Element = FunctionFieldDerivation_inseparable
-                raise NotImplementedError
+                M, self._f, self._t = domain.separable_model()
+                self._base_derivation = RingDerivationModule(M, M) # , defining_morphism * self._f)
+                self._d = self._base_derivation(None)
+                from sage.rings.function_field.maps import FunctionFieldDerivation_inseparable
+                self.Element = FunctionFieldDerivation_inseparable
+                self._gens = self._basis = [ None ]
+                self._dual_basis = [ self._f(M.base_ring().gen()) ]
         else:
             raise NotImplementedError("derivations over this ring is not implemented")
         if self._basis is None:

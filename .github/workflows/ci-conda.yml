@@ -59,12 +59,23 @@ jobs:
           activate-environment: sage-build
           environment-file: environment-python.yml
 
-      - shell: bash -l {0}
+      - name: Print Conda environment
+        shell: bash -l {0}
         run: |
           conda info
           conda list
-          ./configure --with-python=$CONDA_PREFIX/bin/python --with-system-gcc=force --enable-build-as-root
-          make ecl gap
+
+      - name: Configure
+        shell: bash -l {0}
+        run: ./configure --with-python=$CONDA_PREFIX/bin/python --with-system-gcc=force --enable-build-as-root
+        
+      - name: Install missing system packages
+        shell: bash -l {0}
+        run: make ecl gap
+
+      - name: Build
+        shell: bash -l {0}
+        run: |
           pip install --no-build-isolation -v -v -e pkgs/sage-conf pkgs/sage-setup 
           pip install --no-build-isolation -v -v -e src
         env:

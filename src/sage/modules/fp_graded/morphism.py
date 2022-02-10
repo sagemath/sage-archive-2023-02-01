@@ -70,7 +70,8 @@ def _create_relations_matrix(module, relations, source_degs, target_degs):
         sage: from sage.modules.fp_graded.module import FPModule
         sage: from sage.modules.fp_graded.morphism import _create_relations_matrix
         sage: A = SteenrodAlgebra(p=2)
-        sage: blocks, R = _create_relations_matrix(FPModule(A, [0]), [[Sq(2)]], [4], [6])
+        sage: M = FPModule(A, [0], [[0]])
+        sage: blocks, R = _create_relations_matrix(M, [[Sq(2)]], [4], [6])
 
         sage: blocks
           [[Vector space morphism represented by the matrix:
@@ -1418,7 +1419,7 @@ class FPModuleMorphism(Morphism):
 
     def cokernel_projection(self):
         r"""
-        Compute the map to the cokernel of ``self``.
+        Return the map to the cokernel of ``self``.
 
         OUTPUT:
 
@@ -1442,14 +1443,19 @@ class FPModuleMorphism(Morphism):
             sage: co.domain().is_trivial()
             False
         """
-        from .module import FPModule
         new_relations = ([x.dense_coefficient_list()
                           for x in self.codomain().relations()] +
                          [x.dense_coefficient_list() for x in self._values])
 
+        try:
+            FPModule = self.base_ring()._fp_graded_module
+        except AttributeError:
+            from .module import FPModule
+
+        # FIXME: This seems circular as FPModule builds a morphism.
         coker = FPModule(self.base_ring(),
-                    self.codomain().generator_degrees(),
-                    relations=tuple(new_relations))
+                         self.codomain().generator_degrees(),
+                         relations=tuple(new_relations))
 
         projection = Hom(self.codomain(), coker)(coker.generators())
 
@@ -1458,7 +1464,7 @@ class FPModuleMorphism(Morphism):
 
     def kernel_inclusion(self, top_dim=None, verbose=False):
         r"""
-        Compute the kernel of ``self``.
+        Return the kernel of ``self``.
 
         INPUT:
 
@@ -1729,12 +1735,12 @@ class FPModuleMorphism(Morphism):
 
         if self.is_zero():
             # Epsilon: F_0 -> M
-            F_0 = FreeGradedModule(R, domain.generator_degrees())
+            F_0 = R.free_graded_module(domain.generator_degrees())
             epsilon = Hom(F_0, domain)(tuple(domain.generators()))
             return epsilon
 
         # Create the trivial module F_ to start with.
-        F_ = FreeGradedModule(R, ())
+        F_ = R.free_graded_module(())
         j = Hom(F_, domain).zero()
 
         dim = domain.connectivity()
@@ -1779,7 +1785,7 @@ class FPModuleMorphism(Morphism):
             if j.is_zero():
                 # The map j is not onto in degree `n` of the kernel.
                 new_generator_degrees = kernel_n.rank() * (n,)
-                F_ = FreeGradedModule(R, generator_degrees + new_generator_degrees)
+                F_ = R.free_graded_module(generator_degrees + new_generator_degrees)
 
                 new_values = tuple([
                     domain.element_from_coordinates(q, n) for q in kernel_n.basis()])
@@ -1792,7 +1798,7 @@ class FPModuleMorphism(Morphism):
 
                 # The map j is not onto in degree `n` of the kernel.
                 new_generator_degrees = Q_n.rank() * (n,)
-                F_ = FreeGradedModule(R, generator_degrees + new_generator_degrees)
+                F_ = R.free_graded_module(generator_degrees + new_generator_degrees)
 
                 new_values = tuple([
                     domain.element_from_coordinates(Q_n.lift(q), n) for q in Q_n.basis()])
@@ -1867,7 +1873,7 @@ class FPModuleMorphism(Morphism):
         # Create the trivial module F_ to start with.
         R = self.base_ring()
         codomain = self.codomain()
-        F_ = FreeGradedModule(R, ())
+        F_ = R.free_graded_module(())
         j = Hom(F_, codomain).zero()
 
         dim = self.codomain().connectivity()
@@ -1915,7 +1921,7 @@ class FPModuleMorphism(Morphism):
             if j.is_zero():
                 # The map j is not onto in degree `n` of the image.
                 new_generator_degrees = image_n.rank() * (n,)
-                F_ = FreeGradedModule(R, generator_degrees + new_generator_degrees)
+                F_ = R.free_graded_module(generator_degrees + new_generator_degrees)
 
                 new_values = tuple([
                     self.codomain().element_from_coordinates(q, n) for q in image_n.basis()])
@@ -1930,7 +1936,7 @@ class FPModuleMorphism(Morphism):
 
                 # The map j is not onto in degree `n` of the image.
                 new_generator_degrees = Q_n.rank() * (n,)
-                F_ = FreeGradedModule(R, generator_degrees + new_generator_degrees)
+                F_ = R.free_graded_module(generator_degrees + new_generator_degrees)
 
                 new_values = tuple([
                     self.codomain().element_from_coordinates(Q_n.lift(q), n) for q in Q_n.basis()])
@@ -1952,12 +1958,15 @@ class FPModuleMorphism(Morphism):
         The finitely presented module having presentation equal to ``self``
         as long as the domain and codomain are free.
 
-        EXAMPLES::
+        EXAMPLES:
+
+        We construct examples with free modules that are presented
+        with a redundant relation::
 
             sage: from sage.modules.fp_graded.module import FPModule
             sage: A = SteenrodAlgebra(2)
-            sage: F1 = FPModule(A, (2,))
-            sage: F2 = FPModule(A, (0,))
+            sage: F1 = FPModule(A, (2,), [[0]])
+            sage: F2 = FPModule(A, (0,), [[0]])
             sage: v = F2([Sq(2)])
             sage: pres = Hom(F1, F2)([v])
             sage: M = pres.fp_module(); M
@@ -1989,41 +1998,13 @@ class FPModuleMorphism(Morphism):
         """
         if self.domain().has_relations() or self.codomain().has_relations():
             raise ValueError("this is not a morphism between free modules")
-        from .module import FPModule
+        try:
+            FPModule = self.base_ring()._fp_graded_module
+        except AttributeError:
+            from .module import FPModule
         return FPModule(self.base_ring(),
                         self.codomain().generator_degrees(),
                         tuple([r.dense_coefficient_list() for r in self._values]))
-
-
-    def _lift_to_free_morphism(self):
-        """
-        If ``self`` is a map between finitely presented modules which are
-        actually free, then return this morphism as a
-        FreeGradedModuleMorphism. Otherwise raise an error.
-
-        EXAMPLES::
-
-            sage: from sage.modules.fp_graded.module import FPModule
-            sage: A2 = SteenrodAlgebra(2, profile=(3,2,1))
-            sage: M = FPModule(A2, [0], relations=[[Sq(1)]])
-            sage: N = FPModule(A2, [0], relations=[[Sq(4)],[Sq(1)]])
-            sage: f = Hom(M,N)([A2.Sq(3)*N.generator(0)])
-            sage: f._lift_to_free_morphism()
-            Traceback (most recent call last):
-            ...
-            ValueError: the domain and/or codomain are not free
-            sage: MF = FPModule(A2, [0, 1])
-            sage: f = Hom(MF, MF)([A2.Sq(3) * MF.generator(0), A2.Sq(0, 1) * MF.generator(1)])
-            sage: f._lift_to_free_morphism()
-            Module endomorphism of Free graded left module on 2 generators over sub-Hopf algebra of mod 2 Steenrod algebra, milnor basis, profile function [3, 2, 1]
-              Defn: g[0] |--> Sq(3)*g[0]
-                    g[1] |--> Sq(0,1)*g[1]
-        """
-        if self.domain().relations() or self.codomain().relations():
-            raise ValueError("the domain and/or codomain are not free")
-        M = self.domain()._free_module()
-        N = self.codomain()._free_module()
-        return Hom(M, N)([N(v.dense_coefficient_list()) for v in self.values()])
 
 
 @cached_function

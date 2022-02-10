@@ -45,7 +45,7 @@ is a finite problem, and can be reduced to linear algebra over a finite
 prime field.
 
 ==========
-User guide
+User guide  FIXME: Find a better title, possibly (re)move header
 ==========
 
 Let `p` be a prime number.  The mod `p` Steenrod algebra `A`
@@ -69,7 +69,7 @@ A homogeneous relation of degree `n` has the form
 
 .. MATH::
 
-    \sum_{i=1}^N a_i\cdot g_{d_i} = 0
+    \sum_{i=1}^N a_i\cdot g_{d_i} = 0,
 
 where the homogeneous coefficients `a_1,\ldots a_N` lie in `A`, such that
 `\deg(a_i) + \deg(g_{d_i}) = n` for `i=1\ldots N`.  To create a module with
@@ -409,11 +409,15 @@ cokernels all exist and can be computed through the API belonging to
 the homomorphism class
 :class:`sage.modules.fp_graded.steenrod.morphism.SteenrodFPModuleMorphism`.
 
-.. NOTE:: Methods for morphisms like
-    :meth:`~sage.modules.fp_graded.steenrod.morphism.SteenrodFPModuleMorphism.kernel_inclusion`,
-    :meth:`~sage.modules.fp_graded.steenrod.morphism.SteenrodFPModuleMorphism.cokernel_projection`,
-    :meth:`~sage.modules.fp_graded.steenrod.morphism.SteenrodFPModuleMorphism.image`,
-    :meth:`~sage.modules.fp_graded.steenrod.morphism.SteenrodFPModuleMorphism.homology`
+.. NOTE::
+
+    Methods for morphisms like
+
+    - :meth:`~sage.modules.fp_graded.steenrod.morphism.SteenrodFPModuleMorphism.kernel_inclusion`,
+    - :meth:`~sage.modules.fp_graded.steenrod.morphism.SteenrodFPModuleMorphism.cokernel_projection`,
+    - :meth:`~sage.modules.fp_graded.steenrod.morphism.SteenrodFPModuleMorphism.image`,
+    - :meth:`~sage.modules.fp_graded.steenrod.morphism.SteenrodFPModuleMorphism.homology`
+
     compute sub- and quotient modules related to homomorphisms, but
     they do not return instances of the module class.  Rather, they
     return the natural homomorphisms which connect these modules to
@@ -497,7 +501,7 @@ Images
 ......
 
 The method :meth:`image` behaves similarly, returning an injective
-homomorphism with image equal to the submodule `\operatorname{im}(f)` ::
+homomorphism with image equal to the submodule `\operatorname{im}(f)`::
 
     sage: i = f.image(); i
     Module morphism:
@@ -626,8 +630,8 @@ Steenrod algebra `A`:
     \end{align}
 
 There is a natural projection `q: H\ZZ\to Hko`, and a non-trivial
-endomorphism of degree 28, represented as a degree zero map `f: \Sigma^{28}Hko\to Hko`
-which we define below.
+endomorphism of degree 28, represented as a degree zero map
+`f: \Sigma^{28}Hko\to Hko` that we define below.
 
 The problem we will solve is to find all possible homomorphisms
 `f': \Sigma^{28}Hko\to H\ZZ`, making the following diagram into a
@@ -635,10 +639,10 @@ commuting triangle:
 
 .. MATH::
 
-    H\ZZ\xrightarrow{q} Hko \xleftarrow{f} \Sigma^{28} Hko
+    H\ZZ\xrightarrow{q} Hko \xleftarrow{f} \Sigma^{28} Hko.
 
-We begin by defining the modules and the homomorphisms `f` and `q`.  In the following,
-we let `L = \Sigma^{28}Hko`::
+We begin by defining the modules and the homomorphisms `f` and `q`.
+In the following, we let `L = \Sigma^{28}Hko`::
 
     sage: from sage.modules.fp_graded.steenrod.module import SteenrodFPModule
     sage: A = SteenrodAlgebra(2)
@@ -693,13 +697,12 @@ of those become `f` when composed with `q`::
     (1, 1, 1): False
 
 From this we conclude that four out of eight different homomorphisms
-`L \to H\ZZ` are lifts of f::
+`L \to H\ZZ` are lifts of `f`::
 
-    sage: lifts = [\
-    ....:     from_coords((0,1,0)),\
-    ....:     from_coords((0,1,1)),\
-    ....:     from_coords((1,0,0)),\
-    ....:     from_coords((1,0,1))]
+    sage: lifts = [from_coords((0,1,0)),
+    ....:          from_coords((0,1,1)),
+    ....:          from_coords((1,0,0)),
+    ....:          from_coords((1,0,1))]
     sage: lifts
     [Module morphism:
        From: Finitely presented left module on 1 generator and 2 relations over mod 2 Steenrod algebra, milnor basis
@@ -718,9 +721,9 @@ From this we conclude that four out of eight different homomorphisms
        To:   Finitely presented left module on 1 generator and 1 relation over mod 2 Steenrod algebra, milnor basis
        Defn: g[28] |--> (Sq(10,1,0,1)+Sq(18,1,1))*g[0]]
 
-Alternatively we can use left-exactness of the functor `\operatorname{Hom}_A(L, -)`
-to enumerate all possible lifts of `f`.  Start by finding a single lift of `f`
-over the projection `q`::
+Alternatively we can use left-exactness of the functor
+`\operatorname{Hom}_A(L, -)` to enumerate all possible lifts of `f`.
+Start by finding a single lift of `f` over the projection `q`::
 
     sage: f_ = f.lift(q); f_
     Module morphism:
@@ -734,7 +737,8 @@ There is an exact sequence
 
 .. MATH::
 
-    0\to \operatorname{Hom}_A(L, \ker(q)) \xrightarrow{iK_*} \operatorname{Hom}_A(L, H\ZZ) \xrightarrow{q_*} \operatorname{Hom}_A(L, Hko)\,,
+    0 \to \operatorname{Hom}_A(L, \ker(q)) \xrightarrow{iK_*}
+    \operatorname{Hom}_A(L, H\ZZ) \xrightarrow{q_*} \operatorname{Hom}_A(L, Hko)\,,
 
 which means that the indeterminacy of choosing a lift for
 `f\in \operatorname{Hom}_A(L, Hko)` is represented by an element in
@@ -755,10 +759,10 @@ field of two elements.  This means that there are four distinct lifts of `f` ove
 `q`, and we can construct these by taking the one lift we already found, and add
 to it all the different elements in the image of `iK_*`::
 
-    sage: lifts_ = [f_,\
-    ....:     f_ + iK*ind[0],\
-    ....:     f_ + iK*ind[1],\
-    ....:     f_ + iK*(ind[0] + ind[1])]
+    sage: lifts_ = [f_,
+    ....:           f_ + iK*ind[0],
+    ....:           f_ + iK*ind[1],
+    ....:           f_ + iK*(ind[0] + ind[1])]
     sage: lifts_
     [Module morphism:
        From: Finitely presented left module on 1 generator and 2 relations over mod 2 Steenrod algebra, milnor basis
@@ -790,19 +794,17 @@ re-ordering of list elements), so the following comparison is reassuring::
     sage: lifts_[3] == lifts[1]
     True
 
-TESTS:
+TESTS::
 
     sage: A = SteenrodAlgebra(2)
     sage: K = SteenrodFPModule(A, [1,3]); K
     Free graded left module on 2 generators over ...
     sage: K.category()
-    Category of finitely presented graded modules over mod 2 Steenrod algebra, milnor basis
-    sage: L = SteenrodFPModule(A, [2,3], [[Sq(2),Sq(1)], [0,Sq(2)]]);L
+    Category of finite dimensional graded modules with basis over mod 2 Steenrod algebra, milnor basis
+    sage: L = SteenrodFPModule(A, [2,3], [[Sq(2),Sq(1)], [0,Sq(2)]]); L
     Finitely presented left module on 2 generators and 2 relations ...
-    sage: M = SteenrodFPModule(A, [2,3], [[Sq(2),Sq(1)]]);M
+    sage: M = SteenrodFPModule(A, [2,3], [[Sq(2),Sq(1)]]); M
     Finitely presented left module on 2 generators and 1 relation ...
-    sage: K.element_class
-    <class 'sage.modules.fp_graded.steenrod.module.SteenrodFPModule_with_category.element_class'>
     sage: m = M((0,1)); m
     g[3]
     sage: K.is_parent_of(m)
@@ -815,7 +817,7 @@ TESTS:
     sage: SteenrodFPModule(ZZ, [0])
     Traceback (most recent call last):
     ...
-    ValueError: the ground ring of the algebra must be a field
+    AttributeError: 'sage.rings.integer_ring.IntegerRing_class' object has no attribute 'free_graded_module'
 
 AUTHORS:
 
@@ -850,9 +852,7 @@ class SteenrodFPModule(FPModule):
     INPUT:
 
     - ``generator_degrees`` -- tuple of integer degrees
-
     - ``algebra`` -- the Steenrod algebra over which the module is defined
-
     - ``relations`` -- tuple of relations; a relation is a tuple of
       coefficients `(c_1, \ldots, c_n)` corresponding to the module
       generators
@@ -860,7 +860,7 @@ class SteenrodFPModule(FPModule):
     OUTPUT: The finitely presented module over ``algebra`` with
     presentation given by ``generator_degrees`` and ``relations``.
 
-    TESTS:
+    TESTS::
 
         sage: from sage.modules.fp_graded.steenrod.module import SteenrodFPModule
         sage: SteenrodFPModule(SteenrodAlgebra(2), (0,))
@@ -869,7 +869,7 @@ class SteenrodFPModule(FPModule):
     """
     def _Hom_(self, other, category=None):
         """
-        The homset from ``self`` to ``other``
+        The homset from ``self`` to ``other``.
 
         TESTS::
 
@@ -924,15 +924,17 @@ class SteenrodFPModule(FPModule):
 
     def profile(self):
         r"""
-        A finite profile over which this module can be defined.
+        Return a finite profile over which ``self`` can be defined.
 
         Any finitely presented module over the Steenrod algebra can be
         defined over a finite-dimensional sub-Hopf algebra, and this
         method identifies such a sub-Hopf algebra and returns its
         profile function.
 
-        .. NOTE:: The profile produced by this function is reasonably small
-           but is not guaranteed to be minimal.
+        .. NOTE::
+
+            The profile produced by this function is reasonably small
+            but is not guaranteed to be minimal.
 
         EXAMPLES::
 
@@ -942,7 +944,7 @@ class SteenrodFPModule(FPModule):
             sage: M.profile()
             (2, 1)
 
-        TESTS:
+        TESTS::
 
             sage: from sage.modules.fp_graded.steenrod.module import SteenrodFPModule
             sage: A = SteenrodAlgebra(2)
@@ -950,8 +952,8 @@ class SteenrodFPModule(FPModule):
             sage: X.profile()
             (1,)
         """
-        elements = [coeffifient for value in self._j.values()\
-                for coeffifient in value.dense_coefficient_list()]
+        elements = [coeffifient for value in self._j.values()
+                    for coeffifient in value.dense_coefficient_list()]
 
         elements = [a for a in elements if a not in (0, 1)]
 
@@ -968,7 +970,7 @@ class SteenrodFPModule(FPModule):
 
     def minimal_presentation(self, verbose=False):
         r"""
-        A minimal presentation of this module.
+        A minimal presentation of ``self``.
 
         OUTPUT: An isomorphism `M \to self`, where `M` has minimal
         presentation.
@@ -1000,27 +1002,32 @@ class SteenrodFPModule(FPModule):
 
     def resolution(self, k, top_dim=None, verbose=False):
         r"""
-        A free resolution of this module of the given length.
+        A free resolution of ``self`` of the given length.
 
         INPUT:
 
         - ``k`` -- non-negative integer
-        - ``top_dim`` -- stop the computation at this degree
-          (optional, default ``None``, in which case the ending degree
-          is determined automatically)
-        - ``verbose`` -- ``True`` if log messages should be emitted.
-          (optional, default ``False``)
+        - ``top_dim`` -- (optional) stop the computation at this degree
+        - ``verbose`` -- (default: ``False``) whether log messages are printed
 
-        OUTPUT: A list of homomorphisms `[\epsilon, f_1, \ldots, f_k]` such that
+        OUTPUT:
 
-            `f_i: F_i \to F_{i-1}` for `1\leq i\leq k`,
+        A list of homomorphisms `[\epsilon, f_1, \ldots, f_k]` such that
 
-            `\epsilon: F_0\to M`,
+        .. MATH::
+
+            \begin{gathered}
+            f_i: F_i \to F_{i-1} \text{ for } 1\leq i\leq k, \\
+            \epsilon: F_0\to M,
+            \end{gathered}
 
         where each `F_i` is a finitely generated free module, and the
         sequence
 
-            `F_k \xrightarrow{f_k} F_{k-1} \xrightarrow{f_{k-1}} \ldots \rightarrow F_0 \xrightarrow{\epsilon} M \rightarrow 0`
+        .. MATH::
+
+            F_k \xrightarrow{f_k} F_{k-1} \xrightarrow{f_{k-1}} \ldots
+            \rightarrow F_0 \xrightarrow{\epsilon} M \rightarrow 0
 
         is exact. Note that the 0th element in this list is the map
         `\epsilon`, and the rest of the maps are between free
@@ -1068,28 +1075,28 @@ class SteenrodFPModule(FPModule):
 
         # Change rings to the finite algebra, and call the base class
         # implementation of this function.
-        res = FPModule.resolution(
-            self.change_ring(finite_algebra),
-            k,
-            top_dim=top_dim,
-            verbose=verbose)
+        res = FPModule.resolution(self.change_ring(finite_algebra),
+                                  k,
+                                  top_dim=top_dim,
+                                  verbose=verbose)
 
         # Change rings back to the original Steenrod algebra.
         # Also convert the maps and modules from FPModule to SteenrodFPModule.
-        return [_convert_map(j.change_ring(self.base_ring())) for j in res]
+        return [j.change_ring(self.base_ring()) for j in res]
 
 
     def export_module_definition(self, powers_of_two_only=True):
         r"""
         Export the module to the input
-        `format used by R. Bruner's Ext software <http://www.math.wayne.edu/~rrb/cohom/modfmt.html>`_.
+        `format used by R. Bruner's Ext software
+        <http://www.math.wayne.edu/~rrb/cohom/modfmt.html>`_.
 
         INPUT:
 
-        - ``powers_of_two_only`` -- A boolean to control if the output should
-          contain the action of all Steenrod squaring operations (restricted
-          by the profile), or only the action of the operations of degree equal
-          to a power of two. (optional, default: ``True``)
+        - ``powers_of_two_only`` -- boolean (default: ``True``); if the
+          output should contain the action of all Steenrod squaring operations
+          (restricted by the profile), or only the action of the operations
+          of degree equal to a power of two
 
         EXAMPLES::
 
@@ -1202,48 +1209,3 @@ class SteenrodFPModule(FPModule):
                             " ".join(["%d" % x for x in values])))
                     element_index += 1
 
-
-def _convert_map(f):
-    """
-    Convert ``f`` to map of instances of :class:`SteenrodFPModule`
-
-    INPUT:
-
-    - ``f`` -- map between instances of :class:`FPModule
-      ~sage.modules.fp_module.module.FPModule`
-
-    The base ring should be the Steenrod algebra of a sub-Hopf
-    algebra, but the code does not check this.
-
-    EXAMPLES::
-
-        sage: from sage.modules.fp_graded.steenrod.module import _convert_map
-        sage: from sage.modules.fp_graded.module import FPModule
-        sage: A1 = SteenrodAlgebra(profile=[2,1])
-        sage: M.<x,y> = FPModule(A1, [0, 1])
-        sage: f = Hom(M, M).identity()
-        sage: g = _convert_map(f)
-        sage: type(f.parent())
-        <class 'sage.modules.fp_graded.homspace.FPModuleHomspace_with_category_with_equality_by_id'>
-        sage: type(g.parent())
-        <class 'sage.modules.fp_graded.steenrod.homspace.SteenrodFPModuleHomspace_with_category_with_equality_by_id'>
-        sage: g.is_identity()
-        True
-        sage: g.domain().variable_names()
-        ('x', 'y')
-    """
-    D = f.domain()
-    if D.has_relations():
-        D = SteenrodFPModule(D._j, names=D._names)
-    else:
-        D = SteenrodFPModule(D.base_ring(),
-                             D._generator_degrees,
-                             names=D._names)
-    C = f.codomain()
-    if C.has_relations():
-        C = SteenrodFPModule(C._j, names=C._names)
-    else:
-        C = SteenrodFPModule(C.base_ring(),
-                             C._generator_degrees,
-                             names=C._names)
-    return Hom(D, C)([C(x.dense_coefficient_list()) for x in f.values()])

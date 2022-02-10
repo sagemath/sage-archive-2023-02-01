@@ -289,6 +289,7 @@ from sage.modules.fp_graded.free_element import FreeGradedModuleElement
 from sage.rings.infinity import infinity
 from sage.categories.graded_modules import GradedModules
 from sage.categories.fields import Fields
+from sage.categories.homset import Hom
 from sage.combinat.free_module import CombinatorialFreeModule
 
 class FreeGradedModule(CombinatorialFreeModule):
@@ -450,14 +451,17 @@ class FreeGradedModule(CombinatorialFreeModule):
 
             sage: M = FreeGradedModule(A, [0,1])
             sage: N = M.change_ring(A2); N
-            Free graded left module on 2 generators over sub-Hopf algebra of mod 2 Steenrod algebra, milnor basis, profile function [3, 2, 1]
+            Free graded left module on 2 generators over sub-Hopf algebra of
+             mod 2 Steenrod algebra, milnor basis, profile function [3, 2, 1]
 
         Changing back yields the original module::
 
             sage: N.change_ring(A) is M
             True
         """
-        return FreeGradedModule(algebra, self.generator_degrees())
+        # We use the base class to avoid the category mixed one
+        return type(self).__base__(algebra, self.generator_degrees(),
+                                   names=self._names)
 
 
     def _repr_(self):
@@ -930,4 +934,101 @@ class FreeGradedModule(CombinatorialFreeModule):
             False
         """
         return False
+
+    def relations(self):
+        r"""
+        Return the relations of ``self``, which is ``()``.
+
+        This is for compatibility with
+        :class:`~sage.modules.fp_graded.module.FPModule`.
+
+        EXAMPLES::
+
+            sage: from sage.modules.fp_graded.free_module import FreeGradedModule
+            sage: A = SteenrodAlgebra(2)
+            sage: F = FreeGradedModule(A, (-2,2,4))
+            sage: F.relations()
+            ()
+        """
+        return ()
+
+    def resolution(self, k, top_dim=None, verbose=False):
+        r"""
+        Return a free resolution of this module of length ``k``.
+
+        INPUT:
+
+        - ``k`` -- an non-negative integer
+        - ``top_dim`` -- stop the computation at this degree
+          (optional, default ``None``, but required if the algebra is
+          not finite-dimensional)
+        - ``verbose`` -- (default: ``False``) a boolean to control if
+          log messages should be emitted
+
+        OUTPUT:
+
+        A list of homomorphisms `[\epsilon, f_1, \ldots, f_k]` such that
+
+        .. MATH::
+
+            f_i: F_i \to F_{i-1} \text{ for } 1 < i \leq k,
+            \qquad
+            \epsilon: F_0 \to M,
+
+        where each `F_i` is a finitely generated free module, and the
+        sequence
+
+        .. MATH::
+
+            F_k \xrightarrow{\mathit{f_k}} F_{k-1}
+            \xrightarrow{\mathit{f_{k-1}}} \ldots \rightarrow F_0
+            \xrightarrow{\epsilon} M \rightarrow 0
+
+        is exact. Note that the 0th element in this list is the map
+        `\epsilon`, and the rest of the maps are between free
+        modules.
+
+        EXAMPLES::
+
+            sage: E.<x,y,z> = ExteriorAlgebra(QQ)
+            sage: M = E.free_graded_module((1,2))
+            sage: M.resolution(0)
+            [Module endomorphism of Free graded left module on 2 generators over The exterior algebra of rank 3 over Rational Field
+               Defn: g[1] |--> g[1]
+                     g[2] |--> g[2]]
+            sage: M.resolution(1)
+            [Module endomorphism of Free graded left module on 2 generators over The exterior algebra of rank 3 over Rational Field
+               Defn: g[1] |--> g[1]
+                     g[2] |--> g[2],
+             Module morphism:
+               From: Free graded left module on 0 generators over The exterior algebra of rank 3 over Rational Field
+               To:   Free graded left module on 2 generators over The exterior algebra of rank 3 over Rational Field]
+            sage: M.resolution(4)
+            [Module endomorphism of Free graded left module on 2 generators over The exterior algebra of rank 3 over Rational Field
+               Defn: g[1] |--> g[1]
+                     g[2] |--> g[2],
+             Module morphism:
+               From: Free graded left module on 0 generators over The exterior algebra of rank 3 over Rational Field
+               To:   Free graded left module on 2 generators over The exterior algebra of rank 3 over Rational Field,
+             Module endomorphism of Free graded left module on 0 generators over The exterior algebra of rank 3 over Rational Field,
+             Module endomorphism of Free graded left module on 0 generators over The exterior algebra of rank 3 over Rational Field,
+             Module endomorphism of Free graded left module on 0 generators over The exterior algebra of rank 3 over Rational Field]
+        """
+        if k < 0:
+            raise ValueError('the length of the resolution must be non-negative')
+
+        # The first map \epsilon is the idnetity map
+        ret_complex = [Hom(self, self).identity()]
+
+        if k == 0:
+            return ret_complex
+
+        # All subsequent maps are trivial since self is free
+        T = self.base_ring().free_graded_module(())
+        ret_complex.append(Hom(T, self).zero())
+
+        if k == 1:
+            return ret_complex
+
+        return ret_complex + [Hom(T,T).zero()] * (k-1)
 

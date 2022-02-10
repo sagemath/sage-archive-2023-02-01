@@ -62,3 +62,4 @@ from .morphism import SteenrodFPModuleMorphism
 
 class SteenrodFPModuleHomspace(FPModuleHomspace):
     Element = SteenrodFPModuleMorphism
+

@@ -39,7 +39,7 @@ class SteenrodFPModuleMorphism(FPModuleMorphism):
 
     def profile(self):
         r"""
-        A finite profile over which this homomorphism can be defined.
+        Return a finite profile over which ``self`` can be defined.
 
         This is in some ways the key method for these morphisms. As
         discussed in the "Theoretical background" section of
@@ -63,7 +63,7 @@ class SteenrodFPModuleMorphism(FPModuleMorphism):
             sage: A_fin = SteenrodAlgebra(2, profile=(2,1))
             sage: M_fin = M.change_ring(A_fin)
 
-        Change the ring of the module M::
+        Change the ring of the module ``M``::
 
             sage: M_fin.change_ring(A) is M
             True
@@ -73,9 +73,10 @@ class SteenrodFPModuleMorphism(FPModuleMorphism):
 
             sage: one_fin = one.change_ring(A_fin)
             sage: one_fin.domain()
-            Finitely presented left module on 2 generators and 2 relations over sub-Hopf algebra of mod 2 Steenrod algebra, milnor basis, profile function [2, 1]
+            Finitely presented left module on 2 generators and 2 relations over
+             sub-Hopf algebra of mod 2 Steenrod algebra, milnor basis, profile function [2, 1]
 
-        And if we change back to the full Steenrod algebra, we are back where
+        If we change back to the full Steenrod algebra, we are back where
         we started::
 
             sage: one_fin.change_ring(A) == one
@@ -85,9 +86,9 @@ class SteenrodFPModuleMorphism(FPModuleMorphism):
             return [coeffifient for value in f.values()\
                 for coeffifient in value.dense_coefficient_list()]
 
-        elements = _flatten(self.domain()._j) +\
-            _flatten(self.codomain()._j) +\
-            _flatten(self)
+        elements = (_flatten(self.domain()._j)
+                    + _flatten(self.codomain()._j)
+                    + _flatten(self))
 
         elements = [a for a in elements if a not in (0, 1)]
 
@@ -104,15 +105,11 @@ class SteenrodFPModuleMorphism(FPModuleMorphism):
 
     def is_injective(self, verbose=False):
         r"""
-        Determine if this homomorphism is injective.
+        Return if ``self`` is injective.
 
         INPUT:
 
-        - ``verbose`` -- A boolean to control if log messages should be emitted.
-          (optional, default: ``False``)
-
-        OUTPUT: The boolean value ``True`` if this homomorphism has a trivial
-        kernel, and ``False`` otherwise.
+        - ``verbose`` -- (default: ``False``) whether log messages are printed
 
         EXAMPLES::
 
@@ -131,7 +128,6 @@ class SteenrodFPModuleMorphism(FPModuleMorphism):
             True
             sage: z.is_zero()
             True
-
         """
         algebra = self.base_ring()
 
@@ -144,15 +140,13 @@ class SteenrodFPModuleMorphism(FPModuleMorphism):
 
     def kernel_inclusion(self, top_dim=None, verbose=False):
         r"""
-        The kernel of this homomorphism.
+        Return the kernel of ``self`` as a morphism.
 
         INPUT:
 
-        - ``top_dim`` -- stop the computation at this degree
-          (optional, default ``None``, in which case the ending degree
-          is determined automatically using :meth:`profile`)
-        - ``verbose`` -- A boolean to control if log messages should be emitted.
-          (optional, default: ``False``)
+        - ``top_dim`` -- (optional) stop the computation at this degree; if
+          not specified, this is determined using :meth:`profile`
+        - ``verbose`` -- (default: ``False``) whether log messages are printed
 
         OUTPUT: An injective homomorphism into the domain ``self`` which is
         onto the kernel of this homomorphism.
@@ -235,15 +229,16 @@ class SteenrodFPModuleMorphism(FPModuleMorphism):
 
     def image(self, verbose=False):
         r"""
-        Compute the image of this homomorphism.
+        Return the image of ``self``.
 
         INPUT:
 
-        - ``verbose`` -- A boolean to control if log messages should be emitted.
-          (optional, default: ``False``)
+        - ``verbose`` -- (default: ``False``) whether log messages are printed
 
-        OUTPUT: An injective homomorphism into the codomain of ``self`` which is
-        onto the image of this homomorphism.
+        OUTPUT:
+
+        An injective homomorphism into the codomain of ``self`` which is
+        onto the image of ``self``.
 
         EXAMPLES::
 
@@ -291,11 +286,9 @@ class SteenrodFPModuleMorphism(FPModuleMorphism):
 
         INPUT:
 
-        - ``top_dim`` -- stop the computation at this degree
-          (optional, default ``None``, in which case the ending degree
-          is determined automatically using :meth:`profile`)
-        - ``verbose`` -- A boolean to enable progress messages. (optional,
-          default: ``False``)
+        - ``top_dim`` -- (optional) stop the computation at this degree; if
+          not specified, this is determined using :meth:`profile`
+        - ``verbose`` -- (default: ``False``) whether log messages are printed
 
         OUTPUT: A homomorphism `j: F \rightarrow D` where `D` is the domain of
         this homomorphism, `F` is free and such that `\ker(self) = \operatorname{im}(j)`.
@@ -324,11 +317,9 @@ class SteenrodFPModuleMorphism(FPModuleMorphism):
 
         INPUT:
 
-        - ``top_dim`` -- stop the computation at this degree
-          (optional, default ``None``, in which case the ending degree
-          is determined automatically using :meth:`profile`)
-        - ``verbose`` -- A boolean to enable progress messages. (optional,
-          default: ``False``)
+        - ``top_dim`` -- (optional) stop the computation at this degree; if
+          not specified, this is determined using :meth:`profile`
+        - ``verbose`` -- (default: ``False``) whether log messages are printed
 
         OUTPUT: A homomorphism `j: F \rightarrow C` where `C` is the codomain
         of this homomorphism, `F` is free, and
@@ -407,3 +398,4 @@ class SteenrodFPModuleMorphism(FPModuleMorphism):
                                                v.dense_coefficient_list()))
                       for v in f.values()]
         return Hom(M, N)(new_values)
+

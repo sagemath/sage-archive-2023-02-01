@@ -26,7 +26,7 @@ jobs:
 
       - name: Check for Miniconda
         id: check_conda
-        run: echo ::set-output name=installed::$(which miniconda)
+        run: echo ::set-output name=installed::$CONDA
 
       - name: Install Miniconda
         if: steps.check_conda.outputs.installed == ''
@@ -38,8 +38,8 @@ jobs:
       - name: Prepare
         # Create conda environment file
         run: |
-          apt-get update
-          apt-get install -y gettext autoconf automake libtool pkg-config
+          sudo apt-get update
+          sudo apt-get install -y gettext autoconf automake libtool pkg-config
           ./bootstrap
 
       - name: Cache conda packages

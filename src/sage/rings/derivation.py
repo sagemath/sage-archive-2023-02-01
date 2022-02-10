@@ -196,7 +196,7 @@ from sage.rings.quotient_ring import QuotientRing_generic
 from sage.rings.polynomial.polynomial_quotient_ring import PolynomialQuotientRing_generic
 from sage.rings.finite_rings.integer_mod_ring import IntegerModRing_generic
 from sage.rings.padics.padic_generic import pAdicGeneric
-from sage.rings.function_field.function_field import FunctionField
+from sage.rings.function_field.function_field import FunctionField, RationalFunctionField
 from sage.categories.number_fields import NumberFields
 from sage.categories.finite_fields import FiniteFields
 from sage.categories.modules import Modules
@@ -390,10 +390,29 @@ class RingDerivationModule(Module, UniqueRepresentation):
                 pass
             constants, sharp = self._base_derivation._constants
             self._constants = (constants, False)  # can we do better?
+        elif isinstance(domain, RationalFunctionField):
+            from sage.rings.function_field.maps import FunctionFieldDerivation_rational
+            self.Element = FunctionFieldDerivation_rational
+            self._gens = self._basis = [ None ]
+            self._dual_basis = [ domain.gen() ]
         elif isinstance(domain, FunctionField):
-            from sage.rings.function_field.maps import FunctionFieldDerivation
-            self.Element = FunctionFieldDerivation
-            #self._gens = [self.Element()]
+            self._base_derivation = RingDerivationModule(domain.base_ring(), defining_morphism)
+            if domain.is_separable():
+                from sage.rings.function_field.maps import FunctionFieldDerivation_separable
+                self.Element = FunctionFieldDerivation_separable
+                try:
+                    self._gens = self._base_derivation.gens()
+                except NotImplementedError:
+                    pass
+                try:
+                    self._basis = self._base_derivation.basis()
+                    self._dual_basis = self._base_derivation.dual_basis()
+                except NotImplementedError:
+                    pass
+            else:
+                #from sage.rings.function_field.maps import FunctionFieldDerivation_inseparable
+                #self.Element = FunctionFieldDerivation_inseparable
+                raise NotImplementedError
         else:
             raise NotImplementedError("derivations over this ring is not implemented")
         if self._basis is None:
@@ -898,7 +917,7 @@ class RingDerivationWithoutTwist(RingDerivation):
             sage: R.<x,y> = ZZ[]
             sage: ddx = R.derivation(x)
             sage: ddy = R.derivation(y)
-        
+
             sage: latex(ddx)
             \frac{d}{dx}
             sage: latex(ddy)

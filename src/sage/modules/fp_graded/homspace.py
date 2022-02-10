@@ -521,10 +521,10 @@ class FPModuleHomspace(Homset):
             num_generators = len(M.generators())
             for i, g in enumerate(M.generators()):
                 # The i'th generator can go to any of these basis elements:
-                base = N[(g.degree() + n)]
+                base = N.basis_elements(g.degree() + n)
                 for value in base:
                     values = [N.zero() if i != j else value for j in range(num_generators)]
-                    res.append(Hom(M,N)(values))
+                    res.append(self(values))
                     if not basis:
                         return res[0]
 
@@ -554,7 +554,7 @@ class FPModuleHomspace(Homset):
                     xs.append(N.element_from_coordinates(b[n:n+k], source_degs[j]))
                     n += k
 
-                res.append(Hom(M, N)(xs))
+                res.append(self(xs))
                 if not basis:
                     return res[0]
 

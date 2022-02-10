@@ -87,38 +87,6 @@ for SYSTEM in arch debian fedora cygwin homebrew conda; do
         for pkg in $OPTIONAL_SYSTEM_PACKAGES $SAGELIB_OPTIONAL_SYSTEM_PACKAGES; do
             echo "  - $pkg" >> src/environment-optional.yml
         done
-
-        cp environment.yml environment-python.yml
-            echo "  - linbox
-  # Python packages
-  - six
-  - cypari2
-  - cysignals
-  - cython
-  - gmpy2
-  - jinja2
-  - jupyter_core
-  - numpy
-  - pkgconfig
-  - pplpy
-  - memory-allocator
-  - requests
-  - ipython
-  - pexpect
-  - sphinx
-  - networkx
-  - scipy <1.8
-  - sympy
-  - matplotlib
-  - pillow
-  - mpmath
-  - ipykernel
-  - jupyter_client
-  - ipywidgets
-  - rpy2
-  - pytest
-  - iniconfig
-  - fpylll" >> environment-python.yml
     else
         if [ "${BOOTSTRAP_QUIET}" = "no" ]; then
             echo >&2 $0:$LINENO: installing "$OUTPUT_DIR"/$SYSTEM.txt and "$OUTPUT_DIR"/$SYSTEM-optional.txt

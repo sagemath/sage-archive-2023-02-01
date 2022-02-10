@@ -84,10 +84,7 @@ class FunctionFieldDerivation(RingDerivationWithoutTwist):
         sage: K.<x> = FunctionField(QQ)
         sage: d = K.derivation()
         sage: d
-        Derivation map:
-          From: Rational function field in x over Rational Field
-          To:   Rational function field in x over Rational Field
-          Defn: x |--> 1
+        d/dx
     """
     def __init__(self, parent):
         r"""
@@ -101,7 +98,7 @@ class FunctionFieldDerivation(RingDerivationWithoutTwist):
 
             sage: K.<x> = FunctionField(QQ)
             sage: d = K.derivation()
-            sage: TestSuite(d).run(skip=['_test_category', '_test_pickling'])
+            sage: TestSuite(d).run()
 
         .. TODO::
 
@@ -141,10 +138,7 @@ class FunctionFieldDerivation_rational(FunctionFieldDerivation):
 
         sage: K.<x> = FunctionField(QQ)
         sage: K.derivation()
-        Derivation map:
-          From: Rational function field in x over Rational Field
-          To:   Rational function field in x over Rational Field
-          Defn: x |--> 1
+        d/dx
     """
     def __init__(self, parent, u=None):
         """
@@ -161,7 +155,7 @@ class FunctionFieldDerivation_rational(FunctionFieldDerivation):
 
             sage: K.<x> = FunctionField(QQ)
             sage: d = K.derivation()
-            sage: TestSuite(d).run(skip=["_test_category", "_test_pickling"])
+            sage: TestSuite(d).run()
 
         See the comment about the test suite run in
         ``FunctionFieldDerivation.__init__``.
@@ -169,8 +163,8 @@ class FunctionFieldDerivation_rational(FunctionFieldDerivation):
         FunctionFieldDerivation.__init__(self, parent)
         if u is None or u == parent.domain().gen():
             self._u = parent.codomain().one()
-        elif isinstance(u, (list, tuple)):
-            if len(u) == 0:
+        elif u == 0 or isinstance(u, (list, tuple)):
+            if u == 0 or len(u) == 0:
                 self._u = parent.codomain().zero()
             elif len(u) == 1:
                 self._u = parent.codomain()(u[0])
@@ -223,11 +217,7 @@ class FunctionFieldDerivation_separable(FunctionFieldDerivation):
         sage: R.<y> = K[]
         sage: L.<y> = K.extension(y^2 - x)
         sage: L.derivation()
-        Derivation map:
-          From: Function field in y defined by y^2 - x
-          To:   Function field in y defined by y^2 - x
-          Defn: y |--> 1/2/x*y
-                x |--> 1
+        d/dx
     """
     def __init__(self, parent, d):
         """
@@ -245,7 +235,7 @@ class FunctionFieldDerivation_separable(FunctionFieldDerivation):
             sage: R.<y> = K[]
             sage: L.<y> = K.extension(y^2 - x)
             sage: d = L.derivation()
-            sage: TestSuite(d).run(skip=["_test_category", "_test_pickling"])
+            sage: TestSuite(d).run()
 
         See the comment about the test suite run in
         ``FunctionFieldDerivation.__init__``.
@@ -322,20 +312,14 @@ class FunctionFieldDerivation_inseparable(FunctionFieldDerivation):
         sage: R.<z> = L[]
         sage: M.<z> = L.extension(z^2*y - x^3)
         sage: M.derivation()
-        Derivation map:
-          From: Function field in z defined by y*z^2 + x^3
-          To:   Function field in z defined by y*z^2 + x^3
-          Defn: z |--> 1
-                y |--> 0
-                x |--> 0
-
+        d/dz
     """
     def __init__(self, parent, u=None):
         FunctionFieldDerivation.__init__(self, parent)
         if u is None:
             self._u = parent.codomain().one()
-        elif isinstance(u, (list, tuple)):
-            if len(u) == 0:
+        elif u == 0 or isinstance(u, (list, tuple)):
+            if u == 0 or len(u) == 0:
                 self._u = parent.codomain().zero()
             elif len(u) == 1:
                 self._u = parent.codomain()(u[0])

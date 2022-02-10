@@ -1215,7 +1215,7 @@ class FPModuleMorphism(Morphism):
                 return None
 
             if y.is_zero():
-                dim = len(K[target_degree])
+                dim = len(K.basis_elements(target_degree))
                 ys += dim*[0]  # The zero vector of the appropriate dimension.
             else:
                 all_zero = False

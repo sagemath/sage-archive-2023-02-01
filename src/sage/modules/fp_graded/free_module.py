@@ -754,28 +754,6 @@ class FreeGradedModule(CombinatorialFreeModule):
         return element
 
 
-    def __getitem__(self, n):
-        r"""
-        A free module isomorphic to the free module of module elements of
-        degree ``n``.
-
-        EXAMPLES::
-
-            sage: from sage.modules.fp_graded.free_module import FreeGradedModule
-            sage: A = SteenrodAlgebra(2)
-            sage: M = FreeGradedModule(A, (0,2,4))
-            sage: V = M[4]; V
-            Vector space of dimension 4 over Finite Field of size 2
-            sage: V.dimension()
-            4
-
-        .. SEEALSO::
-
-            This function is an alias for :meth:`vector_presentation`.
-        """
-        return self.vector_presentation(n)
-
-
     @cached_method
     def vector_presentation(self, n):
         r"""
@@ -809,17 +787,27 @@ class FreeGradedModule(CombinatorialFreeModule):
 
         EXAMPLES::
 
-            sage: from sage.modules.fp_graded.free_module import FreeGradedModule
             sage: A1 = SteenrodAlgebra(2, profile=[2,1])
-            sage: M.<x> = FreeGradedModule(A1, (0,))
+            sage: M.<x> = A1.free_graded_module((0,))
             sage: M.vector_presentation(3)
             Vector space of dimension 2 over Finite Field of size 2
             sage: M.basis_elements(3)
             (Sq(0,1)*x, Sq(3)*x)
             sage: [M.vector_presentation(i).dimension() for i in range(-2, 9)]
             [0, 0, 1, 1, 1, 2, 1, 1, 1, 0, 0]
+
+        TESTS::
+
+            sage: A = SteenrodAlgebra(2)
+            sage: M = A.free_graded_module((0,2,4))
+            sage: V = M[4]; V
+            Vector space of dimension 4 over Finite Field of size 2
+            sage: V.dimension()
+            4
         """
         return FreeModule(self.base_ring().base_ring(), len(self.basis_elements(n)))
+
+    __getitem__ = vector_presentation
 
 
     def generator(self, index):

@@ -771,35 +771,6 @@ class FPModule(UniqueRepresentation, IndexedGenerators, Module):
         return self(free_element.dense_coefficient_list())
 
 
-    def __getitem__(self, n):
-        r"""
-        Return a basis for the free module of degree ``n`` module elements.
-
-        INPUT:
-
-        - ``n`` -- an integer
-
-        OUTPUT:
-
-        A list of homogeneous module elements of degree ``n`` which is
-        a basis for the free module of all degree ``n`` module elements.
-
-        EXAMPLES::
-
-            sage: from sage.modules.fp_graded.module import FPModule
-            sage: A = SteenrodAlgebra(2)
-            sage: M = FPModule(A, [0,2,4], [[Sq(4),Sq(2),0]])
-
-            sage: M[4]
-            (Sq(1,1)*g[0], Sq(4)*g[0], g[4])
-
-        .. SEEALSO::
-
-            :meth:`basis_elements`
-        """
-        return self.basis_elements(n)
-
-
     @cached_method
     def vector_presentation(self, n, verbose=False):
         r"""
@@ -829,6 +800,14 @@ class FPModule(UniqueRepresentation, IndexedGenerators, Module):
             3
 
             sage: len(M.basis_elements(4))
+            3
+
+        TESTS::
+
+            sage: from sage.modules.fp_graded.module import FPModule
+            sage: A = SteenrodAlgebra(2)
+            sage: M = FPModule(A, [0,2,4], [[Sq(4),Sq(2),0]])
+            sage: M[4].dimension()
             3
         """
         # Get the vector space presentation of the free module on the
@@ -870,6 +849,8 @@ class FPModule(UniqueRepresentation, IndexedGenerators, Module):
 
         # Return the quotient of the free part by the relations.
         return F_n / R_n
+
+    __getitem__ = vector_presentation
 
 
     def _Hom_(self, Y, category):

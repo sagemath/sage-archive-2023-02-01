@@ -28,6 +28,7 @@ jobs:
         id: check_conda
         run: echo ::set-output name=installed::$CONDA
 
+      # Miniconda is installed by default in the ubuntu-latest, however not in the act-image to run it locally
       - name: Install Miniconda
         if: steps.check_conda.outputs.installed == ''
         run: |
@@ -69,10 +70,6 @@ jobs:
         shell: bash -l {0}
         run: ./configure --prefix=$CONDA_PREFIX --enable-build-as-root --without-system-gcc
         
-      #- name: Install missing system packages
-      #  shell: bash -l {0}
-      #  run: make ecl gap
-
       - name: Build
         shell: bash -l {0}
         run: |

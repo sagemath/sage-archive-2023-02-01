@@ -167,7 +167,7 @@ def find_min_profile(prof, char=2):
     A profile function `e` must satisfy `e(r) \geq \min( e(r-i) - i,
     e(i))` for all `0 < i < r`, and at odd primes, if `k(i+j) = 1`,
     then either `e(i) \leq j` or `k(j) = 1` for all `i \geq 1`, `j
-    \geq 0`. We use these inequalities to generate ``prof_out`` from
+    \geq 0`. We use these inequalities to generate the profile from
     ``prof``.
 
     EXAMPLES::
@@ -228,10 +228,6 @@ def find_min_profile(prof, char=2):
         for i in range(1, max(P)+1):
             if P[i-1] > j and newQ[j] == 2:
                 newQ[i+j] = 2
-    # Convert the dictionary back to a list. As of Python 3.7,
-    # converting values of a dictionary to a list or tuple will result
-    # in the expected order:
-    # https://stackoverflow.com/questions/39980323/are-dictionaries-ordered-in-python-3-6/39980744#39980744
-    # FIXME: Do not rely on this behavior!
-    return (P, tuple(newQ.values()))
-
+    # Convert the dictionary back to a list.
+    Q = [newQ[i] for i in sorted(newQ)]
+    return (P, tuple(Q))

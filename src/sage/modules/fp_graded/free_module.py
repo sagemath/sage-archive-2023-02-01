@@ -942,39 +942,26 @@ class FreeGradedModule(CombinatorialFreeModule):
 
     def resolution(self, k, top_dim=None, verbose=False):
         r"""
-        Return a free resolution of this module of length ``k``.
+        Return a free resolution of ``self`` of length ``k``.
+
+        Since ``self`` is free, the initial map in the resolution will
+        be the identity, and the rest of the maps will be zero.
 
         INPUT:
 
         - ``k`` -- an non-negative integer
-        - ``top_dim`` -- stop the computation at this degree
-          (optional, default ``None``, but required if the algebra is
-          not finite-dimensional)
+        - ``top_dim`` -- stop the computation at this degree. Ignored,
+          for compatibility with
+          :meth:`sage.modules.fp_graded.module.FPModule.resolution`.
         - ``verbose`` -- (default: ``False``) a boolean to control if
           log messages should be emitted
 
         OUTPUT:
 
-        A list of homomorphisms `[\epsilon, f_1, \ldots, f_k]` such that
-
-        .. MATH::
-
-            f_i: F_i \to F_{i-1} \text{ for } 1 < i \leq k,
-            \qquad
-            \epsilon: F_0 \to M,
-
-        where each `F_i` is a finitely generated free module, and the
-        sequence
-
-        .. MATH::
-
-            F_k \xrightarrow{\mathit{f_k}} F_{k-1}
-            \xrightarrow{\mathit{f_{k-1}}} \ldots \rightarrow F_0
-            \xrightarrow{\epsilon} M \rightarrow 0
-
-        is exact. Note that the 0th element in this list is the map
-        `\epsilon`, and the rest of the maps are between free
-        modules.
+        A list of homomorphisms `[1_M, 0, 0, \ldots, 0]` consisting of
+        the identity map on this module followed by zero maps. Other
+        than this module, the other modules in the resolution will be
+        zero.
 
         EXAMPLES::
 

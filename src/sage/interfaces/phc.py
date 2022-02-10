@@ -38,7 +38,7 @@ import random
 
 from sage.misc.all import tmp_filename
 from sage.rings.real_mpfr import RR
-from sage.rings.all import CC
+from sage.rings.cc import CC
 from sage.rings.integer import Integer
 from sage.misc.lazy_import import lazy_import
 lazy_import("sage.plot.line", "line")

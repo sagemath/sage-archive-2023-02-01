@@ -331,6 +331,9 @@ class ComplexBallField(UniqueRepresentation, sage.rings.abc.ComplexBallField):
 
         sage: ComplexBallField().is_finite()
         False
+
+        sage: loads(dumps(ComplexBallField(60))) is ComplexBallField(60)
+        True
     """
     Element = ComplexBall
 
@@ -1486,6 +1489,18 @@ cdef class ComplexBall(RingElement):
         else:
             return "{} + {}*I".format(self.real()._repr_(),
                                         self.imag()._repr_())
+
+    def __reduce__(self):
+        r"""
+        Serialize a ComplexBall.
+
+        TESTS::
+
+            sage: [loads(dumps(b)).identical(b) for b in
+            ....:     [ComplexBallField(60)(1/3 + i*pi), CBF(NaN)]]
+            [True, True]
+        """
+        return self.__class__, (self._parent, self.real(), self.imag())
 
     def _is_atomic(self):
         r"""
@@ -3959,8 +3974,8 @@ cdef class ComplexBall(RingElement):
 
         EXAMPLES::
 
-            sage: CBF(20).erfc()
-            [5.39586561160790e-176 +/- ...e-191]
+            sage: CBF(20).erfc() # abs tol 1e-190
+            [5.39586561160790e-176 +/- 6.73e-191]
             sage: CBF(100, 100).erfc()
             [0.00065234366376858 +/- ...e-18] + [-0.00393572636292141 +/- ...e-18]*I
         """
@@ -4189,7 +4204,7 @@ cdef class ComplexBall(RingElement):
 
         TESTS:
 
-            sage: CBF(Ei(I))
+            sage: CBF(Ei(I))  # abs tol 1e-16
             [0.337403922900968 +/- 3.76e-16] + [2.51687939716208 +/- 2.01e-15]*I
         """
         cdef ComplexBall result = self._new()
@@ -4239,7 +4254,7 @@ cdef class ComplexBall(RingElement):
 
         TESTS:
 
-            sage: CBF(Ci(I))
+            sage: CBF(Ci(I))  # abs tol 1e-17
             [0.837866940980208 +/- 4.72e-16] + [1.570796326794897 +/- 5.54e-16]*I
         """
         cdef ComplexBall result = self._new()
@@ -4265,7 +4280,7 @@ cdef class ComplexBall(RingElement):
 
         TESTS:
 
-            sage: CBF(Shi(I))
+            sage: CBF(Shi(I)) # abs tol 1e-15
             [0.946083070367183 +/- 9.22e-16]*I
         """
         cdef ComplexBall result = self._new()
@@ -4291,7 +4306,7 @@ cdef class ComplexBall(RingElement):
 
         TESTS:
 
-            sage: CBF(Chi(I))
+            sage: CBF(Chi(I))  # abs tol 1e-16
             [0.337403922900968 +/- 3.25e-16] + [1.570796326794897 +/- 5.54e-16]*I
         """
         cdef ComplexBall result = self._new()

@@ -528,9 +528,9 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
 
         ::
 
-            sage: Integer(u'0')
+            sage: Integer('0')
             0
-            sage: Integer(u'0X2AEEF')
+            sage: Integer('0X2AEEF')
             175855
 
         Test conversion from PARI (:trac:`11685`)::
@@ -683,14 +683,19 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
                     if b == 2: # we use a faster method
                         for j from 0 <= j < len(x):
                             otmp = x[j]
-                            if not isinstance(otmp, Integer):
-                                # should probably also have fast code for Python ints...
-                                otmp = Integer(otmp)
-                            if mpz_cmp_si((<Integer>otmp).value, 1) == 0:
-                                mpz_setbit(self.value, j)
-                            elif mpz_sgn((<Integer>otmp).value) != 0:
-                                # one of the entries was something other than 0 or 1.
-                                break
+                            if isinstance(otmp, (int, long)):
+                                if (<long> otmp) == 1:
+                                    mpz_setbit(self.value, j)
+                                if (<long> otmp) != 0:
+                                    break
+                            else:
+                                if not isinstance(otmp, Integer):
+                                    otmp = Integer(otmp)
+                                if mpz_cmp_si((<Integer>otmp).value, 1) == 0:
+                                    mpz_setbit(self.value, j)
+                                elif mpz_sgn((<Integer>otmp).value) != 0:
+                                    # one of the entries was something other than 0 or 1.
+                                    break
                         else:
                             return
                     tmp = the_integer_ring(0)
@@ -1193,19 +1198,8 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
             10
             sage: print(Integer(16938402384092843092843098243).hex())
             36bb1e3929d1a8fe2802f083
-
-            sage: hex(Integer(16))  # py2
-            doctest:warning...:
-            DeprecationWarning: use the method .hex instead
-            See https://trac.sagemath.org/26756 for details.
-            '10'
         """
         return self.str(16)
-
-    def __hex__(self):
-        from sage.misc.superseded import deprecation_cython as deprecation
-        deprecation(26756, 'use the method .hex instead')
-        return self.hex()
 
     def oct(self):
         r"""
@@ -1233,33 +1227,19 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
             sage: print(Integer(16938402384092843092843098243).oct())
             15535436162247215217705000570203
 
-        Behavior of Sage integers vs. Python integers (Python 2 and Python 3)::
+        Behavior of Sage integers vs. Python integers::
 
             sage: Integer(10).oct()
             '12'
-            sage: oct(Integer(10)) # py2
-            doctest:warning...:
-            DeprecationWarning: use the method .oct instead
-            See https://trac.sagemath.org/26756 for details.
-            '12'
-            sage: oct(int(10))  # py2
-            '012'
-            sage: oct(int(10))  # py3
+            sage: oct(int(10))
             '0o12'
 
             sage: Integer(-23).oct()
             '-27'
-            sage: oct(int(-23)) # py2
-            '-027'
-            sage: oct(int(-23)) # py3
+            sage: oct(int(-23))
             '-0o27'
         """
         return self.str(8)
-
-    def __oct__(self):
-        from sage.misc.superseded import deprecation_cython as deprecation
-        deprecation(26756, 'use the method .oct instead')
-        return self.oct()
 
     def binary(self):
         """
@@ -3529,8 +3509,7 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
 
     def __int__(self):
         """
-        Return the Python int (or long) corresponding to this Sage
-        integer.
+        Return the Python int corresponding to this Sage integer.
 
         EXAMPLES::
 
@@ -3543,9 +3522,9 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
             <... 'int'>
             sage: n = 99028390823409823904823098490238409823490820938
             sage: int(n)
-            99028390823409823904823098490238409823490820938L
+            99028390823409823904823098490238409823490820938
             sage: int(-n)
-            -99028390823409823904823098490238409823490820938L
+            -99028390823409823904823098490238409823490820938
             sage: type(n.__int__())
             <class 'int'>
             sage: int(-1), int(0), int(1)
@@ -6943,7 +6922,7 @@ cdef int mpz_set_str_python(mpz_ptr z, char* s, int base) except -1:
         12345
         sage: Integer('   -      1  2   3  4   5  ')
         -12345
-        sage: Integer(u'  -  0x  1  2   3  4   5  ')
+        sage: Integer('  -  0x  1  2   3  4   5  ')
         -74565
         sage: Integer('-0012345', 16)
         -74565
@@ -7266,10 +7245,30 @@ cdef int sizeof_Integer
 
 # We use a global Integer element to steal all the references
 # from. DO NOT INITIALIZE IT AGAIN and DO NOT REFERENCE IT!
-#
-# Use actual calculation to avoid libgmp's new lazy allocation :trac:`31340`
 cdef Integer global_dummy_Integer
-global_dummy_Integer = Integer(1) - Integer(1)
+global_dummy_Integer = Integer()
+# Reallocate to one limb to fix :trac:`31340` and :trac:`33081`
+_mpz_realloc(global_dummy_Integer.value, 1)
+
+def _check_global_dummy_Integer():
+    """
+    Return true if the global dummy Integer is ok.
+
+    TESTS::
+
+        sage: from sage.rings.integer import _check_global_dummy_Integer
+        sage: _check_global_dummy_Integer()
+        True
+    """
+    # Check that it has exactly one limb allocated
+    # This is assumed later in fast_tp_new() :trac:`33081`
+    cdef mpz_ptr dummy = global_dummy_Integer.value
+    if dummy._mp_alloc == 1 and dummy._mp_size == 0:
+        return True
+
+    raise AssertionError(
+      "global dummy Integer is corrupt (_mp_alloc = %d, _mp_size = %d)"
+      % (dummy._mp_alloc, dummy._mp_size))
 
 
 # A global pool for performance when integers are rapidly created and destroyed.
@@ -7344,6 +7343,8 @@ cdef PyObject* fast_tp_new(type t, args, kwds) except NULL:
         #  various internals described here may change in future GMP releases.
         #  Applications expecting to be compatible with future releases should use
         #  only the documented interfaces described in previous chapters."
+        #
+        # NOTE: This assumes global_dummy_Integer.value._mp_alloc == 1
         new_mpz = <mpz_ptr>((<Integer>new).value)
         new_mpz._mp_d = <mp_ptr>check_malloc(GMP_LIMB_BITS >> 3)
 

@@ -91,32 +91,34 @@ for SYSTEM in arch debian fedora cygwin homebrew conda; do
         cp environment.yml environment-python.yml
             echo "  - linbox
   # Python packages
-  - six >=1.15.0
-  - cypari2 >=2.1.1
-  - cysignals >=1.10.2
-  - cython >=0.29.21, <1.0
-  - gmpy2 ==2.1.0rc1
-  - jinja2 >=2.11.2
-  - jupyter_core >=4.6.3
-  - numpy >=1.19
-  - pkgconfig >=1.5.1
-  - pplpy >=0.8.6
+  - six
+  - cypari2
+  - cysignals
+  - cython
+  - gmpy2
+  - jinja2
+  - jupyter_core
+  - numpy
+  - pkgconfig
+  - pplpy
   - memory-allocator
-  - requests >=2.13.0
-  - ipython >=7.13.0
-  - pexpect >=4.8.0
-  - sphinx >=4.3, <4.4
-  - networkx >=2.4, <2.7
-  - scipy >=1.5, <1.8
-  - sympy >=1.6, <2.0
-  - matplotlib >=3.3.1
-  - pillow >=7.2.0
-  - mpmath >=1.1.0
-  - ipykernel >=5.2.1
-  - jupyter_client >=6.1.6
-  - ipywidgets >=7.5.1
-  - rpy2 >=3.3, <3.4
-  - fpylll >=0.5.5, <=0.5.6" >> environment-python.yml
+  - requests
+  - ipython
+  - pexpect
+  - sphinx
+  - networkx
+  - scipy <1.8
+  - sympy
+  - matplotlib
+  - pillow
+  - mpmath
+  - ipykernel
+  - jupyter_client
+  - ipywidgets
+  - rpy2
+  - pytest
+  - iniconfig
+  - fpylll" >> environment-python.yml
     else
         if [ "${BOOTSTRAP_QUIET}" = "no" ]; then
             echo >&2 $0:$LINENO: installing "$OUTPUT_DIR"/$SYSTEM.txt and "$OUTPUT_DIR"/$SYSTEM-optional.txt

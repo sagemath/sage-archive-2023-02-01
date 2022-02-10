@@ -20,7 +20,7 @@ Schur symmetric functions
 from . import classical
 import sage.libs.lrcalc.lrcalc as lrcalc
 from sage.misc.misc_c import prod
-from sage.data_structures.blas_dict import coerce_remove_zeros
+from sage.data_structures.blas_dict import convert_remove_zeroes
 from sage.rings.infinity import infinity
 from sage.rings.polynomial.polynomial_ring_constructor import PolynomialRing
 from sage.arith.misc import factorial
@@ -130,7 +130,7 @@ class SymmetricFunctionAlgebra_schur(classical.SymmetricFunctionAlgebra_classica
             sage: s[2,1]^2
             s[2, 2, 1, 1] + s[2, 2, 2] + s[3, 1, 1, 1] + s[3, 3] + s[4, 1, 1] + s[4, 2]
         """
-        return self.element_class(self, coerce_remove_zeros(lrcalc.mult(left, right),
+        return self.element_class(self, convert_remove_zeroes(lrcalc.mult(left, right),
                                                             self.base_ring()))
 
     def coproduct_on_basis(self, mu):
@@ -164,7 +164,7 @@ class SymmetricFunctionAlgebra_schur(classical.SymmetricFunctionAlgebra_classica
             1/2*s[] # s[2] + 1/2*s[1] # s[1] + 1/2*s[2] # s[]
         """
         T = self.tensor_square()
-        return T.element_class(T, coerce_remove_zeros(lrcalc.coprod(mu, all=1),
+        return T.element_class(T, convert_remove_zeroes(lrcalc.coprod(mu, all=1),
                                                       self.base_ring()))
 
     def _element_constructor_(self, x):

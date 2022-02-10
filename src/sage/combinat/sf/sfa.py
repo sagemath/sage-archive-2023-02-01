@@ -226,7 +226,7 @@ from sage.categories.tensor import tensor
 from sage.combinat.free_module import CombinatorialFreeModule
 from sage.matrix.constructor import matrix
 from sage.misc.misc_c import prod
-from sage.data_structures.blas_dict import coerce_remove_zeros, linear_combination
+from sage.data_structures.blas_dict import convert_remove_zeroes, linear_combination
 from copy import copy
 from functools import reduce
 
@@ -729,7 +729,7 @@ class SymmetricFunctionsBases(Category_realization_of_parent):
             s = self.realization_of().schur()
             R = self.base_ring()
             skewschur = lrcalc.skew(x[0], x[1])
-            return self(s.element_class(s, coerce_remove_zeros(skewschur, R)))
+            return self(s.element_class(s, convert_remove_zeroes(skewschur, R)))
 
         def Eulerian(self, n, j, k=None):
             """
@@ -5280,10 +5280,9 @@ class SymmetricFunctionAlgebra_generic_Element(CombinatorialFreeModule.Element):
         if x not in Sym:
             raise ValueError("x needs to be a symmetric function")
         s = Sym.schur()
-        zero = s.zero()
         R = parent.base_ring()
         import sage.libs.lrcalc.lrcalc as lrcalc
-        ret = linear_combination((coerce_remove_zeros(lrcalc.skew(p1, p2), R), c1 * c2)
+        ret = linear_combination((convert_remove_zeroes(lrcalc.skew(p1, p2), R), c1 * c2)
                                  for p1, c1 in s(self)._monomial_coefficients.items()
                                  for p2, c2 in s(x)._monomial_coefficients.items()
                                  if p1.contains(p2))

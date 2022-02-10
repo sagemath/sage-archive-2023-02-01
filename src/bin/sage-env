@@ -118,11 +118,11 @@ elif [ -f ../../sage -a -d ../../build ]; then
 fi
 
 if [ -n "$NEW_SAGE_ROOT" ]; then
-    # Make NEW_SAGE_ROOT absolute
+    # Make NEW_SAGE_ROOT absolute; this will be empty if this directory does not exist.
     NEW_SAGE_ROOT=`cd "$NEW_SAGE_ROOT" && pwd -P`
 
     # Warn if NEW_SAGE_ROOT does not equal the old SAGE_ROOT
-    if [ "$SAGE_ROOT" != "$NEW_SAGE_ROOT" -a -n "$SAGE_ROOT" ]; then
+    if [ "$SAGE_ROOT" != "$NEW_SAGE_ROOT" -a -n "$SAGE_ROOT" -a -n "$NEW_SAGE_ROOT" ]; then
         echo >&2 "Warning: overwriting SAGE_ROOT environment variable:"
         echo >&2 "Old SAGE_ROOT=$SAGE_ROOT"
         echo >&2 "New SAGE_ROOT=$NEW_SAGE_ROOT"

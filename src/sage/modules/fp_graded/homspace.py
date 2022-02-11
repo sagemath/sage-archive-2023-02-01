@@ -8,9 +8,8 @@ graded `k`-algebra, where `k` is a field.
 TESTS::
 
     sage: from sage.modules.fp_graded.module import FPModule
-    sage: from sage.misc.sage_unittest import TestSuite
     sage: A = SteenrodAlgebra(2, profile=(3,2,1))
-    sage: F = FPModule(A, [1,3], names='c')
+    sage: F = A.free_graded_module([1,3], names='c')
     sage: L = FPModule(A, [2,3], [[Sq(2),Sq(1)], [0,Sq(2)]], names='h')
     sage: homset = Hom(F, L); homset
     Set of Morphisms from Free graded left module on 2 generators ...
@@ -20,13 +19,13 @@ TESTS::
       To:   Finitely presented left module on 2 generators and 2 relations over sub-Hopf algebra of mod 2 Steenrod algebra, milnor basis, profile function [3, 2, 1]
       Defn: c[1] |--> 0
             c[3] |--> Sq(1)*h[2]
-    sage: homset([L((A.Sq(1), 1)), L((0, A.Sq(2)))])
+    sage: f = homset([L((A.Sq(1), 1)), L((0, A.Sq(2)))]); f
     Module morphism:
       From: Free graded left module on 2 generators over sub-Hopf algebra of mod 2 Steenrod algebra, milnor basis, profile function [3, 2, 1]
       To:   Finitely presented left module on 2 generators and 2 relations over sub-Hopf algebra of mod 2 Steenrod algebra, milnor basis, profile function [3, 2, 1]
       Defn: c[1] |--> Sq(1)*h[2] + h[3]
             c[3] |--> Sq(2)*h[3]
-    sage: Hom(F, L) ([L((A.Sq(1), 1)), L((0, A.Sq(2)))]).kernel_inclusion()
+    sage: f.kernel_inclusion()
     Module morphism:
       From: Finitely presented left module on 2 generators and 1 relation over sub-Hopf algebra of mod 2 Steenrod algebra, milnor basis, profile function [3, 2, 1]
       To:   Free graded left module on 2 generators over sub-Hopf algebra of mod 2 Steenrod algebra, milnor basis, profile function [3, 2, 1]
@@ -521,10 +520,10 @@ class FPModuleHomspace(Homset):
             num_generators = len(M.generators())
             for i, g in enumerate(M.generators()):
                 # The i'th generator can go to any of these basis elements:
-                base = N[(g.degree() + n)]
+                base = N.basis_elements(g.degree() + n)
                 for value in base:
                     values = [N.zero() if i != j else value for j in range(num_generators)]
-                    res.append(Hom(M,N)(values))
+                    res.append(self(values))
                     if not basis:
                         return res[0]
 
@@ -554,7 +553,7 @@ class FPModuleHomspace(Homset):
                     xs.append(N.element_from_coordinates(b[n:n+k], source_degs[j]))
                     n += k
 
-                res.append(Hom(M, N)(xs))
+                res.append(self(xs))
                 if not basis:
                     return res[0]
 

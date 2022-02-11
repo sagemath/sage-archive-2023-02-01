@@ -34,14 +34,13 @@ from sage.rings.integer_ring import ZZ
 
 def profile_elt(elt, char=2):
     """
-    The smallest sub-Hopf algebra containing the element passed
+    Return the smallest sub-Hopf algebra containing ``elt``.
 
     INPUT:
 
-    -  ``elt`` -- element of the Steenrod algebra (or a sub-Hopf algebra
-       of it) or list(s) representing it.
-
-    -  ``char`` -- the characteristic
+    - ``elt`` -- element of the Steenrod algebra (or a sub-Hopf algebra
+      of it) or list(s) representing it
+    - ``char`` -- the characteristic
 
     ``elt`` could also be a list (when ``char=2``) or a pair of lists
     (otherwise), in which case it is treated as corresponding to an
@@ -88,21 +87,20 @@ def profile_elt(elt, char=2):
     if not alistQ:
         minpQ=[]
     else:
-        minpQ = [1]*(max(alistQ)+1)
+        minpQ = [1] * (max(alistQ) + 1)
         for j in alistQ:
             minpQ[j] = 2
     return find_min_profile((minprofileP, minpQ), char=char)
 
 
 def enveloping_profile_elements(alist, char=2):
-    """
-    Finds the profile function for the smallest sub-Hopf algebra
+    r"""
+    Return the profile function for the smallest sub-Hopf algebra
     containing the list of elements passed.
 
     INPUT:
 
     -  ``alist`` -- list of Steenrod algebra elements
-
     -  ``char`` -- the characteristic
 
     As with :func:`profile_elt`, the entries of ``alist`` could also
@@ -154,23 +152,22 @@ def enveloping_profile_elements(alist, char=2):
 
 
 def find_min_profile(prof, char=2):
-    """
+    r"""
     Given a tuple of non-negative integers, this function will
     output the smallest legal profile function containing it.
 
     INPUT:
 
-    -  ``prof``  - A list or tuple of nonnegative integers.
+    - ``prof`` -- a list or tuple of nonnegative integers
 
     OUTPUT:
 
-    -  ``prof_out`` - A valid profile containing ``prof``.
-
+    - a valid profile containing ``prof``
 
     A profile function `e` must satisfy `e(r) \geq \min( e(r-i) - i,
     e(i))` for all `0 < i < r`, and at odd primes, if `k(i+j) = 1`,
     then either `e(i) \leq j` or `k(j) = 1` for all `i \geq 1`, `j
-    \geq 0`. We use these inequalities to generate ``prof_out`` from
+    \geq 0`. We use these inequalities to generate the profile from
     ``prof``.
 
     EXAMPLES::
@@ -220,19 +217,24 @@ def find_min_profile(prof, char=2):
         return tuple(e[1:])
 
     # odd primes:
-    pP, pQ = list(prof[0]), list(prof[1])
+    pP = list(prof[0])
+    pQ = list(prof[1])
     P = find_min_profile(pP, char=2)
     if not pQ:
         return (P, tuple(pQ))
     # newQ: dictionary of the form {index: value} where value is
     # either 1 or 2.
-    newQ = dict(enumerate(pQ))
+    maxP = max(P)
+    newQ = list(pQ) + [None] * maxP
     for j in range(len(pQ)):
-        for i in range(1, max(P)+1):
-            if P[i-1] > j and newQ[j] == 2:
-                newQ[i+j] = 2
-    # Convert the dictionary back to a list. As of Python 3.7,
-    # converting values of a dictionary to a list or tuple will result
-    # in the expected order:
-    # https://stackoverflow.com/questions/39980323/are-dictionaries-ordered-in-python-3-6/39980744#39980744
-    return (P, tuple(newQ.values()))
+        if newQ[j] == 2:
+            for i in range(maxP):
+                if P[i] > j:
+                    newQ[i+1+j] = 2
+    # Strip all of the None values
+    # Do it from the back to minimize reshuffles and keep the index matching
+    for i in range(len(newQ)-1, len(pQ)-1, -1):
+        if newQ[i] is None:
+            del newQ[i]
+    return (P, tuple(newQ))
+

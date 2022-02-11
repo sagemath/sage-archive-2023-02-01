@@ -1,39 +1,33 @@
 r"""
 Homsets of finitely presented graded modules over the Steenrod algebra
 
-This class implements methods for construction and basic
-manipulation of homsets of finitely presented graded modules over the
-mod `p` Steenrod algebra.
-
-For an overview of the API, see :doc:`module`.
-
-TESTS::
+EXAMPLES::
 
     sage: from sage.modules.fp_graded.steenrod.module import SteenrodFPModule
     sage: from sage.misc.sage_unittest import TestSuite
     sage: A = SteenrodAlgebra(2, profile=(3,2,1))
-    sage: F = SteenrodFPModule(A, [1,3])
-    sage: L = SteenrodFPModule(A, [2,3], [[Sq(2),Sq(1)], [0,Sq(2)]])
+    sage: F = SteenrodFPModule(A, [1,3], names='c')
+    sage: L = SteenrodFPModule(A, [2,3], [[Sq(2),Sq(1)], [0,Sq(2)]], names='h')
     sage: homset = Hom(F, L); homset
     Set of Morphisms from Free graded left module on 2 generators ...
     sage: homset.an_element()
     Module morphism:
       From: Free graded left module on 2 generators over sub-Hopf algebra of mod 2 Steenrod algebra, milnor basis, profile function [3, 2, 1]
       To:   Finitely presented left module on 2 generators and 2 relations over sub-Hopf algebra of mod 2 Steenrod algebra, milnor basis, profile function [3, 2, 1]
-      Defn: g[1] |--> 0
-            g[3] |--> Sq(1)*g[2]
-    sage: homset([L((Sq(1), 1)), L((0, Sq(2)))])
+      Defn: c[1] |--> 0
+            c[3] |--> Sq(1)*h[2]
+    sage: f = homset([L((Sq(1), 1)), L((0, Sq(2)))]); f
     Module morphism:
       From: Free graded left module on 2 generators over sub-Hopf algebra of mod 2 Steenrod algebra, milnor basis, profile function [3, 2, 1]
       To:   Finitely presented left module on 2 generators and 2 relations over sub-Hopf algebra of mod 2 Steenrod algebra, milnor basis, profile function [3, 2, 1]
-      Defn: g[1] |--> Sq(1)*g[2] + g[3]
-            g[3] |--> Sq(2)*g[3]
-    sage: Hom(F, L) ([L((Sq(1), 1)), L((0, Sq(2)))]).kernel_inclusion()
+      Defn: c[1] |--> Sq(1)*h[2] + h[3]
+            c[3] |--> Sq(2)*h[3]
+    sage: f.kernel_inclusion()
     Module morphism:
       From: Finitely presented left module on 2 generators and 1 relation over sub-Hopf algebra of mod 2 Steenrod algebra, milnor basis, profile function [3, 2, 1]
       To:   Free graded left module on 2 generators over sub-Hopf algebra of mod 2 Steenrod algebra, milnor basis, profile function [3, 2, 1]
-      Defn: g[3] |--> g[3]
-            g[4] |--> Sq(0,1)*g[1]
+      Defn: g[3] |--> c[3]
+            g[4] |--> Sq(0,1)*c[1]
     sage: TestSuite(homset).run()
 
 AUTHORS:
@@ -43,7 +37,6 @@ AUTHORS:
   original software to Sage version 8.9.
 - Sverre Lunoee--Nielsen (2020-07-01): Refactored the code and added
   new documentation and tests.
-
 """
 
 #*****************************************************************************
@@ -58,7 +51,12 @@ AUTHORS:
 # ****************************************************************************
 
 from sage.modules.fp_graded.homspace import FPModuleHomspace
-from .morphism import SteenrodFPModuleMorphism
+from sage.modules.fp_graded.free_homspace import FreeGradedModuleHomspace
+from .morphism import SteenrodFPModuleMorphism, SteenrodFreeModuleMorphism
 
 class SteenrodFPModuleHomspace(FPModuleHomspace):
     Element = SteenrodFPModuleMorphism
+
+class SteenrodFreeModuleHomspace(SteenrodFPModuleHomspace, FreeGradedModuleHomspace):
+    Element = SteenrodFreeModuleMorphism
+

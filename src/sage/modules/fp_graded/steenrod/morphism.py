@@ -2,10 +2,8 @@ r"""
 Homomorphisms of finitely presented modules over the Steenrod algebra
 
 This class implements construction and basic manipulation of homomorphisms
-between finitely presented graded modules over the mod `p`
-Steenrod algebra.
-
-For an overview of the API, see :doc:`module`.
+between :mod:`finitely presented graded modules
+<sage.modules.fp_graded.steenrod.module>` over the mod `p` Steenrod algebra.
 
 AUTHORS:
 
@@ -14,7 +12,6 @@ AUTHORS:
   original software to Sage version 8.9.
 - Sverre Lunoee--Nielsen (2020-07-01): Refactored the code and added
   new documentation and tests.
-
 """
 
 #*****************************************************************************
@@ -32,14 +29,14 @@ from sage.categories.homset import Hom
 
 from sage.algebras.steenrod.steenrod_algebra import SteenrodAlgebra_generic
 from sage.modules.fp_graded.morphism import FPModuleMorphism
+from sage.modules.fp_graded.free_morphism import FreeGradedModuleMorphism
 from .profile import enveloping_profile_elements
 
 
 class SteenrodFPModuleMorphism(FPModuleMorphism):
-
     def profile(self):
         r"""
-        A finite profile over which this homomorphism can be defined.
+        Return a finite profile over which ``self`` can be defined.
 
         This is in some ways the key method for these morphisms. As
         discussed in the "Theoretical background" section of
@@ -63,7 +60,7 @@ class SteenrodFPModuleMorphism(FPModuleMorphism):
             sage: A_fin = SteenrodAlgebra(2, profile=(2,1))
             sage: M_fin = M.change_ring(A_fin)
 
-        Change the ring of the module M::
+        Change the ring of the module ``M``::
 
             sage: M_fin.change_ring(A) is M
             True
@@ -73,21 +70,21 @@ class SteenrodFPModuleMorphism(FPModuleMorphism):
 
             sage: one_fin = one.change_ring(A_fin)
             sage: one_fin.domain()
-            Finitely presented left module on 2 generators and 2 relations over sub-Hopf algebra of mod 2 Steenrod algebra, milnor basis, profile function [2, 1]
+            Finitely presented left module on 2 generators and 2 relations over
+             sub-Hopf algebra of mod 2 Steenrod algebra, milnor basis, profile function [2, 1]
 
-        And if we change back to the full Steenrod algebra, we are back where
+        If we change back to the full Steenrod algebra, we are back where
         we started::
 
             sage: one_fin.change_ring(A) == one
             True
         """
         def _flatten(f):
-            return [coeffifient for value in f.values()\
-                for coeffifient in value.dense_coefficient_list()]
+            return [c for value in f for c in value.dense_coefficient_list()]
 
-        elements = _flatten(self.domain()._j) +\
-            _flatten(self.codomain()._j) +\
-            _flatten(self)
+        elements = (_flatten(self.domain().relations())
+                    + _flatten(self.codomain().relations())
+                    + _flatten(self.values()))
 
         elements = [a for a in elements if a not in (0, 1)]
 
@@ -102,17 +99,15 @@ class SteenrodFPModuleMorphism(FPModuleMorphism):
         return (1,) if profile == (0,) else profile
 
 
-    def is_injective(self, verbose=False):
+    def is_injective(self, top_dim=None, verbose=False):
         r"""
-        Determine if this homomorphism is injective.
+        Return if ``self`` is injective.
 
         INPUT:
 
-        - ``verbose`` -- A boolean to control if log messages should be emitted.
-          (optional, default: ``False``)
-
-        OUTPUT: The boolean value ``True`` if this homomorphism has a trivial
-        kernel, and ``False`` otherwise.
+        - ``top_dim`` -- (optional) stop the computation at this degree; if
+          not specified, this is determined using :meth:`profile`
+        - ``verbose`` -- (default: ``False``) whether log messages are printed
 
         EXAMPLES::
 
@@ -131,28 +126,22 @@ class SteenrodFPModuleMorphism(FPModuleMorphism):
             True
             sage: z.is_zero()
             True
-
         """
         algebra = self.base_ring()
-
         finite_algebra = SteenrodAlgebra_generic(algebra.prime(), profile=self.profile())
-
-        return FPModuleMorphism.is_injective(
-            self.change_ring(finite_algebra),
-            verbose=verbose)
+        return FPModuleMorphism.is_injective(self.change_ring(finite_algebra),
+                                             top_dim=top_dim, verbose=verbose)
 
 
     def kernel_inclusion(self, top_dim=None, verbose=False):
         r"""
-        The kernel of this homomorphism.
+        Return the kernel of ``self`` as a morphism.
 
         INPUT:
 
-        - ``top_dim`` -- stop the computation at this degree
-          (optional, default ``None``, in which case the ending degree
-          is determined automatically using :meth:`profile`)
-        - ``verbose`` -- A boolean to control if log messages should be emitted.
-          (optional, default: ``False``)
+        - ``top_dim`` -- (optional) stop the computation at this degree; if
+          not specified, this is determined using :meth:`profile`
+        - ``verbose`` -- (default: ``False``) whether log messages are printed
 
         OUTPUT: An injective homomorphism into the domain ``self`` which is
         onto the kernel of this homomorphism.
@@ -188,9 +177,8 @@ class SteenrodFPModuleMorphism(FPModuleMorphism):
 
             sage: g.is_zero()
             True
-
         """
-        return self._action(FPModuleMorphism.kernel_inclusion, verbose)
+        return self._action(FPModuleMorphism.kernel_inclusion, top_dim=top_dim, verbose=verbose)
 
 
     def cokernel_projection(self, verbose=False):
@@ -233,17 +221,20 @@ class SteenrodFPModuleMorphism(FPModuleMorphism):
         return projection
 
 
-    def image(self, verbose=False):
+    def image(self, top_dim=None, verbose=False):
         r"""
-        Compute the image of this homomorphism.
+        Return the image of ``self``.
 
         INPUT:
 
-        - ``verbose`` -- A boolean to control if log messages should be emitted.
-          (optional, default: ``False``)
+        - ``top_dim`` -- integer (optional); used by this function to stop the
+          computation at the given degree
+        - ``verbose`` -- (default: ``False``) whether log messages are printed
 
-        OUTPUT: An injective homomorphism into the codomain of ``self`` which is
-        onto the image of this homomorphism.
+        OUTPUT:
+
+        An injective homomorphism into the codomain of ``self`` which is
+        onto the image of ``self``.
 
         EXAMPLES::
 
@@ -282,7 +273,7 @@ class SteenrodFPModuleMorphism(FPModuleMorphism):
             True
 
         """
-        return self._action(FPModuleMorphism.image, verbose)
+        return self._action(FPModuleMorphism.image, top_dim=top_dim, verbose=verbose)
 
 
     def _resolve_kernel(self, top_dim=None, verbose=False):
@@ -291,11 +282,9 @@ class SteenrodFPModuleMorphism(FPModuleMorphism):
 
         INPUT:
 
-        - ``top_dim`` -- stop the computation at this degree
-          (optional, default ``None``, in which case the ending degree
-          is determined automatically using :meth:`profile`)
-        - ``verbose`` -- A boolean to enable progress messages. (optional,
-          default: ``False``)
+        - ``top_dim`` -- (optional) stop the computation at this degree; if
+          not specified, this is determined using :meth:`profile`
+        - ``verbose`` -- (default: ``False``) whether log messages are printed
 
         OUTPUT: A homomorphism `j: F \rightarrow D` where `D` is the domain of
         this homomorphism, `F` is free and such that `\ker(self) = \operatorname{im}(j)`.
@@ -314,8 +303,25 @@ class SteenrodFPModuleMorphism(FPModuleMorphism):
               Defn: g[0, 0] |--> g[0, 1]
                     g[3, 0] |--> Sq(0,1)*g[0, 0]
                     g[3, 1] |--> Sq(3)*g[0, 0]
+
+        An odd primary example::
+
+            sage: A3 = SteenrodAlgebra(3)
+            sage: F0 = A3.free_graded_module([32, 40])
+            sage: F1 = A3.free_graded_module([0])
+            sage: g0 = F1.generator(0)
+            sage: f = Hom(F0, F1)([A3.P(8)*g0, (A3.P(6,1))*g0])
+            sage: f._resolve_kernel()
+            Module morphism:
+              From: Free graded left module on 5 generators over mod 3 Steenrod algebra, milnor basis
+              To:   Free graded left module on 2 generators over mod 3 Steenrod algebra, milnor basis
+              Defn: g[36] |--> P(1)*g[32]
+                    g[44] |--> P(3)*g[32] + (2P(1))*g[40]
+                    g[56] |--> P(6)*g[32] + P(0,1)*g[40]
+                    g[64] |--> P(0,2)*g[32] + (2P(6))*g[40]
+                    g[72] |--> P(6,1)*g[32]
         """
-        return self._action(FPModuleMorphism._resolve_kernel, verbose)
+        return self._action(FPModuleMorphism._resolve_kernel, top_dim=top_dim, verbose=verbose)
 
 
     def _resolve_image(self, top_dim=None, verbose=False):
@@ -324,11 +330,9 @@ class SteenrodFPModuleMorphism(FPModuleMorphism):
 
         INPUT:
 
-        - ``top_dim`` -- stop the computation at this degree
-          (optional, default ``None``, in which case the ending degree
-          is determined automatically using :meth:`profile`)
-        - ``verbose`` -- A boolean to enable progress messages. (optional,
-          default: ``False``)
+        - ``top_dim`` -- (optional) stop the computation at this degree; if
+          not specified, this is determined using :meth:`profile`
+        - ``verbose`` -- (default: ``False``) whether log messages are printed
 
         OUTPUT: A homomorphism `j: F \rightarrow C` where `C` is the codomain
         of this homomorphism, `F` is free, and
@@ -347,10 +351,10 @@ class SteenrodFPModuleMorphism(FPModuleMorphism):
               To:   Finitely presented left module on 2 generators and 2 relations over mod 2 Steenrod algebra, milnor basis
               Defn: g[2] |--> Sq(2)*g[0, 0]
         """
-        return self._action(FPModuleMorphism._resolve_image, verbose)
+        return self._action(FPModuleMorphism._resolve_image, top_dim=top_dim, verbose=verbose)
 
 
-    def _action(self, method, verbose=False):
+    def _action(self, method, *args, **kwds):
         r"""
         Changes the ground ring to a finite algebra, acts by the given method
         and changes back into the original ground ring before returning.
@@ -374,7 +378,7 @@ class SteenrodFPModuleMorphism(FPModuleMorphism):
         """
         small_profile = self.profile()
 
-        if verbose:
+        if kwds.get('verbose', False):
             print('Computing using the profile:')
             print(small_profile)
 
@@ -385,25 +389,20 @@ class SteenrodFPModuleMorphism(FPModuleMorphism):
 
         # Perform the chosen action on the module after having changed rings
         # to the finite algebra.
-        fp_result = method(
-            self.change_ring(finite_algebra),
-            verbose=verbose)
+        fp_result = method(self.change_ring(finite_algebra), *args, **kwds)
 
         # Change back to the original algebra and also from FPModule
         # to SteenrodFPModule, and return the result.
         #
         # This is very clunky. Clean it up!
         f = fp_result.change_ring(self.base_ring())
-        from .module import SteenrodFPModule
-        try:
-            M = SteenrodFPModule(f.domain()._j)
-        except AttributeError: # f.domain() is free
-            M = SteenrodFPModule(f.domain())
-        try:
-            N = SteenrodFPModule(f.codomain()._j)
-        except AttributeError:
-            N = SteenrodFPModule(f.codomain())
+        M = f.domain()
+        N = f.codomain()
         new_values = [N.linear_combination(zip(N.generators(),
                                                v.dense_coefficient_list()))
                       for v in f.values()]
         return Hom(M, N)(new_values)
+
+class SteenrodFreeModuleMorphism(FreeGradedModuleMorphism, SteenrodFPModuleMorphism):
+    pass
+

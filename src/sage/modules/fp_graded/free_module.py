@@ -705,7 +705,9 @@ class FreeGradedModule(CombinatorialFreeModule):
             sage: A = SteenrodAlgebra(2)
             sage: M = A.free_graded_module((0,1))
             sage: M._basis_coeffs(3, 0)
+            (Sq(0,1), Sq(3))
             sage: M._basis_coeffs(3, 1)
+            (Sq(2),)
         """
         return self._cached_basis_coeffs(d - self._generator_degrees[i])
 
@@ -720,9 +722,13 @@ class FreeGradedModule(CombinatorialFreeModule):
             sage: E.<x,y> = ExteriorAlgebra(QQ)
             sage: M = E.free_graded_module((0,0,1))
             sage: M._cached_basis_coeffs(0)
+            (1,)
             sage: M._cached_basis_coeffs(1)
+            (x, y)
             sage: M._cached_basis_coeffs(2)
+            (x*y,)
             sage: M._cached_basis_coeffs(3)
+            ()
         """
         return tuple(self.base_ring().basis(d))
 
@@ -785,7 +791,7 @@ class FreeGradedModule(CombinatorialFreeModule):
         A = self.base_ring()
         j = 0
         for i, key in enumerate(self._indices):
-            B = self._basis_elements(n, i)
+            B = self._basis_coeffs(n, i)
             coeff = A.linear_combination((b, coordinates[j+ind])
                                          for ind, b in enumerate(B))
             if coeff:
@@ -849,7 +855,7 @@ class FreeGradedModule(CombinatorialFreeModule):
             4
         """
         m = len(self._generator_degrees)
-        return FreeModule(self.base_ring().base_ring(), sum(len(self._basis_elements(n, i))
+        return FreeModule(self.base_ring().base_ring(), sum(len(self._basis_coeffs(n, i))
                                                             for i in range(m)))
 
     __getitem__ = vector_presentation

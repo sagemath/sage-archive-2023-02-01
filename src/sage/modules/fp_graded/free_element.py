@@ -284,11 +284,11 @@ class FreeGradedModuleElement(IndexedFreeModuleElement):
         zero = P.base_ring().zero()
         for i in range(m):
             if I[i] not in self._monomial_coefficients:
-                j += len(P._basis_elements(deg, i))
+                j += len(P._basis_coeffs(deg, i))
                 continue
             coeff = self._monomial_coefficients[I[i]]
             mc = coeff.monomial_coefficients(copy=False)
-            for mono in P._basis_elements(deg, i):
+            for mono in P._basis_coeffs(deg, i):
                 supp = mono.leading_support()
                 if supp in mc:
                     ret[j] = mc[supp]

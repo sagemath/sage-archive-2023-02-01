@@ -393,7 +393,7 @@ class IndexedSequence(SageObject):
             sage: A = [exp(-2*pi*i*I/5) for i in J]
             sage: s = IndexedSequence(A,J)
             sage: s.dct()
-            Indexed sequence: [1/16*(sqrt(5) + I*sqrt(-2*sqrt(5) + 10) + ...
+            Indexed sequence: [0, 1/16*(sqrt(5) + I*sqrt(-2*sqrt(5) + 10) + ...
             indexed by [0, 1, 2, 3, 4]
         """
         from sage.symbolic.constants import pi
@@ -417,8 +417,8 @@ class IndexedSequence(SageObject):
             sage: s = IndexedSequence(A,J)
 
             sage: s.dst()        # discrete sine
-            Indexed sequence: [1.11022302462516e-16 - 2.50000000000000*I, 1.11022302462516e-16 - 2.50000000000000*I, 1.11022302462516e-16 - 2.50000000000000*I, 1.11022302462516e-16 - 2.50000000000000*I, 1.11022302462516e-16 - 2.50000000000000*I]
-                indexed by [0, 1, 2, 3, 4]
+            Indexed sequence: [0.000000000000000, 1.11022302462516e-16 - 2.50000000000000*I, ...]
+            indexed by [0, 1, 2, 3, 4]
         """
         from sage.symbolic.constants import pi
         F = self.base_ring()      # elements must be coercible into RR
@@ -721,7 +721,7 @@ class IndexedSequence(SageObject):
                 a = WaveletTransform(N, other, wavelet_k)
             else:
                 raise ValueError("wavelet_k must be = 2")
-        if other == "debauchies" or other == "debauchies_centered":
+        if other == "daubechies" or other == "daubechies_centered":
             if wavelet_k in [4, 6, 8, 10, 12, 14, 16, 18, 20]:
                 a = WaveletTransform(N, other, wavelet_k)
             else:
@@ -799,7 +799,7 @@ class IndexedSequence(SageObject):
                 a = WaveletTransform(N, other, wavelet_k)
             else:
                 raise ValueError("wavelet_k must be = 2")
-        if other == "debauchies" or other == "debauchies_centered":
+        if other == "daubechies" or other == "daubechies_centered":
             if k in [4, 6, 8, 10, 12, 14, 16, 18, 20]:
                 a = WaveletTransform(N, other, wavelet_k)
             else:

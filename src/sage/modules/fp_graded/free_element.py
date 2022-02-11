@@ -281,7 +281,6 @@ class FreeGradedModuleElement(IndexedFreeModuleElement):
         ret = V.zero_vector()
         j = 0
         I = P._indices
-        zero = P.base_ring().zero()
         for i in range(m):
             if I[i] not in self._monomial_coefficients:
                 j += len(P._basis_coeffs(deg, i))

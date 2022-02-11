@@ -42,7 +42,7 @@ computation can be done.   Then, carry out the calculation there, where it
 is a finite problem and can be reduced to linear algebra over a finite
 prime field.
 
-For more examples, see the `Steenrod algebra modules
+For examples, see the `Steenrod algebra modules
 <../../../../../thematic_tutorials/steenrod_algebra_modules.html>`_
 thematic tutorial.
 
@@ -131,22 +131,14 @@ class SteenrodModuleMixin:
             sage: A = SteenrodAlgebra(2)
             sage: X = SteenrodFPModule(A, [0])
             sage: X.profile()
-            (1,)
+            (0,)
         """
         elements = [coeffifient for value in self.relations()
                     for coeffifient in value.dense_coefficient_list()]
-
         elements = [a for a in elements if a not in (0, 1)]
 
-        profile = enveloping_profile_elements(elements,
-                                              char=self.base_ring().characteristic())
-
-        # Avoid returning the zero profile because it triggers a corner case
-        # in FPModule.resolution().
-        #
-        # XXX todo: Fix FPModule_class.resolution().
-        #
-        return (1,) if profile == (0,) else profile
+        return enveloping_profile_elements(elements,
+                                           char=self.base_ring().characteristic())
 
     def export_module_definition(self, powers_of_two_only=True):
         r"""

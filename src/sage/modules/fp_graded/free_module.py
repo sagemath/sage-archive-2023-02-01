@@ -1007,3 +1007,23 @@ class FreeGradedModule(CombinatorialFreeModule):
 
         return ret_complex + [Hom(T,T).zero()] * (k-1)
 
+
+    def minimal_presentation(self, top_dim=None, verbose=False):
+        r"""
+        Return a minimal presentation of ``self``.
+
+        OUTPUT:
+
+        The identity morphism as ``self`` is free.
+
+        EXAMPLES::
+
+            sage: from sage.modules.fp_graded.module import FPModule
+            sage: A2 = SteenrodAlgebra(2)
+
+            sage: M = A2.free_graded_module([0,1])
+            sage: M.minimal_presentation().is_identity()
+            True
+        """
+        return Hom(self, self).identity()
+

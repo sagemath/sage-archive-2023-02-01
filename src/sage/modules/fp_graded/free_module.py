@@ -21,8 +21,7 @@ dimensional. Another good family is the exterior algebras::
 A free module is defined by the graded algebra and an ordered tuple
 of degrees for the generators::
 
-    sage: from sage.modules.fp_graded.free_module import FreeGradedModule
-    sage: M = FreeGradedModule(algebra=A, generator_degrees=(0,1))
+    sage: M = A.free_graded_module(generator_degrees=(0,1))
     sage: M
     Free graded left module on 2 generators over
      mod 2 Steenrod algebra, milnor basis
@@ -146,8 +145,8 @@ underlying free `k`-module which commute with the `A`-module structure.
 To create a homomorphism, first create the object modeling the set of all
 such homomorphisms using the free function ``Hom``::
 
-    sage: M = FreeGradedModule(A, (0,1))
-    sage: N.<c2> = FreeGradedModule(A, (2,))
+    sage: M = A.free_graded_module((0,1))
+    sage: N.<c2> = A.free_graded_module((2,))
     sage: homspace = Hom(M, N); homspace
     Set of Morphisms from Free graded left module on 2 generators
       over mod 2 Steenrod algebra, milnor basis
@@ -639,7 +638,7 @@ class FreeGradedModule(CombinatorialFreeModule):
 
         return self(coefficients)
 
-    @cached_method
+    #@cached_method
     def basis_elements(self, n):
         r"""
         Return a basis for the free module of degree ``n`` module elements.
@@ -665,9 +664,8 @@ class FreeGradedModule(CombinatorialFreeModule):
 
         EXAMPLES::
 
-            sage: from sage.modules.fp_graded.free_module import FreeGradedModule
             sage: A = SteenrodAlgebra(2)
-            sage: M.<m0, m2, m4> = FreeGradedModule(A, (0,2,4))
+            sage: M.<m0, m2, m4> = A.free_graded_module((0,2,4))
             sage: M.basis_elements(8)
             (Sq(1,0,1)*m0,
              Sq(2,2)*m0,
@@ -682,8 +680,51 @@ class FreeGradedModule(CombinatorialFreeModule):
         A = self.base_ring()
         B = self.basis()
         return tuple([self.term(self._indices[i], coeff)
-                      for i, generator_degree in enumerate(self._generator_degrees)
-                      for coeff in A.basis(n - generator_degree)])
+                      for i in range(len(self._generator_degrees))
+                      for coeff in self._basis_coeffs(n, i)])
+
+
+    def _basis_coeffs(self, d, i):
+        r"""
+        Return a basis for the free module of degree ``d`` module elements
+        corresponding to the ``i``-th generator.
+
+        .. NOTE::
+
+            Suppose ``self`` is a module over the graded algebra `A` with
+            base ring `R`. This returns a basis as a free module over `R`,
+            not a basis as a free module over `A`.
+
+        INPUT:
+
+        - ``d`` -- integer; the degree
+        - ``i`` -- integer; the factor
+
+        EXAMPLES::
+
+            sage: A = SteenrodAlgebra(2)
+            sage: M = A.free_graded_module((0,1))
+            sage: M._basis_coeffs(3, 0)
+            sage: M._basis_coeffs(3, 1)
+        """
+        return self._cached_basis_coeffs(d - self._generator_degrees[i])
+
+
+    @cached_method
+    def _cached_basis_coeffs(self, d):
+        """
+        Return the basis for the degree ``d`` part of the base algebra.
+
+        EXAMPLES::
+
+            sage: E.<x,y> = ExteriorAlgebra(QQ)
+            sage: M = E.free_graded_module((0,0,1))
+            sage: M._cached_basis_coeffs(0)
+            sage: M._cached_basis_coeffs(1)
+            sage: M._cached_basis_coeffs(2)
+            sage: M._cached_basis_coeffs(3)
+        """
+        return tuple(self.base_ring().basis(d))
 
 
     @cached_method
@@ -708,9 +749,8 @@ class FreeGradedModule(CombinatorialFreeModule):
 
         EXAMPLES::
 
-            sage: from sage.modules.fp_graded.free_module import FreeGradedModule
             sage: A = SteenrodAlgebra(2)
-            sage: M = FreeGradedModule(A, (0,1))
+            sage: M = A.free_graded_module((0,1))
             sage: x = M.element_from_coordinates((0,1,0,1), 5); x
             Sq(5)*g[0] + Sq(4)*g[1]
             sage: basis = M.basis_elements(5)
@@ -721,37 +761,40 @@ class FreeGradedModule(CombinatorialFreeModule):
             sage: M.element_from_coordinates((0,0,0,0), 5)
             0
         """
-        basis_elements = self.basis_elements(n)
-
-        if len(coordinates) != len(basis_elements):
+        if len(coordinates) != self.vector_presentation(n).dimension():
             raise ValueError('the given coordinate vector has incorrect length (%d); '
                   'it should have length %d' % (len(coordinates), len(basis_elements)))
 
-        # Adding the condition `if c != 0` improved performance dramatically in this
-        # real life example:
+        # Performance testing using this real life example:
         #
-        # sage: rels = [ [Sq(1),0,0,0], [Sq(2),0,0,0], [Sq(4),0,0,0], [Sq(8),0,0,0], [0,Sq(1),0,
-        # ....: 0], [0,Sq(2),0,0], [0,Sq(4),0,0], [Sq(31),Sq(14),0,0], [0,Sq(20),0,0], [0,0,Sq(1
-        # ....: ),0], [0,0,Sq(2),0], [0,Sq(31),Sq(6),0], [0,0,Sq(8),0], [0,0,0,Sq(1)], [0,0,Sq(3
-        # ....: 1),Sq(2)], [0,0,0,Sq(4)], [0,0,0,Sq(8)] ]
-        # ....:
-        # ....: M = FPA_Module([0, 17, 42, 71], A, relations=rels)
+        # sage: A = SteenrodAlgebra(2)
+        # sage: from sage.modules.fp_graded.steenrod.module import SteenrodFPModule
+        # sage: rels = [[Sq(1),0,0,0], [Sq(2),0,0,0], [Sq(4),0,0,0], [Sq(8),0,0,0],
+        # ....:         [0,Sq(1),0,0], [0,Sq(2),0,0], [0,Sq(4),0,0], [Sq(31),Sq(14),0,0],
+        # ....:         [0,Sq(20),0,0], [0,0,Sq(1),0], [0,0,Sq(2),0], [0,Sq(31),Sq(6),0],
+        # ....:         [0,0,Sq(8),0], [0,0,0,Sq(1)], [0,0,Sq(31),Sq(2)], [0,0,0,Sq(4)], [0,0,0,Sq(8)] ]
+        # sage: M = SteenrodFPModule(A, [0, 17, 42, 71], relations=rels)
         # sage: res = M.resolution(2, top_dim=30, verbose=True)
         #
         # This function was called a total of 2897 times during the computation,
         # and the total running time of the entire computation dropped from
         # 57 to 21 seconds by adding the optimization.
-        #
-        element = self.linear_combination(zip(basis_elements, coordinates))
 
-        if not element:
-            # The previous sum was over the empty list, yielding the integer
-            # 0 as a result, rather than a module element.
-            # Fix this by returning the zero element.
+        m = len(self._generator_degrees)
+        ret = {}
+        A = self.base_ring()
+        j = 0
+        for i, key in enumerate(self._indices):
+            B = self._basis_elements(n, i)
+            coeff = A.linear_combination((b, coordinates[j+ind])
+                                         for ind, b in enumerate(B))
+            if coeff:
+                ret[key] = coeff
+            j += len(B)
+
+        if not ret:
             return self.zero()
-
-        # The sum defining element is of the correct type, so return it.
-        return element
+        return self.element_class(self, ret)
 
 
     @cached_method
@@ -805,7 +848,9 @@ class FreeGradedModule(CombinatorialFreeModule):
             sage: V.dimension()
             4
         """
-        return FreeModule(self.base_ring().base_ring(), len(self.basis_elements(n)))
+        m = len(self._generator_degrees)
+        return FreeModule(self.base_ring().base_ring(), sum(len(self._basis_elements(n, i))
+                                                            for i in range(m)))
 
     __getitem__ = vector_presentation
 

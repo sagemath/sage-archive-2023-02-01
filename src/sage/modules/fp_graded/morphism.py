@@ -108,7 +108,7 @@ def _create_relations_matrix(module, relations, source_degs, target_degs):
 
             values = []
             for b in module.basis_elements(source_degs[j]):
-                w = r_ij*b
+                w = r_ij * b
                 values.append(
                     target_space.zero() if w.is_zero() else w.vector_presentation())
 
@@ -1215,8 +1215,8 @@ class FPModuleMorphism(Morphism):
                 return None
 
             if y.is_zero():
-                dim = len(K.basis_elements(target_degree))
-                ys += dim*[0]  # The zero vector of the appropriate dimension.
+                dim = K.vector_presentation(target_degree).dimension()
+                ys += dim * [0]  # The zero vector of the appropriate dimension.
             else:
                 all_zero = False
                 ys += list(y.vector_presentation())
@@ -1697,17 +1697,16 @@ class FPModuleMorphism(Morphism):
             sage: F = s.free_graded_module([0,0])
             sage: L = FPModule(s, [0,0], [[s[3],s[2,1]], [0,s[2]]])
             sage: f = Hom(F, L)([L([s[2], 0]), L([0, s[2]])])
-            sage: f._resolve_kernel()
+            sage: f._resolve_kernel()  # long time
             Traceback (most recent call last):
             ...
             ValueError: a top dimension must be specified for this calculation to terminate
             sage: f._resolve_kernel(top_dim=10)
             Module morphism:
-              From: Free graded left module on 3 generators over mod 2 Steenrod algebra, milnor basis
-              To:   Free graded left module on 2 generators over mod 2 Steenrod algebra, milnor basis
-              Defn: g[0, 0] |--> g[0, 1]
-                    g[3, 0] |--> Sq(0,1)*g[0, 0]
-                    g[3, 1] |--> Sq(3)*g[0, 0]
+              From: Free graded left module on 2 generators over Symmetric Functions over Rational Field in the Schur basis
+              To:   Free graded left module on 2 generators over Symmetric Functions over Rational Field in the Schur basis
+              Defn: s[]*g[0] |--> s[]*g[0, 1]
+                    s[]*g[3] |--> s[3]*g[0, 0]
         """
         # Let
         #

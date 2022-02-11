@@ -204,24 +204,23 @@ class SteenrodModuleMixin:
             6 4 1 7
         """
         if not self.base_ring().is_finite():
-            raise (ValueError, 'this module is not defined over a finite algebra')
+            raise ValueError('this module is not defined over a finite algebra')
             return
 
         if self.base_ring().characteristic() != 2:
-            raise (ValueError, 'this function is not implemented for odd primes')
+            raise ValueError('this function is not implemented for odd primes')
             return
 
         n = self.connectivity()
         if n == infinity:
             print('The module connectivity is infinite, so there is ' +
                   'nothing to export.')
-            return
+            return ''
 
         limit = self.base_ring().top_class().degree() + max(self.generator_degrees())
 
         # Create a list of bases, one for every module degree we consider.
         vector_space_basis = [self.basis_elements(i) for i in range(n, limit+1)]
-        # print (vector_space_basis)
 
         additive_generator_degrees = []
         additive_generator_global_indices = [0]

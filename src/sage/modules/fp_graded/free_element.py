@@ -200,7 +200,8 @@ class FreeGradedModuleElement(IndexedFreeModuleElement):
     @cached_method
     def vector_presentation(self):
         r"""
-        A coordinate vector representing ``self`` when it is non-zero.
+        A coordinate vector representing ``self`` when it is a non-zero
+        homogeneous element.
 
         These are coordinates with respect to the basis chosen by
         :meth:`sage.modules.fp_graded.free_module.FreeGradedModule.basis_elements`.
@@ -221,14 +222,17 @@ class FreeGradedModuleElement(IndexedFreeModuleElement):
 
         EXAMPLES::
 
-            sage: from sage.modules.fp_graded.free_module import *
             sage: A2 = SteenrodAlgebra(2, profile=(3,2,1))
-            sage: M = FreeGradedModule(A2, (0,1))
+            sage: M = A2.free_graded_module((0,1))
             sage: x = M.an_element(7)
             sage: v = x.vector_presentation(); v
             (1, 0, 0, 0, 0, 1, 0)
             sage: type(v)
             <class 'sage.modules.vector_mod2_dense.Vector_mod2_dense'>
+            sage: M.gen(0).vector_presentation()
+            (1)
+            sage: M.gen(1).vector_presentation()
+            (0, 1)
 
             sage: V = M.vector_presentation(7)
             sage: v in V
@@ -248,6 +252,13 @@ class FreeGradedModuleElement(IndexedFreeModuleElement):
             sage: x == x_ == x__
             True
 
+        This is not defined for elements that are not homogeneous::
+
+            sage: sum(M.basis()).vector_presentation()
+            Traceback (most recent call last):
+            ...
+            ValueError: this is a nonhomogeneous element, no well-defined degree
+
         TESTS::
 
             sage: M.zero().vector_presentation() is None
@@ -263,22 +274,26 @@ class FreeGradedModuleElement(IndexedFreeModuleElement):
              return None
 
         P = self.parent()
-        bas_gen = P.basis_elements(self.degree())
-        base_vec = P.vector_presentation(self.degree())
+        deg = self.degree()
+        m = len(P._generator_degrees)
+        V = P.vector_presentation(deg)
 
-        base_dict = dict(zip(bas_gen, base_vec.basis()))
-
-        # Create a sparse representation of the element.
-        sparse_coeffs = [x for x in enumerate(self.dense_coefficient_list())
-                         if not x[1].is_zero()]
-
-        vector = base_vec.zero()
-        for summand_index, algebra_element in sparse_coeffs:
-            g = P.generator(summand_index)
-            for mono in algebra_element.monomials():
-                vector += algebra_element.coefficient(mono.leading_support()) * base_dict[mono * g]
-
-        return vector
+        ret = V.zero_vector()
+        j = 0
+        I = P._indices
+        zero = P.base_ring().zero()
+        for i in range(m):
+            if I[i] not in self._monomial_coefficients:
+                j += len(P._basis_elements(deg, i))
+                continue
+            coeff = self._monomial_coefficients[I[i]]
+            mc = coeff.monomial_coefficients(copy=False)
+            for mono in P._basis_elements(deg, i):
+                supp = mono.leading_support()
+                if supp in mc:
+                    ret[j] = mc[supp]
+                j += 1
+        return ret
 
     def lift_to_free(self):
         r"""

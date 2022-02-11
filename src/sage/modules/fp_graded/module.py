@@ -22,7 +22,15 @@ is not an instance of the module class, but rather an injective homomorphism
 .. NOTE::
 
     Some methods here require in addition that `R` be an algebra over a
-    field or a PID and that Sage has a description of a basis for `R`.
+    field or a PID and that Sage has a description of a basis for `R`::
+
+        sage: from sage.modules.fp_graded.module import FPModule
+        sage: E = ExteriorAlgebra(ZZ, 0)
+        sage: M = FPModule(E, [0], [[3]])
+        sage: M.resolution(3)
+        Traceback (most recent call last):
+        ...
+        AttributeError: 'FGP_Module_class_with_category' object has no attribute 'quotient_map'
 
 AUTHORS:
 
@@ -845,7 +853,7 @@ class FPModule(UniqueRepresentation, IndexedGenerators, Module):
                 if v is not None:
                     spanning_set.append(v)
 
-        R_n = F_n.subspace(spanning_set)
+        R_n = F_n.submodule(spanning_set)
 
         # Return the quotient of the free part by the relations.
         return F_n / R_n

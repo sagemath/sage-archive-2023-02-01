@@ -288,7 +288,7 @@ from sage.modules.free_module import FreeModule
 from sage.modules.fp_graded.free_element import FreeGradedModuleElement
 from sage.rings.infinity import infinity
 from sage.categories.graded_modules import GradedModules
-from sage.categories.fields import Fields
+from sage.categories.principal_ideal_domains import PrincipalIdealDomains
 from sage.categories.homset import Hom
 from sage.combinat.free_module import CombinatorialFreeModule
 
@@ -366,8 +366,8 @@ class FreeGradedModule(CombinatorialFreeModule):
             sage: M1 is M2
             True
         """
-        if algebra.base_ring() not in Fields():
-            raise ValueError('the ground ring of the algebra must be a field')
+        if algebra.base_ring() not in PrincipalIdealDomains():
+            raise ValueError('the ground ring of the algebra must be a PID')
 
         generator_degrees = tuple(generator_degrees)
         category = GradedModules(algebra).WithBasis().FiniteDimensional().or_subcategory(category)

@@ -22,15 +22,7 @@ is not an instance of the module class, but rather an injective homomorphism
 .. NOTE::
 
     Some methods here require in addition that `R` be an algebra over a
-    field or a PID and that Sage has a description of a basis for `R`::
-
-        sage: from sage.modules.fp_graded.module import FPModule
-        sage: E = ExteriorAlgebra(ZZ, 0)
-        sage: M = FPModule(E, [0], [[3]])
-        sage: M.resolution(3)
-        Traceback (most recent call last):
-        ...
-        AttributeError: 'FGP_Module_class_with_category' object has no attribute 'quotient_map'
+    field or a PID and that Sage has a description of a basis for `R`.
 
 AUTHORS:
 
@@ -1260,6 +1252,24 @@ class FPModule(UniqueRepresentation, IndexedGenerators, Module):
                      g[12] |--> Sq(0,1)*g[9] + Sq(2)*g[10]]
             sage: for i in range(len(res)-1):
             ....:     assert (res[i] * res[i+1]).is_zero(), 'the result is not a complex'
+
+        We construct `\GF{3}` as a `\ZZ`-module (with trivial grading
+        concentrated in degree 0) and compute its resolution::
+
+            sage: E = ExteriorAlgebra(ZZ, 0)
+            sage: M = FPModule(E, [0], [[3]])
+            sage: res = M.resolution(3)
+            sage: res
+            [Module morphism:
+               From: Free graded left module on 1 generator over The exterior algebra of rank 0 over Integer Ring
+               To:   Finitely presented left module on 1 generator and 1 relation over The exterior algebra of rank 0 over Integer Ring
+               Defn: g[0] |--> g[0],
+             Module endomorphism of Free graded left module on 1 generator over The exterior algebra of rank 0 over Integer Ring
+               Defn: g[0] |--> 3*g[0],
+             Module morphism:
+               From: Free graded left module on 0 generators over The exterior algebra of rank 0 over Integer Ring
+               To:   Free graded left module on 1 generator over The exterior algebra of rank 0 over Integer Ring,
+             Module endomorphism of Free graded left module on 0 generators over The exterior algebra of rank 0 over Integer Ring]
 
         TESTS::
 

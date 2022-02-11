@@ -303,6 +303,23 @@ class SteenrodFPModuleMorphism(FPModuleMorphism):
               Defn: g[0, 0] |--> g[0, 1]
                     g[3, 0] |--> Sq(0,1)*g[0, 0]
                     g[3, 1] |--> Sq(3)*g[0, 0]
+
+        An odd primary example::
+
+            sage: A3 = SteenrodAlgebra(3)
+            sage: F0 = A3.free_graded_module([32, 40])
+            sage: F1 = A3.free_graded_module([0])
+            sage: g0 = F1.generator(0)
+            sage: f = Hom(F0, F1)([A3.P(8)*g0, (A3.P(6,1))*g0])
+            sage: f._resolve_kernel()
+            Module morphism:
+              From: Free graded left module on 5 generators over mod 3 Steenrod algebra, milnor basis
+              To:   Free graded left module on 2 generators over mod 3 Steenrod algebra, milnor basis
+              Defn: g[36] |--> P(1)*g[32]
+                    g[44] |--> P(3)*g[32] + (2P(1))*g[40]
+                    g[56] |--> P(6)*g[32] + P(0,1)*g[40]
+                    g[64] |--> P(0,2)*g[32] + (2P(6))*g[40]
+                    g[72] |--> P(6,1)*g[32]
         """
         return self._action(FPModuleMorphism._resolve_kernel, top_dim=top_dim, verbose=verbose)
 

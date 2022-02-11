@@ -608,7 +608,7 @@ class FPModule(UniqueRepresentation, IndexedGenerators, Module):
             True
             sage: # Computing a minimal presentation reveals an
             ....: # isomorphic module with no relations.
-            sage: N_min = N.min_presentation().domain()
+            sage: N_min = N.minimal_presentation().domain()
             sage: N_min.has_relations()
             False
         """
@@ -985,7 +985,7 @@ class FPModule(UniqueRepresentation, IndexedGenerators, Module):
         return self._j.values()[index]
 
 
-    def min_presentation(self, top_dim=None, verbose=False):
+    def minimal_presentation(self, top_dim=None, verbose=False):
         r"""
         Return a minimal presentation of ``self``.
 
@@ -1000,7 +1000,7 @@ class FPModule(UniqueRepresentation, IndexedGenerators, Module):
             sage: A2 = SteenrodAlgebra(2, profile=(3,2,1))
 
             sage: M = FPModule(A2, [0,1], [[Sq(2),Sq(1)],[0,Sq(2)],[Sq(3),0]])
-            sage: i = M.min_presentation()
+            sage: i = M.minimal_presentation()
             sage: M_min = i.domain()
 
         ``i`` is an isomorphism between ``M_min`` and ``M``::
@@ -1022,7 +1022,7 @@ class FPModule(UniqueRepresentation, IndexedGenerators, Module):
         TESTS::
 
             sage: T = FPModule(A2, [0], [[1]])
-            sage: T_min = T.min_presentation().domain()
+            sage: T_min = T.minimal_presentation().domain()
             sage: T_min.is_trivial()
             True
             sage: T_min

@@ -258,7 +258,7 @@ class FreeGradedModuleElement(IndexedFreeModuleElement):
         #
         # In this case, we could return the integer value 0 since coercion would
         # place it inside any vector space.  However, this will not work for
-        # homomorphisms, so we we return None to be consistent.
+        # homomorphisms, so we return None to be consistent.
         if self.is_zero():
              return None
 
@@ -275,8 +275,8 @@ class FreeGradedModuleElement(IndexedFreeModuleElement):
         vector = base_vec.zero()
         for summand_index, algebra_element in sparse_coeffs:
             g = P.generator(summand_index)
-            for scalar_coefficient, monomial in zip(algebra_element.coefficients(), algebra_element.monomials()):
-                vector += scalar_coefficient * base_dict[monomial * g]
+            for mono in algebra_element.monomials():
+                vector += algebra_element.coefficient(mono.leading_support()) * base_dict[mono * g]
 
         return vector
 

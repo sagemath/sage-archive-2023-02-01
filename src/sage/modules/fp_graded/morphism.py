@@ -803,7 +803,7 @@ class FPModuleMorphism(Morphism):
 
         OUTPUT:
 
-        A linear function of finite dimensional free moduless over the
+        A linear function of finite dimensional free modules over the
         ground field of the algebra for this module.  The domain is isomorphic
         to the free module of domain elements of degree ``n`` of ``self``
         via the choice of basis given by

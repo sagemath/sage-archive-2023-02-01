@@ -48,6 +48,7 @@ thematic tutorial.
 
 TESTS::
 
+    sage: from sage.modules.fp_graded.steenrod.module import SteenrodFPModule
     sage: A = SteenrodAlgebra(2)
     sage: K = SteenrodFPModule(A, [1,3]); K
     Free graded left module on 2 generators over ...
@@ -283,7 +284,6 @@ class SteenrodFPModule(FPModule, SteenrodModuleMixin):
         The thematic tutorial on `Steenrod algebra modules
         <../../../../../thematic_tutorials/steenrod_algebra_modules.html>`_.
 
-
     INPUT:
 
     One of the following:
@@ -340,7 +340,7 @@ class SteenrodFPModule(FPModule, SteenrodModuleMixin):
 
     def minimal_presentation(self, verbose=False):
         r"""
-        A minimal presentation of ``self``.
+        Return a minimal presentation of ``self``.
 
         OUTPUT: An isomorphism `M \to self`, where `M` has minimal
         presentation.
@@ -412,12 +412,20 @@ class SteenrodFPModule(FPModule, SteenrodModuleMixin):
             sage: res = Hko.resolution(5, verbose=True)
             Computing f_1 (1/5)
             Computing f_2 (2/5)
+            Computing using the profile:
+            (2, 1)
             Resolving the kernel in the range of dimensions [1, 8]: 1 2 3 4 5 6 7 8.
             Computing f_3 (3/5)
+            Computing using the profile:
+            (2, 1)
             Resolving the kernel in the range of dimensions [2, 10]: 2 3 4 5 6 7 8 9 10.
             Computing f_4 (4/5)
+            Computing using the profile:
+            (2, 1)
             Resolving the kernel in the range of dimensions [3, 13]: 3 4 5 6 7 8 9 10 11 12 13.
             Computing f_5 (5/5)
+            Computing using the profile:
+            (2, 1)
             Resolving the kernel in the range of dimensions [4, 18]: 4 5 6 7 8 9 10 11 12 13 14 15 16 17 18.
             sage: [x.domain() for x in res]
             [Free graded left module on 1 generator over mod 2 Steenrod algebra, milnor basis,

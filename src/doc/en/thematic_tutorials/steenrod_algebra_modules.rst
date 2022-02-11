@@ -5,8 +5,8 @@
 
 .. linkall
 
-Tutorial: Steenrod Algebra Modules
-==================================
+Steenrod Algebra Modules
+========================
 
 .. MODULEAUTHOR:: Robert R. Bruner, Michael J. Catanzaro, Sverre Lunoee--Nielsen, and Koen van Woerden
 
@@ -25,17 +25,17 @@ optional set of relations::
     sage: F = SteenrodFPModule(A, [0, 1, 7]); F
     Free graded left module on 3 generators over mod 2 Steenrod algebra, milnor basis
 
-Denote the module generators of an `A`-module `M` by `g_{d_1},\ldots, g_{d_N}`,
-where subscripts denote their degrees.
-A homogeneous relation of degree `n` has the form
+Denote the module generators of an `A`-module `M` by `g_{d_1}, \ldots, g_{d_N}`,
+where subscripts denote their degrees. A homogeneous relation of degree `n`
+has the form
 
 .. MATH::
 
     \sum_{i=1}^N a_i\cdot g_{d_i} = 0,
 
-where the homogeneous coefficients `a_1,\ldots a_N` lie in `A`, such that
-`\deg(a_i) + \deg(g_{d_i}) = n` for `i=1\ldots N`.  To create a module with
-relations, the coefficients for each relation is given to the constructor::
+where the homogeneous coefficients `a_1, \ldots, a_N` lie in `A`, such that
+`\deg(a_i) + \deg(g_{d_i}) = n` for `i = 1, \ldots, N`.  To create a module
+with relations, the coefficients for each relation is given::
 
     sage: r1 = [Sq(8), Sq(7), 0]   # First relation
     sage: r2 = [Sq(7), 0, 1]       # Second relation
@@ -65,8 +65,8 @@ given by its base ring::
 
 .. NOTE::
 
-    Calling :meth:`algebra` will not return the desired algebra. Users should
-    use the :meth:`base_ring` method.
+    Calling ``algebra()`` will not return the desired algebra. Users should
+    use the ``base_ring()`` method.
 
 Module elements
 ---------------
@@ -89,8 +89,7 @@ The generators are themselves elements of the module::
     sage: gens[0] in M
     True
 
-Producing elements from a given set of algebra coefficients is possible using
-the module class ()-method::
+Producing elements from a given set of algebra coefficients is possible::
 
     sage: coeffs=[Sq(15), Sq(10)*Sq(1,1), Sq(8)]
     sage: x = M(coeffs); x
@@ -98,7 +97,7 @@ the module class ()-method::
 
 The module action produces new elements::
 
-    sage: Sq(2)*x
+    sage: Sq(2) * x
     Sq(14,1)*g[0] + (Sq(7,1)+Sq(10))*g[7]
 
 Each non-zero homogeneous element has a well-defined degree::
@@ -106,7 +105,7 @@ Each non-zero homogeneous element has a well-defined degree::
     sage: x.degree()
     15
 
-But the zero element does not::
+but the zero element does not::
 
     sage: zero = M.zero(); zero
     0
@@ -127,16 +126,16 @@ enforced, however::
     True
 
     sage: m = M([Sq(7), 0, 0])
-    sage: sum = m + g7; sum     # m and g7 are related by `m = \operatorname{Sq}^7(g_0) = g_7`,
+    sage: s = m + g7; s         # m and g7 are related by m = Sq(7)*g[0] = g[7],
     Sq(7)*g[0] + g[7]
-    sage: sum == 0              # so their sum should zero.
+    sage: s == 0                # so their sum should zero.
     True
-    sage: sum.normalize()       # Its normalized form is more revealing.
+    sage: s.normalize()         # Its normalized form is more revealing.
     0
 
 For every integer `n`, the set of module elements of degree `n` form a
-vector space over the ground field `\GF{p}`.  A basis for this vector space can be
-computed::
+vector space over the ground field `\GF{p}`.  A basis for this vector space
+can be computed::
 
     sage: M.basis_elements(7)
     (Sq(0,0,1)*g[0],
@@ -147,9 +146,8 @@ computed::
      Sq(3,1)*g[1],
      Sq(6)*g[1])
 
-Note that the third generator `g_7` of degree 7
-is apparently missing from the basis above.  This is because of the relation
-`\operatorname{Sq}^7(g_0) = g_7`.
+Note that the third generator `g_7` of degree 7 is apparently missing from the
+basis above.  This is because of the relation `\operatorname{Sq}^7(g_0) = g_7`.
 
 A vector space presentation can be produced::
 
@@ -189,14 +187,18 @@ such homomorphisms using the function ``Hom``::
 
     sage: Hko = SteenrodFPModule(A, [0], [[Sq(2)], [Sq(1)]])
     sage: homspace = Hom(Hko, Hko); homspace
-    Set of Morphisms from Finitely presented left module on 1 generator and 2 relations over mod 2 Steenrod algebra, milnor basis to Finitely presented left module on 1 generator and 2 relations over mod 2 Steenrod algebra, milnor basis in Category of finitely presented graded modules over mod 2 Steenrod algebra, milnor basis
+    Set of Morphisms from Finitely presented left module on 1 generator and 2 relations
+      over mod 2 Steenrod algebra, milnor basis
+     to Finitely presented left module on 1 generator and 2 relations
+      over mod 2 Steenrod algebra, milnor basis
+     in Category of finitely presented graded modules over mod 2 Steenrod algebra, milnor basis
 
-Just as with module elements, homomorphisms are created using the ()-method
-of the homspace object.  The only argument is a list of module elements in the
-codomain, corresponding to the module generators of the domain::
+Just as with module elements, homomorphisms are created using the homspace.
+The only argument is a list of module elements in the codomain, corresponding
+to the module generators of the domain::
 
-    sage: gen = Hko.generator(0)  # the generator of the codomain module.
-    sage: values = [Sq(0, 0, 1)*gen]; values
+    sage: gen = Hko.generator(0)  # the generator of the codomain module
+    sage: values = [Sq(0, 0, 1) * gen]; values
     [Sq(0,0,1)*g[0]]
     sage: f = homspace(values)
 
@@ -349,11 +351,13 @@ Elements in the preimage of a homomorphism can be found::
 Homomorphisms can be composed as expected::
 
     sage: g = homspace([Sq(0, 0, 0, 1)*gen]); g
-    Module endomorphism of Finitely presented left module on 1 generator and 2 relations over mod 2 Steenrod algebra, milnor basis
+    Module endomorphism of Finitely presented left module on 1 generator and 2 relations
+     over mod 2 Steenrod algebra, milnor basis
       Defn: g[0] |--> Sq(0,0,0,1)*g[0]
 
     sage: g*f
-    Module endomorphism of Finitely presented left module on 1 generator and 2 relations over mod 2 Steenrod algebra, milnor basis
+    Module endomorphism of Finitely presented left module on 1 generator and 2 relations
+     over mod 2 Steenrod algebra, milnor basis
       Defn: g[0] |--> Sq(0,0,1,1)*g[0]
 
     sage: one = homspace.identity()
@@ -362,12 +366,11 @@ Homomorphisms can be composed as expected::
 
 
 Homological algebra
--------------------
+^^^^^^^^^^^^^^^^^^^
 
 The category of modules over `A` is Abelian, so kernels, images and
-cokernels all exist and can be computed through the API belonging to
-the homomorphism class
-:class:`sage.modules.fp_graded.steenrod.morphism.SteenrodFPModuleMorphism`.
+cokernels all exist and can be computed using :class:`the morphisms
+<sage.modules.fp_graded.steenrod.morphism.SteenrodFPModuleMorphism>`.
 
 .. NOTE::
 
@@ -390,8 +393,7 @@ the homomorphism class
     :meth:`~sage.modules.fp_graded.steenrod.morphism.SteenrodFPModuleMorphism.cokernel_projection`
     provides a surjective homomorphism onto the cokernel module.
 
-    In each case, getting a reference to the module instance requires
-    calling
+    In each case, getting a reference to the module instance requires calling
     :meth:`~sage.modules.fp_graded.steenrod.morphism.SteenrodFPModuleMorphism.domain`
     or
     :meth:`~sage.modules.fp_graded.steenrod.morphism.SteenrodFPModuleMorphism.codomain`
@@ -401,7 +403,7 @@ the homomorphism class
 
 
 Cokernels
-.........
+^^^^^^^^^
 
 In the following example, we define a cyclic module `H\ZZ` with one
 relation in two ways: first explicitly, and then as the cokernel of a
@@ -425,7 +427,7 @@ and check that it is both injective and surjective::
 
 
 Kernels
-.......
+^^^^^^^
 
 When computing the kernel of a homomorphism `f`, the result is an
 injective homomorphism into the domain of `f`::
@@ -458,7 +460,7 @@ to the cokernel of `k`, and `h` is injective::
 
 
 Images
-......
+^^^^^^
 
 The method :meth:`image` behaves similarly, returning an injective
 homomorphism with image equal to the submodule `\operatorname{im}(f)`::
@@ -500,7 +502,7 @@ domain `\ker(g)`::
 
 
 Free resolutions
-................
+^^^^^^^^^^^^^^^^
 
 Finally, free resolutions can be computed.  These calculations usually take
 some time to complete, so it is usually a good idea to raise the verbose flag
@@ -513,14 +515,24 @@ where the first version of this software appeared::
     sage: res = Hko.resolution(6, verbose=True)
     Computing f_1 (1/6)
     Computing f_2 (2/6)
+    Computing using the profile:
+    (2, 1)
     Resolving the kernel in the range of dimensions [1, 8]: 1 2 3 4 5 6 7 8.
     Computing f_3 (3/6)
+    Computing using the profile:
+    (2, 1)
     Resolving the kernel in the range of dimensions [2, 10]: 2 3 4 5 6 7 8 9 10.
     Computing f_4 (4/6)
+    Computing using the profile:
+    (2, 1)
     Resolving the kernel in the range of dimensions [3, 13]: 3 4 5 6 7 8 9 10 11 12 13.
     Computing f_5 (5/6)
+    Computing using the profile:
+    (2, 1)
     Resolving the kernel in the range of dimensions [4, 18]: 4 5 6 7 8 9 10 11 12 13 14 15 16 17 18.
     Computing f_6 (6/6)
+    Computing using the profile:
+    (2, 1)
     Resolving the kernel in the range of dimensions [5, 20]: 5 6 7 8 9 10 11 12 13 14 15 16 17 18 19 20.
 
 The result of the calculation is a list of all the maps in the resolution::
@@ -685,12 +697,15 @@ Alternatively we can use left-exactness of the functor
 `\operatorname{Hom}_A(L, -)` to enumerate all possible lifts of `f`.
 Start by finding a single lift of `f` over the projection `q`::
 
-    sage: f_ = f.lift(q); f_
+    sage: fl = f.lift(q); fl
     Module morphism:
       From: Finitely presented left module on 1 generator and 2 relations over mod 2 Steenrod algebra, milnor basis
       To:   Finitely presented left module on 1 generator and 1 relation over mod 2 Steenrod algebra, milnor basis
       Defn: g[28] |--> (Sq(4,3,0,1)+Sq(6,0,1,1)+Sq(7,2,0,1)+Sq(10,1,0,1))*g[0]
-    sage: q*f_ == f  # Check that f_ is indeed a lift.
+
+We verify that ``fl`` is indeed a lift::
+
+    sage: q * fl == f
     True
 
 There is an exact sequence
@@ -698,10 +713,10 @@ There is an exact sequence
 .. MATH::
 
     0 \to \operatorname{Hom}_A(L, \ker(q)) \xrightarrow{iK_*}
-    \operatorname{Hom}_A(L, H\ZZ) \xrightarrow{q_*} \operatorname{Hom}_A(L, Hko)\,,
+    \operatorname{Hom}_A(L, H\ZZ) \xrightarrow{q_*} \operatorname{Hom}_A(L, Hko),
 
 which means that the indeterminacy of choosing a lift for
-`f\in \operatorname{Hom}_A(L, Hko)` is represented by an element in
+`f \in \operatorname{Hom}_A(L, Hko)` is represented by an element in
 `\operatorname{Hom}_A(L,\ker(f))`.  Therefore, we can proceed to count the
 number of lifts by computing this vector space of homomorphisms::
 
@@ -719,11 +734,11 @@ field of two elements.  This means that there are four distinct lifts of `f` ove
 `q`, and we can construct these by taking the one lift we already found, and add
 to it all the different elements in the image of `iK_*`::
 
-    sage: lifts_ = [f_,
-    ....:           f_ + iK*ind[0],
-    ....:           f_ + iK*ind[1],
-    ....:           f_ + iK*(ind[0] + ind[1])]
-    sage: lifts_
+    sage: flift = [fl,
+    ....:          fl + iK * ind[0],
+    ....:          fl + iK * ind[1],
+    ....:          fl + iK * (ind[0] + ind[1])]
+    sage: flift
     [Module morphism:
        From: Finitely presented left module on 1 generator and 2 relations over mod 2 Steenrod algebra, milnor basis
        To:   Finitely presented left module on 1 generator and 1 relation over mod 2 Steenrod algebra, milnor basis
@@ -742,15 +757,15 @@ to it all the different elements in the image of `iK_*`::
        Defn: g[28] |--> (Sq(0,7,1)+Sq(3,6,1)+Sq(4,1,3)+Sq(6,0,1,1)+Sq(6,5,1)+Sq(7,0,3)+Sq(12,3,1)+Sq(15,2,1)+Sq(18,1,1))*g[0]]
 
 As a test of correctness, we now compare the two sets of lifts.  As they stand,
-it is not obvious that the lists ``lifts`` and ``lifts_`` are the same (up to a
+it is not obvious that the lists ``flift`` and ``lifts`` are the same (up to a
 re-ordering of list elements), so the following comparison is reassuring::
 
-    sage: lifts_[0] == lifts[2]
+    sage: flift[0] == lifts[2]
     True
-    sage: lifts_[1] == lifts[0]
+    sage: flift[1] == lifts[0]
     True
-    sage: lifts_[2] == lifts[3]
+    sage: flift[2] == lifts[3]
     True
-    sage: lifts_[3] == lifts[1]
+    sage: flift[3] == lifts[1]
     True
 

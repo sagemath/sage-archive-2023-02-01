@@ -1,13 +1,7 @@
 r"""
 Homsets of finitely presented graded modules over the Steenrod algebra
 
-This class implements methods for construction and basic
-manipulation of homsets of finitely presented graded modules over the
-mod `p` Steenrod algebra.
-
-For an overview of the API, see :doc:`module`.
-
-TESTS::
+EXAMPLES::
 
     sage: from sage.modules.fp_graded.steenrod.module import SteenrodFPModule
     sage: from sage.misc.sage_unittest import TestSuite
@@ -43,7 +37,6 @@ AUTHORS:
   original software to Sage version 8.9.
 - Sverre Lunoee--Nielsen (2020-07-01): Refactored the code and added
   new documentation and tests.
-
 """
 
 #*****************************************************************************

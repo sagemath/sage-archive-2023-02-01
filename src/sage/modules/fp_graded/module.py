@@ -1161,8 +1161,8 @@ class FPModule(UniqueRepresentation, IndexedGenerators, Module):
             sage: from sage.modules.fp_graded.module import FPModule
 
             sage: E.<x,y> = ExteriorAlgebra(QQ)
-            sage: triv = FPModule(E, [0], [[x], [y]]) # trivial module
-            sage: triv.resolution(3)
+            sage: M = FPModule(E, [0], [[x], [y]])
+            sage: res = M.resolution(3); res
             [Module morphism:
                From: Free graded left module on 1 generator over The exterior algebra of rank 2 over Rational Field
                To:   Finitely presented left module on 1 generator and 2 relations over The exterior algebra of rank 2 over Rational Field
@@ -1185,6 +1185,22 @@ class FPModule(UniqueRepresentation, IndexedGenerators, Module):
                      g[3, 1] |--> y*g[2, 0] + x*g[2, 1]
                      g[3, 2] |--> y*g[2, 1] + x*g[2, 2]
                      g[3, 3] |--> y*g[2, 2]]
+            sage: all((res[i] * res[i+1]).is_zero() for i in range(len(res)-1))
+            True
+
+            sage: e = SymmetricFunctions(QQ).e()
+            sage: M = FPModule(e, [0], [[e[2]+e[1,1]], [e[1,1]]])
+            sage: res = M.resolution(3, top_dim=10)
+            sage: all((res[i] * res[i+1]).is_zero() for i in range(2))
+            True
+            sage: res[-1].domain().is_trivial()
+            True
+            sage: M = FPModule(e, [0,2], [[e[2]+e[1,1], 0], [e[2,1], e[1]], [0, e[1,1]]])
+            sage: res = M.resolution(3, top_dim=10)
+            sage: all((res[i] * res[i+1]).is_zero() for i in range(2))
+            True
+            sage: res[-1].domain().is_trivial()
+            True
 
             sage: A2 = SteenrodAlgebra(2, profile=(3,2,1))
             sage: M = FPModule(A2, [0,1], [[Sq(2), Sq(1)]])
@@ -1197,14 +1213,17 @@ class FPModule(UniqueRepresentation, IndexedGenerators, Module):
             sage: res = M.resolution(4, verbose=True)
             Computing f_1 (1/4)
             Computing f_2 (2/4)
-            Resolving the kernel in the range of dimensions [2, 25]:
-             2 3 4 5 6 7 8 9 10 11 12 13 14 15 16 17 18 19 20 21 22 23 24 25.
+            Computing using the profile:
+            (2, 1)
+            Resolving the kernel in the range of dimensions [2, 8]: 2 3 4 5 6 7 8.
             Computing f_3 (3/4)
-            Resolving the kernel in the range of dimensions [8, 31]:
-             8 9 10 11 12 13 14 15 16 17 18 19 20 21 22 23 24 25 26 27 28 29 30 31.
+            Computing using the profile:
+            (2, 1)
+            Resolving the kernel in the range of dimensions [8, 14]: 8 9 10 11 12 13 14.
             Computing f_4 (4/4)
-            Resolving the kernel in the range of dimensions [9, 33]:
-             9 10 11 12 13 14 15 16 17 18 19 20 21 22 23 24 25 26 27 28 29 30 31 32 33.
+            Computing using the profile:
+            (2, 1)
+            Resolving the kernel in the range of dimensions [9, 16]: 9 10 11 12 13 14 15 16.
             sage: len(res)
             5
             sage: res
@@ -1232,7 +1251,7 @@ class FPModule(UniqueRepresentation, IndexedGenerators, Module):
                Defn: g[10] |--> Sq(1)*g[9]
                      g[12] |--> Sq(0,1)*g[9] + Sq(2)*g[10]]
             sage: for i in range(len(res)-1):
-            ....:     assert (res[i]*res[i+1]).is_zero(), 'the result is not a complex'
+            ....:     assert (res[i] * res[i+1]).is_zero(), 'the result is not a complex'
 
         TESTS::
 

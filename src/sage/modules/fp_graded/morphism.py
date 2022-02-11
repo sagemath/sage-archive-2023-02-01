@@ -1311,7 +1311,7 @@ class FPModuleMorphism(Morphism):
 
     def homology(self, f, top_dim=None, verbose=False):
         r"""
-        Compute the sub-quotient module `H(self, f) =
+        Compute the sub-quotient module of `H(self, f) =
         \ker(self)/\operatorname{im}(f)` in a range of degrees.
 
         For a pair of composable morphisms `f: M\to N` and `g: N \to Q` of
@@ -1452,7 +1452,6 @@ class FPModuleMorphism(Morphism):
         except AttributeError:
             from .module import FPModule
 
-        # FIXME: This seems circular as FPModule builds a morphism.
         coker = FPModule(self.base_ring(),
                          self.codomain().generator_degrees(),
                          relations=tuple(new_relations))
@@ -1507,6 +1506,8 @@ class FPModuleMorphism(Morphism):
             Resolving the kernel in the range of dimensions [0, 17]:
              0 1 2 3 4 5 6 7 8 9 10 11 12 13 14 15 16 17.
             2. Computing the relations of the kernel presentation:
+            Computing using the profile:
+            (4, 3, 2, 1)
             Resolving the kernel in the range of dimensions [7, 17]:
              7 8 9 10 11 12 13 14 15 16 17.
 
@@ -1583,6 +1584,8 @@ class FPModuleMorphism(Morphism):
             Resolving the image in the range of dimensions [0, 17]:
              0 1 2 3 4 5 6 7 8 9 10 11 12 13 14 15 16 17.
             2. Computing the relations of the image presentation:
+            Computing using the profile:
+            (4, 3, 2, 1)
             Resolving the kernel in the range of dimensions [0, 17]:
              0 1 2 3 4 5 6 7 8 9 10 11 12 13 14 15 16 17.
 
@@ -1594,7 +1597,6 @@ class FPModuleMorphism(Morphism):
             (Sq(1)*g[0], Sq(2)*g[0], Sq(4)*g[0], Sq(8)*g[0])
             sage: K.domain().is_trivial()
             False
-
         """
         if verbose:
             print('1. Computing the generators of the image presentation:')
@@ -1638,7 +1640,6 @@ class FPModuleMorphism(Morphism):
             sage: Z = FPModule(A, [])
             sage: Hom(Z, HZ).zero().is_injective(top_dim=8)
             True
-
         """
         j0 = self._resolve_kernel(top_dim, verbose)
         return j0.domain().is_trivial()
@@ -1663,7 +1664,6 @@ class FPModuleMorphism(Morphism):
             sage: Z = FPModule(A, [])
             sage: Hom(F, Z).zero().is_surjective()
             True
-
         """
         return self.cokernel_projection().is_zero()
 

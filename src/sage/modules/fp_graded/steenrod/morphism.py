@@ -2,10 +2,8 @@ r"""
 Homomorphisms of finitely presented modules over the Steenrod algebra
 
 This class implements construction and basic manipulation of homomorphisms
-between finitely presented graded modules over the mod `p`
-Steenrod algebra.
-
-For an overview of the API, see :doc:`module`.
+between :mod:`finitely presented graded modules
+<sage.modules.fp_graded.steenrod.module>` over the mod `p` Steenrod algebra.
 
 AUTHORS:
 
@@ -14,7 +12,6 @@ AUTHORS:
   original software to Sage version 8.9.
 - Sverre Lunoee--Nielsen (2020-07-01): Refactored the code and added
   new documentation and tests.
-
 """
 
 #*****************************************************************************
@@ -37,7 +34,6 @@ from .profile import enveloping_profile_elements
 
 
 class SteenrodFPModuleMorphism(FPModuleMorphism):
-
     def profile(self):
         r"""
         Return a finite profile over which ``self`` can be defined.
@@ -109,6 +105,8 @@ class SteenrodFPModuleMorphism(FPModuleMorphism):
 
         INPUT:
 
+        - ``top_dim`` -- (optional) stop the computation at this degree; if
+          not specified, this is determined using :meth:`profile`
         - ``verbose`` -- (default: ``False``) whether log messages are printed
 
         EXAMPLES::
@@ -130,9 +128,7 @@ class SteenrodFPModuleMorphism(FPModuleMorphism):
             True
         """
         algebra = self.base_ring()
-
         finite_algebra = SteenrodAlgebra_generic(algebra.prime(), profile=self.profile())
-
         return FPModuleMorphism.is_injective(self.change_ring(finite_algebra),
                                              top_dim=top_dim, verbose=verbose)
 
@@ -181,7 +177,6 @@ class SteenrodFPModuleMorphism(FPModuleMorphism):
 
             sage: g.is_zero()
             True
-
         """
         return self._action(FPModuleMorphism.kernel_inclusion, top_dim=top_dim, verbose=verbose)
 
@@ -234,7 +229,7 @@ class SteenrodFPModuleMorphism(FPModuleMorphism):
 
         - ``top_dim`` -- integer (optional); used by this function to stop the
           computation at the given degree
-        - ``verbose`` -- boolean (default: ``False``) enable progress messages
+        - ``verbose`` -- (default: ``False``) whether log messages are printed
 
         OUTPUT:
 

@@ -357,5 +357,16 @@ dl.py.class > dd > p:first-child {
    white-space: nowrap;
 }
 
+/* -- search page ------------------------ */
+
+ul.search li {
+    text-align: left;
+}
+
+/* -- references ------------------------- */
+
+dl.citation p {
+    text-align: left;
+}
 
 

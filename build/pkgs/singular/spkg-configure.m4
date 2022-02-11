@@ -16,12 +16,11 @@ SAGE_SPKG_CONFIGURE([singular], [
                       dnl that POSIX guarantees will work.
                       PKG_CHECK_VAR([SINGULAR_LIB_DIR], [Singular], [libdir])
                       dnl The acl_shlibext variable is set in the top-level configure.ac.
-                      LIBSINGULAR_PATH="${SINGULAR_LIB_DIR}/libSingular.${acl_shlibext}"
-
-                      AC_MSG_CHECKING([if we can dlopen($LIBSINGULAR_PATH)])
+                      AC_LANG_PUSH(C)
                       ORIG_LIBS="${LIBS}"
                       LIBS="${LIBS} -ldl"
-                      AC_LANG_PUSH(C)
+                      AC_MSG_CHECKING([if we can dlopen($LIBSINGULAR_PATH)])
+                      LIBSINGULAR_PATH="${SINGULAR_LIB_DIR}/libSingular.${acl_shlibext}"
 
                       dnl if we can dlopen() it, substitute the name for sage_conf;
                       dnl otherwise, fall back to using the SPKG.
@@ -33,8 +32,19 @@ SAGE_SPKG_CONFIGURE([singular], [
                         )], [
                           AC_MSG_RESULT(yes)
                         ], [
-                          AC_MSG_RESULT(no)
-                          sage_spkg_install_singular=yes
+                          dnl try Debian-specific name
+                          LIBSINGULAR_PATH="${SINGULAR_LIB_DIR}/libsingular-Singular.${acl_shlibext}"
+                          AC_RUN_IFELSE(
+                           [AC_LANG_PROGRAM(
+                             [[#include <dlfcn.h>]],
+                             [[void* h = dlopen("${LIBSINGULAR_PATH}", RTLD_LAZY | RTLD_GLOBAL);
+                               if (h == 0) { return 1; } else { return dlclose(h); }]]
+                           )], [
+                             AC_MSG_RESULT(yes)
+                           ], [
+                            AC_MSG_RESULT(no)
+                            sage_spkg_install_singular=yes
+                          ])
                         ])
 
                       AC_LANG_POP()

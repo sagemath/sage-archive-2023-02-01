@@ -47,7 +47,6 @@ from sage.rings.function_field.function_field import RationalFunctionField
 from sage.rings.finite_rings.finite_field_base import is_FiniteField
 from sage.rings.integer_ring import ZZ
 
-import sage.arith.all
 import sage.rings.finite_rings.finite_field_constructor
 
 def _do_singular_init_(singular, base_ring, char, _vars, order):
@@ -70,15 +69,15 @@ def _do_singular_init_(singular, base_ring, char, _vars, order):
         # singular converts to bits from base_10 in mpr_complex.cc by:
         #  size_t bits = 1 + (size_t) ((float)digits * 3.5);
         precision = base_ring.precision()
-        digits = sage.arith.all.integer_ceil((2*precision - 2)/7.0)
-        return make_ring("(real,%d,0)"%digits), None
+        digits = (2*precision + 4) // 7
+        return make_ring(f"(real,{digits},0)"), None
 
     elif isinstance(base_ring, sage.rings.abc.ComplexField):
         # singular converts to bits from base_10 in mpr_complex.cc by:
         #  size_t bits = 1 + (size_t) ((float)digits * 3.5);
         precision = base_ring.precision()
-        digits = sage.arith.all.integer_ceil((2*precision - 2)/7.0)
-        return make_ring("(complex,%d,0,I)"%digits), None
+        digits = (2*precision + 4) // 7
+        return make_ring(f"(complex,{digits},0,I)"), None
 
     elif isinstance(base_ring, sage.rings.abc.RealDoubleField):
         # singular converts to bits from base_10 in mpr_complex.cc by:
@@ -95,61 +94,66 @@ def _do_singular_init_(singular, base_ring, char, _vars, order):
         if sage.rings.finite_rings.finite_field_constructor.is_FiniteField(base_ring) and char <= 2147483647:
             return make_ring(str(char)), None
         if char.is_power_of(2):
-            return make_ring("(integer,2,%d)" % (char.nbits()-1)), None
-        return make_ring("(integer,%d)" % char), None
+            return make_ring(f"(integer,2,{char.nbits()-1})"), None
+        return make_ring(f"(integer,{char})"), None
 
     elif sage.rings.finite_rings.finite_field_constructor.is_FiniteField(base_ring):
         # not the prime field!
         gen = str(base_ring.gen())
-        r = make_ring( "(%s,%s)"%(char,gen))
+        R = make_ring(f"({char},{gen})")
 
-        minpoly = (str(base_ring.modulus()).replace("x",gen)).replace(" ","")
-        if  singular.eval('minpoly') != "(" + minpoly + ")":
-            singular.eval("minpoly=%s"%(minpoly) )
+        minpoly = str(base_ring.modulus()).replace("x",gen).replace(" ","")
+        if  singular.eval('minpoly') != f"({minpoly})":
+            singular.eval(f"minpoly={minpoly}")
             minpoly = singular.eval('minpoly')[1:-1]
 
-        return r, minpoly
+        return R, minpoly
 
     elif number_field.number_field_base.is_NumberField(base_ring) and base_ring.is_absolute():
         # not the rationals!
         gen = str(base_ring.gen())
-        poly=base_ring.polynomial()
-        poly_gen=str(poly.parent().gen())
-        poly_str=str(poly).replace(poly_gen,gen)
-        r = make_ring( "(%s,%s)"%(char,gen))
-        minpoly = (poly_str).replace(" ","")
-        if  singular.eval('minpoly') != "(" + minpoly + ")":
-            singular.eval("minpoly=%s"%(minpoly) )
+        poly = base_ring.polynomial()
+        poly_gen = str(poly.parent().gen())
+        poly_str = str(poly).replace(poly_gen,gen)
+        R = make_ring(f"({char},{gen})")
+
+        minpoly = poly_str.replace(" ","")
+        if  singular.eval('minpoly') != f"({minpoly})":
+            singular.eval(f"minpoly={minpoly}")
             minpoly = singular.eval('minpoly')[1:-1]
 
-        return r, minpoly
+        return R, minpoly
 
     elif sage.rings.fraction_field.is_FractionField(base_ring):
-        if base_ring.ngens()==1:
+        if base_ring.ngens() == 1:
           gens = str(base_ring.gen())
         else:
           gens = str(base_ring.gens())
 
-        if base_ring.base_ring().is_prime_field() or base_ring.base_ring() is ZZ:
-            return make_ring( "(%s,%s)"%(base_ring.characteristic(),gens)), None
+        B = base_ring.base_ring()
+        base_char = base_ring.characteristic()
 
-        if is_FiniteField(base_ring.base_ring()) and base_ring.base_ring().characteristic() <= 2147483647:
-            ext_gen = str(base_ring.base_ring().gen())
+        if B.is_prime_field() or B is ZZ:
+            return make_ring(f"({base_char},{gens})"), None
+
+        if is_FiniteField(B) and B.characteristic() <= 2147483647:
+            ext_gen = str(B.gen())
             _vars = '(' + ext_gen + ', ' + _vars[1:]
 
-            R = make_ring( "(%s,%s)"%(base_ring.characteristic(),gens))
+            R = make_ring(f"({base_char},{gens})")
 
-            base_ring.__minpoly = (str(base_ring.base_ring().modulus()).replace("x",ext_gen)).replace(" ","")
-            singular.eval('setring '+R._name)
+            base_ring.__minpoly = (str(B.modulus()).replace("x",ext_gen)).replace(" ","")
+            singular.eval('setring ' + R._name)
 
             from sage.misc.stopgap import stopgap
             stopgap("Denominators of fraction field elements are sometimes dropped without warning.", 17696)
 
-            return singular("std(ideal(%s))"%(base_ring.__minpoly),type='qring'), None
+            return singular(f"std(ideal({base_ring.__minpoly}))", type='qring'), None
 
-    elif isinstance(base_ring, sage.rings.function_field.function_field.RationalFunctionField) and base_ring.constant_field().is_prime_field():
+    elif isinstance(base_ring, sage.rings.function_field.function_field.RationalFunctionField) \
+            and base_ring.constant_field().is_prime_field():
         gen = str(base_ring.gen())
-        return make_ring( "(%s,%s)"%(base_ring.characteristic(),gen)), None
+        return make_ring(f"({base_ring.characteristic()},{gen}"), None
 
     raise TypeError("no conversion to a Singular ring defined")
 
@@ -164,7 +168,7 @@ class PolynomialRing_singular_repr:
     """
     def _singular_(self, singular=singular):
         r"""
-        Returns a singular ring for this polynomial ring.
+        Returns a Singular ring for this polynomial ring.
 
         Currently `\QQ`, `{\rm GF}(p), {\rm GF}(p^n)`, `\CC`, `\RR`, `\ZZ` and
         `\ZZ/n\ZZ` are supported.
@@ -317,13 +321,12 @@ class PolynomialRing_singular_repr:
             R._check_valid()
             if self.base_ring() is ZZ or self.base_ring().is_prime_field():
                 return R
-            if sage.rings.finite_rings.finite_field_constructor.is_FiniteField(self.base_ring()) or\
+            if sage.rings.finite_rings.finite_field_constructor.is_FiniteField(self.base_ring()) or \
                     (number_field.number_field_base.is_NumberField(self.base_ring()) and self.base_ring().is_absolute()):
-                R.set_ring() #sorry for that, but needed for minpoly
-                if  singular.eval('minpoly') != "(" + self.__minpoly + ")":
-                    singular.eval("minpoly=%s"%(self.__minpoly))
+                R.set_ring()  # sorry for that, but needed for minpoly
+                if  singular.eval('minpoly') != f"({self.__minpoly})":
+                    singular.eval(f"minpoly={self.__minpoly}")
                     self.__minpoly = singular.eval('minpoly')[1:-1]
-
             return R
         except (AttributeError, ValueError):
             return self._singular_init_(singular)
@@ -345,9 +348,9 @@ class PolynomialRing_singular_repr:
         if not can_convert_to_singular(self):
             raise TypeError("no conversion of this ring to a Singular ring defined")
 
-        if self.ngens()==1:
-            _vars = '(%s)'%self.gen()
-            if "*" in _vars: # 1.000...000*x
+        if self.ngens() == 1:
+            _vars = f'({self.gen()})'
+            if "*" in _vars:  # 1.000...000*x
                 _vars = _vars.split("*")[1]
             order = 'lp'
         else:
@@ -480,7 +483,7 @@ def _singular_func(self, singular=singular, have_ring=False):
         True
     """
     if not have_ring:
-        self.parent()._singular_(singular).set_ring() #this is expensive
+        self.parent()._singular_(singular).set_ring()  # this is expensive
 
     try:
         self.__singular._check_valid()
@@ -488,8 +491,8 @@ def _singular_func(self, singular=singular, have_ring=False):
             return self.__singular
     except (AttributeError, ValueError):
         pass
-#    return self._singular_init_(singular,have_ring=have_ring)
-    return _singular_init_func(self, singular,have_ring=have_ring)
+#    return self._singular_init_(singular, have_ring=have_ring)
+    return _singular_init_func(self, singular, have_ring=have_ring)
 
 def _singular_init_func(self, singular=singular, have_ring=False):
     """
@@ -499,7 +502,7 @@ def _singular_init_func(self, singular=singular, have_ring=False):
     Use ``self._singular_()`` instead.
     """
     if not have_ring:
-        self.parent()._singular_(singular).set_ring() #this is expensive
+        self.parent()._singular_(singular).set_ring()  # this is expensive
 
     self.__singular = singular(str(self))
 

@@ -55,7 +55,7 @@ EOF
         CLEAN="&& $SUDO apt-get clean"
         if [ -n "$EXTRA_REPOSITORY" ]; then
             cat <<EOF
-RUN $UPDATE $INSTALL software-properties-common gpg gpg-agent
+RUN $UPDATE $INSTALL software-properties-common && ($INSTALL gpg gpg-agent || echo "(ignored)")
 RUN $SUDO add-apt-repository $EXTRA_REPOSITORY
 EOF
         fi

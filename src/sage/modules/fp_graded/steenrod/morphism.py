@@ -85,23 +85,15 @@ class SteenrodFPModuleMorphism(FPModuleMorphism):
         elements = (_flatten(self.domain().relations())
                     + _flatten(self.codomain().relations())
                     + _flatten(self.values()))
-
         elements = [a for a in elements if a not in (0, 1)]
 
-        profile = enveloping_profile_elements(elements,
-                                              char=self.base_ring().characteristic())
-
-        # Avoid returning the zero profile because it triggers a corner case
-        # in FPModule.resolution().
-        #
-        # XXX: Fix FPModule.resolution().
-        #
-        return (1,) if profile == (0,) else profile
+        return enveloping_profile_elements(elements,
+                                           char=self.base_ring().characteristic())
 
 
     def is_injective(self, top_dim=None, verbose=False):
         r"""
-        Return if ``self`` is injective.
+        Return ``True`` if ``self`` is injective.
 
         INPUT:
 
@@ -184,6 +176,10 @@ class SteenrodFPModuleMorphism(FPModuleMorphism):
     def cokernel_projection(self, verbose=False):
         r"""
         Compute the map to the cokernel of ``self``.
+
+        INPUT:
+
+        - ``verbose`` -- (default: ``False``) whether log messages are printed
 
         OUTPUT:
 

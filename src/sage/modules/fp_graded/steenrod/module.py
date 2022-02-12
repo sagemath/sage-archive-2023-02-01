@@ -194,6 +194,27 @@ class SteenrodModuleMixin:
             2 4 1 4
             3 4 1 5
             6 4 1 7
+
+        TESTS::
+
+            sage: A = SteenrodAlgebra()
+            sage: M = A.free_graded_module([])
+            sage: M.export_module_definition()
+            Traceback (most recent call last):
+            ...
+            ValueError: this module is not defined over a finite algebra
+            sage: A1 = SteenrodAlgebra(profile=[2,1])
+            sage: M1 = A1.free_graded_module([])
+            sage: s = M1.export_module_definition()
+            The module connectivity is infinite, so there is nothing to export.
+            sage: s
+            ''
+            sage: P1 = SteenrodAlgebra(p=5, profile=[[], [2,1]])
+            sage: N = P1.free_graded_module([])
+            sage: N.export_module_definition()
+            Traceback (most recent call last):
+            ...
+            ValueError: this function is not implemented for odd primes
         """
         if not self.base_ring().is_finite():
             raise ValueError('this module is not defined over a finite algebra')
@@ -440,7 +461,8 @@ class SteenrodFPModule(FPModule, SteenrodModuleMixin):
              Module endomorphism of Free graded left module on 0 generators over mod 2 Steenrod algebra, milnor basis]
         """
         algebra = self.base_ring()
-        finite_algebra = SteenrodAlgebra_generic(algebra.prime(), profile=self.profile())
+        finite_algebra = SteenrodAlgebra_generic(algebra.prime(),
+                                                 profile=self.profile())
 
         # Change rings to the finite algebra, and call the base class
         # implementation of this function.

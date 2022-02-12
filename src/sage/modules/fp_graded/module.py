@@ -222,6 +222,27 @@ class FPModule(UniqueRepresentation, IndexedGenerators, Module):
 
     Element = FPElement
 
+    def defining_homomorphism(self):
+        """
+        Return the homomorphism defining ``self``.
+
+        ``self`` is a finitely presented module defined as the
+        cokernel of a map `j: F_0 \to F_1` of free modules, and this
+        returns that map.
+
+        EXAMPLES::
+
+            sage: from sage.modules.fp_graded.module import FPModule
+            sage: E.<x,y> = ExteriorAlgebra(QQ)
+            sage: M = FPModule(E, [0, 1], [[x, 1]])
+            sage: M.defining_homomorphism()
+            Module morphism:
+              From: Free graded left module on 1 generator over The exterior algebra of rank 2 over Rational Field
+              To:   Free graded left module on 2 generators over The exterior algebra of rank 2 over Rational Field
+              Defn: g[1] |--> x*g[0] + g[1]
+        """
+        return self._j
+
     def _free_module(self):
         """
         Return the free module of which ``self`` is a quotient.
@@ -348,6 +369,27 @@ class FPModule(UniqueRepresentation, IndexedGenerators, Module):
             g[0]
             sage: M.monomial(1)
             g[1]
+
+        If ``i`` is not in the indexing set, then this returns a
+        "generator" but that generator is equal to zero::
+
+            sage: M.monomial(3)
+            g[3]
+            sage: M.monomial(3) == 0
+            True
+
+        TESTS::
+
+            sage: E.<x,y> = ExteriorAlgebra(QQ)
+            sage: M = FPModule(E, [0, 0], [[x, y]])
+            sage: M._indices
+            {(0, 0), (0, 1)}
+            sage: M.monomial(0)
+            g[0]
+            sage: M.monomial(0) == 0
+            True
+            sage: M.monomial((0,1)) == 0
+            False
         """
         # Should use a real Map, as soon as combinatorial_classes are enumerated sets, and therefore parents
         from sage.categories.poor_man_map import PoorManMap

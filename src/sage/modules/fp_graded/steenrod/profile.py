@@ -40,7 +40,7 @@ def profile_elt(elt, char=2):
 
     - ``elt`` -- element of the Steenrod algebra (or a sub-Hopf algebra
       of it) or list(s) representing it
-    - ``char`` -- the characteristic
+    - ``char`` (optional, default 2) -- the characteristic
 
     ``elt`` could also be a list (when ``char=2``) or a pair of lists
     (otherwise), in which case it is treated as corresponding to an
@@ -100,8 +100,8 @@ def enveloping_profile_elements(alist, char=2):
 
     INPUT:
 
-    -  ``alist`` -- list of Steenrod algebra elements
-    -  ``char`` -- the characteristic
+    - ``alist`` -- list of Steenrod algebra elements
+    - ``char`` (optional, default 2) -- the characteristic
 
     As with :func:`profile_elt`, the entries of ``alist`` could also
     be iterables or pairs of iterables.
@@ -153,12 +153,13 @@ def enveloping_profile_elements(alist, char=2):
 
 def find_min_profile(prof, char=2):
     r"""
-    Given a tuple of non-negative integers, this function will
-    output the smallest legal profile function containing it.
+    Return the smallest valid profile function containing a tuple of
+    non-negative integers,
 
     INPUT:
 
     - ``prof`` -- a list or tuple of nonnegative integers
+    - ``char`` (optional, default 2) -- the characteristic
 
     OUTPUT:
 
@@ -167,8 +168,9 @@ def find_min_profile(prof, char=2):
     A profile function `e` must satisfy `e(r) \geq \min( e(r-i) - i,
     e(i))` for all `0 < i < r`, and at odd primes, if `k(i+j) = 1`,
     then either `e(i) \leq j` or `k(j) = 1` for all `i \geq 1`, `j
-    \geq 0`. We use these inequalities to generate the profile from
-    ``prof``.
+    \geq 0`. We use these inequalities to generate the smallest
+    profile function `e` satisfying `e(r) \geq prof(r)` for each `r`
+    when `char=2`, and similarly at odd primes.
 
     EXAMPLES::
 
@@ -182,11 +184,11 @@ def find_min_profile(prof, char=2):
         sage: find_min_profile([4])
         (4, 3, 2, 1)
 
-        sage: find_min_profile([[4], []], 3)
+        sage: find_min_profile([[4], []], char=3)
         ((4, 3, 2, 1), ())
-        sage: find_min_profile([[1], [2]], 3)
+        sage: find_min_profile([[1], [2]], char=3)
         ((1,), (2, 2))
-        sage: find_min_profile([[], [2,1,1,2]], 3)
+        sage: find_min_profile([[], [2,1,1,2]], char=3)
         ((0,), (2, 1, 1, 2))
     """
     if char == 2:

@@ -16549,20 +16549,12 @@ class GenericGraph(GenericGraph_pyx):
             sage: d1 == d2 == d3 == d4
             True
         """
-        if weight_function is not None:
-            by_weight = True
-        elif by_weight:
-            def weight_function(e):
-                return 1 if e[2] is None else e[2]
-        else:
-            def weight_function(e):
-                return 1
+        by_weight, weight_function = self._get_weight_function(by_weight=by_weight,
+                                                               weight_function=weight_function,
+                                                               check_weight=check_weight)
 
         if algorithm is None and not by_weight:
             algorithm = 'BFS'
-
-        if by_weight and check_weight:
-            self._check_weight_function(weight_function)
 
         if algorithm == 'BFS':
             if by_weight:
@@ -16851,31 +16843,15 @@ class GenericGraph(GenericGraph_pyx):
         """
         from sage.rings.infinity import Infinity
 
-        if weight_function is not None:
-            by_weight = True
-
-        if by_weight:
-            if not weight_function:
-                def weight_function(e):
-                    return 1 if e[2] is None else e[2]
-
-            if check_weight:
-                self._check_weight_function(weight_function)
-        else:
-            def weight_function(e):
-                return 1
+        by_weight, weight_function = self._get_weight_function(by_weight=by_weight,
+                                                               weight_function=weight_function,
+                                                               check_weight=check_weight)
 
         if algorithm is None:
             if by_weight:
-                for e in self.edge_iterator():
-                    try:
-                        if weight_function(e) < 0:
-                            algorithm = "Floyd-Warshall_Boost"
-                            break
-                    except (ValueError, TypeError):
-                        raise ValueError("the weight function cannot find the"
-                                         " weight of " + e)
-                if algorithm is None:
+                if any(weight_function(e) < 0 for e in self.edge_iterator()):
+                    algorithm = "Floyd-Warshall_Boost"
+                else:
                     algorithm = "Dijkstra_Boost"
             else:
                 algorithm = "BFS"
@@ -17122,26 +17098,37 @@ class GenericGraph(GenericGraph_pyx):
 
         TESTS::
 
-            sage: G.wiener_index(algorithm='BFS', weight_function=lambda e:(e[2] if e[2] is not None else 200))
+            sage: weight_function=lambda e:(e[2] if e[2] is not None else 200)
+            sage: G.wiener_index(algorithm='BFS', weight_function=weight_function)
             Traceback (most recent call last):
             ...
-            ValueError: BFS algorithm does not work on weighted graphs
+            ValueError: algorithm 'BFS' does not work with weights
+            sage: G.wiener_index(algorithm='Floyd-Warshall-Cython', weight_function=weight_function)
+            Traceback (most recent call last):
+            ...
+            ValueError: algorithm 'Floyd-Warshall-Cython' does not work with weights
 
             sage: Graph([(0, 1, 1)]).wiener_index(algorithm="coco beach")
             Traceback (most recent call last):
             ...
             ValueError: unknown algorithm "coco beach"
         """
-        by_weight = by_weight or (weight_function is not None)
-
         if not self:
             raise ValueError("Wiener index is not defined for the empty graph")
         elif self.order() == 1:
             return 0
 
-        if algorithm == 'BFS' or (algorithm is None and not by_weight):
+        by_weight, weight_function = self._get_weight_function(by_weight=by_weight,
+                                                               weight_function=weight_function,
+                                                               check_weight=check_weight)
+
+        if algorithm in ['BFS', 'Floyd-Warshall-Cython']:
             if by_weight:
-                raise ValueError("BFS algorithm does not work on weighted graphs")
+                raise ValueError("algorithm '{}' does not work with weights".format(algorithm))
+            # We don't want the default weight function
+            weight_function = None
+
+        if algorithm == 'BFS' or (algorithm is None and not by_weight):
             from .distances_all_pairs import wiener_index
             return wiener_index(self)
 
@@ -17149,7 +17136,7 @@ class GenericGraph(GenericGraph_pyx):
             from .base.boost_graph import wiener_index
             WI = wiener_index(self, algorithm=algorithm,
                               weight_function=weight_function,
-                              check_weight=check_weight)
+                              check_weight=False)
 
         elif (not self.is_connected()
               or (self.is_directed() and not self.is_strongly_connected())):
@@ -17177,7 +17164,7 @@ class GenericGraph(GenericGraph_pyx):
         else:
             distances = self.shortest_path_all_pairs(
                 by_weight=by_weight, algorithm=algorithm,
-                weight_function=weight_function, check_weight=check_weight)[0]
+                weight_function=weight_function, check_weight=False)[0]
             total = sum(sum(u.values()) for u in distances.values())
             WI = total if self.is_directed() else (total / 2)
 
@@ -17187,7 +17174,7 @@ class GenericGraph(GenericGraph_pyx):
         return WI
 
     def average_distance(self, by_weight=False, algorithm=None,
-                         weight_function=None):
+                         weight_function=None, check_weight=True):
         r"""
         Return the average distance between vertices of the graph.
 
@@ -17254,7 +17241,7 @@ class GenericGraph(GenericGraph_pyx):
         if self.order() < 2:
             raise ValueError("average distance is not defined for empty or one-element graph")
         WI =  self.wiener_index(by_weight=by_weight, algorithm=algorithm,
-                                    weight_function=weight_function)
+                                    weight_function=weight_function, check_weight=check_weight)
         f = 1 if self.is_directed() else 2
         if WI in ZZ:
             return QQ((f * WI, self.order() * (self.order() - 1)))

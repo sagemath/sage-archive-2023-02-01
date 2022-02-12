@@ -60,7 +60,13 @@ def _do_singular_init_(singular, base_ring, char, _vars, order):
     """
     make_ring = lambda s: singular.ring(s, _vars, order=order)
 
-    if isinstance(base_ring, sage.rings.abc.RealField):
+    if base_ring is ZZ:
+        return make_ring("(ZZ)"), None
+
+    if sage.rings.rational_field.is_RationalField(base_ring):
+        return make_ring("(QQ)"), None
+
+    elif isinstance(base_ring, sage.rings.abc.RealField):
         # singular converts to bits from base_10 in mpr_complex.cc by:
         #  size_t bits = 1 + (size_t) ((float)digits * 3.5);
         precision = base_ring.precision()
@@ -84,8 +90,13 @@ def _do_singular_init_(singular, base_ring, char, _vars, order):
         #  size_t bits = 1 + (size_t) ((float)digits * 3.5);
         return make_ring("(complex,15,0,I)"), None
 
-    elif base_ring.is_prime_field():
-        return make_ring(str(char)), None
+    elif isinstance(base_ring, sage.rings.abc.IntegerModRing):
+        char = base_ring.characteristic()
+        if sage.rings.finite_rings.finite_field_constructor.is_FiniteField(base_ring) and char <= 2147483647:
+            return make_ring(str(char)), None
+        if char.is_power_of(2):
+            return make_ring("(integer,2,%d)" % (char.nbits()-1)), None
+        return make_ring("(integer,%d)" % char), None
 
     elif sage.rings.finite_rings.finite_field_constructor.is_FiniteField(base_ring):
         # not the prime field!
@@ -113,15 +124,16 @@ def _do_singular_init_(singular, base_ring, char, _vars, order):
 
         return r, minpoly
 
-    elif sage.rings.fraction_field.is_FractionField(base_ring) and (base_ring.base_ring() is ZZ or base_ring.base_ring().is_prime_field() or is_FiniteField(base_ring.base_ring())):
+    elif sage.rings.fraction_field.is_FractionField(base_ring):
         if base_ring.ngens()==1:
           gens = str(base_ring.gen())
         else:
           gens = str(base_ring.gens())
 
-        if not (not base_ring.base_ring().is_prime_field() and is_FiniteField(base_ring.base_ring())) :
+        if base_ring.base_ring().is_prime_field() or base_ring.base_ring() is ZZ:
             return make_ring( "(%s,%s)"%(base_ring.characteristic(),gens)), None
-        else:
+
+        if is_FiniteField(base_ring.base_ring()) and base_ring.base_ring().characteristic() <= 2147483647:
             ext_gen = str(base_ring.base_ring().gen())
             _vars = '(' + ext_gen + ', ' + _vars[1:]
 
@@ -139,18 +151,7 @@ def _do_singular_init_(singular, base_ring, char, _vars, order):
         gen = str(base_ring.gen())
         return make_ring( "(%s,%s)"%(base_ring.characteristic(),gen)), None
 
-    elif isinstance(base_ring, sage.rings.abc.IntegerModRing):
-        ch = base_ring.characteristic()
-        if ch.is_power_of(2):
-            exp = ch.nbits() -1
-            return make_ring("(integer,2,%d)"%(exp,)), None
-        else:
-            return make_ring("(integer,%d)"%(ch,)), None
-
-    elif base_ring is ZZ:
-        return make_ring("(integer)"), None
-    else:
-        raise TypeError("no conversion to a Singular ring defined")
+    raise TypeError("no conversion to a Singular ring defined")
 
 
 class PolynomialRing_singular_repr:
@@ -353,21 +354,19 @@ class PolynomialRing_singular_repr:
             _vars = str(self.gens())
             order = self.term_order().singular_str()
 
-        self.__singular, self.__minpoly = \
-                _do_singular_init_(singular, self.base_ring(), self.characteristic(), _vars, order)
+        self.__singular, self.__minpoly = _do_singular_init_(singular, self.base_ring(), self.characteristic(), _vars, order)
 
         return self.__singular
 
 
 def can_convert_to_singular(R):
     """
-    Returns True if this ring's base field or ring can be
+    Return ``True`` if this ring's base field or ring can be
     represented in Singular, and the polynomial ring has at
-    least one generator.  If this is True then this polynomial
-    ring can be represented in Singular.
+    least one generator.
 
-    The following base rings are supported: finite fields, rationals, number
-    fields, and real and complex fields.
+    The following base rings are supported: finite fields,
+    rationals, number fields, and real and complex fields.
 
     EXAMPLES::
 
@@ -387,25 +386,40 @@ def can_convert_to_singular(R):
         sage: K.<a,b> = NumberField([x^2-2,x^2-5])
         sage: can_convert_to_singular(K['s,t'])
         False
+
+    Check for :trac:`33319`::
+
+        sage: R.<x,y> = GF((2^31-1)^3)[]
+        sage: R._has_singular
+        True
+        sage: R.<x,y> = GF((2^31+11)^2)[]
+        sage: R._has_singular
+        False
+        sage: R.<x,y> = GF(10^20-11)[]
+        sage: R._has_singular
+        True
+        sage: R.<x,y> = Zmod(10^20+1)[]
+        sage: R._has_singular
+        True
     """
     if R.ngens() == 0:
         return False
 
     base_ring = R.base_ring()
     if (base_ring is ZZ
-        or sage.rings.finite_rings.finite_field_constructor.is_FiniteField(base_ring)
         or is_RationalField(base_ring)
         or isinstance(base_ring, (sage.rings.abc.IntegerModRing,
                                   sage.rings.abc.RealField, sage.rings.abc.ComplexField,
                                   sage.rings.abc.RealDoubleField, sage.rings.abc.ComplexDoubleField))):
         return True
-    elif base_ring.is_prime_field():
+    elif sage.rings.finite_rings.finite_field_constructor.is_FiniteField(base_ring):
         return base_ring.characteristic() <= 2147483647
     elif number_field.number_field_base.is_NumberField(base_ring):
         return base_ring.is_absolute()
     elif sage.rings.fraction_field.is_FractionField(base_ring):
         B = base_ring.base_ring()
-        return B.is_prime_field() or B is ZZ or is_FiniteField(B)
+        return (B.is_prime_field() or B is ZZ
+                or (is_FiniteField(B) and B.characteristic() <= 2147483647))
     elif isinstance(base_ring, RationalFunctionField):
         return base_ring.constant_field().is_prime_field()
     else:

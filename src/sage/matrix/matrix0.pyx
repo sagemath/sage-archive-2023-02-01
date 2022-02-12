@@ -4031,6 +4031,9 @@ cdef class Matrix(sage.structure.element.Matrix):
         s = 1
         if skew:
             s = -1
+
+        tolerance = self.base_ring()(tolerance)
+        cdef bint tolerance_is_zero = tolerance.is_zero()
         cdef Py_ssize_t i,j
 
         if self.is_sparse_c():
@@ -4041,22 +4044,45 @@ cdef class Matrix(sage.structure.element.Matrix):
             # is truly sparse (if there are not so many of those positions)
             # even after taking numerical issues into account.
             for (i,j) in self.nonzero_positions():
-                d = self.get_unsafe(i,j) - s*self.get_unsafe(j,i).conjugate()
+                entry_a = self.get_unsafe(i,j)
+                entry_b = s*self.get_unsafe(j,i).conjugate()
 
-                # abs() support is spotty
-                if (d*d.conjugate()).sqrt() > tolerance:
-                    self.cache(key, False)
-                    return False
+                if tolerance_is_zero:
+                    # When the tolerance is exactly zero, as will
+                    # usually be the case for exact rings, testing for
+                    # literal equality provides a simple answer to the
+                    # question of how we should test against the
+                    # tolerance in rings such as finite fields and
+                    # polynomials where abs/norm support is spotty and
+                    # an ordering may not be intelligently defined.
+                    if entry_a != entry_b:
+                        self.cache(key, False)
+                        return False
+                else:
+                    d = entry_a - entry_b
+                    # sqrt() can have a different parent, and doesn't
+                    # preserve order in e.g. finite fields, so we
+                    # square both sides of the usual test here.
+                    if (d*d.conjugate()) > tolerance**2:
+                        self.cache(key, False)
+                        return False
         else:
             for i in range(self._nrows):
                 for j in range(i+1):
-                    d = (   self.get_unsafe(i,j)
-                          - s*self.get_unsafe(j,i).conjugate() )
+                    entry_a = self.get_unsafe(i,j)
+                    entry_b = s*self.get_unsafe(j,i).conjugate()
 
-                    # abs() support is spotty
-                    if (d*d.conjugate()).sqrt() > tolerance:
-                        self.cache(key, False)
-                        return False
+                    if tolerance_is_zero:
+                        # Explained above in the sparse case.
+                        if entry_a != entry_b:
+                            self.cache(key, False)
+                            return False
+                    else:
+                        d = entry_a - entry_b
+                        # Explained above in the sparse case.
+                        if (d*d.conjugate()) > tolerance**2:
+                            self.cache(key, False)
+                            return False
 
         self.cache(key, True)
         return True

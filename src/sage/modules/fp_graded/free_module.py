@@ -1043,7 +1043,7 @@ class FreeGradedModule(CombinatorialFreeModule):
         if k < 0:
             raise ValueError('the length of the resolution must be non-negative')
 
-        # The first map \epsilon is the idnetity map
+        # The first map \epsilon is the identity map
         ret_complex = [Hom(self, self).identity()]
 
         if k == 0:

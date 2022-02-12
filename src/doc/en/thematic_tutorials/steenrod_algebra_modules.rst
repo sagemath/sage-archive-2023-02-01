@@ -89,7 +89,7 @@ The generators are themselves elements of the module::
     sage: gens[0] in M
     True
 
-Producing elements from a given set of algebra coefficients is possible::
+One can produce an element from a given set of algebra coefficients::
 
     sage: coeffs=[Sq(15), Sq(10)*Sq(1,1), Sq(8)]
     sage: x = M(coeffs); x
@@ -194,8 +194,8 @@ such homomorphisms using the function ``Hom``::
      in Category of finitely presented graded modules over mod 2 Steenrod algebra, milnor basis
 
 Just as with module elements, homomorphisms are created using the homspace.
-The only argument is a list of module elements in the codomain, corresponding
-to the module generators of the domain::
+The only argument is a list of elements in the codomain, giving the
+images of the module generators of the domain::
 
     sage: gen = Hko.generator(0)  # the generator of the codomain module
     sage: values = [Sq(0, 0, 1) * gen]; values
@@ -379,24 +379,24 @@ cokernels all exist and can be computed using :class:`the morphisms
     - :meth:`~sage.modules.fp_graded.steenrod.morphism.SteenrodFPModuleMorphism.kernel_inclusion`,
     - :meth:`~sage.modules.fp_graded.steenrod.morphism.SteenrodFPModuleMorphism.cokernel_projection`,
     - :meth:`~sage.modules.fp_graded.steenrod.morphism.SteenrodFPModuleMorphism.image`,
-    - :meth:`~sage.modules.fp_graded.steenrod.morphism.SteenrodFPModuleMorphism.homology`
+    - :meth:`~sage.modules.fp_graded.morphism.FPModuleMorphism.homology`
 
     compute sub- and quotient modules related to homomorphisms, but
     they do not return instances of the module class.  Rather, they
     return the natural homomorphisms which connect these modules to
     the modules that gave rise to them.
 
-    E.g. the function
+    For example the function
     :meth:`~sage.modules.fp_graded.steenrod.morphism.SteenrodFPModuleMorphism.kernel_inclusion`
     returns an injective homomorphism which is onto the kernel
-    submodule we asked it to compute.  On the other hand, the function
+    submodule we asked it to compute, while the function
     :meth:`~sage.modules.fp_graded.steenrod.morphism.SteenrodFPModuleMorphism.cokernel_projection`
     provides a surjective homomorphism onto the cokernel module.
 
     In each case, getting a reference to the module instance requires calling
-    :meth:`~sage.modules.fp_graded.steenrod.morphism.SteenrodFPModuleMorphism.domain`
+    :meth:`~sage.categories.morphism.Morphism.domain`
     or
-    :meth:`~sage.modules.fp_graded.steenrod.morphism.SteenrodFPModuleMorphism.codomain`
+    :meth:`~sage.categories.morphism.Morphism.codomain`
     on the returned homomorphism, depending on the case.
 
     Refer to each function's documentation for specific details.
@@ -462,8 +462,10 @@ to the cokernel of `k`, and `h` is injective::
 Images
 ^^^^^^
 
-The method :meth:`image` behaves similarly, returning an injective
-homomorphism with image equal to the submodule `\operatorname{im}(f)`::
+The method
+:meth:`~sage.modules.fp_graded.steenrod.morphism.SteenrodFPModuleMorphism.image`
+behaves similarly, returning an injective homomorphism with image
+equal to the submodule `\operatorname{im}(f)`::
 
     sage: i = f.image(); i
     Module morphism:

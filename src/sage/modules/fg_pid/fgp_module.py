@@ -1370,7 +1370,7 @@ class FGP_Module_class(Module):
         """
         Return the i-th generator of ``self``.
 
-        This is a separate method so we can freely override :meth:gen()`
+        This is a separate method so we can freely override :meth:`gen`
         in derived classes.
 
         INPUT:

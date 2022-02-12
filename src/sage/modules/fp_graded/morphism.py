@@ -1305,8 +1305,8 @@ class FPModuleMorphism(Morphism):
 
             :meth:`lift`
         """
-        id = End(self.codomain()).identity()
-        return id.lift(self, verbose)
+        one = End(self.codomain()).identity()
+        return one.lift(self, verbose)
 
 
     def homology(self, f, top_dim=None, verbose=False):

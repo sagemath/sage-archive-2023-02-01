@@ -178,26 +178,6 @@ class FreeGradedModuleMorphism(FPModuleMorphism):
         return value
 
 
-    def _repr_type(self):
-        """
-        TESTS::
-
-            sage: from sage.modules.fp_graded.free_module import FreeGradedModule
-            sage: A = SteenrodAlgebra(2)
-            sage: M = FreeGradedModule(A, (0,1))
-            sage: f = Hom(M,M).identity()
-            sage: type(f)
-            <class 'sage.modules.fp_graded.free_homspace.FreeGradedModuleHomspace_with_category_with_equality_by_id.element_class'>
-            sage: f._repr_type()
-            'Module'
-            sage: f
-            Module endomorphism of Free graded left module on 2 generators over mod 2 Steenrod algebra, milnor basis
-              Defn: g[0] |--> g[0]
-                    g[1] |--> g[1]
-        """
-        return "Module"
-
-
     def fp_module(self):
         r"""
         Create a finitely presented module from ``self``.

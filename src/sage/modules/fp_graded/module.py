@@ -1069,6 +1069,28 @@ class FPModule(UniqueRepresentation, IndexedGenerators, Module):
             True
             sage: T_min
             Free graded left module on 0 generators over ...
+
+        Similar example but using
+        :class:`sage.modules.fp_graded.steenrod.module.SteenrodFPModule`::
+
+            sage: from sage.modules.fp_graded.steenrod.module import SteenrodFPModule
+            sage: A = SteenrodAlgebra(2)
+            sage: M = SteenrodFPModule(A, [0,1], [[Sq(2),Sq(1)],[0,Sq(2)],[Sq(3),0]])
+
+            sage: i = M.minimal_presentation()
+            sage: i.codomain() is M
+            True
+
+            sage: i.is_injective()
+            True
+            sage: i.is_surjective()
+            True
+
+            sage: i.domain().relations()
+            (Sq(2)*g[0] + Sq(1)*g[1], Sq(2)*g[1])
+
+            sage: i.codomain().relations()
+            (Sq(2)*g[0] + Sq(1)*g[1], Sq(2)*g[1], Sq(3)*g[0])
         """
         return Hom(self, self).identity().image(top_dim, verbose)
 

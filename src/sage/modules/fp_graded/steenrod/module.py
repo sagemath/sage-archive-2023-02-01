@@ -350,38 +350,6 @@ class SteenrodFPModule(FPModule, SteenrodModuleMixin):
         return SteenrodFPModuleHomspace(self, other, category=category)
 
 
-    def minimal_presentation(self, verbose=False):
-        r"""
-        Return a minimal presentation of ``self``.
-
-        OUTPUT: An isomorphism `M \to self`, where `M` has minimal
-        presentation.
-
-        EXAMPLES::
-
-            sage: from sage.modules.fp_graded.steenrod.module import SteenrodFPModule
-            sage: A = SteenrodAlgebra(2)
-            sage: M = SteenrodFPModule(A, [0,1], [[Sq(2),Sq(1)],[0,Sq(2)],[Sq(3),0]])
-
-            sage: i = M.minimal_presentation()
-            sage: i.codomain() is M
-            True
-
-            sage: i.is_injective()
-            True
-            sage: i.is_surjective()
-            True
-
-            sage: i.domain().relations()
-            (Sq(2)*g[0] + Sq(1)*g[1], Sq(2)*g[1])
-
-            sage: i.codomain().relations()
-            (Sq(2)*g[0] + Sq(1)*g[1], Sq(2)*g[1], Sq(3)*g[0])
-
-        """
-        return self._Hom_(self).identity().image(verbose=verbose)
-
-
     def resolution(self, k, top_dim=None, verbose=False):
         r"""
         A free resolution of ``self`` of the given length.

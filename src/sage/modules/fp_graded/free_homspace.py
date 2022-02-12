@@ -50,25 +50,3 @@ class FreeGradedModuleHomspace(FPModuleHomspace):
     Homspace between two free graded modules.
     """
     Element = FreeGradedModuleMorphism
-
-
-    def _an_element_(self):
-        r"""
-        Return a morphism belonging to ``self``.
-
-        EXAMPLES::
-
-            sage: from sage.modules.fp_graded.free_module import FreeGradedModule
-            sage: A2 = SteenrodAlgebra(2, profile=(3,2,1))
-            sage: F = FreeGradedModule(A2, (1,3))
-            sage: L = FreeGradedModule(A2, (2,3))
-            sage: H = Hom(F, L)
-            sage: H._an_element_()
-            Module morphism:
-              From: Free graded left module on 2 generators over sub-Hopf algebra of mod 2 Steenrod algebra, milnor basis, profile function [3, 2, 1]
-              To:   Free graded left module on 2 generators over sub-Hopf algebra of mod 2 Steenrod algebra, milnor basis, profile function [3, 2, 1]
-              Defn: g[1] |--> 0
-                    g[3] |--> 0
-        """
-        return self.zero()
-

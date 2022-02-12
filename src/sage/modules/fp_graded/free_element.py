@@ -84,7 +84,7 @@ class FreeGradedModuleElement(IndexedFreeModuleElement):
         """
         if order is None:
             order = self.parent()._indices
-        return super().dense_coefficient_list(order)
+        return [self[i] for i in order]
 
 
     def degree(self):

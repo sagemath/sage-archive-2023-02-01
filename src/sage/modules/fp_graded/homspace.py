@@ -170,6 +170,19 @@ class FPModuleHomspace(Homset):
             Module endomorphism of Finitely presented left module on 2 generators and 2 relations over mod 2 Steenrod algebra, milnor basis
               Defn: g[0, 0] |--> 0
                     g[0, 1] |--> Sq(0,1)*g[0, 0]
+
+        An example involving free modules::
+
+            sage: A2 = SteenrodAlgebra(2, profile=(3,2,1))
+            sage: F = A2.free_graded_module((1,3))
+            sage: L = A2.free_graded_module((1,2))
+            sage: H = Hom(F, L)
+            sage: H.an_element()
+            Module morphism:
+              From: Free graded left module on 2 generators over sub-Hopf algebra of mod 2 Steenrod algebra, milnor basis, profile function [3, 2, 1]
+              To:   Free graded left module on 2 generators over sub-Hopf algebra of mod 2 Steenrod algebra, milnor basis, profile function [3, 2, 1]
+              Defn: g[1] |--> g[1]
+                    g[3] |--> 0
         """
         return self._basis_elements(n, basis=False)
 

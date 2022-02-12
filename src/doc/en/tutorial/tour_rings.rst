@@ -67,7 +67,7 @@ to get the original complex value of ``i``.
 
 There is one subtlety in defining complex numbers: as mentioned above,
 the symbol ``i`` represents a square root of `-1`, but it is a
-*formal* square root of `-1`, as an algebraic number.  Calling ``CC(i)``
+*formal* square root of `-1` as an algebraic number.  Calling ``CC(i)``
 or ``CC.0`` or ``CC.gen(0)`` returns the *complex* square root of `-1`.
 Arithmetic involving different kinds of numbers is possible by
 so-called coercion, see :ref:`section-coercion`.

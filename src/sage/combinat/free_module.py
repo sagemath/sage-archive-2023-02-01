@@ -898,7 +898,7 @@ class CombinatorialFreeModule(UniqueRepresentation, Module, IndexedGenerators):
         """
         return self._rank_basis(x)
 
-    def from_vector(self, vector, order=None):
+    def from_vector(self, vector, order=None, coerce=True):
         """
         Build an element of ``self`` from a (sparse) vector.
 
@@ -915,8 +915,12 @@ class CombinatorialFreeModule(UniqueRepresentation, Module, IndexedGenerators):
         """
         if order is None:
             order = self.get_order()
-        return self._from_dict({order[index]: coeff
-                                for (index, coeff) in vector.items()})
+        if not coerce or vector.base_ring() is self.base_ring():
+            return self._from_dict({order[i]: c for i,c in vector.items()},
+                                   coerce=False)
+        R = self.base_ring()
+        return self._from_dict({order[i]: R(c) for i,c in vector.items() if R(c)},
+                               coerce=False, remove_zeros=False)
 
     def sum(self, iter_of_elements):
         """

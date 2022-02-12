@@ -4043,7 +4043,10 @@ cdef class Matrix(sage.structure.element.Matrix):
             # the non-zero positions. This will be faster if the matrix
             # is truly sparse (if there are not so many of those positions)
             # even after taking numerical issues into account.
-            entries = self.nonzero_positions()
+            #
+            # We access this list of entries directly, without making a
+            # copy, so it's important that we don't modify it.
+            entries = self._nonzero_positions_by_row(copy=False)
         else:
             entries = ( (i,j) for i in range(self._nrows)
                               for j in range(i+1) )

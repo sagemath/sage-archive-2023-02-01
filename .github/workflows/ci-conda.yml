@@ -48,7 +48,7 @@ jobs:
         with:
           path: ~/conda_pkgs_dir
           key:
-            ${{ runner.os }}-conda-${{ hashFiles('src/environment-optional.yml') }}
+            ${{ runner.os }}-conda-${{ hashFiles('src/environment.yml') }}
 
       - name: Setup Conda
         uses: conda-incubator/setup-miniconda@v2
@@ -58,7 +58,7 @@ jobs:
           channels: conda-forge,defaults
           channel-priority: true
           activate-environment: sage-build
-          environment-file: src/environment-optional.yml
+          environment-file: src/environment.yml
 
       - name: Print Conda environment
         shell: bash -l {0}

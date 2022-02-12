@@ -771,28 +771,28 @@ cdef class Polynomial(CommutativeAlgebraElement):
                 pol = pol.map_coefficients(lambda c: c(*args, **kwds),
                                             new_base_ring=cst.parent())
 
-        else:
+        if not have_same_parent(a, cst):
+
             # If a is a generator of an isomorphic polynomial ring (or quotient
             # of an isomorphic polynomial ring), the code below wastes a lot of
             # time on conversions and unnecessary intermediate reductions.
             # We can do dramatically better by simply doing the conversion once
             # and returning the result. See #33165.
-            if isinstance(a, Polynomial) and a.is_gen() and a.base_ring() is self.base_ring():
-                return a.parent()(self)
-            if is_MPolynomialRing(parent(a)) and a.is_generator() and a.base_ring() is self.base_ring():
+            if isinstance(a, Polynomial) and a.is_gen() and a.base_ring() is pol.base_ring():
+                return a.parent()(pol)
+            elif is_MPolynomialRing(parent(a)) and a.is_generator() and a.base_ring() is pol.base_ring():
                 P = a.parent()
                 num = P.gens().index(a)
                 tup = lambda i: (0,)*num + (i,) + (0,)*(P.ngens()-num-1)
-                return P({tup(i): c for i,c in enumerate(self)})
-            if isinstance(a, PolynomialQuotientRingElement) and a.lift().is_gen():
+                return P({tup(i): c for i,c in enumerate(pol)})
+            elif isinstance(a, PolynomialQuotientRingElement) and a.lift().is_gen():
                 Q = a.parent()
-                if Q.polynomial_ring() is self.parent():
-                    return Q(self)
+                if Q.polynomial_ring() is pol.parent():
+                    return Q(pol)
 
-        # Coerce a once and for all to a parent containing the coefficients.
-        # This can save lots of coercions when the common parent is the
-        # polynomial's base ring (e.g., for evaluations at integers).
-        if not have_same_parent(a, cst):
+            # Coerce a once and for all to a parent containing the coefficients.
+            # This can save lots of coercions when the common parent is the
+            # polynomial's base ring (e.g., for evaluations at integers).
             cst, aa = coercion_model.canonical_coercion(cst, a)
             # Use fast multiplication actions like matrix × scalar.
             # If there is no action, replace a by an element of the

@@ -1,8 +1,6 @@
 r"""
 Homomorphisms of finitely generated free graded left modules
 
-For an overview of the free module API, see :doc:`free_module`.
-
 AUTHORS:
 
 - Robert R. Bruner, Michael J. Catanzaro (2012): Initial version.

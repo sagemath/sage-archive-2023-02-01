@@ -1,7 +1,8 @@
 r"""
-The set of homomorphisms of finitely generated free graded left modules
+Homsets of finitely generated free graded left modules
 
-For an overview of the free module API, see :doc:`free_module`.
+For an overview, see the :mod:`free graded modules documentation
+<sage.modules.fp_graded.free_module>`.
 
 EXAMPLES::
 

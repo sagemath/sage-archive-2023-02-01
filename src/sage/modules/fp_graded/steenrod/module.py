@@ -43,7 +43,7 @@ is a finite problem and can be reduced to linear algebra over a finite
 prime field.
 
 For examples, see the `Steenrod algebra modules
-<../../../../../thematic_tutorials/steenrod_algebra_modules.html>`_
+<../../../../../../thematic_tutorials/steenrod_algebra_modules.html>`_
 thematic tutorial.
 
 TESTS::
@@ -273,7 +273,7 @@ class SteenrodFPModule(FPModule, SteenrodModuleMixin):
     .. SEEALSO::
 
         The thematic tutorial on `Steenrod algebra modules
-        <../../../../../thematic_tutorials/steenrod_algebra_modules.html>`_.
+        <../../../../../../thematic_tutorials/steenrod_algebra_modules.html>`_.
 
     INPUT:
 

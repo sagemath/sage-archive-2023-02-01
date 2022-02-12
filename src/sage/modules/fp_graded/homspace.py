@@ -1,9 +1,5 @@
 r"""
-The set of homomorphisms of finitely presented graded modules
-
-This class implements methods for construction and basic
-manipulation of homsets of finitely presented graded modules over a connected
-graded `k`-algebra, where `k` is a field.
+Homsets of finitely presented graded modules
 
 TESTS::
 
@@ -58,9 +54,7 @@ from sage.categories.homset import Homset, Hom
 class FPModuleHomspace(Homset):
     # FPModuleMorphism imports FPModuleHomspace, so this import should
     # not happen at the top level.
-    from .morphism import FPModuleMorphism
-
-    Element = FPModuleMorphism
+    from .morphism import FPModuleMorphism as Element
 
     def _element_constructor_(self, values):
         r"""
@@ -226,10 +220,9 @@ class FPModuleHomspace(Homset):
 
         Example with free modules::
 
-            sage: from sage.modules.fp_graded.free_module import FreeGradedModule
             sage: A2 = SteenrodAlgebra(2, profile=(3,2,1))
-            sage: F = FreeGradedModule(A2, (1,3))
-            sage: L = FreeGradedModule(A2, (2,3))
+            sage: F = A2.free_graded_module((1,3))
+            sage: L = A2.free_graded_module((2,3))
             sage: H = Hom(F, L)
             sage: H.zero()
             Module morphism:

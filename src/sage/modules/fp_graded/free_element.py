@@ -1,7 +1,8 @@
 r"""
 Elements of finitely generated free graded left modules
 
-For an overview of the free module API, see :doc:`free_module`.
+For an overview, see the :mod:`free graded modules documentation
+<sage.modules.fp_graded.free_module>`.
 
 AUTHORS:
 
@@ -112,7 +113,7 @@ class FreeGradedModuleElement(IndexedFreeModuleElement):
             ...
             ValueError: the zero element does not have a well-defined degree
 
-        Neither do non-homogeneous slements
+        Neither do non-homogeneous elements::
 
             sage: y = M.an_element(4)
             sage: (x+y).degree()
@@ -204,21 +205,21 @@ class FreeGradedModuleElement(IndexedFreeModuleElement):
         homogeneous element.
 
         These are coordinates with respect to the basis chosen by
-        :meth:`sage.modules.fp_graded.free_module.FreeGradedModule.basis_elements`.
+        :meth:`~sage.modules.fp_graded.free_module.FreeGradedModule.basis_elements`.
         When the element is zero, it has no well defined degree, and this
         function returns ``None``.
 
         OUTPUT:
 
-        A vector of elements in the ground field of the algebra for
+        A vector of elements in the ground ring of the algebra for
         this module when this element is non-zero.  Otherwise, the value
         ``None``.
 
         .. SEEALSO::
 
-            :meth:`sage.modules.fp_graded.free_module.FreeGradedModule.vector_presentation`
-            :meth:`sage.modules.fp_graded.free_module.FreeGradedModule.basis_elements`
-            :meth:`sage.modules.fp_graded.free_module.FreeGradedModule.element_from_coordinates`
+            * :meth:`sage.modules.fp_graded.free_module.FreeGradedModule.vector_presentation`
+            * :meth:`sage.modules.fp_graded.free_module.FreeGradedModule.basis_elements`
+            * :meth:`sage.modules.fp_graded.free_module.FreeGradedModule.element_from_coordinates`
 
         EXAMPLES::
 

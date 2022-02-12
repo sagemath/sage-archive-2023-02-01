@@ -742,7 +742,7 @@ class FreeGradedModule(CombinatorialFreeModule):
 
         INPUT:
 
-        - ``coordinates`` -- a sequence of elements of the ground field
+        - ``coordinates`` -- a sequence of elements of the ground ring
         - ``n`` -- an integer
 
         OUTPUT:
@@ -826,7 +826,7 @@ class FreeGradedModule(CombinatorialFreeModule):
 
         OUTPUT:
 
-        A free module over the ground field of the algebra over which
+        A free module over the ground ring of the algebra over which
         ``self`` is defined, isomorphic to the free module of module
         elements of degree ``n``.
 

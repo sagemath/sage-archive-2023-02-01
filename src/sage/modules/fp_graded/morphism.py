@@ -804,18 +804,18 @@ class FPModuleMorphism(Morphism):
         OUTPUT:
 
         A linear function of finite dimensional free modules over the
-        ground field of the algebra for this module.  The domain is isomorphic
+        ground ring of the algebra for this module.  The domain is isomorphic
         to the free module of domain elements of degree ``n`` of ``self``
         via the choice of basis given by
-        :meth:`sage.modules.fp_graded.free_module.FreeGradedModule.basis_elements`.
+        :meth:`~sage.modules.fp_graded.free_module.FreeGradedModule.basis_elements`.
         If the morphism is zero, an error is raised.
 
         .. SEEALSO::
 
-            :meth:`sage.modules.fp_graded.module.FPModule.vector_presentation`,
-            :meth:`sage.modules.fp_graded.module.FPModule.basis_elements`,
-            :meth:`sage.modules.fp_graded.free_module.FreeGradedModule.vector_presentation`,
-            :meth:`sage.modules.fp_graded.free_module.FreeGradedModule.basis_elements`.
+            * :meth:`sage.modules.fp_graded.module.FPModule.vector_presentation`
+            * :meth:`sage.modules.fp_graded.module.FPModule.basis_elements`
+            * :meth:`sage.modules.fp_graded.free_module.FreeGradedModule.vector_presentation`
+            * :meth:`sage.modules.fp_graded.free_module.FreeGradedModule.basis_elements`
 
         EXAMPLES::
 
@@ -999,14 +999,14 @@ class FPModuleMorphism(Morphism):
 
         ALGORITHM:
 
-        Let `L` be the domain of this homomorphism, and choose `x_1, \ldots, x_N`
-        such that `f(x_i) = self(g_i)` where the `g_i`'s are the module
-        generators of `L`.
+        Let `s` be this homomorphism with `L` the domain of `s`.
+        Choose `x_1, \ldots, x_N` such that `f(x_i) = s(g_i)`,
+        where the `g_i`'s are the module generators of `L`.
 
         The linear function sending `g_i` to `x_i` for every `i` is well
-        defined if and only if the vector `x = (x_1,\ldots, x_N)` lies
-        in the nullspace of the coefficient matrix `R = (r_{ij})` given by the
-        relations of `L`.
+        defined if and only if the vector `x = (x_1, \ldots, x_N)` lies
+        in the nullspace of the coefficient matrix `R = (r_{ij})` given
+        by the relations of `L`.
 
         Let `k \in \ker(f)` solve the matrix equation:
 
@@ -1324,7 +1324,7 @@ class FPModuleMorphism(Morphism):
           and image contained in the kernel of this homomorphism
         - ``top_dim`` -- integer (optional); used by this function to stop the
           computation at the given degree
-        - ``verbose`` -- boolean (default: ``False``) enable progress messages
+        - ``verbose`` -- boolean (default: ``False``); enable progress messages
 
         OUTPUT:
 
@@ -1548,7 +1548,7 @@ class FPModuleMorphism(Morphism):
 
         - ``top_dim`` -- integer (optional); used by this function to stop the
           computation at the given degree
-        - ``verbose`` -- boolean (default: ``False``) enable progress messages
+        - ``verbose`` -- boolean (default: ``False``); enable progress messages
 
         OUTPUT:
 
@@ -1621,7 +1621,7 @@ class FPModuleMorphism(Morphism):
 
         - ``top_dim`` -- integer (optional); used by this function to stop the
           computation at the given degree
-        - ``verbose`` -- boolean (default: ``False``) enable progress messages
+        - ``verbose`` -- boolean (default: ``False``); enable progress messages
 
         EXAMPLES::
 
@@ -1676,7 +1676,7 @@ class FPModuleMorphism(Morphism):
 
         - ``top_dim`` -- integer (optional); used by this function to stop the
           computation at the given degree
-        - ``verbose`` -- boolean (default: ``False``) enable progress messages
+        - ``verbose`` -- boolean (default: ``False``); enable progress messages
 
         OUTPUT:
 
@@ -1810,7 +1810,7 @@ class FPModuleMorphism(Morphism):
 
         - ``top_dim`` -- integer (optional); used by this function to stop the
           computation at the given degree
-        - ``verbose`` -- boolean (default: ``False``) enable progress messages
+        - ``verbose`` -- boolean (default: ``False``); enable progress messages
 
         OUTPUT:
 

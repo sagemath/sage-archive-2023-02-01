@@ -58,7 +58,7 @@ def _do_singular_init_(singular, base_ring, char, _vars, order):
     to make it callable from other places, in particular
     :class:`MPolynomialRing_libsingular`.
     """
-    make_ring = lambda s: singular.ring(s, _vars, order=order, check=False)
+    make_ring = lambda s: singular.ring(s, _vars, order=order)
 
     if isinstance(base_ring, sage.rings.abc.RealField):
         # singular converts to bits from base_10 in mpr_complex.cc by:
@@ -85,7 +85,7 @@ def _do_singular_init_(singular, base_ring, char, _vars, order):
         return make_ring("(complex,15,0,I)"), None
 
     elif base_ring.is_prime_field():
-        return make_ring(char), None
+        return make_ring(str(char)), None
 
     elif sage.rings.finite_rings.finite_field_constructor.is_FiniteField(base_ring):
         # not the prime field!

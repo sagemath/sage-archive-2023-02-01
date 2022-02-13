@@ -743,10 +743,17 @@ If this all works, you can then make calls like:
         try:
             return self.__local_tmpfile
         except AttributeError:
-            from tempfile import NamedTemporaryFile
-            with NamedTemporaryFile(delete=False) as f:
-                self.__local_tmpfile = f.name
-            return self.__local_tmpfile
+            pass
+
+        import atexit, os
+        from tempfile import NamedTemporaryFile
+        # FriCAS uses the ".input" suffix, and the other
+        # interfaces are suffix-agnostic, so using ".input" here
+        # lets us avoid a subclass override for FriCAS.
+        with NamedTemporaryFile(suffix=".input", delete=False) as f:
+            self.__local_tmpfile = f.name
+            atexit.register(lambda: os.remove(f.name))
+        return self.__local_tmpfile
 
     def _remote_tmpdir(self):
         return self.__remote_tmpdir

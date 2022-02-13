@@ -37,6 +37,7 @@ case $SYSTEM in
         cat <<EOF
 ARG BASE_IMAGE=ubuntu:latest
 FROM \${BASE_IMAGE} as with-system-packages
+RUN (yes | unminimize) || echo "(ignored)"
 EOF
         if [ -n "$DIST_UPGRADE" ]; then
             cat <<EOF

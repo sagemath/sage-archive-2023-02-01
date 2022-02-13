@@ -400,6 +400,8 @@ class WebsiteBuilder(DocBuilder):
         """
         After we've finished building the website index page, we copy
         everything one directory up.
+
+        In addition, an index file is installed into the root doc directory.
         """
         DocBuilder.html(self)
         html_output_dir = self._output_dir('html')
@@ -412,11 +414,17 @@ class WebsiteBuilder(DocBuilder):
             else:
                 shutil.copy2(src, dst)
 
+        root_index_file = os.path.join(html_output_dir, '../../../index.html')
+        shutil.copy2(os.path.join(SAGE_DOC_SRC, self.lang, 'website', 'root_index.html'),
+                     root_index_file)
+
     def clean(self):
         """
         When we clean the output for the website index, we need to
         remove all of the HTML that were placed in the parent
         directory.
+
+        In addition, remove the index file installed into the root doc directory.
         """
         html_output_dir = self._output_dir('html')
         parent_dir = os.path.realpath(os.path.join(html_output_dir, '..'))
@@ -428,6 +436,10 @@ class WebsiteBuilder(DocBuilder):
                 shutil.rmtree(parent_filename, ignore_errors=True)
             else:
                 os.unlink(parent_filename)
+
+        root_index_file = os.path.join(html_output_dir, '../../../index.html')
+        if os.path.exists(root_index_file):
+            os.remove(root_index_file)
 
         DocBuilder.clean(self)
 

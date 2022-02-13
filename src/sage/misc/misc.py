@@ -275,20 +275,6 @@ def SPYX_TMP():
     return spyx_tmp()
 
 
-@lazy_string
-def SAGE_TMP_INTERFACE():
-    """
-    EXAMPLES::
-
-        sage: from sage.misc.misc import SAGE_TMP_INTERFACE
-        sage: SAGE_TMP_INTERFACE
-        l'.../temp/.../interface'
-    """
-    d = os.path.join(str(SAGE_TMP), 'interface')
-    os.makedirs(d, exist_ok=True)
-    return d
-
-
 SAGE_DB = os.path.join(DOT_SAGE, 'db')
 os.makedirs(SAGE_DB, exist_ok=True)
 

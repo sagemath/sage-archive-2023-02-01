@@ -349,7 +349,16 @@ class FPModule(UniqueRepresentation, IndexedGenerators, Module):
             sage: M = FPModule(SteenrodAlgebra(2), [0,1], [[Sq(4), Sq(3)]])
             sage: M._monomial(0)
             g[0]
+
+        TESTS::
+
+            sage: M.monomial(3)
+            Traceback (most recent call last):
+             ...
+            ValueError: index not in indices
         """
+        if not index in self._indices:
+            raise ValueError("index not in indices")
         return self._from_dict({index: self.base_ring().one()}, remove_zeros=False)
 
     @lazy_attribute
@@ -369,27 +378,6 @@ class FPModule(UniqueRepresentation, IndexedGenerators, Module):
             g[0]
             sage: M.monomial(1)
             g[1]
-
-        If ``i`` is not in the indexing set, then this returns a
-        "generator" but that generator is equal to zero::
-
-            sage: M.monomial(3)
-            g[3]
-            sage: M.monomial(3) == 0
-            True
-
-        TESTS::
-
-            sage: E.<x,y> = ExteriorAlgebra(QQ)
-            sage: M = FPModule(E, [0, 0], [[x, y]])
-            sage: M._indices
-            {(0, 0), (0, 1)}
-            sage: M.monomial(0)
-            g[0]
-            sage: M.monomial(0) == 0
-            True
-            sage: M.monomial((0,1)) == 0
-            False
         """
         # Should use a real Map, as soon as combinatorial_classes are enumerated sets, and therefore parents
         from sage.categories.poor_man_map import PoorManMap

@@ -59,7 +59,6 @@ from sage.interfaces.interface import (Interface, InterfaceElement,
 
 from sage.structure.element import RingElement
 
-from sage.misc.misc import SAGE_TMP_INTERFACE
 from sage.env import SAGE_EXTCODE, LOCAL_IDENTIFIER
 from sage.misc.object_multiplexer import Multiplex
 from sage.misc.instancedoc import instancedoc
@@ -440,7 +439,11 @@ If this all works, you can then make calls like:
             return False
 
     def _start(self, alt_message=None, block_during_init=True):
-        self.quit()  # in case one is already running
+        if self.is_running():
+            # In case one is already running. We check first because
+            # quit() can reset the local temporary filename at an
+            # unexpected time as the process is started "on demand."
+            self.quit()
 
         self._session_number += 1
 
@@ -594,6 +597,14 @@ If this all works, you can then make calls like:
         """
         self._session_number += 1
         try:
+            # Spaghetti alert: when running several computations in
+            # parallel, the pexpect interface is reset in each one,
+            # and this next line is needed to trigger the generation
+            # of a new temporary file when otherwise the existing
+            # member variable would be shared. That also means that
+            # you can't use this method to clean up an existing
+            # tmpfile, because you can delete the one that the parent
+            # is using.
             del self.__local_tmpfile
         except AttributeError:
             pass
@@ -732,7 +743,9 @@ If this all works, you can then make calls like:
         try:
             return self.__local_tmpfile
         except AttributeError:
-            self.__local_tmpfile = os.path.join(SAGE_TMP_INTERFACE, 'tmp' + str(self.pid()))
+            from tempfile import NamedTemporaryFile
+            with NamedTemporaryFile(delete=False) as f:
+                self.__local_tmpfile = f.name
             return self.__local_tmpfile
 
     def _remote_tmpdir(self):

@@ -24,6 +24,7 @@ class PackageClass(object):
     def __init__(self, *package_names_or_classes, **filters):
         self.names = []
         filenames = filters.pop('has_files', [])
+        no_filenames = filters.pop('no_files', [])
         excluded = filters.pop('exclude', [])
         if filters:
             raise ValueError('filter not supported')
@@ -31,7 +32,10 @@ class PackageClass(object):
         def included_in_filter(pkg):
             if pkg.name in excluded:
                 return False
-            return all(pkg.has_file(filename) for filename in filenames)
+            if not all(pkg.has_file(filename) for filename in filenames):
+                return False
+            return not any(pkg.has_file(filename) for filename in no_filenames)
+
         for package_name_or_class in package_names_or_classes:
             if package_name_or_class == ':all:':
                 self._init_all(predicate=included_in_filter)

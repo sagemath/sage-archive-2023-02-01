@@ -201,7 +201,7 @@ def make_parser():
         'package_class', metavar='[package_name|:package_type:]',
         type=str, default=[':all:'], nargs='*',
         help=('package name or designator for all packages of a given type '
-              '(one of :all:, :standard:, :optional:, :experimental:, and :huge:); '
+              '(one of :all:, :standard:, :optional:, and :experimental:); '
               'default: :all:'))
     parser_list.add_argument(
         '--has-file', action='append', default=[], metavar='FILENAME', dest='has_files',
@@ -282,7 +282,7 @@ def make_parser():
         'package_class', metavar='[package_name|:package_type:]',
         type=str, default=[':all:'], nargs='*',
         help=('package name or designator for all packages of a given type '
-              '(one of :all:, :standard:, :optional:, :experimental:, and :huge:); '
+              '(one of :all:, :standard:, :optional:, and :experimental:); '
               'default: :all:'))
 
     parser_create = subparsers.add_parser(

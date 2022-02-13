@@ -41,13 +41,11 @@ class PackageClass(object):
                 self._init_optional(predicate=included_in_filter)
             elif package_name_or_class == ':experimental:':
                 self._init_experimental(predicate=included_in_filter)
-            elif package_name_or_class == ':huge:':
-                self._init_huge(predicate=included_in_filter)
             else:
                 if ':' in package_name_or_class:
                     raise ValueError('a colon may only appear in designators of package types, '
                                      'which must be one of '
-                                     ':all:, :standard:, :optional:, :experimental:, or :huge:, '
+                                     ':all:, :standard:, :optional:, or :experimental:'
                                      'got {}'.format(package_name_or_class))
                 self.names.append(package_name_or_class)
 
@@ -62,9 +60,6 @@ class PackageClass(object):
 
     def _init_experimental(self, predicate):
         self.names.extend(pkg.name for pkg in Package.all() if pkg.type == 'experimental' and predicate(pkg))
-
-    def _init_huge(self, predicate):
-        self.names.extend(pkg.name for pkg in Package.all() if pkg.type == 'huge' and predicate(pkg))
 
     def apply(self, function, *args, **kwds):
         for package_name in self.names:

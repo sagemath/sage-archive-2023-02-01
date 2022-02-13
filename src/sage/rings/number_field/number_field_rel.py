@@ -613,7 +613,7 @@ class NumberField_relative(NumberField_generic):
             rets = []
             for F in abs_composites:
                 if F.absolute_degree() == m:
-                   F = self
+                    F = self
                 rets.append(F)
             return rets
 

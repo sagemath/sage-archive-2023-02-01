@@ -237,7 +237,7 @@ class FreeGradedModuleElement(IndexedFreeModuleElement):
         # place it inside any vector space.  However, this will not work for
         # homomorphisms, so we we return None to be consistent.
         if self.is_zero():
-             return None
+            return None
 
         P = self.parent()
         bas_gen = P.basis_elements(self.degree())

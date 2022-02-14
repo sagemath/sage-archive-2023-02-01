@@ -1,10 +1,11 @@
 """
 Recognizing package directories
 """
-import os, glob
+import os
+import glob
 
 def is_package_or_sage_namespace_package_dir(path):
-    """
+    r"""
     Return whether ``path`` is a directory that contains a Python package.
 
     Ordinary Python packages are recognized by the presence of `__init__.py`.

@@ -1,9 +1,10 @@
 prune sage
 graft sage/cpython
 
-graft sage_setup           # FIXME
+graft sage_setup           # FIXME: Vendor it until we have made a new sage_setup release
 include sage/env.py        # FIXME: sage_setup must be changed so it does not depend on it
 include sage/version.py    # FIXME: likewise
+include sage/misc/package_dir.p*   # For sage_setup
 include VERSION.txt
 
 global-include all__sagemath_objects.py

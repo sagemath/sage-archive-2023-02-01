@@ -1181,7 +1181,9 @@ class Ideal_generic(MonoidElement):
 
             sage: macaulay2(ideal(5))                       # optional - macaulay2
             ideal 5
-            sage: macaulay2(ideal(QQ(5)))                   # optional - macaulay2
+            sage: J = ideal(QQ(5))
+            ...
+            sage: macaulay2(J)                              # optional - macaulay2
             ideal 1
 
         TESTS:

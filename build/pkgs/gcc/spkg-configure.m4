@@ -59,34 +59,47 @@ SAGE_SPKG_CONFIGURE_BASE([gcc], [
         AC_REQUIRE([AC_PROG_OBJC])
         AC_REQUIRE([AC_PROG_OBJCXX])
 
+    AC_MSG_CHECKING([for a gcc already installed in SAGE_LOCAL])
     if test -f "$SAGE_LOCAL/bin/gcc"; then
-        # Special value for SAGE_INSTALL_GCC if GCC is already installed
-        SAGE_INSTALL_GCC=exists
-        # Set yes since this implies we have already installed GCC and want to keep
-        # it selected
-        sage_spkg_install_gcc=yes
+        if test "$($CC --print-prog-name gcc 2>/dev/null)" = "$(SAGE_LOCAL/bin/gcc --print-prog-name gcc 2>/dev/null)"; then
+            dnl We get here when SAGE_LOCAL is set to something like /usr or $CONDA_ENV
+            dnl as in our "conda for Sage developers" instructions.
+            AC_MSG_RESULT([configured CC])
+        else
+            # Special value for SAGE_INSTALL_GCC if GCC is already installed
+            SAGE_INSTALL_GCC=exists
+            # Set yes since this implies we have already installed GCC and want to keep
+            # it selected
+            SAGE_MUST_INSTALL_GCC([gcc is already installed in SAGE_LOCAL])
 
-        # Check whether it actually works...
-        # See https://trac.sagemath.org/ticket/24599
-        SAGE_CHECK_BROKEN_GCC()
-        if test x$SAGE_BROKEN_GCC = xyes; then
-            # Prentend that GCC is not installed.
-            # The gcc and g++ binaries as well as the "installed" file will
-            # be removed by make before installing any packages such that
-            # GCC will be built as if was never installed before.
-            SAGE_INSTALL_GCC=yes
-            SAGE_MUST_INSTALL_GCC([installed g++ is broken])
+            # Check whether it actually works...
+            # See https://trac.sagemath.org/ticket/24599
+            SAGE_CHECK_BROKEN_GCC()
+            if test x$SAGE_BROKEN_GCC = xyes; then
+                # Prentend that GCC is not installed.
+                # The gcc and g++ binaries as well as the "installed" file will
+                # be removed by make before installing any packages such that
+                # GCC will be built as if was never installed before.
+                SAGE_INSTALL_GCC=yes
+                SAGE_MUST_INSTALL_GCC([installed g++ is broken])
+                AC_MSG_RESULT([yes, but broken])
+            else
+                AC_MSG_RESULT([yes])
+            fi
         fi
-    elif test -n "$SAGE_INSTALL_GCC"; then
-        # Check the value of the environment variable SAGE_INSTALL_GCC
-        AS_CASE([$SAGE_INSTALL_GCC],
-            [yes], [
-                SAGE_MUST_INSTALL_GCC([SAGE_INSTALL_GCC is set to 'yes'])
-            ], [no], [
-                true
-            ], [
-                AC_MSG_ERROR([SAGE_INSTALL_GCC should be set to 'yes' or 'no'. You can also leave it unset to install GCC when needed])
-            ])
+    else
+        AC_MSG_RESULT([no])
+        if test -n "$SAGE_INSTALL_GCC"; then
+            # Check the value of the environment variable SAGE_INSTALL_GCC
+            AS_CASE([$SAGE_INSTALL_GCC],
+                [yes], [
+                    SAGE_MUST_INSTALL_GCC([SAGE_INSTALL_GCC is set to 'yes'])
+                ], [no], [
+                    true
+                ], [
+                    AC_MSG_ERROR([SAGE_INSTALL_GCC should be set to 'yes' or 'no'. You can also leave it unset to install GCC when needed])
+                ])
+        fi
     fi
 
     # Figuring out if we are using clang instead of gcc.

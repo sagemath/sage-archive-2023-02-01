@@ -1865,7 +1865,6 @@ class RecognizableSeriesSpace(UniqueRepresentation, Parent):
                          for i, _ in enumerate(self.alphabet())),
                     vector([z, e]), right=vector([e, z]))
 
-
     def some_elements(self):
         r"""
         Return some elements of this recognizable series space.
@@ -1910,7 +1909,6 @@ class RecognizableSeriesSpace(UniqueRepresentation, Parent):
                 if len(mu) != k or len(LR) != 2:
                     break
                 yield self(mu, *LR)
-
 
     @cached_method
     def one_hadamard(self):

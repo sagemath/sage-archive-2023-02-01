@@ -119,6 +119,7 @@ from sage.rings.ideal import is_Ideal
 from sage.rings.polynomial.polynomial_ring_constructor import PolynomialRing
 from sage.rings.polynomial.polynomial_ring import is_PolynomialRing
 from sage.rings.polynomial.multi_polynomial_ring import is_MPolynomialRing
+from sage.rings.polynomial.multi_polynomial_element import MPolynomial
 from sage.rings.polynomial.polynomial_quotient_ring_element import PolynomialQuotientRingElement
 from sage.misc.cachefunc import cached_function
 
@@ -769,9 +770,11 @@ cdef class Polynomial(CommutativeAlgebraElement):
 
             if eval_coeffs:
                 pol = pol.map_coefficients(lambda c: c(*args, **kwds),
-                                            new_base_ring=cst.parent())
+                                            new_base_ring=parent(cst))
 
-        if not have_same_parent(a, cst):
+        R = parent(a)
+
+        if parent(cst) is not R:
 
             # If a is a generator of an isomorphic polynomial ring (or quotient
             # of an isomorphic polynomial ring), the code below wastes a lot of
@@ -779,16 +782,14 @@ cdef class Polynomial(CommutativeAlgebraElement):
             # We can do dramatically better by simply doing the conversion once
             # and returning the result. See #33165.
             if isinstance(a, Polynomial) and a.is_gen() and a.base_ring() is pol.base_ring():
-                return a.parent()(pol)
-            elif is_MPolynomialRing(parent(a)) and a.is_generator() and a.base_ring() is pol.base_ring():
-                P = a.parent()
-                num = P.gens().index(a)
-                tup = lambda i: (0,)*num + (i,) + (0,)*(P.ngens()-num-1)
-                return P({tup(i): c for i,c in enumerate(pol)})
-            elif isinstance(a, PolynomialQuotientRingElement) and a.lift().is_gen():
-                Q = a.parent()
-                if Q.polynomial_ring() is pol.parent():
-                    return Q(pol)
+                return R(pol)
+            elif isinstance(a, MPolynomial) and a.is_generator() and a.base_ring() is pol.base_ring():
+                num = R.ngens()
+                idx = R.gens().index(a)
+                tup = lambda i: (0,)*idx + (i,) + (0,)*(num-idx-1)
+                return R({tup(i): c for i,c in enumerate(pol)})
+            elif isinstance(a, PolynomialQuotientRingElement) and a.lift().is_gen() and R.polynomial_ring() is pol._parent:
+                return R(pol)
 
             # Coerce a once and for all to a parent containing the coefficients.
             # This can save lots of coercions when the common parent is the
@@ -797,15 +798,16 @@ cdef class Polynomial(CommutativeAlgebraElement):
             # Use fast multiplication actions like matrix × scalar.
             # If there is no action, replace a by an element of the
             # target parent.
-            if coercion_model.get_action(parent(aa), parent(a)) is None:
+            S = parent(aa)
+            if coercion_model.get_action(S, R) is None:
                 a = aa
+                R = S
 
         d = pol.degree()
 
-        if d <= 0 or (isinstance(a, Element)
-                      and a.parent().is_exact() and a.is_zero()):
+        if d <= 0 or (isinstance(a, Element) and R.is_exact() and a.is_zero()):
             return cst # with the right parent thanks to the above coercion
-        elif parent(a) is pol._parent and a.is_gen():
+        elif pol._parent is R and a.is_gen():
             return pol
         elif hasattr(a, "_evaluate_polynomial"):
             try:
@@ -3246,8 +3248,8 @@ cdef class Polynomial(CommutativeAlgebraElement):
             sage: f.change_variable_name('theta')
             -2/7*theta^3 + 2/3*theta - 19/993
         """
-        R = self._parent.base_ring()[var]
-        return R(self.list(copy=False))
+        R = PolynomialRing(self._parent.base_ring(), names=var)
+        return R(self)
 
     def change_ring(self, R):
         """

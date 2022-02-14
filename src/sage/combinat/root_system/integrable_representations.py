@@ -15,7 +15,7 @@ from sage.structure.unique_representation import UniqueRepresentation
 from sage.structure.category_object import CategoryObject
 from sage.categories.modules import Modules
 from sage.rings.integer_ring import ZZ
-from sage.misc.all import cached_method
+from sage.misc.cachefunc import cached_method
 from sage.matrix.constructor import Matrix
 from sage.sets.recursively_enumerated_set import RecursivelyEnumeratedSet
 from sage.combinat.root_system.weyl_characters import WeylCharacterRing
@@ -332,7 +332,7 @@ class IntegrableRepresentation(UniqueRepresentation, CategoryObject):
             sage: Lambda = RootSystem(['C',3,1]).weight_lattice(extended=true).fundamental_weights()
             sage: V = IntegrableRepresentation(Lambda[0]+2*Lambda[3])
             sage: latex(V)
-            V_{\Lambda_{0} + 2\Lambda_{3}}
+            V_{\Lambda_{0} + 2 \Lambda_{3}}
         """
         return "V_{{{}}}".format(self._Lam._latex_())
 

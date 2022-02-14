@@ -1932,7 +1932,7 @@ def xgcd(a, b):
         sage: xgcd(y^2, a*y+b)
         (1, a^2/b^2, ((-a)/b^2)*y + 1/b)
         sage: xgcd((b+g)*y^2, (a+g)*y+b)
-        (1, (a^2 + (2*g)*a + 3)/(b^3 + (g)*b^2), ((-a + (-g))/b^2)*y + 1/b)
+        (1, (a^2 + (2*g)*a + 3)/(b^3 + g*b^2), ((-a + (-g))/b^2)*y + 1/b)
 
     Here is an example of a xgcd for two polynomials over the integers, where the linear
     combination is not the gcd but the gcd multiplied by the resultant::
@@ -2034,7 +2034,6 @@ def xkcd(n=""):
     from sage.misc.html import html
     from ssl import SSLContext
 
-    # import compatible with py2 and py3
     from urllib.request import urlopen
     from urllib.error import HTTPError, URLError
 
@@ -4848,7 +4847,7 @@ def falling_factorial(x, a):
 
     - Jaap Spies (2006-03-05)
     """
-    from sage.symbolic.expression import Expression
+    from sage.structure.element import Expression
     x = py_scalar_to_element(x)
     a = py_scalar_to_element(a)
     if (isinstance(a, Integer) or
@@ -4942,7 +4941,7 @@ def rising_factorial(x, a):
 
     - Jaap Spies (2006-03-05)
     """
-    from sage.symbolic.expression import Expression
+    from sage.structure.element import Expression
     x = py_scalar_to_element(x)
     a = py_scalar_to_element(a)
     if (isinstance(a, Integer) or
@@ -5029,6 +5028,24 @@ def integer_floor(x):
         except TypeError:
             pass
     raise NotImplementedError("computation of floor of %s not implemented"%x)
+
+
+def integer_trunc(i):
+    """
+    Truncate to the integer closer to zero
+
+    EXAMPLES::
+
+        sage: from sage.arith.misc import integer_trunc as trunc
+        sage: trunc(-3/2), trunc(-1), trunc(-1/2), trunc(0), trunc(1/2), trunc(1), trunc(3/2)
+        (-1, -1, 0, 0, 0, 1, 1)
+        sage: isinstance(trunc(3/2), Integer)
+        True
+    """
+    if i >= 0:
+        return integer_floor(i)
+    else:
+        return integer_ceil(i)
 
 
 def two_squares(n):

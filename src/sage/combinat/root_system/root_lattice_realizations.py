@@ -723,7 +723,7 @@ class RootLatticeRealizations(Category_over_base_ring):
             if index_set is None:
                 return []
             return [x for x in self.positive_roots()
-                    if not x in self.positive_roots(index_set)]
+                    if x not in self.positive_roots(index_set)]
 
         @cached_method
         def nonparabolic_positive_root_sum(self, index_set=None):
@@ -3833,7 +3833,7 @@ class RootLatticeRealizations(Category_over_base_ring):
                True
             """
             alphacheck = self.parent().simple_coroots()
-            from sage.rings.semirings.non_negative_integer_semiring import NN
+            from sage.rings.semirings.all import NN
             return all(self.inner_product(alphacheck[i]) in NN
                        for i in self.parent().index_set())
 

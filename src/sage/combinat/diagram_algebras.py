@@ -43,7 +43,8 @@ from sage.misc.flatten import flatten
 from sage.misc.misc_c import prod
 from sage.rings.integer_ring import ZZ
 from sage.rings.rational_field import QQ
-from sage.functions.other import floor, ceil
+from sage.arith.misc import integer_floor as floor
+from sage.arith.misc import integer_ceil as ceil
 
 import itertools
 
@@ -2771,7 +2772,7 @@ class PartitionAlgebra(DiagramBasis, UnitDiagramMixin):
             sage: P2h.s(1)
             P{{-3, 3}, {-2, 1}, {-1, 2}}
         """
-        if not i in ZZ or i <= 0 or i >= self._k:
+        if i not in ZZ or i <= 0 or i >= self._k:
             raise ValueError("i must be an integer between 1 and {}".format(self._k-1))
         B = self.basis()
         SP = B.keys()

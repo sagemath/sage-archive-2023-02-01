@@ -12,7 +12,6 @@ AUTHORS:
 - Matthias Köppe (2016-12): initial version
 - Jean-Philippe Labbé (2019-04): Expose normaliz features and added functionalities
 """
-
 # ****************************************************************************
 #  Copyright (C) 2016 Matthias Köppe <mkoeppe at math.ucdavis.edu>
 #
@@ -26,10 +25,10 @@ AUTHORS:
 from sage.structure.element import Element
 from sage.misc.cachefunc import cached_method
 from sage.misc.misc_c import prod
-from sage.features import PythonModule
 from sage.misc.lazy_import import lazy_import
+import sage.features.normaliz
 lazy_import('PyNormaliz', ['NmzResult', 'NmzCompute', 'NmzCone', 'NmzConeCopy'],
-                    feature=PythonModule("PyNormaliz", spkg="pynormaliz"))
+            feature=sage.features.normaliz.PyNormaliz())
 
 from sage.rings.all import ZZ, QQ, QQbar
 from sage.rings.polynomial.polynomial_ring_constructor import PolynomialRing
@@ -398,7 +397,7 @@ class Polyhedron_normaliz(Polyhedron_base):
             sage: data = {'inhom_inequalities': [[-1, 2, 0], [0, 0, 1], [2, -1, 0]]}            # optional - pynormaliz
             sage: cone = Polyhedron_QQ_normaliz._cone_from_normaliz_data(p, data)               # optional - pynormaliz
             sage: p._nmz_result(cone,'SupportHyperplanes')                                      # optional - pynormaliz
-            [[-1L, 2L, 0L], [0L, 0L, 1L], [2L, -1L, 0L]]
+            [[-1, 2, 0], [0, 0, 1], [2, -1, 0]]
         """
         if verbose:
             if isinstance(verbose, str):
@@ -583,15 +582,15 @@ class Polyhedron_normaliz(Polyhedron_base):
 
         EXAMPLES::
 
-            sage: p = Polyhedron(backend='normaliz')                       # optional - pynormaliz
+            sage: p = Polyhedron(backend='normaliz')                          # optional - pynormaliz
             sage: from sage.geometry.polyhedron.backend_normaliz import Polyhedron_normaliz   # optional - pynormaliz
             sage: Polyhedron_normaliz._init_from_Hrepresentation(p, [], [])   # optional - pynormaliz
 
         TESTS::
 
-            sage: K.<a> = QuadraticField(2)
-            sage: p = Polyhedron(ieqs=[(1, a, 0)], backend='normaliz')        # optional - pynormaliz
-            sage: p & p == p                                                  # optional - pynormaliz
+            sage: K.<a> = QuadraticField(2)                                                            # optional - sage.rings.number_field
+            sage: p = Polyhedron(ieqs=[(1, a, 0)], backend='normaliz')        # optional - pynormaliz  # optional - sage.rings.number_field
+            sage: p & p == p                                                  # optional - pynormaliz  # optional - sage.rings.number_field
             True
 
         Check that :trac:`30248` is fixed, that maps as input works::
@@ -735,7 +734,7 @@ class Polyhedron_normaliz(Polyhedron_base):
             ....:     return all(P._nmz_result(cone,arg) == P._nmz_result(cone2,arg) for arg in args)
             sage: test_poly(polytopes.simplex(backend='normaliz'))                                  # optional - pynormaliz
             True
-            sage: test_poly(polytopes.dodecahedron(backend='normaliz'))                             # optional - pynormaliz
+            sage: test_poly(polytopes.dodecahedron(backend='normaliz'))                             # optional - pynormaliz  # optional - sage.rings.number_field
             True
             sage: test_poly(Polyhedron(vertices=[[1,0],[0,1]],rays=[[1,1]], backend='normaliz'))    # optional - pynormaliz
             True
@@ -1380,7 +1379,7 @@ class Polyhedron_normaliz(Polyhedron_base):
             sage: P = Polyhedron(ieqs=[[1, 0, 2], [3, 0, -2], [3, 2, -2]], # optional - pynormaliz
             ....:              backend='normaliz')
             sage: PI = P.integral_hull()                                   # optional - pynormaliz
-            sage: P.plot(color='yellow') + PI.plot(color='green')          # optional - pynormaliz
+            sage: P.plot(color='yellow') + PI.plot(color='green')          # optional - pynormaliz  # optional - sage.plot
             Graphics object consisting of 10 graphics primitives
             sage: PI.Vrepresentation()                                     # optional - pynormaliz
             (A vertex at (-1, 0), A vertex at (0, 1), A ray in the direction (1, 0))
@@ -1509,12 +1508,12 @@ class Polyhedron_normaliz(Polyhedron_base):
             sage: s._volume_normaliz(measure='ambient')           # optional - pynormaliz
             0
 
-            sage: P = polytopes.regular_polygon(3, backend='normaliz')          # optional - pynormaliz
-            sage: P._volume_normaliz('ambient') == P.volume(engine='internal')  # optional - pynormaliz
+            sage: P = polytopes.regular_polygon(3, backend='normaliz')          # optional - pynormaliz  # optional - sage.rings.number_field
+            sage: P._volume_normaliz('ambient') == P.volume(engine='internal')  # optional - pynormaliz  # optional - sage.rings.number_field
             True
 
-            sage: P = polytopes.dodecahedron(backend='normaliz')                # optional - pynormaliz
-            sage: P._volume_normaliz('ambient') == P.volume(engine='internal')  # optional - pynormaliz
+            sage: P = polytopes.dodecahedron(backend='normaliz')                # optional - pynormaliz  # optional - sage.rings.number_field
+            sage: P._volume_normaliz('ambient') == P.volume(engine='internal')  # optional - pynormaliz  # optional - sage.rings.number_field
             True
 
             sage: P = Polyhedron(rays=[[1]], backend='normaliz')  # optional - pynormaliz
@@ -1537,7 +1536,7 @@ class Polyhedron_normaliz(Polyhedron_base):
                 from sage.rings.infinity import infinity
                 return infinity
 
-            from sage.functions.other import factorial
+            from sage.arith.misc import factorial
             return self._volume_normaliz('induced_lattice') / factorial(self.dim())
 
         else:

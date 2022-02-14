@@ -7,13 +7,10 @@ for it which serves as an interface to the lists of named knots and links provid
 at the web-pages `KnotInfo <https://knotinfo.math.indiana.edu/>`__ and
 `LinkInfo <https://linkinfo.sitehost.iu.edu>`__.
 
-
 AUTHORS:
 
 - Sebastian Oehms August 2020: initial version
 """
-
-
 ##############################################################################
 #       Copyright (C) 2020 Sebastian Oehms <seb.oehms@gmail.com>
 #
@@ -21,10 +18,8 @@ AUTHORS:
 # it under the terms of the GNU General Public License as published by
 # the Free Software Foundation, either version 2 of the License, or
 # (at your option) any later version.
-#                  http://www.gnu.org/licenses/
+#                  https://www.gnu.org/licenses/
 ##############################################################################
-
-
 import os
 from enum import Enum
 
@@ -50,7 +45,6 @@ class KnotInfoColumnTypes(Enum):
         <KnotInfoColumnTypes.OnlyLinks: 'L'>,
         <KnotInfoColumnTypes.KnotsAndLinks: 'B'>]
     """
-
     OnlyKnots =     'K'       # column that is only used in the KnotInfo table
     OnlyLinks =     'L'       # column that is only used in the LinkInfo table
     KnotsAndLinks = 'B'       # column that is only used in both tables
@@ -80,6 +74,7 @@ class KnotInfoColumns(Enum):
          'Unoriented Rank',
          'PD Notation (vector)',
          'PD Notation (KnotTheory)',
+         'Braid Notation',
          'Multivariable Alexander Polynomial',
          'HOMFLYPT Polynomial',
          'Unoriented',
@@ -157,12 +152,10 @@ class KnotInfoColumns(Enum):
         """
         import webbrowser
         if self.column_type() == self.types.OnlyLinks:
-             url = KnotInfoFilename.links.description_url(self)
+            url = KnotInfoFilename.links.description_url(self)
         else:
-             url = KnotInfoFilename.knots.description_url(self)
+            url = KnotInfoFilename.knots.description_url(self)
         return webbrowser.open(url, new=new, autoraise=autoraise)
-
-
 
 
 class KnotInfoFilename(Enum):
@@ -438,7 +431,7 @@ class KnotInfoDataBase(SageObject, UniqueRepresentation):
 
             sage: from sage.databases.knotinfo_db import KnotInfoDataBase
             sage: ki_db = KnotInfoDataBase()
-            sage: ki_db.version()   >= '2021.7.21'   # optional database_knotinfo
+            sage: ki_db.version()   >= '2021.10.1'   # optional database_knotinfo
             True
         """
         self._feature.require()
@@ -821,6 +814,7 @@ column_demo_sample = {
     'braid_index':          ['Braid Index',          KnotInfoColumnTypes.OnlyKnots],
     'braid_length':         ['Braid Length',         KnotInfoColumnTypes.OnlyKnots],
     'braid_notation':       ['Braid Notation',       KnotInfoColumnTypes.KnotsAndLinks],
+    'braid_notation_old':   ['Braid Notation',       KnotInfoColumnTypes.OnlyLinks],
     'alternating':          ['Alternating',          KnotInfoColumnTypes.KnotsAndLinks],
     'alexander_polynomial': ['Alexander',            KnotInfoColumnTypes.OnlyKnots],
     'jones_polynomial':     ['Jones',                KnotInfoColumnTypes.KnotsAndLinks],
@@ -884,6 +878,19 @@ data_demo_sample = {
         '{1,1,-2,1,-2,-2}',
         '{1,1,1,1,1,1,1}',
         '{1,1,1,2,-1,2,3,-2,3}',
+        '{2, {-1, -1}}',
+        '{2, {1, 1}}',
+        '{3, {-2, -2, -1, 2, -1}}',
+        '{2, {1, 1, 1, 1}}',
+        '{3, {-1, 2, -1, 2, -1}}',
+        '{3, {-1, 2, -1, 2, -1}}',
+        '{4, {1, -2, 3, -2, 1, -2, -3, -2}}',
+        '{3, {2, 2, 2, 1, 1, -2, 1}}',
+        '{3, {-1, 2, -1, -2, -2, -1, -1}}',
+        '{3, {1, -2, 1, 2, 2, 1, 1}}',
+        '{2, {-1, -1, -1, -1, -1, -1}}'
+        ],
+    dc.braid_notation_old: [
         '{2, {-1, -1}}',
         '{2, {1, 1}}',
         '{4, {1, -2, 3, -2, -1, -2, -3, -2}}',

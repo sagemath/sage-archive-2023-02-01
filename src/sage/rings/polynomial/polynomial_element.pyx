@@ -82,13 +82,13 @@ from sage.structure.richcmp cimport (richcmp, richcmp_item,
         rich_to_bool, rich_to_bool_sgn)
 
 from sage.interfaces.singular import singular as singular_default, is_SingularElement
-from sage.libs.all import pari, pari_gen, PariError
+from sage.libs.pari.all import pari, pari_gen, PariError
 
 cimport sage.rings.abc
 from sage.rings.real_mpfr import RealField, RR
 
 from sage.rings.complex_mpfr import ComplexField
-CC = ComplexField()
+from sage.rings.cc import CC
 
 from sage.rings.real_double import RDF
 from sage.rings.complex_double import CDF
@@ -104,7 +104,6 @@ from sage.rings.integer_ring import ZZ, is_IntegerRing
 from sage.rings.integer cimport Integer, smallInteger
 from sage.libs.gmp.mpz cimport *
 from sage.rings.fraction_field import is_FractionField
-from sage.rings.padics.generic_nodes import is_pAdicRing, is_pAdicField
 from sage.rings.padics.padic_generic import pAdicGeneric
 
 from sage.structure.category_object cimport normalize_names
@@ -170,32 +169,6 @@ cpdef is_Polynomial(f):
 from .polynomial_compiled cimport CompiledPolynomialFunction
 
 from sage.rings.polynomial.polydict cimport ETuple
-
-cdef object is_AlgebraicRealField
-cdef object is_AlgebraicField
-cdef object is_AlgebraicField_common
-cdef object NumberField_quadratic
-cdef object is_ComplexIntervalField
-
-cdef void late_import():
-    # A hack to avoid circular imports.
-    global is_AlgebraicRealField
-    global is_AlgebraicField
-    global is_AlgebraicField_common
-    global NumberField_quadratic
-    global is_ComplexIntervalField
-
-    if is_AlgebraicRealField is not None:
-        return
-
-    import sage.rings.qqbar
-    is_AlgebraicRealField = sage.rings.qqbar.is_AlgebraicRealField
-    is_AlgebraicField = sage.rings.qqbar.is_AlgebraicField
-    is_AlgebraicField_common = sage.rings.qqbar.is_AlgebraicField_common
-    import sage.rings.number_field.number_field
-    NumberField_quadratic = sage.rings.number_field.number_field.NumberField_quadratic
-    import sage.rings.complex_interval_field
-    is_ComplexIntervalField = sage.rings.complex_interval_field.is_ComplexIntervalField
 
 
 cdef class Polynomial(CommutativeAlgebraElement):
@@ -6448,7 +6421,8 @@ cdef class Polynomial(CommutativeAlgebraElement):
             sage: p = ((1/b^2*d^2+1/a)*x*y^2+a*b/c*y+e+x^2)
             sage: q = -4*c^2*y^3+1
             sage: p.resultant(q)
-            16*c^4*x^6 + 48*c^4*e*x^4 + (1/b^6*d^6 + 3/(a*b^4)*d^4 + ((-12*a^3*b*c + 3)/(a^2*b^2))*d^2 + (-12*a^3*b*c + 1)/a^3)*x^3 + 48*c^4*e^2*x^2 + (((-12*a*c)/b)*d^2*e + (-12*b*c)*e)*x + 16*c^4*e^3 + 4*a^3*b^3/c
+            (16*c^4)*x^6 + (48*c^4)*e*x^4 + (1/(b^6)*d^6 + 3/(a*b^4)*d^4 + (-12*a^3*b*c + 3)/(a^2*b^2)*d^2 + (-12*a^3*b*c + 1)/(a^3))*x^3 + (48*c^4)*e^2*x^2 + ((-12*a*c)/b*d^2*e + (-12*b*c)*e)*x + (16*c^4)*e^3 + (4*a^3*b^3)/c
+
 
         Test for :trac:`10978`::
 
@@ -7656,9 +7630,9 @@ cdef class Polynomial(CommutativeAlgebraElement):
         back to pari (numpy will fail if some coefficient is infinite,
         for instance).
 
-        If L is SR, then the roots will be radical expressions,
-        computed as the solutions of a symbolic polynomial expression.
-        At the moment this delegates to
+        If L is SR (or one of its subrings), then the roots will be radical
+        expressions, computed as the solutions of a symbolic polynomial
+        expression. At the moment this delegates to
         :meth:`sage.symbolic.expression.Expression.solve`
         which in turn uses Maxima to find radical solutions.
         Some solutions may be lost in this approach.
@@ -7850,8 +7824,6 @@ cdef class Polynomial(CommutativeAlgebraElement):
 
         L = K if ring is None else ring
 
-        late_import()
-
         input_fp = isinstance(K, (sage.rings.abc.RealField,
                                   sage.rings.abc.ComplexField,
                                   sage.rings.abc.RealDoubleField,
@@ -7862,7 +7834,7 @@ cdef class Polynomial(CommutativeAlgebraElement):
                                   sage.rings.abc.ComplexDoubleField))
         input_complex = isinstance(K, (sage.rings.abc.ComplexField, sage.rings.abc.ComplexDoubleField))
         output_complex = isinstance(L, (sage.rings.abc.ComplexField, sage.rings.abc.ComplexDoubleField))
-        input_gaussian = (isinstance(K, NumberField_quadratic)
+        input_gaussian = (isinstance(K, sage.rings.abc.NumberField_quadratic)
                           and list(K.polynomial()) == [1, 0, 1])
 
         if input_fp and output_fp:
@@ -7932,10 +7904,9 @@ cdef class Polynomial(CommutativeAlgebraElement):
             else:
                 return [rt for (rt, mult) in rts_mult]
 
-        from sage.symbolic.ring import SR
-        if L is SR:
+        if isinstance(L, sage.rings.abc.SymbolicRing):
             if self.degree() == 2:
-                from sage.functions.other import sqrt
+                from sage.misc.functional import sqrt
                 from sage.symbolic.expression import I
                 coeffs = self.list()
                 D = coeffs[1]*coeffs[1] - 4*coeffs[0]*coeffs[2]
@@ -7953,6 +7924,7 @@ cdef class Polynomial(CommutativeAlgebraElement):
                         return l
                     else:
                         return [val for val,m in l]
+            from sage.symbolic.ring import SR
             vname = 'do_not_use_this_name_in_a_polynomial_coefficient'
             var = SR(vname)
             expr = self(var)
@@ -7964,16 +7936,16 @@ cdef class Polynomial(CommutativeAlgebraElement):
             else:
                 return [rt.rhs() for rt in rts]
 
-        if L != K or is_AlgebraicField_common(L):
+        if L != K or isinstance(L, sage.rings.abc.AlgebraicField_common):
             # So far, the only "special" implementations are for real
             # and complex root isolation and for p-adic factorization
             if (is_IntegerRing(K) or is_RationalField(K)
-                or is_AlgebraicRealField(K)) and \
-                (is_AlgebraicRealField(L) or isinstance(L, sage.rings.abc.RealIntervalField)):
+                or isinstance(K, sage.rings.abc.AlgebraicRealField)) and \
+                isinstance(L, (sage.rings.abc.AlgebraicRealField, sage.rings.abc.RealIntervalField)):
 
                 from sage.rings.polynomial.real_roots import real_roots
 
-                if is_AlgebraicRealField(L):
+                if isinstance(L, sage.rings.abc.AlgebraicRealField):
                     rts = real_roots(self, retval='algebraic_real')
                 else:
                     diam = ~(ZZ(1) << L.prec())
@@ -7998,14 +7970,14 @@ cdef class Polynomial(CommutativeAlgebraElement):
                     return [rt for (rt, mult) in rts]
 
             if (is_IntegerRing(K) or is_RationalField(K)
-                or is_AlgebraicField_common(K) or input_gaussian) and \
-                (isinstance(L, sage.rings.abc.ComplexIntervalField) or is_AlgebraicField_common(L)):
+                or isinstance(K, sage.rings.abc.AlgebraicField_common) or input_gaussian) and \
+                isinstance(L, (sage.rings.abc.ComplexIntervalField, sage.rings.abc.AlgebraicField_common)):
 
                 from sage.rings.polynomial.complex_roots import complex_roots
 
                 if isinstance(L, sage.rings.abc.ComplexIntervalField):
                     rts = complex_roots(self, min_prec=L.prec())
-                elif is_AlgebraicField(L):
+                elif isinstance(L, sage.rings.abc.AlgebraicField):
                     rts = complex_roots(self, retval='algebraic')
                 else:
                     rts = complex_roots(self, retval='algebraic_real')
@@ -8025,7 +7997,7 @@ cdef class Polynomial(CommutativeAlgebraElement):
                     real_field = RealField(L.prec())
 
                 return self.change_ring(real_field).roots(ring=L, multiplicities=multiplicities, algorithm=algorithm)
-            elif (is_pAdicRing(L) or is_pAdicField(L)) and L.absolute_degree() == 1:
+            elif isinstance(L, (sage.rings.abc.pAdicRing, sage.rings.abc.pAdicField)) and L.absolute_degree() == 1:
                 p = L.prime()
                 n = L.precision_cap()
                 try:
@@ -8929,37 +8901,38 @@ cdef class Polynomial(CommutativeAlgebraElement):
             +Infinity
         """
         cdef int k
+        cdef Polynomial _p
 
         if not self:
             return infinity.infinity
-
-        if p is infinity.infinity:
-            return -self.degree()
 
         if p is None:
             for k from 0 <= k <= self.degree():
                 if self.get_unsafe(k):
                     return ZZ(k)
         if isinstance(p, Polynomial):
-            p = self._parent.coerce(p)
+            _p = self._parent.coerce(p)
+        elif p is infinity.infinity:
+            return -self.degree()
         elif is_Ideal(p) and p.ring() is self._parent: # eventually need to handle fractional ideals in the fraction field
             if self._parent.base_ring().is_field(): # common case
-                p = p.gen()
+                _p = p.gen()
             else:
                 raise NotImplementedError
         else:
             from sage.rings.fraction_field import is_FractionField
             if is_FractionField(p.parent()) and self._parent.has_coerce_map_from(p.parent().ring()):
-                p = self._parent.coerce(p.parent().ring()(p)) # here we require that p be integral.
+                _p = self._parent.coerce(p.parent().ring()(p)) # here we require that p be integral.
             else:
                 raise TypeError("The polynomial, p, must have the same parent as self.")
 
-        if p.degree() == 0:
-            raise ArithmeticError("The polynomial, p, must have positive degree.")
-        k = 0
-        while self % p == 0:
-            k = k + 1
-            self //= p
+        if _p.degree() == 0:
+            raise ArithmeticError("The polynomial, p, must be non-constant.")
+        k = -1
+        cdef Polynomial rem = self._parent.zero()
+        while rem.is_zero():
+            self, rem = self.quo_rem(_p)
+            k += 1
         return sage.rings.integer.Integer(k)
 
     def ord(self, p=None):

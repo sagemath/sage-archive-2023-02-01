@@ -213,7 +213,7 @@ class Posets(metaclass=ClasscallMetaclass):
 
         if use_subsets:
             from sage.sets.set import Set
-            cur_level = [frozenset(range(1, n+1))]
+            cur_level = [frozenset(range(1, n + 1))]
             D = DiGraph()
             D.add_vertex(Set(cur_level[0]))
             while cur_level:
@@ -227,7 +227,8 @@ class Posets(metaclass=ClasscallMetaclass):
             return FiniteLatticePoset(D, category=FiniteLatticePosets(),
                                       facade=facade)
 
-        D = DiGraph({v: [Integer(v|(1<<y)) for y in range(n) if v & (1<<y) == 0]
+        D = DiGraph({v: [Integer(v | (1 << y))
+                         for y in range(n) if v & (1 << y) == 0]
                      for v in range(2**n)})
         return FiniteLatticePoset(hasse_diagram=D,
                                   category=FiniteLatticePosets(),
@@ -611,7 +612,7 @@ class Posets(metaclass=ClasscallMetaclass):
              [[4, 2], [5, 1]],
              [[5, 1], [6]]]
         """
-        from sage.rings.semirings.non_negative_integer_semiring import NN
+        from sage.rings.semirings.all import NN
         if n not in NN:
             raise ValueError('n must be an integer')
         from sage.combinat.partition import Partitions, Partition
@@ -962,7 +963,7 @@ class Posets(metaclass=ClasscallMetaclass):
             sage: posets.SetPartitions(4)
             Finite lattice containing 15 elements
         """
-        from sage.rings.semirings.non_negative_integer_semiring import NN
+        from sage.rings.semirings.all import NN
         if n not in NN:
             raise ValueError('n must be an integer')
         from sage.combinat.set_partition import SetPartitions
@@ -1924,7 +1925,8 @@ def _random_lattice(n, p):
         meet for `e, m` for all `m \in M`. We do that by keeping
         track of meet matrix and list of maximal elements.
     """
-    from sage.functions.other import floor, sqrt
+    from sage.functions.other import floor
+    from sage.misc.functional import sqrt
     from sage.misc.prandom import random
 
     n = n-1

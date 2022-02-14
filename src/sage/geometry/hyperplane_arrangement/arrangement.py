@@ -394,13 +394,13 @@ class HyperplaneArrangementElement(Element):
 
         It is possible to specify a backend for polyhedral computations::
 
-            sage: R.<sqrt5> = QuadraticField(5)
-            sage: H = HyperplaneArrangements(R, names='xyz')
-            sage: x,y,z = H.gens()
-            sage: A = H(sqrt5*x+2*y+3*z, backend='normaliz')
-            sage: A.backend()
+            sage: R.<sqrt5> = QuadraticField(5)                                 # optional - sage.rings.number_field
+            sage: H = HyperplaneArrangements(R, names='xyz')                    # optional - sage.rings.number_field
+            sage: x, y, z = H.gens()                                            # optional - sage.rings.number_field
+            sage: A = H(sqrt5*x + 2*y + 3*z, backend='normaliz')                # optional - sage.rings.number_field
+            sage: A.backend()                                                   # optional - sage.rings.number_field
             'normaliz'
-            sage: A.regions()[0].backend()  # optional - pynormaliz
+            sage: A.regions()[0].backend()             # optional - pynormaliz  # optional - sage.rings.number_field
             'normaliz'
         """
         super(HyperplaneArrangementElement, self).__init__(parent)
@@ -689,7 +689,7 @@ class HyperplaneArrangementElement(Element):
         EXAMPLES::
 
             sage: L.<x, y> = HyperplaneArrangements(QQ)
-            sage: L(x, y, x+y-2).plot()
+            sage: L(x, y, x+y-2).plot()  # optional - sage.plot
             Graphics object consisting of 3 graphics primitives
         """
         from sage.geometry.hyperplane_arrangement.plot import plot
@@ -1690,7 +1690,7 @@ class HyperplaneArrangementElement(Element):
             (6, 21, 16)
             sage: A.vertices()
             ((-2/3, 1/3), (-1/3, -1/3), (0, -1), (0, 0), (1/3, -2/3), (2/3, -1/3))
-            sage: point2d(A.vertices(), size=20) + A.plot()
+            sage: point2d(A.vertices(), size=20) + A.plot()  # optional - sage.plot
             Graphics object consisting of 7 graphics primitives
 
             sage: H.<x,y> = HyperplaneArrangements(QQ)

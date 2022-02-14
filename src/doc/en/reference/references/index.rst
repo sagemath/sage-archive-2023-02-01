@@ -220,6 +220,9 @@ REFERENCES:
 .. [AM1969] \M. F. Atiyah and I. G. Macdonald, "Introduction to commutative
             algebra", Addison-Wesley, 1969.
 
+ .. [AM1990] \R. Abraham and J. E. Marsden, "Foundations of Mechanics", 
+            Addison-Wesley, 1980.
+
 .. [AM1974] \J. F. Adams and H. R. Margolis, "Sub-Hopf-algebras of the
             Steenrod algebra," Proc. Cambridge Philos. Soc. 76 (1974),
             45-52.
@@ -1720,6 +1723,9 @@ REFERENCES:
              C. R. Acad. Sci. Paris Sér. I Math. 296 (1983) 14
              781--784.
 
+.. [Cro2004] Peter R. Cromwell, *Knots and links*, Cambridge University Press (2004).
+             :doi:`10.1017/CBO9780511809767`
+
 .. [CRS2016] Dean Crnković, Sanja Rukavina, and Andrea Švob. *Strongly regular
              graphs from orthogonal groups* `O^+(6,2)` *and* `O^-(6,2)`.
              :arxiv:`1609.07133`
@@ -2852,8 +2858,8 @@ REFERENCES:
              with tunable clustering*, Phys. Rev. E (2002). vol 65, no 2, 026107.
              :doi:`10.1103/PhysRevE.65.026107`.
 
-.. [HKL2021] Clemens Heuberger, Daniel Krenn, Gabriel F. Lipnik, *Asymptotic
-             Analysis of `q`-Recursive Sequences*, :arxiv:`2105.04334`, 2021.
+.. [HKL2021] Clemens Heuberger, Daniel Krenn, Gabriel F. Lipnik, "Asymptotic
+             Analysis of `q`-Recursive Sequences", :arxiv:`2105.04334`, 2021.
 
 .. [HKOTY1999] \G. Hatayama, A. Kuniba, M. Okado, T. Tagaki, and Y. Yamada,
                *Remarks on fermionic formula*. Contemp. Math., **248** (1999).
@@ -2874,6 +2880,9 @@ REFERENCES:
 .. [HL2014] Thomas Hamilton and David Loeffler, "Congruence testing
             for odd modular subgroups", LMS J. Comput. Math. 17
             (2014), no. 1, 206-208, :doi:`10.1112/S1461157013000338`.
+
+.. [HL2018] Mustafa Hajij and Jesse Levitt, "An Efficient Algorithm to Compute
+            the Colored Jones Polynomial" :arxiv:`1804.07910v2`.
 
 .. [Hli2006] Petr Hlineny, "Equivalence-free exhaustive generation of
              matroid representations", Discrete Applied Mathematics
@@ -4947,6 +4956,9 @@ REFERENCES:
 .. [RSS] :wikipedia:`Residual_sum_of_squares`, accessed 13th
          October 2009.
 
+.. [RS2012] G. Rudolph and M. Schmidt, "Differential Geometry and Mathematical Physics. 
+            Part I. Manifolds, Lie Groups and Hamiltonian Systems", Springer, 2012.
+
 .. [RSW2011] Victor Reiner, Franco Saliola, Volkmar Welker.
              *Spectra of Symmetrized Shuffling Operators*.
              :arxiv:`1102.2460v2`.
@@ -4960,6 +4972,11 @@ REFERENCES:
             *Algorithmic aspects of vertex elimination*,
             Proceedings of seventh annual ACM symposium on Theory of computing,
             Pages 245-254, ACM 1975. :doi:`10.1145/800116.803775`.
+
+.. [RT1985] James Roskind and Robert Endre Tarjan.
+            *A note on finding minimum-cost edge-disjoint spanning trees*.
+            Mathematics of Operations Research, 10(4):701-708, 1985.
+            :doi:`10.1287/moor.10.4.701`
 
 .. [RTL76] Donald J. Rose, Robert Endre Tarjan and George S. Lueker.
            *Algorithmic aspects of vertex elimination on graphs*.

@@ -319,12 +319,17 @@ implementing them on your own as a patch for inclusion!
 import sys
 
 from sage.functions.all import factorial
-from sage.geometry.cone import Cone, is_Cone
+import sage.geometry.abc
+from sage.geometry.cone import Cone
 from sage.geometry.fan import Fan
-from sage.misc.all import latex, prod, cached_method
+from sage.misc.latex import latex
+from sage.misc.misc_c import prod
+from sage.misc.cachefunc import cached_method
 from sage.structure.unique_representation import UniqueRepresentation
 from sage.modules.free_module_element import vector
-from sage.rings.all import PolynomialRing, ZZ, QQ
+from sage.rings.all import PolynomialRing
+from sage.rings.integer_ring import ZZ
+from sage.rings.rational_field import QQ
 from sage.rings.quotient_ring_element import QuotientRingElement
 from sage.rings.quotient_ring import QuotientRing_generic
 from sage.schemes.affine.affine_space import AffineSpace
@@ -2714,7 +2719,7 @@ class ToricVariety_field(AmbientSpace):
             result.set_immutable()
             return result
 
-        assert is_Cone(x)
+        assert isinstance(x, sage.geometry.abc.ConvexRationalPolyhedralCone)
         rays = [ vector(quot(r)) for r in x.rays() ]
         return Cone(rays)
 
@@ -3259,7 +3264,7 @@ class CohomologyRing(QuotientRing_generic, UniqueRepresentation):
             return x
         if isinstance(x, QuotientRingElement):
             x = x.lift()
-        elif is_Cone(x):
+        elif isinstance(x, sage.geometry.abc.ConvexRationalPolyhedralCone):
             cone = fan.embed(x)
             assert cone.ambient() is fan
             mult = cone.rays().column_matrix().index_in_saturation()

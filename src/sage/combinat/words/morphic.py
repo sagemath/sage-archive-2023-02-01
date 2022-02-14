@@ -30,8 +30,9 @@ letter, see chapter 3 of the book [BR2010b]_::
 """
 
 from sage.combinat.words.word_infinite_datatypes import WordDatatype_callable
-from sage.rings.all import Infinity
+from sage.rings.infinity import Infinity
 from sage.modules.free_module_element import vector
+
 
 class WordDatatype_morphic(WordDatatype_callable):
     r"""
@@ -124,8 +125,8 @@ class WordDatatype_morphic(WordDatatype_callable):
         self._morphism = morphism
         self._letter = letter
         self._alphabet = self._morphism.domain().alphabet()
-        if coding == None:
-            self._coding = {a:a for a in self._alphabet}
+        if coding is None:
+            self._coding = {a: a for a in self._alphabet}
         else:
             self._coding = coding
 
@@ -329,7 +330,7 @@ class WordDatatype_morphic(WordDatatype_callable):
             sage: w = m.fixed_point('a')
             Traceback (most recent call last):
             ...
-            TypeError: self (=a->ac, b->aac) is not an endomorphism
+            TypeError: self (=a->ac, b->aac) is not self-composable
 
         We check that :trac:`8595` is fixed::
 

@@ -448,22 +448,9 @@ from sage.rings.integer import Integer
 from sage.rings.rational import Rational
 from sage.matrix.constructor import matrix
 from sage.rings.rational_field import QQ
+from sage.features.igraph import python_igraph as igraph_feature
 
 to_hex = LazyImport('matplotlib.colors', 'to_hex')
-
-
-def igraph_feature():
-    """
-    Helper method to check whether optional package ``igraph`` is installed.
-
-    TESTS::
-
-        sage: from sage.graphs.generic_graph import igraph_feature
-        sage: igraph_feature().is_present()  # optional - python_igraph
-        FeatureTestResult('igraph', True)
-    """
-    from sage.features import PythonModule
-    return PythonModule("igraph", spkg="python_igraph", url="http://igraph.org")
 
 
 class GenericGraph(GenericGraph_pyx):
@@ -574,7 +561,7 @@ class GenericGraph(GenericGraph_pyx):
             True
             sage: G = graphs.RandomGNP(8, .9999)
             sage: H = graphs.CompleteGraph(8)
-            sage: G == H # most often true
+            sage: G == H  # random - most often true
             True
             sage: G = Graph({0: [1, 2, 3, 4, 5, 6, 7]} )
             sage: H = Graph({1: [0], 2: [0], 3: [0], 4: [0], 5: [0], 6: [0], 7: [0]} )
@@ -614,7 +601,7 @@ class GenericGraph(GenericGraph_pyx):
         # inputs must be (di)graphs:
         if not isinstance(other, GenericGraph):
             return False
-        from sage.graphs.all import Graph
+        from sage.graphs.graph import Graph
         g1_is_graph = isinstance(self, Graph) # otherwise, DiGraph
         g2_is_graph = isinstance(other, Graph) # otherwise, DiGraph
         # Fast checks
@@ -1777,13 +1764,13 @@ class GenericGraph(GenericGraph_pyx):
 
             if self.is_directed():
                 for u, v, l in self.edge_iterator():
-                    if not v in d[u]:
+                    if v not in d[u]:
                         d[u][v] = []
                     d[u][v].append(l)
 
             else:
                 for u, v, l in self.edge_iterator():
-                    if not v in d[u]:
+                    if v not in d[u]:
                         d[u][v] = []
                         d[v][u] = []
 
@@ -2363,7 +2350,7 @@ class GenericGraph(GenericGraph_pyx):
             [-1  2 -1  0]
             [-1 -1  2  0]
             [-1  0  0  1]
-            sage: M = G.laplacian_matrix(normalized=True); M
+            sage: M = G.laplacian_matrix(normalized=True); M                                            # optional - sage.symbolic
             [                   1 -1/6*sqrt(3)*sqrt(2) -1/6*sqrt(3)*sqrt(2)         -1/3*sqrt(3)]
             [-1/6*sqrt(3)*sqrt(2)                    1                 -1/2                    0]
             [-1/6*sqrt(3)*sqrt(2)                 -1/2                    1                    0]
@@ -2415,7 +2402,6 @@ class GenericGraph(GenericGraph_pyx):
             [-4 -3 -1  8]
         """
         from sage.matrix.constructor import diagonal_matrix
-        from sage.functions.all import sqrt
 
         if weighted is None:
             weighted = self._weighted
@@ -2451,6 +2437,7 @@ class GenericGraph(GenericGraph_pyx):
                     D[i,i] += row_sums[i]
 
         if normalized:
+            from sage.misc.functional import sqrt
             Dsqrt = diagonal_matrix([1 / sqrt(D[i,i]) if D[i,i] else 1 \
                                      for i in range(D.nrows())])
             if signless:
@@ -3105,7 +3092,7 @@ class GenericGraph(GenericGraph_pyx):
             sage: D.edges()
             [(0, 1, None)]
         """
-        if not keep_label in ['any', 'min', 'max']:
+        if keep_label not in ['any', 'min', 'max']:
             raise ValueError("variable keep_label must be 'any', 'min', or 'max'")
 
         # TODO: this should be much faster for c_graphs, but for now we just do this
@@ -4098,11 +4085,12 @@ class GenericGraph(GenericGraph_pyx):
             return edges
 
     def min_spanning_tree(self,
-                          weight_function=None,
                           algorithm="Prim_Boost",
                           starting_vertex=None,
                           check=False,
-                          by_weight=False):
+                          weight_function=None,
+                          by_weight=False,
+                          check_weight=True):
         r"""
         Return the edges of a minimum spanning tree.
 
@@ -4114,17 +4102,6 @@ class GenericGraph(GenericGraph_pyx):
         Otherwise, an exception is raised.
 
         INPUT:
-
-        - ``weight_function`` -- function (default: ``None``); a function that
-          takes as input an edge ``(u, v, l)`` and outputs its weight. If not
-          ``None``, ``by_weight`` is automatically set to ``True``. If ``None``
-          and ``by_weight`` is ``True``, we use the edge label ``l`` , if ``l``
-          is not ``None``, else ``1`` as a weight. The ``weight_function`` can
-          be used to transform the label into a weight (note that, if the weight
-          returned is not convertible to a float, an error is raised)
-
-        - ``by_weight`` -- boolean (default: ``False``); if ``True``, the edges
-          in the graph are weighted, otherwise all edges have weight 1
 
         - ``algorithm`` -- string (default: ``"Prim_Boost"``); the algorithm to
           use in computing a minimum spanning tree of ``G``. The following
@@ -4157,6 +4134,20 @@ class GenericGraph(GenericGraph_pyx):
           passed on to any minimum spanning tree functions that are invoked from
           the current method. See the documentation of the corresponding
           functions for details on what sort of sanity checks will be performed.
+
+        - ``weight_function`` -- function (default: ``None``); a function that
+          takes as input an edge ``(u, v, l)`` and outputs its weight. If not
+          ``None``, ``by_weight`` is automatically set to ``True``. If ``None``
+          and ``by_weight`` is ``True``, we use the edge label ``l`` , if ``l``
+          is not ``None``, else ``1`` as a weight. The ``weight_function`` can
+          be used to transform the label into a weight (note that, if the weight
+          returned is not convertible to a float, an error is raised)
+
+        - ``by_weight`` -- boolean (default: ``False``); if ``True``, the edges
+          in the graph are weighted, otherwise all edges have weight 1
+
+        - ``check_weight`` -- boolean (default: ``True``); whether to check that
+          the ``weight_function`` outputs a number for each edge.
 
         OUTPUT:
 
@@ -4293,90 +4284,34 @@ class GenericGraph(GenericGraph_pyx):
         raised::
 
             sage: g = Graph([(0, 1, 1), (1, 2, 'a')], weighted=True)
-            sage: g.min_spanning_tree(algorithm="Prim_Boost")
+            sage: g.min_spanning_tree()
             Traceback (most recent call last):
             ...
-            ValueError: could not convert string to float:...
-            sage: g.min_spanning_tree(algorithm="Prim_fringe")
-            Traceback (most recent call last):
-            ...
-            ValueError: could not convert string to float:...
-            sage: g.min_spanning_tree(algorithm="Prim_edge")
-            Traceback (most recent call last):
-            ...
-            ValueError: could not convert string to float:...
-            sage: g.min_spanning_tree(algorithm="Kruskal")
-            Traceback (most recent call last):
-            ...
-            ValueError: could not convert string to float:...
-            sage: g.min_spanning_tree(algorithm="Filter_Kruskal")
-            Traceback (most recent call last):
-            ...
-            ValueError: could not convert string to float:...
-            sage: g.min_spanning_tree(algorithm="Kruskal_Boost")
-            Traceback (most recent call last):
-            ...
-            ValueError: could not convert string to float:...
-            sage: g.min_spanning_tree(algorithm="NetworkX")
-            Traceback (most recent call last):
-            ...
-            ValueError: could not convert string to float:...
-            sage: g.min_spanning_tree(algorithm="Boruvka")
-            Traceback (most recent call last):
-            ...
-            ValueError: could not convert string to float:...
-
+            ValueError: the weight function cannot find the weight of (1, 2, 'a')
             sage: g = Graph([(0, 1, 1), (1, 2, [1, 2, 3])], weighted=True)
+            sage: g.min_spanning_tree()
+            Traceback (most recent call last):
+            ...
+            ValueError: the weight function cannot find the weight of (1, 2, [1, 2, 3])
 
-            sage: g.min_spanning_tree(algorithm="Prim_Boost")
-            Traceback (most recent call last):
-            ...
-            TypeError: float() argument must be a string or a... number...
-            sage: g.min_spanning_tree(algorithm="Prim_fringe")
-            Traceback (most recent call last):
-            ...
-            TypeError: float() argument must be a string or a... number...
-            sage: g.min_spanning_tree(algorithm="Prim_edge")
-            Traceback (most recent call last):
-            ...
-            TypeError: float() argument must be a string or a... number...
-            sage: g.min_spanning_tree(algorithm="Kruskal")
-            Traceback (most recent call last):
-            ...
-            TypeError: float() argument must be a string or a... number...
-            sage: g.min_spanning_tree(algorithm="Filter_Kruskal")
-            Traceback (most recent call last):
-            ...
-            TypeError: float() argument must be a string or a... number...
-            sage: g.min_spanning_tree(algorithm="Kruskal_Boost")
-            Traceback (most recent call last):
-            ...
-            TypeError: float() argument must be a string or a... number...
-            sage: g.min_spanning_tree(algorithm="NetworkX")
-            Traceback (most recent call last):
-            ...
-            TypeError: float() argument must be a string or a... number...
+        Special case of the empty graph::
 
             sage: graphs.EmptyGraph().min_spanning_tree()
             []
         """
         if not self.order():
             return []
-        if weight_function is not None:
-            by_weight = True
 
         # for weighted graphs
         if self.weighted():
             by_weight = True
 
-        if weight_function is None and by_weight:
-            def weight_function(e):
-                return 1 if e[2] is None else e[2]
+        by_weight, weight_function = self._get_weight_function(by_weight=by_weight,
+                                                               weight_function=weight_function,
+                                                               check_weight=check_weight)
 
-        if not by_weight:
-            weight_function = lambda e: 1
-
-        wfunction_float = lambda e: float(weight_function(e))
+        def wfunction_float(e):
+            return float(weight_function(e))
 
         if algorithm in ["Kruskal", "Filter_Kruskal", "Kruskal_Boost", "Prim_Boost", "Boruvka"]:
             if self.is_directed():
@@ -4386,13 +4321,13 @@ class GenericGraph(GenericGraph_pyx):
 
             if algorithm == "Kruskal":
                 from .spanning_tree import kruskal
-                return kruskal(g, wfunction=wfunction_float, check=check)
+                return kruskal(g, weight_function=wfunction_float, check_weight=False, check=check)
             if algorithm == "Filter_Kruskal":
                 from .spanning_tree import filter_kruskal
-                return filter_kruskal(g, weight_function=wfunction_float, check=check)
+                return filter_kruskal(g, weight_function=wfunction_float, check_weight=False, check=check)
             elif algorithm == "Boruvka":
                 from .spanning_tree import boruvka
-                return boruvka(g, wfunction=wfunction_float, check=check)
+                return boruvka(g, weight_function=wfunction_float, check_weight=False, check=check)
             else:
                 from sage.graphs.base.boost_graph import min_spanning_tree
                 return min_spanning_tree(g,
@@ -4686,7 +4621,7 @@ class GenericGraph(GenericGraph_pyx):
              [(4, 3, 'e'), (3, 2, 'b'), (2, 1, 'a'), (1, 4, 'f')]]
 
         """
-        if not output in ['vertex', 'edge']:
+        if output not in ['vertex', 'edge']:
             raise ValueError('output must be either vertex or edge')
 
         if self.is_directed():
@@ -4721,7 +4656,7 @@ class GenericGraph(GenericGraph_pyx):
                     for u in zip(x, x[1:] + [x[0]])]
         return [vertices_to_edges(_) for _ in cycle_basis_v]
 
-    def minimum_cycle_basis(self, weight_function=None, by_weight=False, algorithm=None):
+    def minimum_cycle_basis(self, algorithm=None, weight_function=None, by_weight=False, check_weight=True):
         r"""
         Return a minimum weight cycle basis of the graph.
 
@@ -4736,6 +4671,12 @@ class GenericGraph(GenericGraph_pyx):
 
         INPUT:
 
+        - ``algorithm`` -- string (default: ``None``); algorithm to use:
+
+          * If ``algorithm = "NetworkX"``, use networkx implementation
+
+          * If ``algorithm = None``, use Sage Cython implementation
+
         - ``weight_function`` -- function (default: ``None``); a function that
           takes as input an edge ``(u, v, l)`` and outputs its weight. If not
           ``None``, ``by_weight`` is automatically set to ``True``. If ``None``
@@ -4745,11 +4686,8 @@ class GenericGraph(GenericGraph_pyx):
         - ``by_weight`` -- boolean (default: ``False``); if ``True``, the edges
           in the graph are weighted, otherwise all edges have weight 1
 
-        - ``algorithm`` -- string (default: ``None``); algorithm to use:
-
-          * If ``algorithm = "NetworkX"``, use networkx implementation
-
-          * If ``algorithm = None``, use Sage Cython implementation
+        - ``check_weight`` -- boolean (default: ``True``); whether to check that
+          the ``weight_function`` outputs a number for each edge.
 
         EXAMPLES::
 
@@ -4771,6 +4709,15 @@ class GenericGraph(GenericGraph_pyx):
             sage: sorted(g.minimum_cycle_basis(by_weight=False, algorithm='NetworkX'))
             [[1, 2, 3, 5], [3, 4, 5]]
 
+        TESTS::
+
+            sage: g = Graph([(0, 1, 1), (1, 2, 'a')])
+            sage: g.min_spanning_tree(by_weight=True)
+            Traceback (most recent call last):
+            ...
+            ValueError: the weight function cannot find the weight of (1, 2, 'a')
+
+
         .. SEEALSO::
 
             * :meth:`~cycle_basis`
@@ -4783,17 +4730,9 @@ class GenericGraph(GenericGraph_pyx):
             raise NotImplementedError("not implemented for directed graphs")
         self._scream_if_not_simple()
 
-        if weight_function is not None:
-            by_weight = True
-        if by_weight:
-            if weight_function is None:
-                def weight_function(e):
-                    return 1 if e[2] is None else e[2]
-        else:
-            def weight_function(e):
-                return 1
-        if by_weight:
-            self._check_weight_function(weight_function)
+        by_weight, weight_function = self._get_weight_function(by_weight=by_weight,
+                                                               weight_function=weight_function,
+                                                               check_weight=check_weight)
 
         if algorithm:
             algorithm = algorithm.lower()
@@ -6226,7 +6165,7 @@ class GenericGraph(GenericGraph_pyx):
         self._scream_if_not_simple(allow_loops=True)
 
         if self.is_directed():
-            from sage.graphs.all import Graph
+            from sage.graphs.graph import Graph
             g = Graph(self)
         else:
             g = self
@@ -7235,19 +7174,16 @@ class GenericGraph(GenericGraph_pyx):
             g = graphs.PetersenGraph()
             sphinx_plot(g.plot(edge_colors={"red": g.longest_path().edges(sort=False)}))
 
-        Let us compute longest paths on random graphs with random weights. Each
-        time, we ensure the resulting graph is indeed a path::
+        Let us compute the longest path on a random graph with random
+        weights, and ensure the resulting graph is indeed a path::
 
-            sage: for i in range(20):
-            ....:     g = graphs.RandomGNP(15, 0.3)
-            ....:     for u, v in g.edge_iterator(labels=False):
-            ....:         g.set_edge_label(u, v, random())
-            ....:     lp = g.longest_path()
-            ....:     if (not lp.is_forest() or
-            ....:         not max(lp.degree()) <= 2 or
-            ....:         not lp.is_connected()):
-            ....:         print("Error!")
-            ....:         break
+            sage: g = graphs.RandomGNP(15, 0.3)
+            sage: for u, v in g.edge_iterator(labels=False):
+            ....:     g.set_edge_label(u, v, random())
+            sage: lp = g.longest_path()
+            sage: (not lp.is_forest() or not max(lp.degree()) <= 2
+            ....:  or not lp.is_connected())
+            False
 
         TESTS:
 
@@ -7305,18 +7241,15 @@ class GenericGraph(GenericGraph_pyx):
 
         Random test for digraphs::
 
-            sage: for i in range(20):
-            ....:     g = digraphs.RandomDirectedGNP(15, 0.3)
-            ....:     for u, v in g.edge_iterator(labels=False):
-            ....:         g.set_edge_label(u, v, random())
-            ....:     lp = g.longest_path()
-            ....:     if (not lp.is_directed_acyclic() or
-            ....:         not max(lp.out_degree()) <= 1 or
-            ....:         not max(lp.in_degree()) <= 1 or
-            ....:         not lp.is_connected()):
-            ....:         print("Error!")
-            ....:         print(g.edges())
-            ....:         break
+            sage: g = digraphs.RandomDirectedGNP(15, 0.3)
+            sage: for u, v in g.edge_iterator(labels=False):
+            ....:     g.set_edge_label(u, v, random())
+            sage: lp = g.longest_path()
+            sage: (not lp.is_directed_acyclic() or
+            ....:  not max(lp.out_degree()) <= 1 or
+            ....:  not max(lp.in_degree()) <= 1 or
+            ....:  not lp.is_connected())
+            False
 
         :trac:`13019`::
 
@@ -7673,7 +7606,7 @@ class GenericGraph(GenericGraph_pyx):
         if use_edge_labels or algorithm is None:
             # We force the algorithm to 'MILP'
             algorithm = 'MILP'
-        elif not algorithm in ['MILP', 'backtrack']:
+        elif algorithm not in ['MILP', 'backtrack']:
             raise ValueError("algorithm must be either 'backtrack' or 'MILP'")
 
         if self.order() < 2:
@@ -7704,7 +7637,7 @@ class GenericGraph(GenericGraph_pyx):
             elif len(zeros) == 1:
                 if new_s is None:
                     new_s = zeros.pop()
-                elif not new_s in zeros:
+                elif new_s not in zeros:
                     return (0, None) if use_edge_labels else None
 
             zeros = [u for u in g if not g.out_degree(u)]
@@ -7713,7 +7646,7 @@ class GenericGraph(GenericGraph_pyx):
             elif len(zeros) == 1:
                 if new_t is None:
                     new_t = zeros.pop()
-                elif not new_t in zeros:
+                elif new_t not in zeros:
                     return (0, None) if use_edge_labels else None
 
         else:
@@ -7725,27 +7658,26 @@ class GenericGraph(GenericGraph_pyx):
                 return (0, None) if use_edge_labels else None
 
             elif len(ones) == 2:
-                if not new_s is None and not new_s in ones:
+                if new_s is not None and new_s not in ones:
                     return (0, None) if use_edge_labels else None
-                if not new_t is None and not new_t in ones:
+                if new_t is not None and new_t not in ones:
                     return (0, None) if use_edge_labels else None
 
                 # Set new_s and new_t if possible
                 if new_s is None and new_t is None:
                     new_s,new_t = ones
-                elif not new_s is None and new_t is None:
+                elif new_s is not None and new_t is None:
                     new_t = ones[1] if new_s == ones[0] else ones[0]
-                elif new_s is None and not new_t is None:
+                elif new_s is None and new_t is not None:
                     new_s = ones[1] if new_t == ones[0] else ones[0]
 
             elif len(ones) == 1:
-                if not new_s is None and not new_t is None and not (new_s in ones or new_t in ones):
+                if new_s is not None and new_t is not None and not (new_s in ones or new_t in ones):
                     return (0, None) if use_edge_labels else None
-                elif new_s is None and (new_t is None or (not new_t is None and not new_t in ones)):
+                elif new_s is None and (new_t is None or (new_t is not None and new_t not in ones)):
                     new_s = ones.pop()
-                elif new_t is None and not new_s is None and not new_s in ones:
+                elif new_t is None and new_s is not None and new_s not in ones:
                     new_t = ones.pop()
-
 
         if not use_edge_labels and algorithm == "backtrack":
             path = g.longest_path(s=new_s, t=new_t, algorithm="backtrack")
@@ -7943,44 +7875,33 @@ class GenericGraph(GenericGraph_pyx):
 
             sage: from operator import itemgetter
             sage: n = 20
-            sage: for i in range(20):
-            ....:     g = Graph()
-            ....:     g.allow_multiple_edges(False)
-            ....:     for u, v in graphs.RandomGNP(n,.2).edges(labels=False, sort=False):
-            ....:          g.add_edge(u, v, round(random(), 5))
-            ....:     for u, v in graphs.CycleGraph(n).edges(labels=False, sort=False):
-            ....:          if not g.has_edge(u, v):
-            ....:              g.add_edge(u, v, round(random(),5))
-            ....:     v1 = g.traveling_salesman_problem(constraint_generation=False, use_edge_labels=True)
-            ....:     v2 = g.traveling_salesman_problem(use_edge_labels=True)
-            ....:     c1 = sum(v1.edge_labels())
-            ....:     c2 = sum(v2.edge_labels())
-            ....:     if c1 != c2:
-            ....:         print("Error !", c1, c2)
-            ....:         break
+            sage: g = Graph()
+            sage: g.allow_multiple_edges(False)
+            sage: for u, v in graphs.RandomGNP(n,.2).edges(labels=False, sort=False):
+            ....:      g.add_edge(u, v, ZZ.random_element(1,100000))
+            sage: for u, v in graphs.CycleGraph(n).edges(labels=False, sort=False):
+            ....:      if not g.has_edge(u, v):
+            ....:          g.add_edge(u, v, ZZ.random_element(1,100000))
+            sage: v1 = g.traveling_salesman_problem(constraint_generation=False, use_edge_labels=True)
+            sage: v2 = g.traveling_salesman_problem(use_edge_labels=True)
+            sage: sum(v1.edge_labels()) == sum(v2.edge_labels())
+            True
 
         Then for digraphs::
 
             sage: from operator import itemgetter
-            sage: set_random_seed(0)
             sage: n = 20
-            sage: for i in range(20):
-            ....:     g = DiGraph()
-            ....:     g.allow_multiple_edges(False)
-            ....:     for u, v in digraphs.RandomDirectedGNP(n, .2).edges(labels=False, sort=False):
-            ....:          g.add_edge(u, v, round(random(), 5))
-            ....:     for u, v in digraphs.Circuit(n).edges(labels=False, sort=False):
-            ....:          if not g.has_edge(u, v):
-            ....:              g.add_edge(u, v, round(random(), 5))
-            ....:     v2 = g.traveling_salesman_problem(use_edge_labels=True)
-            ....:     v1 = g.traveling_salesman_problem(constraint_generation=False, use_edge_labels=True)
-            ....:     c1 = sum(v1.edge_labels())
-            ....:     c2 = sum(v2.edge_labels())
-            ....:     if c1 != c2:
-            ....:         print("Error !", c1, c2)
-            ....:         print("With constraint generation :", c2)
-            ....:         print("Without constraint generation :", c1)
-            ....:         break
+            sage: g = DiGraph()
+            sage: g.allow_multiple_edges(False)
+            sage: for u, v in digraphs.RandomDirectedGNP(n, .2).edges(labels=False, sort=False):
+            ....:      g.add_edge(u, v, ZZ.random_element(1,100000))
+            sage: for u, v in digraphs.Circuit(n).edges(labels=False, sort=False):
+            ....:      if not g.has_edge(u, v):
+            ....:          g.add_edge(u, v, ZZ.random_element(1,100000))
+            sage: v2 = g.traveling_salesman_problem(use_edge_labels=True)
+            sage: v1 = g.traveling_salesman_problem(constraint_generation=False, use_edge_labels=True)
+            sage: sum(v1.edge_labels()) == sum(v2.edge_labels())
+            True
 
         Simple tests for multiple edges and loops::
 
@@ -8136,7 +8057,7 @@ class GenericGraph(GenericGraph_pyx):
             #################
             if g.is_directed():
 
-                from sage.graphs.all import DiGraph
+                from sage.graphs.digraph import DiGraph
                 b = p.new_variable(binary=True)
 
                 # Objective function
@@ -8186,7 +8107,7 @@ class GenericGraph(GenericGraph_pyx):
             ###################
             else:
 
-                from sage.graphs.all import Graph
+                from sage.graphs.graph import Graph
                 b = p.new_variable(binary=True)
 
                 # Objective function
@@ -8271,7 +8192,7 @@ class GenericGraph(GenericGraph_pyx):
                 p.set_objective(p.sum(weight(l) * f[u,v] for u,v,l in g.edge_iterator()))
 
             # defining the answer when g is directed
-            from sage.graphs.all import DiGraph
+            from sage.graphs.digraph import DiGraph
             tsp = DiGraph()
 
         else:
@@ -8287,7 +8208,7 @@ class GenericGraph(GenericGraph_pyx):
             if use_edge_labels:
                 p.set_objective(p.sum(weight(l) * f[frozenset((u,v))] for u,v,l in g.edge_iterator()))
 
-            from sage.graphs.all import Graph
+            from sage.graphs.graph import Graph
 
             # defining the answer when g is not directed
             tsp = Graph()
@@ -9272,7 +9193,7 @@ class GenericGraph(GenericGraph_pyx):
             0
         """
         from sage.graphs.digraph import DiGraph
-        from sage.functions.other import floor
+        from sage.arith.misc import integer_floor as floor
 
         # Whether we should consider the edges labeled
         if use_edge_labels:
@@ -9833,7 +9754,8 @@ class GenericGraph(GenericGraph_pyx):
         return paths
 
     def pagerank(self, alpha=0.85, personalization=None, by_weight=False,
-                 weight_function=None, dangling=None, algorithm='scipy'):
+                 weight_function=None, check_weight=True,
+                 dangling=None, algorithm='scipy'):
         r"""
         Return the PageRank of the vertices of ``self``.
 
@@ -9866,6 +9788,9 @@ class GenericGraph(GenericGraph_pyx):
           ``None``, ``by_weight`` is automatically set to ``True``. If ``None``
           and ``by_weight`` is ``True``, we use the edge label ``l``, if ``l``
           is not ``None``, else ``1`` as a weight.
+
+        - ``check_weight`` -- boolean (default: ``True``); whether to check that
+          the ``weight_function`` outputs a number for each edge.
 
         - ``dangling`` -- dict (default: ``None``); a dictionary keyed by a
           vertex the outedge of "dangling" vertices, (i.e., vertices without
@@ -9969,19 +9894,11 @@ class GenericGraph(GenericGraph_pyx):
         if not self.order():
             return {}
 
-        if weight_function is not None:
-            by_weight = True
+        by_weight, weight_function = self._get_weight_function(by_weight=by_weight,
+                                                               weight_function=weight_function,
+                                                               check_weight=check_weight)
 
         if by_weight:
-            if weight_function is None:
-                def weight_function(e):
-                    return 1 if e[2] is None else e[2]
-        else:
-            def weight_function(e):
-                return 1
-
-        if by_weight:
-            self._check_weight_function(weight_function)
             weight = "weight"
         else:
             weight = None
@@ -10652,7 +10569,7 @@ class GenericGraph(GenericGraph_pyx):
         ::
 
             sage: D = DiGraph({0: [1, 2], 3: [0]})
-            sage: list(D.neighbor_iterator(0))
+            sage: sorted(D.neighbor_iterator(0))
             [1, 2, 3]
 
         ::
@@ -10918,7 +10835,8 @@ class GenericGraph(GenericGraph_pyx):
 
         if self.is_directed():
             out_edges = self.edge_boundary(vertices)
-            in_edges = self.edge_boundary([v for v in self if not v in vertices])
+            in_edges = self.edge_boundary([v for v in self
+                                           if v not  in vertices])
             self.delete_vertices(vertices[1:])
             self.add_edges((u, v0, l) for (u0, v0, l) in out_edges if u0 != u)
             self.add_edges((v0, u, l) for (v0, u0, l) in in_edges if u0 != u)
@@ -13619,7 +13537,7 @@ class GenericGraph(GenericGraph_pyx):
                         nb1 = [u for u in g.neighbor_iterator(v) if pos_in_peo[u] > pos_in_peo[v]]
                         for xi in nb1:
                             for yi in nb1:
-                                if not yi in neighbors_subsets[xi]:
+                                if yi not in neighbors_subsets[xi]:
                                     new_tup = (pos_in_peo[xi], pos_in_peo[yi])
                                     if max_tup < new_tup:
                                         max_tup = new_tup
@@ -13645,7 +13563,7 @@ class GenericGraph(GenericGraph_pyx):
         # ----------------
 
         # 1- The graph is not chordal
-        if not hole is None:
+        if hole is not None:
             # There was a bug there once, so it's better to check the
             # answer is valid, especially when it is so cheap ;-)
 
@@ -14478,7 +14396,7 @@ class GenericGraph(GenericGraph_pyx):
             else:
                 implementation = 'sparse_copy'
 
-        if not implementation in ['networkx', 'boost', 'dense_copy', 'sparse_copy']:
+        if implementation not in ['networkx', 'boost', 'dense_copy', 'sparse_copy']:
             raise ValueError("the implementation can only be 'networkx', "
                              "'boost', 'sparse_copy', 'dense_copy' or None")
 
@@ -14602,7 +14520,7 @@ class GenericGraph(GenericGraph_pyx):
             else:
                 implementation = 'sparse_copy'
 
-        if not implementation in ['networkx', 'boost', 'dense_copy', 'sparse_copy']:
+        if implementation not in ['networkx', 'boost', 'dense_copy', 'sparse_copy']:
             raise ValueError("the implementation can only be 'networkx', "
                              "'boost', 'sparse_copy', 'dense_copy' or None")
 
@@ -14657,7 +14575,7 @@ class GenericGraph(GenericGraph_pyx):
 
     ### Distance
 
-    def distance(self, u, v, by_weight=False):
+    def distance(self, u, v, by_weight=False, weight_function=None, check_weight=True):
         """
         Return the (directed) distance from ``u`` to ``v`` in the (di)graph.
 
@@ -14673,6 +14591,15 @@ class GenericGraph(GenericGraph_pyx):
           is considered unweighted, and the distance is the number of edges in a
           shortest path. If ``True``, the distance is the sum of edge labels
           (which are assumed to be numbers).
+
+        - ``weight_function`` -- function (default: ``None``); a function that
+          takes as input an edge ``(u, v, l)`` and outputs its weight. If not
+          ``None``, ``by_weight`` is automatically set to ``True``. If ``None``
+          and ``by_weight`` is ``True``, we use the edge label ``l``, if ``l``
+          is not ``None``, else ``1`` as a weight.
+
+        - ``check_weight`` -- boolean (default: ``True``); whether to check that
+          the ``weight_function`` outputs a number for each edge.
 
         EXAMPLES::
 
@@ -14693,7 +14620,9 @@ class GenericGraph(GenericGraph_pyx):
             sage: G.distance(0, 3, by_weight=True)
             3
         """
-        return self.shortest_path_length(u, v, by_weight=by_weight)
+        return self.shortest_path_length(u, v, by_weight=by_weight,
+                                         weight_function=weight_function,
+                                         check_weight=check_weight)
 
     def distance_all_pairs(self, by_weight=False, algorithm=None,
                            weight_function=None, check_weight=True):
@@ -14929,7 +14858,7 @@ class GenericGraph(GenericGraph_pyx):
             looped = True
         else:
             looped = False
-        from sage.graphs.all import Graph
+        from sage.graphs.graph import Graph
         D = Graph(vertices, pos=positions, multiedges=False, loops=looped)
         if len(distances) == 1:
             dstring = "distance " + str(distances[0])
@@ -15505,64 +15434,66 @@ class GenericGraph(GenericGraph_pyx):
 
             sage: import random
             sage: import itertools
-            sage: for i in range(10):                           # long time
-            ....:     n = random.randint(2,20)
-            ....:     m = random.randint(0, n*(n-1)/2)
-            ....:     g = graphs.RandomGNM(n,m)
-            ....:     c1 = g.centrality_closeness(algorithm='BFS')
-            ....:     c2 = g.centrality_closeness(algorithm='NetworkX')
-            ....:     c3 = g.centrality_closeness(algorithm='Dijkstra_Boost')
-            ....:     c4 = g.centrality_closeness(algorithm='Floyd-Warshall-Cython')
-            ....:     c5 = g.centrality_closeness(algorithm='Floyd-Warshall-Python')
-            ....:     c6 = g.centrality_closeness(algorithm='Johnson_Boost')
-            ....:     assert(len(c1)==len(c2)==len(c3)==len(c4)==len(c5)==len(c6))
-            ....:     c = [c1,c2,c3,c4,c5,c6]
-            ....:     for ci, cj in itertools.combinations(c, 2):
-            ....:         assert(sum(abs(ci[v] - cj[v]) for v in g if g.degree(v)) < 1e-12)
+            sage: n = random.randint(2,20)
+            sage: m = random.randint(0, n*(n-1)/2)
+            sage: g = graphs.RandomGNM(n,m)
+            sage: c1 = g.centrality_closeness(algorithm='BFS')
+            sage: c2 = g.centrality_closeness(algorithm='NetworkX')
+            sage: c3 = g.centrality_closeness(algorithm='Dijkstra_Boost')
+            sage: c4 = g.centrality_closeness(algorithm='Floyd-Warshall-Cython')
+            sage: c5 = g.centrality_closeness(algorithm='Floyd-Warshall-Python')
+            sage: c6 = g.centrality_closeness(algorithm='Johnson_Boost')
+            sage: len(c1)==len(c2)==len(c3)==len(c4)==len(c5)==len(c6)
+            True
+            sage: c = [c1,c2,c3,c4,c5,c6]
+            sage: all( sum(abs(ci[v] - cj[v]) for v in g if g.degree(v)) < 1e-12
+            ....:      for ci, cj in itertools.combinations(c, 2) )
+            True
 
         Directed graphs::
 
             sage: import random
             sage: import itertools
-            sage: for i in range(10):                           # long time
-            ....:     n = random.randint(2,20)
-            ....:     m = random.randint(0, n*(n-1)/2)
-            ....:     g = digraphs.RandomDirectedGNM(n,m)
-            ....:     c1 = g.centrality_closeness(algorithm='BFS')
-            ....:     c2 = g.centrality_closeness(algorithm='NetworkX')
-            ....:     c3 = g.centrality_closeness(algorithm='Dijkstra_Boost')
-            ....:     c4 = g.centrality_closeness(algorithm='Floyd-Warshall-Cython')
-            ....:     c5 = g.centrality_closeness(algorithm='Floyd-Warshall-Python')
-            ....:     c6 = g.centrality_closeness(algorithm='Johnson_Boost')
-            ....:     assert(len(c1)==len(c2)==len(c3)==len(c4)==len(c5)==len(c6))
-            ....:     c = [c1,c2,c3,c4,c5,c6]
-            ....:     for ci, cj in itertools.combinations(c, 2):
-            ....:         assert(sum(abs(ci[v] - cj[v]) for v in g if g.out_degree(v)) < 1e-12)
+            sage: n = random.randint(2,20)
+            sage: m = random.randint(0, n*(n-1)/2)
+            sage: g = digraphs.RandomDirectedGNM(n,m)
+            sage: c1 = g.centrality_closeness(algorithm='BFS')
+            sage: c2 = g.centrality_closeness(algorithm='NetworkX')
+            sage: c3 = g.centrality_closeness(algorithm='Dijkstra_Boost')
+            sage: c4 = g.centrality_closeness(algorithm='Floyd-Warshall-Cython')
+            sage: c5 = g.centrality_closeness(algorithm='Floyd-Warshall-Python')
+            sage: c6 = g.centrality_closeness(algorithm='Johnson_Boost')
+            sage: len(c1)==len(c2)==len(c3)==len(c4)==len(c5)==len(c6)
+            True
+            sage: c = [c1,c2,c3,c4,c5,c6]
+            sage: all( sum(abs(ci[v] - cj[v]) for v in g if g.out_degree(v)) < 1e-12
+            ....:      for ci, cj in itertools.combinations(c, 2) )
+            True
 
         Weighted graphs::
 
             sage: import random
             sage: import itertools
-            sage: for i in range(10):                           # long time
-            ....:     n = random.randint(2,20)
-            ....:     m = random.randint(0, n*(n-1)/2)
-            ....:     g = graphs.RandomGNM(n,m)
-            ....:     for v,w in g.edges(labels=False):
-            ....:         g.set_edge_label(v,w,float(random.uniform(1,100)))
-            ....:     c1 = g.centrality_closeness(by_weight=True, algorithm='NetworkX')
-            ....:     c2 = g.centrality_closeness(by_weight=True, algorithm='Dijkstra_Boost')
-            ....:     c3 = g.centrality_closeness(by_weight=True, algorithm='Floyd-Warshall-Python')
-            ....:     c4 = g.centrality_closeness(by_weight=True, algorithm='Johnson_Boost')
-            ....:     assert(len(c1)==len(c2)==len(c3)==len(c4))
-            ....:     c = [c1,c2,c3,c4]
-            ....:     for ci, cj in itertools.combinations(c, 2):
-            ....:         assert(sum(abs(ci[v] - cj[v]) for v in g if g.degree(v)) < 1e-12)
+            sage: n = random.randint(2,20)
+            sage: m = random.randint(0, n*(n-1)/2)
+            sage: g = graphs.RandomGNM(n,m)
+            sage: for v,w in g.edges(labels=False):
+            ....:     g.set_edge_label(v,w,float(random.uniform(1,100)))
+            sage: c1 = g.centrality_closeness(by_weight=True, algorithm='NetworkX')
+            sage: c2 = g.centrality_closeness(by_weight=True, algorithm='Dijkstra_Boost')
+            sage: c3 = g.centrality_closeness(by_weight=True, algorithm='Floyd-Warshall-Python')
+            sage: c4 = g.centrality_closeness(by_weight=True, algorithm='Johnson_Boost')
+            sage: len(c1)==len(c2)==len(c3)==len(c4)
+            True
+            sage: c = [c1,c2,c3,c4]
+            sage: all( sum(abs(ci[v] - cj[v]) for v in g if g.degree(v)) < 1e-12
+            ....:      for ci, cj in itertools.combinations(c, 2) )
+            True
+
         """
-        if weight_function is not None:
-            by_weight=True
-        elif by_weight:
-            def weight_function(e):
-                return 1 if e[2] is None else e[2]
+        by_weight, weight_function = self._get_weight_function(by_weight=by_weight,
+                                                               weight_function=weight_function,
+                                                               check_weight=check_weight)
 
         onlyone = False
         if vert in self:
@@ -15576,21 +15507,17 @@ class GenericGraph(GenericGraph_pyx):
         if algorithm is None:
             if not by_weight:
                 algorithm = 'BFS'
-            else:
-                for e in self.edge_iterator():
-                    try:
-                        if float(weight_function(e)) < 0:
-                            algorithm = 'Johnson_Boost'
-                            break
-                    except (ValueError, TypeError):
-                        raise ValueError("the weight function cannot find the" +
-                                         " weight of " + str(e))
+            elif any(float(weight_function(e)) < 0 for e in self.edge_iterator()):
+                algorithm = 'Johnson_Boost'
             if algorithm is None:
                 algorithm = 'Dijkstra_Boost'
+        if algorithm in ['BFS', 'Floyd-Warshall-Cython']:
+            if by_weight:
+                raise ValueError("algorithm '{}' does not work with weights".format(algorithm))
+            # We don't want the default weight function
+            weight_function = None
 
         if algorithm == 'NetworkX':
-            if by_weight and check_weight:
-                self._check_weight_function(weight_function)
             import networkx
             if by_weight:
                 if self.is_directed():
@@ -15629,15 +15556,17 @@ class GenericGraph(GenericGraph_pyx):
             distances = None
             if algorithm in ["Floyd-Warshall-Cython",
                              "Floyd-Warshall-Python"]:
-                distances = self.shortest_path_all_pairs(by_weight,algorithm,
-                                                         weight_function,
-                                                         check_weight)[0]
+                distances = self.shortest_path_all_pairs(algorithm=algorithm,
+                                                         by_weight=by_weight,
+                                                         weight_function=weight_function,
+                                                         check_weight=False)[0]
 
             for v in v_iter:
                 if distances is None:
-                    distv = self.shortest_path_lengths(v, by_weight, algorithm,
-                                                       weight_function,
-                                                       check_weight)
+                    distv = self.shortest_path_lengths(v, algorithm=algorithm,
+                                                       by_weight=by_weight,
+                                                       weight_function=weight_function,
+                                                       check_weight=False)
                 else:
                     distv = distances[v]
                 try:
@@ -15710,15 +15639,14 @@ class GenericGraph(GenericGraph_pyx):
 
         Comparison of algorithms::
 
-            sage: for i in range(10): # long time
-            ....:     G = graphs.RandomBarabasiAlbert(50,2)
-            ....:     results = []
-            ....:     results.append(G.triangles_count(algorithm='matrix'))
-            ....:     results.append(G.triangles_count(algorithm='iter'))
-            ....:     results.append(G.triangles_count(algorithm='sparse_copy'))
-            ....:     results.append(G.triangles_count(algorithm='dense_copy'))
-            ....:     if any(x != results[0] for x in results):
-            ....:        raise ValueError("something goes wrong, {}".format(results))
+            sage: G = graphs.RandomBarabasiAlbert(50,2)
+            sage: results = []
+            sage: results.append(G.triangles_count(algorithm='matrix'))
+            sage: results.append(G.triangles_count(algorithm='iter'))
+            sage: results.append(G.triangles_count(algorithm='sparse_copy'))
+            sage: results.append(G.triangles_count(algorithm='dense_copy'))
+            sage: any(x != results[0] for x in results)
+            False
 
         Asking for an unknown algorithm::
 
@@ -15906,38 +15834,28 @@ class GenericGraph(GenericGraph_pyx):
             raise ValueError("vertex '{}' is not in the (di)graph".format(u))
         if not self.has_vertex(v):
             raise ValueError("vertex '{}' is not in the (di)graph".format(v))
+        if u == v:
+            return [u]
 
-        if weight_function is not None:
-            by_weight = True
+        by_weight, weight_function = self._get_weight_function(by_weight=by_weight,
+                                                               weight_function=weight_function,
+                                                               check_weight=check_weight)
 
         if algorithm is None:
             algorithm = 'Dijkstra_Bid' if by_weight else 'BFS_Bid'
+        elif algorithm in ['BFS', 'BFS_Bid']:
+            if by_weight:
+                raise ValueError("the '{}' algorithm does not work on weighted graphs".format(algorithm))
+            # We don't want the default weight function
+            weight_function = None
 
         if algorithm in ['BFS', 'Dijkstra_NetworkX', 'Bellman-Ford_Boost']:
-            all_paths = self.shortest_paths(u, by_weight, algorithm, weight_function, check_weight)
+            all_paths = self.shortest_paths(u, algorithm=algorithm, by_weight=by_weight,
+                                            weight_function=weight_function, check_weight=False)
             if v in all_paths:
                 return all_paths[v]
             return []
-
-        if u == v:  # to avoid a NetworkX bug
-            return [u]
-
-        if by_weight:
-            if algorithm == 'BFS_Bid':
-                raise ValueError("the 'BFS_Bid' algorithm does not "
-                                 "work on weighted graphs")
-
-            if not weight_function:
-                def weight_function(e):
-                    return 1 if e[2] is None else e[2]
-
-            if check_weight:
-                self._check_weight_function(weight_function)
-        else:
-            def weight_function(e):
-                return 1
-
-        if algorithm == "Dijkstra_Bid":
+        elif algorithm == "Dijkstra_Bid":
             return self._backend.bidirectional_dijkstra(u, v, weight_function)
         elif algorithm == "Dijkstra_Bid_NetworkX":
             import networkx
@@ -16099,15 +16017,20 @@ class GenericGraph(GenericGraph_pyx):
             raise ValueError("vertex '{}' is not in the (di)graph".format(u))
         if not self.has_vertex(v):
             raise ValueError("vertex '{}' is not in the (di)graph".format(v))
-
         if u == v:  # to avoid a NetworkX bug
             return 0
 
-        if weight_function is not None:
-            by_weight = True
+        by_weight, weight_function = self._get_weight_function(by_weight=by_weight,
+                                                               weight_function=weight_function,
+                                                               check_weight=check_weight)
 
         if algorithm is None:
             algorithm = 'Dijkstra_Bid' if by_weight else 'BFS_Bid'
+        elif algorithm in ['BFS', 'BFS_Bid']:
+            if by_weight:
+                raise ValueError("the '{}' algorithm does not work on weighted graphs".format(algorithm))
+            # We don't want the default weight function
+            weight_function = None
 
         if algorithm in ['BFS', 'Dijkstra_NetworkX', 'Bellman-Ford_Boost']:
             all_path_lengths = self.shortest_path_lengths(u, by_weight, algorithm, weight_function, check_weight)
@@ -16116,22 +16039,7 @@ class GenericGraph(GenericGraph_pyx):
             from sage.rings.infinity import Infinity
             return Infinity
 
-        if by_weight:
-            if algorithm == 'BFS_Bid':
-                raise ValueError("the 'BFS_Bid' algorithm does not "
-                                 "work on weighted graphs")
-
-            if not weight_function:
-                def weight_function(e):
-                    return 1 if e[2] is None else e[2]
-
-            if check_weight:
-                self._check_weight_function(weight_function)
-        else:
-            def weight_function(e):
-                return 1
-
-        if algorithm == "Dijkstra_Bid":
+        elif algorithm == "Dijkstra_Bid":
             return self._backend.bidirectional_dijkstra(u, v, weight_function, distance_flag=True)
         elif algorithm == "Dijkstra_Bid_NetworkX":
             import networkx
@@ -16208,6 +16116,81 @@ class GenericGraph(GenericGraph_pyx):
             except Exception:
                 raise ValueError("the weight function cannot find the "
                                  "weight of " + str(e))
+
+    def _get_weight_function(self, by_weight=False, weight_function=None, check_weight=True):
+        r"""
+        Return an edge weight function.
+
+        An edge weight function is a function that takes as input an edge and
+        outputs its weight.
+
+        This method is a helper function for methods using the weight of edges.
+        It either checks the validity of an input weight function, or returns a
+        valid weight function on the edges.
+
+        INPUT:
+
+        - ``by_weight`` -- boolean (default: ``False``); if ``True``, the edges
+          in the graph are weighted, otherwise all edges have weight 1
+
+        - ``weight_function`` -- function (default: ``None``); a function that
+          takes as input an edge ``(u, v, l)`` and outputs its weight. If not
+          ``None``, ``by_weight`` is automatically set to ``True``. If ``None``
+          and ``by_weight`` is ``True``, we use the edge label ``l``, if ``l``
+          is not ``None``, else ``1`` as a weight.
+
+        - ``check_weight`` -- boolean (default: ``True``); if ``True``, we check
+          that the weight_function outputs a number for each edge
+
+        EXAMPLES:
+
+        The default weight function outputs 1 for each edge::
+
+            sage: G = Graph([(0, 1, 1), (1, 2, 3), (2, 3, 2)])
+            sage: by_weight, weight_function = G._get_weight_function()
+            sage: by_weight
+            False
+            sage: [weight_function(e) for e in G.edges()]
+            [1, 1, 1]
+
+        The standard weight function outputs labels::
+
+            sage: G = Graph([(0, 1, 1), (1, 2, 3), (2, 3, 2)])
+            sage: by_weight, weight_function = G._get_weight_function(by_weight=True)
+            sage: by_weight
+            True
+            sage: [weight_function(e) for e in G.edges()]
+            [1, 3, 2]
+
+        However, it might be more complicated::
+
+            sage: G = Graph([(0, 1, {'name':'a', 'weight':1}), (1, 2, {'name': 'b', 'weight': 3}), (2, 3, {'name': 'c', 'weight': 2})])
+            sage: by_weight, weight_function = G._get_weight_function(weight_function=lambda e:e[2]['weight'])
+            sage: by_weight
+            True
+            sage: [weight_function(e) for e in G.edges()]
+            [1, 3, 2]
+
+        Numeric string as a weight in weight_function::
+
+            sage: G = Graph({0: {1: '123'}})
+            sage: by_weight, weight_function = G._get_weight_function(by_weight=True)
+            Traceback (most recent call last):
+            ...
+            ValueError: the weight function cannot find the weight of (0, 1, '123')
+        """
+        if weight_function is not None:
+            by_weight = True
+        if by_weight:
+            if weight_function is None:
+                def weight_function(e):
+                    return 1 if e[2] is None else e[2]
+            if check_weight:
+                self._check_weight_function(weight_function)
+        else:
+            def weight_function(e):
+                return 1
+        return by_weight, weight_function
 
     def shortest_paths(self, u, by_weight=False, algorithm=None,
                        weight_function=None, check_weight=True, cutoff=None):
@@ -16352,20 +16335,12 @@ class GenericGraph(GenericGraph_pyx):
             ...
             ValueError: ('Contradictory paths found:', 'negative weights?')
         """
-        if weight_function is not None:
-            by_weight = True
-        elif by_weight:
-            def weight_function(e):
-                return 1 if e[2] is None else e[2]
-        else:
-            def weight_function(e):
-                return 1
+        by_weight, weight_function = self._get_weight_function(by_weight=by_weight,
+                                                               weight_function=weight_function,
+                                                               check_weight=check_weight)
 
         if algorithm is None and not by_weight:
             algorithm = 'BFS'
-
-        if by_weight and check_weight:
-            self._check_weight_function(weight_function)
 
         if algorithm == 'BFS':
             if by_weight:
@@ -16468,14 +16443,11 @@ class GenericGraph(GenericGraph_pyx):
             return Infinity
 
         if by_weight or weight_function is not None:
-            if weight_function is None:
-                def weight_function(e):
-                    return 1 if e[2] is None else e[2]
-            wt = 0
-
-            for u, v in zip(path[:-1], path[1:]):
-                wt += weight_function((u, v, self.edge_label(u, v)))
-            return wt
+            _, weight_function = self._get_weight_function(by_weight=by_weight,
+                                                           weight_function=weight_function,
+                                                           check_weight=False)
+            return sum(weight_function((u, v, self.edge_label(u, v)))
+                           for u, v in zip(path[:-1], path[1:]))
         else:
             return len(path) - 1
 
@@ -16577,20 +16549,12 @@ class GenericGraph(GenericGraph_pyx):
             sage: d1 == d2 == d3 == d4
             True
         """
-        if weight_function is not None:
-            by_weight = True
-        elif by_weight:
-            def weight_function(e):
-                return 1 if e[2] is None else e[2]
-        else:
-            def weight_function(e):
-                return 1
+        by_weight, weight_function = self._get_weight_function(by_weight=by_weight,
+                                                               weight_function=weight_function,
+                                                               check_weight=check_weight)
 
         if algorithm is None and not by_weight:
             algorithm = 'BFS'
-
-        if by_weight and check_weight:
-            self._check_weight_function(weight_function)
 
         if algorithm == 'BFS':
             if by_weight:
@@ -16647,6 +16611,10 @@ class GenericGraph(GenericGraph_pyx):
             negative weights (but no negative cycle is allowed).
 
           - ``'Floyd-Warshall_Boost'``: the Boost implementation of the
+            Floyd-Warshall algorithm. Works also with weighted graphs, even with
+            negative weights (but no negative cycle is allowed).
+
+          - ``'Floyd-Warshall_SciPy'``: the SciPy implementation of the
             Floyd-Warshall algorithm. Works also with weighted graphs, even with
             negative weights (but no negative cycle is allowed).
 
@@ -16754,7 +16722,8 @@ class GenericGraph(GenericGraph_pyx):
             sage: d5, _ = g.shortest_path_all_pairs(algorithm="Dijkstra_Boost")
             sage: d6, _ = g.shortest_path_all_pairs(algorithm="Johnson_Boost")
             sage: d7, _ = g.shortest_path_all_pairs(algorithm="Floyd-Warshall_Boost")
-            sage: d1 == d2 == d3 == d4 == d5 == d6 == d7
+            sage: d8, _ = g.shortest_path_all_pairs(algorithm="Floyd-Warshall_SciPy")
+            sage: d1 == d2 == d3 == d4 == d5 == d6 == d7 == d8
             True
 
         Checking that distances are equal regardless of the algorithm used::
@@ -16767,7 +16736,8 @@ class GenericGraph(GenericGraph_pyx):
             sage: d5, _ = g.shortest_path_all_pairs(algorithm="Dijkstra_Boost")
             sage: d6, _ = g.shortest_path_all_pairs(algorithm="Johnson_Boost")
             sage: d7, _ = g.shortest_path_all_pairs(algorithm="Floyd-Warshall_Boost")
-            sage: d1 == d2 == d3 == d4 == d5 == d6 == d7
+            sage: d8, _ = g.shortest_path_all_pairs(algorithm="Floyd-Warshall_SciPy")
+            sage: d1 == d2 == d3 == d4 == d5 == d6 == d7 == d8
             True
 
         Checking that weighted distances are equal regardless of the algorithm
@@ -16782,7 +16752,8 @@ class GenericGraph(GenericGraph_pyx):
             sage: d3, _ = g.shortest_path_all_pairs(algorithm="Dijkstra_Boost")
             sage: d4, _ = g.shortest_path_all_pairs(algorithm="Johnson_Boost")
             sage: d5, _ = g.shortest_path_all_pairs(algorithm="Floyd-Warshall_Boost")
-            sage: d1 == d2 == d3 == d4 == d5
+            sage: d6, _ = g.shortest_path_all_pairs(algorithm="Floyd-Warshall_SciPy")
+            sage: d1 == d2 == d3 == d4 == d5 == d6
             True
 
         Checking a random path is valid::
@@ -16820,6 +16791,9 @@ class GenericGraph(GenericGraph_pyx):
              {0: {0: None, 1: 0, 2: 1}, 1: {1: None, 2: 1}, 2: {2: None}})
             sage: g.shortest_path_all_pairs(algorithm='Floyd-Warshall-Cython')
             ({0: {0: 0, 1: 1, 2: 2}, 1: {1: 0, 2: 1}, 2: {2: 0}},
+             {0: {0: None, 1: 0, 2: 1}, 1: {1: None, 2: 1}, 2: {2: None}})
+            sage: g.shortest_path_all_pairs(algorithm='Floyd-Warshall_SciPy')
+            ({0: {0: 0.0, 1: 1.0, 2: 2.0}, 1: {1: 0.0, 2: 1.0}, 2: {2: 0.0}},
              {0: {0: None, 1: 0, 2: 1}, 1: {1: None, 2: 1}, 2: {2: None}})
 
         In order to change the default behavior if the graph is disconnected,
@@ -16867,31 +16841,17 @@ class GenericGraph(GenericGraph_pyx):
             ...
             RuntimeError: Dijkstra algorithm does not work with negative weights, use Bellman-Ford instead
         """
-        if weight_function is not None:
-            by_weight = True
+        from sage.rings.infinity import Infinity
 
-        if by_weight:
-            if not weight_function:
-                def weight_function(e):
-                    return 1 if e[2] is None else e[2]
-
-            if check_weight:
-                self._check_weight_function(weight_function)
-        else:
-            def weight_function(e):
-                return 1
+        by_weight, weight_function = self._get_weight_function(by_weight=by_weight,
+                                                               weight_function=weight_function,
+                                                               check_weight=check_weight)
 
         if algorithm is None:
             if by_weight:
-                for e in self.edge_iterator():
-                    try:
-                        if weight_function(e) < 0:
-                            algorithm = "Floyd-Warshall_Boost"
-                            break
-                    except (ValueError, TypeError):
-                        raise ValueError("the weight function cannot find the"
-                                         " weight of " + e)
-                if algorithm is None:
+                if any(weight_function(e) < 0 for e in self.edge_iterator()):
+                    algorithm = "Floyd-Warshall_Boost"
+                else:
                     algorithm = "Dijkstra_Boost"
             else:
                 algorithm = "BFS"
@@ -16911,6 +16871,38 @@ class GenericGraph(GenericGraph_pyx):
         elif algorithm == "Floyd-Warshall_Boost":
             from sage.graphs.base.boost_graph import floyd_warshall_shortest_paths
             return floyd_warshall_shortest_paths(self, weight_function, distances=True, predecessors=True)
+
+        elif algorithm == "Floyd-Warshall_SciPy":
+            # Turn the graph to a n x n matrix
+            n = self.order()
+            int_to_vertex = list(self)
+            vertex_to_int = {u: i for i, u in enumerate(int_to_vertex)}
+            if by_weight:
+                M = [[float('inf')]*n for _ in range(n)]
+                for i in range(n):
+                    M[i][i] = 0
+                for e in self.edges(sort=False):
+                    u = vertex_to_int[e[0]]
+                    v = vertex_to_int[e[1]]
+                    M[u][v] = min(M[u][v], weight_function(e))
+                    if not self.is_directed():
+                        M[v][u] = M[u][v]
+            else:
+                M = self.adjacency_matrix(vertices=int_to_vertex)
+
+            # We call the Floyd-Warshall method from SciPy
+            from numpy import array as np_array
+            from scipy.sparse.csgraph import floyd_warshall
+            dd, pp = floyd_warshall(np_array(M), directed=self.is_directed(),
+                                    return_predecessors=True, unweighted=not by_weight)
+
+            # and format the result
+            dist = {int_to_vertex[i]: {int_to_vertex[j]: dd[i, j] for j in range(n) if dd[i, j] != +Infinity}
+                        for i in range(n)}
+            pred = {int_to_vertex[i]: {int_to_vertex[j]: (int_to_vertex[pp[i, j]] if i != j else None)
+                                           for j in range(n) if (i == j or pp[i, j] != -9999)}
+                        for i in range(n)}
+            return dist, pred
 
         elif algorithm == "Johnson_Boost":
             from sage.graphs.base.boost_graph import johnson_shortest_paths
@@ -16940,8 +16932,6 @@ class GenericGraph(GenericGraph_pyx):
 
         elif algorithm != "Floyd-Warshall-Python":
             raise ValueError('unknown algorithm "{}"'.format(algorithm))
-
-        from sage.rings.infinity import Infinity
 
         if self.is_directed():
             neighbor = self.neighbor_out_iterator
@@ -17108,26 +17098,37 @@ class GenericGraph(GenericGraph_pyx):
 
         TESTS::
 
-            sage: G.wiener_index(algorithm='BFS', weight_function=lambda e:(e[2] if e[2] is not None else 200))
+            sage: weight_function=lambda e:(e[2] if e[2] is not None else 200)
+            sage: G.wiener_index(algorithm='BFS', weight_function=weight_function)
             Traceback (most recent call last):
             ...
-            ValueError: BFS algorithm does not work on weighted graphs
+            ValueError: algorithm 'BFS' does not work with weights
+            sage: G.wiener_index(algorithm='Floyd-Warshall-Cython', weight_function=weight_function)
+            Traceback (most recent call last):
+            ...
+            ValueError: algorithm 'Floyd-Warshall-Cython' does not work with weights
 
             sage: Graph([(0, 1, 1)]).wiener_index(algorithm="coco beach")
             Traceback (most recent call last):
             ...
             ValueError: unknown algorithm "coco beach"
         """
-        by_weight = by_weight or (weight_function is not None)
-
         if not self:
             raise ValueError("Wiener index is not defined for the empty graph")
         elif self.order() == 1:
             return 0
 
-        if algorithm == 'BFS' or (algorithm is None and not by_weight):
+        by_weight, weight_function = self._get_weight_function(by_weight=by_weight,
+                                                               weight_function=weight_function,
+                                                               check_weight=check_weight)
+
+        if algorithm in ['BFS', 'Floyd-Warshall-Cython']:
             if by_weight:
-                raise ValueError("BFS algorithm does not work on weighted graphs")
+                raise ValueError("algorithm '{}' does not work with weights".format(algorithm))
+            # We don't want the default weight function
+            weight_function = None
+
+        if algorithm == 'BFS' or (algorithm is None and not by_weight):
             from .distances_all_pairs import wiener_index
             return wiener_index(self)
 
@@ -17135,7 +17136,7 @@ class GenericGraph(GenericGraph_pyx):
             from .base.boost_graph import wiener_index
             WI = wiener_index(self, algorithm=algorithm,
                               weight_function=weight_function,
-                              check_weight=check_weight)
+                              check_weight=False)
 
         elif (not self.is_connected()
               or (self.is_directed() and not self.is_strongly_connected())):
@@ -17163,7 +17164,7 @@ class GenericGraph(GenericGraph_pyx):
         else:
             distances = self.shortest_path_all_pairs(
                 by_weight=by_weight, algorithm=algorithm,
-                weight_function=weight_function, check_weight=check_weight)[0]
+                weight_function=weight_function, check_weight=False)[0]
             total = sum(sum(u.values()) for u in distances.values())
             WI = total if self.is_directed() else (total / 2)
 
@@ -17173,7 +17174,7 @@ class GenericGraph(GenericGraph_pyx):
         return WI
 
     def average_distance(self, by_weight=False, algorithm=None,
-                         weight_function=None):
+                         weight_function=None, check_weight=True):
         r"""
         Return the average distance between vertices of the graph.
 
@@ -17240,7 +17241,7 @@ class GenericGraph(GenericGraph_pyx):
         if self.order() < 2:
             raise ValueError("average distance is not defined for empty or one-element graph")
         WI =  self.wiener_index(by_weight=by_weight, algorithm=algorithm,
-                                    weight_function=weight_function)
+                                    weight_function=weight_function, check_weight=check_weight)
         f = 1 if self.is_directed() else 2
         if WI in ZZ:
             return QQ((f * WI, self.order() * (self.order() - 1)))
@@ -17521,11 +17522,11 @@ class GenericGraph(GenericGraph_pyx):
         You can get edges of the DFS tree instead of the vertices using the
         ``edges`` parameter::
 
-            sage: D = DiGraph({1: [2, 3], 2: [4], 3: [4], 4: [1, 5], 5: [2, 6]})
-            sage: list(D.depth_first_search(1, edges=True))
-            [(1, 3), (3, 4), (4, 5), (5, 6), (5, 2)]
-            sage: list(D.depth_first_search(1, ignore_direction=True, edges=True))
-            [(1, 4), (4, 5), (5, 6), (5, 2), (4, 3)]
+            sage: D = digraphs.Path(5)
+            sage: list(D.depth_first_search(2, edges=True))
+            [(2, 3), (3, 4)]
+            sage: list(D.depth_first_search(2, edges=True, ignore_direction=True))
+            [(2, 3), (3, 4), (2, 1), (1, 0)]
 
         TESTS::
 
@@ -18053,10 +18054,10 @@ class GenericGraph(GenericGraph_pyx):
         weighted   = self.weighted()              and other.weighted()
 
         if self._directed:
-            from sage.graphs.all import DiGraph
+            from sage.graphs.digraph import DiGraph
             G = DiGraph(multiedges=multiedges, loops=loops, weighted=weighted)
         else:
-            from sage.graphs.all import Graph
+            from sage.graphs.graph import Graph
             G = Graph(multiedges=multiedges, loops=loops, weighted=weighted)
         G.add_vertices(self)
         G.add_vertices(other)
@@ -18123,10 +18124,10 @@ class GenericGraph(GenericGraph_pyx):
         """
         self._scream_if_not_simple(allow_loops=True)
         if self._directed and other._directed:
-            from sage.graphs.all import DiGraph
+            from sage.graphs.digraph import DiGraph
             G = DiGraph(loops=(self.has_loops() or other.has_loops()))
         elif (not self._directed) and (not other._directed):
-            from sage.graphs.all import Graph
+            from sage.graphs.graph import Graph
             G = Graph(loops=(self.has_loops() or other.has_loops()))
         else:
             raise TypeError('the graphs should be both directed or both undirected')
@@ -18207,10 +18208,10 @@ class GenericGraph(GenericGraph_pyx):
         """
         self._scream_if_not_simple(allow_loops=True)
         if self._directed and other._directed:
-            from sage.graphs.all import DiGraph
+            from sage.graphs.digraph import DiGraph
             G = DiGraph(loops=(self.has_loops() or other.has_loops()))
         elif (not self._directed) and (not other._directed):
-            from sage.graphs.all import Graph
+            from sage.graphs.graph import Graph
             G = Graph(loops=(self.has_loops() or other.has_loops()))
         else:
             raise TypeError('the graphs should be both directed or both undirected')
@@ -18277,10 +18278,10 @@ class GenericGraph(GenericGraph_pyx):
         """
         self._scream_if_not_simple(allow_loops=True)
         if self._directed and other._directed:
-            from sage.graphs.all import DiGraph
+            from sage.graphs.digraph import DiGraph
             G = DiGraph(loops=(self.has_loops() or other.has_loops()))
         elif (not self._directed) and (not other._directed):
-            from sage.graphs.all import Graph
+            from sage.graphs.graph import Graph
             G = Graph(loops=(self.has_loops() or other.has_loops()))
         else:
             raise TypeError('the graphs should be both directed or both undirected')
@@ -18358,10 +18359,10 @@ class GenericGraph(GenericGraph_pyx):
         """
         self._scream_if_not_simple(allow_loops=True)
         if self._directed and other._directed:
-            from sage.graphs.all import DiGraph
+            from sage.graphs.digraph import DiGraph
             G = DiGraph(loops=(self.has_loops() or other.has_loops()))
         elif (not self._directed) and (not other._directed):
-            from sage.graphs.all import Graph
+            from sage.graphs.graph import Graph
             G = Graph(loops=(self.has_loops() or other.has_loops()))
         else:
             raise TypeError('the graphs should be both directed or both undirected')
@@ -18429,10 +18430,10 @@ class GenericGraph(GenericGraph_pyx):
         """
         self._scream_if_not_simple(allow_loops=True)
         if self._directed and other._directed:
-            from sage.graphs.all import DiGraph
+            from sage.graphs.digraph import DiGraph
             G = DiGraph(loops=(self.has_loops() or other.has_loops()))
         elif (not self._directed) and (not other._directed):
-            from sage.graphs.all import Graph
+            from sage.graphs.graph import Graph
             G = Graph(loops=(self.has_loops() or other.has_loops()))
         else:
             raise TypeError('the graphs should be both directed or both undirected')
@@ -18640,33 +18641,33 @@ class GenericGraph(GenericGraph_pyx):
         We consider the Cayley graph of the symmetric group, whose edges are
         labelled by the numbers 1,2, and 3::
 
-            sage: G = SymmetricGroup(4).cayley_graph()
-            sage: set(G.edge_labels())
+            sage: G = SymmetricGroup(4).cayley_graph()                                          # optional - sage.groups
+            sage: set(G.edge_labels())                                                          # optional - sage.groups
             {1, 2, 3}
 
         We first request the coloring as a function::
 
-            sage: f = G._color_by_label(as_function=True)
-            sage: [f(1), f(2), f(3)]
+            sage: f = G._color_by_label(as_function=True)                                       # optional - sage.groups
+            sage: [f(1), f(2), f(3)]                                                            # optional - sage.groups
             ['#0000ff', '#ff0000', '#00ff00']
-            sage: f = G._color_by_label({1: "blue", 2: "red", 3: "green"}, as_function=True)
-            sage: [f(1), f(2), f(3)]
+            sage: f = G._color_by_label({1: "blue", 2: "red", 3: "green"}, as_function=True)    # optional - sage.groups
+            sage: [f(1), f(2), f(3)]                                                            # optional - sage.groups
             ['blue', 'red', 'green']
-            sage: f = G._color_by_label({1: "red"}, as_function=True)
-            sage: [f(1), f(2), f(3)]
+            sage: f = G._color_by_label({1: "red"}, as_function=True)                           # optional - sage.groups
+            sage: [f(1), f(2), f(3)]                                                            # optional - sage.groups
             ['red', 'black', 'black']
-            sage: f = G._color_by_label({1: "red"}, as_function=True, default_color='blue')
-            sage: [f(1), f(2), f(3)]
+            sage: f = G._color_by_label({1: "red"}, as_function=True, default_color='blue')     # optional - sage.groups
+            sage: [f(1), f(2), f(3)]                                                            # optional - sage.groups
             ['red', 'blue', 'blue']
 
         The default output is a dictionary assigning edges to colors::
 
-            sage: G._color_by_label()
+            sage: G._color_by_label()                                                           # optional - sage.groups
             {'#0000ff': [((), (1,2), 1), ...],
              '#00ff00': [((), (3,4), 3), ...],
              '#ff0000': [((), (2,3), 2), ...]}
 
-            sage: G._color_by_label({1: "blue", 2: "red", 3: "green"})
+            sage: G._color_by_label({1: "blue", 2: "red", 3: "green"})                          # optional - sage.groups
             {'blue': [((), (1,2), 1), ...],
              'green': [((), (3,4), 3), ...],
              'red': [((), (2,3), 2), ...]}
@@ -18675,12 +18676,12 @@ class GenericGraph(GenericGraph_pyx):
 
         We check what happens when several labels have the same color::
 
-            sage: result = G._color_by_label({1: "blue", 2: "blue", 3: "green"})
-            sage: sorted(result)
+            sage: result = G._color_by_label({1: "blue", 2: "blue", 3: "green"})                # optional - sage.groups
+            sage: sorted(result)                                                                # optional - sage.groups
             ['blue', 'green']
-            sage: len(result['blue'])
+            sage: len(result['blue'])                                                           # optional - sage.groups
             48
-            sage: len(result['green'])
+            sage: len(result['green'])                                                          # optional - sage.groups
             24
         """
         if format is True:
@@ -19041,7 +19042,7 @@ class GenericGraph(GenericGraph_pyx):
         # Check each vertex position is in pos, add position randomly within the
         # plot range if none is defined
         for v in self:
-            if not v in pos:
+            if v not in pos:
                 pos[v] = [xmin + dx * random(), ymin + dy * random()]
         return pos
 
@@ -19262,7 +19263,7 @@ class GenericGraph(GenericGraph_pyx):
         if not self:
             return dict()
 
-        from sage.graphs.all import Graph
+        from sage.graphs.graph import Graph
         if not Graph(self).is_tree():
             raise RuntimeError("cannot use tree layout on this graph: "
                                "self.is_tree() returns False")
@@ -20590,12 +20591,12 @@ class GenericGraph(GenericGraph_pyx):
 
         A digraph using latex labels for vertices and edges::
 
-            sage: f(x) = -1 / x
-            sage: g(x) = 1 / (x + 1)
-            sage: G = DiGraph()
-            sage: G.add_edges((i, f(i), f) for i in (1, 2, 1/2, 1/4))
-            sage: G.add_edges((i, g(i), g) for i in (1, 2, 1/2, 1/4))
-            sage: print(G.graphviz_string(labels="latex", edge_labels=True))  # random
+            sage: f(x) = -1 / x                                                             # optional - sage.symbolic
+            sage: g(x) = 1 / (x + 1)                                                        # optional - sage.symbolic
+            sage: G = DiGraph()                                                             # optional - sage.symbolic
+            sage: G.add_edges((i, f(i), f) for i in (1, 2, 1/2, 1/4))                       # optional - sage.symbolic
+            sage: G.add_edges((i, g(i), g) for i in (1, 2, 1/2, 1/4))                       # optional - sage.symbolic
+            sage: print(G.graphviz_string(labels="latex", edge_labels=True))  # random      # optional - sage.symbolic
             digraph {
               node [shape="plaintext"];
               node_10  [label=" ", texlbl="$1$"];
@@ -20621,7 +20622,7 @@ class GenericGraph(GenericGraph_pyx):
               node_4 -> node_9 [label=" ", texlbl="$x \ {\mapsto}\ \frac{1}{x + 1}$"];
             }
 
-            sage: print(G.graphviz_string(labels="latex", color_by_label=True))  # random
+            sage: print(G.graphviz_string(labels="latex", color_by_label=True))  # random   # optional - sage.symbolic
             digraph {
               node [shape="plaintext"];
               node_10  [label=" ", texlbl="$1$"];
@@ -20647,7 +20648,7 @@ class GenericGraph(GenericGraph_pyx):
               node_4 -> node_9 [color = "#00ffff"];
             }
 
-            sage: print(G.graphviz_string(labels="latex", color_by_label={f: "red", g: "blue"}))  # random
+            sage: print(G.graphviz_string(labels="latex", color_by_label={f: "red", g: "blue"}))  # random  # optional - sage.symbolic
             digraph {
               node [shape="plaintext"];
               node_10  [label=" ", texlbl="$1$"];
@@ -20734,7 +20735,7 @@ class GenericGraph(GenericGraph_pyx):
             sage: def edge_options(data):
             ....:     u, v, label = data
             ....:     return {"dir":"back"} if u == 1 else {}
-            sage: print(G.graphviz_string(edge_options=edge_options))  # random
+            sage: print(G.graphviz_string(edge_options=edge_options))  # random             # optional - sage.symbolic
             digraph {
               node_0  [label="-1"];
               node_1  [label="-1/2"];
@@ -20768,7 +20769,7 @@ class GenericGraph(GenericGraph_pyx):
             ....:     if (u,v) == (1,   -1): options["label_style"] = "latex"
             ....:     if (u,v) == (1,  1/2): options["dir"]         = "back"
             ....:     return options
-            sage: print(G.graphviz_string(edge_options=edge_options))  # random
+            sage: print(G.graphviz_string(edge_options=edge_options))  # random             # optional - sage.symbolic
             digraph {
               node_0  [label="-1"];
               node_1  [label="-1/2"];
@@ -21572,10 +21573,10 @@ class GenericGraph(GenericGraph_pyx):
         Relabeling using a Sage permutation::
 
             sage: G = graphs.PathGraph(3)
-            sage: from sage.groups.perm_gps.permgroup_named import SymmetricGroup
-            sage: S = SymmetricGroup(3)
-            sage: gamma = S('(1,2)')
-            sage: G.relabel(gamma, inplace=False).am()
+            sage: from sage.groups.perm_gps.permgroup_named import SymmetricGroup               # optional - sage.groups
+            sage: S = SymmetricGroup(3)                                                         # optional - sage.groups
+            sage: gamma = S('(1,2)')                                                            # optional - sage.groups
+            sage: G.relabel(gamma, inplace=False).am()                                          # optional - sage.groups
             [0 0 1]
             [0 0 1]
             [1 1 0]
@@ -22254,7 +22255,8 @@ class GenericGraph(GenericGraph_pyx):
 
         from sage.groups.perm_gps.partn_ref.refinement_graphs import search_tree
         from sage.groups.perm_gps.permgroup import PermutationGroup
-        from sage.graphs.all import Graph, DiGraph
+        from sage.graphs.graph import Graph
+        from sage.graphs.digraph import DiGraph
         from itertools import chain
         dig = (self._directed or self.has_loops())
 
@@ -22510,21 +22512,21 @@ class GenericGraph(GenericGraph_pyx):
 
         Graphs::
 
-            sage: from sage.groups.perm_gps.permgroup_named import SymmetricGroup
+            sage: from sage.groups.perm_gps.permgroup_named import SymmetricGroup       # optional - sage.groups
             sage: D = graphs.DodecahedralGraph()
             sage: E = copy(D)
-            sage: gamma = SymmetricGroup(20).random_element()
-            sage: E.relabel(gamma)
+            sage: gamma = SymmetricGroup(20).random_element()                           # optional - sage.groups
+            sage: E.relabel(gamma)                                                      # optional - sage.groups
             sage: D.is_isomorphic(E)
             True
 
         ::
 
             sage: D = graphs.DodecahedralGraph()
-            sage: S = SymmetricGroup(20)
-            sage: gamma = S.random_element()
-            sage: E = copy(D)
-            sage: E.relabel(gamma)
+            sage: S = SymmetricGroup(20)                                                # optional - sage.groups
+            sage: gamma = S.random_element()                                            # optional - sage.groups
+            sage: E = copy(D)                                                           # optional - sage.groups
+            sage: E.relabel(gamma)                                                      # optional - sage.groups
             sage: a,b = D.is_isomorphic(E, certificate=True); a
             True
             sage: from sage.graphs.generic_graph_pyx import spring_layout_fast
@@ -22755,7 +22757,8 @@ class GenericGraph(GenericGraph_pyx):
             G2 = other
             partition2 = other_vertices
         G_to = {u: i for i,u in enumerate(self_vertices)}
-        from sage.graphs.all import Graph, DiGraph
+        from sage.graphs.graph import Graph
+        from sage.graphs.digraph import DiGraph
         DoDG = DiGraph if self._directed else Graph
         H = DoDG(len(self_vertices), loops=G.allows_loops())
         HB = H._backend
@@ -23005,7 +23008,8 @@ class GenericGraph(GenericGraph_pyx):
 
         # algorithm == 'sage':
         from sage.groups.perm_gps.partn_ref.refinement_graphs import search_tree
-        from sage.graphs.all import Graph, DiGraph
+        from sage.graphs.graph import Graph
+        from sage.graphs.digraph import DiGraph
         from itertools import chain
 
         dig = (self.has_loops() or self._directed)
@@ -24003,7 +24007,8 @@ def graph_isom_equivalent_non_edge_labeled_graph(g, partition=None, standard_lab
         sage: g[0].is_bipartite()
         False
     """
-    from sage.graphs.all import Graph, DiGraph
+    from sage.graphs.graph import Graph
+    from sage.graphs.digraph import DiGraph
     from itertools import chain
 
     g_has_multiple_edges = g.has_multiple_edges()

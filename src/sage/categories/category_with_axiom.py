@@ -358,7 +358,7 @@ always evaluates to this method, regardless of whether ``Ds`` has a
 nested class ``Ds.Green`` or not (an implementation detail)::
 
     sage: Cs().Green
-    <bound method Cs_with_category.Green of Category of cs>
+    <bound method Cs.SubcategoryMethods.Green of Category of cs>
 
 Thanks to this feature (implemented in :meth:`CategoryWithAxiom.__classget__`),
 the user is systematically referred to the documentation of this
@@ -1679,7 +1679,7 @@ all_axioms += ("Flying", "Blue",
                "Facade", "Finite", "Infinite","Enumerated",
                "Complete",
                "Nilpotent",
-               "FiniteDimensional", "Connected",
+               "FiniteDimensional", "FinitelyPresented", "Connected",
                "FinitelyGeneratedAsLambdaBracketAlgebra",
                "WithBasis",
                "Irreducible",
@@ -2070,7 +2070,7 @@ class CategoryWithAxiom(Category):
             setattr(base_category_class, cls._axiom, cls)
 
         if base_category is None:
-             return cls
+            return cls
         # For Rings().Finite, this returns the method
         # Sets.SubcategoryMethods.Finite, with its first argument bound to Rings()
         return getattr(super(base_category.__class__.__base__, base_category), cls._axiom)

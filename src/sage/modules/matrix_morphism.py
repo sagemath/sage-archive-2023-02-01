@@ -93,7 +93,7 @@ class MatrixMorphism_abstract(sage.categories.morphism.Morphism):
         """
         if not sage.categories.homset.is_Homset(parent):
             raise TypeError("parent must be a Hom space")
-        if not side in ["left", "right"]:
+        if side not in ["left", "right"]:
             raise ValueError("the argument side must be either 'left' or 'right'")
         self._side = side
         sage.categories.morphism.Morphism.__init__(self, parent)
@@ -1418,10 +1418,8 @@ class MatrixMorphism_abstract(sage.categories.morphism.Morphism):
         H = sub.Hom(self.codomain())
         try:
             return H(A, side=self.side())
-        except:
+        except Exception:
             return H(A)
-
-
 
     def restrict_codomain(self, sub):
         """
@@ -1503,7 +1501,7 @@ class MatrixMorphism_abstract(sage.categories.morphism.Morphism):
                 return H(self.matrix().transpose().restrict_codomain(V).transpose(), side="right")
             else:
                 return H(self.matrix().restrict_codomain(V))
-        except:
+        except Exception:
             return H(self.matrix().restrict_codomain(V))
 
     def restrict(self, sub):
@@ -1695,13 +1693,11 @@ class MatrixMorphism(MatrixMorphism_abstract):
             ...
             ValueError: side must be 'left' or 'right', not junk
         """
-
-        if not side in ['left', 'right', None]:
+        if side not in ['left', 'right', None]:
             raise ValueError("side must be 'left' or 'right', not {0}".format(side))
         if side == self.side() or side is None:
             return self._matrix
-        else:
-            return self._matrix.transpose()
+        return self._matrix.transpose()
 
     def is_injective(self):
         """

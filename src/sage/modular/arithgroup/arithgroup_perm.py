@@ -1240,15 +1240,15 @@ class ArithmeticSubgroup_Permutation_class(ArithmeticSubgroup):
 
         if s2_edges:
             if s2_label is not None:
-               res.add_edges((i,S2[i],s2_label) for i in range(self.index()))
+                res.add_edges((i, S2[i], s2_label) for i in range(self.index()))
             else:
-                res.add_edges((i,S2[i]) for i in range(self.index()))
+                res.add_edges((i, S2[i]) for i in range(self.index()))
 
         if s3_edges:
             if s3_label is not None:
-                res.add_edges((i,S3[i],s3_label) for i in range(self.index()))
+                res.add_edges((i, S3[i], s3_label) for i in range(self.index()))
             else:
-                res.add_edges((i,S3) for i in range(self.index()))
+                res.add_edges((i, S3) for i in range(self.index()))
 
         if l_edges:
             if l_label is not None:
@@ -1819,7 +1819,7 @@ class OddArithmeticSubgroup_Permutation(ArithmeticSubgroup_Permutation_class):
             else:
                 c2 = len(c) // 2
                 if exp:
-                    if not c2 in widths:
+                    if c2 not in widths:
                         widths[c2] = 0
                     widths[c2] += 1
                 else:

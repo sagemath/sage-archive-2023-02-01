@@ -246,7 +246,9 @@ from sage.categories.finite_permutation_groups import FinitePermutationGroups
 from sage.structure.list_clone import ClonableArray
 from sage.structure.global_options import GlobalOptions
 from sage.libs.gap.libgap import libgap
-from sage.rings.all import ZZ, Integer, PolynomialRing
+from sage.rings.integer import Integer
+from sage.rings.integer_ring import ZZ
+from sage.rings.polynomial.polynomial_ring_constructor import PolynomialRing
 from sage.arith.all import factorial, multinomial
 from sage.matrix.matrix_space import MatrixSpace
 from sage.combinat.tools import transitive_ideal
@@ -1629,8 +1631,8 @@ class Permutation(CombinatorialElement):
             sage: p.stack_sort()
             [1]
         """
-        stack = []
-        sorted_p = []
+        stack: list[int] = []
+        sorted_p: list[int] = []
         for j in self:
             if stack:
                 for i in reversed(stack):
@@ -1641,7 +1643,7 @@ class Permutation(CombinatorialElement):
                         break
             stack.append(j)
         sorted_p.extend(reversed(stack))
-        return Permutation(sorted_p)
+        return Permutation(sorted_p)  # type: ignore
 
     def to_digraph(self) -> DiGraph:
         r"""
@@ -2192,7 +2194,7 @@ class Permutation(CombinatorialElement):
             sage: Permutation([]).longest_increasing_subsequence_length()
             0
         """
-        r = []
+        r: list[int] = []
         for x in self:
             if max(r+[0]) > x:
                 y = min(z for z in r if z > x)
@@ -2380,7 +2382,7 @@ class Permutation(CombinatorialElement):
             sage: Permutation([1]).foata_bijection()
             [1]
         """
-        M = []
+        M: list[int] = []
         for e in self:
             k = len(M)
             if k <= 1:
@@ -2780,11 +2782,7 @@ class Permutation(CombinatorialElement):
             []
         """
         code = self.to_lehmer_code()
-        reduced_word = []
-        for piece in [ [ i + code[i] - j for j in range(code[i])] for i in range(len(code)) ]:
-            reduced_word += piece
-
-        return reduced_word
+        return [i + ci - j for i, ci in enumerate(code) for j in range(ci)]
 
     def reduced_words_iterator(self):
         r"""
@@ -7507,7 +7505,7 @@ def bistochastic_as_sum_of_permutations(M, check = True):
     """
     from sage.graphs.bipartite_graph import BipartiteGraph
     from sage.combinat.free_module import CombinatorialFreeModule
-    from sage.rings.all import RR
+    from sage.rings.real_mpfr import RR
 
     n = M.nrows()
 

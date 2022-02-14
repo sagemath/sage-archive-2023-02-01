@@ -365,13 +365,15 @@ http://fricas.sourceforge.net.
             sage: a.is_running()                                                # optional - fricas
             False
 
-        TESTS::
+        TESTS:
 
-            sage: import psutil                                                 # optional - fricas
-            sage: p = fricas.pid(); pr = psutil.Process(p); pr                  # optional - fricas
-            <psutil.Process(pid=..., name='FRICASsys') at ...>
-            sage: pr.children()                                                 # optional - fricas
-            []
+        Ensure that a new process is started after ``quit()``::
+
+            sage: p = fricas.pid()     # optional - fricas
+            sage: fricas.quit()        # optional - fricas
+            sage: fricas.pid() == p    # optional - fricas
+            False
+
         """
         return ')quit'
 
@@ -1189,7 +1191,7 @@ class FriCASElement(ExpectElement):
             \left[ \begin{array}{cc} 1 & 2 \\ 3 & 4\end{array} \right]
 
             sage: latex(fricas("integrate(sin(x+1/x),x)"))                      # optional - fricas
-            \int ^{\displaystyle x} {{\sin \left( {{{{{ \%O} ^{2}}+1} \over  \%O}} \right)} \  {d \%O}}
+            \int ^{\displaystyle x} {{\sin \left( {{{{{ \%...} ^{2}}+1} \over  \%...}} \right)} \  {d \%...}}
         """
         replacements = [(r'\sp ', '^'),
                         (r'\sp{', '^{'),

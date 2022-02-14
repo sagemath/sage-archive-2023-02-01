@@ -38,7 +38,7 @@ from sage.libs.flint.fmpq cimport *
 from sage.libs.flint.fmpz_poly cimport *
 from sage.libs.flint.fmpq_poly cimport *
 
-from sage.interfaces.all import singular as singular_default
+from sage.interfaces.singular import singular as singular_default
 
 from cypari2.gen import Gen as pari_gen
 
@@ -308,7 +308,7 @@ cdef class Polynomial_rational_flint(Polynomial):
             sage: R.<t> = QQ[]
             sage: f = 2/3 * t^2 + 1
             sage: r = f.__reduce__(); r
-            (<type 'sage.rings.polynomial.polynomial_rational_flint.Polynomial_rational_flint'>, (Univariate Polynomial Ring in t over Rational Field, [1, 0, 2/3], False, False))
+            (<class 'sage.rings.polynomial.polynomial_rational_flint.Polynomial_rational_flint'>, (Univariate Polynomial Ring in t over Rational Field, [1, 0, 2/3], False, False))
             sage: r[0](*r[1])
             2/3*t^2 + 1
             sage: loads(dumps(f)) == f
@@ -2192,7 +2192,7 @@ cdef class Polynomial_rational_flint(Polynomial):
 
         elif algorithm == 'kash':
             try:
-                from sage.interfaces.all import kash
+                from sage.interfaces.kash import kash
                 kash.eval('X := PolynomialRing(RationalField()).1')
                 s = self._repr(name='X')
                 G = kash('Galois(%s)'%s)
@@ -2217,7 +2217,7 @@ cdef class Polynomial_rational_flint(Polynomial):
             return TransitiveGroup(self.degree(), fgap.GaloisType())
 
         elif algorithm == 'magma':
-            from sage.interfaces.all import magma
+            from sage.interfaces.magma import magma
             X = magma(self).GaloisGroup()
             try:
                 n, d = X.TransitiveGroupIdentification(nvals=2)

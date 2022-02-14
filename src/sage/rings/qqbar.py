@@ -555,6 +555,7 @@ import itertools
 import operator
 
 import sage.rings.ring
+import sage.rings.abc
 import sage.rings.number_field.number_field_base
 from sage.misc.fast_methods import Singleton
 from sage.misc.cachefunc import cached_method
@@ -565,7 +566,8 @@ from sage.structure.richcmp import (richcmp, richcmp_method,
                                     op_EQ, op_NE, op_GT)
 from sage.rings.real_mpfr import RR
 from sage.rings.real_mpfi import RealIntervalField, RIF, is_RealIntervalFieldElement, RealIntervalField_class
-from sage.rings.complex_mpfr import ComplexField
+from sage.rings.cc import CC
+from sage.rings.cif import CIF
 from sage.rings.complex_interval_field import ComplexIntervalField
 from sage.rings.complex_interval import is_ComplexIntervalFieldElement
 from sage.rings.polynomial.all import PolynomialRing
@@ -580,10 +582,8 @@ from sage.categories.action import Action
 
 from sage.structure.global_options import GlobalOptions
 
-CC = ComplexField()
-CIF = ComplexIntervalField()
 
-class AlgebraicField_common(sage.rings.ring.Field):
+class AlgebraicField_common(sage.rings.abc.AlgebraicField_common):
     r"""
     Common base class for the classes :class:`~AlgebraicRealField` and
     :class:`~AlgebraicField`.
@@ -1013,7 +1013,7 @@ class AlgebraicField_common(sage.rings.ring.Field):
         return Factorization(factorization, unit = f.lc() / trial.lc())
 
 
-class AlgebraicRealField(Singleton, AlgebraicField_common):
+class AlgebraicRealField(Singleton, AlgebraicField_common, sage.rings.abc.AlgebraicRealField):
     r"""
     The field of algebraic reals.
 
@@ -1396,6 +1396,79 @@ class AlgebraicRealField(Singleton, AlgebraicField_common):
 
         return AlgebraicReal(ANRoot(poly, interval, multiplicity))
 
+    def random_element(self, poly_degree=2, *args, **kwds):
+        r"""
+        Return a random algebraic real number.
+
+        INPUT:
+
+        - ``poly_degree`` - default: 2 - degree of the random
+          polynomial over the integers of which the returned algebraic
+          real number is a (real part of a) root. This is not
+          necessarily the degree of the minimal polynomial of the
+          number. Increase this parameter to achieve a greater
+          diversity of algebraic numbers, at a cost of greater
+          computation time. You can also vary the distribution of the
+          coefficients but that will not vary the degree of the
+          extension containing the element.
+
+        - ``args``, ``kwds`` - arguments and keywords passed to the random
+          number generator for elements of ``ZZ``, the integers. See
+          :meth:`~sage.rings.integer_ring.IntegerRing_class.random_element` for
+          details, or see example below.
+
+        OUTPUT:
+
+        An element of ``AA``, the field of algebraic real numbers (see
+        :mod:`sage.rings.qqbar`).
+
+        ALGORITHM:
+
+        We pass all arguments to :meth:`AlgebraicField.random_element`, and
+        then take the real part of the result.
+
+        EXAMPLES::
+
+            sage: a = AA.random_element()
+            sage: a in AA
+            True
+
+        ::
+
+            sage: b = AA.random_element(poly_degree=5)
+            sage: b in AA
+            True
+
+        Parameters for the distribution of the integer coefficients of
+        the polynomials can be passed on to the random element method
+        for integers. For example, we can rule out zero as a
+        coefficient (and therefore as a root) by requesting
+        coefficients between ``1`` and ``10``::
+
+            sage: z = [AA.random_element(x=1, y=10) for _ in range(5)]
+            sage: AA(0) in z
+            False
+
+        TESTS::
+
+            sage: AA.random_element('junk')
+            Traceback (most recent call last):
+            ...
+            TypeError: polynomial degree must be an integer, not junk
+            sage: AA.random_element(poly_degree=0)
+            Traceback (most recent call last):
+            ...
+            ValueError: polynomial degree must be greater than zero, not 0
+
+        Random vectors already have a 'degree' keyword, so
+        we cannot use that for the polynomial's degree::
+
+            sage: v = random_vector(AA, degree=2, poly_degree=3)
+            sage: v in AA^2
+            True
+        """
+        return QQbar.random_element(poly_degree, *args, **kwds).real()
+
     def _factor_univariate_polynomial(self, f):
         """
         Factor the univariate polynomial ``f``.
@@ -1449,12 +1522,21 @@ def is_AlgebraicRealField(F):
     r"""
     Check whether ``F`` is an :class:`~AlgebraicRealField` instance. For internal use.
 
+    This function is deprecated. Use :func:`isinstance` with
+    :class:`~sage.rings.abc.AlgebraicRealField` instead.
+
     EXAMPLES::
 
         sage: from sage.rings.qqbar import is_AlgebraicRealField
         sage: [is_AlgebraicRealField(x) for x in [AA, QQbar, None, 0, "spam"]]
+        doctest:warning...
+        DeprecationWarning: is_AlgebraicRealField is deprecated;
+        use isinstance(..., sage.rings.abc.AlgebraicRealField instead
+        See https://trac.sagemath.org/32660 for details.
         [True, False, False, False, False]
     """
+    from sage.misc.superseded import deprecation
+    deprecation(32660, 'is_AlgebraicRealField is deprecated; use isinstance(..., sage.rings.abc.AlgebraicRealField instead')
     return isinstance(F, AlgebraicRealField)
 
 
@@ -1462,7 +1544,7 @@ def is_AlgebraicRealField(F):
 AA = AlgebraicRealField()
 
 
-class AlgebraicField(Singleton, AlgebraicField_common):
+class AlgebraicField(Singleton, AlgebraicField_common, sage.rings.abc.AlgebraicField):
     """
     The field of all algebraic complex numbers.
     """
@@ -1868,7 +1950,7 @@ class AlgebraicField(Singleton, AlgebraicField_common):
             sage: (len(r) == 3) and all(z in AA for z in r)
             True
 
-        TESTS:
+        TESTS::
 
             sage: QQbar.random_element('junk')
             Traceback (most recent call last):
@@ -1993,12 +2075,21 @@ def is_AlgebraicField(F):
     r"""
     Check whether ``F`` is an :class:`~AlgebraicField` instance.
 
+    This function is deprecated. Use :func:`isinstance` with
+    :class:`~sage.rings.abc.AlgebraicField` instead.
+
     EXAMPLES::
 
         sage: from sage.rings.qqbar import is_AlgebraicField
         sage: [is_AlgebraicField(x) for x in [AA, QQbar, None, 0, "spam"]]
+        doctest:warning...
+        DeprecationWarning: is_AlgebraicField is deprecated;
+        use isinstance(..., sage.rings.abc.AlgebraicField instead
+        See https://trac.sagemath.org/32660 for details.
         [False, True, False, False, False]
     """
+    from sage.misc.superseded import deprecation
+    deprecation(32660, 'is_AlgebraicField is deprecated; use isinstance(..., sage.rings.abc.AlgebraicField instead')
     return isinstance(F, AlgebraicField)
 
 
@@ -2010,12 +2101,21 @@ def is_AlgebraicField_common(F):
     r"""
     Check whether ``F`` is an :class:`~AlgebraicField_common` instance.
 
+    This function is deprecated. Use :func:`isinstance` with
+    :class:`~sage.rings.abc.AlgebraicField_common` instead.
+
     EXAMPLES::
 
         sage: from sage.rings.qqbar import is_AlgebraicField_common
         sage: [is_AlgebraicField_common(x) for x in [AA, QQbar, None, 0, "spam"]]
+        doctest:warning...
+        DeprecationWarning: is_AlgebraicField_common is deprecated;
+        use isinstance(..., sage.rings.abc.AlgebraicField_common) instead
+        See https://trac.sagemath.org/32610 for details.
         [True, True, False, False, False]
     """
+    from sage.misc.superseded import deprecation
+    deprecation(32610, 'is_AlgebraicField_common is deprecated; use isinstance(..., sage.rings.abc.AlgebraicField_common) instead')
     return isinstance(F, AlgebraicField_common)
 
 
@@ -2650,7 +2750,7 @@ def number_field_elements_from_algebraics(numbers, minimal=False, same_field=Fal
         aa_numbers = [AA(_) for _ in numbers]
         numbers = aa_numbers
         real_case = True
-    except:
+    except (ValueError, TypeError):
         real_case = False
     # Make the numbers algebraic
     numbers = [mk_algebraic(_) for _ in numbers]
@@ -6551,7 +6651,7 @@ class AlgebraicPolynomialTracker(SageObject):
             poly = QQy(poly)
             complex = False
         elif isinstance(B, AlgebraicField_common):
-            complex = is_AlgebraicField(poly.base_ring())
+            complex = isinstance(poly.base_ring(), AlgebraicField)
         else:
             try:
                 poly = poly.change_ring(AA)
@@ -8546,3 +8646,9 @@ def get_AA_golden_ratio():
         AA_golden_ratio_generator = AlgebraicGenerator(AA_golden_ratio_nf, ANRoot(AAPoly.gen()**2 - AAPoly.gen() - 1, RIF(1.618, 1.6181)))
         AA_golden_ratio = AlgebraicReal(ANExtensionElement(AA_golden_ratio_generator, AA_golden_ratio_nf.gen()))
     return AA_golden_ratio
+
+
+# Support Python's numbers abstract base class
+import numbers
+numbers.Real.register(AlgebraicReal)
+numbers.Complex.register(AlgebraicNumber)

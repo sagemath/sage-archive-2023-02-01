@@ -147,8 +147,6 @@ from sage.structure.element import Element
 import sage.categories as categories
 from sage.categories.morphism import IdentityMorphism
 
-import sage.algebras.algebra
-import sage.rings.commutative_algebra as commutative_algebra
 import sage.rings.ring as ring
 from sage.structure.element import is_RingElement
 import sage.rings.polynomial.polynomial_element_generic as polynomial_element_generic
@@ -226,7 +224,7 @@ def is_PolynomialRing(x):
 
 #########################################################################################
 
-class PolynomialRing_general(sage.algebras.algebra.Algebra):
+class PolynomialRing_general(ring.Algebra):
     """
     Univariate polynomial ring over a ring.
     """
@@ -300,7 +298,7 @@ class PolynomialRing_general(sage.algebras.algebra.Algebra):
         self.Element = self._polynomial_class
         self.__cyclopoly_cache = {}
         self._has_singular = False
-        sage.algebras.algebra.Algebra.__init__(self, base_ring, names=name, normalize=True, category=category)
+        ring.Algebra.__init__(self, base_ring, names=name, normalize=True, category=category)
         self._populate_coercion_lists_(convert_method_name='_polynomial_')
 
     def __reduce__(self):
@@ -1109,7 +1107,7 @@ class PolynomialRing_general(sage.algebras.algebra.Algebra):
             variables = self.variable_names_recursive()
         variables = list(variables)
         var = self.variable_name()
-        if not var in variables:
+        if var not in variables:
             return self
         else:
             try:
@@ -1662,7 +1660,7 @@ class PolynomialRing_general(sage.algebras.algebra.Algebra):
         raise ValueError("you should pass exactly one of of_degree and max_degree")
 
 
-class PolynomialRing_commutative(PolynomialRing_general, commutative_algebra.CommutativeAlgebra):
+class PolynomialRing_commutative(PolynomialRing_general, ring.CommutativeAlgebra):
     """
     Univariate polynomial ring over a commutative ring.
     """
@@ -1997,7 +1995,7 @@ class PolynomialRing_field(PolynomialRing_integral_domain,
                     element_class = Polynomial_relative_number_field_dense
             elif isinstance(base_ring, sage.rings.abc.RealField):
                 element_class = PolynomialRealDense
-            elif isinstance(base_ring, sage.rings.complex_arb.ComplexBallField):
+            elif isinstance(base_ring, sage.rings.abc.ComplexBallField):
                 from sage.rings.polynomial.polynomial_complex_arb import Polynomial_complex_arb
                 element_class = Polynomial_complex_arb
             else:

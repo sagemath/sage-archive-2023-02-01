@@ -165,27 +165,26 @@ class WeightLatticeRealizations(Category_over_base_ring):
             """
 
         def is_extended(self):
-          """
-          Returns whether this is a realization of the extended weight lattice
+            """
+            Return whether this is a realization of the extended weight lattice
 
-          .. SEEALSO:: :class:`sage.combinat.root_system.weight_space.WeightSpace`
+            .. SEEALSO:: :class:`sage.combinat.root_system.weight_space.WeightSpace`
 
-          EXAMPLES::
+            EXAMPLES::
 
-              sage: RootSystem(["A",3,1]).weight_lattice().is_extended()
-              False
-              sage: RootSystem(["A",3,1]).weight_lattice(extended=True).is_extended()
-              True
+                sage: RootSystem(["A",3,1]).weight_lattice().is_extended()
+                False
+                sage: RootSystem(["A",3,1]).weight_lattice(extended=True).is_extended()
+                True
 
-          This method is irrelevant for finite root systems, since the
-          weight lattice need not be extended to ensure that the root
-          lattice embeds faithfully::
+            This method is irrelevant for finite root systems, since the
+            weight lattice need not be extended to ensure that the root
+            lattice embeds faithfully::
 
-              sage: RootSystem(["A",3]).weight_lattice().is_extended()
-              False
-
-          """
-          return False
+                sage: RootSystem(["A",3]).weight_lattice().is_extended()
+                False
+            """
+            return False
 
         def __init_extra__(self):
             r"""
@@ -248,8 +247,8 @@ class WeightLatticeRealizations(Category_over_base_ring):
                 sage: RootSystem(['A',3]).weight_lattice()._test_weight_lattice_realization()
             """
             from sage.rings.integer_ring import ZZ
-            tester     = self._tester(**options)
-            Lambda     = self.fundamental_weights()
+            tester = self._tester(**options)
+            Lambda = self.fundamental_weights()
             alphacheck = self.simple_coroots()
             tester.assertEqual(tuple(Lambda.keys()), self.index_set())
 
@@ -868,7 +867,7 @@ class WeightLatticeRealizations(Category_over_base_ring):
                 16
 
                 sage: type(RootSystem(['A',3]).ambient_lattice().weyl_dimension([2,1,0,0]))
-                <... 'sage.rings.integer.Integer'>
+                <class 'sage.rings.integer.Integer'>
             """
             highest_weight = self(highest_weight)
             if not highest_weight.is_dominant():

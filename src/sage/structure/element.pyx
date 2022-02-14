@@ -474,7 +474,7 @@ cdef class Element(SageObject):
         category of ``CommutativeRings()``::
 
             sage: 1.is_idempotent
-            <bound method JoinCategory.element_class.is_idempotent of 1>
+            <bound method Magmas.ElementMethods.is_idempotent of 1>
             sage: 1.is_idempotent.__module__
             'sage.categories.magmas'
 
@@ -485,7 +485,7 @@ cdef class Element(SageObject):
             ...
             AttributeError: 'sage.rings.integer.Integer' object has no attribute 'blah_blah'
             sage: Semigroups().example().an_element().is_idempotent
-            <bound method LeftZeroSemigroup_with_category.element_class.is_idempotent of 42>
+            <bound method LeftZeroSemigroup.Element.is_idempotent of 42>
             sage: Semigroups().example().an_element().blah_blah
             Traceback (most recent call last):
             ...
@@ -2549,9 +2549,9 @@ cdef class MonoidElement(Element):
 
         EXAMPLES::
 
-            sage: G = SymmetricGroup(4)
-            sage: g = G([2, 3, 4, 1])
-            sage: g.powers(4)
+            sage: G = SymmetricGroup(4)                                 # optional - sage.groups
+            sage: g = G([2, 3, 4, 1])                                   # optional - sage.groups
+            sage: g.powers(4)                                           # optional - sage.groups
             [(), (1,2,3,4), (1,3)(2,4), (1,4,3,2)]
         """
         if n < 0:

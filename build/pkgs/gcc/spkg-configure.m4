@@ -59,9 +59,13 @@ SAGE_SPKG_CONFIGURE_BASE([gcc], [
         AC_REQUIRE([AC_PROG_OBJC])
         AC_REQUIRE([AC_PROG_OBJCXX])
 
-    AC_MSG_CHECKING([for a gcc already installed in SAGE_LOCAL])
+    AC_MSG_CHECKING([whether gcc is already installed in SAGE_LOCAL])
     if test -f "$SAGE_LOCAL/bin/gcc"; then
-        if test "$($CC --print-prog-name gcc 2>/dev/null)" = "$(SAGE_LOCAL/bin/gcc --print-prog-name gcc 2>/dev/null)"; then
+        CONFIGURED_CC_PROGNAME=$($CC --print-prog-name gcc 2>/dev/null)
+        INSTALLED_GCC_PROGNAME=$($SAGE_LOCAL/bin/gcc --print-prog-name gcc 2>/dev/null)
+        echo "CONFIGURED_CC_PROGNAME=$CONFIGURED_CC_PROGNAME" >& AS_MESSAGE_LOG_FD
+        echo "INSTALLED_GCC_PROGNAME=$INSTALLED_GCC_PROGNAME" >& AS_MESSAGE_LOG_FD
+        if test "$CONFIGURED_CC_PROGNAME" = "$INSTALLED_GCC_PROGNAME"; then
             dnl We get here when SAGE_LOCAL is set to something like /usr or $CONDA_ENV
             dnl as in our "conda for Sage developers" instructions.
             AC_MSG_RESULT([configured CC])

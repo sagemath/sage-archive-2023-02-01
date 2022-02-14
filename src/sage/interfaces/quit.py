@@ -63,11 +63,11 @@ def kill_spawned_jobs(verbose=False):
 
         sage: sage.interfaces.quit.expect_quitall()
     """
-    from sage.misc.misc import SAGE_TMP
-    file = os.path.join(SAGE_TMP, 'spawned_processes')
-    if not os.path.exists(file):
+    from sage.interfaces.cleaner import SAGE_SPAWNED_PROCESS_FILE
+
+    if not os.path.exists(SAGE_SPAWNED_PROCESS_FILE):
         return
-    with open(file) as f:
+    with open(SAGE_SPAWNED_PROCESS_FILE) as f:
         for L in f:
             i = L.find(' ')
             pid = L[:i].strip()

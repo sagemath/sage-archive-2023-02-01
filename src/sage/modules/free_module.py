@@ -80,6 +80,12 @@ primarily and increasing `\infty`-norm secondarily::
     (2, 0, 0), (-2, 0, 0), (0, 2, 0), (0, -2, 0), (0, 0, 2), (0, 0, -2),
     (1, 1, 1), (-1, 1, 1), (1, -1, 1), (-1, -1, 1), (1, 1, -1), ...]
 
+For other infinite enumerated base rings (i.e., rings which
+are objects of the category :class:`InfiniteEnumeratedSets`),
+a free module of rank `r` is enumerated by applying
+:meth:`FreeModule_ambient.linear_combination_of_basis`
+to all vectors in `\ZZ^r`, enumerated in the way shown above.
+
 TESTS:
 
 We intersect a zero-dimensional vector space with a
@@ -1570,9 +1576,10 @@ done from the right side.""")
             sage: [x for x in W]
             [(0, 0), (a, a), (a + 1, a + 1), (1, 1)]
 
-        Free modules over (some) infinite rings iterate over module elements
-        ordered by (primarily) the 1-norm and (secondarily) the `\infty`-norm
-        of their coordinate vectors::
+        Free modules over enumerated infinite rings (i.e., those in the
+        category :class:`InfiniteEnumeratedSets`) iterate over module
+        elements ordered by (primarily) the 1-norm and (secondarily) the
+        `\infty`-norm of their coordinate vectors::
 
             sage: it = iter(ZZ^3)
             sage: vs = [next(it) for _ in range(1000)]

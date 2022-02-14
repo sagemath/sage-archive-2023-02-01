@@ -1844,7 +1844,7 @@ class RecognizableSeriesSpace(UniqueRepresentation, Parent):
 
     def _an_element_(self):
         r"""
-        Return an element of this recognizable series.
+        Return an element of this recognizable series space.
 
         OUTPUT:
 
@@ -1868,7 +1868,7 @@ class RecognizableSeriesSpace(UniqueRepresentation, Parent):
 
     def some_elements(self):
         r"""
-        Return some elements of this recognizable series.
+        Return some elements of this recognizable series space.
 
         See :class:`TestSuite` for a typical use case.
 

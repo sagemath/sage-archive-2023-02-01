@@ -528,9 +528,9 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
 
         ::
 
-            sage: Integer(u'0')
+            sage: Integer('0')
             0
-            sage: Integer(u'0X2AEEF')
+            sage: Integer('0X2AEEF')
             175855
 
         Test conversion from PARI (:trac:`11685`)::
@@ -683,14 +683,19 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
                     if b == 2: # we use a faster method
                         for j from 0 <= j < len(x):
                             otmp = x[j]
-                            if not isinstance(otmp, Integer):
-                                # should probably also have fast code for Python ints...
-                                otmp = Integer(otmp)
-                            if mpz_cmp_si((<Integer>otmp).value, 1) == 0:
-                                mpz_setbit(self.value, j)
-                            elif mpz_sgn((<Integer>otmp).value) != 0:
-                                # one of the entries was something other than 0 or 1.
-                                break
+                            if isinstance(otmp, (int, long)):
+                                if (<long> otmp) == 1:
+                                    mpz_setbit(self.value, j)
+                                if (<long> otmp) != 0:
+                                    break
+                            else:
+                                if not isinstance(otmp, Integer):
+                                    otmp = Integer(otmp)
+                                if mpz_cmp_si((<Integer>otmp).value, 1) == 0:
+                                    mpz_setbit(self.value, j)
+                                elif mpz_sgn((<Integer>otmp).value) != 0:
+                                    # one of the entries was something other than 0 or 1.
+                                    break
                         else:
                             return
                     tmp = the_integer_ring(0)
@@ -3924,9 +3929,9 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
                                            sort=False, simplify=False)
         elif algorithm in ['kash', 'magma']:
             if algorithm == 'kash':
-                from sage.interfaces.all import kash as I
+                from sage.interfaces.kash import kash as I
             else:
-                from sage.interfaces.all import magma as I
+                from sage.interfaces.magma import magma as I
             str_res = I.eval('Factorization(%s)'%n)
             # The result looks like "[ <n1, p1>, <p2, e2>, ... ]
             str_res = str_res.replace(']', '').replace('[', '').replace('>', '').replace('<', '').split(',')
@@ -6917,7 +6922,7 @@ cdef int mpz_set_str_python(mpz_ptr z, char* s, int base) except -1:
         12345
         sage: Integer('   -      1  2   3  4   5  ')
         -12345
-        sage: Integer(u'  -  0x  1  2   3  4   5  ')
+        sage: Integer('  -  0x  1  2   3  4   5  ')
         -74565
         sage: Integer('-0012345', 16)
         -74565
@@ -7240,10 +7245,30 @@ cdef int sizeof_Integer
 
 # We use a global Integer element to steal all the references
 # from. DO NOT INITIALIZE IT AGAIN and DO NOT REFERENCE IT!
-#
-# Use actual calculation to avoid libgmp's new lazy allocation :trac:`31340`
 cdef Integer global_dummy_Integer
-global_dummy_Integer = Integer(1) - Integer(1)
+global_dummy_Integer = Integer()
+# Reallocate to one limb to fix :trac:`31340` and :trac:`33081`
+_mpz_realloc(global_dummy_Integer.value, 1)
+
+def _check_global_dummy_Integer():
+    """
+    Return true if the global dummy Integer is ok.
+
+    TESTS::
+
+        sage: from sage.rings.integer import _check_global_dummy_Integer
+        sage: _check_global_dummy_Integer()
+        True
+    """
+    # Check that it has exactly one limb allocated
+    # This is assumed later in fast_tp_new() :trac:`33081`
+    cdef mpz_ptr dummy = global_dummy_Integer.value
+    if dummy._mp_alloc == 1 and dummy._mp_size == 0:
+        return True
+
+    raise AssertionError(
+      "global dummy Integer is corrupt (_mp_alloc = %d, _mp_size = %d)"
+      % (dummy._mp_alloc, dummy._mp_size))
 
 
 # A global pool for performance when integers are rapidly created and destroyed.
@@ -7318,6 +7343,8 @@ cdef PyObject* fast_tp_new(type t, args, kwds) except NULL:
         #  various internals described here may change in future GMP releases.
         #  Applications expecting to be compatible with future releases should use
         #  only the documented interfaces described in previous chapters."
+        #
+        # NOTE: This assumes global_dummy_Integer.value._mp_alloc == 1
         new_mpz = <mpz_ptr>((<Integer>new).value)
         new_mpz._mp_d = <mp_ptr>check_malloc(GMP_LIMB_BITS >> 3)
 

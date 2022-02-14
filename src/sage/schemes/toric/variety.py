@@ -322,7 +322,9 @@ from sage.functions.all import factorial
 import sage.geometry.abc
 from sage.geometry.cone import Cone
 from sage.geometry.fan import Fan
-from sage.misc.all import latex, prod, cached_method
+from sage.misc.latex import latex
+from sage.misc.misc_c import prod
+from sage.misc.cachefunc import cached_method
 from sage.structure.unique_representation import UniqueRepresentation
 from sage.modules.free_module_element import vector
 from sage.rings.polynomial.polynomial_ring_constructor import PolynomialRing

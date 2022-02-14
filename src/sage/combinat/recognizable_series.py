@@ -1848,7 +1848,7 @@ class RecognizableSeriesSpace(UniqueRepresentation, Parent):
 
         OUTPUT:
 
-        A :class:`recognizable_series`
+        A :class:`RecognizableSeries`
 
         EXAMPLES::
 

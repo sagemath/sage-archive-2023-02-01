@@ -30,23 +30,23 @@ AUTHORS:
 """
 
 
-
-def is_triangular(B):
+def is_triangular(B) -> bool:
     """
-    Check whether the basis ``B`` of an ideal is triangular.  That is:
-    check whether the largest variable in ``B[i]`` with respect to the
-    ordering of the base ring ``R`` is ``R.gens()[i]``.
+    Check whether the basis ``B`` of an ideal is triangular.
+
+    That is: check whether the largest variable in ``B[i]`` with
+    respect to the ordering of the base ring ``R`` is ``R.gens()[i]``.
 
     The algorithm is based on the definition of a triangular basis,
     given by Lazard in 1992 in [Laz1992]_.
 
     INPUT:
 
-    - ``B`` - a list/tuple of polynomials or a multivariate polynomial ideal
+    - ``B`` -- a list/tuple of polynomials or a multivariate polynomial ideal
 
     OUTPUT:
 
-        ``True`` if the basis is triangular; ``False`` otherwise.
+    ``True`` if the basis is triangular; ``False`` otherwise.
 
     EXAMPLES::
 
@@ -83,17 +83,18 @@ def is_triangular(B):
 
 def coefficient_matrix(polys):
     """
-    Generates the matrix ``M`` whose entries are the coefficients of
-    ``polys``.  The entries of row ``i`` of ``M`` consist of the
-    coefficients of ``polys[i]``.
+    Generate the matrix ``M`` whose entries are the coefficients of ``polys``.
+
+    The entries of row ``i`` of ``M`` consist of the coefficients of
+    ``polys[i]``.
 
     INPUT:
 
-    - ``polys`` - a list/tuple of polynomials
+    - ``polys`` -- a list/tuple of polynomials
 
     OUTPUT:
 
-        A matrix ``M`` of the coefficients of ``polys``.
+    A matrix ``M`` of the coefficients of ``polys``
 
     EXAMPLES::
 
@@ -104,11 +105,10 @@ def coefficient_matrix(polys):
         [0 0 1 1]
         [0 1 0 1]
 
-    .. note::
+    .. NOTE::
 
-      This function may be merged with
-      :meth:`sage.rings.polynomial.multi_polynomial_sequence.PolynomialSequence_generic.coefficient_matrix()` in
-      the future.
+        This function may be merged with
+        :meth:`sage.rings.polynomial.multi_polynomial_sequence.PolynomialSequence_generic.coefficient_matrix()` in the future.
     """
     from sage.matrix.constructor import matrix
     R = polys[0].base_ring()
@@ -126,9 +126,10 @@ def coefficient_matrix(polys):
     return M
 
 
-def is_linearly_dependent(polys):
+def is_linearly_dependent(polys) -> bool:
     """
-    Decides whether the polynomials of ``polys`` are linearly dependent.
+    Decide whether the polynomials of ``polys`` are linearly dependent.
+
     Here ``polys`` is a collection of polynomials.
 
     The algorithm creates a matrix of coefficients of the monomials of
@@ -145,12 +146,12 @@ def is_linearly_dependent(polys):
 
     INPUT:
 
-    - ``polys`` - a list/tuple of polynomials
+    - ``polys`` -- a list/tuple of polynomials
 
     OUTPUT:
 
-        ``True`` if the elements of ``polys`` are linearly dependent;
-        ``False`` otherwise.
+    ``True`` if the elements of ``polys`` are linearly dependent;
+    ``False`` otherwise.
 
     EXAMPLES::
 
@@ -165,7 +166,6 @@ def is_linearly_dependent(polys):
         False
         sage: is_linearly_dependent([])
         False
-
     """
     if not polys:
         return False
@@ -193,13 +193,13 @@ def linear_representation(p, polys):
 
     INPUT:
 
-    - ``p`` - a polynomial
-    - ``polys`` - a list/tuple of polynomials
+    - ``p`` -- a polynomial
+    - ``polys`` -- a list/tuple of polynomials
 
     OUTPUT:
 
-        If ``n == len(polys)``, returns ``[a[0],a[1],...,a[n-1]]``
-        such that ``p == a[0]*poly[0] + ... + a[n-1]*poly[n-1]``.
+    If ``n == len(polys)``, returns ``[a[0],a[1],...,a[n-1]]``
+    such that ``p == a[0]*poly[0] + ... + a[n-1]*poly[n-1]``.
 
     EXAMPLES::
 
@@ -209,7 +209,6 @@ def linear_representation(p, polys):
         sage: p = 3*B[0] - 2*B[1] + B[2]
         sage: linear_representation(p, B)
         [3, 32001, 1]
-
     """
     from sage.matrix.constructor import diagonal_matrix
     R = p.base_ring()
@@ -232,12 +231,12 @@ def triangular_factorization(B, n=-1):
 
     INPUT:
 
-    - ``B`` - a list/tuple of polynomials or a multivariate polynomial ideal
-    - ``n`` - the recursion parameter (default: ``-1``)
+    - ``B`` -- a list/tuple of polynomials or a multivariate polynomial ideal
+    - ``n`` -- the recursion parameter (default: ``-1``)
 
     OUTPUT:
 
-        A list ``T`` of triangular sets ``T_0``, ``T_1``, etc.
+    A list ``T`` of triangular sets ``T_0``, ``T_1``, etc.
 
     EXAMPLES::
 
@@ -310,8 +309,8 @@ def elim_pol(B, n=-1):
 
     INPUT:
 
-    - ``B`` - a list/tuple of polynomials or a multivariate polynomial ideal
-    - ``n`` - the variable to check (see above) (default: ``-1``)
+    - ``B`` -- a list/tuple of polynomials or a multivariate polynomial ideal
+    - ``n`` -- the variable to check (see above) (default: ``-1``)
 
     EXAMPLES::
 

@@ -84,5 +84,9 @@ jobs:
 
       - name: Print logs
         run: |
-          .github/workflows/scan-logs.sh .
+          for file in $(find . -type f -name "*.log"); do
+              echo "::group::$file"
+              cat "$file"
+              echo "::endgroup::"
+          done
         if: always()

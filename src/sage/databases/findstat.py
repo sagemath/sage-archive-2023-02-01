@@ -282,8 +282,6 @@ FINDSTAT_URL_NEW_MAP        = FINDSTAT_URL + 'NewMap/'
 FINDSTAT_MAX_VALUES = 1000
 # the number of values FindStat needs at least to search for
 FINDSTAT_MIN_VALUES = 3
-# the number of maps that FindStat should compose at most to find a match
-FINDSTAT_MAX_DEPTH = 10
 # the maximal number of maps that FindStat composes by default to find a match
 FINDSTAT_DEFAULT_DEPTH = 2
 # the number of values FindStat allows to submit at most
@@ -1022,12 +1020,12 @@ def findstat(query=None, values=None, distribution=None, domain=None,
         sage: findstat("Permutations", lambda x: 1, depth="x")
         Traceback (most recent call last):
         ...
-        ValueError: the depth of a FindStat query must be a non-negative integer less than or equal to 10
+        ValueError: E021: Depth should be a non-negative integer at most 9, but is x.
 
         sage: findstat("Permutations", lambda x: 1, depth=100)
         Traceback (most recent call last):
         ...
-        ValueError: the depth of a FindStat query must be a non-negative integer less than or equal to 10
+        ValueError: E021: Depth should be a non-negative integer at most 9, but is 100.
 
         sage: S = Permutation
         sage: findstat([(S([1,2]), 1), ([S([1,3,2]), S([1,2])], [2,3])])        # optional -- internet
@@ -1045,12 +1043,6 @@ def findstat(query=None, values=None, distribution=None, domain=None,
         sage: findstat("graphs", lambda g: g.diameter() if g.is_connected() else None, max_values=100, depth=0) # optional -- internet
         0: St000259 (quality [100, 100])
     """
-    try:
-        depth = int(depth)
-        assert 0 <= depth <= FINDSTAT_MAX_DEPTH
-    except (ValueError, AssertionError):
-        raise ValueError("the depth of a FindStat query must be a non-negative integer less than or equal to %i" % FINDSTAT_MAX_DEPTH)
-
     try:
         max_values = int(max_values)
         assert 0 <= max_values <= FINDSTAT_MAX_VALUES
@@ -1147,9 +1139,9 @@ def findmap(*args, **kwargs):
     ``distribution``, ``depth`` and ``max_values``. They have the
     following meanings:
 
-    - ``depth`` -- (default ``FINDSTAT_DEFAULT_DEPTH``), an integer
-      between 0 and ``FINDSTAT_MAX_DEPTH``, specifying how many maps
-      to apply to generate the given map.
+    - ``depth`` -- (default ``FINDSTAT_DEFAULT_DEPTH``), a
+      non-negative integer, specifying how many maps to apply to
+      generate the given map.
 
     - ``max_values`` -- (default ``FINDSTAT_MAX_VALUES``), an integer
       specifying how many values are sent to the finder.
@@ -1272,12 +1264,6 @@ def findmap(*args, **kwargs):
     distribution = kwargs.get("distribution", None)
     domain = kwargs.get("domain", None)
     codomain = kwargs.get("codomain", None)
-
-    try:
-        depth = int(depth)
-        assert 0 <= depth <= FINDSTAT_MAX_DEPTH
-    except (ValueError, AssertionError):
-        raise ValueError("the depth of a FindStat query must be a non-negative integer less than or equal to %i" % FINDSTAT_MAX_DEPTH)
 
     try:
         max_values = int(max_values)

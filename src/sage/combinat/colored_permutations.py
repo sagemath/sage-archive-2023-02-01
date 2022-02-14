@@ -11,6 +11,7 @@ import itertools
 from sage.structure.element import MultiplicativeGroupElement
 from sage.structure.parent import Parent
 from sage.structure.unique_representation import UniqueRepresentation
+from sage.misc.inherit_comparison import InheritComparisonClasscallMetaclass
 from sage.misc.cachefunc import cached_method
 from sage.misc.misc_c import prod
 from sage.arith.functions import lcm
@@ -954,10 +955,27 @@ class ColoredPermutations(Parent, UniqueRepresentation):
 ## Signed permutations
 
 
-class SignedPermutation(ColoredPermutation):
+class SignedPermutation(ColoredPermutation,
+                        metaclass=InheritComparisonClasscallMetaclass):
     """
     A signed permutation.
     """
+    @staticmethod
+    def __classcall_private__(cls, pi):
+        """
+        Create a signed permutation.
+
+        EXAMPLES::
+
+            sage: SignedPermutation([2, 1, 3])
+            [2, 1, 3]
+
+            sage: SignedPermutation([2, 1, -3])
+            [2, 1, -3]
+
+        """
+        return SignedPermutations(len(list(pi)))(pi)
+
     def _repr_(self):
         """
         Return a string representation of ``self``.

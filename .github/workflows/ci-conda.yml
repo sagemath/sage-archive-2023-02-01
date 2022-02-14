@@ -81,3 +81,8 @@ jobs:
       - name: Test
         shell: bash -l {0}
         run: ./sage -t --all -p0
+
+      - name: Print logs
+        run: |
+          .github/workflows/scan-logs.sh .
+        if: always()

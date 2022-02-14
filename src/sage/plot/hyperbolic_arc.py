@@ -75,6 +75,7 @@ from sage.plot.circle import circle
 from sage.plot.arc import Arc
 from sage.misc.decorators import options, rename_keyword
 from sage.rings.cc import CC
+from sage.geometry.hyperbolic_space.hyperbolic_constants import EPSILON
 
 
 class HyperbolicArcCore(BezierPath):
@@ -117,8 +118,6 @@ class HyperbolicArcCore(BezierPath):
             if B.abs() > 1:
                 raise ValueError("%s is not a valid point in the KM model" % (B,))
             self._KM_hyperbolic_arc(A, B, True)
-        elif model == "HM":
-            raise NotImplementedError("Hyperboloid model is not yet implemented")
         else:
             raise ValueError("%s is not a valid model for Hyperbolic plane" % model)
 
@@ -408,12 +407,41 @@ def hyperbolic_arc(a, b, model="UHP", **options):
         P = a1 + a2 + a3
         sphinx_plot(P)
 
+    Show a hyperbolic arc from `(1,2,sqrt(6))` to `(-2,-3,sqrt(14))` in the hiperboloid model
+
+        sage: a = (1,2,sqrt(6))
+        sage: b = (-2,-3,sqrt(14))
+        sage: hyperbolic_arc(a, b, model="HM")
+        Launched html viewer for Graphics3d Object
+
+    ..PLOT::
+
+       a = (1,2,sqrt(6))
+       b = (-2,-3,sqrt(14))
+       sphinx_plot(hyperbolic_arc(a, b, model="HM"))
+
     """
     from sage.plot.all import Graphics
+
     g = Graphics()
     g._set_extra_kwds(g._extract_kwds_for_show(options))
-    g.add_primitive(HyperbolicArc(a, b, model, options))
+    if model != "HM":
+        g.add_primitive(HyperbolicArc(a, b, model, options))
+    else:
+        # since KM is 3d we can not use HyperbolicArc class we plot it directly
+        # and we also handle the hyperbolic_polygon in direct way
+        from sage.geometry.hyperbolic_space.hyperbolic_interface import HyperbolicPlane
+
+        # Check for valid points
+        if a[2] < 0 or a[0]**2+a[1]**2-a[2]**2 + 1 > EPSILON:
+            raise ValueError("%s is not a valid point in the HM model" % (a,))
+        if b[2] < 0 or b[0]**2+b[1]**2-b[2]**2 + 1 > EPSILON:
+            raise ValueError("%s is not a valid point in the HM model" % (b,))
+
+        HM = HyperbolicPlane().HM()
+        geodesic = HM.get_geodesic(a, b)
+        g = g + geodesic.plot(show_hyperboloid=True, graphics_options=options)
     if model == "PD" or model == "KM":
         g = g + circle((0, 0), 1, axes=False, color='black')
-    g.set_aspect_ratio(1)
+        g.set_aspect_ratio(1)
     return g

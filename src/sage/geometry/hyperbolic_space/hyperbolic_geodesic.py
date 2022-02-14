@@ -2354,6 +2354,42 @@ class HyperbolicGeodesicHM(HyperbolicGeodesic):
         sphinx_plot(g.plot(color='blue'))
 
     """
+    def _plot_vertices(self):
+        r"""
+        Return ``self`` plotting vertices in R^3.
+
+        Auxiliary function needed to plot polygons.
+
+        """
+
+        from sage.plot.misc import setup_for_eval_on_grid
+        from sage.arith.srange import xsrange
+
+        x = SR.var('x')
+        v1, u2 = [vector(k.coordinates()) for k in self.endpoints()]
+        # Lorentzian Gram Shmidt.  The original vectors will be
+        # u1, u2 and the orthogonal ones will be v1, v2.  Except
+        # v1 = u1, and I don't want to declare another variable,
+        # hence the odd naming convention above.
+        # We need the Lorentz dot product of v1 and u2.
+        v1_ldot_u2 = u2[0]*v1[0] + u2[1]*v1[1] - u2[2]*v1[2]
+        v2 = u2 + v1_ldot_u2 * v1
+        v2_norm = sqrt(v2[0]**2 + v2[1]**2 - v2[2]**2)
+        v2 = v2 / v2_norm
+        v2_ldot_u2 = u2[0]*v2[0] + u2[1]*v2[1] - u2[2]*v2[2]
+        # Now v1 and v2 are Lorentz orthogonal, and |v1| = -1, |v2|=1
+        # That is, v1 is unit timelike and v2 is unit spacelike.
+        # This means that cosh(x)*v1 + sinh(x)*v2 is unit timelike.
+        hyperbola = cosh(x)*v1 + sinh(x)*v2
+        endtime = arcsinh(v2_ldot_u2)        
+        # mimic the function _parametric_plot3d_curve using a bezier3d instead of a line3d
+        # this is required in order to be able to plot hyperbolic polygons whithin the plot library
+        g, ranges = setup_for_eval_on_grid(hyperbola, [(x, 0, endtime)], 75)
+        f_x, f_y, f_z = g
+        points = [(f_x(u), f_y(u), f_z(u)) for u in xsrange(*ranges[0], include_endpoint=True)]
+        # convert points to a path3d
+        points = list(points)
+        return points
 
     def plot(self, show_hyperboloid=True, **graphics_options):
         r"""
@@ -2391,7 +2427,7 @@ class HyperbolicGeodesicHM(HyperbolicGeodesic):
         # That is, v1 is unit timelike and v2 is unit spacelike.
         # This means that cosh(x)*v1 + sinh(x)*v2 is unit timelike.
         hyperbola = cosh(x)*v1 + sinh(x)*v2
-        endtime = arcsinh(v2_ldot_u2)
+        endtime = arcsinh(v2_ldot_u2)        
         from sage.plot.plot3d.all import parametric_plot3d
         pic = parametric_plot3d(hyperbola, (x, 0, endtime), **graphics_options)
         if show_hyperboloid:

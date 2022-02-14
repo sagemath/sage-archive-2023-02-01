@@ -90,8 +90,6 @@ class HyperbolicPolygon(HyperbolicArcCore):
             for i in range(1, len(pts) - 1):
                 self._KM_hyperbolic_arc(pts[i], pts[i + 1])
             self._KM_hyperbolic_arc(pts[-1], pts[0])
-        elif model == "HM":
-            raise NotImplementedError("Hyperboloid model is not yet implemented")
         else:
             raise ValueError("%s is not a valid model for Hyperbolic plane" % model)
         self._pts = pts
@@ -195,22 +193,67 @@ def hyperbolic_polygon(pts, model="UHP", **options):
     Show a hyperbolic polygon in the Klein model with coordinates
     `1`, `e^{i\pi/3}` , `e^{i2\pi/3}` , `-1` , `e^{i4\pi/3}` , `e^{i5\pi/3}`::
 
-        sage: hyperbolic_polygon([1,(cos(pi/3),sin(pi/3)),(cos(2*pi/3),sin(2*pi/3)),-1,(cos(4*pi/3),sin(4*pi/3)),(cos(5*pi/3),sin(5*pi/3))],model="KM", fill=True, color='purple')
+        sage: p1=1
+        sage: p2=(cos(pi/3),sin(pi/3))
+        sage: p3=(cos(2*pi/3),sin(2*pi/3))
+        sage: p4=-1
+        sage: p5=(cos(4*pi/3),sin(4*pi/3))
+        sage: p6=(cos(5*pi/3),sin(5*pi/3))
+        hyperbolic_polygon([p1,p2,p3,p4,p5,p6],model="KM", fill=True, color='purple')
         Graphics object consisting of 2 graphics primitives
 
     .. PLOT::
 
-        P = hyperbolic_polygon([1,(cos(pi/3),sin(pi/3)),(cos(2*pi/3),sin(2*pi/3)),-1,(cos(4*pi/3),sin(4*pi/3)),(cos(5*pi/3),sin(5*pi/3))],model="KM", fill=True, color='purple')
+        p1=1
+        p2=(cos(pi/3),sin(pi/3))
+        p3=(cos(2*pi/3),sin(2*pi/3))
+        p4=-1
+        p5=(cos(4*pi/3),sin(4*pi/3))
+        p6=(cos(5*pi/3),sin(5*pi/3))
+        P = hyperbolic_polygon([p1,p2,p3,p4,p5,p6],model="KM", fill=True, color='purple')
+        sphinx_plot(P)
+
+    Hiperboloid model is supported partially, (neither fill nor color option yet) via the paraeter ``model``.
+    Show a hyperbolic polygon in the Klein model with coordinates
+    `(3,3,sqrt(19)),(3,-3,sqrt(19)),(-3,-3,sqrt(19)),(-3,3,sqrt(19))`::
+
+        sage: hyperbolic_polygon([(3,3,sqrt(19)),(3,-3,sqrt(19)),(-3,-3,sqrt(19)),(-3,3,sqrt(19))],model = "HM")
+        Launched html viewer for Graphics3d Object
+
+    .. PLOT::
+
+        P = hyperbolic_polygon([(3,3,sqrt(19)),(3,-3,sqrt(19)),(-3,-3,sqrt(19)),(-3,3,sqrt(19))],model = "HM")
         sphinx_plot(P)
 
     """
     from sage.plot.all import Graphics
     g = Graphics()
     g._set_extra_kwds(g._extract_kwds_for_show(options))
-    g.add_primitive(HyperbolicPolygon(pts, model, options))
+    if model != "HM":
+        g.add_primitive(HyperbolicPolygon(pts, model, options))
+    else:
+        from sage.geometry.hyperbolic_space.hyperbolic_interface import HyperbolicPlane
+        from sage.plot.plot3d.shapes2 import line3d
+
+        # First side
+        HM = HyperbolicPlane().HM()
+        geodesic = HM.get_geodesic(pts[0], pts[1])
+        points = geodesic._plot_vertices()
+
+        # n - 2 sides
+        for j in range(1, len(pts) - 1):
+            geodesic = HM.get_geodesic(pts[j], pts[j+1])
+            points = points + geodesic._plot_vertices()
+
+        # last side
+        geodesic = HM.get_geodesic(pts[-1], pts[0])
+        points = points + geodesic._plot_vertices()
+
+        g = line3d(points)  # No options passed in this version
+      
     if model == "PD" or model == "KM":
         g = g + circle((0, 0), 1, rgbcolor='black')
-    g.set_aspect_ratio(1)
+        g.set_aspect_ratio(1)
     return g
 
 

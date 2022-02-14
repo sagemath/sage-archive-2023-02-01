@@ -88,7 +88,8 @@ Integer_sage = sage.rings.integer.Integer
 from sage.rings.real_mpfi import RealInterval
 
 from sage.rings.complex_mpfr import ComplexField
-CC = ComplexField(53)
+from sage.rings.cc import CC
+
 
 # this is a threshold for the charpoly() methods in this file
 # for degrees <= this threshold, pari is used
@@ -4415,7 +4416,7 @@ cdef class NumberFieldElement(FieldElement):
             sage: K.<zeta> = CyclotomicField(8)
             sage: K(1).descend_mod_power(QQ,2)
             [1, 2, -1, -2]
-            sage: a = 17*K.random_element()^2
+            sage: a = 17 * K._random_nonzero_element()^2
             sage: a.descend_mod_power(QQ,2)
             [17, 34, -17, -34]
         """

@@ -93,7 +93,7 @@ import sage.matrix.all as matrix
 from sage.libs.pari.all import pari
 from sage.functions.gamma import gamma_inc
 from math import sqrt
-from sage.interfaces.all import gp
+from sage.interfaces.gp import gp
 from sage.misc.cachefunc import cached_method
 from copy import copy
 
@@ -431,9 +431,9 @@ class EllipticCurve_rational_field(EllipticCurve_number_field):
 
         .. NOTE::
 
-           The output is a raw string and completely illegible using
-           automatic display, so it is recommended to use print for
-           legible output.
+            The output is a raw string and completely illegible using
+            automatic display, so it is recommended to use print for
+            legible output.
 
         EXAMPLES::
 
@@ -471,9 +471,9 @@ class EllipticCurve_rational_field(EllipticCurve_number_field):
             Regulator = 95.98037...
         """
         if not options:
-            from sage.interfaces.all import mwrank
+            from sage.interfaces.mwrank import mwrank
         else:
-            from sage.interfaces.all import Mwrank
+            from sage.interfaces.mwrank import Mwrank
             mwrank = Mwrank(options=options)
         return mwrank(list(self.a_invariants()))
 
@@ -519,10 +519,10 @@ class EllipticCurve_rational_field(EllipticCurve_number_field):
 
         .. NOTE::
 
-           The conductor computed using each algorithm is cached
-           separately. Thus calling ``E.conductor('pari')``, then
-           ``E.conductor('mwrank')`` and getting the same result
-           checks that both systems compute the same answer.
+            The conductor computed using each algorithm is cached
+            separately. Thus calling ``E.conductor('pari')``, then
+            ``E.conductor('mwrank')`` and getting the same result
+            checks that both systems compute the same answer.
 
         TESTS::
 
@@ -1516,7 +1516,7 @@ class EllipticCurve_rational_field(EllipticCurve_number_field):
             sage: EllipticCurve([1234567,89101112]).analytic_rank(algorithm='rubinstein')
             Traceback (most recent call last):
             ...
-            RuntimeError: unable to compute analytic rank using rubinstein algorithm (unable to convert ' 6.19283e+19 and is too large' to an integer)
+            RuntimeError: unable to compute analytic rank using rubinstein algorithm (unable to convert ' 6.19283... and is too large' to an integer)
             sage: EllipticCurve([1234567,89101112]).analytic_rank(algorithm='sympow')
             Traceback (most recent call last):
             ...
@@ -1544,7 +1544,7 @@ class EllipticCurve_rational_field(EllipticCurve_number_field):
         elif algorithm == 'magma':
             if leading_coefficient:
                 raise NotImplementedError("Cannot compute leading coefficient using magma")
-            from sage.interfaces.all import magma
+            from sage.interfaces.magma import magma
             return rings.Integer(magma(self).AnalyticRank())
         elif algorithm == 'zero_sum':
             if leading_coefficient:
@@ -1970,7 +1970,7 @@ class EllipticCurve_rational_field(EllipticCurve_number_field):
             sage: EllipticCurve('681b').three_selmer_rank(algorithm='Heuristic')   # long time (10 seconds); optional - magma
             2
         """
-        from sage.interfaces.all import magma
+        from sage.interfaces.magma import magma
         E = magma(self)
         return Integer(E.ThreeSelmerGroup(MethodForFinalStep = magma('"%s"'%algorithm)).Ngens())
 
@@ -2875,7 +2875,7 @@ class EllipticCurve_rational_field(EllipticCurve_number_field):
         To establish that the rank is in fact 0 in this case, we would
         need to carry out a higher descent::
 
-            sage: E.three_selmer_rank() # optional: magma
+            sage: E.three_selmer_rank() # optional - magma
             0
 
         Or use the L-function to compute the analytic rank::
@@ -3753,7 +3753,7 @@ class EllipticCurve_rational_field(EllipticCurve_number_field):
                     from sage.lfunctions.all import sympow
                     m = sympow.modular_degree(self)
                 elif algorithm == 'magma':
-                    from sage.interfaces.all import magma
+                    from sage.interfaces.magma import magma
                     m = rings.Integer(magma(self).ModularDegree())
                 else:
                     raise ValueError("unknown algorithm %s"%algorithm)
@@ -5554,7 +5554,7 @@ class EllipticCurve_rational_field(EllipticCurve_number_field):
             sage: e.tate_curve(3)
             Traceback (most recent call last):
             ...
-            ValueError: The elliptic curve must have multiplicative reduction at 3
+            ValueError: the elliptic curve must have multiplicative reduction at 3
 
         We compute with `p=5`::
 
@@ -6579,7 +6579,7 @@ class EllipticCurve_rational_field(EllipticCurve_number_field):
                 return set(xs)
     #<-------------------------------------------------------------------------
         #End internal functions ###############################################
-        from sage.misc.all import cartesian_product_iterator
+        from sage.misc.mrange import cartesian_product_iterator
 
         E = self
         tors_points = E.torsion_points()

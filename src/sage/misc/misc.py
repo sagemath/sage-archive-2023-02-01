@@ -46,6 +46,7 @@ import warnings
 
 from .lazy_string import lazy_string
 from sage.env import DOT_SAGE, HOSTNAME
+from sage.misc.cachefunc import cached_function
 from sage.misc.lazy_import import lazy_import
 
 lazy_import("sage.misc.call", ["AttrCallObject", "attrcall", "call_method"],
@@ -247,15 +248,38 @@ def ECL_TMP():
 
 @lazy_string
 def SPYX_TMP():
-    """
+    r"""
     EXAMPLES::
 
         sage: from sage.misc.misc import SPYX_TMP
         sage: SPYX_TMP
-        l'.../temp/.../spyx'
-    """
-    return os.path.join(str(SAGE_TMP), 'spyx')
+        doctest:warning...
+        DeprecationWarning: SPYX_TMP is deprecated;
+        use sage.misc.misc.spyx_tmp instead
+        See https://trac.sagemath.org/33213 for details.
+        ...
 
+    """
+    from sage.misc.superseded import deprecation
+    deprecation(33213, "SPYX_TMP is deprecated; use sage.misc.misc.spyx_tmp instead")
+    return spyx_tmp()
+
+
+@cached_function
+def spyx_tmp():
+    r"""
+    The temporary directory used to store pyx files.
+
+    We use a cached function for this so that the same temporary
+    directory will always be returned (unless the user shoots himself
+    in the foot). Each temporary directory created is removed when
+    sage terminates using an atexit hook.
+    """
+    import atexit, tempfile
+    d = tempfile.TemporaryDirectory()
+    result = os.path.join(d.name, 'spyx')
+    atexit.register(lambda: d.cleanup())
+    return result
 
 @lazy_string
 def SAGE_TMP_INTERFACE():

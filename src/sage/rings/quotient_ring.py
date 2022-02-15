@@ -1443,7 +1443,8 @@ class QuotientRingIdeal_generic(ideal.Ideal_generic):
             Igens = list(R.defining_ideal().gens())
         else:
             Igens = [R.modulus()]
-        J = R.cover_ring().ideal(Igens + [g.lift() for g in self.gens()])
+        Igens += [g.lift() for g in self.gens()]
+        J = R.cover_ring().ideal(Igens)
         return other.lift() in J
 
 class QuotientRingIdeal_principal(ideal.Ideal_principal, QuotientRingIdeal_generic):

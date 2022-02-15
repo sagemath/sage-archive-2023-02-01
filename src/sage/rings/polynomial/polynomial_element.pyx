@@ -820,13 +820,15 @@ cdef class Polynomial(CommutativeAlgebraElement):
             if isinstance(a, Polynomial) and a.base_ring() is pol._parent._base:
                 if (<Polynomial> a).is_gen():
                     return R(pol)
+                if (<Polynomial> a).is_zero():
+                    return R(cst)
+                d = (<Polynomial> a).degree()
+                if d < 0:  # f(0)
+                    return R(cst)
+                if d == 0:  # f(const)
+                    return R(pol((<Polynomial> a).constant_coefficient()))
                 if (<Polynomial> a).is_monomial():
-                    d = (<Polynomial> a).degree()
-                    if d < 0:  # f(0) is just the constant term of f
-                        return R(cst)
-                    if d == 0:  # f(const)
-                        return R(pol((<Polynomial> a).constant_coefficient()))
-                    if d == 1:  # f(x); the is_gen() does not catch all such cases
+                    if d == 1:  # f(x); is_gen() does not catch all such cases
                         return R(pol)
                     if pol._parent.is_sparse():
                         coeff_sparse = {}

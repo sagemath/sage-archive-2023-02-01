@@ -342,7 +342,8 @@ class FractionField_generic(ring.Field):
 
         # special treatment for LaurentPolynomialRings
         if (isinstance(S, LaurentPolynomialRing_generic) and
-                self._R.has_coerce_map_from(S.base_ring())):
+                self._R.fraction_field().has_coerce_map_from(S.base_ring())):
+
             def converter(x, y=None):
                 if y is None:
                     return self._element_class(self, *x._fraction_pair())

@@ -23,6 +23,8 @@ jobs:
           # Reuse built SAGE_LOCAL contained in the Docker image 
           ./bootstrap
           ./configure --enable-build-as-root --prefix=/sage/local --with-sage-venv
+          # Install test tools
+          ./venv/bin/python3 -m pip install coverage
       
       - name: Build
         run: make build
@@ -31,4 +33,15 @@ jobs:
           SAGE_NUM_THREADS: 2
 
       - name: Test
-        run: ./sage -t --all -p0
+        run: ../venv/bin/python3 -m coverage run ./bin/sage-runtests --all -p0
+        working-directory: ./src
+
+      - name: Prepare coverage results
+        run: |
+          ./venv/bin/python3 -m coverage combine src/.coverage/
+          ./venv/bin/python3 -m coverage xml
+      
+      - name: Upload coverage to codecov
+        uses: codecov/codecov-action@v2
+        with:
+          files: ./src/coverage.xml

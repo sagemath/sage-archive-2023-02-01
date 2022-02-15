@@ -691,23 +691,30 @@ cdef class Polynomial(CommutativeAlgebraElement):
             sage: Polynomial.__call__(x, [])
             x
 
-        This was about a hundred times slower prior to :trac:`33165`::
+        These were drastically slower prior to :trac:`33165`::
 
             sage: R.<x> = GF(31337)[]
-            sage: f = R.random_element(degree=99)
-            sage: g = R.random_element(degree=999)
+            sage: f = R(list(range(100,201)))
+            sage: g = R(list(range(1,1001)))
             sage: S.<y> = R.quotient(f)
-            sage: _ = g(y)
+            sage: g(y)
+            22537*y^99 + 4686*y^98 + 13285*y^97 + 4216*y^96 + ... + 6389*y^3 + 30062*y^2 + 13755*y + 11875
 
-        This was about a thousand times slower prior to :trac:`33165`::
+        ::
 
             sage: T.<z> = GF(31337)[]
-            sage: _ = g(z)
+            sage: g(z)
+            1000*z^999 + 999*z^998 + 998*z^997 + 997*z^996 + ... + 5*z^4 + 4*z^3 + 3*z^2 + 2*z + 1
+            sage: g(z^2)
+            1000*z^1998 + 999*z^1996 + 998*z^1994 + 997*z^1992 + ... + 5*z^8 + 4*z^6 + 3*z^4 + 2*z^2 + 1
 
-        This was about ten times slower prior to :trac:`33165`::
+        ::
 
             sage: U.<u,v> = GF(31337)[]
-            sage: _ = g(u)
+            sage: g(u)
+            1000*u^999 + 999*u^998 + 998*u^997 + 997*u^996 + ... + 5*u^4 + 4*u^3 + 3*u^2 + 2*u + 1
+            sage: g(u*v^2)
+            1000*u^999*v^1998 + 999*u^998*v^1996 + 998*u^997*v^1994 + ... + 4*u^3*v^6 + 3*u^2*v^4 + 2*u*v^2 + 1
 
         AUTHORS:
 
@@ -776,18 +783,32 @@ cdef class Polynomial(CommutativeAlgebraElement):
 
         if parent(cst) is not R:
 
-            # If a is a generator of an isomorphic polynomial ring (or quotient
+            # If a is a monomial in an isomorphic polynomial ring (or quotient
             # of an isomorphic polynomial ring), the code below wastes a lot of
             # time on conversions and unnecessary intermediate reductions.
             # We can do dramatically better by simply doing the conversion once
             # and returning the result. See #33165.
-            if isinstance(a, Polynomial) and a.is_gen() and a.base_ring() is pol.base_ring():
-                return R(pol)
-            elif isinstance(a, MPolynomial) and a.is_generator() and a.base_ring() is pol.base_ring():
-                num = R.ngens()
-                idx = R.gens().index(a)
-                tup = lambda i: (0,)*idx + (i,) + (0,)*(num-idx-1)
-                return R({tup(i): c for i,c in enumerate(pol)})
+            if isinstance(a, Polynomial) and a.base_ring() is pol.base_ring():
+                if a.is_gen():
+                    return R(pol)
+                if a.is_monomial():
+                    d = a.degree()
+                    if d <= 0:
+                        return R(pol(a.constant_coefficient()))
+                    cs = [0] * (pol.degree()*d + 1)
+                    for i,c in enumerate(pol):
+                        cs[d*i] = c
+                    return R(cs, check=False)
+            elif isinstance(a, MPolynomial) and a.base_ring() is pol.base_ring() and a.is_monomial():
+                if a.is_monomial():
+                    etup, = a.exponents()
+                    if a.is_generator():
+                        num = R.ngens()
+                        idx, = etup.nonzero_positions()
+                        tup = lambda i: (0,)*idx + (i,) + (0,)*(num-idx-1)
+                    else:
+                        tup = etup.emul
+                    return R({tup(i): c for i,c in enumerate(pol)})
             elif isinstance(a, PolynomialQuotientRingElement) and a.lift().is_gen() and R.polynomial_ring() is pol._parent:
                 return R(pol)
 

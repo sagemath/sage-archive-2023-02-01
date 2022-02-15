@@ -21,6 +21,12 @@ jobs:
     name: Conda
     runs-on: ubuntu-latest
     
+    strategy:
+      fail-fast: false
+      matrix:
+        python: [3.8, 3.9]
+        conda-env: [environment, environment-optional]
+
     steps:
       - uses: actions/checkout@v2
 
@@ -53,12 +59,12 @@ jobs:
       - name: Setup Conda
         uses: conda-incubator/setup-miniconda@v2
         with:
-          python-version: 3.8
+          python-version: ${{ matrix.python }}
           mamba-version: "*"
           channels: conda-forge,defaults
           channel-priority: true
           activate-environment: sage-build
-          environment-file: src/environment.yml
+          environment-file: src/${{ matrix.conda-env }}.yml
 
       - name: Print Conda environment
         shell: bash -l {0}

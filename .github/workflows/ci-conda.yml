@@ -74,8 +74,10 @@ jobs:
 
       - name: Configure
         shell: bash -l {0}
-        run: ./configure --enable-build-as-root --with-python=$CONDA_PREFIX/bin/python
-        
+        run: |
+          echo "::add-matcher::configure-systempackage-problem-matcher.json"
+          ./configure --enable-build-as-root --with-python=$CONDA_PREFIX/bin/python
+          echo "::remove-matcher owner=configure-systempackage::"
       - name: Build
         shell: bash -l {0}
         run: |

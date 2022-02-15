@@ -431,7 +431,7 @@ cdef class SBox(SageObject):
         """
         # Handle integer inputs
         if isinstance(X, int):
-            return self._S[<int> X]
+            return self._S_list[<int> X]
         if isinstance(X, Integer):
             return self._S_list[<Integer> X]
 

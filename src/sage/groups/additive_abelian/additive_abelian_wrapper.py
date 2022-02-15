@@ -290,89 +290,6 @@ class AdditiveAbelianGroupWrapper(addgp.AdditiveAbelianGroup_fixed_gens):
 
     _discrete_exp = deprecated_function_alias(32384, discrete_exp)
 
-    @staticmethod
-    def _discrete_log_pgroup(p, vals, aa, b):
-        r"""
-        Attempt to express an element of p-power order in terms of
-        generators of a p-subgroup of this group.
-
-        Used as a subroutine in :meth:`discrete_log`.
-
-        ALGORITHM:
-
-        This implements a basic version of the recursive algorithm
-        from [Suth2008]_.
-        The base cases are handled using a variant of Shanks'
-        baby-step giant-step algorithm for products of cyclic groups.
-
-        EXAMPLES::
-
-            sage: G = AdditiveAbelianGroup([5, 5**2, 5**4, 5**4])
-            sage: (a, b, c, d) = gs = G.gens()
-            sage: A = AdditiveAbelianGroupWrapper(a.parent(), gs, [g.order() for g in gs])
-            sage: AdditiveAbelianGroupWrapper._discrete_log_pgroup(5, [1,2,4,4], gs, a + 17*b + 123*c + 456*d)
-            (1, 17, 123, 456)
-        """
-        from itertools import product as iproduct
-
-        qq = lambda j, k: vector(p ** (j + max(0, v - k)) for a, v in zip(aa, vals))
-        subbasis = lambda j, k: [q * a for q, a in zip(qq(j, k), aa)]
-        dotprod = lambda xs, ys: sum(x * y for x, y in zip(xs, ys))
-
-        def _base(j, k, c):
-
-            assert k - j == 1
-            aajk = subbasis(j, k)
-            assert not any(p*a for a in aajk)  # orders are in {1,p}
-            idxs = [i for i, a in enumerate(aajk) if a]
-
-            rs = [([0], [0]) for i in range(len(aajk))]
-            for i in range(len(idxs)):
-                rs[idxs[i]] = (range(p), [0]) if i % 2 else ([0], range(p))
-            if len(idxs) % 2:
-                m = p.isqrt() + 1  # hence m^2 >= p
-                rs[idxs[-1]] = range(0, p, m), range(m)
-
-            tab = {}
-            for x in iproduct(*(r for r, _ in rs)):
-                key = dotprod(x, aajk)
-                if hasattr(key, 'set_immutable'):
-                    key.set_immutable()
-                tab[key] = vector(x)
-            for y in iproduct(*(r for _, r in rs)):
-                key = c - dotprod(y, aajk)
-                if hasattr(key, 'set_immutable'):
-                    key.set_immutable()
-                if key in tab:
-                    return tab[key] + vector(y)
-
-            raise TypeError('Not in group')
-
-        def _rec(j, k, c):
-
-            assert 0 <= j < k
-
-            if k - j <= 1: # base case
-                return _base(j, k, c)
-
-            w = 2
-            js = list(range(j, k, (k-j+w-1) // w)) + [k]
-            assert len(js) == w + 1
-
-            x = vector([0] * len(aa))
-            for i in reversed(range(w)):
-
-                gamma = p ** (js[i] - j) * c - dotprod(x, subbasis(js[i], k))
-
-                v = _rec(js[i], js[i+1], gamma)
-
-                assert not any(q1 % q2 for q1, q2 in zip(qq(js[i], js[i+1]), qq(js[i], k)))
-                x += vector(q1 // q2 * r for q1, q2, r in zip(qq(js[i], js[i+1]), qq(js[i], k), v))
-
-            return x
-
-        return _rec(0, max(vals), b)
-
     def discrete_log(self, x, gens=None):
         r"""
         Given an element of the ambient group, attempt to express it in terms
@@ -380,7 +297,7 @@ class AdditiveAbelianGroupWrapper(addgp.AdditiveAbelianGroup_fixed_gens):
 
         ALGORITHM:
 
-        This reduces to p-groups, then calls :meth:`_discrete_log_pgroup` which
+        This reduces to p-groups, then calls :func:`_discrete_log_pgroup` which
         implements a basic version of the recursive algorithm from [Suth2008]_.
 
         AUTHORS:
@@ -444,9 +361,8 @@ class AdditiveAbelianGroupWrapper(addgp.AdditiveAbelianGroup_fixed_gens):
         else:
             ords = [g.order() for g in gens]
 
-        unwrap = lambda a: self._universe(a.element() if parent(a) is self else a)
-        gens = tuple(map(unwrap, gens))
-        x = unwrap(x)
+        gens = [self._universe(g.element() if parent(g) is self else g) for g in gens]
+        x = self._universe(x.element() if parent(x) is self else x)
 
         crt_data = [[] for _ in gens]
         for p in self.exponent().prime_factors():
@@ -455,7 +371,7 @@ class AdditiveAbelianGroupWrapper(addgp.AdditiveAbelianGroup_fixed_gens):
             y = cofactor * x
 
             pvals = [o.valuation(p) for o in ords]
-            plog = self._discrete_log_pgroup(p, pvals, pgens, y)
+            plog = _discrete_log_pgroup(p, pvals, pgens, y)
 
             for i, (r, v) in enumerate(zip(plog, pvals)):
                 crt_data[i].append((r, p**v))
@@ -486,4 +402,88 @@ class AdditiveAbelianGroupWrapper(addgp.AdditiveAbelianGroup_fixed_gens):
         if parent(x) is self.universe():
             return self.element_class(self, self.discrete_log(x), element = x)
         return addgp.AdditiveAbelianGroup_fixed_gens._element_constructor_(self, x, check)
+
+
+def _discrete_log_pgroup(p, vals, aa, b):
+    r"""
+    Attempt to express an element of p-power order in terms of
+    generators of a p-subgroup of this group.
+
+    Used as a subroutine in :meth:`discrete_log`.
+
+    ALGORITHM:
+
+    This implements a basic version of the recursive algorithm
+    from [Suth2008]_.
+    The base cases are handled using a variant of Shanks'
+    baby-step giant-step algorithm for products of cyclic groups.
+
+    EXAMPLES::
+
+        sage: G = AdditiveAbelianGroup([5, 5**2, 5**4, 5**4])
+        sage: (a, b, c, d) = gs = G.gens()
+        sage: A = AdditiveAbelianGroupWrapper(a.parent(), gs, [g.order() for g in gs])
+        sage: from sage.groups.additive_abelian.additive_abelian_wrapper import _discrete_log_pgroup
+        sage: _discrete_log_pgroup(5, [1,2,4,4], gs, a + 17*b + 123*c + 456*d)
+        (1, 17, 123, 456)
+    """
+    from itertools import product as iproduct
+
+    qq = lambda j, k: vector(p ** (j + max(0, v - k)) for a, v in zip(aa, vals))
+    subbasis = lambda j, k: [q * a for q, a in zip(qq(j, k), aa)]
+    dotprod = lambda xs, ys: sum(x * y for x, y in zip(xs, ys))
+
+    def _base(j, k, c):
+
+        assert k - j == 1
+        aajk = subbasis(j, k)
+        assert not any(p*a for a in aajk)  # orders are in {1,p}
+        idxs = [i for i, a in enumerate(aajk) if a]
+
+        rs = [([0], [0]) for i in range(len(aajk))]
+        for i in range(len(idxs)):
+            rs[idxs[i]] = (range(p), [0]) if i % 2 else ([0], range(p))
+        if len(idxs) % 2:
+            m = p.isqrt() + 1  # hence m^2 >= p
+            rs[idxs[-1]] = range(0, p, m), range(m)
+
+        tab = {}
+        for x in iproduct(*(r for r, _ in rs)):
+            key = dotprod(x, aajk)
+            if hasattr(key, 'set_immutable'):
+                key.set_immutable()
+            tab[key] = vector(x)
+        for y in iproduct(*(r for _, r in rs)):
+            key = c - dotprod(y, aajk)
+            if hasattr(key, 'set_immutable'):
+                key.set_immutable()
+            if key in tab:
+                return tab[key] + vector(y)
+
+        raise TypeError('Not in group')
+
+    def _rec(j, k, c):
+
+        assert 0 <= j < k
+
+        if k - j <= 1:  # base case
+            return _base(j, k, c)
+
+        w = 2
+        js = list(range(j, k, (k-j+w-1) // w)) + [k]
+        assert len(js) == w + 1
+
+        x = vector([0] * len(aa))
+        for i in reversed(range(w)):
+
+            gamma = p ** (js[i] - j) * c - dotprod(x, subbasis(js[i], k))
+
+            v = _rec(js[i], js[i+1], gamma)
+
+            assert not any(q1 % q2 for q1, q2 in zip(qq(js[i], js[i+1]), qq(js[i], k)))
+            x += vector(q1 // q2 * r for q1, q2, r in zip(qq(js[i], js[i+1]), qq(js[i], k), v))
+
+        return x
+
+    return _rec(0, max(vals), b)
 

@@ -61,8 +61,7 @@ from sage.categories.sets_cat import Sets
 
 from sage.rings.infinity import infinity
 from sage.rings.morphism import RingHomomorphism
-from sage.rings.derivation import RingDerivationModule
-from sage.rings.derivation import RingDerivationWithoutTwist, RingDerivationWithoutTwist_zero
+from sage.rings.derivation import RingDerivationWithoutTwist
 
 from sage.modules.free_module_element import vector
 

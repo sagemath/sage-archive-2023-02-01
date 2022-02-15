@@ -390,7 +390,7 @@ cdef class IntegerRing_class(PrincipalIdealDomain):
         return "\\Bold{Z}"
 
     def __getitem__(self, x):
-        """
+        r"""
         Return the ring `\ZZ[...]` obtained by adjoining to the integers one
         or several elements.
 
@@ -1190,7 +1190,7 @@ cdef class IntegerRing_class(PrincipalIdealDomain):
         return sage.rings.infinity.infinity
 
     def zeta(self, n=2):
-        """
+        r"""
         Return a primitive ``n``-th root of unity in the integers, or raise an
         error if none exists.
 
@@ -1200,7 +1200,7 @@ cdef class IntegerRing_class(PrincipalIdealDomain):
 
         OUTPUT:
 
-        - an ``n``-th root of unity in `\ZZ`.
+        an ``n``-th root of unity in `\ZZ`
 
         EXAMPLES::
 

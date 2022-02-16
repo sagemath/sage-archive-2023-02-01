@@ -50,7 +50,7 @@ from sage.combinat.partition import Partition, Partitions
 from sage.combinat.combinat import bell_number, stirling_number2
 from sage.combinat.permutation import Permutation
 from sage.arith.misc import factorial
-from sage.misc.prandom import random, randint
+from sage.misc.prandom import random, randint, sample
 from sage.probability.probability_distribution import GeneralDiscreteDistribution
 from sage.sets.disjoint_set import DisjointSet
 from sage.combinat.posets.hasse_diagram import HasseDiagram
@@ -2804,10 +2804,14 @@ class SetPartitions_set(SetPartitions):
             sage: s = S.random_element()
             sage: s.parent() is S
             True
+            sage: s in S
+            True
 
             sage: S = SetPartitions(["a", "b", "c"])
             sage: s = S.random_element()
             sage: s.parent() is S
+            True
+            sage: s in S
             True
         """
         base_set = list(self.base_set())
@@ -3107,6 +3111,48 @@ class SetPartitions_setparts(SetPartitions_set):
         return sorted(map(len, x)) == list(reversed(self._parts))
 
 
+    def random_element(self):
+        r"""
+        Return a random set partition of ``self``.
+
+        ALGORITHM:
+
+        Based on the cardinality method. For each block size `k_i`,
+        we choose a uniformly random subset `X_i \subseteq S_i` of
+        size `k_i` of the elements `S_i` that have not yet been selected.
+        Thus, we define `S_{i+1} = S_i \setminus X_i` with `S_i = S`
+        being the defining set. This is not yet proven to be uniformly
+        distributed, but numerical tests show this is likely uniform.
+
+        EXAMPLES::
+
+            sage: S = SetPartitions(10, [4,3,2,1])
+            sage: s = S.random_element()
+            sage: s.parent() is S
+            True
+            sage: assert s in S, s
+            True
+
+            sage: S = SetPartitions(["a", "b", "c", "d"], [2,2])
+            sage: s = S.random_element()
+            sage: s.parent() is S
+            True
+            sage: assert s in S, s
+            True
+        """
+        base_set = list(self.base_set())
+        N = len(base_set)
+        ret = []
+        for p in self._parts:
+            X = sample(range(N), p)
+            ret.append([base_set[i] for i in X])
+            for i in sorted(X, reverse=True):
+                del base_set[i]
+            N -= p
+
+        return self.element_class(self, ret, check=False)
+
+
 class SetPartitions_setn(SetPartitions_set):
     """
     Set partitions with a given number of blocks.
@@ -3238,10 +3284,14 @@ class SetPartitions_setn(SetPartitions_set):
             sage: s = S.random_element()
             sage: s.parent() is S
             True
+            sage: s in S
+            True
 
             sage: S = SetPartitions(["a", "b", "c"], 2)
             sage: s = S.random_element()
             sage: s.parent() is S
+            True
+            sage: s in S
             True
         """
         def re(N, k):

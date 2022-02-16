@@ -76,7 +76,7 @@ jobs:
         shell: bash -l {0}
         run: |
           echo "::add-matcher::.github/workflows/configure-systempackage-problem-matcher.json"
-          ./configure --enable-build-as-root --with-python=$CONDA_PREFIX/bin/python
+          ./configure --enable-build-as-root --with-python=$CONDA_PREFIX/bin/python --prefix=$CONDA_PREFIX --without-system-gcc
           echo "::remove-matcher owner=configure-systempackage::"
       - name: Build
         shell: bash -l {0}

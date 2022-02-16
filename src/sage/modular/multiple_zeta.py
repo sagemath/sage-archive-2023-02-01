@@ -1553,7 +1553,7 @@ class Multizetas_iterated(CombinatorialFreeModule):
             sage: M.product_on_basis(y,x)
             I(10110) + 3*I(11010) + 6*I(11100)
         """
-        return self.sum(self._monomial(u) for u in shuffle(w1, w2, False))
+        return self._sum_of_monomials(shuffle(w1, w2, False))
 
     def half_product_on_basis(self, w1, w2):
         r"""

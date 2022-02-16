@@ -53,6 +53,12 @@ EOF
         UPDATE="$SUDO apt-get update &&"
         INSTALL="$SUDO DEBIAN_FRONTEND=noninteractive apt-get install -qqq --no-install-recommends --yes"
         CLEAN="&& $SUDO apt-get clean"
+        if [ -n "$EXTRA_REPOSITORY" ]; then
+            cat <<EOF
+RUN $UPDATE $INSTALL software-properties-common && ($INSTALL gpg gpg-agent || echo "(ignored)")
+RUN $SUDO add-apt-repository $EXTRA_REPOSITORY
+EOF
+        fi
         ;;
     fedora*|redhat*|centos*)
         cat <<EOF

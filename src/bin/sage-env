@@ -126,6 +126,7 @@ if [ -n "$NEW_SAGE_ROOT" ]; then
         echo >&2 "Warning: overwriting SAGE_ROOT environment variable:"
         echo >&2 "Old SAGE_ROOT=$SAGE_ROOT"
         echo >&2 "New SAGE_ROOT=$NEW_SAGE_ROOT"
+        export SAGE_ROOT="$NEW_SAGE_ROOT"
     fi
 fi
 
@@ -133,16 +134,11 @@ fi
 # Don't execute the commands more than once for the same version of
 # sage-env... for the same combination of SAGE_LOCAL and SAGE_VENV.
 #
-# Check this after checking the validity of SAGE_ROOT, but
-# before modifying its value.
-#
 # The idea of versioning is that SAGE_ENV_SOURCED will be set to a
 # "version number" of sage-env.  If a different version of sage-env was
 # sourced earlier (when upgrading), we still source the new version.
 # The sage-env version should be increased whenever a newer sage-env is
-# required for upgrading.  Note that build/make/deps might also need
-# to be changed: the packages which need the new sage-env must depend on
-# SAGE_ROOT_REPO (the root repo contains sage-env).
+# required for upgrading.
 #
 # sage-env version history:
 # - sage-4.7.1: version 1 (#10469)
@@ -157,10 +153,6 @@ if [ "$SAGE_ENV_SOURCED" = "$SAGE_ENV_VERSION" ]; then
     return 0
 fi
 export SAGE_ENV_SOURCED="$SAGE_ENV_VERSION"
-
-if [ -n "$NEW_SAGE_ROOT" ]; then
-    export SAGE_ROOT="$NEW_SAGE_ROOT"
-fi
 
 # The compilers are set in order of priority by
 # 1) environment variables

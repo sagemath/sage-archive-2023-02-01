@@ -78,9 +78,20 @@ class ColoredPermutation(MultiplicativeGroupElement):
             [3_{1}, 1_{0}, 2_{0}]
         """
         ret = "["
-        ret += ", ".join("{}_{{{}}}".format(x, self._colors[i])
-                         for i, x in enumerate(self._perm))
+        ret += ", ".join("{}_{{{}}}".format(x, c)
+                         for c, x in zip(self._colors, self._perm))
         return ret + "]"
+
+    def __len__(self):
+        """
+        Return the length of the one line form of ``self``.
+
+            sage: C = ColoredPermutations(2, 3)
+            sage: s1,s2,t = C.gens()
+            sage: len(s1)
+            3
+        """
+        return len(self._perm)
 
     def _mul_(self, other):
         """
@@ -93,8 +104,8 @@ class ColoredPermutation(MultiplicativeGroupElement):
             sage: s1*s2*s1 == s2*s1*s2
             True
         """
-        colors = tuple(self._colors[i] + other._colors[val - 1]  # -1 for indexing
-                       for i, val in enumerate(self._perm))
+        colors = tuple(c + other._colors[val - 1]  # -1 for indexing
+                       for c, val in zip(self._colors, self._perm))
         p = self._perm._left_to_right_multiply_on_right(other._perm)
         return self.__class__(self.parent(), colors, p)
 
@@ -113,7 +124,7 @@ class ColoredPermutation(MultiplicativeGroupElement):
         """
         ip = ~self._perm
         return self.__class__(self.parent(),
-                              tuple([-self._colors[i - 1] for i in ip]),  # -1 for indexing
+                              tuple(-self._colors[i - 1] for i in ip),  # -1 for indexing
                               ip)
 
     __invert__ = inverse
@@ -166,8 +177,7 @@ class ColoredPermutation(MultiplicativeGroupElement):
             sage: list(x)
             [(1, 3), (0, 1), (0, 2)]
         """
-        for i, p in enumerate(self._perm):
-            yield (self._colors[i], p)
+        yield from zip(self._colors, self._perm)
 
     def one_line_form(self):
         """
@@ -198,8 +208,13 @@ class ColoredPermutation(MultiplicativeGroupElement):
             [[1, 0, 0], [3, 1, 2]]
             sage: x[1]
             (0, 1)
+            sage: x[1:]
+            [(0, 1), (0, 2)]
         """
-        return list(self)[key]
+        if isinstance(key, slice):
+            return [(self._colors[i], self._perm[i])
+                    for i in range(len(self))[key]]
+        return (self._colors[key], self._perm[key])
 
     def colors(self):
         """
@@ -946,8 +961,8 @@ class ColoredPermutations(Parent, UniqueRepresentation):
             True
         """
         deg = self.degrees()
-        dstar = self.codegrees()
-        return all(deg[-1] == d + dstar[i] for i, d in enumerate(deg))
+        codeg = self.codegrees()
+        return all(deg[-1] == d + dstar for d, dstar in zip(deg, codeg))
 
     Element = ColoredPermutation
 
@@ -1011,8 +1026,8 @@ class SignedPermutation(ColoredPermutation,
             sage: s3*s4*s3*s4 == s4*s3*s4*s3
             True
         """
-        colors = tuple(self._colors[i] * other._colors[val - 1]  # -1 for indexing
-                       for i, val in enumerate(self._perm))
+        colors = tuple(c * other._colors[val - 1]  # -1 for indexing
+                       for c, val in zip(self._colors, self._perm))
         p = self._perm._left_to_right_multiply_on_right(other._perm)
         return self.__class__(self.parent(), colors, p)
 
@@ -1032,7 +1047,7 @@ class SignedPermutation(ColoredPermutation,
         """
         ip = ~self._perm
         return self.__class__(self.parent(),
-                              tuple([self._colors[i - 1] for i in ip]),  # -1 for indexing
+                              tuple(self._colors[i - 1] for i in ip),  # -1 for indexing
                               ip)
 
     __invert__ = inverse
@@ -1049,8 +1064,26 @@ class SignedPermutation(ColoredPermutation,
             sage: [a for a in x]
             [-4, 1, 2, -3]
         """
-        for i, p in enumerate(self._perm):
-            yield self._colors[i] * p
+        for c, p in zip(self._colors, self._perm):
+            yield c * p
+
+    def __getitem__(self, key):
+        """
+        Return the specified element in the one line form of ``self``.
+
+        EXAMPLES::
+
+            sage: pi = SignedPermutation([-4, 5, -1, 2, -3])
+            sage: pi[-1]
+            -3
+            sage: pi[1::2]
+            [5, 2]
+
+        """
+        if isinstance(key, slice):
+            return [self._colors[i] * self._perm[i]
+                    for i in range(len(self))[key]]
+        return self._colors[key] * self._perm[key]
 
     def to_matrix(self):
         """

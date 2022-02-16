@@ -3401,7 +3401,9 @@ cdef class Matrix_double_dense(Matrix_numpy_dense):
             raise ValueError(msg.format(self.nrows(), self.ncols()))
         if self._nrows == 0:   # special case
             self.cache(cache_posdef, True)
-            return self.__copy__()
+            L = self.__copy__()
+            L.set_immutable()
+            return L
 
         L = self.fetch(cache_cholesky)
         if L is None:
@@ -3570,20 +3572,20 @@ cdef class Matrix_double_dense(Matrix_numpy_dense):
 
     cdef _vector_times_matrix_(self,Vector v):
         if self._nrows == 0 or self._ncols == 0:
-            return self._row_ambient_module().zero_vector()
+            return self.row_ambient_module().zero_vector()
         global numpy
         if numpy is None:
             import numpy
 
         v_numpy = numpy.array([self._python_dtype(i) for i in v])
 
-        M = self._row_ambient_module()
+        M = self.row_ambient_module()
         ans = numpy.dot(v_numpy,self._matrix_numpy)
         return M(ans)
 
     cdef _matrix_times_vector_(self,Vector v):
         if self._nrows == 0 or self._ncols == 0:
-            return self._column_ambient_module().zero_vector()
+            return self.column_ambient_module().zero_vector()
 
         global numpy
         if numpy is None:
@@ -3591,7 +3593,7 @@ cdef class Matrix_double_dense(Matrix_numpy_dense):
 
         v_numpy = numpy.array([self._python_dtype(i) for i in v], dtype=self._numpy_dtype)
 
-        M = self._column_ambient_module()
+        M = self.column_ambient_module()
         ans = numpy.dot(self._matrix_numpy, v_numpy)
         return M(ans)
 

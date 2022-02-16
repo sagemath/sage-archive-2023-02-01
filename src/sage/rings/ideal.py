@@ -1313,7 +1313,10 @@ class Ideal_principal(Ideal_generic):
         """
         if self.gen().is_zero():
             return x.is_zero()
-        return self.gen().divides(x)
+        try:
+            return self.gen().divides(x)
+        except NotImplementedError:
+            return self._contains_(self.ring()(x))
 
     def __hash__(self):
         r"""

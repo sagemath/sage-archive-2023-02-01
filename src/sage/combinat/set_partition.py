@@ -2074,13 +2074,12 @@ class SetPartitions(UniqueRepresentation, Parent):
             if isinstance(part, (int, Integer)):
                 if len(s) < part:
                     raise ValueError("part must be <= len(set)")
-                else:
-                    return SetPartitions_setn(s, part)
+                return SetPartitions_setn(s, part)
             else:
+                part = sorted(part, reverse=True)
                 if part not in Partitions(len(s)):
-                    raise ValueError("part must be a partition of %s"%len(s))
-                else:
-                    return SetPartitions_setparts(s, Partition(part))
+                    raise ValueError("part must be an integer partition of %s"%len(s))
+                return SetPartitions_setparts(s, Partition(part))
         else:
             return SetPartitions_set(s)
 
@@ -2804,15 +2803,13 @@ class SetPartitions_set(SetPartitions):
             sage: s = S.random_element()
             sage: s.parent() is S
             True
-            sage: s in S
-            True
+            sage: assert s in S, s
 
             sage: S = SetPartitions(["a", "b", "c"])
             sage: s = S.random_element()
             sage: s.parent() is S
             True
-            sage: s in S
-            True
+            sage: assert s in S, s
         """
         base_set = list(self.base_set())
         N = len(base_set)
@@ -2907,6 +2904,11 @@ class SetPartitions_setparts(SetPartitions_set):
 
             sage: S = SetPartitions(4, [2,2])
             sage: T = SetPartitions([1,2,3,4], Partition([2,2]))
+            sage: S is T
+            True
+
+            sage: S = SetPartitions(4, [3,1])
+            sage: T = SetPartitions(4, (1,3))
             sage: S is T
             True
         """
@@ -3108,7 +3110,7 @@ class SetPartitions_setparts(SetPartitions_set):
         """
         if not SetPartitions_set.__contains__(self, x):
             return False
-        return sorted(map(len, x)) == list(reversed(self._parts))
+        return sorted(map(len, x), reverse=True) == self._parts
 
 
     def random_element(self):
@@ -3131,14 +3133,12 @@ class SetPartitions_setparts(SetPartitions_set):
             sage: s.parent() is S
             True
             sage: assert s in S, s
-            True
 
             sage: S = SetPartitions(["a", "b", "c", "d"], [2,2])
             sage: s = S.random_element()
             sage: s.parent() is S
             True
             sage: assert s in S, s
-            True
         """
         base_set = list(self.base_set())
         N = len(base_set)
@@ -3284,15 +3284,13 @@ class SetPartitions_setn(SetPartitions_set):
             sage: s = S.random_element()
             sage: s.parent() is S
             True
-            sage: s in S
-            True
+            sage: assert s in S, s
 
             sage: S = SetPartitions(["a", "b", "c"], 2)
             sage: s = S.random_element()
             sage: s.parent() is S
             True
-            sage: s in S
-            True
+            sage: assert s in S, s
         """
         def re(N, k):
             if N == 0:

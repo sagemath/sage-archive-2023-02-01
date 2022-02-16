@@ -130,23 +130,10 @@ if [ -n "$NEW_SAGE_ROOT" ]; then
     fi
 fi
 
-
 # Don't execute the commands more than once for the same version of
 # sage-env... for the same combination of SAGE_LOCAL and SAGE_VENV.
-#
-# The idea of versioning is that SAGE_ENV_SOURCED will be set to a
-# "version number" of sage-env.  If a different version of sage-env was
-# sourced earlier (when upgrading), we still source the new version.
-# The sage-env version should be increased whenever a newer sage-env is
-# required for upgrading.
-#
-# sage-env version history:
-# - sage-4.7.1: version 1 (#10469)
-# - sage-5.4:   version 2 (#13395)
-# - sage-5.10:  version 3 (#14699)
-# - sage-6.0:   version 4 (#14715)
-# - sage-9.5:   version 5 (#32745)
-#
+# "5" indicates the version of the format of the value of SAGE_ENV_VERSION.
+# The current format was introduced in #32745.
 SAGE_ENV_VERSION="5:$SAGE_LOCAL:$SAGE_VENV"
 if [ "$SAGE_ENV_SOURCED" = "$SAGE_ENV_VERSION" ]; then
     # Already sourced, nothing to do.

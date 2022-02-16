@@ -13,8 +13,33 @@ Quitting interfaces
 
 import os
 
-expect_objects = []
+import atexit, tempfile
+_spd = tempfile.TemporaryDirectory()
+SAGE_SPAWNED_PROCESS_FILE = os.path.join(_spd.name, "spawned_processes")
+atexit.register(lambda: _spd.cleanup())
 
+def register_spawned_process(pid, cmd=''):
+    """
+    Write a line to the ``spawned_processes`` file with the given
+    ``pid`` and ``cmd``.
+    """
+    if cmd != '':
+        cmd = cmd.strip().split()[0]
+    # This is safe, since only this process writes to this file.
+    try:
+        with open(SAGE_SPAWNED_PROCESS_FILE, 'a') as o:
+            o.write('%s %s\n'%(pid, cmd))
+    except IOError:
+        pass
+    else:
+        # If sage is being used as a python library, we need to launch
+        # the cleaner ourselves upon being told that there will be
+        # something to clean.
+        from sage.interfaces.cleaner import start_cleaner
+        start_cleaner()
+
+
+expect_objects = []
 
 def expect_quitall(verbose=False):
     """
@@ -63,8 +88,6 @@ def kill_spawned_jobs(verbose=False):
 
         sage: sage.interfaces.quit.expect_quitall()
     """
-    from sage.interfaces.cleaner import SAGE_SPAWNED_PROCESS_FILE
-
     if not os.path.exists(SAGE_SPAWNED_PROCESS_FILE):
         return
     with open(SAGE_SPAWNED_PROCESS_FILE) as f:

@@ -22,22 +22,6 @@ _spd = tempfile.TemporaryDirectory()
 SAGE_SPAWNED_PROCESS_FILE = os.path.join(_spd.name, "spawned_processes")
 atexit.register(lambda: _spd.cleanup())
 
-def cleaner(pid, cmd=''):
-    """
-    Write a line to the ``spawned_processes`` file with the given
-    ``pid`` and ``cmd``.
-    """
-    if cmd != '':
-        cmd = cmd.strip().split()[0]
-    # This is safe, since only this process writes to this file.
-    try:
-        with open(SAGE_SPAWNED_PROCESS_FILE, 'a') as o:
-            o.write('%s %s\n'%(pid, cmd))
-    except IOError:
-        pass
-    else:
-        start_cleaner()
-
 
 def start_cleaner():
     """

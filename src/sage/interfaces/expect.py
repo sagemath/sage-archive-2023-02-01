@@ -48,7 +48,6 @@ import weakref
 import time
 import gc
 from . import quit
-from . import cleaner
 from random import randrange
 
 import pexpect
@@ -518,7 +517,7 @@ If this all works, you can then make calls like:
             os.chdir(currentdir)
 
         if self._do_cleaner():
-            cleaner.cleaner(self._expect.pid, cmd)
+            quit.register_spawned_process(self._expect.pid, cmd)
 
         try:
             self._expect.expect(self._prompt)

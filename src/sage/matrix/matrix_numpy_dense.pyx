@@ -280,7 +280,7 @@ cdef class Matrix_numpy_dense(Matrix_dense):
             trans.subdivide(col_divs, row_divs)
         return trans
 
-    def is_symmetric(self, tol = 1e-12):
+    def is_symmetric(self, tol=1e-12):
         """
         Return whether this matrix is symmetric, to the given tolerance.
 
@@ -297,7 +297,8 @@ cdef class Matrix_numpy_dense(Matrix_dense):
             sage: m.is_symmetric()
             False
 
-        The tolerance inequality is strict:
+        The tolerance inequality is strict::
+
             sage: m.is_symmetric(tol=0.1)
             False
             sage: m.is_symmetric(tol=0.11)
@@ -431,7 +432,7 @@ cdef class Matrix_numpy_dense(Matrix_dense):
         else:
             return Matrix_dense.numpy(self, dtype=dtype)
 
-    def _replace_self_with_numpy(self,numpy_matrix):
+    def _replace_self_with_numpy(self, numpy_matrix):
         """
 
         EXAMPLES::

@@ -5,10 +5,10 @@
             "severity": "warning",
             "pattern": [
                 {
-                    "regexp": "(\\S*)\\:(\\s*)(no suitable system package; standard, will be installed as an SPKG)",
-                    "file": 1,
-                    "message": 3,
-                    "code": 1
+                    "regexp": "((\\S*)\\:(\\s*)(no suitable system package; standard, will be installed as an SPKG))",
+                    "file": 2,
+                    "message": 1,
+                    "kind": "file"
                 }
             ]
         }

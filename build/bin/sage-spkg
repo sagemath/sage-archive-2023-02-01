@@ -171,6 +171,11 @@ if echo "$MAKE $MAKEFLAGS -$MAKEFLAGS" |grep '[ ]-[A-Za-z]*[qnt]' >/dev/null; th
     fi
 fi
 
+if [ $# -eq 0 ]; then
+   usage
+   exit 0
+fi
+
 ##################################################################
 # Set environment variables
 ##################################################################
@@ -220,10 +225,6 @@ fi
 ##################################################################
 # Handle special command-line options
 ##################################################################
-if [ $# -eq 0 ]; then
-   usage
-   exit 0
-fi
 
 # Parse options
 INFO=0

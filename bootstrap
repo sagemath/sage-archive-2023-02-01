@@ -82,8 +82,9 @@ bootstrap () {
     rm -f m4/sage_spkg_configures.m4
     spkg_configures=""
     for pkgname in $(./sage --package list | sort); do
+        pkgtype="$(cat build/pkgs/$pkgname/type)"
         spkg_configures="$spkg_configures
-SAGE_SPKG([$pkgname])"
+SAGE_SPKG([$pkgname], [$pkgtype])"
     done
     # initialize SAGE_ENABLE... options for standard packages
     for pkgname in $(./sage --package list :standard: | sort); do

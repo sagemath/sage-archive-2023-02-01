@@ -152,6 +152,7 @@ dnl ==========================================================================
 AC_DEFUN([SAGE_SPKG], [
     AC_REQUIRE([SAGE_SPKG_INIT])
     SPKG_NAME=$1
+    SPKG_TYPE=$2
     dnl add SPKG_NAME to the SAGE_PACKAGE_VERSIONS and
     dnl SAGE_PACKAGE_DEPENDENCIES lists, and to one or more of the above variables
     dnl depending on the package type and other criteria (such as whether or not it
@@ -161,13 +162,6 @@ AC_DEFUN([SAGE_SPKG], [
     AS_IF([test ! -d "$DIR"], [
         AC_MSG_ERROR([Directory $DIR is missing. Re-run bootstrap.])
     ])
-    SPKG_TYPE_FILE="$DIR/type"
-    if test -f "$SPKG_TYPE_FILE"; then
-        SPKG_TYPE=`cat $SPKG_TYPE_FILE`
-    else
-        AC_MSG_WARN(["$SPKG_TYPE_FILE" is missing.  Leftovers from another branch?])
-        continue
-    fi
 
     SPKG_VERSION=$(newest_version $SPKG_NAME)
 

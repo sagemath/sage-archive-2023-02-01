@@ -1298,22 +1298,22 @@ class Gap(Gap_generic):
             with io.open(self._local_tmpfile(), "r",
                          encoding=gap_encoding) as fobj:
                 help = fobj.read()
-                if pager:
-                    from IPython.core.page import page
-                    page(help, start=sline)
-                else:
-                    # Find the n-th line and return from there
-                    idx = -1
-                    while sline:
-                        try:
-                            idx = help.find('\n', idx + 1)
-                            sline -= 1
-                        except ValueError:
-                            # We ran out of lines early somehow; this shouldn't
-                            # happen though
-                            break
+            if pager:
+                from IPython.core.page import page
+                page(help, start=sline)
+            else:
+                # Find the n-th line and return from there
+                idx = -1
+                while sline:
+                    try:
+                        idx = help.find('\n', idx + 1)
+                        sline -= 1
+                    except ValueError:
+                        # We ran out of lines early somehow; this shouldn't
+                        # happen though
+                        break
 
-                    return help[idx:]
+                return help[idx:]
 
     def set(self, var, value):
         """

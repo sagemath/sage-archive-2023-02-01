@@ -127,6 +127,9 @@ if [ -n "$NEW_SAGE_ROOT" ]; then
         echo >&2 "Old SAGE_ROOT=$SAGE_ROOT"
         echo >&2 "New SAGE_ROOT=$NEW_SAGE_ROOT"
     fi
+fi
+
+if [ -n "$NEW_SAGE_ROOT" ]; then
     export SAGE_ROOT="$NEW_SAGE_ROOT"
 fi
 

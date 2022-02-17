@@ -144,11 +144,13 @@ from sage.categories.fields import Fields
 from sage.categories.number_fields import NumberFields
 from sage.categories.homset import Hom, End
 
-from sage.interfaces.all import singular
+from sage.interfaces.singular import singular
 from sage.matrix.constructor import matrix
-from sage.misc.all import add, sage_eval
+from builtins import sum as add
+from sage.misc.sage_eval import sage_eval
 
-from sage.rings.all import degree_lowest_rational_function, IntegerRing
+from sage.rings.all import degree_lowest_rational_function
+from sage.rings.integer_ring import IntegerRing
 from sage.rings.number_field.number_field import NumberField
 from sage.rings.polynomial.polynomial_ring_constructor import PolynomialRing
 from sage.rings.qqbar import (number_field_elements_from_algebraics,
@@ -411,7 +413,7 @@ class ProjectiveCurve(Curve_generic, AlgebraicScheme_subscheme_projective):
             raise TypeError("this curve is already a plane curve")
         if self.base_ring() not in Fields():
             raise TypeError("this curve must be defined over a field")
-        if not PS is None:
+        if PS is not None:
             if not is_ProjectiveSpace(PS):
                 raise TypeError("(=%s) must be a projective space" % PS)
             if PS.dimension_relative() != n - 1:
@@ -455,7 +457,7 @@ class ProjectiveCurve(Curve_generic, AlgebraicScheme_subscheme_projective):
                 Q = self(P)
             except TypeError:
                 pass
-            if not Q is None:
+            if Q is not None:
                 raise TypeError("(=%s) must be a point not on this curve" % P)
             try:
                 Q = self.ambient_space()(P)
@@ -2628,11 +2630,11 @@ class IntegralProjectiveCurve_finite_field(IntegralProjectiveCurve):
             [Point (x0, x1),
              Point (x0 + (-z2 - 1)*x2, x1),
              Point (x0 + (z2 + 1)*x2, x1),
-             Point (x0 + (z2)*x2, x1 + (z2 - 1)*x2),
+             Point (x0 + z2*x2, x1 + (z2 - 1)*x2),
              Point (x0 + (-z2)*x2, x1 + (-z2 + 1)*x2),
              Point (x0 + (-z2 - 1)*x2, x1 + (-z2 - 1)*x2),
              Point (x0 + (z2 + 1)*x2, x1 + (z2 + 1)*x2),
-             Point (x0 + (z2 - 1)*x2, x1 + (z2)*x2),
+             Point (x0 + (z2 - 1)*x2, x1 + z2*x2),
              Point (x0 + (-z2 + 1)*x2, x1 + (-z2)*x2),
              Point (x0 + x2, x1 - x2),
              Point (x0 - x2, x1 + x2)]

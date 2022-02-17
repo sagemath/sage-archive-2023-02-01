@@ -332,8 +332,10 @@ class PolymakeAbstract(ExtraTabCompletion, Interface):
             r.__sage_dict = z # do this to avoid having the entries of the list be garbage collected
             return r
 
-        from sage.rings.all import Integer, Rational, RDF
-        from sage.rings.number_field.number_field import is_QuadraticField
+        import sage.rings.abc
+        from sage.rings.integer import Integer
+        from sage.rings.rational import Rational
+        from sage.rings.real_double import RDF
 
         def to_str(x):
             if isinstance(x, list):
@@ -350,7 +352,7 @@ class PolymakeAbstract(ExtraTabCompletion, Interface):
             except AttributeError:
                 pass
 
-            if is_QuadraticField(parent):
+            if isinstance(parent, sage.rings.abc.NumberField_quadratic):
                 return x._polymake_init_()
             try:
                 if x.parent().is_exact():
@@ -362,7 +364,7 @@ class PolymakeAbstract(ExtraTabCompletion, Interface):
             try:
                 x = RDF(x)
                 return '{}'.format(x)
-            except:
+            except (TypeError, ValueError):
                 pass
 
             raise NotImplementedError
@@ -1593,7 +1595,7 @@ class PolymakeElement(ExtraTabCompletion, InterfaceElement):
                 if r == '':
                     return matrix(base_ring)
                 return matrix(base_ring, [[str_to_base_ring(s) for s in t.split(' ')] for t in r.split('\n')])
-        except:
+        except Exception:
             pass
 
         if T1:
@@ -2112,7 +2114,7 @@ class PolymakeExpect(PolymakeAbstract, Expect):
 
         EXAMPLES::
 
-            sage: from sage.interfaces.polymake import polymake_expect as polymake
+            sage: from sage.interfaces.polymake import polymake_expect as polymake  # optional - polymake_expect
             sage: p = polymake.cube(3)              # optional - polymake_expect  # indirect doctest
 
         Here we see that remarks printed by polymake are displayed if
@@ -2131,7 +2133,7 @@ class PolymakeExpect(PolymakeAbstract, Expect):
         If polymake raises an error, the polymake *interface* raises
         a :class:`PolymakeError`::
 
-            sage: polymake.eval('FOOBAR(3);')       # optional - polymake
+            sage: polymake.eval('FOOBAR(3);')       # optional - polymake_expect
             Traceback (most recent call last):
             ...
             PolymakeError: Undefined subroutine &Polymake::User::FOOBAR called...
@@ -2139,17 +2141,17 @@ class PolymakeExpect(PolymakeAbstract, Expect):
         If a command is incomplete, then polymake returns a continuation
         prompt. In that case, we raise an error::
 
-            sage: polymake.eval('print 3')          # optional - polymake
+            sage: polymake.eval('print 3')          # optional - polymake_expect
             Traceback (most recent call last):
             ...
             SyntaxError: Incomplete polymake command 'print 3'
-            sage: polymake.eval('print 3;')         # optional - polymake
+            sage: polymake.eval('print 3;')         # optional - polymake_expect
             '3'
 
         However, if the command contains line breaks but eventually is complete,
         no error is raised::
 
-            sage: print(polymake.eval('$tmp="abc";\nprint $tmp;'))  # optional - polymake
+            sage: print(polymake.eval('$tmp="abc";\nprint $tmp;'))  # optional - polymake_expect
             abc
 
         When requesting help, polymake sometimes expect the user to choose
@@ -2157,7 +2159,7 @@ class PolymakeExpect(PolymakeAbstract, Expect):
         the list from which the user can choose; we could demonstrate this using
         the :meth:`help` method, but here we use an explicit code evaluation::
 
-            sage: print(polymake.eval('help "TRIANGULATION";'))     # optional - polymake # random
+            sage: print(polymake.eval('help "TRIANGULATION";'))     # optional - polymake_expect # random
             doctest:warning
             ...
             UserWarning: Polymake expects user interaction. We abort and return

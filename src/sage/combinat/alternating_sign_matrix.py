@@ -44,7 +44,7 @@ from sage.categories.finite_enumerated_sets import FiniteEnumeratedSets
 from sage.matrix.matrix_space import MatrixSpace
 from sage.matrix.constructor import matrix
 from sage.modules.free_module_element import zero_vector
-from sage.misc.all import cached_method
+from sage.misc.cachefunc import cached_method
 from sage.rings.integer_ring import ZZ
 from sage.arith.all import factorial
 from sage.rings.integer import Integer
@@ -1723,10 +1723,9 @@ class MonotoneTriangles(GelfandTsetlinPatternsTopRow):
             sage: P.is_lattice()
             True
         """
-        # get a list of the elements and switch to a tuple
-        # representation
-        set_ = [tuple(tuple(_) for _ in x) for x in list(self)]
-        return (set_, [(a,b) for a in set_ for b in set_ if _is_a_cover(a,b)])
+        # get a list of the elements and switch to a tuple representation
+        set_ = [tuple(tuple(t) for t in x) for x in list(self)]
+        return (set_, [(a, b) for a in set_ for b in set_ if _is_a_cover(a, b)])
 
     def cover_relations(self):
         r"""

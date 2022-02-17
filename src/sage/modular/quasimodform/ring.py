@@ -9,15 +9,19 @@ Let `E_2` be the weight 2 Eisenstein series defined by
 
 where `\sigma` is the sum of divisors function and `q = \mathrm{exp}(2\pi i z)`
 is the classical parameter at infinity, with `\mathrm{im}(z)>0`. This weight 2
-Eisenstein series is not a modular forms as it does not statisfies the
+Eisenstein series is not a modular form as it does not satisfy the
 modularity condition:
 
 .. MATH::
 
     z^2 E_2(-1/z) = E_2(z) + \frac{2k}{4\pi i B_k z}.
 
-`E_2` is a quasimodular form of weight 2. The graded ring of quasimodular forms
-for the full modular group `\mathrm{SL}_2(\ZZ)` is defined by
+`E_2` is a quasimodular form of weight 2. General quasimodular forms of given
+weight can also be defined. We denote by `QM` the graded ring of quasimodular
+forms for the full modular group `\mathrm{SL}_2(\ZZ)`.
+
+The SageMath implementation of the graded ring of quasimodular forms uses the
+following isomorphism:
 
 .. MATH::
 

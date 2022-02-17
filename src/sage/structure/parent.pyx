@@ -2812,9 +2812,16 @@ cdef class Parent(sage.structure.category_object.CategoryObject):
             sage: [R._is_numerical() for R in [RIF, RBF, CIF, CBF]]
             [False, False, False, False]
         """
-        from sage.rings.complex_mpfr import ComplexField
-        from sage.rings.real_mpfr import mpfr_prec_min
-        return ComplexField(mpfr_prec_min()).has_coerce_map_from(self)
+        try:
+            from sage.rings.complex_mpfr import ComplexField
+            from sage.rings.real_mpfr import mpfr_prec_min
+        except ImportError:
+            pass
+        else:
+            return ComplexField(mpfr_prec_min()).has_coerce_map_from(self)
+
+        from sage.rings.real_double import CDF
+        return CDF.has_coerce_map_from(self)
 
     @cached_method
     def _is_real_numerical(self):
@@ -2833,8 +2840,15 @@ cdef class Parent(sage.structure.category_object.CategoryObject):
             sage: [R._is_real_numerical() for R in [RIF, RBF, CIF, CBF]]
             [False, False, False, False]
         """
-        from sage.rings.real_mpfr import RealField, mpfr_prec_min
-        return RealField(mpfr_prec_min()).has_coerce_map_from(self)
+        try:
+            from sage.rings.real_mpfr import RealField, mpfr_prec_min
+        except ImportError:
+            pass
+        else:
+            return RealField(mpfr_prec_min()).has_coerce_map_from(self)
+
+        from sage.rings.real_double import RDF
+        return RDF.has_coerce_map_from(self)
 
 ############################################################################
 # Set base class --
@@ -2911,10 +2925,14 @@ cdef class EltPair:
 
         Verify that :trac:`16341` has been resolved::
 
-            sage: K.<a> = Qq(9)
-            sage: E = EllipticCurve_from_j(0).base_extend(K)
-            sage: E.get_action(ZZ)
-            Right Integer Multiplication by Integer Ring on Elliptic Curve defined by y^2 + (1+O(3^20))*y = x^3 over 3-adic Unramified Extension Field in a defined by x^2 + 2*x + 2
+            sage: K.<a> = Qq(9)                                         # optional - sage.rings.padics
+            sage: E = EllipticCurve_from_j(0).base_extend(K)            # optional - sage.rings.padics
+            sage: E.get_action(ZZ)                                      # optional - sage.rings.padics
+            Right Integer Multiplication
+             by Integer Ring
+             on Elliptic Curve defined by y^2 + (1+O(3^20))*y = x^3
+              over 3-adic Unramified Extension Field in a
+               defined by x^2 + 2*x + 2
         """
         return hash((id(self.x), id(self.y), id(self.tag)))
 

@@ -29,7 +29,7 @@ Pynac interface
 # it under the terms of the GNU General Public License as published by
 # the Free Software Foundation, either version 2 of the License, or
 # (at your option) any later version.
-#                  http://www.gnu.org/licenses/
+#                  https://www.gnu.org/licenses/
 #*****************************************************************************
 
 from cpython cimport *
@@ -57,7 +57,7 @@ from sage.rings.rational cimport Rational
 from sage.rings.real_mpfr import RR, RealField
 from sage.rings.rational cimport rational_power_parts
 from sage.rings.real_double cimport RealDoubleElement
-from sage.rings.all import CC
+from sage.rings.cc import CC
 
 from sage.symbolic.function cimport Function
 
@@ -214,6 +214,7 @@ cdef paramset_to_PyTuple(const_paramset_ref s):
         itr.inc()
     return res
 
+
 def paramset_from_Expression(Expression e):
     """
     EXAMPLES::
@@ -221,10 +222,10 @@ def paramset_from_Expression(Expression e):
         sage: from sage.symbolic.expression import paramset_from_Expression
         sage: f = function('f')
         sage: paramset_from_Expression(f(x).diff(x))
-        [0L] # 32-bit
-        [0]  # 64-bit
+        [0]
     """
     return paramset_to_PyTuple(ex_to_fderivative(e._gobj).get_parameter_set())
+
 
 cdef int GINAC_FN_SERIAL = 0
 
@@ -307,7 +308,6 @@ cdef subs_args_to_PyTuple(const GExMap& map, unsigned options, const GExVector& 
           <class 'sage.symbolic.expression.Expression'>]
         x
     """
-    from sage.symbolic.ring import SR
     res = []
     res.append(new_SubstitutionMap_from_GExMap(map))
     res.append(options)
@@ -1118,6 +1118,10 @@ cdef bint py_is_integer(x):
         True
         sage: py_is_integer(SR(5))
         True
+        sage: SCR = SR.subring(no_variables=True); SCR
+        Symbolic Constants Subring
+        sage: py_is_integer(SCR(5))
+        True
         sage: py_is_integer(4/2)
         True
         sage: py_is_integer(QQbar(sqrt(2))^2)
@@ -1132,8 +1136,8 @@ cdef bint py_is_integer(x):
     if not isinstance(x, Element):
         return False
     P = (<Element>x)._parent
-    from .ring import SR
-    return (P is SR or P.is_exact()) and x in ZZ
+    from .ring import SymbolicRing
+    return (isinstance(P, SymbolicRing) or P.is_exact()) and x in ZZ
 
 
 def py_is_integer_for_doctests(x):
@@ -1221,8 +1225,8 @@ cdef bint py_is_exact(x):
     if not isinstance(x, Element):
         return False
     P = (<Element>x)._parent
-    from .ring import SR
-    return P is SR or P.is_exact()
+    from .ring import SymbolicRing
+    return isinstance(P, SymbolicRing) or P.is_exact()
 
 
 cdef py_numer(n):
@@ -1734,7 +1738,7 @@ cdef py_log(x):
             return math.log(real)
         elif real < 0:
             res = gsl_complex_log(gsl_complex_rect(real, 0))
-            return PyComplex_FromDoubles(res.real, res.imag)
+            return PyComplex_FromDoubles(GSL_REAL(res), GSL_IMAG(res))
         else:
             return float('-inf')
     elif type(x) is complex:
@@ -1743,7 +1747,7 @@ cdef py_log(x):
         if real == 0 and imag == 0:
             return float('-inf')
         res = gsl_complex_log(gsl_complex_rect(real, imag))
-        return PyComplex_FromDoubles(res.real, res.imag)
+        return PyComplex_FromDoubles(GSL_REAL(res), GSL_IMAG(res))
     elif isinstance(x, Integer):
         return x.log().n()
     elif hasattr(x, 'log'):

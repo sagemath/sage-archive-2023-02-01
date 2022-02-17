@@ -284,6 +284,7 @@ Classes and functions
 #                  https://www.gnu.org/licenses/
 # ****************************************************************************
 from __future__ import annotations
+from collections import defaultdict
 from copy import copy, deepcopy
 
 from sage.misc.cachefunc import cached_method
@@ -1973,12 +1974,12 @@ class FinitePoset(UniqueRepresentation, Parent):
             sage: get_plot_labels(P1.plot(label_elements=False))
             []
             sage: get_plot_labels(P1.plot(label_elements=True))
-            [u'0', u'1', u'2', u'3', u'4']
+            ['0', '1', '2', '3', '4']
             sage: element_labels = {0:'a', 1:'b', 2:'c', 3:'d', 4:'e'}
             sage: get_plot_labels(P1.plot(element_labels=element_labels))
-            [u'a', u'b', u'c', u'd', u'e']
+            ['a', 'b', 'c', 'd', 'e']
             sage: get_plot_labels(P2.plot(element_labels=element_labels))
-            [u'a', u'b', u'c', u'd', u'e']
+            ['a', 'b', 'c', 'd', 'e']
 
         The following checks that :trac:`18936` has been fixed and labels still work::
 
@@ -2014,7 +2015,6 @@ class FinitePoset(UniqueRepresentation, Parent):
             sage: P.plot()
             Graphics object consisting of 0 graphics primitives
         """
-        from collections import defaultdict
         graph = self.hasse_diagram()
 
         rename = {'element_color': 'vertex_color',
@@ -2379,10 +2379,10 @@ class FinitePoset(UniqueRepresentation, Parent):
         """
         i, j = map(self._element_to_vertex, (x, y))
         jn = self._hasse_diagram._join
-        if jn[i,j] == -1:
+        if jn[i, j] == -1:
             return None
         else:
-            return self._vertex_to_element(jn[i,j])
+            return self._vertex_to_element(jn[i, j])
 
     def is_d_complete(self) -> bool:
         r"""
@@ -5766,7 +5766,7 @@ class FinitePoset(UniqueRepresentation, Parent):
             True
         """
         # P might be defaultdict, hence the test
-        if type(P) == type({}):
+        if isinstance(P, dict) and not isinstance(P, defaultdict):
             if set(P) != set(self):
                 raise ValueError("keys of dict P does not match to elements of the poset")
 
@@ -6232,9 +6232,9 @@ class FinitePoset(UniqueRepresentation, Parent):
             sage: Poset().canonical_label()  # Test the empty poset
             Finite poset containing 0 elements
 
-            sage: D2 = posets.DiamondPoset(4).canonical_label(algorithm='bliss')  # optional: bliss
-            sage: B2 = posets.BooleanLattice(2).canonical_label(algorithm='bliss')  # optional: bliss
-            sage: D2 == B2  # optional: bliss
+            sage: D2 = posets.DiamondPoset(4).canonical_label(algorithm='bliss')  # optional - bliss
+            sage: B2 = posets.BooleanLattice(2).canonical_label(algorithm='bliss')  # optional - bliss
+            sage: D2 == B2  # optional - bliss
             True
         """
         canonical_label = self._hasse_diagram.canonical_label(certificate=True,
@@ -6565,7 +6565,7 @@ class FinitePoset(UniqueRepresentation, Parent):
             result.append(new)
             down = list(H.depth_first_search(new, neighbors=H.neighbor_in_iterator))
             up = list(H.depth_first_search(new))
-            H.delete_vertices(down+up)
+            H.delete_vertices(down + up)
 
         return result
 
@@ -6597,10 +6597,10 @@ class FinitePoset(UniqueRepresentation, Parent):
         mins = H.sources()
 
         for _ in range(H.order()):
-            new_index = randint(0, len(mins)-1)
+            new_index = randint(0, len(mins) - 1)
             new = mins[new_index]
             result.append(new)
-            mins = mins[:new_index]+mins[new_index+1:]
+            mins = mins[:new_index] + mins[new_index + 1:]
             for u in H.neighbor_out_iterator(new):
                 indegs[u] -= 1
                 if indegs[u] == 0:
@@ -7441,9 +7441,10 @@ class FinitePoset(UniqueRepresentation, Parent):
         n = rk(maxi)
         if n == 0:
             return PolynomialRing(ZZ, 'x', 1).one()
-        anneau = PolynomialRing(ZZ, 'x', n+1)
+        anneau = PolynomialRing(ZZ, 'x', n + 1)
         x = anneau.gens()
-        return x[n] * sum(prod(x[rk(i)] for i in ch) for ch in hasse.chains(exclude=[mini, maxi]))
+        return x[n] * sum(prod(x[rk(i)] for i in ch)
+                          for ch in hasse.chains(exclude=[mini, maxi]))
 
     def flag_h_polynomial(self):
         r"""

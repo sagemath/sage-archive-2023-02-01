@@ -25,10 +25,10 @@ import pickle
 
 from copy import copy
 
-from sage.misc.all import cached_function
+from sage.misc.cachefunc import cached_function
 from sage.misc.flatten import flatten
-from sage.graphs.all import DiGraph
-from sage.combinat.all import Combinations
+from sage.graphs.digraph import DiGraph
+from sage.combinat.combination import Combinations
 from sage.combinat.cluster_algebra_quiver.quiver_mutation_type import QuiverMutationType
 
 
@@ -120,7 +120,7 @@ def _triangles(dg):
     for e in E:
         v1, v2 = e
         for v in V:
-            if not v in e:
+            if v not in e:
                 if (v, v1) in E:
                     if (v2, v) in E:
                         flat_trian = sorted([v,v1,v2])
@@ -601,14 +601,14 @@ def _connected_mutation_type(dg):
     elif len( exc_labels ) == 2:
         label1, label2 = exc_labels
         if label1[1] == label2[0]:
-           pass
+            pass
         elif label2[1] == label1[0]:
             label1, label2 = label2, label1
         else:
             # the exceptional case in affine type BC_2 is checked
-            if label2[2] == (1,-2) and label1[2] == (2,-1):
+            if label2[2] == (1, -2) and label1[2] == (2, -1):
                 label1, label2 = label2, label1
-            if label1[2] == (1,-2) and label2[2] == (2,-1):
+            if label1[2] == (1, -2) and label2[2] == (2, -1):
                 if label1[1] == label2[1] and dict_in_out[label1[1]][2] == 2 and dict_in_out[label1[0]][2] == 1 and dict_in_out[label2[0]][2] == 1:
                     return QuiverMutationType(['BC',2,1])
                 elif label1[0] == label2[0] and dict_in_out[label1[0]][2] == 2 and dict_in_out[label1[1]][2] == 1 and dict_in_out[label2[1]][2] == 1:
@@ -1165,7 +1165,7 @@ def _connected_mutation_type_AAtildeD(dg, ret_conn_vert=False):
                 connecting_vertices.append( v )
             # if a vertex is of valence two and contained in an oriented 3-cycle, it is a connecting vertex
             elif w[0] == 1 and w[1] == 1:
-                if v in o_trian_verts and not v in long_cycle_verts:
+                if v in o_trian_verts and v not in long_cycle_verts:
                     connecting_vertices.append( v )
 
     # post-parsing 1: if we are in the affine type A case, the two parameters for the non-oriented long cycle are computed

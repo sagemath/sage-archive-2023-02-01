@@ -1090,6 +1090,14 @@ cdef class RingHomomorphism(RingMap):
             sage: h = A.hom([d^2, d^3], B)
             sage: h.inverse_image(d^2)
             a
+
+        Check that quotient rings are handled correctly (:trac:`33217`)::
+
+            sage: A.<x,y,z> = QQ['X,Y,Z'].quotient('X^2+Y^2+Z^2-1')
+            sage: B.<t,u,v,w> = QQ['T,U,V,W'].quotient(['T^2+U^2-1', 'V^2+W^2-1'])
+            sage: psi = A.hom([v*u, w*u, t], B)
+            sage: psi.inverse_image(t^2) == z^2
+            True
         """
         graph, from_B, to_A = self._graph_ideal()
         gens_A = graph.ring().gens()[-self.domain().ngens():]
@@ -1255,11 +1263,21 @@ cdef class RingHomomorphism(RingMap):
             Traceback (most recent call last):
             ...
             NotImplementedError: base map must be trivial
+
+        Non-commutative rings are not supported (:trac:`32824`)::
+
+            sage: A = GradedCommutativeAlgebra(QQ, 'x,y,z')
+            sage: A.hom(A.gens(), A).kernel()
+            Traceback (most recent call last):
+            ...
+            NotImplementedError: rings are not commutative
         """
         from .quotient_ring import is_QuotientRing
         from .ideal import Ideal_generic
         A = self.domain()
         B = self.codomain()
+        if not (A.is_commutative() and B.is_commutative()):
+            raise NotImplementedError("rings are not commutative")
         if A.base_ring() != B.base_ring():
             raise NotImplementedError("base rings must be equal")
         try:
@@ -1640,14 +1658,13 @@ cdef class RingHomomorphism_coercion(RingHomomorphism):
         sage: TestSuite(f).run()
 
     """
-    def __init__(self, parent, check = True):
+    def __init__(self, parent, check=True):
         r"""
         TESTS:
 
             sage: from sage.rings.morphism import RingHomomorphism_coercion
             sage: parent = Hom(ZZ,ZZ)
-            sage: f = parent.__make_element_class__(RingHomomorphism_coercion)(parent) # py2
-            sage: f = parent.__make_element_class__(RingHomomorphism_coercion)(parent) # py3
+            sage: f = parent.__make_element_class__(RingHomomorphism_coercion)(parent)
             doctest:warning
             ...
             DeprecationWarning: Set the category of your morphism to a subcategory of Rings instead.

@@ -990,7 +990,7 @@ cdef class MPolynomialRing_base(sage.rings.ring.CommutativeRing):
 
             sage: R = QQ['x,y']
             sage: S = R['t,u']
-            sage: f = S.random_element(degree=2, terms=1)
+            sage: f = S._random_nonzero_element(degree=2, terms=1)
             sage: len(list(f))
             1
             sage: f.degree() <= 2
@@ -1052,7 +1052,6 @@ cdef class MPolynomialRing_base(sage.rings.ring.CommutativeRing):
         Random ring elements should live in the ring. We check the degree-
         zero case for :trac:`28855`, but the same should hold generally::
 
-            sage: set_random_seed()
             sage: R = PolynomialRing(QQ, 'X,Y')
             sage: R.random_element(degree=0).parent() == R
             True

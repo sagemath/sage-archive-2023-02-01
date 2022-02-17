@@ -59,7 +59,7 @@ from sage.categories.function_fields import FunctionFields
 from sage.categories.number_fields import NumberFields
 from sage.categories.homset import End
 from sage.dynamics.arithmetic_dynamics.generic_ds import DynamicalSystem
-from sage.functions.all import sqrt
+from sage.misc.functional import sqrt
 from sage.functions.other import ceil
 from sage.libs.pari.all import PariError
 from sage.matrix.constructor import matrix, identity_matrix
@@ -67,7 +67,7 @@ from sage.misc.cachefunc import cached_method
 from sage.misc.classcall_metaclass import typecall
 from sage.misc.mrange import xmrange
 from sage.modules.free_module_element import vector
-from sage.rings.all import Integer
+from sage.rings.integer import Integer
 from sage.arith.all import gcd, lcm, next_prime, binomial, primes, moebius
 from sage.categories.finite_fields import FiniteFields
 from sage.rings.complex_mpfr import ComplexField
@@ -105,7 +105,6 @@ from copy import copy
 from sage.parallel.ncpus import ncpus
 from sage.parallel.use_fork import p_iter_fork
 from sage.dynamics.arithmetic_dynamics.projective_ds_helper import (_fast_possible_periods,_all_periodic_points)
-from sage.symbolic.ring import SR
 from itertools import count, product
 from .endPN_automorphism_group import (
     automorphism_group_QQ_CRT,
@@ -422,8 +421,8 @@ class DynamicalSystem_projective(SchemeMorphism_polynomial_projective_space,
         if len(polys) != domain.ambient_space().coordinate_ring().ngens():
             raise ValueError('Number of polys does not match dimension of {}'.format(domain))
         R = domain.base_ring()
-        if R is SR:
-            raise TypeError("Symbolic Ring cannot be the base ring")
+        if isinstance(R, sage.rings.abc.SymbolicRing):
+            raise TypeError("the base ring cannot be the Symbolic Ring or a symbolic subring")
 
         if is_ProductProjectiveSpaces(domain):
             splitpolys = domain._factors(polys)
@@ -503,7 +502,7 @@ class DynamicalSystem_projective(SchemeMorphism_polynomial_projective_space,
             sage: f._number_field_from_algebraics()
             Dynamical System of Projective Space of dimension 1 over Number Field in a with defining polynomial y^2 - 2 with a = 1.414213562373095?
               Defn: Defined on coordinates by sending (x : y) to
-                    (x^2 + (a)*y^2 : y^2)
+                    (x^2 + a*y^2 : y^2)
         """
         return self.as_scheme_morphism()._number_field_from_algebraics().as_dynamical_system()
 
@@ -872,10 +871,9 @@ class DynamicalSystem_projective(SchemeMorphism_polynomial_projective_space,
                 PHI = PHI(fm._polys) / PHI(fm1._polys)
         #even when the ring can be passed to singular in quo_rem,
         #it can't always do the division, so we call Maxima
-        from sage.rings.padics.generic_nodes import is_pAdicField, is_pAdicRing
         if period != [0,1]: #period==[0,1] we don't need to do any division
             BR = self.domain().base_ring().base_ring()
-            if not (is_pAdicRing(BR) or is_pAdicField(BR)):
+            if not isinstance(BR, (sage.rings.abc.pAdicRing, sage.rings.abc.pAdicField)):
                 try:
                     QR2 = PHI.numerator()._maxima_().divide(PHI.denominator())
                     if not QR2[1].sage():
@@ -1332,7 +1330,7 @@ class DynamicalSystem_projective(SchemeMorphism_polynomial_projective_space,
             return []
 
         R = self.domain()(P)
-        if R in self.domain(): #Check whether R is a zero-dimensional point
+        if R in self.domain():  # Check whether R is a zero-dimensional point
             Q = R
         else:
             Q = P
@@ -1747,7 +1745,7 @@ class DynamicalSystem_projective(SchemeMorphism_polynomial_projective_space,
         BR = FractionField(P.codomain().base_ring())
         GBR = self.change_ring(BR) #so the heights work
 
-        if not BR in NumberFields():
+        if BR not in NumberFields():
             raise NotImplementedError("must be over a number field or a number field order")
         if not BR.is_absolute():
             raise TypeError("must be an absolute field")
@@ -1776,7 +1774,7 @@ class DynamicalSystem_projective(SchemeMorphism_polynomial_projective_space,
 
             #if doing error estimates, compute needed number of iterates
             D = (dim + 1) * (d - 1) + 1
-            #compute upper bound
+            # compute upper bound
             if isinstance(v, RingHomomorphism_im_gens): #archimedean
                 vindex = BR.places(prec=prec).index(v)
                 U = GBR.local_height_arch(vindex, prec=prec) + R(binomial(dim + d, d)).log()
@@ -1962,8 +1960,8 @@ class DynamicalSystem_projective(SchemeMorphism_polynomial_projective_space,
         error_bound = kwds.get("error_bound", None)
         K = FractionField(self.codomain().base_ring())
 
-        if not K in NumberFields():
-            if not K is QQbar:
+        if K not in NumberFields():
+            if K is not QQbar:
                 raise NotImplementedError("must be over a number field or a number field order or QQbar")
             else:
                 #since this an absolute height, we can compute the height of a QQbar point
@@ -2012,9 +2010,9 @@ class DynamicalSystem_projective(SchemeMorphism_polynomial_projective_space,
             R = RealField(prec)
             N = kwds.get('N', 10)
             err = kwds.get('error_bound', None)
-            #computes the error bound as defined in Algorithm 3.1 of [WELLS]
+            # computes the error bound as defined in Algorithm 3.1 of [WELLS]
             if Res > 1:
-                if not err is None:
+                if err is not None:
                     err = err / 2
                     N = ceil((R(Res).log().log() - R(d-1).log() - R(err).log())/(R(d).log()))
                     if N < 1:
@@ -2055,7 +2053,7 @@ class DynamicalSystem_projective(SchemeMorphism_polynomial_projective_space,
 
         emb = K.places(prec=prec)
         num_places = len(emb) + len(bad_primes)
-        if not error_bound is None:
+        if error_bound is not None:
             error_bound /= num_places
         R = RealField(prec)
         h = R.zero()
@@ -2138,7 +2136,7 @@ class DynamicalSystem_projective(SchemeMorphism_polynomial_projective_space,
             3.43967790223022
         """
         FF = FractionField(self.domain().base_ring()) #lift will only work over fields, so coercing into FF
-        if not FF in NumberFields():
+        if FF not in NumberFields():
             if FF == QQbar:
                 #since this is absolute height, we can choose any number field over which the
                 #function is defined.
@@ -3950,7 +3948,7 @@ class DynamicalSystem_projective(SchemeMorphism_polynomial_projective_space,
         crit_points = F.critical_points()
         n = len(crit_points)
         err_bound = kwds.get("error_bound", None)
-        if not err_bound is None:
+        if err_bound is not None:
             kwds["error_bound"] = err_bound / n
         ch = 0
         for P in crit_points:
@@ -4931,7 +4929,8 @@ class DynamicalSystem_projective(SchemeMorphism_polynomial_projective_space,
           multiplier spectra, which includes the multipliers of all
           periodic points of period ``n``
 
-        - ``embedding`` -- deprecated in :trac:`23333`
+        - ``embedding`` -- (default: ``None``) must be ``None``, passing an embedding
+          is no longer supported, see :trac: `32205`.
 
         - ``type`` -- (default: ``'point'``) string; either ``'point'``
           or ``'cycle'`` depending on whether you compute with one
@@ -5179,17 +5178,17 @@ class DynamicalSystem_projective(SchemeMorphism_polynomial_projective_space,
             for correctly. try setting chow=True and/or deform=True
         """
         n = ZZ(n)
+
+        if embedding is not None:
+            raise ValueError('do not specify an embedding')
         if n < 1:
             raise ValueError("period must be a positive integer")
         dom = self.domain()
         if not is_ProjectiveSpace(dom):
             raise NotImplementedError("not implemented for subschemes")
-        if not embedding is None:
-            from sage.misc.superseded import deprecation
-            deprecation(23333, "embedding keyword no longer used")
         if self.degree() <= 1:
             raise TypeError("must have degree at least 2")
-        if not type in ['point', 'cycle']:
+        if type not in ['point', 'cycle']:
             raise ValueError("type must be either point or cycle")
         if dom.dimension_relative() > 1 or return_polynomial:
             if type == 'cycle':
@@ -5588,7 +5587,7 @@ class DynamicalSystem_projective(SchemeMorphism_polynomial_projective_space,
             (
             Dynamical System of Projective Space of dimension 1 over Number Field in w with defining polynomial x^2 - 2 with w = 1.414213562373095?
               Defn: Defined on coordinates by sending (x : y) to
-                    (x^3 : (w)*y^3)                                                                                                                ,
+                    (x^3 : w*y^3)                                                                                                                ,
             <BLANKLINE>
             [  1 -12]
             [  0   1]
@@ -6281,10 +6280,10 @@ class DynamicalSystem_projective_field(DynamicalSystem_projective,
             ValueError: algorithm must be 'dynatomic' or 'lifting'
         """
         ring = kwds.pop("R", None)
-        if not ring is None:
-            #changes to the new ring
+        if ring is not None:
+            # changes to the new ring
             DS = self.change_ring(ring)
-            #ensures that the correct method is run, in case user switches to a finite field
+            # ensures that the correct method is run, in case user switches to a finite field
             return DS.all_periodic_points(**kwds)
         else:
             DS = self
@@ -6327,8 +6326,8 @@ class DynamicalSystem_projective_field(DynamicalSystem_projective,
                         pt = [sum([P[i]*w**i for i in range(d)])]
                         pt.insert(k,1)
                         Q = PS(pt)
-                        #for each periodic point get the entire cycle
-                        if not Q in periodic_points:
+                        # for each periodic point get the entire cycle
+                        if Q not in periodic_points:
                             #check periodic not preperiodic and add all points in cycle
                             orb = set([Q])
                             Q2 = DS(Q)
@@ -6346,7 +6345,7 @@ class DynamicalSystem_projective_field(DynamicalSystem_projective,
                 periods = kwds.pop("periods", None)
                 badprimes = kwds.pop("bad_primes", None)
                 num_cpus = kwds.pop("ncpus", ncpus())
-                if not alg is None and alg not in ['dynatomic','lifting']:
+                if alg is not None and alg not in ['dynatomic', 'lifting']:
                     raise ValueError("algorithm must be 'dynatomic' or 'lifting'")
 
                 if not isinstance(primebound, (list, tuple)):
@@ -6396,72 +6395,6 @@ class DynamicalSystem_projective_field(DynamicalSystem_projective,
                 return list(periodic)
         else:
             raise TypeError("base field must be an absolute number field")
-
-    def rational_periodic_points(self, **kwds):
-        r"""
-        Determine the set of rational periodic points
-        for this dynamical system.
-
-        The map must be defined over `\QQ` and be an endomorphism of
-        projective space. If the map is a polynomial endomorphism of
-        `\mathbb{P}^1`, i.e. has a totally ramified fixed point, then
-        the base ring can be an absolute number field.
-        This is done by passing to the Weil restriction.
-
-        The default parameter values are typically good choices for
-        `\mathbb{P}^1`. If you are having trouble getting a particular
-        map to finish, try first computing the possible periods, then
-        try various different ``lifting_prime`` values.
-
-        ALGORITHM:
-
-        Modulo each prime of good reduction `p` determine the set of
-        periodic points modulo `p`. For each cycle modulo `p` compute
-        the set of possible periods (`mrp^e`). Take the intersection
-        of the list of possible periods modulo several primes of good
-        reduction to get a possible list of minimal periods of rational
-        periodic points. Take each point modulo `p` associated to each
-        of these possible periods and try to lift it to a rational point
-        with a combination of `p`-adic approximation and the LLL basis
-        reduction algorithm.
-
-        See [Hutz2015]_.
-
-        INPUT:
-
-        kwds:
-
-        - ``prime_bound`` -- (default: ``[1,20]``) a pair (list or tuple)
-          of positive integers that represent the limits of primes to use
-          in the reduction step or an integer that represents the upper bound
-
-        - ``lifting_prime`` -- (default: 23) a prime integer; argument that
-          specifies modulo which prime to try and perform the lifting
-
-        - ``periods`` -- (optional) a list of positive integers that is
-          the list of possible periods
-
-        - ``bad_primes`` -- (optional) a list or tuple of integer primes;
-          the primes of bad reduction
-
-        - ``ncpus`` -- (default: all cpus) number of cpus to use in parallel
-
-        OUTPUT: a list of rational points in projective space
-
-        EXAMPLES::
-
-            sage: R.<x> = QQ[]
-            sage: K.<w> = NumberField(x^2-x+1)
-            sage: P.<u,v> = ProjectiveSpace(K,1)
-            sage: f = DynamicalSystem_projective([u^2 + v^2,v^2])
-            sage: sorted(f.rational_periodic_points())
-            doctest:warning
-            ...
-            [(-w + 1 : 1), (w : 1), (1 : 0)]
-        """
-        from sage.misc.superseded import deprecation
-        deprecation(28109, "use sage.dynamics.arithmetic_dynamics.projective_ds.all_periodic_points instead")
-        return self.all_periodic_points(**kwds)
 
     def all_rational_preimages(self, points):
         r"""
@@ -6545,74 +6478,6 @@ class DynamicalSystem_projective_field(DynamicalSystem_projective,
                     points.append(preimages[i])
                     preperiodic.add(preimages[i])
         return list(preperiodic)
-
-    def rational_preperiodic_points(self, **kwds):
-        r"""
-        Determine the set of rational preperiodic points for
-        this dynamical system.
-
-        The map must be defined over `\QQ` and be an endomorphism of
-        projective space. If the map is a polynomial endomorphism of
-        `\mathbb{P}^1`, i.e. has a totally ramified fixed point, then
-        the base ring can be an absolute number field.
-        This is done by passing to the Weil restriction.
-
-        The default parameter values are typically good choices for
-        `\mathbb{P}^1`. If you are having trouble getting a particular
-        map to finish, try first computing the possible periods, then
-        try various different values for ``lifting_prime``.
-
-        ALGORITHM:
-
-        - Determines the list of possible periods.
-
-        - Determines the rational periodic points from the possible periods.
-
-        - Determines the rational preperiodic points from the rational
-          periodic points by determining rational preimages.
-
-        INPUT:
-
-        kwds:
-
-        - ``prime_bound`` -- (default: ``[1, 20]``) a pair (list or tuple)
-          of positive integers that represent the limits of primes to use
-          in the reduction step or an integer that represents the upper bound
-
-        - ``lifting_prime`` -- (default: 23) a prime integer; specifies
-          modulo which prime to try and perform the lifting
-
-        - ``periods`` -- (optional) a list of positive integers that is
-          the list of possible periods
-
-        - ``bad_primes`` -- (optional) a list or tuple of integer primes;
-          the primes of bad reduction
-
-        - ``ncpus`` -- (default: all cpus) number of cpus to use in parallel
-
-        - ``period_degree_bounds`` -- (default: ``[4,4]``) a pair of positive integers
-          (max period, max degree) for which the dynatomic polynomial should be solved
-          for when in dimension 1
-
-        - ``algorithm`` -- (optional) specifies which algorithm to use;
-          current options are `dynatomic` and `lifting`; defaults to solving the
-          dynatomic for low periods and degrees and lifts for everything else
-
-        OUTPUT: a list of rational points in projective space
-
-        EXAMPLES::
-
-            sage: PS.<x,y> = ProjectiveSpace(1,QQ)
-            sage: f = DynamicalSystem_projective([x^2 -y^2, 3*x*y])
-            sage: sorted(f.rational_preperiodic_points())
-            doctest:warning
-            ...
-            [(-2 : 1), (-1 : 1), (-1/2 : 1), (0 : 1), (1/2 : 1), (1 : 0), (1 : 1),
-            (2 : 1)]
-        """
-        from sage.misc.superseded import deprecation
-        deprecation(28213, "use sage.dynamics.arithmetic_dynamics.projective_ds.all_preperiodic_points instead")
-        return self.all_preperiodic_points(**kwds)
 
     def all_preperiodic_points(self, **kwds):
         r"""
@@ -6718,7 +6583,7 @@ class DynamicalSystem_projective_field(DynamicalSystem_projective,
              (1/12*w + 1 : 1)]
         """
         ring = kwds.pop("R",None)
-        if not ring is None:
+        if ring is not None:
             DS = self.change_ring(ring)
         else:
             DS = self
@@ -6760,8 +6625,8 @@ class DynamicalSystem_projective_field(DynamicalSystem_projective,
                     pt = [sum([P[i]*w**i for i in range(d)])]
                     pt.insert(k,1)
                     Q = PS(pt)
-                    #for each preperiodic point get the entire connected component
-                    if not Q in preper:
+                    # for each preperiodic point get the entire connected component
+                    if Q not in preper:
                         for t in DS.connected_rational_component(Q):
                             preper.add(t)
             preper = list(preper)
@@ -7073,10 +6938,10 @@ class DynamicalSystem_projective_field(DynamicalSystem_projective,
 
             sage: P.<x,y> = ProjectiveSpace(GF(7), 1)
             sage: D6 = DynamicalSystem_projective([y^2, x^2])
-            sage: D6.conjugating_set(D6)
+            sage: sorted(D6.conjugating_set(D6))
             [
-            [1 0]  [0 1]  [0 2]  [4 0]  [2 0]  [0 4]
-            [0 1], [1 0], [1 0], [0 1], [0 1], [1 0]
+            [0 1]  [0 2]  [0 4]  [1 0]  [2 0]  [4 0]
+            [1 0], [1 0], [1 0], [0 1], [0 1], [0 1]
             ]
 
         ::
@@ -7484,7 +7349,7 @@ class DynamicalSystem_projective_field(DynamicalSystem_projective,
         if self.codomain().dimension_relative() != 1:
             raise NotImplementedError("space must have dimension equal to 1")
         K = self.base_ring()
-        if not K in FiniteFields() and (not K in NumberFields() or not K.is_absolute()):
+        if K not in FiniteFields() and (K not in NumberFields() or not K.is_absolute()):
             raise NotImplementedError("must be over an absolute number field or finite field")
         if K in FiniteFields():
             q = K.characteristic()
@@ -7623,7 +7488,7 @@ class DynamicalSystem_projective_field(DynamicalSystem_projective,
         if self.codomain().dimension_relative() != 1:
             raise NotImplementedError("space must have dimension equal to 1")
         K = self.base_ring()
-        if not K in FiniteFields() and (not K in NumberFields() or not K.is_absolute()):
+        if K not in FiniteFields() and (K not in NumberFields() or not K.is_absolute()):
             raise NotImplementedError("must be over an absolute number field or finite field")
         if K in FiniteFields():
             q = K.characteristic()
@@ -8212,7 +8077,7 @@ class DynamicalSystem_projective_finite_field(DynamicalSystem_projective_field,
         Q.normalize_coordinates()
         F = copy(self)
         F.normalize_coordinates()
-        while not Q in orbit:
+        while Q not in orbit:
             orbit.append(Q)
             Q = F(Q)
             Q.normalize_coordinates()

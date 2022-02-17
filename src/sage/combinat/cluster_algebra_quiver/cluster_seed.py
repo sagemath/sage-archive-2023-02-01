@@ -37,9 +37,11 @@ import time
 from itertools import islice
 from sage.structure.sage_object import SageObject
 from copy import copy
-from sage.rings.all import QQ, infinity
+from sage.rings.rational_field import QQ
+from sage.rings.infinity import infinity
 from sage.rings.integer_ring import ZZ
-from sage.rings.all import FractionField, PolynomialRing
+from sage.rings.fraction_field import FractionField
+from sage.rings.polynomial.polynomial_ring_constructor import PolynomialRing
 from sage.rings.fraction_field_element import FractionFieldElement
 from sage.sets.all import Set
 from sage.graphs.digraph import DiGraph
@@ -3222,11 +3224,11 @@ class ClusterSeed(SageObject):
                                  for x in cluster][0:self._n]
                 self._is_principal = None
         else:
-             print("Warning: clusters not being tracked so this command is ignored.")
+            print("Warning: clusters not being tracked so this command is ignored.")
 
-    def reset_cluster( self ):
+    def reset_cluster(self):
         r"""
-        Resets the cluster of ``self`` to the initial cluster.
+        Reset the cluster of ``self`` to the initial cluster.
 
         EXAMPLES::
 

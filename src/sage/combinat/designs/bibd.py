@@ -721,10 +721,10 @@ def BIBD_from_difference_family(G, D, lambd=None, check=True):
     identity, mul, inv = group_law(G)
     bibd = []
     Gset = set(G)
-    p_to_i = {g:i for i,g in enumerate(Gset)}
+    p_to_i = {g: i for i, g in enumerate(Gset)}
     for b in D:
-        b = [G(_) for _ in b]
-        S = block_stabilizer(G,b)
+        b = [G(w) for w in b]
+        S = block_stabilizer(G, b)
         GG = Gset.copy()
         while GG:
             g = GG.pop()
@@ -958,7 +958,7 @@ def PBD_4_5_8_9_12(v, check=True):
         sage: for v in (0,1,4,5,8,9,12,13,16,17,20,21,24,25):
         ....:     _ = PBD_4_5_8_9_12(v)
     """
-    if not v%4 in [0,1]:
+    if v % 4 not in [0, 1]:
         raise ValueError
     if v <= 1:
         PBD = []

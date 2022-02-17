@@ -209,7 +209,7 @@ def is_valid_tree_decomposition(G, T):
     for X in T:
         try:
             _ = list(X)
-        except:
+        except TypeError:
             raise ValueError("the vertices of T must be iterables")
 
     # 1. The union of the bags equals V
@@ -807,13 +807,13 @@ def treelength_lowerbound(G):
         0
     """
     if G.is_cycle():
-        from sage.functions.other import ceil
-        return int(ceil(G.order() / 3.0))
+        from sage.arith.misc import integer_ceil as ceil
+        return int(ceil(G.order() / 3))
 
     lowerbound = 0
     girth = G.girth()
     if girth is not Infinity:
-        lowerbound = max(lowerbound, girth / 3.0)
+        lowerbound = max(lowerbound, girth / 3)
 
     return int(lowerbound)
 

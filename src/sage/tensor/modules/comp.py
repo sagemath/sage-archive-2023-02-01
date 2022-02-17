@@ -1168,9 +1168,9 @@ class Components(SageObject):
 
         Check that the bug reported in :trac:`22520` is fixed::
 
-            sage: c = Components(SR, [1, 2], 1)
-            sage: c[0] = SR.var('t', domain='real')
-            sage: c.display('c')
+            sage: c = Components(SR, [1, 2], 1)      # optional - sage.symbolic
+            sage: c[0] = SR.var('t', domain='real')  # optional - sage.symbolic
+            sage: c.display('c')                     # optional - sage.symbolic
             c_0 = t
 
         """
@@ -1500,7 +1500,7 @@ class Components(SageObject):
         """
         result = self._new_instance()
         for ind, val in self._comp.items():
-             result._comp[ind] = - val
+            result._comp[ind] = - val
         return result
 
     def __add__(self, other):
@@ -2359,12 +2359,12 @@ class Components(SageObject):
                             ind_o[pos_o] = k
                             ic += 1
                         sm += this[[ind_s]] * other[[ind_o]]
-                    local_res.append([ind,sm])
+                    local_res.append([ind, sm])
                 return local_res
 
             for ii, val in make_Contraction(listParalInput):
                 for jj in val:
-                      res[[jj[0]]] = jj[1]
+                    res[[jj[0]]] = jj[1]
         else:
             # sequential computation
             for ind in res.non_redundant_index_generator():

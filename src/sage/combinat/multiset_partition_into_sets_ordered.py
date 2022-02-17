@@ -1543,14 +1543,14 @@ class OrderedMultisetPartitionsIntoSets(UniqueRepresentation, Parent):
             constraints.pop("max_length", None)
         min_k = constraints.get("min_length", 0)
         max_k = constraints.get("max_length", infinity)
-        assert min_k <= max_k, "min_length=%s <= max_length=%s"%(min_k, max_k)
+        assert min_k <= max_k, "min_length=%s <= max_length=%s" % (min_k, max_k)
         if min_k == max_k:
             constraints["length"] = constraints.pop("min_length",
                                                     constraints.pop("max_length"))
 
         if "order" in constraints:
-           constraints.pop("min_order", None)
-           constraints.pop("max_order", None)
+            constraints.pop("min_order", None)
+            constraints.pop("max_order", None)
         min_ord = constraints.get("min_order", 0)
         max_ord = constraints.get("max_order", infinity)
         assert min_ord <= max_ord, "min_order=%s <= max_order=%s"%(min_ord, max_ord)
@@ -2623,6 +2623,7 @@ def _has_nonempty_sets(x):
                 and block and len(set(block)) == len(block))
                for block in x)
 
+
 def _union_of_sets(list_of_sets):
     """
     Return the union of a list of iterables as a frozenset.
@@ -2634,7 +2635,9 @@ def _union_of_sets(list_of_sets):
         sage: _union_of_sets(L)
         frozenset({1, 2, 3, 5, 6, 7})
     """
-    return reduce(lambda a,b: frozenset(a)|frozenset(b), list_of_sets, frozenset())
+    return reduce(lambda a, b: frozenset(a) | frozenset(b),
+                  list_of_sets, frozenset())
+
 
 def _concatenate(list_of_iters):
     """

@@ -61,7 +61,7 @@ from sage.misc.lazy_attribute import lazy_attribute
 
 from sage.arith.all import gcd
 
-from sage.rings.all import Integer
+from sage.rings.integer import Integer
 from sage.rings.finite_rings.finite_field_constructor import is_PrimeFiniteField
 from sage.rings.fraction_field import FractionField
 from sage.rings.fraction_field_element import FractionFieldElement
@@ -205,9 +205,9 @@ class SchemeMorphism_polynomial_affine_space(SchemeMorphism_polynomial):
                 raise ValueError("there must be %s polynomials"%target.ngens())
             try:
                 polys = [source_ring(poly) for poly in polys]
-            except TypeError: # maybe given quotient ring elements
+            except TypeError:  # maybe given quotient ring elements
                 try:
-                   polys = [source_ring(poly.lift()) for poly in polys]
+                    polys = [source_ring(poly.lift()) for poly in polys]
                 except (TypeError, AttributeError):
                     # must be a rational function since we cannot have
                     # rational functions for quotient rings
@@ -237,20 +237,43 @@ class SchemeMorphism_polynomial_affine_space(SchemeMorphism_polynomial):
             sage: f = H([x^2+y^2, y^2, z^2 + y*z])
             sage: f(P([1, 1, 1]))
             (2, 1, 2)
+
+        TESTS:
+
+        Check that :trac:`32209` is fixed::
+
+            sage: S.<x,y> = AffineSpace(ZZ, 2)
+            sage: T.<u,v> = AffineSpace(ZZ, 2)
+            sage: h = T.hom([u + v, u*v], S); h
+            Scheme morphism:
+              From: Affine Space of dimension 2 over Integer Ring
+              To:   Affine Space of dimension 2 over Integer Ring
+              Defn: Defined on coordinates by sending (u, v) to
+                    (u + v, u*v)
+
+            sage: F.<a> = GF(4)
+            sage: P = T(F)(1, a)
+            sage: h(P)
+            (a + 1, a)
+            sage: h(P).domain()
+            Spectrum of Finite Field in a of size 2^2
+            sage: h.change_ring(F)(P)
+            (a + 1, a)
         """
         from sage.schemes.affine.affine_point import SchemeMorphism_point_affine
         if check:
-            if not isinstance(x, SchemeMorphism_point_affine):
+            if not isinstance(x, SchemeMorphism_point_affine) or self.domain() != x.codomain():
                 try:
                     x = self.domain()(x)
                 except (TypeError, NotImplementedError):
                     raise TypeError("%s fails to convert into the map's domain %s, but a `pushforward` method is not properly implemented"%(x, self.domain()))
-            elif self.domain() != x.codomain():
-                raise TypeError("%s fails to convert into the map's domain %s,but a `pushforward` method is not properly implemented"%(x, self.domain()))
 
-        # Passes the array of args to _fast_eval
-        P = self._fast_eval(x._coords)
-        return self.codomain().point(P, check)
+        R = x.domain().coordinate_ring()
+        if R is self.base_ring():
+            P = self._fast_eval(x._coords)
+        else:
+            P = [f(x._coords) for f in self._polys]
+        return self.codomain().point_homset(R)(P, check=check)
 
     def __eq__(self, right):
         """
@@ -950,7 +973,7 @@ class SchemeMorphism_polynomial_affine_space_field(SchemeMorphism_polynomial_aff
               From: Affine Space of dimension 2 over Finite Field in t of size 5^4
               To:   Affine Space of dimension 1 over Finite Field in t of size 5^4
               Defn: Defined on coordinates by sending (a, b) to
-                    (a^2 + (t)*b)
+                    (a^2 + t*b)
 
         ::
 
@@ -961,7 +984,7 @@ class SchemeMorphism_polynomial_affine_space_field(SchemeMorphism_polynomial_aff
             sage: g = f.reduce_base_field();g
             Scheme endomorphism of Affine Space of dimension 1 over Cyclotomic Field of order 4 and degree 2
               Defn: Defined on coordinates by sending (x) to
-                (x^2 + (v))
+                (x^2 + v)
             sage: g.base_ring() is K
             True
 
@@ -1005,7 +1028,7 @@ class SchemeMorphism_polynomial_affine_space_field(SchemeMorphism_polynomial_aff
                   To:   Affine Space of dimension 2 over Number Field in a with
                   defining polynomial x^3 - x + 1 with a = -1.324717957244746?
                   Defn: Defined on coordinates by sending (x) to
-                        (x^2 + (a)*x + 3, 5*x)
+                        (x^2 + a*x + 3, 5*x)
 
         ::
 

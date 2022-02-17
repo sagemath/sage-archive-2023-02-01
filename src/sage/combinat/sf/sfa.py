@@ -212,7 +212,11 @@ AUTHORS:
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 from sage.misc.cachefunc import cached_method
-from sage.rings.all import Integer, PolynomialRing, QQ, ZZ, infinity
+from sage.rings.integer_ring import ZZ
+from sage.rings.rational_field import QQ
+from sage.rings.integer import Integer
+from sage.rings.infinity import infinity
+from sage.rings.polynomial.polynomial_ring_constructor import PolynomialRing
 from sage.rings.polynomial.polynomial_element import is_Polynomial
 from sage.rings.polynomial.multi_polynomial import is_MPolynomial
 from sage.combinat.partition import _Partitions, Partitions, Partitions_n, Partition
@@ -1674,7 +1678,7 @@ class SymmetricFunctionAlgebra_generic(CombinatorialFreeModule):
             sage: s._change_by_plethysm(-a,-1,[])
             s[1, 1, 1]
         """
-        #Covert to the power sum
+        # Convert to the power sum
         p = self.realization_of().power()
         p_x = p(x)
         expr_k = lambda k: expr.subs(**dict([(str(x),x**k) for x in deg_one]))
@@ -2472,7 +2476,7 @@ class SymmetricFunctionAlgebra_generic(CombinatorialFreeModule):
             sage: Sym.p()._dual_basis_default()
             Dual basis to Symmetric Functions over Rational Field in the powersum basis with respect to the Hall scalar product
 
-        This is meant to be overriden by subclasses for which an
+        This is meant to be overridden by subclasses for which an
         explicit dual basis is known::
 
             sage: Sym.s()._dual_basis_default()
@@ -5081,9 +5085,9 @@ class SymmetricFunctionAlgebra_generic_Element(CombinatorialFreeModule.Element):
             sage: s(0).degree()
             0
         """
-        return max( [sum(_) for _ in self._monomial_coefficients] + [0] )
+        return max([sum(cfs) for cfs in self._monomial_coefficients] + [0])
 
-    def restrict_degree(self, d, exact = True):
+    def restrict_degree(self, d, exact=True):
         r"""
         Return the degree ``d`` component of ``self``.
 

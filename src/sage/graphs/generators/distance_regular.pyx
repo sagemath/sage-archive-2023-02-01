@@ -998,7 +998,7 @@ def HalfCube(const int n):
          sage: G1.is_isomorphic(G2)
          True
     """
-    from sage.functions.trig import cos, sin
+    from math import cos, sin, pi
 
     if n < 2:
         raise ValueError("the dimension must be n > 1")
@@ -1006,7 +1006,7 @@ def HalfCube(const int n):
     cdef int u, uu, v, i, j
     cdef list E = []
     cdef dict pos = {}  # dictionary of positions
-    cdef float theta = 3.14159265 / (n - 1)
+    cdef float theta = pi / (n - 1)
     cdef list cosi = [<float>cos(i*theta) for i in range(n - 1)]
     cdef list sini = [<float>sin(i*theta) for i in range(n - 1)]
 
@@ -1865,7 +1865,7 @@ def is_classical_parameters_graph(list array):
         sage: is_classical_parameters_graph([27, 10, 1, 1, 10, 27])
         False
     """
-    from sage.functions.log import log
+    from sage.misc.functional import log
     from sage.rings.integer_ring import ZZ
     from sage.arith.misc import is_prime_power
     from sage.combinat.q_analogues import q_binomial
@@ -2099,8 +2099,7 @@ def graph_with_classical_parameters(int d, int b, alpha_in, beta_in, int gamma):
         Generalised hexagon of order (2, 8): Graph on 819 vertices
     """
     from sage.rings.rational import Rational
-    from sage.functions.log import log
-    from sage.functions.other import sqrt
+    from sage.misc.functional import sqrt, log
     from sage.graphs.generators.families import JohnsonGraph, HammingGraph
     from sage.graphs.generators.classical_geometries import \
         UnitaryDualPolarGraph, OrthogonalDualPolarGraph, SymplecticDualPolarGraph
@@ -2383,7 +2382,7 @@ def is_near_polygon(array):
     """
     from sage.arith.misc import is_prime_power
     from sage.combinat.q_analogues import q_binomial
-    from sage.functions.log import log
+    from sage.misc.functional import log
 
     if len(array) % 2 != 0:
         return False

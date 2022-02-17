@@ -153,6 +153,7 @@ AC_DEFUN([SAGE_SPKG_FINALIZE], [
     AC_REQUIRE([SAGE_SPKG_COLLECT_INIT])
     m4_pushdef([SPKG_NAME], [$1])
     m4_pushdef([SPKG_TYPE], [$2])
+    m4_pushdef([SPKG_SOURCE], [$3])
     dnl add SPKG_NAME to the SAGE_PACKAGE_VERSIONS and
     dnl SAGE_PACKAGE_DEPENDENCIES lists, and to one or more of the above variables
     dnl depending on the package type and other criteria (such as whether or not it
@@ -165,37 +166,27 @@ AC_DEFUN([SAGE_SPKG_FINALIZE], [
 
     SPKG_VERSION=$(newest_version SPKG_NAME)
 
-    in_sdist=yes
-
     dnl Determine package source
     dnl
-    if test -f "$DIR/requirements.txt"; then
-        SPKG_SOURCE=pip
-        # Since pip packages are downloaded and installed by pip, we don't
-        # include them in the source tarball. At the time of this writing,
-        # all pip packages are optional.
+    m4_case(SPKG_SOURCE,
+      [normal], [dnl
+        in_sdist=yes
+      ], [dnl pip/script/none (dummy script package)
+        dnl Since pip packages are downloaded and installed by pip, we do not
+        dnl include them in the source tarball. At the time of this writing,
+        dnl all pip packages are optional.
+        dnl
+        dnl script: We assume that either (a) the sources for an optional script
+        dnl package will be downloaded by the script, or (b) that the
+        dnl sources of a standard script package are already a part of the
+        dnl sage repository (and thus the release tarball). As a result,
+        dnl we do not need to download the sources, which is what
+        dnl "in_sdist" really means. At the time of this writing, the
+        dnl only standard script packages are sage_conf and sagelib.
+        dnl The sources of these packages are in subdirectories of
+        dnl $SAGE_ROOT/pkgs.
         in_sdist=no
-    elif test ! -f "$DIR/checksums.ini"; then
-        if test -f "$DIR/spkg-install"; then
-            SPKG_SOURCE=script
-        else
-            dnl a dummy script package
-            SPKG_SOURCE=none
-        fi
-        # We assume that either (a) the sources for an optional script
-        # package will be downloaded by the script, or (b) that a
-        # standard script package's sources are already a part of the
-        # sage repository (and thus the release tarball). As a result,
-        # we don't need to download the sources, which is what
-        # "in_sdist" really means. At the time of this writing, the
-        # only standard script packages are sage_conf and sagelib.
-        # The sources of these packages are in subdirectories of
-        # $SAGE_ROOT/pkgs.
-        in_sdist=no
-    else
-        SPKG_SOURCE=normal
-    fi
-
+      ])
     dnl Write out information about the installation tree, using the name of the tree prefix
     dnl variable (SAGE_LOCAL or SAGE_VENV).  The makefile variable of SPKG is called "trees_SPKG",
     dnl note plural, for possible future extension in which an SPKG would be installed into several
@@ -220,7 +211,7 @@ AC_DEFUN([SAGE_SPKG_FINALIZE], [
         AS_IF([test -n "$t" -a -d "$t/var/lib/sage/installed/" ], [
             for f in "$t/var/lib/sage/installed/SPKG_NAME"-*; do
                 AS_IF([test -r "$f"], [
-                    AS_VAR_IF([SPKG_SOURCE], [normal], [
+                    m4_case(SPKG_SOURCE, [normal], [
                         dnl Only run the multiple installation record test for normal packages,
                         dnl not for script packages. We actually do not clean up after those...
                         AS_IF([test "$is_installed" = "yes"], [
@@ -260,7 +251,7 @@ AC_DEFUN([SAGE_SPKG_FINALIZE], [
             message="SPKG_TYPE, will be installed as an SPKG"
         ], [
             message="SPKG_TYPE"
-            AS_VAR_IF([SPKG_SOURCE], [none], [], [
+            m4_case(SPKG_SOURCE, [none], [], [
                 dnl Non-dummy optional/experimental package, advertise how to install
                 message="$message, use \"$srcdir/configure --enable-SPKG_NAME\" to install"
             ])
@@ -297,7 +288,7 @@ AC_DEFUN([SAGE_SPKG_FINALIZE], [
             ],                               [ message="not required on your platform"
             ])
             dnl Trac #31163: Only talk about the SPKG if there is an SPKG
-            AS_VAR_IF([SPKG_SOURCE], [none], [], [
+            m4_case(SPKG_SOURCE, [none], [], [
                 message="$message; SPKG will not be installed"
             ])
         ], [
@@ -348,11 +339,10 @@ AC_DEFUN([SAGE_SPKG_FINALIZE], [
         DEPS=`sed 's/^ *//; s/ *#.*//; q' $DEP_FILE`
     else
         ORDER_ONLY_DEPS=""
-        case "$SPKG_SOURCE" in
-        pip)
-            ORDER_ONLY_DEPS='pip'
-            ;;
-        esac
+        m4_case(SPKG_SOURCE,
+        [pip], [
+            ORDER_ONLY_DEPS=pip
+          ])
         if test -n "$ORDER_ONLY_DEPS"; then
             DEPS="| $ORDER_ONLY_DEPS"
         else
@@ -363,17 +353,16 @@ AC_DEFUN([SAGE_SPKG_FINALIZE], [
     SAGE_PACKAGE_DEPENDENCIES="${SAGE_PACKAGE_DEPENDENCIES}$(printf '\ndeps_')SPKG_NAME = ${DEPS}"
 
     # Determine package build rules
-    case "$SPKG_SOURCE" in
-    pip)
+    m4_case(SPKG_SOURCE,
+      [pip], [dnl
         SAGE_PIP_PACKAGES="${SAGE_PIP_PACKAGES} \\$(printf '\n    ')SPKG_NAME"
-        ;;
-    script|none)
-        SAGE_SCRIPT_PACKAGES="${SAGE_SCRIPT_PACKAGES} \\$(printf '\n    ')SPKG_NAME"
-        ;;
-    normal)
+      ],
+      [normal], [dnl
         SAGE_NORMAL_PACKAGES="${SAGE_NORMAL_PACKAGES} \\$(printf '\n    ')SPKG_NAME"
-        ;;
-    esac
+      ],
+      [dnl script|none
+        SAGE_SCRIPT_PACKAGES="${SAGE_SCRIPT_PACKAGES} \\$(printf '\n    ')SPKG_NAME"
+    ])
 
     m4_popdef([SPKG_TYPE])
     m4_popdef([SPKG_NAME])

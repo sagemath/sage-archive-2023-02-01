@@ -112,9 +112,22 @@ SAGE_SPKG_ENABLE([$pkgname], [$pkgtype], [$(grep -v ^= build/pkgs/$pkgname/SPKG.
 SAGE_SPKG_CONFIGURE_$(echo ${pkgname} | tr '[a-z]' '[A-Z]')"
     done
     for pkgname in $(./sage --package list | sort); do
-        pkgtype="$(cat build/pkgs/$pkgname/type)"
+        DIR=build/pkgs/$pkgname
+        pkgtype="$(cat $DIR/type)"
+        if test -f "$DIR/requirements.txt"; then
+            SPKG_SOURCE=pip
+        elif test ! -f "$DIR/checksums.ini"; then
+            if test -f "$DIR/spkg-install"; then
+                SPKG_SOURCE=script
+            else
+                # a dummy script package
+                SPKG_SOURCE=none
+            fi
+        else
+            SPKG_SOURCE=normal
+        fi
         spkg_configures="$spkg_configures
-SAGE_SPKG_FINALIZE([$pkgname], [$pkgtype])"
+SAGE_SPKG_FINALIZE([$pkgname], [$pkgtype], [$SPKG_SOURCE])"
     done
     echo "$spkg_configures" >> m4/sage_spkg_configures.m4
 

@@ -33,7 +33,9 @@ jobs:
           SAGE_NUM_THREADS: 2
 
       - name: Test
-        run: ../venv/bin/python3 -m coverage run ./bin/sage-runtests --all -p0
+        run: |
+          source ./bin/sage-env
+          ../venv/bin/python3 -m coverage run ./bin/sage-runtests --all -p0
         working-directory: ./src
 
       - name: Prepare coverage results

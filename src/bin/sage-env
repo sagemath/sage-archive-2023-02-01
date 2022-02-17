@@ -110,7 +110,7 @@ resolvelinks() {
 # Make sure that SAGE_ROOT is either an absolute physical directory name
 # or empty.
 if [ -n "$SAGE_ROOT" ]; then
-    export SAGE_ROOT=$(cd "$NEW_SAGE_ROOT" 2>/dev/null && pwd -P)
+    export SAGE_ROOT=$(cd "$SAGE_ROOT" 2>/dev/null && pwd -P)
 fi
 
 # Don't execute the commands more than once for the same version of

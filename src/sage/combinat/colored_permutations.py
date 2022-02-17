@@ -212,8 +212,7 @@ class ColoredPermutation(MultiplicativeGroupElement):
             [(0, 1), (0, 2)]
         """
         if isinstance(key, slice):
-            return [(self._colors[i], self._perm[i])
-                    for i in range(len(self))[key]]
+            return list(zip(self._colors[key], self._perm[key]))
         return (self._colors[key], self._perm[key])
 
     def colors(self):
@@ -1078,12 +1077,39 @@ class SignedPermutation(ColoredPermutation,
             -3
             sage: pi[1::2]
             [5, 2]
-
         """
         if isinstance(key, slice):
-            return [self._colors[i] * self._perm[i]
-                    for i in range(len(self))[key]]
+            return [c * v for c, v in zip(self._colors[key], self._perm[key])]
         return self._colors[key] * self._perm[key]
+
+    def __call__(self, i):
+        """
+        Return the image of the integer ``i`` in ``self``.
+
+        EXAMPLES::
+
+            sage: pi = SignedPermutations(7)([2,-1,4,-6,-5,-3,7])
+            sage: pi(2)
+            -1
+            sage: pi(-2)
+            1
+            sage: pi(7)
+            7
+            sage: pi(-7)
+            -7
+            sage: [pi(i) for i in range(1,8)]
+            [2, -1, 4, -6, -5, -3, 7]
+            sage: [pi(-i) for i in range(1,8)]
+            [-2, 1, -4, 6, 5, 3, -7]
+        """
+        if i in ZZ and 1 <= abs(i) <= len(self):
+            i = ZZ(i)
+            if i < 0:
+                return -self._colors[-i-1] * self._perm[-i-1]
+            return self._colors[i-1] * self._perm[i-1]
+        else:
+            raise TypeError("i (= %s) must equal +/- an integer between %s and %s"
+                            % (i,1,len(self)))
 
     def to_matrix(self):
         """
@@ -1127,36 +1153,38 @@ class SignedPermutation(ColoredPermutation,
             return self._colors[i] == 1 or self._perm[i - 1] < self._perm[i]
         return self._colors[i] == 1 and self._perm[i - 1] > self._perm[i]
 
-
-    def to_cycles(self, singletons=True, use_min=True):
+    def to_cycles(self, singletons=True, use_min=True, negative_singletons=True):
         """
         Return the signed permutation ``self`` as a list of disjoint cycles.
 
         The cycles are returned in the order of increasing smallest
         elements, and each cycle is returned as a tuple which starts
-        with its smallest element.  If one cycle is the negative of
-        another, only the one with positive first element is given
+        with its smallest positive element. We do not include the
+        corresponding negative cycles.
 
-        If ``singletons=False`` is given, the list does not contain the
-        singleton cycles.
+        INPUT:
 
-        If ``use_min=False`` is given, the cycles are returned in the
-        order of increasing *largest* (not smallest) elements, and
-        each cycle starts with its largest element.
+        - ``singletons`` -- (default: ``True``) whether to include singleton
+          cycles or not
+        - ``use_min`` -- (default: ``True``) if ``False``, the cycles are
+          returned in the order of increasing *largest* (not smallest)
+          elements, and each cycle starts with its largest element
 
         EXAMPLES::
 
-            sage: SignedPermutations(7)([2,-1,4,-6,-5,-3,7]).to_cycles()
+            sage: pi = SignedPermutations(7)([2,-1,4,-6,-5,-3,7])
+            sage: pi.to_cycles()
             [(1, 2, -1, -2), (3, 4, -6), (5, -5), (7,)]
-            sage: SignedPermutations(7)([2,-1,4,-6,-5,-3,7]).to_cycles(singletons=False)
+            sage: pi.to_cycles(singletons=False)
             [(1, 2, -1, -2), (3, 4, -6), (5, -5)]
-            sage: SignedPermutations(7)([2,-1,4,-6,-5,-3,7]).to_cycles(use_min=False)
+            sage: pi.to_cycles(use_min=False)
             [(7,), (6, -3, -4), (5, -5), (2, -1, -2, 1)]
-
+            sage: pi.to_cycles(singletons=False, use_min=False)
+            [(6, -3, -4), (5, -5), (2, -1, -2, 1)]
         """
         cycles = []
 
-        l = self[:]
+        l = self._perm[:]
 
         if use_min:
             groundset = range(len(l))
@@ -1167,18 +1195,16 @@ class SignedPermutation(ColoredPermutation,
         for i in groundset:
             if not l[i]:
                 continue
-            cycleFirst = i + 1
-            cycle = [cycleFirst]
-            l[i], next = False, l[i]
-            while next != cycleFirst:
-                if next == -cycleFirst:
-                    cycle.extend([-e for e in cycle])
-                    break
-                cycle.append( next )
-                if next < 0:
-                    l[-next - 1], next = False, -l[-next - 1]
-                else:
-                    l[next - 1], next = False, l[next - 1]
+            cycle_first = i + 1
+            cycle = [cycle_first]
+            l[i], next_val = False, l[i]
+            s = self._colors[i]
+            while next_val != cycle_first:
+                cycle.append(s * next_val)
+                s *= self._colors[next_val-1]
+                l[next_val-1], next_val = False, l[next_val-1]
+            if s != 1:
+                cycle.extend([-e for e in cycle])
 
             # Add the cycle to the list of cycles
             if singletons or len(cycle) > 1:
@@ -1193,12 +1219,12 @@ class SignedPermutation(ColoredPermutation,
         EXAMPLES::
 
             sage: pi = SignedPermutations(7)([2,-1,4,-6,-5,-3,7])
-            sage: pi.to_cycles()
-            [(1, 2, -1, -2), (3, 4, -6), (5, -5), (7,)]
+            sage: pi.to_cycles(singletons=False)
+            [(1, 2, -1, -2), (3, 4, -6), (5, -5)]
             sage: pi.order()
             12
         """
-        return lcm(len(c) for c in self.to_cycles())
+        return lcm(len(c) for c in self.to_cycles(singletons=False))
 
 
 class SignedPermutations(ColoredPermutations):

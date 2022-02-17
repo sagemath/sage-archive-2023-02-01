@@ -309,14 +309,10 @@ AC_DEFUN([SAGE_SPKG_FINALIZE], [
         ])
 
     dnl Trac #29124: Do not talk about underscore club
-    case "SPKG_NAME" in
-    _*)
-        ;;
-    *)
+    m4_bmatch(SPKG_NAME, [^_], [], [
         formatted_message=$(printf '%-45s%s' "SPKG_NAME-$SPKG_VERSION:" "$message")
         AC_MSG_RESULT([$formatted_message])
-        ;;
-    esac
+    ])
 
         AS_VAR_POPDEF([sage_use_system])dnl
         AS_VAR_POPDEF([sage_require])dnl
@@ -331,11 +327,11 @@ AC_DEFUN([SAGE_SPKG_FINALIZE], [
             [*-yes],  [AS_VAR_APPEND(SAGE_OPTIONAL_INSTALLED_PACKAGES, "$spkg_line")],
             [yes-no], [AS_VAR_APPEND(SAGE_OPTIONAL_UNINSTALLED_PACKAGES, "$spkg_line")])
 
-    # Determine package dependencies
-    #
+    dnl Determine package dependencies
+    dnl
     DEP_FILE="$DIR/dependencies"
     if test -f "$DEP_FILE"; then
-        # - the # symbol is treated as comment which is removed
+        dnl - the # symbol is treated as comment which is removed
         DEPS=`sed 's/^ *//; s/ *#.*//; q' $DEP_FILE`
     else
         ORDER_ONLY_DEPS=""
@@ -352,7 +348,7 @@ AC_DEFUN([SAGE_SPKG_FINALIZE], [
 
     SAGE_PACKAGE_DEPENDENCIES="${SAGE_PACKAGE_DEPENDENCIES}$(printf '\ndeps_')SPKG_NAME = ${DEPS}"
 
-    # Determine package build rules
+    dnl Determine package build rules
     m4_case(SPKG_SOURCE,
       [pip], [dnl
         SAGE_PIP_PACKAGES="${SAGE_PIP_PACKAGES} \\$(printf '\n    ')SPKG_NAME"

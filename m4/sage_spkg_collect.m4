@@ -248,19 +248,14 @@ AC_DEFUN([SAGE_SPKG_FINALIZE], [
 
     uninstall_message=""
     SAGE_NEED_SYSTEM_PACKAGES_VAR=SAGE_NEED_SYSTEM_PACKAGES
-    # Check consistency of 'DIR/type' file
-    case "SPKG_TYPE" in
-    base)
-        message="came preinstalled with the SageMath tarball"
-        ;;
-    standard)
+    m4_case(SPKG_TYPE,
+      [standard], [dnl
         AS_VAR_IF([SAGE_ENABLE_]SPKG_NAME, [yes], [
             message="SPKG_TYPE, will be installed as an SPKG"
         ], [
             message="SPKG_TYPE, but disabled using configure option"
         ])
-        ;;
-    optional|experimental)
+      ], [dnl optional/experimental
         AS_VAR_IF([SAGE_ENABLE_]SPKG_NAME, [yes], [
             message="SPKG_TYPE, will be installed as an SPKG"
         ], [
@@ -271,20 +266,13 @@ AC_DEFUN([SAGE_SPKG_FINALIZE], [
             ])
             SAGE_NEED_SYSTEM_PACKAGES_VAR=SAGE_NEED_SYSTEM_PACKAGES_OPTIONAL
         ])
-        ;;
-    *)
-        AC_MSG_ERROR([The content of "type" must be 'base', 'standard', 'optional', or 'experimental'])
-        ;;
-    esac
+    ])
 
-    case "SPKG_TYPE" in
-    standard)
-        ;;
-    optional|experimental)
+    m4_case(SPKG_TYPE,
+      [standard], [], [dnl optional|experimental
         in_sdist=no
         uninstall_message=", use \"$srcdir/configure --disable-SPKG_NAME\" to uninstall"
-        ;;
-    esac
+    ])
 
     dnl Trac #29629: Temporary solution for Sage 9.1: Do not advertise installing pip packages
     dnl using ./configure --enable-SPKG

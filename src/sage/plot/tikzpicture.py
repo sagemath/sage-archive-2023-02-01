@@ -70,7 +70,7 @@ Opening the image in a viewer can be turned off::
 The same can be done with png format (translated from pdf with convert
 command which needs the installation of imagemagick)::
 
-    sage: _ = t.png(view=False)      # long time (2s) # optional imagemagick
+    sage: _ = t.png(view=False)      # long time (2s) # optional latex imagemagick
 
 The string representation gives the header (5 lines) and tail (5 lines) of
 the tikzpicture. In Jupyter, it will instead use rich representation and
@@ -491,8 +491,8 @@ class StandaloneTex(SageObject):
 
             sage: from sage.misc.temporary_file import tmp_filename
             sage: filename = tmp_filename('temp','.png')
-            sage: path_to_file = t.png(filename) # long time (2s)   # optional imagemagick
-            sage: path_to_file[-4:]              # long time (fast) # optional imagemagick
+            sage: path_to_file = t.png(filename) # long time (2s)   # optional latex imagemagick
+            sage: path_to_file[-4:]              # long time (fast) # optional latex imagemagick
             '.png'
 
         ACKNOWLEDGEMENT:
@@ -573,11 +573,11 @@ class StandaloneTex(SageObject):
 
             sage: from sage.misc.temporary_file import tmp_filename
             sage: filename = tmp_filename('temp', '.svg')
-            sage: path_to_file = t.svg(filename, program='pdf2svg')   # long time (2s)   # optional pdf2svg
-            sage: path_to_file[-4:]                                   # long time (fast) # optional pdf2svg
+            sage: path_to_file = t.svg(filename, program='pdf2svg')   # long time (2s)   # optional latex pdf2svg
+            sage: path_to_file[-4:]                                   # long time (fast) # optional latex pdf2svg
             '.svg'
-            sage: path_to_file = t.svg(filename, program='pdftocairo') # long time (2s)   # optional pdftocairo
-            sage: path_to_file[-4:]                                    # long time (fast) # optional pdftocairo
+            sage: path_to_file = t.svg(filename, program='pdftocairo') # long time (2s)   # optional latex pdftocairo
+            sage: path_to_file[-4:]                                    # long time (fast) # optional latex pdftocairo
             '.svg'
 
         ACKNOWLEDGEMENT:

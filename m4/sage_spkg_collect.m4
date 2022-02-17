@@ -151,19 +151,19 @@ AC_SUBST([SAGE_SDIST_PACKAGES])
 dnl ==========================================================================
 AC_DEFUN([SAGE_SPKG_FINALIZE], [
     AC_REQUIRE([SAGE_SPKG_COLLECT_INIT])
-    SPKG_NAME=$1
-    SPKG_TYPE=$2
+    m4_pushdef([SPKG_NAME], [$1])
+    m4_pushdef([SPKG_TYPE], [$2])
     dnl add SPKG_NAME to the SAGE_PACKAGE_VERSIONS and
     dnl SAGE_PACKAGE_DEPENDENCIES lists, and to one or more of the above variables
     dnl depending on the package type and other criteria (such as whether or not it
     dnl needs to be installed)
 
-    DIR="$SAGE_ROOT"/build/pkgs/$SPKG_NAME
+    DIR="$SAGE_ROOT"/build/pkgs/SPKG_NAME
     AS_IF([test ! -d "$DIR"], [
         AC_MSG_ERROR([Directory $DIR is missing. Re-run bootstrap.])
     ])
 
-    SPKG_VERSION=$(newest_version $SPKG_NAME)
+    SPKG_VERSION=$(newest_version SPKG_NAME)
 
     in_sdist=yes
 
@@ -211,22 +211,22 @@ AC_DEFUN([SAGE_SPKG_FINALIZE], [
             SPKG_TREE_VAR=SAGE_VENV
         fi
     fi
-    SAGE_PACKAGE_TREES="${SAGE_PACKAGE_TREES}$(printf '\ntrees_')${SPKG_NAME} = ${SPKG_TREE_VAR}"
+    SAGE_PACKAGE_TREES="${SAGE_PACKAGE_TREES}$(printf '\ntrees_')SPKG_NAME = ${SPKG_TREE_VAR}"
 
     dnl Determine whether it is installed already
     AS_VAR_SET([is_installed], [no])
     for treevar in ${SPKG_TREE_VAR} SAGE_LOCAL; do
         AS_VAR_COPY([t], [$treevar])
         AS_IF([test -n "$t" -a -d "$t/var/lib/sage/installed/" ], [
-            for f in "$t/var/lib/sage/installed/$SPKG_NAME"-*; do
+            for f in "$t/var/lib/sage/installed/SPKG_NAME"-*; do
                 AS_IF([test -r "$f"], [
                     AS_VAR_IF([SPKG_SOURCE], [normal], [
                         dnl Only run the multiple installation record test for normal packages,
                         dnl not for script packages. We actually do not clean up after those...
                         AS_IF([test "$is_installed" = "yes"], [
                             AC_MSG_ERROR(m4_normalize([
-                                multiple installation records for $SPKG_NAME:
-                                m4_newline($(ls -l "$t/var/lib/sage/installed/$SPKG_NAME"-*))
+                                multiple installation records for SPKG_NAME:
+                                m4_newline($(ls -l "$t/var/lib/sage/installed/SPKG_NAME"-*))
                                 m4_newline([only one should exist, so please delete some or all
                                 of these files and re-run "$srcdir/configure"])
                             ]))
@@ -242,69 +242,69 @@ AC_DEFUN([SAGE_SPKG_FINALIZE], [
     done
 
     # Determine whether package is enabled
-    AS_VAR_IF([SAGE_ENABLE_${SPKG_NAME}], [if_installed],
-          [AS_VAR_SET([SAGE_ENABLE_${SPKG_NAME}], $is_installed)])
-    AS_VAR_COPY([want_spkg], [SAGE_ENABLE_${SPKG_NAME}])
+    AS_VAR_IF([SAGE_ENABLE_]SPKG_NAME, [if_installed],
+          [AS_VAR_SET([SAGE_ENABLE_]SPKG_NAME, $is_installed)])
+    AS_VAR_COPY([want_spkg], [SAGE_ENABLE_]SPKG_NAME)
 
     uninstall_message=""
     SAGE_NEED_SYSTEM_PACKAGES_VAR=SAGE_NEED_SYSTEM_PACKAGES
     # Check consistency of 'DIR/type' file
-    case "$SPKG_TYPE" in
+    case "SPKG_TYPE" in
     base)
         message="came preinstalled with the SageMath tarball"
         ;;
     standard)
-        AS_VAR_IF([SAGE_ENABLE_]${SPKG_NAME}, [yes], [
-            message="$SPKG_TYPE, will be installed as an SPKG"
+        AS_VAR_IF([SAGE_ENABLE_]SPKG_NAME, [yes], [
+            message="SPKG_TYPE, will be installed as an SPKG"
         ], [
-            message="$SPKG_TYPE, but disabled using configure option"
+            message="SPKG_TYPE, but disabled using configure option"
         ])
         ;;
     optional|experimental)
-        AS_VAR_IF([SAGE_ENABLE_]${SPKG_NAME}, [yes], [
-            message="$SPKG_TYPE, will be installed as an SPKG"
+        AS_VAR_IF([SAGE_ENABLE_]SPKG_NAME, [yes], [
+            message="SPKG_TYPE, will be installed as an SPKG"
         ], [
-            message="$SPKG_TYPE"
+            message="SPKG_TYPE"
             AS_VAR_IF([SPKG_SOURCE], [none], [], [
                 dnl Non-dummy optional/experimental package, advertise how to install
-                message="$message, use \"$srcdir/configure --enable-$SPKG_NAME\" to install"
+                message="$message, use \"$srcdir/configure --enable-SPKG_NAME\" to install"
             ])
             SAGE_NEED_SYSTEM_PACKAGES_VAR=SAGE_NEED_SYSTEM_PACKAGES_OPTIONAL
         ])
         ;;
     *)
-        AC_MSG_ERROR([The content of "$SPKG_TYPE_FILE" must be 'base', 'standard', 'optional', or 'experimental'])
+        AC_MSG_ERROR([The content of "type" must be 'base', 'standard', 'optional', or 'experimental'])
         ;;
     esac
 
-    case "$SPKG_TYPE" in
+    case "SPKG_TYPE" in
     standard)
         ;;
     optional|experimental)
         in_sdist=no
-        uninstall_message=", use \"$srcdir/configure --disable-$SPKG_NAME\" to uninstall"
+        uninstall_message=", use \"$srcdir/configure --disable-SPKG_NAME\" to uninstall"
         ;;
     esac
 
-    # Trac #29629: Temporary solution for Sage 9.1: Do not advertise installing pip packages
-    # using ./configure --enable-SPKG
+    dnl Trac #29629: Temporary solution for Sage 9.1: Do not advertise installing pip packages
+    dnl using ./configure --enable-SPKG
     if test -f "$DIR/requirements.txt"; then
-        message="$SPKG_TYPE pip package; use \"./sage -i $SPKG_NAME\" to install"
-        uninstall_message="$SPKG_TYPE pip package (installed)"
+        message="SPKG_TYPE pip package; use \"./sage -i SPKG_NAME\" to install"
+        uninstall_message="SPKG_TYPE pip package (installed)"
     fi
 
-    SAGE_PACKAGE_VERSIONS="${SAGE_PACKAGE_VERSIONS}$(printf '\nvers_')${SPKG_NAME} = ${SPKG_VERSION}"
+    SAGE_PACKAGE_VERSIONS="${SAGE_PACKAGE_VERSIONS}$(printf '\nvers_')SPKG_NAME = ${SPKG_VERSION}"
 
-        AS_VAR_PUSHDEF([sage_spkg_install], [sage_spkg_install_${SPKG_NAME}])dnl
-        AS_VAR_PUSHDEF([sage_require], [sage_require_${SPKG_NAME}])dnl
-        AS_VAR_PUSHDEF([sage_use_system], [sage_use_system_${SPKG_NAME}])dnl
+        AS_VAR_PUSHDEF([sage_spkg_install], [sage_spkg_install_]SPKG_NAME)dnl
+        AS_VAR_PUSHDEF([sage_require], [sage_require_]SPKG_NAME)dnl
+        AS_VAR_PUSHDEF([sage_use_system], [sage_use_system_]SPKG_NAME)dnl
 
-        # If $sage_spkg_install_{SPKG_NAME} is set to no, then set inst_<pkgname> to
-        # some dummy file to skip the installation. Note that an explicit
-        # "./sage -i SPKG_NAME" will still install the package.
+        dnl If $sage_spkg_install_{SPKG_NAME} is set to no, then set inst_<pkgname> to
+        dnl some dummy file to skip the installation. Note that an explicit
+        dnl "./sage -i SPKG_NAME" will still install the package.
         AS_VAR_IF([sage_spkg_install], [no], [
             dnl We will use the system package (or not required for this platform.)
-            SAGE_DUMMY_PACKAGES="${SAGE_DUMMY_PACKAGES} \\$(printf '\n    ')${SPKG_NAME}"
+            SAGE_DUMMY_PACKAGES="${SAGE_DUMMY_PACKAGES} \\$(printf '\n    ')SPKG_NAME"
             AS_VAR_IF([sage_require], [yes], [ message="using system package"
             ],                               [ message="not required on your platform"
             ])
@@ -314,15 +314,15 @@ AC_DEFUN([SAGE_SPKG_FINALIZE], [
             ])
         ], [
             dnl We will not use the system package.
-            SAGE_BUILT_PACKAGES="${SAGE_BUILT_PACKAGES} \\$(printf '\n    ')${SPKG_NAME}"
+            SAGE_BUILT_PACKAGES="${SAGE_BUILT_PACKAGES} \\$(printf '\n    ')SPKG_NAME"
             AS_VAR_SET_IF([sage_use_system], [
                 AS_VAR_COPY([reason], [sage_use_system])
                 AS_CASE([$reason],
                 [yes],                       [ message="no suitable system package; $message"
-                                               AS_VAR_APPEND([$SAGE_NEED_SYSTEM_PACKAGES_VAR], [" $SPKG_NAME"])
+                                               AS_VAR_APPEND([$SAGE_NEED_SYSTEM_PACKAGES_VAR], [" SPKG_NAME"])
                                              ],
                 [force],                     [ message="no suitable system package; this is an error"
-                                               AS_VAR_APPEND([$SAGE_NEED_SYSTEM_PACKAGES_VAR], [" $SPKG_NAME"])
+                                               AS_VAR_APPEND([$SAGE_NEED_SYSTEM_PACKAGES_VAR], [" SPKG_NAME"])
                                              ],
                 [installed],                 [ message="already installed as an SPKG$uninstall_message" ],
                                              [ message="$reason; $message" ])
@@ -330,11 +330,11 @@ AC_DEFUN([SAGE_SPKG_FINALIZE], [
         ])
 
     dnl Trac #29124: Do not talk about underscore club
-    case "$SPKG_NAME" in
+    case "SPKG_NAME" in
     _*)
         ;;
     *)
-        formatted_message=$(printf '%-45s%s' "$SPKG_NAME-$SPKG_VERSION:" "$message")
+        formatted_message=$(printf '%-45s%s' "SPKG_NAME-$SPKG_VERSION:" "$message")
         AC_MSG_RESULT([$formatted_message])
         ;;
     esac
@@ -344,10 +344,10 @@ AC_DEFUN([SAGE_SPKG_FINALIZE], [
         AS_VAR_POPDEF([sage_spkg_install])dnl
 
     if test "$in_sdist" = yes; then
-        SAGE_SDIST_PACKAGES="${SAGE_SDIST_PACKAGES} \\$(printf '\n    ')${SPKG_NAME}"
+        SAGE_SDIST_PACKAGES="${SAGE_SDIST_PACKAGES} \\$(printf '\n    ')SPKG_NAME"
     fi
 
-    spkg_line=" \\$(printf '\n    ')$SPKG_NAME"
+    spkg_line=" \\$(printf '\n    ')SPKG_NAME"
     AS_CASE([$is_installed-$want_spkg],
             [*-yes],  [AS_VAR_APPEND(SAGE_OPTIONAL_INSTALLED_PACKAGES, "$spkg_line")],
             [yes-no], [AS_VAR_APPEND(SAGE_OPTIONAL_UNINSTALLED_PACKAGES, "$spkg_line")])
@@ -372,20 +372,23 @@ AC_DEFUN([SAGE_SPKG_FINALIZE], [
         fi
     fi
 
-    SAGE_PACKAGE_DEPENDENCIES="${SAGE_PACKAGE_DEPENDENCIES}$(printf '\ndeps_')${SPKG_NAME} = ${DEPS}"
+    SAGE_PACKAGE_DEPENDENCIES="${SAGE_PACKAGE_DEPENDENCIES}$(printf '\ndeps_')SPKG_NAME = ${DEPS}"
 
     # Determine package build rules
     case "$SPKG_SOURCE" in
     pip)
-        SAGE_PIP_PACKAGES="${SAGE_PIP_PACKAGES} \\$(printf '\n    ')${SPKG_NAME}"
+        SAGE_PIP_PACKAGES="${SAGE_PIP_PACKAGES} \\$(printf '\n    ')SPKG_NAME"
         ;;
     script|none)
-        SAGE_SCRIPT_PACKAGES="${SAGE_SCRIPT_PACKAGES} \\$(printf '\n    ')${SPKG_NAME}"
+        SAGE_SCRIPT_PACKAGES="${SAGE_SCRIPT_PACKAGES} \\$(printf '\n    ')SPKG_NAME"
         ;;
     normal)
-        SAGE_NORMAL_PACKAGES="${SAGE_NORMAL_PACKAGES} \\$(printf '\n    ')${SPKG_NAME}"
+        SAGE_NORMAL_PACKAGES="${SAGE_NORMAL_PACKAGES} \\$(printf '\n    ')SPKG_NAME"
         ;;
     esac
+
+    m4_popdef([SPKG_TYPE])
+    m4_popdef([SPKG_NAME])
 ])
 
 AC_DEFUN([SAGE_SYSTEM_PACKAGE_NOTICE], [

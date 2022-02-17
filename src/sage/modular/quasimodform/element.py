@@ -243,7 +243,7 @@ class QuasiModularFormsElement(ModuleElement):
 
     def __bool__(self):
         r"""
-        Return "True" if ``self`` is non-zero and "False" otherwise.
+        Return ``True`` whether ``self`` is non-zero.
 
         EXAMPLES::
 
@@ -259,7 +259,7 @@ class QuasiModularFormsElement(ModuleElement):
 
     def is_zero(self):
         r"""
-        Return ``True`` if the quasiform is 0 and ``False`` otherwise
+        Return ``True`` whether the given quasimodular form is 0.
 
         EXAMPLES::
 
@@ -277,7 +277,8 @@ class QuasiModularFormsElement(ModuleElement):
 
     def is_one(self):
         r"""
-        Return ``True`` if the quasiform is 1 and ``False`` otherwise
+        Return ``True`` whether the given quasimodular form is 1, i.e. the
+        multiplicative identity.
 
         EXAMPLES::
 
@@ -293,8 +294,9 @@ class QuasiModularFormsElement(ModuleElement):
 
     def is_graded_modular_form(self):
         r"""
-        Return ``True`` if the given quasimodular form is a graded modular forms element
-        and ``False`` otherwise.
+        Return ``True`` whether the given quasimodular form is a
+        graded modular form element
+        (see :class:`~sage.modular.modform.element.GradedModularFormElement`).
 
         EXAMPLES::
 
@@ -325,8 +327,7 @@ class QuasiModularFormsElement(ModuleElement):
 
     def is_modular_form(self):
         r"""
-        Return ``True`` if the given quasimodular form is a modular form and
-        ``False`` otherwise.
+        Return ``True`` whether the given quasimodular form is a modular form.
 
         EXAMPLES::
 
@@ -346,8 +347,8 @@ class QuasiModularFormsElement(ModuleElement):
         r"""
         Return a multivariate polynomial `P(E_2, E_4, E_6)` corresponding to the
         given form where `E_2`, `E_4` and `E_6` are the generators of the
-        quasimodular form ring given by
-        :meth:`~sage.modular.quasiform.ring.QuasiModularForms.gens`.
+        quasimodular form ring given by the following method:
+        :meth:`~sage.modular.quasimodform.ring.QuasiModularForms.gens`.
 
         INPUT:
 

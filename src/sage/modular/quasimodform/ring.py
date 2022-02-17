@@ -540,7 +540,7 @@ class QuasiModularForms(Parent, UniqueRepresentation):
 
         OUTPUT: A multivariate polynomial ring in the variables ``names``
 
-        EXAMPLES:
+        EXAMPLES::
 
             sage: QM = QuasiModularForms(1)
             sage: P.<E2, E4, E6> = QM.polynomial_ring(); P

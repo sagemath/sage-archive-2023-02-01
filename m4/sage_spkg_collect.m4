@@ -149,7 +149,7 @@ AC_SUBST([SAGE_SDIST_PACKAGES])
 
 
 dnl ==========================================================================
-AC_DEFUN([SAGE_SPKG], [
+AC_DEFUN([SAGE_SPKG_FINALIZE], [
     AC_REQUIRE([SAGE_SPKG_INIT])
     SPKG_NAME=$1
     SPKG_TYPE=$2

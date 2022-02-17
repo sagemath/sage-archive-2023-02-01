@@ -24,7 +24,7 @@ jobs:
           ./bootstrap
           ./configure --enable-build-as-root --prefix=/sage/local --with-sage-venv --enable-editable
           # Install test tools
-          ./venv/bin/python3 -m pip install coverage
+          ./sage -python -m pip install coverage
       
       - name: Build
         run: make build
@@ -33,9 +33,7 @@ jobs:
           SAGE_NUM_THREADS: 2
 
       - name: Test
-        run: |
-          . ./bin/sage-env-config || true
-          ../venv/bin/python3 -m coverage run ./bin/sage-runtests --all -p0
+        run: ../sage -python -m coverage run ./bin/sage-runtests --all -p0
         working-directory: ./src
 
       - name: Prepare coverage results

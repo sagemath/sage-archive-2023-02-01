@@ -34,7 +34,7 @@ jobs:
 
       - name: Test
         run: |
-          source ./bin/sage-env
+          . ./bin/sage-env
           ../venv/bin/python3 -m coverage run ./bin/sage-runtests --all -p0
         working-directory: ./src
 

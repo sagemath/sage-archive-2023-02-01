@@ -811,7 +811,7 @@ cdef class Polynomial(CommutativeAlgebraElement):
 
         R = parent(a)
 
-        if R is not self._parent._base:
+        if R is not pol._parent._base:
             # If a is a monomial in an isomorphic polynomial ring (or quotient
             # of an isomorphic polynomial ring), the code below wastes a lot of
             # time on conversions and unnecessary intermediate reductions.

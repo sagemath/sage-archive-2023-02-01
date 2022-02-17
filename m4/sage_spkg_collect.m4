@@ -77,7 +77,7 @@ m4_include([m4/sage_spkg_configures.m4])
 ])
 
 dnl ==========================================================================
-AC_DEFUN([SAGE_SPKG_INIT], [
+AC_DEFUN([SAGE_SPKG_COLLECT_INIT], [
 dnl Intialize the collection variables.
 # To deal with ABI incompatibilities when gcc is upgraded, every package
 # (except gcc) should depend on gcc if gcc is already installed.
@@ -150,7 +150,7 @@ AC_SUBST([SAGE_SDIST_PACKAGES])
 
 dnl ==========================================================================
 AC_DEFUN([SAGE_SPKG_FINALIZE], [
-    AC_REQUIRE([SAGE_SPKG_INIT])
+    AC_REQUIRE([SAGE_SPKG_COLLECT_INIT])
     SPKG_NAME=$1
     SPKG_TYPE=$2
     dnl add SPKG_NAME to the SAGE_PACKAGE_VERSIONS and

@@ -119,7 +119,7 @@ fi
 
 if [ -n "$NEW_SAGE_ROOT" ]; then
     # Make NEW_SAGE_ROOT absolute; this will be empty if this directory does not exist.
-    NEW_SAGE_ROOT=`cd "$NEW_SAGE_ROOT" && pwd -P`
+    NEW_SAGE_ROOT=`cd "$NEW_SAGE_ROOT" 2>/dev/null && pwd -P`
 
     # Warn if NEW_SAGE_ROOT does not equal the old SAGE_ROOT
     if [ "$SAGE_ROOT" != "$NEW_SAGE_ROOT" -a -n "$SAGE_ROOT" -a -n "$NEW_SAGE_ROOT" ]; then
@@ -129,38 +129,20 @@ if [ -n "$NEW_SAGE_ROOT" ]; then
     fi
 fi
 
+if [ -n "$NEW_SAGE_ROOT" ]; then
+    export SAGE_ROOT="$NEW_SAGE_ROOT"
+fi
 
 # Don't execute the commands more than once for the same version of
 # sage-env... for the same combination of SAGE_LOCAL and SAGE_VENV.
-#
-# Check this after checking the validity of SAGE_ROOT, but
-# before modifying its value.
-#
-# The idea of versioning is that SAGE_ENV_SOURCED will be set to a
-# "version number" of sage-env.  If a different version of sage-env was
-# sourced earlier (when upgrading), we still source the new version.
-# The sage-env version should be increased whenever a newer sage-env is
-# required for upgrading.  Note that build/make/deps might also need
-# to be changed: the packages which need the new sage-env must depend on
-# SAGE_ROOT_REPO (the root repo contains sage-env).
-#
-# sage-env version history:
-# - sage-4.7.1: version 1 (#10469)
-# - sage-5.4:   version 2 (#13395)
-# - sage-5.10:  version 3 (#14699)
-# - sage-6.0:   version 4 (#14715)
-# - sage-9.5:   version 5 (#32745)
-#
+# "5" indicates the version of the format of the value of SAGE_ENV_VERSION.
+# The current format was introduced in #32745.
 SAGE_ENV_VERSION="5:$SAGE_LOCAL:$SAGE_VENV"
 if [ "$SAGE_ENV_SOURCED" = "$SAGE_ENV_VERSION" ]; then
     # Already sourced, nothing to do.
     return 0
 fi
 export SAGE_ENV_SOURCED="$SAGE_ENV_VERSION"
-
-if [ -n "$NEW_SAGE_ROOT" ]; then
-    export SAGE_ROOT="$NEW_SAGE_ROOT"
-fi
 
 # The compilers are set in order of priority by
 # 1) environment variables

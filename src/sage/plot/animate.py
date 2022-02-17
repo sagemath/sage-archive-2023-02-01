@@ -167,7 +167,7 @@ class Animation(WithEqualityById, SageObject):
         Animation with 21 frames
         sage: a[:5]             # optional -- ImageMagick
         Animation with 5 frames
-        sage: a.show()          # optional -- ImageMagick
+        sage: a.show()          # optional -- ImageMagick   # long time
         sage: a[:5].show()      # optional -- ImageMagick
 
     The :meth:`show` method takes arguments to specify the
@@ -176,7 +176,7 @@ class Animation(WithEqualityById, SageObject):
     means to iterate forever). To iterate 4 times with half a second
     between each frame::
 
-        sage: a.show(delay=50, iterations=4) # optional -- ImageMagick
+        sage: a.show(delay=50, iterations=4) # optional -- ImageMagick # long time
 
     An animation of drawing a parabola::
 

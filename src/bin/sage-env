@@ -107,27 +107,10 @@ resolvelinks() {
     echo "$out"
 }
 
-# New value for SAGE_ROOT: either SAGE_ROOT (if given)
-# or a guessed value based on pwd.
+# Make sure that SAGE_ROOT is either an absolute physical directory name
+# or empty.
 if [ -n "$SAGE_ROOT" ]; then
-    NEW_SAGE_ROOT="$SAGE_ROOT"
-elif [ -f sage -a -d build ]; then
-    NEW_SAGE_ROOT="."
-elif [ -f ../../sage -a -d ../../build ]; then
-    NEW_SAGE_ROOT="../.."
-fi
-
-if [ -n "$NEW_SAGE_ROOT" ]; then
-    # Make NEW_SAGE_ROOT absolute; this will be empty if this directory does not exist.
-    NEW_SAGE_ROOT=`cd "$NEW_SAGE_ROOT" 2>/dev/null && pwd -P`
-
-    # Warn if NEW_SAGE_ROOT does not equal the old SAGE_ROOT
-    if [ "$SAGE_ROOT" != "$NEW_SAGE_ROOT" -a -n "$SAGE_ROOT" -a -n "$NEW_SAGE_ROOT" ]; then
-        echo >&2 "Warning: overwriting SAGE_ROOT environment variable:"
-        echo >&2 "Old SAGE_ROOT=$SAGE_ROOT"
-        echo >&2 "New SAGE_ROOT=$NEW_SAGE_ROOT"
-    fi
-    export SAGE_ROOT="$NEW_SAGE_ROOT"
+    export SAGE_ROOT=$(cd "$NEW_SAGE_ROOT" 2>/dev/null && pwd -P)
 fi
 
 # Don't execute the commands more than once for the same version of

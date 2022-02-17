@@ -126,8 +126,8 @@ if [ -n "$NEW_SAGE_ROOT" ]; then
         echo >&2 "Warning: overwriting SAGE_ROOT environment variable:"
         echo >&2 "Old SAGE_ROOT=$SAGE_ROOT"
         echo >&2 "New SAGE_ROOT=$NEW_SAGE_ROOT"
-        export SAGE_ROOT="$NEW_SAGE_ROOT"
     fi
+    export SAGE_ROOT="$NEW_SAGE_ROOT"
 fi
 
 # Don't execute the commands more than once for the same version of

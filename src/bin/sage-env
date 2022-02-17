@@ -119,7 +119,7 @@ fi
 
 if [ -n "$NEW_SAGE_ROOT" ]; then
     # Make NEW_SAGE_ROOT absolute; this will be empty if this directory does not exist.
-    NEW_SAGE_ROOT=`cd "$NEW_SAGE_ROOT" && pwd -P`
+    NEW_SAGE_ROOT=`cd "$NEW_SAGE_ROOT" 2>/dev/null && pwd -P`
 
     # Warn if NEW_SAGE_ROOT does not equal the old SAGE_ROOT
     if [ "$SAGE_ROOT" != "$NEW_SAGE_ROOT" -a -n "$SAGE_ROOT" -a -n "$NEW_SAGE_ROOT" ]; then

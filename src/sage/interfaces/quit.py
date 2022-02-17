@@ -13,10 +13,25 @@ Quitting interfaces
 
 import os
 
-import atexit, tempfile
-_spd = tempfile.TemporaryDirectory()
-SAGE_SPAWNED_PROCESS_FILE = os.path.join(_spd.name, "spawned_processes")
-atexit.register(lambda: _spd.cleanup())
+from sage.misc.cachefunc import cached_function
+
+
+@cached_function
+def sage_spawned_process_file():
+    """
+    EXAMPLES::
+
+        sage: from sage.interfaces.quit import sage_spawned_process_file
+        sage: len(sage_spawned_process_file()) > 1
+        True
+
+    """
+    import atexit, tempfile
+    f = tempfile.NamedTemporaryFile(delete=False)
+    f.close()
+    atexit.register(lambda: os.remove(f.name))
+    return f.name
+
 
 def register_spawned_process(pid, cmd=''):
     """
@@ -27,7 +42,7 @@ def register_spawned_process(pid, cmd=''):
         cmd = cmd.strip().split()[0]
     # This is safe, since only this process writes to this file.
     try:
-        with open(SAGE_SPAWNED_PROCESS_FILE, 'a') as o:
+        with open(sage_spawned_process_file(), 'a') as o:
             o.write('%s %s\n'%(pid, cmd))
     except IOError:
         pass
@@ -88,9 +103,7 @@ def kill_spawned_jobs(verbose=False):
 
         sage: sage.interfaces.quit.expect_quitall()
     """
-    if not os.path.exists(SAGE_SPAWNED_PROCESS_FILE):
-        return
-    with open(SAGE_SPAWNED_PROCESS_FILE) as f:
+    with open(sage_spawned_process_file()) as f:
         for L in f:
             i = L.find(' ')
             pid = L[:i].strip()

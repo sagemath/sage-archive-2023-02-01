@@ -170,7 +170,7 @@ AC_DEFUN([SAGE_SPKG_FINALIZE], [
     dnl
     m4_case(SPKG_SOURCE,
       [normal], [dnl
-        in_sdist=yes
+        m4_define([in_sdist], [yes])
       ], [dnl pip/script/none (dummy script package)
         dnl Since pip packages are downloaded and installed by pip, we do not
         dnl include them in the source tarball. At the time of this writing,
@@ -185,7 +185,7 @@ AC_DEFUN([SAGE_SPKG_FINALIZE], [
         dnl only standard script packages are sage_conf and sagelib.
         dnl The sources of these packages are in subdirectories of
         dnl $SAGE_ROOT/pkgs.
-        in_sdist=no
+        m4_define([in_sdist], [no])
       ])
     dnl Write out information about the installation tree, using the name of the tree prefix
     dnl variable (SAGE_LOCAL or SAGE_VENV).  The makefile variable of SPKG is called "trees_SPKG",
@@ -208,21 +208,21 @@ AC_DEFUN([SAGE_SPKG_FINALIZE], [
     AS_VAR_SET([is_installed], [no])
     for treevar in ${SPKG_TREE_VAR} SAGE_LOCAL; do
         AS_VAR_COPY([t], [$treevar])
-        AS_IF([test -n "$t" -a -d "$t/var/lib/sage/installed/" ], [
+        AS_IF([test -n "$t" -a -d "$t/var/lib/sage/installed/" ], [dnl
             for f in "$t/var/lib/sage/installed/SPKG_NAME"-*; do
-                AS_IF([test -r "$f"], [
-                    m4_case(SPKG_SOURCE, [normal], [
+                AS_IF([test -r "$f"], [dnl
+                    m4_case(SPKG_SOURCE, [normal], [dnl
                         dnl Only run the multiple installation record test for normal packages,
                         dnl not for script packages. We actually do not clean up after those...
-                        AS_IF([test "$is_installed" = "yes"], [
+                        AS_IF([test "$is_installed" = "yes"], [dnl
                             AC_MSG_ERROR(m4_normalize([
                                 multiple installation records for SPKG_NAME:
                                 m4_newline($(ls -l "$t/var/lib/sage/installed/SPKG_NAME"-*))
                                 m4_newline([only one should exist, so please delete some or all
                                 of these files and re-run "$srcdir/configure"])
-                            ]))
+                            ]))dnl
                         ])
-                    ])
+                    ])dnl
                     AS_VAR_SET([is_installed], [yes])
                 ])
             done
@@ -232,7 +232,7 @@ AC_DEFUN([SAGE_SPKG_FINALIZE], [
         ])
     done
 
-    # Determine whether package is enabled
+    dnl Determine whether package is enabled
     AS_VAR_IF([SAGE_ENABLE_]SPKG_NAME, [if_installed],
           [AS_VAR_SET([SAGE_ENABLE_]SPKG_NAME, $is_installed)])
     AS_VAR_COPY([want_spkg], [SAGE_ENABLE_]SPKG_NAME)
@@ -261,7 +261,7 @@ AC_DEFUN([SAGE_SPKG_FINALIZE], [
 
     m4_case(SPKG_TYPE,
       [standard], [], [dnl optional|experimental
-        in_sdist=no
+        m4_define([in_sdist], [no])
         uninstall_message=", use \"$srcdir/configure --disable-SPKG_NAME\" to uninstall"
     ])
 
@@ -318,9 +318,9 @@ AC_DEFUN([SAGE_SPKG_FINALIZE], [
         AS_VAR_POPDEF([sage_require])dnl
         AS_VAR_POPDEF([sage_spkg_install])dnl
 
-    if test "$in_sdist" = yes; then
+    m4_case(in_sdist, [yes], [dnl
         SAGE_SDIST_PACKAGES="${SAGE_SDIST_PACKAGES} \\$(printf '\n    ')SPKG_NAME"
-    fi
+    ])
 
     spkg_line=" \\$(printf '\n    ')SPKG_NAME"
     AS_CASE([$is_installed-$want_spkg],

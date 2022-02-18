@@ -108,10 +108,53 @@ class HyperbolicPolygon(HyperbolicArcCore):
         return "Hyperbolic polygon ({})".format(", ".join(map(str, self._pts)))
 
 
+def _intersects(start, end, y0):
+    if end[1] < start[1]:
+        start, end = end, start
+    return start[1] < y0 < end[1]
+
+
+def _is_left(point, side):
+    start, end = side[0], side[1]
+    if (end[1] == start[1]):
+        return 0
+    else:
+        x_in = start[0] + (point[1] - start[1])*(end[0] - start[0])/(end[1] - start[1])
+        return x_in > point[0]
+
+
+def _winding_number(vertices, point):
+    """
+    Compute the winding number of the given point in the plane z=0
+
+    TESTS::
+
+        sage: from sage.plot.hyperbolic_polygon import _winding_number
+        sage: _winding_number([(0,0,4),(1,0,3),(1,1,2),(0,1,1)],(0.5,0.5,10))
+        1
+        sage: _winding_number([(0,0,4),(1,0,3),(1,1,2),(0,1,1)],(10,10,10))
+        0
+    """
+    sides = []
+    wn = 0
+    for i in range(0, len(vertices)-1):
+        if _intersects(vertices[i], vertices[i+1], point[1]):
+            sides.append([vertices[i], vertices[i + 1]])
+    if _intersects(vertices[-1], vertices[0], point[1]):
+        sides.append([vertices[-1], vertices[0]])
+    for side in sides:
+        if _is_left(point, side):
+            if side[1][1] > side[0][1]:
+                wn = wn + 1
+            if side[1][1] < side[0][1]:
+                wn = wn - 1
+    return wn
+
+
 @rename_keyword(color='rgbcolor')
 @options(alpha=1, fill=False, thickness=1, rgbcolor="blue", zorder=2,
          linestyle='solid')
-def hyperbolic_polygon(pts, model="UHP", **options):
+def hyperbolic_polygon(pts, model="UHP", resolution=200, **options):
     r"""
     Return a hyperbolic polygon in the hyperbolic plane with vertices ``pts``.
 
@@ -213,8 +256,8 @@ def hyperbolic_polygon(pts, model="UHP", **options):
         P = hyperbolic_polygon([p1,p2,p3,p4,p5,p6],model="KM", fill=True, color='purple')
         sphinx_plot(P)
 
-    Hiperboloid model is supported partially, (neither fill nor color option yet) via the paraeter ``model``.
-    Show a hyperbolic polygon in the Klein model with coordinates
+    Hiperboloid model is supported partially,  via the paraeter ``model``.
+    Show a hyperbolic polygon in the Hiperboloid model with coordinates
     `(3,3,sqrt(19)),(3,-3,sqrt(19)),(-3,-3,sqrt(19)),(-3,3,sqrt(19))`::
 
         sage: hyperbolic_polygon([(3,3,sqrt(19)),(3,-3,sqrt(19)),(-3,-3,sqrt(19)),(-3,3,sqrt(19))],model = "HM")
@@ -225,32 +268,47 @@ def hyperbolic_polygon(pts, model="UHP", **options):
         P = hyperbolic_polygon([(3,3,sqrt(19)),(3,-3,sqrt(19)),(-3,-3,sqrt(19)),(-3,3,sqrt(19))],model = "HM")
         sphinx_plot(P)
 
+    Filling a hyperbolic_polygon in hiperboloid model is possible although jaggy.
+    Show a filled hyperbolic polygon in the Hiperboloid model with coordinates
+    `(1,1,sqrt(3)),(0,2,sqrt(5)),(2,0,sqrt(5))`::
+
+        sage: hyperbolic_polygon([(1,1,sqrt(3)),(0,2,sqrt(5)),(2,0,sqrt(5))],model="HM",color='yellow',fill=True)
+
+    .. PLOT::
+
+        P = hyperbolic_polygon([(1,1,sqrt(3)),(0,2,sqrt(5)),(2,0,sqrt(5))],model="HM",color='yellow',fill=True)
+        sphinx_plot(P)
+
     """
     from sage.plot.all import Graphics
     g = Graphics()
     g._set_extra_kwds(g._extract_kwds_for_show(options))
+
     if model != "HM":
         g.add_primitive(HyperbolicPolygon(pts, model, options))
     else:
         from sage.geometry.hyperbolic_space.hyperbolic_interface import HyperbolicPlane
-        from sage.plot.plot3d.shapes2 import line3d
-
-        # First side
+        from sage.plot.plot3d.implicit_plot3d import implicit_plot3d
+        from sage.symbolic.ring import SR
         HM = HyperbolicPlane().HM()
-        geodesic = HM.get_geodesic(pts[0], pts[1])
-        points = geodesic._plot_vertices()
-
-        # n - 2 sides
-        for j in range(1, len(pts) - 1):
-            geodesic = HM.get_geodesic(pts[j], pts[j+1])
-            points = points + geodesic._plot_vertices()
-
-        # last side
-        geodesic = HM.get_geodesic(pts[-1], pts[0])
-        points = points + geodesic._plot_vertices()
-
-        g = line3d(points)  # No options passed in this version
-      
+        x, y, z = SR.var('x,y,z')
+        arc_points = []
+        for i in range(0, len(pts) - 1):
+            line = HM.get_geodesic(pts[i], pts[i + 1])
+            g = g + line.plot(color=options['rgbcolor'], thickness=options['thickness'])
+            arc_points = arc_points + line._plot_vertices(resolution)
+        line = HM.get_geodesic(pts[-1], pts[0])
+        g = g + line.plot(color=options['rgbcolor'], thickness=options['thickness'])
+        arc_points = arc_points + line._plot_vertices(resolution)
+        if options['fill']:
+            xlist, ylist, zlist = [p[0] for p in pts], [p[1] for p in pts], [p[2] for p in pts]
+            g = g + implicit_plot3d(x**2 + y**2 - z**2 == -1,
+                                    (x, min(xlist), max(xlist)),
+                                    (y, min(ylist), max(ylist)),
+                                    (z, 0, max(zlist)),
+                                    region=lambda x, y, z: (_winding_number(arc_points, (x, y, z)) != 0),
+                                    plot_points=resolution,
+                                    color=options['rgbcolor'])  # the less points the more jaggy the picture
     if model == "PD" or model == "KM":
         g = g + circle((0, 0), 1, rgbcolor='black')
         g.set_aspect_ratio(1)

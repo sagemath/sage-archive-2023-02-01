@@ -2354,7 +2354,7 @@ class HyperbolicGeodesicHM(HyperbolicGeodesic):
         sphinx_plot(g.plot(color='blue'))
 
     """
-    def _plot_vertices(self):
+    def _plot_vertices(self, points=75):
         r"""
         Return ``self`` plotting vertices in R^3.
 
@@ -2381,10 +2381,10 @@ class HyperbolicGeodesicHM(HyperbolicGeodesic):
         # That is, v1 is unit timelike and v2 is unit spacelike.
         # This means that cosh(x)*v1 + sinh(x)*v2 is unit timelike.
         hyperbola = cosh(x)*v1 + sinh(x)*v2
-        endtime = arcsinh(v2_ldot_u2)        
+        endtime = arcsinh(v2_ldot_u2)
         # mimic the function _parametric_plot3d_curve using a bezier3d instead of a line3d
         # this is required in order to be able to plot hyperbolic polygons whithin the plot library
-        g, ranges = setup_for_eval_on_grid(hyperbola, [(x, 0, endtime)], 75)
+        g, ranges = setup_for_eval_on_grid(hyperbola, [(x, 0, endtime)], points)
         f_x, f_y, f_z = g
         points = [(f_x(u), f_y(u), f_z(u)) for u in xsrange(*ranges[0], include_endpoint=True)]
         # convert points to a path3d
@@ -2427,7 +2427,7 @@ class HyperbolicGeodesicHM(HyperbolicGeodesic):
         # That is, v1 is unit timelike and v2 is unit spacelike.
         # This means that cosh(x)*v1 + sinh(x)*v2 is unit timelike.
         hyperbola = cosh(x)*v1 + sinh(x)*v2
-        endtime = arcsinh(v2_ldot_u2)        
+        endtime = arcsinh(v2_ldot_u2)
         from sage.plot.plot3d.all import parametric_plot3d
         pic = parametric_plot3d(hyperbola, (x, 0, endtime), **graphics_options)
         if show_hyperboloid:

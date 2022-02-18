@@ -24,6 +24,7 @@ jobs:
           ./bootstrap
           ./configure --enable-build-as-root --prefix=/sage/local --with-sage-venv --enable-editable
           # Install test tools
+          sudo apt-get install -y git
           ./sage -python -m pip install coverage
       
       - name: Build
@@ -36,14 +37,15 @@ jobs:
         run: ../sage -python -m coverage run ./bin/sage-runtests --all -p0
         working-directory: ./src
 
-      - name: Prepare coverage results
-        if: always()
-        run: |
-          ./venv/bin/python3 -m coverage combine src/.coverage/
-          ./venv/bin/python3 -m coverage xml
+      #- name: Prepare coverage results
+      #  if: always()
+      #  run: |
+      #    ./venv/bin/python3 -m coverage combine src/.coverage/
+      #    ./venv/bin/python3 -m coverage xml
       
       - name: Upload coverage to codecov
         if: always()
         uses: codecov/codecov-action@v2
         with:
-          files: ./src/coverage.xml
+          directory: src/.coverage/
+        #  files: ./src/coverage.xml

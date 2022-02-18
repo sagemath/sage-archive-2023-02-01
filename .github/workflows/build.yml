@@ -24,7 +24,7 @@ jobs:
           ./bootstrap
           ./configure --enable-build-as-root --prefix=/sage/local --with-sage-venv --enable-editable
           # Install test tools
-          sudo apt-get install -y git
+          apt-get install -y git
           ./sage -python -m pip install coverage
       
       - name: Build

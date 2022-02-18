@@ -224,7 +224,7 @@ def SAGE_TMP():
         l'.../temp/...'
     """
     d = os.path.join(DOT_SAGE, 'temp', HOSTNAME, str(os.getpid()))
-    sage_makedirs(d)
+    os.makedirs(d, exist_ok=True)
     return d
 
 
@@ -241,7 +241,7 @@ def ECL_TMP():
         l'.../temp/.../ecl'
     """
     d = os.path.join(str(SAGE_TMP), 'ecl')
-    sage_makedirs(d)
+    os.makedirs(d, exist_ok=True)
     return d
 
 
@@ -267,7 +267,7 @@ def SAGE_TMP_INTERFACE():
         l'.../temp/.../interface'
     """
     d = os.path.join(str(SAGE_TMP), 'interface')
-    sage_makedirs(d)
+    os.makedirs(d, exist_ok=True)
     return d
 
 

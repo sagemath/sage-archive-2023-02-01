@@ -1474,9 +1474,12 @@ def gap_reset_workspace(max_workspace_size=None, verbose=False):
     TESTS:
 
     Check that the race condition from :trac:`14242` has been fixed.
-    We temporarily need to change the worksheet filename. ::
+    We temporarily need to change the worksheet filename, and to set
+    ``first_try=True`` to ensure that the new workspace is created::
 
         sage: ORIGINAL_WORKSPACE = sage.interfaces.gap.WORKSPACE
+        sage: saved_first_try = sage.interfaces.gap.first_try
+        sage: sage.interfaces.gap.first_try = True
         sage: sage.interfaces.gap.WORKSPACE = tmp_filename()
         sage: from multiprocessing import Process
         sage: import time
@@ -1489,6 +1492,7 @@ def gap_reset_workspace(max_workspace_size=None, verbose=False):
         ....:     p.join()
         sage: os.unlink(sage.interfaces.gap.WORKSPACE)  # long time
         sage: sage.interfaces.gap.WORKSPACE = ORIGINAL_WORKSPACE
+        sage: sage.interfaces.gap.first_try = saved_first_try
     """
     # Create new workspace with filename WORKSPACE
     g = Gap(use_workspace_cache=False, max_workspace_size=None)

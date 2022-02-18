@@ -231,15 +231,16 @@ AC_DEFUN([SAGE_SPKG_FINALIZE], [dnl
           [AS_VAR_SET([want_spkg], $is_installed)])
     dnl
     uninstall_message=""
-    SAGE_NEED_SYSTEM_PACKAGES_VAR=SAGE_NEED_SYSTEM_PACKAGES
     m4_case(SPKG_TYPE,
       [standard], [dnl
+        m4_pushdef([SAGE_NEED_SYSTEM_PACKAGES_VAR], [SAGE_NEED_SYSTEM_PACKAGES])dnl
         AS_VAR_IF([SAGE_ENABLE_]SPKG_NAME, [yes], [dnl
             message="SPKG_TYPE, will be installed as an SPKG"
         ], [dnl
             message="SPKG_TYPE, but disabled using configure option"
         ])
       ], [dnl optional/experimental
+        m4_pushdef([SAGE_NEED_SYSTEM_PACKAGES_VAR], [SAGE_NEED_SYSTEM_PACKAGES_OPTIONAL])dnl
         AS_VAR_IF([SAGE_ENABLE_]SPKG_NAME, [yes], [dnl
             message="SPKG_TYPE, will be installed as an SPKG"
         ], [dnl
@@ -248,7 +249,6 @@ AC_DEFUN([SAGE_SPKG_FINALIZE], [dnl
                 dnl Non-dummy optional/experimental package, advertise how to install
                 message="$message, use \"$srcdir/configure --enable-SPKG_NAME\" to install"
             ])
-            SAGE_NEED_SYSTEM_PACKAGES_VAR=SAGE_NEED_SYSTEM_PACKAGES_OPTIONAL
         ])
     ])
     m4_case(SPKG_TYPE,
@@ -290,10 +290,10 @@ AC_DEFUN([SAGE_SPKG_FINALIZE], [dnl
                 AS_VAR_COPY([reason], [sage_use_system])
                 AS_CASE([$reason],
                 [yes],                       [ message="no suitable system package; $message"
-                                               AS_VAR_APPEND([$SAGE_NEED_SYSTEM_PACKAGES_VAR], [" SPKG_NAME"])
+                                               AS_VAR_APPEND([SAGE_NEED_SYSTEM_PACKAGES_VAR], [" SPKG_NAME"])
                                              ],
                 [force],                     [ message="no suitable system package; this is an error"
-                                               AS_VAR_APPEND([$SAGE_NEED_SYSTEM_PACKAGES_VAR], [" SPKG_NAME"])
+                                               AS_VAR_APPEND([SAGE_NEED_SYSTEM_PACKAGES_VAR], [" SPKG_NAME"])
                                              ],
                 [installed],                 [ message="already installed as an SPKG$uninstall_message" ],
                                              [ message="$reason; $message" ])

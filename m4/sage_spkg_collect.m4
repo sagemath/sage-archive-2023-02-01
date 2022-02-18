@@ -318,6 +318,7 @@ AC_DEFUN([SAGE_SPKG_FINALIZE], [dnl
     AS_CASE([$is_installed-$want_spkg],
             [*-yes],  [AS_VAR_APPEND(SAGE_OPTIONAL_INSTALLED_PACKAGES, "$spkg_line")],
             [yes-no], [AS_VAR_APPEND(SAGE_OPTIONAL_UNINSTALLED_PACKAGES, "$spkg_line")])
+    m4_popdef([want_spkg])dnl
     dnl
     dnl Determine package dependencies
     dnl
@@ -352,6 +353,8 @@ AC_DEFUN([SAGE_SPKG_FINALIZE], [dnl
         SAGE_SCRIPT_PACKAGES="${SAGE_SCRIPT_PACKAGES} \\$(printf '\n    ')SPKG_NAME"
     ])dnl
     dnl
+    m4_popdef([SPKG_TREE_VAR])dnl
+    m4_popdef([SPKG_SOURCE])dnl
     m4_popdef([SPKG_TYPE])dnl
     m4_popdef([SPKG_NAME])dnl
 ])

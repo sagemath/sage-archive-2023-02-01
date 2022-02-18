@@ -82,7 +82,7 @@ from sage.structure.richcmp cimport (richcmp, richcmp_item,
         rich_to_bool, rich_to_bool_sgn)
 
 from sage.interfaces.singular import singular as singular_default, is_SingularElement
-from sage.libs.all import pari, pari_gen, PariError
+from sage.libs.pari.all import pari, pari_gen, PariError
 
 cimport sage.rings.abc
 from sage.rings.real_mpfr import RealField, RR
@@ -119,6 +119,7 @@ from sage.rings.ideal import is_Ideal
 from sage.rings.polynomial.polynomial_ring_constructor import PolynomialRing
 from sage.rings.polynomial.polynomial_ring import is_PolynomialRing
 from sage.rings.polynomial.multi_polynomial_ring import is_MPolynomialRing
+from sage.rings.polynomial.multi_polynomial_element import MPolynomial
 from sage.rings.polynomial.polynomial_quotient_ring_element import PolynomialQuotientRingElement
 from sage.misc.cachefunc import cached_function
 
@@ -690,23 +691,30 @@ cdef class Polynomial(CommutativeAlgebraElement):
             sage: Polynomial.__call__(x, [])
             x
 
-        This was about a hundred times slower prior to :trac:`33165`::
+        These were drastically slower prior to :trac:`33165`::
 
             sage: R.<x> = GF(31337)[]
-            sage: f = R.random_element(degree=99)
-            sage: g = R.random_element(degree=999)
+            sage: f = R(list(range(100,201)))
+            sage: g = R(list(range(1,1001)))
             sage: S.<y> = R.quotient(f)
-            sage: _ = g(y)
+            sage: g(y)
+            22537*y^99 + 4686*y^98 + 13285*y^97 + 4216*y^96 + ... + 6389*y^3 + 30062*y^2 + 13755*y + 11875
 
-        This was about a thousand times slower prior to :trac:`33165`::
+        ::
 
             sage: T.<z> = GF(31337)[]
-            sage: _ = g(z)
+            sage: g(z)
+            1000*z^999 + 999*z^998 + 998*z^997 + 997*z^996 + ... + 5*z^4 + 4*z^3 + 3*z^2 + 2*z + 1
+            sage: g(z^2)
+            1000*z^1998 + 999*z^1996 + 998*z^1994 + 997*z^1992 + ... + 5*z^8 + 4*z^6 + 3*z^4 + 2*z^2 + 1
 
-        This was about ten times slower prior to :trac:`33165`::
+        ::
 
             sage: U.<u,v> = GF(31337)[]
-            sage: _ = g(u)
+            sage: g(u)
+            1000*u^999 + 999*u^998 + 998*u^997 + 997*u^996 + ... + 5*u^4 + 4*u^3 + 3*u^2 + 2*u + 1
+            sage: g(u*v^2)
+            1000*u^999*v^1998 + 999*u^998*v^1996 + 998*u^997*v^1994 + ... + 4*u^3*v^6 + 3*u^2*v^4 + 2*u*v^2 + 1
 
         AUTHORS:
 
@@ -769,43 +777,58 @@ cdef class Polynomial(CommutativeAlgebraElement):
 
             if eval_coeffs:
                 pol = pol.map_coefficients(lambda c: c(*args, **kwds),
-                                            new_base_ring=cst.parent())
+                                            new_base_ring=parent(cst))
 
-        else:
-            # If a is a generator of an isomorphic polynomial ring (or quotient
+        R = parent(a)
+
+        if parent(cst) is not R:
+
+            # If a is a monomial in an isomorphic polynomial ring (or quotient
             # of an isomorphic polynomial ring), the code below wastes a lot of
             # time on conversions and unnecessary intermediate reductions.
             # We can do dramatically better by simply doing the conversion once
             # and returning the result. See #33165.
-            if isinstance(a, Polynomial) and a.is_gen() and a.base_ring() is self.base_ring():
-                return a.parent()(self)
-            if is_MPolynomialRing(parent(a)) and a.is_generator() and a.base_ring() is self.base_ring():
-                P = a.parent()
-                num = P.gens().index(a)
-                tup = lambda i: (0,)*num + (i,) + (0,)*(P.ngens()-num-1)
-                return P({tup(i): c for i,c in enumerate(self)})
-            if isinstance(a, PolynomialQuotientRingElement) and a.lift().is_gen():
-                Q = a.parent()
-                if Q.polynomial_ring() is self.parent():
-                    return Q(self)
+            if isinstance(a, Polynomial) and a.base_ring() is pol.base_ring():
+                if a.is_gen():
+                    return R(pol)
+                if a.is_monomial():
+                    d = a.degree()
+                    if d <= 0:
+                        return R(pol(a.constant_coefficient()))
+                    cs = [0] * (pol.degree()*d + 1)
+                    for i,c in enumerate(pol):
+                        cs[d*i] = c
+                    return R(cs, check=False)
+            elif isinstance(a, MPolynomial) and a.base_ring() is pol.base_ring() and a.is_monomial():
+                if a.is_monomial():
+                    etup, = a.exponents()
+                    if a.is_generator():
+                        num = R.ngens()
+                        idx, = etup.nonzero_positions()
+                        tup = lambda i: (0,)*idx + (i,) + (0,)*(num-idx-1)
+                    else:
+                        tup = etup.emul
+                    return R({tup(i): c for i,c in enumerate(pol)})
+            elif isinstance(a, PolynomialQuotientRingElement) and a.lift().is_gen() and R.polynomial_ring() is pol._parent:
+                return R(pol)
 
-        # Coerce a once and for all to a parent containing the coefficients.
-        # This can save lots of coercions when the common parent is the
-        # polynomial's base ring (e.g., for evaluations at integers).
-        if not have_same_parent(a, cst):
+            # Coerce a once and for all to a parent containing the coefficients.
+            # This can save lots of coercions when the common parent is the
+            # polynomial's base ring (e.g., for evaluations at integers).
             cst, aa = coercion_model.canonical_coercion(cst, a)
             # Use fast multiplication actions like matrix × scalar.
             # If there is no action, replace a by an element of the
             # target parent.
-            if coercion_model.get_action(parent(aa), parent(a)) is None:
+            S = parent(aa)
+            if coercion_model.get_action(S, R) is None:
                 a = aa
+                R = S
 
         d = pol.degree()
 
-        if d <= 0 or (isinstance(a, Element)
-                      and a.parent().is_exact() and a.is_zero()):
+        if d <= 0 or (isinstance(a, Element) and R.is_exact() and a.is_zero()):
             return cst # with the right parent thanks to the above coercion
-        elif parent(a) is pol._parent and a.is_gen():
+        elif pol._parent is R and a.is_gen():
             return pol
         elif hasattr(a, "_evaluate_polynomial"):
             try:
@@ -3246,8 +3269,8 @@ cdef class Polynomial(CommutativeAlgebraElement):
             sage: f.change_variable_name('theta')
             -2/7*theta^3 + 2/3*theta - 19/993
         """
-        R = self._parent.base_ring()[var]
-        return R(self.list(copy=False))
+        R = PolynomialRing(self._parent.base_ring(), names=var)
+        return R(self)
 
     def change_ring(self, R):
         """
@@ -8938,37 +8961,38 @@ cdef class Polynomial(CommutativeAlgebraElement):
             +Infinity
         """
         cdef int k
+        cdef Polynomial _p
 
         if not self:
             return infinity.infinity
-
-        if p is infinity.infinity:
-            return -self.degree()
 
         if p is None:
             for k from 0 <= k <= self.degree():
                 if self.get_unsafe(k):
                     return ZZ(k)
         if isinstance(p, Polynomial):
-            p = self._parent.coerce(p)
+            _p = self._parent.coerce(p)
+        elif p is infinity.infinity:
+            return -self.degree()
         elif is_Ideal(p) and p.ring() is self._parent: # eventually need to handle fractional ideals in the fraction field
             if self._parent.base_ring().is_field(): # common case
-                p = p.gen()
+                _p = p.gen()
             else:
                 raise NotImplementedError
         else:
             from sage.rings.fraction_field import is_FractionField
             if is_FractionField(p.parent()) and self._parent.has_coerce_map_from(p.parent().ring()):
-                p = self._parent.coerce(p.parent().ring()(p)) # here we require that p be integral.
+                _p = self._parent.coerce(p.parent().ring()(p)) # here we require that p be integral.
             else:
                 raise TypeError("The polynomial, p, must have the same parent as self.")
 
-        if p.degree() == 0:
-            raise ArithmeticError("The polynomial, p, must have positive degree.")
-        k = 0
-        while self % p == 0:
-            k = k + 1
-            self //= p
+        if _p.degree() == 0:
+            raise ArithmeticError("The polynomial, p, must be non-constant.")
+        k = -1
+        cdef Polynomial rem = self._parent.zero()
+        while rem.is_zero():
+            self, rem = self.quo_rem(_p)
+            k += 1
         return sage.rings.integer.Integer(k)
 
     def ord(self, p=None):

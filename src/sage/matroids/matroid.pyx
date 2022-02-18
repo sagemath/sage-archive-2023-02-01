@@ -3732,7 +3732,10 @@ cdef class Matroid(SageObject):
             sage: N  # random
             M / {'d', 'e', 'f', 'g'} \ {'a', 'b', 'c', 'h'}, where M is Vamos:
             Matroid of rank 4 on 8 elements with circuit-closures
-            ...
+            {3: {{'a', 'b', 'c', 'd'}, {'a', 'b', 'e', 'f'},
+                 {'a', 'b', 'g', 'h'}, {'c', 'd', 'e', 'f'},
+                 {'e', 'f', 'g', 'h'}},
+             4: {{'a', 'b', 'c', 'd', 'e', 'f', 'g', 'h'}}}
             sage: N.groundset()
             frozenset()
 

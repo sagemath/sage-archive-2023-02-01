@@ -224,12 +224,12 @@ AC_DEFUN([SAGE_SPKG_FINALIZE], [dnl
             break
         ])
     done
-
+    dnl
     dnl Determine whether package is enabled
+    m4_pushdef([want_spkg], [SAGE_ENABLE_]SPKG_NAME)dnl
     AS_VAR_IF([SAGE_ENABLE_]SPKG_NAME, [if_installed],
-          [AS_VAR_SET([SAGE_ENABLE_]SPKG_NAME, $is_installed)])
-    AS_VAR_COPY([want_spkg], [SAGE_ENABLE_]SPKG_NAME)
-
+          [AS_VAR_SET([want_spkg], $is_installed)])
+    dnl
     uninstall_message=""
     SAGE_NEED_SYSTEM_PACKAGES_VAR=SAGE_NEED_SYSTEM_PACKAGES
     m4_case(SPKG_TYPE,
@@ -314,7 +314,7 @@ AC_DEFUN([SAGE_SPKG_FINALIZE], [dnl
     m4_case(in_sdist, [yes], [dnl
         SAGE_SDIST_PACKAGES="${SAGE_SDIST_PACKAGES} \\$(printf '\n    ')SPKG_NAME"
     ])
-
+    dnl
     spkg_line=" \\$(printf '\n    ')SPKG_NAME"
     AS_CASE([$is_installed-$want_spkg],
             [*-yes],  [AS_VAR_APPEND(SAGE_OPTIONAL_INSTALLED_PACKAGES, "$spkg_line")],

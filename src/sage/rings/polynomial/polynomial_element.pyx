@@ -12056,7 +12056,11 @@ def polynomial_is_variable(x):
         sage: R.<x> = QQ[]
         sage: polynomial_is_variable(x)
         True
+        sage: polynomial_is_variable(R([0,1]))
+        True
         sage: polynomial_is_variable(x^2)
+        False
+        sage: polynomial_is_variable(R(42))
         False
 
     ::
@@ -12070,6 +12074,8 @@ def polynomial_is_variable(x):
         False
         sage: polynomial_is_variable(y+z)
         False
+        sage: polynomial_is_variable(R(42))
+        False
 
     ::
 
@@ -12077,7 +12083,8 @@ def polynomial_is_variable(x):
         False
     """
     if isinstance(x, Polynomial):
-        return x.is_gen()
+        return x.is_gen() \
+                or (x.degree() == 1 and x[0].is_zero() and x[1].is_one())
     from sage.rings.polynomial.multi_polynomial import MPolynomial
     if isinstance(x, MPolynomial):
         return x.is_generator()

@@ -79,6 +79,9 @@ install_config_rpath() {
 
 
 bootstrap () {
+    if [ "${BOOTSTRAP_QUIET}" = "no" ]; then
+        echo "bootstrap:$LINENO: installing 'm4/sage_spkg_configures.m4'"
+    fi
     rm -f m4/sage_spkg_configures.m4
     spkg_configures=""
     # initialize SAGE_ENABLE... options for standard packages

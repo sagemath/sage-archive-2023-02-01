@@ -154,6 +154,7 @@ AC_DEFUN([SAGE_SPKG_FINALIZE], [dnl
     m4_pushdef([SPKG_NAME], [$1])dnl
     m4_pushdef([SPKG_TYPE], [$2])dnl
     m4_pushdef([SPKG_SOURCE], [$3])dnl
+    m4_pushdef([SPKG_TREE_VAR], [$4])dnl
     dnl add SPKG_NAME to the SAGE_PACKAGE_VERSIONS and
     dnl SAGE_PACKAGE_DEPENDENCIES lists, and to one or more of the above variables
     dnl depending on the package type and other criteria (such as whether or not it
@@ -193,20 +194,12 @@ AC_DEFUN([SAGE_SPKG_FINALIZE], [dnl
     dnl trees.  For example, if we decide to create a separate tree for a venv with the
     dnl Jupyter notebook, then packages such as jupyter_core would have to be installed into
     dnl two trees.
-    if test -f "$DIR/trees.txt"; then
-        SPKG_TREE_VAR="$(sed "s/#.*//;" "$DIR/trees.txt")"
-    else
-        SPKG_TREE_VAR=SAGE_LOCAL
-        if test -f "$DIR/requirements.txt" -o -f "$DIR/install-requires.txt"; then
-            dnl A Python package
-            SPKG_TREE_VAR=SAGE_VENV
-        fi
-    fi
-    SAGE_PACKAGE_TREES="${SAGE_PACKAGE_TREES}$(printf '\ntrees_')SPKG_NAME = ${SPKG_TREE_VAR}"
+    SAGE_PACKAGE_TREES="${SAGE_PACKAGE_TREES}$(printf '\ntrees_')SPKG_NAME = SPKG_TREE_VAR"
 
     dnl Determine whether it is installed already
     AS_VAR_SET([is_installed], [no])
-    for treevar in ${SPKG_TREE_VAR} SAGE_LOCAL; do
+    m4_append_uniq_w([SPKG_TREE_VAR], [SAGE_LOCAL])
+    for treevar in SPKG_TREE_VAR; do
         AS_VAR_COPY([t], [$treevar])
         AS_IF([test -n "$t" -a -d "$t/var/lib/sage/installed/" ], [dnl
             for f in "$t/var/lib/sage/installed/SPKG_NAME"-*; do

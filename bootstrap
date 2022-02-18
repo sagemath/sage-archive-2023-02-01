@@ -126,8 +126,17 @@ SAGE_SPKG_CONFIGURE_$(echo ${pkgname} | tr '[a-z]' '[A-Z]')"
         else
             SPKG_SOURCE=normal
         fi
+        if test -f "$DIR/trees.txt"; then
+            SPKG_TREE_VAR="$(sed "s/#.*//;" "$DIR/trees.txt")"
+        else
+            SPKG_TREE_VAR=SAGE_LOCAL
+            if test -f "$DIR/requirements.txt" -o -f "$DIR/install-requires.txt"; then
+                # A Python package
+                SPKG_TREE_VAR=SAGE_VENV
+            fi
+        fi
         spkg_configures="$spkg_configures
-SAGE_SPKG_FINALIZE([$pkgname], [$pkgtype], [$SPKG_SOURCE])"
+SAGE_SPKG_FINALIZE([$pkgname], [$pkgtype], [$SPKG_SOURCE], [$SPKG_TREE_VAR])"
     done
     echo "$spkg_configures" >> m4/sage_spkg_configures.m4
 

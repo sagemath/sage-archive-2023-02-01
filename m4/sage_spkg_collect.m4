@@ -251,26 +251,25 @@ AC_DEFUN([SAGE_SPKG_FINALIZE], [dnl
             SAGE_NEED_SYSTEM_PACKAGES_VAR=SAGE_NEED_SYSTEM_PACKAGES_OPTIONAL
         ])
     ])
-
     m4_case(SPKG_TYPE,
       [standard], [], [dnl optional|experimental
         m4_define([in_sdist], [no])
         uninstall_message=", use \"$srcdir/configure --disable-SPKG_NAME\" to uninstall"
     ])
-
     dnl Trac #29629: Temporary solution for Sage 9.1: Do not advertise installing pip packages
     dnl using ./configure --enable-SPKG
-    if test -f "$DIR/requirements.txt"; then
+    m4_case(SPKG_SOURCE,
+      [pip], [dnl
         message="SPKG_TYPE pip package; use \"./sage -i SPKG_NAME\" to install"
         uninstall_message="SPKG_TYPE pip package (installed)"
-    fi
-
+    ])dnl
+    dnl
     SAGE_PACKAGE_VERSIONS="${SAGE_PACKAGE_VERSIONS}$(printf '\nvers_')SPKG_NAME = ${SPKG_VERSION}"
-
+    dnl
         AS_VAR_PUSHDEF([sage_spkg_install], [sage_spkg_install_]SPKG_NAME)dnl
         AS_VAR_PUSHDEF([sage_require], [sage_require_]SPKG_NAME)dnl
         AS_VAR_PUSHDEF([sage_use_system], [sage_use_system_]SPKG_NAME)dnl
-
+    dnl
         dnl If $sage_spkg_install_{SPKG_NAME} is set to no, then set inst_<pkgname> to
         dnl some dummy file to skip the installation. Note that an explicit
         dnl "./sage -i SPKG_NAME" will still install the package.

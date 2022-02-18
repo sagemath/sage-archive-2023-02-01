@@ -149,28 +149,28 @@ AC_SUBST([SAGE_SDIST_PACKAGES])
 
 
 dnl ==========================================================================
-AC_DEFUN([SAGE_SPKG_FINALIZE], [
-    AC_REQUIRE([SAGE_SPKG_COLLECT_INIT])
-    m4_pushdef([SPKG_NAME], [$1])
-    m4_pushdef([SPKG_TYPE], [$2])
-    m4_pushdef([SPKG_SOURCE], [$3])
+AC_DEFUN([SAGE_SPKG_FINALIZE], [dnl
+    AC_REQUIRE([SAGE_SPKG_COLLECT_INIT])dnl
+    m4_pushdef([SPKG_NAME], [$1])dnl
+    m4_pushdef([SPKG_TYPE], [$2])dnl
+    m4_pushdef([SPKG_SOURCE], [$3])dnl
     dnl add SPKG_NAME to the SAGE_PACKAGE_VERSIONS and
     dnl SAGE_PACKAGE_DEPENDENCIES lists, and to one or more of the above variables
     dnl depending on the package type and other criteria (such as whether or not it
     dnl needs to be installed)
-
+    dnl
     DIR="$SAGE_ROOT"/build/pkgs/SPKG_NAME
-    AS_IF([test ! -d "$DIR"], [
-        AC_MSG_ERROR([Directory $DIR is missing. Re-run bootstrap.])
+    AS_IF([test ! -d "$DIR"], [dnl
+        AC_MSG_ERROR([Directory $DIR is missing. Re-run bootstrap.])dnl
     ])
-
+    dnl
     SPKG_VERSION=$(newest_version SPKG_NAME)
-
+    dnl
     dnl Determine package source
     dnl
     m4_case(SPKG_SOURCE,
       [normal], [dnl
-        m4_define([in_sdist], [yes])
+        m4_define([in_sdist], [yes])dnl
       ], [dnl pip/script/none (dummy script package)
         dnl Since pip packages are downloaded and installed by pip, we do not
         dnl include them in the source tarball. At the time of this writing,
@@ -185,8 +185,8 @@ AC_DEFUN([SAGE_SPKG_FINALIZE], [
         dnl only standard script packages are sage_conf and sagelib.
         dnl The sources of these packages are in subdirectories of
         dnl $SAGE_ROOT/pkgs.
-        m4_define([in_sdist], [no])
-      ])
+        m4_define([in_sdist], [no])dnl
+      ])dnl
     dnl Write out information about the installation tree, using the name of the tree prefix
     dnl variable (SAGE_LOCAL or SAGE_VENV).  The makefile variable of SPKG is called "trees_SPKG",
     dnl note plural, for possible future extension in which an SPKG would be installed into several
@@ -241,17 +241,17 @@ AC_DEFUN([SAGE_SPKG_FINALIZE], [
     SAGE_NEED_SYSTEM_PACKAGES_VAR=SAGE_NEED_SYSTEM_PACKAGES
     m4_case(SPKG_TYPE,
       [standard], [dnl
-        AS_VAR_IF([SAGE_ENABLE_]SPKG_NAME, [yes], [
+        AS_VAR_IF([SAGE_ENABLE_]SPKG_NAME, [yes], [dnl
             message="SPKG_TYPE, will be installed as an SPKG"
-        ], [
+        ], [dnl
             message="SPKG_TYPE, but disabled using configure option"
         ])
       ], [dnl optional/experimental
-        AS_VAR_IF([SAGE_ENABLE_]SPKG_NAME, [yes], [
+        AS_VAR_IF([SAGE_ENABLE_]SPKG_NAME, [yes], [dnl
             message="SPKG_TYPE, will be installed as an SPKG"
-        ], [
+        ], [dnl
             message="SPKG_TYPE"
-            m4_case(SPKG_SOURCE, [none], [], [
+            m4_case(SPKG_SOURCE, [none], [], [dnl
                 dnl Non-dummy optional/experimental package, advertise how to install
                 message="$message, use \"$srcdir/configure --enable-SPKG_NAME\" to install"
             ])
@@ -281,20 +281,20 @@ AC_DEFUN([SAGE_SPKG_FINALIZE], [
         dnl If $sage_spkg_install_{SPKG_NAME} is set to no, then set inst_<pkgname> to
         dnl some dummy file to skip the installation. Note that an explicit
         dnl "./sage -i SPKG_NAME" will still install the package.
-        AS_VAR_IF([sage_spkg_install], [no], [
+        AS_VAR_IF([sage_spkg_install], [no], [dnl
             dnl We will use the system package (or not required for this platform.)
             SAGE_DUMMY_PACKAGES="${SAGE_DUMMY_PACKAGES} \\$(printf '\n    ')SPKG_NAME"
             AS_VAR_IF([sage_require], [yes], [ message="using system package"
             ],                               [ message="not required on your platform"
             ])
             dnl Trac #31163: Only talk about the SPKG if there is an SPKG
-            m4_case(SPKG_SOURCE, [none], [], [
+            m4_case(SPKG_SOURCE, [none], [], [dnl
                 message="$message; SPKG will not be installed"
             ])
-        ], [
+        ], [dnl
             dnl We will not use the system package.
             SAGE_BUILT_PACKAGES="${SAGE_BUILT_PACKAGES} \\$(printf '\n    ')SPKG_NAME"
-            AS_VAR_SET_IF([sage_use_system], [
+            AS_VAR_SET_IF([sage_use_system], [dnl
                 AS_VAR_COPY([reason], [sage_use_system])
                 AS_CASE([$reason],
                 [yes],                       [ message="no suitable system package; $message"
@@ -309,15 +309,15 @@ AC_DEFUN([SAGE_SPKG_FINALIZE], [
         ])
 
     dnl Trac #29124: Do not talk about underscore club
-    m4_bmatch(SPKG_NAME, [^_], [], [
+    m4_bmatch(SPKG_NAME, [^_], [], [dnl
         formatted_message=$(printf '%-45s%s' "SPKG_NAME-$SPKG_VERSION:" "$message")
         AC_MSG_RESULT([$formatted_message])
     ])
-
+    dnl
         AS_VAR_POPDEF([sage_use_system])dnl
         AS_VAR_POPDEF([sage_require])dnl
         AS_VAR_POPDEF([sage_spkg_install])dnl
-
+    dnl
     m4_case(in_sdist, [yes], [dnl
         SAGE_SDIST_PACKAGES="${SAGE_SDIST_PACKAGES} \\$(printf '\n    ')SPKG_NAME"
     ])
@@ -326,7 +326,7 @@ AC_DEFUN([SAGE_SPKG_FINALIZE], [
     AS_CASE([$is_installed-$want_spkg],
             [*-yes],  [AS_VAR_APPEND(SAGE_OPTIONAL_INSTALLED_PACKAGES, "$spkg_line")],
             [yes-no], [AS_VAR_APPEND(SAGE_OPTIONAL_UNINSTALLED_PACKAGES, "$spkg_line")])
-
+    dnl
     dnl Determine package dependencies
     dnl
     DEP_FILE="$DIR/dependencies"
@@ -334,20 +334,20 @@ AC_DEFUN([SAGE_SPKG_FINALIZE], [
         dnl - the # symbol is treated as comment which is removed
         DEPS=`sed 's/^ *//; s/ *#.*//; q' $DEP_FILE`
     else
-        ORDER_ONLY_DEPS=""
+        m4_define([ORDER_ONLY_DEPS], [])dnl
         m4_case(SPKG_SOURCE,
-        [pip], [
-            ORDER_ONLY_DEPS=pip
-          ])
-        if test -n "$ORDER_ONLY_DEPS"; then
-            DEPS="| $ORDER_ONLY_DEPS"
-        else
+        [pip], [dnl
+            m4_define([ORDER_ONLY_DEPS], [pip])dnl
+          ])dnl
+        m4_ifval(ORDER_ONLY_DEPS, [dnl
+            DEPS="| ORDER_ONLY_DEPS"
+        ], [dnl
             DEPS=""
-        fi
+        ])dnl
     fi
-
+    dnl
     SAGE_PACKAGE_DEPENDENCIES="${SAGE_PACKAGE_DEPENDENCIES}$(printf '\ndeps_')SPKG_NAME = ${DEPS}"
-
+    dnl
     dnl Determine package build rules
     m4_case(SPKG_SOURCE,
       [pip], [dnl
@@ -358,10 +358,10 @@ AC_DEFUN([SAGE_SPKG_FINALIZE], [
       ],
       [dnl script|none
         SAGE_SCRIPT_PACKAGES="${SAGE_SCRIPT_PACKAGES} \\$(printf '\n    ')SPKG_NAME"
-    ])
-
-    m4_popdef([SPKG_TYPE])
-    m4_popdef([SPKG_NAME])
+    ])dnl
+    dnl
+    m4_popdef([SPKG_TYPE])dnl
+    m4_popdef([SPKG_NAME])dnl
 ])
 
 AC_DEFUN([SAGE_SYSTEM_PACKAGE_NOTICE], [

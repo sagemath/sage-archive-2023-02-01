@@ -109,7 +109,7 @@ class SineGordonYsystem(SageObject):
             sage: SineGordonYsystem('E',(6,4,3))
             Traceback (most recent call last):
             ...
-            ValueError: the type must be either 'A' of 'D'
+            ValueError: the type must be either 'A' or 'D'
             sage: SineGordonYsystem('A',(2,4,3))
             Traceback (most recent call last):
             ...
@@ -127,7 +127,7 @@ class SineGordonYsystem(SageObject):
             as input
         """
         if X not in ['A', 'D']:
-            raise ValueError("the type must be either 'A' of 'D'")
+            raise ValueError("the type must be either 'A' or 'D'")
         self._type = X
         if na[0] <= 2:
             raise ValueError("the first integer in the defining sequence "

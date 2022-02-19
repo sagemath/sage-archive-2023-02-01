@@ -34,7 +34,7 @@ jobs:
           SAGE_NUM_THREADS: 2
 
       - name: Test
-        run: ../sage -python -m coverage run ./bin/sage-runtests --all -p0
+        run: ../sage -python -m coverage run ./bin/sage-runtests --all -p2
         working-directory: ./src
 
       - name: Prepare coverage results

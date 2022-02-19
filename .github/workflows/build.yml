@@ -38,10 +38,10 @@ jobs:
         working-directory: ./src
 
       - name: Prepare coverage results
-       if: always()
-       run: |
-         ./venv/bin/python3 -m coverage combine src/.coverage/
-         ./venv/bin/python3 -m coverage xml
+        if: always()
+        run: |
+          ./venv/bin/python3 -m coverage combine src/.coverage/
+          ./venv/bin/python3 -m coverage xml
       
       - name: Upload coverage to codecov
         if: always()

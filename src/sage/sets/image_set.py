@@ -176,10 +176,6 @@ class ImageSubobject(Parent):
 
         EXAMPLES::
 
-            sage: R = Permutations(10).map(attrcall('reduced_word'))
-            sage: R.cardinality()
-            3628800
-
             sage: P = Partitions()
             sage: H = Hom(P, ZZ)
             sage: f = H(ZZ.sum)

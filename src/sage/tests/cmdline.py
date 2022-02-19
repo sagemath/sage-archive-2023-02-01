@@ -187,9 +187,9 @@ def test_executable(args, input="", timeout=100.0, pydebug_ignore_warnings=False
         ''
         sage: ret
         0
-        sage: out.find("print the Sage root directory") >= 0 # optional - build
+        sage: out.find("print the Sage root directory") >= 0 # optional - sage_spkg
         True
-        sage: out.find("regular expression search through the Sage") >= 0 # optional - build
+        sage: out.find("regular expression search through the Sage") >= 0 # optional - sage_spkg
         True
 
     Basic information about the Sage installation::
@@ -202,38 +202,38 @@ def test_executable(args, input="", timeout=100.0, pydebug_ignore_warnings=False
         sage: ret
         0
 
-        sage: (out, err, ret) = test_executable(["sage", "--root"])  # optional - build
-        sage: len(out) >= 2   # at least one character + newline; optional - build
+        sage: (out, err, ret) = test_executable(["sage", "--root"])  # optional - sage_spkg
+        sage: len(out) >= 2   # at least one character + newline; optional - sage_spkg
         True
-        sage: err  # optional - build
+        sage: err  # optional - sage_spkg
         ''
-        sage: ret  # optional -build
+        sage: ret  # optional - sage_spkg
         0
 
     Test ``sage --info [packages]`` and the equivalent
     ``sage -p --info --info [packages]`` (the doubling of ``--info``
     is intentional, that option should be idempotent)::
 
-        sage: out, err, ret = test_executable(["sage", "--info", "sqlite"])  # optional - build
-        sage: print(out)  # optional - build
+        sage: out, err, ret = test_executable(["sage", "--info", "sqlite"])  # optional - sage_spkg
+        sage: print(out)  # optional - sage_spkg
         sqlite...
         SQLite is a software library that implements a self-contained,
         serverless, zero-configuration, transactional SQL database engine.
         ...
-        sage: err  # optional - build
+        sage: err  # optional - sage_spkg
         ''
-        sage: ret  # optional - build
+        sage: ret  # optional - sage_spkg
         0
 
-        sage: out, err, ret = test_executable(["sage", "-p", "--info", "--info", "sqlite"])  # optional - build
-        sage: print(out)  # optional - build
+        sage: out, err, ret = test_executable(["sage", "-p", "--info", "--info", "sqlite"])  # optional - sage_spkg
+        sage: print(out)  # optional - sage_spkg
         sqlite...
         SQLite is a software library that implements a self-contained,
         serverless, zero-configuration, transactional SQL database engine.
         ...
-        sage: err  # optional - build
+        sage: err  # optional - sage_spkg
         ''
-        sage: ret  # optional - build
+        sage: ret  # optional - sage_spkg
         0
 
     Test ``sage-run`` on a Python file, both with an absolute and with a relative path::
@@ -729,7 +729,7 @@ def test_executable(args, input="", timeout=100.0, pydebug_ignore_warnings=False
         ....:     _ = F.write(s)
         sage: L = ["sage", "--ipynb2rst", input, output]
         sage: _ = test_executable(L)                        # optional - pandoc
-        sage: print(open(output, 'r').read() == t)          # optional - pandoc
+        sage: print(open(output, 'r').read() == t)          # optional - pandoc  # known bug #32697
         True
     """
     pexpect_env = dict(os.environ)
@@ -766,6 +766,7 @@ def test_executable(args, input="", timeout=100.0, pydebug_ignore_warnings=False
             rfd.append(fderr)
         if len(rfd) == 0:
             break
+        timeout = float(timeout)
         rlist = select.select(rfd, [], [], timeout)[0]
 
         if len(rlist) == 0:

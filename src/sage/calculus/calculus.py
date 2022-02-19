@@ -408,9 +408,12 @@ To check that :trac:`27092` is fixed::
 """
 
 import re
-from sage.arith.all import algdep
-from sage.rings.all import RR, Integer, CC, QQ, RealDoubleElement
-from sage.rings.real_mpfr import create_RealNumber
+from sage.arith.misc import algdep
+from sage.rings.integer import Integer
+from sage.rings.rational_field import QQ
+from sage.rings.real_double import RealDoubleElement
+from sage.rings.real_mpfr import RR, create_RealNumber
+from sage.rings.cc import CC
 
 from sage.misc.latex import latex
 from sage.misc.parser import Parser, LookupNameMaker
@@ -2073,6 +2076,21 @@ def dummy_inverse_laplace(*args):
     return _inverse_laplace(args[0], var(repr(args[1])), var(repr(args[2])))
 
 
+def dummy_pochhammer(*args):
+    """
+    This function is called to create formal wrappers of Pochhammer symbols
+
+    EXAMPLES::
+
+        sage: from sage.calculus.calculus import dummy_pochhammer
+        sage: s,t = var('s,t')
+        sage: dummy_pochhammer(s,t)
+        gamma(s + t)/gamma(s)
+    """
+    x, y = args
+    from sage.functions.gamma import gamma
+    return gamma(x + y) / gamma(x)
+
 #######################################################
 #
 # Helper functions for printing latex expression
@@ -2198,7 +2216,7 @@ def symbolic_expression_from_maxima_string(x, equals_sub=False, maxima=maxima):
         sage: sefms('?%at(f(x),x=2)#1')
         f(2) != 1
         sage: a = sage.calculus.calculus.maxima("x#0"); a
-        x#0
+        x # 0
         sage: a.sage()
         x != 0
 
@@ -2349,6 +2367,7 @@ def symbolic_expression_from_maxima_string(x, equals_sub=False, maxima=maxima):
     function_syms['laplace'] = dummy_laplace
     function_syms['ilt'] = dummy_inverse_laplace
     function_syms['at'] = at
+    function_syms['pochhammer'] = dummy_pochhammer
 
     global is_simplified
     try:

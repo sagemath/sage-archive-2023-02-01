@@ -416,6 +416,20 @@ class BinaryQF(SageObject):
         """
         return BinaryQF([self._a - Q._a, self._b - Q._b, self._c - Q._c])
 
+    def __neg__(self):
+        r"""
+        Return the negative of this binary quadratic form.
+
+        EXAMPLES::
+
+            sage: Q = BinaryQF([1,-2,3])
+            sage: -Q
+            -x^2 + 2*x*y - 3*y^2
+            sage: -Q == BinaryQF([0,0,0]) - Q
+            True
+        """
+        return BinaryQF([-self._a, -self._b, -self._c])
+
     def _repr_(self):
         """
         Display the quadratic form.
@@ -1451,36 +1465,94 @@ class BinaryQF(SageObject):
 
         OUTPUT:
 
-        A tuple `(x, y)` of integers satisfying `Q(x, y) = n` or ``None``
-        if no such `x` and `y` exist.
+        A tuple `(x, y)` of integers satisfying `Q(x, y) = n`, or ``None``
+        if no solution exists.
+
+        ALGORITHM: :pari:`qfbsolve`
 
         EXAMPLES::
+
+            sage: Q = BinaryQF([1, 0, 419])
+            sage: Q.solve_integer(773187972)
+            (4919, 1337)
+
+        ::
 
             sage: Qs = BinaryQF_reduced_representatives(-23, primitive_only=True)
             sage: Qs
             [x^2 + x*y + 6*y^2, 2*x^2 - x*y + 3*y^2, 2*x^2 + x*y + 3*y^2]
             sage: [Q.solve_integer(3) for Q in Qs]
-            [None, (0, 1), (0, 1)]
+            [None, (0, -1), (0, -1)]
             sage: [Q.solve_integer(5) for Q in Qs]
             [None, None, None]
             sage: [Q.solve_integer(6) for Q in Qs]
-            [(0, 1), (-1, 1), (1, 1)]
+            [(1, -1), (1, -1), (-1, -1)]
+
+        TESTS:
+
+        The returned solutions are correct (random inputs)::
+
+            sage: Q = BinaryQF([randrange(-10^3, 10^3) for _ in 'abc'])
+            sage: n = randrange(-10^9, 10^9)
+            sage: xy = Q.solve_integer(n)
+            sage: xy is None or Q(*xy) == n
+            True
+
+        Test for square discriminants specifically (:trac:`33026`)::
+
+            sage: n = randrange(-10^3, 10^3)
+            sage: Q = BinaryQF([n, randrange(-10^3, 10^3), 0][::(-1)**randrange(2)])
+            sage: U = random_matrix(ZZ, 2, 2, 'unimodular')
+            sage: U.rescale_row(0, choice((+1,-1)))
+            sage: assert U.det() in (+1,-1)
+            sage: Q = Q.matrix_action_right(U)
+            sage: Q.discriminant().is_square()
+            True
+            sage: xy = Q.solve_integer(n)
+            sage: Q(*xy) == n
+            True
+
+        Also test the `n=0` special case separately::
+
+            sage: xy = Q.solve_integer(0)
+            sage: Q(*xy)
+            0
         """
-        a, b, c = self
-        d = self.discriminant()
-        if d >= 0 or a <= 0:
-            raise NotImplementedError("%s is not positive definite" % self)
-        ad = -d
-        an4 = 4*a*n
-        a2 = 2*a
-        from sage.arith.srange import xsrange
-        for y in xsrange(0, 1+an4//ad):
-            z2 = an4 + d*y**2
-            for z in z2.sqrt(extend=False, all=True):
-                if a2.divides(z-b*y):
-                    x = (z-b*y)//a2
-                    return (x, y)
-        return None
+        n = ZZ(n)
+
+        if self.is_negative_definite():  # not supported by PARI
+            return (-self).solve_integer(-n)
+
+        if self.is_reducible():  # square discriminant; not supported by PARI
+            if self._a:
+                # https://math.stackexchange.com/a/980075
+                w = self.discriminant().sqrt()
+                r = (-self._b + (w if w != self._b else -w)) / (2*self._a)
+                p,q = r.as_integer_ratio()
+                g,u,v = p.xgcd(q)
+                M = Matrix(ZZ, [[v,p],[-u,q]])
+            elif self._c:
+                M = Matrix(ZZ, [[0,1],[1,0]])
+            else:
+                M = Matrix(ZZ, [[1,0],[0,1]])
+            assert M.is_unit()
+            Q = self.matrix_action_right(M)
+            assert not Q._c
+
+            # at this point, Q = a*x^2 + b*x*y
+            if not n:
+                return tuple(M.columns()[1])
+            for x in n.divisors():
+                y_num = n // x - Q._a * x
+                if Q._b.divides(y_num):
+                    y = y_num // Q._b
+                    return tuple(row[0]*x + row[1]*y for row in M.rows())
+
+            return None
+
+        flag = 2  # single solution, possibly imprimitive
+        sol = self.__pari__().qfbsolve(n, flag)
+        return tuple(map(ZZ, sol)) if sol else None
 
 
 def BinaryQF_reduced_representatives(D, primitive_only=False, proper=True):

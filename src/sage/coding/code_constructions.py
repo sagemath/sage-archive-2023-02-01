@@ -212,11 +212,12 @@ def _lift2smallest_field(a):
     if d == k:
         return a, FF
     p = FF.characteristic()
-    F = GF(p**d,"z")
-    b = pol.roots(F,multiplicities=False)[0]
+    F = GF((p, d), "z")
+    b = pol.roots(F, multiplicities=False)[0]
     return b, F
 
-def permutation_action(g,v):
+
+def permutation_action(g, v):
     r"""
     Returns permutation of rows g\*v. Works on lists, matrices,
     sequences and vectors (by permuting coordinates). The code requires
@@ -748,19 +749,20 @@ def ToricCode(P,F):
     - David Joyner (07-2006)
     """
     from sage.combinat.all import Tuples
-    mset = [x for x in F if x!=0]
+    mset = [x for x in F if x != 0]
     d = len(P[0])
-    pts = Tuples(mset,d).list()
-    n = len(pts) # (q-1)^d
+    pts = Tuples(mset, d).list()
+    n = len(pts)  # (q-1)^d
     k = len(P)
     e = P[0]
     B = []
     for e in P:
-       tmpvar = [prod([t[i]**e[i] for i in range(d)]) for t in pts]
-       B.append(tmpvar)
+        tmpvar = [prod([t[i]**e[i] for i in range(d)]) for t in pts]
+        B.append(tmpvar)
     # now B0 *should* be a full rank matrix
-    MS = MatrixSpace(F,k,n)
+    MS = MatrixSpace(F, k, n)
     return LinearCode(MS(B))
+
 
 def WalshCode(m):
     r"""

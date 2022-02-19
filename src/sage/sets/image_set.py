@@ -6,6 +6,7 @@ Image Sets
 #       Copyright (C) 2008      Mike Hansen <mhansen@gmail.com>
 #                     2012      Christian Stump
 #                     2020-2021 Frédéric Chapoton
+#                     2021      Travis Scrimshaw
 #                     2021      Matthias Koeppe
 #
 # This program is free software: you can redistribute it and/or modify
@@ -150,14 +151,14 @@ class ImageSubobject(Parent):
         TESTS::
 
             sage: Partitions(3).map(attrcall('conjugate'))
-            Image of Partitions of the integer 3 by The map *.conjugate()
-             from Partitions of the integer 3
+            Image of Partitions of the integer 3 by
+             The map *.conjugate() from Partitions of the integer 3
         """
         return f"Image of {self._domain_subset} by {self._map}"
 
     def cardinality(self) -> Integer:
         r"""
-        Return the cardinality of this combinatorial class
+        Return the cardinality of ``self``.
 
         EXAMPLES::
 

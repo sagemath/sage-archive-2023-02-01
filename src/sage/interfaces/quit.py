@@ -26,11 +26,13 @@ def sage_spawned_process_file():
         True
 
     """
-    import atexit, tempfile
-    f = tempfile.NamedTemporaryFile(delete=False)
-    f.close()
-    atexit.register(lambda: os.remove(f.name))
-    return f.name
+    # This is the old value of SAGE_TMP. Until sage-cleaner is
+    # completely removed, we need to leave these spawned_processes
+    # files where sage-cleaner will look for them.
+    from sage.env import DOT_SAGE, HOSTNAME
+    d = os.path.join(DOT_SAGE, "temp", HOSTNAME, str(os.getpid()))
+    os.makedirs(d, exist_ok=True)
+    return os.path.join(d, "spawned_processes")
 
 
 def register_spawned_process(pid, cmd=''):
@@ -103,7 +105,11 @@ def kill_spawned_jobs(verbose=False):
 
         sage: sage.interfaces.quit.expect_quitall()
     """
-    with open(sage_spawned_process_file()) as f:
+    fname = sage_spawned_process_file()
+    if not os.path.exists(fname):
+        return
+
+    with open(fname) as f:
         for L in f:
             i = L.find(' ')
             pid = L[:i].strip()

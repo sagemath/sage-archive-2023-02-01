@@ -1798,7 +1798,7 @@ class GenericGraph(GenericGraph_pyx):
           space to use.
 
         - ``**kwds`` -- other keywords to pass to
-          :func:`~sage.matrix.constructor.matrix`
+          :func:`~sage.matrix.constructor.matrix`.
 
         EXAMPLES::
 
@@ -1948,7 +1948,8 @@ class GenericGraph(GenericGraph_pyx):
 
     am = adjacency_matrix # shorter call makes life easier
 
-    def incidence_matrix(self, oriented=None, sparse=True, vertices=None, edges=None):
+    def incidence_matrix(self, oriented=None, sparse=True, vertices=None, edges=None,
+                         *, base_ring=None, **kwds):
         r"""
         Return the incidence matrix of the (di)graph.
 
@@ -1991,6 +1992,12 @@ class GenericGraph(GenericGraph_pyx):
           column of the matrix corresponds to the `i`-th edge in the ordering of
           ``edges``, otherwise, the `i`-th column of the matrix corresponds to
           the `i`-th edge in the ordering given by method :meth:`edge_iterator`.
+
+        - ``base_ring`` -- a ring (default: ``ZZ``); the base ring of the matrix
+          space to use.
+
+        - ``**kwds`` -- other keywords to pass to
+          :func:`~sage.matrix.constructor.matrix`.
 
         EXAMPLES::
 
@@ -2085,6 +2092,28 @@ class GenericGraph(GenericGraph_pyx):
             [1 1 0 0]
             [0 0 0 1]
 
+        A different base ring::
+
+            sage: P5.incidence_matrix(base_ring=RDF)
+            [1.0 0.0 0.0 0.0]
+            [1.0 1.0 0.0 0.0]
+            [0.0 1.0 1.0 0.0]
+            [0.0 0.0 1.0 1.0]
+            [0.0 0.0 0.0 1.0]
+
+        Creating an immutable matrix::
+
+            sage: m = P5.incidence_matrix(immutable=True); m
+            [1 0 0 0]
+            [1 1 0 0]
+            [0 1 1 0]
+            [0 0 1 1]
+            [0 0 0 1]
+            sage: m[1,2] = 1
+            Traceback (most recent call last):
+            ...
+            ValueError: matrix is immutable; please change a copy instead (i.e., use copy(M) to change a copy of M).
+
         TESTS::
 
             sage: P5 = graphs.PathGraph(5)
@@ -2131,8 +2160,10 @@ class GenericGraph(GenericGraph_pyx):
                 raise ValueError("``edges`` must be a permutation of the edges")
 
         from sage.matrix.constructor import matrix
-        from sage.rings.integer_ring import ZZ
-        m = matrix(ZZ, self.num_verts(), self.num_edges(), sparse=sparse)
+        if base_ring is None:
+            base_ring = ZZ
+        immutable = kwds.pop('immutable', False)
+        m = matrix(base_ring, self.num_verts(), self.num_edges(), sparse=sparse, **kwds)
 
         if oriented:
             for i, e in enumerate(edges):
@@ -2144,6 +2175,8 @@ class GenericGraph(GenericGraph_pyx):
                 m[verts[e[0]], i] += 1
                 m[verts[e[1]], i] += 1
 
+        if immutable:
+            m.set_immutable()
         return m
 
     def distance_matrix(self, vertices=None, **kwds):

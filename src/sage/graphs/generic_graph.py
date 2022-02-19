@@ -902,10 +902,7 @@ class GenericGraph(GenericGraph_pyx):
             sage: factor(m.charpoly())
             x^3 * (x^2 - 6)
         """
-        if R is None:
-            return self.am(vertices=vertices)
-        else:
-            return self.am(vertices=vertices).change_ring(R)
+        return self.am(vertices=vertices, base_ring=R)
 
     def _repr_(self):
         """

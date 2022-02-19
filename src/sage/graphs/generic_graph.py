@@ -1883,6 +1883,18 @@ class GenericGraph(GenericGraph_pyx):
             sage: type(_)
             <class 'sage.matrix.matrix_numpy_integer_dense.Matrix_numpy_integer_dense'>
 
+        As an immutable matrix::
+
+            sage: M = graphs.PathGraph(5).adjacency_matrix(sparse=False, immutable=True); M
+            [0 1 0 0 0]
+            [1 0 1 0 0]
+            [0 1 0 1 0]
+            [0 0 1 0 1]
+            [0 0 0 1 0]
+            sage: M[2, 2] = 1
+            Traceback (most recent call last):
+            ...
+            ValueError: matrix is immutable; please change a copy instead (i.e., use copy(M) to change a copy of M).
 
         TESTS::
 

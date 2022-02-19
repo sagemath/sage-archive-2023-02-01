@@ -202,7 +202,7 @@ class ImageSubobject(Parent):
 
     def _an_element_(self):
         r"""
-        Return an element of this combinatorial class
+        Return an element of this set
 
         EXAMPLES::
 

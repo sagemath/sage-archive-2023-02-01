@@ -1022,14 +1022,14 @@ def newton_method(
 
 @library_interact
 def trapezoid_integration(
-    title = text_control('<h2>Trapezoid integration</h2>'),
-    f = input_box(default = "x^2-5*x + 10", label='$f(x)=$'),
-    n = slider(1,100,1,5, label='# divisions'),
-    interval_input = selector(['from slider','from keyboard'], label='Integration interval', buttons=True),
-    interval_s = range_slider(-10,10,default=(0,8), label="slider: "),
-    interval_g = input_grid(1,2,default=[[0,8]], label="keyboard: "),
-    output_form = selector(['traditional','table','none'], label='Computations form', buttons=True)
-    ):
+    title=None,
+    f=None,
+    n=None,
+    interval_input=None,
+    interval_s=None,
+    interval_g=None,
+    output_form=None,
+):
     r"""
     Interact explaining the trapezoid method for definite integrals.
 
@@ -1063,6 +1063,29 @@ def trapezoid_integration(
           interval_g: Grid(value=[[0, 8]], children=(Label(value='keyboard: '), VBox(children=(EvalText(value='0', layout=Layout(max_width='5em')),)), VBox(children=(EvalText(value='8', layout=Layout(max_width='5em')),))))
           output_form: ToggleButtons(description='Computations form', options=('traditional', 'table', 'none'), value='traditional')
     """
+    if title is None:
+        title = text_control("<h2>Trapezoid integration</h2>")
+    if f is None:
+        f = (input_box(default="x^2-5*x + 10", label="$f(x)=$"),)
+    if n is None:
+        n = (slider(1, 100, 1, 5, label="# divisions"),)
+    if interval_input is None:
+        interval_input = (
+            selector(
+                ["from slider", "from keyboard"],
+                label="Integration interval",
+                buttons=True,
+            ),
+        )
+    if interval_s is None:
+        interval_s = (range_slider(-10, 10, default=(0, 8), label="slider: "),)
+    if interval_g is None:
+        interval_g = (input_grid(1, 2, default=[[0, 8]], label="keyboard: "),)
+    if output_form is None:
+        output_form = selector(
+            ["traditional", "table", "none"], label="Computations form", buttons=True
+        )
+
     xs = []
     ys = []
     if interval_input == 'from slider':
@@ -1139,13 +1162,14 @@ def trapezoid_integration(
 
 @library_interact
 def simpson_integration(
-    title = text_control('<h2>Simpson integration</h2>'),
-    f = input_box(default = 'x*sin(x)+x+1', label='$f(x)=$'),
-    n = slider(2,100,2,6, label='# divisions'),
-    interval_input = selector(['from slider','from keyboard'], label='Integration interval', buttons=True),
-    interval_s = range_slider(-10,10,default=(0,10), label="slider: "),
-    interval_g = input_grid(1,2,default=[[0,10]], label="keyboard: "),
-    output_form = selector(['traditional','table','none'], label='Computations form', buttons=True)):
+    title=None,
+    f=None,
+    n=None,
+    interval_input=None,
+    interval_s=None,
+    interval_g=None,
+    output_form=None,
+):
     r"""
     Interact explaining the simpson method for definite integrals.
 
@@ -1179,7 +1203,30 @@ def simpson_integration(
           interval_g: Grid(value=[[0, 10]], children=(Label(value='keyboard: '), VBox(children=(EvalText(value='0', layout=Layout(max_width='5em')),)), VBox(children=(EvalText(value='10', layout=Layout(max_width='5em')),))))
           output_form: ToggleButtons(description='Computations form', options=('traditional', 'table', 'none'), value='traditional')
     """
-    x = SR.var('x')
+    if title is None:
+        title = (text_control("<h2>Simpson integration</h2>"),)
+    if f is None:
+        f = (input_box(default="x*sin(x)+x+1", label="$f(x)=$"),)
+    if n is None:
+        n = (slider(2, 100, 2, 6, label="# divisions"),)
+    if interval_input is None:
+        interval_input = (
+            selector(
+                ["from slider", "from keyboard"],
+                label="Integration interval",
+                buttons=True,
+            ),
+        )
+    if interval_s is None:
+        interval_s = (range_slider(-10, 10, default=(0, 10), label="slider: "),)
+    if interval_g is None:
+        interval_g = (input_grid(1, 2, default=[[0, 10]], label="keyboard: "),)
+    if output_form is None:
+        output_form = selector(
+            ["traditional", "table", "none"], label="Computations form", buttons=True
+        )
+
+    x = SR.var("x")
     f = symbolic_expression(f).function(x)
     if interval_input == 'from slider':
         interval = interval_s
@@ -1271,16 +1318,17 @@ def simpson_integration(
 
 @library_interact
 def riemann_sum(
-    title = text_control('<h2>Riemann integral with random sampling</h2>'),
-    f = input_box("x^2+1", label = "$f(x)=$", width=40),
-    n = slider(1,30,1,5, label='# divisions'),
-    hr1 = text_control('<hr>'),
-    interval_input = selector(['from slider','from keyboard'], label='Integration interval', buttons=True),
-    interval_s = range_slider(-5,10,default=(0,2), label="slider: "),
-    interval_g = input_grid(1,2,default=[[0,2]], label="keyboard: "),
-    hr2 = text_control('<hr>'),
-    list_table = checkbox(default=False, label="List table"),
-    auto_update = False):
+    title=None,
+    f=None,
+    n=None,
+    hr1=None,
+    interval_input=None,
+    interval_s=None,
+    interval_g=None,
+    hr2=None,
+    list_table=None,
+    auto_update=False,
+):
     r"""
     Interact explaining the definition of Riemann integral
 
@@ -1316,6 +1364,31 @@ def riemann_sum(
 
     - Robert Marik (2010-08)
     """
+    if title is None:
+        title = (text_control("<h2>Riemann integral with random sampling</h2>"),)
+    if f is None:
+        f = (input_box("x^2+1", label="$f(x)=$", width=40),)
+    if n is None:
+        n = (slider(1, 30, 1, 5, label="# divisions"),)
+    if hr1 is None:
+        hr1 = (text_control("<hr>"),)
+    if interval_input is None:
+        interval_input = (
+            selector(
+                ["from slider", "from keyboard"],
+                label="Integration interval",
+                buttons=True,
+            ),
+        )
+    if interval_s is None:
+        interval_s = (range_slider(-5, 10, default=(0, 2), label="slider: "),)
+    if interval_g is None:
+        interval_g = (input_grid(1, 2, default=[[0, 2]], label="keyboard: "),)
+    if hr2 is None:
+        hr2 = (text_control("<hr>"),)
+    if list_table is None:
+        list_table = checkbox(default=False, label="List table")
+
     x = SR.var('x')
     from random import random
     if interval_input == 'from slider':

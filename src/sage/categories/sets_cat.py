@@ -5,7 +5,25 @@ Sets
 #  Copyright (C) 2005      David Kohel <kohel@maths.usyd.edu>
 #                          William Stein <wstein@math.ucsd.edu>
 #                2008      Teresa Gomez-Diaz (CNRS) <Teresa.Gomez-Diaz@univ-mlv.fr>
-#                2008-2014 Nicolas M. Thiery <nthiery at users.sf.net>
+#                2008-2017 Nicolas M. Thiery <nthiery at users.sf.net>
+#                2009      Mike Hansen
+#                2010      Florent Hivert
+#                2010      William Laffin
+#                2012      Franco Saliola
+#                2013      Sara Billey
+#                2013      Simon King
+#                2013-2016 Julian Rüth
+#                2014      Darij Grinberg
+#                2014      Peter Bruin
+#                2014-2021 Frédéric Chapoton
+#                2014-2021 Travis Scrimshaw
+#                2015      Daniel Krenn
+#                2015      Vincent Delecroix
+#                2015-2016 Jori Mäntysalo
+#                2016      Kwankyu Lee
+#                2018      Vincent Klein
+#                2019      Markus Wageringel
+#                2020-2021 Matthias Koeppe
 #
 #  Distributed under the terms of the GNU General Public License (GPL)
 #                  https://www.gnu.org/licenses/

@@ -2240,7 +2240,7 @@ class GenericGraph(GenericGraph_pyx):
 
         return ret
 
-    def weighted_adjacency_matrix(self, sparse=True, vertices=None, base_ring=None, **kwds):
+    def weighted_adjacency_matrix(self, sparse=True, vertices=None, *, base_ring=None, **kwds):
         """
         Return the weighted adjacency matrix of the graph.
 

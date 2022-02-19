@@ -261,6 +261,13 @@ class PoorManMap(sage.structure.sage_object.SageObject):
         return args[0]
 
     def _sympy_(self):
+        """
+        EXAMPLES::
+
+            sage: from sage.categories.poor_man_map import PoorManMap
+            sage: h = PoorManMap(sqrt, domain=RR, codomain=CC)
+            sage: h._sympy_()
+        """
         from sympy import Lambda, sympify
         if len(self._functions) == 1:
             return sympify(self._functions[0])

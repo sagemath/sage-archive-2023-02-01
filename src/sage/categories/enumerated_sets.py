@@ -889,6 +889,8 @@ class EnumeratedSets(CategoryWithAxiom):
                 [[1, 2, 3, 4], [1, 2, 4], [1, 3, 4], [1, 4], [2, 3, 4], [2, 4], [3, 4], [4]]
                 sage: [r for r in R]
                 [[1, 2, 3, 4], [1, 2, 4], [1, 3, 4], [1, 4], [2, 3, 4], [2, 4], [3, 4], [4]]
+                sage: R.category()
+                Category of finite enumerated subobjects of sets
 
             .. WARNING::
 
@@ -906,16 +908,11 @@ class EnumeratedSets(CategoryWithAxiom):
                     sage: P.map(attrcall('major_index'), is_injective=False).list()
                     [6, 3, 4, 1, 5, 2, 0]
 
-            .. WARNING::
+            TESTS::
 
-                :class:`MapCombinatorialClass` needs to be refactored
-                to use categories::
-
-                    sage: R.category()
-                    Category of finite enumerated subobjects of sets
-                    sage: TestSuite(R).run(skip=['_test_an_element', '_test_category',
-                    ....:                        '_test_enumerated_set_contains',
-                    ....:                        '_test_some_elements'])
+                sage: TestSuite(R).run(skip=['_test_an_element',
+                ....:                        '_test_enumerated_set_contains',
+                ....:                        '_test_some_elements'])
             """
             from sage.combinat.combinat import MapCombinatorialClass
             return MapCombinatorialClass(self, f, name, is_injective=is_injective)

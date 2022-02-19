@@ -2240,7 +2240,7 @@ class GenericGraph(GenericGraph_pyx):
 
         return ret
 
-    def weighted_adjacency_matrix(self, sparse=True, vertices=None):
+    def weighted_adjacency_matrix(self, sparse=True, vertices=None, base_ring=None, **kwds):
         """
         Return the weighted adjacency matrix of the graph.
 
@@ -2256,6 +2256,12 @@ class GenericGraph(GenericGraph_pyx):
           is represented by its position in the list ``vertices``, otherwise
           each vertex is represented by its position in the list returned by
           method :meth:`vertices`
+
+        - ``base_ring`` -- a ring (default: determined from the weights); the base
+          ring of the matrix space to use.
+
+        - ``**kwds`` -- other keywords to pass to
+          :func:`~sage.matrix.constructor.matrix`
 
         EXAMPLES::
 
@@ -2274,6 +2280,26 @@ class GenericGraph(GenericGraph_pyx):
             [0 0 2 3]
             [0 2 0 1]
             [4 3 1 0]
+
+        Using a different matrix implementation::
+
+            sage: M = G.weighted_adjacency_matrix(sparse=False, base_ring=ZZ, implementation='numpy'); M
+            [0 1 3 4]
+            [1 0 2 0]
+            [3 2 0 0]
+            [4 0 0 0]
+
+        As an immutable matrix::
+
+            sage: M = G.weighted_adjacency_matrix(immutable=True); M
+            [0 1 3 4]
+            [1 0 2 0]
+            [3 2 0 0]
+            [4 0 0 0]
+            sage: M[2, 2] = 1
+            Traceback (most recent call last):
+            ...
+            ValueError: matrix is immutable; please change a copy instead (i.e., use copy(M) to change a copy of M).
 
         TESTS:
 
@@ -2309,7 +2335,10 @@ class GenericGraph(GenericGraph_pyx):
                 D[i,j] = l
                 D[j,i] = l
         from sage.matrix.constructor import matrix
-        M = matrix(self.num_verts(), D, sparse=sparse)
+        if base_ring is None:
+            M = matrix(self.num_verts(), D, sparse=sparse, **kwds)
+        else:
+            M = matrix(base_ring, self.num_verts(), D, sparse=sparse, **kwds)
         return M
 
     def kirchhoff_matrix(self, weighted=None, indegree=True, normalized=False, signless=False, **kwds):

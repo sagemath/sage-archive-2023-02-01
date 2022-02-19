@@ -37,15 +37,14 @@ jobs:
         run: ../sage -python -m coverage run ./bin/sage-runtests --all -p0
         working-directory: ./src
 
-      #- name: Prepare coverage results
-      #  if: always()
-      #  run: |
-      #    ./venv/bin/python3 -m coverage combine src/.coverage/
-      #    ./venv/bin/python3 -m coverage xml
+      - name: Prepare coverage results
+       if: always()
+       run: |
+         ./venv/bin/python3 -m coverage combine src/.coverage/
+         ./venv/bin/python3 -m coverage xml
       
       - name: Upload coverage to codecov
         if: always()
         uses: codecov/codecov-action@v2
         with:
-          directory: src/.coverage/
-        #  files: ./src/coverage.xml
+          files: ./src/coverage.xml

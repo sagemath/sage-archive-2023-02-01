@@ -2115,12 +2115,15 @@ class CombinatorialClass(Parent, metaclass=ClasscallMetaclass):
             raise TypeError("right_cc must be a CombinatorialClass")
         return UnionCombinatorialClass(self, right_cc, name=name)
 
-    def map(self, f, name=None):
+    def map(self, f, name=None, *, is_injective=True):
         r"""
         Return the image `\{f(x) | x \in \text{self}\}` of this combinatorial
         class by `f`, as a combinatorial class.
 
-        `f` is supposed to be injective.
+        INPUT:
+
+        - ``is_injective`` -- boolean (default: ``True``) whether to assume
+          that ``f`` is injective.
 
         EXAMPLES::
 
@@ -2141,13 +2144,18 @@ class CombinatorialClass(Parent, metaclass=ClasscallMetaclass):
             sage: P.map(len).list()
             [1, 2, 2, 3, 4]
 
+        Use ``is_injective=False`` to get a correct result in this case.
+
+            sage: P.map(len, is_injective=False).list()
+            [1, 2, 3, 4]
+
         TESTS::
 
             sage: R = Permutations(3).map(attrcall('reduced_word'))
             sage: R == loads(dumps(R))
             True
         """
-        return MapCombinatorialClass(self, f, name)
+        return MapCombinatorialClass(self, f, name, is_injective=is_injective)
 
 
 class FilteredCombinatorialClass(CombinatorialClass):
@@ -2440,7 +2448,12 @@ from sage.categories.map import is_Map
 class MapCombinatorialClass(ImageSubobject, CombinatorialClass):
     r"""
     A ``MapCombinatorialClass`` models the image of a combinatorial
-    class through a function which is assumed to be injective
+    class through a function
+
+    INPUT:
+
+    - ``is_injective`` -- boolean (default: ``True``) whether to assume
+      that ``f`` is injective.
 
     See :meth:`CombinatorialClass.map` for examples
 
@@ -2455,7 +2468,7 @@ class MapCombinatorialClass(ImageSubobject, CombinatorialClass):
         sage: next(i), next(i), next(i)
         ([], [1, 2, 3, 4, 5, 6, 7, 8, 9], [1])
     """
-    def __init__(self, cc, f, name=None):
+    def __init__(self, cc, f, name=None, *, is_injective=True):
         """
         TESTS::
 
@@ -2463,7 +2476,7 @@ class MapCombinatorialClass(ImageSubobject, CombinatorialClass):
             Image of Partitions of the integer 3 by The map *.conjugate()
              from Partitions of the integer 3
         """
-        ImageSubobject.__init__(self, f, cc, is_injective=True)
+        ImageSubobject.__init__(self, f, cc, is_injective=is_injective)
         self.cc = cc
         self.f = f
         if name:

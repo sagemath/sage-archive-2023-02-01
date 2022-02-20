@@ -2765,16 +2765,6 @@ cdef class Matrix_double_dense(Matrix_dense):
             sage: A._is_hermitian_orthonormal(skew=True)
             True
 
-        TESTS:
-
-        The tolerance must be strictly positive::
-
-            sage: A = matrix(RDF, 2, range(4))
-            sage: A._is_hermitian_orthonormal(tol = -3.1)
-            Traceback (most recent call last):
-            ...
-            ValueError: tolerance must be positive, not -3.1
-
         AUTHOR:
 
         - Rob Beezer (2011-03-30)
@@ -2783,8 +2773,6 @@ cdef class Matrix_double_dense(Matrix_dense):
         import sage.rings.complex_double
         global numpy
         tol = float(tol)
-        if tol <= 0:
-            raise ValueError('tolerance must be positive, not {0}'.format(tol))
 
         key = ("_is_hermitian_orthonormal", tol, skew)
         h = self.fetch(key)
@@ -2814,7 +2802,7 @@ cdef class Matrix_double_dense(Matrix_dense):
         self.cache(key, hermitian)
         return hermitian
 
-    def is_hermitian(self, tol = 1e-12, algorithm = 'orthonormal'):
+    def is_hermitian(self, tol = 1e-12, algorithm = "naive"):
         r"""
         Return ``True`` if the matrix is equal to its conjugate-transpose.
 
@@ -2824,9 +2812,8 @@ cdef class Matrix_double_dense(Matrix_dense):
           absolute value of the difference between two matrix entries
           for which they will still be considered equal.
 
-        - ``algorithm`` - default: 'orthonormal' - set to 'orthonormal'
-          for a stable procedure and set to 'naive' for a fast
-          procedure.
+        - ``algorithm`` -- string (default: "naive"); either "naive"
+          or "orthonormal"
 
         OUTPUT:
 
@@ -2919,14 +2906,6 @@ cdef class Matrix_double_dense(Matrix_dense):
             False
 
         TESTS:
-
-        The tolerance must be strictly positive. ::
-
-            sage: A = matrix(RDF, 2, range(4))
-            sage: A.is_hermitian(tol = -3.1)
-            Traceback (most recent call last):
-            ...
-            ValueError: tolerance must be positive, not -3.1
 
         The ``algorithm`` keyword gets checked. ::
 
@@ -3047,14 +3026,6 @@ cdef class Matrix_double_dense(Matrix_dense):
             False
 
         TESTS:
-
-        The tolerance must be strictly positive.  ::
-
-            sage: A = matrix(RDF, 2, range(4))
-            sage: A.is_skew_hermitian(tol = -3.1)
-            Traceback (most recent call last):
-            ...
-            ValueError: tolerance must be positive, not -3.1
 
         The ``algorithm`` keyword gets checked.  ::
 
@@ -3594,7 +3565,7 @@ cdef class Matrix_double_dense(Matrix_dense):
 
         EXAMPLES:
 
-        A real matrix that is symmetric and positive definite.  ::
+        A real matrix that is symmetric, Hermitian, and positive definite::
 
             sage: M = matrix(RDF,[[ 1,  1,    1,     1,     1],
             ....:                 [ 1,  5,   31,   121,   341],
@@ -3602,6 +3573,8 @@ cdef class Matrix_double_dense(Matrix_dense):
             ....:                 [ 1,121, 1555,  7381, 22621],
             ....:                 [ 1,341, 4681, 22621, 69905]])
             sage: M.is_symmetric()
+            True
+            sage: M.is_hermitian()
             True
             sage: L = M.cholesky()
             sage: L.round(6).zero_at(10^-10)
@@ -3677,13 +3650,23 @@ cdef class Matrix_double_dense(Matrix_dense):
             sage: A.cholesky()
             []
 
-        The Cholesky factorization is only defined for square matrices.  ::
+        The Cholesky factorization is only defined for Hermitian (in
+        particular, square) matrices::
 
             sage: A = matrix(RDF, 4, 5, range(20))
             sage: A.cholesky()
             Traceback (most recent call last):
             ...
-            ValueError: Cholesky decomposition requires a square matrix, not a 4 x 5 matrix
+            ValueError: matrix is not Hermitian
+
+        ::
+
+            sage: A = matrix(CDF, [[1+I]])
+            sage: A.cholesky()
+            Traceback (most recent call last):
+            ...
+            ValueError: matrix is not Hermitian
+
         """
         from sage.rings.real_double import RDF
         from sage.rings.complex_double import CDF
@@ -3691,33 +3674,32 @@ cdef class Matrix_double_dense(Matrix_dense):
         cdef Matrix_double_dense L
         cache_cholesky = 'cholesky'
         cache_posdef = 'positive_definite'
+        L = self.fetch(cache_cholesky)
+        if L is not None:
+            return L
 
-        if not self.is_square():
-            msg = "Cholesky decomposition requires a square matrix, not a {0} x {1} matrix"
+        if not self.is_hermitian():
             self.cache(cache_posdef, False)
-            raise ValueError(msg.format(self.nrows(), self.ncols()))
+            raise ValueError("matrix is not Hermitian")
+
         if self._nrows == 0:   # special case
             self.cache(cache_posdef, True)
             L = self.__copy__()
             L.set_immutable()
             return L
 
-        L = self.fetch(cache_cholesky)
-        if L is None:
-            L = self._new()
-            global scipy
-            if scipy is None:
-                import scipy
-            import scipy.linalg
-            from numpy.linalg import LinAlgError
-            try:
-                L._matrix_numpy = scipy.linalg.cholesky(self._matrix_numpy, lower=1)
-            except LinAlgError:
-                self.cache(cache_posdef, False)
-                raise ValueError("matrix is not positive definite")
-            L.set_immutable()
-            self.cache(cache_cholesky, L)
-            self.cache(cache_posdef, True)
+        L = self._new()
+        from scipy.linalg import cholesky
+        from numpy.linalg import LinAlgError
+        try:
+            L._matrix_numpy = cholesky(self._matrix_numpy, lower=1)
+        except LinAlgError:
+            self.cache(cache_posdef, False)
+            raise ValueError("matrix is not positive definite")
+        L.set_immutable()
+        self.cache(cache_cholesky, L)
+        self.cache(cache_posdef, True)
+
         return L
 
     def is_positive_definite(self):
@@ -3847,10 +3829,16 @@ cdef class Matrix_double_dense(Matrix_dense):
             sage: R.is_positive_definite()
             False
 
-        A non-Hermitian matrix will never be positive definite.  ::
+        A non-Hermitian matrix will never be positive definite::
 
             sage: T = matrix(CDF, 8, 8, range(64))
             sage: T.is_positive_definite()
+            False
+
+        ::
+
+            sage: A = matrix(CDF, [[1+I]])
+            sage: A.is_positive_definite()
             False
 
         AUTHOR:

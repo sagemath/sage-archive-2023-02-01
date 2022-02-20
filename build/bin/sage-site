@@ -129,7 +129,7 @@ if [ "$1" = '-standard' -o "$1" = "--standard" ]; then
 fi
 
 if [ "$1" = '-p' ]; then
-    # If there are no further arguments, display usage help (via an option handled by sage-site)
+    # If there are no further arguments, display usage help
     if [ $# -eq 1 ]; then
         set -- --info
     else

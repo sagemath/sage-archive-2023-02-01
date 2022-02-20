@@ -64,7 +64,9 @@ class ImageSubobject(Parent):
                 domain = map.parent().base()
                 if len(map.arguments()) != 1:
                     domain = FreeModule(domain, len(map.arguments()))
-                map = self._star(map)
+                function = map
+                def map(arg):
+                    return function(*arg)
             else:
                 domain = domain_subset
             map = PoorManMap(map, domain, name=map_name)
@@ -98,12 +100,6 @@ class ImageSubobject(Parent):
         self._map = map
         self._domain_subset = domain_subset
         self._is_injective = is_injective
-
-    @staticmethod
-    def _star(function):
-        def f(arg):
-            return function(*arg)
-        return f
 
     def ambient(self):
         """

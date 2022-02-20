@@ -1,250 +1,242 @@
 r"""
 Orthogonal Polynomials
 
--  The Chebyshev polynomial of the first kind arises as a solution
-   to the differential equation
+Chebyshev polynomials
+---------------------
 
-   .. MATH::
+The Chebyshev polynomial of the first kind arises as a solution
+to the differential equation
 
-         (1-x^2)\,y'' - x\,y' + n^2\,y = 0
+.. MATH::
 
+    (1-x^2)\,y'' - x\,y' + n^2\,y = 0
 
-   and those of the second kind as a solution to
+and those of the second kind as a solution to
 
-   .. MATH::
+.. MATH::
 
-         (1-x^2)\,y'' - 3x\,y' + n(n+2)\,y = 0.
+    (1-x^2)\,y'' - 3x\,y' + n(n+2)\,y = 0.
 
+The Chebyshev polynomials of the first kind are defined by the
+recurrence relation
 
-   The Chebyshev polynomials of the first kind are defined by the
-   recurrence relation
+.. MATH::
 
-   .. MATH::
+    T_0(x) = 1 \, T_1(x) = x \, T_{n+1}(x) = 2xT_n(x) - T_{n-1}(x).
 
-     T_0(x) = 1 \, T_1(x) = x \, T_{n+1}(x) = 2xT_n(x) - T_{n-1}(x). \,
+The Chebyshev polynomials of the second kind are defined by the
+recurrence relation
 
+.. MATH::
 
-   The Chebyshev polynomials of the second kind are defined by the
-   recurrence relation
+    U_0(x) = 1 \, U_1(x) = 2x \, U_{n+1}(x) = 2xU_n(x) - U_{n-1}(x).
 
-   .. MATH::
+For integers `m,n`, they satisfy the orthogonality
+relations
 
-     U_0(x) = 1 \, U_1(x) = 2x \, U_{n+1}(x) = 2xU_n(x) - U_{n-1}(x). \,
+.. MATH::
 
+    \int_{-1}^1 T_n(x)T_m(x)\,\frac{dx}{\sqrt{1-x^2}} =
+    \left\{ \begin{matrix} 0 &: n\ne m~~~~~\\ \pi &: n=m=0\\ \pi/2 &: n = m \neq 0 \end{matrix} \right.
 
+and
 
-   For integers `m,n`, they satisfy the orthogonality
-   relations
+.. MATH::
 
-   .. MATH::
+    \int_{-1}^1 U_n(x)U_m(x)\sqrt{1-x^2}\,dx =\frac{\pi}{2}\delta_{m,n}.
 
-     \int_{-1}^1 T_n(x)T_m(x)\,\frac{dx}{\sqrt{1-x^2}} =\left\{ \begin{matrix} 0 &: n\ne m~~~~~\\ \pi &: n=m=0\\ \pi/2 &: n=m\ne 0 \end{matrix} \right.
+They are named after Pafnuty Chebyshev (alternative
+transliterations: Tchebyshef or Tschebyscheff).
 
+Hermite polynomials
+-------------------
 
-   and
+The *Hermite polynomials* are defined either by
 
+.. MATH::
 
-   .. MATH::
+    H_n(x) = (-1)^n e^{x^2/2} \frac{d^n}{dx^n} e^{-x^2/2}
 
-     \int_{-1}^1 U_n(x)U_m(x)\sqrt{1-x^2}\,dx =\frac{\pi}{2}\delta_{m,n}.
+(the "probabilists' Hermite polynomials"), or by
 
+.. MATH::
 
+    H_n(x)=(-1)^n e^{x^2}\frac{d^n}{dx^n}e^{-x^2}
 
-   They are named after Pafnuty Chebyshev (alternative
-   transliterations: Tchebyshef or Tschebyscheff).
+(the "physicists' Hermite polynomials"). Sage (via Maxima) implements
+the latter flavor. These satisfy the orthogonality relation
 
--  The Hermite polynomials are defined either by
+.. MATH::
 
-   .. MATH::
+    \int_{-\infty}^{\infty} H_n(x) H_m(x) \, e^{-x^2} \, dx
+    = \sqrt{\pi} n! 2^n \delta_{nm}.
 
-     H_n(x)=(-1)^n e^{x^2/2}\frac{d^n}{dx^n}e^{-x^2/2}
+They are named in honor of Charles Hermite.
 
+Legendre polynomials
+--------------------
 
-   (the "probabilists' Hermite polynomials"), or by
+Each *Legendre polynomial* `P_n(x)` is an `n`-th degree polynomial.
+It may be expressed using Rodrigues' formula:
 
+.. MATH::
 
-   .. MATH::
+    P_n(x) = (2^n n!)^{-1} {\frac{d^n}{dx^n} } \left[ (x^2 -1)^n \right].
 
-     H_n(x)=(-1)^n e^{x^2}\frac{d^n}{dx^n}e^{-x^2}
+These are solutions to Legendre's differential equation:
 
+.. MATH::
 
-   (the "physicists' Hermite polynomials"). Sage (via Maxima)
-   implements the latter flavor. These satisfy the orthogonality
-   relation
+    \frac{d}{dx} \left[ (1-x^2) {\frac{d}{dx}} P(x) \right] + n(n+1)P(x) = 0
 
-   .. MATH::
+and satisfy the orthogonality relation
 
-     \int_{-\infty}^\infty H_n(x)H_m(x)\,e^{-x^2}\,dx ={n!2^n}{\sqrt{\pi}}\delta_{nm}
+.. MATH::
 
+    \int_{-1}^{1} P_m(x) P_n(x)\,dx = {\frac{2}{2n + 1}} \delta_{mn}.
 
+The *Legendre function of the second kind* `Q_n(x)` is another
+(linearly independent) solution to the Legendre differential equation.
+It is not an "orthogonal polynomial" however.
 
-   They are named in honor of Charles Hermite.
+The associated Legendre functions of the first kind `P_\ell^m(x)` can
+be given in terms of the "usual" Legendre polynomials by
 
--  Each *Legendre polynomial* `P_n(x)` is an `n`-th degree polynomial.
-   It may be expressed using Rodrigues' formula:
+.. MATH::
 
-   .. MATH::
+    \begin{array}{ll}
+    P_{\ell}^m(x) &= (-1)^m(1-x^2)^{m/2}\frac{d^m}{dx^m}P_\ell(x) \\
+    &= \frac{(-1)^m}{2^\ell \ell!} (1-x^2)^{m/2}\frac{d^{\ell+m}}{dx^{\ell+m}}(x^2-1)^{\ell}.
+    \end{array}
 
-      P_n(x) = (2^n n!)^{-1} {\frac{d^n}{dx^n} } \left[ (x^2 -1)^n \right].
+Assuming `0 \le m \le \ell`, they satisfy the orthogonality relation:
 
-   These are solutions to Legendre's differential equation:
+.. MATH::
 
-   .. MATH::
+    \int_{-1}^{1} P_k^{(m)} P_{\ell}^{(m)} dx
+    = \frac{2(\ell+m)!}{(2\ell+1)(\ell-m)!}\ \delta _{k,\ell},
 
-      {\frac{d}{dx}} \left[ (1-x^2) {\frac{d}{dx}} P(x) \right] + n(n+1)P(x) = 0.
+where `\delta _{k,\ell}` is the Kronecker delta.
 
-   and satisfy the orthogonality relation
+The associated Legendre functions of the second kind
+`Q_\ell^m(x)` can be given in terms of the "usual"
+Legendre polynomials by
 
-   .. MATH::
+.. MATH::
 
-      \int_{-1}^{1} P_m(x) P_n(x)\,dx = {\frac{2}{2n + 1}} \delta_{mn}
+Q_{\ell}^m(x) = (-1)^m (1-x^2)^{m/2} \frac{d^m}{dx^m} Q_{\ell}(x).
 
-   The *Legendre function of the second kind* `Q_n(x)` is another
-   (linearly independent) solution to the Legendre differential equation.
-   It is not an "orthogonal polynomial" however.
+They are named after Adrien-Marie Legendre.
 
-   The associated Legendre functions of the first kind
-   `P_\ell^m(x)` can be given in terms of the "usual"
-   Legendre polynomials by
+Laguerre polynomials
+--------------------
 
-   .. MATH::
+*Laguerre polynomials* may be defined by the Rodrigues formula
 
-     \begin{array}{ll} P_\ell^m(x)    &=  (-1)^m(1-x^2)^{m/2}\frac{d^m}{dx^m}P_\ell(x) \\ &=  \frac{(-1)^m}{2^\ell \ell!} (1-x^2)^{m/2}\frac{d^{\ell+m}}{dx^{\ell+m}}(x^2-1)^\ell. \end{array}
+.. MATH::
 
+    L_n(x) = \frac{e^x}{n!} \frac{d^n}{dx^n} \left( e^{-x} x^n \right).
 
-   Assuming `0 \le m \le \ell`, they satisfy the orthogonality
-   relation:
+They are solutions of Laguerre's equation:
 
-   .. MATH::
+.. MATH::
 
-      \int_{-1}^{1} P_k ^{(m)} P_\ell ^{(m)} dx  = \frac{2 (\ell+m)!}{(2\ell+1)(\ell-m)!}\ \delta _{k,\ell},
+    x\,y'' + (1 - x)\,y' + n\,y = 0
 
+and satisfy the orthogonality relation
 
-   where `\delta _{k,\ell}` is the Kronecker delta.
+.. MATH::
 
-   The associated Legendre functions of the second kind
-   `Q_\ell^m(x)` can be given in terms of the "usual"
-   Legendre polynomials by
+    \int_0^{\infty} L_m(x) L_n(x) e^{-x} \, dx = \delta_{mn}.
 
+The generalized Laguerre polynomials may be defined by the Rodrigues formula:
 
-   .. MATH::
+.. MATH::
 
-     Q_\ell^m(x)   =  (-1)^m(1-x^2)^{m/2}\frac{d^m}{dx^m}Q_\ell(x).
+   L_n^{(\alpha)}(x) = \frac{x^{-\alpha} e^x}{n!} \frac{d^n}{dx^n}
+   \left(e^{-x} x^{n+\alpha}\right).
 
+(These are also sometimes called the associated Laguerre
+polynomials.) The simple Laguerre polynomials are recovered from
+the generalized polynomials by setting `\alpha = 0`.
 
+They are named after Edmond Laguerre.
 
-   They are named after Adrien-Marie Legendre.
+Jacobi polynomials
+------------------
 
--  Laguerre polynomials may be defined by the Rodrigues formula
+*Jacobi polynomials* are a class of orthogonal polynomials. They
+are obtained from hypergeometric series in cases where the series
+is in fact finite:
 
-   .. MATH::
+.. MATH::
 
-      L_n(x)=\frac{e^x}{n!}\frac{d^n}{dx^n}\left(e^{-x} x^n\right).
+    P_n^{(\alpha,\beta)}(z) = \frac{(\alpha+1)_n}{n!}
+    \,_2F_1\left(-n,1+\alpha+\beta+n; \alpha+1; \frac{1-z}{2}\right),
 
+where `()_n` is Pochhammer's symbol (for the rising factorial),
+(Abramowitz and Stegun p561.) and thus have the explicit expression
 
-   They are solutions of Laguerre's equation:
+.. MATH::
 
+    P_n^{(\alpha,\beta)} (z) = \frac{\Gamma(\alpha+n+1)}{n!\Gamma(\alpha+\beta+n+1)}
+    \sum_{m=0}^n \binom{n}{m} \frac{\Gamma(\alpha+\beta+n+m+1)}{\Gamma(\alpha+m+1)}
+    \left(\frac{z-1}{2}\right)^m.
 
-   .. MATH::
+They are named after Carl Jacobi.
 
-      x\,y'' + (1 - x)\,y' + n\,y = 0\,
+Gegenbauer polynomials
+----------------------
 
-   and satisfy the orthogonality relation
+*Ultraspherical* or *Gegenbauer polynomials* are given in terms of
+the Jacobi polynomials `P_n^{(\alpha,\beta)}(x)` with
+`\alpha = \beta = a - 1/2` by
 
+.. MATH::
 
-   .. MATH::
+    C_n^{(a)}(x) = \frac{\Gamma(a+1/2)}{\Gamma(2a)}
+    \frac{\Gamma(n+2a)}{\Gamma(n+a+1/2)} P_n^{(a-1/2,a-1/2)}(x).
 
-      \int_0^\infty L_m(x) L_n(x) e^{-x}\,dx = \delta_{mn}.
+They satisfy the orthogonality relation
 
+.. MATH::
 
+    \int_{-1}^1(1-x^2)^{a-1/2}C_m^{(a)}(x)C_n^{(a)}(x)\, dx
+    = \delta_{mn}2^{1-2a}\pi \frac{\Gamma(n+2a)}{(n+a)\Gamma^2(a)\Gamma(n+1)},
 
-   The generalized Laguerre polynomials may be defined by the
-   Rodrigues formula:
+for `a > -1/2`. They are obtained from hypergeometric series
+in cases where the series is in fact finite:
 
+.. MATH::
 
-   .. MATH::
+    C_n^{(a)}(z) = \frac{(2a)^{\underline{n}}}{n!}
+    \,_2F_1\left(-n,2a+n; a+\frac{1}{2}; \frac{1-z}{2}\right)
 
-       L_n^{(\alpha)}(x)   = {\frac{x^{-\alpha} e^x}{n!}}{\frac{d^n}{dx^n}} \left(e^{-x} x^{n+\alpha}\right) .
+where `\underline{n}` is the falling factorial. (See
+Abramowitz and Stegun p561.)
 
+They are named for Leopold Gegenbauer (1849-1903).
 
-   (These are also sometimes called the associated Laguerre
-   polynomials.) The simple Laguerre polynomials are recovered from
-   the generalized polynomials by setting `\alpha =0`.
 
-   They are named after Edmond Laguerre.
+Pochhammer symbol
+-----------------
 
--  Jacobi polynomials are a class of orthogonal polynomials. They
-   are obtained from hypergeometric series in cases where the series
-   is in fact finite:
-
-   .. MATH::
-
-     P_n^{(\alpha,\beta)}(z) =\frac{(\alpha+1)_n}{n!} \,_2F_1\left(-n,1+\alpha+\beta+n;\alpha+1;\frac{1-z}{2}\right) ,
-
-
-   where `()_n` is Pochhammer's symbol (for the rising
-   factorial), (Abramowitz and Stegun p561.) and thus have the
-   explicit expression
-
-
-   .. MATH::
-
-     P_n^{(\alpha,\beta)} (z) = \frac{\Gamma (\alpha+n+1)}{n!\Gamma (\alpha+\beta+n+1)} \sum_{m=0}^n \binom{n}{m} \frac{\Gamma (\alpha + \beta + n + m + 1)}{\Gamma (\alpha + m + 1)} \left(\frac{z-1}{2}\right)^m .
-
-
-
-   They are named after Carl Jacobi.
-
--  Ultraspherical or Gegenbauer polynomials are given in terms of
-   the Jacobi polynomials `P_n^{(\alpha,\beta)}(x)` with
-   `\alpha=\beta=a-1/2` by
-
-
-   .. MATH::
-
-     C_n^{(a)}(x)= \frac{\Gamma(a+1/2)}{\Gamma(2a)}\frac{\Gamma(n+2a)}{\Gamma(n+a+1/2)} P_n^{(a-1/2,a-1/2)}(x).
-
-
-   They satisfy the orthogonality relation
-
-   .. MATH::
-
-     \int_{-1}^1(1-x^2)^{a-1/2}C_m^{(a)}(x)C_n^{(a)}(x)\, dx =\delta_{mn}2^{1-2a}\pi \frac{\Gamma(n+2a)}{(n+a)\Gamma^2(a)\Gamma(n+1)} ,
-
-
-   for `a>-1/2`. They are obtained from hypergeometric series
-   in cases where the series is in fact finite:
-
-
-   .. MATH::
-
-     C_n^{(a)}(z) =\frac{(2a)^{\underline{n}}}{n!} \,_2F_1\left(-n,2a+n;a+\frac{1}{2};\frac{1-z}{2}\right)
-
-
-   where `\underline{n}` is the falling factorial. (See
-   Abramowitz and Stegun p561)
-
-   They are named for Leopold Gegenbauer (1849-1903).
-
-
-For completeness, the Pochhammer symbol, introduced by Leo August
+For completeness, the *Pochhammer symbol*, introduced by Leo August
 Pochhammer, `(x)_n`, is used in the theory of special
 functions to represent the "rising factorial" or "upper factorial"
 
 .. MATH::
 
-         (x)_n=x(x+1)(x+2)\cdots(x+n-1)=\frac{(x+n-1)!}{(x-1)!}.
+    (x)_n = x(x+1)(x+2) \cdots (x+n-1) = \frac{(x+n-1)!}{(x-1)!}.
 
-
-On the other hand, the "falling factorial" or "lower factorial" is
+On the other hand, the *falling factorial* or *lower factorial* is
 
 .. MATH::
 
-     x^{\underline{n}}=\frac{x!}{(x-n)!} ,
+    x^{\underline{n}} = \frac{x!}{(x-n)!},
 
-
-in the notation of Ronald L. Graham, Donald E. Knuth and Oren
-Patashnik in their book Concrete Mathematics.
+in the notation of Ronald L. Graham, Donald E. Knuth and Oren Patashnik
+in their book Concrete Mathematics.
 
 .. TODO::
 
@@ -254,21 +246,13 @@ Patashnik in their book Concrete Mathematics.
 REFERENCES:
 
 - [AS1964]_
-
 - :wikipedia:`Chebyshev_polynomials`
-
 - :wikipedia:`Legendre_polynomials`
-
 - :wikipedia:`Hermite_polynomials`
-
 - http://mathworld.wolfram.com/GegenbauerPolynomial.html
-
 - :wikipedia:`Jacobi_polynomials`
-
 - :wikipedia:`Laguerre_polynomia`
-
 - :wikipedia:`Associated_Legendre_polynomials`
-
 - [Koe1999]_
 
 AUTHORS:
@@ -280,7 +264,6 @@ AUTHORS:
 The original module wrapped some of the orthogonal/special functions
 in the Maxima package "orthopoly" and was written by Barton
 Willis of the University of Nebraska at Kearney.
-
 """
 # ****************************************************************************
 #       Copyright (C) 2006 William Stein <wstein@gmail.com>
@@ -1867,8 +1850,8 @@ gen_legendre_Q = Func_assoc_legendre_Q()
 
 
 class Func_hermite(GinacFunction):
-    """
-    Returns the Hermite polynomial for integers `n > -1`.
+    r"""
+    Return the Hermite polynomial for integers `n > -1`.
 
     REFERENCE:
 
@@ -1939,12 +1922,12 @@ hermite = Func_hermite()
 
 class Func_jacobi_P(OrthogonalFunction):
     r"""
-    Return the Jacobi polynomial `P_n^{(a,b)}(x)` for
-    integers `n > -1` and a and b symbolic or `a > -1`
-    and `b > -1`. The Jacobi polynomials are actually defined
-    for all a and b. However, the Jacobi polynomial weight
-    `(1-x)^a(1+x)^b` isn't integrable for `a \leq -1`
-    or `b \leq -1`.
+    Return the Jacobi polynomial `P_n^{(a,b)}(x)` for integers
+    `n > -1` and a and b symbolic or `a > -1` and `b > -1`.
+
+    The Jacobi polynomials are actually defined for all `a` and `b`.
+    However, the Jacobi polynomial weight `(1-x)^a(1+x)^b` is not
+    integrable for `a \leq -1` or `b \leq -1`.
 
     REFERENCE:
 
@@ -2047,12 +2030,12 @@ jacobi_P = Func_jacobi_P()
 
 class Func_ultraspherical(GinacFunction):
     r"""
-    Return the ultraspherical (or Gegenbauer) polynomial gegenbauer(n,a,x),
+    Return the ultraspherical (or Gegenbauer) polynomial ``gegenbauer(n,a,x)``,
 
     .. MATH::
 
-        C_n^{a}(x)=\sum_{k=0}^{\lfloor n/2\rfloor} (-1)^k\frac{\Gamma(n-k+a)}
-        {\Gamma(a)k!(n-2k)!}(2x)^{n-2k}.
+        C_n^{a}(x) = \sum_{k=0}^{\lfloor n/2\rfloor} (-1)^k
+        \frac{\Gamma(n-k+a)}{\Gamma(a)k!(n-2k)!} (2x)^{n-2k}.
 
     When `n` is a nonnegative integer, this formula gives a
     polynomial in `z` of degree `n`, but all parameters are
@@ -2061,7 +2044,7 @@ class Func_ultraspherical(GinacFunction):
 
     Computed using Pynac.
 
-    For numerical evaluation, consider using the `mpmath library,
+    For numerical evaluation, consider using the `mpmath library
     <http://mpmath.org/doc/current/functions/orthogonal.html#gegenbauer-polynomials>`_,
     as it also allows complex numbers (and negative `n` as well);
     see the examples below.

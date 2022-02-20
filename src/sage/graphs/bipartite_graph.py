@@ -1502,8 +1502,8 @@ class BipartiteGraph(Graph):
         # now construct and return the matrix from the dictionary we created
         from sage.matrix.constructor import matrix
         if base_ring is None:
-            return matrix(len(self.right), len(self.left), D, sparse=sparse)
-        return matrix(base_ring, len(self.right), len(self.left), D, sparse=sparse)
+            return matrix(len(self.right), len(self.left), D, sparse=sparse, **kwds)
+        return matrix(base_ring, len(self.right), len(self.left), D, sparse=sparse, **kwds)
 
     def matching(self, value_only=False, algorithm=None,
                  use_edge_labels=False, solver=None, verbose=0,

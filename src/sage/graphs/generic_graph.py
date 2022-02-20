@@ -2265,7 +2265,8 @@ class GenericGraph(GenericGraph_pyx):
             [0.0 1.0]
             [1.0 0.0]
 
-        Check that distance parameters are not pass to the matrix constructor::
+        Check that distance parameters are not passed to the matrix
+        constructor::
 
             sage: G = Graph([(0, 1)])
             sage: G.distance_matrix(vertices=[0, 1], weight_function=lambda e:2)

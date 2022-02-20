@@ -89,7 +89,7 @@ from sage.rings.infinity import infinity
 from sage.rings.cc import CC
 from sage.rings.real_mpfr import RR
 from sage.plot.arc import arc
-from sage.plot.line import line
+from sage.plot.bezier_path import bezier_path
 from sage.symbolic.constants import pi
 from sage.modules.free_module_element import vector
 from sage.matrix.constructor import matrix
@@ -696,12 +696,12 @@ class HyperbolicGeodesic(SageObject):
         ::
 
             sage: KM = H.KM()
-            sage: KM.get_geodesic((0,0), (0, 1/2)).complete()
+            sage: KM.get_geodesic(-I, 1).complete()
             Geodesic in KM from (0, -1) to (0, 1)
 
         .. PLOT::
 
-            g = HyperbolicPlane().KM().get_geodesic((0.0,0.0), (0.0, 0.5))
+            g = HyperbolicPlane().KM().get_geodesic(CC(0,-1), CC(0, 1))
             h = g.complete()
             sphinx_plot(g.plot()+h.plot(linestyle='dashed'))
 
@@ -1186,12 +1186,15 @@ class HyperbolicGeodesicUHP(HyperbolicGeodesic):
             elif end_2 == CC(infinity):
                 end_2 = (real(end_1), (imag(end_1) + 10))
                 end_1 = (real(end_1), imag(end_1))
-            pic = line((end_1, end_2), **opts)
+            else:
+                end_1 = (real(end_1), imag(end_1))
+                end_2 = (real(end_2), imag(end_2))
+            pic = bezier_path([[end_1, end_2]], **opts)
             if boundary:
                 cent = min(bd_1, bd_2)
                 bd_dict = {'bd_min': cent - 3, 'bd_max': cent + 3}
                 bd_pic = self._model.get_background_graphic(**bd_dict)
-                pic = bd_pic + pic
+                pic += bd_pic
             return pic
         else:
             center = (bd_1 + bd_2) / 2  # Circle center
@@ -1213,7 +1216,7 @@ class HyperbolicGeodesicUHP(HyperbolicGeodesic):
                 bd_dict = {'bd_min': midpoint - length, 'bd_max': midpoint +
                            length}
                 bd_pic = self._model.get_background_graphic(**bd_dict)
-                pic = bd_pic + pic
+                pic += bd_pic
             return pic
 
     def ideal_endpoints(self):
@@ -1244,10 +1247,10 @@ class HyperbolicGeodesicUHP(HyperbolicGeodesic):
         M = self._model
         # infinity is the first endpoint, so the other ideal endpoint
         # is just the real part of the second coordinate
-        if start == infinity:
+        if CC(start).is_infinity():
             return [M.get_point(start), M.get_point(x2)]
         # Same idea as above
-        if end == infinity:
+        if CC(end).is_infinity():
             return [M.get_point(x1), M.get_point(end)]
         # We could also have a vertical line with two interior points
         if x1 == x2:
@@ -2235,7 +2238,7 @@ class HyperbolicGeodesicPD(HyperbolicGeodesic):
         bd_1, bd_2 = [CC(k.coordinates()) for k in self.ideal_endpoints()]
         # Check to see if it's a line
         if abs(bd_1 + bd_2) < EPSILON:
-            pic = line([end_1, end_2], **opts)
+            pic = bezier_path([[(real(end_1), imag(end_1)), (real(end_2), imag(end_2))]], **opts)
         else:
             # If we are here, we know it's not a line
             # So we compute the center and radius of the circle
@@ -2286,10 +2289,10 @@ class HyperbolicGeodesicKM(HyperbolicGeodesic):
     .. PLOT::
 
         KM = HyperbolicPlane().KM()
-        g = KM.get_geodesic((0.1,0.9),
-                            (-0.1,-0.9))
-        h = KM.get_geodesic((-0.707106781,-0.707106781),
-                            (0.707106781,-0.707106781))
+        g = KM.get_geodesic(CC(0.1,0.9),
+                            CC(-0.1,-0.9))
+        h = KM.get_geodesic(CC(-0.707106781,-0.707106781),
+                            CC(0.707106781,-0.707106781))
         sphinx_plot(g.plot(color='orange')+h.plot())
 
     """
@@ -2300,19 +2303,20 @@ class HyperbolicGeodesicKM(HyperbolicGeodesic):
 
         EXAMPLES::
 
-            sage: HyperbolicPlane().KM().get_geodesic((0,0), (1,0)).plot()  # optional - sage.plot
+            sage: HyperbolicPlane().KM().get_geodesic(0, 1).plot()  # optional - sage.plot
             Graphics object consisting of 2 graphics primitives
 
         .. PLOT::
 
             KM = HyperbolicPlane().KM()
-            sphinx_plot(KM.get_geodesic((0,0), (1,0)).plot())
+            sphinx_plot(KM.get_geodesic(CC(0,0), CC(1,0)).plot())
 
         """
         opts = {'axes': False, 'aspect_ratio': 1}
         opts.update(self.graphics_options())
         opts.update(options)
-        pic = line([k.coordinates() for k in self.endpoints()], **opts)
+        end_1, end_2 = [CC(k.coordinates()) for k in self.endpoints()]
+        pic = bezier_path([[(real(end_1), imag(end_1)), (real(end_2), imag(end_2))]], **opts)
         if boundary:
             pic += self._model.get_background_graphic()
         return pic
@@ -2350,6 +2354,42 @@ class HyperbolicGeodesicHM(HyperbolicGeodesic):
         sphinx_plot(g.plot(color='blue'))
 
     """
+    def _plot_vertices(self, points=75):
+        r"""
+        Return ``self`` plotting vertices in R^3.
+
+        Auxiliary function needed to plot polygons.
+
+        """
+
+        from sage.plot.misc import setup_for_eval_on_grid
+        from sage.arith.srange import xsrange
+
+        x = SR.var('x')
+        v1, u2 = [vector(k.coordinates()) for k in self.endpoints()]
+        # Lorentzian Gram Shmidt.  The original vectors will be
+        # u1, u2 and the orthogonal ones will be v1, v2.  Except
+        # v1 = u1, and I don't want to declare another variable,
+        # hence the odd naming convention above.
+        # We need the Lorentz dot product of v1 and u2.
+        v1_ldot_u2 = u2[0]*v1[0] + u2[1]*v1[1] - u2[2]*v1[2]
+        v2 = u2 + v1_ldot_u2 * v1
+        v2_norm = sqrt(v2[0]**2 + v2[1]**2 - v2[2]**2)
+        v2 = v2 / v2_norm
+        v2_ldot_u2 = u2[0]*v2[0] + u2[1]*v2[1] - u2[2]*v2[2]
+        # Now v1 and v2 are Lorentz orthogonal, and |v1| = -1, |v2|=1
+        # That is, v1 is unit timelike and v2 is unit spacelike.
+        # This means that cosh(x)*v1 + sinh(x)*v2 is unit timelike.
+        hyperbola = cosh(x)*v1 + sinh(x)*v2
+        endtime = arcsinh(v2_ldot_u2)
+        # mimic the function _parametric_plot3d_curve using a bezier3d instead of a line3d
+        # this is required in order to be able to plot hyperbolic polygons whithin the plot library
+        g, ranges = setup_for_eval_on_grid(hyperbola, [(x, 0, endtime)], points)
+        f_x, f_y, f_z = g
+        points = [(f_x(u), f_y(u), f_z(u)) for u in xsrange(*ranges[0], include_endpoint=True)]
+        # convert points to a path3d
+        points = list(points)
+        return points
 
     def plot(self, show_hyperboloid=True, **graphics_options):
         r"""

@@ -108,7 +108,7 @@ class ImageSubobject(Parent):
 
         EXAMPLES::
 
-            sage: M = CombinatorialFreeModule(QQ, [0,1,2,3])
+            sage: M = CombinatorialFreeModule(QQ, [0, 1, 2, 3])
             sage: R.<x,y> = ZZ[]
             sage: H = Hom(M, R, category=Sets())
             sage: f = H(lambda v: floor(v[0])*x + ceil(v[3] - v[0]^2))
@@ -129,6 +129,18 @@ class ImageSubobject(Parent):
     def lift(self, x):
         r"""
         Return the lift ``x`` to the ambient space, which is ``x``.
+
+        EXAMPLES::
+
+            sage: M = CombinatorialFreeModule(QQ, [0, 1, 2, 3])
+            sage: R.<x,y> = ZZ[]
+            sage: H = Hom(M, R, category=Sets())
+            sage: f = H(lambda v: floor(v[0])*x + ceil(v[3] - v[0]^2))
+            sage: Im = f.image()
+            sage: p = Im.lift(Im.an_element()); p
+            2*x - 4
+            sage: p.parent() is R
+            True
         """
         return x
 
@@ -139,6 +151,17 @@ class ImageSubobject(Parent):
         .. WARNING::
 
             This does not check that ``x`` is actually in the image.
+
+        EXAMPLES::
+
+            sage: M = CombinatorialFreeModule(QQ, [0, 1, 2, 3])
+            sage: R.<x,y> = ZZ[]
+            sage: H = Hom(M, R, category=Sets())
+            sage: f = H(lambda v: floor(v[0])*x + ceil(v[3] - v[0]^2))
+            sage: Im = f.image()
+            sage: p = 2 * x - 4
+            sage: Im.retract(p).parent()
+            Multivariate Polynomial Ring in x, y over Integer Ring
         """
         return x
 

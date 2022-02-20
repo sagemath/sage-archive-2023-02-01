@@ -2428,7 +2428,8 @@ class GenericGraph(GenericGraph_pyx):
           - Else, `D-M` is used in calculation of Kirchhoff matrix
 
         Note that any additional keywords will be passed on to either the
-        ``adjacency_matrix`` or ``weighted_adjacency_matrix`` method.
+        :meth:`~GenericGraph.adjacency_matrix` or
+        :meth:`~GenericGraph.weighted_adjacency_matrix` method.
 
         AUTHORS:
 
@@ -2499,8 +2500,22 @@ class GenericGraph(GenericGraph_pyx):
             [ 0  5 -2 -3]
             [ 0 -2  3 -1]
             [-4 -3 -1  8]
+
+        When parameter ``immutable=True`` is passed, the output matrix is
+        immutable::
+
+            sage: G = Graph([(0, 1)])
+            sage: M = G.kirchhoff_matrix(vertices=[0, 1], immutable=True)
+            sage: M.is_immutable()
+            True
         """
         from sage.matrix.constructor import diagonal_matrix
+
+        if 'immutable' in kwds:
+            set_immutable = kwds['immutable']
+            del kwds['immutable']
+        else:
+            set_immutable = False
 
         if weighted is None:
             weighted = self._weighted
@@ -2540,14 +2555,19 @@ class GenericGraph(GenericGraph_pyx):
             Dsqrt = diagonal_matrix([1 / sqrt(D[i,i]) if D[i,i] else 1 \
                                      for i in range(D.nrows())])
             if signless:
-                return Dsqrt * (D + M) * Dsqrt
+                ret = Dsqrt * (D + M) * Dsqrt
             else:
-                return Dsqrt * (D - M) * Dsqrt
+                ret = Dsqrt * (D - M) * Dsqrt
         else:
             if signless:
-                return D + M
+                ret = D + M
             else:
-                return D - M
+                ret = D - M
+
+        if set_immutable:
+            ret.set_immutable()
+        return ret
+
     laplacian_matrix = kirchhoff_matrix
 
     ### Attributes

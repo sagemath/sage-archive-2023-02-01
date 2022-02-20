@@ -194,7 +194,7 @@ class ImageSubobject(Parent):
 
     def _an_element_(self):
         r"""
-        Return an element of this set
+        Return an element of this set.
 
         EXAMPLES::
 
@@ -228,7 +228,7 @@ class ImageSubobject(Parent):
 
 class ImageSet(ImageSubobject, Set_base, Set_add_sub_operators, Set_boolean_operators):
     r"""
-    Image of a set by a map
+    Image of a set by a map.
 
     EXAMPLES::
 

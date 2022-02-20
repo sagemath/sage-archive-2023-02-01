@@ -1805,10 +1805,10 @@ class Order_absolute(Order):
                     raise ValueError(f"cannot assume this order to be maximal at {p} because we already found it to be non-maximal at that prime")
                 self.__is_maximal_at[p] = True
             else:
-                self._assume_maximal(False)
-
                 if self._is_maximal_at(p) is True:
                     raise ValueError(f"cannot assume this order to be non-maximal at {p} because we already found it to be maximal at that prime")
+
+                self._assume_maximal(False)
                 self.__is_maximal_at[p] = False
 
         return self

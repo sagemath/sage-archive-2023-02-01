@@ -7899,7 +7899,7 @@ class NumberField_generic(WithEqualityById, number_field_base.NumberField):
             Gaussian Integers in Number Field in i with defining polynomial x^2 + 1
 
         It is an error to create a maximal order and declare it non-maximal,
-        however, such mistakes are only caught automatically, if they evidently
+        however, such mistakes are only caught automatically if they evidently
         contradict previous results in this session::
 
             sage: K.maximal_order(v=2, assume_maximal=False)

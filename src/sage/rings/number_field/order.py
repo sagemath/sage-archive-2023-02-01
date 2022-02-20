@@ -135,46 +135,17 @@ class OrderFactory(UniqueFactory):
 
         """
         is_maximal = extra_args.pop("is_maximal", None)
-        is_maximal_at = extra_args.pop("is_maximal_at", ())
+        is_maximal_at = extra_args.pop("is_maximal_at", {})
 
         order = super().get_object(version, key, extra_args)
 
         # Add assumptions about maximality to the order (potentially creating
         # an independent non-unique clone to support legacy use cases.)
         order = order._assume_maximal(is_maximal)
-        for p in is_maximal_at:
-            order = order._assume_maximal(p=p)
+        for p, v in is_maximal_at.items():
+            order = order._assume_maximal(p=p, is_maximal=v)
 
         return order
-
-    def reduce_data(self, order):
-        r"""
-        Return the data that can be used to pickle an order created by this factory.
-
-        This overrides the default implementation to update the latest
-        knowledge about primes at which the order is maximal.
-
-        EXAMPLES:
-
-            sage: L.<a, b> = NumberField([x^2 - 1000003, x^2 - 5*1000099^2])
-            sage: O = L.maximal_order([5], assume_maximal=None)
-
-            sage: s = dumps(O)
-            sage: loads(s) is O
-            True
-
-            sage: N = L.maximal_order([7], assume_maximal=None)
-            sage: dumps(N) == s
-            False
-
-            sage: loads(dumps(N)) is O
-            True
-
-        """
-        reduction = super().reduce_data(order)
-        reduction[1][3]["is_maximal"] = order._is_maximal()
-        reduction[1][3]["is_maximal_at"] = order._is_maximal_at()
-        return reduction
 
 
 class AbsoluteOrderFactory(OrderFactory):
@@ -209,6 +180,10 @@ class AbsoluteOrderFactory(OrderFactory):
               [0 1]),
              {})
 
+        Note how the above is lacking the ``is_maximal`` and ``is_maximal_at``
+        keywords. These are stripped by :meth:`OrderFactory.get_object` and
+        then put back in by :meth:`reduce_data`.
+
         """
         if check:
             if not K.is_absolute():
@@ -221,7 +196,7 @@ class AbsoluteOrderFactory(OrderFactory):
             if module_rep.rank() != K.degree():
                 raise ValueError("the module defining an absolute order must have full rank")
 
-        return (K, module_rep), {"is_maximal": is_maximal, "is_maximal_at": is_maximal_at}
+        return (K, module_rep), {"is_maximal": is_maximal, "is_maximal_at": {p: True for p in is_maximal_at}}
 
     def create_object(self, version, key, is_maximal=None, is_maximal_at=()):
         r"""
@@ -242,6 +217,38 @@ class AbsoluteOrderFactory(OrderFactory):
         # We intentionally ignore is_maximal and is_maximal_at.
         # OrderFactory.get_object() sets these for us.
         return Order_absolute(K, module_rep)
+
+    def reduce_data(self, order):
+        r"""
+        Return the data that can be used to pickle an order created by this factory.
+
+        This overrides the default implementation to update the latest
+        knowledge about primes at which the order is maximal.
+
+        EXAMPLES:
+
+        This also works for relative orders since they are wrapping absolute
+        orders::
+
+            sage: L.<a, b> = NumberField([x^2 - 1000003, x^2 - 5*1000099^2])
+            sage: O = L.maximal_order([5], assume_maximal=None)
+
+            sage: s = dumps(O)
+            sage: loads(s) is O
+            True
+
+            sage: N = L.maximal_order([7], assume_maximal=None)
+            sage: dumps(N) == s
+            False
+
+            sage: loads(dumps(N)) is O
+            True
+
+        """
+        reduction = super().reduce_data(order)
+        reduction[1][3]["is_maximal"] = order._is_maximal()
+        reduction[1][3]["is_maximal_at"] = order._is_maximal_at()
+        return reduction
 
 
 AbsoluteOrder = AbsoluteOrderFactory("sage.rings.number_field.order.AbsoluteOrder")
@@ -280,8 +287,13 @@ class RelativeOrderFactory(OrderFactory):
               Order in Number Field in z with defining polynomial x^4 - 2*x^2 + 9),
              {})
 
+        Note how the above is lacking the ``is_maximal`` and ``is_maximal_at``
+        keywords. These are stripped by :meth:`OrderFactory.get_object`. Since
+        they are applied to the underlying absolute order, they then get
+        pickled when the underlying order is pickled.
+
         """
-        return (K, absolute_order), {"is_maximal": is_maximal, "is_maximal_at": is_maximal_at}
+        return (K, absolute_order), {"is_maximal": is_maximal, "is_maximal_at": {p: True for p in is_maximal_at}}
 
     def create_object(self, version, key, is_maximal=None, is_maximal_at=()):
         r"""
@@ -1412,7 +1424,9 @@ class Order_absolute(Order):
         else:
             self._element_type = OrderElement_absolute
 
+        # Whether this order is the maximal order, or None if we have not found out yet.
         self.__is_maximal = None
+        # Maps each prime to whether this order is maximal at that prime.
         self.__is_maximal_at = {}
 
         self._module_rep = module_rep

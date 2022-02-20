@@ -1017,12 +1017,12 @@ def findstat(query=None, values=None, distribution=None, domain=None,
 
     TESTS::
 
-        sage: findstat("Permutations", lambda x: 1, depth="x")
+        sage: findstat("Permutations", lambda x: 1, depth="x")                  # optional -- internet
         Traceback (most recent call last):
         ...
         ValueError: E021: Depth should be a non-negative integer at most 9, but is x.
 
-        sage: findstat("Permutations", lambda x: 1, depth=100)
+        sage: findstat("Permutations", lambda x: 1, depth=100)                  # optional -- internet
         Traceback (most recent call last):
         ...
         ValueError: E021: Depth should be a non-negative integer at most 9, but is 100.

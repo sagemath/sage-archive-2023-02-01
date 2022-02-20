@@ -2144,7 +2144,7 @@ class CombinatorialClass(Parent, metaclass=ClasscallMetaclass):
             sage: P.map(len).list()
             [1, 2, 2, 3, 4]
 
-        Use ``is_injective=False`` to get a correct result in this case.
+        Use ``is_injective=False`` to get a correct result in this case::
 
             sage: P.map(len, is_injective=False).list()
             [1, 2, 3, 4]

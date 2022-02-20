@@ -903,7 +903,7 @@ class EnumeratedSets(CategoryWithAxiom):
                     sage: P.map(attrcall('major_index')).list()
                     [6, 3, 4, 1, 5, 2, 3, 0]
 
-                Pass ``is_injective=False`` to get a correct result in this case.
+                Pass ``is_injective=False`` to get a correct result in this case::
 
                     sage: P.map(attrcall('major_index'), is_injective=False).list()
                     [6, 3, 4, 1, 5, 2, 0]

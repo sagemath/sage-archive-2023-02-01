@@ -249,7 +249,7 @@ AbsoluteOrder = AbsoluteOrderFactory("sage.rings.number_field.order.AbsoluteOrde
 
 class RelativeOrderFactory(OrderFactory):
     r"""
-    An order in an relative number field extension.
+    An order in a relative number field extension.
 
     EXAMPLES::
 
@@ -263,7 +263,7 @@ class RelativeOrderFactory(OrderFactory):
 
     def create_key_and_extra_args(self, K, absolute_order, is_maximal=None, check=True, is_maximal_at=()):
         r"""
-        Return normalized arguments to create an absolute order.
+        Return normalized arguments to create a relative order.
 
         TESTS:
 
@@ -1601,7 +1601,7 @@ class Order_absolute(Order):
 
         INPUT:
 
-        - ``p`` -- an integer prime or ``Nonne`` (default: ``None``); if
+        - ``p`` -- an integer prime or ``None`` (default: ``None``); if
           set, return whether this order is maximal at the prime ``p``.
 
         EXAMPLES::

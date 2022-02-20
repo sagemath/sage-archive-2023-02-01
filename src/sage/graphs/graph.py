@@ -5676,11 +5676,18 @@ class Graph(GenericGraph):
             sage: G.seidel_adjacency_matrix(base_ring=RDF)[0, 0].parent()
             Real Double Field
         """
+        set_immutable = kwds.pop('immutable', False)
         A = self.adjacency_matrix(sparse=False, vertices=vertices,
-                                  base_ring=base_ring, **kwds)
+                                  base_ring=base_ring, immutable=True, **kwds)
         C = self.complement().adjacency_matrix(sparse=False, vertices=vertices,
                                                base_ring=base_ring, **kwds)
-        return C - A
+        n = self.order()
+        for i in range(n):
+            for j in range(n):
+                C[i, j] -= A[i, j]
+        if set_immutable:
+            C.set_immutable()
+        return C
 
     @doc_index("Leftovers")
     def seidel_switching(self, s, inplace=True):
@@ -8530,7 +8537,7 @@ class Graph(GenericGraph):
             raise ValueError('algorithm must be set to "Edmonds", "LP_matching" or "LP"')
 
     @doc_index("Leftovers")
-    def effective_resistance(self, i, j, *, base_ring=None, **kwds):
+    def effective_resistance(self, i, j, *, base_ring=None):
         r"""
         Return the effective resistance between nodes `i` and `j`.
 
@@ -8547,9 +8554,6 @@ class Graph(GenericGraph):
 
         - ``base_ring`` -- a ring (default: ``None``); the base ring
           of the matrix space to use
-
-        - ``**kwds`` -- other keywords to pass to
-          :func:`~sage.matrix.constructor.matrix`
 
         OUTPUT: rational number denoting resistance between nodes `i` and `j`
 
@@ -8633,7 +8637,7 @@ class Graph(GenericGraph):
         i1 = vert.index(i)
         i2 = vert.index(j)
         n = self.order()
-        L = self.laplacian_matrix(vertices=vert, base_ring=base_ring, **kwds)
+        L = self.laplacian_matrix(vertices=vert, base_ring=base_ring)
         M = L.pseudoinverse()
         Id = matrix.identity(base_ring, n)
         sigma = matrix(base_ring, Id[i1] - Id[i2])
@@ -8764,6 +8768,16 @@ class Graph(GenericGraph):
             sage: r = G.effective_resistance_matrix(nonedgesonly=False)[0,3]
             sage: r == fibonacci(2*(5-3)+1)*fibonacci(2*3-1)/fibonacci(2*5)
             True
+
+        Ask for an immutable matrix::
+
+            sage: G = Graph([(0, 1)])
+            sage: M = G.effective_resistance_matrix(immutable=False)
+            sage: M.is_immutable()
+            False
+            sage: M = G.effective_resistance_matrix(immutable=True)
+            sage: M.is_immutable()
+            True
         """
         from sage.matrix.constructor import matrix
         from sage.rings.rational_field import QQ
@@ -8779,7 +8793,9 @@ class Graph(GenericGraph):
 
         if base_ring is None:
             base_ring = QQ
-        L = self.laplacian_matrix(vertices=vertices, base_ring=base_ring, **kwds)
+        set_immutable = kwds.pop('immutable', False)
+
+        L = self.laplacian_matrix(vertices=vertices, base_ring=base_ring, immutable=True, **kwds)
         M = L.pseudoinverse()
         d = matrix(M.diagonal()).transpose()
         onesvec = matrix(base_ring, n, 1, lambda i, j: 1)
@@ -8787,9 +8803,15 @@ class Graph(GenericGraph):
         if nonedgesonly:
             onesmat = matrix(base_ring, n, n, lambda i, j: 1)
             A = self.adjacency_matrix(vertices=vertices, base_ring=base_ring, **kwds)
-            B = onesmat - A - matrix.identity(base_ring, n)
+            B = matrix(base_ring, n, n)
+            for i in range(n):
+                for j in range(n):
+                    B[i, j] = 1 - A[i, j]
+                B[i, i] -= 1
             S = S.elementwise_product(B)
 
+        if set_immutable:
+            S.set_immutable()
         return S
 
     @doc_index("Leftovers")
@@ -8985,11 +9007,22 @@ class Graph(GenericGraph):
             [0 0 0 2]
             [0 0 0 0]
             [0 2 0 0]
+
+        Asking for an immutable matrix::
+
+            sage: G = Graph([(0, 1)])
+            sage: M = G.common_neighbors_matrix()
+            sage: M.is_immutable()
+            False
+            sage: M = G.common_neighbors_matrix(immutable=True)
+            sage: M.is_immutable()
+            True
         """
         self._scream_if_not_simple()
         if vertices is None:
             vertices = self.vertices()
-        A = self.adjacency_matrix(vertices=vertices, base_ring=base_ring, **kwds)
+        set_immutable = kwds.pop('immutable', False)
+        A = self.adjacency_matrix(vertices=vertices, base_ring=base_ring, immutable=True, **kwds)
         M = A**2
         for v in range(self.order()):
             M[v, v] = 0
@@ -8997,6 +9030,8 @@ class Graph(GenericGraph):
                 for w in range(v + 1, self.order()):
                     if A[v, w]:
                         M[v, w] = M[w, v] = 0
+        if set_immutable:
+            M.set_immutable()
         return M
 
     @doc_index("Leftovers")

@@ -2511,19 +2511,15 @@ class GenericGraph(GenericGraph_pyx):
         """
         from sage.matrix.constructor import diagonal_matrix
 
-        if 'immutable' in kwds:
-            set_immutable = kwds['immutable']
-            del kwds['immutable']
-        else:
-            set_immutable = False
+        set_immutable = kwds.pop('immutable', False)
 
         if weighted is None:
             weighted = self._weighted
 
         if weighted:
-            M = self.weighted_adjacency_matrix(**kwds)
+            M = self.weighted_adjacency_matrix(immutable=True, **kwds)
         else:
-            M = self.adjacency_matrix(**kwds)
+            M = self.adjacency_matrix(immutable=True, **kwds)
 
         D = M.parent(0)
 

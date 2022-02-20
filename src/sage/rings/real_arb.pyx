@@ -476,6 +476,12 @@ class RealBallField(UniqueRepresentation, sage.rings.abc.RealBallField):
             sage: RBF.convert_map_from(QuadraticField(2))
             Conversion via _arb_ method map:
             ...
+            sage: RBF.coerce_map_from(AA)
+            Conversion via _arb_ method map:
+            ...
+            sage: RBF.convert_map_from(QQbar)
+            Conversion via _arb_ method map:
+            ...
         """
         if isinstance(other, RealBallField):
             return other._prec >= self._prec
@@ -629,6 +635,8 @@ class RealBallField(UniqueRepresentation, sage.rings.abc.RealBallField):
             53
         """
         return self._prec
+
+    prec = precision
 
     def is_exact(self):
         """

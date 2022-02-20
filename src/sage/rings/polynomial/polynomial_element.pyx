@@ -1254,8 +1254,8 @@ cdef class Polynomial(CommutativeAlgebraElement):
             0.6324555320336758*I
             sage: CC(c)
             0.632455532033676*I
-            sage: CBF(c)
-            [0.632455532033676 +/- 3.96e-16]*I
+            sage: CBF(c) # abs tol 1e-16
+            [0.6324555320336759 +/- 3.38e-17]*I
             sage: CIF(c)
             0.6324555320336758?*I
             sage: complex(c)

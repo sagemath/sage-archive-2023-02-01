@@ -550,6 +550,9 @@ class ComplexBallField(UniqueRepresentation, sage.rings.abc.ComplexBallField):
             ....:                                 embedding=QQbar(-2)^(1/7)))
             Conversion via _acb_ method map:
             ...
+            sage: CBF.coerce_map_from(QQbar)
+            Conversion via _acb_ method map:
+            ...
         """
         if isinstance(other, RealBallField):
             return other._prec >= self._prec
@@ -590,8 +593,8 @@ class ComplexBallField(UniqueRepresentation, sage.rings.abc.ComplexBallField):
             1.000000000000000*I
             sage: CBF(pi+I/3)
             [3.141592653589793 +/- ...e-16] + [0.3333333333333333 +/- ...e-17]*I
-            sage: CBF(QQbar(i/7))
-            [0.1428571428571428 +/- ...e-17]*I
+            sage: CBF(QQbar(i/7)) # abs tol 1e-16
+            [0.1428571428571429 +/- 4.29e-17]*I
             sage: CBF(AA(sqrt(2)))
             [1.414213562373095 +/- ...e-16]
             sage: CBF(CIF(0, 1))
@@ -698,6 +701,8 @@ class ComplexBallField(UniqueRepresentation, sage.rings.abc.ComplexBallField):
             53
         """
         return self._prec
+
+    prec = precision
 
     def is_exact(self):
         """

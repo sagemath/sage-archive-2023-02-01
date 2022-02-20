@@ -2242,7 +2242,7 @@ class Order_relative(Order):
 
         INPUT:
 
-        - ``p`` -- an integer prime or ``Nonne`` (default: ``None``); if
+        - ``p`` -- an integer prime or ``None`` (default: ``None``); if
           set, return whether this order is maximal at the prime ``p``.
 
         EXAMPLES::

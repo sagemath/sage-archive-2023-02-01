@@ -109,8 +109,8 @@ from sage.geometry.hyperbolic_space.hyperbolic_coercion import (
 
 lazy_import('sage.modules.free_module_element', 'vector')
 
-# ####################################################################
-#  Abstract model
+#####################################################################
+## Abstract model
 
 
 class HyperbolicModel(Parent, UniqueRepresentation, BindableClass):
@@ -776,7 +776,7 @@ class HyperbolicModel(Parent, UniqueRepresentation, BindableClass):
 
 
 #####################################################################
-# Upper half plane model
+## Upper half plane model
 
 class HyperbolicModelUHP(HyperbolicModel):
     r"""
@@ -854,7 +854,11 @@ class HyperbolicModelUHP(HyperbolicModel):
         """
         if isinstance(p, HyperbolicPoint):
             return p.is_boundary()
-        return bool(imag(CC(p)) > 0)
+        if p in CC:
+            p = CC(p)
+        else:
+            p = CC(*p)
+        return bool(imag(p) > 0)
 
     def boundary_point_in_model(self, p):
         r"""
@@ -888,7 +892,11 @@ class HyperbolicModelUHP(HyperbolicModel):
         """
         if isinstance(p, HyperbolicPoint):
             return p.is_boundary()
-        im = abs(imag(CC(p)).n())
+        if p in CC:
+            p = CC(p)
+        else:
+            p = CC(*p)
+        im = abs(imag(p).n())
         return (im < EPSILON) or bool(p == infinity)
 
     def isometry_in_model(self, A):
@@ -1142,8 +1150,8 @@ class HyperbolicModelUHP(HyperbolicModel):
         B = HyperbolicGeodesicUHP._crossratio_matrix(w[0], w[1], w[2])
         return B.inverse() * A
 
-# ####################################################################
-# Poincaré disk model
+#####################################################################
+## Poincaré disk model
 
 
 class HyperbolicModelPD(HyperbolicModel):
@@ -1210,7 +1218,11 @@ class HyperbolicModelPD(HyperbolicModel):
         """
         if isinstance(p, HyperbolicPoint):
             return p.is_boundary()
-        return bool(abs(CC(p)) < 1)
+        if p in CC:
+            p = CC(p)
+        else:
+            p = CC(*p)
+        return bool(abs(p) < 1)
 
     def boundary_point_in_model(self, p):
         r"""
@@ -1228,7 +1240,11 @@ class HyperbolicModelPD(HyperbolicModel):
         """
         if isinstance(p, HyperbolicPoint):
             return p.is_boundary()
-        return bool(abs(abs(CC(p)) - 1) < EPSILON)
+        if p in CC:
+            p = CC(p)
+        else:
+            p = CC(*p)
+        return bool(abs(abs(p) - 1) < EPSILON)
 
     def isometry_in_model(self, A):
         r"""
@@ -1264,7 +1280,7 @@ class HyperbolicModelPD(HyperbolicModel):
 
 
 #####################################################################
-# Klein disk model
+## Klein disk model
 
 class HyperbolicModelKM(HyperbolicModel):
     r"""
@@ -1327,8 +1343,12 @@ class HyperbolicModelKM(HyperbolicModel):
         """
         if isinstance(p, HyperbolicPoint):
             return p.is_boundary()
+        if p in CC:
+            p = CC(p)
+        else:
+            p = CC(*p)
         # return len(p) == 2 and bool(p[0]**2 + p[1]**2 < 1)
-        return bool(abs(CC(p)) < 1)
+        return bool(abs(p) < 1)
 
     def boundary_point_in_model(self, p):
         r"""
@@ -1347,8 +1367,12 @@ class HyperbolicModelKM(HyperbolicModel):
         """
         if isinstance(p, HyperbolicPoint):
             return p.is_boundary()
+        if p in CC:
+            p = CC(p)
+        else:
+            p = CC(*p)
         # return len(p) == 2 and bool(abs(p[0]**2 + p[1]**2 - 1) < EPSILON)
-        return bool(abs(abs(CC(p)) - 1) < EPSILON)
+        return bool(abs(abs(p) - 1) < EPSILON)
 
     def isometry_in_model(self, A):
         r"""
@@ -1379,7 +1403,7 @@ class HyperbolicModelKM(HyperbolicModel):
         return circle((0, 0), 1, axes=False, color='black')
 
 #####################################################################
-# Hyperboloid model
+## Hyperboloid model
 
 
 class HyperbolicModelHM(HyperbolicModel):

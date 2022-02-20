@@ -696,14 +696,26 @@ class HyperbolicGeodesic(SageObject):
         ::
 
             sage: KM = H.KM()
-            sage: KM.get_geodesic(-I, 1).complete()
+            sage: KM.get_geodesic((0,0), (0,1/2)).complete()
             Geodesic in KM from (0, -1) to (0, 1)
 
         .. PLOT::
 
-            g = HyperbolicPlane().KM().get_geodesic(CC(0,-1), CC(0, 1))
+            g = HyperbolicPlane().KM().get_geodesic(CC(0,0), CC(0, 0.5))
             h = g.complete()
             sphinx_plot(g.plot()+h.plot(linestyle='dashed'))
+
+        ::
+
+            sage: KM.get_geodesic(-I, 1).complete()
+            Geodesic in KM from -I to 1
+
+        .. PLOT::
+
+            g = HyperbolicPlane().KM().get_geodesic(CC(0,-1), CC(1, 0))
+            h = g.complete()
+            sphinx_plot(g.plot()+h.plot(linestyle='dashed'))
+
 
         ::
 
@@ -2177,11 +2189,9 @@ class HyperbolicGeodesicPD(HyperbolicGeodesic):
          g = PD.get_geodesic(I,-I/2)
          h = PD.get_geodesic(-0.5+I*0.5,0.5+I*0.5)
          sphinx_plot(g.plot()+h.plot(color='green'))
-
     """
 
     def plot(self, boundary=True, **options):
-
         r"""
         Plot ``self``.
 
@@ -2279,12 +2289,10 @@ class HyperbolicGeodesicKM(HyperbolicGeodesic):
     EXAMPLES::
 
         sage: KM = HyperbolicPlane().KM()
-        sage: g = KM.get_geodesic(KM.get_point((0.1,0.9)), KM.get_point((-0.1,-0.9)))
         sage: g = KM.get_geodesic((0.1,0.9),(-0.1,-0.9))
         sage: h = KM.get_geodesic((-0.707106781,-0.707106781),(0.707106781,-0.707106781))
         sage: P = g.plot(color='orange')+h.plot(); P  # optional - sage.plot
         Graphics object consisting of 4 graphics primitives
-
 
     .. PLOT::
 
@@ -2315,7 +2323,11 @@ class HyperbolicGeodesicKM(HyperbolicGeodesic):
         opts = {'axes': False, 'aspect_ratio': 1}
         opts.update(self.graphics_options())
         opts.update(options)
-        end_1, end_2 = [CC(k.coordinates()) for k in self.endpoints()]
+        def map_pt(pt):
+            if pt in CC:
+                return CC(pt)
+            return CC(*pt)
+        end_1, end_2 = [map_pt(k.coordinates()) for k in self.endpoints()]
         pic = bezier_path([[(real(end_1), imag(end_1)), (real(end_2), imag(end_2))]], **opts)
         if boundary:
             pic += self._model.get_background_graphic()
@@ -2338,7 +2350,6 @@ class HyperbolicGeodesicHM(HyperbolicGeodesic):
 
     EXAMPLES::
 
-        sage: from sage.geometry.hyperbolic_space.hyperbolic_geodesic import *
         sage: HM = HyperbolicPlane().HM()
         sage: p1 = HM.get_point((4, -4, sqrt(33)))
         sage: p2 = HM.get_point((-3,-3,sqrt(19)))
@@ -2356,12 +2367,23 @@ class HyperbolicGeodesicHM(HyperbolicGeodesic):
     """
     def _plot_vertices(self, points=75):
         r"""
-        Return ``self`` plotting vertices in R^3.
+        Return ``self`` plotting vertices in `\RR^3`.
 
         Auxiliary function needed to plot polygons.
 
-        """
+        EXAMPLES::
 
+            sage: HM = HyperbolicPlane().HM()
+            sage: p1 = HM.get_point((4, -4, sqrt(33)))
+            sage: p2 = HM.get_point((-3,-3,sqrt(19)))
+            sage: g = HM.get_geodesic(p1, p2)
+            sage: g._plot_vertices(5)
+            [(4.0, -4.0, 5.744562646538029),
+             (1.3632131724692114, -1.6370738298435326, 2.353372235315133),
+             (0.13856858387448234, -0.9699800871213693, 1.4000223647674197),
+             (-0.9425338542843988, -1.3076813974501533, 1.8969450977056184),
+             (-3.0, -3.0, 4.358898943540652)]
+        """
         from sage.plot.misc import setup_for_eval_on_grid
         from sage.arith.srange import xsrange
 
@@ -2380,15 +2402,13 @@ class HyperbolicGeodesicHM(HyperbolicGeodesic):
         # Now v1 and v2 are Lorentz orthogonal, and |v1| = -1, |v2|=1
         # That is, v1 is unit timelike and v2 is unit spacelike.
         # This means that cosh(x)*v1 + sinh(x)*v2 is unit timelike.
-        hyperbola = cosh(x)*v1 + sinh(x)*v2
+        hyperbola = tuple(cosh(x)*v1 + sinh(x)*v2)
         endtime = arcsinh(v2_ldot_u2)
         # mimic the function _parametric_plot3d_curve using a bezier3d instead of a line3d
         # this is required in order to be able to plot hyperbolic polygons whithin the plot library
         g, ranges = setup_for_eval_on_grid(hyperbola, [(x, 0, endtime)], points)
         f_x, f_y, f_z = g
         points = [(f_x(u), f_y(u), f_z(u)) for u in xsrange(*ranges[0], include_endpoint=True)]
-        # convert points to a path3d
-        points = list(points)
         return points
 
     def plot(self, show_hyperboloid=True, **graphics_options):

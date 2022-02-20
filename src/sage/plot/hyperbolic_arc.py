@@ -5,52 +5,50 @@ AUTHORS:
 
 - Hartmut Monien (2011 - 08)
 
-Two models of the hyperbolic plane are implemented: Upper Half Plane and Poincare Disc, each with
+Two models of the hyperbolic plane are implemented: Upper Half Plane,
+Poincaré Disk, and Klein Disk, each with
 its different domain and metric tensor.
 
 UPPER HALF PLANE (UHP)
 
-In this model, hyperbolic points are described by two coordinates, which we will represent
-by a complex number in the domain
+In this model, hyperbolic points are described by two coordinates, which
+we will represent by a complex number in the domain
 
 .. MATH::
 
-    H = \{z \in \CC \colon \Im(z)>0\}
+    H = \{ z \in \CC \mid \Im(z)>0 \}
 
 with the corresponding metric tensor
 
 .. MATH::
 
-   ds^2=\frac{dzd\bar{z}}{\Im(z)^2}
+   ds^2 = \frac{dzd\bar{z}}{\Im(z)^2}.
 
-POINCARE DISC (PD)
+POINCARÉ DISK (PD)
 
-In this model, hyperbolic points are described by two coordinates, which we will represent
-by a complex number within the unit circle, having therefore the following domain
+In this model, hyperbolic points are described by two coordinates, which we
+will represent by a complex number within the unit circle, having therefore
+the following domain
 
 .. MATH::
 
-    D = \{ z \in \CC \colon \vert z \vert < 1\}
+    D = \{ z \in \CC \mid \lvert z \rvert < 1\}
 
 with the corresponding metric tensor
 
 .. MATH::
 
-   ds^2 = 4 \frac{dzd\bar{z}}{(1-\vert z \vert^2)^2}
+   ds^2 = 4 \frac{dzd\bar{z}}{(1-\lvert z \rvert^2)^2}.
 
 .. SEEALSO::
 
-   :mod:`link to the geodesics in hyperbolic geometry module <sage.geometry.hyperbolic_space.hyperbolic_geodesic>`
+   :mod:`sage.geometry.hyperbolic_space.hyperbolic_geodesic`
 
 REFERENCES:
 
-For additional models of the hyperbolic plane and its relationship see
-
-[CFKP1997]_
-
-And for a more detailed explanation on hyperbolic arcs see
-
-[Sta1993]_
+For additional models of the hyperbolic plane and its relationship
+see [CFKP1997]_. For a more detailed explanation on hyperbolic arcs
+see [Sta1993]_.
 
 """
 # *****************************************************************************
@@ -81,125 +79,51 @@ from sage.geometry.hyperbolic_space.hyperbolic_constants import EPSILON
 class HyperbolicArcCore(BezierPath):
     """
     Base class for Hyperbolic arcs and hyperbolic polygons in the
-    hyperbolic plane. Both Upper Half Model and Poincare Disc Model
+    hyperbolic plane.
+
+    The Upper Half Model, Poincaré Disk Model, and Klein Disk model
     are supported.
-
-    INPUT:
-
-    - ``A, B`` -- end points of the hyperbolic arc
-
-    - ``model`` -- (default: ``'UHP'``) hyperbolic model used,
-      which is one of the following:
-
-      * ``'UHP'`` - upper half plane
-      * ``'PD'`` - Poincare disc
     """
-    def __init__(self, A, B, model, options):
-        """
-        Initialize ``self``.
-        """
-        A, B = (CC(A), CC(B))
-        self.path = []
-        if model == "UHP":
-            if A.imag() < 0:
-                raise ValueError("%s is not a valid point in the UHP model" % (A,))
-            if B.imag() < 0:
-                raise ValueError("%s is not a valid point in the UHP model" % (B,))
-            self._UHP_hyperbolic_arc(A, B, True)
-        elif model == "PD":
-            if A.abs() > 1:
-                raise ValueError("%s is not a valid point in the PD model" % (A,))
-            if B.abs() > 1:
-                raise ValueError("%s is not a valid point in the PD model" % (B,))
-            self._PD_hyperbolic_arc(A, B, True)
-        elif model == "KM":
-            if A.abs() > 1:
-                raise ValueError("%s is not a valid point in the KM model" % (A,))
-            if B.abs() > 1:
-                raise ValueError("%s is not a valid point in the KM model" % (B,))
-            self._KM_hyperbolic_arc(A, B, True)
-        else:
-            raise ValueError("%s is not a valid model for Hyperbolic plane" % model)
-
-        BezierPath.__init__(self, self.path, options)
-        self.A, self.B = (A, B)
-
-    def _repr_(self):
-        """
-        String representation of HyperbolicArc.
-
-        TESTS::
-
-            sage: from sage.plot.hyperbolic_arc import HyperbolicArcCore
-            sage: HyperbolicArcCore(0, 1/2+I*sqrt(3)/2, "UHP", {})._repr_()
-            'Hyperbolic arc (0.000000000000000, 0.500000000000000 + 0.866025403784439*I)'
-        """
-        return "Hyperbolic arc (%s, %s)" % (self.A, self.B)
-
-    def _UHP_hyperbolic_arc(self, z0, z3, first=False):
-        """
-        Construct Bezier path as an approximation to
-        the hyperbolic arc between the complex numbers ``z0`` and ``z3``
-        in the hyperbolic plane.
-        """
-        from sage.geometry.hyperbolic_space.hyperbolic_interface import HyperbolicPlane
-        UHP = HyperbolicPlane().UHP()
-        g = UHP.get_geodesic(z0, z3)
-        p = g.plot()
-        the_arc = p[0]
-        self._bezier_path(the_arc, z0, z3, first)
-
-    def _PD_hyperbolic_arc(self, z0, z3, first=False):
-        """
-        Construct a hyperbolic arc between the complez numbers ``z0``
-        and ``z3`` in the Poincare Disc model
-        """
-        from sage.geometry.hyperbolic_space.hyperbolic_interface import HyperbolicPlane
-        PD = HyperbolicPlane().PD()
-        g = PD.get_geodesic(z0, z3)
-        p = g.plot()
-        the_arc = p[0]
-        self._bezier_path(the_arc, z0, z3, first)
-
-    def _KM_hyperbolic_arc(self, z0, z3, first=False):
-        """
-        Construct Bezier path as an approximation to
-        the hyperbolic arc between the complex numbers ``z0`` and ``z3``
-        in the hyperbolic plane.
-        """
-        from sage.geometry.hyperbolic_space.hyperbolic_interface import HyperbolicPlane
-        KM = HyperbolicPlane().KM()
-        g = KM.get_geodesic(z0, z3)
-        p = g.plot()
-        the_arc = p[0]
-        self._bezier_path(the_arc, z0, z3, first)
-
-    def _bezier_path(self, arc0, z0, z3, first=False):
+    def _bezier_path(self, z0, z1, model, first=False):
         """
         Construct a bezier path from a given arc object and store it
-        in the ``path`` attribute
+        in the ``path`` attribute.
 
         INPUT:
 
-        - ``arc0`` -- an arc object representing a hyperbolic arc
-        - ```z0, z3`` -- hyperbolic arc end points
+        - ``z0``, ``z1`` -- the points of the arc
+        - ``model`` -- an model for the hyperbolic arc
+
+        TESTS::
+
+            sage: from sage.plot.hyperbolic_arc import HyperbolicArc
+            sage: HyperbolicArc(0, 1/2+I*sqrt(3)/2, "UHP", {})  # indirect doctest
+            Hyperbolic arc (0.000000000000000, 0.500000000000000 + 0.866025403784439*I)
         """
         import numpy as np
         from sage.rings.infinity import infinity
-        if(isinstance(arc0, BezierPath)):
+        EPSILON = 10 ** -5
+
+        arc0 = model.get_geodesic(z0, z1).plot()[0]
+
+        if isinstance(arc0, BezierPath):
             points = arc0.vertices
         else:
             points = arc0.bezier_path()[0].vertices
         if (
-                ((z0.is_infinity() or z0 == infinity) and abs(CC(points[0][0], points[0][1]) - z3) < 0.00001)
-                or ((z3.is_infinity() or z3 == infinity) and abs(CC(points[1][0], points[1][1]) - z0) < 0.00001)
-                or (abs(CC(points[0][0], points[0][1]) - z0) > 0.00001 and not(z0.is_infinity() or z0 == infinity or z3.is_infinity() or z3 == infinity))
-        ):
+            ((z0.is_infinity() or z0 == infinity)
+             and abs(CC(points[0][0], points[0][1]) - z1) < EPSILON)
+            or ((z1.is_infinity() or z1 == infinity)
+                and abs(CC(points[1][0], points[1][1]) - z0) < EPSILON)
+            or (abs(CC(points[0][0], points[0][1]) - z0) >= EPSILON
+                and not (z0.is_infinity() or z0 == infinity or z1.is_infinity()
+                         or z1 == infinity))
+            ):
             points = np.flipud(points)  # order is important
 
         if first:
-            self.path.append(points[0: 4])  # if it is a line it will append only two control points
-            if (isinstance(arc0, BezierPath)):
+            self.path.append(points[0:4])  # if it is a line it will append only two control points
+            if isinstance(arc0, BezierPath):
                 self.last_plotted = "line"
             else:
                 N = 4
@@ -212,10 +136,10 @@ class HyperbolicArcCore(BezierPath):
             # the first point is equal to the last of the previous arc
             points = np.delete(points, 0, 0)
             N = 0
-            if (isinstance(arc0, BezierPath)):
+            if isinstance(arc0, BezierPath):
                 self.path.append(points[0:1])
                 self.last_plotted = "line"
-            elif (self.last_plotted == "line"):  # actual segment is an arc
+            elif self.last_plotted == "line":  # actual segment is an arc
                 # Add new triplets
                 while N < len(points):
                     self.path.append(points[N: N + 3])
@@ -239,33 +163,61 @@ class HyperbolicArcCore(BezierPath):
 
 class HyperbolicArc(HyperbolicArcCore):
     r"""
-    Primitive class for hyberbolic arc type. See ``hyperbolic_arc?`` for
-    information about plotting a hyperbolic arc in the complex plane.
+    Primitive class for hyberbolic arc type.
+
+    See ``hyperbolic_arc?`` for information about plotting a hyperbolic
+    arc in the complex plane.
 
     INPUT:
 
-    - ``a, b`` -- coordinates of the hyperbolic arc in the complex plane
-    - ``options`` -- dict of valid plot options to pass to constructor
-    - ``model`` -- (default: ``'UHP'``) hyperbolic model used,
-      which is one of the following:
+    - ``A, B`` -- end points of the hyperbolic arc
+    - ``model`` -- the hyperbolic model used, which is one of the following:
 
       * ``'UHP'`` - upper half plane
-      * ``'PD'`` - Poincare disc
+      * ``'PD'`` - Poincaré disk
+      * ``'KM'`` - Klein disk
 
-    EXAMPLES:
-
-    Note that constructions should use ``hyperbolic_arc``::
+    TESTS::
 
          sage: from sage.plot.hyperbolic_arc import HyperbolicArc
-         sage: print(HyperbolicArc(0, 1/2+I*sqrt(3)/2, "UHP", {}))
+         sage: HyperbolicArc(0, 1/2+I*sqrt(3)/2, "UHP", {})
          Hyperbolic arc (0.000000000000000, 0.500000000000000 + 0.866025403784439*I)
     """
     def __init__(self, A, B, model, options):
-        r"""
-        Initialize ``self``.
         """
-        HyperbolicArcCore.__init__(self, A, B, model, options)
+        Initialize ``self``.
 
+        EXAMPLES::
+
+            sage: from sage.plot.hyperbolic_arc import HyperbolicArc
+            sage: arc = HyperbolicArc(0, 1/2+I*sqrt(3)/2, "UHP", {})
+            sage: TestSuite(arc).run(skip="_test_pickling")  # no equality implemented
+        """
+        if model == "HM":
+            raise ValueError("the hyperboloid model is not supported")
+        from sage.geometry.hyperbolic_space.hyperbolic_interface import HyperbolicPlane
+        HP = HyperbolicPlane()
+        M = getattr(HP, model)()
+        self.A = CC(A)
+        self.B = CC(B)
+        self.model = model
+        M.point_test(self.A)
+        M.point_test(self.B)
+        self.path = []
+        self._bezier_path(self.A, self.B, M, True)
+        BezierPath.__init__(self, self.path, options)
+
+    def _repr_(self):
+        """
+        String representation of HyperbolicArc.
+
+        TESTS::
+
+            sage: from sage.plot.hyperbolic_arc import HyperbolicArc
+            sage: HyperbolicArc(0, 1/2+I*sqrt(3)/2, "UHP", {})
+            Hyperbolic arc (0.000000000000000, 0.500000000000000 + 0.866025403784439*I)
+        """
+        return "Hyperbolic arc (%s, %s)" % (self.A, self.B)
 
 @rename_keyword(color='rgbcolor')
 @options(alpha=1, fill=False, thickness=1, rgbcolor="blue", zorder=2, linestyle='solid')
@@ -281,7 +233,9 @@ def hyperbolic_arc(a, b, model="UHP", **options):
       which is one of the following:
 
       * ``'UHP'`` - upper half plane
-      * ``'PD'`` - Poincare disc
+      * ``'PD'`` - Poincaré disk
+      * ``'KM'`` - Klein disk
+      * ``'HM'`` - hyperboloid model
 
     OPTIONS:
 
@@ -348,7 +302,7 @@ def hyperbolic_arc(a, b, model="UHP", **options):
     Show a hyperbolic arc from `i` to `-1` in red, another hyperbolic arc
     from `e^{i\pi/3}` to `0.6*e^{i 3\pi/4}` with dashed style in green,
     and finally a hyperbolic arc from `-0.5+0.5i` to `0.5-0.5i` together
-    with the disc frontier in the PD model::
+    with the disk frontier in the PD model::
 
         sage: z1 = CC(0,1)
         sage: z2 = CC(-1,0)
@@ -379,7 +333,7 @@ def hyperbolic_arc(a, b, model="UHP", **options):
     Show a hyperbolic arc from `i` to `-1` in red, another hyperbolic arc
     from `e^{i\pi/3}` to `0.6*e^{i 3\pi/4}` with dashed style in green,
     and finally a hyperbolic arc from `-0.5+0.5i` to `0.5-0.5i` together
-    with the disc frontier in the KM model::
+    with the disk frontier in the KM model::
 
         sage: z1 = CC(0,1)
         sage: z2 = CC(-1,0)
@@ -412,7 +366,7 @@ def hyperbolic_arc(a, b, model="UHP", **options):
         sage: a = (1,2,sqrt(6))
         sage: b = (-2,-3,sqrt(14))
         sage: hyperbolic_arc(a, b, model="HM")
-        Launched html viewer for Graphics3d Object
+        Graphics3d Object
 
     ..PLOT::
 
@@ -421,13 +375,11 @@ def hyperbolic_arc(a, b, model="UHP", **options):
        sphinx_plot(hyperbolic_arc(a, b, model="HM"))
 
     """
-    from sage.plot.all import Graphics
+    from sage.plot.graphics import Graphics
 
     g = Graphics()
     g._set_extra_kwds(g._extract_kwds_for_show(options))
-    if model != "HM":
-        g.add_primitive(HyperbolicArc(a, b, model, options))
-    else:
+    if model == "HM":
         # since KM is 3d we can not use HyperbolicArc class we plot it directly
         # and we also handle the hyperbolic_polygon in direct way
         from sage.geometry.hyperbolic_space.hyperbolic_interface import HyperbolicPlane
@@ -441,7 +393,10 @@ def hyperbolic_arc(a, b, model="UHP", **options):
         HM = HyperbolicPlane().HM()
         geodesic = HM.get_geodesic(a, b)
         g = g + geodesic.plot(show_hyperboloid=True, graphics_options=options)
-    if model == "PD" or model == "KM":
-        g = g + circle((0, 0), 1, axes=False, color='black')
-        g.set_aspect_ratio(1)
+    else:
+        g.add_primitive(HyperbolicArc(a, b, model, options))
+        if model == "PD" or model == "KM":
+            g = g + circle((0, 0), 1, axes=False, color='black')
+            g.set_aspect_ratio(1)
     return g
+

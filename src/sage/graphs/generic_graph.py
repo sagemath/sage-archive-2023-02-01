@@ -902,10 +902,7 @@ class GenericGraph(GenericGraph_pyx):
             sage: factor(m.charpoly())
             x^3 * (x^2 - 6)
         """
-        if R is None:
-            return self.am(vertices=vertices)
-        else:
-            return self.am(vertices=vertices).change_ring(R)
+        return self.am(vertices=vertices, base_ring=R)
 
     def _repr_(self):
         """
@@ -1779,13 +1776,11 @@ class GenericGraph(GenericGraph_pyx):
 
         return d
 
-    def adjacency_matrix(self, sparse=None, vertices=None):
+    def adjacency_matrix(self, sparse=None, vertices=None, *, base_ring=None, **kwds):
         r"""
         Return the adjacency matrix of the (di)graph.
 
-        The matrix returned is over the integers. If a different ring is
-        desired, use either the :meth:`sage.matrix.matrix0.Matrix.change_ring`
-        method or the :func:`matrix` function.
+        By default, the matrix returned is over the integers.
 
         INPUT:
 
@@ -1795,6 +1790,12 @@ class GenericGraph(GenericGraph_pyx):
         - ``vertices`` -- list (default: ``None``); the ordering of the vertices
           defining how they should appear in the matrix. By default, the
           ordering given by :meth:`GenericGraph.vertices` is used.
+
+        - ``base_ring`` -- a ring (default: ``ZZ``); the base ring of the matrix
+          space to use.
+
+        - ``**kwds`` -- other keywords to pass to
+          :func:`~sage.matrix.constructor.matrix`.
 
         EXAMPLES::
 
@@ -1857,6 +1858,40 @@ class GenericGraph(GenericGraph_pyx):
             [1 1 0 0 0]
             [0 0 1 0 0]
 
+        A different base ring::
+
+            sage: graphs.PathGraph(5).adjacency_matrix(base_ring=RDF)
+            [0.0 1.0 0.0 0.0 0.0]
+            [1.0 0.0 1.0 0.0 0.0]
+            [0.0 1.0 0.0 1.0 0.0]
+            [0.0 0.0 1.0 0.0 1.0]
+            [0.0 0.0 0.0 1.0 0.0]
+            sage: type(_)
+            <class 'sage.matrix.matrix_real_double_dense.Matrix_real_double_dense'>
+
+        A different matrix implementation::
+
+            sage: graphs.PathGraph(5).adjacency_matrix(sparse=False, implementation='numpy')
+            [0 1 0 0 0]
+            [1 0 1 0 0]
+            [0 1 0 1 0]
+            [0 0 1 0 1]
+            [0 0 0 1 0]
+            sage: type(_)
+            <class 'sage.matrix.matrix_numpy_integer_dense.Matrix_numpy_integer_dense'>
+
+        As an immutable matrix::
+
+            sage: M = graphs.PathGraph(5).adjacency_matrix(sparse=False, immutable=True); M
+            [0 1 0 0 0]
+            [1 0 1 0 0]
+            [0 1 0 1 0]
+            [0 0 1 0 1]
+            [0 0 0 1 0]
+            sage: M[2, 2] = 1
+            Traceback (most recent call last):
+            ...
+            ValueError: matrix is immutable; please change a copy instead (i.e., use copy(M) to change a copy of M).
 
         TESTS::
 
@@ -1903,12 +1938,15 @@ class GenericGraph(GenericGraph_pyx):
                 if not directed and i != j:
                     D[j,i] = 1
         from sage.matrix.constructor import matrix
-        M = matrix(ZZ, n, n, D, sparse=sparse)
+        if base_ring is None:
+            base_ring = ZZ
+        M = matrix(base_ring, n, n, D, sparse=sparse, **kwds)
         return M
 
     am = adjacency_matrix # shorter call makes life easier
 
-    def incidence_matrix(self, oriented=None, sparse=True, vertices=None, edges=None):
+    def incidence_matrix(self, oriented=None, sparse=True, vertices=None, edges=None,
+                         *, base_ring=None, **kwds):
         r"""
         Return the incidence matrix of the (di)graph.
 
@@ -1951,6 +1989,12 @@ class GenericGraph(GenericGraph_pyx):
           column of the matrix corresponds to the `i`-th edge in the ordering of
           ``edges``, otherwise, the `i`-th column of the matrix corresponds to
           the `i`-th edge in the ordering given by method :meth:`edge_iterator`.
+
+        - ``base_ring`` -- a ring (default: ``ZZ``); the base ring of the matrix
+          space to use.
+
+        - ``**kwds`` -- other keywords to pass to
+          :func:`~sage.matrix.constructor.matrix`.
 
         EXAMPLES::
 
@@ -2045,6 +2089,28 @@ class GenericGraph(GenericGraph_pyx):
             [1 1 0 0]
             [0 0 0 1]
 
+        A different base ring::
+
+            sage: P5.incidence_matrix(base_ring=RDF)
+            [1.0 0.0 0.0 0.0]
+            [1.0 1.0 0.0 0.0]
+            [0.0 1.0 1.0 0.0]
+            [0.0 0.0 1.0 1.0]
+            [0.0 0.0 0.0 1.0]
+
+        Creating an immutable matrix::
+
+            sage: m = P5.incidence_matrix(immutable=True); m
+            [1 0 0 0]
+            [1 1 0 0]
+            [0 1 1 0]
+            [0 0 1 1]
+            [0 0 0 1]
+            sage: m[1,2] = 1
+            Traceback (most recent call last):
+            ...
+            ValueError: matrix is immutable; please change a copy instead (i.e., use copy(M) to change a copy of M).
+
         TESTS::
 
             sage: P5 = graphs.PathGraph(5)
@@ -2091,8 +2157,10 @@ class GenericGraph(GenericGraph_pyx):
                 raise ValueError("``edges`` must be a permutation of the edges")
 
         from sage.matrix.constructor import matrix
-        from sage.rings.integer_ring import ZZ
-        m = matrix(ZZ, self.num_verts(), self.num_edges(), sparse=sparse)
+        if base_ring is None:
+            base_ring = ZZ
+        immutable = kwds.pop('immutable', False)
+        m = matrix(base_ring, self.num_verts(), self.num_edges(), sparse=sparse, **kwds)
 
         if oriented:
             for i, e in enumerate(edges):
@@ -2104,6 +2172,8 @@ class GenericGraph(GenericGraph_pyx):
                 m[verts[e[0]], i] += 1
                 m[verts[e[1]], i] += 1
 
+        if immutable:
+            m.set_immutable()
         return m
 
     def distance_matrix(self, vertices=None, **kwds):
@@ -2200,7 +2270,7 @@ class GenericGraph(GenericGraph_pyx):
 
         return ret
 
-    def weighted_adjacency_matrix(self, sparse=True, vertices=None):
+    def weighted_adjacency_matrix(self, sparse=True, vertices=None, *, base_ring=None, **kwds):
         """
         Return the weighted adjacency matrix of the graph.
 
@@ -2216,6 +2286,12 @@ class GenericGraph(GenericGraph_pyx):
           is represented by its position in the list ``vertices``, otherwise
           each vertex is represented by its position in the list returned by
           method :meth:`vertices`
+
+        - ``base_ring`` -- a ring (default: determined from the weights); the base
+          ring of the matrix space to use.
+
+        - ``**kwds`` -- other keywords to pass to
+          :func:`~sage.matrix.constructor.matrix`
 
         EXAMPLES::
 
@@ -2234,6 +2310,26 @@ class GenericGraph(GenericGraph_pyx):
             [0 0 2 3]
             [0 2 0 1]
             [4 3 1 0]
+
+        Using a different matrix implementation::
+
+            sage: M = G.weighted_adjacency_matrix(sparse=False, base_ring=ZZ, implementation='numpy'); M
+            [0 1 3 4]
+            [1 0 2 0]
+            [3 2 0 0]
+            [4 0 0 0]
+
+        As an immutable matrix::
+
+            sage: M = G.weighted_adjacency_matrix(immutable=True); M
+            [0 1 3 4]
+            [1 0 2 0]
+            [3 2 0 0]
+            [4 0 0 0]
+            sage: M[2, 2] = 1
+            Traceback (most recent call last):
+            ...
+            ValueError: matrix is immutable; please change a copy instead (i.e., use copy(M) to change a copy of M).
 
         TESTS:
 
@@ -2269,7 +2365,10 @@ class GenericGraph(GenericGraph_pyx):
                 D[i,j] = l
                 D[j,i] = l
         from sage.matrix.constructor import matrix
-        M = matrix(self.num_verts(), D, sparse=sparse)
+        if base_ring is None:
+            M = matrix(self.num_verts(), D, sparse=sparse, **kwds)
+        else:
+            M = matrix(base_ring, self.num_verts(), D, sparse=sparse, **kwds)
         return M
 
     def kirchhoff_matrix(self, weighted=None, indegree=True, normalized=False, signless=False, **kwds):

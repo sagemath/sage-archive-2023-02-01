@@ -364,17 +364,6 @@ cdef class Matrix_integer_dense(Matrix_dense):
         """
         fmpz_set_mpz(fmpz_mat_entry(self._matrix,i,j), value)
 
-    cdef void set_unsafe_si(self, Py_ssize_t i, Py_ssize_t j, long value):
-        """
-        Set position i,j of this matrix to ``value``.
-
-        .. WARNING::
-
-            Do not use. Use ``set_unsafe_int`` instead,
-            which is consistent with other matrix classes.
-        """
-        fmpz_set_si(fmpz_mat_entry(self._matrix,i,j), value)
-
     cdef int set_unsafe_int(self, Py_ssize_t i, Py_ssize_t j, int value) except -1:
         """
         Set position i,j of this matrix to ``value``.

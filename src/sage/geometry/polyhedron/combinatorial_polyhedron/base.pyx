@@ -1475,8 +1475,8 @@ cdef class CombinatorialPolyhedron(SageObject):
         for i in range(self._n_ridges):
             a = self._get_edge(self._ridges, i, 0)
             b = self._get_edge(self._ridges, i, 1)
-            adjacency_matrix.set_unsafe_si(a, b, 1)
-            adjacency_matrix.set_unsafe_si(b, a, 1)
+            adjacency_matrix.set_unsafe_int(a, b, 1)
+            adjacency_matrix.set_unsafe_int(b, a, 1)
         adjacency_matrix.set_immutable()
         return adjacency_matrix
 

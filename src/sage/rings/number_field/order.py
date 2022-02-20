@@ -37,9 +37,9 @@ We compute a suborder, which has index a power of 17 in the maximal order::
 
 """
 # ****************************************************************************
-#       Copyright (C)      2007 Robert Bradshaw <robertwb@math.washington.edu>
+#       Copyright (C)      2007 Robert Bradshaw <robertwb@gmail.com>
 #                     2007-2009 William Stein <wstein@gmail.com>
-#                     2007-2017 David Roe <roed@math.harvard.edu>
+#                     2007-2017 David Roe <roed.math@gmail.com>
 #                          2008 Craig Citro <craigcitro@gmail.com>
 #                          2008 Alexandru Ghitza <aghitza@alum.mit.edu>
 #                          2008 Gary Furnish <bill@indirectproof.net>
@@ -47,10 +47,10 @@ We compute a suborder, which has index a power of 17 in the maximal order::
 #                     2008-2017 John Cremona <john.cremona@gmail.com>
 #                          2008 Mike Hansen <mhansen@gmail.com>
 #                     2008-2011 David Loeffler <D.Loeffler@dpmms.cam.ac.uk>
-#                          2009 Sebastian Pancratz <sage@pancratz@org>
+#                          2009 Sebastian Pancratz <sage@pancratz.org>
 #                     2010-2016 Jeroen Demeyer <jdemeyer@cage.ugent.be>
 #                          2011 Martin Albrecht <martinralbrecht@googlemail.com>
-#                          2012 Vincent Delecroix <20100.delecroix at gmail.com>
+#                          2012 Vincent Delecroix <vincent.delecroix@u-bordeaux.fr>
 #                     2013-2020 Marc Mezzarobba <marc@mezzarobba.net>
 #                          2014 Wilfried Luebbe <wluebbe@gmail.com>
 #                     2014-2016 Peter Bruin <P.J.Bruin@math.leidenuniv.nl>

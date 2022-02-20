@@ -2176,7 +2176,7 @@ class GenericGraph(GenericGraph_pyx):
             m.set_immutable()
         return m
 
-    def distance_matrix(self, vertices=None, **kwds):
+    def distance_matrix(self, vertices=None, *, base_ring=None, **kwds):
         r"""
         Return the distance matrix of (di)graph.
 
@@ -2201,8 +2201,12 @@ class GenericGraph(GenericGraph_pyx):
           only works if the vertices can be sorted, using ``vertices`` is useful
           when working with possibly non-sortable objects in Python 3.
 
-        - All other arguments are forwarded to the subfunction
-          :meth:`distance_all_pairs`
+        - ``base_ring`` -- a ring (default: determined from the weights); the base
+          ring of the matrix space to use.
+
+        - ``**kwds`` -- other keywords to pass to the subfunction
+          :meth:`distance_all_pairs` or to
+          :func:`~sage.matrix.constructor.matrix`
 
         EXAMPLES::
 
@@ -2240,6 +2244,33 @@ class GenericGraph(GenericGraph_pyx):
 
             * :meth:`~sage.graphs.generic_graph.GenericGraph.distance_all_pairs`
               -- computes the distance between any two vertices.
+
+        TESTS::
+
+        Asking for an immutable matrix::
+
+            sage: G = Graph([(0, 1)])
+            sage: G.distance_matrix().is_immutable()
+            False
+            sage: G.distance_matrix(immutable=True).is_immutable()
+            True
+
+        Specifying a base ring::
+
+            sage: G = Graph([(0, 1)])
+            sage: G.distance_matrix(vertices=[0, 1], base_ring=ZZ)
+            [0 1]
+            [1 0]
+            sage: G.distance_matrix(vertices=[0, 1], base_ring=RDF)
+            [0.0 1.0]
+            [1.0 0.0]
+
+        Check that distance parameters are not pass to the matrix constructor::
+
+            sage: G = Graph([(0, 1)])
+            sage: G.distance_matrix(vertices=[0, 1], weight_function=lambda e:2)
+            [0 2]
+            [2 0]
         """
         from sage.matrix.constructor import matrix
 
@@ -2253,21 +2284,34 @@ class GenericGraph(GenericGraph_pyx):
             set(vertices) != set(self.vertex_iterator())):
             raise ValueError("``vertices`` must be a permutation of the vertices")
 
-        n = self.order()
-        ret = matrix(n, n)
-        V = vertices
+        # We extract from **kwds the arguments for distance_all_pairs
+        keys = ['by_weight', 'algorithm', 'weight_function', 'check_weight']
+        kwds_dist = {key: kwds.pop(key) for key in keys if key in kwds}
 
-        dist = self.distance_all_pairs(**kwds)
+        dist = self.distance_all_pairs(**kwds_dist)
+
+        # We now turn the result to a matrix
+        n = self.order()
+        set_immutable = kwds.pop('immutable', False)
+        if base_ring is None:
+            ret = matrix(n, n, **kwds)
+        else:
+            ret = matrix(base_ring, n, n, **kwds)
+        V = vertices
 
         if self.is_directed():
             for i in range(n):
+                dist_i = dist[V[i]]
                 for j in range(n):
-                    ret[i, j] = (dist[V[i]])[V[j]]
+                    ret[i, j] = dist_i[V[j]]
         else:
             for i in range(n):
+                dist_i = dist[V[i]]
                 for j in range(i + 1, n):
-                    ret[i, j] = ret[j, i] = (dist[V[i]])[V[j]]
+                    ret[i, j] = ret[j, i] = dist_i[V[j]]
 
+        if set_immutable:
+            ret.set_immutable()
         return ret
 
     def weighted_adjacency_matrix(self, sparse=True, vertices=None, *, base_ring=None, **kwds):

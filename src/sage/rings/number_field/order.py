@@ -118,19 +118,17 @@ class OrderFactory(UniqueFactory):
             sage: L.<a, b> = NumberField([x^2 - 1000003, x^2 - 5*1000099^2])
             sage: O = L.maximal_order([2], assume_maximal=None)
 
-            sage: O.is_maximal(2)
+            sage: O._is_maximal_at(2)
             True
-            sage: O.is_maximal(3)
-            Traceback (most recent call last):
-            ...
-            NotImplementedError: cannot decide maximality at this prime yet
+            sage: O._is_maximal_at(3) is None
+            True
 
             sage: N = L.maximal_order([3], assume_maximal=None)
             sage: N is O
             True
-            sage: N.is_maximal(2)
+            sage: N._is_maximal_at(2)
             True
-            sage: N.is_maximal(3)
+            sage: N._is_maximal_at(3)
             True
 
         """
@@ -1637,10 +1635,10 @@ class Order_absolute(Order):
             sage: K.maximal_order().is_maximal(p=3)
             True
 
+        And also at other primes::
+
             sage: K.order(3*i).is_maximal(p=3)
-            Traceback (most recent call last):
-            ...
-            NotImplementedError: cannot decide maximality at this prime yet
+            False
 
          An example involving a relative order::
 
@@ -1650,17 +1648,21 @@ class Order_absolute(Order):
             False
 
         """
+        if self._is_maximal() is True:
+            return True
+
         if p is None:
             if self._is_maximal() is None:
                 self._assume_maximal(self.absolute_discriminant() == self._K.absolute_discriminant())
             return self._is_maximal()
         else:
-            is_maximal = self._is_maximal_at(p)
-            if is_maximal is not None:
-                return is_maximal
-            if self.is_maximal():
-                return True
-            raise NotImplementedError("cannot decide maximality at this prime yet")
+            p = ZZ(p).abs()
+
+            if self._is_maximal_at(p) is None:
+                is_maximal = self._K.maximal_order(p, assume_maximal=None).absolute_discriminant().valuation(p) == self.absolute_discriminant().valuation(p)
+                self._assume_maximal(is_maximal, p=p)
+
+            return self._is_maximal_at(p)
 
     def _is_maximal(self):
         r"""
@@ -1735,16 +1737,13 @@ class Order_absolute(Order):
 
         We can store information about more primes::
 
-            sage: O.is_maximal(p=7)
-            Traceback (most recent call last):
-            ...
-            NotImplementedError: cannot decide maximality at this prime yet
-
+            sage: O._is_maximal_at(p=7) is None
+            True
             sage: 7.divides(K.absolute_discriminant())
             False
             sage: O._assume_maximal(p=7) is O
             True
-            sage: O.is_maximal(p=7)
+            sage: O._is_maximal_at(p=7)
             True
 
         We cannot store contradicting information at a prime::
@@ -2265,10 +2264,10 @@ class Order_relative(Order):
             sage: K.maximal_order().is_maximal(p=3)
             True
 
+        And at other primes::
+
             sage: K.order(3*a, b).is_maximal(p=3)
-            Traceback (most recent call last):
-            ...
-            NotImplementedError: cannot decide maximality at this prime yet
+            False
 
         """
         return self._absolute_order.is_maximal(p=p)
@@ -2330,16 +2329,13 @@ class Order_relative(Order):
 
         We can store information about more primes::
 
-            sage: O.is_maximal(p=7)
-            Traceback (most recent call last):
-            ...
-            NotImplementedError: cannot decide maximality at this prime yet
-
+            sage: O._is_maximal_at(p=7) is None
+            True
             sage: 7.divides(L.absolute_discriminant())
             False
             sage: O._assume_maximal(p=7) is O
             True
-            sage: O.is_maximal(p=7)
+            sage: O._is_maximal_at(p=7)
             True
 
         We cannot store contradicting information at a prime::

@@ -1382,7 +1382,7 @@ class BipartiteGraph(Graph):
 
         - ``base_ring`` -- a ring (default: ``None``); the base ring of the
           matrix space to use. By default, the base ring is ``ZZ`` if the graph
-          is not weighted and otherwisse the same ring as the (first) weights.
+          is not weighted and otherwise the same ring as the (first) weights.
 
         - ``**kwds`` -- other keywords to pass to
           :func:`~sage.matrix.constructor.matrix`

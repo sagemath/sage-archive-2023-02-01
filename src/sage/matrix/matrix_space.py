@@ -335,7 +335,10 @@ def get_matrix_class(R, nrows, ncols, sparse, implementation):
             if R is sage.rings.complex_double.CDF:
                 from . import matrix_complex_double_dense
                 return matrix_complex_double_dense.Matrix_complex_double_dense
-            raise ValueError("'numpy' matrices are only available over RDF and CDF")
+            if R is sage.rings.integer_ring.ZZ:
+                from . import matrix_numpy_integer_dense
+                return matrix_numpy_integer_dense.Matrix_numpy_integer_dense
+            raise ValueError("'numpy' matrices are only available over RDF, CDF, and ZZ")
 
         if implementation == 'rational':
             if isinstance(R, sage.rings.abc.NumberField_cyclotomic):

@@ -2447,8 +2447,7 @@ from sage.categories.map import is_Map
 
 class MapCombinatorialClass(ImageSubobject, CombinatorialClass):
     r"""
-    A ``MapCombinatorialClass`` models the image of a combinatorial
-    class through a function
+    The image of a combinatorial class through a function.
 
     INPUT:
 

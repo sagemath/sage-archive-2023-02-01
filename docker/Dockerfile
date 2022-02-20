@@ -58,10 +58,10 @@ RUN ln -s "$SAGE_ROOT/sage" /usr/bin/sage
 RUN ln -s /usr/bin/sage /usr/bin/sagemath
 # Sage needs the fortran libraries at run-time because we do not build gfortran
 # with Sage but use the system's.
-# We need gcc/g++ and libstdc++-9-dev to allow compilation of cython at run-time from the notebook.
+# We need gcc/g++ and libstdc++-10-dev to allow compilation of cython at run-time from the notebook.
 # We also install sudo for the sage user, see below.
 RUN apt-get -qq update \
-    && apt-get -qq install -y --no-install-recommends gfortran gcc g++ libstdc++-9-dev sudo openssl \
+    && apt-get -qq install -y --no-install-recommends gfortran gcc g++ libstdc++-10-dev sudo openssl \
     && apt-get -qq clean \
     && rm -r /var/lib/apt/lists/*
 # Sage refuses to build as root, so we add a "sage" user that can sudo without a password.

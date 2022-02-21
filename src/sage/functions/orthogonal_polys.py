@@ -217,6 +217,34 @@ Abramowitz and Stegun p561.)
 
 They are named for Leopold Gegenbauer (1849-1903).
 
+Krawtchouk polynomials
+----------------------
+
+The *Krawtchouk polynomials* are discrete orthogonal polynomials that
+are given by the hypergeometric series
+
+.. MATH::
+
+    K_j(x; n, p) = (-1)^j \binom{n}{j} p^j
+    \,_{2}F_1\left(-j,-x; -n; p^{-1}\right).
+
+Since they are discrete orthogonal polynomials, they satisfy an orthogonality
+relation defined on a discrete (in this case finite) set of points:
+
+.. MATH::
+
+    \sum_{m=0}^n K_i(m; n, p) K_j(m; n, p) \, \binom{n}{m} p^m q^{n-m}
+    = \binom{n}{j} (pq)^j \delta_{ij},
+
+where `q = 1 - p`. They can also be described by the recurrence relation
+
+.. MATH::
+
+    j K_j(x; n, p) = (x - (n-j+1) p - (j-1) q) K_{j-1}(x; n, p)
+    - p q (n - j + 2) K_{j-2}(x; n, p).
+
+They are named for Mykhailo Krawtchouk (Кравчу́к 1892-1942).
+
 
 Pochhammer symbol
 -----------------
@@ -253,6 +281,8 @@ REFERENCES:
 - :wikipedia:`Jacobi_polynomials`
 - :wikipedia:`Laguerre_polynomia`
 - :wikipedia:`Associated_Legendre_polynomials`
+- :wikipedia:`Kravchuk_polynomials`
+- :arxiv:`math/9602214`
 - [Koe1999]_
 
 AUTHORS:
@@ -296,7 +326,7 @@ from sage.symbolic.function import BuiltinFunction, GinacFunction
 from sage.symbolic.expression import Expression
 from sage.symbolic.ring import SR
 from sage.functions.other import factorial, binomial
-from sage.structure.all import parent
+from sage.structure.element import parent
 
 
 class OrthogonalFunction(BuiltinFunction):
@@ -2442,5 +2472,115 @@ class Func_gen_laguerre(OrthogonalFunction):
         else:
             raise ValueError("illegal differentiation parameter {}".format(diff_param))
 
-
 gen_laguerre = Func_gen_laguerre()
+
+
+class Func_krawtchouk(OrthogonalFunction):
+    """
+    Krawtchouk polynomials.
+
+    EXAMPLES:
+
+    We verify the orthogonality for `n = 4`::
+
+        sage: matrix([[sum(binomial(n,m) * p**m * (1-p)**(n-m)
+        ....:              * krawtchouk(i,m,n,p) * krawtchouk(j,m,n,p)
+        ....:              for m in range(n+1)).expand().factor()
+        ....:          for i in range(n+1)] for j in range(n+1)])
+        [               1                0                0                0                0]
+        [               0     -4*(p - 1)*p                0                0                0]
+        [               0                0  6*(p - 1)^2*p^2                0                0]
+        [               0                0                0 -4*(p - 1)^3*p^3                0]
+        [               0                0                0                0    (p - 1)^4*p^4]
+    """
+    def __init__(self):
+        """
+        Initialize ``self``.
+
+        EXAMPLES::
+
+            sage: k,x,n,p = var('k,x,n,p')
+            sage: TestSuite(krawtchouk).run()
+            sage: TestSuite(krawtchouk(k, x, n, p)).run()
+            sage: TestSuite(krawtchouk(3, x, n, p)).run()
+        """
+        super().__init__(name="krawtchouk", nargs=4, latex_name="K")
+
+    def eval_formula(self, k, x, n, p):
+        r"""
+        Evaluate ``self`` using an explicit formula.
+
+        EXAMPLES::
+
+            sage: x,n,p = var('x,n,p')
+            sage: krawtchouk.eval_formula(3, x, n, p).expand().collect(x)
+            -1/6*n^3*p^3 + 1/2*n^2*p^3 - 1/3*n*p^3 - 1/2*(n*p - 2*p + 1)*x^2
+             + 1/6*x^3 + 1/6*(3*n^2*p^2 - 9*n*p^2 + 3*n*p + 6*p^2 - 6*p + 2)*x
+        """
+        q = 1 - p
+        return sum((-1)**(k-i) * binomial(n-x, k-i) * binomial(x, i) * p**(k-i) * q**i
+                   for i in range(k+1))
+
+    def _eval_(self, j, x, n, p, *args, **kwds):
+        r"""
+        Return an evaluation of the Krawtchouk polynomial `K_j(x; n, p)`.
+
+        EXAMPLES::
+
+            sage: k,x,n,p = var('k,x,n,p')
+            sage: krawtchouk(3, x, 5, p).expand()
+            -10*p^3 + 6*p^2*x - 3/2*p*x^2 + 1/6*x^3 + 3/2*p*x - 1/2*x^2 + 1/3*x
+            sage: krawtchouk(k, x, 5, p)
+            (-1)^k*p^k*binomial(5, k)*hypergeometric((-k, -x), (-5,), 1/p)
+            sage: krawtchouk(2, x, n, p).collect(x)
+            1/2*n^2*p^2 - 1/2*n*p^2 - 1/2*(2*n*p - 2*p + 1)*x + 1/2*x^2
+            sage: krawtchouk(k, x, n, p)
+            (-1)^k*p^k*binomial(n, k)*hypergeometric((-k, -x), (-n,), 1/p)
+
+            sage: k3_hypergeo = krawtchouk(k,x,n,p)(k=3).simplify_hypergeometric()
+            sage: bool(k3_hypergeo == krawtchouk(3,x,n,p))
+            True
+        """
+        if j not in ZZ or j < 0:
+            from sage.functions.hypergeometric import hypergeometric
+            return (-1)**j * binomial(n, j) * p**j * hypergeometric([-j, -x], [-n], 1/p)
+        try:
+            return self.eval_formula(j, x, n, p)
+        except (TypeError, ValueError):
+            return eval_recursive(j, x, n, p)
+
+    def eval_recursive(self, j, x, n, p, *args, **kwds):
+        """
+        Return the Krawtchouk polynomial using the recursive formula.
+
+        EXAMPLES::
+
+            sage: x,n,p = var('x,n,p')
+            sage: krawtchouk.eval_recursive(0,x,n,p)
+            1
+            sage: krawtchouk.eval_recursive(1,x,n,p)
+            -n*p + x
+            sage: krawtchouk.eval_recursive(2,x,n,p).collect(x)
+            1/2*n^2*p^2 + 1/2*n*(p - 1)*p - n*p^2 + 1/2*n*p - 1/2*(2*n*p - 2*p + 1)*x + 1/2*x^2
+            sage: bool(krawtchouk.eval_recursive(2,x,n,p) == krawtchouk(2,x,n,p))
+            True
+            sage: bool(krawtchouk.eval_recursive(3,x,n,p) == krawtchouk(3,x,n,p))
+            True
+            sage: bool(krawtchouk.eval_recursive(4,x,n,p) == krawtchouk(4,x,n,p))
+            True
+            sage: M = matrix([[-1/2,-1],[1,0]])
+            sage: krawtchouk.eval_recursive(2, M, 3, 1/2)
+            [ 9/8  7/4]
+            [-7/4  1/4]
+        """
+        if j == 0:
+            return parent(x).one()
+        elif j == 1:
+            return x - n * p
+        q = 1 - p
+        tm2 = p * q * (n - (j-1) + 1) * krawtchouk.eval_recursive(j-2, x, n, p)
+        tm1 = (x - p*(n-(j-1)) - (j-1)*q) * krawtchouk.eval_recursive(j-1, x, n, p)
+        return (tm1 - tm2) / j
+
+krawtchouk = Func_krawtchouk()
+

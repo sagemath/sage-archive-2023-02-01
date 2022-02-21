@@ -61,7 +61,7 @@ The *Hermite polynomials* are defined either by
 
 .. MATH::
 
-    H_n(x)=(-1)^n e^{x^2}\frac{d^n}{dx^n}e^{-x^2}
+    H_n(x) = (-1)^n e^{x^2}\frac{d^n}{dx^n}e^{-x^2}
 
 (the "physicists' Hermite polynomials"). Sage (via Maxima) implements
 the latter flavor. These satisfy the orthogonality relation
@@ -241,9 +241,42 @@ where `q = 1 - p`. They can also be described by the recurrence relation
 .. MATH::
 
     j K_j(x; n, p) = (x - (n-j+1) p - (j-1) q) K_{j-1}(x; n, p)
-    - p q (n - j + 2) K_{j-2}(x; n, p).
+    - p q (n - j + 2) K_{j-2}(x; n, p),
+
+where `K_0(x; n, p) = 1` and `K_1(x; n, p) = x - n p`.
 
 They are named for Mykhailo Krawtchouk (Кравчу́к 1892-1942).
+
+
+Meixner polynomials
+-------------------
+
+The *Meixner polynomials* are discrete orthogonal polynomials that
+are given by the hypergeometric series
+
+.. MATH::
+
+    K_j(x; n, p) = (-1)^j \binom{n}{j} p^j
+    \,_{2}F_1\left(-j,-x; -n; p^{-1}\right).
+
+They satisfy an orthogonality relation:
+
+.. MATH::
+
+    \sum_{k=0}^{\infty} \tilde{M}_n(k; b, c) \tilde{M}_m(k; b, c) \, \frac{(b)_k}{k!} c^k
+    = \frac{c^{-n} n!}{(b)_n (1-c)^b} \delta_{mn},
+
+where `\tilde{M}_n(x; b, c) = M_n(x; b, c) / (b)_x`, for `b > 0 ` and
+`0 < c < 1`. They can also be described by the recurrence relation
+
+.. MATH::
+
+        c (n-1+b) M_n(x; b, c) = ((c-1) x + n-1 + c (n-1+b)) (b+n-1) M_{n-1}(x; b, c)
+        - (b+n-1) (b+n-2) (n-1) M_{n-2}(x; b, c),
+
+where `M_0(x; b, c) = 0` and `M_1(x; b, c) = (1 - c^{-1}) x + b`.
+
+They are named for Josef Meixner (1908-1994).
 
 
 Pochhammer symbol
@@ -282,7 +315,8 @@ REFERENCES:
 - :wikipedia:`Laguerre_polynomia`
 - :wikipedia:`Associated_Legendre_polynomials`
 - :wikipedia:`Kravchuk_polynomials`
-- :arxiv:`math/9602214`
+- :wikipedia:`Meixner_polynomials`
+- Roelof Koekeok and René F. Swarttouw, :arxiv:`math/9602214`
 - [Koe1999]_
 
 AUTHORS:
@@ -2483,6 +2517,8 @@ class Func_krawtchouk(OrthogonalFunction):
 
     We verify the orthogonality for `n = 4`::
 
+        sage: n = 4
+        sage: p = SR.var('p')
         sage: matrix([[sum(binomial(n,m) * p**m * (1-p)**(n-m)
         ....:              * krawtchouk(i,m,n,p) * krawtchouk(j,m,n,p)
         ....:              for m in range(n+1)).expand().factor()
@@ -2540,7 +2576,12 @@ class Func_krawtchouk(OrthogonalFunction):
             sage: k3_hypergeo = krawtchouk(k,x,n,p)(k=3).simplify_hypergeometric()
             sage: bool(k3_hypergeo == krawtchouk(3,x,n,p))
             True
+
+            sage: krawtchouk(2,x,n,p,hold=True)
+            krawtchouk(2, x, n, p)
         """
+        if kwds.get('hold', False):
+            return None
         if j not in ZZ or j < 0:
             from sage.functions.hypergeometric import hypergeometric
             return (-1)**j * binomial(n, j) * p**j * hypergeometric([-j, -x], [-n], 1/p)
@@ -2583,4 +2624,118 @@ class Func_krawtchouk(OrthogonalFunction):
         return (tm1 - tm2) / j
 
 krawtchouk = Func_krawtchouk()
+
+
+class Func_meixner(OrthogonalFunction):
+    """
+    Meixner polynomials.
+    """
+    def __init__(self):
+        """
+        Initialize ``self``.
+
+        EXAMPLES::
+
+            sage: n,x,b,c = var('n,x,b,c')
+            sage: TestSuite(meixner).run()
+            sage: TestSuite(meixner(3, x, b, c)).run()
+            sage: TestSuite(meixner(n, x, b, c)).run()
+        """
+        super().__init__(name="meixner", nargs=4, latex_name="M")
+
+    def eval_formula(self, n, x, b, c):
+        r"""
+        Evaluate ``self`` using an explicit formula.
+
+        EXAMPLES::
+
+            sage: x,b,c = var('x,b,c')
+            sage: meixner.eval_formula(3, x, b, c).expand().collect(x)
+            -x^3*(3/c - 3/c^2 + 1/c^3 - 1) + b^3
+             + 3*(b - 2*b/c + b/c^2 - 1/c - 1/c^2 + 1/c^3 + 1)*x^2 + 3*b^2
+             + (3*b^2 + 6*b - 3*b^2/c - 3*b/c - 3*b/c^2 - 2/c^3 + 2)*x + 2*b
+        """
+        from sage.misc.misc_c import prod
+        def P(val, k):
+            return prod(val + j for j in range(k))
+        return sum((-1)**k * binomial(n, k) * binomial(x, k) * factorial(k)
+                   * P(x + b, n - k) * c**-k
+                   for k in range(n+1))
+
+    def _eval_(self, n, x, b, c, *args, **kwds):
+        r"""
+        Return an evaluation of the Meixner polynomial `M_n(x; b, c)`.
+
+        EXAMPLES::
+
+            sage: n,x,b,c = var('n,x,b,c')
+            sage: meixner(2, x, b, c).collect(x)
+            -x^2*(2/c - 1/c^2 - 1) + b^2 + (2*b - 2*b/c - 1/c^2 + 1)*x + b
+            sage: meixner(3, x, b, c).factor().collect(x)
+            -x^3*(3/c - 3/c^2 + 1/c^3 - 1) + b^3
+             + 3*(b - 2*b/c + b/c^2 - 1/c - 1/c^2 + 1/c^3 + 1)*x^2 + 3*b^2
+             + (3*b^2 + 6*b - 3*b^2/c - 3*b/c - 3*b/c^2 - 2/c^3 + 2)*x + 2*b
+            sage: meixner(n, x, b, c)
+            gamma(b + n)*hypergeometric((-n, -x), (b,), -1/c + 1)/gamma(b)
+
+            sage: n3_hypergeo = meixner(n,x,b,c)(n=3).simplify_hypergeometric()
+            sage: n3_hypergeo = n3_hypergeo.simplify_full()
+            sage: bool(n3_hypergeo == meixner(3,x,b,c))
+            True
+            sage: n4_hypergeo = meixner(n,x,b,c)(n=4).simplify_hypergeometric()
+            sage: n4_hypergeo = n4_hypergeo.simplify_full()
+            sage: bool(n4_hypergeo == meixner(4,x,b,c))
+            True
+
+            sage: meixner(2,x,b,c,hold=True)
+            meixner(2, x, b, c)
+        """
+        if kwds.get('hold', False):
+            return None
+        if n not in ZZ or n < 0:
+            from sage.functions.hypergeometric import hypergeometric
+            from sage.functions.gamma import gamma
+            return gamma(b + n) / gamma(b) * hypergeometric([-n, -x], [b], 1 - 1/c)
+        try:
+            return self.eval_formula(n, x, b, c)
+        except (TypeError, ValueError):
+            return eval_recursive(n, x, b, c)
+
+    def eval_recursive(self, n, x, b, c, *args, **kwds):
+        """
+        Return the Meixner polynomial using the recursive formula.
+
+        EXAMPLES::
+
+            sage: x,b,c = var('x,b,c')
+            sage: meixner.eval_recursive(0,x,b,c)
+            1
+            sage: meixner.eval_recursive(1,x,b,c)
+            -x*(1/c - 1) + b
+            sage: meixner.eval_recursive(2,x,b,c).simplify_full().collect(x)
+            -x^2*(2/c - 1/c^2 - 1) + b^2 + (2*b - 2*b/c - 1/c^2 + 1)*x + b
+            sage: bool(meixner(2,x,b,c) == meixner.eval_recursive(2,x,b,c))
+            True
+            sage: bool(meixner(3,x,b,c) == meixner.eval_recursive(3,x,b,c))
+            True
+            sage: bool(meixner(4,x,b,c) == meixner.eval_recursive(4,x,b,c))
+            True
+            sage: M = matrix([[-1/2,-1],[1,0]])
+            sage: ret = meixner.eval_recursive(2, M, b, c).simplify_full().factor()
+            sage: for i in range(2):  # make the output polynomials in 1/c
+            ....:     for j in range(2):
+            ....:         ret[i,j] = ret[i,j].collect(c)
+            sage: ret
+            [b^2 + 1/2*(2*b + 3)/c - 1/4/c^2 - 5/4    -2*b + (2*b - 1)/c + 3/2/c^2 - 1/2]
+            [    2*b - (2*b - 1)/c - 3/2/c^2 + 1/2             b^2 + b + 2/c - 1/c^2 - 1]
+        """
+        if n == 0:
+            return parent(x).one()
+        elif n == 1:
+            return (1 - 1/c) * x + b
+        tm2 = (b+n-1) * (b+n-2) * (n - 1) * meixner.eval_recursive(n-2, x, b, c)
+        tm1 = (b+n-1) * ((c-1) * x + n-1 + (n-1+b) * c) * meixner.eval_recursive(n-1, x, b, c)
+        return (tm1 - tm2) / (c * (n - 1 + b))
+
+meixner = Func_meixner()
 

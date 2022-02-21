@@ -59,7 +59,8 @@ from .orthogonal_polys import (chebyshev_T,
                                legendre_Q,
                                ultraspherical,
                                gegenbauer,
-                               krawtchouk)
+                               krawtchouk,
+                               meixner)
 
 from .spike_function import spike_function
 

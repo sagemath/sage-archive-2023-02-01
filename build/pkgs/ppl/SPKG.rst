@@ -23,7 +23,7 @@ It is written in C++, but comes with interfaces to C, Java, OCaml, and
 Prolog. PPL is one of the fastest implementations of polyhedral
 computations.
 
-Benchmarks are included in this paper: :arxiv:`cs/0612085`
+Benchmarks are included in this paper: https://arxiv.org/abs/cs/0612085
 
 License
 -------

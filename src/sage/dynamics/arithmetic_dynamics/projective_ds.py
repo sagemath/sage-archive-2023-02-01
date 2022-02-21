@@ -6117,12 +6117,12 @@ class DynamicalSystem_projective_field(DynamicalSystem_projective,
                     k = 1
                     done = False
                     while not done and k <= n:
-                          newP = self(newP)
-                          if newP == P:
-                              if not ([P, k] in good_points):
-                                  good_points.append([newP, k])
-                              done = True
-                          k += 1
+                        newP = self(newP)
+                        if newP == P:
+                            if not ([P, k] in good_points):
+                                good_points.append([newP, k])
+                            done = True
+                        k += 1
 
         return good_points
 

@@ -271,12 +271,56 @@ where `\tilde{M}_n(x; b, c) = M_n(x; b, c) / (b)_x`, for `b > 0 ` and
 
 .. MATH::
 
-        c (n-1+b) M_n(x; b, c) = ((c-1) x + n-1 + c (n-1+b)) (b+n-1) M_{n-1}(x; b, c)
-        - (b+n-1) (b+n-2) (n-1) M_{n-2}(x; b, c),
+    c (n-1+b) M_n(x; b, c) = ((c-1) x + n-1 + c (n-1+b)) (b+n-1) M_{n-1}(x; b, c)
+    - (b+n-1) (b+n-2) (n-1) M_{n-2}(x; b, c),
 
 where `M_0(x; b, c) = 0` and `M_1(x; b, c) = (1 - c^{-1}) x + b`.
 
 They are named for Josef Meixner (1908-1994).
+
+Hahn polynomials
+----------------
+
+The *Hahn polynomials* are discrete orthogonal polynomials that
+are given by the hypergeometric series
+
+.. MATH::
+
+    Q_k(x; a, b, n) = \,_{3}F_2\left(-k,k+a+b+1,-x; a+1,-n; 1\right).
+
+They satisfy an orthogonality relation:
+
+.. MATH::
+
+    \sum_{k=0}^{n-1} Q_i(k; a, b, n) Q_j(k; a, b, n) \, \rho(k)
+    = \frac{\delta_{ij}}{\pi_i},
+
+where
+
+.. MATH::
+
+    \begin{aligned}
+    \rho(k) &= \binom{a+k}{k} \binom{b+n-k}{n-k},
+    \\
+    \pi_i &= \delta_{ij} \frac{(-1)^i i! (b+1)_i (i+a+b+1)_{n+1}}{n! (2i+a+b+1) (-n)_i (a+1)_i}.
+    \end{aligned}
+
+They can also be described by the recurrence relation
+
+.. MATH::
+
+    A Q_k(x; a,b,n) = (-x + A + C) Q_{k-1}(x; a,b,n) - C Q_{k-2}(x; a,b,n),
+
+where `Q_0(x; a,b,n) = 1` and `Q_1(x; a,b,n) = 1 - \frac{a+b+2}{(a+1)n} x` and
+
+.. MATH::
+
+    A = \frac{(k+a+b) (k+a) (n-k+1)}{(2k+a+b-1) (2*k+a+b)},
+    \qquad
+    C = \frac{(k-1) (k+b-1) (k+a+b+n)}{(2k+a+b-2) (2k+a+b-1)}.
+
+They are named for Wolfgang Hahn (1911-1998), although they were first
+introduced by Pafnuty Chebyshev in 1875.
 
 
 Pochhammer symbol
@@ -316,6 +360,7 @@ REFERENCES:
 - :wikipedia:`Associated_Legendre_polynomials`
 - :wikipedia:`Kravchuk_polynomials`
 - :wikipedia:`Meixner_polynomials`
+- :wikipedia:`Hahn_polynomials`
 - Roelof Koekeok and René F. Swarttouw, :arxiv:`math/9602214`
 - [Koe1999]_
 
@@ -361,6 +406,7 @@ from sage.symbolic.expression import Expression
 from sage.symbolic.ring import SR
 from sage.functions.other import factorial, binomial
 from sage.structure.element import parent
+from sage.arith.misc import rising_factorial
 
 
 class OrthogonalFunction(BuiltinFunction):
@@ -2591,8 +2637,9 @@ class Func_krawtchouk(OrthogonalFunction):
             return eval_recursive(j, x, n, p)
 
     def eval_recursive(self, j, x, n, p, *args, **kwds):
-        """
-        Return the Krawtchouk polynomial using the recursive formula.
+        r"""
+        Return the Krawtchouk polynomial `K_j(x; n, p)` using the
+        recursive formula.
 
         EXAMPLES::
 
@@ -2702,8 +2749,9 @@ class Func_meixner(OrthogonalFunction):
             return eval_recursive(n, x, b, c)
 
     def eval_recursive(self, n, x, b, c, *args, **kwds):
-        """
-        Return the Meixner polynomial using the recursive formula.
+        r"""
+        Return the Meixner polynomial `M_n(x; b, c)` using the
+        recursive formula.
 
         EXAMPLES::
 
@@ -2738,4 +2786,131 @@ class Func_meixner(OrthogonalFunction):
         return (tm1 - tm2) / (c * (n - 1 + b))
 
 meixner = Func_meixner()
+
+
+class Func_hahn(OrthogonalFunction):
+    r"""
+    Hahn polynomials.
+
+    EXAMPLES:
+
+    We verify the orthogonality for `n = 3`::
+
+        sage: n = 2
+        sage: a,b = SR.var('a,b')
+        sage: def rho(k,a,b,n):
+        ....:     return binomial(a+k,k) * binomial(b+n-k,n-k)
+        sage: M = matrix([[sum(rho(k,a,b,n)
+        ....:                  * hahn(i,k,a,b,n) * hahn(j,k,a,b,n)
+        ....:                  for k in range(n+1)).expand().factor()
+        ....:              for i in range(n+1)] for j in range(n+1)])
+        sage: M = M.factor()
+        sage: P = rising_factorial
+        sage: def diag(i,a,b,n):
+        ....:    return ((-1)^i * factorial(i) * P(b+1,i) * P(i+a+b+1,n+1)
+        ....:            / (factorial(n) * (2*i+a+b+1) * P(-n,i) * P(a+1,i)))
+        sage: all(M[i,i] == diag(i,a,b,n) for i in range(3))
+        True
+        sage: all(M[i,j] == 0 for i in range(3) for j in range(3) if i != j)
+        True
+    """
+    def __init__(self):
+        """
+        Initialize ``self``.
+
+        EXAMPLES::
+
+            sage: k,x,a,b,n = var('k,x,a,b,n')
+            sage: TestSuite(hahn).run()
+            sage: TestSuite(hahn(3, x, a, b, n)).run()
+            sage: TestSuite(hahn(k, x, a, b, n)).run(skip="_test_category")
+        """
+        super().__init__(name="hahn", nargs=5, latex_name="Q")
+
+    def eval_formula(self, k, x, a, b, n):
+        r"""
+        Evaluate ``self`` using an explicit formula.
+
+        EXAMPLES::
+
+            sage: k,x,a,b,n = var('k,x,a,b,n')
+            sage: Q2 = hahn.eval_formula(2, x, a, b, n).simplify_full()
+            sage: Q2.coefficient(x^2).factor()
+            (a + b + 4)*(a + b + 3)/((a + 2)*(a + 1)*(n - 1)*n)
+            sage: Q2.coefficient(x).factor()
+            -(2*a*n - a + b + 4*n)*(a + b + 3)/((a + 2)*(a + 1)*(n - 1)*n)
+            sage: Q2(x=0)
+            1
+        """
+        P = rising_factorial
+        return sum(P(-k,i) * P(k+a+b+1,i) * P(-x,i) / (P(a+1,i) * P(-n,i) * factorial(i))
+                   for i in range(k+1))
+
+    def _eval_(self, k, x, a, b, n, *args, **kwds):
+        r"""
+        Return an evaluation of the Hahn polynomial `Q_k(x; a, b, n)`.
+
+        EXAMPLES::
+
+            sage: k,x,a,b,n = var('k,x,a,b,n')
+            sage: hahn(1, x, a, b, n).collect(x)
+            -(a + b + 2)*x/((a + 1)*n) + 1
+            sage: hahn(k, x, a, b, n)
+            hypergeometric((-k, a + b + k + 1, -x), (a + 1, -n), 1)
+
+            sage: k2_hypergeo = hahn(k,x,a,b,n)(k=2).simplify_hypergeometric()
+            sage: bool(k2_hypergeo == hahn(2,x,a,b,n))
+            True
+            sage: k3_hypergeo = hahn(k,x,a,b,n)(k=3).simplify_hypergeometric()
+            sage: bool(k3_hypergeo == hahn(3,x,a,b,n))
+            True
+
+            sage: hahn(2,x,a,b,n,hold=True)
+            hahn(2, x, a, b, n)
+        """
+        if kwds.get('hold', False):
+            return None
+        if k not in ZZ or k < 0:
+            from sage.functions.hypergeometric import hypergeometric
+            return hypergeometric([-k, k+a+b+1, -x], [a+1,-n], 1)
+        try:
+            return self.eval_formula(k, x, a, b, n)
+        except (TypeError, ValueError):
+            return eval_recursive(k, x, a, b, n)
+
+    def eval_recursive(self, k, x, a, b, n, *args, **kwds):
+        r"""
+        Return the Hahn polynomial `Q_k(x; a, b, n)` using the
+        recursive formula.
+
+        EXAMPLES::
+
+            sage: x,a,b,n = var('x,a,b,n')
+            sage: hahn.eval_recursive(0,x,a,b,n)
+            1
+            sage: hahn.eval_recursive(1,x,a,b,n)
+            -(a + b + 2)*x/((a + 1)*n) + 1
+            sage: bool(hahn(2,x,a,b,n) == hahn.eval_recursive(2,x,a,b,n))
+            True
+            sage: bool(hahn(3,x,a,b,n) == hahn.eval_recursive(3,x,a,b,n))
+            True
+            sage: bool(hahn(4,x,a,b,n) == hahn.eval_recursive(4,x,a,b,n))
+            True
+            sage: M = matrix([[-1/2,-1],[1,0]])
+            sage: ret = hahn.eval_recursive(2, M, 1, 2, n).simplify_full().factor()
+            sage: ret
+            [1/4*(4*n^2 + 8*n - 19)/((n - 1)*n)          3/2*(4*n + 3)/((n - 1)*n)]
+            [        -3/2*(4*n + 3)/((n - 1)*n)          (n^2 - n - 7)/((n - 1)*n)]
+        """
+        if k == 0:
+            return parent(x).one()
+        elif k == 1:
+            return -(a+b+2) / ((a+1)*n) * x + 1
+        A = (k+a+b) * (k+a) * (n-k+1) / ((2*k+a+b-1) * (2*k+a+b))
+        C = (k-1) * (k+b-1) * (k+a+b+n) / ((2*k+a+b-2) * (2*k+a+b-1))
+        Hm1 = (-x + A + C) * hahn.eval_recursive(k-1, x, a, b, n)
+        Hm2 = C * hahn.eval_recursive(k-2, x, a, b, n)
+        return (Hm1 - Hm2) / A
+
+hahn = Func_hahn()
 

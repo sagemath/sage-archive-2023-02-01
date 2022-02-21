@@ -60,7 +60,8 @@ from .orthogonal_polys import (chebyshev_T,
                                ultraspherical,
                                gegenbauer,
                                krawtchouk,
-                               meixner)
+                               meixner,
+                               hahn)
 
 from .spike_function import spike_function
 

@@ -579,14 +579,6 @@ cdef class IntegerRing_class(PrincipalIdealDomain):
             4
             sage: f(-7r)
             -7
-
-        Note that the input *MUST* be an ``int``::
-
-            sage: a = 10000000000000000000000rL
-            sage: f(a)  # py2
-            Traceback (most recent call last):
-            ...
-            TypeError: must be a Python int object
         """
         if S is long:
             return sage.rings.integer.long_to_Z()

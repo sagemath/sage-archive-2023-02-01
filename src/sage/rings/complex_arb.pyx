@@ -188,6 +188,7 @@ from sage.structure.parent cimport Parent
 from sage.structure.unique_representation import UniqueRepresentation
 from sage.arith.long cimport is_small_python_int
 
+from sage.misc.lazy_string import lazy_string
 from sage.misc.superseded import deprecated_function_alias
 from sage.rings.complex_mpfr import ComplexField
 from sage.rings.complex_interval_field import ComplexIntervalField, ComplexIntervalField_class
@@ -674,7 +675,7 @@ class ComplexBallField(UniqueRepresentation, sage.rings.abc.ComplexBallField):
                 return self.element_class(self, _x)
             except TypeError:
                 pass
-            raise TypeError("unable to convert {!r} to a ComplexBall".format(x))
+            raise TypeError(lazy_string("unable to convert %s to a ComplexBall", x))
         else:
             _x = self._base(x)
             _y = self._base(y)

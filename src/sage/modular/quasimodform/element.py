@@ -99,7 +99,8 @@ class QuasiModularFormsElement(ModuleElement):
 
     def q_expansion(self, prec=6):
         r"""
-        Computes the `q`-expansion of self up to precision ``prec`` (default: 6).
+        Return the `q`-expansion of the given quasimodular form up to precision
+        ``prec`` (default: 6).
 
         An alias of this method is ``qexp``.
 

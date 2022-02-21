@@ -23788,7 +23788,6 @@ class GenericGraph(GenericGraph_pyx):
             ....:             break
             ....:     else:
             ....:         polys.append(P)
-            ....:
             sage: len(polys)
             19
 
@@ -23890,7 +23889,6 @@ class GenericGraph(GenericGraph_pyx):
             ....:             break
             ....:     else:
             ....:         polys.append(P)
-            ....:
             sage: len(polys)
             25
 

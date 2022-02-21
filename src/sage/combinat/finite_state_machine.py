@@ -10663,7 +10663,6 @@ class FiniteStateMachine(SageObject):
                 ....:     result = chain.moments_waiting_time(
                 ....:         is_zero=is_zero,
                 ....:         expectation_only=True)
-                ....:
                 ....:     R_v = PolynomialRing(
                 ....:             QQ,
                 ....:             names=['p_%d' % i for i in range(r)])

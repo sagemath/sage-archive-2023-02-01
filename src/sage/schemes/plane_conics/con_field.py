@@ -24,7 +24,7 @@ AUTHORS:
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 
-from sage.rings.all import PolynomialRing
+from sage.rings.polynomial.polynomial_ring_constructor import PolynomialRing
 
 import sage.rings.abc
 
@@ -592,8 +592,8 @@ class ProjectiveConic_field(ProjectivePlaneCurve):
             NotImplementedError: Sorry, find singular point on conics not implemented over all fields of characteristic 2.
         """
         if not point:
-           ret = self.has_singular_point(point = True)
-           return ret[0]
+            ret = self.has_singular_point(point=True)
+            return ret[0]
         B = self.base_ring()
         if B.characteristic() == 2:
             [a,b,c,d,e,f] = self.coefficients()

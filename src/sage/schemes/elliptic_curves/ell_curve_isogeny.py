@@ -69,7 +69,9 @@ from sage.structure.sequence import Sequence
 
 from sage.schemes.elliptic_curves.hom import EllipticCurveHom
 
-from sage.rings.all import PolynomialRing, Integer, LaurentSeriesRing
+from sage.rings.polynomial.polynomial_ring_constructor import PolynomialRing
+from sage.rings.integer import Integer
+from sage.rings.laurent_series_ring import LaurentSeriesRing
 from sage.rings.polynomial.polynomial_element import is_Polynomial
 from sage.schemes.elliptic_curves.all import EllipticCurve
 from sage.schemes.elliptic_curves.ell_generic import is_EllipticCurve
@@ -1812,7 +1814,7 @@ class EllipticCurveIsogeny(EllipticCurveHom):
         # but it won't speed things up too much.
 
         kernel_set = Set([self.__E1(0)])
-        from sage.misc.all import flatten
+        from sage.misc.flatten import flatten
 
         def all_multiples(itr, terminal):
             mult_list = [terminal]

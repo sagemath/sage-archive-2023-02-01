@@ -868,8 +868,7 @@ cdef class Matrix(Matrix1):
 
         # If our field is inexact, checking the answer is doomed in
         # most cases. But here we handle the special ones.
-        from sage.symbolic.ring import SymbolicRing
-        if isinstance(K, SymbolicRing):
+        if isinstance(K, sage.rings.abc.SymbolicRing):
             # Elements of SR "remember" whether or not they are exact.
             # If every element in the system is exact, we can probably
             # still check the solution over the inexact ring SR.

@@ -395,8 +395,8 @@ class QuasiModularFormsElement(ModuleElement):
     def is_homogeneous(self):
         r"""
         Return whether the graded quasimodular form is a homogeneous element,
-        that is it lives in a unique graded components of the graded ring of
-        self.
+        that is, it lives in a unique graded components of the parent of
+        ``self``.
 
         EXAMPLES::
 

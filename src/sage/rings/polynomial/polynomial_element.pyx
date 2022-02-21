@@ -729,12 +729,12 @@ cdef class Polynomial(CommutativeAlgebraElement):
         Sparse tests for :trac:`33165`::
 
             sage: R.<x> = PolynomialRing(QQ, sparse=True)
-            sage: f = x^10000000 + 1
+            sage: f = x^1000000 + 1
             sage: S.<y> = PolynomialRing(QQ, sparse=True)
             sage: f(y)
-            y^10000000 + 1
-            sage: f(y^1000)
-            y^10000000000 + 1
+            y^1000000 + 1
+            sage: f(y^100)
+            y^100000000 + 1
 
             sage: U.<u,v> = PolynomialRing(QQ, sparse=True)
             sage: g = x^10000 + 1

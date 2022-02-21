@@ -509,7 +509,7 @@ class QuasiModularForms(Parent, UniqueRepresentation):
         ring over the modular form subring.
 
         Note that this generator correspond to the weight-2 Eisenstein series.
-        The default name of this generator is 'E2'.
+        The default name of this generator is ``E2``.
 
         EXAMPLES::
 

@@ -243,7 +243,7 @@ class QuasiModularFormsElement(ModuleElement):
 
     def __bool__(self):
         r"""
-        Return ``True`` whether ``self`` is non-zero.
+        Return whether ``self`` is non-zero.
 
         EXAMPLES::
 
@@ -259,7 +259,7 @@ class QuasiModularFormsElement(ModuleElement):
 
     def is_zero(self):
         r"""
-        Return ``True`` whether the given quasimodular form is 0.
+        Return whether the given quasimodular form is zero.
 
         EXAMPLES::
 
@@ -277,7 +277,7 @@ class QuasiModularFormsElement(ModuleElement):
 
     def is_one(self):
         r"""
-        Return ``True`` whether the given quasimodular form is 1, i.e. the
+        Return whether the given quasimodular form is 1, i.e. the
         multiplicative identity.
 
         EXAMPLES::
@@ -294,7 +294,7 @@ class QuasiModularFormsElement(ModuleElement):
 
     def is_graded_modular_form(self):
         r"""
-        Return ``True`` whether the given quasimodular form is a
+        Return whether the given quasimodular form is a
         graded modular form element
         (see :class:`~sage.modular.modform.element.GradedModularFormElement`).
 
@@ -327,7 +327,7 @@ class QuasiModularFormsElement(ModuleElement):
 
     def is_modular_form(self):
         r"""
-        Return ``True`` whether the given quasimodular form is a modular form.
+        Return whether the given quasimodular form is a modular form.
 
         EXAMPLES::
 
@@ -394,7 +394,7 @@ class QuasiModularFormsElement(ModuleElement):
 
     def is_homogeneous(self):
         r"""
-        Return True if the graded quasimodular form is a homogeneous element,
+        Return whether if the graded quasimodular form is a homogeneous element,
         that is it lives in a unique graded components of the graded ring of
         self.
 

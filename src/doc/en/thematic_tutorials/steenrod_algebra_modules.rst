@@ -1,14 +1,14 @@
 .. _steenrod_algebra_modules:
 
-.. toctree::
-   :maxdepth: 2
-
-.. linkall
-
 Steenrod Algebra Modules
 ========================
 
 .. MODULEAUTHOR:: Robert R. Bruner, Michael J. Catanzaro, Sverre Lunoee--Nielsen, and Koen van Woerden
+
+.. toctree::
+   :maxdepth: 2
+
+.. linkall
 
 Let `p` be a prime number.  The mod `p` Steenrod algebra `A`
 is a connected algebra over `\GF{p}`, the finite field of `p` elements.

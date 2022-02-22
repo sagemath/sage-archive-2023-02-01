@@ -1,8 +1,14 @@
 """
 Complex Plots
+
+AUTHORS:
+
+- Robert Bradshaw (2009): initial version
+- David Lowry-Duda (2022): incorporate matplotlib colormaps
 """
 # ****************************************************************************
 #       Copyright (C) 2009 Robert Bradshaw <robertwb@math.washington.edu>,
+#       Copyright (C) 2022 David Lowry-Duda <david@lowryduda.com>
 #
 #  Distributed under the terms of the GNU General Public License (GPL)
 #
@@ -31,6 +37,7 @@ from sage.arith.constants cimport M_PI as PI
 
 from sage.libs.gsl.complex cimport *
 
+
 cdef inline ComplexDoubleElement new_CDF_element(double x, double y):
     z = <ComplexDoubleElement>ComplexDoubleElement.__new__(ComplexDoubleElement)
     GSL_SET_COMPLEX(&z._complex, x, y)
@@ -39,11 +46,15 @@ cdef inline ComplexDoubleElement new_CDF_element(double x, double y):
 
 cdef inline double mag_to_lightness(double r):
     """
-    Tweak this to adjust how the magnitude affects the color.
-    For instance, changing ``sqrt(r)`` to ``r`` will cause
-    anything near a zero to be much darker and poles to be
-    much lighter, while ``r**(.25)`` would cause the reverse
-    effect.
+    Returns a lightness for the given magnitude.
+
+    Small magnitudes are darker and large magnitudes are lighter, and the
+    lightness smoothly transitions.
+
+    Tweak this to adjust how the magnitude affects the color. For instance,
+    changing ``sqrt(r)`` to ``r`` will cause anything near a zero to be much
+    darker and poles to be much lighter, while ``r**(.25)`` would cause the
+    reverse effect.
 
     INPUT:
 
@@ -57,8 +68,8 @@ cdef inline double mag_to_lightness(double r):
 
     This tests it implicitly::
 
-        sage: from sage.plot.complex_plot import complex_to_rgb
-        sage: complex_to_rgb([[0, 1, 10]])
+        sage: from sage.plot.complex_plot import direct_complex_to_rgb
+        sage: direct_complex_to_rgb([[0, 1, 10]])
         array([[[0.        , 0.        , 0.        ],
                 [0.77172568, 0.        , 0.        ],
                 [1.        , 0.22134776, 0.22134776]]])
@@ -66,7 +77,7 @@ cdef inline double mag_to_lightness(double r):
     return atan(log(sqrt(r)+1)) * (4/PI) - 1
 
 
-def complex_to_rgb(z_values):
+def direct_complex_to_rgb(z_values):
     """
     INPUT:
 
@@ -79,17 +90,18 @@ def complex_to_rgb(z_values):
 
     EXAMPLES::
 
-        sage: from sage.plot.complex_plot import complex_to_rgb
-        sage: complex_to_rgb([[0, 1, 1000]])
+        sage: from sage.plot.complex_plot import direct_complex_to_rgb
+        sage: direct_complex_to_rgb([[0, 1, 1000]])
         array([[[0.        , 0.        , 0.        ],
                 [0.77172568, 0.        , 0.        ],
                 [1.        , 0.64421177, 0.64421177]]])
-        sage: complex_to_rgb([[0, 1j, 1000j]])
+        sage: direct_complex_to_rgb([[0, 1j, 1000j]])
         array([[[0.        , 0.        , 0.        ],
                 [0.38586284, 0.77172568, 0.        ],
                 [0.82210588, 1.        , 0.64421177]]])
     """
-    import numpy
+    import numpy as np
+
     cdef unsigned int i, j, imax, jmax
     cdef double x, y, mag, arg
     cdef double lightness, hue, top, bot
@@ -100,7 +112,7 @@ def complex_to_rgb(z_values):
 
     imax = len(z_values)
     jmax = len(z_values[0])
-    cdef cnumpy.ndarray[cnumpy.float_t, ndim=3, mode='c'] rgb = numpy.empty(dtype=float, shape=(imax, jmax, 3))
+    cdef cnumpy.ndarray[cnumpy.float_t, ndim=3, mode='c'] rgb = np.empty(dtype=float, shape=(imax, jmax, 3))
 
     sig_on()
     for i from 0 <= i < imax:
@@ -126,7 +138,10 @@ def complex_to_rgb(z_values):
                 bot = lightness
                 top = 1
 
-            hue = 3*arg/PI # Note that does same thing as colorsys module hsv_to_rgb for this setup, but in Cython
+            # Note that does same thing as colorsys module hsv_to_rgb
+            # for this setup, but in Cython
+            hue = 3*arg/PI
+
             if hue < 0: hue += 6 # usual hsv hue is thus h=arg/(2*pi) for positive, h=arg/(2*PI)+1 for negative
             ihue = <int>hue
             if ihue == 0:
@@ -402,6 +417,6 @@ def complex_plot(f, x_range, y_range, **options):
 
     g = Graphics()
     g._set_extra_kwds(Graphics._extract_kwds_for_show(options, ignore=['xmin', 'xmax']))
-    g.add_primitive(ComplexPlot(complex_to_rgb(z_values),
+    g.add_primitive(ComplexPlot(direct_complex_to_rgb(z_values),
                                 x_range[:2], y_range[:2], options))
     return g

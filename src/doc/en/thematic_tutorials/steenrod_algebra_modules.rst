@@ -1,3 +1,4 @@
+.. -*- coding: utf-8 -*-
 .. _steenrod_algebra_modules:
 
 Steenrod Algebra Modules

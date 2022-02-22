@@ -599,6 +599,7 @@ We will work with the following modules over the mod 2
 Steenrod algebra `A`:
 
 .. MATH::
+   :nowrap:
 
     \begin{align}
         H\ZZ &= A/A\cdot \operatorname{Sq}(1)\\

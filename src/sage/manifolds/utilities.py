@@ -947,6 +947,11 @@ class ExpressionNice(Expression):
             sage: ExpressionNice(fun)
             y*(z - d(h)/dz)^2 + x*d^2(f)/dxdy
 
+        Check that :trac:`33399` is fixed::
+
+            sage: ExpressionNice(function('f')(x+y, x-y).diff(y))
+            d(f)/d(x + y) - d(f)/d(x - y)
+
         """
         d = self._parent._repr_element_(self)
 
@@ -972,7 +977,7 @@ class ExpressionNice(Expression):
 
             # checking if the variable is composite
             for i in range(len(strv)):
-                if bool(re.search(r'[+|-|/|*|^|(|)]', strv[i])):
+                if bool(re.search(r'[+*/^()-]', strv[i])):
                     strv[i] = "(" + strv[i] + ")"
 
             # dictionary to group multiple occurrences of differentiation: d/dxdx -> d/dx^2 etc.
@@ -1071,7 +1076,7 @@ class ExpressionNice(Expression):
 
             # checking if the variable is composite
             for i, val in enumerate(strv):
-                if bool(re.search(r'[+|-|/|*|^|(|)]', val)):
+                if bool(re.search(r'[+*/^()-]', val)):
                     latv[i] = r"\left(" + latv[i] + r"\right)"
 
             # dictionary to group multiple occurrences of differentiation: d/dxdx -> d/dx^2 etc.

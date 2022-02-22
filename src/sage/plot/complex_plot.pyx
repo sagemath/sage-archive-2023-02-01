@@ -25,9 +25,9 @@ AUTHORS:
 # TODO: use NumPy buffers and complex fast_callable (when supported)
 from cysignals.signals cimport sig_on, sig_off, sig_check
 
-# XXX: Temporary import, remove when cythonized
-import colorsys
 
+# Note: don't import matplotlib at module level. It takes a surprisingly
+#       long time to load!
 cimport numpy as cnumpy
 
 from sage.plot.primitive import GraphicPrimitive
@@ -388,17 +388,9 @@ def cmap_complex_to_rgb(z_values, cmap=None, contoured=False, tiled=False):
 
     if tiled or contoured:
         # add contours: convert to hls, adjust lightness, convert back
-        tmparr = np.apply_along_axis(rgbld_to_hlsld, 2, arg_d_s)
-        tmparr = np.apply_along_axis(adjust_lightness, 2, tmparr)
-        rgbs = np.apply_along_axis(hls_to_rgb, 2, tmparr)
-        # XXX: These calls are very slow! Implement the following
-        #      directly in cython instead.
-        # rgbs = manual_contoured_cmap_complex_to_rgb(arg_d_s)
+        rgbs = manual_contoured_cmap_complex_to_rgb(arg_d_s)
     else:
-        rgbs = np.apply_along_axis(set_darkness, 2, arg_d_s)
-        # XXX: These calls are very slow! Implement the following
-        #      directly in cython instead.
-        # rgbs = manual_smooth_cmap_complex_to_rgb(arg_d_s)
+        rgbs = manual_smooth_cmap_complex_to_rgb(arg_d_s)
 
     # Apply mask, making nan_indices white
     rgbs[nan_indices] = 1
@@ -407,164 +399,276 @@ def cmap_complex_to_rgb(z_values, cmap=None, contoured=False, tiled=False):
     return rgbs
 
 
-# XXX: This is a python function, and being repeatedly called by
-#      np.apply_along_axis is slow. This is to be replaced.
-def adjust_lightness(hlsd_arr):
+cdef inline (double, double) minmax(double a, double b, double c):
     """
-    Create contours by adjusting lightness.
+    A simple cython inline utility that computes the min and max of
+    a given triple.
+    """
+    cdef double minval = a
+    cdef double maxval = a
+    if b < minval:
+        minval = b
+    if b > maxval:
+        maxval = b
+    if c < minval:
+        minval = c
+    if c > maxval:
+        maxval = c
+    return minval, maxval
 
-    This applies the lightdelta to the lightness and returns the modified
-    `(h, l, s)` as a Numpy array.
+
+cdef inline double _v(double m1, double m2, double hue):
+    """
+    An inline cythonized version of colorsys._v
+
+    This is identical to colorsys._v, except typed for cython.
+    """
+    hue = hue % 1.0
+    if hue < 1.0/6.0:
+        return m1 + (m2 - m1) * hue * 6.0
+    if hue < 0.5:
+        return m2
+    if hue < 2.0 / 3.0:
+        return m1 + (m2 - m1) * (2.0 / 3.0 - hue) * 6.0
+    return m1
+
+
+cdef inline double clamp(double x):
+    """
+    An inline cythonized function that clamps `x` to be between `0` and `1`.
+
+    This is necessary due to floating point precision problems from
+    manipulating doubles.
+    """
+    if x < 0.0:
+        return 0.0
+    if x > 1.0:
+        return 1.0
+    return x
+
+
+def manual_smooth_cmap_complex_to_rgb(rgb_d_s):
+    """
+    Returns an rgb array from given array of `(r, g, b, delta)`.
+
+    Each input `(r, g, b)` is modified by ``delta`` to be lighter or darker
+    depending on the size of ``delta``. When ``delta`` is `-1`, the output is
+    black. When ``delta`` is `+1`, the output is white. Colors
+    piecewise-linearly vary from black to the initial `(r, g, b)` to white.
+
+    We assume that the `delta` values come from a function like
+    :func:`sage.plot.complex_plot.mag_to_lightness`, which maps magnitudes to
+    the range `[-1, +1]`.
+
+    This produces similar lightness gradation to the default
+    ``direct_complex_to_rgb``, except that this is designed to work with
+    colormaps.
 
     INPUT:
 
-    - ``hlsd_arr`` - a length 4 array `(h, l, s, d)` containing a hue,
-      lightness, saturation, and lightnessdelta. Each of `h`, `l`, and `s` are
-      between `0` and `1` (inclusive), and `d` is between `-1` and `1`
-      (inclusive).
+    - ``rgb_d_s`` - a grid of length 4 tuples `(r, g, b, delta)`, as an
+      `N \\times M \\times 4` numpy array.
 
     OUTPUT:
 
-    A Numpy array `(h, l, s)` with each coordinate between `0` and `1`
-    (inclusive).
-
-    EXAMPLES:
-
-        sage: from sage.plot.complex_plot import adjust_lightness
-        sage: adjust_lightness([0, 0.25, 0.5, 0.75])
-        array([0.   , 0.625, 0.5  ])
-        sage: adjust_lightness([0, 0.25, 0.5, 1])
-        array([0.  , 0.75, 0.5 ])
-    """
-    import numpy as np
-    h, l, s, delta = hlsd_arr
-    lightdelta = 0.5*(delta)
-    l += lightdelta
-    if l < 0:
-        l = 0
-    if l > 1:
-        l = 1
-    return np.array([h, l, s])
-
-
-# XXX: This is a python function, and being repeatedly called by
-#      np.apply_along_axis is slow. This is to be replaced.
-def set_darkness(rgbmag_arr):
-    """
-    Adjusts an rgb color darker or lighter based on given magnitude.
-
-    This produces similar gradation to the default (no colormap, no contours)
-    complex_plot, but is intended to apply to plots with colormaps.
-
-    INPUT:
-
-    - ``rgbmag_arr`` - a length 4 array `(r, g, b, mag)` containing the rgb
-      data and associated magnitude. Each of `r`, `g`, and `g` are between `0`
-      and `1` (inclusive). We assume `mag` has been mapped to the range `-1` to
-      `1`.
-
-    OUTPUT:
-
-    A Numpy array `(r, g, b)` with each coordinate between `0` and `1`
-    (inclusive).
+    An `N \\times M \\times 3` floating point Numpy array ``X``, where
+    ``X[i,j]`` is an (r, g, b) tuple.
 
     .. SEEALSO::
 
-        :func:`sage.plot.complex_plot.mag_to_lightness`
+        :func:`sage.plot.complex_plot.direct_complex_to_rgb`
+        :func:`sage.plot.complex_plot.manual_contoured_cmap_complex_to_rgb`
+
+    .. NOTE::
+
+        This is naive, but implemented directly in cython for speed. This is a
+        cythonized version of the following numpy code:
+
+            def set_darkness(rgb_d):
+                r, g, b, delta = rgb_d
+                delta = 0.5 + delta/2.
+                if delta < 0.5:
+                    return 2*delta*np.array([r, g, b])
+                white = np.array([1, 1, 1])
+                return 2*(delta - 1)*(white - np.array([r, g, b])) + white
+
+            rgbs = np.apply_along_axis(set_darkness, 2, rgb_d_s)
+
+    EXAMPLES:
+
+        sage: from sage.plot.complex_plot import manual_smooth_cmap_complex_to_rgb
+        sage: manual_smooth_cmap_complex_to_rgb([[[0, 0.25, 0.5, 0.75]]])
+        array([[[0.75  , 0.8125, 0.875 ]]])
+        sage: manual_smooth_cmap_complex_to_rgb([[[0, 0.25, 0.5, 0.75]]])
+        array([[[0.75  , 0.8125, 0.875 ]]])
+    """
+    import numpy as np
+
+    cdef unsigned int i, j, imax, jmax
+    cdef double r, g, b, delta, h, l, s
+
+    imax = len(rgb_d_s)
+    jmax = len(rgb_d_s[0])
+
+    cdef cnumpy.ndarray[cnumpy.float_t, ndim=3, mode='c'] rgb = np.empty(dtype=float, shape=(imax, jmax, 3))
+
+    sig_on()
+    for i from 0 <= i < imax:
+        row = rgb_d_s[i]
+        for j from 0 <= j < jmax:
+            r, g, b, delta = row[j]
+            delta = 0.5 + delta/2.0
+            if delta < 0.5:
+                rgb[i][j][0] = clamp(2 * delta * r)
+                rgb[i][j][1] = clamp(2 * delta * g)
+                rgb[i][j][2] = clamp(2 * delta * b)
+            else:
+                rgb[i][j][0] = clamp(2*(delta - 1.0)*(1 - r) + 1)
+                rgb[i][j][1] = clamp(2*(delta - 1.0)*(1 - g) + 1)
+                rgb[i][j][2] = clamp(2*(delta - 1.0)*(1 - b) + 1)
+    sig_off()
+    return rgb
+
+
+def manual_contoured_cmap_complex_to_rgb(rgb_d_s):
+    """
+    Returns an rgb array from given array of `(r, g, b, delta)`.
+
+    Each input `(r, g, b)` is modified by ``delta`` to be lighter or darker
+    depending on the size of ``delta``. Negative ``delta`` values darken the
+    color, while positive ``delta`` values lighten the pixel.
+
+    We assume that the `delta` values come from a function like
+    :func:`sage.plot.complex_plot.mag_to_lightness`, which maps magnitudes to
+    the range `[-1, +1]`.
+
+    INPUT:
+
+    - ``rgb_d_s`` - a grid of length 4 tuples `(r, g, b, delta)`, as an
+      `N \\times M \\times 4` numpy array.
+
+    OUTPUT:
+
+    An `N \\times M \\times 3` floating point Numpy array ``X``, where
+    ``X[i,j]`` is an (r, g, b) tuple.
+
+    .. SEEALSO::
+
+        :func:`sage.plot.complex_plot.direct_complex_to_rgb`
+        :func:`sage.plot.complex_plot.manual_smooth_cmap_complex_to_rgb`
+
+    .. NOTE::
+
+        With the possible exception of building the array of function
+        evaluations leading to the initial rgb grid, this is the slowest part
+        of producing a plot. This is a cythonized version of the following
+        numpy code.
+
+            # RGB --> HLS
+            tmparr = np.apply_along_axis(
+                lambda r, g, b, d:
+                return np.array(list(colorsys.rgb_to_hls(r, g, b)) + [d]),
+                2, arg_d_s
+            )
+            # ADJUST_LIGHTNESS
+            tmparr = np.apply_along_axis(
+                lambda h, l, s, d:
+                return np.array([h, l + 0.5 * d, s])
+            )
+            # HLS -->RGB
+            rgbs = np.apply_along_axis(
+                lambda h, l, s:
+                return np.array(colorsys.hls_to_rgb(float(h), float(l), float(s)))
+            )
 
     ALGORITHM:
 
-    This is naive. First the magnitude is remapped to the range `[0, 1]`. Then
-    this piece-wise linearly interpolates between the given `(r, g, b)` and
-    black (when the mapped magnitude is `0`) and white (when the mapped
-    magnitude is `1`).
+    Each pixel and lightness-delta is mapped from `(r, g, b, delta) \\mapsto
+    (h, l, s, delta)` using the standard RGB-to-HLS formula.
+
+    Then the lightness is adjusted via `l \\mapsto l' = l + 0.5 * delta`.
+
+    Finally map `(h, l', s) \\mapsto (r, g, b)` using the standard HLS-to-RGB
+    formula.
+
 
     EXAMPLES:
 
-        sage: from sage.plot.complex_plot import set_darkness
-        sage: set_darkness([0, 0.25, 0.5, 0.75])
-        array([0.75  , 0.8125, 0.875 ])
-        sage: set_darkness([0, 0.25, 0.5, 1])
-        array([1., 1., 1.])
-        sage: set_darkness([0, 0.25, 0.5, 0.25])
-        array([0.25  , 0.4375, 0.625 ])
+        sage: from sage.plot.complex_plot import manual_contoured_cmap_complex_to_rgb
+        sage: manual_contoured_cmap_complex_to_rgb([[[0, 0.25, 0.5, 0.75]]])
+        array([[[0.25 , 0.625, 1.   ]]])
+        sage: manual_contoured_cmap_complex_to_rgb([[[0, 0, 0, 1]]])
+        array([[[0.5, 0.5, 0.5]]])
+        sage: manual_contoured_cmap_complex_to_rgb([[[1, 1, 1, -0.5]]])
+        array([[[0.75, 0.75, 0.75]]])
     """
     import numpy as np
 
-    r, g, b, mag = rgbmag_arr
-    mag = 0.5 + mag/2.
-    if mag < 0.5:
-        return 2*mag*np.array([r, g, b])
-    white = np.array([1, 1, 1])
-    return 2*(mag - 1)*(white - np.array([r, g, b])) + white
+    cdef unsigned int i, j, imax, jmax
+    cdef double r, g, b, delta, h, l, s
+    cdef double minc, maxc, rc, gc, bc, m1, m2
 
+    imax = len(rgb_d_s)
+    jmax = len(rgb_d_s[0])
 
-# XXX: This is a python function, and being repeatedly called by
-#      np.apply_along_axis is slow. This is to be replaced.
-def rgbld_to_hlsld(rgbld_arr):
-    """
-    Converts `(r, g, b, ld)` to `(h, l, s, ld)`.
+    cdef cnumpy.ndarray[cnumpy.float_t, ndim=3, mode='c'] rgb = np.empty(dtype=float, shape=(imax, jmax, 3))
 
-    INPUT:
+    sig_on()
+    for i from 0 <= i < imax:
+        row = rgb_d_s[i]
+        for j from 0 <= j < jmax:
 
-    - ``rgbld_arr`` -- An array `(r, g, b, ld)` of rgb colordata and a
-      lightness delta. Each of `r`, `g`, and `b` are between `0` and `1`
-      (inclusive), and `ld` is between `-1` and `1` (inclusive).
+            # First: convert RGB to HLS
+            # This is an inline, cythonized version of colorsys.rgb_to_hls,
+            # and naming here mimics colorsys conventions.
+            r, g, b, delta = row[j]
+            minc, maxc = minmax(r, g, b)
+            l = (minc + maxc) / 2.0
+            if minc == maxc:
+                h = 0.0
+                s = 0.0
+            else:
+                if l <= 0.5:
+                    s = (maxc - minc) / (maxc + minc)
+                else:
+                    s = (maxc - minc) / (2.0 - maxc - minc)
+                rc = (maxc - r) / (maxc - minc)
+                gc = (maxc - g) / (maxc - minc)
+                bc = (maxc - b) / (maxc - minc)
+                if r == maxc:
+                    h = bc - gc
+                elif g == maxc:
+                    h = 2.0 + rc - bc
+                else:
+                    h = 4.0 + gc - rc
+                h = (h / 6.0) % 1.0
 
-    OUTPUT:
+            # Second: adjust the lightness depending on delta
+            delta = delta * 0.5
+            l += delta
+            if l < 0:
+                l = 0.0
+            if l > 1:
+                l = 1.0
 
-    A Numpy array `[h, l, s, ld]`, where each of `h`, `l`, and `s` are between
-    `0` and `1` (inclusive), and `ld` is between `-1` and `1` (inclusive).
-
-    EXAMPLES:
-
-        sage: from sage.plot.complex_plot import rgbld_to_hlsld
-        sage: rgbld_to_hlsld([0, 0.25, 0.5, 0.75])
-        array([0.58333333, 0.25      , 1.        , 0.75      ])
-    """
-    import numpy as np
-    r = float(rgbld_arr[0])
-    g = float(rgbld_arr[1])
-    b = float(rgbld_arr[2])
-    ld = float(rgbld_arr[3])
-    return np.array(list(colorsys.rgb_to_hls(r, g, b)) + [ld])
-
-
-# XXX: This is a python function, and being repeatedly called by
-#      np.apply_along_axis is slow. This is to be replaced.
-def hls_to_rgb(hls_arr):
-    """
-    Converts `(h, l, s`) to `(r, g, b)`.
-
-    INPUT:
-
-    - ``hls_arr` -- An array `(h, l, s)` of hue, lightness, saturation, each
-      between `0` and `1` (inclusive).
-
-    OUTPUT:
-
-    A Numpy array `[r, g, b]`, where each coordinate is between `0` and `1`
-    (inclusive).
-
-    EXAMPLES:
-
-        sage: from sage.plot.complex_plot import hls_to_rgb
-        sage: hls_to_rgb([0, 0.25, 0.5])
-        array([0.375, 0.125, 0.125])
-
-    .. WARNING::
-
-        This behaves differently than ``colorsys.hls_to_rgb`` called directly
-        from sage, but **not** differently than ``colorsys.hls_to_rgb`` called
-        from a python interpreter. This is due to a difference in rounding
-        behavior, for example whether ``0.75 % 1`` is `0.75` or `-0.25`.
-    """
-    import numpy as np
-    cdef double h, l, s
-    h = hls_arr[0]
-    l = hls_arr[1]
-    s = hls_arr[2]
-    return np.array(colorsys.hls_to_rgb(h, l, s))
+            # Third: convert from HLS back to RGB
+            # This is an inline, cythonized version of colorsys.hls_to_rgb,
+            # and naming here mimics colorsys conventions.
+            if s == 0.0:
+                rgb[i][j][0] = l
+                rgb[i][j][1] = l
+                rgb[i][j][2] = l
+                continue
+            if l <= 0.5:
+                m2 = l * (1.0 + s)
+            else:
+                m2 = l + s - (l*s)
+            m1 = 2.0*l - m2
+            rgb[i][j][0] = clamp(_v(m1, m2, h + 1.0/3.0))
+            rgb[i][j][1] = clamp(_v(m1, m2, h))
+            rgb[i][j][2] = clamp(_v(m1, m2, h - 1.0/3.0))
+    sig_off()
+    return rgb
 
 
 class ComplexPlot(GraphicPrimitive):

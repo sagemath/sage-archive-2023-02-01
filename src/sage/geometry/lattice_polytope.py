@@ -548,6 +548,28 @@ class LatticePolytopeClass(ConvexSet_compact, Hashable, sage.geometry.abc.Lattic
             self._ambient_facet_indices = tuple(ambient_facet_indices)
             self._vertices = ambient.vertices(self._ambient_vertex_indices)
 
+    def _sage_input_(self, sib, coerced):
+        """
+        Return Sage command to reconstruct ``self``.
+
+        See :mod:`sage.misc.sage_input` for details.
+
+        EXAMPLES::
+
+            sage: p = lattice_polytope.cross_polytope(2)
+            sage: sage_input(p, verify=True)
+            # Verified
+            LatticePolytope(sage.geometry.point_collection.PointCollection((vector(ZZ, [1, 0]),
+                                                                            vector(ZZ, [0, 1]),
+                                                                            vector(ZZ, [-1, 0]),
+                                                                            vector(ZZ, [0, -1]))),
+                            compute_vertices=False)
+        """
+        if self._ambient is not self:
+            raise NotImplementedError
+        data = self._vertices
+        return sib.name('LatticePolytope')(sib(self._vertices), compute_vertices=False)
+
     def __contains__(self, point):
         r"""
         Check if ``point`` is contained in ``self``.
@@ -4494,6 +4516,31 @@ class NefPartition(SageObject, Hashable):
         except AttributeError:
             pass
         return result
+
+    def _sage_input_(self, sib, coerced):
+        """
+        Return Sage command to reconstruct ``self``.
+
+        See :mod:`sage.misc.sage_input` for details.
+
+        EXAMPLES::
+
+            sage: o = lattice_polytope.cross_polytope(3)
+            sage: np = o.nef_partitions()[0]; np
+            Nef-partition {0, 1, 3} U {2, 4, 5}
+            sage: sage_input(np, verify=True)
+            # Verified
+            NefPartition([0, 0, 1, 0, 1, 1],
+                         LatticePolytope(sage.geometry.point_collection.PointCollection((vector(ZZ, [1, 0, 0]),
+                                                                                         vector(ZZ, [0, 1, 0]),
+                                                                                         vector(ZZ, [0, 0, 1]),
+                                                                                         vector(ZZ, [-1, 0, 0]),
+                                                                                         vector(ZZ, [0, -1, 0]),
+                                                                                         vector(ZZ, [0, 0, -1]))),
+                                         compute_vertices=False))
+        """
+        vertex_to_part = [ZZ(i) for i in self._vertex_to_part]
+         return sib.name('NefPartition')(vertex_to_part, sib(self.Delta_polar()))
 
     def Delta(self, i=None):
         r"""

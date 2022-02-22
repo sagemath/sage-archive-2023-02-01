@@ -6,6 +6,11 @@ computer with a command line interface that runs when you give the ``math``
 command. The interface lets you send certain Sage objects to Mathematica,
 run Mathematica functions, import certain Mathematica expressions to Sage,
 or any combination of the above.
+The Sage command::
+
+    sage: print(mathematica._install_hints())
+
+prints more information on Mathematica installation.
 
 To send a Sage object ``sobj`` to Mathematica, call ``mathematica(sobj)``.
 This exports the Sage object to Mathematica and returns a new Sage object

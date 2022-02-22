@@ -414,7 +414,7 @@ class StandaloneTex(SageObject):
             pdflatex().require()
         elif program == 'lualatex':
             lualatex().require()
-        elif program not in ['pdflatex','lualatex']:
+        else:
             raise ValueError("program(={}) should be pdflatex or lualatex".format(program))
 
         # set up filenames

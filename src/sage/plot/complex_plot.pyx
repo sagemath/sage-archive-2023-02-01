@@ -63,7 +63,7 @@ cdef inline double mag_to_lightness(double r):
 
     - ``r`` - a non-negative real number
 
-    OUTPUT:
+    OUTPUT::
 
     A value between `-1` (black) and `+1` (white), inclusive.
 
@@ -200,7 +200,9 @@ def direct_complex_to_rgb(z_values, contoured=False, tiled=False):
 
         :func:`sage.plot.complex_plot.cmap_complex_to_rgb`
 
-    EXAMPLES::
+    EXAMPLES:
+
+    We can call this on grids of complex numbers::
 
         sage: from sage.plot.complex_plot import direct_complex_to_rgb
         sage: direct_complex_to_rgb([[0, 1, 1000]])
@@ -325,6 +327,8 @@ def cmap_complex_to_rgb(z_values, cmap=None, contoured=False, tiled=False):
         :func:`sage.plot.complex_plot.direct_complex_to_rgb`
 
     EXAMPLES:
+
+    We can call this on grids of complex numbers::
 
         sage: import matplotlib.cm
         sage: from sage.plot.complex_plot import cmap_complex_to_rgb
@@ -482,7 +486,7 @@ def manual_smooth_cmap_complex_to_rgb(rgb_d_s):
     .. NOTE::
 
         This is naive, but implemented directly in cython for speed. This is a
-        cythonized version of the following numpy code:
+        cythonized version of the following numpy code::
 
             def set_darkness(rgb_d):
                 r, g, b, delta = rgb_d
@@ -491,10 +495,11 @@ def manual_smooth_cmap_complex_to_rgb(rgb_d_s):
                     return 2*delta*np.array([r, g, b])
                 white = np.array([1, 1, 1])
                 return 2*(delta - 1)*(white - np.array([r, g, b])) + white
-
             rgbs = np.apply_along_axis(set_darkness, 2, rgb_d_s)
 
     EXAMPLES:
+
+    We can call this on grids of `(r, g, b, delta)` values::
 
         sage: from sage.plot.complex_plot import manual_smooth_cmap_complex_to_rgb
         sage: manual_smooth_cmap_complex_to_rgb([[[0, 0.25, 0.5, 0.75]]])
@@ -554,7 +559,7 @@ def manual_contoured_cmap_complex_to_rgb(rgb_d_s):
 
     .. SEEALSO::
 
-        :func:`sage.plot.complex_plot.direct_complex_to_rgb`
+        :func:`sage.plot.complex_plot.direct_complex_to_rgb`,
         :func:`sage.plot.complex_plot.manual_smooth_cmap_complex_to_rgb`
 
     .. NOTE::
@@ -562,7 +567,7 @@ def manual_contoured_cmap_complex_to_rgb(rgb_d_s):
         With the possible exception of building the array of function
         evaluations leading to the initial rgb grid, this is the slowest part
         of producing a plot. This is a cythonized version of the following
-        numpy code.
+        numpy code::
 
             # RGB --> HLS
             tmparr = np.apply_along_axis(
@@ -592,7 +597,7 @@ def manual_contoured_cmap_complex_to_rgb(rgb_d_s):
     formula.
 
 
-    EXAMPLES:
+    EXAMPLES::
 
         sage: from sage.plot.complex_plot import manual_contoured_cmap_complex_to_rgb
         sage: manual_contoured_cmap_complex_to_rgb([[[0, 0.25, 0.5, 0.75]]])
@@ -848,14 +853,14 @@ def complex_plot(f, x_range, y_range, contoured=False, tiled=False, cmap=None, *
 
         sphinx_plot(complex_plot(exp(x), (-10, 10), (-10, 10)))
 
-    A plot with a different choice of colormap.
+    A plot with a different choice of colormap::
 
         sage: complex_plot(exp(x), (-10, 10), (-10, 10), cmap='viridis')
         Graphics object consisting of 1 graphics primitive
 
     .. PLOT::
 
-        sphinx_plot(complex_plot(exp(x), (-10, 10), (-10, 10), cmap='viridis))
+        sphinx_plot(complex_plot(exp(x), (-10, 10), (-10, 10), cmap='viridis'))
 
     A function with some nice zeros and a pole::
 
@@ -868,16 +873,28 @@ def complex_plot(f, x_range, y_range, contoured=False, tiled=False, cmap=None, *
         def f(z): return z**5 + z - 1 + 1/z
         sphinx_plot(complex_plot(f, (-3, 3), (-3, 3)))
 
-    The same function as above, but with contours.
+    The same function as above, but with contours. Contours render poorly with
+    few plot points, so we use 300 here::
 
         sage: f(z) = z^5 + z - 1 + 1/z
-        sage: complex_plot(f, (-3, 3), (-3, 3), contoured=True)
+        sage: complex_plot(f, (-3, 3), (-3, 3), plot_points=300, contoured=True)
         Graphics object consisting of 1 graphics primitive
 
     .. PLOT::
 
         def f(z): return z**5 + z - 1 + 1/z
-        sphinx_plot(complex_plot(f, (-3, 3), (-3, 3), contours=True))
+        sphinx_plot(complex_plot(f, (-3, 3), (-3, 3), plot_points=300, contoured=True))
+
+    The same function as above, but tiled and with the *plasma* colormap::
+
+        sage: f(z) = z^5 + z - 1 + 1/z
+        sage: complex_plot(f, (-3, 3), (-3, 3), plot_points=300, tiled=True, cmap='plasma')
+        Graphics object consisting of 1 graphics primitive
+
+    .. PLOT::
+
+        def f(z): return z**5 + z - 1 + 1/z
+        sphinx_plot(complex_plot(f, (-3, 3), (-3, 3), plot_points=300, tiled=True, cmap='plasma'))
 
     Here is the identity, useful for seeing what values map to what colors::
 

@@ -9,6 +9,7 @@ or any combination of the above.
 The Sage command::
 
     sage: print(mathematica._install_hints())
+    ...
 
 prints more information on Mathematica installation.
 

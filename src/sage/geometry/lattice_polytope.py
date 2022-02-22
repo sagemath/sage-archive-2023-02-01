@@ -4544,7 +4544,7 @@ class NefPartition(SageObject, Hashable):
                                          compute_vertices=False))
         """
         vertex_to_part = [ZZ(i) for i in self._vertex_to_part]
-         return sib.name('NefPartition')(vertex_to_part, sib(self.Delta_polar()))
+        return sib.name('NefPartition')(vertex_to_part, sib(self.Delta_polar()))
 
     def Delta(self, i=None):
         r"""

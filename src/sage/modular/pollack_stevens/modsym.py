@@ -720,7 +720,7 @@ class PSModularSymbolElement(ModuleElement):
             sage: phi = ps_modsym_from_simple_modsym_space(f.modular_symbols(1))
             sage: K = phi.base_ring()
             sage: a = K.gen()
-            sage: phi.is_ordinary(K.ideal(3, 1/16*a + 3/2)) !=  phi.is_ordinary(K.ideal(3, 1/16*a + 5/2))
+            sage: phi.is_ordinary(K.ideal(3, 1/32*a + 1/2)) !=  phi.is_ordinary(K.ideal(3, 1/32*a + 3/2))
             True
             sage: phi.is_ordinary(3)
             Traceback (most recent call last):

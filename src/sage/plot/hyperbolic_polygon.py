@@ -71,10 +71,6 @@ class HyperbolicPolygon(HyperbolicArcCore):
         HP = HyperbolicPlane()
         M = getattr(HP, model)()
 
-        def build_arc(z0, z1, first):
-            g = M.get_geodesic(z0, z1)
-            self._bezier_path(z0, z1, M, first)
-
         pts = [CC(p) for p in pts]
         for p in pts:
             M.point_test(p)

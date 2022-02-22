@@ -5,11 +5,11 @@ AUTHORS:
 
 - Hartmut Monien (2011 - 08)
 
-Two models of the hyperbolic plane are implemented: Upper Half Plane,
-Poincaré Disk, and Klein Disk, each with
-its different domain and metric tensor.
+Three models of the hyperbolic plane are implemented:
+Upper Half Plane, Poincaré Disk, and Klein Disk, each
+with its different domain and metric tensor.
 
-UPPER HALF PLANE (UHP)
+.. RUBRIC:: Upper half plane (UHP)
 
 In this model, hyperbolic points are described by two coordinates, which
 we will represent by a complex number in the domain
@@ -24,7 +24,7 @@ with the corresponding metric tensor
 
    ds^2 = \frac{dzd\bar{z}}{\Im(z)^2}.
 
-POINCARÉ DISK (PD)
+.. RUBRIC:: Poincaré disk (PD)
 
 In this model, hyperbolic points are described by two coordinates, which we
 will represent by a complex number within the unit circle, having therefore
@@ -39,6 +39,16 @@ with the corresponding metric tensor
 .. MATH::
 
    ds^2 = 4 \frac{dzd\bar{z}}{(1-\lvert z \rvert^2)^2}.
+
+.. RUBRIC:: Klein disk (KM)
+
+In this model, the domain is again complex numbers within the unit circle as
+in the Poincaré disk model, but the corresponding metric tensor is different:
+
+.. MATH::
+
+    ds^2 = \frac{dzd\bar{z}}{1-\lvert z \rvert^2}
+    + \frac{(z \cdot dz)^2}{(1-\lvert z \rvert^2)^2}.
 
 .. SEEALSO::
 
@@ -70,7 +80,6 @@ see [Sta1993]_.
 
 from sage.plot.bezier_path import BezierPath
 from sage.plot.circle import circle
-from sage.plot.arc import Arc
 from sage.misc.decorators import options, rename_keyword
 from sage.rings.cc import CC
 from sage.geometry.hyperbolic_space.hyperbolic_constants import EPSILON
@@ -299,10 +308,10 @@ def hyperbolic_arc(a, b, model="UHP", **options):
 
     We can also plot hyperbolic arcs in other models.
 
-    Show a hyperbolic arc from `i` to `-1` in red, another hyperbolic arc
-    from `e^{i\pi/3}` to `0.6*e^{i 3\pi/4}` with dashed style in green,
+    We show a hyperbolic arc from `i` to `-1` in red, another hyperbolic arc
+    from `e^{i\pi/3}` to `0.6 \cdot e^{i 3\pi/4}` with dashed style in green,
     and finally a hyperbolic arc from `-0.5+0.5i` to `0.5-0.5i` together
-    with the disk frontier in the PD model::
+    with the disk frontier in the Poincaré disk model::
 
         sage: z1 = CC(0,1)
         sage: z2 = CC(-1,0)
@@ -330,17 +339,10 @@ def hyperbolic_arc(a, b, model="UHP", **options):
         P = a1 + a2 + a3
         sphinx_plot(P)
 
-    Show a hyperbolic arc from `i` to `-1` in red, another hyperbolic arc
-    from `e^{i\pi/3}` to `0.6*e^{i 3\pi/4}` with dashed style in green,
-    and finally a hyperbolic arc from `-0.5+0.5i` to `0.5-0.5i` together
-    with the disk frontier in the KM model::
+    We show the arcs defined by the same endpoints in the Klein disk
+    model (note that these are *not* the image of those arcs when
+    changing between the models)::
 
-        sage: z1 = CC(0,1)
-        sage: z2 = CC(-1,0)
-        sage: z3 = CC((cos(pi/3),sin(pi/3)))
-        sage: z4 = CC((0.6*cos(3*pi/4),0.6*sin(3*pi/4)))
-        sage: z5 = CC(-0.5,0.5)
-        sage: z6 = CC(0.5,-0.5)
         sage: a1 = hyperbolic_arc(z1, z2, model="KM", color="red")
         sage: a2 = hyperbolic_arc(z3, z4, model="KM", color="green")
         sage: a3 = hyperbolic_arc(z5, z6, model="KM", linestyle="--")
@@ -361,19 +363,19 @@ def hyperbolic_arc(a, b, model="UHP", **options):
         P = a1 + a2 + a3
         sphinx_plot(P)
 
-    Show a hyperbolic arc from `(1,2,sqrt(6))` to `(-2,-3,sqrt(14))` in the hiperboloid model
+    Show a hyperbolic arc from `(1,2,\sqrt(6))` to `(-2,-3,\sqrt(14))`
+    in the hiperboloid model::
 
         sage: a = (1,2,sqrt(6))
         sage: b = (-2,-3,sqrt(14))
         sage: hyperbolic_arc(a, b, model="HM")
         Graphics3d Object
 
-    ..PLOT::
+    .. PLOT::
 
        a = (1,2,sqrt(6))
        b = (-2,-3,sqrt(14))
        sphinx_plot(hyperbolic_arc(a, b, model="HM"))
-
     """
     from sage.plot.graphics import Graphics
 

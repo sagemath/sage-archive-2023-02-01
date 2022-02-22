@@ -541,9 +541,7 @@ class SteenrodAlgebra_generic(CombinatorialFreeModule):
             sage: SteenrodAlgebra(2, 'adem').Sq(0,1)
             Sq^2 Sq^1 + Sq^3
 
-        TESTS:
-
-        ::
+        TESTS::
 
             sage: TestSuite(SteenrodAlgebra()).run()
             sage: TestSuite(SteenrodAlgebra(profile=[4,3,2,2,1])).run()
@@ -565,7 +563,7 @@ class SteenrodAlgebra_generic(CombinatorialFreeModule):
         bases, and profile functions (if present) are equal.  Because
         this class inherits from :class:`UniqueRepresentation`, this
         means that they are equal if and only they are identical: ``A
-        == B`` is True if and only if ``A is B`` is True::
+        == B`` is True if and only if ``A is B`` is ``True``::
 
             sage: A = SteenrodAlgebra(2)
             sage: B = SteenrodAlgebra(2, 'adem')
@@ -631,6 +629,11 @@ class SteenrodAlgebra_generic(CombinatorialFreeModule):
                                          element_class=self.Element,
                                          category=cat,
                                          scalar_mult=' ')
+
+        # For the graded modules
+        from sage.modules.fp_graded.steenrod.module import SteenrodFPModule, SteenrodFreeModule
+        self._fp_graded_module_class = SteenrodFPModule
+        self._free_graded_module_class = SteenrodFreeModule
 
     def _basis_key_iterator(self):
         """

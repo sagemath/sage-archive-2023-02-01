@@ -419,14 +419,14 @@ class StandaloneTex(SageObject):
 
         # set up filenames
         from sage.misc.temporary_file import tmp_filename
-        _filename_tex = tmp_filename('tikz_','.tex')
-        with open(_filename_tex, 'w') as f:
+        temp_filename_tex = tmp_filename('tikz_','.tex')
+        with open(temp_filename_tex, 'w') as f:
             f.write(str(self))
-        base, _filename_tex = os.path.split(_filename_tex)
-        _filename, ext = os.path.splitext(_filename_tex)
+        base, temp_filename_tex = os.path.split(temp_filename_tex)
+        temp_filename, ext = os.path.splitext(temp_filename_tex)
 
         # running pdflatex or lualatex
-        cmd = [program, '-interaction=nonstopmode', _filename_tex]
+        cmd = [program, '-interaction=nonstopmode', temp_filename_tex]
         result = run(cmd, cwd=base, capture_output=True, text=True)
 
         # If a problem with the tex source occurs, provide the log
@@ -441,22 +441,22 @@ class StandaloneTex(SageObject):
                                 result.stderr.strip(),
                                 result.stdout.strip()))
         result.check_returncode()
-        _filename_pdf = os.path.join(base, _filename+'.pdf')
+        temp_filename_pdf = os.path.join(base, temp_filename+'.pdf')
 
         # move the pdf into the good location
         if filename:
             filename = os.path.abspath(filename)
-            os.rename(_filename_pdf, filename)
+            os.rename(temp_filename_pdf, filename)
             return filename
 
         # open the tmp pdf
         elif view:
             from sage.misc.viewer import pdf_viewer
             cmd = pdf_viewer().split()
-            cmd.append(_filename_pdf)
+            cmd.append(temp_filename_pdf)
             run(cmd, cwd=base, capture_output=True, check=True)
 
-        return _filename_pdf
+        return temp_filename_pdf
 
     def png(self, filename=None, density=150, view=True):
         """
@@ -502,14 +502,14 @@ class StandaloneTex(SageObject):
         from sage.features.imagemagick import ImageMagick
         ImageMagick().require()
 
-        _filename_pdf = self.pdf(filename=None, view=False)
-        _filename, ext = os.path.splitext(_filename_pdf)
-        _filename_png = _filename+'.png'
+        temp_filename_pdf = self.pdf(filename=None, view=False)
+        temp_filename, ext = os.path.splitext(temp_filename_pdf)
+        temp_filename_png = temp_filename+'.png'
 
         # convert to png
         cmd = ['convert', '-density',
-               '{0}x{0}'.format(density), '-trim', _filename_pdf,
-               _filename_png]
+               '{0}x{0}'.format(density), '-trim', temp_filename_pdf,
+               temp_filename_png]
         result = run(cmd, capture_output=True, text=True)
 
         # If a problem occurs, provide the log
@@ -528,17 +528,17 @@ class StandaloneTex(SageObject):
         # move the png into the good location
         if filename:
             filename = os.path.abspath(filename)
-            os.rename(_filename_png, filename)
+            os.rename(temp_filename_png, filename)
             return filename
 
         # open the tmp png
         elif view:
             from sage.misc.viewer import png_viewer
             cmd = png_viewer().split()
-            cmd.append(_filename_png)
+            cmd.append(temp_filename_png)
             run(cmd, capture_output=True, check=True)
 
-        return _filename_png
+        return temp_filename_png
 
     def svg(self, filename=None, view=True, program='pdftocairo'):
         """
@@ -585,19 +585,19 @@ class StandaloneTex(SageObject):
             The code was adapted and taken from the module :mod:`sage.misc.latex.py`.
         """
         # set the temporary filenames
-        _filename_pdf = self.pdf(filename=None, view=False)
-        _filename, ext = os.path.splitext(_filename_pdf)
-        _filename_svg = _filename+'.svg'
+        temp_filename_pdf = self.pdf(filename=None, view=False)
+        temp_filename, ext = os.path.splitext(temp_filename_pdf)
+        temp_filename_svg = temp_filename+'.svg'
 
         # set the command
         if program == 'pdftocairo':
             from sage.features.pdftocairo import pdftocairo
             pdftocairo().require()
-            cmd = ['pdftocairo', '-svg', _filename_pdf, _filename_svg]
+            cmd = ['pdftocairo', '-svg', temp_filename_pdf, temp_filename_svg]
         elif program == 'pdf2svg':
             from sage.features.pdf2svg import pdf2svg
             pdf2svg().require()
-            cmd = ['pdf2svg', _filename_pdf, _filename_svg]
+            cmd = ['pdf2svg', temp_filename_pdf, temp_filename_svg]
         else:
             raise ValueError("program(={}) should be 'pdftocairo' or"
                     " 'pdf2svg'".format(program))
@@ -621,17 +621,17 @@ class StandaloneTex(SageObject):
         # move the svg into the good location
         if filename:
             filename = os.path.abspath(filename)
-            os.rename(_filename_svg, filename)
+            os.rename(temp_filename_svg, filename)
             return filename
 
         # open the tmp svg
         elif view:
             from sage.misc.viewer import browser
             cmd = browser().split()
-            cmd.append(_filename_svg)
+            cmd.append(temp_filename_svg)
             run(cmd, capture_output=True, check=True)
 
-        return _filename_svg
+        return temp_filename_svg
 
     def tex(self, filename=None, include_header=True):
         """

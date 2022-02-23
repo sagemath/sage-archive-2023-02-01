@@ -462,7 +462,7 @@ class MPowerSeries(PowerSeries):
             sage: cc = K.hom([-i])
             sage: R.<s,t> = PowerSeriesRing(K)
             sage: f = s^2 + i*s*t + (3+4*i)*s^3 + R.O(4); f
-            s^2 + (i)*s*t + (4*i + 3)*s^3 + O(s, t)^4
+            s^2 + i*s*t + (4*i + 3)*s^3 + O(s, t)^4
             sage: f(t, s, base_map=cc)
             (-i)*s*t + t^2 + (-4*i + 3)*t^3 + O(s, t)^4
         """
@@ -1504,7 +1504,12 @@ class MPowerSeries(PowerSeries):
             False
             sage: f.base_extend(QQ).is_unit()
             True
+            sage: (O(a,b)^0).is_unit()
+            False
         """
+        # Return False for 0 + O(a, b)^0, which is the only element with precision_absolute == 0.
+        if self.precision_absolute() == 0:
+            return False
         return self._bg_value[0].is_unit()
 
     ###
@@ -1946,7 +1951,8 @@ class MPowerSeries(PowerSeries):
         c = self.constant_coefficient()
         exp_c = exp(c)
         x = self._bg_value - c
-        if x.is_zero(): return exp_c
+        if x.is_zero():
+            return exp_c
         val = x.valuation()
         assert(val >= 1)
 
@@ -2039,7 +2045,8 @@ class MPowerSeries(PowerSeries):
             raise ValueError('Can only take formal power series for non-zero constant term.')
         log_c = log(c)
         x = 1 - self._bg_value/c
-        if x.is_zero(): return log_c
+        if x.is_zero():
+            return log_c
         val = x.valuation()
         assert(val >= 1)
 

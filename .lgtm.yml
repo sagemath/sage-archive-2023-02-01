@@ -10,6 +10,7 @@ path_classifiers:
     - "**/species/library.py"
     - "**/categories/basic.py"
     - "**/combinat/ribbon.py"
+    - "**/combinat/family.py"
     - "**/interacts/geometry.py"
     - "**/matroids/advanced.py"
     - "**/matroids/named_matroids.py"

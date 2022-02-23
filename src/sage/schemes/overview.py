@@ -138,6 +138,19 @@ Point sets
   In fact, we need a test ``R.ideal([2, 1 + t]) == R.ideal([1])`` in order to make
   this meaningful.
 
+Berkovich Analytic Spaces
+-------------------------
+
+- **Berkovich Analytic Space (not yet implemented)**
+  The construction of analytic spaces from schemes due to Berkovich. Any Berkovich
+  space should inherit from :class:`Berkovich`
+
+- **Berkovich Analytic Space over Cp**
+  A special case of the general Berkovich analytic space construction.
+  Affine Berkovich space over `\CC_p` is the set of seminorms on the polynomial
+  ring `\CC_p[x]`, while projective Berkovich space over `\CC_p` is the one-point compactification
+  of affine Berkovich space `\CC_p`. Points are represented using the classification (due
+  to Berkovich) of a corresponding decreasing sequence of disks in `\CC_p`.
 
 AUTHORS:
 

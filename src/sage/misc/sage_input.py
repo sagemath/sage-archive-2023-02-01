@@ -172,7 +172,6 @@ AUTHORS:
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 
-from __future__ import print_function, absolute_import
 
 def sage_input(x, preparse=True, verify=False, allow_locals=False):
     r"""
@@ -392,24 +391,6 @@ class SageInputBuilder:
             sage: sage_input(-11r, preparse=None, verify=True)
             # Verified
             -int(11)
-            sage: sage_input(long(-5), verify=True)  # py2
-            # Verified
-            -long(5)
-            sage: sage_input(long(-7), preparse=False, verify=True)
-            # Verified
-            -7L
-            sage: sage_input(long(11), preparse=None, verify=True)  # py2
-            # Verified
-            long(11)
-            sage: sage_input(long(2^70), verify=True)
-            # Verified
-            1180591620717411303424r
-            sage: sage_input(-long(2^80), preparse=False, verify=True)
-            # Verified
-            -1208925819614629174706176
-            sage: sage_input(long(2^75), preparse=None, verify=True)  # py2
-            # Verified
-            long(37778931862957161709568)
             sage: sage_input(float(-infinity), preparse=True, verify=True)
             # Verified
             -float(infinity)
@@ -437,9 +418,9 @@ class SageInputBuilder:
             sage: sage_input('Icky chars: \0\n\t\b\'\"\200\300\234', verify=True)
             # Verified
             'Icky chars: \x00\n\t\x08\'"\x80\xc0\x9c'
-            sage: sage_input(u'unicode with spectral: \u1234\U00012345', verify=True)
+            sage: sage_input('unicode with spectral: \u1234\U00012345', verify=True)
             # Verified
-            u'unicode with spectral: \u1234\U00012345'
+            'unicode with spectral: \u1234\U00012345'
             sage: sage_input((2, 3.5, 'Hi'), verify=True)
             # Verified
             (2, 3.5, 'Hi')
@@ -461,10 +442,12 @@ class SageInputBuilder:
 
         if type(x) in self._cached_types:
             v = self._cache.get((parent(x), x))
-            if v is not None: return v
+            if v is not None:
+                return v
 
         v = self._id_cache.get(id(x))
-        if v is not None: return v[1]
+        if v is not None:
+            return v[1]
 
         if isinstance(x, SageInputExpression):
             return x
@@ -576,10 +559,6 @@ class SageInputBuilder:
             sage: sib = SageInputBuilder()
             sage: sib.result(sib.int(-3^50))
             -717897987691852588770249
-
-            sage: sib = SageInputBuilder()
-            sage: sib.result(sib.int(long(2^65)))
-            36893488147419103232
 
             sage: sib = SageInputBuilder()
             sage: sib.result(sib.int(-42r))
@@ -1032,9 +1011,9 @@ class SageInputBuilder:
             R.<y> = ZZ[]
             y
         """
-        if not parent in self._parent_gens:
+        if parent not in self._parent_gens:
             self(parent)
-            if not parent in self._parent_gens:
+            if parent not in self._parent_gens:
                 raise ValueError("{} did not register generators for sage_input".format(parent))
 
         gens = self._parent_gens[parent]
@@ -1518,8 +1497,6 @@ class SageInputExpression(object):
             {binop:/ {atomic:3} {atomic:4}}
         """
         return self._sie_binop('/', other)
-
-    __div__ = __truediv__
 
     def __add__(self, other):
         r"""
@@ -2630,7 +2607,8 @@ class SIE_unary(SageInputExpression):
         else:
             raise ValueError('Unhandled op {} in SIE_unary'.format(op))
 
-        if rprec is None: rprec = prec
+        if rprec is None:
+            rprec = prec
 
         return '%s%s' % (fop, sif.format(self._sie_operand, prec)), rprec
 
@@ -3407,7 +3385,8 @@ class SageInputFormatter:
             sage: sif._names, sif._dup_names
             ({'x', 'y'}, {'x': 0})
         """
-        if name is None: name = 'si'
+        if name is None:
+            name = 'si'
 
         if name in self._names:
             self._dup_names[name] = 0
@@ -3437,7 +3416,8 @@ class SageInputFormatter:
             'y'
             'z'
         """
-        if name is None: name = 'si'
+        if name is None:
+            name = 'si'
 
         if name in self._dup_names:
             next = self._dup_names[name] + 1

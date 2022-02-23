@@ -802,7 +802,7 @@ return([G,H]);
 }
 
 \\ p a prime number. 
-\\ finds a solution mod p for the quadatic form G
+\\ finds a solution mod p for the quadratic form G
 \\ such that det(G) !=0 mod p and dim G = n>=3;
 {qfsolvemodp(G,p) =
 my(vdet,G2,sol,x1,x2,x3,N1,N2,N3,s);

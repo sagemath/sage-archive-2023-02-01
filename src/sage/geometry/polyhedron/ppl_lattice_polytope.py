@@ -65,17 +65,15 @@ AUTHORS:
 # (at your option) any later version.
 #                  https://www.gnu.org/licenses/
 # ****************************************************************************
-from __future__ import absolute_import, print_function
-
 import copy
 from sage.rings.integer import GCD_list, Integer
 from sage.rings.integer_ring import ZZ
-from sage.misc.all import cached_method
-from sage.modules.all import vector
+from sage.misc.cachefunc import cached_method
+from sage.modules.free_module_element import vector
 from sage.matrix.constructor import matrix
 from ppl import (
     C_Polyhedron, Linear_Expression, Variable,
-    point, ray, line, Generator, Generator_System,
+    point, line, Generator, Generator_System,
     Poly_Con_Relation )
 
 
@@ -217,20 +215,20 @@ class LatticePolytope_PPL_class(C_Polyhedron):
             The empty lattice polytope in ZZ^0
         """
         desc = ''
-        if self.n_vertices()==0:
+        if self.n_vertices() == 0:
             desc += 'The empty lattice polytope'
         else:
             desc += 'A ' + repr(self.affine_dimension()) + '-dimensional lattice polytope'
         desc += ' in ZZ^' + repr(self.space_dimension())
 
-        if self.n_vertices()>0:
+        if self.n_vertices() > 0:
             desc += ' with '
             desc += repr(self.n_vertices())
-            if self.n_vertices()==1: desc += ' vertex'
-            else:                    desc += ' vertices'
+            if self.n_vertices() == 1:
+                desc += ' vertex'
+            else:
+                desc += ' vertices'
         return desc
-
-
 
     def is_bounded(self):
         """
@@ -305,7 +303,7 @@ class LatticePolytope_PPL_class(C_Polyhedron):
         box_max = []
         if self.is_empty():
             raise ValueError('empty polytope is not allowed')
-        for i in range(0, self.space_dimension()):
+        for i in range(self.space_dimension()):
             x = Variable(i)
             coords = [Integer(v.coefficient(x)) for v in self.generators()]
             max_coord = max(coords)
@@ -394,9 +392,12 @@ class LatticePolytope_PPL_class(C_Polyhedron):
             sage: set(pts1) == set(pts2)
             True
 
-            sage: timeit('Polyhedron(v).integral_points()')   # random output
-            sage: timeit('LatticePolytope(v).points()')       # random output
-            sage: timeit('LatticePolytope_PPL(*v).integral_points()')       # random output
+            sage: len(Polyhedron(v).integral_points())  # takes about 1 ms
+            23
+            sage: len(LatticePolytope(v).points())  # takes about 13 ms
+            23
+            sage: len(LatticePolytope_PPL(*v).integral_points())  # takes about 0.5 ms
+            23
         """
         if self.is_empty():
             return tuple()
@@ -493,7 +494,7 @@ class LatticePolytope_PPL_class(C_Polyhedron):
         v = vector(ZZ, d)
         points = []
         for g in self.minimized_generators():
-            for i in range(0,d):
+            for i in range(d):
                 v[i] = g.coefficient(Variable(i))
             v_copy = copy.copy(v)
             v_copy.set_immutable()
@@ -862,7 +863,7 @@ class LatticePolytope_PPL_class(C_Polyhedron):
             sage: proj = poly.base_projection(fiber)
             sage: proj_matrix = poly.base_projection_matrix(fiber)
             sage: [ proj(p) for p in poly.integral_points() ]
-            [(-1, -1), (0, 0), (0, 0), (0, 0), (0, 0), (0, 0), (0, 0), (0, 0), (1, 0), (0, 1)]
+            [(-1, -1), (0, 0), (0, 0), (0, 0), (0, 0), (0, 0), (0, 0), (0, 0), (0, 1), (1, 0)]
             sage: [ proj_matrix*p for p in poly.integral_points() ]
             [(-1, -1), (0, 0), (0, 0), (0, 0), (0, 0), (0, 0), (0, 0), (0, 0), (0, 1), (1, 0)]
         """
@@ -1211,7 +1212,7 @@ class LatticePolytope_PPL_class(C_Polyhedron):
         If there is no such embedding, a
         :class:`~sage.geometry.polyhedron.lattice_euclidean_group_element.LatticePolytopeNoEmbeddingError`
         is raised. Even if it exists, the ambient reflexive polytope
-        is usually not uniquely determined an a random but fixed
+        is usually not uniquely determined and a random but fixed
         choice will be returned.
 
         EXAMPLES::

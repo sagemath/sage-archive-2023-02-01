@@ -41,6 +41,15 @@ for i in doc/info/*.html ; do
     touch "${i}"
 done
 touch doc/info/maxima.info*
+# Maxima 5.44.0 build_html.sh is not compatible with makeinfo 4.8
+# (which is /usr/bin/makeinfo on macOS).  #30063
+# Do not build the HTML docs unless the user asks for it,
+# in which case it is their problem to install a better
+# makeinfo version.
+if [[ "$SAGE_SPKG_INSTALL_DOCS" != yes ]] ; then
+touch doc/info/maxima_toc.html interfaces/xmaxima/doc/xmaxima.html
+fi
+
 #---------------------------------------------------------------
 
 sdh_make
@@ -48,9 +57,12 @@ sdh_make_install
 
 
 # Install Maxima into ECL's library directory:
-ECLLIB=`ecl -eval "(princ (SI:GET-LIBRARY-PATHNAME))" -eval "(quit)"`
+# Ensure that the $ECLLIB directory exists in
+# case we're using ECL from the system.
+ECLLIB="${SAGE_LOCAL}/lib/ecl"
 echo
 echo "Now installing the Maxima library as '$ECLLIB/maxima.fas'..."
+mkdir -p "${ECLLIB}"
 cp -f "src/binary-ecl/maxima.fas" "$ECLLIB/maxima.fas" \
     || sdh_die "Failed to install 'src/binary-ecl/maxima.fas' as '$ECLLIB/maxima.fas'."
 

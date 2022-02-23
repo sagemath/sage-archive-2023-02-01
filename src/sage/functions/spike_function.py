@@ -16,13 +16,12 @@ AUTHORS:
 #  the License, or (at your option) any later version.
 #                  https://www.gnu.org/licenses/
 # ****************************************************************************
-from __future__ import print_function
 
 import math
 
 from sage.plot.all import line
 from sage.modules.free_module_element import vector
-from sage.rings.all import RDF
+from sage.rings.real_double import RDF
 
 
 class SpikeFunction:

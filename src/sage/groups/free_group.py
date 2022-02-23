@@ -235,9 +235,8 @@ class FreeGroupElement(ElementLibGAP):
         TESTS::
 
             sage: G.<a,b> = FreeGroup()
-            sage: hash(a*b*b*~a)
-            -485698212495963022 # 64-bit
-            -1876767630         # 32-bit
+            sage: hash(a*b*b*~a) == hash((1, 2, 2, -1))
+            True
         """
         return hash(self.Tietze())
 
@@ -323,7 +322,7 @@ class FreeGroupElement(ElementLibGAP):
             sage: type(a.Tietze())
             <... 'tuple'>
             sage: type(a.Tietze()[0])
-            <type 'sage.rings.integer.Integer'>
+            <class 'sage.rings.integer.Integer'>
         """
         tl = self.gap().TietzeWordAbstractWord()
         return tuple(tl.sage())
@@ -505,7 +504,6 @@ class FreeGroupElement(ElementLibGAP):
         """
         g = self.gap().UnderlyingElement()
         k = g.NumberSyllables().sage()
-        gen = self.parent().gen
         exponent_syllable  = libgap.eval('ExponentSyllable')
         generator_syllable = libgap.eval('GeneratorSyllable')
         result = []
@@ -711,7 +709,7 @@ def wrap_FreeGroup(libgap_free_group):
 
         sage: F = libgap.FreeGroup(['a', 'b'])
         sage: type(F)
-        <type 'sage.libs.gap.element.GapElement'>
+        <class 'sage.libs.gap.element.GapElement'>
 
     Now wrap it::
 
@@ -909,7 +907,7 @@ class FreeGroup_class(UniqueRepresentation, Group, ParentLibGAP):
         """
         return (0,) * self.ngens()
 
-    def quotient(self, relations):
+    def quotient(self, relations, **kwds):
         """
         Return the quotient of ``self`` by the normal subgroup generated
         by the given elements.
@@ -922,6 +920,8 @@ class FreeGroup_class(UniqueRepresentation, Group, ParentLibGAP):
 
         - ``relations`` -- A list/tuple/iterable with the elements of
           the free group.
+        - further named arguments, that are passed to the constructor
+          of a finitely presented group.
 
         OUTPUT:
 
@@ -953,6 +953,6 @@ class FreeGroup_class(UniqueRepresentation, Group, ParentLibGAP):
 
         """
         from sage.groups.finitely_presented import FinitelyPresentedGroup
-        return FinitelyPresentedGroup(self, tuple(map(self, relations) ) )
+        return FinitelyPresentedGroup(self, tuple(map(self, relations) ), **kwds)
 
     __truediv__ = quotient

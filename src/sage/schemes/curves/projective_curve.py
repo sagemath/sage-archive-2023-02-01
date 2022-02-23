@@ -1,4 +1,4 @@
-"""
+r"""
 Projective curves
 
 Projective curves in Sage are curves in a projective space or a projective plane.
@@ -77,6 +77,40 @@ It is easy to transit to and from the function field of the curve::
     sage: _.place()
     Place (y)
 
+Integral projective curves over `\QQ`
+-------------------------------------
+
+An integral curve over `\QQ` is also equipped with the function field. Unlike
+over finite fields, it is not possible to enumerate closed points.
+
+EXAMPLES::
+
+    sage: P.<x,y,z> = ProjectiveSpace(QQ, 2)
+    sage: C = Curve(x^2*z^2 - x^4 - y^4, P)
+    sage: C.singular_closed_points()
+    [Point (x, y)]
+    sage: p, = _
+    sage: p.places()
+    [Place (1/y, 1/y^2*z - 1), Place (1/y, 1/y^2*z + 1)]
+    sage: fy = C.function(y/z)
+    sage: fy.divisor()
+    Place (1/y, 1/y^2*z - 1)
+     + Place (1/y, 1/y^2*z + 1)
+     + Place (y, z - 1)
+     + Place (y, z + 1)
+     - Place (y^4 + 1, z)
+    sage: supp = _.support()
+    sage: pl = supp[0]
+    sage: C.place_to_closed_point(pl)
+    Point (x, y)
+    sage: pl = supp[1]
+    sage: C.place_to_closed_point(pl)
+    Point (x, y)
+    sage: _.rational_point()
+    (0 : 0 : 1)
+    sage: _ in C
+    True
+
 AUTHORS:
 
 - William Stein (2005-11-13)
@@ -89,7 +123,7 @@ AUTHORS:
 
 - Grayson Jorgenson (2016-08)
 
-- Kwankyu Lee (2019-05): added integral projecive curves
+- Kwankyu Lee (2019-05): added integral projective curves
 
 """
 # ****************************************************************************
@@ -101,7 +135,6 @@ AUTHORS:
 #
 #                  https://www.gnu.org/licenses/
 # ****************************************************************************
-from __future__ import division, absolute_import
 
 from sage.misc.lazy_attribute import lazy_attribute
 from sage.misc.cachefunc import cached_method
@@ -112,7 +145,7 @@ from sage.categories.number_fields import NumberFields
 from sage.categories.homset import Hom, End
 
 from sage.interfaces.all import singular
-from sage.matrix.all import matrix
+from sage.matrix.constructor import matrix
 from sage.misc.all import add, sage_eval
 
 from sage.rings.all import degree_lowest_rational_function, IntegerRing
@@ -133,7 +166,9 @@ from .curve import Curve_generic
 from .point import (ProjectiveCurvePoint_field,
                     ProjectivePlaneCurvePoint_field,
                     ProjectivePlaneCurvePoint_finite_field,
+                    IntegralProjectiveCurvePoint,
                     IntegralProjectiveCurvePoint_finite_field,
+                    IntegralProjectivePlaneCurvePoint,
                     IntegralProjectivePlaneCurvePoint_finite_field)
 
 from .closed_point import IntegralProjectiveCurveClosedPoint
@@ -376,7 +411,7 @@ class ProjectiveCurve(Curve_generic, AlgebraicScheme_subscheme_projective):
             raise TypeError("this curve is already a plane curve")
         if self.base_ring() not in Fields():
             raise TypeError("this curve must be defined over a field")
-        if not PS is None:
+        if PS is not None:
             if not is_ProjectiveSpace(PS):
                 raise TypeError("(=%s) must be a projective space" % PS)
             if PS.dimension_relative() != n - 1:
@@ -420,7 +455,7 @@ class ProjectiveCurve(Curve_generic, AlgebraicScheme_subscheme_projective):
                 Q = self(P)
             except TypeError:
                 pass
-            if not Q is None:
+            if Q is not None:
                 raise TypeError("(=%s) must be a point not on this curve" % P)
             try:
                 Q = self.ambient_space()(P)
@@ -499,14 +534,11 @@ class ProjectiveCurve(Curve_generic, AlgebraicScheme_subscheme_projective):
             sage: C = P.curve([x^2 - 6*y^2, w*z*u - y^3 + 4*y^2*z, u^2 - x^2])
             sage: C.plane_projection()
             (Scheme morphism:
-               From: Projective Curve over Finite Field of size 7 defined by x^2 +
-            y^2, -y^3 - 3*y^2*z + z*w*u, -x^2 + u^2
+               From: Projective Curve over Finite Field of size 7 defined by x^2 + y^2, -y^3 - 3*y^2*z + z*w*u, -x^2 + u^2
                To:   Projective Space of dimension 2 over Finite Field of size 7
                Defn: Defined on coordinates by sending (x : y : z : w : u) to
-                     (y : z : -x + w),
-             Projective Plane Curve over Finite Field of size 7 defined by x0^10 -
-            2*x0^9*x1 + 3*x0^8*x1^2 - 2*x0^7*x1^3 + x0^6*x1^4 + 2*x0^6*x1^2*x2^2 -
-            2*x0^5*x1^3*x2^2 - x0^4*x1^4*x2^2 + x0^2*x1^4*x2^4)
+                     (x : z : -y + w),
+             Projective Plane Curve over Finite Field of size 7 defined by x0^10 + 2*x0^8*x1^2 + 2*x0^6*x1^4 - 3*x0^6*x1^3*x2 + 2*x0^6*x1^2*x2^2 - 2*x0^4*x1^4*x2^2 + x0^2*x1^4*x2^4)
 
         ::
 
@@ -1667,7 +1699,7 @@ class ProjectivePlaneCurve_field(ProjectivePlaneCurve, ProjectiveCurve_field):
         f = self.affine_patch(2).defining_polynomial()
         if f.degree() == self.degree():
             return fundamental_group(f, projective=True)
-        else:  #in this case, the line at infinity is part of the curve, so the complement lies in the affine patch
+        else:  # in this case, the line at infinity is part of the curve, so the complement lies in the affine patch
             return fundamental_group(f, projective=False)
 
     def rational_parameterization(self):
@@ -1965,7 +1997,7 @@ class ProjectivePlaneCurve_finite_field(ProjectivePlaneCurve_field):
             sage: C = Curve(f); pts = C.rational_points()
             sage: D = C.divisor([ (3, pts[0]), (-1,pts[1]), (10, pts[5]) ])
             sage: C.riemann_roch_basis(D)
-            [(-x - 2*y)/(-2*x - 2*y), (-x + z)/(x + y)]
+            [(-2*x + y)/(x + y), (-x + z)/(x + y)]
 
         .. NOTE::
 
@@ -2120,13 +2152,44 @@ class IntegralProjectiveCurve(ProjectiveCurve_field):
     """
     Integral projective curve.
     """
+    _point = IntegralProjectiveCurvePoint
     _closed_point = IntegralProjectiveCurveClosedPoint
+
+    def __init__(self, A, f):
+        """
+        Initialize.
+
+        TESTS::
+
+            sage: P.<x,y,z> = ProjectiveSpace(GF(5), 2)
+            sage: C = Curve(y^2*z^7 - x^9 - x*z^8)
+            sage: loads(dumps(C)) == C
+            True
+        """
+        super(IntegralProjectiveCurve, self).__init__(A, f)
+
+        ideal = self.defining_ideal()
+        gs = self.ambient_space().gens()
+        for i in range(self.ngens()):
+            if not gs[i] in ideal:
+                self._open_affine = self.affine_patch(i)
+                self._open_affine_index = i
+                break
+        else:
+            assert "no projective curve defined"
 
     def function_field(self):
         """
         Return the function field of this curve.
 
         EXAMPLES::
+
+            sage: P.<x,y,z> = ProjectiveSpace(QQ, 2)
+            sage: C = Curve(x^2 + y^2 + z^2, P)
+            sage: C.function_field()
+            Function field in z defined by z^2 + y^2 + 1
+
+        ::
 
             sage: P.<x,y,z> = ProjectiveSpace(GF(4), 2)
             sage: C = Curve(x^5 + y^5 + x*y*z^3 + z^5)
@@ -2147,7 +2210,7 @@ class IntegralProjectiveCurve(ProjectiveCurve_field):
             sage: C.genus()  # indirect doctest
             1
         """
-        return self._function_field.genus()
+        return self._open_affine.genus()
 
     def __call__(self, *args):
         """
@@ -2221,55 +2284,6 @@ class IntegralProjectiveCurve(ProjectiveCurve_field):
             return coords
         inv = ~coords[i]
         return tuple([coords[j]*inv for j in range(len(coords)) if j != i])
-
-
-class IntegralProjectiveCurve_finite_field(IntegralProjectiveCurve):
-    """
-    Integral projective curve over a finite field.
-
-    INPUT:
-
-    - ``A`` -- an ambient projective space
-
-    - ``f`` -- homogeneous polynomials defining the curve
-
-    EXAMPLES::
-
-        sage: P.<x,y,z> = ProjectiveSpace(GF(5), 2)
-        sage: C = Curve(y^2*z^7 - x^9 - x*z^8)
-        sage: C.function_field()
-        Function field in z defined by z^8 + 4*y^2*z^7 + 1
-        sage: C.closed_points()
-        [Point (x, z),
-         Point (x, y),
-         Point (x - 2*z, y + 2*z),
-         Point (x + 2*z, y + z),
-         Point (x + 2*z, y - z),
-         Point (x - 2*z, y - 2*z)]
-    """
-    _point = IntegralProjectiveCurvePoint_finite_field
-
-    def __init__(self, A, f):
-        """
-        Initialize.
-
-        TESTS::
-
-            sage: P.<x,y,z> = ProjectiveSpace(GF(5), 2)
-            sage: C = Curve(y^2*z^7 - x^9 - x*z^8)
-            sage: loads(dumps(C)) == C
-            True
-        """
-        super(IntegralProjectiveCurve_finite_field, self).__init__(A, f)
-
-        ideal = self.defining_ideal()
-        gs = self.ambient_space().gens()
-        for i in range(self.ngens()):
-            if not gs[i] in ideal:
-                break
-
-        self._open_affine = self.affine_patch(i)
-        self._open_affine_index = i
 
     @lazy_attribute
     def _function_field(self):
@@ -2383,6 +2397,13 @@ class IntegralProjectiveCurve_finite_field(IntegralProjectiveCurve):
 
         EXAMPLES::
 
+            sage: P.<x,y,z> = ProjectiveSpace(QQ, 2)
+            sage: C = Curve(y^2*z - x^3, P)
+            sage: C.singular_closed_points()
+            [Point (x, y)]
+
+        ::
+
             sage: P.<x,y,z> = ProjectiveSpace(GF(5), 2)
             sage: C = Curve(y^2*z^7 - x^9 - x*z^8)
             sage: C.singular_closed_points()
@@ -2485,6 +2506,21 @@ class IntegralProjectiveCurve_finite_field(IntegralProjectiveCurve):
 
         EXAMPLES::
 
+            sage: P.<x,y,z> = ProjectiveSpace(QQ, 2)
+            sage: C = Curve(x*y*z^4 - x^6 - y^6)
+            sage: C.singular_closed_points()
+            [Point (x, y)]
+            sage: p, = _
+            sage: C.places_on(p)
+            [Place (1/y, 1/y^2*z, 1/y^3*z^2, 1/y^4*z^3), Place (y, y*z, y*z^2, y*z^3)]
+            sage: pl1, pl2 =_
+            sage: C.place_to_closed_point(pl1)
+            Point (x, y)
+            sage: C.place_to_closed_point(pl2)
+            Point (x, y)
+
+        ::
+
             sage: P.<x,y,z> = ProjectiveSpace(GF(5), 2)
             sage: C = Curve(x^2*z - y^3)
             sage: [C.places_on(p) for p in C.closed_points()]
@@ -2513,6 +2549,33 @@ class IntegralProjectiveCurve_finite_field(IntegralProjectiveCurve):
             if all(f.valuation(p) > 0 for f in fs):
                 places.append(p)
         return places
+
+
+class IntegralProjectiveCurve_finite_field(IntegralProjectiveCurve):
+    """
+    Integral projective curve over a finite field.
+
+    INPUT:
+
+    - ``A`` -- an ambient projective space
+
+    - ``f`` -- homogeneous polynomials defining the curve
+
+    EXAMPLES::
+
+        sage: P.<x,y,z> = ProjectiveSpace(GF(5), 2)
+        sage: C = Curve(y^2*z^7 - x^9 - x*z^8)
+        sage: C.function_field()
+        Function field in z defined by z^8 + 4*y^2*z^7 + 1
+        sage: C.closed_points()
+        [Point (x, z),
+         Point (x, y),
+         Point (x - 2*z, y + 2*z),
+         Point (x + 2*z, y + z),
+         Point (x + 2*z, y - z),
+         Point (x - 2*z, y - 2*z)]
+    """
+    _point = IntegralProjectiveCurvePoint_finite_field
 
     def places(self, degree=1):
         """
@@ -2565,11 +2628,11 @@ class IntegralProjectiveCurve_finite_field(IntegralProjectiveCurve):
             [Point (x0, x1),
              Point (x0 + (-z2 - 1)*x2, x1),
              Point (x0 + (z2 + 1)*x2, x1),
-             Point (x0 + (z2)*x2, x1 + (z2 - 1)*x2),
+             Point (x0 + z2*x2, x1 + (z2 - 1)*x2),
              Point (x0 + (-z2)*x2, x1 + (-z2 + 1)*x2),
              Point (x0 + (-z2 - 1)*x2, x1 + (-z2 - 1)*x2),
              Point (x0 + (z2 + 1)*x2, x1 + (z2 + 1)*x2),
-             Point (x0 + (z2 - 1)*x2, x1 + (z2)*x2),
+             Point (x0 + (z2 - 1)*x2, x1 + z2*x2),
              Point (x0 + (-z2 + 1)*x2, x1 + (-z2)*x2),
              Point (x0 + x2, x1 - x2),
              Point (x0 - x2, x1 + x2)]
@@ -2657,18 +2720,18 @@ class IntegralProjectiveCurve_finite_field(IntegralProjectiveCurve):
         L = R(L)
         Lp = R(Lp)
 
-        previous_prec = R.default_prec()
-        R.set_default_prec(r)
-
-        f = Lp / L
+        f = R(Lp / L, prec=r)
         n = f[r-1] + q**r + 1
-
-        R.set_default_prec(previous_prec)
 
         return n
 
 
-class IntegralProjectivePlaneCurve_finite_field(ProjectivePlaneCurve_finite_field, IntegralProjectiveCurve_finite_field):
+class IntegralProjectivePlaneCurve(IntegralProjectiveCurve, ProjectivePlaneCurve_field):
+    _point = IntegralProjectivePlaneCurvePoint
+
+
+class IntegralProjectivePlaneCurve_finite_field(IntegralProjectiveCurve_finite_field,
+                                                ProjectivePlaneCurve_finite_field):
     """
     Integral projective plane curve over a finite field.
 

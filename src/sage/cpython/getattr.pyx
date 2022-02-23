@@ -8,39 +8,17 @@ from .string cimport bytes_to_str
 
 cdef extern from "Python.h":
     r"""
-    /* Coded in C because of substantial differences between Python 2
-     * and Python 3 and class internals need to be accessed. */
+    /* Coded in C because class internals need to be accessed. */
     static PyObject*
     instance_getattr(PyObject* obj, PyObject* name)
     {
-        #if PY_MAJOR_VERSION < 3
-        if PyClass_Check(obj) {
-            PyClassObject* cp = (PyClassObject*)obj;
-            PyObject *value = PyDict_GetItem(cp->cl_dict, name);
-            Py_ssize_t n = PyTuple_GET_SIZE(cp->cl_bases);
-            for (Py_ssize_t i = 0; value == NULL && i < n; i++) {
-                value = instance_getattr(PyTuple_GetItem(cp->cl_bases, i), name);
-            }
-            return value;
-        }
-        #endif
-
         if (PyType_Check(obj)) {
             return _PyType_Lookup((PyTypeObject*)obj, name);
         }
 
-        PyObject* dict;
-        #if PY_MAJOR_VERSION < 3
-        if PyInstance_Check(obj) {
-            dict = ((PyInstanceObject*)obj)->in_dict;
-        }
-        else
-        #endif
-        {
-            PyObject** dptr = _PyObject_GetDictPtr(obj);
-            if (dptr == NULL) return NULL;
-            dict = *dptr;
-        }
+        PyObject** dptr = _PyObject_GetDictPtr(obj);
+        if (dptr == NULL) return NULL;
+        PyObject* dict = *dptr;
         if (dict == NULL) return NULL;
         return PyDict_GetItem(dict, name);
     }
@@ -319,7 +297,7 @@ cpdef getattr_from_other_class(self, cls, name):
         Traceback (most recent call last):
         ...
         TypeError: descriptor '__weakref__' for 'A' objects doesn't apply
-        to 'sage.rings.integer.Integer' object
+        to ...'sage.rings.integer.Integer' object
 
     When this occurs, an ``AttributeError`` is raised::
 
@@ -332,8 +310,6 @@ cpdef getattr_from_other_class(self, cls, name):
 
         sage: "__weakref__" in dir(A)
         True
-        sage: "__weakref__" in dir(1)  # py2
-        False
         sage: 1.__weakref__
         Traceback (most recent call last):
         ...
@@ -363,15 +339,6 @@ cpdef getattr_from_other_class(self, cls, name):
         Traceback (most recent call last):
         ...
         AttributeError: 'sage.rings.integer.Integer' object has no attribute '__name__'
-
-    This does not work with an old-style class::
-
-        sage: class OldStyle:  # py2 -- no 'old-style' classes in Python 3
-        ....:     pass
-        sage: getattr_from_other_class(1, OldStyle, "foo")  # py2
-        Traceback (most recent call last):
-        ...
-        TypeError: <class __main__.OldStyle at ...> is not a type
 
     Non-strings as "name" are handled gracefully::
 

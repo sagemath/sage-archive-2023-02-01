@@ -37,7 +37,6 @@ AUTHORS:
 #
 #                  https://www.gnu.org/licenses/
 #*****************************************************************************
-from __future__ import print_function
 
 import operator
 
@@ -127,11 +126,11 @@ class Interface(WithEqualityById, ParentWithBase):
             sage: from sage.interfaces.interface import Interface
             sage: i = Interface("")
             sage: i.rand_seed() # random
-            318491487L
+            318491487
 
             sage: s = Singular()
             sage: s.rand_seed() # random
-            365260051L
+            365260051
         """
         import sage.doctest
         if sage.doctest.DOCTEST_MODE:
@@ -333,6 +332,16 @@ class Interface(WithEqualityById, ParentWithBase):
             return self(x._interface_init_())
 
     def _coerce_impl(self, x, use_special=True):
+        r"""
+        Coerce pure Python types via corresponding Sage objects.
+
+        TESTS:
+
+        Check that python type ``complex`` can be converted (:trac:`31775`)::
+
+            sage: giac(complex(I))**2  # should not return `j^2`
+            -1
+        """
         if isinstance(x, bool):
             return self(self._true_symbol() if x else self._false_symbol())
         elif isinstance(x, int):
@@ -341,6 +350,9 @@ class Interface(WithEqualityById, ParentWithBase):
         elif isinstance(x, float):
             import sage.rings.all
             return self(sage.rings.all.RDF(x))
+        elif isinstance(x, complex):
+            import sage.rings.all
+            return self(sage.rings.all.CDF(x))
         if use_special:
             try:
                 return self._coerce_from_special_method(x)
@@ -589,9 +601,9 @@ class Interface(WithEqualityById, ParentWithBase):
         EXAMPLES::
 
             sage: maxima.quad_qags(x, x, 0, 1, epsrel=1e-4)
-            [0.5,0.55511151231257...e-14,21,0]
+            [0.5,5.5511151231257...e-15,21,0]
             sage: maxima.function_call('quad_qags', [x, x, 0, 1], {'epsrel':'1e-4'})
-            [0.5,0.55511151231257...e-14,21,0]
+            [0.5,5.5511151231257...e-15,21,0]
         """
         args, kwds = self._convert_args_kwds(args, kwds)
         self._check_valid_function_name(function)
@@ -621,6 +633,7 @@ class Interface(WithEqualityById, ParentWithBase):
         """
         TESTS::
 
+            sage: from sage.structure.parent_base import ParentWithBase
             sage: ParentWithBase.__getattribute__(singular, '_coerce_map_from_')
             <bound method Singular._coerce_map_from_ of Singular>
         """
@@ -635,7 +648,7 @@ class Interface(WithEqualityById, ParentWithBase):
         raise NotImplementedError
 
     def help(self, s):
-        return AsciiArtString('No help on %s available'%s)
+        return AsciiArtString('No help on %s available' % s)
 
 
 @instancedoc
@@ -648,7 +661,7 @@ class InterfaceFunction(SageObject):
         self._name = name
 
     def _repr_(self):
-        return "%s"%self._name
+        return "%s" % self._name
 
     def __call__(self, *args, **kwds):
         return self._parent.function_call(self._name, list(args), kwds)
@@ -706,7 +719,8 @@ class InterfaceElement(Element):
     def __init__(self, parent, value, is_name=False, name=None):
         Element.__init__(self, parent)
         self._create = value
-        if parent is None: return     # means "invalid element"
+        if parent is None:
+            return     # means "invalid element"
         # idea: Joe Wetherell -- try to find out if the output
         # is too long and if so get it using file, otherwise
         # don't.
@@ -720,20 +734,20 @@ class InterfaceElement(Element):
                 raise TypeError(x)
 
     def _latex_(self):
-#        return "\\begin{verbatim}%s\\end{verbatim}"%self
+        #        return "\\begin{verbatim}%s\\end{verbatim}"%self
         string = str(self)
-        if not '|' in string:
+        if '|' not in string:
             delim = '|'
-        elif not '#' in string:
+        elif '#' not in string:
             delim = '#'
-        elif not '@' in string:
+        elif '@' not in string:
             delim = '@'
-        elif not '~' in string:
+        elif '~' not in string:
             delim = '~'
-        return "\\verb%s%s%s"%(delim, string, delim)
+        return "\\verb%s%s%s" % (delim, string, delim)
 
     def __iter__(self):
-        for i in range(1, len(self)+1):
+        for i in range(1, len(self) + 1):
             yield self[i]
 
     def __len__(self):
@@ -798,9 +812,9 @@ class InterfaceElement(Element):
             "abc"
             sage: loads(dumps(pari([1,2,3])))
             [1, 2, 3]
-            sage: loads(dumps(r('"abc"')))
+            sage: loads(dumps(r('"abc"')))                                        # optional - rpy2
             [1] "abc"
-            sage: loads(dumps(r([1,2,3])))
+            sage: loads(dumps(r([1,2,3])))                                        # optional - rpy2
             [1] 1 2 3
             sage: loads(dumps(maxima([1,2,3])))
             [1,2,3]
@@ -851,10 +865,11 @@ class InterfaceElement(Element):
         by the doctests because the original identifier was reused. This test makes sure
         that does not happen again:
 
-            sage: a = r("'abc'")
-            sage: b = dumps(a)
-            sage: r.set(a.name(), 0) # make identifier reuse doesn't accidentally lead to success
-            sage: loads(b)
+            sage: a = r("'abc'")                                                  # optional - rpy2
+            sage: b = dumps(a)                                                    # optional - rpy2
+            sage: r.set(a.name(), 0) # make sure that identifier reuse            # optional - rpy2
+            ....:                    # does not accidentally lead to success
+            sage: loads(b)                                                        # optional - rpy2
             [1] "abc"
 
         """
@@ -1025,17 +1040,22 @@ class InterfaceElement(Element):
         string = repr(self).replace('\n',' ').replace('\r', '')
         # Translate the external program's function notation to Sage's
         lfd = self.parent()._left_func_delim()
-        if '(' != lfd:  string = string.replace(lfd, '(')
+        if '(' != lfd:
+            string = string.replace(lfd, '(')
         rfd = self.parent()._right_func_delim()
-        if ')' != rfd:  string = string.replace(rfd, ')')
+        if ')' != rfd:
+            string = string.replace(rfd, ')')
         # Translate the external program's list formatting to Sage's
         lld = self.parent()._left_list_delim()
-        if '[' != lld:      string = string.replace(lld, '[')
+        if '[' != lld:
+            string = string.replace(lld, '[')
         rld = self.parent()._right_list_delim()
-        if ']' != rld:      string = string.replace(rld, ']')
+        if ']' != rld:
+            string = string.replace(rld, ']')
         # Translate the external program's exponent formatting
         expl = self.parent()._exponent_symbol()
-        if 'e' != expl: string = string.replace(expl, 'e')
+        if 'e' != expl:
+            string = string.replace(expl, 'e')
         return string
 
     def _sage_(self):
@@ -1099,7 +1119,7 @@ class InterfaceElement(Element):
         To implement a custom string representation, override the method
         ``_repr_``, but do not override this double underscore method.
 
-        EXAMPLE:
+        EXAMPLES:
 
         Here is one example showing that the string representation will
         be cached when requested::
@@ -1163,7 +1183,7 @@ class InterfaceElement(Element):
             2
             sage: x = var('x')
             sage: giac(x)
-            x
+            sageVARx
             sage: giac(5)
             5
             sage: M = matrix(QQ,2,range(4))
@@ -1319,16 +1339,6 @@ class InterfaceElement(Element):
 
     __nonzero__ = __bool__
 
-    def __long__(self):
-        """
-        EXAMPLES::
-
-            sage: m = maxima('1')
-            sage: long(m)
-            1L
-        """
-        return long(repr(self))
-
     def __float__(self):
         """
         EXAMPLES::
@@ -1381,13 +1391,13 @@ class InterfaceElement(Element):
 
         EXAMPLES::
 
-            sage: x = r([1,2,3]); x
+            sage: x = r([1,2,3]); x                                               # optional - rpy2
             [1] 1 2 3
-            sage: x.name()
+            sage: x.name()                                                        # optional - rpy2
             'sage...'
-            sage: x = r([1,2,3]).name('x'); x
+            sage: x = r([1,2,3]).name('x'); x                                     # optional - rpy2
             [1] 1 2 3
-            sage: x.name()
+            sage: x.name()                                                        # optional - rpy2
             'x'
 
         ::

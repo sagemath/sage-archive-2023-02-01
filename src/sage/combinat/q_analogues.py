@@ -13,12 +13,11 @@ r"""
 #                  http://www.gnu.org/licenses/
 # ****************************************************************************
 
-from __future__ import division
 
 from sage.misc.cachefunc import cached_function
-from sage.misc.all import prod
+from sage.misc.misc_c import prod
 from sage.structure.element import parent
-from sage.rings.all import ZZ
+from sage.rings.integer_ring import ZZ
 from sage.combinat.dyck_word import DyckWords
 from sage.combinat.partition import _Partitions
 
@@ -83,7 +82,7 @@ def q_int(n, q=None):
 
 
 def q_factorial(n, q=None):
-    """
+    r"""
     Return the `q`-analogue of the factorial `n!`.
 
     This is the product
@@ -173,7 +172,8 @@ def q_binomial(n, k, q=None, algorithm='auto'):
       uses the naive algorithm. When both ``n`` and ``k`` are big, one
       uses the cyclotomic algorithm.
 
-    - If ``q`` is in the symbolic ring, one uses the cyclotomic algorithm.
+    - If ``q`` is in the symbolic ring (or a symbolic subring), one uses
+      the cyclotomic algorithm.
 
     - Otherwise one uses the naive algorithm, unless ``q`` is a root of
       unity, then one uses the cyclotomic algorithm.
@@ -249,7 +249,7 @@ def q_binomial(n, k, q=None, algorithm='auto'):
     This also works for variables in the symbolic ring::
 
         sage: z = var('z')
-        sage: factor(q_binomial(4,2,z))
+        sage: factor(q_binomial(4, 2, z))
         (z^2 + z + 1)*(z^2 + 1)
 
     This also works for complex roots of unity::
@@ -277,7 +277,7 @@ def q_binomial(n, k, q=None, algorithm='auto'):
         sage: r = q_binomial(3r, 2r, 1r); r
         3
         sage: type(r)
-        <type 'int'>
+        <class 'int'>
 
     Check that arbitrary polynomials work::
 
@@ -347,8 +347,8 @@ def q_binomial(n, k, q=None, algorithm='auto'):
         elif is_polynomial:
             algorithm = 'cyclotomic'
         else:
-            from sage.symbolic.ring import SR
-            if R is SR:
+            import sage.rings.abc
+            if isinstance(R, sage.rings.abc.SymbolicRing):
                 algorithm = 'cyclotomic'
             else:
                 algorithm = 'naive'

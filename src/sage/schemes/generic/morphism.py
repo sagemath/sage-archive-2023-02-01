@@ -74,7 +74,6 @@ AUTHORS:
 #                  https://www.gnu.org/licenses/
 # ****************************************************************************
 
-from __future__ import absolute_import, print_function
 
 import operator
 from sage.structure.element import Element, parent, coercion_model
@@ -86,6 +85,7 @@ from sage.rings.fraction_field_element import FractionFieldElement
 from sage.rings.fraction_field import is_FractionField
 from sage.categories.map import FormalCompositeMap, Map
 from sage.misc.constant_function import ConstantFunction
+from sage.misc.lazy_attribute import lazy_attribute
 from sage.categories.morphism import SetMorphism
 from sage.schemes.generic.algebraic_scheme import AlgebraicScheme_subscheme
 
@@ -168,9 +168,37 @@ class SchemeMorphism(Element):
         if not isinstance(parent, Homset):
             raise TypeError("parent (=%s) must be a Homspace"%parent)
         Element.__init__(self, parent)
-        self.domain = ConstantFunction(parent.domain())
         self._codomain = parent.codomain()
-        self.codomain = ConstantFunction(self._codomain)
+
+    @lazy_attribute
+    def domain(self):
+        r"""
+        The constant function from the domain.
+
+        EXAMPLES::
+
+            sage: A.<x,y> = AffineSpace(QQ['x,y'])
+            sage: H = A.Hom(A)
+            sage: f = H([y,x^2+y])
+            sage: f.domain() is A
+            True
+        """
+        return ConstantFunction(self.parent().domain())
+
+    @lazy_attribute
+    def codomain(self):
+        r"""
+        The constant function from the codomain.
+
+        EXAMPLES::
+
+            sage: A.<x,y> = AffineSpace(QQ['x,y'])
+            sage: H = A.Hom(A)
+            sage: f = H([y,x^2+y])
+            sage: f.codomain() is A
+            True
+        """
+        return ConstantFunction(self._codomain)
 
     # We copy methods of sage.categories.map.Map, to make
     # a future transition of SchemeMorphism to a sub-class of Morphism
@@ -433,9 +461,9 @@ class SchemeMorphism(Element):
         """
         return self.parent().homset_category()
 
-    def is_endomorphism(self):
+    def is_endomorphism(self) -> bool:
         """
-        Return wether the morphism is an endomorphism.
+        Return whether the morphism is an endomorphism.
 
         OUTPUT:
 
@@ -784,7 +812,8 @@ class SchemeMorphism_spec(SchemeMorphism):
             sage: f(X.an_element())    # indirect doctest
             Traceback (most recent call last):
             ...
-            NotImplementedError
+            NotImplementedError: inverse not implemented for morphisms of
+            Rational Field
         """
         # By virtue of argument preprocessing in __call__, we can assume that
         # x is a topological scheme point of self
@@ -1414,7 +1443,8 @@ class SchemeMorphism_polynomial(SchemeMorphism):
 
         ::
 
-            sage: set_verbose(None)
+            sage: from sage.misc.verbose import set_verbose
+            sage: set_verbose(-1)
             sage: K.<w> = QuadraticField(2, embedding=QQbar(-sqrt(2)))
             sage: P.<x,y> = ProjectiveSpace(K, 1)
             sage: X = P.subscheme(x-y)

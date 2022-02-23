@@ -343,8 +343,7 @@ class ShuffleAlgebra(CombinatorialFreeModule):
             B[word: ] # B[word: ]
         """
         TS = self.tensor_square()
-        return TS.sum_of_terms([((w[:i], w[i:]), 1)
-                                for i in range(len(w) + 1)], distinct=True)
+        return TS.sum_of_monomials((w[:i], w[i:]) for i in range(len(w) + 1))
 
     def counit(self, S):
         """
@@ -949,7 +948,7 @@ class DualPBWBasis(CombinatorialFreeModule):
             sage: S.expansion_on_basis(Word('abab'))
             2*B[word: aabb] + B[word: abab]
         """
-        from sage.functions.other import factorial
+        from sage.arith.all import factorial
         if not w:
             return self._alg.one()
         if len(w) == 1:

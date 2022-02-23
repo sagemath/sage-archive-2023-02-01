@@ -70,7 +70,6 @@ TESTS::
 # (at your option) any later version.
 #                  https://www.gnu.org/licenses/
 # ****************************************************************************
-from __future__ import absolute_import, print_function
 
 import sage.libs.ntl.all as ntl
 
@@ -102,8 +101,6 @@ from sage.libs.pari.all import pari_gen
 
 from sage.rings.rational_field import QQ
 from sage.rings.integer_ring import ZZ
-import sage.rings.complex_interval_field
-CIF = sage.rings.complex_interval_field.ComplexIntervalField()
 
 
 def is_RelativeNumberField(x):
@@ -397,18 +394,18 @@ class NumberField_relative(NumberField_generic):
             sage: K.<c> = F.extension(Y^2 - (1 + a)*(a + b)*a*b)
             sage: K.subfields(2)
             [
-            (Number Field in c0 with defining polynomial x^2 - 24*x + 72, Ring morphism:
-              From: Number Field in c0 with defining polynomial x^2 - 24*x + 72
+            (Number Field in c0 with defining polynomial x^2 - 24*x + 96, Ring morphism:
+              From: Number Field in c0 with defining polynomial x^2 - 24*x + 96
               To:   Number Field in c with defining polynomial Y^2 + (-2*b - 3)*a - 2*b - 6 over its base field
-              Defn: c0 |--> -6*a + 12, None),
+              Defn: c0 |--> -4*b + 12, None),
             (Number Field in c1 with defining polynomial x^2 - 24*x + 120, Ring morphism:
               From: Number Field in c1 with defining polynomial x^2 - 24*x + 120
               To:   Number Field in c with defining polynomial Y^2 + (-2*b - 3)*a - 2*b - 6 over its base field
               Defn: c1 |--> 2*b*a + 12, None),
-            (Number Field in c2 with defining polynomial x^2 - 24*x + 96, Ring morphism:
-              From: Number Field in c2 with defining polynomial x^2 - 24*x + 96
+            (Number Field in c2 with defining polynomial x^2 - 24*x + 72, Ring morphism:
+              From: Number Field in c2 with defining polynomial x^2 - 24*x + 72
               To:   Number Field in c with defining polynomial Y^2 + (-2*b - 3)*a - 2*b - 6 over its base field
-              Defn: c2 |--> -4*b + 12, None)
+              Defn: c2 |--> -6*a + 12, None)
             ]
             sage: K.subfields(8, 'w')
             [
@@ -792,8 +789,9 @@ class NumberField_relative(NumberField_generic):
             sage: K.extension(t^2+t+a, 'b')._latex_()
             '( \\Bold{Q}[a]/(a^{3} - 2) )[b]/(b^{2} + b + a)'
         """
-        return "( %s )[%s]/(%s)"%(latex(self.base_field()), self.latex_variable_name(),
-                              self.relative_polynomial()._latex_(self.latex_variable_name()))
+        latex_name = self.latex_variable_names()[0]
+        return "( %s )[%s]/(%s)"%(latex(self.base_field()), latex_name,
+                              self.relative_polynomial()._latex_(latex_name))
 
     def _coerce_from_other_number_field(self, x):
         """
@@ -1686,7 +1684,7 @@ class NumberField_relative(NumberField_generic):
             sage: K.pari_absolute_base_polynomial()
             y^2 + 3
             sage: type(K.pari_absolute_base_polynomial())
-            <type 'cypari2.gen.Gen'>
+            <class 'cypari2.gen.Gen'>
             sage: z = ZZ['z'].0
             sage: K.<a, b, c> = NumberField([z^2 + 2, z^2 + 3, z^2 + 5]); K
             Number Field in a with defining polynomial z^2 + 2 over its base field
@@ -1697,7 +1695,7 @@ class NumberField_relative(NumberField_generic):
             sage: len(QQ['y'](K.pari_absolute_base_polynomial()).roots(K.base_field()))
             4
             sage: type(K.pari_absolute_base_polynomial())
-            <type 'cypari2.gen.Gen'>
+            <class 'cypari2.gen.Gen'>
         """
         abs_base, from_abs_base, to_abs_base = self.absolute_base_field()
         return abs_base.pari_polynomial('y')
@@ -2344,40 +2342,6 @@ class NumberField_relative(NumberField_generic):
             gens = gens[0]
         gens = [self(x) for x in gens]
         return relative_order_from_ring_generators(gens, **kwds)
-
-    def galois_group(self, type='pari', algorithm='pari', names=None):
-        r"""
-        Return the Galois group of the Galois closure of this number
-        field as an abstract group.  Note that even though this is an
-        extension `L/K`, the group will be computed as if it were `L/\QQ`.
-
-        INPUT:
-
-        - ``type`` - ``'pari'`` or ``'gap'``: type of object to return -- a
-          wrapper around a Pari or Gap transitive group object.         -
-
-        - algorithm -- 'pari', 'kash', 'magma' (default: 'pari', except when
-          the degree is >= 12 when 'kash' is tried)
-
-        At present much less functionality is available for Galois groups of
-        relative extensions than absolute ones, so try the galois_group method
-        of the corresponding absolute field.
-
-        EXAMPLES::
-
-            sage: x = polygen(QQ)
-            sage: K.<a> = NumberField(x^2 + 1)
-            sage: R.<t> = PolynomialRing(K)
-            sage: L = K.extension(t^5-t+a, 'b')
-            sage: L.galois_group(type="pari")
-            Galois group PARI group [240, -1, 22, "S(5)[x]2"] of degree 10 of the Number Field in b with defining polynomial t^5 - t + a over its base field
-        """
-
-        if type is None:
-            raise NotImplementedError("Galois groups of relative extensions not implemented (use the corresponding absolute field)")
-        else:
-            # silly bug in cached_method
-            return NumberField_generic.galois_group.f(self, type, algorithm, names)
 
     def is_free(self, proof=None):
         r"""

@@ -1,7 +1,6 @@
 r"""
 Sets With a Grading
 """
-from __future__ import absolute_import
 # ****************************************************************************
 #  Copyright (C) 2010-2012 Nicolas M. Thiery <nthiery at users.sf.net>
 #
@@ -14,7 +13,6 @@ from sage.misc.abstract_method import abstract_method
 from .category_types import Category
 from sage.categories.sets_cat import Sets
 from sage.categories.enumerated_sets import EnumeratedSets
-from sage.sets.non_negative_integers import NonNegativeIntegers
 
 
 class SetsWithGrading(Category):
@@ -145,6 +143,7 @@ class SetsWithGrading(Category):
                 sage: SetsWithGrading().example().grading_set()
                 Non negative integers
             """
+            from sage.sets.non_negative_integers import NonNegativeIntegers
             return NonNegativeIntegers()
 
         # TODO:

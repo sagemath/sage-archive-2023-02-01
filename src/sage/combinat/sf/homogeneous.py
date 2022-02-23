@@ -4,7 +4,6 @@ Homogeneous symmetric functions
 By this we mean the basis formed of the complete homogeneous
 symmetric functions `h_\lambda`, not an arbitrary graded basis.
 """
-from __future__ import absolute_import
 #*****************************************************************************
 #       Copyright (C) 2007 Mike Hansen <mhansen@gmail.com>
 #                     2012 Mike Zabrocki <mike.zabrocki@gmail.com>
@@ -28,9 +27,10 @@ from __future__ import absolute_import
 ####################################
 from . import multiplicative, classical
 from sage.combinat.partition import Partition
-from sage.rings.all import infinity
-from sage.misc.all import prod
-from sage.functions.other import factorial, binomial
+from sage.rings.infinity import infinity
+from sage.misc.misc_c import prod
+from sage.arith.all import factorial, binomial
+
 
 class SymmetricFunctionAlgebra_homogeneous(multiplicative.SymmetricFunctionAlgebra_multiplicative):
     def __init__(self, Sym):
@@ -55,7 +55,7 @@ class SymmetricFunctionAlgebra_homogeneous(multiplicative.SymmetricFunctionAlgeb
 
     def _dual_basis_default(self):
         r"""
-        Returns the dual basis to ``self``.
+        Return the dual basis to ``self``.
 
         INPUT:
 
@@ -101,7 +101,7 @@ class SymmetricFunctionAlgebra_homogeneous(multiplicative.SymmetricFunctionAlgeb
 
     def coproduct_on_generators(self, i):
         r"""
-        Returns the coproduct on `h_i`.
+        Return the coproduct on `h_i`.
 
         INPUT:
 
@@ -121,10 +121,10 @@ class SymmetricFunctionAlgebra_homogeneous(multiplicative.SymmetricFunctionAlgeb
             sage: h.coproduct_on_generators(0)
             h[] # h[]
         """
-        def P(i): return Partition([i]) if i else Partition([])
+        def P(i):
+            return Partition([i]) if i else Partition([])
         T = self.tensor_square()
         return T.sum_of_monomials( (P(j), P(i-j)) for j in range(i+1) )
-
 
     class Element(classical.SymmetricFunctionAlgebra_classical.Element):
         def omega(self):

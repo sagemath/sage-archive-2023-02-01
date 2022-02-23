@@ -41,7 +41,6 @@ AUTHORS:
 # (at your option) any later version.
 #                  https://www.gnu.org/licenses/
 # ****************************************************************************
-from __future__ import absolute_import
 
 from sage.structure.element import parent
 from sage.structure.parent import Parent
@@ -51,6 +50,7 @@ from sage.misc.latex import latex
 from sage.rings.polynomial.laurent_polynomial import LaurentPolynomial_mpair, LaurentPolynomial_univariate
 from sage.rings.ring import CommutativeRing
 
+import sage.rings.polynomial.laurent_polynomial_ideal as lp_ideal
 
 def is_LaurentPolynomialRing(R):
     """
@@ -689,7 +689,7 @@ class LaurentPolynomialRing_generic(CommutativeRing, Parent):
             ...
             NotImplementedError
         """
-        # One may eventually want ideals in these guys.
+        # One may eventually want ideal classes in these guys.
         raise NotImplementedError
 
     def ideal(self, *args, **kwds):
@@ -697,9 +697,7 @@ class LaurentPolynomialRing_generic(CommutativeRing, Parent):
         EXAMPLES::
 
             sage: LaurentPolynomialRing(QQ,2,'x').ideal([1])
-            Traceback (most recent call last):
-            ...
-            NotImplementedError
+            Ideal (1) of Multivariate Laurent Polynomial Ring in x0, x1 over Rational Field
 
         TESTS:
  
@@ -709,11 +707,9 @@ class LaurentPolynomialRing_generic(CommutativeRing, Parent):
             sage: P.<x> = PolynomialRing(R)
             sage: p = x-t
             sage: p.content_ideal()    # indirect doctest
-            Traceback (most recent call last):
-            ...
-            NotImplementedError
+            Ideal (-t, 1) of Univariate Laurent Polynomial Ring in t over Integer Ring
         """
-        raise NotImplementedError
+        return lp_ideal.LaurentPolynomialIdeal(self, *args, **kwds)
 
     def _is_valid_homomorphism_(self, codomain, im_gens, base_map=None):
         """
@@ -840,12 +836,22 @@ class LaurentPolynomialRing_generic(CommutativeRing, Parent):
             sage: R = LaurentPolynomialRing(QQ,2,'x')
             sage: R.change_ring(ZZ)
             Multivariate Laurent Polynomial Ring in x0, x1 over Integer Ring
+
+        Check that the distinction between a univariate ring and a multivariate ring with one
+        generator is preserved::
+
+            sage: P.<x> = LaurentPolynomialRing(QQ, 1)
+            sage: P
+            Multivariate Laurent Polynomial Ring in x over Rational Field
+            sage: K.<i> = CyclotomicField(4)
+            sage: P.change_ring(K)
+            Multivariate Laurent Polynomial Ring in x over Cyclotomic Field of order 4 and degree 2
         """
         if base_ring is None:
             base_ring = self.base_ring()
         if names is None:
             names = self.variable_names()
-        if self._n == 1:
+        if isinstance(self, LaurentPolynomialRing_univariate):
             return LaurentPolynomialRing(base_ring, names[0], sparse = sparse)
 
         if order is None:
@@ -967,7 +973,7 @@ class LaurentPolynomialRing_univariate(LaurentPolynomialRing_generic):
             ...
             TypeError: fraction must have unit denominator
         """
-        from sage.symbolic.expression import Expression
+        from sage.structure.element import Expression
         from sage.rings.fraction_field_element import FractionFieldElement
         if isinstance(x, Expression):
             return x.laurent_polynomial(ring=self)
@@ -1163,7 +1169,7 @@ class LaurentPolynomialRing_mpair(LaurentPolynomialRing_generic):
             sage: R(sum(P.gens()), (-1,-1,-1))
             y^-1*z^-1 + x^-1*z^-1 + x^-1*y^-1
         """
-        from sage.symbolic.expression import Expression
+        from sage.structure.element import Expression
 
         if mon is not None:
             return self.element_class(self, x, mon)

@@ -194,7 +194,6 @@ AUTHORS:
 # (at your option) any later version.
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
-from __future__ import print_function
 
 from sage.misc.cachefunc import cached_method, cached_function
 from sage.misc.misc_c import prod
@@ -206,7 +205,8 @@ from sage.combinat.root_system.reflection_group_element import ComplexReflection
 from sage.sets.family import Family
 from sage.structure.unique_representation import UniqueRepresentation
 from sage.groups.perm_gps.permgroup import PermutationGroup_generic
-from sage.rings.all import ZZ, QQ
+from sage.rings.integer_ring import ZZ
+from sage.rings.rational_field import QQ
 from sage.matrix.all import Matrix, identity_matrix
 from sage.structure.element import is_Matrix
 from sage.interfaces.gap3 import gap3

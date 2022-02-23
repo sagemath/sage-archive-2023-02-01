@@ -4,7 +4,7 @@ Base Class for Character-Based Art
 
 This is the common base class for
 :class:`sage.typeset.ascii_art.AsciiArt` and
-:class:`sage.typeset.ascii_art.UnicodeArt`. They implement simple
+:class:`sage.typeset.unicode_art.UnicodeArt`. They implement simple
 graphics by placing characters on a rectangular grid, in other words,
 using monospace fonts. The difference is that one is restricted to
 7-bit ascii, the other uses all unicode code points.
@@ -24,11 +24,9 @@ using monospace fonts. The difference is that one is restricted to
 #
 #                  https://www.gnu.org/licenses/
 # ******************************************************************************
-from __future__ import print_function
 
 import os
 import sys
-import six
 from sage.structure.sage_object import SageObject
 
 
@@ -169,9 +167,7 @@ class CharacterArt(SageObject):
             sage: M = matrix([[1,2],[3,4]])
             sage: format(ascii_art(M))
             '[1 2]\n[3 4]'
-            sage: format(unicode_art(M))  # py2
-            u'\u239b1 2\u239e\n\u239d3 4\u23a0'
-            sage: format(unicode_art(M))  # py3
+            sage: format(unicode_art(M))
             '\u239b1 2\u239e\n\u239d3 4\u23a0'
         """
         return format(self._string_type(self), fmt)
@@ -311,16 +307,19 @@ class CharacterArt(SageObject):
         # We implement a custom iterator instead of repeatedly using
         # itertools.chain to prepend elements in order to avoid quadratic time
         # complexity
-        class PrependIterator(six.Iterator):
+        class PrependIterator():
             """
             Iterator with support for prepending of elements.
             """
             def __init__(self, stack):
                 self._stack = [iter(elems) for elems in stack]
+
             def prepend(self, elems):
                 self._stack.append(iter(elems))
+
             def __iter__(self):
                 return self
+
             def __next__(self):
                 while self._stack:
                     try:

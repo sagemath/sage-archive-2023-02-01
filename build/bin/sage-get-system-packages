@@ -1,7 +1,7 @@
-#! /usr/bin/env bash
+#!/bin/sh
 SYSTEM=$1
 if [ -z "$SYSTEM" ]; then
-   echo >&2 "usage: $0 {debian|arch|conda|...} SPKGS..."
+   echo >&2 "usage: $0 {debian|arch|conda|pip|...} SPKGS..."
    exit 1
 fi
 shift
@@ -10,10 +10,42 @@ SPKGS="$*"
 if [ -z "$SAGE_ROOT" ]; then
     SAGE_ROOT=`pwd`
 fi
-STRIP_COMMENTS="sed s/#.*//;"
+case "$SYSTEM" in
+    install-requires)
+        # Collect install-requires.txt and output it in the format
+        # needed by setup.cfg [options] install_requires=
+        SYSTEM_PACKAGES_FILE_NAMES="install-requires.txt"
+        STRIP_COMMENTS="sed s/#.*//;/^[[:space:]]*$/d;"
+        COLLECT=
+        ;;
+    install-requires-toml)
+        # Collect install-requires.txt and output it in the format
+        # needed by pyproject.toml [build-system] requires=
+        SYSTEM_PACKAGES_FILE_NAMES="install-requires.txt"
+        STRIP_COMMENTS="sed s/#.*//;/^[[:space:]]*$/d;s/^/'/;s/$/',/;"
+        COLLECT=
+        ;;
+    pip)
+        SYSTEM_PACKAGES_FILE_NAMES="requirements.txt install-requires.txt"
+        STRIP_COMMENTS='sed s/#.*//;s/[[:space:]]//g;'
+        COLLECT=echo
+        ;;
+    *)
+        SYSTEM_PACKAGES_FILE_NAMES="distros/$SYSTEM.txt"
+        STRIP_COMMENTS="sed s/#.*//;"
+        COLLECT=echo
+        ;;
+esac
 for PKG_BASE in $SPKGS; do
-    SYSTEM_PACKAGES_FILE=$SAGE_ROOT/build/pkgs/$PKG_BASE/distros/$SYSTEM.txt
-    if [ -f $SYSTEM_PACKAGES_FILE ]; then
-       echo $(${STRIP_COMMENTS} $SYSTEM_PACKAGES_FILE)
-    fi
+    for NAME in $SYSTEM_PACKAGES_FILE_NAMES; do
+        SYSTEM_PACKAGES_FILE="$SAGE_ROOT"/build/pkgs/$PKG_BASE/$NAME
+        if [ -f $SYSTEM_PACKAGES_FILE ]; then
+           if [ -z "$COLLECT" ]; then
+              ${STRIP_COMMENTS} $SYSTEM_PACKAGES_FILE
+           else
+              $COLLECT $(${STRIP_COMMENTS} $SYSTEM_PACKAGES_FILE)
+           fi
+           break
+        fi
+    done
 done

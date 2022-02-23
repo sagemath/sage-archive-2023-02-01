@@ -1,5 +1,5 @@
-ECL
-===
+ecl: An implementation of the Common Lisp language
+==================================================
 
 Description
 -----------
@@ -34,28 +34,9 @@ Upstream Contact
 
 -  the ECL mailing list - see http://ecls.sourceforge.net/resources.html
 
-Dependencies
-------------
-
--  mpir
--  boehm_gc
-
-
 Special Update/Build Instructions
 ---------------------------------
 
--  As autotools need to be run after most of the patches are applied,
-   we do all the patching in spkg-source.
-
--  Deleting the following directories saves space: without doing
-   this, the tarball can grow from under 3 megabytes to more than 7
-   megabytes. Deleting these files is done automatically by the
-   ``spkg-src`` script.
-
--  The directory msvc
--  The directory src/gc-unstable
--  The directory src/gmp
--  The directory src/libffi
 -  Note: for the time being, ECL is built single threaded library as it
    seems to interact badly with the pexpect interface and Sage's signal
    handling when built multithreaded.

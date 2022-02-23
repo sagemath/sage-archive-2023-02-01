@@ -13,12 +13,15 @@ if [ "$UNAME" = "Darwin" ] ; then
     export CPATH="$CPATH:`xcrun --show-sdk-path`/usr/include"
 fi
 
+if [ "$CONDA_PREFIX" != "" ]; then
+    # Quoted quotes so that whitespace in CONDA_PREFIX works correctly.
+    # Below we run the command line through eval.
+    PILLOW_BUILD_EXT="$PILLOW_BUILD_EXT --disable-platform-guessing -I\"$CONDA_PREFIX/include\" -L\"$CONDA_PREFIX/lib\""
+fi
+
+PILLOW_BUILD_EXT="--debug --disable-jpeg $PILLOW_BUILD_EXT"
+
 # Note: Avoid shared libraries inside egg files, Trac #19467
-sage-python23 setup.py \
-       --no-user-cfg \
-       build_ext \
-       --debug \
-       --disable-jpeg \
-       install \
-       --single-version-externally-managed \
-       --root "$SAGE_DESTDIR" || sdh_die "Error building/installing Pillow"
+eval sdh_pip_install \
+     $(eval sdh_prefix_args "--build-option" build_ext $PILLOW_BUILD_EXT) \
+     .

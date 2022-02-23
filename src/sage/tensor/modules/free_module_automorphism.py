@@ -31,7 +31,6 @@ REFERENCES:
 #  the License, or (at your option) any later version.
 #                  https://www.gnu.org/licenses/
 # *****************************************************************************
-from __future__ import absolute_import
 
 from sage.structure.element import MultiplicativeGroupElement
 from sage.tensor.modules.free_module_tensor import FreeModuleTensor
@@ -124,9 +123,9 @@ class FreeModuleAutomorphism(FreeModuleTensor, MultiplicativeGroupElement):
     In particular, they can be displayed as such::
 
         sage: a.display(e)
-        a = e_1*e^1 + 2 e_1*e^2 + e_2*e^1 + 3 e_2*e^2
+        a = e_1⊗e^1 + 2 e_1⊗e^2 + e_2⊗e^1 + 3 e_2⊗e^2
         sage: a.display(f)
-        a = 2 f_1*f^1 + 3 f_1*f^2 + f_2*f^1 + 2 f_2*f^2
+        a = 2 f_1⊗f^1 + 3 f_1⊗f^2 + f_2⊗f^1 + 2 f_2⊗f^2
 
     The automorphism acting on a module element::
 
@@ -472,7 +471,7 @@ class FreeModuleAutomorphism(FreeModuleTensor, MultiplicativeGroupElement):
             sage: id.set_comp(e)
             Traceback (most recent call last):
             ...
-            AssertionError: the components of the identity map cannot be changed
+            ValueError: the components of the identity map cannot be changed
 
         Indeed, the components are set automatically::
 
@@ -483,8 +482,8 @@ class FreeModuleAutomorphism(FreeModuleTensor, MultiplicativeGroupElement):
 
         """
         if self._is_identity:
-            raise AssertionError("the components of the identity map cannot be "
-                                 "changed")
+            raise ValueError("the components of the identity map cannot be "
+                             "changed")
         return FreeModuleTensor._set_comp_unsafe(self, basis=basis)
 
     def add_comp(self, basis=None):
@@ -544,7 +543,7 @@ class FreeModuleAutomorphism(FreeModuleTensor, MultiplicativeGroupElement):
             sage: id.add_comp(e)
             Traceback (most recent call last):
             ...
-            AssertionError: the components of the identity map cannot be changed
+            ValueError: the components of the identity map cannot be changed
 
         Indeed, the components are set automatically::
 
@@ -555,8 +554,8 @@ class FreeModuleAutomorphism(FreeModuleTensor, MultiplicativeGroupElement):
 
         """
         if self._is_identity:
-            raise AssertionError("the components of the identity map cannot be "
-                                 "changed")
+            raise ValueError("the components of the identity map cannot be "
+                             "changed")
         return FreeModuleTensor._add_comp_unsafe(self, basis=basis)
 
     def __call__(self, *arg):
@@ -900,7 +899,7 @@ class FreeModuleAutomorphism(FreeModuleTensor, MultiplicativeGroupElement):
             sage: s(e[1]) == a(b(e[1]))
             True
             sage: s.display()
-            13 e_0*e^0 + 18 e_0*e^1 + 18 e_1*e^0 + 25 e_1*e^1
+            13 e_0⊗e^0 + 18 e_0⊗e^1 + 18 e_1⊗e^0 + 25 e_1⊗e^1
 
         Tensor product::
 
@@ -912,12 +911,12 @@ class FreeModuleAutomorphism(FreeModuleTensor, MultiplicativeGroupElement):
             sage: s = a*c ; s
             Type-(2,2) tensor on the Rank-2 free module M over the Integer Ring
             sage: s.display()
-            3 e_0*e_0*e^0*e^0 + 4 e_0*e_0*e^0*e^1 + 6 e_0*e_0*e^1*e^0
-             + 8 e_0*e_0*e^1*e^1 + 5 e_0*e_1*e^0*e^0 + 7 e_0*e_1*e^0*e^1
-             + 10 e_0*e_1*e^1*e^0 + 14 e_0*e_1*e^1*e^1 + 3 e_1*e_0*e^0*e^0
-             + 4 e_1*e_0*e^0*e^1 + 9 e_1*e_0*e^1*e^0 + 12 e_1*e_0*e^1*e^1
-             + 5 e_1*e_1*e^0*e^0 + 7 e_1*e_1*e^0*e^1 + 15 e_1*e_1*e^1*e^0
-             + 21 e_1*e_1*e^1*e^1
+            3 e_0⊗e_0⊗e^0⊗e^0 + 4 e_0⊗e_0⊗e^0⊗e^1 + 6 e_0⊗e_0⊗e^1⊗e^0
+             + 8 e_0⊗e_0⊗e^1⊗e^1 + 5 e_0⊗e_1⊗e^0⊗e^0 + 7 e_0⊗e_1⊗e^0⊗e^1
+             + 10 e_0⊗e_1⊗e^1⊗e^0 + 14 e_0⊗e_1⊗e^1⊗e^1 + 3 e_1⊗e_0⊗e^0⊗e^0
+             + 4 e_1⊗e_0⊗e^0⊗e^1 + 9 e_1⊗e_0⊗e^1⊗e^0 + 12 e_1⊗e_0⊗e^1⊗e^1
+             + 5 e_1⊗e_1⊗e^0⊗e^0 + 7 e_1⊗e_1⊗e^0⊗e^1 + 15 e_1⊗e_1⊗e^1⊗e^0
+             + 21 e_1⊗e_1⊗e^1⊗e^1
 
         TESTS::
 

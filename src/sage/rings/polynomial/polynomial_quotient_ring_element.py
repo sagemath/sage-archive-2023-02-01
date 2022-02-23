@@ -132,7 +132,7 @@ class PolynomialQuotientRingElement(polynomial_singular_interface.Polynomial_sin
             if not isinstance(polynomial, Polynomial):
                 raise TypeError("polynomial must be a polynomial")
 
-            if not polynomial in parent.polynomial_ring():
+            if polynomial not in parent.polynomial_ring():
                 raise TypeError("polynomial must be in the polynomial ring of the parent")
 
         f = parent.modulus()
@@ -328,7 +328,7 @@ class PolynomialQuotientRingElement(polynomial_singular_interface.Polynomial_sin
             sage: int(a)
             Traceback (most recent call last):
             ...
-            TypeError: cannot coerce nonconstant polynomial to int
+            TypeError: cannot convert nonconstant polynomial
         """
         return int(self._polynomial)
 
@@ -444,25 +444,6 @@ class PolynomialQuotientRingElement(polynomial_singular_interface.Polynomial_sin
             raise ZeroDivisionError("element %s of quotient polynomial ring not invertible"%self)
         c = g[0]
         return self.__class__(self.parent(), (~c)*a, check=False)
-
-    def __long__(self):
-        """
-        Coerce this element to a long if possible.
-
-        EXAMPLES::
-
-            sage: R.<x> = PolynomialRing(QQ)
-            sage: S.<a> = R.quotient(x^3-2)
-            sage: long(S(10)) # py2
-            doctest:...: DeprecationWarning: converting polynomials to longs is deprecated, since long() will no longer be supported in Python 3
-            See https://trac.sagemath.org/27675 for details.
-            10L
-            sage: long(a)  # py2
-            Traceback (most recent call last):
-            ...
-            TypeError: cannot coerce nonconstant polynomial to long
-        """
-        return long(self._polynomial)
 
     def field_extension(self, names):
         r"""

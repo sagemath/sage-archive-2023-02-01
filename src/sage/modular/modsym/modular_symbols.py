@@ -16,7 +16,7 @@ TESTS::
 """
 
 #*****************************************************************************
-#       Sage: System for Algebra and Geometry Experimentation
+#       Sage: Open Source Mathematical Software
 #
 #       Copyright (C) 2005, 2009 William Stein <wstein@gmail.com>
 #
@@ -363,8 +363,9 @@ class ModularSymbol(SageObject):
 
     def manin_symbol_rep(self):
         """
-        Returns a representation of self as a formal sum of Manin symbols.
-        (The result is not cached.)
+        Return a representation of ``self`` as a formal sum of Manin symbols.
+
+        The result is not cached.
 
         EXAMPLES::
 

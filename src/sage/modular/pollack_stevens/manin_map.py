@@ -42,7 +42,6 @@ EXAMPLES::
 #  the License, or (at your option) any later version.
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
-from __future__ import print_function, absolute_import
 
 from sage.rings.continued_fraction import convergents
 from .sigma0 import Sigma0
@@ -368,7 +367,7 @@ class ManinMap(object):
             38
         """
         for B in self._manin.reps():
-            if not B in self._dict:
+            if B not in self._dict:
                 self._dict[B] = self._compute_image_from_gens(B)
 
     def __add__(self, right):

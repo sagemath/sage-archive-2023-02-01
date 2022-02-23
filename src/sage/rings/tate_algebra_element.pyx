@@ -203,6 +203,19 @@ cdef class TateAlgebraTerm(MonoidElement):
         """
         return TateAlgebraTerm, (self.parent(), self._coeff, self._exponent)
 
+    def __nonzero__(self):
+        r"""
+        Return ``True`` if this term is nonzero, ``False`` otherwise.
+
+        TESTS::
+
+            sage: A.<x,y> = TateAlgebra(Zp(2))
+            sage: t = x.leading_term()
+            sage: bool(t)
+            True
+        """
+        return bool(self._coeff)
+
     def _repr_(self):
         r"""
         Return a string representation of this Tate algebra term.
@@ -937,7 +950,7 @@ cdef class TateAlgebraTerm(MonoidElement):
 
         """
         return self._divides_c(other, integral)
-    
+
     cdef bint _divides_c(self, TateAlgebraTerm other, bint integral):
         r"""
         Return ``True`` if this term divides ``other``.
@@ -1002,7 +1015,7 @@ cdef class TateAlgebraTerm(MonoidElement):
             raise ValueError("the division is not exact")
         return (<TateAlgebraTerm>self)._floordiv_c(<TateAlgebraTerm>other)
 
-        
+
     cdef TateAlgebraTerm _floordiv_c(self, TateAlgebraTerm other):
         r"""
         Return the result of the exact division of this term by ``other``.
@@ -1438,7 +1451,7 @@ cdef class TateAlgebraElement(CommutativeAlgebraElement):
             sage: f = 2*x + 1; f
             ...0000000001 + ...00000000010*x
             sage: f.inverse_of_unit()
-            ...0000000001 + ...1111111110*x + ...0000000100*x^2 + ...1111111000*x^3 + ...0000010000*x^4 + 
+            ...0000000001 + ...1111111110*x + ...0000000100*x^2 + ...1111111000*x^3 + ...0000010000*x^4 +
              ...1111100000*x^5 + ...0001000000*x^6 + ...1110000000*x^7 + ...0100000000*x^8 + ...1000000000*x^9 + O(2^10 * <x, y>)
 
             sage: f.inverse_of_unit(prec=4)
@@ -2070,6 +2083,23 @@ cdef class TateAlgebraElement(CommutativeAlgebraElement):
         """
         return (<TateAlgebraElement>self)._lshift_c(-n)
 
+    def __nonzero__(self):
+        r"""
+        Return ``True`` if this term is nonzero, ``False`` otherwise.
+
+        TESTS::
+
+            sage: R = Zp(2, print_mode='digits', prec=10)
+            sage: A.<x,y> = TateAlgebra(R)
+            sage: f = x + 2*x^2 + y^3
+            sage: bool(f)
+            True
+            sage: bool(f-f)
+            False
+        """
+        cdef list terms = self._terms_c(include_zero=False)
+        return bool(terms) and (<TateAlgebraTerm>terms[0])._valuation_c() < self._prec
+
     def is_zero(self, prec=None):
         r"""
         Return ``True`` if this series is indistinguishable from zero.
@@ -2293,11 +2323,11 @@ cdef class TateAlgebraElement(CommutativeAlgebraElement):
             Traceback (most recent call last):
             ...
             IndexError: hello is not a correct exponent
-            
+
             sage: f[1,2,3]
             Traceback (most recent call last):
             ...
-            IndexError: lengths do not match 
+            IndexError: lengths do not match
         """
         return self.coefficient(exponent)
 
@@ -3110,7 +3140,7 @@ cdef class TateAlgebraElement(CommutativeAlgebraElement):
             sage: g.residue()
             Traceback (most recent call last):
             ...
-            ValueError: element must have non-negative valuation in order to compute residue.
+            ValueError: element must have non-negative valuation in order to compute residue
 
         The residue is not implemented for series with convergence radius different from 1.
 
@@ -3405,8 +3435,8 @@ cdef class TateAlgebraElement(CommutativeAlgebraElement):
         TESTS::
 
             sage: s = I.random_element(integral=True)
-            sage: s.reduce(I)
-            O(3^9 * <x, y>)
+            sage: s.reduce(I).precision_absolute() >= 9
+            True
 
             sage: h = A.random_element()
             sage: (h + s).reduce(I) == h.reduce(I)

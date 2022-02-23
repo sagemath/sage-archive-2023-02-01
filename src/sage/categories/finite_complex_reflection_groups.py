@@ -12,7 +12,7 @@ Finite Complex Reflection Groups
 # ****************************************************************************
 
 from sage.misc.abstract_method import abstract_method
-from sage.misc.all import prod
+from sage.misc.misc_c import prod
 from sage.misc.cachefunc import cached_method
 from sage.categories.category_with_axiom import CategoryWithAxiom
 from sage.categories.coxeter_groups import CoxeterGroups
@@ -324,7 +324,7 @@ class FiniteComplexReflectionGroups(CategoryWithAxiom):
                 sage: W.number_of_reflection_hyperplanes()  # optional - gap3
                 15
             """
-            from sage.rings.all import ZZ
+            from sage.rings.integer_ring import ZZ
             return ZZ.sum(codeg + 1 for codeg in self.codegrees())
 
         @cached_method
@@ -358,7 +358,7 @@ class FiniteComplexReflectionGroups(CategoryWithAxiom):
                 sage: W.number_of_reflections()            # optional - gap3
                 15
             """
-            from sage.rings.all import ZZ
+            from sage.rings.integer_ring import ZZ
             return ZZ.sum(deg - 1 for deg in self.degrees())
 
         @cached_method
@@ -413,7 +413,7 @@ class FiniteComplexReflectionGroups(CategoryWithAxiom):
                 sage: W.cardinality()                      # optional - gap3
                 192
             """
-            from sage.rings.all import ZZ
+            from sage.rings.integer_ring import ZZ
             return ZZ.prod(self.degrees())
 
         def is_well_generated(self):

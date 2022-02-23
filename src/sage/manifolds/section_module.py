@@ -32,7 +32,6 @@ from sage.rings.infinity import infinity
 from sage.structure.unique_representation import UniqueRepresentation
 from sage.structure.parent import Parent
 from sage.misc.cachefunc import cached_method
-from sage.rings.integer import Integer
 from sage.categories.modules import Modules
 from sage.tensor.modules.finite_rank_free_module import FiniteRankFreeModule
 from sage.manifolds.section import Section, TrivialSection
@@ -222,16 +221,24 @@ class SectionModule(UniqueRepresentation, Parent):
             True
 
         """
-        if isinstance(comp, (int, Integer)) and comp == 0:
-            return self.zero()
+        try:
+            if comp.is_trivial_zero():
+                return self.zero()
+        except AttributeError:
+            if comp == 0:
+                return self.zero()
         if isinstance(comp, Section):
             if self._domain.is_subset(comp._domain):
                 return comp.restrict(self._domain)
             else:
                 raise ValueError("cannot convert the {} ".format(comp) +
                                  "to a local section in {}".format(self))
+        if not isinstance(comp, (list, tuple)):
+            raise TypeError("cannot convert the {} ".format(comp) +
+                            "to an element of {}".format(self))
+        # standard construction
         resu = self.element_class(self, name=name, latex_name=latex_name)
-        if comp != []:
+        if comp:
             resu.set_comp(frame)[:] = comp
         return resu
 
@@ -253,14 +260,12 @@ class SectionModule(UniqueRepresentation, Parent):
 
         """
         resu = self.element_class(self)
-        # Non-trivial open covers of the domain:
-        open_covers = self._domain.open_covers()[1:]  # the open cover 0
-                                                      # is trivial
-        if open_covers != []:
-            oc = open_covers[0]  # the first non-trivial open cover is selected
+        for oc in self._domain.open_covers(trivial=False):
+            # the first non-trivial open cover is selected
             for dom in oc:
                 smodule_dom = self._vbundle.section_module(domain=dom)
                 resu.set_restriction(smodule_dom._an_element_())
+            return resu
         return resu
 
     def _coerce_map_from_(self, other):
@@ -414,6 +419,7 @@ class SectionModule(UniqueRepresentation, Parent):
             if frame._domain.is_subset(self._domain):
                 res.add_comp(frame)
                 # (since new components are initialized to zero)
+        res.set_immutable()
         return res
 
     def default_frame(self):
@@ -637,16 +643,24 @@ class SectionFreeModule(FiniteRankFreeModule):
             True
 
         """
-        if isinstance(comp, (int, Integer)) and comp == 0:
-            return self.zero()
+        try:
+            if comp.is_trivial_zero():
+                return self.zero()
+        except AttributeError:
+            if comp == 0:
+                return self.zero()
         if isinstance(comp, Section):
             if self._domain.is_subset(comp._domain):
                 return comp.restrict(self._domain)
             else:
                 raise ValueError("cannot convert the {}".format(comp) +
                                  "to a local section in {}".format(self))
+        if not isinstance(comp, (list, tuple)):
+            raise TypeError("cannot convert the {} ".format(comp) +
+                            "to an element of {}".format(self))
+        # standard construction
         resu = self.element_class(self, name=name, latex_name=latex_name)
-        if comp != []:
+        if comp:
             resu.set_comp(basis)[:] = comp
         return resu
 

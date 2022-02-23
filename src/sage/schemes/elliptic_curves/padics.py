@@ -20,7 +20,6 @@ Miscellaneous `p`-adic methods
 #
 #                  https://www.gnu.org/licenses/
 ######################################################################
-from __future__ import absolute_import
 
 
 import sage.rings.all as rings
@@ -40,7 +39,7 @@ import sage.matrix.all as matrix
 sqrt = math.sqrt
 import sage.schemes.hyperelliptic_curves.monsky_washnitzer
 import sage.schemes.hyperelliptic_curves.hypellfrob
-from sage.misc.all import cached_method
+from sage.misc.cachefunc import cached_method
 
 def __check_padic_hypotheses(self, p):
     r"""

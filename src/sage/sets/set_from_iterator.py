@@ -60,7 +60,6 @@ The module also provides decorator for functions and methods::
 #
 #                  http://www.gnu.org/licenses/
 #******************************************************************************
-from __future__ import print_function
 
 from sage.structure.parent import Parent
 from sage.categories.enumerated_sets import EnumeratedSets
@@ -187,9 +186,8 @@ class EnumeratedSetFromIterator(Parent):
 
             sage: from sage.sets.set_from_iterator import EnumeratedSetFromIterator
             sage: E = EnumeratedSetFromIterator(xsrange, (1,200))
-            sage: hash(E)
-            4600916458883504074 # 64-bit
-            -2063607862         # 32-bit
+            sage: hash(E) == hash(tuple(range(1, 14)))
+            True
         """
         try:
             return hash(self._cache[:13])
@@ -401,10 +399,8 @@ class EnumeratedSetFromIterator(Parent):
 
             sage: from sage.sets.set_from_iterator import EnumeratedSetFromIterator
             sage: S = EnumeratedSetFromIterator(range, args=(1,4))
-            sage: S(1)  # py2
-            1
 
-            sage: S(1)  # py3
+            sage: S(1)
             doctest:...: UserWarning: Testing equality of infinite sets which will not end in case of equality
             1
             sage: S(0)  # indirect doctest
@@ -752,11 +748,7 @@ class EnumeratedSetFromIterator_method_caller(Decorator):
 
         But not the enumerated set::
 
-            sage: loads(dumps(d.f())) # py2
-            Traceback (most recent call last):
-            ...
-            PicklingError: Can't pickle <... 'function'>: attribute lookup __builtin__.function failed
-            sage: loads(dumps(d.f())) # py3
+            sage: loads(dumps(d.f()))
             Traceback (most recent call last):
             ...
             _pickle.PicklingError: Can't pickle <function DummyExampleForPicklingTest.f at ...>: it's not the same object as sage.sets.set_from_iterator.DummyExampleForPicklingTest.f

@@ -1,1 +1,2 @@
-libcdd-dev libcdd-tools
+libcdd-dev
+libcdd-tools

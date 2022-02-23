@@ -15,7 +15,6 @@ Cartesian Products
 #
 #                  https://www.gnu.org/licenses/
 # ****************************************************************************
-from __future__ import absolute_import
 
 from sage.categories.enumerated_sets import EnumeratedSets
 from sage.sets.set_from_iterator import EnumeratedSetFromIterator
@@ -58,7 +57,7 @@ class CartesianProduct_iters(EnumeratedSetFromIterator):
         sage: c = cartesian_product([F1, F2, F3])
 
         sage: type(C.an_element())
-        <... 'list'>
+        <class 'list'>
         sage: type(c.an_element())
         <class 'sage.sets.cartesian_product.CartesianProduct_with_category.element_class'>
 
@@ -99,8 +98,9 @@ class CartesianProduct_iters(EnumeratedSetFromIterator):
         category = EnumeratedSets()
         try:
             category = category.Finite() if self.is_finite() else category.Infinite()
-        except ValueError: # Unable to determine if it is finite or not
+        except ValueError:  # Unable to determine if it is finite or not
             pass
+
         def iterfunc():
             # we can not use self.__iterate__ directly because
             # that leads to an infinite recursion in __eq__
@@ -141,7 +141,7 @@ class CartesianProduct_iters(EnumeratedSetFromIterator):
 
         TESTS::
 
-            sage: cp = cartesian_product([[1,2],range(0,9)])
+            sage: cp = cartesian_product([[1,2],range(9)])
             sage: loads(dumps(cp)) == cp
             True
         """
@@ -205,7 +205,7 @@ class CartesianProduct_iters(EnumeratedSetFromIterator):
             sage: len(C)
             Traceback (most recent call last):
             ...
-            TypeError: cardinality does not fit into a Python int.
+            TypeError: cardinality does not fit into a Python int
             sage: C = CartesianProduct_iters(ZZ, [])
             sage: len(C)
             0
@@ -319,16 +319,17 @@ class CartesianProduct_iters(EnumeratedSetFromIterator):
         if x != 0:
             raise IndexError("x larger than the size of the Cartesian Product")
         positions.reverse()
-        return [unrank(L, i) for L,i in zip(self.iters, positions)]
+        return [unrank(L, i) for L, i in zip(self.iters, positions)]
 
     def random_element(self):
         r"""
-        Returns a random element from the Cartesian product of \*iters.
+        Return a random element from the Cartesian product of \*iters.
 
         EXAMPLES::
 
             sage: from sage.combinat.cartesian_product import CartesianProduct_iters
-            sage: CartesianProduct_iters('dog', 'cat').random_element()
-            ['d', 'a']
+            sage: c = CartesianProduct_iters('dog', 'cat').random_element()
+            sage: c in CartesianProduct_iters('dog', 'cat')
+            True
         """
-        return [rnd.choice(_) for _ in self.iters]
+        return [rnd.choice(w) for w in self.iters]

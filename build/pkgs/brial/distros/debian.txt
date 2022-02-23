@@ -1,1 +1,2 @@
-libbrial-dev libbrial-groebner-dev
+libbrial-dev
+libbrial-groebner-dev

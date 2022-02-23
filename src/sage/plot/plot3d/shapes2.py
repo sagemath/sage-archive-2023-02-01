@@ -23,7 +23,6 @@ AUTHORS:
 #
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
-from __future__ import print_function, absolute_import
 
 import math
 from . import shapes
@@ -226,6 +225,19 @@ def bezier3d(path, **options):
         sage: curve = bezier3d(path, thickness=5, color='blue')
         sage: curve
         Graphics3d Object
+
+    TESTS:
+
+    Check for :trac:`31640`::
+
+        sage: p2d = [[(3,0.0),(3,0.13),(2,0.2),(2,0.3)], [(2.7,0.4),(2.6,0.5),(2.5,0.5)], [(2.3,0.5),(2.2,0.4),(2.1,0.3)]]
+        sage: bp = bezier_path(p2d)
+        sage: bp.plot3d()
+        Graphics3d Object
+
+        sage: p3d = p3d = [[(3,0,0),(3,0.1,0),(2.9,0.2,0),(2.8,0.3,0)], [(2.7,0.4,0),(2,0.5,0),(2.5,0.5,0)], [(2.3,0.5,0),(2.2,0.4,0),(2.1,0.3,0)]]
+        sage: bezier3d(p3d)
+        Graphics3d Object
     """
     from . import parametric_plot3d as P3D
     from sage.modules.free_module_element import vector
@@ -248,7 +260,7 @@ def bezier3d(path, **options):
             G += P3D.parametric_plot3d(list(B), (0, 1), color=options['color'], aspect_ratio=options['aspect_ratio'], thickness=options['thickness'], opacity=options['opacity'])
         else:
             G += line3d([p0,curve[0]], color=options['color'], thickness=options['thickness'], opacity=options['opacity'])
-        p0 = curve[-1]
+        p0 = vector(curve[-1])
     return G
 
 @rename_keyword(alpha='opacity')
@@ -670,10 +682,6 @@ def text3d(txt, x_y_z, **kwds):
 
     -  ``**kwds`` -- standard 3d graphics options
 
-    .. note::
-
-        There is no way to change the font size or opacity yet.
-
     EXAMPLES:
 
     We write the word Sage in red at position (1,2,3)::
@@ -696,6 +704,26 @@ def text3d(txt, x_y_z, **kwds):
 
         sage: text3d("Sage is...",(2,12,1), color=(1,0,0)) + text3d("quite powerful!!",(4,10,0), color=(0,0,1))
         Graphics3d Object
+
+    Adjust the font size, family, style, and weight (Three.js viewer only)::
+
+        sage: t0 = text3d("Pixel size", (0, 0, 0), fontsize=20)
+        sage: t1 = text3d("Percentage size", (0, 0, 1), fontsize='300%')
+        sage: t2 = text3d("Keyword size", (0, 0, 2), fontsize='x-small')
+        sage: t3 = text3d("Single family", (0, 0, 3), fontfamily='serif')
+        sage: t4 = text3d("Family fallback", (0, 0, 4), fontfamily=['Consolas', 'Lucida Console', 'monospace'])
+        sage: t5 = text3d("Another way", (0, 0, 5), fontfamily='Consolas, Lucida Console, monospace')
+        sage: t6 = text3d("Style", (0, 0, 6), fontstyle='italic')
+        sage: t7 = text3d("Keyword weight", (0, 0, 7), fontweight='bold')
+        sage: t8 = text3d("Integer weight (1-1000)", (0, 0, 8), fontweight=800) # 'extra bold'
+        sage: sum([t0, t1, t2, t3, t4, t5, t6, t7, t8]).show(viewer='threejs', frame=False)
+
+    Adjust the text's opacity (Three.js viewer only)::
+
+        sage: def echo(o):
+        ....:     return text3d("Echo!", (0, 0, o), opacity=o)
+        sage: show(sum([echo(o) for o in (0.1, 0.2, .., 1)]), viewer='threejs')
+
     """
     (x, y, z) = x_y_z
     if 'color' not in kwds and 'rgbcolor' not in kwds:

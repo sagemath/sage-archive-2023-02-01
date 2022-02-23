@@ -93,7 +93,6 @@ class InterpreterGenerator(object):
 
         d = instr_desc
         w = write
-        s = self._spec
 
         if d.uses_error_handler:
             self.uses_error_handler = True
@@ -173,7 +172,6 @@ class InterpreterGenerator(object):
         stack_offsets = defaultdict(int)
         for i in range(len(d.inputs)):
             (ch, addr, input_len) = d.inputs[i]
-            chst = ch.storage_type
             if ch.is_python_refcounted_stack() and not d.handles_own_decref:
                 if input_len is None:
                     w("        Py_DECREF(i%d);\n" % i)

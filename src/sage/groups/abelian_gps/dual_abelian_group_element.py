@@ -53,12 +53,11 @@ AUTHORS:
 # (at your option) any later version.
 #                  https://www.gnu.org/licenses/
 # ****************************************************************************
-from __future__ import print_function
 
 import operator
 
 from sage.arith.all import LCM
-from sage.misc.all import prod
+from sage.misc.misc_c import prod
 from sage.groups.abelian_gps.element_base import AbelianGroupElementBase
 from functools import reduce
 

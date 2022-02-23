@@ -1,22 +1,19 @@
 """
 Bindable classes
 """
-
-#*****************************************************************************
+# ****************************************************************************
 #       Copyright (C) 2012 Nicolas M. Thiery <nthiery at users.sf.net>
 #
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
 # the Free Software Foundation, either version 2 of the License, or
 # (at your option) any later version.
-#                  http://www.gnu.org/licenses/
-#*****************************************************************************
-
-from __future__ import absolute_import, print_function
-
+#                  https://www.gnu.org/licenses/
+# ****************************************************************************
 import functools
 from sage.misc.nested_class import NestedClassMetaclass
 from sage.misc.classcall_metaclass import ClasscallMetaclass
+
 
 class BindableClass(metaclass=ClasscallMetaclass):
     """
@@ -33,16 +30,12 @@ class BindableClass(metaclass=ClasscallMetaclass):
     Let us consider the following class ``Outer`` with a nested class ``Inner``::
 
         sage: from sage.misc.nested_class import NestedClassMetaclass
-        sage: class Outer:
-        ....:     __metaclass__ = NestedClassMetaclass # just a workaround for Python misnaming nested classes
-        ....:
+        sage: class Outer(metaclass=NestedClassMetaclass):
         ....:     class Inner:
         ....:         def __init__(self, *args):
         ....:             print(args)
-        ....:
         ....:     def f(self, *args):
         ....:         print("{} {}".format(self, args))
-        ....:
         ....:     @staticmethod
         ....:     def f_static(*args):
         ....:         print(args)
@@ -65,7 +58,7 @@ class BindableClass(metaclass=ClasscallMetaclass):
         sage: outer.f_static(1,2,3)
         (1, 2, 3)
 
-    In some cases, we would want instead ``Inner``` to receive ``outer``
+    In some cases, we would want instead ``Inner`` to receive ``outer``
     as parameter, like in a usual method call::
 
         sage: outer.f(1,2,3)
@@ -84,9 +77,7 @@ class BindableClass(metaclass=ClasscallMetaclass):
     :class:`BindableClass` gives this binding behavior to all its subclasses::
 
         sage: from sage.misc.bindable_class import BindableClass
-        sage: class Outer:
-        ....:     __metaclass__ = NestedClassMetaclass # just a workaround for Python misnaming nested classes
-        ....:
+        sage: class Outer(metaclass=NestedClassMetaclass):
         ....:     class Inner(BindableClass):
         ....:         " some documentation "
         ....:         def __init__(self, outer, *args):
@@ -156,7 +147,8 @@ class BindableClass(metaclass=ClasscallMetaclass):
         return BoundClass(cls, instance)
         # We probably do not need to use sage_wraps, since
         # sageinspect already supports partial functions
-        #return sage_wraps(cls)(BoundClass(cls, instance))
+        # return sage_wraps(cls)(BoundClass(cls, instance))
+
 
 class BoundClass(functools.partial):
     """
@@ -170,14 +162,14 @@ class BoundClass(functools.partial):
 
     Introspection works, at least partially:
 
-        sage: sage_getdoc(c)
-        '   Some documentation for Outer.Inner\n'
+        sage: sage_getdoc(c).strip()
+        'Some documentation for Outer.Inner'
         sage: sage_getfile(c)
         '.../sage/misc/bindable_class.py'
 
         sage: c = x.Inner2
-        sage: sage_getdoc(c)
-        '   Some documentation for Inner2\n'
+        sage: sage_getdoc(c).strip()
+        'Some documentation for Inner2'
         sage: sage_getsourcelines(c)
         (['class Inner2(BindableClass):...], ...)
 
@@ -209,18 +201,6 @@ class BoundClass(functools.partial):
         sage: g()
         8
 
-    The following has incorrect syntax and thus a ``DeprecationWarning``::
-
-        sage: class mypartial(functools.partial):
-        ....:     def __init__(self, f, i, j):
-        ....:         functools.partial.__init__(self, f, i, j)
-        sage: g = mypartial(f, 2, 3)  # py2; on Python 3 this is an error
-        Traceback (most recent call last):
-        ...
-        DeprecationWarning: object.__init__() takes no parameters
-        sage: g()
-        8
-
     The following has correct syntax and no ``DeprecationWarning``::
 
         sage: class mynewpartial(functools.partial):
@@ -230,7 +210,7 @@ class BoundClass(functools.partial):
         sage: g()
         8
     """
-    __doc__ = None # See warning above
+    __doc__ = None  # See warning above
 
     def __init__(self, *args):
         super(BoundClass, self).__init__()
@@ -246,7 +226,8 @@ class BoundClass(functools.partial):
             sage: x.Inner
             <bound class 'sage.misc.bindable_class.Outer.Inner' of <sage.misc.bindable_class.Outer object at ...>>
         """
-        return "<bound %s of %s>"%(repr(self.func)[1:-1], self.args[0])
+        return "<bound %s of %s>" % (repr(self.func)[1:-1], self.args[0])
+
 
 ##############################################################################
 # Test classes
@@ -256,6 +237,7 @@ class Inner2(BindableClass):
     """
     Some documentation for Inner2
     """
+
 
 # We need NestedClassMetaclass to work around a Python pickling bug
 class Outer(metaclass=NestedClassMetaclass):

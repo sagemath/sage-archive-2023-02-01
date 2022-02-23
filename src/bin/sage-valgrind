@@ -5,12 +5,8 @@ if [ -z $SAGE_EXTCODE ]; then
 fi
 
 SUPP=""
-# Our python2/3 spkgs and also Debian install these files as python.supp and python3.supp
-if [ "$SAGE_PYTHON_VERSION" = 2 ]; then
-    PYTHON_SUPP_FILENAME="python.supp"
-else
-    PYTHON_SUPP_FILENAME="python$SAGE_PYTHON_VERSION.supp"
-fi
+# Our python spkgs and also Debian install this file as python3.supp
+PYTHON_SUPP_FILENAME="python3.supp"
 for dir in "$SAGE_LOCAL/lib/valgrind" "/usr/local/lib/valgrind" "/usr/lib64/valgrind" "/usr/lib/valgrind" ; do
     if [ -f "$dir"/"$PYTHON_SUPP_FILENAME" ]; then
         SUPP=" --suppressions=$dir/$PYTHON_SUPP_FILENAME"

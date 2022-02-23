@@ -833,8 +833,8 @@ class ImplicitSuffixTree(SageObject):
             sage: t.to_digraph()
             Digraph on 8 vertices
         """
-        if self._letters == []:
-            d = {0:{}}
+        if not self._letters:
+            d = {0: {}}
             return DiGraph(d)
         d = self.transition_function_dictionary()
         for u in d:
@@ -1186,34 +1186,33 @@ class ImplicitSuffixTree(SageObject):
         """
         if n is None:
             length_word = self.word().length()
-            num_factors = 1 # empty word
-            for (u,v,(i,j)) in self.edge_iterator():
+            num_factors = 1  # empty word
+            for (u, v, (i, j)) in self.edge_iterator():
                 if j is None:
                     num_factors += length_word - i
                 else:
                     num_factors += j - i
         elif isinstance(n, (int, Integer)):
-            length_word = self.word().length()
             num_factors = 0
             queue = [(0, 0)]
             while queue:
-                (v,l) = queue.pop()
+                (v, l) = queue.pop()
                 if l == n:
                     num_factors += 1
                 if l < n:
                     if self._transition_function[v] != {}:
-                        for ((i,j),u) in self._transition_function[v].items():
+                        for ((i, j), u) in self._transition_function[v].items():
                             if j is None:
                                 j = self.word().length()
                             if j - i >= n - l:
                                 num_factors += 1
                             else:
-                                queue.append((u,l+j-i+1))
+                                queue.append((u, l + j - i + 1))
         else:
             raise TypeError("not an integer or None: %s" % n)
         return num_factors
 
-    def factor_iterator(self,n=None):
+    def factor_iterator(self, n=None):
         r"""
         Generate distinct factors of ``self``.
 
@@ -1694,7 +1693,7 @@ class DecoratedSuffixTree(ImplicitSuffixTree):
             OUTPUT:
 
             The resulting list P(current_node) with current_node have been
-            processed by ``node_processing``. The ouput is a pair ``(i,
+            processed by ``node_processing``. The output is a pair ``(i,
             pos)`` such that ``P[i][pos:]`` is the list of current_node.
             """
 
@@ -1759,7 +1758,7 @@ class DecoratedSuffixTree(ImplicitSuffixTree):
             if final_state[0] == 'explicit':
                 parent = final_state[1]
                 transition = self._find_transition(parent,self._letters[start])
-                if transition != None:
+                if transition is not None:
                     child = transition[1]
                     successful = True
                     depth = 1
@@ -1781,15 +1780,15 @@ class DecoratedSuffixTree(ImplicitSuffixTree):
 
         def treat_node(current_node, i, j):
             r"""
-            Execute a depht-first search on self and start a suffix walk for
-            labeled points on each edges of T. The fonction is recursive, call
+            Execute a depth-first search on self and start a suffix walk for
+            labeled points on each edges of T. The function is recursive, call
             treat_node(0,0,0) to initiate the search.
 
             INPUT:
 
             - ``current_node`` - The node to treat
             - ``(i, j)`` - Pair of index such that the path from 0 to
-            ``current_node`` reads ``self.word()[i:j]``
+              ``current_node`` reads ``self.word()[i:j]``
             """
 
             if current_node in D:

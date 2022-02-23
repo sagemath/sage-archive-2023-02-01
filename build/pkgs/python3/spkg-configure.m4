@@ -1,158 +1,147 @@
 SAGE_SPKG_CONFIGURE([python3], [
-   SAGE_SPKG_DEPCHECK([sqlite libpng bzip2 xz libffi], [
-      AS_IF([test $SAGE_PYTHON_VERSION = 2], [
-        dnl If we use Python 2 for Sage, we install Python 3 too and do NOT attempt to do
-        dnl venv using system python3 over SAGE_LOCAL.
-        dnl (In particular, the setuptools and pip install scripts are not prepared for
-        dnl handling this situation.)
-        sage_spkg_install_python3=yes
-      ], [
-        dnl Using Python 3 for Sage.  Check if we can do venv with a system python3
-        dnl instead of building our own copy.
-        check_modules="sqlite3, ctypes, math, hashlib, crypt, readline, socket, zlib, distutils.core"
-        AC_CACHE_CHECK([for python3 >= 3.7.3, < 3.8 with modules $check_modules], [ac_cv_path_PYTHON3], [
-            AC_MSG_RESULT([])
-            AC_PATH_PROGS_FEATURE_CHECK([PYTHON3], [python3.7 python3], [
-                AC_MSG_CHECKING([... whether $ac_path_PYTHON3 is good])
-                python3_version=`"$ac_path_PYTHON3" --version 2>&1 \
-                    | $SED -n -e 's/\([[0-9]]*\.[[0-9]]*\.[[0-9]]*\).*/\1/p'`
-                AS_IF([test -n "$python3_version"], [
-                    AX_COMPARE_VERSION([$python3_version], [ge], [3.7.3], [
-                        AX_COMPARE_VERSION([$python3_version], [lt], [3.8.0], [
-                            dnl Because the system python is not used directly but rather in a venv without site-packages,
-                            dnl we test whether the module will be available in a venv.
-                            dnl Otherwise, some system site-package may be providing this module to the system python.
-                            dnl m4_define([conftest_venv], [config-venv]) .... for debugging only
-                            rm -rf conftest_venv
-                            AS_IF(["$ac_path_PYTHON3" build/bin/sage-venv conftest_venv && conftest_venv/bin/python3 -c "import $check_modules"], [
-                                AC_LANG_PUSH([C])
-                                AC_LANG_CONFTEST([
-                                    AC_LANG_SOURCE([[
-#define PY_SSIZE_T_CLEAN
-#include <Python.h>
-static PyMethodDef SpamMethods[] = {
-    {NULL, NULL, 0, NULL}        /* Sentinel */
-};
-static struct PyModuleDef spammodule = {
-    PyModuleDef_HEAD_INIT,
-    "spam",   /* name of module */
-    NULL,     /* module documentation, may be NULL */
-    -1,       /* size of per-interpreter state of the module,
-                 or -1 if the module keeps state in global variables. */
-    SpamMethods
-};
-PyMODINIT_FUNC
-PyInit_spam(void)
-{
-    PyObject *m;
+   m4_pushdef([MIN_VERSION],               [3.7.0])
+   m4_pushdef([MIN_NONDEPRECATED_VERSION], [3.7.0])
+   m4_pushdef([LT_STABLE_VERSION],         [3.10.0])
+   m4_pushdef([LT_VERSION],                [3.11.0])
+   AC_ARG_WITH([python],
+               [AS_HELP_STRING([--with-python=PYTHON3],
+                               [Python 3 executable to use for the Sage venv; default: python3])])
+   AS_IF([test x"$with_python" = x2], [AC_MSG_ERROR([Sage cannot be built on Python 2. Exiting.])])
+   AS_IF([test x"$with_python" = x3], [
+       AC_MSG_NOTICE([The meaning of the option --with-python has changed in Sage 9.2. Ignoring.])
+       with_python=''
+       ])
+   AS_IF([test x"$with_python" = x"no"],
+         [AC_MSG_ERROR([building Sage --without-python is not supported])])
+   ac_path_PYTHON3="$with_python"
 
-    m = PyModule_Create(&spammodule);
-    return m;
-}
-                                    ]])
-                                ])
-                                AC_LANG_POP([C])
-                                cat > conftest.py <<EOF
-from distutils.core import setup
-from distutils.extension import Extension
-from sys import exit
-modules = list((Extension("config_check_distutils", list(("conftest.c",))),))
-setup(name="config_check_distutils", ext_modules=modules)
-exit(0)
-EOF
-                                dnl (echo "***ENV***:"; env; echo "***SYSCONFIG***"; conftest_venv/bin/python3 -m sysconfig) >& AS_MESSAGE_LOG_FD
-                                echo CC="$CC" CXX="$CXX" conftest_venv/bin/python3 conftest.py --verbose build --build-base=conftest.dir >& AS_MESSAGE_LOG_FD
-                                AS_IF([CC="$CC" CXX="$CXX" conftest_venv/bin/python3 conftest.py --verbose build --build-base=conftest.dir >& AS_MESSAGE_LOG_FD 2>&1 ], [
-                                    rm -rf conftest.*
-                                    AC_LANG_PUSH([C++])
-                                    AC_LANG_CONFTEST([
-                                        AC_LANG_SOURCE([[
-#define PY_SSIZE_T_CLEAN
-#include <Python.h>
-static PyMethodDef SpamMethods[] = {
-    {NULL, NULL, 0, NULL}        /* Sentinel */
-};
-static struct PyModuleDef spammodule = {
-    PyModuleDef_HEAD_INIT,
-    "spam",   /* name of module */
-    NULL,     /* module documentation, may be NULL */
-    -1,       /* size of per-interpreter state of the module,
-                 or -1 if the module keeps state in global variables. */
-    SpamMethods
-};
-PyMODINIT_FUNC
-PyInit_spam(void)
-{
-    PyObject *m;
-
-    m = PyModule_Create(&spammodule);
-    return m;
-}
-// Partial C++11 test, from ax_cxx_compile_stdcxx.m4
-
-  namespace test_noexcept
-  {
-
-    int f() { return 0; }
-    int g() noexcept { return 0; }
-
-    static_assert(noexcept(f()) == false, "");
-    static_assert(noexcept(g()) == true, "");
-
-  }
-
-                                        ]])
-                                    ])
-                                    AC_LANG_POP([C++])
-                                    cat > conftest.py <<EOF
-from distutils.core import setup
-from distutils.extension import Extension
-from sys import exit
-modules = list((Extension("config_check_distutils_cxx", list(("conftest.cpp",)),
-                          extra_compile_args=list(("-std=c++11",)), language="c++"),))
-setup(name="config_check_distutils_cxx", ext_modules=modules)
-exit(0)
-EOF
-                                    AS_IF([CC="$CC" CXX="$CXX" conftest_venv/bin/python3 conftest.py --verbose build --build-base=conftest.dir >& AS_MESSAGE_LOG_FD 2>&1 ], [
-                                        ac_cv_path_PYTHON3="$ac_path_PYTHON3"
-                                        ac_path_PYTHON3_found=:
-                                        AC_MSG_RESULT([yes])
-                                        dnl introduction for AC_MSG_RESULT printed by AC_CACHE_CHECK
-                                        AC_MSG_CHECKING([for python3 >= 3.7.3, < 3.8 with modules $check_modules])
-                                    ], [
-                                        AC_MSG_RESULT([no, the version is in the supported range, and the modules can be imported, but distutils cannot build a C++ 11 extension])
-                                    ])
-                                ], [
-                                    AC_MSG_RESULT([no, the version is in the supported range, and the modules can be imported, but distutils cannot build a C extension])
-                                ])
-                            ], [
-                                AC_MSG_RESULT([no, the version is in the supported range but cannot import one of the required modules: $check_modules])
-                            ])
-                        ], [
-                            AC_MSG_RESULT([no, $python3_version is too recent])
-                        ])
-                    ], [
-                        AC_MSG_RESULT([no, $python3_version is too old])
+   dnl Trac #30559:  Removed the DEPCHECK for sqlite.  We never use libsqlite3 from SPKG for anything
+   dnl other than building the python3 SPKG; so our libsqlite3 cannot create shared library conflicts.
+   dnl
+   dnl However, if we add another package (providing a shared library linked into a Python module)
+   dnl that also uses libsqlite3, then we will have to put the DEPCHECK back in.
+   SAGE_SPKG_DEPCHECK([bzip2 liblzma libffi], [
+      dnl Check if we can do venv with a system python3
+      dnl instead of building our own copy.
+      dnl  Trac #31160: We no longer check for readline here.
+      check_modules="sqlite3, ctypes, math, hashlib, crypt, socket, zlib, distutils.core, ssl"
+      AC_CACHE_CHECK([for python3 >= ]MIN_VERSION[, < ]LT_VERSION[ with modules $check_modules], [ac_cv_path_PYTHON3], [
+        AS_IF([test x"$ac_path_PYTHON3" != x], [dnl checking explicitly specified $with_python
+           AC_MSG_RESULT([])
+           AC_PATH_PROG([ac_path_PYTHON3], [$ac_path_PYTHON3])
+           SAGE_CHECK_PYTHON_FOR_VENV([$ac_path_PYTHON3],
+                                           MIN_VERSION, LT_VERSION,
+                                           $check_modules, [
+                    AS_IF([[conftest_venv/bin/python3 -m sysconfig | grep '^\sw*\(C\|LD\)FLAGS *=.*[" ]-[IL] *[^.]' ]] [>& AS_MESSAGE_LOG_FD 2>&1 ], [
+                        AC_MSG_WARN([this is a misconfigured Python whose sysconfig compiler/linker flags contain -I or -L options, which may cause wrong versions of libraries to leak into the build of Python packages - see https://trac.sagemath.org/ticket/31132])
                     ])
-                ], [
-                    AC_MSG_RESULT([no, "$ac_path_PYTHON3 --version" does not work])
+                    dnl It is good
+                    ac_cv_path_PYTHON3="$ac_path_PYTHON3"
+                    ac_path_PYTHON3_found=:
+                    AC_MSG_RESULT([yes])
+                    dnl introduction for AC_MSG_RESULT printed by AC_CACHE_CHECK
+                    AC_MSG_CHECKING([for python3 >= ]MIN_VERSION[, < ]LT_VERSION[ with modules $check_modules])
+           ])
+           AS_IF([test -z "$ac_cv_path_PYTHON3"], [
+               AC_MSG_ERROR([the python3 selected using --with-python=$with_python is not suitable])
+           ])
+        ], [dnl checking the default system python3
+           AC_MSG_RESULT([])
+           AC_PATH_PROGS_FEATURE_CHECK([PYTHON3], [python3], [
+                SAGE_CHECK_PYTHON_FOR_VENV([$ac_path_PYTHON3],
+                                           MIN_VERSION, LT_VERSION,
+                                           $check_modules, [
+                    AS_IF([[conftest_venv/bin/python3 -m sysconfig | grep '^\sw*\(C\|LD\)FLAGS *=.*[" ]-[IL] *[^.]' ]] [>& AS_MESSAGE_LOG_FD 2>&1 ], [
+                        AC_MSG_RESULT([no, this is a misconfigured Python whose sysconfig compiler/linker flags contain -I or -L options, which may cause wrong versions of libraries to leak into the build of Python packages - see https://trac.sagemath.org/ticket/31132; to use it anyway, use ./configure --with-python=$ac_path_PYTHON3])
+                    ], [
+                        dnl It is good
+                        ac_cv_path_PYTHON3="$ac_path_PYTHON3"
+                        ac_path_PYTHON3_found=:
+                        AC_MSG_RESULT([yes])
+                        dnl introduction for AC_MSG_RESULT printed by AC_CACHE_CHECK
+                        AC_MSG_CHECKING([for python3 >= ]MIN_VERSION[, < ]LT_VERSION[ with modules $check_modules])
+                    ])
                 ])
             ])
         ])
-        AS_IF([test -z "$ac_cv_path_PYTHON3"],
-              [sage_spkg_install_python3=yes])
       ])
-   ])
+      AS_IF([test -z "$ac_cv_path_PYTHON3"], [
+          AC_MSG_NOTICE([to try to use a different system python, use ./configure --with-python=/path/to/python])
+          sage_spkg_install_python3=yes
+      ])
+    ])
 ],, [
     dnl PRE
 ], [
     dnl POST
-    AS_IF([test x$sage_spkg_install_python3 = xno], [PYTHON_FOR_VENV="$ac_cv_path_PYTHON3"])
+    AS_IF([test x$sage_spkg_install_python3 = xno], [
+        PYTHON_FOR_VENV="$ac_cv_path_PYTHON3"
+        AS_IF([test "$SAGE_ARCHFLAGS" = "unset"], [
+           AC_MSG_CHECKING([whether $PYTHON_FOR_VENV is configured to build multiarch extensions])
+           AS_IF([[CC="$CC" CXX="$CXX" conftest_venv/bin/python3 -m sysconfig | grep '^\sw*\(C\|LD\)FLAGS *=.*[" ]-arch.* -arch' ]] [>& AS_MESSAGE_LOG_FD 2>&1 ], [
+               AC_MSG_RESULT([yes; disabling it by setting ARCHFLAGS])
+               SAGE_ARCHFLAGS=""
+           ], [
+               AC_MSG_RESULT([no])
+           ])
+        ])
+        AS_IF([test "$SAGE_ARCHFLAGS" != "unset"], [
+            ARCHFLAGS="$SAGE_ARCHFLAGS"
+            export ARCHFLAGS
+        ])
+        AS_IF([test -n "$CFLAGS_MARCH"], [
+            dnl Trac #31228
+            AC_MSG_CHECKING([whether "$CFLAGS_MARCH" works with the C/C++ compilers configured for building extensions for $PYTHON_FOR_VENV])
+            SAGE_PYTHON_CHECK_DISTUTILS([CC="$CC" CXX="$CXX" CFLAGS="$CFLAGS_MARCH" conftest_venv/bin/python3], [
+                AC_MSG_RESULT([yes])
+            ], [
+                AC_MSG_RESULT([no, with these flags, $reason; disabling use of "$CFLAGS_MARCH"])
+                CFLAGS_MARCH=""
+            ])
+        ])
+
+        AS_IF([test -n "$OPENMP_CFLAGS$OPENMP_CXXFLAGS"], [
+            AC_MSG_CHECKING([whether OpenMP works with the C/C++ compilers configured for building extensions for $PYTHON_FOR_VENV])
+            SAGE_PYTHON_CHECK_DISTUTILS([CC="$CC" CXX="$CXX" CFLAGS="$CFLAGS $OPENMP_CFLAGS" CXXFLAGS="$CXXFLAGS $OPENMP_CXXFLAGS" conftest_venv/bin/python3], [
+                AC_MSG_RESULT([yes])
+            ], [
+                AC_MSG_RESULT([no, $reason; disabling use OpenMP])
+                OPENMP_CFLAGS=""
+                OPENMP_CXXFLAGS=""
+            ])
+        ])
+
+        AX_COMPARE_VERSION([$python3_version], [lt], MIN_NONDEPRECATED_VERSION, [
+            AC_MSG_NOTICE([deprecation notice: Support for system python < MIN_NONDEPRECATED_VERSION is deprecated
+and will be removed in the next development cycle.  Consider using a newer version of Python
+that may be available on your system or can be installed using the system package manager.
+To build Sage with a different system python, use ./configure --with-python=/path/to/python])
+        ])
+        AX_COMPARE_VERSION([$python3_version], [ge], LT_STABLE_VERSION, [
+            AC_MSG_WARN([Support for system python >= LT_STABLE_VERSION is experimental.
+To build Sage with a different system python, use ./configure --with-python=/path/to/python])
+        ])
+    ])
     AC_SUBST([PYTHON_FOR_VENV])
+
+    AS_VAR_IF([SAGE_VENV], [auto], [SAGE_VENV=$SAGE_VENV_AUTO])
+    AS_CASE([$SAGE_VENV],
+        [no],  [SAGE_VENV='${SAGE_LOCAL}'],dnl Quoted so that it is resolved at build time by shell/Makefile
+        [yes], [AS_IF([test -n "$PYTHON_FOR_VENV"], [
+                   PYTHON_VERSION=$("$PYTHON_FOR_VENV" -c "import sysconfig; print(sysconfig.get_python_version())")
+                ], [
+                   PYTHON_VERSION=$(echo $(cat build/pkgs/python3/package-version.txt))
+                ])
+                SAGE_VENV='${SAGE_LOCAL}'/var/lib/sage/venv-python$PYTHON_VERSION]
+    )
 
     dnl These temporary directories are created by the check above
     dnl and need to be cleaned up to prevent the "rm -f conftest*"
     dnl (that a bunch of other checks do) from emitting warnings about
     dnl conftest.dir and conftest_venv being directories.
     rm -rf conftest.dir conftest_venv
+
+    m4_popdef([MIN_VERSION])
+    m4_popdef([MIN_NONDEPRECATED_VERSION])
+    m4_popdef([LT_VERSION])
 ])

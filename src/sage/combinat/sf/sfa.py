@@ -195,7 +195,6 @@ AUTHORS:
 - Darij Grinberg (2013) Sym over rings that are not characteristic 0
 
 """
-from __future__ import absolute_import
 #*****************************************************************************
 #       Copyright (C) 2007 Mike Hansen <mhansen@gmail.com>
 #                     2012 Anne Schilling <anne at math.ucdavis.edu>
@@ -213,7 +212,11 @@ from __future__ import absolute_import
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 from sage.misc.cachefunc import cached_method
-from sage.rings.all import Integer, PolynomialRing, QQ, ZZ, infinity
+from sage.rings.integer_ring import ZZ
+from sage.rings.rational_field import QQ
+from sage.rings.integer import Integer
+from sage.rings.infinity import infinity
+from sage.rings.polynomial.polynomial_ring_constructor import PolynomialRing
 from sage.rings.polynomial.polynomial_element import is_Polynomial
 from sage.rings.polynomial.multi_polynomial import is_MPolynomial
 from sage.combinat.partition import _Partitions, Partitions, Partitions_n, Partition
@@ -222,7 +225,7 @@ from sage.categories.hopf_algebras_with_basis import HopfAlgebrasWithBasis
 from sage.categories.tensor import tensor
 from sage.combinat.free_module import CombinatorialFreeModule
 from sage.matrix.constructor import matrix
-from sage.misc.all import prod
+from sage.misc.misc_c import prod
 from copy import copy
 from functools import reduce
 
@@ -662,7 +665,7 @@ class SymmetricFunctionsBases(Category_realization_of_parent):
                 put on a more robust and systematic footing.
             """
             from sage.combinat.sf.sf import SymmetricFunctions
-            from sage.misc.misc import attrcall
+            from sage.misc.call import attrcall
             try:
                 return attrcall(self._basis)(SymmetricFunctions(R))
             except AttributeError:   # or except (AttributeError, ValueError):
@@ -970,8 +973,8 @@ class SymmetricFunctionsBases(Category_realization_of_parent):
                 m = lam.to_exp_dict() # == {i: m_i | i occurs in lam}
                 p = self.realization_of().power()
                 h = self.realization_of().complete()
-                from sage.arith.all import Moebius, squarefree_divisors
-                mu = Moebius()
+                from sage.arith.all import moebius, squarefree_divisors
+                mu = moebius
                 def component(i, g): # == h_g[L_i]
                     L_i = p.sum_of_terms([(_Partitions([d] * (i//d)), R(mu(d)))
                                           for d in squarefree_divisors(i)],
@@ -1675,7 +1678,7 @@ class SymmetricFunctionAlgebra_generic(CombinatorialFreeModule):
             sage: s._change_by_plethysm(-a,-1,[])
             s[1, 1, 1]
         """
-        #Covert to the power sum
+        # Convert to the power sum
         p = self.realization_of().power()
         p_x = p(x)
         expr_k = lambda k: expr.subs(**dict([(str(x),x**k) for x in deg_one]))
@@ -2273,7 +2276,8 @@ class SymmetricFunctionAlgebra_generic(CombinatorialFreeModule):
              ([2, 1], [([1, 1, 1], 2), ([2, 1], 1)]),
              ([3], [([1, 1, 1], 1), ([2, 1], 1), ([3], 1)])]
         """
-        BR = self.base_ring(); one = BR.one()
+        BR = self.base_ring()
+        one = BR.one()
         p = self.realization_of().p()
 
         # Create a function which converts x and y to the power-sum basis and applies
@@ -2472,7 +2476,7 @@ class SymmetricFunctionAlgebra_generic(CombinatorialFreeModule):
             sage: Sym.p()._dual_basis_default()
             Dual basis to Symmetric Functions over Rational Field in the powersum basis with respect to the Hall scalar product
 
-        This is meant to be overriden by subclasses for which an
+        This is meant to be overridden by subclasses for which an
         explicit dual basis is known::
 
             sage: Sym.s()._dual_basis_default()
@@ -2619,9 +2623,9 @@ class SymmetricFunctionAlgebra_generic(CombinatorialFreeModule):
         if ps == 'lex':
             self.print_options(sorting_key=lambda x: x)
         elif ps == 'length':
-            self.print_options(sorting_key=lambda x: len(x))
+            self.print_options(sorting_key=len)
         elif ps == 'maximal_part':
-            self.print_options(sorting_key=lambda x: _lmax(x))
+            self.print_options(sorting_key=_lmax)
         else:
             raise ValueError("the print style must be one of lex, length, or maximal_part ")
         self._print_style = ps
@@ -5081,9 +5085,9 @@ class SymmetricFunctionAlgebra_generic_Element(CombinatorialFreeModule.Element):
             sage: s(0).degree()
             0
         """
-        return max( [sum(_) for _ in self._monomial_coefficients] + [0] )
+        return max([sum(cfs) for cfs in self._monomial_coefficients] + [0])
 
-    def restrict_degree(self, d, exact = True):
+    def restrict_degree(self, d, exact=True):
         r"""
         Return the degree ``d`` component of ``self``.
 

@@ -6,7 +6,6 @@ AUTHORS:
 - Jonas Jermann (2013): initial version
 
 """
-from __future__ import absolute_import
 
 #*****************************************************************************
 #       Copyright (C) 2013-2014 Jonas Jermann <jjermann2@gmail.com>
@@ -17,7 +16,9 @@ from __future__ import absolute_import
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 
-from sage.rings.all import ZZ, infinity, LaurentSeries, O
+from sage.rings.integer_ring import ZZ
+from sage.rings.infinity import infinity
+from sage.rings.all import LaurentSeries, O
 from sage.functions.all import exp
 from sage.rings.number_field.number_field import QuadraticField
 from sage.symbolic.all import pi

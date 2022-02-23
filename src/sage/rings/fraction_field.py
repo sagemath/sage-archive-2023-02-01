@@ -58,7 +58,7 @@ TESTS::
 """
 # ****************************************************************************
 #
-#   Sage: System for Algebra and Geometry Experimentation
+#   Sage: Open Source Mathematical Software
 #
 #       Copyright (C) 2005 William Stein <wstein@gmail.com>
 #                     2017 Julian Rüth <julian.rueth@fsfe.org>
@@ -69,7 +69,6 @@ TESTS::
 # (at your option) any later version.
 #                  http://www.gnu.org/licenses/
 # ****************************************************************************
-from __future__ import absolute_import
 
 from . import ring
 from . import fraction_field_element
@@ -587,7 +586,7 @@ class FractionField_generic(ring.Field):
             sage: B.<d,e> = PolynomialRing(A,'d,e')
             sage: R.<x> = PolynomialRing(B,'x')
             sage: (a*d*x^2+a+e+1).resultant(-4*c^2*x+1)
-            a*d + 16*c^4*e + 16*a*c^4 + 16*c^4
+            a*d + (16*c^4)*e + (16*a*c^4 + 16*c^4)
 
         Check that :trac:`24539` is fixed::
 
@@ -619,6 +618,8 @@ class FractionField_generic(ring.Field):
             sage: F(x)
             -1/2/(a^2 + a)
         """
+        if isinstance(x, (list, tuple)) and len(x) == 1:
+            x = x[0]
         if y is None:
             if parent(x) is self:
                 return x
@@ -662,8 +663,11 @@ class FractionField_generic(ring.Field):
             # Below, v is the variable with highest priority,
             # and the x[i] are rational functions in the
             # remaining variables.
+            d = x.poldegree()
+            if d.type() == 't_INFINITY':
+                return self.zero()
             v = self._element_class(self, x.variable(), 1)
-            x = sum(self(x[i]) * v**i for i in range(x.poldegree() + 1))
+            x = sum(self(x[i]) * v**i for i in range(d + 1))
 
         def resolve_fractions(x, y):
             xn = x.numerator()
@@ -854,10 +858,12 @@ class FractionField_generic(ring.Field):
         ::
 
             sage: f = F.random_element(degree=5)
-            sage: f.numerator().degree()
-            5
-            sage: f.denominator().degree()
-            5
+            sage: f.numerator().degree() == f.denominator().degree()
+            True
+            sage: f.denominator().degree() <= 5
+            True
+            sage: while f.numerator().degree() != 5:
+            ....:      f = F.random_element(degree=5)
         """
         return self._element_class(self, self._R.random_element(*args, **kwds),
                                    self._R._random_nonzero_element(*args, **kwds),
@@ -944,7 +950,7 @@ class FractionField_1poly_field(FractionField_generic):
 
             sage: R.<t> = QQ[]; K = R.fraction_field()
             sage: K._element_class
-            <type 'sage.rings.fraction_field_element.FractionFieldElement_1poly_field'>
+            <class 'sage.rings.fraction_field_element.FractionFieldElement_1poly_field'>
         """
         FractionField_generic.__init__(self, R, element_class)
 
@@ -1256,7 +1262,7 @@ class FractionFieldEmbeddingSection(Section):
         """
         check = kwds.pop('check', True)
         if args or kwds:
-            raise NotImplementedError("__call__ can not be called with additional arguments other than check=True/False")
+            raise NotImplementedError("__call__ cannot be called with additional arguments other than check=True/False")
         return self._call_(x, check=check)
 
     def _richcmp_(self, other, op):

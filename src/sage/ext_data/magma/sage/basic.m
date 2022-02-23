@@ -167,7 +167,8 @@ end intrinsic;
 
 intrinsic Sage(X::RngUPolElt) -> MonStgElt, BoolElt
 {}
-  return Sprintf("%o(%o)", Sage(Parent(X)), Sage(Coefficients(X))), false;
+  pp := PreparseElts(BaseRing(X));
+  return Sprintf("%o(%o)", Sage(Parent(X)), Sage(Coefficients(X))), pp;
 end intrinsic;
 
 intrinsic Sage(X::RngMPol) -> MonStgElt, BoolElt

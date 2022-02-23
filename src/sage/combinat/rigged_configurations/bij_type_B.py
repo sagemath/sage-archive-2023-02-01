@@ -34,7 +34,6 @@ TESTS::
 #
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
-from __future__ import print_function
 
 from sage.combinat.rigged_configurations.bij_type_A import KRTToRCBijectionTypeA
 from sage.combinat.rigged_configurations.bij_type_C import KRTToRCBijectionTypeC
@@ -818,7 +817,7 @@ class RCToKRTBijectionTypeB(RCToKRTBijectionTypeC):
                 end = ell[a]
                 if a < height:
                     end = len(self.cur_partitions[a])
-                for i in reversed(range(0, end)):
+                for i in reversed(range(end)):
                     if self.cur_partitions[a][i] >= last_size and \
                       self.cur_partitions[a].vacancy_numbers[i] == self.cur_partitions[a].rigging[i]:
                         ell[n + a] = i

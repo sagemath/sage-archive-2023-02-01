@@ -1,8 +1,6 @@
 """
 Interface to Bill Hart's Quadratic Sieve
 """
-from __future__ import print_function
-from __future__ import absolute_import
 
 import os
 import subprocess as sp
@@ -10,7 +8,7 @@ import subprocess as sp
 import sage.rings.integer
 
 from sage.cpython.string import bytes_to_str
-from sage.misc.all import tmp_dir
+from sage.misc.temporary_file import tmp_dir
 
 
 def qsieve(n, block=True, time=False, verbose=False):
@@ -118,7 +116,7 @@ def data_to_list(out, n, time):
                 break
         if i < len(w):
             t = w[i].strip()
-            out = '\n'.join([w[j] for j in range(i)])
+            out = '\n'.join(w[j] for j in range(i))
         else:
             t = ''
     else:

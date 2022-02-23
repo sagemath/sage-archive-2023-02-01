@@ -5,7 +5,7 @@ AUTHORS:
 
 - Jon Hanke (2007-06-19)
 - Anna Haensch (2010-07-01): Formatting and ReSTification
-- Simon Brandhorst (2019-10-15): :meth:``quadratic_form_from_invariants``
+- Simon Brandhorst (2019-10-15): :meth:`quadratic_form_from_invariants`
 """
 
 # ****************************************************************************
@@ -26,7 +26,7 @@ from sage.matrix.matrix_space import MatrixSpace
 from sage.structure.element import is_Matrix
 from sage.rings.integer_ring import IntegerRing, ZZ
 from sage.rings.ring import Ring
-from sage.misc.functional import denominator, is_even, is_field
+from sage.misc.functional import denominator, is_even
 from sage.arith.all import GCD, LCM
 from sage.rings.all import Ideal, QQ
 from sage.rings.ring import is_Ring, PrincipalIdealDomain
@@ -36,7 +36,6 @@ from sage.rings.polynomial.polynomial_ring_constructor import PolynomialRing
 from sage.modules.free_module_element import vector
 from sage.quadratic_forms.genera.genus import genera
 from sage.quadratic_forms.quadratic_form__evaluate import QFEvaluateVector, QFEvaluateMatrix
-
 
 
 def QuadraticForm__constructor(R, n=None, entries=None):
@@ -408,7 +407,9 @@ class QuadraticForm(SageObject):
     from sage.quadratic_forms.quadratic_form__neighbors import \
             find_primitive_p_divisible_vector__random, \
             find_primitive_p_divisible_vector__next, \
-            find_p_neighbor_from_vec
+            find_p_neighbor_from_vec, \
+            neighbor_iteration, \
+            orbits_lines_mod_p
 
     ## Routines to reduce a given quadratic form
     from sage.quadratic_forms.quadratic_form__reduction_theory import \
@@ -487,6 +488,7 @@ class QuadraticForm(SageObject):
 
     ## Routines for solving equations of the form Q(x) = c.
     from sage.quadratic_forms.qfsolve import solve
+
 
 
     def __init__(self, R, n=None, entries=None, unsafe_initialization=False, number_of_automorphisms=None, determinant=None):
@@ -596,7 +598,6 @@ class QuadraticForm(SageObject):
             if determinant is not None:
                 self.__det = determinant
                 self._external_initialization_list.append('determinant')
-
 
     def list_external_initializations(self):
         """
@@ -889,7 +890,7 @@ class QuadraticForm(SageObject):
               return QuadraticForm(self.__base_ring, self.__n, [self.__coeffs[i] + right.__coeffs[i]  for i in range(len(self.__coeffs))])
 
 
-## ========================  CHANGE THIS TO A TENSOR PRODUCT?!?  Even in Characteristic 2?!?  =======================
+# ========================  CHANGE THIS TO A TENSOR PRODUCT?!?  Even in Characteristic 2?!?  =======================
 #    def __mul__(self, right):
 #        """
 #        Multiply (on the right) the quadratic form Q by an element of the ring that Q is defined over.
@@ -1030,7 +1031,7 @@ class QuadraticForm(SageObject):
 
 
 
-## =====================================================================================================
+# =====================================================================================================
 
     def _is_even_symmetric_matrix_(self, A, R=None):
         """
@@ -1094,7 +1095,7 @@ class QuadraticForm(SageObject):
         return True
 
 
-## =====================================================================================================
+# =====================================================================================================
 
     def matrix(self):
         """
@@ -1222,11 +1223,11 @@ class QuadraticForm(SageObject):
             False
 
         """
-        ## Warning over fields
-        if is_field(self.base_ring()):
-           warn("Warning -- A quadratic form over a field always has integral Gram matrix.  Do you really want to do this?!?")
+        # Warning over fields
+        if self.base_ring().is_field():
+            warn("Warning -- A quadratic form over a field always has integral Gram matrix.  Do you really want to do this?!?")
 
-        ## Determine integrality of the Gram matrix
+        # Determine integrality of the Gram matrix
         flag = True
         try:
             self.Gram_matrix()
@@ -1287,7 +1288,7 @@ class QuadraticForm(SageObject):
             2*a*y0^2 + 3*a*y0*y1 + (-a + 1)*y1^2 + (2*a + 4)*y2^2
             sage: Q = QuadraticForm(F,4,[a, 3*a, 0, 1 - a, a - 3, 0, 2*a + 4, 4 + a, 0, 1])
             sage: Q.polynomial(names='z')
-            (a)*z0^2 + (3*a)*z0*z1 + (a - 3)*z1^2 + (a + 4)*z2^2 + (-a + 1)*z0*z3 + (2*a + 4)*z1*z3 + z3^2
+            a*z0^2 + (3*a)*z0*z1 + (a - 3)*z1^2 + (a + 4)*z2^2 + (-a + 1)*z0*z3 + (2*a + 4)*z1*z3 + z3^2
             sage: B.<i,j,k> = QuaternionAlgebra(F,-1,-1)
             sage: Q = QuadraticForm(B, 3, [2*a, 3*a, i, 1 - a, 0, 2*a + 4])
             sage: Q.polynomial()
@@ -1585,8 +1586,6 @@ class QuadraticForm(SageObject):
             self.__level = lvl
             return lvl
 
-
-
     def level_ideal(self):
         """
         Determines the level of the quadratic form (over R), which is the
@@ -1687,7 +1686,7 @@ class QuadraticForm(SageObject):
 
     genera = staticmethod(genera)
 
-## ============================================================================
+# ============================================================================
 
 
 def DiagonalQuadraticForm(R, diag):

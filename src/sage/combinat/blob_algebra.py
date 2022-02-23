@@ -24,7 +24,7 @@ from sage.structure.richcmp import richcmp
 #from sage.misc.inherit_comparison import InheritComparisonClasscallMetaclass
 from sage.misc.cachefunc import cached_method
 from sage.misc.misc import powerset
-from sage.functions.other import binomial
+from sage.arith.all import binomial
 from sage.categories.finite_enumerated_sets import FiniteEnumeratedSets
 from sage.categories.algebras import Algebras
 from sage.combinat.diagram_algebras import (TemperleyLiebDiagrams, diagram_latex,
@@ -279,7 +279,7 @@ class BlobDiagrams(Parent, UniqueRepresentation):
             Traceback (most recent call last):
             ...
             ValueError: not a blob diagram of order 4
-            sage: BD4([[3,-3]], [[1,-1],[2,-2],[4,-4]])  # trapped propogating line
+            sage: BD4([[3,-3]], [[1,-1],[2,-2],[4,-4]])  # trapped propagating line
             Traceback (most recent call last):
             ...
             ValueError: not a blob diagram of order 4
@@ -297,7 +297,7 @@ class BlobDiagrams(Parent, UniqueRepresentation):
                     if P[1] < 0:  # P is a cap
                         continue
                     if P[1] < x:
-                        if P[0] < 0:  # A propogating line to the left
+                        if P[0] < 0:  # A propagating line to the left
                             return False
                     else:  # Note that P[1] != x
                         if 0 < P[0] < x:  # A nesting line
@@ -307,12 +307,12 @@ class BlobDiagrams(Parent, UniqueRepresentation):
                     if P[0] > 0:  # P is a cup
                         continue
                     if P[0] > y:
-                        if P[1] > 0:  # A propogating line to the left
+                        if P[1] > 0:  # A propagating line to the left
                             return False
                     else:  # Note that P[0] != y
                         if 0 > P[1] > y:  # A nesting line
                             return False
-            else:  # Must be a propogating line
+            else:  # Must be a propagating line
                 if any(P[0] < 0 and P[1] > 0 and P[1] < y for P in TL):
                     return False
         return True
@@ -325,27 +325,27 @@ class BlobDiagrams(Parent, UniqueRepresentation):
 
             sage: from sage.combinat.blob_algebra import BlobDiagrams
             sage: BD3 = BlobDiagrams(3)
-            sage: for b in BD3: b
-            ({}, {{-3, 3}, {-2, -1}, {1, 2}})
-            ({{1, 2}}, {{-3, 3}, {-2, -1}})
-            ({{-2, -1}}, {{-3, 3}, {1, 2}})
-            ({{-2, -1}, {1, 2}}, {{-3, 3}})
-            ({{-3, 3}}, {{-2, -1}, {1, 2}})
-            ({{-3, 3}, {1, 2}}, {{-2, -1}})
-            ({{-3, 3}, {-2, -1}}, {{1, 2}})
-            ({{-3, 3}, {-2, -1}, {1, 2}}, {})
-            ({}, {{-3, -2}, {-1, 3}, {1, 2}})
-            ({{1, 2}}, {{-3, -2}, {-1, 3}})
-            ({{-1, 3}}, {{-3, -2}, {1, 2}})
-            ({{-1, 3}, {1, 2}}, {{-3, -2}})
-            ({}, {{-3, 1}, {-2, -1}, {2, 3}})
-            ({{-3, 1}}, {{-2, -1}, {2, 3}})
-            ({{-2, -1}}, {{-3, 1}, {2, 3}})
-            ({{-3, 1}, {-2, -1}}, {{2, 3}})
-            ({}, {{-3, -2}, {-1, 1}, {2, 3}})
-            ({{-1, 1}}, {{-3, -2}, {2, 3}})
-            ({}, {{-3, 3}, {-2, 2}, {-1, 1}})
-            ({{-1, 1}}, {{-3, 3}, {-2, 2}})
+            sage: sorted(BD3)
+            [({}, {{-3, -2}, {-1, 1}, {2, 3}}),
+             ({}, {{-3, -2}, {-1, 3}, {1, 2}}),
+             ({}, {{-3, 1}, {-2, -1}, {2, 3}}),
+             ({}, {{-3, 3}, {-2, -1}, {1, 2}}),
+             ({}, {{-3, 3}, {-2, 2}, {-1, 1}}),
+             ({{-3, 1}}, {{-2, -1}, {2, 3}}),
+             ({{-3, 3}}, {{-2, -1}, {1, 2}}),
+             ({{-2, -1}}, {{-3, 1}, {2, 3}}),
+             ({{-2, -1}}, {{-3, 3}, {1, 2}}),
+             ({{-1, 1}}, {{-3, -2}, {2, 3}}),
+             ({{-1, 1}}, {{-3, 3}, {-2, 2}}),
+             ({{-1, 3}}, {{-3, -2}, {1, 2}}),
+             ({{1, 2}}, {{-3, -2}, {-1, 3}}),
+             ({{1, 2}}, {{-3, 3}, {-2, -1}}),
+             ({{-3, 1}, {-2, -1}}, {{2, 3}}),
+             ({{-3, 3}, {-2, -1}}, {{1, 2}}),
+             ({{-3, 3}, {1, 2}}, {{-2, -1}}),
+             ({{-2, -1}, {1, 2}}, {{-3, 3}}),
+             ({{-1, 3}, {1, 2}}, {{-3, -2}}),
+             ({{-3, 3}, {-2, -1}, {1, 2}}, {})]
         """
         for D in DyckWords(self._n):
             markable = set()
@@ -398,12 +398,12 @@ class BlobAlgebra(CombinatorialFreeModule):
 
         sage: R.<q,r,s> = ZZ[]
         sage: B4 = algebras.Blob(4, q, r, s)
-        sage: B = list(B4.basis())
-        sage: B[2]
+        sage: B = sorted(B4.basis())
+        sage: B[14]
         B({{-4, -3}}, {{-2, -1}, {1, 2}, {3, 4}})
-        sage: B[4]
+        sage: B[40]
         B({{3, 4}}, {{-4, -3}, {-2, -1}, {1, 2}})
-        sage: B[2] * B[4]
+        sage: B[14] * B[40]
         q*r*s*B({}, {{-4, -3}, {-2, -1}, {1, 2}, {3, 4}})
 
     REFERENCES:
@@ -498,32 +498,32 @@ class BlobAlgebra(CombinatorialFreeModule):
             sage: R.<q,r,s> = ZZ[]
             sage: B2 = algebras.Blob(2, q, r, s)
             sage: latex(B2.an_element())  # indirect doctest
-            2\begin{tikzpicture}[scale = 0.5,thick, baseline={(0,-1ex/2)}] 
-            \tikzstyle{vertex} = [shape = circle, minimum size = 7pt, inner sep = 1pt] 
-            \node[vertex] (G--2) at (1.5, -1) [shape = circle, draw] {}; 
-            \node[vertex] (G--1) at (0.0, -1) [shape = circle, draw] {}; 
-            \node[vertex] (G-1) at (0.0, 1) [shape = circle, draw] {}; 
-            \node[vertex] (G-2) at (1.5, 1) [shape = circle, draw] {}; 
-            \draw[] (G--2) .. controls +(-0.5, 0.5) and +(0.5, 0.5) .. (G--1); 
-            \draw[] (G-1) .. controls +(0.5, -0.5) and +(-0.5, -0.5) .. (G-2); 
-            \end{tikzpicture} 
-             + 3\begin{tikzpicture}[scale = 0.5,thick, baseline={(0,-1ex/2)}] 
-            \tikzstyle{vertex} = [shape = circle, minimum size = 7pt, inner sep = 1pt] 
-            \node[vertex] (G--2) at (1.5, -1) [shape = circle, draw] {}; 
-            \node[vertex] (G--1) at (0.0, -1) [shape = circle, draw] {}; 
-            \node[vertex] (G-1) at (0.0, 1) [shape = circle, draw] {}; 
-            \node[vertex] (G-2) at (1.5, 1) [shape = circle, draw] {}; 
-            \draw[blue,very thick] (G--2) .. controls +(-0.5, 0.5) and +(0.5, 0.5) .. node[midway,circle,fill,scale=0.6] {} (G--1); 
-            \draw[] (G-1) .. controls +(0.5, -0.5) and +(-0.5, -0.5) .. (G-2); 
-            \end{tikzpicture} 
-             + 2\begin{tikzpicture}[scale = 0.5,thick, baseline={(0,-1ex/2)}] 
-            \tikzstyle{vertex} = [shape = circle, minimum size = 7pt, inner sep = 1pt] 
-            \node[vertex] (G-1) at (0.0, 1) [shape = circle, draw] {}; 
-            \node[vertex] (G-2) at (1.5, 1) [shape = circle, draw] {}; 
-            \node[vertex] (G--2) at (1.5, -1) [shape = circle, draw] {}; 
-            \node[vertex] (G--1) at (0.0, -1) [shape = circle, draw] {}; 
-            \draw[blue,very thick] (G-1) .. controls +(0.5, -0.5) and +(-0.5, -0.5) .. node[midway,circle,fill,scale=0.6] {} (G-2); 
-            \draw[] (G--2) .. controls +(-0.5, 0.5) and +(0.5, 0.5) .. (G--1); 
+            2 \begin{tikzpicture}[scale = 0.5,thick, baseline={(0,-1ex/2)}]
+            \tikzstyle{vertex} = [shape = circle, minimum size = 7pt, inner sep = 1pt]
+            \node[vertex] (G--2) at (1.5, -1) [shape = circle, draw] {};
+            \node[vertex] (G--1) at (0.0, -1) [shape = circle, draw] {};
+            \node[vertex] (G-1) at (0.0, 1) [shape = circle, draw] {};
+            \node[vertex] (G-2) at (1.5, 1) [shape = circle, draw] {};
+            \draw[] (G--2) .. controls +(-0.5, 0.5) and +(0.5, 0.5) .. (G--1);
+            \draw[] (G-1) .. controls +(0.5, -0.5) and +(-0.5, -0.5) .. (G-2);
+            \end{tikzpicture}
+             + 3 \begin{tikzpicture}[scale = 0.5,thick, baseline={(0,-1ex/2)}]
+            \tikzstyle{vertex} = [shape = circle, minimum size = 7pt, inner sep = 1pt]
+            \node[vertex] (G--2) at (1.5, -1) [shape = circle, draw] {};
+            \node[vertex] (G--1) at (0.0, -1) [shape = circle, draw] {};
+            \node[vertex] (G-1) at (0.0, 1) [shape = circle, draw] {};
+            \node[vertex] (G-2) at (1.5, 1) [shape = circle, draw] {};
+            \draw[blue,very thick] (G--2) .. controls +(-0.5, 0.5) and +(0.5, 0.5) .. node[midway,circle,fill,scale=0.6] {} (G--1);
+            \draw[] (G-1) .. controls +(0.5, -0.5) and +(-0.5, -0.5) .. (G-2);
+            \end{tikzpicture}
+             + 2 \begin{tikzpicture}[scale = 0.5,thick, baseline={(0,-1ex/2)}]
+            \tikzstyle{vertex} = [shape = circle, minimum size = 7pt, inner sep = 1pt]
+            \node[vertex] (G-1) at (0.0, 1) [shape = circle, draw] {};
+            \node[vertex] (G-2) at (1.5, 1) [shape = circle, draw] {};
+            \node[vertex] (G--2) at (1.5, -1) [shape = circle, draw] {};
+            \node[vertex] (G--1) at (0.0, -1) [shape = circle, draw] {};
+            \draw[blue,very thick] (G-1) .. controls +(0.5, -0.5) and +(-0.5, -0.5) .. node[midway,circle,fill,scale=0.6] {} (G-2);
+            \draw[] (G--2) .. controls +(-0.5, 0.5) and +(0.5, 0.5) .. (G--1);
             \end{tikzpicture}
         """
         def edge_options(P):
@@ -583,12 +583,12 @@ class BlobAlgebra(CombinatorialFreeModule):
             sage: R.<q,r,s> = ZZ[]
             sage: B4 = algebras.Blob(4, q, r, s)
             sage: B = B4.basis()
-            sage: BD = B.keys()
-            sage: BD[2]
+            sage: BD = sorted(B.keys())
+            sage: BD[14]
             ({{-4, -3}}, {{-2, -1}, {1, 2}, {3, 4}})
-            sage: BD[4]
+            sage: BD[40]
             ({{3, 4}}, {{-4, -3}, {-2, -1}, {1, 2}})
-            sage: B4.product_on_basis(BD[2], BD[4])
+            sage: B4.product_on_basis(BD[14], BD[40])
             q*r*s*B({}, {{-4, -3}, {-2, -1}, {1, 2}, {3, 4}})
             sage: all(len((x*y).support()) == 1 for x in B for y in B)
             True
@@ -678,4 +678,3 @@ class BlobAlgebra(CombinatorialFreeModule):
             return self.zero()
         diagram = self._indices.element_class(self._indices, ret_lists[0], ret_lists[1])
         return self._from_dict({diagram: coeff}, remove_zeros=False)
-

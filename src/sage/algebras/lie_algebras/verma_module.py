@@ -31,7 +31,8 @@ from sage.combinat.free_module import CombinatorialFreeModule
 from sage.modules.free_module_element import vector
 from sage.sets.family import Family
 from sage.structure.richcmp import richcmp
-from sage.rings.all import ZZ, QQ
+from sage.rings.integer_ring import ZZ
+from sage.rings.rational_field import QQ
 
 
 class VermaModule(CombinatorialFreeModule):
@@ -227,7 +228,7 @@ class VermaModule(CombinatorialFreeModule):
             sage: La = L.cartan_type().root_system().weight_space().fundamental_weights()
             sage: M = L.verma_module(2*La[1] + 7*La[4] - 3/4*La[7])
             sage: latex(M)
-            M_{2\Lambda_{1} + 7\Lambda_{4} - \frac{3}{4}\Lambda_{7}}
+            M_{2 \Lambda_{1} + 7 \Lambda_{4} - \frac{3}{4} \Lambda_{7}}
         """
         from sage.misc.latex import latex
         return "M_{{{}}}".format(latex(self._weight))
@@ -272,12 +273,12 @@ class VermaModule(CombinatorialFreeModule):
             sage: x = M.pbw_basis()(L([f1, [f1, f2]]))
             sage: v = x * M.highest_weight_vector()
             sage: M._latex_generator(v.leading_support())
-            f_{-2\alpha_{1} - \alpha_{2}} v_{-\frac{1}{14}e_{0} + \frac{3}{7}e_{1}}
+            f_{-2 \alpha_{1} - \alpha_{2}} v_{-\frac{1}{14} e_{0} + \frac{3}{7} e_{1}}
 
             sage: latex(2 * M.highest_weight_vector())
-            2 v_{-\frac{1}{14}e_{0} + \frac{3}{7}e_{1}}
+            2  v_{-\frac{1}{14} e_{0} + \frac{3}{7} e_{1}}
             sage: latex(M.highest_weight_vector())
-            v_{-\frac{1}{14}e_{0} + \frac{3}{7}e_{1}}
+             v_{-\frac{1}{14} e_{0} + \frac{3}{7} e_{1}}
         """
         ret = super(VermaModule, self)._latex_generator(m)
         if ret == '1':
@@ -812,7 +813,7 @@ class VermaModuleMorphism(Morphism):
             sage: v = Mpp.highest_weight_vector()
             sage: psi(v)
             0
-        """ 
+        """
         if not self._scalar or self.parent().singular_vector() is None:
             return self.codomain().zero()
         mc = x.monomial_coefficients(copy=False)
@@ -1321,4 +1322,3 @@ def _convert_wt_to_root(wt):
     b = b[0]  # Get the actual vector that gives the linear dependency
     # Get v as a linear combination of the simple roots
     return vector(QQ, [-x / b[0] for x in b[1:]])
-

@@ -30,7 +30,6 @@ AUTHORS:
 #  the License, or (at your option) any later version.
 #                  https://www.gnu.org/licenses/
 # ****************************************************************************
-from __future__ import print_function
 
 import os
 import re
@@ -39,7 +38,7 @@ import random
 
 from sage.misc.all import tmp_filename
 from sage.rings.real_mpfr import RR
-from sage.rings.all import CC
+from sage.rings.cc import CC
 from sage.rings.integer import Integer
 from sage.plot.line import line
 from sage.plot.point import point

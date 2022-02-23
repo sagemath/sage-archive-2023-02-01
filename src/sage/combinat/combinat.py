@@ -30,6 +30,8 @@ docstrings.
 -  Stirling numbers, :func:`stirling_number1`,
    :func:`stirling_number2`.
 
+-  Polygonal numbers, :func:`polygonal_number`
+
 **Set-theoretic constructions:**
 
 -  Derangements of a multiset, :func:`derangements` and
@@ -89,7 +91,7 @@ combinatorial functions:
 
 .. MATH::
 
-             \binom{n}{k}_q = \frac{(1-q^m)(1-q^{m-1})\cdots (1-q^{m-r+1})}                              {(1-q)(1-q^2)\cdots (1-q^r)}.
+    \binom{n}{k}_q = \frac{(1-q^m)(1-q^{m-1})\cdots (1-q^{m-r+1})}{(1-q)(1-q^2)\cdots (1-q^r)}.
 
 The ``sage.groups.perm_gps.permgroup_elements``
 contains the following combinatorial functions:
@@ -146,28 +148,33 @@ Functions and classes
 # (at your option) any later version.
 #                  https://www.gnu.org/licenses/
 # ****************************************************************************
-from __future__ import absolute_import
+from __future__ import annotations
+from typing import Iterator
 
-from sage.interfaces.all import maxima
-from sage.rings.all import ZZ, QQ, Integer, infinity
+from sage.rings.integer_ring import ZZ
+from sage.rings.rational_field import QQ
+from sage.rings.integer import Integer
+from sage.rings.infinity import infinity
 from sage.arith.all import bernoulli, factorial
 from sage.rings.polynomial.polynomial_element import Polynomial
 from sage.rings.polynomial.polynomial_ring_constructor import PolynomialRing
 from sage.libs.all import pari
 from sage.misc.prandom import randint
-from sage.misc.all import prod
+from sage.misc.misc_c import prod
 from sage.misc.cachefunc import cached_function
 from sage.structure.sage_object import SageObject
 from sage.structure.parent import Parent
+from sage.misc.lazy_import import lazy_import
 from sage.misc.lazy_attribute import lazy_attribute
 from .combinat_cython import _stirling_number2
 from sage.categories.enumerated_sets import EnumeratedSets
 from sage.misc.classcall_metaclass import ClasscallMetaclass
 from sage.misc.inherit_comparison import InheritComparisonClasscallMetaclass
 from sage.structure.element import Element
+lazy_import('sage.interfaces.maxima_lib', 'maxima')
 
 
-def bell_number(n, algorithm='flint', **options):
+def bell_number(n, algorithm='flint', **options) -> Integer:
     r"""
     Return the `n`-th Bell number.
 
@@ -393,10 +400,10 @@ def bell_number(n, algorithm='flint', **options):
         # Hardcode small cases. We only proved the algorithm below
         # for n >= 5, but it turns out that n = 4 also works.
         if n < 4:
-            return Integer( (1, 1, 2, 5)[n] )
+            return Integer((1, 1, 2, 5)[n])
         b = ZZ.zero()
         fact = k = ZZ.one()
-        q = 2*n + 1
+        q = 2 * n + 1
         si = Integer(n).sqrtrem()[0] // 2
         while True:
             partfact = ZZ.one()
@@ -412,7 +419,7 @@ def bell_number(n, algorithm='flint', **options):
             k += si
         from sage.rings.all import RealField
         R = RealField(b.exact_log(2) + 1, rnd='RNDD')
-        return ( (R(-1).exp() / q) * b).ceil()
+        return ((R(-1).exp() / q) * b).ceil()
 
     raise ValueError("unknown algorithm %r" % algorithm)
 
@@ -473,7 +480,7 @@ def catalan_number(n):
     return (2 * n).binomial(n).divide_knowing_divisible_by(n + 1)
 
 
-def narayana_number(n, k):
+def narayana_number(n: Integer, k: Integer) -> Integer:
     r"""
     Return the Narayana number of index ``(n, k)``.
 
@@ -500,7 +507,7 @@ def narayana_number(n, k):
 
     REFERENCES:
 
-    - wikipedia:`Narayana_number`
+    - :wikipedia:`Narayana_number`
     """
     n = ZZ(n)
     if n <= 0:
@@ -508,7 +515,7 @@ def narayana_number(n, k):
     return (n.binomial(k + 1) * n.binomial(k)).divide_knowing_divisible_by(n)
 
 
-def euler_number(n, algorithm='flint'):
+def euler_number(n, algorithm='flint') -> Integer:
     """
     Return the `n`-th Euler number.
 
@@ -526,8 +533,9 @@ def euler_number(n, algorithm='flint'):
 
         sage: [euler_number(i) for i in range(10)]
         [1, 0, -1, 0, 5, 0, -61, 0, 1385, 0]
-        sage: maxima.eval("taylor (2/(exp(x)+exp(-x)), x, 0, 10)")
-        '1-x^2/2+(5*x^4)/24-(61*x^6)/720+(277*x^8)/8064-(50521*x^10)/3628800'
+        sage: x = PowerSeriesRing(QQ, 'x').gen().O(10)
+        sage: 2/(exp(x)+exp(-x))
+        1 - 1/2*x^2 + 5/24*x^4 - 61/720*x^6 + 277/8064*x^8 + O(x^10)
         sage: [euler_number(i)/factorial(i) for i in range(11)]
         [1, 0, -1/2, 0, 5/24, 0, -61/720, 0, 277/8064, 0, -50521/3628800]
         sage: euler_number(-1)
@@ -548,7 +556,7 @@ def euler_number(n, algorithm='flint'):
     if n < 0:
         raise ValueError("n (=%s) must be a nonnegative integer" % n)
     if algorithm == 'maxima':
-        return ZZ(maxima.euler(n))
+        return ZZ(maxima.euler(n))  # type:ignore
     elif algorithm == 'flint':
         import sage.libs.flint.arith
         return sage.libs.flint.arith.euler_number(n)
@@ -557,7 +565,7 @@ def euler_number(n, algorithm='flint'):
 
 
 @cached_function(key=lambda n, k, a: (n, k))
-def eulerian_number(n, k, algorithm='recursive'):
+def eulerian_number(n, k, algorithm='recursive') -> Integer:
     """
     Return the Eulerian number of index ``(n, k)``.
 
@@ -632,7 +640,7 @@ def eulerian_polynomial(n, algorithm='derivative'):
     TESTS::
 
         sage: eulerian_polynomial(7)(1) == factorial(7)
-        True 
+        True
 
         sage: eulerian_polynomial(6, algorithm='coeffs')
         t^5 + 57*t^4 + 302*t^3 + 302*t^2 + 57*t + 1
@@ -655,7 +663,7 @@ def eulerian_polynomial(n, algorithm='derivative'):
         return R([eulerian_number(n, k, "formula") for k in range(n)])
 
 
-def fibonacci(n, algorithm="pari"):
+def fibonacci(n, algorithm="pari") -> Integer:
     """
     Return the `n`-th Fibonacci number.
 
@@ -670,14 +678,14 @@ def fibonacci(n, algorithm="pari"):
     - ``algorithm`` -- a string:
 
       * ``"pari"`` - (default) use the PARI C library's
-        fibo function
+        :pari:`fibo` function
 
       * ``"gap"`` - use GAP's Fibonacci function
 
     .. NOTE::
 
-       PARI is tens to hundreds of times faster than GAP here;
-       moreover, PARI works for every large input whereas GAP doesn't.
+        PARI is tens to hundreds of times faster than GAP here.
+        Moreover, PARI works for every large input whereas GAP does not.
 
     EXAMPLES::
 
@@ -811,11 +819,11 @@ def lucas_number2(n, P, Q):
         sage: n = lucas_number2(5,2,3); n
         2
         sage: type(n)
-        <... 'sage.rings.integer.Integer'>
+        <class 'sage.rings.integer.Integer'>
         sage: n = lucas_number2(5,2,-3/9); n
         418/9
         sage: type(n)
-        <... 'sage.rings.rational.Rational'>
+        <class 'sage.rings.rational.Rational'>
 
     The case `P=1`, `Q=-1` is the Lucas sequence in Brualdi's Introductory
     Combinatorics, 4th ed., Prentice-Hall, 2004::
@@ -830,7 +838,7 @@ def lucas_number2(n, P, Q):
     return libgap.Lucas(P, Q, n)[1].sage()
 
 
-def stirling_number1(n, k):
+def stirling_number1(n, k) -> Integer:
     r"""
     Return the `n`-th Stirling number `S_1(n,k)` of the first kind.
 
@@ -859,7 +867,7 @@ def stirling_number1(n, k):
     return libgap.Stirling1(n, k).sage()
 
 
-def stirling_number2(n, k, algorithm=None):
+def stirling_number2(n, k, algorithm=None) -> Integer:
     r"""
     Return the `n`-th Stirling number `S_2(n,k)` of the second
     kind.
@@ -931,17 +939,17 @@ def stirling_number2(n, k, algorithm=None):
         sage: n
         1900842429486
         sage: type(n)
-        <... 'sage.rings.integer.Integer'>
+        <class 'sage.rings.integer.Integer'>
         sage: n = stirling_number2(20,11,algorithm='gap')
         sage: n
         1900842429486
         sage: type(n)
-        <... 'sage.rings.integer.Integer'>
+        <class 'sage.rings.integer.Integer'>
         sage: n = stirling_number2(20,11,algorithm='maxima')
         sage: n
         1900842429486
         sage: type(n)
-        <... 'sage.rings.integer.Integer'>
+        <class 'sage.rings.integer.Integer'>
 
      Sage's implementation splitting the computation of the Stirling
      numbers of the second kind in two cases according to `n`, let us
@@ -986,9 +994,87 @@ def stirling_number2(n, k, algorithm=None):
         from sage.libs.gap.libgap import libgap
         return libgap.Stirling2(n, k).sage()
     elif algorithm == 'maxima':
-        return ZZ(maxima.eval("stirling2(%s,%s)" % (n, k)))
+        return ZZ(maxima.stirling2(n, k))  # type:ignore
     else:
         raise ValueError("unknown algorithm: %s" % algorithm)
+
+
+def polygonal_number(s, n):
+    r"""
+    Return the `n`-th `s`-gonal number.
+
+    Polygonal sequences are represented by dots forming a regular polygon.
+    Two famous sequences are the triangular numbers (3rd column of Pascal's
+    Triangle) and the square numbers. The `n`-th term in a polygonal sequence
+    is defined by
+
+    .. MATH::
+
+        P(s, n) = \frac{n^2(s-2) - n(s-4)}{2},
+
+    where `s` is the number of sides of the polygon.
+
+    INPUT:
+
+    - ``s`` -- integer greater than 1; the number of sides of the polygon
+
+    - ``n`` -- integer; the index of the returned `s`-gonal number
+
+    OUTPUT: an integer
+
+    EXAMPLES:
+
+    The triangular numbers::
+
+        sage: [polygonal_number(3, n) for n in range(10)]
+        [0, 1, 3, 6, 10, 15, 21, 28, 36, 45]
+
+        sage: [polygonal_number(3, n) for n in range(-10, 0)]
+        [45, 36, 28, 21, 15, 10, 6, 3, 1, 0]
+
+    The square numbers::
+
+        sage: [polygonal_number(4, n) for n in range(10)]
+        [0, 1, 4, 9, 16, 25, 36, 49, 64, 81]
+
+    The pentagonal numbers::
+
+        sage: [polygonal_number(5, n) for n in range(10)]
+        [0, 1, 5, 12, 22, 35, 51, 70, 92, 117]
+
+    The hexagonal numbers::
+
+        sage: [polygonal_number(6, n) for n in range(10)]
+        [0, 1, 6, 15, 28, 45, 66, 91, 120, 153]
+
+    The input is converted into an integer::
+
+        sage: polygonal_number(3.0, 2.0)
+        3
+
+    A non-integer input returns an error::
+
+        sage: polygonal_number(3.5, 1)
+        Traceback (most recent call last):
+        ...
+        TypeError: Attempt to coerce non-integral RealNumber to Integer
+
+    `s` must be greater than 1::
+
+        sage: polygonal_number(1, 4)
+        Traceback (most recent call last):
+        ...
+        ValueError: s (=1) must be greater than 1
+
+    REFERENCES:
+
+    - :wikipedia:`Polygonal_number`
+    """
+    s = ZZ(s)
+    n = ZZ(n)
+    if s < 2:
+        raise ValueError("s (=%s) must be greater than 1" % s)
+    return (((n**2) * (s - 2)) - (n * (s - 4))) // 2
 
 
 class CombinatorialObject(SageObject):
@@ -1114,7 +1200,7 @@ class CombinatorialObject(SageObject):
                 sage: sorted(L)
                 Traceback (most recent call last):
                 ...
-                NotImplementedError: comparison not implemented for <class '__main__.Bar'>
+                TypeError: '<' not supported between instances of 'Bar' and 'Bar'
         """
         if isinstance(other, CombinatorialObject):
             return self._list == other._list
@@ -1233,7 +1319,7 @@ class CombinatorialObject(SageObject):
             sage: c + [4]
             [1, 2, 3, 4]
             sage: type(_)
-            <... 'list'>
+            <class 'list'>
         """
         return self._list + other
 
@@ -1257,7 +1343,7 @@ class CombinatorialObject(SageObject):
             self._hash = hash(str(self._list))
         return self._hash
 
-    def __bool__(self):
+    def __bool__(self) -> bool:
         """
         Return ``True`` if ``self`` is non-zero.
 
@@ -1304,7 +1390,7 @@ class CombinatorialObject(SageObject):
 
     __nonzero__ = __bool__
 
-    def __len__(self):
+    def __len__(self) -> Integer:
         """
         EXAMPLES::
 
@@ -1326,7 +1412,7 @@ class CombinatorialObject(SageObject):
             sage: c[1:]
             [2, 3]
             sage: type(_)
-            <... 'list'>
+            <class 'list'>
         """
         return self._list[key]
 
@@ -1351,7 +1437,6 @@ class CombinatorialObject(SageObject):
             False
         """
         return item in self._list
-
 
     def index(self, key):
         """
@@ -1427,19 +1512,19 @@ class CombinatorialElement(CombinatorialObject, Element,
             sage: CombinatorialElement(ZZ)
             Traceback (most recent call last):
             ...
-            TypeError: __init__() takes exactly 2 arguments (1 given)
+            TypeError: ...__init__() takes exactly 2 arguments (1 given)
             sage: CombinatorialElement(ZZ, 1, 2)
             Traceback (most recent call last):
             ...
-            TypeError: __init__() takes exactly 2 arguments (3 given)
+            TypeError: ...__init__() takes exactly 2 arguments (3 given)
             sage: CombinatorialElement(ZZ, 1, list=2)
             Traceback (most recent call last):
             ...
-            TypeError: __init__() takes exactly 2 arguments (3 given)
+            TypeError: ...__init__() takes exactly 2 arguments (3 given)
             sage: CombinatorialElement(ZZ, a=1, b=2)
             Traceback (most recent call last):
             ...
-            TypeError: __init__() takes exactly 2 arguments (3 given)
+            TypeError: ...__init__() takes exactly 2 arguments (3 given)
         """
         # There should be one "list" argument, which can be given as
         # positional or keyword argument (in the latter case, the name
@@ -1449,7 +1534,7 @@ class CombinatorialElement(CombinatorialObject, Element,
         elif len(kwds) == 1 and not args:
             L, = kwds.values()
         else:
-            raise TypeError("__init__() takes exactly 2 arguments ({} given)".format(1+len(args)+len(kwds)))
+            raise TypeError("__init__() takes exactly 2 arguments ({} given)".format(1 + len(args) + len(kwds)))
         super(CombinatorialElement, self).__init__(L)
         super(CombinatorialObject, self).__init__(parent)
 
@@ -1469,7 +1554,7 @@ class CombinatorialClass(Parent, metaclass=ClasscallMetaclass):
         sage: InfiniteEnumeratedSets().example()
         An example of an infinite enumerated set: the non negative integers
     """
-    def __init__(self, category = None):
+    def __init__(self, category=None):
         """
         TESTS::
 
@@ -1484,9 +1569,9 @@ class CombinatorialClass(Parent, metaclass=ClasscallMetaclass):
             sage: C.category()
             Category of finite enumerated sets
         """
-        Parent.__init__(self, category = EnumeratedSets().or_subcategory(category))
+        Parent.__init__(self, category=EnumeratedSets().or_subcategory(category))
 
-    def is_finite(self):
+    def is_finite(self) -> bool:
         """
         Return whether ``self`` is finite or not.
 
@@ -1520,7 +1605,7 @@ class CombinatorialClass(Parent, metaclass=ClasscallMetaclass):
         """
         return self.unrank(i)
 
-    def __str__(self):
+    def __str__(self) -> str:
         """
         Return a string representation of self.
 
@@ -1531,7 +1616,7 @@ class CombinatorialClass(Parent, metaclass=ClasscallMetaclass):
         """
         return repr(self)
 
-    def _repr_(self):
+    def _repr_(self) -> str:
         """
         EXAMPLES::
 
@@ -1543,7 +1628,7 @@ class CombinatorialClass(Parent, metaclass=ClasscallMetaclass):
         else:
             return "Combinatorial Class -- REDEFINE ME!"
 
-    def __contains__(self, x):
+    def __contains__(self, x) -> bool:
         """
         Test whether or not the combinatorial class contains the object x.
         This raises a NotImplementedError as a default since _all_
@@ -1610,7 +1695,7 @@ class CombinatorialClass(Parent, metaclass=ClasscallMetaclass):
         """
         return hash(repr(self))
 
-    def __cardinality_from_iterator(self):
+    def __cardinality_from_iterator(self) -> Integer | infinity:
         """
         Default implementation of cardinality which just goes through the iterator
         of the combinatorial class to count the number of objects.
@@ -1628,6 +1713,7 @@ class CombinatorialClass(Parent, metaclass=ClasscallMetaclass):
         for _ in self:
             c += one
         return c
+
     cardinality = __cardinality_from_iterator
 
     # __call__, element_class, and _element_constructor_ are poor
@@ -1644,7 +1730,7 @@ class CombinatorialClass(Parent, metaclass=ClasscallMetaclass):
             sage: p5 = Partitions(5)
             sage: a = [2,2,1]
             sage: type(a)
-            <... 'list'>
+            <class 'list'>
             sage: a = p5(a)
             sage: type(a)
             <class 'sage.combinat.partition.Partitions_n_with_category.element_class'>
@@ -1658,7 +1744,8 @@ class CombinatorialClass(Parent, metaclass=ClasscallMetaclass):
         else:
             raise ValueError("%s not in %s" % (x, self))
 
-    Element = CombinatorialObject # mostly for backward compatibility
+    Element = CombinatorialObject  # mostly for backward compatibility
+
     @lazy_attribute
     def element_class(self):
         """
@@ -1708,13 +1795,13 @@ class CombinatorialClass(Parent, metaclass=ClasscallMetaclass):
         """
         return [x for x in self]
 
-    #Set list to the default implementation
-    list  = __list_from_iterator
+    # Set list to the default implementation
+    list = __list_from_iterator
 
-    #Set the default object class to be CombinatorialObject
+    # Set the default object class to be CombinatorialObject
     Element = CombinatorialObject
 
-    def __iterator_from_next(self):
+    def __iterator_from_next(self) -> Iterator:
         """
         An iterator to use when the .first() and .next(x) methods are provided.
 
@@ -1775,7 +1862,7 @@ class CombinatorialClass(Parent, metaclass=ClasscallMetaclass):
                 li.append(l)
         return reversed(li)
 
-    def __iterator_from_unrank(self):
+    def __iterator_from_unrank(self) -> Iterator:
         """
         An iterator to use when .unrank() is provided.
 
@@ -1802,7 +1889,7 @@ class CombinatorialClass(Parent, metaclass=ClasscallMetaclass):
             else:
                 yield u
 
-    def __iterator_from_list(self):
+    def __iterator_from_list(self) -> Iterator:
         """
         An iterator to use when .list() is provided()
 
@@ -1833,12 +1920,12 @@ class CombinatorialClass(Parent, metaclass=ClasscallMetaclass):
             NotImplementedError: iterator called but not implemented
         """
         # Check whether .first() and .next(x) are overridden in the subclass
-        if ( self.first != self.__first_from_iterator and
-             self.next  != self.__next_from_iterator ):
+        if (self.first != self.__first_from_iterator and
+                self.next != self.__next_from_iterator):
             return self.__iterator_from_next()
         # Check whether .last() and .previous() are overridden in the subclass
-        elif ( self.last != self.__last_from_iterator and
-               self.previous != self.__previous_from_iterator):
+        elif (self.last != self.__last_from_iterator and
+              self.previous != self.__previous_from_iterator):
             return self.__iterator_from_previous()
         # Check whether .unrank() is overridden in the subclass
         elif self.unrank != self.__unrank_from_iterator:
@@ -1867,9 +1954,8 @@ class CombinatorialClass(Parent, metaclass=ClasscallMetaclass):
             counter += 1
         raise ValueError("the value must be between %s and %s inclusive" % (0, counter - 1))
 
-    #Set the default implementation of unrank
+    # Set the default implementation of unrank
     unrank = __unrank_from_iterator
-
 
     def __random_element_from_unrank(self):
         """
@@ -1879,15 +1965,14 @@ class CombinatorialClass(Parent, metaclass=ClasscallMetaclass):
 
             sage: C = CombinatorialClass()
             sage: C.list = lambda: [1,2,3]
-            sage: C.random_element()       # indirect doctest
+            sage: C.random_element()       # random  # indirect doctest
             1
         """
         c = self.cardinality()
-        r = randint(0, c-1)
+        r = randint(0, c - 1)
         return self.unrank(r)
 
-
-    #Set the default implementation of random
+    # Set the default implementation of random
     random_element = __random_element_from_unrank
 
     def __rank_from_iterator(self, obj):
@@ -2083,7 +2168,7 @@ class FilteredCombinatorialClass(CombinatorialClass):
         else:
             return "Filtered subclass of " + repr(self.combinatorial_class)
 
-    def __contains__(self, x):
+    def __contains__(self, x) -> bool:
         """
         EXAMPLES::
 
@@ -2100,7 +2185,7 @@ class FilteredCombinatorialClass(CombinatorialClass):
         """
         return x in self.combinatorial_class and self.f(x)
 
-    def cardinality(self):
+    def cardinality(self) -> Integer:
         """
         EXAMPLES::
 
@@ -2114,7 +2199,7 @@ class FilteredCombinatorialClass(CombinatorialClass):
             c += 1
         return c
 
-    def __iter__(self):
+    def __iter__(self) -> Iterator:
         """
         EXAMPLES::
 
@@ -2145,7 +2230,7 @@ class UnionCombinatorialClass(CombinatorialClass):
         self.right_cc = right_cc
         self._name = name
 
-    def __repr__(self):
+    def __repr__(self) -> str:
         """
         TESTS::
 
@@ -2161,7 +2246,7 @@ class UnionCombinatorialClass(CombinatorialClass):
         else:
             return "Union combinatorial class of \n    %s\nand\n    %s" % (self.left_cc, self.right_cc)
 
-    def __contains__(self, x):
+    def __contains__(self, x) -> bool:
         """
         EXAMPLES::
 
@@ -2176,7 +2261,7 @@ class UnionCombinatorialClass(CombinatorialClass):
         """
         return x in self.left_cc or x in self.right_cc
 
-    def cardinality(self):
+    def cardinality(self) -> Integer | infinity:
         """
         EXAMPLES::
 
@@ -2205,8 +2290,7 @@ class UnionCombinatorialClass(CombinatorialClass):
         """
         return self.left_cc.list() + self.right_cc.list()
 
-
-    def __iter__(self):
+    def __iter__(self) -> Iterator:
         """
         EXAMPLES::
 
@@ -2281,6 +2365,7 @@ class UnionCombinatorialClass(CombinatorialClass):
         except (TypeError, ValueError):
             return self.right_cc.unrank(x - self.left_cc.cardinality())
 
+
 class Permutations_CC(CombinatorialClass):
     """
     A testing class for :class:`CombinatorialClass` since :class:`Permutations`
@@ -2298,7 +2383,7 @@ class Permutations_CC(CombinatorialClass):
         from sage.combinat.permutation import StandardPermutations_n
         self._permutations = StandardPermutations_n(n)
 
-    def __repr__(self):
+    def __repr__(self) -> str:
         """
         EXAMPLES::
 
@@ -2308,7 +2393,7 @@ class Permutations_CC(CombinatorialClass):
         """
         return repr(self._permutations)
 
-    def __contains__(self, x):
+    def __contains__(self, x) -> bool:
         """
         EXAMPLES::
 
@@ -2330,6 +2415,7 @@ class Permutations_CC(CombinatorialClass):
         """
         return iter(self._permutations)
 
+
 ##############################################################################
 class MapCombinatorialClass(CombinatorialClass):
     r"""
@@ -2346,10 +2432,10 @@ class MapCombinatorialClass(CombinatorialClass):
             Image of Partitions of the integer 3 by *.conjugate()
         """
         self.cc = cc
-        self.f  = f
+        self.f = f
         self._name = name
 
-    def __repr__(self):
+    def __repr__(self) -> str:
         """
         TESTS::
 
@@ -2362,7 +2448,7 @@ class MapCombinatorialClass(CombinatorialClass):
         else:
             return "Image of %s by %s" % (self.cc, self.f)
 
-    def cardinality(self):
+    def cardinality(self) -> Integer | infinity:
         """
         Return the cardinality of this combinatorial class
 
@@ -2371,11 +2457,10 @@ class MapCombinatorialClass(CombinatorialClass):
             sage: R = Permutations(10).map(attrcall('reduced_word'))
             sage: R.cardinality()
             3628800
-
         """
         return self.cc.cardinality()
 
-    def __iter__(self):
+    def __iter__(self) -> Iterator:
         """
         Return an iterator over the elements of this combinatorial class
 
@@ -2400,6 +2485,7 @@ class MapCombinatorialClass(CombinatorialClass):
         """
         return self.f(self.cc.an_element())
 
+
 ##############################################################################
 class InfiniteAbstractCombinatorialClass(CombinatorialClass):
     r"""
@@ -2412,13 +2498,17 @@ class InfiniteAbstractCombinatorialClass(CombinatorialClass):
     self._infinite_cclass_slice is supposed to accept any integer as an
     argument and return something which is iterable.
     """
-    def cardinality(self):
+    def cardinality(self) -> Integer | infinity:
         """
         Count the elements of the combinatorial class.
 
         EXAMPLES::
 
             sage: R = InfiniteAbstractCombinatorialClass()
+            doctest:warning...
+            DeprecationWarning: this class is deprecated, do not use
+            See https://trac.sagemath.org/31545 for details.
+
             sage: R.cardinality()
             +Infinity
         """
@@ -2438,7 +2528,7 @@ class InfiniteAbstractCombinatorialClass(CombinatorialClass):
         """
         raise NotImplementedError("infinite list")
 
-    def __iter__(self):
+    def __iter__(self) -> Iterator:
         """
         Return an iterator for the infinite combinatorial class ``self`` if
         possible or raise a NotImplementedError.
@@ -2465,10 +2555,11 @@ class InfiniteAbstractCombinatorialClass(CombinatorialClass):
         while True:
             for c in finite(i):
                 yield c
-            i+=1
+            i += 1
+
 
 #####################################################
-#### combinatorial sets/lists
+# combinatorial sets/lists
 
 def tuples(S, k, algorithm='itertools'):
     r"""
@@ -2495,7 +2586,7 @@ def tuples(S, k, algorithm='itertools'):
 
     .. NOTE::
 
-        The ordering of the list of tuples differs for the algorithms.
+        The ordering of the list of tuples depends on the algorithm.
 
     EXAMPLES::
 
@@ -2542,6 +2633,7 @@ def tuples(S, k, algorithm='itertools'):
         return _tuples_native(S, k)
     raise ValueError('invalid algorithm')
 
+
 def _tuples_native(S, k):
     """
     Return a list of all `k`-tuples of elements of a given set ``S``.
@@ -2563,13 +2655,14 @@ def _tuples_native(S, k):
         return [(x,) for x in S]
     ans = []
     for s in S:
-        for x in _tuples_native(S, k-1):
+        for x in _tuples_native(S, k - 1):
             y = list(x)
             y.append(s)
             ans.append(tuple(y))
     return ans
 
-def number_of_tuples(S, k, algorithm='naive'):
+
+def number_of_tuples(S, k, algorithm='naive') -> Integer:
     """
     Return the size of ``tuples(S, k)`` when `S` is a set. More
     generally, return the size of ``tuples(set(S), k)``. (So,
@@ -2610,13 +2703,14 @@ def number_of_tuples(S, k, algorithm='naive'):
         1
     """
     if algorithm == 'naive':
-        return ZZ( len(set(S)) )**k # The set is there to avoid duplicates
+        return ZZ(len(set(S)))**k  # The set is there to avoid duplicates
     if algorithm == 'gap':
         k = ZZ(k)
         from sage.libs.gap.libgap import libgap
         S = libgap.eval(str(S))
         return libgap.NrTuples(S, k).sage()
     raise ValueError('invalid algorithm')
+
 
 def unordered_tuples(S, k, algorithm='itertools'):
     r"""
@@ -2686,7 +2780,8 @@ def unordered_tuples(S, k, algorithm='itertools'):
         return [tuple(x) for x in libgap.UnorderedTuples(S, k).sage()]
     raise ValueError('invalid algorithm')
 
-def number_of_unordered_tuples(S, k, algorithm='naive'):
+
+def number_of_unordered_tuples(S, k, algorithm='naive') -> Integer:
     r"""
     Return the size of ``unordered_tuples(S, k)`` when `S` is a set.
 
@@ -2724,7 +2819,7 @@ def number_of_unordered_tuples(S, k, algorithm='naive'):
         1
     """
     if algorithm == 'naive':
-        return ZZ(len(set(S)) + k - 1).binomial(k) # The set is there to avoid duplicates
+        return ZZ(len(set(S)) + k - 1).binomial(k)  # The set is there to avoid duplicates
     if algorithm == 'gap':
         k = ZZ(k)
         from sage.libs.gap.libgap import libgap
@@ -2732,7 +2827,8 @@ def number_of_unordered_tuples(S, k, algorithm='naive'):
         return libgap.NrUnorderedTuples(S, k).sage()
     raise ValueError('invalid algorithm')
 
-def unshuffle_iterator(a, one=1):
+
+def unshuffle_iterator(a, one=1) -> Iterator:
     r"""
     Iterate over the unshuffles of a list (or tuple) ``a``, also
     yielding the signs of the respective permutations.
@@ -2780,7 +2876,7 @@ def unshuffle_iterator(a, one=1):
     for I in powerset(range(n)):
         sorted_I = tuple(sorted(I))
         nonI = list(range(n))
-        for j in reversed(sorted_I): # probably optimizable
+        for j in reversed(sorted_I):  # probably optimizable
             nonI.pop(j)
         sorted_nonI = tuple(nonI)
         sign = True
@@ -2793,7 +2889,8 @@ def unshuffle_iterator(a, one=1):
                 tuple([a[i] for i in sorted_nonI])),
                (one if sign else - one))
 
-def bell_polynomial(n, k):
+
+def bell_polynomial(n: Integer, k: Integer):
     r"""
     Return the Bell Polynomial
 
@@ -2849,10 +2946,10 @@ def bell_polynomial(n, k):
     - Thierry Monteil (2015-09-29): the result must always be a polynomial.
     """
     from sage.combinat.partition import Partitions
-    R = PolynomialRing(ZZ, 'x', n-k+1)
+    R = PolynomialRing(ZZ, 'x', n - k + 1)
     vars = R.gens()
     result = R.zero()
-    for p in Partitions(n, length=k):
+    for p in Partitions(n, length=k):  # type:ignore
         factorial_product = 1
         power_factorial_product = 1
         for part, count in p.to_exp_dict().items():
@@ -2862,7 +2959,8 @@ def bell_polynomial(n, k):
         result += coefficient * prod([vars[i - 1] for i in p])
     return result
 
-def fibonacci_sequence(start, stop=None, algorithm=None):
+
+def fibonacci_sequence(start, stop=None, algorithm=None) -> Iterator:
     r"""
     Return an iterator over the Fibonacci sequence, for all fibonacci
     numbers `f_n` from ``n = start`` up to (but
@@ -2911,7 +3009,8 @@ def fibonacci_sequence(start, stop=None, algorithm=None):
         for n in range(start, stop):
             yield fibonacci(n)
 
-def fibonacci_xrange(start, stop=None, algorithm='pari'):
+
+def fibonacci_xrange(start, stop=None, algorithm='pari') -> Iterator:
     r"""
     Return an iterator over all of the Fibonacci numbers in the given
     range, including ``f_n = start`` up to, but not
@@ -2971,7 +3070,8 @@ def fibonacci_xrange(start, stop=None, algorithm='pari'):
         else:
             return
 
-def bernoulli_polynomial(x, n):
+
+def bernoulli_polynomial(x, n: Integer):
     r"""
     Return the ``n``-th Bernoulli polynomial evaluated at ``x``.
 
@@ -3015,6 +3115,12 @@ def bernoulli_polynomial(x, n):
         sage: 5*power_sum == bernoulli_polynomial(10, 5) - bernoulli(5)
         True
 
+    TESTS::
+
+        sage: x = polygen(QQ, 'x')
+        sage: bernoulli_polynomial(x, 0).parent()
+        Univariate Polynomial Ring in x over Rational Field
+
     REFERENCES:
 
     - :wikipedia:`Bernoulli_polynomials`
@@ -3027,15 +3133,15 @@ def bernoulli_polynomial(x, n):
         raise ValueError("The second argument must be a non-negative integer")
 
     if n == 0:
-        return ZZ(1)
+        return x**0   # result should be in the parent of x
 
     if n == 1:
-        return x - ZZ(1)/2
+        return x - ZZ.one() / 2
 
     k = n.mod(2)
-    coeffs = [0]*k + sum(([n.binomial(i) * bernoulli(n-i), 0]
-                          for i in range(k, n+1, 2)), [])
-    coeffs[-3] = -n/2
+    coeffs = [0] * k + sum(([n.binomial(i) * bernoulli(n - i), 0]
+                            for i in range(k, n + 1, 2)), [])
+    coeffs[-3] = -n / 2
 
     if isinstance(x, Polynomial):
         try:
@@ -3043,12 +3149,12 @@ def bernoulli_polynomial(x, n):
         except TypeError:
             pass
 
-    x2 = x*x
+    x2 = x * x
     xi = x**k
     s = 0
-    for i in range(k, n-1, 2):
-        s += coeffs[i]*xi
+    for i in range(k, n - 1, 2):
+        s += coeffs[i] * xi
         t = xi
         xi *= x2
-    s += xi - t*x*n/2
+    s += xi - t * x * n / 2
     return s

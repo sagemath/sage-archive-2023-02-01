@@ -36,24 +36,18 @@ ACKNOWLEDGEMENT:
 
 - Daniel Krenn is supported by the Austrian Science Fund (FWF): P 24644-N26.
 
-
 Functions
 =========
 """
-
-#*****************************************************************************
+# ****************************************************************************
 #       Copyright (C) 2016 Daniel Krenn <dev@danielkrenn.at>
 #
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
 # the Free Software Foundation, either version 2 of the License, or
 # (at your option) any later version.
-#                  http://www.gnu.org/licenses/
-#*****************************************************************************
-
-from __future__ import print_function
-from __future__ import absolute_import
-
+#                  https://www.gnu.org/licenses/
+# ****************************************************************************
 import operator
 from sage.misc.cachefunc import cached_function
 
@@ -596,6 +590,7 @@ def Omega_ge(a, exponents):
         divisible by ``exponent``.
         """
         p = tuple(var.dict().popitem()[0]).index(1)  # var is the p-th generator
+
         def subs_e(e):
             e = list(e)
             assert e[p] % exponent == 0
@@ -737,11 +732,11 @@ def _Omega_numerator_(a, x, y, t):
 
     if m == 0:
         result = 1 - (prod(_Omega_factors_denominator_(x, y)) *
-                      sum(homogenous_symmetric_function(j, xy)
+                      sum(homogeneous_symmetric_function(j, xy)
                           for j in srange(-a))
                       if a < 0 else 0)
     elif n == 0:
-        result = sum(homogenous_symmetric_function(j, xy)
+        result = sum(homogeneous_symmetric_function(j, xy)
                      for j in srange(a+1))
     else:
         result = _Omega_numerator_P_(a, x_flat[:-1], y_flat, t).subs({t: x_flat[-1]})
@@ -803,7 +798,7 @@ def _Omega_numerator_P_(a, x, y, t):
         x0 = t
         result = x0**(-a) + \
             (prod(1 - x0*yy for yy in y) *
-             sum(homogenous_symmetric_function(j, y) * (1-x0**(j-a))
+             sum(homogeneous_symmetric_function(j, y) * (1-x0**(j-a))
                  for j in srange(a))
              if a > 0 else 0)
     else:
@@ -951,7 +946,7 @@ def partition(items, predicate=bool):
             (item for pred, item in b if pred))
 
 
-def homogenous_symmetric_function(j, x):
+def homogeneous_symmetric_function(j, x):
     r"""
     Return a complete homogeneous symmetric polynomial
     (:wikipedia:`Complete_homogeneous_symmetric_polynomial`).
@@ -968,15 +963,15 @@ def homogenous_symmetric_function(j, x):
 
     EXAMPLES::
 
-        sage: from sage.rings.polynomial.omega import homogenous_symmetric_function
+        sage: from sage.rings.polynomial.omega import homogeneous_symmetric_function
         sage: P = PolynomialRing(ZZ, 'X', 3)
-        sage: homogenous_symmetric_function(0, P.gens())
+        sage: homogeneous_symmetric_function(0, P.gens())
         1
-        sage: homogenous_symmetric_function(1, P.gens())
+        sage: homogeneous_symmetric_function(1, P.gens())
         X0 + X1 + X2
-        sage: homogenous_symmetric_function(2, P.gens())
+        sage: homogeneous_symmetric_function(2, P.gens())
         X0^2 + X0*X1 + X1^2 + X0*X2 + X1*X2 + X2^2
-        sage: homogenous_symmetric_function(3, P.gens())
+        sage: homogeneous_symmetric_function(3, P.gens())
         X0^3 + X0^2*X1 + X0*X1^2 + X1^3 + X0^2*X2 +
         X0*X1*X2 + X1^2*X2 + X0*X2^2 + X1*X2^2 + X2^3
     """

@@ -19,7 +19,6 @@ compression of FreeMonoid elements (a feature), and could be packed into words.
 #
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
-from __future__ import absolute_import
 
 # import operator
 from sage.rings.integer import Integer
@@ -295,10 +294,10 @@ class StringMonoidElement(FreeMonoidElement):
                                     BinaryStringMonoid,
                                     HexadecimalStringMonoid)
         if isinstance(S, AlphabeticStringMonoid):
-            return ''.join([ chr(65+i) for i in self._element_list ])
+            return ''.join(chr(65 + i) for i in self._element_list)
         n = len(self)
         if isinstance(S, HexadecimalStringMonoid):
-            if not n % 2 == 0:
+            if n % 2:
                 "String %s must have even length to determine a byte character string." % str(self)
             s = []
             x = self._element_list
@@ -498,7 +497,7 @@ class StringMonoidElement(FreeMonoidElement):
             [(AB, 0.333333333333333), (BC, 0.333333333333333), (CD, 0.333333333333333)]
         """
         from sage.probability.random_variable import DiscreteProbabilitySpace
-        if not length in (1, 2):
+        if length not in (1, 2):
             raise NotImplementedError("Not implemented")
         if prec == 0:
             RR = RealField()
@@ -511,7 +510,7 @@ class StringMonoidElement(FreeMonoidElement):
             Alph = tuple(x * y for x in S.gens() for y in S.gens())
         X = {}
         N = len(self) - length + 1
-        eps = RR(Integer(1)/N)
+        eps = RR(Integer(1) / N)
         for i in range(N):
             c = self[i:i+length]
             if c in X:

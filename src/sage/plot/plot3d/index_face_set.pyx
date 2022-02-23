@@ -32,7 +32,7 @@ AUTHORS:
 # ****************************************************************************
 
 from textwrap import dedent
-from sage.misc.superseded import deprecation
+from sage.misc.superseded import deprecation_cython as deprecation
 
 from libc.math cimport isfinite, INFINITY
 from libc.string cimport memset, memcpy
@@ -100,8 +100,7 @@ cdef inline format_json_vertex(point_c P):
     return bytes_to_str(PyBytes_FromStringAndSize(ss, r))
 
 cdef inline format_json_face(face_c face):
-    s = "[{}]".format(",".join([str(face.vertices[i])
-                                   for i from 0 <= i < face.n]))
+    s = "[{}]".format(",".join(str(face.vertices[i]) for i in range(face.n)))
     return s
 
 cdef inline format_obj_vertex(point_c P):
@@ -118,7 +117,7 @@ cdef inline format_obj_face(face_c face, int off):
     elif face.n == 4:
         r = sprintf_4i(ss, "f %d %d %d %d", face.vertices[0] + off, face.vertices[1] + off, face.vertices[2] + off, face.vertices[3] + off)
     else:
-        return "f " + " ".join([str(face.vertices[i] + off) for i from 0 <= i < face.n])
+        return "f " + " ".join(str(face.vertices[i] + off) for i in range(face.n))
     # PyBytes_FromFormat is almost twice as slow
     return bytes_to_str(PyBytes_FromStringAndSize(ss, r))
 
@@ -130,7 +129,7 @@ cdef inline format_obj_face_back(face_c face, int off):
     elif face.n == 4:
         r = sprintf_4i(ss, "f %d %d %d %d", face.vertices[3] + off, face.vertices[2] + off, face.vertices[1] + off, face.vertices[0] + off)
     else:
-        return "f " + " ".join([str(face.vertices[i] + off) for i from face.n > i >= 0])
+        return "f " + " ".join(str(face.vertices[i] + off) for i from face.n > i >= 0)
     return bytes_to_str(PyBytes_FromStringAndSize(ss, r))
 
 cdef inline format_pmesh_vertex(point_c P):
@@ -204,7 +203,6 @@ cdef inline format_pmesh_face(face_c face, int has_color):
     # PyBytes_FromFormat is almost twice as slow
     return bytes_to_str(PyBytes_FromStringAndSize(ss, r))
 
-
 def midpoint(pointa, pointb, w):
     """
     Return the weighted mean of two points in 3-space.
@@ -228,6 +226,65 @@ def midpoint(pointa, pointb, w):
     xb, yb, zb = pointb
     v = 1 - w
     return ((w * xa + v * xb), (w * ya + v * yb), (w * za + v * zb))
+
+
+def cut_edge_by_bisection(pointa, pointb, condition, eps=1.0e-6, N=100):
+    """
+    Cut an intersecting edge using the bisection method.
+
+    Given two points (pointa and pointb) and a condition (boolean
+    function), this calculates the position at the edge (defined by
+    both points) where the boolean condition switches its value.
+
+    INPUT:
+
+    - ``pointa``, ``pointb`` -- two points in 3-dimensional space
+
+    - ``N`` -- max number of steps in the bisection method (default: 100)
+      to cut the boundary triangles that are not entirely within
+      the domain.
+
+    - ``eps`` -- target accuracy in the intersection (default: 1.0e-6)
+
+    OUTPUT:
+
+    intersection of the edge defined by ``pointa`` and ``pointb``,
+    and ``condition``.
+
+    EXAMPLES::
+
+        sage: from sage.plot.plot3d.index_face_set import cut_edge_by_bisection
+        sage: cut_edge_by_bisection((0.0,0.0,0.0),(1.0,1.0,0.0),( (lambda x,y,z: x**2+y**2+z**2<1) ),eps=1.0E-12)
+        (0.7071067811864395, 0.7071067811864395, 0.0)
+    """
+    cdef point_c a, b
+    cdef point_c midp, b_min_a
+    cdef double half = 0.5
+
+    point_c_set(&a, pointa)
+    point_c_set(&b, pointb)
+
+    itern = 0
+
+    point_c_sub(&b_min_a, b, a)
+
+    while point_c_len(b_min_a) > eps:
+        itern += 1
+        if itern > N:
+            break
+        # (b+a)/2
+        point_c_middle(&midp, b, a, half)
+
+        if condition(a.x, a.y, a.z) and condition(midp.x, midp.y, midp.z):
+            a = midp
+        else:
+            b = midp
+        # (b-a)
+        point_c_sub(&b_min_a, b, a)
+
+    point_c_middle(&midp, b, a, half)
+
+    return  midp.x, midp.y, midp.z
 
 
 cdef class IndexFaceSet(PrimitiveObject):
@@ -809,14 +866,14 @@ cdef class IndexFaceSet(PrimitiveObject):
         cdef Py_ssize_t i
         vs = self.vs
         fs = self._faces
-        points = ",".join(["%r %r %r" % (vs[i].x, vs[i].y, vs[i].z)
-                           for i from 0 <= i < self.vcount])
-        coord_idx = ",-1,".join([",".join([repr(fs[i].vertices[j])
-                                           for j from 0 <= j < fs[i].n])
-                                 for i from 0 <= i < self.fcount])
+        points = ",".join("%r %r %r" % (vs[i].x, vs[i].y, vs[i].z)
+                          for i in range(self.vcount))
+        coord_idx = ",-1,".join(",".join(repr(fs[i].vertices[j])
+                                          for j in range(fs[i].n))
+                                for i in range(self.fcount))
         if not self.global_texture:
-            color_idx = ",".join(['%r %r %r' % (fs[i].color.r, fs[i].color.g, fs[i].color.b)
-                                  for i from 0 <= i < self.fcount])
+            color_idx = ",".join('%r %r %r' % (fs[i].color.r, fs[i].color.g, fs[i].color.b)
+                                 for i in range(self.fcount))
             # Note: Don't use f-strings, since Sage on Python 2 still expects
             # this to return a plain str instead of a unicode
             return dedent("""
@@ -848,7 +905,7 @@ cdef class IndexFaceSet(PrimitiveObject):
             sage: x,y = var('x,y')
             sage: p = plot3d(sqrt(sin(x)*sin(y)), (x,0,2*pi),(y,0,2*pi))
             sage: p.bounding_box()
-            ((0.0, 0.0, -0.0), (6.283185307179586, 6.283185307179586, 0.9991889981715697))
+            ((0.0, 0.0, 0.0), (6.283185307179586, 6.283185307179586, 0.9991889981715697))
         """
         if self.vcount == 0:
             return ((0,0,0),(0,0,0))
@@ -928,7 +985,7 @@ cdef class IndexFaceSet(PrimitiveObject):
         sig_free(partition)
         return all
 
-    def add_condition(self, condition, N=40):
+    def add_condition(self, condition, N=100, eps=1.0E-6):
         """
         Cut the surface according to the given condition.
 
@@ -941,10 +998,11 @@ cdef class IndexFaceSet(PrimitiveObject):
         - ``condition`` -- boolean function on ambient space, that
           defines the domain
 
-        - ``N`` -- number of steps (default: 40) used on the boundary
-          to cut the triangles that are not entirely within the domain
+        - ``N`` -- max number of steps used by the bisection method
+          (default: 100) to cut the boundary triangles that are not
+          entirely within the domain.
 
-        For higher quality, meaning smoother boundary, use larger ``N``.
+        - ``eps`` -- target accuracy in the intersection (default: 1.0e-6)
 
         OUTPUT:
 
@@ -959,7 +1017,7 @@ cdef class IndexFaceSet(PrimitiveObject):
             sage: P = implicit_plot3d(z-x*y,(-2,2),(-2,2),(-2,2))
             sage: def condi(x,y,z):
             ....:     return bool(x*x+y*y+z*z <= Integer(1))
-            sage: R = P.add_condition(condi,8);R
+            sage: R = P.add_condition(condi,20);R
             Graphics3d Object
 
         .. PLOT::
@@ -968,7 +1026,7 @@ cdef class IndexFaceSet(PrimitiveObject):
             P = implicit_plot3d(z-x*y,(-2,2),(-2,2),(-2,2))
             def condi(x,y,z):
                 return bool(x*x+y*y+z*z <= Integer(1))
-            sphinx_plot(P.add_condition(condi,8))
+            sphinx_plot(P.add_condition(condi,40))
 
         An example with colors::
 
@@ -977,7 +1035,7 @@ cdef class IndexFaceSet(PrimitiveObject):
             sage: cm = colormaps.hsv
             sage: cf = lambda x,y,z: float(x+y) % 1
             sage: P = implicit_plot3d(x**2+y**2+z**2-1-x**2*z+y**2*z,(-2,2),(-2,2),(-2,2),color=(cm,cf))
-            sage: R = P.add_condition(condi,18); R
+            sage: R = P.add_condition(condi,40); R
             Graphics3d Object
 
         .. PLOT::
@@ -988,7 +1046,7 @@ cdef class IndexFaceSet(PrimitiveObject):
             cm = colormaps.hsv
             cf = lambda x,y,z: float(x+y) % 1
             P = implicit_plot3d(x**2+y**2+z**2-1-x**2*z+y**2*z,(-2,2),(-2,2),(-2,2),color=(cm,cf))
-            sphinx_plot(P.add_condition(condi,18))
+            sphinx_plot(P.add_condition(condi,40))
 
         An example with transparency::
 
@@ -1031,7 +1089,7 @@ cdef class IndexFaceSet(PrimitiveObject):
             sage: P = plot3d(cos(x*y),(x,-2,2),(y,-2,2),color='red',opacity=0.1)
             sage: def condi(x,y,z):
             ....:     return not(x*x+y*y <= 1)
-            sage: Q = P.add_condition(condi, 8)
+            sage: Q = P.add_condition(condi, 40)
             sage: L = Q.json_repr(Q.default_render_params())
             sage: '"opacity":0.1' in L[-1]
             True
@@ -1041,8 +1099,11 @@ cdef class IndexFaceSet(PrimitiveObject):
             sage: p = polygon3d([[2,0,0], [0,2,0], [0,0,3]])
             sage: def f(x,y,z):
             ....:     return bool(x*x+y*y+z*z<=5)
-            sage: cut = p.add_condition(f,80); cut.face_list()
-            [[(0.575, 0.0, 2.1375),...]
+            sage: cut = p.add_condition(f,60,1.0e-12); cut.face_list()
+            [[(0.556128491210302, 0.0, 2.165807263184547),
+            (2.0, 0.0, 0.0),
+            (0.0, 2.0, 0.0),
+            (0.0, 0.556128491210302, 2.165807263184547)]]
 
         .. TODO::
 
@@ -1109,14 +1170,8 @@ cdef class IndexFaceSet(PrimitiveObject):
                 va = V[old_a]
                 vb = V[old_b]
                 vc = V[old_c]
-                for k in range(N + 1):
-                    middle_ac = midpoint(va, vc, k / N)
-                    if condition(*middle_ac):
-                        break
-                for k in range(N + 1):
-                    middle_bc = midpoint(vb, vc, k / N)
-                    if condition(*middle_bc):
-                        break
+                middle_ac = cut_edge_by_bisection(va, vc, condition, eps, N)
+                middle_bc = cut_edge_by_bisection(vb, vc, condition, eps, N)
                 point_list += [middle_ac, middle_bc]
                 face_list.append([index, old_index_to_index[old_a],
                                   old_index_to_index[old_b], index + 1])
@@ -1130,14 +1185,10 @@ cdef class IndexFaceSet(PrimitiveObject):
                 va = V[old_a]
                 vb = V[old_b]
                 vc = V[old_c]
-                for k in range(N + 1):
-                    middle_ab = midpoint(va, vb, k / N)
-                    if condition(*middle_ab):
-                        break
-                for k in range(N + 1):
-                    middle_ac = midpoint(va, vc, k / N)
-                    if condition(*middle_ac):
-                        break
+                # Use bisection to find the intersection
+                middle_ab = cut_edge_by_bisection(va, vb, condition, eps, N)
+                middle_ac = cut_edge_by_bisection(va, vc, condition, eps, N)
+
                 point_list += [middle_ac, middle_ab]
                 face_list.append([index, old_index_to_index[old_a], index + 1])
                 index += 2
@@ -1241,8 +1292,8 @@ cdef class IndexFaceSet(PrimitiveObject):
 
         if transform is None:
             vertices_str = "[{}]".format(
-                ",".join([format_json_vertex(self.vs[i])
-                          for i from 0 <= i < self.vcount]))
+                ",".join(format_json_vertex(self.vs[i])
+                         for i in range(self.vcount)))
         else:
             vertices_str = "["
             for i from 0 <= i < self.vcount:
@@ -1252,8 +1303,8 @@ cdef class IndexFaceSet(PrimitiveObject):
                 vertices_str += format_json_vertex(res)
             vertices_str += "]"
 
-        faces_str = "[{}]".format(",".join([format_json_face(self._faces[i])
-                                            for i from 0 <= i < self.fcount]))
+        faces_str = "[{}]".format(",".join(format_json_face(self._faces[i])
+                                           for i in range(self.fcount)))
         opacity = float(self._extra_kwds.get('opacity', 1))
 
         if self.global_texture:
@@ -1261,11 +1312,11 @@ cdef class IndexFaceSet(PrimitiveObject):
             json = ['{{"vertices":{}, "faces":{}, "color":{}, "opacity":{}}}'.format(
                     vertices_str, faces_str, color_str, opacity)]
         else:
-            color_str = "[{}]".format(",".join(['"{}"'.format(
+            color_str = "[{}]".format(",".join('"{}"'.format(
                     Color(self._faces[i].color.r,
                           self._faces[i].color.g,
                           self._faces[i].color.b).html_color())
-                                            for i from 0 <= i < self.fcount]))
+                                            for i in range(self.fcount)))
             json = ['{{"vertices":{}, "faces":{}, "faceColors":{}, "opacity":{}}}'.format(
                     vertices_str, faces_str, color_str, opacity)]
 
@@ -1306,11 +1357,13 @@ cdef class IndexFaceSet(PrimitiveObject):
 
             sage: G = polygon([(0,0,1), (1,1,1), (2,0,1)], color='red', opacity=0.5,
             ....:             render_order=2, threejs_flat_shading=True,
-            ....:             single_side=True, mesh=True)
+            ....:             single_side=True, mesh=True, thickness=10, depth_write=True)
             sage: G.threejs_repr(G.default_render_params())
             [('surface',
               {'color': '#ff0000',
+               'depthWrite': True,
                'faces': [[0, 1, 2]],
+               'linewidth': 10.0,
                'opacity': 0.5,
                'renderOrder': 2.0,
                'showMeshGrid': True,
@@ -1399,6 +1452,12 @@ cdef class IndexFaceSet(PrimitiveObject):
 
         if self._extra_kwds.get('mesh'):
             surface['showMeshGrid'] = True
+
+        if self._extra_kwds.get('thickness'):
+            surface['linewidth'] = float(self._extra_kwds['thickness'])
+
+        if 'depth_write' in self._extra_kwds:
+            surface['depthWrite'] = bool(self._extra_kwds['depth_write'])
 
         return [('surface', surface)]
 
@@ -1797,25 +1856,6 @@ cdef class VertexIter:
             return (self.set.vs[self.i-1].x,
                     self.set.vs[self.i-1].y,
                     self.set.vs[self.i-1].z)
-
-
-def len3d(v):
-    """
-    Return the norm of a vector in three dimensions.
-
-    This is deprecated since :trac:`27450` .
-
-    EXAMPLES::
-
-        sage: from sage.plot.plot3d.index_face_set import len3d
-        sage: len3d((1,2,3))
-        doctest:warning...:
-        DeprecationWarning: len3d is deprecated, use point_c_len instead
-        See https://trac.sagemath.org/27450 for details.
-        3.7416573867739413
-    """
-    deprecation(27450, "len3d is deprecated, use point_c_len instead")
-    return sqrt(v[0] * v[0] + v[1] * v[1] + v[2] * v[2])
 
 
 def sticker(face, width, hover):

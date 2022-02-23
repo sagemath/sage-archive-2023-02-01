@@ -22,8 +22,6 @@ AUTHORS:
 #  Distributed under the terms of the GNU General Public License (GPL)
 #                  https://www.gnu.org/licenses/
 # ***************************************************************************
-# python3
-from __future__ import division
 
 from sage.categories.associative_algebras import AssociativeAlgebras
 from sage.categories.finite_enumerated_sets import FiniteEnumeratedSets
@@ -43,8 +41,10 @@ from sage.misc.cachefunc import cached_method
 from sage.misc.lazy_attribute import lazy_attribute
 from sage.misc.flatten import flatten
 from sage.misc.misc_c import prod
-from sage.rings.all import ZZ, QQ
-from sage.functions.other import ceil
+from sage.rings.integer_ring import ZZ
+from sage.rings.rational_field import QQ
+from sage.arith.misc import integer_floor as floor
+from sage.arith.misc import integer_ceil as ceil
 
 import itertools
 
@@ -505,6 +505,19 @@ class AbstractPartitionDiagram(AbstractSetPartition):
             True
         """
         return is_planar(self)
+
+    def dual(self):
+        """
+        Return the dual diagram of ``self`` by flipping it top-to-bottom.
+
+        EXAMPLES::
+
+            sage: from sage.combinat.diagram_algebras import PartitionDiagram
+            sage: D = PartitionDiagram([[1,-1],[2,-2,-3],[3]])
+            sage: D.dual()
+            {{-3}, {-2, 2, 3}, {-1, 1}}
+        """
+        return self.parent([[-i for i in part] for part in self])
 
 class IdealDiagram(AbstractPartitionDiagram):
     r"""
@@ -2147,12 +2160,29 @@ class PartitionAlgebra(DiagramBasis, UnitDiagramMixin):
     in which the product of two set partitions is simply given by their
     composition.
 
-    The Iwahori--Hecke algebra of type `A` (with a single parameter) is
-    naturally a subalgebra of the partition algebra.
-
     The partition algebra is regarded as an example of a "diagram algebra"
     due to the fact that its natural basis is given by certain graphs
     often called diagrams.
+
+    There are a number of predefined elements for the partition algebra.
+    We define the cup/cap pair by :meth:`a()`. The simple transpositions
+    are denoted :meth:`s()`. Finally, we define elements :meth:`e()`,
+    where if `i = (2r+1)/2`, then ``e(i)`` contains the blocks `\{r+1\}`
+    and `\{-r-1\}` and if `i \in \ZZ`, then `e_i` contains the block
+    `\{-i, -i-1, i, i+1\}`, with all other blocks being `\{-j, j\}`.
+    So we have::
+
+        sage: P = PartitionAlgebra(4, 0)
+        sage: P.a(2)
+        P{{-4, 4}, {-3, -2}, {-1, 1}, {2, 3}}
+        sage: P.e(3/2)
+        P{{-4, 4}, {-3, 3}, {-2}, {-1, 1}, {2}}
+        sage: P.e(2)
+        P{{-4, 4}, {-3, -2, 2, 3}, {-1, 1}}
+        sage: P.e(5/2)
+        P{{-4, 4}, {-3}, {-2, 2}, {-1, 1}, {3}}
+        sage: P.s(2)
+        P{{-4, 4}, {-3, 2}, {-2, 3}, {-1, 1}}
 
     An excellent reference for partition algebras and their various
     subalgebras (Brauer algebra, Temperley--Lieb algebra, etc) is the
@@ -2389,11 +2419,6 @@ class PartitionAlgebra(DiagramBasis, UnitDiagramMixin):
         P{{-3, 2}, {-2, 1}, {-1, 3}}
         sage: A([2,3,1]) == A(S([2,3,1]))
         True
-
-    REFERENCES:
-
-    .. [HR2005] Tom Halverson and Arun Ram, *Partition algebras*. European
-       Journal of Combinatorics **26** (2005), 869--921.
     """
     @staticmethod
     def __classcall_private__(cls, k, q, base_ring=None, prefix="P"):
@@ -2620,6 +2645,373 @@ class PartitionAlgebra(DiagramBasis, UnitDiagramMixin):
                         * self([sum((list(d[i-1]) for i in p),[]) for p in sp])
                         for sp in SPd)
 
+    @cached_method
+    def a(self, i):
+        r"""
+        Return the element `a_i` in ``self``.
+
+        The element `a_i` is the cap and cup at `(i, i+1)`, so it contains
+        the blocks `\{i, i+1\}`, `\{-i, -i-1\}`.  Other blocks are of the
+        form `\{-j, j\}`.
+
+        INPUT:
+
+        - ``i`` -- an integer between 1 and `k-1`
+
+        EXAMPLES::
+
+            sage: R.<n> = QQ[]
+            sage: P3 = PartitionAlgebra(3, n)
+            sage: P3.a(1)
+            P{{-3, 3}, {-2, -1}, {1, 2}}
+            sage: P3.a(2)
+            P{{-3, -2}, {-1, 1}, {2, 3}}
+
+            sage: P3 = PartitionAlgebra(5/2, n)
+            sage: P3.a(1)
+            P{{-3, 3}, {-2, -1}, {1, 2}}
+            sage: P3.a(2)
+            Traceback (most recent call last):
+            ...
+            ValueError: i must be an integer between 1 and 1
+        """
+        if i <= 0 or i >= floor(self._k):
+            raise ValueError("i must be an integer between 1 and {}".format(floor(self._k)-1))
+        B = self.basis()
+        SP = B.keys()
+        D = [[-j, j] for j in range(1, ceil(self._k)+1)]
+        D[i-1] = [i,i+1]
+        D[i] = [-i,-(i+1)]
+        return B[SP(D)]
+
+    generator_a = a
+
+    @cached_method
+    def e(self, i):
+        r"""
+        Return the element `e_i` in ``self``.
+
+        If `i = (2r+1)/2`, then `e_i` contains the blocks `\{r+1\}` and
+        `\{-r-1\}`.  If `i \in \ZZ`, then `e_i` contains the block
+        `\{-i, -i-1, i, i+1\}`.  Other blocks are of the form `\{-j, j\}`.
+
+        INPUT:
+
+        - ``i`` -- a half integer between 1/2 and `k-1/2`
+
+        EXAMPLES::
+
+            sage: R.<n> = QQ[]
+            sage: P3 = PartitionAlgebra(3, n)
+            sage: P3.e(1)
+            P{{-3, 3}, {-2, -1, 1, 2}}
+            sage: P3.e(2)
+            P{{-3, -2, 2, 3}, {-1, 1}}
+            sage: P3.e(1/2)
+            P{{-3, 3}, {-2, 2}, {-1}, {1}}
+            sage: P3.e(5/2)
+            P{{-3}, {-2, 2}, {-1, 1}, {3}}
+            sage: P3.e(0)
+            Traceback (most recent call last):
+            ...
+            ValueError: i must be an (half) integer between 1/2 and 5/2
+            sage: P3.e(3)
+            Traceback (most recent call last):
+            ...
+            ValueError: i must be an (half) integer between 1/2 and 5/2
+
+            sage: P2h = PartitionAlgebra(5/2,n)
+            sage: [P2h.e(k/2) for k in range(1,5)]
+            [P{{-3, 3}, {-2, 2}, {-1}, {1}},
+             P{{-3, 3}, {-2, -1, 1, 2}},
+             P{{-3, 3}, {-2}, {-1, 1}, {2}},
+             P{{-3, -2, 2, 3}, {-1, 1}}]
+        """
+        if i <= 0 or i >= self._k:
+            raise ValueError("i must be an (half) integer between 1/2 and {}".format((2*self._k-1)/2))
+        B = self.basis()
+        SP = B.keys()
+        if i in ZZ:
+            i -= 1
+            D = [[-j, j] for j in range(1, ceil(self._k)+1)]
+            D[i] += D.pop(i+1)
+            return B[SP(D)]
+        else:
+            i = ceil(i)
+            D = [[-j, j] for j in range(1, ceil(self._k)+1)]
+            D[i-1] = [-i]
+            D.append([i])
+            return B[SP(D)]
+
+    generator_e = e
+
+    @cached_method
+    def s(self, i):
+        r"""
+        Return the ``i``-th simple transposition `s_i` in ``self``.
+
+        Borrowing the notation from the symmetric group, the `i`-th
+        simple transposition `s_i` has blocks of the form `\{-i, i+1\}`,
+        `\{-i-1, i\}`.  Other blocks are of the form `\{-j, j\}`.
+
+        INPUT:
+
+        - ``i`` -- an integer between 1 and `k-1`
+
+        EXAMPLES::
+
+            sage: R.<n> = QQ[]
+            sage: P3 = PartitionAlgebra(3, n)
+            sage: P3.s(1)
+            P{{-3, 3}, {-2, 1}, {-1, 2}}
+            sage: P3.s(2)
+            P{{-3, 2}, {-2, 3}, {-1, 1}}
+
+            sage: R.<n> = ZZ[]
+            sage: P2h = PartitionAlgebra(5/2,n)
+            sage: P2h.s(1)
+            P{{-3, 3}, {-2, 1}, {-1, 2}}
+        """
+        if i not in ZZ or i <= 0 or i >= self._k:
+            raise ValueError("i must be an integer between 1 and {}".format(self._k-1))
+        B = self.basis()
+        SP = B.keys()
+        D = [[-j, j] for j in range(1, ceil(self._k)+1)]
+        D[i-1] = [-(i+1), i]
+        D[i] = [-i, i+1]
+        return B[SP(D)]
+
+    generator_s = s
+
+    @cached_method
+    def sigma(self, i):
+        r"""
+        Return the element `\sigma_i` from [Eny2012]_ of ``self``.
+
+        INPUT:
+
+        - ``i`` -- a half integer between 1/2 and `k-1/2`
+
+        .. NOTE::
+
+            In [Cre2020]_ and [Eny2013]_, these are the elements `\sigma_{2i}`.
+
+        EXAMPLES::
+
+            sage: R.<n> = QQ[]
+            sage: P3 = PartitionAlgebra(3, n)
+            sage: P3.sigma(1)
+            P{{-3, 3}, {-2, 2}, {-1, 1}}
+            sage: P3.sigma(3/2)
+            P{{-3, 3}, {-2, 1}, {-1, 2}}
+            sage: P3.sigma(2)
+            -P{{-3, -1, 1, 3}, {-2, 2}} + P{{-3, -1, 3}, {-2, 1, 2}}
+             + P{{-3, 1, 3}, {-2, -1, 2}} - P{{-3, 3}, {-2, -1, 1, 2}}
+             + P{{-3, 3}, {-2, 2}, {-1, 1}}
+            sage: P3.sigma(5/2)
+            -P{{-3, -1, 1, 2}, {-2, 3}} + P{{-3, -1, 2}, {-2, 1, 3}}
+             + P{{-3, 1, 2}, {-2, -1, 3}} - P{{-3, 2}, {-2, -1, 1, 3}}
+             + P{{-3, 2}, {-2, 3}, {-1, 1}}
+
+        We test the relations in Lemma 2.2.3(1) in [Cre2020]_ (v1)::
+
+            sage: k = 4
+            sage: R.<x> = QQ[]
+            sage: P = PartitionAlgebra(k, x)
+            sage: all(P.sigma(i/2).dual() == P.sigma(i/2)
+            ....:     for i in range(1,2*k))
+            True
+            sage: all(P.sigma(i)*P.sigma(i+1/2) == P.sigma(i+1/2)*P.sigma(i) == P.s(i)
+            ....:     for i in range(1,floor(k)))
+            True
+            sage: all(P.sigma(i)*P.e(i) == P.e(i)*P.sigma(i) == P.e(i)
+            ....:     for i in range(1,floor(k)))
+            True
+            sage: all(P.sigma(i+1/2)*P.e(i) == P.e(i)*P.sigma(i+1/2) == P.e(i)
+            ....:     for i in range(1,floor(k)))
+            True
+
+            sage: k = 9/2
+            sage: R.<x> = QQ[]
+            sage: P = PartitionAlgebra(k, x)
+            sage: all(P.sigma(i/2).dual() == P.sigma(i/2)
+            ....:     for i in range(1,2*k-1))
+            True
+            sage: all(P.sigma(i)*P.sigma(i+1/2) == P.sigma(i+1/2)*P.sigma(i) == P.s(i)
+            ....:     for i in range(1,k-1/2))
+            True
+            sage: all(P.sigma(i)*P.e(i) == P.e(i)*P.sigma(i) == P.e(i)
+            ....:     for i in range(1,floor(k)))
+            True
+            sage: all(P.sigma(i+1/2)*P.e(i) == P.e(i)*P.sigma(i+1/2) == P.e(i)
+            ....:     for i in range(1,floor(k)))
+            True
+        """
+        if i <= 0 or i >= self._k:
+            raise ValueError("i must be an (half) integer between 1 and {}".format((2*self._k-1)/2))
+
+        half = QQ.one() / 2
+        if i in ZZ:
+            if i == 1:
+                return self.one()
+            si = self.s(i)
+            sim = self.s(i-1)
+            x = self.e(i-1) * self.jucys_murphy_element(i-1) * si * self.e(i-1)
+            return (sim * si * self.sigma(i-1) * si * sim
+                    + x * si + si * x
+                    - self.e(i-1) * self.jucys_murphy_element(i-1) * sim
+                      * self.e(i) * self.e(i-half) * self.e(i-1)
+                    - si * self.e(i-1) * self.e(i-half) * self.e(i) * sim
+                      * self.jucys_murphy_element(i-1) * self.e(i-1) * si)
+        else:
+            j = ceil(i) - 1
+            if j == 0:
+                return self.zero()
+            if j == 1:
+                return self.s(1)
+            si = self.s(j)
+            sim = self.s(j-1)
+            x = self.e(j-1) * self.jucys_murphy_element(j-1) * si * self.e(j-1)
+            return (sim * si * self.sigma(i-1) * si * sim
+                    + si * x * si + x
+                    - si * self.e(j-1) * self.jucys_murphy_element(j-1) * sim
+                      * self.e(j) * self.e(i-1) * self.e(j-1)
+                    - self.e(j-1) * self.e(i-1) * self.e(j) * sim
+                      * self.jucys_murphy_element(j-1) * self.e(j-1) * si)
+
+    @cached_method
+    def jucys_murphy_element(self, i):
+        r"""
+        Return the ``i``-th Jucys-Murphy element `L_i` from [Eny2012]_.
+
+        INPUT:
+
+        - ``i`` -- a half integer between 1/2 and `k`
+
+        ALGORITHM:
+
+        We use the recursive definition for `L_{2i}` given in [Cre2020]_.
+        See also [Eny2012]_ and [Eny2013]_.
+
+        .. NOTE::
+
+            `L_{1/2}` and `L_1` differs from [HR2005]_.
+
+        EXAMPLES::
+
+            sage: R.<n> = QQ[]
+            sage: P3 = PartitionAlgebra(3, n)
+            sage: P3.jucys_murphy_element(1/2)
+            0
+            sage: P3.jucys_murphy_element(1)
+            P{{-3, 3}, {-2, 2}, {-1}, {1}}
+            sage: P3.jucys_murphy_element(2)
+            P{{-3, 3}, {-2}, {-1, 1}, {2}} - P{{-3, 3}, {-2}, {-1, 1, 2}}
+             + P{{-3, 3}, {-2, -1}, {1, 2}} - P{{-3, 3}, {-2, -1, 1}, {2}}
+             + P{{-3, 3}, {-2, 1}, {-1, 2}}
+            sage: P3.jucys_murphy_element(3/2)
+            n*P{{-3, 3}, {-2, -1, 1, 2}} - P{{-3, 3}, {-2, -1, 2}, {1}}
+             - P{{-3, 3}, {-2, 1, 2}, {-1}} + P{{-3, 3}, {-2, 2}, {-1, 1}}
+            sage: P3.L(3/2) * P3.L(2) == P3.L(2) * P3.L(3/2)
+            True
+
+        We test the relations in Lemma 2.2.3(2) in [Cre2020]_ (v1)::
+
+            sage: k = 4
+            sage: R.<n> = QQ[]
+            sage: P = PartitionAlgebra(k, n)
+            sage: L = [P.L(i/2) for i in range(1,2*k+1)]
+            sage: all(x.dual() == x for x in L)
+            True
+            sage: all(x * y == y * x for x in L for y in L)  # long time
+            True
+            sage: Lsum = sum(L)
+            sage: gens = [P.s(i) for i in range(1,k)]
+            sage: gens += [P.e(i/2) for i in range(1,2*k)]
+            sage: all(x * Lsum == Lsum * x for x in gens)
+            True
+
+        Also the relations in Lemma 2.2.3(3) in [Cre2020]_ (v1)::
+
+            sage: all(P.e((2*i+1)/2) * P.sigma(2*i/2) * P.e((2*i+1)/2)
+            ....:     == (n - P.L((2*i-1)/2)) * P.e((2*i+1)/2) for i in range(1,k))
+            True
+            sage: all(P.e(i/2) * (P.L(i/2) + P.L((i+1)/2))
+            ....:     == (P.L(i/2) + P.L((i+1)/2)) * P.e(i/2)
+            ....:     == n * P.e(i/2) for i in range(1,2*k))
+            True
+            sage: all(P.sigma(2*i/2) * P.e((2*i-1)/2) * P.e(2*i/2)
+            ....:     == P.L(2*i/2) * P.e(2*i/2) for i in range(1,k))
+            True
+            sage: all(P.e(2*i/2) * P.e((2*i-1)/2) * P.sigma(2*i/2)
+            ....:     == P.e(2*i/2) * P.L(2*i/2) for i in range(1,k))
+            True
+            sage: all(P.sigma((2*i+1)/2) * P.e((2*i+1)/2) * P.e(2*i/2)
+            ....:     == P.L(2*i/2) * P.e(2*i/2) for i in range(1,k))
+            True
+            sage: all(P.e(2*i/2) * P.e((2*i+1)/2) * P.sigma((2*i+1)/2)
+            ....:     == P.e(2*i/2) * P.L(2*i/2) for i in range(1,k))
+            True
+
+        The same tests for a half integer partition algebra::
+
+            sage: k = 9/2
+            sage: R.<n> = QQ[]
+            sage: P = PartitionAlgebra(k, n)
+            sage: L = [P.L(i/2) for i in range(1,2*k+1)]
+            sage: all(x.dual() == x for x in L)
+            True
+            sage: all(x * y == y * x for x in L for y in L)  # long time
+            True
+            sage: Lsum = sum(L)
+            sage: gens = [P.s(i) for i in range(1,k-1/2)]
+            sage: gens += [P.e(i/2) for i in range(1,2*k)]
+            sage: all(x * Lsum == Lsum * x for x in gens)
+            True
+            sage: all(P.e((2*i+1)/2) * P.sigma(2*i/2) * P.e((2*i+1)/2)
+            ....:     == (n - P.L((2*i-1)/2)) * P.e((2*i+1)/2) for i in range(1,floor(k)))
+            True
+            sage: all(P.e(i/2) * (P.L(i/2) + P.L((i+1)/2))
+            ....:     == (P.L(i/2) + P.L((i+1)/2)) * P.e(i/2)
+            ....:     == n * P.e(i/2) for i in range(1,2*k))
+            True
+            sage: all(P.sigma(2*i/2) * P.e((2*i-1)/2) * P.e(2*i/2)
+            ....:     == P.L(2*i/2) * P.e(2*i/2) for i in range(1,ceil(k)))
+            True
+            sage: all(P.e(2*i/2) * P.e((2*i-1)/2) * P.sigma(2*i/2)
+            ....:     == P.e(2*i/2) * P.L(2*i/2) for i in range(1,ceil(k)))
+            True
+            sage: all(P.sigma((2*i+1)/2) * P.e((2*i+1)/2) * P.e(2*i/2)
+            ....:     == P.L(2*i/2) * P.e(2*i/2) for i in range(1,floor(k)))
+            True
+            sage: all(P.e(2*i/2) * P.e((2*i+1)/2) * P.sigma((2*i+1)/2)
+            ....:     == P.e(2*i/2) * P.L(2*i/2) for i in range(1,floor(k)))
+            True
+        """
+        if i <= 0 or i > self._k:
+            raise ValueError("i must be an (half) integer between 1/2 and {}".format(self._k))
+
+        half = QQ.one() / 2
+        if i in ZZ:
+            if i == 1:
+                return self.e(half)
+            i -= 1
+            L = self.jucys_murphy_element
+            return ((self.s(i) * L(i)) * (self.s(i) - self.e(i))
+                    - (self.e(i) * L(i)) * (self.s(i) - self.e(i+half)*self.e(i))
+                    + self.sigma(i+half))
+        else:
+            j = ceil(i) - 1
+            if j == 0:
+                return self.zero()
+            L = self.jucys_murphy_element
+            return (self.s(j) * L(i-1) * self.s(j)
+                    - self.e(j)*L(j)
+                    + (self._q*self.one() - L(i-1) - L(j))*self.e(j)
+                    + self.sigma(j))
+
+    L = jucys_murphy_element
+
     class Element(DiagramBasis.Element):
         def to_orbit_basis(self):
             """
@@ -2641,6 +3033,26 @@ class PartitionAlgebra(DiagramBasis, UnitDiagramMixin):
             """
             OP = self.parent().orbit_basis()
             return OP(self)
+
+        def dual(self):
+            r"""
+            Return the dual of ``self``.
+
+            The dual of an element in the partition algebra is formed
+            by taking the dual of each diagram in the support.
+
+            EXAMPLES::
+
+                sage: R.<x> = QQ[]
+                sage: P = PartitionAlgebra(2, x, R)
+                sage: elt = P.an_element(); elt
+                3*P{{-2}, {-1, 1, 2}} + 2*P{{-2, -1, 1, 2}} + 2*P{{-2, 1, 2}, {-1}}
+                sage: elt.dual()
+                3*P{{-2, -1, 1}, {2}} + 2*P{{-2, -1, 1, 2}} + 2*P{{-2, -1, 2}, {1}}
+            """
+            P = self.parent()
+            return P._from_dict({D.dual(): c for D, c in self._monomial_coefficients.items()},
+                                remove_zeros=False)
 
 class OrbitBasis(DiagramAlgebra):
     r"""
@@ -3493,9 +3905,9 @@ class TemperleyLiebAlgebra(SubPartitionAlgebra, UnitDiagramMixin):
             sage: x = TL.an_element()
             sage: ascii_art(x)  # indirect doctest
                             o o o o       o o o o
-               o o o o      | `-` |       | `-` | 
-            2* `-` `-` + 2* `-----`  + 3* `---. | 
-               .-. .-.      .-. .-.       .-. | | 
+               o o o o      | `-` |       | `-` |
+            2* `-` `-` + 2* `-----`  + 3* `---. |
+               .-. .-.      .-. .-.       .-. | |
                o o o o      o o o o       o o o o
         """
         return TL_diagram_ascii_art(diagram, use_unicode=False)
@@ -3511,9 +3923,9 @@ class TemperleyLiebAlgebra(SubPartitionAlgebra, UnitDiagramMixin):
             sage: x = TL.an_element()
             sage: unicode_art(x)  # indirect doctest
                             ⚬ ⚬ ⚬ ⚬       ⚬ ⚬ ⚬ ⚬
-               ⚬ ⚬ ⚬ ⚬      │ ╰─╯ │       │ ╰─╯ │ 
-            2* ╰─╯ ╰─╯ + 2* ╰─────╯  + 3* ╰───╮ │ 
-               ╭─╮ ╭─╮      ╭─╮ ╭─╮       ╭─╮ │ │ 
+               ⚬ ⚬ ⚬ ⚬      │ ╰─╯ │       │ ╰─╯ │
+            2* ╰─╯ ╰─╯ + 2* ╰─────╯  + 3* ╰───╮ │
+               ╭─╮ ╭─╮      ╭─╮ ╭─╮       ╭─╮ │ │
                ⚬ ⚬ ⚬ ⚬      ⚬ ⚬ ⚬ ⚬       ⚬ ⚬ ⚬ ⚬
         """
         return TL_diagram_ascii_art(diagram, use_unicode=True)
@@ -3760,21 +4172,21 @@ def TL_diagram_ascii_art(diagram, use_unicode=False, blobs=[]):
         ....:       (6,11), (7, 8), (9,10), (12,13)]
         sage: TL_diagram_ascii_art(TL, use_unicode=False)
          o o o o o o o o o o o o o o o
-         | `-` `-` | `-` `-` | `-` | | 
-         |         `---------`     | | 
-         |                 .-------` | 
+         | `-` `-` | `-` `-` | `-` | |
+         |         `---------`     | |
+         |                 .-------` |
          `---.             | .-------`
              |     .-----. | | .-----.
-         .-. | .-. | .-. | | | | .-. | 
+         .-. | .-. | .-. | | | | .-. |
          o o o o o o o o o o o o o o o
         sage: TL_diagram_ascii_art(TL, use_unicode=True)
          ⚬ ⚬ ⚬ ⚬ ⚬ ⚬ ⚬ ⚬ ⚬ ⚬ ⚬ ⚬ ⚬ ⚬ ⚬
-         │ ╰─╯ ╰─╯ │ ╰─╯ ╰─╯ │ ╰─╯ │ │ 
-         │         ╰─────────╯     │ │ 
-         │                 ╭───────╯ │ 
+         │ ╰─╯ ╰─╯ │ ╰─╯ ╰─╯ │ ╰─╯ │ │
+         │         ╰─────────╯     │ │
+         │                 ╭───────╯ │
          ╰───╮             │ ╭───────╯
              │     ╭─────╮ │ │ ╭─────╮
-         ╭─╮ │ ╭─╮ │ ╭─╮ │ │ │ │ ╭─╮ │ 
+         ╭─╮ │ ╭─╮ │ ╭─╮ │ │ │ │ ╭─╮ │
          ⚬ ⚬ ⚬ ⚬ ⚬ ⚬ ⚬ ⚬ ⚬ ⚬ ⚬ ⚬ ⚬ ⚬ ⚬
 
         sage: TL = [(-20,-9), (-19,-10), (-18,-11), (-17,-16), (-15,-12), (2,3),
@@ -3782,27 +4194,27 @@ def TL_diagram_ascii_art(diagram, use_unicode=False, blobs=[]):
         ....:       (4,5), (8,15), (9,10), (11,14), (12,13), (17,20), (18,19)]
         sage: TL_diagram_ascii_art(TL, use_unicode=False, blobs=[(-2,-1), (-5,1)])
          o o o o o o o o o o o o o o o o o o o o
-         | `-` `-` | | | `-` | `-` | | | | `-` | 
+         | `-` `-` | | | `-` | `-` | | | | `-` |
          |         | | |     `-----` | | `-----`
-         |         | | `-------------` | 
+         |         | | `-------------` |
          `---0---. | | .---------------`
                  | | | | .---------------------.
-                 | | | | | .-----------------. | 
-                 | | | | | | .-------------. | | 
-                 | | | | | | | .-----.     | | | 
-         .0. .-. | | | | | | | | .-. | .-. | | | 
+                 | | | | | .-----------------. |
+                 | | | | | | .-------------. | |
+                 | | | | | | | .-----.     | | |
+         .0. .-. | | | | | | | | .-. | .-. | | |
          o o o o o o o o o o o o o o o o o o o o
         sage: TL_diagram_ascii_art(TL, use_unicode=True, blobs=[(-2,-1), (-5,1)])
          ⚬ ⚬ ⚬ ⚬ ⚬ ⚬ ⚬ ⚬ ⚬ ⚬ ⚬ ⚬ ⚬ ⚬ ⚬ ⚬ ⚬ ⚬ ⚬ ⚬
-         │ ╰─╯ ╰─╯ │ │ │ ╰─╯ │ ╰─╯ │ │ │ │ ╰─╯ │ 
+         │ ╰─╯ ╰─╯ │ │ │ ╰─╯ │ ╰─╯ │ │ │ │ ╰─╯ │
          │         │ │ │     ╰─────╯ │ │ ╰─────╯
-         │         │ │ ╰─────────────╯ │ 
+         │         │ │ ╰─────────────╯ │
          ╰───●───╮ │ │ ╭───────────────╯
                  │ │ │ │ ╭─────────────────────╮
-                 │ │ │ │ │ ╭─────────────────╮ │ 
-                 │ │ │ │ │ │ ╭─────────────╮ │ │ 
-                 │ │ │ │ │ │ │ ╭─────╮     │ │ │ 
-         ╭●╮ ╭─╮ │ │ │ │ │ │ │ │ ╭─╮ │ ╭─╮ │ │ │ 
+                 │ │ │ │ │ ╭─────────────────╮ │
+                 │ │ │ │ │ │ ╭─────────────╮ │ │
+                 │ │ │ │ │ │ │ ╭─────╮     │ │ │
+         ╭●╮ ╭─╮ │ │ │ │ │ │ │ │ ╭─╮ │ ╭─╮ │ │ │
          ⚬ ⚬ ⚬ ⚬ ⚬ ⚬ ⚬ ⚬ ⚬ ⚬ ⚬ ⚬ ⚬ ⚬ ⚬ ⚬ ⚬ ⚬ ⚬ ⚬
     """
     def insert_pairing(cur, intervals):
@@ -3957,7 +4369,6 @@ def diagram_latex(diagram, fill=False, edge_options=None, edge_additions=None):
     # these allow the view command to work (maybe move them
     # somewhere more appropriate?)
     from sage.misc.latex import latex
-    latex.add_to_mathjax_avoid_list('tikzpicture')
     latex.add_package_to_preamble_if_available('tikz')
 
     if fill:

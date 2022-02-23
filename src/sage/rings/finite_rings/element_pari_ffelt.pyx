@@ -98,7 +98,7 @@ cdef class FiniteFieldElement_pari_ffelt(FinitePolyExtElement):
         sage: a = K.gen(); a
         a
         sage: type(a)
-        <type 'sage.rings.finite_rings.element_pari_ffelt.FiniteFieldElement_pari_ffelt'>
+        <class 'sage.rings.finite_rings.element_pari_ffelt.FiniteFieldElement_pari_ffelt'>
 
     TESTS::
 
@@ -132,8 +132,6 @@ cdef class FiniteFieldElement_pari_ffelt(FinitePolyExtElement):
         sage: K.<a> = FiniteField(7^20, impl='pari_ffelt')
         sage: K(int(8))
         1
-        sage: K(long(-2^300))
-        6
 
     ::
 
@@ -556,8 +554,6 @@ cdef class FiniteFieldElement_pari_ffelt(FinitePolyExtElement):
 
     def __copy__(self):
         """
-        Return a copy of ``self``.
-
         TESTS::
 
             sage: k.<a> = FiniteField(3^3, impl='pari_ffelt')
@@ -565,15 +561,26 @@ cdef class FiniteFieldElement_pari_ffelt(FinitePolyExtElement):
             a
             sage: b = copy(a); b
             a
-            sage: a == b
-            True
             sage: a is b
-            False
+            True
         """
-        cdef FiniteFieldElement_pari_ffelt x = self._new()
-        sig_on()
-        x.construct(self.val)
-        return x
+        # immutable
+        return self
+
+    def __deepcopy__(self, memo):
+        """
+        TESTS::
+
+            sage: k.<a> = FiniteField(3^3, impl='pari_ffelt')
+            sage: a
+            a
+            sage: b = deepcopy(a); b
+            a
+            sage: a is b
+            True
+        """
+        # immutable
+        return self
 
     cpdef _richcmp_(self, other, int op):
         """
@@ -1164,19 +1171,6 @@ cdef class FiniteFieldElement_pari_ffelt(FinitePolyExtElement):
             ValueError: element is not in the prime field
         """
         return int(self.lift())
-
-    def __long__(self):
-        """
-        Lift to a python long, if possible.
-
-        EXAMPLES::
-
-            sage: k.<a> = GF(3^17, impl='pari_ffelt')
-            sage: b = k(2)
-            sage: long(b)
-            2L
-        """
-        return long(self.lift())
 
     def __float__(self):
         """

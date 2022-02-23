@@ -11,9 +11,8 @@ Eisenstein Series
 # (at your option) any later version.
 #                  https://www.gnu.org/licenses/
 # ****************************************************************************
-from __future__ import absolute_import
 
-from sage.misc.all import verbose, cputime
+from sage.misc.misc import cputime
 import sage.modular.dirichlet as dirichlet
 from sage.modular.arithgroup.congroup_gammaH import GammaH_class
 from sage.rings.all import Integer, CyclotomicField, ZZ, QQ
@@ -214,6 +213,8 @@ def __find_eisen_chars(character, k):
         ((-1, 1), (1, 1), 9),
         ((-1, -1), (1, -1), 1)]
     """
+    from sage.misc.verbose import verbose
+
     N = character.modulus()
     if character.is_trivial():
         if k % 2:
@@ -347,7 +348,8 @@ def __find_eisen_chars_gamma1(N, k):
                 chi, psi = __common_minimal_basering(E[i], E[j])
                 if k != 1:
                     pairs.append((chi, psi))
-                    if i!=j: pairs.append((psi,chi))
+                    if i != j:
+                        pairs.append((psi, chi))
                 else:
                     # if weight is 1 then (chi, psi) and (chi, psi) are the
                     # same form
@@ -360,17 +362,17 @@ def __find_eisen_chars_gamma1(N, k):
     #end if
 
     triples = []
-    D = divisors(N)
     for chi, psi in pairs:
         c_chi = chi.conductor()
         c_psi = psi.conductor()
-        D = divisors(N/(c_chi * c_psi))
-        if (k==2 and chi.is_trivial() and psi.is_trivial()):
+        D = divisors(N // (c_chi * c_psi))
+        if k == 2 and chi.is_trivial() and psi.is_trivial():
             D.remove(1)
         chi, psi = __common_minimal_basering(chi, psi)
         for t in D:
             triples.append((chi, psi, t))
     return triples
+
 
 def eisenstein_series_lseries(weight, prec=53,
                max_imaginary_part=0,

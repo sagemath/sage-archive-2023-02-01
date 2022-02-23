@@ -8,6 +8,7 @@ REFERENCE: The python cookbook.
 
 import copyreg
 import pickle
+import sys
 import types
 
 
@@ -37,7 +38,10 @@ def reduce_code(co):
     if co.co_freevars or co.co_cellvars:
         raise ValueError("Cannot pickle code objects from closures")
 
-    co_args = (co.co_argcount, co.co_kwonlyargcount, co.co_nlocals,
+    co_args = (co.co_argcount,)
+    if sys.version_info.minor >= 8:
+        co_args += (co.co_posonlyargcount,)
+    co_args += (co.co_kwonlyargcount, co.co_nlocals,
                 co.co_stacksize, co.co_flags, co.co_code,
                 co.co_consts, co.co_names, co.co_varnames, co.co_filename,
                 co.co_name, co.co_firstlineno, co.co_lnotab)

@@ -33,6 +33,7 @@ Polyhedra
    sage/geometry/polyhedron/plot
    sage/geometry/polyhedron/face
    sage/geometry/polyhedron/cdd_file_format
+   sage/geometry/polyhedron/modules/formal_polyhedra_module
 
 Lattice polyhedra
 ~~~~~~~~~~~~~~~~~
@@ -45,6 +46,14 @@ Lattice polyhedra
    sage/geometry/polyhedron/palp_database
    sage/geometry/polyhedron/ppl_lattice_polygon
    sage/geometry/polyhedron/ppl_lattice_polytope
+
+Polyhedral complexes
+~~~~~~~~~~~~~~~~~~~~
+
+.. toctree::
+   :maxdepth: 1
+
+   sage/geometry/polyhedral_complex
 
 Toric geometry
 ~~~~~~~~~~~~~~
@@ -104,8 +113,10 @@ Miscellaneous
 .. toctree::
    :maxdepth: 1
 
+   sage/geometry/convex_set
    sage/geometry/linear_expression
    sage/geometry/newton_polygon
+   sage/geometry/relative_interior
    sage/geometry/ribbon_graph
    sage/geometry/pseudolines
    sage/geometry/voronoi_diagram

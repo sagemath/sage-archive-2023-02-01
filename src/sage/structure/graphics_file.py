@@ -11,18 +11,17 @@ import sage.doctest
 
 
 class Mime(object):
-    TEXT = u'text/plain'
-    HTML = u'text/html'
-    LATEX = u'text/latex'
-    JSON = u'application/json'
-    JAVASCRIPT = u'application/javascript'
-    PDF = u'application/pdf'
-    PNG = u'image/png'
-    JPG = u'image/jpeg'
-    SVG = u'image/svg+xml'
+    TEXT = 'text/plain'
+    HTML = 'text/html'
+    LATEX = 'text/latex'
+    JSON = 'application/json'
+    JAVASCRIPT = 'application/javascript'
+    PDF = 'application/pdf'
+    PNG = 'image/png'
+    JPG = 'image/jpeg'
+    SVG = 'image/svg+xml'
 
-    JMOL = u'application/jmol'
-
+    JMOL = 'application/jmol'
 
     @classmethod
     def validate(cls, value):
@@ -42,7 +41,7 @@ class Mime(object):
 
             sage: from sage.structure.graphics_file import Mime
             sage: Mime.validate('image/png')
-            u'image/png'
+            'image/png'
             sage: Mime.validate('foo/bar')
             Traceback (most recent call last):
             ...
@@ -173,9 +172,6 @@ class GraphicsFile(SageObject):
         """
         if sage.doctest.DOCTEST_MODE:
             return
-        from sage.plot.plot import EMBEDDED_MODE
-        if EMBEDDED_MODE:
-            raise RuntimeError('should never launch viewer in embedded mode')
         if self.mime() == Mime.JMOL:
             return self._launch_jmol()
         from sage.misc.viewer import viewer
@@ -191,22 +187,6 @@ class GraphicsFile(SageObject):
             f.write('script SCRIPT\n')
         os.system('jmol {0} 2>/dev/null 1>/dev/null &'
                   .format(launch_script))
-
-    def sagenb_embedding(self):
-        """
-        Embed in SageNB
-
-        This amounts to just placing the file in the cell
-        directory. The notebook will then try to guess what we want
-        with it.
-        """
-        from sage.misc.temporary_file import tmp_filename
-        ext = "." + Mime.extension(self.mime())
-        fn = tmp_filename(ext=ext)
-        self.save_as(fn)
-        # Client-server sagenb requires this to be world-readable.
-        # See Trac #17755.
-        os.chmod(fn, 0o644)
 
 
 def graphics_from_save(save_function, preferred_mime_types,

@@ -222,7 +222,7 @@ gold mine of information: the `Online Encyclopedia of Integer Sequences
 author, which contains more than 190000 sequences of integers::
 
     sage: oeis([1,1,2,5,14])                            # optional -- internet
-    0: A000108: Catalan numbers: C(n) = binomial(2n,n)/(n+1) = (2n)!/(n!(n+1)!). Also called Segner numbers.
+    0: A000108: Catalan numbers: ...
     1: ...
     2: ...
 
@@ -503,10 +503,9 @@ or, more legibly,
 It is trivial to verify this equation on the closed form::
 
     sage: Cf = sage.symbolic.function_factory.function('C')
-    sage: equadiff.substitute_function(Cf, s0)
-    doctest:...: DeprecationWarning:...
+    sage: equadiff.substitute_function(Cf, s0.function(z))
     (4*z - 1)/sqrt(-4*z + 1) + sqrt(-4*z + 1) == 0
-    sage: bool(equadiff.substitute_function(Cf, s0))
+    sage: bool(equadiff.substitute_function(Cf, s0.function(z)))
     True
 
 .. On veut non seulement remplacer les occurrences de C(z), mais
@@ -673,12 +672,7 @@ result of ``len`` be an integer of type ``int``; this could cause
 overflows, and would not permit the return of {Infinity} for infinite
 sets::
 
-    sage: len(S)  #py2
-    Traceback (most recent call last):
-    ...
-    OverflowError: Python int too large to convert to C long
-
-    sage: len(S)  #py3
+    sage: len(S)
     Traceback (most recent call last):
     ...
     OverflowError: cannot fit 'int' into an index-sized integer

@@ -11,10 +11,10 @@ AUTHORS:
 
 - Martin Albrecht (2012) - initial implementation
 """
-from __future__ import absolute_import
 
 import http.client as httplib
 from urllib.parse import urlencode
+from ssl import SSLContext
 
 pushover_defaults = {"token": "Eql67F14ohOZJ0AtEBJJU7FiLAk8wK"}
 
@@ -77,7 +77,7 @@ def pushover(message, **kwds):
     request.update(pushover_defaults)
     request.update(kwds)
 
-    conn = httplib.HTTPSConnection("api.pushover.net:443")
+    conn = httplib.HTTPSConnection("api.pushover.net:443", context=SSLContext())
     conn.request("POST", "/1/messages.json",
                  urlencode(request),
                  {"Content-type": "application/x-www-form-urlencoded"})

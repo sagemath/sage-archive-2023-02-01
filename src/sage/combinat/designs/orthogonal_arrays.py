@@ -51,7 +51,6 @@ Functions
 ---------
 
 """
-from __future__ import print_function, absolute_import
 
 from sage.categories.sets_cat import EmptySetError
 from sage.misc.unknown import Unknown
@@ -1400,7 +1399,8 @@ def incomplete_orthogonal_array(k,n,holes,resolvable=False, existence=False):
 
     return OA
 
-def OA_find_disjoint_blocks(OA,k,n,x):
+def OA_find_disjoint_blocks(OA, k, n, x,
+                            *, solver=None, integrality_tolerance=1e-3):
     r"""
     Return `x` disjoint blocks contained in a given `OA(k,n)`.
 
@@ -1412,7 +1412,18 @@ def OA_find_disjoint_blocks(OA,k,n,x):
 
     - ``OA`` -- an orthogonal array
 
-    - ``k,n,x`` (integers)
+    - ``k``, ``n``, ``x`` (integers)
+
+    - ``solver`` -- (default: ``None``) Specify a Mixed Integer Linear
+      Programming (MILP) solver to be used. If set to ``None``, the default one
+      is used. For more information on MILP solvers and which default solver is
+      used, see the method :meth:`solve
+      <sage.numerical.mip.MixedIntegerLinearProgram.solve>` of the class
+      :class:`MixedIntegerLinearProgram
+      <sage.numerical.mip.MixedIntegerLinearProgram>`.
+
+    - ``integrality_tolerance`` -- parameter for use with MILP solvers over an
+      inexact base ring; see :meth:`MixedIntegerLinearProgram.get_values`.
 
     .. SEEALSO::
 
@@ -1433,7 +1444,7 @@ def OA_find_disjoint_blocks(OA,k,n,x):
     """
     # Computing an independent set of order x with a Linear Program
     from sage.numerical.mip import MixedIntegerLinearProgram, MIPSolverException
-    p = MixedIntegerLinearProgram()
+    p = MixedIntegerLinearProgram(solver=solver)
     b = p.new_variable(binary=True)
     p.add_constraint(p.sum(b[i] for i in range(len(OA))) == x)
 
@@ -1452,7 +1463,7 @@ def OA_find_disjoint_blocks(OA,k,n,x):
     except MIPSolverException:
         raise ValueError("There does not exist {} disjoint blocks in this OA({},{})".format(x,k,n))
 
-    b = p.get_values(b)
+    b = p.get_values(b, convert=bool, tolerance=integrality_tolerance)
     independent_set = [OA[i] for i,v in b.items() if v]
     return independent_set
 
@@ -1556,7 +1567,7 @@ def OA_n_times_2_pow_c_from_matrix(k,c,G,A,Y,check=True):
 
     - let `s_1` and `s_2` denote the two values of `s` given above, then exactly
       one of `C_{i,s_1} - C_{j,s_1}` and `C_{i,s_2} - C_{j,s_2}` belongs to the
-      `GF(2)`-hyperplane `(Y_i - Y_j) \cdot H` (we implicitely assumed that `Y_i
+      `GF(2)`-hyperplane `(Y_i - Y_j) \cdot H` (we implicitly assumed that `Y_i
       \not= Y_j`).
 
     Under these conditions, it is easy to check that the array whose `k-1` rows

@@ -1,5 +1,5 @@
-kiwisolver
-==========
+kiwisolver: An implementation of the Cassowary constraint solving algorithm
+===========================================================================
 
 Description
 -----------
@@ -29,9 +29,3 @@ Upstream Contact
 ----------------
 
 https://github.com/nucleic/kiwi
-
-Dependencies
-------------
-
--  python
--  setuptools

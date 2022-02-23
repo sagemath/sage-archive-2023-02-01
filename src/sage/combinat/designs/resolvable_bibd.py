@@ -47,13 +47,13 @@ References:
 Functions
 ---------
 """
-from __future__ import print_function, absolute_import, division
-
+from itertools import repeat
 from sage.arith.all import is_prime_power
 from sage.combinat.designs.bibd import BalancedIncompleteBlockDesign
 from sage.categories.sets_cat import EmptySetError
 from .bibd import balanced_incomplete_block_design
 from sage.misc.unknown import Unknown
+
 
 def resolvable_balanced_incomplete_block_design(v,k,existence=False):
     r"""
@@ -219,10 +219,14 @@ def kirkman_triple_system(v,existence=False):
 
         # First parallel class
         first_class = [[(0,1),(0,2),'inf']]
-        b0 = K.one(); b1 = a**t; b2 = a**m
+        b0 = K.one()
+        b1 = a**t
+        b2 = a**m
         first_class.extend([(b0*a**i,1),(b1*a**i,1),(b2*a**i,2)]
                             for i in list(range(t))+list(range(2*t,3*t))+list(range(4*t,5*t)))
-        b0 = a**(m+t); b1=a**(m+3*t); b2=a**(m+5*t)
+        b0 = a**(m+t)
+        b1 = a**(m+3*t)
+        b2 = a**(m+5*t)
         first_class.extend([[(b0*a**i,2),(b1*a**i,2),(b2*a**i,2)]
                             for i in range(t)])
 
@@ -318,22 +322,30 @@ def kirkman_triple_system(v,existence=False):
         # 23(n'-1), etc..
         # Then remove the blocks containing (n'-1)
         for B in gdd4:
-            for i,b in enumerate(B):
-                if 8 in b: j = min(b); del B[i]; B.insert(0,j); break
+            for i, b in enumerate(B):
+                if 8 in b:
+                    j = min(b)
+                    del B[i]
+                    B.insert(0, j)
+                    break
         gdd4.sort()
         for B in gdd4:
             B.pop(0)
 
         for B in gdd7:
-            for i,b in enumerate(B):
-                if 14 in b: j = min(b); del B[i]; B.insert(0,j); break
+            for i, b in enumerate(B):
+                if 14 in b:
+                    j = min(b)
+                    del B[i]
+                    B.insert(0, j)
+                    break
         gdd7.sort()
         for B in gdd7:
             B.pop(0)
 
         # Pasting the KTS(n') without {x,x',\infty} blocks
-        classes = [[] for i in range((v-1) // 2)]
-        gdd = {4:gdd4, 7: gdd7}
+        classes = [[] for _ in repeat(None, (v - 1) // 2)]
+        gdd = {4: gdd4, 7: gdd7}
         for B in PBD_4_7((v-1)//2,check=False):
             for i,classs in enumerate(gdd[len(B)]):
                 classes[B[i]].extend([[2*B[x//2]+x%2 for x in BB] for BB in classs])

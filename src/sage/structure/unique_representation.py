@@ -550,7 +550,6 @@ accordingly, for example by inheriting from
 #
 #                  https://www.gnu.org/licenses/
 # *****************************************************************************
-from __future__ import print_function
 
 from sage.misc.cachefunc import weak_cached_function
 from sage.misc.classcall_metaclass import ClasscallMetaclass, typecall
@@ -1219,14 +1218,10 @@ class UniqueRepresentation(CachedRepresentation, WithEqualityById):
 
     This nice behaviour is not available when one just uses a factory::
 
-        sage: isinstance(GF(7), GF)  # py2
+        sage: isinstance(GF(7), GF)
         Traceback (most recent call last):
         ...
-        TypeError: isinstance() arg 2 must be a class, type, or tuple of classes and types
-        sage: isinstance(GF(7), GF)  # py3
-        Traceback (most recent call last):
-        ...
-        TypeError: isinstance() arg 2 must be a type or tuple of types
+        TypeError: isinstance() arg 2 must be a type...
 
         sage: isinstance(GF, sage.structure.factory.UniqueFactory)
         True

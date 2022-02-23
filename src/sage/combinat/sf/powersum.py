@@ -1,7 +1,6 @@
 """
 Power sum symmetric functions
 """
-from __future__ import absolute_import
 #*****************************************************************************
 #       Copyright (C) 2007 Mike Hansen <mhansen@gmail.com>
 #                     2012 Mike Zabrocki <mike.zabrocki@gmail.com>
@@ -21,9 +20,9 @@ from __future__ import absolute_import
 from . import sfa, multiplicative, classical
 from sage.combinat.partition import Partition
 from sage.arith.all import divisors
-from sage.rings.all import infinity
+from sage.rings.infinity import infinity
 from sage.rings.polynomial.polynomial_ring_constructor import PolynomialRing
-from sage.misc.all import prod
+from sage.misc.misc_c import prod
 
 class SymmetricFunctionAlgebra_power(multiplicative.SymmetricFunctionAlgebra_multiplicative):
     def __init__(self, Sym):

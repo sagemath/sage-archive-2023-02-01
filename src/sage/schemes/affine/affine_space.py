@@ -9,7 +9,6 @@ Affine `n` space over a ring
 #
 #                  https://www.gnu.org/licenses/
 # ****************************************************************************
-from __future__ import print_function
 
 from sage.functions.orthogonal_polys import chebyshev_T, chebyshev_U
 from sage.rings.all import (PolynomialRing, ZZ, Integer)
@@ -21,7 +20,8 @@ from sage.categories.map import Map
 from sage.categories.fields import Fields
 _Fields = Fields()
 from sage.categories.number_fields import NumberFields
-from sage.misc.all import latex
+from sage.misc.all import (latex,
+                           cartesian_product_iterator)
 from sage.structure.category_object import normalize_names
 from sage.schemes.generic.scheme import AffineScheme
 from sage.schemes.generic.ambient_space import AmbientSpace
@@ -209,7 +209,7 @@ class AffineSpace_generic(AmbientSpace, AffineScheme):
             [(0), (1), (2)]
             sage: AA.<z,w> = AffineSpace(FF, 2)
             sage: [ x for x in AA ]
-            [(0, 0), (1, 0), (2, 0), (0, 1), (1, 1), (2, 1), (0, 2), (1, 2), (2, 2)]
+            [(0, 0), (0, 1), (0, 2), (1, 0), (1, 1), (1, 2), (2, 0), (2, 1), (2, 2)]
 
         AUTHOR:
 
@@ -217,22 +217,12 @@ class AffineSpace_generic(AmbientSpace, AffineScheme):
         """
         n = self.dimension_relative()
         R = self.base_ring()
-        zero = R(0)
-        P = [ zero for _ in range(n) ]
-        yield self(P)
-        iters = [ iter(R) for _ in range(n) ]
-        for x in iters: next(x) # put at zero
-        i = 0
-        while i < n:
-            try:
-                P[i] = next(iters[i])
-                yield self(P)
-                i = 0
-            except StopIteration:
-                iters[i] = iter(R)  # reset
-                next(iters[i]) # put at zero
-                P[i] = zero
-                i += 1
+        AHom = self.point_homset()
+        C = AHom.codomain()
+
+        for v in cartesian_product_iterator([R for _ in range(n)]):
+            yield C._point(AHom, v, check=False)
+
 
     def ngens(self):
         """
@@ -262,7 +252,7 @@ class AffineSpace_generic(AmbientSpace, AffineScheme):
             [(0), (b), (b + 1), (2*b + 1), (2), (2*b), (2*b + 2), (b + 2), (1)]
 
             sage: AffineSpace(2, ZZ).rational_points(GF(2))
-            [(0, 0), (1, 0), (0, 1), (1, 1)]
+            [(0, 0), (0, 1), (1, 0), (1, 1)]
 
         TESTS::
 
@@ -449,7 +439,7 @@ class AffineSpace_generic(AmbientSpace, AffineScheme):
         """
         if polys is None:
             polys = self.gens()
-        return '(%s)'%(", ".join([str(f) for f in polys]))
+        return '(%s)' % (", ".join(str(f) for f in polys))
 
     def _latex_generic_point(self, v=None):
         """
@@ -469,7 +459,7 @@ class AffineSpace_generic(AmbientSpace, AffineScheme):
         """
         if v is None:
             v = self.gens()
-        return '\\left(%s\\right)'%(", ".join([str(latex(f)) for f in v]))
+        return '\\left(%s\\right)' % (", ".join(str(latex(f)) for f in v))
 
     def _check_satisfies_equations(self, v):
         """
@@ -1074,7 +1064,8 @@ class AffineSpace_field(AffineSpace_generic):
             tol = kwds.pop('tolerance', 1e-2)
             prec = kwds.pop('precision', 53)
             iters = [ R.elements_of_bounded_height(bound=B, tolerance=tol, precision=prec) for _ in range(n) ]
-        for x in iters: next(x) # put at zero
+        for x in iters:
+            next(x) # put at zero
         i = 0
         while i < n:
             try:

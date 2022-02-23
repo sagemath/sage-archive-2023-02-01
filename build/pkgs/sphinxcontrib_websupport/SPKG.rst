@@ -1,13 +1,10 @@
-
-sphinxcontrib-websupport
-========================
+sphinxcontrib_websupport: Sphinx API for Web apps
+=================================================
 
 Description
 -----------
 
-Sphinx API for Web Apps
-
-sphinxcontrib-webuspport provides a Python API to easily integrate
+sphinxcontrib-websupport provides a Python API to easily integrate
 Sphinx documentation into your Web application.
 
 License

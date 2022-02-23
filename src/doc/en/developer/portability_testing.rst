@@ -10,7 +10,7 @@ Testing on multiple platforms
 
 Sage is intended to build and run on a variety of platforms,
 including all major Linux distributions, as well as MacOS, and
-Windows (with Cygwin).
+Windows (with Cygwin and WSL).
 
 There is considerable variation among these platforms.
 To ensure that Sage continues to build correctly on users'
@@ -141,10 +141,9 @@ Debian-derived distributions is called, we can ask Sage for a
 reminder::
 
   root@39d693b2a75d:/sage# build/bin/sage-print-system-package-command debian install gcc
-  sudo apt-get install gcc
+  apt-get install gcc
 
-We are already root, so we can drop the ``sudo``, of course.
-And we remember that we need to fetch the current package lists
+We remember that we need to fetch the current package lists
 from the server first::
 
   root@39d693b2a75d:/sage# apt-get update
@@ -155,14 +154,14 @@ Using Sage's database of distribution prerequisites
 
 The source code of the Sage distribution contains a database of
 package names in various distributions' package managers.  For
-example, the file ``build/pkgs/debian.txt`` contains the following
+example, the file ``build/pkgs/_prereq/distros/debian.txt`` contains the following
 
 .. code-block:: yaml
 
-  # This file, build/pkgs/debian.txt, contains names of Debian/Ubuntu packages
-  # needed for installation of Sage from source.
+  # This file, build/pkgs/_prereq/distros/debian.txt, contains names
+  # of Debian/Ubuntu packages needed for installation of Sage from source.
   #
-  # In addition, the files build/pkgs/SPKG/debian.txt contain the names
+  # In addition, the files build/pkgs/SPKG/distros/debian.txt contain the names
   # of packages that provide the equivalent of SPKG.
   #
   # Everything on a line after a # character is ignored.
@@ -213,16 +212,18 @@ Let's just follow this helpful hint::
   ...
 
 
+.. _section-equiv-distro-packages:
+
 Using Sage's database of equivalent distribution packages
 ---------------------------------------------------------
 
 At the end of the ``./configure`` run, Sage issued a message like the
 following::
 
-  configure: notice: the following SPKGs did not find equivalent system packages: arb boost boost_cropped bzip2 ... yasm zeromq zlib
+  configure: notice: the following SPKGs did not find equivalent system packages: arb boost_cropped bzip2 ... zeromq zlib
   checking for the package system in use... debian
   configure: hint: installing the following system packages is recommended and may avoid building some of the above SPKGs from source:
-  configure:   $ sudo apt-get install libflint-arb-dev ... yasm libzmq3-dev libz-dev
+  configure:   $ sudo apt-get install libflint-arb-dev ... libzmq3-dev libz-dev
   configure: After installation, re-run configure using:
   configure:   $ ./config.status --recheck && ./config.status
 
@@ -247,7 +248,7 @@ system, in particular a list of installed packages and their versions.
 
 Let us install a subset of these packages::
 
-  root@39d693b2a75d:/sage# apt-get install libbz2-dev bzip2 yasm libz-dev
+  root@39d693b2a75d:/sage# apt-get install libbz2-dev bzip2 libz-dev
   Reading package lists... Done
   ...
   Setting up zlib1g-dev:amd64 (1:1.2.11.dfsg-0ubuntu2) ...
@@ -284,8 +285,8 @@ have no access to the worktree::
   root@73987568712c:/# cd sage
   root@73987568712c:/sage# command -v gcc
   /usr/bin/gcc
-  root@73987568712c:/sage# command -v yasm
-  /usr/bin/yasm
+  root@73987568712c:/sage# command -v bunzip2
+  /usr/bin/bunzip2
   root@73987568712c:/sage# ^D
   [mkoeppe@sage worktree-ubuntu-latest]$
 
@@ -309,10 +310,10 @@ Generating Dockerfiles
 Sage also provides a script for generating a ``Dockerfile``, which is
 a recipe for automatically building a new image::
 
-  [mkoeppe@sage sage]$ build/bin/write-dockerfile.sh debian "@(standard|optional)" > Dockerfile
+  [mkoeppe@sage sage]$ build/bin/write-dockerfile.sh debian ":standard: :optional:" > Dockerfile
 
-(The second argument is a bash extglob pattern for the package type.)
-  
+(The second argument is passed to ``sage -package list`` to find packages for the listed package types.)
+
 .. this interface should be improved obviously. See #29146 - Refactor tox.ini and build/bin/write_dockerfile.sh
 
 The ``Dockerfile`` instructs the command ``docker build`` to build a
@@ -336,7 +337,7 @@ image...::
 Then, to install system packages...::
 
   ...
-  RUN apt-get update && DEBIAN_FRONTEND=noninteractive apt-get install -qqq --no-install-recommends --yes binutils make m4 perl python3 ... yasm libzmq3-dev libz-dev && apt-get clean
+  RUN apt-get update && DEBIAN_FRONTEND=noninteractive apt-get install -qqq --no-install-recommends --yes binutils make m4 perl python3 ... libzmq3-dev libz-dev && apt-get clean
 
 Then, to bootstrap and configure...::
 
@@ -346,10 +347,8 @@ Then, to bootstrap and configure...::
   ADD src/doc/bootstrap src/doc/bootstrap
   ADD m4 ./m4
   ADD build ./build
-  ADD src/bin/sage-version.sh src/bin/sage-version.sh
   RUN ./bootstrap
   ADD src/bin src/bin
-  ADD src/Makefile.in src/Makefile.in
   ARG EXTRA_CONFIGURE_ARGS=""
   RUN ./configure --enable-build-as-root ${EXTRA_CONFIGURE_ARGS} || (cat config.log; exit 1)
 
@@ -359,7 +358,7 @@ Finally, to build and test...::
   ENV MAKE="make -j${NUMPROC}"
   ARG USE_MAKEFLAGS="-k"
   RUN make ${USE_MAKEFLAGS} base-toolchain
-  ARG TARGETS_PRE="sagelib-build-deps"
+  ARG TARGETS_PRE="all-sage-local"
   RUN make ${USE_MAKEFLAGS} ${TARGETS_PRE}
   ADD src src
   ARG TARGETS="build ptest"
@@ -371,7 +370,7 @@ command ``docker build``.  For example::
   [mkoeppe@sage sage]$ docker build . -f Dockerfile \
     --build-arg BASE_IMAGE=ubuntu:latest \
     --build-arg NUMPROC=4 \
-    --build-arg EXTRA_CONFIGURE_ARGS="--with-python=2"
+    --build-arg EXTRA_CONFIGURE_ARGS="--with-python=/usr/bin/python3.42"
 
 These arguments (and their default values) are defined using ``ARG``
 commands in the ``Dockerfile``.
@@ -463,7 +462,7 @@ might not work on all platforms, ``surf``, which was marked as
   Step 2/28 : FROM ${BASE_IMAGE}
    ---> 549b9b86cb8d
   ...
-  Step 24/28 : ARG TARGETS_PRE="sagelib-build-deps"
+  Step 24/28 : ARG TARGETS_PRE="all-sage-local"
    ---> Running in 17d0ddb5ad7b
   Removing intermediate container 17d0ddb5ad7b
    ---> 7b51411520c3
@@ -600,24 +599,26 @@ installed on the system before building Sage:
 
 - ``minimal`` installs the system packages known to Sage to provide
   minimal prerequisites for bootstrapping and building the Sage
-  distribution.
-  
+  distribution.  This corresponds to the packages ``_bootstrap`` and
+  ``_prereq``.
+
 - ``standard`` additionally installs all known system packages that
   are equivalent to standard packages of the Sage distribution, for
   which the mechanism ``spkg-configure.m4`` is implemented.
-  This corresponds to the type pattern ``@(standard)``.
+  This corresponds to the packages listed by::
+
+    [mkoeppe@sage sage]$ sage --package list --has-file=spkg-configure.m4 :standard:
 
 - ``maximal`` does the same for all standard and optional packages.
-  This corresponds to the type pattern ``@(standard|optional)``.
+  This corresponds to the packages listed by::
+
+    [mkoeppe@sage sage]$ sage --package list :standard: :optional:
 
 The factors are connected by a hyphen to name a system configuration,
 such as ``debian-buster-standard`` and ``centos-7-i386-minimal``.
 
 Finally, the **configuration** factor (which is allowed to be empty)
 controls how the ``configure`` script is run.
-
-- ``python2`` adds the argument ``--with-python=2`` to the
-  ``configure`` run.
 
 The factors are connected by a hyphen to name a tox environment.  (The
 order of the factors does not matter; however, for consistency and
@@ -627,7 +628,7 @@ use the factors in the listed order.)
 To run an environment::
 
   [mkoeppe@sage sage]$ tox -e docker-slackware-14.2-minimal
-  [mkoeppe@sage sage]$ tox -e docker-ubuntu-bionic-standard-python2
+  [mkoeppe@sage sage]$ tox -e docker-ubuntu-bionic-standard
   
 Arbitrary extra arguments to ``docker build`` can be supplied through
 the environment variable ``EXTRA_DOCKER_BUILD_ARGS``.  For example,
@@ -636,7 +637,7 @@ for a non-silent build (``make V=1``), use::
   [mkoeppe@sage sage]$ EXTRA_DOCKER_BUILD_ARGS="--build-arg USE_MAKEFLAGS=\"V=1\"" \
     tox -e docker-ubuntu-bionic-standard
 
-By default, tox uses ``TARGETS_PRE=sagelib-build-deps`` and
+By default, tox uses ``TARGETS_PRE=all-sage-local`` and
 ``TARGETS=build``, leading to a complete build of Sage without the
 documentation.  If you pass positional arguments to tox (separated
 from tox options by ``--``), then both ``TARGETS_PRE`` and ``TARGETS``
@@ -703,10 +704,10 @@ Let us try a first variant of the ``local`` technology, the tox
 environment called ``local-direct``.  Because all builds with tox
 begin by bootstrapping the source tree, you will need autotools and
 other prerequisites installed in your system.  See
-``build/pkgs/*-bootstrap.txt`` for a list of system packages that
+``build/pkgs/_bootstrap/distros/*.txt`` for a list of system packages that
 provide these prerequisites.
 
-We start by creating a fresh (distclean) git worktree.
+We start by creating a fresh (distclean) git worktree::
 
   [mkoeppe@sage sage] git worktree add worktree-local
   [mkoeppe@sage sage] cd worktree-local
@@ -779,8 +780,7 @@ keep the source tree clean to the extent possible. In particular:
   tox environment directory, and a symbolic link.
 
 This makes it possible for advanced users to test several ``local``
-tox environments (such as ``local-direct`` and
-``local-direct-python2``) out of one worktree.  However, because a
+tox environments (such as ``local-direct``) out of one worktree.  However, because a
 build still writes configuration scripts and build artefacts (such as
 ``config.status``) into the worktree, only one ``local`` build can run
 at a time in a given worktree.
@@ -852,10 +852,10 @@ an isolated copy of Homebrew with all prerequisites for bootstrapping::
   checking for a BSD-compatible install... /usr/bin/install -c
   checking whether build environment is sane... yes
   ...
-  configure: notice: the following SPKGs did not find equivalent system packages: arb cbc cliquer ... tachyon xz yasm zeromq
+  configure: notice: the following SPKGs did not find equivalent system packages: arb cbc cliquer ... tachyon xz zeromq
   checking for the package system in use... homebrew
   configure: hint: installing the following system packages is recommended and may avoid building some of the above SPKGs from source:
-  configure:   $ brew install cmake gcc gsl mpfi ninja openblas gpatch r readline xz yasm zeromq
+  configure:   $ brew install cmake gcc gsl mpfi ninja openblas gpatch r readline xz zeromq
   ...
   sage-logger -p 'sage-spkg -y -o  lrslib-062+autotools-2017-03-03.p1' '.../worktree-local/logs/pkgs/lrslib-062+autotools-2017-03-03.p1.log'
   [lrslib-062+autotools-2017-03-03.p1] installing. Log file: .../worktree-local/logs/pkgs/lrslib-062+autotools-2017-03-03.p1.log
@@ -911,6 +911,36 @@ The environments use the conda-forge channel and use the ``python``
 package and the compilers from this channel.
 
 
+Options for build testing with the local technology
+---------------------------------------------------
+
+The environments using the ``local`` technology can be customized
+by setting environment variables.
+
+ - If ``SKIP_SYSTEM_PKG_INSTALL`` is set to ``1`` (or ``yes``),
+   then all steps of installing system packages are skipped in this run.
+   When reusing a previously created tox environment, this option can
+   save time and also give developers more control for experiments
+   with system packages.
+
+ - If ``SKIP_BOOTSTRAP`` is set to ``1`` (or ``yes``), then the
+   bootstrapping phase is skipped.  When reusing a previously created
+   tox environment, this option can save time.
+
+ - If ``SKIP_CONFIGURE`` is set to ``1`` (or ``yes``), then the
+   ``configure`` script is not run explicitly.  When reusing a
+   previously created tox environment, this option can save time.
+   (The ``Makefile`` may still rerun configuration using
+   ``config.status --recheck``.)
+
+The ``local`` technology also defines a special target ``bash``:
+Instead of building anything with ``make``, it just starts an
+interactive shell.  For example, in combination with the above
+options::
+
+  [mkoeppe@sage worktree-local]$ SKIP_SYSTEM_PKG_INSTALL=yes SKIP_BOOTSTRAP=1 SKIP_CONFIGURE=1 tox -e local-homebrew-macos-minimal -- bash
+
+
 Automatic parallel tox runs on GitHub Actions
 ---------------------------------------------
 
@@ -938,7 +968,16 @@ workflow have finished.  Each job generates one tarball.
 during the build.
 
 The following procedure triggers a run of tests with the default set of
-system configurations.  Let's assume that ``github`` is the name of
+system configurations.
+
+- Push your changes to trac.
+- Go to the `Actions page on the GitHub mirror <https://github.com/sagemath/sagetrac-mirror/actions>`_ and select the workflow you would like to run.
+- Click on "Run workflow" above the list of workflow runs and select the branch where the workflow will run.
+
+For more information, see the `GitHub documentation <https://docs.github.com/en/free-pro-team@latest/actions/managing-workflow-runs/manually-running-a-workflow>`_.
+
+Alternatively, you can create and push a custom tag in order to trigger a run of tests as follows. 
+Let's assume that ``github`` is the name of
 the remote corresponding to your GitHub fork of the Sage repository::
 
   $ git remote -v | grep /my-github

@@ -11,10 +11,9 @@ Root lattice realizations
 #  Distributed under the terms of the GNU General Public License (GPL)
 #                  https://www.gnu.org/licenses/
 # ****************************************************************************
-from __future__ import print_function, absolute_import
 
 from sage.misc.abstract_method import abstract_method, AbstractMethod
-from sage.misc.misc import attrcall
+from sage.misc.call import attrcall
 from sage.misc.cachefunc import cached_method, cached_in_parent_method
 from sage.misc.lazy_attribute import lazy_attribute
 from sage.misc.lazy_import import LazyImport
@@ -23,7 +22,8 @@ from sage.categories.category_types import Category_over_base_ring
 from sage.categories.modules_with_basis import ModulesWithBasis
 from sage.structure.element import Element
 from sage.sets.family import Family
-from sage.rings.all import ZZ, QQ
+from sage.rings.integer_ring import ZZ
+from sage.rings.rational_field import QQ
 from sage.matrix.constructor import matrix
 from sage.modules.free_module_element import vector
 from sage.sets.recursively_enumerated_set import RecursivelyEnumeratedSet
@@ -723,7 +723,7 @@ class RootLatticeRealizations(Category_over_base_ring):
             if index_set is None:
                 return []
             return [x for x in self.positive_roots()
-                    if not x in self.positive_roots(index_set)]
+                    if x not in self.positive_roots(index_set)]
 
         @cached_method
         def nonparabolic_positive_root_sum(self, index_set=None):
@@ -1263,13 +1263,14 @@ class RootLatticeRealizations(Category_over_base_ring):
                 # break some doctests
             return self.cache_simple_coroots
 
+        @cached_method
         def alphacheck(self):
             r"""
-            Returns the family `( \alpha^\vee_i)_{i\in I}` of the simple
-            coroots, with the extra feature that,  for simple irreducible
+            Return the family `(\alpha^\vee_i)_{i \in I}` of the simple
+            coroots, with the extra feature that, for simple irreducible
             root systems, `\alpha^\vee_0` yields the coroot associated to
-            the opposite of the highest root (caveat: for non simply laced
-            root systems, this is not the opposite of the highest coroot!)
+            the opposite of the highest root (caveat: for non-simply-laced
+            root systems, this is not the opposite of the highest coroot!).
 
             EXAMPLES::
 
@@ -1283,7 +1284,7 @@ class RootLatticeRealizations(Category_over_base_ring):
 
             .. todo:: add a non simply laced example
 
-            Finaly, here is an affine example::
+            Finally, here is an affine example::
 
                 sage: RootSystem(["A",2,1]).weight_space().alphacheck()
                 Finite family {0: alphacheck[0], 1: alphacheck[1], 2: alphacheck[2]}
@@ -1293,8 +1294,8 @@ class RootLatticeRealizations(Category_over_base_ring):
 
             """
             if self.root_system.is_finite() and self.root_system.is_irreducible():
-                return Family(self.index_set(), self.simple_coroot, \
-                              hidden_keys = [0], hidden_function = lambda i: - self.cohighest_root())
+                return Family(self.index_set(), self.simple_coroot,
+                              hidden_keys=[0], hidden_function=lambda i: - self.cohighest_root())
             else:
                 return self.simple_coroots()
 
@@ -1430,7 +1431,7 @@ class RootLatticeRealizations(Category_over_base_ring):
             # We first scale the inverse of the Cartan matrix to be
             # with integer coefficients; then the linear combination
             # of the simple roots is guaranteed to live in this space,
-            # and then we rely on division by d to fail gracefuly.
+            # and then we rely on division by d to fail gracefully.
             M = self.cartan_type().cartan_matrix()
             d = M.det()
             if not d:
@@ -2181,7 +2182,7 @@ class RootLatticeRealizations(Category_over_base_ring):
             # result is zero. This is close to be the case for the
             # original matrix and for the current rational
             # approximation. We tidy up the work by replacing the
-            # first colum by the opposite of the sum of the others.
+            # first column by the opposite of the sum of the others.
             if self.dimension()>1: # not needed in the trivial cases
                 m.set_column(0, -sum(m[:,1:].columns()))
             m.set_immutable()
@@ -2620,7 +2621,7 @@ class RootLatticeRealizations(Category_over_base_ring):
 
         def plot_alcoves(self, alcoves=True, alcove_labels=False, wireframe=False, **options):
             r"""
-            Plot the alcoves and optionaly their labels.
+            Plot the alcoves and optionally their labels.
 
             INPUT:
 

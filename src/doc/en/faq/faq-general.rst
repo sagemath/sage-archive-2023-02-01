@@ -22,10 +22,10 @@ number theory, but throughout the mathematical sciences.
 Sage builds upon and extends functionalities of many underlying
 packages.  Even from early on, when Sage was primarily used for
 number theory, this included
-`Givaro <http://ljk.imag.fr/CASYS/LOGICIELS/givaro>`_,
-`MPIR <http://www.mpir.org>`_,
-`NTL <http://www.shoup.net/ntl>`_,
-`Pari/GP <http://pari.math.u-bordeaux.fr>`_,
+`Givaro <https://casys.gricad-pages.univ-grenoble-alpes.fr/givaro>`_,
+`GMP <https://gmplib.org>`_,
+`NTL <https://www.shoup.net/ntl>`_,
+`Pari/GP <https://pari.math.u-bordeaux.fr>`_,
 and many others too numerous to list here. Students, teachers,
 professors, researchers throughout the world use Sage because they
 require a comprehensive free open source mathematics package that
@@ -181,22 +181,23 @@ Why did you write Sage from scratch, instead of using other existing software an
 Sage was not written from scratch. Most of its underlying mathematics
 functionalities are made possible through FOSS projects such as
 
-* `ATLAS <http://math-atlas.sourceforge.net>`_ --- Automatically Tuned
-  Linear Algebra Software.
-* `BLAS <http://www.netlib.org/blas>`_ --- Basic Linear Algebra
+* `BLAS <https://www.netlib.org/blas>`_ --- Basic Linear Algebra
   Subprograms.
+* `ECL <https://common-lisp.net/project/ecl>`_ --- Embeddable Common-Lisp system
 * `FLINT <http://www.flintlib.org>`_ --- C library for doing number
   theory.
-* `GAP <http://www.gap-system.org>`_ --- a system for computational
+* `GAP <https://www.gap-system.org>`_ --- a system for computational
   discrete algebra, with particular emphasis on computational group
   theory.
+* `GMP <https://gmplib.org>`_ --- GNU Multiple Precision Arithmetic Library.
 * `Maxima <http://maxima.sourceforge.net>`_ --- system for symbolic
   and numerical computation.
 * `mpmath <https://github.com/fredrik-johansson/mpmath>`_ --- a pure-Python
   library for multiprecision floating-point arithmetic.
-* `NumPy <http://numpy.scipy.org>`_ --- numerical linear algebra and
+* `NumPy and SciPy <https://scipy.org>`_ --- numerical linear algebra and
   other numerical computing capabilities for Python.
-* `Pari/GP <http://pari.math.u-bordeaux.fr>`_ --- a computer algebra
+* `OpenBLAS <https://www.openblas.net/>`_  --- an optimized BLAS library.
+* `Pari/GP <https://pari.math.u-bordeaux.fr>`_ --- a computer algebra
   system for fast computations in number theory.
 * `Pynac <http://pynac.sagemath.org>`_ --- a modified version of GiNaC
   that replaces the dependency on CLN by Python.
@@ -306,7 +307,7 @@ How can I download the Sage documentation to read it offline?
 
 To download the Sage standard documentation in HTML or PDF formats,
 visit the
-`Help and Support <http://www.sagemath.org/help.html>`_
+`Help and Support <https://www.sagemath.org/help.html>`_
 page on the Sage website. Each release of Sage comes with the full
 documentation that makes up the Sage standard documentation. If you
 have downloaded a binary Sage release, the HTML version of the

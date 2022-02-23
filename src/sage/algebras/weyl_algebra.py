@@ -18,10 +18,12 @@ AUTHORS:
 
 from sage.misc.cachefunc import cached_method
 from sage.misc.latex import latex, LatexExpr
+from sage.misc.lazy_attribute import lazy_attribute
 from sage.misc.misc_c import prod
 from sage.structure.richcmp import richcmp
 from sage.structure.element import AlgebraElement
 from sage.structure.unique_representation import UniqueRepresentation
+from sage.categories.action import Action
 from sage.categories.rings import Rings
 from sage.categories.algebras_with_basis import AlgebrasWithBasis
 from sage.sets.family import Family
@@ -567,8 +569,6 @@ class DifferentialWeylAlgebraElement(AlgebraElement):
 
         return self.__class__(F, {t: D[t]._divide_if_possible(x) for t in D})
 
-    __div__ = __truediv__
-
     def factor_differentials(self):
         """
         Return a dict representing ``self`` with the differentials
@@ -617,6 +617,33 @@ class DifferentialWeylAlgebraElement(AlgebraElement):
                 ret[dx] = P.zero()
             ret[dx] += c * prod(g**e for e, g in zip(x, gens))
         return ret
+
+    def diff(self, p):
+        """
+        Apply this differential operator to a polynomial.
+
+        INPUT:
+
+        - ``p`` -- polynomial of the underlying polynomial ring
+
+        OUTPUT:
+
+        The result of the left action of the Weyl algebra on the polynomial
+        ring via differentiation.
+
+        EXAMPLES::
+
+            sage: R.<x,y> = QQ[]
+            sage: W = R.weyl_algebra()
+            sage: dx, dy = W.differentials()
+            sage: dx.diff(x^3)
+            3*x^2
+            sage: (dx*dy).diff(W(x^3*y^3))
+            9*x^2*y^2
+            sage: (x*dx + dy + 1).diff(x^4*y^4 + 1)
+            5*x^4*y^4 + 4*x^4*y^3 + 1
+        """
+        return self.parent().diff_action(self, p)
 
 
 class DifferentialWeylAlgebra(Algebra, UniqueRepresentation):
@@ -1047,5 +1074,95 @@ class DifferentialWeylAlgebra(Algebra, UniqueRepresentation):
         """
         return self.element_class(self, {})
 
+    @lazy_attribute
+    def diff_action(self):
+        """
+        Left action of this Weyl algebra on the underlying polynomial ring by
+        differentiation.
+
+        EXAMPLES::
+
+            sage: R.<x,y> = QQ[]
+            sage: W = R.weyl_algebra()
+            sage: dx, dy = W.differentials()
+            sage: W.diff_action
+            Left action by Differential Weyl algebra of polynomials in x, y
+            over Rational Field on Multivariate Polynomial Ring in x, y over
+            Rational Field
+            sage: W.diff_action(dx^2 + dy + 1, x^3*y^3)
+            x^3*y^3 + 3*x^3*y^2 + 6*x*y^3
+        """
+        return DifferentialWeylAlgebraAction(self)
+
     Element = DifferentialWeylAlgebraElement
 
+
+class DifferentialWeylAlgebraAction(Action):
+    """
+    Left action of a Weyl algebra on its underlying polynomial ring by
+    differentiation.
+
+    EXAMPLES::
+
+        sage: R.<x,y> = QQ[]
+        sage: W = R.weyl_algebra()
+        sage: dx, dy = W.differentials()
+        sage: W.diff_action
+        Left action by Differential Weyl algebra of polynomials in x, y
+        over Rational Field on Multivariate Polynomial Ring in x, y over
+        Rational Field
+
+    ::
+
+        sage: g = dx^2 + x*dy
+        sage: p = x^5 + x^3 + y^2*x^2 + 1
+        sage: W.diff_action(g, p)
+        2*x^3*y + 20*x^3 + 2*y^2 + 6*x
+
+    The action is a left action::
+
+        sage: h = dx*x + x*y
+        sage: W.diff_action(h, W.diff_action(g, p)) == W.diff_action(h*g, p)
+        True
+
+    The action endomorphism of a differential operator::
+
+        sage: dg = W.diff_action(g); dg
+        Action of dx^2 + x*dy on Multivariate Polynomial Ring in x, y over
+        Rational Field under Left action by Differential Weyl algebra...
+        sage: dg(p) == W.diff_action(g, p) == g.diff(p)
+        True
+    """
+
+    def __init__(self, G):
+        """
+        INPUT:
+
+        - ``G`` -- Weyl algebra
+
+        EXAMPLES::
+
+            sage: from sage.algebras.weyl_algebra import DifferentialWeylAlgebraAction
+            sage: W.<x,y> = DifferentialWeylAlgebra(QQ)
+            sage: DifferentialWeylAlgebraAction(W)
+            Left action by Differential Weyl algebra of polynomials in x, y
+            over Rational Field on Multivariate Polynomial Ring in x, y over
+            Rational Field
+        """
+        super().__init__(G, G.polynomial_ring(), is_left=True)
+
+    def _act_(self, g, x):
+        """
+        Apply a differential operator to a polynomial.
+
+        EXAMPLES::
+
+            sage: W.<x,y> = DifferentialWeylAlgebra(QQ)
+            sage: dx, dy = W.differentials()
+            sage: W.diff_action(dx^3 + dx, x^3*y^3 + x*y)
+            3*x^2*y^3 + 6*y^3 + y
+        """
+        f = g * x
+        D = {y: c for (y, dy), c in f.monomial_coefficients(copy=False).items()
+             if all(dyi == 0 for dyi in dy)}
+        return self.right_domain()(D)

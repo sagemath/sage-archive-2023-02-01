@@ -28,7 +28,7 @@ from sage.categories.poor_man_map import PoorManMap
 from sage.categories.sets_cat import Sets
 from sage.rings.integer import Integer
 from sage.rings.infinity import infinity
-from sage.rings.all import ZZ
+from sage.rings.integer_ring import ZZ
 from sage.sets.family import Family
 
 
@@ -379,12 +379,10 @@ class IndexedFreeMonoidElement(IndexedMonoidElement):
         TESTS::
 
             sage: F = FreeMonoid(index_set=tuple('abcde'))
-            sage: hash(F ([(1,2),(0,1)]) )
-            2401565693828035651 # 64-bit
-            1164080195          # 32-bit
-            sage: hash(F ([(0,2),(1,1)]) )
-            -3359280905493236379 # 64-bit
-            -1890405019          # 32-bit
+            sage: hash(F ([(1,2),(0,1)]) ) == hash(((1, 2), (0, 1)))
+            True
+            sage: hash(F ([(0,2),(1,1)]) ) == hash(((0, 2), (1, 1)))
+            True
         """
         return hash(self._monomial)
 

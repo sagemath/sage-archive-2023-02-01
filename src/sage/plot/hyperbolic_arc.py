@@ -364,7 +364,7 @@ def hyperbolic_arc(a, b, model="UHP", **options):
         sphinx_plot(P)
 
     Show a hyperbolic arc from `(1,2,\sqrt(6))` to `(-2,-3,\sqrt(14))`
-    in the hiperboloid model::
+    in the hyperboloid model::
 
         sage: a = (1,2,sqrt(6))
         sage: b = (-2,-3,sqrt(14))

@@ -1975,17 +1975,16 @@ class Polyhedron_base(Polyhedron_base5):
 
         OUTPUT:
 
-        The volume, cast to RDF (although lrs seems to output a
-        rational value this must be an approximation in some cases).
+        The exact volume as a rational number.
 
         EXAMPLES::
 
             sage: polytopes.hypercube(3)._volume_lrs() # optional - lrslib
-            8.0
+            8
             sage: (polytopes.hypercube(3)*2)._volume_lrs() # optional - lrslib
-            64.0
+            64
             sage: polytopes.twenty_four_cell()._volume_lrs() # optional - lrslib
-            2.0
+            2
 
         REFERENCES:
 
@@ -2018,7 +2017,7 @@ class Polyhedron_base(Polyhedron_base5):
         for a_line in ans.splitlines():
             if 'Volume=' in a_line:
                 volume = a_line.split('Volume=')[1]
-                volume = RDF(QQ(volume))
+                volume = QQ(volume)
                 return volume
 
         raise ValueError("lrs did not return a volume")

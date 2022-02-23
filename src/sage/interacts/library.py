@@ -1066,21 +1066,19 @@ def trapezoid_integration(
     if title is None:
         title = text_control("<h2>Trapezoid integration</h2>")
     if f is None:
-        f = (input_box(default="x^2-5*x + 10", label="$f(x)=$"),)
+        f = input_box(default="x^2-5*x + 10", label="$f(x)=$")
     if n is None:
-        n = (slider(1, 100, 1, 5, label="# divisions"),)
+        n = slider(1, 100, 1, 5, label="# divisions")
     if interval_input is None:
-        interval_input = (
-            selector(
+        interval_input = selector(
                 ["from slider", "from keyboard"],
                 label="Integration interval",
                 buttons=True,
-            ),
         )
     if interval_s is None:
-        interval_s = (range_slider(-10, 10, default=(0, 8), label="slider: "),)
+        interval_s = range_slider(-10, 10, default=(0, 8), label="slider: ")
     if interval_g is None:
-        interval_g = (input_grid(1, 2, default=[[0, 8]], label="keyboard: "),)
+        interval_g = input_grid(1, 2, default=[[0, 8]], label="keyboard: ")
     if output_form is None:
         output_form = selector(
             ["traditional", "table", "none"], label="Computations form", buttons=True
@@ -1204,23 +1202,21 @@ def simpson_integration(
           output_form: ToggleButtons(description='Computations form', options=('traditional', 'table', 'none'), value='traditional')
     """
     if title is None:
-        title = (text_control("<h2>Simpson integration</h2>"),)
+        title = text_control("<h2>Simpson integration</h2>")
     if f is None:
-        f = (input_box(default="x*sin(x)+x+1", label="$f(x)=$"),)
+        f = input_box(default="x*sin(x)+x+1", label="$f(x)=$")
     if n is None:
-        n = (slider(2, 100, 2, 6, label="# divisions"),)
+        n = slider(2, 100, 2, 6, label="# divisions")
     if interval_input is None:
-        interval_input = (
-            selector(
+        interval_input = selector(
                 ["from slider", "from keyboard"],
                 label="Integration interval",
                 buttons=True,
-            ),
         )
     if interval_s is None:
-        interval_s = (range_slider(-10, 10, default=(0, 10), label="slider: "),)
+        interval_s = range_slider(-10, 10, default=(0, 10), label="slider: ")
     if interval_g is None:
-        interval_g = (input_grid(1, 2, default=[[0, 10]], label="keyboard: "),)
+        interval_g = input_grid(1, 2, default=[[0, 10]], label="keyboard: ")
     if output_form is None:
         output_form = selector(
             ["traditional", "table", "none"], label="Computations form", buttons=True
@@ -1365,27 +1361,25 @@ def riemann_sum(
     - Robert Marik (2010-08)
     """
     if title is None:
-        title = (text_control("<h2>Riemann integral with random sampling</h2>"),)
+        title = text_control("<h2>Riemann integral with random sampling</h2>")
     if f is None:
-        f = (input_box("x^2+1", label="$f(x)=$", width=40),)
+        f = input_box("x^2+1", label="$f(x)=$", width=40)
     if n is None:
-        n = (slider(1, 30, 1, 5, label="# divisions"),)
+        n = slider(1, 30, 1, 5, label="# divisions")
     if hr1 is None:
-        hr1 = (text_control("<hr>"),)
+        hr1 = text_control("<hr>")
     if interval_input is None:
-        interval_input = (
-            selector(
+        interval_input = selector(
                 ["from slider", "from keyboard"],
                 label="Integration interval",
                 buttons=True,
-            ),
         )
     if interval_s is None:
-        interval_s = (range_slider(-5, 10, default=(0, 2), label="slider: "),)
+        interval_s = range_slider(-5, 10, default=(0, 2), label="slider: ")
     if interval_g is None:
-        interval_g = (input_grid(1, 2, default=[[0, 2]], label="keyboard: "),)
+        interval_g = input_grid(1, 2, default=[[0, 2]], label="keyboard: ")
     if hr2 is None:
-        hr2 = (text_control("<hr>"),)
+        hr2 = text_control("<hr>")
     if list_table is None:
         list_table = checkbox(default=False, label="List table")
 

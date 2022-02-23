@@ -506,7 +506,7 @@ remote connection to a server running Mathematica -- for hints, type
 
   (1) You might have to buy Mathematica (https://www.wolfram.com/), or
   install a currently (Feb 2022) free for personal use Wolfram Engine
-  (https://www.wolfram.com/engine-technology/).
+  (https://www.wolfram.com/engine/).
 
   (2) * LINUX: The math script usually comes standard with your Mathematica install.
         However, on some systems it may be called wolfram,

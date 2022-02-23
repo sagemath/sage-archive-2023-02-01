@@ -106,7 +106,7 @@ If dot2tex Sage optional package and graphviz are installed, then the following
 one liner works allowing to create a nice tikzpicture from a graph with
 vertices and edges placed according to graphviz::
 
-    sage: t = TikzPicture.from_graph(g)  # optional: dot2tex # long time (3s)
+    sage: t = TikzPicture._from_graph(g)  # optional: dot2tex # long time (3s)
 
 ::
 
@@ -250,15 +250,19 @@ class StandaloneTex(SageObject):
             False
 
             sage: from sage.plot.tikzpicture import TikzPicture
-            sage: g = graphs.PetersenGraph()
-            sage: t = TikzPicture.from_graph(g)            # optional dot2tex
-            sage: g._rich_repr_(dm)      # random result is Text in doctest
+            sage: lines = []
+            sage: lines.append(r'\begin{tikzpicture}')
+            sage: lines.append(r'\draw[very thick,orange,->] (0,0) -- (1,1);')
+            sage: lines.append(r'\end{tikzpicture}')
+            sage: s = '\n'.join(lines)
+            sage: t = TikzPicture(s)
+            sage: t._rich_repr_(dm)      # random result is Text in doctest
             OutputImagePng container
 
         Using vector svg instead of png::
 
             sage: dm.preferences.graphics = 'vector'
-            sage: g._rich_repr_(dm)      # random result is Text in doctest
+            sage: t._rich_repr_(dm)      # random result is Text in doctest
             OutputImageSvg container
             sage: dm.preferences.graphics = 'raster'
         """
@@ -688,6 +692,7 @@ class StandaloneTex(SageObject):
         return filename
 
 
+
 class TikzPicture(StandaloneTex):
     r"""
     Creates a TikzPicture embedded in a LaTeX standalone document class.
@@ -817,7 +822,7 @@ class TikzPicture(StandaloneTex):
                            usetikzlibrary=['shapes'])
 
     @classmethod
-    def from_graph(cls, graph, merge_multiedges=True,
+    def _from_graph(cls, graph, merge_multiedges=True,
             merge_label_function=tuple, **kwds):
         r"""
         Convert a graph to a tikzpicture using graphviz and dot2tex.
@@ -855,17 +860,17 @@ class TikzPicture(StandaloneTex):
 
             sage: from sage.plot.tikzpicture import TikzPicture
             sage: g = graphs.PetersenGraph()
-            sage: tikz = TikzPicture.from_graph(g) # optional dot2tex # long time (3s)
+            sage: tikz = TikzPicture._from_graph(g) # optional dot2tex # long time (3s)
             sage: _ = tikz.pdf()      # not tested
 
         Using ``prog``::
 
-            sage: tikz = TikzPicture.from_graph(g, prog='neato', color_by_label=True) # optional dot2tex # long time (3s)
+            sage: tikz = TikzPicture._from_graph(g, prog='neato', color_by_label=True) # optional dot2tex # long time (3s)
             sage: _ = tikz.pdf()      # not tested
 
         Using ``rankdir``::
 
-            sage: tikz = TikzPicture.from_graph(g, rankdir='right') # optional dot2tex # long time (3s)
+            sage: tikz = TikzPicture._from_graph(g, rankdir='right') # optional dot2tex # long time (3s)
             sage: _ = tikz.pdf()      # not tested
 
         Using ``merge_multiedges``::
@@ -873,14 +878,14 @@ class TikzPicture(StandaloneTex):
             sage: alpha = var('alpha')
             sage: m = matrix(2,range(4)); m.set_immutable()
             sage: G = DiGraph([(0,1,alpha), (0,1,0), (0,2,9), (0,2,m)], multiedges=True)
-            sage: tikz = TikzPicture.from_graph(G, merge_multiedges=True) # optional dot2tex
+            sage: tikz = TikzPicture._from_graph(G, merge_multiedges=True) # optional dot2tex
             sage: _ = tikz.pdf()      # not tested
 
         Using ``merge_multiedges`` with ``merge_label_function``::
 
             sage: fn = lambda L: LatexExpr(','.join(map(str, L)))
             sage: G = DiGraph([(0,1,'a'), (0,1,'b'), (0,2,'c'), (0,2,'d')], multiedges=True)
-            sage: tikz = TikzPicture.from_graph(G, merge_multiedges=True,   # optional dot2tex
+            sage: tikz = TikzPicture._from_graph(G, merge_multiedges=True,   # optional dot2tex
             ....:               merge_label_function=fn)
             sage: _ = tikz.pdf()      # not tested
 
@@ -898,7 +903,7 @@ class TikzPicture(StandaloneTex):
             sage: G
             Looped multi-digraph on 27 vertices
             sage: C = G.strongly_connected_components()
-            sage: tikz = TikzPicture.from_graph(G, merge_multiedges=False,   # optional dot2tex
+            sage: tikz = TikzPicture._from_graph(G, merge_multiedges=False,   # optional dot2tex
             ....:                               subgraph_clusters=C)
             sage: _ = tikz.pdf()      # not tested
 
@@ -909,7 +914,7 @@ class TikzPicture(StandaloneTex):
             sage: G = DiGraph()
             sage: G.add_edges((i, f(i), f) for i in (1, 2, 1/2, 1/4))
             sage: G.add_edges((i, g(i), g) for i in (1, 2, 1/2, 1/4))
-            sage: tikz = TikzPicture.from_graph(G)  # optional dot2tex
+            sage: tikz = TikzPicture._from_graph(G)  # optional dot2tex
             sage: _ = tikz.pdf()      # not tested
             sage: def edge_options(data):
             ....:     u, v, label = data
@@ -919,7 +924,7 @@ class TikzPicture(StandaloneTex):
             ....:     if (u,v) == (1,   -1): options["label_style"] = "latex"
             ....:     if (u,v) == (1,  1/2): options["dir"]         = "back"
             ....:     return options
-            sage: tikz = TikzPicture.from_graph(G, edge_options=edge_options)  # optional dot2tex 
+            sage: tikz = TikzPicture._from_graph(G, edge_options=edge_options)  # optional dot2tex 
             sage: _ = tikz.pdf()      # not tested
 
         .. TODO:: improve the previous example
@@ -955,7 +960,7 @@ class TikzPicture(StandaloneTex):
         return TikzPicture(tikz, standalone_options=["border=4mm"])
 
     @classmethod
-    def from_graph_with_pos(cls, graph, scale=1, merge_multiedges=True,
+    def _from_graph_with_pos(cls, graph, scale=1, merge_multiedges=True,
             merge_label_function=tuple):
         r"""
         Convert a graph with positions defined for vertices to a tikzpicture.
@@ -976,7 +981,7 @@ class TikzPicture(StandaloneTex):
 
             sage: from sage.plot.tikzpicture import TikzPicture
             sage: g = graphs.PetersenGraph()
-            sage: tikz = TikzPicture.from_graph_with_pos(g)
+            sage: tikz = TikzPicture._from_graph_with_pos(g)
 
         ::
 
@@ -985,7 +990,7 @@ class TikzPicture(StandaloneTex):
             sage: G = DiGraph(edges, **kwds)
             sage: G.set_pos({0:(0,0), 1:(1,0)})
             sage: f = lambda label:','.join(label)
-            sage: TikzPicture.from_graph_with_pos(G, merge_label_function=f)
+            sage: TikzPicture._from_graph_with_pos(G, merge_label_function=f)
             \documentclass[tikz]{standalone}
             \standaloneconfig{border=4mm}
             \begin{document}
@@ -1006,7 +1011,7 @@ class TikzPicture(StandaloneTex):
             sage: edges = [(0,0,'a'),(0,1,'b'),(0,1,'c')]
             sage: kwds = dict(format='list_of_edges', loops=True, multiedges=True)
             sage: G = DiGraph(edges, **kwds)
-            sage: TikzPicture.from_graph_with_pos(G)
+            sage: TikzPicture._from_graph_with_pos(G)
             Traceback (most recent call last):
             ...
             ValueError: vertex positions need to be set first
@@ -1072,7 +1077,7 @@ class TikzPicture(StandaloneTex):
         return TikzPicture(tikz, standalone_options=["border=4mm"])
 
     @classmethod
-    def from_poset(cls, poset, **kwds):
+    def _from_poset(cls, poset, **kwds):
         r"""
         Convert a poset to a tikzpicture using graphviz and dot2tex.
 
@@ -1095,17 +1100,17 @@ class TikzPicture(StandaloneTex):
 
             sage: from sage.plot.tikzpicture import TikzPicture
             sage: P = posets.PentagonPoset()
-            sage: tikz = TikzPicture.from_poset(P) # optional dot2tex # long time (3s)
-            sage: tikz = TikzPicture.from_poset(P, prog='neato', color_by_label=True) # optional dot2tex # long time (3s)
+            sage: tikz = TikzPicture._from_poset(P) # optional dot2tex # long time (3s)
+            sage: tikz = TikzPicture._from_poset(P, prog='neato', color_by_label=True) # optional dot2tex # long time (3s)
 
         ::
 
             sage: P = posets.SymmetricGroupWeakOrderPoset(4)
-            sage: tikz = TikzPicture.from_poset(P) # optional dot2tex # long time (4s)
-            sage: tikz = TikzPicture.from_poset(P, prog='neato') # optional dot2tex # long time (4s)
+            sage: tikz = TikzPicture._from_poset(P) # optional dot2tex # long time (4s)
+            sage: tikz = TikzPicture._from_poset(P, prog='neato') # optional dot2tex # long time (4s)
         """
         graph = poset.hasse_diagram()
-        return cls.from_graph(graph, **kwds)
+        return cls._from_graph(graph, **kwds)
 
     def tikz_picture_code(self):
         r"""

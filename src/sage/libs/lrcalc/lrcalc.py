@@ -10,7 +10,8 @@ fusion products. All of the above are achieved by counting LR
 appropriate shape and content by iterating through them.
 Additionally, ``lrcalc`` handles products of Schubert polynomials.
 
-The web page of ``lrcalc`` is `<http://sites.math.rutgers.edu/~asbuch/lrcalc/>`_.
+The web page of ``lrcalc`` is
+`<http://sites.math.rutgers.edu/~asbuch/lrcalc/>`_.
 
 The following describes the Sage interface to this library.
 
@@ -36,12 +37,13 @@ Schur expansion::
      [4, 2]: 1}
 
 Same product, but include only partitions with at most 3 rows.  This
-corresponds to computing in the representation ring of gl(3)::
+corresponds to computing in the representation ring of `\mathfrak{gl}(3)`::
 
     sage: lrcalc.mult([2,1], [2,1], 3)
     {[2, 2, 2]: 1, [3, 2, 1]: 2, [3, 3]: 1, [4, 1, 1]: 1, [4, 2]: 1}
 
-We can also compute the fusion product, here for sl(3) and level 2::
+We can also compute the fusion product, here for `\mathfrak{sl}(3)`
+and level 2::
 
     sage: lrcalc.mult([3,2,1], [3,2,1], 3,2)
     {[4, 4, 4]: 1, [5, 4, 3]: 1}
@@ -77,42 +79,38 @@ Multiply two Schubert polynomials::
      [6, 2, 1, 4, 3, 5]: 1}
 
 Same product, but include only permutations of 5 elements in the result.
-This corresponds to computing in the cohomology ring of Fl(5)::
+This corresponds to computing in the cohomology ring of `Fl(5)`::
 
     sage: lrcalc.mult_schubert([4,2,1,3], [1,4,2,5,3], 5)
     {[4, 5, 1, 3, 2]: 1, [5, 3, 1, 4, 2]: 1, [5, 4, 1, 2, 3]: 1}
 
 List all Littlewood-Richardson tableaux of skew shape `\mu/\nu`; in
 this example `\mu=[3,2,1]` and `\nu=[2,1]`. Specifying a third entry
-`maxrows` restricts the alphabet to `\{1,2,\ldots,maxrows\}`::
+`M' = ``maxrows`` restricts the alphabet to `\{1,2,\ldots,M\}`::
 
     sage: list(lrcalc.lrskew([3,2,1],[2,1]))
     [[[None, None, 1], [None, 1], [1]], [[None, None, 1], [None, 1], [2]],
     [[None, None, 1], [None, 2], [1]], [[None, None, 1], [None, 2], [3]]]
 
     sage: list(lrcalc.lrskew([3,2,1],[2,1],maxrows=2))
-    [[[None, None, 1], [None, 1], [1]], [[None, None, 1], [None, 1], [2]], [[None, None, 1], [None, 2], [1]]]
+    [[[None, None, 1], [None, 1], [1]], [[None, None, 1], [None, 1], [2]],
+     [[None, None, 1], [None, 2], [1]]]
 
 .. TODO::
 
-    use this library in the :class:`SymmetricFunctions` code, to
+    Use this library in the :class:`SymmetricFunctions` code, to
     make it easy to apply it to linear combinations of Schur functions.
 
 .. SEEALSO::
 
     - :func:`lrcoef`
-
     - :func:`mult`
-
     - :func:`coprod`
-
     - :func:`skew`
-
     - :func:`lrskew`
-
     - :func:`mult_schubert`
 
-.. rubric:: Underlying algorithmic in lrcalc
+.. RUBRIC:: Underlying algorithmic in lrcalc
 
 Here is some additional information regarding the main low-level
 C-functions in `lrcalc`. Given two partitions ``outer`` and ``inner``
@@ -189,7 +187,7 @@ AUTHORS:
 
 from sage.combinat.partition import _Partitions
 from sage.combinat.permutation import Permutation
-from sage.combinat.skew_tableau import SkewTableaux
+from sage.combinat.skew_tableau import SemistandardSkewTableaux
 from sage.combinat.skew_partition import SkewPartition
 from sage.rings.integer import Integer
 import lrcalc
@@ -204,7 +202,7 @@ def _lrcalc_dict_to_sage(result):
         sage: mult([2,1],[3,2,1],3) # indirect doctest
         {[3, 3, 3]: 1, [4, 3, 2]: 2, [4, 4, 1]: 1, [5, 2, 2]: 1, [5, 3, 1]: 1}
     """
-    return {_Partitions(la):Integer(k) for la,k in result.items()}
+    return {_Partitions(la): Integer(k) for la, k in result.items()}
 
 def lrcoef_unsafe(outer, inner1, inner2):
     r"""
@@ -215,13 +213,11 @@ def lrcoef_unsafe(outer, inner1, inner2):
 
     INPUT:
 
-    - ``outer`` -- a partition (weakly decreasing list of non-negative integers).
+    - ``outer`` -- a partition (weakly decreasing list of non-negative integers)
+    - ``inner1`` -- a partition
+    - ``inner2`` -- a partition
 
-    - ``inner1`` -- a partition.
-
-    - ``inner2`` -- a partition.
-
-    .. warning::
+    .. WARNING::
 
        This function does not do any check on its input.  If you want
        to use a safer version, use :func:`lrcoef`.
@@ -248,11 +244,9 @@ def lrcoef(outer, inner1, inner2):
 
     INPUT:
 
-    - ``outer`` -- a partition (weakly decreasing list of non-negative integers).
-
-    - ``inner1`` -- a partition.
-
-    - ``inner2`` -- a partition.
+    - ``outer`` -- a partition (weakly decreasing list of non-negative integers)
+    - ``inner1`` -- a partition
+    - ``inner2`` -- a partition
 
     .. NOTE::
 
@@ -269,7 +263,6 @@ def lrcoef(outer, inner1, inner2):
         1
         sage: lrcoef([2,1,1,1,1], [2,1], [2,1])
         0
-
     """
     return lrcoef_unsafe(_Partitions(outer), _Partitions(inner1), _Partitions(inner2))
 
@@ -284,13 +277,9 @@ def mult(part1, part2, maxrows=None, level=None, quantum=None):
     INPUT:
 
     - ``part1`` -- a partition
-
     - ``part2`` -- a partition
-
     - ``maxrows`` -- (optional) an integer
-
     - ``level`` -- (optional) an integer
-
     - ``quantum`` -- (optional) an element of a ring
 
     If ``maxrows`` is specified, then only partitions with at most
@@ -312,7 +301,8 @@ def mult(part1, part2, maxrows=None, level=None, quantum=None):
         sage: sorted(mult([2],[2]).items())
         [([2, 2], 1), ([3, 1], 1), ([4], 1)]
         sage: sorted(mult([2,1],[2,1]).items())
-        [([2, 2, 1, 1], 1), ([2, 2, 2], 1), ([3, 1, 1, 1], 1), ([3, 2, 1], 2), ([3, 3], 1), ([4, 1, 1], 1), ([4, 2], 1)]
+        [([2, 2, 1, 1], 1), ([2, 2, 2], 1), ([3, 1, 1, 1], 1),
+         ([3, 2, 1], 2), ([3, 3], 1), ([4, 1, 1], 1), ([4, 2], 1)]
         sage: sorted(mult([2,1],[2,1],maxrows=2).items())
         [([3, 3], 1), ([4, 2], 1)]
         sage: mult([2,1],[3,2,1],3)
@@ -356,7 +346,7 @@ def mult(part1, part2, maxrows=None, level=None, quantum=None):
     output = {}
     for i,k in result.items():
         la = _Partitions(i[0])
-        output[la] = output.get(la, P.zero()) + k*quantum**(i[1])
+        output[la] = output.get(la, P.zero()) + k * quantum**(i[1])
     return output
 
 
@@ -370,11 +360,9 @@ def skew(outer, inner, maxrows=-1):
 
     INPUT:
 
-    - ``outer`` -- a partition.
-
-    - ``inner`` -- a partition.
-
-    - ``maxrows`` -- an integer or ``None``.
+    - ``outer`` -- a partition
+    - ``inner`` -- a partition
+    - ``maxrows`` -- an integer or ``None``
 
     If ``maxrows`` is specified, then only partitions with at most
     this number of rows are included in the result.
@@ -398,9 +386,8 @@ def coprod(part, all=0):
 
     INPUT:
 
-    - ``part`` -- a partition.
-
-    - ``all`` -- an integer.
+    - ``part`` -- a partition
+    - ``all`` -- an integer
 
     If ``all`` is non-zero then all terms are included in the result.
     If ``all`` is zero, then only pairs of partitions ``(part1,
@@ -416,7 +403,8 @@ def coprod(part, all=0):
         [(([1, 1], [1]), 1), (([2], [1]), 1), (([2, 1], []), 1)]
     """
     result = lrcalc.coprod(part, all)
-    return {tuple(_Partitions(mu) for mu in la):Integer(k) for la,k in result.items()}
+    return {tuple([_Partitions(mu) for mu in la]): Integer(k)
+            for la, k in result.items()}
 
 
 def mult_schubert(w1, w2, rank=0):
@@ -429,11 +417,9 @@ def mult_schubert(w1, w2, rank=0):
 
     INPUT:
 
-    - ``w1`` -- a permutation.
-
-    - ``w2`` -- a permutation.
-
-    - ``rank`` -- an integer.
+    - ``w1`` -- a permutation
+    - ``w2`` -- a permutation
+    - ``rank`` -- an integer
 
     If ``rank`` is non-zero, then only permutations from the symmetric
     group `S(\mathrm{rank})` are included in the result.
@@ -459,16 +445,13 @@ def lrskew(outer, inner, weight=None, maxrows=-1):
     INPUT:
 
     - ``outer`` -- a partition
-
     - ``inner`` -- a partition
-
     - ``weight`` -- a partition (optional)
-
-    - ``maxrows`` -- an integer (optional)
+    - ``maxrows`` -- a positive integer (optional)
 
     OUTPUT: an iterator of :class:`SkewTableau`
 
-    Specifying ``maxrows`` restricts the alphabet to `\{1,2,\ldots,maxrows\}`.
+    Specifying ``maxrows`` = `M` restricts the alphabet to `\{1,2,\ldots,M\}`.
 
     Specifying ``weight`` returns only those tableaux of given content/weight.
 
@@ -498,21 +481,40 @@ def lrskew(outer, inner, weight=None, maxrows=-1):
 
         sage: list(lrskew([3,2,1],[2], weight=[3,1]))
         [[[None, None, 1], [1, 1], [2]]]
+
+    TESTS::
+
+        sage: from sage.libs.lrcalc.lrcalc import lrskew
+        sage: list(lrskew([3,2,1],[2], weight=[]))
+        []
+        sage: list(lrskew([3,2,1],[2], weight=[0]))
+        []
+        sage: list(lrskew([3,2,1],[3,2,1], weight=[]))
+        [[[None, None, None], [None, None], [None]]]
+        sage: list(lrskew([3,2,1],[3,2,1], weight=[0]))
+        [[[None, None, None], [None, None], [None]]]
+        sage: list(lrskew([3,2,1],[3,2,1], weight=[1]))
+        []
     """
     iterator = lrcalc.lr_iterator(outer, inner, maxrows)
     shape = SkewPartition([outer, inner])
 
     if weight is None:
-        ST = SkewTableaux()
+        ST = SemistandardSkewTableaux(shape)
         for data in iterator:
             yield ST.from_shape_and_word(shape, [i+1 for i in data])
     else:
         wt = _Partitions(weight)
-        ST = SkewTableaux()
+        ST = SemistandardSkewTableaux(shape, wt)
+        m = len(wt)
         for data in iterator:
-            m = max(data) + 1
             w = [0] * m
             for j in data:
+                if j >= m:
+                    # We know they are not equal, so make the check below quick
+                    w = None
+                    break
                 w[j] += 1
             if w == wt:
                 yield ST.from_shape_and_word(shape, [i+1 for i in data])
+

@@ -3711,12 +3711,13 @@ class EllipticCurvePoint_finite_field(EllipticCurvePoint_field):
             pass
 
         E = self.curve()
-        card = getattr(E, "_order", None)  # get cached order of the curve
-        self._order = Integer(E.pari_curve().ellorder(self, card))
-        if card is None:
-            # ellcard() is essentially free at this point because
-            # the curve order was cached by PARI during ellorder().
+
+        if getattr(E, '_order', None) is None:
+            # The curve order will be computed and cached by PARI during
+            # ellorder() anyway. We might as well cache it here too.
             E._order = Integer(E.pari_curve().ellcard())
+
+        self._order = Integer(E.pari_curve().ellorder(self, E._order))
         return self._order
 
     additive_order = order

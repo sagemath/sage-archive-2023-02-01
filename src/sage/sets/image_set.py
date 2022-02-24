@@ -273,8 +273,7 @@ class ImageSet(ImageSubobject, Set_base, Set_add_sub_operators, Set_boolean_oper
         sage: _.an_element()
         1
         sage: ImageSet(sos, Set([(3, 4), (3, -4)]))
-        Image of
-         {(3, -4), (3, 4)} by
+        Image of {...(3, -4)...} by
          The map (x, y) |--> x^2 + y^2 from Vector space of dimension 2 over Symbolic Ring
         sage: _.an_element()
         25

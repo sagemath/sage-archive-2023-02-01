@@ -1644,8 +1644,7 @@ class FiniteWordPath_2d(FiniteWordPath_all):
             If ImageMagick is not installed, you will get an error
             message like this::
 
-               /usr/local/share/sage/local/bin/sage-native-execute: 8: convert:
-               not found
+               convert: not found
 
                Error: ImageMagick does not appear to be installed. Saving an
                animation to a GIF file or displaying an animation requires

@@ -56,6 +56,18 @@ def _do_singular_init_(singular, base_ring, char, _vars, order):
     This code was extracted from :class:`PolynomialRing_singular_repr`
     to make it callable from other places, in particular
     :class:`MPolynomialRing_libsingular`.
+
+    TESTS::
+
+        sage: from sage.rings.polynomial.polynomial_singular_interface import _do_singular_init_
+        sage: _do_singular_init_(singular, ZZ, 0, 'X', 'dp')
+        (polynomial ring, over a domain, global ordering
+         // coefficients: ZZ
+         // number of vars : 1
+         //        block   1 : ordering dp
+         //                  : names    X
+         //        block   2 : ordering C,
+         None)
     """
     make_ring = lambda s: singular.ring(s, _vars, order=order)
 
@@ -168,7 +180,7 @@ class PolynomialRing_singular_repr:
     """
     def _singular_(self, singular=singular):
         r"""
-        Returns a Singular ring for this polynomial ring.
+        Return a Singular ring for this polynomial ring.
 
         Currently `\QQ`, `{\rm GF}(p), {\rm GF}(p^n)`, `\CC`, `\RR`, `\ZZ` and
         `\ZZ/n\ZZ` are supported.

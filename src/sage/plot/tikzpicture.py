@@ -10,6 +10,14 @@ The module allows easy creation of tikz pictures from Sage objects like graphs
 and posets. Conversion of tikz pictures to pdf and png format based on
 standalone LaTeX document class.
 
+According to wikipedia__, `PGF/TikZ`__ is a pair of languages for producing
+vector graphics (e.g., technical illustrations and drawings) from a
+geometric/algebraic description, with standard features including the
+drawing of points, lines, arrows, paths, circles, ellipses and polygons.
+
+__ https://en.wikipedia.org/wiki/PGF/TikZ
+__ https://www.ctan.org/pkg/pgf
+
 EXAMPLES::
 
 First construct a string describing a tikzpicture::
@@ -395,9 +403,6 @@ class StandaloneTex(SageObject):
             CalledProcessError: Command '['...latex', '-interaction=nonstopmode',
             'tikz_...tex']' returned non-zero exit status 1.
 
-        ACKNOWLEDGEMENT:
-
-            The code was adapted and taken from the module :mod:`sage.misc.latex.py`.
         """
         from sage.features.latex import lualatex, pdflatex
 
@@ -494,9 +499,6 @@ class StandaloneTex(SageObject):
             sage: path_to_file[-4:]              # long time (fast) # optional latex imagemagick
             '.png'
 
-        ACKNOWLEDGEMENT:
-
-            The code was adapted and taken from the module :mod:`sage.misc.latex.py`.
         """
         from sage.features.imagemagick import ImageMagick
         ImageMagick().require()
@@ -579,9 +581,6 @@ class StandaloneTex(SageObject):
             sage: path_to_file[-4:]                                    # long time (fast) # optional latex pdftocairo
             '.svg'
 
-        ACKNOWLEDGEMENT:
-
-            The code was adapted and taken from the module :mod:`sage.misc.latex.py`.
         """
         # set the temporary filenames
         temp_filename_pdf = self.pdf(filename=None, view=False)

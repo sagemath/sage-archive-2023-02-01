@@ -1466,7 +1466,7 @@ class BipartiteGraph(Graph):
             sage: B.reduced_adjacency_matrix(base_ring=RDF)
             Traceback (most recent call last):
             ...
-            TypeError: float() argument must be a string or a number, not 'sage.rings.finite_rings.element_givaro.FiniteField_givaroElement'
+            TypeError: float() argument must be a string or a ...number, not 'sage.rings.finite_rings.element_givaro.FiniteField_givaroElement'
         """
         if self.multiple_edges() and self.weighted():
             raise NotImplementedError(

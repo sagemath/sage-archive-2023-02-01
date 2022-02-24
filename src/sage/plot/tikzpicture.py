@@ -102,13 +102,8 @@ Adding a border in the options avoids croping the vertices of a graph::
     sage: t = TikzPicture(s, standalone_options=["border=4mm"], usepackage=['tkz-graph'])
     sage: _ = t.pdf()    # not tested
 
-If dot2tex Sage optional package and graphviz are installed, then the following
-one liner works allowing to create a nice tikzpicture from a graph with
-vertices and edges placed according to graphviz::
-
-    sage: t = TikzPicture._from_graph(g)  # optional: dot2tex # long time (3s)
-
-::
+The current latex representation of a transducer is a tikzpicture using
+the tikz library automata. The string can be used as input::
 
     sage: s = latex(transducers.GrayCode())
     sage: t = TikzPicture(s, usetikzlibrary=['automata'])
@@ -121,7 +116,7 @@ AUTHORS:
 """
 
 #*****************************************************************************
-#       Copyright (C) 2015-2021 Sébastien Labbé <slabqc@gmail.com>
+#       Copyright (C) 2015-2022 Sébastien Labbé <slabqc@gmail.com>
 #
 #  Distributed under the terms of the GNU General Public License version 2 (GPLv2)
 #
@@ -832,6 +827,11 @@ class TikzPicture(StandaloneTex):
             Prerequisite: dot2tex optional Sage package and graphviz must be
             installed.
 
+        .. WARNING::
+
+            This method might be deleted in the future in favor of a method
+            in the graph class returning a tikz picture.
+
         INPUT:
 
         - ``graph`` -- graph
@@ -965,6 +965,11 @@ class TikzPicture(StandaloneTex):
         r"""
         Convert a graph with positions defined for vertices to a tikzpicture.
 
+        .. WARNING::
+
+            This method might be deleted in the future in favor of a method
+            in the graph class returning a tikz picture.
+
         INPUT:
 
         - ``graph`` -- graph (with predefined positions)
@@ -1085,6 +1090,11 @@ class TikzPicture(StandaloneTex):
 
             Prerequisite: dot2tex optional Sage package and graphviz must be
             installed.
+
+        .. WARNING::
+
+            This method might be deleted in the future in favor of a method
+            in the graph class returning a tikz picture.
 
         INPUT:
 

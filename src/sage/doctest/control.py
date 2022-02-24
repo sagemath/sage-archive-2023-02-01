@@ -736,6 +736,16 @@ class DocTestController(SageObject):
         def all_installed_modules():
             import sage
             self.files.extend(sage.__path__)
+            try:
+                import sage_setup
+                self.files.extend(sage_setup.__path__)
+            except ImportError:
+                pass
+            try:
+                import sage_docbuild
+                self.files.extend(sage_docbuild.__path__)
+            except ImportError:
+                pass
 
         def all_files():
             self.files.append(opj(SAGE_SRC, 'sage'))

@@ -240,7 +240,7 @@ class StandaloneTex(SageObject):
         return '\n'.join(lines)
 
     def _rich_repr_(self, display_manager, **kwds):
-        """
+        r"""
         Rich Output Magic Method
 
         See :mod:`sage.repl.rich_output` for details.
@@ -346,7 +346,7 @@ class StandaloneTex(SageObject):
         return self._content
 
     def pdf(self, filename=None, view=True, program=None):
-        """
+        r"""
         Compiles the latex code with pdflatex and create a pdf file.
 
         INPUT:
@@ -463,7 +463,7 @@ class StandaloneTex(SageObject):
         return temp_filename_pdf
 
     def png(self, filename=None, density=150, view=True):
-        """
+        r"""
         Compiles the latex code with pdflatex and converts to a png file.
 
         INPUT:
@@ -542,7 +542,7 @@ class StandaloneTex(SageObject):
         return temp_filename_png
 
     def svg(self, filename=None, view=True, program='pdftocairo'):
-        """
+        r"""
         Compiles the latex code with pdflatex and converts to a svg file.
 
         INPUT:
@@ -632,7 +632,7 @@ class StandaloneTex(SageObject):
         return temp_filename_svg
 
     def tex(self, filename=None, include_header=True):
-        """
+        r"""
         Writes the latex code to a file.
 
         INPUT:

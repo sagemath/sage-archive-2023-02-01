@@ -100,6 +100,7 @@ class DocTestDefaults(SageObject):
         self.serial = False
         self.timeout = -1
         self.all = False
+        self.installed = False
         self.logfile = None
         self.long = False
         self.warn_long = -1.0
@@ -732,6 +733,10 @@ class DocTestController(SageObject):
         else:
             have_git = False
 
+        def all_installed_modules():
+            import sage
+            self.files.extend(sage.__path__)
+
         def all_files():
             self.files.append(opj(SAGE_SRC, 'sage'))
             # Only test sage_setup and sage_docbuild if the relevant
@@ -751,6 +756,9 @@ class DocTestController(SageObject):
             if os.path.isdir(SAGE_DOC_SRC):
                 self.files.append(SAGE_DOC_SRC)
 
+        if self.options.installed:
+            self.log("Doctesting all installed modules of the Sage library.")
+            all_installed_modules()
         if self.options.all or (self.options.new and not have_git):
             self.log("Doctesting entire Sage library.")
             all_files()

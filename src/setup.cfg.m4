@@ -108,7 +108,6 @@ scripts =
     bin/sage-ipython
     bin/sage-notebook
     bin/sage-num-threads.py
-    bin/sage-open
     bin/sage-preparse
     bin/sage-python
     bin/sage-rebase.bat

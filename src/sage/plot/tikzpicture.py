@@ -926,8 +926,6 @@ class TikzPicture(StandaloneTex):
             sage: tikz = TikzPicture._from_graph(G, edge_options=edge_options)  # optional dot2tex 
             sage: _ = tikz.pdf()      # not tested
 
-        .. TODO:: improve the previous example
-
         """
         from sage.features.latex import pdflatex
         pdflatex().require()

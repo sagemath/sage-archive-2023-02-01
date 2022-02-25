@@ -1014,7 +1014,7 @@ In addition to these fields in ``checksums.ini``, the optional field
 ``upstream_url`` holds an URL to the upstream package archive.
 
 The Release Manager uses the information in ``upstream_url`` to
-download the upstream package archvive and to make it available on the
+download the upstream package archive and to make it available on the
 Sage mirrors when a new release is prepared.  On Trac tickets
 upgrading a package, the ticket description should no longer contain
 the upstream URL to avoid duplication of information.

@@ -729,7 +729,7 @@ class DocTestController(SageObject):
             Doctesting ...
         """
         opj = os.path.join
-        from sage.env import SAGE_SRC, SAGE_DOC_SRC, SAGE_ROOT, SAGE_ROOT_GIT
+        from sage.env import SAGE_SRC, SAGE_DOC_SRC, SAGE_ROOT, SAGE_ROOT_GIT, SAGE_DOC
         # SAGE_ROOT_GIT can be None on distributions which typically
         # only have the SAGE_LOCAL install tree but not SAGE_ROOT
         if SAGE_ROOT_GIT is not None:
@@ -750,6 +750,8 @@ class DocTestController(SageObject):
                 self.files.extend(sage_docbuild.__path__)
             except ImportError:
                 pass
+            if os.path.isdir(SAGE_DOC):
+                self.files.append(SAGE_DOC)
 
         def all_files():
             self.files.append(opj(SAGE_SRC, 'sage'))

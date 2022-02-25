@@ -738,6 +738,7 @@ class DocTestController(SageObject):
             have_git = False
 
         def all_installed_modules():
+            self.log("Doctesting all installed modules of the Sage library.")
             import sage
             self.files.extend(sage.__path__)
             try:
@@ -750,10 +751,16 @@ class DocTestController(SageObject):
                 self.files.extend(sage_docbuild.__path__)
             except ImportError:
                 pass
-            if os.path.isdir(SAGE_DOC):
+
+        def all_installed_doc():
+            if SAGE_DOC and os.path.isdir(SAGE_DOC):
+                self.log("Doctesting all installed documentation sources.")
                 self.files.append(SAGE_DOC)
 
         def all_files():
+            if not SAGE_SRC:
+                return all_installed_modules()
+            self.log("Doctesting entire Sage library.")
             self.files.append(opj(SAGE_SRC, 'sage'))
             # Only test sage_setup and sage_docbuild if the relevant
             # imports work. They may not work if not in a build
@@ -769,15 +776,22 @@ class DocTestController(SageObject):
                 self.files.append(opj(SAGE_SRC, 'sage_docbuild'))
             except ImportError:
                 pass
-            if os.path.isdir(SAGE_DOC_SRC):
+
+        def all_doc_sources():
+            if SAGE_DOC_SRC and os.path.isdir(SAGE_DOC_SRC):
+                self.log("Doctesting all documentation sources.")
                 self.files.append(SAGE_DOC_SRC)
+            else:
+                all_installed_doc()
 
         if self.options.installed:
-            self.log("Doctesting all installed modules of the Sage library.")
             all_installed_modules()
+            all_installed_doc()
+
         if self.options.all or (self.options.new and not have_git):
-            self.log("Doctesting entire Sage library.")
             all_files()
+            all_doc_sources()
+
         elif self.options.new and have_git:
             # Get all files changed in the working repo.
             self.log("Doctesting files changed since last git commit")

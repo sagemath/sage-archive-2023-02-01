@@ -788,7 +788,7 @@ class DocTestController(SageObject):
             all_installed_modules()
             all_installed_doc()
 
-        if self.options.all or (self.options.new and not have_git):
+        elif self.options.all or (self.options.new and not have_git):
             all_files()
             all_doc_sources()
 

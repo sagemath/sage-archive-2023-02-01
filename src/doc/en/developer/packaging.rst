@@ -733,6 +733,9 @@ optional packages.
 
 .. _section-spkg-tags:
 
+Package tags
+------------
+
 You can mark a package as "huge" by placing an empty file named
 ``huge`` in the package directory.  For example, the package
 ``polytopes_db_4d`` is a large database whose compressed tarball has a

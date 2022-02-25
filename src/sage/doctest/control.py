@@ -250,8 +250,12 @@ def skipfile(filename, tested_optional_tags=False):
         sage: skipfile(filename, True)
         False
     """
-    base, ext = os.path.splitext(filename)
-    if ext not in ('.py', '.pyx', '.pxd', '.pxi', '.sage', '.spyx', '.rst', '.tex'):
+    if filename.endswith('.rst.txt'):
+        ext = '.rst.txt'
+    else:
+        base, ext = os.path.splitext(filename)
+    # .rst.txt appear in the installed documentation in subdirectories named "_sources"
+    if ext not in ('.py', '.pyx', '.pxd', '.pxi', '.sage', '.spyx', '.rst', '.tex', '.rst.txt'):
         return True
     with open(filename) as F:
         line_count = 0

@@ -302,6 +302,8 @@ AUTHOR:
 
 import operator
 from copy import copy
+from math import isnan, nan
+
 import sage.rings.abc
 from sage.rings.integer import Integer
 from sage.rings.integer_ring import ZZ
@@ -2586,6 +2588,20 @@ class FastCallableFloatWrapper:
 
         if abs(z.imag()) < self._imag_tol:
             return float(z.real())
+        elif isnan(z.real()) and isnan(z.imag()):
+            # A fast-callable with domain=float or domain=RDF will
+            # return NaN if that's what the underlying function itself
+            # returns. When performing the same computation over CDF,
+            # however, we get something special; witness:
+            #
+            #     sage: RDF(0)*math.inf
+            #     NaN
+            #     sage: CDF(0)*math.inf
+            #     NaN + NaN*I
+            #
+            # Thus for backwards-compatibility, we handle this special
+            # case to return NaN to anyone expecting it.
+            return nan
         else:
             raise ValueError(f"complex fast-callable function result {z} " +
                              f"for arguments {args}")

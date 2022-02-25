@@ -166,6 +166,8 @@ The following are some additional files which can be added:
     |-- distros
     |   |-- platform1.txt
     |   `-- platform2.txt
+    |-- has_nonfree_dependencies
+    |-- huge
     |-- patches
     |   |-- bar.patch
     |   `-- baz.patch
@@ -727,6 +729,23 @@ correct, the following command should work without errors::
 Finally, note that standard packages should only depend on standard
 packages and optional packages should only depend on standard or
 optional packages.
+
+
+.. _section-spkg-tags:
+
+You can mark a package as "huge" by placing an empty file named
+``huge`` in the package directory.  For example, the package
+``polytopes_db_4d`` is a large database whose compressed tarball has a
+size of 9 GB.
+
+For some other packages, we have placed an empty file named
+``has_nonfree_dependencies`` in the package directory. This is to
+indicate that Sage with this package installed cannot be
+redistributed, and also that the package can only be installed after
+installing some other, non-free package.
+
+We use these tags in our continuous integration scripts to filter
+out packages that we cannot or should not test automatically.
 
 
 .. _section-trees:

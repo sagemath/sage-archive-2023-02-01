@@ -1696,19 +1696,15 @@ class TernaryQF(SageObject):
             [0 1 0]
             [0 0 1]
             ]
-
         """
-
         if TernaryQF.possible_automorphisms is None:
-
-             I = [-1, 0, 1]
-             auts = [matrix(ZZ, 3, [a, b, c, d, e, f, g, h, i]) for a in I for b in I for c in I for d in I for e in I for f in I for g in I for h in I for i in I]
-             auts = [m for m in auts if m.det() == 1]
-             auts = [m for m in auts if m**2 in auts]
-             auts = [m for m in auts if m**2 in auts]
-             auts = [m for m in auts if m**2 in auts]
-             TernaryQF.possible_automorphisms = auts
-
+            I = [-1, 0, 1]
+            auts = [matrix(ZZ, 3, [a, b, c, d, e, f, g, h, i]) for a in I for b in I for c in I for d in I for e in I for f in I for g in I for h in I for i in I]
+            auts = [m for m in auts if m.det() == 1]
+            auts = [m for m in auts if m**2 in auts]
+            auts = [m for m in auts if m**2 in auts]
+            auts = [m for m in auts if m**2 in auts]
+            TernaryQF.possible_automorphisms = auts
         return [m for m in TernaryQF.possible_automorphisms if self(m) == self]
 
     def automorphisms(self, slow=True):
@@ -1979,7 +1975,7 @@ class TernaryQF(SageObject):
             24
         """
         if not self.is_definite():
-           raise ValueError("Oops, only implemented for definite forms.")
+            raise ValueError("Oops, only implemented for definite forms.")
 
         if self._number_of_automorphisms is not None:
             return self._number_of_automorphisms

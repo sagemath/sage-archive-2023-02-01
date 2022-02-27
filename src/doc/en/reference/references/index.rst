@@ -1384,6 +1384,10 @@ REFERENCES:
 .. [CFI1992] Cai, JY., Fürer, M. & Immerman, N. Combinatorica (1992) 12: 389.
              :doi:`10.1007/BF01305232`
 
+.. [CFKP1997] James W. Cannon, William J. Floyd, Richard Kenyon and Walter R. Parry.
+              *Hyperbolic Geometry*. Flavors of Geometry, MSRI Publications,
+              Volume 31, 1997.
+
 .. [CFKPR2010] Ioannis Caragiannis, Afonso Ferreira, Christos Kaklamanis,
                Stéphane Pérennes, Hervé Rivano.
                *Fractional Path Coloring in Bounded Degree Trees with
@@ -5307,6 +5311,9 @@ REFERENCES:
              Fields. In: Kuijk W. (eds) Modular Functions of One
              Variable I. Lecture Notes in Mathematics,
              vol 320. (1973), Springer, Berlin, Heidelberg
+
+.. [Sta1993] Stahl, Saul: *The Poincaré Half-plane: A Gateway to Modern Geometry*
+             Jones & Bartlett Learning, 1993. ISBN 086720298X, 9780867202984
 
 .. [Sta1995] \R. P. Stanley, *A symmetric function generalization
              of the chromatic polynomial of a graph*, Adv. Math., ***111***

@@ -1035,7 +1035,7 @@ class DivisorGroup(UniqueRepresentation, Parent):
         """
         if x == 0:
             return self.element_class(self, {})
-        raise ValueError(f"Cannot construct a divisor from {x}")
+        raise ValueError(f"cannot construct a divisor from {x}")
 
     def _coerce_map_from_(self, S):
         """

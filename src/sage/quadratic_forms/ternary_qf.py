@@ -1680,8 +1680,8 @@ class TernaryQF(SageObject):
         """
         import itertools
         if TernaryQF.possible_automorphisms is None:
-            I = [-1, 0, 1]
-            auts = (matrix(ZZ, 3, m) for m in itertools.product([I] * 9))
+            I = [[-1, 0, 1]] * 9
+            auts = (matrix(ZZ, 3, 3, m) for m in itertools.product(*I))
             auts = [m for m in auts if m.det() == 1]
             auts = [m for m in auts if m**2 in auts]
             auts = [m for m in auts if m**2 in auts]

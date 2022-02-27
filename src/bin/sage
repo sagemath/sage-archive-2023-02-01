@@ -276,8 +276,6 @@ sage_setup() {
         exit 1
     fi
 
-    maybe_sage_location
-
     if [ ! -d "$IPYTHONDIR" ]; then
         # make sure that $DOT_SAGE exists so that ipython will happily
         # create its config directories there.  If DOT_SAGE doesn't
@@ -285,20 +283,6 @@ sage_setup() {
         mkdir -p -m 700 "$DOT_SAGE"
     fi
     sage-cleaner &>/dev/null &
-}
-
-
-# Check to see if the whole Sage install tree has moved.  If so,
-# change various hardcoded paths.  Skip this if we don't have write
-# access to $SAGE_LOCAL (e.g. when running as a different user) or
-# if Python and sage-location haven't been installed yet.
-maybe_sage_location()
-{
-    if [ -n "$SAGE_LOCAL" -a -w "$SAGE_LOCAL" ]; then
-        if [ -x "$SAGE_VENV/bin/python" ] && [ -x "$SAGE_VENV/bin/sage-location" ]; then
-            sage-location || exit $?
-        fi
-    fi
 }
 
 
@@ -833,7 +817,6 @@ fi
 # build/bin/sage-site. See #29111.
 
 build_sage() {
-    maybe_sage_location
     ( cd "$SAGE_ROOT/build/make" && ./install sagelib-no-deps ) || exit $?
 }
 
@@ -972,7 +955,7 @@ fi
 # The following could be moved to build/bin/sage-site. See #29111.
 
 if [ "$1" = '--location' ]; then
-    maybe_sage_location
+    # Ignore
     exit 0
 fi
 
@@ -982,7 +965,6 @@ if [ "$1" = '-installed' -o "$1" = "--installed" ]; then
 fi
 
 if [ "$1" = '-sdist' -o "$1" = "--sdist" ]; then
-    maybe_sage_location
     shift
     exec sage-sdist "$@"
 fi

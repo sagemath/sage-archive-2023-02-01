@@ -2504,8 +2504,7 @@ class FastCallableFloatWrapper:
 
     EXAMPLES:
 
-    The ``float`` incarnation of "not a number" is returned instead
-    of an error being thrown if the answer is complex::
+    An error is thrown if the answer is complex::
 
         sage: from sage.ext.fast_callable import FastCallableFloatWrapper
         sage: f = sqrt(x)
@@ -2543,7 +2542,7 @@ class FastCallableFloatWrapper:
         EXAMPLES:
 
         The wrapper will ignore an imaginary part smaller in magnitude
-        than ``imag_tol``::
+        than ``imag_tol``, but not one larger::
 
             sage: from sage.ext.fast_callable import FastCallableFloatWrapper
             sage: f = x

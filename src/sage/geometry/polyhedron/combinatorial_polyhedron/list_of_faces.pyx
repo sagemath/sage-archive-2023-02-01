@@ -91,7 +91,7 @@ AUTHOR:
 # ****************************************************************************
 
 from sage.structure.element import is_Matrix
-from sage.matrix.matrix_integer_dense  cimport Matrix_integer_dense
+from sage.matrix.matrix_dense  cimport Matrix_dense
 
 from .face_list_data_structure cimport *
 
@@ -503,7 +503,7 @@ cdef class ListOfFaces:
         """
         from sage.rings.integer_ring import ZZ
         from sage.matrix.constructor import matrix
-        cdef Matrix_integer_dense M = matrix(
+        cdef Matrix_dense M = matrix(
                 ZZ, self.n_faces(), self.n_atoms(), 0)
 
         cdef size_t i

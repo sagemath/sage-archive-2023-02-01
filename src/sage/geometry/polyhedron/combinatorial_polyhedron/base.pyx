@@ -1134,7 +1134,7 @@ cdef class CombinatorialPolyhedron(SageObject):
             if self.dim() == 0:
                 # To be consistent with ``Polyhedron_base``,
                 for i in range(self.n_Hrepresentation()):
-                    incidence_matrix.set_unsafe_si(0, i, 1)
+                    incidence_matrix.set_unsafe_int(0, i, 1)
             incidence_matrix.set_immutable()
             return incidence_matrix
 
@@ -1144,13 +1144,13 @@ cdef class CombinatorialPolyhedron(SageObject):
             n_equations = len(self.equations())
             for Hindex in range(n_facets, n_facets + n_equations):
                 for Vindex in range(self.n_Vrepresentation()):
-                    incidence_matrix.set_unsafe_si(Vindex, Hindex, 1)
+                    incidence_matrix.set_unsafe_int(Vindex, Hindex, 1)
 
         facet_iter = self.face_iter(self.dimension() - 1, dual=False)
         for facet in facet_iter:
             Hindex = facet.ambient_H_indices()[0]
             for Vindex in facet.ambient_V_indices():
-                incidence_matrix.set_unsafe_si(Vindex, Hindex, 1)
+                incidence_matrix.set_unsafe_int(Vindex, Hindex, 1)
 
         incidence_matrix.set_immutable()
 
@@ -1303,8 +1303,8 @@ cdef class CombinatorialPolyhedron(SageObject):
         for i in range(self._n_edges):
             a = self._get_edge(self._edges, i, 0)
             b = self._get_edge(self._edges, i, 1)
-            adjacency_matrix.set_unsafe_si(a, b, 1)
-            adjacency_matrix.set_unsafe_si(b, a, 1)
+            adjacency_matrix.set_unsafe_int(a, b, 1)
+            adjacency_matrix.set_unsafe_int(b, a, 1)
         adjacency_matrix.set_immutable()
         return adjacency_matrix
 
@@ -1475,8 +1475,8 @@ cdef class CombinatorialPolyhedron(SageObject):
         for i in range(self._n_ridges):
             a = self._get_edge(self._ridges, i, 0)
             b = self._get_edge(self._ridges, i, 1)
-            adjacency_matrix.set_unsafe_si(a, b, 1)
-            adjacency_matrix.set_unsafe_si(b, a, 1)
+            adjacency_matrix.set_unsafe_int(a, b, 1)
+            adjacency_matrix.set_unsafe_int(b, a, 1)
         adjacency_matrix.set_immutable()
         return adjacency_matrix
 

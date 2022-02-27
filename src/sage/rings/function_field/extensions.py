@@ -108,6 +108,7 @@ class ConstantFieldExtension(FunctionFieldExtension):
             embedF = embedF_base
 
         self._embedk = embedk
+        self._embedF = embedF
         self._F_ext = F_ext
         self._k = k
 
@@ -126,6 +127,27 @@ class ConstantFieldExtension(FunctionFieldExtension):
             Function field in y defined by y^3 + x^6 + x^4 + x^2
         """
         return self._F_ext
+
+    def defining_morphism(self):
+        """
+        Return the defining morphism of this extension.
+
+        This is the morphism from the base to the top.
+
+        EXAMPLES::
+
+            sage: K.<x> = FunctionField(GF(2)); R.<Y> = K[]
+            sage: F.<y> = K.extension(Y^3 - x^2*(x^2 + x + 1)^2)
+            sage: E = F.extension_constant_field(GF(2^3))
+            sage: E.defining_morphism()
+            Function Field morphism:
+              From: Function field in y defined by y^3 + x^6 + x^4 + x^2
+              To:   Function field in y defined by y^3 + x^6 + x^4 + x^2
+              Defn: y |--> y
+                    x |--> x
+                    1 |--> 1
+        """
+        return self._embedF
 
     def conorm_place(self, p):
         """

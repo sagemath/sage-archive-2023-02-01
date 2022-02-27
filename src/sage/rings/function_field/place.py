@@ -1163,9 +1163,9 @@ class PlaceSet(UniqueRepresentation, Parent):
         """
         return "Set of places of {}".format(self._field)
 
-    def _element_constructor_(self, ideal):
+    def _element_constructor_(self, x):
         """
-        Create a place from the prime ``ideal``.
+        Create a place from ``x`` if ``x`` is a prime ideal.
 
         EXAMPLES::
 
@@ -1176,10 +1176,10 @@ class PlaceSet(UniqueRepresentation, Parent):
             sage: places(O.ideal(x,y))
             Place (x, y)
         """
-        if not ideal.is_prime():
-            raise TypeError("not a prime ideal")
-
-        return self.element_class(self, ideal)
+        if isinstance(x, FunctionFieldIdeal) and x.is_prime():
+            return self.element_class(self, x)
+        else:
+            raise ValueError("not a prime ideal")
 
     def _an_element_(self):
         """

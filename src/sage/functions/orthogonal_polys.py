@@ -2634,7 +2634,7 @@ class Func_krawtchouk(OrthogonalFunction):
         try:
             return self.eval_formula(j, x, n, p)
         except (TypeError, ValueError):
-            return eval_recursive(j, x, n, p)
+            return self.eval_recursive(j, x, n, p)
 
     def eval_recursive(self, j, x, n, p, *args, **kwds):
         r"""
@@ -2746,7 +2746,7 @@ class Func_meixner(OrthogonalFunction):
         try:
             return self.eval_formula(n, x, b, c)
         except (TypeError, ValueError):
-            return eval_recursive(n, x, b, c)
+            return self.eval_recursive(n, x, b, c)
 
     def eval_recursive(self, n, x, b, c, *args, **kwds):
         r"""
@@ -2876,7 +2876,7 @@ class Func_hahn(OrthogonalFunction):
         try:
             return self.eval_formula(k, x, a, b, n)
         except (TypeError, ValueError):
-            return eval_recursive(k, x, a, b, n)
+            return self.eval_recursive(k, x, a, b, n)
 
     def eval_recursive(self, k, x, a, b, n, *args, **kwds):
         r"""

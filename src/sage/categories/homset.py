@@ -726,8 +726,8 @@ class Homset(Set_generic):
             sage: hash(Hom(QQ, ZZ)) == hash((QQ, ZZ, QQ))
             True
 
-            sage: E = EllipticCurve('37a')
-            sage: H = E(0).parent(); H
+            sage: E = EllipticCurve('37a')                              # optional - sage.symbolic
+            sage: H = E(0).parent(); H                                  # optional - sage.symbolic
             Abelian group of points on Elliptic Curve defined by y^2 + y = x^3 - x over Rational Field
             sage: hash(H) == hash((H.domain(), H.codomain(), H.base()))
             True

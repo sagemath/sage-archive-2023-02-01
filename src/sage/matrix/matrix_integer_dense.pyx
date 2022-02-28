@@ -364,7 +364,7 @@ cdef class Matrix_integer_dense(Matrix_dense):
         """
         fmpz_set_mpz(fmpz_mat_entry(self._matrix,i,j), value)
 
-    cdef void set_unsafe_si(self, Py_ssize_t i, Py_ssize_t j, long value):
+    cdef void set_unsafe_int(self, Py_ssize_t i, Py_ssize_t j, int value):
         """
         Set position i,j of this matrix to ``value``.
         """
@@ -378,7 +378,7 @@ cdef class Matrix_integer_dense(Matrix_dense):
 
     cdef get_unsafe(self, Py_ssize_t i, Py_ssize_t j):
         """
-        Return (i, j) entry of self as a new Integer.
+        Return the (i, j) entry of self as a new Integer.
 
         .. WARNING::
 
@@ -430,9 +430,20 @@ cdef class Matrix_integer_dense(Matrix_dense):
         """
         fmpz_get_mpz(value,fmpz_mat_entry(self._matrix, i, j))
 
+    cdef inline int get_unsafe_int(self, Py_ssize_t i, Py_ssize_t j):
+        """
+        Return the (i, j) entry of self as a new Integer.
+
+        .. WARNING::
+
+           This is very unsafe; it assumes i and j are in the right
+           range.
+        """
+        return fmpz_get_si(fmpz_mat_entry(self._matrix, i, j))
+
     cdef inline double get_unsafe_double(self, Py_ssize_t i, Py_ssize_t j):
         """
-        Return (j, i) entry of self as a new Integer.
+        Return the (i, j) entry of self as a new Integer.
 
         .. WARNING::
 
@@ -2927,7 +2938,10 @@ cdef class Matrix_integer_dense(Matrix_dense):
             # 2. the user has specified the relevant parameters already
             if "strategies" not in kwds:
                 if proof is False:
-                    kwds["strategies"] = load_strategies_json(BKZ.DEFAULT_STRATEGY)
+                    import os
+                    kwds["strategies"] = load_strategies_json(
+                        BKZ.DEFAULT_STRATEGY_PATH + 
+                        os.path.basename(BKZ.DEFAULT_STRATEGY))
 
             if "auto_abort" not in kwds:
                 if proof is False:
@@ -5022,7 +5036,7 @@ cdef class Matrix_integer_dense(Matrix_dense):
         k = 0
         for i from 0 <= i < self._nrows:
             for j from 0 <= j < self._ncols:
-                res.set_unsafe_si(i,j,res_l[k])
+                res.set_unsafe_int(i,j,res_l[k])
                 k += 1
         sig_free(res_l)
 

@@ -38,6 +38,7 @@ case $SYSTEM in
         cat <<EOF
 ARG BASE_IMAGE=ubuntu:latest
 FROM \${BASE_IMAGE} as with-system-packages
+RUN (yes | unminimize) || echo "(ignored)"
 EOF
         if [ -n "$DIST_UPGRADE" ]; then
             cat <<EOF
@@ -53,6 +54,12 @@ EOF
         UPDATE="$SUDO apt-get update &&"
         INSTALL="$SUDO DEBIAN_FRONTEND=noninteractive apt-get install -qqq --no-install-recommends --yes"
         CLEAN="&& $SUDO apt-get clean"
+        if [ -n "$EXTRA_REPOSITORY" ]; then
+            cat <<EOF
+RUN $UPDATE $INSTALL software-properties-common && ($INSTALL gpg gpg-agent || echo "(ignored)")
+RUN $SUDO add-apt-repository $EXTRA_REPOSITORY
+EOF
+        fi
         ;;
     fedora*|redhat*|centos*)
         cat <<EOF
@@ -61,6 +68,13 @@ FROM \${BASE_IMAGE} as with-system-packages
 EOF
         EXISTS="2>/dev/null >/dev/null yum install -y --downloadonly"
         INSTALL="yum install -y"
+        if [ -n "$DEVTOOLSET" ]; then
+            cat <<EOF
+RUN $INSTALL centos-release-scl
+RUN $INSTALL devtoolset-$DEVTOOLSET
+EOF
+            RUN="RUN . /opt/rh/devtoolset-$DEVTOOLSET/enable && "
+        fi
         ;;
     gentoo*)
         cat <<EOF
@@ -79,7 +93,7 @@ FROM \${BASE_IMAGE} as with-system-packages
 EOF
         # slackpkg install ignores packages that it does not know, so we do not have to filter
         EXISTS="true"
-        UPDATE="slackpkg update &&"
+        UPDATE="(yes|slackpkg update) &&"
         INSTALL="slackpkg install"
         ;;
     arch*)

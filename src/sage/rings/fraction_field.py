@@ -291,6 +291,14 @@ class FractionField_generic(ring.Field):
             sage: 1/(R.gen(0) + R.gen(1))
             1/(x + y)
 
+        Test for :trac:`31320`::
+
+            sage: FQt = Frac(QQ['t'])
+            sage: LCt = LaurentPolynomialRing(CC,'t')
+            sage: coercion_model.common_parent(FQt, LCt)
+            Fraction Field of Univariate Polynomial Ring in t
+            over Complex Field with 53 bits of precision
+
         Coercion from a localization::
 
             sage: R.<x> = ZZ[]
@@ -333,7 +341,9 @@ class FractionField_generic(ring.Field):
                                       parent_as_first_arg=False)
 
         # special treatment for LaurentPolynomialRings
-        if isinstance(S, LaurentPolynomialRing_generic):
+        if (isinstance(S, LaurentPolynomialRing_generic) and
+                self._R.fraction_field().has_coerce_map_from(S.base_ring())):
+
             def converter(x, y=None):
                 if y is None:
                     return self._element_class(self, *x._fraction_pair())
@@ -1236,7 +1246,7 @@ class FractionFieldEmbeddingSection(Section):
             den = codom(x.denominator())
 
         if codom.is_exact() and den.is_one():
-           return num
+            return num
         if check and not den.is_unit():
             # This should probably be a ValueError.
             # However, too much existing code is expecting this to throw a

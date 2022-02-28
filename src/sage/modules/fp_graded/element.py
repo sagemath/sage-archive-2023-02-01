@@ -1,10 +1,6 @@
 r"""
 Elements of finitely presented graded modules
 
-This class implements construction and basic manipulation of elements of the
-Sage parent :class:`sage.modules.fp_graded.module.FPModule`, which models
-finitely presented modules over connected graded algebras.
-
 AUTHORS:
 
 - Robert R. Bruner, Michael J. Catanzaro (2012): Initial version.
@@ -60,7 +56,7 @@ class FPElement(IndexedFreeModuleElement):
             Free graded left module on 2 generators over mod 2 Steenrod algebra, milnor basis
         """
         C = self.parent()._j.codomain()
-        return C(self.coefficients())
+        return C(self.dense_coefficient_list())
 
 
     @cached_method
@@ -100,15 +96,32 @@ class FPElement(IndexedFreeModuleElement):
             Traceback (most recent call last):
             ...
             ValueError: the zero element does not have a well-defined degree
+
+        Testing that the order of the coefficients agrees with the
+        order of the generators::
+
+            sage: F.<x,y> = FPModule(SteenrodAlgebra(), (2, 0))
+            sage: x.degree()
+            2
+            sage: y.degree()
+            0
         """
         if self.is_zero():
             raise ValueError("the zero element does not have a well-defined degree")
         return self.lift_to_free().degree()
 
 
-    def coefficients(self):
+    def dense_coefficient_list(self, order=None):
         """
         Return a list of all coefficients of ``self``.
+
+        INPUT:
+
+        - ``order`` -- (optional) an ordering of the basis indexing set
+
+        Note that this includes *all* of the coefficients, not just
+        the nonzero ones. By default they appear in the same order as
+        the module generators.
 
         EXAMPLES::
 
@@ -116,13 +129,15 @@ class FPElement(IndexedFreeModuleElement):
             sage: A = SteenrodAlgebra()
             sage: M = FPModule(SteenrodAlgebra(2), [0,1], [[Sq(4), Sq(3)]])
             sage: x = M([Sq(1), 1])
-            sage: x.coefficients()
+            sage: x.dense_coefficient_list()
             [Sq(1), 1]
             sage: y = Sq(2) * M.generator(1)
-            sage: y.coefficients()
+            sage: y.dense_coefficient_list()
             [0, Sq(2)]
         """
-        return [self[i] for i in sorted(self.parent().indices())]
+        if order is None:
+            order = self.parent()._indices
+        return [self[i] for i in order]
 
 
     def _lmul_(self, a):
@@ -170,21 +185,21 @@ class FPElement(IndexedFreeModuleElement):
         A coordinate vector representing ``self`` when it is non-zero.
 
         These are coordinates with respect to the basis chosen by
-        :meth:`sage.modules.fp_graded.module.FPModule.basis_elements`.
+        :meth:`~sage.modules.fp_graded.module.FPModule.basis_elements`.
         When the element is zero, it has no well defined degree, and this
         function returns ``None``.
 
         OUTPUT:
 
-        A vector of elements in the ground field of the algebra for
+        A vector of elements in the ground ring of the algebra for
         this module when this element is non-zero.  Otherwise, the
         value ``None``.
 
         .. SEEALSO::
 
-            :meth:`sage.modules.fp_graded.module.FPModule.vector_presentation`
-            :meth:`sage.modules.fp_graded.module.FPModule.basis_elements`
-            :meth:`sage.modules.fp_graded.module.FPModule.element_from_coordinates`
+            * :meth:`sage.modules.fp_graded.module.FPModule.vector_presentation`
+            * :meth:`sage.modules.fp_graded.module.FPModule.basis_elements`
+            * :meth:`sage.modules.fp_graded.module.FPModule.element_from_coordinates`
 
         EXAMPLES::
 
@@ -211,7 +226,9 @@ class FPElement(IndexedFreeModuleElement):
             sage: basis = M.basis_elements(7)
             sage: x_ = sum( [c*b for (c,b) in zip(v, basis)] ); x_
             Sq(0,0,1)*m0 + Sq(3,1)*m1
-            sage: x == x_
+            sage: x__ = M.linear_combination(zip(basis, v)); x__
+            Sq(0,0,1)*m0 + Sq(3,1)*m1
+            sage: x == x_ == x__
             True
 
         TESTS::

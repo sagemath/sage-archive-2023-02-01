@@ -49,7 +49,7 @@ cdef inline ComplexDoubleElement new_CDF_element(double x, double y):
 
 cdef inline double mag_to_lightness(double r):
     """
-    Returns a lightness for the given magnitude.
+    Return a lightness for the given magnitude.
 
     Small magnitudes are darker and large magnitudes are lighter, and the
     lightness smoothly transitions.
@@ -61,9 +61,9 @@ cdef inline double mag_to_lightness(double r):
 
     INPUT:
 
-    - ``r`` - a non-negative real number
+    - ``r`` -- a non-negative real number
 
-    OUTPUT::
+    OUTPUT:
 
     A value between `-1` (black) and `+1` (white), inclusive.
 
@@ -86,21 +86,21 @@ cdef inline double mag_to_lightness(double r):
 
 
 cdef inline double cyclic_mag_to_lightness(double r):
-    """
-    Returns a lightness for the given magnitude.
+    r"""
+    Return a lightness for the given magnitude.
 
     This modifies the lightness around magnitudes of size `2^n` for integer `n`
     to create the appearance of logarithmically spaced contours.
 
     Tweaking this will affect how the magnitude affects the color. Changing
-    ``log2(r)`` to ``log2(r)/log2(5)`` will associate contours around
-    magnitudes of size `5^n` for integer `n`. Changing ``log2(r)`` to ``r``
+    `\log_2(r)` to `\log_2(r)/\log_2(5)` will associate contours around
+    magnitudes of size `5^n` for integer `n`. Changing `\log_2(r)` to `r`
     will give cyclic linear contours, which might be more appropriate for
     complex functions with very little variation in size.
 
     INPUT:
 
-    - ``r`` - a non-negative real number
+    - ``r`` -- a non-negative real number
 
     OUTPUT:
 
@@ -117,12 +117,12 @@ cdef inline double cyclic_mag_to_lightness(double r):
 
         sage: from sage.plot.complex_plot import direct_complex_to_rgb
         sage: direct_complex_to_rgb([[0, 1, 10]], contoured=True)
-        array([[[0.65      , 0.        , 0.        ],
+        array([[[1.        , 0.        , 0.        ],
                 [1.        , 0.15      , 0.15      ],
                 [0.98903595, 0.        , 0.        ]]])
     """
     if r < 1e-10:
-        return -0.35
+        return 0.0
     rem = log2(r) % 1
     if rem < 0:  # Choose positive mod representative
         rem += 1
@@ -131,7 +131,7 @@ cdef inline double cyclic_mag_to_lightness(double r):
 
 cdef inline double mag_and_arg_to_lightness(double r, double arg):
     """
-    Returns a lightness for the given magnitude and argument.
+    Return a lightness for the given magnitude and argument.
 
     This modifies the lightness around magnitudes of size `2^n` for integer
     `n`, and also around arguments of the form `(2 \pi) / 10 * n` for integer
@@ -145,8 +145,8 @@ cdef inline double mag_and_arg_to_lightness(double r, double arg):
 
     INPUT:
 
-    - ``r`` - a non-negative real number
-    - ``arg`` - a real number
+    - ``r`` -- a non-negative real number
+    - ``arg`` -- a real number
 
     OUTPUT:
 
@@ -163,12 +163,12 @@ cdef inline double mag_and_arg_to_lightness(double r, double arg):
 
         sage: from sage.plot.complex_plot import direct_complex_to_rgb
         sage: direct_complex_to_rgb([[0, 1, 10]], tiled=True)
-        array([[[0.65      , 0.        , 0.        ],
+        array([[[1.        , 0.        , 0.        ],
                 [1.        , 0.15      , 0.15      ],
                 [1.        , 0.06951798, 0.06951798]]])
     """
     if r < 1e-10:
-        return -0.35
+        return 0.0
     cdef double r_rem, arg_rem
     r_rem = log2(r) % 1
     arg_rem = (5 * arg / PI) % 1
@@ -180,20 +180,23 @@ cdef inline double mag_and_arg_to_lightness(double r, double arg):
 
 
 def direct_complex_to_rgb(z_values, contoured=False, tiled=False):
-    """
+    r"""
+    Convert a grid of complex numbers to a grid of rgb values using a default
+    choice of colors.
+
     INPUT:
 
     - ``z_values`` -- A grid of complex numbers, as a list of lists
 
-    - ``contoured`` -- boolean (default: False) - causes magnitude to be
+    - ``contoured`` -- boolean (default: ``False``) - causes magnitude to be
       indicated through contour-like adjustments to lightness.
 
-    - ``tiled`` -- boolean (default: False) - causes magnitude and argument to
+    - ``tiled`` -- boolean (default: ``False``) - causes magnitude and argument to
       be indicated through contour-like adjustments to lightness.
 
     OUTPUT:
 
-    An `N \\times M \\times 3` floating point Numpy array ``X``, where
+    An `N \times M \times 3` floating point Numpy array ``X``, where
     ``X[i,j]`` is an (r,g,b) tuple.
 
     .. SEEALSO::
@@ -214,11 +217,11 @@ def direct_complex_to_rgb(z_values, contoured=False, tiled=False):
                 [0.38586284, 0.77172568, 0.        ],
                 [0.82210588, 1.        , 0.64421177]]])
         sage: direct_complex_to_rgb([[0, 1, 1000]], contoured=True)
-        array([[[0.65      , 0.        , 0.        ],
+        array([[[1.        , 0.        , 0.        ],
                 [1.        , 0.15      , 0.15      ],
                 [0.66710786, 0.        , 0.        ]]])
         sage: direct_complex_to_rgb([[0, 1, 1000]], tiled=True)
-        array([[[0.65      , 0.        , 0.        ],
+        array([[[1.        , 0.        , 0.        ],
                 [1.        , 0.15      , 0.15      ],
                 [0.90855393, 0.        , 0.        ]]])
     """
@@ -237,11 +240,9 @@ def direct_complex_to_rgb(z_values, contoured=False, tiled=False):
     cdef cnumpy.ndarray[cnumpy.float_t, ndim=3, mode='c'] rgb = np.empty(dtype=float, shape=(imax, jmax, 3))
 
     sig_on()
-    for i from 0 <= i < imax:
-
+    for i in range(imax):
         row = z_values[i]
-        for j from 0 <= j < jmax:
-
+        for j in range(jmax):
             zz = row[j]
             if type(zz) is ComplexDoubleElement:
                 z = <ComplexDoubleElement>zz
@@ -305,21 +306,27 @@ def direct_complex_to_rgb(z_values, contoured=False, tiled=False):
     return rgb
 
 
-def cmap_complex_to_rgb(z_values, cmap=None, contoured=False, tiled=False):
-    """
+def cmap_complex_to_rgb(z_values, cmap='turbo', contoured=False, tiled=False):
+    r"""
+    Convert a grid of complex numbers to a grid of rgb values using colors
+    taken from given colormap.
+
     INPUT:
 
     - ``z_values`` -- A grid of complex numbers, as a list of lists
 
-    - ``contoured`` -- boolean (default: False) - causes magnitude to be
+    - ``cmap`` --  the string name of a matplotlib colormap, or an instance
+      of a matplotlib Colormap (default: ``'turbo'``).
+
+    - ``contoured`` -- boolean (default: ``False``) - causes magnitude to be
       indicated through contour-like adjustments to lightness.
 
-    - ``tiled`` -- boolean (default: False) - causes magnitude and argument to
+    - ``tiled`` -- boolean (default: ``False``) - causes magnitude and argument to
       be indicated through contour-like adjustments to lightness.
 
     OUTPUT:
 
-    An `N \\times M \\times 3` floating point Numpy array ``X``, where
+    An `N \times M \times 3` floating point Numpy array ``X``, where
     ``X[i,j]`` is an (r, g, b) tuple.
 
     .. SEEALSO::
@@ -343,8 +350,8 @@ def cmap_complex_to_rgb(z_values, cmap=None, contoured=False, tiled=False):
     """
     import numpy as np
     import matplotlib.cm
-    if cmap is None or cmap == 'default':
-        cmap = matplotlib.cm.get_cmap('turbo')
+    if isinstance(cmap, str):
+        cmap = matplotlib.cm.get_cmap(cmap)
 
     cdef unsigned int i, j, imax, jmax
     cdef double x, y, mag, arg
@@ -359,9 +366,9 @@ def cmap_complex_to_rgb(z_values, cmap=None, contoured=False, tiled=False):
     cdef cnumpy.ndarray[cnumpy.float_t, ndim=3, mode='c'] rgbs = np.empty(dtype=float, shape=(imax, jmax, 3))
 
     sig_on()
-    for i from 0 <= i < imax:
+    for i in range(imax):
         row = z_values[i]
-        for j from 0 <= j < jmax:
+        for j in range(jmax):
             zz = row[j]
             if type(zz) is ComplexDoubleElement:
                 z = <ComplexDoubleElement>zz
@@ -452,8 +459,8 @@ cdef inline double clamp(double x):
 
 
 def manual_smooth_cmap_complex_to_rgb(rgb_d_s):
-    """
-    Returns an rgb array from given array of `(r, g, b, delta)`.
+    r"""
+    Return an rgb array from given array of `(r, g, b, delta)`.
 
     Each input `(r, g, b)` is modified by ``delta`` to be lighter or darker
     depending on the size of ``delta``. When ``delta`` is `-1`, the output is
@@ -470,12 +477,12 @@ def manual_smooth_cmap_complex_to_rgb(rgb_d_s):
 
     INPUT:
 
-    - ``rgb_d_s`` - a grid of length 4 tuples `(r, g, b, delta)`, as an
-      `N \\times M \\times 4` numpy array.
+    - ``rgb_d_s`` -- a grid of length 4 tuples `(r, g, b, delta)`, as an
+      `N \times M \times 4` numpy array.
 
     OUTPUT:
 
-    An `N \\times M \\times 3` floating point Numpy array ``X``, where
+    An `N \times M \times 3` floating point Numpy array ``X``, where
     ``X[i,j]`` is an (r, g, b) tuple.
 
     .. SEEALSO::
@@ -518,9 +525,9 @@ def manual_smooth_cmap_complex_to_rgb(rgb_d_s):
     cdef cnumpy.ndarray[cnumpy.float_t, ndim=3, mode='c'] rgb = np.empty(dtype=float, shape=(imax, jmax, 3))
 
     sig_on()
-    for i from 0 <= i < imax:
+    for i in range(imax):
         row = rgb_d_s[i]
-        for j from 0 <= j < jmax:
+        for j in range(jmax):
             r, g, b, delta = row[j]
             delta = 0.5 + delta/2.0
             if delta < 0.5:
@@ -536,8 +543,8 @@ def manual_smooth_cmap_complex_to_rgb(rgb_d_s):
 
 
 def manual_contoured_cmap_complex_to_rgb(rgb_d_s):
-    """
-    Returns an rgb array from given array of `(r, g, b, delta)`.
+    r"""
+    Return an rgb array from given array of `(r, g, b, delta)`.
 
     Each input `(r, g, b)` is modified by ``delta`` to be lighter or darker
     depending on the size of ``delta``. Negative ``delta`` values darken the
@@ -549,12 +556,12 @@ def manual_contoured_cmap_complex_to_rgb(rgb_d_s):
 
     INPUT:
 
-    - ``rgb_d_s`` - a grid of length 4 tuples `(r, g, b, delta)`, as an
-      `N \\times M \\times 4` numpy array.
+    - ``rgb_d_s`` -- a grid of length 4 tuples `(r, g, b, delta)`, as an
+      `N \times M \times 4` numpy array.
 
     OUTPUT:
 
-    An `N \\times M \\times 3` floating point Numpy array ``X``, where
+    An `N \times M \times 3` floating point Numpy array ``X``, where
     ``X[i,j]`` is an (r, g, b) tuple.
 
     .. SEEALSO::
@@ -588,12 +595,12 @@ def manual_contoured_cmap_complex_to_rgb(rgb_d_s):
 
     ALGORITHM:
 
-    Each pixel and lightness-delta is mapped from `(r, g, b, delta) \\mapsto
+    Each pixel and lightness-delta is mapped from `(r, g, b, delta) \mapsto
     (h, l, s, delta)` using the standard RGB-to-HLS formula.
 
-    Then the lightness is adjusted via `l \\mapsto l' = l + 0.5 * delta`.
+    Then the lightness is adjusted via `l \mapsto l' = l + 0.5 * delta`.
 
-    Finally map `(h, l', s) \\mapsto (r, g, b)` using the standard HLS-to-RGB
+    Finally map `(h, l', s) \mapsto (r, g, b)` using the standard HLS-to-RGB
     formula.
 
 
@@ -619,9 +626,9 @@ def manual_contoured_cmap_complex_to_rgb(rgb_d_s):
     cdef cnumpy.ndarray[cnumpy.float_t, ndim=3, mode='c'] rgb = np.empty(dtype=float, shape=(imax, jmax, 3))
 
     sig_on()
-    for i from 0 <= i < imax:
+    for i in range(imax):
         row = rgb_d_s[i]
-        for j from 0 <= j < jmax:
+        for j in range(jmax):
 
             # First: convert RGB to HLS
             # This is an inline, cythonized version of colorsys.rgb_to_hls,
@@ -778,25 +785,25 @@ def complex_plot(f, x_range, y_range, contoured=False, tiled=False, cmap=None, *
 
     - ``(ymin, ymax)`` -- 2-tuple, the range of ``y`` values
 
-    - ``contoured`` -- boolean (default: False) - causes the magnitude
+    - ``contoured`` -- boolean (default: ``False``) - causes the magnitude
       to be indicated by logarithmically spaced 'contours'. The
       magnitude along one contour is either twice or half the magnitude
       along adjacent contours.
 
-    - ``tiled`` -- boolean (default: False) - causes the magnitude to
+    - ``tiled`` -- boolean (default: ``False``) - causes the magnitude to
       be indicated by logarithmically spaced 'contours' as in
       ``contoured``, and in addition for there to be `10` evenly
       spaced phase contours.
 
-    - ``cmap`` --  the string name of a matplotlib colormap, or an instance of
-      a matplotlib Colormap, or the special string `default` (default: None).
-      If None, then hues are chosen from a standard color wheel, cycling from
-      red to yellow to blue. If `default`, then a default matplotlib colormap
-      is chosen.
+    - ``cmap`` --  the string name of a matplotlib colormap, or an instance
+      of a matplotlib Colormap, or the special string `matplotlib`
+      (default: ``None``). If None, then hues are chosen from a standard color
+      wheel, cycling from red to yellow to blue. If `matplotlib`, then a
+      default matplotlib colormap is chosen.
 
     The following inputs may be passed in as named parameters:
 
-    - ``plot_points`` -- integer (default: 100); number of points to
+    - ``plot_points`` -- integer (default: ``100``); number of points to
       plot in each direction of the grid
 
     - ``interpolation`` -- string (default: ``'catrom'``), the interpolation
@@ -991,7 +998,7 @@ def complex_plot(f, x_range, y_range, contoured=False, tiled=False, cmap=None, *
     else:
         # choose colors from colormap
         if isinstance(cmap, str):
-            if cmap == 'default':
+            if cmap == 'matplotlib':
                 cmap = matplotlib.cm.get_cmap('turbo')
             else:
                 cmap = matplotlib.cm.get_cmap(cmap)

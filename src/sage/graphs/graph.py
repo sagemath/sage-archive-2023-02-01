@@ -8583,8 +8583,8 @@ class Graph(GenericGraph):
 
         Using a different base ring::
 
-            sage: H.effective_resistance(1, 5, base_ring=RDF)
-            1.20000...
+            sage: H.effective_resistance(1, 5, base_ring=RDF)   # abs tol 1e-14
+            1.2000000000000000
             sage: H.effective_resistance(1, 1, base_ring=RDF)
             0.0
 

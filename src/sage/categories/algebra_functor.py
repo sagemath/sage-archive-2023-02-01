@@ -393,7 +393,7 @@ group::
     ...
     TypeError: Attempt to coerce non-integral RealNumber to Integer
     sage: OG(OG.base_ring().basis()[1])
-    sqrt5*[1 0]
+    a*[1 0]
     [0 1]
 
 Coercions from other group algebras::

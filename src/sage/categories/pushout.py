@@ -2917,7 +2917,8 @@ class AlgebraicExtensionFunctor(ConstructionFunctor):
 
     EXAMPLES::
 
-        sage: K.<a> = NumberField(x^3+x^2+1)
+        sage: x = polygen(QQ, 'x')
+        sage: K.<a> = NumberField(x^3 + x^2 + 1)
         sage: F = K.construction()[0]
         sage: F(ZZ['t'])
         Univariate Quotient Polynomial Ring in a over Univariate Polynomial Ring in t over Integer Ring with modulus a^3 + a^2 + 1
@@ -2940,7 +2941,8 @@ class AlgebraicExtensionFunctor(ConstructionFunctor):
 
     This also holds for non-absolute number fields::
 
-        sage: K.<a,b> = NumberField([x^3+x^2+1,x^2+x+1])
+        sage: x = polygen(QQ, 'x')
+        sage: K.<a,b> = NumberField([x^3 + x^2 + 1, x^2 + x + 1])
         sage: F = K.construction()[0]
         sage: O = F(ZZ); O
         Relative Order in Number Field in a with defining polynomial x^3 + x^2 + 1 over its base field
@@ -3135,7 +3137,8 @@ class AlgebraicExtensionFunctor(ConstructionFunctor):
 
         TESTS::
 
-            sage: K.<a>=NumberField(x^3+x^2+1)
+            sage: x = polygen(QQ, 'x')
+            sage: K.<a> = NumberField(x^3 + x^2 + 1)
             sage: F = K.construction()[0]
             sage: F(ZZ)       # indirect doctest
             Order in Number Field in a with defining polynomial x^3 + x^2 + 1
@@ -3179,21 +3182,21 @@ class AlgebraicExtensionFunctor(ConstructionFunctor):
 
         TESTS::
 
-            sage: K.<a>=NumberField(x^3+x^2+1)
+            sage: x = polygen(QQ, 'x')
+            sage: K.<a> = NumberField(x^3 + x^2 + 1)
             sage: F = K.construction()[0]
             sage: F == loads(dumps(F))
             True
 
-            sage: K2.<a> = NumberField(x^3+x^2+1, latex_names='a')
+            sage: K2.<a> = NumberField(x^3 + x^2 + 1, latex_names='a')
             sage: F2 = K2.construction()[0]
             sage: F2 == F
             True
 
-            sage: K3.<a> = NumberField(x^3+x^2+1, latex_names='alpha')
+            sage: K3.<a> = NumberField(x^3 + x^2 + 1, latex_names='alpha')
             sage: F3 = K3.construction()[0]
             sage: F3 == F
             False
-
         """
         if not isinstance(other, AlgebraicExtensionFunctor):
             return False
@@ -3485,6 +3488,7 @@ class AlgebraicClosureFunctor(ConstructionFunctor):
 
         TESTS::
 
+            sage: x = polygen(QQ, 'x')
             sage: K.<a> = NumberField(x^3+x^2+1)
             sage: CDF.construction()[0].merge(K.construction()[0]) is None
             True

@@ -718,9 +718,8 @@ class PSModularSymbolElement(ModuleElement):
             sage: from sage.modular.pollack_stevens.space import ps_modsym_from_simple_modsym_space
             sage: f = Newforms(32, 8, names='a')[1]
             sage: phi = ps_modsym_from_simple_modsym_space(f.modular_symbols(1))
-            sage: K = phi.base_ring()
-            sage: a = K.gen()
-            sage: phi.is_ordinary(K.ideal(3, 1/32*a + 1/2)) !=  phi.is_ordinary(K.ideal(3, 1/32*a + 3/2))
+            sage: (p1, _), (p2, _) = phi.base_ring().ideal(3).factor()
+            sage: phi.is_ordinary(p1) != phi.is_ordinary(p2)
             True
             sage: phi.is_ordinary(3)
             Traceback (most recent call last):

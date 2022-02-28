@@ -178,7 +178,7 @@ class MetricSpaces(MetricSpacesCategory):
 
             TESTS::
 
-                sage: RR.dist(-1, pi)
+                sage: RR.dist(-1, pi)                                       # optional - sage.symbolic
                 4.14159265358979
                 sage: RDF.dist(1, -1/2)
                 1.5

@@ -70,13 +70,14 @@ class NumberFields(Category_singleton):
 
     def __contains__(self, x):
         r"""
-        Returns True if ``x`` is a number field.
+        Return ``True`` if ``x`` is a number field.
 
         EXAMPLES::
 
-            sage: NumberField(x^2+1,'a') in NumberFields()
+            sage: x = polygen(QQ, 'x')
+            sage: NumberField(x^2 + 1, 'a') in NumberFields()
             True
-            sage: QuadraticField(-97,'theta') in NumberFields()
+            sage: QuadraticField(-97, 'theta') in NumberFields()
             True
             sage: CyclotomicField(97) in NumberFields()
             True
@@ -93,20 +94,21 @@ class NumberFields(Category_singleton):
 
     def _call_(self, x):
         r"""
-        Constructs an object in this category from the data in ``x``,
-        or throws a TypeError.
+        Construct an object in this category from the data in ``x``,
+        or raise a ``TypeError``.
 
         EXAMPLES::
 
             sage: C = NumberFields()
+            sage: x = polygen(QQ, 'x')
 
             sage: C(QQ)
             Rational Field
 
-            sage: C(NumberField(x^2+1,'a'))
+            sage: C(NumberField(x^2 + 1, 'a'))
             Number Field in a with defining polynomial x^2 + 1
 
-            sage: C(UnitGroup(NumberField(x^2+1,'a')))  # indirect doctest
+            sage: C(UnitGroup(NumberField(x^2 + 1, 'a')))  # indirect doctest
             Number Field in a with defining polynomial x^2 + 1
 
             sage: C(ZZ)
@@ -154,6 +156,8 @@ class NumberFields(Category_singleton):
                 PARI zeta function associated to Number Field in a with defining polynomial x^2 + x - 1
                 sage: Z(-1)
                 0.0333333333333333
+
+                sage: x = polygen(QQ, 'x')
                 sage: L.<a, b, c> = NumberField([x^2 - 5, x^2 + 3, x^2 + 1])
                 sage: Z = L.zeta_function()
                 sage: Z(5)
@@ -165,6 +169,8 @@ class NumberFields(Category_singleton):
                 sage: Z = K.zeta_function(algorithm="pari")
                 sage: Z(-1)
                 0.0333333333333333
+
+                sage: x = polygen(QQ, 'x')
                 sage: L.<a, b, c> = NumberField([x^2 - 5, x^2 + 3, x^2 + 1])
                 sage: Z = L.zeta_function(algorithm="pari")
                 sage: Z(5)

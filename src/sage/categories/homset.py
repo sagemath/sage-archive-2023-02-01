@@ -462,7 +462,8 @@ def hom(X, Y, f):
 
     EXAMPLES::
 
-        sage: phi = hom(QQ['x'], QQ, [2])
+        sage: R.<x> = QQ[]
+        sage: phi = hom(R, QQ, [2])
         sage: phi(x^2 + 3)
         7
     """

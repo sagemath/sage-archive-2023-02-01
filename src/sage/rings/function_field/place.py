@@ -74,6 +74,7 @@ from sage.modules.free_module_element import vector
 
 from sage.matrix.constructor import matrix
 
+from .ideal import FunctionFieldIdeal
 
 class FunctionFieldPlace(Element):
     """

@@ -76,8 +76,8 @@ cdef inline double mag_to_lightness(double r):
 
     This tests it implicitly::
 
-        sage: from sage.plot.complex_plot import direct_complex_to_rgb
-        sage: direct_complex_to_rgb([[0, 1, 10]])
+        sage: from sage.plot.complex_plot import complex_to_rgb
+        sage: complex_to_rgb([[0, 1, 10]])
         array([[[0.        , 0.        , 0.        ],
                 [0.77172568, 0.        , 0.        ],
                 [1.        , 0.22134776, 0.22134776]]])
@@ -115,8 +115,8 @@ cdef inline double cyclic_mag_to_lightness(double r):
 
     This tests it implicitly::
 
-        sage: from sage.plot.complex_plot import direct_complex_to_rgb
-        sage: direct_complex_to_rgb([[0, 1, 10]], contoured=True)
+        sage: from sage.plot.complex_plot import complex_to_rgb
+        sage: complex_to_rgb([[0, 1, 10]], contoured=True)
         array([[[1.        , 0.        , 0.        ],
                 [1.        , 0.15      , 0.15      ],
                 [0.98903595, 0.        , 0.        ]]])
@@ -161,8 +161,8 @@ cdef inline double mag_and_arg_to_lightness(double r, double arg):
 
     This tests it implicitly::
 
-        sage: from sage.plot.complex_plot import direct_complex_to_rgb
-        sage: direct_complex_to_rgb([[0, 1, 10]], tiled=True)
+        sage: from sage.plot.complex_plot import complex_to_rgb
+        sage: complex_to_rgb([[0, 1, 10]], tiled=True)
         array([[[1.        , 0.        , 0.        ],
                 [1.        , 0.15      , 0.15      ],
                 [1.        , 0.06951798, 0.06951798]]])
@@ -179,7 +179,7 @@ cdef inline double mag_and_arg_to_lightness(double r, double arg):
     return 0.15 - (r_rem)/4. - (arg_rem)/4.
 
 
-def direct_complex_to_rgb(z_values, contoured=False, tiled=False):
+def complex_to_rgb(z_values, contoured=False, tiled=False):
     r"""
     Convert a grid of complex numbers to a grid of rgb values using a default
     choice of colors.
@@ -207,20 +207,20 @@ def direct_complex_to_rgb(z_values, contoured=False, tiled=False):
 
     We can call this on grids of complex numbers::
 
-        sage: from sage.plot.complex_plot import direct_complex_to_rgb
-        sage: direct_complex_to_rgb([[0, 1, 1000]])
+        sage: from sage.plot.complex_plot import complex_to_rgb
+        sage: complex_to_rgb([[0, 1, 1000]])
         array([[[0.        , 0.        , 0.        ],
                 [0.77172568, 0.        , 0.        ],
                 [1.        , 0.64421177, 0.64421177]]])
-        sage: direct_complex_to_rgb([[0, 1j, 1000j]])
+        sage: complex_to_rgb([[0, 1j, 1000j]])
         array([[[0.        , 0.        , 0.        ],
                 [0.38586284, 0.77172568, 0.        ],
                 [0.82210588, 1.        , 0.64421177]]])
-        sage: direct_complex_to_rgb([[0, 1, 1000]], contoured=True)
+        sage: complex_to_rgb([[0, 1, 1000]], contoured=True)
         array([[[1.        , 0.        , 0.        ],
                 [1.        , 0.15      , 0.15      ],
                 [0.66710786, 0.        , 0.        ]]])
-        sage: direct_complex_to_rgb([[0, 1, 1000]], tiled=True)
+        sage: complex_to_rgb([[0, 1, 1000]], tiled=True)
         array([[[1.        , 0.        , 0.        ],
                 [1.        , 0.15      , 0.15      ],
                 [0.90855393, 0.        , 0.        ]]])
@@ -331,7 +331,7 @@ def cmap_complex_to_rgb(z_values, cmap='turbo', contoured=False, tiled=False):
 
     .. SEEALSO::
 
-        :func:`sage.plot.complex_plot.direct_complex_to_rgb`
+        :func:`sage.plot.complex_plot.complex_to_rgb`
 
     EXAMPLES:
 
@@ -394,14 +394,13 @@ def cmap_complex_to_rgb(z_values, cmap='turbo', contoured=False, tiled=False):
     normalized_colors = cmap((args + PI) / (2 * PI))
     normalized_colors = normalized_colors[:,:,:3]  # discard alpha channel
     lightdeltas = als[:,:,1]
-    lightdeltas = lightdeltas # normalize lightness adjustment
-    arg_d_s = np.dstack((normalized_colors, lightdeltas))
 
     if tiled or contoured:
         # add contours: convert to hls, adjust lightness, convert back
+        arg_d_s = np.dstack((normalized_colors, lightdeltas))
         rgbs = manual_contoured_cmap_complex_to_rgb(arg_d_s)
     else:
-        rgbs = manual_smooth_cmap_complex_to_rgb(arg_d_s)
+        rgbs = manual_smooth_cmap_complex_to_rgb(normalized_colors, lightdeltas)
 
     # Apply mask, making nan_indices white
     rgbs[nan_indices] = 1
@@ -458,9 +457,9 @@ cdef inline double clamp(double x):
     return x
 
 
-def manual_smooth_cmap_complex_to_rgb(rgb_d_s):
+def manual_smooth_cmap_complex_to_rgb(rgb, delta):
     r"""
-    Return an rgb array from given array of `(r, g, b, delta)`.
+    Return an rgb array from given array of colors and lightness adjustments.
 
     Each input `(r, g, b)` is modified by ``delta`` to be lighter or darker
     depending on the size of ``delta``. When ``delta`` is `-1`, the output is
@@ -472,13 +471,15 @@ def manual_smooth_cmap_complex_to_rgb(rgb_d_s):
     the range `[-1, +1]`.
 
     This produces similar lightness gradation to the default
-    ``direct_complex_to_rgb``, except that this is designed to work with
+    ``complex_to_rgb``, except that this is designed to work with
     colormaps.
 
     INPUT:
 
-    - ``rgb_d_s`` -- a grid of length 4 tuples `(r, g, b, delta)`, as an
-      `N \times M \times 4` numpy array.
+    - ``rgb`` -- a grid of length 3 tuples `(r, g, b)`, as an
+      `N \times M \times 3` numpy array.
+
+    - ``delta`` -- a grid of values as an `N \times M` numpy array
 
     OUTPUT:
 
@@ -487,58 +488,25 @@ def manual_smooth_cmap_complex_to_rgb(rgb_d_s):
 
     .. SEEALSO::
 
-        :func:`sage.plot.complex_plot.direct_complex_to_rgb`
+        :func:`sage.plot.complex_plot.complex_to_rgb`
         :func:`sage.plot.complex_plot.manual_contoured_cmap_complex_to_rgb`
-
-    .. NOTE::
-
-        This is naive, but implemented directly in cython for speed. This is a
-        cythonized version of the following numpy code::
-
-            def set_darkness(rgb_d):
-                r, g, b, delta = rgb_d
-                delta = 0.5 + delta/2.
-                if delta < 0.5:
-                    return 2*delta*np.array([r, g, b])
-                white = np.array([1, 1, 1])
-                return 2*(delta - 1)*(white - np.array([r, g, b])) + white
-            rgbs = np.apply_along_axis(set_darkness, 2, rgb_d_s)
 
     EXAMPLES:
 
-    We can call this on grids of `(r, g, b, delta)` values::
+    We can call this on grids of values::
 
+        sage: import numpy as np
         sage: from sage.plot.complex_plot import manual_smooth_cmap_complex_to_rgb
-        sage: manual_smooth_cmap_complex_to_rgb([[[0, 0.25, 0.5, 0.75]]])
+        sage: manual_smooth_cmap_complex_to_rgb(np.array([[[0, 0.25, 0.5]]]), np.array([[0.75]]))
         array([[[0.75  , 0.8125, 0.875 ]]])
-        sage: manual_smooth_cmap_complex_to_rgb([[[0, 0.25, 0.5, 0.75]]])
+        sage: manual_smooth_cmap_complex_to_rgb(np.array([[[0, 0.25, 0.5]]]), np.array([[0.75]]))
         array([[[0.75  , 0.8125, 0.875 ]]])
     """
     import numpy as np
-
-    cdef unsigned int i, j, imax, jmax
-    cdef double r, g, b, delta, h, l, s
-
-    imax = len(rgb_d_s)
-    jmax = len(rgb_d_s[0])
-
-    cdef cnumpy.ndarray[cnumpy.float_t, ndim=3, mode='c'] rgb = np.empty(dtype=float, shape=(imax, jmax, 3))
-
-    sig_on()
-    for i in range(imax):
-        row = rgb_d_s[i]
-        for j in range(jmax):
-            r, g, b, delta = row[j]
-            delta = 0.5 + delta/2.0
-            if delta < 0.5:
-                rgb[i][j][0] = clamp(2 * delta * r)
-                rgb[i][j][1] = clamp(2 * delta * g)
-                rgb[i][j][2] = clamp(2 * delta * b)
-            else:
-                rgb[i][j][0] = clamp(2*(delta - 1.0)*(1 - r) + 1)
-                rgb[i][j][1] = clamp(2*(delta - 1.0)*(1 - g) + 1)
-                rgb[i][j][2] = clamp(2*(delta - 1.0)*(1 - b) + 1)
-    sig_off()
+    delta = delta[:,:,np.newaxis]
+    delta_pos = delta > 0.0
+    rgb = (1.0 - np.abs(delta))*(rgb - delta_pos) + delta_pos
+    rgb = np.clip(rgb, 0.0, 1.0)
     return rgb
 
 
@@ -566,7 +534,7 @@ def manual_contoured_cmap_complex_to_rgb(rgb_d_s):
 
     .. SEEALSO::
 
-        :func:`sage.plot.complex_plot.direct_complex_to_rgb`,
+        :func:`sage.plot.complex_plot.complex_to_rgb`,
         :func:`sage.plot.complex_plot.manual_smooth_cmap_complex_to_rgb`
 
     .. NOTE::
@@ -994,7 +962,7 @@ def complex_plot(f, x_range, y_range, contoured=False, tiled=False, cmap=None, *
 
     if cmap is None:
         # produce colors using the established default method
-        rgbs = direct_complex_to_rgb(z_values, contoured=contoured, tiled=tiled)
+        rgbs = complex_to_rgb(z_values, contoured=contoured, tiled=tiled)
     else:
         # choose colors from colormap
         if isinstance(cmap, str):

@@ -62,7 +62,7 @@ class sage_interactive(interactive):
           y: Text(value='hello', description='y')
           z: Dropdown(description='z', options=('one', 'two', 'three'), value=None)
     """
-    def __init__(*args, **kwds):
+    def __init__(self, *args, **kwds):
         """
         See :class:`ipywidgets.widgets.interaction.interactive`
 
@@ -83,11 +83,11 @@ class sage_interactive(interactive):
             Interactive function <function myfunc ...> with 0 widgets
         """
         # Use *args to avoid name clash with keyword arguments
-        if len(args) < 3:
-            (self, f) = args
+        if len(args) < 2:
+            f = args[0]
             options = {}
         else:
-            (self, f, options) = args
+            (f, options) = args
             options = options.copy()
 
         # Check for auto_update in signature

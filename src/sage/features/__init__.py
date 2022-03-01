@@ -56,8 +56,9 @@ from __future__ import annotations
 
 import os
 import shutil
+import pathlib
 
-from sage.env import SAGE_SHARE
+from sage.env import SAGE_SHARE, SAGE_LOCAL, SAGE_VENV
 
 
 class TrivialClasscallMetaClass(type):
@@ -423,6 +424,10 @@ class Executable(Feature):
     r"""
     A feature describing an executable in the ``PATH``.
 
+    In an installation of Sage with ``SAGE_LOCAL`` different from ``SAGE_VENV``, the
+    executable is searched first in ``SAGE_VENV/bin``, then in ``SAGE_LOCAL/bin``,
+    then in ``PATH``.
+
     .. NOTE::
 
         Overwrite :meth:`is_functional` if you also want to check whether
@@ -502,6 +507,16 @@ class Executable(Feature):
             sage.features.FeatureNotPresentError: does-not-exist is not available.
             Executable 'does-not-exist-xxxxyxyyxyy' not found on PATH.
         """
+        if SAGE_LOCAL:
+            sage_venv = Path(SAGE_VENV)
+            sage_local = Path(SAGE_LOCAL)
+            if sage_venv.resolve() != sage_local.resolve():
+                # As sage.env currently gives SAGE_LOCAL a fallback value from SAGE_VENV,
+                # SAGE_LOCAL is never unset.  So we only use it if it differs from SAGE_VENV.
+                path = shutil.which(self.executable, path=[sage_venv / 'bin', sage_local / 'bin'])
+                if path is not None:
+                    return path
+        # Now look up in the regular PATH.
         path = shutil.which(self.executable)
         if path is not None:
             return path

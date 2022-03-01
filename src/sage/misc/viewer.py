@@ -44,7 +44,7 @@ def default_viewer(viewer=None):
 
         sage: from sage.misc.viewer import default_viewer
         sage: default_viewer(None) # random -- depends on OS, etc.
-        'sage-open'
+        'open'
         sage: default_viewer('pdf') # random -- depends on OS, etc.
         'xdg-open'
         sage: default_viewer('jpg')
@@ -67,9 +67,7 @@ def default_viewer(viewer=None):
     elif os.uname()[0] == 'Darwin':
         # Simple on OS X, since there is an open command that opens
         # anything, using the user's preferences.
-        # sage-open -- a wrapper around OS X open that
-        # turns off any of Sage's special library stuff.
-        BROWSER = 'sage-open'
+        BROWSER = 'open'
         DVI_VIEWER = BROWSER
         PDF_VIEWER = BROWSER
         PNG_VIEWER = BROWSER
@@ -317,7 +315,7 @@ def browser():
 
         sage: from sage.misc.viewer import browser
         sage: browser() # random -- depends on OS, etc.
-        'sage-open'
+        'open'
     """
     return viewer.browser()
 
@@ -333,7 +331,7 @@ def dvi_viewer():
 
         sage: from sage.misc.viewer import dvi_viewer
         sage: dvi_viewer() # random -- depends on OS, etc.
-        'sage-open'
+        'open'
     """
     viewer()
     return viewer.dvi_viewer()

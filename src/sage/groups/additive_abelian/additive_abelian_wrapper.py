@@ -27,27 +27,45 @@ We create a toy example based on the Mordell-Weil group of an elliptic curve ove
     sage: M == loads(dumps(M))  # known bug, see https://trac.sagemath.org/sage_trac/ticket/11599#comment:7
     True
 
+TESTS:
+
 We check that ridiculous operations are being avoided::
 
     sage: from sage.misc.verbose import set_verbose
     sage: set_verbose(2, 'additive_abelian_wrapper.py')
     sage: 300001 * M.0
-    verbose 1 (...: additive_abelian_wrapper.py, _discrete_exp) Calling discrete exp on (1, 0, 0)
+    verbose 1 (...: additive_abelian_wrapper.py, discrete_exp) Calling discrete exp on (1, 0, 0)
     (4 : -7 : 1)
     sage: set_verbose(0, 'additive_abelian_wrapper.py')
 
 
 .. TODO::
 
-    - Implement proper black-box discrete logarithm (using baby-step
-      giant-step).  The discrete_exp function can also potentially be
-      speeded up substantially via caching.
-
     - Think about subgroups and quotients, which probably won't work
       in the current implementation -- some fiddly adjustments will be
       needed in order to be able to pass extra arguments to the
       subquotient's init method.
+
+AUTHORS:
+
+- David Loeffler (2010)
+- Lorenz Panny (2017): :meth:`AdditiveAbelianGroupWrapper.discrete_log`
 """
+
+# ****************************************************************************
+#       Copyright (C) 2010 David Loeffler
+#
+#  Distributed under the terms of the GNU General Public License (GPL)
+#
+#    This code is distributed in the hope that it will be useful,
+#    but WITHOUT ANY WARRANTY; without even the implied warranty of
+#    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+#    General Public License for more details.
+#
+#  The full text of the GPL is available at:
+#
+#                  https://www.gnu.org/licenses/
+# ****************************************************************************
 
 from . import additive_abelian_group as addgp
 from sage.rings.integer_ring import ZZ
@@ -55,6 +73,7 @@ from sage.categories.morphism import Morphism
 from sage.structure.element import parent
 from sage.modules.free_module_element import vector
 
+from sage.misc.superseded import deprecated_function_alias
 
 class UnwrappingMorphism(Morphism):
     r"""
@@ -130,7 +149,7 @@ class AdditiveAbelianGroupWrapperElement(addgp.AdditiveAbelianGroupElement):
             <class 'sage.schemes.elliptic_curves.ell_point.EllipticCurvePoint_number_field'>
         """
         if self._element is None:
-            self._element = self.parent()._discrete_exp(self._hermite_lift())
+            self._element = self.parent().discrete_exp(self._hermite_lift())
         return self._element
 
     def _repr_(self):
@@ -148,7 +167,29 @@ class AdditiveAbelianGroupWrapperElement(addgp.AdditiveAbelianGroupElement):
 
 class AdditiveAbelianGroupWrapper(addgp.AdditiveAbelianGroup_fixed_gens):
     """
-    The parent of :class:`AdditiveAbelianGroupWrapperElement`
+    This class is used to wrap a subgroup of an existing
+    additive abelian group as a new additive abelian group.
+
+    EXAMPLES::
+
+        sage: G2 = AdditiveAbelianGroupWrapper(Zmod(42), [2], [21]); G2
+        Additive abelian group isomorphic to Z/21 embedded in Ring of integers modulo 42
+        sage: G6 = AdditiveAbelianGroupWrapper(Zmod(42), [6], [7]); G6
+        Additive abelian group isomorphic to Z/7 embedded in Ring of integers modulo 42
+        sage: G = AdditiveAbelianGroupWrapper(Zmod(42), [21,14,6], [2,3,7]); G
+        Additive abelian group isomorphic to Z/2 + Z/3 + Z/7 embedded in Ring of integers modulo 42
+        sage: G.invariants()
+        (42,)
+
+    ::
+
+        sage: AdditiveAbelianGroupWrapper(QQbar, [sqrt(2), sqrt(3)], [0, 0])
+        Additive abelian group isomorphic to Z + Z embedded in Algebraic Field
+
+    ::
+
+        sage: EllipticCurve(GF(419**2), [1,0]).abelian_group()  # indirect doctest
+        Additive abelian group isomorphic to Z/420 + Z/420 embedded in Abelian group of points on Elliptic Curve defined by y^2 = x^3 + x over Finite Field in z2 of size 419^2
     """
 
     Element = AdditiveAbelianGroupWrapperElement
@@ -209,19 +250,37 @@ class AdditiveAbelianGroupWrapper(addgp.AdditiveAbelianGroup_fixed_gens):
         """
         return addgp.AdditiveAbelianGroup_fixed_gens._repr_(self) + " embedded in " + self.universe()._repr_()
 
-    def _discrete_exp(self, v):
+    def discrete_exp(self, v):
         r"""
         Given a list (or other iterable) of length equal to the number of
-        generators of this group, compute the element of the ambient group with
-        those exponents in terms of the generators of self.
+        generators of this group, compute the element of the ambient group
+        with those exponents in terms of the generators of self.
 
         EXAMPLES::
 
             sage: G = AdditiveAbelianGroupWrapper(QQbar, [sqrt(QQbar(2)), -1], [0, 0])
-            sage: v = G._discrete_exp([3, 5]); v
+            sage: v = G.discrete_exp([3, 5]); v
             -0.7573593128807148?
             sage: v.parent() is QQbar
             True
+
+        This method is an inverse of :meth:`discrete_log`::
+
+            sage: orders = [2, 2*3, 2*3*5, 2*3*5*7, 2*3*5*7*11]
+            sage: G = AdditiveAbelianGroup(orders)
+            sage: A = AdditiveAbelianGroupWrapper(G.0.parent(), G.gens(), orders)
+            sage: el = A.random_element()
+            sage: A.discrete_exp(A.discrete_log(el)) == el
+            True
+
+        TESTS:
+
+        Check that :meth:`_discrete_exp` still works (for now)::
+
+            sage: A._discrete_exp(list(range(1,6)))
+            doctest:warning ...
+            DeprecationWarning: _discrete_exp is deprecated. ...
+            (1, 2, 3, 4, 5)
         """
         from sage.misc.verbose import verbose
         v = self.V()(v)
@@ -229,12 +288,14 @@ class AdditiveAbelianGroupWrapper(addgp.AdditiveAbelianGroup_fixed_gens):
         # DUMB IMPLEMENTATION!
         return sum([self._gen_elements[i] * ZZ(v[i]) for i in range(len(v))], self.universe()(0))
 
+    _discrete_exp = deprecated_function_alias(32384, discrete_exp)
+
     def _discrete_log_pgroup(self, p, aa, b):
         r"""
         Attempt to express an element of p-power order in terms of
         generators of a p-subgroup of this group.
 
-        Used as a subroutine in the _discrete_log() method.
+        Used as a subroutine in :meth:`discrete_log`.
 
         ALGORITHM:
 
@@ -315,33 +376,64 @@ class AdditiveAbelianGroupWrapper(addgp.AdditiveAbelianGroup_fixed_gens):
 
         return _rec(0, max(vals), b)
 
-    def _discrete_log(self, x, gens=None):
+    def discrete_log(self, x, gens=None):
         r"""
         Given an element of the ambient group, attempt to express it in terms
         of the generators of this group or the given generators of a subgroup.
+
+        ALGORITHM:
+
+        This reduces to p-groups, then calls :meth:`_discrete_log_pgroup` which
+        implements a basic version of the recursive algorithm from [Suth2008]_.
+
+        AUTHORS:
+
+        - Lorenz Panny (2017)
 
         EXAMPLES::
 
             sage: G = AdditiveAbelianGroup([2, 2*3, 2*3*5, 2*3*5*7, 2*3*5*7*11])
             sage: A = AdditiveAbelianGroupWrapper(G.0.parent(), G.gens(), [g.order() for g in G.gens()])
-            sage: A._discrete_log(G.0 + 5 * G.1 + 23 * G.2 + 127 * G.3 + 539 * G.4)
+            sage: A.discrete_log(A.discrete_exp([1,5,23,127,539]))
             (1, 5, 23, 127, 539)
-            sage: V = Zmod(8)**2; G = AdditiveAbelianGroupWrapper(V, [[2,2],[4,0]], [4, 2])
-            sage: G._discrete_log(V([6, 2]))
+
+        ::
+
+            sage: F.<t> = GF(1009**2, modulus=x**2+11); E = EllipticCurve(j=F(940))
+            sage: P, Q = E(900*t + 228, 974*t + 185), E(1007*t + 214, 865*t + 802)
+            sage: E.abelian_group().discrete_log(123 * P + 777 * Q, [P, Q])
+            (123, 777)
+
+        ::
+
+            sage: V = Zmod(8)**2
+            sage: G = AdditiveAbelianGroupWrapper(V, [[2,2],[4,0]], [4, 2])
+            sage: G.discrete_log(V([6, 2]))
             (1, 1)
-            sage: G._discrete_log(V([6, 4]))
+            sage: G.discrete_log(V([6, 4]))
             Traceback (most recent call last):
             ...
             TypeError: Not in group
-            sage: F.<t> = GF(1009**2, modulus=x**2+11); E = EllipticCurve(j=F(940))
-            sage: P, Q = E(900*t + 228, 974*t + 185), E(1007*t + 214, 865*t + 802)
-            sage: E.abelian_group()._discrete_log(123 * P + 777 * Q, [P, Q])
-            (123, 777)
+
+        ::
+
             sage: G = AdditiveAbelianGroupWrapper(QQbar, [sqrt(2)], [0])
-            sage: G._discrete_log(QQbar(2*sqrt(2)))
+            sage: G.discrete_log(QQbar(2*sqrt(2)))
             Traceback (most recent call last):
             ...
             NotImplementedError: No black-box discrete log for infinite abelian groups
+
+        TESTS:
+
+        Check that :meth:`_discrete_log` still works (for now)::
+
+            sage: orders = [2, 2*3, 2*3*5, 2*3*5*7, 2*3*5*7*11]
+            sage: G = AdditiveAbelianGroup(orders)
+            sage: A = AdditiveAbelianGroupWrapper(G.0.parent(), G.gens(), orders)
+            sage: A._discrete_log(sum(i*g for i,g in enumerate(G.gens(),1)))
+            doctest:warning ...
+            DeprecationWarning: _discrete_log is deprecated. ...
+            (1, 2, 3, 4, 5)
         """
         from sage.arith.misc import CRT_list
         from sage.rings.infinity import Infinity
@@ -370,6 +462,8 @@ class AdditiveAbelianGroupWrapper(addgp.AdditiveAbelianGroup_fixed_gens):
         assert x == sum(r * g for r, g in zip(res, gens))
         return res
 
+    _discrete_log = deprecated_function_alias(32384, discrete_log)
+
     def _element_constructor_(self, x, check=False):
         r"""
         Create an element from x. This may be either an element of self, an element of the
@@ -378,7 +472,8 @@ class AdditiveAbelianGroupWrapper(addgp.AdditiveAbelianGroup_fixed_gens):
 
         EXAMPLES::
 
-            sage: V = Zmod(8)**2; G = AdditiveAbelianGroupWrapper(V, [[2,2],[4,0]], [4, 2])
+            sage: V = Zmod(8)**2
+            sage: G = AdditiveAbelianGroupWrapper(V, [[2,2],[4,0]], [4, 2])
             sage: G(V([6,2]))
             (6, 2)
             sage: G([1,1])
@@ -387,6 +482,6 @@ class AdditiveAbelianGroupWrapper(addgp.AdditiveAbelianGroup_fixed_gens):
             (6, 2)
         """
         if parent(x) is self.universe():
-            return self.element_class(self, self._discrete_log(x), element = x)
+            return self.element_class(self, self.discrete_log(x), element = x)
         return addgp.AdditiveAbelianGroup_fixed_gens._element_constructor_(self, x, check)
 

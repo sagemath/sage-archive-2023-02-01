@@ -886,7 +886,7 @@ REFERENCES:
              geometries*, :arxiv:`2010.06088` (2010).
 
 .. [BHMPW20] Tom Braden, June Huh, Jacob P. Matherne, Nicholas Proudfoot,
-             and Botong Wang, *A semi-small decomposition of the chow 
+             and Botong Wang, *A semi-small decomposition of the chow
              ring of a matroid*, :arxiv:`2002.03341` (2020).
 
 .. [BMP2007] \S. Brlek, G. Melançon, G. Paquin, Properties of the

@@ -17,6 +17,8 @@ AUTHORS:
 - Pablo Angulo (2016) : Schouten, Cotton and Cotton-York tensors
 - Florentin Jaffredo (2018) : series expansion for the inverse metric
 - Hans Fotsing Tetsing (2019) : degenerate metrics
+- Marius Gerbershagen (2022) : compute volume forms with contravariant indices
+  only as needed
 
 REFERENCES:
 
@@ -40,10 +42,14 @@ REFERENCES:
 #                  https://www.gnu.org/licenses/
 # *****************************************************************************
 
+from __future__ import annotations
+from typing import TYPE_CHECKING
 from sage.rings.integer import Integer
 from sage.manifolds.differentiable.tensorfield import TensorField
 from sage.manifolds.differentiable.tensorfield_paral import TensorFieldParal
 
+if TYPE_CHECKING:
+    from sage.manifolds.differentiable.diff_form import DiffForm
 
 class PseudoRiemannianMetric(TensorField):
     r"""
@@ -1618,7 +1624,7 @@ class PseudoRiemannianMetric(TensorField):
             self._sqrt_abs_dets[frame] = resu
         return self._sqrt_abs_dets[frame]
 
-    def volume_form(self, contra=0):
+    def volume_form(self, contra: int = 0) -> TensorField:
         r"""
         Volume form (Levi-Civita tensor) `\epsilon` associated with the metric.
 
@@ -1769,12 +1775,15 @@ class PseudoRiemannianMetric(TensorField):
         """
         dom = self._domain
         orient = dom.orientation()
+        manif = self._ambient_domain
+        ndim = manif.dimension()
         if not orient:
             raise ValueError('{} must admit an orientation'.format(dom))
+        if contra > ndim:
+            raise ValueError('The number of contravariant indices is greater '
+                             'than the manifold dimension')
         if self._vol_forms == []:
             # a new computation is necessary
-            manif = self._ambient_domain
-            ndim = manif.dimension()
             # The result is constructed on the vector field module,
             # so that dest_map is taken automatically into account:
             eps = self._vmodule.alternating_form(ndim, name='eps_'+self._name,
@@ -1785,8 +1794,9 @@ class PseudoRiemannianMetric(TensorField):
                 if frame.destination_map() is frame.domain().identity_map():
                     eps.add_comp(frame)[[ind]] = self.sqrt_abs_det(frame)
             self._vol_forms.append(eps)  # Levi-Civita tensor constructed
+        if contra >= len(self._vol_forms):
             # Tensors related to the Levi-Civita one by index rising:
-            for k in range(1, ndim+1):
+            for k in range(len(self._vol_forms), contra+1):
                 epskm1 = self._vol_forms[k-1]
                 epsk = epskm1.up(self, k-1)
                 if k > 1:
@@ -1795,7 +1805,7 @@ class PseudoRiemannianMetric(TensorField):
                 self._vol_forms.append(epsk)
         return self._vol_forms[contra]
 
-    def hodge_star(self, pform):
+    def hodge_star(self, pform: DiffForm) -> DiffForm:
         r"""
         Compute the Hodge dual of a differential form with respect to the
         metric.
@@ -1963,22 +1973,7 @@ class PseudoRiemannianMetric(TensorField):
             True
 
         """
-        from sage.functions.other import factorial
-        from sage.tensor.modules.format_utilities import format_unop_txt, \
-                                                         format_unop_latex
-        p = pform.tensor_type()[1]
-        eps = self.volume_form(p)
-        if p == 0:
-            dom_resu = self._domain.intersection(pform.domain())
-            resu = pform.restrict(dom_resu) * eps.restrict(dom_resu)
-        else:
-            args = list(range(p)) + [eps] + list(range(p))
-            resu = pform.contract(*args)
-        if p > 1:
-            resu = resu / factorial(p)
-        resu.set_name(name=format_unop_txt('*', pform._name),
-                    latex_name=format_unop_latex(r'\star ', pform._latex_name))
-        return resu
+        return pform.hodge_dual(self)
 
 
 #******************************************************************************

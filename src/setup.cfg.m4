@@ -94,7 +94,6 @@ scripts =
     bin/sage-cleaner
     # Only makes sense in sage-the-distribution. TODO: Move to another installation script.
     bin/sage-list-packages
-    bin/sage-location
     # Uncategorized scripts in alphabetical order
     bin/math-readline
     bin/sage-env
@@ -133,6 +132,9 @@ sage.interfaces =
 sage.doctest =
     tests/*
 
+sage.repl.rich_output =
+    example*
+
 sage =
     ext_data/*
     ext_data/kenzo/*
@@ -141,8 +143,6 @@ sage =
     ext_data/images/*
     ext_data/doctest/*
     ext_data/doctest/invalid/*
-    ext_data/doctest/rich_output/*
-    ext_data/doctest/rich_output/example_wavefront/*
     ext_data/gap/*
     ext_data/gap/joyner/*
     ext_data/mwrank/*

@@ -1858,8 +1858,8 @@ cdef class NumberFieldElement(FieldElement):
             sage: CBF(a)
             [0.9947502791976272 +/- 1.09e-17] + [0.4790464865132800 +/- 1.46e-17]*I
             sage: NF.<a> = NumberField(x^7 + 2, embedding=QQbar(-2)^(1/7))
-            sage: CBF(a)
-            [0.9947502791976272 +/- 1.09e-17] + [0.4790464865132800 +/- 1.46e-17]*I
+            sage: CBF(a) # abs tol 1e-17
+            [0.9947502791976272 +/- 7.49e-18] + [0.4790464865132800 +/- 1.29e-17]*I
             sage: NF.<a> = NumberField(x^7 + 2)
             sage: CBF(NF(3))
             3.000000000000000
@@ -4416,7 +4416,7 @@ cdef class NumberFieldElement(FieldElement):
             sage: K.<zeta> = CyclotomicField(8)
             sage: K(1).descend_mod_power(QQ,2)
             [1, 2, -1, -2]
-            sage: a = 17*K.random_element()^2
+            sage: a = 17 * K._random_nonzero_element()^2
             sage: a.descend_mod_power(QQ,2)
             [17, 34, -17, -34]
         """

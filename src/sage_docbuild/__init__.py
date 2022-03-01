@@ -376,7 +376,7 @@ class AllBuilder(object):
 
             sage: from sage_docbuild import AllBuilder
             sage: documents = AllBuilder().get_all_documents()
-            sage: 'en/tutorial' in documents  # optional - build
+            sage: 'en/tutorial' in documents  # optional - sage_spkg
             True
             sage: documents[0] == 'en/reference'
             True
@@ -552,7 +552,7 @@ class ReferenceBuilder(AllBuilder):
 
             sage: from sage_docbuild import ReferenceBuilder
             sage: b = ReferenceBuilder('reference')
-            sage: refdir = os.path.join(os.environ['SAGE_DOC_SRC'], 'en', b.name)  # optional - build
+            sage: refdir = os.path.join(os.environ['SAGE_DOC_SRC'], 'en', b.name)  # optional - sage_spkg
             sage: sorted(b.get_all_documents(refdir))  # optional - build
             ['reference/algebras',
              'reference/arithgroup',

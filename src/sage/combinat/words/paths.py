@@ -1636,7 +1636,7 @@ class FiniteWordPath_2d(FiniteWordPath_all):
             sage: b = words.fibonacci_tile(1).animate()
             sage: c = words.fibonacci_tile(2).animate()
             sage: d = words.fibonacci_tile(3).animate()
-            sage: (a*b*c*d).show()  # optional -- ImageMagick
+            sage: (a*b*c*d).show()  # optional -- ImageMagick   # long time
 
         .. note::
 

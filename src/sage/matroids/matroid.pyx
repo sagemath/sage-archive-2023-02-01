@@ -7875,7 +7875,7 @@ cdef class Matroid(SageObject):
         r"""
         Returns the Bergman complex of ``self``.
 
-        Let `L` be the lattice of flats of a matroid `M` with the minimum and 
+        Let `L` be the lattice of flats of a matroid `M` with the minimum and
         maximum elements removed. The *Bergman complex* of a matroid `M` is the
         order complex of `L`.
 
@@ -7899,48 +7899,48 @@ cdef class Matroid(SageObject):
     cpdef augmented_bergman_complex(self):
         r"""
         Returns the augmented Bergman complex of ``self``.
-        
-        Given a matroid `M` with ground set `E=\{1,2,\ldots,n\}`, 
+
+        Given a matroid `M` with ground set `E=\{1,2,\ldots,n\}`,
         the *augmented Bergman complex* can be seen as a hybrid of the copmlex
         of independent sets of `M` and the Bergman complex of `M`. It is defined
         as the simplicial complex on vertex set
-        
+
         .. MATH::
-        
+
             \{y_1,\ldots,y_n\}\cup\{x_F:\text{ proper flats } F\subsetneq E\},
-        
+
         with simplicies given by
-        
+
         .. MATH::
-        
+
             \{y_i\}_{i\in I}\cup\{x_{F_1},\ldots,x_{F_\ell}\},
-        
+
         for which `I` is an independent set and `I\subseteq F_1\subsetneq F_2
-        \subsetneq\cdots\subsetneq F_\ell`. 
-        
+        \subsetneq\cdots\subsetneq F_\ell`.
+
         OUTPUT:
-        
+
         A simplicial complex as just described.
-        
+
         EXAMPLES::
-        
+
             sage: M=matroids.named_matroids.Fano()
             sage: A=M.augmented_bergman_complex(); A
             Simplicial complex with 22 vertices and 91 facets
-        
+
         ..SEEALSO::
-        
+
             :meth:`M.bergman_complex() <sage.matroids.matroid.Matroid.bergman_complex>`
-        
+
         ..TODO::
-        
+
             It is possible that this method could be optimized by building up
             the maximal chains using a sort of dynamic programming approach.
             Also, checking for equality of sets using ``cache`` could be
             sped up.
-            
+
         REFERENCES:
-        
+
         - [BMHPW10]_
         - [BMHPW20]_
         """
@@ -7948,22 +7948,22 @@ cdef class Matroid(SageObject):
         from sage.topology.simplicial_complex import SimplicialComplex
         I = self.independent_sets()
         delta_I = SimplicialComplex(I)
-        
+
         # Construct coned Bergman complex
         L = self.lattice_of_flats()
         cache = L.subposet(L.list()[:-1])
         coned_bergman = cache.order_complex()
-                
+
         # Take disjoint union of independent set and coned Bergman
         DM = delta_I.disjoint_union(coned_bergman)
-        
+
         # iterate through all nontrivial flats and find all maximal chains containing them
         flats = L.subposet(L.list()[1:-1])
         dictionary = {}
         for flat in flats:
             dictionary[flat] = flats.subposet(flats.principal_order_filter(flat)).maximal_chains()
-            
-        # For each independent set, find its closure and 
+
+        # For each independent set, find its closure and
         # make faces using the maximal chains containing its closure
         for independent in self.independent_sets():
             flat = self.closure(independent)
@@ -7979,7 +7979,7 @@ cdef class Matroid(SageObject):
                                 break
                     DM.add_face(face)
         return DM
-    
+
     def union(self, matroids):
         r"""
         Return the matroid union with another matroid or a list of matroids.

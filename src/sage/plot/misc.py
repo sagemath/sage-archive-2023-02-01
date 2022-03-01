@@ -13,6 +13,8 @@
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 
+from collections.abc import Iterable
+
 def setup_for_eval_on_grid(funcs,
                            ranges,
                            plot_points=None,
@@ -192,7 +194,7 @@ def setup_for_eval_on_grid(funcs,
             return FastCallablePlotWrapper(ff, imag_tol=imaginary_tolerance)
 
     # Handle vectors, lists, tuples, etc.
-    if hasattr(funcs, "__iter__"):
+    if isinstance(funcs, Iterable):
         funcs = tuple( try_make_fast(f) for f in funcs )
     else:
         funcs = try_make_fast(funcs)

@@ -60,6 +60,7 @@ Some more examples::
 #                  http://www.gnu.org/licenses/
 #***********************************************************************
 
+from collections.abc import Iterable, Mapping
 from sage.structure.element import Element
 from sage.structure.richcmp import richcmp, op_NE
 from sage.symbolic.constants import I
@@ -532,7 +533,8 @@ class HyperbolicPoint(Element):
         else:  # It is an interior point
             if p in RR:
                 p = CC(p)
-            elif hasattr(p, 'items') or hasattr(p, '__iter__'):
+            elif isinstance(p, (Iterable, Mapping)):
+                # p is iterable or a dict (or similar).
                 p = [numerical_approx(k) for k in p]
             else:
                 p = numerical_approx(p)

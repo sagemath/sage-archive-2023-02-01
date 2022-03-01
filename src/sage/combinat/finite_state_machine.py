@@ -933,7 +933,9 @@ Methods
 from IPython.lib.pretty import pretty
 import itertools
 from collections import defaultdict, deque, namedtuple, OrderedDict
-from collections.abc import Iterator
+# Use isinstance(x, Iterable) to test whether x is iterable, and
+# use isinstance(x, Mapping) to test whether x is a dict.
+from collections.abc import Iterator, Iterable, Mapping
 from copy import copy, deepcopy
 
 from sage.calculus.var import var
@@ -2616,9 +2618,9 @@ def duplicate_transition_add_input(old_transition, new_transition):
         "Transition from 'a' to 'a': 1,1|-",
         but input words are assumed to be lists of length 1
     """
-    if (hasattr(old_transition.word_in, '__iter__')
+    if (isinstance(old_transition.word_in, Iterable)
         and len(old_transition.word_in) == 1
-        and hasattr(new_transition.word_in, '__iter__')
+        and isinstance(new_transition.word_in, Iterable)
         and len(new_transition.word_in) == 1):
         old_transition.word_in = [old_transition.word_in[0]
                                   + new_transition.word_in[0]]
@@ -3137,7 +3139,7 @@ class FiniteStateMachine(SageObject):
 
 
         if initial_states is not None:
-            if not hasattr(initial_states, '__iter__'):
+            if not isinstance(initial_states, Iterable):
                 raise TypeError('Initial states must be iterable '
                                 '(e.g. a list of states).')
             for s in initial_states:
@@ -3145,7 +3147,7 @@ class FiniteStateMachine(SageObject):
                 state.is_initial = True
 
         if final_states is not None:
-            if not hasattr(final_states, '__iter__'):
+            if not isinstance(final_states, Iterable):
                 raise TypeError('Final states must be iterable '
                                 '(e.g. a list of states).')
             for s in final_states:
@@ -3164,25 +3166,25 @@ class FiniteStateMachine(SageObject):
 
         if data is None:
             pass
-        elif hasattr(data, 'items'):
+        elif isinstance(data, Mapping):
             # data is a dict (or something similar),
             # format: key = from_state, value = iterator of transitions
             for (sf, iter_transitions) in data.items():
                 self.add_state(sf)
-                if hasattr(iter_transitions, 'items'):
+                if isinstance(iter_transitions, Mapping):
                     for (st, transition) in iter_transitions.items():
                         self.add_state(st)
                         if is_FSMTransition(transition):
                             self.add_transition(transition)
-                        elif hasattr(transition, 'items'):
+                        elif isinstance(transition, Mapping):
                             self.add_transition(sf, st, **transition)
-                        elif hasattr(transition, '__iter__'):
+                        elif isinstance(transition, Iterable):
                             self.add_transition(sf, st, *transition)
                         else:
                             self.add_transition(sf, st, transition)
-                elif hasattr(iter_transitions, '__iter__'):
+                elif isinstance(iter_transitions, Iterable):
                     for transition in iter_transitions:
-                        if hasattr(transition, '__iter__'):
+                        if isinstance(transition, Iterable):
                             L = [sf]
                             L.extend(transition)
                         elif is_FSMTransition(transition):
@@ -3192,15 +3194,15 @@ class FiniteStateMachine(SageObject):
                         self.add_transition(L)
                 else:
                     raise TypeError('Wrong input data for transition.')
-        elif hasattr(data, '__iter__'):
+        elif isinstance(data, Iterable):
             # data is a something that is iterable,
             # items are transitions
             for transition in data:
                 if is_FSMTransition(transition):
                     self.add_transition(transition)
-                elif hasattr(transition, 'items'):
+                elif isinstance(transition, Mapping):
                     self.add_transition(transition)
-                elif hasattr(transition, '__iter__'):
+                elif isinstance(transition, Iterable):
                     self.add_transition(transition)
                 else:
                     raise TypeError('Wrong input data for transition.')
@@ -3895,7 +3897,7 @@ class FiniteStateMachine(SageObject):
             raise TypeError("Called with too few arguments.")
         if is_FiniteStateMachine(args[0]):
             return self.composition(*args, **kwargs)
-        if hasattr(args[0], '__iter__'):
+        if isinstance(args[0], Iterable):
             if 'full_output' not in kwargs:
                 kwargs['full_output'] = False
             if 'list_of_outputs' not in kwargs:
@@ -6642,10 +6644,10 @@ class FiniteStateMachine(SageObject):
                     return self._add_fsm_transition_(d)
             else:
                 d = next(iter(kwargs.values()))
-            if hasattr(d, 'items'):
+            if isinstance(d, Mapping):
                 args = []
                 kwargs = d
-            elif hasattr(d, '__iter__'):
+            elif isinstance(d, Iterable):
                 args = d
                 kwargs = {}
             else:
@@ -6794,7 +6796,7 @@ class FiniteStateMachine(SageObject):
 
         if initial_states is None:
             not_done = self.initial_states()
-        elif hasattr(initial_states, '__iter__'):
+        elif isinstance(initial_states, Iterable):
             not_done = []
             for s in initial_states:
                 state = self.add_state(s)
@@ -7865,7 +7867,7 @@ class FiniteStateMachine(SageObject):
         else:
             result.input_alphabet = None
 
-        if hasattr(other, '__iter__'):
+        if isinstance(other, Iterable):
             machines = [self]
             machines.extend(other)
             if not all(is_FiniteStateMachine(m) for m in machines):
@@ -9289,7 +9291,7 @@ class FiniteStateMachine(SageObject):
                 changed = changed or len(transition_list) > 1
                 word_in = 0
                 for transition in transition_list:
-                    if hasattr(transition.word_in, '__iter__') and len(transition.word_in) == 1:
+                    if isinstance(transition.word_in, Iterable) and len(transition.word_in) == 1:
                         word_in += transition.word_in[0]
                     else:
                         raise TypeError('%s does not have a list of length 1 as word_in' % transition)
@@ -14273,7 +14275,7 @@ class FSMProcessIterator(SageObject, Iterator):
                 tape.append(input_tape)
         if not tape:
             raise TypeError('No input tape given.')
-        if not all(hasattr(track, '__iter__') for track in tape):
+        if not all(isinstance(track, Iterable) for track in tape):
             raise TypeError('Given input tape is not iterable.')
         self._input_tape_ = tuple(iter(track) for track in tape)
         self._input_tape_ended_ = [False for _ in tape]
@@ -14607,7 +14609,7 @@ class FSMProcessIterator(SageObject, Iterator):
             if isinstance(next_transitions, FSMTransition):
                 next_transitions = [next_transitions]
             if next_transitions is not None and \
-                    not hasattr(next_transitions, '__iter__'):
+                    not isinstance(next_transitions, Iterable):
                 raise ValueError('hook of state should return a '
                                  'transition or '
                                  'a list/tuple of transitions.')

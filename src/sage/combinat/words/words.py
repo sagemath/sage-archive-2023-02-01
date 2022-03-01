@@ -41,6 +41,7 @@ EXAMPLES::
 # ****************************************************************************
 
 import itertools
+from collections.abc import Iterable
 
 from sage.misc.cachefunc import cached_method
 from sage.misc.lazy_attribute import lazy_attribute
@@ -836,7 +837,7 @@ class FiniteWords(AbstractLanguage):
         elif callable(data):
             w = self._word_from_callable(data, length, caching)
 
-        elif hasattr(data, "__iter__"):
+        elif isinstance(data, Iterable):
             from sage.combinat.words.abstract_word import Word_class
             if isinstance(data, Word_class):
                 w = self._word_from_word(data)
@@ -1562,7 +1563,7 @@ class InfiniteWords(AbstractLanguage):
         elif callable(data):
             w = self._word_from_callable(data, caching)
 
-        elif hasattr(data, "__iter__"):
+        elif isinstance(data, Iterable):
             from sage.combinat.words.abstract_word import Word_class
             if isinstance(data, Word_class):
                 w = self._word_from_word(data)
@@ -2046,7 +2047,7 @@ class FiniteOrInfiniteWords(AbstractLanguage):
             from sage.combinat.words.abstract_word import Word_class
             if isinstance(data, Word_class):
                 w = self._word_from_word(data)
-            elif hasattr(data, "__iter__"):
+            elif isinstance(data, Iterable):
                 w = self._word_from_iter(data, caching)
             else:
                 raise ValueError("Cannot guess a datatype from data (={!r}); please specify one".format(data))

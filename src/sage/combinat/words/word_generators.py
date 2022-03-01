@@ -54,6 +54,7 @@ EXAMPLES::
 #                  https://www.gnu.org/licenses/
 # ****************************************************************************
 
+from collections.abc import Iterable
 from itertools import cycle, count
 from random import randint
 from sage.misc.cachefunc import cached_method
@@ -889,7 +890,7 @@ class WordGenerator(object):
             else:
                 parent = FiniteWords(alphabet)
             cf = iter(cf)
-        elif hasattr(slope, '__iter__'):
+        elif isinstance(slope, Iterable):
             cf = iter(slope)
             parent = InfiniteWords(alphabet)
         else:

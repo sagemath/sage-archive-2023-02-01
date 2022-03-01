@@ -1975,17 +1975,16 @@ class Polyhedron_base(Polyhedron_base5):
 
         OUTPUT:
 
-        The volume, cast to RDF (although lrs seems to output a
-        rational value this must be an approximation in some cases).
+        The exact volume as a rational number.
 
         EXAMPLES::
 
             sage: polytopes.hypercube(3)._volume_lrs() # optional - lrslib
-            8.0
+            8
             sage: (polytopes.hypercube(3)*2)._volume_lrs() # optional - lrslib
-            64.0
+            64
             sage: polytopes.twenty_four_cell()._volume_lrs() # optional - lrslib
-            2.0
+            2
 
         REFERENCES:
 
@@ -2018,7 +2017,7 @@ class Polyhedron_base(Polyhedron_base5):
         for a_line in ans.splitlines():
             if 'Volume=' in a_line:
                 volume = a_line.split('Volume=')[1]
-                volume = RDF(QQ(volume))
+                volume = QQ(volume)
                 return volume
 
         raise ValueError("lrs did not return a volume")
@@ -2163,15 +2162,14 @@ class Polyhedron_base(Polyhedron_base5):
             2
 
         Volume of the same polytopes, using the optional package lrslib
-        (which requires a rational polytope).  For mysterious historical
-        reasons, Sage casts lrs's exact answer to a float::
+        (which requires a rational polytope)::
 
             sage: I3 = polytopes.hypercube(3)
-            sage: I3.volume(engine='lrs') # optional - lrslib
-            8.0
+            sage: I3.volume(engine='lrs')                # optional - lrslib
+            8
             sage: C24 = polytopes.twenty_four_cell()
-            sage: C24.volume(engine='lrs') # optional - lrslib
-            2.0
+            sage: C24.volume(engine='lrs')               # optional - lrslib
+            2
 
         If the base ring is exact, the answer is exact::
 
@@ -2304,6 +2302,12 @@ class Polyhedron_base(Polyhedron_base5):
             sage: Q = loads(dumps(P))
             sage: Q.volume.is_in_cache()
             True
+
+        Induced volumes work with lrs (:trac:`33410`)::
+
+            sage: P = Polyhedron([[0, 0], [1, 1]])
+            sage: P.volume(measure='induced', engine='lrs')  # optional - lrslib
+            1.414213562373095?
         """
         from sage.features import FeatureNotPresentError
         if measure == 'induced_rational' and engine not in ['auto', 'latte', 'normaliz']:

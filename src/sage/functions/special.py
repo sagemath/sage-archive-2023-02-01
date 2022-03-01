@@ -190,6 +190,54 @@ class SphericalHarmonic(BuiltinFunction):
         Y_{3}^{2}\left(x, y\right)
         sage: spherical_harmonic(1, 2, x, y)
         0
+
+    The degree `n` and the order `m` can be symbolic::
+
+        sage: n, m = var('n m')
+        sage: spherical_harmonic(n, m, x, y)
+        spherical_harmonic(n, m, x, y)
+        sage: latex(spherical_harmonic(n, m, x, y))
+        Y_{n}^{m}\left(x, y\right)
+        sage: diff(spherical_harmonic(n, m, x, y), x)
+        m*cot(x)*spherical_harmonic(n, m, x, y)
+         + sqrt(-(m + n + 1)*(m - n))*e^(-I*y)*spherical_harmonic(n, m + 1, x, y)
+        sage: diff(spherical_harmonic(n, m, x, y), y)
+        I*m*spherical_harmonic(n, m, x, y)
+
+    The convention regarding the Condon-Shortley phase `(-1)^m` is the same
+    as for SymPy's spherical harmonics and :wikipedia:`Spherical_harmonics`::
+
+        sage: assume(sin(x)>=0)
+        sage: spherical_harmonic(1, 1, x, y)
+        -1/4*sqrt(3)*sqrt(2)*e^(I*y)*sin(x)/sqrt(pi)
+        sage: from sympy import Ynm
+        sage: Ynm(1, 1, x, y).expand(func=True)
+        -sqrt(6)*exp(I*y)*sin(x)/(4*sqrt(pi))
+        sage: spherical_harmonic(1, 1, x, y) - Ynm(1, 1, x, y)
+        0
+
+    It also agrees with SciPy's spherical harmonics::
+
+        sage: spherical_harmonic(1, 1, pi/2, pi).n()  # abs tol 1e-14
+        0.345494149471335
+        sage: from scipy.special import sph_harm  # NB: arguments x and y are swapped
+        sage: sph_harm(1, 1, pi.n(), (pi/2).n())  # abs tol 1e-14
+        (0.3454941494713355-4.231083042742082e-17j)
+
+    Note that this convention is opposite to Maxima's one, as revealed
+    by the sign difference for odd values of `m`::
+
+        sage: maxima.spherical_harmonic(1, 1, x, y).sage()
+        1/2*sqrt(3/2)*e^(I*y)*sin(x)/sqrt(pi)
+
+    It follows that, contrary to Maxima's ones, SageMath's spherical harmonics
+    agree with those of SymPy, SciPy, Mathematica and
+    :wikipedia:`Table_of_spherical_harmonics`.
+
+    REFERENCES:
+
+    - :wikipedia:`Spherical_harmonics`
+
     """
     def __init__(self):
         r"""
@@ -226,19 +274,20 @@ class SphericalHarmonic(BuiltinFunction):
 
         Check that :trac:`20939` is fixed::
 
-            sage: ex = spherical_harmonic(3,2,1,2*pi/3)
+            sage: ex = spherical_harmonic(3, 2, 1, 2*pi/3)
             sage: QQbar(ex * sqrt(pi)/cos(1)/sin(1)^2).minpoly()
             x^4 + 105/32*x^2 + 11025/1024
 
-        Check whether :trac:`25034` yields correct results compared to Maxima::
+        Check whether :trac:`25034` yields correct results compared to Maxima,
+        up the Condon-Shortley phase factor `(-1)^m`::
 
-            sage: spherical_harmonic(1,1,pi/3,pi/6).n() # abs tol 1e-14
+            sage: spherical_harmonic(1, 1, pi/3, pi/6).n() # abs tol 1e-14
+            -0.259120612103502 - 0.149603355150537*I
+            sage: maxima.spherical_harmonic(1, 1, pi/3, pi/6).n() # abs tol 1e-14
             0.259120612103502 + 0.149603355150537*I
-            sage: maxima.spherical_harmonic(1,1,pi/3,pi/6).n() # abs tol 1e-14
-            0.259120612103502 + 0.149603355150537*I
-            sage: spherical_harmonic(1,-1,pi/3,pi/6).n() # abs tol 1e-14
-            -0.259120612103502 + 0.149603355150537*I
-            sage: maxima.spherical_harmonic(1,-1,pi/3,pi/6).n() # abs tol 1e-14
+            sage: spherical_harmonic(1, -1, pi/3, pi/6).n() # abs tol 1e-14
+            0.259120612103502 - 0.149603355150537*I
+            sage: maxima.spherical_harmonic(1, -1, pi/3, pi/6).n() # abs tol 1e-14
             -0.259120612103502 + 0.149603355150537*I
 
         """
@@ -271,11 +320,28 @@ class SphericalHarmonic(BuiltinFunction):
         TESTS::
 
             sage: n, m, theta, phi = var('n m theta phi')
-            sage: spherical_harmonic(n, m, theta, phi).diff(theta)
+            sage: Ynm = spherical_harmonic(n, m, theta, phi)
+            sage: DY_theta = Ynm.diff(theta)
+            sage: DY_theta
             m*cot(theta)*spherical_harmonic(n, m, theta, phi)
              + sqrt(-(m + n + 1)*(m - n))*e^(-I*phi)*spherical_harmonic(n, m + 1, theta, phi)
-            sage: spherical_harmonic(n, m, theta, phi).diff(phi)
+            sage: Ynm.diff(phi)
             I*m*spherical_harmonic(n, m, theta, phi)
+
+        Check that :trac:33117 is fixed::
+
+            sage: assume(sin(theta)>=0)
+            sage: DY_theta.subs({n: 1, m: 0})
+            -1/2*sqrt(3)*sin(theta)/sqrt(pi)
+            sage: Ynm.subs({n: 1, m: 0}).diff(theta)
+            -1/2*sqrt(3)*sin(theta)/sqrt(pi)
+            sage: bool(DY_theta.subs({n: 1, m: 0}) == Ynm.subs({n: 1, m: 0}).diff(theta))
+            True
+            sage: bool(DY_theta.subs({n: 1, m: 1}) == Ynm.subs({n: 1, m: 1}).diff(theta))
+            True
+            sage: bool(DY_theta.subs({n: 1, m: -1}) == Ynm.subs({n: 1, m: -1}).diff(theta))
+            True
+
         """
         if diff_param == 2:
             return (m * cot(theta) * spherical_harmonic(n, m, theta, phi) +

@@ -1705,7 +1705,7 @@ class EllipticCurve_generic(WithEqualityById, plane_curve.ProjectivePlaneCurve):
         """
         return self.division_polynomial_0(-1,x)
 
-    def division_polynomial(self, m, x=None, two_torsion_multiplicity=2):
+    def division_polynomial(self, m, x=None, two_torsion_multiplicity=2, force_evaluate=None):
         r"""
         Return the `m^{th}` division polynomial of this elliptic
         curve evaluated at `x`.
@@ -1744,6 +1744,27 @@ class EllipticCurve_generic(WithEqualityById, plane_curve.ProjectivePlaneCurve):
             factor `2y+a_1x+a_3` having simple zeros at the `2`-torsion points.
             When `x` is not ``None``, it should be a tuple of length 2, and
             the evaluation of such a polynomial at `x` is returned.
+
+        - ``force_evaluate`` (optional) -- 0, 1, or 2
+
+            By default, this method makes use of previously cached generic
+            division polynomials to compute the value of the polynomial at
+            a given element `x` whenever it appears beneficial to do so.
+            Explicitly setting this flag overrides the default behavior.
+
+            Note that the complexity of evaluating a generic division
+            polynomial scales much worse than that of computing the value
+            at a point directly (using the recursive formulas), hence
+            setting this flag can be detrimental to performance.
+
+            If 0: Do not use cached generic division polynomials.
+
+            If 1: If the generic division polynomial for this `m` has been
+            cached before, evaluate it at `x` to compute the result.
+
+            If 2: Compute the value at `x` by evaluating the generic
+            division polynomial. If the generic `m`-division polynomial
+            has not yet been cached, compute and cache it first.
 
         EXAMPLES::
 
@@ -1803,6 +1824,24 @@ class EllipticCurve_generic(WithEqualityById, plane_curve.ProjectivePlaneCurve):
             -5*Y
             sage: E.division_polynomial(5, x=X)
             5*X^12 - 20*X^11 + 16*X^10 + 95*X^9 - 285*X^8 + 360*X^7 - 255*X^6 + 94*X^5 + 15*X^4 - 45*X^3 + 25*X^2 - 5*X
+
+        Tests for the ``force_evaluate`` argument::
+
+            sage: E.division_polynomial(5, x=Y, force_evaluate=0)
+            -5*Y
+            sage: E.division_polynomial(5, x=Y, force_evaluate=1)
+            -5*Y
+            sage: E.division_polynomial(5, x=Y, force_evaluate=2)
+            -5*Y
+            sage: E._EllipticCurve_generic__divpolys[2]
+            {5: 5*x^12 - 20*x^11 + 16*x^10 + 95*x^9 - 285*x^8 + 360*x^7 - 255*x^6 + 94*x^5 + 15*x^4 - 45*x^3 + 25*x^2 - 5*x}
+            sage: E._EllipticCurve_generic__divpolys[2][5] += 1  # poison cache
+            sage: E.division_polynomial(5, x=Y, force_evaluate=0)
+            -5*Y
+            sage: E.division_polynomial(5, x=Y, force_evaluate=1)
+            -5*Y + 1
+            sage: E.division_polynomial(5, x=Y, force_evaluate=2)
+            -5*Y + 1
         """
         if two_torsion_multiplicity not in (0, 1, 2):
             raise ValueError("two_torsion_multiplicity must be 0, 1, or 2")
@@ -1822,7 +1861,9 @@ class EllipticCurve_generic(WithEqualityById, plane_curve.ProjectivePlaneCurve):
                 pass
 
         evaluate = False
-        if x is not None:
+        if force_evaluate is not None:
+            evaluate = force_evaluate
+        elif x is not None:
             # Univariate polynomials are much faster---this signals that the
             # result should first be computed as an univariate polynomial and
             # only then converted, even if it is not yet cached.

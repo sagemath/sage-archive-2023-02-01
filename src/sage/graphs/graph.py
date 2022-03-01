@@ -8801,7 +8801,6 @@ class Graph(GenericGraph):
         onesvec = matrix(base_ring, n, 1, lambda i, j: 1)
         S = d * onesvec.transpose() + onesvec * d.transpose() - 2 * M
         if nonedgesonly:
-            onesmat = matrix(base_ring, n, n, lambda i, j: 1)
             A = self.adjacency_matrix(vertices=vertices, base_ring=base_ring, **kwds)
             B = matrix(base_ring, n, n)
             for i in range(n):

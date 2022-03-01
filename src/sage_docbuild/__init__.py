@@ -553,7 +553,7 @@ class ReferenceBuilder(AllBuilder):
             sage: from sage_docbuild import ReferenceBuilder
             sage: b = ReferenceBuilder('reference')
             sage: refdir = os.path.join(os.environ['SAGE_DOC_SRC'], 'en', b.name)  # optional - sage_spkg
-            sage: sorted(b.get_all_documents(refdir))  # optional - build
+            sage: sorted(b.get_all_documents(refdir))  # optional - sage_spkg
             ['reference/algebras',
              'reference/arithgroup',
              ...,

@@ -1893,7 +1893,7 @@ class WordGenerator(object):
             seq = sequence
         elif hasattr(morphisms, '__getitem__'):
             seq = (morphisms[i] for i in sequence)
-        elif hasattr(morphisms, '__call__'):
+        elif callable(morphisms):
             seq = (morphisms(i) for i in sequence)
         else:
             raise TypeError("morphisms (=%s) must be None, callable or provide a __getitem__ method." % morphisms)

@@ -1417,7 +1417,7 @@ class FSMState(SageObject):
         self.initial_probability = initial_probability
 
         if hook is not None:
-            if hasattr(hook, '__call__'):
+            if callable(hook):
                 self.hook = hook
             else:
                 raise TypeError('Wrong argument for hook.')
@@ -2271,7 +2271,7 @@ class FSMTransition(SageObject):
             self.word_out = []
 
         if hook is not None:
-            if hasattr(hook, '__call__'):
+            if callable(hook):
                 self.hook = hook
             else:
                 raise TypeError('Wrong argument for hook.')
@@ -3157,7 +3157,7 @@ class FiniteStateMachine(SageObject):
 
         if on_duplicate_transition is None:
             on_duplicate_transition = duplicate_transition_ignore
-        if hasattr(on_duplicate_transition, '__call__'):
+        if callable(on_duplicate_transition):
             self.on_duplicate_transition = on_duplicate_transition
         else:
             raise TypeError('on_duplicate_transition must be callable')
@@ -3204,7 +3204,7 @@ class FiniteStateMachine(SageObject):
                     self.add_transition(transition)
                 else:
                     raise TypeError('Wrong input data for transition.')
-        elif hasattr(data, '__call__'):
+        elif callable(data):
             self.add_from_transition_function(data)
         else:
             raise TypeError('Cannot decide what to do with data.')
@@ -3381,7 +3381,7 @@ class FiniteStateMachine(SageObject):
                 if relabel:
                     if other._deepcopy_labels_ is None:
                         state._deepcopy_relabel_ = next(relabel_iter)
-                    elif hasattr(other._deepcopy_labels_, '__call__'):
+                    elif callable(other._deepcopy_labels_):
                         state._deepcopy_relabel_ = \
                             other._deepcopy_labels_(state.label())
                     elif hasattr(other._deepcopy_labels_, '__getitem__'):
@@ -4676,24 +4676,24 @@ class FiniteStateMachine(SageObject):
             self.set_coordinates(coordinates)
 
         if format_state_label is not None:
-            if not hasattr(format_state_label, '__call__'):
+            if not callable(format_state_label):
                 raise TypeError('format_state_label must be callable.')
             self.format_state_label = format_state_label
 
         if format_letter is not None:
-            if not hasattr(format_letter, '__call__'):
+            if not callable(format_letter):
                 raise TypeError('format_letter must be callable.')
             self.format_letter = format_letter
 
         if format_transition_label is not None:
-            if not hasattr(format_transition_label, '__call__'):
+            if not callable(format_transition_label):
                 raise TypeError('format_transition_label must be callable.')
             self.format_transition_label = format_transition_label
 
         if loop_where is not None:
             permissible = list(tikz_automata_where)
             for state in self.states():
-                if hasattr(loop_where, '__call__'):
+                if callable(loop_where):
                     where = loop_where(state.label())
                 else:
                     try:
@@ -4712,7 +4712,7 @@ class FiniteStateMachine(SageObject):
         if initial_where is not None:
             permissible = list(tikz_automata_where)
             for state in self.iter_initial_states():
-                if hasattr(initial_where, '__call__'):
+                if callable(initial_where):
                     where = initial_where(state.label())
                 else:
                     try:
@@ -4743,7 +4743,7 @@ class FiniteStateMachine(SageObject):
         if accepting_where is not None:
             permissible = list(tikz_automata_where)
             for state in self.iter_final_states():
-                if hasattr(accepting_where, '__call__'):
+                if callable(accepting_where):
                     where = accepting_where(state.label())
                 else:
                     try:
@@ -9729,7 +9729,7 @@ class FiniteStateMachine(SageObject):
         """
         if edge_labels == 'words_in_out':
             label_fct = lambda t: t._in_out_label_()
-        elif hasattr(edge_labels, '__call__'):
+        elif callable(edge_labels):
             label_fct = edge_labels
         else:
             raise TypeError('Wrong argument for edge_labels.')

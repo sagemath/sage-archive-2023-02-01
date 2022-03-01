@@ -178,7 +178,7 @@ def setup_for_eval_on_grid(funcs,
             # fast-callable with expr._plot_fast_callable() before
             # we ever see it.
             return FastCallablePlotWrapper(f, imag_tol=imaginary_tolerance)
-        elif hasattr(f, '__call__'):
+        elif callable(f):
             # This will catch python functions, among other things. We don't
             # wrap these yet because we don't know what type they'll return.
             return f

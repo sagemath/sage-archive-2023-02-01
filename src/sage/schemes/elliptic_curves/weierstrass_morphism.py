@@ -30,7 +30,7 @@ from sage.schemes.elliptic_curves.hom import EllipticCurveHom
 from sage.structure.richcmp import (richcmp_method, richcmp, richcmp_not_equal,
                                     op_NE)
 from sage.structure.sequence import Sequence
-from sage.rings.all import PolynomialRing
+from sage.rings.all import Integer, PolynomialRing
 
 
 @richcmp_method
@@ -729,8 +729,16 @@ class WeierstrassIsomorphism(EllipticCurveHom, baseWI):
             sage: E2 = EllipticCurve_from_j(E1.j_invariant())
             sage: E1.isomorphism_to(E2).degree()
             1
+
+        TESTS:
+
+        Test for :trac:`33312`::
+
+            sage: from sage.schemes.elliptic_curves.weierstrass_morphism import WeierstrassIsomorphism
+            sage: type(WeierstrassIsomorphism.degree(None))
+            <class 'sage.rings.integer.Integer'>
         """
-        return 1
+        return Integer(1)
 
     def rational_maps(self):
         """

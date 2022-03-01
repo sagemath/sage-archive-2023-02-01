@@ -3299,7 +3299,7 @@ class AlgebraicExtensionFunctor(ConstructionFunctor):
 
             sage: cbrt2 = CDF(2)^(1/3)
             sage: zeta3 = CDF.zeta(3)
-            sage: K.<a> = NumberField(x^3-2, embedding=cbrt2 * zera3)
+            sage: K.<a> = NumberField(x^3-2, embedding=cbrt2 * zeta3)
             sage: L.<b> = NumberField(x^6-2, embedding=1.1)
             sage: L.coerce_map_from(K)
             sage: K.coerce_map_from(L)

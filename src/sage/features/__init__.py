@@ -52,6 +52,8 @@ can use the ``require`` method::
 As can be seen above, features try to produce helpful error messages.
 """
 
+from __future__ import annotations
+
 import os
 import shutil
 
@@ -461,8 +463,11 @@ class Executable(Feature):
             sage: Executable(name="sh", executable="sh").is_present()
             FeatureTestResult('sh', True)
         """
-        if shutil.which(self.executable) is None:
-            return FeatureTestResult(self, False, "Executable {executable!r} not found on PATH.".format(executable=self.executable))
+        try:
+            abspath = self.absolute_path()
+            return FeatureTestResult(self, True, reason="Found at `{abspath}`.".format(abspath=abspath))
+        except FeatureNotPresentError as e:
+            return FeatureTestResult(self, False, reason=e.reason, resolution=e.resolution)
         return self.is_functional()
 
     def is_functional(self):
@@ -478,6 +483,31 @@ class Executable(Feature):
             FeatureTestResult('sh', True)
         """
         return FeatureTestResult(self, True)
+
+    def absolute_path(self) -> str:
+        r"""
+        The absolute path of the executable.
+
+        EXAMPLES::
+
+            sage: from sage.features import Executable
+            sage: Executable(name="sh", executable="sh").absolute_path()
+            '/bin/sh'
+
+        A :class:`FeatureNotPresentError` is raised if the file cannot be found::
+
+            sage: Executable(name="does-not-exist", executable="does-not-exist-xxxxyxyyxyy").absolute_path()
+            Traceback (most recent call last):
+            ...
+            sage.features.FeatureNotPresentError: does-not-exist is not available.
+            Executable 'does-not-exist-xxxxyxyyxyy' not found on PATH.
+        """
+        path = shutil.which(self.executable)
+        if path is not None:
+            return path
+        raise FeatureNotPresentError(self,
+                                     reason="Executable {executable!r} not found on PATH.".format(executable=self.executable),
+                                     resolution=self.resolution())
 
 
 class StaticFile(Feature):
@@ -525,7 +555,7 @@ class StaticFile(Feature):
         except FeatureNotPresentError as e:
             return FeatureTestResult(self, False, reason=e.reason, resolution=e.resolution)
 
-    def absolute_path(self):
+    def absolute_path(self) -> str:
         r"""
         The absolute path of the file.
 
@@ -541,7 +571,7 @@ class StaticFile(Feature):
             sage: feature.absolute_path() == file_path
             True
 
-        A ``FeatureNotPresentError`` is raised if the file cannot be found::
+        A :class:`FeatureNotPresentError` is raised if the file cannot be found::
 
             sage: from sage.features import StaticFile
             sage: StaticFile(name="no_such_file", filename="KaT1aihu", search_path=(), spkg="some_spkg", url="http://rand.om").absolute_path()  # optional - sage_spkg

@@ -1021,8 +1021,13 @@ class EllipticCurveIsogeny(EllipticCurveHom):
             self.__set_post_isomorphism(old_codomain, post_isom)   #(trac #7096)
 
         # Inheritance house keeping
-
         self.__perform_inheritance_housekeeping()
+
+        # over finite fields, isogenous curves have the same number
+        # of rational points, hence we copy over cached curve orders
+        if self.__base_field.is_finite():
+            self._codomain._fetch_cached_order(self._domain)
+            self._domain._fetch_cached_order(self._codomain)
 
     def _eval(self, P):
         r"""
@@ -1083,7 +1088,6 @@ class EllipticCurveIsogeny(EllipticCurveHom):
 
         k = Sequence(tuple(P) + tuple(Q)).universe()
         return self._codomain.base_extend(k).point(Q)
-
 
     def _call_(self, P):
         r"""

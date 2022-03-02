@@ -922,7 +922,7 @@ class ModulesWithBasis(CategoryWithAxiom_over_base_ring):
                 sage: C = CombinatorialFreeModule(R, range(3), prefix='x')
                 sage: x = C.basis()
                 sage: gens = [x[0] - x[1], 2*x[1] - 2*x[2], x[0] - x[2]]
-                sage: Y = X.quotient_module(gens)
+                sage: Y = C.quotient_module(gens)
 
             .. SEEALSO::
 

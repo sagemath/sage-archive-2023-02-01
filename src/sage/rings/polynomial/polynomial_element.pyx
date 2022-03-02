@@ -12088,7 +12088,7 @@ cdef class PolynomialBaseringInjection(Morphism):
         """
         return False
 
-def polynomial_is_variable(x):
+cpdef bint polynomial_is_variable(x):
     r"""
     Test whether the given polynomial is a variable of its parent ring.
 
@@ -12134,7 +12134,6 @@ def polynomial_is_variable(x):
     if isinstance(x, Polynomial):
         return (x.is_gen()
                 or (x.degree() == 1 and x[0].is_zero() and x[1].is_one()))
-    from sage.rings.polynomial.multi_polynomial import MPolynomial
     if isinstance(x, MPolynomial):
         return x.is_generator()
     return False

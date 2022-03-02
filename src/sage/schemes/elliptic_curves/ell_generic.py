@@ -1714,57 +1714,57 @@ class EllipticCurve_generic(WithEqualityById, plane_curve.ProjectivePlaneCurve):
 
         INPUT:
 
-        -  ``m`` -- positive integer.
+        - ``m`` -- positive integer.
 
-        -  ``x`` -- optional ring element to use as the `x` variable.
-           If `x` is ``None`` (omitted), then a new polynomial ring will be
-           constructed over the base ring of the elliptic curve, and its
-           generator will be used as `x`. Note that `x` does not need to
-           be a generator of a polynomial ring; any ring element works. This
-           permits fast calculation of the torsion polynomial *evaluated* on
-           any element of a ring.
+        - ``x`` -- optional ring element to use as the `x` variable.
+          If `x` is ``None`` (omitted), then a new polynomial ring will be
+          constructed over the base ring of the elliptic curve, and its
+          generator will be used as `x`. Note that `x` does not need to
+          be a generator of a polynomial ring; any ring element works. This
+          permits fast calculation of the torsion polynomial *evaluated* on
+          any element of a ring.
 
-        -  ``two_torsion_multiplicity`` -- 0, 1, or 2
+        - ``two_torsion_multiplicity`` -- 0, 1, or 2
 
-            If 0: For even `m` when `x` is ``None``, a univariate polynomial
-            over the base ring of the curve is returned, which omits factors
-            whose roots are the `x`-coordinates of the `2`-torsion points.
-            When `x` is not ``None``, the evaluation of such a polynomial at
-            `x` is returned.
+          If 0: For even `m` when `x` is ``None``, a univariate polynomial
+          over the base ring of the curve is returned, which omits factors
+          whose roots are the `x`-coordinates of the `2`-torsion points.
+          When `x` is not ``None``, the evaluation of such a polynomial at
+          `x` is returned.
 
-            If 2: For even `m` when `x` is ``None``, a univariate polynomial
-            over the base ring of the curve is returned, which includes a
-            factor of degree 3 whose roots are the `x`-coordinates of the
-            `2`-torsion points.
-            Similarly, when `x` is not ``None``, the evaluation of such a
-            polynomial at `x` is returned.
+          If 2: For even `m` when `x` is ``None``, a univariate polynomial
+          over the base ring of the curve is returned, which includes a
+          factor of degree 3 whose roots are the `x`-coordinates of the
+          `2`-torsion points.
+          Similarly, when `x` is not ``None``, the evaluation of such a
+          polynomial at `x` is returned.
 
-            If 1: For even `m` when `x` is ``None``, a bivariate polynomial
-            over the base ring of the curve is returned, which includes a
-            factor `2y+a_1x+a_3` having simple zeros at the `2`-torsion points.
-            When `x` is not ``None``, it should be a tuple of length 2, and
-            the evaluation of such a polynomial at `x` is returned.
+          If 1: For even `m` when `x` is ``None``, a bivariate polynomial
+          over the base ring of the curve is returned, which includes a
+          factor `2y+a_1x+a_3` having simple zeros at the `2`-torsion points.
+          When `x` is not ``None``, it should be a tuple of length 2, and
+          the evaluation of such a polynomial at `x` is returned.
 
         - ``force_evaluate`` (optional) -- 0, 1, or 2
 
-            By default, this method makes use of previously cached generic
-            division polynomials to compute the value of the polynomial at
-            a given element `x` whenever it appears beneficial to do so.
-            Explicitly setting this flag overrides the default behavior.
+          By default, this method makes use of previously cached generic
+          division polynomials to compute the value of the polynomial at
+          a given element `x` whenever it appears beneficial to do so.
+          Explicitly setting this flag overrides the default behavior.
 
-            Note that the complexity of evaluating a generic division
-            polynomial scales much worse than that of computing the value
-            at a point directly (using the recursive formulas), hence
-            setting this flag can be detrimental to performance.
+          Note that the complexity of evaluating a generic division
+          polynomial scales much worse than that of computing the value
+          at a point directly (using the recursive formulas), hence
+          setting this flag can be detrimental to performance.
 
-            If 0: Do not use cached generic division polynomials.
+          If 0: Do not use cached generic division polynomials.
 
-            If 1: If the generic division polynomial for this `m` has been
-            cached before, evaluate it at `x` to compute the result.
+          If 1: If the generic division polynomial for this `m` has been
+          cached before, evaluate it at `x` to compute the result.
 
-            If 2: Compute the value at `x` by evaluating the generic
-            division polynomial. If the generic `m`-division polynomial
-            has not yet been cached, compute and cache it first.
+          If 2: Compute the value at `x` by evaluating the generic
+          division polynomial. If the generic `m`-division polynomial
+          has not yet been cached, compute and cache it first.
 
         EXAMPLES::
 

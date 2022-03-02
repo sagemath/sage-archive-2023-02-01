@@ -20,7 +20,7 @@ class Singular(Executable):
 
             sage: from sage.features.singular import Singular
             sage: isinstance(Singular(), Singular)
-            True
+            FeatureTestResult('singular', True)
         """
         Executable.__init__(self, "singular", "Singular",
                             spkg='singular')

@@ -3542,7 +3542,7 @@ class RiemannSurface(object):
         eps = self._RR(2)**(-self._prec+3)
         dl = []
 
-        PZ = PolynomialRing(S._R.base(), 'z').fraction_field()
+        PZ = PolynomialRing(self._R.base(), 'z').fraction_field()
         RF = PolynomialRing(PZ, 'w')
 
         for d in divisor.support():

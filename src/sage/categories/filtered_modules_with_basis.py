@@ -32,7 +32,6 @@ from sage.categories.filtered_modules import FilteredModulesCategory
 from sage.misc.abstract_method import abstract_method
 from sage.misc.cachefunc import cached_method
 from sage.categories.subobjects import SubobjectsCategory
-from sage.categories.quotients import QuotientsCategory
 
 class FilteredModulesWithBasis(FilteredModulesCategory):
     r"""
@@ -393,64 +392,6 @@ class FilteredModulesWithBasis(FilteredModulesCategory):
             proj = lambda x: (base_one if self.degree_on_basis(x) == i
                               else base_zero)
             return self.module_morphism(diagonal=proj, codomain=grA)
-
-        def filtered_submodule(self, gens):
-            r"""
-            Create a graded submodule by referencing the grading of
-            ``self``. The generators have to be each homogeneous.
-
-            INPUTS::
-
-            - ``gens``: The generators of the submodule.
-
-            EXAMPLES::
-
-            sage: M = ModulesWithBasis(QQ).Filtered().example()
-            sage: N = M.filtered_submodule([M(Partition((5,3))), M(Partition((4,2,1,1,1,1)))])
-            sage: n = N.basis(); n[0].lift()
-            P[4, 2, 1, 1, 1, 1]
-            sage: n[0].degree()
-            10
-            sage: K = M.filtered_submodule([M(Partition((4,2,1,1,1,1))) - M(Partition((5,3)))])
-            Traceback (most recent call last):
-            ...
-            ValueError: element is not homogeneous
-            """
-            base_ring = self.base_ring()
-            for f in gens:
-                if not f.is_homogeneous():
-                    raise ValueError("element is not homogeneous")
-            return self.submodule(gens, category=FilteredModulesWithBasis(base_ring).Subobjects())
-
-        def filtered_quotient_module(self, submodule):
-            r"""
-            Create a graded quotient module by referencing the grading
-            of ``self``.  The generators have to be each homogeneous.
-            The cokernel must be of finite dimension.
-
-            INPUTS::
-
-            - ``submodule``: The generators of the submodule quotiented out.
-
-            EXAMPLES::
-
-            sage: M = ModulesWithBasis(QQ).Filtered().example()
-            sage: N = M.filtered_submodule([M(Partition((5,3))), M(Partition((4,2,1,1,1,1)))])
-            sage: n = N.basis(); n[0].lift()
-            P[4, 2, 1, 1, 1, 1]
-            sage: K = N.filtered_quotient_module([n[0]])
-            sage: k = K.basis(); k
-            Finite family {1: B[1]}
-            sage: k[1].lift().lift()
-            P[5, 3]
-            sage: k[1].degree()
-            8
-            """
-            base_ring = self.base_ring()
-            for f in submodule:
-                if not f.is_homogeneous():
-                    raise ValueError("element is not homogeneous")
-            return self.quotient_module(submodule, category=FilteredModulesWithBasis(base_ring).Quotients())
 
         def induced_graded_map(self, other, f):
             r"""
@@ -1058,6 +999,7 @@ class FilteredModulesWithBasis(FilteredModulesCategory):
 
                     sage: E.<x,y,z> = ExteriorAlgebra(QQ)
                     sage: S = E.submodule([x + y, x*y - y*z, y])
+                    sage: B = S.basis()
                     sage: [B[0].lift(), B[1].lift(), B[2].lift()]
                     [x, y, x*y - y*z]
                     sage: S.degree_on_basis(0)

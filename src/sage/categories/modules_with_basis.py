@@ -865,7 +865,13 @@ class ModulesWithBasis(CategoryWithAxiom_over_base_ring):
                 sage: TestSuite(center).run()
             """
             # Make sure gens consists of elements of ``self``
-            gens = [self(y) for y in gens]
+            from sage.sets.family import Family, AbstractFamily
+            if isinstance(gens, AbstractFamily):
+                gens = gens.map(self)
+            elif isinstance(gens, dict):
+                gens = Family(gens.keys(), gens.__getitem__)
+            else:
+                gens = [self(y) for y in gens]
             support_order = self._compute_support_order(gens, support_order)
             if not already_echelonized:
                 gens = self.echelon_form(gens, unitriangular, order=support_order)

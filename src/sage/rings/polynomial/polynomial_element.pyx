@@ -12132,8 +12132,8 @@ def polynomial_is_variable(x):
         False
     """
     if isinstance(x, Polynomial):
-        return x.is_gen() \
-                or (x.degree() == 1 and x[0].is_zero() and x[1].is_one())
+        return (x.is_gen()
+                or (x.degree() == 1 and x[0].is_zero() and x[1].is_one()))
     from sage.rings.polynomial.multi_polynomial import MPolynomial
     if isinstance(x, MPolynomial):
         return x.is_generator()

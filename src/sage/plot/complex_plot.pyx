@@ -295,10 +295,11 @@ def complex_to_rgb(z_values, contoured=False, tiled=False,
       contours at distances of ``contour_base`` apart. If ``None``, then a
       default is chosen depending on ``contour_type``.
 
-    - ``dark_rate`` -- a positive number (default: `0.5`) - when not
-      contouring or tiling, this affects how quickly magnitudes become black or
-      white. Values like `1.0` make magnitudes tending to `0` become darker
-      more rapidly, while small values have the opposite effect.
+    - ``dark_rate`` -- a positive number (default: `0.5`) - affects how quickly
+      magnitudes affect how light/dark the image is. When there are contours,
+      this affects how visible each contour is. Large values (near `1.0`) have
+      very strong, immediate effects, while small values (near `0.0`) have
+      gradual effects.
 
     OUTPUT:
 
@@ -471,10 +472,11 @@ def complex_to_cmap_rgb(z_values, cmap='turbo', contoured=False, tiled=False,
       contours at distances of ``contour_base`` apart. If ``None``, then a
       default is chosen depending on ``contour_type``.
 
-    - ``dark_rate`` -- a positive number (default: `0.5`) - when not contouring
-      or tiling, this affects how quickly magnitudes become black or white.
-      Values like `1.0` make magnitudes tending to `0` become darker more
-      rapidly, while small values have the opposite effect.
+    - ``dark_rate`` -- a positive number (default: `0.5`) - affects how quickly
+      magnitudes affect how light/dark the image is. When there are contours,
+      this affects how visible each contour is. Large values (near `1.0`) have
+      very strong, immediate effects, while small values (near `0.0`) have
+      gradual effects.
 
     OUTPUT:
 
@@ -580,7 +582,7 @@ def complex_to_cmap_rgb(z_values, cmap='turbo', contoured=False, tiled=False,
     lightdeltas = als[:,:,1]
 
     if tiled or contoured:
-        rgbs = add_contours_to_rgb(normalized_colors, lightdeltas)
+        rgbs = add_contours_to_rgb(normalized_colors, lightdeltas, dark_rate=dark_rate)
     else:
         rgbs = add_lightness_smoothing_to_rgb(normalized_colors, lightdeltas)
 
@@ -643,7 +645,7 @@ def add_lightness_smoothing_to_rgb(rgb, delta):
     return rgb
 
 
-def add_contours_to_rgb(rgb, delta):
+def add_contours_to_rgb(rgb, delta, dark_rate=0.5):
     r"""
     Return an rgb array from given array of `(r, g, b)` and `(delta)`.
 
@@ -661,6 +663,9 @@ def add_contours_to_rgb(rgb, delta):
       \times 3` numpy array.
 
     - ``delta`` -- a grid of values as an `N \times M` numpy array.
+
+    - ``dark_rate`` -- a positive number (default: `0.5`) - affects how
+      strongly visible the contours appear.
 
     OUTPUT:
 
@@ -696,7 +701,7 @@ def add_contours_to_rgb(rgb, delta):
     """
     import numpy as np
     hls = rgb_to_hls(rgb)
-    hls[..., 1] += 0.5 * delta
+    hls[..., 1] += dark_rate * delta
     hls = np.clip(hls, 0.0, 1.0)
     rgb = hls_to_rgb(hls)
     return rgb
@@ -811,11 +816,6 @@ def complex_plot(f, x_range, y_range, contoured=False, tiled=False, cmap='defaul
       (default: ``default``). If None or ``default``, then hues are chosen
       from a standard color wheel, cycling from red to yellow to blue.
 
-    - ``dark_rate`` -- a positive number - when not contouring or tiling,
-      this affects how quickly magnitudes become black or white. Values like
-      `1.0` make magnitudes tending to `0` become darker more rapidly, while
-      small values have the opposite effect.
-
     The following named parameter inputs can be used to add contours and adjust
     their distribution:
 
@@ -823,6 +823,12 @@ def complex_plot(f, x_range, y_range, contoured=False, tiled=False, cmap='defaul
       to be indicated by logarithmically spaced 'contours'. The
       magnitude along one contour is either twice or half the magnitude
       along adjacent contours.
+
+    - ``dark_rate`` -- a positive number (default: `0.5`) - affects how quickly
+      magnitudes affect how light/dark the image is. When there are contours,
+      this affects how visible each contour is. Large values (near `1.0`) have
+      very strong, immediate effects, while small values (near `0.0`) have
+      gradual effects.
 
     - ``tiled`` -- boolean (default: ``False``) - causes the magnitude to
       be indicated by logarithmically spaced 'contours' as in

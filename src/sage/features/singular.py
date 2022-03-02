@@ -2,6 +2,7 @@ r"""
 Features for testing the presence of Singular
 """
 from . import Executable
+from sage.env import SINGULAR_BIN
 
 
 class Singular(Executable):
@@ -22,5 +23,5 @@ class Singular(Executable):
             sage: isinstance(Singular(), Singular)
             FeatureTestResult('singular', True)
         """
-        Executable.__init__(self, "singular", "Singular",
+        Executable.__init__(self, "singular", SINGULAR_BIN,
                             spkg='singular')

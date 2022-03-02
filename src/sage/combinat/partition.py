@@ -283,7 +283,7 @@ We use the lexicographic ordering::
 from copy import copy
 from itertools import accumulate
 
-from sage.libs.all import pari
+from sage.libs.pari.all import pari
 from sage.libs.flint.arith import number_of_partitions as flint_number_of_partitions
 
 from sage.arith.misc import multinomial
@@ -304,7 +304,10 @@ from sage.categories.infinite_enumerated_sets import InfiniteEnumeratedSets
 from sage.categories.finite_enumerated_sets import FiniteEnumeratedSets
 
 from sage.sets.non_negative_integers import NonNegativeIntegers
-from sage.rings.all import QQ, ZZ, NN, IntegerModRing
+from sage.rings.finite_rings.integer_mod_ring import IntegerModRing
+from sage.rings.integer_ring import ZZ
+from sage.rings.rational_field import QQ
+from sage.rings.semirings.all import NN
 from sage.arith.all import factorial, gcd
 from sage.rings.polynomial.polynomial_ring_constructor import PolynomialRing
 from sage.rings.integer import Integer
@@ -3957,7 +3960,7 @@ class Partition(CombinatorialElement):
         lcors = [[0,p[0]-1]]
         nn = len(p)
         if nn == 1:
-            return [tuple(_) for _ in lcors]
+            return [tuple(c) for c in lcors]
 
         lcors_index = 0
         for i in range(1, nn):
@@ -3967,7 +3970,7 @@ class Partition(CombinatorialElement):
                 lcors.append([i,p[i]-1])
                 lcors_index += 1
 
-        return [tuple(_) for _ in lcors]
+        return [tuple(c) for c in lcors]
 
     inside_corners = corners
     removable_cells = corners     # for compatibility with partition tuples
@@ -6406,8 +6409,6 @@ class Partitions_n(Partitions):
             sage: number_of_partitions(5, algorithm='flint')
             7
 
-        The input must be a nonnegative integer or a ``ValueError`` is raised.
-
         ::
 
             sage: Partitions(10).cardinality()
@@ -6446,10 +6447,18 @@ class Partitions_n(Partitions):
             sage: len([n for n in [1..500] if Partitions(n).cardinality() != Partitions(n).cardinality(algorithm='pari')])
             0
 
+        For negative inputs, the result is zero (the algorithm is ignored)::
+
+            sage: Partitions(-5).cardinality()
+            0
+
         REFERENCES:
 
         - :wikipedia:`Partition\_(number\_theory)`
         """
+        if self.n < 0:
+            return ZZ.zero()
+
         if algorithm == 'flint':
             return cached_number_of_partitions(self.n)
 

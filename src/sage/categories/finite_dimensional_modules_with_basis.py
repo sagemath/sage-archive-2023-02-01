@@ -12,6 +12,7 @@ Finite dimensional modules with basis
 import operator
 from sage.categories.category_with_axiom import CategoryWithAxiom_over_base_ring
 from sage.categories.fields import Fields
+from sage.categories.tensor import TensorProductsCategory
 from sage.misc.cachefunc import cached_method
 
 class FiniteDimensionalModulesWithBasis(CategoryWithAxiom_over_base_ring):
@@ -265,7 +266,7 @@ class FiniteDimensionalModulesWithBasis(CategoryWithAxiom_over_base_ring):
             from sage.modules.free_module import FreeModule
             return FreeModule(base_ring, self.dimension())
 
-        def from_vector(self, vector, order=None):
+        def from_vector(self, vector, order=None, coerce=True):
             """
             Build an element of ``self`` from a vector.
 
@@ -283,7 +284,12 @@ class FiniteDimensionalModulesWithBasis(CategoryWithAxiom_over_base_ring):
                     order = sorted(self.basis().keys())
                 except AttributeError: # Not a family, assume it is list-like
                     order = range(self.dimension())
-            return self._from_dict({order[i]: c for i,c in vector.iteritems()})
+            if not coerce or vector.base_ring() is self.base_ring():
+                return self._from_dict({order[i]: c for i,c in vector.items()},
+                                       coerce=False)
+            R = self.base_ring()
+            return self._from_dict({order[i]: R(c) for i,c in vector.items() if R(c)},
+                                   coerce=False, remove_zeros=False)
 
         def echelon_form(self, elements, row_reduced=False, order=None):
             r"""
@@ -756,3 +762,19 @@ class FiniteDimensionalModulesWithBasis(CategoryWithAxiom_over_base_ring):
             return C.submodule(self.image_basis(), already_echelonized=True,
                                category=self.category_for())
 
+    class TensorProducts(TensorProductsCategory):
+
+        def extra_super_categories(self):
+            """
+            Implement the fact that a (finite) tensor product of
+            finite dimensional modules is a finite dimensional module.
+
+            EXAMPLES::
+
+                sage: ModulesWithBasis(ZZ).FiniteDimensional().TensorProducts().extra_super_categories()
+                [Category of finite dimensional modules with basis over Integer Ring]
+                sage: ModulesWithBasis(ZZ).FiniteDimensional().TensorProducts().FiniteDimensional()
+                Category of tensor products of finite dimensional modules with basis over Integer Ring
+
+            """
+            return [self.base_category()]

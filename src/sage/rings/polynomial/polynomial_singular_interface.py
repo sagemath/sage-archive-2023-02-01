@@ -41,7 +41,7 @@ import sage.rings.fraction_field
 import sage.rings.abc
 import sage.rings.number_field as number_field
 
-from sage.interfaces.all import singular
+from sage.interfaces.singular import singular
 from sage.rings.rational_field import is_RationalField
 from sage.rings.function_field.function_field import RationalFunctionField
 from sage.rings.finite_rings.finite_field_base import is_FiniteField
@@ -301,16 +301,16 @@ class PolynomialRing_singular_repr:
             r = singular.ring( "(%s,%s)"%(self.characteristic(),gen), _vars, order=order, check=False)
             self.__minpoly = (poly_str).replace(" ","")
             if  singular.eval('minpoly') != "(" + self.__minpoly + ")":
-                singular.eval("minpoly=%s"%(self.__minpoly) )
+                singular.eval("minpoly=%s" % (self.__minpoly) )
                 self.__minpoly = singular.eval('minpoly')[1:-1]
 
             self.__singular = r
 
         elif sage.rings.fraction_field.is_FractionField(base_ring) and (base_ring.base_ring() is ZZ or base_ring.base_ring().is_prime_field() or is_FiniteField(base_ring.base_ring())):
-            if base_ring.ngens()==1:
-              gens = str(base_ring.gen())
+            if base_ring.ngens() == 1:
+                gens = str(base_ring.gen())
             else:
-              gens = str(base_ring.gens())
+                gens = str(base_ring.gens())
 
             if not (not base_ring.base_ring().is_prime_field() and is_FiniteField(base_ring.base_ring())) :
                 self.__singular = singular.ring( "(%s,%s)"%(base_ring.characteristic(),gens), _vars, order=order, check=False)

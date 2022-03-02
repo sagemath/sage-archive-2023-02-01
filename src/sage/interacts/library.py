@@ -36,6 +36,7 @@ AUTHORS:
 # *****************************************************************************
 
 from typing import Any, Callable
+
 from sage.arith.misc import factor
 from sage.arith.srange import srange
 from sage.calculus.all import symbolic_expression
@@ -79,7 +80,9 @@ from sage.repl.ipython_kernel.all_jupyter import (interact, checkbox,
     input_box, input_grid, range_slider, selector, slider, text_control)
 
 
-def library_interact(**widgets: Callable[..., Any]):
+def library_interact(
+    decorator_target: Callable[..., Any] = None, **widgets: Callable[..., Any]
+):
     r"""
     This is a decorator for using interacts in the Sage library.
 
@@ -97,6 +100,21 @@ def library_interact(**widgets: Callable[..., Any]):
         sage: @library_interact(n=lambda: slider(-5, 15, None, 5))
         ....: def f(n):
         ....:     print(n)
+        sage: f()  # an interact appears if using the notebook, else code
+        Interactive function <function f at ...> with 1 widget
+        n: TransformIntSlider(value=5, description='n', max=15, min=-5)
+
+    TESTS:
+    Backwards compatibility::
+
+        sage: from sage.interacts.library import library_interact
+        sage: @library_interact
+        ....: def f(n=slider(-5, 15, None, 5)):
+        ....:     print(n)
+        doctest:warning
+        ...
+        DeprecationWarning: Use decorator factory @library_interact(widgets) instead of @library_interact without any arguments.
+        See https://trac.sagemath.org/33382 for details.
         sage: f()  # an interact appears if using the notebook, else code
         Interactive function <function f at ...> with 1 widget
         n: TransformIntSlider(value=5, description='n', max=15, min=-5)
@@ -120,7 +138,17 @@ def library_interact(**widgets: Callable[..., Any]):
         library_wrapper._widgets = widgets
         return library_wrapper
 
-    return decorator
+    if decorator_target is None:
+        return decorator
+    else:
+        from sage.misc.superseded import deprecation
+
+        deprecation(
+            33382,
+            "Use decorator factory @library_interact(widgets) instead of @library_interact without any arguments.",
+        )
+        return decorator(decorator_target)
+
 
 def html(obj):
     r"""

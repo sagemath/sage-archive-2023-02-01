@@ -497,7 +497,7 @@ class Executable(Feature):
 
             sage: from sage.features import Executable
             sage: Executable(name="sh", executable="sh").absolute_path()
-            '/bin/sh'
+            '/...bin/sh'
 
         A :class:`FeatureNotPresentError` is raised if the file cannot be found::
 

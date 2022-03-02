@@ -105,6 +105,7 @@ def library_interact(
         n: TransformIntSlider(value=5, description='n', max=15, min=-5)
 
     TESTS:
+
     Backwards compatibility::
 
         sage: from sage.interacts.library import library_interact

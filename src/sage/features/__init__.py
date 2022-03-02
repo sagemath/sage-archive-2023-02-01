@@ -56,7 +56,7 @@ from __future__ import annotations
 
 import os
 import shutil
-import pathlib
+from pathlib import Path
 
 from sage.env import SAGE_SHARE, SAGE_LOCAL, SAGE_VENV
 

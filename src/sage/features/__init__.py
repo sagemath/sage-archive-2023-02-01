@@ -513,7 +513,8 @@ class Executable(Feature):
             if sage_venv.resolve() != sage_local.resolve():
                 # As sage.env currently gives SAGE_LOCAL a fallback value from SAGE_VENV,
                 # SAGE_LOCAL is never unset.  So we only use it if it differs from SAGE_VENV.
-                path = shutil.which(self.executable, path=[sage_venv / 'bin', sage_local / 'bin'])
+                PATH = ':'.join(str(p) for p in [sage_venv / 'bin', sage_local / 'bin'])
+                path = shutil.which(self.executable, path=PATH)
                 if path is not None:
                     return path
         # Now look up in the regular PATH.

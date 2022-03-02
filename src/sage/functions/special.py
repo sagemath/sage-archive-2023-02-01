@@ -14,6 +14,8 @@ AUTHORS:
 
 - Eviatar Bach (2013): making elliptic integrals symbolic
 
+- Eric Gourgoulhon (2022): add Condon-Shortley phase to spherical harmonics
+
 This module provides easy access to many of Maxima and PARI's
 special functions.
 
@@ -65,7 +67,8 @@ implemented here.
          r^{-1-\ell} \sin (m \varphi) P_\ell^m (\cos{\theta} )
 
 
-   where `P_\ell^m` are the associated Legendre polynomials,
+   where `P_\ell^m` are the associated Legendre polynomials
+   (cf. :class:`~sage.functions.orthogonal_polys.Func_assoc_legendre_P`),
    and with integer parameters `\ell \ge 0` and `m`
    from `0` to `\ell`. Put in another way, the
    solutions with integer parameters `\ell \ge 0` and
@@ -224,14 +227,14 @@ class SphericalHarmonic(BuiltinFunction):
         sage: sph_harm(1, 1, pi.n(), (pi/2).n())  # abs tol 1e-14
         (0.3454941494713355-4.231083042742082e-17j)
 
-    Note that this convention is opposite to Maxima's one, as revealed
-    by the sign difference for odd values of `m`::
+    Note that this convention differs from the one in Maxima, as revealed by
+    the sign difference for odd values of `m`::
 
         sage: maxima.spherical_harmonic(1, 1, x, y).sage()
         1/2*sqrt(3/2)*e^(I*y)*sin(x)/sqrt(pi)
 
-    It follows that, contrary to Maxima's ones, SageMath's spherical harmonics
-    agree with those of SymPy, SciPy, Mathematica and
+    It follows that, contrary to Maxima, SageMath uses the same sign convention
+    for spherical harmonics as SymPy, SciPy, Mathematica and
     :wikipedia:`Table_of_spherical_harmonics`.
 
     REFERENCES:
@@ -278,8 +281,9 @@ class SphericalHarmonic(BuiltinFunction):
             sage: QQbar(ex * sqrt(pi)/cos(1)/sin(1)^2).minpoly()
             x^4 + 105/32*x^2 + 11025/1024
 
-        Check whether :trac:`25034` yields correct results compared to Maxima,
-        up the Condon-Shortley phase factor `(-1)^m`::
+        Check whether Sage yields correct results compared to Maxima,
+        up to the Condon-Shortley phase factor `(-1)^m`
+        (see :trac:`25034` and :trac:`33117`)::
 
             sage: spherical_harmonic(1, 1, pi/3, pi/6).n() # abs tol 1e-14
             -0.259120612103502 - 0.149603355150537*I
@@ -328,7 +332,7 @@ class SphericalHarmonic(BuiltinFunction):
             sage: Ynm.diff(phi)
             I*m*spherical_harmonic(n, m, theta, phi)
 
-        Check that :trac:33117 is fixed::
+        Check that :trac:`33117` is fixed::
 
             sage: assume(sin(theta)>=0)
             sage: DY_theta.subs({n: 1, m: 0})

@@ -1137,6 +1137,7 @@ class CombinatorialFreeModule(UniqueRepresentation, Module, IndexedGenerators):
             d = {key: coeff for key, coeff in d.items() if coeff}
         return self.element_class(self, d)
 
+
 class CombinatorialFreeModule_Tensor(CombinatorialFreeModule):
         """
         Tensor Product of Free Modules

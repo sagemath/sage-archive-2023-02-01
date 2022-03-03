@@ -1780,6 +1780,11 @@ end_scene""".format(
         plots. To remove them::
 
             sage: p.show(viewer="tachyon", shade="medium")
+
+        One can also pass Tachyon command line flags directly. For example,
+        the following line produces the same result as the previous one::
+
+            sage: p.show(viewer="tachyon", extra_opts="-mediumshade")
         """
         from sage.repl.rich_output import get_display_manager
         dm = get_display_manager()

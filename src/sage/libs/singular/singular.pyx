@@ -1524,7 +1524,7 @@ cdef init_libsingular():
     from sage.features.singular import Singular
     from os.path import dirname
     try:
-        singular_executable = Singular().absolute_path()
+        singular_executable = Singular().absolute_filename()
     except FeatureNotPresentError:
         pass
     else:

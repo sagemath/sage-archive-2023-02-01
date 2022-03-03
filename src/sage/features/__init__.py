@@ -419,7 +419,38 @@ def package_systems():
     return _cache_package_systems
 
 
-class Executable(Feature):
+class FileFeature(Feature):
+    r"""
+    Base class for features that describe a file or directory in the file system.
+
+    A subclass should implement a method :meth:`absolute_path`.
+
+    EXAMPLES::
+
+        sage: from sage.features import StaticFile, Executable, FileFeature
+        sage: issubclass(StaticFile, FileFeature)
+        True
+        sage: issubclass(Executable, FileFeature)
+        True
+    """
+    def _is_present(self):
+        r"""
+        Whether the file is present.
+
+        EXAMPLES::
+
+           sage: from sage.features import StaticFile
+           sage: StaticFile(name="no_such_file", filename="KaT1aihu", spkg="some_spkg", url="http://rand.om").is_present()
+           FeatureTestResult('no_such_file', False)
+        """
+        try:
+            abspath = self.absolute_path()
+            return FeatureTestResult(self, True, reason="Found at `{abspath}`.".format(abspath=abspath))
+        except FeatureNotPresentError as e:
+            return FeatureTestResult(self, False, reason=e.reason, resolution=e.resolution)
+
+
+class Executable(FileFeature):
     r"""
     A feature describing an executable in the ``PATH``.
 
@@ -463,11 +494,9 @@ class Executable(Feature):
             sage: Executable(name="sh", executable="sh").is_present()
             FeatureTestResult('sh', True)
         """
-        try:
-            abspath = self.absolute_path()
-            return FeatureTestResult(self, True, reason="Found at `{abspath}`.".format(abspath=abspath))
-        except FeatureNotPresentError as e:
-            return FeatureTestResult(self, False, reason=e.reason, resolution=e.resolution)
+        result = FileFeature._is_present(self)
+        if not result:
+            return result
         return self.is_functional()
 
     def is_functional(self):
@@ -510,7 +539,7 @@ class Executable(Feature):
                                      resolution=self.resolution())
 
 
-class StaticFile(Feature):
+class StaticFile(FileFeature):
     r"""
     A :class:`Feature` which describes the presence of a certain file such as a
     database.
@@ -540,20 +569,6 @@ class StaticFile(Feature):
             self.search_path = [SAGE_SHARE]
         else:
             self.search_path = list(search_path)
-
-    def _is_present(self):
-        r"""
-        Whether the static file is present.
-
-           sage: from sage.features import StaticFile
-           sage: StaticFile(name="no_such_file", filename="KaT1aihu", spkg="some_spkg", url="http://rand.om").is_present()
-           FeatureTestResult('no_such_file', False)
-        """
-        try:
-            abspath = self.absolute_path()
-            return FeatureTestResult(self, True, reason="Found at `{abspath}`.".format(abspath=abspath))
-        except FeatureNotPresentError as e:
-            return FeatureTestResult(self, False, reason=e.reason, resolution=e.resolution)
 
     def absolute_path(self) -> str:
         r"""

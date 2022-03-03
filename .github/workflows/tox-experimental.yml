@@ -50,7 +50,7 @@ jobs:
       DOCKER_TARGETS: configured with-targets with-targets-optional
       # Test all non-dummy experimental packages, but do not test huge packages
       # and do not test packages that require external software
-      TARGETS_OPTIONAL: "$( echo $(export PATH=build/bin:$PATH && sage-package list :experimental: --has-file spkg-install.in && sage-package list :experimental: --has-file spkg-install && sage-package list :experimental: --has-file requirements.txt | grep -v ^_ | grep -v  database_stein_watkins\\$ | grep -v polytopes_db_4d | grep -v cplex | grep -v gurobi | grep '^[${{ matrix.targets_pattern }}]' ) )"
+      TARGETS_OPTIONAL: "$( echo $(export PATH=build/bin:$PATH && (for a in spkg-install.in spkg-install requirements.txt; do sage-package list :experimental: --has-file $a --no-file huge --no-file has_nonfree_dependencies; done) | grep -v ^_ | grep -v sagemath_doc | grep '^[${{ matrix.targets_pattern }}]' ) )"
     steps:
       - uses: actions/checkout@v2
         with:

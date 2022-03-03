@@ -74,7 +74,6 @@ from sage.modules.free_module_element import vector
 
 from sage.matrix.constructor import matrix
 
-from .ideal import FunctionFieldIdeal
 
 class FunctionFieldPlace(Element):
     """
@@ -1177,6 +1176,8 @@ class PlaceSet(UniqueRepresentation, Parent):
             sage: places(O.ideal(x,y))
             Place (x, y)
         """
+        from .ideal import FunctionFieldIdeal
+
         if isinstance(x, FunctionFieldIdeal) and x.is_prime():
             return self.element_class(self, x)
         else:

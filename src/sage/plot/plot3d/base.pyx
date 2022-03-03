@@ -218,7 +218,7 @@ cdef class Graphics3d(SageObject):
         )
 
         tachyon_args = dict((key,val) for key,val in opts.items() if key in Graphics3d.tachyon_keywords)
-        extra_opts = opts["extra_opts"] if "extra_opts" in opts else ""
+        extra_opts = opts.get("extra_opts", "")
         if "shade" in opts:
             if opts["shade"] not in ["full", "medium", "low", "lowest"]:
                 raise ValueError("shade must be set to 'full', 'medium', 'low' or 'lowest'")
@@ -1775,6 +1775,11 @@ end_scene""".format(
         the plot rendered inline using HTML canvas::
 
             sage: p.show(viewer='canvas3d')
+
+        Sometimes shadows in Tachyon-produced images can lead to confusing
+        plots. To remove them::
+
+            sage: p.show(viewer="tachyon", shade="medium")
         """
         from sage.repl.rich_output import get_display_manager
         dm = get_display_manager()

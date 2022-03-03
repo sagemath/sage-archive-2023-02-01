@@ -1249,16 +1249,17 @@ class EllipticCurve_field(ell_generic.EllipticCurve_generic, ProjectivePlaneCurv
 
     def weierstrass_p(self, prec=20, algorithm=None):
         r"""
-        Computes the Weierstrass `\wp`-function of the elliptic curve.
+        Compute the Weierstrass `\wp`-function of this elliptic curve.
+
+        ALGORITHM: :func:`sage.schemes.elliptic_curves.ell_wp.weierstrass_p`
 
         INPUT:
 
-        - ``mprec`` - precision
+        - ``prec`` -- precision
 
-        - ``algorithm`` - string (default:``None``) an algorithm identifier
-                      indicating using the ``pari``, ``fast`` or ``quadratic``
-                      algorithm. If the algorithm is ``None``, then this
-                      function determines the best algorithm to use.
+        - ``algorithm`` -- string or ``None`` (default: ``None``):
+          a choice of algorithm among ``"pari"``, ``"fast"``, ``"quadratic"``;
+          or ``None`` to let this function determine the best algorithm to use.
 
         OUTPUT:
 

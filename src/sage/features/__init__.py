@@ -468,7 +468,8 @@ class FileFeature(Feature):
             from sage.misc.superseded import deprecation
         except ImportError:
             pass
-        deprecation(31292, 'method absolute_path has been replaced by absolute_filename')
+        else:
+            deprecation(31292, 'method absolute_path has been replaced by absolute_filename')
         return self.absolute_filename()
 
 

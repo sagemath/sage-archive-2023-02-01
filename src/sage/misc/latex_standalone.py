@@ -709,7 +709,7 @@ class Standalone(SageObject):
 
         # set the command
         if program == 'pdftocairo':
-            from sage.features.pdftocairo import pdftocairo
+            from sage.features.poppler import pdftocairo
             pdftocairo().require()
             cmd = ['pdftocairo', '-svg', temp_filename_pdf, temp_filename_svg]
         elif program == 'pdf2svg':

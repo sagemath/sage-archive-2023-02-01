@@ -11,7 +11,6 @@ General
    sage/plot/text
    sage/plot/colors
    sage/plot/animate
-   sage/plot/tikzpicture
 
 Function and Data Plots
 -----------------------

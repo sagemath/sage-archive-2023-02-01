@@ -1,14 +1,33 @@
 # -*- coding: utf-8 -*-
 r"""
-TikzPicture
+Standalone LaTeX Document class and TikzPicture
+
+This module contains two Python classes. Firstly, it contains a class
+:class:`Standalone` to represent a LaTeX file using the standalone__
+document class.
+
+__ http://www.ctan.org/pkg/standalone
+
+From its documentation:
+
+    *The standalone bundle allows users to easily place picture environments
+    or other material in own source files and compile these on their own or as
+    part of a main document. A special standalone class is provided for use
+    with such files, which by default crops the resulting output file to the
+    content. The standalone package enables the user to simply load the
+    standalone files using ``\input`` inside a main document.*
+
+Secondly, it contains a class :class:`TikzPicture` which inherits from
+:class:`Standalone` that represents a LaTeX file using the standalone
+document class and containing a tikzpicture.
 
 A Python Module for PGF/Tikz pictures. A TikzPicture object is created from
 a string starting with ``r'\begin{tikzpicture}'`` and ending with
 ``r'\end{tikzpicture}'``.
 
-The module allows to draw tikzpictures within a standalone LaTeX
-document class. It allows conversion of tikzpictures to pdf, png and svg
-formats. It also show tikzpictures automatically in Jupyter using rich
+The module allows to convert a standalone LaTeX document class file,
+including tikzpictures, to an image. It allows conversion to pdf, png and
+svg formats. It also show them automatically in Jupyter using rich
 representation.
 
 According to wikipedia__, `PGF/TikZ`__ is a pair of languages for producing
@@ -20,6 +39,45 @@ __ https://en.wikipedia.org/wiki/PGF/TikZ
 __ https://www.ctan.org/pkg/pgf
 
 EXAMPLES:
+
+First *Hello World* example::
+
+    sage: from sage.misc.latex_standalone import Standalone
+    sage: Standalone('Hello World')
+    \documentclass{standalone}
+    \begin{document}
+    Hello World
+    \end{document}
+
+Loading few latex packages::
+
+    sage: Standalone('Hello World', usepackage=['amsmath', 'amsfont'])
+    \documentclass{standalone}
+    \usepackage{amsmath}
+    \usepackage{amsfont}
+    \begin{document}
+    Hello World
+    \end{document}
+
+Setting few standalone options (see documentation of standalone for a
+complete list)::
+
+    sage: Standalone('Hello World', standalone_config=["border=4mm", "beamer=true"])
+    \documentclass{standalone}
+    \standaloneconfig{border=4mm}
+    \standaloneconfig{beamer=true}
+    \begin{document}
+    Hello World
+    \end{document}
+
+Adding your own list of macros::
+
+    sage: Standalone('Hello World', macros=[r'\newcommand{\ZZ}{\mathbb{Z}}'])
+    \documentclass{standalone}
+    \newcommand{\ZZ}{\mathbb{Z}}
+    \begin{document}
+    Hello World
+    \end{document}
 
 First construct a string describing a tikzpicture::
 
@@ -118,7 +176,7 @@ Adding a border in the options avoids croping the vertices of a graph::
 
     sage: g = graphs.PetersenGraph()
     sage: s = latex(g)   # takes 3s but the result is cached # optional latex
-    sage: t = TikzPicture(s, standalone_options=["border=4mm"], usepackage=['tkz-graph'])
+    sage: t = TikzPicture(s, standalone_config=["border=4mm"], usepackage=['tkz-graph'])
     sage: _ = t.pdf()    # not tested
 
 The current latex representation of a transducer is a tikzpicture using
@@ -154,14 +212,15 @@ class Standalone(SageObject):
 
     INPUT:
 
-    - ``content`` -- string, tikzpicture code starting with ``r'\begin{tikzpicture}'``
-      and ending with ``r'\end{tikzpicture}'``
-    - ``standalone_options`` -- list of strings (default: ``[]``),
-      latex document class standalone configuration options.
-    - ``usepackage`` -- list of strings (default: ``[]``), latex
-      packages.
-    - ``usetikzlibrary`` -- list of strings (default: ``[]``), tikz libraries
-      to use.
+    - ``content`` -- string, tikzpicture code starting with
+      ``r'\begin{tikzpicture}'`` and ending with ``r'\end{tikzpicture}'``
+    - ``document_class_options`` -- list of strings (default: ``[]``),
+      latex document class standalone options. Such options appear on the
+      line ``\documentclass[...]{standalone}`` between the brackets.
+    - ``standalone_config`` -- list of strings (default: ``[]``),
+      standalone configuration options. Such options are defined with
+      ``\standaloneconfig{...}``
+    - ``usepackage`` -- list of strings (default: ``[]``), latex packages.
     - ``macros`` -- list of strings (default: ``[]``), stuff you need for the picture.
     - ``use_sage_preamble`` -- bool (default: ``False``), whether to include sage
       latex preamble and sage latex macros, that is, the content of
@@ -175,7 +234,7 @@ class Standalone(SageObject):
         sage: content = "\\section{Intro}\nTest\n"
         sage: t = Standalone(content)
         sage: t
-        \documentclass[tikz]{standalone}
+        \documentclass{standalone}
         \begin{document}
         \section{Intro}
         Test
@@ -183,9 +242,9 @@ class Standalone(SageObject):
 
     ::
 
-        sage: t = Standalone(content, standalone_options=["border=4mm"], usepackage=['amsmath'])
+        sage: t = Standalone(content, standalone_config=["border=4mm"], usepackage=['amsmath'])
         sage: t
-        \documentclass[tikz]{standalone}
+        \documentclass{standalone}
         \standaloneconfig{border=4mm}
         \usepackage{amsmath}
         \begin{document}
@@ -194,8 +253,9 @@ class Standalone(SageObject):
         \end{document}
 
     """
-    def __init__(self, content, standalone_options=None, usepackage=None,
-            usetikzlibrary=None, macros=None, use_sage_preamble=False):
+    def __init__(self, content, document_class_options=None,
+            standalone_config=None, usepackage=None, macros=None,
+            use_sage_preamble=False):
         r"""
         See :mod:`sage.plot.Standalone` for full information.
 
@@ -212,9 +272,9 @@ class Standalone(SageObject):
             sage: t = TikzPicture(s)
         """
         self._content = content
-        self._standalone_options = [] if standalone_options is None else standalone_options
+        self._document_class_options = [] if document_class_options is None else list(document_class_options)
+        self._standalone_config = [] if standalone_config is None else standalone_config
         self._usepackage = [] if usepackage is None else usepackage
-        self._usetikzlibrary = [] if usetikzlibrary is None else usetikzlibrary
         self._macros = [] if macros is None else macros
         if use_sage_preamble:
             from sage.misc.latex import _Latex_prefs
@@ -232,20 +292,22 @@ class Standalone(SageObject):
             sage: latex.extra_preamble('')
             sage: from sage.misc.latex_standalone import TikzPicture
             sage: s = "\\begin{tikzpicture}\n\\draw (0,0) -- (1,1);\n\\end{tikzpicture}"
-            sage: t = TikzPicture(s, standalone_options=["border=4mm"], usepackage=['tkz-graph'])
+            sage: t = TikzPicture(s, standalone_config=["border=4mm"], usepackage=['tkz-graph'])
             sage: t._latex_file_header_lines()[:6]
             ['\\documentclass[tikz]{standalone}',
              '\\standaloneconfig{border=4mm}',
              '\\usepackage{tkz-graph}']
         """
         lines = []
-        lines.append(r"\documentclass[tikz]{standalone}")
-        for config in self._standalone_options:
+        if self._document_class_options:
+            options = ','.join(self._document_class_options)
+            lines.append(r"\documentclass[{}]{{standalone}}".format(options))
+        else:
+            lines.append(r"\documentclass{standalone}")
+        for config in self._standalone_config:
             lines.append(r"\standaloneconfig{{{}}}".format(config))
         for package in self._usepackage:
             lines.append(r"\usepackage{{{}}}".format(package))
-        for library in self._usetikzlibrary:
-            lines.append(r"\usetikzlibrary{{{}}}".format(library))
         lines.extend(self._macros)
         return lines
 
@@ -753,7 +815,7 @@ class TikzPicture(Standalone):
 
     - ``content`` -- string, tikzpicture code starting with ``r'\begin{tikzpicture}'``
       and ending with ``r'\end{tikzpicture}'``
-    - ``standalone_options`` -- list of strings (default: ``[]``),
+    - ``standalone_config`` -- list of strings (default: ``[]``),
       latex document class standalone configuration options.
     - ``usepackage`` -- list of strings (default: ``[]``), latex
       packages.
@@ -800,7 +862,7 @@ class TikzPicture(Standalone):
 
         sage: g = graphs.PetersenGraph()
         sage: s = latex(g)                      # optional latex
-        sage: t = TikzPicture(s, standalone_options=["border=4mm"], usepackage=['tkz-graph']) # optional latex
+        sage: t = TikzPicture(s, standalone_config=["border=4mm"], usepackage=['tkz-graph']) # optional latex
         sage: _ = t.pdf(view=False)             # long time (2s) # optional latex
 
     Here are standalone configurations, packages, tikz libraries and macros you
@@ -814,10 +876,51 @@ class TikzPicture(Standalone):
         ....:      'positioning', 'pgfplots.groupplots', 'mindmap']
         sage: macros = [r'\newcommand{\ZZ}{\mathbb{Z}}']
         sage: s = "\\begin{tikzpicture}\n\\draw (0,0) -- (1,1);\n\\end{tikzpicture}"
-        sage: t = TikzPicture(s, standalone_options=options, usepackage=usepackage,
+        sage: t = TikzPicture(s, standalone_config=options, usepackage=usepackage,
         ....:        usetikzlibrary=tikzlib, macros=macros)
         sage: _ = t.pdf(view=False)   # long time (2s) # optional latex
     """
+    def __init__(self, content, standalone_config=None, usepackage=None,
+            usetikzlibrary=None, macros=None, use_sage_preamble=False):
+        r"""
+        See :mod:`sage.plot.Standalone` for full information.
+
+        EXAMPLES::
+
+            sage: from sage.misc.latex_standalone import Standalone
+            sage: content = "\\section{Intro}\n\nTest\n"
+            sage: t = Standalone(content)
+
+        ::
+
+            sage: from sage.misc.latex_standalone import TikzPicture
+            sage: s = "\\begin{tikzpicture}\n\\draw (0,0) -- (1,1);\n\\end{tikzpicture}"
+            sage: t = TikzPicture(s)
+        """
+        Standalone.__init__(self, content, document_class_options=['tikz'],
+            standalone_config=standalone_config, usepackage=usepackage,
+            macros=macros, use_sage_preamble=use_sage_preamble)
+
+        self._usetikzlibrary = [] if usetikzlibrary is None else usetikzlibrary
+
+    def _latex_file_header_lines(self):
+        r"""
+        EXAMPLES::
+
+            sage: latex.extra_preamble('')
+            sage: from sage.misc.latex_standalone import TikzPicture
+            sage: s = "\\begin{tikzpicture}\n\\draw (0,0) -- (1,1);\n\\end{tikzpicture}"
+            sage: t = TikzPicture(s, standalone_config=["border=4mm"], usepackage=['tkz-graph'])
+            sage: t._latex_file_header_lines()[:6]
+            ['\\documentclass[tikz]{standalone}',
+             '\\standaloneconfig{border=4mm}',
+             '\\usepackage{tkz-graph}']
+        """
+        lines = Standalone._latex_file_header_lines(self)
+        for library in self._usetikzlibrary:
+            lines.append(r"\usetikzlibrary{{{}}}".format(library))
+        return lines
+
     @classmethod
     def from_dot_string(cls, dotdata, prog='dot'):
         r"""
@@ -870,7 +973,7 @@ class TikzPicture(Standalone):
                                crop=True,
                                figonly='True',
                                prog=prog).strip()
-        return TikzPicture(tikz, standalone_options=["border=4mm"],
+        return TikzPicture(tikz, standalone_config=["border=4mm"],
                            usetikzlibrary=['shapes'])
 
     @classmethod
@@ -1012,7 +1115,7 @@ class TikzPicture(Standalone):
 
         graph.latex_options().set_options(**options)
         tikz = graph._latex_()
-        return TikzPicture(tikz, standalone_options=["border=4mm"])
+        return TikzPicture(tikz, standalone_config=["border=4mm"])
 
     @classmethod
     def _from_graph_with_pos(cls, graph, scale=1, merge_multiedges=True,
@@ -1134,7 +1237,7 @@ class TikzPicture(Standalone):
 
         lines.append(r'\end{tikzpicture}')
         tikz = '\n'.join(lines)
-        return TikzPicture(tikz, standalone_options=["border=4mm"])
+        return TikzPicture(tikz, standalone_config=["border=4mm"])
 
     @classmethod
     def _from_poset(cls, poset, **kwds):

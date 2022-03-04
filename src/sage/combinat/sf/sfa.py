@@ -850,6 +850,10 @@ class SymmetricFunctionsBases(Category_realization_of_parent):
 
                 \mathbf{GR}_\lambda = \sum_{\mu \vdash n} \alpha_\mu^\lambda s_\mu
 
+            For more, see `these notes <http://www.birs.ca//workshops//2015/15w2208/files/reiner.pdf>`_
+            or the `accompanying talk
+            <http://www.birs.ca/events/2015/2-day-workshops/15w2208/videos/watch/201508150936-Reiner.html`_.
+
             INPUT:
 
             - ``lam`` -- a partition or a positive integer (in the latter

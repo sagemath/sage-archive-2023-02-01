@@ -785,6 +785,8 @@ class SymmetricFunctionsBases(Category_realization_of_parent):
             `\lambda` is the symmetric function denoted `L_\lambda` in
             [GR1993]_ and in Exercise 7.89 of [STA]_ and denoted
             `\mathbf{GR}_\lambda` in Definition 6.6.34 of [GriRei18]_.
+            It is also called the *higher Lie character*, for instance
+            in [Scho2003]_.
             It can be defined in several ways:
 
             - It is the sum of the monomials `\mathbf{x}_w` over all
@@ -821,8 +823,8 @@ class SymmetricFunctionsBases(Category_realization_of_parent):
 
               where `p_d` denotes the `d`-th power-sum symmetric
               function. This `\mathbf{GR}_{\left(n\right)}` is also
-              denoted by `L_n`. Now, `\mathbf{GR}_\lambda` is defined
-              as the product:
+              denoted by `L_n`, and is called the Lie character. Now,
+              the higher Lie character `\mathbf{GR}_\lambda` is defined as the product:
 
               .. MATH::
 
@@ -839,6 +841,14 @@ class SymmetricFunctionsBases(Category_realization_of_parent):
             [GR1993]_ Sections 2-3. (See also [GriRei18]_ Subsection
             6.6.2 for the equivalence of the first two definitions and
             further formulas.)
+
+            *Thrall's problem* asks, for `\lambda` a partition of `n`,
+            can we combinatorially interpret the coefficients `\alpha_\mu^\lambda`
+            in the Schur-expansion of `\mathbf{GR}_\lambda`:
+
+            .. MATH::
+
+                \mathbf{GR}_\lambda = \sum_{\mu \vdash n} \alpha_\mu^\lambda s_\mu
 
             INPUT:
 

@@ -5056,6 +5056,10 @@ REFERENCES:
              *Combinatorial optimization: polyhedra and efficiency*,
              2003.
 
+.. [Scho2003] Manfred Schocker, *Multiplicities of Higher Lie Characters*.
+              J. Aust. Math. Soc. 75 (2003), pp. 9-21.
+              https://doi.org/10.1017/S144678870000344X
+
 .. [Sch2004] Manfred Schocker, *The descent algebra of the
              symmetric group*. Fields Inst. Comm. 40 (2004), pp. 145-161.
              http://www.mathematik.uni-bielefeld.de/~ringel/schocker-neu.ps

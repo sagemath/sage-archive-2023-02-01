@@ -387,7 +387,7 @@ _cache_package_systems = None
 
 def package_systems():
     """
-    Return a list of :class:~sage.features.pkg_systems.PackageSystem` objects
+    Return a list of :class:`~sage.features.pkg_systems.PackageSystem` objects
     representing the available package systems.
 
     The list is ordered by decreasing preference.

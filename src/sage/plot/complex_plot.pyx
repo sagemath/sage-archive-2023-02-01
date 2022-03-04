@@ -64,9 +64,10 @@ cdef inline double mag_to_lightness(double r, double rate=0.5):
 
     INPUT:
 
-    - ``r`` -- a non-negative real number
+    - ``r`` -- a non-negative real number; the magnitude
 
-    - ``rate`` -- a positive real number
+    - ``rate`` -- a positive real number; how quickly changes in magnitude
+      affect changes in output lightness
 
     OUTPUT:
 
@@ -74,8 +75,8 @@ cdef inline double mag_to_lightness(double r, double rate=0.5):
 
     .. SEEALSO::
 
-        :func:`sage.plot.complex_plot.cyclic_logarithmic_mag_to_lightness`
-        :func:`sage.plot.complex_plot.mag_and_arg_to_lightness`
+        - :func:`sage.plot.complex_plot.cyclic_logarithmic_mag_to_lightness`
+        - :func:`sage.plot.complex_plot.mag_and_arg_to_lightness`
 
     EXAMPLES:
 
@@ -109,9 +110,10 @@ cdef inline double cyclic_logarithmic_mag_to_lightness(double r, double base=2):
 
     INPUT:
 
-    - ``r`` -- a non-negative real number
+    - ``r`` -- a non-negative real number; the magnitude
 
-    - ``base`` -- a positive real number
+    - ``base`` -- a real number (default: `2`); contours will appear at integer
+      powers of ``base``. This should be greater than `1`.
 
     OUTPUT:
 
@@ -119,9 +121,9 @@ cdef inline double cyclic_logarithmic_mag_to_lightness(double r, double base=2):
 
     .. SEEALSO::
 
-        :func:`sage.plot.complex_plot.mag_to_lightness`
-        :func:`sage.plot.complex_plot.mag_and_arg_to_lightness`
-        :func:`sage.plot.complex_plot.cyclic_linear_mag_to_lightness`
+        - :func:`sage.plot.complex_plot.mag_to_lightness`
+        - :func:`sage.plot.complex_plot.mag_and_arg_to_lightness`
+        - :func:`sage.plot.complex_plot.cyclic_linear_mag_to_lightness`
 
     EXAMPLES:
 
@@ -157,9 +159,10 @@ cdef inline double cyclic_linear_mag_to_lightness(double r, double base=10):
 
     INPUT:
 
-    - ``r`` -- a non-negative real number
+    - ``r`` -- a non-negative real number; the magnitude
 
-    - ``base`` -- a positive real number
+    - ``base`` -- a positive real number (default: `10`); contours will appear
+      at integer multiples of ``base``
 
     OUTPUT:
 
@@ -167,9 +170,9 @@ cdef inline double cyclic_linear_mag_to_lightness(double r, double base=10):
 
     .. SEEALSO::
 
-        :func:`sage.plot.complex_plot.mag_to_lightness`
-        :func:`sage.plot.complex_plot.mag_and_arg_to_lightness`
-        :func:`sage.plot.complex_plot.cyclic_logarithmic_mag_to_lightness`
+        - :func:`sage.plot.complex_plot.mag_to_lightness`
+        - :func:`sage.plot.complex_plot.mag_and_arg_to_lightness`
+        - :func:`sage.plot.complex_plot.cyclic_logarithmic_mag_to_lightness`
 
     EXAMPLES:
 
@@ -214,9 +217,11 @@ cdef inline double mag_and_arg_to_lightness(double r, double arg,
 
     - ``arg`` -- a real number
 
-    - ``base`` -- a positive real number
+    - ``base`` -- a positive real number (default: ``2``); contours will appear
+      at integer powers of ``base``. This should be greater than `1`.
 
-    - ``nphases`` -- a positive integer
+    - ``nphases`` -- a positive integer (default: ``10``); how many phase
+      contours to represent a change of argument by `2 \pi`.
 
     OUTPUT:
 
@@ -224,8 +229,8 @@ cdef inline double mag_and_arg_to_lightness(double r, double arg,
 
     .. SEEALSO::
 
-        :func:`sage.plot.complex_plot.mag_to_lightness`
-        :func:`sage.plot.complex_plot.cyclic_logarithmic_mag_to_lightness`
+        - :func:`sage.plot.complex_plot.mag_to_lightness`
+        - :func:`sage.plot.complex_plot.cyclic_logarithmic_mag_to_lightness`
 
     EXAMPLES:
 
@@ -276,26 +281,26 @@ def complex_to_rgb(z_values, contoured=False, tiled=False,
 
     - ``z_values`` -- A grid of complex numbers, as a list of lists
 
-    - ``contoured`` -- boolean (default: ``False``) - causes magnitude to be
+    - ``contoured`` -- boolean (default: ``False``); causes magnitude to be
       indicated through contour-like adjustments to lightness.
 
-    - ``tiled`` -- boolean (default: ``False``) - causes magnitude and argument to
+    - ``tiled`` -- boolean (default: ``False``); causes magnitude and argument to
       be indicated through contour-like adjustments to lightness.
 
-    - ``nphases`` -- a positive integer (default: `10`) - when ``tiled=True``,
+    - ``nphases`` -- a positive integer (default: `10`); when ``tiled=True``,
       this is the number of divisions the phase is divided into.
 
     - ``contour_type`` -- either ``'logarithmic'``, or ``'linear'`` (default:
-      ``'logarithmic'``) - causes added contours to be of given type when
+      ``'logarithmic'``); causes added contours to be of given type when
       ``contoured=True``.
 
-    - ``contour_base`` -- a positive integer - when ``contour_type`` is
+    - ``contour_base`` -- a positive integer; when ``contour_type`` is
       ``'logarithmic'``, this sets logarithmic contours at multiples of
       ``contour_base`` apart. When ``contour_type`` is ``'linear'``, this sets
       contours at distances of ``contour_base`` apart. If ``None``, then a
       default is chosen depending on ``contour_type``.
 
-    - ``dark_rate`` -- a positive number (default: `0.5`) - affects how quickly
+    - ``dark_rate`` -- a positive number (default: `0.5`); affects how quickly
       magnitudes affect how light/dark the image is. When there are contours,
       this affects how visible each contour is. Large values (near `1.0`) have
       very strong, immediate effects, while small values (near `0.0`) have
@@ -342,6 +347,17 @@ def complex_to_rgb(z_values, contoured=False, tiled=False,
         array([[[1.        , 0.15      , 0.15      ],
                 [0.91429774, 0.6857233 , 0.        ],
                 [0.81666667, 0.72315973, 0.        ]]])
+
+    Lowering ``dark_rate`` causes colors to go to black more slowly near `0`::
+
+        sage: complex_to_rgb([[0, 0.5, 1]], dark_rate=0.4)
+        array([[[0.        , 0.        , 0.        ],
+                [0.65393731, 0.        , 0.        ],
+                [0.77172568, 0.        , 0.        ]]])
+        sage: complex_to_rgb([[0, 0.5, 1]], dark_rate=0.2)
+        array([[[0.        , 0.        , 0.        ],
+                [0.71235886, 0.        , 0.        ],
+                [0.77172568, 0.        , 0.        ]]])
     """
     import numpy as np
 
@@ -453,26 +469,26 @@ def complex_to_cmap_rgb(z_values, cmap='turbo', contoured=False, tiled=False,
     - ``cmap`` --  the string name of a matplotlib colormap, or an instance
       of a matplotlib Colormap (default: ``'turbo'``).
 
-    - ``contoured`` -- boolean (default: ``False``) - causes magnitude to be
+    - ``contoured`` -- boolean (default: ``False``); causes magnitude to be
       indicated through contour-like adjustments to lightness.
 
-    - ``tiled`` -- boolean (default: ``False``) - causes magnitude and argument to
+    - ``tiled`` -- boolean (default: ``False``); causes magnitude and argument to
       be indicated through contour-like adjustments to lightness.
 
-    - ``nphases`` -- a positive integer (default: `10`) - when ``tiled=True``,
+    - ``nphases`` -- a positive integer (default: `10`); when ``tiled=True``,
       this is the number of divisions the phase is divided into.
 
     - ``contour_type`` -- either ``'logarithmic'``, or ``'linear'`` (default:
-      ``'logarithmic'``) - causes added contours to be of given type when
+      ``'logarithmic'``); causes added contours to be of given type when
       ``contoured=True``.
 
-    - ``contour_base`` -- a positive integer - when ``contour_type`` is
+    - ``contour_base`` -- a positive integer; when ``contour_type`` is
       ``'logarithmic'``, this sets logarithmic contours at multiples of
       ``contour_base`` apart. When ``contour_type`` is ``'linear'``, this sets
       contours at distances of ``contour_base`` apart. If ``None``, then a
       default is chosen depending on ``contour_type``.
 
-    - ``dark_rate`` -- a positive number (default: `0.5`) - affects how quickly
+    - ``dark_rate`` -- a positive number (default: `0.5`); affects how quickly
       magnitudes affect how light/dark the image is. When there are contours,
       this affects how visible each contour is. Large values (near `1.0`) have
       very strong, immediate effects, while small values (near `0.0`) have
@@ -512,6 +528,21 @@ def complex_to_cmap_rgb(z_values, cmap='turbo', contoured=False, tiled=False,
         array([[[0.71246796, 0.9919238 , 0.3816262 ],
                 [0.92617785, 0.79322304, 0.14779989],
                 [0.95156284, 0.72025117, 0.05370383]]])
+
+    We see that changing ``dark_rate`` affects how visible contours. In this
+    example, we set ``contour_base=5`` and note that the points `0` and `1 + i`
+    are far away from contours, but `2.9 + 4i` is near (and just below) a
+    contour. Raising ``dark_rate`` should have strong affects on the last
+    coloration and weaker effects on the others::
+
+        sage: complex_to_cmap_rgb([[0, 1 + 1j, 2.9 + 4j]], cmap='turbo', contoured=True, dark_rate=0.05, contour_base=5)
+        array([[[0.64362   , 0.98999   , 0.23356   ],
+                [0.93334746, 0.81330523, 0.23056563],
+                [0.96357185, 0.75337736, 0.19440913]]])
+        sage: complex_to_cmap_rgb([[0, 1 + 1j, 2.9 + 4j]], cmap='turbo', contoured=True, dark_rate=0.85, contour_base=5)
+        array([[[0.64362   , 0.98999   , 0.23356   ],
+                [0.93874682, 0.82842892, 0.29289564],
+                [0.57778954, 0.42703289, 0.02612716]]])
     """
     import numpy as np
     import matplotlib as mpl
@@ -605,7 +636,7 @@ def add_lightness_smoothing_to_rgb(rgb, delta):
     black. When ``delta`` is `+1`, the output is white. Colors
     piecewise-linearly vary from black to the initial `(r, g, b)` to white.
 
-    We assume that the `delta` values come from a function like
+    We assume that the ``delta`` values come from a function like
     :func:`sage.plot.complex_plot.mag_to_lightness`, which maps magnitudes to
     the range `[-1, +1]`.
 
@@ -614,7 +645,9 @@ def add_lightness_smoothing_to_rgb(rgb, delta):
     - ``rgb`` -- a grid of length 3 tuples `(r, g, b)`, as an
       `N \times M \times 3` numpy array.
 
-    - ``delta`` -- a grid of values as an `N \times M` numpy array
+    - ``delta`` -- a grid of values as an `N \times M` numpy array; these
+      represent how much to change the lightness of each `(r, g, b)`. Values
+      should be in `[-1, 1]`.
 
     OUTPUT:
 
@@ -623,8 +656,8 @@ def add_lightness_smoothing_to_rgb(rgb, delta):
 
     .. SEEALSO::
 
-        :func:`sage.plot.complex_plot.complex_to_rgb`
-        :func:`sage.plot.complex_plot.add_contours_to_rgb`
+        - :func:`sage.plot.complex_plot.complex_to_rgb`
+        - :func:`sage.plot.complex_plot.add_contours_to_rgb`
 
     EXAMPLES:
 
@@ -653,7 +686,7 @@ def add_contours_to_rgb(rgb, delta, dark_rate=0.5):
     depending on the size of ``delta``. Negative ``delta`` values darken the
     color, while positive ``delta`` values lighten the pixel.
 
-    We assume that the `delta` values come from a function like
+    We assume that the ``delta`` values come from a function like
     :func:`sage.plot.complex_plot.mag_to_lightness`, which maps magnitudes to
     the range `[-1, +1]`.
 
@@ -662,9 +695,11 @@ def add_contours_to_rgb(rgb, delta, dark_rate=0.5):
     - ``rgb`` -- a grid of length 3 tuples `(r, g, b)`, as an `N \times M
       \times 3` numpy array.
 
-    - ``delta`` -- a grid of values as an `N \times M` numpy array.
+    - ``delta`` -- a grid of values as an `N \times M` numpy array; these
+      represent how much to change the lightness of each `(r, g, b)`. Values
+      should be in `[-1, 1]`.
 
-    - ``dark_rate`` -- a positive number (default: `0.5`) - affects how
+    - ``dark_rate`` -- a positive number (default: `0.5`); affects how
       strongly visible the contours appear.
 
     OUTPUT:
@@ -674,15 +709,15 @@ def add_contours_to_rgb(rgb, delta, dark_rate=0.5):
 
     .. SEEALSO::
 
-        :func:`sage.plot.complex_plot.complex_to_rgb`,
-        :func:`sage.plot.complex_plot.add_lightness_smoothing_to_rgb`
+        - :func:`sage.plot.complex_plot.complex_to_rgb`,
+        - :func:`sage.plot.complex_plot.add_lightness_smoothing_to_rgb`
 
     ALGORITHM:
 
     Each pixel and lightness-delta is mapped from `(r, g, b, delta) \mapsto
     (h, l, s, delta)` using the standard RGB-to-HLS formula.
 
-    Then the lightness is adjusted via `l \mapsto l' = l + 0.5 * delta`.
+    Then the lightness is adjusted via `l \mapsto l' = l + 0.5 \cdot delta`.
 
     Finally map `(h, l', s) \mapsto (r, g, b)` using the standard HLS-to-RGB
     formula.
@@ -697,6 +732,13 @@ def add_contours_to_rgb(rgb, delta, dark_rate=0.5):
         sage: add_contours_to_rgb(np.array([[[0, 0, 0]]]), np.array([[1]]))
         array([[[0.5, 0.5, 0.5]]])
         sage: add_contours_to_rgb(np.array([[[1, 1, 1]]]), np.array([[-0.5]]))
+        array([[[0.75, 0.75, 0.75]]])
+
+    Raising ``dark_rate`` leads to bigger adjustments::
+
+        sage: add_contours_to_rgb(np.array([[[0.5, 0.5, 0.5]]]), np.array([[0.5]]), dark_rate=0.1)
+        array([[[0.55, 0.55, 0.55]]])
+        sage: add_contours_to_rgb(np.array([[[0.5, 0.5, 0.5]]]), np.array([[0.5]]), dark_rate=0.5)
         array([[[0.75, 0.75, 0.75]]])
     """
     import numpy as np
@@ -787,7 +829,7 @@ class ComplexPlot(GraphicPrimitive):
 
 
 @options(plot_points=100, interpolation='catrom')
-def complex_plot(f, x_range, y_range, contoured=False, tiled=False, cmap='default',
+def complex_plot(f, x_range, y_range, contoured=False, tiled=False, cmap=None,
                  contour_type='logarithmic', contour_base=None, dark_rate=0.5,
                  nphases=10, **options):
     r"""
@@ -811,38 +853,39 @@ def complex_plot(f, x_range, y_range, contoured=False, tiled=False, cmap='defaul
 
     - ``(ymin, ymax)`` -- 2-tuple, the range of ``y`` values
 
-    - ``cmap`` --  the string name of a matplotlib colormap, or an instance
-      of a matplotlib Colormap, or the special string `matplotlib`
-      (default: ``default``). If None or ``default``, then hues are chosen
-      from a standard color wheel, cycling from red to yellow to blue.
+    - ``cmap`` --  ``None``, or the string name of a matplotlib colormap, or an
+      instance of a matplotlib Colormap, or the special string ``'matplotlib'``
+      (default: ``None``); If ``None``, then hues are chosen from a standard
+      color wheel, cycling from red to yellow to blue. If ``matplotlib``, then
+      hues are chosen from a preset matplotlib colormap.
 
     The following named parameter inputs can be used to add contours and adjust
     their distribution:
 
-    - ``contoured`` -- boolean (default: ``False``) - causes the magnitude
+    - ``contoured`` -- boolean (default: ``False``); causes the magnitude
       to be indicated by logarithmically spaced 'contours'. The
       magnitude along one contour is either twice or half the magnitude
       along adjacent contours.
 
-    - ``dark_rate`` -- a positive number (default: `0.5`) - affects how quickly
+    - ``dark_rate`` -- a positive number (default: `0.5`); affects how quickly
       magnitudes affect how light/dark the image is. When there are contours,
       this affects how visible each contour is. Large values (near `1.0`) have
       very strong, immediate effects, while small values (near `0.0`) have
       gradual effects.
 
-    - ``tiled`` -- boolean (default: ``False``) - causes the magnitude to
+    - ``tiled`` -- boolean (default: ``False``); causes the magnitude to
       be indicated by logarithmically spaced 'contours' as in
       ``contoured``, and in addition for there to be `10` evenly
       spaced phase contours.
 
-    - ``nphases`` -- a positive integer (default: `10`) - when ``tiled=True``,
+    - ``nphases`` -- a positive integer (default: `10`); when ``tiled=True``,
       this is the number of divisions the phase is divided into.
 
     - ``contour_type`` -- either ``'logarithmic'``, or ``'linear'`` (default:
-      ``'logarithmic'``) - causes added contours to be of given type when
+      ``'logarithmic'``); causes added contours to be of given type when
       ``contoured=True``.
 
-    - ``contour_base`` -- a positive integer - when ``contour_type`` is
+    - ``contour_base`` -- a positive integer; when ``contour_type`` is
       ``'logarithmic'``, this sets logarithmic contours at multiples of
       ``contour_base`` apart. When ``contour_type`` is ``'linear'``, this sets
       contours at distances of ``contour_base`` apart. If ``None``, then a
@@ -853,7 +896,7 @@ def complex_plot(f, x_range, y_range, contoured=False, tiled=False, cmap='defaul
     - ``plot_points`` -- integer (default: ``100``); number of points to
       plot in each direction of the grid
 
-    - ``interpolation`` -- string (default: ``'catrom'``), the interpolation
+    - ``interpolation`` -- string (default: ``'catrom'``); the interpolation
       method to use: ``'bilinear'``, ``'bicubic'``, ``'spline16'``,
       ``'spline36'``, ``'quadric'``, ``'gaussian'``, ``'sinc'``,
       ``'bessel'``, ``'mitchell'``, ``'lanczos'``, ``'catrom'``,
@@ -945,13 +988,80 @@ def complex_plot(f, x_range, y_range, contoured=False, tiled=False, cmap='defaul
     The same function as above, but tiled and with the *plasma* colormap::
 
         sage: f(z) = z^5 + z - 1 + 1/z
-        sage: complex_plot(f, (-3, 3), (-3, 3), plot_points=300, tiled=True, cmap='plasma')
+        sage: complex_plot(f, (-3, 3), (-3, 3),
+        ....:              plot_points=300, tiled=True, cmap='plasma')
         Graphics object consisting of 1 graphics primitive
 
     .. PLOT::
 
         def f(z): return z**5 + z - 1 + 1/z
         sphinx_plot(complex_plot(f, (-3, 3), (-3, 3), plot_points=300, tiled=True, cmap='plasma'))
+
+    When using ``tiled=True``, the number of phase subdivisions can be
+    controlled by adjusting ``nphases``. We make the same plot with fewer
+    tilings::
+
+        sage: f(z) = z^5 + z - 1 + 1/z
+        sage: complex_plot(f, (-3, 3), (-3, 3), plot_points=300,
+        ....:              tiled=True, nphases=5, cmap='plasma')
+        Graphics object consisting of 1 graphics primitive
+
+    .. PLOT::
+
+        def f(z): return z**5 + z - 1 + 1/z
+        sphinx_plot(complex_plot(f, (-3, 3), (-3, 3), plot_points=300, tiled=True, nphases=5, cmap='plasma'))
+
+    It is also possible to use *linear* contours. We plot the same function
+    above on an inset, setting contours to appear `1` apart::
+
+        sage: f(z) = z^5 + z - 1 + 1/z
+        sage: complex_plot(f, (0, 1), (0, 1), plot_points=300,
+        ....:              contoured=True, contour_type='linear', contour_base=1)
+        Graphics object consisting of 1 graphics primitive
+
+    .. PLOT::
+
+        def f(z): return z**5 + z - 1 + 1/z
+        sphinx_plot(complex_plot(f, (0, 1), (0, 1), plot_points=300, contoured=True, contour_type='linear', contour_base=1))
+
+    Note that tightly spaced contours can lead to Moiré patterns and aliasing
+    problems. For example::
+
+        sage: f(z) = z^5 + z - 1 + 1/z
+        sage: complex_plot(f, (-3, 3), (-3, 3), plot_points=300,
+        ....:              contoured=True, contour_type='linear', contour_base=1)
+        Graphics object consisting of 1 graphics primitive
+
+    .. PLOT::
+
+        def f(z): return z**5 + z - 1 + 1/z
+        sphinx_plot(complex_plot(f, (-3, 3), (-3, 3), plot_points=300, contoured=True, contour_type='linear', contour_base=1))
+
+    When choosing colormaps, cyclic colormaps such as *twilight* or *hsv* might
+    be considered more appropriate for showing changes in phase without sharp
+    color contrasts::
+
+        sage: f(z) = z^5 + z - 1 + 1/z
+        sage: complex_plot(f, (-3, 3), (-3, 3), plot_points=300, cmap='twilight')
+        Graphics object consisting of 1 graphics primitive
+
+    .. PLOT::
+
+        def f(z): return z**5 + z - 1 + 1/z
+        sphinx_plot(complex_plot(f, (-3, 3), (-3, 3), plot_points=300, cmap='twilight'))
+
+    Passing *matplotlib* as the colormap gives a special colormap that is
+    similar to the default::
+
+        sage: f(z) = z^5 + z - 1 + 1/z
+        sage: complex_plot(f, (-3, 3), (-3, 3),
+        ....:              plot_points=300, contoured=True, cmap='matplotlib')
+        Graphics object consisting of 1 graphics primitive
+
+    .. PLOT::
+
+        def f(z): return z**5 + z - 1 + 1/z
+        sphinx_plot(complex_plot(f, (-3, 3), (-3, 3), plot_points=300, contoured=True, cmap='matplotlib'))
 
     Here is the identity, useful for seeing what values map to what colors::
 
@@ -970,6 +1080,41 @@ def complex_plot(f, x_range, y_range, contoured=False, tiled=False, cmap='defaul
     .. PLOT::
 
         sphinx_plot(complex_plot(zeta, (-30,30), (-30,30)))
+
+    For advanced usage, it is possible to tweak many parameters. Increasing
+    ``dark_rate`` will make regions become darker/lighter faster when there are no
+    contours::
+
+        sage: complex_plot(zeta, (-30, 30), (-30, 30), dark_rate=1.0)
+        Graphics object consisting of 1 graphics primitive
+
+    .. PLOT::
+
+        sphinx_plot(complex_plot(zeta, (-30,30), (-30,30), dark_rate=1.0))
+
+    Decreasing ``dark_rate`` has the opposite effect. When there are contours,
+    adjust ``dark_rate`` affects how visible contours are. Compare::
+
+        sage: complex_plot(zeta, (-1, 9), (10, 20), plot_points=200,
+        ....:              contoured=True, cmap='twilight', dark_rate=0.2)
+        Graphics object consisting of 1 graphics primitive
+
+    .. PLOT::
+
+        sphinx_plot(complex_plot(zeta, (-1, 9), (10, 20), plot_points=200, contoured=True, cmap='twilight', dark_rate=0.2))
+
+    and::
+
+        sage: complex_plot(zeta, (-1, 9), (10, 20), plot_points=200,
+        ....:              contoured=True, cmap='twilight', dark_rate=0.75)
+        Graphics object consisting of 1 graphics primitive
+
+    .. PLOT::
+
+        sphinx_plot(complex_plot(zeta, (-1, 9), (10, 20), plot_points=200, contoured=True, cmap='twilight', dark_rate=0.75))
+
+    In practice, different values of ``dark_rate`` will work well with
+    different colormaps.
 
     Extra options will get passed on to show(), as long as they are valid::
 
@@ -1052,7 +1197,7 @@ def complex_plot(f, x_range, y_range, contoured=False, tiled=False, cmap='defaul
     else:
         # choose colors from colormap
         if isinstance(cmap, str):
-            if cmap == 'default':
+            if cmap == 'matplotlib':
                 domain = np.linspace(0, 1, 256)
                 shifted_domain = np.roll(domain, 128)
                 default_cmap = mpl.colors.LinearSegmentedColormap.from_list(
@@ -1080,12 +1225,14 @@ def rgb_to_hls(rgb):
 
     INPUT:
 
-    - ``rgb`` --  an ``... \times 3`` array of floats with values
-      in the range `[0, 1]`
+    - ``rgb`` --  an `N \times 3` array of floats with values
+      in the range `[0, 1]`; the rgb values at each point. (Note that the input
+      can actually be of any dimension, such as `N \time M \times 3`, as long
+      as the last dimension has length `3`).
 
     OUTPUT:
 
-    An `... \times 3` Numpy array of floats in the range `[0, 1]`, with
+    An `N \times 3` Numpy array of floats in the range `[0, 1]`, with
     the same dimensions as the input array.
 
     .. SEEALSO::
@@ -1167,11 +1314,14 @@ def hls_to_rgb(hls):
 
     INPUT:
 
-    - hls -- a ``... \times 3`` array of floats in the range `[0, 1]`
+    - ``hls`` -- an `N \times 3` array of floats in the range `[0, 1]`; the hls
+      values at each point. (Note that the input can actually be of any
+      dimension, such as `N \times M \times 3`, as long as the last dimension
+      has length `3`).
 
     OUTPUT:
 
-    A ``... \times 3``  Numpy array of floats in the range `[0, 1]`, with
+    An `N \times 3`  Numpy array of floats in the range `[0, 1]`, with
     the same dimensions as the input array.
 
     .. SEEALSO::
@@ -1255,7 +1405,7 @@ def _v(m1, m2, hue):
 
     OUTPUT:
 
-    A Numpy array of floats with values in the range [0, 1]. The dimensions
+    A Numpy array of floats with values in the range `[0, 1]`. The dimensions
     are the same as the input arrays.
 
     EXAMPLES::

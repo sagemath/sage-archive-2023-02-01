@@ -425,13 +425,31 @@ class FileFeature(Feature):
 
     A subclass should implement a method :meth:`absolute_filename`.
 
-    EXAMPLES::
+    EXAMPLES:
+
+    Two direct concrete subclasses of :class:`FileFeature` are defined::
 
         sage: from sage.features import StaticFile, Executable, FileFeature
         sage: issubclass(StaticFile, FileFeature)
         True
         sage: issubclass(Executable, FileFeature)
         True
+
+    To work with the file described by the feature, use the method :meth:`absolute_filename`.
+    A :class:`FeatureNotPresentError` is raised if the file cannot be found::
+
+        sage: Executable(name="does-not-exist", executable="does-not-exist-xxxxyxyyxyy").absolute_path()
+        Traceback (most recent call last):
+        ...
+        sage.features.FeatureNotPresentError: does-not-exist is not available.
+        Executable 'does-not-exist-xxxxyxyyxyy' not found on PATH.
+
+    A :class:`FileFeature` also provides the :meth:`is_present` method to test for
+    the presence of the file at run time. This is inherited from the base class
+    :class:`Feature`::
+
+        sage: Executable(name="sh", executable="sh").is_present()
+        FeatureTestResult('sh', True)
     """
     def _is_present(self):
         r"""
@@ -455,7 +473,7 @@ class FileFeature(Feature):
 
         Concrete subclasses must override this abstract method.
 
-        EXAMPLES::
+        TESTS::
 
             sage: from sage.features import FileFeature
             sage: FileFeature(name="abstract_file").absolute_filename()

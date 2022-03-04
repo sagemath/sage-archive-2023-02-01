@@ -449,6 +449,25 @@ class FileFeature(Feature):
         except FeatureNotPresentError as e:
             return FeatureTestResult(self, False, reason=e.reason, resolution=e.resolution)
 
+    def absolute_filename(self) -> str:
+        r"""
+        The absolute path of the executable as a string.
+
+        Concrete subclasses must override this abstract method.
+
+        EXAMPLES::
+
+            sage: from sage.features import FileFeature
+            sage: FileFeature(name="abstract_file").absolute_filename()
+            Traceback (most recent call last):
+            ...
+            NotImplementedError
+        """
+        # We do not use sage.misc.abstract_method here because that is provided by
+        # the distribution sagemath-objects, which is not an install-requires of
+        # the distribution sagemath-environment.
+        raise NotImplementedError
+
     def absolute_path(self):
         r"""
         Deprecated alias for :meth:`absolute_filename`.

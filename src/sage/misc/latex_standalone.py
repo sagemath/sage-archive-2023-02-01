@@ -148,7 +148,7 @@ import os
 
 from sage.structure.sage_object import SageObject
 
-class StandaloneTex(SageObject):
+class Standalone(SageObject):
     r"""
     LaTeX standalone document class.
 
@@ -171,9 +171,9 @@ class StandaloneTex(SageObject):
 
     EXAMPLES::
 
-        sage: from sage.misc.latex_standalone import StandaloneTex
+        sage: from sage.misc.latex_standalone import Standalone
         sage: content = "\\section{Intro}\nTest\n"
-        sage: t = StandaloneTex(content)
+        sage: t = Standalone(content)
         sage: t
         \documentclass[tikz]{standalone}
         \begin{document}
@@ -183,7 +183,7 @@ class StandaloneTex(SageObject):
 
     ::
 
-        sage: t = StandaloneTex(content, standalone_options=["border=4mm"], usepackage=['amsmath'])
+        sage: t = Standalone(content, standalone_options=["border=4mm"], usepackage=['amsmath'])
         sage: t
         \documentclass[tikz]{standalone}
         \standaloneconfig{border=4mm}
@@ -197,13 +197,13 @@ class StandaloneTex(SageObject):
     def __init__(self, content, standalone_options=None, usepackage=None,
             usetikzlibrary=None, macros=None, use_sage_preamble=False):
         r"""
-        See :mod:`sage.plot.StandaloneTex` for full information.
+        See :mod:`sage.plot.Standalone` for full information.
 
         EXAMPLES::
 
-            sage: from sage.misc.latex_standalone import StandaloneTex
+            sage: from sage.misc.latex_standalone import Standalone
             sage: content = "\\section{Intro}\n\nTest\n"
-            sage: t = StandaloneTex(content)
+            sage: t = Standalone(content)
 
         ::
 
@@ -745,7 +745,7 @@ class StandaloneTex(SageObject):
 
 
 
-class TikzPicture(StandaloneTex):
+class TikzPicture(Standalone):
     r"""
     Creates a TikzPicture embedded in a LaTeX standalone document class.
 

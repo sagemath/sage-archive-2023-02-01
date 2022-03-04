@@ -486,6 +486,9 @@ class FileFeature(Feature):
         try:
             from sage.misc.superseded import deprecation
         except ImportError:
+            # The import can fail because sage.misc.superseded is provided by
+            # the distribution sagemath-objects, which is not an
+            # install-requires of the distribution sagemath-environment.
             pass
         else:
             deprecation(31292, 'method absolute_path has been replaced by absolute_filename')

@@ -17,7 +17,7 @@ from sage.cpython.string import str_to_bytes, bytes_to_str
 from subprocess import Popen, PIPE
 from sage.misc.misc import SAGE_TMP
 from sage.rings.integer import Integer
-from sage.features.latte import Latte
+from sage.features.latte import Latte_count, Latte_integrate
 
 
 def count(arg, ehrhart_polynomial=False, multivariate_generating_function=False, raw_output=False, verbose=False, **kwds):
@@ -122,12 +122,9 @@ def count(arg, ehrhart_polynomial=False, multivariate_generating_function=False,
         ...
         The polyhedron is unbounded.
     """
-    # Check that LattE is present
-    Latte().require()
-
     arg = str_to_bytes(arg)
 
-    args = ['count']
+    args = [Latte_count().absolute_filename()]
     if ehrhart_polynomial and multivariate_generating_function:
         raise ValueError
     if ehrhart_polynomial:
@@ -330,14 +327,11 @@ def integrate(arg, polynomial=None, algorithm='triangulate', raw_output=False, v
         ...
         determinant: nonsquare matrix
     """
-    # Check that LattE is present
-    Latte().require()
-
     arg = str_to_bytes(arg)
 
     from sage.rings.rational import Rational
 
-    args = ['integrate']
+    args = [Latte_integrate().absolute_filename()]
 
     got_polynomial = True if polynomial is not None else False
 

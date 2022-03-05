@@ -72,6 +72,35 @@ class NotebookJupyterlab(object):
         main(argv)
 
 
+class NotebookNbclassic(object):
+    def print_banner(self):
+        banner()
+        print('Please wait while the Jupyterlab server starts...')
+
+    @classmethod
+    def print_help(cls):
+        cls(['help'])
+
+    def __init__(self, argv):
+        try:
+            from nbclassic.notebookapp import main
+        except ImportError:
+            import traceback
+            traceback.print_exc()
+            print("Jupyterlab is not installed (at least not in this Sage installation).")
+            print("You can install it by running")
+            print("  sage -i jupyterlab_widgets")
+            print("which includes support for interacts and the ability to download and")
+            print("install other Jupyterlab extensions. For a minimal installation, run")
+            print("  sage -i jupyterlab")
+            print("Alternatively, you can follow the instructions at")
+            print("  " + _system_jupyter_url)
+            print("to use Sage with an existing Jupyterlab installation.")
+            raise SystemExit(1)
+        self.print_banner()
+        main(argv)
+
+
 class SageNBExport(NotebookJupyter):
 
     def print_banner(self):
@@ -138,6 +167,7 @@ notebook_launcher = {
     'ipython': NotebookJupyter,
     'jupyter': NotebookJupyter,
     'jupyterlab': NotebookJupyterlab,
+    'nbclassic': NotebookNbclassic,
     'export': SageNBExport,
 }
 

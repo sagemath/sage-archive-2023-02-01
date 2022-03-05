@@ -469,7 +469,7 @@ class FileFeature(Feature):
 
     def absolute_filename(self) -> str:
         r"""
-        The absolute path of the executable as a string.
+        The absolute path of the file as a string.
 
         Concrete subclasses must override this abstract method.
 

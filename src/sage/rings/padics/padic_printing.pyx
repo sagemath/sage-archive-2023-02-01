@@ -5,7 +5,7 @@
 # distutils: extra_link_args = NTL_LIBEXTRA
 # distutils: language = c++
 """
-p-Adic Printing
+`p`-Adic Printing
 
 This file contains code for printing p-adic elements.
 

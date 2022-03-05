@@ -1,5 +1,5 @@
 """
-p-Adic Extension Leaves
+`p`-Adic Extension Leaves
 
 The final classes for extensions of Zp and Qp (ie classes that are not
 just designed to be inherited from).

@@ -1290,9 +1290,10 @@ class GraphGenerators():
             return
 
         from sage.features.graph_generators import Buckygen
-        Buckygen().require()
+        import shlex
 
-        command = 'buckygen -'+('I' if ipr else '')+'d {0}d'.format(order)
+        command = shlex.quote(Buckygen().absolute_filename())
+        command += ' -' + ('I' if ipr else '') + 'd {0}d'.format(order)
 
         sp = subprocess.Popen(command, shell=True,
                               stdin=subprocess.PIPE, stdout=subprocess.PIPE,

@@ -109,13 +109,13 @@ class Point(GraphicPrimitive_xydata):
 
         EXAMPLES::
 
-            sage: A=point((1,1),size=22)
-            sage: a=A[0];a
+            sage: A = point((1,1),size=22)
+            sage: a = A[0]; a
             Point set defined by 1 point(s)
-            sage: b=a.plot3d()
+            sage: b = a.plot3d()
             sage: b.size
             22
-            sage: b=a.plot3d(size=3)
+            sage: b = a.plot3d(size=3)
             sage: b.size
             3
         """
@@ -148,50 +148,50 @@ class Point(GraphicPrimitive_xydata):
 
         One point::
 
-            sage: A=point((1,1))
-            sage: a=A[0];a
+            sage: A = point((1, 1))
+            sage: a = A[0]; a
             Point set defined by 1 point(s)
-            sage: b=a.plot3d()
+            sage: b = a.plot3d()
 
         .. PLOT::
 
-            A=point((1,1))
-            a=A[0]
+            A = point((1, 1))
+            a = A[0]
             sphinx_plot(a.plot3d())
 
         One point with a height::
 
-            sage: A=point((1,1))
-            sage: a=A[0];a
+            sage: A = point((1, 1))
+            sage: a = A[0]; a
             Point set defined by 1 point(s)
-            sage: b=a.plot3d(z=3)
+            sage: b = a.plot3d(z=3)
             sage: b.loc[2]
             3.0
 
         .. PLOT::
 
-            A=point((1,1))
-            a=A[0]
+            A = point((1, 1))
+            a = A[0]
             sphinx_plot(a.plot3d(z=3))
 
         Multiple points::
 
-            sage: P=point([(0,0), (1,1)])
-            sage: p=P[0]; p
+            sage: P = point([(0, 0), (1, 1)])
+            sage: p = P[0]; p
             Point set defined by 2 point(s)
-            sage: q=p.plot3d(size=22)
+            sage: q = p.plot3d(size=22)
 
         .. PLOT::
 
-            P=point([(0,0), (1,1)])
-            p=P[0]
+            P = point([(0, 0), (1, 1)])
+            p = P[0]
             sphinx_plot(p.plot3d(size=22))
 
         Multiple points with different heights::
 
-            sage: P=point([(0,0), (1,1)])
-            sage: p=P[0]
-            sage: q=p.plot3d(z=[2,3])
+            sage: P = point([(0, 0), (1, 1)])
+            sage: p = P[0]
+            sage: q = p.plot3d(z=[2,3])
             sage: q.all[0].loc[2]
             2.0
             sage: q.all[1].loc[2]
@@ -199,22 +199,22 @@ class Point(GraphicPrimitive_xydata):
 
         .. PLOT::
 
-            P=point([(0,0), (1,1)])
-            p=P[0]
+            P = point([(0, 0), (1, 1)])
+            p = P[0]
             sphinx_plot(p.plot3d(z=[2,3]))
 
         Note that keywords passed must be valid point3d options::
 
-            sage: A=point((1,1),size=22)
-            sage: a=A[0];a
+            sage: A = point((1, 1), size=22)
+            sage: a = A[0]; a
             Point set defined by 1 point(s)
-            sage: b=a.plot3d()
+            sage: b = a.plot3d()
             sage: b.size
             22
-            sage: b=a.plot3d(pointsize=23) # only 2D valid option
+            sage: b = a.plot3d(pointsize=23)  # only 2D valid option
             sage: b.size
             22
-            sage: b=a.plot3d(size=23) # correct keyword
+            sage: b = a.plot3d(size=23) # correct keyword
             sage: b.size
             23
 
@@ -223,12 +223,12 @@ class Point(GraphicPrimitive_xydata):
         Heights passed as a list should have same length as
         number of points::
 
-            sage: P=point([(0,0), (1,1), (2,3)])
-            sage: p=P[0]
-            sage: q=p.plot3d(z=2)
+            sage: P = point([(0, 0), (1, 1), (2, 3)])
+            sage: p = P[0]
+            sage: q = p.plot3d(z=2)
             sage: q.all[1].loc[2]
             2.0
-            sage: q=p.plot3d(z=[2,-2])
+            sage: q = p.plot3d(z=[2,-2])
             Traceback (most recent call last):
             ...
             ValueError: Incorrect number of heights given
@@ -257,8 +257,8 @@ class Point(GraphicPrimitive_xydata):
 
         EXAMPLES::
 
-            sage: P=point([(0,0), (1,1)])
-            sage: p=P[0]; p
+            sage: P = point([(0, 0), (1, 1)])
+            sage: p = P[0]; p
             Point set defined by 2 point(s)
         """
         return "Point set defined by %s point(s)" % len(self.xdata)
@@ -269,8 +269,8 @@ class Point(GraphicPrimitive_xydata):
 
         EXAMPLES::
 
-            sage: P=point([(0,0), (1,1), (2,3)])
-            sage: p=P[0]; p
+            sage: P = point([(0, 0), (1, 1), (2, 3)])
+            sage: p = P[0]; p
             Point set defined by 3 point(s)
             sage: p[1]
             (1.0, 1.0)
@@ -284,7 +284,7 @@ class Point(GraphicPrimitive_xydata):
         We check to make sure that :trac:`2076` is fixed by verifying all
         the points are red::
 
-            sage: point(((1,1), (2,2), (3,3)), rgbcolor=hue(1), size=30)
+            sage: point(((1, 1), (2, 2), (3, 3)), rgbcolor=hue(1), size=30)
             Graphics object consisting of 1 graphics primitive
         """
         options = self.options()
@@ -333,39 +333,39 @@ def point(points, **kwds):
 
     EXAMPLES::
 
-        sage: point((1,2))
+        sage: point((1, 2))
         Graphics object consisting of 1 graphics primitive
 
     .. PLOT::
 
-        sphinx_plot(point((1,2)))
+        sphinx_plot(point((1, 2)))
 
     ::
 
-        sage: point((1,2,3))
+        sage: point((1, 2, 3))
         Graphics3d Object
 
     .. PLOT::
 
-        sphinx_plot(point((1,2,3)))
+        sphinx_plot(point((1, 2, 3)))
 
     ::
 
-        sage: point([(0,0), (1,1)])
+        sage: point([(0, 0), (1, 1)])
         Graphics object consisting of 1 graphics primitive
 
     .. PLOT::
 
-        sphinx_plot(point([(0,0), (1,1)]))
+        sphinx_plot(point([(0, 0), (1, 1)]))
 
     ::
 
-        sage: point([(0,0,1), (1,1,1)])
+        sage: point([(0, 0, 1), (1, 1, 1)])
         Graphics3d Object
 
     .. PLOT::
 
-        sphinx_plot(point([(0,0,1), (1,1,1)]))
+        sphinx_plot(point([(0, 0, 1), (1, 1, 1)]))
 
     Extra options will get passed on to show(), as long as they are valid::
 
@@ -377,9 +377,9 @@ def point(points, **kwds):
 
     One can now use iterators (:trac:`13890`)::
 
-        sage: point(iter([(1,1,1)]))
+        sage: point(iter([(1, 1, 1)]))
         Graphics3d Object
-        sage: point(iter([(1,2),(3,5)]))
+        sage: point(iter([(1, 2), (3, 5)]))
         Graphics object consisting of 1 graphics primitive
     """
     if isinstance(points, Iterator):

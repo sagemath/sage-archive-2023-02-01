@@ -1754,7 +1754,7 @@ class NormalFormGame(SageObject, MutableMapping):
         with open(game_name, 'w') as game_file:
             game_file.write(game_str)
 
-        from sage.features import LrsNash
+        from sage.features.lrs import LrsNash
         LrsNash().require()
         process = Popen([LrsNash().absolute_filename(), game_name],
                         stdout=PIPE, stderr=PIPE)

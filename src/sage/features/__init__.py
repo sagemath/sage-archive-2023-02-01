@@ -566,6 +566,10 @@ class Executable(FileFeature):
         r"""
         Return whether an executable in the path is functional.
 
+        This method is used internally and can be overridden in subclasses
+        in order to implement a feature test. It should not be called directly.
+        Use :meth:`Feature.is_present` instead.
+
         EXAMPLES:
 
         The function returns ``True`` unless explicitly overwritten::

@@ -5056,7 +5056,7 @@ REFERENCES:
              *Combinatorial optimization: polyhedra and efficiency*,
              2003.
 
-.. [Scho2003] Manfred Schocker, *Multiplicities of Higher Lie Characters*.
+.. [Sch2003b] Manfred Schocker, *Multiplicities of Higher Lie Characters*.
               J. Aust. Math. Soc. 75 (2003), pp. 9-21.
               https://doi.org/10.1017/S144678870000344X
 

@@ -365,6 +365,7 @@ class LocalizationElement(IntegralDomainElement):
 
     def factor(self, proof=None):
         r"""
+        Return the factorization of this polynomial.
 
         INPUT:
 

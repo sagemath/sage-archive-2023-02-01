@@ -369,8 +369,8 @@ class LocalizationElement(IntegralDomainElement):
 
         INPUT:
 
-        - ``proof`` -- optional (default ``None``). If given it is passed
-          to the corresponding method of the numerator of ``self``.
+        - ``proof`` -- optional if given it is passed to the
+          corresponding method of the numerator of ``self``
 
         EXAMPLES::
 

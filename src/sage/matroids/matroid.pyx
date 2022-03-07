@@ -2995,7 +2995,7 @@ cdef class Matroid(SageObject):
             Sage uses the convention that a broken circuit is found by
             removing a minimal element from a circuit, while [BDPR2011]_.
             use the convention that removal of the *maximal* element of
-            circuit yeilds a broken circuit. This implementation reverses
+            circuit yields a broken circuit. This implementation reverses
             the provided order so that it returns n.b.c. sets under the
             minimal-removal convention, while the implementation is not
             modified from the published algorithm.
@@ -7839,7 +7839,7 @@ cdef class Matroid(SageObject):
         if pos_dict is not None:
             from . import matroids_plot_helpers
             if matroids_plot_helpers.posdict_is_sane(self,pos_dict):
-                self._cached_info={'plot_positions':pos_dict,'lineorders':lineorders}
+                self._cached_info = {'plot_positions':pos_dict, 'lineorders':lineorders}
         return
 
     def broken_circuit_complex(self, ordering=None):
@@ -7885,8 +7885,8 @@ cdef class Matroid(SageObject):
 
         EXAMPLES::
 
-            sage: M=matroids.named_matroids.Fano()
-            sage: B=M.bergman_complex(); B
+            sage: M = matroids.named_matroids.Fano()
+            sage: B = M.bergman_complex(); B
             Simplicial complex with 14 vertices and 21 facets
 
         .. SEEALSO::
@@ -7894,14 +7894,14 @@ cdef class Matroid(SageObject):
             :meth:`M.augmented_bergman_complex() <sage.matroids.matroid.Matroid.augmented_bergman_complex>`
         """
         L = self.lattice_of_flats()
-        return L.subposet(L.list()[1:-1]).order_complex()
+        return L.subposet(L.list()[1: -1]).order_complex()
 
     cpdef augmented_bergman_complex(self):
         r"""
         Returns the augmented Bergman complex of ``self``.
 
         Given a matroid `M` with ground set `E=\{1,2,\ldots,n\}`,
-        the *augmented Bergman complex* can be seen as a hybrid of the copmlex
+        the *augmented Bergman complex* can be seen as a hybrid of the complex
         of independent sets of `M` and the Bergman complex of `M`. It is defined
         as the simplicial complex on vertex set
 
@@ -7909,7 +7909,7 @@ cdef class Matroid(SageObject):
 
             \{y_1,\ldots,y_n\}\cup\{x_F:\text{ proper flats } F\subsetneq E\},
 
-        with simplicies given by
+        with simplices given by
 
         .. MATH::
 
@@ -7924,8 +7924,8 @@ cdef class Matroid(SageObject):
 
         EXAMPLES::
 
-            sage: M=matroids.named_matroids.Fano()
-            sage: A=M.augmented_bergman_complex(); A
+            sage: M = matroids.named_matroids.Fano()
+            sage: A = M.augmented_bergman_complex(); A
             Simplicial complex with 22 vertices and 91 facets
 
         ..SEEALSO::
@@ -7951,14 +7951,14 @@ cdef class Matroid(SageObject):
 
         # Construct coned Bergman complex
         L = self.lattice_of_flats()
-        cache = L.subposet(L.list()[:-1])
+        cache = L.subposet(L.list()[: -1])
         coned_bergman = cache.order_complex()
 
         # Take disjoint union of independent set and coned Bergman
         DM = delta_I.disjoint_union(coned_bergman)
 
         # iterate through all nontrivial flats and find all maximal chains containing them
-        flats = L.subposet(L.list()[1:-1])
+        flats = L.subposet(L.list()[1: -1])
         dictionary = {}
         for flat in flats:
             dictionary[flat] = flats.subposet(flats.principal_order_filter(flat)).maximal_chains()

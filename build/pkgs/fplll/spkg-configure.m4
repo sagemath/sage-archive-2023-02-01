@@ -10,7 +10,7 @@ SAGE_SPKG_CONFIGURE([fplll], [
     PKG_CHECK_MODULES([FPLLL],
         [fplll >= 5.4.0 fplll <= 5.4.1],
         [
-        AC_MSG_CHECKING([BKZ default strategy JSON installed...])
+        AC_MSG_CHECKING([whether BKZ default strategy JSON is installed])
         AC_LANG_PUSH([C++])
         FPLLL_SAVED_LIBS=$LIBS
         LIBS="$LIBS -lfplll"
@@ -25,9 +25,9 @@ SAGE_SPKG_CONFIGURE([fplll], [
               if (fs) return 0;
               return 1;
             ]])], [
-	        AC_MSG_RESULT([yes])
+                AC_MSG_RESULT([yes])
             ], [
-	        AC_MSG_RESULT([no])
+                AC_MSG_RESULT([no])
                 sage_spkg_install_fplll=yes
             ], [
                 dnl assume that the person running cross-compiling

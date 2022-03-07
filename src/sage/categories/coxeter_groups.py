@@ -10,20 +10,20 @@ Coxeter Groups
 #                  https://www.gnu.org/licenses/
 # *****************************************************************************
 # With contributions from Dan Bump, Steve Pon, Qiang Wang, Anne Schilling, Christian Stump, Mark Shimozono
+from copy import copy
+from collections import deque
 
-from sage.misc.abstract_method import abstract_method
-from sage.misc.cachefunc import cached_method, cached_in_parent_method
-from sage.misc.lazy_import import LazyImport
-from sage.misc.constant_function import ConstantFunction
-from sage.misc.call import attrcall
 from sage.categories.category_singleton import Category_singleton
 from sage.categories.enumerated_sets import EnumeratedSets
 from sage.categories.finite_enumerated_sets import FiniteEnumeratedSets
 from sage.categories.generalized_coxeter_groups import GeneralizedCoxeterGroups
-from sage.structure.element import have_same_parent, parent
+from sage.misc.abstract_method import abstract_method
+from sage.misc.cachefunc import cached_method, cached_in_parent_method
+from sage.misc.call import attrcall
+from sage.misc.constant_function import ConstantFunction
 from sage.misc.flatten import flatten
-from copy import copy
-from collections import deque
+from sage.misc.lazy_import import LazyImport
+from sage.structure.element import have_same_parent, parent
 
 
 class CoxeterGroups(Category_singleton):
@@ -219,7 +219,7 @@ class CoxeterGroups(Category_singleton):
                     m = M[i, j]
                     rel = [i, j] * m
                     rels.append([rel[:m], rel[m:] if m % 2 else
-                                list(reversed(rel[m:]))])
+                                 list(reversed(rel[m:]))])
             return rels
 
         def braid_group_as_finitely_presented_group(self):
@@ -331,8 +331,7 @@ class CoxeterGroups(Category_singleton):
 
             if be_careful:
                 return [[I[i] for i in word] for word in orb]
-            else:
-                return [list(I) for I in orb]
+            return [list(I) for I in orb]
 
         def __iter__(self):
             r"""
@@ -481,11 +480,12 @@ class CoxeterGroups(Category_singleton):
                     u1 = u.apply_simple_reflection(i, side)
                     if i == u1.first_descent(side=side) and predicate(u1):
                         yield u1
-                return
+
             from sage.categories.finite_coxeter_groups import FiniteCoxeterGroups
             default_category = FiniteEnumeratedSets() if self in FiniteCoxeterGroups() else EnumeratedSets()
-            return RecursivelyEnumeratedSet_forest((self.one(),), succ, algorithm='breadth',
-                                category=default_category.or_subcategory(category))
+            return RecursivelyEnumeratedSet_forest((self.one(),), succ,
+                algorithm='breadth',
+                category=default_category.or_subcategory(category))
 
         @cached_method
         def coxeter_element(self):
@@ -1187,7 +1187,7 @@ class CoxeterGroups(Category_singleton):
             """
             from sage.misc.prandom import randint
             x = self.one()
-            for i in range(1, n + 1):
+            for _ in range(1, n + 1):
                 antiD = x.descents(positive=True)
                 rnd = randint(0, len(antiD) - 1)
                 x = x.apply_simple_reflection_right(antiD[rnd])
@@ -2283,8 +2283,7 @@ class CoxeterGroups(Category_singleton):
             desc = other.first_descent()
             if desc is not None:
                 return self.apply_simple_projection(desc, length_increasing=False).bruhat_le(other.apply_simple_reflection(desc))
-            else:
-                return self == other
+            return self == other
 
         def weak_le(self, other, side='right'):
             """
@@ -2553,9 +2552,9 @@ class CoxeterGroups(Category_singleton):
                 the_word = element.reduced_word()
             else:
                 # check for a list or tuple of elements of the index set
-                if isinstance(element, (tuple)):
-                    element = [x for x in element]
-                if not isinstance(element, (list)):
+                if isinstance(element, tuple):
+                    element = list(element)
+                elif not isinstance(element, list):
                     raise TypeError(f"Bad Coxeter group element input: {element}")
                 I = self.parent().index_set()
                 if not all(i in I for i in element):
@@ -2949,7 +2948,7 @@ class CoxeterGroups(Category_singleton):
                         terms.extend(list(cp_s * cp_x))
                     if side == 'right' or side == 'two-sided':
                         terms.extend(list(cp_x * cp_s))
-                    for (y, coeff) in terms:
+                    for y, _ in terms:
                         # the result of multiplication will always have coeff != 0
                         if y != x:
                             edges.add((x, y))

@@ -926,7 +926,7 @@ class SymmetricFunctionsBases(Category_realization_of_parent):
 
             They also go by the name *higher Lie character*::
 
-                sage: s.higher_lie_character([2, 2, 1]) == s.gessel_reutenauer([2,1])
+                sage: s.higher_lie_character([2, 2, 1]) == s.gessel_reutenauer([2, 2, 1])
                 True
 
             Of the above three equivalent definitions of

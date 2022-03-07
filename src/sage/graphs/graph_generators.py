@@ -1291,8 +1291,9 @@ class GraphGenerators():
             return
 
         from sage.features.graph_generators import Buckygen
-        import shlex
+        Buckygen().require()
 
+        import shlex
         command = shlex.quote(Buckygen().absolute_filename())
         command += ' -' + ('I' if ipr else '') + 'd {0}d'.format(order)
 
@@ -1381,7 +1382,9 @@ class GraphGenerators():
         from sage.features.graph_generators import Benzene
         Benzene().require()
 
-        command = 'benzene '+('b' if benzenoids else '')+' {0} p'.format(hexagon_count)
+        import shlex
+        command = shlex.quote(Benzene().absolute_filename())
+        command += ('b' if benzenoids else '') + ' {0} p'.format(hexagon_count)
 
         sp = subprocess.Popen(command, shell=True,
                               stdin=subprocess.PIPE, stdout=subprocess.PIPE,
@@ -1623,8 +1626,10 @@ class GraphGenerators():
         from sage.features.graph_generators import Plantri
         Plantri().require()
 
-        cmd = 'plantri -p{}m{}c{}{}{} {} {} {}'
-        command = cmd.format('b' if only_bipartite else '',
+        import shlex
+        cmd = '{} -p{}m{}c{}{}{} {} {} {}'
+        command = cmd.format(shlex.quote(Plantri().absolute_filename()),
+                             'b' if only_bipartite else '',
                              minimum_degree,
                              minimum_connectivity,
                              'x' if exact_connectivity else '',
@@ -1809,8 +1814,10 @@ class GraphGenerators():
         from sage.features.graph_generators import Plantri
         Plantri().require()
 
-        cmd = 'plantri -{}m{}c{}{}{} {}'
-        command = cmd.format('b' if only_eulerian else '',
+        import shlex
+        cmd = '{} -{}m{}c{}{}{} {}'
+        command = cmd.format(shlex.quote(Plantri().absolute_filename()),
+                             'b' if only_eulerian else '',
                              minimum_degree,
                              minimum_connectivity,
                              'x' if exact_connectivity else '',
@@ -1955,8 +1962,10 @@ class GraphGenerators():
         from sage.features.graph_generators import Plantri
         Plantri().require()
 
-        cmd = 'plantri -qm{}c{}{} {}'
-        command = cmd.format(minimum_degree,
+        import shlex
+        cmd = '{} -qm{}c{}{} {}'
+        command = cmd.format(shlex.quote(Plantri().absolute_filename()),
+                             minimum_degree,
                              minimum_connectivity,
                              'd' if dual else '',
                              order)

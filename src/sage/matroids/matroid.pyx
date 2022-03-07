@@ -7873,7 +7873,7 @@ cdef class Matroid(SageObject):
 
     cpdef bergman_complex(self):
         r"""
-        Returns the Bergman complex of ``self``.
+        Return the Bergman complex of ``self``.
 
         Let `L` be the lattice of flats of a matroid `M` with the minimum and
         maximum elements removed. The *Bergman complex* of a matroid `M` is the
@@ -7898,7 +7898,7 @@ cdef class Matroid(SageObject):
 
     cpdef augmented_bergman_complex(self):
         r"""
-        Returns the augmented Bergman complex of ``self``.
+        Return the augmented Bergman complex of ``self``.
 
         Given a matroid `M` with ground set `E=\{1,2,\ldots,n\}`,
         the *augmented Bergman complex* can be seen as a hybrid of the complex
@@ -7928,11 +7928,11 @@ cdef class Matroid(SageObject):
             sage: A = M.augmented_bergman_complex(); A
             Simplicial complex with 22 vertices and 91 facets
 
-        ..SEEALSO::
+        .. SEEALSO::
 
             :meth:`M.bergman_complex() <sage.matroids.matroid.Matroid.bergman_complex>`
 
-        ..TODO::
+        .. TODO::
 
             It is possible that this method could be optimized by building up
             the maximal chains using a sort of dynamic programming approach.

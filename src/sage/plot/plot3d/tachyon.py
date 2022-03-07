@@ -1022,7 +1022,7 @@ class Tachyon(WithEqualityById, SageObject):
             sage: t.plot(f,(2.,2.),(-2.,2.),'')
             Traceback (most recent call last):
             ...
-            ValueError: Plot rectangle is really a line.  Make sure min_x != max_x and min_y != max_y.
+            ValueError: plot rectangle is really a line; make sure min_x != max_x and min_y != max_y
         """
         (xmin, xmax) = xmin_xmax
         (ymin, ymax) = ymin_ymax

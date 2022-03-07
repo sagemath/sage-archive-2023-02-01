@@ -881,13 +881,13 @@ REFERENCES:
             Anal. Appl. 15 (1994) 804-823.
             :doi:`10.1137/S0895479892230031`
 
-.. [BHMPW10] Tom Braden, June Huh, Jacob P. Matherne, Nicholas Proudfoot,
-             and Botong Wang, *Singular Hodge theory for combinatorial
-             geometries*, :arxiv:`2010.06088` (2010).
-
-.. [BHMPW20] Tom Braden, June Huh, Jacob P. Matherne, Nicholas Proudfoot,
+.. [BHMPW20a] Tom Braden, June Huh, Jacob P. Matherne, Nicholas Proudfoot,
              and Botong Wang, *A semi-small decomposition of the Chow
              ring of a matroid*, :arxiv:`2002.03341` (2020).
+
+.. [BHMPW20b] Tom Braden, June Huh, Jacob P. Matherne, Nicholas Proudfoot,
+             and Botong Wang, *Singular Hodge theory for combinatorial
+             geometries*, :arxiv:`2010.06088` (2020).
 
 .. [BMP2007] \S. Brlek, G. Melançon, G. Paquin, Properties of the
              extremal infinite smooth words, Discrete

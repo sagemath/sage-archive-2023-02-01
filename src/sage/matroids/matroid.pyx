@@ -7839,7 +7839,7 @@ cdef class Matroid(SageObject):
         if pos_dict is not None:
             from . import matroids_plot_helpers
             if matroids_plot_helpers.posdict_is_sane(self,pos_dict):
-                self._cached_info = {'plot_positions':pos_dict, 'lineorders':lineorders}
+                self._cached_info = {'plot_positions': pos_dict, 'lineorders': lineorders}
         return
 
     def broken_circuit_complex(self, ordering=None):
@@ -7941,8 +7941,8 @@ cdef class Matroid(SageObject):
 
         REFERENCES:
 
-        - [BMHPW10]_
-        - [BMHPW20]_
+        - [BMHPW20a]_
+        - [BMHPW20b]_
         """
         # Construct independent set complex
         from sage.topology.simplicial_complex import SimplicialComplex

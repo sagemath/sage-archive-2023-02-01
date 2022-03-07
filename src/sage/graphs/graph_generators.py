@@ -15,7 +15,6 @@ To get a path with 4 vertices, and the house graph::
 More interestingly, one can get the list of all graphs that Sage knows how to
 build by typing ``graphs.`` in Sage and then hitting tab.
 """
-from sage.env import SAGE_NAUTY_BINS_PREFIX as nautyprefix
 
 import subprocess
 
@@ -956,8 +955,10 @@ class GraphGenerators():
             sage: list(graphs.nauty_geng("-c 3", debug=True))
             ['>A ...geng -cd1D2 n=3 e=2-3\n', Graph on 3 vertices, Graph on 3 vertices]
         """
-
-        sp = subprocess.Popen(nautyprefix+"geng {0}".format(options), shell=True,
+        import shlex
+        from sage.features.nauty import NautyExecutable
+        geng_path = NautyExecutable("geng").absolute_filename()
+        sp = subprocess.Popen(shlex.quote(geng_path) + " {0}".format(options), shell=True,
                               stdin=subprocess.PIPE, stdout=subprocess.PIPE,
                               stderr=subprocess.PIPE, close_fds=True,
                               encoding='latin-1')

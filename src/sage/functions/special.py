@@ -33,103 +33,89 @@ Toy. It is placed under the terms of the General Public License
 Next, we summarize some of the properties of the functions
 implemented here.
 
+- **Spherical harmonics**: Laplace's equation in spherical coordinates is:
 
--  **Spherical harmonics**: Laplace's equation in spherical coordinates
-   is:
+    .. MATH::
 
-   .. MATH::
+        \frac{1}{r^2} \frac{\partial}{\partial r}
+        \left( r^2 \frac{\partial f}{\partial r} \right) +
+        \frac{1}{r^2\sin\theta} \frac{\partial}{\partial \theta}
+        \left( \sin\theta \frac{\partial f}{\partial \theta} \right) +
+        \frac{1}{r^2\sin^2\theta} \frac{\partial^2 f}{\partial \varphi^2} = 0.
 
-       \frac{1}{r^2} \frac{\partial}{\partial r}
-       \left( r^2 \frac{\partial f}{\partial r} \right) +
-       \frac{1}{r^2\sin\theta} \frac{\partial}{\partial \theta}
-       \left( \sin\theta \frac{\partial f}{\partial \theta} \right) +
-       \frac{1}{r^2\sin^2\theta} \frac{\partial^2 f}{\partial \varphi^2} = 0.
+  Note that the spherical coordinates `\theta` and `\varphi` are defined here
+  as follows: `\theta` is the colatitude or polar angle, ranging from
+  `0\leq\theta\leq\pi` and `\varphi` the azimuth or longitude, ranging from
+  `0\leq\varphi<2\pi`.
 
+  The general solution which remains finite towards infinity is a linear
+  combination of functions of the form
 
-   Note that the spherical coordinates `\theta` and
-   `\varphi` are defined here as follows: `\theta` is
-   the colatitude or polar angle, ranging from
-   `0\leq\theta\leq\pi` and `\varphi` the azimuth or
-   longitude, ranging from `0\leq\varphi<2\pi`.
+    .. MATH::
 
-   The general solution which remains finite towards infinity is a
-   linear combination of functions of the form
-
-   .. MATH::
-
-         r^{-1-\ell} \cos (m \varphi) P_\ell^m (\cos{\theta} )
-
+        r^{-1-\ell} \cos (m \varphi) P_\ell^m (\cos{\theta} )
 
    and
 
-   .. MATH::
+    .. MATH::
 
-         r^{-1-\ell} \sin (m \varphi) P_\ell^m (\cos{\theta} )
+        r^{-1-\ell} \sin (m \varphi) P_\ell^m (\cos{\theta} )
 
+  where `P_\ell^m` are the associated Legendre polynomials
+  (cf. :class:`~sage.functions.orthogonal_polys.Func_assoc_legendre_P`),
+  and with integer parameters `\ell \ge 0` and `m` from `0` to `\ell`. Put in
+  another way, the solutions with integer parameters `\ell \ge 0` and
+  `- \ell\leq m\leq \ell`, can be written as linear combinations of:
 
-   where `P_\ell^m` are the associated Legendre polynomials
-   (cf. :class:`~sage.functions.orthogonal_polys.Func_assoc_legendre_P`),
-   and with integer parameters `\ell \ge 0` and `m`
-   from `0` to `\ell`. Put in another way, the
-   solutions with integer parameters `\ell \ge 0` and
-   `- \ell\leq m\leq \ell`, can be written as linear
-   combinations of:
+    .. MATH::
 
-   .. MATH::
+        U_{\ell,m}(r,\theta , \varphi ) =
+        r^{-1-\ell} Y_\ell^m( \theta , \varphi )
 
-         U_{\ell,m}(r,\theta , \varphi ) =
-         r^{-1-\ell} Y_\ell^m( \theta , \varphi )
+  where the functions `Y` are the spherical harmonic functions with
+  parameters `\ell`, `m`, which can be written as:
 
+    .. MATH::
 
-   where the functions `Y` are the spherical harmonic
-   functions with parameters `\ell`, `m`, which can be
-   written as:
+        Y_\ell^m( \theta , \varphi ) =
+        \sqrt{ \frac{(2\ell+1)}{4\pi} \frac{(\ell-m)!}{(\ell+m)!} }
+        \, e^{i m \varphi } \, P_\ell^m ( \cos{\theta} ) .
 
-   .. MATH::
+  The spherical harmonics obey the normalisation condition
 
-         Y_\ell^m( \theta , \varphi ) =
-         \sqrt{ \frac{(2\ell+1)}{4\pi} \frac{(\ell-m)!}{(\ell+m)!} }
-         \, e^{i m \varphi } \, P_\ell^m ( \cos{\theta} ) .
+    .. MATH::
 
+        \int_{\theta=0}^\pi\int_{\varphi=0}^{2\pi}
+        Y_\ell^mY_{\ell'}^{m'*}\,d\Omega =
+        \delta_{\ell\ell'}\delta_{mm'}\quad\quad d\Omega =
+        \sin\theta\,d\varphi\,d\theta .
 
+- The **incomplete elliptic integrals** (of the first kind, etc.) are:
 
-   The spherical harmonics obey the normalisation condition
+    .. MATH::
 
-
-   .. MATH::
-
-     \int_{\theta=0}^\pi\int_{\varphi=0}^{2\pi}
-     Y_\ell^mY_{\ell'}^{m'*}\,d\Omega =
-     \delta_{\ell\ell'}\delta_{mm'}\quad\quad d\Omega =
-     \sin\theta\,d\varphi\,d\theta .
-
-
--  The **incomplete elliptic integrals** (of the first kind, etc.) are:
-
-  .. MATH::
-
-     \begin{array}{c}
-     \displaystyle\int_0^\phi \frac{1}{\sqrt{1 - m\sin(x)^2}}\, dx,\\
-     \displaystyle\int_0^\phi \sqrt{1 - m\sin(x)^2}\, dx,\\
-     \displaystyle\int_0^\phi \frac{\sqrt{1-mt^2}}{\sqrt(1 - t^2)}\, dx,\\
-     \displaystyle\int_0^\phi
-     \frac{1}{\sqrt{1 - m\sin(x)^2\sqrt{1 - n\sin(x)^2}}}\, dx,
-     \end{array}
+        \begin{array}{c}
+        \displaystyle\int_0^\phi \frac{1}{\sqrt{1 - m\sin(x)^2}}\, dx,\\
+        \displaystyle\int_0^\phi \sqrt{1 - m\sin(x)^2}\, dx,\\
+        \displaystyle\int_0^\phi \frac{\sqrt{1-mt^2}}{\sqrt(1 - t^2)}\, dx,\\
+        \displaystyle\int_0^\phi
+        \frac{1}{\sqrt{1 - m\sin(x)^2\sqrt{1 - n\sin(x)^2}}}\, dx,
+        \end{array}
 
   and the complete ones are obtained by taking `\phi =\pi/2`.
 
 
 REFERENCES:
 
-- Abramowitz and Stegun: Handbook of Mathematical Functions,
-  http://www.math.sfu.ca/~cbm/aands/
+- `Abramowitz and Stegun: Handbook of Mathematical Functions
+  <https://personal.math.ubc.ca/~cbm/aands/>`_
 
 - :wikipedia:`Spherical_harmonics`
 
 - :wikipedia:`Helmholtz_equation`
 
-- Online Encyclopedia of Special Function
-  http://algo.inria.fr/esf/index.html
+- `Online Encyclopedia of Special Functions
+  <http://algo.inria.fr/esf/index.html>`_
 
 AUTHORS:
 
@@ -140,9 +126,9 @@ Added 16-02-2008 (wdj): optional calls to scipy and replace all
 
 .. warning::
 
-   SciPy's versions are poorly documented and seem less
-   accurate than the Maxima and PARI versions; typically they are limited
-   by hardware floats precision.
+    SciPy's versions are poorly documented and seem less
+    accurate than the Maxima and PARI versions; typically they are limited
+    by hardware floats precision.
 """
 
 # ****************************************************************************

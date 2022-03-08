@@ -95,6 +95,10 @@ REFERENCES:
              graphs and isoperimetric inequalities*, The Annals of Probability
              32 (2004), no.  3A, 1727-1745.
 
+.. [ASV2020] Federico Ardila, Mariel Supina, and Andrés R. Vindas-Meléndez, 
+         *The Equivariant Ehrhart Theory of the Permutahedron*,
+         Proc. Amer. Math. Soc. Volume 148, Number 12, 2020, pp. 5091--5107.
+
 .. [ADKF1970] \V. Arlazarov, E. Dinic, M. Kronrod,
               and I. Faradzev. 'On Economical Construction of the
               Transitive Closure of a Directed Graph.'
@@ -5310,6 +5314,9 @@ REFERENCES:
 
 .. [St1986] Richard Stanley. *Two poset polytopes*,
             Discrete Comput. Geom. (1986), :doi:`10.1007/BF02187680`
+
+.. [Stap2011] Alan Stapledon. *Equivariant Ehrhart Theory*. 
+              Advances in Mathematics 226 (2011), no. 4, 3622-3654
 
 .. [Sta1973] \H. M. Stark, Class-Numbers of Complex Quadratic
              Fields. In: Kuijk W. (eds) Modular Functions of One

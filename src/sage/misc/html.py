@@ -25,6 +25,8 @@ from sage.misc.latex import latex
 from sage.misc.sage_eval import sage_eval
 from sage.structure.sage_object import SageObject
 
+macro_regex = re.compile(r'\\newcommand{(?P<name>\\[a-zA-Z]+)}')
+
 
 class HtmlFragment(str, SageObject):
     r"""
@@ -350,10 +352,9 @@ class MathJax:
         latex_string = ''.join([_Latex_prefs._option['macros']] + parts)
 
         # add a macro definition only if it appears in the latex string
-        regex = re.compile(r'\\newcommand{(?P<name>\\[a-zA-Z]+)}')
         macros_string = ''
         for line in sage_latex_macros():
-            m = regex.match(line)
+            m = macro_regex.match(line)
             if m['name'] in latex_string:
                 macros_string += line
 

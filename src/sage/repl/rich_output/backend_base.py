@@ -454,9 +454,9 @@ class BackendBase(SageObject):
             sage: out
             OutputHtml container
             sage: out.html
-            buffer containing 62 bytes
+            buffer containing 28 bytes
             sage: out.html.get_str()
-            '<html>\\[\\newcommand{\\Bold}[1]{\\mathbf{#1}}\\frac{1}{2}\\]</html>'
+            '<html>\\[\\frac{1}{2}\\]</html>'
 
             sage: out = backend.latex_formatter([1/2, x, 3/4, ZZ], concatenate=False)
             sage: out.html.get_str()
@@ -468,9 +468,9 @@ class BackendBase(SageObject):
         TESTS::
 
             sage: backend.latex_formatter([], concatenate=False).html.get_str()
-            '<html>\\[\\newcommand{\\Bold}[1]{\\mathbf{#1}}\\left[\\right]\\]</html>'
+            '<html>\\[\\left[\\right]\\]</html>'
             sage: backend.latex_formatter([], concatenate=True).html.get_str()
-            '<html>\\[\\newcommand{\\Bold}[1]{\\mathbf{#1}}\\]</html>'
+            '<html>\\[\\]</html>'
         """
         concatenate = kwds.get('concatenate', False)
         from sage.misc.html import html

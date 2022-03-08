@@ -217,7 +217,7 @@ MathJax interprets a snippet of TeX in the notebook.  ::
     sage: from sage.misc.html import MathJax
     sage: mj=MathJax()
     sage: mj(x+y)
-    <html>\[\newcommand{\Bold}[1]{\mathbf{#1}}\newcommand{\foo}{bar}x + y\]</html>
+    <html>\[\newcommand{\foo}{bar}x + y\]</html>
 
 Additional macros added this way will also be used in the event
 that the system-wide version of TeX is called on

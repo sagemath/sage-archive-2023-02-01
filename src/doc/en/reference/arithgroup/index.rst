@@ -1,4 +1,4 @@
-Arithmetic Subgroups of `\SL_2({\ZZ})`
+Arithmetic Subgroups of `\SL_2(\ZZ)`
 ======================================
 
 This chapter describes the basic functionality for finite index subgroups of

@@ -870,18 +870,6 @@ class SymmetricFunctionsBases(Category_realization_of_parent):
             `\mathbf{GR}_\lambda`, where `\lambda` is ``lam``,
             expanded in the basis ``self``.
 
-            REFERENCES:
-
-            .. [GR1993] Ira M. Gessel, Christophe Reutenauer.
-               *Counting Permutations with Given Cycle Structure
-               and Descent Set*.
-               Journal of Combinatorial Theory, Series A, 64 (1993),
-               pp. 189--215.
-
-            .. [Sch2003b]_
-
-            .. [GriRei18]_
-
             EXAMPLES:
 
             The first few values of `\mathbf{GR}_{(n)} = L_n`::

@@ -107,8 +107,7 @@ implemented here.
 
 REFERENCES:
 
-- `Abramowitz and Stegun: Handbook of Mathematical Functions
-  <https://personal.math.ubc.ca/~cbm/aands/>`_
+- Abramowitz and Stegun: *Handbook of Mathematical Functions* [AS1964]_
 
 - :wikipedia:`Spherical_harmonics`
 

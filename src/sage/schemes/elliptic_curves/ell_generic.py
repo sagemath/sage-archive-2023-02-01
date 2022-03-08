@@ -53,7 +53,8 @@ from sage.rings.finite_rings.finite_field_base import FiniteField
 import sage.groups.additive_abelian.additive_abelian_group as groups
 import sage.groups.generic as generic
 import sage.plot.all as plot
-from sage.plot.plot import generate_plot_points
+from sage.misc.lazy_import import lazy_import
+lazy_import("sage.plot.plot", "generate_plot_points")
 
 from sage.arith.all import lcm
 import sage.rings.all as rings

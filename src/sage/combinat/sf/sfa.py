@@ -1010,6 +1010,68 @@ class SymmetricFunctionsBases(Category_realization_of_parent):
                                                for nu, c in corresponding_result)
             return self(result)    # just in case comp_parent != self.
 
+        def lerher_solomon(self, lam):
+            r"""
+            Return the Lerher-Solomon symmetric function (also known as the Whitney
+            homology character) corresponding to the partition ``lam`` written in the
+            basis ``self``.
+
+            """
+           if lam in ZZ:
+                lam = [lam]
+            lam = _Partitions(lam)
+            R = self.base_ring()
+            # We use [GR1993]_ Theorem 3.6 and work over `\QQ` to
+            # compute the Gessel-Reutenauer symmetric function.
+            if self.has_coerce_map_from(QQ):
+                # [GR1993]_ Theorem 3.6
+                m = lam.to_exp_dict() # == {i: m_i | i occurs in lam}
+                p = self.realization_of().power()
+                h = self.realization_of().complete()
+                e = self.realization_of().elementary()
+                from sage.arith.all import moebius, squarefree_divisors
+                mu = moebius
+                def component(i, g): # == h_g[L_i] or e_g[L_i]
+                    L_i = p.sum_of_terms([(_Partitions([d] * (i//d)), R(mu(d)))
+                                          for d in squarefree_divisors(i)],
+                                          distinct=True) / i
+                    if (i % 2) == 0:
+                        return p(e[g]).plethysm(L_i.omega())
+                    else:
+                        return p(h[g]).plethysm(L_i.omega())
+
+                return self( p.prod(component(i, g) for i, g in m.items()) )
+
+            # The base ring does not coerce into `\QQ`
+
+            # comp_parent is the parent that is going to be used for
+            # computations. In most cases it will just be self.
+            comp_parent = self
+            # Now let's try to find out what basis self is in, and
+            # construct the corresponding basis of symmetric functions
+            # over QQ.
+            corresponding_parent_over_QQ = self.corresponding_basis_over(QQ)
+            if corresponding_parent_over_QQ is None:
+                # This is the case where the corresponding basis
+                # over QQ cannot be found. This can have two reasons:
+                # Either the basis depends on variables (like the
+                # Macdonald symmetric functions), or its basis_name()
+                # is not identical to the name of the method on
+                # SymmetricFunctions(QQ) that builds it. Either way,
+                # give up looking for the corresponding parent, and
+                # transform everything into the Schur basis (very
+                # slow!) instead.
+                comp_parent = self.realization_of().schur()
+                from sage.combinat.sf.sf import SymmetricFunctions
+                corresponding_parent_over_QQ = SymmetricFunctions(QQ).schur()
+            corresponding_result = corresponding_parent_over_QQ.gessel_reutenauer(lam)
+            comp_base_ring = comp_parent.base_ring()
+            result = comp_parent.sum_of_terms((nu, comp_base_ring(c))
+                                               for nu, c in corresponding_result)
+            return self(result)    # just in case comp_parent != self.
+
+
+
         def carlitz_shareshian_wachs(self, n, d, s, comparison=None):
             r"""
             Return the Carlitz-Shareshian-Wachs symmetric function

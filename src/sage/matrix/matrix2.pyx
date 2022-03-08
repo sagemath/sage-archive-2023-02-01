@@ -13224,6 +13224,13 @@ cdef class Matrix(Matrix1):
             sage: P, L, U = C.LU(pivot='partial')
             sage: C == P*L*U
             True
+            
+        Check that :trac:`32736` is solved::
+        
+            sage: M = Matrix(FiniteField(11), [[2,3],[4,5]])
+            sage: P, L, U = M.LU()
+            sage: P.base_ring()
+            Finite Field of size 11
         """
         if not pivot in [None, 'partial', 'nonzero']:
             msg = "pivot strategy must be None, 'partial' or 'nonzero', not {0}"
@@ -13317,6 +13324,7 @@ cdef class Matrix(Matrix1):
             zero = F(0)
             perm = [perm[i]+1 for i in range(m)]
             P = sage.combinat.permutation.Permutation(perm).to_matrix()
+            P = P.change_ring(F)
             L = M.matrix_space(m,m).identity_matrix().__copy__()
             for i in range(1, m):
                 for k in range(min(i,d)):

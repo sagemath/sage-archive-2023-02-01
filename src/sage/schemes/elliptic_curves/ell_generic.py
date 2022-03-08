@@ -1343,7 +1343,7 @@ class EllipticCurve_generic(WithEqualityById, plane_curve.ProjectivePlaneCurve):
         """
         E = constructor.EllipticCurve([R(a) for a in self.a_invariants()])
 
-        if isinstance(R, FiniteField) and self.__base_ring.is_subring(R) and hasattr(self, '_order'):
+        if isinstance(R, FiniteField) and hasattr(self, '_order') and self.__base_ring.is_subring(R):
             # The cardinality over an extension field follows easily
             # from the cardinality over the smaller field.
             n = R.cardinality().log(self.__base_ring.cardinality())

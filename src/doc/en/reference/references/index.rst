@@ -203,7 +203,7 @@ REFERENCES:
 
 .. [AL1978] \A. O. L. Atkin and Wen-Ch'ing Winnie Li, Twists of
             newforms and pseudo-eigenvalues of `W`-operators.
-            Inventiones math. 48 (1978), 221-243.
+            Inventiones Math. 48 (1978), 221-243.
 
 .. [AL2015] \M. Aguiar and A. Lauve, *The characteristic polynomial of
             the Adams operators on graded connected Hopf
@@ -4203,7 +4203,7 @@ REFERENCES:
              Hautes Études Sci. Publ. Math. No. 47 (1977), 33--186 (1978).
 
 .. [Maz1978b] \B. Mazur.  Rational Isogenies of Prime Degree.
-              *Inventiones mathematicae* 44, 129-162 (1978).
+              *Inventiones Mathematicae* 44, 129-162 (1978).
 
 .. [MBRe2011] Patricia Muldoon Brown and Margaret A. Readdy,
               *The Rees product of posets*, J. Comb. 2 (2011), no. 2, 165-191
@@ -4388,7 +4388,7 @@ REFERENCES:
 
 .. [MTT1986] \B. Mazur, J. Tate, and J. Teitelbaum, On `p`-adic
              analogues of the conjectures of Birch and
-             Swinnerton-Dyer, Inventiones mathematicae 84, (1986),
+             Swinnerton-Dyer, Inventiones Mathematicae 84, (1986),
              1-48.
 
 .. [Mu1997] Murty, M. Ram. *Congruences between modular forms*. In "Analytic
@@ -5598,7 +5598,7 @@ REFERENCES:
               Exp. No. 306, 1966.
 
 .. [Tate1966b] John Tate, *Endomorphisms of Abelian Varieties over
-               Finite Fields*. Inventiones math. 2, 134-144, 1966.
+               Finite Fields*. Inventiones Math. 2, 134-144, 1966.
 
 .. [TB1997] Lloyd N. Trefethen and David Bau III, *Numerical Linear
             Algebra*, SIAM, Philadelphia, 1997.

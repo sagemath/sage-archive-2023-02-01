@@ -1384,7 +1384,7 @@ class GraphGenerators():
 
         import shlex
         command = shlex.quote(Benzene().absolute_filename())
-        command += ('b' if benzenoids else '') + ' {0} p'.format(hexagon_count)
+        command += (' b' if benzenoids else '') + ' {0} p'.format(hexagon_count)
 
         sp = subprocess.Popen(command, shell=True,
                               stdin=subprocess.PIPE, stdout=subprocess.PIPE,

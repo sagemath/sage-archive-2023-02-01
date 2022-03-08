@@ -1,0 +1,32 @@
+diff --git a/pGroupCohomology-3.3.2/pGroupCohomology/barcode.py b/pGroupCohomology-3.3.2/pGroupCohomology/barcode.py
+index 635aed0..291df0b 100644
+--- a/pGroupCohomology-3.3.2/pGroupCohomology/barcode.py
++++ b/pGroupCohomology-3.3.2/pGroupCohomology/barcode.py
+@@ -534,7 +534,6 @@ class BarCode(object):
+         [ 0  0 16]
+ 
+     """
+-    _PSRing = PowerSeriesRing(QQ, names=['t'])
+     def __init__(self, L, **MetaData):
+         r"""
+         NOTE:
+@@ -708,16 +707,16 @@ class BarCode(object):
+             [0 0 4]
+ 
+         """
+-        self._PSRing.set_default_prec(d+3)
++        _PSRing = PowerSeriesRing(QQ, names=['t'], default_prec=d+3)
+         D = {}
+         l = self._length
+         for i in range(-l,l+1):
+             for j in range(i,l+1):
+                 if (i,j) in self._L:
+                     if hasattr(self._L[i,j],'numerator'):
+-                        D[i,j] = (self._PSRing(self._L[i,j].numerator())/self._PSRing(self._L[i,j].denominator()))[d]
++                        D[i,j] = (_PSRing(self._L[i,j].numerator())/_PSRing(self._L[i,j].denominator()))[d]
+                     else:
+-                        D[i,j] = (self._PSRing(self._L[i,j]))[d]
++                        D[i,j] = (_PSRing(self._L[i,j]))[d]
+                 else:
+                     D[i,j] = 0
+         OUT = BarCode2d(D, **(self._Meta))

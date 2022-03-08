@@ -1,5 +1,5 @@
 Arithmetic Subgroups of `\SL_2(\ZZ)`
-======================================
+====================================
 
 This chapter describes the basic functionality for finite index subgroups of
 the modular group `\SL_2(\ZZ)`.

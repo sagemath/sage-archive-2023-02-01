@@ -2,6 +2,5 @@ cd src
 
 # build and install modular_resolution
 cd `ls -d modular_resolution*`
-sdh_configure || sdh_die "Error configuring modular_resolution"
-# sdh_make install got broken by trac ticket #24106
-$MAKE install || sdh_die "Error installing modular_resolution"
+sdh_configure
+sdh_make_install

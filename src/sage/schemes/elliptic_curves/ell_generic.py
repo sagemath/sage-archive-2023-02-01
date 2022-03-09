@@ -2025,6 +2025,16 @@ class EllipticCurve_generic(WithEqualityById, plane_curve.ProjectivePlaneCurve):
             sage: 11*P
             (310 : -5458 : 1)
 
+        TESTS:
+
+        Check for :trac:`33156`::
+
+            sage: E = EllipticCurve(GF(65537), [5,5])
+            sage: R.<x> = E.base_field()[]
+            sage: E._multiple_x_numerator(5, x=R.quotient(x^2).gen())
+            10220*xbar + 42539
+            sage: E._multiple_x_numerator(5)
+            x^25 + 65037*x^23 + 55137*x^22 + ... + 813*x^2 + 10220*x + 42539
         """
         n = int(n)
         if n < 2:
@@ -2098,6 +2108,16 @@ class EllipticCurve_generic(WithEqualityById, plane_curve.ProjectivePlaneCurve):
             sage: E._multiple_x_denominator(31, x)
             154693637754223970056975321
 
+        TESTS:
+
+        Check for :trac:`33156`::
+
+            sage: E = EllipticCurve(GF(65537), [5,5])
+            sage: R.<x> = E.base_field()[]
+            sage: E._multiple_x_denominator(5, x=R.quotient(x^2).gen())
+            52039*xbar + 56726
+            sage: E._multiple_x_denominator(5)
+            25*x^24 + 3100*x^22 + 19000*x^21 + ... + 24111*x^2 + 52039*x + 56726
         """
         n = int(n)
         if n < 2:

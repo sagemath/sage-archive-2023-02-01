@@ -383,43 +383,33 @@ def _split_laurent_polynomial_dict_(P, M, d):
 def from_fraction_field(L, x):
     r"""
     Helper function to construct a Laurent polynomial from an element of its
-    parent's fraction field or localization.
+    parent's fraction field.
 
     INPUT:
 
     - ``L`` -- an instance of :class:`LaurentPolynomialRing_generic`
-    - ``x`` -- an element of the fraction field or localization of ``L``
+    - ``x`` -- an element of the fraction field of ``L``
 
     OUTPUT:
 
-    An instance of the element class of ``L`` or ``None`` if there is no
-    coercion of ``x`` to the fraction field of ``L``. If the denominator
-    fails to be a unit in ``L`` an error is raised.
+    An instance of the element class of ``L``. If the denominator fails to be
+    a unit in ``L`` an error is raised.
 
     EXAMPLES::
 
         sage: from sage.rings.polynomial.laurent_polynomial_ring import from_fraction_field
         sage: L.<x, y> = LaurentPolynomialRing(ZZ)
-        sage: LL = L.localization(x+1)
-        sage: xi = LL(~x)
+        sage: F = L.fraction_field()
+        sage: xi = F(~x)
         sage: from_fraction_field(L, xi) == ~x
         True
     """
-    try:
-        F = L.fraction_field()
-    except (TypeError, AttributeError):
-        return None
-    P = parent(x)
-    from sage.rings.localization import Localization
-    if P == F or isinstance(P, Localization):
-        fx = F(x)
-        d = L(fx.denominator())
-        if d.is_unit():
-            n = L(fx.numerator())
-            return n * d.inverse_of_unit()
-        else:
-            raise TypeError("fraction must have unit denominator")
-    return None
+    d = L(x.denominator())
+    if d.is_unit():
+        n = L(x.numerator())
+        return n * d.inverse_of_unit()
+    else:
+        raise TypeError("fraction must have unit denominator")
 
 class LaurentPolynomialRing_generic(CommutativeRing, Parent):
     """
@@ -1013,6 +1003,7 @@ class LaurentPolynomialRing_univariate(LaurentPolynomialRing_generic):
         """
         from sage.structure.element import Expression
         from sage.rings.fraction_field_element import FractionFieldElement
+        from sage.rings.localization import LocalizationElement
         if isinstance(x, Expression):
             return x.laurent_polynomial(ring=self)
 
@@ -1032,13 +1023,16 @@ class LaurentPolynomialRing_univariate(LaurentPolynomialRing_generic):
             elif len(self.variable_names()) == len(P.variable_names()):
                 x = x.dict()
 
-        else:
+        elif isinstance(x, FractionFieldElement):
             # since the field of fraction of self is defined corresponding to
             # the polynomial ring of self the conversion of its elements back
-            # must be treated separately (:trac:`26425` and :trac:`33477`).
-            res = from_fraction_field(self, x)
-            if res:
-                return res
+            # must be treated separately (:trac:`26425`).
+            return from_fraction_field(self, x)
+
+        elif isinstance(x, LocalizationElement):
+            # see :trac:`33477`.
+            F = self.fraction_field()
+            return from_fraction_field(self, F(x))
 
         return self.element_class(self, x)
 
@@ -1214,6 +1208,8 @@ class LaurentPolynomialRing_mpair(LaurentPolynomialRing_generic):
             True
         """
         from sage.structure.element import Expression
+        from sage.rings.fraction_field_element import FractionFieldElement
+        from sage.rings.localization import LocalizationElement
 
         if mon is not None:
             return self.element_class(self, x, mon)
@@ -1246,13 +1242,16 @@ class LaurentPolynomialRing_mpair(LaurentPolynomialRing_generic):
             elif len(self.variable_names()) == len(P.variable_names()):
                 x = x.dict()
 
-        else:
+        elif isinstance(x, FractionFieldElement):
             # since the field of fraction of self is defined corresponding to
             # the polynomial ring of self the conversion of its elements back
             # must be treated separately (:trac:`33477`).
-            res = from_fraction_field(self, x)
-            if res:
-                return res
+            return from_fraction_field(self, x)
+
+        elif isinstance(x, LocalizationElement):
+            # see :trac:`33477`.
+            F = self.fraction_field()
+            return from_fraction_field(self, F(x))
 
         return self.element_class(self, x)
 

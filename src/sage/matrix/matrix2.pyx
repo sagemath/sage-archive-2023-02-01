@@ -2163,7 +2163,7 @@ cdef class Matrix(Matrix1):
                 if (level - i) % 2:
                     d -= self.get_unsafe(level,level) * self._det_by_minors(level)
                 else:
-                     d += self.get_unsafe(level,level) * self._det_by_minors(level)
+                    d += self.get_unsafe(level,level) * self._det_by_minors(level)
             # undo all our permutations to get us back to where we started
             for i from 0 <= i < level:
                 self.swap_rows(level, i)
@@ -7426,7 +7426,7 @@ cdef class Matrix(Matrix1):
                 raise NotImplementedError("%s\nechelon form over %s not yet implemented"%(msg, self.base_ring()))
 
             for c from 0 <= c < self.ncols():
-               for r from 0 <= r < self.nrows():
+                for r from 0 <= r < self.nrows():
                     self.set_unsafe(r, c, d.get_unsafe(r,c))
             self.clear_cache()
             self.cache('pivots', tuple(p))
@@ -8344,7 +8344,7 @@ cdef class Matrix(Matrix1):
         # me + nc and me + 1 such that no entry is present already in the matrix.
         S = [first_row[0] + ncols] + [None]*(ncols-1)
         for j in range(1, ncols):
-           S[j] = S[j - 1] if first_row[j] == first_row[j - 1] else S[j - 1] - 1
+            S[j] = S[j - 1] if first_row[j] == first_row[j - 1] else S[j - 1] - 1
         # If we want to sort the i-th row with respect to a symmetry determined
         # by S, then we will just sort the augmented row [[S[j], PM[i, j]] :
         # j in [1 .. nc]], S having lexicographic priority.

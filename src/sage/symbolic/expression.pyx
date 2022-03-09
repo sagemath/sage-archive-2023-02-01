@@ -13981,13 +13981,13 @@ cdef operators compatible_relation(operators lop, operators rop) except <operato
     elif lop == not_equal or rop == not_equal:
         raise TypeError("incompatible relations")
     elif lop == equal:
-       return rop
+        return rop
     elif rop == equal:
-       return lop
+        return lop
     elif lop in [less, less_or_equal] and rop in [less, less_or_equal]:
-       return less
+        return less
     elif lop in [greater, greater_or_equal] and rop in [greater, greater_or_equal]:
-       return greater
+        return greater
     else:
         raise TypeError("incompatible relations")
 

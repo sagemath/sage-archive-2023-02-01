@@ -2666,6 +2666,10 @@ REFERENCES:
             descent algebra.* Adv. Math. **77** (1989).
             http://www.lacim.uqam.ca/~christo/Publi%C3%A9s/1989/Decomposition%20Solomon.pdf
 
+.. [GR1993] Ira M. Gessel, Christophe Reutenauer.
+            *Counting Permutations with Given Cycle Structure and Descent Set*. Journal of
+            Combinatorial Theory, Series A, 64 (1993), pp. 189--215.
+
 .. [GR2013] Darij Grinberg, Tom Roby. *Iterative properties of
             birational rowmotion*.
             http://www.cip.ifi.lmu.de/~grinberg/algebra/skeletal.pdf
@@ -5075,6 +5079,10 @@ REFERENCES:
 .. [Sch2003] Alexander Schrijver,
              *Combinatorial optimization: polyhedra and efficiency*,
              2003.
+
+.. [Sch2003b] Manfred Schocker, *Multiplicities of Higher Lie Characters*.
+              J. Aust. Math. Soc. 75 (2003), pp. 9-21.
+              :doi:`10.1017/S144678870000344X`
 
 .. [Sch2004] Manfred Schocker, *The descent algebra of the
              symmetric group*. Fields Inst. Comm. 40 (2004), pp. 145-161.

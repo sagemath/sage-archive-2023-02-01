@@ -1,6 +1,5 @@
 cd src
 
 # build and install modular_resolution
-cd `ls -d modular_resolution*`
 sdh_configure
 sdh_make_install

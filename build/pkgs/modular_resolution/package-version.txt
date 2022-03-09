@@ -1,1 +1,1 @@
-../p_group_cohomology/package-version.txt
+1.1

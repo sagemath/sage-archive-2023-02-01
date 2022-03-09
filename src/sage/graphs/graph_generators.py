@@ -15,7 +15,6 @@ To get a path with 4 vertices, and the house graph::
 More interestingly, one can get the list of all graphs that Sage knows how to
 build by typing ``graphs.`` in Sage and then hitting tab.
 """
-from sage.env import SAGE_NAUTY_BINS_PREFIX as nautyprefix
 
 import subprocess
 
@@ -956,8 +955,10 @@ class GraphGenerators():
             sage: list(graphs.nauty_geng("-c 3", debug=True))
             ['>A ...geng -cd1D2 n=3 e=2-3\n', Graph on 3 vertices, Graph on 3 vertices]
         """
-
-        sp = subprocess.Popen(nautyprefix+"geng {0}".format(options), shell=True,
+        import shlex
+        from sage.features.nauty import NautyExecutable
+        geng_path = NautyExecutable("geng").absolute_filename()
+        sp = subprocess.Popen(shlex.quote(geng_path) + " {0}".format(options), shell=True,
                               stdin=subprocess.PIPE, stdout=subprocess.PIPE,
                               stderr=subprocess.PIPE, close_fds=True,
                               encoding='latin-1')
@@ -1292,7 +1293,9 @@ class GraphGenerators():
         from sage.features.graph_generators import Buckygen
         Buckygen().require()
 
-        command = 'buckygen -'+('I' if ipr else '')+'d {0}d'.format(order)
+        import shlex
+        command = shlex.quote(Buckygen().absolute_filename())
+        command += ' -' + ('I' if ipr else '') + 'd {0}d'.format(order)
 
         sp = subprocess.Popen(command, shell=True,
                               stdin=subprocess.PIPE, stdout=subprocess.PIPE,
@@ -1379,7 +1382,9 @@ class GraphGenerators():
         from sage.features.graph_generators import Benzene
         Benzene().require()
 
-        command = 'benzene '+('b' if benzenoids else '')+' {0} p'.format(hexagon_count)
+        import shlex
+        command = shlex.quote(Benzene().absolute_filename())
+        command += (' b' if benzenoids else '') + ' {0} p'.format(hexagon_count)
 
         sp = subprocess.Popen(command, shell=True,
                               stdin=subprocess.PIPE, stdout=subprocess.PIPE,
@@ -1563,7 +1568,10 @@ class GraphGenerators():
         from sage.features.graph_generators import Plantri
         Plantri().require()
 
-        sp = subprocess.Popen('plantri {}'.format(options), shell=True,
+        import shlex
+        command = '{} {}'.format(shlex.quote(Plantri().absolute_filename()),
+                                 options)
+        sp = subprocess.Popen(command, shell=True,
                               stdin=subprocess.PIPE, stdout=subprocess.PIPE,
                               stderr=subprocess.PIPE, close_fds=True,
                               encoding='latin-1')

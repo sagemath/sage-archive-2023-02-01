@@ -1,10 +1,5 @@
 cd src
 
-# install helper modules
-mv gap_helper p_group_cohomology_helper
-sdh_install p_group_cohomology_helper "$SAGE_SHARE/gap/pkg" || sdh_die "Error installing GAP helper module"
-sdh_install singular_helper/dickson.lib "$SAGE_SHARE/singular/LIB/" || sdh_die "Error installing Singular helper module"
-
 # building pGroupCohomology's documentation
 
 if [ "x$SAGE_SPKG_INSTALL_DOCS" = xyes ] ; then

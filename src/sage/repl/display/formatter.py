@@ -66,12 +66,12 @@ from IPython.core.formatters import DisplayFormatter, PlainTextFormatter
 from IPython.utils.py3compat import unicode_to_str
 from IPython.core.display import DisplayObject
 
-from ipywidgets.widgets.interaction import interactive
+from ipywidgets import Widget
 
 from sage.repl.display.pretty_print import SagePrettyPrinter
 from sage.misc.lazy_import import lazy_import
 
-IPYTHON_NATIVE_TYPES = (DisplayObject, interactive)
+IPYTHON_NATIVE_TYPES = (DisplayObject, Widget)
 
 PLAIN_TEXT = 'text/plain'
 TEXT_LATEX = 'text/latex'

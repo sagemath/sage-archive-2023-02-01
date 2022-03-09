@@ -1965,12 +1965,11 @@ class EllipticCurve_generic(WithEqualityById, plane_curve.ProjectivePlaneCurve):
 
         INPUT:
 
-        -  ``n``, ``x``, --  as described in :meth:`division_polynomial_0`.
+        -  ``n``, ``x`` --  as described in :meth:`division_polynomial_0`.
 
-        The result is cached.  This is so that on calling
-        ``P.division_points(n)`` for the same `n` and different
-        points `P` (on the same curve), we do not have to recompute
-        the polynomials.
+        If ``x`` is ``None``, the result is cached.  This is so that on calling
+        ``P.division_points(n)`` for the same `n` and different points `P` (on
+        the same curve), we do not have to recompute the polynomials.
 
         .. warning::
 
@@ -2027,6 +2026,12 @@ class EllipticCurve_generic(WithEqualityById, plane_curve.ProjectivePlaneCurve):
 
         TESTS:
 
+        Check that the results are cached::
+
+            sage: E = EllipticCurve("88a1")
+            sage: E._multiple_x_numerator(11) is E._multiple_x_numerator(11)
+            True
+
         Check for :trac:`33156`::
 
             sage: E = EllipticCurve(GF(65537), [5,5])
@@ -2036,51 +2041,47 @@ class EllipticCurve_generic(WithEqualityById, plane_curve.ProjectivePlaneCurve):
             sage: E._multiple_x_numerator(5)
             x^25 + 65037*x^23 + 55137*x^22 + ... + 813*x^2 + 10220*x + 42539
         """
-        n = int(n)
+        n = rings.Integer(n)
         if n < 2:
             raise ValueError("n must be at least 2")
 
-        return self.__multiple_x_numerator(n, x)
+        if x is None:
+            try:
+                cache = self.__mulxnums
+            except AttributeError:
+                cache = self.__mulxnums = dict()
+            try:
+                return cache[n]
+            except KeyError:
+                pass
+            xx = polygen(self.base_ring())
+        else:
+            cache = None
+            xx = x
 
-    @cached_method
-    def __multiple_x_numerator(self, n, x):
-        r"""
-        Helper method for :meth:`_multiple_x_numerator` which adds caching.
-
-        Input and output are the same as for that method.
-
-        TESTS:
-
-        Check that the results are cached::
-
-            sage: E = EllipticCurve("88a1")
-            sage: P = E([2,2])
-            sage: E._multiple_x_numerator(11, P[0]) is E._multiple_x_numerator(11, P[0])
-            True
-
-        """
         polys = self.division_polynomial_0([-2,-1,n-1,n,n+1], x)
 
-        if x is None:
-            x = polygen(self.base_ring())
-
         if n % 2 == 0:
-            return x * polys[1] * polys[3]**2 - polys[2] * polys[4]
+            ret = xx * polys[1] * polys[3]**2 - polys[2] * polys[4]
         else:
-            return x * polys[3]**2 - polys[1] * polys[2] * polys[4]
+            ret = xx * polys[3]**2 - polys[1] * polys[2] * polys[4]
+
+        if cache is not None:
+            cache[n] = ret
+        return ret
 
     def _multiple_x_denominator(self, n, x=None):
         r"""
-        Return the denominator of the `x`-coordinate of the `n\th` multiple
-        of a point, using torsion polynomials (division polynomials).
+        Return the denominator of the `x`-coordinate of the `n\th` multiple of
+        a point, using torsion polynomials (division polynomials).
 
         INPUT:
 
         -  ``n``, ``x`` --  as described in :meth:`division_polynomial_0`.
 
-        The result is cached.  This is so that calling
+        If ``x`` is ``None``, the result is cached.  This is so that on calling
         ``P.division_points(n)`` for the same `n` and different points `P` (on
-        the same curve) does not have to recompute the polynomials.
+        the same curve), we do not have to recompute the polynomials.
 
         AUTHORS:
 
@@ -2110,6 +2111,12 @@ class EllipticCurve_generic(WithEqualityById, plane_curve.ProjectivePlaneCurve):
 
         TESTS:
 
+        Check that the results are cached::
+
+            sage: E = EllipticCurve("88a1")
+            sage: E._multiple_x_denominator(11) is E._multiple_x_denominator(11)
+            True
+
         Check for :trac:`33156`::
 
             sage: E = EllipticCurve(GF(65537), [5,5])
@@ -2119,31 +2126,28 @@ class EllipticCurve_generic(WithEqualityById, plane_curve.ProjectivePlaneCurve):
             sage: E._multiple_x_denominator(5)
             25*x^24 + 3100*x^22 + 19000*x^21 + ... + 24111*x^2 + 52039*x + 56726
         """
-        n = int(n)
+        n = rings.Integer(n)
         if n < 2:
             raise ValueError("n must be at least 2")
 
-        return self.__multiple_x_denominator(n, x)
+        if x is None:
+            try:
+                cache = self.__mulxdens
+            except AttributeError:
+                cache = self.__mulxdens = dict()
+            try:
+                return cache[n]
+            except KeyError:
+                pass
+        else:
+            cache = None
 
-    @cached_method
-    def __multiple_x_denominator(self, n, x):
-        r"""
-        Helper method for :meth:`_multiple_x_denominator` which adds caching.
-        Input and output are the same as for that method.
-
-        TESTS:
-
-        Check that the results are cached::
-
-            sage: E = EllipticCurve("88a1")
-            sage: P = E([2,2])
-            sage: E._multiple_x_denominator(11, P[0]) is E._multiple_x_denominator(11, P[0])
-            True
-
-        """
         ret = self.division_polynomial_0(n, x)**2
         if n % 2 == 0:
             ret *= self.division_polynomial_0(-1, x)
+
+        if cache is not None:
+            cache[n] = ret
         return ret
 
     def multiplication_by_m(self, m, x_only=False):

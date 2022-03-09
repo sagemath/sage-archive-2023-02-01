@@ -220,7 +220,7 @@ REFERENCES:
 .. [AM1969] \M. F. Atiyah and I. G. Macdonald, "Introduction to commutative
             algebra", Addison-Wesley, 1969.
 
- .. [AM1990] \R. Abraham and J. E. Marsden, "Foundations of Mechanics", 
+ .. [AM1990] \R. Abraham and J. E. Marsden, "Foundations of Mechanics",
             Addison-Wesley, 1980.
 
 .. [AM1974] \J. F. Adams and H. R. Margolis, "Sub-Hopf-algebras of the
@@ -285,21 +285,23 @@ REFERENCES:
               http://www.math.utexas.edu/users/villegas/publications/jacobian-cubics.pdf
 
 .. [AS-Bessel] \F. W. J. Olver: 9. Bessel Functions of Integer Order,
-               in Abramowitz and Stegun: Handbook of Mathematical
-               Functions. http://people.math.sfu.ca/~cbm/aands/page_355.htm
+               in Abramowitz and Stegun: Handbook of Mathematical Functions.
+               https://personal.math.ubc.ca/~cbm/aands/page_355.htm
 
 .. [AS-Spherical] \H. A. Antosiewicz: 10. Bessel Functions of
                   Fractional Order, in Abramowitz and Stegun: Handbook
-                  of Mathematical Functions. http://people.math.sfu.ca/~cbm/aands/page_435.htm
+                  of Mathematical Functions.
+                  https://personal.math.ubc.ca/~cbm/aands/page_435.htm
 
 .. [AS-Struve] \M. Abramowitz: 12. Struve Functions and Related
                Functions, in Abramowitz and Stegun: Handbook of
-               Mathematical Functions. http://people.math.sfu.ca/~cbm/aands/page_495.htm
+               Mathematical Functions.
+               https://personal.math.ubc.ca/~cbm/aands/page_495.htm
 
 .. [AS1964] \M. Abramowitz and I. A. Stegun, *Handbook of Mathematical
             Functions*, National Bureau of Standards Applied
             Mathematics Series, 55. 1964. See also
-            http://www.math.sfu.ca/~cbm/aands/.
+            https://personal.math.ubc.ca/~cbm/aands/.
 
 .. [As2008] Sami Assaf. *A combinatorial realization of Schur-Weyl
             duality via crystal graphs and dual equivalence
@@ -1217,7 +1219,7 @@ REFERENCES:
                using return words," Advances in Applied Mathematics
                42 (2009) 60-74.
 
-.. [BSZ2019] Nils Bruin, Jeroen Sijsling, and Alexandre Zotine, 
+.. [BSZ2019] Nils Bruin, Jeroen Sijsling, and Alexandre Zotine,
              *Numerical Computation of Endomorphism Rings of Jacobians*,
              The Open Book Series, Vol. 2 (2019), No. 1, pp. 155-171,
              https://msp.org/obs/2019/2-1/p10.xhtml
@@ -3686,7 +3688,7 @@ REFERENCES:
               International Mathematics Research Notices. Vol. 2014, No. 2,
               pp. 512-550 (2012)
 
-.. [Kwon2014] Jae-Hoon Kwon. `q`-*deformed Clifford algebra and level zero 
+.. [Kwon2014] Jae-Hoon Kwon. `q`-*deformed Clifford algebra and level zero
               fundamental representations of quantum affine algebras*.
               J. Algebra, **399** (2014), pp. 927--947.
               :doi:`10.1016/j.jalgebra.2013.10.026`.
@@ -4964,7 +4966,7 @@ REFERENCES:
 .. [RSS] :wikipedia:`Residual_sum_of_squares`, accessed 13th
          October 2009.
 
-.. [RS2012] G. Rudolph and M. Schmidt, "Differential Geometry and Mathematical Physics. 
+.. [RS2012] G. Rudolph and M. Schmidt, "Differential Geometry and Mathematical Physics.
             Part I. Manifolds, Lie Groups and Hamiltonian Systems", Springer, 2012.
 
 .. [RSW2011] Victor Reiner, Franco Saliola, Volkmar Welker.

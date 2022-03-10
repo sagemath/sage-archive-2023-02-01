@@ -415,19 +415,19 @@ class HTMLFragmentFactory(SageObject):
             sage: html('<a href="http://sagemath.org">sagemath</a>', strict=True)
             <html>\[\newcommand{\Bold}[1]{\mathbf{#1}}\verb|&lt;a|\verb| |\verb|href="http://sagemath.org">sagemath&lt;/a>|\]</html>
 
-        Display preference ``display_latex`` affects rendering of LaTeX expressions::
+        Display preference ``align_latex`` affects rendering of LaTeX expressions::
 
             sage: from sage.repl.rich_output.display_manager import get_display_manager
             sage: dm = get_display_manager()
-            sage: dm.preferences.display_latex = 'left'
+            sage: dm.preferences.align_latex = 'left'
             sage: html(1/2)
             <html>\(\displaystyle\newcommand{\Bold}[1]{\mathbf{#1}}\frac{1}{2}\)</html>
-            sage: dm.preferences.display_latex = 'center'
+            sage: dm.preferences.align_latex = 'center'
             sage: html(1/2)
             <html>\[\newcommand{\Bold}[1]{\mathbf{#1}}\frac{1}{2}\]</html>
-            sage: dm.preferences.display_latex = None  # same with center
+            sage: dm.preferences.align_latex = None  # same with left
             sage: html(1/2)
-            <html>\[\newcommand{\Bold}[1]{\mathbf{#1}}\frac{1}{2}\]</html>
+            <html>\(\displaystyle\newcommand{\Bold}[1]{\mathbf{#1}}\frac{1}{2}\)</html>
         """
         # string obj is interpreted as an HTML in not strict mode
         if isinstance(obj, str) and not strict:
@@ -442,12 +442,12 @@ class HTMLFragmentFactory(SageObject):
 
         from sage.repl.rich_output.display_manager import get_display_manager
         dm = get_display_manager()
-        if dm.preferences.display_latex == 'center':
+        if dm.preferences.align_latex == 'center':
             mode = 'display'
-        elif dm.preferences.display_latex == 'left':
+        elif dm.preferences.align_latex == 'left':
             mode = 'display_left'
         else:
-            mode = 'display'
+            mode = 'display_left'
 
         # otherwise convert latex to html
         if concatenate:

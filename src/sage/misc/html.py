@@ -407,13 +407,13 @@ class HTMLFragmentFactory(SageObject):
             <class 'sage.misc.html.HtmlFragment'>
 
             sage: html(1/2)
-            <html>\[\newcommand{\Bold}[1]{\mathbf{#1}}\frac{1}{2}\]</html>
+            <html>\(\displaystyle\newcommand{\Bold}[1]{\mathbf{#1}}\frac{1}{2}\)</html>
 
             sage: html('<a href="http://sagemath.org">sagemath</a>')
             <a href="http://sagemath.org">sagemath</a>
 
             sage: html('<a href="http://sagemath.org">sagemath</a>', strict=True)
-            <html>\[\newcommand{\Bold}[1]{\mathbf{#1}}\verb|&lt;a|\verb| |\verb|href="http://sagemath.org">sagemath&lt;/a>|\]</html>
+            <html>\(\displaystyle\newcommand{\Bold}[1]{\mathbf{#1}}\verb|&lt;a|\verb| |\verb|href="http://sagemath.org">sagemath&lt;/a>|\)</html>
 
         Display preference ``align_latex`` affects rendering of LaTeX expressions::
 

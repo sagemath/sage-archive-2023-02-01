@@ -529,10 +529,10 @@ def complex_to_cmap_rgb(z_values, cmap='turbo', contoured=False, tiled=False,
                 [0.92617785, 0.79322304, 0.14779989],
                 [0.95156284, 0.72025117, 0.05370383]]])
 
-    We see that changing ``dark_rate`` affects how visible contours. In this
+    We see that changing ``dark_rate`` affects how visible contours are. In this
     example, we set ``contour_base=5`` and note that the points `0` and `1 + i`
     are far away from contours, but `2.9 + 4i` is near (and just below) a
-    contour. Raising ``dark_rate`` should have strong affects on the last
+    contour. Raising ``dark_rate`` should have strong effects on the last
     coloration and weaker effects on the others::
 
         sage: complex_to_cmap_rgb([[0, 1 + 1j, 2.9 + 4j]], cmap='turbo', contoured=True, dark_rate=0.05, contour_base=5)
@@ -546,16 +546,9 @@ def complex_to_cmap_rgb(z_values, cmap='turbo', contoured=False, tiled=False,
     """
     import numpy as np
     import matplotlib as mpl
+
     if isinstance(cmap, str):
-        if cmap == 'default':
-            domain = np.linspace(0, 1, 256)
-            shifted_domain = np.roll(domain, int(126))  # _almost_ 0.5 * 256
-            default_cmap = mpl.colors.LinearSegmentedColormap.from_list(
-                "sage_default", mpl.cm.get_cmap('hsv')(shifted_domain)
-            )
-            cmap = default_cmap
-        else:
-            cmap = mpl.cm.get_cmap(cmap)
+        cmap = mpl.cm.get_cmap(cmap)
 
     if contour_base is None:
         if contour_type == "linear":
@@ -605,6 +598,7 @@ def complex_to_cmap_rgb(z_values, cmap='turbo', contoured=False, tiled=False,
                 lightness_delta = mag_to_lightness(mag, rate=dark_rate)
             als[i, j, 0] = arg
             als[i, j, 1] = lightness_delta
+    sig_off()
 
     args = als[:,:,0]
     nan_indices = np.isnan(als).any(-1)            # Mask for undefined points
@@ -620,7 +614,6 @@ def complex_to_cmap_rgb(z_values, cmap='turbo', contoured=False, tiled=False,
     # Apply mask, making nan_indices white
     rgbs[nan_indices] = 1
 
-    sig_off()
     return rgbs
 
 
@@ -1182,10 +1175,6 @@ def complex_plot(f, x_range, y_range, contoured=False, tiled=False, cmap=None,
             sig_check()
             row.append(f(new_CDF_element(x, y)))
         z_values.append(row)
-
-    nrows = len(y_range)
-    ncols = len(x_range)
-    cdef cnumpy.ndarray[cnumpy.float_t, ndim=3, mode='c'] rgbs = np.empty(dtype=float, shape=(nrows, ncols, 3))
 
     if cmap is None:
         # produce colors using the established default method

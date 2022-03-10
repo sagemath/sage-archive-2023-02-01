@@ -91,8 +91,8 @@ The output is parseable (i. e. :trac:`31796` is fixed)::
 #
 #  The full text of the GPL is available at:
 #
-#                  http://www.gnu.org/licenses/
-#*****************************************************************************
+#                  https://www.gnu.org/licenses/
+# ****************************************************************************
 
 from sage.symbolic.ring import SR
 
@@ -105,8 +105,8 @@ from sage.docs.instancedoc import instancedoc
 from sage.env import MAXIMA_FAS
 
 
-## We begin here by initializing Maxima in library mode
-## i.e. loading it into ECL
+# We begin here by initializing Maxima in library mode
+# i.e. loading it into ECL
 ecl_eval("(setf *load-verbose* NIL)")
 if MAXIMA_FAS:
     ecl_eval("(require 'maxima \"{}\")".format(MAXIMA_FAS))
@@ -119,7 +119,7 @@ ecl_eval("(set-locale-subdir)")
 ecl_eval("(set-pathnames)")
 ecl_eval("(defun add-lineinfo (x) x)")
 ecl_eval('(defun principal nil (cond ($noprincipal (diverg)) ((not pcprntd) (merror "Divergent Integral"))))')
-ecl_eval("(remprop 'mfactorial 'grind)") # don't use ! for factorials (#11539)
+ecl_eval("(remprop 'mfactorial 'grind)")  # don't use ! for factorials (#11539)
 ecl_eval("(setf $errormsg nil)")
 
 # The following is an adaptation of the "retrieve" function in maxima
@@ -1271,6 +1271,8 @@ max_array = EclObject("ARRAY")
 mdiff = EclObject("%DERIVATIVE")
 max_lambert_w = sage_op_dict[sage.functions.log.lambert_w]
 max_harmo = EclObject("$GEN_HARMONIC_NUMBER")
+max_pochhammer = EclObject("$POCHHAMMER")
+
 
 def mrat_to_sage(expr):
     r"""
@@ -1466,15 +1468,34 @@ def max_harmonic_to_sage(expr):
     return sage.functions.log.harmonic_number(max_to_sr(caddr(expr)),
                                               max_to_sr(cadr(expr)))
 
-## The dictionaries
-special_max_to_sage={
-    mrat : mrat_to_sage,
-    mqapply : mqapply_to_sage,
-    mdiff : mdiff_to_sage,
-    EclObject("%INTEGRATE") : dummy_integrate,
-    max_at : max_at_to_sage,
-    mlist : mlist_to_sage,
-    max_harmo : max_harmonic_to_sage
+
+def max_pochhammer_to_sage(expr):
+    """
+    EXAMPLES::
+
+        sage: from sage.interfaces.maxima_lib import maxima_lib, max_to_sr
+        sage: c = maxima_lib('pochhammer(x,n)')
+        sage: c.ecl()
+        <ECL: (($POCHHAMMER SIMP) $X $N)>
+        sage: max_to_sr(c.ecl())
+        gamma(n + x)/gamma(x)
+    """
+    from sage.functions.gamma import gamma
+    x = max_to_sr(cadr(expr))
+    y = max_to_sr(caddr(expr))
+    return gamma(x + y) / gamma(x)
+
+
+# The dictionaries
+special_max_to_sage = {
+    mrat: mrat_to_sage,
+    mqapply: mqapply_to_sage,
+    mdiff: mdiff_to_sage,
+    EclObject("%INTEGRATE"): dummy_integrate,
+    max_at: max_at_to_sage,
+    mlist: mlist_to_sage,
+    max_harmo: max_harmonic_to_sage,
+    max_pochhammer: max_pochhammer_to_sage
 }
 
 special_sage_to_max={
@@ -1695,7 +1716,7 @@ def max_to_sr(expr):
             max_sym_dict[expr]=sage_symbol
         return max_sym_dict[expr]
     else:
-        e=expr.python()
-        if isinstance(e,float):
+        e = expr.python()
+        if isinstance(e, float):
             return sage.rings.real_double.RealDoubleElement(e)
         return e

@@ -225,6 +225,11 @@ Donald Knuth [Knuth1]_ considered the problem of packing 45 Y pentaminoes into a
 
     sage: T = TilingSolver([y], box=(15,15), reusable=True, reflection=True)
     sage: T.number_of_solutions()                      # not tested
+    1696
+
+Up to the symmetries of the square, there are 212 distinct solutions::
+
+    sage: 1696 // 8
     212
 
 Animation of Donald Knuth's dancing links
@@ -631,8 +636,8 @@ class Polyomino(SageObject):
             sage: p.bounding_box()
             [[0, 0, 0], [1, 2, 1]]
         """
-        return [[min(_) for _ in zip(*self)],
-                [max(_) for _ in zip(*self)]]
+        return [[min(w) for w in zip(*self)],
+                [max(w) for w in zip(*self)]]
 
     def __hash__(self):
         r"""
@@ -2052,20 +2057,38 @@ class TilingSolver(SageObject):
 
             sage: T.row_to_polyomino(13)
             Polyomino: [(0, 0, 1), (1, 0, 1), (1, 0, 2)], Color: red
+
+        TESTS:
+
+        We check that ticket :trac:`32252` is fixed and that colors of
+        polyominoes are properly recovered::
+
+            sage: v = Polyomino([(0, 0), (0, 1)], color="blue")
+            sage: h = Polyomino([(0, 0), (1, 0)], color="red")
+            sage: T = TilingSolver(pieces=[v, h], box=(2, 2),
+            ....:                  rotation=False, reflection=False, reusable=True)
+            sage: for i in range(4): print(i,T.row_to_polyomino(i))
+            0 Polyomino: [(0, 0), (0, 1)], Color: blue
+            1 Polyomino: [(1, 0), (1, 1)], Color: blue
+            2 Polyomino: [(0, 0), (1, 0)], Color: red
+            3 Polyomino: [(0, 1), (1, 1)], Color: red
+
         """
-        row = self.rows()[row_number]
+        rows = self.rows()
+        row = rows[row_number]
         if self._reusable:
-            starting_rows = self.starting_rows()
-            no = -1
-            while starting_rows[no] < row_number:
-                no += 1
+            if row_number < 0:
+                row_number += len(rows)
+            from bisect import bisect
+            no = bisect(self.starting_rows(), row_number) - 1
             indices = row
         else:
             no = row[0]
             indices = row[1:]
         int_to_coord = self.int_to_coord_dict()
         coords = [int_to_coord[i] for i in indices]
-        return Polyomino(coords, color=self._pieces[no].color())
+        color = self._pieces[no].color()
+        return Polyomino(coords, color=color)
 
     def dlx_solver(self):
         r"""
@@ -2400,14 +2423,14 @@ class TilingSolver(SageObject):
             sage: y = Polyomino([(0,0),(1,0),(2,0),(3,0),(2,1)], color='cyan')
             sage: T = TilingSolver([y], box=(5,10), reusable=True, reflection=True)
             sage: a = T.animate()
-            sage: a                   # optional -- ImageMagick
+            sage: a          # optional -- ImageMagick    # long time
             Animation with 10 frames
 
         Include partial solutions (common prefix between two consecutive
         solutions)::
 
             sage: a = T.animate('common_prefix')
-            sage: a             # optional -- ImageMagick
+            sage: a          # optional -- ImageMagick    # long time
             Animation with 19 frames
 
         Incremental solutions (one piece removed or added at a time)::
@@ -2418,14 +2441,14 @@ class TilingSolver(SageObject):
 
         ::
 
-            sage: a.show()                 # optional -- ImageMagick
+            sage: a.show()           # optional -- ImageMagick   # long time
 
         The ``show`` function takes arguments to specify the delay between
         frames (measured in hundredths of a second, default value 20) and
         the number of iterations (default value 0, which means to iterate
         forever). To iterate 4 times with half a second between each frame::
 
-            sage: a.show(delay=50, iterations=4)  # optional -- ImageMagick
+            sage: a.show(delay=50, iterations=4)  # optional -- ImageMagick # long time
 
         Limit the number of frames::
 

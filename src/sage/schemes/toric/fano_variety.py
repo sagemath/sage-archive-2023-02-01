@@ -136,7 +136,8 @@ implementing them on your own as a patch for inclusion!
 import re
 
 from sage.geometry.all import Cone, FaceFan, Fan, LatticePolytope
-from sage.misc.all import latex, prod
+from sage.misc.latex import latex
+from sage.misc.misc_c import prod
 from sage.rings.all import (PolynomialRing, QQ)
 
 from sage.rings.polynomial.multi_polynomial_ring import is_MPolynomialRing
@@ -1698,4 +1699,3 @@ def add_variables(field, variables):
         if v not in new_variables:
             new_variables.append(v)
     return PolynomialRing(field, new_variables).fraction_field()
-

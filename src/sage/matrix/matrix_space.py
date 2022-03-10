@@ -139,9 +139,9 @@ def get_matrix_class(R, nrows, ncols, sparse, implementation):
         sage: get_matrix_class(CDF, 2, 3, False, 'numpy')
         <class 'sage.matrix.matrix_complex_double_dense.Matrix_complex_double_dense'>
 
-        sage: get_matrix_class(GF(25,'x'), 4, 4, False, 'meataxe')         # optional: meataxe
+        sage: get_matrix_class(GF(25,'x'), 4, 4, False, 'meataxe')         # optional - meataxe
         <class 'sage.matrix.matrix_gfpn_dense.Matrix_gfpn_dense'>
-        sage: get_matrix_class(IntegerModRing(3), 4, 4, False, 'meataxe')  # optional: meataxe
+        sage: get_matrix_class(IntegerModRing(3), 4, 4, False, 'meataxe')  # optional - meataxe
         <class 'sage.matrix.matrix_gfpn_dense.Matrix_gfpn_dense'>
         sage: get_matrix_class(IntegerModRing(4), 4, 4, False, 'meataxe')
         Traceback (most recent call last):
@@ -181,7 +181,7 @@ def get_matrix_class(R, nrows, ncols, sparse, implementation):
         <class 'sage.matrix.matrix_mod2_dense.Matrix_mod2_dense'>
         sage: type(matrix(GF(64,'z'), 2, range(4)))
         <class 'sage.matrix.matrix_gf2e_dense.Matrix_gf2e_dense'>
-        sage: type(matrix(GF(125,'z'), 2, range(4)))     # optional: meataxe
+        sage: type(matrix(GF(125,'z'), 2, range(4)))     # optional - meataxe
         <class 'sage.matrix.matrix_gfpn_dense.Matrix_gfpn_dense'>
 
     """
@@ -335,7 +335,10 @@ def get_matrix_class(R, nrows, ncols, sparse, implementation):
             if R is sage.rings.complex_double.CDF:
                 from . import matrix_complex_double_dense
                 return matrix_complex_double_dense.Matrix_complex_double_dense
-            raise ValueError("'numpy' matrices are only available over RDF and CDF")
+            if R is sage.rings.integer_ring.ZZ:
+                from . import matrix_numpy_integer_dense
+                return matrix_numpy_integer_dense.Matrix_numpy_integer_dense
+            raise ValueError("'numpy' matrices are only available over RDF, CDF, and ZZ")
 
         if implementation == 'rational':
             if isinstance(R, sage.rings.abc.NumberField_cyclotomic):
@@ -1524,16 +1527,16 @@ class MatrixSpace(UniqueRepresentation, Parent):
                 for iv in sage.combinat.integer_vector.IntegerVectors(weight, number_of_entries):
                     yield self([base_elements[i] for i in iv])
                 weight += 1
-                base_elements.append( next(base_iter) )
+                base_elements.append(next(base_iter))
         else:
-            #In the finite case, we do a similar thing except that
-            #the "weight" of each entry is bounded by the number
-            #of elements in the base ring
+            # In the finite case, we do a similar thing except that
+            # the "weight" of each entry is bounded by the number
+            # of elements in the base ring
             order = base_ring.order()
             base_elements = list(base_ring)
-            for weight in range((order-1)*number_of_entries+1):
-                for iv in sage.combinat.integer_vector.IntegerVectors(weight, number_of_entries, max_part=(order-1)):
-                   yield self([base_elements[i] for i in iv])
+            for weight in range((order - 1) * number_of_entries + 1):
+                for iv in sage.combinat.integer_vector.IntegerVectors(weight, number_of_entries, max_part=(order - 1)):
+                    yield self([base_elements[i] for i in iv])
 
     def __getitem__(self, x):
         """

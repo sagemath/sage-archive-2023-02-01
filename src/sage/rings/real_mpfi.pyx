@@ -535,6 +535,7 @@ cdef class RealIntervalField_class(sage.rings.abc.RealIntervalField):
         self.__lower_field = RealField(prec, sci_not, "RNDD")
         self.__middle_field = RealField(prec, sci_not, "RNDN")
         self.__upper_field = RealField(prec, sci_not, "RNDU")
+        self._multiplicative_order = None
         from sage.categories.fields import Fields
         Field.__init__(self, self, category=Fields().Infinite())
         self._populate_coercion_lists_(convert_method_name="_real_mpfi_")
@@ -4323,7 +4324,6 @@ cdef class RealIntervalFieldElement(RingElement):
     # Special Functions
     ############################
 
-
     def sqrt(self):
         """
             Return a square root of ``self``. Raises an error if ``self`` is
@@ -4543,7 +4543,7 @@ cdef class RealIntervalFieldElement(RingElement):
         return x
 
     def exp2(self):
-        """
+        r"""
         Returns `2^\mathtt{self}`
 
         EXAMPLES::

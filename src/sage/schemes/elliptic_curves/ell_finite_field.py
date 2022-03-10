@@ -178,7 +178,7 @@ class EllipticCurve_finite_field(EllipticCurve_field, HyperellipticCurve_finite_
 
         ::
 
-            sage: K = GF(p**2,'a')
+            sage: K = GF((p, 2),'a')
             sage: E = E.change_ring(K)
             sage: len(E.points())
             32
@@ -1285,6 +1285,13 @@ class EllipticCurve_finite_field(EllipticCurve_field, HyperellipticCurve_finite_
             G = self.random_point()
             if value * G != self(0):
                 raise ValueError('Value %s illegal (multiple of random point not the identity)' % value)
+
+        # TODO: It might help some of PARI's algorithms if we
+        # could copy this over to the .pari_curve() as well.
+        # At the time of writing, this appears to be tricky to
+        # do in a non-hacky way because cypari2 doesn't expose
+        # "member functions" of PARI objects.
+
         self._order = value
 
 # dict to hold precomputed coefficient vectors of supersingular j values (excluding 0, 1728):
@@ -1538,14 +1545,14 @@ def is_j_supersingular(j, proof=True):
     if degj == 1:
         j = -jpol(0)  # = j, but in GF(p)
     elif d > 2:
-        F = GF(p**2, 'a')
-        j = jpol.roots(F,multiplicities=False)[0]  # j, but in GF(p^2)
+        F = GF((p, 2), 'a')
+        j = jpol.roots(F, multiplicities=False)[0]  # j, but in GF(p^2)
 
     E = EllipticCurve(j=j)
     if degj == 1:
         for i in range(10):
             P = E.random_element()
-            if not ((p+1)*P).is_zero():
+            if not ((p + 1) * P).is_zero():
                 return False
     else:
         n = None  # will hold either p+1 or p-1 later

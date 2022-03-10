@@ -1191,7 +1191,7 @@ class FriCASElement(ExpectElement):
             \left[ \begin{array}{cc} 1 & 2 \\ 3 & 4\end{array} \right]
 
             sage: latex(fricas("integrate(sin(x+1/x),x)"))                      # optional - fricas
-            \int ^{\displaystyle x} {{\sin \left( {{{{{ \%O} ^{2}}+1} \over  \%O}} \right)} \  {d \%O}}
+            \int ^{\displaystyle x} {{\sin \left( {{{{{ \%...} ^{2}}+1} \over  \%...}} \right)} \  {d \%...}}
         """
         replacements = [(r'\sp ', '^'),
                         (r'\sp{', '^{'),
@@ -1927,7 +1927,9 @@ class FriCASElement(ExpectElement):
             <BLANKLINE>
                Cannot convert the value from type Any to InputForm .
         """
-        from sage.rings.all import PolynomialRing, RDF, I
+        from sage.rings.polynomial.polynomial_ring_constructor import PolynomialRing
+        from sage.rings.real_double import RDF
+        from sage.rings.imaginary_unit import I
         from sage.rings.real_mpfr import RealField
         from sage.symbolic.ring import SR
         from sage.matrix.constructor import matrix

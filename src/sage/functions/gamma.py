@@ -1,12 +1,10 @@
 """
 Gamma and related functions
 """
-
 from sage.symbolic.function import GinacFunction, BuiltinFunction
 from sage.symbolic.expression import register_symbol, symbol_table
 from sage.structure.all import parent as s_parent
 from sage.rings.all import Rational, ComplexField
-from sage.rings.complex_mpfr import is_ComplexNumber
 from sage.functions.exp_integral import Ei
 from sage.libs.mpmath import utils as mpmath_utils
 from .log import exp
@@ -584,23 +582,12 @@ class Function_gamma_inc_lower(BuiltinFunction):
             except AttributeError:
                 C = R
         if algorithm == 'pari':
-            try:
-                v = ComplexField(prec)(x).gamma() - ComplexField(prec)(x).gamma_inc(y)
-            except AttributeError:
-                if not (is_ComplexNumber(x)):
-                    if is_ComplexNumber(y):
-                        C = y.parent()
-                    else:
-                        C = ComplexField()
-                        x = C(x)
-            v = ComplexField(prec)(x).gamma() - ComplexField(prec)(x).gamma_inc(y)
+            Cx = ComplexField(prec)(x)
+            v = Cx.gamma() - Cx.gamma_inc(y)
         else:
             import mpmath
             v = ComplexField(prec)(mpmath_utils.call(mpmath.gammainc, x, 0, y, parent=R))
-        if v.is_real():
-            return R(v)
-        else:
-            return C(v)
+        return R(v) if v.is_real() else C(v)
 
     def _derivative_(self, x, y, diff_param=None):
         """
@@ -796,6 +783,7 @@ class Function_psi1(GinacFunction):
         GinacFunction.__init__(self, "psi", nargs=1, latex_name=r'\psi',
                                conversions=dict(mathematica='PolyGamma',
                                                 maxima='psi[0]',
+                                                maple='Psi',
                                                 sympy='digamma',
                                                 fricas='digamma'))
 
@@ -847,10 +835,16 @@ class Function_psi2(GinacFunction):
             polygamma(2, x)
             sage: psi(2, x)._fricas_()  # optional - fricas
             polygamma(2,x)
+
+        Fixed conversion::
+
+            sage: psi(2,x)._maple_init_()
+            'Psi(2,x)'
         """
         GinacFunction.__init__(self, "psi", nargs=2, latex_name=r'\psi',
                                conversions=dict(mathematica='PolyGamma',
                                                 sympy='polygamma',
+                                                maple='Psi',
                                                 giac='Psi',
                                                 fricas='polygamma'))
 
@@ -1041,6 +1035,7 @@ class Function_beta(GinacFunction):
                                latex_name=r"\operatorname{B}",
                                conversions=dict(maxima='beta',
                                                 mathematica='Beta',
+                                                maple='Beta',
                                                 sympy='beta',
                                                 fricas='Beta',
                                                 giac='Beta'))
@@ -1049,7 +1044,7 @@ class Function_beta(GinacFunction):
         r"""
         TESTS::
 
-            sage: RBF(beta(sin(3),sqrt(RBF(2).add_error(1e-8)/3)))
+            sage: RBF(beta(sin(3),sqrt(RBF(2).add_error(1e-8)/3)))  # abs tol 6e-7
             [7.407662 +/- 6.17e-7]
         """
         return [x, y]

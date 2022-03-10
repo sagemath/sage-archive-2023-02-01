@@ -131,7 +131,7 @@ class ContourPlot(GraphicPrimitive):
 
     def _repr_(self):
         """
-        String representation of ContourPlot primitive.
+        String representation of ``ContourPlot`` primitive.
 
         EXAMPLES::
 
@@ -672,7 +672,7 @@ def contour_plot(f, xrange, yrange, **options):
 
     We can add a colorbar as well::
 
-        sage: f(x, y)=x^2-y^2
+        sage: f(x, y) = x^2 + y^2
         sage: contour_plot(f, (x,-3,3), (y,-3,3), colorbar=True)
         Graphics object consisting of 1 graphics primitive
 
@@ -912,7 +912,6 @@ def contour_plot(f, xrange, yrange, **options):
     g._set_extra_kwds(Graphics._extract_kwds_for_show(options,
                                                       ignore=['xmin', 'xmax']))
 
-
     # Was a single contour level explicitly given? If "contours" is
     # the integer 1, then there will be a single level, but we can't
     # know what it is because it's determined within matplotlib's
@@ -920,11 +919,9 @@ def contour_plot(f, xrange, yrange, **options):
     # there's a single contour and fill=True, we fall through to let
     # matplotlib complain that "Filled contours require at least 2
     # levels."
-    if ( isinstance(options["contours"], (list, tuple))
-         and
-         len(options["contours"]) == 1
-         and
-         options.get("fill") == False):
+    if (isinstance(options["contours"], (list, tuple))
+        and len(options["contours"]) == 1
+        and options.get("fill") is False):
         # When there's only one level (say, zero), matplotlib doesn't
         # handle it well. If all of the data lie on one side of that
         # level -- for example, if f(x,y) >= 0 for all x,y -- then it
@@ -943,7 +940,7 @@ def contour_plot(f, xrange, yrange, **options):
         # This works OK for the examples in the doctests, but basing
         # it off the plot scale rather than how fast the function
         # changes can never be truly satisfactory.
-        tol = max(dx,dy)/4.0
+        tol = max(dx, dy) / 4.0
         xy_data_array = np.ma.asarray(xy_data_array, dtype=float)
 
         # Special case for constant functions. This is needed because
@@ -971,7 +968,7 @@ def contour_plot(f, xrange, yrange, **options):
             # those masked) by using a single, filled contour that
             # covers the entire plotting surface.
             options["cmap"] = ["white", oldcmap]
-            options["contours"] = (z0-1, z0)
+            options["contours"] = (z0 - 1, z0)
             options["fill"] = True
         else:
             # The "c" constant is set to plus/minus one to handle both
@@ -998,8 +995,8 @@ def contour_plot(f, xrange, yrange, **options):
                 if not isinstance(options["plot_points"], (list, tuple)):
                     options["plot_points"] = (options["plot_points"],
                                               options["plot_points"])
-                    options["plot_points"] = (options["plot_points"][0]*4,
-                                              options["plot_points"][1]*4)
+                    options["plot_points"] = (options["plot_points"][0] * 4,
+                                              options["plot_points"][1] * 4)
 
                 # Re-plot with more points...
                 F, ranges = setup_for_eval_on_grid(ev, [xrange, yrange],
@@ -1009,12 +1006,11 @@ def contour_plot(f, xrange, yrange, **options):
 
                 # ...and a function whose values are shifted towards
                 # z0 by "tol".
-                xy_data_array = [ [h(x, y) - c*tol
-                                   for x in xsrange(*ranges[0],
+                xy_data_array = [[h(x, y) - c * tol
+                                  for x in xsrange(*ranges[0],
                                                    include_endpoint=True)]
-                                  for y in xsrange(*ranges[1],
-                                                   include_endpoint=True) ]
-
+                                 for y in xsrange(*ranges[1],
+                                                  include_endpoint=True)]
 
     if region is not None:
         import numpy

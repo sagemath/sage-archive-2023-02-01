@@ -191,7 +191,7 @@ class Expect(Interface):
             sage: magma.server()
             'remote'
             sage: magma.command()
-            "sage-native-execute ssh -t remote 'mymagma'"
+            "ssh -t remote 'mymagma'"
         """
         if self._expect:
             raise RuntimeError("interface has already started")
@@ -200,9 +200,9 @@ class Expect(Interface):
         self._server = server
         if server is not None:
             if ulimit:
-                command = "sage-native-execute ssh -t %s 'ulimit %s; %s'"%(server, ulimit, command)
+                command = "ssh -t %s 'ulimit %s; %s'"%(server, ulimit, command)
             else:
-                command = "sage-native-execute ssh -t %s '%s'"%(server, command)
+                command = "ssh -t %s '%s'"%(server, command)
             self.__is_remote = True
             self._eval_using_file_cutoff = 0  # don't allow this!
             if self.__verbose_start:
@@ -440,7 +440,6 @@ If this all works, you can then make calls like:
             return False
 
     def _start(self, alt_message=None, block_during_init=True):
-        from sage.misc.misc import sage_makedirs
         self.quit()  # in case one is already running
 
         self._session_number += 1
@@ -452,7 +451,7 @@ If this all works, you can then make calls like:
             if self.__logfilename is None and 'SAGE_PEXPECT_LOG' in os.environ:
                 from sage.env import DOT_SAGE
                 logs = os.path.join(DOT_SAGE, 'pexpect_logs')
-                sage_makedirs(logs)
+                os.makedirs(logs, exist_ok=True)
 
                 filename = '{name}-{pid}-{id}-{session}'.format(
                         name=self.name(), pid=os.getpid(), id=id(self),
@@ -468,7 +467,7 @@ If this all works, you can then make calls like:
             print("Starting %s" % cmd.split()[0])
 
         if self.__remote_cleaner and self._server:
-            c = 'sage-native-execute  ssh %s "nohup sage -cleaner"  &' % self._server
+            c = 'ssh %s "nohup sage -cleaner"  &' % self._server
             os.system(c)
 
         # Unset some environment variables for the children to
@@ -1198,7 +1197,7 @@ If this all works, you can then make calls like:
         ::
 
             sage: singular._expect.before.decode('ascii')
-            u'...10\r\n> '
+            '...10\r\n> '
 
         We test interrupting ``_expect_expr`` using the GP interface,
         see :trac:`6661`.  Unfortunately, this test doesn't work reliably using

@@ -1276,7 +1276,6 @@ class Gap(Gap_generic):
             ...
             <BLANKLINE>
         """
-        tmp_to_use = self._local_tmpfile()
         if self.is_remote():
             tmp_to_use = self._remote_tmpfile()
         else:
@@ -1516,9 +1515,9 @@ class GapElement(GapElement_generic):
         """
         self._check_valid()
         if not isinstance(n, tuple):
-            return self.parent().new('%s[%s]'%(self._name, n))
-        else:
-            return self.parent().new('%s%s'%(self._name, ''.join(['[%s]'%x for x in n])))
+            return self.parent().new('%s[%s]' % (self._name, n))
+        return self.parent().new('%s%s' % (self._name,
+                                           ''.join('[%s]' % x for x in n)))
 
     def str(self, use_file=False):
         """

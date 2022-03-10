@@ -2168,19 +2168,6 @@ cdef class RealNumber(sage.structure.element.RingElement):
         mpfr_free_str(s)
         return t
 
-    def __hex__(self):
-        """
-        TESTS::
-
-            sage: hex(RR(-1/3))  # py2
-            doctest:...:
-            DeprecationWarning: use the method .hex instead
-            See http://trac.sagemath.org/24568 for details.
-            '-0x5.5555555555554p-4'
-        """
-        deprecation(24568, 'use the method .hex instead')
-        return self.hex()
-
     def __copy__(self):
         """
         Return copy of ``self`` - since ``self`` is immutable, we just return
@@ -4040,7 +4027,7 @@ cdef class RealNumber(sage.structure.element.RingElement):
         return mpfr_inf_p(self.value) and mpfr_sgn(self.value) < 0
 
     def is_infinity(self):
-        """
+        r"""
         Return ``True`` if ``self`` is `\infty` and ``False`` otherwise.
 
         EXAMPLES::

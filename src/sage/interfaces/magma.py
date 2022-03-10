@@ -1154,10 +1154,10 @@ class Magma(ExtraTabCompletion, Expect):
         if len(params) == 0:
             par = ''
         else:
-            par = ' : ' + ','.join(['%s:=%s' % (a, b.name())
-                                    for a, b in params.items()])
+            par = ' : ' + ','.join('%s:=%s' % (a, b.name())
+                                   for a, b in params.items())
 
-        fun = "%s(%s%s)" % (function, ",".join([s.name() for s in args]), par)
+        fun = "%s(%s%s)" % (function, ",".join(s.name() for s in args), par)
 
         return self._do_call(fun, nvals)
 
@@ -1266,9 +1266,9 @@ class Magma(ExtraTabCompletion, Expect):
         magma = self
         # coerce each arg to be a Magma element
         if isinstance(gens, (list, tuple)):
-            gens = [magma(z) for z in gens]
+            gens = (magma(z) for z in gens)
             # make comma separated list of names (in Magma) of each of the gens
-            v = ', '.join([w.name() for w in gens])
+            v = ', '.join(w.name() for w in gens)
         else:
             gens = magma(gens)
             v = gens.name()
@@ -2785,7 +2785,7 @@ def magma_console():
     from sage.repl.rich_output.display_manager import get_display_manager
     if not get_display_manager().is_in_terminal():
         raise RuntimeError('Can use the console only in the terminal. Try %%magma magics instead.')
-    console('sage-native-execute magma')
+    console('magma')
 
 
 class MagmaGBLogPrettyPrinter:
@@ -2984,7 +2984,7 @@ class MagmaGBDefaultContext:
             0
         """
         if magma is None:
-            from sage.interfaces.all import magma as magma_default
+            from sage.interfaces.magma import magma as magma_default
             magma = magma_default
 
         self.magma = magma

@@ -12,7 +12,6 @@ AUTHORS:
 - Matthias Köppe (2016-12): initial version
 - Jean-Philippe Labbé (2019-04): Expose normaliz features and added functionalities
 """
-
 # ****************************************************************************
 #  Copyright (C) 2016 Matthias Köppe <mkoeppe at math.ucdavis.edu>
 #
@@ -248,28 +247,29 @@ class Polyhedron_normaliz(Polyhedron_base):
 
         TESTS::
 
-            sage: p = Polyhedron(vertices=[(0,0),(1,0),(0,1)], rays=[(1,1)],   # optional - pynormaliz
+            sage: p = Polyhedron(vertices=[(0, 0), (1, 0), (0, 1)], rays=[(1,1)],                 # optional - pynormaliz
             ....:                lines=[], backend='normaliz')
-            sage: p._nmz_result(p._normaliz_cone, 'EquivariantXyzzyModuleSeries')  # optional - pynormaliz
+            sage: p._nmz_result(p._normaliz_cone, 'EquivariantXyzzyModuleSeries')                 # optional - pynormaliz
             Traceback (most recent call last):
             ...
             NormalizError: Some error in the normaliz input data detected: Unknown ConeProperty...
 
-            sage: x = polygen(QQ, 'x')
-            sage: K.<a> = NumberField(x^3 - 3, embedding=AA(3)**(1/3))  # optional - sage.rings.number_field
-            sage: p = Polyhedron(vertices=[(0,0),(1,1),(a,3),(-1,a**2)], rays=[(-1,-a)], backend='normaliz') # optional - pynormaliz  # optional - sage.rings.number_field
-            sage: sorted(p._nmz_result(p._normaliz_cone, 'VerticesOfPolyhedron')) # optional - pynormaliz  # optional - sage.rings.number_field
+            sage: x = polygen(QQ, 'x')                                                                                     # optional - sage.rings.number_field
+            sage: K.<a> = NumberField(x^3 - 3, embedding=AA(3)**(1/3))                                                     # optional - sage.rings.number_field
+            sage: p = Polyhedron(vertices=[(0, 0), (1, 1), (a, 3), (-1, a**2)],                   # optional - pynormaliz  # optional - sage.rings.number_field
+            ....:                rays=[(-1,-a)], backend='normaliz')
+            sage: sorted(p._nmz_result(p._normaliz_cone, 'VerticesOfPolyhedron'))                 # optional - pynormaliz  # optional - sage.rings.number_field
             [[-1, a^2, 1], [1, 1, 1], [a, 3, 1]]
             sage: triangulation_generators = p._nmz_result(p._normaliz_cone, 'Triangulation')[1]  # optional - pynormaliz  # optional - sage.rings.number_field
             sage: sorted(triangulation_generators)                                                # optional - pynormaliz  # optional - sage.rings.number_field
             [[-a^2, -3, 0], [-1, a^2, 1], [0, 0, 1], [1, 1, 1], [a, 3, 1]]
-            sage: p._nmz_result(p._normaliz_cone, 'AffineDim') == 2 # optional - pynormaliz  # optional - sage.rings.number_field
+            sage: p._nmz_result(p._normaliz_cone, 'AffineDim') == 2                               # optional - pynormaliz  # optional - sage.rings.number_field
             True
-            sage: p._nmz_result(p._normaliz_cone, 'EmbeddingDim') == 3 # optional - pynormaliz  # optional - sage.rings.number_field
+            sage: p._nmz_result(p._normaliz_cone, 'EmbeddingDim') == 3                            # optional - pynormaliz  # optional - sage.rings.number_field
             True
-            sage: p._nmz_result(p._normaliz_cone, 'ExtremeRays') # optional - pynormaliz  # optional - sage.rings.number_field
+            sage: p._nmz_result(p._normaliz_cone, 'ExtremeRays')                                  # optional - pynormaliz  # optional - sage.rings.number_field
             [[-1/3*a^2, -1, 0]]
-            sage: p._nmz_result(p._normaliz_cone, 'MaximalSubspace') # optional - pynormaliz  # optional - sage.rings.number_field
+            sage: p._nmz_result(p._normaliz_cone, 'MaximalSubspace')                              # optional - pynormaliz  # optional - sage.rings.number_field
             []
         """
         def rational_handler(list):
@@ -289,9 +289,9 @@ class Polyhedron_normaliz(Polyhedron_base):
 
         TESTS::
 
-            sage: p = Polyhedron(backend='normaliz')                       # optional - pynormaliz
-            sage: from sage.geometry.polyhedron.backend_normaliz import Polyhedron_normaliz   # optional - pynormaliz
-            sage: Polyhedron_normaliz._init_from_Hrepresentation(p, [], [])  # indirect doctest  # optional - pynormaliz
+            sage: p = Polyhedron(backend='normaliz')                                              # optional - pynormaliz
+            sage: from sage.geometry.polyhedron.backend_normaliz import Polyhedron_normaliz       # optional - pynormaliz
+            sage: Polyhedron_normaliz._init_from_Hrepresentation(p, [], [])  # indirect doctest   # optional - pynormaliz
         """
         if normaliz_field is None:
             normaliz_field = QQ
@@ -314,7 +314,7 @@ class Polyhedron_normaliz(Polyhedron_base):
 
         TESTS::
 
-            sage: K.<sqrt2> = QuadraticField(2)  # optional - sage.rings.number_field
+            sage: K.<sqrt2> = QuadraticField(2)                                       # optional - sage.rings.number_field
             sage: from sage.geometry.polyhedron.backend_normaliz import Polyhedron_normaliz as Pn
             sage: Pn._convert_to_pynormaliz(17)
             17
@@ -326,9 +326,9 @@ class Polyhedron_normaliz(Polyhedron_base):
             [[28, 5]]
             sage: Pn._convert_to_pynormaliz(28901824309821093821093812093810928309183091832091/5234573685674784567853456543456456786543456765)
             [[28901824309821093821093812093810928309183091832091, 5234573685674784567853456543456456786543456765]]
-            sage: Pn._convert_to_pynormaliz(7 + sqrt2)  # optional - sage.rings.number_field
+            sage: Pn._convert_to_pynormaliz(7 + sqrt2)                                # optional - sage.rings.number_field
             [[7, 1], [1, 1]]
-            sage: Pn._convert_to_pynormaliz(7/2 + sqrt2)  # optional - sage.rings.number_field
+            sage: Pn._convert_to_pynormaliz(7/2 + sqrt2)                              # optional - sage.rings.number_field
             [[7, 2], [1, 1]]
             sage: Pn._convert_to_pynormaliz([[1, 2], (3, 4)])
             [[1, 2], [3, 4]]
@@ -398,7 +398,7 @@ class Polyhedron_normaliz(Polyhedron_base):
             sage: data = {'inhom_inequalities': [[-1, 2, 0], [0, 0, 1], [2, -1, 0]]}            # optional - pynormaliz
             sage: cone = Polyhedron_QQ_normaliz._cone_from_normaliz_data(p, data)               # optional - pynormaliz
             sage: p._nmz_result(cone,'SupportHyperplanes')                                      # optional - pynormaliz
-            [[-1L, 2L, 0L], [0L, 0L, 1L], [2L, -1L, 0L]]
+            [[-1, 2, 0], [0, 0, 1], [2, -1, 0]]
         """
         if verbose:
             if isinstance(verbose, str):
@@ -583,15 +583,15 @@ class Polyhedron_normaliz(Polyhedron_base):
 
         EXAMPLES::
 
-            sage: p = Polyhedron(backend='normaliz')                       # optional - pynormaliz
+            sage: p = Polyhedron(backend='normaliz')                          # optional - pynormaliz
             sage: from sage.geometry.polyhedron.backend_normaliz import Polyhedron_normaliz   # optional - pynormaliz
             sage: Polyhedron_normaliz._init_from_Hrepresentation(p, [], [])   # optional - pynormaliz
 
         TESTS::
 
-            sage: K.<a> = QuadraticField(2)
-            sage: p = Polyhedron(ieqs=[(1, a, 0)], backend='normaliz')        # optional - pynormaliz
-            sage: p & p == p                                                  # optional - pynormaliz
+            sage: K.<a> = QuadraticField(2)                                                            # optional - sage.rings.number_field
+            sage: p = Polyhedron(ieqs=[(1, a, 0)], backend='normaliz')        # optional - pynormaliz  # optional - sage.rings.number_field
+            sage: p & p == p                                                  # optional - pynormaliz  # optional - sage.rings.number_field
             True
 
         Check that :trac:`30248` is fixed, that maps as input works::
@@ -735,7 +735,7 @@ class Polyhedron_normaliz(Polyhedron_base):
             ....:     return all(P._nmz_result(cone,arg) == P._nmz_result(cone2,arg) for arg in args)
             sage: test_poly(polytopes.simplex(backend='normaliz'))                                  # optional - pynormaliz
             True
-            sage: test_poly(polytopes.dodecahedron(backend='normaliz'))                             # optional - pynormaliz
+            sage: test_poly(polytopes.dodecahedron(backend='normaliz'))                             # optional - pynormaliz  # optional - sage.rings.number_field
             True
             sage: test_poly(Polyhedron(vertices=[[1,0],[0,1]],rays=[[1,1]], backend='normaliz'))    # optional - pynormaliz
             True
@@ -1510,12 +1510,12 @@ class Polyhedron_normaliz(Polyhedron_base):
             sage: s._volume_normaliz(measure='ambient')           # optional - pynormaliz
             0
 
-            sage: P = polytopes.regular_polygon(3, backend='normaliz')          # optional - pynormaliz
-            sage: P._volume_normaliz('ambient') == P.volume(engine='internal')  # optional - pynormaliz
+            sage: P = polytopes.regular_polygon(3, backend='normaliz')          # optional - pynormaliz  # optional - sage.rings.number_field
+            sage: P._volume_normaliz('ambient') == P.volume(engine='internal')  # optional - pynormaliz  # optional - sage.rings.number_field
             True
 
-            sage: P = polytopes.dodecahedron(backend='normaliz')                # optional - pynormaliz
-            sage: P._volume_normaliz('ambient') == P.volume(engine='internal')  # optional - pynormaliz
+            sage: P = polytopes.dodecahedron(backend='normaliz')                # optional - pynormaliz  # optional - sage.rings.number_field
+            sage: P._volume_normaliz('ambient') == P.volume(engine='internal')  # optional - pynormaliz  # optional - sage.rings.number_field
             True
 
             sage: P = Polyhedron(rays=[[1]], backend='normaliz')  # optional - pynormaliz

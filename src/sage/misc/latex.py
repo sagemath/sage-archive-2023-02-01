@@ -779,20 +779,20 @@ def _run_latex_(filename, debug=False, density=150, engine=None, png=False, do_i
     #     background = ''
 
     # Define the commands to be used:
-    lt = ['sage-native-execute', command, r'\nonstopmode', r'\input{' + filename + '.tex}']
+    lt = [command, r'\nonstopmode', r'\input{' + filename + '.tex}']
     # dvipng is run with the 'picky' option: this means that if
     # there are warnings, no png file is created.
-    dvipng = ['sage-native-execute', 'dvipng', '--picky', '-q', '-T', 'tight',
+    dvipng = ['dvipng', '--picky', '-q', '-T', 'tight',
               '-D', str(density), filename + '.dvi', '-o', filename + '.png']
 
-    dvips = ['sage-native-execute', 'dvips', filename + '.dvi']
+    dvips = ['dvips', filename + '.dvi']
 
-    ps2pdf = ['sage-native-execute', 'ps2pdf', filename + '.ps']
+    ps2pdf = ['ps2pdf', filename + '.ps']
 
     # We seem to need a larger size when using convert compared to
     # when using dvipng:
     density = int(1.4 * density / 1.3)
-    convert = ['sage-native-execute', 'convert', '-density',
+    convert = ['convert', '-density',
                '{0}x{0}'.format(density), '-trim', filename + '.' + suffix,
                filename + '.png']
 
@@ -1084,7 +1084,7 @@ class Latex(LatexCall):
             sage: fn = tmp_filename()
             sage: latex.eval("$\\ZZ[x]$", locals(), filename=fn) # not tested
             ''
-            sage: latex.eval(r"\ThisIsAnInvalidCommand", {}) # optional -- ImageMagick
+            sage: latex.eval(r"\ThisIsAnInvalidCommand", {}) # optional -- latex ImageMagick
             An error occurred...
             No pages of output...
         """
@@ -1544,10 +1544,10 @@ Warning: `{}` is not part of this computer's TeX installation.""".format(file_na
 
         TESTS::
 
-            sage: latex.add_package_to_preamble_if_available("xypic")
+            sage: latex.add_package_to_preamble_if_available("tkz-graph")
             sage: latex.add_package_to_preamble_if_available("nonexistent_package")
-            sage: latex.extra_preamble()       # optional - latex
-            '\\usepackage{xypic}\n'
+            sage: latex.extra_preamble()  # optional - latex latex_package_tkz_graph
+            '\\usepackage{tkz-graph}\n'
             sage: latex.extra_preamble('')
         """
         assert isinstance(package_name, str)
@@ -1852,11 +1852,11 @@ def view(objects, title='Sage', debug=False, sep='', tiny=False,
 
         sage: from sage.misc.latex import _run_latex_, _latex_file_
         sage: g = sage.misc.latex.latex_examples.graph()
-        sage: latex.add_to_preamble(r"\usepackage{tkz-graph}")
+        sage: latex.add_to_preamble(r"\usepackage{tkz-graph}")  # optional - latex_package_tkz_graph
         sage: file = os.path.join(SAGE_TMP, "temp.tex")
         sage: with open(file, 'w') as O:
         ....:     _ = O.write(_latex_file_(g))
-        sage: _run_latex_(file, engine="pdflatex") # optional - latex
+        sage: _run_latex_(file, engine="pdflatex") # optional - latex latex_package_tkz_graph
         'pdf'
 
         sage: view(4, margin=5, debug=True)     # not tested
@@ -1925,8 +1925,6 @@ def view(objects, title='Sage', debug=False, sep='', tiny=False,
     output_file = os.path.join(tmp, "sage." + suffix)
     # this should get changed if we switch the stuff in misc.viewer to
     # producing lists
-    if not viewer.startswith('sage-native-execute '):
-        viewer = 'sage-native-execute ' + viewer
     if debug:
         print('viewer: "{}"'.format(viewer))
     call('%s %s' % (viewer, output_file), shell=True,
@@ -1965,7 +1963,7 @@ def png(x, filename, density=150, debug=False,
     EXAMPLES::
 
         sage: from sage.misc.latex import png
-        sage: png(ZZ[x], os.path.join(SAGE_TMP, "zz.png")) # random, optional - latex
+        sage: png(ZZ[x], os.path.join(SAGE_TMP, "zz.png")) # random, optional - latex imagemagick
     """
     if not pdflatex:
         engine = "latex"
@@ -2085,7 +2083,7 @@ def repr_lincomb(symbols, coeffs):
     first = True
     i = 0
 
-    from sage.rings.all import CC
+    from sage.rings.cc import CC
 
     for c in coeffs:
         bv = symbols[i]

@@ -336,7 +336,7 @@ cdef class Matrix_mod2_dense(matrix_dense.Matrix_dense):   # dense or sparse
         return h
 
     # this exists for compatibility with matrix_modn_dense
-    cdef set_unsafe_int(self, Py_ssize_t i, Py_ssize_t j, int value):
+    cdef void set_unsafe_int(self, Py_ssize_t i, Py_ssize_t j, int value):
         """
         Set the (i,j) entry of self to the int value.
         """
@@ -1255,8 +1255,8 @@ cdef class Matrix_mod2_dense(matrix_dense.Matrix_dense):   # dense or sparse
             sage: A.row(0)
             (0, 0, 0)
         """
-        if (int(multiple)%2) == 0:
-            mzd_row_clear_offset(self._entries, row, start_col);
+        if not int(multiple) % 2:
+            mzd_row_clear_offset(self._entries, row, start_col)
 
     cdef add_multiple_of_row_c(self,  Py_ssize_t row_to, Py_ssize_t row_from, multiple,
                                Py_ssize_t start_col):
@@ -1269,7 +1269,7 @@ cdef class Matrix_mod2_dense(matrix_dense.Matrix_dense):   # dense or sparse
             sage: A.row(0) == B.row(0) + B.row(1)
             True
         """
-        if (int(multiple)%2) != 0:
+        if int(multiple) % 2:
             mzd_row_add_offset(self._entries, row_to, row_from, start_col)
 
     cdef swap_rows_c(self, Py_ssize_t row1, Py_ssize_t row2):
@@ -1965,17 +1965,17 @@ for i from 0 <= i < 256:
 # assembly instructions, could be faster
 cpdef inline unsigned long parity(m4ri_word a):
     """
-    Returns the parity of the number of bits in a.
+    Return the parity of the number of bits in a.
 
     EXAMPLES::
 
         sage: from sage.matrix.matrix_mod2_dense import parity
         sage: parity(1)
-        1L
+        1
         sage: parity(3)
-        0L
+        0
         sage: parity(0x10000101011)
-        1L
+        1
     """
     if sizeof(m4ri_word) == 8:
         a ^= a >> 32

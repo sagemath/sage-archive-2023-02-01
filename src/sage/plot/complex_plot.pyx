@@ -570,7 +570,6 @@ def complex_to_cmap_rgb(z_values, cmap='turbo', contoured=False, tiled=False,
     imax = len(z_values)
     jmax = len(z_values[0])
     cdef cnumpy.ndarray[cnumpy.float_t, ndim=3, mode='c'] als = np.empty(dtype=float, shape=(imax, jmax, 2))
-    cdef cnumpy.ndarray[cnumpy.float_t, ndim=3, mode='c'] rgbs = np.empty(dtype=float, shape=(imax, jmax, 3))
 
     sig_on()
     for i in range(imax):

@@ -40,6 +40,9 @@ __ https://www.ctan.org/pkg/pgf
 
 EXAMPLES:
 
+Standalone LaTeX document class
+-------------------------------
+
 First *Hello World* example::
 
     sage: from sage.misc.latex_standalone import Standalone
@@ -78,6 +81,22 @@ Adding your own list of macros::
     \begin{document}
     Hello World
     \end{document}
+
+It provides conversion to images of different format::
+
+    sage: from sage.misc.latex_standalone import Standalone
+    sage: s = Standalone('Hello World')
+    sage: _ = s.pdf()    # not tested
+    sage: _ = s.png()    # not tested
+    sage: _ = s.svg()    # not tested
+    sage: s              # not tested, in Jupyter, this shows the image directly below the cell
+
+TikzPicture
+-----------
+
+This module also contains a class :class:`TikzPicture` which inherits from
+:class:`Standalone` to represent more specifically a tikzpicture which is
+within a standalone document class.
 
 First construct a string describing a tikzpicture::
 
@@ -212,8 +231,8 @@ class Standalone(SageObject):
 
     INPUT:
 
-    - ``content`` -- string, tikzpicture code starting with
-      ``r'\begin{tikzpicture}'`` and ending with ``r'\end{tikzpicture}'``
+    - ``content`` -- string, the content to be added in the document
+      between lines ``r'\begin{document}'`` and ``r'\end{document}'``
     - ``document_class_options`` -- list of strings (default: ``[]``),
       latex document class standalone options. Such options appear on the
       line ``\documentclass[...]{standalone}`` between the brackets.
@@ -257,7 +276,7 @@ class Standalone(SageObject):
             standalone_config=None, usepackage=None, macros=None,
             use_sage_preamble=False):
         r"""
-        See :mod:`sage.plot.Standalone` for full information.
+        See :class:`Standalone` for full information.
 
         EXAMPLES::
 
@@ -809,7 +828,7 @@ class Standalone(SageObject):
 
 class TikzPicture(Standalone):
     r"""
-    Creates a TikzPicture embedded in a LaTeX standalone document class.
+    A TikzPicture embedded in a LaTeX standalone document class.
 
     INPUT:
 
@@ -865,8 +884,8 @@ class TikzPicture(Standalone):
         sage: t = TikzPicture(s, standalone_config=["border=4mm"], usepackage=['tkz-graph']) # optional latex
         sage: _ = t.pdf(view=False)             # long time (2s) # optional latex
 
-    Here are standalone configurations, packages, tikz libraries and macros you
-    may want to set::
+    Here are standalone configurations, packages, tikz libraries and macros
+    that can be set::
 
         sage: options = ['preview', 'border=4mm', 'beamer', 'float']
         sage: usepackage = ['nicefrac', 'amsmath', 'pifont', 'tikz-3dplot',
@@ -883,15 +902,9 @@ class TikzPicture(Standalone):
     def __init__(self, content, standalone_config=None, usepackage=None,
             usetikzlibrary=None, macros=None, use_sage_preamble=False):
         r"""
-        See :mod:`sage.plot.Standalone` for full information.
+        See :class:`TikzPicture` for full information.
 
         EXAMPLES::
-
-            sage: from sage.misc.latex_standalone import Standalone
-            sage: content = "\\section{Intro}\n\nTest\n"
-            sage: t = Standalone(content)
-
-        ::
 
             sage: from sage.misc.latex_standalone import TikzPicture
             sage: s = "\\begin{tikzpicture}\n\\draw (0,0) -- (1,1);\n\\end{tikzpicture}"

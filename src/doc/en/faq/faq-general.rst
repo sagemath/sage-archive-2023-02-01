@@ -365,6 +365,6 @@ What are DOI records for Sage?
 
 `DOI <https://doi.org>`_ records for Sage are maintained via `Zenodo <https://zenodo.org>`_,
 e.g. see `record for Sage 9.5 <https://zenodo.org/record/6259615>`_.
-The corresponding `DOI 10.5281/zenodo.6259615 <https://doi.org/10.5281/zenodo.6259615>`_.
+The corresponding :doi:`10.5281/zenodo.6259615`.
 
-There is also DOI for the latest version, `DOI 10.5281/zenodo.593563 <https://doi.org/10.5281/zenodo.593563>`_.
+There is also DOI for the latest version, :doi:`10.5281/zenodo.593563`.

@@ -349,7 +349,7 @@ Here is a BibTeX entry for Sage:
     @manual{sagemath,
         label        = {Sag95},
         author       = {{The Sage Developers}},
-        title        = {{S}ageMath, the {S}age {M}athematics {S}oftware {S}ystem},
+        title        = {{S}age{M}ath, the {S}age {M}athematics {S}oftware {S}ystem},
         url          = {https://www.sagemath.org},
         version      = {9.5},
         year         = {2022},

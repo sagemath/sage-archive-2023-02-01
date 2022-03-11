@@ -1016,15 +1016,85 @@ class SymmetricFunctionsBases(Category_realization_of_parent):
             homology character) corresponding to the partition ``lam`` written in the
             basis ``self``.
 
+            ## DEFINE THE L-S & give some references
+
+            - Introduced in [LS1986]_
+            - Further understood in [Sun1994]_
+            - Plethystic formula [LS1986]_
+            - Orlik-Solomon [Sun1994]_ Rmk 1.8.1
+            - Stability result [Chu2012]_, sharp result [HR2016]_
+            - [SW1997]_
+
+            INPUT:
+
+            - ``lam`` -- a partition or a positive integer (in the latter
+              case, it is understood to mean the partition ``[lam]``)
+
+            OUTPUT:
+
+            The Lerher-Solomon symmetric function
+            `\mathbf{W}_\lambda`, where `\lambda` is ``lam``,
+            expanded in the basis ``self``.
+
+            EXAMPLES:
+
+            The first few values of `\mathbf{W}_{(n)} = \omega(L_n)`::
+
+                sage: Sym = SymmetricFunctions(ZZ)
+                sage: h = Sym.h()
+                sage: h.lerher_solomon(1)
+                h[1]
+                sage: h.lerher_solomon(2)
+                h[2]
+                sage: h.lerher_solomon(3)
+                h[2, 1] - h[3]
+                sage: h.lerher_solomon(4)
+                h[2, 1, 1] - h[2, 2]
+                sage: h.lerher_solomon(5)
+                h[2, 1, 1, 1] - h[2, 2, 1] - h[3, 1, 1] + h[3, 2] + h[4, 1] - h[5]
+
+
+            The :meth:`whitney_homology_character` method is an alias::
+
+                sage: Sym = SymmetricFunctions(ZZ)
+                sage: s = Sym.schur()
+                sage: s.lerher_solomon([2, 2, 1]) == s.whitney_homology_character([2, 2, 1])
+                True
+
+            Lerher-Solomon functions indexed by partitions::
+
+                sage: h.lerher_solomon([2, 1])
+                h[2, 1]
+                sage: h.lerher_solomon([2, 2])
+                h[3, 1] - h[4]
+
+            The Lerher-Solomon functions are Schur-positive::
+
+                sage: s = Sym.s()
+                sage: s.lerher_solomon([2, 1])
+                s[2, 1] + s[3]
+                sage: s.lerher_solomon([2, 2, 1])
+                s[3, 1, 1] + s[3, 2] + s[4, 1]
+
+            TESTS:
+
+            This works fine over other base rings::
+
+                sage: Sym = SymmetricFunctions(FractionField(QQ['q','t']))
+                sage: P = Sym.macdonald().P()
+                sage: h = Sym.h()
+                sage: P.lerher_solomon(3) == P(h.lerher_solomon(3))
+                True
+
             """
-           if lam in ZZ:
+            if lam in ZZ:
                 lam = [lam]
             lam = _Partitions(lam)
             R = self.base_ring()
-            # We use [GR1993]_ Theorem 3.6 and work over `\QQ` to
-            # compute the Gessel-Reutenauer symmetric function.
+            # We use [LS1986]_ Theorem 4.5 and work over `\QQ` to
+            # compute the Lerher-Solomon symmetric function.
             if self.has_coerce_map_from(QQ):
-                # [GR1993]_ Theorem 3.6
+                # [GR1993]_ Theorem 4.5
                 m = lam.to_exp_dict() # == {i: m_i | i occurs in lam}
                 p = self.realization_of().power()
                 h = self.realization_of().complete()
@@ -1064,13 +1134,13 @@ class SymmetricFunctionsBases(Category_realization_of_parent):
                 comp_parent = self.realization_of().schur()
                 from sage.combinat.sf.sf import SymmetricFunctions
                 corresponding_parent_over_QQ = SymmetricFunctions(QQ).schur()
-            corresponding_result = corresponding_parent_over_QQ.gessel_reutenauer(lam)
+            corresponding_result = corresponding_parent_over_QQ.lerher_solomon(lam)
             comp_base_ring = comp_parent.base_ring()
             result = comp_parent.sum_of_terms((nu, comp_base_ring(c))
                                                for nu, c in corresponding_result)
             return self(result)    # just in case comp_parent != self.
 
-
+        whitney_homology_character = lerher_solomon
 
         def carlitz_shareshian_wachs(self, n, d, s, comparison=None):
             r"""

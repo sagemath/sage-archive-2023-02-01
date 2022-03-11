@@ -771,10 +771,10 @@ class SageDocTestRunner(doctest.DocTestRunner, object):
             if outcome is SUCCESS:
                 if self.options.warn_long > 0 and example.cputime + check_timer.cputime > self.options.warn_long:
                     self.report_overtime(out, test, example, got,
-                                         check_duration=check_timer.cputime)
+                                              check_timer=check_timer)
                 elif not quiet:
                     self.report_success(out, test, example, got,
-                                        check_duration=check_timer.cputime)
+                                             check_timer=check_timer)
             elif outcome is FAILURE:
                 if not quiet:
                     self.report_failure(out, test, example, got, test.globs)
@@ -1223,7 +1223,7 @@ class SageDocTestRunner(doctest.DocTestRunner, object):
                     start_txt += 'Expecting nothing\n'
                 out(start_txt)
 
-    def report_success(self, out, test, example, got, *, check_duration=0):
+    def report_success(self, out, test, example, got, *, check_timer=None):
         """
         Called when an example succeeds.
 
@@ -1237,8 +1237,9 @@ class SageDocTestRunner(doctest.DocTestRunner, object):
 
         - ``got`` -- a string, the result of running ``example``
 
-        - ``check_duration`` -- number (default: ``0``) time spent for checking
-          the test output
+        - ``check_timer`` -- a :class:`sage.doctest.util.Timer` (default:
+          ``None``) that measures the time spent checking whether or not
+          the output was correct
 
         OUTPUT:
 
@@ -1253,7 +1254,7 @@ class SageDocTestRunner(doctest.DocTestRunner, object):
             sage: from sage.doctest.forker import SageDocTestRunner
             sage: from sage.doctest.sources import FileDocTestSource
             sage: from sage.doctest.control import DocTestDefaults; DD = DocTestDefaults()
-            sage: from sage.misc.misc import walltime
+            sage: from sage.doctest.util import Timer
             sage: from sage.env import SAGE_SRC
             sage: import doctest, sys, os
             sage: DTR = SageDocTestRunner(SageOutputChecker(), verbose=True, sage_options=DD, optionflags=doctest.NORMALIZE_WHITESPACE|doctest.ELLIPSIS)
@@ -1261,13 +1262,20 @@ class SageDocTestRunner(doctest.DocTestRunner, object):
             sage: FDS = FileDocTestSource(filename,DD)
             sage: doctests, extras = FDS.create_doctests(globals())
             sage: ex = doctests[0].examples[0]
-            sage: ex.cputime = 0.0
-            sage: DTR.report_success(sys.stdout.write, doctests[0], ex, '1764')
-            ok [0.00 s]
+            sage: ex.cputime = 1.01
+            sage: ex.walltime = 1.12
+            sage: check = Timer()
+            sage: check.cputime = 2.14
+            sage: check.walltime = 2.71
+            sage: DTR.report_success(sys.stdout.write, doctests[0], ex, '1764',
+            ....:                    check_timer=check)
+            ok [3.83 s]
         """
-        # We completely replace doctest.DocTestRunner.report_success so that we can include time taken for the test
+        # We completely replace doctest.DocTestRunner.report_success
+        # so that we can include time taken for the test
         if self._verbose:
-            out("ok [%.2f s]\n" % (example.cputime + check_duration))
+            out("ok [%.2f s]\n" %
+                (example.walltime + check_timer.walltime))
 
     def report_failure(self, out, test, example, got, globs):
         r"""
@@ -1401,7 +1409,7 @@ class SageDocTestRunner(doctest.DocTestRunner, object):
                     self._fakeout.start_spoofing()
             return returnval
 
-    def report_overtime(self, out, test, example, got, *, check_duration=0):
+    def report_overtime(self, out, test, example, got, *, check_timer=None):
         r"""
         Called when the ``warn_long`` option flag is set and a doctest
         runs longer than the specified time.
@@ -1416,8 +1424,9 @@ class SageDocTestRunner(doctest.DocTestRunner, object):
 
         - ``got`` -- a string, the result of running ``example``
 
-        - ``check_duration`` -- number (default: ``0``) time spent for checking
-          the test output
+        - ``check_timer`` -- a :class:`sage.doctest.util.Timer` (default:
+          ``None``) that measures the time spent checking whether or not
+          the output was correct
 
         OUTPUT:
 
@@ -1429,7 +1438,7 @@ class SageDocTestRunner(doctest.DocTestRunner, object):
             sage: from sage.doctest.forker import SageDocTestRunner
             sage: from sage.doctest.sources import FileDocTestSource
             sage: from sage.doctest.control import DocTestDefaults; DD = DocTestDefaults()
-            sage: from sage.misc.misc import walltime
+            sage: from sage.doctest.util import Timer
             sage: from sage.env import SAGE_SRC
             sage: import doctest, sys, os
             sage: DTR = SageDocTestRunner(SageOutputChecker(), verbose=True, sage_options=DD, optionflags=doctest.NORMALIZE_WHITESPACE|doctest.ELLIPSIS)
@@ -1438,16 +1447,24 @@ class SageDocTestRunner(doctest.DocTestRunner, object):
             sage: doctests, extras = FDS.create_doctests(globals())
             sage: ex = doctests[0].examples[0]
             sage: ex.cputime = 1.23
-            sage: DTR.report_overtime(sys.stdout.write, doctests[0], ex, 'BAD ANSWER\n', check_duration=2.34))
+            sage: ex.walltime = 2.50
+            sage: check = Timer()
+            sage: check.cputime = 2.34
+            sage: check.walltime=3.12
+            sage: DTR.report_overtime(sys.stdout.write, doctests[0], ex, 'BAD ANSWER\n', check_timer=check)
             **********************************************************************
             File ".../sage/doctest/forker.py", line 11, in sage.doctest.forker
             Warning, slow doctest:
                 doctest_var = 42; doctest_var^2
-            Test ran for 1.23 cpu seconds, check ran for 2.34 cpu seconds
+            Test ran for 1.23s cpu, 2.50s wall
+            Check ran for 2.34s cpu, 3.12s wall
         """
         out(self._failure_header(test, example, 'Warning, slow doctest:') +
-            ('Test ran for %.2f cpu seconds, check ran for %.2f cpu seconds\n'
-             % (example.cputime, check_duration)))
+            ('Test ran for %.2fs cpu, %.2fs wall\nCheck ran for %.2fs cpu, %.2fs wall\n'
+             % (example.cputime,
+                example.walltime,
+                check_timer.cputime,
+                check_timer.walltime)))
 
     def report_unexpected_exception(self, out, test, example, exc_info):
         r"""

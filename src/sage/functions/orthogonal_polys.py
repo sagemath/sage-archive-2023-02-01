@@ -22,22 +22,21 @@ recurrence relation
 
 .. MATH::
 
-    T_0(x) = 1 \, T_1(x) = x \, T_{n+1}(x) = 2xT_n(x) - T_{n-1}(x).
+    T_0(x) = 1, \qquad T_1(x) = x, \qquad T_{n+1}(x) = 2xT_n(x) - T_{n-1}(x).
 
 The Chebyshev polynomials of the second kind are defined by the
 recurrence relation
 
 .. MATH::
 
-    U_0(x) = 1 \, U_1(x) = 2x \, U_{n+1}(x) = 2xU_n(x) - U_{n-1}(x).
+    U_0(x) = 1, \qquad U_1(x) = 2x, \qquad U_{n+1}(x) = 2xU_n(x) - U_{n-1}(x).
 
-For integers `m,n`, they satisfy the orthogonality
-relations
+For integers `m,n`, they satisfy the orthogonality relations
 
 .. MATH::
 
     \int_{-1}^1 T_n(x)T_m(x)\,\frac{dx}{\sqrt{1-x^2}} =
-    \left\{ \begin{matrix} 0 &: n\ne m~~~~~\\ \pi &: n=m=0\\ \pi/2 &: n = m \neq 0 \end{matrix} \right.
+    \left\{ \begin{array}{cl} 0 & \text{if } n\neq m, \\ \pi & \text{if } n=m=0, \\ \pi/2 & \text{if } n = m \neq 0, \end{array} \right.
 
 and
 
@@ -45,7 +44,7 @@ and
 
     \int_{-1}^1 U_n(x)U_m(x)\sqrt{1-x^2}\,dx =\frac{\pi}{2}\delta_{m,n}.
 
-They are named after Pafnuty Chebyshev (alternative
+They are named after Pafnuty Chebyshev (Чебышёв 1821-1894, alternative
 transliterations: Tchebyshef or Tschebyscheff).
 
 Hermite polynomials
@@ -71,7 +70,8 @@ the latter flavor. These satisfy the orthogonality relation
     \int_{-\infty}^{\infty} H_n(x) H_m(x) \, e^{-x^2} \, dx
     = \sqrt{\pi} n! 2^n \delta_{nm}.
 
-They are named in honor of Charles Hermite.
+They are named in honor of Charles Hermite (1822-1901), but were first
+introduced by Laplace in 1810 and also studied by Chebyshev in 1859.
 
 Legendre polynomials
 --------------------
@@ -104,10 +104,10 @@ be given in terms of the "usual" Legendre polynomials by
 
 .. MATH::
 
-    \begin{array}{ll}
+    \begin{aligned}
     P_{\ell}^m(x) &= (-1)^m(1-x^2)^{m/2}\frac{d^m}{dx^m}P_\ell(x) \\
-    &= \frac{(-1)^m}{2^\ell \ell!} (1-x^2)^{m/2}\frac{d^{\ell+m}}{dx^{\ell+m}}(x^2-1)^{\ell}.
-    \end{array}
+    & = \frac{(-1)^m}{2^\ell \ell!} (1-x^2)^{m/2}\frac{d^{\ell+m}}{dx^{\ell+m}}(x^2-1)^{\ell}.
+    \end{aligned}
 
 Assuming `0 \le m \le \ell`, they satisfy the orthogonality relation:
 
@@ -126,7 +126,7 @@ Legendre polynomials by
 
     Q_{\ell}^m(x) = (-1)^m (1-x^2)^{m/2} \frac{d^m}{dx^m} Q_{\ell}(x).
 
-They are named after Adrien-Marie Legendre.
+They are named after Adrien-Marie Legendre (1752-1833).
 
 Laguerre polynomials
 --------------------
@@ -160,7 +160,7 @@ The generalized Laguerre polynomials may be defined by the Rodrigues formula:
 polynomials.) The simple Laguerre polynomials are recovered from
 the generalized polynomials by setting `\alpha = 0`.
 
-They are named after Edmond Laguerre.
+They are named after Edmond Laguerre (1834-1886).
 
 Jacobi polynomials
 ------------------
@@ -183,7 +183,7 @@ where `()_n` is Pochhammer's symbol (for the rising factorial),
     \sum_{m=0}^n \binom{n}{m} \frac{\Gamma(\alpha+\beta+n+m+1)}{\Gamma(\alpha+m+1)}
     \left(\frac{z-1}{2}\right)^m.
 
-They are named after Carl Jacobi.
+They are named after Carl Gustav Jaboc Jacobi (1804-1851).
 
 Gegenbauer polynomials
 ----------------------
@@ -322,7 +322,7 @@ where `Q_0(x; a,b,n) = 1` and `Q_1(x; a,b,n) = 1 - \frac{a+b+2}{(a+1)n} x` and
     C = \frac{(k-1) (k+b-1) (k+a+b+n)}{(2k+a+b-2) (2k+a+b-1)}.
 
 They are named for Wolfgang Hahn (1911-1998), although they were first
-introduced by Pafnuty Chebyshev in 1875.
+introduced by Chebyshev in 1875.
 
 
 Pochhammer symbol

@@ -366,7 +366,7 @@ class MathJax:
         elif mode == 'inline':
             html = r'<html>\({0}\)</html>'
         elif mode == 'display_left':
-            html = r'<html>\(\displaystyle{0}\)</html>'
+            html = r'<html>\(\displaystyle {0}\)</html>'
         elif mode == 'plain':
             return mathjax_string
         else:
@@ -418,13 +418,13 @@ class HTMLFragmentFactory(SageObject):
             <class 'sage.misc.html.HtmlFragment'>
 
             sage: html(1/2)
-            <html>\(\displaystyle\frac{1}{2}\)</html>
+            <html>\(\displaystyle \frac{1}{2}\)</html>
 
             sage: html('<a href="http://sagemath.org">sagemath</a>')
             <a href="http://sagemath.org">sagemath</a>
 
             sage: html('<a href="http://sagemath.org">sagemath</a>', strict=True)
-            <html>\(\displaystyle\verb|&lt;a|\verb| |\verb|href="http://sagemath.org">sagemath&lt;/a>|\)</html>
+            <html>\(\displaystyle \verb|&lt;a|\verb| |\verb|href="http://sagemath.org">sagemath&lt;/a>|\)</html>
 
         Display preference ``align_latex`` affects rendering of LaTeX expressions::
 
@@ -432,13 +432,13 @@ class HTMLFragmentFactory(SageObject):
             sage: dm = get_display_manager()
             sage: dm.preferences.align_latex = 'left'
             sage: html(1/2)
-            <html>\(\displaystyle\frac{1}{2}\)</html>
+            <html>\(\displaystyle \frac{1}{2}\)</html>
             sage: dm.preferences.align_latex = 'center'
             sage: html(1/2)
             <html>\[\frac{1}{2}\]</html>
             sage: dm.preferences.align_latex = None  # same with left
             sage: html(1/2)
-            <html>\(\displaystyle\frac{1}{2}\)</html>
+            <html>\(\displaystyle \frac{1}{2}\)</html>
         """
         # string obj is interpreted as an HTML in not strict mode
         if isinstance(obj, str) and not strict:

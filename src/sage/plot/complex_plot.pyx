@@ -1215,7 +1215,7 @@ def rgb_to_hls(rgb):
 
     - ``rgb`` --  an `N \times 3` array of floats with values
       in the range `[0, 1]`; the rgb values at each point. (Note that the input
-      can actually be of any dimension, such as `N \time M \times 3`, as long
+      can actually be of any dimension, such as `N \times M \times 3`, as long
       as the last dimension has length `3`).
 
     OUTPUT:

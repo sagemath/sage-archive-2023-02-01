@@ -124,7 +124,7 @@ Legendre polynomials by
 
 .. MATH::
 
-Q_{\ell}^m(x) = (-1)^m (1-x^2)^{m/2} \frac{d^m}{dx^m} Q_{\ell}(x).
+    Q_{\ell}^m(x) = (-1)^m (1-x^2)^{m/2} \frac{d^m}{dx^m} Q_{\ell}(x).
 
 They are named after Adrien-Marie Legendre.
 
@@ -271,8 +271,10 @@ where `\tilde{M}_n(x; b, c) = M_n(x; b, c) / (b)_x`, for `b > 0 ` and
 
 .. MATH::
 
-    c (n-1+b) M_n(x; b, c) = ((c-1) x + n-1 + c (n-1+b)) (b+n-1) M_{n-1}(x; b, c)
-    - (b+n-1) (b+n-2) (n-1) M_{n-2}(x; b, c),
+   \begin{aligned}
+    c (n-1+b) M_n(x; b, c) & = ((c-1) x + n-1 + c (n-1+b)) (b+n-1) M_{n-1}(x; b, c)
+    \\ & \qquad - (b+n-1) (b+n-2) (n-1) M_{n-2}(x; b, c),
+    \end{aligned}
 
 where `M_0(x; b, c) = 0` and `M_1(x; b, c) = (1 - c^{-1}) x + b`.
 
@@ -315,7 +317,7 @@ where `Q_0(x; a,b,n) = 1` and `Q_1(x; a,b,n) = 1 - \frac{a+b+2}{(a+1)n} x` and
 
 .. MATH::
 
-    A = \frac{(k+a+b) (k+a) (n-k+1)}{(2k+a+b-1) (2*k+a+b)},
+    A = \frac{(k+a+b) (k+a) (n-k+1)}{(2k+a+b-1) (2k+a+b)},
     \qquad
     C = \frac{(k-1) (k+b-1) (k+a+b+n)}{(2k+a+b-2) (2k+a+b-1)}.
 

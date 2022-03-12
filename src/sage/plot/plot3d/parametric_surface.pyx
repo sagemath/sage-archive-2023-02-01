@@ -22,15 +22,24 @@ EXAMPLES::
     sage: P = ParametricSurface(f, (srange(0,10,0.1), srange(-5,5.0,0.1)))
     sage: show(P)
     sage: S = MoebiusStrip(1,.2)
-    sage: S.is_enclosed()
-    False
-    sage: S.show(ParametricSurface(f, (srange(0,10,0.1), srange(-5,5.0,0.1))))
 
 .. PLOT::
 
     from sage.plot.plot3d.parametric_surface import ParametricSurface
     def f(x,y): return x+y, sin(x)*sin(y), x*y
     sphinx_plot(ParametricSurface(f, (srange(0,10,0.1), srange(-5,5.0,0.1))))
+
+::
+
+    sage: S.is_enclosed()
+    False
+    sage: show(S)
+
+.. PLOT::./
+
+    sphinx_plot(MoebiusStrip(1,.2))
+
+
 
 By default, the surface is colored with one single color. ::
 

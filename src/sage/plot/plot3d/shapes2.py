@@ -760,7 +760,7 @@ def sphere(center=(0, 0, 0), size=1, **kwds):
         sage: u,v = var('u v')
         sage: saddle = plot3d(u^2 - v^2, (u,-2,2), (v,-2,2))
         sage: sphere((0,0,1), color='red', opacity=0.5, aspect_ratio=[1,1,1]) + saddle
-        Graphics3d Object+
+        Graphics3d Object
 
     .. PLOT::
 

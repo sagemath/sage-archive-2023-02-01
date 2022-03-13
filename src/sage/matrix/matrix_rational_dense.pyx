@@ -381,7 +381,7 @@ cdef class Matrix_rational_dense(Matrix_dense):
                     num, den = [str_to_bytes(n) for n in s.split('/')]
                     if fmpz_set_str(fmpq_mat_entry_num(self._matrix, i, j), num, 32) or \
                        fmpz_set_str(fmpq_mat_entry_den(self._matrix, i, j), den, 32):
-                           raise RuntimeError("invalid pickle data")
+                        raise RuntimeError("invalid pickle data")
                 else:
                     s = str_to_bytes(s)
                     if fmpz_set_str(fmpq_mat_entry_num(self._matrix, i, j), s, 32):
@@ -530,7 +530,7 @@ cdef class Matrix_rational_dense(Matrix_dense):
         cdef Py_ssize_t i, j
         cdef mpq_t x, y, z
 
-        M = self._row_ambient_module()
+        M = self.row_ambient_module()
         w = <Vector_rational_dense> v
         ans = M.zero_vector()
 
@@ -2889,7 +2889,7 @@ cdef class Matrix_rational_dense(Matrix_dense):
             raise IndexError("row index out of range")
 
         cdef Py_ssize_t j
-        parent = self._row_ambient_module()
+        parent = self.row_ambient_module()
         cdef Vector_rational_dense v = Vector_rational_dense.__new__(Vector_rational_dense)
         v._init(self._ncols, parent)
         for j in range(self._ncols):
@@ -2933,7 +2933,7 @@ cdef class Matrix_rational_dense(Matrix_dense):
             raise IndexError("column index out of range")
 
         cdef Py_ssize_t j
-        parent = self._column_ambient_module()
+        parent = self.column_ambient_module()
         cdef Vector_rational_dense v = Vector_rational_dense.__new__(Vector_rational_dense)
         v._init(self._nrows, parent)
         for j in range(self._nrows):

@@ -12,7 +12,7 @@ AUTHORS:
 
 - Mike Zabrocki - `k`-bounded Hall Littlewood P and dual `k`-Schur functions (2012-12-02)
 """
-#*****************************************************************************
+# ****************************************************************************
 #       Copyright (C) 2012 Chris Berg <chrisjamesberg@gmail.com>
 #       Based off of similar code of Jason Bandlow, Anne Schilling
 #                                    and Mike Zabrocki
@@ -26,8 +26,8 @@ AUTHORS:
 #
 #  The full text of the GPL is available at:
 #
-#                  http://www.gnu.org/licenses/
-#*****************************************************************************
+#                  https://www.gnu.org/licenses/
+# ****************************************************************************
 
 from sage.structure.parent import Parent
 from sage.structure.unique_representation import UniqueRepresentation
@@ -38,7 +38,8 @@ from sage.categories.realizations import Realizations, Category_realization_of_p
 from sage.misc.cachefunc import cached_method
 from sage.misc.constant_function import ConstantFunction
 from sage.categories.graded_hopf_algebras_with_basis import GradedHopfAlgebrasWithBasis
-from sage.rings.all import Integer, ZZ
+from sage.rings.integer import Integer
+from sage.rings.integer_ring import ZZ
 from sage.cpython.getattr import raw_getattr
 
 
@@ -487,8 +488,9 @@ class KBoundedQuotientBases(Category_realization_of_parent):
             sage: KQB = KBoundedQuotientBases(Q)
             sage: KQB.super_categories()
             [Category of realizations of 3-Bounded Quotient of Symmetric Functions over Univariate Polynomial Ring in t over Rational Field with t=1,
-             Join of Category of graded hopf algebras with basis over Univariate Polynomial Ring in t over Rational Field and
-                     Category of quotients of algebras over Univariate Polynomial Ring in t over Rational Field]
+             Join of Category of graded hopf algebras with basis over Univariate Polynomial Ring in t over Rational Field
+                 and Category of quotients of algebras over Univariate Polynomial Ring in t over Rational Field
+                 and Category of quotients of graded modules with basis over Univariate Polynomial Ring in t over Rational Field]
         """
         R = self.base().base_ring()
         category = GradedHopfAlgebrasWithBasis(R)

@@ -232,8 +232,8 @@ AUTHORS:
 #                  https://www.gnu.org/licenses/
 # ****************************************************************************
 
-from sage.interfaces.all import (singular as singular_default,
-                                 magma as magma_default)
+from sage.interfaces.singular import singular as singular_default
+from sage.interfaces.magma import magma as magma_default
 
 from sage.interfaces.expect import StdOutContext
 
@@ -1100,7 +1100,7 @@ class MPolynomialIdeal_singular_repr(
 
         EXAMPLES::
 
-            sage: R.<x,y> = PolynomialRing(GF(2147483659),order='lex')
+            sage: R.<x,y> = PolynomialRing(GF(2147483659^2),order='lex')
             sage: I = R.ideal([x*y,x*y+1])
             sage: I.dimension()
             verbose 0 (...: multi_polynomial_ideal.py, dimension) Warning: falling back to very slow toy implementation.
@@ -1113,7 +1113,7 @@ class MPolynomialIdeal_singular_repr(
             sage: I.dimension()
             verbose 0 (...: multi_polynomial_ideal.py, dimension) Warning: falling back to very slow toy implementation.
             1
-            sage: R.<x,y> = PolynomialRing(GF(2147483659),order='lex')
+            sage: R.<x,y> = PolynomialRing(GF(2147483659^2),order='lex')
             sage: I = R.ideal(0)
             sage: I.dimension()
             verbose 0 (...: multi_polynomial_ideal.py, dimension) Warning: falling back to very slow toy implementation.
@@ -2408,7 +2408,7 @@ class MPolynomialIdeal_singular_repr(
         If the ground field's characteristic is too large for
         Singular, we resort to a toy implementation::
 
-            sage: R.<x,y> = PolynomialRing(GF(2147483659),order='lex')
+            sage: R.<x,y> = PolynomialRing(GF(2147483659^3),order='lex')
             sage: I=ideal([x^3-2*y^2,3*x+y^4])
             sage: I.variety()
             verbose 0 (...: multi_polynomial_ideal.py, groebner_basis) Warning: falling back to very slow toy implementation.
@@ -2571,19 +2571,19 @@ class MPolynomialIdeal_singular_repr(
             return []
 
         if isinstance(self.base_ring(), sage.rings.abc.ComplexField):
-          verbose("Warning: computations in the complex field are inexact; variety may be computed partially or incorrectly.", level=0)
+            verbose("Warning: computations in the complex field are inexact; variety may be computed partially or incorrectly.", level=0)
         P = self.ring()
         if ring is not None:
             P = P.change_ring(ring)
         try:
-          TI = self.triangular_decomposition('singular:triangLfak')
-          T = [list(each.gens()) for each in TI]
-        except TypeError: # conversion to Singular not supported
-          if self.ring().term_order().is_global():
-            verbose("Warning: falling back to very slow toy implementation.", level=0)
-            T = toy_variety.triangular_factorization(self.groebner_basis())
-          else:
-            raise TypeError("Local/unknown orderings not supported by 'toy_buchberger' implementation.")
+            TI = self.triangular_decomposition('singular:triangLfak')
+            T = [list(each.gens()) for each in TI]
+        except TypeError:  # conversion to Singular not supported
+            if self.ring().term_order().is_global():
+                verbose("Warning: falling back to very slow toy implementation.", level=0)
+                T = toy_variety.triangular_factorization(self.groebner_basis())
+            else:
+                raise TypeError("Local/unknown orderings not supported by 'toy_buchberger' implementation.")
 
         from sage.misc.converting_dict import KeyConvertingDict
         V = []
@@ -3243,7 +3243,7 @@ class NCPolynomialIdeal(MPolynomialIdeal_singular_repr, Ideal_nc):
         from sage.libs.singular.function import singular_function
         fun = singular_function(cmd)
         if arg is None:
-             return fun(self, ring=self.ring())
+            return fun(self, ring=self.ring())
 
         return fun(self, arg, ring=self.ring())
 
@@ -3749,12 +3749,12 @@ class MPolynomialIdeal( MPolynomialIdeal_singular_repr, \
         # separate next two tests to avoid unnecessary creation of
         # Groebner basis
         if S is not R:
-          if S.change_ring(order=R.term_order()) != R: # rings are unique
-            return NotImplemented
-          else:
-            # at this point, the rings are the same, but for the term order,
-            # and we can fix that easily
-            other_new = other.change_ring(R)
+            if S.change_ring(order=R.term_order()) != R:  # rings are unique
+                return NotImplemented
+            else:
+                # at this point, the rings are the same, but for the term order,
+                # and we can fix that easily
+                other_new = other.change_ring(R)
         else:
             other_new = other
 
@@ -4560,8 +4560,7 @@ class MPolynomialIdeal( MPolynomialIdeal_singular_repr, \
             Requires computation of a Groebner basis, which can be a very
             expensive operation.
         """
-        g = f.reduce(self.groebner_basis())
-        return self.ring()(g).is_zero()
+        return self.reduce(f).is_zero()
 
     def homogenize(self, var='h'):
         """
@@ -5130,9 +5129,9 @@ class MPolynomialIdeal( MPolynomialIdeal_singular_repr, \
         helper = PolynomialRing(k, nvars + 1, (L.variable_name(),) + R.variable_names(), order='lex')
         myminpoly = poly.subs(helper.gen(0))
 
-        l = [helper(str(f))  for f in self.gens()]
+        l = [helper(str(f)) for f in self.gens()]
         r = myminpoly.degree()
-        intermediate_ring = PolynomialRing(k, nvars*r+1, 'x')
+        intermediate_ring = PolynomialRing(k, nvars * r + 1, 'x')
         a = intermediate_ring.gen(0)
 
         # map e.g. x -> a^2*x_2 + a*x_1 + x_0, where x_0,..,x_2
@@ -5141,7 +5140,7 @@ class MPolynomialIdeal( MPolynomialIdeal_singular_repr, \
 
         variables = iter(intermediate_ring.gens()[1:])
         for _ in range(nvars):
-           map_ideal.append(sum([a**i * next(variables) for i in range(r)]))
+            map_ideal.append(sum([a**i * next(variables) for i in range(r)]))
 
         myminpoly = myminpoly(*map_ideal)
         l = [f(*map_ideal).reduce([myminpoly]) for f in l]
@@ -5151,17 +5150,138 @@ class MPolynomialIdeal( MPolynomialIdeal_singular_repr, \
         for f in l:
             t = []
             for i in reversed(range(r)):
-               g = f.coefficient(a**i)
-               f =  f - a**i * g
-               t.append(g)
+                g = f.coefficient(a**i)
+                f = f - a**i * g
+                t.append(g)
             result += reversed(t)
 
         # eliminate parameter
-        new_var_names = [str(var) + "%d"%i for var in R.gens() for i in range(r)]
+        new_var_names = [str(var) + "%d" % i for var in R.gens()
+                         for i in range(r)]
 
-        result_ring = PolynomialRing(k, nvars*r, new_var_names)
+        result_ring = PolynomialRing(k, nvars * r, new_var_names)
 
         map_ideal = (0,) + result_ring.gens()
         result = [h(*map_ideal) for h in result]
 
         return result_ring.ideal(result)
+
+
+class MPolynomialIdeal_quotient(MPolynomialIdeal):
+    r"""
+    An ideal in a quotient of a multivariate polynomial ring.
+
+    EXAMPLES::
+
+        sage: Q.<x,y,z,w> = QQ['x,y,z,w'].quotient(['x*y-z^2', 'y^2-w^2'])
+        sage: I = ideal(x + y^2 + z - 1)
+        sage: I
+        Ideal (w^2 + x + z - 1) of Quotient of Multivariate Polynomial Ring
+        in x, y, z, w over Rational Field by the ideal (x*y - z^2, y^2 - w^2)
+    """
+
+    def reduce(self, f):
+        r"""
+        Reduce an element modulo a Gröbner basis for this ideal.
+        This returns 0 if and only if the element is in this ideal. In any
+        case, this reduction is unique up to monomial orders.
+
+        EXAMPLES::
+
+            sage: R.<T,U,V,W,X,Y,Z> = PolynomialRing(QQ, order='lex')
+            sage: I = R.ideal([T^2+U^2-1, V^2+W^2-1, X^2+Y^2+Z^2-1])
+            sage: Q.<t,u,v,w,x,y,z> = R.quotient(I)
+            sage: J = Q.ideal([u*v-x, u*w-y, t-z])
+            sage: J.reduce(t^2 - z^2)
+            0
+            sage: J.reduce(u^2)
+            -z^2 + 1
+            sage: t^2 - z^2 in J
+            True
+            sage: u^2 in J
+            False
+        """
+        Q = self.ring()
+        gb = self.groebner_basis()
+        # In quotient rings, gb is not a Gröbner basis of self, but gb0 is
+        # a (possibly non-reduced) Gröbner basis of the preimage of self in
+        # the cover ring (see :trac:`33217`). We only use Gröbner bases of
+        # pre-existing ideals to potentially take advantage of caching.
+        gb0 = Q.defining_ideal().groebner_basis() + [g.lift() for g in gb]
+        f0 = f.lift().reduce(gb0)
+        return Q._element_constructor_from_element_class(f0, reduce=False)
+
+    def __richcmp__(self, other, op):
+        """
+        Compare ``self`` and ``other``.
+
+        INPUT:
+
+        - ``other`` -- an ideal in a quotient of a polynomial ring
+
+        OUTPUT:
+
+        boolean
+
+        TESTS::
+
+            sage: R.<T,U,V,W,X,Y,Z> = PolynomialRing(QQ, order='lex')
+            sage: Q.<t,u,v,w,x,y,z> = R.quotient([T^2+U^2-1, V^2+W^2-1, X^2+Y^2+Z^2-1])
+            sage: J = Q.ideal([u*v-x, u*w-y, t-z])
+            sage: I1 = J + Q.ideal(t^2-z^2)
+            sage: I1 <= J, I1 < J, I1 == J, I1 != J
+            (True, False, True, False)
+            sage: I2 = J + Q.ideal(t-z^2)
+            sage: J <= I2, J < I2, J > I2, J >= I2
+            (True, True, False, False)
+
+        The ideals must belong to the same quotient ring::
+
+            sage: J0 = R.ideal([g.lift() for g in J.gens()])
+            sage: J0 <= J
+            Traceback (most recent call last):
+            ...
+            AttributeError:...
+            sage: J <= J0
+            Traceback (most recent call last):
+            ...
+            TypeError: '<=' not supported...
+        """
+        # The implementation largely follows the superclass, but for simplicity
+        # does not deal with different rings or term orders.
+        if not isinstance(other, MPolynomialIdeal_quotient):
+            return NotImplemented
+
+        if self is other:
+            return rich_to_bool(op, 0)
+
+        # comparison for >= and > : swap the arguments
+        if op == op_GE:
+            return other.__richcmp__(self, op_LE)
+        elif op == op_GT:
+            return other.__richcmp__(self, op_LT)
+
+        if other.ring() != self.ring():
+            return NotImplemented
+
+        s_gens = self.gens()
+        o_gens = other.gens()
+        try:
+            if (s_gens == o_gens) or (set(s_gens) == set(o_gens)):
+                # the first clause works in the non-hashable case
+                return rich_to_bool(op, 0)
+        except TypeError:
+            pass
+
+        # comparison for <= and == and != and <
+        if op in [op_LE, op_EQ, op_NE, op_LT]:
+            contained = all(f in other for f in s_gens)
+            if op == op_LE:
+                return contained
+            contains = all(g in self for g in o_gens)
+            if op == op_EQ:
+                return contained and contains
+            elif op == op_NE:
+                return not (contained and contains)
+            else:  # remaining case <
+                return contained and not contains

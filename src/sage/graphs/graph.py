@@ -4118,8 +4118,8 @@ class Graph(GenericGraph):
             sage: edge_list = [(0,0,5), (0,1,1), (0,2,2), (0,3,3), (1,2,6)
             ....: , (1,2,3), (1,3,3), (2,3,3)]
             sage: g = Graph(edge_list, loops=True, multiedges=True)
-            sage: g.matching(use_edge_labels=True)
-            [(1, 2, 6), (0, 3, 3)]
+            sage: sorted(g.matching(use_edge_labels=True))
+            [(0, 3, 3), (1, 2, 6)]
 
         TESTS:
 
@@ -4166,7 +4166,7 @@ class Graph(GenericGraph):
                 else:
                     return Integer(len(d))
             else:
-                return [(u, v, L[frozenset((u, v))]) for u, v in d]
+                return EdgesView(Graph([(u, v, L[frozenset((u, v))]) for u, v in d]))
 
         elif algorithm == "LP":
             g = self
@@ -4193,7 +4193,7 @@ class Graph(GenericGraph):
                 else:
                     return Integer(sum(1 for fe in L if b[fe]))
             else:
-                return [(u, v, L[frozenset((u, v))]) for u, v in L if b[frozenset((u, v))]]
+                return EdgesView(Graph([(u, v, L[frozenset((u, v))]) for u, v in L if b[frozenset((u, v))]]))
 
         else:
             raise ValueError('algorithm must be set to either "Edmonds" or "LP"')

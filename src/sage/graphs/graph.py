@@ -7035,7 +7035,7 @@ class Graph(GenericGraph):
             return value
         elif algorithm == "networkx":
             import networkx
-            return networkx.node_clique_number(self.networkx_graph(), vertices, cliques)
+            return dict(networkx.node_clique_number(self.networkx_graph(), vertices, cliques))
         else:
             raise NotImplementedError("Only 'networkx' and 'cliquer' are supported.")
 

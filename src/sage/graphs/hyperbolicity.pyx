@@ -1,3 +1,4 @@
+# cython: binding=True
 r"""
 Hyperbolicity
 
@@ -153,7 +154,6 @@ from cysignals.memory cimport check_allocarray, sig_free
 from cysignals.signals cimport sig_on, sig_off
 from memory_allocator cimport MemoryAllocator
 
-from sage.graphs.graph import Graph
 from sage.graphs.distances_all_pairs cimport c_distances_all_pairs
 from sage.arith.all import binomial
 from sage.rings.integer_ring import ZZ
@@ -207,6 +207,7 @@ def _my_subgraph(G, vertices, relabel=False, return_map=False):
         sage: H.vertices()
         [0, 2, 4, 6]
     """
+    from sage.graphs.graph import Graph
     if not isinstance(G,Graph):
         raise ValueError("the input parameter must be a Graph")
     H = Graph()
@@ -522,7 +523,7 @@ cdef inline pair** sort_pairs(uint32_t N,
     cdef pair** pairs_of_length = <pair**>check_allocarray(D + 1, sizeof(pair*))
     cdef unsigned short* p_to_include
     cdef uint32_t i, j, k
-    nb_p[0] = 0;
+    nb_p[0] = 0
 
     # fills nb_pairs_of_length and nb_p
     memset(nb_pairs_of_length, 0, (D + 1) * sizeof(uint32_t))
@@ -770,7 +771,7 @@ cdef tuple hyperbolicity_BCCM(int N,
                                 n_acc += 1
                                 if 2 * dist_central[c] + h_UB - h > dist_a[c] + dist_b[c]:
                                     # Vertex c is valuable
-                                    val[n_val] = c;
+                                    val[n_val] = c
                                     n_val += 1
                 else:
                     break
@@ -780,12 +781,12 @@ cdef tuple hyperbolicity_BCCM(int N,
         for i in range(n_val):
             c = val[i]
             for j in range(cont_mate[c]):
-                d = mate[c][j];
+                d = mate[c][j]
                 if (acc_bool[d]):
                     nq += 1
                     S1 = h_UB + distances[c][d]
-                    S2 = dist_a[c] + dist_b[d];
-                    S3 = dist_a[d] + dist_b[c];
+                    S2 = dist_a[c] + dist_b[d]
+                    S3 = dist_a[d] + dist_b[c]
                     if S2 > S3:
                         hh = S1 - S2
                     else:
@@ -1273,6 +1274,7 @@ def hyperbolicity(G,
     if algorithm == "CCL+":
         algorithm = "CCL+FA"
 
+    from sage.graphs.graph import Graph
     if not isinstance(G, Graph):
         raise ValueError("the input parameter must be a Graph")
     if not algorithm in ['basic', 'CCL', 'CCL+FA', 'BCCM', 'dom']:
@@ -1654,6 +1656,7 @@ def hyperbolicity_distribution(G, algorithm='sampling', sampling_size=10**6):
         ...
         ValueError: the input Graph must be connected
     """
+    from sage.graphs.graph import Graph
     if not isinstance(G, Graph):
         raise ValueError("the input parameter must be a Graph")
     # The hyperbolicity is defined on connected graphs

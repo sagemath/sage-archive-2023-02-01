@@ -164,6 +164,9 @@ The technique of using symbolic links pointing into ``SAGE_ROOT/src``
 has allowed the modularization effort to keep the ``SAGE_ROOT/src``
 tree monolithic: Modularization has been happening behind the scenes
 and will not change where Sage developers find the source files.
+When adding a new distribution package that uses a symbolic link pointing into
+``SAGE_ROOT/src``, please update ``search.exclude`` in
+``SAGE_ROOT/.vscode/settings.json``.
 
 Some of these files may actually be generated from source files with suffix ``.m4`` by the
 ``SAGE_ROOT/bootstrap`` script via the ``m4`` macro processor.
@@ -204,7 +207,7 @@ that are imposed by the build-time dependencies.
 
 We can define some meaningful small distributions that just consist of
 a single or a few Cython modules. For example, **sagemath-tdlib**
-(https://trac.sagemath.org/ticket/29864) would just package the single
+(:trac:`29864`) would just package the single
 Cython module that must be linked with ``tdlib``,
 :mod:`sage.graphs.graph_decompositions.tdlib`. Starting with the Sage
 9.6 development cycle, as soon as namespace packages are activated, we

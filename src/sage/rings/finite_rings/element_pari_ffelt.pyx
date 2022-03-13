@@ -1282,7 +1282,7 @@ cdef class FiniteFieldElement_pari_ffelt(FinitePolyExtElement):
 
             sage: F = FiniteField(next_prime(1000)^2, 'a', impl='pari_ffelt')
             sage: a = F.multiplicative_generator ()
-            sage: gap._coerce_(a)
+            sage: gap.coerce(a)
             Traceback (most recent call last):
             ...
             TypeError: order must be at most 65536

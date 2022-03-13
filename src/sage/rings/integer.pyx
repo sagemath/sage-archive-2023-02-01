@@ -776,7 +776,7 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
             sage: n._im_gens_(R, [R(1)])
             7
         """
-        return codomain._coerce_(self)
+        return codomain.coerce(self)
 
     cdef _xor(Integer self, Integer other):
         cdef Integer x

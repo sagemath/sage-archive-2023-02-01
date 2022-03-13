@@ -401,7 +401,7 @@ class RationalField(Singleton, number_field_base.NumberField):
             False
         """
         try:
-            return im_gens[0] == codomain._coerce_(self.gen(0))
+            return im_gens[0] == codomain.coerce(self.gen(0))
         except TypeError:
             return False
 

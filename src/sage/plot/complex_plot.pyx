@@ -179,20 +179,20 @@ cdef inline double cyclic_linear_mag_to_lightness(double r, double base=10):
     This tests it implicitly::
 
         sage: from sage.plot.complex_plot import complex_to_rgb
-        sage: complex_to_rgb([[0, 1, 10]], contoured=True, contour_type="linear")
-        array([[[1.  , 0.15, 0.15],
-                [1.  , 0.1 , 0.1 ],
-                [1.  , 0.15, 0.15]]])
+        sage: complex_to_rgb([[1, 5, 11]], contoured=True, contour_type="linear")
+        array([[[1. , 0.1, 0.1],
+                [0.9, 0. , 0. ],
+                [1. , 0.1, 0.1]]])
 
-    In the above example, note that both `0` and `10` have the same imaginary
+    In the above example, note that both `1` and `11` have the same imaginary
     part and are precisely `10` (the default contour separation) apart. If we
     set contours to be multiples of `3` apart, the values are no longer the
-    same, but the values for `1` and `10` should be::
+    same, but the values for `5` and `11` should be::
 
-        sage: complex_to_rgb([[0, 1, 10]], contoured=True, contour_type="linear", contour_base=3)
-        array([[[1.        , 0.15      , 0.15      ],
-                [0.98333333, 0.        , 0.        ],
-                [0.98333333, 0.        , 0.        ]]])
+        sage: complex_to_rgb([[1, 5, 11]], contoured=True, contour_type="linear", contour_base=3)
+        array([[[0.98333333, 0.        , 0.        ],
+                [0.81666667, 0.        , 0.        ],
+                [0.81666667, 0.        , 0.        ]]])
     """
     rem = (r / base) % 1
     if rem < 0:  # Choose positive mod representative
@@ -241,22 +241,22 @@ cdef inline double mag_and_arg_to_lightness(double r, double arg,
         array([[[1.        , 0.        , 0.        ],
                 [1.        , 0.15      , 0.15      ],
                 [1.        , 0.06951798, 0.06951798]]])
-        sage: complex_to_rgb([[0, 1 + 1j, -3 - 4j]], tiled=True)
+        sage: complex_to_rgb([[0, 1 + 1j, -3 - 5j]], tiled=True)
         array([[[1.        , 0.        , 0.        ],
                 [0.9625    , 0.721875  , 0.        ],
-                [0.        , 0.10883738, 0.95055893]]])
+                [0.        , 0.01371897, 0.85409323]]])
 
     Adjusting the tiling parameters should create relatively small
     differences::
 
-        sage: complex_to_rgb([[0, 1 + 1j, -3 - 4j]], tiled=True, nphases=15)
+        sage: complex_to_rgb([[0, 1 + 1j, -3 - 5j]], tiled=True, nphases=15)
         array([[[1.        , 0.        , 0.        ],
                 [0.80625   , 0.6046875 , 0.        ],
-                [0.        , 0.10202707, 0.89107941]]])
-        sage: complex_to_rgb([[0, 1 + 1j, -3 - 4j]], tiled=True, contour_base=5, nphases=15)
+                [0.        , 0.01243417, 0.77410628]]])
+        sage: complex_to_rgb([[0, 1 + 1j, -3 - 5j]], tiled=True, contour_base=5, nphases=15)
         array([[[1.        , 0.        , 0.        ],
                 [0.87741543, 0.65806157, 0.        ],
-                [0.        , 0.11124213, 0.97156143]]])
+                [0.        , 0.01423401, 0.88615776]]])
     """
     if r < 1e-10:
         return 0.0

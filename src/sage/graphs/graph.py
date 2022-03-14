@@ -4166,7 +4166,7 @@ class Graph(GenericGraph):
                 else:
                     return Integer(len(d))
             else:
-                return EdgesView(Graph([(u, v, L[frozenset((u, v))]) for u, v in d]))
+                return EdgesView(Graph([(u, v, L[frozenset((u, v))]) for u, v in d], format='list_of_edges'))
 
         elif algorithm == "LP":
             g = self
@@ -4193,7 +4193,7 @@ class Graph(GenericGraph):
                 else:
                     return Integer(sum(1 for fe in L if b[fe]))
             else:
-                return EdgesView(Graph([(u, v, L[frozenset((u, v))]) for u, v in L if b[frozenset((u, v))]]))
+                return EdgesView(Graph([(u, v, L[frozenset((u, v))]) for u, v in L if b[frozenset((u, v))]], format='list_of_edges'))
 
         else:
             raise ValueError('algorithm must be set to either "Edmonds" or "LP"')

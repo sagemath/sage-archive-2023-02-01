@@ -1058,7 +1058,7 @@ class SymmetricFunctionsBases(Category_realization_of_parent):
 
             The representation corresponding to `\mathbf{LS}_\lambda` exhibits
             representation stability [Chu2012]_, and a sharp bound is given
-            in [HR2017].
+            in [HR2017]_.
 
             INPUT:
 
@@ -1073,7 +1073,7 @@ class SymmetricFunctionsBases(Category_realization_of_parent):
 
             EXAMPLES:
 
-            The first few values of `\mathbf{W}_{(n)} = \omega(L_n)`::
+            The first few values of `\mathbf{LS}_{(n)}`::
 
                 sage: Sym = SymmetricFunctions(ZZ)
                 sage: h = Sym.h()

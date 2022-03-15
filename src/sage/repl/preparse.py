@@ -194,7 +194,7 @@ however, are::
     sage: f'{x:10r}'
     Traceback (most recent call last):
     ...
-    ValueError: unknown format code 'r' for object of type 'int'
+    ValueError: Unknown format code 'r' for object of type 'int'
     sage: f'{x:{10r}}'
     '        20'
 

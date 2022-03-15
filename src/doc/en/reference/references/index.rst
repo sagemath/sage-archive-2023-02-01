@@ -4005,11 +4005,11 @@ REFERENCES:
             Combinatorica, 1(1), 1981, 63-73.
             :doi:`10.1007/BF02579178`.
 
-.. [LS1986] G. I. Lehrer, L. Solomon,
+.. [LS1986] \G. I. Lehrer, L. Solomon,
             *On the action of the symmetric group on the cohomology of
-            the complement of its reflecting hyperplanes*
+            the complement of its reflecting hyperplanes*.
             J. Algebra, 104(2), 1986, 410-424.
-            :doi:`10.1016/0021-8693(86)90225-5`. 
+            :doi:`10.1016/0021-8693(86)90225-5`.
 
 .. [LS1990] \A. Lascoux, M.-P. Schutzenberger.
             Keys and standard bases, invariant theory and tableaux.

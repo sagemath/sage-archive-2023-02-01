@@ -1034,15 +1034,15 @@ class SymmetricFunctionsBases(Category_realization_of_parent):
 
         def lehrer_solomon(self, lam):
             r"""
-            Return the Lehrer-Solomon symmetric function (also known as the Whitney
-            homology character) corresponding to the partition ``lam`` written in the
-            basis ``self``.
+            Return the Lehrer-Solomon symmetric function (also known as the
+            Whitney homology character) corresponding to the partition ``lam``
+            written in the basis ``self``.
 
             Let `\lambda \vdash n` be a partition. The *Lehrer-Solomon
             symmetric function* `\mathbf{LS}_\lambda` corresponding to
             `\lambda` is the Frobenius characteristic of the representation
             denoted `\operatorname{Ind}_{Z_\lambda}^{S_n}(\xi_\lambda)` in
-            theorem 4.5 of [LS1986]_ or `W_\lambda` in theorem 2.7 of
+            theorem 4.5 of [LS1986]_ or `W_\lambda` in Theorem 2.7 of
             [HR2017]_. It was first computed as a symmetric function in
             [Sun1994]_.
 
@@ -1052,19 +1052,18 @@ class SymmetricFunctionsBases(Category_realization_of_parent):
             sizes corresponding to `\lambda` (after reordering appropriately).
 
             It can be computed using Sundaram's plethystic formula
-            (see [Sun1994]_ theorem 1.8):
+            (see [Sun1994]_ Theorem 1.8):
 
             .. MATH::
 
                   \mathbf{LS}_\lambda =
                     \prod_{\text{odd } j \geq 1} h_{m_j}[\pi_j]
-                    \prod_{\text{even } j \geq 2} e_{m_j}[\pi_j]
+                    \prod_{\text{even } j \geq 2} e_{m_j}[\pi_j],
 
-
-            where `h_{m_j}` are complete homogeneous symmetric functions, `e_{m_j}`
-            are elementary symmetric functions, and `\pi_j` are the images of the
-            Gessel-Reutenauer symmetric function `\mathbf{GR}_{(j)}`
-            (see :meth:`gessel_reutenauer`) under the
+            where `h_{m_j}` are complete homogeneous symmetric functions,
+            `e_{m_j}` are elementary symmetric functions, and `\pi_j` are
+            the images of the Gessel-Reutenauer symmetric function
+            `\mathbf{GR}_{(j)}` (see :meth:`gessel_reutenauer`) under the
             involution `\omega` (i.e. :meth:`omega_involution`)::
 
                 sage: Sym = SymmetricFunctions(QQ)
@@ -1110,7 +1109,6 @@ class SymmetricFunctionsBases(Category_realization_of_parent):
                 sage: h.lehrer_solomon(5)
                 h[2, 1, 1, 1] - h[2, 2, 1] - h[3, 1, 1] + h[3, 2] + h[4, 1] - h[5]
 
-
             The :meth:`whitney_homology_character` method is an alias::
 
                 sage: Sym = SymmetricFunctions(ZZ)
@@ -1132,6 +1130,8 @@ class SymmetricFunctionsBases(Category_realization_of_parent):
                 s[2, 1] + s[3]
                 sage: s.lehrer_solomon([2, 2, 1])
                 s[3, 1, 1] + s[3, 2] + s[4, 1]
+                sage: s.lehrer_solomon([4, 1])
+                s[2, 1, 1, 1] + s[2, 2, 1] + 2*s[3, 1, 1] + s[3, 2] + s[4, 1]
 
             TESTS:
 
@@ -1143,6 +1143,9 @@ class SymmetricFunctionsBases(Category_realization_of_parent):
                 sage: P.lehrer_solomon(3) == P(h.lehrer_solomon(3))
                 True
 
+                sage: s = SymmetricFunctions(GF(2)).s()
+                sage: s.lehrer_solomon([4,1])
+                s[2, 1, 1, 1] + s[2, 2, 1] + s[3, 2] + s[4, 1]
             """
             if lam in ZZ:
                 lam = [lam]
@@ -1156,13 +1159,13 @@ class SymmetricFunctionsBases(Category_realization_of_parent):
                 p = self.realization_of().power()
                 h = self.realization_of().complete()
                 e = self.realization_of().elementary()
-                from sage.arith.all import moebius, squarefree_divisors
+                from sage.arith.misc import moebius, squarefree_divisors
                 mu = moebius
                 def component(i, g): # == h_g[L_i] or e_g[L_i]
-                    L_i = p.sum_of_terms([(_Partitions([d] * (i//d)), R(mu(d)))
-                                          for d in squarefree_divisors(i)],
+                    L_i = p.sum_of_terms(((_Partitions([d] * (i//d)), R(mu(d)))
+                                           for d in squarefree_divisors(i)),
                                           distinct=True) / i
-                    if (i % 2) == 0:
+                    if i % 2 == 0:
                         return p(e[g]).plethysm(L_i.omega())
                     else:
                         return p(h[g]).plethysm(L_i.omega())

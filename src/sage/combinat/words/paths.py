@@ -418,8 +418,7 @@ class WordPaths_all(FiniteWords):
         ls = len(steps)
         la = alphabet.cardinality()
         if la != ls and la != 2*ls:
-            raise TypeError("size of steps (=%s) must equal the size \
-of alphabet (=%s) or half the size of alphabet."%(len(steps),alphabet.cardinality()))
+            raise TypeError("size of steps (=%s) must equal the size of alphabet (=%s) or half the size of alphabet" % (len(steps), alphabet.cardinality()))
 
         #Construction of the steps
         from sage.structure.element import Vector
@@ -1045,7 +1044,7 @@ class FiniteWordPath_all(SageObject):
             sage: f._repr_()
             'Path: ababab'
         """
-        return "Path: %s"%self.string_rep()
+        return "Path: %s" % self.string_rep()
 
     def points(self, include_last=True):
         r"""

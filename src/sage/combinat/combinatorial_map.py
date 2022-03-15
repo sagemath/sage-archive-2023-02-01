@@ -253,7 +253,7 @@ class CombinatorialMap(object):
             sage: p.left_tableau.__repr__()
             'Combinatorial map: Robinson-Schensted insertion tableau'
         """
-        return "Combinatorial map: %s" %self.name()
+        return "Combinatorial map: %s" % self.name()
 
     def _sage_src_lines_(self):
         r"""

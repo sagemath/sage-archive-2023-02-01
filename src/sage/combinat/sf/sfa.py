@@ -1042,7 +1042,7 @@ class SymmetricFunctionsBases(Category_realization_of_parent):
             symmetric function* `\mathbf{LS}_\lambda` corresponding to
             `\lambda` is the Frobenius characteristic of the representation
             denoted `\operatorname{Ind}_{Z_\lambda}^{S_n}(\xi_\lambda)` in
-            theorem 4.5 of [LS1986]_ or `W_\lambda` in Theorem 2.7 of
+            Theorem 4.5 of [LS1986]_ or `W_\lambda` in Theorem 2.7 of
             [HR2017]_. It was first computed as a symmetric function in
             [Sun1994]_.
 

@@ -256,7 +256,7 @@ are given by the hypergeometric series
 
 .. MATH::
 
-    K_j(x; n, p) = (-1)^j \binom{n}{j} p^j
+    M_n(x; n, p) = (-1)^j \binom{n}{j} p^j
     \,_{2}F_1\left(-j,-x; -n; p^{-1}\right).
 
 They satisfy an orthogonality relation:
@@ -2558,8 +2558,24 @@ gen_laguerre = Func_gen_laguerre()
 
 
 class Func_krawtchouk(OrthogonalFunction):
-    """
-    Krawtchouk polynomials.
+    r"""
+    Krawtchouk polynomials `K_j(x; n, p)`.
+
+    INPUT:
+
+    - ``j`` -- the degree
+    - ``x`` -- the independent variable `x`
+    - ``n`` -- the number of discrete points
+    - ``p`` -- the parameter `p`
+
+    .. SEEALSO::
+
+        :func:`sage.coding.delsarte_bounds.krawtchouk`
+        `\bar{K}^{n,q}_l(x)`, which are related by
+
+        .. MATH::
+
+            (-q)^j \bar{K}^{n,q^{-1}}_j(x) = K_j(x; n, 1-q).
 
     EXAMPLES:
 
@@ -2576,6 +2592,13 @@ class Func_krawtchouk(OrthogonalFunction):
         [               0                0  6*(p - 1)^2*p^2                0                0]
         [               0                0                0 -4*(p - 1)^3*p^3                0]
         [               0                0                0                0    (p - 1)^4*p^4]
+
+    We verify the relationship between the Krawtchouk implementations::
+
+        sage: q = SR.var('q')
+        sage: all(codes.bounds.krawtchouk(n, 1/q, j, x)*(-q)^j
+        ....:     == krawtchouk(j, x, n, 1-q) for j in range(n+1))
+        True
     """
     def __init__(self):
         """
@@ -2676,8 +2699,14 @@ krawtchouk = Func_krawtchouk()
 
 
 class Func_meixner(OrthogonalFunction):
-    """
-    Meixner polynomials.
+    r"""
+    Meixner polynomials `M_n(x; b, c)`.
+
+    INPUT:
+
+    - ``n`` -- the degree
+    - ``x`` -- the independent variable `x`
+    - ``b, c`` -- the parameters `b, c`
     """
     def __init__(self):
         """
@@ -2792,7 +2821,14 @@ meixner = Func_meixner()
 
 class Func_hahn(OrthogonalFunction):
     r"""
-    Hahn polynomials.
+    Hahn polynomials `Q_k(x; a, b, n)`.
+
+    INPUT:
+
+    - ``k`` -- the degree
+    - ``x`` -- the independent variable `x`
+    - ``a, b`` -- the parameters `a, b`
+    - ``n`` -- the number of discrete points
 
     EXAMPLES:
 

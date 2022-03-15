@@ -1100,7 +1100,7 @@ class MPolynomialIdeal_singular_repr(
 
         EXAMPLES::
 
-            sage: R.<x,y> = PolynomialRing(GF(2147483659),order='lex')
+            sage: R.<x,y> = PolynomialRing(GF(2147483659^2),order='lex')
             sage: I = R.ideal([x*y,x*y+1])
             sage: I.dimension()
             verbose 0 (...: multi_polynomial_ideal.py, dimension) Warning: falling back to very slow toy implementation.
@@ -1113,7 +1113,7 @@ class MPolynomialIdeal_singular_repr(
             sage: I.dimension()
             verbose 0 (...: multi_polynomial_ideal.py, dimension) Warning: falling back to very slow toy implementation.
             1
-            sage: R.<x,y> = PolynomialRing(GF(2147483659),order='lex')
+            sage: R.<x,y> = PolynomialRing(GF(2147483659^2),order='lex')
             sage: I = R.ideal(0)
             sage: I.dimension()
             verbose 0 (...: multi_polynomial_ideal.py, dimension) Warning: falling back to very slow toy implementation.
@@ -2408,7 +2408,7 @@ class MPolynomialIdeal_singular_repr(
         If the ground field's characteristic is too large for
         Singular, we resort to a toy implementation::
 
-            sage: R.<x,y> = PolynomialRing(GF(2147483659),order='lex')
+            sage: R.<x,y> = PolynomialRing(GF(2147483659^3),order='lex')
             sage: I=ideal([x^3-2*y^2,3*x+y^4])
             sage: I.variety()
             verbose 0 (...: multi_polynomial_ideal.py, groebner_basis) Warning: falling back to very slow toy implementation.
@@ -2571,19 +2571,19 @@ class MPolynomialIdeal_singular_repr(
             return []
 
         if isinstance(self.base_ring(), sage.rings.abc.ComplexField):
-          verbose("Warning: computations in the complex field are inexact; variety may be computed partially or incorrectly.", level=0)
+            verbose("Warning: computations in the complex field are inexact; variety may be computed partially or incorrectly.", level=0)
         P = self.ring()
         if ring is not None:
             P = P.change_ring(ring)
         try:
-          TI = self.triangular_decomposition('singular:triangLfak')
-          T = [list(each.gens()) for each in TI]
-        except TypeError: # conversion to Singular not supported
-          if self.ring().term_order().is_global():
-            verbose("Warning: falling back to very slow toy implementation.", level=0)
-            T = toy_variety.triangular_factorization(self.groebner_basis())
-          else:
-            raise TypeError("Local/unknown orderings not supported by 'toy_buchberger' implementation.")
+            TI = self.triangular_decomposition('singular:triangLfak')
+            T = [list(each.gens()) for each in TI]
+        except TypeError:  # conversion to Singular not supported
+            if self.ring().term_order().is_global():
+                verbose("Warning: falling back to very slow toy implementation.", level=0)
+                T = toy_variety.triangular_factorization(self.groebner_basis())
+            else:
+                raise TypeError("Local/unknown orderings not supported by 'toy_buchberger' implementation.")
 
         from sage.misc.converting_dict import KeyConvertingDict
         V = []
@@ -3243,7 +3243,7 @@ class NCPolynomialIdeal(MPolynomialIdeal_singular_repr, Ideal_nc):
         from sage.libs.singular.function import singular_function
         fun = singular_function(cmd)
         if arg is None:
-             return fun(self, ring=self.ring())
+            return fun(self, ring=self.ring())
 
         return fun(self, arg, ring=self.ring())
 
@@ -3749,12 +3749,12 @@ class MPolynomialIdeal( MPolynomialIdeal_singular_repr, \
         # separate next two tests to avoid unnecessary creation of
         # Groebner basis
         if S is not R:
-          if S.change_ring(order=R.term_order()) != R: # rings are unique
-            return NotImplemented
-          else:
-            # at this point, the rings are the same, but for the term order,
-            # and we can fix that easily
-            other_new = other.change_ring(R)
+            if S.change_ring(order=R.term_order()) != R:  # rings are unique
+                return NotImplemented
+            else:
+                # at this point, the rings are the same, but for the term order,
+                # and we can fix that easily
+                other_new = other.change_ring(R)
         else:
             other_new = other
 
@@ -5129,9 +5129,9 @@ class MPolynomialIdeal( MPolynomialIdeal_singular_repr, \
         helper = PolynomialRing(k, nvars + 1, (L.variable_name(),) + R.variable_names(), order='lex')
         myminpoly = poly.subs(helper.gen(0))
 
-        l = [helper(str(f))  for f in self.gens()]
+        l = [helper(str(f)) for f in self.gens()]
         r = myminpoly.degree()
-        intermediate_ring = PolynomialRing(k, nvars*r+1, 'x')
+        intermediate_ring = PolynomialRing(k, nvars * r + 1, 'x')
         a = intermediate_ring.gen(0)
 
         # map e.g. x -> a^2*x_2 + a*x_1 + x_0, where x_0,..,x_2
@@ -5140,7 +5140,7 @@ class MPolynomialIdeal( MPolynomialIdeal_singular_repr, \
 
         variables = iter(intermediate_ring.gens()[1:])
         for _ in range(nvars):
-           map_ideal.append(sum([a**i * next(variables) for i in range(r)]))
+            map_ideal.append(sum([a**i * next(variables) for i in range(r)]))
 
         myminpoly = myminpoly(*map_ideal)
         l = [f(*map_ideal).reduce([myminpoly]) for f in l]
@@ -5150,15 +5150,16 @@ class MPolynomialIdeal( MPolynomialIdeal_singular_repr, \
         for f in l:
             t = []
             for i in reversed(range(r)):
-               g = f.coefficient(a**i)
-               f =  f - a**i * g
-               t.append(g)
+                g = f.coefficient(a**i)
+                f = f - a**i * g
+                t.append(g)
             result += reversed(t)
 
         # eliminate parameter
-        new_var_names = [str(var) + "%d"%i for var in R.gens() for i in range(r)]
+        new_var_names = [str(var) + "%d" % i for var in R.gens()
+                         for i in range(r)]
 
-        result_ring = PolynomialRing(k, nvars*r, new_var_names)
+        result_ring = PolynomialRing(k, nvars * r, new_var_names)
 
         map_ideal = (0,) + result_ring.gens()
         result = [h(*map_ideal) for h in result]

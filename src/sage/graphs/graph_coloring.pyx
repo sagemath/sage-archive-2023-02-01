@@ -66,7 +66,6 @@ Methods
 
 from copy import copy
 from sage.combinat.matrices.dlxcpp import DLXCPP
-from sage.plot.colors import rainbow
 from libcpp.vector cimport vector
 from libcpp.pair cimport pair
 
@@ -185,6 +184,8 @@ def all_graph_colorings(G, n, count_only=False, hex_colors=False, vertex_color_d
         1
         1
     """
+    from sage.plot.colors import rainbow
+
     G._scream_if_not_simple(allow_multiple_edges=True)
 
     if not n:
@@ -1189,7 +1190,7 @@ def b_coloring(g, k, value_only=True, solver=None, verbose=0,
 
     # a color class is used if and only if it has one b-vertex
     for i in range(k):
-       p.add_constraint(p.sum(b[w,i] for w in g) - is_used[i], min=0, max=0)
+        p.add_constraint(p.sum(b[w,i] for w in g) - is_used[i], min=0, max=0)
 
 
     # We want to maximize the number of used colors

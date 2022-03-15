@@ -420,7 +420,7 @@ cdef extern from "methodobject.h":
     cdef int PyCFunction_GetFlags(object op) except -1
 
 import os
-from os.path import relpath,normpath,commonprefix
+from os.path import relpath, normpath, commonprefix
 from sage.misc.sageinspect import sage_getfile, sage_getsourcelines, sage_getargspec
 from inspect import isfunction
 
@@ -2223,7 +2223,7 @@ cdef class CachedMethodCallerNoArgs(CachedFunction):
             try:
                 F = getattr(inst.__class__,f)
             except AttributeError:
-                 F = getattr(inst,f)
+                F = getattr(inst,f)
             if isinstance(F,CachedFunction):
                 f = F.f
             else:
@@ -3348,11 +3348,10 @@ class FileCache(object):
             sage: FC[((),())]
             1
         """
-        from sage.misc.misc import sage_makedirs
         if not dir or dir[-1] != '/':
             dir += '/'
         self._dir = dir
-        sage_makedirs(dir)
+        os.makedirs(dir, exist_ok=True)
 
         self._prefix = prefix + '-'
 
@@ -3635,8 +3634,8 @@ class FileCache(object):
             del self._cache[key]
         if os.path.exists(f + '.sobj'):
             os.remove(f + '.sobj')
-        if  os.path.exists(f + '.key.sobj'):
-           os.remove(f + '.key.sobj')
+        if os.path.exists(f + '.key.sobj'):
+            os.remove(f + '.key.sobj')
 
 
 class DiskCachedFunction(CachedFunction):

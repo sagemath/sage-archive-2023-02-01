@@ -343,7 +343,8 @@ from sage.misc.misc_c import prod
 from sage.misc.temporary_file import tmp_filename
 from sage.arith.srange import xsrange
 from sage.modules.free_module_element import vector
-from sage.plot.colors import rainbow
+from sage.misc.lazy_import import lazy_import
+lazy_import("sage.plot.colors", "rainbow")
 from sage.arith.functions import lcm
 from sage.arith.misc import falling_factorial
 from sage.rings.integer import Integer
@@ -5172,8 +5173,9 @@ class SandpileDivisor(dict):
         # compute
         try:
             import os
-            path_to_zsolve = FourTi2Executable('zsolve').executable
-            os.system(path_to_zsolve + ' -q ' + lin_sys + ' > ' + lin_sys_log)
+            import shlex
+            path_to_zsolve = FourTi2Executable('zsolve').absolute_filename()
+            os.system(shlex.quote(path_to_zsolve) + ' -q ' + lin_sys + ' > ' + lin_sys_log)
             # process the results
             zhom_file = open(lin_sys_zhom,'r')
         except IOError:

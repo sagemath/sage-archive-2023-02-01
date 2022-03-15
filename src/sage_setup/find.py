@@ -300,8 +300,8 @@ def find_extra_files(src_dir, modules, cythonized_dir, special_filenames=[]):
         sage: extras = find_extra_files(SAGE_SRC, ["sage"], cythonized_dir)
         sage: extras["sage/libs/mpfr"]
         [...sage/libs/mpfr/types.pxd...]
-        sage: extras["sage/ext/interpreters"]
-        ['.../sage/ext/interpreters/wrapper_cdf.pxd', ...wrapper_cdf.h...]
+        sage: sorted(extras["sage/ext/interpreters"])
+        ['.../sage/ext/interpreters/wrapper_cdf.h', ...wrapper_cdf.pxd...]
     """
     from Cython.Utils import is_package_dir
 

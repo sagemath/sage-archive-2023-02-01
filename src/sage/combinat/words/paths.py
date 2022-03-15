@@ -396,7 +396,7 @@ class WordPaths_all(FiniteWords):
             sage: WordPaths_all('abA', d)
             Traceback (most recent call last):
             ...
-            TypeError: size of steps (=4) must equal the size of alphabet (=3) or half the size of alphabet.
+            TypeError: size of steps (=4) must equal the size of alphabet (=3) or half the size of alphabet
 
             sage: d = ((1,1), 1)
             sage: WordPaths_all('ab', d)

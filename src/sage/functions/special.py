@@ -278,7 +278,7 @@ class SphericalHarmonic(BuiltinFunction):
             sage: maxima.spherical_harmonic(1, -1, pi/3, pi/6).n() # abs tol 1e-14
             -0.259120612103502 + 0.149603355150537*I
 
-        Check that :trac:`33501` is fixed:
+        Check that :trac:`33501` is fixed::
 
             sage: spherical_harmonic(2, 1, x, y)
             -1/4*sqrt(6)*sqrt(5)*cos(x)*e^(I*y)*sin(x)/sqrt(pi)

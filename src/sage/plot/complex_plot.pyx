@@ -83,14 +83,14 @@ cdef inline double mag_to_lightness(double r, double rate=0.5):
     This tests it implicitly::
 
         sage: from sage.plot.complex_plot import complex_to_rgb
-        sage: complex_to_rgb([[0, 1, 10]])
+        sage: complex_to_rgb([[0, 1, 10]])  # abs tol 1e-4
         array([[[0.        , 0.        , 0.        ],
                 [0.77172568, 0.        , 0.        ],
                 [1.        , 0.22134776, 0.22134776]]])
 
     Changing ``rate`` changes the rate of growth::
 
-        sage: complex_to_rgb([[0, 1, 10]], dark_rate=1)
+        sage: complex_to_rgb([[0, 1, 10]], dark_rate=1)  # abs tol 1e-4
         array([[[0.        , 0.        , 0.        ],
                 [0.77172568, 0.        , 0.        ],
                 [1.        , 0.49693961, 0.49693961]]])
@@ -130,14 +130,16 @@ cdef inline double cyclic_logarithmic_mag_to_lightness(double r, double base=2):
     This tests it implicitly::
 
         sage: from sage.plot.complex_plot import complex_to_rgb
-        sage: complex_to_rgb([[0, 1, 10]], contoured=True, contour_type="logarithmic")
+        sage: complex_to_rgb([[0, 1, 10]], contoured=True,  # abs tol 1e-4
+        ....:                contour_type="logarithmic")
         array([[[1.        , 0.        , 0.        ],
                 [1.        , 0.15      , 0.15      ],
                 [0.98903595, 0.        , 0.        ]]])
 
     We set contours to be multiples of `5` apart::
 
-        sage: complex_to_rgb([[0, 1, 10]], contoured=True, contour_type="logarithmic", contour_base=5)
+        sage: complex_to_rgb([[0, 1, 10]], contoured=True,  # abs tol 1e-4
+        ....:                contour_type="logarithmic", contour_base=5)
         array([[[1.        , 0.        , 0.        ],
                 [1.        , 0.15      , 0.15      ],
                 [0.93466172, 0.        , 0.        ]]])
@@ -179,7 +181,8 @@ cdef inline double cyclic_linear_mag_to_lightness(double r, double base=10):
     This tests it implicitly::
 
         sage: from sage.plot.complex_plot import complex_to_rgb
-        sage: complex_to_rgb([[1, 5, 11]], contoured=True, contour_type="linear")
+        sage: complex_to_rgb([[1, 5, 11]], contoured=True,  # abs tol 1e-4
+        ....:                contour_type="linear")
         array([[[1. , 0.1, 0.1],
                 [0.9, 0. , 0. ],
                 [1. , 0.1, 0.1]]])
@@ -189,7 +192,8 @@ cdef inline double cyclic_linear_mag_to_lightness(double r, double base=10):
     set contours to be multiples of `3` apart, the values are no longer the
     same, but the values for `5` and `11` should be::
 
-        sage: complex_to_rgb([[1, 5, 11]], contoured=True, contour_type="linear", contour_base=3)
+        sage: complex_to_rgb([[1, 5, 11]], contoured=True,  # abs tol 1e-4
+        ....:                contour_type="linear", contour_base=3)
         array([[[0.98333333, 0.        , 0.        ],
                 [0.81666667, 0.        , 0.        ],
                 [0.81666667, 0.        , 0.        ]]])
@@ -237,11 +241,11 @@ cdef inline double mag_and_arg_to_lightness(double r, double arg,
     This tests it implicitly::
 
         sage: from sage.plot.complex_plot import complex_to_rgb
-        sage: complex_to_rgb([[0, 1, 10]], tiled=True)
+        sage: complex_to_rgb([[0, 1, 10]], tiled=True)  # abs tol 1e-4
         array([[[1.        , 0.        , 0.        ],
                 [1.        , 0.15      , 0.15      ],
                 [1.        , 0.06951798, 0.06951798]]])
-        sage: complex_to_rgb([[0, 1 + 1j, -3 - 5j]], tiled=True)
+        sage: complex_to_rgb([[0, 1 + 1j, -3 - 5j]], tiled=True)  # abs tol 1e-4
         array([[[1.        , 0.        , 0.        ],
                 [0.9625    , 0.721875  , 0.        ],
                 [0.        , 0.01371897, 0.85409323]]])
@@ -249,11 +253,13 @@ cdef inline double mag_and_arg_to_lightness(double r, double arg,
     Adjusting the tiling parameters should create relatively small
     differences::
 
-        sage: complex_to_rgb([[0, 1 + 1j, -3 - 5j]], tiled=True, nphases=15)
+        sage: complex_to_rgb([[0, 1 + 1j, -3 - 5j]],  # abs tol 1e-4
+        ....:                tiled=True, nphases=15)
         array([[[1.        , 0.        , 0.        ],
                 [0.80625   , 0.6046875 , 0.        ],
                 [0.        , 0.01243417, 0.77410628]]])
-        sage: complex_to_rgb([[0, 1 + 1j, -3 - 5j]], tiled=True, contour_base=5, nphases=15)
+        sage: complex_to_rgb([[0, 1 + 1j, -3 - 5j]],  # abs tol 1e-4
+        ....:                tiled=True, contour_base=5, nphases=15)
         array([[[1.        , 0.        , 0.        ],
                 [0.87741543, 0.65806157, 0.        ],
                 [0.        , 0.01423401, 0.88615776]]])
@@ -320,41 +326,43 @@ def complex_to_rgb(z_values, contoured=False, tiled=False,
     We can call this on grids of complex numbers::
 
         sage: from sage.plot.complex_plot import complex_to_rgb
-        sage: complex_to_rgb([[0, 1, 1000]])
+        sage: complex_to_rgb([[0, 1, 1000]])  # abs tol 1e-4
         array([[[0.        , 0.        , 0.        ],
                 [0.77172568, 0.        , 0.        ],
                 [1.        , 0.64421177, 0.64421177]]])
-        sage: complex_to_rgb([[0, 1j, 1000j]])
+        sage: complex_to_rgb([[0, 1j, 1000j]])  # abs tol 1e-4
         array([[[0.        , 0.        , 0.        ],
                 [0.38586284, 0.77172568, 0.        ],
                 [0.82210588, 1.        , 0.64421177]]])
-        sage: complex_to_rgb([[0, 1, 1000]], contoured=True)
+        sage: complex_to_rgb([[0, 1, 1000]], contoured=True)   # abs tol 1e-4
         array([[[1.        , 0.        , 0.        ],
                 [1.        , 0.15      , 0.15      ],
                 [0.66710786, 0.        , 0.        ]]])
-        sage: complex_to_rgb([[0, 1, 1000]], tiled=True)
+        sage: complex_to_rgb([[0, 1, 1000]], tiled=True)   # abs tol 1e-4
         array([[[1.        , 0.        , 0.        ],
                 [1.        , 0.15      , 0.15      ],
                 [0.90855393, 0.        , 0.        ]]])
 
     We can change contour types and the distances between contours::
 
-        sage: complex_to_rgb([[0, 1 + 1j, 3 + 4j]], contoured=True, contour_type="logarithmic", contour_base=3)
+        sage: complex_to_rgb([[0, 1 + 1j, 3 + 4j]],  # abs tol 1e-4
+        ....:                contoured=True, contour_type="logarithmic", contour_base=3)
         array([[[1.        , 0.        , 0.        ],
                 [0.99226756, 0.74420067, 0.        ],
                 [0.91751324, 0.81245954, 0.        ]]])
-        sage: complex_to_rgb([[0, 1 + 1j, 3 + 4j]], contoured=True, contour_type="linear", contour_base=3)
+        sage: complex_to_rgb([[0, 1 + 1j, 3 + 4j]],  # abs tol 1e-4
+        ....:                contoured=True, contour_type="linear", contour_base=3)
         array([[[1.        , 0.15      , 0.15      ],
                 [0.91429774, 0.6857233 , 0.        ],
                 [0.81666667, 0.72315973, 0.        ]]])
 
     Lowering ``dark_rate`` causes colors to go to black more slowly near `0`::
 
-        sage: complex_to_rgb([[0, 0.5, 1]], dark_rate=0.4)
+        sage: complex_to_rgb([[0, 0.5, 1]], dark_rate=0.4)  # abs tol 1e-4
         array([[[0.        , 0.        , 0.        ],
                 [0.65393731, 0.        , 0.        ],
                 [0.77172568, 0.        , 0.        ]]])
-        sage: complex_to_rgb([[0, 0.5, 1]], dark_rate=0.2)
+        sage: complex_to_rgb([[0, 0.5, 1]], dark_rate=0.2)  # abs tol 1e-4
         array([[[0.        , 0.        , 0.        ],
                 [0.71235886, 0.        , 0.        ],
                 [0.77172568, 0.        , 0.        ]]])
@@ -508,11 +516,11 @@ def complex_to_cmap_rgb(z_values, cmap='turbo', contoured=False, tiled=False,
     We can call this on grids of complex numbers::
 
         sage: from sage.plot.complex_plot import complex_to_cmap_rgb
-        sage: complex_to_cmap_rgb([[0, 1, 1000]])
+        sage: complex_to_cmap_rgb([[0, 1, 1000]])  # abs tol 1e-4
         array([[[0.        , 0.        , 0.        ],
                 [0.49669808, 0.76400071, 0.18024425],
                 [0.87320419, 0.99643856, 0.72730967]]])
-        sage: complex_to_cmap_rgb([[0, 1, 1000]], cmap='viridis')
+        sage: complex_to_cmap_rgb([[0, 1, 1000]], cmap='viridis')  # abs tol 1e-4
         array([[[0.        , 0.        , 0.        ],
                 [0.0984475 , 0.4375291 , 0.42487821],
                 [0.68959896, 0.84592555, 0.84009311]]])
@@ -520,11 +528,13 @@ def complex_to_cmap_rgb(z_values, cmap='turbo', contoured=False, tiled=False,
 
     We can change contour types and the distances between contours::
 
-        sage: complex_to_cmap_rgb([[0, 1 + 1j, 3 + 4j]], contoured=True, contour_type="logarithmic", contour_base=3)
+        sage: complex_to_cmap_rgb([[0, 1 + 1j, 3 + 4j]], contoured=True,  # abs tol 1e-4
+        ....:                     contour_type="logarithmic", contour_base=3)
         array([[[0.64362   , 0.98999   , 0.23356   ],
                 [0.93239357, 0.81063338, 0.21955399],
                 [0.95647342, 0.74861225, 0.14963982]]])
-        sage: complex_to_cmap_rgb([[0, 1 + 1j, 3 + 4j]], cmap='turbo', contoured=True, contour_type="linear", contour_base=3)
+        sage: complex_to_cmap_rgb([[0, 1 + 1j, 3 + 4j]], cmap='turbo',   # abs tol 1e-4
+        ....:                     contoured=True, contour_type="linear", contour_base=3)
         array([[[0.71246796, 0.9919238 , 0.3816262 ],
                 [0.92617785, 0.79322304, 0.14779989],
                 [0.95156284, 0.72025117, 0.05370383]]])
@@ -535,11 +545,13 @@ def complex_to_cmap_rgb(z_values, cmap='turbo', contoured=False, tiled=False,
     contour. Raising ``dark_rate`` should have strong effects on the last
     coloration and weaker effects on the others::
 
-        sage: complex_to_cmap_rgb([[0, 1 + 1j, 2.9 + 4j]], cmap='turbo', contoured=True, dark_rate=0.05, contour_base=5)
+        sage: complex_to_cmap_rgb([[0, 1 + 1j, 2.9 + 4j]], cmap='turbo',  # abs tol 1e-4
+        ....:                     contoured=True, dark_rate=0.05, contour_base=5)
         array([[[0.64362   , 0.98999   , 0.23356   ],
                 [0.93334746, 0.81330523, 0.23056563],
                 [0.96357185, 0.75337736, 0.19440913]]])
-        sage: complex_to_cmap_rgb([[0, 1 + 1j, 2.9 + 4j]], cmap='turbo', contoured=True, dark_rate=0.85, contour_base=5)
+        sage: complex_to_cmap_rgb([[0, 1 + 1j, 2.9 + 4j]], cmap='turbo',  # abs tol 1e-4
+        ....:                     contoured=True, dark_rate=0.85, contour_base=5)
         array([[[0.64362   , 0.98999   , 0.23356   ],
                 [0.93874682, 0.82842892, 0.29289564],
                 [0.57778954, 0.42703289, 0.02612716]]])
@@ -657,9 +669,9 @@ def add_lightness_smoothing_to_rgb(rgb, delta):
 
         sage: import numpy as np
         sage: from sage.plot.complex_plot import add_lightness_smoothing_to_rgb
-        sage: add_lightness_smoothing_to_rgb(np.array([[[0, 0.25, 0.5]]]), np.array([[0.75]]))
+        sage: add_lightness_smoothing_to_rgb(np.array([[[0, 0.25, 0.5]]]), np.array([[0.75]]))  # abs tol 1e-4
         array([[[0.75  , 0.8125, 0.875 ]]])
-        sage: add_lightness_smoothing_to_rgb(np.array([[[0, 0.25, 0.5]]]), np.array([[0.75]]))
+        sage: add_lightness_smoothing_to_rgb(np.array([[[0, 0.25, 0.5]]]), np.array([[0.75]]))  # abs tol 1e-4
         array([[[0.75  , 0.8125, 0.875 ]]])
     """
     import numpy as np
@@ -719,18 +731,20 @@ def add_contours_to_rgb(rgb, delta, dark_rate=0.5):
 
         sage: import numpy as np
         sage: from sage.plot.complex_plot import add_contours_to_rgb
-        sage: add_contours_to_rgb(np.array([[[0, 0.25, 0.5]]]), np.array([[0.75]]))
+        sage: add_contours_to_rgb(np.array([[[0, 0.25, 0.5]]]), np.array([[0.75]]))  # abs tol 1e-4
         array([[[0.25 , 0.625, 1.   ]]])
-        sage: add_contours_to_rgb(np.array([[[0, 0, 0]]]), np.array([[1]]))
+        sage: add_contours_to_rgb(np.array([[[0, 0, 0]]]), np.array([[1]]))  # abs tol 1e-4
         array([[[0.5, 0.5, 0.5]]])
-        sage: add_contours_to_rgb(np.array([[[1, 1, 1]]]), np.array([[-0.5]]))
+        sage: add_contours_to_rgb(np.array([[[1, 1, 1]]]), np.array([[-0.5]])) # abs tol 1e-4
         array([[[0.75, 0.75, 0.75]]])
 
     Raising ``dark_rate`` leads to bigger adjustments::
 
-        sage: add_contours_to_rgb(np.array([[[0.5, 0.5, 0.5]]]), np.array([[0.5]]), dark_rate=0.1)
+        sage: add_contours_to_rgb(np.array([[[0.5, 0.5, 0.5]]]),  # abs tol 1e-4
+        ....:                     np.array([[0.5]]), dark_rate=0.1)
         array([[[0.55, 0.55, 0.55]]])
-        sage: add_contours_to_rgb(np.array([[[0.5, 0.5, 0.5]]]), np.array([[0.5]]), dark_rate=0.5)
+        sage: add_contours_to_rgb(np.array([[[0.5, 0.5, 0.5]]]),  # abs tol 1e-4
+        ....:                     np.array([[0.5]]), dark_rate=0.5)
         array([[[0.75, 0.75, 0.75]]])
     """
     import numpy as np
@@ -1235,17 +1249,17 @@ def rgb_to_hls(rgb):
         sage: from sage.plot.complex_plot import rgb_to_hls, hls_to_rgb
         sage: rgb = [[0.2, 0.4, 0.5], [0.1, 0.3, 1.0]]
         sage: hls = rgb_to_hls(rgb)
-        sage: hls
+        sage: hls   # abs tol 1e-4
         array([[0.55555556, 0.35      , 0.42857143],
                [0.62962963, 0.55      , 1.        ]])
-        sage: hls_to_rgb(hls)
+        sage: hls_to_rgb(hls)  # abs tol 1e-4
         array([[0.2, 0.4, 0.5],
                [0.1, 0.3, 1. ]])
 
     Multidimensional inputs can be given as well::
 
         sage: multidim_arr = [[[0, 0.2, 0.4], [1, 1, 1]], [[0, 0, 0], [0.5, 0.6, 0.9]]]
-        sage: rgb_to_hls(multidim_arr)
+        sage: rgb_to_hls(multidim_arr)   # abs tol 1e-4
         array([[[0.58333333, 0.2       , 1.        ],
                 [0.        , 1.        , 0.        ]],
                [[0.        , 0.        , 0.        ],
@@ -1324,17 +1338,17 @@ def hls_to_rgb(hls):
         sage: from sage.plot.complex_plot import rgb_to_hls, hls_to_rgb
         sage: hls = [[0.2, 0.4, 0.5], [0.1, 0.3, 1.0]]
         sage: rgb = hls_to_rgb(hls)
-        sage: rgb
+        sage: rgb  # abs tol 1e-4
         array([[0.52, 0.6 , 0.2 ],
                [0.6 , 0.36, 0.  ]])
-        sage: rgb_to_hls(rgb)
+        sage: rgb_to_hls(rgb)  # abs tol 1e-4
         array([[0.2, 0.4, 0.5],
                [0.1, 0.3, 1. ]])
 
     Multidimensional inputs can be given as well::
 
         sage: multidim_arr = [[[0, 0.2, 0.4], [0, 1, 0]], [[0, 0, 0], [0.5, 0.6, 0.9]]]
-        sage: hls_to_rgb(multidim_arr)
+        sage: hls_to_rgb(multidim_arr)  # abs tol 1e-4
         array([[[0.28, 0.12, 0.12],
                 [1.  , 1.  , 1.  ]],
                [[0.  , 0.  , 0.  ],
@@ -1399,7 +1413,7 @@ def _v(m1, m2, hue):
     EXAMPLES::
 
         sage: from sage.plot.complex_plot import _v
-        sage: _v([0.1, 0.2], [0.1, 0.3], [0.25, 0.75])
+        sage: _v([0.1, 0.2], [0.1, 0.3], [0.25, 0.75])  # abs tol 1e-4
         array([0.1, 0.2])
     """
     import numpy as np

@@ -9548,10 +9548,7 @@ class GenericGraph(GenericGraph_pyx):
             set_terminals.add(t)
 
         # flow[i,(u,v)] is the flow of commodity i going from u to v
-        if integer:
-            flow = p.new_variable(nonnegative=True, integer=True)
-        else:
-            flow = p.new_variable(nonnegative=True)
+        flow = p.new_variable(nonnegative=True, integer=integer)
 
         # Whether to use edge labels
         if use_edge_labels:

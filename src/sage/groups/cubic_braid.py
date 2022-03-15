@@ -270,7 +270,9 @@ class CubicBraidElement(FinitelyPresentedGroupElement):
 
     def _richcmp_(self, other, op):
         """
-        overwrite comparison since the inherited one from :class:`FinitelyPresentedGroupElement`
+        Rich comparison of ``self`` with ``other``.
+
+        Overwrite comparison since the inherited one from :class:`FinitelyPresentedGroupElement`
         (via Gap) does not terminate in the case of more than 5 strands (not
         only infinite cases). On less than 5 strands comparison is not assumed
         to be random free (see the :trac:`33498` and section 47.3-2 of the
@@ -1550,7 +1552,8 @@ class CubicBraidGroup(FinitelyPresentedGroup):
 
             sage: C3 = CubicBraidGroup(3)
             sage: PC3 = C3.as_permutation_group()
-            sage: C3.is_isomorphic(PC3)
+            sage: C3.is_isomorphic(PC3)  # random (with respect to the occurence of the info message)
+            #I  Forcing finiteness test
             True
             sage: PC3.degree()
             8

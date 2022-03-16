@@ -23,7 +23,10 @@ extensions = ['sage_docbuild.ext.inventory_builder',
               'sphinx.ext.todo',
               'sphinx.ext.extlinks',
               'IPython.sphinxext.ipython_directive',
-              'matplotlib.sphinxext.plot_directive']
+              'matplotlib.sphinxext.plot_directive',
+              'jupyter_sphinx']
+
+jupyter_execute_default_kernel = 'sagemath'
 
 # This code is executed before each ".. PLOT::" directive in the Sphinx
 # documentation. It defines a 'sphinx_plot' function that displays a Sage object

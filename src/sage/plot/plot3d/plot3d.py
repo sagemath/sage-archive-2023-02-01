@@ -17,6 +17,18 @@ EXAMPLES::
     S = sphere((0,0,0),size=0.3, color='red', aspect_ratio=[1,1,1])
     show(W + S, figsize=8)
 
+.. jupyter-execute::
+
+    import ipywidgets as w
+    from IPython.display import display
+
+    a = w.IntSlider()
+    b = w.IntText()
+    w.jslink((a, 'value'), (b, 'value'))
+    display(a, b)
+
+.. thebe-button:: Activate Thebelab
+
 ::
 
     sage: def f(x,y):

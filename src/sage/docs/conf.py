@@ -28,6 +28,13 @@ extensions = ['sage_docbuild.ext.inventory_builder',
 
 jupyter_execute_default_kernel = 'sagemath'
 
+jupyter_sphinx_thebelab_config = {
+    'requestKernel': True,
+    'binderOptions': {
+        'repo': "binder-examples/requirements",
+    },
+}
+
 # This code is executed before each ".. PLOT::" directive in the Sphinx
 # documentation. It defines a 'sphinx_plot' function that displays a Sage object
 # through matplotlib, so that it will be displayed in the HTML doc

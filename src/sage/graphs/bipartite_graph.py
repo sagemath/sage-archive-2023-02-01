@@ -2218,3 +2218,109 @@ class BipartiteGraph(Graph):
 
         B.delete_edges(edges_to_delete)
         return B
+
+    def canonical_label(self, partition=None, certificate=False,
+                        edge_labels=False, algorithm=None, return_graph=True):
+        r"""
+        Return the canonical graph.
+
+        A canonical graph is the representative graph of an isomorphism
+        class by some canonization function `c`. If `G` and `H` are graphs,
+        then `G \cong c(G)`, and `c(G) == c(H)` if and only if `G \cong H`.
+
+        See the :wikipedia:`Graph_canonization` for more information.
+
+        INPUT:
+
+        - ``partition`` -- if given, the canonical label with respect
+          to this set partition will be computed. The default is the unit
+          set partition.
+
+        - ``certificate`` -- boolean (default: ``False``). When set to
+          ``True``, a dictionary mapping from the vertices of the (di)graph
+          to its canonical label will also be returned.
+
+        - ``edge_labels`` -- boolean (default: ``False``). When set to
+          ``True``, allows only permutations respecting edge labels.
+
+        - ``algorithm`` -- a string (default: ``None``). The algorithm to use;
+          currently available:
+
+          * ``'bliss'``: use the optional package bliss
+            (http://www.tcs.tkk.fi/Software/bliss/index.html);
+          * ``'sage'``: always use Sage's implementation.
+          * ``None`` (default): use bliss when available and possible
+
+            .. NOTE::
+
+                Make sure you always compare canonical forms obtained by the
+                same algorithm.
+
+        - ``return_graph`` -- boolean (default: ``True``). When set to
+          ``False``, returns the list of edges of the canonical graph
+          instead of the canonical graph; only available when ``'bliss'``
+          is explicitly set as algorithm.
+
+        EXAMPLES::
+
+            sage: B = BipartiteGraph( [(0, 4), (0, 5), (0, 6), (0, 8), (1, 5), (1, 7), (1, 8
+            ....: ), (2, 6), (2, 7), (2, 8), (3, 4), (3, 7), (3, 8), (4, 9), (5, 9), (6, 9),
+            ....:  (7, 9)] )
+            sage: C = B.canonical_label(partition=(B.left,B.right))
+            sage: C.left
+            {0, 1, 2, 3, 4}
+            sage: C.right
+            {5, 6, 7, 8, 9}
+        
+        .. SEEALSO::
+
+            :meth:`~sage.graphs.generic_graph.GenericGraph.canonical_label()`
+
+        """
+        
+        if certificate:
+            C, cert = GenericGraph.canonical_label(self, partition, certificate, edge_labels, algorithm, return_graph)
+        
+        else:
+            from sage.groups.perm_gps.partn_ref.refinement_graphs import search_tree
+            from sage.graphs.graph import Graph
+            from sage.graphs.digraph import DiGraph
+            dig = (self._directed or self.has_loops())
+            from itertools import chain
+
+            c_new = {}
+            
+            if edge_labels or self.has_multiple_edges():
+                G, partition, relabeling = GenericGraph.graph_isom_equivalent_non_edge_labeled_graph(self, partition, return_relabeling=True)
+                G_vertices = list(chain(*partition))
+                G_to = {u: i for i,u in enumerate(G_vertices)}
+                DoDG = DiGraph if self._directed else Graph
+                H = DoDG(len(G_vertices), loops=G.allows_loops())
+                HB = H._backend
+                for u,v in G.edge_iterator(labels=False):
+                    HB.add_edge(G_to[u], G_to[v], None, G._directed)
+                GC = HB.c_graph()[0]
+                partition = [[G_to[vv] for vv in cell] for cell in partition]
+                a,b,c = search_tree(GC, partition, certificate=True, dig=dig)
+                # c is a permutation to the canonical label of G, which depends only on isomorphism class of self.
+                c_new = {v: c[G_to[relabeling[v]]] for v in self}
+            
+            else:
+                G_vertices = list(chain(*partition))
+                G_to = {u: i for i,u in enumerate(G_vertices)}
+                DoDG = DiGraph if self._directed else Graph
+                H = DoDG(len(G_vertices), loops=self.allows_loops())
+                HB = H._backend
+                for u, v in self.edge_iterator(labels=False):
+                    HB.add_edge(G_to[u], G_to[v], None, self._directed)
+                GC = HB.c_graph()[0]
+                partition = [[G_to[vv] for vv in cell] for cell in partition]
+                a,b,c = search_tree(GC, partition, certificate=True, dig=dig)
+                c_new = {v: c[G_to[v]] for v in G_to}
+
+            C = GenericGraph.canonical_label(self, partition, certificate, edge_labels, algorithm, return_graph)
+            cert = c_new
+
+        C.left = { cert[v] for v in self.left }
+        C.right = { cert[v] for v in self.right }
+        return C

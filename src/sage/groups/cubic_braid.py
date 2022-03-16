@@ -1552,9 +1552,8 @@ class CubicBraidGroup(FinitelyPresentedGroup):
 
             sage: C3 = CubicBraidGroup(3)
             sage: PC3 = C3.as_permutation_group()
-            sage: C3.is_isomorphic(PC3)  # random (with respect to the occurence of the info message)
+            sage: assert C3.is_isomorphic(PC3)  # random (with respect to the occurrence of the info message)
             #I  Forcing finiteness test
-            True
             sage: PC3.degree()
             8
             sage: c = C3([2,1-2])

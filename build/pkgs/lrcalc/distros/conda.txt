@@ -1,1 +1,1 @@
-lrcalc
+"lrcalc>=2"

@@ -311,19 +311,11 @@ class SphericalHarmonic(BuiltinFunction):
 
         Consistency with ``_eval_``::
 
-            sage: sharm = spherical_harmonic
-            sage: abs(sharm(0, 0, 1., 2.) - sharm(0, 0, 1, 2).n())  # abs tol 1e-14
-            1.66533453693773e-16
-            sage: abs(sharm(1, -1, 1., 2.) - sharm(1, -1, 1, 2).n())  # abs tol 1e-14
-            5.72195849815280e-17
-            sage: abs(sharm(1, 0, 1., 2.) - sharm(1, 0, 1, 2).n())  # abs tol 1e-14
-            1.66533453693773e-16
-            sage: abs(sharm(1, 1, 1., 2.) - sharm(1, 1, 1, 2).n())  # abs tol 1e-14
-            5.72195849815280e-17
-            sage: abs(sharm(3, 2, 1., 2.) - sharm(3, 2, 1, 2).n())  # abs tol 1e-14
-            0.000000000000000
-            sage: abs(sharm(3, 3, 1., 2.) - sharm(3, 3, 1, 2).n())  # abs tol 1e-14
-            3.10316769155909e-17
+            sage: d = lambda a, b: abs(spherical_harmonic(a, b, 1., 2.)
+            ....:                      - spherical_harmonic(a, b, 1, 2).n())
+            sage: ab = [(0, 0), (1, -1), (1, 0), (1, 1), (3, 2), (3, 3)]
+            sage: all(d(a, b) < 1e-14 for a, b in ab)
+            True
 
         """
         from mpmath import spherharm

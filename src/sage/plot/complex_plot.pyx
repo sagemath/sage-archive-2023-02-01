@@ -1101,7 +1101,7 @@ def complex_plot(f, x_range, y_range, contoured=False, tiled=False, cmap=None,
     Decreasing ``dark_rate`` has the opposite effect. When there are contours,
     adjust ``dark_rate`` affects how visible contours are. Compare::
 
-        sage: complex_plot(zeta, (-1, 9), (10, 20), plot_points=200,
+        sage: complex_plot(zeta, (-1, 9), (10, 20), plot_points=200,  # long time
         ....:              contoured=True, cmap='twilight', dark_rate=0.2)
         Graphics object consisting of 1 graphics primitive
 
@@ -1111,7 +1111,7 @@ def complex_plot(f, x_range, y_range, contoured=False, tiled=False, cmap=None,
 
     and::
 
-        sage: complex_plot(zeta, (-1, 9), (10, 20), plot_points=200,
+        sage: complex_plot(zeta, (-1, 9), (10, 20), plot_points=200,  # long time
         ....:              contoured=True, cmap='twilight', dark_rate=0.75)
         Graphics object consisting of 1 graphics primitive
 

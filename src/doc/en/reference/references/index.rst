@@ -3757,8 +3757,8 @@ REFERENCES:
 
 .. [LD2021] David Lowry-Duda.
             *Visualizing modular forms*.
-            Arithmetic Geometry, Number Theory, and Computation, Simons
-            Symposia, Springer, 2021.
+            Arithmetic Geometry, Number Theory, and Computation.
+            Simons Symposia, Springer, 2021.
             :arxiv:`2002.05234`
 
 .. [Lee2016] Kwankyu Lee, *Decoding of differential AG codes*, Advances in

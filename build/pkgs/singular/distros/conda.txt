@@ -1,1 +1,1 @@
-"singular=4.2.1.*"
+"singular>=4.2.1.p3"

@@ -172,4 +172,3 @@ class _G1list_old_pickle(G1list):
 
 register_unpickle_override('sage.modular.modsym.g1list', 'G1list',
                            _G1list_old_pickle)
-

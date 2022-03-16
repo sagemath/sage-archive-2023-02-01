@@ -546,27 +546,59 @@ class Hyperplane(LinearExpression):
             Hyperplane 4*x - y - 8
             sage: (4*x - y - 8).primitive(signed=False)
             Hyperplane -4*x + y + 8
+
+        TESTS:
+
+        Check that :trac:`30078` is fixed::
+
+            sage: R = QQ[sqrt(2)]
+            sage: H.<x,y> = HyperplaneArrangements(base_ring=R)
+            sage: B = H([1,1,0], [2,2,0], [sqrt(2),sqrt(2),0])
+            sage: B
+            Arrangement <x + 1>
+
+        Check that :trac:`30749` is fixed::
+
+            sage: tau = AA((1+sqrt(5))/2)
+            sage: ncn = [[2*tau+1,2*tau,tau],[2*tau+2,2*tau+1,tau+1]]
+            sage: ncn += [[tau+1,tau+1,tau],[2*tau,2*tau,tau],[tau+1,tau+1,1]]
+            sage: ncn += [[1,1,1],[1,1,0],[0,1,0],[1,0,0],[tau+1,tau,tau]]
+            sage: H = HyperplaneArrangements(AA,names='xyz')
+            sage: A = H([[0]+v for v in ncn])
+            sage: A.n_regions()
+            60
         """
-        from sage.arith.all import lcm, gcd
+        from sage.rings.all import QQ
+        base_ring = self.parent().base_ring()
         coeffs = self.coefficients()
-        try:
+        # first check if the linear expression even defines a hyperplane
+        if self.is_zero():
+            raise ValueError('linear expression must be non-constant to define a hyperplane')
+        # for scalar adjustment over the base ring QQ,
+        # get rid of the denominators and use gcd
+        if base_ring is QQ:
+            from sage.arith.all import lcm, gcd
             d = lcm([x.denominator() for x in coeffs])
             n = gcd([x.numerator() for x in coeffs])
-        except AttributeError:
-            return self
+            adjustment = d/n
+        # over other base rings, rescale the coefficients so that
+        # the first nonzero of the normal vector is one or negative one
+        else:
+            for x in coeffs[1:]:
+                if not x.is_zero():
+                    adjustment = x.inverse_of_unit()
+                    if x < 0: # avoid accidental sign reversal
+                        adjustment = -adjustment
+                    break
+        # if ``signed`` is not set, adjust the sign
         if not signed:
             for x in coeffs:
-                if x > 0:
+                if not x.is_zero():
+                    if x < 0:
+                        adjustment = -adjustment
                     break
-                if x < 0: 
-                    d = -d
-                    break
-        parent = self.parent()
-        d = parent.base_ring()(d)
-        n = parent.base_ring()(n)
-        if n == 0:
-            n = parent.base_ring().one()
-        return parent(self * d / n)
+        # return the rescaled hyperplane
+        return self.parent(adjustment * self)
         
     @cached_method
     def _affine_subspace(self):

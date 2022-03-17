@@ -1207,4 +1207,3 @@ class ProjectiveConic_field(ProjectivePlaneCurve):
 
         """
         return self.defining_polynomial().parent().variable_names()
-

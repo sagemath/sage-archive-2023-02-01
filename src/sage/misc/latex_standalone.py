@@ -30,12 +30,11 @@ including tikzpictures, to an image. It allows conversion to pdf, png and
 svg formats. It also show them automatically in Jupyter using rich
 representation.
 
-According to wikipedia__, `PGF/TikZ`__ is a pair of languages for producing
+According to wikipedia, `PGF/TikZ`__ is a pair of languages for producing
 vector graphics (e.g., technical illustrations and drawings) from a
 geometric/algebraic description, with standard features including the
 drawing of points, lines, arrows, paths, circles, ellipses and polygons.
 
-__ https://en.wikipedia.org/wiki/PGF/TikZ
 __ https://www.ctan.org/pkg/pgf
 
 EXAMPLES:

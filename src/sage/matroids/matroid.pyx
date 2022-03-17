@@ -329,6 +329,7 @@ Methods
 # ****************************************************************************
 
 from cpython.object cimport Py_EQ, Py_NE
+from collections.abc import Iterable
 
 from sage.structure.richcmp cimport rich_to_bool, richcmp
 from sage.structure.sage_object cimport SageObject
@@ -3768,7 +3769,7 @@ cdef class Matroid(SageObject):
             # Else we expect to have to enumerate over the characters in the string.
         except TypeError:
             pass
-        if (not isinstance(contractions, str) and not hasattr(contractions, '__iter__') and contractions is not None):
+        if (not isinstance(contractions, (str, Iterable)) and contractions is not None):
             contractions = [contractions]
         try:
             if deletions in self.groundset():
@@ -3776,7 +3777,7 @@ cdef class Matroid(SageObject):
             # Else we expect to have to enumerate over the characters in the string.
         except TypeError:
             pass
-        if (not isinstance(deletions, str) and not hasattr(deletions, '__iter__') and deletions is not None):
+        if (not isinstance(deletions, (str, Iterable)) and deletions is not None):
             deletions = [deletions]
         conset, delset = sanitize_contractions_deletions(self, contractions, deletions)
         return self._minor(conset, delset)

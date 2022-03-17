@@ -11,7 +11,7 @@
                     "kind": "file"
                 }
             ]
-        }
+        },
         {
             "owner": "configure-systempackage",
             "pattern": [

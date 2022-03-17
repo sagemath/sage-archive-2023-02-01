@@ -1,22 +1,6 @@
 r"""
 Plotting Functions
 
-
-EXAMPLES::
-
-    sage: x, y = var('x y')
-    sage: W = plot3d(sin(pi*((x)^2+(y)^2))/2,(x,-1,1),(y,-1,1), frame=False, color='purple', opacity=0.8)
-    sage: S = sphere((0,0,0),size=0.3, color='red', aspect_ratio=[1,1,1])
-    sage: show(W + S, figsize=8)
-
-.. jupyter-execute::
-    :hide-code:
-
-    x, y = var('x y')
-    W = plot3d(sin(pi*((x)**2+(y)**2))/2,(x,-1,1),(y,-1,1), frame=False, color='purple', opacity=0.8)
-    S = sphere((0,0,0),size=0.3, color='red', aspect_ratio=[1,1,1])
-    show(W + S, figsize=8)
-
 .. jupyter-execute::
 
     import ipywidgets as w
@@ -27,7 +11,45 @@ EXAMPLES::
     w.jslink((a, 'value'), (b, 'value'))
     display(a, b)
 
-.. thebe-button:: Activate Thebelab
+.. thebe-button:: Activate Thebe
+
+.. jupyter-execute::
+
+    @interact
+    def _(n=input_box(10, label='$n$')):
+        v = [(random(), random(), random()) for _ in [1..n]]
+        g = sum([cube((10*a,10*b,10*c), size=random()/3, color=(a,b,c)) for a,b,c in v])
+        show(g)
+
+.. thebe-button:: Activate Thebe
+
+EXAMPLES::
+
+    sage: x, y = var('x y')
+    sage: W = plot3d(sin(pi*((x)^2+(y)^2))/2,(x,-1,1),(y,-1,1), frame=False, color='purple', opacity=0.8)
+    sage: S = sphere((0,0,0),size=0.3, color='red', aspect_ratio=[1,1,1])
+    sage: show(W + S, figsize=8)
+
+.. only:: html
+
+    .. jupyter-execute::
+        :hide-code:
+
+        x, y = var('x y')
+        W = plot3d(sin(pi*((x)**2+(y)**2))/2,(x,-1,1),(y,-1,1), frame=False, color='purple', opacity=0.8)
+        S = sphere((0,0,0),size=0.3, color='red', aspect_ratio=[1,1,1])
+        show(W + S, figsize=8)
+
+.. only:: latex
+
+    .. image:: ../../../images/figure10.png
+       :width: 200px
+       :height: 100px
+       :scale: 100%
+       :alt: alternate text
+       :align: center
+
+   This is the caption of the image.
 
 ::
 
@@ -36,11 +58,23 @@ EXAMPLES::
     sage: P = plot3d(f,(-3,3),(-3,3), adaptive=True, color=rainbow(60, 'rgbtuple'), max_bend=.1, max_depth=15)
     sage: P.show()
 
-.. PLOT::
+.. only:: html
 
-    def f(x,y): return math.sin(y*y+x*x)/math.sqrt(x*x+y*y+0.0001)
-    P = plot3d(f,(-3,3),(-3,3), adaptive=True, color=rainbow(60, 'rgbtuple'), max_bend=.1, max_depth=15)
-    sphinx_plot(P)
+    .. jupyter-execute::
+        :hide-code:
+
+        sage: def f(x,y):
+        ....:     return math.sin(y^2+x^2)/math.sqrt(x^2+y^2+0.0001)
+        sage: P = plot3d(f,(-3,3),(-3,3), adaptive=True, color=rainbow(60, 'rgbtuple'), max_bend=.1, max_depth=15)
+        sage: P.show()
+
+.. only:: latex
+
+    .. figure:: ../../../images/figure20.png
+       :scale: 50 %
+       :alt: alternate text
+
+   This is the caption of the figure.
 
 ::
 

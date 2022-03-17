@@ -31,7 +31,7 @@ jupyter_execute_default_kernel = 'sagemath'
 jupyter_sphinx_thebelab_config = {
     'requestKernel': True,
     'binderOptions': {
-        'repo': "binder-examples/requirements",
+        'repo': "sagemath/sage-binder-env",
     },
 }
 

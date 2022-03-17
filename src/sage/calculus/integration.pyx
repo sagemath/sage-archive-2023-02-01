@@ -37,28 +37,28 @@ from sage.ext.fast_callable import fast_callable
 
 
 cdef class PyFunctionWrapper:
-   cdef object the_function
-   cdef object the_parameters
-   cdef list lx
+    cdef object the_function
+    cdef object the_parameters
+    cdef list lx
 
 cdef class compiled_integrand:
-   cdef int c_f(self, double t):  #void *params):
-      return 0
+    cdef int c_f(self, double t):  # void *params):
+        return 0
 
 cdef double c_f(double t, void *params):
-   cdef double value
-   cdef PyFunctionWrapper wrapper
-   wrapper = <PyFunctionWrapper> params
-   try:
-      if len(wrapper.the_parameters) != 0:
-         value = wrapper.the_function(t, wrapper.the_parameters)
-      else:
-         value = wrapper.the_function(t)
-   except Exception as msg:
-      print(msg)
-      return 0
+    cdef double value
+    cdef PyFunctionWrapper wrapper
+    wrapper = <PyFunctionWrapper> params
+    try:
+        if len(wrapper.the_parameters) != 0:
+            value = wrapper.the_function(t, wrapper.the_parameters)
+        else:
+            value = wrapper.the_function(t)
+    except Exception as msg:
+        print(msg)
+        return 0
 
-   return value
+    return value
 
 
 def numerical_integral(func, a, b=None,
@@ -254,7 +254,7 @@ def numerical_integral(func, a, b=None,
         0.5
 
     """
-    cdef double abs_err # step size
+    cdef double abs_err  # step size
     cdef double result
     cdef int i
     cdef int j
@@ -292,11 +292,11 @@ def numerical_integral(func, a, b=None,
                 return (((<double>b - <double>a) * <double>func), 0.0)
             if len(vars) != 1:
                 if len(params) + 1 != len(vars):
-                   raise ValueError(("The function to be integrated depends on "
-                                     "{} variables {}, and so cannot be "
-                                     "integrated in one dimension. Please fix "
-                                     "additional variables with the 'params' "
-                                     "argument").format(len(vars), tuple(vars)))
+                    raise ValueError(("The function to be integrated depends on "
+                                      "{} variables {}, and so cannot be "
+                                      "integrated in one dimension. Please fix "
+                                      "additional variables with the 'params' "
+                                      "argument").format(len(vars), tuple(vars)))
 
                 to_sub = dict(zip(vars[1:], params))
                 func = func.subs(to_sub)
@@ -305,42 +305,41 @@ def numerical_integral(func, a, b=None,
             v = str(vars[0])
             if a is -Infinity:
                 try:
-                   ell = func.limit(**{v: -Infinity})
+                    ell = func.limit(**{v: -Infinity})
                 except (AttributeError, ValueError):
-                   pass
+                    pass
                 else:
-                   if ell.is_numeric() and not ell.is_zero():
-                      raise ValueError('integral does not converge at -infinity')
+                    if ell.is_numeric() and not ell.is_zero():
+                        raise ValueError('integral does not converge at -infinity')
             if b is Infinity:
                 try:
-                   ell = func.limit(**{v: Infinity})
+                    ell = func.limit(**{v: Infinity})
                 except (AttributeError, ValueError):
-                   pass
+                    pass
                 else:
-                   if ell.is_numeric() and not ell.is_zero():
-                      raise ValueError('integral does not converge at infinity')
+                    if ell.is_numeric() and not ell.is_zero():
+                        raise ValueError('integral does not converge at infinity')
             func = fast_callable(func, vars=[v], domain=float)
 
-
     if not isinstance(func, compiled_integrand):
-      wrapper = PyFunctionWrapper()
-      if not func is None:
-         wrapper.the_function = func
-      else:
-         raise ValueError("No integrand defined")
-      try:
-         if not params and len(sage_getargspec(wrapper.the_function)[0]) == 1:
+        wrapper = PyFunctionWrapper()
+        if func is not None:
+            wrapper.the_function = func
+        else:
+            raise ValueError("No integrand defined")
+        try:
+            if not params and len(sage_getargspec(wrapper.the_function)[0]) == 1:
+                wrapper.the_parameters = []
+            elif not params and len(sage_getargspec(wrapper.the_function)[0]) > 1:
+                raise ValueError("Integrand has parameters but no parameters specified")
+           elif params:
+               wrapper.the_parameters = params
+        except TypeError:
+            wrapper.the_function = eval("lambda x: func(x)", {'func': func})
             wrapper.the_parameters = []
-         elif not params and len(sage_getargspec(wrapper.the_function)[0]) > 1:
-            raise ValueError("Integrand has parameters but no parameters specified")
-         elif params:
-            wrapper.the_parameters = params
-      except TypeError:
-         wrapper.the_function = eval("lambda x: func(x)", {'func': func})
-         wrapper.the_parameters = []
 
-      F.function = c_f
-      F.params = <void *> wrapper
+        F.function = c_f
+        F.params = <void *> wrapper
 
     cdef size_t n
     n = max_points

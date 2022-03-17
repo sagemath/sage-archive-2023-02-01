@@ -551,8 +551,7 @@ class Hyperplane(LinearExpression):
 
         Check that :trac:`30078` is fixed::
 
-            sage: R = QQ[sqrt(2)]
-            sage: H.<x,y> = HyperplaneArrangements(base_ring=R)
+            sage: H.<x,y> = HyperplaneArrangements(base_ring=AA)
             sage: B = H([1,1,0], [2,2,0], [sqrt(2),sqrt(2),0])
             sage: B
             Arrangement <x + 1>

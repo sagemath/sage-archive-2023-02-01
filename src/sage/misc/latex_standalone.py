@@ -598,7 +598,11 @@ class Standalone(SageObject):
             from sage.misc.viewer import pdf_viewer
             cmd = pdf_viewer().split()
             cmd.append(temp_filename_pdf)
-            run(cmd, cwd=base, capture_output=True, check=True)
+            # we use check_call as opposed to run, because
+            # it gives the sage prompt back to the user
+            #run(cmd, cwd=base, capture_output=True, check=True)
+            from subprocess import check_call, PIPE
+            check_call(cmd, cwd=base, stdout=PIPE, stderr=PIPE)
 
         return temp_filename_pdf
 
@@ -677,7 +681,11 @@ class Standalone(SageObject):
             from sage.misc.viewer import png_viewer
             cmd = png_viewer().split()
             cmd.append(temp_filename_png)
-            run(cmd, capture_output=True, check=True)
+            # we use check_call as opposed to run, because
+            # it gives the sage prompt back to the user
+            #run(cmd, capture_output=True, check=True)
+            from subprocess import check_call, PIPE
+            check_call(cmd, stdout=PIPE, stderr=PIPE)
 
         return temp_filename_png
 
@@ -767,7 +775,11 @@ class Standalone(SageObject):
             from sage.misc.viewer import browser
             cmd = browser().split()
             cmd.append(temp_filename_svg)
-            run(cmd, capture_output=True, check=True)
+            # we use check_call as opposed to run, because
+            # it gives the sage prompt back to the user
+            #run(cmd, capture_output=True, check=True)
+            from subprocess import check_call, PIPE
+            check_call(cmd, stdout=PIPE, stderr=PIPE)
 
         return temp_filename_svg
 

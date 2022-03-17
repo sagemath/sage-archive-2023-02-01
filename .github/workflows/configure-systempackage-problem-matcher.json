@@ -1,7 +1,7 @@
 {
     "problemMatcher": [
         {
-            "owner": "configure-systempackage",
+            "owner": "configure-system-package-warning",
             "severity": "warning",
             "pattern": [
                 {
@@ -13,7 +13,7 @@
             ]
         },
         {
-            "owner": "configure-systempackage",
+            "owner": "configure-system-package-error",
             "pattern": [
                 {
                     "regexp": "((\\S*)\\:(\\s*)(no suitable system package; this is an error))",

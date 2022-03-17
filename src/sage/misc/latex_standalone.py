@@ -600,6 +600,7 @@ class Standalone(SageObject):
             cmd.append(temp_filename_pdf)
             # we use check_call as opposed to run, because
             # it gives the sage prompt back to the user
+            # see https://stackoverflow.com/a/71342967
             #run(cmd, cwd=base, capture_output=True, check=True)
             from subprocess import check_call, PIPE
             check_call(cmd, cwd=base, stdout=PIPE, stderr=PIPE)
@@ -683,6 +684,7 @@ class Standalone(SageObject):
             cmd.append(temp_filename_png)
             # we use check_call as opposed to run, because
             # it gives the sage prompt back to the user
+            # see https://stackoverflow.com/a/71342967
             #run(cmd, capture_output=True, check=True)
             from subprocess import check_call, PIPE
             check_call(cmd, stdout=PIPE, stderr=PIPE)
@@ -777,6 +779,7 @@ class Standalone(SageObject):
             cmd.append(temp_filename_svg)
             # we use check_call as opposed to run, because
             # it gives the sage prompt back to the user
+            # see https://stackoverflow.com/a/71342967
             #run(cmd, capture_output=True, check=True)
             from subprocess import check_call, PIPE
             check_call(cmd, stdout=PIPE, stderr=PIPE)

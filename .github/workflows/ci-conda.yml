@@ -19,12 +19,13 @@ concurrency:
 jobs:
   test:
     name: Conda
-    runs-on: ubuntu-latest
+    runs-on: ${{ matrix.os }}
     
     strategy:
       fail-fast: false
       matrix:
         python: [3.8, 3.9]
+        os: [ubuntu-latest, macos-latest]
         conda-env: [environment, environment-optional]
 
     steps:
@@ -42,11 +43,15 @@ jobs:
           bash ~/miniconda.sh -b -p $HOME/miniconda
           echo "CONDA=$HOME/miniconda" >> $GITHUB_ENV
 
-      - name: Prepare
+      - name: Install bootstrap prereqs
+        run: |
+          export PATH="$(pwd)/build/bin:$PATH"
+          SYSTEM=$(sage-guess-package-system)
+          eval $(sage-print-system-package-command $SYSTEM --sudo install $(sage-get-system-packages $SYSTEM _bootstrap))
+
+      - name: Bootstrap
         # Create conda environment file
         run: |
-          sudo apt-get update
-          sudo apt-get install -y gettext autoconf automake libtool pkg-config
           ./bootstrap
 
       - name: Cache conda packages

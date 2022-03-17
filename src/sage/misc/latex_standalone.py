@@ -490,7 +490,7 @@ class Standalone(SageObject):
 
         INPUT:
 
-        - ``filename`` -- string (default:``None``), the output filename.
+        - ``filename`` -- string (default: ``None``), the output filename.
           If ``None``, it saves the file in a temporary directory.
 
         - ``view`` -- bool (default:``True``), whether to open the file in a
@@ -780,7 +780,7 @@ class Standalone(SageObject):
           If ``None``, it saves the file in a temporary directory.
         - ``include_header`` -- bool (default:``True``) whether to include
           the header latex part. If ``False``, it prints only the
-          tikzpicture part to the file.
+          standalone part to the file.
 
         OUTPUT:
 

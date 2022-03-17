@@ -568,7 +568,7 @@ class Hyperplane(LinearExpression):
             sage: A.n_regions()
             60
         """
-        from sage.rings.all import QQ
+        from sage.rings.rational_field import QQ
         base_ring = self.parent().base_ring()
         coeffs = self.coefficients()
         # first check if the linear expression even defines a hyperplane
@@ -577,7 +577,8 @@ class Hyperplane(LinearExpression):
         # for scalar adjustment over the base ring QQ,
         # get rid of the denominators and use gcd
         if base_ring is QQ:
-            from sage.arith.all import lcm, gcd
+            from sage.arith.functions import lcm
+            from sage.arith.misc import gcd
             d = lcm([x.denominator() for x in coeffs])
             n = gcd([x.numerator() for x in coeffs])
             adjustment = d/n

@@ -151,7 +151,7 @@ class SpecialCubicQuotientRingElement(CommutativeAlgebraElement):
             sage: not R.create_element(0, 0, 0)
             True
         """
-        return not not self._triple[0] or not not self._triple[1] or not not self._triple[2]
+        return bool(self._triple[0]) or bool(self._triple[1]) or bool(self._triple[2])
 
     __nonzero__ = __bool__
 
@@ -194,7 +194,7 @@ class SpecialCubicQuotientRingElement(CommutativeAlgebraElement):
             (123 T^{2}) + (T + 1)x + (0)x^2
         """
         return "(%s) + (%s)x + (%s)x^2" % \
-               tuple([column._latex_() for column in self._triple])
+            tuple(column._latex_() for column in self._triple)
 
     def _add_(self, other):
         """
@@ -207,7 +207,8 @@ class SpecialCubicQuotientRingElement(CommutativeAlgebraElement):
             sage: f + g
             (T + 5) + (0)*x + (T^2 + T + 122)*x^2
         """
-        return self.parent().element_class(
+        P = self.parent()
+        return P.element_class(P,
             self._triple[0] + other._triple[0],
             self._triple[1] + other._triple[1],
             self._triple[2] + other._triple[2],
@@ -224,7 +225,8 @@ class SpecialCubicQuotientRingElement(CommutativeAlgebraElement):
             sage: f - g
             (124*T + 124) + (2*T)*x + (T^2 + 124*T + 122)*x^2
         """
-        return self.parent().element_class(
+        P = self.parent()
+        return P.element_class(P,
             self._triple[0] - other._triple[0],
             self._triple[1] - other._triple[1],
             self._triple[2] - other._triple[2],
@@ -246,7 +248,8 @@ class SpecialCubicQuotientRingElement(CommutativeAlgebraElement):
             sage: f.shift(2)
             (2*T^2) + (T^3)*x + (T^4 + 122*T^2)*x^2
         """
-        return self.parent().element_class(
+        P = self.parent()
+        return P.element_class(P,
             self._triple[0].shift(n),
             self._triple[1].shift(n),
             self._triple[2].shift(n),
@@ -275,8 +278,9 @@ class SpecialCubicQuotientRingElement(CommutativeAlgebraElement):
             sage: f.scalar_multiply(t)
             (2*T) + (T^2)*x + (T^3 + 122*T)*x^2
         """
-        scalar = self.parent()._poly_ring(scalar)
-        return self.parent().element_class(
+        P = self.parent()
+        scalar = P._poly_ring(scalar)
+        return P.element_class(P,
             scalar * self._triple[0],
             scalar * self._triple[1],
             scalar * self._triple[2],
@@ -368,11 +372,11 @@ class SpecialCubicQuotientRingElement(CommutativeAlgebraElement):
         a = parent._poly_ring(a)
         b = parent._poly_ring(b)
 
-        return SpecialCubicQuotientRingElement(parent,
-                                               -b*c3 + c0 + c3*T,
-                                               -b*c4 - a*c3 + c1 + c4*T,
-                                               -a*c4 + c2,
-                                               check=False)
+        return parent.element_class(parent,
+                                    -b*c3 + c0 + c3*T,
+                                    -b*c4 - a*c3 + c1 + c4*T,
+                                    -a*c4 + c2,
+                                    check=False)
 
 
 class SpecialCubicQuotientRing(CommutativeAlgebra):
@@ -571,13 +575,13 @@ class SpecialCubicQuotientRing(CommutativeAlgebra):
             (T) + (0)*x + (0)*x^2
         """
         return [self.element_class(self, self._poly_ring(0),
-                                                self._poly_ring(1),
-                                                self._poly_ring(0),
-                                                check=False),
+                                   self._poly_ring(1),
+                                   self._poly_ring(0),
+                                   check=False),
                 self.element_class(self, self._poly_generator,
-                                                self._poly_ring(0),
-                                                self._poly_ring(0),
-                                                check=False)]
+                                   self._poly_ring(0),
+                                   self._poly_ring(0),
+                                   check=False)]
 
     def _element_constructor_(self, *args, check=True):
         """
@@ -602,16 +606,18 @@ class SpecialCubicQuotientRing(CommutativeAlgebra):
         """
         if len(args) == 1 and args[0] in self.base_ring():
             p0 = self._poly_ring.coerce(args[0])
-            return self.element_class(self, p0, 0, 0, check=False)
-        p0, p1, p2 = args
-        return self.element_class(self, p0, p1, p2, check)
+            p1 = p2 = self._poly_ring.zero()
+        else:
+            p0, p1, p2 = args
+        return self.element_class(self, p0, p1, p2, check=check)
 
-    create_element = _element_constructor_
+    def create_element(self, p, q, r, check=True):
+        return self._element_constructor_(p, q, r, check=check)
 
     def one(self):
         return self.element_class(self, 1, 0, 0, check=False)
 
-    def _coerce_map_from(self, R):
+    def _coerce_map_from_(self, R):
         return self._poly_ring.has_coerce_map_from(R)
 
     Element = SpecialCubicQuotientRingElement

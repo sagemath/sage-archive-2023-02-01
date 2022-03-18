@@ -332,8 +332,8 @@ def numerical_integral(func, a, b=None,
                 wrapper.the_parameters = []
             elif not params and len(sage_getargspec(wrapper.the_function)[0]) > 1:
                 raise ValueError("Integrand has parameters but no parameters specified")
-           elif params:
-               wrapper.the_parameters = params
+            elif params:
+                wrapper.the_parameters = params
         except TypeError:
             wrapper.the_function = eval("lambda x: func(x)", {'func': func})
             wrapper.the_parameters = []
@@ -347,41 +347,40 @@ def numerical_integral(func, a, b=None,
     gsl_set_error_handler_off()
 
     if algorithm == "qng":
-      _a=a
-      _b=b
-      sig_on()
-      gsl_integration_qng(&F, _a, _b, eps_abs, eps_rel, &result, &abs_err, &n)
-      sig_off()
+        _a = a
+        _b = b
+        sig_on()
+        gsl_integration_qng(&F, _a, _b, eps_abs, eps_rel, &result, &abs_err, &n)
+        sig_off()
 
     elif algorithm == "qag":
-       if a is -Infinity and b is +Infinity:
-         W = <gsl_integration_workspace*>gsl_integration_workspace_alloc(n)
-         sig_on()
-         gsl_integration_qagi(&F, eps_abs, eps_rel, n, W, &result, &abs_err)
-         sig_off()
+        if a is -Infinity and b is +Infinity:
+            W = <gsl_integration_workspace*>gsl_integration_workspace_alloc(n)
+            sig_on()
+            gsl_integration_qagi(&F, eps_abs, eps_rel, n, W, &result, &abs_err)
+            sig_off()
 
-       elif a is -Infinity:
-         _b = b
-         W = <gsl_integration_workspace*>gsl_integration_workspace_alloc(n)
-         sig_on()
-         gsl_integration_qagil(&F, _b, eps_abs, eps_rel, n, W, &result, &abs_err)
-         sig_off()
+        elif a is -Infinity:
+            _b = b
+            W = <gsl_integration_workspace*>gsl_integration_workspace_alloc(n)
+            sig_on()
+            gsl_integration_qagil(&F, _b, eps_abs, eps_rel, n, W, &result, &abs_err)
+            sig_off()
 
-       elif b is +Infinity:
-         _a = a
-         W = <gsl_integration_workspace*>gsl_integration_workspace_alloc(n)
-         sig_on()
-         gsl_integration_qagiu(&F, _a, eps_abs, eps_rel, n, W, &result, &abs_err)
-         sig_off()
+        elif b is +Infinity:
+            _a = a
+            W = <gsl_integration_workspace*>gsl_integration_workspace_alloc(n)
+            sig_on()
+            gsl_integration_qagiu(&F, _a, eps_abs, eps_rel, n, W, &result, &abs_err)
+            sig_off()
 
-       else:
-         _a = a
-         _b = b
-         W = <gsl_integration_workspace*> gsl_integration_workspace_alloc(n)
-         sig_on()
-         gsl_integration_qag(&F,_a,_b,eps_abs,eps_rel,n,rule,W,&result,&abs_err)
-         sig_off()
-
+        else:
+            _a = a
+            _b = b
+            W = <gsl_integration_workspace*> gsl_integration_workspace_alloc(n)
+            sig_on()
+            gsl_integration_qag(&F,_a,_b,eps_abs,eps_rel,n,rule,W,&result,&abs_err)
+            sig_off()
 
     elif algorithm == "qags":
 
@@ -393,10 +392,10 @@ def numerical_integral(func, a, b=None,
         sig_off()
 
     else:
-      raise TypeError("invalid integration algorithm")
+        raise TypeError("invalid integration algorithm")
 
     if W != NULL:
-      gsl_integration_workspace_free(W)
+        gsl_integration_workspace_free(W)
 
     return result, abs_err
 
@@ -407,7 +406,7 @@ cdef double c_monte_carlo_f(double *t, size_t dim, void *params):
     wrapper = <PyFunctionWrapper> params
 
     for i in range(dim):
-       wrapper.lx[i] = t[i]
+        wrapper.lx[i] = t[i]
 
     try:
         if len(wrapper.the_parameters) != 0:

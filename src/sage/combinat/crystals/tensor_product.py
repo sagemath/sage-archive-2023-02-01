@@ -382,7 +382,7 @@ class TensorProductOfCrystals(CrystalOfWords):
         if any(c.cartan_type() != cartan_type for c in crystals):
             raise ValueError("all crystals must be of the same Cartan type")
 
-        if cartan_type.letter == 'Q':
+        if cartan_type.type() == 'Q':
             return FullTensorProductOfQueerSuperCrystals(crystals, **options)
         if isinstance(cartan_type, SuperCartanType_standard):
             return FullTensorProductOfSuperCrystals(crystals, **options)

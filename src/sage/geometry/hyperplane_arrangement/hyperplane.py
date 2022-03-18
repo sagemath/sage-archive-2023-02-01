@@ -551,14 +551,15 @@ class Hyperplane(LinearExpression):
 
         Check that :trac:`30078` is fixed::
 
-            sage: H.<x,y> = HyperplaneArrangements(base_ring=AA)
+            sage: R = QuadraticField(2)
+            sage: H.<x,y> = HyperplaneArrangements(base_ring=R)
             sage: B = H([1,1,0], [2,2,0], [sqrt(2),sqrt(2),0])
             sage: B
             Arrangement <x + 1>
 
         Check that :trac:`30749` is fixed::
 
-            sage: tau = AA((1+sqrt(5))/2)
+            sage: tau = (1+AA(5).sqrt()) / 2
             sage: ncn = [[2*tau+1,2*tau,tau],[2*tau+2,2*tau+1,tau+1]]
             sage: ncn += [[tau+1,tau+1,tau],[2*tau,2*tau,tau],[tau+1,tau+1,1]]
             sage: ncn += [[1,1,1],[1,1,0],[0,1,0],[1,0,0],[tau+1,tau,tau]]

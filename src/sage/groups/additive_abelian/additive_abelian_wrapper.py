@@ -392,13 +392,14 @@ class AdditiveAbelianGroupWrapper(addgp.AdditiveAbelianGroup_fixed_gens):
 
         EXAMPLES::
 
-            sage: G = AdditiveAbelianGroup([2, 2*3, 2*3*5, 2*3*5*7, 2*3*5*7*11])
-            sage: A = AdditiveAbelianGroupWrapper(G.0.parent(), G.gens(), [g.order() for g in G.gens()])
+            sage: ords = [2, 2*3, 2*3*5, 0, 2*3*5*7, 2*3*5*7*11]
+            sage: G = AdditiveAbelianGroup(ords)
+            sage: A = AdditiveAbelianGroupWrapper(G.0.parent(), G.gens(), ords)
             sage: T = A.torsion_subgroup(5)
             sage: T
-            Additive abelian group isomorphic to Z/5 + Z/5 + Z/5 embedded in Additive abelian group isomorphic to Z/2 + Z/6 + Z/30 + Z/210 + Z/2310
+            Additive abelian group isomorphic to Z/5 + Z/5 + Z/5 embedded in Additive abelian group isomorphic to Z/2 + Z/6 + Z/30 + Z + Z/210 + Z/2310
             sage: T.gens()
-            ((0, 0, 6, 0, 0), (0, 0, 0, 42, 0), (0, 0, 0, 0, 462))
+            ((0, 0, 6, 0, 0, 0), (0, 0, 0, 0, 42, 0), (0, 0, 0, 0, 0, 462))
 
         ::
 

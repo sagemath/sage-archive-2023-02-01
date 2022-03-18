@@ -43,16 +43,15 @@ jobs:
           bash ~/miniconda.sh -b -p $HOME/miniconda
           echo "CONDA=$HOME/miniconda" >> $GITHUB_ENV
 
-      - name: Install bootstrap prereqs
+      - name: Install bootstrap prerequisites
         run: |
           export PATH="$(pwd)/build/bin:$PATH"
           SYSTEM=$(sage-guess-package-system)
           eval $(sage-print-system-package-command $SYSTEM --sudo install $(sage-get-system-packages $SYSTEM _bootstrap))
 
+      # Create conda environment file
       - name: Bootstrap
-        # Create conda environment file
-        run: |
-          ./bootstrap
+        run: ./bootstrap
 
       - name: Cache conda packages
         uses: actions/cache@v2
@@ -84,6 +83,7 @@ jobs:
           ./configure --enable-build-as-root --with-python=$CONDA_PREFIX/bin/python --prefix=$CONDA_PREFIX $(for pkg in $(./sage -package list :standard: --has-file spkg-configure.m4 --has-file distros/conda.txt); do echo --with-system-$pkg=force; done)
           echo "::remove-matcher owner=configure-system-package-warning::"
           echo "::remove-matcher owner=configure-system-package-error::"
+
       - name: Build
         shell: bash -l {0}
         run: |

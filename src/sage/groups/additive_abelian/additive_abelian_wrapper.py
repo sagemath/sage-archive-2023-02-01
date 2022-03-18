@@ -429,22 +429,22 @@ class AdditiveAbelianGroupWrapper(addgp.AdditiveAbelianGroup_fixed_gens):
 
         - Lorenz Panny (2022)
         """
-        if n is not None:
+        genords = zip(self._gen_elements, self._gen_orders)
+        if n is None:
+            gens, ords = zip(*(t for t in genords if t[1]))
+        else:
             n = ZZ(n)
             if n <= 0:
                 raise ValueError('n must be a positive integer')
-        gens, ords = [], []
-        for g,o in zip(self._gen_elements, self._gen_orders):
-            if not o:
-                continue
-            if n is not None:
+            gens, ords = [], []
+            for g,o in genords:
+                if not o:
+                    continue
                 d = n.gcd(o)
                 if d == 1:
                     continue
-                g *= o//d
-                o = d
-            gens.append(g)
-            ords.append(o)
+                gens.append(o//d * g)
+                ords.append(d)
         return AdditiveAbelianGroupWrapper(self.universe(), gens, ords)
 
     def _element_constructor_(self, x, check=False):

@@ -5394,9 +5394,9 @@ cdef class Matrix_integer_dense(Matrix_dense):
             for j from 0 <= j < ns:
                 fmpz_set(fmpz_mat_entry(Z._matrix,i,j),
                          fmpz_mat_entry(self._matrix,i,j))
-          for j from 0 <= j < na:
-              fmpz_set(fmpz_mat_entry(Z._matrix,i,j + ns),
-                       fmpz_mat_entry(other._matrix,i,j))
+            for j from 0 <= j < na:
+                fmpz_set(fmpz_mat_entry(Z._matrix,i,j + ns),
+                         fmpz_mat_entry(other._matrix,i,j))
         if subdivide:
             Z._subdivide_on_augment(self, other)
         return Z

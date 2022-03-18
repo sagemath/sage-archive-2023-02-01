@@ -33,6 +33,11 @@ jupyter_sphinx_thebelab_config = {
     'binderOptions': {
         'repo': "sagemath/sage-binder-env",
     },
+    'kernelOptions': {
+        'name': "sagemath",
+        'kernelName': "sagemath",
+        'path': ".",
+    },
 }
 
 # This code is executed before each ".. PLOT::" directive in the Sphinx

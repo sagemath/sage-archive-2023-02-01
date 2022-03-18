@@ -23,10 +23,9 @@ EXAMPLES::
     sage: f.widget.children
     (IntSlider(value=5, description='x', max=10), Output())
 
-.. only:: html
+.. ONLY:: html
 
-    .. jupyter-execute::
-        :hide-code:
+    .. JUPYTER-EXECUTE:: :hide-code:
 
         from sage.repl.ipython_kernel.interact import interact
         @interact
@@ -71,6 +70,14 @@ class sage_interactive(interactive):
           x: IntSlider(value=10, description='x')
           y: Text(value='hello', description='y')
           z: Dropdown(description='z', options=('one', 'two', 'three'), value=None)
+
+    .. ONLY:: html
+
+        .. JUPYTER-EXECUTE:: :hide-code:
+
+            from sage.repl.ipython_kernel.interact import sage_interactive
+            def myfunc(x=10, y="hello", z=None): pass
+            sage_interactive(myfunc, x=(0,100), z=["one", "two", "three"])
     """
     def __init__(*args, **kwds):
         """

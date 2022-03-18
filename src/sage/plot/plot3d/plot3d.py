@@ -8,19 +8,18 @@ EXAMPLES::
     sage: S = sphere((0,0,0),size=0.3, color='red', aspect_ratio=[1,1,1])
     sage: show(W + S, figsize=8)
 
-.. only:: html
+.. ONLY:: html
 
-    .. jupyter-execute::
-        :hide-code:
+    .. JUPYTER-EXECUTE:: :hide-code:
 
         x, y = var('x y')
         W = plot3d(sin(pi*((x)**2+(y)**2))/2,(x,-1,1),(y,-1,1), frame=False, color='purple', opacity=0.8)
         S = sphere((0,0,0),size=0.3, color='red', aspect_ratio=[1,1,1])
         show(W + S, figsize=8)
 
-.. only:: pdf
+.. ONLY:: pdf
 
-    .. plot::
+    .. PLOT::
 
         x, y = var('x y')
         W = plot3d(sin(pi*((x)**2+(y)**2))/2,(x,-1,1),(y,-1,1), frame=False, color='purple', opacity=0.8)
@@ -34,17 +33,16 @@ EXAMPLES::
     sage: P = plot3d(f,(-3,3),(-3,3), adaptive=True, color=rainbow(60, 'rgbtuple'), max_bend=.1, max_depth=15)
     sage: P.show()
 
-.. only:: html
+.. ONLY:: html
 
-    .. jupyter-execute::
-        :hide-code:
+    .. JUPYTER-EXECUTE:: :hide-code:
 
         def f(x,y):
             return math.sin(y^2+x^2)/math.sqrt(x^2+y^2+0.0001)
         P = plot3d(f,(-3,3),(-3,3), adaptive=True, color=rainbow(60, 'rgbtuple'), max_bend=.1, max_depth=15)
         P.show()
 
-.. only:: pdf
+.. ONLY:: pdf
 
     .. figure:: ../../../images/figure20.png
 
@@ -58,13 +56,21 @@ EXAMPLES::
     sage: S = P + axes(6, color='black')
     sage: S.show()
 
-.. PLOT::
+.. ONLY:: html
 
-    def f(x,y): return math.exp(x/5)*math.sin(y)
-    P = plot3d(f,(-5,5),(-5,5), adaptive=True, color=['red','yellow'])
-    from sage.plot.plot3d.plot3d import axes
-    S = P + axes(6, color='black')
-    sphinx_plot(S)
+    .. JUPYTER-EXECUTE:: :hide-code:
+
+        def f(x,y):
+            return math.exp(x/5)*math.sin(y)
+
+        P = plot3d(f,(-5,5),(-5,5), adaptive=True, color=['red','yellow'])
+        from sage.plot.plot3d.plot3d import axes
+        S = P + axes(6, color='black')
+        S.show()
+
+.. ONLY:: pdf
+
+    .. figure:: ../../../images/figure30.png
 
 Here is an example using a colormap and a color function ``c``::
 
@@ -74,12 +80,23 @@ Here is an example using a colormap and a color function ``c``::
     sage: plot3d(x*x+y*y,(x,-4,4),(y,-4,4),color=(c,cm))
     Graphics3d Object
 
-.. PLOT::
+.. ONLY:: html
 
-    x, y = var('x y')
-    cm = colormaps.hsv
-    def c(x,y): return float((x+y+x*y)/15) % 1
-    sphinx_plot(plot3d(x*x+y*y,(x,-4,4),(y,-4,4),color=(c,cm)))
+    .. JUPYTER-EXECUTE:: :hide-code:
+
+        x, y = var('x y')
+        cm = colormaps.hsv
+        def c(x,y): return float((x+y+x*y)/15) % 1
+        plot3d(x*x+y*y,(x,-4,4),(y,-4,4),color=(c,cm))
+
+.. ONLY:: pdf
+
+    .. PLOT::
+
+        x, y = var('x y')
+        cm = colormaps.hsv
+        def c(x,y): return float((x+y+x*y)/15) % 1
+        sphinx_plot(plot3d(x*x+y*y,(x,-4,4),(y,-4,4),color=(c,cm)))
 
 Beware that the color function must take values between 0 and 1.
 

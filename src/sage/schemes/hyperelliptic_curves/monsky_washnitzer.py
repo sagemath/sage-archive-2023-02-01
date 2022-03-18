@@ -612,12 +612,49 @@ class SpecialCubicQuotientRing(CommutativeAlgebra):
         return self.element_class(self, p0, p1, p2, check=check)
 
     def create_element(self, p, q, r, check=True):
+        """
+        Create the element `p_0 + p_1*x + p_2*x^2`, where the `p_i`
+        are polynomials in `T`.
+
+        INPUT:
+
+        - ``p0, p1, p2`` -- coefficients; must be coercible
+           into poly_ring()
+
+        EXAMPLES::
+
+            sage: B.<t> = PolynomialRing(Integers(125))
+            sage: R = monsky_washnitzer.SpecialCubicQuotientRing(t^3 - t + B(1/4))
+            sage: A, z = R.poly_ring().objgen()
+            sage: R.create_element(z, z^2+1, 2)
+            (T) + (T^2 + 1)*x + (2)*x^2
+        """
         return self._element_constructor_(p, q, r, check=check)
 
     def one(self):
+        """
+        Return the unit of ``self``.
+
+        EXAMPLES::
+
+            sage: B.<t> = PolynomialRing(Integers(125))
+            sage: R = monsky_washnitzer.SpecialCubicQuotientRing(t^3 - t + B(1/4))
+            sage: R.one()
+            (1) + (0)*x + (0)*x^2
+        """
         return self.element_class(self, 1, 0, 0, check=False)
 
     def _coerce_map_from_(self, R):
+        """
+        Coercion system.
+
+        EXAMPLES::
+
+            sage: B.<t> = PolynomialRing(Integers(125))
+            sage: R = monsky_washnitzer.SpecialCubicQuotientRing(t^3 - t + B(1/4))
+            sage: R.has_coerce_map_from(B)
+            True
+        """
         return self._poly_ring.has_coerce_map_from(R)
 
     Element = SpecialCubicQuotientRingElement

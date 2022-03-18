@@ -22,6 +22,16 @@ EXAMPLES::
       x: IntSlider(value=5, description='x', max=10)
     sage: f.widget.children
     (IntSlider(value=5, description='x', max=10), Output())
+
+.. only:: html
+
+    .. jupyter-execute::
+        :hide-code:
+
+        from sage.repl.ipython_kernel.interact import interact
+        @interact
+        def f(x=(0,10)):
+            pass
 """
 
 # ****************************************************************************

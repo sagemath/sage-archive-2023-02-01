@@ -39,10 +39,10 @@ EXAMPLES::
     .. jupyter-execute::
         :hide-code:
 
-        sage: def f(x,y):
-        ....:     return math.sin(y^2+x^2)/math.sqrt(x^2+y^2+0.0001)
-        sage: P = plot3d(f,(-3,3),(-3,3), adaptive=True, color=rainbow(60, 'rgbtuple'), max_bend=.1, max_depth=15)
-        sage: P.show()
+        def f(x,y):
+            return math.sin(y^2+x^2)/math.sqrt(x^2+y^2+0.0001)
+        P = plot3d(f,(-3,3),(-3,3), adaptive=True, color=rainbow(60, 'rgbtuple'), max_bend=.1, max_depth=15)
+        P.show()
 
 .. only:: pdf
 
@@ -52,7 +52,7 @@ EXAMPLES::
 
     sage: def f(x,y):
     ....:     return math.exp(x/5)*math.sin(y)
-    ...
+    ....:
     sage: P = plot3d(f,(-5,5),(-5,5), adaptive=True, color=['red','yellow'])
     sage: from sage.plot.plot3d.plot3d import axes
     sage: S = P + axes(6, color='black')

@@ -51,7 +51,7 @@ First *Hello World* example::
     Hello World
     \end{document}
 
-Loading few latex packages::
+Loading a few latex packages::
 
     sage: Standalone('Hello World', usepackage=['amsmath', 'amsfont'])
     \documentclass{standalone}
@@ -190,7 +190,7 @@ Use ``print(t)`` to see the complete content of the file::
 
     sage: print(t)               # not tested
 
-Adding a border in the options avoids croping the vertices of a graph::
+Adding a border in the options avoids cropping the vertices of a graph::
 
     sage: g = graphs.PetersenGraph()
     sage: s = latex(g)   # takes 3s but the result is cached # optional latex
@@ -213,11 +213,10 @@ AUTHORS:
 #*****************************************************************************
 #       Copyright (C) 2015-2022 Sébastien Labbé <slabqc@gmail.com>
 #
-#  Distributed under the terms of the GNU General Public License version 2 (GPLv2)
-#
-#  The full text of the GPLv2 is available at:
-#
-#                  http://www.gnu.org/licenses/
+#  Distributed under the terms of the GNU General Public License (GPL)
+#  as published by the Free Software Foundation; either version 2 of
+#  the License, or (at your option) any later version.
+#                  https://www.gnu.org/licenses/
 #*****************************************************************************
 from subprocess import run
 import os

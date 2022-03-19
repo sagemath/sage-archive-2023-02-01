@@ -406,7 +406,8 @@ class SpecialCubicQuotientRing(CommutativeAlgebra):
         sage: B.<t> = PolynomialRing(Integers(125))
         sage: R = monsky_washnitzer.SpecialCubicQuotientRing(t^3 - t + B(1/4))
         sage: R
-        SpecialCubicQuotientRing over Ring of integers modulo 125 with polynomial T = x^3 + 124*x + 94
+        SpecialCubicQuotientRing over Ring of integers modulo 125
+        with polynomial T = x^3 + 124*x + 94
 
     Get generators::
 
@@ -435,7 +436,9 @@ class SpecialCubicQuotientRing(CommutativeAlgebra):
         sage: x^3
         (T + 31) + (1)*x + (0)*x^2
         sage: 3 * x**15 * T**2 + x - T
-        (3*T^7 + 90*T^6 + 110*T^5 + 20*T^4 + 58*T^3 + 26*T^2 + 124*T) + (15*T^6 + 110*T^5 + 35*T^4 + 63*T^2 + 1)*x + (30*T^5 + 40*T^4 + 8*T^3 + 38*T^2)*x^2
+        (3*T^7 + 90*T^6 + 110*T^5 + 20*T^4 + 58*T^3 + 26*T^2 + 124*T) +
+        (15*T^6 + 110*T^5 + 35*T^4 + 63*T^2 + 1)*x +
+        (30*T^5 + 40*T^4 + 8*T^3 + 38*T^2)*x^2
 
     Retrieve coefficients (output is zero-padded)::
 
@@ -468,7 +471,8 @@ class SpecialCubicQuotientRing(CommutativeAlgebra):
             sage: B.<t> = PolynomialRing(Integers(125))
             sage: R = monsky_washnitzer.SpecialCubicQuotientRing(t^3 - t + B(1/4))
             sage: R
-            SpecialCubicQuotientRing over Ring of integers modulo 125 with polynomial T = x^3 + 124*x + 94
+            SpecialCubicQuotientRing over Ring of integers modulo 125
+            with polynomial T = x^3 + 124*x + 94
 
         ::
 
@@ -516,8 +520,8 @@ class SpecialCubicQuotientRing(CommutativeAlgebra):
         # Precompute a matrix that is used in the Toom-Cook multiplication.
         # This is where we need 2 and 3 invertible.
 
-        # (a good description of Toom-Cook is online at:
-        # http://www.gnu.org/software/gmp/manual/html_node/Toom-Cook-3-Way-Multiplication.html)
+        # a good description of Toom-Cook is online at:
+        # https://gmplib.org/manual/Multiplication-Algorithms
         m = matrix(QQ, [[1, -12, 2], [-3, 30, -3], [2, -12, 1]]) / 6
         self._speedup_matrix = m.change_ring(base_ring).list()
 
@@ -529,8 +533,9 @@ class SpecialCubicQuotientRing(CommutativeAlgebra):
 
             sage: B.<t> = PolynomialRing(Integers(125))
             sage: R = monsky_washnitzer.SpecialCubicQuotientRing(t^3 - t + B(1/4))
-            sage: print(R)
-            SpecialCubicQuotientRing over Ring of integers modulo 125 with polynomial T = x^3 + 124*x + 94
+            sage: R
+            SpecialCubicQuotientRing over Ring of integers modulo 125
+            with polynomial T = x^3 + 124*x + 94
         """
         return "SpecialCubicQuotientRing over %s with polynomial T = %s" % \
             (self.base_ring(), PolynomialRing(self.base_ring(), 'x')(

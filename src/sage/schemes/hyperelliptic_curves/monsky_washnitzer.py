@@ -624,9 +624,10 @@ class SpecialCubicQuotientRing(CommutativeAlgebra):
 
         EXAMPLES::
 
-            sage: B.<t> = PolynomialRing(Integers(125))
+            sage: Z125 = Integers(125)
+            sage: B.<t> = PolynomialRing(Z125)
             sage: R = monsky_washnitzer.SpecialCubicQuotientRing(t^3 - t + B(1/4))
-            sage: R.has_coerce_map_from(ZZ)
+            sage: R.has_coerce_map_from(Z125)
             True
         """
         return self._poly_ring.has_coerce_map_from(R)

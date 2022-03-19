@@ -47,6 +47,7 @@ AUTHORS:
 # ****************************************************************************
 
 from sage.arith.all import integer_ceil as ceil
+from sage.arith.misc import binomial
 from sage.functions.log import log
 from sage.matrix.constructor import matrix
 from sage.misc.cachefunc import cached_method
@@ -570,7 +571,7 @@ class SpecialCubicQuotientRing(CommutativeAlgebra):
         """
         zero = self._poly_ring.zero()
         one = self._poly_ring.one()
-        return (self.element_class(zero, one, zero, check=False),
+        return (self.element_class(self, zero, one, zero, check=False),
                 self.element_class(self, self._poly_generator, zero, zero,
                                    check=False))
 
@@ -1325,10 +1326,10 @@ def frobenius_expansion_by_series(Q, p, M):
     # large, because the machine word size is probably pretty
     # big anyway.)
 
-    for k in range(int(1), int(M-1)):
+    for k in range(int(1), int(M - 1)):
         term = term * E
-        c = base_ring(QQ((-1, 2)).binomial(k))
-        F0 += (term * c).shift((M-k-2)*p)
+        c = base_ring(binomial(QQ((-1, 2)), k))
+        F0 += (term * c).shift((M - k - 2) * p)
 
     return F0, F0 * x_to_p, offset
 
@@ -1366,10 +1367,11 @@ def adjusted_prec(p, prec):
         3
     """
     # initial estimate:
-    defect = Integer(2 * prec - 3).exact_log(p)
     if prec <= 2:
+        defect = 0
         adjusted = 2
     else:
+        defect = Integer(2 * prec - 3).exact_log(p)
         adjusted = prec + defect - 1
 
     # increase it until we have enough

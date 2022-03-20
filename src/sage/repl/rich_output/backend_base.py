@@ -24,7 +24,7 @@ display specific output types in your own backend.
 * Subclass the rich output container to attach your backend-specific
   functionality. Then :meth:`~BackendBase.display_immediately` will
   receive instances of your subclass. See
-  :class:`~sage.repl.rich_output.backend_test.BackendTest` for an
+  :class:`~sage.repl.rich_output.test_backend.BackendTest` for an
   example of how this is done.
 
 You can also mix both ways of implementing different rich output types.

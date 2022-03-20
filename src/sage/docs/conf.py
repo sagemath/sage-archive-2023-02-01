@@ -623,7 +623,7 @@ def process_docstring_module_title(app, what, name, obj, options, docstringlines
             break
 
 skip_picklability_check_modules = [
-    #'sage.misc.nested_class_test', # for test only
+    #'sage.misc.test_nested_class', # for test only
     'sage.misc.latex',
     'sage.misc.explain_pickle',
     '__builtin__',

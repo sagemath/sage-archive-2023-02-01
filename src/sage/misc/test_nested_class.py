@@ -10,7 +10,7 @@ EXAMPLES:
 Currently pickling fails for parents using nested classes (typically
 for categories), but deriving only from Parent::
 
-    sage: from sage.misc.nested_class_test import TestParent1, TestParent2, TestParent3, TestParent4
+    sage: from sage.misc.test_nested_class import TestParent1, TestParent2, TestParent3, TestParent4
     sage: P = TestParent1()
     sage: TestSuite(P).run()
     Failure ...
@@ -59,8 +59,8 @@ class TestParent1(Parent):
         """
         EXAMPLES::
 
-            sage: sage.misc.nested_class_test.TestParent1()
-            <sage.misc.nested_class_test.TestParent1_with_category object at ...>
+            sage: sage.misc.test_nested_class.TestParent1()
+            <sage.misc.test_nested_class.TestParent1_with_category object at ...>
         """
         from sage.categories.sets_cat import Sets
         Parent.__init__(self, category = Sets())
@@ -74,7 +74,7 @@ class TestParent2(Parent, metaclass=NestedClassMetaclass):
         """
         EXAMPLES::
 
-            sage: sage.misc.nested_class_test.TestParent2()
+            sage: sage.misc.test_nested_class.TestParent2()
             Traceback (most recent call last):
             ...
             TypeError: metaclass conflict: the metaclass of a derived class must be a (non-strict) subclass of the metaclasses of all its bases
@@ -92,8 +92,8 @@ class TestParent3(UniqueRepresentation, Parent):
         """
         EXAMPLES::
 
-            sage: sage.misc.nested_class_test.TestParent3()
-            <sage.misc.nested_class_test.TestParent3_with_category object at ...>
+            sage: sage.misc.test_nested_class.TestParent3()
+            <sage.misc.test_nested_class.TestParent3_with_category object at ...>
         """
         from sage.categories.sets_cat import Sets
         Parent.__init__(self, category = Sets())
@@ -107,8 +107,8 @@ class TestParent4(Parent, metaclass=ClasscallMetaclass):
         """
         EXAMPLES::
 
-            sage: sage.misc.nested_class_test.TestParent4()
-            <sage.misc.nested_class_test.TestParent4_with_category object at ...>
+            sage: sage.misc.test_nested_class.TestParent4()
+            <sage.misc.test_nested_class.TestParent4_with_category object at ...>
         """
         from sage.categories.sets_cat import Sets
         Parent.__init__(self, category=Sets())
@@ -117,7 +117,7 @@ class TestParent4(Parent, metaclass=ClasscallMetaclass):
         """
         EXAMPLES::
 
-            sage: from sage.misc.nested_class_test import TestParent4
+            sage: from sage.misc.test_nested_class import TestParent4
             sage: TestParent4() == TestParent4()
             True
         """
@@ -127,7 +127,7 @@ class TestParent4(Parent, metaclass=ClasscallMetaclass):
         """
         EXAMPLES::
 
-            sage: from sage.misc.nested_class_test import TestParent4
+            sage: from sage.misc.test_nested_class import TestParent4
             sage: TestParent4() != TestParent4()
             False
         """
@@ -139,7 +139,7 @@ class TestParent4(Parent, metaclass=ClasscallMetaclass):
 
         EXAMPLES::
 
-            sage: from sage.misc.nested_class_test import TestParent4
+            sage: from sage.misc.test_nested_class import TestParent4
             sage: hash(TestParent4()) == hash(TestParent4())
             True
         """

@@ -7928,6 +7928,29 @@ cdef class Matroid(SageObject):
             sage: A = M.augmented_bergman_complex(); A
             Simplicial complex with 22 vertices and 91 facets
 
+            sage: M = matroids.Uniform(2,3)
+            sage: A = M.augmented_bergman_complex(); A
+            Simplicial complex with 7 vertices and 9 facets
+
+        Both the independent set complex of the matroid and the usual
+        Bergman complex are subcomplexes of the augmented Bergman complex.
+        The vertices of the complex are labeled by ``L`` when they belong
+        to the independent set complex and ``R`` when the belong to the
+        (cone of) the Bergman complex. The cone point is ``'R[]'``::
+
+            sage: sorted(A.faces()[0])
+            [('L0',), ('L1',), ('L2',), ('R[0]',), ('R[1]',), ('R[2]',), ('R[]',)]
+            sage: sorted(map(sorted, A.faces()[1]))
+            [['L0', 'L1'],
+             ['L0', 'L2'],
+             ['L0', 'R[0]'],
+             ['L1', 'L2'],
+             ['L1', 'R[1]'],
+             ['L2', 'R[2]'],
+             ['R[0]', 'R[]'],
+             ['R[1]', 'R[]'],
+             ['R[2]', 'R[]']]
+
         .. SEEALSO::
 
             :meth:`M.bergman_complex() <sage.matroids.matroid.Matroid.bergman_complex>`
@@ -7944,40 +7967,33 @@ cdef class Matroid(SageObject):
         - [BMHPW20a]_
         - [BMHPW20b]_
         """
-        # Construct independent set complex
+        # Construct independent set complex with maximal faces
+        # given by the bases.
         from sage.topology.simplicial_complex import SimplicialComplex
-        I = self.independent_sets()
-        delta_I = SimplicialComplex(I)
+        IM = SimplicialComplex(self.bases())
 
         # Construct coned Bergman complex
-        L = self.lattice_of_flats()
-        cache = L.subposet(L.list()[: -1])
-        coned_bergman = cache.order_complex()
+        LM = self.lattice_of_flats()
 
         # Take disjoint union of independent set and coned Bergman
-        DM = delta_I.disjoint_union(coned_bergman)
+        # elements of IM are prefixed L
+        # elements of coned Bergman are prefixed R, but are not
+        # constructed yet.
+        DM = IM.disjoint_union(SimplicialComplex())
 
-        # iterate through all nontrivial flats and find all maximal chains containing them
-        flats = L.subposet(L.list()[1: -1])
-        dictionary = {}
-        for flat in flats:
-            dictionary[flat] = flats.subposet(flats.principal_order_filter(flat)).maximal_chains()
+        ## simplicies are \{y_i\}_{i\in I}\cup\{x_{F_1},\ldots,x_{F_\ell}\},
+        ## by [BMHPW20a]_ thm 4 it is pure of dimension r(M)-1
 
-        # For each independent set, find its closure and
-        # make faces using the maximal chains containing its closure
-        for independent in self.independent_sets():
-            flat = self.closure(independent)
-            if independent and self.rank(flat) < self.rank():
-                for chain in dictionary[flat]:
-                    face = []
-                    for elt in independent:
-                        face.append(f'L{elt}')
-                    for elt in chain:
-                        for c in cache:
-                            if elt == c:
-                                face.append(f'R{c}')
-                                break
-                    DM.add_face(face)
+        for c in LM.chains(exclude = LM.maximal_elements()):
+            if c: # the facets of IM are already present
+                # get the cardinality of intersection of facet with IM
+                r = self.rank() - len(c) 
+                
+                # get candidate independent_sets
+                for I in self.independent_r_sets(r):
+                    if I.issubset(c[0]):
+                        DM.add_face([f'L{i}' for i in I] +
+                                    [f'R{sorted(F)}' for F in c])
         return DM
 
     def union(self, matroids):

@@ -7959,8 +7959,6 @@ cdef class Matroid(SageObject):
 
             It is possible that this method could be optimized by building up
             the maximal chains using a sort of dynamic programming approach.
-            Also, checking for equality of sets using ``cache`` could be
-            sped up.
 
         REFERENCES:
 

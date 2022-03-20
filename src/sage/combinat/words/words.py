@@ -935,7 +935,6 @@ class FiniteWords(AbstractLanguage):
             ....:       break
             ....:   else:
             ....:       w
-            ....:
             word:
             word: 4
             word: 5
@@ -950,7 +949,6 @@ class FiniteWords(AbstractLanguage):
             ....:       break
             ....:   else:
             ....:       w
-            ....:
             word:
             word: 5
             word: 4

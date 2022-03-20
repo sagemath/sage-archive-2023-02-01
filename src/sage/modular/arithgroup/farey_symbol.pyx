@@ -161,9 +161,8 @@ cdef class Farey:
     \Gamma_0(8)\cap\Gamma_1(4)` using a helper class to define group membership::
 
          sage: class GPrime:
-         ....:   def __contains__(self, M):
-         ....:       return M in Gamma0(8) and M in Gamma1(4)
-         ....:
+         ....:     def __contains__(self, M):
+         ....:         return M in Gamma0(8) and M in Gamma1(4)
 
          sage: FareySymbol(GPrime()).generators()
          [

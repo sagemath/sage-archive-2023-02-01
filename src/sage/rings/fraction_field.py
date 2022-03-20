@@ -1268,10 +1268,9 @@ class FractionFieldEmbeddingSection(Section):
             sage: K = R.fraction_field()
             sage: R(K.gen(), check=True)
             x
-
         """
-        check = kwds.pop('check', True)
-        if args or kwds:
+        check = kwds.get('check', True)
+        if args or any(key != 'check' for key in kwds):
             raise NotImplementedError("__call__ cannot be called with additional arguments other than check=True/False")
         return self._call_(x, check=check)
 

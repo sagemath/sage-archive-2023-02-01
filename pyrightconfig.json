@@ -21,4 +21,5 @@
     "reportOptionalIterable": "warning",
     "reportUndefinedVariable": "warning",
     "reportOptionalOperand": "warning",
+    "reportMissingImports": "warning",
 }

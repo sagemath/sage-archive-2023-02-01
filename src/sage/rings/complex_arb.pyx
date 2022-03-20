@@ -139,10 +139,12 @@ Classes and Methods
 #  Distributed under the terms of the GNU General Public License (GPL)
 #  as published by the Free Software Foundation; either version 2 of
 #  the License, or (at your option) any later version.
-#                http://www.gnu.org/licenses/
+#                https://www.gnu.org/licenses/
 #*****************************************************************************
 
-import operator, sys, warnings
+import operator
+import sys
+import warnings
 from cysignals.signals cimport sig_on, sig_str, sig_off, sig_error
 
 import sage.categories.fields
@@ -188,6 +190,7 @@ from sage.structure.parent cimport Parent
 from sage.structure.unique_representation import UniqueRepresentation
 from sage.arith.long cimport is_small_python_int
 
+from sage.misc.lazy_string import lazy_string
 from sage.misc.superseded import deprecated_function_alias
 from sage.rings.complex_mpfr import ComplexField
 from sage.rings.complex_interval_field import ComplexIntervalField, ComplexIntervalField_class
@@ -296,7 +299,7 @@ cdef int acb_calc_func_callback(acb_ptr out, const acb_t inp, void * param,
             if not isinstance(y, ComplexBall):
                 y = ctx.parent.coerce(y)
             acb_set(out, (<ComplexBall> y).value)
-        except:
+        except Exception:
             ctx.exn_type, ctx.exn_obj, ctx.exn_tb = sys.exc_info()
             acb_indeterminate(out)
         return 0
@@ -331,6 +334,9 @@ class ComplexBallField(UniqueRepresentation, sage.rings.abc.ComplexBallField):
 
         sage: ComplexBallField().is_finite()
         False
+
+        sage: loads(dumps(ComplexBallField(60))) is ComplexBallField(60)
+        True
     """
     Element = ComplexBall
 
@@ -547,6 +553,9 @@ class ComplexBallField(UniqueRepresentation, sage.rings.abc.ComplexBallField):
             ....:                                 embedding=QQbar(-2)^(1/7)))
             Conversion via _acb_ method map:
             ...
+            sage: CBF.coerce_map_from(QQbar)
+            Conversion via _acb_ method map:
+            ...
         """
         if isinstance(other, RealBallField):
             return other._prec >= self._prec
@@ -587,8 +596,8 @@ class ComplexBallField(UniqueRepresentation, sage.rings.abc.ComplexBallField):
             1.000000000000000*I
             sage: CBF(pi+I/3)
             [3.141592653589793 +/- ...e-16] + [0.3333333333333333 +/- ...e-17]*I
-            sage: CBF(QQbar(i/7))
-            [0.1428571428571428 +/- ...e-17]*I
+            sage: CBF(QQbar(i/7)) # abs tol 1e-16
+            [0.1428571428571429 +/- 4.29e-17]*I
             sage: CBF(AA(sqrt(2)))
             [1.414213562373095 +/- ...e-16]
             sage: CBF(CIF(0, 1))
@@ -668,7 +677,7 @@ class ComplexBallField(UniqueRepresentation, sage.rings.abc.ComplexBallField):
                 return self.element_class(self, _x)
             except TypeError:
                 pass
-            raise TypeError("unable to convert {!r} to a ComplexBall".format(x))
+            raise TypeError(lazy_string("unable to convert %s to a ComplexBall", x))
         else:
             _x = self._base(x)
             _y = self._base(y)
@@ -695,6 +704,8 @@ class ComplexBallField(UniqueRepresentation, sage.rings.abc.ComplexBallField):
             53
         """
         return self._prec
+
+    prec = precision
 
     def is_exact(self):
         """
@@ -1486,6 +1497,18 @@ cdef class ComplexBall(RingElement):
         else:
             return "{} + {}*I".format(self.real()._repr_(),
                                         self.imag()._repr_())
+
+    def __reduce__(self):
+        r"""
+        Serialize a ComplexBall.
+
+        TESTS::
+
+            sage: [loads(dumps(b)).identical(b) for b in
+            ....:     [ComplexBallField(60)(1/3 + i*pi), CBF(NaN)]]
+            [True, True]
+        """
+        return self.__class__, (self._parent, self.real(), self.imag())
 
     def _is_atomic(self):
         r"""
@@ -3959,8 +3982,8 @@ cdef class ComplexBall(RingElement):
 
         EXAMPLES::
 
-            sage: CBF(20).erfc()
-            [5.39586561160790e-176 +/- ...e-191]
+            sage: CBF(20).erfc() # abs tol 1e-190
+            [5.39586561160790e-176 +/- 6.73e-191]
             sage: CBF(100, 100).erfc()
             [0.00065234366376858 +/- ...e-18] + [-0.00393572636292141 +/- ...e-18]*I
         """
@@ -4189,7 +4212,7 @@ cdef class ComplexBall(RingElement):
 
         TESTS:
 
-            sage: CBF(Ei(I))
+            sage: CBF(Ei(I))  # abs tol 1e-16
             [0.337403922900968 +/- 3.76e-16] + [2.51687939716208 +/- 2.01e-15]*I
         """
         cdef ComplexBall result = self._new()
@@ -4239,7 +4262,7 @@ cdef class ComplexBall(RingElement):
 
         TESTS:
 
-            sage: CBF(Ci(I))
+            sage: CBF(Ci(I))  # abs tol 1e-17
             [0.837866940980208 +/- 4.72e-16] + [1.570796326794897 +/- 5.54e-16]*I
         """
         cdef ComplexBall result = self._new()
@@ -4265,7 +4288,7 @@ cdef class ComplexBall(RingElement):
 
         TESTS:
 
-            sage: CBF(Shi(I))
+            sage: CBF(Shi(I)) # abs tol 1e-15
             [0.946083070367183 +/- 9.22e-16]*I
         """
         cdef ComplexBall result = self._new()
@@ -4291,7 +4314,7 @@ cdef class ComplexBall(RingElement):
 
         TESTS:
 
-            sage: CBF(Chi(I))
+            sage: CBF(Chi(I))  # abs tol 1e-16
             [0.337403922900968 +/- 3.25e-16] + [1.570796326794897 +/- 5.54e-16]*I
         """
         cdef ComplexBall result = self._new()

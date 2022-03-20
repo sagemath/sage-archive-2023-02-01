@@ -50,7 +50,8 @@ from cysignals.signals cimport sig_on, sig_off
 from sage.ext.stdsage cimport PY_NEW
 from sage.cpython.python_debug cimport if_Py_TRACE_REFS_then_PyObject_INIT
 
-import math, operator
+import math
+import operator
 
 import sage.rings.integer
 import sage.rings.rational
@@ -353,7 +354,11 @@ cdef class RealDoubleField_class(sage.rings.abc.RealDoubleField):
             return ToRDF(S)
 
         from .rational_field import QQ
-        from .real_lazy import RLF
+        try:
+            from .real_lazy import RLF
+        except ImportError:
+            RLF = None
+
         if S is ZZ or S is QQ or S is RLF:
             return ToRDF(S)
 
@@ -369,10 +374,14 @@ cdef class RealDoubleField_class(sage.rings.abc.RealDoubleField):
             else:
                 return None
 
-        from .real_mpfr import RR
-        connecting = RR._internal_coerce_map_from(S)
-        if connecting is not None:
-            return ToRDF(RR) * connecting
+        try:
+            from .real_mpfr import RR
+        except ImportError:
+            pass
+        else:
+            connecting = RR._internal_coerce_map_from(S)
+            if connecting is not None:
+                return ToRDF(RR) * connecting
 
     def _magma_init_(self, magma):
         r"""

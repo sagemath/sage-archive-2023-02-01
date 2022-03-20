@@ -65,16 +65,16 @@ class QuasiModularFormsElement(ModuleElement):
     """
     def __init__(self, parent, polynomial):
         r"""
-        INPUTS:
+        INPUT:
 
-        - ``parent`` - A quasimodular forms ring.
+        - ``parent`` - a quasimodular forms ring
         - ``polynomial`` - a polynomial `f_0 + f_1 E_2 + ... + f_n E_2^n` where
           each `f_i` are modular forms ring elements and `E_2` correspond to the
-          weight 2 Eisenstein series.
+          weight 2 Eisenstein series
 
         OUTPUT:
 
-        - ``QuasiModularFormsElement``
+        ``QuasiModularFormsElement``
 
         TESTS::
 
@@ -99,7 +99,8 @@ class QuasiModularFormsElement(ModuleElement):
 
     def q_expansion(self, prec=6):
         r"""
-        Computes the `q`-expansion of self to precision `prec`.
+        Return the `q`-expansion of the given quasimodular form up to precision
+        ``prec`` (default: 6).
 
         An alias of this method is ``qexp``.
 
@@ -243,7 +244,7 @@ class QuasiModularFormsElement(ModuleElement):
 
     def __bool__(self):
         r"""
-        Return "True" if ``self`` is non-zero and "False" otherwise.
+        Return whether ``self`` is non-zero.
 
         EXAMPLES::
 
@@ -259,7 +260,7 @@ class QuasiModularFormsElement(ModuleElement):
 
     def is_zero(self):
         r"""
-        Return "True" if the quasiform is 0 and "False" otherwise
+        Return whether the given quasimodular form is zero.
 
         EXAMPLES::
 
@@ -277,7 +278,8 @@ class QuasiModularFormsElement(ModuleElement):
 
     def is_one(self):
         r"""
-        Return "True" if the quasiform is 1 and "False" otherwise
+        Return whether the given quasimodular form is 1, i.e. the
+        multiplicative identity.
 
         EXAMPLES::
 
@@ -293,8 +295,9 @@ class QuasiModularFormsElement(ModuleElement):
 
     def is_graded_modular_form(self):
         r"""
-        Return ``True`` if the given quasimodular form is a graded modular forms element
-        and ``False`` otherwise.
+        Return whether the given quasimodular form is a
+        graded modular form element
+        (see :class:`~sage.modular.modform.element.GradedModularFormElement`).
 
         EXAMPLES::
 
@@ -325,8 +328,7 @@ class QuasiModularFormsElement(ModuleElement):
 
     def is_modular_form(self):
         r"""
-        Return ``True`` if the given quasimodular form is a modular form and
-        ``False`` otherwise.
+        Return whether the given quasimodular form is a modular form.
 
         EXAMPLES::
 
@@ -346,8 +348,8 @@ class QuasiModularFormsElement(ModuleElement):
         r"""
         Return a multivariate polynomial `P(E_2, E_4, E_6)` corresponding to the
         given form where `E_2`, `E_4` and `E_6` are the generators of the
-        quasimodular form ring given by
-        :meth:`~sage.modular.quasiform.ring.QuasiModularForms.gens`.
+        quasimodular form ring given by the following method:
+        :meth:`~sage.modular.quasimodform.ring.QuasiModularForms.gens`.
 
         INPUT:
 
@@ -393,9 +395,9 @@ class QuasiModularFormsElement(ModuleElement):
 
     def is_homogeneous(self):
         r"""
-        Return True if the graded quasimodular form is a homogeneous element,
-        that is it lives in a unique graded components of the graded ring of
-        self.
+        Return whether the graded quasimodular form is a homogeneous element,
+        that is, it lives in a unique graded components of the parent of
+        ``self``.
 
         EXAMPLES::
 
@@ -440,7 +442,7 @@ class QuasiModularFormsElement(ModuleElement):
 
     def homogeneous_components(self):
         r"""
-        Return a dictionnary where the values are the homogeneous components of
+        Return a dictionary where the values are the homogeneous components of
         the given graded form and the keys are the weights of those components.
 
         EXAMPLES::
@@ -458,13 +460,13 @@ class QuasiModularFormsElement(ModuleElement):
         QM = self.parent()
         poly_self = self.to_polynomial()
         pol_hom_comp = poly_self.homogeneous_components()
-        return { k : QM.from_polynomial(pol) for k, pol in pol_hom_comp.items()}
+        return {k: QM.from_polynomial(pol) for k, pol in pol_hom_comp.items()}
 
     def serre_derivative(self):
         r"""
         Return the Serre derivative of the given quasimodular form.
 
-        If the form is not homogeneous, then this method sums the serre
+        If the form is not homogeneous, then this method sums the Serre
         derivative of each homogeneous component.
 
         EXAMPLES::

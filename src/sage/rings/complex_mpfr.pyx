@@ -134,7 +134,7 @@ def is_ComplexNumber(x):
     EXAMPLES::
 
         sage: from sage.rings.complex_mpfr import is_ComplexNumber
-        sage: a = ComplexNumber(1,2); a
+        sage: a = ComplexNumber(1, 2); a
         1.00000000000000 + 2.00000000000000*I
         sage: is_ComplexNumber(a)
         True
@@ -143,9 +143,10 @@ def is_ComplexNumber(x):
         sage: is_ComplexNumber(b)
         True
 
-    Note that the global element ``I`` is of type :class:`SymbolicConstant`.
-    However, elements of the class :class:`ComplexField_class` are of type
-    :class:`ComplexNumber`::
+    Note that the global element ``I`` is a number field element, of type
+    :class:`sage.rings.number_field.number_field_element_quadratic.NumberFieldElement_gaussian`,
+    while elements of the class :class:`ComplexField_class`
+    are of type :class:`ComplexNumber`::
 
         sage: c = 1 + 2*I
         sage: is_ComplexNumber(c)
@@ -3449,27 +3450,6 @@ cdef class RRtoCC(Map):
         mpfr_set(z.__re, (<RealNumber>x).value, rnd)
         mpfr_set_ui(z.__im, 0, rnd)
         return z
-
-
-cdef class CCtoCDF(Map):
-
-    cpdef Element _call_(self, x):
-        """
-        EXAMPLES::
-
-            sage: from sage.rings.complex_mpfr import CCtoCDF
-            sage: f = CCtoCDF(CC, CDF) # indirect doctest
-            sage: f(CC.0)
-            1.0*I
-            sage: f(exp(pi*CC.0/4))
-            0.7071067811865476 + 0.7071067811865475*I
-        """
-        z = <ComplexDoubleElement>ComplexDoubleElement.__new__(ComplexDoubleElement)
-        GSL_SET_COMPLEX(&z._complex,
-                        mpfr_get_d((<ComplexNumber>x).__re, MPFR_RNDN),
-                        mpfr_get_d((<ComplexNumber>x).__im, MPFR_RNDN))
-        return z
-
 
 cdef inline mp_exp_t min_exp_t(mp_exp_t a, mp_exp_t b):
     return a if a < b else b

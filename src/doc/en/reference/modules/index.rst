@@ -33,6 +33,7 @@ Modules
 
    sage/modules/with_basis/__init__
    sage/modules/with_basis/cell_module
+   sage/modules/with_basis/indexed_element
    sage/modules/with_basis/invariant
    sage/modules/with_basis/morphism
    sage/modules/with_basis/subquotient
@@ -56,5 +57,23 @@ Modules
    sage/modules/filtered_vector_space
    sage/modules/multi_filtered_vector_space
    sage/modules/tensor_operations
+
+Finitely presented graded modules
+---------------------------------
+
+.. toctree::
+   :maxdepth: 2
+
+   sage/modules/fp_graded/free_module
+   sage/modules/fp_graded/free_element
+   sage/modules/fp_graded/free_morphism
+   sage/modules/fp_graded/free_homspace
+   sage/modules/fp_graded/module
+   sage/modules/fp_graded/element
+   sage/modules/fp_graded/morphism
+   sage/modules/fp_graded/homspace
+
+   sage/modules/fp_graded/steenrod/module
+   sage/modules/fp_graded/steenrod/morphism
 
 .. include:: ../footer.txt

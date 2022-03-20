@@ -64,7 +64,7 @@ AUTHOR:
 #                  https://www.gnu.org/licenses/
 # ****************************************************************************
 
-from sage.misc.superseded        import deprecated_function_alias
+from cysignals.memory           cimport check_allocarray, sig_free
 
 import numbers
 from sage.rings.integer         cimport smallInteger
@@ -72,12 +72,14 @@ from .conversions               cimport bit_rep_to_Vrep_list
 from .base                      cimport CombinatorialPolyhedron
 from .face_iterator             cimport FaceIterator_base
 from .polyhedron_face_lattice   cimport PolyhedronFaceLattice
-from .face_data_structure       cimport face_len_atoms, face_init, face_copy, face_issubset
+from .face_data_structure       cimport face_len_atoms, face_init, face_free, face_copy, face_issubset
 from .face_list_data_structure  cimport bit_rep_to_coatom_rep
 from .list_of_faces              cimport face_as_combinatorial_polyhedron
 
+
 cdef extern from "Python.h":
     int unlikely(int) nogil  # Defined by Cython
+
 
 cdef class CombinatorialFace(SageObject):
     r"""
@@ -140,7 +142,7 @@ cdef class CombinatorialFace(SageObject):
         sage: face.n_ambient_Hrepresentation()
         11
     """
-    def __init__(self, data, dimension=None, index=None):
+    def __cinit__(self, data, dimension=None, index=None):
         r"""
         Initialize :class:`CombinatorialFace`.
 
@@ -159,6 +161,10 @@ cdef class CombinatorialFace(SageObject):
 
             sage: TestSuite(sage.geometry.polyhedron.combinatorial_polyhedron.combinatorial_face.CombinatorialFace).run()
         """
+        # Note that all values are set to zero at the time ``__cinit__`` is called:
+        # https://cython.readthedocs.io/en/latest/src/userguide/special_methods.html#initialisation-methods
+        # In particular, ``__dealloc__`` will not do harm in this case.
+
         cdef FaceIterator_base it
         cdef PolyhedronFaceLattice all_faces
 
@@ -168,14 +174,13 @@ cdef class CombinatorialFace(SageObject):
             # Copy data from FaceIterator.
             it = data
             self._dual              = it.dual
-            self._mem               = MemoryAllocator()
             self.atoms              = it.atoms
             self.coatoms            = it.coatoms
 
             if it.structure.face_status == 0:
                 raise LookupError("face iterator not set to a face")
 
-            face_init(self.face, self.coatoms.n_atoms(), self.coatoms.n_coatoms(), self._mem)
+            face_init(self.face, self.coatoms.n_atoms(), self.coatoms.n_coatoms())
             face_copy(self.face, it.structure.face)
 
             self._dimension         = it.structure.current_dimension
@@ -199,11 +204,10 @@ cdef class CombinatorialFace(SageObject):
 
             # Copy data from PolyhedronFaceLattice.
             self._dual              = all_faces.dual
-            self._mem               = MemoryAllocator()
             self.atoms              = all_faces.atoms
             self.coatoms            = all_faces.coatoms
 
-            face_init(self.face, self.coatoms.n_atoms(), self.coatoms.n_coatoms(), self._mem)
+            face_init(self.face, self.coatoms.n_atoms(), self.coatoms.n_coatoms())
             face_copy(self.face, all_faces.faces[dimension+1].faces[index])
 
             self._dimension         = dimension
@@ -230,11 +234,25 @@ cdef class CombinatorialFace(SageObject):
             for i in range(-1,self._ambient_dimension+1):
                 self._hash_index += all_faces.f_vector[i+1]
         else:
-            raise NotImplementedError("data must be face iterator or a list of all faces")
+            raise ValueError("data must be face iterator or a list of all faces")
 
         if self._dual:
             # Reverse the hash index in dual mode to respect inclusion of faces.
             self._hash_index = -self._hash_index - 1
+
+    def __dealloc__(self):
+        r"""
+        TESTS::
+
+            sage: from sage.geometry.polyhedron.combinatorial_polyhedron.combinatorial_face import CombinatorialFace
+            sage: CombinatorialFace(2)  # indirect doctest
+            Traceback (most recent call last):
+            ...
+            ValueError: data must be face iterator or a list of all faces
+        """
+        face_free(self.face)
+        sig_free(self.atom_rep)
+        sig_free(self.coatom_rep)
 
     def _repr_(self):
         r"""
@@ -634,45 +652,6 @@ cdef class CombinatorialFace(SageObject):
             return tuple(smallInteger(self.atom_rep[i])
                          for i in range(length))
 
-    def Vrepr(self, names=True):
-        r"""
-        The method is deprecated. Use one of the following:
-        - :meth:`CombinatorialFace.ambient_Vrepresentation`
-        - :meth:`CombinatorialFace.ambient_V_indices`
-
-        Return the vertex-representation of the current face.
-
-        The vertex-representation consists of
-        the ``[vertices, rays, lines]`` that face contains.
-
-        INPUT:
-
-        - ``names`` -- if ``True`` returns the names of the ``[vertices, rays, lines]``
-          as given on initialization of the :class:`~sage.geometry.polyhedron.combinatorial_polyhedron.base.CombinatorialPolyhedron`
-
-        TESTS::
-
-            sage: P = polytopes.permutahedron(5)
-            sage: C = CombinatorialPolyhedron(P)
-            sage: it = C.face_iter(dimension=2)
-            sage: face = next(it)
-            sage: face.Vrepr()
-            doctest:...: DeprecationWarning: the method Vrepr of CombinatorialPolyhedron is deprecated; use ambient_V_indices or ambient_Vrepresentation
-            See https://trac.sagemath.org/28616 for details.
-            (A vertex at (1, 3, 2, 5, 4),
-             A vertex at (2, 3, 1, 5, 4),
-             A vertex at (3, 1, 2, 5, 4),
-             A vertex at (3, 2, 1, 5, 4),
-             A vertex at (2, 1, 3, 5, 4),
-             A vertex at (1, 2, 3, 5, 4))
-        """
-        from sage.misc.superseded import deprecation
-        deprecation(28616, "the method Vrepr of CombinatorialPolyhedron is deprecated; use ambient_V_indices or ambient_Vrepresentation", 3)
-        if names:
-            return self.ambient_Vrepresentation()
-        else:
-            return self.ambient_V_indices()
-
     def n_ambient_Vrepresentation(self):
         r"""
         Return the length of the :meth:`CombinatorialFace.ambient_V_indices`.
@@ -693,16 +672,11 @@ cdef class CombinatorialFace(SageObject):
             sage: C = CombinatorialPolyhedron(P)
             sage: it = C.face_iter()
             sage: face = next(it)
-            sage: _ = face.n_Vrepr()
-            doctest:...: DeprecationWarning: n_Vrepr is deprecated. Please use n_ambient_Vrepresentation instead.
-            See https://trac.sagemath.org/28614 for details.
         """
         if self._dual:
             return smallInteger(self.set_coatom_rep())
         else:
             return smallInteger(self.n_atom_rep())
-
-    n_Vrepr = deprecated_function_alias(28614, n_ambient_Vrepresentation)
 
     def ambient_Hrepresentation(self):
         r"""
@@ -834,46 +808,6 @@ cdef class CombinatorialFace(SageObject):
             return tuple(smallInteger(self.atom_rep[i])
                          for i in range(length)) + equations
 
-    def Hrepr(self, names=True):
-        r"""
-        The method is deprecated. Use one of the following:
-        - :meth:`CombinatorialFace.ambient_Hrepresentation`
-        - :meth:`CombinatorialFace.ambient_H_indices`
-
-        Return the Hrepresentation of the face.
-
-        If ``names`` is ``False`` this is just the indices
-        of the facets the face is contained in.
-        If ``names`` is ``True`` this the defining facets
-        and equations of the face.
-
-        The facet-representation consists of the facets
-        that contain the face and of the equations of the polyhedron.
-
-        INPUT:
-
-        - ``names`` -- if ``True`` returns the names of the ``[facets, equations]``
-          as given on initialization of :class:`~sage.geometry.polyhedron.combinatorial_polyhedron.base.CombinatorialPolyhedron`
-
-        TESTS::
-
-            sage: P = polytopes.permutahedron(5)
-            sage: C = CombinatorialPolyhedron(P)
-            sage: it = C.face_iter(2)
-            sage: next(it).Hrepr()
-            doctest:...: DeprecationWarning: the method Hrepr of CombinatorialPolyhedron is deprecated; use ambient_H_indices or ambient_Hrepresentation
-            See https://trac.sagemath.org/28616 for details.
-            (An inequality (1, 1, 1, 0, 0) x - 6 >= 0,
-             An inequality (0, 0, 0, -1, 0) x + 5 >= 0,
-             An equation (1, 1, 1, 1, 1) x - 15 == 0)
-        """
-        from sage.misc.superseded import deprecation
-        deprecation(28616, "the method Hrepr of CombinatorialPolyhedron is deprecated; use ambient_H_indices or ambient_Hrepresentation", 3)
-        if names:
-            return self.ambient_Hrepresentation()
-        else:
-            return self.ambient_H_indices()
-
     def n_ambient_Hrepresentation(self, add_equations=True):
         r"""
         Return the length of the :meth:`CombinatorialFace.ambient_H_indices`.
@@ -909,17 +843,12 @@ cdef class CombinatorialFace(SageObject):
             sage: C = CombinatorialPolyhedron(P)
             sage: it = C.face_iter()
             sage: face = next(it)
-            sage: _ = face.n_Hrepr()
-            doctest:...: DeprecationWarning: n_Hrepr is deprecated. Please use n_ambient_Hrepresentation instead.
-            See https://trac.sagemath.org/28614 for details.
         """
         cdef size_t n_equations = self._n_equations if add_equations else 0
         if not self._dual:
             return smallInteger(self.set_coatom_rep() + n_equations)
         else:
             return smallInteger(self.n_atom_rep() + n_equations)
-
-    n_Hrepr = deprecated_function_alias(28614, n_ambient_Hrepresentation)
 
     def as_combinatorial_polyhedron(self, quotient=False):
         r"""
@@ -1085,7 +1014,7 @@ cdef class CombinatorialFace(SageObject):
         Return its length.
         """
         if self.coatom_rep is NULL:
-            self.coatom_rep = <size_t *> self._mem.allocarray(self.coatoms.n_faces(), sizeof(size_t))
+            self.coatom_rep = <size_t *> check_allocarray(self.coatoms.n_faces(), sizeof(size_t))
             self._n_coatom_rep = bit_rep_to_coatom_rep(self.face, self.coatoms.data, self.coatom_rep)
         return self._n_coatom_rep
 
@@ -1095,7 +1024,6 @@ cdef class CombinatorialFace(SageObject):
         Return its length.
         """
         if self.atom_rep is NULL:
-            self.atom_rep = <size_t *> self._mem.allocarray(self.coatoms.n_atoms(), sizeof(size_t))
+            self.atom_rep = <size_t *> check_allocarray(self.coatoms.n_atoms(), sizeof(size_t))
             self._n_atom_rep = bit_rep_to_Vrep_list(self.face, self.atom_rep)
         return self._n_atom_rep
-

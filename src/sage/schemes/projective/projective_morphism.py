@@ -64,7 +64,7 @@ import sys
 
 from sage.arith.all import gcd, lcm
 
-from sage.interfaces.all import singular
+from sage.interfaces.singular import singular
 
 from sage.misc.misc_c import prod
 from sage.misc.cachefunc import cached_method
@@ -77,8 +77,6 @@ from sage.calculus.functions import jacobian
 import sage.rings.abc
 from sage.rings.integer import Integer
 from sage.rings.algebraic_closure_finite_field import AlgebraicClosureFiniteField_generic
-from sage.rings.complex_mpfr import ComplexField_class
-from sage.rings.complex_interval_field import ComplexIntervalField_class
 from sage.rings.finite_rings.finite_field_constructor import is_FiniteField
 from sage.rings.finite_rings.finite_field_constructor import is_PrimeFiniteField
 from sage.rings.finite_rings.finite_field_constructor import GF
@@ -89,8 +87,6 @@ from sage.rings.polynomial.polynomial_ring_constructor import PolynomialRing
 from sage.rings.qqbar import QQbar, number_field_elements_from_algebraics
 from sage.rings.quotient_ring import QuotientRing_generic
 from sage.rings.rational_field import QQ
-from sage.rings.real_mpfr import RealField_class
-from sage.rings.real_mpfi import RealIntervalField_class
 
 from sage.schemes.generic.morphism import SchemeMorphism_polynomial
 
@@ -374,6 +370,28 @@ class SchemeMorphism_polynomial_projective_space(SchemeMorphism_polynomial):
             ...
             TypeError: [x - z] fails to convert into the map's domain Projective Space of
             dimension 1 over Integer Ring, but a `pushforward` method is not properly implemented
+
+        TESTS:
+
+        Check that :trac:`32209` is fixed::
+
+            sage: S.<x,y> = ProjectiveSpace(ZZ, 1)
+            sage: T.<u,v> = ProjectiveSpace(ZZ, 1)
+            sage: h = T.hom([u^2 + v^2, u*v], S); h
+            Scheme morphism:
+              From: Projective Space of dimension 1 over Integer Ring
+              To:   Projective Space of dimension 1 over Integer Ring
+              Defn: Defined on coordinates by sending (u : v) to
+                    (u^2 + v^2 : u*v)
+
+            sage: F.<a> = GF(4)
+            sage: P = T(F)(1, a)
+            sage: h(P)
+            (a : a)
+            sage: h(P).domain()
+            Spectrum of Finite Field in a of size 2^2
+            sage: h.change_ring(F)(P)
+            (1 : 1)
         """
         from sage.schemes.projective.projective_point import SchemeMorphism_point_projective_ring
         if check:
@@ -397,9 +415,12 @@ class SchemeMorphism_polynomial_projective_space(SchemeMorphism_polynomial):
                     except (TypeError, NotImplementedError):
                         raise TypeError("%s fails to convert into the map's domain %s, but a `pushforward` method is not properly implemented"%(x, self.domain()))
 
-        # Passes the array of args to _fast_eval
-        P = self._fast_eval(x._coords)
-        return self.codomain().point(P, check)
+        R = x.domain().coordinate_ring()
+        if R is self.base_ring():
+            P = self._fast_eval(x._coords)
+        else:
+            P = [f(x._coords) for f in self._polys]
+        return self.codomain().point_homset(R)(P, check=check)
 
     @lazy_attribute
     def _fastpolys(self):

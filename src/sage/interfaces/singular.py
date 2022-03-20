@@ -893,7 +893,7 @@ class Singular(ExtraTabCompletion, Expect):
                 gens2.append(self.new(g))
             else:
                 gens2.append(g)
-        return self(",".join([g.name() for g in gens2]), 'ideal')
+        return self(",".join(g.name() for g in gens2), 'ideal')
 
     def list(self, x):
         r"""
@@ -971,18 +971,18 @@ class Singular(ExtraTabCompletion, Expect):
         singular_elements = []
 
         def strify(x):
-           if isinstance(x, (list, tuple, Sequence_generic)):
-              return 'list(' + ','.join([strify(i) for i in x]) + ')'
-           elif isinstance(x, SingularElement):
-              return x.name()
-           elif isinstance(x, (int, sage.rings.integer.Integer)):
-              return repr(x)
-           elif hasattr(x, '_singular_'):
-              e = x._singular_()
-              singular_elements.append(e)
-              return e.name()
-           else:
-              return str(x)
+            if isinstance(x, (list, tuple, Sequence_generic)):
+                return 'list(' + ','.join(strify(i) for i in x) + ')'
+            elif isinstance(x, SingularElement):
+                return x.name()
+            elif isinstance(x, (int, sage.rings.integer.Integer)):
+                return repr(x)
+            elif hasattr(x, '_singular_'):
+                e = x._singular_()
+                singular_elements.append(e)
+                return e.name()
+            else:
+                return str(x)
 
         return self(strify(x), 'list')
 
@@ -1097,16 +1097,16 @@ class Singular(ExtraTabCompletion, Expect):
             3*a
         """
         if len(vars) > 2:
-            s = '; '.join(['if(defined(%s)>0){kill %s;};'%(x,x)
-                           for x in vars[1:-1].split(',')])
+            s = '; '.join('if(defined(%s)>0){kill %s;};' % (x, x)
+                          for x in vars[1:-1].split(','))
             self.eval(s)
 
         if check and isinstance(char, (int, sage.rings.integer.Integer)):
-            if char != 0:
+            if char:
                 n = sage.rings.integer.Integer(char)
                 if not n.is_prime():
                     raise ValueError("the characteristic must be 0 or prime")
-        R = self('%s,%s,%s'%(char, vars, order), 'ring')
+        R = self('%s,%s,%s' % (char, vars, order), 'ring')
         self.eval('short=0')  # make output include *'s for multiplication for *THIS* ring.
         return R
 
@@ -1815,15 +1815,15 @@ class SingularElement(ExtraTabCompletion, ExpectElement):
         coeff_start = len(singular_poly_list) // 2
 
         # Singular 4 puts parentheses around floats and sign outside them
-        charstr = self.parent().eval('charstr(basering)').split(',',1)
+        charstr = self.parent().eval('charstr(basering)').split(',', 1)
         if charstr[0].startswith('Float') or charstr[0] == 'complex':
-              for i in range(coeff_start, 2 * coeff_start):
-                  singular_poly_list[i] = singular_poly_list[i].replace('(','').replace(')','')
+            for i in range(coeff_start, 2 * coeff_start):
+                singular_poly_list[i] = singular_poly_list[i].replace('(', '').replace(')', '')
 
         if isinstance(R, MPolynomialRing_polydict) and (ring_is_fine or can_convert_to_singular(R)):
             # we need to lookup the index of a given variable represented
             # through a string
-            var_dict = dict(zip(R.variable_names(),range(R.ngens())))
+            var_dict = dict(zip(R.variable_names(), range(R.ngens())))
 
             ngens = R.ngens()
 
@@ -2337,25 +2337,26 @@ def generate_docstring_dictionary():
     with io.open(singular_info_file,
                  encoding='latin-1') as f:
         for line in f:
-            m = re.match(new_node,line)
+            m = re.match(new_node, line)
             if m:
                 # a new node starts
                 in_node = True
                 nodes[curr_node] = "".join(L)
                 L = []
                 curr_node, = m.groups()
-            elif in_node: # we are in a node
-               L.append(line)
+            elif in_node:  # we are in a node
+                L.append(line)
             else:
-               m = re.match(new_lookup, line)
-               if m:
-                   a,b = m.groups()
-                   node_names[a] = b.strip()
+                m = re.match(new_lookup, line)
+                if m:
+                    a, b = m.groups()
+                    node_names[a] = b.strip()
 
             if line == "6 Index\n":
                 in_node = False
 
-    nodes[curr_node] = "".join(L) # last node
+    nodes[curr_node] = "".join(L)  # last node
+
 
 def get_docstring(name):
     """
@@ -2654,7 +2655,7 @@ class SingularGBDefaultContext:
            it manually.
         """
         if singular is None:
-            from sage.interfaces.all import singular as singular_default
+            from sage.interfaces.singular import singular as singular_default
             singular = singular_default
         self.singular = singular
 

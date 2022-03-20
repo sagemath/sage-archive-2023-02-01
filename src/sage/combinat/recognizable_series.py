@@ -926,7 +926,7 @@ class RecognizableSeries(ModuleElement):
 
         A :class:`RecognizableSeries`
 
-        ALOGRITHM:
+        ALGORITHM:
 
         This method implements the minimization algorithm presented in
         Chapter 2 of [BR2010a]_.
@@ -934,7 +934,6 @@ class RecognizableSeries(ModuleElement):
         EXAMPLES::
 
             sage: from itertools import islice
-            sage: from six.moves import zip
             sage: Rec = RecognizableSeriesSpace(ZZ, [0, 1])
 
             sage: S = Rec((Matrix([[3, 6], [0, 1]]), Matrix([[0, -6], [1, 5]])),

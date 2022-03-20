@@ -559,14 +559,17 @@ import sage.rings.abc
 import sage.rings.number_field.number_field_base
 from sage.misc.fast_methods import Singleton
 from sage.misc.cachefunc import cached_method
+from sage.misc.lazy_string import lazy_string
 from sage.structure.coerce import parent_is_numerical, parent_is_real_numerical
 from sage.structure.sage_object import SageObject
 from sage.structure.richcmp import (richcmp, richcmp_method,
                                     rich_to_bool, richcmp_not_equal,
                                     op_EQ, op_NE, op_GT)
+from sage.rings.real_arb import RealBallField
 from sage.rings.real_mpfr import RR
 from sage.rings.real_mpfi import RealIntervalField, RIF, is_RealIntervalFieldElement, RealIntervalField_class
-from sage.rings.complex_mpfr import ComplexField
+from sage.rings.cc import CC
+from sage.rings.cif import CIF
 from sage.rings.complex_interval_field import ComplexIntervalField
 from sage.rings.complex_interval import is_ComplexIntervalFieldElement
 from sage.rings.polynomial.all import PolynomialRing
@@ -581,8 +584,6 @@ from sage.categories.action import Action
 
 from sage.structure.global_options import GlobalOptions
 
-CC = ComplexField()
-CIF = ComplexIntervalField()
 
 class AlgebraicField_common(sage.rings.abc.AlgebraicField_common):
     r"""
@@ -1397,6 +1398,79 @@ class AlgebraicRealField(Singleton, AlgebraicField_common, sage.rings.abc.Algebr
 
         return AlgebraicReal(ANRoot(poly, interval, multiplicity))
 
+    def random_element(self, poly_degree=2, *args, **kwds):
+        r"""
+        Return a random algebraic real number.
+
+        INPUT:
+
+        - ``poly_degree`` - default: 2 - degree of the random
+          polynomial over the integers of which the returned algebraic
+          real number is a (real part of a) root. This is not
+          necessarily the degree of the minimal polynomial of the
+          number. Increase this parameter to achieve a greater
+          diversity of algebraic numbers, at a cost of greater
+          computation time. You can also vary the distribution of the
+          coefficients but that will not vary the degree of the
+          extension containing the element.
+
+        - ``args``, ``kwds`` - arguments and keywords passed to the random
+          number generator for elements of ``ZZ``, the integers. See
+          :meth:`~sage.rings.integer_ring.IntegerRing_class.random_element` for
+          details, or see example below.
+
+        OUTPUT:
+
+        An element of ``AA``, the field of algebraic real numbers (see
+        :mod:`sage.rings.qqbar`).
+
+        ALGORITHM:
+
+        We pass all arguments to :meth:`AlgebraicField.random_element`, and
+        then take the real part of the result.
+
+        EXAMPLES::
+
+            sage: a = AA.random_element()
+            sage: a in AA
+            True
+
+        ::
+
+            sage: b = AA.random_element(poly_degree=5)
+            sage: b in AA
+            True
+
+        Parameters for the distribution of the integer coefficients of
+        the polynomials can be passed on to the random element method
+        for integers. For example, we can rule out zero as a
+        coefficient (and therefore as a root) by requesting
+        coefficients between ``1`` and ``10``::
+
+            sage: z = [AA.random_element(x=1, y=10) for _ in range(5)]
+            sage: AA(0) in z
+            False
+
+        TESTS::
+
+            sage: AA.random_element('junk')
+            Traceback (most recent call last):
+            ...
+            TypeError: polynomial degree must be an integer, not junk
+            sage: AA.random_element(poly_degree=0)
+            Traceback (most recent call last):
+            ...
+            ValueError: polynomial degree must be greater than zero, not 0
+
+        Random vectors already have a 'degree' keyword, so
+        we cannot use that for the polynomial's degree::
+
+            sage: v = random_vector(AA, degree=2, poly_degree=3)
+            sage: v in AA^2
+            True
+        """
+        return QQbar.random_element(poly_degree, *args, **kwds).real()
+
     def _factor_univariate_polynomial(self, f):
         """
         Factor the univariate polynomial ``f``.
@@ -1878,7 +1952,7 @@ class AlgebraicField(Singleton, AlgebraicField_common, sage.rings.abc.AlgebraicF
             sage: (len(r) == 3) and all(z in AA for z in r)
             True
 
-        TESTS:
+        TESTS::
 
             sage: QQbar.random_element('junk')
             Traceback (most recent call last):
@@ -2678,7 +2752,7 @@ def number_field_elements_from_algebraics(numbers, minimal=False, same_field=Fal
         aa_numbers = [AA(_) for _ in numbers]
         numbers = aa_numbers
         real_case = True
-    except:
+    except (ValueError, TypeError):
         real_case = False
     # Make the numbers algebraic
     numbers = [mk_algebraic(_) for _ in numbers]
@@ -4097,7 +4171,7 @@ class AlgebraicNumber_base(sage.structure.element.FieldElement):
 
         if self.parent() is AA and self < 0 and not extend:
             if not all:
-                raise ValueError("%s is not a square in AA, being negative. Use extend = True for a square root in QQbar." % self)
+                raise ValueError(lazy_string("%s is not a square in AA, being negative. Use extend = True for a square root in QQbar.", self))
             else:
                 return []
 
@@ -4498,7 +4572,7 @@ class AlgebraicNumber_base(sage.structure.element.FieldElement):
 
     def interval(self, field):
         r"""
-        Given an interval field (real or complex, as appropriate) of
+        Given an interval (or ball) field (real or complex, as appropriate) of
         precision `p`, compute an interval representation of self with
         ``diameter()`` at most `2^{-p}`; then round that representation into
         the given field. Here ``diameter()`` is relative diameter for
@@ -4522,6 +4596,8 @@ class AlgebraicNumber_base(sage.structure.element.FieldElement):
             0.8412535328311811689? + 0.5406408174555975821?*I
             sage: x.interval(CIF64)
             0.8412535328311811689? + 0.5406408174555975822?*I
+            sage: x.interval(CBF) # abs tol 1e-16
+            [0.8412535328311812 +/- 3.12e-17] + [0.5406408174555976 +/- 1.79e-17]*I
 
         The following implicitly use this method::
 
@@ -4552,17 +4628,18 @@ class AlgebraicNumber_base(sage.structure.element.FieldElement):
         """
         target = RR(1.0) >> field.prec()
         val = self.interval_diameter(target)
-        if isinstance(field, RealIntervalField_class) and is_ComplexIntervalFieldElement(val):
+        if (isinstance(field, (RealIntervalField_class, RealBallField))
+                and is_ComplexIntervalFieldElement(val)):
             if val.imag().is_zero():
                 return field(val.real())
             elif self.imag().is_zero():
                 return field(self.real())
             else:
-                raise TypeError("unable to convert {} to real interval".format(self))
+                raise TypeError(lazy_string("unable to convert %s to real interval", self))
         else:
             return field(val)
 
-    _complex_mpfi_ = _real_mpfi_ = interval
+    _arb_ = _acb_ = _complex_mpfi_ = _real_mpfi_ = interval
 
     def radical_expression(self):
         r"""
@@ -5408,11 +5485,11 @@ class AlgebraicReal(AlgebraicNumber_base):
         """
         if self._value.lower().ceiling() > self._value.upper().floor():
             # The value is known to be non-integral.
-            raise ValueError("Cannot coerce non-integral Algebraic Real %s to Integer" % self)
+            raise ValueError(lazy_string("Cannot coerce non-integral Algebraic Real %s to Integer", self))
 
         self.exactify()
         if not isinstance(self._descr, ANRational):
-            raise ValueError("Cannot coerce irrational Algebraic Real %s to Integer" % self)
+            raise ValueError(lazy_string("Cannot coerce irrational Algebraic Real %s to Integer", self))
 
         return ZZ(self._descr._value)
 
@@ -5542,7 +5619,7 @@ class AlgebraicReal(AlgebraicNumber_base):
         """
         self.exactify()
         if not isinstance(self._descr, ANRational):
-            raise ValueError("Cannot coerce irrational Algebraic Real %s to Rational" % self)
+            raise ValueError(lazy_string("Cannot coerce irrational Algebraic Real %s to Rational", self))
 
         return QQ(self._descr._value)
 

@@ -174,9 +174,7 @@ cdef class PolyDict:
             sage: p2 = PolyDict({(0,): 2})
             sage: p1 == p2
             False
-            sage: p1 < p2  # py2 - random
-            False
-            sage: p1 < p2  # py3
+            sage: p1 < p2
             Traceback (most recent call last):
             ...
             TypeError: '<' not supported between instances of
@@ -1006,10 +1004,10 @@ cdef class PolyDict:
             sage: PolyDict({}).min_exp() # returns None
         """
         cdef ETuple r
-        ETuples = list(self.__repn)
-        if len(ETuples) > 0:
-            r = <ETuple>ETuples[0]
-            for e in ETuples:
+        if self.__repn:
+            it = iter(self.__repn)
+            r = next(it)
+            for e in it:
                 r = r.emin(e)
             return r
         else:
@@ -1032,10 +1030,10 @@ cdef class PolyDict:
             sage: PolyDict({}).max_exp() # returns None
         """
         cdef ETuple r
-        ETuples = list(self.__repn)
-        if len(ETuples) > 0:
-            r = <ETuple>ETuples[0]
-            for e in ETuples:
+        if self.__repn:
+            it = iter(self.__repn)
+            r = next(it)
+            for e in it:
                 r = r.emax(e)
             return r
         else:

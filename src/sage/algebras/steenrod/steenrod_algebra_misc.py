@@ -31,17 +31,18 @@ The main functions here are
   methods.
 """
 
-#*****************************************************************************
+# ****************************************************************************
 #  Copyright (C) 2008-2010 John H. Palmieri <palmieri@math.washington.edu>
 #  Distributed under the terms of the GNU General Public License (GPL)
-#*****************************************************************************
+# ****************************************************************************
 
 ######################################################
 # basis names
 
 _steenrod_milnor_basis_names = ['milnor']
 _steenrod_serre_cartan_basis_names = ['serre_cartan', 'serre-cartan', 'sc',
-                                         'adem', 'admissible']
+                                      'adem', 'admissible']
+
 
 def get_basis_name(basis, p, generic=None):
     """
@@ -110,21 +111,21 @@ def get_basis_name(basis, p, generic=None):
         sage: get_basis_name('wood', 2)
         Traceback (most recent call last):
         ...
-        ValueError: wood is not a recognized basis at the prime 2.
+        ValueError: wood is not a recognized basis at the prime 2
         sage: get_basis_name('arnon--hello--long', 2)
         'arnona_long'
         sage: get_basis_name('arnona_long', p=5)
         Traceback (most recent call last):
         ...
-        ValueError: arnona_long is not a recognized basis at the prime 5.
+        ValueError: arnona_long is not a recognized basis at the prime 5
         sage: get_basis_name('NOT_A_BASIS', 2)
         Traceback (most recent call last):
         ...
-        ValueError: not_a_basis is not a recognized basis at the prime 2.
+        ValueError: not_a_basis is not a recognized basis at the prime 2
         sage: get_basis_name('woody', 2, generic=True)
         Traceback (most recent call last):
         ...
-        ValueError: woody is not a recognized basis for the generic Steenrod algebra at the prime 2.
+        ValueError: woody is not a recognized basis for the generic Steenrod algebra at the prime 2
     """
     if generic is None:
         generic = False if p==2 else True
@@ -163,7 +164,7 @@ def get_basis_name(basis, p, generic=None):
         elif basis.find('z') >= 0:
             result = 'woodz'
         else:
-             raise ValueError("%s is not a recognized basis at the prime %s." % (basis, p))
+            raise ValueError("%s is not a recognized basis at the prime %s" % (basis, p))
     elif not generic and basis.find('arnon') >= 0:
         if basis.find('c') >= 0:
             result = 'arnonc'
@@ -177,7 +178,7 @@ def get_basis_name(basis, p, generic=None):
             result = result + '_long'
     else:
         gencase = " for the generic Steenrod algebra" if p==2 and generic else ""
-        raise ValueError("%s is not a recognized basis%s at the prime %s." % (basis, gencase, p))
+        raise ValueError("%s is not a recognized basis%s at the prime %s" % (basis, gencase, p))
     return result
 
 ######################################################

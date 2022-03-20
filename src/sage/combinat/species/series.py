@@ -40,7 +40,7 @@ from sage.misc.misc import is_iterator
 from sage.misc.repr import repr_lincomb
 from sage.misc.cachefunc import cached_method
 
-from sage.algebras.algebra import Algebra
+from sage.rings.ring import Algebra
 from sage.structure.parent import Parent
 from sage.categories.all import Rings
 from sage.structure.element import Element, parent, AlgebraElement
@@ -75,7 +75,7 @@ class LazyPowerSeriesRing(Algebra):
         """
         #Make sure R is a ring with unit element
         if R not in Rings():
-            raise TypeError("Argument R must be a ring.")
+            raise TypeError("argument R must be a ring")
 
         #Take care of the names
         if names is None:
@@ -1816,7 +1816,6 @@ class LazyPowerSeries(AlgebraElement):
             n += 1
 
 #################################
-
 
 
 def uninitialized():

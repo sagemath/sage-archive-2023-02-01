@@ -985,7 +985,7 @@ def HalfCube(const int n):
 
     See [BCN1989]_ pp. 264, 265 or [VDKT2016]_ p. 21.
     This construction can be found on
-    https://en.wikipedia.org/wiki/Halved_cube_graph#Equivalent_constructions
+    :wikipedia:`Halved_cube_graph#Equivalent_constructions`
 
     TESTS:
 
@@ -998,7 +998,7 @@ def HalfCube(const int n):
          sage: G1.is_isomorphic(G2)
          True
     """
-    from sage.functions.trig import cos, sin
+    from math import cos, sin, pi
 
     if n < 2:
         raise ValueError("the dimension must be n > 1")
@@ -1006,7 +1006,7 @@ def HalfCube(const int n):
     cdef int u, uu, v, i, j
     cdef list E = []
     cdef dict pos = {}  # dictionary of positions
-    cdef float theta = 3.14159265 / (n - 1)
+    cdef float theta = pi / (n - 1)
     cdef list cosi = [<float>cos(i*theta) for i in range(n - 1)]
     cdef list sini = [<float>sin(i*theta) for i in range(n - 1)]
 

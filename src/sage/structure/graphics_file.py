@@ -1,27 +1,33 @@
 # -*- coding: utf-8 -*-
 """
 Wrapper for Graphics Files
+
+This module is deprecated.
 """
 
 import os
 
 from sage.misc.temporary_file import tmp_filename
+from sage.misc.superseded import deprecation
 from sage.structure.sage_object import SageObject
 import sage.doctest
 
 
-class Mime(object):
-    TEXT = u'text/plain'
-    HTML = u'text/html'
-    LATEX = u'text/latex'
-    JSON = u'application/json'
-    JAVASCRIPT = u'application/javascript'
-    PDF = u'application/pdf'
-    PNG = u'image/png'
-    JPG = u'image/jpeg'
-    SVG = u'image/svg+xml'
+deprecation(32988, 'the module sage.structure.graphics_file is deprecated')
 
-    JMOL = u'application/jmol'
+
+class Mime(object):
+    TEXT = 'text/plain'
+    HTML = 'text/html'
+    LATEX = 'text/latex'
+    JSON = 'application/json'
+    JAVASCRIPT = 'application/javascript'
+    PDF = 'application/pdf'
+    PNG = 'image/png'
+    JPG = 'image/jpeg'
+    SVG = 'image/svg+xml'
+
+    JMOL = 'application/jmol'
 
     @classmethod
     def validate(cls, value):
@@ -40,8 +46,11 @@ class Mime(object):
         EXAMPLES::
 
             sage: from sage.structure.graphics_file import Mime
+            doctest:warning...
+            DeprecationWarning: the module sage.structure.graphics_file is deprecated
+            See https://trac.sagemath.org/32988 for details.
             sage: Mime.validate('image/png')
-            u'image/png'
+            'image/png'
             sage: Mime.validate('foo/bar')
             Traceback (most recent call last):
             ...

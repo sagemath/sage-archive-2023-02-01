@@ -364,7 +364,7 @@ cdef class Matrix_integer_dense(Matrix_dense):
         """
         fmpz_set_mpz(fmpz_mat_entry(self._matrix,i,j), value)
 
-    cdef void set_unsafe_si(self, Py_ssize_t i, Py_ssize_t j, long value):
+    cdef void set_unsafe_int(self, Py_ssize_t i, Py_ssize_t j, int value):
         """
         Set position i,j of this matrix to ``value``.
         """
@@ -378,7 +378,7 @@ cdef class Matrix_integer_dense(Matrix_dense):
 
     cdef get_unsafe(self, Py_ssize_t i, Py_ssize_t j):
         """
-        Return (i, j) entry of self as a new Integer.
+        Return the (i, j) entry of self as a new Integer.
 
         .. WARNING::
 
@@ -430,9 +430,20 @@ cdef class Matrix_integer_dense(Matrix_dense):
         """
         fmpz_get_mpz(value,fmpz_mat_entry(self._matrix, i, j))
 
+    cdef inline int get_unsafe_int(self, Py_ssize_t i, Py_ssize_t j):
+        """
+        Return the (i, j) entry of self as a new Integer.
+
+        .. WARNING::
+
+           This is very unsafe; it assumes i and j are in the right
+           range.
+        """
+        return fmpz_get_si(fmpz_mat_entry(self._matrix, i, j))
+
     cdef inline double get_unsafe_double(self, Py_ssize_t i, Py_ssize_t j):
         """
-        Return (j, i) entry of self as a new Integer.
+        Return the (i, j) entry of self as a new Integer.
 
         .. WARNING::
 
@@ -1067,7 +1078,7 @@ cdef class Matrix_integer_dense(Matrix_dense):
         cdef fmpz_t x
         cdef fmpz_t z
 
-        M = self._row_ambient_module()
+        M = self.row_ambient_module()
         w = <Vector_integer_dense> v
         ans = M.zero_vector()
 
@@ -2927,7 +2938,10 @@ cdef class Matrix_integer_dense(Matrix_dense):
             # 2. the user has specified the relevant parameters already
             if "strategies" not in kwds:
                 if proof is False:
-                    kwds["strategies"] = load_strategies_json(BKZ.DEFAULT_STRATEGY)
+                    import os
+                    kwds["strategies"] = load_strategies_json(
+                        BKZ.DEFAULT_STRATEGY_PATH + 
+                        os.path.basename(BKZ.DEFAULT_STRATEGY))
 
             if "auto_abort" not in kwds:
                 if proof is False:
@@ -5022,7 +5036,7 @@ cdef class Matrix_integer_dense(Matrix_dense):
         k = 0
         for i from 0 <= i < self._nrows:
             for j from 0 <= j < self._ncols:
-                res.set_unsafe_si(i,j,res_l[k])
+                res.set_unsafe_int(i,j,res_l[k])
                 k += 1
         sig_free(res_l)
 
@@ -5156,6 +5170,93 @@ cdef class Matrix_integer_dense(Matrix_dense):
     #################################################################
     # operations with matrices
     #################################################################
+
+    def row(self, Py_ssize_t i, from_list=False):
+        """
+        Return the i-th row of this matrix as a dense vector.
+
+        INPUT:
+
+        -  ``i`` - integer
+
+        -  ``from_list`` - ignored
+
+        EXAMPLES::
+
+            sage: m = matrix(ZZ, 2, [1, -2, 3, 4])
+            sage: m.row(0)
+            (1, -2)
+            sage: m.row(1)
+            (3, 4)
+            sage: m.row(1, from_list=True)
+            (3, 4)
+            sage: m.row(-2)
+            (1, -2)
+
+            sage: m.row(2)
+            Traceback (most recent call last):
+            ...
+            IndexError: row index out of range
+            sage: m.row(-3)
+            Traceback (most recent call last):
+            ...
+            IndexError: row index out of range
+        """
+        if i < 0:
+            i = i + self._nrows
+        if i < 0 or i >= self._nrows:
+            raise IndexError("row index out of range")
+
+        cdef Py_ssize_t j
+        parent = self.row_ambient_module()
+        cdef Vector_integer_dense v = parent.zero_vector()
+        for j in range(self._ncols):
+            fmpz_get_mpz(v._entries[j], fmpz_mat_entry(self._matrix, i, j))
+        return v
+
+    def column(self, Py_ssize_t i, from_list=False):
+        """
+        Return the i-th column of this matrix as a dense vector.
+
+        INPUT:
+
+        -  ``i`` - integer
+
+        -  ``from_list`` - ignored
+
+        EXAMPLES::
+
+            sage: m = matrix(ZZ, 3, 2, [1, -2, 3, 4, -1, 0])
+            sage: m.column(1)
+            (-2, 4, 0)
+            sage: m.column(1, from_list=True)
+            (-2, 4, 0)
+            sage: m.column(-1)
+            (-2, 4, 0)
+            sage: m.column(-2)
+            (1, 3, -1)
+
+            sage: m.column(2)
+            Traceback (most recent call last):
+            ...
+            IndexError: column index out of range
+            sage: m.column(-3)
+            Traceback (most recent call last):
+            ...
+            IndexError: column index out of range
+        """
+        if i < 0:
+            i += self._ncols
+        if i < 0 or i >= self._ncols:
+            raise IndexError("column index out of range")
+
+        cdef Py_ssize_t j
+        parent = self.column_ambient_module()
+        cdef Vector_integer_dense v = parent.zero_vector()
+        for j in range(self._nrows):
+            fmpz_get_mpz(v._entries[j], fmpz_mat_entry(self._matrix, j, i))
+        return v
+
     cdef _stack_impl(self, bottom):
         r"""
         Return the matrix ``self`` on top of ``bottom``::

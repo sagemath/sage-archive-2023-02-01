@@ -7967,17 +7967,15 @@ cdef class Matroid(SageObject):
         - [BMHPW20a]_
         - [BMHPW20b]_
         """
-        # Construct independent set complex with maximal faces
-        # given by the bases.
+        # Construct independent set complex from bases
         from sage.topology.simplicial_complex import SimplicialComplex
         IM = SimplicialComplex(self.bases())
 
-        # Construct coned Bergman complex
         LM = self.lattice_of_flats()
 
-        # Take disjoint union of independent set and coned Bergman
+        # Take disjoint union of independent set and empty complex
         # elements of IM are prefixed L
-        # elements of coned Bergman are prefixed R, but are not
+        # elements of coned Bergman will have prefix R, but are not
         # constructed yet.
         DM = IM.disjoint_union(SimplicialComplex())
 
@@ -7992,6 +7990,8 @@ cdef class Matroid(SageObject):
                 # get candidate independent_sets
                 for I in self.independent_r_sets(r):
                     if I.issubset(c[0]):
+
+                        # add the facet
                         DM.add_face([f'L{i}' for i in I] +
                                     [f'R{sorted(F)}' for F in c])
         return DM

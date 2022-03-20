@@ -101,6 +101,7 @@ class DocTestDefaults(SageObject):
         self.serial = False
         self.timeout = -1
         self.all = False
+        self.installed = False
         self.logfile = None
         self.long = False
         self.warn_long = -1.0
@@ -251,8 +252,12 @@ def skipfile(filename, tested_optional_tags=False):
         sage: skipfile(filename, True)
         False
     """
-    base, ext = os.path.splitext(filename)
-    if ext not in ('.py', '.pyx', '.pxd', '.pxi', '.sage', '.spyx', '.rst', '.tex'):
+    if filename.endswith('.rst.txt'):
+        ext = '.rst.txt'
+    else:
+        base, ext = os.path.splitext(filename)
+    # .rst.txt appear in the installed documentation in subdirectories named "_sources"
+    if ext not in ('.py', '.pyx', '.pxd', '.pxi', '.sage', '.spyx', '.rst', '.tex', '.rst.txt'):
         return True
     with open(filename) as F:
         line_count = 0
@@ -756,7 +761,7 @@ class DocTestController(SageObject):
             sage: DD = DocTestDefaults(all=True, logfile=log_location)
             sage: DC = DocTestController(DD, [])
             sage: DC.add_files()
-            Doctesting entire Sage library.
+            Doctesting ...
             sage: os.path.join(SAGE_SRC, 'sage') in DC.files
             True
 
@@ -768,7 +773,7 @@ class DocTestController(SageObject):
             Doctesting ...
         """
         opj = os.path.join
-        from sage.env import SAGE_SRC, SAGE_DOC_SRC, SAGE_ROOT, SAGE_ROOT_GIT
+        from sage.env import SAGE_SRC, SAGE_DOC_SRC, SAGE_ROOT, SAGE_ROOT_GIT, SAGE_DOC
         # SAGE_ROOT_GIT can be None on distributions which typically
         # only have the SAGE_LOCAL install tree but not SAGE_ROOT
         if SAGE_ROOT_GIT is not None:
@@ -776,7 +781,30 @@ class DocTestController(SageObject):
         else:
             have_git = False
 
+        def all_installed_modules():
+            self.log("Doctesting all installed modules of the Sage library.")
+            import sage
+            self.files.extend(sage.__path__)
+            try:
+                import sage_setup
+                self.files.extend(sage_setup.__path__)
+            except ImportError:
+                pass
+            try:
+                import sage_docbuild
+                self.files.extend(sage_docbuild.__path__)
+            except ImportError:
+                pass
+
+        def all_installed_doc():
+            if SAGE_DOC and os.path.isdir(SAGE_DOC):
+                self.log("Doctesting all installed documentation sources.")
+                self.files.append(SAGE_DOC)
+
         def all_files():
+            if not SAGE_SRC:
+                return all_installed_modules()
+            self.log("Doctesting entire Sage library.")
             self.files.append(opj(SAGE_SRC, 'sage'))
             # Only test sage_setup and sage_docbuild if the relevant
             # imports work. They may not work if not in a build
@@ -792,12 +820,22 @@ class DocTestController(SageObject):
                 self.files.append(opj(SAGE_SRC, 'sage_docbuild'))
             except ImportError:
                 pass
-            if os.path.isdir(SAGE_DOC_SRC):
-                self.files.append(SAGE_DOC_SRC)
 
-        if self.options.all or (self.options.new and not have_git):
-            self.log("Doctesting entire Sage library.")
+        def all_doc_sources():
+            if SAGE_DOC_SRC and os.path.isdir(SAGE_DOC_SRC):
+                self.log("Doctesting all documentation sources.")
+                self.files.append(SAGE_DOC_SRC)
+            else:
+                all_installed_doc()
+
+        if self.options.installed:
+            all_installed_modules()
+            all_installed_doc()
+
+        elif self.options.all or (self.options.new and not have_git):
             all_files()
+            all_doc_sources()
+
         elif self.options.new and have_git:
             # Get all files changed in the working repo.
             self.log("Doctesting files changed since last git commit")

@@ -3769,6 +3769,12 @@ REFERENCES:
              of three spherical harmonics', Comput. Phys. Commun.,
              Volume 25, pp. 81-85 (1982)
 
+.. [LD2021] David Lowry-Duda.
+            *Visualizing modular forms*.
+            Arithmetic Geometry, Number Theory, and Computation.
+            Simons Symposia, Springer, 2021.
+            :arxiv:`2002.05234`
+
 .. [Lee2016] Kwankyu Lee, *Decoding of differential AG codes*, Advances in
              Mathematics of Communications, vol. 10, no. 2 (2016), pp. 307-–319.
 
@@ -4447,6 +4453,11 @@ REFERENCES:
 .. [NaiRow2011] Naidu and Rowell, A finiteness property for braided fusion
                 categories. Algebr. Represent. Theory 14 (2011), no. 5, 837–855.
                 :arXiv:`0903.4157`.
+
+.. [NAR2018] Jamie R. Nunez, Christopher R. Anderson, Ryan S. Renslow
+             *Optimizing colormaps with consideration for color vision
+             deficiency to enable accurate interpretation of scientific data*.
+             PLoS ONE 13(7), 2018: e0199239.
 
 .. [Nas1950] John Nash. *Equilibrium points in n-person games.*
              Proceedings of the National Academy of Sciences 36.1
@@ -5816,6 +5827,10 @@ REFERENCES:
 
 .. [Web2007] James Webb. *Game theory: decisions, interaction and
              Evolution*. Springer Science & Business Media, 2007.
+
+.. [WegSem2010] Elias Wegert and Gunter Semmler.
+                *Phase plots of complex functions: a journey in illustration*.
+                Notices of the AMS, 58: 768--780, 2010.
 
 .. [Weh1998] \J. Wehler. Hypersurfaces of the Flag Variety: Deformation
              Theory and the Theorems of Kodaira-Spencer, Torelli,

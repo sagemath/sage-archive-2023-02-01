@@ -4,17 +4,18 @@ Plotting Functions
 EXAMPLES::
 
     sage: x, y = var('x y')
-    sage: W = plot3d(sin(pi*((x)^2+(y)^2))/2,(x,-1,1),(y,-1,1), frame=False, color='purple', opacity=0.8)
-    sage: S = sphere((0,0,0),size=0.3, color='red', aspect_ratio=[1,1,1])
+    sage: W = plot3d(sin(pi*((x)^2 + (y)^2))/2, (x, -1, 1), (y, -1, 1), frame=False, color='purple', opacity=0.8)
+    sage: S = sphere((0, 0, 0), size=0.3, color='red', aspect_ratio=[1,1,1])
     sage: show(W + S, figsize=8)
 
 .. ONLY:: html
 
-    .. JUPYTER-EXECUTE:: :hide-code:
+    .. JUPYTER-EXECUTE::
+        :hide-code:
 
         x, y = var('x y')
-        W = plot3d(sin(pi*((x)**2+(y)**2))/2,(x,-1,1),(y,-1,1), frame=False, color='purple', opacity=0.8)
-        S = sphere((0,0,0),size=0.3, color='red', aspect_ratio=[1,1,1])
+        W = plot3d(sin(pi*((x)^2 + (y)^2))/2, (x, -1, 1), (y, -1, 1), frame=False, color='purple', opacity=0.8)
+        S = sphere((0, 0, 0), size=0.3, color='red', aspect_ratio=[1,1,1])
         show(W + S, figsize=8)
 
 .. ONLY:: pdf
@@ -22,72 +23,85 @@ EXAMPLES::
     .. PLOT::
 
         x, y = var('x y')
-        W = plot3d(sin(pi*((x)**2+(y)**2))/2,(x,-1,1),(y,-1,1), frame=False, color='purple', opacity=0.8)
-        S = sphere((0,0,0),size=0.3, color='red', aspect_ratio=[1,1,1])
+        W = plot3d(sin(pi*((x)**2 + (y)**2))/2, (x, -1, 1), (y, -1, 1), frame=False, color='purple', opacity=0.8)
+        S = sphere((0, 0, 0), size=0.3, color='red', aspect_ratio=[1, 1, 1])
         sphinx_plot(W + S)
 
 ::
 
     sage: def f(x,y):
-    ....:     return math.sin(y^2+x^2)/math.sqrt(x^2+y^2+0.0001)
-    sage: P = plot3d(f,(-3,3),(-3,3), adaptive=True, color=rainbow(60, 'rgbtuple'), max_bend=.1, max_depth=15)
+    ....:     return math.sin(y^2 + x^2)/math.sqrt(x^2 + y^2 + 0.0001)
+    sage: P = plot3d(f, (-3, 3),(-3, 3), adaptive=True, color=rainbow(60, 'rgbtuple'), max_bend=.1, max_depth=15)
     sage: P.show()
 
 .. ONLY:: html
 
-    .. JUPYTER-EXECUTE:: :hide-code:
+    .. JUPYTER-EXECUTE::
+        :hide-code:
 
         def f(x,y):
-            return math.sin(y^2+x^2)/math.sqrt(x^2+y^2+0.0001)
-        P = plot3d(f,(-3,3),(-3,3), adaptive=True, color=rainbow(60, 'rgbtuple'), max_bend=.1, max_depth=15)
+            return math.sin(y^2 + x^2)/math.sqrt(x^2 + y^2 + 0.0001)
+        P = plot3d(f, (-3, 3), (-3, 3), adaptive=True, color=rainbow(60, 'rgbtuple'), max_bend=.1, max_depth=15)
         P.show()
 
 .. ONLY:: pdf
 
-    .. figure:: ../../../images/figure20.png
+    .. PLOT::
+
+        def f(x,y): return math.sin(y**2 + x**2)/math.sqrt(x**2 + y**2 + 0.0001)
+        P = plot3d(f, (-3, 3), (-3, 3), adaptive=True, color=rainbow(60, 'rgbtuple'), max_bend=.1, max_depth=15)
+        sphinx_plot(P)
 
 ::
 
     sage: def f(x,y):
     ....:     return math.exp(x/5)*math.sin(y)
     ....:
-    sage: P = plot3d(f,(-5,5),(-5,5), adaptive=True, color=['red','yellow'])
+    sage: P = plot3d(f, (-5, 5), (-5, 5), adaptive=True, color=['red', 'yellow'])
     sage: from sage.plot.plot3d.plot3d import axes
     sage: S = P + axes(6, color='black')
     sage: S.show()
 
 .. ONLY:: html
 
-    .. JUPYTER-EXECUTE:: :hide-code:
+    .. JUPYTER-EXECUTE::
+        :hide-code:
 
         def f(x,y):
             return math.exp(x/5)*math.sin(y)
 
-        P = plot3d(f,(-5,5),(-5,5), adaptive=True, color=['red','yellow'])
+        P = plot3d(f, (-5, 5), (-5, 5), adaptive=True, color=['red', 'yellow'])
         from sage.plot.plot3d.plot3d import axes
         S = P + axes(6, color='black')
         S.show()
 
 .. ONLY:: pdf
 
-    .. figure:: ../../../images/figure30.png
+    .. PLOT::
+
+        def f(x,y): return math.exp(x/5)*math.sin(y)
+        P = plot3d(f, (-5, 5), (-5, 5), adaptive=True, color=['red', 'yellow'])
+        from sage.plot.plot3d.plot3d import axes
+        S = P + axes(6, color='black')
+        sphinx_plot(S)
 
 Here is an example using a colormap and a color function ``c``::
 
     sage: x, y = var('x y')
     sage: cm = colormaps.hsv
-    sage: def c(x,y): return float((x+y+x*y)/15) % 1
-    sage: plot3d(x*x+y*y,(x,-4,4),(y,-4,4),color=(c,cm))
+    sage: def c(x, y): return float((x + y + x*y)/15) % 1
+    sage: plot3d(x*x + y*y, (x, -4, 4), (y, -4, 4), color=(c, cm))
     Graphics3d Object
 
 .. ONLY:: html
 
-    .. JUPYTER-EXECUTE:: :hide-code:
+    .. JUPYTER-EXECUTE::
+        :hide-code:
 
         x, y = var('x y')
         cm = colormaps.hsv
-        def c(x,y): return float((x+y+x*y)/15) % 1
-        plot3d(x*x+y*y,(x,-4,4),(y,-4,4),color=(c,cm))
+        def c(x, y): return float((x + y + x*y)/15) % 1
+        plot3d(x*x + y*y, (x, -4, 4), (y, -4, 4), color=(c, cm))
 
 .. ONLY:: pdf
 
@@ -95,8 +109,8 @@ Here is an example using a colormap and a color function ``c``::
 
         x, y = var('x y')
         cm = colormaps.hsv
-        def c(x,y): return float((x+y+x*y)/15) % 1
-        sphinx_plot(plot3d(x*x+y*y,(x,-4,4),(y,-4,4),color=(c,cm)))
+        def c(x, y): return float((x + y + x*y)/15) % 1
+        sphinx_plot(plot3d(x*x + y*y,(x, -4, 4), (y, -4, 4), color=(c, cm)))
 
 Beware that the color function must take values between 0 and 1.
 
@@ -111,36 +125,63 @@ We plot "cape man"::
 
 ::
 
-    sage: S += sphere((.45,-.1,.15), size=.1, color='white') + sphere((.51,-.1,.17), size=.05, color='black')
-    sage: S += sphere((.45, .1,.15),size=.1, color='white') + sphere((.51, .1,.17), size=.05, color='black')
-    sage: S += sphere((.5,0,-.2),size=.1, color='yellow')
+    sage: S += sphere((.45, -.1, .15), size=.1, color='white') + sphere((.51,-.1,.17), size=.05, color='black')
+    sage: S += sphere((.45, .1, .15), size=.1, color='white') + sphere((.51, .1,.17), size=.05, color='black')
+    sage: S += sphere((.5, 0, -.2), size=.1, color='yellow')
     sage: def f(x,y): return math.exp(x/5)*math.cos(y)
-    sage: P = plot3d(f,(-5,5),(-5,5), adaptive=True, color=['red','yellow'], max_depth=10)
-    sage: cape_man = P.scale(.2) + S.translate(1,0,0)
-    sage: cape_man.show(aspect_ratio=[1,1,1])
+    sage: P = plot3d(f, (-5, 5), (-5, 5), adaptive=True, color=['red','yellow'], max_depth=10)
+    sage: cape_man = P.scale(.2) + S.translate(1, 0, 0)
+    sage: cape_man.show(aspect_ratio=[1, 1, 1])
 
-.. PLOT::
+.. ONLY:: html
 
-    S = sphere(size=.5, color='yellow')
-    from sage.plot.plot3d.shapes import Cone
-    S += Cone(.5, .5, color='red').translate(0,0,.3)
-    S += sphere((.45,-.1,.15), size=.1, color='white') + sphere((.51,-.1,.17), size=.05, color='black')
-    S += sphere((.45, .1,.15),size=.1, color='white') + sphere((.51, .1,.17), size=.05, color='black')
-    S += sphere((.5,0,-.2),size=.1, color='yellow')
-    def f(x,y): return math.exp(x/5)*math.cos(y)
-    P = plot3d(f,(-5,5),(-5,5), adaptive=True, color=['red','yellow'], max_depth=10)
-    cape_man = P.scale(.2) + S.translate(1,0,0)
-    cape_man.aspect_ratio([1,1,1])
-    sphinx_plot(cape_man)
+    .. JUPYTER-EXECUTE::
+        :hide-code:
+
+        S = sphere(size=.5, color='yellow')
+        from sage.plot.plot3d.shapes import Cone
+        S += Cone(.5, .5, color='red').translate(0,0,.3)
+        S += sphere((.45, -.1, .15), size=.1, color='white') + sphere((.51,-.1,.17), size=.05, color='black')
+        S += sphere((.45, .1, .15), size=.1, color='white') + sphere((.51, .1,.17), size=.05, color='black')
+        S += sphere((.5, 0, -.2), size=.1, color='yellow')
+        def f(x,y): return math.exp(x/5)*math.cos(y)
+        P = plot3d(f, (-5, 5), (-5, 5), adaptive=True, color=['red','yellow'], max_depth=10)
+        cape_man = P.scale(.2) + S.translate(1, 0, 0)
+        cape_man.show(aspect_ratio=[1, 1, 1])
+
+.. ONLY:: pdf
+
+    .. PLOT::
+
+        S = sphere(size=.5, color='yellow')
+        from sage.plot.plot3d.shapes import Cone
+        S += Cone(.5, .5, color='red').translate(0,0,.3)
+        S += sphere((.45, -.1, .15), size=.1, color='white') + sphere((.51,-.1,.17), size=.05, color='black')
+        S += sphere((.45, .1, .15), size=.1, color='white') + sphere((.51, .1,.17), size=.05, color='black')
+        S += sphere((.5, 0, -.2), size=.1, color='yellow')
+        def f(x,y): return math.exp(x/5)*math.cos(y)
+        P = plot3d(f, (-5, 5), (-5, 5), adaptive=True, color=['red','yellow'], max_depth=10)
+        cape_man = P.scale(.2) + S.translate(1, 0, 0)
+        cape_man.aspect_ratio([1, 1, 1])
+        sphinx_plot(cape_man)
 
 Or, we plot a very simple function indeed::
 
     sage: plot3d(pi, (-1,1), (-1,1))
     Graphics3d Object
 
-.. PLOT::
+.. ONLY:: html
 
-    sphinx_plot(plot3d(pi, (-1,1), (-1,1)))
+    .. JUPYTER-EXECUTE::
+        :hide-code:
+
+        plot3d(pi, (-1,1), (-1,1))
+
+.. ONLY:: pdf
+
+    .. PLOT::
+
+        sphinx_plot(plot3d(pi, (-1,1), (-1,1)))
 
 Transparent with fractional opacity value::
 
@@ -196,16 +237,18 @@ class _Coordinates(object):
     symbolic variables to use, generates a 3-tuple of functions in terms of
     those variables that can be used to find the Cartesian (X, Y, and Z)
     coordinates for any point in this space.
+
+    INPUT:
+
+     - ``dep_var`` -- the dependent variable (the function value will be
+
+     - ``indep_vars`` -- a list of independent variables (the parameters will be
+       substituted for these)
+
     """
     def __init__(self, dep_var, indep_vars):
         """
-        INPUT:
-
-         - ``dep_var`` - The dependent variable (the function value will be
-           substituted for this).
-
-         - ``indep_vars`` - A list of independent variables (the parameters will be
-           substituted for these).
+        Initialize.
 
         TESTS:
 
@@ -262,11 +305,11 @@ class _Coordinates(object):
 
         INPUT:
 
-         - ``func`` -- function in this coordinate space. Corresponds
-           to the independent variable.
+         - ``func`` -- function in this coordinate space; corresponds
+           to the independent variable
 
-         - ``params`` -- the parameters of ``func``. Corresponds to
-           the dependent variables.
+         - ``params`` -- the parameters of ``func``; corresponds to
+           the dependent variables
 
         EXAMPLES::
 
@@ -381,7 +424,7 @@ class _Coordinates(object):
 
     def __repr__(self):
         """
-        Print out a coordinate system
+        Print out a coordinate system.
 
         ::
 
@@ -526,24 +569,46 @@ class Spherical(_Coordinates):
         sage: plot3d(phi * theta, (theta, 0, pi), (phi, 0, 1), transformation=T)
         Graphics3d Object
 
-    .. PLOT::
+    .. ONLY:: html
 
-        r, phi, theta = var('r phi theta')
-        T = Spherical('radius', ['azimuth', 'inclination'])
-        sphinx_plot(plot3d(phi * theta, (theta, 0, pi), (phi, 0, 1), transformation=T))
+        .. JUPYTER-EXECUTE::
+            :hide-code:
+
+            r, phi, theta = var('r phi theta')
+            T = Spherical('radius', ['azimuth', 'inclination'])
+            plot3d(phi * theta, (theta, 0, pi), (phi, 0, 1), transformation=T)
+
+    .. ONLY:: pdf
+
+        .. PLOT::
+
+            r, phi, theta = var('r phi theta')
+            T = Spherical('radius', ['azimuth', 'inclination'])
+            sphinx_plot(plot3d(phi * theta, (theta, 0, pi), (phi, 0, 1), transformation=T))
 
     We next graph the function where the inclination angle is constant::
 
-        sage: S=Spherical('inclination', ['radius', 'azimuth'])
-        sage: r,theta=var('r,theta')
+        sage: S = Spherical('inclination', ['radius', 'azimuth'])
+        sage: r, theta = var('r,theta')
         sage: plot3d(3, (r,0,3), (theta, 0, 2*pi), transformation=S)
         Graphics3d Object
 
-    .. PLOT::
+    .. ONLY:: html
 
-        S=Spherical('inclination', ['radius', 'azimuth'])
-        r,theta=var('r,theta')
-        sphinx_plot(plot3d(r-r+3, (r,0,3), (theta, 0, 2*pi), transformation=S))
+        .. JUPYTER-EXECUTE::
+            :hide-code:
+
+            S = Spherical('inclination', ['radius', 'azimuth'])
+            r, theta = var('r,theta')
+            plot3d(r-r+3, (r,0,3), (theta, 0, 2*pi), transformation=S)
+
+    .. ONLY:: pdf
+
+        .. PLOT::
+
+            S = Spherical('inclination', ['radius', 'azimuth'])
+            r, theta = var('r,theta')
+            sphinx_plot(plot3d(r-r+3, (r,0,3), (theta, 0, 2*pi), transformation=S))
 
     See also :func:`spherical_plot3d` for more examples of plotting in spherical
     coordinates.
@@ -595,41 +660,76 @@ class SphericalElevation(_Coordinates):
         sage: plot3d(phi * theta, (theta, 0, pi), (phi, 0, 1), transformation=T)
         Graphics3d Object
 
-    .. PLOT::
+    .. ONLY:: html
 
-        T = SphericalElevation('radius', ['azimuth', 'elevation'])
-        r, theta, phi = var('r theta phi')
-        sphinx_plot(plot3d(phi * theta, (theta, 0, pi), (phi, 0, 1), transformation=T))
+        .. JUPYTER-EXECUTE::
+            :hide-code:
+
+            T = SphericalElevation('radius', ['azimuth', 'elevation'])
+            r, theta, phi = var('r theta phi')
+            plot3d(phi * theta, (theta, 0, pi), (phi, 0, 1), transformation=T)
+
+    .. ONLY:: pdf
+
+        .. PLOT::
+
+            T = SphericalElevation('radius', ['azimuth', 'elevation'])
+            r, theta, phi = var('r theta phi')
+            sphinx_plot(plot3d(phi * theta, (theta, 0, pi), (phi, 0, 1), transformation=T))
 
     We next graph the function where the elevation angle is constant. This
     should be compared to the similar example for the ``Spherical`` coordinate
     system::
 
-        sage: SE=SphericalElevation('elevation', ['radius', 'azimuth'])
-        sage: r,theta=var('r,theta')
+        sage: SE = SphericalElevation('elevation', ['radius', 'azimuth'])
+        sage: r, theta = var('r,theta')
         sage: plot3d(3, (r,0,3), (theta, 0, 2*pi), transformation=SE)
         Graphics3d Object
 
-    .. PLOT::
+   .. ONLY:: html
 
-        SE=SphericalElevation('elevation', ['radius', 'azimuth'])
-        r,theta=var('r,theta')
-        sphinx_plot(plot3d(3+r-r, (r,0,3), (theta, 0, 2*pi), transformation=SE))
+        .. JUPYTER-EXECUTE::
+            :hide-code:
+
+            SE = SphericalElevation('elevation', ['radius', 'azimuth'])
+            r, theta = var('r,theta')
+            plot3d(3+r-r, (r,0,3), (theta, 0, 2*pi), transformation=SE)
+
+    .. ONLY:: pdf
+
+        .. PLOT::
+
+            SE = SphericalElevation('elevation', ['radius', 'azimuth'])
+            r, theta = var('r,theta')
+            sphinx_plot(plot3d(3+r-r, (r,0,3), (theta, 0, 2*pi), transformation=SE))
 
     Plot a sin curve wrapped around the equator::
 
-        sage: P1=plot3d( (pi/12)*sin(8*theta), (r,0.99,1), (theta, 0, 2*pi), transformation=SE, plot_points=(10,200))
-        sage: P2=sphere(center=(0,0,0), size=1, color='red', opacity=0.3)
-        sage: P1+P2
+        sage: P1 = plot3d( (pi/12)*sin(8*theta), (r,0.99,1), (theta, 0, 2*pi), transformation=SE, plot_points=(10,200))
+        sage: P2 = sphere(center=(0,0,0), size=1, color='red', opacity=0.3)
+        sage: P1 + P2
         Graphics3d Object
 
-    .. PLOT::
+   .. ONLY:: html
 
-        r,theta=var('r,theta')
-        SE=SphericalElevation('elevation', ['radius', 'azimuth'])
-        P1=plot3d( (pi/12)*sin(8*theta), (r,0.99,1), (theta, 0, 2*pi), transformation=SE, plot_points=(10,200))
-        P2=sphere(center=(0,0,0), size=1, color='red', opacity=0.3)
-        sphinx_plot(P1+P2)
+        .. JUPYTER-EXECUTE::
+            :hide-code:
+
+            r, theta = var('r,theta')
+            SE = SphericalElevation('elevation', ['radius', 'azimuth'])
+            P1 = plot3d( (pi/12)*sin(8*theta), (r,0.99,1), (theta, 0, 2*pi), transformation=SE, plot_points=(10,200))
+            P2 = sphere(center=(0,0,0), size=1, color='red', opacity=0.3)
+            P1 + P2
+
+    .. ONLY:: pdf
+
+        .. PLOT::
+
+            r, theta = var('r,theta')
+            SE = SphericalElevation('elevation', ['radius', 'azimuth'])
+            P1 = plot3d( (pi/12)*sin(8*theta), (r,0.99,1), (theta, 0, 2*pi), transformation=SE, plot_points=(10,200))
+            P2 = sphere(center=(0,0,0), size=1, color='red', opacity=0.3)
+            sphinx_plot(P1 + P2)
 
     Now we graph several constant elevation functions alongside several constant
     inclination functions. This example illustrates the difference between the
@@ -645,18 +745,36 @@ class SphericalElevation(_Coordinates):
         sage: P2 = [plot3d( a, (r,0,3), (theta, 0, 2*pi), transformation=S, opacity=0.85, color='red') for a in angles]
         sage: show(sum(P1+P2), aspect_ratio=1)
 
-    .. PLOT::
+   .. ONLY:: html
 
-        r, phi, theta = var('r phi theta')
-        SE = SphericalElevation('elevation', ['radius', 'azimuth'])
-        S = Spherical('inclination', ['radius', 'azimuth'])
-        angles = [pi/18, pi/12, pi/6]
-        P1=Graphics()
-        P2=Graphics()
-        for a in angles:
-            P1 += plot3d( a, (r,0,3), (theta, 0, 2*pi), transformation=SE, opacity=0.85, color='blue')
-            P2 += plot3d( a, (r,0,3), (theta, 0, 2*pi), transformation=S, opacity=0.85, color='red')
-        sphinx_plot(P1+P2)
+        .. JUPYTER-EXECUTE::
+            :hide-code:
+
+            r, phi, theta = var('r phi theta')
+            SE = SphericalElevation('elevation', ['radius', 'azimuth'])
+            S = Spherical('inclination', ['radius', 'azimuth'])
+            angles = [pi/18, pi/12, pi/6]
+            P1=Graphics()
+            P2=Graphics()
+            for a in angles:
+                P1 += plot3d( a, (r,0,3), (theta, 0, 2*pi), transformation=SE, opacity=0.85, color='blue')
+                P2 += plot3d( a, (r,0,3), (theta, 0, 2*pi), transformation=S, opacity=0.85, color='red')
+            P1+P2
+
+    .. ONLY:: pdf
+
+        .. PLOT::
+
+            r, phi, theta = var('r phi theta')
+            SE = SphericalElevation('elevation', ['radius', 'azimuth'])
+            S = Spherical('inclination', ['radius', 'azimuth'])
+            angles = [pi/18, pi/12, pi/6]
+            P1=Graphics()
+            P2=Graphics()
+            for a in angles:
+                P1 += plot3d( a, (r,0,3), (theta, 0, 2*pi), transformation=SE, opacity=0.85, color='blue')
+                P2 += plot3d( a, (r,0,3), (theta, 0, 2*pi), transformation=S, opacity=0.85, color='red')
+            sphinx_plot(P1+P2)
 
     See also :func:`spherical_plot3d` for more examples of plotting in spherical
     coordinates.
@@ -709,24 +827,46 @@ class Cylindrical(_Coordinates):
         sage: plot3d(9-r^2, (r, 0, 3), (theta, 0, pi), transformation=T)
         Graphics3d Object
 
-    .. PLOT::
+    .. ONLY:: html
 
-        T = Cylindrical('height', ['radius', 'azimuth'])
-        r, theta, z = var('r theta z')
-        sphinx_plot(plot3d(9-r**2, (r, 0, 3), (theta, 0, pi), transformation=T))
+        .. JUPYTER-EXECUTE::
+            :hide-code:
+
+            T = Cylindrical('height', ['radius', 'azimuth'])
+            r, theta, z = var('r theta z')
+            plot3d(9-r**2, (r, 0, 3), (theta, 0, pi), transformation=T)
+
+    .. ONLY:: pdf
+
+        .. PLOT::
+
+            T = Cylindrical('height', ['radius', 'azimuth'])
+            r, theta, z = var('r theta z')
+            sphinx_plot(plot3d(9 - r**2, (r, 0, 3), (theta, 0, pi), transformation=T))
 
     We next graph the function where the radius is constant::
 
-        sage: S=Cylindrical('radius', ['azimuth', 'height'])
-        sage: theta,z=var('theta, z')
-        sage: plot3d(3, (theta,0,2*pi), (z, -2, 2), transformation=S)
+        sage: S = Cylindrical('radius', ['azimuth', 'height'])
+        sage: theta, z = var('theta, z')
+        sage: plot3d(3, (theta, 0, 2*pi), (z, -2, 2), transformation=S)
         Graphics3d Object
 
-    .. PLOT::
+    .. ONLY:: html
 
-        S=Cylindrical('radius', ['azimuth', 'height'])
-        theta,z=var('theta, z')
-        sphinx_plot(plot3d(3+z-z, (theta,0,2*pi), (z, -2, 2), transformation=S))
+        .. JUPYTER-EXECUTE::
+            :hide-code:
+
+            S = Cylindrical('radius', ['azimuth', 'height'])
+            theta, z = var('theta, z')
+            plot3d(3, (theta, 0, 2*pi), (z, -2, 2), transformation=S)
+
+    .. ONLY:: pdf
+
+        .. PLOT::
+
+            S = Cylindrical('radius', ['azimuth', 'height'])
+            theta, z = var('theta, z')
+            sphinx_plot(plot3d(3+z-z, (theta, 0, 2*pi), (z, -2, 2), transformation=S))
 
     See also :func:`cylindrical_plot3d` for more examples of plotting in cylindrical
     coordinates.
@@ -760,9 +900,10 @@ class TrivialTriangleFactory:
 
         INPUT:
 
-        - ``a``, ``b``, ``c`` : triples (x,y,z) representing corners
+        - ``a``, ``b``, ``c`` -- triples (x,y,z) representing corners
           on a triangle in 3-space
-        - ``color``: ignored
+
+        - ``color`` -- ignored
 
         OUTPUT:
 
@@ -785,10 +926,12 @@ class TrivialTriangleFactory:
 
         INPUT:
 
-        - ``a``, ``b``, ``c`` : triples (x,y,z) representing corners
+        - ``a``, ``b``, ``c`` -- triples (x,y,z) representing corners
           on a triangle in 3-space
-        - ``da``, ``db``, ``dc`` : ignored
-        - ``color`` : ignored
+
+        - ``da``, ``db``, ``dc`` -- ignored
+
+        - ``color`` -- ignored
 
         OUTPUT:
 
@@ -811,32 +954,30 @@ def plot3d(f, urange, vrange, adaptive=False, transformation=None, **kwds):
 
     INPUT:
 
-
-    -  ``f`` - a symbolic expression or function of 2
+    -  ``f`` -- a symbolic expression or function of 2
        variables
 
-    -  ``urange`` - a 2-tuple (u_min, u_max) or a 3-tuple
+    -  ``urange`` -- a 2-tuple (u_min, u_max) or a 3-tuple
        (u, u_min, u_max)
 
-    -  ``vrange`` - a 2-tuple (v_min, v_max) or a 3-tuple
+    -  ``vrange`` -- a 2-tuple (v_min, v_max) or a 3-tuple
        (v, v_min, v_max)
 
-    -  ``adaptive`` - (default: False) whether to use
+    -  ``adaptive`` -- (default: False) whether to use
        adaptive refinement to draw the plot (slower, but may look better).
        This option does NOT work in conjunction with a transformation
        (see below).
 
-    -  ``mesh`` - bool (default: False) whether to display
+    -  ``mesh`` -- bool (default: False) whether to display
        mesh grid lines
 
-    -  ``dots`` - bool (default: False) whether to display
+    -  ``dots`` -- bool (default: False) whether to display
        dots at mesh grid points
 
-    -  ``plot_points`` - (default: "automatic") initial number of sample
+    -  ``plot_points`` -- (default: "automatic") initial number of sample
        points in each direction; an integer or a pair of integers
 
-
-    - ``transformation`` - (default: None) a transformation to
+    - ``transformation`` -- (default: None) a transformation to
       apply. May be a 3 or 4-tuple (x_func, y_func, z_func,
       independent_vars) where the first 3 items indicate a
       transformation to Cartesian coordinates (from your coordinate
@@ -848,7 +989,7 @@ def plot3d(f, urange, vrange, adaptive=False, transformation=None, **kwds):
       predefined coordinate system transformation like Spherical or
       Cylindrical.
 
-    .. note::
+    .. NOTE::
 
        ``mesh`` and ``dots`` are not supported when using the Tachyon
        raytracer renderer.
@@ -858,27 +999,54 @@ def plot3d(f, urange, vrange, adaptive=False, transformation=None, **kwds):
         sage: plot3d(lambda x, y: x^2 + y^2, (-2,2), (-2,2))
         Graphics3d Object
 
-    .. PLOT::
+    .. ONLY:: html
 
-        sphinx_plot(plot3d(lambda x, y: x**2 + y**2, (-2,2), (-2,2)))
+        .. JUPYTER-EXECUTE::
+            :hide-code:
+
+            plot3d(lambda x, y: x**2 + y**2, (-2,2), (-2,2))
+
+    .. ONLY:: pdf
+
+        .. PLOT::
+
+            sphinx_plot(plot3d(lambda x, y: x**2 + y**2, (-2,2), (-2,2)))
 
     We plot the same 3d function but using adaptive refinement::
 
         sage: plot3d(lambda x, y: x^2 + y^2, (-2,2), (-2,2), adaptive=True)
         Graphics3d Object
 
-    .. PLOT::
+    .. ONLY:: html
 
-        sphinx_plot(plot3d(lambda x, y: x**2 + y**2, (-2,2), (-2,2), adaptive=True))
+        .. JUPYTER-EXECUTE::
+            :hide-code:
+
+            plot3d(lambda x, y: x**2 + y**2, (-2,2), (-2,2), adaptive=True)
+
+    .. ONLY:: pdf
+
+        .. PLOT::
+
+            sphinx_plot(plot3d(lambda x, y: x**2 + y**2, (-2,2), (-2,2), adaptive=True))
 
     Adaptive refinement but with more points::
 
         sage: plot3d(lambda x, y: x^2 + y^2, (-2,2), (-2,2), adaptive=True, initial_depth=5)
         Graphics3d Object
 
-    .. PLOT::
+    .. ONLY:: html
 
-        sphinx_plot(plot3d(lambda x, y: x**2 + y**2, (-2,2), (-2,2), adaptive=True, initial_depth=5))
+        .. JUPYTER-EXECUTE::
+            :hide-code:
+
+            plot3d(lambda x, y: x**2 + y**2, (-2,2), (-2,2), adaptive=True, initial_depth=5)
+
+    .. ONLY:: pdf
+
+        .. PLOT::
+
+            sphinx_plot(plot3d(lambda x, y: x**2 + y**2, (-2,2), (-2,2), adaptive=True, initial_depth=5))
 
     We plot some 3d symbolic functions::
 
@@ -887,77 +1055,139 @@ def plot3d(f, urange, vrange, adaptive=False, transformation=None, **kwds):
         sage: plot3d(x^2 + y^2, (x,-2,2), (y,-2,2))
         Graphics3d Object
 
-    .. PLOT::
+    .. ONLY:: html
 
-        var('x y')
-        sphinx_plot(plot3d(x**2 + y**2, (x,-2,2), (y,-2,2)))
+        .. JUPYTER-EXECUTE::
+            :hide-code:
+
+            var('x y')
+            plot3d(x**2 + y**2, (x,-2,2), (y,-2,2))
+
+    .. ONLY:: pdf
+
+        .. PLOT::
+
+            var('x y')
+            sphinx_plot(plot3d(x**2 + y**2, (x,-2,2), (y,-2,2)))
 
     ::
 
         sage: plot3d(sin(x*y), (x, -pi, pi), (y, -pi, pi))
         Graphics3d Object
 
-    .. PLOT::
+    .. ONLY:: html
 
-        var('x y')
-        sphinx_plot(plot3d(sin(x*y), (x, -pi, pi), (y, -pi, pi)))
+        .. JUPYTER-EXECUTE::
+            :hide-code:
+
+            var('x y')
+            plot3d(sin(x*y), (x, -pi, pi), (y, -pi, pi))
+
+    .. ONLY:: pdf
+
+        .. PLOT::
+
+            var('x y')
+            sphinx_plot(plot3d(sin(x*y), (x, -pi, pi), (y, -pi, pi)))
 
     We give a plot with extra sample points::
 
         sage: var('x,y')
         (x, y)
-        sage: plot3d(sin(x^2+y^2),(x,-5,5),(y,-5,5), plot_points=200)
+        sage: plot3d(sin(x^2 + y^2),(x,-5,5),(y,-5,5), plot_points=200)
         Graphics3d Object
 
-    .. PLOT::
+    .. ONLY:: html
 
-        var('x y')
-        sphinx_plot(plot3d(sin(x**2+y**2),(x,-5,5),(y,-5,5), plot_points=200))
+        .. JUPYTER-EXECUTE::
+            :hide-code:
+
+            var('x y')
+            plot3d(sin(x^2 + y^2),(x,-5,5),(y,-5,5), plot_points=200)
+
+    .. ONLY:: pdf
+
+        .. PLOT::
+
+            var('x y')
+            sphinx_plot(plot3d(sin(x**2 + y**2),(x,-5,5),(y,-5,5), plot_points=200))
 
     ::
 
-        sage: plot3d(sin(x^2+y^2),(x,-5,5),(y,-5,5), plot_points=[10,100])
+        sage: plot3d(sin(x^2 + y^2), (x, -5, 5), (y, -5, 5), plot_points=[10, 100])
         Graphics3d Object
 
-    .. PLOT::
+    .. ONLY:: html
 
-        var('x y')
-        sphinx_plot(plot3d(sin(x**2+y**2),(x,-5,5),(y,-5,5), plot_points=[10,100]))
+        .. JUPYTER-EXECUTE::
+            :hide-code:
+
+            var('x y')
+            plot3d(sin(x^2 + y^2), (x, -5, 5), (y, -5, 5), plot_points=[10, 100])
+
+    .. ONLY:: pdf
+
+        .. PLOT::
+
+            var('x y')
+            sphinx_plot(plot3d(sin(x**2 + y**2), (x, -5, 5), (y, -5, 5), plot_points=[10,100]))
 
     A 3d plot with a mesh::
 
         sage: var('x,y')
         (x, y)
-        sage: plot3d(sin(x-y)*y*cos(x),(x,-3,3),(y,-3,3), mesh=True)
+        sage: plot3d(sin(x - y)*y*cos(x), (x, -3, 3), (y, -3, 3), mesh=True)
         Graphics3d Object
 
-    .. PLOT::
+    .. ONLY:: html
 
-        var('x y')
-        sphinx_plot(plot3d(sin(x-y)*y*cos(x),(x,-3,3),(y,-3,3), mesh=True))
+        .. JUPYTER-EXECUTE::
+            :hide-code:
+
+            var('x,y')
+            plot3d(sin(x - y)*y*cos(x), (x, -3, 3), (y, -3, 3), mesh=True)
+
+    .. ONLY:: pdf
+
+        .. PLOT::
+
+            var('x y')
+            sphinx_plot(plot3d(sin(x - y)*y*cos(x), (x, -3, 3), (y, -3, 3), mesh=True))
 
     The same with thicker mesh lines (not supported in all viewers)::
 
         sage: var('x,y')
         (x, y)
-        sage: plot3d(sin(x-y)*y*cos(x),(x,-3,3),(y,-3,3), mesh=True,
+        sage: plot3d(sin(x - y)*y*cos(x), (x, -3, 3), (y, -3, 3), mesh=True,
         ....:        thickness=2, viewer='threejs')
         Graphics3d Object
 
     Two wobby translucent planes::
 
         sage: x,y = var('x,y')
-        sage: P = plot3d(x+y+sin(x*y), (x,-10,10),(y,-10,10), opacity=0.87, color='blue')
-        sage: Q = plot3d(x-2*y-cos(x*y),(x,-10,10),(y,-10,10),opacity=0.3,color='red')
+        sage: P = plot3d(x + y + sin(x*y), (x, -10, 10), (y, -10, 10), opacity=0.87, color='blue')
+        sage: Q = plot3d(x - 2*y - cos(x*y),(x, -10, 10), (y, -10, 10), opacity=0.3, color='red')
         sage: P + Q
         Graphics3d Object
 
-    .. PLOT::
+    .. ONLY:: html
 
-        x,y=var('x y')
-        P = plot3d(x+y+sin(x*y), (x,-10,10),(y,-10,10), opacity=0.87, color='blue')
-        Q = plot3d(x-2*y-cos(x*y),(x,-10,10),(y,-10,10),opacity=0.3,color='red')
-        sphinx_plot(P+Q)
+        .. JUPYTER-EXECUTE::
+            :hide-code:
+
+            x,y = var('x,y')
+            P = plot3d(x + y + sin(x*y), (x, -10, 10), (y, -10, 10), opacity=0.87, color='blue')
+            Q = plot3d(x - 2*y - cos(x*y),(x, -10, 10), (y, -10, 10), opacity=0.3, color='red')
+            P + Q
+
+    .. ONLY:: pdf
+
+        .. PLOT::
+
+            x,y = var('x,y')
+            P = plot3d(x + y + sin(x*y), (x, -10, 10), (y, -10, 10), opacity=0.87, color='blue')
+            Q = plot3d(x - 2*y - cos(x*y),(x, -10, 10), (y, -10, 10), opacity=0.3, color='red')
+            sphinx_plot(P + Q)
 
     We draw two parametric surfaces and a transparent plane::
 
@@ -967,61 +1197,115 @@ def plot3d(f, urange, vrange, adaptive=False, transformation=None, **kwds):
         sage: L + P + Q
         Graphics3d Object
 
-    .. PLOT::
+    .. ONLY:: html
 
-        L = plot3d(lambda x,y: 0, (-5,5), (-5,5), color="lightblue", opacity=0.8)
-        P = plot3d(lambda x,y: 4 - x**3 - y**2, (-2,2), (-2,2), color='green')
-        Q = plot3d(lambda x,y: x**3 + y**2 - 4, (-2,2), (-2,2), color='orange')
-        sphinx_plot(L+P+Q)
+        .. JUPYTER-EXECUTE::
+            :hide-code:
+
+            L = plot3d(lambda x,y: 0, (-5,5), (-5,5), color="lightblue", opacity=0.8)
+            P = plot3d(lambda x,y: 4 - x^3 - y^2, (-2,2), (-2,2), color='green')
+            Q = plot3d(lambda x,y: x^3 + y^2 - 4, (-2,2), (-2,2), color='orange')
+            L + P + Q
+
+    .. ONLY:: pdf
+
+        .. PLOT::
+
+            L = plot3d(lambda x,y: 0, (-5,5), (-5,5), color="lightblue", opacity=0.8)
+            P = plot3d(lambda x,y: 4 - x**3 - y**2, (-2,2), (-2,2), color='green')
+            Q = plot3d(lambda x,y: x**3 + y**2 - 4, (-2,2), (-2,2), color='orange')
+            sphinx_plot(L + P + Q)
 
     We draw the "Sinus" function (water ripple-like surface)::
 
         sage: x, y = var('x y')
-        sage: plot3d(sin(pi*(x^2+y^2))/2,(x,-1,1),(y,-1,1))
+        sage: plot3d(sin(pi*(x^2 + y^2))/2, (x, -1, 1), (y, -1, 1))
         Graphics3d Object
 
-    .. PLOT::
+    .. ONLY:: html
 
-        x, y = var('x y')
-        sphinx_plot(plot3d(sin(pi*(x**2+y**2))/2,(x,-1,1),(y,-1,1)))
+        .. JUPYTER-EXECUTE::
+            :hide-code:
+
+            x, y = var('x y')
+            plot3d(sin(pi*(x^2 + y^2))/2, (x, -1, 1), (y, -1, 1))
+
+    .. ONLY:: pdf
+
+        .. PLOT::
+
+            x, y = var('x y')
+            sphinx_plot(plot3d(sin(pi*(x**2 + y**2))/2, (x, -1, 1), (y, -1, 1)))
 
     Hill and valley (flat surface with a bump and a dent)::
 
         sage: x, y = var('x y')
-        sage: plot3d( 4*x*exp(-x^2-y^2), (x,-2,2), (y,-2,2))
+        sage: plot3d(4*x*exp(-x^2 - y^2), (x, -2, 2), (y, -2, 2))
         Graphics3d Object
 
-    .. PLOT::
+    .. ONLY:: html
 
-        x, y = var('x y')
-        sphinx_plot(plot3d( 4*x*exp(-x**2-y**2), (x,-2,2), (y,-2,2)))
+        .. JUPYTER-EXECUTE::
+            :hide-code:
+
+            x, y = var('x y')
+            plot3d(4*x*exp(-x^2 - y^2), (x, -2, 2), (y, -2, 2))
+
+    .. ONLY:: pdf
+
+        .. PLOT::
+
+            x, y = var('x y')
+            sphinx_plot(plot3d( 4*x*exp(-x**2 - y**2), (x, -2, 2), (y, -2, 2)))
 
     An example of a transformation::
 
         sage: r, phi, z = var('r phi z')
-        sage: trans=(r*cos(phi),r*sin(phi),z)
-        sage: plot3d(cos(r),(r,0,17*pi/2),(phi,0,2*pi),transformation=trans,opacity=0.87).show(aspect_ratio=(1,1,2),frame=False)
+        sage: trans = (r*cos(phi), r*sin(phi), z)
+        sage: plot3d(cos(r), (r, 0, 17*pi/2), (phi, 0, 2*pi), transformation=trans, opacity=0.87).show(aspect_ratio=(1,1,2), frame=False)
 
-    .. PLOT::
+    .. ONLY:: html
 
-        r, phi, z = var('r phi z')
-        trans = (r*cos(phi),r*sin(phi),z)
-        P = plot3d(cos(r),(r,0,17*pi/2),(phi,0,2*pi),transformation=trans,opacity=0.87)
-        P.aspect_ratio([1,1,2])
-        sphinx_plot(P)
+        .. JUPYTER-EXECUTE::
+            :hide-code:
+
+            r, phi, z = var('r phi z')
+            trans = (r*cos(phi), r*sin(phi), z)
+            plot3d(cos(r), (r, 0, 17*pi/2), (phi, 0, 2*pi), transformation=trans, opacity=0.87).show(aspect_ratio=(1,1,2), frame=False)
+
+    .. ONLY:: pdf
+
+        .. PLOT::
+
+            r, phi, z = var('r phi z')
+            trans = (r*cos(phi), r*sin(phi), z)
+            P = plot3d(cos(r), (r, 0, 17*pi/2), (phi, 0, 2*pi), transformation=trans, opacity=0.87)
+            P.aspect_ratio([1, 1, 2])
+            sphinx_plot(P)
 
     An example of a transformation with symbolic vector::
 
-        sage: cylindrical(r,theta,z)=[r*cos(theta),r*sin(theta),z]
-        sage: plot3d(3,(theta,0,pi/2),(z,0,pi/2),transformation=cylindrical)
+        sage: cylindrical(r, theta, z) = [r*cos(theta), r*sin(theta), z]
+        sage: plot3d(3, (theta, 0, pi/2), (z, 0, pi/2), transformation=cylindrical)
         Graphics3d Object
 
-    .. PLOT::
+    .. ONLY:: html
 
-        r, theta, z = var('r theta z')
-        cylindrical=(r*cos(theta),r*sin(theta),z)
-        P = plot3d(z-z+3,(theta,0,pi/2),(z,0,pi/2),transformation=cylindrical)
-        sphinx_plot(P)
+        .. JUPYTER-EXECUTE::
+            :hide-code:
+
+            r, theta, z = var('r theta z')
+            cylindrical(r, theta, z) = [r*cos(theta), r*sin(theta), z]
+            plot3d(3, (theta, 0, pi/2), (z, 0, pi/2), transformation=cylindrical)
+
+    .. ONLY:: pdf
+
+        .. PLOT::
+
+            r, theta, z = var('r theta z')
+            cylindrical = (r*cos(theta), r*sin(theta), z)
+            P = plot3d(z-z+3, (theta, 0, pi/2), (z, 0, pi/2), transformation=cylindrical)
+            sphinx_plot(P)
 
     Many more examples of transformations::
 
@@ -1141,45 +1425,56 @@ def plot3d_adaptive(f, x_range, y_range, color="automatic",
     INPUT:
 
 
-    -  ``f`` - a symbolic function or a Python function of
+    -  ``f`` -- a symbolic function or a Python function of
        3 variables.
 
-    -  ``x_range`` - x range of values: 2-tuple (xmin,
+    -  ``x_range`` -- x range of values: 2-tuple (xmin,
        xmax) or 3-tuple (x,xmin,xmax)
 
-    -  ``y_range`` - y range of values: 2-tuple (ymin,
+    -  ``y_range`` -- y range of values: 2-tuple (ymin,
        ymax) or 3-tuple (y,ymin,ymax)
 
-    -  ``grad_f`` - gradient of f as a Python function
+    -  ``grad_f`` -- gradient of f as a Python function
 
-    -  ``color`` - "automatic" - a rainbow of num_colors
+    -  ``color`` -- "automatic" - a rainbow of num_colors
        colors
 
-    -  ``num_colors`` - (default: 128) number of colors to
+    -  ``num_colors`` -- (default: 128) number of colors to
        use with default color
 
-    -  ``max_bend`` - (default: 0.5)
+    -  ``max_bend`` -- (default: 0.5)
 
-    -  ``max_depth`` - (default: 5)
+    -  ``max_depth`` -- (default: 5)
 
-    -  ``initial_depth`` - (default: 4)
+    -  ``initial_depth`` -- (default: 4)
 
-    -  ``**kwds`` - standard graphics parameters
-
+    -  ``**kwds`` -- standard graphics parameters
 
     EXAMPLES:
 
     We plot `\sin(xy)`::
 
         sage: from sage.plot.plot3d.plot3d import plot3d_adaptive
-        sage: x,y=var('x,y'); plot3d_adaptive(sin(x*y), (x,-pi,pi), (y,-pi,pi), initial_depth=5)
+        sage: x, y = var('x,y')
+        sage: plot3d_adaptive(sin(x*y), (x, -pi, pi), (y, -pi, pi), initial_depth=5)
         Graphics3d Object
 
-    .. PLOT::
+    .. ONLY:: html
 
-        from sage.plot.plot3d.plot3d import plot3d_adaptive
-        x,y=var('x,y')
-        sphinx_plot(plot3d_adaptive(sin(x*y), (x,-pi,pi), (y,-pi,pi), initial_depth=5))
+        .. JUPYTER-EXECUTE::
+            :hide-code:
+
+            from sage.plot.plot3d.plot3d import plot3d_adaptive
+            x, y = var('x,y')
+            plot3d_adaptive(sin(x*y), (x, -pi, pi), (y, -pi, pi), initial_depth=5)
+
+    .. ONLY:: pdf
+
+        .. PLOT::
+
+            from sage.plot.plot3d.plot3d import plot3d_adaptive
+            x, y = var('x,y')
+            sphinx_plot(plot3d_adaptive(sin(x*y), (x,-pi,pi), (y,-pi,pi), initial_depth=5))
 
     """
     if initial_depth >= max_depth:
@@ -1256,84 +1551,145 @@ def spherical_plot3d(f, urange, vrange, **kwds):
 
     INPUT:
 
-    - ``f`` - a symbolic expression or function of two variables.
+    - ``f`` -- a symbolic expression or function of two variables
 
-    - ``urange`` - a 3-tuple (u, u_min, u_max), the domain of the azimuth variable.
+    - ``urange`` -- a 3-tuple (u, u_min, u_max), the domain of the azimuth variable
 
-    - ``vrange`` - a 3-tuple (v, v_min, v_max), the domain of the inclination variable.
+    - ``vrange`` -- a 3-tuple (v, v_min, v_max), the domain of the inclination variable
 
     EXAMPLES:
 
     A sphere of radius 2::
 
-        sage: x,y=var('x,y')
-        sage: spherical_plot3d(2,(x,0,2*pi),(y,0,pi))
+        sage: x,y = var('x,y')
+        sage: spherical_plot3d(2, (x, 0, 2*pi), (y, 0, pi))
         Graphics3d Object
 
-    .. PLOT::
+    .. ONLY:: html
 
-        x,y=var('x,y')
-        sphinx_plot(spherical_plot3d(x-x+2,(x,0,2*pi),(y,0,pi)))
+        .. JUPYTER-EXECUTE::
+            :hide-code:
+
+            x,y = var('x,y')
+            spherical_plot3d(2, (x, 0, 2*pi), (y, 0, pi))
+
+    .. ONLY:: pdf
+
+        .. PLOT::
+
+            x, y = var('x,y')
+            sphinx_plot(spherical_plot3d(x-x+2, (x, 0, 2*pi), (y, 0, pi)))
 
     The real and imaginary parts of a spherical harmonic with `l=2` and `m=1`::
 
         sage: phi, theta = var('phi, theta')
         sage: Y = spherical_harmonic(2, 1, theta, phi)
-        sage: rea = spherical_plot3d(abs(real(Y)), (phi,0,2*pi), (theta,0,pi), color='blue', opacity=0.6)
-        sage: ima = spherical_plot3d(abs(imag(Y)), (phi,0,2*pi), (theta,0,pi), color='red', opacity=0.6)
+        sage: rea = spherical_plot3d(abs(real(Y)), (phi, 0, 2*pi), (theta, 0, pi), color='blue', opacity=0.6)
+        sage: ima = spherical_plot3d(abs(imag(Y)), (phi, 0, 2*pi), (theta, 0, pi), color='red', opacity=0.6)
         sage: (rea + ima).show(aspect_ratio=1)  # long time (4s on sage.math, 2011)
 
-    .. PLOT::
+    .. ONLY:: html
 
-        phi, theta = var('phi, theta')
-        Y = spherical_harmonic(2, 1, theta, phi)
-        rea = spherical_plot3d(abs(real(Y)), (phi,0,2*pi), (theta,0,pi), color='blue', opacity=0.6)
-        ima = spherical_plot3d(abs(imag(Y)), (phi,0,2*pi), (theta,0,pi), color='red', opacity=0.6)
-        sphinx_plot(rea+ima)
+        .. JUPYTER-EXECUTE::
+            :hide-code:
+
+            phi, theta = var('phi, theta')
+            Y = spherical_harmonic(2, 1, theta, phi)
+            rea = spherical_plot3d(abs(real(Y)), (phi, 0, 2*pi), (theta, 0, pi), color='blue', opacity=0.6)
+            ima = spherical_plot3d(abs(imag(Y)), (phi, 0, 2*pi), (theta, 0, pi), color='red', opacity=0.6)
+            (rea + ima).show(aspect_ratio=1)  # long time (4s on sage.math, 2011)
+
+    .. ONLY:: pdf
+
+        .. PLOT::
+
+            phi, theta = var('phi, theta')
+            Y = spherical_harmonic(2, 1, theta, phi)
+            rea = spherical_plot3d(abs(real(Y)), (phi, 0, 2*pi), (theta, 0, pi), color='blue', opacity=0.6)
+            ima = spherical_plot3d(abs(imag(Y)), (phi, 0, 2*pi), (theta, 0, pi), color='red', opacity=0.6)
+            sphinx_plot(rea + ima)
 
     A drop of water::
 
-        sage: x,y=var('x,y')
-        sage: spherical_plot3d(e^-y,(x,0,2*pi),(y,0,pi),opacity=0.5).show(frame=False)
+        sage: x,y = var('x,y')
+        sage: spherical_plot3d(e^-y, (x, 0, 2*pi), (y, 0, pi), opacity=0.5).show(frame=False)
 
-    .. PLOT::
+    .. ONLY:: html
 
-        x,y=var('x,y')
-        sphinx_plot(spherical_plot3d(e**-y,(x,0,2*pi),(y,0,pi),opacity=0.5))
+        .. JUPYTER-EXECUTE::
+            :hide-code:
+
+            x,y = var('x,y')
+            spherical_plot3d(e^-y, (x, 0, 2*pi), (y, 0, pi), opacity=0.5).show(frame=False)
+
+    .. ONLY:: pdf
+
+        .. PLOT::
+
+            x, y = var('x,y')
+            sphinx_plot(spherical_plot3d(e**-y, (x, 0, 2*pi), (y, 0, pi), opacity=0.5))
 
     An object similar to a heart::
 
-        sage: x,y=var('x,y')
-        sage: spherical_plot3d((2+cos(2*x))*(y+1),(x,0,2*pi),(y,0,pi),rgbcolor=(1,.1,.1))
+        sage: x,y = var('x,y')
+        sage: spherical_plot3d((2 + cos(2*x))*(y + 1), (x, 0, 2*pi), (y, 0, pi), rgbcolor=(1, .1, .1))
         Graphics3d Object
 
-    .. PLOT::
+    .. ONLY:: html
 
-        x,y=var('x,y')
-        sphinx_plot(spherical_plot3d((2+cos(2*x))*(y+1),(x,0,2*pi),(y,0,pi),rgbcolor=(1,.1,.1)))
+        .. JUPYTER-EXECUTE::
+            :hide-code:
 
-    Some random figures:
+            x,y = var('x,y')
+            spherical_plot3d((2 + cos(2*x))*(y + 1), (x, 0, 2*pi), (y, 0, pi), rgbcolor=(1, .1, .1))
+
+    .. ONLY:: pdf
+
+        .. PLOT::
+
+            x, y = var('x,y')
+            sphinx_plot(spherical_plot3d((2 + cos(2*x))*(y + 1), (x, 0, 2*pi), (y, 0, pi), rgbcolor=(1, .1, .1)))
+
+    Some random figures::
+
+        sage: x,y = var('x,y')
+        sage: spherical_plot3d(1 + sin(5*x)/5, (x, 0, 2*pi), (y, 0, pi), rgbcolor=(1, 0.5, 0), plot_points=(80, 80), opacity=0.7)
+        Graphics3d Object
+
+    .. ONLY:: html
+
+        .. JUPYTER-EXECUTE::
+            :hide-code:
+
+            x,y = var('x,y')
+            spherical_plot3d(1 + sin(5*x)/5, (x, 0, 2*pi), (y, 0, pi), rgbcolor=(1, 0.5, 0), plot_points=(80, 80), opacity=0.7)
+
+    .. ONLY:: pdf
+
+        .. PLOT::
+
+            x,y = var('x,y')
+            sphinx_plot(spherical_plot3d(1 + sin(5*x)/5, (x, 0, 2*pi), (y, 0, pi), rgbcolor=(1, 0.5, 0), plot_points=(80, 80), opacity=0.7))
 
     ::
 
-        sage: x,y=var('x,y')
-        sage: spherical_plot3d(1+sin(5*x)/5,(x,0,2*pi),(y,0,pi),rgbcolor=(1,0.5,0),plot_points=(80,80),opacity=0.7)
-        Graphics3d Object
+        sage: x, y = var('x,y')
+        sage: spherical_plot3d(1 + 2*cos(2*y), (x, 0, 3*pi/2), (y, 0, pi)).show(aspect_ratio=(1, 1, 1))
 
-    .. PLOT::
+    .. ONLY:: html
 
-        x,y=var('x,y')
-        sphinx_plot(spherical_plot3d(1+sin(5*x)/5,(x,0,2*pi),(y,0,pi),rgbcolor=(1,0.5,0),plot_points=(80,80),opacity=0.7))
+        .. JUPYTER-EXECUTE::
+            :hide-code:
 
-    ::
+            x, y = var('x,y')
+            spherical_plot3d(1 + 2*cos(2*y), (x, 0, 3*pi/2), (y, 0, pi)).show(aspect_ratio=(1, 1, 1))
 
-        sage: x,y=var('x,y')
-        sage: spherical_plot3d(1+2*cos(2*y),(x,0,3*pi/2),(y,0,pi)).show(aspect_ratio=(1,1,1))
+    .. ONLY:: pdf
 
-    .. PLOT::
+        .. PLOT::
 
-        x,y=var('x,y')
-        sphinx_plot(spherical_plot3d(1+2*cos(2*y),(x,0,3*pi/2),(y,0,pi)))
+            x, y = var('x,y')
+            sphinx_plot(spherical_plot3d(1 + 2*cos(2*y), (x, 0, 3*pi/2), (y, 0, pi)))
 
     """
     return plot3d(f, urange, vrange, transformation=Spherical('radius', ['azimuth', 'inclination']), **kwds)
@@ -1343,18 +1699,30 @@ def cylindrical_plot3d(f, urange, vrange, **kwds):
     Plots a function in cylindrical coordinates.  This function is
     equivalent to::
 
-        sage: r,u,v=var('r,u,v')
-        sage: f=u*v; urange=(u,0,pi); vrange=(v,0,pi)
-        sage: T = (r*cos(u), r*sin(u), v, [u,v])
+        sage: r, u, v = var('r,u,v')
+        sage: f = u*v; urange = (u, 0, pi); vrange = (v, 0, pi)
+        sage: T = (r*cos(u), r*sin(u), v, [u, v])
         sage: plot3d(f, urange, vrange, transformation=T)
         Graphics3d Object
 
-    .. PLOT::
+    .. ONLY:: html
 
-        r,u,v=var('r,u,v')
-        f=u*v; urange=(u,0,pi); vrange=(v,0,pi)
-        T = (r*cos(u), r*sin(u), v, [u,v])
-        sphinx_plot(plot3d(f, urange, vrange, transformation=T))
+        .. JUPYTER-EXECUTE::
+            :hide-code:
+
+            r, u, v = var('r,u,v')
+            f = u*v; urange = (u, 0, pi); vrange = (v, 0, pi)
+            T = (r*cos(u), r*sin(u), v, [u, v])
+            plot3d(f, urange, vrange, transformation=T)
+
+    .. ONLY:: pdf
+
+        .. PLOT::
+
+            r, u, v = var('r,u,v')
+            f = u*v; urange = (u, 0, pi); vrange = (v, 0, pi)
+            T = (r*cos(u), r*sin(u), v, [u,v])
+            sphinx_plot(plot3d(f, urange, vrange, transformation=T))
 
     or equivalently::
 
@@ -1363,53 +1731,82 @@ def cylindrical_plot3d(f, urange, vrange, **kwds):
         sage: plot3d(f, urange, vrange, transformation=T)
         Graphics3d Object
 
-
     INPUT:
 
-    - ``f`` - a symbolic expression or function of two variables,
-      representing the radius from the `z`-axis.
+    - ``f`` -- a symbolic expression or function of two variables,
+      representing the radius from the `z`-axis
 
-    - ``urange`` - a 3-tuple (u, u_min, u_max), the domain of the
-      azimuth variable.
+    - ``urange`` -- a 3-tuple (u, u_min, u_max), the domain of the
+      azimuth variable
 
-    - ``vrange`` - a 3-tuple (v, v_min, v_max), the domain of the
-      elevation (`z`) variable.
+    - ``vrange`` -- a 3-tuple (v, v_min, v_max), the domain of the
+      elevation (`z`) variable
 
     EXAMPLES:
 
     A portion of a cylinder of radius 2::
 
-        sage: theta,z=var('theta,z')
-        sage: cylindrical_plot3d(2,(theta,0,3*pi/2),(z,-2,2))
+        sage: theta, z = var('theta,z')
+        sage: cylindrical_plot3d(2, (theta, 0, 3*pi/2), (z, -2, 2))
         Graphics3d Object
 
-    .. PLOT::
+    .. ONLY:: html
 
-        theta,z=var('theta,z')
-        sphinx_plot(cylindrical_plot3d(z-z+2,(theta,0,3*pi/2),(z,-2,2)))
+        .. JUPYTER-EXECUTE::
+            :hide-code:
+
+            theta, z = var('theta,z')
+            cylindrical_plot3d(2, (theta, 0, 3*pi/2), (z, -2, 2))
+
+    .. ONLY:: pdf
+
+         .. PLOT::
+
+theta, z = var('theta,z')
+            sphinx_plot(cylindrical_plot3d(2, (theta, 0, 3*pi/2), (z, -2, 2)))
 
     Some random figures:
 
     ::
 
-        sage: cylindrical_plot3d(cosh(z),(theta,0,2*pi),(z,-2,2))
+        sage: cylindrical_plot3d(cosh(z), (theta, 0, 2*pi), (z, -2, 2))
         Graphics3d Object
 
-    .. PLOT::
+    .. ONLY:: html
 
-        theta,z=var('theta,z')
-        sphinx_plot(cylindrical_plot3d(cosh(z),(theta,0,2*pi),(z,-2,2)))
+        .. JUPYTER-EXECUTE::
+            :hide-code:
+
+            theta, z = var('theta,z')
+            cylindrical_plot3d(cosh(z), (theta, 0, 2*pi), (z, -2, 2))
+
+    .. ONLY:: pdf
+
+         .. PLOT::
+
+            theta, z = var('theta,z')
+            sphinx_plot(cylindrical_plot3d(cosh(z), (theta, 0, 2*pi), (z, -2, 2)))
 
     ::
 
-        sage: cylindrical_plot3d(e^(-z^2)*(cos(4*theta)+2)+1,(theta,0,2*pi),(z,-2,2),plot_points=[80,80]).show(aspect_ratio=(1,1,1))
+        sage: cylindrical_plot3d(e^(-z^2)*(cos(4*theta) + 2) + 1, (theta, 0, 2*pi), (z, -2, 2), plot_points=[80, 80]).show(aspect_ratio=(1, 1, 1))
 
-    .. PLOT::
+    .. ONLY:: html
 
-        theta,z=var('theta,z')
-        P = cylindrical_plot3d(e**(-z**2)*(cos(4*theta)+2)+1,(theta,0,2*pi),(z,-2,2),plot_points=[80,80])
-        P.aspect_ratio([1,1,1])
-        sphinx_plot(P)
+        .. JUPYTER-EXECUTE::
+            :hide-code:
+
+            theta, z = var('theta,z')
+            cylindrical_plot3d(e^(-z^2)*(cos(4*theta) + 2) + 1, (theta, 0, 2*pi), (z, -2, 2), plot_points=[80, 80]).show(aspect_ratio=(1, 1, 1))
+
+    .. ONLY:: pdf
+
+         .. PLOT::
+
+            theta, z = var('theta,z')
+            P = cylindrical_plot3d(e**(-z**2)*(cos(4*theta) + 2) + 1, (theta, 0, 2*pi), (z, -2, 2), plot_points=[80, 80])
+            P.aspect_ratio([1, 1, 1])
+            sphinx_plot(P)
 
     """
     return plot3d(f, urange, vrange, transformation=Cylindrical('radius', ['azimuth', 'height']), **kwds)
@@ -1421,9 +1818,9 @@ def axes(scale=1, radius=None, **kwds):
 
     INPUT:
 
-    - ``scale`` - (default: 1) The length of the axes (all three
+    - ``scale`` -- (default: 1) The length of the axes (all three
       will be the same).
-    - ``radius`` - (default: .01) The radius of the axes as arrows.
+    - ``radius`` -- (default: .01) The radius of the axes as arrows.
 
     EXAMPLES::
 
@@ -1431,23 +1828,42 @@ def axes(scale=1, radius=None, **kwds):
         sage: S = axes(6, color='black'); S
         Graphics3d Object
 
-    .. PLOT::
+    .. ONLY:: html
 
-        from sage.plot.plot3d.plot3d import axes
-        S = axes(6, color='black')
-        sphinx_plot(S)
+        .. JUPYTER-EXECUTE::
+            :hide-code:
+
+            from sage.plot.plot3d.plot3d import axes
+            S = axes(6, color='black'); S
+
+    .. ONLY:: pdf
+
+         .. PLOT::
+
+            from sage.plot.plot3d.plot3d import axes
+            S = axes(6, color='black')
+            sphinx_plot(S)
 
     ::
 
         sage: T = axes(2, .5); T
         Graphics3d Object
 
-    .. PLOT::
+    .. ONLY:: html
 
-        from sage.plot.plot3d.plot3d import axes
-        T = axes(2, .5)
-        sphinx_plot(T)
+        .. JUPYTER-EXECUTE::
+            :hide-code:
 
+            from sage.plot.plot3d.plot3d import axes
+            T = axes(2, .5); T
+
+    .. ONLY:: pdf
+
+         .. PLOT::
+
+            from sage.plot.plot3d.plot3d import axes
+            T = axes(2, .5)
+            sphinx_plot(T)
     """
     if radius is None:
         radius = scale/100.0

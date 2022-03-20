@@ -369,7 +369,7 @@ dl.citation p {
     text-align: left;
 }
 
-/* -- jupyter-sphinx: Thebelab activate button -- */
+/* -- jupyter-sphinx ------------------------------------------------------ */
 
 #thebelab-activate-button {
     position: fixed;

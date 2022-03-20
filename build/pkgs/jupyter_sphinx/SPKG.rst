@@ -1,10 +1,10 @@
-jupyter_sphinx: Jupyter Sphinx Extensions
-=========================================
+jupyter_sphinx: Jupyter Sphinx Extension
+========================================
 
 Description
 -----------
 
-Jupyter Sphinx Extensions
+Jupyter Sphinx Extension
 
 License
 -------

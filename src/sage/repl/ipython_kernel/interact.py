@@ -16,7 +16,7 @@ EXAMPLES::
 
     sage: from sage.repl.ipython_kernel.interact import interact
     sage: @interact
-    ....: def f(x=(0,10)):
+    ....: def f(x=(0, 10)):
     ....:     pass
     Interactive function <function f at ...> with 1 widget
       x: IntSlider(value=5, description='x', max=10)
@@ -25,11 +25,12 @@ EXAMPLES::
 
 .. ONLY:: html
 
-    .. JUPYTER-EXECUTE:: :hide-code:
+    .. JUPYTER-EXECUTE::
+        :hide-code:
 
         from sage.repl.ipython_kernel.interact import interact
         @interact
-        def f(x=(0,10)):
+        def f(x=(0, 10)):
             pass
 
 """
@@ -74,7 +75,8 @@ class sage_interactive(interactive):
 
     .. ONLY:: html
 
-        .. JUPYTER-EXECUTE:: :hide-code:
+        .. JUPYTER-EXECUTE::
+            :hide-code:
 
             from sage.repl.ipython_kernel.interact import sage_interactive
             def myfunc(x=10, y="hello", z=None): pass

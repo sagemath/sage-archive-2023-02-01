@@ -7935,7 +7935,7 @@ cdef class Matroid(SageObject):
         Both the independent set complex of the matroid and the usual
         Bergman complex are subcomplexes of the augmented Bergman complex.
         The vertices of the complex are labeled by ``L`` when they belong
-        to the independent set complex and ``R`` when the belong to the
+        to the independent set complex and ``R`` when they belong to the
         (cone of) the Bergman complex. The cone point is ``'R[]'``::
 
             sage: sorted(A.faces()[0])
@@ -7979,10 +7979,10 @@ cdef class Matroid(SageObject):
         # constructed yet.
         DM = IM.disjoint_union(SimplicialComplex())
 
-        ## simplicies are \{y_i\}_{i\in I}\cup\{x_{F_1},\ldots,x_{F_\ell}\},
+        ## simplices are \{y_i\}_{i\in I}\cup\{x_{F_1},\ldots,x_{F_\ell}\},
         ## by [BMHPW20a]_ thm 4 it is pure of dimension r(M)-1
 
-        for c in LM.chains(exclude = LM.maximal_elements()):
+        for c in LM.chains(exclude=LM.maximal_elements()):
             if c: # the facets of IM are already present
                 # get the cardinality of intersection of facet with IM
                 r = self.rank() - len(c) 

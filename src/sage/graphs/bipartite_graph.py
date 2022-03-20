@@ -2279,12 +2279,12 @@ class BipartiteGraph(Graph):
         """
         
         if certificate:
-            C, cert = GenericGraph.canonical_label(self, partition, certificate, edge_labels, algorithm, return_graph)
+            C, cert = GenericGraph.canonical_label(self, partition=partition, certificate=certificate, edge_labels=edge_labels, algorithm=algorithm, return_graph=return_graph)
         
         else:
             from sage.groups.perm_gps.partn_ref.refinement_graphs import search_tree
             from sage.graphs.graph import Graph
-            from sage.graphs.digraph import DiGraph
+
             dig = (self._directed or self.has_loops())
             from itertools import chain
 
@@ -2294,8 +2294,7 @@ class BipartiteGraph(Graph):
                 G, partition, relabeling = GenericGraph.graph_isom_equivalent_non_edge_labeled_graph(self, partition, return_relabeling=True)
                 G_vertices = list(chain(*partition))
                 G_to = {u: i for i,u in enumerate(G_vertices)}
-                DoDG = DiGraph if self._directed else Graph
-                H = DoDG(len(G_vertices), loops=G.allows_loops())
+                H = Graph(len(G_vertices))
                 HB = H._backend
                 for u,v in G.edge_iterator(labels=False):
                     HB.add_edge(G_to[u], G_to[v], None, G._directed)
@@ -2308,8 +2307,7 @@ class BipartiteGraph(Graph):
             else:
                 G_vertices = list(chain(*partition))
                 G_to = {u: i for i,u in enumerate(G_vertices)}
-                DoDG = DiGraph if self._directed else Graph
-                H = DoDG(len(G_vertices), loops=self.allows_loops())
+                H = Graph(len(G_vertices))
                 HB = H._backend
                 for u, v in self.edge_iterator(labels=False):
                     HB.add_edge(G_to[u], G_to[v], None, self._directed)
@@ -2321,6 +2319,6 @@ class BipartiteGraph(Graph):
             C = GenericGraph.canonical_label(self, partition, certificate, edge_labels, algorithm, return_graph)
             cert = c_new
 
-        C.left = { cert[v] for v in self.left }
-        C.right = { cert[v] for v in self.right }
+        C.left = {cert[v] for v in self.left}
+        C.right = {cert[v] for v in self.right}
         return C

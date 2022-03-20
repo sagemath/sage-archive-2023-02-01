@@ -27,6 +27,7 @@ EXAMPLES::
 
     .. JUPYTER-EXECUTE::
         :hide-code:
+        :hide-output:
 
         from sage.repl.ipython_kernel.interact import interact
         @interact
@@ -77,6 +78,7 @@ class sage_interactive(interactive):
 
         .. JUPYTER-EXECUTE::
             :hide-code:
+            :hide-output:
 
             from sage.repl.ipython_kernel.interact import sage_interactive
             def myfunc(x=10, y="hello", z=None): pass

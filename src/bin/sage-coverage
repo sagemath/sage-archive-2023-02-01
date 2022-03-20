@@ -282,7 +282,7 @@ def go(filename):
         return
 
     # Filter pytest files which are not supposed to have doctests
-    if '_test.py' in filename:
+    if filename.endswith('_test.py'):
         return
 
     with open(filename, 'r') as f:

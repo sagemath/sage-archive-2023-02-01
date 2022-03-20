@@ -153,6 +153,7 @@ class BackendBase(SageObject):
             sage: backend = BackendBase()
             sage: backend.default_preferences()
             Display preferences:
+            * align_latex is not specified
             * graphics is not specified
             * supplemental_plot is not specified
             * text is not specified
@@ -454,23 +455,23 @@ class BackendBase(SageObject):
             sage: out
             OutputHtml container
             sage: out.html
-            buffer containing 28 bytes
+            buffer containing 42 bytes
             sage: out.html.get_str()
-            '<html>\\[\\frac{1}{2}\\]</html>'
+            '<html>\\(\\displaystyle \\frac{1}{2}\\)</html>'
 
             sage: out = backend.latex_formatter([1/2, x, 3/4, ZZ], concatenate=False)
             sage: out.html.get_str()
-            '<html>\\[\\newcommand{\\Bold}[1]{\\mathbf{#1}}\\left[\\frac{1}{2}, x, \\frac{3}{4}, \\Bold{Z}\\right]\\]</html>'
+            '<html>\\(\\displaystyle \\newcommand{\\Bold}[1]{\\mathbf{#1}}\\left[\\frac{1}{2}, x, \\frac{3}{4}, \\Bold{Z}\\right]\\)</html>'
             sage: out = backend.latex_formatter([1/2, x, 3/4, ZZ], concatenate=True)
             sage: out.html.get_str()
-            '<html>\\[\\newcommand{\\Bold}[1]{\\mathbf{#1}}\\frac{1}{2} x \\frac{3}{4} \\Bold{Z}\\]</html>'
+            '<html>\\(\\displaystyle \\newcommand{\\Bold}[1]{\\mathbf{#1}}\\frac{1}{2} x \\frac{3}{4} \\Bold{Z}\\)</html>'
 
         TESTS::
 
             sage: backend.latex_formatter([], concatenate=False).html.get_str()
-            '<html>\\[\\left[\\right]\\]</html>'
+            '<html>\\(\\displaystyle \\left[\\right]\\)</html>'
             sage: backend.latex_formatter([], concatenate=True).html.get_str()
-            '<html>\\[\\]</html>'
+            '<html>\\(\\displaystyle \\)</html>'
         """
         concatenate = kwds.get('concatenate', False)
         from sage.misc.html import html

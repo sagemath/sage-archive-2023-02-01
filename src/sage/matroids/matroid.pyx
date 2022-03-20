@@ -7964,8 +7964,8 @@ cdef class Matroid(SageObject):
 
         REFERENCES:
 
-        - [BMHPW20a]_
-        - [BMHPW20b]_
+        - [BHMPW20a]_
+        - [BHMPW20b]_
         """
         # Construct independent set complex from bases
         from sage.topology.simplicial_complex import SimplicialComplex

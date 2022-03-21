@@ -58,6 +58,7 @@ SAGE_SPKG_CONFIGURE_BASE([gcc], [
         AC_REQUIRE([AC_PROG_CXX])
         AC_REQUIRE([AC_PROG_OBJC])
         AC_REQUIRE([AC_PROG_OBJCXX])
+        AC_REQUIRE([AC_CANONICAL_HOST])
 
     AC_MSG_CHECKING([whether gcc is already installed in SAGE_LOCAL])
     if test -f "$SAGE_LOCAL/bin/gcc"; then
@@ -109,10 +110,15 @@ SAGE_SPKG_CONFIGURE_BASE([gcc], [
     # Figuring out if we are using clang instead of gcc.
     AC_LANG_PUSH(C)
     AX_COMPILER_VENDOR()
-    IS_REALLY_GCC=no
-    if test "x$ax_cv_c_compiler_vendor" = xgnu ; then
+    AS_IF([test "x$ax_cv_c_compiler_vendor" = xgnu], [
         IS_REALLY_GCC=yes
-    fi
+        AS_CASE([$host],
+        [*-apple-darwin*], [
+             AC_MSG_ERROR([Cannot build Sage on macOS with GNU's gcc.
+               Make use gcc and g++ are actually Clang compilers.])])
+    ], [
+        IS_REALLY_GCC=no
+    ])
     AC_LANG_POP()
 
     # Save the value of CXX without special flags to enable C++11 support

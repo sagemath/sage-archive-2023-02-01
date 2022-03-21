@@ -205,11 +205,8 @@ from sage.parallel.decorate import parallel
 from sage.parallel.parallelism import Parallelism
 
 if TYPE_CHECKING:
-    from sage.tensor.modules.free_module_basis import FreeModuleBasis
-
-
-if TYPE_CHECKING:
     from sage.tensor.modules.finite_rank_free_module import FiniteRankFreeModule
+    from sage.tensor.modules.free_module_basis import FreeModuleBasis
 
 
 class FreeModuleTensor(ModuleElementWithMutability):

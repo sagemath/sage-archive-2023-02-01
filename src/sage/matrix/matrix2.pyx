@@ -1639,7 +1639,7 @@ cdef class Matrix(Matrix1):
         Q = (At * A) * (B * Bt)
         return Bt * ~Q * At
 
-    def rook_vector(self, algorithm="ButeraPernici", complement=False, use_complement=None):
+    def rook_vector(self, algorithm=None, complement=False, use_complement=None):
         r"""
         Return the rook vector of this matrix.
 
@@ -1793,6 +1793,9 @@ cdef class Matrix(Matrix1):
         cdef Matrix B
         zero = self.base_ring().zero()
         one  = self.base_ring().one()
+
+        if algorithm is None:
+            algorithm = "ButeraPernici"
 
         # we first run through the coefficients of the matrix to compute the
         # number of non-zero coefficients and to see whether or not it contains

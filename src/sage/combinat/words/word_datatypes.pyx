@@ -711,11 +711,10 @@ cdef class WordDatatype_str(WordDatatype):
             sep = sep._data
         else:
             raise ValueError("the separator must be a string")
-
         if maxsplit is None:
-            return [self._parent(z) for z in self._data.split(sep)]
-        else:
-            return [self._parent(z) for z in self._data.split(sep, maxsplit)]
+            maxsplit = -1
+        return [self._parent(z) for z in self._data.split(sep=sep,
+                                                          maxsplit=maxsplit)]
 
     def partition(self, sep):
         r"""

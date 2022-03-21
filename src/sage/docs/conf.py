@@ -792,7 +792,7 @@ def find_sage_dangling_links(app, env, node, contnode):
         return res
 
     if node.get('refdomain') != 'py': # not a python file
-       return None
+        return None
 
     try:
         module = node['py:module']

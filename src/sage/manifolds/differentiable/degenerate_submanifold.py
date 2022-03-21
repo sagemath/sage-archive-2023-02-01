@@ -156,18 +156,22 @@ REFERENCES:
 #                  https://www.gnu.org/licenses/
 # *****************************************************************************
 
+from __future__ import annotations
+from typing import TYPE_CHECKING
+
 from sage.manifolds.differentiable.pseudo_riemannian import \
     PseudoRiemannianManifold
 from sage.manifolds.differentiable.degenerate import (DegenerateManifold,
                                                       TangentTensor)
 from sage.manifolds.differentiable.differentiable_submanifold import \
     DifferentiableSubmanifold
-from sage.manifolds.differentiable.metric import DegenerateMetric
 from sage.manifolds.differentiable.vectorfield_module import VectorFieldModule
 from sage.rings.infinity import infinity
 from sage.matrix.constructor import matrix
 from sage.symbolic.expression import Expression
 
+if TYPE_CHECKING:
+    from sage.manifolds.differentiable.metric import DegenerateMetric
 
 class DegenerateSubmanifold(DegenerateManifold, DifferentiableSubmanifold):
     r"""

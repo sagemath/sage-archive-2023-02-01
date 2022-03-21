@@ -2959,7 +2959,7 @@ class RuleStar(Rule):
                 df.append([])
             return DecreasingHeckeFactorization(df)
 
-class InsertionRules(object):
+class InsertionRules():
     r"""
     Catalog of rules for RSK-like insertion algorithms.
     """

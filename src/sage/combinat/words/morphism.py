@@ -147,7 +147,7 @@ def get_cycles(f, domain):
     return cycles
 
 
-class PeriodicPointIterator(object):
+class PeriodicPointIterator():
     r"""
     (Lazy) constructor of the periodic points of a word morphism.
 

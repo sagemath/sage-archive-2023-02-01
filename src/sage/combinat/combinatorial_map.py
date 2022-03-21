@@ -6,7 +6,7 @@ Python method by marking it as implementing a *combinatorial map*,
 that is a map between two :class:`enumerated sets <EnumeratedSets>`::
 
     sage: from sage.combinat.combinatorial_map import combinatorial_map
-    sage: class MyPermutation(object):
+    sage: class MyPermutation():
     ....:
     ....:     @combinatorial_map()
     ....:     def reverse(self):
@@ -77,7 +77,7 @@ def combinatorial_map_trivial(f=None, order=None, name=None):
     EXAMPLES::
 
         sage: from sage.combinat.combinatorial_map import combinatorial_map_trivial as combinatorial_map
-        sage: class MyPermutation(object):
+        sage: class MyPermutation():
         ....:
         ....:     @combinatorial_map
         ....:     def reverse(self):
@@ -130,7 +130,7 @@ def combinatorial_map_wrapper(f=None, order=None, name=None):
     the :obj:`combinatorial_map` decorator with its various arguments::
 
         sage: from sage.combinat.combinatorial_map import combinatorial_map_wrapper as combinatorial_map
-        sage: class MyPermutation(object):
+        sage: class MyPermutation():
         ....:
         ....:     @combinatorial_map()
         ....:     def reverse(self):
@@ -200,7 +200,7 @@ def combinatorial_map_wrapper(f=None, order=None, name=None):
 combinatorial_map = combinatorial_map_trivial
 #combinatorial_map = combinatorial_map_wrapper
 
-class CombinatorialMap(object):
+class CombinatorialMap():
     r"""
     This is a wrapper class for methods that are *combinatorial maps*.
 

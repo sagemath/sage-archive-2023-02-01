@@ -22,8 +22,12 @@ AUTHORS:
 #******************************************************************************
 from __future__ import annotations
 
-from sage.misc.latex import LatexExpr
+from typing import TYPE_CHECKING
+
 from sage.structure.sage_object import SageObject
+
+if TYPE_CHECKING:
+    from sage.misc.latex import LatexExpr
 
 
 def is_atomic(expr, sep=['+', '-']):

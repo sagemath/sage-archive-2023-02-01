@@ -529,6 +529,96 @@ class Standalone(SageObject):
         """
         return self._content
 
+    def add_document_class_option(self, option):
+        r"""
+        Add a document class option
+
+        INPUT:
+
+        - ``option`` -- string
+
+        EXAMPLES::
+
+            sage: from sage.misc.latex_standalone import Standalone
+            sage: t = Standalone('Hello World')
+            sage: t.add_document_class_option('beamer')
+            sage: t
+            \documentclass[beamer]{standalone}
+            \begin{document}
+            Hello World
+            \end{document}
+        """
+        self._document_class_options.append(option)
+
+    def add_standalone_config(self, config):
+        r"""
+        Add a standalone config
+
+        INPUT:
+
+        - ``config`` -- string
+
+        EXAMPLES::
+
+            sage: from sage.misc.latex_standalone import Standalone
+            sage: t = Standalone('Hello World')
+            sage: t.add_standalone_config("border=4mm")
+            sage: t
+            \documentclass{standalone}
+            \standaloneconfig{border=4mm}
+            \begin{document}
+            Hello World
+            \end{document}
+
+        """
+        self._standalone_config.append(config)
+
+    def add_usepackage(self, package):
+        r"""
+        Add a ``usepackage`` line
+
+        INPUT:
+
+        - ``package`` -- string, name of package
+
+        EXAMPLES::
+
+            sage: from sage.misc.latex_standalone import Standalone
+            sage: t = Standalone('Hello World')
+            sage: t.add_usepackage('amsmath')
+            sage: t
+            \documentclass{standalone}
+            \usepackage{amsmath}
+            \begin{document}
+            Hello World
+            \end{document}
+
+        """
+        self._usepackage.append(package)
+
+    def add_macro(self, macro):
+        r"""
+        Add a macro
+
+        INPUT:
+
+        - ``macro`` -- string, newcommand line
+
+        EXAMPLES::
+
+            sage: from sage.misc.latex_standalone import Standalone
+            sage: t = Standalone('Hello World')
+            sage: t.add_macro(r'\newcommand{\ZZ}{\mathbb{Z}}')
+            sage: t
+            \documentclass{standalone}
+            \newcommand{\ZZ}{\mathbb{Z}}
+            \begin{document}
+            Hello World
+            \end{document}
+
+        """
+        self._macros.append(macro)
+
     def pdf(self, filename=None, view=True, program=None):
         r"""
         Compiles the latex code with pdflatex and create a pdf file.
@@ -1005,6 +1095,32 @@ class TikzPicture(Standalone):
         for library in self._usetikzlibrary:
             lines.append(r"\usetikzlibrary{{{}}}".format(library))
         return lines
+
+    def add_usetikzlibrary(self, library):
+        r"""
+        Add a ``usetikzlibrary`` line
+
+        INPUT:
+
+        - ``library`` -- string, name of library
+
+        EXAMPLES::
+
+            sage: from sage.misc.latex_standalone import TikzPicture
+            sage: s = "\\begin{tikzpicture}\n\\draw (0,0) -- (1,1);\n\\end{tikzpicture}"
+            sage: t = TikzPicture(s)
+            sage: t.add_usetikzlibrary('arrows')
+            sage: t
+            \documentclass[tikz]{standalone}
+            \usetikzlibrary{arrows}
+            \begin{document}
+            \begin{tikzpicture}
+            \draw (0,0) -- (1,1);
+            \end{tikzpicture}
+            \end{document}
+
+        """
+        self._usetikzlibrary.append(library)
 
     @classmethod
     def from_dot_string(cls, dotdata, prog='dot'):

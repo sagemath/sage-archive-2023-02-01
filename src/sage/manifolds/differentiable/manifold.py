@@ -446,7 +446,6 @@ from typing import TYPE_CHECKING, Optional, Union
 from sage.categories.homset import Hom
 from sage.categories.manifolds import Manifolds
 from sage.manifolds.differentiable.mixed_form_algebra import MixedFormAlgebra
-from sage.manifolds.differentiable.vectorframe import VectorFrame
 from sage.manifolds.manifold import TopologicalManifold
 from sage.rings.cc import CC
 from sage.rings.infinity import infinity, minus_infinity
@@ -460,6 +459,7 @@ if TYPE_CHECKING:
         VectorFieldFreeModule,
         VectorFieldModule,
     )
+    from sage.manifolds.differentiable.vectorframe import VectorFrame
 
 ###############################################################################
 

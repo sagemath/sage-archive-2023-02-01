@@ -13,6 +13,7 @@ Degenerate manifolds
 from sage.rings.infinity import infinity
 from sage.manifolds.structure import DegenerateStructure
 from sage.manifolds.differentiable.manifold import DifferentiableManifold
+from sage.manifolds.differentiable.metric import DegenerateMetric 
 
 ###############################################################################
 
@@ -143,7 +144,7 @@ class DegenerateManifold(DifferentiableManifold):
             self._metric_latex_name = metric_latex_name
 
     def metric(self, name=None, signature=None, latex_name=None,
-               dest_map=None):
+               dest_map=None) -> DegenerateMetric:
         r"""
         Return the metric giving the null manifold structure to the
         manifold, or define a new metric tensor on the manifold.

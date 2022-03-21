@@ -746,7 +746,7 @@ class TensorWithIndices(SageObject):
         r"""
         Subtraction between tensors with indices.
 
-        The underlying tensor of the output is  the underlying tensor of
+        The underlying tensor of the output is the underlying tensor of
         ``self`` minus the underlying tensor of ``other`` whose entries have
         be permuted to respect Einstein summation usual conventions. The
         indices names of the output are those of self.

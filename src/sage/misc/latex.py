@@ -1166,7 +1166,6 @@ class Latex(LatexCall):
         if t is None:
             return _Latex_prefs._option["blackboard_bold"]
         from .latex_macros import sage_configurable_latex_macros
-        global sage_configurable_latex_macros
         old = _Latex_prefs._option["blackboard_bold"]
         _Latex_prefs._option["blackboard_bold"] = bool(t)
         if bool(old) != bool(t):

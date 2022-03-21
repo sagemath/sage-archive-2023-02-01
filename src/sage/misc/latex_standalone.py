@@ -931,7 +931,7 @@ class Standalone(SageObject):
 
         return temp_filename_svg
 
-    def tex(self, filename=None, content_only=False):
+    def tex(self, filename=None, content_only=False, include_header=None):
         r"""
         Writes the latex code to a file.
 
@@ -976,6 +976,14 @@ class Standalone(SageObject):
             filename = tmp_filename('tikz_','.tex')
         else:
             filename = os.path.abspath(filename)
+
+        if include_header is not None:
+            content_only = not include_header
+            from sage.misc.superseded import deprecation
+            deprecation(20343, "When merging this code from slabbe into "
+                    "SageMath the argument include_header=False was "
+                    "replaced by content_only=True. Please update your code "
+                    "before include_header option gets removed from SageMath.")
 
         if content_only:
             output = self.content()

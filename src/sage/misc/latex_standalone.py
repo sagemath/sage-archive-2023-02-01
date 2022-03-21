@@ -126,8 +126,9 @@ shows the picture itself::
     \end{tikzpicture}
     \end{document}
 
-The constructor of ``TikzPicture`` has many arguments allowing for example
-to add some more ``\usepackage`` lines::
+As it is the case for :class:`Standalone`, the constructor of
+``TikzPicture`` has many arguments allowing for example to add some more
+``\usepackage`` lines::
 
     sage: t = TikzPicture(s, usepackage=['amsmath'])
     sage: t
@@ -212,9 +213,9 @@ Adding a border in the options avoids cropping the vertices of a graph::
 The current latex representation of a transducer is a tikzpicture using
 the tikz library automata. The string can be used as input::
 
-    sage: s = latex(transducers.GrayCode())
-    sage: t = TikzPicture(s, usetikzlibrary=['automata'])
-    sage: _ = t.pdf(view=False)  # long time (2s) # optional latex
+    sage: s = latex(transducers.GrayCode())                # optional sage.combinat
+    sage: t = TikzPicture(s, usetikzlibrary=['automata'])  # optional sage.combinat
+    sage: _ = t.pdf(view=False)           # long time (2s) # optional sage.combinat latex
 
 AUTHORS:
 
@@ -294,12 +295,6 @@ class Standalone(SageObject):
             sage: from sage.misc.latex_standalone import Standalone
             sage: content = "\\section{Intro}\n\nTest\n"
             sage: t = Standalone(content)
-
-        ::
-
-            sage: from sage.misc.latex_standalone import TikzPicture
-            sage: s = "\\begin{tikzpicture}\n\\draw (0,0) -- (1,1);\n\\end{tikzpicture}"
-            sage: t = TikzPicture(s)
         """
         self._content = content
         self._document_class_options = [] if document_class_options is None else list(document_class_options)
@@ -320,13 +315,16 @@ class Standalone(SageObject):
         EXAMPLES::
 
             sage: latex.extra_preamble('')
-            sage: from sage.misc.latex_standalone import TikzPicture
+            sage: from sage.misc.latex_standalone import Standalone
             sage: s = "\\begin{tikzpicture}\n\\draw (0,0) -- (1,1);\n\\end{tikzpicture}"
-            sage: t = TikzPicture(s, standalone_config=["border=4mm"], usepackage=['tkz-graph'])
+            sage: A = ['tikz']
+            sage: B = ["border=4mm"]
+            sage: C = ['amsmath']
+            sage: t = Standalone(s, document_class_options=A, standalone_config=B, usepackage=C)
             sage: t._latex_file_header_lines()[:6]
             ['\\documentclass[tikz]{standalone}',
              '\\standaloneconfig{border=4mm}',
-             '\\usepackage{tkz-graph}']
+             '\\usepackage{amsmath}']
         """
         lines = []
         if self._document_class_options:
@@ -343,33 +341,62 @@ class Standalone(SageObject):
 
     def _repr_(self):
         r"""
-        Return the first few and last few lines.
+        Return a string representation of the Standalone file. 
+        
+        It contains the first few and last few lines of the content.
 
-        EXAMPLES::
+        NOTE::
 
-            sage: from sage.misc.latex_standalone import TikzPicture
-            sage: g = graphs.PetersenGraph()                   # optional sage.graphs
-            sage: s = latex(g)                                 # optional sage.graphs latex
-            sage: t = TikzPicture(s, usepackage=['tkz-graph']) # optional sage.graphs latex
-            sage: t                                            # optional sage.graphs latex
+            Use ``print(t)`` or ``str(t)`` to show or get the full content.
+
+        EXAMPLES:
+
+        When the content has 10 lines or less, it shows it all::
+
+            sage: from sage.misc.latex_standalone import Standalone
+            sage: s = "\\begin{tikzpicture}\n\\draw (0,0) -- (1,1);\n\\end{tikzpicture}"
+            sage: t = Standalone(s, document_class_options=['tikz'], standalone_config=["border=4mm"], usepackage=['amsmath'])
+            sage: t
             \documentclass[tikz]{standalone}
-            \usepackage{tkz-graph}
+            \standaloneconfig{border=4mm}
+            \usepackage{amsmath}
             \begin{document}
             \begin{tikzpicture}
-            \definecolor{cv0}{rgb}{0.0,0.0,0.0}
-            \definecolor{cfv0}{rgb}{1.0,1.0,1.0}
-            \definecolor{clv0}{rgb}{0.0,0.0,0.0}
-            \definecolor{cv1}{rgb}{0.0,0.0,0.0}
-            ---
-            65 lines not printed (3695 characters in total).
-            Use print to see the full content.
-            ---
-            \Edge[lw=0.1cm,style={color=cv6v8,},](v6)(v8)
-            \Edge[lw=0.1cm,style={color=cv6v9,},](v6)(v9)
-            \Edge[lw=0.1cm,style={color=cv7v9,},](v7)(v9)
-            %
+            \draw (0,0) -- (1,1);
             \end{tikzpicture}
             \end{document}
+
+        When the content more than 10 lines, it shows the head (first 5
+        lines) and tail (last 5 lines) of the content together with the
+        complete header of the standalone latex document. The number of
+        missing lines and the number of characters in the content is
+        written allowing to detect a change if needed::
+
+            sage: lines = []
+            sage: lines.append(r'\begin{tikzpicture}')
+            sage: lines.append(r'\draw[->] (-.5,0) -- (20,0);')
+            sage: lines.extend(r'\draw({i},-.5) -- ({i},.5);'.format(i=i) for i in range(20))
+            sage: lines.append(r'\end{tikzpicture}')
+            sage: t = Standalone('\n'.join(lines), document_class_options=['tikz'])
+            sage: t
+            \documentclass[tikz]{standalone}
+            \begin{document}
+            \begin{tikzpicture}
+            \draw[->] (-.5,0) -- (20,0);
+            \draw(0,-.5) -- (0,.5);
+            \draw(1,-.5) -- (1,.5);
+            \draw(2,-.5) -- (2,.5);
+            ---
+            13 lines not printed (566 characters in total).
+            Use print to see the full content.
+            ---
+            \draw(16,-.5) -- (16,.5);
+            \draw(17,-.5) -- (17,.5);
+            \draw(18,-.5) -- (18,.5);
+            \draw(19,-.5) -- (19,.5);
+            \end{tikzpicture}
+            \end{document}
+
         """
         lines = self._latex_file_header_lines()
         lines.append(r"\begin{document}")
@@ -452,13 +479,13 @@ class Standalone(SageObject):
 
     def __str__(self):
         r"""
-        Return the complete string.
+        Return the complete string of the standalone document class file
 
         EXAMPLES::
 
-            sage: from sage.misc.latex_standalone import TikzPicture
+            sage: from sage.misc.latex_standalone import Standalone
             sage: s = "\\begin{tikzpicture}\n\\draw (0,0) -- (1,1);\n\\end{tikzpicture}"
-            sage: t = TikzPicture(s)
+            sage: t = Standalone(s, document_class_options=['tikz'])
             sage: print(t)
             \RequirePackage{luatex85}
             \documentclass[tikz]{standalone}
@@ -481,9 +508,16 @@ class Standalone(SageObject):
 
     def content(self):
         r"""
-        Return the content.
+        Return the content of the standalone document class file
 
         EXAMPLES::
+
+            sage: from sage.misc.latex_standalone import Standalone
+            sage: t = Standalone('Hello World')
+            sage: t.content()
+            'Hello World'
+
+        ::
 
             sage: from sage.misc.latex_standalone import TikzPicture
             sage: s = "\\begin{tikzpicture}\n\\draw (0,0) -- (1,1);\n\\end{tikzpicture}"
@@ -518,33 +552,36 @@ class Standalone(SageObject):
 
         EXAMPLES::
 
-            sage: from sage.misc.latex_standalone import TikzPicture
-            sage: V = [[1,0,1],[1,0,0],[1,1,0],[0,0,-1],[0,1,0],[-1,0,0],[0,1,1],[0,0,1],[0,-1,0]]
-            sage: P = Polyhedron(vertices=V).polar()
-            sage: s = P.projection().tikz([674,108,-731],112)
-            sage: t = TikzPicture(s)
-            sage: _ = t.pdf()    # not tested
+            sage: from sage.misc.latex_standalone import Standalone
+            sage: t = Standalone('Hello World')
+            sage: _ = t.pdf(view=False)     # long time (1s)   # optional latex
 
-        ::
+        Same for instances of :class:`TikzPicture`::
+
+            sage: from sage.misc.latex_standalone import TikzPicture
+            sage: s = "\\begin{tikzpicture}\n\\draw (0,0) -- (1,1);\n\\end{tikzpicture}"
+            sage: t = TikzPicture(s)
+            sage: _ = t.pdf(view=False)     # not tested
+
+        A filename may be provided where to save the file, in which case
+        the viewer does not open the file::
 
             sage: from sage.misc.temporary_file import tmp_filename
             sage: filename = tmp_filename('temp','.pdf')
-            sage: path_to_file = t.pdf(filename)   # long time (2s)   # optional latex
+            sage: path_to_file = t.pdf(filename)   # long time (1s)   # optional latex
             sage: path_to_file[-4:]                # long time (fast) # optional latex
             '.pdf'
 
         The filename may contain spaces::
 
             sage: filename = tmp_filename('filename with spaces','.pdf')
-            sage: path_to_file = t.pdf(filename)   # long time (2s)   # optional latex
+            sage: path_to_file = t.pdf(filename)   # long time (1s)   # optional latex
 
         TESTS:
 
         We test the behavior when a wrong tex string is provided::
 
-            sage: V = [[1,0,1],[1,0,0],[1,1,0],[0,0,-1],[0,1,0],[-1,0,0],[0,1,1],[0,0,1],[0,-1,0]]
-            sage: P = Polyhedron(vertices=V).polar()
-            sage: s = P.projection().tikz([674,108,-731],112)
+            sage: s = "\\begin{tikzpicture}\n\\draw (0,0) -- (1,1);\n\\end{tikzpicture}"
             sage: s_missing_last_character = s[:-1]
             sage: t = TikzPicture(s_missing_last_character)
             sage: _ = t.pdf()                 # optional latex
@@ -639,18 +676,22 @@ class Standalone(SageObject):
 
         EXAMPLES::
 
+            sage: from sage.misc.latex_standalone import Standalone
+            sage: t = Standalone('Hello World')
+            sage: _ = t.png(view=False)     # long time (1s)   # optional latex imagemagick
+
+        Same for instances of :class:`TikzPicture`::
+
             sage: from sage.misc.latex_standalone import TikzPicture
-            sage: V = [[1,0,1],[1,0,0],[1,1,0],[0,0,-1],[0,1,0],[-1,0,0],[0,1,1],[0,0,1],[0,-1,0]]
-            sage: P = Polyhedron(vertices=V).polar()
-            sage: s = P.projection().tikz([674,108,-731],112)
+            sage: s = "\\begin{tikzpicture}\n\\draw (0,0) -- (1,1);\n\\end{tikzpicture}"
             sage: t = TikzPicture(s)
-            sage: _ = t.png()    # not tested
+            sage: _ = t.png(view=False)     # not tested
 
         ::
 
             sage: from sage.misc.temporary_file import tmp_filename
             sage: filename = tmp_filename('temp','.png')
-            sage: path_to_file = t.png(filename) # long time (2s)   # optional latex imagemagick
+            sage: path_to_file = t.png(filename) # long time (1s)   # optional latex imagemagick
             sage: path_to_file[-4:]              # long time (fast) # optional latex imagemagick
             '.png'
 
@@ -723,21 +764,25 @@ class Standalone(SageObject):
 
         EXAMPLES::
 
+            sage: from sage.misc.latex_standalone import Standalone
+            sage: t = Standalone('Hello World')
+            sage: _ = t.svg(view=False)     # not tested
+
+        Same for instances of :class:`TikzPicture`::
+
             sage: from sage.misc.latex_standalone import TikzPicture
-            sage: V = [[1,0,1],[1,0,0],[1,1,0],[0,0,-1],[0,1,0],[-1,0,0],[0,1,1],[0,0,1],[0,-1,0]]
-            sage: P = Polyhedron(vertices=V).polar()
-            sage: s = P.projection().tikz([674,108,-731],112)
+            sage: s = "\\begin{tikzpicture}\n\\draw (0,0) -- (1,1);\n\\end{tikzpicture}"
             sage: t = TikzPicture(s)
-            sage: _ = t.svg()    # not tested
+            sage: _ = t.svg(view=False)     # not tested
 
         ::
 
             sage: from sage.misc.temporary_file import tmp_filename
             sage: filename = tmp_filename('temp', '.svg')
-            sage: path_to_file = t.svg(filename, program='pdf2svg')   # long time (2s)   # optional latex pdf2svg
+            sage: path_to_file = t.svg(filename, program='pdf2svg')   # long time (1s)   # optional latex pdf2svg
             sage: path_to_file[-4:]                                   # long time (fast) # optional latex pdf2svg
             '.svg'
-            sage: path_to_file = t.svg(filename, program='pdftocairo') # long time (2s)   # optional latex pdftocairo
+            sage: path_to_file = t.svg(filename, program='pdftocairo') # long time (1s)   # optional latex pdftocairo
             sage: path_to_file[-4:]                                    # long time (fast) # optional latex pdftocairo
             '.svg'
 
@@ -796,7 +841,7 @@ class Standalone(SageObject):
 
         return temp_filename_svg
 
-    def tex(self, filename=None, include_header=True):
+    def tex(self, filename=None, content_only=False):
         r"""
         Writes the latex code to a file.
 
@@ -804,9 +849,9 @@ class Standalone(SageObject):
 
         - ``filename`` -- string (default:``None``), the output filename.
           If ``None``, it saves the file in a temporary directory.
-        - ``include_header`` -- bool (default:``True``) whether to include
-          the header latex part. If ``False``, it prints only the
-          standalone part to the file.
+        - ``content_only`` -- bool (default:``False``) whether to include
+          the header latex part. If ``True``, it prints only the
+          content to the file.
 
         OUTPUT:
 
@@ -814,16 +859,18 @@ class Standalone(SageObject):
 
         EXAMPLES::
 
+            sage: from sage.misc.latex_standalone import Standalone
+            sage: t = Standalone('Hello World')
+            sage: _ = t.tex()
+            sage: _ = t.tex(content_only=True)
+
+        Same for instances of :class:`TikzPicture`::
+
             sage: from sage.misc.latex_standalone import TikzPicture
-            sage: V = [[1,0,1],[1,0,0],[1,1,0],[0,0,-1],[0,1,0],[-1,0,0],[0,1,1],[0,0,1],[0,-1,0]]
-            sage: P = Polyhedron(vertices=V).polar()
-            sage: s = P.projection().tikz([674,108,-731],112)
+            sage: s = "\\begin{tikzpicture}\n\\draw (0,0) -- (1,1);\n\\end{tikzpicture}"
             sage: t = TikzPicture(s)
             sage: _ = t.tex()
-
-        Write only the tikzpicture without header and begin/end document::
-
-            sage: _ = t.tex(include_header=False)
+            sage: _ = t.tex(content_only=True)
 
         Write to a given filename::
 
@@ -840,16 +887,15 @@ class Standalone(SageObject):
         else:
             filename = os.path.abspath(filename)
 
-        if include_header:
-            output = str(self)
+        if content_only:
+            output = self.content()
         else:
-            output = self.tikz_picture_code()
+            output = str(self)
 
         with open(filename, 'w') as f:
             f.write(output)
 
         return filename
-
 
 
 class TikzPicture(Standalone):

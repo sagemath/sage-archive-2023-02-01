@@ -201,12 +201,15 @@ from sage.structure.element import ModuleElementWithMutability
 from sage.tensor.modules.comp import (Components, CompWithSym, CompFullySym,
                                       CompFullyAntiSym)
 from sage.tensor.modules.tensor_with_indices import TensorWithIndices
-from sage.tensor.modules.finite_rank_free_module import FiniteRankFreeModule
 from sage.parallel.decorate import parallel
 from sage.parallel.parallelism import Parallelism
 
 if TYPE_CHECKING:
     from sage.tensor.modules.free_module_basis import FreeModuleBasis
+
+
+if TYPE_CHECKING:
+    from sage.tensor.modules.finite_rank_free_module import FiniteRankFreeModule
 
 
 class FreeModuleTensor(ModuleElementWithMutability):

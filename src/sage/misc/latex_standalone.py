@@ -982,10 +982,10 @@ class TikzPicture(Standalone):
             sage: from sage.misc.latex_standalone import TikzPicture
             sage: G = graphs.PetersenGraph()
             sage: dotdata = G.graphviz_string()
-            sage: tikz = TikzPicture.from_dot_string(dotdata) # optional dot2tex # long time (3s)
+            sage: tikz = TikzPicture.from_dot_string(dotdata) # optional dot2tex graphviz # long time (3s)
             sage: _ = tikz.pdf()      # not tested
             sage: dotdata = G.graphviz_string(labels='latex')
-            sage: tikz = TikzPicture.from_dot_string(dotdata) # optional dot2tex # long time (3s)
+            sage: tikz = TikzPicture.from_dot_string(dotdata) # optional dot2tex graphviz # long time (3s)
             sage: _ = tikz.pdf()      # not tested
 
         ::
@@ -993,10 +993,10 @@ class TikzPicture(Standalone):
             sage: W = CoxeterGroup(["A",2])
             sage: G = W.cayley_graph()
             sage: dotdata = G.graphviz_string()
-            sage: tikz = TikzPicture.from_dot_string(dotdata) # optional dot2tex # long time (3s)
+            sage: tikz = TikzPicture.from_dot_string(dotdata) # optional dot2tex graphviz # long time (3s)
             sage: _ = tikz.pdf()      # not tested
             sage: dotdata = G.graphviz_string(labels='latex')
-            sage: tikz = TikzPicture.from_dot_string(dotdata) # optional dot2tex # long time (3s)
+            sage: tikz = TikzPicture.from_dot_string(dotdata) # optional dot2tex graphviz # long time (3s)
             sage: _ = tikz.pdf()      # not tested
 
         """

@@ -201,6 +201,7 @@ from sage.structure.element import ModuleElementWithMutability
 from sage.tensor.modules.comp import (Components, CompWithSym, CompFullySym,
                                       CompFullyAntiSym)
 from sage.tensor.modules.tensor_with_indices import TensorWithIndices
+from sage.tensor.modules.finite_rank_free_module import FiniteRankFreeModule
 from sage.parallel.decorate import parallel
 from sage.parallel.parallelism import Parallelism
 
@@ -257,8 +258,18 @@ class FreeModuleTensor(ModuleElementWithMutability):
         True
 
     """
-    def __init__(self, fmodule, tensor_type, name=None, latex_name=None,
-                 sym=None, antisym=None, parent=None):
+    _fmodule: FiniteRankFreeModule
+
+    def __init__(
+        self,
+        fmodule: FiniteRankFreeModule,
+        tensor_type,
+        name=None,
+        latex_name=None,
+        sym=None,
+        antisym=None,
+        parent=None,
+    ):
         r"""
         TESTS::
 
@@ -1017,7 +1028,7 @@ class FreeModuleTensor(ModuleElementWithMutability):
                            output_formatter=fmodule._output_formatter,
                            sym=self._sym, antisym=self._antisym)
 
-    def components(self, basis=None, from_basis=None):
+    def components(self, basis=None, from_basis=None) -> Components:
         r"""
         Return the components of ``self`` w.r.t to a given module basis.
 
@@ -1512,7 +1523,7 @@ class FreeModuleTensor(ModuleElementWithMutability):
         for other_basis in to_be_deleted:
             del self._components[other_basis]
 
-    def __getitem__(self, args):
+    def __getitem__(self, args) -> Components:
         r"""
         Return a component w.r.t. some basis.
 

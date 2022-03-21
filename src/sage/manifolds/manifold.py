@@ -333,6 +333,10 @@ import sage.rings.abc
 from sage.categories.fields import Fields
 from sage.categories.homset import Hom
 from sage.categories.manifolds import Manifolds
+from sage.manifolds.chart import Chart
+from sage.manifolds.differentiable.chart import RealDiffChart
+from sage.manifolds.differentiable.scalarfield import DiffScalarField
+from sage.manifolds.scalarfield import ScalarField
 from sage.manifolds.structure import (
     DifferentialStructure,
     RealDifferentialStructure,
@@ -1206,7 +1210,7 @@ class TopologicalManifold(ManifoldSubset):
                         ind[pos] = si
                         ret = 1
 
-    def atlas(self):
+    def atlas(self) -> list[Chart]:
         r"""
         Return the list of charts that have been defined on the manifold.
 
@@ -1458,8 +1462,13 @@ class TopologicalManifold(ManifoldSubset):
         """
         return bool(self._covering_charts)
 
-    def chart(self, coordinates='', names=None, calc_method=None,
-              coord_restrictions=None):
+    def chart(
+        self,
+        coordinates: str = "",
+        names=None,
+        calc_method=None,
+        coord_restrictions=None,
+    ) -> Chart:
         r"""
         Define a chart, the domain of which is the manifold.
 
@@ -1939,8 +1948,9 @@ class TopologicalManifold(ManifoldSubset):
         """
         return self._scalar_field_algebra
 
-    def scalar_field(self, coord_expression=None, chart=None, name=None,
-                     latex_name=None):
+    def scalar_field(
+        self, coord_expression=None, chart=None, name=None, latex_name=None
+    ) -> ScalarField:
         r"""
         Define a scalar field on the manifold.
 

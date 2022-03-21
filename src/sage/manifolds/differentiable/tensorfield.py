@@ -3734,9 +3734,7 @@ class TensorField(ModuleElementWithMutability):
 
     def up(
         self,
-        non_degenerate_form: Union[
-            "PseudoRiemannianMetric", "SymplecticForm", "PoissonTensorField"
-        ],
+        non_degenerate_form: Union[PseudoRiemannianMetric, SymplecticForm, PoissonTensorField],
         pos: Optional[int] = None,
     ) -> "TensorField":
         r"""

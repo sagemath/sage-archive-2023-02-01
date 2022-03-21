@@ -443,19 +443,17 @@ from __future__ import annotations
 from typing import Optional, TYPE_CHECKING
 from sage.categories.manifolds import Manifolds
 from sage.categories.homset import Hom
-from sage.manifolds.differentiable.diff_map import DiffMap
 from sage.rings.cc import CC
 from sage.rings.real_mpfr import RR
 from sage.rings.infinity import infinity, minus_infinity
 from sage.rings.integer import Integer
 from sage.manifolds.manifold import TopologicalManifold
 from sage.manifolds.differentiable.mixed_form_algebra import MixedFormAlgebra
-from sage.manifolds.differentiable.vectorfield_module import VectorFieldModule
-from sage.manifolds.differentiable.metric import PseudoRiemannianMetric
 
 if TYPE_CHECKING:
-    from sage.manifolds.differentiable.vectorfield_module import VectorFieldModule
     from sage.manifolds.differentiable.diff_map import DiffMap
+    from sage.manifolds.differentiable.metric import PseudoRiemannianMetric
+    from sage.manifolds.differentiable.vectorfield_module import VectorFieldModule
 
 ###############################################################################
 

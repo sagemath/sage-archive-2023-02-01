@@ -256,5 +256,3 @@ def _SL2Z_ref():
         True
     """
     return SL2Z
-
-

@@ -177,4 +177,3 @@ class _GHlist_old_pickle(GHlist):
 
 register_unpickle_override('sage.modular.modsym.ghlist', 'GHlist',
                            _GHlist_old_pickle)
-

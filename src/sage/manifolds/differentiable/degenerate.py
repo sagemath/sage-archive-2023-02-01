@@ -10,10 +10,15 @@ Degenerate manifolds
 #                  https://www.gnu.org/licenses/
 # *****************************************************************************
 
+from __future__ import annotations
+from typing import TYPE_CHECKING
+
 from sage.rings.infinity import infinity
 from sage.manifolds.structure import DegenerateStructure
 from sage.manifolds.differentiable.manifold import DifferentiableManifold
-from sage.manifolds.differentiable.metric import DegenerateMetric 
+
+if TYPE_CHECKING:
+    from sage.manifolds.differentiable.metric import DegenerateMetric
 
 ###############################################################################
 

@@ -162,6 +162,7 @@ from sage.manifolds.differentiable.degenerate import (DegenerateManifold,
                                                       TangentTensor)
 from sage.manifolds.differentiable.differentiable_submanifold import \
     DifferentiableSubmanifold
+from sage.manifolds.differentiable.metric import DegenerateMetric
 from sage.manifolds.differentiable.vectorfield_module import VectorFieldModule
 from sage.rings.infinity import infinity
 from sage.matrix.constructor import matrix
@@ -590,7 +591,7 @@ class DegenerateSubmanifold(DegenerateManifold, DifferentiableSubmanifold):
         self._default_screen = self._screens[name]
         return self._screens[name]
 
-    def induced_metric(self):
+    def induced_metric(self) -> DegenerateMetric:
         r"""
         Return the pullback of the ambient metric.
 

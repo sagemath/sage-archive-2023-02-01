@@ -308,16 +308,16 @@ from __future__ import annotations
 from typing import TYPE_CHECKING, Optional, Union
 
 from sage.manifolds.chart import Chart
-from sage.manifolds.differentiable.diff_map import DiffMap
-from sage.manifolds.differentiable.manifold import DifferentiableManifold
 from sage.manifolds.differentiable.tensorfield import TensorField
 from sage.parallel.decorate import parallel
 from sage.parallel.parallelism import Parallelism
-from sage.symbolic.expression import Expression
 from sage.symbolic.ring import SR
 from sage.tensor.modules.free_module_tensor import FreeModuleTensor
 
 if TYPE_CHECKING:
+    from sage.manifolds.differentiable.diff_map import DiffMap
+    from sage.manifolds.differentiable.manifold import DifferentiableManifold
+    from sage.symbolic.expression import Expression
     from sage.tensor.modules.comp import Components
 
 

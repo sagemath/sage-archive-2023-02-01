@@ -333,10 +333,6 @@ import sage.rings.abc
 from sage.categories.fields import Fields
 from sage.categories.homset import Hom
 from sage.categories.manifolds import Manifolds
-from sage.manifolds.chart import Chart
-from sage.manifolds.differentiable.chart import RealDiffChart
-from sage.manifolds.differentiable.scalarfield import DiffScalarField
-from sage.manifolds.scalarfield import ScalarField
 from sage.manifolds.structure import (
     DifferentialStructure,
     RealDifferentialStructure,
@@ -352,9 +348,13 @@ from sage.rings.real_mpfr import RR
 from sage.structure.global_options import GlobalOptions
 
 if TYPE_CHECKING:
+    from sage.manifolds.chart import Chart
     from sage.manifolds.continuous_map import ContinuousMap
+    from sage.manifolds.differentiable.chart import RealDiffChart
     from sage.manifolds.differentiable.diff_map import DiffMap
     from sage.manifolds.differentiable.manifold import DifferentiableManifold
+    from sage.manifolds.differentiable.scalarfield import DiffScalarField
+    from sage.manifolds.scalarfield import ScalarField
 
 
 #############################################################################

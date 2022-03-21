@@ -206,7 +206,7 @@ Adding a border in the options avoids cropping the vertices of a graph::
 
     sage: g = graphs.PetersenGraph()
     sage: s = latex(g)   # takes 3s but the result is cached # optional latex
-    sage: t = TikzPicture(s, standalone_config=["border=4mm"], usepackage=['tkz-graph'])
+    sage: t = TikzPicture(s, standalone_config=["border=4mm"], usepackage=['tkz-graph']) # optional latex
     sage: _ = t.pdf()    # not tested
 
 The current latex representation of a transducer is a tikzpicture using
@@ -908,14 +908,14 @@ class TikzPicture(Standalone):
         sage: g = graphs.PetersenGraph()
         sage: s = latex(g)                      # optional latex
         sage: t = TikzPicture(s, standalone_config=["border=4mm"], usepackage=['tkz-graph']) # optional latex
-        sage: _ = t.pdf(view=False)             # long time (2s) # optional latex
+        sage: _ = t.pdf(view=False)             # long time (2s) # optional - latex latex_package_tkz_graph
 
     Here are standalone configurations, packages, tikz libraries and macros
     that can be set::
 
         sage: options = ['preview', 'border=4mm', 'beamer', 'float']
         sage: usepackage = ['nicefrac', 'amsmath', 'pifont', 'tikz-3dplot',
-        ....:    'tkz-graph', 'tkz-berge', 'pgfplots']
+        ....:    'pgfplots']
         sage: tikzlib = ['arrows', 'snakes', 'backgrounds', 'patterns',
         ....:      'matrix', 'shapes', 'fit', 'calc', 'shadows', 'plotmarks',
         ....:      'positioning', 'pgfplots.groupplots', 'mindmap']

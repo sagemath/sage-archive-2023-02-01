@@ -529,7 +529,7 @@ The components on the basis are returned by the square bracket operator for
 #  the License, or (at your option) any later version.
 #                  https://www.gnu.org/licenses/
 #******************************************************************************
-from __future__ import absolute_import
+from __future__ import annotations
 
 from typing import Generator, Optional
 

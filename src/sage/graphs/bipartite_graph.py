@@ -29,6 +29,7 @@ TESTS::
 #*****************************************************************************
 #         Copyright (C) 2008 Robert L. Miller <rlmillster@gmail.com>
 #                       2018 Julian Rüth <julian.rueth@fsfe.org>
+#                       2022 Enjeck M. Cleopatra <enjeckc1e0@gmail.com>
 #
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -2263,15 +2264,37 @@ class BipartiteGraph(Graph):
 
         EXAMPLES::
 
-            sage: B = BipartiteGraph( [(0, 4), (0, 5), (0, 6), (0, 8), (1, 5), (1, 7), (1, 8
-            ....: ), (2, 6), (2, 7), (2, 8), (3, 4), (3, 7), (3, 8), (4, 9), (5, 9), (6, 9),
-            ....:  (7, 9)] )
+            sage: B = BipartiteGraph( [(0, 4), (0, 5), (0, 6), (0, 8), (1, 5), (1, 7), 
+            ....:                      (1, 8), (2, 6), (2, 7), (2, 8), (3, 4), (3, 7), 
+            ....:                      (3, 8), (4, 9), (5, 9), (6, 9), (7, 9)] )
             sage: C = B.canonical_label(partition=(B.left,B.right))
             sage: C.left
             {0, 1, 2, 3, 4}
             sage: C.right
             {5, 6, 7, 8, 9}
-        
+
+        ::
+
+            sage: B = BipartiteGraph( [(0, 4), (0, 5), (0, 6), (0, 8), (1, 5), (1, 7), 
+            ....:                      (1, 8), (2, 6), (2, 7), (2, 8), (3, 4), (3, 7), 
+            ....:                      (3, 8), (4, 9), (5, 9), (6, 9), (7, 9)] )
+            sage: C = B.canonical_label(partition=(B.left,B.right), certificate=True)
+            sage: C.left
+            {0, 1, 2, 3, 4}
+            sage: C.right
+            {5, 6, 7, 8, 9}
+
+        ::
+
+            sage: G = Graph({0: [5, 6], 1: [4, 5], 2: [4, 6], 3: [4, 5, 6]})
+            sage: B = BipartiteGraph(G)
+            sage: C = B.canonical_label(partition=(B.left,B.right), edge_labels=True)
+            False
+            sage: C.left
+            {0, 1, 2, 3}
+            sage: C.right
+            {4, 5, 6}
+
         .. SEEALSO::
 
             :meth:`~sage.graphs.generic_graph.GenericGraph.canonical_label()`
@@ -2284,25 +2307,25 @@ class BipartiteGraph(Graph):
         else:
             from sage.groups.perm_gps.partn_ref.refinement_graphs import search_tree
             from sage.graphs.graph import Graph
-
-            dig = (self._directed or self.has_loops())
+            from sage.graphs.generic_graph import graph_isom_equivalent_non_edge_labeled_graph
             from itertools import chain
 
-            c_new = {}
+            cert = {}
             
             if edge_labels or self.has_multiple_edges():
-                G, partition, relabeling = GenericGraph.graph_isom_equivalent_non_edge_labeled_graph(self, partition, return_relabeling=True)
+                G, partition, relabeling = graph_isom_equivalent_non_edge_labeled_graph(self, partition, return_relabeling=True)
                 G_vertices = list(chain(*partition))
                 G_to = {u: i for i,u in enumerate(G_vertices)}
                 H = Graph(len(G_vertices))
                 HB = H._backend
+                print(G._directed)
                 for u,v in G.edge_iterator(labels=False):
                     HB.add_edge(G_to[u], G_to[v], None, G._directed)
                 GC = HB.c_graph()[0]
                 partition = [[G_to[vv] for vv in cell] for cell in partition]
-                a,b,c = search_tree(GC, partition, certificate=True, dig=dig)
+                a,b,c = search_tree(GC, partition, certificate=True, dig=False)
                 # c is a permutation to the canonical label of G, which depends only on isomorphism class of self.
-                c_new = {v: c[G_to[relabeling[v]]] for v in self}
+                cert = {v: c[G_to[relabeling[v]]] for v in self}
             
             else:
                 G_vertices = list(chain(*partition))
@@ -2310,14 +2333,13 @@ class BipartiteGraph(Graph):
                 H = Graph(len(G_vertices))
                 HB = H._backend
                 for u, v in self.edge_iterator(labels=False):
-                    HB.add_edge(G_to[u], G_to[v], None, self._directed)
+                    HB.add_edge(G_to[u], G_to[v], None, False)
                 GC = HB.c_graph()[0]
                 partition = [[G_to[vv] for vv in cell] for cell in partition]
-                a,b,c = search_tree(GC, partition, certificate=True, dig=dig)
-                c_new = {v: c[G_to[v]] for v in G_to}
+                a,b,c = search_tree(GC, partition, certificate=True, dig=False)
+                cert = {v: c[G_to[v]] for v in G_to}
 
             C = GenericGraph.canonical_label(self, partition, certificate, edge_labels, algorithm, return_graph)
-            cert = c_new
 
         C.left = {cert[v] for v in self.left}
         C.right = {cert[v] for v in self.right}

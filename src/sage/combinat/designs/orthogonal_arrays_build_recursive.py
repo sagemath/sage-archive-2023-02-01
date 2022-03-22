@@ -30,8 +30,9 @@ called.
 Functions
 ---------
 """
-
+from itertools import repeat
 from .orthogonal_arrays import orthogonal_array, wilson_construction, is_orthogonal_array
+
 
 def construction_3_3(k,n,m,i,explain_construction=False):
     r"""
@@ -545,7 +546,7 @@ def construction_q_x(k,q,x,check=True,explain_construction=False):
     relabel = {i:j for j,i in enumerate(points_to_keep)}
 
     # PBD is a (n,[q,q-x-1,q-x+1,x+2])-PBD
-    PBD = [[relabel[xx] for xx in B if not xx in points_to_delete] for B in TD]
+    PBD = [[relabel[xx] for xx in B if xx not in points_to_delete] for B in TD]
 
     # Taking the unique block of size x+2
     assert list(map(len,PBD)).count(x+2)==1
@@ -1430,7 +1431,7 @@ def brouwer_separable_design(k,t,q,x,check=False,verbose=False,explain_construct
     # 2) The blocks of size q+t are a symmetric design
 
     blocks_of_size_q_plus_t = []
-    partition_of_blocks_of_size_t = [[] for i in range(m-t)]
+    partition_of_blocks_of_size_t = [[] for _ in repeat(None, m - t)]
 
     relabel = {i+j*m: N1*i+j for i in range(t) for j in range(N1)}
 
@@ -1490,9 +1491,9 @@ def brouwer_separable_design(k,t,q,x,check=False,verbose=False,explain_construct
         # OA(k-1,N)
         for PBD_parallel_class in partition_of_blocks_of_size_t:
             for OA_class in OA_t_classes:
-                 rOA_N_classes.append([[B[x] for x in BB]
-                                            for BB in OA_class
-                                            for B in PBD_parallel_class])
+                rOA_N_classes.append([[B[x] for x in BB]
+                                      for BB in OA_class
+                                      for B in PBD_parallel_class])
 
         # 2) We build a Nx(q+t) matrix such that:
         #
@@ -1763,7 +1764,7 @@ def brouwer_separable_design(k,t,q,x,check=False,verbose=False,explain_construct
         OA.extend([N-xx-1 for xx in B] for B in orthogonal_array(k,x))
 
     else:
-        raise ValueError("This input is not handled by Brouwer's result.")
+        raise ValueError("this input is not handled by Brouwer's result")
 
     if check:
         assert is_orthogonal_array(OA,k,N,2,1)

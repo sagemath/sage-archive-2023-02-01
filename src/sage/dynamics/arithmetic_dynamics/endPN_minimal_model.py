@@ -25,7 +25,7 @@ REFERENCES: [BM2012]_, [Mol2015]_
 from sage.functions.hyperbolic import cosh
 from sage.matrix.constructor import matrix
 from sage.matrix.matrix_space import MatrixSpace
-from sage.rings.all import CC
+from sage.rings.cc import CC
 from sage.rings.complex_mpfr import ComplexField
 from sage.rings.finite_rings.integer_mod_ring import Zmod
 from sage.rings.integer_ring import ZZ
@@ -1034,14 +1034,14 @@ def smallest_dynamical(f, dynatomic=True, start_n=1, prec=53, emb=None, algorith
         # binary insertion to maintain list of points left to consider
         N = len(pts)
         if N == 0:
-          return [item]
+            return [item]
         elif N == 1:
             if item[index] > pts[0][index]:
-                pts.insert(0,item)
+                pts.insert(0, item)
             else:
                 pts.append(item)
             return pts
-        else: # binary insertion
+        else:  # binary insertion
             left = 1
             right = N
             mid = (left + right) // 2  # these are ints so this is .floor()

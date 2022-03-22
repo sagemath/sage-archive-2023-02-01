@@ -66,7 +66,6 @@ Methods
 
 from copy import copy
 from sage.combinat.matrices.dlxcpp import DLXCPP
-from sage.plot.colors import rainbow
 from libcpp.vector cimport vector
 from libcpp.pair cimport pair
 
@@ -185,6 +184,8 @@ def all_graph_colorings(G, n, count_only=False, hex_colors=False, vertex_color_d
         1
         1
     """
+    from sage.plot.colors import rainbow
+
     G._scream_if_not_simple(allow_multiple_edges=True)
 
     if not n:
@@ -1004,18 +1005,18 @@ def grundy_coloring(g, k, value_only=True, solver=None, verbose=0,
     p.set_objective(p.sum(is_used[i] for i in range(k)))
 
     try:
-        obj = p.solve(log=verbose, objective_only=value_only)
-        from sage.rings.integer import Integer
-        obj = Integer(obj)
-
+        p.solve(log=verbose)
     except MIPSolverException:
         raise ValueError("this graph cannot be colored with k colors")
+
+    from sage.rings.integer import Integer
+    is_used = p.get_values(is_used, convert=bool, tolerance=integrality_tolerance)
+    obj = Integer(sum(1 for i in range(k) if is_used[i]))
 
     if value_only:
         return obj
 
     # Building the dictionary associating its color to every vertex
-
     b = p.get_values(b, convert=bool, tolerance=integrality_tolerance)
     cdef dict coloring = {}
 
@@ -1189,7 +1190,7 @@ def b_coloring(g, k, value_only=True, solver=None, verbose=0,
 
     # a color class is used if and only if it has one b-vertex
     for i in range(k):
-       p.add_constraint(p.sum(b[w,i] for w in g) - is_used[i], min=0, max=0)
+        p.add_constraint(p.sum(b[w,i] for w in g) - is_used[i], min=0, max=0)
 
 
     # We want to maximize the number of used colors
@@ -1197,19 +1198,18 @@ def b_coloring(g, k, value_only=True, solver=None, verbose=0,
 
 
     try:
-        obj = p.solve(log=verbose, objective_only=value_only)
-        from sage.rings.integer import Integer
-        obj = Integer(obj)
-
+        p.solve(log=verbose)
     except MIPSolverException:
         raise ValueError("this graph cannot be colored with k colors")
+
+    from sage.rings.integer import Integer
+    is_used = p.get_values(is_used, convert=bool, tolerance=integrality_tolerance)
+    obj = Integer(sum(1 for i in range(k) if is_used[i]))
 
     if value_only:
         return obj
 
-
     # Building the dictionary associating its color to every vertex
-
     c = p.get_values(color, convert=bool, tolerance=integrality_tolerance)
     cdef dict coloring = {}
 

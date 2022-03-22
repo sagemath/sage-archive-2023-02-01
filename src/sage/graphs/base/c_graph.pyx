@@ -1597,7 +1597,7 @@ cdef class CGraphBackend(GenericGraphBackend):
         The bug in :trac:`14967` and :trac:`14853` is fixed::
 
             sage: DiGraph({0: {}, 1/2: {}})
-            Multi-digraph on 2 vertices
+            Digraph on 2 vertices
             sage: A = Set([RDF.random_element(min=0, max=10) for k in range(10)])
             sage: G = Graph()
             sage: G.add_vertices(A)
@@ -1879,7 +1879,7 @@ cdef class CGraphBackend(GenericGraphBackend):
 
     def iterator_verts(self, verts=None):
         """
-        Return an iterator over the vertices of ``self`` intersected with
+        Iterate over the vertices of ``self`` intersected with
         ``verts``.
 
         INPUT:
@@ -2179,7 +2179,7 @@ cdef class CGraphBackend(GenericGraphBackend):
 
     def iterator_nbrs(self, v):
         """
-        Return an iterator over the neighbors of ``v``.
+        Iterate over the neighbors of ``v``.
 
         INPUT:
 
@@ -2205,16 +2205,33 @@ cdef class CGraphBackend(GenericGraphBackend):
             sage: P = Graph(graphs.PetersenGraph())
             sage: list(P._backend.iterator_nbrs(0))
             [1, 4, 5]
+            sage: Q = DiGraph(P)
+            sage: list(Q._backend.iterator_nbrs(0))
+            [1, 4, 5]
         """
         if not self._directed:
-            return self.iterator_out_nbrs(v)
+            yield from self.iterator_out_nbrs(v)
+            return
 
-        return iter(set(self.iterator_in_nbrs(v)) |
-                    set(self.iterator_out_nbrs(v)))
+        cdef int u_int
+        cdef int v_int = self.get_vertex(v)
+        if v_int == -1 or not bitset_in(self.cg().active_vertices, v_int):
+            raise LookupError("vertex ({0}) is not a vertex of the graph".format(v))
+
+        cdef set seen = set()
+        for u_int in self.cg().in_neighbors(v_int):
+            if u_int not in seen:
+                yield self.vertex_label(u_int)
+                seen.add(u_int)
+        for u_int in self.cg().out_neighbors(v_int):
+            if u_int not in seen:
+                yield self.vertex_label(u_int)
+                seen.add(u_int)
+        return
 
     def iterator_in_nbrs(self, v):
         """
-        Return an iterator over the incoming neighbors of ``v``.
+        Iterate over the incoming neighbors of ``v``.
 
         INPUT:
 
@@ -2257,7 +2274,7 @@ cdef class CGraphBackend(GenericGraphBackend):
 
     def iterator_out_nbrs(self, v):
         """
-        Return an iterator over the outgoing neighbors of ``v``.
+        Iterate over the outgoing neighbors of ``v``.
 
         INPUT:
 
@@ -2583,12 +2600,6 @@ cdef class CGraphBackend(GenericGraphBackend):
         and an arc label.
         """
         raise NotImplementedError
-        cdef int l_int
-        if l is None:
-            l_int = 0
-        else:
-            l_int = self.new_edge_label(l)
-        return self.cg().has_arc_unsafe(u_int, v_int, l_int)
 
     cdef int free_edge_label(self, int l_int) except -1:
         raise NotImplementedError()
@@ -2645,7 +2656,7 @@ cdef class CGraphBackend(GenericGraphBackend):
              (2, 3, None),
              (2, 7, None)]
         """
-        return self._iterator_edges(vertices, labels, modus=3)
+        yield from self._iterator_edges(vertices, labels, modus=3)
 
     def iterator_unsorted_edges(self, object vertices, bint labels):
         """
@@ -2677,7 +2688,7 @@ cdef class CGraphBackend(GenericGraphBackend):
             sage: list(G._backend.iterator_unsorted_edges([1, 'a'],False))
             [(1, 'a')]
         """
-        return self._iterator_edges(vertices, labels, modus=2)
+        yield from self._iterator_edges(vertices, labels, modus=2)
 
     def iterator_out_edges(self, object vertices, bint labels):
         """
@@ -2700,7 +2711,7 @@ cdef class CGraphBackend(GenericGraphBackend):
             sage: list(G.iterator_out_edges([1], True))
             [(1, 2, 3)]
         """
-        return self._iterator_edges(vertices, labels, modus=0)
+        yield from self._iterator_edges(vertices, labels, modus=0)
 
     def iterator_in_edges(self, object vertices, bint labels):
         """
@@ -2723,7 +2734,7 @@ cdef class CGraphBackend(GenericGraphBackend):
             sage: list(G.iterator_in_edges([2], True))
             [(1, 2, 3)]
         """
-        return self._iterator_edges(vertices, labels, modus=1)
+        yield from self._iterator_edges(vertices, labels, modus=1)
 
     def _iterator_edges(self, object vertices, const bint labels, const int modus=0):
         """
@@ -4400,11 +4411,18 @@ cdef class CGraphBackend(GenericGraphBackend):
 
             sage: Graph(graphs.CubeGraph(3)).is_connected()
             True
+
+        TESTS::
+
+            sage: P = posets.PentagonPoset()
+            sage: H = P._hasse_diagram
+            sage: H._backend.is_connected()
+            True
         """
         cdef int v_int
         cdef CGraph cg = self.cg()
 
-        if cg.num_edges() < cg.num_verts - 1:
+        if cg.num_arcs < cg.num_verts - 1:
             return False
 
         v_int = bitset_first(cg.active_vertices)
@@ -4865,7 +4883,7 @@ cdef class Search_iterator:
 
     def __iter__(self):
         r"""
-        Return an iterator object over a traversal of a graph.
+        Iterate over a traversal of a graph.
 
         EXAMPLES::
 

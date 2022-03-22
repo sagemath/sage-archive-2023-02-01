@@ -950,7 +950,7 @@ cdef class TateAlgebraTerm(MonoidElement):
 
         """
         return self._divides_c(other, integral)
-    
+
     cdef bint _divides_c(self, TateAlgebraTerm other, bint integral):
         r"""
         Return ``True`` if this term divides ``other``.
@@ -1015,7 +1015,7 @@ cdef class TateAlgebraTerm(MonoidElement):
             raise ValueError("the division is not exact")
         return (<TateAlgebraTerm>self)._floordiv_c(<TateAlgebraTerm>other)
 
-        
+
     cdef TateAlgebraTerm _floordiv_c(self, TateAlgebraTerm other):
         r"""
         Return the result of the exact division of this term by ``other``.
@@ -1451,7 +1451,7 @@ cdef class TateAlgebraElement(CommutativeAlgebraElement):
             sage: f = 2*x + 1; f
             ...0000000001 + ...00000000010*x
             sage: f.inverse_of_unit()
-            ...0000000001 + ...1111111110*x + ...0000000100*x^2 + ...1111111000*x^3 + ...0000010000*x^4 + 
+            ...0000000001 + ...1111111110*x + ...0000000100*x^2 + ...1111111000*x^3 + ...0000010000*x^4 +
              ...1111100000*x^5 + ...0001000000*x^6 + ...1110000000*x^7 + ...0100000000*x^8 + ...1000000000*x^9 + O(2^10 * <x, y>)
 
             sage: f.inverse_of_unit(prec=4)
@@ -1535,7 +1535,7 @@ cdef class TateAlgebraElement(CommutativeAlgebraElement):
         return True
 
     def __pow__(self, exponent, modulus):
-        """
+        r"""
         Return this element raised to the power ``exponent``.
 
         INPUT:
@@ -2323,11 +2323,11 @@ cdef class TateAlgebraElement(CommutativeAlgebraElement):
             Traceback (most recent call last):
             ...
             IndexError: hello is not a correct exponent
-            
+
             sage: f[1,2,3]
             Traceback (most recent call last):
             ...
-            IndexError: lengths do not match 
+            IndexError: lengths do not match
         """
         return self.coefficient(exponent)
 
@@ -2537,7 +2537,7 @@ cdef class TateAlgebraElement(CommutativeAlgebraElement):
         return self._prec - self.valuation()
 
     def log(self, prec=None):
-        """
+        r"""
         Return the logarithm of this series.
 
         INPUT:
@@ -2694,7 +2694,7 @@ cdef class TateAlgebraElement(CommutativeAlgebraElement):
         return total.add_bigoh(aprec)
 
     def exp(self, prec=None):
-        """
+        r"""
         Return the exponential of this series.
 
         INPUT:
@@ -3435,8 +3435,8 @@ cdef class TateAlgebraElement(CommutativeAlgebraElement):
         TESTS::
 
             sage: s = I.random_element(integral=True)
-            sage: s.reduce(I)
-            O(3^9 * <x, y>)
+            sage: s.reduce(I).precision_absolute() >= 9
+            True
 
             sage: h = A.random_element()
             sage: (h + s).reduce(I) == h.reduce(I)

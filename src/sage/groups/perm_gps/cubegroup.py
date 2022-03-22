@@ -98,16 +98,17 @@ import random
 from sage.structure.sage_object import SageObject
 from sage.structure.richcmp import richcmp, richcmp_method
 
-from sage.rings.all import RDF
-from sage.interfaces.all import gap
+from sage.rings.real_double import RDF
+from sage.interfaces.gap import gap
 from sage.groups.perm_gps.permgroup_element import PermutationGroupElement
-from sage.plot.polygon import polygon
-from sage.plot.text import text
+from sage.misc.lazy_import import lazy_import
+lazy_import("sage.plot.polygon", "polygon")
+lazy_import("sage.plot.text", "text")
 pi = RDF.pi()
 from sage.rings.rational_field import QQ
 
-from sage.plot.plot3d.shapes import Box
-from sage.plot.plot3d.texture import Texture
+lazy_import("sage.plot.plot3d.shapes", "Box")
+lazy_import("sage.plot.plot3d.texture", "Texture")
 
 ####################### predefined colors ##################
 
@@ -735,7 +736,7 @@ class CubeGroup(PermutationGroup_generic):
             return mv if mv.parent() is self else PermutationGroup_generic.__call__(self, mv, check)
         elif isinstance(mv, str):
             # It is a string: may be in cycle notation or Rubik's notation
-            if '(' in mv and not '^' in mv:
+            if '(' in mv and '^' not in mv:
                 return PermutationGroup_generic.__call__(self, mv, check)
             else:
                 gens = self.gens()
@@ -1237,7 +1238,7 @@ class RubiksCube(SageObject):
             if not isinstance(state, PermutationGroupElement):
                 legal, state = self._group.legal(state, mode="gimme_group_element")
                 if not legal:
-                    raise ValueError("Not a legal cube.")
+                    raise ValueError("not a legal cube")
             self._state = state
 
     def move(self, g):

@@ -223,10 +223,10 @@ class FinitePermutationGroups(CategoryWithAxiom):
             """
             from sage.categories.modules import Modules
             if parent is None:
-                 from sage.rings.rational_field import QQ
-                 from sage.combinat.sf.sf import SymmetricFunctions
-                 parent = SymmetricFunctions(QQ).powersum()
-            elif not parent in Modules.WithBasis:
+                from sage.rings.rational_field import QQ
+                from sage.combinat.sf.sf import SymmetricFunctions
+                parent = SymmetricFunctions(QQ).powersum()
+            elif parent not in Modules.WithBasis:
                 raise ValueError("`parent` should be a module with basis indexed by partitions")
             base_ring = parent.base_ring()
             return parent.sum_of_terms([C.an_element().cycle_type(), base_ring(C.cardinality())]
@@ -271,8 +271,8 @@ class FinitePermutationGroups(CategoryWithAxiom):
                 Univariate Polynomial Ring in z over Rational Field
                 sage: D8.profile_series(variable='y')
                 y^8 + y^7 + 4*y^6 + 5*y^5 + 8*y^4 + 5*y^3 + 4*y^2 + y + 1
-                sage: u = var('u')
-                sage: D8.profile_series(u).parent()
+                sage: u = var('u')                                              # optional - sage.symbolic
+                sage: D8.profile_series(u).parent()                             # optional - sage.symbolic
                 Symbolic Ring
 
             """

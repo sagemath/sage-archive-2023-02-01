@@ -290,16 +290,16 @@ class FreeAlgebraFactory(UniqueFactory):
                 newname += '_'
             varnames.append(newname)
             R = PolynomialRing(
-                    PolRing.base(), varnames,
-                    sparse=sparse, order=T)
+                PolRing.base(), varnames,
+                sparse=sparse, order=T)
             return tuple(degrees), R
         # normalise the generator names
-        from sage.all import Integer
+        from sage.rings.integer import Integer
         if isinstance(arg1, (Integer, int)):
             arg1, arg2 = arg2, arg1
-        if not names is None:
+        if names is not None:
             arg1 = names
-        elif not name is None:
+        elif name is not None:
             arg1 = name
         if arg2 is None:
             arg2 = len(arg1)
@@ -439,7 +439,7 @@ class FreeAlgebra_generic(CombinatorialFreeModule, Algebra):
             Free Algebra on 3 generators (a, b, c) over Integer Ring
         """
         if R not in Rings():
-            raise TypeError("Argument R must be a ring.")
+            raise TypeError("argument R must be a ring")
         self.__ngens = n
         indices = FreeMonoid(n, names=names)
         cat = AlgebrasWithBasis(R)
@@ -706,7 +706,7 @@ class FreeAlgebra_generic(CombinatorialFreeModule, Algebra):
             x
         """
         if i < 0 or not i < self.__ngens:
-            raise IndexError("Argument i (= {}) must be between 0 and {}.".format(i, self.__ngens-1))
+            raise IndexError("argument i (= {}) must be between 0 and {}".format(i, self.__ngens - 1))
         R = self.base_ring()
         F = self._indices
         return self.element_class(self, {F.gen(i): R.one()})
@@ -866,13 +866,13 @@ class FreeAlgebra_generic(CombinatorialFreeModule, Algebra):
             assert v1 > v2
             c_coef = None
             d_poly = None
-            for (m,c) in commuted:
+            for m, c in commuted:
                 if list(m) == [(v2,1),(v1,1)]:
                     c_coef = c
-                    #buggy coercion workaround
+                    # buggy coercion workaround
                     d_poly = commuted - self(c) * self(m)
                     break
-            assert not c_coef is None,list(m)
+            assert c_coef is not None, list(m)
             v2_ind = self.gens().index(v2)
             v1_ind = self.gens().index(v1)
             cmat[v2_ind,v1_ind] = c_coef

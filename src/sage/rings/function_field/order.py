@@ -1772,7 +1772,7 @@ class FunctionFieldMaximalOrder_polymod(FunctionFieldMaximalOrder):
         finite-dimensional algebra, a construct for which we do
         support primary decomposition.
 
-        See https://trac.sagemath.org/attachment/ticket/28094/decomposition.pdf
+        See :trac:`attachment/ticket/28094/decomposition.pdf`
 
         .. TODO::
 
@@ -1997,7 +1997,7 @@ class FunctionFieldMaximalOrder_global(FunctionFieldMaximalOrder_polymod):
                 row.append( V([to(e) for e in self._mtable[i][j]]) )
             mtable.append(row)
 
-        if not p in self._kummer_places:
+        if p not in self._kummer_places:
             #####################################
             # Decomposition by Kummer's theorem #
             #####################################

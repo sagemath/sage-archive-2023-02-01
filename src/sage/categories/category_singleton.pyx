@@ -89,7 +89,7 @@ class Category_singleton(Category):
 
     A *singleton* category is a category whose class takes no
     parameters like ``Fields()`` or ``Rings()``. See also the
-    `Singleton design pattern <https://en.wikipedia.org/wiki/Singleton_pattern>`_.
+    :wikipedia:`Singleton design pattern <Singleton_pattern>`.
 
     This is a subclass of :class:`Category`, with a couple
     optimizations for singleton categories.
@@ -218,8 +218,8 @@ class Category_singleton(Category):
              <class 'sage.categories.category.Category'>,
              <class 'sage.structure.unique_representation.UniqueRepresentation'>,
              <class 'sage.structure.unique_representation.CachedRepresentation'>,
-             <type 'sage.misc.fast_methods.WithEqualityById'>,
-             <type 'sage.structure.sage_object.SageObject'>,
+             <class 'sage.misc.fast_methods.WithEqualityById'>,
+             <class 'sage.structure.sage_object.SageObject'>,
              <class '__main__.R.subcategory_class'>,
              <class 'sage.categories.sets_cat.Sets.subcategory_class'>,
              <class 'sage.categories.sets_with_partial_maps.SetsWithPartialMaps.subcategory_class'>,

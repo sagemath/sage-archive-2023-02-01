@@ -68,14 +68,13 @@ from sage.rings.infinity import infinity
 from sage.rings.all import LaurentSeriesRing, PowerSeriesRing, PolynomialRing, Integers
 
 from sage.rings.integer import Integer
-from sage.arith.all import valuation, binomial, kronecker_symbol, gcd, prime_divisors
+from sage.arith.all import valuation, binomial, kronecker_symbol, gcd, prime_divisors, LCM
 
 from sage.structure.sage_object import SageObject
 from sage.structure.richcmp import richcmp_method, richcmp
 
-from sage.misc.all import denominator
+from sage.misc.functional import denominator
 from sage.misc.verbose import verbose, get_verbose
-import sage.arith.all as arith
 
 from sage.modules.free_module_element import vector
 import sage.matrix.all as matrix
@@ -841,6 +840,20 @@ class pAdicLseriesOrdinary(pAdicLseries):
             sage: lp = E.padic_lseries(2)
             sage: lp.series(6)
             2^2 + 2^6 + O(2^7) + (2 + O(2^4))*T + O(2^3)*T^2 + (2^2 + O(2^3))*T^3 + (2 + O(2^2))*T^4 + O(T^5)
+
+        Check that twists by odd Teichmuller characters are ok (:trac:`32258`)::
+
+            sage: E = EllipticCurve("443c1")
+            sage: lp = E.padic_lseries(17, implementation="num")
+            sage: l8 = lp.series(2,eta=8,prec=3)
+            sage: l8.list()[0] - 1/lp.alpha()
+            O(17^4)
+            sage: lp = E.padic_lseries(2, implementation="num")
+            sage: l1 = lp.series(8,eta=1,prec=3)
+            sage: l1.list()[0] - 4/lp.alpha()^2
+            O(2^9)
+
+
         """
         n = ZZ(n)
         if n < 1:
@@ -851,7 +864,7 @@ class pAdicLseriesOrdinary(pAdicLseries):
             raise ValueError("Insufficient precision (%s)" % prec)
 
         # check if the conditions on quadratic_twist are satisfied
-        eta = ZZ(eta) % (self._p - 1)
+        eta = ZZ(eta) % (self._p- 1) if self._p != 2 else ZZ(eta) % 2
         D = ZZ(quadratic_twist)
         if D != 1:
             if eta != 0:
@@ -870,6 +883,7 @@ class pAdicLseriesOrdinary(pAdicLseries):
                     if valuation(self._E.conductor(), ell) > valuation(D, ell):
                         raise ValueError("cannot twist a curve of conductor (=%s) by the quadratic twist (=%s)."%(self._E.conductor(),D))
         p = self._p
+        si = 1-2*(eta % 2)
 
         #verbose("computing L-series for p=%s, n=%s, and prec=%s"%(p,n,prec))
 
@@ -891,17 +905,9 @@ class pAdicLseriesOrdinary(pAdicLseries):
                 return L
             else:
                 # here we need some sums anyway
-                if eta % 2 == 1:
-                    si = ZZ(-1)
-                else:
-                    si = ZZ(1)
                 bounds = self._prec_bounds(n,prec,sign=si)
                 padic_prec = 20
         else:
-            if eta % 2 == 1:
-                si = ZZ(-1)
-            else:
-                si = ZZ(1)
             bounds = self._prec_bounds(n,prec,sign=si)
             padic_prec = max(bounds[1:]) + 5
 
@@ -926,7 +932,7 @@ class pAdicLseriesOrdinary(pAdicLseries):
         gamma_power = K(1)
         teich = self.teichmuller(padic_prec)
         if p == 2:
-            teich = [0, 1,-1]
+            teich = [0, 1, -1]
             gamma = K(5)
             p_power = 2**(n-2)
             a_range = 3
@@ -935,7 +941,6 @@ class pAdicLseriesOrdinary(pAdicLseries):
             gamma = K(1+ p)
             p_power = p**(n-1)
             a_range = p
-        si = 1-2*(eta % 2)
 
         verbose("Now iterating over %s summands"%((p-1)*p_power))
         verbose_level = get_verbose()
@@ -964,7 +969,9 @@ class pAdicLseriesOrdinary(pAdicLseries):
                  [aj[j].add_bigoh(bounds[j]) for j in range(1,len(aj))]
         L = R(aj,res_series_prec )
 
-        L /= self._quotient_of_periods_to_twist(D)*self._E.real_components()
+        L /= self._quotient_of_periods_to_twist(D)
+        if si == +1:
+            L /= self._E.real_components()
 
         self._set_series_in_cache(n, res_series_prec, D, eta, L)
 
@@ -1226,9 +1233,7 @@ class pAdicLseriesSupersingular(pAdicLseries):
                         raise ValueError("cannot twist a curve of conductor (=%s) by the quadratic twist (=%s)." % (self._E.conductor(), D))
 
         p = self._p
-        eta = ZZ(eta) % (p - 1)
-        #if p == 2 and self._normalize:
-            #print('Warning : for p = 2 the normalization might not be correct !')
+        eta = ZZ(eta) % (p - 1) if p != 2 else ZZ(eta) % 2
 
         if prec == 1:
             if eta == 0:
@@ -1306,7 +1311,9 @@ class pAdicLseriesSupersingular(pAdicLseries):
                 bj.append( aj[j].add_bigoh(bounds[j]) )
                 j += 1
             L = R(bj, prec)
-        L /= self._quotient_of_periods_to_twist(D)*self._E.real_components()
+        L /= self._quotient_of_periods_to_twist(D)
+        if si == +1:
+            L /= self._E.real_components()
         self._set_series_in_cache(n, prec, quadratic_twist, eta, L)
         return L
 
@@ -1663,8 +1670,8 @@ class pAdicLseriesSupersingular(pAdicLseries):
         elog = Ehat.log(prec + Integer(3))
 
         # we will have to do it properly with David Harvey's _multiply_point()
-        n = arith.LCM(E.tamagawa_numbers())
-        n = arith.LCM(n, E.Np(p)) # allowed here because E has good reduction at p
+        n = LCM(E.tamagawa_numbers())
+        n = LCM(n, E.Np(p)) # allowed here because E has good reduction at p
 
         def height(P,check=True):
             if P.is_finite_order():

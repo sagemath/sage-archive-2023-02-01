@@ -15,7 +15,7 @@ from sage.structure.unique_representation import UniqueRepresentation
 from sage.structure.parent import Parent
 from sage.structure.indexed_generators import IndexedGenerators, parse_indices_names
 from sage.modules.module import Module
-from sage.rings.all import Integer
+from sage.rings.integer import Integer
 from sage.structure.element import parent
 from sage.modules.with_basis.indexed_element import IndexedFreeModuleElement
 from sage.sets.finite_enumerated_set import FiniteEnumeratedSet
@@ -173,8 +173,10 @@ class CombinatorialFreeModule(UniqueRepresentation, Module, IndexedGenerators):
         sage: original_print_options = F.print_options()
         sage: sorted(original_print_options.items())
         [('bracket', None),
-         ('latex_bracket', False), ('latex_prefix', None),
-         ('latex_scalar_mult', None), ('prefix', 'x'),
+         ('iterate_key', False),
+         ('latex_bracket', False), ('latex_names', None),
+         ('latex_prefix', None), ('latex_scalar_mult', None),
+         ('names', None), ('prefix', 'x'),
          ('scalar_mult', '*'),
          ('sorting_key', <function ...<lambda> at ...>),
          ('sorting_reverse', False), ('string_quotes', True),
@@ -313,6 +315,13 @@ class CombinatorialFreeModule(UniqueRepresentation, Module, IndexedGenerators):
         if prefix is None:
             prefix = "B"
 
+        if keywords.get('latex_names', None) is not None:
+            latex_names = keywords['latex_names']
+            if isinstance(latex_names, str):
+                latex_names = latex_names.split(',')
+            latex_names = tuple(latex_names)
+            keywords['latex_names'] = latex_names
+
         return super(CombinatorialFreeModule, cls).__classcall__(cls,
             base_ring, basis_keys, category=category, prefix=prefix, names=names,
             **keywords)
@@ -338,7 +347,7 @@ class CombinatorialFreeModule(UniqueRepresentation, Module, IndexedGenerators):
 
             sage: A.element_class.mro()
             [<class 'sage.categories.examples.algebras_with_basis.FreeAlgebra_with_category.element_class'>,
-             <... 'sage.modules.with_basis.indexed_element.IndexedFreeModuleElement'>,
+             <class 'sage.modules.with_basis.indexed_element.IndexedFreeModuleElement'>,
              ...]
             sage: a,b,c = A.algebra_generators()
             sage: a * b
@@ -373,9 +382,7 @@ class CombinatorialFreeModule(UniqueRepresentation, Module, IndexedGenerators):
             sage: F = CombinatorialFreeModule(GF(3), ['a','b','c'],
             ....:                             category=(Modules(GF(3)).WithBasis(), Semigroups()))
             sage: F.category()
-            Join of Category of finite semigroups
-                 and Category of finite dimensional modules with basis over Finite Field of size 3
-                 and Category of vector spaces with basis over Finite Field of size 3
+            Join of Category of finite semigroups and Category of finite dimensional vector spaces with basis over Finite Field of size 3
 
             sage: F = CombinatorialFreeModule(QQ, ['a','b','c'], category = FiniteDimensionalModulesWithBasis(QQ))
             sage: F.basis()
@@ -413,9 +420,9 @@ class CombinatorialFreeModule(UniqueRepresentation, Module, IndexedGenerators):
             ValueError: keyy is not a valid print option.
         """
         # Make sure R is a ring with unit element
-        from sage.categories.all import Rings
+        from sage.categories.rings import Rings
         if R not in Rings():
-            raise TypeError("Argument R must be a ring.")
+            raise TypeError("argument R must be a ring")
 
         if element_class is not None:
             self.Element = element_class
@@ -438,7 +445,7 @@ class CombinatorialFreeModule(UniqueRepresentation, Module, IndexedGenerators):
             kwds['sorting_key'] = kwds.pop('monomial_key')
         if 'monomial_reverse' in kwds:
             kwds['sorting_reverse'] = kwds.pop('monomial_reverse')
-        IndexedGenerators.__init__(self, basis_keys, prefix, **kwds)
+        IndexedGenerators.__init__(self, basis_keys, prefix, names=names, **kwds)
 
         if category is None:
             category = ModulesWithBasis(R)
@@ -889,7 +896,7 @@ class CombinatorialFreeModule(UniqueRepresentation, Module, IndexedGenerators):
         """
         return self._rank_basis(x)
 
-    def from_vector(self, vector, order=None):
+    def from_vector(self, vector, order=None, coerce=True):
         """
         Build an element of ``self`` from a (sparse) vector.
 
@@ -906,8 +913,12 @@ class CombinatorialFreeModule(UniqueRepresentation, Module, IndexedGenerators):
         """
         if order is None:
             order = self.get_order()
-        return self._from_dict({order[index]: coeff
-                                for (index, coeff) in vector.items()})
+        if not coerce or vector.base_ring() is self.base_ring():
+            return self._from_dict({order[i]: c for i,c in vector.items()},
+                                   coerce=False)
+        R = self.base_ring()
+        return self._from_dict({order[i]: R(c) for i,c in vector.items() if R(c)},
+                               coerce=False, remove_zeros=False)
 
     def sum(self, iter_of_elements):
         """
@@ -1017,6 +1028,21 @@ class CombinatorialFreeModule(UniqueRepresentation, Module, IndexedGenerators):
         from sage.categories.poor_man_map import PoorManMap
         return PoorManMap(self._monomial, domain=self._indices, codomain=self, name="Term map")
 
+    def _sum_of_monomials(self, indices):
+        """
+        TESTS::
+
+            sage: F = CombinatorialFreeModule(QQ, ['a', 'b', 'c'])
+            sage: F._sum_of_monomials(['a', 'b', 'b'])
+            B['a'] + 2*B['b']
+            sage: F = CombinatorialFreeModule(GF(3), ['a', 'b', 'c'])
+            sage: F._sum_of_monomials(['a', 'b', 'b', 'b'])
+            B['a']
+        """
+        R = self.base_ring()
+        ret = blas.sum_of_monomials(indices, R.one())
+        return self.element_class(self, ret)
+
     def sum_of_terms(self, terms, distinct=False):
         """
         Construct a sum of terms of ``self``.
@@ -1053,7 +1079,7 @@ class CombinatorialFreeModule(UniqueRepresentation, Module, IndexedGenerators):
         """
         if distinct:
             return self._from_dict(dict(terms))
-        return self.sum(self.term(index, coeff) for (index, coeff) in terms)
+        return self._from_dict(blas.sum_of_terms(terms), remove_zeros=False)
 
     @cached_method
     def zero(self):
@@ -1139,7 +1165,7 @@ class CombinatorialFreeModule_Tensor(CombinatorialFreeModule):
             F # G
 
             sage: T.category()
-            Category of finite dimensional tensor products of modules with basis over Integer Ring
+            Category of tensor products of finite dimensional modules with basis over Integer Ring
 
             sage: T.construction() # todo: not implemented
             [tensor, ]
@@ -1152,7 +1178,7 @@ class CombinatorialFreeModule_Tensor(CombinatorialFreeModule):
         The basis of T is indexed by tuples of basis indices of F and G::
 
             sage: T.basis().keys()
-            Image of Cartesian product of {1, 2}, {3, 4} by <... 'tuple'>
+            Image of Cartesian product of {1, 2}, {3, 4} by The map <class 'tuple'> from Cartesian product of {1, 2}, {3, 4}
             sage: T.basis().keys().list()
             [(1, 3), (1, 4), (2, 3), (2, 4)]
 
@@ -1386,7 +1412,7 @@ class CombinatorialFreeModule_Tensor(CombinatorialFreeModule):
                 sage: f =   F.monomial(1) + 2 * F.monomial(2)
                 sage: g = 2*G.monomial(3) +     G.monomial(4)
                 sage: latex(tensor([f, g])) # indirect doctest
-                2x_{1} \otimes y_{3} + x_{1} \otimes y_{4} + 4x_{2} \otimes y_{3} + 2x_{2} \otimes y_{4}
+                2 x_{1} \otimes y_{3} + x_{1} \otimes y_{4} + 4 x_{2} \otimes y_{3} + 2 x_{2} \otimes y_{4}
             """
             symb = " \\otimes "
             return symb.join(module._latex_term(t) for (module, t) in zip(self._sets, term))

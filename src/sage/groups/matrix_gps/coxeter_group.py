@@ -27,10 +27,11 @@ from sage.groups.matrix_gps.group_element import MatrixGroupElement_generic
 from sage.matrix.args import SparseEntry
 from sage.matrix.matrix_space import MatrixSpace
 
-from sage.rings.all import ZZ
+import sage.rings.abc
+from sage.rings.integer_ring import ZZ
 from sage.rings.infinity import infinity
 from sage.rings.universal_cyclotomic_field import UniversalCyclotomicField
-from sage.rings.number_field.number_field import QuadraticField, is_QuadraticField
+from sage.rings.number_field.number_field import QuadraticField
 
 from sage.misc.cachefunc import cached_method
 
@@ -280,7 +281,7 @@ class CoxeterMatrixGroup(UniqueRepresentation, FinitelyGeneratedMatrixGroup_gene
                     return 2
                 else:
                     return E(2 * x) + ~E(2 * x)
-        elif is_QuadraticField(base_ring):
+        elif isinstance(base_ring, sage.rings.abc.NumberField_quadratic):
 
             def val(x):
                 if x == -1:
@@ -288,13 +289,18 @@ class CoxeterMatrixGroup(UniqueRepresentation, FinitelyGeneratedMatrixGroup_gene
                 else:
                     return base_ring((E(2 * x) + ~E(2 * x)).to_cyclotomic_field())
         else:
-            from sage.functions.trig import cos
-            from sage.symbolic.constants import pi
-
             def val(x):
                 if x == -1:
                     return 2
+                elif x == 1:
+                    return -2
+                elif x == 2:
+                    return 0
+                elif x == 3:
+                    return 1
                 else:
+                    from sage.functions.trig import cos
+                    from sage.symbolic.constants import pi
                     return base_ring(2 * cos(pi / x))
         gens = [one + MS([SparseEntry(i, j, val(coxeter_matrix[index_set[i], index_set[j]]))
                           for j in range(n)])

@@ -134,14 +134,18 @@ from https://wiki.sagemath.org/days4schedule .
 from copy import copy
 import time
 
-from sage.rings.all import ZZ, QQ, RR, AA, RealField, RealIntervalField, RIF, RDF, infinity
+from sage.rings.integer_ring import ZZ
+from sage.rings.rational_field import QQ
+from sage.rings.infinity import infinity
+from sage.rings.all import RR, AA, RealField, RealIntervalField, RIF, RDF
 from sage.arith.all import binomial, factorial
 from sage.misc.randstate import randstate
 from sage.modules.all import vector, FreeModule
 from sage.matrix.all import MatrixSpace
 from sage.rings.polynomial.polynomial_ring_constructor import PolynomialRing
 from sage.rings.polynomial.polynomial_ring import polygen
-from sage.misc.all import numerator, denominator, prod
+from sage.misc.functional import numerator, denominator
+from sage.misc.misc_c import prod
 
 from sage.matrix.matrix_integer_dense cimport Matrix_integer_dense
 from sage.modules.vector_integer_dense cimport Vector_integer_dense

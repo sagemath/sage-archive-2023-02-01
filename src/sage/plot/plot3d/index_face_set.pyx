@@ -32,7 +32,7 @@ AUTHORS:
 # ****************************************************************************
 
 from textwrap import dedent
-from sage.misc.superseded import deprecation
+from sage.misc.superseded import deprecation_cython as deprecation
 
 from libc.math cimport isfinite, INFINITY
 from libc.string cimport memset, memcpy
@@ -905,7 +905,7 @@ cdef class IndexFaceSet(PrimitiveObject):
             sage: x,y = var('x,y')
             sage: p = plot3d(sqrt(sin(x)*sin(y)), (x,0,2*pi),(y,0,2*pi))
             sage: p.bounding_box()
-            ((0.0, 0.0, -0.0), (6.283185307179586, 6.283185307179586, 0.9991889981715697))
+            ((0.0, 0.0, 0.0), (6.283185307179586, 6.283185307179586, 0.9991889981715697))
         """
         if self.vcount == 0:
             return ((0,0,0),(0,0,0))
@@ -1793,7 +1793,7 @@ cdef class EdgeIter:
     def __init__(self, face_set):
         self.set = face_set
         if not self.set.enclosed:
-            raise TypeError("Must be closed to use the simple iterator.")
+            raise TypeError("must be closed to use the simple iterator")
         self.i = 0
         self.j = 0
         self.seen = {}

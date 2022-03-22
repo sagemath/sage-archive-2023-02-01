@@ -115,14 +115,14 @@ AUTHORS:
 - Volker Braun (2011-01-03): Initial version
 """
 
-#*****************************************************************************
+# ****************************************************************************
 #       Copyright (C) 2010 Volker Braun <vbraun.name@gmail.com>
 #
 #  Distributed under the terms of the GNU General Public License (GPL)
 #  as published by the Free Software Foundation; either version 2 of
 #  the License, or (at your option) any later version.
-#                  http://www.gnu.org/licenses/
-#*****************************************************************************
+#                  https://www.gnu.org/licenses/
+# ****************************************************************************
 
 # TODO:
 #   * Implement the Di Biase & Urbanke algorithm
@@ -131,11 +131,11 @@ AUTHORS:
 #   * Use the (multiple) weighted homogeneity during Groebner basis computations
 
 
-
 from sage.rings.polynomial.polynomial_ring_constructor import PolynomialRing
 from sage.misc.misc_c import prod
 from sage.matrix.constructor import matrix
-from sage.rings.all import ZZ, QQ
+from sage.rings.integer_ring import ZZ
+from sage.rings.rational_field import QQ
 from sage.rings.polynomial.multi_polynomial_ideal import MPolynomialIdeal
 
 
@@ -460,5 +460,3 @@ class ToricIdeal(MPolynomialIdeal):
         for i in range(0,self.nvariables()):
             J = self._ideal_quotient_by_variable(ring, J, i)
         return J
-
-

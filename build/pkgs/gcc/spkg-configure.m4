@@ -53,11 +53,11 @@ AC_DEFUN([SAGE_CHECK_BROKEN_GCC], [
 
 
 SAGE_SPKG_CONFIGURE_BASE([gcc], [
-	AC_REQUIRE([AC_PROG_CC])
-	AC_REQUIRE([AC_PROG_CPP])
-	AC_REQUIRE([AC_PROG_CXX])
-	AC_REQUIRE([AC_PROG_OBJC])
-	AC_REQUIRE([AC_PROG_OBJCXX])
+        AC_REQUIRE([AC_PROG_CC])
+        AC_REQUIRE([AC_PROG_CPP])
+        AC_REQUIRE([AC_PROG_CXX])
+        AC_REQUIRE([AC_PROG_OBJC])
+        AC_REQUIRE([AC_PROG_OBJCXX])
 
     if test -f "$SAGE_LOCAL/bin/gcc"; then
         # Special value for SAGE_INSTALL_GCC if GCC is already installed
@@ -138,12 +138,12 @@ SAGE_SPKG_CONFIGURE_BASE([gcc], [
             # Add the .0 because Debian/Ubuntu gives version numbers like
             # 4.6 instead of 4.6.4 (Trac #18885)
             AS_CASE(["$GXX_VERSION.0"],
-                [[[0-3]].*|4.[[0-7]].*], [
-                    # Install our own GCC if the system-provided one is older than gcc-4.8.
+                [[[0-3]].*|4.[[0-7]].*|4.9.*], [
+                    # Install our own GCC if the system-provided one is older than gcc-4.8 or is 4.9.x
                     SAGE_SHOULD_INSTALL_GCC([you have $CXX version $GXX_VERSION, which is quite old])
                 ],
-                [1[[2-9]].*], [
-                    # Install our own GCC if the system-provided one is newer than 11.x.
+                [1[[3-9]].*], [
+                    # Install our own GCC if the system-provided one is newer than 12.x.
                     # See https://trac.sagemath.org/ticket/29456
                     SAGE_SHOULD_INSTALL_GCC([$CXX is g++ version $GXX_VERSION, which is too recent for this version of Sage])
                 ],

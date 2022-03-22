@@ -182,30 +182,24 @@ class DegenerateSubmanifold(DegenerateManifold, DifferentiableSubmanifold):
 
     - ``n`` -- positive integer; dimension of the manifold
     - ``name`` -- string; name (symbol) given to the manifold
-    - ``field`` -- field `K` on which the manifold is
-      defined; allowed values are
-
-      - ``'real'`` or an object of type ``RealField`` (e.g., ``RR``) for
-        a manifold over `\RR`
-      - ``'complex'`` or an object of type ``ComplexField`` (e.g., ``CC``)
-        for a manifold over `\CC`
-      - an object in the category of topological fields (see
-        :class:`~sage.categories.fields.Fields` and
-        :class:`~sage.categories.topological_spaces.TopologicalSpaces`)
-        for other types of manifolds
-
+    - ``ambient`` -- (default: ``None``) pseudo-Riemannian manifold `M` in
+      which the submanifold is embedded (or immersed). If ``None``, it is set
+      to ``self``
+    - ``metric_name`` -- (default: ``None``) string; name (symbol) given to the
+      metric; if ``None``, ``'g'`` is used
     - ``signature`` -- (default: ``None``) signature `S` of the metric as a
       tuple: `S = (n_+, n_-, n_0)`, where `n_+` (resp. `n_-`, resp. `n_0`) is the
       number of positive terms (resp. negative terms, resp. zero tems) in any
       diagonal writing of the metric components; if ``signature`` is not
       provided, `S` is set to `(ndim-1, 0, 1)`, being `ndim` the manifold's dimension
-    - ``ambient`` -- (default: ``None``) manifold of destination
-      of the immersion. If ``None``, set to ``self``
     - ``base_manifold`` -- (default: ``None``) if not ``None``, must be a
       topological manifold; the created object is then an open subset of
       ``base_manifold``
+    - ``diff_degree`` -- (default: ``infinity``) degree of differentiability
     - ``latex_name`` -- (default: ``None``) string; LaTeX symbol to
       denote the manifold; if none are provided, it is set to ``name``
+    - ``metric_latex_name`` -- (default: ``None``) string; LaTeX symbol to
+      denote the metric; if none is provided, it is set to ``metric_name``
     - ``start_index`` -- (default: 0) integer; lower value of the range of
       indices used for "indexed objects" on the manifold, e.g., coordinates
       in a chart
@@ -227,12 +221,12 @@ class DegenerateSubmanifold(DegenerateManifold, DifferentiableSubmanifold):
         :mod:`~sage.manifolds.differentiable.differentiable_submanifold`
 
     """
-    def __init__(self, n, name, ambient=None, metric_name='g', signature=None,
+    def __init__(self, n, name, ambient=None, metric_name=None, signature=None,
                  base_manifold=None, diff_degree=infinity, latex_name=None,
                  metric_latex_name=None, start_index=0, category=None,
                  unique_tag=None):
         r"""
-        Construct a pseudo-Riemannian submanifold.
+        Construct a degenerate submanifold.
 
         EXAMPLES:
 
@@ -245,7 +239,6 @@ class DegenerateSubmanifold(DegenerateManifold, DifferentiableSubmanifold):
             differentiable manifold M
 
         """
-
         DegenerateManifold.__init__(self, n, name=name,
                                           metric_name=metric_name,
                                           signature=signature,
@@ -278,13 +271,13 @@ class DegenerateSubmanifold(DegenerateManifold, DifferentiableSubmanifold):
         signature = self._ambient.metric().signature()
         ndim = self._ambient._dim
         try:
-           if signature[0]==ndim or signature[1]==ndim:
-            raise ValueError("ambient must be a proper pseudo-Riemannian"+
-                              " or a degenerate manifold")
+            if signature[0] == ndim or signature[1] == ndim:
+                raise ValueError("ambient must be a proper pseudo-Riemannian"
+                                 " or a degenerate manifold")
         except TypeError:
-          if signature==ndim or signature==-ndim:
-            raise ValueError("ambient must be a proper pseudo-Riemannian"+
-                              " or a degenerate manifold")
+            if signature == ndim or signature == -ndim:
+                raise ValueError("ambient must be a proper pseudo-Riemannian"
+                                 " or a degenerate manifold")
         self._transverse = {}
 
     def _repr_(self):
@@ -307,11 +300,11 @@ class DegenerateSubmanifold(DegenerateManifold, DifferentiableSubmanifold):
         """
         if self._ambient is None:
             return super(DegenerateManifold, self).__repr__()
-        if self._ambient._dim-self._dim==1:
-          return "degenerate hypersurface {} embedded " \
-               "in {}-dimensional differentiable " \
-               "manifold {}".format(self._name, self._ambient._dim,
-                                    self._ambient._name)
+        if self._ambient._dim - self._dim == 1:
+            return "degenerate hypersurface {} embedded " \
+                "in {}-dimensional differentiable " \
+                "manifold {}".format(self._name, self._ambient._dim,
+                                     self._ambient._name)
         return "{}-dimensional degenerate submanifold {} embedded " \
                "in {}-dimensional differentiable " \
                "manifold {}".format(self._dim, self._name, self._ambient._dim,

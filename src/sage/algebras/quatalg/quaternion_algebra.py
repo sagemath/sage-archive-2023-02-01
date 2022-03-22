@@ -1440,7 +1440,8 @@ class QuaternionOrder(Parent):
             sage: O(1/2)
             Traceback (most recent call last):
             ...
-            TypeError: 1/2 does not lie in Order of Quaternion Algebra (-1, -19) with base ring Rational Field with basis (1, i, j, k)
+            TypeError: 1/2 does not lie in Order of Quaternion Algebra (-1, -19)
+            with base ring Rational Field with basis (1, i, j, k)
 
         TESTS:
 

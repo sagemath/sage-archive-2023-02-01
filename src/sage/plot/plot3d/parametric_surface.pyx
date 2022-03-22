@@ -21,7 +21,6 @@ EXAMPLES::
     sage: def f(x,y): return x+y, sin(x)*sin(y), x*y
     sage: P = ParametricSurface(f, (srange(0,10,0.1), srange(-5,5.0,0.1)))
     sage: show(P)
-    sage: S = MoebiusStrip(1,.2)
 
 .. PLOT::
 
@@ -31,12 +30,14 @@ EXAMPLES::
 
 ::
 
+    sage: S = MoebiusStrip(1,.2)
     sage: S.is_enclosed()
     False
     sage: show(S)
 
-.. PLOT::./
+.. PLOT::
 
+    from sage.plot.plot3d.parametric_surface import MoebiusStrip
     sphinx_plot(MoebiusStrip(1,.2))
 
 

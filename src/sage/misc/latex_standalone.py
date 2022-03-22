@@ -1289,12 +1289,12 @@ class TikzPicture(Standalone):
 
         An example coming from ``graphviz_string`` documentation in SageMath::
 
-            sage: f(x) = -1 / x
-            sage: g(x) = 1 / (x + 1)
-            sage: G = DiGraph()                                       # optional sage.graphs
-            sage: G.add_edges((i, f(i), f) for i in (1, 2, 1/2, 1/4)) # optional sage.graphs
-            sage: G.add_edges((i, g(i), g) for i in (1, 2, 1/2, 1/4)) # optional sage.graphs
-            sage: tikz = TikzPicture.from_graph(G)                    # optional sage.graphs dot2tex graphviz
+            sage: f(x) = -1 / x                                       # optional sage.symbolic
+            sage: g(x) = 1 / (x + 1)                                  # optional sage.symbolic
+            sage: G = DiGraph()                                       # optional sage.symbolic sage.graphs
+            sage: G.add_edges((i, f(i), f) for i in (1, 2, 1/2, 1/4)) # optional sage.symbolic sage.graphs
+            sage: G.add_edges((i, g(i), g) for i in (1, 2, 1/2, 1/4)) # optional sage.symbolic sage.graphs
+            sage: tikz = TikzPicture.from_graph(G)                    # optional sage.symbolic sage.graphs dot2tex graphviz
             sage: _ = tikz.pdf()      # not tested
             sage: def edge_options(data):
             ....:     u, v, label = data
@@ -1304,7 +1304,7 @@ class TikzPicture(Standalone):
             ....:     if (u,v) == (1,   -1): options["label_style"] = "latex"
             ....:     if (u,v) == (1,  1/2): options["dir"]         = "back"
             ....:     return options
-            sage: tikz = TikzPicture.from_graph(G, edge_options=edge_options)  # optional sage.graphs dot2tex graphviz
+            sage: tikz = TikzPicture.from_graph(G, edge_options=edge_options)  # optional sage.symbolic sage.graphs dot2tex graphviz
             sage: _ = tikz.pdf()      # not tested
 
         """

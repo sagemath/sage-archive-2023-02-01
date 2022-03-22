@@ -155,9 +155,10 @@ if __name__ == "__main__":
         if args.verbose:
             pytest_options.append("-v")
         # 31914: Do not run pytest on individual Python files unless
-        # they match the pytest file pattern
+        # they match the pytest file pattern.  However, pass filenames
+        # without extensions, which are likely directory names.
         filenames = [f for f in args.filenames
-                     if f.endswith("_test.py") or not f.endswith(".py")]
+                     if f.endswith("_test.py") or not os.path.splitext(f)[1]]
         if filenames or not args.filenames:
             exit_code_pytest = pytest.main(pytest_options + filenames)
             if exit_code_pytest == 5:

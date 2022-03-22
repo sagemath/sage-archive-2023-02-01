@@ -154,11 +154,12 @@ if __name__ == "__main__":
         pytest_options = ["--import-mode", "importlib"]
         if args.verbose:
             pytest_options.append("-v")
-        # 31914: Do not run pytest on individual Python files unless
-        # they match the pytest file pattern.  However, pass filenames
-        # without extensions, which are likely directory names.
+        # #31924: Do not run pytest on individual Python files unless
+        # they match the pytest file pattern.  However, pass names
+        # of directories. We use 'not os.path.isfile(f)' for this so that
+        # we do not silently hide typos.
         filenames = [f for f in args.filenames
-                     if f.endswith("_test.py") or not os.path.splitext(f)[1]]
+                     if f.endswith("_test.py") or not os.path.isfile(f)]
         if filenames or not args.filenames:
             exit_code_pytest = pytest.main(pytest_options + filenames)
             if exit_code_pytest == 5:

@@ -2372,7 +2372,7 @@ cdef class Expression(Expression_abc):
         from sage.calculus.calculus import maxima
         if not self.is_relational():
             raise TypeError("self (=%s) must be a relational expression" % self)
-        if not self in _assumptions:
+        if self not in _assumptions:
             m = self._maxima_init_assume_()
             s = maxima.assume(m)
             pynac_assume_rel(self._gobj)

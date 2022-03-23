@@ -517,7 +517,7 @@ cdef class NCPolynomialRing_plural(Ring):
 
         try:
             element = coerce(base_ring, element)
-        except:
+        except Exception:
             pass
 
         if(_ring != currRing): rChangeCurrRing(_ring)
@@ -877,7 +877,7 @@ cdef class NCPolynomialRing_plural(Ring):
         rChangeCurrRing(_ring)
         _p = p_ISet(1,_ring)
         p_SetExp(_p, n+1, 1, _ring)
-        p_Setm(_p, _ring);
+        p_Setm(_p, _ring)
 
         return new_NCP(self,_p)
 

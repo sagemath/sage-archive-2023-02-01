@@ -11,6 +11,8 @@ AUTHORS:
 - Ryan W. Hinton (2010-03-04): overrides for adding and deleting vertices
   and edges
 
+- Enjeck M. Cleopatra(2022): fixes incorrect partite sets
+
 TESTS::
 
     sage: B = graphs.CompleteBipartiteGraph(7, 9)
@@ -2264,9 +2266,10 @@ class BipartiteGraph(Graph):
 
         EXAMPLES::
 
-            sage: B = BipartiteGraph( [(0, 4), (0, 5), (0, 6), (0, 8), (1, 5), (1, 7), 
-            ....:                      (1, 8), (2, 6), (2, 7), (2, 8), (3, 4), (3, 7), 
-            ....:                      (3, 8), (4, 9), (5, 9), (6, 9), (7, 9)] )
+            sage: B = BipartiteGraph( [(0, 4), (0, 5), (0, 6), (0, 8), (1, 5), 
+            ....:                      (1, 7), (1, 8), (2, 6), (2, 7), (2, 8),
+            ....:                      (3, 4), (3, 7), (3, 8), (4, 9), (5, 9), 
+            ....:                      (6, 9), (7, 9)] )
             sage: C = B.canonical_label(partition=(B.left,B.right))
             sage: C.left
             {0, 1, 2, 3, 4}
@@ -2275,9 +2278,10 @@ class BipartiteGraph(Graph):
 
         ::
 
-            sage: B = BipartiteGraph( [(0, 4), (0, 5), (0, 6), (0, 8), (1, 5), (1, 7), 
-            ....:                      (1, 8), (2, 6), (2, 7), (2, 8), (3, 4), (3, 7), 
-            ....:                      (3, 8), (4, 9), (5, 9), (6, 9), (7, 9)] )
+            sage: B = BipartiteGraph( [(0, 4), (0, 5), (0, 6), (0, 8), (1, 5), 
+            ....:                      (1, 7), (1, 8), (2, 6), (2, 7), (2, 8),
+            ....:                      (3, 4), (3, 7), (3, 8), (4, 9), (5, 9), 
+            ....:                      (6, 9), (7, 9)] )
             sage: C = B.canonical_label(partition=(B.left,B.right), certificate=True)
             sage: C.left
             {0, 1, 2, 3, 4}
@@ -2289,7 +2293,6 @@ class BipartiteGraph(Graph):
             sage: G = Graph({0: [5, 6], 1: [4, 5], 2: [4, 6], 3: [4, 5, 6]})
             sage: B = BipartiteGraph(G)
             sage: C = B.canonical_label(partition=(B.left,B.right), edge_labels=True)
-            False
             sage: C.left
             {0, 1, 2, 3}
             sage: C.right
@@ -2318,13 +2321,13 @@ class BipartiteGraph(Graph):
                 G_to = {u: i for i,u in enumerate(G_vertices)}
                 H = Graph(len(G_vertices))
                 HB = H._backend
-                print(G._directed)
                 for u,v in G.edge_iterator(labels=False):
-                    HB.add_edge(G_to[u], G_to[v], None, G._directed)
+                    HB.add_edge(G_to[u], G_to[v], None, False)
                 GC = HB.c_graph()[0]
                 partition = [[G_to[vv] for vv in cell] for cell in partition]
-                a,b,c = search_tree(GC, partition, certificate=True, dig=False)
-                # c is a permutation to the canonical label of G, which depends only on isomorphism class of self.
+                a, b, c = search_tree(GC, partition, certificate=True, dig=False)
+                # c is a permutation to the canonical label of G, 
+                # which depends only on isomorphism class of self.
                 cert = {v: c[G_to[relabeling[v]]] for v in self}
             
             else:
@@ -2336,11 +2339,15 @@ class BipartiteGraph(Graph):
                     HB.add_edge(G_to[u], G_to[v], None, False)
                 GC = HB.c_graph()[0]
                 partition = [[G_to[vv] for vv in cell] for cell in partition]
-                a,b,c = search_tree(GC, partition, certificate=True, dig=False)
+                a, b, c = search_tree(GC, partition, certificate=True, dig=False)
                 cert = {v: c[G_to[v]] for v in G_to}
 
             C = GenericGraph.canonical_label(self, partition, certificate, edge_labels, algorithm, return_graph)
 
         C.left = {cert[v] for v in self.left}
         C.right = {cert[v] for v in self.right}
-        return C
+
+        if certificate:
+            return C, cert
+        else:
+            return C

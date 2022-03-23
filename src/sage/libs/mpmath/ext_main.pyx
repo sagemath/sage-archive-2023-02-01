@@ -898,7 +898,7 @@ cdef class Context:
             ttyp = MPF_set_any(&tre, &tim, a, workopts, 0)
             utyp = MPF_set_any(&ure, &uim, b, workopts, 0)
             if utyp == 2 and conjugate:
-                MPF_neg(&uim, &uim);
+                MPF_neg(&uim, &uim)
             if ttyp == 0 or utyp == 0:
                 if conjugate:
                     b = b.conj()

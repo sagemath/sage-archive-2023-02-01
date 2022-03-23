@@ -5588,15 +5588,13 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
            Traceback (most recent call last):
            ...
            ValueError: class_number only defined for integers congruent to 0 or 1 modulo 4
-
-
         """
         global objtogen
         if objtogen is None:
             from cypari2.gen import objtogen
         if self.is_square():
             raise ValueError("class_number not defined for square integers")
-        if not self%4 in [0,1]:
+        if self % 4 not in [0, 1]:
             raise ValueError("class_number only defined for integers congruent to 0 or 1 modulo 4")
         flag =  self < 0 and proof
         return objtogen(self).qfbclassno(flag).sage()

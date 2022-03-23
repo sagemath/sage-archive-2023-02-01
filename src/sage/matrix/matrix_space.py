@@ -543,6 +543,7 @@ class MatrixSpace(UniqueRepresentation, Parent):
             ....:     @staticmethod
             ....:     def __classcall__(cls, base_ring, nrows, ncols=None, my_option=True, sparse=False, implementation=None):
             ....:         return super(MyMatrixSpace, cls).__classcall__(cls, base_ring, nrows, ncols=ncols, my_option=my_option, sparse=sparse, implementation=implementation)
+            ....:
             ....:     def __init__(self, base_ring, nrows, ncols, sparse,  implementation, my_option=True):
             ....:         super(MyMatrixSpace, self).__init__(base_ring, nrows, ncols, sparse, implementation)
             ....:         self._my_option = my_option
@@ -2404,7 +2405,7 @@ def dict_to_list(entries, nrows, ncols):
     return v
 
 
-def test_trivial_matrices_inverse(ring, sparse=True, implementation=None, checkrank=True):
+def _test_trivial_matrices_inverse(ring, sparse=True, implementation=None, checkrank=True):
     """
     Tests inversion, determinant and is_invertible for trivial matrices.
 
@@ -2440,7 +2441,7 @@ def test_trivial_matrices_inverse(ring, sparse=True, implementation=None, checkr
 
     TESTS::
 
-        sage: from sage.matrix.matrix_space import test_trivial_matrices_inverse as tinv
+        sage: from sage.matrix.matrix_space import _test_trivial_matrices_inverse as tinv
         sage: tinv(ZZ, sparse=True)
         sage: tinv(ZZ, sparse=False, implementation='flint')
         sage: tinv(ZZ, sparse=False, implementation='generic')

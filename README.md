@@ -220,29 +220,7 @@ Guide](https://doc.sagemath.org/html/en/installation).
       when using `git`, it is recommended (but not necessary) to use
       the Cygwin (or WSL) version of `git`.
 
-3.  [Git] If you cloned the Sage repository using `git`, bootstrap the
-    source tree using:
-
-        $ make configure
-
-4.  Optionally, decide on the installation prefix (`SAGE_LOCAL`):
-
-    - Traditionally, and by default, Sage is installed into the
-      subdirectory hierarchy rooted at `SAGE_ROOT/local/`.
-
-    - This can be changed using `./configure --prefix=SAGE_LOCAL`,
-      where `SAGE_LOCAL` is the desired installation prefix, which
-      must be writable by the user.
-
-    - Note that in Sage's build process, `make` builds **and**
-      installs (`make install` is a no-op).  Therefore the
-      installation hierarchy must be writable by the user.
-
-    - See the installation manual for options if you want to
-      install into shared locations such as `/usr/local/`.
-      Do not attempt to build Sage as `root`.
-
-5.  [Linux, Cygwin] Install the required minimal build prerequisites.
+3.  [Linux, Cygwin] Install the required minimal build prerequisites.
 
     - Compilers: `gcc`, `gfortran`, `g++` (a recent enough matching
       set of these three will avoid building Sage-specific compilers).
@@ -268,6 +246,28 @@ Guide](https://doc.sagemath.org/html/en/installation).
     [opensuse.txt](build/pkgs/_prereq/distros/opensuse.txt),
     [slackware.txt](build/pkgs/_prereq/distros/slackware.txt), and
     [void.txt](build/pkgs/_prereq/distros/void.txt).
+
+4.  [Git] If you cloned the Sage repository using `git`, bootstrap the
+    source tree using:
+
+        $ make configure
+
+5.  Optionally, decide on the installation prefix (`SAGE_LOCAL`):
+
+    - Traditionally, and by default, Sage is installed into the
+      subdirectory hierarchy rooted at `SAGE_ROOT/local/`.
+
+    - This can be changed using `./configure --prefix=SAGE_LOCAL`,
+      where `SAGE_LOCAL` is the desired installation prefix, which
+      must be writable by the user.
+
+    - Note that in Sage's build process, `make` builds **and**
+      installs (`make install` is a no-op).  Therefore the
+      installation hierarchy must be writable by the user.
+
+    - See the installation manual for options if you want to
+      install into shared locations such as `/usr/local/`.
+      Do not attempt to build Sage as `root`.
 
 6.  Optional: It is recommended that you have both LaTeX and
     the ImageMagick tools (e.g. the "convert" command) installed

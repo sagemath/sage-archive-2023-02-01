@@ -44,7 +44,7 @@ and
 
     \int_{-1}^1 U_n(x)U_m(x)\sqrt{1-x^2}\,dx =\frac{\pi}{2}\delta_{m,n}.
 
-They are named after Pafnuty Chebyshev (Чебышёв 1821-1894, alternative
+They are named after Pafnuty Chebyshev (1821-1894, alternative
 transliterations: Tchebyshef or Tschebyscheff).
 
 Hermite polynomials
@@ -245,7 +245,7 @@ where `q = 1 - p`. They can also be described by the recurrence relation
 
 where `K_0(x; n, p) = 1` and `K_1(x; n, p) = x - n p`.
 
-They are named for Mykhailo Krawtchouk (Кравчу́к 1892-1942).
+They are named for Mykhailo Krawtchouk (1892-1942).
 
 
 Meixner polynomials

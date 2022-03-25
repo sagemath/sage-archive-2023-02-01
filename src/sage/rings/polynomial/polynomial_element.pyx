@@ -2617,17 +2617,15 @@ cdef class Polynomial(CommutativeAlgebraElement):
 
         TESTS:
 
-        We verify that :trac:`23020` has been resolved. (There are no elements
-        in the Sage library yet that do not implement ``__nonzero__``
-        and ``__bool__``, so we have to create one artificially.)::
+        We verify that :trac:`23020` has been resolved. (There are no
+        elements in the Sage library yet that do not implement
+        ``__bool__``, so we have to create one artificially.)::
 
             sage: class PatchedAlgebraicNumber(sage.rings.qqbar.AlgebraicNumber):
-            ....:     def __bool__(self): raise NotImplementedError()
             ....:     def __bool__(self): raise NotImplementedError()
             sage: R.<x> = QQbar[]
             sage: R([PatchedAlgebraicNumber(0), 1])
             x + 0
-
         """
         if name is None:
             name = self._parent._names[0]

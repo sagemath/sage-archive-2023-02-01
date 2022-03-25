@@ -747,7 +747,7 @@ class KashElement(ExpectElement):
         return (P.eval('%s = FALSE' % self.name()) == 'FALSE' and
                 P.eval('%s = 0' % self.name()) == 'FALSE')
 
-    __nonzero__ = __bool__
+    
 
     def _sage_(self, locals={}, *args):
         """

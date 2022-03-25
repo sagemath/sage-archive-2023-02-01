@@ -407,7 +407,7 @@ class SpecialCubicQuotientRingElement(CommutativeAlgebraElement):
         """
         return not not self._triple[0] or not not self._triple[1] or not not self._triple[2]
 
-    __nonzero__ = __bool__
+    
 
     def _richcmp_(self, other, op):
         """
@@ -2353,7 +2353,7 @@ class SpecialHyperellipticQuotientElement(CommutativeAlgebraElement):
         """
         return not not self._f
 
-    __nonzero__ = __bool__
+    
 
     def __eq__(self, other):
         """
@@ -3208,7 +3208,7 @@ class MonskyWashnitzerDifferential(ModuleElement):
         """
         return not not self._coeff
 
-    __nonzero__ = __bool__
+    
 
     def _repr_(self):
         """

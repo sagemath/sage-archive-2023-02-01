@@ -122,7 +122,7 @@ cdef class WordDatatype_char(WordDatatype):
         if self._is_slice == 0:
             sig_free(self._data)
 
-    def __nonzero__(self):
+    def __bool__(self):
         r"""
         Test whether the word is not empty.
 

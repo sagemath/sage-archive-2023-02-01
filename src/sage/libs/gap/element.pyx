@@ -2270,7 +2270,7 @@ cdef class GapElement_Boolean(GapElement):
             return False
         raise ValueError('the GAP boolean value "fail" cannot be represented in Sage')
 
-    def __nonzero__(self):
+    def __bool__(self):
         """
         Check that the boolean is "true".
 

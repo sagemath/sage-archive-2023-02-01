@@ -1066,7 +1066,7 @@ cdef class Polynomial(CommutativeAlgebraElement):
                 return res
         return rich_to_bool(op, 0)
 
-    def __nonzero__(self):
+    def __bool__(self):
         """
         EXAMPLES::
 
@@ -2622,7 +2622,7 @@ cdef class Polynomial(CommutativeAlgebraElement):
         and ``__bool__``, so we have to create one artificially.)::
 
             sage: class PatchedAlgebraicNumber(sage.rings.qqbar.AlgebraicNumber):
-            ....:     def __nonzero__(self): raise NotImplementedError()
+            ....:     def __bool__(self): raise NotImplementedError()
             ....:     def __bool__(self): raise NotImplementedError()
             sage: R.<x> = QQbar[]
             sage: R([PatchedAlgebraicNumber(0), 1])
@@ -11077,7 +11077,7 @@ cdef class Polynomial_generic_dense(Polynomial):
         """
         return make_generic_polynomial, (self._parent, self.__coeffs)
 
-    def __nonzero__(self):
+    def __bool__(self):
         return bool(self.__coeffs)
 
     cpdef bint is_term(self) except -1:

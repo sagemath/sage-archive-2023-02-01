@@ -2599,7 +2599,7 @@ cdef class NumberFieldElement(FieldElement):
             return otherinv._mul_(otherparent(self))
         return otherinv._mul_(self)
 
-    def __nonzero__(self):
+    def __bool__(self):
         """
         Return True if this number field element is nonzero.
 

@@ -2705,7 +2705,7 @@ cdef class Rational(sage.structure.element.FieldElement):
         mpq_neg(x.value, self.value)
         return x
 
-    def __nonzero__(self):
+    def __bool__(self):
         """
         Return ``True`` if this rational number is nonzero.
 

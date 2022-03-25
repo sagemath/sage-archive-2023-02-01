@@ -1640,7 +1640,7 @@ cdef class LinearConstraint(LinearFunctionOrConstraint):
             return 'trivial constraint starting with ' + result
         return result
 
-    def __nonzero__(self):
+    def __bool__(self):
         """
         Part of the hack to allow chained (in)equalities
 

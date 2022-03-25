@@ -42,19 +42,19 @@ TODO -- much functionality of gfan-0.3 is still not exposed::
 
 from subprocess import Popen, PIPE
 
+from sage.features.gfan import GfanExecutable
+
 
 class Gfan(object):
     """
     Interface to Anders Jensen's Groebner Fan program.
     """
     def __call__(self, I, cmd='', verbose=False, format=True):
-        if cmd != '' and cmd.lstrip()[0] != '-':
-            cmd = 'gfan_%s'%cmd
-        else:
-            cmd = 'gfan'
-
-        if len(cmd.split(' ')) > 1:
+        if cmd:
             cmd = cmd.split(' ')
+            cmd[0] = GfanExecutable(cmd[0]).absolute_filename()
+        else:
+            cmd = [GfanExecutable().absolute_filename()]
 
         if verbose:
             print("gfan command:\n%s" % cmd)

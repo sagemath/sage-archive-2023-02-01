@@ -311,7 +311,7 @@ Guide](https://doc.sagemath.org/html/en/installation).
     building Sage, see [the installation
     guide](https://doc.sagemath.org/html/en/installation/source.html#environment-variables).
 
-10.  Type `./configure`, followed by any options that you wish to use.
+10. Type `./configure`, followed by any options that you wish to use.
     For example, to build Sage with `gf2x` package supplied by Sage,
     use `./configure --with-system-gf2x=no`.
 

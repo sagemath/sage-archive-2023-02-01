@@ -24,6 +24,7 @@ from sage.misc.constant_function import ConstantFunction
 from sage.misc.flatten import flatten
 from sage.misc.lazy_import import LazyImport
 from sage.structure.element import have_same_parent, parent
+from sage.rings.infinity import Infinity
 
 
 class CoxeterGroups(Category_singleton):
@@ -1280,6 +1281,27 @@ class CoxeterGroups(Category_singleton):
                 tester.assertEqual([i], si.descents(side='right'))
                 tester.assertNotIn(i, si.descents(positive=True, side='left'))
                 tester.assertNotIn(i, si.descents(positive=True, side='right'))
+
+        def _test_coxeter_relations(self, **options):
+            r"""
+            Test whether the Coxeter relations hold for ``self``.
+
+            This checks nothing in the case of infinite order.
+
+            TESTS::
+
+                sage: A = AffinePermutationGroup(['A',7,1])
+                sage: A._test_coxeter_relations()
+            """
+            tester = self._tester(**options)
+            s = self.simple_reflections()
+            for i, j, mij in self.coxeter_diagram().edges():
+                if mij == Infinity:
+                    continue
+                l = s[i] * s[j]
+                tester.assertEqual(l**mij, self.one(), "Coxeter relation fails")
+                for p in range(1, mij):
+                    tester.assertNotEqual(l**p, self.one(), "smaller relation found")
 
     class ElementMethods:
         def has_descent(self, i, side='right', positive=False):

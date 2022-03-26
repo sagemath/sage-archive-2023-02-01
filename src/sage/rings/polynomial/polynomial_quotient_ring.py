@@ -1104,6 +1104,9 @@ class PolynomialQuotientRing_generic(CommutativeRing):
         Unfortunately, the program above is already unable to determine
         that the modulus is irreducible.
         """
+        from sage.categories.all import IntegralDomains
+        if IntegralDomains() in self.categories():
+            return True
         ret = self.base_ring().is_integral_domain(proof)
         if ret:
             try:
@@ -1127,7 +1130,6 @@ class PolynomialQuotientRing_generic(CommutativeRing):
                     ret = False
 
         if ret:
-            from sage.categories.all import IntegralDomains
             self._refine_category_(IntegralDomains())
         return ret
 

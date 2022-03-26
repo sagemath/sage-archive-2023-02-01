@@ -3260,7 +3260,7 @@ class GenericGraph(GenericGraph_pyx):
             seen = dict()
             keep_min = keep_label == 'min'
             keep_max = keep_label == 'max'
-            for u, v, l in self.multiple_edges(sort=False):
+            for u, v, l in self.edge_iterator():
                 if (u, v) not in seen:
                     # This is the first time we see this edge
                     seen[u, v] = l
@@ -3338,24 +3338,23 @@ class GenericGraph(GenericGraph_pyx):
             sage: G.multiple_edges(to_undirected=True, sort=True)
             [(1, 2, 'h'), (2, 1, 'g')]
         """
-        multi_edges = []
         if self._directed and not to_undirected:
-            for v in self:
-                for u in self.neighbor_in_iterator(v):
-                    edges = self.edge_boundary([u], [v], labels)
-                    if len(edges) > 1:
-                        multi_edges.extend(edges)
-        else:
-            to_undirected *= self._directed
-            for v in self:
-                for u in self.neighbor_iterator(v):
-                    if hash(u) >= hash(v):
-                        edges = self.edge_boundary([v], [u], labels)
-                        if to_undirected:
-                            edges += self.edge_boundary([u], [v], labels)
-                        if len(edges) > 1:
-                            multi_edges.extend(edges)
+            def edge_id(u, v):
+                return (u, v)
+        else:  # self._directed is False or to_undirected is True
+            def edge_id(u, v):
+                return frozenset((u, v))
 
+        edges = {}
+        for e in self.edge_iterator(labels=labels):
+            f = edge_id(e[0], e[1])
+            if f in edges:
+                edges[f].append(e)
+            else:
+                edges[f] = [e]
+
+        from itertools import chain
+        multi_edges = list(chain(*[F for F in edges.values() if len(F) > 1]))
         if sort:
             multi_edges.sort()
         return multi_edges

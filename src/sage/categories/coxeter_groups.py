@@ -24,7 +24,6 @@ from sage.misc.constant_function import ConstantFunction
 from sage.misc.flatten import flatten
 from sage.misc.lazy_import import LazyImport
 from sage.structure.element import have_same_parent, parent
-from sage.rings.infinity import Infinity
 
 
 class CoxeterGroups(Category_singleton):
@@ -1295,13 +1294,20 @@ class CoxeterGroups(Category_singleton):
             """
             tester = self._tester(**options)
             s = self.simple_reflections()
-            for i, j, mij in self.coxeter_diagram().edges():
-                if mij == Infinity:
-                    continue
-                l = s[i] * s[j]
-                tester.assertEqual(l**mij, self.one(), "Coxeter relation fails")
-                for p in range(1, mij):
-                    tester.assertNotEqual(l**p, self.one(), "smaller relation found")
+            one = self.one()
+            for si in s:
+                tester.assertEqual(si**2, one)
+            n = len(s)
+            cox_mat = self.coxeter_matrix()
+            for i in range(1, n):
+                for j in range(i + 1, n + 1):
+                    mij = cox_mat[i, j]
+                    if mij == -1:  # -1 stands for infinity
+                        continue
+                    l = s[i] * s[j]
+                    tester.assertEqual(l**mij, one, "Coxeter relation fails")
+                    for p in range(1, mij):
+                        tester.assertNotEqual(l**p, one, "unexpected relation")
 
     class ElementMethods:
         def has_descent(self, i, side='right', positive=False):

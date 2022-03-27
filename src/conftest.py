@@ -12,6 +12,9 @@ from __future__ import annotations
 from typing import Any
 import pytest
 
+import sage.all  # to avoid cyclic import errors
+
+
 @pytest.fixture(autouse=True)
 def add_imports(doctest_namespace: dict[str, Any]):
     """

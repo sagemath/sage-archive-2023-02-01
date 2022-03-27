@@ -956,7 +956,14 @@ if [ "$1" = '-pytest' -o "$1" = '--pytest' ]; then
     shift
     if [ -n "$SAGE_SRC" -a -f "$SAGE_SRC/tox.ini" ]; then
         if command -v pytest >/dev/null ; then
-            exec pytest --rootdir="$SAGE_SRC" --import-mode importlib "$@"
+            # If no non-option arguments are given, provide one
+            for a in $*; do
+                case $a in
+                    -*) ;;
+                    *)  exec pytest --rootdir="$SAGE_SRC" --import-mode importlib "$@"
+                esac
+            done
+            exec pytest --rootdir="$SAGE_SRC" --import-mode importlib "$@" "$SAGE_SRC"
         else
             echo "Run 'sage -i pytest' to install"
         fi

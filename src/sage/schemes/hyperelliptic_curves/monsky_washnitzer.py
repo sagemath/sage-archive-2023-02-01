@@ -1953,13 +1953,13 @@ class SpecialHyperellipticQuotientElement(CommutativeAlgebraElement):
             sage: z = (x+y)**(-1) # indirect doctest
             Traceback (most recent call last):
             ...
-            ZeroDivisionError: Element not invertible
+            ZeroDivisionError: element not invertible
         """
         if self._f.degree() == 0 and self._f[0].is_unit():
             P = self.parent()
             return P.element_class(P, ~self._f[0])
         else:
-            raise ZeroDivisionError("Element not invertible")
+            raise ZeroDivisionError("element not invertible")
 
     def __bool__(self):
         """
@@ -2064,9 +2064,13 @@ class SpecialHyperellipticQuotientElement(CommutativeAlgebraElement):
             sage: x._rmul_(y)
             y*1*x
         """
-        coeffs = self._f.list(copy=False)
         P = self.parent()
-        return P.element_class(P, [c*a for a in coeffs], check=False)
+        if not c:
+            return P.zero()
+        ret = [c*a for a in self._f.list(copy=False)]
+        while ret and not ret[-1]:  # strip off trailing 0s
+            ret.pop()
+        return P.element_class(P, ret, check=False)
 
     def _lmul_(self, c):
         """
@@ -2080,9 +2084,13 @@ class SpecialHyperellipticQuotientElement(CommutativeAlgebraElement):
             sage: x._lmul_(y)
             y*1*x
         """
-        coeffs = self._f.list(copy=False)
         P = self.parent()
-        return P.element_class(P, [a*c for a in coeffs], check=False)
+        if not c:
+            return P.zero()
+        ret = [a*c for a in self._f.list(copy=False)]
+        while ret and not ret[-1]:  # strip off trailing 0s
+            ret.pop()
+        return P.element_class(P, ret, check=False)
 
     def __lshift__(self, k):
         """
@@ -2503,7 +2511,22 @@ class SpecialHyperellipticQuotientRing(UniqueRepresentation, CommutativeAlgebra)
             sage: x.parent().one()
             1
         """
-        return self.element_class(self, 1, check=False)
+        return self.element_class(self, self._poly_ring.one(), check=False)
+
+    @cached_method
+    def zero(self):
+        """
+        Return the zero of ``self``.
+
+        EXAMPLES::
+
+            sage: R.<x> = QQ['x']
+            sage: E = HyperellipticCurve(x^5-3*x+1)
+            sage: x,y = E.monsky_washnitzer_gens()
+            sage: x.parent().zero()
+            0
+        """
+        return self.element_class(self, self._poly_ring.zero(), check=False)
 
     def gens(self):
         """
@@ -3256,7 +3279,7 @@ class MonskyWashnitzerDifferential(ModuleElement):
         for j in range(self.max_pow_y(), 0, -1):
             for i in range(n - 1, -1, -1):
                 c = reduced.extract_pow_y(j)[i]
-                if c != 0:
+                if c:
                     g = S.monomial(0, j+1) if i == n-1 else S.monomial(i+1, j-1)
                     dg = g.diff()
                     denom = dg.extract_pow_y(j)[i]
@@ -3307,7 +3330,7 @@ class MonskyWashnitzerDifferential(ModuleElement):
             form = V(0)
             i = n - 1
             c = coeffs[j-offset][i]
-            if c != 0:
+            if c:
                 dg_coeffs = S.monomial_diff_coeffs(0, j+1)[0]
                 c /= dg_coeffs[i]
                 forms[len(forms)-2][0] = c
@@ -3320,7 +3343,7 @@ class MonskyWashnitzerDifferential(ModuleElement):
 
             for i in range(n-2, -1, -1):
                 c = coeffs[j-offset][i]
-                if c != 0:
+                if c:
                     dg_coeffs = S.monomial_diff_coeffs(i+1, j-1)
                     denom = dg_coeffs[1][i]
                     c /= denom
@@ -3364,7 +3387,7 @@ class MonskyWashnitzerDifferential(ModuleElement):
         f = f1 + f2
 
         c = a.extract_pow_y(0)[n - 1]
-        if c != 0:
+        if c:
             x, y = self.parent().base_ring().gens()
             g = y
             dg = g.diff()

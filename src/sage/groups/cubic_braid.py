@@ -887,7 +887,7 @@ class CubicBraidGroup(FinitelyPresentedGroup):
 
     def codegrees(self):
         """
-        Return the degrees of ``self``.
+        Return the codegrees of ``self``.
 
         This only makes sense when ``self`` is a finite reflection group.
 

@@ -216,7 +216,7 @@ class Subwords_w(Parent):
         """
         return (Subwords_w, (self._w, self._build))
 
-    def __repr__(self) -> str:
+    def _repr_(self) -> str:
         """
         TESTS::
 
@@ -372,14 +372,14 @@ class Subwords_wk(Subwords_w):
         """
         return (Subwords_wk, (self._w, self._k, self._build))
 
-    def __repr__(self) -> str:
+    def _repr_(self) -> str:
         """
         TESTS::
 
             sage: repr(Subwords([1,2,3],2))  # indirect doctest
             'Subwords of [1, 2, 3] of length 2'
         """
-        return "{} of length {}".format(Subwords_w.__repr__(self), self._k)
+        return "{} of length {}".format(Subwords_w._repr_(self), self._k)
 
     def __contains__(self, w) -> bool:
         """

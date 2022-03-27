@@ -3,7 +3,6 @@ Features for testing the presence of ``gfan``
 """
 
 from . import Executable
-from .join_feature import JoinFeature
 
 
 class GfanExecutable(Executable):

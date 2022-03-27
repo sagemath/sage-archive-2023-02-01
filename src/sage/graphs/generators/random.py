@@ -63,7 +63,7 @@ def RandomGNP(n, p, seed=None, fast=True, algorithm='Sage'):
 
         sage: set_random_seed(0)
         sage: graphs.RandomGNP(6, .4).edges(labels=False)
-        [(0, 1), (0, 5), (1, 2), (2, 4), (3, 4), (3, 5), (4, 5)]
+        [(0, 3), (1, 2), (2, 3), (2, 4)]
 
     We plot a random graph on 12 nodes with probability `p = .71`::
 
@@ -98,7 +98,7 @@ def RandomGNP(n, p, seed=None, fast=True, algorithm='Sage'):
         243
         sage: graphs.RandomGNP(50,.2, algorithm="networkx").size()
         260     # 32-bit
-        245     # 64-bit
+        209     # 64-bit
     """
     if n < 0:
         raise ValueError("The number of nodes must be positive or null.")

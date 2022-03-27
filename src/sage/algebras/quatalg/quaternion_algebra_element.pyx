@@ -331,7 +331,7 @@ cdef class QuaternionAlgebraElement_abstract(AlgebraElement):
             return Rational(self[0])
         raise TypeError
 
-    def __nonzero__(self):
+    def __bool__(self):
         """
         Return ``True`` if this quaternion is nonzero.
 
@@ -954,7 +954,7 @@ cdef class QuaternionAlgebraElement_rational_field(QuaternionAlgebraElement_abst
         """
         return not (mpz_sgn(self.y) or mpz_sgn(self.z) or mpz_sgn(self.w))
 
-    def __nonzero__(self):
+    def __bool__(self):
         """
         Return True if this quaternion is nonzero.
 

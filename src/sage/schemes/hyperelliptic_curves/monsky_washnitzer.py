@@ -2004,7 +2004,7 @@ class SpecialHyperellipticQuotientElement(CommutativeAlgebraElement):
             y*1 + x
         """
         P = self.parent()
-        return P.element_class(P,self._f + other._f)
+        return P.element_class(P, self._f + other._f)
 
     def _sub_(self, other):
         """
@@ -2019,7 +2019,7 @@ class SpecialHyperellipticQuotientElement(CommutativeAlgebraElement):
             y*1 - x
         """
         P = self.parent()
-        return P.element_class(P,self._f - other._f)
+        return P.element_class(P, self._f - other._f)
 
     def _mul_(self, other):
         """
@@ -2452,8 +2452,7 @@ class SpecialHyperellipticQuotientRing(UniqueRepresentation, CommutativeAlgebra)
         """
         if R.has_coerce_map_from(self.base_ring()):
             return self.change_ring(R)
-        else:
-            raise TypeError("no such base extension")
+        raise TypeError("no such base extension")
 
     def change_ring(self, R):
         r"""
@@ -2467,7 +2466,8 @@ class SpecialHyperellipticQuotientRing(UniqueRepresentation, CommutativeAlgebra)
             sage: x.parent().change_ring(ZZ)
             SpecialHyperellipticQuotientRing K[x,y,y^-1] / (y^2 = x^5 - 3*x + 1) over Integer Ring
         """
-        return self.element_class(self._Q, R, is_LaurentSeriesRing(self._series_ring))
+        return SpecialHyperellipticQuotientRing(self._Q.change_ring(R), R,
+            is_LaurentSeriesRing(self._series_ring))
 
     def _element_constructor_(self, val, offset=0, check=True):
         r"""
@@ -2564,15 +2564,16 @@ class SpecialHyperellipticQuotientRing(UniqueRepresentation, CommutativeAlgebra)
 
         if 0 < i and i < self._n:
             if b is None:
-                by_to_j = self._series_ring_y << (j-1)
+                by_to_j = self._series_ring_y << (j - 1)
             else:
                 by_to_j = self._series_ring(b) << j
             v = [self._series_ring_0] * self._n
             v[i] = by_to_j
             return self.element_class(self, v)
 
-        b = self.base_ring()(b)
-        return (self._x ** i) << j if b is None else b * (self._x ** i) << j
+        if b is not None:
+            b = self.base_ring()(b)
+        return (self._x**i) << j if b is None else b * (self._x**i) << j
 
     def monomial_diff_coeffs(self, i, j):
         r"""
@@ -3214,7 +3215,7 @@ class MonskyWashnitzerDifferential(ModuleElement):
                         v = coeffs[j-offset-1]
                         for kk in range(len(v)):
                             a = v[kk]
-                            ppow = S._p ** max(-a.valuation(S._p), 0)
+                            ppow = S._p**max(-a.valuation(S._p), 0)
                             v[kk] = ((a * ppow) % S._prec_cap) / ppow
                     except AttributeError:
                         pass
@@ -3223,7 +3224,7 @@ class MonskyWashnitzerDifferential(ModuleElement):
                 forms.append(j_inverse * lin_comb)
                 coeffs[j-offset+1] -= (d_mat_1 + j_inverse * d_mat_2) * lin_comb
 
-        f = S(forms, offset+1)
+        f = S(forms, offset + 1)
         reduced = S._monsky_washnitzer(coeffs[-1-offset:], -1)
 #        reduced = self - f.diff()
         return f, reduced
@@ -3253,7 +3254,7 @@ class MonskyWashnitzerDifferential(ModuleElement):
         f = S.zero()
         reduced = self
         for j in range(self.max_pow_y(), 0, -1):
-            for i in range(n-1, -1, -1):
+            for i in range(n - 1, -1, -1):
                 c = reduced.extract_pow_y(j)[i]
                 if c != 0:
                     g = S.monomial(0, j+1) if i == n-1 else S.monomial(i+1, j-1)
@@ -3299,14 +3300,14 @@ class MonskyWashnitzerDifferential(ModuleElement):
 
         for j in range(self.max_pow_y(), -1, -1):
 
-            if (even_degree_only and j % 2 == 1) or (j > 0 and coeffs[j-offset].is_zero()):
+            if (even_degree_only and j % 2) or (j > 0 and coeffs[j-offset].is_zero()):
                 forms.append(zeroV)
                 continue
 
             form = V(0)
             i = n - 1
             c = coeffs[j-offset][i]
-            if c:
+            if c != 0:
                 dg_coeffs = S.monomial_diff_coeffs(0, j+1)[0]
                 c /= dg_coeffs[i]
                 forms[len(forms)-2][0] = c
@@ -3319,7 +3320,7 @@ class MonskyWashnitzerDifferential(ModuleElement):
 
             for i in range(n-2, -1, -1):
                 c = coeffs[j-offset][i]
-                if c:
+                if c != 0:
                     dg_coeffs = S.monomial_diff_coeffs(i+1, j-1)
                     denom = dg_coeffs[1][i]
                     c /= denom
@@ -3362,12 +3363,12 @@ class MonskyWashnitzerDifferential(ModuleElement):
         f2, a = a.reduce_pos_y()
         f = f1 + f2
 
-        c = a.extract_pow_y(0)[n-1]
-        if c:
+        c = a.extract_pow_y(0)[n - 1]
+        if c != 0:
             x, y = self.parent().base_ring().gens()
             g = y
             dg = g.diff()
-            c = g.parent()(c/dg.extract_pow_y(0)[n-1])
+            c = g.parent()(c / dg.extract_pow_y(0)[n - 1])
             f += c * g
             a -= c * dg
 
@@ -3465,6 +3466,7 @@ class MonskyWashnitzerDifferential(ModuleElement):
         return self.parent().base_ring().curve().coleman_integral(self, P, Q)
 
     integrate = coleman_integral
+
 
 class MonskyWashnitzerDifferentialRing(UniqueRepresentation, Module):
     r"""
@@ -3621,7 +3623,7 @@ class MonskyWashnitzerDifferentialRing(UniqueRepresentation, Module):
             sage: MW.x_to_p(101) is MW.x_to_p(101)
             True
         """
-        return self.base_ring().x() ** p
+        return self.base_ring().x()**p
 
     @cached_method
     def frob_Q(self, p):
@@ -3832,6 +3834,5 @@ class MonskyWashnitzerDifferentialRing(UniqueRepresentation, Module):
 
     Element = MonskyWashnitzerDifferential
 
+
 MonskyWashnitzerDifferentialRing_class = MonskyWashnitzerDifferentialRing
-
-

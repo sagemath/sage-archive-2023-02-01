@@ -12,7 +12,7 @@ from __future__ import annotations
 from typing import Any
 import pytest
 
-import sage.all  # to avoid cyclic import errors
+import sage.all  # type: ignore  # to avoid cyclic import errors, see Trac #33580
 
 
 @pytest.fixture(autouse=True)

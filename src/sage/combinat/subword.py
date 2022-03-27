@@ -23,16 +23,15 @@ For example:
 
 A word can be given either as a string, as a list or as a tuple.
 
-
-As repetition can occur in the initial word, the subwords of a given word is
-not a set in general but an enumerated multiset!
+As repetition can occur in the initial word, in general subwords
+of a given word form an enumerated multiset rather than a set!
 
 .. TODO::
 
     - implement subwords with repetitions
 
     - implement the category of ``EnumeratedMultiset`` and inheritate from
-      when needed (i.e. the initial word has repeated letters)
+      it when needed (i.e. the initial word has repeated letters)
 
 AUTHORS:
 

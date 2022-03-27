@@ -1075,6 +1075,13 @@ class PolynomialQuotientRing_generic(CommutativeRing):
             sage: U = R.quotient(-1)
             sage: U.is_integral_domain()
             False
+            sage: R2.<y> = PolynomialRing(R)
+            sage: S2 = R2.quotient(z^2 - y^3)
+            sage: S2.is_integral_domain()
+            True
+            sage: S3 = R2.quotient(z^2 - 2*y*z + y^2)
+            sage: S3.is_integral_domain()
+            False
 
             sage: R.<z> = PolynomialRing(ZZ.quotient(4))
             sage: S = R.quotient(z-1)

@@ -35,14 +35,17 @@ cdef class ParentWithBase(Parent_old):
         self._base = base
 
     cdef _coerce_c_impl(self,x):
-       check_old_coerce(self)
-       if not self._base is self:
-           return self(self._base._coerce_(x))
-       else:
-           raise TypeError("No canonical coercion found.")
+        check_old_coerce(self)
+        from sage.misc.superseded import deprecation
+        deprecation(33497, "_coerce_c_impl is deprecated, use coerce instead")
+        if not self._base is self:
+            return self(self._base._coerce_(x))
+        else:
+            raise TypeError("No canonical coercion found.")
 
     # Derived class *must* define base_extend.
     def base_extend(self, X):
         check_old_coerce(self)
         raise CoercionException("BUG: the base_extend method must be defined for '%s' (class '%s')" %
                                 (self, type(self)))
+

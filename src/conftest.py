@@ -12,6 +12,9 @@ from __future__ import annotations
 from typing import Any
 import pytest
 
+import sage.all  # to avoid cyclic import errors
+
+
 # Ignore a few test files that are (not yet) using pytest
 collect_ignore = [
     "sage/misc/nested_class_test.py",

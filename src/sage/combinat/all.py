@@ -53,11 +53,11 @@ from . import quickref, tutorial
 from sage.misc.lazy_import import lazy_import
 
 from .combinat import bell_number, catalan_number, euler_number, fibonacci, \
-        lucas_number1, lucas_number2, stirling_number1, stirling_number2, \
-        polygonal_number, CombinatorialObject, CombinatorialClass, \
-        MapCombinatorialClass, \
-        tuples, number_of_tuples, unordered_tuples, number_of_unordered_tuples, \
-        bell_polynomial, fibonacci_sequence, fibonacci_xrange, bernoulli_polynomial
+    lucas_number1, lucas_number2, stirling_number1, stirling_number2, \
+    polygonal_number, CombinatorialObject, CombinatorialClass, \
+    MapCombinatorialClass, \
+    tuples, number_of_tuples, unordered_tuples, number_of_unordered_tuples, \
+    bell_polynomial, fibonacci_sequence, fibonacci_xrange, bernoulli_polynomial
 
 lazy_import('sage.combinat.combinat',
             ('InfiniteAbstractCombinatorialClass', 'UnionCombinatorialClass',
@@ -113,8 +113,8 @@ from .composition_signed import SignedCompositions
 
 #Partitions
 from .partition import Partition, Partitions, PartitionsInBox,\
-     OrderedPartitions, PartitionsGreatestLE, PartitionsGreatestEQ,\
-     number_of_partitions
+    OrderedPartitions, PartitionsGreatestLE, PartitionsGreatestEQ,\
+    number_of_partitions
 
 lazy_import('sage.combinat.partition_tuple', ['PartitionTuple', 'PartitionTuples'])
 lazy_import('sage.combinat.partition_kleshchev', ['KleshchevPartitions'])
@@ -143,15 +143,17 @@ from .similarity_class_type import PrimarySimilarityClassType, PrimarySimilarity
 from .core import Core, Cores
 
 #Tableaux
-lazy_import('sage.combinat.tableau',["Tableau", "SemistandardTableau", "StandardTableau", "RowStandardTableau", "IncreasingTableau",
-                                     "Tableaux","SemistandardTableaux","StandardTableaux","RowStandardTableaux", "IncreasingTableaux"])
+lazy_import('sage.combinat.tableau',
+            ["Tableau", "SemistandardTableau", "StandardTableau", "RowStandardTableau", "IncreasingTableau",
+             "Tableaux", "SemistandardTableaux", "StandardTableaux", "RowStandardTableaux", "IncreasingTableaux"])
 from .skew_tableau import SkewTableau, SkewTableaux, StandardSkewTableaux, SemistandardSkewTableaux
 from .ribbon_shaped_tableau import RibbonShapedTableau, RibbonShapedTableaux, StandardRibbonShapedTableaux
 from .ribbon_tableau import RibbonTableaux, RibbonTableau, MultiSkewTableaux, MultiSkewTableau, SemistandardMultiSkewTableaux
 from .composition_tableau import CompositionTableau, CompositionTableaux
 
-lazy_import('sage.combinat.tableau_tuple',['TableauTuple', 'StandardTableauTuple', 'RowStandardTableauTuple',
-                                           'TableauTuples', 'StandardTableauTuples', 'RowStandardTableauTuples'])
+lazy_import('sage.combinat.tableau_tuple',
+            ['TableauTuple', 'StandardTableauTuple', 'RowStandardTableauTuple',
+             'TableauTuples', 'StandardTableauTuples', 'RowStandardTableauTuples'])
 from .k_tableau import WeakTableau, WeakTableaux, StrongTableau, StrongTableaux
 lazy_import('sage.combinat.lr_tableau', ['LittlewoodRichardsonTableau',
                                          'LittlewoodRichardsonTableaux'])
@@ -159,12 +161,13 @@ lazy_import('sage.combinat.shifted_primed_tableau', ['ShiftedPrimedTableaux',
                                                      'ShiftedPrimedTableau'])
 
 #SuperTableaux
-lazy_import('sage.combinat.super_tableau',["StandardSuperTableau", "SemistandardSuperTableau", "StandardSuperTableaux", "SemistandardSuperTableaux"])
+lazy_import('sage.combinat.super_tableau',
+            ["StandardSuperTableau", "SemistandardSuperTableau", "StandardSuperTableaux", "SemistandardSuperTableaux"])
 
 #Words
 from .words.all import *
 
-from .subword import Subwords
+lazy_import('sage.combinat.subword', 'Subwords')
 
 from .graph_path import GraphPaths
 

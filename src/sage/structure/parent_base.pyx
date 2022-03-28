@@ -19,13 +19,6 @@ cdef inline check_old_coerce(parent.Parent p):
         raise RuntimeError("%s still using old coercion framework" % p)
 
 
-def is_ParentWithBase(x):
-    """
-    Return True if x is a parent object with base.
-    """
-    return isinstance(x, ParentWithBase)
-
-
 cdef class ParentWithBase(Parent_old):
     """
     This class is being deprecated, see parent.Parent for the new model.

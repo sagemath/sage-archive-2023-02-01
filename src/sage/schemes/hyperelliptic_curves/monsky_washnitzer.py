@@ -3111,10 +3111,8 @@ class MonskyWashnitzerDifferential(ModuleElement):
         R = S.base_ring()
         M = self.parent().helper_matrix()
         p = S._p
-        n = S.degree()
         f = S.zero()
         reduced = self
-        br_zero = S.zero()
         for j in range(self.min_pow_y()+1, 0):
             if p is not None and p.divides(j):
                 cs = [a/j for a in reduced.extract_pow_y(j-1)]

@@ -49,8 +49,6 @@ This is split into several modules, organized as follows:
 #                  https://www.gnu.org/licenses/
 # ****************************************************************************
 
-from sage.cpython.string import bytes_to_str
-
 from sage.misc.cachefunc import cached_method
 
 from sage.rings.integer_ring import ZZ

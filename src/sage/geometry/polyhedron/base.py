@@ -1,5 +1,24 @@
 r"""
 Base class for polyhedra
+
+This is split into several modules, organized as follows:
+
+- :mod:`~sage.geometry.polyhedron.base0` -- basic initialization etc.
+
+- :mod:`~sage.geometry.polyhedron.base1` -- methods defined by the
+                                            :class:`~sage.geometry.convex_set.ConvexSet_base` API
+
+- :mod:`~sage.geometry.polyhedron.base2` -- lattice points
+
+- :mod:`~sage.geometry.polyhedron.base3` -- combinatorial methods
+
+- :mod:`~sage.geometry.polyhedron.base4` -- methods relying on graphs
+
+- :mod:`~sage.geometry.polyhedron.base5` -- constructions of new polyhedra
+
+- :mod:`~sage.geometry.polyhedron.base6` -- plotting and affine projection
+
+- :mod:`~sage.geometry.polyhedron.base7` -- triangulation and volume
 """
 
 # ****************************************************************************

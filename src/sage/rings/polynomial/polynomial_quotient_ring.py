@@ -1088,7 +1088,7 @@ class PolynomialQuotientRing_generic(CommutativeRing):
             sage: S.is_integral_domain()
             False
 
-        TESTS::
+        TESTS:
 
         Here is an example of a quotient ring which is not an integral
         domain, even though the base ring is integral and the modulus is
@@ -1112,7 +1112,7 @@ class PolynomialQuotientRing_generic(CommutativeRing):
         that the modulus is irreducible.
         """
         from sage.categories.all import IntegralDomains
-        if IntegralDomains() in self.categories():
+        if self.category().is_subcategory(IntegralDomains()):
             return True
         ret = self.base_ring().is_integral_domain(proof)
         if ret:
@@ -1125,7 +1125,7 @@ class PolynomialQuotientRing_generic(CommutativeRing):
                     ret = False
                 else:
                     from sage.categories.gcd_domains import GcdDomains
-                    if self.base_ring() in GcdDomains:
+                    if self.base_ring() in GcdDomains():
                         # if the base ring is a GCD domain, the conditions are sufficient
                         ret = True
                     else:

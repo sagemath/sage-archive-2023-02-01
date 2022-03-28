@@ -15,6 +15,7 @@
             "request": "launch",
             "program": "${workspaceFolder}/src/bin/sage-runtests",
             "args": [
+                "--verbose",
                 "${file}"
             ],
             "console": "integratedTerminal",

@@ -11,6 +11,8 @@ AUTHORS:
 - Ryan W. Hinton (2010-03-04): overrides for adding and deleting vertices
   and edges
 
+- Enjeck M. Cleopatra (2022)
+
 TESTS::
 
     sage: B = graphs.CompleteBipartiteGraph(7, 9)
@@ -29,6 +31,7 @@ TESTS::
 #*****************************************************************************
 #         Copyright (C) 2008 Robert L. Miller <rlmillster@gmail.com>
 #                       2018 Julian Rüth <julian.rueth@fsfe.org>
+#                       2022 Enjeck M. Cleopatra <enjeckc1e0@gmail.com>
 #
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -72,6 +75,8 @@ class BipartiteGraph(Graph):
 
          The alist file format is described at
          http://www.inference.phy.cam.ac.uk/mackay/codes/alist.html
+
+      #. A ``graph6`` string (see documentation of :meth:`~graph6_string`).
 
       #. From a NetworkX bipartite graph.
 
@@ -252,6 +257,16 @@ class BipartiteGraph(Graph):
          sage: B = BipartiteGraph(file_name)
          sage: B.is_isomorphic(H)
          True
+    
+    #. From a ``graph6`` string::
+
+         sage: B = BipartiteGraph('Bo')
+         sage: B
+         Bipartite graph on 3 vertices
+         sage: B.left
+         {0}
+         sage: B.right
+         {1, 2}
 
     #. From a NetworkX bipartite graph::
 
@@ -366,11 +381,42 @@ class BipartiteGraph(Graph):
             self.left = set(data.left)
             self.right = set(data.right)
         elif isinstance(data, str):
-            Graph.__init__(self, *args, **kwds)
+            txt_file = data.endswith('.txt')
+            Graph.__init__(self, data=None if txt_file else data, *args, **kwds)
             # will call self.load_afile after restoring add_vertex() instance
             # methods; initialize left and right attributes
             self.left = set()
             self.right = set()
+
+            # determine partitions and populate self.left and self.right
+            if not txt_file:
+                if partition is not None:
+                    left, right = set(partition[0]), set(partition[1])
+                    
+                # Some error checking.
+                    if left & right:
+                        raise ValueError("the parts are not disjoint")
+                    if len(left) + len(right) != self.num_verts():
+                        raise ValueError("not all vertices appear in partition")
+
+                    if check:
+                        if (any(left.intersection(self.neighbor_iterator(a)) for a in left) or
+                            any(right.intersection(self.neighbor_iterator(a)) for a in right)):
+                            raise TypeError("input graph is not bipartite with "
+                                            "respect to the given partition")
+                    else:
+                        for a in left:
+                            a_nbrs = left.intersection(data.neighbor_iterator(a))
+                            if a_nbrs:
+                                self.delete_edges((a, b) for b in a_nbrs)
+                        for a in right:
+                            a_nbrs = right.intersection(data.neighbor_iterator(a))
+                            if a_nbrs:
+                                self.delete_edges((a, b) for b in a_nbrs)
+                    self.left, self.right = left, right
+                else:
+                    # Automatically get partitions if not provided
+                    self._upgrade_from_graph()
         elif is_Matrix(data):
             # sanity check for mutually exclusive keywords
             if kwds.get("multiedges", False) and kwds.get("weighted", False):
@@ -462,7 +508,8 @@ class BipartiteGraph(Graph):
 
         # post-processing
         if isinstance(data, str):
-            self.load_afile(data)
+            if data.endswith('.txt'):
+                self.load_afile(data)
 
         return
 

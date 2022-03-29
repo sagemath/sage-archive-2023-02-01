@@ -50,12 +50,6 @@ Another colored example::
     sage: P = ParametricSurface(g, (srange(-10,10,0.1), srange(-5,5.0,0.1)), color=(c,colm))
     sage: P.show(viewer='tachyon')
 
-.. WARNING::
-
-    This kind of coloring using a colormap can be visualized using
-    Jmol, Tachyon (option ``viewer='tachyon'``) and Canvas3D
-    (option ``viewer='canvas3d'`` in the notebook).
-
 .. NOTE::
 
     One may override ``eval()`` or ``eval_c()`` in a subclass

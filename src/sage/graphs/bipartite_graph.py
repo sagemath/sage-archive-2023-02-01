@@ -268,6 +268,39 @@ class BipartiteGraph(Graph):
          sage: B.right
          {1, 2}
 
+       ::
+
+         sage: B = BipartiteGraph('F?^T_\n', format='graph6')
+         sage: B.vertices()
+         [0, 1, 2, 3, 4, 5, 6]
+         sage: B.edges()
+         [(0, 5, None), (0, 6, None), (1, 4, None), (1, 5, None), (2, 4, None),
+          (2, 6, None), (3, 4, None), (3, 5, None), (3, 6, None)]
+         sage: B.left
+         {0, 1, 2, 3}
+         sage: B.right
+         {4, 5, 6}
+        
+       ::
+         sage: B = BipartiteGraph('Bo', partition=[[0], [1, 2]])
+         sage: B.left
+         {0}
+         sage: B.right
+         {1, 2}
+        
+       ::
+
+         sage: B = BipartiteGraph('F?^T_\n', partition=[[0, 1, 2], [3, 4, 5, 6]])
+         Traceback (most recent call last):
+         ...
+         TypeError: input graph is not bipartite with respect to the given partition
+
+         B = BipartiteGraph('F?^T_\n', partition=[[0, 1, 2], [3, 4, 5, 6]], 
+                            check=False)
+         sage: B.left
+         {0, 1, 2}
+         sage: B.show()
+
     #. From a NetworkX bipartite graph::
 
         sage: import networkx
@@ -374,6 +407,7 @@ class BipartiteGraph(Graph):
         self.add_vertices = MethodType(Graph.add_vertices, self)
         self.add_edge = MethodType(Graph.add_edge, self)
         self.add_edges = MethodType(Graph.add_edges, self)
+        alist_file = True
 
         from sage.structure.element import is_Matrix
         if isinstance(data, BipartiteGraph):
@@ -381,15 +415,19 @@ class BipartiteGraph(Graph):
             self.left = set(data.left)
             self.right = set(data.right)
         elif isinstance(data, str):
-            txt_file = data.endswith('.txt')
-            Graph.__init__(self, data=None if txt_file else data, *args, **kwds)
-            # will call self.load_afile after restoring add_vertex() instance
+            try:
+                fi = open(data, "r")
+                fi.close()
+            except IOError:
+                alist_file = False
+            Graph.__init__(self, data=None if alist_file else data, *args, **kwds)
+
             # methods; initialize left and right attributes
             self.left = set()
             self.right = set()
-
+        
             # determine partitions and populate self.left and self.right
-            if not txt_file:
+            if not alist_file:
                 if partition is not None:
                     left, right = set(partition[0]), set(partition[1])
                     
@@ -406,11 +444,11 @@ class BipartiteGraph(Graph):
                                             "respect to the given partition")
                     else:
                         for a in left:
-                            a_nbrs = left.intersection(data.neighbor_iterator(a))
+                            a_nbrs = left.intersection(self.neighbor_iterator(a))
                             if a_nbrs:
                                 self.delete_edges((a, b) for b in a_nbrs)
                         for a in right:
-                            a_nbrs = right.intersection(data.neighbor_iterator(a))
+                            a_nbrs = right.intersection(self.neighbor_iterator(a))
                             if a_nbrs:
                                 self.delete_edges((a, b) for b in a_nbrs)
                     self.left, self.right = left, right
@@ -508,7 +546,7 @@ class BipartiteGraph(Graph):
 
         # post-processing
         if isinstance(data, str):
-            if data.endswith('.txt'):
+            if alist_file:
                 self.load_afile(data)
 
         return
@@ -1484,11 +1522,7 @@ class BipartiteGraph(Graph):
              True
         """
         # open the file
-        try:
-            fi = open(fname, "r")
-        except IOError:
-            print("unable to open file <<" + fname + ">>")
-            return None
+        fi = open(fname, "r")
 
         # read header information
         num_cols, num_rows = [int(_) for _ in fi.readline().split()]

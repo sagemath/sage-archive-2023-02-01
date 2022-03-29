@@ -4,13 +4,14 @@
 
 This file configures pytest and provides some global fixtures.
 See https://docs.pytest.org/en/latest/index.html for more details.
-
-At the moment, Sage is not yet using any tests based on pytest.
 """
 
 from __future__ import annotations
 from typing import Any
 import pytest
+
+import sage.all  # type: ignore  # to avoid cyclic import errors, see Trac #33580
+
 
 # Ignore a few test files that are (not yet) using pytest
 collect_ignore = [

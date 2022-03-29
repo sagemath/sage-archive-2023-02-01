@@ -1631,7 +1631,6 @@ class CartanType_crystallographic(CartanType_abstract):
         from sage.combinat.root_system.cartan_matrix import CartanMatrix
         return CartanMatrix(self.dynkin_diagram())
 
-    @cached_method
     def coxeter_diagram(self):
         """
         Return the Coxeter diagram for ``self``.
@@ -1655,19 +1654,7 @@ class CartanType_crystallographic(CartanType_abstract):
             sage: CartanType(['A',2,2]).coxeter_diagram().edges()
             [(0, 1, +Infinity)]
         """
-        from sage.rings.infinity import infinity
-        scalarproducts_to_order = { 0: 2,  1: 3,  2: 4,  3: 6, 4: infinity }
-        from sage.graphs.graph import Graph
-        coxeter_diagram = Graph(multiedges=False)
-        a = self.dynkin_diagram()
-        I = self.index_set()
-        coxeter_diagram.add_vertices(I)
-        for i in I:
-            for j in a.neighbors_out(i):
-                # avoid adding the edge twice
-                if not coxeter_diagram.has_edge(i,j):
-                    coxeter_diagram.add_edge(i,j, scalarproducts_to_order[a[i,j]*a[j,i]])
-        return coxeter_diagram
+        return self.dynkin_diagram().coxeter_diagram()
 
     def is_crystallographic(self):
         """

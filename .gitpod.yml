@@ -76,8 +76,10 @@ tasks:
       ln -s $(pwd) $HOME/sage
     init: |
       # Setup trac repo
-      git remote add trac git@trac.sagemath.org:sage.git -t master
+      git remote add trac git@trac.sagemath.org:sage.git -t master -t develop -t $(git branch --show-current)
       git remote set-url --push trac git@trac.sagemath.org:sage.git
+      git fetch trac
+      git branch -u trac/$(git branch --show-current)
 
       # Start build
       mkdir -p logs && echo '### .gitpod.yml Setup.init: Starting build' >> logs/install.log

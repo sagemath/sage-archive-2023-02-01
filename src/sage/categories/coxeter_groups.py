@@ -1301,11 +1301,10 @@ class CoxeterGroups(Category_singleton):
             one = self.one()
             for si in s:
                 tester.assertEqual(si**2, one)
-            n = len(s)
             cox_mat = self.coxeter_matrix()
             I = cox_mat.index_set()
-            for ii,i in enumerate(I):
-                for j in I[ii+1:]:
+            for ii, i in enumerate(I):
+                for j in I[ii + 1:]:
                     mij = cox_mat[i, j]
                     if mij == -1:  # -1 stands for infinity
                         continue

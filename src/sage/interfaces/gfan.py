@@ -49,7 +49,7 @@ class Gfan(object):
     """
     Interface to Anders Jensen's Groebner Fan program.
     """
-    def __call__(self, I, cmd='', verbose=False, format=True):
+    def __call__(self, I, cmd='', verbose=False, format=None):
         r"""
         Call Groebner Fan program with given input
 
@@ -58,7 +58,6 @@ class Gfan(object):
         - ``I`` -- string, input
         - ``cmd`` -- string (default:``''``), GFan command
         - ``verbose`` -- bool (default:``False``)
-        - ``format`` -- bool (default:``True``)
 
         EXAMPLES::
 
@@ -83,6 +82,13 @@ class Gfan(object):
             }
 
         """
+        if not format is None:
+            from sage.misc.superseded import deprecation
+            deprecation(33468, 'argument `format` is ignored in the code '
+                    ': it is now deprecated. Please update your code '
+                    'without this argument as it will be removed in a later '
+                    'version of SageMath.')
+
         if cmd:
             cmd = cmd.split(' ')
             cmd[0] = GfanExecutable(cmd[0]).absolute_filename()

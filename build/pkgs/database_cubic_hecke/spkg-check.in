@@ -1,0 +1,5 @@
+cd $SAGE_ROOT/src/sage/
+
+FILES="databases/ features/ algebras/hecke_algebras/"
+echo "Testing: "$FILES
+sage -tp --long --optional="sage,database_cubic_hecke" $FILES  || sdh_die "Error testing cubic Hecke algebra database"

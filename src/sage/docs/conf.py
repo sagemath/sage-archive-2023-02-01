@@ -1,7 +1,8 @@
 import sys
 import os
 import sphinx
-from sage.env import SAGE_DOC_SRC, SAGE_DOC, SAGE_SRC, THEBE_DIR, PPLPY_DOCS, MATHJAX_DIR
+from sage.env import SAGE_DOC_SRC, SAGE_DOC, THEBE_DIR, PPLPY_DOCS, MATHJAX_DIR
+from sage.misc.latex_macros import sage_mathjax_macros
 import sage.version
 from sage.misc.sagedoc import extlinks
 import dateutil.parser
@@ -12,18 +13,24 @@ from sphinx import highlighting
 import sphinx.ext.intersphinx as intersphinx
 from IPython.lib.lexers import IPythonConsoleLexer, IPyLexer
 
+
 # General configuration
 # ---------------------
 
 # Add any Sphinx extension module names here, as strings. They can be extensions
 # coming with Sphinx (named 'sphinx.ext.*') or your custom ones.
-extensions = ['sage_docbuild.ext.inventory_builder',
-              'sage_docbuild.ext.multidocs',
-              'sage_docbuild.ext.sage_autodoc',
-              'sphinx.ext.todo',
-              'sphinx.ext.extlinks',
-              'IPython.sphinxext.ipython_directive',
-              'matplotlib.sphinxext.plot_directive']
+extensions = [
+    "sage_docbuild.ext.inventory_builder",
+    "sage_docbuild.ext.multidocs",
+    "sage_docbuild.ext.sage_autodoc",
+    "sphinx.ext.todo",
+    "sphinx.ext.extlinks",
+    # Mathjax integration
+    # https://www.sphinx-doc.org/en/master/usage/extensions/math.html#module-sphinx.ext.mathjax
+    "sphinx.ext.mathjax",
+    "IPython.sphinxext.ipython_directive",
+    "matplotlib.sphinxext.plot_directive",
+]
 
 # This code is executed before each ".. PLOT::" directive in the Sphinx
 # documentation. It defines a 'sphinx_plot' function that displays a Sage object
@@ -241,12 +248,12 @@ html_favicon = 'favicon.ico'
 html_common_static_path = [os.path.join(SAGE_DOC_SRC, 'common', 'static'),
                            THEBE_DIR, 'static']
 
-# We use MathJax to build the documentation.
-extensions.append('sphinx.ext.mathjax')
-mathjax_path = 'MathJax.js?config=TeX-AMS_HTML-full,../mathjax_sage.js'
-
-from sage.misc.latex_macros import sage_mathjax_macros
-html_theme_options['mathjax_macros'] = sage_mathjax_macros()
+# Configure MathJax
+mathjax3_config = {
+    "tex": {
+        "macros": sage_mathjax_macros()
+    }
+}
 
 mathjax_relative = os.path.basename(MATHJAX_DIR)
 

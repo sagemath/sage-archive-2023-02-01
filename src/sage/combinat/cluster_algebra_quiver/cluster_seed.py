@@ -2456,7 +2456,7 @@ class ClusterSeed(SageObject):
                         sequence = sequence + "_" + j
 
         # If we get a function, execute it
-        if hasattr(sequence, '__call__'):
+        if callable(sequence):
             # function should return either integer or sequence
             sequence = sequence(seed)
 
@@ -3224,11 +3224,11 @@ class ClusterSeed(SageObject):
                                  for x in cluster][0:self._n]
                 self._is_principal = None
         else:
-             print("Warning: clusters not being tracked so this command is ignored.")
+            print("Warning: clusters not being tracked so this command is ignored.")
 
-    def reset_cluster( self ):
+    def reset_cluster(self):
         r"""
-        Resets the cluster of ``self`` to the initial cluster.
+        Reset the cluster of ``self`` to the initial cluster.
 
         EXAMPLES::
 

@@ -1858,8 +1858,8 @@ cdef class NumberFieldElement(FieldElement):
             sage: CBF(a)
             [0.9947502791976272 +/- 1.09e-17] + [0.4790464865132800 +/- 1.46e-17]*I
             sage: NF.<a> = NumberField(x^7 + 2, embedding=QQbar(-2)^(1/7))
-            sage: CBF(a)
-            [0.9947502791976272 +/- 1.09e-17] + [0.4790464865132800 +/- 1.46e-17]*I
+            sage: CBF(a) # abs tol 1e-17
+            [0.9947502791976272 +/- 7.49e-18] + [0.4790464865132800 +/- 1.29e-17]*I
             sage: NF.<a> = NumberField(x^7 + 2)
             sage: CBF(NF(3))
             3.000000000000000
@@ -3785,17 +3785,15 @@ cdef class NumberFieldElement(FieldElement):
 
     def valuation(self, P):
         """
-        Returns the valuation of self at a given prime ideal P.
+        Return the valuation of ``self`` at a given prime ideal ``P``.
 
         INPUT:
 
-
-        -  ``P`` - a prime ideal of the parent of self
-
+        -  ``P`` -- a prime ideal of the parent of ``self``
 
         .. NOTE::
 
-           The function ``ord()`` is an alias for ``valuation()``.
+            The function ``ord()`` is an alias for ``valuation()``.
 
         EXAMPLES::
 
@@ -3817,6 +3815,28 @@ cdef class NumberFieldElement(FieldElement):
             [4]
             sage: [L(6).valuation(P) for P in L.primes_above(3)]
             [2, 2]
+
+        TESTS:
+
+        Some checks for :trac:`29215`::
+
+            sage: K = QuadraticField(-5)
+            sage: v = QuadraticField(3).ideal(5)
+            sage: K(33).valuation(v)
+            Traceback (most recent call last):
+            ...
+            ValueError: P must be an ideal in the same number field
+
+            sage: K(33).valuation(5)
+            Traceback (most recent call last):
+            ...
+            TypeError: P must be an ideal
+
+            sage: w = K.ideal(5)
+            sage: K(33).valuation(w)
+            Traceback (most recent call last):
+            ...
+            ValueError: P must be prime
         """
         from .number_field_ideal import is_NumberFieldIdeal
         if not is_NumberFieldIdeal(P):
@@ -3824,6 +3844,8 @@ cdef class NumberFieldElement(FieldElement):
                 P = self.number_field().fractional_ideal(P)
             else:
                 raise TypeError("P must be an ideal")
+        if P.number_field() != self.number_field():
+            raise ValueError("P must be an ideal in the same number field")
         if not P.is_prime():
             raise ValueError("P must be prime")
         if self == 0:
@@ -4416,7 +4438,7 @@ cdef class NumberFieldElement(FieldElement):
             sage: K.<zeta> = CyclotomicField(8)
             sage: K(1).descend_mod_power(QQ,2)
             [1, 2, -1, -2]
-            sage: a = 17*K.random_element()^2
+            sage: a = 17 * K._random_nonzero_element()^2
             sage: a.descend_mod_power(QQ,2)
             [17, 34, -17, -34]
         """

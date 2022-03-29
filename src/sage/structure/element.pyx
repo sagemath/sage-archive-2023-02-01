@@ -813,7 +813,7 @@ cdef class Element(SageObject):
             sage: Integer(5).subs(x=4)
             5
         """
-        if not hasattr(self, '__call__'):
+        if not callable(self):
             return self
         parent = self._parent
         try:
@@ -1684,7 +1684,8 @@ cdef class Element(SageObject):
             2/3
             sage: operator.truediv(pi, 3)
             1/3*pi
-            sage: K.<i> = NumberField(x^2+1)
+            sage: x = polygen(QQ, 'x')
+            sage: K.<i> = NumberField(x^2 + 1)
             sage: operator.truediv(2, K.ideal(i+1))
             Fractional ideal (-i + 1)
 
@@ -2549,9 +2550,9 @@ cdef class MonoidElement(Element):
 
         EXAMPLES::
 
-            sage: G = SymmetricGroup(4)
-            sage: g = G([2, 3, 4, 1])
-            sage: g.powers(4)
+            sage: G = SymmetricGroup(4)                                 # optional - sage.groups
+            sage: g = G([2, 3, 4, 1])                                   # optional - sage.groups
+            sage: g.powers(4)                                           # optional - sage.groups
             [(), (1,2,3,4), (1,3)(2,4), (1,4,3,2)]
         """
         if n < 0:

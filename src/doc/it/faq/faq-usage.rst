@@ -590,8 +590,7 @@ Tuttavia, nota che il metodo più diretto::
 produce il grafico corretto solo per valori di `x` positivi. La
 *ragione* per cui ciò avviene è che Sage restituisce dei numeri
 complessi per le radici dispari di numeri negativi, quando queste sono
-approssimate, il che è una `convenzione standard
-<https://en.wikipedia.org/wiki/Cube_root#Complex_numbers>`_::
+approssimate, il che è una :wikipedia:`convenzione standard <Cube_root#Complex_numbers>`::
 
     sage: numerical_approx( (-1)^(1/3) )
     0.500000000000000 + 0.866025403784439*I
@@ -686,13 +685,6 @@ come questo.
 
     $ BROWSER='open -a Firefox %s' ./sage --notebook jupyter
     $ BROWSER='open -a Google\ Chrome %s' ./sage --notebook jupyter
-
-  Con il vecchio notebook SageNB:
-
-  .. CODE-BLOCK:: shell-session
-
-    $ BROWSER='open -a Firefox' ./sage --notebook
-    $ BROWSER='open -a Google\ Chrome' ./sage --notebook
 
 
 Dov'è il codice sorgente di ``<function>``?

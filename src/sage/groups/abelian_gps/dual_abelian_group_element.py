@@ -205,7 +205,7 @@ class DualAbelianGroupElement(AbelianGroupElementBase):
         ## First convert the problem to one using AbelianGroups
         import copy
         from sage.groups.abelian_gps.abelian_group import AbelianGroup
-        from sage.interfaces.all import gap
+        from sage.interfaces.gap import gap
         M = self.parent()
         G = M.group()
         gens = M.variable_names()
@@ -214,9 +214,9 @@ class DualAbelianGroupElement(AbelianGroupElementBase):
         s1 = "gens := GeneratorsOfGroup(%s)"%G._gap_init_()
         gap.eval(s1)
         for i in range(len(gens)):
-           cmd = ("%s := gens["+str(i+1)+"]")%gens[i]
-           gap.eval(cmd)
-        s2 = "g0:=%s; gensH:=%s"%(str(g),words)
+            cmd = ("%s := gens["+str(i+1)+"]") % gens[i]
+            gap.eval(cmd)
+        s2 = "g0:=%s; gensH:=%s" % (str(g), words)
         gap.eval(s2)
         s3 = 'G:=Group(gens); H:=Group(gensH)'
         gap.eval(s3)

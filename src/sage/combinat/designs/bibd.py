@@ -52,10 +52,11 @@ Functions
 
 from sage.categories.sets_cat import EmptySetError
 from sage.misc.unknown import Unknown
-from .design_catalog import transversal_design
+from .design_catalog import transversal_design  # type: ignore
 from sage.arith.all import binomial, is_prime_power
 from .group_divisible_designs import GroupDivisibleDesign
 from .designs_pyx import is_pairwise_balanced_design
+
 
 def biplane(n, existence=False):
     r"""
@@ -721,10 +722,10 @@ def BIBD_from_difference_family(G, D, lambd=None, check=True):
     identity, mul, inv = group_law(G)
     bibd = []
     Gset = set(G)
-    p_to_i = {g:i for i,g in enumerate(Gset)}
+    p_to_i = {g: i for i, g in enumerate(Gset)}
     for b in D:
-        b = [G(_) for _ in b]
-        S = block_stabilizer(G,b)
+        b = [G(w) for w in b]
+        S = block_stabilizer(G, b)
         GG = Gset.copy()
         while GG:
             g = GG.pop()

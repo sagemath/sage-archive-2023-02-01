@@ -85,6 +85,8 @@ pypi-sdists: sage_setup
 	./sage --sh build/pkgs/sage_docbuild/spkg-src
 	./sage --sh build/pkgs/sage_setup/spkg-src
 	./sage --sh build/pkgs/sagelib/spkg-src
+	./sage --sh build/pkgs/sagemath_objects/spkg-src
+	./sage --sh build/pkgs/sagemath_categories/spkg-src
 	@echo "Built sdists are in upstream/"
 
 # ssl: build Sage, and also install pyOpenSSL. This is necessary for
@@ -192,7 +194,6 @@ micro_release:
 	@echo "Removing documentation. Inspection in IPython still works."
 	rm -rf local/share/doc local/share/*/doc local/share/*/examples local/share/singular/html
 	@echo "Removing unnecessary files & directories - make will not be functional afterwards anymore"
-	@# We need src/doc/common, src/doc/en/introspect for introspection with "??"
 	@# We keep src/sage for some doctests that it expect it to be there and
 	@# also because it does not add any weight with rdfind below.
 	@# We need src/sage/bin/ for the scripts that invoke Sage
@@ -201,7 +202,7 @@ micro_release:
 	@# We keep VERSION.txt.
 	@# We keep COPYING.txt so we ship a license with this distribution.
 	find . -name . -o -prune ! -name config.status ! -name src ! -name sage ! -name local ! -name VERSION.txt ! -name COPYING.txt ! -name build -exec rm -rf \{\} \;
-	cd src && find . -name . -o -prune ! -name sage ! -name bin ! -name doc -exec rm -rf \{\} \;
+	cd src && find . -name . -o -prune ! -name sage ! -name bin -exec rm -rf \{\} \;
 	if command -v rdfind > /dev/null; then \
 		echo "Hardlinking identical files."; \
 		rdfind -makeresultsfile false -makehardlinks true .; \
@@ -228,7 +229,7 @@ PTESTALL = ./sage -t -p --all
 # When the documentation is installed, "optional" also includes all tests marked 'sagemath_doc_html',
 # see https://trac.sagemath.org/ticket/25345, https://trac.sagemath.org/ticket/26110, and
 # https://trac.sagemath.org/ticket/32759
-TESTALL_FLAGS = --optional=sage,optional,external,build
+TESTALL_FLAGS = --optional=sage,optional,external
 
 test: all
 	$(TESTALL) --logfile=logs/test.log
@@ -306,7 +307,7 @@ ptestoptional-nodoc: build
 ptestoptionallong-nodoc: build
 	$(PTESTALL) --long --logfile=logs/ptestoptionallong.log
 
-configure: bootstrap src/doc/bootstrap configure.ac src/bin/sage-version.sh m4/*.m4 build/pkgs/*/spkg-configure.m4 build/pkgs/*/type build/pkgs/*/distros/*.txt
+configure: bootstrap src/doc/bootstrap configure.ac src/bin/sage-version.sh m4/*.m4 build/pkgs/*/spkg-configure.m4 build/pkgs/*/type build/pkgs/*/install-requires.txt build/pkgs/*/package-version.txt build/pkgs/*/distros/*.txt
 	./bootstrap -d
 
 install: all

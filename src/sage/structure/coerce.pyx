@@ -1049,7 +1049,7 @@ cdef class CoercionModel:
         base = None
         for x in args:
             if not isinstance(x, Parent) and not isinstance(x, type):
-               x = parent(x)
+                x = parent(x)
             if base is None:
                 base = x
             if isinstance(base, Parent) and (<Parent>base).has_coerce_map_from(x):
@@ -1085,8 +1085,8 @@ cdef class CoercionModel:
             sage: Zmod100 = Integers(100)
             sage: cm.division_parent(Zmod100)
             Ring of integers modulo 100
-            sage: S5 = SymmetricGroup(5)
-            sage: cm.division_parent(S5)
+            sage: S5 = SymmetricGroup(5)                                                # optional - sage.groups
+            sage: cm.division_parent(S5)                                                # optional - sage.groups
             Symmetric group of order 5! as a permutation group
         """
         try:

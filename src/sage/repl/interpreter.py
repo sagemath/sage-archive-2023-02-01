@@ -78,9 +78,9 @@ Check that Cython source code appears in tracebacks::
     dummy line
     ...
     ZeroDivisionError...Traceback (most recent call last)
-    <ipython-input-...> in <module>...
+    ...
     ----> 1 Integer(1)/Integer(0)
-    .../sage/rings/integer.pyx in sage.rings.integer.Integer...div...
+    .../sage/rings/integer.pyx... in sage.rings.integer.Integer...div...
     ...
     -> ...                  raise ZeroDivisionError("rational division by zero")
        ....:            x = <Rational> Rational.__new__(Rational)
@@ -212,8 +212,6 @@ class SageShellOverride(object):
     def system_raw(self, cmd):
         """
         Run a system command.
-
-        This is equivalent to the sage-native-execute shell script.
 
         EXAMPLES::
 
@@ -423,7 +421,7 @@ def SagePreparseTransformer(lines):
         sage: from sage.repl.interpreter import get_test_shell
         sage: shell = get_test_shell()
         sage: shell.run_cell(bad_syntax)
-          File "<string>", line unknown
+          File...<string>...
         SyntaxError: Mismatched ']'
         <BLANKLINE>
         sage: shell.quit()

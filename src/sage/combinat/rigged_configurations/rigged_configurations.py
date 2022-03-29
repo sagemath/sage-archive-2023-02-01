@@ -1030,8 +1030,8 @@ class RiggedConfigurations(UniqueRepresentation, Parent):
             if z != x:
                 rejects.append((x, z))
 
-        tester.assertTrue(len(rejects) == 0, "Bijection is not correct: {}".format(rejects))
-        if len(rejects) != 0:
+        tester.assertEqual(len(rejects), 0, "Bijection is not correct: {}".format(rejects))
+        if rejects:
             return rejects
 
     def tensor(self, *crystals, **options):
@@ -1399,9 +1399,9 @@ class RCNonSimplyLaced(RiggedConfigurations):
             elt = self.element_class(self, partition_list=parts_list)
             for i, p in enumerate(elt):
                 for j, vac_num in enumerate(p.vacancy_numbers):
-                    tester.assertTrue(vac_num == x[i].vacancy_numbers[j],
+                    tester.assertEqual(vac_num, x[i].vacancy_numbers[j],
                       "Incorrect vacancy number: {}\nComputed: {}\nFor: {}".format(
-                       x[i].vacancy_numbers[j],vac_num, x))
+                       x[i].vacancy_numbers[j], vac_num, x))
 
     Element = KRRCNonSimplyLacedElement
 
@@ -1831,7 +1831,7 @@ class RCTypeA2Dual(RCTypeA2Even):
                 pos += 1
 
             if pos == length:
-                yield [QQ(_) / QQ(2) for _ in ret_part]
+                yield [QQ(n) / QQ(2) for n in ret_part]
                 pos -= 1
 
     def to_virtual(self, rc):

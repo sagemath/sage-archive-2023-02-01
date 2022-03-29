@@ -17,13 +17,15 @@ from IPython.lib.lexers import IPythonConsoleLexer, IPyLexer
 
 # Add any Sphinx extension module names here, as strings. They can be extensions
 # coming with Sphinx (named 'sphinx.ext.*') or your custom ones.
-extensions = ['sage_docbuild.ext.inventory_builder',
-              'sage_docbuild.ext.multidocs',
-              'sage_docbuild.ext.sage_autodoc',
-              'sphinx.ext.todo',
-              'sphinx.ext.extlinks',
-              'IPython.sphinxext.ipython_directive',
-              'matplotlib.sphinxext.plot_directive']
+extensions = [
+    "sage_docbuild.ext.inventory_builder",
+    "sage_docbuild.ext.multidocs",
+    "sage_docbuild.ext.sage_autodoc",
+    "sphinx.ext.todo",
+    "sphinx.ext.extlinks",
+    "IPython.sphinxext.ipython_directive",
+    #"matplotlib.sphinxext.plot_directive",
+]
 
 # This code is executed before each ".. PLOT::" directive in the Sphinx
 # documentation. It defines a 'sphinx_plot' function that displays a Sage object
@@ -142,10 +144,6 @@ default_role = 'math'
 # output. They are ignored by default.
 #show_authors = False
 
-# The name of the Pygments (syntax highlighting) style to use.  NOTE:
-# This overrides a HTML theme's corresponding setting (see below).
-pygments_style = 'sphinx'
-
 # Default lexer to use when highlighting code blocks, using the IPython
 # console lexers. 'ipycon' is the IPython console, which is what we want
 # for most code blocks: anything with "sage:" prompts. For other IPython,
@@ -200,19 +198,48 @@ multidocs_is_master = True
 
 # Options for HTML output
 # -----------------------
+import importlib.util
 
+if importlib.util.find_spec("furo") is not None:
+    html_theme = "furo"
+
+    # https://www.sphinx-doc.org/en/master/usage/configuration.html#confval-html_static_path
+    html_static_path = [
+        os.path.join(SAGE_DOC_SRC, "common", "themes", "sage-classic", "static")
+    ]
+
+    html_theme_options = {
+        # Hide project’s name in the sidebar of the documentation;
+        # the logo is enough.
+        # https://pradyunsg.me/furo/customisation/#sidebar-hide-name
+        "sidebar_hide_name": True,
+        # Change accent (used for stylising links, sidebar’s content etc)
+        "light_css_variables": {
+            "color-brand-primary": "#0f0fff",
+            "color-brand-content": "#0f0fff",
+        },
+        # Add sage logo to sidebar
+        # https://pradyunsg.me/furo/customisation/logo/#different-logos-for-light-and-dark-mode
+        "light_logo": "logo_sagemath_black.svg",
+        "dark_logo": "logo_sagemath.svg",
+    }
+else:
 # Sage default HTML theme. We use a custom theme to set a Pygments style,
 # stylesheet, and insert MathJax macros. See the directory
 # doc/common/themes/sage-classic/ for files comprising the custom theme.
-html_theme = 'sage-classic'
+    html_theme = "sage-classic"
+
+    # Add any paths that contain custom themes here, relative to this directory.
+    html_theme_path = [os.path.join(SAGE_DOC_SRC, "common", "themes")]
 
 # Theme options are theme-specific and customize the look and feel of
 # a theme further.  For a list of options available for each theme,
 # see the documentation.
 html_theme_options = {}
 
-# Add any paths that contain custom themes here, relative to this directory.
-html_theme_path = [os.path.join(SAGE_DOC_SRC, 'common', 'themes')]
+    # The name of the Pygments (syntax highlighting) style to use.  NOTE:
+    # This overrides a HTML theme's corresponding setting (see below).
+    pygments_style = "sphinx"
 
 # HTML style sheet NOTE: This overrides a HTML theme's corresponding
 # setting.
@@ -246,7 +273,8 @@ extensions.append('sphinx.ext.mathjax')
 mathjax_path = 'MathJax.js?config=TeX-AMS_HTML-full,../mathjax_sage.js'
 
 from sage.misc.latex_macros import sage_mathjax_macros
-html_theme_options['mathjax_macros'] = sage_mathjax_macros()
+
+#html_theme_options["mathjax_macros"] = sage_mathjax_macros()
 
 mathjax_relative = os.path.basename(MATHJAX_DIR)
 

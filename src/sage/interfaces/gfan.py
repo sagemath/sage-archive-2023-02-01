@@ -50,6 +50,39 @@ class Gfan(object):
     Interface to Anders Jensen's Groebner Fan program.
     """
     def __call__(self, I, cmd='', verbose=False, format=True):
+        r"""
+        Call Groebner Fan program with given input
+
+        INPUT:
+
+        - ``I`` -- string, input
+        - ``cmd`` -- string (default:``''``), GFan command
+        - ``verbose`` -- bool (default:``False``)
+        - ``format`` -- bool (default:``True``)
+
+        EXAMPLES::
+
+            sage: print(gfan('Q[x,y]{x^2-y-1,y^2-xy-2/3}', cmd='bases')) # optional - gfan
+            Q[x,y]
+            {{
+            y^4+4/9-7/3*y^2-y^3,
+            x+5/2*y+3/2*y^2-3/2*y^3}
+            ,
+            {
+            x^2-1-y,
+            x*y+2/3-y^2,
+            y^3-5/3*y-y^2-2/3*x}
+            ,
+            {
+            x^2-1-y,
+            y^2-2/3-x*y}
+            ,
+            {
+            x^4+1/3+x-2*x^2-x^3,
+            y+1-x^2}
+            }
+
+        """
         if cmd:
             cmd = cmd.split(' ')
             cmd[0] = GfanExecutable(cmd[0]).absolute_filename()

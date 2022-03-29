@@ -1682,11 +1682,11 @@ cdef class Pygen(GiacMethods_base):
         xyplot = []
         plotdata = self
         if not plotdata.type() == 'DOM_LIST':
-           plotdata = [plotdata]
+            plotdata = [plotdata]
 
         sig_on()
         for G in plotdata:
-            if G.dim()>2:  # it is not a pnt. Ex: scatterplot
+            if G.dim() > 2:  # it is not a pnt. Ex: scatterplot
                 for g in G:
                     xyscat=xyscat+[[(g.real())._double,(g.im())._double]]
 

@@ -141,8 +141,8 @@ cdef class LaurentSeries(AlgebraElement):
             ## adjusting n to match.
             n1 = min(f.keys())
             if n1 < 0:
-               f = {e-n1: c for e,c in f.items()}
-               n += n1
+                f = {e - n1: c for e, c in f.items()}
+                n += n1
             f = parent._power_series_ring(f)
         elif not isinstance(f, PowerSeries):
             f = parent._power_series_ring(f)

@@ -606,7 +606,7 @@ cdef class EmptyLetter(Element):
             False
         """
         if isinstance(left, EmptyLetter) and isinstance(right, EmptyLetter):
-           return op == Py_EQ or op == Py_LE or op == Py_GE
+            return op == Py_EQ or op == Py_LE or op == Py_GE
         return op == Py_NE
 
     def weight(self):
@@ -2719,11 +2719,10 @@ cdef class QueerLetter_element(Letter):
             [(2, 1, 1), (3, 2, 2), (3, -2, 2), (2, -1, 1)]
         """
         if self.value == -i+1:
-           return self._parent._element_constructor_(self.value-1)
+            return self._parent._element_constructor_(self.value-1)
         if self.value == i+1:
             return self._parent._element_constructor_(self.value-1)
-        else:
-            return None
+        return None
 
     cpdef Letter f(self, int i):
         r"""
@@ -2736,11 +2735,10 @@ cdef class QueerLetter_element(Letter):
             [(1, 1, 2), (2, 2, 3), (2, -2, 3), (1, -1, 2)]
         """
         if self.value == -i:
-           return self._parent._element_constructor_(-i+1)
+            return self._parent._element_constructor_(-i+1)
         if self.value == i:
             return self._parent._element_constructor_(self.value+1)
-        else:
-            return None
+        return None
 
     cpdef int epsilon(self, int i):
         r"""

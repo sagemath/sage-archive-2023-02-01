@@ -1305,9 +1305,9 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
         """
         # mpz_sizeinbase(0,2) always returns 1
         if mpz_cmp_si(self.value,0) == 0:
-           return int(0)
+            return int(0)
         else:
-           return int(mpz_sizeinbase(self.value, 2))
+            return int(mpz_sizeinbase(self.value, 2))
 
     def trailing_zero_bits(self):
         """
@@ -6277,7 +6277,7 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
             raise ArithmeticError(f"square root of {self} is not an integer")
 
         if all:
-           return [z, -z]
+            return [z, -z]
         return z
 
     @coerce_binop

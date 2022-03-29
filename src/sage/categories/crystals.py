@@ -2198,7 +2198,7 @@ class CrystalMorphismByGenerators(CrystalMorphism):
         """
         return any(self._on_gens(mg) is not None for mg in self._gens)
 
-    __nonzero__ = __bool__
+    
 
     # TODO: Does this belong in the element_class of the Crystals() category?
     def to_module_generator(self, x):

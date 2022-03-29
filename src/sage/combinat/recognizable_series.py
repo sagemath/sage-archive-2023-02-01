@@ -872,7 +872,7 @@ class RecognizableSeries(ModuleElement):
                 return False
         return True
 
-    __nonzero__ = __bool__
+    
 
     def transposed(self):
         r"""

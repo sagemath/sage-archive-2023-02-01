@@ -949,7 +949,7 @@ cdef class PowerSeries(AlgebraElement):
         # endif
         return prec
 
-    def __nonzero__(self):
+    def __bool__(self):
         """
         Return True if this power series is not equal to 0.
 

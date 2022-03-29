@@ -1291,6 +1291,10 @@ class CoxeterGroups(Category_singleton):
 
                 sage: A = AffinePermutationGroup(['A',7,1])
                 sage: A._test_coxeter_relations()
+
+                sage: cm = CartanMatrix([[2,-5,0],[-2,2,-1],[0,-1,2]])
+                sage: W = WeylGroup(cm)
+                sage: W._test_coxeter_relations()
             """
             tester = self._tester(**options)
             s = self.simple_reflections()
@@ -1299,8 +1303,9 @@ class CoxeterGroups(Category_singleton):
                 tester.assertEqual(si**2, one)
             n = len(s)
             cox_mat = self.coxeter_matrix()
-            for i in range(1, n):
-                for j in range(i + 1, n + 1):
+            I = cox_mat.index_set()
+            for ii,i in enumerate(I):
+                for j in I[ii+1:]:
                     mij = cox_mat[i, j]
                     if mij == -1:  # -1 stands for infinity
                         continue

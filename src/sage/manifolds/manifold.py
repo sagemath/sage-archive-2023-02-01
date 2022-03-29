@@ -309,7 +309,7 @@ REFERENCES:
 
 """
 
-#*****************************************************************************
+# ****************************************************************************
 #       Copyright (C) 2015-2020 Eric Gourgoulhon <eric.gourgoulhon@obspm.fr>
 #       Copyright (C) 2015      Travis Scrimshaw <tscrimsh@umn.edu>
 #       Copyright (C) 2016      Andrew Mathas
@@ -322,8 +322,8 @@ REFERENCES:
 # it under the terms of the GNU General Public License as published by
 # the Free Software Foundation, either version 2 of the License, or
 # (at your option) any later version.
-#                  http://www.gnu.org/licenses/
-#*****************************************************************************
+#                  https://www.gnu.org/licenses/
+# ****************************************************************************
 
 from __future__ import annotations
 
@@ -350,18 +350,16 @@ from sage.structure.global_options import GlobalOptions
 if TYPE_CHECKING:
     from sage.manifolds.chart import Chart
     from sage.manifolds.continuous_map import ContinuousMap
-    from sage.manifolds.differentiable.chart import RealDiffChart
     from sage.manifolds.differentiable.diff_map import DiffMap
     from sage.manifolds.differentiable.manifold import DifferentiableManifold
-    from sage.manifolds.differentiable.scalarfield import DiffScalarField
     from sage.manifolds.scalarfield import ScalarField
 
 
 #############################################################################
-## Global options
+# Global options
 
 #############################################################################
-## Class
+# Class
 
 class TopologicalManifold(ManifoldSubset):
     r"""

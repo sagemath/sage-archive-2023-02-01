@@ -2038,6 +2038,16 @@ class EllipticCurveIsogeny(EllipticCurveHom):
             sage: P = phi.domain()(1, 46*z2+49)
             sage: phi(P)  # indirect doctest
             (33 : 61*z2 + 10 : 1)
+
+        The rational maps are also computed via this code path; check
+        that they are plausible (this failed prior to :trac:`33214`)::
+
+            sage: fx,fy = phi.rational_maps()  # indirect doctest
+            sage: R.<x,y> = GF(71^2)[]
+            sage: E0, E2 = phi.domain(), phi.codomain()
+            sage: eqs = [EE.defining_polynomial()(x,y,1) for EE in (E0,E2)]
+            sage: eqs[1](fx,fy).numerator() % eqs[0]
+            0
         """
         ker_2tor = self.__kernel_2tor
         ker_non2tor = self.__kernel_non2tor

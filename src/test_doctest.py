@@ -1,11 +1,18 @@
+from sage.all import Integer
+
 def something():
     """ a doctest in a docstring
-    >>> something()
-    42
+    
+    EXAMPLES::
 
-    some other doctest
+        sage: something()
+        42
+        sage: something() + 1
+        43
 
-    >>> something() + 1
-    43
+    TESTS::
+
+        sage: something()
+        44
     """
     return 42

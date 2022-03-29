@@ -2,19 +2,18 @@
 r"""
 Cubic Hecke matrix representations
 
-This module contains the class :class:`CubicHeckeMatrixRep` which is used to handle the matrix representations of the
-elements of the cubic Hecke algebra (:class:`~sage.algebras.hecke_algebras.cubic_hecke_algebra.CubicHeckeAlgebra`)
-together with its parent class :class:`CubicHeckeMatrixSpace`. Furthermore, it contains enums for their
-types (:class:`RepresentationType`) and names (:class:`AbsIrreducibeRep`).
+This module contains the class :class:`CubicHeckeMatrixRep` which is used to
+treat the matrix representations of the elements of the cubic Hecke algebra
+(:class:`~sage.algebras.hecke_algebras.cubic_hecke_algebra.CubicHeckeAlgebra`)
+together with its parent class :class:`CubicHeckeMatrixSpace`. Furthermore,
+it contains enums for their types (:class:`RepresentationType`) and names
+(:class:`AbsIrreducibeRep`).
 
 
 AUTHORS:
 
 - Sebastian Oehms May 2020: initial version
 """
-
-
-
 
 ##############################################################################
 #       Copyright (C) 2020 Sebastian Oehms <seb.oehms@gmail.com>
@@ -26,8 +25,6 @@ AUTHORS:
 #                  http://www.gnu.org/licenses/
 ##############################################################################
 
-
-
 from enum import Enum
 from sage.misc.cachefunc import cached_method
 from sage.misc.verbose import verbose
@@ -36,13 +33,7 @@ from sage.matrix.matrix_generic_dense import Matrix_generic_dense
 from sage.matrix.matrix_space import MatrixSpace
 from sage.matrix.constructor import matrix
 from sage.matrix.special import block_diagonal_matrix
-from sage.databases.cubic_hecke_db import CubicHeckeDataFilename as fn
-
-
-
-# --------------------------------------------------------------------------------------
-# Constants
-# --------------------------------------------------------------------------------------
+from sage.databases.cubic_hecke_db import CubicHeckeDataSection as sc
 
 
 # -------------------------------------------
@@ -60,9 +51,8 @@ class GenSign(Enum):
         sage: chmr.GenSign.neg
         <GenSign.neg: -1>
     """
-    pos =  1
+    pos = 1
     neg = -1
-
 
 
 # -------------------------------------------
@@ -74,8 +64,10 @@ class RepresentationType(Enum):
 
     - ``RegularLeft``  -- left regular representations
     - ``RegularRight`` -- right regular representations
-    - ``SplitIrredMarin`` -- split irreducible representations obtained from Ivan Marin's data
-    - ``SplitIrredChevie`` -- the split irreducible representations obtained from CHEVIE via the GAP3-interface
+    - ``SplitIrredMarin`` -- split irreducible representations obtained from
+      Ivan Marin's data
+    - ``SplitIrredChevie`` -- the split irreducible representations obtained
+      from CHEVIE via the *GAP3*-interface
 
     EXAMPLES::
 
@@ -85,7 +77,8 @@ class RepresentationType(Enum):
     """
     def is_split(self):
         r"""
-        Return True if this representation type is absolutely split, False else-wise.
+        Return ``True`` if this representation type is absolutely split,
+        ``False`` else-wise.
 
         EXAMPLES::
 
@@ -98,7 +91,8 @@ class RepresentationType(Enum):
 
     def is_regular(self):
         r"""
-        Return True if this representation type is regular, False else-wise.
+        Return ``True`` if this representation type is regular, ``False``
+        else-wise.
 
         EXAMPLES::
 
@@ -109,16 +103,17 @@ class RepresentationType(Enum):
         """
         return self.value['regular']
 
-    def data_filename(self):
+    def data_section(self):
         r"""
-        Return the name of the data file. For more information see :class:`~sage.databases.cubic_hecke_db.CubicHeckeDataBase`.
+        Return the name of the data file. For more information see
+        :class:`~sage.databases.cubic_hecke_db.CubicHeckeDataBase`.
 
         EXAMPLES::
 
             sage: import sage.algebras.hecke_algebras.matrix_representations.cubic_hecke_matrix_rep as chmr
             sage: reg_left = chmr.RepresentationType.RegularLeft
-            sage: reg_left.data_filename()
-            <CubicHeckeDataFilename.regular_left: ['MatricesRegH4.maple', 'regular_left_reprs']>
+            sage: reg_left.data_section()
+            <CubicHeckeDataSection.regular_left: 'regular_left'>
         """
         return self.value['data']
 
@@ -134,30 +129,34 @@ class RepresentationType(Enum):
             sage: chmr.RepresentationType.SplitIrredMarin.number_of_representations(4)
             24
         """
-        if self.value['data'] == None:
-            if nstrands < 1  or nstrands > 5 :
-                raise ValueError( "nstrands must be between 1 and 5" )
-        elif nstrands < 1  or nstrands > 4 :
-            raise ValueError( "nstrands must be between 1 and 4" )
-        return self.value['num_rep'][nstrands-1 ]
+        if self.value['data'] is None:
+            if nstrands < 1 or nstrands > 5:
+                raise ValueError("nstrands must be between 1 and 5")
+        elif nstrands < 1 or nstrands > 4:
+            raise ValueError("nstrands must be between 1 and 4")
+        return self.value['num_rep'][nstrands - 1]
+
+    RegularLeft = {'split': False, 'regular': True,   'data': sc.regular_left,  'num_rep': [1, 1, 1, 1]}
+    RegularRight = {'split': False, 'regular': True,   'data': sc.regular_right, 'num_rep': [1, 1, 1, 1]}
+    SplitIrredMarin = {'split': True,  'regular': False,  'data': sc.split_irred,   'num_rep': [1, 3, 7, 24]}
+    SplitIrredChevie = {'split': True,  'regular': False,  'data': None,             'num_rep': [1, 3, 7, 24, 30]}
 
 
-    RegularLeft      = {'split':False, 'regular':True,   'data':fn.regular_left,  'num_rep':[1 ,1 ,1 ,1 ]}
-    RegularRight     = {'split':False, 'regular':True,   'data':fn.regular_right, 'num_rep':[1 ,1 ,1 ,1 ]}
-    SplitIrredMarin  = {'split':True,  'regular':False,  'data':fn.irred_split,   'num_rep':[1 ,3 ,7 ,24 ]}
-    SplitIrredChevie = {'split':True,  'regular':False,  'data':None,             'num_rep':[1 ,3 ,7 ,24 ,30 ]}
-
-
-
-
+# ---------------------------------------------
+# Enum for absolute irreducible representations
+# ---------------------------------------------
 class AbsIrreducibeRep(Enum):
     r"""
-    Enum class to select an absolutely irreducible representation for the cubic Hecke algebra (``CHAn``) on n-strands.
+    Enum class to select an absolutely irreducible representation for the cubic
+    Hecke algebra (``CHAn``) on n-strands.
 
-    The names are build as follows: Take the determinant of one of the generators of the ``CHAn``. This is a monomial
-    in the the generic extension ring (``GER``) of ``CHA``, say ``a^ib^jc^k`` where ``a, b`` and ``c`` are the generators
-    of ``GER``. This does not depend on the choice of the generator of ``CHA``, since these are conjugated to each other.
-    This monomial might be looked as the weight of the representation. Therefore we use as a name:
+    The names are build as follows: Take the determinant of one of the
+    generators of the ``CHAn``. This is a monomial in the generic extension
+    ring (``GER``) of ``CHA``, say ``a^ib^jc^k`` where ``a, b`` and ``c`` are
+    the generators of ``GER``. This does not depend on the choice of the
+    generator of ``CHA``, since these are conjugated to each other. This
+    monomial might be looked as the weight of the representation. Therefore we
+    use it as a name:
 
     ``Wn_ijk``
 
@@ -194,7 +193,6 @@ class AbsIrreducibeRep(Enum):
 
     [MW2012]_
     """
-
     def alternative_name(self):
         r"""
         Return the name of the split irreducible representation for cubic Hecke algebras for up to four strands
@@ -204,7 +202,7 @@ class AbsIrreducibeRep(Enum):
 
             sage: import sage.algebras.hecke_algebras.matrix_representations.cubic_hecke_matrix_rep as chmr
             sage: chmr.AbsIrreducibeRep.W3_011.alternative_name()
-            'Tyz'
+            'Tbc'
         """
         return self.value['alt_name']
 
@@ -236,7 +234,8 @@ class AbsIrreducibeRep(Enum):
 
     def length_orbit(self):
         r"""
-        Return the length of the orbit of this representation under the action of the Galois group of the cubic equation.
+        Return the length of the orbit of this representation under the action
+        of the Galois group of the cubic equation.
 
         EXAMPLES::
 
@@ -250,7 +249,8 @@ class AbsIrreducibeRep(Enum):
 
     def gap_index(self):
         r"""
-        Return the array index of this representation for the access in GAP3 CHEVIE.
+        Return the array index of this representation for the access to the *GAP3*
+        package *CHEVIE*.
 
         EXAMPLES::
 
@@ -275,99 +275,96 @@ class AbsIrreducibeRep(Enum):
     # -------------------------------------------------------------------------------------------------
     # absolutely irreducible representations corresponding to braids on 2 strands
     # -------------------------------------------------------------------------------------------------
-    W2_100  = {'alt_name':'Sx',  'dim':1 , 'ngens':1 , 'len_orbit':3 , 'gap_ind': 0 , 'intern_ind': 0 }
-    W2_001  = {'alt_name':'Sz',  'dim':1 , 'ngens':1 , 'len_orbit':3 , 'gap_ind': 1 , 'intern_ind': 1 }
-    W2_010  = {'alt_name':'Sy',  'dim':1 , 'ngens':1 , 'len_orbit':3 , 'gap_ind': 2 , 'intern_ind': 2 }
+    W2_100 = {'alt_name': 'Sa',  'dim': 1, 'ngens': 1, 'len_orbit': 3, 'gap_ind': 0, 'intern_ind': 0}
+    W2_001 = {'alt_name': 'Sc',  'dim': 1, 'ngens': 1, 'len_orbit': 3, 'gap_ind': 1, 'intern_ind': 1}
+    W2_010 = {'alt_name': 'Sb',  'dim': 1, 'ngens': 1, 'len_orbit': 3, 'gap_ind': 2, 'intern_ind': 2}
 
     # -------------------------------------------------------------------------------------------------
     # absolutely irreducible representations corresponding to braids on 3 strands
     # -------------------------------------------------------------------------------------------------
-    W3_100  = {'alt_name':'Sx',   'dim':1 , 'ngens':2 , 'len_orbit':3 , 'gap_ind': 0 , 'intern_ind': 0 }
-    W3_001  = {'alt_name':'Sz',   'dim':1 , 'ngens':2 , 'len_orbit':3 , 'gap_ind': 1 , 'intern_ind': 1 }
-    W3_010  = {'alt_name':'Sy',   'dim':1 , 'ngens':2 , 'len_orbit':3 , 'gap_ind': 2 , 'intern_ind': 2 }
+    W3_100 = {'alt_name': 'Sa',   'dim': 1, 'ngens': 2, 'len_orbit': 3, 'gap_ind': 0, 'intern_ind': 0}
+    W3_001 = {'alt_name': 'Sc',   'dim': 1, 'ngens': 2, 'len_orbit': 3, 'gap_ind': 1, 'intern_ind': 1}
+    W3_010 = {'alt_name': 'Sb',   'dim': 1, 'ngens': 2, 'len_orbit': 3, 'gap_ind': 2, 'intern_ind': 2}
 
-    W3_011  = {'alt_name':'Tyz',  'dim':2 , 'ngens':2 , 'len_orbit':3 , 'gap_ind': 3 , 'intern_ind': 3 }
-    W3_110  = {'alt_name':'Txy',  'dim':2 , 'ngens':2 , 'len_orbit':3 , 'gap_ind': 4 , 'intern_ind': 4 }
-    W3_101  = {'alt_name':'Txz',  'dim':2 , 'ngens':2 , 'len_orbit':3 , 'gap_ind': 5 , 'intern_ind': 5 }
+    W3_011 = {'alt_name': 'Tbc',  'dim': 2, 'ngens': 2, 'len_orbit': 3, 'gap_ind': 3, 'intern_ind': 3}
+    W3_110 = {'alt_name': 'Tab',  'dim': 2, 'ngens': 2, 'len_orbit': 3, 'gap_ind': 4, 'intern_ind': 4}
+    W3_101 = {'alt_name': 'Tac',  'dim': 2, 'ngens': 2, 'len_orbit': 3, 'gap_ind': 5, 'intern_ind': 5}
 
-    W3_111  = {'alt_name':'V',    'dim':3 , 'ngens':2 , 'len_orbit':1 , 'gap_ind': 6 , 'intern_ind': 6 }
+    W3_111 = {'alt_name': 'V',    'dim': 3, 'ngens': 2, 'len_orbit': 1, 'gap_ind': 6, 'intern_ind': 6}
 
     # -------------------------------------------------------------------------------------------------
     # absolutely irreducible representations corresponding to braids on 4 strands
     # -------------------------------------------------------------------------------------------------
-    W4_100  = {'alt_name':'Sx',   'dim':1 , 'ngens':3 , 'len_orbit':3 , 'gap_ind': 0 , 'intern_ind': 0 }
-    W4_001  = {'alt_name':'Sz',   'dim':1 , 'ngens':3 , 'len_orbit':3 , 'gap_ind': 1 , 'intern_ind': 1 }
-    W4_010  = {'alt_name':'Sy',   'dim':1 , 'ngens':3 , 'len_orbit':3 , 'gap_ind': 2 , 'intern_ind': 2 }
+    W4_100 = {'alt_name': 'Sa',   'dim': 1, 'ngens': 3, 'len_orbit': 3, 'gap_ind': 0, 'intern_ind': 0}
+    W4_001 = {'alt_name': 'Sc',   'dim': 1, 'ngens': 3, 'len_orbit': 3, 'gap_ind': 1, 'intern_ind': 1}
+    W4_010 = {'alt_name': 'Sb',   'dim': 1, 'ngens': 3, 'len_orbit': 3, 'gap_ind': 2, 'intern_ind': 2}
 
-    W4_011  = {'alt_name':'Tyz',  'dim':2 , 'ngens':3 , 'len_orbit':3 , 'gap_ind': 3 , 'intern_ind': 3 }
-    W4_110  = {'alt_name':'Txy',  'dim':2 , 'ngens':3 , 'len_orbit':3 , 'gap_ind': 4 , 'intern_ind': 4 }
-    W4_101  = {'alt_name':'Txz',  'dim':2 , 'ngens':3 , 'len_orbit':3 , 'gap_ind': 5 , 'intern_ind': 5 }
+    W4_011 = {'alt_name': 'Tbc',  'dim': 2, 'ngens': 3, 'len_orbit': 3, 'gap_ind': 3, 'intern_ind': 3}
+    W4_110 = {'alt_name': 'Tab',  'dim': 2, 'ngens': 3, 'len_orbit': 3, 'gap_ind': 4, 'intern_ind': 4}
+    W4_101 = {'alt_name': 'Tac',  'dim': 2, 'ngens': 3, 'len_orbit': 3, 'gap_ind': 5, 'intern_ind': 5}
 
-    W4_111  = {'alt_name':'V',    'dim':3 , 'ngens':3 , 'len_orbit':1 , 'gap_ind': 6 , 'intern_ind': 6 }
+    W4_111 = {'alt_name': 'V',    'dim': 3, 'ngens': 3, 'len_orbit': 1, 'gap_ind': 6, 'intern_ind': 6}
 
-    W4_120  = {'alt_name':'Uyx',  'dim':3 , 'ngens':3 , 'len_orbit':6 , 'gap_ind': 7 , 'intern_ind': 7 }
-    W4_201  = {'alt_name':'Uxz',  'dim':3 , 'ngens':3 , 'len_orbit':6 , 'gap_ind': 8 , 'intern_ind': 8 }
-    W4_012  = {'alt_name':'Uzy',  'dim':3 , 'ngens':3 , 'len_orbit':6 , 'gap_ind': 9 , 'intern_ind': 9 }
-    W4_102  = {'alt_name':'Uzx',  'dim':3 , 'ngens':3 , 'len_orbit':6 , 'gap_ind': 10 , 'intern_ind': 10 }
-    W4_210  = {'alt_name':'Uxy',  'dim':3 , 'ngens':3 , 'len_orbit':6 , 'gap_ind': 11 , 'intern_ind': 11 }
-    W4_021  = {'alt_name':'Vyz',  'dim':3 , 'ngens':3 , 'len_orbit':6 , 'gap_ind': 12 , 'intern_ind': 12 }
+    W4_120 = {'alt_name': 'Uba',  'dim': 3, 'ngens': 3, 'len_orbit': 6, 'gap_ind': 7, 'intern_ind': 7}
+    W4_201 = {'alt_name': 'Uac',  'dim': 3, 'ngens': 3, 'len_orbit': 6, 'gap_ind': 8, 'intern_ind': 8}
+    W4_012 = {'alt_name': 'Ucb',  'dim': 3, 'ngens': 3, 'len_orbit': 6, 'gap_ind': 9, 'intern_ind': 9}
+    W4_102 = {'alt_name': 'Uca',  'dim': 3, 'ngens': 3, 'len_orbit': 6, 'gap_ind': 10, 'intern_ind': 10}
+    W4_210 = {'alt_name': 'Uab',  'dim': 3, 'ngens': 3, 'len_orbit': 6, 'gap_ind': 11, 'intern_ind': 11}
+    W4_021 = {'alt_name': 'Ubc',  'dim': 3, 'ngens': 3, 'len_orbit': 6, 'gap_ind': 12, 'intern_ind': 12}
 
-    W4_213  = {'alt_name':'Vzxy', 'dim':6 , 'ngens':3 , 'len_orbit':6 , 'gap_ind': 13 , 'intern_ind': 13 }
-    W4_132  = {'alt_name':'Vyzx', 'dim':6 , 'ngens':3 , 'len_orbit':6 , 'gap_ind': 14 , 'intern_ind': 14 }
-    W4_321  = {'alt_name':'Vxyz', 'dim':6 , 'ngens':3 , 'len_orbit':6 , 'gap_ind': 15 , 'intern_ind': 15 }
-    W4_231  = {'alt_name':'Vyxz', 'dim':6 , 'ngens':3 , 'len_orbit':6 , 'gap_ind': 16 , 'intern_ind': 16 }
-    W4_123  = {'alt_name':'Vzyx', 'dim':6 , 'ngens':3 , 'len_orbit':6 , 'gap_ind': 17 , 'intern_ind': 17 }
-    W4_312  = {'alt_name':'Vxzy', 'dim':6 , 'ngens':3 , 'len_orbit':6 , 'gap_ind': 18 , 'intern_ind': 18 }
+    W4_213 = {'alt_name': 'Vcab', 'dim': 6, 'ngens': 3, 'len_orbit': 6, 'gap_ind': 13, 'intern_ind': 13}
+    W4_132 = {'alt_name': 'Vbca', 'dim': 6, 'ngens': 3, 'len_orbit': 6, 'gap_ind': 14, 'intern_ind': 14}
+    W4_321 = {'alt_name': 'Vabc', 'dim': 6, 'ngens': 3, 'len_orbit': 6, 'gap_ind': 15, 'intern_ind': 15}
+    W4_231 = {'alt_name': 'Vbac', 'dim': 6, 'ngens': 3, 'len_orbit': 6, 'gap_ind': 16, 'intern_ind': 16}
+    W4_123 = {'alt_name': 'Vcba', 'dim': 6, 'ngens': 3, 'len_orbit': 6, 'gap_ind': 17, 'intern_ind': 17}
+    W4_312 = {'alt_name': 'Vacb', 'dim': 6, 'ngens': 3, 'len_orbit': 6, 'gap_ind': 18, 'intern_ind': 18}
 
-    W4_422  = {'alt_name':'Wx',   'dim':8 , 'ngens':3 , 'len_orbit':3 , 'gap_ind': 19 , 'intern_ind': 19 }
-    W4_224  = {'alt_name':'Wz',   'dim':8 , 'ngens':3 , 'len_orbit':3 , 'gap_ind': 20 , 'intern_ind': 20 }
-    W4_242  = {'alt_name':'Wy',   'dim':8 , 'ngens':3 , 'len_orbit':3 , 'gap_ind': 21 , 'intern_ind': 21 }
+    W4_422 = {'alt_name': 'Wa',   'dim': 8, 'ngens': 3, 'len_orbit': 3, 'gap_ind': 19, 'intern_ind': 19}
+    W4_224 = {'alt_name': 'Wc',   'dim': 8, 'ngens': 3, 'len_orbit': 3, 'gap_ind': 20, 'intern_ind': 20}
+    W4_242 = {'alt_name': 'Wb',   'dim': 8, 'ngens': 3, 'len_orbit': 3, 'gap_ind': 21, 'intern_ind': 21}
 
-    W4_333    = {'alt_name':'X',    'dim':9 , 'ngens':3 , 'len_orbit':2 , 'gap_ind': 22 , 'intern_ind': 22 }
-    W4_333bar = {'alt_name':'Xbar', 'dim':9 , 'ngens':3 , 'len_orbit':2 , 'gap_ind': 23 , 'intern_ind': 23 }
-
+    W4_333 = {'alt_name': 'X',    'dim': 9, 'ngens': 3, 'len_orbit': 2, 'gap_ind': 22, 'intern_ind': 22}
+    W4_333bar = {'alt_name': 'Xbar', 'dim': 9, 'ngens': 3, 'len_orbit': 2, 'gap_ind': 23, 'intern_ind': 23}
 
     # -------------------------------------------------------------------------------------------------
     # absolutely irreducible representations corresponding to braids on 5 strands
     # -------------------------------------------------------------------------------------------------
-    W5_100  = {'alt_name':None, 'dim':1 , 'ngens':4 , 'len_orbit':3 , 'gap_ind': 0 , 'intern_ind': 0 }
-    W5_001  = {'alt_name':None, 'dim':1 , 'ngens':4 , 'len_orbit':3 , 'gap_ind': 1 , 'intern_ind': 1 }
-    W5_010  = {'alt_name':None, 'dim':1 , 'ngens':4 , 'len_orbit':3 , 'gap_ind': 2 , 'intern_ind': 2 }
+    W5_100 = {'alt_name': None, 'dim': 1, 'ngens': 4, 'len_orbit': 3, 'gap_ind': 0, 'intern_ind': 0}
+    W5_001 = {'alt_name': None, 'dim': 1, 'ngens': 4, 'len_orbit': 3, 'gap_ind': 1, 'intern_ind': 1}
+    W5_010 = {'alt_name': None, 'dim': 1, 'ngens': 4, 'len_orbit': 3, 'gap_ind': 2, 'intern_ind': 2}
 
-    W5_013  = {'alt_name':None, 'dim':4 , 'ngens':4 , 'len_orbit':6 , 'gap_ind': 3 , 'intern_ind': 3 }
-    W5_130  = {'alt_name':None, 'dim':4 , 'ngens':4 , 'len_orbit':6 , 'gap_ind': 4 , 'intern_ind': 4 }
-    W5_301  = {'alt_name':None, 'dim':4 , 'ngens':4 , 'len_orbit':6 , 'gap_ind': 5 , 'intern_ind': 5 }
-    W5_031  = {'alt_name':None, 'dim':4 , 'ngens':4 , 'len_orbit':6 , 'gap_ind': 6 , 'intern_ind': 6 }
-    W5_103  = {'alt_name':None, 'dim':4 , 'ngens':4 , 'len_orbit':6 , 'gap_ind': 7 , 'intern_ind': 7 }
-    W5_310  = {'alt_name':None, 'dim':4 , 'ngens':4 , 'len_orbit':6 , 'gap_ind': 8 , 'intern_ind': 8 }
+    W5_013 = {'alt_name': None, 'dim': 4, 'ngens': 4, 'len_orbit': 6, 'gap_ind': 3, 'intern_ind': 3}
+    W5_130 = {'alt_name': None, 'dim': 4, 'ngens': 4, 'len_orbit': 6, 'gap_ind': 4, 'intern_ind': 4}
+    W5_301 = {'alt_name': None, 'dim': 4, 'ngens': 4, 'len_orbit': 6, 'gap_ind': 5, 'intern_ind': 5}
+    W5_031 = {'alt_name': None, 'dim': 4, 'ngens': 4, 'len_orbit': 6, 'gap_ind': 6, 'intern_ind': 6}
+    W5_103 = {'alt_name': None, 'dim': 4, 'ngens': 4, 'len_orbit': 6, 'gap_ind': 7, 'intern_ind': 7}
+    W5_310 = {'alt_name': None, 'dim': 4, 'ngens': 4, 'len_orbit': 6, 'gap_ind': 8, 'intern_ind': 8}
 
-    W5_203  = {'alt_name':None, 'dim':5 , 'ngens':4 , 'len_orbit':6 , 'gap_ind': 9 ,  'intern_ind': 9 }
-    W5_032  = {'alt_name':None, 'dim':5 , 'ngens':4 , 'len_orbit':6 , 'gap_ind': 10 , 'intern_ind': 10 }
-    W5_320  = {'alt_name':None, 'dim':5 , 'ngens':4 , 'len_orbit':6 , 'gap_ind': 11 , 'intern_ind': 11 }
-    W5_230  = {'alt_name':None, 'dim':5 , 'ngens':4 , 'len_orbit':6 , 'gap_ind': 12 , 'intern_ind': 12 }
-    W5_023  = {'alt_name':None, 'dim':5 , 'ngens':4 , 'len_orbit':6 , 'gap_ind': 13 , 'intern_ind': 13 }
-    W5_302  = {'alt_name':None, 'dim':5 , 'ngens':4 , 'len_orbit':6 , 'gap_ind': 14 , 'intern_ind': 14 }
+    W5_203 = {'alt_name': None, 'dim': 5, 'ngens': 4, 'len_orbit': 6, 'gap_ind': 9,  'intern_ind': 9}
+    W5_032 = {'alt_name': None, 'dim': 5, 'ngens': 4, 'len_orbit': 6, 'gap_ind': 10, 'intern_ind': 10}
+    W5_320 = {'alt_name': None, 'dim': 5, 'ngens': 4, 'len_orbit': 6, 'gap_ind': 11, 'intern_ind': 11}
+    W5_230 = {'alt_name': None, 'dim': 5, 'ngens': 4, 'len_orbit': 6, 'gap_ind': 12, 'intern_ind': 12}
+    W5_023 = {'alt_name': None, 'dim': 5, 'ngens': 4, 'len_orbit': 6, 'gap_ind': 13, 'intern_ind': 13}
+    W5_302 = {'alt_name': None, 'dim': 5, 'ngens': 4, 'len_orbit': 6, 'gap_ind': 14, 'intern_ind': 14}
 
-    W5_033  = {'alt_name':None, 'dim':6 , 'ngens':4 , 'len_orbit':3 , 'gap_ind': 15 , 'intern_ind': 15 }
-    W5_330  = {'alt_name':None, 'dim':6 , 'ngens':4 , 'len_orbit':3 , 'gap_ind': 16 , 'intern_ind': 16 }
-    W5_303  = {'alt_name':None, 'dim':6 , 'ngens':4 , 'len_orbit':3 , 'gap_ind': 17 , 'intern_ind': 17 }
+    W5_033 = {'alt_name': None, 'dim': 6, 'ngens': 4, 'len_orbit': 3, 'gap_ind': 15, 'intern_ind': 15}
+    W5_330 = {'alt_name': None, 'dim': 6, 'ngens': 4, 'len_orbit': 3, 'gap_ind': 16, 'intern_ind': 16}
+    W5_303 = {'alt_name': None, 'dim': 6, 'ngens': 4, 'len_orbit': 3, 'gap_ind': 17, 'intern_ind': 17}
 
-    W5_163  = {'alt_name':None, 'dim':10 , 'ngens':4 , 'len_orbit':6 , 'gap_ind': 18 , 'intern_ind': 18 }
-    W5_631  = {'alt_name':None, 'dim':10 , 'ngens':4 , 'len_orbit':6 , 'gap_ind': 19 , 'intern_ind': 19 }
-    W5_316  = {'alt_name':None, 'dim':10 , 'ngens':4 , 'len_orbit':6 , 'gap_ind': 20 , 'intern_ind': 20 }
-    W5_136  = {'alt_name':None, 'dim':10 , 'ngens':4 , 'len_orbit':6 , 'gap_ind': 21 , 'intern_ind': 21 }
-    W5_613  = {'alt_name':None, 'dim':10 , 'ngens':4 , 'len_orbit':6 , 'gap_ind': 22 , 'intern_ind': 22 }
-    W5_361  = {'alt_name':None, 'dim':10 , 'ngens':4 , 'len_orbit':6 , 'gap_ind': 23 , 'intern_ind': 23 }
+    W5_163 = {'alt_name': None, 'dim': 10, 'ngens': 4, 'len_orbit': 6, 'gap_ind': 18, 'intern_ind': 18}
+    W5_631 = {'alt_name': None, 'dim': 10, 'ngens': 4, 'len_orbit': 6, 'gap_ind': 19, 'intern_ind': 19}
+    W5_316 = {'alt_name': None, 'dim': 10, 'ngens': 4, 'len_orbit': 6, 'gap_ind': 20, 'intern_ind': 20}
+    W5_136 = {'alt_name': None, 'dim': 10, 'ngens': 4, 'len_orbit': 6, 'gap_ind': 21, 'intern_ind': 21}
+    W5_613 = {'alt_name': None, 'dim': 10, 'ngens': 4, 'len_orbit': 6, 'gap_ind': 22, 'intern_ind': 22}
+    W5_361 = {'alt_name': None, 'dim': 10, 'ngens': 4, 'len_orbit': 6, 'gap_ind': 23, 'intern_ind': 23}
 
-    W5_366  = {'alt_name':None, 'dim':15 , 'ngens':4 , 'len_orbit':3 , 'gap_ind': 24 , 'intern_ind': 24 }
-    W5_663  = {'alt_name':None, 'dim':15 , 'ngens':4 , 'len_orbit':3 , 'gap_ind': 26 , 'intern_ind': 25 }
-    W5_636  = {'alt_name':None, 'dim':15 , 'ngens':4 , 'len_orbit':3 , 'gap_ind': 27 , 'intern_ind': 26 }
+    W5_366 = {'alt_name': None, 'dim': 15, 'ngens': 4, 'len_orbit': 3, 'gap_ind': 24, 'intern_ind': 24}
+    W5_663 = {'alt_name': None, 'dim': 15, 'ngens': 4, 'len_orbit': 3, 'gap_ind': 26, 'intern_ind': 25}
+    W5_636 = {'alt_name': None, 'dim': 15, 'ngens': 4, 'len_orbit': 3, 'gap_ind': 27, 'intern_ind': 26}
 
-    W5_933  = {'alt_name':None, 'dim':15 , 'ngens':4 , 'len_orbit':3 , 'gap_ind': 25 , 'intern_ind': 27 }
-    W5_339  = {'alt_name':None, 'dim':15 , 'ngens':4 , 'len_orbit':3 , 'gap_ind': 28 , 'intern_ind': 28 }
-    W5_393  = {'alt_name':None, 'dim':15 , 'ngens':4 , 'len_orbit':3 , 'gap_ind': 29 , 'intern_ind': 29 }
-
-
+    W5_933 = {'alt_name': None, 'dim': 15, 'ngens': 4, 'len_orbit': 3, 'gap_ind': 25, 'intern_ind': 27}
+    W5_339 = {'alt_name': None, 'dim': 15, 'ngens': 4, 'len_orbit': 3, 'gap_ind': 28, 'intern_ind': 28}
+    W5_393 = {'alt_name': None, 'dim': 15, 'ngens': 4, 'len_orbit': 3, 'gap_ind': 29, 'intern_ind': 29}
 
 
 # ------------------------------------------------------------------------------------------------------------------
@@ -411,11 +408,11 @@ class CubicHeckeMatrixRep(Matrix_generic_dense):
     @cached_method
     def _get_block(self, ind):
         r"""
-        Return the ``ind``-th submatrix block of ``self`` considered as block diagonal matrix.
+        Return the ``ind``-th sub-matrix block of ``self`` considered as block diagonal matrix.
 
         INPUT:
 
-        - ``ind`` -- integer specifying the list index according to :meth:`internal_index` repectively :meth:`gap_index`
+        - ``ind`` -- integer specifying the list index according to :meth:`internal_index` respectively :meth:`gap_index`
 
         OUTPUT:
 
@@ -438,11 +435,44 @@ class CubicHeckeMatrixRep(Matrix_generic_dense):
                 return matrix(self.submatrix(s, s, d, d))
         raise ValueError('no irreducible representation for this index')
 
+    @cached_method
+    def _irr_to_ind(self, irr):
+        r"""
+        Return the index if the given split irreducible representation of ``self``.
+
+        INPUT:
+
+        - ``irr`` -- an instance of :class:`AbsIrreducibeRep` specifying an absolute irreducible
+          representation of the cubic Hecke algebra
+
+        EXAMPLES::
+
+            sage: CHA2.<c1> = algebras.CubicHecke(2)
+            sage: m1 = c1.matrix()
+            sage: m1._irr_to_ind(CHA2.irred_repr.W2_001)
+            1
+            sage: m1._irr_to_ind(CHA2.irred_repr.W3_001)
+            Traceback (most recent call last):
+            ...
+            TypeError: representation must have 1 generators
+        """
+        representation_type = self.parent()._representation_type
+        if not representation_type.is_split():
+            raise TypeError('representation type is non split')
+
+        ch_algebra = self.parent()._cubic_hecke_algebra
+        if ch_algebra.strands() != irr.number_gens() + 1:
+            raise TypeError('representation must have %s generators' % (ch_algebra.strands() - 1))
+
+        ind = irr.gap_index()
+        if representation_type == RepresentationType.SplitIrredMarin:
+            ind = irr.internal_index()
+        return ind
 
     @cached_method
     def __getitem__(self, item):
         r"""
-        Return the submatrix block of ``self`` considered as block diagonal matrix specified by `item`.
+        Return the sub-matrix block of ``self`` considered as block diagonal matrix specified by `item`.
         Overloading builtin-method to select a list-item.
 
         INPUT:
@@ -459,27 +489,15 @@ class CubicHeckeMatrixRep(Matrix_generic_dense):
         EXAMPLES::
 
             sage: CHA2.<c1> = algebras.CubicHecke(2)
-            sage: c1.matrix()[0]                      # indirect doctest
+            sage: m1 = c1.matrix()
+            sage: m1[0]                       # indirect doctest
             [a]
-            sage: c1.matrix()[CHA2.irred_repr.W2_001]  # indirect doctest
+            sage: m1[CHA2.irred_repr.W2_001]  # indirect doctest
             [b]
         """
-
-
         if isinstance(item, AbsIrreducibeRep):
-            representation_type = self.parent()._representation_type
-            if not representation_type.is_split():
-                raise TypeError( "representation type is non split" )
-
-            ch_algebra = self.parent()._cubic_hecke_algebra
-            if ch_algebra.strands() != item.number_gens() +1 :
-                raise TypeError( "representation must have %d generators" %(ch_algebra.strands()-1 ) )
-
-            ind = item.gap_index()
-            if  representation_type == RepresentationType.SplitIrredMarin:
-                ind = item.internal_index()
-            return self._get_block(ind)
-        elif isinstance(item, (Integer,int)):
+            return self._get_block(self._irr_to_ind(item))
+        elif isinstance(item, (Integer, int)):
             return self._get_block(item)
 
         return super(CubicHeckeMatrixRep, self).__getitem__(item)
@@ -487,12 +505,11 @@ class CubicHeckeMatrixRep(Matrix_generic_dense):
     @cached_method
     def block_diagonal_list(self):
         r"""
-        Return the list of submatrix blocks of ``self`` considered as block diagonal matrix.
+        Return the list of sub-matrix blocks of ``self`` considered as block diagonal matrix.
 
         OUTPUT:
 
         A list of instances of :class:`Matrix_generic_dense` each of which represents a diagonal block of ``self``.
-
 
         EXAMPLES::
 
@@ -502,9 +519,48 @@ class CubicHeckeMatrixRep(Matrix_generic_dense):
         """
         representation_type = self.parent()._representation_type
         n = self.parent()._cubic_hecke_algebra.strands()
-        l = representation_type.number_of_representations(n)
-        return [self._get_block(i) for i in range(l)]
+        m = representation_type.number_of_representations(n)
+        return [self._get_block(i) for i in range(m)]
 
+    @cached_method
+    def reduce_to_irr_block(self, irr):
+        r"""
+        Return a copy of ``self`` with zeroes outside the block corresponding to
+        ``irr`` but the block according to the input identical to that of ``self``.
+
+        INPUT:
+
+        - ``irr`` -- an instance of :class:`AbsIrreducibeRep` specifying an
+          absolute irreducible representation of the cubic Hecke algebra.
+          Alternatively, it can be specified by list index (see
+          :meth:`internal_index` respectively :meth:`gap_index`)
+
+        OUTPUT:
+
+        An instance of :class:`Matrix_generic_dense` with exactly one non zero block
+        according to ``irr``.
+
+        EXAMPLES::
+
+            sage: CHA2.<c1> = algebras.CubicHecke(2)
+            sage: m1 = c1.matrix()
+            sage: m1.reduce_to_irr_block(0)
+            [a 0 0]
+            [0 0 0]
+            [0 0 0]
+            sage: m1.reduce_to_irr_block(CHA2.irred_repr.W2_001)
+            [0 0 0]
+            [0 b 0]
+            [0 0 0]
+        """
+        if isinstance(irr, AbsIrreducibeRep):
+            ind = self._irr_to_ind(irr)
+        else:
+            ind = Integer(irr)
+        from copy import copy
+        mat_list = copy(self.parent().zero().block_diagonal_list())
+        mat_list[ind] = self[ind]
+        return block_diagonal_matrix(mat_list, subdivide=self.parent()._subdivide, sparse=True)
 
 
 # ------------------------------------------------------------------------------------------------------------------
@@ -520,13 +576,12 @@ class CubicHeckeMatrixSpace(MatrixSpace):
       `element` fails to be an instance of its element class.
 
     - ``representation_type`` -- (default RepresentationType.SplitIrredChevie) instance of :class:`RepresentationType`
-      specifying the type of the represenstation.
+      specifying the type of the representation.
 
     - ``subdivide`` -- boolean (default False) passed to :func:`~sage.matrix.special.block_diagonal_matrix`.
 
     - ``original`` -- boolean (default False) if set to True the matrix will coefficients in the generic
       base / extension ring.
-
 
     EXAMPLES::
 
@@ -558,12 +613,12 @@ class CubicHeckeMatrixSpace(MatrixSpace):
             sage: MS = chmr.CubicHeckeMatrixSpace(CHA2)
             sage: TestSuite(MS).run()
         """
-        from sage.algebras.hecke_algebras.cubic_hecke_algebra import  CubicHeckeAlgebra
+        from sage.algebras.hecke_algebras.cubic_hecke_algebra import CubicHeckeAlgebra
 
-        if isinstance(cubic_hecke_algebra, CubicHeckeAlgebra) == False:
-            raise TypeError("cubic_hecke_algebra must be an instance of CubicHeckeAlgebra")
+        if not isinstance(cubic_hecke_algebra, CubicHeckeAlgebra):
+            raise TypeError('cubic_hecke_algebra must be an instance of CubicHeckeAlgebra')
 
-        if representation_type == None:
+        if representation_type is None:
             representation_type = RepresentationType.SplitIrredMarin
 
         if representation_type == RepresentationType.SplitIrredChevie:
@@ -571,19 +626,22 @@ class CubicHeckeMatrixSpace(MatrixSpace):
             if not is_chevie_available():
                 raise ValueError('CHEVIE is not available')
 
-        base_ring    = cubic_hecke_algebra.base_ring(generic=original)
+        base_ring = cubic_hecke_algebra.base_ring(generic=original)
         dimension = cubic_hecke_algebra.dimension()
         if representation_type.is_split():
             dimension = cubic_hecke_algebra._dim_irr_rep
             base_ring = cubic_hecke_algebra.extension_ring(generic=original)
+        return super(CubicHeckeMatrixSpace, cls).__classcall__(cls, base_ring, dimension,
+                                                               cubic_hecke_algebra=cubic_hecke_algebra,
+                                                               representation_type=representation_type,
+                                                               subdivide=subdivide, sparse=True,
+                                                               implementation=Matrix_generic_dense)
 
-        return super(CubicHeckeMatrixSpace, cls).__classcall__(cls, base_ring, dimension, cubic_hecke_algebra=cubic_hecke_algebra,
-                     representation_type=representation_type, subdivide=subdivide, sparse=True, implementation=Matrix_generic_dense)
-
-
-
-    def __init__(self, base_ring, dimension, cols, sparse=True,  implementation=Matrix_generic_dense,
-                 cubic_hecke_algebra=None, representation_type=RepresentationType.SplitIrredChevie, subdivide=False):
+    def __init__(self, base_ring, dimension, cols, sparse=True,
+                 implementation=Matrix_generic_dense,
+                 cubic_hecke_algebra=None,
+                 representation_type=RepresentationType.SplitIrredChevie,
+                 subdivide=False):
         r"""
         Python constructor.
 
@@ -594,35 +652,46 @@ class CubicHeckeMatrixSpace(MatrixSpace):
             sage: MS = chmr.CubicHeckeMatrixSpace(CHA3, original=True)
             sage: TestSuite(MS).run()     # long time
         """
+        from sage.algebras.hecke_algebras.cubic_hecke_algebra import CubicHeckeAlgebra
 
-        from sage.algebras.hecke_algebras.cubic_hecke_algebra import  CubicHeckeAlgebra
-
-        if isinstance(cubic_hecke_algebra, CubicHeckeAlgebra) == False:
-            raise TypeError("cubic_hecke_algebra must be an instance of CubicHeckeAlgebra")
+        if not isinstance(cubic_hecke_algebra, CubicHeckeAlgebra):
+            raise TypeError('cubic_hecke_algebra must be an instance of CubicHeckeAlgebra')
 
         # -------------------------------------------------------------------------------------------------
         # saving input parameters
         # -------------------------------------------------------------------------------------------------
         self._cubic_hecke_algebra = cubic_hecke_algebra
         self._representation_type = representation_type
-        self._subdivide           = subdivide
+        self._subdivide = subdivide
 
         original_base_ring = cubic_hecke_algebra.base_ring(generic=True)
 
         if representation_type.is_split():
             original_base_ring = cubic_hecke_algebra.extension_ring(generic=True)
-            specialize    = cubic_hecke_algebra._generic_extension_ring_map
+            specialize = cubic_hecke_algebra._generic_extension_ring_map
         else:
-            specialize    = cubic_hecke_algebra._ring_of_definition_map
+            specialize = cubic_hecke_algebra._ring_of_definition_map
 
-        verbose("original_base_ring %s base_ring %s" %(original_base_ring, base_ring))
+        verbose("original_base_ring %s base_ring %s" % (original_base_ring, base_ring), level=2)
 
         self._original_base_ring = original_base_ring
-        self._specialize         = specialize
+        self._specialize = specialize
 
         super(CubicHeckeMatrixSpace, self).__init__(base_ring, dimension, cols, sparse=sparse, implementation=implementation)
         self.Element = CubicHeckeMatrixRep
         return
+
+    def construction(self):
+        r"""
+        Return ``None`` since this construction is not functorial.
+
+        EXAMPLES::
+
+            sage: CHA2.<c1> = algebras.CubicHecke(2)
+            sage: MS = c1.matrix().parent()
+            sage: MS._test_category()   # indirect doctest
+        """
+        return None
 
     def __reduce__(self):
         r"""
@@ -637,7 +706,6 @@ class CubicHeckeMatrixSpace(MatrixSpace):
         """
         original = self.base_ring() == self._original_base_ring
         return CubicHeckeMatrixSpace, (self._cubic_hecke_algebra, self._representation_type, self._subdivide, original)
-
 
     def _element_constructor_(self, x):
         r"""
@@ -666,8 +734,8 @@ class CubicHeckeMatrixSpace(MatrixSpace):
         # -------------------------------------------------------------------------------------------------
         # checking input and setting the self._cubic_hecke_algebra
         # -------------------------------------------------------------------------------------------------
-        ch_algebra          = self._cubic_hecke_algebra
-        ele_parent    = x.parent()
+        ch_algebra = self._cubic_hecke_algebra
+        ele_parent = x.parent()
         ori_base_ring = self._original_base_ring
         if isinstance(ele_parent, MatrixSpace):
             # ToDo:  - Find preimage in cubic hecke algebra
@@ -681,19 +749,20 @@ class CubicHeckeMatrixSpace(MatrixSpace):
                 raise ValueError('incompatible base ring!')
             x_in_self = self.element_class(self, x)
             matrix_list = x_in_self.block_diagonal_list()
-            matrix  = block_diagonal_matrix(matrix_list, subdivide=self._subdivide, sparse=True)
+            matrix = block_diagonal_matrix(matrix_list, subdivide=self._subdivide, sparse=True)
             if matrix != x:
-                raise TypeError( "incompatible block structure" )
+                raise TypeError('incompatible block structure')
 
         elif ele_parent == ch_algebra:
             mat = ch_algebra._apply_module_morphism(x, self._image_on_basis)
             return self(mat)
 
         else:
-            raise TypeError( "element must be an instance of CubicHeckeElement or a matrix" )
+            raise TypeError('element must be an instance of CubicHeckeElement or a matrix')
 
         return self.element_class(self, matrix)
 
+    @cached_method
     def __call__(self, entries=None, coerce=True, copy=None):
         r"""
         Perform the instance call. This method needs to be overloaded here
@@ -709,19 +778,17 @@ class CubicHeckeMatrixSpace(MatrixSpace):
             [         0          b          0]
             [         0          0 -b - a + u]
         """
-        from sage.algebras.hecke_algebras.cubic_hecke_algebra import  CubicHeckeAlgebra
+        from sage.algebras.hecke_algebras.cubic_hecke_algebra import CubicHeckeAlgebra
         if entries is None:
-            return super(CubicHeckeMatrixSpace,self).__call__(entries=entries, coerce=coerce, copy=copy)
+            return super(CubicHeckeMatrixSpace, self).__call__(entries=entries, coerce=coerce, copy=copy)
         if not hasattr(entries, 'parent'):
-            return super(CubicHeckeMatrixSpace,self).__call__(entries=entries, coerce=coerce, copy=copy)
+            return super(CubicHeckeMatrixSpace, self).__call__(entries=entries, coerce=coerce, copy=copy)
         ele_parent = entries.parent()
         if not isinstance(ele_parent, (CubicHeckeAlgebra, MatrixSpace)):
-            return super(CubicHeckeMatrixSpace,self).__call__(entries=entries, coerce=coerce, copy=copy)
+            return super(CubicHeckeMatrixSpace, self).__call__(entries=entries, coerce=coerce, copy=copy)
         return self._element_constructor_(entries)
 
-
-
-
+    @cached_method
     def _specialize_matrix(self, mat):
         r"""
         Return the given matrix specializing the original coefficients
@@ -747,10 +814,9 @@ class CubicHeckeMatrixSpace(MatrixSpace):
             [         a          b]
             [         0 -b - a + u]
         """
-
-        base_ring          = self.base_ring()
+        base_ring = self.base_ring()
         original_base_ring = self._original_base_ring
-        specialize         = self._specialize
+        specialize = self._specialize
 
         if base_ring == original_base_ring:
             return mat
@@ -758,12 +824,11 @@ class CubicHeckeMatrixSpace(MatrixSpace):
         mat_dict = {k: specialize(original_base_ring(v)) for k, v in mat.dict().items()}
         return matrix(base_ring, mat_dict)
 
-
     @cached_method
     def _image_on_gen(self, gen_ind):
         r"""
         Return the matrix list corresponding to the generator given by ``(gen_ind,)`` in Tietze form
-        under the representation_type of ``self`` from the data-file or via the gap3 interface
+        under the representation_type of ``self`` from the data-file or via the *GAP3* interface
 
         INPUT:
 
@@ -789,39 +854,38 @@ class CubicHeckeMatrixSpace(MatrixSpace):
             sage: MSreg = chmr.CubicHeckeMatrixSpace(CHA2, representation_type=CHA2.repr_type.RegularRight)
             sage: MSreg._image_on_gen(-1)
             [
-            [        0         1 (-w^-1)*u]
-            [        0         0      w^-1]
-            [        1         0  (w^-1)*v]
+            [     0      1 (-u)/w]
+            [     0      0    1/w]
+            [     1      0    v/w]
             ]
         """
 
         representation_type = self._representation_type
-        ch_algebra          = self._cubic_hecke_algebra
-        n                   = ch_algebra.strands()
-        original_base_ring  = self._original_base_ring
+        original_base_ring = self._original_base_ring
+        ch_algebra = self._cubic_hecke_algebra
+        n = ch_algebra.strands()
 
         def invert_gen(matr):
-           r"""
-           Return the inverse matrix of generators.
-           """
-           cfs = ch_algebra.cubic_equation(as_coefficients=True, generic=True)
-           fac =-1 /cfs[0 ]
-           cf0, cf1, cf2, cf3 = [original_base_ring(cf*fac) for cf in cfs]
+            r"""
+            Return the inverse matrix of generators.
+            """
+            cfs = ch_algebra.cubic_equation(as_coefficients=True, generic=True)
+            fac = - 1/cfs[0]
+            cf0, cf1, cf2, cf3 = [original_base_ring(cf*fac) for cf in cfs]
 
-           matri = cf1*matr.parent().one()
-           matri += cf2*matr
-           matri += cf3*matr**2
-           d1, d2 = matr.dimensions()
-           matrI = matrix(original_base_ring, d1, d2, lambda i,j: original_base_ring(matri[i,j]))
-           return matrI
+            matri = cf1*matr.parent().one()
+            matri += cf2*matr
+            matri += cf3*matr**2
+            d1, d2 = matr.dimensions()
+            matrI = matrix(original_base_ring, d1, d2, lambda i, j: original_base_ring(matri[i, j]))
+            return matrI
 
-
-        if n == 2 :
+        if n == 2:
             if representation_type.is_split():
                 # Split representations for n == 2 are missing in CHEVIE and data files
                 a, b, c = original_base_ring.gens()
-                matrix_list = [matrix(1 ,1 , [a]), matrix(1 ,1 , [b]), matrix(1 ,1 , [c])]
-                if gen_ind < 0 :
+                matrix_list = [matrix(1, 1, [a]), matrix(1, 1, [b]), matrix(1, 1, [c])]
+                if gen_ind < 0:
                     matrix_list = [invert_gen(mat) for mat in matrix_list]
                 return matrix_list
 
@@ -829,28 +893,28 @@ class CubicHeckeMatrixSpace(MatrixSpace):
 
         if representation_type == RepresentationType.SplitIrredChevie:
 
-            rep_list = [ ch_algebra._fetch_matrix_list_from_chevie(i+1) for i in range(num_rep) ]
-            if gen_ind > 0 :
-                matrix_list = [ rep[gen_ind-1 ] for rep in rep_list ]
+            rep_list = [ch_algebra._fetch_matrix_list_from_chevie(i+1) for i in range(num_rep)]
+            if gen_ind > 0:
+                matrix_list = [rep[gen_ind - 1] for rep in rep_list]
             else:
-                matrix_list = [ invert_gen(rep[-gen_ind-1 ]) for rep in rep_list ]
-
+                matrix_list = [invert_gen(rep[-gen_ind - 1]) for rep in rep_list]
         else:
 
             database = ch_algebra._database
             matrix_list = database.read_matrix_representation(representation_type, gen_ind, n, original_base_ring)
-
         return matrix_list
-
 
     @cached_method
     def _image_on_basis(self, basis_element):
         r"""
-        Return the image of the given basis element of the cubic Hecke algebra in ``self``.
+        Return the image of the given basis element of the cubic Hecke algebra
+        in ``self``.
 
-        INUPUT:
+        INPUT:
 
-        - ``basis_element`` -- instance of :class:`~sage.algebras.hecke_algebras.cubic_hecke_algebra.CubicHeckeElement` which is a monomial
+        - ``basis_element`` -- instance of
+          :class:`~sage.algebras.hecke_algebras.cubic_hecke_algebra.CubicHeckeElement`
+          which is a monomial
 
         EXAMPLES::
 
@@ -871,9 +935,8 @@ class CubicHeckeMatrixSpace(MatrixSpace):
             [        0         0         0         0         0         0         0         0         0 b^2 + a*c         b         0]
             [        0         0         0         0         0         0         0         0         0         b         1         a]
         """
-
         representation_type = self._representation_type
-        ch_algebra          = self._cubic_hecke_algebra
+        ch_algebra = self._cubic_hecke_algebra
         filecache = ch_algebra._filecache
 
         original_base_ring = self._original_base_ring
@@ -881,24 +944,25 @@ class CubicHeckeMatrixSpace(MatrixSpace):
         ele_Tietze = basis_element.Tietze()
         matrix_list = filecache.read_matrix_representation(representation_type, ele_Tietze, original_base_ring)
         if matrix_list is None:
-            verbose("not in  memory %s (Tietze %s)" %(basis_element, ele_Tietze))
-            if len(ele_Tietze) == 0 :
+            verbose('not in  memory %s (Tietze %s)' % (basis_element, ele_Tietze), level=2)
+            if len(ele_Tietze) == 0:
                 matrix_list = ch_algebra._create_matrix_list_for_one(representation_type)
             else:
                 for gen_ind in ele_Tietze:
                     gen_matrix_list = self._image_on_gen(gen_ind)
-                    if matrix_list == None:
-                        matrix_list  = [m for m in gen_matrix_list]
+                    if matrix_list is None:
+                        matrix_list = [m for m in gen_matrix_list]
                     else:
                         for i in range(len(matrix_list)):
                             matrix_list[i] *= gen_matrix_list[i]
 
             filecache.write_matrix_representation(representation_type, ele_Tietze, matrix_list)
-            verbose("%s saved to memory" %(basis_element))
+            verbose('%s saved to memory' % basis_element, level=2)
 
-        mat =  block_diagonal_matrix(matrix_list, subdivide=self._subdivide, sparse=True)
+        mat = block_diagonal_matrix(matrix_list, subdivide=self._subdivide, sparse=True)
         return self._specialize_matrix(mat)
 
+    @cached_method
     def zero(self):
         r"""
         Return the zero element of ``self``.
@@ -926,6 +990,7 @@ class CubicHeckeMatrixSpace(MatrixSpace):
         z.set_immutable()
         return z
 
+    @cached_method
     def one(self):
         r"""
         Return the one element of ``self``.
@@ -953,6 +1018,7 @@ class CubicHeckeMatrixSpace(MatrixSpace):
         o.set_immutable()
         return o
 
+    @cached_method
     def _an_element_(self):
         r"""
         Return an element of ``self``.
@@ -972,6 +1038,7 @@ class CubicHeckeMatrixSpace(MatrixSpace):
         x = self._cubic_hecke_algebra.an_element()
         return self(x)
 
+    @cached_method
     def some_elements(self):
         r"""
         Return a generator of elements of ``self``.

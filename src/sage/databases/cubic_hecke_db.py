@@ -2,14 +2,36 @@
 r"""
 Cubic Hecke Database
 
-This module contains the class :class:`CubicHeckeDataBase` which serves as an interface to
-Ivan Marin's data files with respect to the cubic Hecke algebras. Furthermore, it contains
-the class :class:`CubicHeckeFileCache` which enables :class:`CubicHeckeAlgebra` to keep
-intermediate results of calculations in the file system.
+This module contains the class :class:`CubicHeckeDataBase` which serves as an
+interface to `Ivan Marin's data files <http://www.lamfa.u-picardie.fr/marin/representationH4-en.html>`__
+with respect to the cubic Hecke algebras. The data is available via a Python wrapper as a
+pip installable package `database_cubic_hecke <https://pypi.org/project/database-cubic-hecke/>`__.
+For installation hints please see the documentation there.
+Anyway, all data needed for the cubic Hecke algebras on less than four strands is
+included in this module for demonstration purpose (see for example
+:func:`read_basis`, :func:`read_irr` , ... generated with the help of
+:func:`create_demo_data`).
+
+In addition to Ivan Marin's data the package contains a function :func:`read_markov`
+to obtain the coefficients of Markov traces on the cubic Hecke algebras. This
+data has been precomputed with the help of ``create_markov_trace_data.py`` in the
+`database_cubic_hecke repository <https://github.com/soehms/database_cubic_hecke>`__.
+Again, for less than four strands, this data is includes here for demonstration
+purpose.
+
+Furthermore, this module contains the class :class:`CubicHeckeFileCache` which
+enables :class:`~sage.algebras.hecke_algebras.cubic_hecke_algebras.CubicHeckeAlgebra`
+to keep intermediate results of calculations in the file system.
+
+Finally, there is an enum :class:`MarkovTraceModuleBasis` serving
+as basis for the sub-module of linear forms on the cubic Hecke algebra on four
+and less strands satisfying the Markov trace condition for its cubic Hecke
+sub-algebras.
 
 AUTHORS:
 
-- Sebastian Oehms May 2020: initial version
+- Sebastian Oehms May   2020: initial version
+- Sebastian Oehms March 2022: PyPi version and Markov trace functionality
 """
 
 
@@ -28,212 +50,117 @@ import os
 from enum import Enum
 
 from sage.structure.sage_object import SageObject
-from sage.misc.persist import db_save, db, save, load
+from sage.misc.persist import _base_dumps, load
+from sage.misc.temporary_file import atomic_write
 from sage.misc.verbose import verbose
-from sage.env import SAGE_SHARE, SAGE_ROOT
-from sage.matrix.constructor import matrix, Matrix  # uppercase version used in Marin's file `MatricesRegH4.maple`
+from sage.matrix.constructor import matrix
 from sage.rings.integer_ring import ZZ
-from sage.algebras.hecke_algebras.base_rings_of_definition.cubic_hecke_base_ring import CubicHeckeRingOfDefinition
+from sage.algebras.hecke_algebras.base_rings_of_definition.cubic_hecke_base_ring import CubicHeckeExtensionRing
 
 
-
-
-
-#----------------------------------------------------------------------------------------------------------------------------
-# functions to convert matrices and ring elements to and from flat python dictionaries in order to save matrices avoiding
-# compatibility problems with older or newer sage versions and to save disc space
-#----------------------------------------------------------------------------------------------------------------------------
-# conversion of ring element to dictionary
-#----------------------------------------------------------------------------------------------------------------------------
-def convert_poly_to_dict_recursive(ring_elem):
+# ------------------------------------------------------------------------------
+# functions to convert matrices and ring elements to and from flat python
+# dictionaries in order to save matrices avoiding compatibility problems with
+# older or newer sage versions and to save disc space
+# ------------------------------------------------------------------------------
+def simplify(mat):
     r"""
-    Convert a ring element to a python dictionary recursively using the dict method of it.
-    By recursion the dictionaries values are converted as well as long as they posses a
-    ``dict`` method. If the values are sage Integers they are converted into python integers.
+    Convert a matrix to a dictionary consisting of flat Python objects.
 
     INPUT:
 
-    -- ``ring_elem`` - ring element to be converted into python dictionary
+    -- ``mat`` - matrix to be converted into python dictionary
 
     OUTPUT:
 
-    A python dictionary from which ``ring_elem`` can be reconstructed via element construction by recursion.
-    The values of the dictionary may be dictionaries again if the parent of ring_elem has a base_ring
-    different from itself.
+    A python dictionary from which ``mat`` can be reconstructed via
+    element construction. The values of the dictionary may be
+    dictionaries of tuples of integers or strings.
 
     EXAMPLES::
 
-        sage: from sage.databases.cubic_hecke_db import convert_poly_to_dict_recursive
-        sage: L.<c>=LaurentPolynomialRing(ZZ, 'c')
-        sage: P.<a,b> = L['a,b']; P
-        Multivariate Polynomial Ring in a, b
-          over Univariate Laurent Polynomial Ring in c over Integer Ring
-        sage: elem = 5*b-3*a*~c; elem
-        (-3*c^-1)*a + 5*b
-        sage: convert_poly_to_dict_recursive(elem)
-        {(0, 1): {0: 5}, (1, 0): {-1: -3}}
+        sage: from sage.databases.cubic_hecke_db import simplify
+        sage: import sage.algebras.hecke_algebras.base_rings_of_definition.cubic_hecke_base_ring as chbr
+        sage: ER.<a, b, c> = chbr.CubicHeckeExtensionRing()
+        sage: mat = matrix(ER, [[2*a, -3], [c, 4*b*~c]]); mat
+        [     2*a       -3]
+        [       c 4*b*c^-1]
+        sage: simplify(mat)
+        {(0, 0): {(1, 0, 0): {0: 2}},
+         (0, 1): {(0, 0, 0): {0: -3}},
+         (1, 0): {(0, 0, 1): {0: 1}},
+         (1, 1): {(0, 1, -1): {0: 4}}}
+        sage: mat == matrix(ER, _)
+        True
+        sage: F = ER.fraction_field()
+        sage: matf = mat.change_ring(F)
+        sage: simplify(matf)
+        {(0, 0): '2*a', (0, 1): '-3', (1, 0): 'c', (1, 1): '4*b/c'}
+        sage: matf == matrix(F, _)
+        True
     """
-
-    dict_res = {}
-    if hasattr(ring_elem, 'dict'):
-        ring_elem_dict = ring_elem.dict()
-        for k in ring_elem_dict.keys():
-            dict_res[k] = convert_poly_to_dict_recursive(ring_elem_dict[k])
+    B = mat.base_ring()
+    d = mat.dict()
+    if isinstance(B, CubicHeckeExtensionRing):
+        # Laurent polynomial cannot be reconstructed from string
+        res = {k: {tuple(j): u.dict() for j, u in v.dict().items()} for k, v in d.items()}
     else:
-        if ring_elem in ZZ:
-            return int(ring_elem)
-        return ring_elem
-    return dict_res
+        res = {k: str(v) for k, v in d.items()}
+    return res
 
 
-
-
-
-
-#---------------------------------------------------------------------------------------------------------------------------
-# conversion of matrix to dictionary
-#---------------------------------------------------------------------------------------------------------------------------
-def convert_mat_to_dict_recursive(mat):
+class CubicHeckeDataSection(Enum):
     r"""
-    Convert a matrix to a python dictionary using the dict method of it. Furthermore, the dictionaries
-    values are converted as well by the convert_poly_to_dict_recursive function.
+    Enum for the different sections of the database. The following choices are
+    possible:
 
-    INPUT:
-
-    - ``mat`` -- matrix to be converted into python dictionary
-
-    OUTPUT:
-
-    A python dictionary from which mat can be reconstructed via element construction. The values of the
-    dictionary may be dictionaries again if entries of the matrix have a dict method as well.
-
-    EXAMPLES::
-
-        sage: from sage.databases.cubic_hecke_db import convert_mat_to_dict_recursive
-        sage: L.<c>=LaurentPolynomialRing(ZZ, 'c')
-        sage: P.<a,b> = L['a,b']; P
-        Multivariate Polynomial Ring in a, b
-          over Univariate Laurent Polynomial Ring in c over Integer Ring
-        sage: mat = matrix(P, [[2*a, -3], [c, 4*b*~c]]); mat
-        [       2*a         -3]
-        [         c (4*c^-1)*b]
-        sage: convert_mat_to_dict_recursive(mat)
-        {(0, 0): {(1, 0): {0: 2}},
-        (0, 1): {(0, 0): {0: -3}},
-        (1, 0): {(0, 0): {1: 1}},
-        (1, 1): {(0, 1): {-1: 4}}}
-    """
-
-    mat_dict = {}
-    mat_dict_temp = mat.dict()
-    for k in mat_dict_temp.keys():
-        mat_dict[k] = convert_poly_to_dict_recursive(mat_dict_temp[k]) 
-    return mat_dict
-
-
-
-
-class CubicHeckeDataFilename(Enum):
-    r"""
-    Enum for the different data files. The following choices are possible:
-
-    - ``basis`` -- contains the basis for the cubic Hecke algebra up to 4 strands
-    - ``regular_left`` -- contains the left regular representation matrices of the generators
-    - ``regular_right`` -- contains the right regular representation matrices of the generators
-    - ``irred_split`` -- contains representation matrices of the generators of the split irreducible
-      representations
-
+    - ``basis``  -- list of basis elements
+    - ``reg_left_reprs``  -- data for the left regular representation
+    - ``reg_right_reprs``  -- data for the right regular representation
+    - ``irr_reprs`` -- data for the split irreducible representations
+    - ``markov_tr_cfs`` -- data for the coefficients of the formal Markov traces
 
     Examples::
 
         sage: from sage.databases.cubic_hecke_db import CubicHeckeDataBase
         sage: cha_db = CubicHeckeDataBase()
-        sage: cha_db.filename
-        <enum 'CubicHeckeDataFilename'>
+        sage: cha_db.section
+        <enum 'CubicHeckeDataSection'>
     """
-    def download(self):
-        """
-        Return the file name to download the data from Ivan Marin's web-page.
-
-        Examples::
-
-            sage: from sage.databases.cubic_hecke_db import CubicHeckeDataBase
-            sage: cha_db = CubicHeckeDataBase()
-            sage: cha_db.filename.basis.download()
-            'baseH4.maple'
-        """
-        return self.value[0]
-    def py(self):
-        """
-        Return the file name under which the data from Ivan Marin's web-page
-        are stored as python file.
-
-        Examples::
-
-            sage: from sage.databases.cubic_hecke_db import CubicHeckeDataBase
-            sage: cha_db = CubicHeckeDataBase()
-            sage: cha_db.filename.basis.py()
-            'baseH4.maple.py'
-        """
-        return '%s.py' %(self.value[0])
-
-    def sobj(self, nstrands=None):
-        """
-        Return the file name under which the data from Ivan Marin's web-page
-        is converted into sobj-files.
-
-        INPUT:
-
-        - ``nstrands`` -- Integer number of strands of the underlying braid group
-          if the data file depends on it. Otherwise use default None
-
-        Examples::
-
-            sage: from sage.databases.cubic_hecke_db import CubicHeckeDataBase
-            sage: cha_db = CubicHeckeDataBase()
-            sage: cha_db.filename.basis.sobj()
-            'monomial_basis.sobj'
-            sage: cha_db.filename.basis.sobj()
-            'monomial_basis.sobj'
-            sage: cha_db.filename.irred_split.sobj(2)
-            'irred_split_reprs_2.sobj'
-            sage: cha_db.filename.regular_left.sobj(3)
-            'regular_left_reprs_3.sobj'
-        """
-        if nstrands is None:
-            return '%s.sobj' %(self.value[1])
-        else:
-            return '%s_%s.sobj' %(self.value[1], nstrands)
-
-    basis         = ['baseH4.maple',             'monomial_basis']
-    regular_left  = ['MatricesRegH4.maple',      'regular_left_reprs']
-    regular_right = ['MatricesRegH4right.maple', 'regular_right_reprs']
-    irred_split   = ['RepresentationsH25',       'irred_split_reprs']
+    basis = 'basis'
+    regular_left = 'regular_left'
+    regular_right = 'regular_right'
+    split_irred = 'split_irred'
+    markov_tr_cfs = 'markov_tr_cfs'
 
 
-
-
-
-#----------------------------------------------------------------------------------------------------------------------------
-# Class to supply data for the basis and matrix representation for the cubic Hecke algebra
-#----------------------------------------------------------------------------------------------------------------------------
+# -------------------------------------------------------------------------------
+# Class to supply data for the basis and matrix representation for the cubic
+# Hecke algebra
+# -------------------------------------------------------------------------------
 class CubicHeckeDataBase(SageObject):
     r"""
-    Database interface needed for :class:`CubicHeckeAlgebra`.
+    Database interface needed for :class:`~sage.algebras.hecke_algebras.cubic_hecke_algebras.CubicHeckeAlgebra`
 
-    The original data are obtained from Ivan Marin's web-page (URL see the example below). In order
-    to have these data installed during the build process as a sage-package they are converted
-    as python files into a tarball. This tarball has been created using the method :meth:`create_spkg_tarball`.
+    The original data are obtained from
+    `Ivan Marin's web page <http://www.lamfa.u-picardie.fr/marin/representationH4-en.html>`__
+
+    The data needed to work with the cubic Hecke algebras on less than 4 strands
+    is completely contained in this module. Data needed for the larger algebras
+    can be installed as an optional Sage package which comes as a *pip* installable
+    `Python wrapper <https://pypi.org/project/database-cubic-hecke/>`__ of
+    Ivan Marin's data. For more information see the
+    `corresponding repository <https://github.com/soehms/database_cubic_hecke>`__.
 
     EXAMPLES::
 
         sage: from sage.databases.cubic_hecke_db import CubicHeckeDataBase
         sage: cha_db = CubicHeckeDataBase()
-        sage: cha_db._url_marin
-        'http://www.lamfa.u-picardie.fr/marin/softs/H4'
+        sage: cha_db._feature
+        Feature('database_cubic_hecke')
     """
 
-    filename = CubicHeckeDataFilename
+    section = CubicHeckeDataSection
 
     def __init__(self):
         r"""
@@ -242,28 +169,14 @@ class CubicHeckeDataBase(SageObject):
         EXAMPLES::
 
             sage: from sage.databases.cubic_hecke_db import CubicHeckeDataBase
-            sage: from sage.env import SAGE_SHARE
             sage: cha_db = CubicHeckeDataBase()
-            sage: cha_db._import_path_sobj == SAGE_SHARE + '/cubic_hecke_marin/sobj'
-            True
+            sage: cha_db._data_library
+            {}
         """
-        self._url_marin              = 'http://www.lamfa.u-picardie.fr/marin/softs/H4'
-
-        self._package = 'cubic_hecke_marin'
-        version_file  = os.path.join(SAGE_ROOT, 'build/pkgs/%s/package-version.txt' %self._package)
-        f = open(version_file)
-        self._version = f.read().splitlines()[0]
-        f.close()
-
-        self._import_path      = os.path.join(SAGE_SHARE, self._package)
-        self._import_path_py   = os.path.join(self._import_path, 'py')
-        self._import_path_sobj = os.path.join(self._import_path, 'sobj')
-
-        from sage.misc.misc import sage_makedirs
-        sage_makedirs(self._import_path_py)
-        sage_makedirs(self._import_path_sobj)
-
+        from sage.features.databases import DatabaseCubicHecke
+        self._feature = DatabaseCubicHecke()
         self._data_library = {}
+        self._demo = None
 
     def version(self):
         r"""
@@ -273,385 +186,113 @@ class CubicHeckeDataBase(SageObject):
 
             sage: from sage.databases.cubic_hecke_db import CubicHeckeDataBase
             sage: cha_db = CubicHeckeDataBase()
-            sage: cha_db.version()
-            '20200513'
+            sage: cha_db.version() > '2022.1.1'   # optional - database_cubic_hecke
+            True
         """
-        return self._version
+        self._feature.require()
+        from database_cubic_hecke import version
+        return version()
 
-    def _create_python_file(self, filename):
+    def demo_version(self):
         r"""
-        Return the data fetched from Iwan Marin's homepage as a python file
-        such that it can be loaded via `sage_eval`.
+        Return whether the cubic Hecke database is installed completely or
+        just the demo version is used.
 
         EXAMPLES::
 
-            sage: from sage.databases.cubic_hecke_db import CubicHeckeDataBase
-            sage: cha_db = CubicHeckeDataBase()
-            sage: load(cha_db._create_python_file(cha_db.filename.basis))    # not tested (because of internet access)
-            Importing data for monomial_basis.sobj from http://www.lamfa.u-picardie.fr/marin/softs/H4/baseH4.maple
-            sage: len(baseH4)                                                # not tested
-            648
+            sage: from sage.databases.knotinfo_db import KnotInfoDataBase
+            sage: ki_db = KnotInfoDataBase()
+            sage: ki_db.demo_version()       # optional - database_knotinfo
+            False
         """
-        if not isinstance(filename, CubicHeckeDataBase.filename):
-            raise TypeError('File name must be an instance of enum %s' (CubicHeckeDataBase.filename))
-
-        import_file = '%s/%s' %(self._import_path_py, filename.py())
-
-        # import directly from the internet page
-        from six.moves.urllib.request import urlopen
-        try:
-            from urllib.error import HTTPError
-        except ImportError:
-            from urllib2 import HTTPError
-
-        try:
-            url = '%s/%s' %(self._url_marin, filename.download())
-            url_data = urlopen(url).read().decode()
-            print('Importing data for %s from %s' %(filename.sobj(), url))
-            preparsed_data =url_data.replace(':=', '=').replace(';', '').replace('^', '**')
-            f = open(import_file, 'wt')
-            f.write(preparsed_data)
-            f.close()
-            return import_file
-        except HTTPError:
-            raise IOError('Data import file %s not found! Internet connection needed!' %(filename))
-
-    def create_spkg_tarball(self):
-        r"""
-        Create a tarball for the sage-package ``cubic_heck_marin`` in the ``upstream`` directory. This
-        utility should only be used by users who know what they do in case of a switch to a new
-        version of the data files (that is if the original files on Iwan Marin's homepage have changed).
-        In that case in invocation of ``sage -package fix-checksum cubic_hecke_marin`` will be necessary.
-
-        EXAMPLES::
-
-            sage: from sage.databases.cubic_hecke_db import CubicHeckeDataBase
-            sage: cha_db = CubicHeckeDataBase()
-            sage: cha_db.create_spkg_tarball()    # not tested (because of internet access)
-            Importing data for monomial_basis.sobj
-               from http://www.lamfa.u-picardie.fr/marin/softs/H4/baseH4.maple
-            Importing data for regular_left_reprs.sobj
-               from http://www.lamfa.u-picardie.fr/marin/softs/H4/MatricesRegH4.maple
-            Importing data for regular_right_reprs.sobj
-               from http://www.lamfa.u-picardie.fr/marin/softs/H4/MatricesRegH4right.maple
-            Importing data for irred_split_reprs.sobj
-               from http://www.lamfa.u-picardie.fr/marin/softs/H4/RepresentationsH25
-            py/
-            py/MatricesRegH4.maple.py
-            py/MatricesRegH4right.maple.py
-            py/RepresentationsH25.py
-            py/baseH4.maple.py
-        """
-        for filename in CubicHeckeDataBase.filename:
-            self._create_python_file(filename)
-        os.system('cd %s; tar -cvjSf %s/upstream/%s-%s.tar.bz2 py' %(self._import_path, SAGE_ROOT, self._package, self._version) )
-
-    def import_data(self, filename, from_spkg=True):
-        r"""
-        EXAMPLES::
-
-            sage: from sage.databases.cubic_hecke_db import CubicHeckeDataBase
-            sage: cha_db = CubicHeckeDataBase()
-            sage: load(cha_db.import_data(cha_db.filename.basis))
-            sage: len(baseH4)
-            648
-        """
-        if not isinstance(filename, CubicHeckeDataBase.filename):
-            raise TypeError('File name must be an instance of enum %s' (CubicHeckeDataBase.filename))
-
-        import_file = '%s/%s' %(self._import_path_py, filename.py())
-
-        try:
-            open(import_file)
-            return import_file
-        except IOError:
-            if from_spkg:
-                # import from the spkg tarball
-                print('Importing cubic Hecke database from SPKG!')
-                os.system('pwd')
-                os.system('cp src/*.py %s' %(self._import_path_py))
-                open(import_file)
-                return import_file
+        if self._demo is None:
+            if self._feature.is_present():
+                self._demo = False
             else:
-                return self._create_python_file(filename)
-                
+                self._demo = True
+        return self._demo
 
-    def create_static_db_marin_basis(self):
-        r"""
-        Create the basis of the cubic Hecke algebra according to the original
-        data from Iwan Marin's home page.
-
-        This method is called during the build procedure for the sage-package.
-
-        EXAMPLES::
-
-            sage: from sage.databases.cubic_hecke_db import CubicHeckeDataBase
-            sage: cha_db = CubicHeckeDataBase()
-            sage: cha_db.create_static_db_marin_basis() 
-        """
-        global baseH4  # set by load
-        load(self.import_data(self.filename.basis))
-
-        basis_h1 = []
-        basis_h2 = []
-        basis_h3 = []
-        basis_h4 = baseH4
-
-        len_baseH4 = len(baseH4)
-
-        ind_h1 = []
-        ind_h2 = []
-        ind_h3 = []
-        ind_h4 = range(len_baseH4)
-
-        for i in ind_h4:
-            set_i = set(baseH4[i])
-            if 3  not in set_i and -3  not in set_i:
-                basis_h3.append( basis_h4[i] )
-                ind_h3.append(i) 
-                if 2  not in set_i and -2  not in set_i:
-                    basis_h2.append( basis_h4[i] ) 
-                    ind_h2.append(i) 
-                    if 1  not in set_i and -1  not in set_i:
-                        basis_h1.append( basis_h4[i] ) 
-                        ind_h1.append(i) 
-
-        # len_bas_h1 = len(basis_h1); len_bas_h2 = len(basis_h2); len_bas_h3 = len(basis_h3)
-
-        basis = {1:[basis_h1, ind_h1], 2:[basis_h2, ind_h2], 3: [basis_h3, ind_h3], 4:[basis_h4, ind_h4]}
-        save(basis, '%s/%s' %(self._import_path_sobj, self.filename.basis.sobj()) )
-
-
-    def create_static_db_marin_regular(self, right=False):
-        r"""
-        Create the static data base for regular representations of the cubic
-        Hecke algebra according to the original data from Iwan Marin's home page.
-
-        This method is called during the build procedure for the sage-package.
-
-        The invocations are not active in the doctest, since they cause a ``MemoryError``
-        here. To refresh the data base you may call this method in a session. You will
-        have to wait (maybe up to several minutes)!
-
-        EXAMPLES::
-
-            sage: from sage.databases.cubic_hecke_db import CubicHeckeDataBase
-            sage: cha_db = CubicHeckeDataBase()
-            sage: cha_db.create_static_db_marin_regular()             # not tested
-            sage: cha_db.create_static_db_marin_regular(right=True)   # not tested
-        """
-        
-        base_ring = CubicHeckeRingOfDefinition()
-        global u, v, w, mm1, mm2, mm3, mm1I, mm2I, mm3I, reps      # set in load
-        u, v, w = base_ring.gens_over_ground()
-
-        if right == False:
-            fname = self.filename.regular_left
-        else:
-            fname = self.filename.regular_right
-        before = verbose('start loading %s' %fname)
-        load(self.import_data(fname))
-        before = verbose('end loading %s' %fname, t=before)
-
-    
-        def create_mat(ind_h, mat_h4):
-            """
-            Create restriction of regular representation of H4 to H1, H2 and H3
-            """
- 
-            dim_mat = len(ind_h)
-            mat = matrix(dim_mat, dim_mat, lambda i,j: mat_h4[ind_h[i], ind_h[j]])
-            return convert_mat_to_dict_recursive(mat)            
-
-        basis = self.read(self.filename.basis)
-        ind_h1 = basis[1][1]
-        ind_h2 = basis[2][1]
-        ind_h3 = basis[3][1]
- 
-        representationH ={}
-        representationH[0]  = [[create_mat(ind_h1, mm1)]]
-        representationH[1]  = [[create_mat(ind_h2, mm1)]]
-        representationH[2]  = [[create_mat(ind_h3, mm1), create_mat(ind_h3, mm2)]]
-        representationH[3]  = [[convert_mat_to_dict_recursive(mm1), convert_mat_to_dict_recursive(mm2), convert_mat_to_dict_recursive(mm3)]]
-
-        representationHI ={}
-        representationHI[0] = [[create_mat(ind_h1, mm1I)]]
-        representationHI[1] = [[create_mat(ind_h2, mm1I)]]
-        representationHI[2] = [[create_mat(ind_h3, mm1I), create_mat(ind_h3, mm2I)]]
-        representationHI[3] = [[convert_mat_to_dict_recursive(mm1I), convert_mat_to_dict_recursive(mm2I), convert_mat_to_dict_recursive(mm3I)]]
-        from sage.algebras.hecke_algebras.matrix_representations.cubic_hecke_matrix_rep import GenSign
-
-        for i in range(4):
-            if right == False:
-                sobj_filename = '%s/%s' %(self._import_path_sobj, self.filename.regular_left.sobj(i+1))
-            else:
-                sobj_filename = '%s/%s' %(self._import_path_sobj, self.filename.regular_right.sobj(i+1))
-
-            RegularMarinDict = {GenSign.pos:representationH[i], GenSign.neg:representationHI[i]}
-            save(RegularMarinDict, sobj_filename )
-        return
-
-
-    def create_static_db_marin_split(self):
-        r"""
-        Create the static data base for split irreducible representations of the cubic
-        Hecke algebra according to the original data from Iwan Marin's home page.
-
-        This method is called during the build procedure for the sage-package.
-
-        EXAMPLES::
-
-            sage: from sage.databases.cubic_hecke_db import CubicHeckeDataBase
-            sage: cha_db = CubicHeckeDataBase()
-            sage: cha_db.create_static_db_marin_split()
-        """
-        # ------------------------------------------------------
-        # Ivan Marin's data file uses a, b, c for the variables
-        # corresponding to the eigenvalues of the cubic equation.
-        # Therefore, we have to use them temporarily in that way
-        # ------------------------------------------------------
-        base_ring = CubicHeckeRingOfDefinition()
-        extension_ring = base_ring.extension_ring()
-        global a, b, c, j
-        a, b, c = extension_ring.gens()
-        j = extension_ring.cyclotomic_generator()
-
-        load(self.import_data(self.filename.irred_split))
-
-        a, b, c = base_ring.gens_over_ground() # now back to usual nameing
-        cfs = [-c, b, -a, 1]
-        cfse = [extension_ring(cf/c) for cf in cfs]
-
-        def invert(matr):
-           """
-           Return inverse matrix for generators
-           """
-
-           matri = cfse[1]*matr.parent().one()
-           matri += cfse[2]*matr
-           matri += cfse[3]*matr**2
-           d1, d2 = matr.dimensions()
-           matrI = matrix(extension_ring, d1, d2, lambda i,j: extension_ring(matri[i,j]))
-           return matrI
-
-        # ------------------------------------------------------------------------------------------------
-        # Restoring the split irreducibles from Iwan Marin's homepage
-        # ------------------------------------------------------------------------------------------------
-
-        anz_reps = len(reps)
-
-        representation_h ={}
-        representation_h[0]  = [[convert_mat_to_dict_recursive(Matrix(1,1,[extension_ring.one()]))]]
-        representation_h[1]  = []
-        representation_h[2]  = []
-        representation_h[3]  = []
-
-        representation_hI ={}
-        representation_hI[0] = representation_h[0]
-        representation_hI[1] = []
-        representation_hI[2] = []
-        representation_hI[3] = []
-        for i in range( anz_reps ):
-            repi = reps[i]
-            if len(repi) != 3:
-               raise RuntimeError( 'Error at position %d: three generators expected, got: %d' %( i, len(repi)))
-            mt = []
-            mtI = []
-            for j in range(3):
-                mat = matrix(repi[j])
-                matI = invert(mat)
-                mt.append(convert_mat_to_dict_recursive(mat))
-                mtI.append(convert_mat_to_dict_recursive(matI))
-
-            representation_h[3].append( mt )
-            representation_hI[3].append( mtI )
-
-            if i < 7:
-                mt7 =  [ m for m in mt ]
-                mt7I = [ m for m in mtI ]
-                mt7.pop()
-                mt7I.pop()
-                representation_h[2].append( mt7 )
-                representation_hI[2].append( mt7I )
-
-            if i < 3:
-                mt3 =  [ m for m in mt7 ]
-                mt3I = [ m for m in mt7I ]
-                mt3.pop()
-                mt3I.pop()
-                representation_h[1].append( mt3 )
-                representation_hI[1].append( mt3I )
-
-        from sage.algebras.hecke_algebras.matrix_representations.cubic_hecke_matrix_rep import GenSign
-        for i in range(4):
-            sobj_filename = '%s/%s' %(self._import_path_sobj, self.filename.irred_split.sobj(i+1))
-            SplitIrredMarinDict = {GenSign.pos:representation_h[i], GenSign.neg:representation_hI[i]}
-            save(SplitIrredMarinDict, sobj_filename)
-
-        return
-
-    # -------------------------------------------------------------------------------------------------------------
+    # --------------------------------------------------------------------------
     # read from an sobj-file obtained from Ivan Marin's database
-    # -------------------------------------------------------------------------------------------------------------
-    def read(self, db_filename, nstrands=None):
+    # --------------------------------------------------------------------------
+    def read(self, section, variables=None, nstrands=4):
         r"""
         Access various static data library.
 
         INPUT:
 
-        ``db_filename`` -- instance of enum :class:`CubicHeckeDataBase.filename`
+        ``section`` -- instance of enum :class:`CubicHeckeDataSection`
           to select the data to be read in
 
         OUTPUT:
 
-        A dictionary containing the data corresponding to the db_filename.
+        A dictionary containing the data corresponding to the section.
 
         EXAMPLES::
 
             sage: from sage.databases.cubic_hecke_db import CubicHeckeDataBase
             sage: cha_db = CubicHeckeDataBase()
-            sage: basis = cha_db.read(cha_db.filename.basis)
-            sage: len(basis[3][0])
+            sage: basis = cha_db.read(cha_db.section.basis, nstrands=3)
+            sage: len(basis)
             24
         """
-        if not isinstance(db_filename, CubicHeckeDataFilename):
-            raise TypeError('db_filename must be an instance of enum %s' (CubicHeckeDataBase.filename))
+        if not isinstance(section, CubicHeckeDataSection):
+            raise TypeError('section must be an instance of enum %s' % CubicHeckeDataBase.section)
 
         data_lib = self._data_library
-        lib_path = self._import_path_sobj
 
-        if (db_filename, nstrands) in data_lib.keys():
-            return data_lib[(db_filename, nstrands)]
+        nstrands = int(nstrands)
+        if (section, nstrands) in data_lib.keys():
+            return data_lib[(section, nstrands)]
 
-        verbose('loading data library %s ...' %(db_filename.sobj(nstrands=nstrands)))
-        try:
-            data_lib[(db_filename,nstrands)] = load('%s/%s' %(lib_path, db_filename.sobj(nstrands=nstrands)))
-        except IOError:
-            if db_filename == self.filename.basis:
-                self.create_static_db_marin_basis()
-            elif db_filename == self.filename.irred_split:
-                self.create_static_db_marin_split()
-            elif db_filename == self.filename.regular_right:
-                self.create_static_db_marin_regular(right=True)
+        verbose('loading data library %s for %s strands ...' % (section.value, nstrands))
+
+        from sage.algebras.hecke_algebras.matrix_representations.cubic_hecke_matrix_rep import GenSign
+
+        if self.demo_version():
+            if nstrands >= 4:
+                self._feature.require()
+            from .cubic_hecke_db import read_basis, read_irr, read_regl, read_regr, read_markov
+        else:
+            from database_cubic_hecke import read_basis, read_irr, read_reg
+            from database_cubic_hecke.markov_trace_coeffs import read_markov
+
+            def read_regl(variables, num_strands):
+                return read_reg(variables, num_strands=num_strands)
+
+            def read_regr(variables, num_strands):
+                return read_reg(variables, right=True, num_strands=num_strands)
+
+        if section == CubicHeckeDataSection.basis:
+            data_lib[(section, nstrands)] = read_basis(nstrands)
+        elif section == CubicHeckeDataSection.markov_tr_cfs:
+            keys = [k for k in MarkovTraceModuleBasis if k.strands() <= nstrands]
+            res = {k: read_markov(k.name, variables, num_strands=nstrands) for k in keys}
+            data_lib[(section, nstrands)] = res
+        elif section == CubicHeckeDataSection.split_irred:
+            dim_list, repr_list, repr_list_inv = read_irr(variables, nstrands)
+            data_lib[(section, nstrands)] = {GenSign.pos: repr_list, GenSign.neg: repr_list_inv}
+        else:
+            if section == CubicHeckeDataSection.regular_right:
+                dim_list, repr_list, repr_list_inv = read_regr(variables, nstrands)
             else:
-                self.create_static_db_marin_regular()
-            data_lib[(db_filename, nstrands)] = load('%s/%s' %(lib_path, db_filename.sobj(nstrands=nstrands)))
+                dim_list, repr_list, repr_list_inv = read_regl(variables, nstrands)
+            data_lib[(section, nstrands)] = {GenSign.pos: repr_list, GenSign.neg: repr_list_inv}
 
         verbose('... finished!')
+        return data_lib[(section, nstrands)]
 
-        return data_lib[(db_filename,nstrands)]
-
-
-    # -------------------------------------------------------------------------------------------------------------
+    # --------------------------------------------------------------------------
     # matrix_reprs_from_file_cache_
-    # -------------------------------------------------------------------------------------------------------------
+    # --------------------------------------------------------------------------
     def read_matrix_representation(self, representation_type, gen_ind, nstrands, ring_of_definition):
         r"""
         Return the matrix representations from the database.
 
         INPUT:
 
-        - ``representation_type`` -- instance of enum :class:`~sage.algebras.hecke_algebras.matrix_representations.cubic_hecke_matrix_rep.RepresentationType`
+        - ``representation_type`` -- instance of enum
+          :class:`~sage.algebras.hecke_algebras.matrix_representations.cubic_hecke_matrix_rep.RepresentationType`
           specifying the type of the representation
 
 
@@ -674,36 +315,354 @@ class CubicHeckeDataBase(SageObject):
         """
         from sage.algebras.hecke_algebras.matrix_representations.cubic_hecke_matrix_rep import RepresentationType, GenSign
         if not isinstance(representation_type, RepresentationType):
-            raise TypeError('representation_type must be an instance of enum %s' (RepresentationType))
+            raise TypeError('representation_type must be an instance of enum %s' % RepresentationType)
+
+        td = ring_of_definition.gens_dict_recursive()
+        if 'e3' in td.keys():
+            td['j'] = td['e3']
+            td.pop('e3')
+        v = tuple(td.values())
 
         num_rep = representation_type.number_of_representations(nstrands)
-        rep_list = self.read(representation_type.data_filename(), nstrands=nstrands)
-        if gen_ind > 0 :
+        rep_list = self.read(representation_type.data_section(), variables=v, nstrands=nstrands)
+        if gen_ind > 0:
             rep_list = [rep_list[GenSign.pos][i] for i in range(num_rep)]
-            matrix_list = [matrix(ring_of_definition, rep[gen_ind-1 ], sparse=True) for rep in rep_list]
+            matrix_list = [matrix(ring_of_definition, rep[gen_ind-1], sparse=True) for rep in rep_list]
         else:
             # data of inverse of generators is stored under negative strand-index
-            rep_list = [rep_list[GenSign.neg][i] for i in range(num_rep) ]
-            matrix_list = [matrix(ring_of_definition, rep[-gen_ind-1 ], sparse=True) for rep in rep_list]
-        for m in matrix_list: m.set_immutable()
+            rep_list = [rep_list[GenSign.neg][i] for i in range(num_rep)]
+            matrix_list = [matrix(ring_of_definition, rep[-gen_ind-1], sparse=True) for rep in rep_list]
+        for m in matrix_list:
+            m.set_immutable()
         return matrix_list
 
 
+class MarkovTraceModuleBasis(Enum):
+    r"""
+    Enum for the basis elements for the Markov trace module. The choice of
+    the basis elements doesn't have a systematically background apart from
+    generating the sub-module of maximal rank in the module of linear forms
+    on the cubic Hecke algebra for which the Markov trace condition with
+    respect to its cubic Hecke sub-algebras hold. The number of crossings in
+    the corresponding links is chosen as minimal as possible.
+
+    EXAMPLES::
+
+        sage: from sage.databases.cubic_hecke_db import MarkovTraceModuleBasis
+        sage: MarkovTraceModuleBasis.K92.description()
+        'knot 9_34'
+    """
+    def __repr__(self):
+        r"""
+        Return a string representation of ``self``.
+
+        EXAMPLES::
+
+            sage: from sage.databases.cubic_hecke_db import MarkovTraceModuleBasis
+            sage: MarkovTraceModuleBasis.U2    # indirect doctest
+            U2
+        """
+        return self.name
+
+    def __gt__(self, other):
+        r"""
+        Implement comparison of different items in order to have ``sorted`` work.
+
+        EXAMPLES::
+
+            sage: from sage.databases.cubic_hecke_db import MarkovTraceModuleBasis
+            sage: sorted(MarkovTraceModuleBasis)
+            [U1, U2, U3, K4, U4, K4U, K6, K7, K91, K92]
+        """
+        if self.__class__ is other.__class__:
+            tups = (self.strands(), len(self.braid_tietze()), self.name)
+            tupo = (other.strands(), len(other.braid_tietze()), other.name)
+            return tups > tupo
+        return NotImplemented
+
+    def strands(self):
+        r"""
+        Return the number of strands of the minimal braid representative of the
+        link corresponding to ``self``.
+
+        EXAMPLES::
+
+            sage: from sage.databases.cubic_hecke_db import MarkovTraceModuleBasis
+            sage: MarkovTraceModuleBasis.K7.strands()
+            4
+        """
+        return self.value[1]
+
+    def braid_tietze(self, strands_embed=None):
+        r"""
+        Return the Tietze representation of the braid corresponding to this basis
+        element.
+
+        INPUT:
+
+        - ``strands_embed`` -- (optional) the number of strands of the braid
+          if strands should be added.
+
+        OUTPUT:
+
+        A tuple representing the braid in Tietze form.
+
+        EXAMPLES::
+
+            sage: from sage.databases.cubic_hecke_db import MarkovTraceModuleBasis
+            sage: MarkovTraceModuleBasis.U2.braid_tietze()
+            ()
+            sage: MarkovTraceModuleBasis.U2.braid_tietze(strands_embed=4)
+            (2, 3)
+        """
+        if not strands_embed:
+            strands_embed = self.strands()
+
+        if strands_embed > self.strands():
+            last_gen = strands_embed-1
+            return self.braid_tietze(strands_embed=last_gen) + (last_gen,)
+        else:
+            return self.value[2]
+
+    def writhe(self):
+        r"""
+        Return the writhe of the link corresponding to this basis element.
+
+        EXAMPLES::
+
+            sage: from sage.databases.cubic_hecke_db import MarkovTraceModuleBasis
+            sage: MarkovTraceModuleBasis.K4.writhe()
+            0
+            sage: MarkovTraceModuleBasis.K6.writhe()
+            1
+        """
+        from sage.functions.generalized import sign
+        return sum(sign(t) for t in self.braid_tietze())
+
+    def description(self):
+        r"""
+        Return a description of the link corresponding to this basis element.
+        In the case of knots it refers to the naming according to
+        `KnotInfo <https://knotinfo.math.indiana.edu/>`__.
+
+        EXAMPLES::
+
+            sage: from sage.databases.cubic_hecke_db import MarkovTraceModuleBasis
+            sage: MarkovTraceModuleBasis.U3.description()
+            'three unlinks'
+        """
+        return self.value[0]
+
+    def link(self):
+        r"""
+        Return the link which represents this basis element as instance of
+        :class:`Link`.
+
+        EXAMPLES::
+
+            sage: from sage.databases.cubic_hecke_db import MarkovTraceModuleBasis
+            sage: MarkovTraceModuleBasis.U1.link()
+            Link with 1 component represented by 0 crossings
+            sage: MarkovTraceModuleBasis.K4.link()
+            Link with 1 component represented by 4 crossings
+        """
+        from sage.knots.link import Link
+        pd_code = self.value[3]
+        if pd_code is not None:
+            # since :class:`Link` does not construct disjoint union of unlinks
+            # from the braid representation, we need a pd_code here
+            return Link(pd_code)
+        else:
+            from sage.groups.braid import BraidGroup
+            B = BraidGroup(self.strands())
+            return Link(B(self.braid_tietze()))
+
+    def regular_homfly_polynomial(self):
+        r"""
+        Return the regular variant of the KOMFLY-PT polynomial of the link which
+        represents this basis element. This is the HOMFLY-PT polynomial
+        renormalized by the writhe factor such that it is an invariant of
+        regular isotopy.
+
+        OUTPUT:
+
+        An instance of :class:`~sage.rings.polynomial.laurent_polynomial.LaurentPolynomial_mpair`.
+
+        EXAMPLES::
+
+            sage: from sage.databases.cubic_hecke_db import MarkovTraceModuleBasis
+            sage: MarkovTraceModuleBasis.U1.regular_homfly_polynomial()
+            1
+            sage: u2 = MarkovTraceModuleBasis.U2.regular_homfly_polynomial(); u2
+            -L*M^-1 - L^-1*M^-1
+            sage: u2**2 == MarkovTraceModuleBasis.U3.regular_homfly_polynomial()
+            True
+            sage: u2**3 == MarkovTraceModuleBasis.U4.regular_homfly_polynomial()
+            True
+        """
+        H = self.link().homfly_polynomial()
+        L, M = H.parent().gens()
+        return H*L**self.writhe()
+
+    def regular_kauffman_polynomial(self):
+        r"""
+        Return the regular variant of the Kauffman polynomial of the link which
+        represents this basis element. This is the Kauffman polynomial
+        renormalized by the writhe factor such that it is an invariant of
+        regular isotopy.
+
+        OUTPUT:
+
+        An instance of :class:`~sage.rings.polynomial.laurent_polynomial.LaurentPolynomial_mpair`.
+
+        EXAMPLES::
+
+            sage: from sage.databases.cubic_hecke_db import MarkovTraceModuleBasis
+            sage: MarkovTraceModuleBasis.U1.regular_homfly_polynomial()
+            1
+            sage: u2 = MarkovTraceModuleBasis.U2.regular_kauffman_polynomial(); u2
+            a*z^-1 - 1 + a^-1*z^-1
+            sage: u2**2 == MarkovTraceModuleBasis.U3.regular_kauffman_polynomial()
+            True
+            sage: u2**3 == MarkovTraceModuleBasis.U4.regular_kauffman_polynomial()
+            True
+        """
+        from sage.knots.knotinfo import KnotInfo
+        K = KnotInfo.L2a1_1.kauffman_polynomial().parent()
+        a, z = K.gens()
+        d = kauffman[self.name]
+        if d:
+            return K(d)*a**self.writhe()
+        U2rkp = MarkovTraceModuleBasis.U2.regular_kauffman_polynomial()
+        if self.name == 'K4U':
+            K4rkp = MarkovTraceModuleBasis.K4.regular_kauffman_polynomial()
+            return K4rkp * U2rkp
+        exp = self.strands() - 1
+        return U2rkp**exp
+
+    def links_gould_polynomial(self):
+        r"""
+        Return the Links-Gould polynomial of the link which represents this
+        basis element.
+
+        OUTPUT:
+
+        An instance of :class:`~sage.rings.polynomial.laurent_polynomial.LaurentPolynomial_mpair`.
+
+        EXAMPLES::
+
+            sage: from sage.databases.cubic_hecke_db import MarkovTraceModuleBasis
+            sage: MarkovTraceModuleBasis.U1.links_gould_polynomial()
+            1
+            sage: MarkovTraceModuleBasis.U2.links_gould_polynomial()
+            0
+            sage: MarkovTraceModuleBasis.K4.links_gould_polynomial()
+            2*t0*t1 - 3*t0 - 3*t1 + t0*t1^-1 + 7 + t0^-1*t1
+            - 3*t1^-1 - 3*t0^-1 + 2*t0^-1*t1^-1
+        """
+        from sage.rings.polynomial.laurent_polynomial_ring import LaurentPolynomialRing
+        R = LaurentPolynomialRing(ZZ, 't0, t1')
+        return R(links_gould[self.name])
+
+    U1 = ['one unlink',    1, (), []]
+    U2 = ['two unlinks',   2, (), [[3, 1, 4, 2], [4, 1, 3, 2]]]
+    U3 = ['three unlinks', 3, (), [[3, 7, 4, 8], [4, 7, 5, 8],
+                                   [5, 1, 6, 2], [6, 1, 3, 2]]]
+    U4 = ['four unlinks',  4, (), [[3, 9, 4, 10], [4, 9, 5, 10], [5, 11, 6, 12],
+                                   [6, 11, 7, 12], [7, 1, 8, 2], [8, 1, 3, 2]]]
+    K4U = ['knot 4_1 plus one unlink', 4, (1, -2, 1, -2),
+           [[3, 8, 4, 9], [9, 7, 10, 6], [7, 4, 8, 5], [5, 11, 6, 10],
+           [11, 1, 12, 2], [12, 1, 3, 2]]]
+    K4 = ['knot 4_1',  3, (1, -2, 1, -2), None]
+    K6 = ['knot 6_1',  4, (1, 1, 2, -1, -3, 2, -3), None]
+    K7 = ['knot 7_4',  4, (1, 1, 2, -1, 2, 2, 3, -2, 3), None]
+    K91 = ['knot 9_29', 4, (1, -2, -2, 3, -2, 1, -2, 3, -2), None]
+    K92 = ['knot 9_34', 4, (-1, 2, -1, 2, -3, 2, -1, 2, -3), None]
+
+
+kauffman = {
+ 'U1': 1,
+ 'U2': {(1, -1): 1, (0, 0): -1, (-1, -1): 1},
+ 'U3': None,
+ 'U4': None,
+ 'K4U': None,
+ 'K4': {(2, 2): 1, (1, 3): 1, (2, 0): -1, (1, 1): -1, (0, 2): 2, (-1, 3): 1,
+        (0, 0): -1, (-1, 1): -1, (-2, 2): 1, (-2, 0): -1},
+ 'K6': {(2, 2): 1, (1, 3): 1, (0, 4): 1, (-1, 5): 1, (2, 0): -1, (-1, 3): -2,
+        (-2, 4): 2, (-3, 5): 1, (-1, 1): 2, (-2, 2): -4, (-3, 3): -3, (-4, 4): 1,
+        (-2, 0): 1, (-3, 1): 2, (-4, 2): -3, (-4, 0): 1},
+ 'K7': {(-2, 2): 1, (-3, 3): 2, (-4, 4): 3, (-5, 5): 2, (-6, 6): 1, (-4, 2): -4,
+        (-5, 3): -2, (-7, 5): 3, (-8, 6): 1, (-4, 0): 2, (-6, 2): -3, (-7, 3): -8,
+        (-8, 4): -3, (-9, 5): 1, (-7, 1): 4, (-8, 2): 2, (-9, 3): -4, (-8, 0): -1,
+        (-9, 1): 4},
+ 'K91': {(7, 3): 1, (6, 4): 3, (5, 5): 6, (4, 6): 8, (3, 7): 6, (2, 8): 2,
+         (5, 3): -5, (4, 4): -13, (3, 5): -8, (2, 6): 6, (1, 7): 9, (0, 8): 2,
+         (5, 1): 2, (4, 2): 8, (3, 3): -1, (2, 4): -24, (1, 5): -24, (0, 6): -1,
+         (-1, 7): 3, (4, 0): -2, (3, 1): 2, (2, 2): 17, (1, 3): 14, (0, 4): -11,
+         (-1, 5): -10, (-2, 6): 1, (2, 0): -5, (1, 1): -1, (0, 2): 12, (-1, 3): 9,
+         (-2, 4): -3, (0, 0): -3, (-1, 1): -1, (-2, 2): 3, (-2, 0): -1},
+ 'K92': {(5, 5): 1, (4, 6): 4, (3, 7): 6, (2, 8): 3, (5, 3): -1, (4, 4): -7,
+         (3, 5): -11, (2, 6): 5, (1, 7): 14, (0, 8): 3, (4, 2): 3, (3, 3): 5,
+         (2, 4): -19, (1, 5): -26, (0, 6): 9, (-1, 7): 8, (2, 2): 10, (1, 3): 12,
+         (0, 4): -23, (-1, 5): -10, (-2, 6): 8, (2, 0): -1, (1, 1): -1,
+         (0, 2): 11, (-1, 3): 4, (-2, 4): -10, (-3, 5): 4, (0, 0): -1,
+         (-1, 1): -1, (-2, 2): 4, (-3, 3): -2, (-4, 4): 1, (-2, 0): -1}}
+
+
+links_gould = {
+ 'U1': 1,
+ 'U2': 0,
+ 'U3': 0,
+ 'U4': 0,
+ 'K4U': 0,
+ 'K4': {(1, 1): 2, (1, 0): -3, (0, 1): -3, (1, -1): 1, (0, 0): 7, (-1, 1): 1,
+        (0, -1): -3, (-1, 0): -3, (-1, -1): 2},
+ 'K6': {(2, 2): 2, (2, 1): -3, (1, 2): -3, (2, 0): 1, (1, 1): 10, (0, 2): 1,
+        (1, 0): -10, (0, 1): -10, (1, -1): 3, (0, 0): 17, (-1, 1): 3, (0, -1): -7,
+        (-1, 0): -7, (-1, -1): 4},
+ 'K7': {(4, 3): -1, (3, 4): -1, (4, 2): 1, (3, 3): 6, (2, 4): 1, (3, 2): -11,
+        (2, 3): -11, (3, 1): 6, (2, 2): 28, (1, 3): 6, (2, 1): -27, (1, 2): -27,
+        (2, 0): 9, (1, 1): 38, (0, 2): 9, (1, 0): -17, (0, 1): -17, (0, 0): 9},
+ 'K91': {(2, 2): 6, (2, 1): -20, (1, 2): -20, (2, 0): 29, (1, 1): 76, (0, 2): 29,
+         (2, -1): -25, (1, 0): -123, (0, 1): -123, (-1, 2): -25, (2, -2): 14,
+         (1, -1): 116, (0, 0): 217, (-1, 1): 116, (-2, 2): 14, (2, -3): -5,
+         (1, -2): -71, (0, -1): -216, (-1, 0): -216, (-2, 1): -71, (-3, 2): -5,
+         (2, -4): 1, (1, -3): 27, (0, -2): 136, (-1, -1): 214, (-2, 0): 136,
+         (-3, 1): 27, (-4, 2): 1, (1, -4): -5, (0, -3): -50, (-1, -2): -122,
+         (-2, -1): -122, (-3, 0): -50, (-4, 1): -5, (0, -4): 8, (-1, -3): 37,
+         (-2, -2): 52, (-3, -1): 37, (-4, 0): 8, (-1, -4): -4, (-2, -3): -9,
+         (-3, -2): -9, (-4, -1): -4},
+ 'K92': {(3, 1): 6, (2, 2): 12, (1, 3): 6, (3, 0): -15, (2, 1): -63, (1, 2): -63,
+         (0, 3): -15, (3, -1): 14, (2, 0): 112, (1, 1): 216, (0, 2): 112,
+         (-1, 3): 14, (3, -2): -6, (2, -1): -92, (1, 0): -334, (0, 1): -334,
+         (-1, 2): -92, (-2, 3): -6, (3, -3): 1, (2, -2): 37, (1, -1): 262,
+         (0, 0): 503, (-1, 1): 262, (-2, 2): 37, (-3, 3): 1, (2, -3): -6,
+         (1, -2): -104, (0, -1): -400, (-1, 0): -400, (-2, 1): -104, (-3, 2): -6,
+         (1, -3): 17, (0, -2): 162, (-1, -1): 330, (-2, 0): 162, (-3, 1): 17,
+         (0, -3): -27, (-1, -2): -136, (-2, -1): -136, (-3, 0): -27, (-1, -3): 22,
+         (-2, -2): 54, (-3, -1): 22, (-2, -3): -7, (-3, -2): -7}}
 
 
 class CubicHeckeFileCache(SageObject):
     """
-    A class to cache calculations of the :class:`CubicHeckeAlgebra` in the local file system.
+    A class to cache calculations of :class:`~sage.algebras.hecke_algebras.cubic_hecke_algebras.CubicHeckeAlgebra`
+    in the local file system.
     """
 
     class section(Enum):
         r"""
-        Enum for the different sections of file cache. The following choices are possible:
+        Enum for the different sections of file cache. The following choices are
+        possible:
 
-        - ``matrix_representations``  -- file cache for representation matrices of basis elements
+        - ``matrix_representations``  -- file cache for representation matrices
+          of basis elements
         - ``braid_images``  -- file cache for images of braids
-        - ``basis_extensions`` -- file cache for a dynamical growing basis used in the case of
-          cubic Hecke algebras on more than 4 strands
+        - ``basis_extensions`` -- file cache for a dynamical growing basis used
+          in the case of cubic Hecke algebras on more than 4 strands
+        - ``markov_trace`` -- file cache for intermediate results of long
+          calculations in order to recover the results already obtained by
+          preboius attemps of calculation until the corresponding intermediate
+          step
 
         Examples::
 
@@ -721,8 +680,8 @@ class CubicHeckeFileCache(SageObject):
 
             INPUT:
 
-            - ``nstrands`` -- Integer number of strands of the underlying braid group
-              if the data file depends on it. Otherwise use default None
+            - ``nstrands`` -- Integer, number of strands of the underlying braid
+              group if the data file depends on it. Otherwise use default ``None``
 
             Examples::
 
@@ -735,14 +694,14 @@ class CubicHeckeFileCache(SageObject):
                 'braid_images_2.sobj'
             """
             if nstrands is None:
-                return '%s.sobj' %(self.value)
+                return '%s.sobj' % self.value
             else:
-                return '%s_%s.sobj' %(self.value, nstrands)
+                return '%s_%s.sobj' % (self.value, nstrands)
 
-        matrix_representations  = 'matrix_representations'
-        braid_images            = 'braid_images'
-        basis_extensions        = 'basis_extensions'
-
+        matrix_representations = 'matrix_representations'
+        braid_images = 'braid_images'
+        basis_extensions = 'basis_extensions'
+        markov_trace = 'markov_trace'
 
     def __init__(self, num_strands):
         r"""
@@ -750,23 +709,22 @@ class CubicHeckeFileCache(SageObject):
 
         INPUT:
 
-        - ``cubic_hecke_algebra`` -- instance of :class:`CubicHeckeAlgebra`
-          whose data should be cached in the file system.
+        - ``num_strands`` -- integer giving the number of strands of the
+          corresponding cubic Hecke algebra
 
         EXAMPLES::
 
             sage: from sage.databases.cubic_hecke_db import CubicHeckeFileCache
             sage: cha_fc = CubicHeckeFileCache(2)
-            sage: cha_fc._file_cache_path == 'cubic_hecke'
+            sage: cha_fc._file_cache_path.endswith('cubic_hecke')
             True
         """
-        self._nstrands      = num_strands
-        self._file_cache_path = 'cubic_hecke'
-        self._data_library = {}
+        self._nstrands = num_strands
 
-        from sage.misc.misc import sage_makedirs
-        from sage.misc.persist import SAGE_DB
-        sage_makedirs(os.path.join(SAGE_DB, self._file_cache_path))
+        from sage.env import DOT_SAGE
+        self._file_cache_path = os.path.join(DOT_SAGE, 'cubic_hecke')
+        self._data_library = {}
+        os.makedirs(self._file_cache_path, exist_ok=True)
 
     def reset_library(self, section=None):
         r"""
@@ -796,30 +754,29 @@ class CubicHeckeFileCache(SageObject):
             return
 
         if not isinstance(section, CubicHeckeFileCache.section):
-            raise TypeError('section must be an instance of enum %s' (CubicHeckeFileCache.section))
-  
+            raise TypeError('section must be an instance of enum %s' % CubicHeckeFileCache.section)
+
         from sage.algebras.hecke_algebras.matrix_representations.cubic_hecke_matrix_rep import RepresentationType
         data_lib = self._data_library
         empty_dict = {}
-        if  section == self.section.matrix_representations:
+        if section == self.section.matrix_representations:
             for rep_type in RepresentationType:
-                new_dict={}
-                empty_dict.update({rep_type:new_dict})
-        elif  section == self.section.basis_extensions:
+                new_dict = {}
+                empty_dict.update({rep_type: new_dict})
+        elif section == self.section.basis_extensions:
             empty_dict = []
-        data_lib.update({section:empty_dict})
-
+        data_lib.update({section: empty_dict})
 
     def is_empty(self, section=None):
         r"""
-        Return ``True`` if the cache of the given ``section`` is empty. 
+        Return ``True`` if the cache of the given ``section`` is empty.
 
         INPUT:
 
         - ``section`` -- instance of enum :class:`CubicHeckeFileCache.section`
           to select the section of the file cache or ``None`` (default)
           meaning all sections
-          
+
 
         EXAMPLES::
 
@@ -833,28 +790,26 @@ class CubicHeckeFileCache(SageObject):
             return all(self.is_empty(section=sec) for sec in self.section)
 
         if not isinstance(section, CubicHeckeFileCache.section):
-            raise TypeError('section must be an instance of enum %s' (CubicHeckeFileCache.section))
-  
+            raise TypeError('section must be an instance of enum %s' % CubicHeckeFileCache.section)
+
         self.read(section)
         data_lib = self._data_library[section]
         from sage.algebras.hecke_algebras.matrix_representations.cubic_hecke_matrix_rep import RepresentationType
-        if  section == self.section.matrix_representations:
+        if section == self.section.matrix_representations:
             for rep_type in RepresentationType:
                 if len(data_lib[rep_type]) > 0:
                     return False
             return True
 
-        if  section == self.section.basis_extensions and self._nstrands > 4:
+        if section == self.section.basis_extensions and self._nstrands > 4:
             # the new generators and their inverses are not counted
             # since they are added during initialization
-            return len(data_lib) <= 2*(self._nstrands -4)
+            return len(data_lib) <= 2*(self._nstrands - 4)
         return len(data_lib) == 0
-       
 
-
-    # -------------------------------------------------------------------------------------------------------------
+    # --------------------------------------------------------------------------
     # save data file system
-    # -------------------------------------------------------------------------------------------------------------
+    # --------------------------------------------------------------------------
     def write(self, section=None):
         r"""
         Write data from memory to the file system.
@@ -878,25 +833,27 @@ class CubicHeckeFileCache(SageObject):
         if section is None:
             for sec in self.section:
                 if sec in data_lib.keys():
-                   self.write(section=sec)
+                    self.write(section=sec)
             return
 
         if not isinstance(section, CubicHeckeFileCache.section):
-            raise TypeError('section must be an instance of enum %s' (CubicHeckeFileCache.section))
+            raise TypeError('section must be an instance of enum %s' % CubicHeckeFileCache.section)
 
         if section not in data_lib.keys():
-            raise ValueError("No data for file %s in memory" %(section))
+            raise ValueError("No data for file %s in memory" % section)
 
-        db_save(data_lib[section], '%s/%s' %(lib_path, section.filename(self._nstrands)))
+        verbose('saving file cache %s ...' % section)
+        fname = os.path.join(lib_path, section.filename(self._nstrands))
+        with atomic_write(fname, binary=True) as f:
+            f.write(_base_dumps(data_lib[section]))
+            f.close()
 
-
-    # -------------------------------------------------------------------------------------------------------------
+    # --------------------------------------------------------------------------
     # read from file system
-    # -------------------------------------------------------------------------------------------------------------
+    # --------------------------------------------------------------------------
     def read(self, section):
         r"""
         Read data into memory from the file system.
-        
 
         INPUT:
 
@@ -907,7 +864,7 @@ class CubicHeckeFileCache(SageObject):
 
         Dictionary containing the data library corresponding to the section
         of file cache
-        
+
         EXAMPLES::
 
             sage: from sage.databases.cubic_hecke_db import CubicHeckeFileCache
@@ -917,7 +874,7 @@ class CubicHeckeFileCache(SageObject):
             {}
         """
         if not isinstance(section, CubicHeckeFileCache.section):
-            raise TypeError('section must be an instance of enum %s' (CubicHeckeFileCache.section))
+            raise TypeError('section must be an instance of enum %s' % CubicHeckeFileCache.section)
 
         data_lib = self._data_library
         lib_path = self._file_cache_path
@@ -925,9 +882,10 @@ class CubicHeckeFileCache(SageObject):
         if section in data_lib.keys():
             return data_lib[section]
 
-        verbose('loading file cache %s ...' %(section))
+        verbose('loading file cache %s ...' % section)
+        fname = os.path.join(lib_path, section.filename(self._nstrands))
         try:
-            data_lib[section] = db('%s/%s' %(lib_path, section.filename(self._nstrands)))
+            data_lib[section] = load(fname)
             verbose('... finished!')
         except IOError:
             self.reset_library(section)
@@ -935,16 +893,14 @@ class CubicHeckeFileCache(SageObject):
 
         return data_lib[section]
 
-
-
-
-    # -------------------------------------------------------------------------------------------------------------
-    # matrix_reprs_from_file_cache_
-    # -------------------------------------------------------------------------------------------------------------
+    # --------------------------------------------------------------------------
+    # read matrix representation from file cache
+    # --------------------------------------------------------------------------
     def read_matrix_representation(self, representation_type, monomial_tietze, ring_of_definition):
         r"""
         Return the matrix representations of the given monomial (in Tietze form)
-        if it has been stored in the file cache before. Otherwise ``None`` is returned.
+        if it has been stored in the file cache before. Otherwise ``None`` is
+        returned.
 
         INPUT:
 
@@ -953,14 +909,16 @@ class CubicHeckeFileCache(SageObject):
 
         - ``monomial_tietze`` -- tuple representing the braid in Tietze form
 
-        - ``ring_of_definition`` -- instance of :class:`CubicHeckeRingOfDefinition` resp.
-          :class:`CubicHeckeExtensionRing` (depending wether ``representation_type``
-          is split or not)
+        - ``ring_of_definition`` -- instance of
+          :class:`~sage.algebras.hecke_algebras.base_rings_of_definition.cubic_hecke_base_ring.CubicHeckeRingOfDefinition`
+          respectively
+          :class:`~sage.algebras.hecke_algebras.base_rings_of_definition.cubic_hecke_base_ring.CubicHeckeExtensionRing`
+          depending on whether ``representation_type`` is split or not
 
         OUTPUT:
 
-        Dictionary containing all matrix representations of ``self`` of the given representation_type
-        which have been stored in the file cache.
+        Dictionary containing all matrix representations of ``self`` of the given
+        ``representation_type`` which have been stored in the file cache.
 
         EXAMPLES::
 
@@ -982,34 +940,34 @@ class CubicHeckeFileCache(SageObject):
         """
         from sage.algebras.hecke_algebras.matrix_representations.cubic_hecke_matrix_rep import RepresentationType
         if not isinstance(representation_type, RepresentationType):
-            raise TypeError('representation_type must be an instance of enum %s' (RepresentationType))
+            raise TypeError('representation_type must be an instance of enum %s' % RepresentationType)
 
         matrix_representations = self.read(self.section.matrix_representations)[representation_type]
         if monomial_tietze in matrix_representations.keys():
             matrix_list_dict = matrix_representations[monomial_tietze]
             matrix_list = [matrix(ring_of_definition, mat_dict, sparse=True) for mat_dict in matrix_list_dict]
-            for m in matrix_list: m.set_immutable()
+            for m in matrix_list:
+                m.set_immutable()
             return matrix_list
         return None
 
-
-
-
-    # -------------------------------------------------------------------------------------------------------------
+    # --------------------------------------------------------------------------
     # matrix_representation to file cache
-    # -------------------------------------------------------------------------------------------------------------
+    # --------------------------------------------------------------------------
     def write_matrix_representation(self, representation_type, monomial_tietze, matrix_list):
         r"""
         Write the matrix representation of a monomial to the file cache.
 
         INPUT:
 
-        - ``representation_type`` -- instance of enum :class:`~sage.algebras.hecke_algebras.matrix_representations.cubic_hecke_matrix_rep.RepresentationType`
+        - ``representation_type`` -- instance of enum
+          :class:`~sage.algebras.hecke_algebras.matrix_representations.cubic_hecke_matrix_rep.RepresentationType`
           specifying the type of the representation
 
         - ``monomial_tietze`` -- tuple representing the braid in Tietze form
 
-        - ``matrix_list`` -- list of matrices corresponding to the irreducible representations
+        - ``matrix_list`` -- list of matrices corresponding to the irreducible
+          representations
 
         EXAMPLES::
 
@@ -1021,9 +979,9 @@ class CubicHeckeFileCache(SageObject):
             sage: m = gi.matrix(representation_type=rt.RegularRight)
             sage: cha_fc.read_matrix_representation(rt.RegularRight, git, R)
             [
-            [        0         1 (-w^-1)*u]
-            [        0         0      w^-1]
-            [        1         0  (w^-1)*v]
+            [     0      1 (-u)/w]
+            [     0      0    1/w]
+            [     1      0    v/w]
             ]
             sage: CHA2.reset_filecache(cha_fc.section.matrix_representations)
             sage: cha_fc.read_matrix_representation(rt.RegularLeft, git, R) == None
@@ -1034,7 +992,7 @@ class CubicHeckeFileCache(SageObject):
         """
         from sage.algebras.hecke_algebras.matrix_representations.cubic_hecke_matrix_rep import RepresentationType
         if not isinstance(representation_type, RepresentationType):
-            raise TypeError('representation_type must be an instance of enum %s' (RepresentationType))
+            raise TypeError('representation_type must be an instance of enum %s' % RepresentationType)
 
         matrix_representations = self.read(self.section.matrix_representations)[representation_type]
 
@@ -1042,15 +1000,15 @@ class CubicHeckeFileCache(SageObject):
             # entry already registered
             return
 
-        matrix_representation_dict = [convert_mat_to_dict_recursive(mat) for mat in list(matrix_list)]
+        matrix_representation_dict = [simplify(mat) for mat in list(matrix_list)]
         matrix_representations[monomial_tietze] = matrix_representation_dict
 
         self.write(self.section.matrix_representations)
         return
 
-    # -------------------------------------------------------------------------------------------------------------
+    # --------------------------------------------------------------------------
     # read braid images from file cache
-    # -------------------------------------------------------------------------------------------------------------
+    # --------------------------------------------------------------------------
     def read_braid_image(self, braid_tietze, ring_of_definition):
         r"""
         Return the list of pre calculated braid images from file cache.
@@ -1059,11 +1017,13 @@ class CubicHeckeFileCache(SageObject):
 
         - ``braid_tietze`` -- tuple representing the braid in Tietze form
 
-        - ``ring_of_definition`` -- instance of :class:`CubicHeckeRingOfDefinition`
+        - ``ring_of_definition`` -- instance of
+          :class:`~sage.algebras.hecke_algebras.base_rings_of_definition.cubic_hecke_base_ring.CubicHeckeRingOfDefinition`
 
         OUTPUT:
 
-        A dictionary containing the pre calculated braid image of the given braid.
+        A dictionary containing the pre calculated braid image of the given
+        braid.
 
         EXAMPLES::
 
@@ -1076,7 +1036,7 @@ class CubicHeckeFileCache(SageObject):
             sage: cha_fc.is_empty(CubicHeckeFileCache.section.braid_images)
             True
             sage: b2_img = CHA2(b2); b2_img
-            (-v) + u*c + w*c^-1
+            w*c^-1 + u*c + (-v)
             sage: cha_fc.write_braid_image(b2.Tietze(), b2_img.to_vector())
             sage: cha_fc.read_braid_image(b2.Tietze(), ring_of_definition)
             (-v, u, w)
@@ -1089,13 +1049,9 @@ class CubicHeckeFileCache(SageObject):
             return vector(ring_of_definition, result_list)
         return None
 
-
-
-
-
-    # -------------------------------------------------------------------------------------------------------------
+    # --------------------------------------------------------------------------
     # braid image to_file cache
-    # -------------------------------------------------------------------------------------------------------------
+    # --------------------------------------------------------------------------
     def write_braid_image(self, braid_tietze, braid_image_vect):
         r"""
         Write the braid image of the given braid to the file cache.
@@ -1103,8 +1059,8 @@ class CubicHeckeFileCache(SageObject):
         INPUT:
 
         - ``braid_tietze`` -- tuple representing the braid in Tietze form
-        - ``braid_image_vect`` -- image of the given braid as a vector with respect
-          to the basis of the cubic Hecke algebra
+        - ``braid_image_vect`` -- image of the given braid as a vector with
+          respect to the basis of the cubic Hecke algebra
 
         EXAMPLES::
 
@@ -1115,10 +1071,10 @@ class CubicHeckeFileCache(SageObject):
             sage: B2 = BraidGroup(2)
             sage: b, = B2.gens(); b3 = b**3
             sage: b3_img = CHA2(b3); b3_img
-            (-u*v+w) + (u^2-v)*c + w*u*c^-1
+            u*w*c^-1 + (u^2-v)*c + (-u*v+w)
             sage: cha_fc.write_braid_image(b3.Tietze(), b3_img.to_vector())
             sage: cha_fc.read_braid_image(b3.Tietze(), ring_of_definition)
-            (-u*v + w, u^2 - v, w*u)
+            (-u*v + w, u^2 - v, u*w)
             sage: cha_fc.reset_library(CubicHeckeFileCache.section.braid_images)
             sage: cha_fc.write(CubicHeckeFileCache.section.braid_images)
             sage: cha_fc.is_empty(CubicHeckeFileCache.section.braid_images)
@@ -1130,26 +1086,25 @@ class CubicHeckeFileCache(SageObject):
             # entry already registered
             return
 
-        braid_image_dict = [convert_poly_to_dict_recursive(cf) for cf in list(braid_image_vect)]
+        braid_image_dict = [str(cf) for cf in list(braid_image_vect)]
         braid_images[braid_tietze] = braid_image_dict
 
         self.write(self.section.braid_images)
         return
 
-
-    # -------------------------------------------------------------------------------------------------------------
+    # --------------------------------------------------------------------------
     # basis to file cache
-    # -------------------------------------------------------------------------------------------------------------
+    # --------------------------------------------------------------------------
     def update_basis_extensions(self, new_basis_extensions):
         r"""
-        Update the file cache for basis extensions for cubic Hecke algebras on more than 4 strands
-        according to the given ``new_basis_extensions``.
+        Update the file cache for basis extensions for cubic Hecke algebras on
+        more than 4 strands according to the given ``new_basis_extensions``.
 
         INPUT:
 
-        - ``new_basis_extensions`` -- list of additional (to the static basis) basis elements which should
-          replace the former such list in the file.
- 
+        - ``new_basis_extensions`` -- list of additional (to the static basis)
+          basis elements which should replace the former such list in the file.
+
         EXAMPLES::
 
             sage: from sage.databases.cubic_hecke_db import CubicHeckeFileCache
@@ -1165,6 +1120,387 @@ class CubicHeckeFileCache(SageObject):
             sage: cha_fc.is_empty(CubicHeckeFileCache.section.basis_extensions)
             True
         """
-        self._data_library.update({self.section.basis_extensions:new_basis_extensions})
+        self._data_library.update({self.section.basis_extensions: new_basis_extensions})
         self.write(self.section.basis_extensions)
         return
+
+
+# -----------------------------------------------------------------------------
+# Demo data section
+# -----------------------------------------------------------------------------
+
+func_name = 'read_%s'
+
+var_decl = "\n    %s = variables"
+var_doc_input = "\n    - ``variables`` -- tuple containing the indeterminates of the representation"
+var_doc_decl = "\n        sage: L.<%s> = LaurentPolynomialRing(ZZ)"
+
+template = """def %s(%snum_strands=3):
+    %s%s
+    data = {}
+    data[2] = %s
+    data[3] = %s
+    return data[num_strands]
+
+"""
+
+
+doc = r"""{}
+    Return precomputed data of Ivan Marin
+
+    This code was generated by :func:`create_demo_data`, please don't edit.
+
+    INPUT:
+%s
+    - ``num_strands`` -- integer, number of strands of the cubic Hecke algebra
+      in question
+
+    EXAMPLES::
+
+        sage: from sage.databases.cubic_hecke_db import %s%s
+        sage: %s(%s2)
+    {}
+""".format('r"""', '"""')
+
+
+def create_demo_data(filename='demo_data.py'):
+    r"""
+    Generate code for the functions inserted below to access the
+    small cases of less than 4 strands as demonstration cases.
+    The code is written to a file with the given name from where
+    it can be copied into this source file (in case a change is needed).
+
+    EXAMPLES::
+
+        sage: from sage.databases.cubic_hecke_db import create_demo_data
+        sage: create_demo_data()   # not tested
+    """
+    # ---------------------------------------------------------------
+    # preparations
+    # ---------------------------------------------------------------
+    def create_repr_func(name, variables, data2, data3):
+        fname = func_name % name
+        if variables:
+            v = str(variables)
+            vars2 = v + ', '
+            decl = var_decl % v
+            doc_dec = var_doc_decl % v[1: len(v)-1]
+            doc_str = doc % (var_doc_input, fname,  doc_dec, fname, vars2)
+            res = template % (fname, 'variables, ', doc_str, decl, data2,  data3)
+        else:
+            doc_str = doc % ('', fname, '', fname, '')
+            res = template % (fname, '', doc_str, '', data2,  data3)
+        return res
+
+    from textwrap import fill
+
+    def fl(s):
+        return fill(str(s), subsequent_indent='        ')
+
+    from sympy import var
+    from database_cubic_hecke import read_basis, read_irr, read_reg
+
+    vari = var('a, b, c, j')
+    varr = var('u, v, w')
+
+    # ---------------------------------------------------------------
+    # read data
+    # ---------------------------------------------------------------
+    bas2 = fl(read_basis(num_strands=2))
+    bas3 = fl(read_basis(num_strands=3))
+
+    irr2 = fl(read_irr(variables=vari, num_strands=2))
+    irr3 = fl(read_irr(variables=vari, num_strands=3))
+
+    regl2 = fl(read_reg(variables=varr, num_strands=2))
+    regl3 = fl(read_reg(variables=varr, num_strands=3))
+
+    regr2 = fl(read_reg(variables=varr, num_strands=2, right=True))
+    regr3 = fl(read_reg(variables=varr, num_strands=3, right=True))
+
+    # ---------------------------------------------------------------
+    # create functions and write them to file
+    # ---------------------------------------------------------------
+    bas = create_repr_func('basis',  '',   bas2,  bas3)
+    irr = create_repr_func('irr',    vari, irr2,  irr3)
+    regl = create_repr_func('regl',   varr, regl2, regl3)
+    regr = create_repr_func('regr',   varr, regr2, regr3)
+
+    with open(filename, 'w') as f:
+        f.write(bas)
+        f.write(irr)
+        f.write(regl)
+        f.write(regr)
+
+
+def read_basis(num_strands=3):
+    r"""
+    Return precomputed data of Ivan Marin
+
+    This code was generated by ``create_demo_data``, please don't edit.
+
+    INPUT:
+
+    - ``num_strands`` -- integer, number of strands of the cubic Hecke algebra
+      in question
+
+    EXAMPLES::
+
+        sage: from sage.databases.cubic_hecke_db import read_basis
+        sage: read_basis(2)
+        [[], [1], [-1]]
+    """
+
+    data = {}
+    data[2] = [[], [1], [-1]]
+    data[3] = [[], [1], [-1], [2], [-2], [1, 2], [1, -2], [-1, 2], [-1, -2], [1, 2,
+        1], [1, 2, -1], [-1, 2, 1], [-1, 2, -1], [1, -2, 1], [-1, -2,
+        1], [2, 1], [-2, 1], [2, -1], [-2, -1], [1, -2, -1], [-1, -2,
+        -1], [2, -1, 2], [1, 2, -1, 2], [-1, 2, -1, 2]]
+    return data[num_strands]
+
+
+def read_irr(variables, num_strands=3):
+    r"""
+    Return precomputed data of Ivan Marin
+
+    This code was generated by ``create_demo_data``, please don't edit.
+
+    INPUT:
+
+    - ``variables`` -- tuple containing the indeterminates of the representation
+    - ``num_strands`` -- integer, number of strands of the cubic Hecke algebra
+      in question
+
+    EXAMPLES::
+
+        sage: from sage.databases.cubic_hecke_db import read_irr
+        sage: L.<a, b, c, j> = LaurentPolynomialRing(ZZ)
+        sage: read_irr((a, b, c, j), 2)
+        ([1, 1, 1],
+        [[{(0, 0): a}], [{(0, 0): c}], [{(0, 0): b}]],
+        [[{(0, 0): a^-1}], [{(0, 0): c^-1}], [{(0, 0): b^-1}]])
+    """
+
+    (a, b, c, j) = variables
+    data = {}
+    data[2] = ([1, 1, 1], [[{(0, 0): a}], [{(0, 0): c}], [{(0, 0): b}]], [[{(0, 0):
+        1/a}], [{(0, 0): 1/c}], [{(0, 0): 1/b}]])
+    data[3] = ([1, 1, 1, 2, 2, 2, 3], [[{(0, 0): a}, {(0, 0): a}], [{(0, 0): c},
+        {(0, 0): c}], [{(0, 0): b}, {(0, 0): b}], [{(0, 0): b, (1, 0):
+        b*c, (1, 1): c}, {(0, 0): c, (0, 1): -1, (1, 1): b}], [{(0,
+        0): a, (1, 0): a*b, (1, 1): b}, {(0, 0): b, (0, 1): -1, (1,
+        1): a}], [{(0, 0): a, (1, 0): a*c, (1, 1): c}, {(0, 0): c, (0,
+        1): -1, (1, 1): a}], [{(0, 0): c, (1, 0): a*c + b**2, (1, 1):
+        b, (2, 0): b, (2, 1): 1, (2, 2): a}, {(0, 0): a, (0, 1): -1,
+        (0, 2): b, (1, 1): b, (1, 2): -a*c - b**2, (2, 2): c}]],
+        [[{(0, 0): 1/a}, {(0, 0): 1/a}], [{(0, 0): 1/c}, {(0, 0):
+        1/c}], [{(0, 0): 1/b}, {(0, 0): 1/b}], [{(0, 0): 1/b, (1, 0):
+        -1, (1, 1): 1/c}, {(0, 0): 1/c, (0, 1): 1/(b*c), (1, 1):
+        1/b}], [{(0, 0): 1/a, (1, 0): -1, (1, 1): 1/b}, {(0, 0): 1/b,
+        (0, 1): 1/(a*b), (1, 1): 1/a}], [{(0, 0): 1/a, (1, 0): -1, (1,
+        1): 1/c}, {(0, 0): 1/c, (0, 1): 1/(a*c), (1, 1): 1/a}], [{(0,
+        0): 1/c, (1, 0): -a/b - b/c, (1, 1): 1/b, (2, 0): 1/b, (2, 1):
+        -1/(a*b), (2, 2): 1/a}, {(0, 0): 1/a, (0, 1): 1/(a*b), (0, 2):
+        1/b, (1, 1): 1/b, (1, 2): a/b + b/c, (2, 2): 1/c}]])
+    return data[num_strands]
+
+
+def read_regl(variables, num_strands=3):
+    r"""
+    Return precomputed data of Ivan Marin
+
+    This code was generated by ``create_demo_data``, please don't edit.
+
+    INPUT:
+
+    - ``variables`` -- tuple containing the indeterminates of the representation
+    - ``num_strands`` -- integer, number of strands of the cubic Hecke algebra
+      in question
+
+    EXAMPLES::
+
+        sage: from sage.databases.cubic_hecke_db import read_regl
+        sage: L.<u, v, w> = LaurentPolynomialRing(ZZ)
+        sage: read_regl((u, v, w), 2)
+        ([3],
+        [[{(0, 1): -v, (0, 2): 1, (1, 0): 1, (1, 1): u, (2, 1): w}]],
+        [[{(0, 1): 1, (0, 2): -u*w^-1, (1, 2): w^-1, (2, 0): 1, (2, 2): v*w^-1}]])
+    """
+
+    (u, v, w) = variables
+    data = {}
+    data[2] = ([3], [[{(0, 1): -v, (0, 2): 1, (1, 0): 1, (1, 1): u, (2, 1): w}]],
+        [[{(0, 1): 1, (0, 2): -u/w, (1, 2): 1/w, (2, 0): 1, (2, 2):
+        v/w}]])
+    data[3] = ([24], [[{(0, 1): -v, (0, 2): 1, (1, 0): 1, (1, 1): u, (2, 1): w, (3,
+        5): -v, (3, 7): 1, (4, 6): -v, (4, 8): 1, (5, 3): 1, (5, 5):
+        u, (6, 4): 1, (6, 6): u, (7, 5): w, (8, 6): w, (9, 9): u, (9,
+        15): 1, (10, 10): u, (10, 17): 1, (11, 9): w, (12, 10): w,
+        (13, 13): u, (13, 16): 1, (14, 13): w, (15, 9): -v, (15, 11):
+        1, (16, 13): -v, (16, 14): 1, (17, 10): -v, (17, 12): 1, (18,
+        19): -v, (18, 20): 1, (19, 18): 1, (19, 19): u, (20, 19): w,
+        (21, 22): -v, (21, 23): 1, (22, 21): 1, (22, 22): u, (23, 22):
+        w}, {(0, 3): -v, (0, 4): 1, (1, 15): -v, (1, 16): 1, (1, 22):
+        -v, (1, 23): u*v/w, (2, 17): -v, (2, 18): 1, (2, 23): v*(u*v -
+        w)/w, (3, 0): 1, (3, 3): u, (4, 3): w, (5, 9): -v, (5, 10): 1,
+        (5, 12): -u/w, (5, 22): u, (5, 23): -u**2/w, (6, 11): -v, (6,
+        22): w, (6, 23): -u, (7, 12): -u*v/w, (7, 13): -v, (7, 19): 1,
+        (7, 21): -v, (7, 23): -u**2*v/w, (8, 12): -v, (8, 14): -v, (8,
+        20): 1, (8, 23): -u*v, (9, 5): 1, (9, 9): u, (9, 23): u/w,
+        (10, 9): w, (10, 11): -u, (11, 6): 1, (11, 11): u, (11, 13):
+        u, (12, 13): w, (12, 23): -v, (13, 23): 1, (14, 8): 1, (14,
+        14): u, (14, 23): v, (15, 1): 1, (15, 12): u/w, (15, 15): u,
+        (16, 11): v, (16, 15): w, (16, 23): -u, (17, 2): 1, (17, 12):
+        u*v/w, (17, 17): u, (18, 12): v, (18, 17): w, (19, 21): w,
+        (19, 23): v, (20, 14): w, (21, 7): 1, (21, 21): u, (21, 23):
+        u*v/w, (22, 11): 1, (23, 12): 1, (23, 23): u}]], [[{(0, 1): 1,
+        (0, 2): -u/w, (1, 2): 1/w, (2, 0): 1, (2, 2): v/w, (3, 5): 1,
+        (3, 7): -u/w, (4, 6): 1, (4, 8): -u/w, (5, 7): 1/w, (6, 8):
+        1/w, (7, 3): 1, (7, 7): v/w, (8, 4): 1, (8, 8): v/w, (9, 11):
+        1/w, (10, 12): 1/w, (11, 11): v/w, (11, 15): 1, (12, 12): v/w,
+        (12, 17): 1, (13, 14): 1/w, (14, 14): v/w, (14, 16): 1, (15,
+        9): 1, (15, 11): -u/w, (16, 13): 1, (16, 14): -u/w, (17, 10):
+        1, (17, 12): -u/w, (18, 19): 1, (18, 20): -u/w, (19, 20): 1/w,
+        (20, 18): 1, (20, 20): v/w, (21, 22): 1, (21, 23): -u/w, (22,
+        23): 1/w, (23, 21): 1, (23, 23): v/w}, {(0, 3): 1, (0, 4):
+        -u/w, (1, 15): 1, (1, 16): -u/w, (1, 22): u*v/w, (1, 23):
+        -u/w, (2, 17): 1, (2, 18): -u/w, (3, 4): 1/w, (4, 0): 1, (4,
+        4): v/w, (5, 9): 1, (5, 10): -u/w, (5, 13): -u/w, (5, 22):
+        -u**2/w, (6, 11): 1, (6, 12): -u/w, (6, 13): -u*v/w, (6, 22):
+        -u, (7, 19): -u/w, (7, 21): 1, (8, 13): -v, (8, 14): 1, (8,
+        20): -u/w, (9, 10): 1/w, (9, 22): u/w, (10, 5): 1, (10, 6):
+        -u/w, (10, 10): v/w, (10, 13): -u**2/w, (10, 23): u/w, (11,
+        22): 1, (12, 13): -u, (12, 23): 1, (13, 12): 1/w, (13, 13):
+        v/w, (14, 20): 1/w, (15, 13): u/w, (15, 16): 1/w, (15, 22):
+        -v/w, (16, 1): 1, (16, 6): v/w, (16, 13): u*v/w, (16, 16):
+        v/w, (17, 13): u*v/w, (17, 18): 1/w, (17, 23): -v/w, (18, 2):
+        1, (18, 13): v, (18, 18): v/w, (18, 23): -v**2/w, (19, 7): 1,
+        (19, 12): v/w, (19, 19): v/w, (19, 23): u*v/w, (20, 8): 1,
+        (20, 20): v/w, (20, 23): v, (21, 13): -v/w, (21, 19): 1/w,
+        (22, 6): 1/w, (22, 13): u/w, (22, 22): v/w, (23, 13): 1}]])
+    return data[num_strands]
+
+
+def read_regr(variables, num_strands=3):
+    r"""
+    Return precomputed data of Ivan Marin
+
+    This code was generated by ``create_demo_data``, please don't edit.
+
+    INPUT:
+
+    - ``variables`` -- tuple containing the indeterminates of the representation
+    - ``num_strands`` -- integer, number of strands of the cubic Hecke algebra
+      in question
+
+    EXAMPLES::
+
+        sage: from sage.databases.cubic_hecke_db import read_regr
+        sage: L.<u, v, w> = LaurentPolynomialRing(ZZ)
+        sage: read_regr((u, v, w), 2)
+        ([3],
+        [[{(0, 1): -v, (0, 2): 1, (1, 0): 1, (1, 1): u, (2, 1): w}]],
+        [[{(0, 1): 1, (0, 2): -u*w^-1, (1, 2): w^-1, (2, 0): 1, (2, 2): v*w^-1}]])
+    """
+
+    (u, v, w) = variables
+    data = {}
+    data[2] = ([3], [[{(0, 1): -v, (0, 2): 1, (1, 0): 1, (1, 1): u, (2, 1): w}]],
+        [[{(0, 1): 1, (0, 2): -u/w, (1, 2): 1/w, (2, 0): 1, (2, 2):
+        v/w}]])
+    data[3] = ([24], [[{(0, 1): -v, (0, 2): 1, (1, 0): 1, (1, 1): u, (2, 1): w, (3,
+        15): -v, (3, 17): 1, (4, 16): -v, (4, 18): 1, (4, 22): v**2,
+        (4, 23): -v, (5, 9): -v, (5, 10): 1, (6, 13): -v, (6, 19): 1,
+        (6, 21): -v, (6, 22): -u*v, (7, 11): -v, (7, 12): 1, (8, 14):
+        -v, (8, 20): 1, (8, 22): -v*w, (9, 5): 1, (9, 9): u, (9, 23):
+        u/w, (10, 9): w, (10, 21): -u, (10, 22): -u**2, (11, 7): 1,
+        (11, 11): u, (11, 21): u, (11, 23): u*v/w, (12, 11): w, (12,
+        22): -u*w, (13, 6): 1, (13, 13): u, (13, 22): v, (14, 8): 1,
+        (14, 14): u, (14, 23): v, (15, 3): 1, (15, 15): u, (15, 22):
+        u, (15, 23): -u**2/w, (16, 4): 1, (16, 16): u, (16, 21): v,
+        (17, 15): w, (17, 22): u*v, (17, 23): -u, (18, 16): w, (19,
+        13): w, (20, 14): w, (21, 22): -v, (21, 23): 1, (22, 21): 1,
+        (22, 22): u, (23, 22): w}, {(0, 3): -v, (0, 4): 1, (1, 5): -v,
+        (1, 6): 1, (2, 7): -v, (2, 8): 1, (3, 0): 1, (3, 3): u, (4,
+        3): w, (5, 1): 1, (5, 5): u, (6, 5): w, (7, 2): 1, (7, 7): u,
+        (8, 7): w, (9, 9): u, (9, 15): 1, (10, 13): u, (10, 16): 1,
+        (10, 22): -v, (11, 9): w, (12, 13): w, (12, 23): -v, (13, 23):
+        1, (14, 21): w, (14, 23): v, (15, 9): -v, (15, 11): 1, (16,
+        22): w, (16, 23): -u, (17, 13): -v, (17, 14): 1, (17, 21): -v,
+        (18, 19): -v, (18, 20): 1, (19, 18): 1, (19, 19): u, (20, 19):
+        w, (21, 17): 1, (21, 21): u, (22, 10): 1, (22, 22): u, (23,
+        12): 1, (23, 23): u}]], [[{(0, 1): 1, (0, 2): -u/w, (1, 2):
+        1/w, (2, 0): 1, (2, 2): v/w, (3, 15): 1, (3, 17): -u/w, (3,
+        23): u*(u*v - w)/w**2, (4, 16): 1, (4, 18): -u/w, (4, 22): -v,
+        (4, 23): u*v/w, (5, 9): 1, (5, 10): -u/w, (5, 21): -u/w, (5,
+        22): -u**2/w, (5, 23): -u*v/w**2, (6, 13): 1, (6, 19): -u/w,
+        (6, 23): -v/w, (7, 11): 1, (7, 12): -u/w, (7, 21): -u*v/w, (7,
+        22): -u, (7, 23): -u*v**2/w**2, (8, 14): 1, (8, 20): -u/w, (8,
+        21): -v, (8, 23): -v**2/w, (9, 10): 1/w, (9, 22): u/w, (10,
+        5): 1, (10, 10): v/w, (10, 22): u*v/w, (11, 12): 1/w, (11,
+        23): u/w, (12, 7): 1, (12, 12): v/w, (12, 23): u*v/w, (13,
+        19): 1/w, (14, 20): 1/w, (15, 17): 1/w, (15, 21): u/w, (16,
+        18): 1/w, (17, 3): 1, (17, 17): v/w, (17, 21): u*v/w, (18, 4):
+        1, (18, 18): v/w, (18, 21): v, (19, 6): 1, (19, 19): v/w, (19,
+        22): v, (20, 8): 1, (20, 20): v/w, (20, 23): v, (21, 22): 1,
+        (21, 23): -u/w, (22, 23): 1/w, (23, 21): 1, (23, 23): v/w},
+        {(0, 3): 1, (0, 4): -u/w, (1, 5): 1, (1, 6): -u/w, (2, 7): 1,
+        (2, 8): -u/w, (3, 4): 1/w, (4, 0): 1, (4, 4): v/w, (5, 6):
+        1/w, (6, 1): 1, (6, 6): v/w, (7, 8): 1/w, (8, 2): 1, (8, 8):
+        v/w, (9, 11): 1/w, (10, 13): -u**2/w, (10, 16): -u/w, (10,
+        22): 1, (11, 11): v/w, (11, 15): 1, (12, 13): -u, (12, 23): 1,
+        (13, 12): 1/w, (13, 13): v/w, (14, 12): v/w, (14, 14): v/w,
+        (14, 17): 1, (15, 9): 1, (15, 11): -u/w, (16, 10): 1, (16,
+        12): -u/w, (16, 16): v/w, (17, 13): u*v/w, (17, 14): -u/w,
+        (17, 21): 1, (18, 19): 1, (18, 20): -u/w, (19, 20): 1/w, (20,
+        18): 1, (20, 20): v/w, (21, 13): -v/w, (21, 14): 1/w, (22,
+        13): u/w, (22, 16): 1/w, (23, 13): 1}]])
+    return data[num_strands]
+
+
+# generated data function for cubic Hecke algebra
+def read_markov(bas_ele, variables, num_strands=4):
+    r"""
+    Return precomputed Markov trace coefficients.
+
+    This code was generated by ``create_markov_trace_data.py`` (from
+    the `database_cubic_heck` repository), please don't edit.
+
+    INPUT:
+
+    - ``bas_ele`` -- instance of enum :class:`MarkovTraceModuleBasis`
+    - ``variables`` -- tuple consisting of the variables used in
+      the coefficients
+    - ``num_strands`` -- integer indicating the number of strands (default 4)
+
+
+    OUTPUT:
+
+    A list of the coefficients. The i'th member corresponds to the i'th
+    basis element.
+
+    EXAMPLES::
+
+        sage: from sage.databases.cubic_hecke_db import read_markov
+        sage: from sympy import var
+        sage: u, v, w, s = var('u, v, w, s')
+        sage: variables = (u, v, w, s)
+        sage: read_markov('U2', variables, num_strands=3)
+        [0, s, 1/s, s, 1/s, 0, 0, 0, 0, -s*v, s, s, -s*u/w, -v/s, 1/s,
+         0, 0, 0, 0, 1/s, -u/(s*w), -v/s, 0, 0]
+    """
+
+    u, v, w, s = variables
+    data = {}
+    data[2] = {'U1': [0, s, 1/s], 'U2': [1, 0, 0]}
+    data[3] = {'U1': [0, 0, 0, 0, 0, s**2, 1, 1, 1/s**2, u*s**2 + w, 0, 0, (s**2 +
+        v)/w, (u*s**2 + w)/s**2, 0, s**2, 1, 1, 1/s**2, 0, (s**2 +
+        v)/(w*s**2), (u*s**2 + w)/s**2, s**2, 0], 'U2': [0, s, 1/s, s,
+        1/s, 0, 0, 0, 0, -v*s, s, s, (-u*s)/w, (-v)/s, 1/s, 0, 0, 0,
+        0, 1/s, (-u)/(w*s), (-v)/s, 0, 0], 'U3': [1, 0, 0, 0, 0, 0, 0,
+        0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0], 'K4': [0,
+        0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+        0, 1]}
+
+    return data[num_strands][bas_ele]

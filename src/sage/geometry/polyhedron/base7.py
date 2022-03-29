@@ -36,6 +36,7 @@ from sage.cpython.string import bytes_to_str
 from sage.misc.cachefunc import cached_method
 from sage.modules.free_module_element import vector
 from sage.rings.integer_ring import ZZ
+from sage.rings.rational_field import QQ
 from sage.rings.qqbar import AA
 from .base6 import Polyhedron_base6
 

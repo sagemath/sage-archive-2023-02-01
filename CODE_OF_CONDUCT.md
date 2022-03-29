@@ -1,6 +1,6 @@
 # Code of Conduct #
 
-as voted on ending November 24, 2014
+Approved by the Sage community by a vote which ended on November 24, 2014
 
 The Sage community is comprised of an international mixture of
 mathematicians, computer scientists, engineers, researchers, teachers,

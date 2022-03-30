@@ -845,8 +845,9 @@ class ReferenceSubBuilder(DocBuilder):
                 env.config.values = env.app.config.values
                 logger.debug("Opened Sphinx environment: %s", env_pickle)
                 return env
-        except IOError as err:
-            logger.debug("Failed to open Sphinx environment: %s", err)
+        except (IOError, EOFError) as err:
+            logger.debug(
+                f"Failed to open Sphinx environment '{env_pickle}'", exc_info=True)
 
     def update_mtimes(self):
         """

@@ -2,7 +2,8 @@ import importlib.util
 import sys
 import os
 import sphinx
-from sage.env import SAGE_DOC_SRC, SAGE_DOC, SAGE_SRC, THEBE_DIR, PPLPY_DOCS, MATHJAX_DIR
+from sage.env import SAGE_DOC_SRC, SAGE_DOC, THEBE_DIR, PPLPY_DOCS, MATHJAX_DIR
+from sage.misc.latex_macros import sage_mathjax_macros
 import sage.version
 from sage.misc.sagedoc import extlinks
 import dateutil.parser
@@ -12,6 +13,7 @@ from sphinx.ext.doctest import blankline_re
 from sphinx import highlighting
 import sphinx.ext.intersphinx as intersphinx
 from IPython.lib.lexers import IPythonConsoleLexer, IPyLexer
+
 
 # General configuration
 # ---------------------
@@ -24,6 +26,9 @@ extensions = [
     "sage_docbuild.ext.sage_autodoc",
     "sphinx.ext.todo",
     "sphinx.ext.extlinks",
+    # Mathjax integration
+    # https://www.sphinx-doc.org/en/master/usage/extensions/math.html#module-sphinx.ext.mathjax
+    "sphinx.ext.mathjax",
     "IPython.sphinxext.ipython_directive",
     "matplotlib.sphinxext.plot_directive",
 ]
@@ -267,13 +272,26 @@ html_favicon = 'favicon.ico'
 html_common_static_path = [os.path.join(SAGE_DOC_SRC, 'common', 'static'),
                            THEBE_DIR, 'static']
 
-# We use MathJax to build the documentation.
-extensions.append('sphinx.ext.mathjax')
-mathjax_path = 'MathJax.js?config=TeX-AMS_HTML-full,../mathjax_sage.js'
-
-from sage.misc.latex_macros import sage_mathjax_macros
-
-#html_theme_options["mathjax_macros"] = sage_mathjax_macros()
+# Configure MathJax
+# https://docs.mathjax.org/en/latest/options/input/tex.html
+mathjax3_config = {
+    "tex": {
+        # Add custom sage macros
+        # http://docs.mathjax.org/en/latest/input/tex/macros.html
+        "macros": sage_mathjax_macros(),
+        # Add $...$ as possible inline math
+        # https://docs.mathjax.org/en/latest/input/tex/delimiters.html#tex-and-latex-math-delimiters
+        "inlineMath": [["$", "$"], ["\\(", "\\)"]],
+        # Increase the limit the size of the string to be processed
+        # https://docs.mathjax.org/en/latest/options/input/tex.html#option-descriptions
+        "maxBuffer": 50 * 1024,
+        # Use colorv2 extension instead of built-in color extension
+        # https://docs.mathjax.org/en/latest/input/tex/extensions/autoload.html#tex-autoload-options
+        # https://docs.mathjax.org/en/latest/input/tex/extensions/colorv2.html#tex-colorv2
+        "autoload": {"color": [], "colorv2": ["color"]},
+    },
+}
+mathjax_path = "https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-chtml.js"
 
 mathjax_relative = os.path.basename(MATHJAX_DIR)
 

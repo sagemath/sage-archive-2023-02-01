@@ -1818,6 +1818,7 @@ cdef class LaurentSeries(AlgebraElement):
 
         Test for :trac:`23928`::
 
+            sage: from sage.rings.laurent_series_ring_element import LaurentSeries
             sage: R.<x> = PowerSeriesRing(QQ, implementation='pari')
             sage: f = LaurentSeries(R, x).add_bigoh(7)
             sage: f(x)

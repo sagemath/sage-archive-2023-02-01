@@ -73,7 +73,7 @@ from sage.misc.misc_c import prod
 # of it later.
 
 
-class AbstractTree(object):
+class AbstractTree():
     """
     Abstract Tree.
 

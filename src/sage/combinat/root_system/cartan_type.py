@@ -973,7 +973,7 @@ class CartanTypeFactory(SageObject):
 CartanType = CartanTypeFactory()
 CartanType.__doc__ = __doc__
 
-class CartanType_abstract(object):
+class CartanType_abstract():
     r"""
     Abstract class for Cartan types
 
@@ -3050,7 +3050,7 @@ class SuperCartanType_standard(UniqueRepresentation, SageObject):
 
 ##############################################################################
 # For backward compatibility
-class CartanType_simple_finite(object):
+class CartanType_simple_finite():
     def __setstate__(self, dict):
         """
         Implements the unpickling of Cartan types pickled by Sage <= 4.0.

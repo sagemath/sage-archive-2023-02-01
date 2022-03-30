@@ -249,11 +249,25 @@ html_common_static_path = [os.path.join(SAGE_DOC_SRC, 'common', 'static'),
                            THEBE_DIR, 'static']
 
 # Configure MathJax
+# https://docs.mathjax.org/en/latest/options/input/tex.html
 mathjax3_config = {
     "tex": {
-        "macros": sage_mathjax_macros()
-    }
+        # Add custom sage macros
+        # http://docs.mathjax.org/en/latest/input/tex/macros.html
+        "macros": sage_mathjax_macros(),
+        # Add $...$ as possible inline math
+        # https://docs.mathjax.org/en/latest/input/tex/delimiters.html#tex-and-latex-math-delimiters
+        "inlineMath": [["$", "$"], ["\\(", "\\)"]],
+        # Increase the limit the size of the string to be processed
+        # https://docs.mathjax.org/en/latest/options/input/tex.html#option-descriptions
+        "maxBuffer": 50 * 1024,
+        # Use colorv2 extension instead of built-in color extension
+        # https://docs.mathjax.org/en/latest/input/tex/extensions/autoload.html#tex-autoload-options
+        # https://docs.mathjax.org/en/latest/input/tex/extensions/colorv2.html#tex-colorv2
+        "autoload": {"color": [], "colorv2": ["color"]},
+    },
 }
+mathjax_path = "https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-chtml.js"
 
 mathjax_relative = os.path.basename(MATHJAX_DIR)
 

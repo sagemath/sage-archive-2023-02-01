@@ -4,16 +4,19 @@ Rings
 Tests for deprecations of imports in global namespace from :trac:`33502`::
 
     sage: PowerSeries
+    doctest:warning...:
     DeprecationWarning:
     Importing PowerSeries from here is deprecated. If you need to use it, please import it directly from sage.rings.power_series_ring_element
     See https://trac.sagemath.org/33602 for details.
     ...
     sage: PuiseuxSeries
+    doctest:warning...:
     DeprecationWarning:
     Importing PuiseuxSeries from here is deprecated. If you need to use it, please import it directly from sage.rings.puiseux_series_ring_element
     See https://trac.sagemath.org/33602 for details.
     ...
     sage: LaurentSeries
+    doctest:warning...:
     DeprecationWarning:
     Importing LaurentSeries from here is deprecated. If you need to use it, please import it directly from sage.rings.laurent_series_ring_element
     See https://trac.sagemath.org/33602 for details.

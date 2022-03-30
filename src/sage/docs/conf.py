@@ -1,3 +1,4 @@
+import importlib.util
 import sys
 import os
 import sphinx
@@ -198,8 +199,6 @@ multidocs_is_master = True
 
 # Options for HTML output
 # -----------------------
-import importlib.util
-
 if importlib.util.find_spec("furo") is not None:
     html_theme = "furo"
 

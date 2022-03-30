@@ -224,18 +224,18 @@ if importlib.util.find_spec("furo") is not None:
         "dark_logo": "logo_sagemath.svg",
     }
 else:
-# Sage default HTML theme. We use a custom theme to set a Pygments style,
-# stylesheet, and insert MathJax macros. See the directory
-# doc/common/themes/sage-classic/ for files comprising the custom theme.
+    # Sage default HTML theme. We use a custom theme to set a Pygments style,
+    # stylesheet, and insert MathJax macros. See the directory
+    # doc/common/themes/sage-classic/ for files comprising the custom theme.
     html_theme = "sage-classic"
 
     # Add any paths that contain custom themes here, relative to this directory.
     html_theme_path = [os.path.join(SAGE_DOC_SRC, "common", "themes")]
 
-# Theme options are theme-specific and customize the look and feel of
-# a theme further.  For a list of options available for each theme,
-# see the documentation.
-html_theme_options = {}
+    # Theme options are theme-specific and customize the look and feel of
+    # a theme further.  For a list of options available for each theme,
+    # see the documentation.
+    html_theme_options = {}
 
     # The name of the Pygments (syntax highlighting) style to use.  NOTE:
     # This overrides a HTML theme's corresponding setting (see below).

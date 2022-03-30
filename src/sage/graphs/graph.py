@@ -3730,6 +3730,15 @@ class Graph(GenericGraph):
             Traceback (most recent call last):
             ...
             ValueError: The 'algorithm' keyword must be set to either 'DLX', 'MILP' or 'CP'.
+
+        Test on a random graph (:trac:`33559`)::
+
+            sage: G = graphs.RandomGNP(15, .2)
+            sage: c1 = G.chromatic_number(algorithm='DLX')
+            sage: c2 = G.chromatic_number(algorithm='MILP')
+            sage: c3 = G.chromatic_number(algorithm='CP')
+            sage: c1 == c2 and c2 == c3
+            True
         """
         self._scream_if_not_simple(allow_multiple_edges=True)
         # default built-in algorithm; bad performance

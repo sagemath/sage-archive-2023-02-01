@@ -153,7 +153,7 @@ class QuotientRingElement(RingElement):
         """
         return self.__rep not in self.parent().defining_ideal()
 
-    __nonzero__ = __bool__
+    
 
     def is_unit(self):
         """

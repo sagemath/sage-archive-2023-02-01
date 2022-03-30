@@ -254,7 +254,7 @@ cdef class LaurentSeries(AlgebraElement):
         """
         return self.__u.is_monomial()
 
-    def __nonzero__(self):
+    def __bool__(self):
         """
         EXAMPLES::
 

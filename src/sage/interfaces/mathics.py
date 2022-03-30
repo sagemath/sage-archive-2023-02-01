@@ -1068,7 +1068,10 @@ class MathicsElement(ExtraTabCompletion, InterfaceElement):
         s = self.to_sympy()
         if self is not s and s is not None:
             if hasattr(s, '_sage_'):
-                return s._sage_()
+                try:
+                    return s._sage_()
+                except NotImplementedError:  # see :trac:`33584`
+                    pass
         p = self.to_python()
         if self is not p and p is not None:
             def conv(i):

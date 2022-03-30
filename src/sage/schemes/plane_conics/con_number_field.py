@@ -198,6 +198,13 @@ class ProjectiveConic_number_field(ProjectiveConic_field):
                     return False, self._local_obstruction
                 else:
                     return False
+            if (not point) and self._finite_obstructions == [] and \
+               self._infinite_obstructions == []:
+                # list of local obstructions is computed and empty, return True
+                if obstruction:
+                    return True, None
+                return True
+
         # cache is empty or user specifically asks not to check the cache
 
         if self.has_singular_point():

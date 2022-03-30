@@ -143,6 +143,25 @@ class ProjectiveConic_number_field(ProjectiveConic_field):
             sage: Conic(K, [4,5,6]).has_rational_point(algorithm='magma', read_cache=False) # optional - magma
             True
 
+            sage: P.<a> = QuadraticField(2)
+            sage: C = Conic(P, [1,1,1])
+            sage: C.has_rational_point()
+            False
+            sage: C.has_rational_point(point=True)
+            (False, None)
+            sage: C.has_rational_point(obstruction=True)
+            (False,
+             Ring morphism:
+               From: Number Field in a with defining polynomial x^2 - 2 with a = 1.414213562373095?
+               To:   Algebraic Real Field
+               Defn: a |--> -1.414213562373095?)
+            sage: C.has_rational_point(point=True, obstruction=True)
+            (False,
+             Ring morphism:
+               From: Number Field in a with defining polynomial x^2 - 2 with a = 1.414213562373095?
+               To:   Algebraic Real Field
+               Defn: a |--> -1.414213562373095?)
+
         TESTS:
 
         Create a bunch of conics over number fields and check whether

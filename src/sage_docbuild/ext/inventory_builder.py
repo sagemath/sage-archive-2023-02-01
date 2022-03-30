@@ -87,8 +87,8 @@ class InventoryBuilder(StandaloneHTMLBuilder):
         may be created by the graphviz extension. Its presence will
         break the docbuild later on, so remove it.
         """
-        if path.isdir(path.join(self.outdir, '_static')):
-            shutil.rmtree(path.join(self.outdir, '_static'))
+        #if path.isdir(path.join(self.outdir, '_static')):
+        #    shutil.rmtree(path.join(self.outdir, '_static'))
 
 
     copy_image_files = removed_method_error

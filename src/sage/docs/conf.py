@@ -24,7 +24,7 @@ extensions = [
     "sphinx.ext.todo",
     "sphinx.ext.extlinks",
     "IPython.sphinxext.ipython_directive",
-    #"matplotlib.sphinxext.plot_directive",
+    "matplotlib.sphinxext.plot_directive",
 ]
 
 # This code is executed before each ".. PLOT::" directive in the Sphinx

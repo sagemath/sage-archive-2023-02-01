@@ -1,7 +1,7 @@
 """
 Rings
 
-Tests for deprecations of imports in global namespace from :trac:`33502`::
+Tests for deprecations of imports in global namespace from :trac:`33602`::
 
     sage: PowerSeries
     doctest:warning...:

@@ -162,7 +162,7 @@ def isogeny_determine_algorithm(E, kernel):
 
     raise ValueError("invalid parameters to EllipticCurveIsogeny constructor")
 
-def isogeny_codomain_from_kernel(E, kernel, degree=None):
+def isogeny_codomain_from_kernel(E, kernel):
     r"""
     Compute the isogeny codomain given a kernel.
 
@@ -174,8 +174,6 @@ def isogeny_codomain_from_kernel(E, kernel, degree=None):
                     or a kernel polynomial (specified as either a
                     univariate polynomial or a coefficient list.)
 
-    - ``degree`` -- integer (default: ``None``). Cardinality of the kernel.
-
     OUTPUT:
 
     (elliptic curve) the codomain of the separable normalized isogeny
@@ -186,9 +184,9 @@ def isogeny_codomain_from_kernel(E, kernel, degree=None):
         sage: from sage.schemes.elliptic_curves.ell_curve_isogeny import isogeny_codomain_from_kernel
         sage: E = EllipticCurve(GF(7), [1,0,1,0,1])
         sage: R.<x> = GF(7)[]
-        sage: isogeny_codomain_from_kernel(E, [4,1], degree=3)
+        sage: isogeny_codomain_from_kernel(E, [4,1])
         Elliptic Curve defined by y^2 + x*y + y = x^3 + 4*x + 6 over Finite Field of size 7
-        sage: EllipticCurveIsogeny(E, [4,1]).codomain() == isogeny_codomain_from_kernel(E, [4,1], degree=3)
+        sage: EllipticCurveIsogeny(E, [4,1]).codomain() == isogeny_codomain_from_kernel(E, [4,1])
         True
         sage: isogeny_codomain_from_kernel(E, x^3 + x^2 + 4*x + 3)
         Elliptic Curve defined by y^2 + x*y + y = x^3 + 4*x + 6 over Finite Field of size 7
@@ -208,7 +206,7 @@ def isogeny_codomain_from_kernel(E, kernel, degree=None):
         # and return the codomain
         return EllipticCurveIsogeny(E, kernel).codomain()
     elif ("kohel"==algorithm):
-        return compute_codomain_kohel(E, kernel, degree)
+        return compute_codomain_kohel(E, kernel)
 
 def compute_codomain_formula(E, v, w):
     r"""
@@ -358,7 +356,7 @@ def compute_vw_kohel_odd(b2,b4,b6,s1,s2,s3,n):
     return (v,w)
 
 
-def compute_codomain_kohel(E, kernel, degree):
+def compute_codomain_kohel(E, kernel):
     r"""
     Compute the codomain from the kernel polynomial using Kohel's
     formulas.
@@ -369,8 +367,6 @@ def compute_codomain_kohel(E, kernel, degree):
 
     - ``kernel`` (polynomial or list) -- the kernel polynomial, or a
       list of its coefficients
-
-    - ``degree`` (int) -- degree of the isogeny
 
     OUTPUT:
 
@@ -383,20 +379,20 @@ def compute_codomain_kohel(E, kernel, degree):
         sage: phi = EllipticCurveIsogeny(E, [9,1])
         sage: phi.codomain() == isogeny_codomain_from_kernel(E, [9,1])
         True
-        sage: compute_codomain_kohel(E, [9,1], 2)
+        sage: compute_codomain_kohel(E, [9,1])
         Elliptic Curve defined by y^2 + x*y + 3*y = x^3 + 2*x^2 + 9*x + 8 over Finite Field of size 19
         sage: R.<x> = GF(19)[]
         sage: E = EllipticCurve(GF(19), [18,17,16,15,14])
         sage: phi = EllipticCurveIsogeny(E, x^3 + 14*x^2 + 3*x + 11)
         sage: phi.codomain() == isogeny_codomain_from_kernel(E, x^3 + 14*x^2 + 3*x + 11)
         True
-        sage: compute_codomain_kohel(E, x^3 + 14*x^2 + 3*x + 11, 7)
+        sage: compute_codomain_kohel(E, x^3 + 14*x^2 + 3*x + 11)
         Elliptic Curve defined by y^2 + 18*x*y + 16*y = x^3 + 17*x^2 + 18*x + 18 over Finite Field of size 19
         sage: E = EllipticCurve(GF(19), [1,2,3,4,5])
         sage: phi = EllipticCurveIsogeny(E, x^3 + 7*x^2 + 15*x + 12)
         sage: isogeny_codomain_from_kernel(E, x^3 + 7*x^2 + 15*x + 12) == phi.codomain()
         True
-        sage: compute_codomain_kohel(E, x^3 + 7*x^2 + 15*x + 12,4)
+        sage: compute_codomain_kohel(E, x^3 + 7*x^2 + 15*x + 12)
         Elliptic Curve defined by y^2 + x*y + 3*y = x^3 + 2*x^2 + 3*x + 15 over Finite Field of size 19
 
     ALGORITHM:

@@ -965,7 +965,7 @@ class EllipticCurve_field(ell_generic.EllipticCurve_generic, ProjectivePlaneCurv
         except AttributeError as e:
             raise RuntimeError("Unable to construct isogeny: %s" % e)
 
-    def isogeny_codomain(self, kernel, degree=None):
+    def isogeny_codomain(self, kernel):
         r"""
         Return the codomain of the isogeny from ``self`` with given kernel.
 
@@ -974,8 +974,6 @@ class EllipticCurve_field(ell_generic.EllipticCurve_generic, ProjectivePlaneCurv
         - ``kernel`` -- Either a list of points in the kernel of the isogeny,
                         or a kernel polynomial (specified as either a
                         univariate polynomial or a coefficient list.)
-
-        - ``degree`` -- integer (default: ``None``). Cardinality of the kernel.
 
         OUTPUT:
 
@@ -999,7 +997,7 @@ class EllipticCurve_field(ell_generic.EllipticCurve_generic, ProjectivePlaneCurv
             sage: E2._order
             170141183460469231746191640949390434666
         """
-        E = isogeny_codomain_from_kernel(self, kernel, degree=None)
+        E = isogeny_codomain_from_kernel(self, kernel)
         if self.base_field().is_finite():
             E._fetch_cached_order(self)
         return E

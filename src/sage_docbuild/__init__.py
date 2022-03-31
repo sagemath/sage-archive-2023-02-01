@@ -127,9 +127,15 @@ def builder_helper(type):
         else:
             options += ' -D multidoc_first_pass=1'
 
+
         build_command = '-b %s -d %s %s %s %s' % (type, self._doctrees_dir(),
                                                   options, self.dir,
                                                   output_dir)
+
+        # Provide "pdf" tag to be used with "only" directive as an alias of "latex"
+        if type == 'latex':
+            build_command = '-t pdf ' + build_command
+
         logger.debug(build_command)
 
         # Run Sphinx with Sage's special logger

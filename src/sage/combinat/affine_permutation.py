@@ -1208,7 +1208,7 @@ class AffinePermutationTypeC(AffinePermutation):
                     l.append(self[m])
         elif i == 0:
             for m in range(self.k):
-                res = self[m]%self.N
+                res = self[m] % self.N
                 if res == 1:
                     l.append(self[m] - 2)
                 elif res == self.N - 1:
@@ -1401,7 +1401,7 @@ class AffinePermutationTypeB(AffinePermutationTypeC):
                     l.append(self[m])
         elif i == self.k:
             for m in range(self.k):
-                res = self[m]%self.N
+                res = self[m] % self.N
                 if res == i:
                     l.append(self[m] + 1)
                 elif res == j:

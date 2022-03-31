@@ -1485,9 +1485,9 @@ class PlotOptions():
         vectors = matrix([b.scalar(coroot) for b in L.basis()]).right_kernel().basis()
         basis = [L.from_vector(v) for v in vectors]
         if self.dimension == 3: # LaTeX labels not yet supported in 3D
-            text_label = "H_%s$"%(str(label))
+            text_label = "H_%s$" % (str(label))
         else:
-            text_label = "$H_{%s}$"%(latex(label))
+            text_label = "$H_{%s}$" % (latex(label))
         return self.cone(lines = basis, color = self.color(label), label=text_label,
                          as_polyhedron=as_polyhedron)
 

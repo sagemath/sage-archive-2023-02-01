@@ -288,9 +288,9 @@ class DynkinDiagram_class(DiGraph, CartanType_abstract):
         result = ct.ascii_art() +"\n" if hasattr(ct, "ascii_art") else ""
 
         if ct is None or isinstance(ct, CartanMatrix):
-            return result+"Dynkin diagram of rank %s"%self.rank()
+            return result+"Dynkin diagram of rank %s" % self.rank()
         else:
-            return result+"%s"%ct._repr_(compact=True)
+            return result+"%s" % ct._repr_(compact=True)
 
     def _rich_repr_(self, display_manager, **kwds):
         """

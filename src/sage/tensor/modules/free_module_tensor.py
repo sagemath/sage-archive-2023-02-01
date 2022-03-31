@@ -192,6 +192,9 @@ tensor ``t`` acts on pairs formed by a linear form and a module element::
 #  the License, or (at your option) any later version.
 #                  https://www.gnu.org/licenses/
 # *****************************************************************************
+from __future__ import annotations
+
+from typing import TYPE_CHECKING, Dict
 
 from sage.rings.integer import Integer
 from sage.structure.element import ModuleElementWithMutability
@@ -200,6 +203,10 @@ from sage.tensor.modules.comp import (Components, CompWithSym, CompFullySym,
 from sage.tensor.modules.tensor_with_indices import TensorWithIndices
 from sage.parallel.decorate import parallel
 from sage.parallel.parallelism import Parallelism
+
+if TYPE_CHECKING:
+    from sage.tensor.modules.free_module_basis import FreeModuleBasis
+
 
 class FreeModuleTensor(ModuleElementWithMutability):
     r"""
@@ -287,7 +294,7 @@ class FreeModuleTensor(ModuleElementWithMutability):
             self._latex_name = self._name
         else:
             self._latex_name = latex_name
-        self._components = {}  # dict. of the sets of components on various
+        self._components: Dict[FreeModuleBasis, Components] = {}  # dict. of the sets of components on various
                               # bases, with the bases as keys (initially empty)
 
         # Treatment of symmetry declarations:

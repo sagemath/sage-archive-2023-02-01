@@ -156,6 +156,9 @@ REFERENCES:
 #                  https://www.gnu.org/licenses/
 # *****************************************************************************
 
+from __future__ import annotations
+from typing import TYPE_CHECKING
+
 from sage.manifolds.differentiable.pseudo_riemannian import \
     PseudoRiemannianManifold
 from sage.manifolds.differentiable.degenerate import (DegenerateManifold,
@@ -167,6 +170,8 @@ from sage.rings.infinity import infinity
 from sage.matrix.constructor import matrix
 from sage.symbolic.expression import Expression
 
+if TYPE_CHECKING:
+    from sage.manifolds.differentiable.metric import DegenerateMetric
 
 class DegenerateSubmanifold(DegenerateManifold, DifferentiableSubmanifold):
     r"""
@@ -590,7 +595,7 @@ class DegenerateSubmanifold(DegenerateManifold, DifferentiableSubmanifold):
         self._default_screen = self._screens[name]
         return self._screens[name]
 
-    def induced_metric(self):
+    def induced_metric(self) -> DegenerateMetric:
         r"""
         Return the pullback of the ambient metric.
 

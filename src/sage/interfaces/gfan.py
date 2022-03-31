@@ -25,7 +25,7 @@ TODO -- much functionality of gfan-0.3 is still not exposed::
    * -- can compute individual GB's for lex and revlex (via buchberger)
 """
 
-#*****************************************************************************
+# *****************************************************************************
 #       Copyright (C) 2006 William Stein <wstein@gmail.com>
 #
 #  Distributed under the terms of the GNU General Public License (GPL)
@@ -38,7 +38,7 @@ TODO -- much functionality of gfan-0.3 is still not exposed::
 #  The full text of the GPL is available at:
 #
 #                  http://www.gnu.org/licenses/
-#*****************************************************************************
+# *****************************************************************************
 
 from subprocess import Popen, PIPE
 
@@ -49,13 +49,13 @@ class Gfan(object):
     """
     Interface to Anders Jensen's Groebner Fan program.
     """
-    def __call__(self, I, cmd='', verbose=False, format=None):
+    def __call__(self, input, cmd='', verbose=False, format=None):
         r"""
         Call Groebner Fan program with given input
 
         INPUT:
 
-        - ``I`` -- string, input
+        - ``input`` -- string, input
         - ``cmd`` -- string (default:``''``), GFan command
         - ``verbose`` -- bool (default:``False``)
 
@@ -82,12 +82,12 @@ class Gfan(object):
             }
 
         """
-        if not format is None:
+        if format is not None:
             from sage.misc.superseded import deprecation
-            deprecation(33468, 'argument `format` is ignored in the code '
-                    ': it is now deprecated. Please update your code '
-                    'without this argument as it will be removed in a later '
-                    'version of SageMath.')
+            deprecation(33468, 'argument `format` is ignored in the code: '
+                               'it is now deprecated. Please update your code '
+                               'without this argument as it will be removed in a later '
+                               'version of SageMath.')
 
         if cmd:
             cmd = cmd.split(' ')
@@ -97,11 +97,11 @@ class Gfan(object):
 
         if verbose:
             print("gfan command:\n%s" % cmd)
-            print("gfan input:\n%s" % I)
+            print("gfan input:\n%s" % input)
 
         gfan_processes = Popen(cmd, stdin=PIPE, stdout=PIPE, stderr=PIPE,
                                encoding='latin-1')
-        ans, err = gfan_processes.communicate(input=I)
+        ans, err = gfan_processes.communicate(input=input)
 
         # sometimes, gfan outputs stuff to stderr even though everything is fine
         # we avoid interpreting this as an error
@@ -109,6 +109,7 @@ class Gfan(object):
             raise RuntimeError(err)
 
         return ans
+
 
 # The instance
 gfan = Gfan()

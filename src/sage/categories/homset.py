@@ -1285,4 +1285,3 @@ def is_Endset(x):
         True
     """
     return isinstance(x, Homset) and x.is_endomorphism_set()
-

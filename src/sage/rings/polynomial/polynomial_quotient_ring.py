@@ -2364,5 +2364,3 @@ class PolynomialQuotientRing_field(PolynomialQuotientRing_domain, Field):
         CC = sage.rings.complex_mpfr.ComplexField(prec)
         v = self.modulus().roots(multiplicities=False, ring=CC)
         return [self.hom([a], check=False) for a in v]
-
-

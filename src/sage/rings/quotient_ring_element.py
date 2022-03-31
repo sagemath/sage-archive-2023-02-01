@@ -927,4 +927,3 @@ class QuotientRingElement(RingElement):
         # reduction w.r.t. the defining ideal is performed in the
         # constructor
         return self.__class__(self.parent(), self.__rep.reduce(G))
-

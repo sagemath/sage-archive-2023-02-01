@@ -247,19 +247,18 @@ Pytest
 It is included in the Sage distribution as an optional package.
 
 Currently, Sage only makes very limited use of pytest, for testing the
-package :mod:`sage.numerical.backends`.
+package :mod:`sage.numerical.backends` and some modules in
+:mod:`sage.manifolds`.
 
 *Installation:*
 
-- (for use with the Sage doctester:) ``./sage -i pytest``.
-
-- (for manual use:) ``pip install -U pytest``, see `documentation <https://docs.pytest.org/en/stable/getting-started.html#installation-and-getting-started>`__ for details.
+- ``./sage -i pytest``.
 
 *Usage:*
 
 - Tox, Sage doctester: At the end of ``./sage -t`` (or ``./sage --tox -e doctest``), Pytest is automatically invoked.
 
-- Manual: Run ``pytest path/to/the/test_file.py`` or ``pytest`` to run all tests (from a virtual environment with the Sage library installed)
+- Manual: Run ``./sage -pytest path/to/the/test_file.py`` or ``./sage -pytest`` to run all tests.
 
 - VS Code: Install the `Python extension <https://marketplace.visualstudio.com/items?itemName=ms-python.python>`_ and follow the `offical VS Code documentation <https://code.visualstudio.com/docs/python/testing>`__.
 

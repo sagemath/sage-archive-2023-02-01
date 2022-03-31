@@ -746,7 +746,7 @@ class DegenerateSubmanifold(DegenerateManifold, DifferentiableSubmanifold):
             v = rig[0]
             g = self.ambient_metric()
             N = (1/g(xi, v))*(v-(g(v,v)/(2*g(xi, v)))*xi)
-            if not len(self._adapted_frame):
+            if not self._adapted_frame:
                 N.set_name(name='N')
             else:
                 n = len(self._adapted_frame)
@@ -825,7 +825,7 @@ class DegenerateSubmanifold(DegenerateManifold, DifferentiableSubmanifold):
             i += 1
         f = self._ambient.default_frame()
         GLHPhi = f.along(self.immersion())[0].parent().general_linear_group()
-        if not len(self._adapted_frame):
+        if not self._adapted_frame:
             e = f.new_frame(A, 'vv')
         else:
             n = len(self._adapted_frame)
@@ -834,13 +834,13 @@ class DegenerateSubmanifold(DegenerateManifold, DifferentiableSubmanifold):
                   self.immersion()), GLHPhi(A.along(self.immersion())))
         b = e.dual_basis()
         if self._codim==1:
-            if not len(self._adapted_frame):
+            if not self._adapted_frame:
                 e[self._dim-self._sindex].set_name('N')
             else:
                 n = len(self._adapted_frame)
                 e[self._dim-self._sindex].set_name('N'+str(n))
             e[self._dim-self._sindex-1].set_name('xi', latex_name=r'\xi')
-            if not len(self._adapted_frame):
+            if not self._adapted_frame:
                 b[self._dim-self._sindex].set_name('N^b', latex_name=r'N^\flat')
             else:
                 b[self._dim-self._sindex].set_name('N'+str(n)+'^b', latex_name=r'N'+str(n)+r'^\flat')
@@ -891,17 +891,16 @@ class DegenerateSubmanifold(DegenerateManifold, DifferentiableSubmanifold):
             Lorentzian manifold M
 
         """
-
         e = self._adapted_frame_(screen).along(self.immersion())
         b = e.dual_basis()
         if self._codim==1:
-            if not len(self._adapted_frame):
+            if not self._adapted_frame:
                 e[self._dim-self._sindex].set_name('N')
             else:
                 n = len(self._adapted_frame)
                 e[self._dim-self._sindex].set_name('N'+str(n))
             e[self._dim-self._sindex-1].set_name('xi', latex_name=r'\xi')
-            if not len(self._adapted_frame):
+            if not self._adapted_frame:
                 b[self._dim-self._sindex].set_name('N^b', latex_name=r'N^\flat')
             else:
                 b[self._dim-self._sindex].set_name('N'+str(n)+'^b', latex_name=r'N'+str(n)+r'^\flat')

@@ -1731,7 +1731,7 @@ class AbstractTree():
                 for i in range(split):
                     tmp(self[i], edge, nodes, edges, matrix)
                 # # prepare the root line
-                if len(matrix):
+                if matrix:
                     nb_of_and = matrix[0].count(sep)
                     sizetmp = len(matrix[0])
                 else:
@@ -1754,9 +1754,9 @@ class AbstractTree():
             if self.is_empty():
                 empty_tree()
             elif len(self) == 0 or all(subtree.is_empty()
-                    for subtree in self):
+                                       for subtree in self):
                 one_node_tree(self)
-            elif len(self) % 2 == 0:
+            elif not len(self) % 2:
                 pair_nodes_tree(self, nodes, edges, matrix)
             else:
                 odd_nodes_tree(self, nodes, edges, matrix)
@@ -1789,8 +1789,8 @@ class AbstractTree():
                 ("\n" +
                 path_begin +
                     "\n\t".join(make_edges(edges)) +
-                path_end if len(edges) else "")
-                if len(matrix) else "") +
+                path_end if edges else "")
+                if matrix else "") +
             end_env +
             "}")
 

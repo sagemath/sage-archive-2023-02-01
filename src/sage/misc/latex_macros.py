@@ -123,18 +123,18 @@ def convert_latex_macro_to_mathjax(macro):
         sage: convert_latex_macro_to_mathjax('\\newcommand{\\GF}[1]{\\Bold{F}_{#1}}')
         ('GF', ['\\Bold{F}_{#1}', 1])
     """
-    left_bracket = macro.find("[")
-    right_bracket = macro.find("[")
+    left_bracket = macro.find('[')
+    right_bracket = macro.find('[')
     if left_bracket >= 0:
-        right_bracket = macro.find("]")
+        right_bracket = macro.find(']')
         num_args = int(macro[left_bracket + 1 : right_bracket])
     else:
         num_args = 0
-    start_name = macro.find("{") + 1  # add one to go past the backslash
-    end_name = macro.find("}")
+    start_name = macro.find('{') + 1  # add one to go past the backslash
+    end_name = macro.find('}')
     name = macro[start_name + 1 : end_name]
-    start_defn = macro.find("{", end_name)
-    end_defn = macro.rfind("}")
+    start_defn = macro.find('{', end_name)
+    end_defn = macro.rfind('}')
     defn = macro[start_defn + 1 : end_defn]
     if num_args == 0:
         return name, defn

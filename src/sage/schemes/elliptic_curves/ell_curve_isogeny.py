@@ -89,8 +89,6 @@ from sage.rings.number_field.number_field_base import is_NumberField
 from sage.schemes.elliptic_curves.weierstrass_morphism \
         import WeierstrassIsomorphism, isomorphisms, baseWI
 
-from sage.sets.set import Set
-
 #
 # Private function for parsing input to determine the type of
 # algorithm
@@ -911,9 +909,8 @@ class EllipticCurveIsogeny(EllipticCurveHom):
     # member variables common to Velu's formula
     #
 
-    # we keep track of the 2-torsion and non-2-torsion separately
-    __kernel_2tor = None
-    __kernel_non2tor = None
+    # a full set of representatives of the kernel subgroup modulo negation
+    __kernel_mod_sign = None
 
     # variables used in Velu's formula (as well as Kohel's variant)
     __v = None
@@ -1772,9 +1769,6 @@ class EllipticCurveIsogeny(EllipticCurveHom):
         # subgroups are implemented better, this could be simplified,
         # but it won't speed things up too much.
 
-        kernel_set = Set([self.__E1(0)])
-        from sage.misc.flatten import flatten
-
         def all_multiples(itr, terminal):
             mult_list = [terminal]
             R = terminal + itr
@@ -1782,13 +1776,14 @@ class EllipticCurveIsogeny(EllipticCurveHom):
                 mult_list.append(R)
                 R += itr
             return mult_list
+
+        kernel_set = {self.__E1(0)}
         for P in kernel_gens:
-            kernel_set += Set(flatten([all_multiples(P,Q)
-                                       for Q in kernel_set]))
-        self.__kernel_list = kernel_set.list()
-        self.__kernel_2tor = {}
-        self.__kernel_non2tor = {}
+            kernel_set.update(R for Q in tuple(kernel_set)
+                                for R in all_multiples(P,Q))
+
         self.__degree = Integer(len(kernel_set))
+        self.__kernel_list = list(kernel_set)
         self.__sort_kernel_list()
 
     #
@@ -1808,12 +1803,11 @@ class EllipticCurveIsogeny(EllipticCurveHom):
             sage: P = E((4,2))
             sage: phi = EllipticCurveIsogeny(E, P); phi
             Isogeny of degree 4 from Elliptic Curve defined by y^2 = x^3 + 6*x over Finite Field of size 7 to Elliptic Curve defined by y^2 = x^3 + 2*x over Finite Field of size 7
-            sage: phi._EllipticCurveIsogeny__kernel_2tor = {}
-            sage: phi._EllipticCurveIsogeny__kernel_non2tor = {}
             sage: phi._EllipticCurveIsogeny__sort_kernel_list()
         """
         a1,a2,a3,a4,_ = self.__E1.a_invariants()
 
+        self.__kernel_mod_sign = dict()
         v = w = 0
 
         for Q in self.__kernel_list:
@@ -1823,22 +1817,23 @@ class EllipticCurveIsogeny(EllipticCurveHom):
 
             xQ,yQ = Q.xy()
 
-            gxQ = 3*xQ**2 + 2*a2*xQ + a4 - a1*yQ
+            if xQ in self.__kernel_mod_sign:
+                continue
+
+            gxQ = (3*xQ + 2*a2)*xQ + a4 - a1*yQ
             gyQ = -2*yQ - a1*xQ - a3
 
             uQ = gyQ**2
 
-            # sort torsion points:
             if 2*yQ == -a1*xQ - a3: # Q is 2-torsion
                 vQ = gxQ
-                self.__kernel_2tor[xQ] = xQ,yQ,gxQ,gyQ,vQ,uQ
-                v += vQ
-                w += uQ + xQ*vQ
-            elif xQ not in self.__kernel_non2tor: # Q is not 2-torsion
+            else:                   # Q is not 2-torsion
                 vQ = 2*gxQ - a1*gyQ
-                self.__kernel_non2tor[xQ] = xQ,yQ,gxQ,gyQ,vQ,uQ
-                v += vQ
-                w += uQ + xQ*vQ
+
+            self.__kernel_mod_sign[xQ] = yQ,gxQ,gyQ,vQ,uQ
+
+            v += vQ
+            w += uQ + xQ*vQ
 
         self.__v, self.__w = v, w
 
@@ -1866,7 +1861,7 @@ class EllipticCurveIsogeny(EllipticCurveHom):
 
 
     @staticmethod
-    def __velu_sum_helper(Qvalues, a1, a3, x, y):
+    def __velu_sum_helper(xQ, Qvalues, a1, a3, x, y):
         r"""
         Private function for Vélu's formulas, helper function to help
         perform the summation.
@@ -1886,14 +1881,14 @@ class EllipticCurveIsogeny(EllipticCurveHom):
             sage: F = GF(7)
             sage: E = EllipticCurve(F, [0,0,0,1,0])
             sage: phi = EllipticCurveIsogeny(E, E((0,0)) )
-            sage: Qvals = phi._EllipticCurveIsogeny__kernel_2tor[0]
-            sage: phi._EllipticCurveIsogeny__velu_sum_helper(Qvals, 0, 0, F(5), F(5))
+            sage: Qvals = phi._EllipticCurveIsogeny__kernel_mod_sign[0]
+            sage: phi._EllipticCurveIsogeny__velu_sum_helper(0, Qvals, 0, 0, F(5), F(5))
             (3, 3)
             sage: R.<x,y> = GF(7)[]
-            sage: phi._EllipticCurveIsogeny__velu_sum_helper(Qvals, 0, 0, x, y)
+            sage: phi._EllipticCurveIsogeny__velu_sum_helper(0, Qvals, 0, 0, x, y)
             (1/x, y/x^2)
         """
-        xQ,yQ,gxQ,gyQ,vQ,uQ = Qvalues
+        yQ,gxQ,gyQ,vQ,uQ = Qvalues
 
         t1 = x - xQ
         inv_t1 = t1**-1
@@ -1938,7 +1933,7 @@ class EllipticCurveIsogeny(EllipticCurveHom):
             (0, 0)
         """
         # first check if the point is in the kernel
-        if xP in self.__kernel_2tor or xP in self.__kernel_non2tor:
+        if xP in self.__kernel_mod_sign:
             return self.__intermediate_codomain(0)
 
         return self.__compute_via_velu(xP,yP)
@@ -1991,9 +1986,6 @@ class EllipticCurveIsogeny(EllipticCurveHom):
             sage: eqs[1](fx,fy).numerator() % eqs[0]
             0
         """
-        ker_2tor = self.__kernel_2tor
-        ker_non2tor = self.__kernel_non2tor
-
         if self.__pre_isomorphism is None:
             E = self.__E1
         else:
@@ -2003,14 +1995,8 @@ class EllipticCurveIsogeny(EllipticCurveHom):
 
         X, Y = xP, yP
 
-        # next iterate over the 2torsion points of the kernel
-        for Qvalues in ker_2tor.values():
-            tX, tY = self.__velu_sum_helper(Qvalues, a1, a3, xP, yP)
-            X += tX
-            Y -= tY
-
-        for Qvalues in ker_non2tor.values():
-            tX, tY = self.__velu_sum_helper(Qvalues, a1, a3, xP, yP)
+        for xQ, Qvalues in self.__kernel_mod_sign.items():
+            tX, tY = self.__velu_sum_helper(xQ, Qvalues, a1, a3, xP, yP)
             X += tX
             Y -= tY
 
@@ -2056,28 +2042,17 @@ class EllipticCurveIsogeny(EllipticCurveHom):
             sage: phi._EllipticCurveIsogeny__init_kernel_polynomial_velu()
             [4, 2, 1]
         """
-        poly_ring = self.__poly_ring
-        x = poly_ring.gen()
-
-        invX = 0
+        poly_ring, x = self.__poly_ring.objgen()
 
         if self.__pre_isomorphism is not None:
             pre_isom = self.__pre_isomorphism
-            u = pre_isom.u
-            r = pre_isom.r
-            invX = u**2*x + r
+            invX = pre_isom.u**2 * x + pre_isom.r
         else:
             invX = x
 
         psi = poly_ring.one()
-
-        for Qvalues in self.__kernel_2tor.values():
-            xQ = invX(x=Qvalues[0])
-            psi *= x - xQ
-
-        for Qvalues in self.__kernel_non2tor.values():
-            xQ = invX(x=Qvalues[0])
-            psi *= x - xQ
+        for xQ in self.__kernel_mod_sign.keys():
+            psi *= x - invX(xQ)
 
         ker_poly_list = psi.list()
 

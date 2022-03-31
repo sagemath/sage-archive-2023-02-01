@@ -6007,7 +6007,7 @@ class SandpileDivisor(dict):
             True
         """
         if self.is_alive():
-            raise RuntimeError('Divisor is not stabilizable.')
+            raise RuntimeError('divisor is not stabilizable')
         else:
             firing_vector = self._sandpile.zero_div()
             E = deepcopy(self)

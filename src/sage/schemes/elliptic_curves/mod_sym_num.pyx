@@ -1843,11 +1843,11 @@ cdef class ModularSymbolNumerical:
         for ke in cac:
             mm, zz, eeps = ke[0]
             if mm == m and zz == z:
-                if eps == None:
-                    if eeps == None or eeps <= epsi:
+                if eps is None:
+                    if eeps is None or eeps <= epsi:
                         return cac[ke]
                 else:
-                    if eeps != None and eeps <= eps:
+                    if eeps is not None and eeps <= eps:
                         return cac[ke]
 
         T, prec = self._get_truncation_and_prec(y, epsi)

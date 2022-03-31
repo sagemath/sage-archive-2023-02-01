@@ -1743,7 +1743,7 @@ cdef class TateAlgebraElement(CommutativeAlgebraElement):
             ValueError: not in the domain of convergence
 
         """
-        if not n in ZZ or n == 0:
+        if n not in ZZ or n == 0:
             raise ValueError("n must be a nonzero integer")
         n = ZZ(n)
 
@@ -3227,7 +3227,7 @@ cdef class TateAlgebraElement(CommutativeAlgebraElement):
                         break
             if in_rem:
                 if rem:
-                    if coeffs.has_key(lt._exponent):
+                    if lt._exponent in coeffs:
                         coeffs[lt._exponent] += lt._coeff
                     else:
                         coeffs[lt._exponent] = lt._coeff

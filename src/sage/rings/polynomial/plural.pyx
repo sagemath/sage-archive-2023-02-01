@@ -517,7 +517,7 @@ cdef class NCPolynomialRing_plural(Ring):
 
         try:
             element = coerce(base_ring, element)
-        except:
+        except Exception:
             pass
 
         if(_ring != currRing): rChangeCurrRing(_ring)
@@ -875,7 +875,7 @@ cdef class NCPolynomialRing_plural(Ring):
         rChangeCurrRing(_ring)
         _p = p_ISet(1,_ring)
         p_SetExp(_p, n+1, 1, _ring)
-        p_Setm(_p, _ring);
+        p_Setm(_p, _ring)
 
         return new_NCP(self,_p)
 
@@ -1933,7 +1933,7 @@ cdef class NCPolynomial_plural(RingElement):
             return singular_polynomial_deg(p,NULL,r)
 
         # TODO: we can do this faster
-        if not x in self._parent.gens():
+        if x not in self._parent.gens():
             raise TypeError("x must be one of the generators of the parent.")
 
         return singular_polynomial_deg(p, (<NCPolynomial_plural>x)._poly, r)

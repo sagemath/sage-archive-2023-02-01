@@ -383,7 +383,7 @@ cdef class WordDatatype_char(WordDatatype):
             # here the key is an int
             i = key    # cast key into a size_t
             if i < 0:
-                i += self._length;
+                i += self._length
             if i < 0 or <size_t>i >= self._length:
                 raise IndexError("word index out of range")
             return self._data[i]

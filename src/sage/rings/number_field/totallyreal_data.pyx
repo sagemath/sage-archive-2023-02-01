@@ -720,7 +720,7 @@ cdef class tr_data:
         # Recall k == n-1 implies iteration is complete.
         while k < n-1:
             # maxoutflag flags a required abort along the way
-            maxoutflag = 0;
+            maxoutflag = 0
 
             # Recall k == -1 means all coefficients are good to go.
             while k >= 0 and (not haltk or k >= haltk):

@@ -562,7 +562,7 @@ def monte_carlo_integral(func, xl, xu, size_t calls, algorithm='plain',
         raise TypeError("xl and xu must be lists of floating point values of"
                         " identical lengths")
 
-    if not algorithm in ('plain', 'miser', 'vegas'):
+    if algorithm not in ('plain', 'miser', 'vegas'):
         raise ValueError("'{}' is an invalid value for algorithm".format(algorithm))
 
     dim = len(xl)

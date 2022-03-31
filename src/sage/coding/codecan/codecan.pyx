@@ -930,7 +930,7 @@ cdef class PartitionRefinementLinearCode(PartitionRefinement_generic):
             l = next(lower)
             u = next(upper)
 
-            if u.is_zero() and not i in self._fixed_minimized:
+            if u.is_zero() and i not in self._fixed_minimized:
                 # minimize by self._inner_group as in _inner_min:
                 _, l = self._inner_group.minimize_by_row_mult(l)
 

@@ -217,6 +217,8 @@ class ProjectiveConic_number_field(ProjectiveConic_field):
                     return False, self._local_obstruction
                 else:
                     return False
+            # `_(in)finite_obstructions` is `None` if the cache is empty,
+            # so we explicitly check against a list:
             if (not point) and self._finite_obstructions == [] and \
                self._infinite_obstructions == []:
                 # list of local obstructions is computed and empty, return True

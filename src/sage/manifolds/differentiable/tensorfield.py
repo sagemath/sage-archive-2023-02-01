@@ -3753,7 +3753,7 @@ class TensorField(ModuleElementWithMutability):
             T^{a_1\ldots a_k}_{\phantom{a_1\ldots a_k}\, b_1 \ldots b_{p-k}
             \, i \, b_{p-k+1}\ldots b_{l-1}},
 
-        `g^{ab}` being the components of the inverse metric or the Poisson tensor, repectively.
+        `g^{ab}` being the components of the inverse metric or the Poisson tensor, respectively.
 
         The reverse operation is :meth:`TensorField.down`.
 

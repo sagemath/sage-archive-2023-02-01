@@ -1818,8 +1818,8 @@ cdef class LaurentSeries(AlgebraElement):
 
         Test for :trac:`23928`::
 
-            sage: R.<x> = PowerSeriesRing(QQ, implementation='pari')
-            sage: f = LaurentSeries(R, x).add_bigoh(7)
+            sage: R.<x> = LaurentSeriesRing(QQ, implementation='pari')
+            sage: f = x.add_bigoh(7)
             sage: f(x)
             x + O(x^7)
             """

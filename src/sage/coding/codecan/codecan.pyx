@@ -872,7 +872,7 @@ cdef class PartitionRefinementLinearCode(PartitionRefinement_generic):
             inner_group_changed = False
             res = self._inner_min_refine(&inner_group_changed, &n_partition_changed)
             if not res:
-                 return False
+                return False
 
             part_changed[0] |= n_partition_changed
             n_partition_changed = n_partition_changed_copy

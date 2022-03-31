@@ -778,7 +778,7 @@ cdef class tr_data:
                     if verbose:
                         print(" ", end="")
                         for i from 0 <= i < n-k-1:
-                             print('%.2f' % self.beta[k * np1 + 1 + i], end="")
+                            print('%.2f' % self.beta[k * np1 + 1 + i], end="")
                         print("")
 
                     for i from 0 <= i < n-k-1:

@@ -583,26 +583,24 @@ cdef class NCPolynomialRing_plural(Ring):
             raise NotImplementedError("not able to interpret "+repr(element) +
                                       " of type "+ repr(type(element)) +
                                       " as noncommutative polynomial")  ### ??????
-        return new_NCP(self,_p)
-
-
+        return new_NCP(self, _p)
 
     cpdef _coerce_map_from_(self, S):
-       """
-       The only things that coerce into this ring are:
+        """
+        The only things that coerce into this ring are:
 
-       - the integer ring
-       - other localizations away from fewer primes
+        - the integer ring
+        - other localizations away from fewer primes
 
-       EXAMPLES::
+        EXAMPLES::
 
-           sage: A.<x,y,z> = FreeAlgebra(QQ, 3)
-           sage: P = A.g_algebra(relations={y*x:-x*y}, order = 'lex')
-           sage: P._coerce_map_from_(ZZ)
-           True
-       """
-       if self.base_ring().has_coerce_map_from(S):
-           return True
+            sage: A.<x,y,z> = FreeAlgebra(QQ, 3)
+            sage: P = A.g_algebra(relations={y*x:-x*y}, order = 'lex')
+            sage: P._coerce_map_from_(ZZ)
+            True
+        """
+        if self.base_ring().has_coerce_map_from(S):
+            return True
 
     def free_algebra(self):
         """
@@ -1385,8 +1383,8 @@ cdef class NCPolynomialRing_plural(Ring):
         pos = 1
 
         while not p_ExpVectorEqual(tempvector, maxvector, _ring):
-          tempvector = addwithcarry(tempvector, maxvector, pos, _ring)
-          M.append(new_NCP(self, p_Copy(tempvector,_ring)))
+            tempvector = addwithcarry(tempvector, maxvector, pos, _ring)
+            M.append(new_NCP(self, p_Copy(tempvector,_ring)))
         return M
 
 

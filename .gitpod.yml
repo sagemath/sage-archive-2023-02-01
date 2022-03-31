@@ -50,7 +50,7 @@ tasks:
         ssh-keyscan -H trac.sagemath.org >> ~/.ssh/known_hosts
 
         # Setup trac repo
-        git remote remove trac # might still exists from a previous run/prebuild
+        git remote remove trac 2> /dev/null # might still exists from a previous run/prebuild
         git remote add trac git@trac.sagemath.org:sage.git -t master -t develop -t $(git branch --show-current)
         git remote set-url --push trac git@trac.sagemath.org:sage.git
         git fetch trac
@@ -64,8 +64,8 @@ tasks:
       fi
       
       ## No need for pyenv
-      pyenv shell --unset
-      pyenv global system
+      pyenv shell --unset 2> /dev/null
+      pyenv global system 2> /dev/null
       if [ -d local ]; then
         mkdir -p logs && echo '### .gitpod.yml Setup.before: Prebuild init script has been run. Running "make" again in case the build had timed out.' >> logs/install.log
         # The init script has already populated the SAGE_LOCAL,

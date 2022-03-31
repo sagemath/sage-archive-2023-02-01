@@ -295,7 +295,7 @@ class BipartiteGraph(Graph):
          ...
          TypeError: input graph is not bipartite with respect to the given partition
 
-         B = BipartiteGraph('F?^T_\n', partition=[[0, 1, 2], [3, 4, 5, 6]], 
+         sage: B = BipartiteGraph('F?^T_\n', partition=[[0, 1, 2], [3, 4, 5, 6]], 
                             check=False)
          sage: B.left
          {0, 1, 2}
@@ -415,11 +415,8 @@ class BipartiteGraph(Graph):
             self.left = set(data.left)
             self.right = set(data.right)
         elif isinstance(data, str):
-            try:
-                fi = open(data, "r")
-                fi.close()
-            except IOError:
-                alist_file = False
+            import os
+            alist_file = os.path.exists(data)
             Graph.__init__(self, data=None if alist_file else data, *args, **kwds)
 
             # methods; initialize left and right attributes
@@ -1522,7 +1519,11 @@ class BipartiteGraph(Graph):
              True
         """
         # open the file
-        fi = open(fname, "r")
+        try:
+            fi = open(fname, "r")
+        except IOError:
+            print("unable to open file <<" + fname + ">>")
+            return None
 
         # read header information
         num_cols, num_rows = [int(_) for _ in fi.readline().split()]

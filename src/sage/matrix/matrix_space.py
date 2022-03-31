@@ -50,6 +50,7 @@ import sage.misc.latex as latex
 import sage.modules.free_module
 
 from sage.misc.lazy_attribute import lazy_attribute
+from sage.misc.superseded import deprecated_function_alias
 
 from sage.categories.rings import Rings
 from sage.categories.fields import Fields
@@ -2519,6 +2520,9 @@ def _test_trivial_matrices_inverse(ring, sparse=True, implementation=None, check
     assert(inv == m1)
     if checkrank:
         assert(m1.rank() == 1)
+
+
+test_trivial_matrices_inverse = deprecated_function_alias(33612, _test_trivial_matrices_inverse)
 
 
 # Fix unpickling Matrix_modn_dense and Matrix_integer_2x2

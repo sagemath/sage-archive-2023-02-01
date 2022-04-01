@@ -3252,21 +3252,6 @@ class EllipticCurveIsogeny(EllipticCurveHom):
 
         return NotImplemented
 
-    def n(self):
-        r"""
-        Numerical approximation inherited from :class:`Element`
-        (through :class:`Morphism`), nonsensical for isogenies.
-
-        EXAMPLES::
-
-            sage: E = EllipticCurve(j=GF(7)(0))
-            sage: phi = EllipticCurveIsogeny(E, [ E((0,1)), E((0,-1))])
-            sage: phi.n()
-            Traceback (most recent call last):
-            ...
-            NotImplementedError: numerical approximations do not make sense for elliptic-curve isogenies
-        """
-        raise NotImplementedError("numerical approximations do not make sense for elliptic-curve isogenies")
 
 def compute_isogeny_starks(E1, E2, ell):
     r"""

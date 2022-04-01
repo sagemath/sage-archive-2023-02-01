@@ -55,12 +55,10 @@ tasks:
         git remote set-url --push trac git@trac.sagemath.org:sage.git
         git fetch trac
         git branch -u trac/$(git branch --show-current)
-        git remote set-url --push origin pushing-only-via-trac
       else
         # Fallback to sagemath mirror
         git remote add trac https://github.com/sagemath/sagetrac-mirror.git -t master -t develop
         git remote set-url --push trac pushing-needs-ssh-key
-        git remote set-url --push origin pushing-only-via-trac
       fi
       
       ## No need for pyenv

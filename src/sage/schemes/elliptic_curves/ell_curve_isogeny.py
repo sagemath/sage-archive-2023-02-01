@@ -54,12 +54,13 @@ AUTHORS:
 
 - Daniel Shumow <shumow@gmail.com>: 2009-04-19: initial version
 
-- Chris Wuthrich : 7/09: changes: add check of input, not the full list is needed.
+- Chris Wuthrich: 7/09: add check of input, not the full list is needed.
   10/09: eliminating some bugs.
 
 - John Cremona 2014-08-08: tidying of code and docstrings, systematic
   use of univariate vs. bivariate polynomials and rational functions.
 
+- Lorenz Panny (2022-04): major cleanup of code and documentation
 """
 
 # ****************************************************************************

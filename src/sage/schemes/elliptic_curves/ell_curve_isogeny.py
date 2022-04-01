@@ -898,8 +898,6 @@ class EllipticCurveIsogeny(EllipticCurveHom):
 
     __kernel_list = None  # list of elements in the kernel
 
-    __kernel_polynomial_list = None # polynomial stored as a little endian list of coefficients
-
     __kernel_polynomial = None # polynomial with roots at x values for x-coordinate of points in the kernel
 
     __inner_kernel_polynomial = None # the inner kernel polynomial (ignoring preisomorphism)
@@ -1562,20 +1560,14 @@ class EllipticCurveIsogeny(EllipticCurveHom):
 
             sage: E = EllipticCurve(j=GF(7)(1728))
             sage: phi = EllipticCurveIsogeny(E, E((0,0)))
-            sage: phi.kernel_polynomial()
+            sage: phi.kernel_polynomial()  # implicit doctest
             x
-            sage: phi._EllipticCurveIsogeny__init_kernel_polynomial()
-            [0, 1]
         """
-        if self.__kernel_polynomial_list is not None:
-            return self.__kernel_polynomial_list
-
-        if "velu" == self.__algorithm:
-            ker_poly_list = self.__init_kernel_polynomial_velu()
-        else:
-            assert False, "the kernel polynomial should already be defined!"
-
-        return ker_poly_list
+        if self.__kernel_polynomial is None:
+            if "velu" == self.__algorithm:
+                self.__init_kernel_polynomial_velu()
+            else:
+                assert False, "the kernel polynomial should already be defined!"
 
     def __set_pre_isomorphism(self, domain, isomorphism):
         r"""
@@ -2037,10 +2029,8 @@ class EllipticCurveIsogeny(EllipticCurveHom):
             sage: E = EllipticCurve(GF(7), [0,0,0,-1,0])
             sage: P = E((4,2))
             sage: phi = EllipticCurveIsogeny(E, P)
-            sage: phi.kernel_polynomial()
+            sage: phi.kernel_polynomial()  # implicit doctest
             x^2 + 2*x + 4
-            sage: phi._EllipticCurveIsogeny__init_kernel_polynomial_velu()
-            [4, 2, 1]
         """
         poly_ring, x = self.__poly_ring.objgen()
 
@@ -2054,13 +2044,7 @@ class EllipticCurveIsogeny(EllipticCurveHom):
         for xQ in self.__kernel_mod_sign.keys():
             psi *= x - invX(xQ)
 
-        ker_poly_list = psi.list()
-
-        self.__kernel_polynomial_list = ker_poly_list
         self.__kernel_polynomial = psi
-
-        return ker_poly_list
-
 
 
     ###################################
@@ -2098,8 +2082,6 @@ class EllipticCurveIsogeny(EllipticCurveHom):
 
         if psi.leading_coefficient() != 1:
             raise ValueError("given kernel polynomial is not monic")
-
-        self.__kernel_polynomial_list = psi.list()
 
         #
         # Determine if kernel polynomial is entirely 2-torsion
@@ -2699,7 +2681,6 @@ class EllipticCurveIsogeny(EllipticCurveHom):
         """
         if self.__kernel_polynomial is None:
             self.__init_kernel_polynomial()
-
         return self.__kernel_polynomial
 
 

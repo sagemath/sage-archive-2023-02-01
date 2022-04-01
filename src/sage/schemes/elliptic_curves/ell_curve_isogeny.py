@@ -3360,7 +3360,12 @@ def compute_isogeny_starks(E1, E2, ell):
 
 def split_kernel_polynomial(poly):
     r"""
-    Internal helper function for ``compute_isogeny_kernel_polynomial``.
+    Obsolete internal helper function formerly used by
+    :func:`compute_isogeny_kernel_polynomial`.
+
+    Use
+    :meth:`~sage.rings.polynomial.polynomial_element.Polynomial.radical`
+    instead.
 
     INPUT:
 
@@ -3375,26 +3380,24 @@ def split_kernel_polynomial(poly):
 
     EXAMPLES:
 
-    The following example implicitly exercises this function::
+    Check that this behaves identically to ``.radical()``::
 
-        sage: E = EllipticCurve(GF(37), [0,0,0,1,8])
-        sage: R.<x> = GF(37)[]
-        sage: f = (x + 10) * (x + 12) * (x + 16)
-        sage: phi = EllipticCurveIsogeny(E, f)
-        sage: E2 = phi.codomain()
-        sage: from sage.schemes.elliptic_curves.ell_curve_isogeny import compute_isogeny_starks
         sage: from sage.schemes.elliptic_curves.ell_curve_isogeny import split_kernel_polynomial
-        sage: ker_poly = compute_isogeny_starks(E, E2, 7); ker_poly
-        x^6 + 2*x^5 + 20*x^4 + 11*x^3 + 36*x^2 + 35*x + 16
-        sage: ker_poly.factor()
-        (x + 10)^2 * (x + 12)^2 * (x + 16)^2
-        sage: poly = split_kernel_polynomial(ker_poly); poly
-        x^3 + x^2 + 28*x + 33
-        sage: poly.factor()
-        (x + 10) * (x + 12) * (x + 16)
+        sage: q = next_prime(randrange(3,10^3))
+        sage: e = randrange(1,5)
+        sage: R = GF(q^e,'a')['x']
+        sage: f = R.random_element(randrange(10,100)).monic()
+        sage: split_kernel_polynomial(f) == f.radical()
+        doctest:warning ...
+        DeprecationWarning: ...
+        True
     """
+    from sage.misc.superseded import deprecation
+    deprecation(33619, 'The split_kernel_polynomial() function is obsolete.' \
+                      ' Use .radical() instead.')
     from sage.misc.misc_c import prod
     return prod([p for p,e in poly.squarefree_decomposition()])
+
 
 def compute_isogeny_kernel_polynomial(E1, E2, ell, algorithm="starks"):
     r"""
@@ -3438,10 +3441,29 @@ def compute_isogeny_kernel_polynomial(E1, E2, ell, algorithm="starks"):
         sage: E2 = EllipticCurve(K, [0,0,0,16,0])
         sage: compute_isogeny_kernel_polynomial(E, E2, 4)
         x^3 + x
+
+    TESTS:
+
+    Check that :meth:`Polynomial.radical` is doing the right thing for us::
+
+        sage: E = EllipticCurve(GF(37), [0,0,0,1,8])
+        sage: R.<x> = GF(37)[]
+        sage: f = (x + 10) * (x + 12) * (x + 16)
+        sage: phi = EllipticCurveIsogeny(E, f)
+        sage: E2 = phi.codomain()
+        sage: from sage.schemes.elliptic_curves.ell_curve_isogeny import compute_isogeny_starks
+        sage: ker_poly = compute_isogeny_starks(E, E2, 7); ker_poly
+        x^6 + 2*x^5 + 20*x^4 + 11*x^3 + 36*x^2 + 35*x + 16
+        sage: ker_poly.factor()
+        (x + 10)^2 * (x + 12)^2 * (x + 16)^2
+        sage: poly = ker_poly.radical(); poly
+        x^3 + x^2 + 28*x + 33
+        sage: poly.factor()
+        (x + 10) * (x + 12) * (x + 16)
     """
     if algorithm != "starks":
         raise NotImplementedError
-    return split_kernel_polynomial(compute_isogeny_starks(E1, E2, ell))
+    return compute_isogeny_starks(E1, E2, ell).radical()
 
 def compute_intermediate_curves(E1, E2):
     r"""

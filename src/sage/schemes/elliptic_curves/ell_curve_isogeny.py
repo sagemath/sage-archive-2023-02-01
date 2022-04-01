@@ -868,7 +868,6 @@ class EllipticCurveIsogeny(EllipticCurveHom):
     #
     # post-isomorphism
     #
-    __intermediate_codomain = None
     __post_isomorphism = None
     __posti_x_coord_ratl_map = None
     __posti_y_coord_ratl_map = None
@@ -1162,9 +1161,9 @@ class EllipticCurveIsogeny(EllipticCurveHom):
         else:
             raise NotImplementedError
 
-        # the intermediate functions return the point at infinity
+        # the intermediate functions return the empty tuple ()
         # if the input point is in the kernel
-        if outP == self.__intermediate_codomain(0):
+        if outP == ():
             return self.__E2(0)
 
         # if there is a post-isomorphism, apply it
@@ -1479,7 +1478,6 @@ class EllipticCurveIsogeny(EllipticCurveHom):
             raise NotImplementedError
 
         self.__E2 = E2
-        self.__intermediate_codomain = E2
 
     # initializes the rational maps fields
     def __initialize_rational_maps(self, precomputed_maps=None):
@@ -1926,7 +1924,7 @@ class EllipticCurveIsogeny(EllipticCurveHom):
         """
         # first check if the point is in the kernel
         if xP in self.__kernel_mod_sign:
-            return self.__intermediate_codomain(0)
+            return ()
 
         return self.__compute_via_velu(xP,yP)
 
@@ -2494,11 +2492,11 @@ class EllipticCurveIsogeny(EllipticCurveHom):
             sage: phi._EllipticCurveIsogeny__compute_via_kohel_numeric(0, 1)
             (2, 0)
             sage: phi._EllipticCurveIsogeny__compute_via_kohel_numeric(1, 1)
-            (0 : 1 : 0)
+            ()
         """
-        # first check if this point is in the kernel:
-        if 0 == self.__inner_kernel_polynomial(x=xP):
-            return self.__intermediate_codomain(0)
+        # first check if the point is in the kernel
+        if 0 == self.__inner_kernel_polynomial(xP):
+            return ()
 
         return self.__compute_via_kohel(xP, yP)
 

@@ -1,9 +1,9 @@
 # -*- coding: utf-8 -*-
 """
-    Inventory builder
-    
-    A customized builder which only generates intersphinx "object.inv"
-    inventory files. The documentation files are not written.
+Inventory builder
+
+A customized builder which only generates intersphinx "object.inv"
+inventory files. The documentation files are not written.
 """
 from __future__ import annotations
 

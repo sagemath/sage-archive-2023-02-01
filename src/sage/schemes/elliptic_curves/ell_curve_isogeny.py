@@ -849,8 +849,8 @@ class EllipticCurveIsogeny(EllipticCurveHom):
     #
     # variables common to all algorithms
     #
-    __E1 = None  # domain curve
-    __E2 = None  # codomain curve
+    _domain = None
+    _codomain = None
 
     __degree = None
 
@@ -1141,7 +1141,7 @@ class EllipticCurveIsogeny(EllipticCurveHom):
             TypeError: (20 : 90 : 1) fails to convert into the map's domain Elliptic Curve defined by y^2 = x^3 + 7*x over Number Field in th with defining polynomial x^2 + 3, but a `pushforward` method is not properly implemented
         """
         if P.is_zero():
-            return self.__E2(0)
+            return self._codomain(0)
 
         xP, yP = P.xy()
 
@@ -1160,7 +1160,7 @@ class EllipticCurveIsogeny(EllipticCurveHom):
         # the intermediate functions return the empty tuple ()
         # if the input point is in the kernel
         if outP == ():
-            return self.__E2(0)
+            return self._codomain(0)
 
         xP, yP = outP
 
@@ -1169,7 +1169,7 @@ class EllipticCurveIsogeny(EllipticCurveHom):
             yP = self.__posti_ratl_maps[1](xP, yP)
             xP = self.__posti_ratl_maps[0](xP)
 
-        return self.__E2(xP, yP)
+        return self._codomain(xP, yP)
 
     def __getitem__(self, i):
         r"""
@@ -1257,7 +1257,7 @@ class EllipticCurveIsogeny(EllipticCurveHom):
             True
         """
         output = copy(self)
-        E2 = output.__E2
+        E2 = output._codomain
         iso = WeierstrassIsomorphism(E2, (-1,0,-E2.a1(),-E2.a3()))
         output._set_post_isomorphism(iso)
         return output
@@ -1283,7 +1283,7 @@ class EllipticCurveIsogeny(EllipticCurveHom):
             sage: phi._repr_()
             'Isogeny of degree 2 from Elliptic Curve defined by y^2 + x*y = x^3 + x + 9 over Rational Field to Elliptic Curve defined by y^2 + x*y = x^3 - 59*x + 165 over Rational Field'
         """
-        return f'Isogeny of degree {self.__degree} from {self.__E1} to {self.__E2}'
+        return f'Isogeny of degree {self.__degree} from {self._domain} to {self._codomain}'
 
     def _latex_(self):
         r"""
@@ -1372,11 +1372,6 @@ class EllipticCurveIsogeny(EllipticCurveHom):
             sage: phi.set_pre_isomorphism(pre_isom)
             ...
         """
-        # one of the superclasses uses these fields
-        self._domain = self.__E1
-        self._codomain = self.__E2
-
-        # sets up the parent
         EllipticCurveHom.__init__(self, self._domain, self._codomain)
 
     def __init_algebraic_structs(self, E):
@@ -1392,7 +1387,7 @@ class EllipticCurveIsogeny(EllipticCurveHom):
         The constructor calls this function itself, so the fields it
         sets are already defined::
 
-            sage: phi._EllipticCurveIsogeny__E1
+            sage: phi._domain
             Elliptic Curve defined by y^2 = x^3 + 1 over Finite Field of size 17
             sage: phi._EllipticCurveIsogeny__base_field
             Finite Field of size 17
@@ -1404,7 +1399,7 @@ class EllipticCurveIsogeny(EllipticCurveHom):
         Now, calling the initialization function does nothing more::
 
             sage: phi._EllipticCurveIsogeny__init_algebraic_structs(E)
-            sage: phi._EllipticCurveIsogeny__E1
+            sage: phi._domain
             Elliptic Curve defined by y^2 = x^3 + 1 over Finite Field of size 17
             sage: phi._EllipticCurveIsogeny__base_field
             Finite Field of size 17
@@ -1416,7 +1411,7 @@ class EllipticCurveIsogeny(EllipticCurveHom):
             sage: E = EllipticCurve(QQ, [0,0,0,1,0])
             sage: phi = EllipticCurveIsogeny(E, E((0,0)))
             sage: phi._EllipticCurveIsogeny__init_algebraic_structs(E)
-            sage: phi._EllipticCurveIsogeny__E1
+            sage: phi._domain
             Elliptic Curve defined by y^2 = x^3 + x over Rational Field
             sage: phi._EllipticCurveIsogeny__base_field
             Rational Field
@@ -1429,7 +1424,7 @@ class EllipticCurveIsogeny(EllipticCurveHom):
             sage: E = EllipticCurve(j=GF(19)(0))
             sage: phi = EllipticCurveIsogeny(E, x)
             sage: phi._EllipticCurveIsogeny__init_algebraic_structs(E)
-            sage: phi._EllipticCurveIsogeny__E1
+            sage: phi._domain
             Elliptic Curve defined by y^2 = x^3 + 1 over Finite Field of size 19
             sage: phi._EllipticCurveIsogeny__base_field
             Finite Field of size 19
@@ -1438,7 +1433,7 @@ class EllipticCurveIsogeny(EllipticCurveHom):
             sage: phi._EllipticCurveIsogeny__mpoly_ring
             Multivariate Polynomial Ring in x, y over Finite Field of size 19
         """
-        self.__E1 = E
+        self._domain = E
         self.__base_field = E.base_ring()
         self.__poly_ring = PolynomialRing(self.__base_field, ['x'])
         self.__mpoly_ring = PolynomialRing(self.__base_field, ['x','y'])
@@ -1466,13 +1461,11 @@ class EllipticCurveIsogeny(EllipticCurveHom):
             sage: phi._EllipticCurveIsogeny__compute_E2()
         """
         if "velu" == self.__algorithm:
-            E2 = self.__compute_E2_via_velu()
+            self._codomain = self.__compute_E2_via_velu()
         elif "kohel" == self.__algorithm:
-            E2 = self.__compute_E2_via_kohel()
+            self._codomain = self.__compute_E2_via_kohel()
         else:
             raise NotImplementedError
-
-        self.__E2 = E2
 
     def __initialize_rational_maps(self, precomputed_maps=None):
         r"""
@@ -1576,7 +1569,7 @@ class EllipticCurveIsogeny(EllipticCurveHom):
             sage: E == phi.domain()
             True
         """
-        self.__E1 = domain
+        self._domain = domain
         self.__pre_isomorphism = isomorphism
 
         # calculate the isomorphism as a rational map.
@@ -1619,7 +1612,7 @@ class EllipticCurveIsogeny(EllipticCurveHom):
             sage: E2 == phi.codomain()
             True
         """
-        self.__E2 = codomain
+        self._codomain = codomain
         self.__post_isomorphism = isomorphism
 
         # calculate the isomorphism as a rational map.
@@ -1671,7 +1664,7 @@ class EllipticCurveIsogeny(EllipticCurveHom):
         post_isom = None
         newE2 = None
 
-        oldE2 = self.__E2
+        oldE2 = self._codomain
 
         if model is not None:
 
@@ -1754,7 +1747,7 @@ class EllipticCurveIsogeny(EllipticCurveHom):
                 R += itr
             return mult_list
 
-        kernel_set = {self.__E1(0)}
+        kernel_set = {self._domain(0)}
         for P in kernel_gens:
             kernel_set.update(R for Q in tuple(kernel_set)
                                 for R in all_multiples(P,Q))
@@ -1782,7 +1775,7 @@ class EllipticCurveIsogeny(EllipticCurveHom):
             Isogeny of degree 4 from Elliptic Curve defined by y^2 = x^3 + 6*x over Finite Field of size 7 to Elliptic Curve defined by y^2 = x^3 + 2*x over Finite Field of size 7
             sage: phi._EllipticCurveIsogeny__sort_kernel_list()
         """
-        a1,a2,a3,a4,_ = self.__E1.a_invariants()
+        a1,a2,a3,a4,_ = self._domain.a_invariants()
 
         self.__kernel_mod_sign = dict()
         v = w = 0
@@ -1834,7 +1827,7 @@ class EllipticCurveIsogeny(EllipticCurveHom):
             sage: phi._EllipticCurveIsogeny__compute_E2_via_velu()
             Elliptic Curve defined by y^2 = x^3 + 2*x over Finite Field of size 7
         """
-        return compute_codomain_formula(self.__E1, self.__v, self.__w)
+        return compute_codomain_formula(self._domain, self.__v, self.__w)
 
 
     @staticmethod
@@ -1964,7 +1957,7 @@ class EllipticCurveIsogeny(EllipticCurveHom):
             0
         """
         if self.__pre_isomorphism is None:
-            E = self.__E1
+            E = self._domain
         else:
             E = self.__pre_isomorphism.codomain()
 
@@ -2059,7 +2052,7 @@ class EllipticCurveIsogeny(EllipticCurveHom):
             sage: phi._EllipticCurveIsogeny__init_from_kernel_polynomial(x+6)
         """
         poly_ring = self.__poly_ring
-        E = self.__E1
+        E = self._domain
 
         # Convert to a univariate polynomial, even if it had a
         # bivariate parent, or was given as a list:
@@ -2554,7 +2547,7 @@ class EllipticCurveIsogeny(EllipticCurveHom):
             sage: phi._EllipticCurveIsogeny__compute_E2_via_kohel()
             Elliptic Curve defined by y^2 = x^3 + 6*x^2 + 4*x + 2 over Finite Field of size 7
         """
-        return compute_codomain_formula(self.__E1, self.__v, self.__w)
+        return compute_codomain_formula(self._domain, self.__v, self.__w)
 
     #
     # public isogeny methods
@@ -2803,7 +2796,7 @@ class EllipticCurveIsogeny(EllipticCurveHom):
         if not isinstance(preWI, WeierstrassIsomorphism):
             raise ValueError("invalid parameter: isomorphism must be a WeierstrassIsomorphism")
 
-        if self.__E1 != WIcod:
+        if self._domain != WIcod:
             raise ValueError("invalid parameter: isomorphism must have codomain curve equal to this isogenies' domain")
 
         if self.__pre_isomorphism is None:
@@ -2917,7 +2910,7 @@ class EllipticCurveIsogeny(EllipticCurveHom):
         if not isinstance(postWI, WeierstrassIsomorphism):
             raise ValueError("invalid parameter: isomorphism must be a WeierstrassIsomorphism")
 
-        if self.__E2 != WIdom:
+        if self._codomain != WIdom:
             raise ValueError("invalid parameter: isomorphism must have domain curve equal to this isogenies' codomain")
 
         if self.__post_isomorphism is None:
@@ -3059,7 +3052,8 @@ class EllipticCurveIsogeny(EllipticCurveHom):
         from sage.misc.superseded import deprecation
         deprecation(32388, 'Elliptic-curve isogenies will be immutable in a future release of Sage.'
                           ' Use -phi instead of phi.switch_sign() to obtain the negated isogeny.')
-        self._set_post_isomorphism(WeierstrassIsomorphism(self.__E2, (-1,0,-self.__E2.a1(),-self.__E2.a3())))
+        E2 = self._codomain
+        self._set_post_isomorphism(WeierstrassIsomorphism(E2, (-1,0,-E2.a1(),-E2.a3())))
 
     def dual(self):
         r"""
@@ -3189,8 +3183,8 @@ class EllipticCurveIsogeny(EllipticCurveHom):
 
         E2 = isom.codomain()
 
-        pre_isom = self.__E2.isomorphism_to(E1)
-        post_isom = E2.isomorphism_to(self.__E1)
+        pre_isom = self._codomain.isomorphism_to(E1)
+        post_isom = E2.isomorphism_to(self._domain)
 
         phi_hat = EllipticCurveIsogeny(E1, None, E2, d)
 
@@ -3214,7 +3208,7 @@ class EllipticCurveIsogeny(EllipticCurveHom):
         assert sc != 0, "bug in dual()"
 
         if sc != 1:
-            auts = self.__E1.automorphisms()
+            auts = self._domain.automorphisms()
             aut = [a for a in auts if a.u == sc]
             assert len(aut) == 1, "bug in dual()"
             phi_hat._set_post_isomorphism(aut[0])

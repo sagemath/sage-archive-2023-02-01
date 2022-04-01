@@ -189,22 +189,21 @@ class CubicHeckeExtensionRing(LaurentPolynomialRing_mpair):
 
     INPUT:
 
-    -  ``names`` -- string containing the names of the indeterminates separated
-       by ',' or a triple of strings each of which is the name of one of the
-       three indeterminates. The default is ``u, v, w``
-    -  ``order`` -- string (optional, default='degrevlex') transferred to the
-       corresponding input of LaurentPolynomialRing_mpair
-    -  ``ring_of_definition`` -- instance of CubicHeckeRingOfDefinition
-       (optional, default=None) to specify the generic cubic Hecke base ring
-       over which self may be realized as splitting ring via the
-       ``as_splitting_algebra`` method
-    -  ``third_unity_root_name`` -- optional string (default is ``e3``) for
-       setting the name of the third root if unity of ``self``.
-    -  ``markov_trace_version`` -- optional boolean (default is ``False``).
-       If this is set to ``True`` then ``self`` contains one invertible
-       indeterminate in addition which is meant to represent the writhe factor
-       of a Markov trace on the cubic Hecke algebra and which default name
-       is ``s``
+    - ``names`` -- string containing the names of the indeterminates separated
+      by ',' or a triple of strings each of which is the name of one of the
+      three indeterminates. The default is ``u, v, w``
+    - ``order`` -- string (default='degrevlex') transferred to the
+      corresponding input of LaurentPolynomialRing_mpair
+    - ``ring_of_definition`` -- instance of CubicHeckeRingOfDefinition
+      (default=None) to specify the generic cubic Hecke base ring over which
+      self may be realized as splitting ring via the ``as_splitting_algebra``
+      method
+    - ``third_unity_root_name`` -- string (default is ``e3``) for setting the
+      name of the third root if unity of ``self``
+    - ``markov_trace_version`` -- boolean (default is ``False``). If this is
+      set to ``True`` then ``self`` contains one invertible indeterminate in
+      addition which is meant to represent the writhe factor of a Markov trace
+      on the cubic Hecke algebra and which default name is ``s``
 
     EXAMPLES::
 
@@ -583,9 +582,9 @@ class CubicHeckeExtensionRing(LaurentPolynomialRing_mpair):
 
         INPUT:
 
-        -  ``im_cubic_equation_roots`` -- list or tuple of three ring elements
-           such that there exists a ring homomorphism from the corresponding
-           elements of ``self`` to them
+        - ``im_cubic_equation_roots`` -- list or tuple of three ring elements
+          such that there exists a ring homomorphism from the corresponding
+          elements of ``self`` to them
 
         OUTPUT:
 
@@ -795,8 +794,8 @@ class CubicHeckeExtensionRing(LaurentPolynomialRing_mpair):
 
         INPUT:
 
-        - ``characteristic`` -- integer (optional, default 0) the characteristic
-          of the field.
+        - ``characteristic`` -- integer (default 0) the characteristic of the
+          field.
 
         EXAMPLES::
 
@@ -911,16 +910,15 @@ class CubicHeckeRingOfDefinition(Localization):
 
     INPUT:
 
-    -  ``names`` -- string containing the names of the indeterminates separated
-       by ',' or a triple of strings each of which is the name of one of the
-       three indeterminates. The default is ``u, v, w``.
-    -  ``order`` -- string (optional, default='degrevlex') transferred to the
-       corresponding input of LaurentPolynomialRing_mpair
-    -  ``markov_trace_version`` -- optional boolean (default is ``False``).
-       If this is set to ``True`` then ``self`` contains one invertible
-       indeterminate in addition which is meant to represent the writhe factor
-       of a Markov trace on the cubic Hecke algebra and which default name
-       is ``s``
+    - ``names`` -- string containing the names of the indeterminates separated
+      by ',' or a triple of strings each of which is the name of one of the
+      three indeterminates. The default is ``u, v, w``.
+    - ``order`` -- string (default='degrevlex') transferred to the corresponding
+      input of LaurentPolynomialRing_mpair
+    - ``markov_trace_version`` -- boolean (default is ``False``). If this is
+      set to ``True`` then ``self`` contains one invertible indeterminate in
+      addition which is meant to represent the writhe factor of a Markov trace
+      on the cubic Hecke algebra and which default name is ``s``
 
 
     EXAMPLES::
@@ -1095,13 +1093,13 @@ class CubicHeckeRingOfDefinition(Localization):
         last generator of ``self`` to its inverse and both others to their
         product with the image of the former.
 
-        From the cubic equation for a braid generator $\beta_i$:
+        From the cubic equation for a braid generator `\beta_i`:
 
         .. MATH::
 
             \beta_i^3 - u \beta_i^2 + v\beta_i -w = 0
 
-        One deduces the following cubic equation for $\beta_i^{-1}$:
+        One deduces the following cubic equation for `\beta_i^{-1}`:
 
         .. MATH::
 
@@ -1111,7 +1109,7 @@ class CubicHeckeRingOfDefinition(Localization):
 
            The mirror involution of the braid group does not factor through the
            cubic Hecke algebra over its base ring, but it does if it is
-           considered as $\ZZ$-algebra. The base ring elements are transformed by
+           considered as `\ZZ`-algebra. The base ring elements are transformed by
            this automorphism.
 
         OUTPUT:
@@ -1161,9 +1159,9 @@ class CubicHeckeRingOfDefinition(Localization):
 
         INPUT:
 
-        -  ``im_cubic_equation_parameters`` -- list or tuple of three ring
-           elements such that there exists a ring homomorphism from the
-           corresponding elements of ``self`` to them
+        - ``im_cubic_equation_parameters`` -- list or tuple of three ring
+          elements such that there exists a ring homomorphism from the
+          corresponding elements of ``self`` to them
 
         OUTPUT:
 
@@ -1338,7 +1336,7 @@ class CubicHeckeRingOfDefinition(Localization):
 
     def specialize_homfly(self):
         r"""
-        Returns a map to the two variable Laurent polynomial Ring which is
+        Return a map to the two variable Laurent polynomial Ring which is
         the parent of the HOMFLY-PT polynomial.
 
         EXAMPLES::
@@ -1389,7 +1387,7 @@ class CubicHeckeRingOfDefinition(Localization):
 
     def specialize_kauffman(self):
         r"""
-        Returns a map to the two variable Laurent polynomial Ring which is
+        Return a map to the two variable Laurent polynomial Ring which is
         the parent of the Kauffman polynomial.
 
         EXAMPLES::
@@ -1443,7 +1441,7 @@ class CubicHeckeRingOfDefinition(Localization):
 
     def specialize_links_gould(self):
         r"""
-        Returns a map to the two variable Laurent polynomial Ring which is
+        Return a map to the two variable Laurent polynomial Ring which is
         the parent of the Links-Gould polynomial.
 
         EXAMPLES::

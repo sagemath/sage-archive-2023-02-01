@@ -273,7 +273,7 @@ Pyright
 
 *Installation:*
 
-- (for manual use or use with VS Code:) ``npm install -g pyright``, see `documentation <https://github.com/microsoft/pyright#installation>`__ for details.
+- (for manual use:) ``npm install -g pyright``, see `documentation <https://github.com/microsoft/pyright#installation>`__ for details.
 
 *Usage:*
 

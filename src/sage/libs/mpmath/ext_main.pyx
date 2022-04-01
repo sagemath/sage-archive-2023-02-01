@@ -1898,7 +1898,7 @@ cdef class mpf(mpf_base):
 
     _mpf_ = property(_get_mpf, _set_mpf, doc=_get_mpf.__doc__)
 
-    def __nonzero__(self):
+    def __bool__(self):
         """
         Returns whether the number is nonzero ::
 
@@ -2224,7 +2224,7 @@ cdef class constant(mpf_base):
             return str(self)
         return "<%s: %s~>" % (self.name, global_context.nstr(self))
 
-    def __nonzero__(self):
+    def __bool__(self):
         """
         Returns whether the constant is nonzero ::
 
@@ -2408,7 +2408,7 @@ cdef class mpc(mpnumber):
         """
         return "(%s)" % libmp.mpc_to_str(s._mpc_, global_context._str_digits)
 
-    def __nonzero__(self):
+    def __bool__(self):
         """
         TESTS ::
 

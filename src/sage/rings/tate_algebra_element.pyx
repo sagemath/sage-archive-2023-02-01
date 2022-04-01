@@ -203,7 +203,7 @@ cdef class TateAlgebraTerm(MonoidElement):
         """
         return TateAlgebraTerm, (self.parent(), self._coeff, self._exponent)
 
-    def __nonzero__(self):
+    def __bool__(self):
         r"""
         Return ``True`` if this term is nonzero, ``False`` otherwise.
 
@@ -2083,7 +2083,7 @@ cdef class TateAlgebraElement(CommutativeAlgebraElement):
         """
         return (<TateAlgebraElement>self)._lshift_c(-n)
 
-    def __nonzero__(self):
+    def __bool__(self):
         r"""
         Return ``True`` if this term is nonzero, ``False`` otherwise.
 

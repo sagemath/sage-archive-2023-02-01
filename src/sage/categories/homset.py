@@ -743,7 +743,7 @@ class Homset(Set_generic):
         """
         return True
 
-    __nonzero__ = __bool__
+    
 
     def homset_category(self):
         """

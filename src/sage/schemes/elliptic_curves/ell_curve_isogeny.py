@@ -862,15 +862,13 @@ class EllipticCurveIsogeny(EllipticCurveHom):
     # pre-isomorphism
     #
     __pre_isomorphism = None
-    __prei_x_coord_ratl_map = None
-    __prei_y_coord_ratl_map = None
+    __prei_ratl_maps = None
 
     #
     # post-isomorphism
     #
     __post_isomorphism = None
-    __posti_x_coord_ratl_map = None
-    __posti_y_coord_ratl_map = None
+    __posti_ratl_maps = None
 
     #
     # algebraic structs
@@ -882,9 +880,7 @@ class EllipticCurveIsogeny(EllipticCurveHom):
     #
     # Rational Maps
     #
-    __rational_maps_initialized = False
-    __X_coord_rational_map = None
-    __Y_coord_rational_map = None
+    __ratl_maps = None
 
     #
     # The dual
@@ -1148,11 +1144,11 @@ class EllipticCurveIsogeny(EllipticCurveHom):
             return self.__E2(0)
 
         xP, yP = P.xy()
+
         # if there is a pre-isomorphism, apply it
         if self.__pre_isomorphism is not None:
-            temp_xP = self.__prei_x_coord_ratl_map(xP)
-            temp_yP = self.__prei_y_coord_ratl_map(xP, yP)
-            xP, yP = temp_xP, temp_yP
+            yP = self.__prei_ratl_maps[1](xP, yP)
+            xP = self.__prei_ratl_maps[0](xP)
 
         if "velu" == self.__algorithm:
             outP = self.__compute_via_velu_numeric(xP, yP)
@@ -1166,13 +1162,14 @@ class EllipticCurveIsogeny(EllipticCurveHom):
         if outP == ():
             return self.__E2(0)
 
+        xP, yP = outP
+
         # if there is a post-isomorphism, apply it
         if self.__post_isomorphism is not None:
-            tempX = self.__posti_x_coord_ratl_map(outP[0])
-            tempY = self.__posti_y_coord_ratl_map(outP[0], outP[1])
-            outP = tempX, tempY
+            yP = self.__posti_ratl_maps[1](xP, yP)
+            xP = self.__posti_ratl_maps[0](xP)
 
-        return self.__E2(outP)
+        return self.__E2(xP, yP)
 
     def __getitem__(self, i):
         r"""
@@ -1348,9 +1345,7 @@ class EllipticCurveIsogeny(EllipticCurveHom):
             False
             sage: phi._EllipticCurveIsogeny__clear_cached_values()
         """
-        self.__rational_maps_initialized = False
-        self.__X_coord_rational_map = None
-        self.__Y_coord_rational_map = None
+        self.__ratl_maps = None
         self.__dual = None
 
     def __perform_inheritance_housekeeping(self):
@@ -1479,7 +1474,6 @@ class EllipticCurveIsogeny(EllipticCurveHom):
 
         self.__E2 = E2
 
-    # initializes the rational maps fields
     def __initialize_rational_maps(self, precomputed_maps=None):
         r"""
         Private function that computes and initializes the rational
@@ -1496,25 +1490,22 @@ class EllipticCurveIsogeny(EllipticCurveHom):
 
             sage: E = EllipticCurve(j=GF(7)(1728))
             sage: phi = EllipticCurveIsogeny(E, E((0,0)))
-            sage: phi._EllipticCurveIsogeny__initialize_rational_maps()
-            sage: phi.rational_maps()
+            sage: phi.rational_maps()  # implicit doctest
             ((x^2 + 1)/x, (x^2*y - y)/x^2)
 
             sage: R.<x> = GF(7)[]
             sage: phi = EllipticCurveIsogeny(E, x)
-            sage: phi = EllipticCurveIsogeny(E, x)
-            sage: phi.rational_maps()
+            sage: phi.rational_maps()  # implicit doctest
             ((x^2 + 1)/x, (x^2*y - y)/x^2)
-            sage: phi._EllipticCurveIsogeny__initialize_rational_maps()
 
             sage: E = EllipticCurve([1,2,3,4,5])
             sage: Eshort = E.short_weierstrass_model()
             sage: phi = E.isogeny(E(0), Eshort)
-            sage: phiX, phiY = phi.rational_maps()
+            sage: phiX, phiY = phi.rational_maps()  # implicit doctest
             sage: phiX(1,2), phiY(1,2)
             (63, 864)
         """
-        if self.__rational_maps_initialized:
+        if self.__ratl_maps is not None:
             return
 
         if precomputed_maps is None:
@@ -1531,20 +1522,18 @@ class EllipticCurveIsogeny(EllipticCurveHom):
             X_map = self.__poly_ring(X_map.numerator()) \
                     / self.__poly_ring(X_map.denominator())
 
-        if self.__prei_x_coord_ratl_map is not None:
-            prei_X_map = self.__prei_x_coord_ratl_map
-            prei_Y_map = self.__prei_y_coord_ratl_map
+        if self.__prei_ratl_maps is not None:
+            prei_X_map, prei_Y_map = self.__prei_ratl_maps
             X_map = X_map(prei_X_map)
             Y_map = Y_map([prei_X_map, prei_Y_map])
 
-        if self.__posti_x_coord_ratl_map is not None:
+        if self.__posti_ratl_maps is not None:
+            posti_X_map, posti_Y_map = self.__posti_ratl_maps
             # Do not reverse the order here!
-            Y_map = self.__posti_y_coord_ratl_map([X_map, Y_map])
-            X_map = self.__posti_x_coord_ratl_map(X_map)
+            Y_map = posti_Y_map([X_map, Y_map])
+            X_map = posti_X_map(X_map)
 
-        self.__X_coord_rational_map = self.__xfield(X_map)
-        self.__Y_coord_rational_map = self.__xyfield(Y_map)
-        self.__rational_maps_initialized = True
+        self.__ratl_maps = self.__xfield(X_map), self.__xyfield(Y_map)
 
 
     def __init_kernel_polynomial(self):
@@ -1601,12 +1590,11 @@ class EllipticCurveIsogeny(EllipticCurveHom):
         y = self.__xyfield.gen(1) # not mpoly_ring.gen(1) else we end
                                   # up in K(x)[y] and trouble ensues
 
-        self.__prei_x_coord_ratl_map = (x - r) * uinv2
-        self.__prei_y_coord_ratl_map = (y - s*(x-r) - t) * uinv3
+        self.__prei_ratl_maps = (x - r) * uinv2, (y - s*(x-r) - t) * uinv3
 
         if self.__kernel_polynomial is not None:
             ker_poly = self.__kernel_polynomial
-            ker_poly = ker_poly(self.__prei_x_coord_ratl_map)
+            ker_poly = ker_poly(self.__prei_ratl_maps[0])
             self.__kernel_polynomial = ker_poly.monic()
 
         self.__perform_inheritance_housekeeping()
@@ -1644,8 +1632,7 @@ class EllipticCurveIsogeny(EllipticCurveHom):
         x = self.__poly_ring.gen()
         y = self.__xyfield.gen(1)
 
-        self.__posti_x_coord_ratl_map = (x - r) * uinv2
-        self.__posti_y_coord_ratl_map = (y - s*(x-r) - t) * uinv3
+        self.__posti_ratl_maps = (x - r) * uinv2, (y - s*(x-r) - t) * uinv3
 
         self.__perform_inheritance_housekeeping()
 
@@ -2618,10 +2605,8 @@ class EllipticCurveIsogeny(EllipticCurveHom):
             sage: phi.rational_maps()
             ((x^2 + 3)/x, (x^2*y - 3*y)/x^2)
         """
-        if not self.__rational_maps_initialized:
-            self.__initialize_rational_maps()
-        return (self.__xyfield(self.__X_coord_rational_map),
-                self.__Y_coord_rational_map)
+        self.__initialize_rational_maps()
+        return tuple(self.__xyfield(f) for f in self.__ratl_maps)
 
     def x_rational_map(self):
         r"""
@@ -2647,9 +2632,8 @@ class EllipticCurveIsogeny(EllipticCurveHom):
             sage: phi.x_rational_map()
             (x^2 + 3)/x
         """
-        if not self.__rational_maps_initialized:
-            self.__initialize_rational_maps()
-        return self.__X_coord_rational_map
+        self.__initialize_rational_maps()
+        return self.__ratl_maps[0]
 
     def kernel_polynomial(self):
         r"""

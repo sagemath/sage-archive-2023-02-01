@@ -49,6 +49,7 @@ tasks:
         unset PRIVATE_SSH_KEY
         ssh-keyscan -H trac.sagemath.org >> ~/.ssh/known_hosts
 
+
         # Setup trac repo
         git remote remove trac 2> /dev/null # might still exists from a previous run/prebuild
         git remote add trac git@trac.sagemath.org:sage.git -t master -t develop -t $(git branch --show-current)

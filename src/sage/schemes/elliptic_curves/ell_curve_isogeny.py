@@ -852,7 +852,7 @@ class EllipticCurveIsogeny(EllipticCurveHom):
     _domain = None
     _codomain = None
 
-    __degree = None
+    _degree = None
 
     __algorithm = None
 
@@ -1283,7 +1283,7 @@ class EllipticCurveIsogeny(EllipticCurveHom):
             sage: phi._repr_()
             'Isogeny of degree 2 from Elliptic Curve defined by y^2 + x*y = x^3 + x + 9 over Rational Field to Elliptic Curve defined by y^2 + x*y = x^3 - 59*x + 165 over Rational Field'
         """
-        return f'Isogeny of degree {self.__degree} from {self._domain} to {self._codomain}'
+        return f'Isogeny of degree {self._degree} from {self._domain} to {self._codomain}'
 
     def _latex_(self):
         r"""
@@ -1752,7 +1752,7 @@ class EllipticCurveIsogeny(EllipticCurveHom):
             kernel_set.update(R for Q in tuple(kernel_set)
                                 for R in all_multiples(P,Q))
 
-        self.__degree = Integer(len(kernel_set))
+        self._degree = Integer(len(kernel_set))
         self.__kernel_list = list(kernel_set)
         self.__sort_kernel_list()
 
@@ -2086,7 +2086,7 @@ class EllipticCurveIsogeny(EllipticCurveHom):
 
         self.__kernel_polynomial = self.__inner_kernel_polynomial = psi
 
-        self.__degree = Integer(d)  # degree of the isogeny
+        self._degree = Integer(d)  # degree of the isogeny
 
         # As a rational map, the isogeny maps (x,y) to (X,Y), where
         # X=phi(x)/psi(x)^2 and Y=omega(x,y)/psi(x)^3.  Both phi and
@@ -2552,27 +2552,6 @@ class EllipticCurveIsogeny(EllipticCurveHom):
     #
     # public isogeny methods
     #
-
-    def degree(self):
-        r"""
-        Return the degree of this isogeny.
-
-        EXAMPLES::
-
-            sage: E = EllipticCurve(QQ, [0,0,0,1,0])
-            sage: phi = EllipticCurveIsogeny(E, E((0,0)))
-            sage: phi.degree()
-            2
-            sage: phi = EllipticCurveIsogeny(E, [0,1,0,1])
-            sage: phi.degree()
-            4
-
-            sage: E = EllipticCurve(GF(31), [1,0,0,1,2])
-            sage: phi = EllipticCurveIsogeny(E, [17, 1])
-            sage: phi.degree()
-            3
-        """
-        return self.__degree
 
     def rational_maps(self):
         r"""
@@ -3170,7 +3149,7 @@ class EllipticCurveIsogeny(EllipticCurveHom):
         E1, E2pr, pre_isom, post_isom = compute_intermediate_curves(self.codomain(), self.domain())
 
         F = self.__base_field
-        d = self.__degree
+        d = self._degree
 
         # trac 7096
         if F(d) == 0:

@@ -44,11 +44,13 @@ from subprocess import Popen, PIPE
 
 from sage.features.gfan import GfanExecutable
 
+from sage.misc.decorators import rename_keyword
 
 class Gfan(object):
     """
     Interface to Anders Jensen's Groebner Fan program.
     """
+    @rename_keyword(deprecation=33468, I='input')
     def __call__(self, input, cmd='', verbose=False, format=None):
         r"""
         Call Groebner Fan program with given input
@@ -80,6 +82,13 @@ class Gfan(object):
             x^4+1/3+x-2*x^2-x^3,
             y+1-x^2}
             }
+
+        TESTS::
+
+            sage: _ = gfan(I='Q[x,y]{x^2-y-1,y^2-xy-2/3}', cmd='bases') # optional - gfan
+            doctest:...:
+            DeprecationWarning: use the option 'input' instead of 'I'
+            See https://trac.sagemath.org/33468 for details.
 
         """
         if format is not None:

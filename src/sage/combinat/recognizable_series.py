@@ -961,7 +961,7 @@ class RecognizableSeries(ModuleElement):
 
             sage: S == S
             True
-            sage: x == None
+            sage: S == None
             False
         """
         if other is None:
@@ -973,7 +973,7 @@ class RecognizableSeries(ModuleElement):
 
     def __ne__(self, other):
         r"""
-        Return whether this recognizable series is equal to ``other``.
+        Return whether this recognizable series is not equal to ``other``.
 
         INPUT:
 
@@ -1891,13 +1891,12 @@ class RecognizableSeriesSpace(UniqueRepresentation, Parent):
              210*[] + ...,
              2210*[] - 170*[0] + 170*[1] + ...)
         """
-        from itertools import count, islice
+        from itertools import islice
         from sage.matrix.matrix_space import MatrixSpace
         from sage.modules.free_module import FreeModule
         yield self.an_element()
 
         C = self.coefficient_ring()
-        some_elements_base = iter(C.some_elements())
         k = len(self.alphabet())
         for dim in range(1, 11):
             elements_M = MatrixSpace(C, dim).some_elements()

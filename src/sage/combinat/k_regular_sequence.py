@@ -855,32 +855,7 @@ class kRegularSequenceSpace(RecognizableSeriesSpace):
             sage: from itertools import islice
             sage: Seq2 = kRegularSequenceSpace(2, ZZ)
             sage: TestSuite(Seq2).run(  # long time
-            ....:    verbose=True,
             ....:    elements=tuple(islice(Seq2.some_elements(), 4)))
-            running ._test_additive_associativity() . . . pass
-            running ._test_an_element() . . . pass
-            running ._test_cardinality() . . . pass
-            running ._test_category() . . . pass
-            running ._test_construction() . . . pass
-            running ._test_elements() . . .
-              Running the test suite of self.an_element()
-              running ._test_category() . . . pass
-              running ._test_eq() . . . pass
-              running ._test_new() . . . pass
-              running ._test_nonzero_equal() . . . pass
-              running ._test_not_implemented_methods() . . . pass
-              running ._test_pickling() . . . pass
-              pass
-            running ._test_elements_eq_reflexive() . . . pass
-            running ._test_elements_eq_symmetric() . . . pass
-            running ._test_elements_eq_transitive() . . . pass
-            running ._test_elements_neq() . . . pass
-            running ._test_eq() . . . pass
-            running ._test_new() . . . pass
-            running ._test_not_implemented_methods() . . . pass
-            running ._test_pickling() . . . pass
-            running ._test_some_elements() . . . pass
-            running ._test_zero() . . . pass
 
         .. SEEALSO::
 

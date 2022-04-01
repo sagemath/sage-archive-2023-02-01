@@ -1046,9 +1046,9 @@ class EllipticCurveIsogeny(EllipticCurveHom):
             return self._codomain(0).change_ring(k)
 
         Q = P.xy()
-        pre_iso = self.get_pre_isomorphism()
-        if pre_iso is not None:
-            Q = baseWI.__call__(pre_iso, Q)
+
+        if self.__pre_isomorphism is not None:
+            Q = baseWI.__call__(self.__pre_isomorphism, Q)
 
         if self.__algorithm == "velu":
             compute = self.__compute_via_velu
@@ -1062,9 +1062,8 @@ class EllipticCurveIsogeny(EllipticCurveHom):
         except ZeroDivisionError:
             Q = 0,1,0
 
-        post_iso = self.get_post_isomorphism()
-        if post_iso is not None:
-            Q = baseWI.__call__(post_iso, Q)
+        if self.__post_isomorphism is not None:
+            Q = baseWI.__call__(self.__post_isomorphism, Q)
 
         k = Sequence(tuple(P) + tuple(Q)).universe()
         return self._codomain.base_extend(k).point(Q)
@@ -2908,6 +2907,13 @@ class EllipticCurveIsogeny(EllipticCurveHom):
         r"""
         Return the pre-isomorphism of this isogeny, or ``None``.
 
+        .. NOTE::
+
+            Pre- and post-isomorphisms are an implementation detail of
+            how isogenies are currently represented in Sage. They have
+            limited inherent mathematical meaning and this method may
+            disappear in a future release.
+
         EXAMPLES::
 
             sage: E = EllipticCurve(GF(31), [1,1,0,1,-1])
@@ -2938,6 +2944,13 @@ class EllipticCurveIsogeny(EllipticCurveHom):
     def get_post_isomorphism(self):
         r"""
         Return the post-isomorphism of this isogeny, or ``None``.
+
+        .. NOTE::
+
+            Pre- and post-isomorphisms are an implementation detail of
+            how isogenies are currently represented in Sage. They have
+            limited inherent mathematical meaning and this method may
+            disappear in a future release.
 
         EXAMPLES::
 

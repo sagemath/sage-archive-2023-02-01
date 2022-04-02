@@ -26,6 +26,7 @@ from sage.misc.lazy_import import lazy_import
 lazy_import("sage.plot.all", ["Graphics", "point2d", "line2d", "arrow", "polygon2d", "rainbow"])
 lazy_import("sage.plot.plot3d.all", ["point3d", "line3d", "arrow3d", "polygons3d"])
 lazy_import("sage.plot.plot3d.transform", "rotate_arbitrary")
+lazy_import("sage.plot.plot3d.texture", "Texture")
 
 
 #############################################################
@@ -1047,7 +1048,7 @@ class Projection(SageObject):
         N = max([-1] + [i for p in polys for i in p]) + 1
         coords = self.coordinates_of(range(N))
         col = kwds.pop('color', (0, 0, 1))
-        if col is 'rainbow':
+        if col == 'rainbow':
             t_list = [Texture(rainbow(n, 'rgbtuple')[i]) for i in range(n)]
             return polygons3d(polys, coords, texture_list=t_list, **kwds)
         else:

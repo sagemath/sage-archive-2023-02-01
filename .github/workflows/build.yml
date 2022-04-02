@@ -24,7 +24,7 @@ jobs:
           node-version: '12'
 
       - name: Install pyright
-        run: npm install -g pyright
+        run: npm install -g pyright@1.1.232
 
       - name: Prepare
         run: |

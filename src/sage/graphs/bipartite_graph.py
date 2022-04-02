@@ -295,8 +295,7 @@ class BipartiteGraph(Graph):
          ...
          TypeError: input graph is not bipartite with respect to the given partition
 
-         sage: B = BipartiteGraph('F?^T_\n', partition=[[0, 1, 2], [3, 4, 5, 6]], 
-                            check=False)
+         sage: B = BipartiteGraph('F?^T_\n', partition=[[0, 1, 2], [3, 4, 5, 6]], check=False)
          sage: B.left
          {0, 1, 2}
          sage: B.show()

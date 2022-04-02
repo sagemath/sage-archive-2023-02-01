@@ -1341,10 +1341,12 @@ def sage_getfile(obj):
     EXAMPLES::
 
         sage: from sage.misc.sageinspect import sage_getfile
-        sage: sage_getfile(sage.rings.rational)[-23:]
-        'sage/rings/rational.pyx'
-        sage: sage_getfile(Sq)[-42:]
-        'sage/algebras/steenrod/steenrod_algebra.py'
+        sage: sage_getfile(sage.rings.rational)
+        '...sage/rings/rational.pyx'
+        sage: sage_getfile(Sq)
+        '...sage/algebras/steenrod/steenrod_algebra.py'
+        sage: sage_getfile(x)
+        '...sage/symbolic/expression.pyx'
 
     The following tests against some bugs fixed in :trac:`9976`::
 

@@ -1402,8 +1402,9 @@ def sage_getfile(obj):
         sourcefile = inspect.getabsfile(obj)
     except TypeError: # this happens for Python builtins
         return ''
-    if sourcefile.endswith(loadable_module_extension()):
-        return sourcefile[:-len(loadable_module_extension())]+os.path.extsep+'pyx'
+    for suffix in import_machinery.EXTENSION_SUFFIXES:
+        if sourcefile.endswith(suffix):
+            return sourcefile[:-len(suffix)]+os.path.extsep+'pyx'
     return sourcefile
 
 

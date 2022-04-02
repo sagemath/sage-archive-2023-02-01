@@ -183,7 +183,8 @@ def loadable_module_extension():
     EXAMPLES::
 
         sage: from sage.misc.sageinspect import loadable_module_extension
-        sage: sage.structure.sage_object.__file__.endswith(loadable_module_extension())
+        sage: from importlib.machinery import EXTENSION_SUFFIXES
+        sage: loadable_module_extension() in EXTENSION_SUFFIXES
         True
     """
     # Return the full platform-specific extension module suffix

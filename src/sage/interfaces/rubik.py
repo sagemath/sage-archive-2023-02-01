@@ -107,7 +107,6 @@ class OptimalSolver:
             print("Done.")
 
     def start(self):
-        from sage.features.rubiks import
         cmd = shlex.quote(sage.features.rubiks.optimal().absolute_filename())
         child = pexpect.spawn(cmd)
         cleaner.cleaner(child.pid, cmd)

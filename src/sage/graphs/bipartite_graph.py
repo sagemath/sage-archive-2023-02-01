@@ -2283,9 +2283,11 @@ class BipartiteGraph(Graph):
             ....:                      (3, 4), (3, 7), (3, 8), (4, 9), (5, 9), 
             ....:                      (6, 9), (7, 9)] )
             sage: C = B.canonical_label(partition=(B.left,B.right), certificate=True)
-            sage: C.left
+            sage: C
+            (Bipartite graph on 10 vertices, {0: 3, 1: 0, 2: 1, 3: 2, 9: 4, 4: 5, 5: 7, 6: 6, 7: 8, 8: 9})
+            sage: C[0].left
             {0, 1, 2, 3, 4}
-            sage: C.right
+            sage: C[0].right
             {5, 6, 7, 8, 9}
 
         ::

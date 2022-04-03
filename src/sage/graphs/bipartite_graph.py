@@ -2284,14 +2284,15 @@ class BipartiteGraph(Graph):
             ....:                      (1, 7), (1, 8), (2, 6), (2, 7), (2, 8),
             ....:                      (3, 4), (3, 7), (3, 8), (4, 9), (5, 9), 
             ....:                      (6, 9), (7, 9)] )
-            sage: C = B.canonical_label(partition=(B.left,B.right), certificate=True, algorithm='sage')
+            sage: C, cert = B.canonical_label(partition=(B.left,B.right), certificate=True, algorithm='sage')
             sage: C
-            (Bipartite graph on 10 vertices,
-             {0: 3, 1: 0, 2: 1, 3: 2, 9: 4, 4: 5, 5: 7, 6: 6, 7: 8, 8: 9})
-            sage: C[0].left
+            Bipartite graph on 10 vertices
+            sage: C.left
             {0, 1, 2, 3, 4}
-            sage: C[0].right
+            sage: C.right
             {5, 6, 7, 8, 9}
+            sage: cert == {0: 3, 1: 0, 2: 1, 3: 2, 4: 5, 5: 7, 6: 6, 7: 8, 8: 9, 9: 4}
+            True
 
         ::
 
@@ -2347,7 +2348,7 @@ class BipartiteGraph(Graph):
                 a, b, c = search_tree(GC, partition, certificate=True, dig=False)
                 cert = {v: c[G_to[v]] for v in G_to}
 
-            C = GenericGraph.canonical_label(self, partition, certificate, edge_labels, algorithm, return_graph)
+            C = self.relabel(perm=cert, inplace=False)
 
         C.left = {cert[v] for v in self.left}
         C.right = {cert[v] for v in self.right}

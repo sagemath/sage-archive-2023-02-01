@@ -9,15 +9,15 @@ AUTHORS:
 - Christian Kuper (2012-10): Additions for sensitivity analysis
 """
 
-#*****************************************************************************
+# ****************************************************************************
 #       Copyright (C) 2010 Nathann Cohen <nathann.cohen@gmail.com>
 #
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
 # the Free Software Foundation, either version 2 of the License, or
 # (at your option) any later version.
-#                  http://www.gnu.org/licenses/
-#*****************************************************************************
+#                  https://www.gnu.org/licenses/
+# ****************************************************************************
 
 from libc.float cimport DBL_MAX
 from libc.limits cimport INT_MAX
@@ -2128,12 +2128,12 @@ cdef class GLPKBackend(GenericBackend):
         If you actually try to solve ``lp``, you will get a lot of detailed information.
         """
 
-        if type(name) == str:
+        if isinstance(name, str):
             if name == "out_frq" or name == "out_dly" or name == "tm_lim" or name == "msg_lev":
                 raise ValueError("To set parameter " + name + " you must specify the solver. Append either _simplex or _intopt.")
-          name = solver_parameter_names_dict[name]
+            name = solver_parameter_names_dict[name]
 
-        if type(value) == str:
+        if isinstance(value, str):
             value = solver_parameter_values[value]
 
         if name == timelimit_intopt:

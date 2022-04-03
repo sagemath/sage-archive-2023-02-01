@@ -2270,7 +2270,7 @@ class BipartiteGraph(Graph):
             ....:                      (1, 7), (1, 8), (2, 6), (2, 7), (2, 8),
             ....:                      (3, 4), (3, 7), (3, 8), (4, 9), (5, 9), 
             ....:                      (6, 9), (7, 9)] )
-            sage: C = B.canonical_label(partition=(B.left,B.right))
+            sage: C = B.canonical_label(partition=(B.left,B.right), algorithm='sage')
             sage: C
             Bipartite graph on 10 vertices
             sage: C.left
@@ -2284,7 +2284,7 @@ class BipartiteGraph(Graph):
             ....:                      (1, 7), (1, 8), (2, 6), (2, 7), (2, 8),
             ....:                      (3, 4), (3, 7), (3, 8), (4, 9), (5, 9), 
             ....:                      (6, 9), (7, 9)] )
-            sage: C = B.canonical_label(partition=(B.left,B.right), certificate=True)
+            sage: C = B.canonical_label(partition=(B.left,B.right), certificate=True, algorithm='sage')
             sage: C
             (Bipartite graph on 10 vertices,
              {0: 3, 1: 0, 2: 1, 3: 2, 9: 4, 4: 5, 5: 7, 6: 6, 7: 8, 8: 9})
@@ -2292,14 +2292,12 @@ class BipartiteGraph(Graph):
             {0, 1, 2, 3, 4}
             sage: C[0].right
             {5, 6, 7, 8, 9}
-            sage: C[1]
-            {0: 3, 1: 0, 2: 1, 3: 2, 9: 4, 4: 5, 5: 7, 6: 6, 7: 8, 8: 9}
 
         ::
 
             sage: G = Graph({0: [5, 6], 1: [4, 5], 2: [4, 6], 3: [4, 5, 6]})
             sage: B = BipartiteGraph(G)
-            sage: C = B.canonical_label(partition=(B.left,B.right), edge_labels=True)
+            sage: C = B.canonical_label(partition=(B.left,B.right), edge_labels=True, algorithm='sage')
             sage: C.left
             {0, 1, 2, 3}
             sage: C.right

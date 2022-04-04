@@ -253,6 +253,25 @@ class Polyhedron_base6(Polyhedron_base5):
             sage: facet.plot()  # optional - sage.plot
             Graphics3d Object
 
+        For 3d plot, we may draw the polygons with rainbow colors, using any of the following ways::
+
+            sage: cube.plot(polygon='rainbow')  # optional - sage.plot
+            Graphics3d Object
+            sage: cube.plot(polygon={'color':'rainbow'})  # optional - sage.plot
+            Graphics3d Object
+            sage: cube.plot(fill='rainbow')  # optional - sage.plot
+            Graphics3d Object
+
+
+        For 3d plot, the size of a point, the thickness of a line and the width of an arrow
+        are controled by the respective parameters::
+
+            sage: prism = Polyhedron(vertices=[[0,0,0],[1,0,0],[0,1,0]], rays=[[0,0,1]])
+            sage: prism.plot(size=20, thickness=30, width=1)  # optional - sage.plot
+            Graphics3d Object
+            sage: prism.plot(point={'size':20, 'color':'black'}, line={'thickness':30, 'width':1, color':'black'}}, polygon='rainbow')  # optional - sage.plot
+            Graphics3d Object
+
         TESTS::
 
             sage: for p in square.plot():  # optional - sage.plot

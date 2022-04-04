@@ -1216,8 +1216,8 @@ class Projection(SageObject):
             point_opts.setdefault('size', 10)
             pplt = self.render_vertices_3d(**point_opts)
         if isinstance(line_opts, dict):
-            line_opts.setdefault('width', 1)
-            # no way to control thickness of line3d
+            line_opts.setdefault('width', 1) # controls the width of arrow3d for a ray
+            line_opts.setdefault('thickness', 1) # controls the thickness of line3d
             lplt = self.render_wireframe_3d(**line_opts)
         if isinstance(polygon_opts, dict):
             if 'threejs_flat_shading' not in polygon_opts:

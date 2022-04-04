@@ -11,7 +11,8 @@ AUTHORS:
 - Ryan W. Hinton (2010-03-04): overrides for adding and deleting vertices
   and edges
 
-- Enjeck M. Cleopatra(2022): fixes incorrect partite sets
+- Enjeck M. Cleopatra(2022): fixes incorrect partite sets and adds graph
+  creation from graph6 string
 
 TESTS::
 
@@ -75,6 +76,8 @@ class BipartiteGraph(Graph):
 
          The alist file format is described at
          http://www.inference.phy.cam.ac.uk/mackay/codes/alist.html
+
+      #. A ``graph6`` string (see documentation of :meth:`~graph6_string`).
 
       #. From a NetworkX bipartite graph.
 
@@ -255,6 +258,48 @@ class BipartiteGraph(Graph):
          sage: B = BipartiteGraph(file_name)
          sage: B.is_isomorphic(H)
          True
+    
+    #. From a ``graph6`` string::
+
+         sage: B = BipartiteGraph('Bo')
+         sage: B
+         Bipartite graph on 3 vertices
+         sage: B.left
+         {0}
+         sage: B.right
+         {1, 2}
+
+       ::
+
+         sage: B = BipartiteGraph('F?^T_\n', format='graph6')
+         sage: B.vertices()
+         [0, 1, 2, 3, 4, 5, 6]
+         sage: B.edges()
+         [(0, 5, None), (0, 6, None), (1, 4, None), (1, 5, None), (2, 4, None),
+          (2, 6, None), (3, 4, None), (3, 5, None), (3, 6, None)]
+         sage: B.left
+         {0, 1, 2, 3}
+         sage: B.right
+         {4, 5, 6}
+        
+       ::
+         sage: B = BipartiteGraph('Bo', partition=[[0], [1, 2]])
+         sage: B.left
+         {0}
+         sage: B.right
+         {1, 2}
+        
+       ::
+
+         sage: B = BipartiteGraph('F?^T_\n', partition=[[0, 1, 2], [3, 4, 5, 6]])
+         Traceback (most recent call last):
+         ...
+         TypeError: input graph is not bipartite with respect to the given partition
+
+         sage: B = BipartiteGraph('F?^T_\n', partition=[[0, 1, 2], [3, 4, 5, 6]], check=False)
+         sage: B.left
+         {0, 1, 2}
+         sage: B.show()
 
     #. From a NetworkX bipartite graph::
 
@@ -362,6 +407,7 @@ class BipartiteGraph(Graph):
         self.add_vertices = MethodType(Graph.add_vertices, self)
         self.add_edge = MethodType(Graph.add_edge, self)
         self.add_edges = MethodType(Graph.add_edges, self)
+        alist_file = True
 
         from sage.structure.element import is_Matrix
         if isinstance(data, BipartiteGraph):
@@ -369,11 +415,43 @@ class BipartiteGraph(Graph):
             self.left = set(data.left)
             self.right = set(data.right)
         elif isinstance(data, str):
-            Graph.__init__(self, *args, **kwds)
-            # will call self.load_afile after restoring add_vertex() instance
+            import os
+            alist_file = os.path.exists(data)
+            Graph.__init__(self, data=None if alist_file else data, *args, **kwds)
+
             # methods; initialize left and right attributes
             self.left = set()
             self.right = set()
+        
+            # determine partitions and populate self.left and self.right
+            if not alist_file:
+                if partition is not None:
+                    left, right = set(partition[0]), set(partition[1])
+                    
+                # Some error checking.
+                    if left & right:
+                        raise ValueError("the parts are not disjoint")
+                    if len(left) + len(right) != self.num_verts():
+                        raise ValueError("not all vertices appear in partition")
+
+                    if check:
+                        if (any(left.intersection(self.neighbor_iterator(a)) for a in left) or
+                            any(right.intersection(self.neighbor_iterator(a)) for a in right)):
+                            raise TypeError("input graph is not bipartite with "
+                                            "respect to the given partition")
+                    else:
+                        for a in left:
+                            a_nbrs = left.intersection(self.neighbor_iterator(a))
+                            if a_nbrs:
+                                self.delete_edges((a, b) for b in a_nbrs)
+                        for a in right:
+                            a_nbrs = right.intersection(self.neighbor_iterator(a))
+                            if a_nbrs:
+                                self.delete_edges((a, b) for b in a_nbrs)
+                    self.left, self.right = left, right
+                else:
+                    # Automatically get partitions if not provided
+                    self._upgrade_from_graph()
         elif is_Matrix(data):
             # sanity check for mutually exclusive keywords
             if kwds.get("multiedges", False) and kwds.get("weighted", False):
@@ -465,7 +543,8 @@ class BipartiteGraph(Graph):
 
         # post-processing
         if isinstance(data, str):
-            self.load_afile(data)
+            if alist_file:
+                self.load_afile(data)
 
         return
 

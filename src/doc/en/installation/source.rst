@@ -412,8 +412,8 @@ On other systems, check the documentation for your particular operating system.
 
 .. _section_conda_compilers:
 
-Using conda to provide system dependencies
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+Using conda to provide system packages for the Sage distribution
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 If Conda is installed (check by typing ``conda info``), there are two ways to
 prepare for installing SageMath from source:
@@ -435,49 +435,101 @@ prepare for installing SageMath from source:
 
       $ conda env update --file environment-optional.yml -n sage-build
 
-  - Then SageMath will be built using the compilers provided by Conda::
+  - Then the SageMath distribution will be built using the compilers provided by Conda
+    and using many packages installed by Conda::
 
       $ ./bootstrap
       $ ./configure --prefix=$CONDA_PREFIX
       $ make
 
-Using conda to provide all SPKGs
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+Using conda to provide all dependencies for the Sage library (experimental)
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-Note that this is an experimental feature and may not work as intended.
+You can build and install the Sage library from source, using conda to
+provide all of its dependencies. This bypasses most of the build
+system of the Sage distribution and is the fastest way to set up an
+environment for Sage development.
 
-  - If you are using a git checkout::
+Note that this is still an experimental feature and may not work as
+intended.
+
+Here we assume that you are using a git checkout.
+
+  - Optionally, set the build parallelism for the Sage library. Use
+    whatever the meaningful value for your machine is - no more than
+    the number of cores::
+
+      $ export SAGE_NUM_THREADS=24
+
+  - As a recommended step, install the ``mamba`` package manager.  If
+    you skip this step, replace ``mamba`` by ``conda`` in the
+    following steps::
+
+      $ conda install mamba
+
+  - Create and activate a new conda environment that provides the
+    bootstrapping prerequisites. You can replace 3.9 by another Python
+    version::
+
+      $ mamba create -n sage-build python=3.9 \
+            gettext autoconf automake libtool pkg-config
+      $ conda activate sage-build
+
+  - Run ``bootstrap``; this generates the files ``src/environment*.yml`` used
+    in the next step::
 
       $ ./bootstrap
 
-  - Create a new empty environment and activate::
+  - Populate the conda environment with the dependencies of Sage::
 
-      $ conda create -n sage
-      $ conda activate sage
+      $ mamba env update -n sage-build -f src/environment.yml  # alternatively, use 
 
-  - Install standard packages::
+    Alternatively, you can use ``src/environment-optional.yml``, which will
+    install some additional packages.
 
-      $ conda env update --file src/environment.yml -n sage
+  - Activate the conda environment again::
 
-  - Or install all standard and optional packages::
+      $ conda activate sage-build
 
-      $ conda env update --file src/environment-optional.yml -n sage
+  - Run the ``configure`` script::
 
-  - Then SageMath will be built using the compilers provided by Conda::
+      $ ./configure --with-python=$CONDA_PREFIX/bin/python             \
+                    --prefix=$CONDA_PREFIX                             \
+                    $(for pkg in $(./sage -package list :standard:     \
+                                     --has-file spkg-configure.m4      \
+                                     --has-file distros/conda.txt); do \
+                          echo --with-system-$pkg=force;               \
+                      done)
 
-      $ ./bootstrap
-      $ ./configure --prefix=$CONDA_PREFIX
-      $ cd src
-      $ python setup.py install
+  - Install the build prerequisites of the Sage library::
+
+      $ pip install --no-build-isolation -v -v --editable pkgs/sage-conf pkgs/sage-setup
+
+  - Install the Sage library::
+
+      $ pip install --no-build-isolation -v -v --editable src
+
+  - Verify that Sage has been installed::
+
+      $ sage -c 'print(version())'
+      SageMath version 9.6.beta5, Release Date: 2022-03-12
 
 Note that ``make`` is not used at all.  All dependencies
 (including all Python packages) are provided by conda.
 
 Thus, you will get a working version of Sage much faster.  However,
-note that this will invalidate the use of Sage-the-distribution
-commands such as ``sage -i`` because sage-the-distribution does not
-know about the dependencies unlike in the previous section where
-it did.
+note that this will invalidate the use of any Sage-the-distribution
+commands such as ``sage -i``. Do not use them.
+
+By using ``pip install --editable`` in the above steps, the Sage
+library is installed in editable mode.  This means that when you only
+edit Python files, there is no need to rebuild the library; it
+suffices to restart Sage.
+
+After editing any Cython files, rebuild by repeating the command::
+
+  $ pip install --no-build-isolation -v -v --editable src
+
 
 
 Notes on using conda

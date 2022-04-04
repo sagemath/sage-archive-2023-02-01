@@ -5,6 +5,6 @@ Cubic Hecke Algebras
    :maxdepth: 2
 
    sage/algebras/hecke_algebras/cubic_hecke_algebra
-   sage/algebras/hecke_algebras/base_rings_of_definition/cubic_hecke_base_ring
-   sage/algebras/hecke_algebras/matrix_representations/cubic_hecke_matrix_rep
+   sage/algebras/hecke_algebras/cubic_hecke_base_ring
+   sage/algebras/hecke_algebras/cubic_hecke_matrix_rep
 

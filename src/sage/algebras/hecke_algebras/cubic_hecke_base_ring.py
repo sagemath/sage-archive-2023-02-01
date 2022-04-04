@@ -52,8 +52,7 @@ def normalize_names_markov(names, markov_trace_version):
 
     EXAMPLES::
 
-        sage: from sage.algebras.hecke_algebras.base_rings_of_definition \
-        ....:      import cubic_hecke_base_ring as chbr
+        sage: from sage.algebras.hecke_algebras import cubic_hecke_base_ring as chbr
         sage: chbr.normalize_names_markov('a, b, c', False)
         ('a', 'b', 'c')
         sage: chbr.normalize_names_markov(('u', 'v', 'w', 's'), False)
@@ -78,8 +77,7 @@ def register_ring_hom(ring_hom):
 
     EXAMPLES::
 
-        sage: from sage.algebras.hecke_algebras.base_rings_of_definition \
-        ....:      import cubic_hecke_base_ring as chbr
+        sage: from sage.algebras.hecke_algebras import cubic_hecke_base_ring as chbr
         sage: BR = chbr.CubicHeckeRingOfDefinition()
         sage: BR.create_specialization([E(5), E(7), E(3)])  # indirect doctest
         Universal Cyclotomic Field
@@ -122,8 +120,7 @@ class GaloisGroupAction(Action):
 
     EXAMPLES::
 
-        sage: from sage.algebras.hecke_algebras.base_rings_of_definition \
-        ....:      import cubic_hecke_base_ring as chbr
+        sage: from sage.algebras.hecke_algebras import cubic_hecke_base_ring as chbr
         sage: from operator import mul
         sage: R.<x, y, z> = ZZ[]
         sage: G = SymmetricGroup(3)
@@ -140,8 +137,7 @@ class GaloisGroupAction(Action):
 
         EXAMPLES::
 
-            sage: from sage.algebras.hecke_algebras.base_rings_of_definition \
-            ....:      import cubic_hecke_base_ring as chbr
+            sage: from sage.algebras.hecke_algebras import cubic_hecke_base_ring as chbr
             sage: from operator import mul
             sage: R.<x, y> = QQ[]
             sage: G = SymmetricGroup(2)
@@ -207,8 +203,7 @@ class CubicHeckeExtensionRing(LaurentPolynomialRing_mpair):
 
     EXAMPLES::
 
-        sage: from sage.algebras.hecke_algebras.base_rings_of_definition \
-        ....:      import cubic_hecke_base_ring as chbr
+        sage: from sage.algebras.hecke_algebras import cubic_hecke_base_ring as chbr
         sage: chbr.CubicHeckeExtensionRing('a, b, c')
         Multivariate Laurent Polynomial Ring in a, b, c
           over Splitting Algebra of x^2 + x + 1
@@ -223,8 +218,7 @@ class CubicHeckeExtensionRing(LaurentPolynomialRing_mpair):
 
         TESTS::
 
-            sage: from sage.algebras.hecke_algebras.base_rings_of_definition \
-            ....:      import cubic_hecke_base_ring as chbr
+            sage: from sage.algebras.hecke_algebras import cubic_hecke_base_ring as chbr
             sage: ER = chbr.CubicHeckeExtensionRing('a, b, c')
             sage: TestSuite(ER).run()
         """
@@ -280,8 +274,7 @@ class CubicHeckeExtensionRing(LaurentPolynomialRing_mpair):
 
         EXAMPLES::
 
-            sage: from sage.algebras.hecke_algebras.base_rings_of_definition \
-            ....:      import cubic_hecke_base_ring as chbr
+            sage: from sage.algebras.hecke_algebras import cubic_hecke_base_ring as chbr
             sage: ER = chbr.CubicHeckeExtensionRing('a, b, c')
             sage: ER._test_category()   # indirect doctest
         """
@@ -293,8 +286,7 @@ class CubicHeckeExtensionRing(LaurentPolynomialRing_mpair):
 
         TESTS::
 
-            sage: from sage.algebras.hecke_algebras.base_rings_of_definition \
-            ....:      import cubic_hecke_base_ring as chbr
+            sage: from sage.algebras.hecke_algebras import cubic_hecke_base_ring as chbr
             sage: ER = chbr.CubicHeckeExtensionRing('a, b, c')
             sage: loads(dumps(ER)) == ER
             True
@@ -331,8 +323,7 @@ class CubicHeckeExtensionRing(LaurentPolynomialRing_mpair):
 
         EXAMPLES::
 
-            sage: from sage.algebras.hecke_algebras.base_rings_of_definition \
-            ....:      import cubic_hecke_base_ring as chbr
+            sage: from sage.algebras.hecke_algebras import cubic_hecke_base_ring as chbr
             sage: BR = chbr.CubicHeckeRingOfDefinition()
             sage: ER = BR.extension_ring()
             sage: ER(BR.an_element())
@@ -376,8 +367,7 @@ class CubicHeckeExtensionRing(LaurentPolynomialRing_mpair):
 
         EXAMPLES::
 
-            sage: from sage.algebras.hecke_algebras.base_rings_of_definition \
-            ....:      import cubic_hecke_base_ring as chbr
+            sage: from sage.algebras.hecke_algebras import cubic_hecke_base_ring as chbr
             sage: ER = chbr.CubicHeckeExtensionRing('a, b, c')
             sage: UCF = UniversalCyclotomicField()
             sage: map = ER.hom((UCF.gen(3),) + (UCF(3),UCF(4),UCF(5)))
@@ -411,8 +401,7 @@ class CubicHeckeExtensionRing(LaurentPolynomialRing_mpair):
 
         EXAMPLES::
 
-            sage: from sage.algebras.hecke_algebras.base_rings_of_definition \
-            ....:      import cubic_hecke_base_ring as chbr
+            sage: from sage.algebras.hecke_algebras import cubic_hecke_base_ring as chbr
             sage: ER = chbr.CubicHeckeExtensionRing('x, y, z')
             sage: ER.an_element()                             # indirect doctest
             y^2*z^-1 + e3*x
@@ -437,8 +426,7 @@ class CubicHeckeExtensionRing(LaurentPolynomialRing_mpair):
 
         EXAMPLES::
 
-            sage: from sage.algebras.hecke_algebras.base_rings_of_definition \
-            ....:      import cubic_hecke_base_ring as chbr
+            sage: from sage.algebras.hecke_algebras import cubic_hecke_base_ring as chbr
             sage: ER = chbr.CubicHeckeExtensionRing('a, b, c')
             sage: ER._is_markov_trace_version()
             False
@@ -467,8 +455,7 @@ class CubicHeckeExtensionRing(LaurentPolynomialRing_mpair):
 
         EXAMPLES::
 
-            sage: from sage.algebras.hecke_algebras.base_rings_of_definition \
-            ....:      import cubic_hecke_base_ring as chbr
+            sage: from sage.algebras.hecke_algebras import cubic_hecke_base_ring as chbr
             sage: ER = chbr.CubicHeckeExtensionRing('a, b, c')
             sage: gap3_string = '2+a^-2bc+a^-1b^-1c^2+a^-1b^2c^-1+ab^-2E3c'
             sage: ER._convert_from_gap3_mvp(gap3_string)
@@ -501,8 +488,7 @@ class CubicHeckeExtensionRing(LaurentPolynomialRing_mpair):
 
         EXAMPLES::
 
-            sage: from sage.algebras.hecke_algebras.base_rings_of_definition \
-            ....:      import cubic_hecke_base_ring as chbr
+            sage: from sage.algebras.hecke_algebras import cubic_hecke_base_ring as chbr
             sage: ER  = chbr.CubicHeckeExtensionRing('a, b, c')
             sage: ER.cyclotomic_generator()
             e3
@@ -518,8 +504,7 @@ class CubicHeckeExtensionRing(LaurentPolynomialRing_mpair):
 
         EXAMPLES::
 
-            sage: from sage.algebras.hecke_algebras.base_rings_of_definition \
-            ....:      import cubic_hecke_base_ring as chbr
+            sage: from sage.algebras.hecke_algebras import cubic_hecke_base_ring as chbr
             sage: ER = chbr.CubicHeckeExtensionRing('x, y, z')
             sage: conj = ER.conjugation()
             sage: conj(ER.an_element())
@@ -539,8 +524,7 @@ class CubicHeckeExtensionRing(LaurentPolynomialRing_mpair):
 
         EXAMPLES::
 
-            sage: from sage.algebras.hecke_algebras.base_rings_of_definition \
-            ....:      import cubic_hecke_base_ring as chbr
+            sage: from sage.algebras.hecke_algebras import cubic_hecke_base_ring as chbr
             sage: ER = chbr.CubicHeckeExtensionRing('a, b, c')
             sage: G = ER.cubic_equation_galois_group()
             sage: t = ER.an_element()
@@ -574,8 +558,7 @@ class CubicHeckeExtensionRing(LaurentPolynomialRing_mpair):
 
         EXAMPLES::
 
-            sage: from sage.algebras.hecke_algebras.base_rings_of_definition \
-            ....:      import cubic_hecke_base_ring as chbr
+            sage: from sage.algebras.hecke_algebras import cubic_hecke_base_ring as chbr
             sage: ER = chbr.CubicHeckeExtensionRing('p, q, r')
             sage: ER.mirror_involution()
             Ring endomorphism of Multivariate Laurent Polynomial Ring in p, q, r
@@ -632,8 +615,7 @@ class CubicHeckeExtensionRing(LaurentPolynomialRing_mpair):
 
         EXAMPLES::
 
-            sage: from sage.algebras.hecke_algebras.base_rings_of_definition \
-            ....:      import cubic_hecke_base_ring as chbr
+            sage: from sage.algebras.hecke_algebras import cubic_hecke_base_ring as chbr
             sage: ER = chbr.CubicHeckeExtensionRing('a, b, c')
             sage: t = ER.an_element(); t
             b^2*c^-1 + e3*a
@@ -758,8 +740,7 @@ class CubicHeckeExtensionRing(LaurentPolynomialRing_mpair):
 
         EXAMPLES::
 
-            sage: from sage.algebras.hecke_algebras.base_rings_of_definition \
-            ....:      import cubic_hecke_base_ring as chbr
+            sage: from sage.algebras.hecke_algebras import cubic_hecke_base_ring as chbr
             sage: GBR = chbr.CubicHeckeRingOfDefinition()
             sage: GER = GBR.extension_ring()
             sage: ER = GER.as_splitting_algebra(); ER
@@ -838,8 +819,7 @@ class CubicHeckeExtensionRing(LaurentPolynomialRing_mpair):
 
         EXAMPLES::
 
-            sage: from sage.algebras.hecke_algebras.base_rings_of_definition \
-            ....:      import cubic_hecke_base_ring as chbr
+            sage: from sage.algebras.hecke_algebras import cubic_hecke_base_ring as chbr
             sage: BR = chbr.CubicHeckeRingOfDefinition()
             sage: ER = BR.extension_ring()
             sage: ER.field_embedding()
@@ -917,8 +897,7 @@ class CubicHeckeExtensionRing(LaurentPolynomialRing_mpair):
 
         EXAMPLES::
 
-            sage: from sage.algebras.hecke_algebras.base_rings_of_definition \
-            ....:      import cubic_hecke_base_ring as chbr
+            sage: from sage.algebras.hecke_algebras import cubic_hecke_base_ring as chbr
             sage: ER = chbr.CubicHeckeExtensionRing('a, b, c')
             sage: ER.markov_trace_version()
             Multivariate Laurent Polynomial Ring in a, b, c, s
@@ -972,8 +951,7 @@ class CubicHeckeRingOfDefinition(Localization):
 
     EXAMPLES::
 
-        sage: from sage.algebras.hecke_algebras.base_rings_of_definition \
-        ....:      import cubic_hecke_base_ring as chbr
+        sage: from sage.algebras.hecke_algebras import cubic_hecke_base_ring as chbr
         sage: BR = chbr.CubicHeckeRingOfDefinition()
         sage: u, v, w = BR.gens()
         sage: ele = 3*u*v-5*w**(-2)
@@ -1005,8 +983,7 @@ class CubicHeckeRingOfDefinition(Localization):
 
         TESTS::
 
-            sage: from sage.algebras.hecke_algebras.base_rings_of_definition \
-            ....:      import cubic_hecke_base_ring as chbr
+            sage: from sage.algebras.hecke_algebras import cubic_hecke_base_ring as chbr
             sage: BR = chbr.CubicHeckeRingOfDefinition()
             sage: TestSuite(BR).run()
         """
@@ -1056,8 +1033,7 @@ class CubicHeckeRingOfDefinition(Localization):
 
         EXAMPLES::
 
-            sage: from sage.algebras.hecke_algebras.base_rings_of_definition \
-            ....:      import cubic_hecke_base_ring as chbr
+            sage: from sage.algebras.hecke_algebras import cubic_hecke_base_ring as chbr
             sage: BR = chbr.CubicHeckeRingOfDefinition()
             sage: BR._defining_names()
             (u, v, w)
@@ -1071,8 +1047,7 @@ class CubicHeckeRingOfDefinition(Localization):
 
         EXAMPLES::
 
-            sage: from sage.algebras.hecke_algebras.base_rings_of_definition \
-            ....:      import cubic_hecke_base_ring as chbr
+            sage: from sage.algebras.hecke_algebras import cubic_hecke_base_ring as chbr
             sage: BR = chbr.CubicHeckeRingOfDefinition()
             sage: BR.an_element()                            # indirect doctest
             (u^2 + v*w)/w
@@ -1096,8 +1071,7 @@ class CubicHeckeRingOfDefinition(Localization):
 
         EXAMPLES::
 
-            sage: from sage.algebras.hecke_algebras.base_rings_of_definition \
-            ....:      import cubic_hecke_base_ring as chbr
+            sage: from sage.algebras.hecke_algebras import cubic_hecke_base_ring as chbr
             sage: BR = chbr.CubicHeckeRingOfDefinition()
             sage: BR._is_markov_trace_version()
             False
@@ -1116,8 +1090,7 @@ class CubicHeckeRingOfDefinition(Localization):
 
         EXAMPLES::
 
-            sage: from sage.algebras.hecke_algebras.base_rings_of_definition \
-            ....:      import cubic_hecke_base_ring as chbr
+            sage: from sage.algebras.hecke_algebras import cubic_hecke_base_ring as chbr
             sage: BR = chbr.CubicHeckeRingOfDefinition()
             sage: BR.cubic_equation()
             h^3 - u*h^2 + v*h - w
@@ -1166,8 +1139,7 @@ class CubicHeckeRingOfDefinition(Localization):
 
         EXAMPLES::
 
-            sage: from sage.algebras.hecke_algebras.base_rings_of_definition \
-            ....:      import cubic_hecke_base_ring as chbr
+            sage: from sage.algebras.hecke_algebras import cubic_hecke_base_ring as chbr
             sage: BR = chbr.CubicHeckeRingOfDefinition()
             sage: BR.mirror_involution()
             Ring endomorphism of Multivariate Polynomial Ring in u, v, w
@@ -1219,8 +1191,7 @@ class CubicHeckeRingOfDefinition(Localization):
 
         EXAMPLES::
 
-            sage: from sage.algebras.hecke_algebras.base_rings_of_definition \
-            ....:      import cubic_hecke_base_ring as chbr
+            sage: from sage.algebras.hecke_algebras import cubic_hecke_base_ring as chbr
             sage: BR = chbr.CubicHeckeRingOfDefinition()
             sage: t = BR.an_element(); t
             (u^2 + v*w)/w
@@ -1326,8 +1297,7 @@ class CubicHeckeRingOfDefinition(Localization):
 
         EXAMPLES::
 
-            sage: from sage.algebras.hecke_algebras.base_rings_of_definition \
-            ....:      import cubic_hecke_base_ring as chbr
+            sage: from sage.algebras.hecke_algebras import cubic_hecke_base_ring as chbr
             sage: BR = chbr.CubicHeckeRingOfDefinition()
             sage: BR.extension_ring()
             Multivariate Laurent Polynomial Ring in a, b, c
@@ -1346,8 +1316,7 @@ class CubicHeckeRingOfDefinition(Localization):
 
         EXAMPLES::
 
-            sage: from sage.algebras.hecke_algebras.base_rings_of_definition \
-            ....:      import cubic_hecke_base_ring as chbr
+            sage: from sage.algebras.hecke_algebras import cubic_hecke_base_ring as chbr
             sage: GBR = chbr.CubicHeckeRingOfDefinition()
             sage: GBR.markov_trace_version()
             Multivariate Polynomial Ring in u, v, w, s

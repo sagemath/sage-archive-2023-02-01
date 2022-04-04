@@ -45,7 +45,7 @@ class GenSign(Enum):
 
     EXAMPLES::
 
-        sage: import sage.algebras.hecke_algebras.matrix_representations.cubic_hecke_matrix_rep as chmr
+        sage: import sage.algebras.hecke_algebras.cubic_hecke_matrix_rep as chmr
         sage: chmr.GenSign.pos
         <GenSign.pos: 1>
         sage: chmr.GenSign.neg
@@ -71,7 +71,7 @@ class RepresentationType(Enum):
 
     EXAMPLES::
 
-        sage: import sage.algebras.hecke_algebras.matrix_representations.cubic_hecke_matrix_rep as chmr
+        sage: import sage.algebras.hecke_algebras.cubic_hecke_matrix_rep as chmr
         sage: chmr.RepresentationType.RegularLeft.is_regular()
         True
     """
@@ -82,7 +82,7 @@ class RepresentationType(Enum):
 
         EXAMPLES::
 
-            sage: import sage.algebras.hecke_algebras.matrix_representations.cubic_hecke_matrix_rep as chmr
+            sage: import sage.algebras.hecke_algebras.cubic_hecke_matrix_rep as chmr
             sage: chevie = chmr.RepresentationType.SplitIrredChevie
             sage: chevie.is_split()
             True
@@ -96,7 +96,7 @@ class RepresentationType(Enum):
 
         EXAMPLES::
 
-            sage: import sage.algebras.hecke_algebras.matrix_representations.cubic_hecke_matrix_rep as chmr
+            sage: import sage.algebras.hecke_algebras.cubic_hecke_matrix_rep as chmr
             sage: reg_left = chmr.RepresentationType.RegularLeft
             sage: reg_left.is_regular()
             True
@@ -110,7 +110,7 @@ class RepresentationType(Enum):
 
         EXAMPLES::
 
-            sage: import sage.algebras.hecke_algebras.matrix_representations.cubic_hecke_matrix_rep as chmr
+            sage: import sage.algebras.hecke_algebras.cubic_hecke_matrix_rep as chmr
             sage: reg_left = chmr.RepresentationType.RegularLeft
             sage: reg_left.data_section()
             <CubicHeckeDataSection.regular_left: 'regular_left'>
@@ -123,7 +123,7 @@ class RepresentationType(Enum):
 
         EXAMPLES::
 
-            sage: import sage.algebras.hecke_algebras.matrix_representations.cubic_hecke_matrix_rep as chmr
+            sage: import sage.algebras.hecke_algebras.cubic_hecke_matrix_rep as chmr
             sage: chmr.RepresentationType.SplitIrredChevie.number_of_representations(4)
             24
             sage: chmr.RepresentationType.SplitIrredMarin.number_of_representations(4)
@@ -178,7 +178,7 @@ class AbsIrreducibeRep(Enum):
 
     EXAMPLES::
 
-        sage: import sage.algebras.hecke_algebras.matrix_representations.cubic_hecke_matrix_rep as chmr
+        sage: import sage.algebras.hecke_algebras.cubic_hecke_matrix_rep as chmr
         sage: [irr.name for irr in chmr.AbsIrreducibeRep]
         ['W2_100', 'W2_001', 'W2_010', 'W3_100', 'W3_001', 'W3_010', 'W3_011', 'W3_110',
          'W3_101', 'W3_111', 'W4_100', 'W4_001', 'W4_010', 'W4_011', 'W4_110', 'W4_101',
@@ -200,7 +200,7 @@ class AbsIrreducibeRep(Enum):
 
         EXAMPLES::
 
-            sage: import sage.algebras.hecke_algebras.matrix_representations.cubic_hecke_matrix_rep as chmr
+            sage: import sage.algebras.hecke_algebras.cubic_hecke_matrix_rep as chmr
             sage: chmr.AbsIrreducibeRep.W3_011.alternative_name()
             'Tbc'
         """
@@ -212,7 +212,7 @@ class AbsIrreducibeRep(Enum):
 
         EXAMPLES::
 
-            sage: import sage.algebras.hecke_algebras.matrix_representations.cubic_hecke_matrix_rep as chmr
+            sage: import sage.algebras.hecke_algebras.cubic_hecke_matrix_rep as chmr
             sage: chmr.AbsIrreducibeRep.W3_111.dimension()
             3
         """
@@ -224,7 +224,7 @@ class AbsIrreducibeRep(Enum):
 
         EXAMPLES::
 
-            sage: import sage.algebras.hecke_algebras.matrix_representations.cubic_hecke_matrix_rep as chmr
+            sage: import sage.algebras.hecke_algebras.cubic_hecke_matrix_rep as chmr
             sage: chmr.AbsIrreducibeRep.W3_001.number_gens()
             2
             sage: chmr.AbsIrreducibeRep.W4_001.number_gens()
@@ -239,7 +239,7 @@ class AbsIrreducibeRep(Enum):
 
         EXAMPLES::
 
-            sage: import sage.algebras.hecke_algebras.matrix_representations.cubic_hecke_matrix_rep as chmr
+            sage: import sage.algebras.hecke_algebras.cubic_hecke_matrix_rep as chmr
             sage: chmr.AbsIrreducibeRep.W3_001.length_orbit()
             3
             sage: chmr.AbsIrreducibeRep.W3_111.length_orbit()
@@ -254,7 +254,7 @@ class AbsIrreducibeRep(Enum):
 
         EXAMPLES::
 
-            sage: import sage.algebras.hecke_algebras.matrix_representations.cubic_hecke_matrix_rep as chmr
+            sage: import sage.algebras.hecke_algebras.cubic_hecke_matrix_rep as chmr
             sage: chmr.AbsIrreducibeRep.W3_111.gap_index()
             6
         """
@@ -266,7 +266,7 @@ class AbsIrreducibeRep(Enum):
 
         EXAMPLES::
 
-            sage: import sage.algebras.hecke_algebras.matrix_representations.cubic_hecke_matrix_rep as chmr
+            sage: import sage.algebras.hecke_algebras.cubic_hecke_matrix_rep as chmr
             sage: chmr.AbsIrreducibeRep.W3_111.internal_index()
             6
         """
@@ -377,7 +377,7 @@ class CubicHeckeMatrixRep(Matrix_generic_dense):
 
     EXAMPLES::
 
-        sage: import sage.algebras.hecke_algebras.matrix_representations.cubic_hecke_matrix_rep as chmr
+        sage: import sage.algebras.hecke_algebras.cubic_hecke_matrix_rep as chmr
         sage: CHA2.<c1> = algebras.CubicHecke(2)
         sage: MS = chmr.CubicHeckeMatrixSpace(CHA2)
         sage: m1 = MS(c1); m1
@@ -385,7 +385,7 @@ class CubicHeckeMatrixRep(Matrix_generic_dense):
         [         0          b          0]
         [         0          0 -b - a + u]
         sage: type(m1)
-        <class 'sage.algebras.hecke_algebras.matrix_representations.cubic_hecke_matrix_rep.CubicHeckeMatrixSpace_with_category.element_class'>
+        <class 'sage.algebras.hecke_algebras.cubic_hecke_matrix_rep.CubicHeckeMatrixSpace_with_category.element_class'>
         sage: m1.block_diagonal_list()
         [[a], [b], [-b - a + u]]
 
@@ -608,7 +608,7 @@ class CubicHeckeMatrixSpace(MatrixSpace):
 
         TESTS::
 
-            sage: import sage.algebras.hecke_algebras.matrix_representations.cubic_hecke_matrix_rep as chmr
+            sage: import sage.algebras.hecke_algebras.cubic_hecke_matrix_rep as chmr
             sage: CHA2.<c1> = algebras.CubicHecke(2)
             sage: MS = chmr.CubicHeckeMatrixSpace(CHA2)
             sage: TestSuite(MS).run()
@@ -647,7 +647,7 @@ class CubicHeckeMatrixSpace(MatrixSpace):
 
         TESTS::
 
-            sage: import sage.algebras.hecke_algebras.matrix_representations.cubic_hecke_matrix_rep as chmr
+            sage: import sage.algebras.hecke_algebras.cubic_hecke_matrix_rep as chmr
             sage: CHA3.<c1, c2> = algebras.CubicHecke(3)
             sage: MS = chmr.CubicHeckeMatrixSpace(CHA3, original=True)
             sage: TestSuite(MS).run()     # long time
@@ -716,7 +716,7 @@ class CubicHeckeMatrixSpace(MatrixSpace):
 
         EXAMLPES::
 
-            sage: import sage.algebras.hecke_algebras.matrix_representations.cubic_hecke_matrix_rep as chmr
+            sage: import sage.algebras.hecke_algebras.cubic_hecke_matrix_rep as chmr
             sage: CHA3.<c1, c2> = algebras.CubicHecke(3)
             sage: MS = chmr.CubicHeckeMatrixSpace(CHA3, original=True)
             sage: m1 = MS._element_constructor_(c1)
@@ -770,7 +770,7 @@ class CubicHeckeMatrixSpace(MatrixSpace):
 
         EXAMLPES::
 
-            sage: import sage.algebras.hecke_algebras.matrix_representations.cubic_hecke_matrix_rep as chmr
+            sage: import sage.algebras.hecke_algebras.cubic_hecke_matrix_rep as chmr
             sage: CHA2.<c1> = algebras.CubicHecke(2)
             sage: MS = chmr.CubicHeckeMatrixSpace(CHA2)
             sage: MS(c1)
@@ -804,7 +804,7 @@ class CubicHeckeMatrixSpace(MatrixSpace):
 
         EXAMPLES::
 
-            sage: import sage.algebras.hecke_algebras.matrix_representations.cubic_hecke_matrix_rep as chmr
+            sage: import sage.algebras.hecke_algebras.cubic_hecke_matrix_rep as chmr
             sage: CHA2.<c1> = algebras.CubicHecke(2)
             sage: MS = chmr.CubicHeckeMatrixSpace(CHA2)
             sage: B = MS._original_base_ring
@@ -837,7 +837,7 @@ class CubicHeckeMatrixSpace(MatrixSpace):
 
         EXAMPLES::
 
-            sage: import sage.algebras.hecke_algebras.matrix_representations.cubic_hecke_matrix_rep as chmr
+            sage: import sage.algebras.hecke_algebras.cubic_hecke_matrix_rep as chmr
             sage: CHA3.<c1, c2> = algebras.CubicHecke(3)
             sage: MS = chmr.CubicHeckeMatrixSpace(CHA3)
             sage: MS._image_on_gen(1)
@@ -918,7 +918,7 @@ class CubicHeckeMatrixSpace(MatrixSpace):
 
         EXAMPLES::
 
-            sage: import sage.algebras.hecke_algebras.matrix_representations.cubic_hecke_matrix_rep as chmr
+            sage: import sage.algebras.hecke_algebras.cubic_hecke_matrix_rep as chmr
             sage: CHA3.<c1, c2> = algebras.CubicHecke(3)
             sage: MS = chmr.CubicHeckeMatrixSpace(CHA3, original=True)
             sage: MS._image_on_basis(c1)

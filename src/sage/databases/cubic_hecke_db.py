@@ -55,7 +55,7 @@ from sage.misc.temporary_file import atomic_write
 from sage.misc.verbose import verbose
 from sage.matrix.constructor import matrix
 from sage.rings.integer_ring import ZZ
-from sage.algebras.hecke_algebras.base_rings_of_definition.cubic_hecke_base_ring import CubicHeckeExtensionRing
+from sage.algebras.hecke_algebras.cubic_hecke_base_ring import CubicHeckeExtensionRing
 
 
 # ------------------------------------------------------------------------------
@@ -80,7 +80,7 @@ def simplify(mat):
     EXAMPLES::
 
         sage: from sage.databases.cubic_hecke_db import simplify
-        sage: import sage.algebras.hecke_algebras.base_rings_of_definition.cubic_hecke_base_ring as chbr
+        sage: import sage.algebras.hecke_algebras.cubic_hecke_base_ring as chbr
         sage: ER.<a, b, c> = chbr.CubicHeckeExtensionRing()
         sage: mat = matrix(ER, [[2*a, -3], [c, 4*b*~c]]); mat
         [     2*a       -3]
@@ -247,7 +247,7 @@ class CubicHeckeDataBase(SageObject):
 
         verbose('loading data library %s for %s strands ...' % (section.value, nstrands))
 
-        from sage.algebras.hecke_algebras.matrix_representations.cubic_hecke_matrix_rep import GenSign
+        from sage.algebras.hecke_algebras.cubic_hecke_matrix_rep import GenSign
 
         if self.demo_version():
             if nstrands >= 4:
@@ -292,7 +292,7 @@ class CubicHeckeDataBase(SageObject):
         INPUT:
 
         - ``representation_type`` -- instance of enum
-          :class:`~sage.algebras.hecke_algebras.matrix_representations.cubic_hecke_matrix_rep.RepresentationType`
+          :class:`~sage.algebras.hecke_algebras.cubic_hecke_matrix_rep.RepresentationType`
           specifying the type of the representation
 
 
@@ -313,7 +313,7 @@ class CubicHeckeDataBase(SageObject):
             sage: m1rl[0].dimensions()
             (24, 24)
         """
-        from sage.algebras.hecke_algebras.matrix_representations.cubic_hecke_matrix_rep import RepresentationType, GenSign
+        from sage.algebras.hecke_algebras.cubic_hecke_matrix_rep import RepresentationType, GenSign
         if not isinstance(representation_type, RepresentationType):
             raise TypeError('representation_type must be an instance of enum %s' % RepresentationType)
 
@@ -756,7 +756,7 @@ class CubicHeckeFileCache(SageObject):
         if not isinstance(section, CubicHeckeFileCache.section):
             raise TypeError('section must be an instance of enum %s' % CubicHeckeFileCache.section)
 
-        from sage.algebras.hecke_algebras.matrix_representations.cubic_hecke_matrix_rep import RepresentationType
+        from sage.algebras.hecke_algebras.cubic_hecke_matrix_rep import RepresentationType
         data_lib = self._data_library
         empty_dict = {}
         if section == self.section.matrix_representations:
@@ -794,7 +794,7 @@ class CubicHeckeFileCache(SageObject):
 
         self.read(section)
         data_lib = self._data_library[section]
-        from sage.algebras.hecke_algebras.matrix_representations.cubic_hecke_matrix_rep import RepresentationType
+        from sage.algebras.hecke_algebras.cubic_hecke_matrix_rep import RepresentationType
         if section == self.section.matrix_representations:
             for rep_type in RepresentationType:
                 if len(data_lib[rep_type]) > 0:
@@ -904,15 +904,15 @@ class CubicHeckeFileCache(SageObject):
 
         INPUT:
 
-        - ``representation_type`` -- instance of enum :class:`~sage.algebras.hecke_algebras.matrix_representations.cubic_hecke_matrix_rep.RepresentationType`
+        - ``representation_type`` -- instance of enum :class:`~sage.algebras.hecke_algebras.cubic_hecke_matrix_rep.RepresentationType`
           specifying the type of the representation
 
         - ``monomial_tietze`` -- tuple representing the braid in Tietze form
 
         - ``ring_of_definition`` -- instance of
-          :class:`~sage.algebras.hecke_algebras.base_rings_of_definition.cubic_hecke_base_ring.CubicHeckeRingOfDefinition`
+          :class:`~sage.algebras.hecke_algebras.cubic_hecke_base_ring.CubicHeckeRingOfDefinition`
           respectively
-          :class:`~sage.algebras.hecke_algebras.base_rings_of_definition.cubic_hecke_base_ring.CubicHeckeExtensionRing`
+          :class:`~sage.algebras.hecke_algebras.cubic_hecke_base_ring.CubicHeckeExtensionRing`
           depending on whether ``representation_type`` is split or not
 
         OUTPUT:
@@ -938,7 +938,7 @@ class CubicHeckeFileCache(SageObject):
             sage: cha_fc.read_matrix_representation(rt.RegularLeft, gt, R) == None
             True
         """
-        from sage.algebras.hecke_algebras.matrix_representations.cubic_hecke_matrix_rep import RepresentationType
+        from sage.algebras.hecke_algebras.cubic_hecke_matrix_rep import RepresentationType
         if not isinstance(representation_type, RepresentationType):
             raise TypeError('representation_type must be an instance of enum %s' % RepresentationType)
 
@@ -961,7 +961,7 @@ class CubicHeckeFileCache(SageObject):
         INPUT:
 
         - ``representation_type`` -- instance of enum
-          :class:`~sage.algebras.hecke_algebras.matrix_representations.cubic_hecke_matrix_rep.RepresentationType`
+          :class:`~sage.algebras.hecke_algebras.cubic_hecke_matrix_rep.RepresentationType`
           specifying the type of the representation
 
         - ``monomial_tietze`` -- tuple representing the braid in Tietze form
@@ -990,7 +990,7 @@ class CubicHeckeFileCache(SageObject):
             sage: [m] == cha_fc.read_matrix_representation(rt.RegularRight, git, R)
             True
         """
-        from sage.algebras.hecke_algebras.matrix_representations.cubic_hecke_matrix_rep import RepresentationType
+        from sage.algebras.hecke_algebras.cubic_hecke_matrix_rep import RepresentationType
         if not isinstance(representation_type, RepresentationType):
             raise TypeError('representation_type must be an instance of enum %s' % RepresentationType)
 
@@ -1018,7 +1018,7 @@ class CubicHeckeFileCache(SageObject):
         - ``braid_tietze`` -- tuple representing the braid in Tietze form
 
         - ``ring_of_definition`` -- instance of
-          :class:`~sage.algebras.hecke_algebras.base_rings_of_definition.cubic_hecke_base_ring.CubicHeckeRingOfDefinition`
+          :class:`~sage.algebras.hecke_algebras.cubic_hecke_base_ring.CubicHeckeRingOfDefinition`
 
         OUTPUT:
 

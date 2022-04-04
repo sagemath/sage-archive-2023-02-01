@@ -133,8 +133,8 @@ from sage.rings.integer_ring import ZZ
 from sage.algebras.splitting_algebra import solve_with_extension
 from sage.modules.free_module_element import vector
 from sage.matrix.matrix_space import MatrixSpace
-from sage.algebras.hecke_algebras.base_rings_of_definition.cubic_hecke_base_ring import CubicHeckeRingOfDefinition
-from sage.algebras.hecke_algebras.matrix_representations.cubic_hecke_matrix_rep import CubicHeckeMatrixSpace, AbsIrreducibeRep, RepresentationType
+from sage.algebras.hecke_algebras.cubic_hecke_base_ring import CubicHeckeRingOfDefinition
+from sage.algebras.hecke_algebras.cubic_hecke_matrix_rep import CubicHeckeMatrixSpace, AbsIrreducibeRep, RepresentationType
 
 
 ##############################################################################
@@ -333,7 +333,7 @@ class CubicHeckeElement(CombinatorialFreeModule.Element):
 
         OUTPUT:
 
-        An instance of the class :class:`~sage.algebras.hecke_algebras.matrix_representations.cubic_hecke_matrix_rep.CubicHeckeMatrixRep`
+        An instance of the class :class:`~sage.algebras.hecke_algebras.cubic_hecke_matrix_rep.CubicHeckeMatrixRep`
         which is inherited from :class:`~sage.matrix.matrix_generic_dense.Matrix_generic_dense`.
         In the case of the irreducible representations the matrix is given as a
         block matrix. Each single irreducible can be obtained as item indexed by
@@ -601,7 +601,7 @@ class CubicHeckeAlgebra(CombinatorialFreeModule):
     of the cubic equation will be needed to handle the split irreducible
     representations. This ring will be called *extension ring*. Generically, the
     extension ring will be an instance of the special class
-    :class:`~sage.algebras.hecke_algebras.base_rings_of_definition.cubic_hecke_base_ring.CubicHeckeExtensionRing`
+    :class:`~sage.algebras.hecke_algebras.cubic_hecke_base_ring.CubicHeckeExtensionRing`
     which is constructed as the Laurent polynomial ring in `a, b` and `c` over
     the integers adjoined with a primitive third root of unity. A special form
     of this *generic extension ring* is constructed as an instance of

@@ -1200,7 +1200,7 @@ class Projection(SageObject):
 
         Plot 3d polytope with rainbow colors::
 
-            sage: polytopes.hypercube(3).plot(polygon='rainbow', alpha=0.4)
+            sage: polytopes.hypercube(3).plot(polygon='rainbow', alpha=0.4)                               # optional - sage.plot
             Graphics3d Object
         """
         pplt = None

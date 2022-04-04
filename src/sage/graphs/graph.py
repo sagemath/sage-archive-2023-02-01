@@ -7193,7 +7193,7 @@ class Graph(GenericGraph):
           The *degeneracy* of a graph `G`, usually denoted `\delta^*(G)`, is the
           smallest integer `k` such that the graph `G` can be reduced to the
           empty graph by iteratively removing vertices of degree `\leq k`.
-          Equivalently, `\delta^*(G)=k` if `k` is the smallest integer such that
+          Equivalently, `\delta^*(G)=k-1` if `k` is the smallest integer such that
           the `k`-core of `G` is empty.
 
         IMPLEMENTATION:

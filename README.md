@@ -19,17 +19,14 @@ for modules and functions list the authors.
 Getting Started
 ---------------
 
-If you downloaded a [binary](https://www.sagemath.org/download.html)
-(i.e. a version of SageMath prepared for a specific operating system),
-Sage is ready to start -- just open a terminal in the directory where
-you extracted the binary archive and type:
+The [Sage Installation Guide](https://doc.sagemath.org/html/en/installation/index.html)
+provides a decision tree that guides you to the type of installation
+that will work best for you.
 
-    $ ./sage
-
-(Note that the first run will take more time, as Sage needs to get itself ready.)
-
-If you downloaded the [sources](https://www.sagemath.org/download-source.html),
-please read below on how to build Sage and work around common issues.
+If you have already cloned the git repository or downloaded the
+[sources](https://www.sagemath.org/download-source.html) in the form
+of a tarball, please read the self-contained instructions below on how
+to build Sage and work around common issues.
 
 If you have questions or encounter problems, please do not hesitate
 to email the [sage-support mailing list](https://groups.google.com/group/sage-support)

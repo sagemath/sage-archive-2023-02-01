@@ -121,13 +121,34 @@ instructions to get started.
 [macOS] Preparing the Platform
 ------------------------------
 
-You will need the Xcode Command Line Tools.  Open a terminal window
-and run `xcode-select --install`; then click "Install" in the pop-up
-window.
+If you wish to use conda, please see the [section on
+conda](https://doc.sagemath.org/html/en/installation/conda.html) in the Sage
+Installation Manual for guidance instead of the following instructions.
 
-Optionally, you can consider installing Homebrew ("the missing package
-manager for macOS") from https://brew.sh/, which can provide libraries
-such as `gfortran`, `gmp`, etc.
+In installations without conda, we strongly recommend to use Homebrew ("the
+missing package manager for macOS") from https://brew.sh/, which provides
+the ``gfortran`` compiler and many libraries.
+
+If your Mac uses the Apple Silicon (M1, arm64) architecture:
+
+- Using Homebrew is required because it provides a version of ``gfortran``
+  with necessary changes for this platform that are not in a released upstream
+  version of GCC. (The ``gfortran`` package that comes with the Sage
+  distribution is not suitable for the M1.)
+
+- If you set up your Mac by transfering files from an older Mac, make sure
+  that the directory ``/usr/local`` does not contain an old copy of Homebrew
+  (or other software) for the x86_64 architecture that you may have copied
+  over.  Note that Homebrew for the M1 is installed in ``/opt/homebrew``, not
+  ``/usr/local``.
+
+If your Mac uses the Intel (x86_64) architecture:
+
+- If you do not wish to install Homebrew, you will need to install the latest
+  version of Xcode Command Line Tools.  Open a terminal window and run
+  `xcode-select --install`; then click "Install" in the pop-up window.
+  If the Xcode Command Line Tools are already installed, you may want to
+  check if they need to be updated by typing `softwareupdate -l`.
 
 Instructions to Build from Source
 ---------------------------------

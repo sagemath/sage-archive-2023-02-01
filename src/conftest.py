@@ -113,6 +113,9 @@ class SageDoctestModule(DoctestModule):
                 )
 
 
+import sage.all  # type: ignore  # to avoid cyclic import errors, see Trac #33580
+
+
 @pytest.fixture(autouse=True)
 def add_imports(doctest_namespace: dict[str, Any]):
     """

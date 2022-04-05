@@ -269,7 +269,7 @@ class Polyhedron_base6(Polyhedron_base5):
             sage: prism = Polyhedron(vertices=[[0,0,0],[1,0,0],[0,1,0]], rays=[[0,0,1]])
             sage: prism.plot(size=20, thickness=30, width=1)  # optional - sage.plot
             Graphics3d Object
-            sage: prism.plot(point={'size':20, 'color':'black'}, line={'thickness':30, 'width':1, color':'black'}}, polygon='rainbow')  # optional - sage.plot
+            sage: prism.plot(point={'size':20, 'color':'black'}, line={'thickness':30, 'width':1, 'color':'black'}, polygon='rainbow')  # optional - sage.plot
             Graphics3d Object
 
         TESTS::

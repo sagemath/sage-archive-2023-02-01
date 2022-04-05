@@ -36,7 +36,7 @@ Supported Platforms
 -------------------
 
 Sage attempts to support all major Linux distributions, recent versions of
-macOS, and Windows (using Cygwin, Windows Subsystem for Linux, or
+macOS, and Windows (using Windows Subsystem for Linux, Cygwin, or
 virtualization).
 
 Detailed information on supported platforms for a specific version of Sage
@@ -59,8 +59,17 @@ and follow the instructions on
 [Windows] Preparing the Platform
 --------------------------------
 
-The 64-bit version of Cygwin, also known as Cygwin64, is the current
-target for Sage support on Windows.
+The preferred way to run Sage on Windows is using the [Windows Subsystem for
+Linux](https://docs.microsoft.com/en-us/windows/wsl/faq), which allows
+you to install a standard Linux distribution such as Ubuntu within
+your Windows.  Then all instructions for installation in Linux apply.
+
+As an alternative, you can also run Linux on Windows using Docker (see
+above) or other virtualization solutions.
+
+Finally, Sage also works on the 64-bit version of `Cygwin
+<https://cygwin.com/>`_. If you wish to use Cygwin, use the following
+instructions to get started.
 
 1.  Download [cygwin64](https://cygwin.com/install.html) (do not get
     the 32-bit version; it is not supported by Sage).
@@ -108,14 +117,6 @@ target for Sage support on Windows.
         $ curl -OL https://rawgit.com/transcode-open/apt-cyg/master/apt-cyg
         $ install apt-cyg /usr/local/bin
         $ rm -f apt-cyg
-
-An alternative to Cygwin is to use [Windows Subsystem for
-Linux](https://docs.microsoft.com/en-us/windows/wsl/faq), which allows
-you to install a standard Linux distribution such as Ubuntu within
-your Windows.  Then all instructions for installation in Linux apply.
-
-As another alternative, you can also run Linux on Windows using Docker
-(see above) or other virtualization solutions.
 
 [macOS] Preparing the Platform
 ------------------------------

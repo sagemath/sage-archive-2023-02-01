@@ -121,17 +121,9 @@ instructions to get started.
 [macOS] Preparing the Platform
 ------------------------------
 
-Make sure you have installed the most current version of Xcode
-supported on your version of macOS.  If you don't, either go to
-https://developer.apple.com/, sign up, and download the free Xcode
-package, or get it from Apple's app store.
-
-You also need to install the "command line tools": After installing
-Xcode, run `xcode-select --install` from a terminal window; then click
-"Install" in the pop-up window.  (When using Mountain Lion or earlier,
-you need to install the command line tools from Xcode: run Xcode; then
-from the File menu, choose "Preferences", then the "Downloads" tab,
-and then "Install" the Command Line Tools.)
+You will need the Xcode Command Line Tools.  Open a terminal window
+and run `xcode-select --install`; then click "Install" in the pop-up
+window.
 
 Optionally, you can consider installing Homebrew ("the missing package
 manager for macOS") from https://brew.sh/, which can provide libraries

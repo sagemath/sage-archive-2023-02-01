@@ -433,27 +433,6 @@ Specific notes for ``make`` and ``tar``
 On macOS, the system-wide BSD ``tar`` supplied will build Sage, so there is no
 need to install the GNU ``tar``.
 
-On Solaris or OpenSolaris, the Sun/Oracle versions of ``make`` and ``tar`` are
-unsuitable for building Sage.
-Therefore, you must have the GNU versions of ``make`` and ``tar`` installed and
-they must be the first ``make`` and ``tar`` in your :envvar:`PATH`.
-
-On Solaris 10, a version of GNU ``make`` may be found at
-:file:`/usr/sfw/bin/gmake`,
-but you will need to copy it somewhere else and rename it to ``make``.
-The same is true for GNU ``tar``; a version of GNU ``tar`` may be found at
-:file:`/usr/sfw/bin/gtar`,
-but it will need to be copied somewhere else and renamed to ``tar``.
-It is recommended to create a directory :file:`$HOME/bins-for-sage` and to put
-the GNU versions of ``tar`` and ``make`` in that directory.
-Then ensure that :file:`$HOME/bins-for-sage` is first in your :envvar:`PATH`.
-That's because Sage also needs :file:`/usr/ccs/bin` in your :envvar:`PATH` to
-execute programs like ``ar`` and ``ranlib``, but :file:`/usr/ccs/bin` has the
-Sun/Oracle versions of ``make`` and ``tar`` in it.
-
-If you attempt to build Sage on AIX or HP-UX, you will need to install both
-GNU ``make`` and GNU ``tar``.
-
 .. _section_compilers:
 
 Using alternative compilers

@@ -280,6 +280,25 @@ in the Installation Guide.
 
         $ ./configure --help
 
+    Some notable options for Sage developers are the following:
+
+    - Use `./configure --enable-editable` to configure the Sage distribution
+      to install the Sage library in "develop" ("editable", "in-place") mode
+      instead of using the Sage library's custom incremental build system.
+
+      It has the benefit that to try out changes to Python files, one does not
+      need to run `./sage -b` any more; restarting Sage is enough. It may also
+      have benefits in certain develop environments that get confused by
+      sagelib's custom build system.
+
+      Note that in an editable install, the source directory will be cluttered
+      with build artifacts (but they are `.gitignored`). This is normal.
+
+    - Use `./configure --enable-download-from-upstream-url` to allow
+      downloading packages from their upstream URL if they cannot (yet) be
+      found on the Sage mirrors. This is useful for trying out ticket branches
+      that make package upgrades.
+
 9.  Optional, but highly recommended: Set some environment variables to
     customize the build.
 

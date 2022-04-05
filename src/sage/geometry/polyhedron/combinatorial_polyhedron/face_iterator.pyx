@@ -1970,7 +1970,13 @@ cdef inline int next_face_loop(iter_t structure) nogil except -1:
         # In this case there exists ``faces[0].faces[n_faces]``, of which we
         # have visited all faces, but which was not added to
         # ``visited_all`` yet.
-        add_face_shallow(visited_all[0], faces[0].faces[n_faces])
+
+        if not faces[0].polyhedron_is_simple:
+            # In case of a simple lattice, this step needs not to be applied:
+            # Every element, except the lower bound, has a unique representation of coatoms in this case.
+            # Hence, as the face is already removed from faces[0], any subfaces will not be visited.
+            # (If we manually ignore subfaces, faces will still be added to visited_all).
+            add_face_shallow(visited_all[0], faces[0].faces[n_faces])
     else:
         # Once we have visited all faces of ``faces[n_faces]``, we want
         # to add it to ``visited_all``.
@@ -2193,7 +2199,14 @@ cdef inline int prepare_face_iterator_for_partial_job(
 
             for i in range(job_id_c):
                 # Fast forwarding the jobs.
-                add_face_shallow(structure.visited_all[d], structure.new_faces[d].faces[structure.new_faces[d].n_faces -1])
+
+                if not structure.new_faces[d].polyhedron_is_simple:
+                    # In case of a simple lattice, this step needs not to be applied:
+                    # Every element, except the lower bound, has a unique representation of coatoms in this case.
+                    # Hence, as the face is already removed from faces[0], any subfaces will not be visited.
+                    # (If we manually ignore subfaces, faces will still be added to visited_all).
+                    add_face_shallow(structure.visited_all[d], structure.new_faces[d].faces[structure.new_faces[d].n_faces -1])
+
                 structure.new_faces[d].n_faces -= 1
 
             parallel_struct.current_job_id[current_depth -1] = job_id_c

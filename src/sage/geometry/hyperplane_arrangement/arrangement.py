@@ -1179,11 +1179,11 @@ class HyperplaneArrangementElement(Element):
             sage: H = HyperplaneArrangements(AA, names='xyz')
             sage: x,y,z = H.gens()
             sage: A = H(backend="normaliz")  # optional - pynormaliz
-            sage: for v in my_vector:        # optional - pyrormaliz
+            sage: for v in my_vectors:        # optional - pynormaliz
             ....:     a, b, c = v
             ....:     A = A.add_hyperplane(a*x + b*y + c*z)
-            sage: A.n_regions()              # optional - pyrormaliz
-            32
+            sage: A.n_regions()              # optional - pynormaliz
+            24
         """
         if self.base_ring().characteristic() != 0:
             raise TypeError('base field must have characteristic zero')

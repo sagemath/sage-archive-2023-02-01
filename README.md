@@ -221,8 +221,8 @@ in the Installation Guide.
       ``ExtUtils::MakeMaker``), `ranlib`, `git`, `tar`, `bc`.
 
     - Python 3.4 or later, or Python 2.7, a full installation including
-      `urllib`; but ideally version 3.7.x, 3.8.x, or 3.9.x, which will
-      avoid having to build Sage's own copy of Python 3.
+      `urllib`; but ideally version 3.7.x, 3.8.x, 3.9.x, or 3.10.x, which
+      will avoid having to build Sage's own copy of Python 3.
 
     We have collected lists of system packages that provide these build
     prerequisites. See, in the folder

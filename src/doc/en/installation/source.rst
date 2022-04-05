@@ -147,24 +147,26 @@ Python for venv
 ^^^^^^^^^^^^^^^
 
 By default, Sage will try to use system's `python3` to set up a virtual
-environment, a.k.a. `venv <https://docs.python.org/3.7/library/venv.html>`_
+environment, a.k.a. `venv <https://docs.python.org/3.10/library/venv.html>`_
 rather than building a Python 3 installation from scratch.
-Use the configure option ``--without-system-python3`` in case you want Python 3
+Use the ``configure`` option ``--without-system-python3`` in case you want Python 3
 built from scratch.
 
-Sage will accept versions 3.7.x to 3.9.x.
+Sage will accept versions 3.7.x to 3.10.x.
 
 You can also use ``--with-python=/path/to/python3_binary`` to tell Sage to use
 ``/path/to/python3_binary`` to set up the venv. Note that setting up venv requires
 a number of Python modules to be available within the Python in question. Currently,
-for Sage 9.2, these modules are as follows: sqlite3, ctypes, math, hashlib, crypt,
-readline, socket, zlib, distutils.core - they will be checked for by configure.
+for Sage 9.2, these modules are as follows: ``sqlite3``, ``ctypes``, ``math``,
+``hashlib``, ``crypt``, ``readline``, ``socket``, ``zlib``, ``distutils.core`` -
+they will be checked for by the ``configure`` script.
 
 Other notes
 ^^^^^^^^^^^
 
-After extracting the Sage tarball, the subdirectory :file:`upstream`
+After extracting the Sage source tarball, the subdirectory :file:`upstream`
 contains the source distributions for everything on which Sage depends.
+
 If cloned from a git repository, the upstream tarballs will be downloaded,
 verified, and cached as part of the Sage installation process.
 We emphasize that all of this software is included with Sage, so you do not

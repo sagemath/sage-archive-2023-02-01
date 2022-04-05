@@ -14,7 +14,6 @@ import pytest
 from _pytest.doctest import (
     DoctestItem,
     DoctestModule,
-    _get_checker,
     _get_continue_on_failure,
     _get_runner,
     _is_mocked,
@@ -24,9 +23,11 @@ from _pytest.doctest import (
 from _pytest.pathlib import import_path
 import inspect
 
-import sage.all  # type: ignore  # to avoid cyclic import errors, see Trac #33580
-from sage.doctest.parsing import SageDocTestParser
-
+# Import sage.all is necessary to:
+# - avoid cyclic import errors, see Trac #33580
+# - inject it into globals namespace for doctests
+import sage.all
+from sage.doctest.parsing import SageDocTestParser, SageOutputChecker
 
 def pytest_collect_file(file_path, parent):
     if file_path.suffix == ".py":
@@ -37,7 +38,8 @@ class SageDoctestModule(DoctestModule):
     """
     This is essentially a copy of `DoctestModule` from
     https://github.com/pytest-dev/pytest/blob/main/src/_pytest/doctest.py.
-    The only change is that we use `SageDocTestParser` to extract the doctests.
+    The only change is that we use `SageDocTestParser` to extract the doctests
+    and `SageOutputChecker` to verify the output.
     """
 
     def collect(self) -> Iterable[DoctestItem]:
@@ -103,7 +105,7 @@ class SageDoctestModule(DoctestModule):
         runner = _get_runner(
             verbose=False,
             optionflags=optionflags,
-            checker=_get_checker(),
+            checker=SageOutputChecker(),
             continue_on_failure=_get_continue_on_failure(self.config),
         )
 
@@ -114,9 +116,6 @@ class SageDoctestModule(DoctestModule):
                 )
 
 
-from sage.all import * # type: ignore  # to avoid cyclic import errors, see Trac #33580, and is implicitly used below by calling globals()
-
-
 @pytest.fixture(autouse=True)
 def add_imports(doctest_namespace: dict[str, Any]):
     """
@@ -125,4 +124,13 @@ def add_imports(doctest_namespace: dict[str, Any]):
     See `pytest documentation <https://docs.pytest.org/en/stable/doctest.html#doctest-namespace-fixture>`.
     """
     # Inject sage.all into each doctest
-    doctest_namespace.update(**globals())
+    dict_all = sage.all.__dict__
+    
+    # Remove '__package__' item from the globals since it is not
+    # always in the globals in an actual Sage session.
+    dict_all.pop('__package__', None)
+
+    sage_namespace = dict(dict_all)
+    sage_namespace['__name__'] = '__main__'
+    
+    doctest_namespace.update(**sage_namespace)

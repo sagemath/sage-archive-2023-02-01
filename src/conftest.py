@@ -26,13 +26,6 @@ from _pytest.pathlib import import_path
 import sage.all  # type: ignore  # to avoid cyclic import errors, see Trac #33580
 from sage.doctest.parsing import SageDocTestParser
 
-# Ignore a few test files that are (not yet) using pytest
-collect_ignore = [
-    "sage/misc/nested_class_test.py",
-    "sage/repl/rich_output/backend_test.py",
-    "sage/tests/deprecation_test.py"
-]
-
 
 def pytest_collect_file(file_path, parent):
     if file_path.suffix == ".py":

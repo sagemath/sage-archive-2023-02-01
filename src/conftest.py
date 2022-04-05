@@ -22,6 +22,7 @@ from _pytest.doctest import (
     get_optionflags,
 )
 from _pytest.pathlib import import_path
+import inspect
 
 import sage.all  # type: ignore  # to avoid cyclic import errors, see Trac #33580
 from sage.doctest.parsing import SageDocTestParser
@@ -113,7 +114,7 @@ class SageDoctestModule(DoctestModule):
                 )
 
 
-import sage.all  # type: ignore  # to avoid cyclic import errors, see Trac #33580
+from sage.all import * # type: ignore  # to avoid cyclic import errors, see Trac #33580, and is implicitly used below by calling globals()
 
 
 @pytest.fixture(autouse=True)
@@ -123,6 +124,5 @@ def add_imports(doctest_namespace: dict[str, Any]):
 
     See `pytest documentation <https://docs.pytest.org/en/stable/doctest.html#doctest-namespace-fixture>`.
     """
-    import sage.all  # type: ignore # implicitly used below by calling locals()
-
-    doctest_namespace.update(**locals())
+    # Inject sage.all into each doctest
+    doctest_namespace.update(**globals())

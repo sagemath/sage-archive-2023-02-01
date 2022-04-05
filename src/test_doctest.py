@@ -1,5 +1,3 @@
-from sage.all import Integer
-
 def something():
     """ a doctest in a docstring
     

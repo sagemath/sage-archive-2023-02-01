@@ -14,10 +14,8 @@
         "pkgs/sagemath-objects/sage": true,
         "pkgs/sagemath-standard/sage": true,
     },
-    "python.testing.pytestPath": "./sage -t",
     "python.testing.pytestEnabled": true,
     "python.testing.pytestArgs": [
-        "src/test_doctests.py",
         "--rootdir=src/sage",
         "-c=src/tox.ini",
         "--doctest-modules",

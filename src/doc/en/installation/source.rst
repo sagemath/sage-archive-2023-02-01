@@ -265,22 +265,14 @@ On macOS systems, you need a recent version of
 `Command Line Tools <https://developer.apple.com/downloads/index.action?=command%20line%20tools>`_.
 It provides all the above requirements.
 
+Run the command ``xcode-select --install`` from a Terminal window and click "Install"
+in the pop-up dialog box.
+
 If you have already installed `Xcode <https://developer.apple.com/xcode/>`_
 (which at the time of writing is freely available in the Mac App Store,
 or through https://developer.apple.com/downloads/ provided you registered for an
 Apple Developer account), you can install the command line tools from
 there as well.
-
-- With OS X Mavericks or Yosemite, run the command
-  ``xcode-select --install`` from a Terminal window and click "Install"
-  in the pop-up dialog box.
-
-- Using OS X Mountain Lion or earlier, run Xcode, open its "Downloads"
-  preference pane and install the command line tools from there.
-
-- On pre-Lion macOS systems, the command line tools are not available as a
-  separate download and you have to install the full-blown Xcode supporting your
-  system version.
 
 If you have not installed `Xcode <https://developer.apple.com/xcode/>`_
 you can get these tools as a relatively small download, but it does require
@@ -1308,4 +1300,4 @@ the directory where you want to install Sage.
 
 
 
-**This page was last updated in December 2021 (Sage 9.5).**
+**This page was last updated in April 2022 (Sage 9.6).**

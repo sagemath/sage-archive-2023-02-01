@@ -1116,11 +1116,11 @@ class Polyhedron_base5(Polyhedron_base4):
 
         new_inequalities = chain(new_inequalities1, new_inequalities2)
 
-        # Equations that all vertices corresponing to ``new_vertices1`` satisfy.
+        # Equations that all vertices corresponding to ``new_vertices1`` satisfy.
         # For any vertex from ``new_vertices2`` the condition is trivial.
         new_equations1 = ([e[0]] + list(e[1:]) + [0]*dim_other + [-e[0]] for e in self.equation_generator())
 
-        # Equations that all vertices corresponing to ``new_vertices2`` satisfy.
+        # Equations that all vertices corresponding to ``new_vertices2`` satisfy.
         # For any vertex from ``new_vertices1`` the condition is trivial.
         new_equations2 = ([0] + [0]*dim_self + list(e[1:]) + [e[0]] for e in other.equation_generator())
 

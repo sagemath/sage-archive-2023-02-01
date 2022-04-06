@@ -26,7 +26,6 @@ import sphinx
 from sphinx.application import Sphinx
 from sphinx.util.console import bold
 from sage.env import SAGE_DOC
-from sage.misc.misc import sage_makedirs
 from pathlib import Path
 
 logger = sphinx.util.logging.getLogger(__name__)
@@ -117,8 +116,7 @@ def get_env(app, curdoc):
     try:
         f = open(filename, 'rb')
     except IOError:
-        logger.info("")
-        logger.warning("Unable to fetch %s " % filename)
+        logger.debug(f"Unable to load pickled environment '{filename}'", exc_info=True)
         return None
     docenv = pickle.load(f)
     f.close()
@@ -231,7 +229,7 @@ def citation_dir(app: Sphinx) -> Path:
         citedir = (sage_doc / "inventory").joinpath(*tail) 
     else:
         citedir = outdir / "inventory"
-    sage_makedirs(citedir)
+    os.makedirs(citedir, exist_ok=True)
     return citedir
 
 

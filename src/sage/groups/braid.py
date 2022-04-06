@@ -1276,8 +1276,7 @@ class Braid(FiniteTypeArtinGroupElement):
         """
         if qagrad is None:
             return {qa: self._annular_khovanov_complex_cached(qa,ring) for qa in self._enhanced_states()}
-        else:
-           return self._annular_khovanov_complex_cached(qagrad,ring)
+        return self._annular_khovanov_complex_cached(qagrad,ring)
 
     def annular_khovanov_homology(self, qagrad=None, ring=IntegerRing()):
         r"""
@@ -2023,7 +2022,6 @@ class RightQuantumWord:
             ....:                       q**3*bm_2*bp_1*am_0*cm_0)
             sage: for key, value in qw.tuples.items():
             ....:     print(key, value)
-            ....:
             (0, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0) q
             (1, 0, 0, 0, 0, 0, 0, 1, 1, 1, 0, 0) q^2
         """

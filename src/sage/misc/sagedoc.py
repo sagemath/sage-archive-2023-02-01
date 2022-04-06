@@ -495,13 +495,13 @@ def process_dollars(s):
 pythonversion = sys.version.split(' ')[0]
 extlinks = {
     'python': ('https://docs.python.org/release/'+pythonversion+'/%s', ''),
-    'trac': ('https://trac.sagemath.org/%s', 'trac ticket #'),
-    'wikipedia': ('https://en.wikipedia.org/wiki/%s', 'Wikipedia article '),
-    'arxiv': ('https://arxiv.org/abs/%s', 'arXiv '),
-    'oeis': ('https://oeis.org/%s', 'OEIS sequence '),
-    'doi': ('https://doi.org/%s', 'doi:'),
-    'pari': ('https://pari.math.u-bordeaux.fr/dochtml/help/%s', 'pari:'),
-    'mathscinet': ('https://www.ams.org/mathscinet-getitem?mr=%s', 'MathSciNet ')
+    'trac': ('https://trac.sagemath.org/%s', 'trac ticket #%s'),
+    'wikipedia': ('https://en.wikipedia.org/wiki/%s', 'Wikipedia article %s'),
+    'arxiv': ('https://arxiv.org/abs/%s', 'arXiv %s'),
+    'oeis': ('https://oeis.org/%s', 'OEIS sequence %s'),
+    'doi': ('https://doi.org/%s', 'doi:%s'),
+    'pari': ('https://pari.math.u-bordeaux.fr/dochtml/help/%s', 'pari:%s'),
+    'mathscinet': ('https://www.ams.org/mathscinet-getitem?mr=%s', 'MathSciNet %s')
 }
 
 def process_extlinks(s, embedded=False):
@@ -1401,7 +1401,7 @@ class _sage_doc:
             "...**File:**...**Type:**...**Definition:** identity_matrix..."
             sage: identity_matrix.__doc__ in browse_sage_doc(identity_matrix, 'rst')
             True
-            sage: browse_sage_doc(identity_matrix, 'html', False)             # optional - sphinx
+            sage: browse_sage_doc(identity_matrix, 'html', False)             # optional - sphinx sagemath_doc_html
             '...div...File:...Type:...Definition:...identity_matrix...'
 
         In the 'text' version, double colons have been replaced with

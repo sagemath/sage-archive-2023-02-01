@@ -178,15 +178,14 @@ REFERENCES:
 #                  https://www.gnu.org/licenses/
 # ****************************************************************************
 
-from builtins import zip
-
 from sage.structure.sage_object import SageObject
 from sage.misc.cachefunc import cached_method
 from sage.misc.lazy_attribute import lazy_attribute
 from sage.combinat.words.words import FiniteWords
 from sage.combinat.words.word import FiniteWord_class
 from sage.combinat.words.alphabet import build_alphabet
-from sage.plot.all import arrow, line, polygon, point, Graphics
+from sage.misc.lazy_import import lazy_import
+lazy_import("sage.plot.all", ["arrow", "line", "polygon", "point", "Graphics"])
 from sage.modules.free_module_element import vector
 from sage.rings.integer_ring import ZZ
 from sage.rings.number_field.number_field import QuadraticField
@@ -397,7 +396,7 @@ class WordPaths_all(FiniteWords):
             sage: WordPaths_all('abA', d)
             Traceback (most recent call last):
             ...
-            TypeError: size of steps (=4) must equal the size of alphabet (=3) or half the size of alphabet.
+            TypeError: size of steps (=4) must equal the size of alphabet (=3) or half the size of alphabet
 
             sage: d = ((1,1), 1)
             sage: WordPaths_all('ab', d)
@@ -419,8 +418,7 @@ class WordPaths_all(FiniteWords):
         ls = len(steps)
         la = alphabet.cardinality()
         if la != ls and la != 2*ls:
-            raise TypeError("size of steps (=%s) must equal the size \
-of alphabet (=%s) or half the size of alphabet."%(len(steps),alphabet.cardinality()))
+            raise TypeError("size of steps (=%s) must equal the size of alphabet (=%s) or half the size of alphabet" % (len(steps), alphabet.cardinality()))
 
         #Construction of the steps
         from sage.structure.element import Vector
@@ -1046,7 +1044,7 @@ class FiniteWordPath_all(SageObject):
             sage: f._repr_()
             'Path: ababab'
         """
-        return "Path: %s"%self.string_rep()
+        return "Path: %s" % self.string_rep()
 
     def points(self, include_last=True):
         r"""
@@ -1637,15 +1635,14 @@ class FiniteWordPath_2d(FiniteWordPath_all):
             sage: b = words.fibonacci_tile(1).animate()
             sage: c = words.fibonacci_tile(2).animate()
             sage: d = words.fibonacci_tile(3).animate()
-            sage: (a*b*c*d).show()  # optional -- ImageMagick
+            sage: (a*b*c*d).show()  # optional -- ImageMagick   # long time
 
         .. note::
 
             If ImageMagick is not installed, you will get an error
             message like this::
 
-               /usr/local/share/sage/local/bin/sage-native-execute: 8: convert:
-               not found
+               convert: not found
 
                Error: ImageMagick does not appear to be installed. Saving an
                animation to a GIF file or displaying an animation requires

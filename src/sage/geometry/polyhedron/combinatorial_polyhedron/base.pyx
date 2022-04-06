@@ -93,6 +93,7 @@ from sage.geometry.polyhedron.base  import Polyhedron_base
 from sage.geometry.lattice_polytope import LatticePolytopeClass
 from sage.geometry.cone             import ConvexRationalPolyhedralCone
 from sage.structure.element         import Matrix
+from sage.matrix.matrix_dense      cimport Matrix_dense
 from sage.misc.misc                 import is_iterator
 from .conversions \
         import incidence_matrix_to_bit_rep_of_facets, \
@@ -104,7 +105,6 @@ from sage.misc.cachefunc            import cached_method
 
 from sage.rings.integer                cimport smallInteger
 from cysignals.signals                 cimport sig_check, sig_block, sig_unblock
-from sage.matrix.matrix_integer_dense  cimport Matrix_integer_dense
 
 from .face_data_structure cimport face_len_atoms, face_init, face_free
 from .face_iterator cimport iter_t, parallel_f_vector
@@ -330,7 +330,7 @@ cdef class CombinatorialPolyhedron(SageObject):
             Traceback (most recent call last):
             ...
             ValueError: the combinatorial polyhedron was not initialized
-            sage: C.face_lattice()
+            sage: C.face_lattice()                                          # optional - sage.combinat
             Traceback (most recent call last):
             ...
             ValueError: the combinatorial polyhedron was not initialized
@@ -455,11 +455,11 @@ cdef class CombinatorialPolyhedron(SageObject):
             self._n_Hrepresentation = data.ncols()
             self._n_Vrepresentation = data.nrows()
 
-            if not isinstance(data, Matrix_integer_dense):
+            if not isinstance(data, Matrix_dense):
                 from sage.rings.integer_ring import ZZ
                 from sage.matrix.constructor import matrix
                 data = matrix(ZZ, data, sparse=False)
-                assert isinstance(data, Matrix_integer_dense), "conversion to ``Matrix_integer_dense`` didn't work"
+                assert isinstance(data, Matrix_dense), "conversion to ``Matrix_dense`` didn't work"
 
             # Store the incidence matrix.
             if not data.is_immutable():
@@ -542,9 +542,11 @@ cdef class CombinatorialPolyhedron(SageObject):
 
             # Relabel the Vrep to be `0,...,n`.
             if self._Vrep is not None:
-                def f(v): return Vinv[v]
+                def f(v):
+                    return Vinv[v]
             else:
-                def f(v): return int(v)
+                def f(v):
+                    return int(v)
             facets = tuple(tuple(f(i) for i in j) for j in data)
 
             self._n_facets = len(facets)
@@ -1126,7 +1128,7 @@ cdef class CombinatorialPolyhedron(SageObject):
         """
         from sage.rings.integer_ring import ZZ
         from sage.matrix.constructor import matrix
-        cdef Matrix_integer_dense incidence_matrix = matrix(
+        cdef Matrix_dense incidence_matrix = matrix(
                 ZZ, self.n_Vrepresentation(), self.n_Hrepresentation(), 0)
 
         if self.dim() < 1:
@@ -1134,7 +1136,7 @@ cdef class CombinatorialPolyhedron(SageObject):
             if self.dim() == 0:
                 # To be consistent with ``Polyhedron_base``,
                 for i in range(self.n_Hrepresentation()):
-                    incidence_matrix.set_unsafe_si(0, i, 1)
+                    incidence_matrix.set_unsafe_int(0, i, 1)
             incidence_matrix.set_immutable()
             return incidence_matrix
 
@@ -1144,13 +1146,13 @@ cdef class CombinatorialPolyhedron(SageObject):
             n_equations = len(self.equations())
             for Hindex in range(n_facets, n_facets + n_equations):
                 for Vindex in range(self.n_Vrepresentation()):
-                    incidence_matrix.set_unsafe_si(Vindex, Hindex, 1)
+                    incidence_matrix.set_unsafe_int(Vindex, Hindex, 1)
 
         facet_iter = self.face_iter(self.dimension() - 1, dual=False)
         for facet in facet_iter:
             Hindex = facet.ambient_H_indices()[0]
             for Vindex in facet.ambient_V_indices():
-                incidence_matrix.set_unsafe_si(Vindex, Hindex, 1)
+                incidence_matrix.set_unsafe_int(Vindex, Hindex, 1)
 
         incidence_matrix.set_immutable()
 
@@ -1215,9 +1217,11 @@ cdef class CombinatorialPolyhedron(SageObject):
 
         # Mapping the indices of the Vrep to the names, if requested.
         if self.Vrep() is not None and names is True:
-            def f(size_t i): return self.Vrep()[i]
+            def f(size_t i):
+                return self.Vrep()[i]
         else:
-            def f(size_t i): return smallInteger(i)
+            def f(size_t i):
+                return smallInteger(i)
 
         # Getting the indices of the `i`-th edge.
         def vertex_one(size_t i):
@@ -1295,7 +1299,7 @@ cdef class CombinatorialPolyhedron(SageObject):
         """
         from sage.rings.integer_ring import ZZ
         from sage.matrix.constructor import matrix
-        cdef Matrix_integer_dense adjacency_matrix = matrix(
+        cdef Matrix_dense adjacency_matrix = matrix(
                 ZZ, self.n_Vrepresentation(), self.n_Vrepresentation(), 0)
         cdef size_t i, a, b
 
@@ -1303,8 +1307,8 @@ cdef class CombinatorialPolyhedron(SageObject):
         for i in range(self._n_edges):
             a = self._get_edge(self._edges, i, 0)
             b = self._get_edge(self._edges, i, 1)
-            adjacency_matrix.set_unsafe_si(a, b, 1)
-            adjacency_matrix.set_unsafe_si(b, a, 1)
+            adjacency_matrix.set_unsafe_int(a, b, 1)
+            adjacency_matrix.set_unsafe_int(b, a, 1)
         adjacency_matrix.set_immutable()
         return adjacency_matrix
 
@@ -1414,9 +1418,11 @@ cdef class CombinatorialPolyhedron(SageObject):
 
         # Mapping the indices of the Vepr to the names, if requested.
         if self.facet_names() is not None and names is True:
-            def f(size_t i): return self.facet_names()[i]
+            def f(size_t i):
+                return self.facet_names()[i]
         else:
-            def f(size_t i): return smallInteger(i)
+            def f(size_t i):
+                return smallInteger(i)
 
         # Getting the indices of the `i`-th ridge.
         def facet_one(size_t i):
@@ -1467,7 +1473,7 @@ cdef class CombinatorialPolyhedron(SageObject):
         """
         from sage.rings.integer_ring import ZZ
         from sage.matrix.constructor import matrix
-        cdef Matrix_integer_dense adjacency_matrix = matrix(
+        cdef Matrix_dense adjacency_matrix = matrix(
                 ZZ, self.n_facets(), self.n_facets(), 0)
         cdef size_t i, a, b
 
@@ -1475,8 +1481,8 @@ cdef class CombinatorialPolyhedron(SageObject):
         for i in range(self._n_ridges):
             a = self._get_edge(self._ridges, i, 0)
             b = self._get_edge(self._ridges, i, 1)
-            adjacency_matrix.set_unsafe_si(a, b, 1)
-            adjacency_matrix.set_unsafe_si(b, a, 1)
+            adjacency_matrix.set_unsafe_int(a, b, 1)
+            adjacency_matrix.set_unsafe_int(b, a, 1)
         adjacency_matrix.set_immutable()
         return adjacency_matrix
 
@@ -1730,7 +1736,7 @@ cdef class CombinatorialPolyhedron(SageObject):
         Obtain the entire flag-f-vector::
 
             sage: C = polytopes.hypercube(4).combinatorial_polyhedron()
-            sage: C.flag_f_vector()
+            sage: C.flag_f_vector()                                             # optional - sage.combinat
                 {(-1,): 1,
                  (0,): 16,
                  (0, 1): 64,
@@ -1751,38 +1757,38 @@ cdef class CombinatorialPolyhedron(SageObject):
 
         Specify an entry::
 
-            sage: C.flag_f_vector(0,3)
+            sage: C.flag_f_vector(0,3)                                          # optional - sage.combinat
             64
-            sage: C.flag_f_vector(2)
+            sage: C.flag_f_vector(2)                                            # optional - sage.combinat
             24
 
         Leading ``-1`` and trailing entry of dimension are allowed::
 
-            sage: C.flag_f_vector(-1,0,3)
+            sage: C.flag_f_vector(-1,0,3)                                       # optional - sage.combinat
             64
-            sage: C.flag_f_vector(-1,0,3,4)
+            sage: C.flag_f_vector(-1,0,3,4)                                     # optional - sage.combinat
             64
 
         One can get the number of trivial faces::
 
-            sage: C.flag_f_vector(-1)
+            sage: C.flag_f_vector(-1)                                           # optional - sage.combinat
             1
-            sage: C.flag_f_vector(4)
+            sage: C.flag_f_vector(4)                                            # optional - sage.combinat
             1
 
         Polyhedra with lines, have ``0`` entries accordingly::
 
             sage: C = (Polyhedron(lines=[[1]]) * polytopes.hypercube(2)).combinatorial_polyhedron()
-            sage: C.flag_f_vector()
+            sage: C.flag_f_vector()                                             # optional - sage.combinat
             {(-1,): 1, (0, 1): 0, (0, 2): 0, (0,): 0, (1, 2): 8, (1,): 4, (2,): 4, 3: 1}
 
         If the arguments are not stricly increasing or out of range, a key error is raised::
 
-            sage: C.flag_f_vector(-1,0,3,5)
+            sage: C.flag_f_vector(-1,0,3,5)                                     # optional - sage.combinat
             Traceback (most recent call last):
             ...
             KeyError: (0, 3, 5)
-            sage: C.flag_f_vector(-1,3,0)
+            sage: C.flag_f_vector(-1,3,0)                                       # optional - sage.combinat
             Traceback (most recent call last):
             ...
             KeyError: (3, 0)
@@ -1810,7 +1816,7 @@ cdef class CombinatorialPolyhedron(SageObject):
         TESTS::
 
             sage: C = CombinatorialPolyhedron(3)
-            sage: C._flag_f_vector()
+            sage: C._flag_f_vector()                                            # optional - sage.combinat
             {(-1,): 1, (0, 1): 0, (0, 2): 0, (0,): 0, (1, 2): 0, (1,): 0, (2,): 0, 3: 1}
         """
         poly = self.face_lattice().flag_f_polynomial()

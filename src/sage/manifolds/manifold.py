@@ -309,7 +309,7 @@ REFERENCES:
 
 """
 
-#*****************************************************************************
+# ****************************************************************************
 #       Copyright (C) 2015-2020 Eric Gourgoulhon <eric.gourgoulhon@obspm.fr>
 #       Copyright (C) 2015      Travis Scrimshaw <tscrimsh@umn.edu>
 #       Copyright (C) 2016      Andrew Mathas
@@ -322,30 +322,42 @@ REFERENCES:
 # it under the terms of the GNU General Public License as published by
 # the Free Software Foundation, either version 2 of the License, or
 # (at your option) any later version.
-#                  http://www.gnu.org/licenses/
-#*****************************************************************************
+#                  https://www.gnu.org/licenses/
+# ****************************************************************************
 
-from sage.categories.fields import Fields
-from sage.categories.manifolds import Manifolds
-from sage.categories.homset import Hom
+from __future__ import annotations
+
+from typing import TYPE_CHECKING, Optional, Union, overload
+
 import sage.rings.abc
-from sage.rings.cc import CC
-from sage.rings.real_mpfr import RR
-from sage.misc.prandom import getrandbits
-from sage.misc.cachefunc import cached_method
-from sage.rings.integer import Integer
-from sage.structure.global_options import GlobalOptions
+from sage.categories.fields import Fields
+from sage.categories.homset import Hom
+from sage.categories.manifolds import Manifolds
+from sage.manifolds.structure import (
+    DifferentialStructure,
+    RealDifferentialStructure,
+    RealTopologicalStructure,
+    TopologicalStructure,
+)
 from sage.manifolds.subset import ManifoldSubset
-from sage.manifolds.structure import(
-                            TopologicalStructure, RealTopologicalStructure,
-                            DifferentialStructure, RealDifferentialStructure)
+from sage.misc.cachefunc import cached_method
+from sage.misc.prandom import getrandbits
+from sage.rings.cc import CC
+from sage.rings.integer import Integer
+from sage.rings.real_mpfr import RR
+from sage.structure.global_options import GlobalOptions
+
+if TYPE_CHECKING:
+    from sage.manifolds.continuous_map import ContinuousMap
+    from sage.manifolds.differentiable.diff_map import DiffMap
+    from sage.manifolds.differentiable.manifold import DifferentiableManifold
 
 
 #############################################################################
-## Global options
+# Global options
 
 #############################################################################
-## Class
+# Class
 
 class TopologicalManifold(ManifoldSubset):
     r"""
@@ -535,6 +547,10 @@ class TopologicalManifold(ManifoldSubset):
             True
         """
         # Initialization of the attributes _dim, _field, _field_type:
+        if not isinstance(n, (int, Integer)):
+            raise TypeError("the manifold dimension must be an integer")
+        if n < 1:
+            raise ValueError("the manifold dimension must be strictly positive")
         self._dim = n
         if field == 'real':
             self._field = RR
@@ -2440,6 +2456,10 @@ class TopologicalManifold(ManifoldSubset):
         return homset(coord_functions, name=name, latex_name=latex_name,
                       is_isomorphism=True)
 
+    @overload
+    def identity_map(self: TopologicalManifold) -> ContinuousMap: ...
+    @overload
+    def identity_map(self: DifferentiableManifold) -> DiffMap: ...
     @cached_method
     def identity_map(self):
         r"""
@@ -2697,8 +2717,16 @@ class TopologicalManifold(ManifoldSubset):
 
 _manifold_id = Integer(0)
 
-def Manifold(dim, name, latex_name=None, field='real', structure='smooth',
-             start_index=0, **extra_kwds):
+
+def Manifold(
+    dim: int,
+    name: Optional[str],
+    latex_name: Optional[str] = None,
+    field: str = "real",
+    structure: Optional[str] = None,
+    start_index: int = 0,
+    **extra_kwds,
+) -> Union[TopologicalManifold, DifferentiableManifold]:
     r"""
     Construct a manifold of a given type over a topological field.
 
@@ -2851,6 +2879,15 @@ def Manifold(dim, name, latex_name=None, field='real', structure='smooth',
         sage: M.diff_degree()
         +Infinity
 
+    Other parameters can change the default of the parameter ``structure``::
+
+        sage: M = Manifold(3, 'M', diff_degree=0); M
+        3-dimensional topological manifold M
+        sage: M = Manifold(3, 'M', diff_degree=2); M
+        3-dimensional differentiable manifold M
+        sage: M = Manifold(3, 'M', metric_name='g'); M
+        3-dimensional Riemannian manifold M
+
     For a complex smooth manifold, we have to set the parameter ``field``::
 
         sage: M = Manifold(3, 'M', field='complex'); M
@@ -2960,14 +2997,22 @@ def Manifold(dim, name, latex_name=None, field='real', structure='smooth',
 
     global _manifold_id
 
-    # Some sanity checks
-    if not isinstance(dim, (int, Integer)):
-        raise TypeError("the manifold dimension must be an integer")
-    if dim < 1:
-        raise ValueError("the manifold dimension must be strictly positive")
-
     _manifold_id += 1
     unique_tag = lambda: getrandbits(128)*_manifold_id
+
+    if structure is None:
+        if any(extra_kwds.get(x, None) is not None
+               for x in ('metric_name', 'metric_latex_name', 'signature')):
+            structure = 'pseudo-Riemannian'
+
+    if structure is None:
+        diff_degree = extra_kwds.get('diff_degree', infinity)
+        if diff_degree == infinity:
+            structure = 'smooth'
+        elif diff_degree > 0:
+            structure = 'differentiable'
+        else:
+            structure = 'topological'
 
     if structure in ['topological', 'top']:
         if field == 'real' or isinstance(field, sage.rings.abc.RealField):
@@ -2976,11 +3021,6 @@ def Manifold(dim, name, latex_name=None, field='real', structure='smooth',
             structure = TopologicalStructure()
         if 'ambient' in extra_kwds:
             ambient = extra_kwds['ambient']
-            if not isinstance(ambient, TopologicalManifold):
-                raise TypeError("ambient must be a manifold")
-            if dim>ambient._dim:
-                raise ValueError("the submanifold must be of smaller "
-                                 + "dimension than its ambient manifold")
             return TopologicalSubmanifold(dim, name, field, structure,
                                           ambient=ambient,
                                           latex_name=latex_name,
@@ -3004,11 +3044,6 @@ def Manifold(dim, name, latex_name=None, field='real', structure='smooth',
             structure = DifferentialStructure()
         if 'ambient' in extra_kwds:
             ambient = extra_kwds['ambient']
-            if not isinstance(ambient, DifferentiableManifold):
-                raise TypeError("ambient must be a differentiable manifold")
-            if dim>ambient._dim:
-                raise ValueError("the submanifold must be of smaller "
-                                 + "dimension than its ambient manifold")
             return DifferentiableSubmanifold(dim, name, field, structure,
                                              ambient=ambient,
                                              diff_degree=diff_degree,
@@ -3045,13 +3080,8 @@ def Manifold(dim, name, latex_name=None, field='real', structure='smooth',
                 signature = dim - 2  # default value for a Lorentzian manifold
         if 'ambient' in extra_kwds:
             ambient = extra_kwds['ambient']
-            if not isinstance(ambient, (PseudoRiemannianManifold, DegenerateManifold)):
-                raise TypeError("ambient must be a pseudo-Riemannian manifold")
-            if dim>ambient._dim:
-                raise ValueError("the submanifold must be of smaller "
-                                 + "dimension than its ambient manifold")
             if structure == 'degenerate_metric':
-                return DegenerateSubmanifold(dim, name, ambient = ambient,
+                return DegenerateSubmanifold(dim, name, ambient=ambient,
                                                metric_name=metric_name,
                                                signature=signature,
                                                diff_degree=diff_degree,
@@ -3059,7 +3089,7 @@ def Manifold(dim, name, latex_name=None, field='real', structure='smooth',
                                                metric_latex_name=metric_latex_name,
                                                start_index=start_index,
                                                unique_tag=unique_tag())
-            return PseudoRiemannianSubmanifold(dim, name, ambient = ambient,
+            return PseudoRiemannianSubmanifold(dim, name, ambient=ambient,
                                                metric_name=metric_name,
                                                signature=signature,
                                                diff_degree=diff_degree,

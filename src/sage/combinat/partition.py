@@ -6288,7 +6288,7 @@ class Partitions_all_bounded(Partitions):
             sage: Partitions_all_bounded(3)
             3-Bounded Partitions
         """
-        return "%d-Bounded Partitions"%self.k
+        return "%d-Bounded Partitions" % self.k
 
     def __iter__(self):
         """
@@ -6355,7 +6355,7 @@ class Partitions_n(Partitions):
             sage: Partitions(5) # indirect doctest
             Partitions of the integer 5
         """
-        return "Partitions of the integer %s"%self.n
+        return "Partitions of the integer %s" % self.n
 
     def _an_element_(self):
         """
@@ -6409,8 +6409,6 @@ class Partitions_n(Partitions):
             sage: number_of_partitions(5, algorithm='flint')
             7
 
-        The input must be a nonnegative integer or a ``ValueError`` is raised.
-
         ::
 
             sage: Partitions(10).cardinality()
@@ -6449,10 +6447,18 @@ class Partitions_n(Partitions):
             sage: len([n for n in [1..500] if Partitions(n).cardinality() != Partitions(n).cardinality(algorithm='pari')])
             0
 
+        For negative inputs, the result is zero (the algorithm is ignored)::
+
+            sage: Partitions(-5).cardinality()
+            0
+
         REFERENCES:
 
         - :wikipedia:`Partition\_(number\_theory)`
         """
+        if self.n < 0:
+            return ZZ.zero()
+
         if algorithm == 'flint':
             return cached_number_of_partitions(self.n)
 
@@ -7262,7 +7268,7 @@ class Partitions_starting(Partitions):
             sage: Partitions(3, starting=[2,1]) # indirect doctest
             Partitions of the integer 3 starting with [2, 1]
         """
-        return "Partitions of the integer %s starting with %s"%(self.n, self._starting)
+        return f"Partitions of the integer {self.n} starting with {self._starting}"
 
     def __contains__(self, x):
         """
@@ -7356,7 +7362,7 @@ class Partitions_ending(Partitions):
             sage: Partitions(4, ending=[1,1,1,1]) # indirect doctest
             Partitions of the integer 4 ending with [1, 1, 1, 1]
         """
-        return "Partitions of the integer %s ending with %s"%(self.n, self._ending)
+        return f"Partitions of the integer {self.n} ending with {self._ending}"
 
     def __contains__(self, x):
         """

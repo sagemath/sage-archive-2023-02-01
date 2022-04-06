@@ -16,12 +16,24 @@ EXAMPLES::
 
     sage: from sage.repl.ipython_kernel.interact import interact
     sage: @interact
-    ....: def f(x=(0,10)):
+    ....: def f(x=(0, 10)):
     ....:     pass
     Interactive function <function f at ...> with 1 widget
       x: IntSlider(value=5, description='x', max=10)
     sage: f.widget.children
     (IntSlider(value=5, description='x', max=10), Output())
+
+.. ONLY:: html
+
+    .. JUPYTER-EXECUTE::
+        :hide-code:
+        :hide-output:
+
+        from sage.repl.ipython_kernel.interact import interact
+        @interact
+        def f(x=(0, 10)):
+            pass
+
 """
 
 # ****************************************************************************
@@ -42,7 +54,8 @@ from .widgets import EvalText, SageColorPicker
 from .widgets_sagenb import input_grid
 from sage.structure.element import parent
 import sage.rings.abc
-from sage.plot.colors import Color
+from sage.misc.lazy_import import lazy_import
+lazy_import("sage.plot.colors", "Color")
 from sage.structure.element import Matrix
 
 
@@ -60,6 +73,16 @@ class sage_interactive(interactive):
           x: IntSlider(value=10, description='x')
           y: Text(value='hello', description='y')
           z: Dropdown(description='z', options=('one', 'two', 'three'), value=None)
+
+    .. ONLY:: html
+
+        .. JUPYTER-EXECUTE::
+            :hide-code:
+            :hide-output:
+
+            from sage.repl.ipython_kernel.interact import sage_interactive
+            def myfunc(x=10, y="hello", z=None): pass
+            sage_interactive(myfunc, x=(0,100), z=["one", "two", "three"])
     """
     def __init__(*args, **kwds):
         """

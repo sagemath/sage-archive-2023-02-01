@@ -2031,7 +2031,7 @@ class Category(UniqueRepresentation, SageObject):
              Category of finite additive groups)
             sage: HopfAlgebras(QQ)._with_axiom_as_tuple('FiniteDimensional')
             (Category of hopf algebras over Rational Field,
-             Category of finite dimensional modules over Rational Field)
+             Category of finite dimensional vector spaces over Rational Field)
         """
         if axiom in self.axioms():
             return (self, )
@@ -3261,6 +3261,3 @@ class JoinCategory(CategoryWithParameters):
             except ValueError:
                 pass
         return "Join of " + " and ".join(str(cat) for cat in self._super_categories)
-
-
-

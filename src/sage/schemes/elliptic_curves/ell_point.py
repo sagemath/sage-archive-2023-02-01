@@ -128,10 +128,12 @@ import sage.rings.abc
 from sage.rings.integer import Integer
 from sage.rings.integer_ring import ZZ
 import sage.groups.generic as generic
-from sage.libs.pari import pari
+from sage.libs.pari.all import pari, PariError
 from cypari2.pari_instance import prec_words_to_bits
 from sage.structure.sequence import Sequence
 from sage.structure.richcmp import richcmp
+
+from sage.structure.coerce_actions import IntegerMulAction
 
 from sage.schemes.curves.projective_curve import Hasse_bounds
 from sage.schemes.projective.projective_point import (SchemeMorphism_point_projective_ring,
@@ -523,7 +525,7 @@ class EllipticCurvePoint_field(SchemeMorphism_point_abelian_variety_field):
         """
         return bool(self[2])
 
-    __nonzero__ = __bool__
+    
 
     def has_finite_order(self):
         """
@@ -636,7 +638,7 @@ class EllipticCurvePoint_field(SchemeMorphism_point_abelian_variety_field):
             sage: N = 35
             sage: E = EllipticCurve(Integers(N),[5,1])
             sage: P = E(0,1)
-            sage: LCM([2..6])*P
+            sage: 4*P
             Traceback (most recent call last):
             ...
             ZeroDivisionError: Inverse of 28 does not exist
@@ -2130,7 +2132,6 @@ class EllipticCurvePoint_number_field(EllipticCurvePoint_field):
         E = self.curve()
 
         # First try PARI
-        from sage.libs.pari.all import PariError
         try:
             n = E.pari_curve().ellorder(self)
             if n:
@@ -3481,6 +3482,48 @@ class EllipticCurvePoint_finite_field(EllipticCurvePoint_field):
         x, y = self.xy()
         return "%s![%s,%s]" % (E, x, y)
 
+    def _acted_upon_(self, other, side):
+        r"""
+        We implement ``_acted_upon_`` to keep track of cached
+        point orders when scalar multiplications are applied.
+
+        EXAMPLES::
+
+            sage: P = EllipticCurve(GF(65537), [2,2]).lift_x(6)
+            sage: P.order().factor()
+            2^2 * 3 * 37^2
+            sage: getattr(74*P, '_order', None)
+            222
+            sage: getattr(P*4070, '_order', None)
+            222
+            sage: getattr(506*P*37, '_order', None)
+            222
+        """
+        k = ZZ(other)
+        E = self.curve()
+
+        try:
+            pariQ = pari.ellmul(E, self, k)
+        except PariError:
+            pariQ = None
+
+        if pariQ is not None:
+            if pariQ == [0]:
+                vQ = 0
+            else:
+                assert len(pariQ) == 2
+                vQ = Sequence(tuple(pariQ) + (1,), E.base_field())
+            Q = EllipticCurvePoint_finite_field(E, vQ, check=False)
+
+        else:
+            Q = IntegerMulAction(ZZ, self.parent())._act_(k, self)
+
+        n = getattr(self, '_order', None)
+        if n is not None:
+            Q._order = n // n.gcd(k)  # Lagrange's theorem
+
+        return Q
+
     def discrete_log(self, Q, ord=None):
         r"""
         Return the discrete logarithm of `Q` to base `P` = ``self``,
@@ -3642,6 +3685,25 @@ class EllipticCurvePoint_finite_field(EllipticCurvePoint_field):
             sage: P = E.random_point()
             sage: P.order() # random
             46912611635760
+
+        TESTS:
+
+        Check that the order actually gets cached (:trac:`32786`)::
+
+            sage: E = EllipticCurve(GF(31337), [42,1])
+            sage: P = E.lift_x(1)
+            sage: hasattr(P, '_order')
+            False
+            sage: P.order()
+            15649
+            sage: P._order
+            15649
+
+        The curve order should also get cached as a side effect
+        of computing a point order::
+
+            sage: E._order
+            31298
         """
         try:
             return self._order
@@ -3649,7 +3711,13 @@ class EllipticCurvePoint_finite_field(EllipticCurvePoint_field):
             pass
 
         E = self.curve()
-        ord = getattr(E, "_order", None)  # get cached order of the curve
-        return Integer(E.pari_curve().ellorder(self, ord))
+
+        if getattr(E, '_order', None) is None:
+            # The curve order will be computed and cached by PARI during
+            # ellorder() anyway. We might as well cache it here too.
+            E._order = Integer(E.pari_curve().ellcard())
+
+        self._order = Integer(E.pari_curve().ellorder(self, E._order))
+        return self._order
 
     additive_order = order

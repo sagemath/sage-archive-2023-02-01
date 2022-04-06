@@ -382,9 +382,7 @@ class CombinatorialFreeModule(UniqueRepresentation, Module, IndexedGenerators):
             sage: F = CombinatorialFreeModule(GF(3), ['a','b','c'],
             ....:                             category=(Modules(GF(3)).WithBasis(), Semigroups()))
             sage: F.category()
-            Join of Category of finite semigroups
-                 and Category of finite dimensional modules with basis over Finite Field of size 3
-                 and Category of vector spaces with basis over Finite Field of size 3
+            Join of Category of finite semigroups and Category of finite dimensional vector spaces with basis over Finite Field of size 3
 
             sage: F = CombinatorialFreeModule(QQ, ['a','b','c'], category = FiniteDimensionalModulesWithBasis(QQ))
             sage: F.basis()
@@ -406,10 +404,10 @@ class CombinatorialFreeModule(UniqueRepresentation, Module, IndexedGenerators):
 
             sage: class MyAlgebra(CombinatorialFreeModule):
             ....:     def _repr_(self):
-            ....:         return "MyAlgebra on %s"%(self.basis().keys())
-            ....:     def product_on_basis(self,i,j):
+            ....:         return "MyAlgebra on %s" % (self.basis().keys())
+            ....:     def product_on_basis(self, i, j):
             ....:         pass
-            sage: MyAlgebra(ZZ, ZZ, category = AlgebrasWithBasis(QQ))
+            sage: MyAlgebra(ZZ, ZZ, category=AlgebrasWithBasis(QQ))
             MyAlgebra on Integer Ring
 
         A simpler example would be welcome!
@@ -1167,7 +1165,7 @@ class CombinatorialFreeModule_Tensor(CombinatorialFreeModule):
             F # G
 
             sage: T.category()
-            Category of finite dimensional tensor products of modules with basis over Integer Ring
+            Category of tensor products of finite dimensional modules with basis over Integer Ring
 
             sage: T.construction() # todo: not implemented
             [tensor, ]
@@ -1180,7 +1178,7 @@ class CombinatorialFreeModule_Tensor(CombinatorialFreeModule):
         The basis of T is indexed by tuples of basis indices of F and G::
 
             sage: T.basis().keys()
-            Image of Cartesian product of {1, 2}, {3, 4} by <class 'tuple'>
+            Image of Cartesian product of {1, 2}, {3, 4} by The map <class 'tuple'> from Cartesian product of {1, 2}, {3, 4}
             sage: T.basis().keys().list()
             [(1, 3), (1, 4), (2, 3), (2, 4)]
 
@@ -1557,7 +1555,7 @@ class CombinatorialFreeModule_Tensor(CombinatorialFreeModule):
             return super(CombinatorialFreeModule_Tensor, self)._coerce_map_from_(R)
 
 
-class CartesianProductWithFlattening(object):
+class CartesianProductWithFlattening():
     """
     A class for Cartesian product constructor, with partial flattening
     """
@@ -1780,23 +1778,19 @@ class CombinatorialFreeModule_CartesianProduct(CombinatorialFreeModule):
         The ``elements`` can be a generator as in :trac:`31453`::
 
             sage: from sage.categories.magmatic_algebras import (
-            ....:     MagmaticAlgebras
-            ....: )
+            ....:     MagmaticAlgebras)
             sage: class TrivialCFM(CombinatorialFreeModule):
             ....:     def __init__(self):
             ....:         c = MagmaticAlgebras(QQ).WithBasis().Unital()
             ....:         super().__init__(QQ,[1],category=c)
-            ....:
             ....:     def one(self):
             ....:         return self.monomial(0)
-            ....:
             sage: c1 = TrivialCFM()
             sage: c1.one()
             B[0]
             sage: CP = cartesian_product([c1,c1])
             sage: CP.one()
             B[(0, 0)] + B[(1, 0)]
-
         """
         return self.sum(self.summand_embedding(i)(element_i)
                         for (i, element_i) in zip(self._sets_keys(),

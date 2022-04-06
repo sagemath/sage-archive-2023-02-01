@@ -1760,7 +1760,7 @@ def sage_formatargspec(args, varargs=None, varkw=None, defaults=None,
         sage: defaults = [3]
         sage: sage_formatargspec(args, defaults=defaults)
         '(a, b, c=3)'
-        sage: import warnings; warnings.simplefilter('ignore')  # py3: ignore DeprecationWarning
+        sage: import warnings; warnings.simplefilter('ignore')  # ignore DeprecationWarning
         sage: formatargspec(args, defaults=defaults) == sage_formatargspec(args, defaults=defaults)
         True
     """
@@ -2310,12 +2310,12 @@ def sage_getsourcelines(obj):
     use a dummy parent class that has defined an element class by a
     nested class definition::
 
-        sage: from sage.misc.nested_class_test import TestNestedParent
+        sage: from sage.misc.test_nested_class import TestNestedParent
         sage: from sage.misc.sageinspect import sage_getsource
         sage: P = TestNestedParent()
         sage: E = P.element_class
         sage: E.__bases__
-        (<class 'sage.misc.nested_class_test.TestNestedParent.Element'>,
+        (<class 'sage.misc.test_nested_class.TestNestedParent.Element'>,
          <class 'sage.categories.sets_cat.Sets.element_class'>)
         sage: print(sage_getsource(E))
             class Element(object):

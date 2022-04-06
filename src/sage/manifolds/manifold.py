@@ -309,7 +309,7 @@ REFERENCES:
 
 """
 
-#*****************************************************************************
+# ****************************************************************************
 #       Copyright (C) 2015-2020 Eric Gourgoulhon <eric.gourgoulhon@obspm.fr>
 #       Copyright (C) 2015      Travis Scrimshaw <tscrimsh@umn.edu>
 #       Copyright (C) 2016      Andrew Mathas
@@ -322,30 +322,42 @@ REFERENCES:
 # it under the terms of the GNU General Public License as published by
 # the Free Software Foundation, either version 2 of the License, or
 # (at your option) any later version.
-#                  http://www.gnu.org/licenses/
-#*****************************************************************************
+#                  https://www.gnu.org/licenses/
+# ****************************************************************************
 
-from sage.categories.fields import Fields
-from sage.categories.manifolds import Manifolds
-from sage.categories.homset import Hom
+from __future__ import annotations
+
+from typing import TYPE_CHECKING, Optional, Union, overload
+
 import sage.rings.abc
-from sage.rings.cc import CC
-from sage.rings.real_mpfr import RR
-from sage.misc.prandom import getrandbits
-from sage.misc.cachefunc import cached_method
-from sage.rings.integer import Integer
-from sage.structure.global_options import GlobalOptions
+from sage.categories.fields import Fields
+from sage.categories.homset import Hom
+from sage.categories.manifolds import Manifolds
+from sage.manifolds.structure import (
+    DifferentialStructure,
+    RealDifferentialStructure,
+    RealTopologicalStructure,
+    TopologicalStructure,
+)
 from sage.manifolds.subset import ManifoldSubset
-from sage.manifolds.structure import(
-                            TopologicalStructure, RealTopologicalStructure,
-                            DifferentialStructure, RealDifferentialStructure)
+from sage.misc.cachefunc import cached_method
+from sage.misc.prandom import getrandbits
+from sage.rings.cc import CC
+from sage.rings.integer import Integer
+from sage.rings.real_mpfr import RR
+from sage.structure.global_options import GlobalOptions
+
+if TYPE_CHECKING:
+    from sage.manifolds.continuous_map import ContinuousMap
+    from sage.manifolds.differentiable.diff_map import DiffMap
+    from sage.manifolds.differentiable.manifold import DifferentiableManifold
 
 
 #############################################################################
-## Global options
+# Global options
 
 #############################################################################
-## Class
+# Class
 
 class TopologicalManifold(ManifoldSubset):
     r"""
@@ -2444,6 +2456,10 @@ class TopologicalManifold(ManifoldSubset):
         return homset(coord_functions, name=name, latex_name=latex_name,
                       is_isomorphism=True)
 
+    @overload
+    def identity_map(self: TopologicalManifold) -> ContinuousMap: ...
+    @overload
+    def identity_map(self: DifferentiableManifold) -> DiffMap: ...
     @cached_method
     def identity_map(self):
         r"""
@@ -2701,8 +2717,16 @@ class TopologicalManifold(ManifoldSubset):
 
 _manifold_id = Integer(0)
 
-def Manifold(dim, name, latex_name=None, field='real', structure=None,
-             start_index=0, **extra_kwds):
+
+def Manifold(
+    dim: int,
+    name: Optional[str],
+    latex_name: Optional[str] = None,
+    field: str = "real",
+    structure: Optional[str] = None,
+    start_index: int = 0,
+    **extra_kwds,
+) -> Union[TopologicalManifold, DifferentiableManifold]:
     r"""
     Construct a manifold of a given type over a topological field.
 

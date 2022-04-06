@@ -543,7 +543,6 @@ class MatrixSpace(UniqueRepresentation, Parent):
             ....:     @staticmethod
             ....:     def __classcall__(cls, base_ring, nrows, ncols=None, my_option=True, sparse=False, implementation=None):
             ....:         return super(MyMatrixSpace, cls).__classcall__(cls, base_ring, nrows, ncols=ncols, my_option=my_option, sparse=sparse, implementation=implementation)
-            ....:
             ....:     def __init__(self, base_ring, nrows, ncols, sparse,  implementation, my_option=True):
             ....:         super(MyMatrixSpace, self).__init__(base_ring, nrows, ncols, sparse, implementation)
             ....:         self._my_option = my_option
@@ -2050,7 +2049,7 @@ class MatrixSpace(UniqueRepresentation, Parent):
         One-rowed matrices over combinatorial free modules used to break
         the constructor (:trac:`17124`). Check that this is fixed::
 
-            sage: Sym = SymmetricFunctions(QQ)
+            sage: Sym = SymmetricFunctions(ZZ)
             sage: h = Sym.h()
             sage: MatrixSpace(h,1,1)([h[1]])
             [h[1]]

@@ -1021,8 +1021,13 @@ class EllipticCurveIsogeny(EllipticCurveHom):
             self.__set_post_isomorphism(old_codomain, post_isom)   #(trac #7096)
 
         # Inheritance house keeping
-
         self.__perform_inheritance_housekeeping()
+
+        # over finite fields, isogenous curves have the same number
+        # of rational points, hence we copy over cached curve orders
+        if self.__base_field.is_finite():
+            self._codomain._fetch_cached_order(self._domain)
+            self._domain._fetch_cached_order(self._codomain)
 
     def _eval(self, P):
         r"""
@@ -1083,7 +1088,6 @@ class EllipticCurveIsogeny(EllipticCurveHom):
 
         k = Sequence(tuple(P) + tuple(Q)).universe()
         return self._codomain.base_extend(k).point(Q)
-
 
     def _call_(self, P):
         r"""
@@ -2020,6 +2024,30 @@ class EllipticCurveIsogeny(EllipticCurveHom):
             sage: phi._EllipticCurveIsogeny__compute_via_velu(x, y)
             ((x^4 - 2*x^3 + x^2 - 3*x)/(x^3 - 2*x^2 + 3*x - 2),
              (x^5*y - 2*x^3*y - x^2*y - 2*x*y + 2*y)/(x^5 + 3*x^3 + 3*x^2 + x - 1))
+
+        TESTS:
+
+        Check for :trac:`33214`::
+
+            sage: z2 = GF(71^2).gen()
+            sage: E = EllipticCurve(GF(71^2), [5,5])
+            sage: phi = E.isogeny(E.lift_x(0))
+            sage: from sage.schemes.elliptic_curves.weierstrass_morphism import WeierstrassIsomorphism
+            sage: pre = WeierstrassIsomorphism(None, (z2,7,8,9), E)
+            sage: phi = phi * pre
+            sage: P = phi.domain()(1, 46*z2+49)
+            sage: phi(P)  # indirect doctest
+            (33 : 61*z2 + 10 : 1)
+
+        The rational maps are also computed via this code path; check
+        that they are plausible (this failed prior to :trac:`33214`)::
+
+            sage: fx,fy = phi.rational_maps()  # indirect doctest
+            sage: R.<x,y> = GF(71^2)[]
+            sage: E0, E2 = phi.domain(), phi.codomain()
+            sage: eqs = [EE.defining_polynomial()(x,y,1) for EE in (E0,E2)]
+            sage: eqs[1](fx,fy).numerator() % eqs[0]
+            0
         """
         ker_2tor = self.__kernel_2tor
         ker_non2tor = self.__kernel_non2tor
@@ -2027,8 +2055,13 @@ class EllipticCurveIsogeny(EllipticCurveHom):
         X = 0
         Y = 0
 
-        a1 = self.__E1.a1()
-        a3 = self.__E1.a3()
+        if self.__pre_isomorphism is None:
+            E = self.__E1
+        else:
+            E = self.__pre_isomorphism.codomain()
+
+        a1 = E.a1()
+        a3 = E.a3()
 
         # next iterate over the 2torsion points of the kernel
         for Qvalues in ker_2tor.values():
@@ -3320,7 +3353,7 @@ class EllipticCurveIsogeny(EllipticCurveHom):
 
         # trac 7096
         # this should take care of the case when the isogeny is not normalized.
-        u = self.formal()[1]
+        u = self.formal(prec=2)[1]
         isom = WeierstrassIsomorphism(E2pr, (u/F(d), 0, 0, 0))
 
         E2 = isom.codomain()
@@ -3343,10 +3376,9 @@ class EllipticCurveIsogeny(EllipticCurveHom):
         # the composition has the degree as a leading coefficient in
         # the formal expansion.
 
-        phi_sc = self.formal()[1]
-        phihat_sc = phi_hat.formal()[1]
+        phihat_sc = phi_hat.formal(prec=2)[1]
 
-        sc = phi_sc * phihat_sc/F(d)
+        sc = u * phihat_sc/F(d)
 
         if sc == 0:
             raise RuntimeError("Bug in computing dual isogeny: sc = 0")

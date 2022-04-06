@@ -25,8 +25,6 @@ extensions = [
     'sage_docbuild.ext.sage_autodoc',
     'sphinx.ext.todo',
     'sphinx.ext.extlinks',
-    # Mathjax integration
-    # https://www.sphinx-doc.org/en/master/usage/extensions/math.html#module-sphinx.ext.mathjax
     'sphinx.ext.mathjax',
     'IPython.sphinxext.ipython_directive',
     'matplotlib.sphinxext.plot_directive',

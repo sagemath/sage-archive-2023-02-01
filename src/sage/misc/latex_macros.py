@@ -50,8 +50,9 @@ def produce_latex_macro(name, *sample_args):
 
     INPUT:
 
-    -  ``name`` - name of macro to be defined, also name of corresponding Sage object
-    -  ``sample_args`` - (optional) sample arguments for this Sage object
+    -  ``name`` -- name of macro to be defined, also name of corresponding Sage object
+
+    -  ``sample_args`` -- (optional) sample arguments for this Sage object
 
     EXAMPLES::
 
@@ -109,7 +110,7 @@ def convert_latex_macro_to_mathjax(macro):
 
     INPUT:
 
-    -  ``macro`` - LaTeX macro definition
+    -  ``macro`` -- LaTeX macro definition
 
     See the web page
     https://docs.mathjax.org/en/latest/input/tex/macros.html for a
@@ -197,7 +198,7 @@ def sage_latex_macros():
 def sage_mathjax_macros():
     r"""
     Return Sage's macro definitions for usage with MathJax.
-    
+
     This feeds each item output by :func:`sage_latex_macros` to
     :func:`convert_latex_macro_to_mathjax`.
 
@@ -207,6 +208,4 @@ def sage_mathjax_macros():
         sage: sage_mathjax_macros()
         {'Bold': ['\\mathbf{#1}', 1], 'CC': '\\Bold{C}', ...
     """
-    return dict(
-        [convert_latex_macro_to_mathjax(m) for m in sage_latex_macros()]
-    )
+    return dict(convert_latex_macro_to_mathjax(m) for m in sage_latex_macros())

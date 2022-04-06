@@ -14,41 +14,23 @@ Install from Source Code
 .. contents:: Table of contents
    :depth: 2
 
-More familiarity with computers may be required to build Sage from
-the :wikipedia:`source code <Source_code>`.
-If you do have all the :ref:`pre-requisite tools <section-prereqs>`,
-the process should be completely
-painless, basically consisting in extracting the source tarball and typing
-``make``.  It can take your computer a while to build Sage from the source code,
-although the procedure is fully automated and should need no human
-intervention.
+Some familiarity with the use of the Unix command line may be required to
+build Sage from the :wikipedia:`source code <Source_code>`.
 
 Building Sage from the source code has the major advantage that your install
 will be optimized for your particular computer and should therefore offer
 better performance and compatibility than a binary install.
+
 Moreover, it offers you full development capabilities:
 you can change absolutely any part of Sage or the programs on which it depends,
 and recompile the modified parts.
 
-`Download the Sage source code <https://www.sagemath.org/download-source.html>`_
-or get it from the `git repository <https://github.com/sagemath/sage>`_.
-Note: if you  are installing Sage for development, you should rather follow
-the instructions in
-`The Sage Developer's Guide <https://doc.sagemath.org/html/en/developer/walk_through.html#chapter-walkthrough>`_.
+See the file `README.md <https://github.com/sagemath/sage/#readme>`_
+in ``SAGE_ROOT`` for information on supported platforms and
+step-by-step instructions.
 
-It is also possible to download a
-`binary distribution <https://www.sagemath.org/download.html>`_
-for some operating systems, rather than compiling from source.
-
-Supported platforms
--------------------
-
-Sage runs on all major :wikipedia:`Linux <Linux>`
-distributions, `macOS <https://www.apple.com/macosx/>`_ , and Windows
-(via the `Cygwin <https://cygwin.com/>`_ Linux API layer).
-
-Other installation options for Windows are using the Windows Subsystem
-for Linux (WSL), or with the aid of a :wikipedia:`virtual machine <Virtual_machine>`.
+The following sections provide some additional details. Most users
+will not need to read them.
 
 .. _section-prereqs:
 

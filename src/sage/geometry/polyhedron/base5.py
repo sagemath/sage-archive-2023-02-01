@@ -1060,6 +1060,23 @@ class Polyhedron_base5(Polyhedron_base4):
             'cdd'
             sage: Q.join(P).backend()
             'ppl'
+
+        Check that the double description is set up correctly::
+
+            sage: P = polytopes.cross_polytope(4)
+            sage: P1 = polytopes.cross_polytope(4, backend='field')
+            sage: P.join(P) == P1.join(P1)
+            True
+
+            sage: P = 4*polytopes.hypercube(4)
+            sage: P1 = 4*polytopes.hypercube(4, backend='field')
+            sage: P.join(P) == P1.join(P1)
+            True
+
+            sage: P = polytopes.permutahedron(4)
+            sage: P1 = polytopes.permutahedron(4, backend='field')
+            sage: P.join(P) == P1.join(P1)
+            True
         """
         try:
             new_ring = self.parent()._coerce_base_ring(other)

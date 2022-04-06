@@ -1071,6 +1071,7 @@ class Polyhedron_base5(Polyhedron_base4):
 
         dim_self = self.ambient_dim()
         dim_other = other.ambient_dim()
+        parent = self.parent().change_ring(new_ring, ambient_dim=self.ambient_dim() + other.ambient_dim() + 1)
 
         new_vertices1 = (list(x) + [0]*dim_other + [0] for x in self.vertex_generator())
         new_vertices2 = ([0]*dim_self + list(x) + [1] for x in other.vertex_generator())
@@ -1084,8 +1085,41 @@ class Polyhedron_base5(Polyhedron_base4):
         new_lines2 = ([0]*dim_self + list(l) + [1] for l in other.line_generator())
         new_lines = chain(new_lines1, new_lines2)
 
-        parent = self.parent().change_ring(new_ring, ambient_dim=self.ambient_dim() + other.ambient_dim() + 1)
-        return parent.element_class(parent, [new_vertices, new_rays, new_lines], None)
+        if not self.is_compact() or not other.is_compact() or self.n_vertices() <= 1 or other.n_vertices() <= 1:
+            # Cases for which the below double description does not work.
+            return parent.element_class(parent, [new_vertices, new_rays, new_lines], None)
+
+        # Facet defining inequalities that contain the corresponding vertices from ``new_vertices1``
+        # and all vertices from ``new_vertices2``.
+        new_inequalities1 = ([i[0]] + list(i[1:]) + [0]*dim_other + [-i[0]] for i in self.inequality_generator())
+
+        # Facet defining inequalities that contain the corresponding vertices from ``new_vertices2``
+        # and all vertices from ``new_vertices1``.
+        new_inequalities2 = ([0] + [0]*dim_self + list(i[1:]) + [i[0]] for i in other.inequality_generator())
+
+        new_inequalities = chain(new_inequalities1, new_inequalities2)
+
+        # Equations that all vertices corresponing to ``new_vertices1`` satisfy.
+        # For any vertex from ``new_vertices2`` the condition is trivial.
+        new_equations1 = ([e[0]] + list(e[1:]) + [0]*dim_other + [-e[0]] for e in self.equation_generator())
+
+        # Equations that all vertices corresponing to ``new_vertices2`` satisfy.
+        # For any vertex from ``new_vertices1`` the condition is trivial.
+        new_equations2 = ([0] + [0]*dim_self + list(e[1:]) + [e[0]] for e in other.equation_generator())
+
+        new_equations = chain(new_equations1, new_equations2)
+
+        new_n_inequalities = self.n_inequalities() + other.n_inequalities()
+        new_n_vertices = self.n_vertices() + other.n_vertices()
+        new_n_rays = self.n_rays() + other.n_rays()
+
+        pref_rep = 'Vrep' if new_n_vertices + new_n_rays <= new_n_inequalities else 'Hrep'
+
+        return parent.element_class(parent,
+                                    [new_vertices, new_rays, new_lines],
+                                    [new_inequalities, new_equations],
+                                    Vrep_minimal=True, Hrep_minimal=True,
+                                    pref_rep=pref_rep)
 
     def subdirect_sum(self, other):
         """

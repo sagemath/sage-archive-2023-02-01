@@ -196,7 +196,7 @@ in the Installation Guide.
     - [Cygwin] Avoid building in home directories of Windows domain
       users or in paths with capital letters.
 
-2.  Download/unpack the sources.
+2.  Download/unpack or clone the sources.
 
     - Go to https://www.sagemath.org/download-source.html, select a mirror,
       and download the file :file:`sage-x.y.tar.gz`.
@@ -214,12 +214,16 @@ in the Installation Guide.
 
             $ cd sage-x.y/  # adapt x.y
 
-    - [Git] Alternatively, clone the Sage git repository:
+    - [Git] Alternatively, and required for Sage development, clone the Sage
+      git repository:
 
             $ ORIG=https://github.com/sagemath/sage.git
             $ git clone -c core.symlinks=true --branch develop --tags $ORIG
 
-      This will create the directory `sage`.
+      This will create the directory `sage`. (See the section
+      [Setting up git](https://doc.sagemath.org/html/en/developer/git_setup.html)
+      and the following sections in the Sage Developer's Guide
+      for more information.)
 
       Change into it and pick the branch you need, typically
       the latest development branch:

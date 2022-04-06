@@ -1,5 +1,5 @@
-database_cubic_hecke: Ivan Marin's representations of the cubic Hecke algebra on 4 strands as Python dictionaries
-=================================================================================================================
+database_cubic_hecke: Ivan Marin's representations of the cubic Hecke algebra
+=============================================================================
 
 Description
 -----------

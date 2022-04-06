@@ -762,7 +762,7 @@ class CubicHeckeFileCache(SageObject):
         if section == self.section.matrix_representations:
             for rep_type in RepresentationType:
                 new_dict = {}
-                empty_dict.update({rep_type: new_dict})
+                empty_dict.update({rep_type.name: new_dict})
         elif section == self.section.basis_extensions:
             empty_dict = []
         data_lib.update({section: empty_dict})
@@ -797,7 +797,7 @@ class CubicHeckeFileCache(SageObject):
         from sage.algebras.hecke_algebras.cubic_hecke_matrix_rep import RepresentationType
         if section == self.section.matrix_representations:
             for rep_type in RepresentationType:
-                if len(data_lib[rep_type]) > 0:
+                if len(data_lib[rep_type.name]) > 0:
                     return False
             return True
 
@@ -890,6 +890,8 @@ class CubicHeckeFileCache(SageObject):
         except IOError:
             self.reset_library(section)
             verbose('... not found!')
+        except (ImportError, ModuleNotFoundError):
+            raise ImportError('incompatible file cache! Move %s to another directory' % fname)
 
         return data_lib[section]
 
@@ -942,7 +944,7 @@ class CubicHeckeFileCache(SageObject):
         if not isinstance(representation_type, RepresentationType):
             raise TypeError('representation_type must be an instance of enum %s' % RepresentationType)
 
-        matrix_representations = self.read(self.section.matrix_representations)[representation_type]
+        matrix_representations = self.read(self.section.matrix_representations)[representation_type.name]
         if monomial_tietze in matrix_representations.keys():
             matrix_list_dict = matrix_representations[monomial_tietze]
             matrix_list = [matrix(ring_of_definition, mat_dict, sparse=True) for mat_dict in matrix_list_dict]
@@ -994,7 +996,7 @@ class CubicHeckeFileCache(SageObject):
         if not isinstance(representation_type, RepresentationType):
             raise TypeError('representation_type must be an instance of enum %s' % RepresentationType)
 
-        matrix_representations = self.read(self.section.matrix_representations)[representation_type]
+        matrix_representations = self.read(self.section.matrix_representations)[representation_type.name]
 
         if monomial_tietze in matrix_representations.keys():
             # entry already registered

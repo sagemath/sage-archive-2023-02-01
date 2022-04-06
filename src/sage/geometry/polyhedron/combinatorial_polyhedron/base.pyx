@@ -1036,7 +1036,7 @@ cdef class CombinatorialPolyhedron(SageObject):
         # It is essential to have the facets in the exact same order as
         # on input, so that pickle/unpickle by :meth:`reduce` works.
         # Every facet knows its index by the facet representation.
-        face_iter = self.face_iter(self.dimension() - 1, dual=False)
+        face_iter = self.face_iter(self.dimension() - 1, algorithm='primal')
         facets = [None] * self.n_facets()
         for face in face_iter:
             index = face.ambient_H_indices()[0]
@@ -1148,7 +1148,7 @@ cdef class CombinatorialPolyhedron(SageObject):
                 for Vindex in range(self.n_Vrepresentation()):
                     incidence_matrix.set_unsafe_int(Vindex, Hindex, 1)
 
-        facet_iter = self.face_iter(self.dimension() - 1, dual=False)
+        facet_iter = self.face_iter(self.dimension() - 1, algorithm='primal')
         for facet in facet_iter:
             Hindex = facet.ambient_H_indices()[0]
             for Vindex in facet.ambient_V_indices():
@@ -1521,7 +1521,7 @@ cdef class CombinatorialPolyhedron(SageObject):
             sage: C.facet_graph()
             Graph on 10 vertices
         """
-        face_iter = self.face_iter(self.dimension() - 1, dual=False)
+        face_iter = self.face_iter(self.dimension() - 1, algorithm='primal')
         if names:
             V = list(facet.ambient_Hrepresentation() for facet in face_iter)
         else:
@@ -1620,7 +1620,7 @@ cdef class CombinatorialPolyhedron(SageObject):
                 return DiGraph([[v], []])
 
         # The face iterator will iterate through the facets in opposite order.
-        facet_iter = self.face_iter(self.dimension() - 1, dual=False)
+        facet_iter = self.face_iter(self.dimension() - 1, algorithm='primal')
         n_facets = self.n_facets()
         n_Vrep = self.n_Vrepresentation()
 
@@ -2445,6 +2445,7 @@ cdef class CombinatorialPolyhedron(SageObject):
         To check this property it suffices to check for all facets of the polyhedron.
         """
         if not self.is_compact():
+
             raise ValueError("polyhedron has to be compact")
 
         n_facets = self.n_facets()
@@ -2595,16 +2596,13 @@ cdef class CombinatorialPolyhedron(SageObject):
         """
         return self.face_generator().meet_of_Hrep(*indices)
 
-    def face_generator(self, dimension=None, dual=None, algorithm=None):
+    def face_generator(self, dimension=None, algorithm=None, **kwds):
         r"""
         Iterator over all proper faces of specified dimension.
 
         INPUT:
 
         - ``dimension`` -- if specified, then iterate over only this dimension
-        - ``dual`` -- boolean (default ``None``);
-          if ``True``, pick dual algorithm
-          if ``False``, pick primal algorithm
         - ``algorithm`` -- string (optional);
           specify whether to start with facets or vertices:
           * ``'primal'`` -- start with the facets
@@ -2682,17 +2680,38 @@ cdef class CombinatorialPolyhedron(SageObject):
             (A ray in the direction (1, 0), A vertex at (1, 0))
             (A ray in the direction (0, 1), A vertex at (0, 1))
 
+        TESTS:
+
+        The kewword ``dual`` is deprecated::
+
+            sage: C = CombinatorialPolyhedron([[0,1,2],[0,1,3],[0,2,3],[1,2,3]])
+            sage: it = C.face_generator(1, False)
+            doctest:...: DeprecationWarning: the keyword dual is deprecated; use algorithm instead
+            See https://trac.sagemath.org/33646 for details.
+            sage: it = C.face_generator(1, dual=True)
+
         .. SEEALSO::
 
             :class:`~sage.geometry.polyhedron.combinatorial_polyhedron.face_iterator.FaceIterator`,
             :class:`~sage.geometry.polyhedron.combinatorial_polyhedron.combinatorial_face.CombinatorialFace`.
         """
+        dual = None
         if algorithm == 'primal':
             dual = False
         elif algorithm == 'dual':
             dual = True
+        elif algorithm in (False, True):
+            from sage.misc.superseded import deprecation
+            deprecation(33646, "the keyword dual is deprecated; use algorithm instead")
+            dual = algorithm
         elif algorithm is not None:
             raise ValueError("algorithm must be 'primal', 'dual' or None")
+
+        if kwds:
+            from sage.misc.superseded import deprecation
+            deprecation(33646, "the keyword dual is deprecated; use algorithm instead")
+            if 'dual' in kwds and dual is None:
+                dual = kwds['dual']
 
         cdef FaceIterator face_iter
         if dual is None:

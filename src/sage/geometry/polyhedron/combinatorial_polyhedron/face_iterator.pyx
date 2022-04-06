@@ -829,7 +829,7 @@ cdef class FaceIterator_base(SageObject):
         In non-dual mode we construct the meet of facets::
 
             sage: P = polytopes.cube()
-            sage: it = P.face_generator(dual=False)
+            sage: it = P.face_generator(algorithm='primal')
             sage: it._meet_of_coatoms(1,2)
             A 1-dimensional face of a Polyhedron in ZZ^3 defined as the convex hull of 2 vertices
             sage: it._meet_of_coatoms(1,2,3)
@@ -840,7 +840,7 @@ cdef class FaceIterator_base(SageObject):
         In dual mode we construct the join of vertices/rays::
 
             sage: P = polytopes.cube()
-            sage: it = P.face_generator(dual=True)
+            sage: it = P.face_generator(algorithm='dual')
             sage: it._meet_of_coatoms(1,2)
             A 1-dimensional face of a Polyhedron in ZZ^3 defined as the convex hull of 2 vertices
             sage: it._meet_of_coatoms(1,2,3)
@@ -938,7 +938,7 @@ cdef class FaceIterator_base(SageObject):
         In dual mode we construct the meet of facets::
 
             sage: P = polytopes.cube()
-            sage: it = P.face_generator(dual=True)
+            sage: it = P.face_generator(algorithm='dual')
             sage: it._join_of_atoms(1,2)
             A 1-dimensional face of a Polyhedron in ZZ^3 defined as the convex hull of 2 vertices
             sage: it._join_of_atoms(1,2,3)
@@ -949,7 +949,7 @@ cdef class FaceIterator_base(SageObject):
         In non-dual mode we construct the join of vertices/rays::
 
             sage: P = polytopes.cube()
-            sage: it = P.face_generator(dual=False)
+            sage: it = P.face_generator(algorithm='primal')
             sage: it._join_of_atoms(1,2)
             A 1-dimensional face of a Polyhedron in ZZ^3 defined as the convex hull of 2 vertices
             sage: it._join_of_atoms(1,2,3)
@@ -1639,12 +1639,12 @@ cdef class FaceIterator_geom(FaceIterator_base):
 
     Construct faces by the dual or not::
 
-        sage: it = P.face_generator(dual=False)
+        sage: it = P.face_generator(algorithm='primal')
         sage: _ = next(it), next(it)
         sage: next(it).dim()
         2
 
-        sage: it = P.face_generator(dual=True)
+        sage: it = P.face_generator(algorithm='dual')
         sage: _ = next(it), next(it)
         sage: next(it).dim()
         0
@@ -1672,7 +1672,7 @@ cdef class FaceIterator_geom(FaceIterator_base):
          (A vertex at (0, 0, 0), A ray in the direction (0, 1, 0)),
          (A vertex at (0, 0, 0),),
          (A vertex at (0, 0, 0), A ray in the direction (0, 0, 1))]
-        sage: it = P.face_generator(dual=True)
+        sage: it = P.face_generator(algorithm='dual')
         Traceback (most recent call last):
         ...
         ValueError: cannot iterate over dual of unbounded Polyedron
@@ -1692,7 +1692,7 @@ cdef class FaceIterator_geom(FaceIterator_base):
     In non-dual mode one can ignore all faces contained in the current face::
 
         sage: P = polytopes.cube()
-        sage: it = P.face_generator(dual=False)
+        sage: it = P.face_generator(algorithm='primal')
         sage: _ = next(it), next(it)
         sage: face = next(it)
         sage: face.ambient_H_indices()
@@ -1717,7 +1717,7 @@ cdef class FaceIterator_geom(FaceIterator_base):
          (0, 1, 2),
          (0, 1)]
 
-        sage: it = P.face_generator(dual=True)
+        sage: it = P.face_generator(algorithm='dual')
         sage: _ = next(it), next(it)
         sage: next(it)
         A 0-dimensional face of a Polyhedron in ZZ^3 defined as the convex hull of 1 vertex
@@ -1729,7 +1729,7 @@ cdef class FaceIterator_geom(FaceIterator_base):
     In dual mode one can ignore all faces that contain the current face::
 
         sage: P = polytopes.cube()
-        sage: it = P.face_generator(dual=True)
+        sage: it = P.face_generator(algorithm='dual')
         sage: _ = next(it), next(it)
         sage: next(it)
         A 0-dimensional face of a Polyhedron in ZZ^3 defined as the convex hull of 1 vertex
@@ -1762,7 +1762,7 @@ cdef class FaceIterator_geom(FaceIterator_base):
          (1, 2),
          (0, 1)]
 
-        sage: it = P.face_generator(dual=False)
+        sage: it = P.face_generator(algorithm='primal')
         sage: _ = next(it), next(it)
         sage: next(it)
         A 2-dimensional face of a Polyhedron in ZZ^3 defined as the convex hull of 4 vertices

@@ -1067,21 +1067,22 @@ class Polyhedron_base5(Polyhedron_base4):
             raise TypeError("no common canonical parent for objects with parents: " + str(self.parent())
                      + " and " + str(other.parent()))
 
+        from itertools import chain
+
         dim_self = self.ambient_dim()
         dim_other = other.ambient_dim()
 
-        new_vertices = [list(x)+[0]*dim_other+[0] for x in self.vertex_generator()] + \
-                       [[0]*dim_self+list(x)+[1] for x in other.vertex_generator()]
-        new_rays = []
-        new_rays.extend( [ r+[0]*dim_other+[0]
-                           for r in self.ray_generator() ] )
-        new_rays.extend( [ [0]*dim_self+r+[1]
-                           for r in other.ray_generator() ] )
-        new_lines = []
-        new_lines.extend( [ l+[0]*dim_other+[0]
-                            for l in self.line_generator() ] )
-        new_lines.extend( [ [0]*dim_self+l+[1]
-                            for l in other.line_generator() ] )
+        new_vertices1 = (list(x) + [0]*dim_other + [0] for x in self.vertex_generator())
+        new_vertices2 = ([0]*dim_self + list(x) + [1] for x in other.vertex_generator())
+        new_vertices = chain(new_vertices1, new_vertices2)
+
+        new_rays1 = (list(r) + [0]*dim_other + [0] for r in self.ray_generator())
+        new_rays2 = ([0]*dim_self + list(r) + [1] for r in other.ray_generator())
+        new_rays = chain(new_rays1, new_rays2)
+
+        new_lines1 = (list(l) + [0]*dim_other + [0] for l in self.line_generator())
+        new_lines2 = ([0]*dim_self + list(l) + [1] for l in other.line_generator())
+        new_lines = chain(new_lines1, new_lines2)
 
         parent = self.parent().change_ring(new_ring, ambient_dim=self.ambient_dim() + other.ambient_dim() + 1)
         return parent.element_class(parent, [new_vertices, new_rays, new_lines], None)

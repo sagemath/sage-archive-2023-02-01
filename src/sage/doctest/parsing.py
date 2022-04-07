@@ -104,26 +104,6 @@ def RIFtol(*args):
 ansi_escape_sequence = re.compile(r'(\x1b[@-Z\\-~]|\x1b\[.*?[@-~]|\x9b.*?[@-~])')
 
 
-# Collection of fixups applied in the SageOutputChecker.  Each element in this
-# this list a pair of functions applied to the actual test output ('g' for
-# "got") and the expected test output ('w' for "wanted").  The first function
-# should be a simple fast test on the expected and/or actual output to
-# determine if a fixup should be applied.  The second function is the actual
-# fixup, which is applied if the test function passes.  In most fixups only one
-# of the expected or received outputs are normalized, depending on the
-# application.
-_repr_fixups = [
-    (lambda g, w: "Long-step" in g,
-     lambda g, w: (glpk_simplex_warning_regex.sub('', g), w)),
-
-    (lambda g, w: "dylib" in g,
-     lambda g, w: (ld_warning_regex.sub('', g), w)),
-
-    (lambda g, w: "pie being ignored" in g,
-     lambda g, w: (ld_pie_warning_regex.sub('', g), w))
-]
-
-
 def parse_optional_tags(string):
     """
     Return a set consisting of the optional tags from the following
@@ -984,9 +964,17 @@ class SageOutputChecker(doctest.OutputChecker):
 
         A tuple:
 
-        - bool, True when some fixup were performed
-        - string, (unchanged) wanted string
+        - bool, ``True`` when some fixup were performed and ``False`` otherwise
+        - string, edited wanted string
         - string, edited got string
+
+        .. NOTE::
+
+            Currently, the code only possibly changes the string ``got``
+            while keeping ``want`` invariant. We keep open the possibility
+            of adding a regular expression which would also change the
+            ``want`` string. This is why ``want`` is an input and an output
+            of the method even if currently kept invariant.
 
         EXAMPLES::
 
@@ -1020,11 +1008,20 @@ class SageOutputChecker(doctest.OutputChecker):
         """
         did_fixup = False
 
-        for quick_check, fixup in _repr_fixups:
-            do_fixup = quick_check(got, want)
-            if do_fixup:
-                got, want = fixup(got, want)
-                did_fixup = True
+        # The conditions in the below `if` are simple fast test on the expected
+        # and/or actual output to determine if a fixup should be applied.
+
+        if "Long-step" in got:
+            got = glpk_simplex_warning_regex.sub('', got)
+            did_fixup = True
+
+        if "dylib" in got:
+            got = ld_warning_regex.sub('', got)
+            did_fixup = True
+
+        if "pie being ignored" in got:
+            got = ld_pie_warning_regex.sub('', got)
+            did_fixup = True
 
         return did_fixup, want, got
 

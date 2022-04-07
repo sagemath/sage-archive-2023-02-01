@@ -35,10 +35,10 @@ Construction::
 Obtaining edges and ridges::
 
     sage: C.edges()[:2]
-    ((A vertex at (-1, -1, -1, 1), A vertex at (-1, -1, -1, -1)),
-     (A vertex at (-1, 1, -1, -1), A vertex at (-1, -1, -1, -1)))
+    ((A vertex at (1, -1, -1, -1), A vertex at (-1, -1, -1, -1)),
+     (A vertex at (-1, -1, -1, 1), A vertex at (-1, -1, -1, -1)))
     sage: C.edges(names=False)[:2]
-    ((14, 15), (10, 15))
+    ((6, 15), (14, 15))
 
     sage: C.ridges()[:2]
     ((An inequality (0, 0, 1, 0) x + 1 >= 0,

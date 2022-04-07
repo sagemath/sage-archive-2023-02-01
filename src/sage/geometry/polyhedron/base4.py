@@ -151,7 +151,7 @@ class Polyhedron_base4(Polyhedron_base3):
           indices of the Vrepresentation
 
         - ``algorithm`` -- string (optional);
-          specify whether the face iterator starts with facets or vertices:
+          specify whether the face generator starts with facets or vertices:
           * ``'primal'`` -- start with the facets
           * ``'dual'`` -- start with the vertices
           * ``None`` -- choose automatically

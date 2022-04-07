@@ -1181,7 +1181,7 @@ cdef class CombinatorialPolyhedron(SageObject):
           their indices in the Vrepresentation
 
         - ``algorithm`` -- string (optional);
-          specify whether the face iterator starts with facets or vertices:
+          specify whether the face generator starts with facets or vertices:
           * ``'primal'`` -- start with the facets
           * ``'dual'`` -- start with the vertices
           * ``None`` -- choose automatically
@@ -1265,7 +1265,7 @@ cdef class CombinatorialPolyhedron(SageObject):
           indices of the Vrepresentation
 
         - ``algorithm`` -- string (optional);
-          specify whether the face iterator starts with facets or vertices:
+          specify whether the face generator starts with facets or vertices:
           * ``'primal'`` -- start with the facets
           * ``'dual'`` -- start with the vertices
           * ``None`` -- choose automatically
@@ -1303,7 +1303,7 @@ cdef class CombinatorialPolyhedron(SageObject):
         INPUT:
 
         - ``algorithm`` -- string (optional);
-          specify whether the face iterator starts with facets or vertices:
+          specify whether the face generator starts with facets or vertices:
           * ``'primal'`` -- start with the facets
           * ``'dual'`` -- start with the vertices
           * ``None`` -- choose automatically
@@ -1371,7 +1371,7 @@ cdef class CombinatorialPolyhedron(SageObject):
           if ``False``, then the facets are given by their indices
 
         - ``algorithm`` -- string (optional);
-          specify whether the face iterator starts with facets or vertices:
+          specify whether the face generator starts with facets or vertices:
           * ``'primal'`` -- start with the facets
           * ``'dual'`` -- start with the vertices
           * ``None`` -- choose automatically
@@ -1494,7 +1494,7 @@ cdef class CombinatorialPolyhedron(SageObject):
         INPUT:
 
         - ``algorithm`` -- string (optional);
-          specify whether the face iterator starts with facets or vertices:
+          specify whether the face generator starts with facets or vertices:
           * ``'primal'`` -- start with the facets
           * ``'dual'`` -- start with the vertices
           * ``None`` -- choose automatically
@@ -1549,7 +1549,7 @@ cdef class CombinatorialPolyhedron(SageObject):
         INPUT:
 
         - ``algorithm`` -- string (optional);
-          specify whether the face iterator starts with facets or vertices:
+          specify whether the face generator starts with facets or vertices:
           * ``'primal'`` -- start with the facets
           * ``'dual'`` -- start with the vertices
           * ``None`` -- choose automatically
@@ -1719,7 +1719,7 @@ cdef class CombinatorialPolyhedron(SageObject):
           how deep in the lattice the parallelization is done
 
         - ``algorithm`` -- string (optional);
-          specify whether the face iterator starts with facets or vertices:
+          specify whether the face generator starts with facets or vertices:
           * ``'primal'`` -- start with the facets
           * ``'dual'`` -- start with the vertices
           * ``None`` -- choose automatically
@@ -2674,7 +2674,7 @@ cdef class CombinatorialPolyhedron(SageObject):
         - ``dimension`` -- if specified, then iterate over only this dimension
 
         - ``algorithm`` -- string (optional);
-          specify whether the face iterator starts with facets or vertices:
+          specify whether the face generator starts with facets or vertices:
           * ``'primal'`` -- start with the facets
           * ``'dual'`` -- start with the vertices
           * ``None`` -- choose automatically

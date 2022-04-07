@@ -4,7 +4,6 @@ set -e
 
 [ -n "${SAGE_ROOT}" ] || SAGE_ROOT="$(pwd)/../../../"
 
-
 # determine latest version.
 GIT_VERSION="$(curl https://github.com/mathjax/MathJax/releases | grep  'MathJax v' | head -1 | sed 's|^.*MathJax v||g' | sed 's/\s*$//g')"
 echo "GIT_VERSION=$GIT_VERSION"
@@ -19,8 +18,10 @@ else
     tar xzf "$UPSTREAM_SOURCE_TARBALL"
 fi
 
-mv MathJax-${GIT_VERSION}/es5 src
+mkdir src
+mv MathJax-${GIT_VERSION}/es5 src/mathjax
 rm -r MathJax-${GIT_VERSION}
+
 
 PACKAGE_VERSION=${GIT_VERSION}
 

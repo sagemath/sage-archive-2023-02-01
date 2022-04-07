@@ -961,14 +961,13 @@ class SageOutputChecker(doctest.OutputChecker):
 
         if doctest.OutputChecker.check_output(self, want, got, optionflags):
             return True
-
-        # Last resort: try to fix-up the got string removing few typical warnings
-        did_fixup, want, got = self.do_fixup(want, got)
-
-        if not did_fixup:
-            return False
-
-        return doctest.OutputChecker.check_output(self, want, got, optionflags)
+        else:
+            # Last resort: try to fix-up the got string removing few typical warnings
+            did_fixup, want, got = self.do_fixup(want, got)
+            if did_fixup:
+                return doctest.OutputChecker.check_output(self, want, got, optionflags)
+            else:
+                return False
 
     def do_fixup(self, want, got):
         r"""

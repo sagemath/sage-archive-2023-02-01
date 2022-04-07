@@ -1176,7 +1176,7 @@ cdef class CombinatorialPolyhedron(SageObject):
 
         INPUT:
 
-        - ``names`` -- boolean (default: ``True``); if ``True``,
+        - ``names`` -- boolean (default: ``True``); if ``False``,
           then the Vrepresentatives in the edges are given by
           their indices in the Vrepresentation
 

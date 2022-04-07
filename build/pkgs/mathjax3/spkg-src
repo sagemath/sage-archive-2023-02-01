@@ -20,6 +20,7 @@ else
 fi
 
 mv MathJax-${GIT_VERSION}/es5 src
+rm -r MathJax-${GIT_VERSION}
 
 PACKAGE_VERSION=${GIT_VERSION}
 

@@ -1,7 +1,7 @@
 import sys
 import os
 import sphinx
-from sage.env import SAGE_DOC_SRC, SAGE_DOC, THEBE_DIR, PPLPY_DOCS, MATHJAX_DIR
+from sage.env import SAGE_SHARE, SAGE_DOC_SRC, SAGE_DOC, THEBE_DIR, PPLPY_DOCS
 from sage.misc.latex_macros import sage_mathjax_macros
 import sage.version
 from sage.misc.sagedoc import extlinks
@@ -284,16 +284,17 @@ mathjax3_config = {
         "autoload": {"color": [], "colorv2": ["color"]},
     },
 }
-mathjax_path = "https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-chtml.js"
 
-mathjax_relative = os.path.basename(MATHJAX_DIR)
+if os.environ.get('SAGE_OFFLINE_DOC', 'no') == 'yes':
+    mathjax_path = 'mathjax/tex-chtml.js'
+    html_common_static_path += [os.path.join(SAGE_SHARE, 'mathjax3')]
+else:
+    mathjax_path = "https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-chtml.js"
 
-# It would be really nice if sphinx would copy the entire mathjax
-# directory, (so we could have a _static/mathjax directory), rather than
-# the contents of the directory
-html_common_static_path.append(MATHJAX_DIR)
-exclude_patterns += ['**/' + os.path.join(mathjax_relative, i)
-                     for i in ('docs', 'README*', 'test', 'unpacked', 'LICENSE')]
+# A list of glob-style patterns that should be excluded when looking for source
+# files. They are matched against the source file names relative to the
+# source directory, using slashes as directory separators on all platforms.
+exclude_patterns = []
 
 # If not '', a 'Last updated on:' timestamp is inserted at every page bottom,
 # using the given strftime format.

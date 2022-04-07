@@ -22,7 +22,6 @@ mkdir src
 mv MathJax-${GIT_VERSION}/es5 src/mathjax
 rm -r MathJax-${GIT_VERSION}
 
-
 PACKAGE_VERSION=${GIT_VERSION}
 
 # repack

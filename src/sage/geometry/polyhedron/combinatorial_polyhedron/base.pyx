@@ -1554,8 +1554,8 @@ cdef class CombinatorialPolyhedron(SageObject):
           * ``'dual'`` -- start with the vertices
           * ``None`` -- choose automatically
 
-        If ``names`` is ``False``, the ``vertices`` of the graph  will
-        be the incidences of the facets in the Hrepresentation.
+        If ``names`` is ``False``, the ``vertices`` of the graph will
+        be the indices of the facets in the Hrepresentation.
 
         EXAMPLES::
 

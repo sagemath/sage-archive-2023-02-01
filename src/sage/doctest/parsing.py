@@ -946,18 +946,73 @@ class SageOutputChecker(doctest.OutputChecker):
         if ok:
             return ok
 
-        did_fixup = False
-        for quick_check, fixup in _repr_fixups:
-            do_fixup = quick_check(got, want)
-            if do_fixup:
-                got, want = fixup(got, want)
-                did_fixup = True
+        # Last resort: try to fix-up the got string removing few typical warnings
+        did_fixup, want, got = self.do_fixup(want, got)
 
         if not did_fixup:
             # Return the same result as before
             return ok
 
         return doctest.OutputChecker.check_output(self, want, got, optionflags)
+
+    def do_fixup(self, want, got):
+        r"""
+        Performs few changes to the strings ``want`` and ``got``.
+
+        For example, remove warnings to be ignored.
+
+        INPUT:
+
+        - ``want`` -- a string or :class:`MarkedOutput`
+        - ``got`` -- a string
+
+        OUTPUT:
+
+        A tuple:
+
+        - bool, True when some fixup were performed
+        - string, (unchanged) wanted string
+        - string, edited got string
+
+        EXAMPLES::
+
+            sage: from sage.doctest.parsing import SageOutputChecker
+            sage: OC = SageOutputChecker()
+            sage: OC.do_fixup('1.3090169943749475','1.3090169943749475')
+            (False, '1.3090169943749475', '1.3090169943749475')
+            sage: OC.do_fixup('1.3090169943749475','ANYTHING1.3090169943749475')
+            (False, '1.3090169943749475', 'ANYTHING1.3090169943749475')
+            sage: OC.do_fixup('1.3090169943749475','Long-step dual simplex will be used\n1.3090169943749475')
+            (True, '1.3090169943749475', '\n1.3090169943749475')
+
+        When ``want`` is an instance of class :class:`MarkedOutput`::
+
+            sage: from sage.doctest.parsing import SageOutputChecker, SageDocTestParser
+            sage: import doctest
+            sage: optflag = doctest.NORMALIZE_WHITESPACE|doctest.ELLIPSIS
+            sage: DTP = SageDocTestParser(('sage','magma','guava'))
+            sage: OC = SageOutputChecker()
+            sage: example = "sage: 1.3090169943749475\n1.3090169943749475"
+            sage: ex = DTP.parse(example)[1]
+            sage: ex.want
+            '1.3090169943749475\n'
+            sage: OC.do_fixup(ex.want,'1.3090169943749475')
+            (False, '1.3090169943749475\n', '1.3090169943749475')
+            sage: OC.do_fixup(ex.want,'ANYTHING1.3090169943749475')
+            (False, '1.3090169943749475\n', 'ANYTHING1.3090169943749475')
+            sage: OC.do_fixup(ex.want,'Long-step dual simplex will be used\n1.3090169943749475')
+            (True, '1.3090169943749475\n', '\n1.3090169943749475')
+
+        """
+        did_fixup = False
+
+        for quick_check, fixup in _repr_fixups:
+            do_fixup = quick_check(got, want)
+            if do_fixup:
+                got, want = fixup(got, want)
+                did_fixup = True
+
+        return did_fixup, want, got
 
     def output_difference(self, example, got, optionflags):
         r"""

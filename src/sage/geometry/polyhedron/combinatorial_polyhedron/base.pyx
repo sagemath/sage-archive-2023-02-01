@@ -3561,22 +3561,33 @@ cdef class CombinatorialPolyhedron(SageObject):
             # Determine whether to use dual mode or not.
             if not self.is_bounded():
                 dual = 0
-            elif do_edges:
-                if self.n_Vrepresentation() > self.n_facets()*self.n_facets():
-                    # This is a wild estimate
-                    # that in this case it is better not to use the dual.
-                    dual = 0
-                else:
-                    # In most bounded cases, one should use the dual.
-                    dual = 1
+
             else:
-                if self.n_Vrepresentation()*self.n_Vrepresentation() < self.n_facets():
-                    # This is a wild estimate
-                    # that in this case it is better to use the dual.
-                    dual = 1
+                if self.is_simple():
+                    per_face_primal = self.n_Vrepresentation() * self.n_facets()
                 else:
-                    # In most bounded cases, one should not use the dual.
-                    dual = 0
+                    per_face_primal = self.n_Vrepresentation() * self.n_facets() ** 2
+
+                if self.is_simplicial():
+                    per_face_dual = self.n_Vrepresentation() * self.n_facets()
+                else:
+                    per_face_dual = self.n_Vrepresentation() ** 2 * self.n_facets()
+
+                from sage.arith.misc import binomial
+                estimate_n_faces = self.dimension() * binomial(min(self.n_facets(), self.n_Vrepresentation()),
+                                                             self.dimension() // 2)
+
+                # Note that the runtime per face already computes the coatoms of the next level, i.e.
+                # the runtime for each facet suffices to compute all ridges in primal,
+                # the runtime for each vertex suffices to compute all edges in dual.
+                if do_edges:
+                    estimate_primal = estimate_n_faces * per_face_primal
+                    estimate_dual = self.n_Vrepresentation() * per_face_dual
+                else:
+                    estimate_primal = self.n_facets() * per_face_primal
+                    estimate_dual = estimate_n_faces * per_face_dual
+
+                dual = int(estimate_dual < estimate_primal)
 
         cdef FaceIterator face_iter
         cdef int dim = self.dimension()

@@ -567,7 +567,7 @@ cdef class Matrix_complex_ball_dense(Matrix_dense):
         """
         cdef Py_ssize_t nc = self._ncols
         cdef Py_ssize_t nr = self._nrows
-        cdef Matrix_complex_ball_dense trans = self._new_matrix(nc, nr)
+        cdef Matrix_complex_ball_dense trans = self._new(nc, nr)
         acb_mat_transpose(trans.value, self.value)
         return trans
 

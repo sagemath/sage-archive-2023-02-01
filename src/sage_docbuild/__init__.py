@@ -47,7 +47,6 @@ import sys
 import time
 import types
 import warnings
-from pathlib import Path
 
 import sphinx.util.console
 import sphinx.ext.intersphinx
@@ -153,11 +152,6 @@ def builder_helper(type):
             # #25161
             if ABORT_ON_ERROR:
                 raise Exception("Non-exception during docbuild: %s" % (e,), e)
-
-#        if type == 'html' and os.environ.get('SAGE_OFFLINE_DOC', 'no') == 'yes':
-#            if Path(self.dir).parent.parent.name == 'doc':
-#                logger.warning("Copying mathjax files...")
-#                shutil.copytree(os.path.join(SAGE_SHARE, 'mathjax3'), output_dir)
 
         if "/latex" in output_dir:
             logger.warning("LaTeX file written to {}".format(output_dir))
@@ -1579,12 +1573,12 @@ def setup_parser():
     standard.add_argument("--no-prune-empty-dirs", dest="no_prune_empty_dirs",
                           action="store_true",
                           help="do not prune empty directories in the documentation sources")
-    standard.add_argument("-N", "--no-colors", dest="color",
-                          action="store_false",
-                          help="do not color output; does not affect children")
     standard.add_argument("--offline-doc", dest="offline_doc", default=True,
                           action="store_true",
                           help="do not assume internet connection; in particular, do not use MathJax CDN")
+    standard.add_argument("-N", "--no-colors", dest="color",
+                          action="store_false",
+                          help="do not color output; does not affect children")
     standard.add_argument("-q", "--quiet", dest="verbose",
                           action="store_const", const=0,
                           help="work quietly; same as --verbose=0")

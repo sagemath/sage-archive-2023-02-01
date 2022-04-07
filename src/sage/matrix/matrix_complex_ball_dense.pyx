@@ -921,7 +921,7 @@ cdef class Matrix_complex_ball_dense(Matrix_dense):
 
         A list of triples of the form ``(eigenvalue, [eigenvector], 1)``.
 
-        Unlike :meth:`eigenvalues` and :meth:`eigenvectors_right_approx`, this
+        Unlike :meth:`eigenvalues` and :meth:`eigenvectors_left_approx`, this
         method currently fails in the presence of multiple eigenvalues.
 
         Additionally, there is currently no guarantee that the algorithm

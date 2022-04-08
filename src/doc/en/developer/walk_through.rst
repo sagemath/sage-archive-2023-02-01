@@ -86,8 +86,11 @@ to the develop branch (latest development release)::
 
 Next, compile Sage, following the instruction in the file
 `README.md <https://github.com/sagemath/sage/#readme>`_ in ``SAGE_ROOT``.
-Additional details can be found in `the Sage installation guide
-<http://doc.sagemath.org/html/en/installation/source.html>`_.
+Additional details can be found in the
+`section on installation from source <../installation/source.html>`_
+in the Sage installation guide.
+If you wish to use conda-forge, see the `section on conda
+<../installation/conda.html>`_.
 
 .. NOTE::
 
@@ -113,7 +116,7 @@ Sage source code and which you can upload to trac tickets.
 
 To begin with, type the command ``git branch``. You will see the following::
 
-    [user@localhost]$ git branch
+    [user@localhost sage]$ git branch
     * develop
       master
 
@@ -141,7 +144,7 @@ to it. For this, you have to use ``git checkout``::
 
 Now if you use the command ``git branch``, you will see the following::
 
-    [user@localhost]$ git branch
+    [user@localhost sage]$ git branch
       develop
     * last_twin_prime
       master

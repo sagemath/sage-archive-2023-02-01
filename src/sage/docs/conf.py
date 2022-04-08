@@ -285,11 +285,11 @@ mathjax3_config = {
     },
 }
 
-if os.environ.get('SAGE_OFFLINE_DOC', 'no') == 'yes':
+if os.environ.get('SAGE_USE_CDNS', 'no') == 'yes':
+    mathjax_path = "https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-chtml.js"
+else:
     mathjax_path = 'mathjax/tex-chtml.js'
     html_common_static_path += [os.path.join(SAGE_SHARE, 'mathjax3')]
-else:
-    mathjax_path = "https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-chtml.js"
 
 # A list of glob-style patterns that should be excluded when looking for source
 # files. They are matched against the source file names relative to the

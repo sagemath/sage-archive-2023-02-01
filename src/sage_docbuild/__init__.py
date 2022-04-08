@@ -54,7 +54,7 @@ import sphinx.ext.intersphinx
 import sage.all
 from sage.misc.cachefunc import cached_method
 # Do not import SAGE_DOC globally as it interferes with doctesting with a random replacement
-from sage.env import SAGE_SHARE, SAGE_DOC_SRC, SAGE_SRC, DOT_SAGE
+from sage.env import SAGE_DOC_SRC, SAGE_SRC, DOT_SAGE
 
 from .build_options import (LANGUAGES, SPHINXOPTS, OMIT,
                             ALLSPHINXOPTS, NUM_THREADS, WEBSITESPHINXOPTS,
@@ -1573,9 +1573,9 @@ def setup_parser():
     standard.add_argument("--no-prune-empty-dirs", dest="no_prune_empty_dirs",
                           action="store_true",
                           help="do not prune empty directories in the documentation sources")
-    standard.add_argument("--offline-doc", dest="offline_doc", default=True,
+    standard.add_argument("--use-cdns", dest="use-cdns", default=False,
                           action="store_true",
-                          help="do not assume internet connection; in particular, do not use MathJax CDN")
+                          help="assume internet connection and use CDNs; in particular, use MathJax CDN")
     standard.add_argument("-N", "--no-colors", dest="color",
                           action="store_false",
                           help="do not color output; does not affect children")
@@ -1744,8 +1744,8 @@ def main():
         os.environ['SAGE_SKIP_PLOT_DIRECTIVE'] = 'yes'
     if args.skip_tests:
         os.environ['SAGE_SKIP_TESTS_BLOCKS'] = 'True'
-    if args.offline_doc:
-        os.environ['SAGE_OFFLINE_DOC'] = 'yes'
+    if args.use_cdns:
+        os.environ['SAGE_USE_CDNS'] = 'yes'
 
     ABORT_ON_ERROR = not args.keep_going
 

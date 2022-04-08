@@ -1573,7 +1573,7 @@ def setup_parser():
     standard.add_argument("--no-prune-empty-dirs", dest="no_prune_empty_dirs",
                           action="store_true",
                           help="do not prune empty directories in the documentation sources")
-    standard.add_argument("--use-cdns", dest="use-cdns", default=False,
+    standard.add_argument("--use-cdns", dest="use_cdns", default=False,
                           action="store_true",
                           help="assume internet connection and use CDNs; in particular, use MathJax CDN")
     standard.add_argument("-N", "--no-colors", dest="color",

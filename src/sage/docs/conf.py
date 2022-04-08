@@ -1,7 +1,7 @@
 import sys
 import os
 import sphinx
-from sage.env import SAGE_SHARE, SAGE_DOC_SRC, SAGE_DOC, THEBE_DIR, PPLPY_DOCS
+from sage.env import SAGE_DOC_SRC, SAGE_DOC, THEBE_DIR, PPLPY_DOCS, MATHJAX_DIR
 from sage.misc.latex_macros import sage_mathjax_macros
 import sage.version
 from sage.misc.sagedoc import extlinks
@@ -289,7 +289,7 @@ if os.environ.get('SAGE_USE_CDNS', 'no') == 'yes':
     mathjax_path = "https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-chtml.js"
 else:
     mathjax_path = 'mathjax/tex-chtml.js'
-    html_common_static_path += [os.path.join(SAGE_SHARE, 'mathjax3')]
+    html_common_static_path += [MATHJAX_DIR]
 
 # A list of glob-style patterns that should be excluded when looking for source
 # files. They are matched against the source file names relative to the

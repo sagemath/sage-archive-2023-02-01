@@ -262,19 +262,17 @@ html_common_static_path = [os.path.join(SAGE_DOC_SRC, 'common', 'static'),
 
 # We use MathJax to build the documentation.
 extensions.append('sphinx.ext.mathjax')
-mathjax_path = 'MathJax.js?config=TeX-AMS_HTML-full,../mathjax_sage.js'
+mathjax_path = 'mathjax/tex-chtml.js'
 
 from sage.misc.latex_macros import sage_mathjax_macros
 html_theme_options['mathjax_macros'] = sage_mathjax_macros()
 
-mathjax_relative = os.path.basename(MATHJAX_DIR)
-
-# It would be really nice if sphinx would copy the entire mathjax
-# directory, (so we could have a _static/mathjax directory), rather than
-# the contents of the directory
 html_common_static_path.append(MATHJAX_DIR)
-exclude_patterns += ['**/' + os.path.join(mathjax_relative, i)
-                     for i in ('docs', 'README*', 'test', 'unpacked', 'LICENSE')]
+
+# A list of glob-style patterns that should be excluded when looking for source
+# files. They are matched against the source file names relative to the
+# source directory, using slashes as directory separators on all platforms.
+exclude_patterns = []
 
 # If not '', a 'Last updated on:' timestamp is inserted at every page bottom,
 # using the given strftime format.

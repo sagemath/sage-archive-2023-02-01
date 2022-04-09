@@ -23,38 +23,6 @@ mkdir src
 mv MathJax-${GIT_VERSION}/es5 src/mathjax
 rm -r MathJax-${GIT_VERSION}
 
-
-# The following block of commented-out lines were used to reduce the package
-# size of MathJax2. We keep these lines for the future when we will want to
-# reuse and rewrite them to remove unnecessary font files from MathJax3.
-
-## Trimming I -- removing files unnecessary for deployment
-#FILEDIRS_TO_REMOVE='docs/ test/ unpacked/ .gitignore README-branch.txt README.md bower.json'
-#for filedir in ${FILEDIRS_TO_REMOVE} ; do
-#    rm -rf "src/${filedir}"
-#done
-#
-## Trimming II -- not strictly necessary (requires the patch nopng_config.patch)
-#rm -rf 'src/fonts/HTML-CSS/TeX/png/'
-#
-## Trimming III -- fonts
-#FONTS_TO_REMOVE='Asana-Math Gyre-Pagella Gyre-Termes Latin-Modern Neo-Euler'
-#for font in ${FONTS_TO_REMOVE} ; do
-#    find . -type d -name "${font}" -prune -exec rm -rf {} \;
-#done
-#
-#FONT_FORMATS_TO_REMOVE='eot otf svg'
-#for fontformat in ${FONT_FORMATS_TO_REMOVE} ; do
-#    find . -type d -name "${fontformat}" -prune -exec rm -rf {} \;
-#done
-#
-## Trimming IV -- reducing input and output options
-#OUTPUT_OPTIONS_TO_REMOVE='NativeMML SVG'
-#for output in ${OUTPUT_OPTIONS_TO_REMOVE} ; do
-#    rm -rf "src/jax/output/${output}"
-#done
-
-
 PACKAGE_VERSION=${GIT_VERSION}
 
 # repackage
@@ -64,5 +32,3 @@ rm -rf src
 # update package info
 echo "${PACKAGE_VERSION}" > 'package-version.txt'
 "$SAGE_ROOT"/sage --package fix-checksum mathjax
-
-

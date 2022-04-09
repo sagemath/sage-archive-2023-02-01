@@ -171,7 +171,8 @@ successfully, it would be possible to merge in our branch
 ``some_code`` into develop. This would produce the same source files
 and avoid unnecessary recompilations. However, it makes reading git's
 history very unpleasant: For example, it is hard to keep track of changes etc.,
-as one cannot simply pursue the first parent of each git commit.
+as one cannot simply pursue the first parent of each git commit
+(``git log --first-parent``).
 
 
 .. _section-git-recovery:

@@ -348,25 +348,6 @@ reloaded into Sage:
     Hello World
     16
 
-.. index:: installation of Sage
-
-.. _section-installALL:
-
-Installation for the impatient
-==============================
-
-We shall explain the basic steps for installing the most recent
-version of Sage (which is the "source" version, not the "binary").
-
-
-#. Download ``sage-*.tar`` (where ``*`` denotes the version number)
-   from the website and save into a directory, say ``HOME``. Type
-   ``tar zxvf sage-*.tar`` in ``HOME``.
-
-#. cd ``sage-*`` (we call this ``SAGE_ROOT``) and type ``make``. Now be
-   patient because this process make take 2 hours or so.
-
-
 .. index:: Python and Sage
 
 Python language program code for Sage commands

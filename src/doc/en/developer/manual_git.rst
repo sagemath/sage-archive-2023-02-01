@@ -2,19 +2,11 @@
 
 .. _chapter-manual-git:
 
-================
-Git the Hard Way
-================
+===================================
+Using Git with the Sage Trac Server
+===================================
 
-If you have no ``git`` experience, we recommend you to read the
-:ref:`chapter-git_trac` chapter instead. The ``git-trac`` simplifies the
-interaction with our git and trac servers.
-
-If you want to contribute using ``git`` only, you are at the right place. This
-chapter will tell you how to do so, assuming some basic familiarity with ``git``. In
-particular, you should have read :ref:`chapter-walkthrough` first.
-
-Randall Munroe has provided a `basic overview <http://xkcd.com/1597/>`_.
+Now we continue our introduction to git from :ref:`chapter-walkthrough`.
 
 In the following, we assume that you are in the source directory of Sage (``SAGE_ROOT``),
 obtained either from a source tarball or by cloning a Sage git repository

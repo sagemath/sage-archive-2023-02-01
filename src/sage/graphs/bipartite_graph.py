@@ -11,7 +11,8 @@ AUTHORS:
 - Ryan W. Hinton (2010-03-04): overrides for adding and deleting vertices
   and edges
 
-- Enjeck M. Cleopatra (2022)
+- Enjeck M. Cleopatra(2022): fixes incorrect partite sets and adds graph
+  creation from graph6 string
 
 TESTS::
 
@@ -2300,3 +2301,139 @@ class BipartiteGraph(Graph):
 
         B.delete_edges(edges_to_delete)
         return B
+
+    def canonical_label(self, partition=None, certificate=False,
+                        edge_labels=False, algorithm=None, return_graph=True):
+        r"""
+        Return the canonical graph.
+
+        A canonical graph is the representative graph of an isomorphism
+        class by some canonization function `c`. If `G` and `H` are graphs,
+        then `G \cong c(G)`, and `c(G) == c(H)` if and only if `G \cong H`.
+
+        See the :wikipedia:`Graph_canonization` for more information.
+
+        INPUT:
+
+        - ``partition`` -- if given, the canonical label with respect
+          to this set partition will be computed. The default is the unit
+          set partition.
+
+        - ``certificate`` -- boolean (default: ``False``). When set to
+          ``True``, a dictionary mapping from the vertices of the (di)graph
+          to its canonical label will also be returned.
+
+        - ``edge_labels`` -- boolean (default: ``False``). When set to
+          ``True``, allows only permutations respecting edge labels.
+
+        - ``algorithm`` -- a string (default: ``None``). The algorithm to use;
+          currently available:
+
+          * ``'bliss'``: use the optional package bliss
+            (http://www.tcs.tkk.fi/Software/bliss/index.html);
+          * ``'sage'``: always use Sage's implementation.
+          * ``None`` (default): use bliss when available and possible
+
+            .. NOTE::
+
+                Make sure you always compare canonical forms obtained by the
+                same algorithm.
+
+        - ``return_graph`` -- boolean (default: ``True``). When set to
+          ``False``, returns the list of edges of the canonical graph
+          instead of the canonical graph; only available when ``'bliss'``
+          is explicitly set as algorithm.
+
+        EXAMPLES::
+
+            sage: B = BipartiteGraph( [(0, 4), (0, 5), (0, 6), (0, 8), (1, 5), 
+            ....:                      (1, 7), (1, 8), (2, 6), (2, 7), (2, 8),
+            ....:                      (3, 4), (3, 7), (3, 8), (4, 9), (5, 9), 
+            ....:                      (6, 9), (7, 9)] )
+            sage: C = B.canonical_label(partition=(B.left,B.right), algorithm='sage')
+            sage: C
+            Bipartite graph on 10 vertices
+            sage: C.left
+            {0, 1, 2, 3, 4}
+            sage: C.right
+            {5, 6, 7, 8, 9}
+
+        ::
+
+            sage: B = BipartiteGraph( [(0, 4), (0, 5), (0, 6), (0, 8), (1, 5), 
+            ....:                      (1, 7), (1, 8), (2, 6), (2, 7), (2, 8),
+            ....:                      (3, 4), (3, 7), (3, 8), (4, 9), (5, 9), 
+            ....:                      (6, 9), (7, 9)] )
+            sage: C, cert = B.canonical_label(partition=(B.left,B.right), certificate=True, algorithm='sage')
+            sage: C
+            Bipartite graph on 10 vertices
+            sage: C.left
+            {0, 1, 2, 3, 4}
+            sage: C.right
+            {5, 6, 7, 8, 9}
+            sage: cert == {0: 3, 1: 0, 2: 1, 3: 2, 4: 5, 5: 7, 6: 6, 7: 8, 8: 9, 9: 4}
+            True
+
+        ::
+
+            sage: G = Graph({0: [5, 6], 1: [4, 5], 2: [4, 6], 3: [4, 5, 6]})
+            sage: B = BipartiteGraph(G)
+            sage: C = B.canonical_label(partition=(B.left,B.right), edge_labels=True, algorithm='sage')
+            sage: C.left
+            {0, 1, 2, 3}
+            sage: C.right
+            {4, 5, 6}
+
+        .. SEEALSO::
+
+            :meth:`~sage.graphs.generic_graph.GenericGraph.canonical_label()`
+
+        """
+        
+        if certificate:
+            C, cert = GenericGraph.canonical_label(self, partition=partition, certificate=certificate, edge_labels=edge_labels, algorithm=algorithm, return_graph=return_graph)
+        
+        else:
+            from sage.groups.perm_gps.partn_ref.refinement_graphs import search_tree
+            from sage.graphs.graph import Graph
+            from sage.graphs.generic_graph import graph_isom_equivalent_non_edge_labeled_graph
+            from itertools import chain
+
+            cert = {}
+            
+            if edge_labels or self.has_multiple_edges():
+                G, partition, relabeling = graph_isom_equivalent_non_edge_labeled_graph(self, partition, return_relabeling=True)
+                G_vertices = list(chain(*partition))
+                G_to = {u: i for i,u in enumerate(G_vertices)}
+                H = Graph(len(G_vertices))
+                HB = H._backend
+                for u,v in G.edge_iterator(labels=False):
+                    HB.add_edge(G_to[u], G_to[v], None, False)
+                GC = HB.c_graph()[0]
+                partition = [[G_to[vv] for vv in cell] for cell in partition]
+                a, b, c = search_tree(GC, partition, certificate=True, dig=False)
+                # c is a permutation to the canonical label of G, 
+                # which depends only on isomorphism class of self.
+                cert = {v: c[G_to[relabeling[v]]] for v in self}
+            
+            else:
+                G_vertices = list(chain(*partition))
+                G_to = {u: i for i,u in enumerate(G_vertices)}
+                H = Graph(len(G_vertices))
+                HB = H._backend
+                for u, v in self.edge_iterator(labels=False):
+                    HB.add_edge(G_to[u], G_to[v], None, False)
+                GC = HB.c_graph()[0]
+                partition = [[G_to[vv] for vv in cell] for cell in partition]
+                a, b, c = search_tree(GC, partition, certificate=True, dig=False)
+                cert = {v: c[G_to[v]] for v in G_to}
+
+            C = self.relabel(perm=cert, inplace=False)
+
+        C.left = {cert[v] for v in self.left}
+        C.right = {cert[v] for v in self.right}
+
+        if certificate:
+            return C, cert
+        else:
+            return C

@@ -1957,6 +1957,7 @@ cdef class CombinatorialPolyhedron(SageObject):
         """
         return self.is_bounded() and (self.dim()+1 == self.n_vertices())
 
+    @cached_method
     def is_simplicial(self):
         r"""
         Test whether the polytope is simplicial.
@@ -2067,6 +2068,7 @@ cdef class CombinatorialPolyhedron(SageObject):
                 d = dim
         return smallInteger(simpliciality)
 
+    @cached_method
     def is_simple(self):
         r"""
         Test whether the polytope is simple.

@@ -266,21 +266,23 @@ package :mod:`sage.numerical.backends` and some modules in
 
 *Documentation:* https://docs.pytest.org/en/stable/index.html
 
-Pyright 
-===============================
+Pyright
+=======
 `Pyright <https://github.com/microsoft/pyright>`_ is static type checker.
 
-*Installation:* ``npm install -g pyright``, see `documentation <https://github.com/microsoft/pyright#installation>`__ for details.
+*Installation:*
+
+- (for manual use:) ``npm install -g pyright``, see `documentation <https://github.com/microsoft/pyright#installation>`__ for details.
 
 *Usage:*
+
+- Tox: Run ``./sage -tox -e pyright path/to/the/file.py``
 
 - Manual: Run ``pyright path/to/the/file.py``
 
 - VS Code: Install the `Pylance <https://marketplace.visualstudio.com/items?itemName=ms-python.vscode-pylance>`__ extension.
 
 *Configuration:* ``SAGE_ROOT/pyrightconfig.json``
-
-*Note*: Currently, only the package :mod:`sage.manifolds` is checked. Further packages can be added in the ``pyrightconfig.json`` file.
 
 *Documentation:* https://github.com/microsoft/pyright#documentation
 

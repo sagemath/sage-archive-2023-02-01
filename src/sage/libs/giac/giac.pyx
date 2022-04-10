@@ -1926,8 +1926,7 @@ cdef  gen pylongtogen(a) except +:
         # when cythonizing with cython 0.24:
         # g=-g gives an Invalid operand type for '-' (gen)
         g=GIAC_neg(g)
-    return g;
-
+    return g
 
 
 #############################################################
@@ -2033,8 +2032,8 @@ class GiacFunctionNoEV(Pygen):
 #############################################################
 # Some convenient settings
 ############################################################
-Pygen('printpow(1)').eval() ; # default power is ^
-Pygen('add_language(1)').eval(); # Add the french keywords in the giac library language.
+Pygen('printpow(1)').eval()  # default power is ^
+Pygen('add_language(1)').eval()  # Add the french keywords in the giac library language.
 # FIXME: print I for sqrt(-1) instead of i
 # GIAC_try_parse_i(False,context_ptr); (does not work??)
 

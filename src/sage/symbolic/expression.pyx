@@ -13557,7 +13557,7 @@ cdef get_dynamic_class_for_function(unsigned serial):
         ....:     def __init__(self):
         ....:         BuiltinFunction.__init__(self, 'tfunc', nargs=1)
         ....:
-        ....:     class EvaluationMethods(object):
+        ....:     class EvaluationMethods():
         ....:         def argp1(self, x):
         ....:             '''
         ....:             Some documentation about a bogus function.
@@ -13602,7 +13602,7 @@ cdef get_dynamic_class_for_function(unsigned serial):
         ....:     def __init__(self):
         ....:         BuiltinFunction.__init__(self, 'tfunc', nargs=2)
         ....:
-        ....:     class EvaluationMethods(object):
+        ....:     class EvaluationMethods():
         ....:         def argsum(self, x, y):
         ....:             return x + y
         ....:

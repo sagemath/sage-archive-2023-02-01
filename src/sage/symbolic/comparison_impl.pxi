@@ -86,7 +86,7 @@ cpdef int print_order(lhs, rhs) except -2:
     return print_order_c(lhs, rhs)
 
 
-class _print_key(object):
+class _print_key():
 
     def __init__(self, ex):
         """
@@ -154,7 +154,7 @@ cpdef print_sorted(expressions):
     return sorted(expressions, key=_print_key)
 
 
-class _math_key(object):
+class _math_key():
 
     def __init__(self, ex):
         """
@@ -297,7 +297,7 @@ cpdef int mixed_order(lhs, rhs) except -2:
         return 0
 
 
-class _mixed_key(object):
+class _mixed_key():
 
     def __init__(self, ex):
         """

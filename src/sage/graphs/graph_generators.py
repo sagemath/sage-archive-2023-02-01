@@ -1028,14 +1028,19 @@ class GraphGenerators():
                 -d<int>  : specify a lower bound for the minimum degree
                            Again, you can specify it separately for the two parts,
                            for example -d1:2
-                -v       : display counts by number of edges to stder
+                -v       : display counts by number of edges to stderr
                 -l       : canonically label output graphs
-                -q       : suppress auxiliary output (except from -v)
 
         Options which cause ``genbg`` to use an output format different than the
         ``graph6`` format are not listed above (-s, -a) as they will confuse the
-        creation of a Sage graph.  The res/mod option can be useful when using
-        the output in a routine run several times in parallel.
+        creation of a Sage graph. Option ``-q`` which suppress auxiliary output
+        (except from ``-v``) should never be used as we are unable to recover
+        the partition of the vertices of the bipartite graph without the
+        auxilary output. Hence the partition of the vertices of returned
+        bipartite graphs might not respect the requirement.
+
+        The res/mod option can be useful when using the output in a routine run
+        several times in parallel.
 
         OUTPUT:
 
@@ -1082,18 +1087,23 @@ class GraphGenerators():
             17
 
         The ``debug`` switch can be used to examine ``genbg``'s reaction to the
-        input in the ``options`` string.  We illustrate success.  (A failure
-        will be a string beginning with ">E".)  Passing the "-q" switch to
-        ``genbg`` will suppress the indicator of a successful initiation, and so
-        the first returned value might be an empty string if ``debug`` is
-        ``True``::
+        input in the ``options`` string. A message starting with ">A" indicates
+        success and a message starting with ">E" indicates a failure::
 
             sage: gen = graphs.nauty_genbg("2 3", debug=True)
             sage: print(next(gen))
             >A ...genbg n=2+3 e=0:6 d=0:0 D=3:2
-            sage: gen = graphs.nauty_genbg("2 3 -q", debug=True)
+            sage: gen = graphs.nauty_genbg("-c2 3", debug=True)
             sage: next(gen)
-            ''
+            '>E Usage: ...genbg [-c -ugs -vq -lzF] [-Z#] [-D#] [-A] [-d#|-d#:#] [-D#|-D#:#] n1 n2...
+
+        Check that the partition of the bipartite graph is consistent::
+
+            sage: gen = graphs.nauty_genbg("3 3")
+            sage: left = set(range(3))
+            sage: for g in gen:
+            ....:     if g.left != left:
+            ....:         raise ValueError('wrong partition')
 
         TESTS:
 
@@ -1102,7 +1112,7 @@ class GraphGenerators():
             sage: list(graphs.nauty_genbg("-c1 2", debug=False))
             Traceback (most recent call last):
             ...
-            ValueError: wrong format of parameter option
+            ValueError: wrong format of parameter options
             sage: list(graphs.nauty_genbg("-c1 2", debug=True))
             ['>E Usage: ...genbg [-c -ugs -vq -lzF] [-Z#] [-D#] [-A] [-d#|-d#:#] [-D#|-D#:#] n1 n2...
             sage: list(graphs.nauty_genbg("-c 1 2", debug=True))
@@ -1119,7 +1129,23 @@ class GraphGenerators():
         if debug:
             yield msg
         elif msg.startswith('>E'):
-            raise ValueError('wrong format of parameter option')
+            raise ValueError('wrong format of parameter options')
+
+        if msg.startswith('>A'):
+            # We extract the partition of the vertices from the msg string
+            for s in msg.split(' '):
+                if s.startswith('n='):
+                    from sage.rings.integer import Integer
+                    n1, n2 = [Integer(t) for t in s[2:].split('+') if t.isdigit()]
+                    partition = [set(range(n1)), set(range(n1, n1 + n2))]
+                    break
+            else:
+                # should never happen
+                raise ValueError('unable to recover the partition')
+        else:
+            # Either msg starts with >E or option -q has been given
+            partition = None
+
         gen = sp.stdout
         from sage.graphs.bipartite_graph import BipartiteGraph
         while True:
@@ -1128,7 +1154,7 @@ class GraphGenerators():
             except StopIteration:
                 # Exhausted list of bipartite graphs from nauty genbg
                 return
-            G = BipartiteGraph(s[:-1], format='graph6')
+            G = BipartiteGraph(s[:-1], format='graph6', partition=partition)
             yield G
 
     def cospectral_graphs(self, vertices, matrix_function=lambda g: g.adjacency_matrix(), graphs=None):

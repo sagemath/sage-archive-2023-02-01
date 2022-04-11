@@ -178,6 +178,13 @@ class Jacobi(BuiltinFunction):
 
             sage: N(jacobi("sn", I, 1/2))   # abs tol 1e-12
             -8.59454886300046e-73 + 1.34737147138542*I
+
+            sage: fricas(jacobi('cn',x, 2))  # optional - fricas
+            jacobiCn(x,2)
+            sage: fricas(jacobi('sn',x, 2))  # optional - fricas
+            jacobiSn(x,2)
+            sage: fricas(jacobi('dn',x, 2))  # optional - fricas
+            jacobiDn(x,2)
         """
         if kind not in ['nd', 'ns', 'nc', 'dn', 'ds', 'dc', 'sn', 'sd',
                         'sc', 'cn', 'cd', 'cs']:

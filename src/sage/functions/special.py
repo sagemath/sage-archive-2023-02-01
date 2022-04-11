@@ -237,7 +237,7 @@ class SphericalHarmonic(BuiltinFunction):
         BuiltinFunction.__init__(self, 'spherical_harmonic', nargs=4,
                                  conversions=dict(
                                     maple='SphericalY',
-                                    mathematica= 'SphericalHarmonicY',
+                                    mathematica='SphericalHarmonicY',
                                     maxima='spherical_harmonic',
                                     sympy='Ynm'))
 
@@ -608,6 +608,11 @@ class EllipticEC(BuiltinFunction):
             elliptic_ec
             sage: elliptic_ec(x)._sympy_()
             elliptic_e(x)
+
+        TESTS::
+
+            sage: fricas(elliptic_ec(x))  # optional - fricas
+            ellipticE(x)
         """
         BuiltinFunction.__init__(self, 'elliptic_ec', nargs=1, latex_name='E',
                                  conversions=dict(mathematica='EllipticE',
@@ -818,6 +823,11 @@ class EllipticF(BuiltinFunction):
             elliptic_f
             sage: elliptic_f(x, 2)._sympy_()
             elliptic_f(x, 2)
+
+        TESTS::
+
+            sage: fricas(elliptic_f(x,2))  # optional - fricas
+            ellipticF(x,2)
         """
         BuiltinFunction.__init__(self, 'elliptic_f', nargs=2,
                                  conversions=dict(mathematica='EllipticF',
@@ -926,6 +936,11 @@ class EllipticKC(BuiltinFunction):
             elliptic_kc
             sage: elliptic_kc(x)._sympy_()
             elliptic_k(x)
+
+        TESTS::
+
+            sage: fricas(elliptic_kc(x))  # optional - fricas
+            ellipticK(x)
         """
         BuiltinFunction.__init__(self, 'elliptic_kc', nargs=1, latex_name='K',
                                  conversions=dict(mathematica='EllipticK',
@@ -1027,6 +1042,11 @@ class EllipticPi(BuiltinFunction):
             elliptic_pi
             sage: elliptic_pi(x, pi/4, 1)._sympy_()
             elliptic_pi(x, pi/4, 1)
+
+        TESTS::
+
+            sage: fricas(elliptic_pi(x, 2, 2))  # optional - fricas
+            ellipticPi(x,2,2)
         """
         BuiltinFunction.__init__(self, 'elliptic_pi', nargs=3,
                                  conversions=dict(mathematica='EllipticPi',

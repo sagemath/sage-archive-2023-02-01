@@ -822,6 +822,7 @@ class EllipticF(BuiltinFunction):
         BuiltinFunction.__init__(self, 'elliptic_f', nargs=2,
                                  conversions=dict(mathematica='EllipticF',
                                                   maxima='elliptic_f',
+                                                  fricas='ellipticF',
                                                   sympy='elliptic_f'))
 
     def _eval_(self, z, m):
@@ -1030,6 +1031,7 @@ class EllipticPi(BuiltinFunction):
         BuiltinFunction.__init__(self, 'elliptic_pi', nargs=3,
                                  conversions=dict(mathematica='EllipticPi',
                                                   maxima='EllipticPi',
+                                                  fricas='ellipticPi',
                                                   sympy='elliptic_pi'))
 
     def _eval_(self, n, z, m):

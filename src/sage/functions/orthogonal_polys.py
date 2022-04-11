@@ -440,8 +440,9 @@ class OrthogonalFunction(BuiltinFunction):
         except KeyError:
             self._maxima_name = None
 
-        super(OrthogonalFunction,self).__init__(name=name, nargs=nargs,
-                                 latex_name=latex_name, conversions=conversions)
+        super(OrthogonalFunction, self).__init__(name=name, nargs=nargs,
+                                                 latex_name=latex_name,
+                                                 conversions=conversions)
 
     def eval_formula(self, *args):
         """
@@ -514,7 +515,7 @@ class OrthogonalFunction(BuiltinFunction):
             kwds['hold'] = True
             return maxima(self._eval_(*args, **kwds))._sage_()
 
-        return super(OrthogonalFunction,self).__call__(*args, **kwds)
+        return super(OrthogonalFunction, self).__call__(*args, **kwds)
 
 
 class ChebyshevFunction(OrthogonalFunction):
@@ -559,7 +560,7 @@ class ChebyshevFunction(OrthogonalFunction):
             except Exception:
                 pass
 
-        return super(ChebyshevFunction,self).__call__(n, *args, **kwds)
+        return super(ChebyshevFunction, self).__call__(n, *args, **kwds)
 
     def _eval_(self, n, x):
         """
@@ -937,7 +938,9 @@ class Func_chebyshev_T(ChebyshevFunction):
             return n*chebyshev_U(n-1, x)
         raise ValueError("illegal differentiation parameter {}".format(diff_param))
 
+
 chebyshev_T = Func_chebyshev_T()
+
 
 class Func_chebyshev_U(ChebyshevFunction):
     """
@@ -1298,12 +1301,14 @@ class Func_legendre_P(GinacFunction):
             legendre_P
         """
         BuiltinFunction.__init__(self, 'legendre_P', nargs=2, latex_name=r"P",
-                                 conversions={'maxima':'legendre_p',
-                                              'mathematica':'LegendreP',
-                                              'maple':'LegendreP',
-                                              'giac':'legendre'})
+                                 conversions={'maxima': 'legendre_p',
+                                              'mathematica': 'LegendreP',
+                                              'maple': 'LegendreP',
+                                              'giac': 'legendre'})
+
 
 legendre_P = Func_legendre_P()
+
 
 class Func_legendre_Q(BuiltinFunction):
     def __init__(self):
@@ -1316,8 +1321,9 @@ class Func_legendre_Q(BuiltinFunction):
             -29113619535/131072*log(-(x + 1)/(x - 1))
         """
         BuiltinFunction.__init__(self, "legendre_Q", nargs=2, latex_name=r"Q",
-                conversions={'maxima':'legendre_q', 'mathematica':'LegendreQ',
-                    'maple':'LegendreQ'})
+                conversions={'maxima': 'legendre_q',
+                             'mathematica': 'LegendreQ',
+                             'maple': 'LegendreQ'})
 
     def _eval_(self, n, x, *args, **kwds):
         r"""
@@ -1517,7 +1523,9 @@ class Func_legendre_Q(BuiltinFunction):
         else:
             return (n*x*legendre_Q(n, x) - n*legendre_Q(n-1, x))/(x**2 - 1)
 
+
 legendre_Q = Func_legendre_Q()
+
 
 class Func_assoc_legendre_P(BuiltinFunction):
     r"""
@@ -1640,9 +1648,10 @@ class Func_assoc_legendre_P(BuiltinFunction):
         """
         BuiltinFunction.__init__(self, "gen_legendre_P", nargs=3,
                                  latex_name=r"\mathtt{P}",
-                                 conversions={'maxima':'assoc_legendre_p',
-                                              'mathematica':'LegendreP',
-                                              'maple':'LegendreP'})
+                                 conversions={'maxima': 'assoc_legendre_p',
+                                              'mathematica': 'LegendreP',
+                                              'fricas': 'legendreP',
+                                              'maple': 'LegendreP'})
 
     def _eval_(self, n, m, x, *args, **kwds):
         r"""
@@ -1958,6 +1967,7 @@ class Func_assoc_legendre_Q(BuiltinFunction):
         else:
             return ((n-m+1)*gen_legendre_Q(n+1, m, x) - (n+1)*x*gen_legendre_Q(n, m, x))/(x**2 - 1)
 
+
 gen_legendre_Q = Func_assoc_legendre_Q()
 
 
@@ -2026,8 +2036,12 @@ class Func_hermite(GinacFunction):
             hermite(x, x)
         """
         GinacFunction.__init__(self, "hermite", nargs=2, latex_name=r"H",
-                conversions={'maxima':'hermite', 'mathematica':'HermiteH',
-                    'maple':'HermiteH', 'sympy':'hermite'}, preserved_arg=2)
+                conversions={'maxima': 'hermite',
+                             'mathematica': 'HermiteH',
+                             'maple': 'HermiteH',
+                             'fricas': 'hermiteH',
+                             'sympy': 'hermite'}, preserved_arg=2)
+
 
 hermite = Func_hermite()
 
@@ -2066,8 +2080,11 @@ class Func_jacobi_P(OrthogonalFunction):
             jacobi(n, a, b, x)
         """
         OrthogonalFunction.__init__(self, "jacobi_P", nargs=4, latex_name=r"P",
-                conversions={'maxima':'jacobi_p', 'mathematica':'JacobiP',
-                             'maple':'JacobiP', 'sympy':'jacobi'})
+                conversions={'maxima': 'jacobi_p',
+                             'mathematica': 'JacobiP',
+                             'maple': 'JacobiP',
+                             'fricas': 'jacobiP',
+                             'sympy': 'jacobi'})
 
     def _eval_(self, n, a, b, x):
         """
@@ -2291,8 +2308,11 @@ class Func_laguerre(OrthogonalFunction):
             laguerre(_SAGE_VAR_n,laguerre(_SAGE_VAR_n,_SAGE_VAR_x))
         """
         OrthogonalFunction.__init__(self, "laguerre", nargs=2, latex_name=r"L",
-                conversions={'maxima':'laguerre', 'mathematica':'LaguerreL',
-                    'maple':'LaguerreL', 'sympy':'laguerre'})
+                conversions={'maxima': 'laguerre',
+                             'mathematica': 'LaguerreL',
+                             # 'fricas': 'laguerreL',  3 arguments ?
+                             'maple': 'LaguerreL',
+                             'sympy': 'laguerre'})
 
     def _eval_(self, n, x, *args, **kwds):
         r"""

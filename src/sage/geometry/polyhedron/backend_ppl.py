@@ -189,13 +189,13 @@ class Polyhedron_ppl(Polyhedron_mutable):
             sage: smaller_cube_ZZ.set_immutable()
             Traceback (most recent call last):
             ...
-            TypeError: the polyhedron is not integral; do a base extension ``self.base_extend(QQ)``
+            TypeError: no conversion of this rational to integer
             sage: smaller_cube_ZZ.is_immutable()
             False
             sage: smaller_cube_ZZ.set_immutable()
             Traceback (most recent call last):
             ...
-            TypeError: the polyhedron is not integral; do a base extension ``self.base_extend(QQ)``
+            TypeError: no conversion of this rational to integer
             sage: smaller_cube_ZZ.is_immutable()
             False
             sage: smaller_cube_QQ = smaller_cube_ZZ.base_extend(QQ)
@@ -206,10 +206,10 @@ class Polyhedron_ppl(Polyhedron_mutable):
         if not hasattr(self, '_Vrepresentation'):
             try:
                 self._init_Vrepresentation_from_ppl(True)
-            except TypeError:
+            except TypeError as e:
                 # Apparently the polyhedron is (no longer) integral.
                 self._clear_cache()
-                raise TypeError("the polyhedron is not integral; do a base extension ``self.base_extend(QQ)``")
+                raise e
         if not hasattr(self, '_Hrepresentation'):
             self._init_Hrepresentation_from_ppl(True)
         self._is_mutable = False

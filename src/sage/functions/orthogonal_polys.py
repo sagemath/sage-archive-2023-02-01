@@ -1645,6 +1645,13 @@ class Func_assoc_legendre_P(BuiltinFunction):
             gen_legendre_P
             sage: maxima(gen_legendre_P(20,6,x, hold=True))._sage_().expand().coefficient(x,10)
             2508866163428625/128
+
+        TESTS::
+
+            sage: fricas(gen_legendre_P(2,1/2,x))  # optional - fricas
+                        1
+            legendreP(2,-,x)
+                        2
         """
         BuiltinFunction.__init__(self, "gen_legendre_P", nargs=3,
                                  latex_name=r"\mathtt{P}",
@@ -2034,6 +2041,11 @@ class Func_hermite(GinacFunction):
             hermite
             sage: hermite(x, x)._sympy_()
             hermite(x, x)
+
+        TESTS::
+
+            sage: fricas(hermite(x, 5))  # optional - fricas
+            hermiteH(x,5)
         """
         GinacFunction.__init__(self, "hermite", nargs=2, latex_name=r"H",
                 conversions={'maxima': 'hermite',
@@ -2078,6 +2090,13 @@ class Func_jacobi_P(OrthogonalFunction):
             jacobi_P
             sage: jacobi_P(n, a, b, x, hold=True)._sympy_()
             jacobi(n, a, b, x)
+
+        TESTS::
+
+            sage: fricas(jacobi_P(1/2,4,1/3,x))  # optional - fricas
+                    1   1
+            jacobiP(-,4,-,x)
+                    2   3
         """
         OrthogonalFunction.__init__(self, "jacobi_P", nargs=4, latex_name=r"P",
                 conversions={'maxima': 'jacobi_p',

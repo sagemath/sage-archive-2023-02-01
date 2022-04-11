@@ -10,6 +10,7 @@ from sage.misc.functional import denominator
 from .base_mutable import Polyhedron_mutable
 from .base_QQ import Polyhedron_QQ
 from .base_ZZ import Polyhedron_ZZ
+from .representation import VERTEX, RAY, LINE, INEQUALITY, EQUATION
 
 from sage.misc.lazy_import import lazy_import
 from sage.features import PythonModule
@@ -99,15 +100,15 @@ class Polyhedron_ppl(Polyhedron_mutable):
         if vertices is None:
             vertices = []
         for v in vertices:
-            gs.insert(self._convert_generator_to_ppl(v, 2))
+            gs.insert(self._convert_generator_to_ppl(v, VERTEX))
         if rays is None:
             rays = []
         for r in rays:
-            gs.insert(self._convert_generator_to_ppl(r, 3))
+            gs.insert(self._convert_generator_to_ppl(r, RAY))
         if lines is None:
             lines = []
         for l in lines:
-            gs.insert(self._convert_generator_to_ppl(l, 4))
+            gs.insert(self._convert_generator_to_ppl(l, LINE))
         if gs.empty():
             ppl_polyhedron = C_Polyhedron(self.ambient_dim(), 'empty')
         else:
@@ -141,11 +142,11 @@ class Polyhedron_ppl(Polyhedron_mutable):
         if ieqs is None:
             ieqs = []
         for ieq in ieqs:
-            cs.insert(self._convert_constraint_to_ppl(ieq, 0))
+            cs.insert(self._convert_constraint_to_ppl(ieq, INEQUALITY))
         if eqns is None:
             eqns = []
         for eqn in eqns:
-            cs.insert(self._convert_constraint_to_ppl(eqn, 1))
+            cs.insert(self._convert_constraint_to_ppl(eqn, EQUATION))
         if cs.empty():
             ppl_polyhedron = C_Polyhedron(self.ambient_dim(), 'universe')
         else:
@@ -371,21 +372,22 @@ class Polyhedron_ppl(Polyhedron_mutable):
 
         - ``v`` -- a vertex, ray, or line.
 
-        - ``typ`` -- integer; 2 -- vertex; 3 -- ray; 4 -- line
+        - ``typ`` -- integer according to `:sage:`~sage.geometry.polyhedron.representation.LINE` etc.
 
         EXAMPLES::
 
+            sage: from sage.geometry.polyhedron.representation import VERTEX, RAY, LINE
             sage: P = Polyhedron()
-            sage: P._convert_generator_to_ppl([1, 1/2, 3], 2)
+            sage: P._convert_generator_to_ppl([1, 1/2, 3], VERTEX)
             point(2/2, 1/2, 6/2)
-            sage: P._convert_generator_to_ppl([1, 1/2, 3], 3)
+            sage: P._convert_generator_to_ppl([1, 1/2, 3], RAY)
             ray(2, 1, 6)
-            sage: P._convert_generator_to_ppl([1, 1/2, 3], 4)
+            sage: P._convert_generator_to_ppl([1, 1/2, 3], LINE)
             line(2, 1, 6)
         """
-        if typ == 2:
+        if typ == VERTEX:
             ob = point
-        elif typ == 3:
+        elif typ == RAY:
             ob = ray
         else:
             ob = line
@@ -395,7 +397,7 @@ class Polyhedron_ppl(Polyhedron_mutable):
             return ob(Linear_Expression(v, 0))
         else:
             dv = [ d*v_i for v_i in v ]
-            if typ == 2:
+            if typ == VERTEX:
                 return ob(Linear_Expression(dv, 0), d)
             else:
                 return ob(Linear_Expression(dv, 0))
@@ -409,21 +411,22 @@ class Polyhedron_ppl(Polyhedron_mutable):
 
         - ``c`` -- an inequality or equation.
 
-        - ``typ`` -- integer; 0 -- inequality; 3 -- equation
+        - ``typ`` -- integer according to `:sage:`~sage.geometry.polyhedron.representation.INEQUALITY` etc.
 
         EXAMPLES::
 
+            sage: from sage.geometry.polyhedron.representation import INEQUALITY, EQUATION
             sage: P = Polyhedron()
-            sage: P._convert_constraint_to_ppl([1, 1/2, 3], 0)
+            sage: P._convert_constraint_to_ppl([1, 1/2, 3], INEQUALITY)
             x0+6*x1+2>=0
-            sage: P._convert_constraint_to_ppl([1, 1/2, 3], 1)
+            sage: P._convert_constraint_to_ppl([1, 1/2, 3], EQUATION)
             x0+6*x1+2==0
         """
         d = LCM_list([denominator(c_i) for c_i in c])
         dc = [ ZZ(d*c_i) for c_i in c ]
         b = dc[0]
         A = dc[1:]
-        if typ == 0:
+        if typ == INEQUALITY:
             return Linear_Expression(A, b) >= 0
         else:
             return Linear_Expression(A, b) == 0

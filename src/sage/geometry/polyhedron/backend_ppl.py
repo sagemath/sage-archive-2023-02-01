@@ -96,19 +96,7 @@ class Polyhedron_ppl(Polyhedron_mutable):
             sage: from sage.geometry.polyhedron.backend_ppl import Polyhedron_ppl
             sage: Polyhedron_ppl._init_from_Vrepresentation(p, [], [], [])
         """
-        gs = Generator_System()
-        if vertices is None:
-            vertices = []
-        for v in vertices:
-            gs.insert(self._convert_generator_to_ppl(v, VERTEX))
-        if rays is None:
-            rays = []
-        for r in rays:
-            gs.insert(self._convert_generator_to_ppl(r, RAY))
-        if lines is None:
-            lines = []
-        for l in lines:
-            gs.insert(self._convert_generator_to_ppl(l, LINE))
+        gs = self._convert_generators_to_ppl(vertices, rays, lines)
         if gs.empty():
             ppl_polyhedron = C_Polyhedron(self.ambient_dim(), 'empty')
         else:
@@ -138,15 +126,7 @@ class Polyhedron_ppl(Polyhedron_mutable):
             sage: from sage.geometry.polyhedron.backend_ppl import Polyhedron_ppl
             sage: Polyhedron_ppl._init_from_Hrepresentation(p, [], [])
         """
-        cs = Constraint_System()
-        if ieqs is None:
-            ieqs = []
-        for ieq in ieqs:
-            cs.insert(self._convert_constraint_to_ppl(ieq, INEQUALITY))
-        if eqns is None:
-            eqns = []
-        for eqn in eqns:
-            cs.insert(self._convert_constraint_to_ppl(eqn, EQUATION))
+        cs = self._convert_constraints_to_ppl(ieqs, eqns)
         if cs.empty():
             ppl_polyhedron = C_Polyhedron(self.ambient_dim(), 'universe')
         else:
@@ -403,6 +383,40 @@ class Polyhedron_ppl(Polyhedron_mutable):
                 return ob(Linear_Expression(dv, 0))
 
     @staticmethod
+    def _convert_generators_to_ppl(vertices, rays, lines):
+        r"""
+        Convert generators to a ``ppl`` generator system.
+
+        INPUT:
+
+        - ``vertices`` -- iterable of vertices or ``None``
+
+        - ``rays`` -- iterable of rays or ``None``
+
+        - ``lines`` -- iterable of lines or ``None``
+
+        EXAMPLES::
+
+            sage: P = Polyhedron()
+            sage: P._convert_generators_to_ppl([[1, 1/2, 3]], [[0, 1, 3/2]], [[0, 0, 1]])
+            Generator_System {point(2/2, 1/2, 6/2), ray(0, 2, 3), line(0, 0, 1)}
+        """
+        gs = Generator_System()
+        if vertices is None:
+            vertices = []
+        for v in vertices:
+            gs.insert(Polyhedron_ppl._convert_generator_to_ppl(v, VERTEX))
+        if rays is None:
+            rays = []
+        for r in rays:
+            gs.insert(Polyhedron_ppl._convert_generator_to_ppl(r, RAY))
+        if lines is None:
+            lines = []
+        for l in lines:
+            gs.insert(Polyhedron_ppl._convert_generator_to_ppl(l, LINE))
+        return gs
+
+    @staticmethod
     def _convert_constraint_to_ppl(c, typ):
         r"""
         Convert a constraint to ``ppl``.
@@ -431,6 +445,33 @@ class Polyhedron_ppl(Polyhedron_mutable):
         else:
             return Linear_Expression(A, b) == 0
 
+    @staticmethod
+    def _convert_constraints_to_ppl(ieqs, eqns):
+        r"""
+        Convert constraints to a ``ppl`` constraint system.
+
+        INPUT:
+
+        - ``ieqs`` -- iterable of inequalities or ``None``
+
+        - ``eqns`` -- iterable of equations or ``None``
+
+        EXAMPLES::
+
+            sage: P = Polyhedron()
+            sage: P._convert_constraints_to_ppl([[1, 1/2, 3]], None)
+            Constraint_System {x0+6*x1+2>=0}
+        """
+        cs = Constraint_System()
+        if ieqs is None:
+            ieqs = []
+        for ieq in ieqs:
+            cs.insert(Polyhedron_ppl._convert_constraint_to_ppl(ieq, INEQUALITY))
+        if eqns is None:
+            eqns = []
+        for eqn in eqns:
+            cs.insert(Polyhedron_ppl._convert_constraint_to_ppl(eqn, EQUATION))
+        return cs
 
 
 

@@ -613,6 +613,11 @@ class EllipticEC(BuiltinFunction):
 
             sage: fricas(elliptic_ec(x))  # optional - fricas
             ellipticE(x)
+
+            sage: elliptic_ec(0.5)  # abs tol 1e-8
+            1.35064388104768
+            sage: fricas.ellipticE(0.5).sage()  # abs tol 1e-8 # optional - fricas
+            1.3506438810476755025201749
         """
         BuiltinFunction.__init__(self, 'elliptic_ec', nargs=1, latex_name='E',
                                  conversions=dict(mathematica='EllipticE',
@@ -823,16 +828,11 @@ class EllipticF(BuiltinFunction):
             elliptic_f
             sage: elliptic_f(x, 2)._sympy_()
             elliptic_f(x, 2)
-
-        TESTS::
-
-            sage: fricas(elliptic_f(x,2))  # optional - fricas
-            ellipticF(x,2)
         """
         BuiltinFunction.__init__(self, 'elliptic_f', nargs=2,
                                  conversions=dict(mathematica='EllipticF',
                                                   maxima='elliptic_f',
-                                                  fricas='ellipticF',
+                                                  # fricas='ellipticF', buggy
                                                   sympy='elliptic_f'))
 
     def _eval_(self, z, m):
@@ -941,6 +941,11 @@ class EllipticKC(BuiltinFunction):
 
             sage: fricas(elliptic_kc(x))  # optional - fricas
             ellipticK(x)
+
+            sage: elliptic_kc(0.3)  # abs tol 1e-8
+            1.71388944817879
+            sage: fricas.ellipticK(0.3).sage()  # abs tol 1e-3 # optional - fricas
+            1.7138894481787910555457043
         """
         BuiltinFunction.__init__(self, 'elliptic_kc', nargs=1, latex_name='K',
                                  conversions=dict(mathematica='EllipticK',
@@ -1042,16 +1047,11 @@ class EllipticPi(BuiltinFunction):
             elliptic_pi
             sage: elliptic_pi(x, pi/4, 1)._sympy_()
             elliptic_pi(x, pi/4, 1)
-
-        TESTS::
-
-            sage: fricas(elliptic_pi(x, 2, 2))  # optional - fricas
-            ellipticPi(x,2,2)
         """
         BuiltinFunction.__init__(self, 'elliptic_pi', nargs=3,
                                  conversions=dict(mathematica='EllipticPi',
                                                   maxima='EllipticPi',
-                                                  fricas='ellipticPi',
+                                                  # fricas='ellipticPi', doubt
                                                   sympy='elliptic_pi'))
 
     def _eval_(self, n, z, m):

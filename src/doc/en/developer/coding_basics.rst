@@ -1283,7 +1283,7 @@ whitespace, see https://www.emacswiki.org/emacs/DeletingWhitespace
 for various solutions.
 
 If you use another editor, we recommend to configure it so you do not
-add tabs to files.
+add tabs to files. See :ref:`section-ide`.
 
 
 Global Options

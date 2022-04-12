@@ -38,27 +38,26 @@ the :trac:`Sage trac timeline <timeline>`.
 Obtaining an Account
 ====================
 
-**New:** Previously, it was necessary to manually request a Trac account in
-order to post anything to Sage's Trac.  Now, if you have a GitHub account, you
-may log in using it to create and comment on tickets, and edit wiki pages on
-Sage's Trac.
+If you do not have an account on GitHub yet, choose a user name and
+`create an account <https://github.com/join>`_.
 
-A manual account request is currently only necessary if you prefer not to
-use GitHub or if you want to log into the old `Sage Wiki
-<https://wiki.sagemath.org>`_.  This may change as well in the future.
+Using your GitHub account, you can log in to:
 
-To obtain a non-GitHub account, send an email to
-``sage-trac-account@googlegroups.com`` containing:
+- `the Sage trac server <https://trac.sagemath.org>`_.
 
-* your full name,
-* preferred username,
-* contact email,
-* and reason for needing a trac account
+  On the Sage trac server, click the link "GitHub Login" in the top
+  right corner and follow the prompts.
 
-Your trac account also grants you access to the `sage wiki
-<https://wiki.sagemath.org>`_. Make sure you understand the review process, and
-the procedures for opening and closing tickets before making changes. The
-remainder of this chapter contains various guidelines on using the trac server.
+  Within the Sage trac server, your GitHub user name will be prefixed
+  with the letters ``gh-`` (which stand for "GitHub").
+
+- GitLab, where the mirror repository `sagemath/sage
+  <https://gitlab.com/sagemath/sage>`_ accepts Merge Requests.
+
+  In GitLab, click the button "Sign in / Register" in the top right
+  corner, and then use the button "Sign in with GitHub" and follow the
+  prompts.
+
 
 Trac authentication through SSH
 ===============================

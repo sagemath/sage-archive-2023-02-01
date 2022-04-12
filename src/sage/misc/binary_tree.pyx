@@ -435,7 +435,7 @@ cdef class BinaryTree:
             sage: t.is_empty()
             False
         """
-        return self.head == NULL:
+        return self.head == NULL
 
     def keys(BinaryTree self, order="inorder"):
         """

@@ -177,7 +177,7 @@ if __name__ == "__main__":
                 exit_code_pytest = 0
 
     except ModuleNotFoundError:
-        print("Pytest is not installed, skip checking tests that rely on it.")
+        print("pytest is not installed in the venv, skip checking tests that rely on it")
 
     if err == 0:
         sys.exit(exit_code_pytest)

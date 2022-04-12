@@ -978,7 +978,7 @@ cdef class Pygen(GiacMethods_base):
         cdef gen result
 
         if(self._type == 7) or (self._type == 12):   #if self is a list or a string
-            if isinstance(i,int) or isinstance(i,Integer):
+            if isinstance(i, (int, Integer)):
                 n=len(self)
                 if(i<n)and(-i<=n):
                     if(i<0):

@@ -1196,7 +1196,7 @@ class Polyhedron_normaliz(Polyhedron_base):
                 return '({})'.format(x.polynomial('a'))
 
         def format_field(key, value):
-            if isinstance(value, list) or isinstance(value, tuple):
+            if isinstance(value, (list, tuple)):
                 s = '{} {}\n'.format(key, len(value))
                 for e in value:
                     for x in e:

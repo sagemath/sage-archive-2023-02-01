@@ -1378,7 +1378,7 @@ class InfinitePolynomialFunctor(ConstructionFunctor):
         # even respecting the order. Note that, if the pushout is computed, only *one* variable
         # will occur in the polynomial constructor. Hence, any order is fine, which is exactly
         # what we need in order to have coercion maps for different orderings.
-        if isinstance(other, MultiPolynomialFunctor) or isinstance(other, PolynomialFunctor):
+        if isinstance(other, (MultiPolynomialFunctor, PolynomialFunctor)):
             if isinstance(other, MultiPolynomialFunctor):
                 othervars = other.vars
             else:

@@ -745,7 +745,7 @@ cdef class SymbolicRing(sage.rings.abc.SymbolicRing):
             True
         """
         from sage.symbolic.assumptions import assumptions
-        if isinstance(symbol,list) or isinstance(symbol,tuple):
+        if isinstance(symbol, (list, tuple)):
             for s in symbol:
                 self.cleanup_var(s)
         else:

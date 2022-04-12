@@ -43,7 +43,8 @@ If you do not have an account on GitHub yet, choose a user name and
 
 Using your GitHub account, you can log in to:
 
-- `the Sage trac server <https://trac.sagemath.org>`_.
+- `the Sage trac server <https://trac.sagemath.org>`_, so that you can
+  open tickets and participate in discussions on existing tickets.
 
   On the Sage trac server, click the link "GitHub Login" in the top
   right corner and follow the prompts.
@@ -287,7 +288,8 @@ of fields that can be changed. Here is a comprehensive overview (for the
 * **Merged in:** The Sage release where the ticket was merged in. Only
   changed by the release manager.
 
-* **Authors:** Real name of the ticket author(s).
+* **Authors:** Real name of the ticket author(s). Set this field only if you
+  intend to provide code.
 
 * **Reviewers:** Real name of the ticket reviewer(s).
 
@@ -323,8 +325,9 @@ of its page. It indicates who has to work on it.
 - **new** -- the ticket has only been created (or the author forgot to change
   the status to something else).
 
-  If you want to work on it yourself it is better to leave a comment to say
-  so. It could avoid having two persons doing the same job.
+  If you intend to work on the code yourself, put your name in the Authors
+  field, or leave a comment to say so. It could avoid having two persons doing
+  the same job.
 
 - **needs_review** -- the code is ready to be peer-reviewed. If the code is not
   yours, then you can review it. See :ref:`chapter-review`.

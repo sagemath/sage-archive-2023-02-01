@@ -69,9 +69,9 @@ cdef int c_p1_normalize_int(int N, int u, int v,
     u = u % N
     v = v % N
     if u < 0:
-        u = u + N
+        u += N
     if v < 0:
-        v = v + N
+        v += N
     if u == 0:
         uu[0] = 0
         if arith_int.c_gcd_int(v,N) == 1:
@@ -84,7 +84,7 @@ cdef int c_p1_normalize_int(int N, int u, int v,
     g = arith_int.c_xgcd_int(u, N, &s, &t)
     s = s % N
     if s < 0:
-        s = s + N
+        s += N
     if arith_int.c_gcd_int(g, v) != 1:
         uu[0] = 0
         vv[0] = 0
@@ -116,9 +116,9 @@ cdef int c_p1_normalize_int(int N, int u, int v,
                 min_t = t
     v = min_v
     if u < 0:
-        u = u+N
+        u += N
     if v < 0:
-        v = v+N
+        v += N
     uu[0] = u
     vv[0] = v
     if compute_s:
@@ -329,9 +329,9 @@ cdef int c_p1_normalize_llong(int N, int u, int v,
     u = u % N
     v = v % N
     if u < 0:
-        u = u + N
+        u += N
     if v < 0:
-        v = v + N
+        v += N
     if u == 0:
         uu[0] = 0
         if arith_int.c_gcd_int(v,N) == 1:
@@ -347,7 +347,7 @@ cdef int c_p1_normalize_llong(int N, int u, int v,
     t = <int>(ll_t % ll_N)
     s = s % N
     if s < 0:
-        s = s + N
+        s += N
     if arith_int.c_gcd_int(g, v) != 1:
         uu[0] = 0
         vv[0] = 0
@@ -380,9 +380,9 @@ cdef int c_p1_normalize_llong(int N, int u, int v,
                 min_t = t
     v = min_v
     if u < 0:
-        u = u+N
+        u += N
     if v < 0:
-        v = v+N
+        v += N
     uu[0] = u
     vv[0] = v
     if compute_s:
@@ -619,9 +619,9 @@ cdef int p1_normalize_xgcdtable(int N, int u, int v,
     u = u % N
     v = v % N
     if u < 0:
-        u = u + N
+        u += N
     if v < 0:
-        v = v + N
+        v += N
     if u == 0:
         uu[0] = 0
         if t_g[v] == 1:    #  "if arith_int.c_gcd_int(v,N) == 1"
@@ -637,7 +637,7 @@ cdef int p1_normalize_xgcdtable(int N, int u, int v,
     t = t_b[u]
     s = s % N
     if s < 0:
-        s = s + N
+        s += N
     if g != 1 and arith_int.c_gcd_int(g, v) != 1:
         uu[0] = 0
         vv[0] = 0
@@ -669,9 +669,9 @@ cdef int p1_normalize_xgcdtable(int N, int u, int v,
                 min_t = t
     v = min_v
     if u < 0:
-        u = u+N
+        u += N
     if v < 0:
-        v = v+N
+        v += N
     uu[0] = u
     vv[0] = v
     if compute_s:
@@ -1274,7 +1274,7 @@ def lift_to_sl2z_int(int c, int d, int N):
         if g == 1:
             break
         m = m / g
-    d = d + N*m
+    d += N * m
     g = arith_int.c_xgcd_int(c, d, &z1, &z2)
 
     if g != 1:
@@ -1344,7 +1344,7 @@ def lift_to_sl2z_llong(llong c, llong d, int N):
         if g == 1:
             break
         m = m / g
-    d = d + N*m
+    d += N * m
     g = arith_llong.c_xgcd_longlong(c, d, &z1, &z2)
 
     if g != 1:

@@ -15,7 +15,6 @@ including minimum spanning trees.
 .. TODO::
 
     - Parallel version of Boruvka's algorithm.
-    - Randomized spanning tree construction.
 
 
 Methods

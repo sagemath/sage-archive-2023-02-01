@@ -1644,7 +1644,7 @@ class RiemannSurface(object):
             sage: d_edge = tuple(u[0] for u in u_edge)
             sage: u_edge = [(S._vertices[i], j) for i, j in u_edge]
             sage: initial_continuation = S._L[d_edge] 
-            sage: g, d = S.make_zw_interpolator(u_edge, initial_continuation);
+            sage: g, d = S.make_zw_interpolator(u_edge, initial_continuation)
             sage: all(f(*g(i*0.1)).abs() < 1e-13 for i in range(10))
             True
             sage: abs((g(1)[0]-g(0)[0]) - d) < 1e-13

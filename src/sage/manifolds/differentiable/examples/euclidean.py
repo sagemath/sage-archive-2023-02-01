@@ -57,7 +57,7 @@ and ``y`` have been created and are available to form symbolic expressions::
     sage: y
     y
     sage: type(y)
-    <type 'sage.symbolic.expression.Expression'>
+    <class 'sage.symbolic.expression.Expression'>
     sage: assumptions()
     [x is real, y is real]
 
@@ -410,7 +410,7 @@ REFERENCES:
 #*****************************************************************************
 
 from sage.functions.trig import cos, sin, atan2
-from sage.functions.other import sqrt
+from sage.misc.functional import sqrt
 from sage.misc.latex import latex
 from sage.rings.real_mpfr import RR
 from sage.categories.manifolds import Manifolds
@@ -2547,5 +2547,3 @@ class Euclidean3dimSpace(EuclideanSpace):
             name = 'epsilon'
         eps.set_name(name=name, latex_name=latex_name)
         return eps
-
-

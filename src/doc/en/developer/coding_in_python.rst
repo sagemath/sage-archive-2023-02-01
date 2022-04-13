@@ -161,7 +161,7 @@ the context.
 
 Here is an example of the ``_latex_`` and ``_repr_`` functions for the
 ``Pi`` class. It is from the file
-``SAGE_ROOT/src/sage/functions/constants.py``:
+``SAGE_ROOT/src/sage/symbolic/constants.py``:
 
 .. CODE-BLOCK:: python
 
@@ -192,7 +192,7 @@ matrix over a ring `R`. Then the Sage function ``matrix`` will work
 for this object.
 
 The following is from
-``SAGE_ROOT/src/sage/graphs/graph.py``:
+``SAGE_ROOT/src/sage/graphs/generic_graph.py``:
 
 .. CODE-BLOCK:: python
 
@@ -211,7 +211,7 @@ The following is from
 Similarly, provide a ``_vector_`` method for an object that can be
 coerced to a vector over a ring `R`. Then the Sage function ``vector``
 will work for this object. The following is from the file
-``SAGE_ROOT/sage/sage/modules/free_module_element.pyx``:
+``SAGE_ROOT/src/sage/modules/free_module_element.pyx``:
 
 .. CODE-BLOCK:: python
 
@@ -261,7 +261,7 @@ replacements are made:
       <... 'int'>
       sage: b = 393939
       sage: type(b)
-      <type 'sage.rings.integer.Integer'>
+      <class 'sage.rings.integer.Integer'>
       sage: a == b
       True
 
@@ -463,6 +463,33 @@ example:
 
 Note that the syntax in ``except`` is to list all the exceptions that
 are caught as a tuple, followed by an error message.
+
+
+Integer Return Values
+=====================
+
+Many functions and methods in Sage return integer values.
+Those should usually be returned as Sage integers of class
+:class:`Integer <sage.rings.integer.Integer>` rather than
+as Python integers of class :class:`int`, as users may want
+to explore the resulting integers' number-theoretic properties
+such as prime factorization. Exceptions should be made when
+there are good reasons such as performance or compatibility
+with Python code, for instance in methods such as
+``__hash__``, ``__len__``, and ``__int__``.
+
+To return a Python integer ``i`` as a Sage integer, use:
+
+.. CODE-BLOCK:: python
+
+    from sage.rings.integer import Integer
+    return Integer(i)
+
+To return a Sage integer ``i`` as a Python ineger, use:
+
+.. CODE-BLOCK:: python
+
+    return int(i)
 
 
 Importing

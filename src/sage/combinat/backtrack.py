@@ -36,12 +36,12 @@ from sage.rings.integer_ring import ZZ
 from sage.sets.recursively_enumerated_set import RecursivelyEnumeratedSet_forest
 
 
-class GenericBacktracker(object):
+class GenericBacktracker():
     r"""
     A generic backtrack tool for exploring a search space organized as a tree,
     with branch pruning, etc.
 
-    See also :class:`RecursivelyEnumeratedSet_forest` and :class:`TransitiveIdeal` for
+    See also :class:`RecursivelyEnumeratedSet_forest` for
     handling simple special cases.
     """
     def __init__(self, initial_data, initial_state):

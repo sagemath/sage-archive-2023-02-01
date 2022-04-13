@@ -50,7 +50,6 @@ class Application(object):
         $ sage --package list | sort
         4ti2
         arb
-        atlas
         autotools
         [...]
         zn_poly
@@ -73,7 +72,7 @@ class Application(object):
     def name(self, tarball_filename):
         """
         Find the package name given a tarball filename
-    
+
         $ sage --package name pari-2.8-1564-gdeac36e.tar.gz
         pari
         """
@@ -84,7 +83,7 @@ class Application(object):
     def tarball(self, package_name):
         """
         Find the tarball filename given a package name
-    
+
         $ sage --package tarball pari
         pari-2.8-1564-gdeac36e.tar.gz
         """
@@ -115,10 +114,19 @@ class Application(object):
             print('There is no package similar to {0}'.format(incorrect_name))
             print('You can find further packages at http://files.sagemath.org/spkg/')
 
-    def update(self, package_name, new_version, url=None):
+    def commit(self, package_name, message=None):
         """
-        Update a package. This modifies the Sage sources. 
-    
+        Commit the changes to the Sage source tree for the given package
+        """
+        package = Package(package_name)
+        if message is None:
+            message = 'build/pkgs/{0}: Update to {1}'.format(package_name, package.version)
+        os.system('git commit -m "{0}" {1}'.format(message, package.path))
+
+    def update(self, package_name, new_version, url=None, commit=False):
+        """
+        Update a package. This modifies the Sage sources.
+
         $ sage --package update pari 2015 --url=http://localhost/pari/tarball.tgz
         """
         log.debug('Updating %s to %s', package_name, new_version)
@@ -127,10 +135,12 @@ class Application(object):
             log.debug('Downloading %s', url)
             update.download_upstream(url)
         update.fix_checksum()
+        if commit:
+            self.commit(package_name)
 
-    def update_latest(self, package_name):
+    def update_latest(self, package_name, commit=False):
         """
-        Update a package to the latest version. This modifies the Sage sources. 
+        Update a package to the latest version. This modifies the Sage sources.
         """
         try:
             pypi = PyPiVersion(package_name)
@@ -139,8 +149,10 @@ class Application(object):
             return
         else:
             pypi.update(Package(package_name))
+        if commit:
+            self.commit(package_name)
 
-    def update_latest_cls(self, package_name_or_class):
+    def update_latest_cls(self, package_name_or_class, commit=False):
         exclude = [
             'cypari'   # Name conflict
         ]
@@ -153,7 +165,7 @@ class Application(object):
                 log.debug('skipping %s because of pypi name collision', package_name)
                 continue
             try:
-                self.update_latest(package_name)
+                self.update_latest(package_name, commit=commit)
             except PyPiError as e:
                 log.warn('updating %s failed: %s', package_name, e)
 
@@ -175,6 +187,7 @@ class Application(object):
         Download a package or a class of packages
         """
         pc = PackageClass(package_name_or_class, has_files=['checksums.ini'])
+
         def download_with_args(package):
             try:
                 self.download(package, allow_upstream=allow_upstream)
@@ -212,7 +225,7 @@ class Application(object):
         fs = FileServer()
         log.info('Publishing')
         fs.publish()
-        
+
     def fix_checksum_cls(self, *package_classes):
         """
         Fix the checksum of packages
@@ -290,4 +303,3 @@ class Application(object):
             else:
                 update = ChecksumUpdater(package_name)
             update.fix_checksum()
-            

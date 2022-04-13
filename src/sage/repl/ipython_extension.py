@@ -35,7 +35,7 @@ We test that preparsing is off for ``%runfile``, on for ``%time``::
 
     sage: import os, re
     sage: from sage.repl.interpreter import get_test_shell
-    sage: from sage.misc.all import tmp_dir
+    sage: from sage.misc.temporary_file import tmp_dir
     sage: shell = get_test_shell()
     sage: TMP = tmp_dir()
 
@@ -106,7 +106,7 @@ class SageMagics(Magics):
 
             sage: import os
             sage: from sage.repl.interpreter import get_test_shell
-            sage: from sage.misc.all import tmp_dir
+            sage: from sage.misc.temporary_file import tmp_dir
             sage: shell = get_test_shell()
             sage: tmp = os.path.join(tmp_dir(), 'run_cell.py')
             sage: with open(tmp, 'w') as f:
@@ -204,7 +204,7 @@ class SageMagics(Magics):
         A magic command to switch between simple display and ASCII art display.
 
         - ``args`` -- string.  See
-          :meth:`sage.misc.display_hook.DisplayHookBase.set_display`
+          :mod:`sage.repl.rich_output.preferences`
           for allowed values. If the mode is ``ascii_art``, it can
           optionally be followed by a width.
 
@@ -434,7 +434,6 @@ class SageCustomizations(object):
         import sage.all # until sage's import hell is fixed
 
         self.shell.verbose_quit = True
-        self.set_quit_hook()
 
         self.register_interface_magics()
 
@@ -447,16 +446,6 @@ class SageCustomizations(object):
         """
         from sage.repl.interface_magic import InterfaceMagic
         InterfaceMagic.register_all(self.shell)
-
-    def set_quit_hook(self):
-        """
-        Set the exit hook to cleanly exit Sage.
-        """
-        def quit():
-            import sage.all
-            sage.all.quit_sage(self.shell.verbose_quit)
-        import atexit
-        atexit.register(quit)
 
     @staticmethod
     def all_globals():
@@ -506,12 +495,67 @@ class SageCustomizations(object):
     def init_line_transforms(self):
         """
         Set up transforms (like the preparser).
-        """
-        from .interpreter import (SagePreparseTransformer,
-                                 SagePromptTransformer)
 
-        self.shell.input_transformers_cleanup.insert(1, SagePromptTransformer)
+        TESTS:
+
+        Check that :trac:`31951` is fixed::
+
+             sage: from IPython import get_ipython
+             sage: ip = get_ipython()
+             sage: ip.input_transformer_manager.check_complete('''  # indirect doctest
+             ....: for i in [1 .. 2]:
+             ....:     a = 2''')
+             ('incomplete', 2)
+             sage: ip.input_transformer_manager.check_complete('''
+             ....: def foo(L)
+             ....:     K.<a> = L''')
+             ('invalid', None)
+             sage: ip.input_transformer_manager.check_complete('''
+             ....: def foo(L):
+             ....:     K.<a> = L''')
+             ('incomplete', 4)
+             sage: ip.input_transformer_manager.check_complete('''
+             ....: def foo(L):
+             ....:     K.<a> = L''')
+             ('incomplete', 4)
+             sage: ip.input_transformer_manager.check_complete('''
+             ....: def foo(R):
+             ....:     a = R.0''')
+             ('incomplete', 4)
+             sage: ip.input_transformer_manager.check_complete('''
+             ....: def foo(a):
+             ....:     b = 2a''')
+             ('invalid', None)
+             sage: implicit_multiplication(True)
+             sage: ip.input_transformer_manager.check_complete('''
+             ....: def foo(a):
+             ....:     b = 2a''')
+             ('incomplete', 4)
+             sage: ip.input_transformer_manager.check_complete('''
+             ....: def foo():
+             ....:     f(x) = x^2''')
+             ('incomplete', 4)
+             sage: ip.input_transformer_manager.check_complete('''
+             ....: def foo():
+             ....:     2.factor()''')
+             ('incomplete', 4)
+        """
+        from IPython.core.inputtransformer2 import TransformerManager
+        from .interpreter import SagePromptTransformer, SagePreparseTransformer
+
+        self.shell.input_transformer_manager.cleanup_transforms.insert(1, SagePromptTransformer)
         self.shell.input_transformers_post.append(SagePreparseTransformer)
+
+        # Create an input transformer that does Sage's special syntax in the first step.
+        # We append Sage's preparse to the cleanup step, so that ``check_complete`` recognizes
+        # Sage's special syntax.
+        # Behaviour is somewhat inconsistent, but the syntax is recognized as desired.
+        M = TransformerManager()
+        M.token_transformers = self.shell.input_transformer_manager.token_transformers
+        M.cleanup_transforms.insert(1, SagePromptTransformer)
+        M.cleanup_transforms.append(SagePreparseTransformer)
+        self.shell._check_complete_transformer = M
+        self.shell.input_transformer_manager.check_complete = M.check_complete
 
 
 class SageJupyterCustomizations(SageCustomizations):

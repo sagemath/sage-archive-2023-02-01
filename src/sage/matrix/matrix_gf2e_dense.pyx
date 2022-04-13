@@ -1327,10 +1327,9 @@ cdef class Matrix_gf2e_dense(matrix_dense.Matrix_dense):
         EXAMPLES::
 
             sage: K.<a> = GF(2^4)
-            sage: A = random_matrix(K, 1000, 1000)
+            sage: A = random_matrix(K, 10, 10, algorithm="unimodular")
             sage: A.rank()
-            1000
-
+            10
             sage: A = matrix(K, 10, 0)
             sage: A.rank()
             0

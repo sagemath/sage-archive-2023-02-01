@@ -1,5 +1,5 @@
 # distutils: language = c++
-# sage_setup: distribution = sage-tdlib
+# sage_setup: distribution = sagemath-tdlib
 
 r"""
 Interface with TdLib (algorithms for tree decompositions)
@@ -68,7 +68,7 @@ from sage.sets.set import Set
 from sage.graphs.graph import Graph
 
 cdef extern from "sage_tdlib.cpp":
-     int sage_exact_decomposition(vector[unsigned int] &V_G, vector[unsigned int] &E_G, vector[vector[int]] &V_T, vector[unsigned int] &E_T, int lb)
+    int sage_exact_decomposition(vector[unsigned int] &V_G, vector[unsigned int] &E_G, vector[vector[int]] &V_T, vector[unsigned int] &E_T, int lb)
 
 ##############################################################
 ############ GRAPH/DECOMPOSITION ENCODING/DECODING ###########

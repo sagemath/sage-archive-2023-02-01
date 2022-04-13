@@ -9,7 +9,7 @@ Root lattices and root spaces
 #*****************************************************************************
 
 from sage.misc.cachefunc import cached_method, cached_in_parent_method
-from sage.rings.all import ZZ
+from sage.rings.integer_ring import ZZ
 from sage.combinat.free_module import CombinatorialFreeModule
 from .root_lattice_realizations import RootLatticeRealizations
 import functools
@@ -399,7 +399,7 @@ class RootSpaceElement(CombinatorialFreeModule.Element):
         if not self.parent().cartan_type().is_finite():
             raise NotImplementedError("Only implemented for finite Cartan type")
         if not self.is_positive_root():
-            raise ValueError("%s is not in the positive cone of roots"%(self))
+            raise ValueError(f"{self} is not in the positive cone of roots")
         coroots = self.parent().coroot_lattice().positive_roots_by_height(increasing=False)
         for beta in coroots:
             if beta.quantum_root():

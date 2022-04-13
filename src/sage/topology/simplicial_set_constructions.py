@@ -55,11 +55,11 @@ AUTHORS:
 
 - John H. Palmieri (2016-07)
 """
-#*****************************************************************************
+# ****************************************************************************
 #  Copyright (C) 2016 John H. Palmieri <palmieri at math.washington.edu>
 #
 #  Distributed under the terms of the GNU General Public License (GPL)
-#                  http://www.gnu.org/licenses/
+#                  https://www.gnu.org/licenses/
 #
 #    This code is distributed in the hope that it will be useful,
 #    but WITHOUT ANY WARRANTY; without even the implied warranty
@@ -68,9 +68,9 @@ AUTHORS:
 #  See the GNU General Public License for more details; the full text
 #  is available at:
 #
-#                  http://www.gnu.org/licenses/
+#                  https://www.gnu.org/licenses/
 #
-#*****************************************************************************
+# ****************************************************************************
 
 import itertools
 
@@ -2044,7 +2044,7 @@ class WedgeOfSimplicialSets(PushoutOfSimplicialSets, Factors):
         return s
 
     def _latex_(self):
-        """
+        r"""
         LaTeX representation
 
         EXAMPLES::
@@ -2250,7 +2250,7 @@ class DisjointUnionOfSimplicialSets(PushoutOfSimplicialSets, Factors):
         return s
 
     def _latex_(self):
-        """
+        r"""
         LaTeX representation
 
         EXAMPLES::
@@ -2590,7 +2590,7 @@ class ReducedConeOfSimplicialSet(QuotientOfSimplicialSet):
         return 'Reduced cone of {}'.format(self._base)
 
     def _latex_(self):
-        """
+        r"""
         LaTeX representation
 
         EXAMPLES::

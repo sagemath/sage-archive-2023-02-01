@@ -38,7 +38,7 @@ from sage.libs.flint.fmpq cimport *
 from sage.libs.flint.fmpz_poly cimport *
 from sage.libs.flint.fmpq_poly cimport *
 
-from sage.interfaces.all import singular as singular_default
+from sage.interfaces.singular import singular as singular_default
 
 from cypari2.gen import Gen as pari_gen
 
@@ -308,7 +308,7 @@ cdef class Polynomial_rational_flint(Polynomial):
             sage: R.<t> = QQ[]
             sage: f = 2/3 * t^2 + 1
             sage: r = f.__reduce__(); r
-            (<type 'sage.rings.polynomial.polynomial_rational_flint.Polynomial_rational_flint'>, (Univariate Polynomial Ring in t over Rational Field, [1, 0, 2/3], False, False))
+            (<class 'sage.rings.polynomial.polynomial_rational_flint.Polynomial_rational_flint'>, (Univariate Polynomial Ring in t over Rational Field, [1, 0, 2/3], False, False))
             sage: r[0](*r[1])
             2/3*t^2 + 1
             sage: loads(dumps(f)) == f
@@ -392,7 +392,7 @@ cdef class Polynomial_rational_flint(Polynomial):
         TESTS::
 
             sage: type(f.degree())
-            <type 'sage.rings.integer.Integer'>
+            <class 'sage.rings.integer.Integer'>
         """
         return smallInteger(fmpq_poly_degree(self.__poly))
 
@@ -756,7 +756,7 @@ cdef class Polynomial_rational_flint(Polynomial):
         """
         return fmpq_poly_is_one(self.__poly)
 
-    def __nonzero__(self):
+    def __bool__(self):
         """
         Return whether or not self is non-zero.
 
@@ -2094,8 +2094,8 @@ cdef class Polynomial_rational_flint(Polynomial):
             rare cases, a wrong result may be returned if the initial precision
             was not sufficient.
 
-            GAP needs an optional transitive group library installed,
-            from database_gap spkg.
+            GAP uses the "Transitive Groups Libraries" from the "TransGrp"
+            GAP package which comes installed with the "gap" Sage package.
 
             MAGMA does not return a provably correct result.  Please see the
             MAGMA documentation for how to obtain a provably correct result.
@@ -2136,13 +2136,13 @@ cdef class Polynomial_rational_flint(Polynomial):
             Transitive group number 5 of degree 4
 
             sage: f = x^4 - 17*x^3 - 2*x + 1
-            sage: f.galois_group(algorithm='gap')  # optional - database_gap
+            sage: f.galois_group(algorithm='gap')
             Transitive group number 5 of degree 4
             sage: f = x^13 - 17*x^3 - 2*x + 1
-            sage: f.galois_group(algorithm='gap')  # optional - database_gap
+            sage: f.galois_group(algorithm='gap')
             Transitive group number 9 of degree 13
             sage: f = x^12 - 2*x^8 - x^7 + 2*x^6 + 4*x^4 - 2*x^3 - x^2 - x + 1
-            sage: f.galois_group(algorithm='gap')  # optional - database_gap
+            sage: f.galois_group(algorithm='gap')
             Transitive group number 183 of degree 12
             sage: f.galois_group(algorithm='magma')  # optional - magma
             Transitive group number 5 of degree 4
@@ -2164,7 +2164,6 @@ cdef class Polynomial_rational_flint(Polynomial):
             sage: R.<zeta> = QQ[]
             sage: (zeta^2 + zeta + 1).galois_group(pari_group=True)
             PARI group [2, -1, 1, "S2"] of degree 2
-
         """
         from sage.groups.all import PariGroup, PermutationGroup, TransitiveGroup
 
@@ -2193,7 +2192,7 @@ cdef class Polynomial_rational_flint(Polynomial):
 
         elif algorithm == 'kash':
             try:
-                from sage.interfaces.all import kash
+                from sage.interfaces.kash import kash
                 kash.eval('X := PolynomialRing(RationalField()).1')
                 s = self._repr(name='X')
                 G = kash('Galois(%s)'%s)
@@ -2218,7 +2217,7 @@ cdef class Polynomial_rational_flint(Polynomial):
             return TransitiveGroup(self.degree(), fgap.GaloisType())
 
         elif algorithm == 'magma':
-            from sage.interfaces.all import magma
+            from sage.interfaces.magma import magma
             X = magma(self).GaloisGroup()
             try:
                 n, d = X.TransitiveGroupIdentification(nvals=2)

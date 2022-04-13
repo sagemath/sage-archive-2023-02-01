@@ -21,7 +21,8 @@ from sage.structure.parent_gens import localvars
 from sage.interfaces.gp import Gp
 from sage.misc.sage_eval import sage_eval
 from sage.misc.randstate import current_randstate
-from sage.rings.all import QQ, ZZ
+from sage.rings.integer_ring import ZZ
+from sage.rings.rational_field import QQ
 
 
 gp = None
@@ -48,7 +49,7 @@ def simon_two_descent(E, verbose=0, lim1=None, lim3=None, limtriv=None,
 
     .. NOTE::
 
-       Users should instead run E.simon_two_descent()
+        Users should instead run E.simon_two_descent()
 
     EXAMPLES::
 

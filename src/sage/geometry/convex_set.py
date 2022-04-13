@@ -664,11 +664,11 @@ class ConvexSet_base(SageObject, Set_base):
             tester = self._tester(**options)
         dim = self.dim()
         codim = self.codim()
-        tester.assertTrue(dim <= self.ambient_dim())
+        tester.assertLessEqual(dim, self.ambient_dim())
         if dim >= 0:
-            tester.assertTrue(dim + codim == self.ambient_dim())
+            tester.assertEqual(dim + codim, self.ambient_dim())
         if self.is_empty():
-            tester.assertTrue(dim == -1)
+            tester.assertEqual(dim, -1)
         if self.is_universe():
             tester.assertTrue(self.is_full_dimensional())
         cl_self = self.closure()
@@ -681,13 +681,13 @@ class ConvexSet_base(SageObject, Set_base):
         except NotImplementedError:
             relint_self = None
         if self.is_full_dimensional():
-            tester.assertTrue(int_self == relint_self)
+            tester.assertEqual(int_self, relint_self)
         if self.is_relatively_open():
-            tester.assertTrue(self == relint_self)
+            tester.assertEqual(self, relint_self)
         if self.is_open():
-            tester.assertTrue(self == int_self)
+            tester.assertEqual(self, int_self)
         if self.is_closed():
-            tester.assertTrue(self == cl_self)
+            tester.assertEqual(self, cl_self)
         if self.is_compact():
             tester.assertTrue(self.is_closed())
         from sage.misc.sage_unittest import TestSuite
@@ -859,11 +859,14 @@ class ConvexSet_base(SageObject, Set_base):
                 ext_space = self.ambient_vector_space(AA)
                 ext_space_point = ext_space(space_point)
                 tester.assertEqual(contains_space_point, self.contains(ext_space_point))
-            from sage.symbolic.ring import SR
-            symbolic_space = self.ambient_vector_space(SR)
-            symbolic_space_point = symbolic_space(space_point)
-            # Only test that it can accept SR vectors without error.
-            self.contains(symbolic_space_point)
+            try:
+                from sage.symbolic.ring import SR
+                symbolic_space = self.ambient_vector_space(SR)
+                symbolic_space_point = symbolic_space(space_point)
+                # Only test that it can accept SR vectors without error.
+                self.contains(symbolic_space_point)
+            except ImportError:
+                pass
             # Test that elements returned by some_elements are contained.
             try:
                 points = self.some_elements()
@@ -872,7 +875,7 @@ class ConvexSet_base(SageObject, Set_base):
             else:
                 for point in points:
                     tester.assertTrue(self.contains(point))
-                    tester.assertTrue(point in self)
+                    tester.assertIn(point, self)
 
     @abstract_method(optional=True)
     def intersection(self, other):

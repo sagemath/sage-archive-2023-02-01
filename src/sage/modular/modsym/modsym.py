@@ -112,7 +112,7 @@ def canonical_parameters(group, weight, sign, base_ring):
         sage: p1 == p2
         True
         sage: type(p1[1])
-        <type 'sage.rings.integer.Integer'>
+        <class 'sage.rings.integer.Integer'>
     """
     sign = rings.Integer(sign)
     if not (sign in [-1,0,1]):
@@ -381,4 +381,3 @@ def ModularSymbols(group  = 1,
     if use_cache:
         _cache[key] = weakref.ref(M)
     return M
-

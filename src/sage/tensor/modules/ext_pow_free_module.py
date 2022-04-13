@@ -236,7 +236,7 @@ class ExtPowerFreeModule(FiniteRankFreeModule):
             sage: TestSuite(A).run()
 
         """
-        from sage.functions.other import binomial
+        from sage.arith.all import binomial
         from sage.typeset.unicode_characters import unicode_bigwedge
         self._fmodule = fmodule
         self._degree = ZZ(degree)
@@ -286,7 +286,7 @@ class ExtPowerFreeModule(FiniteRankFreeModule):
 
     def _an_element_(self):
         r"""
-        Construct some (unamed) alternating contravariant tensor.
+        Construct some (unnamed) alternating contravariant tensor.
 
         EXAMPLES::
 
@@ -631,7 +631,7 @@ class ExtPowerDualFreeModule(FiniteRankFreeModule):
             sage: TestSuite(A).run()
 
         """
-        from sage.functions.other import binomial
+        from sage.arith.all import binomial
         from sage.typeset.unicode_characters import unicode_bigwedge
         self._fmodule = fmodule
         self._degree = ZZ(degree)
@@ -708,7 +708,7 @@ class ExtPowerDualFreeModule(FiniteRankFreeModule):
 
     def _an_element_(self):
         r"""
-        Construct some (unamed) alternating form.
+        Construct some (unnamed) alternating form.
 
         EXAMPLES::
 

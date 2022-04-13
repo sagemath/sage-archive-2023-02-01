@@ -503,10 +503,9 @@ or, more legibly,
 It is trivial to verify this equation on the closed form::
 
     sage: Cf = sage.symbolic.function_factory.function('C')
-    sage: equadiff.substitute_function(Cf, s0)
-    doctest:...: DeprecationWarning:...
+    sage: equadiff.substitute_function(Cf, s0.function(z))
     (4*z - 1)/sqrt(-4*z + 1) + sqrt(-4*z + 1) == 0
-    sage: bool(equadiff.substitute_function(Cf, s0))
+    sage: bool(equadiff.substitute_function(Cf, s0.function(z)))
     True
 
 .. On veut non seulement remplacer les occurrences de C(z), mais

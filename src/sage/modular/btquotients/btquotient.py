@@ -56,10 +56,11 @@ from sage.rings.padics.all import Qp, Zp
 from sage.rings.finite_rings.finite_field_constructor import GF
 from sage.algebras.quatalg.all import QuaternionAlgebra
 from sage.quadratic_forms.all import QuadraticForm
-from sage.graphs.all import Graph
-from sage.libs.all import pari
-from sage.interfaces.all import magma
-from sage.plot.colors import rainbow
+from sage.graphs.graph import Graph
+from sage.libs.pari.all import pari
+from sage.interfaces.magma import magma
+from sage.misc.lazy_import import lazy_import
+lazy_import("sage.plot.colors", "rainbow")
 from sage.rings.number_field.all import NumberField
 from sage.modular.arithgroup.all import Gamma0
 from sage.misc.lazy_attribute import lazy_attribute
@@ -3180,7 +3181,7 @@ class BruhatTitsQuotient(SageObject, UniqueRepresentation):
         except KeyError:
             pass
         chain, v = self._BT.find_path(v1, self.get_vertex_dict())
-        while len(chain):
+        while chain:
             v0 = chain.pop()
             V = [e.target for e in v.leaving_edges]
             g, v = self._find_equivalent_vertex(v0, V)

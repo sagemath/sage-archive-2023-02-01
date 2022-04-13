@@ -26,7 +26,7 @@ AUTHORS:
 from sage.structure.sage_object import SageObject
 from sage.structure.richcmp import richcmp, richcmp_method
 from sage.interfaces.gap import gap
-from sage.rings.all import Integer
+from sage.rings.integer import Integer
 from sage.rings.all import CyclotomicField
 from sage.libs.gap.element import GapElement
 from sage.libs.gap.libgap import libgap
@@ -1548,4 +1548,3 @@ class ClassFunction_libgap(SageObject):
         """
         reprs = self._group.conjugacy_classes_representatives()
         return ClassFunction(self._group, [self(x**k) for x in reprs])
-

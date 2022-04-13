@@ -84,7 +84,7 @@ from sage.structure.parent import Parent
 from sage.structure.unique_representation import UniqueRepresentation
 
 
-class PrefixClosedSet(object):
+class PrefixClosedSet():
     def __init__(self, words):
         r"""
         A prefix-closed set.
@@ -320,10 +320,10 @@ def minimize_result(operation):
     TESTS::
 
         sage: from sage.combinat.recognizable_series import minimize_result
-        sage: class P(object):
+        sage: class P():
         ....:     pass
         sage: p = P()
-        sage: class S(object):
+        sage: class S():
         ....:     def __init__(self, s):
         ....:         self.s = s
         ....:     def __repr__(self):
@@ -872,7 +872,7 @@ class RecognizableSeries(ModuleElement):
                 return False
         return True
 
-    __nonzero__ = __bool__
+    
 
     def transposed(self):
         r"""
@@ -926,7 +926,7 @@ class RecognizableSeries(ModuleElement):
 
         A :class:`RecognizableSeries`
 
-        ALOGRITHM:
+        ALGORITHM:
 
         This method implements the minimization algorithm presented in
         Chapter 2 of [BR2010a]_.
@@ -934,7 +934,6 @@ class RecognizableSeries(ModuleElement):
         EXAMPLES::
 
             sage: from itertools import islice
-            sage: from six.moves import zip
             sage: Rec = RecognizableSeriesSpace(ZZ, [0, 1])
 
             sage: S = Rec((Matrix([[3, 6], [0, 1]]), Matrix([[0, -6], [1, 5]])),
@@ -1521,7 +1520,7 @@ class RecognizableSeriesSpace(UniqueRepresentation, Parent):
         if coefficient_ring is None:
             raise ValueError('No coefficient ring specified.')
         from sage.categories.semirings import Semirings
-        if coefficient_ring not in Semirings:
+        if coefficient_ring not in Semirings():
             raise ValueError(
                 'Coefficient ring {} is not a semiring.'.format(coefficient_ring))
 

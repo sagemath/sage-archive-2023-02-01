@@ -86,7 +86,6 @@ AUTHORS:
 
 from sage.structure.element import CommutativeRingElement
 from sage.structure.richcmp import richcmp
-import sage.rings.number_field.number_field_rel as number_field_rel
 import sage.rings.polynomial.polynomial_singular_interface as polynomial_singular_interface
 
 
@@ -132,7 +131,7 @@ class PolynomialQuotientRingElement(polynomial_singular_interface.Polynomial_sin
             if not isinstance(polynomial, Polynomial):
                 raise TypeError("polynomial must be a polynomial")
 
-            if not polynomial in parent.polynomial_ring():
+            if polynomial not in parent.polynomial_ring():
                 raise TypeError("polynomial must be in the polynomial ring of the parent")
 
         f = parent.modulus()
@@ -560,6 +559,7 @@ class PolynomialQuotientRingElement(polynomial_singular_interface.Polynomial_sin
 
         f = R.hom([alpha], F, check=False)
 
+        import sage.rings.number_field.number_field_rel as number_field_rel
         if number_field_rel.is_RelativeNumberField(F):
 
             base_map = F.base_field().hom([R.base_ring().gen()])
@@ -714,5 +714,3 @@ class PolynomialQuotientRingElement(polynomial_singular_interface.Polynomial_sin
             389
         """
         return self.matrix().trace()
-
-

@@ -211,13 +211,13 @@ def revolution_plot3d(curve,trange,phirange=None,parallel_axis='z',axis=(0,0),pr
     """
     from sage.symbolic.ring import SR
     from sage.symbolic.constants import pi
-    from sage.functions.other import sqrt
+    from sage.misc.functional import sqrt
     from sage.functions.trig import sin
     from sage.functions.trig import cos
     from sage.functions.trig import atan2
 
     if parallel_axis not in ['x', 'y', 'z']:
-        raise ValueError("parallel_axis must be either 'x', 'y', or 'z'.")
+        raise ValueError("parallel_axis must be either 'x', 'y', or 'z'")
 
     vart = trange[0]
 
@@ -232,7 +232,7 @@ def revolution_plot3d(curve,trange,phirange=None,parallel_axis='z',axis=(0,0),pr
         phi = phirange[0]
     else:
         phirange = (phi, phirange[0], phirange[1])
-        
+
     if isinstance(curve, (tuple, list)):
         #this if-else provides a vector v to be plotted
         #if curve is a tuple or a list of length 2, it is interpreted as a parametric curve

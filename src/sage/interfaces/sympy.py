@@ -258,18 +258,18 @@ def _sympysage_symbol(self):
         # in particular in inverse Laplace and inverse Mellin transforms
         return SR.var(str(self))
 
+
 def _sympysage_Subs(self):
-     """
-     EXAMPLES::
+    """
+    EXAMPLES::
 
-         sage: from sympy import Symbol
-         sage: from sympy.core.singleton import S
-     """
-
-     args = self.args
-     substi = dict([(args[1][i]._sage_(),args[2][i]._sage_()) for i in range(len(args[1]))])
-
-     return args[0]._sage_().subs(substi)
+        sage: from sympy import Symbol
+        sage: from sympy.core.singleton import S
+    """
+    args = self.args
+    substi = dict([(args[1][i]._sage_(), args[2][i]._sage_())
+                   for i in range(len(args[1]))])
+    return args[0]._sage_().subs(substi)
 
 
 ##############       functions       ###############
@@ -294,7 +294,7 @@ def _sympysage_function_by_name(fname):
         import sympy
         if getattr(sympy, fname, None) is None:
             # symbolic function
-            from sage.libs.pynac.pynac import symbol_table
+            from sage.symbolic.expression import symbol_table
             func = symbol_table['functions'].get(fname)
             if func is None:
                 from sage.calculus.var import function
@@ -321,7 +321,6 @@ class UndefSageHelper:
         sage: assert f == F._sage_()
     """
     def __get__(self, ins, typ):
-        import sage.all as sage
         if ins is None:
             return lambda: _sympysage_function_by_name(typ.__name__)
         else:
@@ -409,7 +408,9 @@ def _sympysage_derivative(self):
         integrate(diff(f(x, t), x), t)
         sage: diff(f(x, t), x).integrate(t, algorithm='sympy')
         integrate(diff(f(x, t), x), t)
-        sage: integrate(f(x, t), x).diff(t)
+        sage: result = integrate(f(x, t), x).diff(t)
+        ...
+        sage: result
         integrate(diff(f(x, t), t), x)
     """
     from sage.calculus.functional import derivative
@@ -1021,7 +1022,7 @@ def check_expression(expr, var_symbols, only_from_sympy=False):
 
     # evaluate the expression in the context of SymPy:
     if var_symbols:
-        sympy_vars = svar(var_symbols)
+        svar(var_symbols)
     b = globals().copy()
     b.update(sympydict)
     assert "sin" in b
@@ -1054,33 +1055,27 @@ def test_all():
         check_expression("x**2+y**3", "x y")
         check_expression("1/(x+y)**2-x**3/4", "x y")
 
-
     def test_complex():
         check_expression("I", "")
         check_expression("23+I*4", "x")
-
 
     def test_complex_fail():
         # Sage doesn't properly implement _sympy_ on I
         check_expression("I*y", "y")
         check_expression("x+I*y", "x y")
 
-
     def test_integer():
         check_expression("4*x", "x")
         check_expression("-4*x", "x")
-
 
     def test_real():
         check_expression("1.123*x", "x")
         check_expression("-18.22*x", "x")
 
-
-
     def test_functions():
         # Test at least one Function without own _sage_ method
         from sympy import factorial
-        assert not "_sage_" in factorial.__dict__
+        assert "_sage_" not in factorial.__dict__
         check_expression("factorial(x)", "x")
         check_expression("sin(x)", "x")
         check_expression("cos(x)", "x")

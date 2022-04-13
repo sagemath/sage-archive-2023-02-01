@@ -37,7 +37,7 @@ def read_distribution(src_file):
         sage: from sage.env import SAGE_SRC
         sage: from sage_setup.find import read_distribution
         sage: read_distribution(os.path.join(SAGE_SRC, 'sage', 'graphs', 'graph_decompositions', 'tdlib.pyx'))
-        'sage-tdlib'
+        'sagemath-tdlib'
         sage: read_distribution(os.path.join(SAGE_SRC, 'sage', 'graphs', 'graph_decompositions', 'modular_decomposition.py'))
         ''
     """
@@ -115,7 +115,7 @@ def find_python_sources(src_dir, modules=['sage'], distributions=None):
 
     Filtering by distribution (distutils package)::
 
-        sage: find_python_sources(SAGE_SRC, distributions=['sage-tdlib'])
+        sage: find_python_sources(SAGE_SRC, distributions=['sagemath-tdlib'])
         ([], [], [<setuptools.extension.Extension('sage.graphs.graph_decompositions.tdlib')...>])
 
     Benchmarking::
@@ -193,7 +193,7 @@ def filter_cython_sources(src_dir, distributions):
 
         sage: from sage.env import SAGE_SRC
         sage: from sage_setup.find import filter_cython_sources
-        sage: cython_modules = filter_cython_sources(SAGE_SRC, ["sage-tdlib"])
+        sage: cython_modules = filter_cython_sources(SAGE_SRC, ["sagemath-tdlib"])
 
     Cython module relying on tdlib::
 
@@ -207,7 +207,7 @@ def filter_cython_sources(src_dir, distributions):
 
     Benchmarking::
 
-        sage: timeit('filter_cython_sources(SAGE_SRC, ["sage-tdlib"])', # random output
+        sage: timeit('filter_cython_sources(SAGE_SRC, ["sagemath-tdlib"])', # random output
         ....:        number=1, repeat=1)
         1 loops, best of 1: 850 ms per loop
     """
@@ -238,9 +238,9 @@ def _cythonized_dir(src_dir=None, editable_install=None):
 
         sage: from sage_setup.find import _cythonized_dir
         sage: from sage.env import SAGE_SRC
-        sage: _cythonized_dir(SAGE_SRC)  # optional - build
+        sage: _cythonized_dir(SAGE_SRC)
         PosixPath('...')
-        sage: _cythonized_dir(SAGE_SRC, editable_install=False)
+        sage: _cythonized_dir(SAGE_SRC, editable_install=False) # optional - sage_spkg
         PosixPath('.../build/cythonized')
 
     """
@@ -300,8 +300,8 @@ def find_extra_files(src_dir, modules, cythonized_dir, special_filenames=[]):
         sage: extras = find_extra_files(SAGE_SRC, ["sage"], cythonized_dir)
         sage: extras["sage/libs/mpfr"]
         [...sage/libs/mpfr/types.pxd...]
-        sage: extras["sage/ext/interpreters"]
-        ['.../src/sage/ext/interpreters/wrapper_cdf.pxd', ...wrapper_cdf.h...]
+        sage: sorted(extras["sage/ext/interpreters"])
+        ['.../sage/ext/interpreters/wrapper_cdf.h', ...wrapper_cdf.pxd...]
     """
     from Cython.Utils import is_package_dir
 
@@ -358,7 +358,6 @@ def installed_files_by_module(site_packages, modules=('sage',)):
         sage: site_packages = os.path.dirname(os.path.dirname(sage.__file__))
         sage: from sage_setup.find import installed_files_by_module
         sage: files_by_module = installed_files_by_module(site_packages)
-        sage: from sage.misc.sageinspect import loadable_module_extension
         sage: (f,) = files_by_module['sage.structure.sage_object']; f
         'sage/structure/sage_object...'
         sage: (f1, f2) = sorted(files_by_module['sage.structure'])

@@ -313,8 +313,6 @@ Working with sandpile divisors::
 #                  http://www.gnu.org/licenses/
 # ****************************************************************************
 
-from sage.misc.superseded import deprecation
-
 from collections import Counter
 from copy import deepcopy
 from inspect import getdoc
@@ -322,34 +320,37 @@ from textwrap import dedent
 
 from IPython.lib import pretty
 
-import os  # CHECK: possibly unnecessary after removing 4ti2-dependent methods
 from sage.calculus.functional import derivative
 from sage.combinat.integer_vector import integer_vectors_nk_fast_iter
 from sage.combinat.parking_functions import ParkingFunctions
 from sage.combinat.set_partition import SetPartitions
 from sage.combinat.vector_partition import IntegerVectorsIterator
-from sage.env import SAGE_LOCAL
 from sage.functions.log import exp
 from sage.functions.other import binomial
 from sage.geometry.polyhedron.constructor import Polyhedron
-from sage.graphs.all import DiGraph, Graph
-from sage.graphs.digraph_generators import digraphs
+from sage.graphs.graph import Graph
+from sage.graphs.digraph import DiGraph
 from sage.probability.probability_distribution import GeneralDiscreteDistribution
 from sage.topology.simplicial_complex import SimplicialComplex
 from sage.interfaces.singular import singular
 from sage.matrix.constructor import matrix, identity_matrix
-from sage.misc.all import prod, det, tmp_filename, exists, denominator
+from sage.misc.functional import det, denominator
+from sage.misc.misc import exists
+from sage.misc.misc_c import prod
+from sage.misc.temporary_file import tmp_filename
 from sage.arith.srange import xsrange
 from sage.modules.free_module_element import vector
-from sage.plot.colors import rainbow
-from sage.arith.all import falling_factorial, lcm
-from sage.rings.all import Integer, PolynomialRing, QQ, ZZ
+from sage.misc.lazy_import import lazy_import
+lazy_import("sage.plot.colors", "rainbow")
+from sage.arith.functions import lcm
+from sage.arith.misc import falling_factorial
+from sage.rings.integer import Integer
+from sage.rings.integer_ring import ZZ
+from sage.rings.polynomial.polynomial_ring_constructor import PolynomialRing
+from sage.rings.rational_field import QQ
 from sage.symbolic.constants import I, pi
 from sage.symbolic.ring import SR
-
-# TODO: remove the following line once 4ti2 functions are removed
-path_to_zsolve = os.path.join(SAGE_LOCAL, 'bin', 'zsolve')
-
+from sage.features.four_ti_2 import FourTi2Executable
 
 
 def _sandpile_help(cls, usage, verbose=True):
@@ -455,7 +456,7 @@ class Sandpile(DiGraph):
             group_gens               -- A minimal list of generators for the sandpile group.
             group_order              -- The size of the sandpile group.
             h_vector                 -- The number of superstable configurations in each degree.
-            help                     -- List of Sandpile-specific methods (not inherited from "Graph").
+            help                     -- List of Sandpile-specific methods (not inherited from ...Graph...).
             hilbert_function         -- The Hilbert function of the homogeneous toppling ideal.
             ideal                    -- The saturated homogeneous toppling ideal.
             identity                 -- The identity configuration.
@@ -589,7 +590,7 @@ class Sandpile(DiGraph):
             sage: G = Sandpile({0:[]}, 0, weighted=False)
             Traceback (most recent call last):
             ...
-            TypeError: __init__() got an unexpected keyword argument 'weighted'
+            TypeError: ...__init__() got an unexpected keyword argument 'weighted'
         """
         # set graph name
         if isinstance(g, Graph) or isinstance(g, DiGraph):
@@ -1030,10 +1031,9 @@ class Sandpile(DiGraph):
             sage: s.out_degree(2)
             3
         """
-        if not v is None:
+        if v is not None:
             return self._out_degrees[v]
-        else:
-            return self._out_degrees
+        return self._out_degrees
 
     def _set_in_degrees(self):
         """
@@ -1070,10 +1070,9 @@ class Sandpile(DiGraph):
             sage: s.in_degree(2)
             3
         """
-        if not v is None:
+        if v is not None:
             return self._in_degrees[v]
-        else:
-            return self._in_degrees
+        return self._in_degrees
 
     def _set_burning_config(self):
         r"""
@@ -5122,8 +5121,6 @@ class SandpileDivisor(dict):
 
             This method requires 4ti2.
         """
-        # import os
-
         L = self._sandpile._laplacian.transpose()
         n = self._sandpile.num_verts()
 
@@ -5172,7 +5169,10 @@ class SandpileDivisor(dict):
             sign_file.write('\n')
         # compute
         try:
-            os.system(path_to_zsolve+' -q ' + lin_sys + ' > ' + lin_sys_log)
+            import os
+            import shlex
+            path_to_zsolve = FourTi2Executable('zsolve').absolute_filename()
+            os.system(shlex.quote(path_to_zsolve) + ' -q ' + lin_sys + ' > ' + lin_sys_log)
             # process the results
             zhom_file = open(lin_sys_zhom,'r')
         except IOError:
@@ -6007,7 +6007,7 @@ class SandpileDivisor(dict):
             True
         """
         if self.is_alive():
-            raise RuntimeError('Divisor is not stabilizable.')
+            raise RuntimeError('divisor is not stabilizable')
         else:
             firing_vector = self._sandpile.zero_div()
             E = deepcopy(self)
@@ -6282,63 +6282,6 @@ def aztec_sandpile(n):
                 aztec_sandpile[vert][(0, 0)] = out_degree
                 aztec_sandpile[(0, 0)][vert] = out_degree
     return aztec_sandpile
-
-
-def random_DAG(num_verts, p=0.5, weight_max=1):
-    r"""
-    A random directed acyclic graph with ``num_verts`` vertices.
-    The method starts with the sink vertex and adds vertices one at a time.
-    Each vertex is connected only to only previously defined vertices, and the
-    probability of each possible connection is given by the argument ``p``.
-    The weight of an edge is a random integer between ``1`` and
-    ``weight_max``.
-
-    INPUT:
-
-     - ``num_verts`` -- positive integer
-
-     - ``p`` -- (default: 0,5) real number such that `0 < p \leq 1`
-
-     - ``weight_max`` -- (default: 1) positive integer
-
-    OUTPUT:
-
-    a dictionary, encoding the edges of a directed acyclic graph with sink `0`
-
-    EXAMPLES::
-
-        sage: from sage.sandpiles.sandpile import random_DAG
-        sage: d = DiGraph(random_DAG(5, .5)); d
-        doctest:...: DeprecationWarning: method random_DAG is deprecated. Please use digraphs.RandomDirectedAcyclicGraph instead.
-        See https://trac.sagemath.org/30479 for details.
-        Digraph on 5 vertices
-
-    TESTS:
-
-    Check that we can construct a random DAG with the
-    default arguments (:trac:`12181`)::
-
-        sage: from sage.sandpiles.sandpile import random_DAG
-        sage: g = random_DAG(5);DiGraph(g)
-        Digraph on 5 vertices
-
-    Check that bad inputs are rejected::
-
-        sage: from sage.sandpiles.sandpile import random_DAG
-        sage: g = random_DAG(5,1.1)
-        Traceback (most recent call last):
-        ...
-        ValueError: the probability p must be in [0..1]
-        sage: g = random_DAG(5,0.1,-1)
-        Traceback (most recent call last):
-        ...
-        ValueError: parameter weight_max must be a positive integer
-    """
-    deprecation(30479, "method random_DAG is deprecated. Please use "
-                       "digraphs.RandomDirectedAcyclicGraph instead.")
-    D = digraphs.RandomDirectedAcyclicGraph(num_verts, p, weight_max=weight_max)
-    return D.to_dictionary(edge_labels=True)
-
 
 def glue_graphs(g, h, glue_g, glue_h):
     r"""

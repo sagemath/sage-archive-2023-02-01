@@ -256,9 +256,9 @@ def transvectant(f, g, h=1, scale='default'):
         sage: S.<x> = R[]
         sage: quintic = invariant_theory.binary_quintic(x^5+x^3+2*x^2+y^5, x)
         sage: transvectant(quintic, quintic, 2)
-        Binary sextic given by 1/5*x^6 + 6/5*x^5*h + (-3/25)*x^4*h^2
-        + (2*y^5 - 8/25)*x^3*h^3 + (-12/25)*x^2*h^4 + 3/5*y^5*x*h^5
-        + 2/5*y^5*h^6
+        Binary sextic given by 1/5*x^6 + 6/5*x^5*h - 3/25*x^4*h^2
+        + (50*y^5 - 8)/25*x^3*h^3 - 12/25*x^2*h^4 + (3*y^5)/5*x*h^5
+        + (2*y^5)/5*h^6
     """
     f = f.homogenized()
     g = g.homogenized()
@@ -602,7 +602,7 @@ class AlgebraicForm(FormsBase):
             sage: quartic._check_covariant('EisensteinE', invariant=True)
             sage: quartic._check_covariant('h_covariant')
 
-            sage: quartic._check_covariant('h_covariant', invariant=True)
+            sage: quartic._check_covariant('h_covariant', invariant=True)  # not tested, known bug (see :trac:`32118`)
             Traceback (most recent call last):
             ...
             AssertionError: not invariant
@@ -756,7 +756,7 @@ class AlgebraicForm(FormsBase):
             R = polynomial.parent()
             variables = [R(_) for _ in self._variables[0:-1]] + [R(var)]
         except AttributeError:
-            from sage.rings.all import PolynomialRing
+            from sage.rings.polynomial.polynomial_ring_constructor import PolynomialRing
             R = PolynomialRing(self._ring.base_ring(), [str(self._ring.gen(0)), str(var)])
             polynomial = R(self._polynomial).homogenize(var)
             variables = R.gens()
@@ -928,7 +928,7 @@ class AlgebraicForm(FormsBase):
         if isinstance(g, dict):
             transform = g
         else:
-            from sage.modules.all import vector
+            from sage.modules.free_module_element import vector
             v = vector(self._ring, self._variables)
             g_v = vector(self._ring, g*v)
             transform = dict( (v[i], g_v[i]) for i in range(self._n) )
@@ -4454,7 +4454,7 @@ class InvariantTheoryFactory(object):
         if as_form:
             from sage.rings.fraction_field import FractionField
             from sage.structure.sequence import Sequence
-            from sage.rings.all import PolynomialRing
+            from sage.rings.polynomial.polynomial_ring_constructor import PolynomialRing
             K = FractionField(Sequence(list(invariants)).universe())
             if variables is None:
                 x,z = PolynomialRing(K, 'x,z').gens()

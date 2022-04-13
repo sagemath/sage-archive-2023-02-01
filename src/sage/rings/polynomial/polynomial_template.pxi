@@ -20,11 +20,11 @@ from sage.structure.element import coerce_binop
 from sage.structure.richcmp cimport rich_to_bool
 from sage.rings.fraction_field_element import FractionFieldElement
 from sage.rings.integer cimport Integer
-from sage.libs.all import pari_gen
+from sage.libs.pari.all import pari_gen
 
 import operator
 
-from sage.interfaces.all import singular as singular_default
+from sage.interfaces.singular import singular as singular_default
 
 def make_element(parent, args):
     return parent(*args)
@@ -500,7 +500,7 @@ cdef class Polynomial_template(Polynomial):
         celement_quorem(&q.x, &r.x, &(<Polynomial_template>self).x, &right.x, (<Polynomial_template>self)._cparent)
         return q,r
 
-    def __nonzero__(self):
+    def __bool__(self):
         """
         EXAMPLES::
 

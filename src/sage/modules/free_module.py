@@ -70,6 +70,22 @@ Base ring::
     sage: VectorSpace(QQ, 10).base_ring()
     Rational Field
 
+Enumeration of `\ZZ^n` happens in order of increasing `1`-norm
+primarily and increasing `\infty`-norm secondarily::
+
+    sage: print([v for _,v in zip(range(31), ZZ^3)])
+    [(0, 0, 0),
+    (1, 0, 0), (-1, 0, 0), (0, 1, 0), (0, -1, 0), (0, 0, 1), (0, 0, -1),
+    (1, 1, 0), (-1, 1, 0), (1, -1, 0), (-1, -1, 0), (1, 0, 1), (-1, 0, 1), (1, 0, -1), (-1, 0, -1), (0, 1, 1), (0, -1, 1), (0, 1, -1), (0, -1, -1),
+    (2, 0, 0), (-2, 0, 0), (0, 2, 0), (0, -2, 0), (0, 0, 2), (0, 0, -2),
+    (1, 1, 1), (-1, 1, 1), (1, -1, 1), (-1, -1, 1), (1, 1, -1), ...]
+
+For other infinite enumerated base rings (i.e., rings which
+are objects of the category :class:`InfiniteEnumeratedSets`),
+a free module of rank `r` is enumerated by applying
+:meth:`FreeModule_ambient.linear_combination_of_basis`
+to all vectors in `\ZZ^r`, enumerated in the way shown above.
+
 TESTS:
 
 We intersect a zero-dimensional vector space with a
@@ -92,23 +108,23 @@ verify that the element types are correct::
     sage: V.0
     (1.0, 0.0, 0.0)
     sage: type(V.0)
-    <type 'sage.modules.vector_real_double_dense.Vector_real_double_dense'>
+    <class 'sage.modules.vector_real_double_dense.Vector_real_double_dense'>
     sage: W = V.span([V.0]); W
     Vector space of degree 3 and dimension 1 over Real Double Field
     Basis matrix:
     [1.0 0.0 0.0]
     sage: type(W.0)
-    <type 'sage.modules.vector_real_double_dense.Vector_real_double_dense'>
+    <class 'sage.modules.vector_real_double_dense.Vector_real_double_dense'>
     sage: V = FreeModule(CDF, 3); V
     Vector space of dimension 3 over Complex Double Field
     sage: type(V.0)
-    <type 'sage.modules.vector_complex_double_dense.Vector_complex_double_dense'>
+    <class 'sage.modules.vector_complex_double_dense.Vector_complex_double_dense'>
     sage: W = V.span_of_basis([CDF.0 * V.1]); W
     Vector space of degree 3 and dimension 1 over Complex Double Field
     User basis matrix:
     [  0.0 1.0*I   0.0]
     sage: type(W.0)
-    <type 'sage.modules.vector_complex_double_dense.Vector_complex_double_dense'>
+    <class 'sage.modules.vector_complex_double_dense.Vector_complex_double_dense'>
 
 Basis vectors are immutable::
 
@@ -161,7 +177,7 @@ AUTHORS:
 #
 #                  http://www.gnu.org/licenses/
 ###########################################################################
-from itertools import islice
+import itertools
 
 from . import free_module_element
 import sage.matrix.matrix_space
@@ -170,12 +186,13 @@ import sage.misc.latex as latex
 from sage.modules.module import Module
 import sage.rings.finite_rings.finite_field_constructor as finite_field
 import sage.rings.ring as ring
+import sage.rings.abc
 import sage.rings.integer_ring
 import sage.rings.rational_field
-import sage.rings.finite_rings.integer_mod_ring
 import sage.rings.infinity
 import sage.rings.integer
 from sage.categories.principal_ideal_domains import PrincipalIdealDomains
+from sage.categories.infinite_enumerated_sets import InfiniteEnumeratedSets
 from sage.misc.randstate import current_randstate
 from sage.structure.sequence import Sequence
 from sage.structure.richcmp import (richcmp_method, rich_to_bool, richcmp,
@@ -241,10 +258,10 @@ done from the right side.""")
         #            raise TypeError, "The base_ring must be a commutative ring."
 
         try:
-            if not sparse and isinstance(base_ring,sage.rings.real_double.RealDoubleField_class):
+            if not sparse and isinstance(base_ring, sage.rings.abc.RealDoubleField):
                 return RealDoubleVectorSpace_class(rank)
 
-            elif not sparse and isinstance(base_ring,sage.rings.complex_double.ComplexDoubleField_class):
+            elif not sparse and isinstance(base_ring, sage.rings.abc.ComplexDoubleField):
                 return ComplexDoubleVectorSpace_class(rank)
 
             elif base_ring.is_field():
@@ -253,7 +270,7 @@ done from the right side.""")
             elif base_ring in PrincipalIdealDomains():
                 return FreeModule_ambient_pid(base_ring, rank, sparse=sparse)
 
-            elif isinstance(base_ring, sage.rings.number_field.order.Order) \
+            elif isinstance(base_ring, sage.rings.abc.Order) \
                 and base_ring.is_maximal() and base_ring.class_number() == 1:
                 return FreeModule_ambient_pid(base_ring, rank, sparse=sparse)
 
@@ -384,7 +401,7 @@ def FreeModule(base_ring, rank_or_basis_keys=None, sparse=False, inner_product_m
         sage: M.is_sparse()
         True
         sage: type(M.0)
-        <type 'sage.modules.free_module_element.FreeModuleElement_generic_sparse'>
+        <class 'sage.modules.free_module_element.FreeModuleElement_generic_sparse'>
 
     The default is dense.
 
@@ -392,7 +409,7 @@ def FreeModule(base_ring, rank_or_basis_keys=None, sparse=False, inner_product_m
 
         sage: M = ZZ^200
         sage: type(M.0)
-        <type 'sage.modules.vector_integer_dense.Vector_integer_dense'>
+        <class 'sage.modules.vector_integer_dense.Vector_integer_dense'>
 
     Note that matrices associated in some way to sparse free modules
     are sparse by default::
@@ -462,7 +479,7 @@ def FreeModule(base_ring, rank_or_basis_keys=None, sparse=False, inner_product_m
     if rank_or_basis_keys is not None:
         try:
             rank = sage.rings.integer_ring.ZZ(rank_or_basis_keys)
-        except:
+        except (TypeError, ValueError):
             basis_keys = rank_or_basis_keys
     if not with_basis:
         if inner_product_matrix is not None:
@@ -511,8 +528,8 @@ def VectorSpace(K, dimension_or_basis_keys=None, sparse=False, inner_product_mat
     """
     if not K.is_field():
         raise TypeError("Argument K (= %s) must be a field." % K)
-    if not sparse in (True,False):
-        raise TypeError("Argument sparse (= %s) must be a boolean."%sparse)
+    if sparse not in (True, False):
+        raise TypeError("Argument sparse (= %s) must be a boolean." % sparse)
     return FreeModule(K, dimension_or_basis_keys, sparse, inner_product_matrix,
                       with_basis=with_basis, rank=dimension, basis_keys=basis_keys,
                       **args)
@@ -802,16 +819,16 @@ class FreeModule_generic(Module):
             sage: M = FreeModule(ZZ,20,sparse=False)
             sage: x = M.random_element()
             sage: type(x)
-            <type 'sage.modules.vector_integer_dense.Vector_integer_dense'>
+            <class 'sage.modules.vector_integer_dense.Vector_integer_dense'>
             sage: M.element_class
-            <type 'sage.modules.vector_integer_dense.Vector_integer_dense'>
+            <class 'sage.modules.vector_integer_dense.Vector_integer_dense'>
 
             sage: N = FreeModule(ZZ,20,sparse=True)
             sage: y = N.random_element()
             sage: type(y)
-            <type 'sage.modules.free_module_element.FreeModuleElement_generic_sparse'>
+            <class 'sage.modules.free_module_element.FreeModuleElement_generic_sparse'>
             sage: N.element_class
-            <type 'sage.modules.free_module_element.FreeModuleElement_generic_sparse'>
+            <class 'sage.modules.free_module_element.FreeModuleElement_generic_sparse'>
 
         """
         if not base_ring.is_commutative():
@@ -1051,7 +1068,7 @@ done from the right side.""")
         some_elements_base = iter(self.base().some_elements())
         n = self.degree()
         while True:
-            L = list(islice(some_elements_base, int(n)))
+            L = list(itertools.islice(some_elements_base, int(n)))
             if len(L) != n:
                 return
             try:
@@ -1543,7 +1560,7 @@ done from the right side.""")
         return all(x in S for x in M.list())
 
     def __iter__(self):
-        """
+        r"""
         Return iterator over the elements of this free module.
 
         EXAMPLES::
@@ -1558,17 +1575,74 @@ done from the right side.""")
             sage: [x for x in W]
             [(0, 0), (a, a), (a + 1, a + 1), (1, 1)]
 
+        Free modules over enumerated infinite rings (i.e., those in the
+        category :class:`InfiniteEnumeratedSets`) iterate over module
+        elements ordered by (primarily) the 1-norm and (secondarily) the
+        `\infty`-norm of their coordinate vectors::
+
+            sage: it = iter(ZZ^3)
+            sage: vs = [next(it) for _ in range(1000)]
+            sage: vs[:50]
+            [(0, 0, 0), (1, 0, 0), (-1, 0, 0), (0, 1, 0), (0, -1, 0), (0, 0, 1), (0, 0, -1), (1, 1, 0), (-1, 1, 0), (1, -1, 0), (-1, -1, 0), (1, 0, 1), (-1, 0, 1), (1, 0, -1), (-1, 0, -1), (0, 1, 1), (0, -1, 1), (0, 1, -1), (0, -1, -1), (2, 0, 0), (-2, 0, 0), (0, 2, 0), (0, -2, 0), (0, 0, 2), (0, 0, -2), (1, 1, 1), (-1, 1, 1), (1, -1, 1), (-1, -1, 1), (1, 1, -1), (-1, 1, -1), (1, -1, -1), (-1, -1, -1), (2, 1, 0), (-2, 1, 0), (2, -1, 0), (-2, -1, 0), (2, 0, 1), (-2, 0, 1), (2, 0, -1), (-2, 0, -1), (0, 2, 1), (0, -2, 1), (0, 2, -1), (0, -2, -1), (1, 2, 0), (1, -2, 0), (-1, 2, 0), (-1, -2, 0), (1, 0, 2)]
+            sage: vs[775:825]
+            [(1, 6, 1), (1, -6, 1), (1, 6, -1), (1, -6, -1), (-1, 6, 1), (-1, -6, 1), (-1, 6, -1), (-1, -6, -1), (2, 6, 0), (2, -6, 0), (-2, 6, 0), (-2, -6, 0), (1, 1, 6), (1, 1, -6), (-1, 1, 6), (-1, 1, -6), (1, -1, 6), (1, -1, -6), (-1, -1, 6), (-1, -1, -6), (2, 0, 6), (2, 0, -6), (-2, 0, 6), (-2, 0, -6), (0, 2, 6), (0, 2, -6), (0, -2, 6), (0, -2, -6), (7, 1, 0), (-7, 1, 0), (7, -1, 0), (-7, -1, 0), (7, 0, 1), (-7, 0, 1), (7, 0, -1), (-7, 0, -1), (0, 7, 1), (0, -7, 1), (0, 7, -1), (0, -7, -1), (1, 7, 0), (1, -7, 0), (-1, 7, 0), (-1, -7, 0), (1, 0, 7), (1, 0, -7), (-1, 0, 7), (-1, 0, -7), (0, 1, 7), (0, 1, -7)]
+
         TESTS::
 
             sage: V = VectorSpace(GF(2,'a'),2)
             sage: V.list()
             [(0, 0), (1, 0), (0, 1), (1, 1)]
+
+        Test ``iter(ZZ^n)`` and the like::
+
+            sage: it = iter(ZZ^5)
+            sage: vs = [next(it) for _ in range(10000)]
+            sage: _ = [v.set_immutable() for v in vs]
+            sage: len(set(vs))  # no duplicates
+            10000
+            sage: onenorm = lambda v: sum(map(abs, v))
+            sage: maxnorm = lambda v: max(map(abs, v))
+            sage: norms = [(onenorm(v), maxnorm(v)) for v in vs]
+            sage: all(n <= m for n,m in zip(norms, norms[1:]))  # ordered by (1-norm, max-norm)
+            True
+            sage: [sum(o <= b and m <= b for o,m in norms) for b in range(8)]  # did not miss any
+            [1, 11, 61, 231, 681, 1683, 3653, 7183]
         """
         G = self.gens()
         if not G:
             yield self(0)
             return
-        R     = self.base_ring()
+
+        R = self.base_ring()
+
+        if R in InfiniteEnumeratedSets():
+            # This makes iter(ZZ^n) produce vectors in a "natural" order,
+            # rather than only vectors with the first component non-zero.
+            # Algorithm: Initial version which ordered by max-norm due to
+            # Aleksei Udovenko, adapted by Lorenz Panny to order by 1-norm
+            # primarily and by max-norm secondarily.
+            def aux(length, norm, max_):
+                if not 0 <= norm <= length*max_:
+                    return  # there are no such vectors
+                if norm == max_ == 0:
+                    yield (0,)*length
+                    return
+                for pos in range(length):
+                    for lnorm in range(norm-max_+1):
+                        for lmax in range(max_):
+                            for left in aux(pos, lnorm, lmax):
+                                for rmax in range(max_+1):
+                                    for right in aux(length-1-pos, norm-max_-lnorm, rmax):
+                                        for mid in (+max_, -max_):
+                                            yield left + (mid,) + right
+            n = len(G)
+            for norm in itertools.count(0):
+                mm = (norm + n-1) // n
+                for max_ in range(mm, norm+1):
+                    for vec in aux(n, norm, max_):
+                        yield self.linear_combination_of_basis(vec)
+            assert False  # should loop forever
+
         iters = [iter(R) for _ in range(len(G))]
         for x in iters:
             next(x)     # put at 0
@@ -2183,6 +2257,34 @@ done from the right side.""")
         """
         return False
 
+    def hom(self, im_gens, codomain=None, **kwds):
+        """
+        Override the hom method to handle the case of morphisms given by left-multiplication
+        of a matrix and the codomain is not given.
+
+        EXAMPLES::
+
+            sage: W = ZZ^2; W.hom(matrix(1, [1, 2]), side="right")
+            Free module morphism defined as left-multiplication by the matrix
+            [1 2]
+            Domain: Ambient free module of rank 2 over the principal ideal domain Integer Ring
+            Codomain: Ambient free module of rank 1 over the principal ideal domain Integer Ring
+            sage: V = QQ^2; V.hom(identity_matrix(2), side="right")
+            Vector space morphism represented as left-multiplication by the matrix:
+            [1 0]
+            [0 1]
+            Domain: Vector space of dimension 2 over Rational Field
+            Codomain: Vector space of dimension 2 over Rational Field
+        """
+        from sage.structure.element import is_Matrix
+        if codomain is None and is_Matrix(im_gens):
+            side = kwds.get("side", "left")
+            n = im_gens.nrows() if side == "right" else im_gens.ncols()
+            from sage.categories.pushout import pushout
+            R = pushout(self.base_ring(), im_gens.base_ring())
+            codomain = R**n
+        return super().hom(im_gens, codomain, **kwds)
+
     def inner_product_matrix(self):
         """
         Return the default identity inner product matrix associated to this
@@ -2438,7 +2540,7 @@ done from the right side.""")
         """
         return bool(self.rank())
 
-    __nonzero__ = __bool__
+    
 
     def uses_ambient_inner_product(self):
         r"""
@@ -2903,7 +3005,7 @@ class FreeModule_generic_pid(FreeModule_generic):
         a = sage.matrix.matrix_space.MatrixSpace(self.base_field(), self.rank())(C).determinant()
         if sage.rings.integer_ring.is_IntegerRing(self.base_ring()):
             return a.abs()
-        elif isinstance(self.base_ring, sage.rings.number_field.order.Order):
+        elif isinstance(self.base_ring, sage.rings.abc.Order):
             return self.base_ring().ideal(a).norm()
         else:
             raise NotImplementedError
@@ -4420,7 +4522,7 @@ class FreeModule_generic_field(FreeModule_generic_pid):
         """
         if check:
             for v in vectors:
-                if not v in self:
+                if v not in self:
                     raise ValueError('vector %s is not an element of %s' % (v, self))
         if zeros == 'left':
             basis = 'echelon'
@@ -5568,7 +5670,7 @@ class FreeModule_ambient_pid(FreeModule_generic_pid, FreeModule_ambient_domain):
             sage: v = M.basis()[0]; v
             (1, 0, 0)
             sage: type(v)
-            <type 'sage.modules.vector_rational_dense.Vector_rational_dense'>
+            <class 'sage.modules.vector_rational_dense.Vector_rational_dense'>
         """
         FreeModule_ambient_domain.__init__(self, base_ring=base_ring,
                 rank=rank, sparse=sparse, coordinate_ring=coordinate_ring)
@@ -6388,12 +6490,12 @@ class FreeModule_submodule_with_basis_pid(FreeModule_generic_pid):
             [1 0]
             [0 2]
             sage: type(T)
-            <type 'sage.matrix.matrix_integer_dense.Matrix_integer_dense'>
+            <class 'sage.matrix.matrix_integer_dense.Matrix_integer_dense'>
             sage: U = N._rref_to_echelon_matrix(); U
             [  1   0]
             [  0 1/2]
             sage: type(U)
-            <type 'sage.matrix.matrix_rational_dense.Matrix_rational_dense'>
+            <class 'sage.matrix.matrix_rational_dense.Matrix_rational_dense'>
         """
         try:
             return self.__echelon_to_rref_matrix
@@ -6423,12 +6525,12 @@ class FreeModule_submodule_with_basis_pid(FreeModule_generic_pid):
             [1 0]
             [0 2]
             sage: type(T)
-            <type 'sage.matrix.matrix_integer_dense.Matrix_integer_dense'>
+            <class 'sage.matrix.matrix_integer_dense.Matrix_integer_dense'>
             sage: U = N._rref_to_echelon_matrix(); U
             [  1   0]
             [  0 1/2]
             sage: type(U)
-            <type 'sage.matrix.matrix_rational_dense.Matrix_rational_dense'>
+            <class 'sage.matrix.matrix_rational_dense.Matrix_rational_dense'>
         """
         try:
             return self.__rref_to_echelon_matrix
@@ -7379,34 +7481,32 @@ def element_class(R, is_sparse):
         sage: FF = FiniteField(2)
         sage: P = PolynomialRing(FF,'x')
         sage: sage.modules.free_module.element_class(QQ, is_sparse=True)
-        <type 'sage.modules.free_module_element.FreeModuleElement_generic_sparse'>
+        <class 'sage.modules.free_module_element.FreeModuleElement_generic_sparse'>
         sage: sage.modules.free_module.element_class(QQ, is_sparse=False)
-        <type 'sage.modules.vector_rational_dense.Vector_rational_dense'>
+        <class 'sage.modules.vector_rational_dense.Vector_rational_dense'>
         sage: sage.modules.free_module.element_class(ZZ, is_sparse=True)
-        <type 'sage.modules.free_module_element.FreeModuleElement_generic_sparse'>
+        <class 'sage.modules.free_module_element.FreeModuleElement_generic_sparse'>
         sage: sage.modules.free_module.element_class(ZZ, is_sparse=False)
-        <type 'sage.modules.vector_integer_dense.Vector_integer_dense'>
+        <class 'sage.modules.vector_integer_dense.Vector_integer_dense'>
         sage: sage.modules.free_module.element_class(FF, is_sparse=True)
-        <type 'sage.modules.free_module_element.FreeModuleElement_generic_sparse'>
+        <class 'sage.modules.free_module_element.FreeModuleElement_generic_sparse'>
         sage: sage.modules.free_module.element_class(FF, is_sparse=False)
-        <type 'sage.modules.vector_mod2_dense.Vector_mod2_dense'>
+        <class 'sage.modules.vector_mod2_dense.Vector_mod2_dense'>
         sage: sage.modules.free_module.element_class(GF(7), is_sparse=False)
-        <type 'sage.modules.vector_modn_dense.Vector_modn_dense'>
+        <class 'sage.modules.vector_modn_dense.Vector_modn_dense'>
         sage: sage.modules.free_module.element_class(P, is_sparse=True)
-        <type 'sage.modules.free_module_element.FreeModuleElement_generic_sparse'>
+        <class 'sage.modules.free_module_element.FreeModuleElement_generic_sparse'>
         sage: sage.modules.free_module.element_class(P, is_sparse=False)
-        <type 'sage.modules.free_module_element.FreeModuleElement_generic_dense'>
+        <class 'sage.modules.free_module_element.FreeModuleElement_generic_dense'>
     """
-    import sage.modules.vector_real_double_dense
-    import sage.modules.vector_complex_double_dense
-
+    import sage.rings.integer_ring
     if sage.rings.integer_ring.is_IntegerRing(R) and not is_sparse:
         from .vector_integer_dense import Vector_integer_dense
         return Vector_integer_dense
     elif sage.rings.rational_field.is_RationalField(R) and not is_sparse:
         from .vector_rational_dense import Vector_rational_dense
         return Vector_rational_dense
-    elif sage.rings.finite_rings.integer_mod_ring.is_IntegerModRing(R) and not is_sparse:
+    elif isinstance(R, sage.rings.abc.IntegerModRing) and not is_sparse:
         from .vector_mod2_dense import Vector_mod2_dense
         if R.order() == 2:
             return Vector_mod2_dense
@@ -7415,22 +7515,31 @@ def element_class(R, is_sparse):
             return Vector_modn_dense
         else:
             return free_module_element.FreeModuleElement_generic_dense
-    elif sage.rings.real_double.is_RealDoubleField(R) and not is_sparse:
-        return sage.modules.vector_real_double_dense.Vector_real_double_dense
-    elif sage.rings.complex_double.is_ComplexDoubleField(R) and not is_sparse:
-        return sage.modules.vector_complex_double_dense.Vector_complex_double_dense
-    elif sage.symbolic.ring.is_SymbolicExpressionRing(R) and not is_sparse:
-        import sage.modules.vector_symbolic_dense
-        return sage.modules.vector_symbolic_dense.Vector_symbolic_dense
-    elif sage.symbolic.callable.is_CallableSymbolicExpressionRing(R) and not is_sparse:
+    elif isinstance(R, sage.rings.abc.RealDoubleField) and not is_sparse:
+        try:
+            from sage.modules.vector_real_double_dense import Vector_real_double_dense
+        except ImportError:
+            pass
+        else:
+            return Vector_real_double_dense
+    elif isinstance(R, sage.rings.abc.ComplexDoubleField) and not is_sparse:
+        try:
+            from sage.modules.vector_complex_double_dense import Vector_complex_double_dense
+        except ImportError:
+            pass
+        else:
+            return Vector_complex_double_dense
+    elif isinstance(R, sage.rings.abc.CallableSymbolicExpressionRing) and not is_sparse:
         import sage.modules.vector_callable_symbolic_dense
         return sage.modules.vector_callable_symbolic_dense.Vector_callable_symbolic_dense
+    elif isinstance(R, sage.rings.abc.SymbolicRing) and not is_sparse:
+        import sage.modules.vector_symbolic_dense
+        return sage.modules.vector_symbolic_dense.Vector_symbolic_dense
+
+    if is_sparse:
+        return free_module_element.FreeModuleElement_generic_sparse
     else:
-        if is_sparse:
-            return free_module_element.FreeModuleElement_generic_sparse
-        else:
-            return free_module_element.FreeModuleElement_generic_dense
-    raise NotImplementedError
+        return free_module_element.FreeModuleElement_generic_dense
 
 @richcmp_method
 class EchelonMatrixKey(object):

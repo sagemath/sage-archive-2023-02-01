@@ -120,12 +120,11 @@ class EllipticCurveTorsionSubgroup(groups.AdditiveAbelianGroupWrapper):
         sage: type(T)
         <class 'sage.schemes.elliptic_curves.ell_torsion.EllipticCurveTorsionSubgroup_with_category'>
 
-
     AUTHORS:
 
-    - Nick Alexander - initial implementation over `\QQ`.
-    - Chris Wuthrich - initial implementation over number fields.
-    - John Cremona - additional features and unification.
+    - Nick Alexander: initial implementation over `\QQ`.
+    - Chris Wuthrich: initial implementation over number fields.
+    - John Cremona: additional features and unification.
     """
     def __init__(self, E):
         r"""
@@ -133,7 +132,7 @@ class EllipticCurveTorsionSubgroup(groups.AdditiveAbelianGroupWrapper):
 
         INPUT:
 
-        - ``E`` - An elliptic curve defined over a number field (including `\Q`)
+        - ``E`` -- An elliptic curve defined over a number field (including `\Q`)
 
         EXAMPLES::
 
@@ -320,7 +319,8 @@ def torsion_bound(E, number_of_places=20):
         sage: E.torsion_subgroup().invariants()
         (4, 4)
     """
-    from sage.rings.all import ZZ, GF
+    from sage.rings.integer_ring import ZZ
+    from sage.rings.finite_rings.finite_field_constructor import GF
     from sage.schemes.elliptic_curves.constructor import EllipticCurve
 
     K = E.base_field()
@@ -402,7 +402,7 @@ def torsion_bound(E, number_of_places=20):
         k += 1
         for fi, ei in f.factor_mod(p):
             di = fi.degree()
-            Fq = GF(p**di)
+            Fq = GF((p, di))
             ai = fi.roots(Fq, multiplicities=False)[0]
 
             def red(c):

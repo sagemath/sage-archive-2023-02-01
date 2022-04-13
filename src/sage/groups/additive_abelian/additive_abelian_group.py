@@ -9,7 +9,7 @@ major differences are in the way elements are printed.
 from sage.groups.old import AbelianGroup
 from sage.modules.fg_pid.fgp_module import FGP_Module_class
 from sage.modules.fg_pid.fgp_element import FGP_Element
-from sage.rings.all import ZZ
+from sage.rings.integer_ring import ZZ
 
 def AdditiveAbelianGroup(invs, remember_generators = True):
     r"""
@@ -469,4 +469,3 @@ class AdditiveAbelianGroup_fixed_gens(AdditiveAbelianGroup_class):
         from sage.groups.perm_gps.permgroup import PermutationGroup
         s = 'Image(IsomorphismPermGroup(AbelianGroup(%s)))'%(list(self.invariants()),)
         return PermutationGroup(gap_group=s)
-

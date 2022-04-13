@@ -215,7 +215,7 @@ class QuotientFields(Category_singleton):
                 sage: (1/2).lcm(2)
                 2
                 sage: type((1/2).lcm(2))
-                <type 'sage.rings.rational.Rational'>
+                <class 'sage.rings.rational.Rational'>
             """
             P = self.parent()
             try:
@@ -710,4 +710,3 @@ class QuotientFields(Category_singleton):
 
             return self.__class__(R, num, den,
                 coerce=False, reduce=False)
-

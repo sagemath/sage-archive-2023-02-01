@@ -380,6 +380,36 @@ def _split_laurent_polynomial_dict_(P, M, d):
         pass
     return sum(P({k: 1}) * value(v, P) for k, v in D.items()).dict()
 
+def from_fraction_field(L, x):
+    r"""
+    Helper function to construct a Laurent polynomial from an element of its
+    parent's fraction field.
+
+    INPUT:
+
+    - ``L`` -- an instance of :class:`LaurentPolynomialRing_generic`
+    - ``x`` -- an element of the fraction field of ``L``
+
+    OUTPUT:
+
+    An instance of the element class of ``L``. If the denominator fails to be
+    a unit in ``L`` an error is raised.
+
+    EXAMPLES::
+
+        sage: from sage.rings.polynomial.laurent_polynomial_ring import from_fraction_field
+        sage: L.<x, y> = LaurentPolynomialRing(ZZ)
+        sage: F = L.fraction_field()
+        sage: xi = F(~x)
+        sage: from_fraction_field(L, xi) == ~x
+        True
+    """
+    d = L(x.denominator())
+    if d.is_unit():
+        n = L(x.numerator())
+        return n * d.inverse_of_unit()
+    else:
+        raise TypeError("fraction must have unit denominator")
 
 class LaurentPolynomialRing_generic(CommutativeRing, Parent):
     """
@@ -479,17 +509,15 @@ class LaurentPolynomialRing_generic(CommutativeRing, Parent):
         """
         if depth <= 0:
             return ()
-        elif depth == 1:
+        if depth == 1:
             return self.variable_names()
-        else:
-            my_vars = self.variable_names()
-            try:
-               return self.base_ring().variable_names_recursive(depth - len(my_vars)) + my_vars
-            except AttributeError:
-                return my_vars
+        my_vars = self.variable_names()
+        try:
+            return self.base_ring().variable_names_recursive(depth - len(my_vars)) + my_vars
+        except AttributeError:
+            return my_vars
 
-
-    def is_integral_domain(self, proof = True):
+    def is_integral_domain(self, proof=True):
         """
         Returns True if self is an integral domain.
 
@@ -973,8 +1001,9 @@ class LaurentPolynomialRing_univariate(LaurentPolynomialRing_generic):
             ...
             TypeError: fraction must have unit denominator
         """
-        from sage.symbolic.expression import Expression
+        from sage.structure.element import Expression
         from sage.rings.fraction_field_element import FractionFieldElement
+        from sage.rings.localization import LocalizationElement
         if isinstance(x, Expression):
             return x.laurent_polynomial(ring=self)
 
@@ -995,13 +1024,15 @@ class LaurentPolynomialRing_univariate(LaurentPolynomialRing_generic):
                 x = x.dict()
 
         elif isinstance(x, FractionFieldElement):
-            # since the field of fraction of self is defined corresponding to the polynomial ring of self
-            # the conversion of its elements back must be treated separately (:trac:`26425`).
-            P = x.parent()
-            d = self(x.denominator())
-            if not d.is_unit():
-                raise TypeError("fraction must have unit denominator")
-            return self(x.numerator()) * d.inverse_of_unit()
+            # since the field of fraction of self is defined corresponding to
+            # the polynomial ring of self the conversion of its elements back
+            # must be treated separately (:trac:`26425`).
+            return from_fraction_field(self, x)
+
+        elif isinstance(x, LocalizationElement):
+            # see :trac:`33477`.
+            F = self.fraction_field()
+            return from_fraction_field(self, F(x))
 
         return self.element_class(self, x)
 
@@ -1168,8 +1199,17 @@ class LaurentPolynomialRing_mpair(LaurentPolynomialRing_generic):
             x + y + z
             sage: R(sum(P.gens()), (-1,-1,-1))
             y^-1*z^-1 + x^-1*z^-1 + x^-1*y^-1
+
+        ::
+
+            sage: RL = R.localization(x+1)
+            sage: xi = RL(~x)
+            sage: R(xi) == ~x     # indirect doctests
+            True
         """
-        from sage.symbolic.expression import Expression
+        from sage.structure.element import Expression
+        from sage.rings.fraction_field_element import FractionFieldElement
+        from sage.rings.localization import LocalizationElement
 
         if mon is not None:
             return self.element_class(self, x, mon)
@@ -1202,6 +1242,17 @@ class LaurentPolynomialRing_mpair(LaurentPolynomialRing_generic):
             elif len(self.variable_names()) == len(P.variable_names()):
                 x = x.dict()
 
+        elif isinstance(x, FractionFieldElement):
+            # since the field of fraction of self is defined corresponding to
+            # the polynomial ring of self the conversion of its elements back
+            # must be treated separately (:trac:`33477`).
+            return from_fraction_field(self, x)
+
+        elif isinstance(x, LocalizationElement):
+            # see :trac:`33477`.
+            F = self.fraction_field()
+            return from_fraction_field(self, F(x))
+
         return self.element_class(self, x)
 
     def __reduce__(self):
@@ -1215,5 +1266,3 @@ class LaurentPolynomialRing_mpair(LaurentPolynomialRing_generic):
             True
         """
         return LaurentPolynomialRing_mpair, (self._R,)
-
-

@@ -68,6 +68,7 @@ Display Backend Infrastructure
 
    sage/repl/rich_output/display_manager
    sage/repl/rich_output/preferences
+   sage/repl/rich_output/pretty_print
    sage/repl/rich_output/buffer
    sage/repl/rich_output/output_basic
    sage/repl/rich_output/output_graphics
@@ -76,7 +77,7 @@ Display Backend Infrastructure
    sage/repl/rich_output/output_catalog
    
    sage/repl/rich_output/backend_base
-   sage/repl/rich_output/backend_test
+   sage/repl/rich_output/test_backend
    sage/repl/rich_output/backend_doctest
    sage/repl/rich_output/backend_ipython
 

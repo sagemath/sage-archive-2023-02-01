@@ -1463,50 +1463,7 @@ EXAMPLES::
     avalanche_polynomial     -- The avalanche polynomial.
     betti                    -- The Betti table for the homogeneous toppling ideal.
     betti_complexes          -- The support-complexes with non-trivial homology.
-    burning_config           -- The minimal burning configuration.
-    burning_script           -- A script for the minimal burning configuration.
-    canonical_divisor        -- The canonical divisor.
-    dict                     -- A dictionary of dictionaries representing a directed graph.
-    genus                    -- The genus: (# non-loop edges) - (# vertices) + 1.
-    groebner                 -- A Groebner basis for the homogeneous toppling ideal.
-    group_gens               -- A minimal list of generators for the sandpile group.
-    group_order              -- The size of the sandpile group.
-    h_vector                 -- The number of superstable configurations in each degree.
-    help                     -- List of Sandpile-specific methods (not inherited from "Graph").
-    hilbert_function         -- The Hilbert function of the homogeneous toppling ideal.
-    ideal                    -- The saturated homogeneous toppling ideal.
-    identity                 -- The identity configuration.
-    in_degree                -- The in-degree of a vertex or a list of all in-degrees.
-    invariant_factors        -- The invariant factors of the sandpile group.
-    is_undirected            -- Is the underlying graph undirected?
-    jacobian_representatives -- Representatives for the elements of the Jacobian group.
-    laplacian                -- The Laplacian matrix of the graph.
-    markov_chain             -- The sandpile Markov chain for configurations or divisors.
-    max_stable               -- The maximal stable configuration.
-    max_stable_div           -- The maximal stable divisor.
-    max_superstables         -- The maximal superstable configurations.
-    min_recurrents           -- The minimal recurrent elements.
-    nonsink_vertices         -- The nonsink vertices.
-    nonspecial_divisors      -- The nonspecial divisors.
-    out_degree               -- The out-degree of a vertex or a list of all out-degrees.
-    picard_representatives   -- Representatives of the divisor classes of degree d in the Picard group.
-    points                   -- Generators for the multiplicative group of zeros of the sandpile ideal.
-    postulation              -- The postulation number of the toppling ideal.
-    recurrents               -- The recurrent configurations.
-    reduced_laplacian        -- The reduced Laplacian matrix of the graph.
-    reorder_vertices         -- A copy of the sandpile with vertex names permuted.
-    resolution               -- A minimal free resolution of the homogeneous toppling ideal.
-    ring                     -- The ring containing the homogeneous toppling ideal.
-    show                     -- Draw the underlying graph.
-    show3d                   -- Draw the underlying graph.
-    sink                     -- The sink vertex.
-    smith_form               -- The Smith normal form for the Laplacian.
-    solve                    -- Approximations of the complex affine zeros of the sandpile ideal.
-    stable_configs           -- Generator for all stable configurations.
-    stationary_density       -- The stationary density of the sandpile.
-    superstables             -- The superstable configurations.
-    symmetric_recurrents     -- The symmetric recurrent configurations.
-    tutte_polynomial         -- The Tutte polynomial of the underlying graph.
+    ...
     unsaturated_ideal        -- The unsaturated, homogeneous toppling ideal.
     version                  -- The version number of Sage Sandpiles.
     zero_config              -- The all-zero configuration.
@@ -4841,8 +4798,6 @@ Other
 
 - :ref:`parallel_firing_graph <parallel_firing_graph>` --- The parallel-firing graph.
 
-- :ref:`random_DAG <random_DAG>` --- A random directed acyclic graph.
-
 - :ref:`sandpiles <sandpiles>` --- Some examples of sandpiles.
 
 - :ref:`wilmes_algorithm <wilmes_algorithm>` --- Find matrix with the
@@ -4903,35 +4858,6 @@ Other
 
 ---
 
-.. _random_DAG:
-
-**random_DAG(num_verts,p=1/2,weight_max=1)**
-
-    Returns a random directed acyclic graph with ``num_verts`` vertices.
-    The method starts with the sink vertex and adds vertices one at a time.
-    Each vertex is connected only to only previously defined vertices, and the
-    probability of each possible connection is given by the argument ``p``.
-    The weight of an edge is a random integer between ``1`` and
-    ``weight_max``.
-
-    INPUT:
-
-     - ``num_verts`` - positive integer
-     - ``p`` - number between `0` and `1`
-     - ``weight_max`` -- integer greater than `0`
-
-    OUTPUT:
-
-    directed acyclic graph with sink `0`
-
-    EXAMPLES::
-
-        sage: S = random_DAG(5, 0.3)
-        doctest:...: DeprecationWarning: method random_DAG is deprecated. Please use digraphs.RandomDirectedAcyclicGraph instead.
-        See https://trac.sagemath.org/30479 for details.
-
----
-
 .. _sandpiles:
 
 **sandpiles**
@@ -4988,7 +4914,7 @@ Other
         [    0    -1  1650 -1649]
         [    0     0 -1658  1658]
 
-    NOTES:
+    NOTE:
 
     The algorithm is due to John Wilmes.
 
@@ -5002,7 +4928,7 @@ Documentation for each method is available through the Sage online help system:
 ::
 
     sage: SandpileConfig.fire_vertex?
-    Base Class:     <type 'instancemethod'>
+    Base Class:     <class 'instancemethod'>
     String Form:    <unbound method SandpileConfig.fire_vertex>
     Namespace:      Interactive
     File:           /usr/local/sage-4.7/local/lib/python2.6/site-packages/sage/sandpiles/sandpile.py

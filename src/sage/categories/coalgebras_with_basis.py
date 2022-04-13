@@ -196,13 +196,13 @@ class CoalgebrasWithBasis(CategoryWithAxiom_over_base_ring):
                 return self
             if n == 1:
                 return self.coproduct()
-            from sage.functions.all import ceil
             from sage.rings.integer import Integer
 
             # Use coassociativity of `\Delta` to perform many coproducts simultaneously.
             fn = Integer(n - 1) // 2
-            cn = ceil(Integer(n - 1) / 2)
-            split = lambda a,b: tensor([a.coproduct_iterated(fn), b.coproduct_iterated(cn)])
+            cn = Integer(n - 1) // 2 if n % 2 else Integer(n) // 2
+            split = lambda a, b: tensor([a.coproduct_iterated(fn),
+                                         b.coproduct_iterated(cn)])
             return self.coproduct().apply_multilinear_morphism(split)
 
     class Super(SuperModulesCategory):
@@ -217,4 +217,3 @@ class CoalgebrasWithBasis(CategoryWithAxiom_over_base_ring):
                  Category of super modules with basis over Integer Ring]
             """
             return [self.base_category().Graded()]
-

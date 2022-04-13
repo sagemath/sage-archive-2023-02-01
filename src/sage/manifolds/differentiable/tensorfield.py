@@ -51,12 +51,29 @@ REFERENCES:
 #  the License, or (at your option) any later version.
 #                  https://www.gnu.org/licenses/
 # *****************************************************************************
+from __future__ import annotations
+
+from typing import TYPE_CHECKING, Optional, Tuple, TypeVar, Union
 
 from sage.rings.integer import Integer
 from sage.rings.integer_ring import ZZ
 from sage.structure.element import ModuleElementWithMutability
 from sage.tensor.modules.free_module_tensor import FreeModuleTensor
 from sage.tensor.modules.tensor_with_indices import TensorWithIndices
+
+if TYPE_CHECKING:
+    from sage.manifolds.differentiable.diff_map import DiffMap
+    from sage.manifolds.differentiable.manifold import DifferentiableManifold
+    from sage.manifolds.differentiable.metric import PseudoRiemannianMetric
+    from sage.manifolds.differentiable.poisson_tensor import PoissonTensorField
+    from sage.manifolds.differentiable.symplectic_form import SymplecticForm
+    from sage.manifolds.differentiable.vectorfield_module import VectorFieldModule
+    from sage.tensor.modules.comp import Components
+
+
+TensorType = Tuple[int, int]
+T = TypeVar("T", bound="TensorField")
+
 
 class TensorField(ModuleElementWithMutability):
     r"""
@@ -322,7 +339,7 @@ class TensorField(ModuleElementWithMutability):
         sage: f.display()  # long time
         t(a,b): S^2 → ℝ
         on U: (x, y) ↦ -2*x*y - 3*x - y**2
-        on V: (u, v) ↦ -(3*u**3 + 3*u*v**2 + 2*u*v + v**2)/(u**4 + 2*u**2*v**2 + v**4)
+        on V: (u, v) ↦ (-3*u**3 - 3*u*v**2 - 2*u*v - v**2)/(u**4 + 2*u**2*v**2 + v**4)
 
     The vectors can be defined only on subsets of `S^2`, the domain of the
     result is then the common subset::
@@ -331,12 +348,12 @@ class TensorField(ModuleElementWithMutability):
         sage: s.display()  # long time
         t(a,b): U → ℝ
            (x, y) ↦ -2*x*y - 3*x - y**2
-        on W: (u, v) ↦ -(3*u**3 + 3*u*v**2 + 2*u*v + v**2)/(u**4 + 2*u**2*v**2 + v**4)
+        on W: (u, v) ↦ (-3*u**3 - 3*u*v**2 - 2*u*v - v**2)/(u**4 + 2*u**2*v**2 + v**4)
         sage: s = t(a.restrict(U), b.restrict(W))  # long time
         sage: s.display()  # long time
         t(a,b): W → ℝ
            (x, y) ↦ -2*x*y - 3*x - y**2
-           (u, v) ↦ -(3*u**3 + 3*u*v**2 + 2*u*v + v**2)/(u**4 + 2*u**2*v**2 + v**4)
+           (u, v) ↦ (-3*u**3 - 3*u*v**2 - 2*u*v - v**2)/(u**4 + 2*u**2*v**2 + v**4)
 
     The tensor itself can be defined only on some open subset of `S^2`,
     yielding a result whose domain is this subset::
@@ -344,7 +361,7 @@ class TensorField(ModuleElementWithMutability):
         sage: s = t.restrict(V)(a,b)  # long time
         sage: s.display()  # long time
         t(a,b): V → ℝ
-           (u, v) ↦ -(3*u**3 + 3*u*v**2 + 2*u*v + v**2)/(u**4 + 2*u**2*v**2 + v**4)
+           (u, v) ↦ (-3*u**3 - 3*u*v**2 - 2*u*v - v**2)/(u**4 + 2*u**2*v**2 + v**4)
         on W: (x, y) ↦ -2*x*y - 3*x - y**2
 
     Tests regarding the multiplication by a scalar field::
@@ -390,8 +407,23 @@ class TensorField(ModuleElementWithMutability):
         ValueError: the name of an immutable element cannot be changed
 
     """
-    def __init__(self, vector_field_module, tensor_type, name=None,
-                 latex_name=None, sym=None, antisym=None, parent=None):
+
+    _name: Optional[str]
+    _latex_name: Optional[str]
+    _vmodule: VectorFieldModule
+    _domain: DifferentiableManifold
+    _ambient_domain: DifferentiableManifold
+
+    def __init__(
+        self,
+        vector_field_module: VectorFieldModule,
+        tensor_type: TensorType,
+        name: Optional[str] = None,
+        latex_name: Optional[str] = None,
+        sym=None,
+        antisym=None,
+        parent=None,
+    ):
         r"""
         Construct a tensor field.
 
@@ -590,9 +622,9 @@ class TensorField(ModuleElementWithMutability):
         if self._latex_name is None:
             return r'\mbox{' + str(self) + r'}'
         else:
-           return self._latex_name
+            return self._latex_name
 
-    def set_name(self, name=None, latex_name=None):
+    def set_name(self, name: Optional[str] = None, latex_name: Optional[str] = None):
         r"""
         Set (or change) the text name and LaTeX name of ``self``.
 
@@ -660,7 +692,7 @@ class TensorField(ModuleElementWithMutability):
         return type(self)(self._vmodule, self._tensor_type, sym=self._sym,
                           antisym=self._antisym, parent=self.parent())
 
-    def _final_repr(self, description):
+    def _final_repr(self, description: str) -> str:
         r"""
         Part of string representation common to all derived classes of
         :class:`TensorField`.
@@ -804,7 +836,7 @@ class TensorField(ModuleElementWithMutability):
 
     #### Simple accessors ####
 
-    def domain(self):
+    def domain(self) -> DifferentiableManifold:
         r"""
         Return the manifold on which ``self`` is defined.
 
@@ -828,7 +860,7 @@ class TensorField(ModuleElementWithMutability):
         """
         return self._domain
 
-    def base_module(self):
+    def base_module(self) -> VectorFieldModule:
         r"""
         Return the vector field module on which ``self`` acts as a tensor.
 
@@ -855,7 +887,7 @@ class TensorField(ModuleElementWithMutability):
         """
         return self._vmodule
 
-    def tensor_type(self):
+    def tensor_type(self) -> TensorType:
         r"""
         Return the tensor type of ``self``.
 
@@ -956,7 +988,7 @@ class TensorField(ModuleElementWithMutability):
             rst.set_immutable()
         super().set_immutable()
 
-    def set_restriction(self, rst):
+    def set_restriction(self, rst: TensorField):
         r"""
         Define a restriction of ``self`` to some subdomain.
 
@@ -1023,7 +1055,9 @@ class TensorField(ModuleElementWithMutability):
                                                        latex_name=self._latex_name)
         self._is_zero = False  # a priori
 
-    def restrict(self, subdomain, dest_map=None):
+    def restrict(
+        self: T, subdomain: DifferentiableManifold, dest_map: Optional[DiffMap] = None
+    ) -> T:
         r"""
         Return the restriction of ``self`` to some subdomain.
 
@@ -1373,7 +1407,7 @@ class TensorField(ModuleElementWithMutability):
         rst = self.restrict(basis._domain, dest_map=basis._dest_map)
         return rst._add_comp_unsafe(basis)
 
-    def add_comp(self, basis=None):
+    def add_comp(self, basis=None) -> Components:
         r"""
         Return the components of ``self`` in a given vector frame
         for assignment.
@@ -2652,7 +2686,7 @@ class TensorField(ModuleElementWithMutability):
     ######### End of ModuleElement arithmetic operators ########
 
     # TODO: Move to acted_upon or _rmul_
-    def __mul__(self, other):
+    def __mul__(self, other: TensorField) -> TensorField:
         r"""
         Tensor product (or multiplication of the right by a scalar).
 
@@ -2788,7 +2822,7 @@ class TensorField(ModuleElementWithMutability):
 
         return resu
 
-    def __truediv__(self, scalar):
+    def __truediv__(self, scalar) -> TensorField:
         r"""
         Division by a scalar field.
 
@@ -3170,7 +3204,7 @@ class TensorField(ModuleElementWithMutability):
             resu._restrictions[rst._domain] = rst
         return resu
 
-    def contract(self, *args):
+    def contract(self, *args: Union[int, TensorField]) -> TensorField:
         r"""
         Contraction of ``self`` with another tensor field on one or
         more indices.
@@ -3706,10 +3740,14 @@ class TensorField(ModuleElementWithMutability):
             if point in dom:
                 return rst.at(point)
 
-    def up(self, metric, pos=None):
+    def up(
+        self,
+        non_degenerate_form: Union[PseudoRiemannianMetric, SymplecticForm, PoissonTensorField],
+        pos: Optional[int] = None,
+    ) -> "TensorField":
         r"""
-        Compute a metric dual of the tensor field by raising some index with a
-        given metric.
+        Compute a dual of the tensor field by raising some index with the
+        given tensor field (usually, a pseudo-Riemannian metric, a symplectic form or a Poisson tensor).
 
         If `T` is the tensor field, `(k,l)` its type and `p` the position of a
         covariant index (i.e. `k\leq p < k+l`), this method called with
@@ -3723,14 +3761,13 @@ class TensorField(ModuleElementWithMutability):
             T^{a_1\ldots a_k}_{\phantom{a_1\ldots a_k}\, b_1 \ldots b_{p-k}
             \, i \, b_{p-k+1}\ldots b_{l-1}},
 
-        `g^{ab}` being the components of the inverse metric.
+        `g^{ab}` being the components of the inverse metric or the Poisson tensor, respectively.
 
         The reverse operation is :meth:`TensorField.down`.
 
         INPUT:
 
-        - ``metric`` -- metric `g`, as an instance of
-          :class:`~sage.manifolds.differentiable.metric.PseudoRiemannianMetric`
+        - ``non_degenerate_form`` -- non-degenerate form `g`, or a Poisson tensor
         - ``pos`` -- (default: ``None``) position of the index (with the
           convention ``pos=0`` for the first index); if ``None``, the raising
           is performed over all the covariant indices, starting from the first
@@ -3844,19 +3881,34 @@ class TensorField(ModuleElementWithMutability):
             result = self
             for p in range(n_con, self._tensor_rank):
                 k = result._tensor_type[0]
-                result = result.up(metric, k)
+                result = result.up(non_degenerate_form, k)
             return result
-        if not isinstance(pos, (int, Integer)):
-            raise TypeError("the argument 'pos' must be an integer")
-        if pos<n_con or pos>self._tensor_rank-1:
+
+        if pos < n_con or pos > self._tensor_rank - 1:
             print("pos = {}".format(pos))
             raise ValueError("position out of range")
-        return self.contract(pos, metric.inverse(), 0)
 
-    def down(self, metric, pos=None):
+        from sage.manifolds.differentiable.metric import PseudoRiemannianMetric
+        from sage.manifolds.differentiable.symplectic_form import SymplecticForm
+        from sage.manifolds.differentiable.poisson_tensor import PoissonTensorField
+
+        if isinstance(non_degenerate_form, PseudoRiemannianMetric):
+            return self.contract(pos, non_degenerate_form.inverse(), 1)
+        elif isinstance(non_degenerate_form, SymplecticForm):
+            return self.contract(pos, non_degenerate_form.poisson(), 1)
+        elif isinstance(non_degenerate_form, PoissonTensorField):
+            return self.contract(pos, non_degenerate_form, 1)
+        else:
+            raise ValueError("The non-degenerate form has to be a metric, a symplectic form or a Poisson tensor field")
+
+    def down(
+        self,
+        non_degenerate_form: Union[PseudoRiemannianMetric, SymplecticForm],
+        pos: Optional[int] = None,
+    ) -> TensorField:
         r"""
-        Compute a metric dual of the tensor field by lowering some index with a
-        given metric.
+        Compute a dual of the tensor field by lowering some index with a
+        given non-degenerate form (pseudo-Riemannian metric or symplectic form).
 
         If `T` is the tensor field, `(k,l)` its type and `p` the position of a
         contravariant index (i.e. `0\leq p < k`), this method called with
@@ -3866,18 +3918,17 @@ class TensorField(ModuleElementWithMutability):
         .. MATH::
 
             (T^\flat)^{a_1\ldots a_{k-1}}_{\phantom{a_1\ldots a_{k-1}}
-            \, b_1 \ldots b_{l+1}} = g_{b_1 i} \,
+            \, b_1 \ldots b_{l+1}} = g_{i b_1} \,
             T^{a_1\ldots a_{p} \, i \, a_{p+1}\ldots a_{k-1}}_{\phantom{a_1
             \ldots a_{p} \, i \, a_{p+1}\ldots a_{k-1}}\, b_2 \ldots b_{l+1}},
 
-        `g_{ab}` being the components of the metric tensor.
+        `g_{ab}` being the components of the metric tensor or the symplectic form, respectively.
 
         The reverse operation is :meth:`TensorField.up`.
 
         INPUT:
 
-        - ``metric`` -- metric `g`, as an instance of
-          :class:`~sage.manifolds.differentiable.metric.PseudoRiemannianMetric`
+        - ``non_degenerate_form`` -- non-degenerate form `g`
         - ``pos`` -- (default: ``None``) position of the index (with the
           convention ``pos=0`` for the first index); if ``None``, the lowering
           is performed over all the contravariant indices, starting from the
@@ -3989,14 +4040,14 @@ class TensorField(ModuleElementWithMutability):
             result = self
             for p in range(n_con):
                 k = result._tensor_type[0]
-                result = result.down(metric, k-1)
+                result = result.down(non_degenerate_form, k - 1)
             return result
         if not isinstance(pos, (int, Integer)):
             raise TypeError("the argument 'pos' must be an integer")
         if pos<0 or pos>=n_con:
             print("pos = {}".format(pos))
             raise ValueError("position out of range")
-        return metric.contract(1, self, pos)
+        return non_degenerate_form.contract(0, self, pos)
 
     def divergence(self, metric=None):
         r"""
@@ -4293,7 +4344,7 @@ class TensorField(ModuleElementWithMutability):
             sage: e[1] = cos(t-z)
             sage: e.display()  # plane wave propagating in the z direction
             e = cos(t - z) ∂/∂x
-            sage: De = e.dalembertian(); De
+            sage: De = e.dalembertian(); De # long time
             Vector field Box(e) on the 4-dimensional Lorentzian manifold M
 
         The function :func:`~sage.manifolds.operators.dalembertian` from the
@@ -4301,12 +4352,12 @@ class TensorField(ModuleElementWithMutability):
         method :meth:`dalembertian`::
 
             sage: from sage.manifolds.operators import dalembertian
-            sage: dalembertian(e) == De
+            sage: dalembertian(e) == De # long time
             True
 
         We check that the electric field obeys the wave equation::
 
-            sage: De.display()
+            sage: De.display() # long time
             Box(e) = 0
 
         """

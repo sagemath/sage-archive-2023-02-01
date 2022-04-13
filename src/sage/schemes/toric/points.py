@@ -37,7 +37,7 @@ EXAMPLES::
 import itertools
 from copy import copy
 
-from sage.misc.all import prod
+from sage.misc.misc_c import prod
 from sage.misc.cachefunc import cached_method
 from sage.arith.all import gcd
 from sage.rings.polynomial.polynomial_ring_constructor import PolynomialRing
@@ -288,7 +288,7 @@ class NaiveFinitePointEnumerator(object):
         result = set(free)
         for f in free:
             for t in tors:
-                phases = tuple(x*y for x, y in zip(f, t))
+                phases = tuple(x * y for x, y in zip(f, t))
                 result.add(phases)
         return tuple(sorted(result))
 
@@ -314,7 +314,7 @@ class NaiveFinitePointEnumerator(object):
         """
         result = set()
         for phases in self.rescalings():
-            p = tuple(mu*z for mu, z in zip(point, phases))
+            p = tuple(mu * z for mu, z in zip(point, phases))
             result.add(p)
         return frozenset(result)
 
@@ -676,7 +676,7 @@ class FiniteFieldPointEnumerator(NaiveFinitePointEnumerator):
             [(0, 0), (0, 1)]
         """
         from sage.matrix.constructor import matrix, block_matrix, identity_matrix
-        from sage.rings.all import ZZ
+        from sage.rings.integer_ring import ZZ
         nrays = len(self.rays())
         N = self.multiplicative_group_order()
         # Want cokernel of the log rescalings in (ZZ/N)^(#rays). But
@@ -918,6 +918,7 @@ class FiniteFieldSubschemePointEnumerator(NaiveSubschemePointEnumerator):
         # Parallelize the outermost loop of the Cartesian product
         work = [([[r]] + log_range[1:],) for r in log_range[0]]
         parallel = Parallel()
+
         def partial_solution(work_range):
             return list(self.solutions_serial(inhomogeneous_equations, work_range))
         for partial_result in parallel(partial_solution)(work):

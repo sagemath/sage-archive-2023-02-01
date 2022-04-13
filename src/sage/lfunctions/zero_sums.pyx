@@ -829,8 +829,11 @@ cdef class LFunctionZeroSum_abstract(SageObject):
         EXAMPLES::
 
             sage: E = EllipticCurve("11a")
-            sage: E.lseries().zeros(2)
-            [6.36261389, 8.60353962]
+            sage: zeros = E.lseries().zeros(2)
+            sage: zeros[0] # abs tol 1e-8
+            6.36261389
+            sage: zeros[1] # abs tol 1e-8
+            8.60353962
 
         E is a rank zero curve; the lowest zero has imaginary part ~6.36. The
         zero sum with tau=0 indicates that there are no zeros at the central
@@ -1654,7 +1657,6 @@ cdef class LFunctionZeroSum_EllipticCurve(LFunctionZeroSum_abstract):
             ....:     E = elliptic_curves.rank(r)[0]
             ....:     print((r, E.analytic_rank_upper_bound(max_Delta=1,
             ....:     adaptive=False,root_number="ignore")))
-            ....:
             (0, 0)
             (1, 1)
             (2, 2)

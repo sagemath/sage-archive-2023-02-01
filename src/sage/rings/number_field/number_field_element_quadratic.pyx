@@ -49,6 +49,7 @@ from sage.libs.ntl.ntl_ZZX cimport ntl_ZZX
 from sage.libs.mpfi cimport *
 
 
+from sage.structure.parent cimport Parent
 from sage.structure.parent_base cimport ParentWithBase
 from sage.structure.element cimport Element
 from sage.structure.richcmp cimport rich_to_bool_sgn
@@ -172,7 +173,7 @@ cdef class NumberFieldElement_quadratic(NumberFieldElement_absolute):
             sage: F.<a> = QuadraticField(-7)
             sage: c = a + 7
             sage: type(c) # indirect doctest
-            <type 'sage.rings.number_field.number_field_element_quadratic.NumberFieldElement_quadratic_sqrt'>
+            <class 'sage.rings.number_field.number_field_element_quadratic.NumberFieldElement_quadratic_sqrt'>
         """
         self.D = parent._D
         cdef Integer a, b, denom
@@ -349,30 +350,52 @@ cdef class NumberFieldElement_quadratic(NumberFieldElement_absolute):
             mpz_set(denom.value, self.denom)
             return "new QuadraticExtension({}, {}, {})".format(a/denom, b/denom, self.D)
 
-    def __copy__(self):
+    cpdef _copy_for_parent(self, Parent parent):
         r"""
-        Returns a new copy of self.
+        Return a copy of ``self`` with the parent replaced by ``parent``.
 
-        TESTS::
+        EXAMPLES::
 
-            sage: K.<a> = QuadraticField(-3)
-            sage: b = a + 3
-            sage: c = b.__copy__()
-            sage: b
-            a + 3
-            sage: c
-            a + 3
-            sage: b is c
-            False
-            sage: b == c
+            sage: K.<a> = QuadraticField(3)
+            sage: L.<b> = K.change_names()
+            sage: La = a._copy_for_parent(L)
+            sage: La.parent() is L
+            True
+            sage: La == b
             True
         """
         cdef NumberFieldElement_quadratic x = <NumberFieldElement_quadratic>self._new()
         mpz_set(x.a, self.a)
         mpz_set(x.b, self.b)
         mpz_set(x.denom, self.denom)
+        x._set_parent(parent)
         return x
 
+    def __copy__(self):
+        r"""
+        TESTS::
+
+            sage: K.<a> = QuadraticField(-3)
+            sage: b = a + 3
+            sage: c = b.__copy__()
+            sage: b is c
+            True
+        """
+        # immutable
+        return self
+
+    def __deepcopy__(self, memo):
+        r"""
+        TESTS::
+
+            sage: K.<a> = QuadraticField(-3)
+            sage: b = a + 3
+            sage: c = deepcopy(b)
+            sage: b is c
+            True
+        """
+        # immutable
+        return self
 
     def __cinit__(self):
         r"""
@@ -1639,7 +1662,7 @@ cdef class NumberFieldElement_quadratic(NumberFieldElement_absolute):
         h += 42082631 * mpz_pythonhash(self.b)
         return h
 
-    def __nonzero__(self):
+    def __bool__(self):
         """
         Check whether this element is not zero.
 
@@ -2589,7 +2612,7 @@ cdef class OrderElement_quadratic(NumberFieldElement_quadratic):
             sage: OK.<y> = EquationOrder(x^2 + 5)
             sage: v = OK.1 # indirect doctest
             sage: type(v)
-            <type 'sage.rings.number_field.number_field_element_quadratic.OrderElement_quadratic'>
+            <class 'sage.rings.number_field.number_field_element_quadratic.OrderElement_quadratic'>
         """
         K = order.number_field()
         NumberFieldElement_quadratic.__init__(self, K, f)
@@ -2855,14 +2878,14 @@ cdef class Z_to_quadratic_field_element(Morphism):
             sage: K.<a> = QuadraticField(3)
             sage: phi = K.coerce_map_from(ZZ) # indirect doctest
             sage: type(phi)
-            <type 'sage.rings.number_field.number_field_element_quadratic.Z_to_quadratic_field_element'>
+            <class 'sage.rings.number_field.number_field_element_quadratic.Z_to_quadratic_field_element'>
             sage: phi == loads(dumps(phi)) # todo: comparison not implemented
             True
 
             sage: R.<b> = CyclotomicField(6)
             sage: psi = R.coerce_map_from(ZZ) # indirect doctest
             sage: type(psi)
-            <type 'sage.rings.number_field.number_field_element_quadratic.Z_to_quadratic_field_element'>
+            <class 'sage.rings.number_field.number_field_element_quadratic.Z_to_quadratic_field_element'>
             sage: psi == loads(dumps(psi)) # todo: comparison not implemented
             True
         """
@@ -2957,14 +2980,14 @@ cdef class Q_to_quadratic_field_element(Morphism):
             sage: K.<a> = QuadraticField(3)
             sage: phi = K.coerce_map_from(QQ) # indirect doctest
             sage: type(phi)
-            <type 'sage.rings.number_field.number_field_element_quadratic.Q_to_quadratic_field_element'>
+            <class 'sage.rings.number_field.number_field_element_quadratic.Q_to_quadratic_field_element'>
             sage: phi == loads(dumps(phi))  # todo: comparison not implemented
             True
 
             sage: R.<b> = CyclotomicField(6)
             sage: psi = R.coerce_map_from(QQ)
             sage: type(psi)
-            <type 'sage.rings.number_field.number_field_element_quadratic.Q_to_quadratic_field_element'>
+            <class 'sage.rings.number_field.number_field_element_quadratic.Q_to_quadratic_field_element'>
             sage: psi == loads(dumps(psi))  # todo: comparison not implemented
             True
         """

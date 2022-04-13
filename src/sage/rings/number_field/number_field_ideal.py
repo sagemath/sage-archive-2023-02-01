@@ -46,8 +46,8 @@ from sage.arith.all import kronecker_symbol, gcd
 import sage.misc.misc as misc
 from sage.rings.finite_rings.finite_field_constructor import FiniteField
 
-from sage.rings.ideal import Ideal_generic
-from sage.misc.all import prod
+from sage.rings.ideal import Ideal_generic, Ideal_fractional
+from sage.misc.misc_c import prod
 from sage.misc.mrange import xmrange_iter
 from sage.misc.cachefunc import cached_method
 from sage.structure.element import MultiplicativeGroupElement
@@ -1031,7 +1031,7 @@ class NumberFieldIdeal(Ideal_generic):
             ValueError: Fractional ideal (2) is not a prime ideal
         """
         if not self.is_prime():
-           raise ValueError("%s is not a prime ideal" % self)
+            raise ValueError("%s is not a prime ideal" % self)
         return self._pari_prime
 
     def _cache_bnfisprincipal(self, proof=None, gens=False):
@@ -1734,7 +1734,7 @@ def is_NumberFieldIdeal(x):
     return isinstance(x, NumberFieldIdeal)
 
 
-class NumberFieldFractionalIdeal(MultiplicativeGroupElement, NumberFieldIdeal):
+class NumberFieldFractionalIdeal(MultiplicativeGroupElement, NumberFieldIdeal, Ideal_fractional):
     r"""
     A fractional ideal in a number field.
 
@@ -1747,6 +1747,14 @@ class NumberFieldFractionalIdeal(MultiplicativeGroupElement, NumberFieldIdeal):
         sage: Jinv = I^(-2)
         sage: J*Jinv
         Fractional ideal (1)
+
+    TESTS:
+
+    Number-field fractional ideals are fractional ideals (:trac:`32380`)::
+
+        sage: from sage.rings.ideal import Ideal_fractional
+        sage: isinstance(I, Ideal_fractional)
+        True
     """
     def __init__(self, field, gens, coerce=True):
         """
@@ -2718,17 +2726,17 @@ class NumberFieldFractionalIdeal(MultiplicativeGroupElement, NumberFieldIdeal):
             raise ValueError("Given elements do not generate unit group -- they generate a subgroup of index %s" % A.det())
         B = hmat[0:len(invs), len(invs):]
         C = hmat[len(invs):, len(invs):]
-        #print "Matrix of relations:\n%s" % C
         M = (matrix(ZZ, L) * B)
         N = block_matrix(2, 2, [[identity_matrix(1), M], [zero_matrix(len(gens), 1), C]], subdivide=False)
         ans = N.hermite_form()[0, 1:].list()
 
         if check:
             from sage.rings.all import Zmod
+            Z_norm = Zmod(self.norm().numerator())  # norm is an integer ?
             t = 1
-            for i in range(len(ans)):
-                t = self.reduce(t * gens[i]**ans[i])
-            assert t == self.reduce(x * x.denominator() * (~Zmod(self.norm())(x.denominator())).lift())
+            for gi, ai in zip(gens, ans):
+                t = self.reduce(t * gi**ai)
+            assert t == self.reduce(x * x.denominator() * (~Z_norm(x.denominator())).lift())
 
         return ans
 
@@ -2882,72 +2890,72 @@ class NumberFieldFractionalIdeal(MultiplicativeGroupElement, NumberFieldIdeal):
             a = a*p**(-n)
         return a
 
-    def is_S_unit(self,S):
-       r"""
-       Return True if this fractional ideal is a unit with respect to the list of primes ``S``.
+    def is_S_unit(self, S):
+        r"""
+        Return True if this fractional ideal is a unit with respect to the list of primes ``S``.
 
-       INPUT:
+        INPUT:
 
-       - `S` - a list of prime ideals (not checked if they are
-         indeed prime).
+        - `S` - a list of prime ideals (not checked if they are
+          indeed prime).
 
-       .. note::
+        .. note::
 
-          This function assumes that `S` is a list of prime ideals,
-          but does not check this.  This function will fail if `S` is
-          not a list of prime ideals.
+           This function assumes that `S` is a list of prime ideals,
+           but does not check this.  This function will fail if `S` is
+           not a list of prime ideals.
 
-       OUTPUT:
+        OUTPUT:
 
-       True, if the ideal is an `S`-unit: that is, if the valuations of
-       the ideal at all primes not in `S` are zero. False, otherwise.
+        True, if the ideal is an `S`-unit: that is, if the valuations of
+        the ideal at all primes not in `S` are zero. False, otherwise.
 
-       EXAMPLES::
+        EXAMPLES::
 
-           sage: K.<a> = NumberField(x^2+23)
-           sage: I = K.ideal(2)
-           sage: P = I.factor()[0][0]
-           sage: I.is_S_unit([P])
-           False
-       """
-       return self.prime_to_S_part(S).is_trivial()
+            sage: K.<a> = NumberField(x^2+23)
+            sage: I = K.ideal(2)
+            sage: P = I.factor()[0][0]
+            sage: I.is_S_unit([P])
+            False
+        """
+        return self.prime_to_S_part(S).is_trivial()
 
-    def is_S_integral(self,S):
-       r"""
-       Return True if this fractional ideal is integral with respect to the list of primes ``S``.
+    def is_S_integral(self, S):
+        r"""
+        Return True if this fractional ideal is integral with respect to the list of primes ``S``.
 
-       INPUT:
+        INPUT:
 
-       - `S` - a list of prime ideals (not checked if they are indeed
-         prime).
+        - `S` - a list of prime ideals (not checked if they are indeed
+          prime).
 
-       .. note::
+        .. note::
 
-          This function assumes that `S` is a list of prime ideals,
-          but does not check this.  This function will fail if `S` is
-          not a list of prime ideals.
+           This function assumes that `S` is a list of prime ideals,
+           but does not check this.  This function will fail if `S` is
+           not a list of prime ideals.
 
-       OUTPUT:
+        OUTPUT:
 
-       True, if the ideal is `S`-integral: that is, if the valuations
-       of the ideal at all primes not in `S` are non-negative. False,
-       otherwise.
+        True, if the ideal is `S`-integral: that is, if the valuations
+        of the ideal at all primes not in `S` are non-negative. False,
+        otherwise.
 
-       EXAMPLES::
+        EXAMPLES::
 
-           sage: K.<a> = NumberField(x^2+23)
-           sage: I = K.ideal(1/2)
-           sage: P = K.ideal(2,1/2*a - 1/2)
-           sage: I.is_S_integral([P])
-           False
+            sage: K.<a> = NumberField(x^2+23)
+            sage: I = K.ideal(1/2)
+            sage: P = K.ideal(2,1/2*a - 1/2)
+            sage: I.is_S_integral([P])
+            False
 
-           sage: J = K.ideal(1/5)
-           sage: J.is_S_integral([K.ideal(5)])
-           True
-       """
-       if self.is_integral():
-           return True
-       return self.prime_to_S_part(S).is_integral()
+            sage: J = K.ideal(1/5)
+            sage: J.is_S_integral([K.ideal(5)])
+            True
+        """
+        if self.is_integral():
+            return True
+        return self.prime_to_S_part(S).is_integral()
 
     def prime_to_idealM_part(self, M):
         r"""
@@ -3170,6 +3178,7 @@ class NumberFieldFractionalIdeal(MultiplicativeGroupElement, NumberFieldIdeal):
         bid = self._pari_bid_()
         return ZZ(self.number_field().pari_bnf().bnrclassno(bid))
 
+
 def is_NumberFieldFractionalIdeal(x):
     """
     Return True if x is a fractional ideal of a number field.
@@ -3193,6 +3202,7 @@ def is_NumberFieldFractionalIdeal(x):
     """
     return isinstance(x, NumberFieldFractionalIdeal)
 
+
 class QuotientMap:
     """
     Class to hold data needed by quotient maps from number field
@@ -3212,7 +3222,7 @@ class QuotientMap:
               From: Number Field in a with defining polynomial x^3 + 4
               To:   Residue field of Fractional ideal (1/2*a^2 + 1)
             sage: f.__class__
-            <type 'sage.rings.finite_rings.residue_field.ReductionMap'>
+            <class 'sage.rings.finite_rings.residue_field.ReductionMap'>
         """
         self.__M_OK_change = M_OK_change
         self.__Q = Q
@@ -3268,7 +3278,7 @@ class LiftMap:
             sage: I = K.ideal(1 + a^2/2)
             sage: f = I.residue_field().lift_map()
             sage: f.__class__
-            <type 'sage.rings.finite_rings.residue_field.LiftingMap'>
+            <class 'sage.rings.finite_rings.residue_field.LiftingMap'>
         """
         self.__I = I
         self.__OK = OK

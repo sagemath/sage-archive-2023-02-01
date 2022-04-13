@@ -67,11 +67,11 @@ cdef class LFunctionZeroSum_abstract(SageObject):
 
         INPUT:
 
-        ``n`` -- (default: None) If not None, a nonnegative integer
+        - ``n`` -- (default: ``None``) If not ``None``, a nonnegative integer
 
         OUTPUT:
 
-        If n is not None, returns a positive integer
+        If n is not ``None``, returns a positive integer
 
         EXAMPLES::
 
@@ -505,7 +505,7 @@ cdef class LFunctionZeroSum_abstract(SageObject):
           - ``cauchy`` -- `f(x) = \frac{1}{1+x^2}`; this is only computable to
             low precision, and only when `\Delta < 2`.
 
-        - ``ncpus`` - (default: ``None``) If not ``None``, a positive integer
+        - ``ncpus`` -- (default: ``None``) If not ``None``, a positive integer
           defining the number of CPUs to be used for the computation. If left as
           ``None``, the maximum available number of CPUs will be used.
           Only implemented for algorithm="sincsquared_parallel"; ignored
@@ -798,9 +798,9 @@ cdef class LFunctionZeroSum_abstract(SageObject):
           be 1 (assuming GRH, the zero is simple); otherwise the limit will
           be 0.
 
-        - ``num_terms`` -- positive integer (default: None): the number of
+        - ``num_terms`` -- positive integer (default: ``None``): the number of
           terms computed in the truncated Dirichlet series for the L-function
-          attached to ``self``. If left at None, this is set to
+          attached to ``self``. If left at ``None``, this is set to
           `\ceil(e^{2 \pi \Delta})`, the same number of terms used in the other
           zero sum methods for this value of Delta.
           Increase num_terms to get more accuracy.
@@ -1411,7 +1411,7 @@ cdef class LFunctionZeroSum_EllipticCurve(LFunctionZeroSum_abstract):
           method can be run on curves whose conductor is large enough to warrant
           precomputing bad primes.
 
-        - ``ncpus`` - (default: ``None``) If not ``None``, a positive integer
+        - ``ncpus`` -- (default: ``None``) If not ``None``, a positive integer
           defining the number of CPUs to be used for the computation. If left as
           ``None``, the maximum available number of CPUs will be used.
 
@@ -1549,10 +1549,10 @@ cdef class LFunctionZeroSum_EllipticCurve(LFunctionZeroSum_abstract):
 
         INPUT:
 
-        - ``max_Delta`` -- (default: None) If not None, a positive real value
+        - ``max_Delta`` -- (default: ``None``) If not ``None``, a positive real value
           specifying the maximum Delta value used in the zero sum; larger
           values of Delta yield better bounds - but runtime is exponential in
-          Delta. If left as None, Delta is set
+          Delta. If left as ``None``, Delta is set
           to `\min\left\{\frac{1}{\pi}\left(\log(N+1000)/2-\log(2\pi)-\eta\right), 2.5\right\}`,
           where `N` is the conductor of the curve attached to ``self``, and `\eta`
           is the Euler-Mascheroni constant `= 0.5772...`; the crossover
@@ -1560,14 +1560,14 @@ cdef class LFunctionZeroSum_EllipticCurve(LFunctionZeroSum_abstract):
           results show that for about 99.7% of all curves the returned value
           is the actual analytic rank.
 
-        - ``adaptive`` -- (default: True) Boolean
+        - ``adaptive`` -- (default: ``True``) Boolean
 
-          - If True, the computation is first run with small and then
+          - If ``True``, the computation is first run with small and then
             successively larger Delta values up to max_Delta. If at any
             point the computed bound is 0 (or 1 when root_number is -1
-            or True), the computation halts and that value is returned;
+            or ``True``), the computation halts and that value is returned;
             otherwise the minimum of the computed bounds is returned.
-          - If False, the computation is run a single time with
+          - If ``False``, the computation is run a single time with
             Delta=max_Delta, and the resulting bound returned.
 
         - ``root_number`` -- (default: "compute") String or integer
@@ -1589,7 +1589,7 @@ cdef class LFunctionZeroSum_EllipticCurve(LFunctionZeroSum_abstract):
 
         - ``ncpus`` -- (default: ``None``) If not ``None``, a positive integer
           defining the maximum number of CPUs to be used for the computation.
-          If left as None, the maximum available number of CPUs will be used.
+          If left as ``None``, the maximum available number of CPUs will be used.
           Note: Multiple processors will only be used for Delta values >= 1.75.
 
         .. NOTE::

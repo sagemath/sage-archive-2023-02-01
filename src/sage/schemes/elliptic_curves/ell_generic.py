@@ -31,6 +31,7 @@ AUTHORS:
 
 - Julian Rueth (2014-04-11): improved caching
 
+- Lorenz Panny (2022-04-14): :meth:`~sage.schemes.elliptic_curves.ell_generic.EllipticCurve_generic.montgomery_model`
 """
 
 # ****************************************************************************
@@ -2661,6 +2662,219 @@ class EllipticCurve_generic(WithEqualityById, plane_curve.ProjectivePlaneCurve):
             else:
                 b2, b4, b6, _ = self.b_invariants()
                 return constructor.EllipticCurve([0,b2,0,8*b4,16*b6])
+
+    def montgomery_model(self, twisted=False, morphism=False):
+        r"""
+        Return a (twisted or untwisted) Montgomery model for this
+        elliptic curve, if possible.
+
+        A Montgomery curve is a smooth projective curve of the form
+
+        .. MATH::
+
+            BY^2 = X^3 + AX^2 + X
+            \,\text.
+
+        The Montgomery curve is called *untwisted* if `B=1`.
+
+        INPUT:
+
+        - ``twisted`` (boolean, default: ``False``) -- allow `B \neq 1`
+
+        - ``morphism`` (boolean, default: ``False``) -- also return an
+          isomorphism from this curve to the computed Montgomery model
+
+        OUTPUT:
+
+        If ``twisted`` is not set (the default), an
+        :class:`EllipticCurve_generic`
+        object encapsulating an untwisted Montgomery curve.
+        Otherwise, a
+        :class:`~sage.schemes.curves.projective_curve.ProjectivePlaneCurve`
+        object encapsulating a (potentially twisted) Montgomery curve.
+
+        If ``morphism`` is set, this method returns a tuple consisting
+        of such a curve together with an isomorphism of suitable type
+        (either
+        :class:`~sage.schemes.elliptic_curves.weierstrass_morphism.WeierstrassIsomorphism`
+        or
+        :class:`~sage.schemes.elliptic_curves.weierstrass_transform.WeierstrassTransformationWithInverse`)
+        from this curve to the Montgomery model.
+
+        EXAMPLES::
+
+            sage: E = EllipticCurve(QQbar, '11a1')
+            sage: E.montgomery_model()
+            Elliptic Curve defined by y^2 = x^3 + (-1.953522420987248?)*x^2 + x over Algebraic Field
+
+        ::
+
+            sage: E = EllipticCurve(GF(431^2), [7,7])
+            sage: E.montgomery_model()
+            Elliptic Curve defined by y^2 = x^3 + (51*z2+190)*x^2 + x over Finite Field in z2 of size 431^2
+
+        An isomorphism between the Montgomery and Weierstrass form can
+        be obtained using the ``morphism`` parameter::
+
+            sage: E.montgomery_model(morphism=True)
+            (Elliptic Curve defined by y^2 = x^3 + (51*z2+190)*x^2 + x over Finite Field in z2 of size 431^2,
+             Elliptic-curve morphism:
+               From: Elliptic Curve defined by y^2 = x^3 + 7*x + 7 over Finite Field in z2 of size 431^2
+               To:   Elliptic Curve defined by y^2 = x^3 + (51*z2+190)*x^2 + x over Finite Field in z2 of size 431^2
+               Via:  (u,r,s,t) = (64*z2 + 407, 159, 0, 0))
+
+        Not all elliptic curves have a Montgomery model over their field
+        of definition::
+
+            sage: E = EllipticCurve(GF(257), [1,1])
+            sage: E.montgomery_model()
+            Traceback (most recent call last):
+            ...
+            ValueError: Elliptic Curve defined by y^2 = x^3 + x + 1 over Finite Field of size 257 has no Montgomery model
+
+        ::
+
+            sage: E = EllipticCurve(GF(257), [10,10])
+            sage: E.montgomery_model()
+            Traceback (most recent call last):
+            ...
+            ValueError: Elliptic Curve defined by y^2 = x^3 + 10*x + 10 over Finite Field of size 257 has no untwisted Montgomery model
+
+        However, as hinted by the error message, the latter curve does
+        admit a *twisted* Montgomery model, which can be computed by
+        passing ``twisted=True``::
+
+            sage: E.montgomery_model(twisted=True)
+            Projective Plane Curve over Finite Field of size 257 defined by -x^3 + 8*x^2*z - 127*y^2*z - x*z^2
+
+        Since Sage internally represents elliptic curves as (long)
+        Weierstrass curves, which do not feature the Montgomery `B`
+        coefficient, the returned curve in this case is merely a
+        :class:`~sage.schemes.curves.projective_curve.ProjectivePlaneCurve`
+        rather than the usual
+        :class:`EllipticCurve_generic`.
+
+        Arithmetic on curves of this type is not implemented natively,
+        but can easily be emulated by mapping back and forth to the
+        corresponding Weierstrass curve::
+
+            sage: C, f = E.montgomery_model(twisted=True, morphism=True)
+            sage: f
+            Scheme morphism:
+              From: Elliptic Curve defined by y^2 = x^3 + 10*x + 10 over Finite Field of size 257
+              To:   Projective Plane Curve over Finite Field of size 257 defined by -x^3 + 8*x^2*z - 127*y^2*z - x*z^2
+              Defn: Defined on coordinates by sending (x : y : z) to
+                    (x + 116*z : -y : -85*z)
+            sage: g = f.inverse(); g
+            Scheme morphism:
+              From: Projective Plane Curve over Finite Field of size 257 defined by -x^3 + 8*x^2*z - 127*y^2*z - x*z^2
+              To:   Elliptic Curve defined by y^2 = x^3 + 10*x + 10 over Finite Field of size 257
+              Defn: Defined on coordinates by sending (x : y : z) to
+                    (-85*x - 116*z : 85*y : z)
+            sage: P = C(70, 8)
+            sage: Q = C(17, 17)
+            sage: P + Q             # this doesn't work...
+            Traceback (most recent call last):
+            ...
+            TypeError: unsupported operand parent(s) for +: ...
+            sage: f(g(P) + g(Q))    # ...but this does
+            (107 : 168 : 1)
+
+        Using the fact that the Weil pairing satisfies
+        `e(\psi(P),\psi(Q)) = e(P,Q)^{\deg\psi}`,
+        even pairings can be emulated in this way
+        (note that isomorphisms have degree `1`)::
+
+            sage: F.<z2> = GF(257^2)
+            sage: C_ = C.change_ring(F)
+            sage: g_ = g.change_ring(F)
+            sage: g_(P).order()
+            12
+            sage: T = C_(-7*z2-57, 31*z2-52, 1)
+            sage: g_(T).order()
+            12
+            sage: g_(P).weil_pairing(g_(T), 12)
+            15*z2 + 204
+
+        Another alternative is to simply extend the base field enough
+        for the curve to have an untwisted Montgomery model::
+
+            sage: C_ = E.change_ring(F).montgomery_model(); C_
+            Elliptic Curve defined by y^2 = x^3 + 249*x^2 + x over Finite Field in z2 of size 257^2
+            sage: h = C.defining_polynomial().change_ring(F); h
+            -x^3 + 8*x^2*z - 127*y^2*z - x*z^2
+            sage: C_.is_isomorphic(EllipticCurve_from_cubic(h).codomain())
+            True
+
+        .. SEEALSO::
+
+            The inverse conversion ---
+            computing a Weierstrass model for a given Montgomery curve ---
+            can be performed using
+            :func:`~sage.schemes.elliptic_curves.constructor.EllipticCurve_from_cubic`.
+
+        ALGORITHM: [CS2018]_, §2.4
+
+        REFERENCES:
+
+        - Original publication: [Mont1987]_, §10.3.1
+        - More recent survey article: [CS2018]_
+        """
+        Ew = self.short_weierstrass_model()
+        _,_,_, a,b = Ew.a_invariants()
+
+        R = self.base_ring()
+        P = PolynomialRing(R, 'v')
+
+        sols = []
+        for r in P([b, a, 0, 1]).roots(multiplicities=False):
+            for s in P([3*r**2 + a, 0, -1]).roots(multiplicities=False):
+                sols.append((r,s))
+
+        if not sols:
+            raise ValueError(f'{self} has no Montgomery model')
+
+        # square s allows us to take B=1
+        r,s = max(sols, key=lambda t: t[1].is_square())
+
+        A = 3 * r / s
+        if s.is_square():
+            B = R.one()
+        else:
+            B = 1/s
+
+        if not twisted:
+            if B != 1:
+                raise ValueError(f'{self} has no untwisted Montgomery model')
+            from sage.schemes.elliptic_curves.constructor import EllipticCurve
+            E = EllipticCurve([0, A, 0, 1, 0])
+            if morphism:
+                return E, self.isomorphism_to(E)
+            return E
+
+        P2, (x,y,z) = self.ambient_space().objgens()
+        f = B*y**2*z - x * (x * (x + A*z) + z**2)
+        C = plane_curve.ProjectivePlaneCurve(P2, f)
+
+        if not morphism:
+            return C
+
+        t = 1 / (B*s).sqrt()
+        iso_maps = (x   - r*z,  t*y  ,  s*z)
+        inv_maps = (x*s + r*z,  s*y/t,    z)
+
+        w = self.isomorphism_to(Ew)
+        wmap, winv = w.rational_maps(), (~w).rational_maps()
+        wmap, winv = (tuple(f(x,y) for f in fs) + (z,) for fs in (wmap, winv))
+
+        iso = [f(*wmap) for f in iso_maps]
+        inv = [f(*inv_maps) for f in winv]
+
+        from sage.schemes.elliptic_curves.weierstrass_transform \
+                import WeierstrassTransformationWithInverse as WTI
+        iso = WTI(self, C, iso, 1, inv, s**-3)
+        return C, iso
+
 
     # Plotting
 

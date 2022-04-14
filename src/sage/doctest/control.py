@@ -100,6 +100,7 @@ class DocTestDefaults(SageObject):
         self.nthreads = 1
         self.serial = False
         self.timeout = -1
+        self.die_timeout = -1
         self.all = False
         self.installed = False
         self.logfile = None
@@ -258,6 +259,9 @@ def skipfile(filename, tested_optional_tags=False):
         base, ext = os.path.splitext(filename)
     # .rst.txt appear in the installed documentation in subdirectories named "_sources"
     if ext not in ('.py', '.pyx', '.pxd', '.pxi', '.sage', '.spyx', '.rst', '.tex', '.rst.txt'):
+        return True
+    # These files are created by the jupyter-sphinx extension for internal use and should not be tested
+    if "jupyter_execute" in filename:
         return True
     with open(filename) as F:
         line_count = 0

@@ -3552,9 +3552,6 @@ class RiemannSurface(object):
             g0 = self._R(gs[0])
             gis = [sum([PZ(gi.list()[i])*RF.gen()**i 
                         for i in range(len(gi.list()))]) for gi in gs[1:]]
-            #gs = [self._R(gi) for gi in gs]
-            #g0 = gs[0]
-            #gis = gs[1:]
         
             rs = self._CCz(g0).roots()
             rys = []
@@ -3562,15 +3559,14 @@ class RiemannSurface(object):
             for r, m in rs:
                 ys = []
                 for gi in gis:
-                    ers = [gi(y, r).abs() for y in ys]
-                    #ers =  [gi(r,y).abs() for y in ys]
-                    try:
-                        ers = min(ers)
-                    except:
+                    # This test is a bit clunky, it surely can be made more efficient. 
+                    if len(ys):
+                        ers = min([gi(y, r).abs() for y in ys])
+                    else:
                         ers = 1
+
                     if not ers<=eps:
                         poly = self._CCw(gi(self._CCw.gen(0), r))
-                        #poly = self._CCw(gi(r, self._CCw.gen(0)))
                         if poly==0:
                             nys = []
                         else:

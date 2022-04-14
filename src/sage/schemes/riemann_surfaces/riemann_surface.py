@@ -3207,7 +3207,7 @@ class RiemannSurface(object):
         r"""
         Return the Abel-Jacobi map of ``divisor``. 
         
-        Returns a representative of the Abel-Jacobi map of a divisor with basepoint
+        Return a representative of the Abel-Jacobi map of a divisor with basepoint
         ``self._basepoint``.
         
         INPUT:
@@ -3324,7 +3324,7 @@ class RiemannSurface(object):
         PM = self.period_matrix()
 
         if normalised:
-            AM = PM[:,0:g]
+            AM = PM[:, 0:self.genus]
             AInv = numerical_inverse(AM)
             PM = AInv*PM
             
@@ -3372,7 +3372,7 @@ class RiemannSurface(object):
         r"""
         Return the places above the branch locus. 
 
-        Returns a list of the of places above the branch locus. This must be 
+        Return a list of the of places above the branch locus. This must be 
         done over the base ring, and so the places are given in terms of the 
         factors of the discriminant. Currently, this method only works when 
         ``self._R.base_ring()==QQ`` as for other rings, the function field 
@@ -3461,8 +3461,6 @@ class RiemannSurface(object):
         KC = C.function_field()
         g0, g1 = self._R.gens()
         Kb = FunctionField(K, str(g0))
-        Pz = PolynomialRing(K, g0)
-        Pw = PolynomialRing(K, g1)
         MO = Kb.maximal_order()
 
         D_base = -sum(S)

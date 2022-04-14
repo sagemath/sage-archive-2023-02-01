@@ -3473,7 +3473,7 @@ def nauty_gentreeg(options="", debug=False):
         ...
         StopIteration
 
-    The number of trees on the first few vertex counts. This aggrees with
+    The number of trees on the first few vertex counts. This agrees with
     :oeis:`A000055`::
 
         sage: [len(list(graphs.nauty_gentreeg(str(i)))) for i in range(1, 15)]

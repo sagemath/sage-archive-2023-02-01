@@ -1661,7 +1661,7 @@ class RiemannSurface(object):
         z_start, z_end = downstairs_edge
         z_start = self._CC(z_start)
         z_end = self._CC(z_end)
-        if initial_continuation==None:
+        if initial_continuation is None:
             initial_continuation = self.homotopy_continuation(downstairs_edge)
         currL = initial_continuation
         windex = upstairs_edge[0][1]
@@ -2864,14 +2864,14 @@ class RiemannSurface(object):
         fc_dmp_list = [fast_callable(mp.derivative(CCzg.gen(1)), domain=self._CC) 
                        for mp in mp_list]
 
-        if prec==None:
+        if prec is None:
             prec = self._prec
         # tau here is playing the role of the desired error. 
         tau = self._RR(2)**(-prec+3)
         ONE = self._RR(1)
         LAMBDA = self._RR.pi()/2
 
-        if cutoff_individually==None:
+        if cutoff_individually is None:
             cutoffs = [0]
             cutoff_individually = False
         else:

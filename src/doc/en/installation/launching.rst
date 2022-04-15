@@ -234,3 +234,14 @@ You can check the presence of some of these packages using the command
    following code in the notebook::
 
      plot3d(lambda u,v:(u^2+v^2)/4-2,(-2,2),(-2,2)).show(viewer="jmol")
+
+Using Jupyter notebook through Visual Studio Code (VS Code) in WSL
+""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
+
+Here are steps to use SageMath in a Jupyter notebook in VS Code:
+
+* Install and run VS Code.
+* Click the "Extension" icon on the left (or press Ctrl + Shift + X) to open a list of extensions. Install "Remote - WSL".
+* Press F1, enter "Remote-WSL: New Window", and hit Enter.
+* Press F1, enter "Create: New Jupyter Notebook", and hit Enter.
+* Click "Select Kernel" on the right (or press Ctrl + Alt + Enter), select SageMath, and hit Enter.

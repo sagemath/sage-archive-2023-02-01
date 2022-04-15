@@ -1374,8 +1374,7 @@ def random_prime(n, proof=None, lbound=2):
         sage: random_prime(126, lbound=114)
         Traceback (most recent call last):
         ...
-        ValueError: There are no primes between 114 and 126 (inclusive)
-
+        ValueError: there are no primes between 114 and 126 (inclusive)
 
     AUTHORS:
 
@@ -2170,7 +2169,7 @@ def power_mod(a, n, m):
         sage: power_mod(0,0,5)
         Traceback (most recent call last):
         ...
-        ArithmeticError: 0^0 is undefined.
+        ArithmeticError: 0^0 is undefined
         sage: power_mod(2,390,391)
         285
         sage: power_mod(2,-1,7)
@@ -2184,7 +2183,7 @@ def power_mod(a, n, m):
         sage: power_mod(11,1,0)
         Traceback (most recent call last):
         ...
-        ZeroDivisionError: modulus must be nonzero.
+        ZeroDivisionError: modulus must be nonzero
 
     Tests with numpy and gmpy2 numbers::
 
@@ -3160,7 +3159,7 @@ def crt(a, b, m=None, n=None):
         sage: crt(4,6,8,12)
         Traceback (most recent call last):
         ...
-        ValueError: No solution to crt problem since gcd(8,12) does not divide 4-6
+        ValueError: no solution to crt problem since gcd(8,12) does not divide 4-6
 
         sage: x = polygen(QQ)
         sage: crt(2,3,x-1,x+1)
@@ -3170,7 +3169,7 @@ def crt(a, b, m=None, n=None):
         sage: crt(2,x,x^2-1,x^3-1)
         Traceback (most recent call last):
         ...
-        ValueError: No solution to crt problem since gcd(x^2 - 1,x^3 - 1) does not divide 2-x
+        ValueError: no solution to crt problem since gcd(x^2 - 1,x^3 - 1) does not divide 2-x
 
         sage: crt(int(2), int(3), int(7), int(11))
         58
@@ -3240,18 +3239,18 @@ def CRT_list(v, moduli):
         sage: CRT_list([32,2,1],[60,90,150])
         Traceback (most recent call last):
         ...
-        ValueError: No solution to crt problem since gcd(180,150) does not divide 92-1
+        ValueError: no solution to crt problem since gcd(180,150) does not divide 92-1
 
     The arguments must be lists::
 
         sage: CRT_list([1,2,3],"not a list")
         Traceback (most recent call last):
         ...
-        ValueError: Arguments to CRT_list should be lists
+        ValueError: arguments to CRT_list should be lists
         sage: CRT_list("not a list",[2,3])
         Traceback (most recent call last):
         ...
-        ValueError: Arguments to CRT_list should be lists
+        ValueError: arguments to CRT_list should be lists
 
     The list of moduli must have the same length as the list of elements::
 
@@ -3260,11 +3259,11 @@ def CRT_list(v, moduli):
         sage: CRT_list([1,2,3],[2,3])
         Traceback (most recent call last):
         ...
-        ValueError: Arguments to CRT_list should be lists of the same length
+        ValueError: arguments to CRT_list should be lists of the same length
         sage: CRT_list([1,2,3],[2,3,5,7])
         Traceback (most recent call last):
         ...
-        ValueError: Arguments to CRT_list should be lists of the same length
+        ValueError: arguments to CRT_list should be lists of the same length
 
     TESTS::
 

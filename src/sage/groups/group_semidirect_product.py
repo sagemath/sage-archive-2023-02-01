@@ -5,19 +5,20 @@ AUTHORS:
 
 - Mark Shimozono (2013) initial version
 """
-#*****************************************************************************
+# ****************************************************************************
 #       Copyright (C) 2013 Mark Shimozono <mshimo at math.vt.edu>
 #
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
 # the Free Software Foundation, either version 2 of the License, or
 # (at your option) any later version.
-#                  http://www.gnu.org/licenses/
-#*****************************************************************************
+#                  https://www.gnu.org/licenses/
+# ****************************************************************************
 from sage.categories.commutative_additive_groups import CommutativeAdditiveGroups
 from sage.categories.groups import Groups
 from sage.sets.cartesian_product import CartesianProduct
 from sage.misc.cachefunc import cached_method
+
 
 class GroupSemidirectProductElement(CartesianProduct.Element):
     r"""
@@ -35,11 +36,10 @@ class GroupSemidirectProductElement(CartesianProduct.Element):
             sage: GroupSemidirectProduct(WeylGroup(['A',2],prefix="s"), WeylGroup(['A',3],prefix="t"),twist) # indirect doctest
             Semidirect product of Weyl Group of type ['A', 2] (as a matrix group acting on the ambient space) acting on Weyl Group of type ['A', 3] (as a matrix group acting on the ambient space)
         """
-
         def wrapper(prefix, s):
             if prefix is None:
                 return s
-            return "%s[%s]"%(prefix,s)
+            return "%s[%s]" % (prefix, s)
 
         par = self.parent()
 
@@ -48,7 +48,7 @@ class GroupSemidirectProductElement(CartesianProduct.Element):
         gstr = wrapper(par._prefix0, repr(g))
         hstr = wrapper(par._prefix1, repr(h))
         if par._print_tuple:
-            return "(%s, %s)"%(gstr,hstr)
+            return "(%s, %s)" % (gstr, hstr)
 
         if self == par.one():
             return "1"
@@ -75,17 +75,16 @@ class GroupSemidirectProductElement(CartesianProduct.Element):
             s1*s2 * t[2*alpha[1] + 2*alpha[2]]
             sage: g.inverse()
             s2*s1 * t[2*alpha[1]]
-
         """
         par = self.parent()
         g = self.cartesian_projection(0)
         h = self.cartesian_projection(1)
 
         if par.act_to_right():
-            return self.__class__(par,(~g, par._twist(g,~h)))
+            return self.__class__(par, (~g, par._twist(g, ~h)))
         else:
             hi = ~h
-            return self.__class__(par,(par._twist(hi,~g),hi))
+            return self.__class__(par, (par._twist(hi, ~g), hi))
 
     __invert__ = inverse
 
@@ -121,8 +120,8 @@ class GroupSemidirectProductElement(CartesianProduct.Element):
         g = self.cartesian_projection(0)
         h = self.cartesian_projection(1)
         if par.act_to_right():
-            return Gop((par._twist(g,h),g))
-        return Gop((h,par._twist(~h,g)))
+            return Gop((par._twist(g, h), g))
+        return Gop((h, par._twist(~h, g)))
 
 
 class GroupSemidirectProduct(CartesianProduct):
@@ -132,11 +131,11 @@ class GroupSemidirectProduct(CartesianProduct):
     INPUT:
 
     - ``G`` and ``H`` -- multiplicative groups
-    - ``twist`` -- (default: None) a function defining a homomorphism (see below)
-    - ``act_to_right`` -- True or False (default: True)
-    - ``prefix0`` -- (default: None) optional string
-    - ``prefix1`` -- (default: None) optional string
-    - ``print_tuple`` -- True or False (default: False)
+    - ``twist`` -- (default: ``None``) a function defining a homomorphism (see below)
+    - ``act_to_right`` -- ``True`` or ``False`` (default: ``True``)
+    - ``prefix0`` -- (default: ``None``) optional string
+    - ``prefix1`` -- (default: ``None``) optional string
+    - ``print_tuple`` -- ``True`` or ``False`` (default: ``False``)
     - ``category`` -- A category (default: Groups())
 
     A semidirect product of groups `G` and `H` is a group structure on the Cartesian product `G \times H`
@@ -144,23 +143,23 @@ class GroupSemidirectProduct(CartesianProduct):
     either `1_G \times H` or `G \times 1_H` is a normal subgroup. In the former case the group is denoted
     `G \ltimes H` and in the latter, `G \rtimes H`.
 
-    If ``act_to_right`` is True, this indicates the group `G \ltimes H` in which `G` acts on `H` by
-    automorphisms. In this case there is a
+    If ``act_to_right`` is ``True``, this indicates the group `G \ltimes H`
+    in which `G` acts on `H` by automorphisms. In this case there is a
     group homomorphism `\phi \in \mathrm{Hom}(G, \mathrm{Aut}(H))` such that
 
     .. MATH::
 
         g h g^{-1} = \phi(g)(h).
 
-    The homomorphism `\phi` is specified by the input ``twist``, which syntactically is the function `G\times H\to H`
-    defined by
+    The homomorphism `\phi` is specified by the input ``twist``, which
+    syntactically is the function `G\times H\to H` defined by
 
     .. MATH::
 
         twist(g,h) = \phi(g)(h).
 
     The product on `G \ltimes H` is defined by
-        
+
     .. MATH::
 
         \begin{aligned}
@@ -169,7 +168,7 @@ class GroupSemidirectProduct(CartesianProduct):
         &= (g_1g_2, twist(g_2^{-1}, h_1) h_2)
         \end{aligned}
 
-    If ``act_to_right`` is False, the group `G \rtimes H` is specified by a homomorphism `\psi\in \mathrm{Hom}(H,\mathrm{Aut}(G))`
+    If ``act_to_right`` is ``False``, the group `G \rtimes H` is specified by a homomorphism `\psi\in \mathrm{Hom}(H,\mathrm{Aut}(G))`
     such that
 
     .. MATH::
@@ -192,9 +191,10 @@ class GroupSemidirectProduct(CartesianProduct):
         &= (g_1 twist(h_1,g_2), h_1 h_2)
         \end{aligned}
 
-    If ``prefix0`` (resp. ``prefixl``) is not None then it is used as a wrapper for
-    printing elements of ``G`` (resp. ``H``). If ``print_tuple`` is True then elements are printed
-    in the style `(g,h)` and otherwise in the style `g * h`.
+    If ``prefix0`` (resp. ``prefixl``) is not ``None`` then it is used
+    as a wrapper for printing elements of ``G`` (resp. ``H``). If
+    ``print_tuple`` is ``True`` then elements are printed in the style
+    `(g,h)` and otherwise in the style `g * h`.
 
     EXAMPLES::
 
@@ -228,9 +228,10 @@ class GroupSemidirectProduct(CartesianProduct):
         - Twofold Direct product as a special case of semidirect product
     """
 
-    def __init__(self, G, H, twist = None, act_to_right = True, prefix0 = None, prefix1 = None, print_tuple = False, category = Groups()):
+    def __init__(self, G, H, twist=None, act_to_right=True, prefix0=None,
+                 prefix1=None, print_tuple=False, category=Groups()):
         r"""
-        
+
         EXAMPLES::
 
             sage: def twist(x,y):
@@ -240,17 +241,17 @@ class GroupSemidirectProduct(CartesianProduct):
             sage: G = GroupSemidirectProduct(WeylGroup(['A',2],prefix="s"), WeylGroup(['A',3],prefix="t"),twist)
             sage: TestSuite(G).run()
 
-        The ``__main__`` business is a trick to pass the picking test.
-
+        The ``__main__`` business is a trick to pass the pickling test.
         """
 
         self._act_to_right = act_to_right
+
         def check_implemented_group(x):
             if x in Groups():
                 return
             error = "The semidirect product construction for groups is implemented only for multiplicative groups"
             if x in CommutativeAdditiveGroups():
-                error = error + ". Please change the commutative additive group %s into a multiplicative group using the functor sage.groups.group_exp.GroupExp"%x
+                error = error + ". Please change the commutative additive group %s into a multiplicative group using the functor sage.groups.group_exp.GroupExp" % x
             raise TypeError(error)
 
         check_implemented_group(G)
@@ -278,7 +279,6 @@ class GroupSemidirectProduct(CartesianProduct):
             ....:     return y
             sage: GroupSemidirectProduct(WeylGroup(['A',2],prefix="s"), WeylGroup(['A',3],prefix="t"),twist).act_to_right()
             True
-
         """
         return self._act_to_right
 
@@ -310,7 +310,6 @@ class GroupSemidirectProduct(CartesianProduct):
             sage: __main__.twist = twist
             sage: g = GroupSemidirectProduct(WeylGroup(['A',2],prefix="s"), WeylGroup(['A',3],prefix="t"),twist).an_element()
             sage: TestSuite(g).run()
-
         """
         def type_error():
             raise TypeError("%s cannot be converted into an element of %s" % (x, self))
@@ -328,8 +327,7 @@ class GroupSemidirectProduct(CartesianProduct):
             h = x.cartesian_projection(1)
         gg = self.cartesian_factors()[0](g)
         hh = self.cartesian_factors()[1](h)
-#        return self._cartesian_product_of_elements((gg,hh))
-        return self.element_class(self,(gg,hh))
+        return self.element_class(self, (gg, hh))
 
     @cached_method
     def one(self):
@@ -350,9 +348,9 @@ class GroupSemidirectProduct(CartesianProduct):
             [0 1]
             sage: one.cartesian_projection(1)
             (0, 0)
-
         """
-        return self((self.cartesian_factors()[0].one(), self.cartesian_factors()[1].one()))
+        return self((self.cartesian_factors()[0].one(),
+                     self.cartesian_factors()[1].one()))
 
     def group_generators(self):
         r"""
@@ -366,7 +364,6 @@ class GroupSemidirectProduct(CartesianProduct):
             sage: EZ = GroupExp()(ZZ)
             sage: GroupSemidirectProduct(EZ,EZ,twist,print_tuple=True).group_generators()
             ((1, 0), (0, 1))
-
         """
         def has_gens(G):
             if not hasattr(G, 'group_generators'):
@@ -378,8 +375,9 @@ class GroupSemidirectProduct(CartesianProduct):
         if g0 is not False:
             g1 = has_gens(factors[1])
             if g1 is not False:
-                return tuple([self((x,factors[1].one())) for x in g0] + [self((factors[0].one(),x)) for x in g1])
-        raise NotImplementedError("One of the factors does not implement 'group_generators'")
+                return tuple([self((x, factors[1].one())) for x in g0] +
+                             [self((factors[0].one(), x)) for x in g1])
+        raise NotImplementedError("one of the factors does not implement 'group_generators'")
 
     def product(self, x, y):
         r"""
@@ -411,11 +409,11 @@ class GroupSemidirectProduct(CartesianProduct):
         yh = y.cartesian_projection(1)
         if self.act_to_right():
             g = xg * yg
-            h = self._twist(~yg,xh) * yh
+            h = self._twist(~yg, xh) * yh
         else:
             h = xh * yh
-            g = xg * self._twist(xh,yg)
-        return self((g,h))
+            g = xg * self._twist(xh, yg)
+        return self((g, h))
 
     @cached_method
     def opposite_semidirect_product(self):
@@ -439,9 +437,8 @@ class GroupSemidirectProduct(CartesianProduct):
             [1 0]
             sage: hop in Hop
             True
-
         """
-        return GroupSemidirectProduct(self.cartesian_factors()[1], self.cartesian_factors()[0], twist=self._twist, act_to_right = not self.act_to_right(), prefix0 = self._prefix1, prefix1 = self._prefix0, print_tuple = self._print_tuple, category=self._category)
+        return GroupSemidirectProduct(self.cartesian_factors()[1], self.cartesian_factors()[0], twist=self._twist, act_to_right=not self.act_to_right(), prefix0=self._prefix1, prefix1=self._prefix0, print_tuple=self._print_tuple, category=self._category)
 
     def construction(self):
         r"""
@@ -455,8 +452,8 @@ class GroupSemidirectProduct(CartesianProduct):
             ....:     return y
             sage: H = GroupSemidirectProduct(WeylGroup(['A',2],prefix="s"), WeylGroup(['A',3],prefix="t"), twist)
             sage: H.construction()
-
         """
         return None
+
 
 GroupSemidirectProduct.Element = GroupSemidirectProductElement

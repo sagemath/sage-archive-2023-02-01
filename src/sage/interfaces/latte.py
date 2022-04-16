@@ -333,22 +333,22 @@ def integrate(arg, polynomial=None, algorithm='triangulate', raw_output=False, v
 
     args = [Latte_integrate().absolute_filename()]
 
-    got_polynomial = True if polynomial is not None else False
+    got_polynomial = bool(polynomial is not None)
 
     if got_polynomial:
         args.append('--valuation=integrate')
     else:
         args.append('--valuation=volume')
 
-    if algorithm=='triangulate':
+    if algorithm == 'triangulate':
         args.append('--triangulate')
-    elif algorithm=='cone-decompose':
+    elif algorithm == 'cone-decompose':
         args.append('--cone-decompose')
 
     if 'redundancy_check' not in kwds:
         args.append('--redundancy-check=none')
 
-    for key,value in kwds.items():
+    for key, value in kwds.items():
         if value is None or value is False:
             continue
 

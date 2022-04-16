@@ -59,6 +59,12 @@ Using your GitHub account, you can log in to:
   corner, and then use the button "Sign in with GitHub" and follow the
   prompts.
 
+Users with legacy sage-trac accounts (account names not starting with
+"gh-") should use the Login link. Do not to use GitHub login, as it
+will be treated as a separate user from their original account (unless
+you actively prefer to switch).
+
+
 .. _trac-bug-report:
 
 Reporting Bugs

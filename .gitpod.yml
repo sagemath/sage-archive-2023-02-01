@@ -67,9 +67,6 @@ tasks:
       pip install --no-build-isolation -v -v -e pkgs/sage-conf pkgs/sage-setup 
       pip install --no-build-isolation -v -v -e src
 
-    init: |
-      # Start build
-      
     env:
       SAGE_NUM_THREADS: 8
 

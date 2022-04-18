@@ -29,6 +29,10 @@ image: condaforge/mambaforge
 tasks:
   - name: Setup
     before: |
+      # Create conda environment
+      mamba env create --name sage-dev --file src/environment-dev.yml
+      conda activate sage-dev
+
       # Setup trac as remote
       ## In order to push to trac, generate a new key with `ssh-keygen -f tempkey` and save the private key to gitpod `gp env PRIVATE_SSH_KEY="$(<tempkey)"` (or by following https://www.gitpod.io/docs/environment-variables#using-the-account-settings)
       ## then follow https://doc.sagemath.org/html/en/developer/trac.html#linking-your-public-key-to-your-trac-account to register the public key with trac.
@@ -57,10 +61,6 @@ tasks:
       ## No need for pyenv
       pyenv shell --unset 2> /dev/null
       pyenv global system 2> /dev/null
-
-      # Create conda environment
-      mamba env create --name sage-dev --file src/environment-dev.yml
-      conda activate sage-dev
 
       # Build sage
       ./configure --enable-build-as-root --with-python=$CONDA_PREFIX/bin/python --prefix=$CONDA_PREFIX 

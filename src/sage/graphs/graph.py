@@ -428,6 +428,8 @@ from sage.features import PythonModule
 lazy_import('sage.graphs.mcqd', ['mcqd'],
             feature=PythonModule('sage.graphs.mcqd', spkg='mcqd'))
 
+from sage.misc.decorators import rename_keyword
+
 
 class Graph(GenericGraph):
     r"""
@@ -600,8 +602,8 @@ class Graph(GenericGraph):
        'out' is the label for the edge on 2 and 5. Labels can be used as
        weights, if all the labels share some common parent.::
 
-        sage: a,b,c,d,e,f = sorted(SymmetricGroup(3))
-        sage: Graph({b:{d:'c',e:'p'}, c:{d:'p',e:'c'}})
+        sage: a, b, c, d, e, f = sorted(SymmetricGroup(3))              # optional - sage.groups
+        sage: Graph({b: {d: 'c', e: 'p'}, c: {d: 'p', e: 'c'}})         # optional - sage.groups
         Graph on 4 vertices
 
     #. A dictionary of lists::
@@ -796,7 +798,7 @@ class Graph(GenericGraph):
           sage: import networkx
           sage: g = networkx.MultiGraph({0:[1,2,3], 2:[4]})
           sage: Graph(g)
-          Graph on 5 vertices
+          Multi-graph on 5 vertices
 
     #. A NetworkX graph::
 
@@ -1066,7 +1068,7 @@ class Graph(GenericGraph):
                 format = 'incidence_matrix'
         if format is None and isinstance(data, Graph):
             format = 'Graph'
-        from sage.graphs.all import DiGraph
+        from sage.graphs.digraph import DiGraph
         if format is None and isinstance(data, DiGraph):
             data = data.to_undirected()
             format = 'Graph'
@@ -1095,11 +1097,8 @@ class Graph(GenericGraph):
                 elif isinstance(val, dict):
                     format = 'dict_of_dicts'
         if format is None and hasattr(data, 'adj'):
-            import networkx
-            if isinstance(data, (networkx.DiGraph, networkx.MultiDiGraph)):
-                data = data.to_undirected()
-            elif isinstance(data, (networkx.Graph, networkx.MultiGraph)):
-                format = 'NX'
+            # the input is a networkx (Multi)(Di)Graph
+            format = 'NX'
 
         if (format is None          and
             hasattr(data, 'vcount') and
@@ -1182,29 +1181,15 @@ class Graph(GenericGraph):
             self.name(data.name())
             self.set_vertices(data.get_vertices())
             data._backend.subgraph_given_vertices(self._backend, data)
+
         elif format == 'NX':
-            if convert_empty_dict_labels_to_None is not False:
-                r = lambda x: None if x=={} else x
-            else:
-                r = lambda x: x
+            from sage.graphs.graph_input import from_networkx_graph
+            from_networkx_graph(self, data,
+                                weighted=weighted, multiedges=multiedges, loops=loops,
+                                convert_empty_dict_labels_to_None=convert_empty_dict_labels_to_None)
             if weighted is None:
-                import networkx
-                if isinstance(data, networkx.Graph):
-                    weighted = False
-                    if multiedges is None:
-                        multiedges = False
-                    if loops is None:
-                        loops = False
-                else:
-                    weighted = True
-                    if multiedges is None:
-                        multiedges = True
-                    if loops is None:
-                        loops = True
-            self.allow_loops(loops, check=False)
-            self.allow_multiple_edges(multiedges, check=False)
-            self.add_vertices(data.nodes())
-            self.add_edges((u,v,r(l)) for u,v,l in data.edges(data=True))
+                weighted = self.allows_multiple_edges()
+
         elif format == 'igraph':
             if data.is_directed():
                 raise ValueError("An *undirected* igraph graph was expected. "+
@@ -1546,7 +1531,7 @@ class Graph(GenericGraph):
             sage: G.is_tree(certificate=True, output='edge')
             (False, [(0, 0, None)])
         """
-        if not output in ['vertex', 'edge']:
+        if output not in ['vertex', 'edge']:
             raise ValueError('output must be either vertex or edge')
 
         if not self.order() or not self.is_connected():
@@ -2905,7 +2890,8 @@ class Graph(GenericGraph):
 
 
     @doc_index("Connectivity, orientations, trees")
-    def degree_constrained_subgraph(self, bounds, solver=None, verbose=0):
+    def degree_constrained_subgraph(self, bounds, solver=None, verbose=0,
+                                    *, integrality_tolerance=1e-3):
         r"""
         Returns a degree-constrained subgraph.
 
@@ -2926,17 +2912,20 @@ class Graph(GenericGraph):
             real values ``(min,max)`` corresponding to the values
             `(f(v),g(v))`.
 
-
-        - ``solver`` -- (default: ``None``); specify a Linear Program (LP)
-          solver to be used. If set to ``None``, the default one is used. For
-          more information on LP solvers and which default solver is used, see
-          the method
-          :meth:`solve <sage.numerical.mip.MixedIntegerLinearProgram.solve>`
-          of the class
-          :class:`MixedIntegerLinearProgram <sage.numerical.mip.MixedIntegerLinearProgram>`.
+        - ``solver`` -- string (default: ``None``); specify a Mixed Integer
+          Linear Programming (MILP) solver to be used. If set to ``None``, the
+          default one is used. For more information on MILP solvers and which
+          default solver is used, see the method :meth:`solve
+          <sage.numerical.mip.MixedIntegerLinearProgram.solve>` of the class
+          :class:`MixedIntegerLinearProgram
+          <sage.numerical.mip.MixedIntegerLinearProgram>`.
 
         - ``verbose`` -- integer (default: ``0``); sets the level of
           verbosity. Set to 0 by default, which means quiet.
+
+        - ``integrality_tolerance`` -- float; parameter for use with MILP
+          solvers over an inexact base ring; see
+          :meth:`MixedIntegerLinearProgram.get_values`.
 
         OUTPUT:
 
@@ -2989,14 +2978,13 @@ class Graph(GenericGraph):
 
         try:
             p.solve(log=verbose)
-            g = copy(self)
-            b = p.get_values(b)
-            g.delete_edges((x,y) for x,y in g.edge_iterator(labels=False) if b[frozenset((x,y))] < 0.5)
-            return g
-
         except MIPSolverException:
             return False
 
+        g = copy(self)
+        b = p.get_values(b, convert=bool, tolerance=integrality_tolerance)
+        g.delete_edges(e for e in g.edge_iterator(labels=False) if not b[frozenset(e)])
+        return g
 
     ### Orientations
 
@@ -3111,7 +3099,8 @@ class Graph(GenericGraph):
         return d
 
     @doc_index("Connectivity, orientations, trees")
-    def minimum_outdegree_orientation(self, use_edge_labels=False, solver=None, verbose=0):
+    def minimum_outdegree_orientation(self, use_edge_labels=False, solver=None, verbose=0,
+                                      *, integrality_tolerance=1e-3):
         r"""
         Returns an orientation of ``self`` with the smallest possible maximum
         outdegree.
@@ -3131,16 +3120,20 @@ class Graph(GenericGraph):
           - When set to ``False`` (default), gives a weight of 1 to all the
             edges.
 
-        - ``solver`` -- (default: ``None``); specify a Linear Program (LP)
-          solver to be used. If set to ``None``, the default one is used. For
-          more information on LP solvers and which default solver is used, see
-          the method
-          :meth:`solve <sage.numerical.mip.MixedIntegerLinearProgram.solve>`
-          of the class
-          :class:`MixedIntegerLinearProgram <sage.numerical.mip.MixedIntegerLinearProgram>`.
+        - ``solver`` -- string (default: ``None``); specify a Mixed Integer
+          Linear Programming (MILP) solver to be used. If set to ``None``, the
+          default one is used. For more information on MILP solvers and which
+          default solver is used, see the method :meth:`solve
+          <sage.numerical.mip.MixedIntegerLinearProgram.solve>` of the class
+          :class:`MixedIntegerLinearProgram
+          <sage.numerical.mip.MixedIntegerLinearProgram>`.
 
         - ``verbose`` -- integer (default: ``0``); sets the level of
           verbosity. Set to 0 by default, which means quiet.
+
+        - ``integrality_tolerance`` -- float; parameter for use with MILP
+          solvers over an inexact base ring; see
+          :meth:`MixedIntegerLinearProgram.get_values`.
 
         EXAMPLES:
 
@@ -3149,7 +3142,7 @@ class Graph(GenericGraph):
 
             sage: g = graphs.CompleteBipartiteGraph(3,4)
             sage: o = g.minimum_outdegree_orientation()
-            sage: max(o.out_degree()) == ceil((4*3)/(3+4))
+            sage: max(o.out_degree()) == integer_ceil((4*3)/(3+4))
             True
         """
         self._scream_if_not_simple()
@@ -3159,9 +3152,12 @@ class Graph(GenericGraph):
 
         if use_edge_labels:
             from sage.rings.real_mpfr import RR
-            weight = lambda e: self.edge_label(e) if self.edge_label(e) in RR else 1
+            def weight(e):
+                l = self.edge_label(e)
+                return l if l in RR else 1
         else:
-            weight = lambda e: 1
+            def weight(e):
+                return 1
 
         from sage.numerical.mip import MixedIntegerLinearProgram
 
@@ -3179,7 +3175,7 @@ class Graph(GenericGraph):
             if u == ext[frozenset(e)]:
                 return variable
             else:
-                return 1-variable
+                return 1 - variable
 
         for u in self:
             p.add_constraint(p.sum(weight(e) * outgoing(u, e, orientation[frozenset(e)])
@@ -3190,7 +3186,7 @@ class Graph(GenericGraph):
 
         p.solve(log=verbose)
 
-        orientation = p.get_values(orientation)
+        orientation = p.get_values(orientation, convert=bool, tolerance=integrality_tolerance)
 
         # All the edges from self are doubled in O
         # ( one in each direction )
@@ -3201,7 +3197,7 @@ class Graph(GenericGraph):
         edges = []
 
         for e in self.edge_iterator(labels=None):
-            if orientation[frozenset(e)] == 1:
+            if orientation[frozenset(e)]:
                 edges.append(e[::-1])
             else:
                 edges.append(e)
@@ -3211,7 +3207,8 @@ class Graph(GenericGraph):
         return O
 
     @doc_index("Connectivity, orientations, trees")
-    def bounded_outdegree_orientation(self, bound, solver=None, verbose=False):
+    def bounded_outdegree_orientation(self, bound, solver=None, verbose=False,
+                                      *, integrality_tolerance=1e-3):
         r"""
         Computes an orientation of ``self`` such that every vertex `v` has
         out-degree less than `b(v)`
@@ -3230,16 +3227,20 @@ class Graph(GenericGraph):
          * A function associating to each vertex its associated maximum
            out-degree.
 
-        - ``solver`` -- (default: ``None``); specify a Linear Program (LP) solver
-          to be used. If set to ``None``, the default one is used. For more
-          information on LP solvers and which default solver is used, see the
-          method :meth:`solve
+        - ``solver`` -- string (default: ``None``); specify a Mixed Integer
+          Linear Programming (MILP) solver to be used. If set to ``None``, the
+          default one is used. For more information on MILP solvers and which
+          default solver is used, see the method :meth:`solve
           <sage.numerical.mip.MixedIntegerLinearProgram.solve>` of the class
           :class:`MixedIntegerLinearProgram
           <sage.numerical.mip.MixedIntegerLinearProgram>`.
 
         - ``verbose`` -- integer (default: ``0``); sets the level of
           verbosity. Set to 0 by default, which means quiet.
+
+        - ``integrality_tolerance`` -- float; parameter for use with MILP
+          solvers over an inexact base ring; see
+          :meth:`MixedIntegerLinearProgram.get_values`.
 
         OUTPUT:
 
@@ -3264,7 +3265,7 @@ class Graph(GenericGraph):
         out-degree at most `\lceil \frac {d(v)} 2 \rceil`::
 
             sage: g = graphs.RandomGNP(40, .4)
-            sage: b = lambda v: ceil(g.degree(v)/2)
+            sage: b = lambda v: integer_ceil(g.degree(v)/2)
             sage: D = g.bounded_outdegree_orientation(b)
             sage: all( D.out_degree(v) <= b(v) for v in g )
             True
@@ -3287,12 +3288,12 @@ class Graph(GenericGraph):
 
         Hence this is possible ::
 
-            sage: d = g.bounded_outdegree_orientation(ceil(mad/2))
+            sage: d = g.bounded_outdegree_orientation(integer_ceil(mad/2))
 
         While this is not::
 
             sage: try:
-            ....:     g.bounded_outdegree_orientation(ceil(mad/2-1))
+            ....:     g.bounded_outdegree_orientation(integer_ceil(mad/2-1))
             ....:     print("Error")
             ....: except ValueError:
             ....:     pass
@@ -3303,7 +3304,7 @@ class Graph(GenericGraph):
 
             sage: for i in range(30):      # long time (up to 6s on sage.math, 2012)
             ....:     g = graphs.RandomGNP(40, .4)
-            ....:     b = lambda v: ceil(g.degree(v)/2)
+            ....:     b = lambda v: integer_ceil(g.degree(v)/2)
             ....:     D = g.bounded_outdegree_orientation(b)
             ....:     if not (
             ....:          all( D.out_degree(v) <= b(v) for v in g ) or
@@ -3312,7 +3313,7 @@ class Graph(GenericGraph):
 
         """
         self._scream_if_not_simple()
-        from sage.graphs.all import DiGraph
+        from sage.graphs.digraph import DiGraph
         n = self.order()
 
         if not n:
@@ -3350,7 +3351,8 @@ class Graph(GenericGraph):
 
         # Solving the maximum flow
         value, flow = d.flow('s','t', value_only=False, integer=True,
-                             use_edge_labels=True, solver=solver, verbose=verbose)
+                             use_edge_labels=True, solver=solver, verbose=verbose,
+                             integrality_tolerance=integrality_tolerance)
 
         if value != self.size():
             raise ValueError("No orientation exists for the given bound")
@@ -3552,7 +3554,7 @@ class Graph(GenericGraph):
         return left, right
 
     @doc_index("Coloring")
-    def chromatic_index(self, solver=None, verbose=0):
+    def chromatic_index(self, solver=None, verbose=0, *, integrality_tolerance=1e-3):
         r"""
         Return the chromatic index of the graph.
 
@@ -3561,16 +3563,20 @@ class Graph(GenericGraph):
 
         INPUT:
 
-        - ``solver`` -- (default: ``None``); specify the Linear Program (LP)
-          solver to be used. If set to ``None``, the default one is used. For
-          more information on LP solvers and which default solver is used, see
-          the method :meth:`solve
+        - ``solver`` -- string (default: ``None``); specify a Mixed Integer
+          Linear Programming (MILP) solver to be used. If set to ``None``, the
+          default one is used. For more information on MILP solvers and which
+          default solver is used, see the method :meth:`solve
           <sage.numerical.mip.MixedIntegerLinearProgram.solve>` of the class
           :class:`MixedIntegerLinearProgram
           <sage.numerical.mip.MixedIntegerLinearProgram>`.
 
         - ``verbose`` -- integer (default: ``0``); sets the level of
           verbosity. Set to 0 by default, which means quiet.
+
+        - ``integrality_tolerance`` -- float; parameter for use with MILP
+          solvers over an inexact base ring; see
+          :meth:`MixedIntegerLinearProgram.get_values`.
 
         This method is a frontend for method
         :meth:`sage.graphs.graph_coloring.edge_coloring` that uses a mixed
@@ -3620,10 +3626,12 @@ class Graph(GenericGraph):
             return 0
 
         from sage.graphs.graph_coloring import edge_coloring
-        return edge_coloring(self, value_only=True, solver=solver, verbose=verbose)
+        return edge_coloring(self, value_only=True, solver=solver, verbose=verbose,
+                             integrality_tolerance=integrality_tolerance)
 
     @doc_index("Coloring")
-    def chromatic_number(self, algorithm="DLX", solver=None, verbose=0):
+    def chromatic_number(self, algorithm="DLX", solver=None, verbose=0,
+                         *, integrality_tolerance=1e-3):
         r"""
         Return the minimal number of colors needed to color the vertices of the
         graph.
@@ -3649,14 +3657,20 @@ class Graph(GenericGraph):
             (see the :mod:`MILP module <sage.numerical.mip>`, or Sage's tutorial
             on Linear Programming).
 
-        - ``solver`` -- (default: ``None``); specify a Linear Program (LP)
-          solver to be used. If set to ``None``, the default one is used. For
-          more information on LP solvers and which default solver is used, see
-          the method :meth:`~sage.numerical.mip.MixedIntegerLinearProgram.solve`
-          of the class :class:`~sage.numerical.mip.MixedIntegerLinearProgram`.
+        - ``solver`` -- string (default: ``None``); specify a Mixed Integer
+          Linear Programming (MILP) solver to be used. If set to ``None``, the
+          default one is used. For more information on MILP solvers and which
+          default solver is used, see the method :meth:`solve
+          <sage.numerical.mip.MixedIntegerLinearProgram.solve>` of the class
+          :class:`MixedIntegerLinearProgram
+          <sage.numerical.mip.MixedIntegerLinearProgram>`.
 
-        - ``verbose`` -- integer (default: ``0``); sets the level of verbosity
-          for the MILP algorithm. Its default value is 0, which means *quiet*.
+        - ``verbose`` -- integer (default: ``0``); sets the level of
+          verbosity. Set to 0 by default, which means quiet.
+
+        - ``integrality_tolerance`` -- float; parameter for use with MILP
+          solvers over an inexact base ring; see
+          :meth:`MixedIntegerLinearProgram.get_values`.
 
         .. SEEALSO::
 
@@ -3716,6 +3730,15 @@ class Graph(GenericGraph):
             Traceback (most recent call last):
             ...
             ValueError: The 'algorithm' keyword must be set to either 'DLX', 'MILP' or 'CP'.
+
+        Test on a random graph (:trac:`33559`)::
+
+            sage: G = graphs.RandomGNP(15, .2)
+            sage: c1 = G.chromatic_number(algorithm='DLX')
+            sage: c2 = G.chromatic_number(algorithm='MILP')
+            sage: c3 = G.chromatic_number(algorithm='CP')
+            sage: c1 == c2 and c2 == c3
+            True
         """
         self._scream_if_not_simple(allow_multiple_edges=True)
         # default built-in algorithm; bad performance
@@ -3726,7 +3749,8 @@ class Graph(GenericGraph):
         # package: choose any of GLPK or CBC.
         elif algorithm == "MILP":
             from sage.graphs.graph_coloring import vertex_coloring
-            return vertex_coloring(self, value_only=True, solver=solver, verbose=verbose)
+            return vertex_coloring(self, value_only=True, solver=solver, verbose=verbose,
+                                   integrality_tolerance=integrality_tolerance)
         # another algorithm with bad performance; only good for small graphs
         elif algorithm == "CP":
             f = self.chromatic_polynomial()
@@ -3738,7 +3762,8 @@ class Graph(GenericGraph):
             raise ValueError("The 'algorithm' keyword must be set to either 'DLX', 'MILP' or 'CP'.")
 
     @doc_index("Coloring")
-    def coloring(self, algorithm="DLX", hex_colors=False, solver=None, verbose=0):
+    def coloring(self, algorithm="DLX", hex_colors=False, solver=None, verbose=0,
+                 *, integrality_tolerance=1e-3):
         r"""
         Return the first (optimal) proper vertex-coloring found.
 
@@ -3758,14 +3783,20 @@ class Graph(GenericGraph):
         - ``hex_colors`` -- boolean (default: ``False``); if ``True``, return a
           dictionary which can easily be used for plotting.
 
-        - ``solver`` -- (default: ``None``); specify a Linear Program (LP)
-          solver to be used. If set to ``None``, the default one is used. For
-          more information on LP solvers and which default solver is used, see
-          the method :meth:`~sage.numerical.mip.MixedIntegerLinearProgram.solve`
-          of the class :class:`~sage.numerical.mip.MixedIntegerLinearProgram`.
+        - ``solver`` -- string (default: ``None``); specify a Mixed Integer
+          Linear Programming (MILP) solver to be used. If set to ``None``, the
+          default one is used. For more information on MILP solvers and which
+          default solver is used, see the method :meth:`solve
+          <sage.numerical.mip.MixedIntegerLinearProgram.solve>` of the class
+          :class:`MixedIntegerLinearProgram
+          <sage.numerical.mip.MixedIntegerLinearProgram>`.
 
-        - ``verbose`` -- integer (default: ``0``); sets the level of verbosity
-          for the MILP algorithm. Its default value is 0, which means *quiet*.
+        - ``verbose`` -- integer (default: ``0``); sets the level of
+          verbosity. Set to 0 by default, which means quiet.
+
+        - ``integrality_tolerance`` -- float; parameter for use with MILP
+          solvers over an inexact base ring; see
+          :meth:`MixedIntegerLinearProgram.get_values`.
 
         .. SEEALSO::
 
@@ -3808,7 +3839,8 @@ class Graph(GenericGraph):
         self._scream_if_not_simple(allow_multiple_edges=True)
         if algorithm == "MILP":
             from sage.graphs.graph_coloring import vertex_coloring
-            return vertex_coloring(self, hex_colors=hex_colors, solver=solver, verbose=verbose)
+            return vertex_coloring(self, hex_colors=hex_colors, solver=solver, verbose=verbose,
+                                   integrality_tolerance=integrality_tolerance)
         elif algorithm == "DLX":
             from sage.graphs.graph_coloring import first_coloring
             return first_coloring(self, hex_colors=hex_colors)
@@ -3981,7 +4013,8 @@ class Graph(GenericGraph):
 
     @doc_index("Leftovers")
     def matching(self, value_only=False, algorithm="Edmonds",
-                 use_edge_labels=False, solver=None, verbose=0):
+                 use_edge_labels=False, solver=None, verbose=0,
+                 *, integrality_tolerance=1e-3):
         r"""
         Return a maximum weighted matching of the graph represented by the list
         of its edges.
@@ -4019,21 +4052,26 @@ class Graph(GenericGraph):
 
           - when set to ``False``, each edge has weight `1`
 
-        - ``solver`` -- (default: ``None``); specify a Linear Program (LP)
-          solver to be used; if set to ``None``, the default one is used
+        - ``solver`` -- string (default: ``None``); specify a Mixed Integer
+          Linear Programming (MILP) solver to be used. If set to ``None``, the
+          default one is used. For more information on MILP solvers and which
+          default solver is used, see the method :meth:`solve
+          <sage.numerical.mip.MixedIntegerLinearProgram.solve>` of the class
+          :class:`MixedIntegerLinearProgram
+          <sage.numerical.mip.MixedIntegerLinearProgram>`.
 
         - ``verbose`` -- integer (default: ``0``); sets the level of verbosity:
           set to 0 by default, which means quiet (only useful when ``algorithm
           == "LP"``)
 
-        For more information on LP solvers and which default solver is used, see
-        the method :meth:`sage.numerical.mip.MixedIntegerLinearProgram.solve` of
-        the class :class:`sage.numerical.mip.MixedIntegerLinearProgram`.
+        - ``integrality_tolerance`` -- float; parameter for use with MILP
+          solvers over an inexact base ring; see
+          :meth:`MixedIntegerLinearProgram.get_values`.
 
         OUTPUT:
 
-        - When ``value_only=False`` (default), this method returns the list of
-          edges of a maximum matching of `G`.
+        - When ``value_only=False`` (default), this method returns an
+          :class:`EdgesView` containing the edges of a maximum matching of `G`.
 
         - When ``value_only=True``, this method returns the sum of the
           weights (default: ``1``) of the edges of a maximum matching of `G`.
@@ -4089,8 +4127,11 @@ class Graph(GenericGraph):
             sage: edge_list = [(0,0,5), (0,1,1), (0,2,2), (0,3,3), (1,2,6)
             ....: , (1,2,3), (1,3,3), (2,3,3)]
             sage: g = Graph(edge_list, loops=True, multiedges=True)
-            sage: g.matching(use_edge_labels=True)
-            [(1, 2, 6), (0, 3, 3)]
+            sage: m = g.matching(use_edge_labels=True)
+            sage: type(m)
+            <class 'sage.graphs.views.EdgesView'>
+            sage: sorted(m)
+            [(0, 3, 3), (1, 2, 6)]
 
         TESTS:
 
@@ -4137,7 +4178,7 @@ class Graph(GenericGraph):
                 else:
                     return Integer(len(d))
             else:
-                return [(u, v, L[frozenset((u, v))]) for u, v in d]
+                return EdgesView(Graph([(u, v, L[frozenset((u, v))]) for u, v in d], format='list_of_edges'))
 
         elif algorithm == "LP":
             g = self
@@ -4155,21 +4196,23 @@ class Graph(GenericGraph):
             for v in g:
                 p.add_constraint(p.sum(b[frozenset(e)] for e in self.edge_iterator(vertices=[v], labels=False)
                                            if e[0] != e[1]), max=1)
+
+            p.solve(log=verbose)
+            b = p.get_values(b, convert=bool, tolerance=integrality_tolerance)
             if value_only:
                 if use_edge_labels:
-                    return p.solve(objective_only=True, log=verbose)
+                    return sum(w for fe, w in W.items() if b[fe])
                 else:
-                    return Integer(round(p.solve(objective_only=True, log=verbose)))
+                    return Integer(sum(1 for fe in L if b[fe]))
             else:
-                p.solve(log=verbose)
-                b = p.get_values(b)
-                return [(u, v, L[frozenset((u, v))]) for u, v in L if b[frozenset((u, v))] == 1]
+                return EdgesView(Graph([(u, v, L[frozenset((u, v))]) for u, v in L if b[frozenset((u, v))]], format='list_of_edges'))
 
         else:
             raise ValueError('algorithm must be set to either "Edmonds" or "LP"')
 
     @doc_index("Algorithmically hard stuff")
-    def has_homomorphism_to(self, H, core=False, solver=None, verbose=0):
+    def has_homomorphism_to(self, H, core=False, solver=None, verbose=0,
+                            *, integrality_tolerance=1e-3):
         r"""
         Checks whether there is a homomorphism between two graphs.
 
@@ -4190,16 +4233,20 @@ class Graph(GenericGraph):
           of the mapping's image (see note below). This is set to ``False`` by
           default.
 
-        - ``solver`` -- (default: ``None``); specify a Linear Program (LP)
-          solver to be used. If set to ``None``, the default one is used. For
-          more information on LP solvers and which default solver is used, see
-          the method
-          :meth:`solve <sage.numerical.mip.MixedIntegerLinearProgram.solve>`
-          of the class
-          :class:`MixedIntegerLinearProgram <sage.numerical.mip.MixedIntegerLinearProgram>`.
+        - ``solver`` -- string (default: ``None``); specify a Mixed Integer
+          Linear Programming (MILP) solver to be used. If set to ``None``, the
+          default one is used. For more information on MILP solvers and which
+          default solver is used, see the method :meth:`solve
+          <sage.numerical.mip.MixedIntegerLinearProgram.solve>` of the class
+          :class:`MixedIntegerLinearProgram
+          <sage.numerical.mip.MixedIntegerLinearProgram>`.
 
         - ``verbose`` -- integer (default: ``0``); sets the level of
           verbosity. Set to 0 by default, which means quiet.
+
+        - ``integrality_tolerance`` -- float; parameter for use with MILP
+          solvers over an inexact base ring; see
+          :meth:`MixedIntegerLinearProgram.get_values`.
 
         .. NOTE::
 
@@ -4268,13 +4315,14 @@ class Graph(GenericGraph):
             p.set_objective(p.sum(m[vh] for vh in H))
 
         try:
-            p.solve(log = verbose)
-            b = p.get_values(b)
-            mapping = dict(x[0] for x in b.items() if x[1])
-            return mapping
-
+            p.solve(log=verbose)
         except MIPSolverException:
             return False
+
+        b = p.get_values(b, convert=bool, tolerance=integrality_tolerance)
+        mapping = dict(x[0] for x in b.items() if x[1])
+        return mapping
+
 
     @doc_index("Clique-related methods")
     def fractional_clique_number(self, solver='PPL', verbose=0,
@@ -4435,7 +4483,8 @@ class Graph(GenericGraph):
             return g_mad
 
     @doc_index("Algorithmically hard stuff")
-    def independent_set_of_representatives(self, family, solver=None, verbose=0):
+    def independent_set_of_representatives(self, family, solver=None, verbose=0,
+                                           *, integrality_tolerance=1e-3):
         r"""
         Return an independent set of representatives.
 
@@ -4454,16 +4503,20 @@ class Graph(GenericGraph):
         - ``family`` -- A list of lists defining the family `F` (actually, a
           Family of subsets of ``G.vertices()``).
 
-        - ``solver`` -- (default: ``None``); specify a Linear Program (LP)
-          solver to be used. If set to ``None``, the default one is used. For
-          more information on LP solvers and which default solver is used, see
-          the method
-          :meth:`solve <sage.numerical.mip.MixedIntegerLinearProgram.solve>`
-          of the class
-          :class:`MixedIntegerLinearProgram <sage.numerical.mip.MixedIntegerLinearProgram>`.
+        - ``solver`` -- string (default: ``None``); specify a Mixed Integer
+          Linear Programming (MILP) solver to be used. If set to ``None``, the
+          default one is used. For more information on MILP solvers and which
+          default solver is used, see the method :meth:`solve
+          <sage.numerical.mip.MixedIntegerLinearProgram.solve>` of the class
+          :class:`MixedIntegerLinearProgram
+          <sage.numerical.mip.MixedIntegerLinearProgram>`.
 
         - ``verbose`` -- integer (default: ``0``); sets the level of
           verbosity. Set to 0 by default, which means quiet.
+
+        - ``integrality_tolerance`` -- float; parameter for use with MILP
+          solvers over an inexact base ring; see
+          :meth:`MixedIntegerLinearProgram.get_values`.
 
         OUTPUT:
 
@@ -4487,12 +4540,12 @@ class Graph(GenericGraph):
         of each vertex. The ISR of such a family defines a 3-coloring::
 
             sage: g = 3 * graphs.PetersenGraph()
-            sage: n = g.order()/3
-            sage: f = [[i,i+n,i+2*n] for i in range(n)]
+            sage: n = g.order() / 3
+            sage: f = [[i, i + n, i + 2*n] for i in range(n)]
             sage: isr = g.independent_set_of_representatives(f)
-            sage: c = [floor(i/n) for i in isr]
-            sage: color_classes = [[],[],[]]
-            sage: for v,i in enumerate(c):
+            sage: c = [integer_floor(i / n) for i in isr]
+            sage: color_classes = [[], [], []]
+            sage: for v, i in enumerate(c):
             ....:   color_classes[i].append(v)
             sage: for classs in color_classes:
             ....:   g.subgraph(classs).size() == 0
@@ -4539,19 +4592,19 @@ class Graph(GenericGraph):
         except Exception:
             return None
 
-        classss = p.get_values(classss)
+        classss = p.get_values(classss, convert=bool, tolerance=integrality_tolerance)
 
         repr = []
         for i,f in enumerate(family):
             for v in f:
-                if classss[v,i] == 1:
+                if classss[v,i]:
                     repr.append(v)
                     break
 
         return repr
 
     @doc_index("Algorithmically hard stuff")
-    def minor(self, H, solver=None, verbose=0):
+    def minor(self, H, solver=None, verbose=0, *, integrality_tolerance=1e-3):
         r"""
         Return the vertices of a minor isomorphic to `H` in the current graph.
 
@@ -4567,14 +4620,20 @@ class Graph(GenericGraph):
 
         - ``H`` -- The minor to find for in the current graph.
 
-        - ``solver`` -- (default: ``None``); specify a Linear Program (LP) solver
-          to be used. If set to ``None``, the default one is used. For more
-          information on LP solvers and which default solver is used, see the
-          method :meth:`~sage.numerical.mip.MixedIntegerLinearProgram.solve` of
-          the class :class:`~sage.numerical.mip.MixedIntegerLinearProgram`.
+        - ``solver`` -- string (default: ``None``); specify a Mixed Integer
+          Linear Programming (MILP) solver to be used. If set to ``None``, the
+          default one is used. For more information on MILP solvers and which
+          default solver is used, see the method :meth:`solve
+          <sage.numerical.mip.MixedIntegerLinearProgram.solve>` of the class
+          :class:`MixedIntegerLinearProgram
+          <sage.numerical.mip.MixedIntegerLinearProgram>`.
 
         - ``verbose`` -- integer (default: ``0``); sets the level of
           verbosity. Set to 0 by default, which means quiet.
+
+        - ``integrality_tolerance`` -- float; parameter for use with MILP
+          solvers over an inexact base ring; see
+          :meth:`MixedIntegerLinearProgram.get_values`.
 
         OUTPUT:
 
@@ -4704,11 +4763,11 @@ class Graph(GenericGraph):
         except MIPSolverException:
             raise ValueError("This graph has no minor isomorphic to H !")
 
-        rs = p.get_values(rs)
+        rs = p.get_values(rs, convert=bool, tolerance=integrality_tolerance)
 
         rs_dict = {}
         for h in H:
-            rs_dict[h] = [v for v in self if rs[h,v]==1]
+            rs_dict[h] = [v for v in self if rs[h,v]]
 
         return rs_dict
 
@@ -4966,39 +5025,35 @@ class Graph(GenericGraph):
             ...
             ValueError: algorithm 'DHV' works only if all eccentricities are needed
         """
-        if weight_function is not None:
-            by_weight = True
-        elif by_weight:
-            def weight_function(e):
-                return 1 if e[2] is None else e[2]
+        by_weight, weight_function = self._get_weight_function(by_weight=by_weight,
+                                                               weight_function=weight_function,
+                                                               check_weight=check_weight)
 
         if algorithm is None:
             if dist_dict is not None:
                 algorithm = 'From_Dictionary'
             elif not by_weight:
                 algorithm = 'BFS'
-            else:
-                for e in self.edge_iterator():
-                    try:
-                        if float(weight_function(e)) < 0:
-                            algorithm = 'Johnson_Boost'
-                            break
-                    except (ValueError, TypeError):
-                        raise ValueError("the weight function cannot find the"
-                                         " weight of " + str(e))
+            elif any(float(weight_function(e)) < 0 for e in self.edge_iterator()):
+                algorithm = 'Johnson_Boost'
             if algorithm is None:
                 algorithm = 'Dijkstra_Boost'
+        if algorithm in ['BFS', 'Floyd-Warshall-Cython']:
+            if by_weight:
+                raise ValueError("algorithm '{}' does not work with weights".format(algorithm))
+            # We don't want the default weight function
+            weight_function = None
 
-        if v is not None and not isinstance(v, list):
-            v = [v]
+        if v is not None:
+            if not isinstance(v, list):
+                v = [v]
+            v_set = set(v)
 
-        if v is None or all(u in v for u in self):
+        if v is None or all(u in v_set for u in self):
             if v is None:
                 v = list(self)
             # If we want to use BFS, we use the Cython routine
             if algorithm == 'BFS':
-                if by_weight:
-                    raise ValueError("algorithm 'BFS' does not work with weights")
                 from sage.graphs.distances_all_pairs import eccentricity
                 algo = 'bounds'
                 if with_labels:
@@ -5129,26 +5184,22 @@ class Graph(GenericGraph):
         if not self.order():
             raise ValueError("radius is not defined for the empty graph")
 
-        if weight_function is not None:
-            by_weight = True
-
-        if by_weight and not weight_function:
-            def weight_function(e):
-                return 1 if e[2] is None else e[2]
-
         if not algorithm:
             algorithm = 'DHV'
 
         if algorithm == 'DHV':
+            by_weight, weight_function = self._get_weight_function(by_weight=by_weight,
+                                                                   weight_function=weight_function,
+                                                                   check_weight=check_weight)
             if by_weight:
                 from sage.graphs.base.boost_graph import radius_DHV
                 return radius_DHV(self, weight_function=weight_function,
-                                  check_weight=check_weight)
+                                  check_weight=False)
             else:
                 from sage.graphs.distances_all_pairs import radius_DHV
                 return radius_DHV(self)
 
-        return min(self.eccentricity(v=None,by_weight=by_weight,
+        return min(self.eccentricity(v=None, by_weight=by_weight,
                                      weight_function=weight_function,
                                      check_weight=check_weight,
                                      algorithm=algorithm))
@@ -5256,12 +5307,12 @@ class Graph(GenericGraph):
         if not self.order():
             raise ValueError("diameter is not defined for the empty graph")
 
-        if weight_function is not None:
-            by_weight = True
-
-        if by_weight and not weight_function:
-            def weight_function(e):
-                return 1 if e[2] is None else e[2]
+        by_weight, weight_function = self._get_weight_function(by_weight=by_weight,
+                                                               weight_function=weight_function,
+                                                               check_weight=check_weight)
+        if not by_weight:
+            # We don't want the default weight function
+            weight_function = None
 
         if algorithm is None:
             if by_weight:
@@ -5275,7 +5326,7 @@ class Graph(GenericGraph):
             if by_weight:
                 from sage.graphs.base.boost_graph import diameter_DHV
                 return diameter_DHV(self, weight_function=weight_function,
-                                    check_weight=check_weight)
+                                    check_weight=False)
             else:
                 from sage.graphs.distances_all_pairs import diameter
                 return diameter(self, algorithm=algorithm)
@@ -5289,7 +5340,7 @@ class Graph(GenericGraph):
 
         return max(self.eccentricity(v=list(self), by_weight=by_weight,
                                      weight_function=weight_function,
-                                     check_weight=check_weight,
+                                     check_weight=False,
                                      algorithm=algorithm))
 
     @doc_index("Distances")
@@ -5495,7 +5546,7 @@ class Graph(GenericGraph):
                 data_structure = "sparse"
             else:
                 data_structure = "static_sparse"
-        from sage.graphs.all import DiGraph
+        from sage.graphs.digraph import DiGraph
         D = DiGraph(name           = self.name(),
                     pos            = self.get_pos(),
                     multiedges     = self.allows_multiple_edges(),
@@ -5599,7 +5650,7 @@ class Graph(GenericGraph):
         return G
 
     @doc_index("Leftovers")
-    def seidel_adjacency_matrix(self, vertices=None):
+    def seidel_adjacency_matrix(self, vertices=None, *, base_ring=None, **kwds):
         r"""
         Return the Seidel adjacency matrix of ``self``.
 
@@ -5608,9 +5659,7 @@ class Graph(GenericGraph):
         `I` the identity matrix, and `J` the all-1 matrix.  It is closely
         related to :meth:`twograph`.
 
-        The matrix returned is over the integers. If a different ring is
-        desired, use either the :meth:`sage.matrix.matrix0.Matrix.change_ring`
-        method or the :func:`matrix` function.
+        By default, the matrix returned is over the integers.
 
         INPUT:
 
@@ -5619,15 +5668,38 @@ class Graph(GenericGraph):
           default, the ordering given by
           :meth:`~sage.graphs.generic_graph.GenericGraph.vertices` is used.
 
+        - ``base_ring`` -- a ring (default: ``None``); the base ring
+          of the matrix space to use
+
+        - ``**kwds`` -- other keywords to pass to
+          :func:`~sage.matrix.constructor.matrix`
+
         EXAMPLES::
 
             sage: G = graphs.CycleGraph(5)
             sage: G = G.disjoint_union(graphs.CompleteGraph(1))
             sage: G.seidel_adjacency_matrix().minpoly()
             x^2 - 5
+
+        Selecting the base ring::
+
+            sage: G.seidel_adjacency_matrix()[0, 0].parent()
+            Integer Ring
+            sage: G.seidel_adjacency_matrix(base_ring=RDF)[0, 0].parent()
+            Real Double Field
         """
-        return - self.adjacency_matrix(sparse=False, vertices=vertices) \
-               + self.complement().adjacency_matrix(sparse=False, vertices=vertices)
+        set_immutable = kwds.pop('immutable', False)
+        A = self.adjacency_matrix(sparse=False, vertices=vertices,
+                                  base_ring=base_ring, immutable=True, **kwds)
+        C = self.complement().adjacency_matrix(sparse=False, vertices=vertices,
+                                               base_ring=base_ring, **kwds)
+        n = self.order()
+        for i in range(n):
+            for j in range(n):
+                C[i, j] -= A[i, j]
+        if set_immutable:
+            C.set_immutable()
+        return C
 
     @doc_index("Leftovers")
     def seidel_switching(self, s, inplace=True):
@@ -5765,7 +5837,8 @@ class Graph(GenericGraph):
         f.close()
 
     @doc_index("Algorithmically hard stuff")
-    def topological_minor(self, H, vertices=False, paths=False, solver=None, verbose=0):
+    def topological_minor(self, H, vertices=False, paths=False, solver=None, verbose=0,
+                          *, integrality_tolerance=1e-3):
         r"""
         Return a topological `H`-minor from ``self`` if one exists.
 
@@ -5780,16 +5853,20 @@ class Graph(GenericGraph):
 
         - ``H`` -- The topological minor to find in the current graph.
 
-        - ``solver`` -- (default: ``None``); specify a Linear Program (LP)
-          solver to be used. If set to ``None``, the default one is used. For
-          more information on LP solvers and which default solver is used, see
-          the method :meth:`solve
+        - ``solver`` -- string (default: ``None``); specify a Mixed Integer
+          Linear Programming (MILP) solver to be used. If set to ``None``, the
+          default one is used. For more information on MILP solvers and which
+          default solver is used, see the method :meth:`solve
           <sage.numerical.mip.MixedIntegerLinearProgram.solve>` of the class
           :class:`MixedIntegerLinearProgram
           <sage.numerical.mip.MixedIntegerLinearProgram>`.
 
         - ``verbose`` -- integer (default: ``0``); sets the level of
           verbosity. Set to 0 by default, which means quiet.
+
+        - ``integrality_tolerance`` -- float; parameter for use with MILP
+          solvers over an inexact base ring; see
+          :meth:`MixedIntegerLinearProgram.get_values`.
 
         OUTPUT:
 
@@ -5963,15 +6040,15 @@ class Graph(GenericGraph):
 
         minor = G.subgraph(immutable=False)
 
-        is_repr = p.get_values(is_repr)
-        v_repr = p.get_values(v_repr)
-        flow = p.get_values(flow)
+        is_repr = p.get_values(is_repr, convert=bool, tolerance=integrality_tolerance)
+        v_repr = p.get_values(v_repr, convert=bool, tolerance=integrality_tolerance)
+        flow = p.get_values(flow, convert=bool, tolerance=integrality_tolerance)
 
         for u,v in minor.edge_iterator(labels=False):
             used = False
             for C in H.edge_iterator(labels=False):
 
-                if flow[C,(u,v)] + flow[C,(v,u)] > .5:
+                if flow[C,(u,v)] or flow[C,(v,u)]:
                     used = True
                     minor.set_edge_label(u, v, C)
                     break
@@ -5981,9 +6058,9 @@ class Graph(GenericGraph):
         minor.delete_vertices(v for v in minor if minor.degree(v) == 0)
 
         for g in minor:
-            if is_repr[g] > .5:
+            if is_repr[g]:
                 for h in H:
-                    if v_repr[h,v] > .5:
+                    if v_repr[h,v]:
                         minor.set_vertex(g, h)
                         break
 
@@ -6063,7 +6140,8 @@ class Graph(GenericGraph):
             raise ValueError("Algorithm must be equal to 'native' or to 'NetworkX'.")
 
     @doc_index("Clique-related methods")
-    def clique_maximum(self,  algorithm="Cliquer", solver=None, verbose=0):
+    def clique_maximum(self,  algorithm="Cliquer", solver=None, verbose=0,
+                       *, integrality_tolerance=1e-3):
         """
         Return the vertex set of a maximal order complete subgraph.
 
@@ -6083,16 +6161,20 @@ class Graph(GenericGraph):
             (`<http://www.sicmm.org/~konc/maxclique/>`_). Note that the MCQD
             package must be installed.
 
-        - ``solver`` -- (default: ``None``); specify a Linear Program (LP)
-          solver to be used. If set to ``None``, the default one is used. For
-          more information on LP solvers and which default solver is used, see
-          the method :meth:`solve
+        - ``solver`` -- string (default: ``None``); specify a Mixed Integer
+          Linear Programming (MILP) solver to be used. If set to ``None``, the
+          default one is used. For more information on MILP solvers and which
+          default solver is used, see the method :meth:`solve
           <sage.numerical.mip.MixedIntegerLinearProgram.solve>` of the class
           :class:`MixedIntegerLinearProgram
           <sage.numerical.mip.MixedIntegerLinearProgram>`.
 
         - ``verbose`` -- integer (default: ``0``); sets the level of
           verbosity. Set to 0 by default, which means quiet.
+
+        - ``integrality_tolerance`` -- float; parameter for use with MILP
+          solvers over an inexact base ring; see
+          :meth:`MixedIntegerLinearProgram.get_values`.
 
         Parameters ``solver`` and ``verbose`` are used only when
         ``algorithm="MILP"``.
@@ -6137,14 +6219,16 @@ class Graph(GenericGraph):
             from sage.graphs.cliquer import max_clique
             return max_clique(self)
         elif algorithm == "MILP":
-            return self.complement().independent_set(algorithm=algorithm, solver=solver, verbosity=verbose)
+            return self.complement().independent_set(algorithm=algorithm, solver=solver, verbose=verbose,
+                                                     integrality_tolerance=integrality_tolerance)
         elif algorithm == "mcqd":
             return mcqd(self)
         else:
             raise NotImplementedError("Only 'MILP', 'Cliquer' and 'mcqd' are supported.")
 
     @doc_index("Clique-related methods")
-    def clique_number(self, algorithm="Cliquer", cliques=None, solver=None, verbose=0):
+    def clique_number(self, algorithm="Cliquer", cliques=None, solver=None, verbose=0,
+                      *, integrality_tolerance=1e-3):
         r"""
         Return the order of the largest clique of the graph
 
@@ -6177,16 +6261,20 @@ class Graph(GenericGraph):
         - ``cliques`` -- an optional list of cliques that can be input if
           already computed. Ignored unless ``algorithm=="networkx"``.
 
-        - ``solver`` -- (default: ``None``); specify a Linear Program (LP)
-          solver to be used. If set to ``None``, the default one is used. For
-          more information on LP solvers and which default solver is used, see
-          the method :meth:`solve
+        - ``solver`` -- string (default: ``None``); specify a Mixed Integer
+          Linear Programming (MILP) solver to be used. If set to ``None``, the
+          default one is used. For more information on MILP solvers and which
+          default solver is used, see the method :meth:`solve
           <sage.numerical.mip.MixedIntegerLinearProgram.solve>` of the class
           :class:`MixedIntegerLinearProgram
           <sage.numerical.mip.MixedIntegerLinearProgram>`.
 
         - ``verbose`` -- integer (default: ``0``); sets the level of
           verbosity. Set to 0 by default, which means quiet.
+
+        - ``integrality_tolerance`` -- float; parameter for use with MILP
+          solvers over an inexact base ring; see
+          :meth:`MixedIntegerLinearProgram.get_values`.
 
         ALGORITHM:
 
@@ -6235,7 +6323,8 @@ class Graph(GenericGraph):
             import networkx
             return networkx.graph_clique_number(self.networkx_graph(), cliques)
         elif algorithm == "MILP":
-            return len(self.complement().independent_set(algorithm=algorithm, solver=solver, verbosity=verbose))
+            return len(self.complement().independent_set(algorithm=algorithm, solver=solver, verbose=verbose,
+                                                         integrality_tolerance=integrality_tolerance))
         elif algorithm == "mcqd":
             return len(mcqd(self))
         else:
@@ -6312,7 +6401,8 @@ class Graph(GenericGraph):
             sage: (G.cliques_get_max_clique_graph()).show(figsize=[2,2])
         """
         import networkx
-        return Graph(networkx.make_max_clique_graph(self.networkx_graph(), create_using=networkx.MultiGraph()))
+        return Graph(networkx.make_max_clique_graph(self.networkx_graph(), create_using=networkx.MultiGraph()),
+                     multiedges=False)
 
     @doc_index("Clique-related methods")
     def cliques_get_clique_bipartite(self, **kwds):
@@ -6343,7 +6433,9 @@ class Graph(GenericGraph):
         return BipartiteGraph(networkx.make_clique_bipartite(self.networkx_graph(), **kwds))
 
     @doc_index("Algorithmically hard stuff")
-    def independent_set(self, algorithm="Cliquer", value_only=False, reduction_rules=True, solver=None, verbosity=0):
+    @rename_keyword(deprecation=32238, verbosity='verbose')
+    def independent_set(self, algorithm="Cliquer", value_only=False, reduction_rules=True,
+                        solver=None, verbose=0, *, integrality_tolerance=1e-3):
         r"""
         Return a maximum independent set.
 
@@ -6385,20 +6477,20 @@ class Graph(GenericGraph):
           See [ACFLSS04]_ for more details. Note that depending on the instance,
           it might be faster to disable reduction rules.
 
-        - ``solver`` -- (default: ``None``); specify a Linear Program (LP)
-          solver to be used. If set to ``None``, the default one is used. For
-          more information on LP solvers and which default solver is used, see
-          the method
-          :meth:`~sage.numerical.mip.MixedIntegerLinearProgram.solve`
-          of the class
-          :class:`~sage.numerical.mip.MixedIntegerLinearProgram`.
+        - ``solver`` -- string (default: ``None``); specify a Mixed Integer
+          Linear Programming (MILP) solver to be used. If set to ``None``, the
+          default one is used. For more information on MILP solvers and which
+          default solver is used, see the method :meth:`solve
+          <sage.numerical.mip.MixedIntegerLinearProgram.solve>` of the class
+          :class:`MixedIntegerLinearProgram
+          <sage.numerical.mip.MixedIntegerLinearProgram>`.
 
-        - ``verbosity`` -- non-negative integer (default: ``0``); set the level
-          of verbosity you want from the linear program solver. Since the
-          problem of computing an independent set is `NP`-complete, its solving
-          may take some time depending on the graph. A value of 0 means that
-          there will be no message printed by the solver. This option is only
-          useful if ``algorithm="MILP"``.
+        - ``verbose`` -- integer (default: ``0``); sets the level of
+          verbosity. Set to 0 by default, which means quiet.
+
+        - ``integrality_tolerance`` -- float; parameter for use with MILP
+          solvers over an inexact base ring; see
+          :meth:`MixedIntegerLinearProgram.get_values`.
 
         .. NOTE::
 
@@ -6427,17 +6519,19 @@ class Graph(GenericGraph):
         """
         my_cover = self.vertex_cover(algorithm=algorithm, value_only=value_only,
                                          reduction_rules=reduction_rules,
-                                         solver=solver, verbosity=verbosity)
+                                         solver=solver, verbose=verbose,
+                                         integrality_tolerance=integrality_tolerance)
         if value_only:
             return self.order() - my_cover
         else:
             my_cover = set(my_cover)
-            return [u for u in self if not u in my_cover]
-
+            return [u for u in self if u not in my_cover]
 
     @doc_index("Algorithmically hard stuff")
+    @rename_keyword(deprecation=32238, verbosity='verbose')
     def vertex_cover(self, algorithm="Cliquer", value_only=False,
-                     reduction_rules=True, solver=None, verbosity=0):
+                     reduction_rules=True, solver=None, verbose=0,
+                     *, integrality_tolerance=1e-3):
         r"""
         Return a minimum vertex cover of self represented by a set of vertices.
 
@@ -6481,20 +6575,20 @@ class Graph(GenericGraph):
           See [ACFLSS04]_ for more details. Note that depending on the instance,
           it might be faster to disable reduction rules.
 
-        - ``solver`` -- (default: ``None``); specify a Linear Program (LP)
-          solver to be used. If set to ``None``, the default one is used. For
-          more information on LP solvers and which default solver is used, see
-          the method :meth:`solve
+        - ``solver`` -- string (default: ``None``); specify a Mixed Integer
+          Linear Programming (MILP) solver to be used. If set to ``None``, the
+          default one is used. For more information on MILP solvers and which
+          default solver is used, see the method :meth:`solve
           <sage.numerical.mip.MixedIntegerLinearProgram.solve>` of the class
           :class:`MixedIntegerLinearProgram
           <sage.numerical.mip.MixedIntegerLinearProgram>`.
 
-        - ``verbosity`` -- non-negative integer (default: ``0``); set the level
-          of verbosity you want from the linear program solver. Since the
-          problem of computing a vertex cover is `NP`-complete, its solving may
-          take some time depending on the graph. A value of 0 means that there
-          will be no message printed by the solver. This option is only useful
-          if ``algorithm="MILP"``.
+        - ``verbose`` -- integer (default: ``0``); sets the level of
+          verbosity. Set to 0 by default, which means quiet.
+
+        - ``integrality_tolerance`` -- float; parameter for use with MILP
+          solvers over an inexact base ring; see
+          :meth:`MixedIntegerLinearProgram.get_values`.
 
         EXAMPLES:
 
@@ -6688,7 +6782,7 @@ class Graph(GenericGraph):
             if value_only:
                 size_cover_g = g.order() - len(independent)
             else:
-                cover_g = set(uu for uu in g if not uu in independent)
+                cover_g = set(uu for uu in g if uu not in independent)
 
         elif algorithm == "MILP":
 
@@ -6703,12 +6797,12 @@ class Graph(GenericGraph):
             for u,v in g.edge_iterator(labels=None):
                 p.add_constraint(b[u] + b[v], min=1)
 
+            p.solve(log=verbose)
+            b = p.get_values(b, convert=bool, tolerance=integrality_tolerance)
             if value_only:
-                size_cover_g = p.solve(objective_only=True, log=verbosity)
+                size_cover_g = sum(1 for v in g if b[v])
             else:
-                p.solve(log=verbosity)
-                b = p.get_values(b)
-                cover_g = set(v for v in g if b[v] == 1)
+                cover_g = set(v for v in g if b[v])
         else:
             raise ValueError('the algorithm must be "Cliquer", "MILP" or "mcqd"')
 
@@ -6953,7 +7047,7 @@ class Graph(GenericGraph):
             return value
         elif algorithm == "networkx":
             import networkx
-            return networkx.node_clique_number(self.networkx_graph(), vertices, cliques)
+            return dict(networkx.node_clique_number(self.networkx_graph(), vertices, cliques))
         else:
             raise NotImplementedError("Only 'networkx' and 'cliquer' are supported.")
 
@@ -7037,8 +7131,8 @@ class Graph(GenericGraph):
         """
         if self.is_directed() or self.has_loops() or self.has_multiple_edges():
             raise ValueError("Self must be an undirected simple graph to have a clique complex.")
-        import sage.homology.simplicial_complex
-        C = sage.homology.simplicial_complex.SimplicialComplex(self.cliques_maximal(), maximality_check=True)
+        import sage.topology.simplicial_complex
+        C = sage.topology.simplicial_complex.SimplicialComplex(self.cliques_maximal(), maximality_check=True)
         C._graph = self
         return C
 
@@ -7111,8 +7205,8 @@ class Graph(GenericGraph):
           The *degeneracy* of a graph `G`, usually denoted `\delta^*(G)`, is the
           smallest integer `k` such that the graph `G` can be reduced to the
           empty graph by iteratively removing vertices of degree `\leq k`.
-          Equivalently, `\delta^*(G)=k` if `k` is the smallest integer such that
-          the `k`-core of `G` is empty.
+          Equivalently, `\delta^*(G) = k - 1` if `k` is the smallest integer
+          such that the `k`-core of `G` is empty.
 
         IMPLEMENTATION:
 
@@ -7139,8 +7233,9 @@ class Graph(GenericGraph):
 
         .. SEEALSO::
 
-           * Graph cores is also a notion related to graph homomorphisms. For
-             this second meaning, see :meth:`Graph.has_homomorphism_to`.
+            * Graph cores is also a notion related to graph homomorphisms. For
+              this second meaning, see :meth:`Graph.has_homomorphism_to`.
+            * :wikipedia:`Degeneracy_(graph_theory)`
 
         EXAMPLES::
 
@@ -7163,47 +7258,110 @@ class Graph(GenericGraph):
             sage: ordering, core = g.cores(2)
             sage: len(core) == 0
             True
+
+        Checking the cores of a bull graph::
+
+            sage: G = graphs.BullGraph()
+            sage: G.cores(with_labels=True)
+            {0: 2, 1: 2, 2: 2, 3: 1, 4: 1}
+            sage: G.cores(k=2)
+            ([3, 4], [0, 1, 2])
+
+        Graphs with multiple edges::
+
+            sage: G.allow_multiple_edges(True)
+            sage: G.add_edges(G.edges())
+            sage: G.cores(with_labels=True)
+            {0: 4, 1: 4, 2: 4, 3: 2, 4: 2}
+            sage: G.cores(k=4)
+            ([3, 4], [0, 1, 2])
         """
-        self._scream_if_not_simple()
-        # compute the degrees of each vertex
+        self._scream_if_not_simple(allow_multiple_edges=True)
+        if k is not None and k < 0:
+            raise ValueError("parameter k must be a non negative integer")
+        if not self or not self.size():
+            if k is not None:
+                return ([], list(self)) if not k else (list(self), [])
+            if with_labels:
+                return {u: 0 for u in self}
+            return [0]*self.order()
+
+        # Compute the degrees of each vertex and set up initial guesses for core
         degrees = self.degree(labels=True)
-
-        # Sort vertices by degree. Store in a list and keep track of where a
-        # specific degree starts (effectively, the list is sorted by bins).
-        verts = sorted(degrees.keys(), key=lambda x: degrees[x])
-        bin_boundaries = [0]
-        curr_degree = 0
-        for i,v in enumerate(verts):
-            if degrees[v] > curr_degree:
-                bin_boundaries.extend([i] * (degrees[v] - curr_degree))
-                curr_degree = degrees[v]
-        vert_pos = {v: pos for pos,v in enumerate(verts)}
-        # Set up initial guesses for core and lists of neighbors.
         core = degrees
-        nbrs = {v: set(self.neighbors(v)) for v in self}
-        # form vertex core building up from smallest
-        for v in verts:
 
-            # If all the vertices have a degree larger than k, we can return our
-            # answer if k is not None
-            if k is not None and core[v] >= k:
-                return verts[:vert_pos[v]], verts[vert_pos[v]:]
+        if self.has_multiple_edges():
+            # We partition the vertex set into buckets of vertices by degree
+            nbuckets = max(degrees.values()) + 1
+            bucket = [set() for _ in range(nbuckets)]
+            for u, d in degrees.items():
+                bucket[d].add(u)
 
-            for u in nbrs[v]:
-                if core[u] > core[v]:
-                    nbrs[u].remove(v)
+            verts = []
+            for d in range(nbuckets):
+                if not bucket[d]:
+                    continue
 
-                    # Cleverly move u to the end of the next smallest bin (i.e.,
-                    # subtract one from the degree of u). We do this by swapping
-                    # u with the first vertex in the bin that contains u, then
-                    # incrementing the bin boundary for the bin that contains u.
-                    pos = vert_pos[u]
-                    bin_start = bin_boundaries[core[u]]
-                    vert_pos[u] = bin_start
-                    vert_pos[verts[bin_start]] = pos
-                    verts[bin_start],verts[pos] = verts[pos],verts[bin_start]
-                    bin_boundaries[core[u]] += 1
-                    core[u] -= 1
+                if k is not None and d >= k:
+                    # all vertices have degree >= k. We can return the solution
+                    from itertools import chain
+                    return verts, list(chain(*bucket))
+
+                while bucket[d]:
+                    # Remove a vertex from the bucket and add it to the ordering
+                    u = bucket[d].pop()
+                    verts.append(u)
+
+                    # Update the degree and core number of unordered neighbors.
+                    # The core number of an unordered neighbor v cannot be less
+                    # than the core number of an ordered vertex u.
+                    for x, y in self.edge_iterator(vertices=[u], labels=False, sort_vertices=False):
+                        v = y if x is u else x
+                        if core[v] > core[u]:
+                            dv = core[v]
+                            bucket[dv].discard(v)
+                            bucket[dv - 1].add(v)
+                            core[v] -= 1
+
+        else:
+            # Sort vertices by degree. Store in a list and keep track of where a
+            # specific degree starts (effectively, the list is sorted by bins).
+            verts = sorted(degrees.keys(), key=lambda x: degrees[x])
+            if k is not None and k > degrees[verts[-1]]:
+                return verts, []
+            bin_boundaries = [0]
+            curr_degree = 0
+            for i,v in enumerate(verts):
+                if degrees[v] > curr_degree:
+                    bin_boundaries.extend([i] * (degrees[v] - curr_degree))
+                    curr_degree = degrees[v]
+            vert_pos = {v: pos for pos,v in enumerate(verts)}
+            # Lists of neighbors.
+            nbrs = {v: set(self.neighbors(v)) for v in self}
+            # form vertex core building up from smallest
+            for v in verts:
+
+                # If all the vertices have a degree larger than k, we can return
+                # our answer if k is not None
+                if k is not None and core[v] >= k:
+                    return verts[:vert_pos[v]], verts[vert_pos[v]:]
+
+                for u in nbrs[v]:
+                    if core[u] > core[v]:
+                        nbrs[u].remove(v)
+
+                        # Cleverly move u to the end of the next smallest bin
+                        # (i.e., subtract one from the degree of u). We do this
+                        # by swapping u with the first vertex in the bin that
+                        # contains u, then incrementing the bin boundary for the
+                        # bin that contains u.
+                        pos = vert_pos[u]
+                        bin_start = bin_boundaries[core[u]]
+                        vert_pos[u] = bin_start
+                        vert_pos[verts[bin_start]] = pos
+                        verts[bin_start],verts[pos] = verts[pos],verts[bin_start]
+                        bin_boundaries[core[u]] += 1
+                        core[u] -= 1
 
         if k is not None:
             return verts, []
@@ -7871,7 +8029,7 @@ class Graph(GenericGraph):
 
         And also the min cut::
 
-            sage: g.edge_connectivity() == min(t.edge_labels())
+            sage: g.edge_connectivity() == min(t.edge_labels()) or not g.is_connected()
             True
 
         TESTS:
@@ -7905,7 +8063,7 @@ class Graph(GenericGraph):
         return g
 
     @doc_index("Leftovers")
-    def two_factor_petersen(self, solver=None, verbose=0):
+    def two_factor_petersen(self, solver=None, verbose=0, *, integrality_tolerance=1e-3):
         r"""
         Return a decomposition of the graph into 2-factors.
 
@@ -7924,16 +8082,20 @@ class Graph(GenericGraph):
 
         INPUT:
 
-        - ``solver`` -- (default: ``None``); specify a Linear Program (LP)
-          solver to be used. If set to ``None``, the default one is used. For
-          more information on LP solvers and which default solver is used, see
-          the method :meth:`solve
+        - ``solver`` -- string (default: ``None``); specify a Mixed Integer
+          Linear Programming (MILP) solver to be used. If set to ``None``, the
+          default one is used. For more information on MILP solvers and which
+          default solver is used, see the method :meth:`solve
           <sage.numerical.mip.MixedIntegerLinearProgram.solve>` of the class
           :class:`MixedIntegerLinearProgram
           <sage.numerical.mip.MixedIntegerLinearProgram>`.
 
         - ``verbose`` -- integer (default: ``0``); sets the level of
           verbosity. Set to 0 by default, which means quiet.
+
+        - ``integrality_tolerance`` -- float; parameter for use with MILP
+          solvers over an inexact base ring; see
+          :meth:`MixedIntegerLinearProgram.get_values`.
 
         EXAMPLES:
 
@@ -7974,7 +8136,8 @@ class Graph(GenericGraph):
 
         # This new bipartite graph is now edge_colored
         from sage.graphs.graph_coloring import edge_coloring
-        classes = edge_coloring(g, solver=solver, verbose=verbose)
+        classes = edge_coloring(g, solver=solver, verbose=verbose,
+                                integrality_tolerance=integrality_tolerance)
 
         # The edges in the classes are of the form ((-1,u),(1,v))
         # and have to be translated back to (u,v)
@@ -8122,8 +8285,8 @@ class Graph(GenericGraph):
 
             sage: g = graphs.CycleGraph(6)
             sage: m = g.magnitude_function()
-            sage: t = var('t')
-            sage: m(exp(-t))
+            sage: t = var('t')                                                  # optional - sage.symbolic
+            sage: m(exp(-t))                                                    # optional - sage.symbolic
             6/(2*e^(-t) + 2*e^(-2*t) + e^(-3*t) + 1)
 
         TESTS::
@@ -8278,7 +8441,7 @@ class Graph(GenericGraph):
             True
 
             sage: G = graphs.PetersenGraph().copy(immutable=True)
-            sage: list(G.perfect_matchings())
+            sage: [sorted(m) for m in G.perfect_matchings()]
             [[(0, 1), (2, 3), (4, 9), (5, 7), (6, 8)],
              [(0, 1), (2, 7), (3, 4), (5, 8), (6, 9)],
              [(0, 4), (1, 2), (3, 8), (5, 7), (6, 9)],
@@ -8296,17 +8459,56 @@ class Graph(GenericGraph):
         if not self:
             yield []
             return
-        # if every connected component has an even number of vertices
-        if not any(len(cc) % 2 for cc in self.connected_components()):
-            v = next(self.vertex_iterator())
-            for e in self.edges_incident(v, labels=labels):
-                Gp = self.copy(immutable=False)
-                Gp.delete_vertices([e[0], e[1]])
-                for mat in Gp.perfect_matchings(labels):
-                    yield [e] + mat
+        if self.order() % 2 or any(len(cc) % 2 for cc in self.connected_components()):
+            return
+
+        def rec(G):
+            """
+            Iterator over all perfect matchings of a simple graph `G`.
+            """
+            if not G:
+                yield []
+                return
+            if G.order() % 2 == 0:
+                v = next(G.vertex_iterator())
+                Nv = list(G.neighbor_iterator(v))
+                G.delete_vertex(v)
+                for u in Nv:
+                    Nu = list(G.neighbor_iterator(u))
+                    G.delete_vertex(u)
+                    for partial_matching in rec(G):
+                        partial_matching.append((u, v))
+                        yield partial_matching
+                    G.add_vertex(u)
+                    G.add_edges((u, nu) for nu in Nu)
+                G.add_vertex(v)
+                G.add_edges((v, nv) for nv in Nv)
+
+        # We create a mutable copy of the graph and remove its loops, if any
+        G = self.copy(immutable=False)
+        G.allow_loops(False)
+
+        # We create a mapping from frozen unlabeled edges to (labeled) edges.
+        # This ease for instance the manipulation of multiedges (if any)
+        edges = {}
+        for e in G.edges(labels=labels):
+            f = frozenset(e[:2])
+            if f in edges:
+                edges[f].append(e)
+            else:
+                edges[f] = [e]
+
+        # We now get rid of multiple edges, if any
+        G.allow_multiple_edges(False)
+
+        # For each unlabeled matching, we yield all its possible labelings
+        for m in rec(G):
+            for pm in itertools.product(*[edges[frozenset(e)] for e in m]):
+                yield pm
 
     @doc_index("Leftovers")
-    def has_perfect_matching(self, algorithm="Edmonds", solver=None, verbose=0):
+    def has_perfect_matching(self, algorithm="Edmonds", solver=None, verbose=0,
+                             *, integrality_tolerance=1e-3):
         r"""
         Return whether this graph has a perfect matching.
         INPUT:
@@ -8326,18 +8528,21 @@ class Graph(GenericGraph):
             each vertex `v`, require that the sum of the values of the edges
             incident to `v` is 1.
 
-        - ``solver`` -- (default: ``None``); specify a Linear Program (LP)
-          solver to be used; if set to ``None``, the default one is used
+        - ``solver`` -- string (default: ``None``); specify a Mixed Integer
+          Linear Programming (MILP) solver to be used. If set to ``None``, the
+          default one is used. For more information on MILP solvers and which
+          default solver is used, see the method :meth:`solve
+          <sage.numerical.mip.MixedIntegerLinearProgram.solve>` of the class
+          :class:`MixedIntegerLinearProgram
+          <sage.numerical.mip.MixedIntegerLinearProgram>`.
 
         - ``verbose`` -- integer (default: ``0``); sets the level of verbosity:
           set to 0 by default, which means quiet (only useful when
           ``algorithm == "LP_matching"`` or ``algorithm == "LP"``)
 
-        For more information on LP solvers and which default solver is used, see
-        the method :meth:`solve
-        <sage.numerical.mip.MixedIntegerLinearProgram.solve>` of the class
-        :class:`MixedIntegerLinearProgram
-        <sage.numerical.mip.MixedIntegerLinearProgram>`.
+        - ``integrality_tolerance`` -- float; parameter for use with MILP
+          solvers over an inexact base ring; see
+          :meth:`MixedIntegerLinearProgram.get_values`.
 
         OUTPUT:
 
@@ -8388,7 +8593,8 @@ class Graph(GenericGraph):
                                                 use_edge_labels=False,
                                                 algorithm="LP",
                                                 solver=solver,
-                                                verbose=verbose)
+                                                verbose=verbose,
+                                                integrality_tolerance=integrality_tolerance)
         elif algorithm == "LP":
             from sage.numerical.mip import MixedIntegerLinearProgram, MIPSolverException
             p = MixedIntegerLinearProgram(solver=solver)
@@ -8407,7 +8613,7 @@ class Graph(GenericGraph):
             raise ValueError('algorithm must be set to "Edmonds", "LP_matching" or "LP"')
 
     @doc_index("Leftovers")
-    def effective_resistance(self, i, j):
+    def effective_resistance(self, i, j, *, base_ring=None):
         r"""
         Return the effective resistance between nodes `i` and `j`.
 
@@ -8421,6 +8627,9 @@ class Graph(GenericGraph):
         INPUT:
 
         - ``i``, ``j`` -- vertices of the graph
+
+        - ``base_ring`` -- a ring (default: ``None``); the base ring
+          of the matrix space to use
 
         OUTPUT: rational number denoting resistance between nodes `i` and `j`
 
@@ -8445,6 +8654,15 @@ class Graph(GenericGraph):
             6/5
             sage: H.effective_resistance(1,3)
             49/55
+            sage: H.effective_resistance(1,1)
+            0
+
+        Using a different base ring::
+
+            sage: H.effective_resistance(1, 5, base_ring=RDF)   # abs tol 1e-14
+            1.2000000000000000
+            sage: H.effective_resistance(1, 1, base_ring=RDF)
+            0.0
 
         .. SEEALSO::
 
@@ -8481,8 +8699,11 @@ class Graph(GenericGraph):
         elif j not in self:
             raise ValueError("vertex ({0}) is not a vertex of the graph".format(repr(j)))
 
+        if base_ring is None:
+            base_ring = ZZ
+
         if i == j :
-            return 0
+            return base_ring(0)
 
         self._scream_if_not_simple()
         if not self.is_connected():
@@ -8492,16 +8713,17 @@ class Graph(GenericGraph):
         i1 = vert.index(i)
         i2 = vert.index(j)
         n = self.order()
-        L = self.laplacian_matrix(vertices=vert)
+        L = self.laplacian_matrix(vertices=vert, base_ring=base_ring)
         M = L.pseudoinverse()
-        Id = matrix.identity(n)
-        sigma = matrix(Id[i1] - Id[i2])
+        Id = matrix.identity(base_ring, n)
+        sigma = matrix(base_ring, Id[i1] - Id[i2])
         diff = sigma * M * sigma.transpose()
 
         return diff[0, 0]
 
     @doc_index("Leftovers")
-    def effective_resistance_matrix(self, vertices=None, nonedgesonly=True):
+    def effective_resistance_matrix(self, vertices=None, nonedgesonly=True,
+                                    *, base_ring=None, **kwds):
         r"""
         Return a matrix whose (`i` , `j`) entry gives the effective resistance
         between vertices `i` and `j`.
@@ -8511,6 +8733,8 @@ class Graph(GenericGraph):
         two vertices on an electrical network constructed from `G` replacing
         each edge of the graph by a unit (1 ohm) resistor.
 
+        By default, the matrix returned is over the rationals.
+
         INPUT:
 
         - ``nonedgesonly`` -- boolean (default: ``True``); if ``True`` assign
@@ -8519,6 +8743,12 @@ class Graph(GenericGraph):
         - ``vertices`` -- list (default: ``None``); the ordering of the
           vertices defining how they should appear in the matrix. By default,
           the ordering given by :meth:`GenericGraph.vertices` is used.
+
+        - ``base_ring`` -- a ring (default: ``None``); the base ring
+          of the matrix space to use
+
+        - ``**kwds`` -- other keywords to pass to
+          :func:`~sage.matrix.constructor.matrix`
 
         OUTPUT: matrix
 
@@ -8559,6 +8789,11 @@ class Graph(GenericGraph):
             [    0 56/55   4/5     0     0     0 81/55]
             [    0   6/5 56/55 49/55     0     0 89/55]
             [    0 89/55 81/55 16/11 81/55 89/55     0]
+
+        A different base ring::
+
+            sage: H.effective_resistance_matrix(base_ring=RDF)[0, 0].parent()
+            Real Double Field
 
         .. SEEALSO::
 
@@ -8609,6 +8844,16 @@ class Graph(GenericGraph):
             sage: r = G.effective_resistance_matrix(nonedgesonly=False)[0,3]
             sage: r == fibonacci(2*(5-3)+1)*fibonacci(2*3-1)/fibonacci(2*5)
             True
+
+        Ask for an immutable matrix::
+
+            sage: G = Graph([(0, 1)])
+            sage: M = G.effective_resistance_matrix(immutable=False)
+            sage: M.is_immutable()
+            False
+            sage: M = G.effective_resistance_matrix(immutable=True)
+            sage: M.is_immutable()
+            True
         """
         from sage.matrix.constructor import matrix
         from sage.rings.rational_field import QQ
@@ -8622,16 +8867,26 @@ class Graph(GenericGraph):
         if not self.is_connected():
             raise ValueError('the Graph is not a connected graph')
 
-        L = self.laplacian_matrix(vertices=vertices)
+        if base_ring is None:
+            base_ring = QQ
+        set_immutable = kwds.pop('immutable', False)
+
+        L = self.laplacian_matrix(vertices=vertices, base_ring=base_ring, immutable=True, **kwds)
         M = L.pseudoinverse()
         d = matrix(M.diagonal()).transpose()
-        onesvec = matrix(QQ, n, 1, lambda i, j: 1)
+        onesvec = matrix(base_ring, n, 1, lambda i, j: 1)
         S = d * onesvec.transpose() + onesvec * d.transpose() - 2 * M
-        onesmat = matrix(QQ, n, n, lambda i, j: 1)
         if nonedgesonly:
-            B = onesmat - self.adjacency_matrix(vertices=vertices) - matrix.identity(n)
+            A = self.adjacency_matrix(vertices=vertices, base_ring=base_ring, **kwds)
+            B = matrix(base_ring, n, n)
+            for i in range(n):
+                for j in range(n):
+                    B[i, j] = 1 - A[i, j]
+                B[i, i] -= 1
             S = S.elementwise_product(B)
 
+        if set_immutable:
+            S.set_immutable()
         return S
 
     @doc_index("Leftovers")
@@ -8717,7 +8972,8 @@ class Graph(GenericGraph):
         return [e for e in edges if S[(verttoidx[e[0]], verttoidx[e[1]])] == rmin]
 
     @doc_index("Leftovers")
-    def common_neighbors_matrix(self, vertices=None, nonedgesonly=True):
+    def common_neighbors_matrix(self, vertices=None, nonedgesonly=True,
+                                *, base_ring=None, **kwds):
         r"""
         Return a matrix of numbers of common neighbors between each pairs.
 
@@ -8735,6 +8991,12 @@ class Graph(GenericGraph):
         - ``vertices`` -- list (default: ``None``); the ordering of the
           vertices defining how they should appear in the matrix. By default,
           the ordering given by :meth:`GenericGraph.vertices` is used.
+
+        - ``base_ring`` -- a ring (default: ``None``); the base ring
+          of the matrix space to use
+
+        - ``**kwds`` -- other keywords to pass to
+          :func:`~sage.matrix.constructor.matrix`
 
         OUTPUT: matrix
 
@@ -8777,6 +9039,17 @@ class Graph(GenericGraph):
             [0 1 1 2 0 0 1]
             [0 1 1 1 1 1 0]
 
+        A different base ring::
+
+            sage: H.common_neighbors_matrix(base_ring=RDF)
+            [0.0 0.0 0.0 0.0 0.0 0.0 0.0]
+            [0.0 0.0 0.0 2.0 1.0 1.0 1.0]
+            [0.0 0.0 0.0 0.0 2.0 1.0 1.0]
+            [0.0 2.0 0.0 0.0 0.0 2.0 1.0]
+            [0.0 1.0 2.0 0.0 0.0 0.0 1.0]
+            [0.0 1.0 1.0 2.0 0.0 0.0 1.0]
+            [0.0 1.0 1.0 1.0 1.0 1.0 0.0]
+
         It is an error to input anything other than a simple graph::
 
             sage: G = Graph([(0,0)],loops=True)
@@ -8809,11 +9082,22 @@ class Graph(GenericGraph):
             [0 0 0 2]
             [0 0 0 0]
             [0 2 0 0]
+
+        Asking for an immutable matrix::
+
+            sage: G = Graph([(0, 1)])
+            sage: M = G.common_neighbors_matrix()
+            sage: M.is_immutable()
+            False
+            sage: M = G.common_neighbors_matrix(immutable=True)
+            sage: M.is_immutable()
+            True
         """
         self._scream_if_not_simple()
         if vertices is None:
             vertices = self.vertices()
-        A = self.adjacency_matrix(vertices=vertices)
+        set_immutable = kwds.pop('immutable', False)
+        A = self.adjacency_matrix(vertices=vertices, base_ring=base_ring, immutable=True, **kwds)
         M = A**2
         for v in range(self.order()):
             M[v, v] = 0
@@ -8821,6 +9105,8 @@ class Graph(GenericGraph):
                 for w in range(v + 1, self.order()):
                     if A[v, w]:
                         M[v, w] = M[w, v] = 0
+        if set_immutable:
+            M.set_immutable()
         return M
 
     @doc_index("Leftovers")
@@ -8950,9 +9236,9 @@ class Graph(GenericGraph):
         from sage.matroids.constructor import Matroid
         P = Matroid(self).partition()
         if certificate:
-          return (len(P), [self.subgraph(edges=forest) for forest in P])
+            return (len(P), [self.subgraph(edges=forest) for forest in P])
         else:
-          return len(P)
+            return len(P)
 
     @doc_index("Graph properties")
     def is_antipodal(self):
@@ -9277,6 +9563,7 @@ class Graph(GenericGraph):
     from sage.graphs.graph_decompositions.rankwidth import rank_decomposition
     from sage.graphs.graph_decompositions.tree_decomposition import treewidth
     from sage.graphs.graph_decompositions.vertex_separation import pathwidth
+    from sage.graphs.graph_decompositions.tree_decomposition import treelength
     from sage.graphs.graph_decompositions.clique_separators import atoms_and_clique_separators
     from sage.graphs.matchpoly import matching_polynomial
     from sage.graphs.cliquer import all_max_clique as cliques_maximum
@@ -9295,6 +9582,7 @@ class Graph(GenericGraph):
     from sage.graphs.connectivity import is_triconnected
     from sage.graphs.comparability import is_comparability
     from sage.graphs.comparability import is_permutation
+    from sage.graphs.convexity_properties import geodetic_closure
     from sage.graphs.domination import is_dominating
     from sage.graphs.domination import is_redundant
     from sage.graphs.domination import private_neighbors
@@ -9304,6 +9592,7 @@ class Graph(GenericGraph):
     from sage.graphs.isoperimetric_inequalities import cheeger_constant, edge_isoperimetric_number, vertex_isoperimetric_number
     from sage.graphs.graph_coloring import fractional_chromatic_number
     from sage.graphs.graph_coloring import fractional_chromatic_index
+    from sage.graphs.hyperbolicity import hyperbolicity
 
 _additional_categories = {
     "is_long_hole_free"         : "Graph properties",
@@ -9314,6 +9603,7 @@ _additional_categories = {
     "rank_decomposition"        : "Algorithmically hard stuff",
     "treewidth"                 : "Algorithmically hard stuff",
     "pathwidth"                 : "Algorithmically hard stuff",
+    "treelength"                : "Algorithmically hard stuff",
     "matching_polynomial"       : "Algorithmically hard stuff",
     "all_max_clique"            : "Clique-related methods",
     "cliques_maximum"           : "Clique-related methods",
@@ -9347,7 +9637,9 @@ _additional_categories = {
     "edge_isoperimetric_number" : "Expansion properties",
     "vertex_isoperimetric_number" : "Expansion properties",
     "fractional_chromatic_number" : "Coloring",
-    "fractional_chromatic_index" : "Coloring"
+    "fractional_chromatic_index" : "Coloring",
+    "geodetic_closure"          : "Leftovers",
+    "hyperbolicity"              : "Distances",
     }
 
 __doc__ = __doc__.replace("{INDEX_OF_METHODS}",gen_thematic_rest_table_index(Graph,_additional_categories))

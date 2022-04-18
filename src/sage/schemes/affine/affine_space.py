@@ -20,8 +20,8 @@ from sage.categories.map import Map
 from sage.categories.fields import Fields
 _Fields = Fields()
 from sage.categories.number_fields import NumberFields
-from sage.misc.all import (latex,
-                           cartesian_product_iterator)
+from sage.misc.latex import latex
+from sage.misc.mrange import cartesian_product_iterator
 from sage.structure.category_object import normalize_names
 from sage.schemes.generic.scheme import AffineScheme
 from sage.schemes.generic.ambient_space import AmbientSpace
@@ -573,7 +573,7 @@ class AffineSpace_generic(AmbientSpace, AffineScheme):
             must be an affine space or affine subscheme
         """
         if self.base_ring() != right.base_ring():
-            raise ValueError ('Must have the same base ring')
+            raise ValueError('Must have the same base ring')
 
         from sage.schemes.generic.algebraic_scheme import AlgebraicScheme_subscheme
 
@@ -1064,7 +1064,8 @@ class AffineSpace_field(AffineSpace_generic):
             tol = kwds.pop('tolerance', 1e-2)
             prec = kwds.pop('precision', 53)
             iters = [ R.elements_of_bounded_height(bound=B, tolerance=tol, precision=prec) for _ in range(n) ]
-        for x in iters: next(x) # put at zero
+        for x in iters:
+            next(x) # put at zero
         i = 0
         while i < n:
             try:

@@ -92,8 +92,6 @@ class RationalField(Singleton, number_field_base.NumberField):
         Traceback (most recent call last):
         ...
         TypeError: unable to convert 'sage' to a rational
-        sage: QQ(u'-5/7')
-        -5/7
 
     Conversion from the reals to the rationals is done by default using
     continued fractions.
@@ -173,7 +171,7 @@ class RationalField(Singleton, number_field_base.NumberField):
             sage: Q('49/7')
             7
             sage: type(Q('49/7'))
-            <type 'sage.rings.rational.Rational'>
+            <class 'sage.rings.rational.Rational'>
             sage: a = Q('19/374'); a
             19/374
             sage: b = Q('17/371'); b
@@ -845,7 +843,7 @@ class RationalField(Singleton, number_field_base.NumberField):
         for i in range(len(S)):
             if S[i] == self.places()[0]:
                 S[i] = -1
-        if not b in self:
+        if b not in self:
             raise TypeError("second argument must be a rational number")
         b = self(b)
         if b == 0:
@@ -1196,26 +1194,31 @@ class RationalField(Singleton, number_field_base.NumberField):
 
         EXAMPLES::
 
-            sage: QQ.random_element()
-            -4
-            sage: QQ.random_element()
-            0
-            sage: QQ.random_element()
-            -1/2
+            sage: QQ.random_element().parent() is QQ
+            True
+            sage: while QQ.random_element() != 0:
+            ....:     pass
+            sage: while QQ.random_element() != -1/2:
+            ....:     pass
 
         In the following example, the resulting numbers range from
         -5/1 to 5/1 (both inclusive),
         while the smallest possible positive value is 1/10::
 
-            sage: QQ.random_element(5, 10)
-            -2/7
+            sage: q = QQ.random_element(5, 10)
+            sage: -5/1 <= q <= 5/1
+            True
+            sage: q.denominator() <= 10
+            True
+            sage: q.numerator() <= 5
+            True
 
         Extra positional or keyword arguments are passed through::
 
-            sage: QQ.random_element(distribution='1/n')
-            0
-            sage: QQ.random_element(distribution='1/n')
-            -1
+            sage: QQ.random_element(distribution='1/n').parent() is QQ
+            True
+            sage: QQ.random_element(distribution='1/n').parent() is QQ
+            True
         """
         global ZZ
         if ZZ is None:
@@ -1224,7 +1227,8 @@ class RationalField(Singleton, number_field_base.NumberField):
         if num_bound is None:
             num = ZZ.random_element(*args, **kwds)
             den = ZZ.random_element(*args, **kwds)
-            while den == 0: den = ZZ.random_element(*args, **kwds)
+            while den == 0:
+                den = ZZ.random_element(*args, **kwds)
             return self((num, den))
         else:
             if num_bound == 0:
@@ -1235,7 +1239,8 @@ class RationalField(Singleton, number_field_base.NumberField):
                     den_bound = 2
             num = ZZ.random_element(-num_bound, num_bound+1, *args, **kwds)
             den = ZZ.random_element(1, den_bound+1, *args, **kwds)
-            while den == 0: den = ZZ.random_element(1, den_bound+1, *args, **kwds)
+            while den == 0:
+                den = ZZ.random_element(1, den_bound+1, *args, **kwds)
             return self((num,den))
 
     def zeta(self, n=2):
@@ -1367,7 +1372,7 @@ class RationalField(Singleton, number_field_base.NumberField):
         """
         KSgens, ords = self.selmer_generators(S=S, m=m, proof=proof, orders=True)
         one = self.one()
-        from sage.misc.all import prod
+        from sage.misc.misc_c import prod
         from itertools import product
         for ev in product(*[range(o) for o in ords]):
             yield prod((p**e for p,e in zip(KSgens, ev)), one)
@@ -1481,7 +1486,7 @@ class RationalField(Singleton, number_field_base.NumberField):
         """
         from sage.rings.all import Infinity
         from sage.arith.misc import legendre_symbol
-        if not a in self:
+        if a not in self:
             raise TypeError(str(a) + " must be an element of " + str(self))
         if p.parent() == ZZ.ideal_monoid():
             p = p.gen()
@@ -1575,6 +1580,20 @@ class RationalField(Singleton, number_field_base.NumberField):
 
         """
         return '"Rational"'
+
+    def _sympy_(self):
+        r"""
+        Return the SymPy set ``Rationals``.
+
+        EXAMPLES::
+
+            sage: QQ._sympy_()
+            Rationals
+        """
+        from sympy import Rationals
+        from sage.interfaces.sympy import sympy_init
+        sympy_init()
+        return Rationals
 
     def _sage_input_(self, sib, coerced):
         r"""

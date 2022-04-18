@@ -63,11 +63,11 @@ cdef class Matrix_modn_dense_float(Matrix_modn_dense_template):
 
             sage: A = random_matrix(GF(7), 4, 4)
             sage: type(A[0,0])
-            <type 'sage.rings.finite_rings.integer_mod.IntegerMod_int'>
+            <class 'sage.rings.finite_rings.integer_mod.IntegerMod_int'>
         """
         self._get_template = self._base_ring.zero()
 
-    cdef set_unsafe_int(self, Py_ssize_t i, Py_ssize_t j, int value):
+    cdef void set_unsafe_int(self, Py_ssize_t i, Py_ssize_t j, int value):
         r"""
         Set the (i,j) entry of self to the int value.
 

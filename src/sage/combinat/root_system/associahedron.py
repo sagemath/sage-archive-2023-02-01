@@ -27,7 +27,8 @@ from sage.geometry.polyhedron.backend_polymake import Polyhedron_polymake
 from sage.geometry.polyhedron.parent import Polyhedra, Polyhedra_base, Polyhedra_QQ_ppl, Polyhedra_QQ_normaliz, Polyhedra_QQ_cdd, Polyhedra_polymake, Polyhedra_field
 from sage.combinat.root_system.cartan_type import CartanType
 from sage.modules.free_module_element import vector
-from sage.rings.all import QQ, ZZ
+from sage.rings.integer_ring import ZZ
+from sage.rings.rational_field import QQ
 
 ancestors_of_associahedron = set([Polyhedron_QQ_ppl, Polyhedron_QQ_normaliz, Polyhedron_QQ_cdd, Polyhedron_field, Polyhedron_polymake])
 
@@ -127,7 +128,7 @@ def Associahedron(cartan_type, backend='ppl'):
     return parent(cartan_type)
 
 
-class Associahedron_class_base(object):
+class Associahedron_class_base():
     r"""
     The base class of the Python class of an associahedron
 
@@ -298,7 +299,7 @@ def Associahedra(base_ring, ambient_dim, backend='ppl'):
 
         :class:`Associahedra_base`.
     """
-    if not base_ring is QQ:
+    if base_ring is not QQ:
         raise NotImplementedError("base ring must be QQ")
     if backend == 'ppl':
         return Associahedra_ppl(base_ring, ambient_dim, backend)
@@ -313,7 +314,8 @@ def Associahedra(base_ring, ambient_dim, backend='ppl'):
     else:
         raise ValueError("unknown backend")
 
-class Associahedra_base(object):
+
+class Associahedra_base():
     """
     Base class of parent of Associahedra of specified dimension
 

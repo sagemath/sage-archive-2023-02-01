@@ -54,8 +54,8 @@ from sage.categories.modules_with_basis import ModulesWithBasis
 from . import sfa
 from sage.combinat.partition import Partitions_n, _Partitions
 from sage.matrix.all import MatrixSpace
-from sage.rings.all import QQ
-from sage.misc.all import prod
+from sage.rings.rational_field import QQ
+from sage.misc.misc_c import prod
 from sage.misc.cachefunc import cached_function
 import functools
 
@@ -89,7 +89,7 @@ class Macdonald(UniqueRepresentation):
 
         - a string representing the Macdonald symmetric function family
 
-        EXAMPLES ::
+        EXAMPLES::
 
             sage: t = QQ['t'].gen(); SymmetricFunctions(QQ['t'].fraction_field()).macdonald(q=t,t=1)
             Macdonald polynomials with q=t and t=1 over Fraction Field of Univariate Polynomial Ring in t over Rational Field
@@ -107,7 +107,7 @@ class Macdonald(UniqueRepresentation):
 
         - ``self`` -- a family of Macdonald symmetric function bases
 
-        EXAMPLES ::
+        EXAMPLES::
 
             sage: t = QQ['t'].gen(); SymmetricFunctions(QQ['t'].fraction_field()).macdonald(q=t,t=1)
             Macdonald polynomials with q=t and t=1 over Fraction Field of Univariate Polynomial Ring in t over Rational Field
@@ -144,7 +144,7 @@ class Macdonald(UniqueRepresentation):
 
         - the base ring associated to the corresponding symmetric function ring
 
-        EXAMPLES ::
+        EXAMPLES::
 
             sage: Sym = SymmetricFunctions(QQ['q'].fraction_field())
             sage: Mac = Sym.macdonald(t=0)
@@ -166,7 +166,7 @@ class Macdonald(UniqueRepresentation):
 
         - the symmetric function ring associated to the Macdonald bases
 
-        EXAMPLES ::
+        EXAMPLES::
 
             sage: Mac = SymmetricFunctions(QQ['q'].fraction_field()).macdonald(t=0)
             sage: Mac.symmetric_function_ring()
@@ -187,7 +187,7 @@ class Macdonald(UniqueRepresentation):
 
         - returns the `P` Macdonald basis of symmetric functions
 
-        EXAMPLES ::
+        EXAMPLES::
 
             sage: Sym = SymmetricFunctions(FractionField(QQ['q','t']))
             sage: P = Sym.macdonald().P(); P
@@ -914,7 +914,7 @@ class MacdonaldPolynomials_generic(sfa.SymmetricFunctionAlgebra_generic):
 
         - the family of Macdonald symmetric functions associated to ``self``
 
-        EXAMPLES ::
+        EXAMPLES::
 
             sage: MacP = SymmetricFunctions(QQ['q'].fraction_field()).macdonald(t=0).P()
             sage: MacP.macdonald_family()
@@ -1167,19 +1167,20 @@ class MacdonaldPolynomials_j(MacdonaldPolynomials_generic):
              sage: Sym.schur()( J[2,1] )
              (q*t^3-t^4-q*t^2+t^3-q*t+t^2+q-t)*s[1, 1, 1] + (-q*t^4+2*q*t^3-q*t^2+t^2-2*t+1)*s[2, 1]
         """
-        q,t = QQqt.gens()
+        q, t = QQqt.gens()
         S = self._macdonald.S()
         res = S(1)
         for k in reversed(part):
             res = res.creation(k)
         res = res._omega_qt_in_schurs()
-        res = res.map_coefficients(lambda c: c(t,q))
-        f = lambda part2: res.coefficient(part2)
+        res = res.map_coefficients(lambda c: c(t, q))
+        f = res.coefficient
         return f
 
     class Element(MacdonaldPolynomials_generic.Element):
         pass
 
+    
 class MacdonaldPolynomials_h(MacdonaldPolynomials_generic):
     def __init__(self, macdonald):
         r"""
@@ -1776,14 +1777,14 @@ class MacdonaldPolynomials_s(MacdonaldPolynomials_generic):
             sage: S2(Partition([1,1]))
             (q*t - t^2 - q + t)/(-q^3 + q^2 + q - 1)
         """
-        #Convert to the power sum
-        (q,t) = QQqt.gens()
+        # Convert to the power sum
+        (q, t) = QQqt.gens()
         p = self._sym.p()
         s = self._s
         p_x = p(s(part))
-        f = lambda m, c: (m, c*prod([(1-t**k)/(1-q**k) for k in m]))
+        f = lambda m, c: (m, c * prod([(1 - t**k) / (1 - q**k) for k in m]))
         res = s(p_x.map_item(f))
-        f = lambda part2: res.coefficient(part2)
+        f = res.coefficient
         return f
 
     def _s_cache(self, n):

@@ -183,6 +183,7 @@ from sage.combinat.partition import Partitions
 from sage.combinat.words.finite_word import FiniteWord_class
 from sage.combinat.words.word import Word
 from sage.combinat.words.words import Words
+from sage.combinat.words.shuffle_product import ShuffleProduct_w1w2 as shuffle
 from sage.libs.pari.all import pari
 from sage.matrix.constructor import matrix
 from sage.misc.cachefunc import cached_function, cached_method
@@ -375,7 +376,8 @@ def minimize_term(w, cf):
         if x < y:
             return (w, cf)
         if x > y:
-            return (Words10(reverse_w), (-1)**len(w) * cf)
+            return (Words10(reverse_w, check=False),
+                    -cf if len(w) % 2 else cf)
     return (w, cf)
 
 
@@ -619,8 +621,13 @@ def basis_f_iterator(n):
          (2, word: f7),
          (3, word: f5),
          (4, word: f3)]
+
+    TESTS::
+
+        sage: list(basis_f_iterator(0))
+        [(0, word: )]
     """
-    if n < 2:
+    if n and n < 2:
         return
     for k in range(n // 2 + 1):
         for start in basis_f_odd_iterator(n - 2 * k):
@@ -776,7 +783,7 @@ class Multizetas(CombinatorialFreeModule):
         EXAMPLES::
 
             sage: latex(Multizeta(2,3) - 3/5 * Multizeta(1,1,2))  # indirect doctest
-            -\frac{3}{5}\zeta(1,1,2) + \zeta(2,3)
+            -\frac{3}{5} \zeta(1,1,2) + \zeta(2,3)
         """
         return "\\zeta(" + ','.join(str(letter) for letter in m) + ")"
 
@@ -793,7 +800,7 @@ class Multizetas(CombinatorialFreeModule):
             sage: M.one_basis()
             word:
         """
-        return self.basis().keys()([])
+        return self.basis().keys()([], check=False)
 
     def some_elements(self):
         r"""
@@ -912,7 +919,8 @@ class Multizetas(CombinatorialFreeModule):
             -I(1010010)
         """
         codomain = Multizetas_iterated(self.base_ring())
-        return (-1)**len(w) * codomain(composition_to_iterated(w))
+        image = codomain(composition_to_iterated(w))
+        return -image if len(w) % 2 else image
 
     def degree_on_basis(self, w):
         """
@@ -968,7 +976,7 @@ class Multizetas(CombinatorialFreeModule):
         r"""
         Convert ``x`` into ``self``.
 
-        INPUT
+        INPUT:
 
         - ``x`` -- either a list, tuple, word or a multiple zeta value
 
@@ -1002,11 +1010,10 @@ class Multizetas(CombinatorialFreeModule):
             W = self.basis().keys()
             if isinstance(x, list):
                 x = tuple(x)
-            return self.monomial(W(x))
+            return self._monomial(W(x, check=False))
         elif isinstance(parent(x), Multizetas_iterated):
             return x.composition()
-        else:
-            raise TypeError('invalid input for building a multizeta value')
+        raise TypeError('invalid input for building a multizeta value')
 
     def algebra_generators(self, n):
         """
@@ -1184,7 +1191,7 @@ class Multizetas(CombinatorialFreeModule):
             BR2 = zin.base_ring()
             sv = zin.sum_of_terms((w, BR2(cf(0)))
                                   for (a, b), cf in phi_im.coproduct()
-                                  for w in a.shuffle(b.reversal()))
+                                  for w in shuffle(a, b.reversal(), False))
             return rho_inverse(sv)
 
         def simplify(self):
@@ -1227,6 +1234,11 @@ class Multizetas(CombinatorialFreeModule):
 
                 sage: Multizeta(7).simplify_full()
                 352/151*ζ(2,2,3) + 672/151*ζ(2,3,2) + 528/151*ζ(3,2,2)
+
+            TESTS::
+
+                sage: Multizetas(QQ).one().simplify_full()
+                ζ()
             """
             if basis is None:
                 basis = self.parent().basis_brown
@@ -1518,7 +1530,7 @@ class Multizetas_iterated(CombinatorialFreeModule):
             sage: M.one_basis()
             word:
         """
-        return self.basis().keys()([])
+        return self.basis().keys()([], check=False)
 
     def product_on_basis(self, w1, w2):
         r"""
@@ -1541,7 +1553,7 @@ class Multizetas_iterated(CombinatorialFreeModule):
             sage: M.product_on_basis(y,x)
             I(10110) + 3*I(11010) + 6*I(11100)
         """
-        return sum(self.basis()[u] for u in w1.shuffle(w2))
+        return self._sum_of_monomials(shuffle(w1, w2, False))
 
     def half_product_on_basis(self, w1, w2):
         r"""
@@ -1565,9 +1577,10 @@ class Multizetas_iterated(CombinatorialFreeModule):
         """
         assert w1
         W = self.basis().keys()
-        u1 = W([w1[0]])
+        u1 = W([w1[0]], check=False)
         r1 = w1[1:]
-        return sum(self.basis()[u1 + u] for u in r1.shuffle(w2))
+        B = self.basis()
+        return sum(B[u1 + u] for u in shuffle(r1, w2, False))
 
     @lazy_attribute
     def half_product(self):
@@ -1716,7 +1729,8 @@ class Multizetas_iterated(CombinatorialFreeModule):
             -I(11010)
         """
         rev = [1 - x for x in reversed(w)]
-        return (-1)**len(w) * self(self.basis().keys()(rev))
+        image = self(self.basis().keys()(rev, check=False))
+        return -image if len(w) % 2 else image
 
     def degree_on_basis(self, w):
         """
@@ -1884,7 +1898,7 @@ class Multizetas_iterated(CombinatorialFreeModule):
         r"""
         Convert ``x`` into ``self``.
 
-        INPUT
+        INPUT:
 
         - ``x`` -- either a list, tuple, word or a multiple zeta value
 
@@ -1908,7 +1922,7 @@ class Multizetas_iterated(CombinatorialFreeModule):
             W = self.basis().keys()
             if isinstance(x, list):
                 x = tuple(x)
-            return self.monomial(W(x))
+            return self._monomial(W(x, check=False))
 
         P = x.parent()
         if isinstance(P, Multizetas_iterated):
@@ -2151,7 +2165,7 @@ class All_iterated(CombinatorialFreeModule):
         r"""
         Convert ``x`` into ``self``.
 
-        INPUT
+        INPUT:
 
         - ``x`` -- either a list, tuple, word
 
@@ -2177,12 +2191,12 @@ class All_iterated(CombinatorialFreeModule):
             raise ValueError('bad letter')
 
         W = self.basis().keys()
-        w = W(x)
+        w = W(x, check=False)
         # condition R1 of F. Brown
         if w[0] == w[-1] or (len(w) >= 4 and
                              all(x == w[1] for x in w[2:-1])):
             return self.zero()
-        return self.monomial(w)
+        return self._monomial(w)
 
     def dual_on_basis(self, w):
         """
@@ -2206,7 +2220,8 @@ class All_iterated(CombinatorialFreeModule):
         if w[-2] == 0:
             return self(w)
         rev = [1 - x for x in reversed(w)]
-        return (-1)**len(w) * self(self.basis().keys()(rev))
+        image = self(self.basis().keys()(rev, check=False))
+        return -image if len(w) % 2 else image
 
     @lazy_attribute
     def dual(self):
@@ -2250,7 +2265,8 @@ class All_iterated(CombinatorialFreeModule):
         if w[0] == 0 and w[-1] == 1:
             return self(w)
         W = self.basis().keys()
-        return (-1)**len(w) * self.monomial(W(list(reversed(w))))
+        image = self._monomial(W(list(reversed(w)), check=False))
+        return -image if len(w) % 2 else image
 
     @lazy_attribute
     def reversal(self):
@@ -2525,7 +2541,7 @@ def coeff_phi(w):
     M = Multizetas_iterated(QQ)
     z = M.phi_extended(w)
     W = z.parent().basis().keys()
-    w = W(['f{}'.format(k)])
+    w = W(['f{}'.format(k)], check=False)
     return z.coefficient(w).lc()  # in QQ
 
 
@@ -2744,7 +2760,7 @@ def f_to_vector(elt):
     a, b = next(iter(elt))
     N = sum(int(x[1:]) for x in a) + 2 * b.degree()
     W = F.basis().keys()
-    return vector(BR, [elt.coefficient(W(b)).lc()
+    return vector(BR, [elt.coefficient(W(b, check=False)).lc()
                        for _, b in basis_f_iterator(N)])
 
 

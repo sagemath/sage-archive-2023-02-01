@@ -963,7 +963,7 @@ cdef class PermutationGroupElement(MultiplicativeGroupElement):
 
         EXAMPLES::
 
-            sage: G = PermutationGroup([[(1,2,3),(4,5)]],5)
+            sage: G = PermutationGroup([[(1,2,3),(4,5)]])
             sage: g = G.gen(0)
             sage: g[0]
             (1,2,3)
@@ -1044,11 +1044,11 @@ cdef class PermutationGroupElement(MultiplicativeGroupElement):
             sage: g(x)
             Traceback (most recent call last):
             ...
-            ValueError: Must be in the domain or a list, tuple or string.
+            ValueError: must be in the domain or a list, tuple or string
             sage: g(3/2)
             Traceback (most recent call last):
             ...
-            ValueError: Must be in the domain or a list, tuple or string.
+            ValueError: must be in the domain or a list, tuple or string
         """
         to_gap = self._parent._domain_to_gap
         from_gap = self._parent._domain_from_gap
@@ -1066,7 +1066,7 @@ cdef class PermutationGroupElement(MultiplicativeGroupElement):
 
 
             if not isinstance(i,(list,tuple,str)):
-                raise ValueError("Must be in the domain or a list, tuple or string.")
+                raise ValueError("must be in the domain or a list, tuple or string")
 
             permuted = [i[self.perm[j]] for j from 0 <= j < self.n]
             if isinstance(i, tuple):
@@ -1560,7 +1560,7 @@ cdef class PermutationGroupElement(MultiplicativeGroupElement):
             sage: t=PermutationGroupElement(L).multiplicative_order(); t
             1492182350939279320058875736615841068547583863326864530410
             sage: type(t)
-            <type 'sage.rings.integer.Integer'>
+            <class 'sage.rings.integer.Integer'>
         """
         order = None
         cdef long long order_c = 1

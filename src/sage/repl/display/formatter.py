@@ -66,16 +66,18 @@ from IPython.core.formatters import DisplayFormatter, PlainTextFormatter
 from IPython.utils.py3compat import unicode_to_str
 from IPython.core.display import DisplayObject
 
-from ipywidgets.widgets.interaction import interactive
+from ipywidgets import Widget
 
 from sage.repl.display.pretty_print import SagePrettyPrinter
+from sage.misc.lazy_import import lazy_import
 
-IPYTHON_NATIVE_TYPES = (DisplayObject, interactive)
+IPYTHON_NATIVE_TYPES = (DisplayObject, Widget)
 
 PLAIN_TEXT = 'text/plain'
 TEXT_LATEX = 'text/latex'
 TEXT_HTML = 'text/html'
 
+lazy_import('matplotlib.figure', 'Figure')
 
 class SageDisplayFormatter(DisplayFormatter):
 
@@ -103,6 +105,10 @@ class SageDisplayFormatter(DisplayFormatter):
         self.dm = get_display_manager()
         from sage.repl.rich_output.backend_ipython import BackendIPython
         self.dm.check_backend_class(BackendIPython)
+
+        pt_formatter = self.formatters[PLAIN_TEXT]
+        pt_formatter.observe(self._ipython_float_precision_changed,
+                             names=['float_precision'])
 
     def format(self, obj, include=None, exclude=None):
         r"""
@@ -136,8 +142,7 @@ class SageDisplayFormatter(DisplayFormatter):
         TESTS::
 
             sage: import os
-            sage: from sage.env import SAGE_EXTCODE
-            sage: example_png = os.path.join(SAGE_EXTCODE, 'doctest', 'rich_output', 'example.png')
+            sage: import importlib.resources
             sage: from sage.repl.rich_output.backend_ipython import BackendIPython
             sage: backend = BackendIPython()
             sage: shell = get_test_shell()
@@ -145,7 +150,8 @@ class SageDisplayFormatter(DisplayFormatter):
             sage: shell.run_cell('get_ipython().display_formatter')
             <sage.repl.display.formatter.SageDisplayFormatter object at 0x...>
             sage: shell.run_cell('from IPython.display import Image')
-            sage: shell.run_cell('ipython_image = Image("{0}")'.format(example_png))
+            sage: with importlib.resources.path(sage.repl.rich_output, 'example.png') as example_png:
+            ....:     shell.run_cell('ipython_image = Image("{0}")'.format(example_png))
             sage: shell.run_cell('ipython_image')
             <IPython.core.display.Image object>
             sage: shell.run_cell('get_ipython().display_formatter.format(ipython_image)')
@@ -153,12 +159,19 @@ class SageDisplayFormatter(DisplayFormatter):
               'text/plain': '<IPython.core.display.Image object>'},
             {})
 
-        Test that IPython images still work even in latex output mode::
+        Test that IPython images and widgets still work even in latex output mode::
 
             sage: shell.run_cell('%display latex')   # indirect doctest
             sage: shell.run_cell('set(get_ipython().display_formatter.format(ipython_image)[0].keys())'
             ....:                ' == set(["text/plain", "image/png"])')
             True
+
+            sage: shell.run_cell('import ipywidgets')
+            sage: shell.run_cell('slider = ipywidgets.IntSlider()')
+            sage: shell.run_cell('get_ipython().display_formatter.format(slider)')
+            IntSlider(value=0)
+            ({}, {})
+
             sage: shell.run_cell('%display default')
             sage: shell.quit()
 
@@ -174,14 +187,17 @@ class SageDisplayFormatter(DisplayFormatter):
         """
         sage_format, sage_metadata = self.dm.displayhook(obj)
         assert PLAIN_TEXT in sage_format, 'plain text is always present'
+
         # use Sage rich output for any except those native to IPython, but only
         # if it is not plain and dull
-        if (not isinstance(obj, IPYTHON_NATIVE_TYPES) and
+        if (not isinstance(obj, (IPYTHON_NATIVE_TYPES, Figure)) and
             not set(sage_format.keys()).issubset([PLAIN_TEXT])):
             return sage_format, sage_metadata
+
         if self.ipython_display_formatter(obj):
             # object handled itself, don't proceed
             return {}, {}
+
         # try IPython display formatter
         if exclude is not None:
             exclude = list(exclude) + [PLAIN_TEXT]
@@ -194,6 +210,41 @@ class SageDisplayFormatter(DisplayFormatter):
         if PLAIN_TEXT in sage_metadata:
             ipy_metadata[PLAIN_TEXT] = sage_metadata[PLAIN_TEXT]
         return ipy_format, ipy_metadata
+
+    @staticmethod
+    def _ipython_float_precision_changed(change):
+        """
+        Update the current float precision for the display of matrices in Sage.
+
+        This function is called when the IPython ``%precision`` magic is
+        invoked.
+
+        TESTS::
+
+            sage: from sage.repl.interpreter import get_test_shell
+            sage: shell = get_test_shell()
+            sage: shell.run_cell('%precision 4')
+            '%.4f'
+            sage: shell.run_cell('matrix.options.precision')  # indirect doctest
+            4
+            sage: shell.run_cell('%precision')
+            '%r'
+            sage: shell.run_cell('matrix.options.precision')  # indirect doctest
+            None
+        """
+        from sage.matrix.constructor import options
+        s = change.new
+        if not s:
+            # unset the precision
+            options.precision = None
+        else:
+            try:
+                prec = int(s)
+                if prec >= 0:
+                    options.precision = prec
+                # otherwise ignore the change
+            except ValueError:
+                pass
 
 
 class SagePlainTextFormatter(PlainTextFormatter):

@@ -111,12 +111,12 @@ REFERENCES:
 #
 #                  https://www.gnu.org/licenses/
 # ****************************************************************************
-
+from itertools import repeat
 from copy import copy
 from sage.misc.cachefunc import cached_method
 from sage.structure.element import Element
 from sage.structure.unique_representation import UniqueRepresentation
-from sage.homology.simplicial_complex import SimplicialComplex, Simplex
+from sage.topology.simplicial_complex import SimplicialComplex, Simplex
 from sage.categories.simplicial_complexes import SimplicialComplexes
 from sage.geometry.polyhedron.constructor import Polyhedron
 from sage.geometry.cone import Cone
@@ -845,7 +845,7 @@ class SubwordComplexFacet(Simplex, Element):
 
         # list the pseudolines to be drawn
         pseudolines = [[(shift[0], shift[1] + i), .5] for i in range(last + 1)]
-        pseudolines_type_B = [[] for i in range(last + 1)]
+        pseudolines_type_B = [[] for _ in repeat(None, last + 1)]
         contact_points = []
         root_labels = []
         pseudoline_labels = []
@@ -1529,7 +1529,7 @@ class SubwordComplex(UniqueRepresentation, SimplicialComplex):
             sage: SC.is_root_independent()
             True
         """
-        from sage.matrix.all import matrix
+        from sage.matrix.constructor import matrix
         M = matrix(self.greedy_facet(side="negative").root_configuration())
         return M.rank() == max(M.ncols(), M.nrows())
 
@@ -1689,11 +1689,11 @@ class SubwordComplex(UniqueRepresentation, SimplicialComplex):
             A 0-dimensional polyhedron in QQ^2 defined as the convex hull of 1 vertex
         """
         G = self.group()
-        from sage.rings.all import QQ
+        from sage.rings.rational_field import QQ
         if G.coxeter_matrix().is_crystallographic():
             min_sum = [[QQ(v) for v in F.extended_weight_configuration()[i]] for F in self]
         else:
-            from sage.rings.all import CC
+            from sage.rings.cc import CC
             from warnings import warn
             warn("the polytope is build with rational vertices", RuntimeWarning)
             min_sum = [[QQ(CC(v)) for v in F.extended_weight_configuration()[i]] for F in self]
@@ -1740,11 +1740,11 @@ class SubwordComplex(UniqueRepresentation, SimplicialComplex):
         """
         BV = self.brick_vectors(coefficients=coefficients)
         G = self.group()
-        from sage.rings.all import QQ
+        from sage.rings.rational_field import QQ
         if G.coxeter_matrix().is_crystallographic():
             BV = [[QQ(v) for v in V] for V in BV]
         else:
-            from sage.rings.all import CC
+            from sage.rings.cc import CC
             from warnings import warn
             warn("the polytope is build with rational vertices", RuntimeWarning)
             BV = [[QQ(CC(v).real()) for v in V] for V in BV]

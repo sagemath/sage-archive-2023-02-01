@@ -42,7 +42,7 @@ Characters are themselves group elements, and basic arithmetic on them works::
 """
 import operator
 from sage.structure.element import MultiplicativeGroupElement, parent
-from sage.structure.parent_base import ParentWithBase
+from sage.structure.parent import Parent
 from sage.structure.sequence import Sequence
 from sage.structure.richcmp import richcmp_not_equal, richcmp
 from sage.rings.all import QQ, ZZ, Zmod, NumberField
@@ -54,7 +54,7 @@ from sage.categories.groups import Groups
 from sage.categories.rings import Rings
 from sage.misc.mrange import xmrange
 from sage.misc.verbose import verbose
-from sage.modular.dirichlet     import DirichletGroup
+from sage.modular.dirichlet import DirichletGroup
 
 
 class SmoothCharacterGeneric(MultiplicativeGroupElement):
@@ -337,7 +337,7 @@ class SmoothCharacterGeneric(MultiplicativeGroupElement):
         return self.parent().character(self.level(), [self(sig(x)) for x in self.parent().unit_gens(self.level())])
 
 
-class SmoothCharacterGroupGeneric(ParentWithBase):
+class SmoothCharacterGroupGeneric(Parent):
     r"""
     The group of smooth (i.e. locally constant) characters of a `p`-adic field,
     with values in some ring `R`. This is an abstract base class and should not
@@ -359,10 +359,10 @@ class SmoothCharacterGroupGeneric(ParentWithBase):
         """
         if base_ring not in Rings():
             raise TypeError("base ring (=%s) must be a ring" % base_ring)
-        ParentWithBase.__init__(self, base=base_ring,
-                                category=Groups().Commutative())
+        Parent.__init__(self, base=base_ring,
+                        category=Groups().Commutative())
         if not (p in ZZ and ZZ(p).is_prime()):
-            raise ValueError( "p (=%s) must be a prime integer" % p )
+            raise ValueError("p (=%s) must be a prime integer" % p)
         self._p = ZZ.coerce(p)
 
     def _element_constructor_(self, x):
@@ -828,7 +828,7 @@ class SmoothCharacterGroupGeneric(ParentWithBase):
                 L = tuple(self.discrete_log(c, y))
                 if L not in logs:
                     logs.append(L)
-            T.assertTrue(n2 * len(logs) == n1, "Kernel gens at level %s don't generate everything!" % c)
+            T.assertEqual(n2 * len(logs), n1, "Kernel gens at level %s don't generate everything!" % c)
 
     def compose_with_norm(self, chi):
         r"""
@@ -1704,7 +1704,7 @@ class SmoothCharacterGroupRamifiedQuadratic(SmoothCharacterGroupQuadratic):
             sage: SmoothCharacterGroupRamifiedQuadratic(7, 1, Zmod(6), 'c').number_field()
             Number Field in c with defining polynomial x^2 - 35
         """
-        from sage.rings.all import PolynomialRing
+        from sage.rings.polynomial.polynomial_ring_constructor import PolynomialRing
         R, x = PolynomialRing(QQ, 'x').objgen()
         f = x**2 - self._unif_sqr
         return NumberField(f, self._name)

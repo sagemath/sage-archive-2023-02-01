@@ -635,12 +635,8 @@ class R(ExtraTabCompletion, Interface):
         #Check to see if R has PNG support
         s = self.eval('capabilities("png")')
         t = self.eval('capabilities("aqua")')
-        if "TRUE" not in s+t:
+        if "TRUE" not in s + t:
             raise RuntimeError("R was not compiled with PNG support")
-
-        from sage.server.support import EMBEDDED_MODE
-        if EMBEDDED_MODE:
-            self.setwd('"%s"'%os.path.abspath('.'))
         return RFunction(self, 'png')(*args, **kwds)
 
     def convert_r_list(self, l):
@@ -1310,9 +1306,6 @@ class R(ExtraTabCompletion, Interface):
         """
         # We have to define this to override the plot function defined in the
         # superclass.
-        from sage.server.support import EMBEDDED_MODE
-        if EMBEDDED_MODE:
-            self.setwd('"%s"'%os.path.abspath('.'))
         RFunction(self, 'plot')(*args, **kwds)
         return RFunction(self, 'dev.off')()
 
@@ -1612,7 +1605,7 @@ class RElement(ExtraTabCompletion, InterfaceElement):
         """
         return "FALSE" in repr(self==0)
 
-    __nonzero__ = __bool__
+    
 
     def _comparison(self, other, symbol):
         """

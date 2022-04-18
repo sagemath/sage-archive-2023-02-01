@@ -173,8 +173,6 @@ SAGE_VENV_SPKG_INST = var("SAGE_VENV_SPKG_INST", join(SAGE_VENV, "var", "lib", "
 
 # prefix hierarchy where non-Python packages are installed
 SAGE_LOCAL = var("SAGE_LOCAL", SAGE_VENV)
-SAGE_ETC = var("SAGE_ETC", join(SAGE_LOCAL, "etc"))
-SAGE_INC = var("SAGE_INC", join(SAGE_LOCAL, "include"))
 SAGE_SHARE = var("SAGE_SHARE", join(SAGE_LOCAL, "share"))
 SAGE_DOC = var("SAGE_DOC", join(SAGE_SHARE, "doc", "sage"))
 SAGE_SPKG_INST = var("SAGE_SPKG_INST", join(SAGE_LOCAL, "var", "lib", "sage", "installed"))
@@ -207,22 +205,42 @@ CREMONA_LARGE_DATA_DIR = var("CREMONA_LARGE_DATA_DIR", join(SAGE_SHARE, "cremona
 JMOL_DIR = var("JMOL_DIR", join(SAGE_SHARE, "jmol"))
 MATHJAX_DIR = var("MATHJAX_DIR", join(SAGE_SHARE, "mathjax"))
 MTXLIB = var("MTXLIB", join(SAGE_SHARE, "meataxe"))
-THREEJS_DIR = var("THREEJS_DIR", join(SAGE_SHARE, "threejs"))
-SINGULARPATH = var("SINGULARPATH", join(SAGE_SHARE, "singular"))
+THREEJS_DIR = var("THREEJS_DIR", join(SAGE_SHARE, "threejs-sage"))
 PPLPY_DOCS = var("PPLPY_DOCS", join(SAGE_SHARE, "doc", "pplpy"))
 MAXIMA = var("MAXIMA", "maxima")
 MAXIMA_FAS = var("MAXIMA_FAS")
 KENZO_FAS = var("KENZO_FAS")
 SAGE_NAUTY_BINS_PREFIX = var("SAGE_NAUTY_BINS_PREFIX", "")
+RUBIKS_BINS_PREFIX = var("RUBIKS_BINS_PREFIX", "")
+FOURTITWO_HILBERT = var("FOURTITWO_HILBERT")
+FOURTITWO_MARKOV = var("FOURTITWO_MARKOV")
+FOURTITWO_GRAVER = var("FOURTITWO_GRAVER")
+FOURTITWO_ZSOLVE = var("FOURTITWO_ZSOLVE")
+FOURTITWO_QSOLVE = var("FOURTITWO_QSOLVE")
+FOURTITWO_RAYS = var("FOURTITWO_RAYS")
+FOURTITWO_PPI = var("FOURTITWO_PPI")
+FOURTITWO_CIRCUITS = var("FOURTITWO_CIRCUITS")
+FOURTITWO_GROEBNER = var("FOURTITWO_GROEBNER")
 ARB_LIBRARY = var("ARB_LIBRARY", "arb")
 CBLAS_PC_MODULES = var("CBLAS_PC_MODULES", "cblas:openblas:blas")
 ECL_CONFIG = var("ECL_CONFIG", "ecl-config")
 NTL_INCDIR = var("NTL_INCDIR")
 NTL_LIBDIR = var("NTL_LIBDIR")
+LIE_INFO_DIR = var("LIE_INFO_DIR", join(SAGE_LOCAL, "lib", "LiE"))
+SINGULAR_BIN = var("SINGULAR_BIN") or "Singular"
+
+# The path to libSingular, to be passed to dlopen(). This will
+# typically be set to an absolute path in sage_conf, but the relative
+# fallback path here works on systems where dlopen() searches the
+# system's library locations.
+LIBSINGULAR_PATH = var("LIBSINGULAR_PATH", "libSingular.so")
 
 # OpenMP
 OPENMP_CFLAGS = var("OPENMP_CFLAGS", "")
 OPENMP_CXXFLAGS = var("OPENMP_CXXFLAGS", "")
+
+# Make sure mpmath uses Sage types
+os.environ['MPMATH_SAGE'] = '1'
 
 # misc
 SAGE_BANNER = var("SAGE_BANNER", "")
@@ -251,20 +269,12 @@ def _get_shared_lib_path(*libnames: str) -> Optional[str]:
 
     EXAMPLES::
 
-        sage: import sys
-        sage: from fnmatch import fnmatch
         sage: from sage.env import _get_shared_lib_path
-        sage: lib_filename = _get_shared_lib_path("Singular", "singular-Singular")
-        sage: if sys.platform == 'cygwin':
-        ....:     pattern = "*/cygSingular-*.dll"
-        ....: elif sys.platform == 'darwin':
-        ....:     pattern = "*/libSingular-*.dylib"
-        ....: else:
-        ....:     pattern = "*/lib*Singular-*.so"
-        sage: fnmatch(str(lib_filename), pattern)
+        sage: "gap" in _get_shared_lib_path("gap")
         True
         sage: _get_shared_lib_path("an_absurd_lib") is None
         True
+
     """
 
     for libname in libnames:
@@ -273,10 +283,9 @@ def _get_shared_lib_path(*libnames: str) -> Optional[str]:
         if sys.platform == 'cygwin':
             # Later down we take the first matching DLL found, so search
             # SAGE_LOCAL first so that it takes precedence
-            search_directories = [
-                Path(SAGE_LOCAL) / 'bin',
-                Path(sysconfig.get_config_var('BINDIR')),
-            ]
+            if SAGE_LOCAL:
+                search_directories.append(Path(SAGE_LOCAL) / 'bin')
+            search_directories.append(Path(sysconfig.get_config_var('BINDIR')))
             # Note: The following is not very robust, since if there are multible
             # versions for the same library this just selects one more or less
             # at arbitrary. However, practically speaking, on Cygwin, there
@@ -288,7 +297,8 @@ def _get_shared_lib_path(*libnames: str) -> Optional[str]:
             else:
                 ext = 'so'
 
-            search_directories = [Path(SAGE_LOCAL) / 'lib']
+            if SAGE_LOCAL:
+                search_directories.append(Path(SAGE_LOCAL) / 'lib')
             libdir = sysconfig.get_config_var('LIBDIR')
             if libdir is not None:
                 libdir = Path(libdir)
@@ -309,15 +319,11 @@ def _get_shared_lib_path(*libnames: str) -> Optional[str]:
     # Just return None if no files were found
     return None
 
-# locate singular shared object
-# On Debian it's libsingular-Singular so try that as well
-SINGULAR_SO = var("SINGULAR_SO", _get_shared_lib_path("Singular", "singular-Singular"))
-
 # locate libgap shared object
 GAP_SO = var("GAP_SO", _get_shared_lib_path("gap", ""))
 
 # post process
-if ' ' in DOT_SAGE:
+if DOT_SAGE is not None and ' ' in DOT_SAGE:
     if UNAME[:6] == 'CYGWIN':
         # on windows/cygwin it is typical for the home directory
         # to have a space in it.  Fortunately, users also have
@@ -331,16 +337,6 @@ if ' ' in DOT_SAGE:
         print("is to set the environment variable HOME to a")
         print("directory with no spaces that you have write")
         print("permissions to before you start sage.")
-
-
-CYGWIN_VERSION = None
-if UNAME[:6] == 'CYGWIN':
-    import re
-    _uname = os.uname()
-    if len(_uname) >= 2:
-        m = re.match(r'(\d+\.\d+\.\d+)\(.+\)', _uname[2])
-        if m:
-            CYGWIN_VERSION = tuple(map(int, m.group(1).split('.')))
 
 
 def sage_include_directories(use_sources=False):
@@ -363,8 +359,9 @@ def sage_include_directories(use_sources=False):
 
         sage: import sage.env
         sage: sage.env.sage_include_directories()
-        ['.../include/python...',
-        '.../python.../numpy/core/include']
+        ['...',
+         '.../numpy/core/include',
+         '.../include/python...']
 
     To check that C/C++ files are correctly found, we verify that we can
     always find the include file ``sage/cpython/cython_metaclass.h``,
@@ -378,14 +375,18 @@ def sage_include_directories(use_sources=False):
         sage: any(os.path.isfile(os.path.join(d, file)) for d in dirs)
         True
     """
-    import numpy
     import distutils.sysconfig
 
     TOP = SAGE_SRC if use_sources else SAGE_LIB
 
-    return [TOP,
-            distutils.sysconfig.get_python_inc(),
-            numpy.get_include()]
+    dirs = [TOP,
+            distutils.sysconfig.get_python_inc()]
+    try:
+        import numpy
+        dirs.insert(1, numpy.get_include())
+    except ModuleNotFoundError:
+        pass
+    return dirs
 
 def get_cblas_pc_module_name() -> str:
     """
@@ -395,18 +396,27 @@ def get_cblas_pc_module_name() -> str:
     cblas_pc_modules = CBLAS_PC_MODULES.split(':')
     return next((blas_lib for blas_lib in cblas_pc_modules if pkgconfig.exists(blas_lib)))
 
-def cython_aliases(required_modules=('fflas-ffpack', 'givaro', 'gsl', 'linbox', 'Singular',
-                                     'libpng', 'gdlib', 'm4ri', 'zlib', 'cblas'),
-                   optional_modules=('lapack',)):
+
+default_required_modules = ('fflas-ffpack', 'givaro', 'gsl', 'linbox', 'Singular',
+                            'libpng', 'gdlib', 'm4ri', 'zlib', 'cblas')
+
+
+default_optional_modules = ('lapack',)
+
+
+def cython_aliases(required_modules=None,
+                   optional_modules=None):
     """
     Return the aliases for compiling Cython code. These aliases are
     macros which can occur in ``# distutils`` headers.
 
     INPUT:
 
-    - ``required_modules`` -- iterable of ``str`` values.
+    - ``required_modules`` -- (default: taken from ``default_required_modules``)
+      iterable of ``str`` values.
 
-    - ``optional_modules`` -- iterable of ``str`` values.
+    - ``optional_modules`` -- (default: taken from ``default_optional_modules``)
+      iterable of ``str`` values.
 
     EXAMPLES::
 
@@ -448,6 +458,12 @@ def cython_aliases(required_modules=('fflas-ffpack', 'givaro', 'gsl', 'linbox', 
     """
     import pkgconfig
     import itertools
+
+    if required_modules is None:
+        required_modules = default_required_modules
+
+    if optional_modules is None:
+        optional_modules = default_optional_modules
 
     aliases = {}
 

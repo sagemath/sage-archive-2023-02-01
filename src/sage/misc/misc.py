@@ -43,10 +43,9 @@ import time
 import resource
 import pdb
 import warnings
-import sage.misc.prandom as random
-from .lazy_string import lazy_string
-import sage.server.support
 
+from .lazy_string import lazy_string
+from sage.env import DOT_SAGE, HOSTNAME
 from sage.misc.lazy_import import lazy_import
 
 lazy_import("sage.misc.call", ["AttrCallObject", "attrcall", "call_method"],
@@ -58,8 +57,6 @@ lazy_import("sage.misc.verbose", ["verbose", "set_verbose", "set_verbose_files",
 
 lazy_import("sage.misc.repr", ["coeff_repr", "repr_lincomb"],
             deprecation=29892)
-
-from sage.env import DOT_SAGE, HOSTNAME
 
 LOCAL_IDENTIFIER = '%s.%s' % (HOSTNAME, os.getpid())
 
@@ -75,10 +72,16 @@ def sage_makedirs(dirname, mode=0o777):
     if the directory already exists (unlike ``os.makedirs()``).
     Raise other errors (like permission errors) normally.
 
+    This function is deprecated; use ``os.makedirs(..., exist_ok=True)``
+    instead.
+
     EXAMPLES::
 
         sage: from sage.misc.misc import sage_makedirs
         sage: sage_makedirs(DOT_SAGE) # no output
+        doctest:warning...
+        DeprecationWarning: sage_makedirs is deprecated; use os.makedirs(..., exist_ok=True) instead
+        See https://trac.sagemath.org/32987 for details.
 
     The following fails because we are trying to create a directory in
     place of an ordinary file::
@@ -87,8 +90,11 @@ def sage_makedirs(dirname, mode=0o777):
         sage: sage_makedirs(filename)
         Traceback (most recent call last):
         ...
-        OSError: [Errno ...] File exists: ...
+        FileExistsError: [Errno ...] File exists: ...
     """
+    from sage.misc.superseded import deprecation
+    deprecation(32987,
+                'sage_makedirs is deprecated; use os.makedirs(..., exist_ok=True) instead')
     try:
         os.makedirs(dirname)
     except OSError:
@@ -96,12 +102,12 @@ def sage_makedirs(dirname, mode=0o777):
             raise
 
 
-# We create the DOT_SAGE directory (if it doesn't exist yet; note in particular
+# We create the DOT_SAGE directory (if it does not exist yet; note in particular
 # that it may already have been created by the bin/sage script) with
 # restrictive permissions, since otherwise possibly just anybody can easily see
 # every command you type.
 
-sage_makedirs(DOT_SAGE, mode=0o700)
+os.makedirs(DOT_SAGE, mode=0o700, exist_ok=True)
 
 
 def try_read(obj, splitlines=False):
@@ -153,13 +159,13 @@ def try_read(obj, splitlines=False):
 
     I/O buffers::
 
-        sage: buf = io.StringIO(u'a\nb\nc')
+        sage: buf = io.StringIO('a\nb\nc')
         sage: print(try_read(buf))
         a
         b
         c
         sage: _ = buf.seek(0); try_read(buf, splitlines=True)
-        [u'a\n', u'b\n', u'c']
+        ['a\n', 'b\n', 'c']
         sage: buf = io.BytesIO(b'a\nb\nc')
         sage: try_read(buf) == b'a\nb\nc'
         True
@@ -218,7 +224,7 @@ def SAGE_TMP():
         l'.../temp/...'
     """
     d = os.path.join(DOT_SAGE, 'temp', HOSTNAME, str(os.getpid()))
-    sage_makedirs(d)
+    os.makedirs(d, exist_ok=True)
     return d
 
 
@@ -235,7 +241,7 @@ def ECL_TMP():
         l'.../temp/.../ecl'
     """
     d = os.path.join(str(SAGE_TMP), 'ecl')
-    sage_makedirs(d)
+    os.makedirs(d, exist_ok=True)
     return d
 
 
@@ -261,16 +267,16 @@ def SAGE_TMP_INTERFACE():
         l'.../temp/.../interface'
     """
     d = os.path.join(str(SAGE_TMP), 'interface')
-    sage_makedirs(d)
+    os.makedirs(d, exist_ok=True)
     return d
 
 
 SAGE_DB = os.path.join(DOT_SAGE, 'db')
-sage_makedirs(SAGE_DB)
+os.makedirs(SAGE_DB, exist_ok=True)
 
 try:
     # Create the matplotlib config directory.
-    sage_makedirs(os.environ["MPLCONFIGDIR"])
+    os.makedirs(os.environ["MPLCONFIGDIR"], exist_ok=True)
 except KeyError:
     pass
 
@@ -343,9 +349,10 @@ def cputime(t=0, subprocesses=False):
         u, s = resource.getrusage(resource.RUSAGE_SELF)[:2]
         return u + s - t
     else:
+        from sage.interfaces.quit import expect_objects
         if t == 0:
             ret = GlobalCputime(cputime())
-            for s in sage.interfaces.quit.expect_objects:
+            for s in expect_objects:
                 S = s()
                 if S and S.is_running():
                     try:
@@ -359,7 +366,7 @@ def cputime(t=0, subprocesses=False):
             if not isinstance(t, GlobalCputime):
                 t = GlobalCputime(t)
             ret = GlobalCputime(cputime() - t.local)
-            for s in sage.interfaces.quit.expect_objects:
+            for s in expect_objects:
                 S = s()
                 if S and S.is_running():
                     try:
@@ -519,6 +526,8 @@ def union(x, y=None):
     EXAMPLES::
 
         sage: answer = union([1,2,3,4], [5,6]); answer
+        doctest:...: DeprecationWarning: sage.misc.misc.union is deprecated...
+        See https://trac.sagemath.org/32096 for details.
         [1, 2, 3, 4, 5, 6]
         sage: union([1,2,3,4,5,6], [5,6]) == answer
         True
@@ -527,6 +536,8 @@ def union(x, y=None):
         sage: union((1,2,3,4,5,6), set([5,6])) == answer
         True
     """
+    from sage.misc.superseded import deprecation
+    deprecation(32096, "sage.misc.misc.union is deprecated, use 'list(set(x).union(y)' or a more suitable replacement")
     if y is None:
         return list(set(x))
     return list(set(x).union(y))
@@ -756,7 +767,7 @@ def nest(f, n, x):
         x
 
     """
-    from sage.rings.all import Integer
+    from sage.rings.integer import Integer
     n = Integer(n)
 
     if n < 0:
@@ -800,6 +811,8 @@ class BackslashOperator:
         EXAMPLES::
 
             sage: A = random_matrix(ZZ, 4)
+            sage: while A.rank() != 4:
+            ....:     A = random_matrix(ZZ, 4)
             sage: B = random_matrix(ZZ, 4)
             sage: temp = A * BackslashOperator()
             sage: temp.left is A
@@ -833,7 +846,7 @@ class BackslashOperator:
 #################################################################
 # is_iterator function
 #################################################################
-def is_iterator(it):
+def is_iterator(it) -> bool:
     """
     Tests if it is an iterator.
 
@@ -847,13 +860,7 @@ def is_iterator(it):
         sage: is_iterator(it)
         True
 
-        sage: class wrong():  # py2
-        ....:    def __init__(self): self.n = 5
-        ....:    def next(self):
-        ....:        self.n -= 1
-        ....:        if self.n == 0: raise StopIteration
-        ....:        return self.n
-        sage: class wrong():  # py3
+        sage: class wrong():
         ....:    def __init__(self): self.n = 5
         ....:    def __next__(self):
         ....:        self.n -= 1
@@ -862,11 +869,7 @@ def is_iterator(it):
         sage: x = wrong()
         sage: is_iterator(x)
         False
-        sage: list(x)  # py2
-        Traceback (most recent call last):
-        ...
-        TypeError: iteration over non-sequence
-        sage: list(x)  # py3
+        sage: list(x)
         Traceback (most recent call last):
         ...
         TypeError: 'wrong' object is not iterable
@@ -925,7 +928,9 @@ def random_sublist(X, s):
         sage: is_sublist(sublist, S)
         True
     """
+    import sage.misc.prandom as random
     return [a for a in X if random.random() <= s]
+
 
 def is_sublist(X, Y):
     """
@@ -951,6 +956,7 @@ def is_sublist(X, Y):
         if y == X[X_i]:
             X_i += 1
     return X_i == len(X)
+
 
 def some_tuples(elements, repeat, bound, max_samples=None):
     r"""
@@ -1029,6 +1035,7 @@ def _some_tuples_sampling(elements, repeat, max_samples, n):
         True
     """
     from sage.rings.integer import Integer
+    import sage.misc.prandom as random
     N = n if repeat is None else n**repeat
     # We sample on range(N) and create tuples manually since we don't want to create the list of all possible tuples in memory
     for a in random.sample(range(N), max_samples):
@@ -1266,19 +1273,6 @@ def pad_zeros(s, size=3):
         '0000000389'
     """
     return "0" * (size - len(str(s))) + str(s)
-
-
-def embedded():
-    """
-    Return ``True`` if this copy of Sage is running embedded in the Sage
-    notebook.
-
-    EXAMPLES::
-
-        sage: sage.misc.misc.embedded()    # output True if in the notebook
-        False
-    """
-    return sage.server.support.EMBEDDED_MODE
 
 
 def is_in_string(line, pos):

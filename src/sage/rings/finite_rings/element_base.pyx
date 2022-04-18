@@ -3,10 +3,8 @@ Base class for finite field elements
 
 AUTHORS:
 
-- David Roe (2010-1-14): factored out of sage.structure.element
-
-- Sebastian Oehms (2018-7-19): added :meth:`conjugate` (see :trac:`26761`)
-
+- David Roe (2010-01-14): factored out of sage.structure.element
+- Sebastian Oehms (2018-07-19): added :meth:`conjugate` (see :trac:`26761`)
 """
 
 # ****************************************************************************
@@ -54,7 +52,7 @@ cdef class FiniteRingElement(CommutativeRingElement):
             sage: a = Zmod(17)(13)
             sage: a._nth_root_common(4, True, "Johnston", False)
             [3, 5, 14, 12]
-            sage: a._nth_root_common(4, True, "Johnston", cunningham = True) # optional - cunningham_tables
+            sage: a._nth_root_common(4, True, "Johnston", cunningham=True)  # optional - cunningham_tables
             [3, 5, 14, 12]
         """
         K = self.parent()
@@ -341,7 +339,7 @@ cdef class FinitePolyExtElement(FiniteRingElement):
             sage: t_element
             3*b^2 + 2*b + 4
             sage: type(t_element)
-            <type 'cypari2.gen.Gen'>
+            <class 'cypari2.gen.Gen'>
         """
         if var is None:
             var = self.parent().variable_name()
@@ -725,11 +723,9 @@ cdef class FinitePolyExtElement(FiniteRingElement):
             sage: k(1).nth_root(0,all=True)
             [a, a + 1, 1]
 
-        ALGORITHMS:
+        ALGORITHM:
 
-        - The default is currently an algorithm described in the following paper:
-
-        Johnston, Anna M. A generalized qth root algorithm. Proceedings of the tenth annual ACM-SIAM symposium on Discrete algorithms. Baltimore, 1999: pp 929-930.
+        The default is currently an algorithm described in [Joh1999]_.
 
         AUTHOR:
 

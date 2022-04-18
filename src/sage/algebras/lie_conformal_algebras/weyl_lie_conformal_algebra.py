@@ -132,7 +132,7 @@ class WeylLieConformalAlgebra(LieConformalAlgebraWithStructureCoefficients):
         from sage.matrix.matrix_space import MatrixSpace
         if ngens:
             try:
-                from sage.rings.all import ZZ
+                from sage.rings.integer_ring import ZZ
                 assert ngens in ZZ and ngens % 2 == 0
             except AssertionError:
                 raise ValueError("ngens needs to be an even positive "+
@@ -152,16 +152,16 @@ class WeylLieConformalAlgebra(LieConformalAlgebraWithStructureCoefficients):
                                  .format(ngens,gram_matrix))
         elif (gram_matrix is None):
             if ngens is None:
-                ngens = 2;
-            A = identity_matrix(R,ngens/2)
+                ngens = 2
+            A = identity_matrix(R, ngens // 2)
             from sage.matrix.special import block_matrix
             gram_matrix = block_matrix([[R.zero(),A],[-A,R.zero()]])
 
         latex_names = None
         if (names is None) and (index_set is None):
             names = 'alpha'
-            latex_names = tuple(r'\alpha_{%d}' % i \
-                                      for i in range (ngens)) + ('K',)
+            latex_names = tuple(r'\alpha_{%d}' % i
+                                for i in range(ngens)) + ('K',)
         names,index_set = standardize_names_index_set(names=names,
                                                       index_set=index_set,
                                                       ngens=ngens)
@@ -202,5 +202,3 @@ class WeylLieConformalAlgebra(LieConformalAlgebraWithStructureCoefficients):
             [ 0 -1| 0  0]
         """
         return self._gram_matrix
-
-

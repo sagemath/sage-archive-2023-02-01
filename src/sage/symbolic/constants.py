@@ -46,8 +46,8 @@ type the following::
     3.14159265358979323846264338328
     sage: mathematica(pi)             # optional - mathematica
     Pi
-    sage: maple(pi)                   # optional - maple
-    Pi
+    sage: pi._maple_init_()
+    'Pi'
     sage: octave(pi)                  # optional - octave
     3.14159
 
@@ -227,7 +227,7 @@ constants_name_table[repr(infinity)] = infinity
 constants_name_table[repr(unsigned_infinity)] = unsigned_infinity
 constants_name_table[repr(minus_infinity)] = minus_infinity
 
-from sage.libs.pynac.pynac import register_symbol, I
+from sage.symbolic.expression import register_symbol, I
 register_symbol(infinity, {'maxima':'inf'})
 register_symbol(minus_infinity, {'maxima':'minf'})
 register_symbol(unsigned_infinity, {'maxima':'infinity'})
@@ -287,7 +287,7 @@ class Constant(object):
             setattr(self, "_%s_"%system, partial(self._generic_interface, value))
             setattr(self, "_%s_init_"%system, partial(self._generic_interface_init, value))
 
-        from sage.libs.pynac.constant import PynacConstant
+        from .expression import PynacConstant
         self._pynac = PynacConstant(self._name, self._latex, self._domain)
         self._serial = self._pynac.serial()
         constants_table[self._serial] = self
@@ -556,8 +556,9 @@ class Pi(Constant):
             sage: mathml(pi)
             <mi>&pi;</mi>
         """
-        conversions = dict(axiom='%pi', fricas='%pi', maxima='%pi', giac='pi', gp='Pi', kash='PI',
-                           mathematica='Pi', matlab='pi', maple='pi',
+        conversions = dict(axiom='%pi', fricas='%pi', maxima='%pi', giac='pi',
+                           gp='Pi', kash='PI',
+                           mathematica='Pi', matlab='pi', maple='Pi',
                            octave='pi', pari='Pi', pynac='Pi')
         Constant.__init__(self, name, conversions=conversions,
                           latex=r"\pi", mathml="<mi>&pi;</mi>",
@@ -680,8 +681,8 @@ TESTS::
 
 # The base of the natural logarithm, e, is not a constant in GiNaC/Sage. It is
 # represented by exp(1). A dummy class to make this work with arithmetic and
-# coercion is implemented in the module sage.symbolic.constants_c for speed.
-from sage.symbolic.constants_c import E
+# coercion is implemented in the module sage.symbolic.expression for speed.
+from sage.symbolic.expression import E
 e = E()
 
 # Allow for backtranslation to this symbol from Mathematica (#29833).
@@ -717,7 +718,7 @@ class NotANumber(Constant):
             sage: NaN._mpfr_(RealField(53))
             NaN
             sage: type(_)
-            <type 'sage.rings.real_mpfr.RealNumber'>
+            <class 'sage.rings.real_mpfr.RealNumber'>
         """
         return R('NaN') #??? nan in mpfr: void mpfr_set_nan (mpfr_t x)
 
@@ -787,7 +788,7 @@ class GoldenRatio(Constant):
             sage: golden_ratio.minpoly()
             x^2 - x - 1
         """
-        from sage.rings.all import QQ
+        from sage.rings.rational_field import QQ
         x = QQ['x'].gen(0)
         return x**2 - x - 1
 

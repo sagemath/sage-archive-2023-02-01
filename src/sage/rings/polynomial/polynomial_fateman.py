@@ -88,9 +88,9 @@ def _mul_fateman_mul(f,g):
     n_f = z_poly_f(1<<padding)
     n_g = z_poly_g(1<<padding)
 
-    if div == 1: return _mul_fateman_to_poly(n_f*n_g,padding)
+    if div == 1:
+        return _mul_fateman_to_poly(n_f*n_g,padding)
     #return to_poly(n_f*n_g,padding)
     else:
         l=_mul_fateman_to_poly(n_f*n_g,padding)
         return [QQ(i*div) for i in l]
-

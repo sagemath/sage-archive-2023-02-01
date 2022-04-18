@@ -63,28 +63,30 @@ REFERENCES:
 .. [BLL] \F. Bergeron, G. Labelle, and P. Leroux.
    "Combinatorial species and tree-like structures".
    Encyclopedia of Mathematics and its Applications, vol. 67, Cambridge Univ. Press. 1998.
-.. [BLL-Intro] Francois Bergeron, Gilbert Labelle, and Pierre Leroux.
+.. [BLL-Intro] François Bergeron, Gilbert Labelle, and Pierre Leroux.
    "Introduction to the Theory of Species of Structures", March 14, 2008.
 """
 
-#*****************************************************************************
+# ****************************************************************************
 #       Copyright (C) 2008 Mike Hansen <mhansen@gmail.com>
 #
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
 # the Free Software Foundation, either version 2 of the License, or
 # (at your option) any later version.
-#                  http://www.gnu.org/licenses/
-#*****************************************************************************
+#                  https://www.gnu.org/licenses/
+# ****************************************************************************
 
 from .series import LazyPowerSeriesRing, LazyPowerSeries
 from .stream import Stream, _integers_from
-from sage.rings.all import Integer, RationalField
+from sage.rings.integer import Integer
+from sage.rings.rational_field import RationalField
 from sage.arith.all import moebius, gcd, lcm, divisors
 from sage.combinat.partition import Partition, Partitions
 from functools import partial
 from sage.combinat.sf.sf import SymmetricFunctions
 from sage.misc.cachefunc import cached_function
+from sage.arith.misc import factorial
 
 
 @cached_function
@@ -218,7 +220,7 @@ class ExponentialGeneratingSeries(LazyPowerSeries):
             sage: [f.count(i) for i in range(7)]
             [1, 1, 2, 6, 24, 120, 720]
         """
-        return factorial_stream[n] * self.coefficient(n)
+        return factorial(n) * self.coefficient(n)
 
     def counts(self, n):
         """
@@ -280,8 +282,9 @@ class ExponentialGeneratingSeries(LazyPowerSeries):
         """
         n = 0
         while True:
-            yield self.count(y.count(n))/factorial_stream[n]
+            yield self.count(y.count(n)) / factorial(n)
             n += 1
+
 
 def factorial_gen():
     """
@@ -302,9 +305,6 @@ def factorial_gen():
         z *= n
         yield z
         n += 1
-
-factorial_stream = Stream(factorial_gen())
-
 
 
 @cached_function
@@ -383,7 +383,7 @@ class CycleIndexSeriesRing_class(LazyPowerSeriesRing):
             sage: CycleIndexSeriesRing(QQ)
             Cycle Index Series Ring over Symmetric Functions over Rational Field in the powersum basis
         """
-        return "Cycle Index Series Ring over %s"%self.base_ring()
+        return "Cycle Index Series Ring over %s" % self.base_ring()
 
 
 class CycleIndexSeries(LazyPowerSeries):
@@ -872,8 +872,7 @@ class CycleIndexSeries(LazyPowerSeries):
             15
         """
         p = self.coefficient(n)
-        return factorial_stream[n]*p.coefficient([1]*n)
-
+        return factorial(n) * p.coefficient([1] * n)
 
     def _compose_gen(self, y, ao):
         """

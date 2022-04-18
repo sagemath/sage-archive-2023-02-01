@@ -228,7 +228,7 @@ class RegularCrystals(Category_singleton):
 
             OUTPUT:
 
-            - the Demazure subcrystal 
+            - the Demazure subcrystal
 
             EXAMPLES::
 
@@ -446,7 +446,7 @@ class RegularCrystals(Category_singleton):
                         y = x.e(i).e(im).f(i).f(im)
                         if checker(y):
                             edges.append([x, y, i])
-            from sage.graphs.all import DiGraph
+            from sage.graphs.digraph import DiGraph
             G = DiGraph([X, edges], format="vertices_and_edges", immutable=True)
             from sage.graphs.dot2tex_utils import have_dot2tex
             if have_dot2tex():
@@ -604,7 +604,8 @@ class RegularCrystals(Category_singleton):
                 sage: s.stembridgeDelta_depth(1,2)
                 -1
             """
-            if self.e(i) is None: return 0
+            if self.e(i) is None:
+                return 0
             return -self.e(i).epsilon(j) + self.epsilon(j)
 
         def stembridgeDelta_rise(self,i,j):
@@ -626,7 +627,8 @@ class RegularCrystals(Category_singleton):
                 sage: s.stembridgeDelta_rise(1,2)
                 0
             """
-            if self.e(i) is None: return 0
+            if self.e(i) is None:
+                return 0
             return self.e(i).phi(j) - self.phi(j)
 
         def stembridgeDel_depth(self,i,j):
@@ -648,7 +650,8 @@ class RegularCrystals(Category_singleton):
                 sage: s.stembridgeDel_depth(1,2)
                 -1
             """
-            if self.f(i) is None: return 0
+            if self.f(i) is None:
+                return 0
             return -self.epsilon(j) + self.f(i).epsilon(j)
 
         def stembridgeDel_rise(self,i,j):
@@ -670,7 +673,8 @@ class RegularCrystals(Category_singleton):
                 sage: s.stembridgeDel_rise(1,2)
                 0
             """
-            if self.f(i) is None: return 0
+            if self.f(i) is None:
+                return 0
             return self.phi(j)-self.f(i).phi(j)
 
         def stembridgeTriple(self,i,j):
@@ -705,7 +709,8 @@ class RegularCrystals(Category_singleton):
                 sage: u.stembridgeTriple(1,2)
                 (-2, -1, -1)
             """
-            if self.e(i) is None: return None
+            if self.e(i) is None:
+                return None
             b=self.stembridgeDelta_depth(i,j)
             c=self.stembridgeDelta_rise(i,j)
             dd=self.cartan_type().dynkin_diagram()
@@ -744,7 +749,8 @@ class RegularCrystals(Category_singleton):
             """
             tester = self._tester(**options)
             goodness=True
-            if index_set is None: index_set=self.index_set()
+            if index_set is None:
+                index_set=self.index_set()
 
             from sage.combinat.subset import Subsets
 
@@ -888,4 +894,3 @@ class RegularCrystals(Category_singleton):
                 [Category of regular crystals]
             """
             return [self.base_category()]
-

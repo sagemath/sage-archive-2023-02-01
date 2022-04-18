@@ -20,8 +20,15 @@ AUTHORS:
 #  the License, or (at your option) any later version.
 #                  http://www.gnu.org/licenses/
 #******************************************************************************
+from __future__ import annotations
+
+from typing import TYPE_CHECKING
 
 from sage.structure.sage_object import SageObject
+
+if TYPE_CHECKING:
+    from sage.misc.latex import LatexExpr
+
 
 def is_atomic(expr, sep=['+', '-']):
     r"""
@@ -75,9 +82,11 @@ def is_atomic(expr, sep=['+', '-']):
     level = 0
     for n, c in enumerate(expr):
         if c == '(':
-            level += 1; continue
+            level += 1
+            continue
         elif c == ')':
-            level -= 1; continue
+            level -= 1
+            continue
         if any(expr[n:n + len(s)] == s for s in sep):
             if level == 0 and n > 0:
                 return False
@@ -109,17 +118,17 @@ def is_atomic_wedge_txt(expression):
         sage: from sage.tensor.modules.format_utilities import is_atomic_wedge_txt
         sage: is_atomic_wedge_txt("a")
         True
-        sage: is_atomic_wedge_txt(r"a/\b")
+        sage: is_atomic_wedge_txt(r"a∧b")
         False
-        sage: is_atomic_wedge_txt(r"(a/\b)")
+        sage: is_atomic_wedge_txt(r"(a∧b)")
         True
-        sage: is_atomic_wedge_txt(r"(a/\b)/\c")
+        sage: is_atomic_wedge_txt(r"(a∧b)∧c")
         False
-        sage: is_atomic_wedge_txt(r"(a/\b/\c)")
+        sage: is_atomic_wedge_txt(r"(a∧b∧c)")
         True
 
     """
-    return is_atomic(expression, sep=['/\\'])
+    return is_atomic(expression, sep=['∧'])
 
 
 def is_atomic_wedge_latex(expression):
@@ -293,7 +302,7 @@ class FormattedExpansion(SageObject):
         \frac{x}{2}
 
     """
-    def  __init__(self, txt=None, latex=None):
+    def __init__(self, txt=None, latex=None):
         r"""
         TESTS::
 
@@ -320,7 +329,7 @@ class FormattedExpansion(SageObject):
         """
         return self._txt
 
-    def _latex_(self):
+    def _latex_(self) -> LatexExpr:
         r"""
         Return a LaTeX representation of ``self``.
 

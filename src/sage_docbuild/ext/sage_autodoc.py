@@ -34,13 +34,12 @@ import sys
 from docutils.statemachine import ViewList
 
 import sphinx
-from sphinx.ext.autodoc import mock
+from sphinx.ext.autodoc import mock, ObjectMember
 from sphinx.ext.autodoc.importer import import_object, get_object_members, get_module_members
 from sphinx.locale import _, __
 from sphinx.pycode import ModuleAnalyzer
 from sphinx.errors import PycodeError
 from sphinx.util import logging
-from sphinx.util import rpartition, force_decode
 from sphinx.util.docstrings import prepare_docstring
 from sphinx.util.inspect import isdescriptor, \
     safe_getattr, object_description, is_builtin_class_method, \
@@ -48,7 +47,8 @@ from sphinx.util.inspect import isdescriptor, \
 
 from sage.misc.sageinspect import (sage_getdoc_original,
                                    sage_getargspec, isclassinstance,
-                                   sage_formatargspec)
+                                   sage_formatargspec,
+                                   is_function_or_cython_function)
 from sage.misc.lazy_import import LazyImport
 
 # This is used to filter objects of classes that inherit from
@@ -488,10 +488,7 @@ class Documenter(object):
         # make sure we have Unicode docstrings, then sanitize and split
         # into lines
         if isinstance(docstring, str):
-            return [prepare_docstring(docstring, ignore)]
-        elif isinstance(docstring, str):  # this will not trigger on Py3
-            return [prepare_docstring(force_decode(docstring, encoding),
-                                      ignore)]
+            return [prepare_docstring(docstring)]
         # ... else it is something strange, let's ignore it
         return []
 
@@ -536,7 +533,7 @@ class Documenter(object):
 
         # add content from docstrings
         if not no_docstring:
-            encoding = self.analyzer and self.analyzer._encoding
+            encoding = self.analyzer
             docstrings = self.get_doc(encoding)
             if not docstrings:
                 # append at least a dummy docstring, so that the event
@@ -876,13 +873,42 @@ class ModuleDocumenter(Documenter):
         if self.options.deprecated:
             self.add_line(u'   :deprecated:', sourcename)
 
+    def get_module_members(self):
+        """Get members of target module."""
+        if self.analyzer:
+            attr_docs = self.analyzer.attr_docs
+        else:
+            attr_docs = {}
+
+        members = {}  # type: Dict[str, ObjectMember]
+        for name in dir(self.object):
+            try:
+                value = safe_getattr(self.object, name, None)
+                docstring = attr_docs.get(('', name), [])
+                members[name] = ObjectMember(name, value, docstring="\n".join(docstring))
+            except AttributeError:
+                continue
+
+        # annotation only member (ex. attr: int)
+        try:
+            for name in inspect.getannotations(self.object):
+                if name not in members:
+                    docstring = attr_docs.get(('', name), [])
+                    members[name] = ObjectMember(name, INSTANCEATTR,
+                                                 docstring="\n".join(docstring))
+        except AttributeError:
+            pass
+
+        return members
+
     def get_object_members(self, want_all):
         # type: (bool) -> Tuple[bool, List[Tuple[unicode, object]]]
+        members = self.get_module_members()
         if want_all:
             if not hasattr(self.object, '__all__'):
                 # for implicit module members, check __module__ to avoid
                 # documenting imported objects
-                return True, get_module_members(self.object)
+                return True, list(members.values())
             else:
                 memberlist = self.object.__all__
                 # Sometimes __all__ is broken...
@@ -893,14 +919,14 @@ class ModuleDocumenter(Documenter):
                         '(in module %s) -- ignoring __all__' %
                         (memberlist, self.fullname))
                     # fall back to all members
-                    return True, get_module_members(self.object)
+                    return True, list(members.values())
         else:
             memberlist = self.options.members or []
         ret = []
         for mname in memberlist:
-            try:
-                ret.append((mname, safe_getattr(self.object, mname)))
-            except AttributeError:
+            if mname in members:
+                ret.append(members[mname])
+            else:
                 logger.warning(
                     'missing attribute mentioned in :members: or __all__: '
                     'module %s, attribute %s' %
@@ -951,7 +977,7 @@ class ClassLevelDocumenter(Documenter):
                 # ... if still None, there's no way to know
                 if mod_cls is None:
                     return None, []
-            modname, cls = rpartition(mod_cls, '.')  # type: ignore
+            modname, _, cls = mod_cls.rpartition('.')  # type: ignore
             parents = [cls]
             # if the module name is still missing, get it like above
             if not modname:
@@ -1051,7 +1077,7 @@ class FunctionDocumenter(DocstringSignatureMixin, ModuleLevelDocumenter):
         # whose doc string coincides with that of f and is thus different from
         # that of the class CachedFunction. In that situation, we want that f is documented.
         # This is part of trac #9976.
-        return (inspect.isfunction(member) or inspect.isbuiltin(member)
+        return (is_function_or_cython_function(member) or inspect.isbuiltin(member)
                 or (isclassinstance(member)
                     and sage_getdoc_original(member) != sage_getdoc_original(member.__class__)))
 
@@ -1148,8 +1174,7 @@ class ClassDocumenter(DocstringSignatureMixin, ModuleLevelDocumenter):
         # by using the metaclass NestedMetaclass, we change the attribute
         # __name__ of the nested class. For example, in
         #
-        #     class A:
-        #        __metaclass__ = NestedClassMetaclass
+        #     class A(metaclass=NestedMetaclass):
         #        class B(object):
         #            pass
         #
@@ -1198,7 +1223,7 @@ class ClassDocumenter(DocstringSignatureMixin, ModuleLevelDocumenter):
         # __init__ written in C?
         if initmeth is None or \
                 is_builtin_class_method(self.object, '__init__') or \
-                not(inspect.ismethod(initmeth) or inspect.isfunction(initmeth)):
+                not(inspect.ismethod(initmeth) or is_function_or_cython_function(initmeth)):
             return None
         try:
             argspec = sage_getargspec(initmeth)
@@ -1275,10 +1300,7 @@ class ClassDocumenter(DocstringSignatureMixin, ModuleLevelDocumenter):
         doc = []
         for docstring in docstrings:
             if isinstance(docstring, str):
-                doc.append(prepare_docstring(docstring, ignore))
-            elif isinstance(docstring, str):  # this will not trigger on Py3
-                doc.append(prepare_docstring(force_decode(docstring, encoding),
-                                             ignore))
+                doc.append(prepare_docstring(docstring))
         return doc
 
     def add_content(self, more_content, no_docstring=False):
@@ -1464,7 +1486,7 @@ class AttributeDocumenter(DocstringStripSignatureMixin, ClassLevelDocumenter):  
 
     @staticmethod
     def is_function_or_method(obj):
-        return inspect.isfunction(obj) or inspect.isbuiltin(obj) or inspect.ismethod(obj)
+        return is_function_or_cython_function(obj) or inspect.isbuiltin(obj) or inspect.ismethod(obj)
 
     @classmethod
     def can_document_member(cls, member, membername, isattr, parent):

@@ -37,16 +37,18 @@ import time
 from itertools import islice
 from sage.structure.sage_object import SageObject
 from copy import copy
-from sage.rings.all import QQ, infinity
+from sage.rings.rational_field import QQ
+from sage.rings.infinity import infinity
 from sage.rings.integer_ring import ZZ
-from sage.rings.all import FractionField, PolynomialRing
+from sage.rings.fraction_field import FractionField
+from sage.rings.polynomial.polynomial_ring_constructor import PolynomialRing
 from sage.rings.fraction_field_element import FractionFieldElement
 from sage.sets.all import Set
 from sage.graphs.digraph import DiGraph
 from sage.combinat.cluster_algebra_quiver.quiver_mutation_type import QuiverMutationType_Irreducible, QuiverMutationType_Reducible
 from sage.combinat.cluster_algebra_quiver.mutation_type import is_mutation_finite
 from random import randint
-from sage.misc.all import prod
+from sage.misc.misc_c import prod
 from sage.matrix.all import identity_matrix
 from sage.matrix.constructor import matrix
 from sage.combinat.cluster_algebra_quiver.quiver import ClusterQuiver
@@ -965,9 +967,9 @@ class ClusterSeed(SageObject):
         if self._is_principal:
             name += ' with principal coefficients'
         elif self._m == 1:
-            name += ' with %s frozen variable'%self._m
+            name += ' with %s frozen variable' % self._m
         elif self._m > 1:
-            name += ' with %s frozen variables'%self._m
+            name += ' with %s frozen variables' % self._m
         return name
 
     def plot(self, circular=False, mark=None, save_pos=False, force_c=False, with_greens=False, add_labels=False):
@@ -1545,7 +1547,7 @@ class ClusterSeed(SageObject):
             ValueError: Unable to calculate g-vectors. Need to use g vectors.
         """
 
-        from sage.matrix.all import matrix
+        from sage.matrix.constructor import matrix
         if self._use_g_vec:
             return copy(self._G)
         elif self._use_fpolys and self._cluster: # This only calls g_vector when it will not create a loop.
@@ -1812,7 +1814,7 @@ class ClusterSeed(SageObject):
             sage: [ S.coefficient(k) for k in range(3) ]
             [y0, 1/y2, 1/y1]
         """
-        from sage.misc.all import prod
+        from sage.misc.misc_c import prod
 
         if k in self._nlist:
             k = self._nlist.index(k)
@@ -2454,7 +2456,7 @@ class ClusterSeed(SageObject):
                         sequence = sequence + "_" + j
 
         # If we get a function, execute it
-        if hasattr(sequence, '__call__'):
+        if callable(sequence):
             # function should return either integer or sequence
             sequence = sequence(seed)
 
@@ -3036,7 +3038,7 @@ class ClusterSeed(SageObject):
                              "for finite type cluster algebras at a "
                              "bipartite initial cluster")
 
-        from sage.matrix.all import matrix
+        from sage.matrix.constructor import matrix
         from sage.combinat.root_system.cartan_matrix import CartanMatrix
 
         A = 2 - self.b_matrix().apply_map(abs).transpose()
@@ -3222,11 +3224,11 @@ class ClusterSeed(SageObject):
                                  for x in cluster][0:self._n]
                 self._is_principal = None
         else:
-             print("Warning: clusters not being tracked so this command is ignored.")
+            print("Warning: clusters not being tracked so this command is ignored.")
 
-    def reset_cluster( self ):
+    def reset_cluster(self):
         r"""
-        Resets the cluster of ``self`` to the initial cluster.
+        Reset the cluster of ``self`` to the initial cluster.
 
         EXAMPLES::
 
@@ -3949,9 +3951,9 @@ class ClusterSeed(SageObject):
         var_iter = self.variable_class_iter( depth=depth, ignore_bipartite_belt=ignore_bipartite_belt )
         return sorted(var_iter)
 
-    def is_finite(self):
+    def is_finite(self) -> bool:
         r"""
-        Returns True if ``self`` is of finite type.
+        Return ``True`` if ``self`` is of finite type.
 
         EXAMPLES::
 
@@ -3962,6 +3964,12 @@ class ClusterSeed(SageObject):
             sage: S = ClusterSeed(['A',[2,2],1])
             sage: S.is_finite()
             False
+
+        TESTS::
+
+            sage: Q = ClusterQuiver([[1,2],[2,3],[3,4],[4,1]])
+            sage: Q.is_finite()
+            True
         """
         mt = self.mutation_type()
         if isinstance(mt, str):
@@ -4626,7 +4634,7 @@ def coeff_recurs(p, q, a1, a2, b, c):
             return sum((-1)**(k-1)*coeff_recurs(p, q-k, a1, a2, b, c)*_bino(a1-b*p+k-1, k)
                        for k in range(1, q+1))
 
-def PathSubset(n,m):
+def PathSubset(n, m):
     r"""
     Encodes a *maximal* Dyck path from (0,0) to (n,m) (for n >= m >= 0) as a subset of {0,1,2,..., 2n-1}.
     The encoding is given by indexing horizontal edges by odd numbers and vertical edges by evens.
@@ -4648,15 +4656,11 @@ def PathSubset(n,m):
         sage: PathSubset(4,4)
         {0, 1, 2, 3, 4, 5, 6, 7}
     """
-    from sage.misc.misc import union
-    from sage.functions.other import floor
-    S = [ ]
-    for i in range(n):
-        S = union(S, [2*i+1])
+    S = set(2 * i + 1 for i in range(n))
     if m > 0:
         for j in range(n):
-            if floor((j+1)*m/n) - floor(j*m/n) == 1:
-                S = union(S, [2*j])
+            if ((j+1)*m) // n - (j*m) // n == 1:
+                S.add(2 * j)
     return set(S)
 
 
@@ -5053,7 +5057,7 @@ class ClusterVariable(FractionFieldElement):
         if self._variable_type == 'frozen variable':
             raise ValueError('The variable is frozen.')
         if isinstance(self._mutation_type, str):
-            raise ValueError('The cluster algebra for %s is not of finite type.'%self._repr_())
+            raise ValueError('The cluster algebra for %s is not of finite type.' % self._repr_())
         else:
             if self._mutation_type is None:
                 self._mutation_type = self.parent().mutation_type()
@@ -5072,4 +5076,4 @@ class ClusterVariable(FractionFieldElement):
                     root = self.denominator().degrees()
                     return sum( [ root[i]*Phiplus[ i+1 ] for i in range(self._n) ] )
             else:
-                raise ValueError('The cluster algebra for %s is not of finite type.'%self._repr_())
+                raise ValueError('The cluster algebra for %s is not of finite type.' % self._repr_())

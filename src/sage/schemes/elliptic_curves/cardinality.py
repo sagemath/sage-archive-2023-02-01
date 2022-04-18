@@ -393,14 +393,14 @@ def cardinality_bsgs(self, verbose=False):
     ALGORITHM: A variant of "Mestre's trick" extended to all finite
     fields by Cremona and Sutherland, 2008.
 
-    .. note::
+    .. NOTE::
 
-       1. The Mestre-Schoof-Cremona-Sutherland algorithm may fail for
-          a small finite number of curves over `F_q` for `q` at most 49, so
-          for `q<50` we use an exhaustive count.
+        1. The Mestre-Schoof-Cremona-Sutherland algorithm may fail for
+           a small finite number of curves over `F_q` for `q` at most 49, so
+           for `q<50` we use an exhaustive count.
 
-       2. Quadratic twists are not implemented in characteristic 2
-          when `j=0 (=1728)`; but this case is treated separately.
+        2. Quadratic twists are not implemented in characteristic 2
+           when `j=0 (=1728)`; but this case is treated separately.
 
     EXAMPLES::
 
@@ -576,7 +576,7 @@ def _cardinality_subfield(self, jpol):
 
     # Let j be the j-invariant as element of the smallest finite
     # field over which j is defined.
-    GFj = GF(p**jdeg, name='j', modulus=jpol)
+    GFj = GF((p, jdeg), name='j', modulus=jpol)
     j = GFj.gen()
 
     # Use special code for j = 0, 1728
@@ -587,7 +587,7 @@ def _cardinality_subfield(self, jpol):
 
     # Recursive call which does all the real work:
     E0 = EllipticCurve_from_j(j)
-    N = E0.cardinality(extension_degree=d//jdeg)
+    N = E0.cardinality(extension_degree=d // jdeg)
 
     # Map to the original larger field
     phi = GFj.hom([self.j_invariant()])

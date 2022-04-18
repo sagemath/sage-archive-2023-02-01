@@ -41,6 +41,7 @@ from sage.rings.qqbar import number_field_elements_from_algebraics
 from sage.rings.quotient_ring import QuotientRing_generic
 from sage.rings.rational_field import QQ
 from sage.arith.all import gcd, lcm
+from sage.misc.misc_c import prod
 
 from copy import copy
 from sage.schemes.generic.morphism import (SchemeMorphism,
@@ -99,11 +100,25 @@ class SchemeMorphism_point_projective_ring(SchemeMorphism_point):
 
         ::
 
-            sage: P = ProjectiveSpace(3, QQ)
+            sage: P = ProjectiveSpace(3, ZZ)
             sage: P(0,0,0,0)
             Traceback (most recent call last):
             ...
-            ValueError: [0, 0, 0, 0] does not define a valid point since all entries are 0
+            ValueError: [0, 0, 0, 0] does not define a point in Projective Space of dimension 3 over Integer Ring since all entries are zero
+
+        ::
+
+            sage: P = ProjectiveSpace(3, Zmod(15))
+            sage: P(3,5,9,10)
+            (3 : 5 : 9 : 10)
+
+        ::
+
+            sage: P = ProjectiveSpace(3, Zmod(15))
+            sage: P(0,5,10,15)
+            Traceback (most recent call last):
+            ...
+            ValueError: [0, 5, 10, 0] does not define a point in Projective Space of dimension 3 over Ring of integers modulo 15 since it is a multiple of a zero divisor
 
         It is possible to avoid the possibly time-consuming checks, but be careful!! ::
 
@@ -169,15 +184,21 @@ class SchemeMorphism_point_projective_ring(SchemeMorphism_point):
             if len(v) == d-1:     # very common special case
                 v.append(R(1))
 
-            n = len(v)
-            all_zero = True
-            for i in range(n):
-                last = n-1-i
-                if v[last]:
-                    all_zero = False
-                    break
-            if all_zero:
-                raise ValueError("%s does not define a valid point since all entries are 0"%repr(v))
+            if R in IntegralDomains():
+                # Over integral domains, any tuple with at least one
+                # non-zero coordinate is a valid projective point.
+                if not any(v):
+                    raise ValueError(f"{v} does not define a point "
+                                     f"in {X.codomain()} "
+                                     "since all entries are zero")
+            else:
+                # Over rings with zero divisors, a more careful check
+                # is required: We test whether the coordinates of the
+                # point generate the unit ideal. See #31576.
+                if 1 not in R.ideal(v):
+                    raise ValueError(f"{v} does not define a point "
+                                     f"in {X.codomain()} "
+                                     "since it is a multiple of a zero divisor")
 
             X.extended_codomain()._check_satisfies_equations(v)
 
@@ -566,7 +587,7 @@ class SchemeMorphism_point_projective_ring(SchemeMorphism_point):
             sage: R.<t> = PolynomialRing(QQ,1)
             sage: S = R.quotient_ring(R.ideal(t^3))
             sage: P.<x,y> = ProjectiveSpace(S,1)
-            sage: Q = P(t, t^2)
+            sage: Q = P(t+1, t^2+t)
             sage: Q.normalize_coordinates()
             sage: Q
             (1 : tbar)
@@ -658,7 +679,7 @@ class SchemeMorphism_point_projective_ring(SchemeMorphism_point):
 
     def global_height(self, prec=None):
         r"""
-        Returns the absolute logarithmic height of the point.
+        Return the absolute logarithmic height of the point.
 
         INPUT:
 
@@ -705,7 +726,21 @@ class SchemeMorphism_point_projective_ring(SchemeMorphism_point):
             sage: Q = P.point([K(4/3), K.gen(7), K.gen(5)])
             sage: Q.global_height()
             1.38629436111989
+
+        TESTS::
+
+            sage: P = ProjectiveSpace(QQ, 2)
+            sage: P(1/1,2/3,5/8).global_height()
+            3.17805383034795
+
+            sage: x = polygen(QQ, 'x')
+            sage: F.<u> = NumberField(x^3 - 5)
+            sage: P = ProjectiveSpace(F, 2)
+            sage: P(u,u^2/5,1).global_height()
+            1.07295860828940
         """
+        if prec is None:
+            prec = 53
         K = self.codomain().base_ring()
         if K in _NumberFields or is_NumberFieldOrder(K):
             P = self
@@ -714,7 +749,21 @@ class SchemeMorphism_point_projective_ring(SchemeMorphism_point):
                 P = self._number_field_from_algebraics()
             except TypeError:
                 raise TypeError("must be defined over an algebraic field")
-        return max([P[i].global_height(prec=prec) for i in range(self.codomain().ambient_space().dimension_relative()+1)])
+            else:
+                K = P.codomain().base_ring()
+        # first get rid of the denominators
+        denom = lcm([xi.denominator() for xi in P])
+        x = [xi * denom for xi in P]
+        d = K.degree()
+        if d == 1:
+            height = max(abs(xi) for xi in x) / gcd(x)
+            return height.log().n(prec=prec)
+
+        finite = ~sum(K.ideal(xi) for xi in x).norm()
+        infinite = prod(max(abs(xi.complex_embedding(prec, i))
+                            for xi in x) for i in range(d))
+        height = (finite * infinite)**(~d)
+        return height.log()
 
     def local_height(self, v, prec=None):
         r"""
@@ -851,7 +900,7 @@ class SchemeMorphism_point_projective_ring(SchemeMorphism_point):
 
         kwds:
 
-        - ``error_bound`` -- a positive real number (optional - default: 0.1).
+        - ``err`` -- a positive real number (optional - default: 0.1).
 
         - ``return_period`` -- boolean (optional - default: ``False``).
 
@@ -942,6 +991,14 @@ class SchemeMorphism_point_projective_ring(SchemeMorphism_point):
 
         ::
 
+            sage: P.<x,y,z> =ProjectiveSpace(GF(3), 2)
+            sage: F = DynamicalSystem([x^2 - 2*y^2, y^2, z^2])
+            sage: Q = P(1, 1, 1)
+            sage: Q.is_preperiodic(F, return_period=True)
+            (1, 1)
+
+        TESTS::
+
             sage: P.<x,y> = ProjectiveSpace(QQ, 1)
             sage: H = End(P)
             sage: f = H([16*x^2-29*y^2, 16*y^2])
@@ -950,6 +1007,14 @@ class SchemeMorphism_point_projective_ring(SchemeMorphism_point):
             Traceback (most recent call last):
             ...
             TypeError: map must be a dynamical system
+
+        ::
+
+            sage: P.<x,y> = ProjectiveSpace(QQ, 1)
+            sage: f = DynamicalSystem_projective([16*x^2-29*y^2, 16*y^2])
+            sage: Q = P(11,4)
+            sage: Q.is_preperiodic(f, err=2)
+            False
         """
         try:
             return f._is_preperiodic(self, err=err, return_period=return_period)
@@ -1000,7 +1065,7 @@ class SchemeMorphism_point_projective_field(SchemeMorphism_point_projective_ring
             sage: P(0, 0, 0, 0)
             Traceback (most recent call last):
             ...
-            ValueError: [0, 0, 0, 0] does not define a valid point since all entries are 0
+            ValueError: [0, 0, 0, 0] does not define a point in Projective Space of dimension 3 over Rational Field since all entries are zero
 
         ::
 
@@ -1073,7 +1138,9 @@ class SchemeMorphism_point_projective_field(SchemeMorphism_point_projective_ring
                     v[last] = R.one()
                     break
             if all_zero:
-                raise ValueError("%s does not define a valid point since all entries are 0"%repr(v))
+                raise ValueError(f"{v} does not define a point "
+                                 f"in {X.codomain()} "
+                                 "since all entries are zero")
 
             X.extended_codomain()._check_satisfies_equations(v)
 
@@ -1338,4 +1405,3 @@ class SchemeMorphism_point_abelian_variety_field(AdditiveGroupElement, SchemeMor
         Elliptic Curve defined by y^2 + y = x^3 - x over Rational Field
     """
     pass
-

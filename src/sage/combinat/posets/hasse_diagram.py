@@ -15,13 +15,15 @@ Hasse diagrams of posets
 # (at your option) any later version.
 #                  https://www.gnu.org/licenses/
 # ****************************************************************************
+from __future__ import annotations
+
 from sage.graphs.digraph import DiGraph
 from sage.matrix.constructor import matrix
 from sage.rings.integer_ring import ZZ
 from sage.rings.finite_rings.finite_field_constructor import GF
 from sage.misc.lazy_attribute import lazy_attribute
 from sage.misc.cachefunc import cached_method
-from sage.functions.other import binomial
+from sage.arith.all import binomial
 from sage.misc.rest_index_of_methods import gen_rest_table_index
 from sage.combinat.posets.hasse_cython import (moebius_matrix_fast,
                                                coxeter_matrix_fast,
@@ -241,7 +243,7 @@ class HasseDiagram(DiGraph):
 
         return supergreedy_rec(self, [])
 
-    def is_linear_extension(self, lin_ext=None):
+    def is_linear_extension(self, lin_ext=None) -> bool:
         r"""
         Test if an ordering is a linear extension.
 
@@ -286,7 +288,7 @@ class HasseDiagram(DiGraph):
         """
         return list(self.cover_relations_iterator())
 
-    def is_lequal(self, i, j):
+    def is_lequal(self, i, j) -> bool:
         """
         Return ``True`` if i is less than or equal to j in the poset, and
         ``False`` otherwise.
@@ -314,7 +316,7 @@ class HasseDiagram(DiGraph):
         """
         return i == j or (i < j and j in self.breadth_first_search(i))
 
-    def is_less_than(self, x, y):
+    def is_less_than(self, x, y) -> bool:
         r"""
         Return ``True`` if ``x`` is less than but not equal to ``y`` in the
         poset, and ``False`` otherwise.
@@ -339,7 +341,7 @@ class HasseDiagram(DiGraph):
             return False
         return self.is_lequal(x, y)
 
-    def is_gequal(self, x, y):
+    def is_gequal(self, x, y) -> bool:
         r"""
         Return ``True`` if ``x`` is greater than or equal to ``y``, and
         ``False`` otherwise.
@@ -364,7 +366,7 @@ class HasseDiagram(DiGraph):
         """
         return self.is_lequal(y, x)
 
-    def is_greater_than(self, x, y):
+    def is_greater_than(self, x, y) -> bool:
         """
         Return ``True`` if ``x`` is greater than but not equal to
         ``y``, and ``False`` otherwise.
@@ -435,7 +437,7 @@ class HasseDiagram(DiGraph):
             return min_elms[0]
         return None
 
-    def has_bottom(self):
+    def has_bottom(self) -> bool:
         """
         Return ``True`` if the poset has a unique minimal element.
 
@@ -468,7 +470,7 @@ class HasseDiagram(DiGraph):
             return max_elms[0]
         return None
 
-    def has_top(self):
+    def has_top(self) -> bool:
         """
         Return ``True`` if the poset contains a unique maximal element, and
         ``False`` otherwise.
@@ -484,7 +486,7 @@ class HasseDiagram(DiGraph):
         """
         return self.top() is not None
 
-    def is_bounded(self):
+    def is_bounded(self) -> bool:
         """
         Return ``True`` if the poset contains a unique maximal element and a
         unique minimal element, and ``False`` otherwise.
@@ -500,7 +502,7 @@ class HasseDiagram(DiGraph):
         """
         return self.has_top() and self.has_bottom()
 
-    def is_chain(self):
+    def is_chain(self) -> bool:
         """
         Return ``True`` if the poset is totally ordered, and ``False`` otherwise.
 
@@ -527,7 +529,7 @@ class HasseDiagram(DiGraph):
                 all(d <= 1 for d in self.out_degree()) and
                 all(d <= 1 for d in self.in_degree()))
 
-    def is_antichain_of_poset(self, elms):
+    def is_antichain_of_poset(self, elms) -> bool:
         """
         Return ``True`` if ``elms`` is an antichain of the Hasse
         diagram and ``False`` otherwise.
@@ -579,8 +581,8 @@ class HasseDiagram(DiGraph):
         Precompute all intervals of the poset.
 
         This will significantly speed up computing congruences. On the
-        other hand it will cost much more memory. Currently this is
-        "hidden" feature. See example below of using.
+        other hand, it will cost much more memory. Currently this is
+        a hidden feature. See the example below for how to use it.
 
         EXAMPLES::
 
@@ -598,30 +600,6 @@ class HasseDiagram(DiGraph):
                   for v in range(n)]
         self._intervals = [[sorted(up.intersection(down)) for down in v_down]
                            for up in v_up]
-        self.interval = self._alternate_interval
-
-    def _alternate_interval(self, x, y):
-        """
-        Return the list of the elements greater than or equal to ``x``
-        and less than or equal to ``y``.
-
-        The list is sorted by numerical value, which is one linear
-        extension for the elements of the interval, but not necessary
-        the same as returned by ``interval()``.
-
-        This will be taken to use when ``_precompute_intervals()``
-        is called.
-
-        EXAMPLES::
-
-            sage: P = posets.BooleanLattice(3)
-            sage: P.interval(1, 7)
-            [1, 3, 5, 7]
-            sage: P._hasse_diagram._precompute_intervals() # indirect doctest
-            sage: P.interval(1, 7)  # Uses this function
-            [1, 3, 5, 7]
-        """
-        return self._intervals[x][y]
 
     def interval(self, x, y):
         r"""
@@ -636,6 +614,13 @@ class HasseDiagram(DiGraph):
 
         -  ``y`` -- any element of the poset
 
+        .. NOTE::
+
+            The method :meth:`_precompute_intervals()` creates a cache
+            which is used if available, making the function very fast.
+
+        .. SEEALSO:: :meth:`interval_iterator`
+
         EXAMPLES::
 
             sage: uc = [[1,3,2],[4],[4,5,6],[6],[7],[7],[7],[]]
@@ -646,8 +631,43 @@ class HasseDiagram(DiGraph):
             sage: I == set(H.interval(2,7))
             True
         """
-        return [z for z in range(x, y + 1) if
-                self.is_lequal(x, z) and self.is_lequal(z, y)]
+        try:
+            # when the intervals have been precomputed
+            return self._intervals[x][y]
+        except AttributeError:
+            return list(self.interval_iterator(x, y))
+
+    def interval_iterator(self, x, y):
+        r"""
+        Return an iterator of the elements `z` of ``self`` such that
+        `x \leq z \leq y`.
+
+        INPUT:
+
+        -  ``x`` -- any element of the poset
+
+        -  ``y`` -- any element of the poset
+
+        .. SEEALSO:: :meth:`interval`
+
+        .. NOTE::
+
+            This becomes much faster when first calling :meth:`_leq_storage`,
+            which precomputes the principal upper ideals.
+
+        EXAMPLES::
+
+            sage: uc = [[1,3,2],[4],[4,5,6],[6],[7],[7],[7],[]]
+            sage: dag = DiGraph(dict(zip(range(len(uc)),uc)))
+            sage: from sage.combinat.posets.hasse_diagram import HasseDiagram
+            sage: H = HasseDiagram(dag)
+            sage: I = set([2,5,6,4,7])
+            sage: I == set(H.interval_iterator(2,7))
+            True
+        """
+        for z in range(x, y + 1):
+            if self.is_lequal(x, z) and self.is_lequal(z, y):
+                yield z
 
     closed_interval = interval
 
@@ -822,7 +842,7 @@ class HasseDiagram(DiGraph):
         else:
             return self.rank_function()(element)
 
-    def is_ranked(self):
+    def is_ranked(self) -> bool:
         r"""
         Return ``True`` if the poset is ranked, and ``False`` otherwise.
 
@@ -1552,7 +1572,7 @@ class HasseDiagram(DiGraph):
             raise LatticeError('meet', x, y)
         return mt
 
-    def is_meet_semilattice(self):
+    def is_meet_semilattice(self) -> bool:
         r"""
         Return ``True`` if ``self`` has a meet operation, and
         ``False`` otherwise.
@@ -1709,7 +1729,7 @@ class HasseDiagram(DiGraph):
             raise LatticeError('join', x, y)
         return jn
 
-    def is_join_semilattice(self):
+    def is_join_semilattice(self) -> bool:
         r"""
         Return ``True`` if ``self`` has a join operation, and
         ``False`` otherwise.
@@ -1834,7 +1854,7 @@ class HasseDiagram(DiGraph):
         result.pop()  # Remove the top element.
         return result
 
-    def is_complemented(self):
+    def is_complemented(self) -> int | None:
         """
         Return an element of the lattice that has no complement.
 
@@ -2335,6 +2355,64 @@ class HasseDiagram(DiGraph):
         """
         return IncreasingChains(self._leq_storage, element_class, exclude, conversion)
 
+    def is_linear_interval(self, t_min, t_max) -> bool:
+        """
+        Return whether the interval ``[t_min, t_max]`` is linear.
+
+        This means that this interval is a total order.
+
+        EXAMPLES::
+
+            sage: P = posets.PentagonPoset()
+            sage: H = P._hasse_diagram
+            sage: H.is_linear_interval(0, 4)
+            False
+            sage: H.is_linear_interval(0, 3)
+            True
+            sage: H.is_linear_interval(1, 3)
+            False
+            sage: H.is_linear_interval(1, 1)
+            True
+
+        TESTS::
+
+            sage: P = posets.TamariLattice(3)
+            sage: H = P._hasse_diagram
+            sage: D = H._leq_storage
+            sage: a, b = H.bottom(), H.top()
+            sage: H.is_linear_interval(a, b)
+            False
+            sage: H.is_linear_interval(a, a)
+            True
+        """
+        if '_leq_storage' in self.__dict__:
+            if not self.is_lequal(t_min, t_max):  # very quick check
+                return False
+            t = t_max
+            while t != t_min:
+                found = False
+                for u in self.neighbor_in_iterator(t):
+                    if self.is_lequal(t_min, u):
+                        if not found:
+                            found = True
+                            t = u
+                        else:
+                            return False
+            return True
+
+        # fall back to default implementation
+        it = self.all_paths_iterator([t_min], [t_max],
+                                     simple=True, trivial=True)
+        try:
+            next(it)
+        except StopIteration:  # not comparable
+            return False
+        try:
+            next(it)
+        except StopIteration:  # one path
+            return True
+        return False
+
     def diamonds(self):
         r"""
         Return the list of diamonds of ``self``.
@@ -2375,7 +2453,7 @@ class HasseDiagram(DiGraph):
         for w in self.vertices():
             covers = self.neighbors_out(w)
             for i, x in enumerate(covers):
-                for y in covers[i+1:]:
+                for y in covers[i + 1:]:
                     zs = self.common_upper_covers([x, y])
                     if len(zs) != 1:
                         all_diamonds_completed = False
@@ -2743,7 +2821,7 @@ class HasseDiagram(DiGraph):
 
         return result
 
-    def is_convex_subset(self, S):
+    def is_convex_subset(self, S) -> bool:
         r"""
         Return ``True`` if `S` is a convex subset of the poset,
         and ``False`` otherwise.
@@ -3263,7 +3341,7 @@ class HasseDiagram(DiGraph):
                 D[ab] = cong
                 P[ab] = cong_
 
-        # Todo: Make a function that creates the poset from a set
+        # TODO: Make a function that creates the poset from a set
         # by comparison function with minimal number of comparisons.
 
         T = SetPartitions(n)
@@ -3301,7 +3379,7 @@ class HasseDiagram(DiGraph):
                 yield c
                 congs[achain] = c
 
-    def is_congruence_normal(self):
+    def is_congruence_normal(self) -> bool:
         """
         Return ``True`` if the lattice can be constructed from the one-element
         lattice with Day doubling constructions of convex subsets.
@@ -3344,18 +3422,18 @@ class HasseDiagram(DiGraph):
         from sage.combinat.set_partition import SetPartition
 
         n = self.order()
-        congs_ji = {}
+        congs_ji: dict[SetPartition, list] = {}
 
         for ji in range(n):
             if self.in_degree(ji) == 1:
-                cong = SetPartition(self.congruence([[ji, next(self.neighbor_in_iterator(ji))]]))
+                cong = SetPartition(self.congruence([[ji, next(self.neighbor_in_iterator(ji))]]))  # type: ignore
                 if cong not in congs_ji:
                     congs_ji[cong] = []
                 congs_ji[cong].append(ji)
 
         for mi in range(n):
             if self.out_degree(mi) == 1:
-                cong = SetPartition(self.congruence([[mi, next(self.neighbor_out_iterator(mi))]]))
+                cong = SetPartition(self.congruence([[mi, next(self.neighbor_out_iterator(mi))]]))  # type: ignore
                 if any(self.is_lequal(ji, mi) for ji in congs_ji[cong]):
                     return False
 
@@ -3464,7 +3542,7 @@ class HasseDiagram(DiGraph):
             ValueError: wrong number of connected components after the covering relation is deleted
         """
         split_hasse = self.copy(self)
-        split_hasse.delete_edge(a,b)
+        split_hasse.delete_edge(a, b)
         components = split_hasse.connected_components_subgraphs()
         if not len(components) == 2:
             raise ValueError("wrong number of connected components after the covering relation is deleted")

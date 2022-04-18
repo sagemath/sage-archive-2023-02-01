@@ -18,8 +18,7 @@ REFERENCES:
    The Clarendon Press, Oxford University Press, New York, 1995, With contributions
    by A. Zelevinsky, Oxford Science Publications.
 """
-
-#*****************************************************************************
+# ****************************************************************************
 #       Copyright (C) 2007 Mike Hansen <mhansen@gmail.com>
 #                     2012 Mike Zabrocki <mike.zabrocki@gmail.com>
 #
@@ -27,15 +26,16 @@ REFERENCES:
 # it under the terms of the GNU General Public License as published by
 # the Free Software Foundation, either version 2 of the License, or
 # (at your option) any later version.
-#                  http://www.gnu.org/licenses/
-#*****************************************************************************
+#                  https://www.gnu.org/licenses/
+# ****************************************************************************
 
 from sage.structure.unique_representation import UniqueRepresentation
 import sage.categories.all
-from sage.rings.all import Integer, QQ
+from sage.rings.integer import Integer
+from sage.rings.rational_field import QQ
 from sage.arith.all import gcd, lcm
 from sage.rings.fraction_field import is_FractionField
-from sage.misc.all import prod
+from sage.misc.misc_c import prod
 from sage.categories.morphism import SetMorphism
 from sage.categories.homset import Hom, End
 from sage.rings.fraction_field import FractionField
@@ -491,7 +491,7 @@ class JackPolynomials_generic(sfa.SymmetricFunctionAlgebra_generic):
         - ``self`` -- a Jack basis of the symmetric functions
         - ``jack`` -- a family of Jack symmetric function bases
 
-        EXAMPLES ::
+        EXAMPLES::
 
             sage: Sym = SymmetricFunctions(FractionField(QQ['t']))
             sage: JP = Sym.jack().P(); JP.base_ring()
@@ -537,7 +537,7 @@ class JackPolynomials_generic(sfa.SymmetricFunctionAlgebra_generic):
 
         - an element of ``self`` equivalent to ``x``
 
-        EXAMPLES ::
+        EXAMPLES::
 
             sage: Sym = SymmetricFunctions(QQ)
             sage: JP = Sym.jack(t=2).P()
@@ -565,7 +565,7 @@ class JackPolynomials_generic(sfa.SymmetricFunctionAlgebra_generic):
 
         - an element of the monomial basis equivalent to ``x``
 
-        EXAMPLES ::
+        EXAMPLES::
 
             sage: Sym = SymmetricFunctions(QQ)
             sage: JP = Sym.jack(t=2).P()
@@ -596,7 +596,7 @@ class JackPolynomials_generic(sfa.SymmetricFunctionAlgebra_generic):
         - a polynomial in the parameter ``t`` which is equal to the scalar
           product of ``J(part)`` and ``P(part)``
 
-        EXAMPLES ::
+        EXAMPLES::
 
             sage: JP = SymmetricFunctions(FractionField(QQ['t'])).jack().P()
             sage: JP.c1(Partition([2,1]))
@@ -1029,7 +1029,7 @@ class JackPolynomials_p(JackPolynomials_generic):
             - ``self`` -- an element of the Jack `P` basis
             - ``x`` -- an element of the `P` basis
 
-            EXAMPLES ::
+            EXAMPLES::
 
                 sage: JP = SymmetricFunctions(FractionField(QQ['t'])).jack().P()
                 sage: l = [JP(p) for p in Partitions(3)]
@@ -1215,7 +1215,7 @@ class JackPolynomials_qp(JackPolynomials_generic):
         to_cache_2 = self._h_to_self_cache[n]
         for mu in from_cache_1:
             for la in from_cache_1[mu]:
-                if not la in to_cache_1:
+                if la not in to_cache_1:
                     to_cache_1[la] = {}
                     to_cache_2[la] = {}
                 to_cache_2[la][mu] = from_cache_1[mu][la]
@@ -1234,7 +1234,7 @@ class JackPolynomials_qp(JackPolynomials_generic):
 
         - an element of the homogeneous basis equivalent to ``x``
 
-        EXAMPLES ::
+        EXAMPLES::
 
             sage: Sym = SymmetricFunctions(QQ)
             sage: JQp = Sym.jack(t=2).Qp()
@@ -1262,7 +1262,7 @@ class JackPolynomials_qp(JackPolynomials_generic):
 
         - an element of the Jack `Qp` basis equivalent to ``x``
 
-        EXAMPLES ::
+        EXAMPLES::
 
             sage: Sym = SymmetricFunctions(QQ)
             sage: JQp = Sym.jack(t=2).Qp()
@@ -1320,7 +1320,7 @@ class SymmetricFunctionAlgebra_zonal(sfa.SymmetricFunctionAlgebra_generic):
         - ``self`` -- a zonal basis of the symmetric functions
         - ``Sym`` -- a ring of the symmetric functions
 
-        EXAMPLES ::
+        EXAMPLES::
 
             sage: Z = SymmetricFunctions(QQ).zonal()
             sage: Z([2])^2
@@ -1355,7 +1355,7 @@ class SymmetricFunctionAlgebra_zonal(sfa.SymmetricFunctionAlgebra_generic):
 
         the product of ``left`` and ``right`` expanded in the basis ``self``
 
-        EXAMPLES ::
+        EXAMPLES::
 
             sage: Sym = SymmetricFunctions(QQ)
             sage: Z = Sym.zonal()
@@ -1386,7 +1386,7 @@ class SymmetricFunctionAlgebra_zonal(sfa.SymmetricFunctionAlgebra_generic):
 
             - the scalar product between ``self`` and ``x``
 
-            EXAMPLES ::
+            EXAMPLES::
 
                 sage: Sym = SymmetricFunctions(QQ)
                 sage: Z = Sym.zonal()

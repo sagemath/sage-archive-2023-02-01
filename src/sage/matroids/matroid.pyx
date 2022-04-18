@@ -88,7 +88,6 @@ additional functionality (e.g. linear extensions).
     - :meth:`has_minor() <sage.matroids.matroid.Matroid.has_minor>`
     - :meth:`has_line_minor() <sage.matroids.matroid.Matroid.has_line_minor>`
 
-
 - Extension
     - :meth:`extension() <sage.matroids.matroid.Matroid.extension>`
     - :meth:`coextension() <sage.matroids.matroid.Matroid.coextension>`
@@ -141,6 +140,8 @@ additional functionality (e.g. linear extensions).
     - :meth:`matroid_polytope() <sage.matroids.matroid.Matroid.matroid_polytope>`
     - :meth:`independence_matroid_polytope() <sage.matroids.matroid.Matroid.independence_matroid_polytope>`
     - :meth:`orlik_solomon_algebra() <sage.matroids.matroid.Matroid.orlik_solomon_algebra>`
+    - :meth:`bergman_complex() <sage.matroids.matroid.Matroid.bergman_complex>`
+    - :meth:`augmented_bergman_complex() <sage.matroids.matroid.Matroid.augmented_bergman_complex>`
 
 
 In addition to these, all methods provided by
@@ -329,6 +330,7 @@ Methods
 # ****************************************************************************
 
 from cpython.object cimport Py_EQ, Py_NE
+from collections.abc import Iterable
 
 from sage.structure.richcmp cimport rich_to_bool, richcmp
 from sage.structure.sage_object cimport SageObject
@@ -339,12 +341,11 @@ from sage.graphs.graph import Graph
 from sage.matrix.constructor import matrix
 
 from .utilities import newlabel, sanitize_contractions_deletions, spanning_forest, spanning_stars
-from sage.rings.all import ZZ
+from sage.rings.integer_ring import ZZ
 from sage.numerical.mip import MixedIntegerLinearProgram
 
 from sage.matroids.lean_matrix cimport BinaryMatrix, TernaryMatrix
 from sage.misc.prandom import shuffle
-
 
 # On some systems, macros "minor()" and "major()" are defined in system header
 # files. This will undefine those:
@@ -1488,9 +1489,7 @@ cdef class Matroid(SageObject):
             ...
             ValueError: ['x'] is not a subset of the groundset
             sage: C = M.circuit()
-            sage: sorted(C) # py2
-            ['a', 'b', 'c', 'd']
-            sage: sorted(C) # py3 random
+            sage: sorted(C) # random
             ['a', 'b', 'c', 'd']
             sage: M.is_circuit(C)
             True
@@ -1605,7 +1604,7 @@ cdef class Matroid(SageObject):
         while cur != len(S):
             cur = len(S)
             cl = frozenset([])
-            for T in combinations(S, min(k,cur)):
+            for T in combinations(S, min(k, cur)):
                 cl = cl.union(self._closure(set(T)))
             S = cl
         return S
@@ -1770,9 +1769,7 @@ cdef class Matroid(SageObject):
 
             sage: M = matroids.named_matroids.Vamos()
             sage: X = M.max_coindependent(['a', 'c', 'd', 'e', 'f'])
-            sage: sorted(X) # py2
-            ['a', 'c', 'd', 'e']
-            sage: sorted(X) # py3 random
+            sage: sorted(X) # random
             ['a', 'c', 'd', 'f']
             sage: M.is_coindependent(X)
             True
@@ -1858,9 +1855,7 @@ cdef class Matroid(SageObject):
             ...
             ValueError: ['x'] is not a subset of the groundset
             sage: C = M.cocircuit()
-            sage: sorted(C) # py2
-            ['e', 'f', 'g', 'h']
-            sage: sorted(C) # py3 random
+            sage: sorted(C) # random
             ['e', 'f', 'g', 'h']
             sage: M.is_cocircuit(C)
             True
@@ -2991,21 +2986,64 @@ cdef class Matroid(SageObject):
             sage: SimplicialComplex(M.no_broken_circuits_sets([5,4,3,2,1]))
             Simplicial complex with vertex set (1, 2, 3, 4, 5)
              and facets {(1, 3, 5), (2, 3, 5), (2, 4, 5), (3, 4, 5)}
-        """
-        ret = []
-        BC = self.broken_circuits(ordering)
-        for r in range(self.rank() + 1):
-            for I in self.independent_r_sets(r):
-                add = True
-                for b in BC:
-                    if b.issubset(I):
-                        add = False
-                        break
-                if add:
-                    ret.append(I)
-        return ret
 
-    def orlik_solomon_algebra(self, R, ordering=None):
+        ALGORITHM:
+
+        The following algorithm is adapted from page 7 of [BDPR2011]_.
+
+        .. NOTE::
+
+            Sage uses the convention that a broken circuit is found by
+            removing a minimal element from a circuit, while [BDPR2011]_.
+            use the convention that removal of the *maximal* element of
+            circuit yields a broken circuit. This implementation reverses
+            the provided order so that it returns n.b.c. sets under the
+            minimal-removal convention, while the implementation is not
+            modified from the published algorithm.
+        """
+        cdef list rev_order
+
+        if ordering is None:
+            rev_order = sorted(self.groundset(), reverse=True)
+        else:
+            if frozenset(ordering) != self.groundset():
+                raise ValueError("not an ordering of the groundset")
+            rev_order = list(reversed(ordering))
+
+        # The algorithm uses the convention that the maximum element is removed.
+        # Sage uses the convention that the minimum element is removed. The keys
+        # of order_dict are adjusted accordingly.
+        cdef Py_ssize_t Tmax = len(rev_order)
+        cdef dict reverse_dict = {value: key for key, value in enumerate(rev_order)}
+
+        cdef list H, Ht, temp, B = [frozenset()]
+        cdef frozenset loops = self.loops()
+        cdef list next_level = [[val] for val in rev_order if val not in loops]
+        cdef list cur_level
+        cdef Py_ssize_t i = 0
+        cdef Py_ssize_t tp
+        cdef Py_ssize_t level = -1
+        cdef bint is_indep
+        while next_level:
+            cur_level = next_level
+            next_level = []
+            level += 1
+            for H in cur_level:
+                tp = (<Py_ssize_t> reverse_dict[H[level]]) + 1
+                is_indep = True
+                Ht = [None] * (Tmax-tp)
+                for i in range(tp, Tmax):
+                    temp = H + [rev_order[i]]
+                    if not self._is_independent(frozenset(temp)):
+                        is_indep = False
+                        break
+                    Ht[i-tp] = temp
+                if is_indep:
+                    B.append(frozenset(H))
+                    next_level.extend(Ht)
+        return B
+
+    def orlik_solomon_algebra(self, R, ordering=None, **kwargs):
         """
         Return the Orlik-Solomon algebra of ``self``.
 
@@ -3013,6 +3051,12 @@ cdef class Matroid(SageObject):
 
         - ``R`` -- the base ring
         - ``ordering`` -- (optional) an ordering of the ground set
+        - optional parameter ``invariant`` -- (optional, default: None) either
+          a semigroup ``G`` whose ``__call__`` acts on the groundset, or pair
+          ``(G, action)`` where ``G`` is a semigroup and ``action``
+          is a function ``action(g,e)`` which takes a pair of a group
+          element and a grounset element and returns the groundset
+          element which is the result of ``e`` acted upon by ``g``
 
         .. SEEALSO::
 
@@ -3026,7 +3070,36 @@ cdef class Matroid(SageObject):
             Orlik-Solomon algebra of U(3, 4): Matroid of rank 3 on 4 elements
              with circuit-closures
              {3: {{0, 1, 2, 3}}}
+
+            sage: G = SymmetricGroup(3);
+            sage: OSG = M.orlik_solomon_algebra(QQ, invariant=G)
+
+            sage: G = SymmetricGroup(4)
+            sage: action = lambda g,x: g(x+1)-1
+            sage: OSG1 = M.orlik_solomon_algebra(QQ, invariant=(G,action))
+            sage: OSG2 = M.orlik_solomon_algebra(QQ, invariant=(action,G))
+            sage: OSG1 is OSG2
+            True
+
         """
+        if 'invariant' in kwargs:
+            G_action = kwargs.pop('invariant')
+            from sage.categories.semigroups import Semigroups
+
+            if len(G_action) > 1 and G_action not in Semigroups:
+                G, action = G_action
+                if action in Semigroups:
+                    G, action = action, G
+            else:
+                G, action = G_action, None # the None action is g.__call__
+
+            from sage.algebras.orlik_solomon import OrlikSolomonInvariantAlgebra
+
+            return OrlikSolomonInvariantAlgebra(R, self, G,
+                                                action_on_groundset=action,
+                                                ordering=ordering,
+                                                **kwargs)
+
         from sage.algebras.orlik_solomon import OrlikSolomonAlgebra
         return OrlikSolomonAlgebra(R, self, ordering)
 
@@ -3650,18 +3723,15 @@ cdef class Matroid(SageObject):
 
             sage: M = matroids.named_matroids.Vamos()
             sage: N = M.minor('abc', 'defg')
-            sage: N # py2
+            sage: N
             M / {'a', 'b', 'c'} \ {'d', 'e', 'f', 'g'}, where M is Vamos:
             Matroid of rank 4 on 8 elements with circuit-closures
-            {3: {{'a', 'b', 'c', 'd'}, {'a', 'b', 'e', 'f'},
-                 {'a', 'b', 'g', 'h'}, {'c', 'd', 'e', 'f'},
-                 {'e', 'f', 'g', 'h'}},
-             4: {{'a', 'b', 'c', 'd', 'e', 'f', 'g', 'h'}}}
+            ...
             sage: N.groundset()
             frozenset({'h'})
 
             sage: N = M.minor('defgh', 'abc')
-            sage: N # py2
+            sage: N  # random
             M / {'d', 'e', 'f', 'g'} \ {'a', 'b', 'c', 'h'}, where M is Vamos:
             Matroid of rank 4 on 8 elements with circuit-closures
             {3: {{'a', 'b', 'c', 'd'}, {'a', 'b', 'e', 'f'},
@@ -3700,7 +3770,7 @@ cdef class Matroid(SageObject):
             # Else we expect to have to enumerate over the characters in the string.
         except TypeError:
             pass
-        if (not isinstance(contractions, str) and not hasattr(contractions, '__iter__') and contractions is not None):
+        if (not isinstance(contractions, (str, Iterable)) and contractions is not None):
             contractions = [contractions]
         try:
             if deletions in self.groundset():
@@ -3708,7 +3778,7 @@ cdef class Matroid(SageObject):
             # Else we expect to have to enumerate over the characters in the string.
         except TypeError:
             pass
-        if (not isinstance(deletions, str) and not hasattr(deletions, '__iter__') and deletions is not None):
+        if (not isinstance(deletions, (str, Iterable)) and deletions is not None):
             deletions = [deletions]
         conset, delset = sanitize_contractions_deletions(self, contractions, deletions)
         return self._minor(conset, delset)
@@ -6279,7 +6349,7 @@ cdef class Matroid(SageObject):
             sage: M.is_circuit_chordal(['a','b','d','e'])
             True
             sage: X = M.is_circuit_chordal(frozenset(['a','b','d','e']), certificate=True)[1]
-            sage: X # py2
+            sage: X  # random
             ('c', frozenset({'b', 'c', 'd'}), frozenset({'a', 'c', 'e'}))
             sage: M.is_circuit(X[1]) and M.is_circuit(X[2])
             True
@@ -7469,7 +7539,7 @@ cdef class Matroid(SageObject):
             T = T(a, b)
         return T
 
-    cpdef flat_cover(self, solver=None, verbose=0):
+    cpdef flat_cover(self, solver=None, verbose=0, integrality_tolerance=1e-3):
         """
         Return a minimum-size cover of the nonbases by non-spanning flats.
 
@@ -7516,10 +7586,9 @@ cdef class Matroid(SageObject):
             MIP.add_constraint(sum([f[F] for F in FF if len(F.intersection(N)) > self.rank(F)]), min=1)
         opt = MIP.solve(log=verbose)
 
-        fsol = MIP.get_values(f)
-        eps = 0.00000001
+        fsol = MIP.get_values(f, convert=bool, tolerance=integrality_tolerance)
 
-        return [F for F in FF if fsol[F] > 1 - eps]
+        return [F for F in FF if fsol[F]]
 
     def chow_ring(self, R=None):
         r"""
@@ -7771,7 +7840,7 @@ cdef class Matroid(SageObject):
         if pos_dict is not None:
             from . import matroids_plot_helpers
             if matroids_plot_helpers.posdict_is_sane(self,pos_dict):
-                self._cached_info={'plot_positions':pos_dict,'lineorders':lineorders}
+                self._cached_info = {'plot_positions': pos_dict, 'lineorders': lineorders}
         return
 
     def broken_circuit_complex(self, ordering=None):
@@ -7800,8 +7869,131 @@ cdef class Matroid(SageObject):
             Simplicial complex with vertex set (1, 2, 3, 4, 5)
              and facets {(1, 3, 5), (1, 4, 5), (2, 3, 5), (2, 4, 5)}
         """
-        from sage.homology.simplicial_complex import SimplicialComplex
+        from sage.topology.simplicial_complex import SimplicialComplex
         return SimplicialComplex(self.no_broken_circuits_sets(ordering))
+
+    cpdef bergman_complex(self):
+        r"""
+        Return the Bergman complex of ``self``.
+
+        Let `L` be the lattice of flats of a matroid `M` with the minimum and
+        maximum elements removed. The *Bergman complex* of a matroid `M` is the
+        order complex of `L`.
+
+        OUTPUT:
+
+        A simplicial complex as just described.
+
+        EXAMPLES::
+
+            sage: M = matroids.named_matroids.Fano()
+            sage: B = M.bergman_complex(); B
+            Simplicial complex with 14 vertices and 21 facets
+
+        .. SEEALSO::
+
+            :meth:`M.augmented_bergman_complex() <sage.matroids.matroid.Matroid.augmented_bergman_complex>`
+        """
+        L = self.lattice_of_flats()
+        return L.subposet(L.list()[1: -1]).order_complex()
+
+    cpdef augmented_bergman_complex(self):
+        r"""
+        Return the augmented Bergman complex of ``self``.
+
+        Given a matroid `M` with ground set `E=\{1,2,\ldots,n\}`,
+        the *augmented Bergman complex* can be seen as a hybrid of the complex
+        of independent sets of `M` and the Bergman complex of `M`. It is defined
+        as the simplicial complex on vertex set
+
+        .. MATH::
+
+            \{y_1,\ldots,y_n\}\cup\{x_F:\text{ proper flats } F\subsetneq E\},
+
+        with simplices given by
+
+        .. MATH::
+
+            \{y_i\}_{i\in I}\cup\{x_{F_1},\ldots,x_{F_\ell}\},
+
+        for which `I` is an independent set and `I\subseteq F_1\subsetneq F_2
+        \subsetneq\cdots\subsetneq F_\ell`.
+
+        OUTPUT:
+
+        A simplicial complex as just described.
+
+        EXAMPLES::
+
+            sage: M = matroids.named_matroids.Fano()
+            sage: A = M.augmented_bergman_complex(); A
+            Simplicial complex with 22 vertices and 91 facets
+
+            sage: M = matroids.Uniform(2,3)
+            sage: A = M.augmented_bergman_complex(); A
+            Simplicial complex with 7 vertices and 9 facets
+
+        Both the independent set complex of the matroid and the usual
+        Bergman complex are subcomplexes of the augmented Bergman complex.
+        The vertices of the complex are labeled by ``L`` when they belong
+        to the independent set complex and ``R`` when they belong to the
+        (cone of) the Bergman complex. The cone point is ``'R[]'``::
+
+            sage: sorted(A.faces()[0])
+            [('L0',), ('L1',), ('L2',), ('R[0]',), ('R[1]',), ('R[2]',), ('R[]',)]
+            sage: sorted(map(sorted, A.faces()[1]))
+            [['L0', 'L1'],
+             ['L0', 'L2'],
+             ['L0', 'R[0]'],
+             ['L1', 'L2'],
+             ['L1', 'R[1]'],
+             ['L2', 'R[2]'],
+             ['R[0]', 'R[]'],
+             ['R[1]', 'R[]'],
+             ['R[2]', 'R[]']]
+
+        .. SEEALSO::
+
+            :meth:`M.bergman_complex() <sage.matroids.matroid.Matroid.bergman_complex>`
+
+        .. TODO::
+
+            It is possible that this method could be optimized by building up
+            the maximal chains using a sort of dynamic programming approach.
+
+        REFERENCES:
+
+        - [BHMPW20a]_
+        - [BHMPW20b]_
+        """
+        # Construct independent set complex from bases
+        from sage.topology.simplicial_complex import SimplicialComplex
+        IM = SimplicialComplex(self.bases())
+
+        LM = self.lattice_of_flats()
+
+        # Take disjoint union of independent set and empty complex
+        # elements of IM are prefixed L
+        # elements of coned Bergman will have prefix R, but are not
+        # constructed yet.
+        DM = IM.disjoint_union(SimplicialComplex())
+
+        ## simplices are \{y_i\}_{i\in I}\cup\{x_{F_1},\ldots,x_{F_\ell}\},
+        ## by [BMHPW20a]_ thm 4 it is pure of dimension r(M)-1
+
+        for c in LM.chains(exclude=LM.maximal_elements()):
+            if c: # the facets of IM are already present
+                # get the cardinality of intersection of facet with IM
+                r = self.rank() - len(c) 
+                
+                # get candidate independent_sets
+                for I in self.independent_r_sets(r):
+                    if I.issubset(c[0]):
+
+                        # add the facet
+                        DM.add_face([f'L{i}' for i in I] +
+                                    [f'R{sorted(F)}' for F in c])
+        return DM
 
     def union(self, matroids):
         r"""

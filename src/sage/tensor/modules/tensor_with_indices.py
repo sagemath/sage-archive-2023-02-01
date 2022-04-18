@@ -416,7 +416,7 @@ class TensorWithIndices(SageObject):
                               # symmetries or contractions are indicated in the
                               # indices)
 
-        # Check wether the usual convention for indices, symmetries and
+        # Check whether the usual convention for indices, symmetries and
         # contractions are respected. This includes restrictions on the
         # indices symbols used, non nested (anti)symmetries,
         # (co/contra)variant  identification of repeated indices, as well
@@ -613,7 +613,7 @@ class TensorWithIndices(SageObject):
             sage: ai = TensorWithIndices(a, '^ij')
             sage: bi = TensorWithIndices(b, '_k')
             sage: s = ai.__mul__(bi) ; s  # no repeated indices ==> tensor product
-            Type-(2,1) tensor a*b on the 3-dimensional vector space M over the
+            Type-(2,1) tensor a⊗b on the 3-dimensional vector space M over the
              Rational Field
             sage: s == a*b
             True
@@ -686,7 +686,7 @@ class TensorWithIndices(SageObject):
         r"""
         Addition between tensors with indices.
 
-        The underlying tensor of the ouput is the sum of the underlying tensor
+        The underlying tensor of the output is the sum of the underlying tensor
         of ``self`` with the underlying tensor of ``other`` whose entries have
         be permuted to respect Einstein summation usual conventions. The
         indices names of the output are those of self.
@@ -744,9 +744,9 @@ class TensorWithIndices(SageObject):
 
     def __sub__(self, other):
         r"""
-        Substraction between tensors with indices.
+        Subtraction between tensors with indices.
 
-        The underlying tensor of the ouput is  the underlying tensor of
+        The underlying tensor of the output is the underlying tensor of
         ``self`` minus the underlying tensor of ``other`` whose entries have
         be permuted to respect Einstein summation usual conventions. The
         indices names of the output are those of self.
@@ -905,7 +905,7 @@ class TensorWithIndices(SageObject):
         - ``permutation`` -- permutation that has to be applied to the indices
           the input should be a ``list`` containing the second line of the permutation
           in Cauchy notation.
-        
+
         OUTPUT:
 
         - an instance of ``TensorWithIndices`` whose indices names and place
@@ -972,7 +972,7 @@ class TensorWithIndices(SageObject):
 
         if decomposition_as_string != "<identity ...>":
             decomposition_as_string = [
-                # Two cases wether the term appear with an exponent or not
+                # Two cases whether the term appear with an exponent or not
                 ("^" in term)*term.split("^") + ("^" not in term)*(term.split("^")+['1'])
                 for term in decomposition_as_string.replace("x","").split("*")
             ]

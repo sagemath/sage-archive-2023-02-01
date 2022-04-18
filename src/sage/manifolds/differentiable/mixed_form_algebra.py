@@ -10,7 +10,9 @@ structure of a graded algebra. See :class:`MixedFormAlgebra` for details.
 
 This algebra is endowed with a natural chain complex structure induced by the
 exterior derivative. The corresponding homology is called *de Rham cohomology*.
-See :class:`DeRhamCohomologyRing` for details.
+See
+:class:`~sage.manifolds.differentiable.de_rham_cohomology.DeRhamCohomologyRing`
+for details.
 
 AUTHORS:
 
@@ -75,7 +77,9 @@ class MixedFormAlgebra(Parent, UniqueRepresentation):
             \xrightarrow{\mathrm{d}_{n}} 0.
 
     The induced cohomology is called *de Rham cohomology*, see
-    :meth:`cohomology` or :class:`DeRhamCohomologyRing` respectively.
+    :meth:`cohomology` or
+    :class:`~sage.manifolds.differentiable.de_rham_cohomology.DeRhamCohomologyRing`
+    respectively.
 
     INPUT:
 
@@ -270,8 +274,8 @@ class MixedFormAlgebra(Parent, UniqueRepresentation):
         """
         res = self.element_class(self)
         dom = self._domain
-        res[:] = [dom.diff_form_module(j, self._dest_map)._an_element_()
-                  for j in self.irange()]
+        res._comp = [dom.diff_form_module(j, self._dest_map)._an_element_()
+                     for j in self.irange()]
         return res
 
     def _coerce_map_from_(self, S):
@@ -318,8 +322,7 @@ class MixedFormAlgebra(Parent, UniqueRepresentation):
             return True
         # Let us check for each degree consecutively:
         dom = self._domain
-        return any(dom.diff_form_module(deg,
-                                        self._dest_map).has_coerce_map_from(S)
+        return any(dom.diff_form_module(deg, self._dest_map).has_coerce_map_from(S)
                    for deg in self.irange())
 
     @cached_method
@@ -337,9 +340,10 @@ class MixedFormAlgebra(Parent, UniqueRepresentation):
 
         """
         res = self.element_class(self, name='zero', latex_name='0')
-        res._comp[:] = [self._domain.diff_form_module(j,
-                        dest_map=self._dest_map).zero() for j in self.irange()]
+        res._comp = [self._domain.diff_form_module(j, dest_map=self._dest_map).zero()
+                     for j in self.irange()]
         res._is_zero = True  # This element is certainly zero
+        res.set_immutable()
         return res
 
     @cached_method
@@ -357,10 +361,10 @@ class MixedFormAlgebra(Parent, UniqueRepresentation):
 
         """
         res = self.element_class(self, name='one', latex_name='1')
-        res._comp[0] = self._domain.one_scalar_field()
-        res._comp[1:] = [self._domain.diff_form_module(j,
-                         dest_map=self._dest_map).zero()
-                            for j in self.irange(1)]
+        res._comp = [self._domain.one_scalar_field(),
+                     *(self._domain.diff_form_module(j, dest_map=self._dest_map).zero()
+                       for j in self.irange(1))]
+        res.set_immutable()
         return res
 
     def vector_field_module(self):
@@ -454,8 +458,8 @@ class MixedFormAlgebra(Parent, UniqueRepresentation):
               To:   Free module Omega^1(M) of 1-forms on the 2-dimensional
                differentiable manifold M
             sage: f = M.scalar_field(x, name='f'); f.display()
-            f: M --> R
-               (x, y) |--> x
+            f: M → ℝ
+               (x, y) ↦ x
             sage: d0(f).display()
             df = dx
 

@@ -29,19 +29,16 @@ import os
 import random
 import re
 import shutil
-import subprocess
+from subprocess import call, PIPE
 
-from sage.misc import sage_eval
 from sage.misc.cachefunc import cached_function, cached_method
-from sage.misc.sage_ostools import have_program
 from sage.misc.temporary_file import tmp_dir
-
+from sage.structure.sage_object import SageObject
 
 from sage.misc.lazy_import import lazy_import
 lazy_import('sage.misc.html', ('MathJax', 'MathJaxExpr'), deprecation=31536)
 
-COMMON_HEADER = \
-r'''\usepackage{amsmath}
+COMMON_HEADER = r'''\usepackage{amsmath}
 \usepackage{amssymb}
 \usepackage{amsfonts}
 \usepackage{graphicx}
@@ -51,8 +48,7 @@ r'''\usepackage{amsmath}
 \usepackage[T1]{fontenc}
 '''
 
-LATEX_HEADER = (
-r'''\documentclass{article}
+LATEX_HEADER = (r'''\documentclass{article}
 ''' + COMMON_HEADER +
 r'''\oddsidemargin 0.0in
 \evensidemargin 0.0in
@@ -63,8 +59,7 @@ r'''\oddsidemargin 0.0in
 \textheight 9.0in
 ''')
 
-SLIDE_HEADER = (
-r'''\documentclass[a0,8pt]{beamer}
+SLIDE_HEADER = (r'''\documentclass[a0,8pt]{beamer}
 ''' + COMMON_HEADER +
 r'''\textwidth=1.1\textwidth
 \textheight=2\textheight
@@ -72,11 +67,11 @@ r'''\textwidth=1.1\textwidth
 
 
 @cached_function
-def have_latex():
+def have_latex() -> bool:
     """
     Return ``True`` if this computer has the program ``latex``.
 
-    If this computer doesn't have LaTeX installed, you may obtain it
+    If this computer does not have LaTeX installed, you may obtain it
     from http://ctan.org/.
 
     EXAMPLES::
@@ -85,15 +80,19 @@ def have_latex():
         sage: have_latex() # random
         True
     """
-    return have_program('latex')
+    from .superseded import deprecation
+    deprecation(32650, 'the function have_latex() is replaced by: '
+                'from sage.features.latex import latex;latex().is_present()')
+    from sage.features.latex import latex
+    return latex().is_present()
 
 
 @cached_function
-def have_pdflatex():
+def have_pdflatex() -> bool:
     """
     Return ``True`` if this computer has the program ``pdflatex``.
 
-    If this computer doesn't have pdflatex installed, you may obtain it
+    If this computer does not have pdflatex installed, you may obtain it
     from http://ctan.org/.
 
     EXAMPLES::
@@ -102,15 +101,19 @@ def have_pdflatex():
         sage: have_pdflatex() # random
         True
     """
-    return have_program('pdflatex')
+    from .superseded import deprecation
+    deprecation(32650, 'the function have_pdflatex() is replaced by: '
+                'from sage.features.latex import pdflatex;pdflatex().is_present()')
+    from sage.features.latex import pdflatex
+    return pdflatex().is_present()
 
 
 @cached_function
-def have_xelatex():
+def have_xelatex() -> bool:
     """
     Return ``True`` if this computer has the program ``xelatex``.
 
-    If this computer doesn't have xelatex installed, you may obtain it
+    If this computer does not have xelatex installed, you may obtain it
     from http://ctan.org/.
 
     EXAMPLES::
@@ -119,15 +122,19 @@ def have_xelatex():
         sage: have_xelatex() # random
         True
     """
-    return have_program('xelatex')
+    from .superseded import deprecation
+    deprecation(32650, 'the function have_xelatex() is replaced by: '
+                'from sage.features.latex import xelatex;xelatex().is_present()')
+    from sage.features.latex import xelatex
+    return xelatex().is_present()
 
 
 @cached_function
-def have_dvipng():
+def have_dvipng() -> bool:
     """
     Return ``True`` if this computer has the program ``dvipng``.
 
-    If this computer doesn't have dvipng installed, you may obtain it
+    If this computer does not have dvipng installed, you may obtain it
     from http://sourceforge.net/projects/dvipng/
 
     EXAMPLES::
@@ -136,15 +143,18 @@ def have_dvipng():
         sage: have_dvipng() # random
         True
     """
-    return have_program('dvipng')
-
+    from .superseded import deprecation
+    deprecation(32650, 'the function have_dvipng() is replaced by: '
+                'from sage.features.dvipng import dvipng;dvipng().is_present()')
+    from sage.features.dvipng import dvipng
+    return dvipng().is_present()
 
 @cached_function
-def have_convert():
+def have_convert() -> bool:
     """
     Return ``True`` if this computer has the program ``convert``.
 
-    If this computer doesn't have convert installed, you may obtain it
+    If this computer does not have convert installed, you may obtain it
     (along with the rest of the ImageMagick suite) from
     http://www.imagemagick.org
 
@@ -154,7 +164,11 @@ def have_convert():
         sage: have_convert() # random
         True
     """
-    return have_program('convert')
+    from .superseded import deprecation
+    deprecation(32650, 'the function have_convert() is replaced by: '
+                'from sage.features.imagemagick import imagemagick;imagemagick().is_present()')
+    from sage.features.imagemagick import ImageMagick
+    return ImageMagick().is_present()
 
 
 def list_function(x):
@@ -233,6 +247,7 @@ def bool_function(x):
     """
     return r"\mathrm{%s}" % bool(x)
 
+
 def builtin_constant_function(x):
     r"""
     Returns the LaTeX code for a builtin constant ``x``.
@@ -258,6 +273,7 @@ def builtin_constant_function(x):
     """
     return "\\mbox{\\rm %s}" % x
 
+
 def None_function(x):
     r"""
     Returns the LaTeX code for ``None``.
@@ -274,6 +290,7 @@ def None_function(x):
     """
     assert x is None
     return r"\mathrm{None}"
+
 
 def str_function(x):
     r"""
@@ -338,6 +355,7 @@ def str_function(x):
         x = "\\begin{array}{l}\n%s\n\\end{array}" % x
     return x
 
+
 def dict_function(x):
     r"""
     Return the LaTeX code for a dictionary ``x``.
@@ -364,6 +382,7 @@ def dict_function(x):
 
 # One can add to the latex_table in order to install latexing
 # functionality for other types.  (Suggested by Robert Kerns of Enthought.)
+
 
 def float_function(x):
     r"""
@@ -415,7 +434,8 @@ class LatexExpr(str):
     Normally, objects of this class are created by a :func:`latex` call. It is
     also possible to generate :class:`LatexExpr` directly from a string, which
     must contain valid LaTeX code for typesetting in math mode (without dollar
-    signs). In the Sage notebook, use :func:`pretty_print` or the "Typeset"
+    signs). In the Sage notebook, use
+    :func:`~sage.repl.rich_output.pretty_print.pretty_print` or the "Typeset"
     checkbox to actually see the typeset LaTeX code; alternatively, from
     either the command-line or the notebook, use the :func:`view` function.
 
@@ -471,7 +491,7 @@ class LatexExpr(str):
             sage: type(o)
             <class 'sage.misc.latex.LatexExpr'>
 
-        We add extra space only if it wasn't there yet::
+        We add extra space only if it was not there yet::
 
             sage: LatexExpr("foo ") + LatexExpr("bar")
             foo bar
@@ -529,7 +549,8 @@ class LatexExpr(str):
         """
         return str(self)
 
-def has_latex_attr(x):
+
+def has_latex_attr(x) -> bool:
     """
     Return ``True`` if ``x`` has a ``_latex_`` attribute, except if ``x``
     is a ``type``, in which case return ``False``.
@@ -546,7 +567,7 @@ def has_latex_attr(x):
     but calling it is broken::
 
         sage: T = type(identity_matrix(3)); T
-        <type 'sage.matrix.matrix_integer_dense.Matrix_integer_dense'>
+        <class 'sage.matrix.matrix_integer_dense.Matrix_integer_dense'>
         sage: hasattr(T, '_latex_')
         True
         sage: T._latex_()
@@ -558,7 +579,6 @@ def has_latex_attr(x):
     """
     return hasattr(x, '_latex_') and not isinstance(x, type)
 
-from sage.structure.sage_object import SageObject
 
 class _Latex_prefs_object(SageObject):
     """
@@ -585,12 +605,14 @@ class _Latex_prefs_object(SageObject):
         self._option["engine"] = "pdflatex"
         self._option["engine_name"] = "LaTeX"
 
+
 _Latex_prefs = _Latex_prefs_object()
 
 ##############################################################
 # The Latex class is used to make slides and LaTeX output in
 # the Sage Notebook
 #########################################
+
 
 def latex_extra_preamble():
     r"""
@@ -623,6 +645,8 @@ def latex_extra_preamble():
         \newcommand{\RDF}{\Bold{R}}
         \newcommand{\RIF}{\Bold{I} \Bold{R}}
         \newcommand{\RLF}{\Bold{R}}
+        \newcommand{\SL}{\mathrm{SL}}
+        \newcommand{\PSL}{\mathrm{PSL}}
         \newcommand{\Bold}[1]{\mathbf{#1}}
         <BLANKLINE>
     """
@@ -631,12 +655,13 @@ def latex_extra_preamble():
                      "\n".join(sage_latex_macros()),
                      _Latex_prefs._option['macros']])
 
+
 def _run_latex_(filename, debug=False, density=150, engine=None, png=False, do_in_background=False):
     """
     This runs LaTeX on the TeX file "filename.tex".  It produces files
     "filename.dvi" (or "filename.pdf"` if engine is either ``pdflatex``
     or ``xelatex``) and if ``png`` is ``True``, "filename.png".  If ``png``
-    is ``True`` and dvipng can't convert the dvi file to png (because of
+    is ``True`` and dvipng cannot convert the dvi file to png (because of
     postscript specials or other issues), then dvips is called, and the
     PS file is converted to a png file.
 
@@ -675,7 +700,7 @@ def _run_latex_(filename, debug=False, density=150, engine=None, png=False, do_i
 
        If ``png`` is ``True``, then when using latex (the default), you
        must have 'dvipng' (or 'dvips' and 'convert') installed on your
-       operating system, or this command won't work.  When using
+       operating system, or this command will not work.  When using
        pdflatex or xelatex, you must have 'convert' installed.
 
     EXAMPLES::
@@ -684,34 +709,28 @@ def _run_latex_(filename, debug=False, density=150, engine=None, png=False, do_i
         sage: file = os.path.join(SAGE_TMP, "temp.tex")
         sage: with open(file, 'w') as O:
         ....:     _ = O.write(_latex_file_([ZZ['x'], RR]))
-        sage: _run_latex_(file) # random - depends on whether latex is installed
+        sage: _run_latex_(file) # random, optional - latex
         'dvi'
     """
     if engine is None:
         engine = _Latex_prefs._option["engine"]
 
     if not engine or engine == "latex":
-        if not have_latex():
-            print("Error: LaTeX does not seem to be installed.  Download it from")
-            print("ctan.org and try again.")
-            return "Error"
+        from sage.features.latex import latex
+        latex().require()
         command = "latex"
         # 'suffix' is used in the 'convert' command list
         suffix = "ps"
         return_suffix = "dvi"
     elif engine == "pdflatex":
-        if not have_pdflatex():
-            print("Error: PDFLaTeX does not seem to be installed.  Download it from")
-            print("ctan.org and try again.")
-            return "Error"
+        from sage.features.latex import pdflatex
+        pdflatex().require()
         command = "pdflatex"
         suffix = "pdf"
         return_suffix = "pdf"
     elif engine == "xelatex":
-        if not have_xelatex():
-            print("Error: XeLaTeX does not seem to be installed.  Download it from")
-            print("ctan.org and try again.")
-            return "Error"
+        from sage.features.latex import xelatex
+        xelatex().require()
         command = "xelatex"
         suffix = "pdf"
         return_suffix = "pdf"
@@ -719,8 +738,11 @@ def _run_latex_(filename, debug=False, density=150, engine=None, png=False, do_i
         raise ValueError("Unsupported LaTeX engine.")
 
     # if png output + latex, check to see if dvipng or convert is installed.
+    from sage.features.imagemagick import ImageMagick
+    from sage.features.dvipng import dvipng
     if png:
-        if (not engine or engine == "latex") and not (have_dvipng() or have_convert()):
+        if ((not engine or engine == "latex")
+            and not (dvipng().is_present() or ImageMagick().is_present())):
             print()
             print("Error: neither dvipng nor convert (from the ImageMagick suite)")
             print("appear to be installed. Displaying LaTeX, PDFLaTeX output")
@@ -731,22 +753,10 @@ def _run_latex_(filename, debug=False, density=150, engine=None, png=False, do_i
             print("http://www.imagemagick.org to download these programs.")
             return "Error"
     # if png output + pdflatex, check to see if convert is installed.
-        elif engine == "pdflatex" and not have_convert():
-            print()
-            print("Error: convert (from the ImageMagick suite) does not")
-            print("appear to be installed. Displaying PDFLaTeX output")
-            print("requires this program, so please install and try again.")
-            print()
-            print("Go to http://www.imagemagick.org to download it.")
-            return "Error"
-        elif engine == "xelatex" and not have_convert():
-            print()
-            print("Error: convert (from the ImageMagick suite) does not")
-            print("appear to be installed. Displaying XeLaTeX output")
-            print("requires this program, so please install and try again.")
-            print()
-            print("Go to http://www.imagemagick.org to download it.")
-            return "Error"
+        elif engine == "pdflatex":
+            ImageMagick().require()
+        elif engine == "xelatex":
+            ImageMagick().require()
     # check_validity: check to see if the dvi file is okay by trying
     # to convert to a png file.  if this fails, return_suffix will be
     # set to "pdf".  return_suffix is the return value for this
@@ -755,14 +765,14 @@ def _run_latex_(filename, debug=False, density=150, engine=None, png=False, do_i
     # thus if not png output, check validity of dvi output if dvipng
     # or convert is installed.
     else:
-        check_validity = have_dvipng()
+        check_validity = dvipng().is_present()
     # set up filenames, other strings:
     base, filename = os.path.split(filename)
     filename = os.path.splitext(filename)[0]  # get rid of extension
     if len(filename.split()) > 1:
         raise ValueError("filename must contain no spaces")
     if not debug:
-        redirect = subprocess.PIPE
+        redirect = PIPE
     else:
         redirect = None
     # if do_in_background:
@@ -771,31 +781,33 @@ def _run_latex_(filename, debug=False, density=150, engine=None, png=False, do_i
     #     background = ''
 
     # Define the commands to be used:
-    lt = ['sage-native-execute', command, r'\nonstopmode', r'\input{' + filename + '.tex}']
+    lt = [command, r'\nonstopmode', r'\input{' + filename + '.tex}']
     # dvipng is run with the 'picky' option: this means that if
     # there are warnings, no png file is created.
-    dvipng = ['sage-native-execute', 'dvipng', '--picky', '-q', '-T', 'tight',
+    dvipng = ['dvipng', '--picky', '-q', '-T', 'tight',
               '-D', str(density), filename + '.dvi', '-o', filename + '.png']
 
-    dvips = ['sage-native-execute', 'dvips', filename + '.dvi']
+    dvips = ['dvips', filename + '.dvi']
 
-    ps2pdf = ['sage-native-execute', 'ps2pdf', filename + '.ps']
+    ps2pdf = ['ps2pdf', filename + '.ps']
 
     # We seem to need a larger size when using convert compared to
     # when using dvipng:
     density = int(1.4 * density / 1.3)
-    convert = ['sage-native-execute', 'convert', '-density',
+    convert = ['convert', '-density',
                '{0}x{0}'.format(density), '-trim', filename + '.' + suffix,
                filename + '.png']
 
-    e = False # it is possible to get through the following commands
-              # without running a program, so in that case we force error
+    # it is possible to get through the following commands
+    # without running a program, so in that case we force error
+    e = False
 
     # our standard way of calling programs here; change this if we want
     # finer-grained analysis of the return code. Think of the output as
     # a boolean: "the command exited normally"
-    subpcall = lambda x: not subprocess.call(x, stdout=redirect,
-                                             stderr=redirect, cwd=base)
+    def subpcall(x):
+        return not call(x, stdout=redirect,
+                        stderr=redirect, cwd=base)
     if engine == "pdflatex" or engine == "xelatex":
         if debug:
             print(lt)
@@ -806,7 +818,7 @@ def _run_latex_(filename, debug=False, density=150, engine=None, png=False, do_i
             e = e and subpcall(convert)
     else:  # latex
         if (png or check_validity):
-            if have_dvipng():
+            if dvipng().is_present():
                 if debug:
                     print(lt)
                     print(dvipng)
@@ -819,7 +831,7 @@ def _run_latex_(filename, debug=False, density=150, engine=None, png=False, do_i
                 # fail also, so we'll still catch the error.)
                 if dvipng_error:
                     if png:
-                        if have_convert():
+                        if ImageMagick().is_present():
                             if debug:
                                 print("'dvipng' failed; trying 'convert' instead...")
                                 print(dvips)
@@ -842,7 +854,7 @@ def _run_latex_(filename, debug=False, density=150, engine=None, png=False, do_i
                                 print("error running dvips and ps2pdf; trying pdflatex instead...")
                                 print(pdflt)
                             e = subpcall(pdflt)
-            else:  # don't have dvipng, so must have convert.  run latex, dvips, convert.
+            else:  # do not have dvipng, so must have convert.  run latex, dvips, convert.
                 if debug:
                     print(lt)
                     print(dvips)
@@ -944,7 +956,7 @@ class Latex(LatexCall):
     .. WARNING::
 
        You must have dvipng (or dvips and convert) installed
-       on your operating system, or this command won't work.
+       on your operating system, or this command will not work.
 
     EXAMPLES::
 
@@ -992,9 +1004,9 @@ class Latex(LatexCall):
             ' \\geq '
         """
         import operator
-        return {operator.lt:' < ', operator.le:' \\leq ',
-                operator.eq:' = ', operator.ne:' \\neq ',
-                operator.ge:' \\geq ', operator.gt:' > '}
+        return {operator.lt: ' < ', operator.le: ' \\leq ',
+                operator.eq: ' = ', operator.ne: ' \\neq ',
+                operator.ge: ' \\geq ', operator.gt: ' > '}
 
     def _latex_preparse(self, s, locals):
         r"""
@@ -1007,24 +1019,25 @@ class Latex(LatexCall):
             sage: sage.misc.latex.Latex()._latex_preparse(r'\sage{s}', locals())
             '2'
         """
+        from sage.misc.sage_eval import sage_eval
         i0 = -1
         while True:
             i = s.find('\\sage{')
             if i == -1 or i == i0:
                 return s
             i0 = i
-            t = s[i+6:]
+            t = s[i + 6:]
             j = t.find('}')
             if j == -1:
                 return s
 
             var = t[:j]
             try:
-                k = str(latex(sage_eval.sage_eval(var, locals)))
+                k = str(latex(sage_eval(var, locals)))
             except Exception as msg:
                 print(msg)
                 k = '\\mbox{\\rm [%s undefined]}' % var
-            s = s[:i] + k + t[j+1:]
+            s = s[:i] + k + t[j + 1:]
 
     def eval(self, x, globals, strip=False, filename=None, debug=None,
              density=None, pdflatex=None, engine=None, locals={}):
@@ -1073,7 +1086,7 @@ class Latex(LatexCall):
             sage: fn = tmp_filename()
             sage: latex.eval("$\\ZZ[x]$", locals(), filename=fn) # not tested
             ''
-            sage: latex.eval(r"\ThisIsAnInvalidCommand", {}) # optional -- ImageMagick
+            sage: latex.eval(r"\ThisIsAnInvalidCommand", {}) # optional -- latex ImageMagick
             An error occurred...
             No pages of output...
         """
@@ -1082,7 +1095,7 @@ class Latex(LatexCall):
         if density is None:
             density = self.__density
         if filename is None:
-            filename = 'sage%s' % random.randint(1, 100) # to defeat browser caches
+            filename = 'sage%s' % random.randint(1, 100)  # to defeat browser caches
         else:
             filename = os.path.splitext(filename)[0]  # get rid of extension
         base = tmp_dir()
@@ -1115,7 +1128,7 @@ class Latex(LatexCall):
             else:
                 engine = self.__engine
         e = _run_latex_(os.path.join(base, filename + ".tex"), debug=debug,
-                               density=density, engine=engine, png=True)
+                        density=density, engine=engine, png=True)
         if e.find("Error") == -1:
             shutil.copy(os.path.join(base, filename + ".png"),
                         os.path.join(orig_base, filename + ".png"))
@@ -1124,7 +1137,7 @@ class Latex(LatexCall):
         else:
             return
 
-    def blackboard_bold(self, t = None):
+    def blackboard_bold(self, t=None):
         r"""nodetex
         Controls whether Sage uses blackboard bold or ordinary bold
         face for typesetting ZZ, RR, etc.
@@ -1153,7 +1166,6 @@ class Latex(LatexCall):
         if t is None:
             return _Latex_prefs._option["blackboard_bold"]
         from .latex_macros import sage_configurable_latex_macros
-        global sage_configurable_latex_macros
         old = _Latex_prefs._option["blackboard_bold"]
         _Latex_prefs._option["blackboard_bold"] = bool(t)
         if bool(old) != bool(t):
@@ -1331,7 +1343,7 @@ class Latex(LatexCall):
             _Latex_prefs._option['matrix_column_alignment'] = align
 
     @cached_method
-    def has_file(self, file_name):
+    def has_file(self, file_name) -> bool:
         """
         INPUT:
 
@@ -1347,15 +1359,15 @@ class Latex(LatexCall):
             False
         """
         assert isinstance(file_name, str)
-        from subprocess import call, PIPE
         try:
-            retcode = call("kpsewhich %s"%file_name, shell=True, stdout=PIPE, stderr=PIPE)
+            retcode = call("kpsewhich %s" % file_name, shell=True,
+                           stdout=PIPE, stderr=PIPE)
             return (retcode == 0)
         except OSError:
             return False
 
     @cached_method
-    def check_file(self, file_name, more_info = ""):
+    def check_file(self, file_name, more_info=""):
         """
         INPUT:
 
@@ -1388,7 +1400,6 @@ class Latex(LatexCall):
 Warning: `{}` is not part of this computer's TeX installation.""".format(file_name))
             if more_info:
                 print(more_info)
-
 
     def extra_macros(self, macros=None):
         r"""nodetex
@@ -1534,17 +1545,17 @@ Warning: `{}` is not part of this computer's TeX installation.""".format(file_na
 
         TESTS::
 
-            sage: latex.add_package_to_preamble_if_available("xypic")
+            sage: latex.add_package_to_preamble_if_available("tkz-graph")
             sage: latex.add_package_to_preamble_if_available("nonexistent_package")
-            sage: latex.extra_preamble()       # optional - latex
-            '\\usepackage{xypic}\n'
+            sage: latex.extra_preamble()  # optional - latex latex_package_tkz_graph
+            '\\usepackage{tkz-graph}\n'
             sage: latex.extra_preamble('')
         """
         assert isinstance(package_name, str)
-        if self.has_file(package_name+".sty"):
-            self.add_to_preamble("\\usepackage{%s}\n"%package_name)
+        if self.has_file(package_name + ".sty"):
+            self.add_to_preamble("\\usepackage{%s}\n" % package_name)
 
-    def engine(self, e = None):
+    def engine(self, e=None):
         r"""
         Set Sage to use ``e`` as latex engine when typesetting with
         :func:`view`, in ``%latex`` cells, etc.
@@ -1590,20 +1601,22 @@ Warning: `{}` is not part of this computer's TeX installation.""".format(file_na
             raise ValueError("%s is not a supported LaTeX engine. Use latex, pdflatex, or xelatex" % e)
 
 # Note: latex used to be a separate function, which by default was
-# only loaded in command-line mode: in the notebook, all_notebook.py
-# defined (and still defines) latex by 'latex = Latex(density=130)'.
+# only loaded in command-line mode: in the old notebook,
+# latex was defined by 'latex = Latex(density=130)'.
 # Meanwhile, the __call__ method for Latex used to call the latex
 # function.  This has been changed around so that the contents of the
 # old latex function are now in Latex.__call__; thus the following
 # assignment.
 
+
 latex = Latex()
 # Ensure that latex appear in the sphinx doc as a function
 # so that the link :func:`latex` is correctly set up.
-latex.__doc__  = Latex.__call__.__doc__
+latex.__doc__ = Latex.__call__.__doc__
 #########################################
 
-def _latex_file_(objects, title='SAGE', debug=False, \
+
+def _latex_file_(objects, title='SAGE', debug=False,
                  sep='', tiny=False, math_left='\\[',
                  math_right='\\]',
                  extra_preamble=''):
@@ -1687,12 +1700,12 @@ def _latex_file_(objects, title='SAGE', debug=False, \
         objects = [objects]
 
     if tiny:
-        size='\\tiny\n'
+        size = '\\tiny\n'
     else:
-        size=''
+        size = ''
 
-    formatted_title = "\n\\begin{center}{\\Large\\bf %s}\\end{center}\n"%str(title) if title else ""
-    s = '%s\n\\begin{document}%s%s'%(extra_preamble, formatted_title, size)
+    formatted_title = "\n\\begin{center}{\\Large\\bf %s}\\end{center}\n" % str(title) if title else ""
+    s = '%s\n\\begin{document}%s%s' % (extra_preamble, formatted_title, size)
 
     if title:
         s += '\\vspace{40mm}'
@@ -1704,17 +1717,17 @@ def _latex_file_(objects, title='SAGE', debug=False, \
                 # Resize the pgf figure to the text width if larger.
                 s += r'\begingroup\makeatletter\@ifundefined{pgffigure}{\newsavebox{\pgffigure}}{}\makeatother\endgroup'
                 s += r'\begin{lrbox}{\pgffigure}' + '\n'
-                s += '%s'%L
+                s += '%s' % L
                 s += r'\end{lrbox}'
                 s += r'\resizebox{\ifdim\width>\textwidth\textwidth\else\width\fi}{!}{\usebox{\pgffigure}}' + '\n'
             elif '\\begin{verbatim}' not in L:
-                s += '%s%s%s'%(math_left, L, math_right)
+                s += '%s%s%s' % (math_left, L, math_right)
             else:
-                s += '%s'%L
-            if i < len(objects)-1:
-                s += '\n\n%s\n\n'%sep
+                s += '%s' % L
+            if i < len(objects) - 1:
+                s += '\n\n%s\n\n' % sep
     else:
-        s += "\n\n".join([str(x) for x in objects])
+        s += "\n\n".join(str(x) for x in objects)
 
     # latex_extra_preamble() is called here and not before because some objects
     # may require additional packages to be displayed in LaTeX. Hence, the call
@@ -1727,6 +1740,7 @@ def _latex_file_(objects, title='SAGE', debug=False, \
         print(s)
 
     return s
+
 
 def view(objects, title='Sage', debug=False, sep='', tiny=False,
         pdflatex=None, engine=None, viewer=None, tightpage=True, margin=None,
@@ -1839,11 +1853,11 @@ def view(objects, title='Sage', debug=False, sep='', tiny=False,
 
         sage: from sage.misc.latex import _run_latex_, _latex_file_
         sage: g = sage.misc.latex.latex_examples.graph()
-        sage: latex.add_to_preamble(r"\usepackage{tkz-graph}")
+        sage: latex.add_to_preamble(r"\usepackage{tkz-graph}")  # optional - latex_package_tkz_graph
         sage: file = os.path.join(SAGE_TMP, "temp.tex")
         sage: with open(file, 'w') as O:
         ....:     _ = O.write(_latex_file_(g))
-        sage: _run_latex_(file, engine="pdflatex") # optional - latex
+        sage: _run_latex_(file, engine="pdflatex") # optional - latex latex_package_tkz_graph
         'pdf'
 
         sage: view(4, margin=5, debug=True)     # not tested
@@ -1912,13 +1926,12 @@ def view(objects, title='Sage', debug=False, sep='', tiny=False,
     output_file = os.path.join(tmp, "sage." + suffix)
     # this should get changed if we switch the stuff in misc.viewer to
     # producing lists
-    if not viewer.startswith('sage-native-execute '):
-        viewer = 'sage-native-execute ' + viewer
     if debug:
         print('viewer: "{}"'.format(viewer))
-    subprocess.call('%s %s' % (viewer, output_file), shell=True,
-                    stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+    call('%s %s' % (viewer, output_file), shell=True,
+         stdout=PIPE, stderr=PIPE)
     return
+
 
 def png(x, filename, density=150, debug=False,
         do_in_background=False, tiny=False, pdflatex=True, engine='pdflatex'):
@@ -1951,7 +1964,7 @@ def png(x, filename, density=150, debug=False,
     EXAMPLES::
 
         sage: from sage.misc.latex import png
-        sage: png(ZZ[x], os.path.join(SAGE_TMP, "zz.png")) # random - error if no latex
+        sage: png(ZZ[x], os.path.join(SAGE_TMP, "zz.png")) # random, optional - latex imagemagick
     """
     if not pdflatex:
         engine = "latex"
@@ -1984,6 +1997,7 @@ def png(x, filename, density=150, debug=False,
         return s
     return
 
+
 def coeff_repr(c):
     r"""
     LaTeX string representing coefficients in a linear combination.
@@ -2014,6 +2028,7 @@ def coeff_repr(c):
     if s.find("+") != -1 or s.find("-") != -1:
         return "(%s)" % s
     return s
+
 
 def repr_lincomb(symbols, coeffs):
     r"""
@@ -2069,7 +2084,7 @@ def repr_lincomb(symbols, coeffs):
     first = True
     i = 0
 
-    from sage.rings.all import CC
+    from sage.rings.cc import CC
 
     for c in coeffs:
         bv = symbols[i]
@@ -2102,7 +2117,7 @@ def repr_lincomb(symbols, coeffs):
         i += 1
     if first:
         s = "0"
-    s = s.replace("+ -","- ")
+    s = s.replace("+ -", "- ")
     return s
 
 
@@ -2145,6 +2160,7 @@ common_varnames = ['alpha',
                    'circ',
                    'times',
                    'star']
+
 
 def latex_varify(a, is_fname=False):
     r"""
@@ -2189,9 +2205,10 @@ def latex_varify(a, is_fname=False):
     elif len(a) == 1:
         return a
     elif is_fname is True:
-        return '{\\rm %s}'%a
+        return '{\\rm %s}' % a
     else:
-        return '\\mathit{%s}'%a
+        return '\\mathit{%s}' % a
+
 
 def latex_variable_name(x, is_fname=False):
     r"""
@@ -2274,7 +2291,7 @@ def latex_variable_name(x, is_fname=False):
             suffix = x[m.start():]
     else:
         prefix = x[:underscore]
-        suffix = x[underscore+1:]
+        suffix = x[underscore + 1:]
         if prefix == '':
             from sage.calculus.calculus import symtable
             for sym in symtable.values():
@@ -2284,7 +2301,7 @@ def latex_variable_name(x, is_fname=False):
         # handle the suffix specially because it very well might be numeric
         # I use strip to avoid using regex's -- It makes it a bit faster (and the code is more comprehensible to non-regex'ed people)
         if suffix.strip("1234567890") != "":
-            suffix = latex_variable_name(suffix, is_fname) # recurse to deal with recursive subscripts
+            suffix = latex_variable_name(suffix, is_fname)  # recurse to deal with recursive subscripts
         return '%s_{%s}' % (latex_varify(prefix, is_fname), suffix)
     else:
         return latex_varify(prefix, is_fname)
@@ -2339,7 +2356,7 @@ class LatexExamples():
             """
             return r"""LaTeX example for testing display of graphs.
 
-To use, first try calling 'view' on this object -- it won't work.
+To use, first try calling 'view' on this object -- it will not work.
 Now, make sure that you have the most recent version of the TeX
 package pgf installed, along with the LaTeX package tkz-graph.  Run
 'latex.add_to_preamble("\\usepackage{tkz-graph}")', and try viewing it
@@ -2407,11 +2424,11 @@ https://www.ctan.org/pkg/tkz-graph)
             """
             return """LaTeX example for testing display of pstricks output.
 
-To use, first try calling 'view' on this object -- it won't work. Now,
+To use, first try calling 'view' on this object -- it will not work. Now,
 make sure that you have the most recent version of the TeX package
 pstricks installed.  Run 'latex.add_to_preamble("\\usepackage{pstricks}")'
 and try viewing it again. Call 'view' with the option `engine='latex'`
--- the default behavior is to use pdflatex, which doesn't work with
+-- the default behavior is to use pdflatex, which does not work with
 pstricks.  From the command line, this should pop open a nice window
 with a picture of forces acting on a mass on a pendulum."""
 
@@ -2464,7 +2481,7 @@ with a picture of forces acting on a mass on a pendulum."""
             """
             return r"""LaTeX example for testing display of a knot produced by xypic.
 
-To use, try to view this object -- it won't work.  Now try
+To use, try to view this object -- it will not work.  Now try
 'latex.add_to_preamble("\\usepackage[graph,knot,poly,curve]{xypic}")',
 and try viewing again.
 
@@ -2514,7 +2531,7 @@ and try viewing again.
             return r"""LaTeX example for testing display of a commutative diagram produced
 by xypic.
 
-To use, try to view this object -- it won't work.  Now try
+To use, try to view this object -- it will not work.  Now try
 'latex.add_to_preamble("\\usepackage[matrix,arrow,curve,cmtip]{xy}")',
 and try viewing again. You should get a picture (a part of the diagram arising
 from a filtered chain complex)."""
@@ -2560,5 +2577,6 @@ H_{p+q-1}(K^{p}/K^{p-1}) \ar[r]^{k} & H_{p+q-2}(K^{p-1}) \ar[r] \ar[d]^{i} &
      '+<0pc,-4pc>
 \restore
 }"""
+
 
 latex_examples = LatexExamples()

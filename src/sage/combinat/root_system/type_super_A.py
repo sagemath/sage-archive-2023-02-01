@@ -11,7 +11,7 @@ Root system data for super type A
 #                  https://www.gnu.org/licenses/
 # ****************************************************************************
 
-from sage.rings.all import ZZ
+from sage.rings.integer_ring import ZZ
 from sage.misc.cachefunc import cached_method
 from . import ambient_space
 from .cartan_type import SuperCartanType_standard
@@ -442,7 +442,7 @@ class AmbientSpace(ambient_space.AmbientSpace):
             """
             alpha = self.parent().simple_roots()
             l = self.parent().cartan_type().symmetrizer()
-            from sage.rings.semirings.non_negative_integer_semiring import NN
+            from sage.rings.semirings.all import NN
             return all(l[i] * self.inner_product(alpha[i]) in NN
                        for i in self.parent().index_set())
 
@@ -490,7 +490,7 @@ class CartanType(SuperCartanType_standard):
             sage: latex(CartanType(['A',[4,3]]))
             A(4|3)
         """
-        return "A(%s|%s)"%(self.m, self.n)
+        return "A(%s|%s)" % (self.m, self.n)
 
     def index_set(self):
         """

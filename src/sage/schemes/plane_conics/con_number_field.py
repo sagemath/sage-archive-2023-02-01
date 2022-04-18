@@ -21,8 +21,8 @@ AUTHORS:
 #                  https://www.gnu.org/licenses/
 # ****************************************************************************
 
-from sage.rings.all import (AA, RLF, PolynomialRing)
 from sage.rings.rational_field import is_RationalField
+from sage.rings.polynomial.polynomial_ring_constructor import PolynomialRing
 from .con_field import ProjectiveConic_field
 
 
@@ -47,7 +47,7 @@ class ProjectiveConic_number_field(ProjectiveConic_field):
         r"""
         See ``Conic`` for full documentation.
 
-        EXAMPLES ::
+        EXAMPLES::
 
             sage: Conic([1, 1, 1])
             Projective Conic Curve over Rational Field defined by x^2 + y^2 + z^2
@@ -143,6 +143,25 @@ class ProjectiveConic_number_field(ProjectiveConic_field):
             sage: Conic(K, [4,5,6]).has_rational_point(algorithm='magma', read_cache=False) # optional - magma
             True
 
+            sage: P.<a> = QuadraticField(2)
+            sage: C = Conic(P, [1,1,1])
+            sage: C.has_rational_point()
+            False
+            sage: C.has_rational_point(point=True)
+            (False, None)
+            sage: C.has_rational_point(obstruction=True)
+            (False,
+             Ring morphism:
+               From: Number Field in a with defining polynomial x^2 - 2 with a = 1.414213562373095?
+               To:   Algebraic Real Field
+               Defn: a |--> -1.414213562373095?)
+            sage: C.has_rational_point(point=True, obstruction=True)
+            (False,
+             Ring morphism:
+               From: Number Field in a with defining polynomial x^2 - 2 with a = 1.414213562373095?
+               To:   Algebraic Real Field
+               Defn: a |--> -1.414213562373095?)
+
         TESTS:
 
         Create a bunch of conics over number fields and check whether
@@ -187,20 +206,28 @@ class ProjectiveConic_number_field(ProjectiveConic_field):
         """
         if read_cache:
             if self._rational_point is not None:
+                # a rational point is already known, return True
                 if point or obstruction:
                     return True, self._rational_point
                 else:
                     return True
             if self._local_obstruction is not None:
+                # a local obstruction is already known, return False
                 if point or obstruction:
                     return False, self._local_obstruction
                 else:
                     return False
-            if (not point and not self._finite_obstructions and
-                    not self._infinite_obstructions):
+            # `_(in)finite_obstructions` is `None` if the cache is empty,
+            # so we explicitly check against a list:
+            if (not point) and self._finite_obstructions == [] and \
+               self._infinite_obstructions == []:
+                # list of local obstructions is computed and empty, return True
                 if obstruction:
                     return True, None
                 return True
+
+        # cache is empty or user specifically asks not to check the cache
+
         if self.has_singular_point():
             if point:
                 return self.has_singular_point(point=True)
@@ -343,6 +370,9 @@ class ProjectiveConic_number_field(ProjectiveConic_field):
             if self._local_obstruction is None:
                 from sage.categories.map import Map
                 from sage.categories.all import Rings
+                from sage.rings.qqbar import AA
+                from sage.rings.real_lazy import RLF
+
                 if not (isinstance(p, Map) and p.category_for().is_subcategory(Rings())) or p.codomain() is AA or p.codomain() is RLF:
                     self._local_obstruction = p
             return False
@@ -364,7 +394,7 @@ class ProjectiveConic_number_field(ProjectiveConic_field):
         Local obstructions are cached. The parameter ``read_cache``
         specifies whether to look at the cache before computing anything.
 
-        EXAMPLES ::
+        EXAMPLES::
 
             sage: K.<i> = QuadraticField(-1)
             sage: Conic(K, [1, 2, 3]).local_obstructions()
@@ -387,6 +417,7 @@ class ProjectiveConic_number_field(ProjectiveConic_field):
             if read_cache and self._infinite_obstructions is not None:
                 obs0 = self._infinite_obstructions
             else:
+                from sage.rings.qqbar import AA
                 for b in B.embeddings(AA):
                     if not self.is_locally_solvable(b):
                         obs0.append(b)

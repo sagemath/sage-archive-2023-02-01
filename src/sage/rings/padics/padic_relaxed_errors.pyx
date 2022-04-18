@@ -47,7 +47,7 @@ def raise_error(error, permissive=False):
         sage: raise_error(1)
         Traceback (most recent call last):
         ...
-        PrecisionError: computation has been abandonned; try to increase precision
+        PrecisionError: computation has been abandoned; try to increase precision
 
         sage: raise_error(1, permissive=True)
 
@@ -68,4 +68,5 @@ def raise_error(error, permissive=False):
         if error & (ERROR_PRECISION | ERROR_NOTDEFINED):
             raise PrecisionError("not enough precision")
         if error & ERROR_ABANDON:
-            raise PrecisionError("computation has been abandonned; try to increase precision")
+            raise PrecisionError("computation has been abandoned; try to increase precision")
+

@@ -141,6 +141,45 @@ Fast Expression Evaluation
 ..   sage/ext/interpreters/wrapper_rdf
 ..   sage/ext/interpreters/wrapper_rr
 
+Features
+~~~~~~~~
+
+.. toctree::
+   :maxdepth: 1
+
+   sage/features
+   sage/features/join_feature
+   sage/features/all
+   sage/features/sagemath
+   sage/features/pkg_systems
+   sage/features/bliss
+   sage/features/csdp
+   sage/features/databases
+   sage/features/dvipng
+   sage/features/fes
+   sage/features/ffmpeg
+   sage/features/four_ti_2
+   sage/features/gap
+   sage/features/graph_generators
+   sage/features/graphviz
+   sage/features/imagemagick
+   sage/features/interfaces
+   sage/features/internet
+   sage/features/kenzo
+   sage/features/latex
+   sage/features/latte
+   sage/features/lrs
+   sage/features/mcqd
+   sage/features/meataxe
+   sage/features/mip_backends
+   sage/features/normaliz
+   sage/features/pandoc
+   sage/features/pdf2svg
+   sage/features/polymake
+   sage/features/rubiks
+   sage/features/tdlib
+
+
 Code Evaluation
 ---------------
 
@@ -168,6 +207,7 @@ Formatted Output
    sage/typeset/character_art_factory
    sage/typeset/ascii_art
    sage/typeset/unicode_art
+   sage/typeset/unicode_characters
    sage/misc/repr
    sage/misc/sage_input
    sage/misc/table
@@ -190,6 +230,7 @@ LaTeX
    sagetex
    sage/misc/latex
    sage/misc/latex_macros
+   sage/misc/latex_standalone
 
 Saving and Loading Sage Objects
 -------------------------------
@@ -228,14 +269,7 @@ Distribution
 
    sage/misc/package
    sage/misc/dist
-   sage/features
-   sage/features/bliss
-   sage/features/csdp
-   sage/features/databases
-   sage/features/fes
-   sage/features/gap
-   sage/features/graph_generators
-   sage/features/lrs
+
 
 Credits
 ~~~~~~~
@@ -257,7 +291,7 @@ Testing
 
    sage/misc/sage_unittest
    sage/misc/random_testing
-   sage/misc/nested_class_test
+   sage/misc/test_nested_class
 
 Benchmarking and Profiling
 ~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -280,7 +314,6 @@ Miscellaneous Inspection and Development Tools
    sage/docs/instancedoc
    sage/misc/sageinspect
    sage/misc/edit_module
-   sage/misc/getusage
    sage/misc/classgraph
    sage/misc/dev_tools
    sage/misc/function_mangling

@@ -55,7 +55,7 @@ EXAMPLES::
 
 
 from sage.rings.all import Infinity
-from sage.calculus.var import var
+from sage.symbolic.ring import SR
 from sage.rings.integer import Integer
 from sage.rings.integer_ring import ZZ
 from sage.rings.real_mpfr import RealField, RR
@@ -68,7 +68,7 @@ from sage.rings.finite_rings.integer_mod_ring import Integers
 from sage.rings.finite_rings.integer_mod import mod
 from sage.rings.padics.factory import Qp
 from sage.combinat.combination import Combinations
-from sage.misc.all import prod
+from sage.misc.misc_c import prod
 from sage.arith.all import factorial
 from sage.matrix.constructor import matrix, identity_matrix, vector, block_matrix, zero_matrix
 from sage.modules.free_module_element import zero_vector
@@ -609,7 +609,7 @@ def Yu_C1_star(n, v, prec=106):
     C1 *= (n**n * (n+1)**(n+1))/factorial(n)
     C1 *= p**fp/(q**u)
     C1 *= ( dK / (fp * R(p).log()) )**(n+2)
-    C1 *= R (max( dK, exp(1) )).log()
+    C1 *= R(max( dK, exp(1) )).log()
     C1 *= max( R(exp(4)*(n+1)*dK).log(), ep, fp * R(p).log() )
 
     C1_star = R((n+1) * C1)
@@ -619,7 +619,7 @@ def Yu_C1_star(n, v, prec=106):
 
 def Yu_bound(SUK, v, prec=106):
     r"""
-    Return `c8` such that `c8 >= exp(2)/\log(2)` and `ord_p (\Theta - 1) < c8 \log B`, 
+    Return `c8` such that `c8 >= exp(2)/\log(2)` and `ord_p (\Theta - 1) < c8 \log B`,
     where `\Theta = \prod_{j=1}^n \alpha_j^{b_j}` and `B \geq \max_j |b_j|` and `B \geq 3`.
 
     INPUT:
@@ -675,7 +675,7 @@ def Yu_bound(SUK, v, prec=106):
     else:
         # K and v don't satisfy the theorem hypotheses, and we must move to a quadratic extension L.
         # For justification of this next bound, see [AKMRVW].
-        x = var('x')
+        x = SR.var('x')
         if p == 2:
             L_over_K = K.extension(x**2 + x + 1, 'xi0')
         else:
@@ -946,6 +946,8 @@ def minimal_vector(A, y, prec=106):
     ::
 
         sage: B = random_matrix(ZZ, 3)
+        sage: while not B.determinant():
+        ....:     B = random_matrix(ZZ, 3)
         sage: B # random
         [-2 -1 -1]
         [ 1  1 -2]

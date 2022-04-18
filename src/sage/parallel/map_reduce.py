@@ -50,8 +50,8 @@ properties to do its job. Not only mapping and reducing but also
 How can I use all that stuff?
 -----------------------------
 
-First, you need to set the environment variable `SAGE_NUM_THREADS` to the
-desired number of parallel threads to be used:
+First, you need to set the environment variable ``SAGE_NUM_THREADS`` to the
+desired number of parallel threads to be used::
 
       sage: import os                                 # not tested
       sage: os.environ["SAGE_NUM_THREADS"] = '8'      # not tested
@@ -1121,7 +1121,9 @@ class RESetMapReduce(object):
         self._results = mp.Queue()
         self._active_tasks = ActiveTaskCounter(self._nprocess)
         self._done = mp.Lock()
-        self._aborted = mp.Value(ctypes.c_bool, False)
+        # We use lock=False here, as a compromise, to avoid deadlocking when a
+        # subprocess holding a lock is terminated. (:trac:`33236`)
+        self._aborted = mp.Value(ctypes.c_bool, False, lock=False)
         sys.stdout.flush()
         sys.stderr.flush()
         self._workers = [RESetMapReduceWorker(self, i, reduce_locally)

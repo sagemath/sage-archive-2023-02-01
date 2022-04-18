@@ -50,7 +50,8 @@ from sage.manifolds.manifold import TopologicalManifold
 from sage.manifolds.continuous_map import ContinuousMap
 from sage.symbolic.expression import Expression
 from sage.symbolic.assumptions import assumptions, assume
-from sage.plot.plot3d.parametric_surface import ParametricSurface
+from sage.misc.lazy_import import lazy_import
+lazy_import("sage.plot.plot3d.parametric_surface", "ParametricSurface")
 
 #############################################################################
 # Global options
@@ -136,20 +137,20 @@ class TopologicalSubmanifold(TopologicalManifold):
         sage: t = var('t')
         sage: phi = N.continuous_map(M, {(CN,CM): [u, v, t+u^2+v^2]})
         sage: phi.display()
-        N --> M
-           (u, v) |--> (x, y, z) = (u, v, u^2 + v^2 + t)
+        N → M
+           (u, v) ↦ (x, y, z) = (u, v, u^2 + v^2 + t)
 
     The foliation inverse maps are needed for computing the adapted chart on
     the ambient manifold::
 
         sage: phi_inv = M.continuous_map(N, {(CM, CN): [x, y]})
         sage: phi_inv.display()
-        M --> N
-           (x, y, z) |--> (u, v) = (x, y)
+        M → N
+           (x, y, z) ↦ (u, v) = (x, y)
         sage: phi_inv_t = M.scalar_field({CM: z-x^2-y^2})
         sage: phi_inv_t.display()
-        M --> R
-        (x, y, z) |--> -x^2 - y^2 + z
+        M → ℝ
+        (x, y, z) ↦ -x^2 - y^2 + z
 
     `\phi` can then be declared as an embedding `N\to M`::
 
@@ -195,6 +196,9 @@ class TopologicalSubmanifold(TopologicalManifold):
                                      latex_name=latex_name,
                                      start_index=start_index,
                                      category=category)
+        if not (ambient is None
+                or isinstance(ambient, TopologicalManifold)):
+            raise TypeError("ambient must be a manifold")
         self._init_immersion(ambient=ambient)
 
     def _init_immersion(self, ambient=None):
@@ -223,7 +227,10 @@ class TopologicalSubmanifold(TopologicalManifold):
             self._ambient = self
         else:
             self._ambient = ambient
-            self._codim = ambient._dim-self._dim
+            self._codim = ambient._dim - self._dim
+            if self._codim < 0:
+                raise ValueError("the submanifold must be of smaller "
+                                 + "dimension than its ambient manifold")
         self._immersed = False
         self._embedded = False
         self._adapted_charts = None
@@ -418,16 +425,16 @@ class TopologicalSubmanifold(TopologicalManifold):
             sage: t = var('t')
             sage: phi = N.continuous_map(M, {(CN,CM): [u,v,t+u^2+v^2]})
             sage: phi.display()
-            N --> M
-               (u, v) |--> (x, y, z) = (u, v, u^2 + v^2 + t)
+            N → M
+               (u, v) ↦ (x, y, z) = (u, v, u^2 + v^2 + t)
             sage: phi_inv = M.continuous_map(N, {(CM,CN): [x,y]})
             sage: phi_inv.display()
-            M --> N
-                (x, y, z) |--> (u, v) = (x, y)
+            M → N
+                (x, y, z) ↦ (u, v) = (x, y)
             sage: phi_inv_t = M.scalar_field({CM: z-x^2-y^2})
             sage: phi_inv_t.display()
-            M --> R
-            (x, y, z) |--> -x^2 - y^2 + z
+            M → ℝ
+            (x, y, z) ↦ -x^2 - y^2 + z
             sage: N.set_immersion(phi, inverse=phi_inv, var=t,
             ....:                 t_inverse={t: phi_inv_t})
 
@@ -506,8 +513,9 @@ class TopologicalSubmanifold(TopologicalManifold):
                              "before calling declare_embedding()")
         self._embedded = True
 
-    def set_embedding(self, phi, inverse=None, var=None,
-                      t_inverse=None):
+    def set_embedding(
+        self, phi: ContinuousMap, inverse=None, var=None, t_inverse=None
+    ):
         r"""
         Register the embedding of an embedded submanifold.
 
@@ -543,16 +551,16 @@ class TopologicalSubmanifold(TopologicalManifold):
             sage: t = var('t')
             sage: phi = N.continuous_map(M, {(CN,CM): [u,v,t+u^2+v^2]})
             sage: phi.display()
-            N --> M
-               (u, v) |--> (x, y, z) = (u, v, u^2 + v^2 + t)
+            N → M
+               (u, v) ↦ (x, y, z) = (u, v, u^2 + v^2 + t)
             sage: phi_inv = M.continuous_map(N, {(CM,CN): [x,y]})
             sage: phi_inv.display()
-            M --> N
-                (x, y, z) |--> (u, v) = (x, y)
+            M → N
+                (x, y, z) ↦ (u, v) = (x, y)
             sage: phi_inv_t = M.scalar_field({CM: z-x^2-y^2})
             sage: phi_inv_t.display()
-            M --> R
-            (x, y, z) |--> -x^2 - y^2 + z
+            M → ℝ
+            (x, y, z) ↦ -x^2 - y^2 + z
             sage: N.set_embedding(phi, inverse=phi_inv, var=t,
             ....:                 t_inverse={t: phi_inv_t})
 
@@ -805,7 +813,7 @@ class TopologicalSubmanifold(TopologicalManifold):
 
         return ParametricSurface((fx, fy, fz), (u, v), **kwargs)
 
-    def ambient(self):
+    def ambient(self) -> TopologicalManifold:
         r"""
         Return the manifold in which ``self`` is immersed or embedded.
 
@@ -818,7 +826,7 @@ class TopologicalSubmanifold(TopologicalManifold):
         """
         return self._ambient
 
-    def immersion(self):
+    def immersion(self) -> ContinuousMap:
         r"""
         Return the immersion of ``self`` into the ambient manifold.
 
@@ -842,9 +850,10 @@ class TopologicalSubmanifold(TopologicalManifold):
         """
         if not self._immersed:
             raise ValueError("the submanifold is not immersed")
+        assert self._immersion
         return self._immersion
 
-    def embedding(self):
+    def embedding(self) -> ContinuousMap:
         r"""
         Return the embedding of ``self`` into the ambient manifold.
 
@@ -868,6 +877,7 @@ class TopologicalSubmanifold(TopologicalManifold):
         """
         if not self._embedded:
             raise ValueError("the submanifold is not embedded")
+        assert self._immersion
         return self._immersion
 
     def as_subset(self):
@@ -881,8 +891,7 @@ class TopologicalSubmanifold(TopologicalManifold):
             sage: M = Manifold(2, 'M', structure="topological")
             sage: N = Manifold(1, 'N', ambient=M, structure="topological")
             sage: CM.<x,y> = M.chart()
-            sage: CN.<u> = N.chart()
-            sage: CN.add_restrictions([u > -1, u < 1])
+            sage: CN.<u> = N.chart(coord_restrictions=lambda u: [u > -1, u < 1])
             sage: phi = N.continuous_map(M, {(CN,CM): [u, u^2]})
             sage: N.set_embedding(phi)
             sage: N

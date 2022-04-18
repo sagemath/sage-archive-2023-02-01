@@ -214,95 +214,6 @@ def gap_command(use_workspace_cache=True, local=True):
     else:
         return gap_cmd, True
 
-############ Set the GAP memory pool size
-
-# you should always use get_gap_memory_pool_size() to access this value
-gap_memory_pool_size = None
-
-def set_gap_memory_pool_size(size_in_bytes):
-    """
-    Set the desired gap memory pool size.
-
-    Subsequently started GAP instances will use this as default.
-    Already running instances are unchanged.
-
-    GAP will only reserve ``size_in_bytes`` address space. Unless you
-    actually start a big GAP computation, the memory will not be
-    used. However, corresponding swap space will be reserved so that
-    GAP will always be able to use the reserved address space if
-    needed. While nothing is actually written to disc as long as you
-    don't run a big GAP computation, the reserved swap space will not
-    be available for other processes.
-
-    INPUT:
-
-    - ``size_in_bytes`` -- integer. The desired memory pool size.
-
-    EXAMPLES::
-
-        sage: from sage.interfaces.gap import \
-        ....:     get_gap_memory_pool_size, set_gap_memory_pool_size
-        sage: n = get_gap_memory_pool_size()
-        sage: set_gap_memory_pool_size(n)
-        sage: n == get_gap_memory_pool_size()
-        True
-        sage: n   # random output
-        1534059315
-    """
-    global gap_memory_pool_size
-    gap_memory_pool_size = size_in_bytes
-
-def get_gap_memory_pool_size():
-    """
-    Get the gap memory pool size for new GAP processes.
-
-    EXAMPLES::
-
-        sage: from sage.interfaces.gap import get_gap_memory_pool_size
-        sage: get_gap_memory_pool_size()   # random output
-        1534059315
-    """
-    global gap_memory_pool_size
-    if gap_memory_pool_size is not None:
-        return gap_memory_pool_size
-
-    import psutil
-    from sage.misc.getusage import virtual_memory_limit
-    mem = psutil.virtual_memory()
-    swap = psutil.swap_memory()
-    vmax = virtual_memory_limit()
-
-    suggested_size = max(swap.free // 10, mem.available // 50)
-    # Don't eat all address space if the user set ulimit -v
-    suggested_size = min(suggested_size, vmax // 10)
-    # ~220MB is the minimum for long doctests
-    suggested_size = max(suggested_size, 400 * 1024**2)
-    return suggested_size
-
-
-def _get_gap_memory_pool_size_MB():
-    """
-    Return the gap memory pool size suitable for usage on the GAP
-    command line.
-
-    The GAP 4.5.6 command line parser had issues with large numbers, so
-    we return it in megabytes.
-
-    OUTPUT:
-
-    String.
-
-    EXAMPLES::
-
-        sage: from sage.interfaces.gap import \
-        ....:     _get_gap_memory_pool_size_MB
-        sage: _get_gap_memory_pool_size_MB()   # random output
-        '1467m'
-    """
-    pool = get_gap_memory_pool_size()
-    pool = (pool // (1024**2)) + 1
-    return str(pool)+'m'
-
 
 ############ Classes with methods for both the GAP3 and GAP4 interface
 
@@ -753,14 +664,14 @@ class Gap_generic(ExtraTabCompletion, Expect):
             # them (on Python 3), currently just using the default encoding
             normal, error = bytes_to_str(normal), bytes_to_str(error)
 
-            if len(error):
+            if error:
                 if 'Error, Rebuild completion files!' in error:
                     error += "\nRunning gap_reset_workspace()..."
                     self.quit()
                     gap_reset_workspace()
                 error = error.replace('\r','')
                 raise RuntimeError("%s produced error output\n%s\n   executing %s"%(self, error,line))
-            if not len(normal):
+            if not normal:
                 return ''
 
             if isinstance(wait_for_prompt, str) and normal.ends_with(wait_for_prompt):
@@ -772,7 +683,7 @@ class Gap_generic(ExtraTabCompletion, Expect):
             else:
                 n = 0
             out = normal[:-n]
-            if len(out) and out[-1] == "\n":
+            if out and out[-1] == "\n":
                 out = out[:-1]
             return out
 
@@ -1025,7 +936,7 @@ class GapElement_generic(ModuleElement, ExtraTabCompletion, ExpectElement):
         P = self._check_valid()
         return self != P(0) and repr(self) != 'false'
 
-    __nonzero__ = __bool__
+    
 
     def __len__(self):
         """
@@ -1145,10 +1056,6 @@ class Gap(Gap_generic):
         # -T: disable interactive break loop when encountering errors
         # -E: disable readline support
         cmd += " -b -p -T -E"
-        if max_workspace_size is None:
-            max_workspace_size = _get_gap_memory_pool_size_MB()
-        cmd += ' -o ' + str(max_workspace_size)
-        cmd += ' -s ' + str(max_workspace_size)
         cmd += ' -m 64m '   # attempt at a workaround for http://tracker.gap-system.org/issues/224
         cmd += ' ' + os.path.join(SAGE_EXTCODE, 'gap', 'sage.g')
         Expect.__init__(self,
@@ -1340,7 +1247,7 @@ class Gap(Gap_generic):
         prepare_workspace_dir()
 
         # According to the GAP Reference Manual,
-        # [http://www.gap-system.org/Manuals/doc/htm/ref/CHAP003.htm#SSEC011.1]
+        # [https://www.gap-system.org/Manuals/doc/htm/ref/CHAP003.htm#SSEC011.1]
         # SaveWorkspace can only be used at the main gap> prompt. It cannot
         # be included in the body of a loop or function, or called from a
         # break loop.
@@ -1369,7 +1276,6 @@ class Gap(Gap_generic):
             ...
             <BLANKLINE>
         """
-        tmp_to_use = self._local_tmpfile()
         if self.is_remote():
             tmp_to_use = self._remote_tmpfile()
         else:
@@ -1483,7 +1389,7 @@ class Gap(Gap_generic):
 
             sage: gap.console()  # not tested
             *********   GAP, Version 4.5.7 of 14-Dec-2012 (free software, GPL)
-            *  GAP  *   http://www.gap-system.org
+            *  GAP  *   https://www.gap-system.org
             *********   Architecture: x86_64-unknown-linux-gnu-gcc-default64
             Libs used:  gmp, readline
             Loading the library and packages ...
@@ -1609,9 +1515,9 @@ class GapElement(GapElement_generic):
         """
         self._check_valid()
         if not isinstance(n, tuple):
-            return self.parent().new('%s[%s]'%(self._name, n))
-        else:
-            return self.parent().new('%s%s'%(self._name, ''.join(['[%s]'%x for x in n])))
+            return self.parent().new('%s[%s]' % (self._name, n))
+        return self.parent().new('%s%s' % (self._name,
+                                           ''.join('[%s]' % x for x in n)))
 
     def str(self, use_file=False):
         """
@@ -1857,7 +1763,7 @@ def gap_console():
 
         sage: gap_console()  # not tested
         *********   GAP, Version 4.5.7 of 14-Dec-2012 (free software, GPL)
-        *  GAP  *   http://www.gap-system.org
+        *  GAP  *   https://www.gap-system.org
         *********   Architecture: x86_64-unknown-linux-gnu-gcc-default64
         Libs used:  gmp, readline
         Loading the library and packages ...
@@ -1870,9 +1776,7 @@ def gap_console():
         sage: import subprocess as sp
         sage: from sage.interfaces.gap import gap_command
         sage: cmd = 'echo "quit;" | ' + gap_command(use_workspace_cache=False)[0]
-        sage: gap_startup = sp.check_output(cmd, shell=True,  # py2
-        ....:                               stderr=sp.STDOUT)
-        sage: gap_startup = sp.check_output(cmd, shell=True,  # py3
+        sage: gap_startup = sp.check_output(cmd, shell=True,
         ....:                               stderr=sp.STDOUT,
         ....:                               encoding='latin1')
         sage: 'www.gap-system.org' in gap_startup

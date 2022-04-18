@@ -1,3 +1,4 @@
+# nodoctest
 # Sage documentation build configuration file, based on that created by
 # sphinx-quickstart on Thu Aug 21 20:15:55 2008.
 #
@@ -37,16 +38,3 @@ latex_documents = [
   ('index', name + '.tex', project,
    'The Sage Group', 'manual'),
 ]
-
-# LaTeX の docclass 設定
-latex_docclass = {'manual': 'jsbook'}
-
-# Additional LaTeX stuff for the French version
-#latex_elements['preamble'] += '\\DeclareUnicodeCharacter{00A0}{\\nobreakspace}\n'
-
-# the definition of \\at in the standard preamble of the sphinx doc
-# conflicts with that in babel/french[b]
-latex_elements['preamble'] += '\\let\\at\\undefined'
-
-#
-# html_use_smartypants = False

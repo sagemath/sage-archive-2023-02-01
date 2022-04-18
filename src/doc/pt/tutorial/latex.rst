@@ -91,13 +91,13 @@ evoca a classe "matemática" do CSS, a qual então emprega o MathJax. ::
     sage: var('z')
     z
     sage: js(z^12)
-    <html>\[\newcommand{\Bold}[1]{\mathbf{#1}}z^{12}\]</html>
+    <html>\[z^{12}\]</html>
     sage: js(QQ)
     <html>\[\newcommand{\Bold}[1]{\mathbf{#1}}\Bold{Q}\]</html>
     sage: js(ZZ[x])
     <html>\[\newcommand{\Bold}[1]{\mathbf{#1}}\Bold{Z}[x]\]</html>
     sage: js(integrate(z^4, z))
-    <html>\[\newcommand{\Bold}[1]{\mathbf{#1}}\frac{1}{5} \, z^{5}\]</html>
+    <html>\[\frac{1}{5} \, z^{5}\]</html>
 
 Uso Básico
 ==========
@@ -231,7 +231,7 @@ trechos de códigos TeX no Notebook. ::
     sage: from sage.misc.html import MathJax
     sage: js = MathJax()
     sage: js(x+y)
-    <html>\[\newcommand{\Bold}[1]{\mathbf{#1}}\newcommand{\foo}{bar}x + y\]</html>
+    <html>\[\newcommand{\foo}{bar}x + y\]</html>
 
 Macros adicionais usadas dessa forma serão também usadas eventualmente
 se a versão do TeX no seu sistema for usada para lidar com algo muito
@@ -395,7 +395,7 @@ processador, etc. estão configurados corretamente).
     LaTeX example for testing display of a commutative diagram produced
     by xypic.
     <BLANKLINE>
-    To use, try to view this object -- it won't work.  Now try
+    To use, try to view this object -- it will not work.  Now try
     'latex.add_to_preamble("\\usepackage[matrix,arrow,curve,cmtip]{xy}")',
     and try viewing again. You should get a picture (a part of the diagram arising
     from a filtered chain complex).

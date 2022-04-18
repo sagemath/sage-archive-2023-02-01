@@ -2079,9 +2079,12 @@ class TermOrder(SageObject):
             sage: T = TermOrder('degneglex', 3)
             sage: T.is_global()
             True
+            sage: T = TermOrder('invlex', 3)
+            sage: T.is_global()
+            True
         """
         if self.name() in ('lex', 'degrevlex', 'deglex', 'degneglex',
-                           'wdegrevlex', 'wdeglex'):
+                           'wdegrevlex', 'wdeglex', 'invlex'):
             return True
         elif self.name() == 'block':
             return all(t.is_global() for t in self.blocks())
@@ -2216,7 +2219,7 @@ def termorder_from_singular(S):
         sage: PolynomialRing(QQ, 'x,y', order='degneglex')('x^2')._singular_().sage()
         x^2
     """
-    from sage.all import ZZ
+    from sage.rings.integer_ring import ZZ
     singular = S
     T = singular('ringlist(basering)[3]')
     order = []

@@ -418,9 +418,9 @@ class SageInputBuilder:
             sage: sage_input('Icky chars: \0\n\t\b\'\"\200\300\234', verify=True)
             # Verified
             'Icky chars: \x00\n\t\x08\'"\x80\xc0\x9c'
-            sage: sage_input(u'unicode with spectral: \u1234\U00012345', verify=True)
+            sage: sage_input('unicode with spectral: \u1234\U00012345', verify=True)
             # Verified
-            u'unicode with spectral: \u1234\U00012345'
+            'unicode with spectral: \u1234\U00012345'
             sage: sage_input((2, 3.5, 'Hi'), verify=True)
             # Verified
             (2, 3.5, 'Hi')
@@ -442,10 +442,12 @@ class SageInputBuilder:
 
         if type(x) in self._cached_types:
             v = self._cache.get((parent(x), x))
-            if v is not None: return v
+            if v is not None:
+                return v
 
         v = self._id_cache.get(id(x))
-        if v is not None: return v[1]
+        if v is not None:
+            return v[1]
 
         if isinstance(x, SageInputExpression):
             return x
@@ -1009,9 +1011,9 @@ class SageInputBuilder:
             R.<y> = ZZ[]
             y
         """
-        if not parent in self._parent_gens:
+        if parent not in self._parent_gens:
             self(parent)
-            if not parent in self._parent_gens:
+            if parent not in self._parent_gens:
                 raise ValueError("{} did not register generators for sage_input".format(parent))
 
         gens = self._parent_gens[parent]
@@ -2605,7 +2607,8 @@ class SIE_unary(SageInputExpression):
         else:
             raise ValueError('Unhandled op {} in SIE_unary'.format(op))
 
-        if rprec is None: rprec = prec
+        if rprec is None:
+            rprec = prec
 
         return '%s%s' % (fop, sif.format(self._sie_operand, prec)), rprec
 
@@ -3382,7 +3385,8 @@ class SageInputFormatter:
             sage: sif._names, sif._dup_names
             ({'x', 'y'}, {'x': 0})
         """
-        if name is None: name = 'si'
+        if name is None:
+            name = 'si'
 
         if name in self._names:
             self._dup_names[name] = 0
@@ -3412,7 +3416,8 @@ class SageInputFormatter:
             'y'
             'z'
         """
-        if name is None: name = 'si'
+        if name is None:
+            name = 'si'
 
         if name in self._dup_names:
             next = self._dup_names[name] + 1

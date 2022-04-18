@@ -18,7 +18,7 @@ from sage.misc.cachefunc import cached_method
 from sage.misc.lazy_attribute import lazy_attribute
 from sage.sets.recursively_enumerated_set import RecursivelyEnumeratedSet
 from sage.misc.functional import is_even
-from sage.rings.all import ZZ, Integer
+from sage.rings.integer_ring import ZZ, Integer
 
 class WeylCharacterRing(CombinatorialFreeModule):
     r"""
@@ -277,7 +277,7 @@ class WeylCharacterRing(CombinatorialFreeModule):
             a2(0,0) + a2(-2,1) + a2(2,-1) + a2(1,1) + a2(-1,2)
         """
         if self._style != "coroots":
-            raise ValueError('demazure method unavailable. Use style="coroots".')
+            raise ValueError('demazure method unavailable: use style="coroots"')
         hwv = self._space.from_vector_notation(hwv, style="coroots")
         return self.ambient()._from_dict(self._demazure_weights(hwv, word=word, debug=debug))
 
@@ -707,7 +707,7 @@ class WeylCharacterRing(CombinatorialFreeModule):
             {(0, 0, 0): 1, (-1, 1, 0): 1, (1, -1, 0): 1, (1, 0, -1): 1, (0, 1, -1): 1}
         """
         if self._style != "coroots":
-            raise ValueError('_demazure_helper method unavailable. Use style="coroots".')
+            raise ValueError('_demazure_helper method unavailable: use style="coroots"')
         index_set = self._space.index_set()
         alphacheck = self._space.simple_coroots()
         alpha = self._space.simple_roots()

@@ -14,8 +14,8 @@ Integrable Representations of Affine Lie Algebras
 from sage.structure.unique_representation import UniqueRepresentation
 from sage.structure.category_object import CategoryObject
 from sage.categories.modules import Modules
-from sage.rings.all import ZZ
-from sage.misc.all import cached_method
+from sage.rings.integer_ring import ZZ
+from sage.misc.cachefunc import cached_method
 from sage.matrix.constructor import Matrix
 from sage.sets.recursively_enumerated_set import RecursivelyEnumeratedSet
 from sage.combinat.root_system.weyl_characters import WeylCharacterRing
@@ -321,7 +321,7 @@ class IntegrableRepresentation(UniqueRepresentation, CategoryObject):
             sage: IntegrableRepresentation(Lambda[0])
             Integrable representation of ['F', 4, 1] with highest weight Lambda[0]
         """
-        return "Integrable representation of %s with highest weight %s"%(self._cartan_type, self._Lam)
+        return "Integrable representation of %s with highest weight %s" % (self._cartan_type, self._Lam)
 
     def _latex_(self):
         r"""
@@ -332,7 +332,7 @@ class IntegrableRepresentation(UniqueRepresentation, CategoryObject):
             sage: Lambda = RootSystem(['C',3,1]).weight_lattice(extended=true).fundamental_weights()
             sage: V = IntegrableRepresentation(Lambda[0]+2*Lambda[3])
             sage: latex(V)
-            V_{\Lambda_{0} + 2\Lambda_{3}}
+            V_{\Lambda_{0} + 2 \Lambda_{3}}
         """
         return "V_{{{}}}".format(self._Lam._latex_())
 
@@ -1181,7 +1181,7 @@ class IntegrableRepresentation(UniqueRepresentation, CategoryObject):
             if weyl_character_ring is None:
                 weyl_character_ring = WeylCharacterRing(self._cartan_type.classical(), style="coroots")
             if weyl_character_ring.cartan_type() != self._cartan_type.classical():
-                raise ValueError("Cartan type of WeylCharacterRing must be %s"%self.cartan_type().classical())
+                raise ValueError("Cartan type of WeylCharacterRing must be %s" % self.cartan_type().classical())
         elif weyl_character_ring is None:
             raise ValueError("the argument weyl_character_ring cannot be omitted if i != 0")
         if sequence is None:

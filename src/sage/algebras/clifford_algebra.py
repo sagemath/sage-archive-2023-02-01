@@ -25,7 +25,7 @@ from sage.categories.algebras_with_basis import AlgebrasWithBasis
 from sage.categories.hopf_algebras_with_basis import HopfAlgebrasWithBasis
 from sage.modules.with_basis.morphism import ModuleMorphismByLinearity
 from sage.categories.poor_man_map import PoorManMap
-from sage.rings.all import ZZ
+from sage.rings.integer_ring import ZZ
 from sage.modules.free_module import FreeModule, FreeModule_generic
 from sage.matrix.constructor import Matrix
 from sage.matrix.args import MatrixArgs
@@ -2835,4 +2835,3 @@ class ExteriorAlgebraCoboundary(ExteriorAlgebraDifferential):
             basis = next_basis
 
         return ChainComplex(data, degree=1)
-

@@ -16,7 +16,10 @@ AUTHORS:
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 
-from sage.rings.all import FractionField, PolynomialRing, PowerSeriesRing, ZZ, QQ, infinity
+from sage.rings.infinity import infinity
+from sage.rings.integer_ring import ZZ
+from sage.rings.rational_field import QQ
+from sage.rings.all import FractionField, PolynomialRing, PowerSeriesRing
 from sage.algebras.free_algebra import FreeAlgebra
 
 from sage.structure.parent import Parent
@@ -1521,7 +1524,7 @@ class FormsRing_abstract(Parent):
             (x,y,z,d) = self._pol_ring.gens()
             return self.extend_type("weak", ring=True)(1/d*y*x**(self._group.n()/ZZ(2))/(x**self._group.n()-y**2)).reduce()
         else:
-           raise ArithmeticError("g_inv doesn't exist for odd n(={}).".format(self._group.n()))
+            raise ArithmeticError("g_inv doesn't exist for odd n(={}).".format(self._group.n()))
 
     @cached_method
     def E4(self):

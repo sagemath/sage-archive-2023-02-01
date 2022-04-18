@@ -1663,7 +1663,7 @@ class QuasiSymmetricFunctions(UniqueRepresentation, Parent):
                     M = self.parent().realization_of().Monomial()
                     return M( self ).to_symmetric_function()
                 else:
-                    raise ValueError("%s is not a symmetric function"%self)
+                    raise ValueError("%s is not a symmetric function" % self)
 
     class Monomial(CombinatorialFreeModule, BindableClass):
         r"""
@@ -1806,7 +1806,7 @@ class QuasiSymmetricFunctions(UniqueRepresentation, Parent):
             """
             return self.tensor_square().sum_of_monomials((self._indices(compo[:i]),
                                                           self._indices(compo[i:]))
-                                                         for i in range(0,len(compo)+1))
+                                                         for i in range(len(compo)+1))
 
         def lambda_of_monomial(self, I, n):
             r"""
@@ -1908,7 +1908,8 @@ class QuasiSymmetricFunctions(UniqueRepresentation, Parent):
             # The following algorithm is a rewriting of the formula in the docstring.
             # We are working over QQ because there are denominators which don't
             # immediately cancel.
-            from sage.rings.all import ZZ, QQ
+            from sage.rings.integer_ring import ZZ
+            from sage.rings.rational_field import QQ
             QQM = QuasiSymmetricFunctions(QQ).M()
             QQ_result = QQM.zero()
             for lam in Partitions(n):
@@ -2143,7 +2144,7 @@ class QuasiSymmetricFunctions(UniqueRepresentation, Parent):
                                          for I, coeff in self
                         if list(I) in _Partitions}, remove_zeros=False)
                 else:
-                    raise ValueError("%s is not a symmetric function"%self)
+                    raise ValueError("%s is not a symmetric function" % self)
 
     M = Monomial
 
@@ -2758,7 +2759,7 @@ class QuasiSymmetricFunctions(UniqueRepresentation, Parent):
             """
             return self.tensor_square().sum_of_monomials((self._indices(compo[:i]),
                                                           self._indices(compo[i:]))
-                                                         for i in range(0,len(compo)+1))
+                                                         for i in range(len(compo)+1))
 
         def product_on_basis(self, I, J):
             r"""
@@ -2897,7 +2898,7 @@ class QuasiSymmetricFunctions(UniqueRepresentation, Parent):
                 return (matrix([[]]), [])
             CO = compositions_order(n)
             # ZZ is faster than over QQ for inverting a matrix
-            from sage.rings.all import ZZ
+            from sage.rings.integer_ring import ZZ
             MS = MatrixSpace(ZZ, len(CO))
             M = MS([[number_of_SSRCT(al, be) for al in CO] for be in CO])
             return (M.inverse_of_unit(), CO)

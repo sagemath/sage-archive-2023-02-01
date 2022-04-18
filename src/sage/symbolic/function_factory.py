@@ -9,6 +9,8 @@ Factory for symbolic functions
 #  version 2 or any later version.  The full text of the GPL is available at:
 #                  https://www.gnu.org/licenses/
 ###############################################################################
+from __future__ import annotations
+from typing import Union
 
 from sage.symbolic.function import (SymbolicFunction, sfunctions_funcs,
                                     unpickle_wrapper)
@@ -148,7 +150,7 @@ def unpickle_function(name, nargs, latex_name, conversions, evalf_params_first,
     return function_factory(*args)
 
 
-def function(s, **kwds):
+def function(s, **kwds) -> Union[SymbolicFunction, list[SymbolicFunction]]:
     r"""
     Create a formal symbolic function with the name *s*.
 
@@ -351,33 +353,3 @@ def function(s, **kwds):
     if len(funcs) == 1:
         return funcs[0]
     return funcs
-
-
-def deprecated_custom_evalf_wrapper(func):
-    """
-    This is used while pickling old symbolic functions that define a custom
-    evalf method.
-
-    The protocol for numeric evaluation functions was changed to include a
-    ``parent`` argument instead of ``prec``. This function creates a wrapper
-    around the old custom method, which extracts the precision information
-    from the given ``parent``, and passes it on to the old function.
-
-    EXAMPLES::
-
-        sage: from sage.symbolic.function_factory import deprecated_custom_evalf_wrapper as dcew
-        sage: def old_func(x, prec=0): print("x: %s, prec: %s" % (x, prec))
-        sage: new_func = dcew(old_func)
-        sage: new_func(5, parent=RR)
-        x: 5, prec: 53
-        sage: new_func(0r, parent=ComplexField(100))
-        x: 0, prec: 100
-    """
-    def new_evalf(*args, **kwds):
-        parent = kwds['parent']
-        if parent:
-            prec = parent.prec()
-        else:
-            prec = 53
-        return func(*args, prec=prec)
-    return new_evalf

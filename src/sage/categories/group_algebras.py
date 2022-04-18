@@ -156,7 +156,7 @@ class GroupAlgebras(AlgebrasCategory):
                 sage: latex(A) # indirect doctest
                 \Bold{Z}[\langle (3,4), (1,2) \rangle]
             """
-            from sage.misc.all import latex
+            from sage.misc.latex import latex
             return "%s[%s]" % (latex(self.base_ring()), latex(self.group()))
 
         def group(self):
@@ -411,4 +411,3 @@ class GroupAlgebras(AlgebrasCategory):
             conj_classes_reps = self.parent().basis().keys().conjugacy_classes_representatives()
             Z = CombinatorialFreeModule(self.base_ring(), conj_classes_reps)
             return sum(self[i] * Z.basis()[i] for i in Z.basis().keys())
-

@@ -5,23 +5,22 @@ AUTHORS:
 
 - Reimundo Heluani (2019-08-09): Initial implementation.
 """
-
-
-#******************************************************************************
+# *****************************************************************************
 #       Copyright (C) 2019 Reimundo Heluani <heluani@potuz.net>
 #
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
 # the Free Software Foundation, either version 2 of the License, or
 # (at your option) any later version.
-#                  http://www.gnu.org/licenses/
-#*****************************************************************************
+#                  https://www.gnu.org/licenses/
+# ****************************************************************************
 
-from sage.functions.other import factorial
+from sage.arith.all import factorial
 from sage.misc.misc_c import prod
 from sage.misc.repr import repr_lincomb
 from sage.misc.latex import latex
 from sage.modules.with_basis.indexed_element import IndexedFreeModuleElement
+
 
 class LCAWithGeneratorsElement(IndexedFreeModuleElement):
     """
@@ -57,7 +56,7 @@ class LCAWithGeneratorsElement(IndexedFreeModuleElement):
             sage: (L + 2*G.T() + 4*C).T(2)
             2*T^(2)L + 12*T^(3)G
         """
-        from sage.rings.all import ZZ
+        from sage.rings.integer_ring import ZZ
         if n not in ZZ or n < 0:
             raise ValueError("n must be a nonnegative Integer")
         if n == 0 or self.is_zero():
@@ -170,7 +169,7 @@ class LCAStructureCoefficientsElement(LCAWithGeneratorsElement):
             TB[alpha[1]] + 3*B[alpha[2] + alpha[3]]
         """
         if self.is_zero():
-            return "0";
+            return "0"
         p = self.parent()
         if p._names:
             terms = [("T^({0}){1}".format(k[1],
@@ -199,24 +198,24 @@ class LCAStructureCoefficientsElement(LCAWithGeneratorsElement):
             sage: V = lie_conformal_algebras.Virasoro(QQ); V.inject_variables()
             Defining L, C
             sage: latex(L.T(2))
-            2T^{(2)}L
+            2 T^{(2)}L
 
             sage: R = lie_conformal_algebras.Affine(QQbar, 'A1', names=('e','h','f')); R.inject_variables()
             Defining e, h, f, K
             sage: latex(e.bracket(f))
             \left\{0 : h, 1 : K\right\}
             sage: latex(e.T(3))
-            6T^{(3)}e
+            6 T^{(3)}e
 
             sage: R = lie_conformal_algebras.Affine(QQbar, 'A1')
             sage: latex(R.0.bracket(R.2))
             \left\{0 : \alpha^\vee_{1}, 1 : \text{\texttt{K}}\right\}
 
             sage: R = lie_conformal_algebras.Affine(QQ, 'A1'); latex(R.0.T(3))
-            6T^{(3)}\alpha_{1}
+            6 T^{(3)}\alpha_{1}
         """
         if self.is_zero():
-            return "0";
+            return "0"
         p = self.parent()
         try:
             names = p.latex_variable_names()
@@ -236,4 +235,3 @@ class LCAStructureCoefficientsElement(LCAWithGeneratorsElement):
                         for k,v in self.monomial_coefficients().items()]
 
         return repr_lincomb(terms, is_latex=True, strip_one = True)
-

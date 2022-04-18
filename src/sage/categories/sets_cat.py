@@ -5,7 +5,25 @@ Sets
 #  Copyright (C) 2005      David Kohel <kohel@maths.usyd.edu>
 #                          William Stein <wstein@math.ucsd.edu>
 #                2008      Teresa Gomez-Diaz (CNRS) <Teresa.Gomez-Diaz@univ-mlv.fr>
-#                2008-2014 Nicolas M. Thiery <nthiery at users.sf.net>
+#                2008-2017 Nicolas M. Thiery <nthiery at users.sf.net>
+#                2009      Mike Hansen
+#                2010      Florent Hivert
+#                2010      William Laffin
+#                2012      Franco Saliola
+#                2013      Sara Billey
+#                2013      Simon King
+#                2013-2016 Julian Rüth
+#                2014      Darij Grinberg
+#                2014      Peter Bruin
+#                2014-2021 Frédéric Chapoton
+#                2014-2021 Travis Scrimshaw
+#                2015      Daniel Krenn
+#                2015      Vincent Delecroix
+#                2015-2016 Jori Mäntysalo
+#                2016      Kwankyu Lee
+#                2018      Vincent Klein
+#                2019      Markus Wageringel
+#                2020-2021 Matthias Koeppe
 #
 #  Distributed under the terms of the GNU General Public License (GPL)
 #                  https://www.gnu.org/licenses/
@@ -118,10 +136,10 @@ class Sets(Category_singleton):
         <class 'sage.categories.examples.sets_cat.PrimeNumbers_Abstract'>
         <class 'sage.structure.unique_representation.UniqueRepresentation'>
         <class 'sage.structure.unique_representation.CachedRepresentation'>
-        <type 'sage.misc.fast_methods.WithEqualityById'>
-        <type 'sage.structure.parent.Parent'>
-        <type 'sage.structure.category_object.CategoryObject'>
-        <type 'sage.structure.sage_object.SageObject'>
+        <class 'sage.misc.fast_methods.WithEqualityById'>
+        <class 'sage.structure.parent.Parent'>
+        <class 'sage.structure.category_object.CategoryObject'>
+        <class 'sage.structure.sage_object.SageObject'>
         <class 'sage.categories.sets_cat.Sets.parent_class'>
         <class 'sage.categories.sets_with_partial_maps.SetsWithPartialMaps.parent_class'>
         <class 'sage.categories.objects.Objects.parent_class'>
@@ -169,18 +187,18 @@ class Sets(Category_singleton):
         sage: for cl in x.__class__.mro(): print(cl)
         <class 'sage.categories.examples.sets_cat.PrimeNumbers_Inherits_with_category.element_class'>
         <class 'sage.categories.examples.sets_cat.PrimeNumbers_Inherits.Element'>
-        <type 'sage.rings.integer.IntegerWrapper'>
-        <type 'sage.rings.integer.Integer'>
-        <type 'sage.structure.element.EuclideanDomainElement'>
-        <type 'sage.structure.element.PrincipalIdealDomainElement'>
-        <type 'sage.structure.element.DedekindDomainElement'>
-        <type 'sage.structure.element.IntegralDomainElement'>
-        <type 'sage.structure.element.CommutativeRingElement'>
-        <type 'sage.structure.element.RingElement'>
-        <type 'sage.structure.element.ModuleElement'>
+        <class 'sage.rings.integer.IntegerWrapper'>
+        <class 'sage.rings.integer.Integer'>
+        <class 'sage.structure.element.EuclideanDomainElement'>
+        <class 'sage.structure.element.PrincipalIdealDomainElement'>
+        <class 'sage.structure.element.DedekindDomainElement'>
+        <class 'sage.structure.element.IntegralDomainElement'>
+        <class 'sage.structure.element.CommutativeRingElement'>
+        <class 'sage.structure.element.RingElement'>
+        <class 'sage.structure.element.ModuleElement'>
         <class 'sage.categories.examples.sets_cat.PrimeNumbers_Abstract.Element'>
-        <type 'sage.structure.element.Element'>
-        <type 'sage.structure.sage_object.SageObject'>
+        <class 'sage.structure.element.Element'>
+        <class 'sage.structure.sage_object.SageObject'>
         <class 'sage.categories.sets_cat.Sets.element_class'>
         <class 'sage.categories.sets_with_partial_maps.SetsWithPartialMaps.element_class'>
         <class 'sage.categories.objects.Objects.element_class'>
@@ -714,8 +732,8 @@ class Sets(Category_singleton):
                 sage: TestSuite(Groups().Finite().Algebras(QQ)).run()
             """
             from sage.categories.rings import Rings
-            assert base_ring in Rings or (isinstance(base_ring, Category)
-                                          and base_ring.is_subcategory(Rings()))
+            assert base_ring in Rings() or (isinstance(base_ring, Category)
+                                            and base_ring.is_subcategory(Rings()))
             return AlgebrasCategory.category_of(self, base_ring)
 
         @cached_method
@@ -954,16 +972,15 @@ class Sets(Category_singleton):
 
                 sage: A = FreeModule(QQ, 3)
                 sage: A.element_class
-                <type 'sage.modules.vector_rational_dense.Vector_rational_dense'>
+                <class 'sage.modules.vector_rational_dense.Vector_rational_dense'>
                 sage: A._element_constructor_
-                <bound method FreeModule_ambient_field_with_category._element_constructor_ of Vector space of dimension 3 over Rational Field>
+                <bound method FreeModule_ambient_field._element_constructor_ of Vector space of dimension 3 over Rational Field>
 
                 sage: B = SymmetricGroup(3).algebra(ZZ)
                 sage: B.element_class
                 <...SymmetricGroupAlgebra_n_with_category.element_class'>
                 sage: B._element_constructor_
-                <bound method SymmetricGroupAlgebra_n_with_category._element_constructor_
-                of Symmetric group algebra of order 3 over Integer Ring>
+                <bound method SymmetricGroupAlgebra_n._element_constructor_ of Symmetric group algebra of order 3 over Integer Ring>
             """
             if hasattr(self, "element_class"):
                 return self._element_constructor_from_element_class
@@ -1090,7 +1107,7 @@ class Sets(Category_singleton):
                 an_element = self.an_element()
             except EmptySetError:
                 return
-            tester.assertTrue(an_element in self, "self.an_element() is not in self")
+            tester.assertIn(an_element, self, "self.an_element() is not in self")
 #            tester.assertTrue(self.is_parent_of(an_element), "self is not the parent of self.an_element()")
 #            tester.assertEqual(self(an_element), an_element, "element construction is not idempotent")
             if self.is_parent_of(an_element):
@@ -1260,7 +1277,7 @@ class Sets(Category_singleton):
             """
             tester = self._tester(**options)
             S = list(tester.some_elements())
-            n = tester._max_runs
+            n = max(tester._max_runs, 8)
             if (len(S)+2)**3 <= n:
                 S = list(S) + [None, 0]
             else:
@@ -1270,10 +1287,12 @@ class Sets(Category_singleton):
 
             for x in S:
                 for y in S:
-                    if not x == y: continue
+                    if not x == y:
+                        continue
                     for z in S:
-                        if not y == z: continue
-                        tester.assertTrue(x == z,
+                        if not y == z:
+                            continue
+                        tester.assertEqual(x, z,
                             LazyFormat("non transitive equality:\n"
                                        "%s and %s but %s")%(
                                 print_compare(x, y),
@@ -1381,7 +1400,7 @@ class Sets(Category_singleton):
             #tester.assertTrue(elements != iter(elements),
             #               "self.some_elements() should return an iterable, not an iterator")
             for x in elements:
-                tester.assertTrue(x in self, LazyFormat(
+                tester.assertIn(x, self, LazyFormat(
                     "the object %s in self.some_elements() is not in self")%(x,))
 
         #Note: the four methods 'cardinality', 'is_finite_, 'is_empty' and
@@ -1458,7 +1477,7 @@ class Sets(Category_singleton):
             and if it returns the latter, then it is supposed that ``F(O)==self`.
             The test verifies this assumption.
 
-            EXAMPLE:
+            EXAMPLES:
 
             We create a parent that returns a wrong construction (its construction
             returns the rational field rather than the parent itself)::
@@ -1686,6 +1705,47 @@ Please use, e.g., S.algebra(QQ, category=Semigroups())""".format(self))
             result.__doc__ = Sets.ParentMethods.algebra.__doc__
             return result
 
+        def _sympy_(self):
+            """
+            Return an instance of a subclass of SymPy ``Set`` corresponding to ``self``.
+
+            The default implementation creates an instance of
+            :class:`~sage.interfaces.sympy_wrapper`.
+
+            EXAMPLES::
+
+                sage: F = FiniteEnumeratedSets().example(); F
+                An example of a finite enumerated set: {1,2,3}
+                sage: sF = F._sympy_(); sF
+                SageSet(An example of a finite enumerated set: {1,2,3})
+                sage: sF.is_finite_set
+                True
+                sage: bool(sF)
+                True
+                sage: len(sF)
+                3
+                sage: list(sF)
+                [1, 2, 3]
+                sage: from sympy import FiniteSet
+                sage: FiniteSet.fromiter(sF)  # random - this output format is sympy >= 1.9
+                FiniteSet(1, 2, 3)
+
+                sage: RR._sympy_().is_finite_set
+                False
+
+                sage: F = Family([1, 2])
+                sage: F is Family([1, 2])
+                False
+                sage: sF = F._sympy_(); sF
+                SageSet(Family (1, 2))
+                sage: sF._sage_() is F
+                True
+            """
+            from sage.interfaces.sympy_wrapper import SageSet
+            from sage.interfaces.sympy import sympy_init
+            sympy_init()
+            return SageSet(self)
+
     class ElementMethods:
         ## Should eventually contain the basic operations which are no math
         ## latex, hash, ...
@@ -1783,6 +1843,39 @@ Please use, e.g., S.algebra(QQ, category=Semigroups())""".format(self))
             if self.domain().cardinality() > self.codomain().cardinality():
                 return False
             raise NotImplementedError
+
+        def image(self, domain_subset=None):
+            r"""
+            Return the image of the domain or of ``domain_subset``.
+
+            EXAMPLES::
+
+                sage: P = Partitions(6)
+                sage: H = Hom(P, ZZ)
+                sage: f = H(ZZ.sum)
+                sage: X = f.image()
+                sage: list(X)
+                [6]
+            """
+            D = self.domain()
+            if D is None:
+                raise ValueError("this map became defunct by garbage collection")
+            if domain_subset is None or domain_subset == D:
+                try:
+                    if self.is_surjective():
+                        return D
+                except NotImplementedError:
+                    pass
+                domain_subset = D
+            from sage.sets.set import Set_base
+            from sage.sets.image_set import ImageSubobject, ImageSet
+            if isinstance(domain_subset, Set_base):
+                # Most of our parents are sets, but the mixin class Set_base
+                # provides the full kit of operators.  The image should get them too.
+                cls = ImageSet
+            else:
+                cls = ImageSubobject
+            return cls(self, domain_subset)
 
     Enumerated = LazyImport('sage.categories.enumerated_sets', 'EnumeratedSets', at_startup=True)
     Facade = LazyImport('sage.categories.facade_sets', 'FacadeSets')
@@ -2126,19 +2219,11 @@ Please use, e.g., S.algebra(QQ, category=Semigroups())""".format(self))
                 r"""
                 Return a lexicographic iterator for the elements of this Cartesian product.
 
-                EXAMPLES::
+                EXAMPLES:
 
-                    sage: for x,y in cartesian_product([Set([1,2]), Set(['a','b'])]): # py2
-                    ....:     print((x, y))
-                    (1, 'a')
-                    (1, 'b')
-                    (2, 'a')
-                    (2, 'b')
+                Sets are intrinsically unordered::
 
-                Sets are intrinsically unordered, so a different
-                ordering may occur when using Python 3::
-
-                    sage: for x,y in cartesian_product([Set([1,2]), Set(['a','b'])]): # py3 random
+                    sage: for x,y in cartesian_product([Set([1,2]), Set(['a','b'])]): # random
                     ....:     print((x, y))
                     (1, 'b')
                     (1, 'a')
@@ -2292,7 +2377,8 @@ Please use, e.g., S.algebra(QQ, category=Semigroups())""".format(self))
                 except (AttributeError, NotImplementedError):
                     pass
                 else:
-                    if test: return test
+                    if test:
+                        return test
                 return all(c.is_finite() for c in f)
 
             def cardinality(self):
@@ -2437,6 +2523,23 @@ Please use, e.g., S.algebra(QQ, category=Semigroups())""".format(self))
                     sage: C._cartesian_product_of_elements(S.an_element() for S in X)
                     (42, 47, 42)
                 """
+
+            def _sympy_(self):
+                """
+                Return a SymPy ``ProductSet`` corresponding to ``self``.
+
+                EXAMPLES::
+
+                    sage: ZZ3 = cartesian_product([ZZ, ZZ, ZZ])
+                    sage: sZZ3 = ZZ3._sympy_(); sZZ3
+                    ProductSet(Integers, Integers, Integers)
+                    sage: (1, 2, 3) in sZZ3
+                    True
+                """
+                from sympy import ProductSet
+                from sage.interfaces.sympy import sympy_init
+                sympy_init()
+                return ProductSet(*self.cartesian_factors())
 
         class ElementMethods:
 
@@ -2600,7 +2703,6 @@ Please use, e.g., S.algebra(QQ, category=Semigroups())""".format(self))
                 set = Set([1,2,3])
             from sage.categories.examples.with_realizations import SubsetAlgebra
             return SubsetAlgebra(base_ring, set)
-
 
         class ParentMethods:
 

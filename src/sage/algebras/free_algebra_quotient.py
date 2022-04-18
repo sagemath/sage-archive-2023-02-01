@@ -59,7 +59,7 @@ Test comparison by equality::
 # ****************************************************************************
 
 from sage.modules.free_module import FreeModule
-from sage.algebras.algebra import Algebra
+from sage.rings.ring import Algebra
 from sage.algebras.free_algebra import is_FreeAlgebra
 from sage.algebras.free_algebra_quotient_element import FreeAlgebraQuotientElement
 from sage.structure.unique_representation import UniqueRepresentation
@@ -142,18 +142,16 @@ class FreeAlgebraQuotient(UniqueRepresentation, Algebra, object):
 
         """
         if not is_FreeAlgebra(A):
-            raise TypeError("Argument A must be an algebra.")
+            raise TypeError("argument A must be an algebra")
         R = A.base_ring()
-#        if not R.is_field():  # TODO: why?
-#            raise TypeError, "Base ring of argument A must be a field."
         n = A.ngens()
         assert n == len(mats)
         self.__free_algebra = A
         self.__ngens = n
         self.__dim = len(mons)
-        self.__module = FreeModule(R,self.__dim)
+        self.__module = FreeModule(R, self.__dim)
         self.__matrix_action = mats
-        self.__monomial_basis = mons # elements of free monoid
+        self.__monomial_basis = mons  # elements of free monoid
         Algebra.__init__(self, R, names, normalize=True)
 
     def _element_constructor_(self, x):
@@ -217,18 +215,18 @@ class FreeAlgebraQuotient(UniqueRepresentation, Algebra, object):
             sage: H.gen(3)
             Traceback (most recent call last):
             ...
-            IndexError: Argument i (= 3) must be between 0 and 2.
+            IndexError: argument i (= 3) must be between 0 and 2
 
         Negative indexing into the generators is not supported::
 
             sage: H.gen(-1)
             Traceback (most recent call last):
             ...
-            IndexError: Argument i (= -1) must be between 0 and 2.
+            IndexError: argument i (= -1) must be between 0 and 2
         """
         n = self.__ngens
         if i < 0 or not i < n:
-            raise IndexError("Argument i (= %s) must be between 0 and %s."%(i, n-1))
+            raise IndexError("argument i (= %s) must be between 0 and %s" % (i, n - 1))
         R = self.base_ring()
         F = self.__free_algebra.monoid()
         return self.element_class(self, {F.gen(i): R.one()})
@@ -365,4 +363,3 @@ def hamilton_quatalg(R):
     mats = [M([0,1,0,0, -1,0,0,0, 0,0,0,-1, 0,0,1,0]),  M([0,0,1,0, 0,0,0,1, -1,0,0,0, 0,-1,0,0]),  M([0,0,0,1, 0,0,-1,0, 0,1,0,0, -1,0,0,0]) ]
     H3 = FreeAlgebraQuotient(A,mons,mats, names=('i','j','k'))
     return H3, H3.gens()
-

@@ -76,11 +76,9 @@ We test that bug :trac:`8415` (caused by a PARI bug fixed in v2.3.5) is OK::
       To:   Algebraic Field
       Defn: a |--> -2.645751311064591?*I
 
-
 REFERENCES:
 
 - [CT2013]_
-
 
 AUTHORS:
 
@@ -100,15 +98,15 @@ AUTHORS:
 
 from sage.modules.free_module import FreeModule_generic_pid
 from sage.rings.all import ZZ, QQ, RealField, ComplexField, QQbar, AA
-from sage.rings.real_mpfr import is_RealField
-from sage.rings.complex_mpfr import ComplexNumber, is_ComplexField
+import sage.rings.abc
+from sage.rings.complex_mpfr import ComplexNumber
 from sage.rings.real_mpfr import RealNumber as RealNumber
 from sage.rings.number_field.number_field import refine_embedding
 from sage.rings.infinity import Infinity
 from sage.schemes.elliptic_curves.constructor import EllipticCurve
 from sage.misc.cachefunc import cached_method
 from sage.structure.richcmp import richcmp_method, richcmp, richcmp_not_equal
-from sage.libs.all import pari
+from sage.libs.pari.all import pari
 
 
 class PeriodLattice(FreeModule_generic_pid):
@@ -149,11 +147,11 @@ class PeriodLattice_ell(PeriodLattice):
           - use the first embedding into `\CC` given by
           ``K.embeddings(ComplexField())``, if `K` is totally complex.
 
-        .. note::
+        .. NOTE::
 
-           No periods are computed on creation of the lattice; see the
-           functions ``basis()``, ``normalised_basis()`` and
-           ``real_period()`` for precision setting.
+            No periods are computed on creation of the lattice; see the
+            functions ``basis()``, ``normalised_basis()`` and
+            ``real_period()`` for precision setting.
 
         EXAMPLES:
 
@@ -204,12 +202,12 @@ class PeriodLattice_ell(PeriodLattice):
         K = E.base_field()
         if embedding is None:
             embs = K.embeddings(AA)
-            real = len(embs)>0
+            real = len(embs) > 0
             if not real:
                 embs = K.embeddings(QQbar)
             embedding = embs[0]
         else:
-            embedding = refine_embedding(embedding,Infinity)
+            embedding = refine_embedding(embedding, Infinity)
             real = embedding(K.gen()).imag().is_zero()
 
         self.embedding = embedding
@@ -601,7 +599,6 @@ class PeriodLattice_ell(PeriodLattice):
 
         INPUT:
 
-
         - `prec` (int or ``None`` (default)) -- floating point
           precision (in bits); if None, use the default precision.
 
@@ -609,7 +606,6 @@ class PeriodLattice_ell(PeriodLattice):
           - `pari`: use the PARI library
 
           - `sage`: use a native Sage implementation (with the same underlying algorithm).
-
 
         OUTPUT:
 
@@ -764,7 +760,6 @@ class PeriodLattice_ell(PeriodLattice):
             sage: [E.period_lattice(emb).is_real() for emb in K.embeddings(CC)]
             [False, False, True]
 
-
         ALGORITHM:
 
         The lattice is real if it is associated to a real embedding;
@@ -776,10 +771,10 @@ class PeriodLattice_ell(PeriodLattice):
         r"""
         Return True if this period lattice is rectangular.
 
-        .. note::
+        .. NOTE::
 
-           Only defined for real lattices; a RuntimeError is raised for
-           non-real lattices.
+            Only defined for real lattices; a RuntimeError is raised for
+            non-real lattices.
 
         EXAMPLES::
 
@@ -821,10 +816,10 @@ class PeriodLattice_ell(PeriodLattice):
           (native Sage implementation) or 'pari' (use the PARI
           library: only available for real embeddings).
 
-        .. note::
+        .. NOTE::
 
-           Only defined for real lattices; a RuntimeError is raised for
-           non-real lattices.
+            Only defined for real lattices; a RuntimeError is raised for
+            non-real lattices.
 
         EXAMPLES::
 
@@ -863,14 +858,14 @@ class PeriodLattice_ell(PeriodLattice):
         the complex area, or double the area if ``bsd_normalise`` is
         ``True``.
 
-        .. note::
+        .. NOTE::
 
-           If the curve is given by a *global minimal* Weierstrass
-           equation, then with ``bsd_normalise`` = ``True``, this
-           gives the correct period in the BSD conjecture: the product
-           of this quantity over all embeddings appears in the BSD
-           formula. In general a correction factor is required to make
-           allowance for the model.
+            If the curve is given by a *global minimal* Weierstrass
+            equation, then with ``bsd_normalise`` = ``True``, this
+            gives the correct period in the BSD conjecture: the product
+            of this quantity over all embeddings appears in the BSD
+            formula. In general a correction factor is required to make
+            allowance for the model.
 
         EXAMPLES::
 
@@ -1038,11 +1033,11 @@ class PeriodLattice_ell(PeriodLattice):
 
             2, 3: same using the product expansion instead of theta series. ???
 
-        .. note::
+        .. NOTE::
 
-           The reason for the ???'s above, is that the PARI
-           documentation for ellsigma is very vague.  Also this is
-           only implemented for curves defined over `\QQ`.
+            The reason for the ???'s above, is that the PARI
+            documentation for ellsigma is very vague.  Also this is
+            only implemented for curves defined over `\QQ`.
 
         .. TODO::
 
@@ -1169,11 +1164,11 @@ class PeriodLattice_ell(PeriodLattice):
             (12, 23)
         """
         C = z.parent()
-        if is_RealField(C):
+        if isinstance(C, sage.rings.abc.RealField):
             C = ComplexField(C.precision())
             z = C(z)
         else:
-            if is_ComplexField(C):
+            if isinstance(C, sage.rings.abc.ComplexField):
                 pass
             else:
                 try:
@@ -1183,7 +1178,7 @@ class PeriodLattice_ell(PeriodLattice):
                     raise TypeError("%s is not a complex number"%z)
         prec = C.precision()
         from sage.matrix.all import Matrix
-        from sage.modules.all import vector
+        from sage.modules.free_module_element import vector
         if self.real_flag:
             w1,w2 = self.basis(prec)
             M = Matrix([[w1,0], list(w2)])**(-1)
@@ -1233,10 +1228,10 @@ class PeriodLattice_ell(PeriodLattice):
             0.958696500380444
         """
         C = z.parent()
-        if is_RealField(C):
+        if isinstance(C, sage.rings.abc.RealField):
             C = ComplexField(C.precision())
             z = C(z)
-        elif is_ComplexField(C):
+        elif isinstance(C, sage.rings.abc.ComplexField):
             pass
         else:
             try:
@@ -1685,9 +1680,9 @@ class PeriodLattice_ell(PeriodLattice):
           is a pair of real numbers if ``to_curve`` is True, or a
           point in `E(\RR)` if ``to_curve`` is False.
 
-        .. note::
+        .. NOTE::
 
-           The precision is taken from that of the input ``z``.
+            The precision is taken from that of the input ``z``.
 
         EXAMPLES::
 
@@ -1789,12 +1784,12 @@ class PeriodLattice_ell(PeriodLattice):
         """
         C = z.parent()
         z_is_real = False
-        if is_RealField(C):
+        if isinstance(C, sage.rings.abc.RealField):
             z_is_real = True
             C = ComplexField(C.precision())
             z = C(z)
         else:
-            if is_ComplexField(C):
+            if isinstance(C, sage.rings.abc.ComplexField):
                 z_is_real = z.is_real()
             else:
                 try:
@@ -1802,7 +1797,7 @@ class PeriodLattice_ell(PeriodLattice):
                     z = C(z)
                     z_is_real = z.is_real()
                 except TypeError:
-                    raise TypeError("%s is not a complex number"%z)
+                    raise TypeError("%s is not a complex number" % z)
         prec = C.precision()
 
         # test for the point at infinity:
@@ -1813,7 +1808,7 @@ class PeriodLattice_ell(PeriodLattice):
             if to_curve:
                 return self.curve().change_ring(K)(0)
             else:
-                return (K('+infinity'), K('+infinity'))
+                return K(Infinity), K(Infinity)
 
         # general number field code (including QQ):
 
@@ -1830,7 +1825,7 @@ class PeriodLattice_ell(PeriodLattice):
         # the same precision as the input.
 
         x, y = pari(self.basis(prec=prec)).ellwp(z, flag=1)
-        x, y = [C(t) for t in (x,y)]
+        x, y = [C(t) for t in (x, y)]
 
         if self.real_flag and z_is_real:
             x = x.real()
@@ -1839,14 +1834,15 @@ class PeriodLattice_ell(PeriodLattice):
         if to_curve:
             K = x.parent()
             v = refine_embedding(self.embedding, Infinity)
-            a1,a2,a3,a4,a6 = [K(v(a)) for a in self.E.ainvs()]
+            a1, a2, a3, a4, a6 = [K(v(a)) for a in self.E.ainvs()]
             b2 = K(v(self.E.b2()))
             x = x - b2 / 12
             y = (y - (a1 * x + a3)) / 2
-            EK = EllipticCurve(K,[a1,a2,a3,a4,a6])
-            return EK.point((x,y,K(1)), check=False)
+            EK = EllipticCurve(K, [a1, a2, a3, a4, a6])
+            return EK.point((x, y, K.one()), check=False)
         else:
-            return (x,y)
+            return (x, y)
+
 
 def reduce_tau(tau):
     r"""
@@ -1927,7 +1923,6 @@ def normalise_periods(w1, w2):
         1.23400010389203e9*I
         sage: a*d-b*c # note change of orientation
         -1
-
     """
     tau = w1/w2
     s = +1
@@ -1969,7 +1964,6 @@ def extended_agm_iteration(a, b, c):
         Traceback (most recent call last):
         ...
         ValueError: values must be real or complex numbers
-
     """
     if not isinstance(a, (RealNumber,ComplexNumber)):
         raise ValueError("values must be real or complex numbers")

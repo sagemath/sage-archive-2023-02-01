@@ -38,13 +38,14 @@ Methods
 #    the License, or (at your option) any later version.                   #
 #                    https://www.gnu.org/licenses/                          #
 # **************************************************************************
+from __future__ import annotations
 from sage.rings.integer import Integer
 from sage.misc.latex import latex
 from sage.sets.set import Set
 from sage.libs.gap.libgap import libgap
 
 
-class IncidenceStructure(object):
+class IncidenceStructure():
     r"""
     A base class for incidence structures (i.e. hypergraphs, i.e. set systems)
 
@@ -163,9 +164,9 @@ class IncidenceStructure(object):
             sage: blocks = [[e0,e1,e2],[e0,e1],[e2,e4]]
             sage: I = IncidenceStructure(V, blocks)
             sage: type(I.ground_set()[0])
-            <... 'sage.rings.finite_rings.integer_mod.IntegerMod_int'>
+            <class 'sage.rings.finite_rings.integer_mod.IntegerMod_int'>
             sage: type(I.blocks()[0][0])
-            <... 'sage.rings.finite_rings.integer_mod.IntegerMod_int'>
+            <class 'sage.rings.finite_rings.integer_mod.IntegerMod_int'>
 
         TESTS::
 
@@ -901,7 +902,7 @@ class IncidenceStructure(object):
         """
         return max(len(b) for b in self._blocks)
 
-    def is_regular(self,r=None):
+    def is_regular(self, r=None) -> bool | int:
         r"""
         Test whether the incidence structure is `r`-regular.
 
@@ -941,19 +942,18 @@ class IncidenceStructure(object):
         """
         if self.num_points() == 0:
             raise ValueError("This incidence structure has no points.")
-        count = [0]*self.num_points()
+        count = [0] * self.num_points()
         for b in self._blocks:
             for x in b:
                 count[x] += 1
-        count = set(count)
-        if len(count) != 1:
+        scount = set(count)
+        if len(scount) != 1:
             return False
-        elif r is None:
-            return count.pop()
-        else:
-            return count.pop() == r
+        if r is None:
+            return scount.pop()
+        return scount.pop() == r
 
-    def is_uniform(self,k=None):
+    def is_uniform(self, k=None) -> bool | int:
         r"""
         Test whether the incidence structure is `k`-uniform
 
@@ -996,12 +996,11 @@ class IncidenceStructure(object):
         sizes = set(self.block_sizes())
         if len(sizes) != 1:
             return False
-        elif k is None:
+        if k is None:
             return sizes.pop()
-        else:
-            return sizes.pop() == k
+        return sizes.pop() == k
 
-    def is_connected(self):
+    def is_connected(self) -> bool:
         r"""
         Test whether the design is connected.
 
@@ -1016,11 +1015,11 @@ class IncidenceStructure(object):
         D = DisjointSet(self.num_points())
         for B in self._blocks:
             x = B[0]
-            for i in range(1,len(B)):
-                D.union(x,B[i])
+            for i in range(1, len(B)):
+                D.union(x, B[i])
         return D.number_of_subsets() == 1
 
-    def is_simple(self):
+    def is_simple(self) -> bool:
         r"""
         Test whether this design is simple (i.e. no repeated block).
 
@@ -1136,7 +1135,7 @@ class IncidenceStructure(object):
             [0 1 1 1]
         """
         from sage.matrix.constructor import Matrix
-        from sage.rings.all import ZZ
+        from sage.rings.integer_ring import ZZ
         A = Matrix(ZZ, self.num_points(), self.num_blocks(), sparse=True)
         for j, b in enumerate(self._blocks):
             for i in b:
@@ -1290,7 +1289,7 @@ class IncidenceStructure(object):
             if k is False:
                 raise ValueError("The incidence structure is not uniform.")
 
-            blocks     = []
+            blocks = []
             num_blocks = self.num_blocks()
             i = 0
             from itertools import combinations
@@ -1388,18 +1387,18 @@ class IncidenceStructure(object):
 
         self._points = [perm[x] for x in self._points]
         if self._points == list(range(self.num_points())):
-            self._point_to_index  = None
+            self._point_to_index = None
         else:
-            self._point_to_index = {v:i for i,v in enumerate(self._points)}
+            self._point_to_index = {v: i for i, v in enumerate(self._points)}
 
-    __hash__ = None
+    # __hash__ = None
     # This object is mutable because of .relabel()
 
     #####################
     # real computations #
     #####################
 
-    def packing(self, solver=None, verbose=0):
+    def packing(self, solver=None, verbose=0, *, integrality_tolerance=1e-3):
         r"""
         Return a maximum packing
 
@@ -1412,16 +1411,20 @@ class IncidenceStructure(object):
 
         INPUT:
 
-        - ``solver`` -- (default: ``None``) Specify a Linear Program (LP)
-          solver to be used. If set to ``None``, the default one is used. For
-          more information on LP solvers and which default solver is used, see
-          the method
-          :meth:`solve <sage.numerical.mip.MixedIntegerLinearProgram.solve>`
-          of the class
-          :class:`MixedIntegerLinearProgram <sage.numerical.mip.MixedIntegerLinearProgram>`.
+        - ``solver`` -- (default: ``None``) Specify a Mixed Integer Linear
+          Programming (MILP) solver to be used. If set to ``None``, the default
+          one is used. For more information on LP solvers and which default
+          solver is used, see the method :meth:`solve
+          <sage.numerical.mip.MixedIntegerLinearProgram.solve>` of the class
+          :class:`MixedIntegerLinearProgram
+          <sage.numerical.mip.MixedIntegerLinearProgram>`.
 
         - ``verbose`` -- integer (default: ``0``). Sets the level of
           verbosity. Set to 0 by default, which means quiet.
+
+        - ``integrality_tolerance`` -- parameter for use with MILP solvers over
+          an inexact base ring; see
+          :meth:`MixedIntegerLinearProgram.get_values`.
 
         EXAMPLES::
 
@@ -1449,8 +1452,9 @@ class IncidenceStructure(object):
 
         p.solve(log=verbose)
 
+        values = p.get_values(b, convert=bool, tolerance=integrality_tolerance)
         return [[self._points[x] for x in self._blocks[i]]
-                for i, v in p.get_values(b).items() if v]
+                for i, v in values.items() if v]
 
     def is_t_design(self, t=None, v=None, k=None, l=None, return_parameters=False):
         r"""
@@ -1852,7 +1856,8 @@ class IncidenceStructure(object):
 
         return PermutationGroup(gens, domain=self._points)
 
-    def is_resolvable(self, certificate=False, solver=None, verbose=0, check=True):
+    def is_resolvable(self, certificate=False, solver=None, verbose=0, check=True,
+                      *, integrality_tolerance=1e-3):
         r"""
         Test whether the hypergraph is resolvable
 
@@ -1864,17 +1869,17 @@ class IncidenceStructure(object):
             This problem is solved using an Integer Linear Program, and GLPK
             (the default LP solver) has been reported to be very slow on some
             instances. If you hit this wall, consider installing a more powerful
-            LP solver (CPLEX, Gurobi, ...).
+            MILP solver (CPLEX, Gurobi, ...).
 
         INPUT:
 
         - ``certificate`` (boolean) -- whether to return the classes along with
           the binary answer (see examples below).
 
-        - ``solver`` -- (default: ``None``) Specify a Linear Program (LP) solver
-          to be used. If set to ``None``, the default one is used. For more
-          information on LP solvers and which default solver is used, see the
-          method :meth:`solve
+        - ``solver`` -- (default: ``None``) Specify a Mixed Integer Linear
+          Programming (MILP) solver to be used. If set to ``None``, the default
+          one is used. For more information on MILP solvers and which default
+          solver is used, see the method :meth:`solve
           <sage.numerical.mip.MixedIntegerLinearProgram.solve>` of the class
           :class:`MixedIntegerLinearProgram
           <sage.numerical.mip.MixedIntegerLinearProgram>`.
@@ -1884,8 +1889,12 @@ class IncidenceStructure(object):
 
         - ``check`` (boolean) -- whether to check that output is correct before
           returning it. As this is expected to be useless (but we are cautious
-          guys), you may want to disable it whenever you want speed. Set to ``True``
-          by default.
+          guys), you may want to disable it whenever you want speed. Set to
+          ``True`` by default.
+
+        - ``integrality_tolerance`` -- parameter for use with MILP solvers over
+          an inexact base ring; see
+          :meth:`MixedIntegerLinearProgram.get_values`.
 
         EXAMPLES:
 
@@ -1968,7 +1977,7 @@ class IncidenceStructure(object):
                 else:
                     # each class is stored as the list of indices of its blocks
                     self._classes = [[] for _ in range(n_classes)]
-                    for (t, i), v in p.get_values(b).items():
+                    for (t, i), v in p.get_values(b, convert=bool, tolerance=integrality_tolerance).items():
                         if v:
                             self._classes[t].append(self._blocks[i])
 
@@ -1993,7 +2002,8 @@ class IncidenceStructure(object):
             return True
 
 
-    def coloring(self, k=None, solver=None, verbose=0):
+    def coloring(self, k=None, solver=None, verbose=0,
+                 *, integrality_tolerance=1e-3):
         r"""
         Compute a (weak) `k`-coloring of the hypergraph
 
@@ -2006,19 +2016,23 @@ class IncidenceStructure(object):
           provided, otherwise returns an optimal coloring (i.e. with the minimum
           possible number of colors).
 
-        - ``solver`` -- (default: ``None``) Specify a Linear Program (LP)
-          solver to be used. If set to ``None``, the default one is used. For
-          more information on LP solvers and which default solver is used, see
-          the method
-          :meth:`~sage.numerical.mip.MixedIntegerLinearProgram.solve`
-          of the class
-          :class:`~sage.numerical.mip.MixedIntegerLinearProgram`.
+        - ``solver`` -- (default: ``None``) Specify a Mixed Integer Linear
+          Programming (MILP) solver to be used. If set to ``None``, the default
+          one is used. For more information on MILP solvers and which default
+          solver is used, see the method :meth:`solve
+          <sage.numerical.mip.MixedIntegerLinearProgram.solve>` of the class
+          :class:`MixedIntegerLinearProgram
+          <sage.numerical.mip.MixedIntegerLinearProgram>`.
 
         - ``verbose`` -- non-negative integer (default: ``0``). Set the level
           of verbosity you want from the linear program solver. Since the
           problem is `NP`-complete, its solving may take some time depending on
           the graph. A value of 0 means that there will be no message printed by
           the solver.
+
+        - ``integrality_tolerance`` -- parameter for use with MILP solvers over
+          an inexact base ring; see
+          :meth:`MixedIntegerLinearProgram.get_values`.
 
         EXAMPLES:
 
@@ -2080,7 +2094,7 @@ class IncidenceStructure(object):
 
         col = [[] for _ in range(k)]
 
-        for (x,i),v in p.get_values(b).items():
+        for (x,i),v in p.get_values(b, convert=bool, tolerance=integrality_tolerance).items():
             if v:
                 col[i].append(self._points[x])
 
@@ -2113,7 +2127,7 @@ class IncidenceStructure(object):
         blocks = self.blocks()
         blocks_sets = [frozenset(b) for b in blocks]
         g = Graph([list(range(self.num_blocks())),
-                   lambda x, y: len(blocks_sets[x]&blocks_sets[y])],
+                   lambda x, y: len(blocks_sets[x] & blocks_sets[y])],
                   loops=False)
         return [[blocks[i] for i in C] for C in g.coloring(algorithm="MILP")]
 

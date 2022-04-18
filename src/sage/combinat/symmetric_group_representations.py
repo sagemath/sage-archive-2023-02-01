@@ -29,7 +29,7 @@ Representations of the Symmetric Group
 # ****************************************************************************
 
 from sage.symbolic.ring import SR
-from sage.functions.all import sqrt
+from sage.misc.functional import sqrt
 from sage.combinat.partition import Partition, Partitions
 from sage.combinat.permutation import Permutation, Permutations, from_cycles
 from sage.combinat.tableau import StandardTableaux, Tableau
@@ -378,13 +378,14 @@ class SymmetricGroupRepresentation_generic_class(Element):
             [[1], [-1], [-1], [1], [1], [-1]]
         """
         for permutation in Permutations(self._n):
-             yield self.representation_matrix(permutation)
+            yield self.representation_matrix(permutation)
 
     def verify_representation(self):
         r"""
-        Verify the representation: tests that the images of the simple
-        transpositions are involutions and tests that the braid relations
-        hold.
+        Verify the representation.
+
+        This tests that the images of the simple transpositions are
+        involutions and tests that the braid relations hold.
 
         EXAMPLES::
 
@@ -951,7 +952,7 @@ class SpechtRepresentation(SymmetricGroupRepresentation_generic_class):
         """
         ret = self._representation_matrix_uncached(permutation)
         ret.set_immutable()
-        return ret 
+        return ret
 
     def _representation_matrix_uncached(self, permutation):
         r"""

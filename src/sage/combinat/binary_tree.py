@@ -1916,7 +1916,6 @@ class BinaryTree(AbstractClonableTree, ClonableArray,
         Here is a less trivial implementation of this::
 
             sage: from sage.sets.finite_set_map_cy import fibers
-            sage: from sage.misc.all import attrcall
             sage: def baxter(n):
             ....:     f = fibers(lambda t: tuple(t.canopee()),
             ....:                   BinaryTrees(n))
@@ -2717,7 +2716,7 @@ class BinaryTree(AbstractClonableTree, ClonableArray,
             return tn
 
         L = self.comb('left')
-        if len(L):
+        if L:
             tn[0] += 1
             for h in L:
                 tw = BinaryTree([None, h]).twisting_number()
@@ -2725,7 +2724,7 @@ class BinaryTree(AbstractClonableTree, ClonableArray,
                 tn[1] += tw[1]
 
         R = self.comb('right')
-        if len(R):
+        if R:
             tn[1] += 1
             for l in R:
                 tw = BinaryTree([l, None]).twisting_number()

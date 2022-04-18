@@ -145,7 +145,7 @@ AUTHOR:
 
 - John Cremona
 """
-#*****************************************************************************
+# ****************************************************************************
 #       Copyright (C) 2009 William Stein, John Cremona
 #
 #  Distributed under the terms of the GNU General Public License (GPL)
@@ -157,15 +157,15 @@ AUTHOR:
 #
 #  The full text of the GPL is available at:
 #
-#                  http://www.gnu.org/licenses/
-#*****************************************************************************
+#                  https://www.gnu.org/licenses/
+# ****************************************************************************
 
 from sage.groups.abelian_gps.values import AbelianGroupWithValues_class
-from sage.structure.sequence import Sequence
 from sage.structure.proof.proof import get_flag
 from sage.libs.pari.all import pari
-from sage.misc.all import prod
+from sage.misc.misc_c import prod
 from sage.rings.integer_ring import ZZ
+
 
 class UnitGroup(AbelianGroupWithValues_class):
     """
@@ -475,7 +475,7 @@ class UnitGroup(AbelianGroupWithValues_class):
         """
         z = self.gen(0).value()
         n = self.__ntu
-        return [ z**k for k in range(1, n+1) ]
+        return [z**k for k in range(1, n + 1)]
 
     def torsion_generator(self):
         """
@@ -586,7 +586,6 @@ class UnitGroup(AbelianGroupWithValues_class):
         """
         return self.__number_field
 
-
     def primes(self):
         """
         Return the (possibly empty) list of primes associated with this S-unit group.
@@ -602,7 +601,6 @@ class UnitGroup(AbelianGroupWithValues_class):
             True
         """
         return self.__S
-
 
     def log(self, u):
         r"""
@@ -694,6 +692,5 @@ class UnitGroup(AbelianGroupWithValues_class):
            sage: SUK.log(u) == v
            True
         """
-        return prod((u**e for u,e in zip(self.gens_values(),exponents)), self.number_field().one())
-
-
+        return prod((u**e for u, e in zip(self.gens_values(), exponents)),
+                    self.number_field().one())

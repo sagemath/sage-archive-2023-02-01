@@ -51,7 +51,7 @@ from sage.misc.prandom import randint
 import sage.schemes.elliptic_curves.constructor as elliptic
 from .sql_db import SQLDatabase, verify_column
 from sage.features.databases import DatabaseCremona
-from sage.misc.all import walltime
+from sage.misc.misc import walltime
 
 import re
 import string
@@ -669,7 +669,7 @@ class MiniCremonaDatabase(SQLDatabase):
         """
         self.name = name
         name = name.replace(' ', '_')
-        db_path = DatabaseCremona(name=name).absolute_path()
+        db_path = DatabaseCremona(name=name).absolute_filename()
         if build:
             if read_only:
                 raise RuntimeError('The database must not be read_only.')
@@ -1437,7 +1437,8 @@ class MiniCremonaDatabase(SQLDatabase):
             curve_data = []
             for L in open(ftpdata + "/" + F).readlines():
                 N, iso, num, ainvs, r, tor = L.split()
-                if largest_conductor and int(N) > largest_conductor: break
+                if largest_conductor and int(N) > largest_conductor:
+                    break
                 cls = N+iso
                 cur = cls+num
                 if num == "1":
@@ -1452,7 +1453,8 @@ class MiniCremonaDatabase(SQLDatabase):
             print("Committing...")
             print("num_iso_classes =", num_iso_classes)
             self.commit()
-            if largest_conductor and int(N) > largest_conductor: break
+            if largest_conductor and int(N) > largest_conductor:
+                break
         return num_curves, num_iso_classes
 
 
@@ -1586,13 +1588,15 @@ class LargeCremonaDatabase(MiniCremonaDatabase):
             class_data = []
             for L in open(ftpdata + "/" + F).readlines():
                 N, iso, num, degree, primes, curve = L.split()
-                if largest_conductor and int(N) > largest_conductor: break
+                if largest_conductor and int(N) > largest_conductor:
+                    break
                 class_data.append((degree,N+iso))
             con.executemany('UPDATE t_class SET deg=? WHERE class=?',
                 class_data)
             print("Committing...")
             self.commit()
-            if largest_conductor and int(N) > largest_conductor: break
+            if largest_conductor and int(N) > largest_conductor:
+                break
 
     def _init_allbsd(self, ftpdata, largest_conductor=0):
         """
@@ -1620,7 +1624,8 @@ class LargeCremonaDatabase(MiniCremonaDatabase):
             class_data = []
             for L in open(ftpdata + "/" + F).readlines():
                 N, iso, num, eqn, rank, tor, cp, om, L, reg, sha  = L.split()
-                if largest_conductor and int(N) > largest_conductor: break
+                if largest_conductor and int(N) > largest_conductor:
+                    break
                 cls = N+iso
                 if num == "1":
                     class_data.append((L,cls))
@@ -1630,7 +1635,8 @@ class LargeCremonaDatabase(MiniCremonaDatabase):
                     + "curve=?", curve_data)
             print("Committing...")
             self.commit()
-            if largest_conductor and int(N) > largest_conductor: break
+            if largest_conductor and int(N) > largest_conductor:
+                break
 
     def _init_allgens(self, ftpdata, largest_conductor=0):
         """
@@ -1657,13 +1663,15 @@ class LargeCremonaDatabase(MiniCremonaDatabase):
             curve_data = []
             for L in open(ftpdata + "/" + F).readlines():
                 v = L.split()
-                if largest_conductor and int(v[0]) > largest_conductor: break
+                if largest_conductor and int(v[0]) > largest_conductor:
+                    break
                 gens = '['+','.join(v[6:6+int(v[4])]).replace(':',',')+']'
                 curve_data.append((gens,''.join(v[:3])))
             con.executemany("UPDATE t_curve SET gens=? WHERE curve=?",
                 curve_data)
             print("Committing...")
-            if largest_conductor and int(v[0]) > largest_conductor: break
+            if largest_conductor and int(v[0]) > largest_conductor:
+                break
 
 
 _db = None
@@ -1688,16 +1696,16 @@ def CremonaDatabase(name=None,mini=None,set_global=None):
 
     Verify that :trac:`12341` has been resolved::
 
-        sage: c = CremonaDatabase('should not exist',mini=True)
+        sage: c = CremonaDatabase('should not exist', mini=True)
         Traceback (most recent call last):
         ...
-        FeatureNotPresentError: Cremona's database of elliptic curves is not available.
+        FeatureNotPresentError: database_should_not_exist_ellcurve is not available.
         '...db' not found in any of [...]
         ...Further installation instructions might be available at https://github.com/JohnCremona/ecdata.
         sage: c = CremonaDatabase('should not exist',mini=False)
         Traceback (most recent call last):
         ...
-        FeatureNotPresentError: Cremona's database of elliptic curves is not available.
+        FeatureNotPresentError: database_should_not_exist_ellcurve is not available.
         '...db' not found in any of [...]
         ...Further installation instructions might be available at https://github.com/JohnCremona/ecdata.
     """

@@ -84,7 +84,7 @@ AUTHORS:
 #                  https://www.gnu.org/licenses/
 # ****************************************************************************
 
-from sage.rings.all import ZZ
+from sage.rings.integer_ring import ZZ
 from sage.rings.finite_rings.finite_field_base import is_FiniteField
 from sage.misc.latex import latex
 from sage.misc.cachefunc import cached_method
@@ -183,9 +183,9 @@ def _OG(n, R, special, e=0, var='a', invariant_form=None):
 
             try:
                 if invariant_form.is_positive_definite():
-                   inserted_text = "with respect to positive definite symmetric form"
+                    inserted_text = "with respect to positive definite symmetric form"
                 else:
-                   inserted_text = "with respect to non positive definite symmetric form"
+                    inserted_text = "with respect to non positive definite symmetric form"
             except ValueError:
                 inserted_text = "with respect to symmetric form"
 
@@ -649,4 +649,3 @@ class OrthogonalMatrixGroup_gap(OrthogonalMatrixGroup_generic, NamedMatrixGroup_
         m = self.gap().InvariantQuadraticForm()['matrix'].matrix()
         m.set_immutable()
         return m
-

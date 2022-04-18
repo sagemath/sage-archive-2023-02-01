@@ -136,7 +136,7 @@ class CovariantFunctorialConstruction(UniqueRepresentation, SageObject):
 
             sage: E = CombinatorialFreeModule(QQ, ["a", "b", "c"])
             sage: tensor.category_from_parents((E, E, E))
-            Category of tensor products of vector spaces with basis over Rational Field
+            Category of tensor products of finite dimensional vector spaces with basis over Rational Field
         """
         from sage.structure.parent import Parent
         assert(all(isinstance(parent, Parent) for parent in parents))
@@ -345,11 +345,11 @@ class FunctorialConstructionCategory(Category): # Should this be CategoryWithBas
         It also forces the resolution of lazy imports (see :trac:`15648`)::
 
             sage: type(Algebras.__dict__["Graded"])
-            <type 'sage.misc.lazy_import.LazyImport'>
+            <class 'sage.misc.lazy_import.LazyImport'>
             sage: Algebras.Graded
             <class 'sage.categories.graded_algebras.GradedAlgebras'>
             sage: type(Algebras.__dict__["Graded"])
-            <type 'sage.misc.classcall_metaclass.ClasscallMetaclass'>
+            <class 'sage.misc.classcall_metaclass.ClasscallMetaclass'>
 
         .. TODO::
 

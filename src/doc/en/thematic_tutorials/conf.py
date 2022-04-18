@@ -1,3 +1,4 @@
+# nodoctest
 # Sage documentation build configuration file, created by
 # sphinx-quickstart on Thu Aug 21 20:15:55 2008.
 #
@@ -24,19 +25,19 @@ html_static_path = [] + html_common_static_path
 # General information about the project.
 project = "Thematic Tutorials"
 
-# The name for this set of Sphinx documents.  If None, it defaults to
-# "<project> v<release> documentation".
-html_title = project + " v" + release
+# The name for this set of Sphinx documents.
+html_title = project
+html_short_title = project
 
 # Output file base name for HTML help builder.
-htmlhelp_basename = "thematic_tutorials"
+htmlhelp_basename = 'thematic_tutorials'
 
 # Grouping the document tree into LaTeX files. List of tuples
 # (source start file, target name, title, author,
 # document class [howto/manual]).
-latex_documents = [(
-        "index", "thematic_tutorials.tex", 'Thematic Tutorials',
-        'The Sage Development Team', 'manual'),
+latex_documents = [
+  ('index', 'thematic_tutorials.tex', 'Thematic Tutorials',
+   'The Sage Development Team', 'manual'),
 ]
 
 show_authors = True

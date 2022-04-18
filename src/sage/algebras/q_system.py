@@ -23,7 +23,7 @@ from sage.misc.cachefunc import cached_method
 from sage.misc.misc_c import prod
 
 from sage.categories.algebras import Algebras
-from sage.rings.all import ZZ
+from sage.rings.integer_ring import ZZ
 from sage.rings.infinity import infinity
 from sage.rings.polynomial.polynomial_ring_constructor import PolynomialRing
 from sage.sets.family import Family
@@ -604,4 +604,3 @@ def is_tamely_laced(ct):
     I = ct.index_set()
     return all(-cm[j,i] == 1 and d[i] == 1
                for i in I for j in I if cm[i,j] < -1)
-

@@ -202,7 +202,7 @@ Left-special and bispecial factors::
     sage: f.bispecial_factors()
     [word: , word: 0, word: 010, word: 010010, word: 01001010010]
 """
-#*****************************************************************************
+# ****************************************************************************
 #       Copyright (C) 2008 Arnaud Bergeron <abergeron@gmail.com>,
 #                     2008 Amy Glen <amy.glen@gmail.com>,
 #                     2008-2012 Sébastien Labbé <slabqc@gmail.com>,
@@ -212,17 +212,21 @@ Left-special and bispecial factors::
 # it under the terms of the GNU General Public License as published by
 # the Free Software Foundation, either version 2 of the License, or
 # (at your option) any later version.
-#                  http://www.gnu.org/licenses/
-#*****************************************************************************
-
+#                  https://www.gnu.org/licenses/
+# ****************************************************************************
+from itertools import repeat
 from collections import defaultdict
 from itertools import islice, cycle
 from sage.combinat.words.abstract_word import Word_class
 from sage.combinat.words.words import Words
 from sage.misc.cachefunc import cached_method
 from sage.combinat.words.word_options import word_options
-from sage.rings.all import Integer, Infinity, ZZ, QQ
+from sage.rings.infinity import Infinity
+from sage.rings.integer import Integer
+from sage.rings.integer_ring import ZZ
+from sage.rings.rational_field import QQ
 from sage.sets.set import Set
+
 
 class FiniteWord_class(Word_class):
     def __str__(self):
@@ -264,7 +268,7 @@ class FiniteWord_class(Word_class):
         """
         if word_options['display'] == 'string':
             ls = word_options['letter_separator']
-            letters = [str(_) for _ in self]
+            letters = [str(a) for a in self]
             if all(len(a) == 1 for a in letters):
                 return ''.join(letters)
             else:
@@ -371,7 +375,7 @@ class FiniteWord_class(Word_class):
             sage: z + y
             Traceback (most recent call last):
             ...
-            ValueError: 5 not in alphabet!
+            ValueError: 5 not in alphabet
 
         Eventually, it should work::
 
@@ -409,7 +413,7 @@ class FiniteWord_class(Word_class):
             return other
         if isinstance(other, Word_class) and other.is_empty():
             return self
-        f = CallableFromListOfWords([self,other])
+        f = CallableFromListOfWords([self, other])
         length = self.length() + other.length()
         parent = self._parent
         if length == Infinity:
@@ -623,7 +627,7 @@ class FiniteWord_class(Word_class):
                 return False
         return True
 
-    def schuetzenberger_involution(self, n = None):
+    def schuetzenberger_involution(self, n=None):
         r"""
         Return the Schützenberger involution of the word ``self``, which is obtained
         by reverting the word and then complementing all letters within the
@@ -1321,7 +1325,7 @@ class FiniteWord_class(Word_class):
         TESTS::
 
             sage: type( Word('cacao').factor_iterator() )
-            <... 'generator'>
+            <class 'generator'>
         """
         return self.suffix_tree().factor_iterator(n)
 
@@ -1496,7 +1500,7 @@ class FiniteWord_class(Word_class):
         if n == 0:
             return 1
         pn = self.number_of_factors(n)
-        from sage.functions.all import log
+        from sage.functions.log import log
         return log(pn, base=d)/n
 
     def rauzy_graph(self, n):
@@ -2140,7 +2144,7 @@ class FiniteWord_class(Word_class):
 
     def is_conjugate_with(self, other):
         r"""
-        Return ``True`  if ``self`` is a conjugate of ``other``, and ``False`` otherwise.
+        Return ``True`` if ``self`` is a conjugate of ``other``, and ``False`` otherwise.
 
         INPUT:
 
@@ -3277,7 +3281,7 @@ class FiniteWord_class(Word_class):
             sage: w.palindromic_closure(f=f, side='left')
             Traceback (most recent call last):
             ...
-            ValueError: b not in alphabet!
+            ValueError: b not in alphabet
         """
         if f is None:
             if side == 'right':
@@ -3539,14 +3543,11 @@ class FiniteWord_class(Word_class):
             sage: Word('121212').primitive_length()
             2
         """
-        l = lu = self.length()
+        l = self.length()
         if l == 0:
             return 0
-        p = self.prefix_function_table()
-        while l > 0:
-            l = p[l-1]
-            if lu % (lu - l) == 0:
-                return lu - l
+        p = self.minimal_period()
+        return p if l % p == 0 else l
 
     def is_primitive(self):
         r"""
@@ -3735,7 +3736,7 @@ class FiniteWord_class(Word_class):
 
         # The weird +1 that follows exists to make sure that lcs[i,-1] returns
         # the empty word.
-        lcs = [[[] for i in range(len(w2)+1)] for j in range(2)]
+        lcs = [[[] for _ in repeat(None, len(w2) + 1)] for j in range(2)]
 
         for i,l1 in enumerate(self):
             for j,l2 in enumerate(other):
@@ -3744,7 +3745,7 @@ class FiniteWord_class(Word_class):
 
             # Maintaining the meaning of lcs for the next loop
             lcs.pop(1)
-            lcs.insert(0,[[] for i in range(len(w2)+1)])
+            lcs.insert(0, [[] for _ in repeat(None, len(w2) + 1)])
 
         return Word(lcs[1][-2])
 
@@ -3803,7 +3804,7 @@ class FiniteWord_class(Word_class):
         we removed the letters of ``self``.
         There can be more than one.
 
-        To check whether ``self`` is a subword of ``other` (without knowing its
+        To check whether ``self`` is a subword of ``other`` (without knowing its
         complementaries), use ``self.is_subword_of(other)``, and to count the
         number of occurrences of ``self`` in ``other``, use
         ``other.number_of_subword_occurrences(self)``.
@@ -3840,7 +3841,7 @@ class FiniteWord_class(Word_class):
         Eq = [[self[i] == other[j] for j in range(lo)] for i in range(ls)]
 
         # Create a matrix that tells the positions of subwords of the suffixes
-        Mpos = [[[] for j in range(lo)] for i in range(ls)]
+        Mpos = [[[] for _ in repeat(None, lo)] for i in range(ls)]
         for j in range(lo):
             if Eq[ls-1][j]:
                 Mpos[ls-1][j] = [[j]]
@@ -3867,7 +3868,7 @@ class FiniteWord_class(Word_class):
         from sage.combinat.words.word import Word
         comp_words = []
         for sp in selfpos:  # list with positions of one occurrence of `self`
-            comp_pos = [i for i in range(lo) if not i in set(sp)]
+            comp_pos = (i for i in range(lo) if i not in set(sp))
             comp_words.append(Word([other[i] for i in comp_pos]))
         return comp_words
 
@@ -4878,12 +4879,12 @@ class FiniteWord_class(Word_class):
         """
         l = self.length()
         if l <= 1:
-           return False
+            return False
         for i in range(1, l - 1):
             return_lengths = [x.length() for x in self.return_words(self[:i])]
             if return_lengths:
-               if max(return_lengths) <= i and self[l-i:l] == self[:i]:
-                  return True
+                if max(return_lengths) <= i and self[l - i:l] == self[:i]:
+                    return True
         return False
 
     def quasiperiods(self):
@@ -5291,15 +5292,15 @@ class FiniteWord_class(Word_class):
             sage: w._s(1).parent()
             Finite words over {1, 2, 3}
         """
-        unpaired_i  = [] # positions of unpaired is
-        unpaired_ip = [] # positions of unpaired i+1s
-        for p,x in enumerate(self):
+        unpaired_i = []  # positions of unpaired is
+        unpaired_ip = []  # positions of unpaired i+1s
+        for p, x in enumerate(self):
             if x == i:
                 if unpaired_ip:
                     unpaired_ip.pop()
                 else:
                     unpaired_i.append(p)
-            elif x == i+1:
+            elif x == i + 1:
                 unpaired_ip.append(p)
 
         unpaired = unpaired_i + unpaired_ip
@@ -5503,9 +5504,10 @@ class FiniteWord_class(Word_class):
             word: a
         """
         if self.is_empty():
-           return self
+            return self
         conjugates = sorted(self._conjugates_list())
-        return self.parent()([x[x.length()-1] for x in conjugates], check=False)
+        return self.parent()([x[x.length() - 1] for x in conjugates],
+                             check=False)
 
     def iterated_left_palindromic_closure(self, f=None):
         r"""
@@ -6917,15 +6919,15 @@ class FiniteWord_class(Word_class):
         else:
             ordered_alphabet = self.parent().alphabet()
             dim = float(self.parent().alphabet().cardinality())
-        letter_to_integer_dict = dict((a,i) for (i,a) in
+        letter_to_integer_dict = dict((a, i) for (i, a) in
                 enumerate(ordered_alphabet))
         xp = x
         for a in self:
             i = letter_to_integer_dict[a]
             xq = xp + base
-            L = [(xp,y), (xq,y), (xq,ymax), (xp,ymax) ]
-            rgbcolor = mpl_cmap( i / dim ) [:3]
-            rep += polygon(L, rgbcolor = rgbcolor)
+            L = [(xp, y), (xq, y), (xq, ymax), (xp, ymax)]
+            rgbcolor = mpl_cmap(i / dim)[:3]
+            rep += polygon(L, rgbcolor=rgbcolor)
             xp = xq
         rep.axes(False)
         return rep
@@ -7047,8 +7049,8 @@ class FiniteWord_class(Word_class):
         L = self.length()
         if L < 3:
             return True
-        for start in range(0, L - 2):
-            for end in range(start+3, L+1, 3):
+        for start in range(L - 2):
+            for end in range(start + 3, L + 1, 3):
                 if self[start:end].is_cube():
                     return False
         return True
@@ -7140,6 +7142,38 @@ class FiniteWord_class(Word_class):
         else:
             return False
 
+    def minimal_conjugate(self):
+        r"""
+        Return the lexicographically minimal conjugate of this word (see
+        :wikipedia:`Lexicographically_minimal_string_rotation`).
+
+        EXAMPLES::
+
+            sage: Word('213').minimal_conjugate()
+            word: 132
+            sage: Word('11').minimal_conjugate()
+            word: 11
+            sage: Word('12112').minimal_conjugate()
+            word: 11212
+            sage: Word('211').minimal_conjugate()
+            word: 112
+            sage: Word('211211211').minimal_conjugate()
+            word: 112112112
+
+        TESTS::
+
+            sage: Word().minimal_conjugate()
+            word:
+        """
+        if not self:
+            return self
+        p = self.primitive()
+        q = self.length() // p.length()
+        end = 0
+        for factor in (p ** 2).lyndon_factorization():
+            end += factor.length()
+            if end >= p.length():
+                return factor ** q
 
 #######################################################################
 
@@ -7279,7 +7313,7 @@ def word_to_ordered_set_partition(w):
         []
     """
     vals = sorted(set(w))
-    dc = {val: i for (i, val) in enumerate(vals)}
+    dc = {val: i for i, val in enumerate(vals)}
     P = [[] for _ in vals]
     for i, val in enumerate(w):
         P[dc[val]].append(i + 1)

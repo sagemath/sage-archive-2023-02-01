@@ -265,7 +265,9 @@ from sage.categories.infinite_enumerated_sets import InfiniteEnumeratedSets
 from sage.groups.perm_gps.permgroup import PermutationGroup
 from sage.libs.pari.all import pari
 from sage.misc.cachefunc import cached_method
-from sage.rings.all import NN, ZZ, IntegerModRing
+from sage.rings.finite_rings.integer_mod_ring import IntegerModRing
+from sage.rings.integer_ring import ZZ
+from sage.rings.semirings.all import NN
 from sage.rings.integer import Integer
 from sage.sets.positive_integers import PositiveIntegers
 from sage.structure.parent import Parent
@@ -613,7 +615,7 @@ class PartitionTuple(CombinatorialElement):
         return '%s' % '|'.join(mu._repr_compact_high() for mu in self)
 
     # override default string representation which is str(self._list)
-    __str__ = lambda self: self._repr_()
+    __str__ = lambda self: self._repr_()  # type: ignore
 
     def _latex_(self):
         r"""
@@ -1971,7 +1973,7 @@ class PartitionTuples(UniqueRepresentation, Parent):
             sage: 1 in PartitionTuples()
             False
         """
-        if isinstance(mu, PartitionTuple) or isinstance(mu, Partition):
+        if isinstance(mu, (PartitionTuple, Partition)):
             return True
         if isinstance(mu, (tuple, list)):
             if not mu:
@@ -2442,7 +2444,7 @@ class PartitionTuples_level_size(PartitionTuples):
             sage: PartitionTuples(level=4,size=4).an_element()
             ([1], [], [], [3])
         """
-        mu = [[] for l in range(self._level)]
+        mu = [[] for _ in itertools.repeat(None, self._level)]
         if self._size > 0:
             if self._level == 1:
                 mu=[self._size-1,1]
@@ -2706,16 +2708,16 @@ class RegularPartitionTuples_level(PartitionTuples_level):
             sage: RPT = PartitionTuples(level=4, regular=3)
             sage: TestSuite(RPT).run()
         """
-        if not level in NN:
+        if level not in NN:
             raise ValueError('level must be a non-negative integer')
         if not isinstance(regular, tuple):
             # This should not happen if called from RegularPartitionTuples
             regular = (regular,) * level
-        if any (r != 1 for r in regular):
+        if any(r != 1 for r in regular):
             category = InfiniteEnumeratedSets()
         else:
             category = FiniteEnumeratedSets()
-        if any (r not in NN for r in regular):
+        if any(r not in NN for r in regular):
             raise ValueError('regular must be a tuple of non-negative integers')
         if len(regular) != level:
             raise ValueError("regular must be a tuple with length {}".format(level))
@@ -3006,11 +3008,11 @@ class RegularPartitionTuples_level_size(PartitionTuples_level_size):
         if not (level in ZZ and level > 0):
             raise ValueError('level must be a positive integer')
         if not isinstance(regular, tuple):
-            #This should not happen if called from RegularPartitionTuples
-            regular = (regular,)*level
+            # This should not happen if called from RegularPartitionTuples
+            regular = (regular,) * level
         if len(regular) != level:
-            raise ValueError('regular must be a list with length {}'.format(level))
-        if any (i not in NN for i in regular):
+            raise ValueError(f'regular must be a list with length {level}')
+        if any(i not in NN for i in regular):
             raise ValueError('regular must be a list of non-negative integers')
         PartitionTuples_level_size.__init__(self, level, size)
         self._ell = regular
@@ -3090,7 +3092,7 @@ class RegularPartitionTuples_level_size(PartitionTuples_level_size):
         """
         for iv in IntegerVectors(self._size, self._level):
             p = [RegularPartitions_n(v, ell) if ell > 0 else Partitions_n(v)
-                 for v,ell  in zip(iv,self._ell)]
+                 for v, ell in zip(iv, self._ell)]
             for cp in itertools.product(*[p[i] for i in range(self._level)]):
                 yield self._element_constructor_(cp)
 
@@ -3103,12 +3105,11 @@ class RegularPartitionTuples_level_size(PartitionTuples_level_size):
             sage: PartitionTuples(level=4, size=4, regular=3).an_element()
             ([1], [], [], [3])
         """
-        mu = [[] for l in range(self._level)]
+        mu = [[] for _ in itertools.repeat(None, self._level)]
         if self._size > 0:
             if self._level == 1:
-                mu = [[self._size-1,1]]
+                mu = [[self._size - 1, 1]]
             else:
                 mu[0] = [1]
-                mu[-1] = [self._size-1]
+                mu[-1] = [self._size - 1]
         return self.element_class(self, mu)
-

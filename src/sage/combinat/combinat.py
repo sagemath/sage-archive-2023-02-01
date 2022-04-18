@@ -138,9 +138,25 @@ Functions and classes
 """
 
 # ****************************************************************************
-#       Copyright (C) 2006 David Joyner <wdjoyner@gmail.com>,
-#                     2007 Mike Hansen <mhansen@gmail.com>,
-#                     2006 William Stein <wstein@gmail.com>
+#       Copyright (C) 2006      David Joyner <wdjoyner@gmail.com>
+#                     2007-2009 Mike Hansen <mhansen@gmail.com>
+#                     2006      William Stein <wstein@gmail.com>
+#                     2009      Blair Sutton
+#                     2009      Craig Citro
+#                     2009-2010 Florent Hivert
+#                     2010      Francis Clarke
+#                     2010      Fredrik Johansson
+#                     2010      Robert Gerbicz
+#                     2010-2013 Nathann Cohen
+#                     2012      Christian Stump
+#                     2013-2015 Travis Scrimshaw
+#                     2014      Volker Braun
+#                     2014-2015 Darij Grinberg
+#                     2014-2015 Jeroen Demeyer
+#                     2014-2021 Frédéric Chapoton
+#                     2015      Thierry Monteil
+#                     2019      Christian Nassau
+#                     2019-2020 Alex Shearer
 #
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -148,15 +164,19 @@ Functions and classes
 # (at your option) any later version.
 #                  https://www.gnu.org/licenses/
 # ****************************************************************************
+from __future__ import annotations
 from typing import Iterator
 
-from sage.rings.all import ZZ, QQ, Integer, infinity
+from sage.rings.integer_ring import ZZ
+from sage.rings.rational_field import QQ
+from sage.rings.integer import Integer
+from sage.rings.infinity import infinity
 from sage.arith.all import bernoulli, factorial
 from sage.rings.polynomial.polynomial_element import Polynomial
 from sage.rings.polynomial.polynomial_ring_constructor import PolynomialRing
-from sage.libs.all import pari
+from sage.libs.pari.all import pari
 from sage.misc.prandom import randint
-from sage.misc.all import prod
+from sage.misc.misc_c import prod
 from sage.misc.cachefunc import cached_function
 from sage.structure.sage_object import SageObject
 from sage.structure.parent import Parent
@@ -413,7 +433,7 @@ def bell_number(n, algorithm='flint', **options) -> Integer:
                 break
             b += v
             k += si
-        from sage.rings.all import RealField
+        from sage.rings.real_mpfr import RealField
         R = RealField(b.exact_log(2) + 1, rnd='RNDD')
         return ((R(-1).exp() / q) * b).ceil()
 
@@ -552,7 +572,7 @@ def euler_number(n, algorithm='flint') -> Integer:
     if n < 0:
         raise ValueError("n (=%s) must be a nonnegative integer" % n)
     if algorithm == 'maxima':
-        return ZZ(maxima.euler(n))
+        return ZZ(maxima.euler(n))  # type:ignore
     elif algorithm == 'flint':
         import sage.libs.flint.arith
         return sage.libs.flint.arith.euler_number(n)
@@ -815,11 +835,11 @@ def lucas_number2(n, P, Q):
         sage: n = lucas_number2(5,2,3); n
         2
         sage: type(n)
-        <... 'sage.rings.integer.Integer'>
+        <class 'sage.rings.integer.Integer'>
         sage: n = lucas_number2(5,2,-3/9); n
         418/9
         sage: type(n)
-        <... 'sage.rings.rational.Rational'>
+        <class 'sage.rings.rational.Rational'>
 
     The case `P=1`, `Q=-1` is the Lucas sequence in Brualdi's Introductory
     Combinatorics, 4th ed., Prentice-Hall, 2004::
@@ -935,17 +955,17 @@ def stirling_number2(n, k, algorithm=None) -> Integer:
         sage: n
         1900842429486
         sage: type(n)
-        <... 'sage.rings.integer.Integer'>
+        <class 'sage.rings.integer.Integer'>
         sage: n = stirling_number2(20,11,algorithm='gap')
         sage: n
         1900842429486
         sage: type(n)
-        <... 'sage.rings.integer.Integer'>
+        <class 'sage.rings.integer.Integer'>
         sage: n = stirling_number2(20,11,algorithm='maxima')
         sage: n
         1900842429486
         sage: type(n)
-        <... 'sage.rings.integer.Integer'>
+        <class 'sage.rings.integer.Integer'>
 
      Sage's implementation splitting the computation of the Stirling
      numbers of the second kind in two cases according to `n`, let us
@@ -990,7 +1010,7 @@ def stirling_number2(n, k, algorithm=None) -> Integer:
         from sage.libs.gap.libgap import libgap
         return libgap.Stirling2(n, k).sage()
     elif algorithm == 'maxima':
-        return ZZ(maxima.stirling2(n, k))
+        return ZZ(maxima.stirling2(n, k))  # type:ignore
     else:
         raise ValueError("unknown algorithm: %s" % algorithm)
 
@@ -1315,7 +1335,7 @@ class CombinatorialObject(SageObject):
             sage: c + [4]
             [1, 2, 3, 4]
             sage: type(_)
-            <... 'list'>
+            <class 'list'>
         """
         return self._list + other
 
@@ -1384,7 +1404,7 @@ class CombinatorialObject(SageObject):
         """
         return bool(self._list)
 
-    __nonzero__ = __bool__
+    
 
     def __len__(self) -> Integer:
         """
@@ -1408,7 +1428,7 @@ class CombinatorialObject(SageObject):
             sage: c[1:]
             [2, 3]
             sage: type(_)
-            <... 'list'>
+            <class 'list'>
         """
         return self._list[key]
 
@@ -1508,19 +1528,19 @@ class CombinatorialElement(CombinatorialObject, Element,
             sage: CombinatorialElement(ZZ)
             Traceback (most recent call last):
             ...
-            TypeError: __init__() takes exactly 2 arguments (1 given)
+            TypeError: ...__init__() takes exactly 2 arguments (1 given)
             sage: CombinatorialElement(ZZ, 1, 2)
             Traceback (most recent call last):
             ...
-            TypeError: __init__() takes exactly 2 arguments (3 given)
+            TypeError: ...__init__() takes exactly 2 arguments (3 given)
             sage: CombinatorialElement(ZZ, 1, list=2)
             Traceback (most recent call last):
             ...
-            TypeError: __init__() takes exactly 2 arguments (3 given)
+            TypeError: ...__init__() takes exactly 2 arguments (3 given)
             sage: CombinatorialElement(ZZ, a=1, b=2)
             Traceback (most recent call last):
             ...
-            TypeError: __init__() takes exactly 2 arguments (3 given)
+            TypeError: ...__init__() takes exactly 2 arguments (3 given)
         """
         # There should be one "list" argument, which can be given as
         # positional or keyword argument (in the latter case, the name
@@ -1691,7 +1711,7 @@ class CombinatorialClass(Parent, metaclass=ClasscallMetaclass):
         """
         return hash(repr(self))
 
-    def __cardinality_from_iterator(self) -> Integer:
+    def __cardinality_from_iterator(self) -> Integer | infinity:
         """
         Default implementation of cardinality which just goes through the iterator
         of the combinatorial class to count the number of objects.
@@ -1709,6 +1729,7 @@ class CombinatorialClass(Parent, metaclass=ClasscallMetaclass):
         for _ in self:
             c += one
         return c
+
     cardinality = __cardinality_from_iterator
 
     # __call__, element_class, and _element_constructor_ are poor
@@ -1725,7 +1746,7 @@ class CombinatorialClass(Parent, metaclass=ClasscallMetaclass):
             sage: p5 = Partitions(5)
             sage: a = [2,2,1]
             sage: type(a)
-            <... 'list'>
+            <class 'list'>
             sage: a = p5(a)
             sage: type(a)
             <class 'sage.combinat.partition.Partitions_n_with_category.element_class'>
@@ -2094,17 +2115,20 @@ class CombinatorialClass(Parent, metaclass=ClasscallMetaclass):
             raise TypeError("right_cc must be a CombinatorialClass")
         return UnionCombinatorialClass(self, right_cc, name=name)
 
-    def map(self, f, name=None):
+    def map(self, f, name=None, *, is_injective=True):
         r"""
         Return the image `\{f(x) | x \in \text{self}\}` of this combinatorial
         class by `f`, as a combinatorial class.
 
-        `f` is supposed to be injective.
+        INPUT:
+
+        - ``is_injective`` -- boolean (default: ``True``) whether to assume
+          that ``f`` is injective.
 
         EXAMPLES::
 
             sage: R = Permutations(3).map(attrcall('reduced_word')); R
-            Image of Standard permutations of 3 by *.reduced_word()
+            Image of Standard permutations of 3 by The map *.reduced_word() from Standard permutations of 3
             sage: R.cardinality()
             6
             sage: R.list()
@@ -2120,13 +2144,18 @@ class CombinatorialClass(Parent, metaclass=ClasscallMetaclass):
             sage: P.map(len).list()
             [1, 2, 2, 3, 4]
 
+        Use ``is_injective=False`` to get a correct result in this case::
+
+            sage: P.map(len, is_injective=False).list()
+            [1, 2, 3, 4]
+
         TESTS::
 
             sage: R = Permutations(3).map(attrcall('reduced_word'))
             sage: R == loads(dumps(R))
             True
         """
-        return MapCombinatorialClass(self, f, name)
+        return MapCombinatorialClass(self, f, name, is_injective=is_injective)
 
 
 class FilteredCombinatorialClass(CombinatorialClass):
@@ -2256,7 +2285,7 @@ class UnionCombinatorialClass(CombinatorialClass):
         """
         return x in self.left_cc or x in self.right_cc
 
-    def cardinality(self) -> Integer:
+    def cardinality(self) -> Integer | infinity:
         """
         EXAMPLES::
 
@@ -2412,74 +2441,45 @@ class Permutations_CC(CombinatorialClass):
 
 
 ##############################################################################
-class MapCombinatorialClass(CombinatorialClass):
-    r"""
-    A MapCombinatorialClass models the image of a combinatorial
-    class through a function which is assumed to be injective
+from sage.sets.image_set import ImageSubobject
+from sage.categories.map import is_Map
 
-    See CombinatorialClass.map for examples
+
+class MapCombinatorialClass(ImageSubobject, CombinatorialClass):
+    r"""
+    The image of a combinatorial class through a function.
+
+    INPUT:
+
+    - ``is_injective`` -- boolean (default: ``True``) whether to assume
+      that ``f`` is injective.
+
+    See :meth:`CombinatorialClass.map` for examples
+
+    EXAMPLES::
+
+        sage: R = SymmetricGroup(10).map(attrcall('reduced_word'))
+        sage: R.an_element()
+        [9, 8, 7, 6, 5, 4, 3, 2]
+        sage: R.cardinality()
+        3628800
+        sage: i = iter(R)
+        sage: next(i), next(i), next(i)
+        ([], [1, 2, 3, 4, 5, 6, 7, 8, 9], [1])
     """
-    def __init__(self, cc, f, name=None):
+    def __init__(self, cc, f, name=None, *, is_injective=True):
         """
         TESTS::
 
             sage: Partitions(3).map(attrcall('conjugate'))
-            Image of Partitions of the integer 3 by *.conjugate()
+            Image of Partitions of the integer 3 by The map *.conjugate()
+             from Partitions of the integer 3
         """
+        ImageSubobject.__init__(self, f, cc, is_injective=is_injective)
         self.cc = cc
         self.f = f
-        self._name = name
-
-    def __repr__(self) -> str:
-        """
-        TESTS::
-
-            sage: Partitions(3).map(attrcall('conjugate'))
-            Image of Partitions of the integer 3 by *.conjugate()
-
-        """
-        if self._name:
-            return self._name
-        else:
-            return "Image of %s by %s" % (self.cc, self.f)
-
-    def cardinality(self) -> Integer:
-        """
-        Return the cardinality of this combinatorial class
-
-        EXAMPLES::
-
-            sage: R = Permutations(10).map(attrcall('reduced_word'))
-            sage: R.cardinality()
-            3628800
-
-        """
-        return self.cc.cardinality()
-
-    def __iter__(self) -> Iterator:
-        """
-        Return an iterator over the elements of this combinatorial class
-
-        EXAMPLES::
-
-            sage: R = Permutations(10).map(attrcall('reduced_word'))
-            sage: R.cardinality()
-            3628800
-        """
-        for x in self.cc:
-            yield self.f(x)
-
-    def an_element(self):
-        """
-        Return an element of this combinatorial class
-
-        EXAMPLES::
-
-            sage: R = SymmetricGroup(10).map(attrcall('reduced_word'))
-            sage: R.an_element()
-            [9, 8, 7, 6, 5, 4, 3, 2]
-        """
-        return self.f(self.cc.an_element())
+        if name:
+            self.rename(name)
 
 
 ##############################################################################
@@ -2494,7 +2494,7 @@ class InfiniteAbstractCombinatorialClass(CombinatorialClass):
     self._infinite_cclass_slice is supposed to accept any integer as an
     argument and return something which is iterable.
     """
-    def cardinality(self):
+    def cardinality(self) -> Integer | infinity:
         """
         Count the elements of the combinatorial class.
 
@@ -2945,7 +2945,7 @@ def bell_polynomial(n: Integer, k: Integer):
     R = PolynomialRing(ZZ, 'x', n - k + 1)
     vars = R.gens()
     result = R.zero()
-    for p in Partitions(n, length=k):
+    for p in Partitions(n, length=k):  # type:ignore
         factorial_product = 1
         power_factorial_product = 1
         for part, count in p.to_exp_dict().items():
@@ -3111,6 +3111,12 @@ def bernoulli_polynomial(x, n: Integer):
         sage: 5*power_sum == bernoulli_polynomial(10, 5) - bernoulli(5)
         True
 
+    TESTS::
+
+        sage: x = polygen(QQ, 'x')
+        sage: bernoulli_polynomial(x, 0).parent()
+        Univariate Polynomial Ring in x over Rational Field
+
     REFERENCES:
 
     - :wikipedia:`Bernoulli_polynomials`
@@ -3123,7 +3129,7 @@ def bernoulli_polynomial(x, n: Integer):
         raise ValueError("The second argument must be a non-negative integer")
 
     if n == 0:
-        return ZZ.one()
+        return x**0   # result should be in the parent of x
 
     if n == 1:
         return x - ZZ.one() / 2

@@ -1,6 +1,6 @@
 # distutils: language = c++
 # distutils: libraries = bliss
-# sage_setup: distribution = sage-bliss
+# sage_setup: distribution = sagemath-bliss
 
 r"""
 Interface with bliss: graph (iso/auto)morphism
@@ -49,7 +49,7 @@ cdef extern from "bliss/graph.hh" namespace "bliss":
         void add_edge(const unsigned int, const unsigned int)
         void find_automorphisms(Stats&, void (*)(void* , unsigned int,
                     const unsigned int*), void*)
-        void change_color(const unsigned int, const unsigned int);
+        void change_color(const unsigned int, const unsigned int)
         const unsigned int* canonical_form(Stats&, void (*)(void*,unsigned int,
                     const unsigned int*), void*)
 
@@ -58,7 +58,7 @@ cdef extern from "bliss/graph.hh" namespace "bliss":
         void add_edge(const unsigned int, const unsigned int)
         void find_automorphisms(Stats&, void (*)(void* , unsigned int,
                     const unsigned int*), void*)
-        void change_color(const unsigned int, const unsigned int);
+        void change_color(const unsigned int, const unsigned int)
         const unsigned int* canonical_form(Stats&, void (*)(void*,unsigned int,
                     const unsigned int*), void*)
         unsigned int get_hash()
@@ -483,6 +483,26 @@ cpdef canonical_form(G, partition=None, return_graph=False, use_edge_labels=True
         sage: g2can = canonical_form(g2, use_edge_labels=True)               # optional - bliss
         sage: g1can == g2can                                                 # optional - bliss
         True
+
+    Check that :trac:`32395` is fixed::
+
+        sage: g = Graph([[0, 2]])  # 1 is not a vertex!
+        sage: g.canonical_label(partition=[[0], [1], [2]], algorithm="bliss")  # optional - bliss
+        Traceback (most recent call last):
+        ...
+        ValueError: vertex 1 of the partition is not a vertex of the graph
+        sage: g.canonical_label(partition=[[0], [0, 2]], algorithm="bliss")  # optional - bliss
+        Traceback (most recent call last):
+        ...
+        ValueError: vertex 0 can appear only once in the partition
+        sage: g.canonical_label(partition=[[0, 0], [2]], algorithm="bliss")  # optional - bliss
+        Traceback (most recent call last):
+        ...
+        ValueError: vertex 0 can appear only once in the partition
+        sage: g.canonical_label(partition=[[0]], algorithm="bliss")  # optional - bliss
+        Traceback (most recent call last):
+        ...
+        ValueError: some vertices of the graph are not in the partition
     """
     # We need this to convert the numbers from <unsigned int> to <long>.
     # This assertion should be true simply for memory reasons.
@@ -505,6 +525,17 @@ cpdef canonical_form(G, partition=None, return_graph=False, use_edge_labels=True
     if partition:
         from itertools import chain
         int2vert = list(chain(*partition))
+        # We check that the partition constains only vertices of the graph
+        # and that it is actually a partition
+        seen = set()
+        for u in int2vert:
+            if u not in G:
+                raise ValueError("vertex {} of the partition is not a vertex of the graph".format(u))
+            if u in seen:
+                raise ValueError("vertex {} can appear only once in the partition".format(u))
+            seen.add(u)
+        if len(seen) != G.order():
+            raise ValueError("some vertices of the graph are not in the partition")
     else:
         int2vert = list(G)
     vert2int = {v: i for i, v in enumerate(int2vert)}
@@ -712,7 +743,6 @@ cpdef automorphism_group(G, partition=None, use_edge_labels=True):
         ....:         G.set_edge_label(i, j, "B")                               # optional - bliss
         ....:     if 6 <= i < 8:                                                # optional - bliss
         ....:         G.set_edge_label(i, j, "C")                               # optional - bliss
-        ....:
         sage: automorphism_group(G).cardinality() == prod( factorial(n) for n in [3,3,2,8,8,5,2] )  # optional - bliss
         True
         sage: automorphism_group(G, use_edge_labels=False).cardinality() == prod( factorial(n) for n in [8,8,8,5,3] )  # optional - bliss
@@ -830,14 +860,15 @@ cdef Graph *bliss_graph(G, partition, vert2int, int2vert):
         vert2int[v] = i
         int2vert[i] = v
 
-    for x,y in G.edge_iterator(labels=False):
-       g.add_edge(vert2int[x], vert2int[y])
+    for x, y in G.edge_iterator(labels=False):
+        g.add_edge(vert2int[x], vert2int[y])
 
     if partition:
         for i in range(1, len(partition)):
             for v in partition[i]:
                 g.change_color(vert2int[v], i)
     return g
+
 
 cdef Digraph *bliss_digraph(G, partition, vert2int, int2vert):
     r"""

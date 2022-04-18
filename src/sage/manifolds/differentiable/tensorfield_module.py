@@ -303,8 +303,8 @@ class TensorFieldModule(UniqueRepresentation, Parent):
             Tensor field t of type (2,0) on the 2-dimensional differentiable
              manifold M
             sage: t.display(c_xy.frame())
-            t = (x + 1) d/dx*d/dx + 2 d/dx*d/dy + x*y d/dy*d/dx
-             + (-y + 3) d/dy*d/dy
+            t = (x + 1) ∂/∂x⊗∂/∂x + 2 ∂/∂x⊗∂/∂y + x*y ∂/∂y⊗∂/∂x
+             + (-y + 3) ∂/∂y⊗∂/∂y
             sage: T20(0) is T20.zero()
             True
 
@@ -373,8 +373,8 @@ class TensorFieldModule(UniqueRepresentation, Parent):
                 and self._ambient_domain.is_subset(comp._ambient_domain)):
                 return comp.restrict(self._domain)
             else:
-               raise TypeError("cannot convert the {}".format(comp) +
-                               " to an element of {}".format(self))
+                raise TypeError("cannot convert the {}".format(comp) +
+                                " to an element of {}".format(self))
         if not isinstance(comp, (list, tuple)):
             raise TypeError("cannot convert the {} ".format(comp) +
                             "to an element of {}".format(self))
@@ -510,7 +510,7 @@ class TensorFieldModule(UniqueRepresentation, Parent):
         if self._latex_name is None:
             return r'\mbox{' + str(self) + r'}'
         else:
-           return self._latex_name
+            return self._latex_name
 
     def base_module(self):
         r"""
@@ -791,9 +791,9 @@ class TensorFieldFreeModule(TensorFreeModule):
             Tensor field t of type (1,2) on the 2-dimensional
              differentiable manifold M
             sage: t.display()
-            t = x d/dx*dx*dx - y d/dx*dx*dy + 2 d/dx*dy*dx + y d/dx*dy*dy
-             + (x + 1) d/dy*dx*dx + y^2 d/dy*dx*dy + x^2 d/dy*dy*dx
-             + 3 d/dy*dy*dy
+            t = x ∂/∂x⊗dx⊗dx - y ∂/∂x⊗dx⊗dy + 2 ∂/∂x⊗dy⊗dx + y ∂/∂x⊗dy⊗dy
+             + (x + 1) ∂/∂y⊗dx⊗dx + y^2 ∂/∂y⊗dx⊗dy + x^2 ∂/∂y⊗dy⊗dx
+             + 3 ∂/∂y⊗dy⊗dy
             sage: T12(0) is T12.zero()
             True
 
@@ -960,4 +960,3 @@ class TensorFieldFreeModule(TensorFreeModule):
             description += "along the {}".format(self._domain) + \
                            " mapped into the {}".format(self._ambient_domain)
         return description
-

@@ -67,7 +67,8 @@ Families of subsets after the above operations::
 # (at your option) any later version.
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
-
+from __future__ import annotations
+from typing import Optional
 from collections import defaultdict
 import itertools
 from sage.structure.parent import Parent
@@ -150,7 +151,9 @@ class ManifoldSubset(UniqueRepresentation, Parent):
 
     Element = ManifoldPoint
 
-    def __init__(self, manifold, name, latex_name=None, category=None):
+    _name: str
+
+    def __init__(self, manifold, name: str, latex_name=None, category=None):
         r"""
         Construct a manifold subset.
 
@@ -505,7 +508,7 @@ class ManifoldSubset(UniqueRepresentation, Parent):
     ambient = manifold
 
     def is_open(self):
-        """
+        r"""
         Return if ``self`` is an open set.
 
         This method always returns ``False``, since open subsets must be
@@ -521,6 +524,54 @@ class ManifoldSubset(UniqueRepresentation, Parent):
             False
 
         """
+        return False
+
+    def is_closed(self):
+        r"""
+        Return if ``self`` is a closed set.
+
+        EXAMPLES::
+
+            sage: M = Manifold(2, 'M', structure='topological')
+            sage: M.is_closed()
+            True
+            sage: also_M = M.subset('also_M')
+            sage: M.declare_subset(also_M)
+            sage: also_M.is_closed()
+            True
+
+            sage: A = M.subset('A')
+            sage: A.is_closed()
+            False
+            sage: A.declare_empty()
+            sage: A.is_closed()
+            True
+
+            sage: N = M.open_subset('N')
+            sage: N.is_closed()
+            False
+            sage: complement_N = M.subset('complement_N')
+            sage: M.declare_union(N, complement_N, disjoint=True)
+            sage: complement_N.is_closed()
+            True
+
+        """
+        if self.manifold().is_subset(self):
+            return True
+        if self.is_empty():
+            return True
+        for other_name, intersection in self._intersections.items():
+            if intersection.is_empty():
+                other = self.manifold().subset_family()[other_name]
+                if other.is_open():
+                    try:
+                        union = self._unions[other_name]
+                    except KeyError:
+                        pass
+                    else:
+                        if union.is_open():
+                            # self is complement of open other in open union
+                            return True
         return False
 
     def open_covers(self, trivial=True, supersets=False):
@@ -1099,11 +1150,6 @@ class ManifoldSubset(UniqueRepresentation, Parent):
 
         .. NOTE::
 
-            To get the equal subsets as a family, sorted by name, use the method
-            :meth:`equal_subset_family` instead.
-
-        .. NOTE::
-
             If you only need to iterate over the equal sets in arbitrary order,
             you can use the generator method :meth:`equal_subsets` instead.
 
@@ -1168,7 +1214,7 @@ class ManifoldSubset(UniqueRepresentation, Parent):
         return ManifoldSubsetFiniteFamily(self.supersets())
 
     def superset_digraph(self, loops=False, quotient=False, open_covers=False, points=False, upper_bound=None):
-        """
+        r"""
         Return the digraph whose arcs represent subset relations among the supersets of ``self``.
 
         INPUT:
@@ -1857,6 +1903,37 @@ class ManifoldSubset(UniqueRepresentation, Parent):
         return self.element_class(self, coords=coords, chart=chart,
                                   name=name, latex_name=latex_name)
 
+    def declare_closed(self):
+        r"""
+        Declare ``self`` to be a closed subset of the manifold.
+
+        EXAMPLES::
+
+            sage: M = Manifold(2, 'M', structure='topological')
+            sage: A = M.subset('A')
+            sage: B1 = A.subset('B1')
+            sage: B1.is_closed()
+            False
+            sage: B1.declare_closed()
+            sage: B1.is_closed()
+            True
+
+            sage: B2 = A.subset('B2')
+            sage: cl_B2 = B2.closure()
+            sage: A.declare_closed()
+            sage: cl_B2.is_subset(A)
+            True
+
+        """
+        if self.is_closed():
+            return
+        self.complement(is_open=True)
+        from .subsets.closure import ManifoldSubsetClosure
+        for closure in self.manifold().subsets():
+            if isinstance(closure, ManifoldSubsetClosure):
+                if closure._subset.is_subset(self):
+                    closure.declare_subset(self)
+
     #### Construction of new sets from self:
 
     def subset(self, name, latex_name=None, is_open=False):
@@ -1917,7 +1994,7 @@ class ManifoldSubset(UniqueRepresentation, Parent):
         An open subset is a set that is (i) included in the manifold and (ii)
         open with respect to the manifold's topology. It is a topological
         manifold by itself. Hence the returned object is an instance of
-        :class:`TopologicalManifold`.
+        :class:`~sage.manifolds.manifold.TopologicalManifold`.
 
         INPUT:
 
@@ -1933,7 +2010,8 @@ class ManifoldSubset(UniqueRepresentation, Parent):
 
         OUTPUT:
 
-        - the open subset, as an instance of :class:`TopologicalManifold`
+        - the open subset, as an instance of
+          :class:`~sage.manifolds.manifold.TopologicalManifold`
           or one of its subclasses
 
         EXAMPLES::
@@ -2078,7 +2156,7 @@ class ManifoldSubset(UniqueRepresentation, Parent):
             res._def_chart = self._def_chart
         return res
 
-    def intersection(self, *others, name=None, latex_name=None):
+    def intersection(self, *others: ManifoldSubset, name: Optional[str] = None, latex_name: Optional[str] = None) -> ManifoldSubset:
         r"""
         Return the intersection of the current subset with other subsets.
 
@@ -2654,10 +2732,57 @@ class ManifoldSubset(UniqueRepresentation, Parent):
         if name is None:
             name = "_minus_".join(S._name for S in (self, other))
 
+        is_open = is_open or (self.is_open() and other.is_closed())
+
         diff = self.subset(name=name, latex_name=latex_name, is_open=is_open)
         diff.declare_equal(diffs)
         self.declare_union(other, diff, disjoint=True)
         return diff
 
-    #### End of construction of new sets from self
+    def closure(self, name=None, latex_name=None):
+        r"""
+        Return the topological closure of ``self`` as a subset of the manifold.
 
+        INPUT:
+
+        - ``name`` -- (default: ``None``) name given to the difference in the
+          case the latter has to be created; the default prepends ``cl_``
+          to ``self._name``
+        - ``latex_name`` --  (default: ``None``) LaTeX symbol to denote the
+          difference in the case the latter has to be created; the default
+          is built upon the operator `\mathrm{cl}`
+
+        OUTPUT:
+
+        - if ``self`` is already known to be closed (see :meth:`is_closed`),
+          ``self``; otherwise, an instance of
+          :class:`~sage.manifolds.subsets.closure.ManifoldSubsetClosure`
+
+        EXAMPLES::
+
+            sage: M = Manifold(2, 'R^2', structure='topological')
+            sage: c_cart.<x,y> = M.chart() # Cartesian coordinates on R^2
+            sage: M.closure() is M
+            True
+            sage: D2 = M.open_subset('D2', coord_def={c_cart: x^2+y^2<2}); D2
+            Open subset D2 of the 2-dimensional topological manifold R^2
+            sage: cl_D2 = D2.closure(); cl_D2
+            Topological closure cl_D2 of the
+             Open subset D2 of the 2-dimensional topological manifold R^2
+            sage: cl_D2.is_closed()
+            True
+            sage: cl_D2 is cl_D2.closure()
+            True
+
+            sage: D1 = D2.open_subset('D1'); D1
+            Open subset D1 of the 2-dimensional topological manifold R^2
+            sage: D1.closure().is_subset(D2.closure())
+            True
+
+        """
+        if self.is_closed():
+            return self
+        from .subsets.closure import ManifoldSubsetClosure
+        return ManifoldSubsetClosure(self, name=name, latex_name=latex_name)
+
+    #### End of construction of new sets from self

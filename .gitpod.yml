@@ -63,6 +63,7 @@ tasks:
       pyenv global system 2> /dev/null
 
       # Build sage
+      ./bootstrap
       ./configure --enable-build-as-root --with-python=$CONDA_PREFIX/bin/python --prefix=$CONDA_PREFIX 
       pip install --no-build-isolation -v -v -e pkgs/sage-conf pkgs/sage-setup 
       pip install --no-build-isolation -v -v -e src

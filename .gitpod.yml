@@ -31,7 +31,7 @@ tasks:
     before: |
       # Create conda environment
       mamba env create --file src/environment-dev.yml --prefix venv
-      conda activate sage-dev
+      conda activate /workspace/sagetrac-mirror/venv
 
       # Setup trac as remote
       ## In order to push to trac, generate a new key with `ssh-keygen -f tempkey` and save the private key to gitpod `gp env PRIVATE_SSH_KEY="$(<tempkey)"` (or by following https://www.gitpod.io/docs/environment-variables#using-the-account-settings)

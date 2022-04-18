@@ -59,7 +59,7 @@ tasks:
       pyenv global system 2> /dev/null
 
       # Create conda environment
-      mamba create --name sage-dev --file src/environment-dev.yml
+      mamba env create --name sage-dev --file src/environment-dev.yml
       conda activate sage-dev
 
       # Build sage

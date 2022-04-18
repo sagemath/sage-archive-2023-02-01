@@ -194,5 +194,10 @@ dependencies:
   - wheel
   - widgetsnbextension
   - zipp
+  # Packages needed for ./bootstrap
+  - gettext
+  - autoconf
+  - automake
+  - libtool
   # Additional dev tools
   - openssh

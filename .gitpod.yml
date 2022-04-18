@@ -1,12 +1,5 @@
-# Use custom docker image. https://www.gitpod.io/docs/config-docker
-image:
-# Each of these two options works:
-# - Directly use the "-with-targets" image built by .github/workflows/tox.yml
-#   image: ghcr.io/sagemath/sage/sage-docker-gitpod-standard-with-targets:dev
-# - or go through a custom Dockerfile, which builds a smaller image
-#   based on the "-with-system-packages" image built by .github/workflows/tox.yml
-#   with the built SAGE_LOCAL from the "-with-targets" image copied in.
-    file: docker/.gitpod.Dockerfile
+# Use minimal Ubuntu installation that includes mamba
+image: condaforge/mambaforge
 
 # We use the following layout:
 #
@@ -64,39 +57,19 @@ tasks:
       ## No need for pyenv
       pyenv shell --unset 2> /dev/null
       pyenv global system 2> /dev/null
-      if [ -d local ]; then
-        mkdir -p logs && echo '### .gitpod.yml Setup.before: Prebuild init script has been run. Running "make" again in case the build had timed out.' >> logs/install.log
-        # The init script has already populated the SAGE_LOCAL,
-        # but only /workspace is preserved; and the $HOME/sage-local may contain a resurrected
-        # copy of sage-local.  Replace it again by a symlink.
-        rm -Rf $HOME/sage-local
-        ln -sf $(pwd)/local $HOME/sage-local
-        # Now run make. No timeout here.
-        MAKE='make -j24' make build V=0
-      else
-        # Prebuild init script has not been run
-        # Only /workspace is preserved during build.
-        # If the Docker image contains a built SAGE_LOCAL, use it to populate the SAGE_LOCAL in the workspace.
-        if [ -d $HOME/sage-local ]; then
-          mv $HOME/sage-local local
-        fi
-        rm -Rf $HOME/sage-local
-        ln -sf $(pwd)/local $HOME/sage-local
-        # Save the logs of the source tree used by the Docker build
-        if [ -d $HOME/sage/logs ]; then
-          mv $HOME/sage/logs logs
-        fi
-      fi
-      # Remove the source tree used by the Docker build and replace it by a symlink
-      rm -Rf $HOME/sage
-      ln -s $(pwd) $HOME/sage
+
+      # Create conda environment
+      mamba create --name sage-dev --file src/environment-dev.yml
+      conda activate sage-dev
+
+      # Build sage
+      ./configure --enable-build-as-root --with-python=$CONDA_PREFIX/bin/python --prefix=$CONDA_PREFIX 
+      pip install --no-build-isolation -v -v -e pkgs/sage-conf pkgs/sage-setup 
+      pip install --no-build-isolation -v -v -e src
+
     init: |
       # Start build
-      mkdir -p logs && echo '### .gitpod.yml Setup.init: Starting build' >> logs/install.log
-      ./bootstrap
-      ./configure --enable-editable --enable-download-from-upstream-url --prefix=$HOME/sage-local --with-sage-venv
-      ## Gitpod has a timeout of 1h, so make sure we are below this to ensure that the prebuild is always successful
-      MAKE='make -j24' timeout 51m make build V=0 || echo "(ignoring error)"
+      
     env:
       SAGE_NUM_THREADS: 8
 

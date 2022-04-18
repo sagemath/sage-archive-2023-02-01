@@ -807,7 +807,7 @@ class SageOutputChecker(doctest.OutputChecker):
             return wantval
 
     def check_output(self, want, got, optionflags):
-        """
+        r"""
         Checks to see if the output matches the desired output.
 
         If ``want`` is a :class:`MarkedOutput` instance, takes into account the desired tolerance.

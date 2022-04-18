@@ -1,4 +1,3 @@
-name: sage
 channels:
   - conda-forge
   - nodefaults

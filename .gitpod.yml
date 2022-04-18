@@ -58,10 +58,6 @@ tasks:
         git remote set-url --push trac pushing-needs-ssh-key
       fi
       
-      ## No need for pyenv
-      pyenv shell --unset 2> /dev/null
-      pyenv global system 2> /dev/null
-
       # Build sage
       ./bootstrap
       ./configure --enable-build-as-root --with-python=$CONDA_PREFIX/bin/python --prefix=$CONDA_PREFIX 

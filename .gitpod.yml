@@ -30,7 +30,7 @@ tasks:
   - name: Setup
     before: |
       # Create conda environment
-      mamba env create --name sage-dev --file src/environment-dev.yml --prefix venv
+      mamba env create --file src/environment-dev.yml --prefix venv
       conda activate sage-dev
 
       # Setup trac as remote

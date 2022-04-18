@@ -194,3 +194,5 @@ dependencies:
   - wheel
   - widgetsnbextension
   - zipp
+  # Additional dev tools
+  - openssh

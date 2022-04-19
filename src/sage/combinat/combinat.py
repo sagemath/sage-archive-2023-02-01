@@ -854,15 +854,22 @@ def lucas_number2(n, P, Q):
     return libgap.Lucas(P, Q, n)[1].sage()
 
 
-def stirling_number1(n, k) -> Integer:
+def stirling_number1(n, k, algorithm=None) -> Integer:
     r"""
     Return the `n`-th Stirling number `S_1(n,k)` of the first kind.
 
     This is the number of permutations of `n` points with `k` cycles.
 
-    This wraps GAP's ``Stirling1``.
-
     See :wikipedia:`Stirling_numbers_of_the_first_kind`.
+
+    INPUT:
+
+    - ``n`` -- nonnegative machine-size integer
+    - ``k`` -- nonnegative machine-size integer
+    - ``algorithm``:
+
+      * ``"gap"`` (default) -- use GAP's Stirling1 function
+      * ``"flint"`` -- use flint's arith_stirling_number_1u function
 
     EXAMPLES::
 
@@ -876,31 +883,49 @@ def stirling_number1(n, k) -> Integer:
         269325
 
     Indeed, `S_1(n,k) = S_1(n-1,k-1) + (n-1)S_1(n-1,k)`.
+
+    TESTS::
+
+        sage: stirling_number1(10,5, algorithm='flint')
+        269325
+
+         sage: s_sage = stirling_number1(50,3, algorithm="mutta")
+         Traceback (most recent call last):
+         ...
+         ValueError: unknown algorithm: mutta
     """
     n = ZZ(n)
     k = ZZ(k)
-    from sage.libs.gap.libgap import libgap
-    return libgap.Stirling1(n, k).sage()
+    if algorithm is None:
+        algorithm = 'gap'
+    if algorithm == 'gap':
+        from sage.libs.gap.libgap import libgap
+        return libgap.Stirling1(n, k).sage()
+    if algorithm == 'flint':
+        import sage.libs.flint.arith
+        return sage.libs.flint.arith.stirling_number_1(n, k)
+    raise ValueError("unknown algorithm: %s" % algorithm)
 
 
 def stirling_number2(n, k, algorithm=None) -> Integer:
     r"""
-    Return the `n`-th Stirling number `S_2(n,k)` of the second
-    kind.
+    Return the `n`-th Stirling number `S_2(n,k)` of the second kind.
 
     This is the number of ways to partition a set of `n` elements into `k`
     pairwise disjoint nonempty subsets. The `n`-th Bell number is the
     sum of the `S_2(n,k)`'s, `k=0,...,n`.
 
+    See :wikipedia:`Stirling_numbers_of_the_second_kind`.
+
     INPUT:
 
-       *  ``n`` - nonnegative machine-size integer
-       *  ``k`` - nonnegative machine-size integer
-       * ``algorithm``:
+    -  ``n`` -- nonnegative machine-size integer
+    -  ``k`` -- nonnegative machine-size integer
+    - ``algorithm``:
 
-         * None (default) - use native implementation
-         * ``"maxima"`` - use Maxima's stirling2 function
-         * ``"gap"`` - use GAP's Stirling2 function
+      * ``None`` (default) -- use native implementation
+      * ``"flint"`` -- use flint's arith_stirling_number_2 function
+      * ``"gap"`` -- use GAP's Stirling2 function
 
     EXAMPLES:
 
@@ -961,7 +986,7 @@ def stirling_number2(n, k, algorithm=None) -> Integer:
         1900842429486
         sage: type(n)
         <class 'sage.rings.integer.Integer'>
-        sage: n = stirling_number2(20,11,algorithm='maxima')
+        sage: n = stirling_number2(20,11,algorithm='flint')
         sage: n
         1900842429486
         sage: type(n)
@@ -969,16 +994,16 @@ def stirling_number2(n, k, algorithm=None) -> Integer:
 
      Sage's implementation splitting the computation of the Stirling
      numbers of the second kind in two cases according to `n`, let us
-     check the result it gives agree with both maxima and gap.
+     check the result it gives agree with both flint and gap.
 
      For `n<200`::
 
          sage: for n in Subsets(range(100,200), 5).random_element():
          ....:     for k in Subsets(range(n), 5).random_element():
          ....:         s_sage = stirling_number2(n,k)
-         ....:         s_maxima = stirling_number2(n,k, algorithm = "maxima")
+         ....:         s_flint = stirling_number2(n,k, algorithm = "flint")
          ....:         s_gap = stirling_number2(n,k, algorithm = "gap")
-         ....:         if not (s_sage == s_maxima and s_sage == s_gap):
+         ....:         if not (s_sage == s_flint and s_sage == s_gap):
          ....:             print("Error with n<200")
 
      For `n\geq 200`::
@@ -986,33 +1011,29 @@ def stirling_number2(n, k, algorithm=None) -> Integer:
          sage: for n in Subsets(range(200,300), 5).random_element():
          ....:     for k in Subsets(range(n), 5).random_element():
          ....:         s_sage = stirling_number2(n,k)
-         ....:         s_maxima = stirling_number2(n,k, algorithm = "maxima")
+         ....:         s_flint = stirling_number2(n,k, algorithm = "flint")
          ....:         s_gap = stirling_number2(n,k, algorithm = "gap")
-         ....:         if not (s_sage == s_maxima and s_sage == s_gap):
+         ....:         if not (s_sage == s_flint and s_sage == s_gap):
          ....:             print("Error with n<200")
-
 
      TESTS:
 
-     Checking an exception is raised whenever a wrong value is given
-     for ``algorithm``::
-
-         sage: s_sage = stirling_number2(50,3, algorithm = "CloudReading")
+         sage: s_sage = stirling_number2(50,3, algorithm="namba")
          Traceback (most recent call last):
          ...
-         ValueError: unknown algorithm: CloudReading
+         ValueError: unknown algorithm: namba
     """
     n = ZZ(n)
     k = ZZ(k)
     if algorithm is None:
         return _stirling_number2(n, k)
-    elif algorithm == 'gap':
+    if algorithm == 'gap':
         from sage.libs.gap.libgap import libgap
         return libgap.Stirling2(n, k).sage()
-    elif algorithm == 'maxima':
-        return ZZ(maxima.stirling2(n, k))  # type:ignore
-    else:
-        raise ValueError("unknown algorithm: %s" % algorithm)
+    if algorithm == 'flint':
+        import sage.libs.flint.arith
+        return sage.libs.flint.arith.stirling_number_2(n, k)
+    raise ValueError("unknown algorithm: %s" % algorithm)
 
 
 def polygonal_number(s, n):

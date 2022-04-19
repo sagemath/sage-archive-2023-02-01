@@ -50,7 +50,7 @@ Multiplication::
 
 ::
 
-    sage: list([2,3]) * 4
+    sage: [2,3] * 4
     [2, 3, 2, 3, 2, 3, 2, 3]
 
 ::

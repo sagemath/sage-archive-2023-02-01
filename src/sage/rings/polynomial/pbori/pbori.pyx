@@ -6247,7 +6247,7 @@ cdef class ReductionStrategy:
             sage: B.<x,y,z> = BooleanPolynomialRing()
             sage: red = ReductionStrategy(B)
             sage: red.add_generator(x)
-            sage: list([f.p for f in red])
+            sage: [f.p for f in red]
             [x]
 
         TESTS:

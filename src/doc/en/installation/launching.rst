@@ -242,6 +242,6 @@ Here are steps to use SageMath in a Jupyter notebook in VS Code:
 
 * Install and run VS Code.
 * Click the "Extension" icon on the left (or press Ctrl + Shift + X) to open a list of extensions. Install "Remote - WSL".
-* Press F1, enter "Remote-WSL: New Window", and hit Enter.
-* Press F1, enter "Create: New Jupyter Notebook", and hit Enter.
+* In the command palette (Ctrl + Shift + P), enter "Remote-WSL: New Window", and hit Enter.
+* In the command palette (Ctrl + Shift + P), enter "Create: New Jupyter Notebook", and hit Enter.
 * Click "Select Kernel" on the right (or press Ctrl + Alt + Enter), select SageMath, and hit Enter.

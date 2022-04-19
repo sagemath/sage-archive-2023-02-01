@@ -10,17 +10,25 @@ This section is a concise overview of the Sage development process. In
 it, we will see how to make changes to the Sage source code and record
 them in the ``git`` revision control system.
 
-In the following section on :ref:`chapter-git_trac` we will look at
-communicating these changes back to the Sage project.  We also have a handy
-`one-page "cheat sheet"
+We also have a handy `one-page "cheat sheet"
 <http://github.com/sagemath/git-trac-command/raw/master/doc/git-cheat-sheet.pdf>`_
 of commonly used git commands that you can print out and leave on your
 desk.  We have some :ref:`recommended references and tutorials
 <section-git-tutorials>` as well.
 
-You can alternatively fork and create a merge request at
-`GitLab <https://gitlab.com/sagemath/sage>`_ which will automatically fetch
-your code and open a ticket on our trac server.
+In the following sections on :ref:`chapter-sage-trac` and
+:ref:`section-git-tricks-and-tips` we will look at communicating these
+changes back to the Sage project.  All changes to Sage source code
+have to go through the `Sage Trac development server
+<https://trac.sagemath.org>`_.
+
+As an alternative to using the Trac server directly, you can fork and
+create a Merge Request (MR) at `GitLab <https://gitlab.com/sagemath/sage>`_
+which will automatically fetch your code and open a ticket on our trac
+server.
+
+Pull Requests (PR) on GitHub are currently not supported by the
+SageMath project.
 
 
 .. _section-walkthrough-setup-git:

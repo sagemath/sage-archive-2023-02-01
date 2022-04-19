@@ -1016,8 +1016,6 @@ def stirling_number2(n, k, algorithm=None) -> Integer:
         ....:         if not (s_sage == s_flint and s_sage == s_gap):
         ....:             print("Error with n<200")
 
-    TESTS:
-
         sage: s_sage = stirling_number2(50,3, algorithm="namba")
         Traceback (most recent call last):
         ...

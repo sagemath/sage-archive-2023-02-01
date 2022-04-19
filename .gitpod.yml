@@ -25,12 +25,15 @@ tasks:
       ## Afterwards, create a new gitpod workspace.
       git remote remove trac 2> /dev/null # might still exists from a previous run/prebuild
       if [[ -n "${PRIVATE_SSH_KEY}" ]]; then
+        # Start ssh agent
+        eval $(ssh-agent -s)
+
         # Setup ssh key for authentication with trac
         mkdir -p ~/.ssh
         echo $PRIVATE_SSH_KEY | sed 's/\(-----\(BEGIN\|END\) OPENSSH PRIVATE KEY-----\)/\n\1\n/g' > ~/.ssh/id_rsa
         sed -i '/^$/d' ~/.ssh/id_rsa
         chmod 600 ~/.ssh/id_rsa
-        unset PRIVATE_SSH_KEY
+        ssh-add ~/.ssh/id_rsa
         ssh-keyscan -H trac.sagemath.org >> ~/.ssh/known_hosts
 
         # Setup trac repo

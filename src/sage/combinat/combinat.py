@@ -889,10 +889,10 @@ def stirling_number1(n, k, algorithm=None) -> Integer:
         sage: stirling_number1(10,5, algorithm='flint')
         269325
 
-         sage: s_sage = stirling_number1(50,3, algorithm="mutta")
-         Traceback (most recent call last):
-         ...
-         ValueError: unknown algorithm: mutta
+        sage: s_sage = stirling_number1(50,3, algorithm="mutta")
+        Traceback (most recent call last):
+        ...
+        ValueError: unknown algorithm: mutta
     """
     n = ZZ(n)
     k = ZZ(k)
@@ -947,10 +947,10 @@ def stirling_number2(n, k, algorithm=None) -> Integer:
 
     Stirling numbers satisfy `S_2(n,k) = S_2(n-1,k-1) + kS_2(n-1,k)`::
 
-         sage: 5*stirling_number2(9,5) + stirling_number2(9,4)
-         42525
-         sage: stirling_number2(10,5)
-         42525
+        sage: 5*stirling_number2(9,5) + stirling_number2(9,4)
+        42525
+        sage: stirling_number2(10,5)
+        42525
 
     TESTS::
 
@@ -992,36 +992,36 @@ def stirling_number2(n, k, algorithm=None) -> Integer:
         sage: type(n)
         <class 'sage.rings.integer.Integer'>
 
-     Sage's implementation splitting the computation of the Stirling
-     numbers of the second kind in two cases according to `n`, let us
-     check the result it gives agree with both flint and gap.
+    Sage's implementation splitting the computation of the Stirling
+    numbers of the second kind in two cases according to `n`, let us
+    check the result it gives agree with both flint and gap.
 
-     For `n<200`::
+    For `n<200`::
 
-         sage: for n in Subsets(range(100,200), 5).random_element():
-         ....:     for k in Subsets(range(n), 5).random_element():
-         ....:         s_sage = stirling_number2(n,k)
-         ....:         s_flint = stirling_number2(n,k, algorithm = "flint")
-         ....:         s_gap = stirling_number2(n,k, algorithm = "gap")
-         ....:         if not (s_sage == s_flint and s_sage == s_gap):
-         ....:             print("Error with n<200")
+        sage: for n in Subsets(range(100,200), 5).random_element():
+        ....:     for k in Subsets(range(n), 5).random_element():
+        ....:         s_sage = stirling_number2(n,k)
+        ....:         s_flint = stirling_number2(n,k, algorithm = "flint")
+        ....:         s_gap = stirling_number2(n,k, algorithm = "gap")
+        ....:         if not (s_sage == s_flint and s_sage == s_gap):
+        ....:             print("Error with n<200")
 
-     For `n\geq 200`::
+    For `n\geq 200`::
 
-         sage: for n in Subsets(range(200,300), 5).random_element():
-         ....:     for k in Subsets(range(n), 5).random_element():
-         ....:         s_sage = stirling_number2(n,k)
-         ....:         s_flint = stirling_number2(n,k, algorithm = "flint")
-         ....:         s_gap = stirling_number2(n,k, algorithm = "gap")
-         ....:         if not (s_sage == s_flint and s_sage == s_gap):
-         ....:             print("Error with n<200")
+        sage: for n in Subsets(range(200,300), 5).random_element():
+        ....:     for k in Subsets(range(n), 5).random_element():
+        ....:         s_sage = stirling_number2(n,k)
+        ....:         s_flint = stirling_number2(n,k, algorithm = "flint")
+        ....:         s_gap = stirling_number2(n,k, algorithm = "gap")
+        ....:         if not (s_sage == s_flint and s_sage == s_gap):
+        ....:             print("Error with n<200")
 
-     TESTS:
+    TESTS:
 
-         sage: s_sage = stirling_number2(50,3, algorithm="namba")
-         Traceback (most recent call last):
-         ...
-         ValueError: unknown algorithm: namba
+        sage: s_sage = stirling_number2(50,3, algorithm="namba")
+        Traceback (most recent call last):
+        ...
+        ValueError: unknown algorithm: namba
     """
     n = ZZ(n)
     k = ZZ(k)

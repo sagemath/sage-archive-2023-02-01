@@ -96,7 +96,7 @@ cdef class SymbolicRing(sage.rings.abc.SymbolicRing):
            sage: loads(dumps(SR)) == SR           # indirect doctest
            True
         """
-        return the_SymbolicRing, tuple([])
+        return the_SymbolicRing, tuple()
 
     def _repr_(self):
         """

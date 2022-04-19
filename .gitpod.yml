@@ -1,30 +1,6 @@
 # Use minimal Ubuntu installation that includes mamba
 image: condaforge/mambaforge
 
-# We use the following layout:
-#
-# $HOME/sage            Source tree used by the Docker build; see SAGE_ROOT/tox.ini (gitpod).
-#                       - We delete it in every invocation of the 'before' script
-#                         and replace it by a symlink to /workspace/...
-#                         (This symlink is needed because the package-removal scripts
-#                         ({prefix,venv}/var/lib/sage/scripts/*/{spkg-piprm,spkg-prerm,spkg-postrm)
-#                         hardcode SAGE_ROOT and SAGE_SRC from package installation time)
-# $HOME/sage/logs       Logs of the Docker build.
-#                       - In the first invocation of the 'before' script, we move it
-#                         to /workspace/.../logs
-# $HOME/sage-local      The configured prefix (SAGE_LOCAL) of the Sage installation.
-#                       - During the Docker build, this is the physical location.
-#                       - In the first invocation of the 'before' script, we move it
-#                         to the new physical location /workspace/.../local
-#                         (because gitpod only preserves the contents of /workspace)
-#                         and replace it by a symlink to the new physical location.
-#                       - In subsequent invocations of the 'before' script, we
-#                         remove it and replace it by a symlink to the physical
-#                         location /workspace/.../local
-# /worktree/.../local   The physical location of the Sage installation,
-#                       established in the first run of the 'before' script and
-#                       preserved by gitpod.
-
 # Start up tasks. https://www.gitpod.io/docs/config-start-tasks/
 tasks:
   - name: Setup

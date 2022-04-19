@@ -28,11 +28,18 @@ image: condaforge/mambaforge
 # Start up tasks. https://www.gitpod.io/docs/config-start-tasks/
 tasks:
   - name: Setup
-    before: |
+    init: |
       # Create conda environment
       mamba env create --file src/environment-dev.yml --prefix venv
       conda activate /workspace/sagetrac-mirror/venv
+      
+      # Build sage
+      ./bootstrap
+      ./configure --enable-build-as-root --with-python=$CONDA_PREFIX/bin/python --prefix=$CONDA_PREFIX 
+      pip install --no-build-isolation -v -v -e pkgs/sage-conf pkgs/sage-setup 
+      pip install --no-build-isolation -v -v -e src
 
+    command: |
       # Setup trac as remote
       ## In order to push to trac, generate a new key with `ssh-keygen -f tempkey` and save the private key to gitpod `gp env PRIVATE_SSH_KEY="$(<tempkey)"` (or by following https://www.gitpod.io/docs/environment-variables#using-the-account-settings)
       ## then follow https://doc.sagemath.org/html/en/developer/trac.html#linking-your-public-key-to-your-trac-account to register the public key with trac.
@@ -57,12 +64,6 @@ tasks:
         git remote add trac https://github.com/sagemath/sagetrac-mirror.git -t master -t develop
         git remote set-url --push trac pushing-needs-ssh-key
       fi
-      
-      # Build sage
-      ./bootstrap
-      ./configure --enable-build-as-root --with-python=$CONDA_PREFIX/bin/python --prefix=$CONDA_PREFIX 
-      pip install --no-build-isolation -v -v -e pkgs/sage-conf pkgs/sage-setup 
-      pip install --no-build-isolation -v -v -e src
 
     env:
       SAGE_NUM_THREADS: 8

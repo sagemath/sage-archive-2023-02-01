@@ -7,7 +7,6 @@ AUTHORS:
 
 - Radoslav Kirov (2009) -- initial version of the editor for use with sagenb
 - Jean-Florent Raymond (2022) -- replacement with the ``phitigra`` package
-
 """
 # ****************************************************************************
 #      Copyright (C) 2022 Jean-Florent Raymond
@@ -36,13 +35,13 @@ def graph_editor(graph=None, **display_options):
 
     INPUT:
 
-    - ``graph`` - a :class:`Graph` instance (default: `None'); the
+    - ``graph`` - a :class:`Graph` instance (default: ``None``); the
       graph to edit.
 
     - ``display_options`` - options for the widget.
 
     The graph editor widget can be displayed with Jupyter or JupyterLab.
-    It is provided by the `phitigra` optional package, see
+    It is provided by the ``phitigra`` optional package, see
     https://github.com/jfraymond/phitigra for details about the
     possible options (changing the width/height of the canvas, the
     default size and color of vertices, etc.).
@@ -66,7 +65,7 @@ def graph_editor(graph=None, **display_options):
         sage: H == G and not H is G
         True
 
-    Use different display options::
+    Using different display options::
 
         sage: e = graph_editor(graphs.PetersenGraph(), width=300, height=300, default_radius=12, default_vertex_color='orange', default_edge_color='#666', show_vertex_labels=False)
         sage: e.show()                      # not tested

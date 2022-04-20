@@ -11,6 +11,7 @@ tasks:
       conda activate /workspace/sagetrac-mirror/venv
       ## Install esbonio via pip as long as there is no conda package for it: https://github.com/swyddfa/esbonio/issues/371
       pip install esbonio
+      echo 'conda activate /workspace/sagetrac-mirror/venv' >> ~/.bash_profile
       
       # Build sage
       ./bootstrap

@@ -662,7 +662,7 @@ class AbelianGroup_class(UniqueRepresentation, AbelianGroupBase):
         """
         return not self.is_trivial()
 
-    __nonzero__ = __bool__
+    
 
     @cached_method
     def dual_group(self, names="X", base_ring=None):
@@ -1913,4 +1913,3 @@ class AbelianGroup_subgroup(AbelianGroup_class):
 
 # We allow subclasses to override this, analogous to Element
 AbelianGroup_class.Subgroup = AbelianGroup_subgroup
-

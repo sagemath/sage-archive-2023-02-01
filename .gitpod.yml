@@ -7,6 +7,7 @@ tasks:
     init: |
       # Create conda environment
       mamba env create --file src/environment-dev.yml --prefix venv
+      conda config --append envs_dirs /workspace/sagetrac-mirror
       conda activate /workspace/sagetrac-mirror/venv
       
       # Build sage

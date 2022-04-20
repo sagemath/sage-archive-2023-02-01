@@ -1,8 +1,16 @@
 r"""
-Graph editor
+Graph editor widget
+
+The ``phitigra`` package should be installed on your Sage installation.
+
+AUTHORS:
+
+- Radoslav Kirov (2009) -- initial version of the editor for use with sagenb
+- Jean-Florent Raymond (2022) -- replacement with the ``phitigra`` package
+
 """
 # ****************************************************************************
-#      Copyright (C) 2021 Jean-Florent Raymond
+#      Copyright (C) 2022 Jean-Florent Raymond
 #
 #  Distributed under the terms of the GNU General Public License (GPL)
 #
@@ -16,33 +24,57 @@ Graph editor
 #                  https://www.gnu.org/licenses/
 # ****************************************************************************
 
+from sage.misc.lazy_import import lazy_import
+from sage.features import PythonModule
+lazy_import('phitigra', 'GraphEditor',
+            feature=PythonModule('phitigra', spkg='phitigra'))
 
-def graph_editor(graph=None, **editor_options):
+
+def graph_editor(graph=None, **display_options):
     """
-    Open a graph editor in the Jupyter notebook.
+    Return a graph editor widget.
 
     INPUT:
 
     - ``graph`` - a :class:`Graph` instance (default: `None'); the
       graph to edit.
 
-    - ``layout_options`` - options for the editor. 
+    - ``display_options`` - options for the widget.
+
+    The graph editor widget can be displayed with Jupyter or JupyterLab.
+    It is provided by the `phitigra` optional package, see
+    https://github.com/jfraymond/phitigra for details about the
+    possible options (changing the width/height of the canvas, the
+    default size and color of vertices, etc.).
 
     EXAMPLES::
 
-        sage: g = graphs.CompleteGraph(3)
-        sage: graph_editor(g)                       # not tested
-        sage: graph_editor(graphs.HouseGraph())     # not tested
-        sage: h = graphs.StarGraph(6)
+        sage: e = graph_editor()
+        sage: e.show()                      # not tested
+
+    Opening an existing graph::
+
+        sage: G = graphs.PetersenGraph()
+        sage: e = graph_editor(G)
+        sage: e.show()                      # not tested
+
+    Retrieving a copy of the drawn graph::
+
+        sage: G = graphs.RandomGNP(10, 0.5)
+        sage: e = graph_editor(G)
+        sage: H = e.get_graph()
+        sage: H == G and not H is G
+        True
+
+    Use different display options::
+
+        sage: e = graph_editor(graphs.PetersenGraph(), width=300, height=300, default_radius=12, default_vertex_color='orange', default_edge_color='#666', show_vertex_labels=False)
+        sage: e.show()                      # not tested
     """
-    try:
-        from phitigra import GraphEditor
-    except ModuleNotFoundError:
-        raise ModuleNotFoundError("The graph editor is provided by the optional package phitigra, which currently not installed.")
 
     from .graph import Graph
 
     if graph is None:
         graph = Graph(0)
 
-    return GraphEditor(graph, **editor_options)
+    return GraphEditor(graph, **display_options)

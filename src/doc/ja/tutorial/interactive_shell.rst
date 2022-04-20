@@ -15,7 +15,7 @@ Sageを起動すると，すぐに次のような画面が現れる:
 
     ┌────────────────────────────────────────────────────────────────────┐
     │ SageMath version 9.0, Release Date: 2020-01-01                     │
-    │ Using Python 3.7.3. Type "help()" for help.                        │
+    │ Using Python 3.10.4. Type "help()" for help.                       │
     └────────────────────────────────────────────────────────────────────┘
 
 
@@ -164,7 +164,7 @@ Sageセッションのロギングと，セッションの保存(:ref:`section-s
     was@form:~$ sage
     ┌────────────────────────────────────────────────────────────────────┐
     │ SageMath version 9.0, Release Date: 2020-01-01                     │
-    │ Using Python 3.7.3. Type "help()" for help.                        │
+    │ Using Python 3.10.4. Type "help()" for help.                       │
     └────────────────────────────────────────────────────────────────────┘
 
     sage: logstart setup
@@ -183,7 +183,7 @@ Sageセッションのロギングと，セッションの保存(:ref:`section-s
     was@form:~$ sage
     ┌────────────────────────────────────────────────────────────────────┐
     │ SageMath version 9.0, Release Date: 2020-01-01                     │
-    │ Using Python 3.7.3. Type "help()" for help.                        │
+    │ Using Python 3.10.4. Type "help()" for help.                       │
     └────────────────────────────────────────────────────────────────────┘
 
     sage: load("setup")

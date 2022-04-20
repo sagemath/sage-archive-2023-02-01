@@ -299,6 +299,12 @@ class MathJax:
             <html>\(3\)</html>
             sage: MathJax().eval(type(3), mode='inline')
             <html>\(\verb|&lt;class|\verb| |\verb|'sage.rings.integer.Integer'>|\)</html>
+
+        TESTS:
+
+            sage: from sage.misc.html import MathJax
+            sage: MathJax().eval(IntegerModRing(6))
+            <html>\[\newcommand{\ZZ}{\Bold{Z}}\newcommand{\Bold}[1]{\mathbf{#1}}\ZZ/6\ZZ\]</html>
         """
         # Get a regular LaTeX representation of x
         x = latex(x, combine_all=combine_all)

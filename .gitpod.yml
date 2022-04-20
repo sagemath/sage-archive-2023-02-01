@@ -1,5 +1,6 @@
 # Use minimal Ubuntu installation that includes mamba
-image: condaforge/mambaforge
+image:
+  file: .gitpod.Dockerfile
 
 # Start up tasks. https://www.gitpod.io/docs/config-start-tasks/
 tasks:

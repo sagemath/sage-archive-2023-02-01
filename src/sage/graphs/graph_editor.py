@@ -53,9 +53,16 @@ def graph_editor(graph=None, **display_options):
 
     Opening an existing graph::
 
-        sage: G = graphs.PetersenGraph()
+        sage: G = graphs.RandomGNP(10, 0.5)
         sage: e = graph_editor(G)
         sage: e.show()                      # not tested
+
+    .. ONLY:: html
+
+         .. JUPYTER-EXECUTE::
+             :hide-code:
+
+             graph_editor(graphs.RandomGNP(10, 0.5)).show()
 
     Retrieving a copy of the drawn graph::
 
@@ -69,6 +76,13 @@ def graph_editor(graph=None, **display_options):
 
         sage: e = graph_editor(graphs.PetersenGraph(), width=300, height=300, default_radius=12, default_vertex_color='orange', default_edge_color='#666', show_vertex_labels=False)
         sage: e.show()                      # not tested
+
+    .. ONLY:: html
+
+      .. JUPYTER-EXECUTE::
+         :hide-code:
+
+         graph_editor(graphs.PetersenGraph(), width=300, height=300, default_radius=12, default_vertex_color='orange', default_edge_color='#666', show_vertex_labels=False).show()
     """
 
     from .graph import Graph

@@ -10,11 +10,12 @@ This module provide implementations of some operations on polynomial ideals
 based on msolve. Currently the only supported operation is the computation of
 the variety of zero-dimensional ideal over the rationals.
 
-Note that msolve is currently not part of Sage and must be installed
-separately. The present interface looks for a binary named ``msolve`` in the
-system program path (``$PATH``).
+Note that msolve must be installed separately.
 
-.. SEEALSO:: :mod:`sage.rings.polynomial.multi_polynomial_ideal`
+.. SEEALSO::
+
+- :mod:`sage.features.msolve`
+- :mod:`sage.rings.polynomial.multi_polynomial_ideal`
 """
 
 import os
@@ -23,6 +24,7 @@ import subprocess
 
 import sage.structure.proof.proof
 
+from sage.features.msolve import msolve
 from sage.misc.all import SAGE_TMP
 from sage.misc.converting_dict import KeyConvertingDict
 from sage.misc.sage_eval import sage_eval
@@ -130,6 +132,8 @@ def _variety(ideal, ring, proof):
 
     # Run msolve
 
+    msolve().require()
+
     drlpolring = ideal.ring().change_ring(order='degrevlex')
     polys = ideal.change_ring(drlpolring).gens()
     msolve_in = tempfile.NamedTemporaryFile(dir=SAGE_TMP, mode='w',
@@ -149,10 +153,6 @@ def _variety(ideal, ring, proof):
                 sep=',\n', file=msolve_in)
         msolve_in.close()
         msolve_out = subprocess.run(command, capture_output=True)
-    except FileNotFoundError:
-        raise RuntimeError(
-            "could not find the msolve binary. Please install msolve "
-            "(https://msolve.lip6.fr/) and try again.")
     finally:
         os.unlink(msolve_in.name)
     msolve_out.check_returncode()

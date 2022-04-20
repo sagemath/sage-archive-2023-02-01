@@ -599,7 +599,7 @@ General procedure
        $ sage
        ┌────────────────────────────────────────────────────────────────────┐
        │ SageMath version 8.8, Release Date: 2019-06-26                     │
-       │ Using Python 3.7.3. Type "help()" for help.                        │
+       │ Using Python 3.10.4. Type "help()" for help.                       │
        └────────────────────────────────────────────────────────────────────┘
        sage:
 

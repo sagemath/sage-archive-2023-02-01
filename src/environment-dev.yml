@@ -203,3 +203,4 @@ dependencies:
   - openssh
   - pycodestyle
   - pytest
+  - esbonio

@@ -19,4 +19,6 @@
         "src"
     ],
     "python.testing.unittestEnabled": false,
+    "python.linting.pycodestyleEnabled": true,
+    "python.linting.enabled": true,
 }

@@ -201,3 +201,5 @@ dependencies:
   - libtool
   # Additional dev tools
   - openssh
+  - pycodestyle
+  - pytest

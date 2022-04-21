@@ -25,6 +25,10 @@ tasks:
       conda config --append envs_dirs /workspace/sagetrac-mirror
       conda activate /workspace/sagetrac-mirror/venv
 
+      # RestructuredText extension recommends python extension, although we have already installed it
+      ## So disable the recommendation dialog
+      echo "{\"restructuredtext.pythonRecommendation.disabled\": true}" > /workspace/.vscode-remote/data/Machine/settings.json
+
       # Setup trac as remote
       ## In order to push to trac, generate a new key with `ssh-keygen -f tempkey` and save the private key to gitpod `gp env PRIVATE_SSH_KEY="$(<tempkey)"` (or by following https://www.gitpod.io/docs/environment-variables#using-the-account-settings)
       ## then follow https://doc.sagemath.org/html/en/developer/trac.html#linking-your-public-key-to-your-trac-account to register the public key with trac.

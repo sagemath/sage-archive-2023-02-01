@@ -116,7 +116,7 @@ Sage source code and which you can upload to trac tickets.
 
 To begin with, type the command ``git branch``. You will see the following::
 
-    [user@localhost]$ git branch
+    [user@localhost sage]$ git branch
     * develop
       master
 
@@ -144,7 +144,7 @@ to it. For this, you have to use ``git checkout``::
 
 Now if you use the command ``git branch``, you will see the following::
 
-    [user@localhost]$ git branch
+    [user@localhost sage]$ git branch
       develop
     * last_twin_prime
       master

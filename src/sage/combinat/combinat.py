@@ -364,9 +364,9 @@ def bell_number(n, algorithm='flint', **options) -> Integer:
 
     TESTS::
 
-        sage: all(bell_number(n) == bell_number(n,'dobinski') for n in range(200))
+        sage: all(bell_number(n) == bell_number(n,'dobinski') for n in range(100))
         True
-        sage: all(bell_number(n) == bell_number(n,'gap') for n in range(200))
+        sage: all(bell_number(n) == bell_number(n,'gap') for n in range(100))
         True
         sage: all(bell_number(n) == bell_number(n,'mpmath', prec=500) for n in range(200, 220))
         True
@@ -854,7 +854,7 @@ def lucas_number2(n, P, Q):
     return libgap.Lucas(P, Q, n)[1].sage()
 
 
-def stirling_number1(n, k, algorithm=None) -> Integer:
+def stirling_number1(n, k, algorithm="gap") -> Integer:
     r"""
     Return the `n`-th Stirling number `S_1(n,k)` of the first kind.
 
@@ -868,8 +868,8 @@ def stirling_number1(n, k, algorithm=None) -> Integer:
     - ``k`` -- nonnegative machine-size integer
     - ``algorithm``:
 
-      * ``"gap"`` (default) -- use GAP's Stirling1 function
-      * ``"flint"`` -- use flint's arith_stirling_number_1u function
+      * ``"gap"`` (default) -- use GAP's ``Stirling1`` function
+      * ``"flint"`` -- use flint's ``arith_stirling_number_1u`` function
 
     EXAMPLES::
 
@@ -896,8 +896,6 @@ def stirling_number1(n, k, algorithm=None) -> Integer:
     """
     n = ZZ(n)
     k = ZZ(k)
-    if algorithm is None:
-        algorithm = 'gap'
     if algorithm == 'gap':
         from sage.libs.gap.libgap import libgap
         return libgap.Stirling1(n, k).sage()
@@ -924,8 +922,9 @@ def stirling_number2(n, k, algorithm=None) -> Integer:
     - ``algorithm``:
 
       * ``None`` (default) -- use native implementation
-      * ``"flint"`` -- use flint's arith_stirling_number_2 function
-      * ``"gap"`` -- use GAP's Stirling2 function
+      * ``"flint"`` -- use flint's ``arith_stirling_number_2`` function
+      * ``"gap"`` -- use GAP's ``Stirling2`` function
+      * ``"maxima"`` -- use Maxima's ``stirling2`` function
 
     EXAMPLES:
 
@@ -1016,7 +1015,10 @@ def stirling_number2(n, k, algorithm=None) -> Integer:
         ....:         if not (s_sage == s_flint and s_sage == s_gap):
         ....:             print("Error with n<200")
 
-        sage: s_sage = stirling_number2(50,3, algorithm="namba")
+        sage: stirling_number2(20,3, algorithm="maxima")
+        580606446
+
+        sage: s_sage = stirling_number2(5,3, algorithm="namba")
         Traceback (most recent call last):
         ...
         ValueError: unknown algorithm: namba
@@ -1031,6 +1033,8 @@ def stirling_number2(n, k, algorithm=None) -> Integer:
     if algorithm == 'flint':
         import sage.libs.flint.arith
         return sage.libs.flint.arith.stirling_number_2(n, k)
+    if algorithm == 'maxima':
+        return ZZ(maxima.stirling2(n, k))  # type:ignore
     raise ValueError("unknown algorithm: %s" % algorithm)
 
 
@@ -1422,8 +1426,6 @@ class CombinatorialObject(SageObject):
 
         """
         return bool(self._list)
-
-    
 
     def __len__(self) -> Integer:
         """
@@ -2461,7 +2463,6 @@ class Permutations_CC(CombinatorialClass):
 
 ##############################################################################
 from sage.sets.image_set import ImageSubobject
-from sage.categories.map import is_Map
 
 
 class MapCombinatorialClass(ImageSubobject, CombinatorialClass):

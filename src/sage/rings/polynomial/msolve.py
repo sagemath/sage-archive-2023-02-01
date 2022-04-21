@@ -152,14 +152,14 @@ def _variety(ideal, ring, proof):
         print(*(pol._repr_().replace(" ", "") for pol in polys),
                 sep=',\n', file=msolve_in)
         msolve_in.close()
-        msolve_out = subprocess.run(command, capture_output=True)
+        msolve_out = subprocess.run(command, capture_output=True, text=True)
     finally:
         os.unlink(msolve_in.name)
     msolve_out.check_returncode()
 
     # Interpret output
 
-    data = sage_eval(msolve_out.stdout[:-2].decode('ascii'))
+    data = sage_eval(msolve_out.stdout[:-2])
 
     dim = data[0]
     if dim == -1:

@@ -65,7 +65,7 @@ for SYSTEM in arch debian fedora cygwin homebrew conda; do
     done
     if [ "${SYSTEM}" = "conda" ]; then
         if [ "${BOOTSTRAP_QUIET}" = "no" ]; then
-            echo >&2 $0:$LINENO: installing environment.yml, environment-optional.yml, src/environment.yml and src/environment-optional.yml
+            echo >&2 $0:$LINENO: generate conda enviroment files
         fi
         echo "name: sage-build" >  environment.yml
         echo "channels:"        >> environment.yml
@@ -79,6 +79,18 @@ for SYSTEM in arch debian fedora cygwin homebrew conda; do
         for pkg in $SAGELIB_SYSTEM_PACKAGES; do
             echo "  - $pkg" >> src/environment.yml
         done
+        sed 's/name: sage/name: sage-dev/' src/environment.yml > src/environment-dev.yml
+        echo "  # Packages needed for ./bootstrap" >> src/environment-dev.yml
+        BOOTSTRAP_PACKAGES=$(echo $(${STRIP_COMMENTS} build/pkgs/_bootstrap/distros/conda.txt))
+        for pkg in $BOOTSTRAP_PACKAGES; do
+            echo "  - $pkg" >> src/environment-dev.yml
+        done
+        echo "  # Additional dev tools" >> src/environment-dev.yml
+        echo "  - openssh" >> src/environment-dev.yml
+        echo "  - pycodestyle" >> src/environment-dev.yml
+        echo "  - pytest" >> src/environment-dev.yml
+        echo "  - jupyter_sphinx" >> src/environment-dev.yml
+
         cp environment.yml environment-optional.yml
             echo "  # optional packages" >> environment-optional.yml
         for pkg in $OPTIONAL_SYSTEM_PACKAGES; do

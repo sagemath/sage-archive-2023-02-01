@@ -89,7 +89,6 @@ for SYSTEM in arch debian fedora cygwin homebrew conda; do
         echo "  - openssh" >> src/environment-dev.yml
         echo "  - pycodestyle" >> src/environment-dev.yml
         echo "  - pytest" >> src/environment-dev.yml
-        echo "  - jupyter_sphinx" >> src/environment-dev.yml
 
         cp environment.yml environment-optional.yml
             echo "  # optional packages" >> environment-optional.yml

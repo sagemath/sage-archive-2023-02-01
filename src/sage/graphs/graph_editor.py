@@ -48,41 +48,27 @@ def graph_editor(graph=None, **display_options):
 
     EXAMPLES::
 
-        sage: e = graph_editor()
+        sage: e = graph_editor()            # optional - phitigra
         sage: e.show()                      # not tested
 
     Opening an existing graph::
 
         sage: G = graphs.RandomGNP(10, 0.5)
-        sage: e = graph_editor(G)
+        sage: e = graph_editor(G)           # optional - phitigra
         sage: e.show()                      # not tested
-
-    .. ONLY:: html
-
-         .. JUPYTER-EXECUTE::
-             :hide-code:
-
-             graph_editor(graphs.RandomGNP(10, 0.5)).show()
 
     Retrieving a copy of the drawn graph::
 
         sage: G = graphs.RandomGNP(10, 0.5)
-        sage: e = graph_editor(G)
-        sage: H = e.get_graph()
-        sage: H == G and not H is G
+        sage: e = graph_editor(G)           # optional - phitigra
+        sage: H = e.get_graph()             # optional - phitigra
+        sage: H == G and not H is G         # optional - phitigra
         True
 
     Using different display options::
 
-        sage: e = graph_editor(graphs.PetersenGraph(), width=300, height=300, default_radius=12, default_vertex_color='orange', default_edge_color='#666', show_vertex_labels=False)
+        sage: e = graph_editor(graphs.PetersenGraph(), width=300, height=300, default_radius=12, default_vertex_color='orange', default_edge_color='#666', show_vertex_labels=False) # optional - phitigra
         sage: e.show()                      # not tested
-
-    .. ONLY:: html
-
-      .. JUPYTER-EXECUTE::
-         :hide-code:
-
-         graph_editor(graphs.PetersenGraph(), width=300, height=300, default_radius=12, default_vertex_color='orange', default_edge_color='#666', show_vertex_labels=False).show()
     """
 
     from .graph import Graph

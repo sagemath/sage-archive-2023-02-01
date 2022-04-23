@@ -8,6 +8,7 @@ on your Sage installation.
 AUTHORS:
 
 - Radoslav Kirov (2009): initial version of the editor for use with sagenb
+
 - Jean-Florent Raymond (2022-04-12): replacement with the ``phitigra`` package
 """
 
@@ -22,9 +23,8 @@ AUTHORS:
 # ****************************************************************************
 
 from sage.misc.lazy_import import lazy_import
-from sage.features import PythonModule
-lazy_import('phitigra', 'GraphEditor',
-            feature=PythonModule('phitigra', spkg='phitigra'))
+from sage.features.phitigra import Phitigra
+lazy_import('phitigra', 'GraphEditor', feature=Phitigra())
 
 
 def graph_editor(graph=None, **display_options):

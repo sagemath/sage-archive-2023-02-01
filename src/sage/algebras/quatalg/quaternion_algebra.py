@@ -798,7 +798,7 @@ class QuaternionAlgebra_ab(QuaternionAlgebra_abstract):
         e_new_gens = []
 
         # For each prime at which R is not yet maximal, make it bigger
-        for (p, _) in d_R.factor():
+        for p, _ in d_R.factor():
             e = R.basis()
             while self.quaternion_order(e).discriminant().valuation(p) > d_A.valuation(p):
                 # Compute a normalized basis at p

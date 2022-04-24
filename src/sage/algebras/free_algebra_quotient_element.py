@@ -243,7 +243,7 @@ class FreeAlgebraQuotientElement(AlgebraElement):
 
         def monomial_product(X, w, m):
             mats = X._FreeAlgebraQuotient__matrix_action
-            for (j, k) in m._element_list:
+            for j, k in m._element_list:
                 M = mats[int(j)]
                 for _ in range(k):
                     w *= M

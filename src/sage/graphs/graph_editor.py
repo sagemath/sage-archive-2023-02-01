@@ -1,8 +1,8 @@
 r"""
 Graph editor widget
 
-This file adds an interface to ``phitigra``, a graph editor widget for
-jupyter and jupyterlab. The ``phitigra`` optional package should be installed
+This module adds an interface to ``phitigra``, a graph editor widget for
+Jupyter and JupyterLab. The ``phitigra`` optional package should be installed
 on your Sage installation.
 
 AUTHORS:
@@ -39,10 +39,9 @@ def graph_editor(graph=None, **display_options):
 
     INPUT:
 
-    - ``graph`` - a :class:`Graph` instance (default: ``None``); the
-      graph to edit.
+    - ``graph`` -- a graph to edit (default: ``None``)
 
-    - ``display_options`` - options for the widget.
+    - ``display_options`` -- options for the widget
 
     EXAMPLES::
 
@@ -65,14 +64,15 @@ def graph_editor(graph=None, **display_options):
 
     Using different display options::
 
-        sage: e = graph_editor(graphs.PetersenGraph(), width=300, height=300, default_radius=12, default_vertex_color='orange', default_edge_color='#666', show_vertex_labels=False) # optional - phitigra
-        sage: e.show()                      # not tested
+        sage: e = graph_editor(graphs.PetersenGraph(), width=300, height=300,  # optional - phitigra
+        ....: default_radius=12, default_vertex_color='orange',                # optional - phitigra
+        ....: default_edge_color='#666', show_vertex_labels=False)             # optional - phitigra
+        sage: e.show()                                                         # not tested
 
     .. NOTE::
 
         The editor does not support multigraphs.
     """
-
     from .graph import Graph
 
     if graph is None:

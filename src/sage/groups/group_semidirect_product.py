@@ -34,7 +34,10 @@ class GroupSemidirectProductElement(CartesianProduct.Element):
             sage: def twist(x,y):
             ....:     return y
             sage: GroupSemidirectProduct(WeylGroup(['A',2],prefix="s"), WeylGroup(['A',3],prefix="t"),twist) # indirect doctest
-            Semidirect product of Weyl Group of type ['A', 2] (as a matrix group acting on the ambient space) acting on Weyl Group of type ['A', 3] (as a matrix group acting on the ambient space)
+            Semidirect product of Weyl Group of type ['A', 2]
+            (as a matrix group acting on the ambient space) acting on
+            Weyl Group of type ['A', 3]
+            (as a matrix group acting on the ambient space)
         """
         def wrapper(prefix, s):
             if prefix is None:
@@ -99,11 +102,14 @@ class GroupSemidirectProductElement(CartesianProduct.Element):
             sage: from sage.groups.group_exp import GroupExp
             sage: EL = GroupExp()(L)
             sage: W = L.weyl_group(prefix="s"); W
-            Weyl Group of type ['A', 2] (as a matrix group acting on the root lattice)
+            Weyl Group of type ['A', 2]
+            (as a matrix group acting on the root lattice)
             sage: def twist(w,v):
             ....:     return EL(w.action(v.value))
             sage: G = GroupSemidirectProduct(W, EL, twist, prefix1='t'); G
-            Semidirect product of Weyl Group of type ['A', 2] (as a matrix group acting on the root lattice) acting on Multiplicative form of Root lattice of the Root system of type ['A', 2]
+            Semidirect product of Weyl Group of type ['A', 2] (as a matrix
+            group acting on the root lattice) acting on Multiplicative form of
+            Root lattice of the Root system of type ['A', 2]
             sage: mu = L.an_element(); mu
             2*alpha[1] + 2*alpha[2]
             sage: w = W.an_element(); w
@@ -126,22 +132,25 @@ class GroupSemidirectProductElement(CartesianProduct.Element):
 
 class GroupSemidirectProduct(CartesianProduct):
     r"""
-    Return the semidirect product of the groups ``G`` and ``H`` using the homomorphism ``twist``.
+    Return the semidirect product of the groups ``G`` and ``H``using the homomorphism ``twist``.
 
     INPUT:
 
     - ``G`` and ``H`` -- multiplicative groups
-    - ``twist`` -- (default: ``None``) a function defining a homomorphism (see below)
+    - ``twist`` -- (default: ``None``) a function defining
+      a homomorphism (see below)
     - ``act_to_right`` -- ``True`` or ``False`` (default: ``True``)
     - ``prefix0`` -- (default: ``None``) optional string
     - ``prefix1`` -- (default: ``None``) optional string
     - ``print_tuple`` -- ``True`` or ``False`` (default: ``False``)
     - ``category`` -- A category (default: Groups())
 
-    A semidirect product of groups `G` and `H` is a group structure on the Cartesian product `G \times H`
-    whose product agrees with that of `G` on `G \times 1_H` and with that of `H` on `1_G \times H`, such that
-    either `1_G \times H` or `G \times 1_H` is a normal subgroup. In the former case the group is denoted
-    `G \ltimes H` and in the latter, `G \rtimes H`.
+    A semidirect product of groups `G` and `H` is a group structure on
+    the Cartesian product `G \times H` whose product agrees with that
+    of `G` on `G \times 1_H` and with that of `H` on `1_G \times H`,
+    such that either `1_G \times H` or `G \times 1_H` is a normal
+    subgroup. In the former case, the group is denoted `G \ltimes H`
+    and in the latter, `G \rtimes H`.
 
     If ``act_to_right`` is ``True``, this indicates the group `G \ltimes H`
     in which `G` acts on `H` by automorphisms. In this case there is a
@@ -168,8 +177,8 @@ class GroupSemidirectProduct(CartesianProduct):
         &= (g_1g_2, twist(g_2^{-1}, h_1) h_2)
         \end{aligned}
 
-    If ``act_to_right`` is ``False``, the group `G \rtimes H` is specified by a homomorphism `\psi\in \mathrm{Hom}(H,\mathrm{Aut}(G))`
-    such that
+    If ``act_to_right`` is ``False``, the group `G \rtimes H` is specified by
+    a homomorphism `\psi\in \mathrm{Hom}(H,\mathrm{Aut}(G))` such that
 
     .. MATH::
 
@@ -204,7 +213,9 @@ class GroupSemidirectProduct(CartesianProduct):
         sage: def twist(g,v):
         ....:     return EV(g*v.value)
         sage: H = GroupSemidirectProduct(G, EV, twist=twist, prefix1 = 't'); H
-        Semidirect product of General Linear Group of degree 2 over Rational Field acting on Multiplicative form of Vector space of dimension 2 over Rational Field
+        Semidirect product of General Linear Group of degree 2
+        over Rational Field acting on Multiplicative form of Vector space
+        of dimension 2 over Rational Field
         sage: x = H.an_element(); x
         t[(1, 0)]
         sage: x^2
@@ -291,14 +302,18 @@ class GroupSemidirectProduct(CartesianProduct):
             sage: def twist(x,y):
             ....:     return y
             sage: GroupSemidirectProduct(WeylGroup(['A',2],prefix="s"), WeylGroup(['A',3],prefix="t"),twist) # indirect doctest
-            Semidirect product of Weyl Group of type ['A', 2] (as a matrix group acting on the ambient space) acting on Weyl Group of type ['A', 3] (as a matrix group acting on the ambient space)
+            Semidirect product of Weyl Group of type ['A', 2] (as a matrix
+            group acting on the ambient space) acting on Weyl Group
+            of type ['A', 3] (as a matrix group acting on the ambient space)
         """
         cartesian_factors = self.cartesian_factors()
         if self.act_to_right():
             act_string = "acting on"
         else:
             act_string = "acted upon by"
-        return "Semidirect product of %s %s %s" % (cartesian_factors[0], act_string, cartesian_factors[1])
+        return "Semidirect product of %s %s %s" % (cartesian_factors[0],
+                                                   act_string,
+                                                   cartesian_factors[1])
 
     def _element_constructor_(self, x):
         r"""
@@ -312,7 +327,7 @@ class GroupSemidirectProduct(CartesianProduct):
             sage: TestSuite(g).run()
         """
         def type_error():
-            raise TypeError("%s cannot be converted into an element of %s" % (x, self))
+            raise TypeError(f"{x} cannot be converted into an element of {self}")
 
         if isinstance(x, self.element_class) and x.parent() == self:
             return x
@@ -377,7 +392,8 @@ class GroupSemidirectProduct(CartesianProduct):
             if g1 is not False:
                 return tuple([self((x, factors[1].one())) for x in g0] +
                              [self((factors[0].one(), x)) for x in g1])
-        raise NotImplementedError("one of the factors does not implement 'group_generators'")
+        raise NotImplementedError("one of the factors does not "
+                                  "implement 'group_generators'")
 
     def product(self, x, y):
         r"""
@@ -426,25 +442,37 @@ class GroupSemidirectProduct(CartesianProduct):
             sage: L = QQ^2
             sage: EL = GroupExp()(L)
             sage: H = GroupSemidirectProduct(G, EL, twist = lambda g,v: EL(g*v.value), prefix1 = 't'); H
-            Semidirect product of General Linear Group of degree 2 over Rational Field acting on Multiplicative form of Vector space of dimension 2 over Rational Field
+            Semidirect product of General Linear Group of degree 2
+            over Rational Field acting on Multiplicative form of Vector space
+            of dimension 2 over Rational Field
             sage: h = H((Matrix([[0,1],[1,0]]), EL.an_element())); h
             [0 1]
             [1 0] * t[(1, 0)]
             sage: Hop = H.opposite_semidirect_product(); Hop
-            Semidirect product of Multiplicative form of Vector space of dimension 2 over Rational Field acted upon by General Linear Group of degree 2 over Rational Field
+            Semidirect product of Multiplicative form of Vector space
+            of dimension 2 over Rational Field acted upon by
+            General Linear Group of degree 2 over Rational Field
             sage: hop = h.to_opposite(); hop
             t[(0, 1)] * [0 1]
             [1 0]
             sage: hop in Hop
             True
         """
-        return GroupSemidirectProduct(self.cartesian_factors()[1], self.cartesian_factors()[0], twist=self._twist, act_to_right=not self.act_to_right(), prefix0=self._prefix1, prefix1=self._prefix0, print_tuple=self._print_tuple, category=self._category)
+        return GroupSemidirectProduct(self.cartesian_factors()[1],
+                                      self.cartesian_factors()[0],
+                                      twist=self._twist,
+                                      act_to_right=not self.act_to_right(),
+                                      prefix0=self._prefix1,
+                                      prefix1=self._prefix0,
+                                      print_tuple=self._print_tuple,
+                                      category=self._category)
 
     def construction(self):
         r"""
         Return ``None``.
 
-        This overrides the construction functor inherited from ``CartesianProduct``.
+        This overrides the construction functor inherited from
+        ``CartesianProduct``.
 
         EXAMPLES::
 

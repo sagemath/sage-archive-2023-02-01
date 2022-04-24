@@ -85,8 +85,6 @@ from sage.rings.fraction_field import FractionField
 from sage.schemes.elliptic_curves.all import EllipticCurve
 from sage.schemes.elliptic_curves.ell_generic import is_EllipticCurve
 
-from sage.rings.number_field.number_field_base import is_NumberField
-
 from sage.schemes.elliptic_curves.weierstrass_morphism \
         import WeierstrassIsomorphism, isomorphisms, baseWI
 

@@ -114,7 +114,7 @@ SageMath release.
 - `CoCalc <https://cocalc.com/>`_: an online service that provides SageMath and
   many other tools.
 
-- On any system that can allows you to bring your own Docker images to run in
+- On any system that allows you to bring your own Docker images to run in
   a container:  Use the `Docker image sagemath/sagemath <https://hub.docker.com/r/sagemath/sagemath/>`_.
 
 - `Sage Cell Server <https://sagecell.sagemath.org/>`_: an online service for

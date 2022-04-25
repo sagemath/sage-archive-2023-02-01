@@ -16,8 +16,8 @@ follows. In a terminal,
 
 .. code-block:: shell
 
-   $ curl -L -O https://github.com/conda-forge/miniforge/releases/latest/download/Mambaforge-\$(uname)-\$(uname -m).sh
-   $ sh Mambaforge-\$(uname)-\$(uname -m).sh
+   $ curl -L -O https://github.com/conda-forge/miniforge/releases/latest/download/Mambaforge-$(uname)-$(uname -m).sh
+   $ sh Mambaforge-$(uname)-$(uname -m).sh
 
 * Mambaforge and Miniforge use conda-forge as the default channel.
 

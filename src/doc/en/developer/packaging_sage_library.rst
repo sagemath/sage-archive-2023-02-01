@@ -175,6 +175,7 @@ Some of these files may actually be generated from source files with suffix ``.m
 
 
 
+.. _section_dependencies_distributions:
 
 Dependencies and distribution packages
 ======================================

@@ -496,7 +496,8 @@ Importing
 =========
 
 We mention two issues with importing: circular imports and importing
-large third-party modules.
+large third-party modules. See also :ref:`section_dependencies_distributions`
+for a discussion of imports from the viewpoint of modularization.
 
 First, you must avoid circular imports. For example, suppose that the
 file ``SAGE_ROOT/src/sage/algebras/steenrod_algebra.py``
@@ -542,7 +543,7 @@ look like this (omitting the documentation string):
         return steenrod_algebra_basis(n, basis=self._basis_name, p=self.prime)
 
 Second, do not import at the top level of your module a third-party
-module that will take a long time to initialize (e.g. matplotlib). As
+module that will take a long time to initialize (e.g. :mod:`matplotlib`). As
 above, you might instead import specific components of the module when
 they are needed, rather than at the top level of your file.
 

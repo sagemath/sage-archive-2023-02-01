@@ -27,13 +27,13 @@ follows. In a terminal,
 
   * Change channel priority to strict: ``conda config --set channel_priority strict``
 
-Optionally, use `mamba <https://github.com/mamba-org/mamba>`_
-which uses a faster dependency solver than `conda`.
+Optionally, use `mamba <https://github.com/mamba-org/mamba>`_,
+which uses a faster dependency solver than ``conda``.
 If you installed Mambaforge, it is already provided. Otherwise, use
 
 .. code-block:: shell
 
-    conda install mamba
+   $ conda install mamba
 
 
 .. _sec-installation-conda-binary:

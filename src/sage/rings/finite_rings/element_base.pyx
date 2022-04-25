@@ -213,7 +213,7 @@ cdef class FinitePolyExtElement(FiniteRingElement):
 
     def __getitem__(self, n):
         r"""
-        Return the `n`th coefficient of this finite-field element when
+        Return the `n`\th coefficient of this finite-field element when
         written as a polynomial in the generator.
 
         EXAMPLES::

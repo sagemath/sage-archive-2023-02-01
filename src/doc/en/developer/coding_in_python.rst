@@ -559,7 +559,7 @@ for a new module.
 If your module needs to make some precomputed data available at the top level,
 you can reduce its load time (and thus startup time, unless your module is
 imported using :mod:`sage.misc.lazy_import`) by using the decorator
-:func:`sage.misc.cache_func.cached_function` instead. For example, replace
+:func:`sage.misc.cachefunc.cached_function` instead. For example, replace
 
 .. CODE-BLOCK:: python
 
@@ -568,6 +568,8 @@ imported using :mod:`sage.misc.lazy_import`) by using the decorator
 by
 
 .. CODE-BLOCK:: python
+
+    from sage.misc.cachefunc import cached_function
 
     @cached_function                  # good: runs on first use
     def big_data():

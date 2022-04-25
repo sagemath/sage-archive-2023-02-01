@@ -75,6 +75,8 @@ Sage-specific distribution.  Examples:
   :mod:`sage.ext.memory_allocator`, a part of the Sage library.
 
 
+.. _section_namespace_packages:
+
 Ordinary packages vs. implicit namespace packages
 -------------------------------------------------
 

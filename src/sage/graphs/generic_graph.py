@@ -10290,19 +10290,39 @@ class GenericGraph(GenericGraph_pyx):
             ...
             ValueError: vertex (1) not in the graph
 
+        TESTS:
+
+        Test that :trac:`33759` is fixed::
+
+            sage: G = Graph([(1, 4), (2, 3)])
+            sage: G.is_planar(set_embedding=True)
+            True
+            sage: G.delete_vertices([3])
+            sage: G.is_planar()
+            True
         """
         vertices = list(vertices)
-        for vertex in vertices:
-            if vertex not in self:
-                raise ValueError("vertex (%s) not in the graph"%str(vertex))
+        for v in vertices:
+            if v not in self:
+                raise ValueError("vertex (%s) not in the graph"%str(v))
 
-        self._backend.del_vertices(vertices)
-        attributes_to_update = ('_pos', '_assoc', '_embedding')
-        for attr in attributes_to_update:
+        for attr in ('_pos', '_assoc'):
             if hasattr(self, attr) and getattr(self, attr) is not None:
                 attr_dict = getattr(self, attr)
-                for vertex in vertices:
-                    attr_dict.pop(vertex, None)
+                for v in vertices:
+                    del attr_dict[v]
+
+        if hasattr(self, '_embedding'):
+            embedding = self._embedding
+            if self._embedding is not None:
+                neighbors = set().union(*[self.neighbor_iterator(v) for v in vertices])
+                neighbors.difference_update(vertices)
+                for w in neighbors:
+                    embedding[w] = [x for x in embedding[w] if x not in vertices]
+                for v in vertices:
+                    del embedding[v]
+
+        self._backend.del_vertices(vertices)
 
     def has_vertex(self, vertex):
         """

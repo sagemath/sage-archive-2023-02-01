@@ -75,9 +75,11 @@ SageMath release.
   - **No development:**
 
     - Install the `binary build of SageMath <https://github.com/3-manifolds/Sage_macOS/releases>`_
-      from the 3-manifolds project.  It is a signed and notarized app.
-      You can choose between two options: A 800 MB disk image with the standard Sage distribution,
-      and a 1 GB disk image that adds many optional packages.
+      from the 3-manifolds project.  It is a signed and notarized app, which
+      works for macOS 10.12 and newer. It is completely self-contained and
+      provides the standard Sage distribution together with many optional
+      packages. Additional optional Python packages can be installed with the
+      ``%pip`` magic command and will go into your ``~/.sage`` directory.
 
     - Alternatively, install SageMath from the `conda-forge
       <https://conda-forge.org/>`_ project, as described in section

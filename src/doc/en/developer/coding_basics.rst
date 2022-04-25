@@ -117,7 +117,7 @@ of the directory containing the Sage sources:
         upstream/            # tarballs of upstream sources
         local/               # installed binaries
 
-Python Sage library code goes into ``src/`` and uses the following
+Python Sage library code goes into ``src/sage/`` and uses the following
 conventions. Directory names may be plural (e.g. ``rings``) and file
 names are almost always singular (e.g. ``polynomial_ring.py``). Note
 that the file ``polynomial_ring.py`` might still contain definitions
@@ -129,10 +129,11 @@ of several different types of polynomial rings.
    discussions, etc., in your package.  Make these plain text files
    (with extension ``.txt``) in a subdirectory called ``notes``.
 
-If you want to create a new directory (package) in the Sage library
-``SAGE_ROOT/src/sage`` (say, ``measure_theory``), that directory will
-usually contain an empty file ``__init__.py``, which marks the
-directory as an ordinary package (see
+If you want to create a new directory (`package
+<https://docs.python.org/3/tutorial/modules.html#packages>`_) in the
+Sage library ``SAGE_ROOT/src/sage`` (say, ``measure_theory``), that
+directory will usually contain an empty file ``__init__.py``, which
+marks the directory as an ordinary package (see
 :ref:`section_namespace_packages`), and also a file ``all.py``,
 listing imports from this package that are user-facing and important
 enough to be in the global namespace of Sage at startup.  The file
@@ -145,7 +146,7 @@ but it is generally better to use the :mod:`~sage.misc.lazy_import`
 framework::
 
     from sage.misc.lazy_import import lazy_import
-    lazy_import('sage.measure_theory.borel_measue', 'BorelMeasure')
+    lazy_import('sage.measure_theory.borel_measure', 'BorelMeasure')
     lazy_import('sage.measure_theory.banach_tarski', 'BanachTarskiParadox')
 
 Then in the file ``SAGE_ROOT/src/sage/all.py``, add a line ::

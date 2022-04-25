@@ -556,6 +556,25 @@ import but delay it until the object is actually used. See
 :ref:`chapter-directory-structure` for an example using lazy imports
 for a new module.
 
+If your module needs to make some precomputed data available at the top level,
+you can reduce its load time (and thus startup time, unless your module is
+imported using :mod:`sage.misc.lazy_import`) by using the decorator
+:func:`sage.misc.cache_func.cached_function` instead. For example, replace
+
+.. CODE-BLOCK:: python
+
+    big_data = initialize_big_data()  # bad: runs at module load time
+
+by
+
+.. CODE-BLOCK:: python
+
+    @cached_function                  # good: runs on first use
+    def big_data():
+        return initialize_big_data()
+
+
+
 
 Deprecation
 ===========

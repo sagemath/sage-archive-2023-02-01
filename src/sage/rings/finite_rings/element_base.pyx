@@ -225,10 +225,6 @@ cdef class FinitePolyExtElement(FiniteRingElement):
             5
             sage: a[1]
             7
-            sage: list(a)   # implicit doctest
-            [5, 7]
-            sage: tuple(a)  # implicit doctest
-            (5, 7)
 
         ::
 
@@ -237,25 +233,14 @@ cdef class FinitePolyExtElement(FiniteRingElement):
             11
             sage: b[1]
             0
-            sage: list(b)   # implicit doctest
-            [11, 0]
-            sage: tuple(b)  # implicit doctest
-            (11, 0)
-            sage: list(b.polynomial())
-            [11]
 
         TESTS::
 
-            sage: F.<t> = GF(17^60)
+            sage: F,t = GF(random_prime(99)^randrange(2,99), 't').objgen()
             sage: a = F.random_element()
-            sage: a == sum(c*t^i for i,c in enumerate(a))
+            sage: all(a[i] == a.polynomial()[i] for i in range(F.degree()))
             True
-
-        ::
-
-            sage: F.<t> = GF((2^127-1)^10, 't')
-            sage: a = F.random_element()
-            sage: a == sum(c*t^i for i,c in enumerate(a))
+            sage: a == sum(a[i]*t^i for i in range(F.degree()))
             True
         """
         if n < 0 or n >= self.parent().degree():
@@ -300,6 +285,60 @@ cdef class FinitePolyExtElement(FiniteRingElement):
             True
         """
         return self.polynomial().padded_list(self.parent().degree())
+
+    def __iter__(self):
+        r"""
+        Return an iterator over the coefficients of this finite-field
+        element, in the same order as :meth:`list`.
+
+        EXAMPLES::
+
+            sage: x = polygen(GF(19))
+            sage: F.<i> = GF(19^2, modulus=x^2+1)
+            sage: a = 5 + 7*i
+            sage: it = iter(a)
+            sage: next(it)
+            5
+            sage: next(it)
+            7
+            sage: next(it)
+            Traceback (most recent call last):
+            ...
+            StopIteration
+            sage: list(a)   # implicit doctest
+            [5, 7]
+            sage: tuple(a)  # implicit doctest
+            (5, 7)
+            sage: b = F(11)
+            sage: list(b)   # implicit doctest
+            [11, 0]
+            sage: tuple(b)  # implicit doctest
+            (11, 0)
+            sage: list(b.polynomial())
+            [11]
+
+        TESTS::
+
+            sage: F = GF(random_prime(333)^randrange(111,999),'t')
+            sage: a = F.random_element()
+            sage: list(a) == a.list()  # implicit doctest
+            True
+
+        ::
+
+            sage: F.<t> = GF(17^60)
+            sage: a = F.random_element()
+            sage: a == sum(c*t^i for i,c in enumerate(a))  # implicit doctest
+            True
+
+        ::
+
+            sage: F.<t> = GF((2^127-1)^10, 't')
+            sage: a = F.random_element()
+            sage: a == sum(c*t^i for i,c in enumerate(a))  # implicit doctest
+            True
+        """
+        return iter(self.list())
 
     def _vector_(self, reverse=False):
         """

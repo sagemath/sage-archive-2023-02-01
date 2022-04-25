@@ -164,7 +164,7 @@ def isogeny_determine_algorithm(E, kernel):
 
     raise ValueError("invalid parameters to EllipticCurveIsogeny constructor")
 
-def isogeny_codomain_from_kernel(E, kernel):
+def isogeny_codomain_from_kernel(E, kernel, degree=None):
     r"""
     Compute the isogeny codomain given a kernel.
 
@@ -199,7 +199,22 @@ def isogeny_codomain_from_kernel(E, kernel):
         sage: kernel_list = [E((15,10)), E((10,3)), E((6,5))]
         sage: isogeny_codomain_from_kernel(E, kernel_list)
         Elliptic Curve defined by y^2 + x*y + 3*y = x^3 + 2*x^2 + 3*x + 15 over Finite Field of size 19
+
+    TESTS:
+
+    Test deprecation warning for obsolete argument::
+
+        sage: isogeny_codomain_from_kernel(E, kernel_list, degree=4)
+        doctest:warning
+        ...
+        DeprecationWarning: The "degree" argument to isogeny_codomain_from_kernel() does nothing and will be removed.
+        ...
+        Elliptic Curve defined by y^2 + x*y + 3*y = x^3 + 2*x^2 + 3*x + 15 over Finite Field of size 19
     """
+    if degree is not None:
+        from sage.misc.superseded import deprecation
+        deprecation(33619, 'The "degree" argument to isogeny_codomain_from_kernel() does nothing and will be removed.')
+
     algorithm = isogeny_determine_algorithm(E, kernel)
 
     if "velu" == algorithm:

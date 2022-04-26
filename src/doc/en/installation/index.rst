@@ -58,16 +58,27 @@ Windows
 
   - **Yes, development:**
 
-    Enable Windows Subsystem for Linux (WSL), selecting any Linux
-    distribution, for example Ubuntu. Then follow the instructions for
-    development on Linux below.
+    Enable Windows Subsystem for Linux (WSL) by following the
+    `official WSL setup guide
+    <https://docs.microsoft.com/en-us/windows/wsl/install-win10>`_. Be
+    sure to do the steps to install WSL2 and set it as default.
+    Then go to the Microsoft Store and install Ubuntu (or another
+    Linux distribution). Start Ubuntu from the start menu.
+
+    Then follow the instructions for development on Linux below.
 
   - **No development:**
 
-    - Enable Windows Subsystem for Linux (WSL), selecting any Linux
-      distribution, for example Ubuntu. On the Linux running on WSL,
-      you always have root access, so you can use any of the
-      installation methods described above for Linux.
+    - Enable Windows Subsystem for Linux (WSL) by following the
+      `official WSL setup guide
+      <https://docs.microsoft.com/en-us/windows/wsl/install-win10>`_. Be
+      sure to do the steps to install WSL2 and set it as default.
+      Then go to the Microsoft Store and install Ubuntu (or another
+      Linux distribution). Start Ubuntu from the start menu.
+
+      On the Linux running on WSL, you always have root access, so you
+      can use any of the installation methods described above for
+      Linux.
 
     - Alternatively, in particular if you cannot use WSL, install
       `Cygwin <https://cygwin.com/>`_ and then build SageMath from source

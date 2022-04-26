@@ -1890,7 +1890,7 @@ cdef inline RingWrap new_RingWrap(ring* r):
 
 
 # Add support for _instancedoc_
-from sage.docs.instancedoc import instancedoc
+from sage.misc.instancedoc import instancedoc
 instancedoc(SingularFunction)
 instancedoc(SingularLibraryFunction)
 instancedoc(SingularKernelFunction)

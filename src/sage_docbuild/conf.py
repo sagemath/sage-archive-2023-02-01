@@ -1,5 +1,6 @@
-from sage.misc.superseded import deprecation
-deprecation(33763, "This module is deprecated. Use sage_docbuild.conf instead.")
+r"""
+Sphinx configurations
+"""
 
 import sys
 import os
@@ -964,3 +965,4 @@ def setup(app):
         app.connect('missing-reference', find_sage_dangling_links)
         app.connect('builder-inited', nitpick_patch_config)
         app.connect('html-page-context', add_page_context)
+

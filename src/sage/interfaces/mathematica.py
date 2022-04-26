@@ -394,7 +394,7 @@ from sage.interfaces.expect import (Expect, ExpectElement, ExpectFunction,
                                     FunctionElement)
 from sage.interfaces.interface import AsciiArtString
 from sage.interfaces.tab_completion import ExtraTabCompletion
-from sage.docs.instancedoc import instancedoc
+from sage.misc.instancedoc import instancedoc
 from sage.structure.richcmp import rich_to_bool
 
 

@@ -48,8 +48,8 @@ SageMath release.
       distribution, consider upgrading your distribution.
       In particular, do not install a version of Sage older than 9.2.
 
-    - **No root access:** Install SageMath from the `conda-forge
-      <https://conda-forge.org/>`_ project, as described in section
+    - **No root access, or on an older distribution** Install SageMath from
+      the `conda-forge <https://conda-forge.org/>`_ project, as described in section
       :ref:`sec-installation-conda`.
 
     - Alternatively, build SageMath from source as described in section

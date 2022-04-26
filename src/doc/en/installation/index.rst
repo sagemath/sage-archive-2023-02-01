@@ -77,7 +77,7 @@ Windows
       Linux distribution). Start Ubuntu from the start menu.
 
       On the Linux running on WSL, you always have root access, so you
-      can use any of the installation methods described above for
+      can use any of the installation methods described below for
       Linux.
 
     - Alternatively, in particular if you cannot use WSL, install

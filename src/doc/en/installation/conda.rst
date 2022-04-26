@@ -3,13 +3,13 @@
 Install from conda-forge
 ========================
 
-SageMath can be installed via Conda from the
+SageMath can be installed on Linux and macOS via Conda from the
 `conda-forge <https://conda-forge.org>`_ conda channel.
 
-This works on Linux and macOS on ``x86_64`` processors,
-and on Linux on ``aarch64`` processors (using Miniforge).
+Both the ``x86_64`` (Intel) architecture and the ``arm64``/``aarch64``
+architectures (including Apple Silicon, M1) are supported.
 
-This requires a working Conda installation: either Mambaforge/Miniforge,
+You will need a working Conda installation: either Mambaforge/Miniforge,
 Miniconda or Anaconda. If you don't have one yet, we recommend installing
 `Mambaforge <https://github.com/conda-forge/miniforge#mambaforge>`_ as
 follows. In a terminal,

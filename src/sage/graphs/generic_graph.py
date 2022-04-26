@@ -10310,7 +10310,7 @@ class GenericGraph(GenericGraph_pyx):
             if hasattr(self, attr) and getattr(self, attr) is not None:
                 attr_dict = getattr(self, attr)
                 for v in vertices:
-                    del attr_dict[v]
+                    attr_dict.pop(v, None)
 
         if hasattr(self, '_embedding'):
             embedding = self._embedding
@@ -10320,7 +10320,7 @@ class GenericGraph(GenericGraph_pyx):
                 for w in neighbors:
                     embedding[w] = [x for x in embedding[w] if x not in vertices]
                 for v in vertices:
-                    del embedding[v]
+                    embedding.pop(v, None)
 
         self._backend.del_vertices(vertices)
 

@@ -132,7 +132,7 @@ class GroupSemidirectProductElement(CartesianProduct.Element):
 
 class GroupSemidirectProduct(CartesianProduct):
     r"""
-    Return the semidirect product of the groups ``G`` and ``H``using the homomorphism ``twist``.
+    Return the semidirect product of the groups ``G`` and ``H`` using the homomorphism ``twist``.
 
     INPUT:
 
@@ -260,9 +260,12 @@ class GroupSemidirectProduct(CartesianProduct):
         def check_implemented_group(x):
             if x in Groups():
                 return
-            error = "The semidirect product construction for groups is implemented only for multiplicative groups"
+            error = ("The semidirect product construction for groups "
+                     "is implemented only for multiplicative groups")
             if x in CommutativeAdditiveGroups():
-                error = error + ". Please change the commutative additive group %s into a multiplicative group using the functor sage.groups.group_exp.GroupExp" % x
+                error += (f". Please change the commutative additive group {x}"
+                          " into a multiplicative group "
+                          "using the functor sage.groups.group_exp.GroupExp")
             raise TypeError(error)
 
         check_implemented_group(G)

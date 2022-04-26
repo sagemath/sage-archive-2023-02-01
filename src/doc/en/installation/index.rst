@@ -16,46 +16,6 @@ SageMath release.
 
 **Where would you like to run SageMath?** Pick one of the following sections.
 
-Linux
-=====
-
-- **Do you want to do SageMath development?**
-
-  - **Yes, development:**
-
-    Obtain the SageMath sources via ``git`` as described in `The Sage
-    Developer's Guide
-    <https://doc.sagemath.org/html/en/developer/walk_through.html#chapter-walkthrough>`_.
-
-    - Then build SageMath from source as described in section
-      :ref:`sec-installation-from-sources`.
-
-    - Alternatively, follow the instructions in section
-      :ref:`sec-installation-conda-develop`;
-      these describe an experimental method that gets all required
-      packages, including Python packages, from conda-forge.
-
-  - No development: **Do you have root access (sudo)?**
-
-    - **Yes, root access:** Then the easiest way to install SageMath is
-      through a Linux distribution that provides it as a package.  Most
-      major Linux distributions have up-to-date versions of SageMath,
-      see `repology.org: sagemath
-      <https://repology.org/project/sagemath/versions>`_ for an
-      overview.  See :ref:`sec-GNU-Linux` for additional information.
-
-      If you are on an older version of your distribution and a recent
-      version of SageMath is only available on a newer version of the
-      distribution, consider upgrading your distribution.
-      In particular, do not install a version of Sage older than 9.2.
-
-    - **No root access, or on an older distribution** Install SageMath from
-      the `conda-forge <https://conda-forge.org/>`_ project, as described in section
-      :ref:`sec-installation-conda`.
-
-    - Alternatively, build SageMath from source as described in section
-      :ref:`sec-installation-from-sources`.
-
 macOS
 =====
 
@@ -100,7 +60,7 @@ Windows
 
     Enable Windows Subsystem for Linux (WSL), selecting any Linux
     distribution, for example Ubuntu. Then follow the instructions for
-    development on Linux.
+    development on Linux below.
 
   - **No development:**
 
@@ -112,6 +72,46 @@ Windows
     - Alternatively, in particular if you cannot use WSL, install
       `Cygwin <https://cygwin.com/>`_ and then build SageMath from source
       as described in section :ref:`sec-installation-from-sources`.
+
+Linux
+=====
+
+- **Do you want to do SageMath development?**
+
+  - **Yes, development:**
+
+    Obtain the SageMath sources via ``git`` as described in `The Sage
+    Developer's Guide
+    <https://doc.sagemath.org/html/en/developer/walk_through.html#chapter-walkthrough>`_.
+
+    - Then build SageMath from source as described in section
+      :ref:`sec-installation-from-sources`.
+
+    - Alternatively, follow the instructions in section
+      :ref:`sec-installation-conda-develop`;
+      these describe an experimental method that gets all required
+      packages, including Python packages, from conda-forge.
+
+  - No development: **Do you have root access (sudo)?**
+
+    - **Yes, root access:** Then the easiest way to install SageMath is
+      through a Linux distribution that provides it as a package.  Most
+      major Linux distributions have up-to-date versions of SageMath,
+      see `repology.org: sagemath
+      <https://repology.org/project/sagemath/versions>`_ for an
+      overview.  See :ref:`sec-GNU-Linux` for additional information.
+
+      If you are on an older version of your distribution and a recent
+      version of SageMath is only available on a newer version of the
+      distribution, consider upgrading your distribution.
+      In particular, do not install a version of Sage older than 9.2.
+
+    - **No root access, or on an older distribution** Install SageMath from
+      the `conda-forge <https://conda-forge.org/>`_ project, as described in section
+      :ref:`sec-installation-conda`.
+
+    - Alternatively, build SageMath from source as described in section
+      :ref:`sec-installation-from-sources`.
 
 In the cloud
 ============

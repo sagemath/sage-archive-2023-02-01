@@ -14,9 +14,10 @@ may have become available afterwards and can be found in the section
 `release tour <https://wiki.sagemath.org/ReleaseTours>`_ for each
 SageMath release.
 
-**Where would you like to run SageMath?**
+**Where would you like to run SageMath?** Pick one of the following sections.
 
-**On Linux:**
+Linux
+=====
 
 - **Do you want to do SageMath development?**
 
@@ -55,7 +56,8 @@ SageMath release.
     - Alternatively, build SageMath from source as described in section
       :ref:`sec-installation-from-sources`.
 
-**On macOS:**
+macOS
+=====
 
 - **Do you want to do SageMath development?**
 
@@ -89,7 +91,8 @@ SageMath release.
     - Alternatively, build SageMath from source as described in section
       :ref:`sec-installation-from-sources`.
 
-**On Windows:**
+Windows
+=======
 
 - **Do you want to do SageMath development?**
 
@@ -110,7 +113,8 @@ SageMath release.
       `Cygwin <https://cygwin.com/>`_ and then build SageMath from source
       as described in section :ref:`sec-installation-from-sources`.
 
-**In the cloud:**
+In the cloud
+============
 
 - `CoCalc <https://cocalc.com/>`_: an online service that provides SageMath and
   many other tools.

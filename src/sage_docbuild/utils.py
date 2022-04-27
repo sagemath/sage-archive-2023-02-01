@@ -108,12 +108,12 @@ def build_many(target, args, processes=None):
     It also avoids starting new processes from a pthread, which results in at
     least two known issues:
 
-        * On versions of Cygwin prior to 3.0.0 there were bugs in mmap handling
-          on threads (see :trac:`ticket/27214#comment:25`).
+    * On versions of Cygwin prior to 3.0.0 there were bugs in mmap handling
+      on threads (see :trac:`27214#comment:25`).
 
-        * When PARI is built with multi-threading support, forking a Sage
-          process from a thread leaves the main Pari interface instance broken
-          (see :trac:`ticket/26608#comment:38`).
+    * When PARI is built with multi-threading support, forking a Sage
+      process from a thread leaves the main Pari interface instance broken
+      (see :trac:`26608#comment:38`).
 
     In the future this may be replaced by a generalized version of the more
     robust parallel processing implementation from ``sage.doctest.forker``.
@@ -135,9 +135,9 @@ def build_many(target, args, processes=None):
         Processed task ...
         Processed task ...
 
-    Unlike the first version of `build_many` which was only intended to get
+    Unlike the first version of ``build_many`` which was only intended to get
     around the Cygwin bug, this version can also return a result, and thus can
-    be used as a replacement for `multiprocessing.Pool.map` (i.e. it still
+    be used as a replacement for ``multiprocessing.Pool.map`` (i.e. it still
     blocks until the result is ready)::
 
         sage: def square(N):
@@ -146,7 +146,7 @@ def build_many(target, args, processes=None):
         [0, 1, 4, 9, ..., 9604, 9801]
 
     If the target function raises an exception in any of the workers,
-    `build_many` raises that exception and all other results are discarded.
+    ``build_many`` raises that exception and all other results are discarded.
     Any in-progress tasks may still be allowed to complete gracefully before
     the exception is raised::
 

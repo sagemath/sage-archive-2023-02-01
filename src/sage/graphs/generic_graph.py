@@ -10257,17 +10257,39 @@ class GenericGraph(GenericGraph_pyx):
             {0: 'no delete', 2: None, 3: None, 4: None}
             sage: G.get_pos()
             {0: (0, 0), 2: (2, 0), 3: (3, 0), 4: (4, 0)}
+
+        TESTS:
+
+        Test that :trac:`33759` is fixed::
+
+            sage: G = Graph([(1, 4), (2, 3)])
+            sage: G.is_planar(set_embedding=True)
+            True
+            sage: G.delete_vertex([3])
+            sage: G.is_planar()
+            True
+
         """
         if in_order:
             vertex = self.vertices()[vertex]
         if vertex not in self:
             raise ValueError("vertex (%s) not in the graph"%str(vertex))
 
-        self._backend.del_vertex(vertex)
-        attributes_to_update = ('_pos', '_assoc', '_embedding')
+        attributes_to_update = ('_pos', '_assoc')
         for attr in attributes_to_update:
             if hasattr(self, attr) and getattr(self, attr) is not None:
                 getattr(self, attr).pop(vertex, None)
+
+        if hasattr(self, '_embedding'):
+            embedding = self._embedding
+            if self._embedding is not None:
+                neighbors = set(self.neighbor_iterator(vertex))
+                neighbors.difference_update([vertex])
+                for w in neighbors:
+                    embedding[w] = [x for x in embedding[w] if x != vertex]
+                embedding.pop(vertex, None)
+
+        self._backend.del_vertex(vertex)
 
     def delete_vertices(self, vertices):
         """

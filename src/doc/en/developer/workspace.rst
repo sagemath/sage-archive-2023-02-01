@@ -6,10 +6,19 @@
 Setting up your workspace
 =========================
 
+.. _section-ide:
+
+Configuring text editors and IDEs for use with Sage
+===================================================
+
+In Meta-ticket :trac:`30500` we are collecting instructions how to configure
+various text editors and IDEs for use with Sage.
+
+
 .. _section-gitpod:
 
 Gitpod
-=================
+======
 
 `Gitpod <https://www.gitpod.io>`_ is a free service that will let you build and
 run Sage from an online development environment based on VS Code.
@@ -28,8 +37,12 @@ For this to work, you first have to authorize Gitpod with Trac:
  1. In the running Gitpod workspace, generate a new SSH key pair by ``ssh-keygen -f tempkey``.
  2. Save the private key as a secure environment variable in Gitpod using
     ``gp env PRIVATE_SSH_KEY="$(<tempkey)"``,
-    or by using `Gitpod UI <https://www.gitpod.io/docs/environment-variables#using-the-account-settings>`_.
+    or by using the `Gitpod UI <https://www.gitpod.io/docs/environment-variables#using-the-account-settings>`_.
  3. Register the public key with Trac following the instructions in :ref:`section-trac-ssh-key`.
+ 4. Close this Gitpod workspace.
+
+After following this procedure, every new Gitpod workspace will have a
+working ``trac`` remote to which you can push your changes.
 
 You can also `use your VS Code Desktop <https://www.gitpod.io/docs/develop/vscode-desktop-support>`_ to keep 
 your local IDE configuration while still benefiting from Gitpod’s high-spec servers and automated prebuilds.

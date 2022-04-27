@@ -50,8 +50,9 @@ def produce_latex_macro(name, *sample_args):
 
     INPUT:
 
-    -  ``name`` - name of macro to be defined, also name of corresponding Sage object
-    -  ``sample_args`` - (optional) sample arguments for this Sage object
+    -  ``name`` -- name of macro to be defined, also name of corresponding Sage object
+
+    -  ``sample_args`` -- (optional) sample arguments for this Sage object
 
     EXAMPLES::
 
@@ -109,7 +110,7 @@ def convert_latex_macro_to_mathjax(macro):
 
     INPUT:
 
-    -  ``macro`` - LaTeX macro definition
+    -  ``macro`` -- LaTeX macro definition
 
     See the web page
     https://docs.mathjax.org/en/latest/input/tex/macros.html for a
@@ -123,18 +124,18 @@ def convert_latex_macro_to_mathjax(macro):
         sage: convert_latex_macro_to_mathjax('\\newcommand{\\GF}[1]{\\Bold{F}_{#1}}')
         ('GF', ['\\Bold{F}_{#1}', 1])
     """
-    left_bracket = macro.find("[")
-    right_bracket = macro.find("[")
+    left_bracket = macro.find('[')
+    right_bracket = macro.find('[')
     if left_bracket >= 0:
-        right_bracket = macro.find("]")
+        right_bracket = macro.find(']')
         num_args = int(macro[left_bracket + 1 : right_bracket])
     else:
         num_args = 0
-    start_name = macro.find("{") + 1  # add one to go past the backslash
-    end_name = macro.find("}")
+    start_name = macro.find('{') + 1  # add one to go past the backslash
+    end_name = macro.find('}')
     name = macro[start_name + 1 : end_name]
-    start_defn = macro.find("{", end_name)
-    end_defn = macro.rfind("}")
+    start_defn = macro.find('{', end_name)
+    end_defn = macro.rfind('}')
     defn = macro[start_defn + 1 : end_defn]
     if num_args == 0:
         return name, defn
@@ -197,7 +198,7 @@ def sage_latex_macros():
 def sage_mathjax_macros():
     r"""
     Return Sage's macro definitions for usage with MathJax.
-    
+
     This feeds each item output by :func:`sage_latex_macros` to
     :func:`convert_latex_macro_to_mathjax`.
 
@@ -207,6 +208,4 @@ def sage_mathjax_macros():
         sage: sage_mathjax_macros()
         {'Bold': ['\\mathbf{#1}', 1], 'CC': '\\Bold{C}', ...
     """
-    return dict(
-        [convert_latex_macro_to_mathjax(m) for m in sage_latex_macros()]
-    )
+    return dict(convert_latex_macro_to_mathjax(m) for m in sage_latex_macros())

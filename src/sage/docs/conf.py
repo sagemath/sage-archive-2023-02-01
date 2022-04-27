@@ -20,14 +20,17 @@ from IPython.lib.lexers import IPythonConsoleLexer, IPyLexer
 
 # Add any Sphinx extension module names here, as strings. They can be extensions
 # coming with Sphinx (named 'sphinx.ext.*') or your custom ones.
-extensions = ['sage_docbuild.ext.inventory_builder',
-              'sage_docbuild.ext.multidocs',
-              'sage_docbuild.ext.sage_autodoc',
-              'sphinx.ext.todo',
-              'sphinx.ext.extlinks',
-              'IPython.sphinxext.ipython_directive',
-              'matplotlib.sphinxext.plot_directive',
-              'jupyter_sphinx']
+extensions = [
+    'sage_docbuild.ext.inventory_builder',
+    'sage_docbuild.ext.multidocs',
+    'sage_docbuild.ext.sage_autodoc',
+    'sphinx.ext.todo',
+    'sphinx.ext.extlinks',
+    'sphinx.ext.mathjax',
+    'IPython.sphinxext.ipython_directive',
+    'matplotlib.sphinxext.plot_directive',
+    'jupyter_sphinx',
+]
 
 jupyter_execute_default_kernel = 'sagemath'
 
@@ -305,16 +308,17 @@ mathjax3_config = {
         "autoload": {"color": [], "colorv2": ["color"]},
     },
 }
-mathjax_path = "https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-chtml.js"
 
-mathjax_relative = os.path.basename(MATHJAX_DIR)
+if os.environ.get('SAGE_USE_CDNS', 'no') == 'yes':
+    mathjax_path = "https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-chtml.js"
+else:
+    mathjax_path = 'mathjax/tex-chtml.js'
+    html_common_static_path += [MATHJAX_DIR]
 
-# It would be really nice if sphinx would copy the entire mathjax
-# directory, (so we could have a _static/mathjax directory), rather than
-# the contents of the directory
-html_common_static_path.append(MATHJAX_DIR)
-exclude_patterns += ['**/' + os.path.join(mathjax_relative, i)
-                     for i in ('docs', 'README*', 'test', 'unpacked', 'LICENSE')]
+# A list of glob-style patterns that should be excluded when looking for source
+# files. They are matched against the source file names relative to the
+# source directory, using slashes as directory separators on all platforms.
+exclude_patterns = []
 
 # If not '', a 'Last updated on:' timestamp is inserted at every page bottom,
 # using the given strftime format.

@@ -5,10 +5,10 @@ This module defines the Sage documentation build command::
 
     sage --docbuild [OPTIONS] DOCUMENT (FORMAT | COMMAND)
 
-If ``FORMAT`` is given, ``DOCUMENT`` in given ``FORMAT`` is built. If
-``COMMAND`` is given, it returns information about ``DOCUMENT``.
+If ``FORMAT`` is given, it builds ``DOCUMENT`` in ``FORMAT``. If ``COMMAND`` is
+given, it returns information about ``DOCUMENT``.
 
-To get started, run ``sage --docbuild`` to get detailed explanations about
+Run ``sage --docbuild`` to get detailed explanations about
 arguments and options.
 
 Positional arguments::

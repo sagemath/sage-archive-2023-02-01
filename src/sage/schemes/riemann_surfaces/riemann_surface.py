@@ -59,32 +59,31 @@ In fact it is an order in a number field::
     True
 
 We can look at an extended example of the Abel-Jacobi functionality. We will 
-show that the sum of the intersections of a bitangent to a quadratic is a 
-half-canonical divisor. We will use the Edge quartic as the example, which has
-bitangent `x=1/2`:: 
+demonstrate a particular half-canonical divisor on Klein's Curve, known in 
+the literature.:: 
 
-    sage: f = 25*(x^4+y^4+1) - 34*(x^2*y^2+x^2+y^2)
-    sage: S = RiemannSurface(f)
+    sage: f = x^3*y + y^3 + x
+    sage: S = RiemannSurface(f, integration_method='rigorous')
     sage: BL = S.places_at_branch_locus(); BL
-    [Place (x - 2, (x - 2)*y, y^2 - 17/5, y^3 - 17/5*y),
-     Place (x + 2, (x + 2)*y, y^2 - 17/5, y^3 - 17/5*y),
-     Place (x - 1/2, (x - 1/2)*y, y^2 - 17/20, y^3 - 17/20*y),
-     Place (x + 1/2, (x + 1/2)*y, y^2 - 17/20, y^3 - 17/20*y),
-     Place (x^4 - 34/25*x^2 + 1, y, y^2, y^3),
-     Place (x^4 - 34/25*x^2 + 1, (x^4 - 34/25*x^2 + 1)*y, y^2 - 34/25*x^2 - 34/25, y^3 + (-34/25*x^2 - 34/25)*y)]
+    [Place (x, y, y^2),
+     Place (x^7 + 27/4, y + 4/9*x^5, y^2 + 4/3*x^3),
+     Place (x^7 + 27/4, y - 2/9*x^5, y^2 + 1/3*x^3)]
 
 We can read off out the output of ``places_at_branch_locus`` to choose our
 divisor, and we can calculate the canonical divisor using curve functionality::
 
-    sage: D = 1*BL[2]
+    sage: P0 = 1*BL[0]
     sage: from sage.schemes.curves.constructor import Curve
     sage: C = Curve(f)
     sage: F = C.function_field()
-    sage: K = (F(x).differential()).divisor()
+    sage: K = (F(x).differential()).divisor() - F(f.derivative(y)).divisor()
+    sage: Pinf, Pinf_prime = C.places_at_infinity()
+    sage: if K-3*Pinf-1*Pinf_prime: Pinf, Pinf_prime = (Pinf_prime, Pinf);
+    sage: D = P0 + 2*Pinf - Pinf_prime
 
 Note we could check using exact techniques that `2D=K`::
 
-    sage: Z = K-2*D
+    sage: Z = K - 2*D
     sage: (Z.degree()==0, len(Z.basis_differential_space())==S.genus, len(Z.basis_function_space())==1)
     (True, True, True)
 
@@ -93,7 +92,7 @@ We can also check this using our Abel-Jacobi functions::
     sage: avoid = C.places_at_infinity()
     sage: Zeq, _ = S.strong_approximation(Z, avoid) 
     sage: Zlist = S.divisor_to_divisor_list(Zeq)
-    sage: AJ = S.abel_jacobi(Zlist)  # long time (50 seconds)
+    sage: AJ = S.abel_jacobi(Zlist)  # long time (1 second)
     sage: S.reduce_over_period_lattice(AJ).norm() < 1e-10  # long time
     True
 
@@ -3236,7 +3235,7 @@ class RiemannSurface(object):
             sage: divisor = [(-1, (-1, 0)), (1, (1, 0))]
             sage: AJ = S.abel_jacobi(divisor)  # long time (15 seconds)
             sage: AJxp = [p*z for z in AJ]  # long time 
-            sage: bool(S.reduce_over_period_lattice(AJx2).norm()<1e-7)  # long time
+            sage: bool(S.reduce_over_period_lattice(AJxp).norm()<1e-7)  # long time
             True
         """
         ans = 0

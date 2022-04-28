@@ -1,10 +1,10 @@
-furo: A clean customisable Sphinx documentation theme.
-======================================================
+furo: A clean customizable Sphinx documentation theme
+=====================================================
 
 Description
 -----------
 
-A clean customisable Sphinx documentation theme.
+A clean customizable Sphinx documentation theme.
 
 License
 -------

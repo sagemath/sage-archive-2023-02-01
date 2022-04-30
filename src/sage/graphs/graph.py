@@ -5485,7 +5485,7 @@ class Graph(GenericGraph):
         INPUT:
 
         - ``dist`` -- a nonnegative integer or a list of nonnegative integers;
-          specified distance(s) for the connecting vertices.  ``Infinity`` may
+          specified distance(s) for the connecting vertices. ``Infinity`` may
           be used here to describe vertex pairs in separate components.
 
         OUTPUT:
@@ -5493,7 +5493,7 @@ class Graph(GenericGraph):
         The returned value is an undirected graph.  The vertex set is identical
         to the calling graph, but edges of the returned graph join vertices
         whose distance in the calling graph are present in the input ``dist``.
-        Loops will only be present if distance 0 is included.  If the original
+        Loops will only be present if distance 0 is included. If the original
         graph has a position dictionary specifying locations of vertices for
         plotting, then this information is copied over to the distance graph.
         In some instances this layout may not be the best, and might even be
@@ -5515,8 +5515,8 @@ class Graph(GenericGraph):
 
         To obtain the graph where vertices are adjacent if their distance apart
         is ``d`` or less use a ``range()`` command to create the input, using
-        ``d + 1`` as the input to ``range``.  Notice that this will include
-        distance 0 and hence place a loop at each vertex.  To avoid this, use
+        ``d + 1`` as the input to ``range``. Notice that this will include
+        distance 0 and hence place a loop at each vertex. To avoid this, use
         ``range(1, d + 1)``::
 
             sage: G = graphs.OddGraph(4)
@@ -5548,11 +5548,11 @@ class Graph(GenericGraph):
         The graph of eight-bit strings, adjacent if different in an odd number
         of bits::
 
-            sage: G = graphs.CubeGraph(8) # long time
-            sage: H = G.distance_graph([1,3,5,7]) # long time
-            sage: degrees = [0]*sum([binomial(8,j) for j in [1,3,5,7]]) # long time
-            sage: degrees.append(2^8) # long time
-            sage: degrees == H.degree_histogram() # long time
+            sage: G = graphs.CubeGraph(8)  # long time
+            sage: H = G.distance_graph([1,3,5,7])  # long time
+            sage: degrees = [0]*sum([binomial(8,j) for j in [1,3,5,7]])  # long time
+            sage: degrees.append(2^8)  # long time
+            sage: degrees == H.degree_histogram()  # long time
             True
 
         An example of using ``Infinity`` as the distance in a graph that is not
@@ -5567,6 +5567,8 @@ class Graph(GenericGraph):
             [0 0 0 1 1]
             [1 1 1 0 0]
             [1 1 1 0 0]
+            sage: L.is_isomorphic(graphs.CompleteBipartiteGraph(3, 2))
+            True
 
         TESTS:
 
@@ -5605,18 +5607,15 @@ class Graph(GenericGraph):
             dist = [dist]
         # Create a list of positive integer (or infinite) distances
         distances = []
-        s_distances = set()
-        b_oo = False
         for d in dist:
             if d == Infinity:
-                b_oo = True
                 distances.append(Infinity)
             else:
                 dint = ZZ(d)
                 if dint < 0:
                     raise ValueError('distance graph for a negative distance (d=%d) is not defined' % dint)
                 distances.append(dint)
-                s_distances.add(dint)
+        s_distances = set(distances)
         # Build a graph on the same vertex set, with loops for distance 0
         if len(distances) == 1:
             dstring = "distance " + str(distances[0])
@@ -5635,7 +5634,7 @@ class Graph(GenericGraph):
             CC = [self]
         else:
             CC = self.connected_components_subgraphs()
-            if b_oo:
+            if Infinity in s_distances:
                 # add edges between connected components
                 for A, B in itertools.combinations(CC, 2):
                     D.add_edges(itertools.product(A, B))

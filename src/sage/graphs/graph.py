@@ -5605,35 +5605,47 @@ class Graph(GenericGraph):
             dist = [dist]
         # Create a list of positive integer (or infinite) distances
         distances = []
+        s_distances = set()
+        b_oo = False
         for d in dist:
             if d == Infinity:
-                distances.append(d)
+                b_oo = True
+                distances.append(Infinity)
             else:
                 dint = ZZ(d)
                 if dint < 0:
                     raise ValueError('distance graph for a negative distance (d=%d) is not defined' % dint)
                 distances.append(dint)
+                s_distances.add(dint)
         # Build a graph on the same vertex set, with loops for distance 0
-        vertices = {v: {} for v in self}
-        positions = copy(self.get_pos())
-        if ZZ(0) in distances:
-            looped = True
-        else:
-            looped = False
-        from sage.graphs.graph import Graph
-        D = Graph(vertices, pos=positions, multiedges=False, loops=looped)
         if len(distances) == 1:
             dstring = "distance " + str(distances[0])
         else:
             dstring = "distances " + str(sorted(distances))
-        D.name("Distance graph for %s in " % dstring + self.name())
+        name = "Distance graph for %s in " % dstring + self.name()
+        looped = ZZ(0) in s_distances
+        from sage.graphs.graph import Graph
+        D = Graph([self, []], format='vertices_and_edges',
+                  multiedges=False, loops=looped,
+                  pos=copy(self.get_pos()), name=name)
 
         # Create the appropriate edges
-        d = self.distance_all_pairs()
-        for u in self:
-            for v in self:
-                if d[u].get(v, Infinity) in distances:
+        import itertools
+        if self.is_connected():
+            CC = [self]
+        else:
+            CC = self.connected_components_subgraphs()
+            if b_oo:
+                # add edges between connected components
+                for A, B in itertools.combinations(CC, 2):
+                    D.add_edges(itertools.product(A, B))
+        for g in CC:
+            d = g.distance_all_pairs()
+            for u, v in itertools.combinations(g, 2):
+                if d[u][v] in s_distances:
                     D.add_edge(u, v)
+        if looped:
+            D.add_edges((u, u) for u in self)
         return D
 
     ### Constructors

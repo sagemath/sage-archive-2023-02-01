@@ -48,25 +48,22 @@ To use Sage from there,
 Using conda to provide system packages for the Sage distribution
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-If Conda is installed (check by typing ``conda info``), there are two ways to
-prepare for installing SageMath from source:
+If Conda is installed (check by typing ``conda info``), one can install SageMath
+from source as follows:
 
   - If you are using a git checkout::
 
-      $ ./bootstrap
+      $ ./bootstrap-conda
 
-  - Create a new empty environment and activate::
+  - Create a new conda environment including all standard packages
+    recognized by sage, and activate it::
 
-      $ conda create -n sage-build
+      $ conda env create --file environment.yml
       $ conda activate sage-build
 
-  - Install standard packages recognized by sage's ``spkg-configure`` mechanism::
-
-      $ conda env update --file environment.yml -n sage-build
-
-  - Or install all standard and optional packages recognized by sage::
-
-      $ conda env update --file environment-optional.yml -n sage-build
+    Alternatively, use ``environment-optional.yml`` in place of
+    ``environment.yml`` to create an environment with all standard and optional
+    packages recognized by sage.
 
   - Then the SageMath distribution will be built using the compilers provided by Conda
     and using many packages installed by Conda::
@@ -100,29 +97,20 @@ Here we assume that you are using a git checkout.
 
       $ conda install mamba
 
-  - Create and activate a new conda environment that provides the
-    bootstrapping prerequisites. You can replace 3.9 by another Python
-    version::
-
-      $ mamba create -n sage-build python=3.9 \
-            gettext autoconf automake libtool pkg-config
-      $ conda activate sage-build
-
-  - Run ``bootstrap``; this generates the files ``src/environment*.yml`` used
+  - Generate the conda environment files ``src/environment*.yml`` used
     in the next step::
 
-      $ ./bootstrap
+      $ ./bootstrap-conda
 
-  - Populate the conda environment with the dependencies of Sage::
+  - Create and activate a new conda environment with the dependencies of Sage
+    and a few additional developer tools::
 
-      $ mamba env update -n sage-build -f src/environment.yml  # alternatively, use
+      $ mamba env create --file src/environment-dev.yml
+      $ conda activate sage-dev
 
-    Alternatively, you can use ``src/environment-optional.yml``, which will
-    install some additional packages.
-
-  - Activate the conda environment again::
-
-      $ conda activate sage-build
+    Alternatively, you can use ``src/environment.yml`` or
+    ``src/environment-optional.yml``, which will only install standard
+    (and optional) packages without any additional developer tools.
 
   - Run the ``configure`` script::
 
@@ -147,7 +135,7 @@ Here we assume that you are using a git checkout.
       $ sage -c 'print(version())'
       SageMath version 9.6.beta5, Release Date: 2022-03-12
 
-Note that ``make`` is not used at all.  All dependencies
+Note that ``make`` is not used at all. All dependencies
 (including all Python packages) are provided by conda.
 
 Thus, you will get a working version of Sage much faster.  However,

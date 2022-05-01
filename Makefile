@@ -171,6 +171,7 @@ bootstrap-clean:
 	rm -f src/doc/en/reference/repl/*.txt
 	rm -f environment.yml
 	rm -f src/environment.yml
+	rm -f src/environment-dev.yml
 	rm -f environment-optional.yml
 	rm -f src/environment-optional.yml
 	rm -f src/Pipfile

@@ -27,6 +27,8 @@ which uses a faster dependency solver than `conda`.
     conda install mamba
 
 
+.. _sec-installation-conda-binary:
+
 Installing all of SageMath from conda (not for development)
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
@@ -44,6 +46,8 @@ To use Sage from there,
 * Enter the new environment: ``conda activate sage``
 * Start SageMath: ``sage``
 
+
+.. _sec-installation-conda-source:
 
 Using conda to provide system packages for the Sage distribution
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
@@ -71,6 +75,9 @@ from source as follows:
       $ ./bootstrap
       $ ./configure --prefix=$CONDA_PREFIX
       $ make
+
+
+.. _sec-installation-conda-develop:
 
 Using conda to provide all dependencies for the Sage library (experimental)
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^

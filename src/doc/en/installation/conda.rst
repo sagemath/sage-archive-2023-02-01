@@ -121,6 +121,7 @@ Here we assume that you are using a git checkout.
 
   - Run the ``configure`` script::
 
+      $ ./bootstrap
       $ ./configure --with-python=$CONDA_PREFIX/bin/python             \
                     --prefix=$CONDA_PREFIX                             \
                     $(for pkg in $(./sage -package list :standard:     \
@@ -129,13 +130,9 @@ Here we assume that you are using a git checkout.
                           echo --with-system-$pkg=force;               \
                       done)
 
-  - Install the build prerequisites of the Sage library::
+  - Install the build prerequisites and the Sage library::
 
-      $ pip install --no-build-isolation -v -v --editable pkgs/sage-conf pkgs/sage-setup
-
-  - Install the Sage library::
-
-      $ pip install --no-build-isolation -v -v --editable src
+      $ pip install --no-build-isolation -v -v --editable pkgs/sage-conf pkgs/sage-setup src
 
   - Verify that Sage has been installed::
 
@@ -154,6 +151,6 @@ library is installed in editable mode.  This means that when you only
 edit Python files, there is no need to rebuild the library; it
 suffices to restart Sage.
 
-After editing any Cython files, rebuild by repeating the command::
+After editing any Cython files, rebuild the Sage library using::
 
   $ pip install --no-build-isolation -v -v --editable src

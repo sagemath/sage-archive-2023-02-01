@@ -726,6 +726,31 @@ class CubicHeckeFileCache(SageObject):
         self._data_library = {}
         os.makedirs(self._file_cache_path, exist_ok=True)
 
+    def _warn_incompatibility(self, fname):
+        """
+        Warn the user that he has an incomaptible file cache under `Sage_DOT` and
+        move it away to another file (marked with timestamp).
+
+        EXAMPLES::
+
+            sage: from sage.databases.cubic_hecke_db import CubicHeckeFileCache
+            sage: cha2_fc = CubicHeckeFileCache(2)
+            sage: path = cha2_fc._file_cache_path
+            sage: fname = os.path.join(path, 'test')
+            sage: os.system('touch %s' % fname)
+            0
+            sage: new_fname = cha2_fc._warn_incompatibility(fname)
+            doctest:...: UserWarning: incompatible file cache ...test has been saved to ...test_...
+            sage: os.remove(new_fname)
+        """
+        from warnings import warn
+        from datetime import date
+        today = date.today()
+        new_fname = '%s_%s' % (fname, today)
+        os.rename(fname, new_fname)
+        warn('incompatible file cache %s has been saved to %s' % (fname, new_fname))
+        return new_fname
+
     def reset_library(self, section=None):
         r"""
         Reset the file cache corresponding to the specified ``section``.
@@ -891,7 +916,8 @@ class CubicHeckeFileCache(SageObject):
             self.reset_library(section)
             verbose('... not found!')
         except (ImportError, ModuleNotFoundError):
-            raise ImportError('incompatible file cache! Move %s to another directory' % fname)
+            self._warn_incompatibility(fname)
+            self.reset_library(section)
 
         return data_lib[section]
 
@@ -996,7 +1022,15 @@ class CubicHeckeFileCache(SageObject):
         if not isinstance(representation_type, RepresentationType):
             raise TypeError('representation_type must be an instance of enum %s' % RepresentationType)
 
-        matrix_representations = self.read(self.section.matrix_representations)[representation_type.name]
+        sec = self.section.matrix_representations
+        all_matrix_representations = self.read(sec)
+        if representation_type.name not in all_matrix_representations.keys():
+            # old file-cache is not compatible with current dictionary keys.
+            fname = os.path.join(self._file_cache_path, sec.filename(self._nstrands))
+            self._warn_incompatibility(fname)
+            all_matrix_representations = self.read(sec)
+
+        matrix_representations = all_matrix_representations[representation_type.name]
 
         if monomial_tietze in matrix_representations.keys():
             # entry already registered
@@ -1005,7 +1039,7 @@ class CubicHeckeFileCache(SageObject):
         matrix_representation_dict = [simplify(mat) for mat in list(matrix_list)]
         matrix_representations[monomial_tietze] = matrix_representation_dict
 
-        self.write(self.section.matrix_representations)
+        self.write(sec)
         return
 
     # --------------------------------------------------------------------------

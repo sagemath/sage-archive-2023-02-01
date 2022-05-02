@@ -469,10 +469,10 @@ class CubicHeckeElement(CombinatorialFreeModule.Element):
 
         A Markov trace is a family of class functions `tr_n` on the family of
         braid groups `B_n` into some commutative ring `R` depending on a
-        unit `s \in R` such that for all `b in B_n` the following two
+        unit `s \in R` such that for all `b \in B_n` the following two
         conditions are satisfied (see [Kau1991]_, section 7):
 
-        ..MATH::
+        .. MATH::
 
             \begin{array}{lll}
             tr_{n+1}(b g_n)      &  = &  s tr_n(b)\\
@@ -482,7 +482,7 @@ class CubicHeckeElement(CombinatorialFreeModule.Element):
         The unit `s` is often called the writhe factor and corresponds to the
         additional variable mentioned above.
 
-        ..NOTE::
+        .. NOTE::
 
             Currently it is not known if all linear forms of this sub-module
             belong to a Markov trace, i.e. can be extended to the full tower
@@ -592,13 +592,13 @@ class CubicHeckeAlgebra(CombinatorialFreeModule):
     The base ring of this algebra can be specified by giving optional keywords
     described below. If no keywords are given the base ring will be an instance
     of the special class :class:`CubicHeckeRingOfDefinition` which is constructed
-    as the polynomial ring in `u, v` over the Laurent polynomial ring in `w` over
-    the integers. This ring will be called the *ring of definition* or sometimes
-    for short *generic base ring*. But note, that in this context the word
-    *generic* should not remind in a generic point of the corresponding scheme.
+    as the polynomial ring in `u, v, w` over the integers localized at `w`.
+    This ring will be called the *ring of definition* or sometimes for short
+    *generic base ring*. But note, that in this context the word *generic*
+    should not remind in a generic point of the corresponding scheme.
 
-    In addition to the base ring another ring containing the roots (`a, b` and `c`)
-    of the cubic equation will be needed to handle the split irreducible
+    In addition to the base ring another ring containing the roots (`a, b` and
+    `c`) of the cubic equation will be needed to handle the split irreducible
     representations. This ring will be called *extension ring*. Generically, the
     extension ring will be an instance of the special class
     :class:`~sage.algebras.hecke_algebras.cubic_hecke_base_ring.CubicHeckeExtensionRing`

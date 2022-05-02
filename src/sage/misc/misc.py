@@ -222,8 +222,15 @@ def SAGE_TMP():
 
         sage: from sage.misc.misc import SAGE_TMP
         sage: SAGE_TMP
+        doctest:warning...
+        DeprecationWarning: SAGE_TMP is deprecated; please use python's
+        "tempfile" module instead.
+        See https://trac.sagemath.org/33213 for details.
         l'.../temp/...'
+
     """
+    from sage.misc.superseded import deprecation
+    deprecation(33213, "SAGE_TMP is deprecated; please use python's \"tempfile\" module instead.")
     d = os.path.join(DOT_SAGE, 'temp', HOSTNAME, str(os.getpid()))
     os.makedirs(d, exist_ok=True)
     return d

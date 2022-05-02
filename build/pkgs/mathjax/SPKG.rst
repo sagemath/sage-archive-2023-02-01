@@ -6,7 +6,7 @@ Description
 
 MathJax is a JavaScript library for displaying mathematical formulas.
 
-MathJax is used by the Sage documentation built by Sphinx.
+MathJax is used in the Sage documentation built by Sphinx.
 
 License
 -------
@@ -30,3 +30,8 @@ Special Update/Build Instructions
 
 None
 
+
+Patches
+-------
+
+None.

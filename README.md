@@ -580,17 +580,10 @@ Relocation
 
 It is not supported to move the `SAGE_ROOT` or `SAGE_LOCAL` directory
 after building Sage.  If you do move the directories, you will have to
-build Sage again from scratch.
-
-If you copy the `sage` script or make a symbolic link to it, you
-should modify the script to reflect this (as instructed at the top of
-the script). It is important that the path to Sage does not have any
-spaces and non-ASCII characters in it.
+run ``make distclean`` and build Sage again from scratch.
 
 For a system-wide installation, you have to build Sage as a "normal" user
-and then as root you can change permissions. Afterwards, you need to start up
-Sage as root at least once prior to using the system-wide Sage as a
-normal user. See the [Installation Guide](https://doc.sagemath.org/html/en/installation/source.html#installation-in-a-multiuser-environment)
+and then as root you can change permissions. See the [Installation Guide](https://doc.sagemath.org/html/en/installation/source.html#installation-in-a-multiuser-environment)
 for further information.
 
 Redistribution

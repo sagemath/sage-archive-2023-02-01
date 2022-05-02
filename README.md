@@ -413,15 +413,18 @@ in the Installation Guide.
     get a list by typing  `./sage --optional` or by visiting the
     [packages documentation page](https://doc.sagemath.org/html/en/reference/spkg/).
 
-18. Optional: Create a symlink to the `sage` executable somewhere in your
-    `PATH`, so you can start Sage by typing `sage` from anywhere rather
-    than having to either type the full path or navigate to the Sage
+18. Optional: Create a symlink to the installed `sage` script in a
+    directory in your `PATH`, for example ``/usr/local``. This will
+    allow you to start Sage by typing `sage` from anywhere rather than
+    having to either type the full path or navigate to the Sage
     directory and type `./sage`. This can be done by running:
 
-        $ ln -s $HOME/sage/sage-x.y/sage /usr/local/bin
+        $ sudo ln -s $(sage -sh -c 'ls $SAGE_ROOT/venv/bin/sage') /usr/local/bin
 
-    The `$HOME/sage/sage-x.y/` part may need adapting. One way to decide
-    how to adapt it is to run `print(SAGE_ROOT)` in a Sage session.
+19. Optional: Set up SageMath as a Jupyter kernel in an existing Jupyter notebook
+    or JupyterLab installation, as described in [section
+    "Launching SageMath"](https://doc.sagemath.org/html/en/installation/launching.html)
+    in the installation manual.
 
 Troubleshooting
 ---------------

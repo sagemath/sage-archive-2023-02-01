@@ -291,6 +291,14 @@ class FractionField_generic(ring.Field):
             sage: 1/(R.gen(0) + R.gen(1))
             1/(x + y)
 
+        Test for :trac:`31320`::
+
+            sage: FQt = Frac(QQ['t'])
+            sage: LCt = LaurentPolynomialRing(CC,'t')
+            sage: coercion_model.common_parent(FQt, LCt)
+            Fraction Field of Univariate Polynomial Ring in t
+            over Complex Field with 53 bits of precision
+
         Coercion from a localization::
 
             sage: R.<x> = ZZ[]
@@ -333,7 +341,9 @@ class FractionField_generic(ring.Field):
                                       parent_as_first_arg=False)
 
         # special treatment for LaurentPolynomialRings
-        if isinstance(S, LaurentPolynomialRing_generic):
+        if (isinstance(S, LaurentPolynomialRing_generic) and
+                self._R.fraction_field().has_coerce_map_from(S.base_ring())):
+
             def converter(x, y=None):
                 if y is None:
                     return self._element_class(self, *x._fraction_pair())
@@ -894,7 +904,7 @@ class FractionField_generic(ring.Field):
         for a in self._R.some_elements():
             for b in self._R.some_elements():
                 if a != b and self(a) and self(b):
-                    ret.append(self(a)/self(b))
+                    ret.append(self(a) / self(b))
         return ret
 
     def _gcd_univariate_polynomial(self, f, g):
@@ -934,6 +944,7 @@ class FractionField_generic(ring.Field):
         f1 = Num(f.numerator())
         g1 = Num(g.numerator())
         return Pol(f1.gcd(g1)).monic()
+
 
 class FractionField_1poly_field(FractionField_generic):
     """
@@ -1053,7 +1064,6 @@ class FractionField_1poly_field(FractionField_generic):
             return parent.__make_element_class__(FunctionFieldToFractionField)(parent)
 
         return super(FractionField_1poly_field, self)._coerce_map_from_(R)
-
 
 
 class FractionFieldEmbedding(DefaultConvertMap_unique):
@@ -1236,7 +1246,7 @@ class FractionFieldEmbeddingSection(Section):
             den = codom(x.denominator())
 
         if codom.is_exact() and den.is_one():
-           return num
+            return num
         if check and not den.is_unit():
             # This should probably be a ValueError.
             # However, too much existing code is expecting this to throw a
@@ -1246,7 +1256,7 @@ class FractionFieldEmbeddingSection(Section):
 
     def _call_with_args(self, x, args=(), kwds={}):
         r"""
-        Evaluation this map at ``x``.
+        Evaluate this map at ``x``.
 
         INPUT:
 
@@ -1258,10 +1268,9 @@ class FractionFieldEmbeddingSection(Section):
             sage: K = R.fraction_field()
             sage: R(K.gen(), check=True)
             x
-
         """
-        check = kwds.pop('check', True)
-        if args or kwds:
+        check = kwds.get('check', True)
+        if args or any(key != 'check' for key in kwds):
             raise NotImplementedError("__call__ cannot be called with additional arguments other than check=True/False")
         return self._call_(x, check=check)
 

@@ -566,7 +566,6 @@ cdef class FiniteField(Field):
             ....:             for j in range(len(F)):
             ....:                 if i == j: continue
             ....:                 assert gcd(F[i][0], F[j][0]) == 1
-            ....:
         """
         from sage.structure.factorization import Factorization
         if f.degree() == 0:
@@ -1015,7 +1014,7 @@ cdef class FiniteField(Field):
         except AttributeError:
             pass
 
-        from sage.rings.all import PolynomialRing
+        from sage.rings.polynomial.polynomial_ring_constructor import PolynomialRing
         from .finite_field_constructor import GF
         R = PolynomialRing(GF(self.characteristic()), 'x')
         self._modulus = R((-1,1))  # Polynomial x - 1

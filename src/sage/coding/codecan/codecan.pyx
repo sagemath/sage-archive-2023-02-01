@@ -89,9 +89,9 @@ is returned by generators::
 #  Distributed under the terms of the GNU General Public License (GPL)
 #  as published by the Free Software Foundation; either version 2 of
 #  the License, or (at your option) any later version.
-#                  http://www.gnu.org/licenses/
+#                  https://www.gnu.org/licenses/
 #*******************************************************************************
-
+from itertools import repeat
 from copy import copy
 from cysignals.memory cimport check_allocarray, sig_free
 
@@ -454,7 +454,7 @@ cdef class InnerGroup:
         if self.row_partition.num_cells == 1:
             return [list(range(mat.ncols()))]
 
-        r = [[] for i in range(mat.ncols())]
+        r = [[] for _ in repeat(None, mat.ncols())]
         cols = iter(mat.columns())
         for i in range(mat.ncols()):
             # there should be no zero columns by assumption!
@@ -763,7 +763,7 @@ cdef class PartitionRefinementLinearCode(PartitionRefinement_generic):
 
         ambient_space = (self._matrix.base_ring()) ** (self._n)
         weights2size = [0] * (self.len() + 1)
-        W = [[] for xx in range(self.len() + 1)]
+        W = [[] for _ in repeat(None, self.len() + 1)]
         span = [ambient_space.zero_subspace()] * (self.len() + 1)
         min_weight = self.len()
         max_weight = self.len()
@@ -872,7 +872,7 @@ cdef class PartitionRefinementLinearCode(PartitionRefinement_generic):
             inner_group_changed = False
             res = self._inner_min_refine(&inner_group_changed, &n_partition_changed)
             if not res:
-                 return False
+                return False
 
             part_changed[0] |= n_partition_changed
             n_partition_changed = n_partition_changed_copy
@@ -930,7 +930,7 @@ cdef class PartitionRefinementLinearCode(PartitionRefinement_generic):
             l = next(lower)
             u = next(upper)
 
-            if u.is_zero() and not i in self._fixed_minimized:
+            if u.is_zero() and i not in self._fixed_minimized:
                 # minimize by self._inner_group as in _inner_min:
                 _, l = self._inner_group.minimize_by_row_mult(l)
 

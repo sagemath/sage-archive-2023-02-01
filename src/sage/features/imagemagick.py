@@ -81,7 +81,12 @@ class Convert(Executable):
         from subprocess import run
         cmd = ['convert', '-dispose', 'Background', '-delay', '20',
                 '-loop', '0', filename_png, filename_gif]
-        result = run(cmd, cwd=base, capture_output=True, text=True)
+
+        try:
+            result = run(cmd, cwd=base, capture_output=True, text=True)
+        except OSError as e:
+            return FeatureTestResult(self, False, reason='Running command "{}" '
+                        'raised an OSError "{}" '.format(' '.join(cmd), e))
 
         # If an error occurred, return False
         if result.returncode:
@@ -109,8 +114,6 @@ class ImageMagick(JoinFeature):
 
         sage: from sage.features.imagemagick import ImageMagick
         sage: ImageMagick().is_present()  # optional - imagemagick
-        FeatureTestResult('imagemagick', True)
-        sage: ImageMagick().is_functional()  # optional - imagemagick
         FeatureTestResult('imagemagick', True)
     """
     def __init__(self):

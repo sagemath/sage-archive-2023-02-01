@@ -27,7 +27,7 @@ REFERENCES:
 
 """
 
-#******************************************************************************
+# ******************************************************************************
 #       Copyright (C) 2015 Eric Gourgoulhon <eric.gourgoulhon@obspm.fr>
 #       Copyright (C) 2015 Michal Bejger <bejger@camk.edu.pl>
 #       Copyright (C) 2016 Travis Scrimshaw <tscrimsh@umn.edu>
@@ -36,16 +36,24 @@ REFERENCES:
 #  as published by the Free Software Foundation; either version 2 of
 #  the License, or (at your option) any later version.
 #                  http://www.gnu.org/licenses/
-#******************************************************************************
+# ******************************************************************************
 
-from sage.structure.unique_representation import UniqueRepresentation
-from sage.structure.parent import Parent
+from __future__ import annotations
+
+from typing import TYPE_CHECKING, Optional
+
 from sage.categories.modules import Modules
+from sage.manifolds.differentiable.vectorfield import VectorField, VectorFieldParal
 from sage.misc.cachefunc import cached_method
 from sage.rings.integer import Integer
+from sage.structure.parent import Parent
+from sage.structure.unique_representation import UniqueRepresentation
 from sage.tensor.modules.finite_rank_free_module import FiniteRankFreeModule
-from sage.manifolds.differentiable.vectorfield import (VectorField,
-                                                       VectorFieldParal)
+
+if TYPE_CHECKING:
+    from sage.manifolds.differentiable.diff_map import DiffMap
+    from sage.manifolds.differentiable.manifold import DifferentiableManifold
+
 
 class VectorFieldModule(UniqueRepresentation, Parent):
     r"""
@@ -181,7 +189,7 @@ class VectorFieldModule(UniqueRepresentation, Parent):
     """
     Element = VectorField
 
-    def __init__(self, domain, dest_map=None):
+    def __init__(self, domain: DifferentiableManifold, dest_map: Optional[DiffMap] = None):
         r"""
         Construct the module of vector fields taking values on a (a priori)
         non-parallelizable differentiable manifold.
@@ -384,9 +392,9 @@ class VectorFieldModule(UniqueRepresentation, Parent):
         if self._latex_name is None:
             return r'\mbox{' + str(self) + r'}'
         else:
-           return self._latex_name
+            return self._latex_name
 
-    def domain(self):
+    def domain(self) -> DifferentiableManifold:
         r"""
         Return the domain of the vector fields in this module.
 
@@ -415,7 +423,7 @@ class VectorFieldModule(UniqueRepresentation, Parent):
         """
         return self._domain
 
-    def ambient_domain(self):
+    def ambient_domain(self) -> DifferentiableManifold:
         r"""
         Return the manifold in which the vector fields of this module take
         their values.
@@ -1049,7 +1057,7 @@ class VectorFieldModule(UniqueRepresentation, Parent):
         zero.set_immutable()
         return zero
 
-    def metric(self, name, signature=None, latex_name=None):
+    def metric(self, name: str, signature: Optional[int] = None, latex_name: Optional[str] = None):
         r"""
         Construct a metric (symmetric bilinear
         form) on the current vector field module.
@@ -1120,6 +1128,60 @@ class VectorFieldModule(UniqueRepresentation, Parent):
         from sage.manifolds.differentiable.metric import PseudoRiemannianMetric
         return PseudoRiemannianMetric(self, name, signature=signature[0]-signature[1],
                                       latex_name=latex_name)
+
+
+    def symplectic_form(
+        self, name: Optional[str] = None, latex_name: Optional[str] = None
+    ):
+        r"""
+        Construct a symplectic form on the current vector field module.
+
+        OUTPUT:
+
+        - instance of
+          :class:`~sage.manifolds.differentiable.symplectic_form.SymplecticForm`
+
+        EXAMPLES:
+
+        Symplectic form on the 2-sphere::
+
+            sage: M = manifolds.Sphere(2, coordinates='stereographic')
+            sage: XM = M.vector_field_module()
+            sage: omega = XM.symplectic_form(name='omega', latex_name=r'\omega')
+            sage: omega
+            Symplectic form omega on the 2-sphere S^2 of radius 1 smoothly
+             embedded in the Euclidean space E^3
+
+        """
+        from sage.manifolds.differentiable.symplectic_form import SymplecticForm
+
+        return SymplecticForm(self, name, latex_name)
+
+    def poisson_tensor(
+        self, name: Optional[str] = None, latex_name: Optional[str] = None
+    ):
+        r"""
+        Construct a Poisson tensor on the current vector field module.
+
+        OUTPUT:
+
+        - instance of
+          :class:`~sage.manifolds.differentiable.poisson_tensor.PoissonTensorField`
+
+        EXAMPLES:
+
+        Poisson tensor on the 2-sphere::
+
+            sage: M = manifolds.Sphere(2, coordinates='stereographic')
+            sage: XM = M.vector_field_module()
+            sage: varpi = XM.poisson_tensor(name='varpi', latex_name=r'\varpi')
+            sage: varpi
+            2-vector field varpi on the 2-sphere S^2 of radius 1 smoothly embedded in the Euclidean space E^3
+
+        """
+        from sage.manifolds.differentiable.poisson_tensor import PoissonTensorField
+
+        return PoissonTensorField(self, name, latex_name)
 
 
 #******************************************************************************
@@ -1555,7 +1617,7 @@ class VectorFieldFreeModule(FiniteRankFreeModule):
                            " mapped into the {}".format(self._ambient_domain)
         return description
 
-    def domain(self):
+    def domain(self) -> DifferentiableManifold:
         r"""
         Return the domain of the vector fields in ``self``.
 
@@ -1586,7 +1648,7 @@ class VectorFieldFreeModule(FiniteRankFreeModule):
         """
         return self._domain
 
-    def ambient_domain(self):
+    def ambient_domain(self) -> DifferentiableManifold:
         r"""
         Return the manifold in which the vector fields of ``self``
         take their values.
@@ -1618,7 +1680,7 @@ class VectorFieldFreeModule(FiniteRankFreeModule):
         """
         return self._ambient_domain
 
-    def destination_map(self):
+    def destination_map(self) -> DiffMap:
         r"""
         Return the differential map associated to ``self``.
 
@@ -2131,17 +2193,17 @@ class VectorFieldFreeModule(FiniteRankFreeModule):
 
         # 0/ Compatibility checks:
         if comp._ring is not self._ring:
-             raise ValueError("the components are not defined on the " +
-                              "same ring as the module")
+            raise ValueError("the components are not defined on the "
+                             "same ring as the module")
         if comp._frame not in self._known_bases:
-            raise ValueError("the components are not defined on a " +
+            raise ValueError("the components are not defined on a "
                              "basis of the module")
         if comp._nid != tensor_type[0] + tensor_type[1]:
-            raise ValueError("number of component indices not " +
+            raise ValueError("number of component indices not "
                              "compatible with the tensor type")
         #
         # 1/ Construction of the tensor:
-        if tensor_type == (1,0):
+        if tensor_type == (1, 0):
             resu = self.element_class(self, name=name,
                                       latex_name=latex_name)
         elif tensor_type == (0,1):
@@ -2280,3 +2342,53 @@ class VectorFieldFreeModule(FiniteRankFreeModule):
         return PseudoRiemannianMetricParal(self, name,
                                            signature=signature[0]-signature[1],
                                            latex_name=latex_name)
+
+    def symplectic_form(
+        self, name: Optional[str] = None, latex_name: Optional[str] = None
+    ):
+        r"""
+        Construct a symplectic form on the current vector field module.
+
+        OUTPUT:
+
+        - instance of
+          :class:`~sage.manifolds.differentiable.symplectic_form.SymplecticFormParal`
+
+        EXAMPLES:
+
+        Standard symplectic form on `\RR^2`::
+
+            sage: M.<q, p> = EuclideanSpace(2)
+            sage: omega = M.vector_field_module().symplectic_form('omega', r'\omega')
+            sage: omega.set_comp()[1,2] = -1
+            sage: omega.display()
+            omega = -dq∧dp
+        """
+        from sage.manifolds.differentiable.symplectic_form import SymplecticFormParal
+
+        return SymplecticFormParal(self, name, latex_name)
+
+    def poisson_tensor(
+        self, name: Optional[str] = None, latex_name: Optional[str] = None
+    ):
+        r"""
+        Construct a Poisson tensor on the current vector field module.
+
+        OUTPUT:
+
+        - instance of
+          :class:`~sage.manifolds.differentiable.poisson_tensor.PoissonTensorFieldParal`
+
+        EXAMPLES:
+
+        Standard Poisson tensor on `\RR^2`::
+
+            sage: M.<q, p> = EuclideanSpace(2)
+            sage: poisson = M.vector_field_module().poisson_tensor('varpi')
+            sage: poisson.set_comp()[1,2] = -1
+            sage: poisson.display()
+            varpi = -e_q∧e_p
+        """
+        from sage.manifolds.differentiable.poisson_tensor import PoissonTensorFieldParal
+
+        return PoissonTensorFieldParal(self, name, latex_name)

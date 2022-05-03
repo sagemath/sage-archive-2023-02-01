@@ -430,6 +430,7 @@ lazy_import('sage.graphs.mcqd', ['mcqd'],
 
 from sage.misc.decorators import rename_keyword
 
+
 class Graph(GenericGraph):
     r"""
     Undirected graph.
@@ -601,8 +602,8 @@ class Graph(GenericGraph):
        'out' is the label for the edge on 2 and 5. Labels can be used as
        weights, if all the labels share some common parent.::
 
-        sage: a,b,c,d,e,f = sorted(SymmetricGroup(3))
-        sage: Graph({b:{d:'c',e:'p'}, c:{d:'p',e:'c'}})
+        sage: a, b, c, d, e, f = sorted(SymmetricGroup(3))              # optional - sage.groups
+        sage: Graph({b: {d: 'c', e: 'p'}, c: {d: 'p', e: 'c'}})         # optional - sage.groups
         Graph on 4 vertices
 
     #. A dictionary of lists::
@@ -1067,7 +1068,7 @@ class Graph(GenericGraph):
                 format = 'incidence_matrix'
         if format is None and isinstance(data, Graph):
             format = 'Graph'
-        from sage.graphs.all import DiGraph
+        from sage.graphs.digraph import DiGraph
         if format is None and isinstance(data, DiGraph):
             data = data.to_undirected()
             format = 'Graph'
@@ -3312,7 +3313,7 @@ class Graph(GenericGraph):
 
         """
         self._scream_if_not_simple()
-        from sage.graphs.all import DiGraph
+        from sage.graphs.digraph import DiGraph
         n = self.order()
 
         if not n:
@@ -3729,6 +3730,15 @@ class Graph(GenericGraph):
             Traceback (most recent call last):
             ...
             ValueError: The 'algorithm' keyword must be set to either 'DLX', 'MILP' or 'CP'.
+
+        Test on a random graph (:trac:`33559`)::
+
+            sage: G = graphs.RandomGNP(15, .2)
+            sage: c1 = G.chromatic_number(algorithm='DLX')
+            sage: c2 = G.chromatic_number(algorithm='MILP')
+            sage: c3 = G.chromatic_number(algorithm='CP')
+            sage: c1 == c2 and c2 == c3
+            True
         """
         self._scream_if_not_simple(allow_multiple_edges=True)
         # default built-in algorithm; bad performance
@@ -4060,8 +4070,8 @@ class Graph(GenericGraph):
 
         OUTPUT:
 
-        - When ``value_only=False`` (default), this method returns the list of
-          edges of a maximum matching of `G`.
+        - When ``value_only=False`` (default), this method returns an
+          :class:`EdgesView` containing the edges of a maximum matching of `G`.
 
         - When ``value_only=True``, this method returns the sum of the
           weights (default: ``1``) of the edges of a maximum matching of `G`.
@@ -4117,8 +4127,11 @@ class Graph(GenericGraph):
             sage: edge_list = [(0,0,5), (0,1,1), (0,2,2), (0,3,3), (1,2,6)
             ....: , (1,2,3), (1,3,3), (2,3,3)]
             sage: g = Graph(edge_list, loops=True, multiedges=True)
-            sage: g.matching(use_edge_labels=True)
-            [(1, 2, 6), (0, 3, 3)]
+            sage: m = g.matching(use_edge_labels=True)
+            sage: type(m)
+            <class 'sage.graphs.views.EdgesView'>
+            sage: sorted(m)
+            [(0, 3, 3), (1, 2, 6)]
 
         TESTS:
 
@@ -4165,7 +4178,7 @@ class Graph(GenericGraph):
                 else:
                     return Integer(len(d))
             else:
-                return [(u, v, L[frozenset((u, v))]) for u, v in d]
+                return EdgesView(Graph([(u, v, L[frozenset((u, v))]) for u, v in d], format='list_of_edges'))
 
         elif algorithm == "LP":
             g = self
@@ -4192,7 +4205,7 @@ class Graph(GenericGraph):
                 else:
                     return Integer(sum(1 for fe in L if b[fe]))
             else:
-                return [(u, v, L[frozenset((u, v))]) for u, v in L if b[frozenset((u, v))]]
+                return EdgesView(Graph([(u, v, L[frozenset((u, v))]) for u, v in L if b[frozenset((u, v))]], format='list_of_edges'))
 
         else:
             raise ValueError('algorithm must be set to either "Edmonds" or "LP"')
@@ -5012,39 +5025,35 @@ class Graph(GenericGraph):
             ...
             ValueError: algorithm 'DHV' works only if all eccentricities are needed
         """
-        if weight_function is not None:
-            by_weight = True
-        elif by_weight:
-            def weight_function(e):
-                return 1 if e[2] is None else e[2]
+        by_weight, weight_function = self._get_weight_function(by_weight=by_weight,
+                                                               weight_function=weight_function,
+                                                               check_weight=check_weight)
 
         if algorithm is None:
             if dist_dict is not None:
                 algorithm = 'From_Dictionary'
             elif not by_weight:
                 algorithm = 'BFS'
-            else:
-                for e in self.edge_iterator():
-                    try:
-                        if float(weight_function(e)) < 0:
-                            algorithm = 'Johnson_Boost'
-                            break
-                    except (ValueError, TypeError):
-                        raise ValueError("the weight function cannot find the"
-                                         " weight of " + str(e))
+            elif any(float(weight_function(e)) < 0 for e in self.edge_iterator()):
+                algorithm = 'Johnson_Boost'
             if algorithm is None:
                 algorithm = 'Dijkstra_Boost'
+        if algorithm in ['BFS', 'Floyd-Warshall-Cython']:
+            if by_weight:
+                raise ValueError("algorithm '{}' does not work with weights".format(algorithm))
+            # We don't want the default weight function
+            weight_function = None
 
-        if v is not None and not isinstance(v, list):
-            v = [v]
+        if v is not None:
+            if not isinstance(v, list):
+                v = [v]
+            v_set = set(v)
 
-        if v is None or all(u in v for u in self):
+        if v is None or all(u in v_set for u in self):
             if v is None:
                 v = list(self)
             # If we want to use BFS, we use the Cython routine
             if algorithm == 'BFS':
-                if by_weight:
-                    raise ValueError("algorithm 'BFS' does not work with weights")
                 from sage.graphs.distances_all_pairs import eccentricity
                 algo = 'bounds'
                 if with_labels:
@@ -5175,26 +5184,22 @@ class Graph(GenericGraph):
         if not self.order():
             raise ValueError("radius is not defined for the empty graph")
 
-        if weight_function is not None:
-            by_weight = True
-
-        if by_weight and not weight_function:
-            def weight_function(e):
-                return 1 if e[2] is None else e[2]
-
         if not algorithm:
             algorithm = 'DHV'
 
         if algorithm == 'DHV':
+            by_weight, weight_function = self._get_weight_function(by_weight=by_weight,
+                                                                   weight_function=weight_function,
+                                                                   check_weight=check_weight)
             if by_weight:
                 from sage.graphs.base.boost_graph import radius_DHV
                 return radius_DHV(self, weight_function=weight_function,
-                                  check_weight=check_weight)
+                                  check_weight=False)
             else:
                 from sage.graphs.distances_all_pairs import radius_DHV
                 return radius_DHV(self)
 
-        return min(self.eccentricity(v=None,by_weight=by_weight,
+        return min(self.eccentricity(v=None, by_weight=by_weight,
                                      weight_function=weight_function,
                                      check_weight=check_weight,
                                      algorithm=algorithm))
@@ -5302,12 +5307,12 @@ class Graph(GenericGraph):
         if not self.order():
             raise ValueError("diameter is not defined for the empty graph")
 
-        if weight_function is not None:
-            by_weight = True
-
-        if by_weight and not weight_function:
-            def weight_function(e):
-                return 1 if e[2] is None else e[2]
+        by_weight, weight_function = self._get_weight_function(by_weight=by_weight,
+                                                               weight_function=weight_function,
+                                                               check_weight=check_weight)
+        if not by_weight:
+            # We don't want the default weight function
+            weight_function = None
 
         if algorithm is None:
             if by_weight:
@@ -5321,7 +5326,7 @@ class Graph(GenericGraph):
             if by_weight:
                 from sage.graphs.base.boost_graph import diameter_DHV
                 return diameter_DHV(self, weight_function=weight_function,
-                                    check_weight=check_weight)
+                                    check_weight=False)
             else:
                 from sage.graphs.distances_all_pairs import diameter
                 return diameter(self, algorithm=algorithm)
@@ -5335,7 +5340,7 @@ class Graph(GenericGraph):
 
         return max(self.eccentricity(v=list(self), by_weight=by_weight,
                                      weight_function=weight_function,
-                                     check_weight=check_weight,
+                                     check_weight=False,
                                      algorithm=algorithm))
 
     @doc_index("Distances")
@@ -5541,7 +5546,7 @@ class Graph(GenericGraph):
                 data_structure = "sparse"
             else:
                 data_structure = "static_sparse"
-        from sage.graphs.all import DiGraph
+        from sage.graphs.digraph import DiGraph
         D = DiGraph(name           = self.name(),
                     pos            = self.get_pos(),
                     multiedges     = self.allows_multiple_edges(),
@@ -5645,7 +5650,7 @@ class Graph(GenericGraph):
         return G
 
     @doc_index("Leftovers")
-    def seidel_adjacency_matrix(self, vertices=None):
+    def seidel_adjacency_matrix(self, vertices=None, *, base_ring=None, **kwds):
         r"""
         Return the Seidel adjacency matrix of ``self``.
 
@@ -5654,9 +5659,7 @@ class Graph(GenericGraph):
         `I` the identity matrix, and `J` the all-1 matrix.  It is closely
         related to :meth:`twograph`.
 
-        The matrix returned is over the integers. If a different ring is
-        desired, use either the :meth:`sage.matrix.matrix0.Matrix.change_ring`
-        method or the :func:`matrix` function.
+        By default, the matrix returned is over the integers.
 
         INPUT:
 
@@ -5665,15 +5668,38 @@ class Graph(GenericGraph):
           default, the ordering given by
           :meth:`~sage.graphs.generic_graph.GenericGraph.vertices` is used.
 
+        - ``base_ring`` -- a ring (default: ``None``); the base ring
+          of the matrix space to use
+
+        - ``**kwds`` -- other keywords to pass to
+          :func:`~sage.matrix.constructor.matrix`
+
         EXAMPLES::
 
             sage: G = graphs.CycleGraph(5)
             sage: G = G.disjoint_union(graphs.CompleteGraph(1))
             sage: G.seidel_adjacency_matrix().minpoly()
             x^2 - 5
+
+        Selecting the base ring::
+
+            sage: G.seidel_adjacency_matrix()[0, 0].parent()
+            Integer Ring
+            sage: G.seidel_adjacency_matrix(base_ring=RDF)[0, 0].parent()
+            Real Double Field
         """
-        return - self.adjacency_matrix(sparse=False, vertices=vertices) \
-               + self.complement().adjacency_matrix(sparse=False, vertices=vertices)
+        set_immutable = kwds.pop('immutable', False)
+        A = self.adjacency_matrix(sparse=False, vertices=vertices,
+                                  base_ring=base_ring, immutable=True, **kwds)
+        C = self.complement().adjacency_matrix(sparse=False, vertices=vertices,
+                                               base_ring=base_ring, **kwds)
+        n = self.order()
+        for i in range(n):
+            for j in range(n):
+                C[i, j] -= A[i, j]
+        if set_immutable:
+            C.set_immutable()
+        return C
 
     @doc_index("Leftovers")
     def seidel_switching(self, s, inplace=True):
@@ -7021,7 +7047,7 @@ class Graph(GenericGraph):
             return value
         elif algorithm == "networkx":
             import networkx
-            return networkx.node_clique_number(self.networkx_graph(), vertices, cliques)
+            return dict(networkx.node_clique_number(self.networkx_graph(), vertices, cliques))
         else:
             raise NotImplementedError("Only 'networkx' and 'cliquer' are supported.")
 
@@ -7179,8 +7205,8 @@ class Graph(GenericGraph):
           The *degeneracy* of a graph `G`, usually denoted `\delta^*(G)`, is the
           smallest integer `k` such that the graph `G` can be reduced to the
           empty graph by iteratively removing vertices of degree `\leq k`.
-          Equivalently, `\delta^*(G)=k` if `k` is the smallest integer such that
-          the `k`-core of `G` is empty.
+          Equivalently, `\delta^*(G) = k - 1` if `k` is the smallest integer
+          such that the `k`-core of `G` is empty.
 
         IMPLEMENTATION:
 
@@ -7207,8 +7233,9 @@ class Graph(GenericGraph):
 
         .. SEEALSO::
 
-           * Graph cores is also a notion related to graph homomorphisms. For
-             this second meaning, see :meth:`Graph.has_homomorphism_to`.
+            * Graph cores is also a notion related to graph homomorphisms. For
+              this second meaning, see :meth:`Graph.has_homomorphism_to`.
+            * :wikipedia:`Degeneracy_(graph_theory)`
 
         EXAMPLES::
 
@@ -7231,47 +7258,110 @@ class Graph(GenericGraph):
             sage: ordering, core = g.cores(2)
             sage: len(core) == 0
             True
+
+        Checking the cores of a bull graph::
+
+            sage: G = graphs.BullGraph()
+            sage: G.cores(with_labels=True)
+            {0: 2, 1: 2, 2: 2, 3: 1, 4: 1}
+            sage: G.cores(k=2)
+            ([3, 4], [0, 1, 2])
+
+        Graphs with multiple edges::
+
+            sage: G.allow_multiple_edges(True)
+            sage: G.add_edges(G.edges())
+            sage: G.cores(with_labels=True)
+            {0: 4, 1: 4, 2: 4, 3: 2, 4: 2}
+            sage: G.cores(k=4)
+            ([3, 4], [0, 1, 2])
         """
-        self._scream_if_not_simple()
-        # compute the degrees of each vertex
+        self._scream_if_not_simple(allow_multiple_edges=True)
+        if k is not None and k < 0:
+            raise ValueError("parameter k must be a non negative integer")
+        if not self or not self.size():
+            if k is not None:
+                return ([], list(self)) if not k else (list(self), [])
+            if with_labels:
+                return {u: 0 for u in self}
+            return [0]*self.order()
+
+        # Compute the degrees of each vertex and set up initial guesses for core
         degrees = self.degree(labels=True)
-
-        # Sort vertices by degree. Store in a list and keep track of where a
-        # specific degree starts (effectively, the list is sorted by bins).
-        verts = sorted(degrees.keys(), key=lambda x: degrees[x])
-        bin_boundaries = [0]
-        curr_degree = 0
-        for i,v in enumerate(verts):
-            if degrees[v] > curr_degree:
-                bin_boundaries.extend([i] * (degrees[v] - curr_degree))
-                curr_degree = degrees[v]
-        vert_pos = {v: pos for pos,v in enumerate(verts)}
-        # Set up initial guesses for core and lists of neighbors.
         core = degrees
-        nbrs = {v: set(self.neighbors(v)) for v in self}
-        # form vertex core building up from smallest
-        for v in verts:
 
-            # If all the vertices have a degree larger than k, we can return our
-            # answer if k is not None
-            if k is not None and core[v] >= k:
-                return verts[:vert_pos[v]], verts[vert_pos[v]:]
+        if self.has_multiple_edges():
+            # We partition the vertex set into buckets of vertices by degree
+            nbuckets = max(degrees.values()) + 1
+            bucket = [set() for _ in range(nbuckets)]
+            for u, d in degrees.items():
+                bucket[d].add(u)
 
-            for u in nbrs[v]:
-                if core[u] > core[v]:
-                    nbrs[u].remove(v)
+            verts = []
+            for d in range(nbuckets):
+                if not bucket[d]:
+                    continue
 
-                    # Cleverly move u to the end of the next smallest bin (i.e.,
-                    # subtract one from the degree of u). We do this by swapping
-                    # u with the first vertex in the bin that contains u, then
-                    # incrementing the bin boundary for the bin that contains u.
-                    pos = vert_pos[u]
-                    bin_start = bin_boundaries[core[u]]
-                    vert_pos[u] = bin_start
-                    vert_pos[verts[bin_start]] = pos
-                    verts[bin_start],verts[pos] = verts[pos],verts[bin_start]
-                    bin_boundaries[core[u]] += 1
-                    core[u] -= 1
+                if k is not None and d >= k:
+                    # all vertices have degree >= k. We can return the solution
+                    from itertools import chain
+                    return verts, list(chain(*bucket))
+
+                while bucket[d]:
+                    # Remove a vertex from the bucket and add it to the ordering
+                    u = bucket[d].pop()
+                    verts.append(u)
+
+                    # Update the degree and core number of unordered neighbors.
+                    # The core number of an unordered neighbor v cannot be less
+                    # than the core number of an ordered vertex u.
+                    for x, y in self.edge_iterator(vertices=[u], labels=False, sort_vertices=False):
+                        v = y if x is u else x
+                        if core[v] > core[u]:
+                            dv = core[v]
+                            bucket[dv].discard(v)
+                            bucket[dv - 1].add(v)
+                            core[v] -= 1
+
+        else:
+            # Sort vertices by degree. Store in a list and keep track of where a
+            # specific degree starts (effectively, the list is sorted by bins).
+            verts = sorted(degrees.keys(), key=lambda x: degrees[x])
+            if k is not None and k > degrees[verts[-1]]:
+                return verts, []
+            bin_boundaries = [0]
+            curr_degree = 0
+            for i,v in enumerate(verts):
+                if degrees[v] > curr_degree:
+                    bin_boundaries.extend([i] * (degrees[v] - curr_degree))
+                    curr_degree = degrees[v]
+            vert_pos = {v: pos for pos,v in enumerate(verts)}
+            # Lists of neighbors.
+            nbrs = {v: set(self.neighbors(v)) for v in self}
+            # form vertex core building up from smallest
+            for v in verts:
+
+                # If all the vertices have a degree larger than k, we can return
+                # our answer if k is not None
+                if k is not None and core[v] >= k:
+                    return verts[:vert_pos[v]], verts[vert_pos[v]:]
+
+                for u in nbrs[v]:
+                    if core[u] > core[v]:
+                        nbrs[u].remove(v)
+
+                        # Cleverly move u to the end of the next smallest bin
+                        # (i.e., subtract one from the degree of u). We do this
+                        # by swapping u with the first vertex in the bin that
+                        # contains u, then incrementing the bin boundary for the
+                        # bin that contains u.
+                        pos = vert_pos[u]
+                        bin_start = bin_boundaries[core[u]]
+                        vert_pos[u] = bin_start
+                        vert_pos[verts[bin_start]] = pos
+                        verts[bin_start],verts[pos] = verts[pos],verts[bin_start]
+                        bin_boundaries[core[u]] += 1
+                        core[u] -= 1
 
         if k is not None:
             return verts, []
@@ -8523,7 +8613,7 @@ class Graph(GenericGraph):
             raise ValueError('algorithm must be set to "Edmonds", "LP_matching" or "LP"')
 
     @doc_index("Leftovers")
-    def effective_resistance(self, i, j):
+    def effective_resistance(self, i, j, *, base_ring=None):
         r"""
         Return the effective resistance between nodes `i` and `j`.
 
@@ -8537,6 +8627,9 @@ class Graph(GenericGraph):
         INPUT:
 
         - ``i``, ``j`` -- vertices of the graph
+
+        - ``base_ring`` -- a ring (default: ``None``); the base ring
+          of the matrix space to use
 
         OUTPUT: rational number denoting resistance between nodes `i` and `j`
 
@@ -8561,6 +8654,15 @@ class Graph(GenericGraph):
             6/5
             sage: H.effective_resistance(1,3)
             49/55
+            sage: H.effective_resistance(1,1)
+            0
+
+        Using a different base ring::
+
+            sage: H.effective_resistance(1, 5, base_ring=RDF)   # abs tol 1e-14
+            1.2000000000000000
+            sage: H.effective_resistance(1, 1, base_ring=RDF)
+            0.0
 
         .. SEEALSO::
 
@@ -8597,8 +8699,11 @@ class Graph(GenericGraph):
         elif j not in self:
             raise ValueError("vertex ({0}) is not a vertex of the graph".format(repr(j)))
 
+        if base_ring is None:
+            base_ring = ZZ
+
         if i == j :
-            return 0
+            return base_ring(0)
 
         self._scream_if_not_simple()
         if not self.is_connected():
@@ -8608,16 +8713,17 @@ class Graph(GenericGraph):
         i1 = vert.index(i)
         i2 = vert.index(j)
         n = self.order()
-        L = self.laplacian_matrix(vertices=vert)
+        L = self.laplacian_matrix(vertices=vert, base_ring=base_ring)
         M = L.pseudoinverse()
-        Id = matrix.identity(n)
-        sigma = matrix(Id[i1] - Id[i2])
+        Id = matrix.identity(base_ring, n)
+        sigma = matrix(base_ring, Id[i1] - Id[i2])
         diff = sigma * M * sigma.transpose()
 
         return diff[0, 0]
 
     @doc_index("Leftovers")
-    def effective_resistance_matrix(self, vertices=None, nonedgesonly=True):
+    def effective_resistance_matrix(self, vertices=None, nonedgesonly=True,
+                                    *, base_ring=None, **kwds):
         r"""
         Return a matrix whose (`i` , `j`) entry gives the effective resistance
         between vertices `i` and `j`.
@@ -8627,6 +8733,8 @@ class Graph(GenericGraph):
         two vertices on an electrical network constructed from `G` replacing
         each edge of the graph by a unit (1 ohm) resistor.
 
+        By default, the matrix returned is over the rationals.
+
         INPUT:
 
         - ``nonedgesonly`` -- boolean (default: ``True``); if ``True`` assign
@@ -8635,6 +8743,12 @@ class Graph(GenericGraph):
         - ``vertices`` -- list (default: ``None``); the ordering of the
           vertices defining how they should appear in the matrix. By default,
           the ordering given by :meth:`GenericGraph.vertices` is used.
+
+        - ``base_ring`` -- a ring (default: ``None``); the base ring
+          of the matrix space to use
+
+        - ``**kwds`` -- other keywords to pass to
+          :func:`~sage.matrix.constructor.matrix`
 
         OUTPUT: matrix
 
@@ -8675,6 +8789,11 @@ class Graph(GenericGraph):
             [    0 56/55   4/5     0     0     0 81/55]
             [    0   6/5 56/55 49/55     0     0 89/55]
             [    0 89/55 81/55 16/11 81/55 89/55     0]
+
+        A different base ring::
+
+            sage: H.effective_resistance_matrix(base_ring=RDF)[0, 0].parent()
+            Real Double Field
 
         .. SEEALSO::
 
@@ -8725,6 +8844,16 @@ class Graph(GenericGraph):
             sage: r = G.effective_resistance_matrix(nonedgesonly=False)[0,3]
             sage: r == fibonacci(2*(5-3)+1)*fibonacci(2*3-1)/fibonacci(2*5)
             True
+
+        Ask for an immutable matrix::
+
+            sage: G = Graph([(0, 1)])
+            sage: M = G.effective_resistance_matrix(immutable=False)
+            sage: M.is_immutable()
+            False
+            sage: M = G.effective_resistance_matrix(immutable=True)
+            sage: M.is_immutable()
+            True
         """
         from sage.matrix.constructor import matrix
         from sage.rings.rational_field import QQ
@@ -8738,16 +8867,26 @@ class Graph(GenericGraph):
         if not self.is_connected():
             raise ValueError('the Graph is not a connected graph')
 
-        L = self.laplacian_matrix(vertices=vertices)
+        if base_ring is None:
+            base_ring = QQ
+        set_immutable = kwds.pop('immutable', False)
+
+        L = self.laplacian_matrix(vertices=vertices, base_ring=base_ring, immutable=True, **kwds)
         M = L.pseudoinverse()
         d = matrix(M.diagonal()).transpose()
-        onesvec = matrix(QQ, n, 1, lambda i, j: 1)
+        onesvec = matrix(base_ring, n, 1, lambda i, j: 1)
         S = d * onesvec.transpose() + onesvec * d.transpose() - 2 * M
-        onesmat = matrix(QQ, n, n, lambda i, j: 1)
         if nonedgesonly:
-            B = onesmat - self.adjacency_matrix(vertices=vertices) - matrix.identity(n)
+            A = self.adjacency_matrix(vertices=vertices, base_ring=base_ring, **kwds)
+            B = matrix(base_ring, n, n)
+            for i in range(n):
+                for j in range(n):
+                    B[i, j] = 1 - A[i, j]
+                B[i, i] -= 1
             S = S.elementwise_product(B)
 
+        if set_immutable:
+            S.set_immutable()
         return S
 
     @doc_index("Leftovers")
@@ -8833,7 +8972,8 @@ class Graph(GenericGraph):
         return [e for e in edges if S[(verttoidx[e[0]], verttoidx[e[1]])] == rmin]
 
     @doc_index("Leftovers")
-    def common_neighbors_matrix(self, vertices=None, nonedgesonly=True):
+    def common_neighbors_matrix(self, vertices=None, nonedgesonly=True,
+                                *, base_ring=None, **kwds):
         r"""
         Return a matrix of numbers of common neighbors between each pairs.
 
@@ -8851,6 +8991,12 @@ class Graph(GenericGraph):
         - ``vertices`` -- list (default: ``None``); the ordering of the
           vertices defining how they should appear in the matrix. By default,
           the ordering given by :meth:`GenericGraph.vertices` is used.
+
+        - ``base_ring`` -- a ring (default: ``None``); the base ring
+          of the matrix space to use
+
+        - ``**kwds`` -- other keywords to pass to
+          :func:`~sage.matrix.constructor.matrix`
 
         OUTPUT: matrix
 
@@ -8893,6 +9039,17 @@ class Graph(GenericGraph):
             [0 1 1 2 0 0 1]
             [0 1 1 1 1 1 0]
 
+        A different base ring::
+
+            sage: H.common_neighbors_matrix(base_ring=RDF)
+            [0.0 0.0 0.0 0.0 0.0 0.0 0.0]
+            [0.0 0.0 0.0 2.0 1.0 1.0 1.0]
+            [0.0 0.0 0.0 0.0 2.0 1.0 1.0]
+            [0.0 2.0 0.0 0.0 0.0 2.0 1.0]
+            [0.0 1.0 2.0 0.0 0.0 0.0 1.0]
+            [0.0 1.0 1.0 2.0 0.0 0.0 1.0]
+            [0.0 1.0 1.0 1.0 1.0 1.0 0.0]
+
         It is an error to input anything other than a simple graph::
 
             sage: G = Graph([(0,0)],loops=True)
@@ -8925,11 +9082,22 @@ class Graph(GenericGraph):
             [0 0 0 2]
             [0 0 0 0]
             [0 2 0 0]
+
+        Asking for an immutable matrix::
+
+            sage: G = Graph([(0, 1)])
+            sage: M = G.common_neighbors_matrix()
+            sage: M.is_immutable()
+            False
+            sage: M = G.common_neighbors_matrix(immutable=True)
+            sage: M.is_immutable()
+            True
         """
         self._scream_if_not_simple()
         if vertices is None:
             vertices = self.vertices()
-        A = self.adjacency_matrix(vertices=vertices)
+        set_immutable = kwds.pop('immutable', False)
+        A = self.adjacency_matrix(vertices=vertices, base_ring=base_ring, immutable=True, **kwds)
         M = A**2
         for v in range(self.order()):
             M[v, v] = 0
@@ -8937,6 +9105,8 @@ class Graph(GenericGraph):
                 for w in range(v + 1, self.order()):
                     if A[v, w]:
                         M[v, w] = M[w, v] = 0
+        if set_immutable:
+            M.set_immutable()
         return M
 
     @doc_index("Leftovers")
@@ -9066,9 +9236,9 @@ class Graph(GenericGraph):
         from sage.matroids.constructor import Matroid
         P = Matroid(self).partition()
         if certificate:
-          return (len(P), [self.subgraph(edges=forest) for forest in P])
+            return (len(P), [self.subgraph(edges=forest) for forest in P])
         else:
-          return len(P)
+            return len(P)
 
     @doc_index("Graph properties")
     def is_antipodal(self):
@@ -9422,6 +9592,7 @@ class Graph(GenericGraph):
     from sage.graphs.isoperimetric_inequalities import cheeger_constant, edge_isoperimetric_number, vertex_isoperimetric_number
     from sage.graphs.graph_coloring import fractional_chromatic_number
     from sage.graphs.graph_coloring import fractional_chromatic_index
+    from sage.graphs.hyperbolicity import hyperbolicity
 
 _additional_categories = {
     "is_long_hole_free"         : "Graph properties",
@@ -9467,7 +9638,8 @@ _additional_categories = {
     "vertex_isoperimetric_number" : "Expansion properties",
     "fractional_chromatic_number" : "Coloring",
     "fractional_chromatic_index" : "Coloring",
-    "geodetic_closure"          : "Leftovers"
+    "geodetic_closure"          : "Leftovers",
+    "hyperbolicity"              : "Distances",
     }
 
 __doc__ = __doc__.replace("{INDEX_OF_METHODS}",gen_thematic_rest_table_index(Graph,_additional_categories))

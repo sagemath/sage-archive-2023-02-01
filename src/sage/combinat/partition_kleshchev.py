@@ -83,7 +83,9 @@ from .partition_tuple import PartitionTuple, PartitionTuples
 from sage.categories.finite_enumerated_sets import FiniteEnumeratedSets
 from sage.categories.infinite_enumerated_sets import InfiniteEnumeratedSets
 from sage.misc.lazy_attribute import lazy_attribute
-from sage.rings.all import NN, ZZ, IntegerModRing
+from sage.rings.finite_rings.integer_mod_ring import IntegerModRing
+from sage.rings.integer_ring import ZZ
+from sage.rings.semirings.all import NN
 from sage.cpython.getattr import getattr_from_other_class
 
 from collections import defaultdict
@@ -854,7 +856,7 @@ class KleshchevPartitionTuple(PartitionTuple):
         KP = self.parent()
         return _is_restricted(self.to_list(), KP._multicharge, KP._convention)
 
-class KleshchevCrystalMixin(object):
+class KleshchevCrystalMixin():
     """
     Mixin class for the crystal structure of a Kleshchev partition.
     """

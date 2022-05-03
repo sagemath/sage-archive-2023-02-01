@@ -364,7 +364,7 @@ class PolymakeAbstract(ExtraTabCompletion, Interface):
             try:
                 x = RDF(x)
                 return '{}'.format(x)
-            except:
+            except (TypeError, ValueError):
                 pass
 
             raise NotImplementedError
@@ -478,9 +478,8 @@ class PolymakeAbstract(ExtraTabCompletion, Interface):
 
             sage: print(polymake._next_var_name())
             SAGE...
-
         """
-        if len(self._available_vars):
+        if self._available_vars:
             return self._available_vars.pop(0)
         try:
             self.__seq += 1
@@ -1082,7 +1081,7 @@ class PolymakeElement(ExtraTabCompletion, InterfaceElement):
         cmd = '{} {} {};'.format(self._name, P._equality_symbol(), t)
         return P.get(cmd) == t
 
-    __nonzero__ = __bool__
+    
 
     def known_properties(self):
         """
@@ -1595,7 +1594,7 @@ class PolymakeElement(ExtraTabCompletion, InterfaceElement):
                 if r == '':
                     return matrix(base_ring)
                 return matrix(base_ring, [[str_to_base_ring(s) for s in t.split(' ')] for t in r.split('\n')])
-        except:
+        except Exception:
             pass
 
         if T1:
@@ -2114,7 +2113,7 @@ class PolymakeExpect(PolymakeAbstract, Expect):
 
         EXAMPLES::
 
-            sage: from sage.interfaces.polymake import polymake_expect as polymake
+            sage: from sage.interfaces.polymake import polymake_expect as polymake  # optional - polymake_expect
             sage: p = polymake.cube(3)              # optional - polymake_expect  # indirect doctest
 
         Here we see that remarks printed by polymake are displayed if

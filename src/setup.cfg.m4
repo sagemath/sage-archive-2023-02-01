@@ -70,6 +70,10 @@ dnl Other Python packages that are standard spkg, used in doctests
         fpylll         \
         | sed "2,\$s/^/    /;"')dnl'
 dnl pycryptosat  # Sage distribution installs it as part of cryptominisat. According to its README on https://pypi.org/project/pycryptosat/: "The pycryptosat python package compiles while compiling CryptoMiniSat. It cannot be compiled on its own, it must be compiled at the same time as CryptoMiniSat."
+dnl Packages with important upper version bounds
+    esyscmd(`sage-get-system-packages install-requires \
+        ptyprocess     \
+        | sed "2,\$s/^/    /;"')dnl'
 
 scripts =
     # The sage script
@@ -94,7 +98,6 @@ scripts =
     bin/sage-cleaner
     # Only makes sense in sage-the-distribution. TODO: Move to another installation script.
     bin/sage-list-packages
-    bin/sage-location
     # Uncategorized scripts in alphabetical order
     bin/math-readline
     bin/sage-env
@@ -106,10 +109,8 @@ scripts =
     bin/sage-inline-fortran
     bin/sage-ipynb2rst
     bin/sage-ipython
-    bin/sage-native-execute
     bin/sage-notebook
     bin/sage-num-threads.py
-    bin/sage-open
     bin/sage-preparse
     bin/sage-python
     bin/sage-rebase.bat
@@ -119,7 +120,6 @@ scripts =
     bin/sage-run
     bin/sage-run-cython
     bin/sage-startuptime.py
-    bin/sage-update-src
     bin/sage-update-version
 
 [options.package_data]
@@ -133,6 +133,9 @@ sage.interfaces =
 sage.doctest =
     tests/*
 
+sage.repl.rich_output =
+    example*
+
 sage =
     ext_data/*
     ext_data/kenzo/*
@@ -141,8 +144,6 @@ sage =
     ext_data/images/*
     ext_data/doctest/*
     ext_data/doctest/invalid/*
-    ext_data/doctest/rich_output/*
-    ext_data/doctest/rich_output/example_wavefront/*
     ext_data/gap/*
     ext_data/gap/joyner/*
     ext_data/mwrank/*

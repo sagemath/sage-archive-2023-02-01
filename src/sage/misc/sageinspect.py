@@ -183,7 +183,8 @@ def loadable_module_extension():
     EXAMPLES::
 
         sage: from sage.misc.sageinspect import loadable_module_extension
-        sage: sage.structure.sage_object.__file__.endswith(loadable_module_extension())
+        sage: from importlib.machinery import EXTENSION_SUFFIXES
+        sage: loadable_module_extension() in EXTENSION_SUFFIXES
         True
     """
     # Return the full platform-specific extension module suffix
@@ -802,11 +803,11 @@ class SageArgSpecVisitor(ast.NodeVisitor):
         """
         op = node.op.__class__.__name__
         if op == 'Add':
-            return self.visit(node.left)+self.visit(node.right)
+            return self.visit(node.left) + self.visit(node.right)
         if op == 'Mult':
-            return self.visit(node.left)*self.visit(node.right)
+            return self.visit(node.left) * self.visit(node.right)
         if op == 'BitAnd':
-            return self.visit(node.left)&self.visit(node.right)
+            return self.visit(node.left) & self.visit(node.right)
         if op == 'BitOr':
             return self.visit(node.left) | self.visit(node.right)
         if op == 'BitXor':
@@ -928,7 +929,7 @@ def _grep_first_pair_of_parentheses(s):
             if level == 1:
                 return '(' + ''.join(out)
             level -= 1
-        elif c=="\\" and (single_quote or double_quote):
+        elif c == "\\" and (single_quote or double_quote):
             escaped = not escaped
         else:
             escaped = False
@@ -1341,10 +1342,12 @@ def sage_getfile(obj):
     EXAMPLES::
 
         sage: from sage.misc.sageinspect import sage_getfile
-        sage: sage_getfile(sage.rings.rational)[-23:]
-        'sage/rings/rational.pyx'
-        sage: sage_getfile(Sq)[-42:]
-        'sage/algebras/steenrod/steenrod_algebra.py'
+        sage: sage_getfile(sage.rings.rational)
+        '...sage/rings/rational.pyx'
+        sage: sage_getfile(Sq)
+        '...sage/algebras/steenrod/steenrod_algebra.py'
+        sage: sage_getfile(x)
+        '...sage/symbolic/expression.pyx'
 
     The following tests against some bugs fixed in :trac:`9976`::
 
@@ -1400,8 +1403,9 @@ def sage_getfile(obj):
         sourcefile = inspect.getabsfile(obj)
     except TypeError: # this happens for Python builtins
         return ''
-    if sourcefile.endswith(loadable_module_extension()):
-        return sourcefile[:-len(loadable_module_extension())]+os.path.extsep+'pyx'
+    for suffix in import_machinery.EXTENSION_SUFFIXES:
+        if sourcefile.endswith(suffix):
+            return sourcefile[:-len(suffix)]+os.path.extsep+'pyx'
     return sourcefile
 
 
@@ -1760,7 +1764,7 @@ def sage_formatargspec(args, varargs=None, varkw=None, defaults=None,
         sage: defaults = [3]
         sage: sage_formatargspec(args, defaults=defaults)
         '(a, b, c=3)'
-        sage: import warnings; warnings.simplefilter('ignore')  # py3: ignore DeprecationWarning
+        sage: import warnings; warnings.simplefilter('ignore')  # ignore DeprecationWarning
         sage: formatargspec(args, defaults=defaults) == sage_formatargspec(args, defaults=defaults)
         True
     """
@@ -2051,7 +2055,6 @@ def sage_getdoc(obj, obj_name='', embedded=False):
             warn = """WARNING: the enclosing module is marked '{}',
 so doctests may not pass.""".format(skip)
             s = warn + "\n\n" + s
-        pass
 
     # Fix object naming
     if obj_name != '':
@@ -2311,12 +2314,12 @@ def sage_getsourcelines(obj):
     use a dummy parent class that has defined an element class by a
     nested class definition::
 
-        sage: from sage.misc.nested_class_test import TestNestedParent
+        sage: from sage.misc.test_nested_class import TestNestedParent
         sage: from sage.misc.sageinspect import sage_getsource
         sage: P = TestNestedParent()
         sage: E = P.element_class
         sage: E.__bases__
-        (<class 'sage.misc.nested_class_test.TestNestedParent.Element'>,
+        (<class 'sage.misc.test_nested_class.TestNestedParent.Element'>,
          <class 'sage.categories.sets_cat.Sets.element_class'>)
         sage: print(sage_getsource(E))
             class Element(object):

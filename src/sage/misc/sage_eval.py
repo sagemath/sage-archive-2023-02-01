@@ -1,7 +1,6 @@
 r"""
 Evaluating a String in Sage
 """
-
 # ****************************************************************************
 #       Copyright (C) 2006 William Stein <wstein@gmail.com>
 #
@@ -9,7 +8,6 @@ Evaluating a String in Sage
 #
 #                  https://www.gnu.org/licenses/
 # ****************************************************************************
-
 from copy import copy
 import sage.repl.preparse as preparser
 
@@ -185,7 +183,7 @@ def sage_eval(source, locals=None, cmds='', preparse=True):
         locals = {}
 
     import sage.all
-    if len(cmds):
+    if cmds:
         cmd_seq = cmds + '\n_sage_eval_returnval_ = ' + source
         if preparse:
             cmd_seq = preparser.preparse_file(cmd_seq)
@@ -193,7 +191,7 @@ def sage_eval(source, locals=None, cmds='', preparse=True):
         if preparse:
             source = preparser.preparse(source)
 
-    if len(cmds):
+    if cmds:
         exec(cmd_seq, sage.all.__dict__, locals)
         return locals['_sage_eval_returnval_']
     else:
@@ -241,6 +239,6 @@ def sageobj(x, vars=None):
         <class 'sage.rings.rational.Rational'>
     """
     try:
-       return x._sage_()
+        return x._sage_()
     except (TypeError, NotImplementedError, AttributeError):
-       return sage_eval(str(x), vars)
+        return sage_eval(str(x), vars)

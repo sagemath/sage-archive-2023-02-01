@@ -243,13 +243,13 @@ from sage.structure.richcmp cimport rich_to_bool, richcmp
 from sage.structure.factorization import Factorization
 from sage.structure.sequence import Sequence
 
-from sage.interfaces.all import macaulay2
 from sage.interfaces.singular import singular as singular_default, is_SingularElement, SingularElement
 from sage.interfaces.macaulay2 import macaulay2 as macaulay2_default, is_Macaulay2Element
 
-from sage.misc.all import prod as mul
+from sage.misc.misc_c import prod as mul
 from sage.misc.sage_eval import sage_eval
 
+import sage.rings.polynomial.polynomial_singular_interface
 
 cimport cypari2.gen
 from . import polynomial_element
@@ -867,9 +867,9 @@ cdef class MPolynomialRing_libsingular(MPolynomialRing_base):
                     #we can use "Merge" because the monomials are distinct
                     sBucketClearMerge(bucket, &_p, &e)
                     sBucketDestroy(&bucket)
-                except:
-                     sBucketDeleteAndDestroy(&bucket)
-                     raise
+                except Exception:
+                    sBucketDeleteAndDestroy(&bucket)
+                    raise
                 return new_MP(self, _p)
             elif element.parent().ngens() == 0:
                 # zero variable polynomials
@@ -1067,7 +1067,7 @@ cdef class MPolynomialRing_libsingular(MPolynomialRing_base):
         rChangeCurrRing(_ring)
         _p = p_ISet(1, _ring)
         p_SetExp(_p, n+1, 1, _ring)
-        p_Setm(_p, _ring);
+        p_Setm(_p, _ring)
 
         return new_MP(self, _p)
 
@@ -1378,59 +1378,9 @@ cdef class MPolynomialRing_libsingular(MPolynomialRing_base):
 
         order = self.term_order().singular_str()%dict(ngens=self.ngens())
 
-        base_ring = self.base_ring()
-
-        if isinstance(base_ring, sage.rings.abc.RealField):
-            # singular converts to bits from base_10 in mpr_complex.cc by:
-            #  size_t bits = 1 + (size_t) ((float)digits * 3.5);
-            precision = base_ring.precision()
-            digits = ceil((2*precision - 2)/7.0)
-            self.__singular = singular.ring("(real,%d,0)"%digits, _vars, order=order)
-
-        elif isinstance(base_ring, sage.rings.abc.ComplexField):
-            # singular converts to bits from base_10 in mpr_complex.cc by:
-            #  size_t bits = 1 + (size_t) ((float)digits * 3.5);
-            precision = base_ring.precision()
-            digits = ceil((2*precision - 2)/7.0)
-            self.__singular = singular.ring("(complex,%d,0,I)"%digits, _vars,  order=order)
-
-        elif base_ring.is_prime_field():
-            self.__singular = singular.ring(self.characteristic(), _vars, order=order)
-
-        elif base_ring.is_field() and base_ring.is_finite(): #must be extension field
-            gen = str(base_ring.gen())
-            r = singular.ring( "(%s,%s)"%(self.characteristic(),gen), _vars, order=order)
-            self.__minpoly = (str(base_ring.modulus()).replace("x",gen)).replace(" ","")
-            if  singular.eval('minpoly') != "(" + self.__minpoly + ")":
-                singular.eval("minpoly=%s"%(self.__minpoly) )
-                self.__minpoly = singular.eval('minpoly')[1:-1]
-            self.__singular = r
-
-        elif isinstance(base_ring, NumberField) and base_ring.is_absolute():
-            gen = str(base_ring.gen())
-            poly = base_ring.polynomial()
-            poly_gen = str(poly.parent().gen())
-            poly_str = str(poly).replace(poly_gen,gen)
-            r = singular.ring( "(%s,%s)"%(self.characteristic(),gen), _vars, order=order, check=False)
-            self.__minpoly = (poly_str).replace(" ","")
-            if  singular.eval('minpoly') != "(" + self.__minpoly + ")":
-                singular.eval("minpoly=%s"%(self.__minpoly) )
-                self.__minpoly = singular.eval('minpoly')[1:-1]
-            self.__singular = r
-
-        elif is_IntegerRing(base_ring):
-            self.__singular = singular.ring("(integer)", _vars, order=order)
-
-        elif isinstance(base_ring, sage.rings.abc.IntegerModRing):
-            ch = base_ring.characteristic()
-            if ch.is_power_of(2):
-                exp = ch.nbits() -1
-                self.__singular = singular.ring("(integer,2,%d)"%(exp,), _vars, order=order, check=False)
-            else:
-                self.__singular = singular.ring("(integer,%d)"%(ch,), _vars, order=order, check=False)
-
-        else:
-            raise TypeError("no conversion to a Singular ring defined")
+        self.__singular, self.__minpoly = \
+                sage.rings.polynomial.polynomial_singular_interface._do_singular_init_(
+                        singular, self.base_ring(), self.characteristic(), _vars, order)
 
         return self.__singular
 
@@ -1917,8 +1867,8 @@ cdef class MPolynomialRing_libsingular(MPolynomialRing_base):
         pos = 1
 
         while not p_ExpVectorEqual(tempvector, maxvector, _ring):
-          tempvector = addwithcarry(tempvector, maxvector, pos, _ring)
-          M.append(new_MP(self, p_Copy(tempvector, _ring)))
+            tempvector = addwithcarry(tempvector, maxvector, pos, _ring)
+            M.append(new_MP(self, p_Copy(tempvector, _ring)))
         return M
 
 def unpickle_MPolynomialRing_libsingular(base_ring, names, term_order):
@@ -4095,7 +4045,7 @@ cdef class MPolynomial_libsingular(MPolynomial):
         else:
             return False
 
-    def __nonzero__(self):
+    def __bool__(self):
         """
         EXAMPLES::
 
@@ -5675,7 +5625,7 @@ def unpickle_MPolynomial_libsingular(MPolynomialRing_libsingular R, d):
         ln=0
         sBucketClearMerge(bucket, &p, &ln)
         sBucketDestroy(&bucket)
-    except:
+    except Exception:
         sBucketDeleteAndDestroy(&bucket)
         raise
     return new_MP(R, p)
@@ -5683,10 +5633,10 @@ def unpickle_MPolynomial_libsingular(MPolynomialRing_libsingular R, d):
 
 cdef inline poly *addwithcarry(poly *tempvector, poly *maxvector, int pos, ring *_ring):
     if p_GetExp(tempvector, pos, _ring) < p_GetExp(maxvector, pos, _ring):
-      p_SetExp(tempvector, pos, p_GetExp(tempvector, pos, _ring)+1, _ring)
+        p_SetExp(tempvector, pos, p_GetExp(tempvector, pos, _ring)+1, _ring)
     else:
-      p_SetExp(tempvector, pos, 0, _ring)
-      tempvector = addwithcarry(tempvector, maxvector, pos + 1, _ring)
+        p_SetExp(tempvector, pos, 0, _ring)
+        tempvector = addwithcarry(tempvector, maxvector, pos + 1, _ring)
     p_Setm(tempvector, _ring)
     return tempvector
 

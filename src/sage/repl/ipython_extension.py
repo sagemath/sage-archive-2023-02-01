@@ -35,7 +35,7 @@ We test that preparsing is off for ``%runfile``, on for ``%time``::
 
     sage: import os, re
     sage: from sage.repl.interpreter import get_test_shell
-    sage: from sage.misc.all import tmp_dir
+    sage: from sage.misc.temporary_file import tmp_dir
     sage: shell = get_test_shell()
     sage: TMP = tmp_dir()
 
@@ -106,7 +106,7 @@ class SageMagics(Magics):
 
             sage: import os
             sage: from sage.repl.interpreter import get_test_shell
-            sage: from sage.misc.all import tmp_dir
+            sage: from sage.misc.temporary_file import tmp_dir
             sage: shell = get_test_shell()
             sage: tmp = os.path.join(tmp_dir(), 'run_cell.py')
             sage: with open(tmp, 'w') as f:
@@ -434,7 +434,6 @@ class SageCustomizations(object):
         import sage.all # until sage's import hell is fixed
 
         self.shell.verbose_quit = True
-        self.set_quit_hook()
 
         self.register_interface_magics()
 
@@ -447,16 +446,6 @@ class SageCustomizations(object):
         """
         from sage.repl.interface_magic import InterfaceMagic
         InterfaceMagic.register_all(self.shell)
-
-    def set_quit_hook(self):
-        """
-        Set the exit hook to cleanly exit Sage.
-        """
-        def quit():
-            import sage.all
-            sage.all.quit_sage(self.shell.verbose_quit)
-        import atexit
-        atexit.register(quit)
 
     @staticmethod
     def all_globals():

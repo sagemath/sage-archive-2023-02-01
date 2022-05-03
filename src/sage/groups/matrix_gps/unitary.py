@@ -120,9 +120,9 @@ def _UG(n, R, special, var='a', invariant_form=None):
 
         try:
             if invariant_form.is_positive_definite():
-               inserted_text = "with respect to positive definite hermitian form"
+                inserted_text = "with respect to positive definite hermitian form"
             else:
-               inserted_text = "with respect to non positive definite hermitian form"
+                inserted_text = "with respect to non positive definite hermitian form"
         except ValueError:
             inserted_text = "with respect to hermitian form"
 
@@ -474,4 +474,3 @@ class UnitaryMatrixGroup_gap(UnitaryMatrixGroup_generic, NamedMatrixGroup_gap, F
         m = matrix(R, d, d, self.gap().InvariantSesquilinearForm()['matrix'].matrix())
         m.set_immutable()
         return m
-

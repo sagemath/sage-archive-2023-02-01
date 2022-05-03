@@ -25,7 +25,8 @@ from sage.structure.unique_representation import UniqueRepresentation
 from sage.misc.cachefunc import cached_method
 from sage.rings.integer_ring import ZZ
 from sage.rings.infinity import infinity
-from sage.graphs.all import Graph, DiGraph
+from sage.graphs.digraph import DiGraph
+from sage.graphs.graph import Graph
 from sage.arith.all import binomial, euler_phi
 from sage.misc.misc_c import prod
 from sage.matrix.constructor import matrix
@@ -2271,10 +2272,9 @@ def _save_data_dig6(n, types='ClassicalExceptional', verbose=False):
         data.update(_construct_exceptional_mutation_classes(n))
 
     from sage.env import DOT_SAGE
-    from sage.misc.misc import sage_makedirs
     types_path = os.path.join(DOT_SAGE, 'cluster_algebra_quiver')
     types_file = os.path.join(types_path, 'mutation_classes_%s.dig6' % n)
-    sage_makedirs(types_path)
+    os.makedirs(types_path, exist_ok=True)
     from sage.misc.temporary_file import atomic_write
     with atomic_write(types_file, binary=True) as f:
         pickle.dump(data, f)

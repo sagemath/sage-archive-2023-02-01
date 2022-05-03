@@ -1,12 +1,11 @@
 .. _reference-manual:
 
-*********************
-Sage Reference Manual
-*********************
+*************************************
+Welcome to the Sage Reference Manual!
+*************************************
 
-Welcome to the Sage reference manual. Here you find documentation for all of
-`Sage <http://www.sagemath.org/>`_'s features, illustrated with lots of examples.
-A thematic index follows.
+Here you find documentation for all of `Sage <http://www.sagemath.org/>`_'s
+features, illustrated with lots of examples.  A thematic index follows.
 
 This documentation is licensed under the `Creative Commons Attribution-Share Alike 3.0 License`__:math:`.`
 
@@ -93,16 +92,18 @@ Discrete Mathematics
 * :doc:`Symbolic Logic <logic/index>`
 * :doc:`SAT solvers <sat/index>`
 
-Geometry and Topology
----------------------
+Geometry, Topology, and Homological Algebra
+-------------------------------------------
 
 * :doc:`Euclidean Spaces and Vector Calculus <euclidean_spaces/index>`
 * :doc:`Combinatorial and Discrete Geometry <discrete_geometry/index>`
-* :doc:`Cell Complexes and their Homology <homology/index>`
+* :doc:`Cell Complexes, Simplicial Complexes, and 
+  Simplicial Sets <topology/index>`
 * :doc:`Manifolds and Differential Geometry <manifolds/index>`
 * :doc:`Hyperbolic Geometry <hyperbolic_geometry/index>`
 * :doc:`Parametrized Surfaces <riemannian_geometry/index>`
 * :doc:`Knot Theory <knots/index>`
+* :doc:`Chain Complexes and their Homology <homology/index>`
 
 Number Fields, Function Fields, and Valuations
 ----------------------------------------------

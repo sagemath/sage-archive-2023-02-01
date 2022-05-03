@@ -230,6 +230,7 @@ import operator
 
 import sage.categories.fields
 
+from sage.misc.lazy_string import lazy_string
 from sage.rings.integer_ring import ZZ
 from sage.rings.rational_field import QQ
 from sage.rings.real_mpfi import RealIntervalField, RealIntervalField_class
@@ -476,6 +477,12 @@ class RealBallField(UniqueRepresentation, sage.rings.abc.RealBallField):
             sage: RBF.convert_map_from(QuadraticField(2))
             Conversion via _arb_ method map:
             ...
+            sage: RBF.coerce_map_from(AA)
+            Conversion via _arb_ method map:
+            ...
+            sage: RBF.convert_map_from(QQbar)
+            Conversion via _arb_ method map:
+            ...
         """
         if isinstance(other, RealBallField):
             return other._prec >= self._prec
@@ -548,7 +555,7 @@ class RealBallField(UniqueRepresentation, sage.rings.abc.RealBallField):
             return self.element_class(self, _mid, rad)
         except (TypeError, ValueError):
             pass
-        raise TypeError("unable to convert {!r} to a RealBall".format(mid))
+        raise TypeError(lazy_string("unable to convert %s to a RealBall", mid))
 
     def _repr_option(self, key):
         """
@@ -629,6 +636,8 @@ class RealBallField(UniqueRepresentation, sage.rings.abc.RealBallField):
             53
         """
         return self._prec
+
+    prec = precision
 
     def is_exact(self):
         """
@@ -2206,7 +2215,7 @@ cdef class RealBall(RingElement):
         """
         return arb_is_nonzero(self.value)
 
-    def __nonzero__(self):
+    def __bool__(self):
         """
         Return ``True`` iff this ball is not the zero ball, i.e. if it its
         midpoint and radius are not both zero.
@@ -3506,7 +3515,7 @@ cdef class RealBall(RingElement):
 
         EXAMPLES::
 
-            sage: RBF(1/2).erf()
+            sage: RBF(1/2).erf() # abs tol 1e-16
             [0.520499877813047 +/- 6.10e-16]
         """
         cdef RealBall res = self._new()
@@ -3556,12 +3565,12 @@ cdef class RealBall(RingElement):
 
         EXAMPLES::
 
-            sage: RBF(1).Si()
+            sage: RBF(1).Si() # abs tol 1e-15
             [0.946083070367183 +/- 9.22e-16]
 
         TESTS::
 
-            sage: RBF(Si(1))
+            sage: RBF(Si(1)) # abs tol 1e-15
             [0.946083070367183 +/- 9.22e-16]
         """
         cdef RealBall res = self._new()
@@ -3578,12 +3587,12 @@ cdef class RealBall(RingElement):
 
         EXAMPLES::
 
-            sage: RBF(1).Ci()  # abs tol 1e-16
+            sage: RBF(1).Ci()  # abs tol 5e-16
             [0.337403922900968 +/- 3.25e-16]
 
         TESTS::
 
-            sage: RBF(Ci(1))  # abs tol 1e-16
+            sage: RBF(Ci(1))  # abs tol 5e-16
             [0.337403922900968 +/- 3.25e-16]
         """
         cdef RealBall res = self._new()

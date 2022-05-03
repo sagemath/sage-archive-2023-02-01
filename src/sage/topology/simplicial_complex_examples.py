@@ -390,7 +390,9 @@ def RealProjectivePlane():
                               [2, 3, 5], [2, 4, 5]],
                               name='Minimal triangulation of the real projective plane')
 
+
 ProjectivePlane = RealProjectivePlane
+
 
 def KleinBottle():
     """
@@ -436,7 +438,7 @@ def SurfaceOfGenus(g, orientable=True):
     """
     if g == 0:
         if not orientable:
-            raise ValueError("No non-orientable surface of genus zero.")
+            raise ValueError("no non-orientable surface of genus zero")
         else:
             return Sphere(2)
     if orientable:
@@ -490,7 +492,7 @@ def MooreSpace(q):
         Triangulation of the mod 8 Moore space
     """
     if q <= 1:
-        raise ValueError("The mod q Moore space is only defined if q is at least 2")
+        raise ValueError("the mod q Moore space is only defined if q is at least 2")
     if q == 2:
         return RealProjectivePlane()
     facets = []
@@ -1340,7 +1342,7 @@ def SumComplex(n, A):
         sage: factor(26951480558170926865)
         5 * 311 * 683 * 1117 * 11657 * 1948909
     """
-    from sage.rings.all import Integers
+    from sage.rings.finite_rings.integer_mod_ring import Integers
     Zn = Integers(n)
     A = frozenset([Zn(x) for x in A])
     facets = []

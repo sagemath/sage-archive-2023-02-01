@@ -283,7 +283,7 @@ We use the lexicographic ordering::
 from copy import copy
 from itertools import accumulate
 
-from sage.libs.all import pari
+from sage.libs.pari.all import pari
 from sage.libs.flint.arith import number_of_partitions as flint_number_of_partitions
 
 from sage.arith.misc import multinomial
@@ -304,7 +304,10 @@ from sage.categories.infinite_enumerated_sets import InfiniteEnumeratedSets
 from sage.categories.finite_enumerated_sets import FiniteEnumeratedSets
 
 from sage.sets.non_negative_integers import NonNegativeIntegers
-from sage.rings.all import QQ, ZZ, NN, IntegerModRing
+from sage.rings.finite_rings.integer_mod_ring import IntegerModRing
+from sage.rings.integer_ring import ZZ
+from sage.rings.rational_field import QQ
+from sage.rings.semirings.all import NN
 from sage.arith.all import factorial, gcd
 from sage.rings.polynomial.polynomial_ring_constructor import PolynomialRing
 from sage.rings.integer import Integer
@@ -3957,7 +3960,7 @@ class Partition(CombinatorialElement):
         lcors = [[0,p[0]-1]]
         nn = len(p)
         if nn == 1:
-            return [tuple(_) for _ in lcors]
+            return [tuple(c) for c in lcors]
 
         lcors_index = 0
         for i in range(1, nn):
@@ -3967,7 +3970,7 @@ class Partition(CombinatorialElement):
                 lcors.append([i,p[i]-1])
                 lcors_index += 1
 
-        return [tuple(_) for _ in lcors]
+        return [tuple(c) for c in lcors]
 
     inside_corners = corners
     removable_cells = corners     # for compatibility with partition tuples
@@ -6285,7 +6288,7 @@ class Partitions_all_bounded(Partitions):
             sage: Partitions_all_bounded(3)
             3-Bounded Partitions
         """
-        return "%d-Bounded Partitions"%self.k
+        return "%d-Bounded Partitions" % self.k
 
     def __iter__(self):
         """
@@ -6352,7 +6355,7 @@ class Partitions_n(Partitions):
             sage: Partitions(5) # indirect doctest
             Partitions of the integer 5
         """
-        return "Partitions of the integer %s"%self.n
+        return "Partitions of the integer %s" % self.n
 
     def _an_element_(self):
         """
@@ -6406,8 +6409,6 @@ class Partitions_n(Partitions):
             sage: number_of_partitions(5, algorithm='flint')
             7
 
-        The input must be a nonnegative integer or a ``ValueError`` is raised.
-
         ::
 
             sage: Partitions(10).cardinality()
@@ -6446,10 +6447,18 @@ class Partitions_n(Partitions):
             sage: len([n for n in [1..500] if Partitions(n).cardinality() != Partitions(n).cardinality(algorithm='pari')])
             0
 
+        For negative inputs, the result is zero (the algorithm is ignored)::
+
+            sage: Partitions(-5).cardinality()
+            0
+
         REFERENCES:
 
         - :wikipedia:`Partition\_(number\_theory)`
         """
+        if self.n < 0:
+            return ZZ.zero()
+
         if algorithm == 'flint':
             return cached_number_of_partitions(self.n)
 
@@ -7259,7 +7268,7 @@ class Partitions_starting(Partitions):
             sage: Partitions(3, starting=[2,1]) # indirect doctest
             Partitions of the integer 3 starting with [2, 1]
         """
-        return "Partitions of the integer %s starting with %s"%(self.n, self._starting)
+        return f"Partitions of the integer {self.n} starting with {self._starting}"
 
     def __contains__(self, x):
         """
@@ -7353,7 +7362,7 @@ class Partitions_ending(Partitions):
             sage: Partitions(4, ending=[1,1,1,1]) # indirect doctest
             Partitions of the integer 4 ending with [1, 1, 1, 1]
         """
-        return "Partitions of the integer %s ending with %s"%(self.n, self._ending)
+        return f"Partitions of the integer {self.n} ending with {self._ending}"
 
     def __contains__(self, x):
         """

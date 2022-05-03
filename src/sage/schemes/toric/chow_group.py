@@ -119,14 +119,16 @@ Chow cycles can be of mixed degrees::
 # ****************************************************************************
 from __future__ import annotations
 
-from sage.misc.all import flatten
+from sage.misc.flatten import flatten
 from sage.misc.fast_methods import WithEqualityById
 from sage.modules.fg_pid.fgp_module import FGP_Module_class
 from sage.modules.fg_pid.fgp_element import FGP_Element
 from sage.modules.free_module import FreeModule
 from sage.structure.sage_object import SageObject
 from sage.structure.factory import UniqueFactory
-from sage.rings.all import ZZ, QQ, Infinity
+from sage.rings.integer_ring import ZZ
+from sage.rings.rational_field import QQ
+from sage.rings.infinity import Infinity
 
 import sage.geometry.abc
 from sage.schemes.toric.variety import is_ToricVariety
@@ -251,7 +253,7 @@ class ChowCycle(FGP_Element):
         for i, cone in enumerate(self.parent()._cones):
             if self.lift()[i] != 0:
                 if cone_dim not in [None, cone.dim()]:
-                    raise ValueError('Chow cycle is not of definite degree.')
+                    raise ValueError('Chow cycle is not of definite degree')
                 cone_dim = cone.dim()
         self._dim = ambient_dim - cone_dim
         return self._dim
@@ -546,10 +548,10 @@ class ChowGroupFactory(UniqueFactory):
             True
         """
         if not is_ToricVariety(toric_variety):
-            raise ValueError('First argument must be a toric variety.')
+            raise ValueError('first argument must be a toric variety')
 
         if base_ring not in [ZZ, QQ]:
-            raise ValueError('Base ring must be either ZZ or QQ.')
+            raise ValueError('base ring must be either ZZ or QQ')
 
         key = tuple([toric_variety, base_ring])
         extra = {'check': check}

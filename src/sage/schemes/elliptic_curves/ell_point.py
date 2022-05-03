@@ -128,10 +128,12 @@ import sage.rings.abc
 from sage.rings.integer import Integer
 from sage.rings.integer_ring import ZZ
 import sage.groups.generic as generic
-from sage.libs.pari import pari
+from sage.libs.pari.all import pari, PariError
 from cypari2.pari_instance import prec_words_to_bits
 from sage.structure.sequence import Sequence
 from sage.structure.richcmp import richcmp
+
+from sage.structure.coerce_actions import IntegerMulAction
 
 from sage.schemes.curves.projective_curve import Hasse_bounds
 from sage.schemes.projective.projective_point import (SchemeMorphism_point_projective_ring,
@@ -197,7 +199,6 @@ class EllipticCurvePoint_field(SchemeMorphism_point_abelian_variety_field):
         sage: P,2*P,3*P
         ((0 : t : 1), (0 : -t : 1), (0 : 1 : 0))
 
-
     TESTS::
 
         sage: loads(S.dumps()) == S
@@ -218,7 +219,6 @@ class EllipticCurvePoint_field(SchemeMorphism_point_abelian_variety_field):
 
     Test that the refactoring from :trac:`14711` did preserve the behaviour
     of domain and codomain::
-
 
         sage: E=EllipticCurve(QQ,[1,1])
         sage: P=E(0,1)
@@ -470,7 +470,7 @@ class EllipticCurvePoint_field(SchemeMorphism_point_abelian_variety_field):
 
         .. NOTE::
 
-           :meth:`additive_order` is a synonym for :meth:`order`
+            :meth:`additive_order` is a synonym for :meth:`order`
 
         EXAMPLES::
 
@@ -523,7 +523,7 @@ class EllipticCurvePoint_field(SchemeMorphism_point_abelian_variety_field):
         """
         return bool(self[2])
 
-    __nonzero__ = __bool__
+    
 
     def has_finite_order(self):
         """
@@ -636,7 +636,7 @@ class EllipticCurvePoint_field(SchemeMorphism_point_abelian_variety_field):
             sage: N = 35
             sage: E = EllipticCurve(Integers(N),[5,1])
             sage: P = E(0,1)
-            sage: LCM([2..6])*P
+            sage: 4*P
             Traceback (most recent call last):
             ...
             ZeroDivisionError: Inverse of 28 does not exist
@@ -768,10 +768,10 @@ class EllipticCurvePoint_field(SchemeMorphism_point_abelian_variety_field):
 
         .. WARNING::
 
-           This function usually triggers the computation of the
-           `m`-th division polynomial of the associated elliptic
-           curve, which will be expensive if `m` is large, though it
-           will be cached for subsequent calls with the same `m`.
+            This function usually triggers the computation of the
+            `m`-th division polynomial of the associated elliptic
+            curve, which will be expensive if `m` is large, though it
+            will be cached for subsequent calls with the same `m`.
 
         EXAMPLES::
 
@@ -979,14 +979,14 @@ class EllipticCurvePoint_field(SchemeMorphism_point_abelian_variety_field):
         order, the points returned know that they also have infinite
         order::
 
-           sage: E = EllipticCurve([0,0,1,-1,0])
-           sage: P = E(-1,0)
-           sage: P.order()
-           +Infinity
-           sage: pts = P.division_points(3);   len(pts)
-           1
-           sage: [(Q,Q._order) for Q in pts]
-           [((0 : -1 : 1), +Infinity)]
+            sage: E = EllipticCurve([0,0,1,-1,0])
+            sage: P = E(-1,0)
+            sage: P.order()
+            +Infinity
+            sage: pts = P.division_points(3);   len(pts)
+            1
+            sage: [(Q,Q._order) for Q in pts]
+            [((0 : -1 : 1), +Infinity)]
 
         When we successfully divide a point of known finite order `n`,
         the points returned know that they also have finite order `nk`
@@ -1174,7 +1174,7 @@ class EllipticCurvePoint_field(SchemeMorphism_point_abelian_variety_field):
 
         INPUT:
 
-        - ``value`` - positive Integer
+        - ``value`` -- positive integer
 
         OUTPUT:
 
@@ -1310,7 +1310,7 @@ class EllipticCurvePoint_field(SchemeMorphism_point_abelian_variety_field):
 
             This function is used in _miller_ algorithm.
 
-        AUTHOR:
+        AUTHORS:
 
         - David Hansen (2009-01-25)
         """
@@ -1515,20 +1515,26 @@ class EllipticCurvePoint_field(SchemeMorphism_point_abelian_variety_field):
             t = 1/(t*vee)
         return t
 
-    def weil_pairing(self, Q, n):
+    def weil_pairing(self, Q, n, algorithm=None):
         r"""
-        Compute the Weil pairing of self and `Q` using Miller's algorithm.
+        Compute the Weil pairing of this point with another point `Q`
+        on the same curve.
 
         INPUT:
 
-        - ``Q`` -- a point on self.curve().
+        - ``Q`` -- another point on the same curve as ``self``.
 
-        - ``n`` -- an integer `n` such that `nP = nQ = (0:1:0)` where
-          `P` = self.
+        - ``n`` -- an integer `n` such that `nP = nQ = (0:1:0)`, where
+          `P` is ``self``.
+
+        - ``algorithm`` (default: ``None``) -- choices are ``pari``
+          and ``sage``. PARI is usually significantly faster, but it
+          only works over finite fields. When ``None`` is given, a
+          suitable algorithm is chosen automatically.
 
         OUTPUT:
 
-        An `n`'th root of unity in the base field self.curve().base_field()
+        An `n`'th root of unity in the base field of the curve.
 
         EXAMPLES::
 
@@ -1548,7 +1554,7 @@ class EllipticCurvePoint_field(SchemeMorphism_point_abelian_variety_field):
             sage: Px.weil_pairing(O,41) == Fx(1)
             True
 
-        An error is raised if either point is not n-torsion::
+        An error is raised if either point is not `n`-torsion::
 
             sage: Px.weil_pairing(O,40)
             Traceback (most recent call last):
@@ -1566,35 +1572,72 @@ class EllipticCurvePoint_field(SchemeMorphism_point_abelian_variety_field):
 
         An example over a number field::
 
-            sage: P,Q = EllipticCurve('11a1').change_ring(CyclotomicField(5)).torsion_subgroup().gens()  # long time (10s)
-            sage: P,Q = (P.element(), Q.element())  # long time
-            sage: (P.order(),Q.order())  # long time
+            sage: P,Q = EllipticCurve('11a1').change_ring(CyclotomicField(5)).torsion_subgroup().gens()
+            sage: P,Q = (P.element(), Q.element())
+            sage: (P.order(),Q.order())
             (5, 5)
-            sage: P.weil_pairing(Q,5)  # long time
+            sage: P.weil_pairing(Q,5)
             zeta5^2
-            sage: Q.weil_pairing(P,5)  # long time
+            sage: Q.weil_pairing(P,5)
             zeta5^3
+
+        TESTS:
+
+        Check that the original Sage implementation still works::
+
+            sage: GF(65537^2).inject_variables()
+            Defining z2
+            sage: E = EllipticCurve(GF(65537^2), [0,1])
+            sage: P = E(22, 28891)
+            sage: Q = E(-93, 40438*z2 + 31573)
+            sage: P.weil_pairing(Q, 7282, algorithm='sage')
+            19937*z2 + 65384
+
+        Passing an unknown ``algorithm=`` argument should fail::
+
+            sage: P.weil_pairing(Q, 7282, algorithm='_invalid_')
+            Traceback (most recent call last):
+            ...
+            ValueError: unknown algorithm
 
         ALGORITHM:
 
-        Implemented using Proposition 8 in [Mil2004]_.  The value 1 is
-        returned for linearly dependent input points.  This condition
-        is caught via a DivisionByZeroError, since the use of a
-        discrete logarithm test for linear dependence, is much too slow
-        for large `n`.
+        - For ``algorithm='pari'``: :pari:`ellweilpairing`.
 
-        AUTHOR:
+        - For ``algorithm='sage'``:
+          Implemented using Proposition 8 in [Mil2004]_.  The value 1 is
+          returned for linearly dependent input points.  This condition
+          is caught via a DivisionByZeroError, since the use of a
+          discrete logarithm test for linear dependence is much too slow
+          for large `n`.
+
+        AUTHORS:
 
         - David Hansen (2009-01-25)
+        - Lorenz Panny (2022): ``algorithm='pari'``
         """
         P = self
         E = P.curve()
 
-        if not Q.curve() is E:
+        if Q.curve() is not E:
             raise ValueError("points must both be on the same curve")
 
+        if algorithm is None:
+            if E.base_field().is_finite():
+                algorithm = 'pari'
+            else:
+                algorithm = 'sage'
+
+        if algorithm == 'pari':
+            if pari.ellmul(E,P,n) != [0] or pari.ellmul(E,Q,n) != [0]:
+                raise ValueError("points must both be n-torsion")
+            return E.base_field()(pari.ellweilpairing(E, P, Q, n))
+
+        if algorithm != 'sage':
+            raise ValueError('unknown algorithm')
+
         # Test if P, Q are both in E[n]
-        if not ((n*P).is_zero() and (n*Q).is_zero()):
+        if n*P or n*Q:
             raise ValueError("points must both be n-torsion")
 
         one = E.base_field().one()
@@ -1813,7 +1856,7 @@ class EllipticCurvePoint_field(SchemeMorphism_point_abelian_variety_field):
 
         - ``t`` -- the trace of Frobenius of the curve over `GF(q)`.
 
-        - ``q`` -- (default:None) the size of base field (the "big"
+        - ``q`` -- (default: None) the size of base field (the "big"
           field is `GF(q^k)`). `q` needs to be set only if its value
           cannot be deduced.
 
@@ -2055,7 +2098,7 @@ class EllipticCurvePoint_number_field(EllipticCurvePoint_field):
 
         .. NOTE::
 
-           :meth:`additive_order` is a synonym for :meth:`order`
+            :meth:`additive_order` is a synonym for :meth:`order`
 
         EXAMPLES::
 
@@ -2073,7 +2116,6 @@ class EllipticCurvePoint_number_field(EllipticCurvePoint_field):
             2
             sage: P.additive_order()
             2
-
         """
         try:
             return self._order
@@ -2087,7 +2129,6 @@ class EllipticCurvePoint_number_field(EllipticCurvePoint_field):
         E = self.curve()
 
         # First try PARI
-        from sage.libs.pari.all import PariError
         try:
             n = E.pari_curve().ellorder(self)
             if n:
@@ -2210,7 +2251,6 @@ class EllipticCurvePoint_number_field(EllipticCurvePoint_field):
             sage: e1,e2,e3 = E1.two_division_polynomial().roots(RR,multiplicities=False)
             sage: e1 < e2 < e3 and e(P[0]) < e3
             True
-
         """
         if self.is_zero():       # trivial case
             return True
@@ -2407,7 +2447,6 @@ class EllipticCurvePoint_number_field(EllipticCurvePoint_field):
             (abar : 1 : 1)
             sage: P.reduction(F.ideal(a^2-4*a-2))
             (abar : 1 : 1)
-
         """
         P = self
         E = P.curve()
@@ -2447,8 +2486,8 @@ class EllipticCurvePoint_number_field(EllipticCurvePoint_field):
 
         .. NOTE::
 
-           The correct height to use for the regulator in the BSD
-           formula is the non-normalised height.
+            The correct height to use for the regulator in the BSD
+            formula is the non-normalised height.
 
         EXAMPLES::
 
@@ -2639,7 +2678,6 @@ class EllipticCurvePoint_number_field(EllipticCurvePoint_field):
             sage: P2 = F([2,5])
             sage: P2.height()
             1.06248137652528
-
         """
         if self.has_finite_order():
             return rings.QQ(0)
@@ -3203,7 +3241,6 @@ class EllipticCurvePoint_number_field(EllipticCurvePoint_field):
             sage: P = E(2-i,4+2*i)
             sage: L.elliptic_logarithm(P,prec=100)
             0.70448375537782208460499649302 - 0.79246725643650979858266018068*I
-
         """
         from sage.rings.number_field.number_field import refine_embedding
         from sage.rings.all import RealField, ComplexField, QQ
@@ -3438,29 +3475,88 @@ class EllipticCurvePoint_finite_field(EllipticCurvePoint_field):
         x, y = self.xy()
         return "%s![%s,%s]" % (E, x, y)
 
+    def _acted_upon_(self, other, side):
+        r"""
+        We implement ``_acted_upon_`` to keep track of cached
+        point orders when scalar multiplications are applied.
+
+        EXAMPLES::
+
+            sage: P = EllipticCurve(GF(65537), [2,2]).lift_x(6)
+            sage: P.order().factor()
+            2^2 * 3 * 37^2
+            sage: getattr(74*P, '_order', None)
+            222
+            sage: getattr(P*4070, '_order', None)
+            222
+            sage: getattr(506*P*37, '_order', None)
+            222
+        """
+        k = ZZ(other)
+        E = self.curve()
+
+        try:
+            pariQ = pari.ellmul(E, self, k)
+        except PariError:
+            pariQ = None
+
+        if pariQ is not None:
+            if pariQ == [0]:
+                vQ = 0
+            else:
+                assert len(pariQ) == 2
+                vQ = Sequence(tuple(pariQ) + (1,), E.base_field())
+            Q = EllipticCurvePoint_finite_field(E, vQ, check=False)
+
+        else:
+            Q = IntegerMulAction(ZZ, self.parent())._act_(k, self)
+
+        n = getattr(self, '_order', None)
+        if n is not None:
+            Q._order = n // n.gcd(k)  # Lagrange's theorem
+
+        return Q
+
     def discrete_log(self, Q, ord=None):
         r"""
-        Returns discrete log of `Q` with respect to `P` =self.
+        Return the discrete logarithm of `Q` to base `P` = ``self``,
+        that is, an integer `x` such that `xP = Q`.
+
+        A :class:`ValueError` is raised if there is no solution.
+
+        ALGORITHM:
+
+        To compute the actual logarithm, :pari:`elllog` is called.
+
+        However, ``elllog()`` does not guarantee termination if `Q`
+        is not a multiple of `P`, so we first need to check subgroup
+        membership. This is done as follows:
+
+        - Let `n` denote the order of `P`. First check that `nQ` equals
+          the point at infinity (and hence the order of `Q` divides `n`).
+
+        - If the curve order `\#E` has been cached, check whether
+          `\gcd(n^2, \#E) = n`. If this holds, the curve has cyclic
+          `n`-torsion, hence all points whose order divides `n` must be
+          multiples of `P` and we are done.
+
+        - Otherwise (if this test is inconclusive), check that the Weil
+          pairing of `P` and `Q` is trivial.
 
         INPUT:
 
-        - ``Q`` (point) -- another point on the same curve as self.
-
-        - ``ord`` (integer or ``None`` (default)) -- the order of self.
+        - ``Q`` (point) -- another point on the same curve as ``self``.
 
         OUTPUT:
 
-        (integer) -- The discrete log of `Q` with respect to `P`, which is an
-        integer `m` with `0\le m<o(P)` such that `mP=Q`, if one
-        exists. A ValueError is raised if there is no solution.
+        (integer) -- The discrete logarithm of `Q` with respect to `P`,
+        which is an integer `x` with `0\le x<\mathrm{ord}(P)` such that
+        `xP=Q`, if one exists.
 
-        .. NOTE::
-
-           The order of self is computed if not supplied.
-
-        AUTHOR:
+        AUTHORS:
 
         - John Cremona. Adapted to use generic functions 2008-04-05.
+        - Lorenz Panny (2022): switch to PARI.
 
         EXAMPLES::
 
@@ -3469,18 +3565,47 @@ class EllipticCurvePoint_finite_field(EllipticCurvePoint_field):
             sage: E = EllipticCurve([0,1,1,a,a])
             sage: E.cardinality()
             762
-            sage: A = E.abelian_group()
-            sage: P = A.gen(0).element()
+            sage: P = E.gens()[0]
             sage: Q = 400*P
             sage: P.discrete_log(Q)
             400
+
+        TESTS:
+
+        Some random testing::
+
+            sage: sz = randint(8,32)
+            sage: e = randint(1,3)
+            sage: p = random_prime(ceil(2**(sz/e)))
+            sage: E = EllipticCurve(j=GF((p,e),'a').random_element())
+            sage: P = E.random_point()
+            sage: Q = randrange(2**999) * P
+            sage: x = P.discrete_log(Q)
+            sage: x*P == Q
+            True
+
+        Doctest deprecation::
+
+            sage: P.discrete_log(Q, ord=P.order())
+            doctest:warning
+            ...
+            DeprecationWarning: The "ord" argument to .discrete_log() is obsolete. ...
         """
-        if ord is None:
-            ord = self.order()
-        try:
-            return generic.discrete_log(Q, self, ord, operation='+')
-        except Exception:
-            raise ValueError("ECDLog problem has no solution")
+        if ord is not None:
+            from sage.misc.superseded import deprecation
+            deprecation(33121, 'The "ord" argument to .discrete_log() is obsolete. Use the .set_order() method instead.')
+            self.set_order(ord)
+        if Q not in self.parent():
+            raise ValueError('not a point on the same curve')
+        n = self.order()
+        if n*Q:
+            raise ValueError('ECDLog problem has no solution (order of Q does not divide order of P)')
+        E = self.curve()
+        if hasattr(E, '_order') and E._order.gcd(n**2) == n:
+            pass    # cyclic rational n-torsion -> okay
+        elif self.weil_pairing(Q, n) != 1:
+            raise ValueError('ECDLog problem has no solution (non-trivial Weil pairing)')
+        return ZZ(pari.elllog(self.curve(), Q, self, n))
 
     def has_finite_order(self):
         r"""
@@ -3506,7 +3631,7 @@ class EllipticCurvePoint_finite_field(EllipticCurvePoint_field):
 
         .. NOTE::
 
-           :meth:`additive_order` is a synonym for :meth:`order`
+            :meth:`additive_order` is a synonym for :meth:`order`
 
         EXAMPLES::
 
@@ -3553,6 +3678,25 @@ class EllipticCurvePoint_finite_field(EllipticCurvePoint_field):
             sage: P = E.random_point()
             sage: P.order() # random
             46912611635760
+
+        TESTS:
+
+        Check that the order actually gets cached (:trac:`32786`)::
+
+            sage: E = EllipticCurve(GF(31337), [42,1])
+            sage: P = E.lift_x(1)
+            sage: hasattr(P, '_order')
+            False
+            sage: P.order()
+            15649
+            sage: P._order
+            15649
+
+        The curve order should also get cached as a side effect
+        of computing a point order::
+
+            sage: E._order
+            31298
         """
         try:
             return self._order
@@ -3560,7 +3704,13 @@ class EllipticCurvePoint_finite_field(EllipticCurvePoint_field):
             pass
 
         E = self.curve()
-        ord = getattr(E, "_order", None)  # get cached order of the curve
-        return Integer(E.pari_curve().ellorder(self, ord))
+
+        if getattr(E, '_order', None) is None:
+            # The curve order will be computed and cached by PARI during
+            # ellorder() anyway. We might as well cache it here too.
+            E._order = Integer(E.pari_curve().ellcard())
+
+        self._order = Integer(E.pari_curve().ellorder(self, E._order))
+        return self._order
 
     additive_order = order

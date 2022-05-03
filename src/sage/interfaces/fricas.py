@@ -1145,7 +1145,7 @@ class FriCASElement(ExpectElement):
         P = self._check_valid()
         return not P.new("zero?(%s)" % self._name).sage()
 
-    __nonzero__ = __bool__
+    
 
     def __float__(self):
         """
@@ -1927,7 +1927,9 @@ class FriCASElement(ExpectElement):
             <BLANKLINE>
                Cannot convert the value from type Any to InputForm .
         """
-        from sage.rings.all import PolynomialRing, RDF, I
+        from sage.rings.polynomial.polynomial_ring_constructor import PolynomialRing
+        from sage.rings.real_double import RDF
+        from sage.rings.imaginary_unit import I
         from sage.rings.real_mpfr import RealField
         from sage.symbolic.ring import SR
         from sage.matrix.constructor import matrix

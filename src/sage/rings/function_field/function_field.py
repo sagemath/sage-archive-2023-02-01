@@ -111,22 +111,21 @@ Function fields over the algebraic field are supported::
     sage: m = L.completion(pl, prec=5)
     sage: m(x)
     I + s + O(s^5)
-    sage: m(y)
+    sage: m(y)                             # long time (4s)
     -2*s + (-4 - I)*s^2 + (-15 - 4*I)*s^3 + (-75 - 23*I)*s^4 + (-413 - 154*I)*s^5 + O(s^6)
-    sage: m(y)^2 + m(y) + m(x) + 1/m(x)
+    sage: m(y)^2 + m(y) + m(x) + 1/m(x)    # long time (8s)
     O(s^5)
 
 TESTS::
 
     sage: TestSuite(J).run()
-    sage: TestSuite(K).run(max_runs=1024) # long time (5s)
-    sage: TestSuite(L).run(max_runs=64)   # long time (10s)
-    sage: TestSuite(M).run(max_runs=32)   # long time (30s)
-    sage: TestSuite(N).run(max_runs=64, skip = '_test_derivation')  # long time (8s)
-    sage: TestSuite(O).run(max_runs=128, skip = '_test_derivation') # long time (8s)
-
+    sage: TestSuite(K).run(max_runs=256)   # long time (10s)
+    sage: TestSuite(L).run(max_runs=8)     # long time (25s)
+    sage: TestSuite(M).run(max_runs=8)     # long time (35s)
+    sage: TestSuite(N).run(max_runs=8, skip = '_test_derivation')    # long time (15s)
+    sage: TestSuite(O).run()
     sage: TestSuite(R).run()
-    sage: TestSuite(S).run() # long time (3s)
+    sage: TestSuite(S).run()               # long time (4s)
 
 Global function fields
 ----------------------
@@ -224,10 +223,11 @@ AUTHORS:
 # ****************************************************************************
 from sage.misc.cachefunc import cached_method
 
-from sage.interfaces.all import singular
+from sage.interfaces.singular import singular
 
 from sage.arith.all import lcm
 
+from sage.rings.integer import Integer
 from sage.rings.ring import Field
 from sage.rings.polynomial.polynomial_ring_constructor import PolynomialRing
 from sage.rings.qqbar_decorators import handle_AA_and_QQbar
@@ -287,7 +287,7 @@ class FunctionField(Field):
         TESTS::
 
             sage: K.<x> = FunctionField(QQ)
-            sage: TestSuite(K).run()
+            sage: TestSuite(K).run()               # long time (3s)
         """
         Field.__init__(self, base_field, names=names, category=category)
 
@@ -729,7 +729,7 @@ class FunctionField(Field):
         EXAMPLES::
 
             sage: K.<x> = FunctionField(QQ)
-            sage: TestSuite(K).run() # indirect doctest
+            sage: TestSuite(K).run()    # indirect doctest, long time (3s)
         """
         tester = self._tester(**options)
         S = tester.some_elements()
@@ -1130,6 +1130,27 @@ class FunctionField(Field):
         from .maps import FunctionFieldCompletion
         return FunctionFieldCompletion(self, place, name=name, prec=prec, gen_name=gen_name)
 
+    def extension_constant_field(self, k):
+        """
+        Return the constant field extension with constant field `k`.
+
+        INPUT:
+
+        - ``k`` -- an extension field of the constant field of this function field
+
+        EXAMPLES::
+
+            sage: K.<x> = FunctionField(GF(2)); _.<Y> = K[]
+            sage: F.<y> = K.extension(Y^2 + Y + x + 1/x)
+            sage: E = F.extension_constant_field(GF(2^4))
+            sage: E
+            Function field in y defined by y^2 + y + (x^2 + 1)/x over its base
+            sage: E.constant_base_field()
+            Finite Field in z4 of size 2^4
+        """
+        from .extensions import ConstantFieldExtension
+        return ConstantFieldExtension(self, k)
+
 
 class FunctionField_polymod(FunctionField):
     """
@@ -1209,7 +1230,7 @@ class FunctionField_polymod(FunctionField):
             sage: K.<x> = FunctionField(QQ); R.<y> = K[]
             sage: L = K.extension(y^5 - x^3 - 3*x + x*y); L
             Function field in y defined by y^5 + x*y - x^3 - 3*x
-            sage: TestSuite(L).run()  # long time
+            sage: TestSuite(L).run(max_runs=512)   # long time (15s)
 
         We can set the variable name, which doesn't have to be y::
 
@@ -2118,80 +2139,6 @@ class FunctionField_polymod(FunctionField):
             raise NotImplementedError("computation of genus over non-prime "
                                       "constant fields not implemented yet")
 
-    @cached_method
-    def derivation(self):
-        r"""
-        Return a generator of the space of derivations over the constant base
-        ring of this function field `K`.
-
-        A derivation on `K` is map `K\to K` with
-        `D(\alpha+\beta)=D(\alpha)+D(\beta)` and `D(\alpha\beta)=\beta
-        D(\alpha)+\alpha D(\beta)` for all `\alpha,\beta\in K`.
-
-        If the base field `k` of `K` is perfect, then the derivations on `K`
-        form a one-dimensional `K`-vector space. (More generally, this is true
-        if `K` is separable over `k`, or in other words if the corresponding
-        curve is geometrically reduced over `k`; this is automatically the case
-        if `k` is perfect.) We apply the techniques from [GT1996]_ to find a
-        generator of this one-dimensional vector space, which is then returned
-        by the algorithm.
-
-        ALGORITHM:
-
-        If `K` is a separable extension of another function field `F` between
-        `K` and `k`, then Proposition 11 of [GT1996]_ describes how to compute
-        the unique extension of a derivation on `F` to `K`; we then apply this
-        algorithm to the generator of the space of derivations on `F`, which we
-        may calculate inductively.
-        If `K` is not given as a separable extension of another function field,
-        then we find a field isomorphic to `K` that is a separable extension of
-        a rational function field over `k` by using :meth:`separable_model`.
-        This part of the algorithm uses the assumption that `k` is perfect.
-
-        EXAMPLES::
-
-            sage: K.<x> = FunctionField(GF(3))
-            sage: R.<y> = K[]
-            sage: L.<y> = K.extension(y^2 - x)
-            sage: d = L.derivation(); d
-            Derivation map:
-                From: Function field in y defined by y^2 + 2*x
-                To:   Function field in y defined by y^2 + 2*x
-                Defn: y |--> 2/x*y
-                      x |--> 1
-            sage: d(x)
-            1
-            sage: d(x^3)
-            0
-            sage: d(x*y)
-            0
-            sage: d(y)
-            2/x*y
-
-        This also works for inseparable extensions::
-
-            sage: R.<y> = K[]
-            sage: L.<y> = K.extension(y^3 - x)
-            sage: d = L.derivation(); d
-            Derivation map:
-                From: Function field in y defined by y^3 + 2*x
-                To:   Function field in y defined by y^3 + 2*x
-                Defn: y |--> 1
-                      x |--> 0
-            sage: d(x^2)
-            0
-            sage: d(y^2)
-            2*y
-            sage: d(x*y)
-            x
-
-        """
-        from .maps import FunctionFieldDerivation_separable, FunctionFieldDerivation_inseparable
-        if self.is_separable():
-            return FunctionFieldDerivation_separable(self, self.base_ring().derivation())
-        else:
-            return FunctionFieldDerivation_inseparable(self)
-
     def _simple_model(self, name='v'):
         r"""
         Return a finite extension `N/K(x)` isomorphic to the tower of
@@ -2692,7 +2639,7 @@ class FunctionField_polymod(FunctionField):
             # turn the minpoly of K into a bivariate polynomial
             if names[0] == names[1]:
                 raise ValueError("names of generators must be distinct")
-            from sage.rings.all import PolynomialRing
+            from sage.rings.polynomial.polynomial_ring_constructor import PolynomialRing
             R = PolynomialRing(self.constant_base_field(), names=names)
             S = R.remove_var(names[1])
             f = R( L.polynomial().change_variable_name(names[1]).map_coefficients(
@@ -2888,7 +2835,8 @@ class FunctionField_simple(FunctionField_polymod):
             sage: F.<y> = K.extension(Y^3 - x^2*(x^2 + x + 1)^2)
             sage: O = K.maximal_order()
             sage: pls = [O.ideal(x-QQbar(sqrt(c))).place() for c in [-2, -1, 0, 1, 2]]
-            sage: all(q.place_below() == p for p in pls for q in F.places_above(p))
+            sage: all(q.place_below() == p         # long time (4s)
+            ....:     for p in pls for q in F.places_above(p))
             True
         """
         R = self.base_field()
@@ -2984,7 +2932,7 @@ class FunctionField_simple(FunctionField_polymod):
         """
         k, _ = self.exact_constant_field()
         different_degree = self.different().degree() # must be even
-        return different_degree // 2 - self.degree() / k.degree() + 1
+        return Integer(different_degree // 2 - self.degree() / k.degree()) + 1
 
     def residue_field(self, place, name=None):
         """
@@ -3091,7 +3039,7 @@ class FunctionField_global(FunctionField_simple):
 
         sage: K.<x> = FunctionField(GF(4)); _.<Y> = K[]
         sage: L.<y> = K.extension((1 - x)*Y^7 - x^3)
-        sage: L.gaps()
+        sage: L.gaps()                         # long time (6s)
         [1, 2, 3]
 
     or may define a trivial extension::
@@ -3111,7 +3059,7 @@ class FunctionField_global(FunctionField_simple):
 
             sage: K.<x> = FunctionField(GF(5)); _.<Y> = K[]
             sage: L.<y> = K.extension(Y^3 - (x^3 - 1)/(x^3 - 2))
-            sage: TestSuite(L).run()
+            sage: TestSuite(L).run()               # long time (7s)
         """
         FunctionField_polymod.__init__(self, polynomial, names)
 
@@ -3252,7 +3200,6 @@ class FunctionField_global(FunctionField_simple):
         O = self.maximal_order()
         K = self.base_field()
 
-        from sage.rings.integer import Integer
         degree = Integer(degree)
 
         for d in degree.divisors():
@@ -3807,7 +3754,7 @@ class RationalFunctionField(FunctionField):
 
             sage: K.<t> = FunctionField(CC); K
             Rational function field in t over Complex Field with 53 bits of precision
-            sage: TestSuite(K).run()
+            sage: TestSuite(K).run()               # long time (5s)
 
             sage: FunctionField(QQ[I], 'alpha')
             Rational function field in alpha over Number Field in I with defining polynomial x^2 + 1 with I = 1*I
@@ -4455,7 +4402,7 @@ class RationalFunctionField(FunctionField):
             sage: K.genus()
             0
         """
-        return 0
+        return Integer(0)
 
     def change_variable_name(self, name):
         r"""
@@ -4501,38 +4448,6 @@ class RationalFunctionField(FunctionField):
             from .constructor import FunctionField
             ret = FunctionField(self.constant_base_field(), name)
             return ret, ret.hom(self.gen()), self.hom(ret.gen())
-
-    @cached_method
-    def derivation(self):
-        r"""
-        Return a derivation of the rational function field over the constant
-        base field.
-
-        The derivation maps the generator of the rational function field to 1.
-
-        EXAMPLES::
-
-            sage: K.<x> = FunctionField(GF(3))
-            sage: m = K.derivation(); m
-            Derivation map:
-              From: Rational function field in x over Finite Field of size 3
-              To:   Rational function field in x over Finite Field of size 3
-              Defn: x |--> 1
-            sage: m(x)
-            1
-
-        TESTS::
-
-            sage: L.<y> = FunctionField(K)
-            sage: L.derivation()
-            Traceback (most recent call last):
-            ...
-            NotImplementedError: not implemented for non-perfect base fields
-        """
-        from .maps import FunctionFieldDerivation_rational
-        if not self.constant_base_field().is_perfect():
-            raise NotImplementedError("not implemented for non-perfect base fields")
-        return FunctionFieldDerivation_rational(self, self.one())
 
     def residue_field(self, place, name=None):
         """

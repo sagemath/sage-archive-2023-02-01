@@ -224,7 +224,6 @@ class EllipticCurveHom_composite(EllipticCurveHom):
               From: Elliptic Curve defined by y^2 = x^3 + x over Finite Field of size 419
               To:   Elliptic Curve defined by y^2 = x^3 + 373*x + 126 over Finite Field of size 419
 
-
         The given kernel generators need not be independent::
 
             sage: K.<a> = NumberField(x^2 - x - 5)
@@ -260,13 +259,13 @@ class EllipticCurveHom_composite(EllipticCurveHom):
             kernel = [kernel]
 
         for P in kernel:
-            if not P in E:
+            if P not in E:
                 raise ValueError(f'given point {P} does not lie on {E}')
 
         self._phis = _compute_factored_isogeny(kernel)
 
         if not self._phis:
-            self._phis = [WeierstrassIsomorphism(E, (1,0,0,0))]
+            self._phis = [WeierstrassIsomorphism(E, (1, 0, 0, 0))]
 
         if codomain is not None:
             if not isinstance(codomain, EllipticCurve_generic):
@@ -840,4 +839,3 @@ class EllipticCurveHom_composite(EllipticCurveHom):
                 return ret
             return EllipticCurveHom_composite.from_factors([other, self])
         EllipticCurveHom._composition_ = _composition_
-

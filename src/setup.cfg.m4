@@ -30,7 +30,6 @@ python_requires = >=3.7, <3.11
 install_requires =
     esyscmd(`sage-get-system-packages install-requires \
         sage_conf \
-        sage_setup \
         six \
         | sed "2,\$s/^/    /;"')dnl'
 dnl From build/pkgs/sagelib/dependencies

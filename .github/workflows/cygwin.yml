@@ -15,7 +15,7 @@ on:
         type: string
 
 jobs:
-  cygwin-stage:
+  stage:
     env:
       MAKE: make -j8
       SAGE_NUM_THREADS: 3
@@ -51,7 +51,7 @@ jobs:
       run: |
         C:\\tools\\cygwin\\bin\\bash -l -x -c 'cat /proc/cpuinfo'
         C:\\tools\\cygwin\\bin\\bash -l -x -c 'python3.9 -m pip install tox'
-        C:\\tools\\cygwin\\bin\\bash -l -x -c 'cd $(cygpath -u "$GITHUB_WORKSPACE") && PREFIX="${{ env.SAGE_LOCAL }}" tox -e ${{ inputs.toxenv }} -- ${{ input.targets }}'
+        C:\\tools\\cygwin\\bin\\bash -l -x -c 'cd $(cygpath -u "$GITHUB_WORKSPACE") && PREFIX="${{ env.SAGE_LOCAL }}" tox -e ${{ inputs.toxenv }} -- ${{ inputs.targets }}'
     - name: Prepare logs artifact
       shell: bash
       run: |

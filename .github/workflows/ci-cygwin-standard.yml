@@ -77,7 +77,6 @@ jobs:
       previous_stages: ii-*
       targets: sagelib
     needs: [cygwin-stage-ii-a, cygwin-stage-ii-b, cygwin-stage-ii-c, cygwin-stage-ii-d, cygwin-stage-ii-e]
-    continue-on-error: true
 
   cygwin-stage-iii-b:
     uses: ./.github/workflows/cygwin.yml
@@ -86,7 +85,6 @@ jobs:
       previous_stages: ii-*
       targets: networkx
     needs: [cygwin-stage-ii-a, cygwin-stage-ii-b, cygwin-stage-ii-c, cygwin-stage-ii-d, cygwin-stage-ii-e]
-    continue-on-error: true
 
 ############################################## stage-iv ##########################################
 
@@ -97,7 +95,6 @@ jobs:
       previous_stages: iii-*
       targets: build
     needs: [cygwin-stage-iii-a, cygwin-stage-iii-b]
-    continue-on-error: true
 
 ############################################## stage-v ###########################################
 

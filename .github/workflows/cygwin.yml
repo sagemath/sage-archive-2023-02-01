@@ -3,15 +3,49 @@ name: Reusable workflow for Cygwin
 on:
   workflow_call:
     inputs:
+      targets_pre:
+        default: build/make/Makefile
+        type: string
+      targets:
+        type: string
+      targets_optional:
+        default: build/make/Makefile
+        type: string
+      prefix:
+        required: false
+        default: /opt/sage
+        type: string
+      toxenv:
+        required: false
+        default: local-cygwin-choco-standard
+        type: string
+      #
+      # For use in multi-stage CIs
+      #
       stage:
+        required: false
+        default: main
         type: string
       previous_stages:
         required: false
         type: string
-      targets:
+      #
+      # For use in upstream CIs
+      #
+      upstream_artifact:
+        required: false
         type: string
-      toxenv:
-        default: local-cygwin-choco-standard
+      sage_repo:
+        required: false
+        type: string
+      sage_trac_git:
+        required: false
+        type: string
+      sage_trac_ticket:
+        required: false
+        type: string
+      sage_ref:
+        required: false
         type: string
 
 jobs:
@@ -31,14 +65,54 @@ jobs:
     - run: |
         git config --global core.autocrlf false
         git config --global core.symlinks true
-    - uses: actions/checkout@v1
-    - name: install cygwin and test prerequisites with choco
+    - name: install cygwin with choco
+      shell: bash {0}
+      run: |
+        choco --version
+        choco install git python3 --source cygwin
+
+    - name: Check out SageMath
+      uses: actions/checkout@v2
+      with:
+        repository: ${{ inputs.sage_repo }}
+        ref: ${{ inputs.sage_ref }}
+        fetch-depth: 2000
+
+    - name: Check out git-trac-command
+      uses: actions/checkout@v2
+      with:
+        repository: sagemath/git-trac-command
+        path: git-trac-command
+      if: inputs.sage_trac_git != ''
+    - name: Check out SageMath from trac.sagemath.org
+      shell: bash {0}
+      # Random sleep and retry to limit the load on trac.sagemath.org
+      run: |
+        git config --global user.email "ci-sage@example.com"
+        git config --global user.name "ci-sage workflow"
+        if [ ! -d .git ]; then git init; fi; git remote add trac ${{ inputs.sage_trac_git }} && x=1 && while [ $x -le 5 ]; do x=$(( $x + 1 )); sleep $(( $RANDOM % 60 + 1 )); if git-trac-command/git-trac fetch $SAGE_TICKET; then git merge FETCH_HEAD || echo "(ignored)"; exit 0; fi; sleep 40; done; exit 1
+      if: inputs.sage_trac_git != ''
+
+    - name: install minimal prerequisites with choco
       shell: bash {0}
       run: |
         choco --version
         PACKAGES="python39 python39-pip"
         choco install $PACKAGES --source cygwin
-    - uses: actions/download-artifact@v2
+
+    - name: Download upstream artifact
+      uses: actions/download-artifact@v2
+      with:
+        path: upstream
+        name: ${{ inputs.upstream_artifact }}
+      if: inputs.upstream_artifact
+    - name: Update Sage packages from upstream artifact
+      run: |
+        C:\\tools\\cygwin\\bin\\bash -l -c 'cd $(cygpath -u "$GITHUB_WORKSPACE") && ls -l upstream/ && export PATH="$(pwd)/build/bin:$PATH:/usr/local/bin:/usr/bin" && (cd upstream && bash -x update-pkgs.sh) && git diff'
+      if: inputs.upstream_artifact
+
+    - name: Download sage-local artifact
+      uses: actions/download-artifact@v2
       with:
         name: ${{ env.LOCAL_ARTIFACT_NAME }}
         path: C:\\tools\\cygwin\\tmp

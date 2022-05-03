@@ -82,7 +82,7 @@ jobs:
       - name: Build
         shell: bash -l {0}
         run: |
-          pip install --no-build-isolation -v -v -e pkgs/sage-conf pkgs/sage-setup src
+          pip install --no-build-isolation -v -v -e ./pkgs/sage-conf ./pkgs/sage-setup ./src
         env:
           SAGE_NUM_THREADS: 2
 

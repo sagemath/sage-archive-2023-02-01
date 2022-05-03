@@ -331,6 +331,28 @@ def PermutationGroup(gens=None, *args, **kwds):
         sage: G2.GeneratorsSmallest()
         [ (3,4,5), (2,3)(4,5), (1,2)(4,5) ]
 
+    We can create a permutation group from a group action::
+
+        sage: A = lambda x: (2*x) % 6
+        sage: X = [0,1,2,3,4,5]
+        sage: G = PermutationGroup(action=A, domain=X)
+        sage: G.orbits()
+        [[0], [1, 2, 4], [3], [5]]
+
+        sage: A = lambda g, x: vector(g*x, immutable=True)
+        sage: X = [vector(x, immutable=True) for x in GF(3)^2]
+        sage: G = SL(2,3); G.gens()
+        (
+        [1 1]  [0 1]
+        [0 1], [2 0]
+        )
+        sage: H = PermutationGroup(G.gens(), action=A, domain=X)
+        sage: H.orbits()
+        [[(0, 0)], [(1, 0), (2, 0), (0, 1), (1, 1), (2, 1), (0, 2), (1, 2), (2, 2)]]
+        sage: H.gens()
+        [((0,1),(1,1),(2,1))((0,2),(2,2),(1,2)),
+         ((1,0),(0,2),(2,0),(0,1))((1,1),(1,2),(2,2),(2,1))]
+
     TESTS::
 
         sage: r = Permutation("(1,7,9,3)(2,4,8,6)")
@@ -359,6 +381,11 @@ def PermutationGroup(gens=None, *args, **kwds):
     domain = kwds.get("domain", None)
     canonicalize = kwds.get("canonicalize", True)
     category = kwds.get("category", None)
+    action = kwds.get("action", None)
+    if action is not None:
+        if domain is None:
+            raise ValueError("you must specify the domain for an action")
+        return PermutationGroup_action(gens, action, domain, gap_group=gap_group)
     if args:
         from sage.misc.superseded import deprecation
         deprecation(31510, "gap_group, domain, canonicalize, category will become keyword only")
@@ -4988,6 +5015,32 @@ class PermutationGroup_subgroup(PermutationGroup_generic):
 
 # Allow for subclasses to use a different subgroup class
 PermutationGroup_generic.Subgroup = PermutationGroup_subgroup
+
+class PermutationGroup_action(PermutationGroup_generic):
+    def __init__(self, gens, action, domain, gap_group=None, category=None, canonicalize=None):
+        from sage.combinat.cyclic_sieving_phenomenon import orbit_decomposition
+        from sage.sets.disjoint_set import DisjointSet
+        if gap_group is not None:
+            raise ValueError("gap_group is not supported with action")
+        if gens is None:
+            self._orbits = orbit_decomposition(domain, action)
+            gens = [tuple(o) for o in self._orbits]
+        else:
+            gens = [[tuple(o) for o in orbit_decomposition(domain, lambda x: action(g, x))]
+                    for g in gens]
+            D = DisjointSet(domain)
+            for g_orbit in gens:
+                for o in g_orbit:
+                    for i in range(1, len(o)):
+                        D.union(o[0], o[i])
+            self._orbits = list(D)
+        PermutationGroup_generic.__init__(self, gens=gens,
+                                          gap_group=gap_group, domain=domain,
+                                          category=category,
+                                          canonicalize=canonicalize)
+
+    def orbits(self):
+        return self._orbits
 
 from sage.misc.rest_index_of_methods import gen_rest_table_index
 __doc__ = __doc__.format(METHODS_OF_PermutationGroup_generic=gen_rest_table_index(PermutationGroup_generic))

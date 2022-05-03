@@ -55,7 +55,7 @@ jobs:
       SAGE_NUM_THREADS: 3
       CYGWIN: winsymlinks:native
       EXTRA_CONFIGURE_ARGS: --enable-fat-binary
-      SAGE_LOCAL: /opt/sage-${{ github.sha }}
+      SAGE_LOCAL: ${{ inputs.prefix }}-${{ github.sha }}
       LOCAL_ARTIFACT_NAME: sage-local-commit-${{ github.sha }}-${{ inputs.toxenv }}
       LOGS_ARTIFACT_NAME: logs-commit-${{ github.sha }}-${{ inputs.toxenv }}
 
@@ -65,11 +65,12 @@ jobs:
     - run: |
         git config --global core.autocrlf false
         git config --global core.symlinks true
+
     - name: install cygwin with choco
       shell: bash {0}
       run: |
         choco --version
-        choco install git python3 --source cygwin
+        choco install git python39 python39-pip --source cygwin
 
     - name: Check out SageMath
       uses: actions/checkout@v2
@@ -93,13 +94,6 @@ jobs:
         if [ ! -d .git ]; then git init; fi; git remote add trac ${{ inputs.sage_trac_git }} && x=1 && while [ $x -le 5 ]; do x=$(( $x + 1 )); sleep $(( $RANDOM % 60 + 1 )); if git-trac-command/git-trac fetch $SAGE_TICKET; then git merge FETCH_HEAD || echo "(ignored)"; exit 0; fi; sleep 40; done; exit 1
       if: inputs.sage_trac_git != ''
 
-    - name: install minimal prerequisites with choco
-      shell: bash {0}
-      run: |
-        choco --version
-        PACKAGES="python39 python39-pip"
-        choco install $PACKAGES --source cygwin
-
     - name: Download upstream artifact
       uses: actions/download-artifact@v2
       with:
@@ -108,7 +102,7 @@ jobs:
       if: inputs.upstream_artifact
     - name: Update Sage packages from upstream artifact
       run: |
-        C:\\tools\\cygwin\\bin\\bash -l -c 'cd $(cygpath -u "$GITHUB_WORKSPACE") && ls -l upstream/ && export PATH="$(pwd)/build/bin:$PATH:/usr/local/bin:/usr/bin" && (cd upstream && bash -x update-pkgs.sh) && git diff'
+        C:\\tools\\cygwin\\bin\\bash -l -c 'cd $(cygpath -u "$GITHUB_WORKSPACE") && git config --global --add safe.directory $(pwd) && ls -l upstream/ && export PATH="$(pwd)/build/bin:$PATH:/usr/local/bin:/usr/bin" && (cd upstream && bash -x update-pkgs.sh) && git diff'
       if: inputs.upstream_artifact
 
     - name: Download sage-local artifact

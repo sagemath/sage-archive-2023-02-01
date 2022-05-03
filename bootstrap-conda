@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/usr/bin/env bash
 
 ########################################################################
 # Generate auto-generated conda environment files

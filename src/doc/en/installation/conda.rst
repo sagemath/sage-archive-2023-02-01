@@ -132,7 +132,8 @@ Here we assume that you are using a git checkout.
 
   - Install the build prerequisites and the Sage library::
 
-      $ pip install --no-build-isolation -v -v --editable ./pkgs/sage-conf ./pkgs/sage-setup ./src
+      $ pip install --no-build-isolation -v -v --editable ./pkgs/sage-conf ./pkgs/sage-setup
+      $ pip install --no-build-isolation -v -v --editable ./src
 
   - Verify that Sage has been installed::
 

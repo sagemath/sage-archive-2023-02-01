@@ -1,1 +1,1 @@
-sagemath-environment
+sagemath-environment ~= 9.6rc3

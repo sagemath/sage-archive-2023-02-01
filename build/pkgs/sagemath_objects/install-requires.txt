@@ -1,1 +1,2 @@
-sagemath-objects ~= 9.5b6
+# Trac
+sagemath-objects == 9.6rc3.post1

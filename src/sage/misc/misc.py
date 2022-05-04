@@ -255,31 +255,16 @@ def SPYX_TMP():
         sage: SPYX_TMP
         doctest:warning...
         DeprecationWarning: SPYX_TMP is deprecated;
-        use sage.misc.misc.spyx_tmp instead
+        use sage.misc.temporary_file.spyx_tmp instead
         See https://trac.sagemath.org/33213 for details.
         ...
 
     """
+    from sage.misc.temporary_file import spyx_tmp
     from sage.misc.superseded import deprecation
-    deprecation(33213, "SPYX_TMP is deprecated; use sage.misc.misc.spyx_tmp instead")
+    deprecation(33213, "SPYX_TMP is deprecated; use sage.misc.temporary_file.spyx_tmp instead")
     return spyx_tmp()
 
-
-@cached_function
-def spyx_tmp():
-    r"""
-    The temporary directory used to store pyx files.
-
-    We use a cached function for this so that the same temporary
-    directory will always be returned (unless the user shoots himself
-    in the foot). Each temporary directory created is removed when
-    sage terminates using an atexit hook.
-    """
-    import atexit, tempfile
-    d = tempfile.TemporaryDirectory()
-    result = os.path.join(d.name, 'spyx')
-    atexit.register(lambda: d.cleanup())
-    return result
 
 @lazy_string
 def SAGE_TMP_INTERFACE():

@@ -294,7 +294,7 @@ def _extract_embedded_position(docstring):
         # Try some common path prefixes for Cython modules built by/for Sage
         # 1) Module in the sage src tree
         # 2) Module compiled by Sage's inline cython() compiler
-        from sage.misc.misc import spyx_tmp
+        from sage.misc.temporary_file import spyx_tmp
         try_filenames = [
             os.path.join(SAGE_LIB, raw_filename),
             os.path.join(spyx_tmp(), '_'.join(raw_filename.split('_')[:-1]),
@@ -2431,7 +2431,7 @@ def sage_getsourcelines(obj):
             source_lines = f.readlines()
     except IOError:
         try:
-            from sage.misc.misc import spyx_tmp
+            from sage.misc.temporary_file import spyx_tmp
             raw_name = filename.split('/')[-1]
             newname = os.path.join(spyx_tmp(), '_'.join(raw_name.split('_')[:-1]), raw_name)
             with open(newname) as f:

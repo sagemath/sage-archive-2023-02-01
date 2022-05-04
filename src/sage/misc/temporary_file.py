@@ -26,6 +26,8 @@ AUTHORS:
 import io
 import os
 import tempfile
+from sage.misc.cachefunc import cached_function
+
 import atexit
 
 
@@ -543,3 +545,19 @@ class atomic_dir(object):
         else:
             # Failure: delete temporary file
             shutil.rmtree(self.tempname)
+
+
+@cached_function
+def spyx_tmp():
+    r"""
+    The temporary directory used to store pyx files.
+
+    We use a cached function for this so that the same temporary
+    directory will always be returned (unless the user shoots himself
+    in the foot). Each temporary directory created is removed when
+    sage terminates using an atexit hook.
+    """
+    d = tempfile.TemporaryDirectory()
+    result = os.path.join(d.name, 'spyx')
+    atexit.register(lambda: d.cleanup())
+    return result

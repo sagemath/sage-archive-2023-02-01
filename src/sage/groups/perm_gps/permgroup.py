@@ -333,11 +333,15 @@ def PermutationGroup(gens=None, *args, **kwds):
 
     We can create a permutation group from a group action::
 
-        sage: a = lambda x: (2*x) % 6
-        sage: X = [0,1,2,3,4,5]
-        sage: G = PermutationGroup(action=a, domain=X)
-        sage: G.orbits()
-        [[0], [1, 2, 4], [3], [5]]
+        sage: a = lambda x: (2*x) % 7
+        sage: H = PermutationGroup(action=a, domain=range(7))
+        sage: H.orbits()
+        [[0], [1, 2, 4], [3, 6, 5]]
+        sage: H.gens()
+        [(), (1,2,4), (3,6,5)]
+
+    Note that we provide generators for the acting group.  The
+    permutation group we construct is its homomorphic image::
 
         sage: a = lambda g, x: vector(g*x, immutable=True)
         sage: X = [vector(x, immutable=True) for x in GF(3)^2]
@@ -379,6 +383,7 @@ def PermutationGroup(gens=None, *args, **kwds):
         ...
         DeprecationWarning: gap_group, domain, canonicalize, category will become keyword only
         See https://trac.sagemath.org/31510 for details.
+
     """
     if not is_ExpectElement(gens) and hasattr(gens, '_permgroup_'):
         return gens._permgroup_()
@@ -5074,11 +5079,10 @@ class PermutationGroup_action(PermutationGroup_generic):
 
         EXAMPLES::
 
-            sage: a = lambda x: (2*x) % 6
-            sage: X = [0,1,2,3,4,5]
-            sage: G = PermutationGroup(action=a, domain=X)
+            sage: a = lambda x: (2*x) % 7
+            sage: G = PermutationGroup(action=a, domain=range(7))
             sage: G.orbits()
-            [[0], [1, 2, 4], [3], [5]]
+            [[0], [1, 2, 4], [3, 6, 5]]
 
         """
         from sage.combinat.cyclic_sieving_phenomenon import orbit_decomposition
@@ -5109,11 +5113,10 @@ class PermutationGroup_action(PermutationGroup_generic):
 
         EXAMPLES::
 
-            sage: a = lambda x: (2*x) % 6
-            sage: X = [0,1,2,3,4,5]
-            sage: G = PermutationGroup(action=a, domain=X)
+            sage: a = lambda x: (2*x) % 7
+            sage: G = PermutationGroup(action=a, domain=range(7))
             sage: G.orbits()
-            [[0], [1, 2, 4], [3], [5]]
+            [[0], [1, 2, 4], [3, 6, 5]]
         """
         return self._orbits
 

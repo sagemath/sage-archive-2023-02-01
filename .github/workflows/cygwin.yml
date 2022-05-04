@@ -122,7 +122,7 @@ jobs:
         C:\\tools\\cygwin\\bin\\bash -l -x -c 'cd $(cygpath -u "$GITHUB_WORKSPACE") && PREFIX="${{ env.SAGE_LOCAL }}" TARGETS_PRE="${{ inputs.targets_pre }}" TARGETS_OPTIONAL="${{ inputs.targets_optional }}" tox -e ${{ inputs.toxenv }} -- ${{ inputs.targets }}'
     - name: Prepare logs artifact
       run: |
-        C:\\tools\\cygwin\\bin\\bash -l -c 'cd $(cygpath -u "$GITHUB_WORKSPACE") && mkdir -p "artifacts/$LOGS_ARTIFACT_NAME"; for a in "${{ env.SAGE_LOCAL }}"/var/tmp/sage/build/*; do if [ -d "$a" ]; then tar -c --remove-files -f "artifacts/$LOGS_ARTIFACT_NAME/$(basename "$a").tar" "$a"; fi; done; cp -r logs/* "artifacts/$LOGS_ARTIFACT_NAME"'
+        C:\\tools\\cygwin\\bin\\bash -l -c 'cd $(cygpath -u "$GITHUB_WORKSPACE") && mkdir -p "artifacts/$LOGS_ARTIFACT_NAME"; for a in "${{ env.SAGE_LOCAL }}"/var/tmp/sage/build/*; do if [ -d "$a" ]; then tar -c --remove-files -f "artifacts/$LOGS_ARTIFACT_NAME/"$(basename "$a")".tar" "$a"; fi; done; cp -r logs/* "artifacts/$LOGS_ARTIFACT_NAME"'
       if: always()
     - uses: actions/upload-artifact@v2
       with:

@@ -11,7 +11,7 @@ five coefficients `[a_1,a_2,a_3,a_4,a_6]` in `R` given by
 Note that the (usual) scheme-theoretic definition of an elliptic curve over `R`
 would require the discriminant to be a unit in `R`, Sage only imposes that the
 discriminant is non-zero. Also, in Magma, Weierstrass Model means a model
-with `a1=a2=a3=0`, which is called *Short Weierstrass Model* in Sage; these do
+with `a_1=a_2=a_3=0`, which is called *Short Weierstrass Model* in Sage; these do
 not always exist in characteristics 2 and 3.
 
 EXAMPLES:

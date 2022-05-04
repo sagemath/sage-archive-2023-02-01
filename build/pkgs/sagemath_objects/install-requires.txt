@@ -1,2 +1,2 @@
 # Trac
-sagemath-objects == 9.6rc3.post1
+sagemath-objects == 9.6rc3.post2

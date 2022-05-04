@@ -6,19 +6,19 @@ five coefficients `[a_1,a_2,a_3,a_4,a_6]` in `R` given by
 
 .. MATH::
 
-    y^2 + a_1 xy + a_3 y = x^3 +a_2 x^2 +a_4 x +a_6.
+    y^2 + a_1 xy + a_3 y = x^3 + a_2 x^2 + a_4 x + a_6.
 
 Note that the (usual) scheme-theoretic definition of an elliptic curve over `R`
-would require the discriminant to be a unit in `R`, Sage only imposes that the
-discriminant is non-zero. Also, in Magma, Weierstrass Model means a model
-with `a_1=a_2=a_3=0`, which is called *Short Weierstrass Model* in Sage; these do
-not always exist in characteristics 2 and 3.
+would require the discriminant to be a unit in `R`; Sage only imposes that the
+discriminant is non-zero. Also note that in Magma, "Weierstrass Model" refers
+to a model with `a_1=a_2=a_3=0`, which is called *Short Weierstrass Model* in
+Sage; these do not always exist in characteristics 2 and 3.
 
 EXAMPLES:
 
 We construct an elliptic curve over an elaborate base ring::
 
-    sage: p = 97; a=1; b=3
+    sage: p, a, b = 97, 1, 3
     sage: R.<u> = GF(p)[]
     sage: S.<v> = R[]
     sage: T = S.fraction_field()
@@ -37,7 +37,7 @@ AUTHORS:
 
 - Julian Rueth (2014-04-11): improved caching
 
-- Lorenz Panny (2022-04-14): :meth:`~sage.schemes.elliptic_curves.ell_generic.EllipticCurve_generic.montgomery_model`
+- Lorenz Panny (2022-04-14): added ``.montgomery_model()``
 """
 
 # ****************************************************************************
@@ -2838,10 +2838,7 @@ class EllipticCurve_generic(WithEqualityById, plane_curve.ProjectivePlaneCurve):
         r,s = max(sols, key=lambda t: t[1].is_square())
 
         A = 3 * r / s
-        if s.is_square():
-            B = R.one()
-        else:
-            B = ~s
+        B = R.one() if s.is_square() else ~s
 
         if not twisted:
             if B != 1:
@@ -2860,8 +2857,8 @@ class EllipticCurve_generic(WithEqualityById, plane_curve.ProjectivePlaneCurve):
             return C
 
         t = ~(B * s).sqrt()
-        iso_maps = (x   - r * z,  t * y  ,  s * z)
-        inv_maps = (x * s + r * z,  s * y/t,    z)
+        iso_maps = (x     - r * z,  t * y  ,  s * z)
+        inv_maps = (x * s + r * z,  s * y/t,      z)
 
         w = self.isomorphism_to(Ew)
         wmap, winv = w.rational_maps(), (~w).rational_maps()

@@ -62,10 +62,67 @@ jobs:
           make pypi-sdists V=0
           (mkdir dist && mv upstream/sage*.tar.gz dist/)
           ls -l dist
+      - uses: actions/upload-artifact@v2
+        with:
+          path: "dist/*.tar.gz"
+          name: dist
       - uses: pypa/gh-action-pypi-publish@release/v1
         with:
           user: __token__
           password: ${{ secrets.SAGEMATH_PYPI_API_TOKEN }}
+          skip_existing: true
+          verbose: true
+        if: env.CAN_DEPLOY == 'true'
+
+  build_wheels:
+    needs: sdists_for_pypi
+    name: Build wheels on ${{ matrix.os }}
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-20.04, macos-10.15]
+    env:
+      # Disable building PyPy wheels on all platforms
+      CIBW_SKIP: pp*
+      # From https://cibuildwheel.readthedocs.io/en/stable/options/#examples_2:
+      # Build `universal2` and `arm64` wheels on an Intel runner.
+      # Note that the `arm64` wheel and the `arm64` part of the `universal2`
+      # wheel cannot be tested in this configuration.
+      CIBW_ARCHS_MACOS: "x86_64 universal2 arm64"
+
+    steps:
+      - uses: actions/download-artifact@v2
+        with:
+          name: dist
+          path: dist
+
+      - name: Build wheels
+        run: |
+          for pkg in dist/*.tar.gz; do
+            pipx run cibuildwheel==2.5.0 $pkg
+          done
+
+      - uses: actions/upload-artifact@v2
+        with:
+          name: wheels
+          path: ./wheelhouse/*.whl
+
+  upload_wheels:
+    needs: build_wheels
+    runs-on: ubuntu-latest
+    steps:
+
+      - uses: actions/download-artifact@v2
+        with:
+          name: wheels
+          path: wheelhouse
+
+      - uses: pypa/gh-action-pypi-publish@release/v1
+        with:
+          user: __token__
+          password: ${{ secrets.SAGEMATH_PYPI_API_TOKEN }}
+          packages_dir: wheelhouse/
           skip_existing: true
           verbose: true
         if: env.CAN_DEPLOY == 'true'

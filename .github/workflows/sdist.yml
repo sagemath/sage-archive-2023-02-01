@@ -90,7 +90,8 @@ jobs:
       # Note that the `arm64` wheel and the `arm64` part of the `universal2`
       # wheel cannot be tested in this configuration.
       CIBW_ARCHS_MACOS: "x86_64 universal2 arm64"
-
+      # https://cibuildwheel.readthedocs.io/en/stable/options/#requires-python
+      CIBW_PROJECT_REQUIRES_PYTHON: ">=3.8"
     steps:
       - uses: actions/download-artifact@v2
         with:

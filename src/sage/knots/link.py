@@ -1895,6 +1895,8 @@ class Link(SageObject):
             sage: L = Link(B([-2, 4, 1, 6, 1, 4]))
             sage: L.alexander_polynomial()
             0
+
+        .. SEEALSO:: :meth:`conway_polynomial`
         """
         R = LaurentPolynomialRing(ZZ, var)
         # The Alexander polynomial of disjoint links are defined to be 0
@@ -1908,6 +1910,45 @@ class Link(SageObject):
             exp = f.exponents()
             return t ** ((-max(exp) - min(exp)) // 2) * f
         return f
+
+    def conway_polynomial(self):
+        """
+        Return the Conway polynomial of ``self``.
+
+        This is closely related to the Alexander polynomial.
+
+        See : wikipedia:`Alexander_polynomial` for the definition.
+
+        EXAMPLES::
+
+            sage: B = BraidGroup(3)
+            sage: L = Link(B([1, -2, 1, -2]))
+            sage: L.conway_polynomial()
+            -t + 1 ?
+
+        .. SEEALSO:: :meth:`alexander_polynomial`
+        """
+        alex = self.alexander_polynomial()
+        L = alex.parent()
+        R = L.polynomial_ring()
+        if alex == 0:
+            return R.zero()
+
+        t = L.gen()
+        alex = alex(t**2)
+        exp = alex.exponents()
+        alex = t**((-max(exp) - min(exp)) // 2) * alex
+
+        conway = R.zero()
+        t_poly = R.gen()
+        binom = t - ~t
+        while alex:
+            M = max(alex.exponents())
+            coeff = alex[M]
+            alex -= coeff * binom**M
+            M = M // 2
+            conway += coeff * t_poly**M 
+        return conway
 
     def determinant(self):
         r"""

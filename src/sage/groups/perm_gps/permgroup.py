@@ -338,7 +338,7 @@ def PermutationGroup(gens=None, *args, **kwds):
         sage: H.orbits()
         [[0], [1, 2, 4], [3, 6, 5]]
         sage: H.gens()
-        [(), (1,2,4), (3,6,5)]
+        [(1,2,4), (3,6,5)]
 
     Note that we provide generators for the acting group.  The
     permutation group we construct is its homomorphic image::
@@ -5052,6 +5052,11 @@ class PermutationGroup_action(PermutationGroup_generic):
         sage: G = PermutationGroup(S.gens(), action=a, domain=S)
         sage: G.orbits()
         [[()], [(1,3,2), (1,2,3)], [(2,3), (1,3), (1,2)]]
+
+    The trivial action of the symmetric group::
+
+        sage: PermutationGroup(SymmetricGroup(3).gens(), action=lambda g, x: x, domain=[1])
+        Permutation Group with generators [()]
     """
     def __init__(self, gens, action, domain, gap_group=None, category=None, canonicalize=None):
         """
@@ -5091,16 +5096,23 @@ class PermutationGroup_action(PermutationGroup_generic):
             raise ValueError("gap_group is not supported with action")
         if gens is None:
             self._orbits = orbit_decomposition(domain, action)
-            gens = [tuple(o) for o in self._orbits]
+            gens = [tuple(o) for o in self._orbits if len(o) > 1]
         else:
-            gens = [[tuple(o) for o in orbit_decomposition(domain, lambda x: action(g, x))]
-                    for g in gens]
+            g_orbits = [orbit_decomposition(domain, lambda x: action(g, x))
+                        for g in gens]
+            gens = []
+            for g_orbit in g_orbits:
+                g_gens = [tuple(o) for o in g_orbit if len(o) > 1]
+                if g_gens:
+                    gens.append(g_gens)
+
             D = DisjointSet(domain)
-            for g_orbit in gens:
+            for g_orbit in g_orbits:
                 for o in g_orbit:
                     for i in range(1, len(o)):
                         D.union(o[0], o[i])
             self._orbits = list(D)
+
         PermutationGroup_generic.__init__(self, gens=gens,
                                           gap_group=gap_group, domain=domain,
                                           category=category,

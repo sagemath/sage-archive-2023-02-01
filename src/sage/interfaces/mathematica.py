@@ -1140,11 +1140,12 @@ def request_wolfram_alpha(input, verbose=False):
     from urllib.request import Request, build_opener, HTTPCookieProcessor, HTTPSHandler
     import json
     from http.cookiejar import CookieJar
-    from ssl import SSLContext
+    from ssl import create_default_context as default_context
 
     # we need cookies for this...
     cj = CookieJar()
-    opener = build_opener(HTTPCookieProcessor(cj), HTTPSHandler(context=SSLContext()))
+    opener = build_opener(HTTPCookieProcessor(cj),
+                          HTTPSHandler(context=default_context()))
     # build initial query for code
     req = Request("https://www.wolframalpha.com/input/api/v1/code")
     resp = opener.open(req)

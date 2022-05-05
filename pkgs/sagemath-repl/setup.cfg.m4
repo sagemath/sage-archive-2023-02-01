@@ -37,6 +37,8 @@ install_requires =
 py_modules =
     sage.all__sagemath_repl
     sage.misc.all__sagemath_repl
+    sage.misc.banner
+    sage.misc.sagedoc
     sage.misc.sage_input
     sage.misc.sage_eval
 

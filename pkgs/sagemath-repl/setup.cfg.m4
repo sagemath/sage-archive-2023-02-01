@@ -48,8 +48,6 @@ packages =
     sage.repl.rich_output
 
 scripts =
-    # The sage script
-    bin/sage
     # Other scripts that should be in the path also for OS packaging of sage:
     bin/sage-eval
     # Included because it is useful for doctesting/coverage testing user scripts too:
@@ -63,21 +61,14 @@ scripts =
     bin/sage-massif
     bin/sage-omega
     bin/sage-valgrind
-    bin/sage-venv-config
-    bin/sage-version.sh
     bin/sage-cleaner
     # Uncategorized scripts in alphabetical order
-    bin/sage-env
-    # sage-env-config -- installed by sage_conf
-    # sage-env-config.in -- not to be installed
     bin/sage-gdb-commands
     bin/sage-inline-fortran
     bin/sage-ipynb2rst
     bin/sage-ipython
     bin/sage-notebook
-    bin/sage-num-threads.py
     bin/sage-preparse
-    bin/sage-python
     bin/sage-run
     bin/sage-run-cython
     bin/sage-startuptime.py

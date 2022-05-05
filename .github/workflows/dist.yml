@@ -76,32 +76,37 @@ jobs:
 
   build_wheels:
     needs: sdists_for_pypi
-    name: Build wheels for ${{ matrix.pkg }} on ${{ matrix.os }}
+    name: Build wheels on ${{ matrix.os }}
     runs-on: ${{ matrix.os }}
     strategy:
       fail-fast: false
       matrix:
         os: [ubuntu-20.04, macos-10.15]
-        pkg: [sagemath-objects, sagemath-categories]
     env:
+      # SPKGs to install as system packages
+      SPKGS: _bootstrap _prereq
+      # Non-Python packages to install as spkgs
+      TARGETS_PRE: gmpy2-build-deps
       # Disable building PyPy wheels on all platforms
       CIBW_SKIP: pp*
-      # From https://cibuildwheel.readthedocs.io/en/stable/options/#examples_2:
-      # Build `universal2` and `arm64` wheels on an Intel runner.
-      # Note that the `arm64` wheel and the `arm64` part of the `universal2`
-      # wheel cannot be tested in this configuration.
-      CIBW_ARCHS_MACOS: "x86_64 universal2 arm64"
       # https://cibuildwheel.readthedocs.io/en/stable/options/#requires-python
       CIBW_PROJECT_REQUIRES_PYTHON: ">=3.8"
+      # Environment during wheel build
+      CIBW_ENVIRONMENT: "PATH=/opt/sage/bin:$PATH CPATH=/opt/sage/include:$CPATH LIBRARY_PATH=/opt/sage/lib:$LIBRARY_PATH PKG_CONFIG_PATH=/opt/sage/share/pkgconfig:$PKG_CONFIG_PATH"
     steps:
+      - uses: actions/checkout@v2
+
       - uses: actions/download-artifact@v2
         with:
           name: dist
           path: dist
 
       - name: Build platform wheels
+        # https://cibuildwheel.readthedocs.io/en/stable/options/#before-all
         run: |
-          pipx run cibuildwheel==2.5.0 dist/${{ matrix.pkg }}*.tar.gz
+          export PATH=build/bin:$PATH
+          export CIBW_BEFORE_ALL="$(sage-print-system-package-command debian --yes --no-install-recommends install $(sage-get-system-packages debian $SPKGS)) || $(sage-print-system-package-command fedora --yes --no-install-recommends install $(sage-get-system-packages fedora $SPKGS)) || $(sage-print-system-package-command homebrew --yes --no-install-recommends install $(sage-get-system-packages homebrew $SPKGS)) && ./bootstrap && ./configure --prefix=/opt/sage && make -j4 V=0 $TARGETS_PRE"
+          pipx run cibuildwheel==2.5.0 dist/sagemath-objects*.tar.gz dist/sagemath-categories*.tar.gz
 
       - uses: actions/upload-artifact@v2
         with:

@@ -76,12 +76,13 @@ jobs:
 
   build_wheels:
     needs: sdists_for_pypi
-    name: Build wheels on ${{ matrix.os }}
+    name: Build wheels for ${{ matrix.pkg }} on ${{ matrix.os }}
     runs-on: ${{ matrix.os }}
     strategy:
       fail-fast: false
       matrix:
         os: [ubuntu-20.04, macos-10.15]
+        pkg: [sagemath-objects, sagemath-categories]
     env:
       # Disable building PyPy wheels on all platforms
       CIBW_SKIP: pp*
@@ -98,11 +99,9 @@ jobs:
           name: dist
           path: dist
 
-      - name: Build wheels
+      - name: Build platform wheels
         run: |
-          for pkg in dist/*.tar.gz; do
-            pipx run cibuildwheel==2.5.0 $pkg
-          done
+          pipx run cibuildwheel==2.5.0 dist/${{ matrix.pkg }}*.tar.gz
 
       - uses: actions/upload-artifact@v2
         with:

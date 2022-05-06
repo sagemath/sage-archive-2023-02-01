@@ -519,7 +519,7 @@ usage_advanced() {
     echo
     echo "  -v, --version       -- display Sage version information"
     echo "  --dumpversion       -- print brief Sage version"
-    echo "  -h, -?, --help      -- print this help message"
+    echo "  -h, -?, --help      -- print a short help message"
     echo "  --advanced          -- list all command line options"
     if [ -d "$SAGE_ROOT" ]; then
         exec "$SAGE_ROOT/build/bin/sage-site" "--advanced"

@@ -491,11 +491,11 @@ def cython_aliases(required_modules=None,
                     raise
                 else:
                     continue
-                aliases["ECL_CFLAGS"] = list(filter(lambda s: not s.startswith('-I'), ecl_cflags))
-                aliases["ECL_INCDIR"] = list(map(lambda s: s[2:], filter(lambda s: s.startswith('-I'), ecl_cflags)))
-                aliases["ECL_LIBDIR"] = list(map(lambda s: s[2:], filter(lambda s: s.startswith('-L'), ecl_libs)))
-                aliases["ECL_LIBRARIES"] = list(map(lambda s: s[2:], filter(lambda s: s.startswith('-l'), ecl_libs)))
-                aliases["ECL_LIBEXTRA"] = list(filter(lambda s: not s.startswith(('-l','-L')), ecl_libs))
+            aliases["ECL_CFLAGS"] = list(filter(lambda s: not s.startswith('-I'), ecl_cflags))
+            aliases["ECL_INCDIR"] = list(map(lambda s: s[2:], filter(lambda s: s.startswith('-I'), ecl_cflags)))
+            aliases["ECL_LIBDIR"] = list(map(lambda s: s[2:], filter(lambda s: s.startswith('-L'), ecl_libs)))
+            aliases["ECL_LIBRARIES"] = list(map(lambda s: s[2:], filter(lambda s: s.startswith('-l'), ecl_libs)))
+            aliases["ECL_LIBEXTRA"] = list(filter(lambda s: not s.startswith(('-l','-L')), ecl_libs))
             continue
         else:
             try:

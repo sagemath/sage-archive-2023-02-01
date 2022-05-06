@@ -171,6 +171,12 @@ When adding a new distribution package that uses a symbolic link pointing into
 Some of these files may actually be generated from source files with suffix ``.m4`` by the
 ``SAGE_ROOT/bootstrap`` script via the ``m4`` macro processor.
 
+For every distribution package, there is also a subdirectory of ``SAGE_ROOT/build/pkgs/``,
+which contains the build infrastructure that is specific to Sage-the-distribution.
+Note that these subdirectories follows a different naming convention,
+using underscores instead of dashes, see :ref:`section-directory-structure`.
+Because the distribution packages are included in the source tree, we set them
+up as "script packages" instead of "normal packages", see :ref:`section-package-source-types`.
 
 
 
@@ -453,18 +459,27 @@ Hierarchy of distribution packages
 
     def node(label, pos):
         return text(label, (3*pos[0],2*pos[1]), background_color='pink', color='black')
-    def edge(start, end):
-        return arrow((3*start[0],2*start[1]+.5),(3*end[0],2*end[1]-.5), arrowsize=2)
+    def edge(start, end, **kwds):
+        return arrow((3*start[0],2*start[1]+.5),(3*end[0],2*end[1]-.5), arrowsize=2, **kwds)
+    def extras_require(start, end):
+        return edge(start, end, linestyle='dashed')
     g = Graphics()
-    g += (node("sagemath-objects", (1,0)) + edge((1,0),(1,1)))
-    g += (node("sagemath-categories", (1,1)) + edge((1,1),(0,2)) +
-          edge((1,1),(1,2)) + edge((1,1),(2,2)))
+    g += (node("sage_conf", (0.5,0)) + extras_require((0.5,0),(0.5,1)))
+    g += (node("sagemath-objects", (1.5,0)) + edge((1.5,0),(1.5,1)))
+    g += (node("sagemath-environment", (0.5,1))
+          + edge((0.5,1),(0,2)) + edge((0.5,1),(1,2)) + edge((0.5,1),(2,2)))
+    g += (node("sagemath-categories", (1.5,1)) + edge((1.5,1),(0,2)) +
+          edge((1.5,1),(1,2)) + edge((1.5,1),(2,2)))
     g += (node("sagemath-graphs", (0,2)) + node("sagemath-polyhedra", (1,2)) + node("sagemath-singular", (2,2)) +
           edge((0,2),(0,3)) + edge((0,2),(1,3)) + edge((1,2),(1,3)) + edge((2,2),(2,3)))
     g += (node("sagemath-tdlib", (0,3)) + node("sagemath-standard-no-symbolics", (1,3)) + node("sagemath-symbolics", (2,3)) +
           edge((1,3),(1,4)) + edge((2,3),(1,4)))
     g += node("sagemath-standard", (1,4))
     sphinx_plot(g, figsize=(8, 4), axes=False)
+
+
+Solid arrows indicate ``install_requires``, i.e., a declared runtime dependency.
+Dashed arrows indicate ``extras_require``, i.e., a declared optional runtime dependency.
 
 
 Testing distribution packages

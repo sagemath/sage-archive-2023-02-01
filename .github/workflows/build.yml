@@ -62,3 +62,9 @@ jobs:
         uses: codecov/codecov-action@v2
         with:
           files: ./coverage.xml
+
+      - name: Build and test modularized distributions
+        run: make pypi-wheels
+        env:
+          MAKE: make -j2
+          SAGE_NUM_THREADS: 2

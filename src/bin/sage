@@ -319,55 +319,48 @@ usage_advanced() {
     ####  1.......................26..................................................78
     ####  |.....................--.|...................................................|
     echo
-    echo "Running Sage, the most common options:"
-    echo
-    echo "  file.[sage|py|spyx] -- run given .sage, .py or .spyx file"
-    echo "  -h, -?, --help      -- print a short help message"
-    echo "  -v, --version       -- print the Sage version"
-    echo "  --advanced          -- print this list of Sage options"
-    echo "  -c cmd              -- evaluate cmd as sage code. For example,"
-    echo "                         \"sage -c 'print(factor(35))'\" will"
-    echo "                         print \"5 * 7\"."
-    echo
-    echo "Running Sage, other options:"
-    echo
-    echo "  --dumpversion       -- print brief Sage version"
-    echo "  --preparse file.sage -- preparse \"file.sage\", and produce"
-    echo "                          the corresponding Python file"
-    echo "                          \"file.sage.py\""
-    echo "  -q                  -- quiet; start with no banner"
-    echo "  --min               -- do not populate global namespace"
-    echo "                         (must be first option)"
-    echo "  --nodotsage         -- run Sage without using the user's"
-    echo "                         .sage directory: create and use a temporary"
-    echo "                         .sage directory instead."
-    echo "  --gthread, --qthread, --q4thread, --wthread, --pylab"
-    echo "                      -- pass the option through to IPython"
-    echo "  --simple-prompt     -- pass the option through to IPython: use"
-    echo "                         this option with sage-shell mode in emacs"
-    if [ -n "$SAGE_SRC" -a -d "$SAGE_SRC" ]; then
-        echo "  --grep [options] <string>"
-        echo "                      -- regular expression search through the Sage"
-        echo "                         library for \"string\". Any options will"
-        echo "                         get passed to the \"grep\" command."
-        echo "  --grepdoc [options] <string>"
-        echo "                      -- regular expression search through the"
-        echo "                         Sage documentation for \"string\"."
-        echo "  --search_src ...    -- same as --grep"
-        echo "  --search_doc ...    -- same as --grepdoc"
+    if command -v sage-ipython &>/dev/null; then
+        echo "Running Sage, the most common options:"
+        echo
+        echo "  file.[sage|py|spyx] -- run given .sage, .py or .spyx file"
+        echo "  -c cmd              -- evaluate cmd as sage code. For example,"
+        echo "                         \"sage -c 'print(factor(35))'\" will"
+        echo "                         print \"5 * 7\"."
+        echo
+        echo "Running Sage, other options:"
+        echo
+        echo "  --preparse file.sage -- preparse \"file.sage\", and produce"
+        echo "                          the corresponding Python file"
+        echo "                          \"file.sage.py\""
+        echo "  -q                  -- quiet; start with no banner"
+        echo "  --min               -- do not populate global namespace"
+        echo "                         (must be first option)"
+        echo "  --nodotsage         -- run Sage without using the user's"
+        echo "                         .sage directory: create and use a temporary"
+        echo "                         .sage directory instead."
+        echo "  --gthread, --qthread, --q4thread, --wthread, --pylab"
+        echo "                      -- pass the option through to IPython"
+        echo "  --simple-prompt     -- pass the option through to IPython: use"
+        echo "                         this option with sage-shell mode in emacs"
+        echo "  --gdb               -- run Sage under the control of gdb"
+        echo "  --gdb-ipython       -- run Sage's IPython under the control of gdb"
+    else
+        echo "Running Sage:"
+        echo "                         (not installed currently, "
+        echo "                          to install, run sage --pip install sagemath-repl)"
     fi
     echo
     echo "Running external programs:"
     echo
     echo "  --cython [...]      -- run Cython with the given arguments"
+    command -v cython &>/dev/null || \
+    echo "                         (not installed, run sage --pip install cython)"
     echo "  --ecl [...], --lisp [...]  -- run Sage's copy of ECL (Embeddable"
     echo "                                Common Lisp) with the given arguments"
     echo "  --gap [...]         -- run Sage's Gap with the given arguments"
     echo "  --gap3 [...]        -- run Sage's Gap3 with the given arguments"
     command -v gap3 &>/dev/null || \
     echo "                         (not installed currently, run sage -i gap3)"
-    echo "  --gdb               -- run Sage under the control of gdb"
-    echo "  --gdb-ipython       -- run Sage's IPython under the control of gdb"
     echo "  --git [...]         -- run Sage's Git with the given arguments"
     echo "  --gp [...]          -- run Sage's PARI/GP calculator with the"
     echo "                         given arguments"
@@ -469,6 +462,17 @@ usage_advanced() {
     echo
     echo "Some developer utilities:"
     echo
+    if [ -n "$SAGE_SRC" -a -d "$SAGE_SRC" ]; then
+        echo "  --grep [options] <string>"
+        echo "                      -- regular expression search through the Sage"
+        echo "                         library for \"string\". Any options will"
+        echo "                         get passed to the \"grep\" command."
+        echo "  --grepdoc [options] <string>"
+        echo "                      -- regular expression search through the"
+        echo "                         Sage documentation for \"string\"."
+        echo "  --search_src ...    -- same as --grep"
+        echo "  --search_doc ...    -- same as --grepdoc"
+    fi
     echo "  --sh [...]         -- run a shell with Sage environment variables"
     echo "                        as they are set in the runtime of Sage"
     echo "  --cleaner          -- run the Sage cleaner.  This cleans up after Sage,"
@@ -510,6 +514,13 @@ usage_advanced() {
     echo "                         files are named sage-omega.PID can be found in"
     echo "                         \$DOT_SAGE"
     echo "  --valgrind          -- this is an alias for --memcheck"
+    echo
+    echo "Getting help:"
+    echo
+    echo "  -v, --version       -- display Sage version information"
+    echo "  --dumpversion       -- print brief Sage version"
+    echo "  -h, -?, --help      -- print this help message"
+    echo "  --advanced          -- list all command line options"
     if [ -d "$SAGE_ROOT" ]; then
         exec "$SAGE_ROOT/build/bin/sage-site" "--advanced"
     fi

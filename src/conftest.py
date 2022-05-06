@@ -130,7 +130,8 @@ def pytest_collect_file(
         # hit this here if someone explicitly runs `pytest some_file.pyx`.
         return pytest.skip("Skipping Cython file")
     elif file_path.suffix == ".py":
-        return SageDoctestModule.from_parent(parent, path=file_path)
+        if parent.config.option.doctestmodules:
+            return SageDoctestModule.from_parent(parent, path=file_path)
 
 
 @pytest.fixture(autouse=True)
@@ -142,12 +143,12 @@ def add_imports(doctest_namespace: dict[str, Any]):
     """
     # Inject sage.all into each doctest
     dict_all = sage.all.__dict__
-    
+
     # Remove '__package__' item from the globals since it is not
     # always in the globals in an actual Sage session.
-    dict_all.pop('__package__', None)
+    dict_all.pop("__package__", None)
 
     sage_namespace = dict(dict_all)
-    sage_namespace['__name__'] = '__main__'
-    
+    sage_namespace["__name__"] = "__main__"
+
     doctest_namespace.update(**sage_namespace)

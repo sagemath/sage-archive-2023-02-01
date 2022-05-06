@@ -546,36 +546,23 @@ cpdef tuple poly_tup_sortkey(tuple eq_tup):
     term by term (we assume the tuple representation is sorted so that the
     leading term with respect to the degree reverse lexicographical order
     comes first). For each term, we first compare degrees, then the monomials
-    themselves.
+    themselves. Different polynomials can have the same sortkey.
 
     EXAMPLES::
 
-        sage: from sage.algebras.fusion_rings.poly_tup_engine import poly_tup_sortkey
-        sage: R.<x,y,z> = PolynomialRing(QQ, order='deglex')
-        sage: p1 = x*y*z - x**2 + 3/2
-        sage: p2 = x*y*z - x*y + 1/2
-        sage: from sage.algebras.fusion_rings.poly_tup_engine import poly_to_tup
-        sage: (p1 < p2) == (poly_tup_sortkey(poly_to_tup(p1)) < poly_tup_sortkey(poly_to_tup(p2)))
-        True
-        sage: R.<x,y,z> = PolynomialRing(CyclotomicField(20), order='deglex')
-        sage: zeta20 = R.base_ring().gen()
-        sage: p1 = zeta20**2 * x*z**2 - 2*zeta20
-        sage: p2 = y**3 + 1/4
-        sage: (p1 < p2) == (poly_tup_sortkey(poly_to_tup(p1)) < poly_tup_sortkey(poly_to_tup(p2)))
-        True
-
-    TESTS::
-
-        sage: from sage.algebras.fusion_rings.poly_tup_engine import poly_tup_sortkey, poly_to_tup
-        sage: R.<x,y,z> = PolynomialRing(CyclotomicField(20))
-        sage: p1 = R.random_element()
-        sage: p2 = R.random_element()
-        sage: (p1 < p2) == (poly_tup_sortkey(poly_to_tup(p1)) < poly_tup_sortkey(poly_to_tup(p2)))
-        True
-        sage: (p1 > p2) == (poly_tup_sortkey(poly_to_tup(p1)) > poly_tup_sortkey(poly_to_tup(p2)))
-        True
-        sage: poly_tup_sortkey(poly_to_tup(p1)) == poly_tup_sortkey(poly_to_tup(p1))
-        True
+     sage: F = CyclotomicField(20)
+     sage: zeta20 = F.gen()
+     sage: R.<x,y,z> = PolynomialRing(F)
+     sage: from sage.algebras.fusion_rings.poly_tup_engine import poly_tup_sortkey, poly_to_tup
+     sage: p = (zeta20 + 1)*x^2 + (zeta20^3 + 6)*x*z + (zeta20^2 + 7*zeta20)*z^2 + (2/3*zeta20 + 1/4)*x + y
+     sage: p1 = poly_to_tup(p); p1
+     (((2, 0, 0), zeta20 + 1),
+      ((1, 0, 1), zeta20^3 + 6),
+      ((0, 0, 2), zeta20^2 + 7*zeta20),
+      ((1, 0, 0), 2/3*zeta20 + 1/4),
+      ((0, 1, 0), 1))
+        sage: poly_tup_sortkey(p1)
+        (2, 0, 2, 2, 0, 1, -2, 1, 2, -2, 2, 1, 0, 1, 1, -1, 1)
     """
     cdef ETuple exp
     cdef int i, l, nnz

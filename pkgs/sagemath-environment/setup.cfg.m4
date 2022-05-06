@@ -60,4 +60,16 @@ scripts =
 
 [options.extras_require]
 # sage.env can optionally use sage_conf
-sage_conf = esyscmd(`sage-get-system-packages install-requires sage_conf')
+conf = esyscmd(`sage-get-system-packages install-requires sage_conf')
+# For "sage --docbuild"
+docbuild = esyscmd(`sage-get-system-packages install-requires sage_docbuild')
+# For "sage", "sage -t", ...
+sage = esyscmd(`sage-get-system-packages install-requires sagelib')
+# For "sage --cython"
+cython = esyscmd(`sage-get-system-packages install-requires cython')
+# For "sage --pytest"
+pytest = esyscmd(`sage-get-system-packages install-requires pytest')
+# For "sage --rst2ipynb"
+rst2ipynb = esyscmd(`sage-get-system-packages install-requires rst2ipynb')
+# For "sage --sws2rst"
+sws2rst = esyscmd(`sage-get-system-packages install-requires sage_sws2rst')

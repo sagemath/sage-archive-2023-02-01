@@ -7,8 +7,9 @@ See https://docs.pytest.org/en/latest/index.html for more details.
 """
 
 from __future__ import annotations
-from pathlib import Path
 
+import inspect
+from pathlib import Path
 from typing import Any, Iterable
 
 import pytest
@@ -22,7 +23,6 @@ from _pytest.doctest import (
     get_optionflags,
 )
 from _pytest.pathlib import import_path
-import inspect
 
 # Import sage.all is necessary to:
 # - avoid cyclic import errors, see Trac #33580

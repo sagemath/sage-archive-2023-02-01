@@ -1,2 +1,2 @@
-# Trac
-sagemath-objects == 9.6rc3.post2
+# Pinned in Trac #29941 until proper namespace packages are supported in #28925.
+sagemath-objects == 9.6rc3.post3

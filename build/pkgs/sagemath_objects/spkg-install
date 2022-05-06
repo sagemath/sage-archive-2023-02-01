@@ -16,12 +16,10 @@ cd src
 # (Important because sagemath-objects uses MANIFEST.in for filtering.)
 # Do not install the wheel.
 DIST_DIR="$(mktemp -d)"
-python3 -m build --outdir "$DIST_DIR"/dist .
+python3 -m build --outdir "$DIST_DIR"/dist . || sdh_die "Failure building sdist and wheel"
 
 wheel=$(cd "$DIST_DIR" && sdh_store_wheel . && echo $wheel)
 
 if [ "$SAGE_CHECK" != no ]; then
     tox --installpkg $wheel
 fi
-
-exit 0

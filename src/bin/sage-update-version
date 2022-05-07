@@ -37,7 +37,7 @@ SAGE_RELEASE_DATE=`date -u +'%Y-%m-%d'`
 SAGE_VERSION_BANNER="SageMath version $SAGE_VERSION, Release Date: $SAGE_RELEASE_DATE"
 
 # Update Sage version file for all distribution packages
-for version_file in "$SAGE_ROOT/pkgs/*/VERSION.txt"; do
+for version_file in "$SAGE_ROOT"/pkgs/*/VERSION.txt; do
     if [ -f "$version_file" ]; then
         echo $SAGE_VERSION > "$version_file"
     fi
@@ -81,7 +81,7 @@ git commit -m "Updated SageMath version to $SAGE_VERSION" -- \
     "$SAGE_SRC/bin/sage-version.sh" \
     "$SAGE_ROOT/build/pkgs/configure/checksums.ini" \
     "$SAGE_ROOT/build/pkgs/configure/package-version.txt" \
-    "$SAGE_ROOT/build/pkgs/sagelib/package-version.txt" \
+    "$SAGE_ROOT"/pkgs/*/VERSION.txt \
     || die "Error committing to the repository."
 
 git tag -a "$SAGE_VERSION" -m "$SAGE_VERSION_BANNER" \

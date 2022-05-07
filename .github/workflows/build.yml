@@ -16,16 +16,8 @@ jobs:
     container: ghcr.io/sagemath/sage/sage-docker-ubuntu-focal-standard-with-targets:dev
     steps:
       - name: Checkout
+        id: checkout
         uses: actions/checkout@v2
-
-      - name: Set up node to install pyright
-        uses: actions/setup-node@v1
-        with:
-          node-version: '12'
-
-      - name: Install pyright
-        # Fix to v232 due to bug https://github.com/microsoft/pyright/issues/3239
-        run: npm install -g pyright@1.1.232
 
       - name: Prepare
         id: prepare
@@ -36,9 +28,6 @@ jobs:
           # Install test tools
           apt-get install -y git
       
-      - name: Static code check with pyright
-        run: pyright    
-      
       - name: Build and test modularized distributions
         if: ${{ steps.prepare.outcome == 'success' }}
         run: make pypi-wheels
@@ -46,6 +35,21 @@ jobs:
           MAKE: make -j2
           SAGE_NUM_THREADS: 2
 
+      - name: Set up node to install pyright
+        if: ${{ steps.prepare.outcome == 'success' }}
+        uses: actions/setup-node@v1
+        with:
+          node-version: '12'
+
+      - name: Install pyright
+        if: ${{ steps.prepare.outcome == 'success' }}
+        # Fix to v232 due to bug https://github.com/microsoft/pyright/issues/3239
+        run: npm install -g pyright@1.1.232
+
+      - name: Static code check with pyright
+        if: ${{ steps.prepare.outcome == 'success' }}
+        run: pyright    
+      
       - name: Build
         id: build
         if: ${{ steps.prepare.outcome == 'success' }}

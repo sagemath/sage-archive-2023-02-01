@@ -255,27 +255,27 @@ class NuDyckWord(CombinatorialElement):
 
     def _list(self):
         """
-        Return list of self
+        Return list of ``self``.
         """
         return list(self._path)
 
     def __eq__(self, other):
         """
-        Return if two paths are equal
+        Return if two paths are equal.
         """
-        if type(other) != type(self):
+        if not isinstance(other, NuDyckWord):
             return False
         return self._path == other._path and self._nu == other._nu
 
     def __neq__(self, other):
         """
-        Return if two paths are not equal
+        Return if two paths are not equal.
         """
         return not self.__eq__(other)
 
     def __le__(self, other):
         """
-        Returns if one path is included in another
+        Return if one path is included in another.
         """
         if self._nu == other._nu:
             return path_weakly_above_other(other._path, self._path)
@@ -457,13 +457,13 @@ class NuDyckWord(CombinatorialElement):
         """
         return str(list(self._path))
 
-    def _repr_lattice(self, typ=None, labelling=None):
+    def _repr_lattice(self, style=None, labelling=None):
         r"""
         See :meth:`pretty_print()`.
 
         TESTS::
 
-            sage: print(NuDyckWord('00011001000100','00011001000100')._repr_lattice(type='N-E', labelling=[1,2,3,4]))
+            sage: print(NuDyckWord('00011001000100','00011001000100')._repr_lattice(style='N-E', labelling=[1,2,3,4]))
                              ____
                        _____| . . 4
                    ___| . . . . . 3
@@ -481,15 +481,13 @@ class NuDyckWord(CombinatorialElement):
              ___|x
             |x x x
             |x x  .
-
-
         """
-        if typ is None:
-            typ = self.parent().options.diagram_style
-            if typ == "grid":
-                typ = "N-E"
+        if style is None:
+            style = self.parent().options.diagram_style
+            if style == "grid":
+                style = "N-E"
 
-        if typ == "N-E":
+        if style == "N-E":
             path_length = self._path.length()
             height = self._path.height()
             width = self._path.width()
@@ -501,8 +499,7 @@ class NuDyckWord(CombinatorialElement):
                 labels = [" "] * height
             else:
                 if len(labelling) != height:
-                    raise ValueError(
-                        "the given labelling has the wrong length: {num} needed".format(num=height))
+                    raise ValueError(f"the given labelling has the wrong length: {height} needed")
                 labels = [str(label) for label in labelling]
                 max_length = max(len(label) for label in labels)
                 labels = [lbl.rjust(max_length + 1) for lbl in labels]
@@ -544,7 +541,7 @@ class NuDyckWord(CombinatorialElement):
             ts += labels[0]
             ts += "\n"
             return ts
-        raise ValueError(f"the given type (={typ}) is not valid")
+        raise ValueError(f"the given style (={style}) is not valid")
 
     def _ascii_art_(self):
         r"""
@@ -580,11 +577,11 @@ class NuDyckWord(CombinatorialElement):
         """
         return "".join(map(replace_dyck_symbol, list(self._path)))
 
-    def pretty_print(self, type=None, labelling=None):
+    def pretty_print(self, style=None, labelling=None):
         r"""
         Display a NuDyckWord as a lattice path in the `\ZZ^2` grid.
 
-        If the ``type`` is "N-E", then a cell below the diagonal is
+        If the ``style`` is "N-E", then a cell below the diagonal is
         indicated by a period, whereas a cell below the path but above
         the diagonal is indicated by an x. If a list of labels is
         included, they are displayed along the vertical edges of the
@@ -592,15 +589,15 @@ class NuDyckWord(CombinatorialElement):
 
         INPUT:
 
-        - ``type`` -- (default: ``None``) can either be:
+        - ``style`` -- (default: ``None``) can either be:
 
           - ``None`` to use the option default
           - "N-E" to show ``self`` as a path of north and east steps, or
 
-        - ``labelling`` -- (if type is "N-E") a list of labels assigned to
+        - ``labelling`` -- (if style is "N-E") a list of labels assigned to
           the up steps in ``self``.
 
-        - ``underpath`` -- (if type is "N-E", default: ``True``) If ``True``,
+        - ``underpath`` -- (if style is "N-E", default: ``True``) If ``True``,
           an ``x`` to show the boxes between `\nu` and the `\nu`-Dyck Path.
 
         EXAMPLES::
@@ -678,7 +675,7 @@ class NuDyckWord(CombinatorialElement):
             sage: NuDyckWord().pretty_print()
             .
         """
-        print(self._repr_lattice(type, labelling))
+        print(self._repr_lattice(style, labelling))
 
     pp = pretty_print
 
@@ -925,7 +922,7 @@ class NuDyckWord(CombinatorialElement):
             [2, 4, 3, 2, 3, 5, 4, 3, 3, 2, 1, 0]
         """
         # Grab furthest east point at each height of nu
-        nu_points = self._nu.points()
+        nu_points = list(self._nu.points())
         nu_easts = [max(i for i, j in nu_points if j == k)
                     for k in range(self._nu.height() + 1)]
 
@@ -1217,8 +1214,7 @@ class NuDyckWords(Parent):
             sage: NDW = NuDyckWords('100100100'); NDW.cardinality()
             12
         """
-        i = len(list(self))
-        return Integer(i + 1)
+        return Integer(len([1 for _ in self.__iter__()]))
 
 
 def to_word_path(word):
@@ -1306,10 +1302,7 @@ def path_weakly_above_other(path, other) -> bool:
     # path is above other if height is always >= height of other
     p_height = path.height_vector()
     o_height = other.height_vector()
-    for i, j in enumerate(p_height):
-        if(o_height[i] > j):
-            return False
-    return True
+    return all(p_h >= o_h for p_h, o_h in zip(p_height, o_height))
 
 
 def is_nu_path(path, nu) -> bool:

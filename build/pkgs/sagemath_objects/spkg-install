@@ -28,5 +28,5 @@ fi
 wheel=$(cd "$DIST_DIR" && sdh_store_wheel . && echo $wheel)
 
 if [ "$SAGE_CHECK" != no ]; then
-    tox --installpkg $wheel
+    tox --discover "$SAGE_VENV/bin" --installpkg $wheel
 fi

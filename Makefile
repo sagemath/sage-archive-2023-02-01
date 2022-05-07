@@ -92,7 +92,7 @@ pypi-sdists: sage_setup
 # Ensuring wheels are present, even for packages that may have been installed
 # as editable. Until we have better uninstallation of script packages, we
 # just remove the timestamps, which will lead to rebuilds of the packages.
-PYPI_WHEEL_PACKAGES = sage_sws2rst sage_docbuild sage_setup sagemath_objects sagemath_categories
+PYPI_WHEEL_PACKAGES = sage_sws2rst sage_setup sagemath_objects sagemath_categories
 pypi-wheels:
 	for a in $(PYPI_WHEEL_PACKAGES); do \
 	    rm -f venv/var/lib/sage/installed/$$a-*; \
@@ -102,7 +102,8 @@ pypi-wheels:
 	done
 	@echo "Built wheels are in venv/var/lib/sage/wheels/"
 
-WHEEL_PACKAGES = $(PYPI_WHEEL_PACKAGES) sage_conf sagelib
+# sage_docbuild is here, not in PYPI_WHEEL_PACKAGES, because it depends on sagelib
+WHEEL_PACKAGES = $(PYPI_WHEEL_PACKAGES) sage_conf sagelib sage_docbuild
 wheels:
 	for a in $(WHEEL_PACKAGES); do \
 	    rm -f venv/var/lib/sage/installed/$$a-*; \

@@ -1,15 +1,10 @@
 prune sage
 graft sage/cpython
 
-graft sage_setup           # FIXME: Vendor it until we have made a new sage_setup release
-include sage/env.py        # FIXME: sage_setup must be changed so it does not depend on it
-include sage/version.py    # FIXME: likewise
-include sage/misc/package_dir.p*   # For sage_setup
 include VERSION.txt
 
 global-include all__sagemath_objects.py
 
-graft sage/features
 graft sage/structure
 include sage/categories/action.*
 include sage/categories/algebra_functor.*
@@ -82,26 +77,10 @@ graft sage/libs/gmp
 # sage/misc/latex         -- this should really go to another package
 
 
-## For doctesting -- this duplication will be removed in #28925
-global-include all__sagemath_repl.py
-include bin/sage
-include bin/sage-env
-include bin/sage-env-config
-include bin/sage-python
-include bin/sage-runtests
-graft sage/doctest
-include sage/misc/temporary_file.*
-include sage/misc/randstate.*
-include sage/misc/misc.*              # walltime, cputime
-# graft sage/features
-include sage/misc/package.*
-include sage/misc/sagedoc.py
-include sage/misc/banner.py
-include sage/misc/sage_input.py
-include sage/misc/sage_eval.py
+## FIXME: Needed for doctesting
+include sage/misc/randstate.*         # used in sage.doctest
+include sage/misc/misc.*              # walltime, cputime used in sage.doctest
 
-graft sage/repl
-graft sage/server
 
 global-exclude *.c
 global-exclude *.cpp

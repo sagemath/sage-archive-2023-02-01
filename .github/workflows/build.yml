@@ -28,6 +28,7 @@ jobs:
         run: npm install -g pyright@1.1.232
 
       - name: Prepare
+        id: prepare
         run: |
           # Reuse built SAGE_LOCAL contained in the Docker image 
           ./bootstrap
@@ -38,33 +39,37 @@ jobs:
       - name: Static code check with pyright
         run: pyright    
       
+      - name: Build and test modularized distributions
+        if: ${{ steps.prepare.outcome == 'success' }}
+        run: make pypi-wheels
+        env:
+          MAKE: make -j2
+          SAGE_NUM_THREADS: 2
+
       - name: Build
+        id: build
+        if: ${{ steps.prepare.outcome == 'success' }}
         run: make build
         env:
           MAKE: make -j2
           SAGE_NUM_THREADS: 2
 
       - name: Test
+        if: ${{ steps.build.outcome == 'success' }}
         run: |
           ../sage -python -m pip install coverage
           ../sage -python -m coverage run ./bin/sage-runtests --all -p2
         working-directory: ./src
 
       - name: Prepare coverage results
-        if: always()
+        if: ${{ steps.build.outcome == 'success' }}
         run: |
           ./venv/bin/python3 -m coverage combine src/.coverage/
           ./venv/bin/python3 -m coverage xml
           find . -name *coverage*
       
       - name: Upload coverage to codecov
-        if: always()
+        if: ${{ steps.build.outcome == 'success' }}
         uses: codecov/codecov-action@v2
         with:
           files: ./coverage.xml
-
-      - name: Build and test modularized distributions
-        run: make pypi-wheels
-        env:
-          MAKE: make -j2
-          SAGE_NUM_THREADS: 2

@@ -152,8 +152,16 @@ The source directory of a distribution package, such as
 
 - ``README.rst`` -- a description of the distribution
 
-- ``VERSION.txt``, ``LICENSE.txt`` -- relative symbolic links to the same files
+- ``LICENSE.txt`` -- relative symbolic link to the same files
   in ``SAGE_ROOT/src``
+
+- ``VERSION.txt`` -- package version. This file is updated by the release manager by
+  running the ``sage-update-version`` script. Sometimes when working on tickets it
+  may be necessary to increment the version manually by adding a suffix ``.post1``,
+  ``.post2`` ...
+  (see `PEP 440 on post-releases <https://peps.python.org/pep-0440/#post-releases>`_).
+  After the ticket is merged in the next development version, it will be
+  synchronized again with the other package versions.
 
 - ``setup.py`` -- a `setuptools <https://pypi.org/project/setuptools/>`_-based
   installation script

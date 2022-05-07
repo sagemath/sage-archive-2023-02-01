@@ -26,7 +26,8 @@ if ! python3 -m build --outdir "$DIST_DIR"/dist .; then
 fi
 
 wheel=$(cd "$DIST_DIR" && sdh_store_wheel . && echo $wheel)
+ls -l "$wheel"
 
 if [ "$SAGE_CHECK" != no ]; then
-    tox -e sagepython "$SAGE_VENV/bin" --installpkg $wheel
+    tox -v -v -v -e sagepython --installpkg "$wheel"
 fi

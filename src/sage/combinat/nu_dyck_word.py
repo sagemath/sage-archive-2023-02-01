@@ -8,12 +8,12 @@ AUTHORS:
 
 - Aram Dermenjian (2020-09-26)
 
-This file is based off the class ``DyckWords`` written by Mke Hansen, Dan
+This file is based off the class
+:func:`DyckWords<sage.combinat.dyck_word.DyckWord>` written by Mike Hansen, Dan
 Drake, Florent Hivert, Christian Stump, Mike Zabrocki, Jean--Baptiste Priez
 and Travis Scrimshaw
 
 """
-
 # ****************************************************************************
 #       Copyright (C) 2020 Aram Dermenjian <aram.dermenjian@gmail.com>,
 #
@@ -100,10 +100,9 @@ def replace_dyck_char(x):
     """
     if x == '(' or x == 'N' or x == str(ndw_open_symbol):
         return ndw_open_symbol
-    elif x == ')' or x == 'E' or x == str(ndw_close_symbol):
+    if x == ')' or x == 'E' or x == str(ndw_close_symbol):
         return ndw_close_symbol
-    else:
-        raise ValueError
+    raise ValueError
 
 
 def replace_dyck_symbol(x, open_char='N', close_char='E'):
@@ -148,10 +147,9 @@ def replace_dyck_symbol(x, open_char='N', close_char='E'):
     """
     if x == ndw_open_symbol:
         return open_char
-    elif x == ndw_close_symbol:
+    if x == ndw_close_symbol:
         return close_char
-    else:
-        raise ValueError
+    raise ValueError
 
 
 class NuDyckWord(CombinatorialElement):
@@ -225,7 +223,6 @@ class NuDyckWord(CombinatorialElement):
             sage: NuDyckWord('010','010')
             [0, 1, 0]
         """
-
         # if dw is none, then we might have a normal Dyck word
         if dw is None:
             from sage.combinat.dyck_word import DyckWord
@@ -250,7 +247,7 @@ class NuDyckWord(CombinatorialElement):
         self._path = to_word_path(dw)
 
         if parent is None:
-            raise ValueError("Need Parent object")
+            raise ValueError("need parent object")
 
         self._nu = parent._nu
 
@@ -460,7 +457,7 @@ class NuDyckWord(CombinatorialElement):
         """
         return str(list(self._path))
 
-    def _repr_lattice(self, type=None, labelling=None):
+    def _repr_lattice(self, typ=None, labelling=None):
         r"""
         See :meth:`pretty_print()`.
 
@@ -487,12 +484,12 @@ class NuDyckWord(CombinatorialElement):
 
 
         """
-        if type is None:
-            type = self.parent().options.diagram_style
-            if type == "grid":
-                type = "N-E"
+        if typ is None:
+            typ = self.parent().options.diagram_style
+            if typ == "grid":
+                typ = "N-E"
 
-        if type == "N-E":
+        if typ == "N-E":
             path_length = self._path.length()
             height = self._path.height()
             width = self._path.width()
@@ -505,7 +502,7 @@ class NuDyckWord(CombinatorialElement):
             else:
                 if len(labelling) != height:
                     raise ValueError(
-                        "The given labelling has the wrong length. {num} needed".format(num=height))
+                        "the given labelling has the wrong length: {num} needed".format(num=height))
                 labels = [str(label) for label in labelling]
                 max_length = max(len(label) for label in labels)
                 labels = [lbl.rjust(max_length + 1) for lbl in labels]
@@ -519,11 +516,11 @@ class NuDyckWord(CombinatorialElement):
             cur_nu_pos = rev_nu_path.index(ndw_open_symbol)
             if cur_pos > 0:
                 ts += "  " * (width - cur_pos)
-                ts += " _" + "__" * (cur_pos-1)
+                ts += " _" + "__" * (cur_pos - 1)
                 ts += "_\n"
 
             # Middle Lines
-            for i in range(height-1):
+            for i in range(height - 1):
                 old_pos = cur_pos
                 old_nu_pos = cur_nu_pos
                 cur_pos = rev_path.index(ndw_open_symbol, cur_pos + 1)
@@ -536,7 +533,7 @@ class NuDyckWord(CombinatorialElement):
                 if old_pos >= 0:
                     ts += "x " * (old_pos - old_nu_pos)
                     ts += " ." * (old_nu_pos - i)
-                ts += labels[height-i-1]
+                ts += labels[height - i - 1]
                 ts += "\n"
 
             # Final line
@@ -547,8 +544,7 @@ class NuDyckWord(CombinatorialElement):
             ts += labels[0]
             ts += "\n"
             return ts
-        else:
-            raise ValueError("The given type (=%s) is not valid." % type)
+        raise ValueError(f"the given type (={typ}) is not valid")
 
     def _ascii_art_(self):
         r"""
@@ -691,6 +687,7 @@ class NuDyckWord(CombinatorialElement):
         A latex representation of ``self`` using the tikzpicture package.
 
         EXAMPLES::
+
             sage: NDW = NuDyckWord('010','010')
             sage: NDW.set_latex_options({"show_points":True})
             sage: latex(NDW)
@@ -772,7 +769,7 @@ class NuDyckWord(CombinatorialElement):
 
     def path(self):
         r"""
-        Return the underlying path object
+        Return the underlying path object.
 
         EXAMPLES::
 
@@ -826,7 +823,7 @@ class NuDyckWord(CombinatorialElement):
 
     def points(self):
         r"""
-        Returns an iter with the points on the `\nu`-Dyck path.
+        Return an iterator for the points on the `\nu`-Dyck path.
 
         EXAMPLES::
 
@@ -887,42 +884,6 @@ class NuDyckWord(CombinatorialElement):
             [0, 0, 1, 1]
             sage: NuDyckWord('110100','101010').heights()
             [0, 1, 2, 2, 3, 3, 3]
-            sage: NuDyckWord('110111001101001000110111100011000',
-            ....: '101010101010101010101010101010101').heights()
-            [0,
-             1,
-             2,
-             2,
-             3,
-             4,
-             5,
-             5,
-             5,
-             6,
-             7,
-             7,
-             8,
-             8,
-             8,
-             9,
-             9,
-             9,
-             9,
-             10,
-             11,
-             11,
-             12,
-             13,
-             14,
-             15,
-             15,
-             15,
-             15,
-             16,
-             17,
-             17,
-             17,
-             17]
         """
         return self._path.height_vector()
 
@@ -944,42 +905,6 @@ class NuDyckWord(CombinatorialElement):
             [0, 1, 1, 2]
             sage: NuDyckWord('110100','101010').widths()
             [0, 0, 0, 1, 1, 2, 3]
-            sage: NuDyckWord('110111001101001000110111100011000',
-            ....: '101010101010101010101010101010101').widths()
-            [0,
-             0,
-             0,
-             1,
-             1,
-             1,
-             1,
-             2,
-             3,
-             3,
-             3,
-             4,
-             4,
-             5,
-             6,
-             6,
-             7,
-             8,
-             9,
-             9,
-             9,
-             10,
-             10,
-             10,
-             10,
-             10,
-             11,
-             12,
-             13,
-             13,
-             13,
-             14,
-             15,
-             16]
         """
         return self._path.width_vector()
 
@@ -998,20 +923,18 @@ class NuDyckWord(CombinatorialElement):
             sage: NDW = NuDyckWord('10011001000','00100101001')
             sage: NDW.horizontal_distance()
             [2, 4, 3, 2, 3, 5, 4, 3, 3, 2, 1, 0]
-
-
         """
         # Grab furthest east point at each height of nu
-        nu_points = list(self._nu.points())
-        nu_easts = [max([i for i, j in nu_points if j == k])
-                    for k in range(self._nu.height()+1)]
+        nu_points = self._nu.points()
+        nu_easts = [max(i for i, j in nu_points if j == k)
+                    for k in range(self._nu.height() + 1)]
 
         points = list(self._path.points())
         return [nu_easts[j] - i for i, j in points]
 
-    def can_mutate(self, i):
+    def can_mutate(self, i) -> bool:
         """
-        Return True/False based off if mutatable at height `i`.
+        Return True/False based off if mutable at height `i`.
 
         Can only mutate if an east step is followed by a north step at height
         `i`.
@@ -1021,7 +944,7 @@ class NuDyckWord(CombinatorialElement):
         - Whether we can mutate at height of `i`.
         """
         if i > self.height() or i <= 0:
-            raise ValueError('Can\'t mutate above or below path')
+            raise ValueError('cannot mutate above or below path')
 
         # Find the ith north step
         level = 0
@@ -1031,21 +954,26 @@ class NuDyckWord(CombinatorialElement):
                 level += 1
                 if level == i:
                     break
-        if j > 0 and ndw[j-1] == ndw_close_symbol:
+        if j > 0 and ndw[j - 1] == ndw_close_symbol:
             return j
         return False
 
     def mutate(self, i):
         r"""
-        return a new `\nu`-Dyck Word if possible.
+        Return a new `\nu`-Dyck Word if possible.
 
-        We mutate ``dEfg`` to ``dfEg`` where:
+        If at height `i` we have an east step E meeting a north step N then we
+        calculate all horizontal distances from this point until we find
+        the first point that has the same horizontal distance to `\nu`. We let
 
-        - d is everything up until EN
+        - d is everything up until EN (not including EN)
 
-        - f is everything between N and where horiz is same
+        - f be everything between N and the point with the same horizontal
+          distance (including N)
 
-        - g is everything after
+        - g is everything after f
+
+        .. SEEALSO:: :meth:`can_mutate`
         """
         mutation_index = self.can_mutate(i)
         if not mutation_index:
@@ -1060,7 +988,7 @@ class NuDyckWord(CombinatorialElement):
                 other_index = i
                 break
         ndw = self._list()
-        d = ndw[0:mutation_index-1]
+        d = ndw[0:mutation_index - 1]
         e = ndw[mutation_index:other_index]
         f = ndw[other_index:]
         return NuDyckWord(d + e + [ndw_close_symbol] + f, self._nu)
@@ -1100,7 +1028,7 @@ class NuDyckWords(Parent):
 
     Element = NuDyckWord
 
-    def __init__(self, nu=tuple()):
+    def __init__(self, nu=()):
         """
         Intialize ``self``.
 
@@ -1112,7 +1040,7 @@ class NuDyckWords(Parent):
 
         self._nu = to_word_path(nu)
         if self._nu is None:
-            raise ValueError("Invalud nu supplied")
+            raise ValueError("invalid nu supplied")
 
     # add options to class
     class options(GlobalOptions):
@@ -1199,13 +1127,12 @@ class NuDyckWords(Parent):
             [1, 1, 0]
             sage: elt.parent() is NDW
             True
-
         """
         if isinstance(word, NuDyckWord) and word.parent() is self:
             return word
         return self.element_class(self, to_word_path(word))
 
-    def __contains__(self, x):
+    def __contains__(self, x) -> bool:
         r"""
         TESTS::
 
@@ -1225,7 +1152,7 @@ class NuDyckWords(Parent):
         """
         Return equality.
         """
-        if type(other) != type(self):
+        if not isinstance(other, NuDyckWords):
             return False
         return self._nu == other._nu
 
@@ -1256,7 +1183,6 @@ class NuDyckWords(Parent):
 
             sage: NuDyckWords('101').an_element()
             [1, 0, 1]
-
         """
         return self.element_class(self, self._nu)
 
@@ -1273,10 +1199,8 @@ class NuDyckWords(Parent):
              [1, 1, 0, 0, 1, 0],
              [1, 0, 1, 1, 0, 0],
              [1, 0, 1, 0, 1, 0]]
-
         """
-        P = Permutations(list(self._nu))
-        for p in P:
+        for p in Permutations(list(self._nu)):
             if path_weakly_above_other(to_word_path(p), self._nu):
                 yield self.element_class(self, list(p))
 
@@ -1293,9 +1217,7 @@ class NuDyckWords(Parent):
             sage: NDW = NuDyckWords('100100100'); NDW.cardinality()
             12
         """
-        i = 0
-        for i, j in enumerate(self):
-            pass
+        i = len(list(self))
         return Integer(i + 1)
 
 
@@ -1325,7 +1247,6 @@ def to_word_path(word):
             sage: to_word_path([0,1,0,0,1,0])
             Path: 010010
     """
-
     # If we already have the object, don't worry
     if isinstance(word, FiniteWordPath_north_east):
         return word
@@ -1344,9 +1265,9 @@ def to_word_path(word):
     return P(word)
 
 
-def path_weakly_above_other(path, other):
+def path_weakly_above_other(path, other) -> bool:
     r"""
-    Tests if ``path`` is weakly above ``other``.
+    Test if ``path`` is weakly above ``other``.
 
     A path `P` is wealy above another path `Q` if `P` and `Q` are the same
     length and if any prefix of length `n` of `Q` contains more North steps
@@ -1360,7 +1281,7 @@ def path_weakly_above_other(path, other):
 
     OUTPUT:
 
-    - bool
+    bool
 
     EXAMPLES::
 
@@ -1391,7 +1312,7 @@ def path_weakly_above_other(path, other):
     return True
 
 
-def is_nu_path(path, nu):
+def is_nu_path(path, nu) -> bool:
     r"""
     Test if ``path`` is a `\nu`-Dyck word.
 

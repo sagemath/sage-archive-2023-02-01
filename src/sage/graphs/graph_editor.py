@@ -7,7 +7,7 @@ on your Sage installation.
 
 AUTHORS:
 
-- Radoslav Kirov (2009): initial version of the editor for use with sagenb
+- Radoslav Kirov (2009): initial editor for use with the old sage notebook
 
 - Jean-Florent Raymond (2022-04-12): replacement with the ``phitigra`` package
 """

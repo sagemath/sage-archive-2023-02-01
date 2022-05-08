@@ -28,7 +28,7 @@ and Travis Scrimshaw
 #
 #                  https://www.gnu.org/licenses/
 # ****************************************************************************
-
+from __future__ import annotations
 from sage.structure.element import Element
 from sage.rings.integer import Integer
 from sage.combinat.combinat import CombinatorialElement
@@ -105,7 +105,7 @@ def replace_dyck_char(x):
     raise ValueError
 
 
-def replace_dyck_symbol(x, open_char='N', close_char='E'):
+def replace_dyck_symbol(x, open_char='N', close_char='E') -> str:
     r"""
     A map sending ``ndw_open_symbol`` to ``open_char`` and ``ndw_close_symbol`` to
     ``close_char``, and raising an error on any input other than
@@ -179,24 +179,16 @@ class NuDyckWord(CombinatorialElement):
         sage: dw.height()
         2
 
-    ::
-
         sage: dw = NuDyckWord('1010',[1,0,0,1]); dw
         [1, 0, 1, 0]
 
-    ::
-
         sage: dw = NuDyckWord('NENE',[1,0,0,1]); dw
         [1, 0, 1, 0]
-
-    ::
 
         sage: NuDyckWord([1,0,1,0],[1,0,0,1]).pretty_print()
            __
          _|x
         | . .
-
-    ::
 
         sage: from sage.combinat.nu_dyck_word import update_ndw_symbols
         sage: update_ndw_symbols(0,1)
@@ -209,7 +201,6 @@ class NuDyckWord(CombinatorialElement):
          _|x  .
         | . . .
         sage: update_ndw_symbols(1,0)
-
     """
     @staticmethod
     def __classcall_private__(cls, dw=None, nu=None, **kwargs):
@@ -242,7 +233,7 @@ class NuDyckWord(CombinatorialElement):
 
         raise ValueError("invalid nu-Dyck word")
 
-    def __init__(self, parent, dw, latex_options={}):
+    def __init__(self, parent, dw, latex_options=None):
         Element.__init__(self, parent)
         self._path = to_word_path(dw)
 
@@ -251,17 +242,36 @@ class NuDyckWord(CombinatorialElement):
 
         self._nu = parent._nu
 
+        if latex_options is None:
+            latex_options = {}
         self._latex_options = dict(latex_options)
 
     def _list(self):
         """
         Return list of ``self``.
+
+        EXAMPLES::
+
+            sage: w = NuDyckWord('110100','101010')
+            sage: w._list()
+            [1, 1, 0, 1, 0, 0]
         """
         return list(self._path)
 
     def __eq__(self, other):
         """
         Return if two paths are equal.
+
+        EXAMPLES::
+
+            sage: u = NuDyckWord('010','010')
+            sage: w = NuDyckWord('110100','101010')
+            sage: w == w
+            True
+            sage: u == w
+            False
+            sage: u == 4
+            False
         """
         if not isinstance(other, NuDyckWord):
             return False
@@ -270,6 +280,17 @@ class NuDyckWord(CombinatorialElement):
     def __neq__(self, other):
         """
         Return if two paths are not equal.
+
+        EXAMPLES::
+
+            sage: u = NuDyckWord('010','010')
+            sage: w = NuDyckWord('110100','101010')
+            sage: w != w
+            False
+            sage: u != w
+            True
+            sage: u != 4
+            True
         """
         return not self.__eq__(other)
 
@@ -283,13 +304,13 @@ class NuDyckWord(CombinatorialElement):
 
     def __lt__(self, other):
         """
-        Returns if one path is strictly included in another
+        Return if one path is strictly included in another
         """
         return self.__le__(other) and not self.__eq__(other)
 
     def __ge__(self, other):
         """
-        Returns if one path is included in another
+        Return if one path is included in another
         """
         if self._nu == other._nu:
             return path_weakly_above_other(self._path, other._path)
@@ -297,18 +318,33 @@ class NuDyckWord(CombinatorialElement):
 
     def __gt__(self, other):
         """
-        Returns if one path is strictly included in another
+        Return if one path is strictly included in another
         """
         return self.__ge__(other) and not self.__eq__(other)
 
-    def _cache_key(self):
+    def _cache_key(self) -> tuple:
         """
-        Return a cache key
-        """
-        return str(self._path) + "-" + str(self._nu)
+        Return a cache key for ``self``.
 
-    def __hash__(self):
-        return hash(''.join([str(i) for i in self._list()]))
+        EXAMPLES::
+
+            sage: u = NuDyckWord('010','010')
+            sage: u._cache_key()
+            (0, 1, 0, 0, 1, 0)
+        """
+        return tuple(self._path) + tuple(self._nu)
+
+    def __hash__(self) -> int:
+        """
+        Return a hash for ``self``.
+
+        EXAMPLES::
+
+            sage: u = NuDyckWord('010','010')
+            sage: hash(u)  # random
+            -4577085166836515071
+        """
+        return hash(''.join(str(i) for i in self._list()))
 
     def set_latex_options(self, D):
         r"""
@@ -356,7 +392,7 @@ class NuDyckWord(CombinatorialElement):
         for opt in D:
             self._latex_options[opt] = D[opt]
 
-    def latex_options(self):
+    def latex_options(self) -> dict:
         r"""
         Return the latex options for use in the ``_latex_`` function as a
         dictionary.
@@ -423,7 +459,7 @@ class NuDyckWord(CombinatorialElement):
             d["nu_options"] = opts.latex_nu_options
         return d
 
-    def _repr_(self):
+    def _repr_(self) -> str:
         r"""
         Return a string representation of ``self`` depending on
         :meth:`NuDyckWords.options`.
@@ -444,7 +480,7 @@ class NuDyckWord(CombinatorialElement):
         """
         return self.parent().options._dispatch(self, '_repr_', 'display')
 
-    def _repr_list(self):
+    def _repr_list(self) -> str:
         r"""
         Return a string representation of ``self`` as a list.
 
@@ -563,7 +599,7 @@ class NuDyckWord(CombinatorialElement):
             ret = self._repr_lattice()
         return AsciiArt(ret.splitlines(), baseline=0)
 
-    def __str__(self):
+    def __str__(self) -> str:
         r"""
         Return a string consisting of N and E steps corresponding to
         the `\nu`-Dyck word.
@@ -575,7 +611,7 @@ class NuDyckWord(CombinatorialElement):
             sage: str(NuDyckWord('101010','100110'))
             'NENENE'
         """
-        return "".join(map(replace_dyck_symbol, list(self._path)))
+        return "".join(replace_dyck_symbol(let) for let in self._path)
 
     def pretty_print(self, style=None, labelling=None):
         r"""

@@ -1,3 +1,3 @@
-FORCE $(PYTHON) cysignals gmpy2 | $(PYTHON_TOOLCHAIN) sagemath_environment sage_setup cython pkgconfig build $(and $(filter-out no,$(SAGE_CHECK)), tox)
+FORCE $(PYTHON) cysignals gmpy2 | $(PYTHON_TOOLCHAIN) sagemath_environment sage_setup cython pkgconfig build $(and $(filter-out no,$(SAGE_CHECK_sagemath_objects)), tox)
 
 # FORCE: Always run the spkg-install script

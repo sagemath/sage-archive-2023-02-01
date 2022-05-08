@@ -152,8 +152,32 @@ The source directory of a distribution package, such as
 
 - ``README.rst`` -- a description of the distribution
 
-- ``VERSION.txt``, ``LICENSE.txt`` -- relative symbolic links to the same files
+- ``LICENSE.txt`` -- relative symbolic link to the same files
   in ``SAGE_ROOT/src``
+
+- ``VERSION.txt`` -- package version. This file is updated by the release manager by
+  running the ``sage-update-version`` script.
+
+  Sometimes it may be necessary to upload a hotfix for a distribution
+  package to PyPI. These should be marked by adding a suffix
+  ``.post1``, ``.post2``; see `PEP 440 on post-releases
+  <https://peps.python.org/pep-0440/#post-releases>`_. For example, if
+  the current development release is ``9.7.beta8``, then such a
+  version could be marked ``9.7.beta8.post1``.
+
+  Also sometimes when working on tickets it may be necessary to
+  increment the version because a new feature is needed in another
+  distribution package. Such versions should be marked by using the
+  version number of the anticipated next development release and
+  adding a suffix ``.dev1``, ``.dev2`` ...  (see `PEP 440 on
+  developmental releases
+  <https://peps.python.org/pep-0440/#developmental-releases>`_).
+  For example, if the current development release is ``9.7.beta8``,
+  use ``9.7.beta9.dev1``. If the current development release is
+  the stable release ``9.8``, use ``9.9.beta0.dev1``.
+
+  After the ticket is merged in the next development version, it will
+  be synchronized again with the other package versions.
 
 - ``setup.py`` -- a `setuptools <https://pypi.org/project/setuptools/>`_-based
   installation script

@@ -29,11 +29,11 @@ jobs:
 
       - name: Prepare
         run: |
+          # Install test tools
+          apt-get install -y git python3-venv
           # Reuse built SAGE_LOCAL contained in the Docker image 
           ./bootstrap
           ./configure --enable-build-as-root --prefix=/sage/local --with-sage-venv --enable-editable --enable-download-from-upstream-url
-          # Install test tools
-          apt-get install -y git
       
       - name: Static code check with pyright
         run: pyright    

@@ -119,7 +119,6 @@ import functools
 import os
 import tokenize
 import re
-from sage.env import SAGE_LIB
 
 try:
     import importlib.machinery as import_machinery
@@ -2601,7 +2600,7 @@ def __internal_tests():
 
     Test _extract_embedded_position:
 
-    We cannot test the filename since it depends on ``SAGE_LIB``.
+    We cannot test the filename since it depends on the installation location.
 
     Make sure things work with no trailing newline::
 

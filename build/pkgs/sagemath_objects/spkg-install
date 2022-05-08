@@ -29,7 +29,5 @@ wheel=$(cd "$DIST_DIR" && sdh_store_wheel . && echo $wheel)
 ls -l "$wheel"
 
 if [ "$SAGE_CHECK" != no ]; then
-    # tox 3.x does not handle extras when using --installpkg. https://github.com/tox-dev/tox/issues/1576
-    # We use --force-dep instead to make sagemath-repl available
-    tox -r -v -e sagepython-norequirements-sagewheels-nopypi --installpkg $wheel --force-dep sagemath-repl
+    tox -r -v -e sagepython-norequirements-sagewheels-nopypi --installpkg $wheel
 fi

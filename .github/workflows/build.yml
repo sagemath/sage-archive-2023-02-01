@@ -30,7 +30,7 @@ jobs:
       
       - name: Build and test modularized distributions
         if: always() && steps.prepare.outcome == 'success'
-        run: make pypi-wheels
+        run: make V=0 tox && make pypi-wheels
         env:
           MAKE: make -j2
           SAGE_NUM_THREADS: 2

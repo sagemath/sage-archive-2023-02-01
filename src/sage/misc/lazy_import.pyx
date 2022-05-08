@@ -68,7 +68,6 @@ from warnings import warn
 import inspect
 from . import sageinspect
 
-from .lazy_import_cache import get_cache_file
 from sage.features import FeatureNotPresentError
 
 cdef inline obj(x):
@@ -1088,6 +1087,7 @@ def save_cache_file():
         sage: sage.misc.lazy_import.save_cache_file()
     """
     from sage.misc.temporary_file import atomic_write
+    from .lazy_import_cache import get_cache_file
 
     global star_imports
     if star_imports is None:
@@ -1129,6 +1129,7 @@ def get_star_imports(module_name):
     """
     global star_imports
     if star_imports is None:
+        from .lazy_import_cache import get_cache_file
         star_imports = {}
         try:
             with open(get_cache_file(), "rb") as cache_file:

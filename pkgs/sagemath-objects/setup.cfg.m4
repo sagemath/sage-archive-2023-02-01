@@ -37,4 +37,6 @@ install_requires =
         | sed "2,\$s/^/    /;"')dnl
 
 [options.extras_require]
-test = sagemath-repl
+# Currently we do not use the sage doctester to test sagemath-objects,
+# so we do not list sagemath-repl here.
+test =

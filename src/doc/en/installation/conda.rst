@@ -119,6 +119,10 @@ Here we assume that you are using a git checkout.
     ``src/environment-optional.yml``, which will only install standard
     (and optional) packages without any additional developer tools.
 
+    By default, the most recent version of Python supported by Sage is
+    installed. You can use the additional option ``python=3.9`` in the above
+    ``env create`` command to use another Python version (here 3.9). 
+
   - Run the ``configure`` script::
 
       $ ./bootstrap

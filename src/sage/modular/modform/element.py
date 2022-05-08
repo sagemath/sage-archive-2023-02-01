@@ -391,6 +391,32 @@ class ModularForm_abstract(ModuleElement):
         else:
             return self.q_expansion(n+1)[int(n)]
 
+    def coefficient(self, n):
+        r"""
+        Return the `n`-th coefficient of the `q`-expansion of self.
+
+        INPUT:
+
+        - ``n`` (int, Integer) - A non-negative integer.
+
+        EXAMPLES::
+
+            sage: f = ModularForms(1, 12).0; f
+            q - 24*q^2 + 252*q^3 - 1472*q^4 + 4830*q^5 + O(q^6)
+            sage: f.coefficient(0)
+            0
+            sage: f.coefficient(1)
+            1
+            sage: f.coefficient(2)
+            -24
+            sage: f.coefficient(3)
+            252
+            sage: f.coefficient(4)
+            -1472
+        """
+        n = ZZ(n)
+        return self.q_expansion(n+1)[n]
+
     def padded_list(self, n):
         """
         Return a list of length n whose entries are the first n
@@ -3146,12 +3172,12 @@ class GradedModularFormElement(ModuleElement):
         sage: M(D).parent()
         Ring of Modular Forms for Modular Group SL(2,Z) over Rational Field
 
-    A graded modular form can be initated via a dictionnary or a list::
+    A graded modular form can be initiated via a dictionary or a list::
 
         sage: E4 = ModularForms(1, 4).0
-        sage: M({4:E4, 12:D}) # dictionnary
+        sage: M({4:E4, 12:D})  # dictionary
         1 + 241*q + 2136*q^2 + 6972*q^3 + 16048*q^4 + 35070*q^5 + O(q^6)
-        sage: M([E4, D]) # list
+        sage: M([E4, D])  # list
         1 + 241*q + 2136*q^2 + 6972*q^3 + 16048*q^4 + 35070*q^5 + O(q^6)
 
     Also, when adding two modular forms of different weights, a graded modular form element will be created::
@@ -3218,7 +3244,7 @@ class GradedModularFormElement(ModuleElement):
         """
         forms_dictionary = {}
         if isinstance(forms_datum, dict):
-            for k,f in forms_datum.items():
+            for k, f in forms_datum.items():
                 if isinstance(k, (int, Integer)):
                     k = ZZ(k)
                     if k == 0:
@@ -3505,9 +3531,9 @@ class GradedModularFormElement(ModuleElement):
 
         INPUT:
 
-        - ``c`` - an element of the base ring of self
+        - ``c`` -- an element of the base ring of self
 
-        OUPUT: A ``GradedModularFormElement``.
+        OUTPUT: A ``GradedModularFormElement``.
 
         TESTS::
 

@@ -57,7 +57,7 @@ Python classes::
     sage: sage_getfile(BlockFinder)
     '.../sage/misc/sageinspect.py'
 
-    sage: sage_getdoc(BlockFinder).lstrip()
+    sage: sage_getdoc(BlockFinder).lstrip()[:50]
     'Provide a tokeneater() method to detect the...'
 
     sage: sage_getsource(BlockFinder)
@@ -604,8 +604,8 @@ class SageArgSpecVisitor(ast.NodeVisitor):
             sage: import ast, sage.misc.sageinspect as sms
             sage: visitor = sms.SageArgSpecVisitor()
             sage: vis = lambda x: visitor.visit_Str(ast.parse(x).body[0].value)
-            sage: [vis(s) for s in ['"abstract"', "u'syntax'", r'''r"tr\ee"''']]
-            ['abstract', u'syntax', 'tr\\ee']
+            sage: [vis(s) for s in ['"abstract"', "'syntax'", r'''r"tr\ee"''']]
+            ['abstract', 'syntax', 'tr\\ee']
         """
         return node.s
 
@@ -802,11 +802,11 @@ class SageArgSpecVisitor(ast.NodeVisitor):
         """
         op = node.op.__class__.__name__
         if op == 'Add':
-            return self.visit(node.left)+self.visit(node.right)
+            return self.visit(node.left) + self.visit(node.right)
         if op == 'Mult':
-            return self.visit(node.left)*self.visit(node.right)
+            return self.visit(node.left) * self.visit(node.right)
         if op == 'BitAnd':
-            return self.visit(node.left)&self.visit(node.right)
+            return self.visit(node.left) & self.visit(node.right)
         if op == 'BitOr':
             return self.visit(node.left) | self.visit(node.right)
         if op == 'BitXor':
@@ -928,7 +928,7 @@ def _grep_first_pair_of_parentheses(s):
             if level == 1:
                 return '(' + ''.join(out)
             level -= 1
-        elif c=="\\" and (single_quote or double_quote):
+        elif c == "\\" and (single_quote or double_quote):
             escaped = not escaped
         else:
             escaped = False
@@ -1760,7 +1760,7 @@ def sage_formatargspec(args, varargs=None, varkw=None, defaults=None,
         sage: defaults = [3]
         sage: sage_formatargspec(args, defaults=defaults)
         '(a, b, c=3)'
-        sage: import warnings; warnings.simplefilter('ignore')  # py3: ignore DeprecationWarning
+        sage: import warnings; warnings.simplefilter('ignore')  # ignore DeprecationWarning
         sage: formatargspec(args, defaults=defaults) == sage_formatargspec(args, defaults=defaults)
         True
     """
@@ -2051,7 +2051,6 @@ def sage_getdoc(obj, obj_name='', embedded=False):
             warn = """WARNING: the enclosing module is marked '{}',
 so doctests may not pass.""".format(skip)
             s = warn + "\n\n" + s
-        pass
 
     # Fix object naming
     if obj_name != '':

@@ -1974,12 +1974,12 @@ class FinitePoset(UniqueRepresentation, Parent):
             sage: get_plot_labels(P1.plot(label_elements=False))
             []
             sage: get_plot_labels(P1.plot(label_elements=True))
-            [u'0', u'1', u'2', u'3', u'4']
+            ['0', '1', '2', '3', '4']
             sage: element_labels = {0:'a', 1:'b', 2:'c', 3:'d', 4:'e'}
             sage: get_plot_labels(P1.plot(element_labels=element_labels))
-            [u'a', u'b', u'c', u'd', u'e']
+            ['a', 'b', 'c', 'd', 'e']
             sage: get_plot_labels(P2.plot(element_labels=element_labels))
-            [u'a', u'b', u'c', u'd', u'e']
+            ['a', 'b', 'c', 'd', 'e']
 
         The following checks that :trac:`18936` has been fixed and labels still work::
 
@@ -2783,20 +2783,20 @@ class FinitePoset(UniqueRepresentation, Parent):
             sage: Q.is_incomparable_chain_free(2, pi)
             Traceback (most recent call last):
             ...
-            TypeError: 2 and pi must be integers.
+            TypeError: 2 and pi must be integers
             sage: Q.is_incomparable_chain_free(2, -1)
             Traceback (most recent call last):
             ...
-            ValueError: 2 and -1 must be positive integers.
+            ValueError: 2 and -1 must be positive integers
             sage: P = Poset(((0, 1, 2, 3, 4), ((0, 1), (1, 2), (0, 3), (4, 2))))
             sage: P.is_incomparable_chain_free((3, 1))
             Traceback (most recent call last):
             ...
-            TypeError: (3, 1) is not a tuple of tuples.
+            TypeError: (3, 1) is not a tuple of tuples
             sage: P.is_incomparable_chain_free([3, 1], [2, 2])
             Traceback (most recent call last):
             ...
-            TypeError: [3, 1] and [2, 2] must be integers.
+            TypeError: [3, 1] and [2, 2] must be integers
             sage: P.is_incomparable_chain_free([[3, 1], [2, 2]])
             True
             sage: P.is_incomparable_chain_free(([3, 1], [2, 2]))
@@ -2804,11 +2804,11 @@ class FinitePoset(UniqueRepresentation, Parent):
             sage: P.is_incomparable_chain_free([3, 1], 2)
             Traceback (most recent call last):
             ...
-            TypeError: [3, 1] and 2 must be integers.
+            TypeError: [3, 1] and 2 must be integers
             sage: P.is_incomparable_chain_free(([3, 1], [2, 2, 2]))
             Traceback (most recent call last):
             ...
-            ValueError: '([3, 1], [2, 2, 2])' is not a tuple of length-2 tuples.
+            ValueError: '([3, 1], [2, 2, 2])' is not a tuple of length-2 tuples
 
         AUTHOR:
 
@@ -2818,9 +2818,9 @@ class FinitePoset(UniqueRepresentation, Parent):
             try:
                 chain_pairs = [tuple(chain_pair) for chain_pair in m]
             except TypeError:
-                raise TypeError("%s is not a tuple of tuples." % str(tuple(m)))
+                raise TypeError("%s is not a tuple of tuples" % str(tuple(m)))
             if not all(len(chain_pair) == 2 for chain_pair in chain_pairs):
-                raise ValueError("%r is not a tuple of length-2 tuples." % str(tuple(m)))
+                raise ValueError("%r is not a tuple of length-2 tuples" % str(tuple(m)))
             chain_pairs = sorted(chain_pairs, key=min)
         else:
             chain_pairs = [(m, n)]
@@ -2831,9 +2831,9 @@ class FinitePoset(UniqueRepresentation, Parent):
             try:
                 m, n = Integer(m), Integer(n)
             except TypeError:
-                raise TypeError("%s and %s must be integers." % (m, n))
+                raise TypeError("%s and %s must be integers" % (m, n))
             if m < 1 or n < 1:
-                raise ValueError("%s and %s must be positive integers." % (m, n))
+                raise ValueError("%s and %s must be positive integers" % (m, n))
             twochains = digraphs.TransitiveTournament(m) + digraphs.TransitiveTournament(n)
             if closure.subgraph_search(twochains, induced=True) is not None:
                 return False
@@ -7441,9 +7441,10 @@ class FinitePoset(UniqueRepresentation, Parent):
         n = rk(maxi)
         if n == 0:
             return PolynomialRing(ZZ, 'x', 1).one()
-        anneau = PolynomialRing(ZZ, 'x', n+1)
+        anneau = PolynomialRing(ZZ, 'x', n + 1)
         x = anneau.gens()
-        return x[n] * sum(prod(x[rk(i)] for i in ch) for ch in hasse.chains(exclude=[mini, maxi]))
+        return x[n] * sum(prod(x[rk(i)] for i in ch)
+                          for ch in hasse.chains(exclude=[mini, maxi]))
 
     def flag_h_polynomial(self):
         r"""

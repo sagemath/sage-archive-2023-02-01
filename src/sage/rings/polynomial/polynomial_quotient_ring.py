@@ -51,6 +51,8 @@ from sage.rings.polynomial.polynomial_ring import PolynomialRing_commutative
 from sage.categories.commutative_algebras import CommutativeAlgebras
 from sage.categories.commutative_rings import CommutativeRings
 
+from sage.rings.quotient_ring import QuotientRing_generic
+
 from sage.structure.category_object import normalize_names
 from sage.structure.factory import UniqueFactory
 
@@ -418,6 +420,8 @@ class PolynomialQuotientRing_generic(CommutativeRing):
             category = category.Finite()
         CommutativeRing.__init__(self, ring, names=name, category=category)
 
+    _ideal_class_ = QuotientRing_generic._ideal_class_
+
     def _element_constructor_(self, x):
         """
         Convert x into this quotient ring. Anything that can be converted into
@@ -622,11 +626,11 @@ class PolynomialQuotientRing_generic(CommutativeRing):
             if x.parent() == self:
                 return self.element_class(self, self.__ring(x.lift()), check=False)
         # any ring that coerces to the base ring of this polynomial ring.
-        return self._coerce_try(x, [self.polynomial_ring()])
+        return self(self.polynomial_ring().coerce(x))
 
     ############################################
-    ## Methods to make the category framework happy...
-    ##
+    # Methods to make the category framework happy...
+    #
 
     retract = _coerce_impl
     ambient = CommutativeRing.base

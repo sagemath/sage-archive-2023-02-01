@@ -22,9 +22,10 @@ from sage.misc.functional import norm
 from sage.misc.latex import LatexExpr
 from sage.structure.sequence import Sequence
 
-from sage.plot.all import Graphics, point2d, line2d, arrow, polygon2d
-from sage.plot.plot3d.all import point3d, line3d, arrow3d, polygons3d
-from sage.plot.plot3d.transform import rotate_arbitrary
+from sage.misc.lazy_import import lazy_import
+lazy_import("sage.plot.all", ["Graphics", "point2d", "line2d", "arrow", "polygon2d"])
+lazy_import("sage.plot.plot3d.all", ["point3d", "line3d", "arrow3d", "polygons3d"])
+lazy_import("sage.plot.plot3d.transform", "rotate_arbitrary")
 
 
 #############################################################
@@ -1175,6 +1176,8 @@ class Projection(SageObject):
             line_opts.setdefault('width', 3)
             lplt = self.render_wireframe_3d(**line_opts)
         if isinstance(polygon_opts, dict):
+            if 'threejs_flat_shading' not in polygon_opts:
+                polygon_opts['threejs_flat_shading'] = True
             pgplt = self.render_solid_3d(**polygon_opts)
         return sum(_ for _ in [pplt, lplt, pgplt] if _ is not None)
 
@@ -1390,7 +1393,7 @@ class Projection(SageObject):
 
         # Gives the reproduction information
         from sage.env import SAGE_VERSION
-        tikz_pic += "%% This TikZ-picture was produce with Sagemath version {}\n".format(SAGE_VERSION)
+        tikz_pic += "%% This TikZ-picture was produced with Sagemath version {}\n".format(SAGE_VERSION)
         tikz_pic += "%% with the command: ._tikz_2d and parameters:\n"
         tikz_pic += "%% scale = {}\n".format(scale)
         tikz_pic += "%% edge_color = {}\n".format(edge_color)
@@ -1535,7 +1538,7 @@ class Projection(SageObject):
 
         # Gives the reproduction information
         from sage.env import SAGE_VERSION
-        tikz_pic += "%% This TikZ-picture was produce with Sagemath version {}\n".format(SAGE_VERSION)
+        tikz_pic += "%% This TikZ-picture was produced with Sagemath version {}\n".format(SAGE_VERSION)
         tikz_pic += "%% with the command: ._tikz_2d_in_3d and parameters:\n"
         tikz_pic += "%% view = {}\n".format(view)
         tikz_pic += "%% angle = {}\n".format(angle)
@@ -1733,7 +1736,7 @@ class Projection(SageObject):
 
         # Gives the reproduction information
         from sage.env import SAGE_VERSION
-        tikz_pic += "%% This TikZ-picture was produce with Sagemath version {}\n".format(SAGE_VERSION)
+        tikz_pic += "%% This TikZ-picture was produced with Sagemath version {}\n".format(SAGE_VERSION)
         tikz_pic += "%% with the command: ._tikz_3d_in_3d and parameters:\n"
         tikz_pic += "%% view = {}\n".format(view)
         tikz_pic += "%% angle = {}\n".format(angle)

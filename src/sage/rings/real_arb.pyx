@@ -230,6 +230,7 @@ import operator
 
 import sage.categories.fields
 
+from sage.misc.lazy_string import lazy_string
 from sage.rings.integer_ring import ZZ
 from sage.rings.rational_field import QQ
 from sage.rings.real_mpfi import RealIntervalField, RealIntervalField_class
@@ -369,6 +370,9 @@ class RealBallField(UniqueRepresentation, sage.rings.abc.RealBallField):
 
         sage: RealBallField().is_finite()
         False
+
+        sage: loads(dumps(RealBallField(60))) is RealBallField(60)
+        True
     """
     Element = RealBall
 
@@ -473,6 +477,12 @@ class RealBallField(UniqueRepresentation, sage.rings.abc.RealBallField):
             sage: RBF.convert_map_from(QuadraticField(2))
             Conversion via _arb_ method map:
             ...
+            sage: RBF.coerce_map_from(AA)
+            Conversion via _arb_ method map:
+            ...
+            sage: RBF.convert_map_from(QQbar)
+            Conversion via _arb_ method map:
+            ...
         """
         if isinstance(other, RealBallField):
             return other._prec >= self._prec
@@ -545,7 +555,7 @@ class RealBallField(UniqueRepresentation, sage.rings.abc.RealBallField):
             return self.element_class(self, _mid, rad)
         except (TypeError, ValueError):
             pass
-        raise TypeError("unable to convert {!r} to a RealBall".format(mid))
+        raise TypeError(lazy_string("unable to convert %s to a RealBall", mid))
 
     def _repr_option(self, key):
         """
@@ -626,6 +636,8 @@ class RealBallField(UniqueRepresentation, sage.rings.abc.RealBallField):
             53
         """
         return self._prec
+
+    prec = precision
 
     def is_exact(self):
         """
@@ -1148,6 +1160,30 @@ cdef inline bint _do_sig(long prec):
 cdef inline long prec(RealBall ball):
     return ball._parent._prec
 
+def create_RealBall(parent, serialized):
+    r"""
+    Create a RealBall from a serialized representation.
+
+    TESTS::
+
+        sage: from sage.rings.real_arb import create_RealBall
+        sage: create_RealBall(RBF, b'15555555555555 -36 1 -36')
+        [0.3333333333333333 +/- 7.04e-17]
+        sage: create_RealBall(RBF, b'foo')
+        Traceback (most recent call last):
+        ...
+        ValueError: incorrect format
+    """
+    cdef RealBall res = RealBall.__new__(RealBall)
+    res._parent = parent
+    sig_on()
+    cdef bint error = arb_load_str(res.value, serialized)
+    sig_off()
+    if error:
+        raise ValueError("incorrect format")
+    else:
+        return res
+
 cdef class RealBall(RingElement):
     """
     Hold one ``arb_t`` of the `Arb library
@@ -1493,6 +1529,26 @@ cdef class RealBall(RingElement):
             flint_free(c_result)
 
         return py_string
+
+    def __reduce__(self):
+        r"""
+        Serialize a RealBall.
+
+        TESTS::
+
+            sage: [loads(dumps(b)).identical(b) for b in
+            ....:     [RealBallField(60).pi(), RBF(infinity), RBF(NaN)]]
+            [True, True, True]
+        """
+        cdef bytes py_val
+        sig_on()
+        cdef char* c_val = arb_dump_str(self.value)
+        sig_off()
+        try:
+            py_val = <bytes> c_val
+        finally:
+            flint_free(c_val)
+        return create_RealBall, (self._parent, py_val)
 
     # Conversions
 
@@ -3459,7 +3515,7 @@ cdef class RealBall(RingElement):
 
         EXAMPLES::
 
-            sage: RBF(1/2).erf()
+            sage: RBF(1/2).erf() # abs tol 1e-16
             [0.520499877813047 +/- 6.10e-16]
         """
         cdef RealBall res = self._new()
@@ -3509,12 +3565,12 @@ cdef class RealBall(RingElement):
 
         EXAMPLES::
 
-            sage: RBF(1).Si()
+            sage: RBF(1).Si() # abs tol 1e-15
             [0.946083070367183 +/- 9.22e-16]
 
         TESTS::
 
-            sage: RBF(Si(1))
+            sage: RBF(Si(1)) # abs tol 1e-15
             [0.946083070367183 +/- 9.22e-16]
         """
         cdef RealBall res = self._new()
@@ -3531,12 +3587,12 @@ cdef class RealBall(RingElement):
 
         EXAMPLES::
 
-            sage: RBF(1).Ci()  # abs tol 1e-16
+            sage: RBF(1).Ci()  # abs tol 5e-16
             [0.337403922900968 +/- 3.25e-16]
 
         TESTS::
 
-            sage: RBF(Ci(1))  # abs tol 1e-16
+            sage: RBF(Ci(1))  # abs tol 5e-16
             [0.337403922900968 +/- 3.25e-16]
         """
         cdef RealBall res = self._new()

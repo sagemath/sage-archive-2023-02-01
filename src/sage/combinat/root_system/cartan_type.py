@@ -594,7 +594,7 @@ class CartanTypeFactory(SageObject):
         if isinstance(t, (CartanType_abstract, SuperCartanType_standard)):
             return t
 
-        from sage.rings.semirings.non_negative_integer_semiring import NN
+        from sage.rings.semirings.all import NN
         if isinstance(t, str):
             if "x" in t:
                 from . import type_reducible
@@ -924,7 +924,7 @@ class CartanTypeFactory(SageObject):
             D_{5}^{(2)}
 
         For type `A_{2n}^{(2)\dagger}`, the dual string/latex options are
-        automatically overriden::
+        automatically overridden::
 
             sage: dct = CartanType(['A',8,2]).dual(); dct
             ['A', 8, 2]^+

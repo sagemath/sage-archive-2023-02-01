@@ -960,11 +960,10 @@ cdef class Rational(sage.structure.element.FieldElement):
         """
         if self.denom() == 1:
             return str(self.numer())
+        if self < 0:
+            return "-\\frac{%s}{%s}" % (-self.numer(), self.denom())
         else:
-            if self < 0:
-                return "-\\frac{%s}{%s}"%(-self.numer(), self.denom())
-            else:
-               return "\\frac{%s}{%s}"%(self.numer(), self.denom())
+            return "\\frac{%s}{%s}" % (self.numer(), self.denom())
 
     def _symbolic_(self, sring):
         """
@@ -1720,7 +1719,7 @@ cdef class Rational(sage.structure.element.FieldElement):
         return self.numer().squarefree_part() * self.denom().squarefree_part()
 
     def is_padic_square(self, p, check=True):
-        """
+        r"""
         Determines whether this rational number is a square in `\QQ_p` (or in
         `R` when ``p = infinity``).
 

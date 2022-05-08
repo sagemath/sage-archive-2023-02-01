@@ -1639,9 +1639,9 @@ def laplace(ex, t, s, algorithm='maxima'):
         sage: laplace(dirac_delta(t), t, s)
         1
         sage: F, a, cond = laplace(dirac_delta(t), t, s, algorithm='sympy')
-        sage: a, cond
-        (-oo, True)
-        sage: F       # random - sympy <1.9 includes undefined heaviside(0) in answer
+        sage: a, cond  # random - sympy <1.10 gives (-oo, True)
+        (0, True)
+        sage: F        # random - sympy <1.9 includes undefined heaviside(0) in answer
         1
         sage: laplace(dirac_delta(t), t, s, algorithm='giac')
         1
@@ -2076,6 +2076,21 @@ def dummy_inverse_laplace(*args):
     return _inverse_laplace(args[0], var(repr(args[1])), var(repr(args[2])))
 
 
+def dummy_pochhammer(*args):
+    """
+    This function is called to create formal wrappers of Pochhammer symbols
+
+    EXAMPLES::
+
+        sage: from sage.calculus.calculus import dummy_pochhammer
+        sage: s,t = var('s,t')
+        sage: dummy_pochhammer(s,t)
+        gamma(s + t)/gamma(s)
+    """
+    x, y = args
+    from sage.functions.gamma import gamma
+    return gamma(x + y) / gamma(x)
+
 #######################################################
 #
 # Helper functions for printing latex expression
@@ -2352,6 +2367,7 @@ def symbolic_expression_from_maxima_string(x, equals_sub=False, maxima=maxima):
     function_syms['laplace'] = dummy_laplace
     function_syms['ilt'] = dummy_inverse_laplace
     function_syms['at'] = at
+    function_syms['pochhammer'] = dummy_pochhammer
 
     global is_simplified
     try:

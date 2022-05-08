@@ -226,6 +226,7 @@ from sage.categories.tensor import tensor
 from sage.combinat.free_module import CombinatorialFreeModule
 from sage.matrix.constructor import matrix
 from sage.misc.misc_c import prod
+from sage.data_structures.blas_dict import convert_remove_zeroes, linear_combination
 from copy import copy
 from functools import reduce
 
@@ -716,14 +717,19 @@ class SymmetricFunctionsBases(Category_realization_of_parent):
                 Traceback (most recent call last):
                 ...
                 ValueError: not a valid skew partition
+
+                sage: s = SymmetricFunctions(GF(2)).s()
+                sage: s.skew_schur([[3,2,1],[2,1]])
+                s[1, 1, 1] + s[3]
             """
             from sage.combinat.skew_partition import SkewPartitions
             if x not in SkewPartitions():
                 raise ValueError("not a valid skew partition")
             import sage.libs.lrcalc.lrcalc as lrcalc
             s = self.realization_of().schur()
+            R = self.base_ring()
             skewschur = lrcalc.skew(x[0], x[1])
-            return self(s._from_dict(skewschur))
+            return self(s.element_class(s, convert_remove_zeroes(skewschur, R)))
 
         def Eulerian(self, n, j, k=None):
             """
@@ -785,6 +791,8 @@ class SymmetricFunctionsBases(Category_realization_of_parent):
             `\lambda` is the symmetric function denoted `L_\lambda` in
             [GR1993]_ and in Exercise 7.89 of [STA]_ and denoted
             `\mathbf{GR}_\lambda` in Definition 6.6.34 of [GriRei18]_.
+            It is also called the *higher Lie character*, for instance
+            in [Sch2003b]_.
             It can be defined in several ways:
 
             - It is the sum of the monomials `\mathbf{x}_w` over all
@@ -821,8 +829,8 @@ class SymmetricFunctionsBases(Category_realization_of_parent):
 
               where `p_d` denotes the `d`-th power-sum symmetric
               function. This `\mathbf{GR}_{\left(n\right)}` is also
-              denoted by `L_n`. Now, `\mathbf{GR}_\lambda` is defined
-              as the product:
+              denoted by `L_n`, and is called the Lie character. Now,
+              the higher Lie character `\mathbf{GR}_\lambda` is defined as the product:
 
               .. MATH::
 
@@ -840,6 +848,23 @@ class SymmetricFunctionsBases(Category_realization_of_parent):
             6.6.2 for the equivalence of the first two definitions and
             further formulas.)
 
+            `\mathbf{GR}_\lambda` has further significance in representations afforded
+            by the tensor algebra `T(V)` of a finite dimensional vector space.
+            The Poincaré-Birkhoff-Witt theorem describes the universal enveloping algebra
+            of a Lie algebra. It gives a decomposition of the degree-`n` component `T_n(V)`
+            of `T(V)` into `GL(V)` representations indexed by partitions.
+            The higher Lie characters are the symmetric group `S_n` characters corresponding
+            to this decomposition via Schur-Weyl duality.
+
+            Another important question, *Thrall's problem* (see e.g. [Sch2003b]_)
+            asks, for `\lambda` a partition of `n`, can we combinatorially interpret
+            the coefficients `\alpha_\mu^\lambda` in the Schur-expansion of
+            `\mathbf{GR}_\lambda`:
+
+            .. MATH::
+
+                \mathbf{GR}_\lambda = \sum_{\mu \vdash n} \alpha_\mu^\lambda s_\mu.
+
             INPUT:
 
             - ``lam`` -- a partition or a positive integer (in the latter
@@ -850,16 +875,6 @@ class SymmetricFunctionsBases(Category_realization_of_parent):
             The Gessel-Reutenauer symmetric function
             `\mathbf{GR}_\lambda`, where `\lambda` is ``lam``,
             expanded in the basis ``self``.
-
-            REFERENCES:
-
-            .. [GR1993] Ira M. Gessel, Christophe Reutenauer.
-               *Counting Permutations with Given Cycle Structure
-               and Descent Set*.
-               Journal of Combinatorial Theory, Series A, 64 (1993),
-               pp. 189--215.
-
-            .. [GriRei18]_
 
             EXAMPLES:
 
@@ -901,6 +916,11 @@ class SymmetricFunctionsBases(Category_realization_of_parent):
             [GR1993]_ p. 201) shows::
 
                 sage: s.gessel_reutenauer([4]) == s.gessel_reutenauer([2, 1, 1])
+                True
+
+            They also go by the name *higher Lie character*::
+
+                sage: s.higher_lie_character([2, 2, 1]) == s.gessel_reutenauer([2, 2, 1])
                 True
 
             Of the above three equivalent definitions of
@@ -1009,6 +1029,8 @@ class SymmetricFunctionsBases(Category_realization_of_parent):
             result = comp_parent.sum_of_terms((nu, comp_base_ring(c))
                                                for nu, c in corresponding_result)
             return self(result)    # just in case comp_parent != self.
+
+        higher_lie_character = gessel_reutenauer
 
         def carlitz_shareshian_wachs(self, n, d, s, comparison=None):
             r"""
@@ -1551,7 +1573,7 @@ class SymmetricFunctionAlgebra_generic(CombinatorialFreeModule):
         R = Sym.base_ring()
         from sage.categories.all import CommutativeRings
         if R not in CommutativeRings():
-            raise TypeError("Argument R must be a commutative ring.")
+            raise TypeError("argument R must be a commutative ring")
         try:
             R(Integer(1))
         except Exception:
@@ -1678,7 +1700,7 @@ class SymmetricFunctionAlgebra_generic(CombinatorialFreeModule):
             sage: s._change_by_plethysm(-a,-1,[])
             s[1, 1, 1]
         """
-        #Covert to the power sum
+        # Convert to the power sum
         p = self.realization_of().power()
         p_x = p(x)
         expr_k = lambda k: expr.subs(**dict([(str(x),x**k) for x in deg_one]))
@@ -1723,7 +1745,10 @@ class SymmetricFunctionAlgebra_generic(CombinatorialFreeModule):
         # broken for most coeff ring
         res = 0
         if orthogonal:
-            # could check which of x and y has less terms
+            # check which of x and y has less terms as we assume the
+            #   base ring is commutative
+            if len(x._monomial_coefficients) > len(y._monomial_coefficients):
+                x, y = y, x
             # for mx, cx in x:
             for mx, cx in x._monomial_coefficients.items():
                 if mx not in y._monomial_coefficients:
@@ -1732,12 +1757,12 @@ class SymmetricFunctionAlgebra_generic(CombinatorialFreeModule):
                     # cy = y[mx]
                     cy = y._monomial_coefficients[mx]
                 # might as well call f(mx)
-                res += cx*cy*f(mx, mx)
+                res += cx * cy * f(mx, mx)
             return res
         else:
             for mx, cx in x._monomial_coefficients.items():
                 for my, cy in y._monomial_coefficients.items():
-                    res += cx*cy*f(mx,my)
+                    res += cx * cy * f(mx, my)
             return res
 
     def _from_element(self, x):
@@ -2476,7 +2501,7 @@ class SymmetricFunctionAlgebra_generic(CombinatorialFreeModule):
             sage: Sym.p()._dual_basis_default()
             Dual basis to Symmetric Functions over Rational Field in the powersum basis with respect to the Hall scalar product
 
-        This is meant to be overriden by subclasses for which an
+        This is meant to be overridden by subclasses for which an
         explicit dual basis is known::
 
             sage: Sym.s()._dual_basis_default()
@@ -5085,9 +5110,9 @@ class SymmetricFunctionAlgebra_generic_Element(CombinatorialFreeModule.Element):
             sage: s(0).degree()
             0
         """
-        return max( [sum(_) for _ in self._monomial_coefficients] + [0] )
+        return max([sum(cfs) for cfs in self._monomial_coefficients] + [0])
 
-    def restrict_degree(self, d, exact = True):
+    def restrict_degree(self, d, exact=True):
         r"""
         Return the degree ``d`` component of ``self``.
 
@@ -5256,15 +5281,28 @@ class SymmetricFunctionAlgebra_generic_Element(CombinatorialFreeModule.Element):
             Traceback (most recent call last):
             ...
             ValueError: x needs to be a symmetric function
+
+            sage: s = SymmetricFunctions(QQ['t']).s()
+            sage: f = s[3,2,1].skew_by(s[2,1]); f
+            s[1, 1, 1] + 2*s[2, 1] + s[3]
+            sage: f / 2
+            1/2*s[1, 1, 1] + s[2, 1] + 1/2*s[3]
+            sage: s = SymmetricFunctions(GF(2)).s()
+            sage: s[3,2,1].skew_by(s[2,1])
+            s[1, 1, 1] + s[3]
         """
         parent = self.parent()
         Sym = parent.realization_of()
         if x not in Sym:
             raise ValueError("x needs to be a symmetric function")
         s = Sym.schur()
-        zero = s.zero()
-        f = lambda part1, part2: s([part1,part2]) if part1.contains(part2) else zero
-        return parent(s._apply_multi_module_morphism(s(self), s(x), f))
+        R = parent.base_ring()
+        import sage.libs.lrcalc.lrcalc as lrcalc
+        ret = linear_combination((convert_remove_zeroes(lrcalc.skew(p1, p2), R), c1 * c2)
+                                 for p1, c1 in s(self)._monomial_coefficients.items()
+                                 for p2, c2 in s(x)._monomial_coefficients.items()
+                                 if p1.contains(p2))
+        return parent(s.element_class(s, ret))
 
     def hl_creation_operator(self, nu, t = None):
         r"""

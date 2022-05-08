@@ -127,7 +127,7 @@ primes ?
     'E.g.f.: exp(exp(x) - 1).'
 
     sage: [i for i in b.comments() if 'prime' in i][-1]     # optional -- internet
-    'Number n is prime if mod(a(n)-2,n) = 0. -_Dmitry Kruchinin_, Feb 14 2012'
+    'Number n is prime if mod(a(n)-2,n) = 0...'
 
     sage: [n for n in range(2, 20) if (b(n)-2) % n == 0]    # optional -- internet
     [2, 3, 5, 7, 11, 13, 17, 19]
@@ -1023,7 +1023,7 @@ class OEISSequence(SageObject, UniqueRepresentation):
         .. TODO::
 
             - ask OEIS to add a keyword telling whether the sequence comes from
-              a power series, e.g. for https://oeis.org/A000182
+              a power series, e.g. for :oeis:`A000182`
             - discover other possible conversions.
 
         EXAMPLES::

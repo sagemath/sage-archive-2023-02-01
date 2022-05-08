@@ -1,8 +1,34 @@
 r"""
 Features for testing the presence of Python modules in the Sage library
 """
-from . import PythonModule
+from . import PythonModule, StaticFile
 from .join_feature import JoinFeature
+
+
+class sagemath_doc_html(StaticFile):
+    r"""
+    A :class:`Feature` which describes the presence of the documentation
+    of the Sage library in HTML format.
+
+    EXAMPLES::
+
+        sage: from sage.features.sagemath import sagemath_doc_html
+        sage: sagemath_doc_html().is_present()  # optional - sagemath_doc_html
+        FeatureTestResult('sagemath_doc_html', True)
+    """
+    def __init__(self):
+        r"""
+        TESTS::
+
+            sage: from sage.features.sagemath import sagemath_doc_html
+            sage: isinstance(sagemath_doc_html(), sagemath_doc_html)
+            True
+        """
+        from sage.env import SAGE_DOC
+        StaticFile.__init__(self, 'sagemath_doc_html',
+                            filename='html',
+                            search_path=(SAGE_DOC,),
+                            spkg='sagemath_doc_html')
 
 
 class sage__combinat(JoinFeature):
@@ -74,6 +100,28 @@ class sage__graphs(JoinFeature):
                              [PythonModule('sage.graphs.graph')])
 
 
+class sage__groups(JoinFeature):
+    r"""
+    A :class:`sage.features.Feature` describing the presence of ``sage.groups``.
+
+    EXAMPLES::
+
+        sage: from sage.features.sagemath import sage__groups
+        sage: sage__groups().is_present()  # optional - sage.groups
+        FeatureTestResult('sage.groups', True)
+    """
+    def __init__(self):
+        r"""
+        TESTS::
+
+            sage: from sage.features.sagemath import sage__groups
+            sage: isinstance(sage__groups(), sage__groups)
+            True
+        """
+        JoinFeature.__init__(self, 'sage.groups',
+                             [PythonModule('sage.groups.perm_gps.permgroup')])
+
+
 class sage__plot(JoinFeature):
     r"""
     A :class:`~sage.features.Feature` describing the presence of :mod:`sage.plot`.
@@ -116,6 +164,28 @@ class sage__rings__number_field(JoinFeature):
         """
         JoinFeature.__init__(self, 'sage.rings.number_field',
                              [PythonModule('sage.rings.number_field.number_field_element')])
+
+
+class sage__rings__padics(JoinFeature):
+    r"""
+    A :class:`sage.features.Feature` describing the presence of ``sage.rings.padics``.
+
+    EXAMPLES::
+
+        sage: from sage.features.sagemath import sage__rings__padics
+        sage: sage__rings__padics().is_present()  # optional - sage.rings.padics
+        FeatureTestResult('sage.rings.padics', True)
+    """
+    def __init__(self):
+        r"""
+        TESTS::
+
+            sage: from sage.features.sagemath import sage__rings__padics
+            sage: isinstance(sage__rings__padics(), sage__rings__padics)
+            True
+        """
+        JoinFeature.__init__(self, 'sage.rings.padics',
+                             [PythonModule('sage.rings.padics.factory')])
 
 
 class sage__rings__real_double(PythonModule):
@@ -182,12 +252,15 @@ def all_features():
 
         sage: from sage.features.sagemath import all_features
         sage: list(all_features())
-        [Feature('sage.combinat'), ...]
+        [...Feature('sage.combinat'), ...]
     """
-    return [sage__combinat(),
+    return [sagemath_doc_html(),
+            sage__combinat(),
             sage__geometry__polyhedron(),
             sage__graphs(),
+            sage__groups(),
             sage__plot(),
             sage__rings__number_field(),
+            sage__rings__padics(),
             sage__rings__real_double(),
             sage__symbolic()]

@@ -68,7 +68,10 @@ from warnings import warn
 import inspect
 from . import sageinspect
 
-from sage.features import FeatureNotPresentError
+try:
+    from sage.features import FeatureNotPresentError
+except ImportError:
+    FeatureNotPresentError = ()
 
 cdef inline obj(x):
     if type(x) is LazyImport:
@@ -252,6 +255,7 @@ cdef class LazyImport(object):
             self._object = getattr(__import__(self._module, {}, {}, [self._name]), self._name)
         except ImportError as e:
             if self._feature:
+                from sage.features import FeatureNotPresentError
                 raise FeatureNotPresentError(self._feature, reason=f'Importing {self._name} failed: {e}')
             raise
 

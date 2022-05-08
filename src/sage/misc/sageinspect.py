@@ -295,11 +295,15 @@ def _extract_embedded_position(docstring):
         # 1) Module in the sage src tree
         # 2) Module compiled by Sage's inline cython() compiler
         from sage.misc.temporary_file import spyx_tmp
-        try_filenames = [
-            os.path.join(SAGE_LIB, raw_filename),
+        if raw_filename.startswith('sage/'):
+            import sage
+            try_filenames = [os.path.join(directory, raw_filename[5:])
+                             for directory in sage.__path__]
+        else:
+            try_filenames = []
+        try_filenames.append(
             os.path.join(spyx_tmp(), '_'.join(raw_filename.split('_')[:-1]),
-                         raw_filename)
-        ]
+                         raw_filename))
         for try_filename in try_filenames:
             if os.path.exists(try_filename):
                 filename = try_filename

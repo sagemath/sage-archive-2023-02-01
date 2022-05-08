@@ -1124,7 +1124,8 @@ def get_star_imports(module_name):
         7
         sage: os.close(fd)
         sage: import sage.misc.lazy_import as lazy
-        sage: lazy.get_cache_file = (lambda: cache_file)
+        sage: import sage.misc.lazy_import_cache as cache
+        sage: cache.get_cache_file = (lambda: cache_file)
         sage: lazy.star_imports = None
         sage: lazy.get_star_imports('sage.schemes.all')
         doctest:...: UserWarning: star_imports cache is corrupted

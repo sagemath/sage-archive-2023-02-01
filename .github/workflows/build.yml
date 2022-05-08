@@ -29,51 +29,51 @@ jobs:
           apt-get install -y git
       
       - name: Build and test modularized distributions
-        if: ${{ steps.prepare.outcome == 'success' }}
+        if: always() && steps.prepare.outcome == 'success'
         run: make pypi-wheels
         env:
           MAKE: make -j2
           SAGE_NUM_THREADS: 2
 
       - name: Set up node to install pyright
-        if: ${{ steps.prepare.outcome == 'success' }}
+        if: always() && steps.prepare.outcome == 'success'
         uses: actions/setup-node@v1
         with:
           node-version: '12'
 
       - name: Install pyright
-        if: ${{ steps.prepare.outcome == 'success' }}
+        if: always() && steps.prepare.outcome == 'success'
         # Fix to v232 due to bug https://github.com/microsoft/pyright/issues/3239
         run: npm install -g pyright@1.1.232
 
       - name: Static code check with pyright
-        if: ${{ steps.prepare.outcome == 'success' }}
+        if: always() && steps.prepare.outcome == 'success'
         run: pyright    
       
       - name: Build
         id: build
-        if: ${{ steps.prepare.outcome == 'success' }}
+        if: always() && steps.prepare.outcome == 'success'
         run: make build
         env:
           MAKE: make -j2
           SAGE_NUM_THREADS: 2
 
       - name: Test
-        if: ${{ steps.build.outcome == 'success' }}
+        if: always() && steps.build.outcome == 'success'
         run: |
           ../sage -python -m pip install coverage
           ../sage -python -m coverage run ./bin/sage-runtests --all -p2
         working-directory: ./src
 
       - name: Prepare coverage results
-        if: ${{ steps.build.outcome == 'success' }}
+        if: always() && steps.build.outcome == 'success'
         run: |
           ./venv/bin/python3 -m coverage combine src/.coverage/
           ./venv/bin/python3 -m coverage xml
           find . -name *coverage*
       
       - name: Upload coverage to codecov
-        if: ${{ steps.build.outcome == 'success' }}
+        if: always() && steps.build.outcome == 'success'
         uses: codecov/codecov-action@v2
         with:
           files: ./coverage.xml

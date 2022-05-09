@@ -580,7 +580,7 @@ class PermutationGroup_generic(FiniteGroup):
     @cached_method
     def _has_natural_domain(self):
         """
-        Returns True if the underlying domain is of the form (1,...,n)
+        Return whether the underlying domain is of the form (1,...,n)
 
         EXAMPLES::
 
@@ -599,7 +599,7 @@ class PermutationGroup_generic(FiniteGroup):
 
     def _gap_init_(self):
         r"""
-        Returns a string showing how to declare / initialize ``self`` in Gap.
+        Return a string showing how to declare / initialize ``self`` in Gap.
         Stored in the ``self._gap_string`` attribute.
 
         EXAMPLES:
@@ -700,7 +700,7 @@ class PermutationGroup_generic(FiniteGroup):
 
     def _magma_init_(self, magma):
         r"""
-        Returns a string showing how to declare / initialize self in Magma.
+        Return a string showing how to declare / initialize self in Magma.
 
         EXAMPLES:
 
@@ -1027,7 +1027,7 @@ class PermutationGroup_generic(FiniteGroup):
 
     def __contains__(self, item):
         """
-        Returns boolean value of ``item in self``.
+        Return whether ``item`` is an element of this group.
 
         EXAMPLES::
 
@@ -1057,8 +1057,8 @@ class PermutationGroup_generic(FiniteGroup):
 
     def has_element(self, item):
         """
-        Returns boolean value of ``item in self`` - however *ignores*
-        parentage.
+        Return whether ``item`` is an element of this group -
+        however *ignores* parentage.
 
         EXAMPLES::
 
@@ -1283,7 +1283,7 @@ class PermutationGroup_generic(FiniteGroup):
 
     def gen(self, i=None):
         r"""
-        Returns the i-th generator of ``self``; that is, the i-th element of
+        Return the i-th generator of ``self``; that is, the i-th element of
         the list ``self.gens()``.
 
         The argument `i` may be omitted if there is only one generator (but
@@ -1410,7 +1410,7 @@ class PermutationGroup_generic(FiniteGroup):
 
     def degree(self):
         """
-        Returns the degree of this permutation group.
+        Return the degree of this permutation group.
 
         EXAMPLES::
 
@@ -1432,7 +1432,7 @@ class PermutationGroup_generic(FiniteGroup):
 
     def domain(self):
         r"""
-        Returns the underlying set that this permutation group acts
+        Return the underlying set that this permutation group acts
         on.
 
         EXAMPLES::
@@ -1448,8 +1448,12 @@ class PermutationGroup_generic(FiniteGroup):
 
     def _domain_gap(self, domain=None):
         """
-        Returns a GAP string representation of the underlying set
-        that this group acts on.  See also :meth:`domain`.
+        Return a GAP string representation of the underlying set
+        that this group acts on.
+
+        .. SEEALSO::
+
+            - :meth:`domain`
 
         EXAMPLES::
 
@@ -1527,21 +1531,21 @@ class PermutationGroup_generic(FiniteGroup):
     @cached_method
     def orbits(self):
         """
-        Returns the orbits of the elements of the domain under the
+        Return the orbits of the elements of the domain under the
         default group action.
 
         EXAMPLES::
 
             sage: G = PermutationGroup([ [(3,4)], [(1,3)] ])
             sage: G.orbits()
-            [[1, 3, 4], [2]]
+            ((1, 3, 4), (2,))
             sage: G = PermutationGroup([[(1,2),(3,4)], [(1,2,3,4,10)]])
             sage: G.orbits()
-            [[1, 2, 3, 4, 10], [5], [6], [7], [8], [9]]
+            ((1, 2, 3, 4, 10), (5,), (6,), (7,), (8,), (9,))
 
             sage: G = PermutationGroup([ [('c','d')], [('a','c')],[('b',)]])
             sage: G.orbits()
-            [['a', 'c', 'd'], ['b']]
+            (('a', 'c', 'd'), ('b',))
 
         The answer is cached::
 
@@ -1553,8 +1557,8 @@ class PermutationGroup_generic(FiniteGroup):
         - Nathan Dunfield
         """
         orbits = self._libgap_().Orbits(libgap.eval(self._domain_gap()))
-        return [[self._domain_from_gap[x] for x in orbit]
-                for orbit in orbits.sage()]
+        return tuple(tuple(self._domain_from_gap[x] for x in orbit)
+                     for orbit in orbits.sage())
 
     @cached_method
     def orbit(self, point, action="OnPoints"):
@@ -1806,14 +1810,18 @@ class PermutationGroup_generic(FiniteGroup):
 
     def base(self, seed=None):
         r"""
-        Returns a (minimum) base of this permutation group. A base $B$
-        of a permutation group is a subset of the domain of the group
-        such that the only group element stabilizing all of $B$ is the
-        identity.
+        Return a (minimum) base of this permutation group.
 
-        The argument `seed` is optional and must be a subset of the domain
-        of `base`. When used, an attempt to create a base containing all or part
-        of `seed` will be made.
+        A base $B$ of a permutation group is a subset of the domain
+        of the group such that the only group element stabilizing all
+        of $B$ is the identity.
+
+        INPUT:
+
+        - ``seed`` (optional, default: ``None``), if given must be a
+          subset of the domain of `base`.  When used, an attempt to
+          create a base containing all or part of `seed` will be
+          made.
 
         EXAMPLES::
 
@@ -1836,6 +1844,7 @@ class PermutationGroup_generic(FiniteGroup):
             [1, 2, 3, 4, 5]
             sage: S.base([1,3,5,7,9,11]) # create a base for M12 with only odd integers
             [1, 3, 5, 7, 9]
+
         """
         if seed is None:
             seed = self.domain()
@@ -2013,7 +2022,7 @@ class PermutationGroup_generic(FiniteGroup):
 
     def _repr_(self):
         r"""
-        Returns a string describing ``self``.
+        Return a string describing ``self``.
 
         EXAMPLES:
 
@@ -2278,8 +2287,10 @@ class PermutationGroup_generic(FiniteGroup):
 
     def socle(self):
         r"""
-        Returns the socle of ``self``. The socle of a group $G$ is
-        the subgroup generated by all minimal normal subgroups.
+        Return the socle of ``self``.
+
+        The socle of a group $G$ is the subgroup generated by all
+        minimal normal subgroups.
 
         EXAMPLES::
 
@@ -2293,7 +2304,7 @@ class PermutationGroup_generic(FiniteGroup):
 
     def frattini_subgroup(self):
         r"""
-        Returns the Frattini subgroup of ``self``.
+        Return the Frattini subgroup of ``self``.
 
         The Frattini subgroup of a group $G$ is the intersection of all maximal
         subgroups of `G`.
@@ -2312,7 +2323,7 @@ class PermutationGroup_generic(FiniteGroup):
 
     def fitting_subgroup(self):
         r"""
-        Returns the Fitting subgroup of ``self``.
+        Return the Fitting subgroup of ``self``.
 
         The Fitting subgroup of a group $G$ is the largest nilpotent normal
         subgroup of `G`.
@@ -2331,9 +2342,10 @@ class PermutationGroup_generic(FiniteGroup):
 
     def solvable_radical(self):
         r"""
-        Returns the solvable radical of ``self``. The solvable
-        radical (or just radical) of a group $G$ is the largest
-        solvable normal subgroup of $G$.
+        Return the solvable radical of ``self``.
+
+        The solvable radical (or just radical) of a group $G$ is the
+        largest solvable normal subgroup of $G$.
 
         EXAMPLES::
 
@@ -2349,7 +2361,7 @@ class PermutationGroup_generic(FiniteGroup):
 
     def intersection(self, other):
         r"""
-        Returns the permutation group that is the intersection of
+        Return the permutation group that is the intersection of
         ``self`` and ``other``.
 
         INPUT:
@@ -2395,6 +2407,7 @@ class PermutationGroup_generic(FiniteGroup):
             Traceback (most recent call last):
             ...
             TypeError: junk is not a permutation group
+
         """
         from sage.categories.finite_permutation_groups import FinitePermutationGroups
 
@@ -2444,7 +2457,7 @@ class PermutationGroup_generic(FiniteGroup):
 
     def conjugate(self, g):
         r"""
-        Returns the group formed by conjugating ``self`` with ``g``.
+        Return the group formed by conjugating ``self`` with ``g``.
 
         INPUT:
 
@@ -2798,7 +2811,7 @@ class PermutationGroup_generic(FiniteGroup):
 
         OUTPUT:
 
-        Returns the holomorph of a given group as permutation group
+        Return the holomorph of a given group as permutation group
         via a wrapping of GAP's semidirect product function.
 
         EXAMPLES:
@@ -3011,7 +3024,7 @@ class PermutationGroup_generic(FiniteGroup):
 
     def quotient(self, N, **kwds):
         """
-        Returns the quotient of this permutation group by the normal
+        Return the quotient of this permutation group by the normal
         subgroup `N`, as a permutation group.
 
         Further named arguments are passed to the permutation group constructor.
@@ -3036,7 +3049,7 @@ class PermutationGroup_generic(FiniteGroup):
 
     def commutator(self, other=None):
         r"""
-        Returns the commutator subgroup of a group, or of a pair of groups.
+        Return the commutator subgroup of a group, or of a pair of groups.
 
         INPUT:
 
@@ -3299,9 +3312,9 @@ class PermutationGroup_generic(FiniteGroup):
 
     def character_table(self):
         r"""
-        Returns the matrix of values of the irreducible characters of a
-        permutation group `G` at the conjugacy classes of
-        `G`.
+        Return the matrix of values of the irreducible
+        characters of a permutation group `G` at the conjugacy
+        classes of `G`.
 
         The columns represent the conjugacy classes of
         `G` and the rows represent the different irreducible
@@ -3396,7 +3409,7 @@ class PermutationGroup_generic(FiniteGroup):
 
     def irreducible_characters(self):
         r"""
-        Returns a list of the irreducible characters of ``self``.
+        Return a list of the irreducible characters of ``self``.
 
         EXAMPLES::
 
@@ -3408,7 +3421,7 @@ class PermutationGroup_generic(FiniteGroup):
 
     def trivial_character(self):
         r"""
-        Returns the trivial character of ``self``.
+        Return the trivial character of ``self``.
 
         EXAMPLES::
 
@@ -3420,7 +3433,7 @@ class PermutationGroup_generic(FiniteGroup):
 
     def character(self, values):
         r"""
-        Returns a group character from ``values``, where ``values`` is
+        Return a group character from ``values``, where ``values`` is
         a list of the values of the character evaluated on the conjugacy
         classes.
 
@@ -3435,7 +3448,7 @@ class PermutationGroup_generic(FiniteGroup):
 
     def conjugacy_classes_representatives(self):
         """
-        Returns a complete list of representatives of conjugacy classes in
+        Return a complete list of representatives of conjugacy classes in
         a permutation group `G`.
 
         The ordering is that given by GAP.
@@ -3469,7 +3482,7 @@ class PermutationGroup_generic(FiniteGroup):
 
     def conjugacy_classes_subgroups(self):
         """
-        Returns a complete list of representatives of conjugacy classes of
+        Return a complete list of representatives of conjugacy classes of
         subgroups in a permutation group `G`.
 
         The ordering is that given by GAP.
@@ -3506,7 +3519,7 @@ class PermutationGroup_generic(FiniteGroup):
 
     def subgroups(self):
         r"""
-        Returns a list of all the subgroups of ``self``.
+        Return a list of all the subgroups of ``self``.
 
         OUTPUT:
 
@@ -3639,7 +3652,7 @@ class PermutationGroup_generic(FiniteGroup):
 
     def blocks_all(self, representatives = True):
         r"""
-        Returns the list of block systems of imprimitivity.
+        Return the list of block systems of imprimitivity.
 
         For more information on primitivity, see the :wikipedia:`Wikipedia
         article on primitive group actions <Primitive_permutation_group>`.
@@ -3714,7 +3727,7 @@ class PermutationGroup_generic(FiniteGroup):
 
     def cosets(self, S, side='right'):
         r"""
-        Returns a list of the cosets of ``S`` in ``self``.
+        Return a list of the cosets of ``S`` in ``self``.
 
         INPUT:
 
@@ -3904,7 +3917,7 @@ class PermutationGroup_generic(FiniteGroup):
 
     def normalizer(self, g):
         """
-        Returns the normalizer of ``g`` in ``self``.
+        Return the normalizer of ``g`` in ``self``.
 
         EXAMPLES::
 
@@ -3923,7 +3936,7 @@ class PermutationGroup_generic(FiniteGroup):
 
     def centralizer(self, g):
         """
-        Returns the centralizer of ``g`` in ``self``.
+        Return the centralizer of ``g`` in ``self``.
 
         EXAMPLES::
 
@@ -4126,7 +4139,7 @@ class PermutationGroup_generic(FiniteGroup):
 
     def is_monomial(self):
         """
-        Returns ``True`` if the group is monomial. A finite group is monomial
+        Return ``True`` if the group is monomial. A finite group is monomial
         if every irreducible complex character is induced from a linear
         character of a subgroup.
 
@@ -4187,16 +4200,18 @@ class PermutationGroup_generic(FiniteGroup):
         return bool(self._libgap_().IsPerfectGroup())
 
     def is_pgroup(self):
-        """
-        Returns ``True`` if this group is a `p`-group. A finite group is
-        a `p`-group if its order is of the form `p^n` for a prime integer
-        `p` and a nonnegative integer `n`.
+        r"""
+        Return ``True`` if this group is a `p`-group.
+
+        A finite group is a `p`-group if its order is of the form
+        `p^n` for a prime integer `p` and a nonnegative integer `n`.
 
         EXAMPLES::
 
             sage: G = PermutationGroup(['(1,2,3,4,5)'])
             sage: G.is_pgroup()
             True
+
         """
         return bool(self._libgap_().IsPGroup())
 
@@ -4220,20 +4235,22 @@ class PermutationGroup_generic(FiniteGroup):
 
     def is_simple(self):
         """
-        Returns ``True`` if the group is simple. A group is simple if it has no
-        proper normal subgroups.
+        Return ``True`` if the group is simple.
+
+        A group is simple if it has no proper normal subgroups.
 
         EXAMPLES::
 
             sage: G = PermutationGroup(['(1,2,3)(4,5)'])
             sage: G.is_simple()
             False
+
         """
         return bool(self._libgap_().IsSimpleGroup())
 
     def is_solvable(self):
         """
-        Returns ``True`` if the group is solvable.
+        Return ``True`` if the group is solvable.
 
         EXAMPLES::
 
@@ -4245,7 +4262,7 @@ class PermutationGroup_generic(FiniteGroup):
 
     def is_subgroup(self, other):
         """
-        Returns ``True`` if ``self`` is a subgroup of ``other``.
+        Return ``True`` if ``self`` is a subgroup of ``other``.
 
         EXAMPLES::
 
@@ -4258,8 +4275,10 @@ class PermutationGroup_generic(FiniteGroup):
 
     def is_supersolvable(self):
         """
-        Returns ``True`` if the group is supersolvable. A finite group is
-        supersolvable if it has a normal series with cyclic factors.
+        Return ``True`` if the group is supersolvable.
+
+        A finite group is supersolvable if it has a normal series
+        with cyclic factors.
 
         EXAMPLES::
 
@@ -4313,7 +4332,8 @@ class PermutationGroup_generic(FiniteGroup):
 
     def is_transitive(self, domain=None):
         r"""
-        Returns ``True`` if ``self`` acts transitively on ``domain``.
+        Return ``True`` if ``self`` acts transitively on ``domain``.
+
         A group $G$ acts transitively on set $S$ if for all `x,y\in S`
         there is some `g\in G` such that `x^g=y`.
 
@@ -4362,7 +4382,8 @@ class PermutationGroup_generic(FiniteGroup):
 
     def is_primitive(self, domain=None):
         r"""
-        Returns ``True`` if ``self`` acts primitively on ``domain``.
+        Return ``True`` if ``self`` acts primitively on ``domain``.
+
         A group $G$ acts primitively on a set $S$ if
 
         1. $G$ acts transitively on $S$ and
@@ -4411,7 +4432,8 @@ class PermutationGroup_generic(FiniteGroup):
 
     def is_semi_regular(self, domain=None):
         r"""
-        Returns ``True`` if ``self`` acts semi-regularly on ``domain``.
+        Return ``True`` if ``self`` acts semi-regularly on ``domain``.
+
         A group $G$ acts semi-regularly on a set $S$ if the point
         stabilizers of $S$ in $G$ are trivial.
 
@@ -4443,7 +4465,8 @@ class PermutationGroup_generic(FiniteGroup):
 
     def is_regular(self, domain=None):
         r"""
-        Returns ``True`` if ``self`` acts regularly on ``domain``.
+        Return ``True`` if ``self`` acts regularly on ``domain``.
+
         A group $G$ acts regularly on a set $S$ if
 
         1. $G$ acts transitively on $S$ and
@@ -4476,7 +4499,8 @@ class PermutationGroup_generic(FiniteGroup):
 
     def normalizes(self, other):
         r"""
-        Returns ``True`` if the group ``other`` is normalized by ``self``.
+        Return ``True`` if the group ``other`` is normalized by ``self``.
+
         Wraps GAP's ``IsNormal`` function.
 
         A group `G` normalizes a group `U` if and only if for every
@@ -4704,9 +4728,11 @@ class PermutationGroup_generic(FiniteGroup):
 
     def sylow_subgroup(self, p):
         """
-        Returns a Sylow `p`-subgroup of the finite group `G`, where `p` is a
-        prime. This is a `p`-subgroup of `G` whose index in `G` is coprime to
-        `p`.
+        Return a Sylow `p`-subgroup of the finite group `G`, where `p` is a
+        prime.
+
+        This is a `p`-subgroup of `G` whose index in `G` is coprime
+        to `p`.
 
         Wraps the GAP function ``SylowSubgroup``.
 
@@ -4725,6 +4751,7 @@ class PermutationGroup_generic(FiniteGroup):
 
             sage: PSL(10,2).sylow_subgroup(7)
             Subgroup generated by...
+
         """
         return self.subgroup(gap_group=self._libgap_().SylowSubgroup(p))
 
@@ -4943,8 +4970,7 @@ class PermutationGroup_subgroup(PermutationGroup_generic):
 
     def _repr_(self):
         r"""
-        Returns a string representation / description of the permutation
-        subgroup.
+        Return a string describing the permutation subgroup.
 
         EXAMPLES:
 

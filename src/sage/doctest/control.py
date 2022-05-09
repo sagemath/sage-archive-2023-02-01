@@ -398,6 +398,7 @@ class DocTestController(SageObject):
         if options.verbose:
             options.show_skipped = True
 
+        options.disabled_optional = set()
         if isinstance(options.optional, str):
             s = options.optional.lower()
             options.optional = set(s.split(','))
@@ -421,10 +422,15 @@ class DocTestController(SageObject):
                                             for system in package_systems())
                 # Check that all tags are valid
                 for o in options.optional:
-                    if not optionaltag_regex.search(o):
+                    if o.startswith('!'):
+                        if not optionaltag_regex.search(o[1:]):
+                            raise ValueError('invalid optional tag {!r}'.format(o))
+                        options.disabled_optional.add(o[1:])
+                    elif not optionaltag_regex.search(o):
                         raise ValueError('invalid optional tag {!r}'.format(o))
 
                 options.optional |= auto_optional_tags
+                options.optional -= options.disabled_optional
 
         self.options = options
 
@@ -1340,6 +1346,14 @@ class DocTestController(SageObject):
 
             self.log("Using --optional=" + self._optional_tags_string())
             available_software._allow_external = self.options.optional is True or 'external' in self.options.optional
+            for o in self.options.disabled_optional:
+                try:
+                    i = available_software._indices[o]
+                except KeyError:
+                    pass
+                else:
+                    available_software._seen[i] = -1
+
             self.log("Features to be detected: " + ','.join(available_software.detectable()))
             self.add_files()
             self.expand_files_into_sources()

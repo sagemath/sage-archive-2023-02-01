@@ -20,4 +20,4 @@ The traditional and recommended way to install SageMath is from source via Sage-
 About this experimental pip-installable source distribution
 -----------------------------------------------------------
 
-This pip-installable source distribution `sagemath-environment` is an experimental distribution of a small part of the Sage Library.  Use at your own risk.  It provides a small, fundamental subset of the modules of the Sage library ("sagelib", `sagemath-standard`), providing the connection to the system and software environment.
+This pip-installable source distribution `sagemath-environment` is an experimental distribution of a small part of the Sage Library.  Use at your own risk.  It provides a small, fundamental subset of the modules of the Sage library ("sagelib", `sagemath-standard`), providing the connection to the system and software environment.  It also includes the `sage` script for launching the Sage REPL and accessing various developer tools (see `sage --help`).

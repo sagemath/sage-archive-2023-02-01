@@ -377,13 +377,14 @@ class FusionRing(WeylCharacterRing):
         tester.assertTrue(tqo.is_real_positive())
         tester.assertEqual(tqo**2, self.global_q_dimension(base_coercion=False))
 
-    def test_braid_representation(self, max_strands=4):
+    def test_braid_representation(self, max_strands=6, anyon=None):
         """
         Check that we can compute valid braid group representations.
 
         INPUT:
 
         - ``max_strands`` -- (default: 6): maximum number of braid group strands
+        - ``anyon`` -- (optional) run this test on this particular simple object
 
         Create a braid group representation using :meth:`get_braid_generators`
         and confirms the braid relations.  This test indirectly partially
@@ -391,15 +392,16 @@ class FusionRing(WeylCharacterRing):
         code were incorrect the method would not be deterministic because the
         fusing anyon is chosen randomly. (A different choice is made for each
         number of strands tested.) However the doctest is deterministic since
-        it will always return ``True``.
+        it will always return ``True``. If the anyon parameter is omitted,
+        a random anyon is tested for each number of strands up to ``max_strands``.
 
         EXAMPLES::
 
             sage: A21 = FusionRing("A2",1)
             sage: A21.test_braid_representation(max_strands=4)
             True
-            sage: B22 = FusionRing("B2",2)             # long time
-            sage: B22.test_braid_representation()      # long time
+            sage: F41 = FusionRing("F4",1)             # long time
+            sage: F41.test_braid_representation()      # long time
             True
         """
         if not self.is_multiplicity_free(): # Braid group representation is not available if self is not multiplicity free
@@ -410,10 +412,13 @@ class FusionRing(WeylCharacterRing):
         for n_strands in range(3,max_strands+1):
             #Randomly select a fusing anyon. Skip the identity element, since
             #its braiding matrices are trivial
-            while True:
-                a = b.random_element()
-                if a != self.one():
-                    break
+            if anyon is not None:
+                a = anyon
+            else:
+                while True:
+                    a = b.random_element()
+                    if a != self.one():
+                        break
             pow = a ** n_strands
             d = pow.monomials()[0]
             #Try to find 'interesting' braid group reps i.e. skip 1-d reps

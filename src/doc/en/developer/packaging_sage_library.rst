@@ -505,6 +505,28 @@ Hierarchy of distribution packages
 
 Solid arrows indicate ``install_requires``, i.e., a declared runtime dependency.
 Dashed arrows indicate ``extras_require``, i.e., a declared optional runtime dependency.
+Not shown in the diagram are build dependencies and optional dependencies for testing.
+
+- `sage_conf <https://pypi.org/project/sage-conf/>`_ is a configuration
+  module. It provides the configuration variable settings determined by the
+  ``configure`` script.
+
+- `sagemath-environment <https://pypi.org/project/sagemath-environment/>`_
+  provides the connection to the system and software environment. It includes
+  :mod:`sage.env`, :mod:`sage.features`, :mod:`sage.misc.package_dir`, etc.
+
+- `sagemath-objects <https://pypi.org/project/sagemath-objects/>`_
+  provides a small fundamental subset of the modules of the Sage library,
+  in particular all of :mod:`sage.structure`, a small portion of :mod:`sage.categories`,
+  and a portion of :mod:`sage.misc`.
+
+- `sagemath-categories <https://pypi.org/project/sagemath-categories/>`_
+  provides a small subset of the modules of the Sage library, building upon sagemath-objects.
+  It provides all of :mod:`sage.categories` and a small portion of :mod:`sage.rings`.
+
+- `sagemath-repl <https://pypi.org/project/sagemath-repl/>`_ provides
+  the IPython kernel and Sage preparser (:mod:`sage.repl`),
+  the Sage doctester (:mod:`sage.doctest`), and some related modules from :mod:`sage.misc`.
 
 
 Testing distribution packages

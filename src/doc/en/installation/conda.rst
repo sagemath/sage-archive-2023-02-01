@@ -62,7 +62,7 @@ from source as follows:
   - Create a new conda environment including all standard packages
     recognized by sage, and activate it::
 
-      $ conda env create --file environment.yml
+      $ conda env create --file environment.yml --name sage-build
       $ conda activate sage-build
 
     Alternatively, use ``environment-optional.yml`` in place of
@@ -98,7 +98,7 @@ Here we assume that you are using a git checkout.
 
       $ export SAGE_NUM_THREADS=24
 
-  - As a recommended step, install the ``mamba`` package manager.  If
+  - As a recommended step, install the ``mamba`` package manager. If
     you skip this step, replace ``mamba`` by ``conda`` in the
     following steps::
 
@@ -112,7 +112,7 @@ Here we assume that you are using a git checkout.
   - Create and activate a new conda environment with the dependencies of Sage
     and a few additional developer tools::
 
-      $ mamba env create --file src/environment-dev.yml
+      $ mamba env create --file src/environment-dev.yml --name sage-dev
       $ conda activate sage-dev
 
     Alternatively, you can use ``src/environment.yml`` or
@@ -121,7 +121,7 @@ Here we assume that you are using a git checkout.
 
     By default, the most recent version of Python supported by Sage is
     installed. You can use the additional option ``python=3.9`` in the above
-    ``env create`` command to use another Python version (here 3.9). 
+    ``env create`` command to select another Python version (here 3.9). 
 
   - Run the ``configure`` script::
 

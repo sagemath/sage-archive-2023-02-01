@@ -377,7 +377,7 @@ class FusionRing(WeylCharacterRing):
         tester.assertTrue(tqo.is_real_positive())
         tester.assertEqual(tqo**2, self.global_q_dimension(base_coercion=False))
 
-    def test_braid_representation(self, max_strands=6):
+    def test_braid_representation(self, max_strands=4):
         """
         Check that we can compute valid braid group representations.
 

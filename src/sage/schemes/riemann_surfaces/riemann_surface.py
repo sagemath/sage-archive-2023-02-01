@@ -349,7 +349,7 @@ class RiemannSurface(object):
       For a nonsingular plane curve of degree `d`, an appropriate set is given
       by the monomials of degree up to `d-3`.
 
-    - ``integration_method`` -- (default: ``'heuristic'``). String specifying the 
+    - ``integration_method`` -- (default: ``'rigorous'``). String specifying the
       integration method to use when calculating the integrals of differentials. 
       The options are ``'heuristic'`` and ``'rigorous'``, the latter of
       which is often the most efficient. 
@@ -450,7 +450,7 @@ class RiemannSurface(object):
         sage: tau.algdep(6).degree() == 2
         True
     """
-    def __init__(self, f, prec=53, certification=True, differentials=None, integration_method="heuristic"):
+    def __init__(self, f, prec=53, certification=True, differentials=None, integration_method="rigorous"):
         r"""
         TESTS::
 

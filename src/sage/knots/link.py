@@ -1924,7 +1924,16 @@ class Link(SageObject):
             sage: B = BraidGroup(3)
             sage: L = Link(B([1, -2, 1, -2]))
             sage: L.conway_polynomial()
-            -t + 1 ?
+            -t^2 + 1
+            sage: Link([[1, 5, 2, 4], [3, 9, 4, 8], [5, 1, 6, 10],
+            ....:       [7, 3, 8, 2], [9, 7, 10, 6]])
+            Link with 1 component represented by 5 crossings
+            sage: _.conway_polynomial()
+            2*t^2 + 1
+            sage: B = BraidGroup(4)
+            sage: L = Link(B([1,3]))
+            sage: L.conway_polynomial()
+            0
 
         .. SEEALSO:: :meth:`alexander_polynomial`
         """
@@ -1946,7 +1955,6 @@ class Link(SageObject):
             M = max(alex.exponents())
             coeff = alex[M]
             alex -= coeff * binom**M
-            M = M // 2
             conway += coeff * t_poly**M 
         return conway
 

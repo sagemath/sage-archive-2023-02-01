@@ -484,20 +484,21 @@ Hierarchy of distribution packages
     def node(label, pos):
         return text(label, (3*pos[0],2*pos[1]), background_color='pink', color='black')
     def edge(start, end, **kwds):
-        return arrow((3*start[0],2*start[1]+.5),(3*end[0],2*end[1]-.5), arrowsize=2, **kwds)
+        return arrow((3*start[0],2*start[1]),(3*end[0],2*end[1]-.28), arrowsize=2, **kwds)
     def extras_require(start, end):
         return edge(start, end, linestyle='dashed')
     g = Graphics()
-    g += (node("sage_conf", (0.5,0)) + extras_require((0.5,0),(0.5,1)))
-    g += (node("sagemath-objects", (1.5,0)) + edge((1.5,0),(0.75,2)) + edge((1.5,0),(1.5,1)))
-    g += (node("sagemath-environment", (0.5,1))
-          + edge((0.5,1),(0,2)) + edge((0.5,1),(0.6,2)) + edge((0.5,1),(1.25,2)) + edge((0.5,1),(1.8,2)))
-    g += (node("sagemath-categories", (1.5,1)) +
-          edge((1.5,1),(0.2,2)) + edge((1.5,1),(1.41,2)) + edge((1.5,1),(2,2)))
-    g += (node("sagemath-graphs", (0,2)) + node("sagemath-repl", (0.67,2)) + node("sagemath-polyhedra", (1.33,2)) + node("sagemath-singular", (2,2)) +
-          edge((0,2),(0,3)) + edge((0,2),(0.75,3)) + edge((0.67,2),(1,3)) + edge((1.33,2),(1.25,3)) + edge((2,2),(2,3)))
-    g += (node("sagemath-tdlib", (0,3)) + node("sagemath-standard-no-symbolics", (1,3)) + node("sagemath-symbolics", (2,3)) +
-          edge((1,3),(1,4)) + edge((1.8,3),(1.25,4)))
+    g += (extras_require((0.5,0),(0.5,1)) + node("sage_conf", (0.5,0)))
+    g += (edge((1.5,0),(0.75,2)) + edge((1.5,0),(1.5,1))
+          + node("sagemath-objects", (1.5,0)))
+    g += (edge((0.5,1),(0,2)) + edge((0.5,1),(0.6,2)) + edge((0.5,1),(1.25,2)) + edge((0.5,1),(1.8,2))
+          + node("sagemath-environment", (0.5,1)))
+    g += (edge((1.5,1),(0.2,2)) + edge((1.5,1),(1.41,2)) + edge((1.5,1),(2,2))
+          + node("sagemath-categories", (1.5,1)))
+    g += (edge((0,2),(0,3)) + edge((0,2),(0.75,3)) + edge((0.67,2),(1,3)) + edge((1.33,2),(1.25,3)) + edge((2,2),(2,3))
+          + node("sagemath-graphs", (0,2)) + node("sagemath-repl", (0.67,2)) + node("sagemath-polyhedra", (1.33,2)) + node("sagemath-singular", (2,2)))
+    g += (edge((1,3),(1,4)) + edge((2,3),(1.2,4))
+          + node("sagemath-tdlib", (0,3)) + node("sagemath-standard-no-symbolics", (1,3)) + node("sagemath-symbolics", (2,3)))
     g += node("sagemath-standard", (1,4))
     sphinx_plot(g, figsize=(8, 4), axes=False)
 

@@ -22,7 +22,7 @@ from _pytest.doctest import (
     _patch_unwrap_mock_aware,
     get_optionflags,
 )
-from _pytest.pathlib import import_path
+from _pytest.pathlib import import_path, ImportMode
 
 # Import sage.all is necessary to:
 # - avoid cyclic import errors, see Trac #33580
@@ -90,7 +90,11 @@ class SageDoctestModule(DoctestModule):
             )
         else:
             try:
-                module = import_path(self.path, root=self.config.rootpath)
+                module = import_path(
+                    self.path,
+                    mode=ImportMode.importlib,
+                    root=self.config.rootpath,
+                )
             except ImportError:
                 if self.config.getvalue("doctest_ignore_import_errors"):
                     pytest.skip("unable to import module %r" % self.path)

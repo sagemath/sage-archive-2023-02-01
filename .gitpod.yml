@@ -7,6 +7,7 @@ tasks:
   - name: Setup
     init: |
       # Create conda environment
+      ./bootstrap-conda
       mamba env create --file src/environment-dev.yml --prefix venv
       conda config --append envs_dirs /workspace/sagetrac-mirror
       conda activate /workspace/sagetrac-mirror/venv
@@ -16,8 +17,8 @@ tasks:
       # Build sage
       ./bootstrap
       ./configure --enable-build-as-root --with-python=$CONDA_PREFIX/bin/python --prefix=$CONDA_PREFIX 
-      pip install --no-build-isolation -v -v -e pkgs/sage-conf pkgs/sage-setup 
-      pip install --no-build-isolation -v -v -e src
+      pip install --no-build-isolation -v -v -e ./pkgs/sage-conf ./pkgs/sage-setup 
+      pip install --no-build-isolation -v -v -e ./src
 
     command: |
       # Activate conda environment

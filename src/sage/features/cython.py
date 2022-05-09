@@ -15,6 +15,7 @@ class sage__misc__cython(CythonFeature):
         r"""
         TESTS::
 
+            sage: from sage.features import CythonFeature
             sage: from sage.features.cython import sage__misc__cython
             sage: isinstance(sage__misc__cython(), CythonFeature)
             True

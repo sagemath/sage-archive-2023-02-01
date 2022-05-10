@@ -553,7 +553,7 @@ cdef class Matrix_complex_ball_dense(Matrix_dense):
 
     def transpose(self):
         r"""
-        Returns the transpose of ``self``.
+        Return the transpose of ``self``.
 
         EXAMPLES::
 

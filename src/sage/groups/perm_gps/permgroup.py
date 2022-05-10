@@ -336,9 +336,9 @@ def PermutationGroup(gens=None, *args, **kwds):
         sage: a = lambda x: (2*x) % 7
         sage: H = PermutationGroup(action=a, domain=range(7))
         sage: H.orbits()
-        [[0], [1, 2, 4], [3, 6, 5]]
+        ((0,), (1, 2, 4), (3, 6, 5))
         sage: H.gens()
-        [(1,2,4), (3,6,5)]
+        ((1,2,4), (3,6,5))
 
     Note that we provide generators for the acting group.  The
     permutation group we construct is its homomorphic image::
@@ -352,10 +352,10 @@ def PermutationGroup(gens=None, *args, **kwds):
         )
         sage: H = PermutationGroup(G.gens(), action=a, domain=X)
         sage: H.orbits()
-        [[(0, 0)], [(1, 0), (2, 0), (0, 1), (1, 1), (2, 1), (0, 2), (1, 2), (2, 2)]]
+        (((0, 0),), ((1, 0), (2, 0), (0, 1), (1, 1), (2, 1), (0, 2), (1, 2), (2, 2)))
         sage: H.gens()
-        [((0,1),(1,1),(2,1))((0,2),(2,2),(1,2)),
-         ((1,0),(0,2),(2,0),(0,1))((1,1),(1,2),(2,2),(2,1))]
+        (((0,1),(1,1),(2,1))((0,2),(2,2),(1,2)),
+         ((1,0),(0,2),(2,0),(0,1))((1,1),(1,2),(2,2),(2,1)))
 
     The orbits of the conjugation action are the conjugacy classes,
     i.e., in bijection with integer partitions::
@@ -5067,9 +5067,9 @@ class PermutationGroup_action(PermutationGroup_generic):
         sage: S = SetPartitions(n)
         sage: G = PermutationGroup(action=a, domain=S)
         sage: G.orbits()
-        [[{{1}, {2}, {3}}],
-         [{{1, 2}, {3}}, {{1}, {2, 3}}, {{1, 3}, {2}}],
-         [{{1, 2, 3}}]]
+        (({{1}, {2}, {3}},),
+         ({{1, 2}, {3}}, {{1}, {2, 3}}, {{1, 3}, {2}}),
+         ({{1, 2, 3}},))
 
     The regular action of the symmetric group::
 
@@ -5077,7 +5077,7 @@ class PermutationGroup_action(PermutationGroup_generic):
         sage: S = SymmetricGroup(3)
         sage: G = PermutationGroup(S.gens(), action=a, domain=S)
         sage: G.orbits()
-        [[()], [(1,3,2), (1,2,3)], [(2,3), (1,3), (1,2)]]
+        (((),), ((1,3,2), (1,2,3)), ((2,3), (1,3), (1,2)))
 
     The trivial action of the symmetric group::
 
@@ -5113,7 +5113,7 @@ class PermutationGroup_action(PermutationGroup_generic):
             sage: a = lambda x: (2*x) % 7
             sage: G = PermutationGroup(action=a, domain=range(7))
             sage: G.orbits()
-            [[0], [1, 2, 4], [3, 6, 5]]
+            ((0,), (1, 2, 4), (3, 6, 5))
 
         """
         from sage.combinat.cyclic_sieving_phenomenon import orbit_decomposition
@@ -5121,8 +5121,8 @@ class PermutationGroup_action(PermutationGroup_generic):
         if gap_group is not None:
             raise ValueError("gap_group is not supported with action")
         if gens is None:
-            self._orbits = orbit_decomposition(domain, action)
-            gens = [tuple(o) for o in self._orbits if len(o) > 1]
+            self._orbits = tuple(tuple(o) for o in orbit_decomposition(domain, action))
+            gens = [o for o in self._orbits if len(o) > 1]
         else:
             g_orbits = [orbit_decomposition(domain, lambda x: action(g, x))
                         for g in gens]
@@ -5137,7 +5137,7 @@ class PermutationGroup_action(PermutationGroup_generic):
                 for o in g_orbit:
                     for i in range(1, len(o)):
                         D.union(o[0], o[i])
-            self._orbits = list(D)
+            self._orbits = tuple(tuple(o) for o in D)
 
         PermutationGroup_generic.__init__(self, gens=gens,
                                           gap_group=gap_group, domain=domain,
@@ -5154,7 +5154,7 @@ class PermutationGroup_action(PermutationGroup_generic):
             sage: a = lambda x: (2*x) % 7
             sage: G = PermutationGroup(action=a, domain=range(7))
             sage: G.orbits()
-            [[0], [1, 2, 4], [3, 6, 5]]
+            ((0,), (1, 2, 4), (3, 6, 5))
         """
         return self._orbits
 

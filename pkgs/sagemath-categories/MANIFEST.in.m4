@@ -44,3 +44,7 @@ global-exclude __pycache__
 global-exclude *.py[co]
 global-exclude *.bak
 global-exclude *.so
+global-exclude *~
+prune .tox
+prune build
+prune dist

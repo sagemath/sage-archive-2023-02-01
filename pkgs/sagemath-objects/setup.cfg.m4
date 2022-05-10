@@ -37,3 +37,14 @@ install_requires =
 # Currently we do not use the sage doctester to test sagemath-objects,
 # so we do not list sagemath-repl here.
 test =
+
+
+[options.package_data]
+sage.cpython =
+    pyx_visit.h
+    string_impl.h
+    cython_metaclass.h
+    python_debug.h
+
+sage.rings =
+    integer_fake.h

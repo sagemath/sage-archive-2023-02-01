@@ -478,9 +478,13 @@ class Decorator(object):
                 # or method
 
                 def directories():
-                    from sage.env import SAGE_SRC
-                    if SAGE_SRC:
-                        yield normpath(os.path.join(SAGE_SRC, 'sage'))
+                    try:
+                        from sage.env import SAGE_SRC
+                    except ImportError:
+                        pass
+                    else:
+                        if SAGE_SRC:
+                            yield normpath(os.path.join(SAGE_SRC, 'sage'))
                     import sage
                     yield from sage.__path__
 

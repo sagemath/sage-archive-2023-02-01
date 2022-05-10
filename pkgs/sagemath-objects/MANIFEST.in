@@ -62,6 +62,9 @@ graft sage/docs                          # dep of sage/misc/lazy_import
 include sage/misc/persist.*
 include sage/misc/sage_unittest.*        # dep of sage/misc/persist
 
+include sage/misc/randstate.*         # used in sage.doctest
+include sage/misc/prandom.*              # dep of sage/rings/ring
+
 include sage/ext/stdsage.pxd
 include sage/sets/pythonclass.*
 include sage/arith/power.*
@@ -78,7 +81,6 @@ graft sage/libs/gmp
 
 
 ## FIXME: Needed for doctesting
-include sage/misc/randstate.*         # used in sage.doctest
 include sage/misc/misc.*              # walltime, cputime used in sage.doctest
 
 

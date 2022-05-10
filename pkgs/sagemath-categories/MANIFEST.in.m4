@@ -31,7 +31,6 @@ exclude sage/categories/with_realizations.*
 # Exclude to make it a namespace package
 exclude sage/categories/__init__.py
 
-include sage/misc/prandom.*              # dep of sage/rings/ring
 include sage/rings/ideal.*
 include sage/rings/ring.*
 graft sage/typeset                     # dep of sage.categories.tensor

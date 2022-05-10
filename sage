@@ -108,15 +108,12 @@ resolvelinks() {
 # (The updated README.md and installation manual from Trac #33787 recommend to
 #  symlink the installed version of the src/bin/sage script instead.)
 
-if [ -z "$SAGE_ROOT" ];  then
-    # Get the path to $0 (this shell script) with all symbolic links
-    # resolved
-    SAGE_ROOT=`resolvelinks "$0"` || \
+# Get the path to $0 (this shell script) with all symbolic links resolved
+SAGE_ROOT=`resolvelinks "$0"` || \
     SAGE_ROOT="$0"
 
-    # Get the directory component
-    SAGE_ROOT="${SAGE_ROOT%/*}"
-fi
+# Get the directory component
+SAGE_ROOT="${SAGE_ROOT%/*}"
 
 # Make SAGE_ROOT absolute
 SAGE_ROOT=`cd "$SAGE_ROOT" && pwd -P`

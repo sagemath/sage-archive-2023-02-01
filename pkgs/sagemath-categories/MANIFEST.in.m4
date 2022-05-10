@@ -1,6 +1,8 @@
 dnl MANIFEST.in is generated from this file by SAGE_ROOT/bootstrap via m4.
 prune sage
 
+include VERSION.txt
+
 global-include all__sagemath_categories.py
 graft sage/categories
 # Exclude what is already shipped in sagemath-objects

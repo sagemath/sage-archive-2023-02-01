@@ -3522,7 +3522,7 @@ class PermutationGroupFunctor(ConstructionFunctor):
             PermutationGroupFunctor[(1,2)]
         """
         Functor.__init__(self, Groups(), Groups())
-        self._gens = gens
+        self._gens = tuple(gens)
         self._domain = domain
 
     def _repr_(self):
@@ -3534,7 +3534,7 @@ class PermutationGroupFunctor(ConstructionFunctor):
             sage: PF
             PermutationGroupFunctor[(1,2)]
         """
-        return "PermutationGroupFunctor%s" % self.gens()
+        return "PermutationGroupFunctor%s" % list(self.gens())
 
     def __call__(self, R):
         """
@@ -3556,7 +3556,7 @@ class PermutationGroupFunctor(ConstructionFunctor):
             sage: P1 = PermutationGroup([[(1,2)]])
             sage: PF, P = P1.construction()
             sage: PF.gens()
-            [(1,2)]
+            ((1,2),)
         """
         return self._gens
 

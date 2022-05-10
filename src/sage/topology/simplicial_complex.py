@@ -173,7 +173,7 @@ from sage.misc.latex import latex
 from sage.matrix.constructor import matrix
 from sage.homology.chain_complex import ChainComplex
 from sage.graphs.graph import Graph
-from functools import reduce, total_ordering
+from functools import total_ordering
 from itertools import combinations, chain
 lazy_import('sage.categories.simplicial_complexes', 'SimplicialComplexes')
 

@@ -1038,7 +1038,7 @@ class PermutationGroup_generic(FiniteGroup):
             sage: G.has_element(g)
             doctest:warning
             ...
-            DeprecationWarning: The method has_element is deprecated. Please use :meth:`__contains__`, i.e., `h in G` instead.
+            DeprecationWarning: G.has_element(g) is deprecated; use :meth:`__contains__`, i.e., `g in G` instead
             See https://trac.sagemath.org/33831 for details.
             True
             sage: h = H([(1,2),(3,4)]); h
@@ -1047,7 +1047,7 @@ class PermutationGroup_generic(FiniteGroup):
             False
         """
         from sage.misc.superseded import deprecation
-        deprecation(33831, "The method has_element is deprecated. Please use :meth:`__contains__`, i.e., `h in G` instead.")
+        deprecation(33831, "G.has_element(g) is deprecated; use :meth:`__contains__`, i.e., `g in G` instead")
         return item in self
 
     def __iter__(self):

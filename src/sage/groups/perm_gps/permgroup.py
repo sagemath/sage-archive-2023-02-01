@@ -1009,6 +1009,13 @@ class PermutationGroup_generic(FiniteGroup):
             sage: G = PermutationGroup([[('a','b')]], domain=('a', 'b'))
             sage: [('a', 'b')] in G
             True
+
+            sage: G = CyclicPermutationGroup(4)
+            sage: H = DihedralGroup(4)
+            sage: g = G([(1,2,3,4)]); g
+            (1,2,3,4)
+            sage: g in H
+            True
         """
         try:
             self._element_constructor_(item)
@@ -1029,12 +1036,18 @@ class PermutationGroup_generic(FiniteGroup):
             sage: g = G([(1,2,3,4)]); g
             (1,2,3,4)
             sage: G.has_element(g)
+            doctest:warning
+            ...
+            DeprecationWarning: The method has_element is deprecated. Please use :meth:`__contains__`, i.e., `h in G` instead.
+            See https://trac.sagemath.org/33831 for details.
             True
             sage: h = H([(1,2),(3,4)]); h
             (1,2)(3,4)
             sage: G.has_element(h)
             False
         """
+        from sage.misc.superseded import deprecation
+        deprecation(33831, "The method has_element is deprecated. Please use :meth:`__contains__`, i.e., `h in G` instead.")
         return item in self
 
     def __iter__(self):

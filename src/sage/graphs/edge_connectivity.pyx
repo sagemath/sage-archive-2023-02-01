@@ -10,8 +10,8 @@ from a `2k` edge-connected graph or a `k` edge-connected digraph.
 .. TODO::
 
     - Add speedup methods proposed in [GKLP2021]_ for the edge connectivity
-    - Implement the tree-packing algorithms proposed in [Gabow1985]_ and
-      [BHKP2018]_ and speed up methods proposed in [GKMN2022]_.
+    - Implement the tree-packing algorithms proposed in [Gabow1995]_ and
+      [BHKP2008]_
     - Extend to digraphs with multiple edges
     - Extend to weighted digraphs
 """
@@ -37,7 +37,7 @@ cdef class GabowEdgeConnectivity:
     r"""
     Gabow's algorithm for finding the edge connectivity of digraphs.
 
-    This class implements the algorithm proposed in [Gabow1985]_ for finding the
+    This class implements the algorithm proposed in [Gabow1995]_ for finding the
     edge connectivity of a directed graph and `k` edge disjoint spanning trees
     if the digraph is `k` edge connected.
 

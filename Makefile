@@ -196,7 +196,7 @@ micro_release:
 	@echo "Removing unnecessary files & directories - make will not be functional afterwards anymore"
 	@# We keep src/sage for some doctests that it expect it to be there and
 	@# also because it does not add any weight with rdfind below.
-	@# We need src/sage/bin/ for the scripts that invoke Sage
+	@# We need src/bin/ for the scripts that invoke Sage
 	@# We need sage, the script to start Sage
 	@# We need local/, the dependencies and the built Sage library itself.
 	@# We keep VERSION.txt.

@@ -1917,7 +1917,7 @@ class Link(SageObject):
 
         This is closely related to the Alexander polynomial.
 
-        See : wikipedia:`Alexander_polynomial` for the definition.
+        See :wikipedia:`Alexander_polynomial` for the definition.
 
         EXAMPLES::
 

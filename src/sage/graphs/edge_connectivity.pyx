@@ -90,12 +90,12 @@ cdef class GabowEdgeConnectivity:
         sage: GabowEdgeConnectivity(D).edge_connectivity()
         1
 
-    Looped digraphs are supported but not digraph with multiple edges::
+    Looped digraphs are supported but not digraphs with multiple edges::
 
         sage: D = digraphs.Complete(5, loops=True)
         sage: GabowEdgeConnectivity(D).edge_connectivity()
         4
-        sage: D.allow_multiple_Edges(True)
+        sage: D.allow_multiple_edges(True)
         sage: D.add_edges(D.edges())
         sage: GabowEdgeConnectivity(D).edge_connectivity()
         Traceback (most recent call last):

@@ -26,6 +26,7 @@ from a `2k` edge-connected graph or a `k` edge-connected digraph.
 # ****************************************************************************
 
 from memory_allocator cimport MemoryAllocator
+from cysignals.signals cimport sig_check
 from sage.graphs.generic_graph_pyx cimport GenericGraph_pyx
 from libc.limits cimport INT_MAX
 from libcpp.pair cimport pair
@@ -108,6 +109,7 @@ cdef class GabowEdgeConnectivity:
 
     cdef int max_ec  # upper bound on the edge connectivity
     cdef int ec  # current (proven) value of edge connectivity
+    cdef bint ec_checked  # whether we have well computed edge connectivity
 
     cdef int UNUSED
     cdef int FIRSTEDGE
@@ -182,6 +184,7 @@ cdef class GabowEdgeConnectivity:
             sage: GabowEdgeConnectivity(D).edge_connectivity()
             4
         """
+        self.ec_checked = False
         from sage.graphs.digraph import DiGraph
         if not isinstance(G, DiGraph):
             raise ValueError("this method is for directed graphs only")
@@ -192,6 +195,7 @@ cdef class GabowEdgeConnectivity:
         # Trivial cases
         if not G or not G.is_strongly_connected():
             self.ec = 0
+            self.ec_checked = True
             self.F.clear()
             return
 
@@ -239,7 +243,8 @@ cdef class GabowEdgeConnectivity:
             self.edge_state_2[i] = self.UNUSED
             self.labels[i] = self.UNUSED  # edge i is unlabeled
 
-        self.compute_edge_connectivity()
+        _ = self.compute_edge_connectivity()
+        sig_check()
 
     cdef build_graph_data_structure(self):
         r"""
@@ -278,9 +283,12 @@ cdef class GabowEdgeConnectivity:
                 self.head[e_id] = y
                 e_id += 1
 
-    cdef void compute_edge_connectivity(self):
+    cdef bint compute_edge_connectivity(self) except -1:
         """
         Compute the edge connectivity using Round Robin algorithm.
+
+        The method returns ``True`` if the computation ends normally. Otherwise
+        an exception is raised, for instance due to a keyboard interruption.
 
         EXAMPLES::
 
@@ -303,8 +311,11 @@ cdef class GabowEdgeConnectivity:
                 self.ec += 1
                 # and save the current k-intersection
                 self.save_current_k_intersection()
+            sig_check()
+        self.ec_checked = True
+        return True
 
-    cdef bint construct_trees(self, bint reverse, int tree):
+    cdef bint construct_trees(self, bint reverse, int tree) except -1:
         r"""
         Search for an in or out arborescence.
 
@@ -365,6 +376,7 @@ cdef class GabowEdgeConnectivity:
             self.augmentation_algorithm()
             # Reinitialize data structures and make all f_trees active for next round
             self.re_init(tree)
+            sig_check()
 
         return True
 
@@ -432,7 +444,7 @@ cdef class GabowEdgeConnectivity:
                 return v
         return INT_MAX
 
-    cdef bint search_joining(self, int x):
+    cdef bint search_joining(self, int x) except -1:
         """
         Try to augment the f_tree rooted at x.
 
@@ -486,6 +498,7 @@ cdef class GabowEdgeConnectivity:
 
         # Start cycle_scanning algorithm
         joining_edge = self.next_joining_edge_step()
+        sig_check()
 
         if joining_edge != INT_MAX:
             # We found a joining edge
@@ -529,7 +542,7 @@ cdef class GabowEdgeConnectivity:
         while not self.my_Q.empty():
             self.my_Q.pop()
 
-    cdef int next_joining_edge_step(self):
+    cdef int next_joining_edge_step(self) except -1:
         """
         Process edges in the queue and start labeling until the queue is empty
         or a joining edge is found.
@@ -559,12 +572,13 @@ cdef class GabowEdgeConnectivity:
 
             # Search for the fundamental cycle of e_id in Ti
             found_joining = self.fundamental_cycle_step(e_id, tree)
+            sig_check()
             if found_joining != INT_MAX:
                 return found_joining
 
         return INT_MAX
 
-    cdef int fundamental_cycle_step(self, int e_id, int tree):
+    cdef int fundamental_cycle_step(self, int e_id, int tree) except -1:
         """
         Traverse tree paths from the endpoints of edge e_id to build A_path
 
@@ -986,7 +1000,11 @@ cdef class GabowEdgeConnectivity:
             sage: GabowEdgeConnectivity(D).edge_connectivity()
             4
         """
-        return self.ec
+        if self.ec_checked:
+            return self.ec
+        raise ValueError("the value of the edge connectivity has not been "
+                         "properly computed. This may result from an interruption")
+
 
     #
     # Packing arborescences

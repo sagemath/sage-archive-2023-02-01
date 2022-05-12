@@ -17,7 +17,7 @@ le shell Sage affiche un message de ce genre :
 ::
 
     ┌────────────────────────────────────────────────────────────────────┐
-    │ SageMath version 9.0, Release Date: 2020-01-01                     │
+    │ SageMath version 9.7, Release Date: 2022-01-10                     │
     │ Using Python 3.10.4. Type "help()" for help.                       │
     └────────────────────────────────────────────────────────────────────┘
 
@@ -182,7 +182,7 @@ session future (en rechargeant le fichier journal).
 
     was@form:~$ sage
     ┌────────────────────────────────────────────────────────────────────┐
-    │ SageMath version 9.0, Release Date: 2020-01-01                     │
+    │ SageMath version 9.7, Release Date: 2022-01-10                     │
     │ Using Python 3.10.4. Type "help()" for help.                       │
     └────────────────────────────────────────────────────────────────────┘
 
@@ -201,7 +201,7 @@ session future (en rechargeant le fichier journal).
     Exiting Sage (CPU time 0m0.61s, Wall time 0m50.39s).
     was@form:~$ sage
     ┌────────────────────────────────────────────────────────────────────┐
-    │ SageMath version 9.0, Release Date: 2020-01-01                     │
+    │ SageMath version 9.7, Release Date: 2022-01-10                     │
     │ Using Python 3.10.4. Type "help()" for help.                       │
     └────────────────────────────────────────────────────────────────────┘
 

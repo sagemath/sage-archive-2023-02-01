@@ -781,7 +781,7 @@ REFERENCES:
               Discrete Algorithms (SODA), pp 455-464, 2008.
               :doi:`10.5555/1347082.1347132`
 
- .. [BHS2008] Robert Bradshaw, David Harvey and William
+.. [BHS2008] Robert Bradshaw, David Harvey and William
              Stein. strassen_window_multiply_c. strassen.pyx, Sage
              3.0, 2008. http://www.sagemath.org
 

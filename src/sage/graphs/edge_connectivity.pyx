@@ -210,39 +210,30 @@ cdef class GabowEdgeConnectivity:
         self.build_graph_data_structure()
         # From now on, vertices are numbered in [0..n-1] and edges in [0..m-1]
 
-        self.labels = <int*>self.mem.allocarray(self.m, sizeof(int))
-        self.tree_flag = <bint*>self.mem.allocarray(self.max_ec, sizeof(bint))
-        self.forests = <bint*>self.mem.allocarray(self.n, sizeof(bint))
-        self.L_roots = <int*>self.mem.allocarray(self.max_ec, sizeof(int))
-        self.labeled = <bint**>self.mem.allocarray(self.max_ec, sizeof(bint*))
-        self.seen = <bint*>self.mem.allocarray(self.n, sizeof(bint))
-        self.root = <int*>self.mem.allocarray(self.n, sizeof(int))
-        self.edge_state_1 = <int*>self.mem.allocarray(self.m, sizeof(int))
-        self.edge_state_2 = <int*>self.mem.allocarray(self.m, sizeof(int))
-        self.parent_1 = <int**>self.mem.allocarray(self.max_ec, sizeof(int*))
-        self.parent_2 = <int**>self.mem.allocarray(self.max_ec, sizeof(int*))
-        self.parent_edge_id_1 = <int**>self.mem.allocarray(self.max_ec, sizeof(int*))
-        self.parent_edge_id_2 = <int**>self.mem.allocarray(self.max_ec, sizeof(int*))
-        self.depth_1 = <int**>self.mem.allocarray(self.max_ec, sizeof(int*))
-        self.depth_2 = <int**>self.mem.allocarray(self.max_ec, sizeof(int*))
-        self.stack = <int*>self.mem.allocarray(self.n, sizeof(int))
+        self.labels = <int*>self.mem.calloc(self.m, sizeof(int))
+        self.tree_flag = <bint*>self.mem.calloc(self.max_ec, sizeof(bint))
+        self.forests = <bint*>self.mem.calloc(self.n, sizeof(bint))
+        self.L_roots = <int*>self.mem.calloc(self.max_ec, sizeof(int))
+        self.labeled = <bint**>self.mem.calloc(self.max_ec, sizeof(bint*))
+        self.seen = <bint*>self.mem.calloc(self.n, sizeof(bint))
+        self.root = <int*>self.mem.calloc(self.n, sizeof(int))
+        self.edge_state_1 = <int*>self.mem.calloc(self.m, sizeof(int))
+        self.edge_state_2 = <int*>self.mem.calloc(self.m, sizeof(int))
+        self.parent_1 = <int**>self.mem.calloc(self.max_ec, sizeof(int*))
+        self.parent_2 = <int**>self.mem.calloc(self.max_ec, sizeof(int*))
+        self.parent_edge_id_1 = <int**>self.mem.calloc(self.max_ec, sizeof(int*))
+        self.parent_edge_id_2 = <int**>self.mem.calloc(self.max_ec, sizeof(int*))
+        self.depth_1 = <int**>self.mem.calloc(self.max_ec, sizeof(int*))
+        self.depth_2 = <int**>self.mem.calloc(self.max_ec, sizeof(int*))
+        self.stack = <int*>self.mem.calloc(self.n, sizeof(int))
         self.tree_edges.resize(self.max_ec)
         self.tree_edges_incident.resize(self.n)
-
-        cdef int i
-        for i in range(self.max_ec):
-            self.labeled[i] = NULL
-            self.parent_1[i] = NULL
-            self.parent_2[i] = NULL
-            self.parent_edge_id_1[i] = NULL
-            self.parent_edge_id_2[i] = NULL
-            self.depth_1[i] = NULL
-            self.depth_2[i] = NULL
 
         # Set some constants
         self.UNUSED = INT_MAX
         self.FIRSTEDGE = INT_MAX - 1
 
+        cdef int i
         for i in range(self.m):
             self.edge_state_1[i] = self.UNUSED  # edge i is unused
             self.edge_state_2[i] = self.UNUSED
@@ -268,8 +259,8 @@ cdef class GabowEdgeConnectivity:
         self.int_to_vertex = list(self.G)
         cdef dict vertex_to_int = {u: i for i, u in enumerate(self.int_to_vertex)}
 
-        self.tail = <int*>self.mem.allocarray(self.m, sizeof(int))
-        self.head = <int*>self.mem.allocarray(self.m, sizeof(int))
+        self.tail = <int*>self.mem.calloc(self.m, sizeof(int))
+        self.head = <int*>self.mem.calloc(self.m, sizeof(int))
         self.g_out.resize(self.n)
         self.g_in.resize(self.n)
         for i in range(self.n):
@@ -396,13 +387,13 @@ cdef class GabowEdgeConnectivity:
             4
         """
         if not self.labeled[tree]:
-            self.labeled[tree] = <bint*>self.mem.allocarray(self.n, sizeof(bint))
+            self.labeled[tree] = <bint*>self.mem.calloc(self.n, sizeof(bint))
         if not self.my_parent[tree]:
-            self.my_parent[tree] = <int*>self.mem.allocarray(self.n, sizeof(int))
+            self.my_parent[tree] = <int*>self.mem.calloc(self.n, sizeof(int))
         if not self.my_depth[tree]:
-            self.my_depth[tree] = <int*>self.mem.allocarray(self.n, sizeof(int))
+            self.my_depth[tree] = <int*>self.mem.calloc(self.n, sizeof(int))
         if not self.my_parent_edge_id[tree]:
-            self.my_parent_edge_id[tree] = <int*>self.mem.allocarray(self.n, sizeof(int))
+            self.my_parent_edge_id[tree] = <int*>self.mem.calloc(self.n, sizeof(int))
             
         cdef int j
         for j in range(self.n):

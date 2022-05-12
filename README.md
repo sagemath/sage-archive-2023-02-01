@@ -419,7 +419,7 @@ in the Installation Guide.
     having to either type the full path or navigate to the Sage
     directory and type `./sage`. This can be done by running:
 
-        $ sudo ln -s $(sage -sh -c 'ls $SAGE_ROOT/venv/bin/sage') /usr/local/bin
+        $ sudo ln -s $(./sage -sh -c 'ls $SAGE_ROOT/venv/bin/sage') /usr/local/bin
 
 19. Optional: Set up SageMath as a Jupyter kernel in an existing Jupyter notebook
     or JupyterLab installation, as described in [section

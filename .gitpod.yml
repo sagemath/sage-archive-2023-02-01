@@ -11,8 +11,6 @@ tasks:
       mamba env create --file src/environment-dev.yml --prefix venv
       conda config --append envs_dirs /workspace/sagetrac-mirror
       conda activate /workspace/sagetrac-mirror/venv
-      ## Install esbonio via pip as long as there is no conda package for it: https://github.com/swyddfa/esbonio/issues/371
-      pip install esbonio
       
       # Build sage
       ./bootstrap

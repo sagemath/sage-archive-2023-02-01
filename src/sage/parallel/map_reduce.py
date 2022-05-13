@@ -1137,9 +1137,9 @@ class RESetMapReduce(object):
 
             sage: from sage.parallel.map_reduce import RESetMapReduce
             sage: def children(x):
-            ....:     sys.stdout.write(f"Starting: {x}\n")
+            ....:     print(f"Starting: {x}\n", flush=True)
             ....:     sleep(float(0.5))
-            ....:     sys.stdout.write(f"Finished: {x}\n")
+            ....:     print(f"Finished: {x}\n", flush=True)
             ....:     return []
             sage: S = RESetMapReduce(roots=[1, 2], children=children)
             sage: S.setup_workers(2)

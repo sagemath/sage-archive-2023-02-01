@@ -488,11 +488,12 @@ back to needs_work
 <https://github.com/sagemath/git-trac-command/blob/master/git_trac/releasemgr/app.py#L212>`_.
 The Release Manager merges tickets in batches of 10 to 20 tickets,
 taking the ticket priority into account. Each batch then undergoes
-integration testing. If problems are detected, a ticket will be
-set back to needs_work and unmerged. When a batch of tickets is
-ready, the Release Manager closes these tickets and proceeds to the
-next batch. After a few batches, a new beta release is tagged and
-announced on ``sage-release``.
+integration testing. If problems are detected, a ticket will be set
+back to needs_work and unmerged. When a batch of tickets is ready, the
+Release Manager closes these tickets and proceeds to the next
+batch. After a few batches, a new beta release is tagged, pushed to
+the ``develop`` branch on the main git repository, and announced on
+``sage-release``.
 
 After the first release candidate has been made, the project is in the
 **release candidate stage**, and a modified procedure is used. Now

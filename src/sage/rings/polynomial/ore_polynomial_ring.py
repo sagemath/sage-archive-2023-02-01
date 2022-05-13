@@ -304,10 +304,15 @@ class OrePolynomialRing(UniqueRepresentation, Algebra):
             if (twist.domain() is not base_ring
              or twist.codomain() is not base_ring):
                 raise TypeError("the twisting morphism must be an endomorphism of base_ring (=%s)" % base_ring)
-            if twist.is_identity():
-                morphism = None
-            else:
-                morphism = twist
+            ### >>> Begin modifications
+            ### Comment thi block:
+            ### if twist.is_identity():
+            ###     morphism = None
+            ### else:
+            ###     morphism = twist
+            ### Add this line:
+            morphism = twist
+            ### >>> End modifications
             derivation = None
         elif isinstance(twist, RingDerivation):
             if (twist.domain() is not base_ring
@@ -327,10 +332,13 @@ class OrePolynomialRing(UniqueRepresentation, Algebra):
         except IndexError:
             raise NotImplementedError("multivariate Ore polynomials rings not supported")
 
-        # If there is no twisting morphism and no twisting derivation
-        # we return a classical polynomial ring
-        if derivation is None and morphism is None:
-            return PolynomialRing(base_ring, names, sparse=sparse)
+        ### >>> Begin modifications
+        ### Comment this block:
+        ### # If there is no twisting morphism and no twisting derivation
+        ### # we return a classical polynomial ring
+        ### if derivation is None and morphism is None:
+        ###     return PolynomialRing(base_ring, names, sparse=sparse)
+        ### >>> End modifications
 
         # We find the best constructor
         if sparse:

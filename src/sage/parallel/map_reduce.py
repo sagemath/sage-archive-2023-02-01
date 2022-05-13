@@ -563,9 +563,9 @@ A logger for :mod:`sage.parallel.map_reduce`
     `Logging facility for Python <https://docs.python.org/2/library/logging.html>`_
     for more detail on logging and log system configuration.
 """)
-# logger.setLevel(logging.WARN)
+logger.setLevel(logging.WARN)
 # logger.setLevel(logging.INFO)
-logger.setLevel(logging.DEBUG)
+# logger.setLevel(logging.DEBUG)
 ch = logging.StreamHandler()
 ch.setLevel(logging.DEBUG)
 formatter = logging.Formatter(

@@ -60,7 +60,7 @@ Your trac account also grants you access to the `sage wiki
 the procedures for opening and closing tickets before making changes. The
 remainder of this chapter contains various guidelines on using the trac server.
 
-Trac authentication through SSH
+Trac Authentication Through SSH
 ===============================
 
 There are two avenues to prove to the trac server that you are who you
@@ -69,7 +69,7 @@ to trac using a username/password. Second, there is public key
 cryptography used by git when copying new source files to the
 repository. This section will show you how to set up both.
 
-Generating and Uploading your SSH Keys
+Generating and Uploading Your SSH Keys
 --------------------------------------
 
 The git installation on the development server uses SSH keys to decide if and
@@ -79,7 +79,7 @@ need to provide trac with the public half of your own personal key.
 Details are described in the following two sections.
 
 
-Generating your SSH Keys
+Generating Your SSH Keys
 ---------------------------------
 
 If you don't have a private key yet, you can
@@ -131,7 +131,7 @@ ssh into that machine you don't have to provide your password.
 
 .. _section-trac-ssh-key:
 
-Linking your Public Key to your Trac Account
+Linking Your Public Key to Your Trac Account
 -----------------------------------------------------
 
 The Sage trac server needs to know one of your public keys. You can
@@ -315,7 +315,7 @@ of fields that can be changed. Here is a comprehensive overview (for the
 
 .. _section-trac-ticket-status:
 
-The status of a ticket
+The Status of a Ticket
 ======================
 
 The status of a ticket appears right next to its number, at the top-left corner
@@ -409,7 +409,7 @@ issues:
   priorities of bugs very differently from us, so please let us know
   if you see a problem with specific tickets.
 
-Reviewing and closing Tickets
+Reviewing and Closing Tickets
 =============================
 
 Tickets can be closed when they have positive review or for other reasons. To

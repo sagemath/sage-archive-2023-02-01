@@ -541,22 +541,21 @@ Classes and methods
 # (at your option) any later version.
 #                  https://www.gnu.org/licenses/
 # ****************************************************************************
-
-from collections import deque
-from threading import Thread
-from sage.sets.recursively_enumerated_set import RecursivelyEnumeratedSet  # _generic
-from sage.misc.lazy_attribute import lazy_attribute
 import copy
 import sys
 import random
 import queue
 import ctypes
-
-
 import logging
+import multiprocessing as mp
+from collections import deque
+from threading import Thread
+
+from sage.sets.recursively_enumerated_set import RecursivelyEnumeratedSet  # _generic
+from sage.misc.lazy_attribute import lazy_attribute
+
 logger = logging.getLogger(__name__)
-logger.__doc__ = (
-"""
+logger.__doc__ = ("""
 A logger for :mod:`sage.parallel.map_reduce`
 
 .. SEEALSO::
@@ -578,7 +577,6 @@ logger.addHandler(ch)
 
 # Set up a multiprocessing context to use for this modules (using the
 # 'fork' method which is basically same as on Python 2)
-import multiprocessing as mp
 mp = mp.get_context('fork')
 
 
@@ -1698,7 +1696,7 @@ class RESetMapReduceWorker(mp.Process):
             sage: w._todo.append(EX.roots()[0])
 
             sage: w.run()
-            sage: sleep(1)
+            sage: sleep(int(1))
             sage: w._todo.append(None)
 
             sage: EX.get_results()
@@ -1734,7 +1732,7 @@ class RESetMapReduceWorker(mp.Process):
             sage: w._todo.append(EX.roots()[0])
             sage: w.run_myself()
 
-            sage: sleep(1)
+            sage: sleep(int(1))
             sage: w._todo.append(None)
 
             sage: EX.get_results()

@@ -1442,6 +1442,7 @@ class Polyhedron_normaliz(Polyhedron_base):
             ....: [1, 0, 0, 1, 0, 0], [1, 0, 0, 0, 1, 0], [1, 0, 0, 1, 2, 3]]
             sage: P = Polyhedron(vertices=L,backend='normaliz')  # optional - pynormaliz
             sage: P.h_star_vector()                              # optional - pynormaliz
+            [1, 0, 2]
         """
         return self.ehrhart_series().numerator().list()
 

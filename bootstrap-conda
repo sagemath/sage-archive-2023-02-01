@@ -59,6 +59,7 @@ for pkg in $BOOTSTRAP_PACKAGES; do
     echo "  - $pkg" >> environment.yml
 done
 sed 's/name: sage-build/name: sage/' environment.yml > src/environment.yml
+echo "  # Additional packages providing all dependencies for the Sage library" >> src/environment.yml
 for pkg in $SAGELIB_SYSTEM_PACKAGES; do
     echo "  - $pkg" >> src/environment.yml
 done

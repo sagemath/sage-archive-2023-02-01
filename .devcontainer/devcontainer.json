@@ -7,5 +7,5 @@
 		"args": { "VARIANT": "jammy" }
 	},
 	// Run commands after the container is started.
-	"postStartCommand": "configure && make build"
+	"postStartCommand": "./bootstrap && ./configure && make build"
 }

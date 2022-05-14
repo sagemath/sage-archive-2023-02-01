@@ -151,12 +151,3 @@ for PKG_BASE in $(sage-package list --has-file SPKG.rst | sort); do
             (echo ".. _spkg_$PKG_BASE:" && echo && OUTPUT_RST=1 sage-spkg-info $PKG_BASE) | sed -e "s|https://trac.sagemath.org/ticket/\([0-9]*\)|:trac:\`\1\`|g" -e "s|https://arxiv.org/abs/cs/\([0-9]*\)|:arxiv:\`cs/\1\`|g" > "$OUTPUT_DIR"/$PKG_BASE.rst
             echo >> "$OUTPUT_INDEX" "   $PKG_BASE"
 done
-
-# #30064: Create the directory first
-OUTPUT_DIR="src/doc/en/reference/repl"
-mkdir -p "$OUTPUT_DIR"
-OUTPUT="$OUTPUT_DIR/options.txt"
-if [ "${BOOTSTRAP_QUIET}" = "no" ]; then
-    echo >&2 $0:$LINENO: installing "$OUTPUT"
-fi
-./sage -advanced > "$OUTPUT"

@@ -247,7 +247,6 @@ save () {
 	build/make/Makefile-auto.in \
 	src/doc/en/installation/*.txt \
 	src/doc/en/reference/spkg/*.rst \
-	src/doc/en/reference/repl/*.txt \
 	environment.yml \
 	src/environment.yml \
 	environment-optional.yml \

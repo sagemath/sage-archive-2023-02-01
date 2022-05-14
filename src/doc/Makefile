@@ -17,6 +17,11 @@ clean:
 	rm -rf en/reference/sage
 	rm -f common/*.pyc
 
+# Sources generated at build time. (For sources generated at bootstrap time, see bootstrap.)
+doc-src:
+	mkdir -p en/reference/repl
+	sage -advanced > en/reference/repl/options.txt
+
 # Matches doc-inventory--reference-manifolds etc.
 doc-inventory--%:
 	sage --docbuild --no-pdf-links $(subst -,/,$(subst doc-inventory--,,$@)) inventory $(SAGE_DOCBUILD_OPTS)
@@ -30,7 +35,7 @@ ifndef SAGE_ROOT
 doc-inventory-reference:
 	$(error SAGE_ROOT undefined. This Makefile needs to be invoked by build/make/install)
 else
-doc-inventory-reference:
+doc-inventory-reference: doc-src
 	$(eval DOCS = $(shell sage --docbuild --all-documents reference))
 	@if [ -z "$(DOCS)" ]; then echo "Error: 'sage --docbuild --all-documents' failed"; exit 1; fi
 	$(eval BIBLIO = $(firstword $(DOCS)))
@@ -85,6 +90,7 @@ doc-pdf-website:
 doc-pdf: doc-pdf-reference doc-pdf-other doc-pdf-website
 
 .PHONY: all clean \
+	doc-src \
 	doc-html doc-pdf \
 	doc-inventory-reference doc-html-reference doc-pdf-reference \
 	doc-html-other doc-pdf-other

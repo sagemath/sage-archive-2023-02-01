@@ -6,7 +6,7 @@
 	    // See tox.ini for definitions
 	    "args": { "SYSTEM_FACTOR":	"ubuntu-jammy",
 		      "PACKAGE_FACTOR": "standard",
-		      "DOCKER_TARGET":	"with-system-packages",
+		      "DOCKER_TARGET":	"with-targets",
 		      "DOCKER_TAG":	"dev"
 		    }
 	},

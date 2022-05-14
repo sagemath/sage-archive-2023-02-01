@@ -1,1 +1,1 @@
-git
+git pytest pytest_xdist

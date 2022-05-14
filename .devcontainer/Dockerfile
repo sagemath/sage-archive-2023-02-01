@@ -1,6 +1,4 @@
-ARG VARIANT="jammy"
-FROM ghcr.io/sagemath/sage/sage-docker-ubuntu-${VARIANT}-standard-with-system-packages:dev
-
-# Install additional packages needed for devcontainer support in VS code
-RUN apt-get update && export DEBIAN_FRONTEND=noninteractive \
-    && apt-get -y install --no-install-recommends gpgconf openssh-client
+ARG SYSTEM_FACTOR="ubuntu-jammy"
+ARG PACKAGE_FACTOR="standard"
+ARG DOCKER_TARGET="with-system-packages"
+FROM ghcr.io/sagemath/sage/sage-docker-${SYSTEM_FACTOR}-${PACKAGE_FACTOR}-${DOCKER_TARGET}:dev

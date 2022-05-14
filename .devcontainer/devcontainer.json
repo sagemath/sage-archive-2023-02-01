@@ -1,11 +1,17 @@
 // For format details, see https://aka.ms/devcontainer.json.
 {
-	"name": "Ubuntu",
+	"name": "Ubuntu jammy",
 	"build": {
 		"dockerfile": "Dockerfile",
-		// Update 'VARIANT' to pick an Ubuntu version: hirsute, focal, bionic, xenial, trusty, etc.
-		"args": { "VARIANT": "jammy" }
+	    // See tox.ini for definitions
+	    "args": { "SYSTEM_FACTOR":	"ubuntu-jammy",
+		      "PACKAGE_FACTOR": "standard",
+		      "DOCKER_TARGET":	"with-system-packages",
+		      "DOCKER_TAG":	"dev"
+		    }
 	},
+	// Run commands after the container is created:
+	"postCreateCommand": "export PATH=$(pwd)/build/bin:$PATH && SYSTEM=$(sage-guess-package-system) && eval $(sage-print-system-package-command $SYSTEM install --yes $(sage-get-system-packages $SYSTEM _develop))",
 	// Run commands after the container is started.
 	"postStartCommand": "./bootstrap && ./configure --enable-build-as-root && make build"
 }

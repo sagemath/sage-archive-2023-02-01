@@ -3108,7 +3108,7 @@ cdef class Matroid(SageObject):
 
     def matroid_polytope(self):
         r"""
-        Return the matroid polytope of ``self``.
+  src/sage/matroids/matroid.pyx      Return the matroid polytope of ``self``.
 
         This is defined as the convex hull of the vertices
 
@@ -8044,7 +8044,7 @@ cdef class Matroid(SageObject):
 
         Let `(M_1, M_2, \ldots, M_k)` be a list of matroids where each `M_i`
         has ground set `E_i`. The matroid sum `(E_1,I_1),\ldots,(E_n,I_n)`
-        is a matroid `(E,I)` where `E= \bigsqcup_{i=1}^n E_i` and 
+        is a matroid `(E,I)` where `E= \bigsqcup_{i=1}^n E_i` and
         `I= \bigsqcup_{i=1}^n I_i`.
 
         INPUT:
@@ -8053,13 +8053,14 @@ cdef class Matroid(SageObject):
 
         OUTPUT:
 
-        An instance of :class:`MatroidSum <sage.matroids.union_matroid.MatroidSum>`
+        An instance of
+        :class:`MatroidSum <sage.matroids.union_matroid.MatroidSum>`
 
         EXAMPLES::
 
             sage: M = matroids.named_matroids.Pappus()
             sage: N = matroids.named_matroids.Fano().direct_sum(M); N
-            Matroid of rank 6 on 16 elements as matroid sum of 
+            Matroid of rank 6 on 16 elements as matroid sum of
             Binary matroid of rank 3 on 7 elements, type (3, 0)
             Matroid of rank 3 on 9 elements with circuit-closures
             {2: {{'a', 'b', 'c'}, {'a', 'e', 'i'}, {'a', 'f', 'h'}, {'b', 'd', 'i'}, {'b', 'f', 'g'}, {'c', 'd', 'h'}, {'c', 'e', 'g'}, {'d', 'e', 'f'}, {'g', 'h', 'i'}}, 3: {{'a', 'b', 'c', 'd', 'e', 'f', 'g', 'h', 'i'}}}
@@ -8068,7 +8069,6 @@ cdef class Matroid(SageObject):
             sage: len(N.bases())
             2100
         """
-
         from . import union_matroid
         if isinstance(matroids, Matroid):
             matroids = [matroids]

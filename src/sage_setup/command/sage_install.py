@@ -33,10 +33,10 @@ class sage_install(install):
         # the install_data directory for installing our Jupyter files.
         SageKernelSpec.update(prefix=self.install_data)
 
-class sage_install_and_clean(sage_install):
+
+class sage_clean(install):
 
     def run(self):
-        sage_install.run(self)
         t = time.time()
         self.clean_stale_files()
         log.info('Finished cleaning, time: %.2f seconds.' % (time.time() - t))
@@ -85,3 +85,9 @@ class sage_install_and_clean(sage_install):
                     dist.ext_modules,
                     data_files,
                     nobase_data_files)
+
+class sage_install_and_clean(sage_install, sage_clean):
+
+    def run(self):
+        sage_install.run(self)
+        sage_clean.run(self)

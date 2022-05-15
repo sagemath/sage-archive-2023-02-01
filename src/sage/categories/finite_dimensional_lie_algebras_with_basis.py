@@ -1138,6 +1138,8 @@ class FiniteDimensionalLieAlgebrasWithBasis(CategoryWithAxiom_over_base_ring):
             K = list(B.keys())
             B = [B[k] for k in K]
             Ind = list(range(len(K)))
+            M = self.module()
+            ambient = M.is_ambient()
 
             def sgn(k, X):
                 """
@@ -1175,9 +1177,10 @@ class FiniteDimensionalLieAlgebrasWithBasis(CategoryWithAxiom_over_base_ring):
                     row = 0
                 else:
                     data = []
+                ell = len(indices)
                 for X in combinations(Ind, k):
                     if not sparse:
-                        ret = [zero] * len(indices)
+                        ret = [zero] * ell
                     for i in range(k):
                         Y = list(X)
                         Y.pop(i)
@@ -1190,7 +1193,11 @@ class FiniteDimensionalLieAlgebrasWithBasis(CategoryWithAxiom_over_base_ring):
                             #   an earlier element from X.
                             Z = tuple(Y[:j-1] + Y[j:])
                             elt = mone**(i+j) * B[X[i]].bracket(B[X[j]])
-                            for key, coeff in elt.to_vector().iteritems():
+                            if ambient:
+                                vec = elt.to_vector()
+                            else:
+                                vec = M.coordinate_vector(elt.to_vector())
+                            for key, coeff in vec.iteritems():
                                 s, A = sgn(key, Z)
                                 if A is None:
                                     continue

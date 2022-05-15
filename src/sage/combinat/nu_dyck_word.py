@@ -47,12 +47,20 @@ ndw_close_symbol = 0
 
 def update_ndw_symbols(os, cs):
     r"""
-    A way to alter the open and close symbols from sage
+    A way to alter the open and close symbols from sage.
 
     INPUT:
 
-    - ``os`` -- The open symbol
-    - ``cs`` -- The close symbol
+    - ``os`` -- the open symbol
+    - ``cs`` -- the close symbol
+
+    EXAMPLES::
+
+        sage: from sage.combinat.nu_dyck_word import update_ndw_symbols
+        sage: update_ndw_symbols(0,1)
+        sage: dw = NuDyckWord('0101001','0110010'); dw
+        [0, 1, 0, 1, 0, 0, 1]
+        sage: update_ndw_symbols(1,0)
     """
     global ndw_open_symbol
     global ndw_close_symbol
@@ -234,6 +242,9 @@ class NuDyckWord(CombinatorialElement):
         raise ValueError("invalid nu-Dyck word")
 
     def __init__(self, parent, dw, latex_options=None):
+        """
+        Initialize a nu-Dyck word.
+        """
         Element.__init__(self, parent)
         self._path = to_word_path(dw)
 
@@ -486,7 +497,7 @@ class NuDyckWord(CombinatorialElement):
 
         TESTS::
 
-            sage: NuDyckWord([1,1,0],[1,0,1])
+            sage: NuDyckWord([1,1,0],[1,0,1])  # indirect doctest
             [1, 1, 0]
             sage: NuDyckWord('NNEE','NENE')
             [1, 1, 0, 0]
@@ -965,7 +976,7 @@ class NuDyckWord(CombinatorialElement):
         points = list(self._path.points())
         return [nu_easts[j] - i for i, j in points]
 
-    def can_mutate(self, i) -> bool:
+    def can_mutate(self, i) -> bool | int:
         """
         Return True/False based off if mutable at height `i`.
 
@@ -974,7 +985,23 @@ class NuDyckWord(CombinatorialElement):
 
         OUTPUT:
 
-        - Whether we can mutate at height of `i`.
+        Whether we can mutate at height of `i`.
+
+        EXAMPLES::
+
+            sage: NDW = NuDyckWord('10010100','00000111')
+            sage: NDW.can_mutate(1)
+            False
+            sage: NDW.can_mutate(3)
+            5
+
+        TESTS::
+
+            sage: NDW = NuDyckWord('10010100','00000111')
+            sage: NDW.can_mutate(33)
+            Traceback (most recent call last):
+            ...
+            ValueError: cannot mutate above or below path
         """
         if i > self.height() or i <= 0:
             raise ValueError('cannot mutate above or below path')
@@ -991,7 +1018,7 @@ class NuDyckWord(CombinatorialElement):
             return j
         return False
 
-    def mutate(self, i):
+    def mutate(self, i) -> None | NuDyckWord:
         r"""
         Return a new `\nu`-Dyck Word if possible.
 
@@ -1007,6 +1034,13 @@ class NuDyckWord(CombinatorialElement):
         - g is everything after f
 
         .. SEEALSO:: :meth:`can_mutate`
+
+        EXAMPLES::
+
+            sage: NDW = NuDyckWord('10010100','00000111')
+            sage: NDW.mutate(1)
+            sage: NDW.mutate(3)
+            [1, 0, 0, 1, 1, 0, 0, 0]
         """
         mutation_index = self.can_mutate(i)
         if not mutation_index:
@@ -1184,6 +1218,16 @@ class NuDyckWords(Parent):
     def __eq__(self, other):
         """
         Return equality.
+
+        TESTS::
+
+            sage: A = NuDyckWords([1,0,1,1])
+            sage: B = NuDyckWords([1,0,1,1])
+            sage: C = NuDyckWords([1,0,1,1,1])
+            sage: A == B
+            True
+            sage: A == C
+            False
         """
         if not isinstance(other, NuDyckWords):
             return False
@@ -1192,21 +1236,36 @@ class NuDyckWords(Parent):
     def __neq__(self, other):
         """
         Return inequality.
+
+        TESTS::
+
+            sage: A = NuDyckWords([1,0,1,1])
+            sage: B = NuDyckWords([1,0,1,1])
+            sage: C = NuDyckWords([1,0,1,1,1])
+            sage: A != B
+            False
+            sage: A != C
+            True
         """
         return not self.__eq__(other)
 
-    def _repr_(self):
+    def _repr_(self) -> str:
         r"""
         TESTS::
 
             sage: NuDyckWords([1,0,1,1])
             [1, 0, 1, 1] Dyck words
         """
-        return "{nu} Dyck words".format(nu=list(self._nu))
+        return f"{list(self._nu)} Dyck words"
 
-    def _cache_key(self):
+    def _cache_key(self) -> str:
         """
         Return a cache key
+
+        TESTS::
+
+            sage: NuDyckWords([1,0,1,1])._cache_key()
+            '1011'
         """
         return str(self._nu)
 
@@ -1222,6 +1281,8 @@ class NuDyckWords(Parent):
     def __iter__(self):
         """
         Iterate over ``self``.
+
+        .. TODO:: make a better iterator.
 
         EXAMPLES::
 
@@ -1255,8 +1316,9 @@ class NuDyckWords(Parent):
 
 def to_word_path(word):
     r"""
-    Helper function which converts input into a word path over an appropriate
-    alphabet.
+    Convert input into a word path over an appropriate alphabet.
+
+    Helper function.
 
     INPUT:
 
@@ -1339,15 +1401,3 @@ def path_weakly_above_other(path, other) -> bool:
     p_height = path.height_vector()
     o_height = other.height_vector()
     return all(p_h >= o_h for p_h, o_h in zip(p_height, o_height))
-
-
-def is_nu_path(path, nu) -> bool:
-    r"""
-    Test if ``path`` is a `\nu`-Dyck word.
-
-    A ``path`` is a `\nu`-Dyck word if ``path`` is weakly above the path of
-    `\nu`.
-
-    .. SEEALSO:: :meth:`path_weakly_above_other`
-    """
-    return path_weakly_above_other(path, nu)

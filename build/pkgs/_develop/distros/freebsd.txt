@@ -1,1 +1,2 @@
 security/gnupg
+security/openssh-portable

@@ -39,8 +39,9 @@ for dep_file in dependencies dependencies_order_only; do
                 # Dependencies like $(BLAS)
                 \$\(*)      echo "- $dep";;
                 # Looks like a package
-                *)          if [ -n "$OUTPUT_RST" -a -d "$SAGE_ROOT/build/pkgs/$dep" ]; then
-                                echo "- :ref:\`$dep\`"
+                *)          if [ -n "$OUTPUT_RST" -a -r "$SAGE_ROOT/build/pkgs/$dep/SPKG.rst" ]; then
+                                # This RST label is set in src/doc/bootstrap
+                                echo "- :ref:\`spkg_$dep\`"
                             else
                                 echo "- $dep"
                             fi;;

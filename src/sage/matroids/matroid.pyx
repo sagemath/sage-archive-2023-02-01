@@ -8012,7 +8012,8 @@ cdef class Matroid(SageObject):
 
         OUTPUT:
 
-        An instance of :class:`MatroidUnion <sage.matroids.union_matroid.MatroidUnion>`.
+        An instance of 
+        :class:`MatroidUnion <sage.matroids.union_matroid.MatroidUnion>`.
 
         EXAMPLES::
 

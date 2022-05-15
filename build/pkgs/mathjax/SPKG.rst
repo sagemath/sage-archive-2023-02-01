@@ -19,12 +19,6 @@ Upstream Contact
 
 Home page: https://www.mathjax.org/
 
-Dependencies
-------------
-
-None.
-
-
 Special Update/Build Instructions
 ---------------------------------
 

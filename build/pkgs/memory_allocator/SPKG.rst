@@ -20,7 +20,3 @@ Upstream Contact
 
 https://github.com/sagemath/memory_allocator
 
-Dependencies
-------------
-
--  Cython

@@ -333,11 +333,11 @@ AC_DEFUN([SAGE_SPKG_FINALIZE], [dnl
             AS_VAR_APPEND([DEPS], ['$(findstring '$a',$(OPTIONAL_INSTALLED_PACKAGES)) '])
         done
     ])
-    AS_CASE([$DEPS], [*\|*], [], [AS_VAR_APPEND([DEPS], [" |"])])
+    AS_CASE(["$DEPS"], [*\|*], [], [AS_VAR_APPEND([DEPS], [" |"])])
     AS_IF([test -f "$DIR/dependencies_order_only"], [dnl
         AS_VAR_APPEND([DEPS], [' '$(echo $(sed 's/^ *//; s/ *#.*//; q' $DIR/dependencies_order_only))])
     ], [dnl
-        m4_case(SPKG_SOURCE, [pip], [AS_VAR_APPEND([DEPS], [' pip'])])dnl
+        m4_case(SPKG_SOURCE, [pip], [AS_VAR_APPEND([DEPS], [' pip'])], [:])dnl
     ])
     AS_IF([test -f "$DIR/dependencies_check"], [dnl
         AS_VAR_APPEND([DEPS], [' $(and $(filter-out no,$(SAGE_CHECK_]SPKG_NAME[)), '])

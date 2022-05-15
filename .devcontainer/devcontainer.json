@@ -11,7 +11,7 @@
 		    }
 	},
 	// Run commands after the container is created:
-    "postCreateCommand": "export PATH=$(pwd)/build/bin:$PATH && SYSTEM=$(sage-guess-package-system) && eval $(sage-print-system-package-command $SYSTEM install --yes $(sage-get-system-packages $SYSTEM _develop $(head -n 1 build/pkgs/_develop/dependencies)))",
+    "postCreateCommand": "export PATH=$(pwd)/build/bin:$PATH && SYSTEM=$(sage-guess-package-system) && eval $(sage-print-system-package-command $SYSTEM --yes install $(sage-get-system-packages $SYSTEM _develop $(head -n 1 build/pkgs/_develop/dependencies)))",
 	// Run commands after the container is started.
 	"postStartCommand": "./bootstrap && ./configure --enable-build-as-root --prefix=/sage/local --with-sage-venv && make build V=0",
 	"extensions": [

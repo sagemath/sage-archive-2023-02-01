@@ -22,6 +22,36 @@ if [ -r "$PKG_SCRIPTS/type" ] ; then
     echo
 fi
 echo
+echo "Dependencies"
+echo "------------"
+echo
+dep=
+for dep_file in dependencies dependencies_order_only; do
+    if [ -r "$PKG_SCRIPTS/$dep_file" ] ; then
+        for dep in $(sed 's/^ *//; s/ *#.*//; q' "$PKG_SCRIPTS/$dep_file"); do
+            case "$dep" in
+                # Do not use order-only syntax, too much information
+                \|)         ;;
+                # Suppress dependencies on source file of the form $(SAGE_ROOT)/..., $(SAGE_SRC)/...
+                \$\(SAGE_*) ;;
+                # Suppress FORCE
+                FORCE)      ;;
+                # Dependencies like $(BLAS)
+                \$\(*)      echo "- $dep";;
+                # Looks like a package
+                *)          if [ -n "$OUTPUT_RST" -a -d "$SAGE_ROOT/build/pkgs/$dep" ]; then
+                                echo "- :ref:\`$dep\`"
+                            else
+                                echo "- $dep"
+                            fi;;
+            esac
+        done
+    fi
+done
+if [ -z "$dep" ]; then
+    echo "None"
+fi
+echo
 echo "Version Information"
 echo "-------------------"
 echo

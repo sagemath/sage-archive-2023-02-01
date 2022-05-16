@@ -945,19 +945,24 @@ options::
   [mkoeppe@sage worktree-local]$ SKIP_SYSTEM_PKG_INSTALL=yes SKIP_BOOTSTRAP=1 SKIP_CONFIGURE=1 tox -e local-homebrew-macos-minimal -- bash
 
 
-Automatic parallel tox runs on GitHub Actions
----------------------------------------------
+Automatic testing on multiple platforms on GitHub Actions
+=========================================================
 
 The Sage source tree includes a default configuration for GitHub
-Actions that runs tox on a multitude of platforms on every pull
-request and on every push of a tag (but not of a branch) to a
-repository for which GitHub Actions are enabled.
+Actions that runs our portability tests with tox on a multitude of
+platforms on every pull request and on every push of a tag (but not of
+a branch) to a repository for which GitHub Actions are enabled.
 
-This is defined in the file ``$SAGE_ROOT/.github/workflows/tox.yml``.
+In particular, it automatically runs on our main repository on every
+release tag.
+
+This is defined in the files `$SAGE_ROOT/.github/workflows/tox*.yml
+<https://github.com/sagemath/sage/tree/develop/.github/workflows/tox.yml>`_.
 
 An additional GitHub Actions workflow for testing on Cygwin, not based
-on tox, is defined in the file
-``$SAGE_ROOT/.github/workflows/ci-cygwin.yml``.
+on tox, is defined in the files
+`$SAGE_ROOT/.github/workflows/ci-cygwin*.yml
+<https://github.com/sagemath/sage/tree/develop/.github/workflows/ci-cygwin-standard.yml>`_.
 
 GitHub Actions runs these build jobs on 2-core machines with 7 GB of
 RAM memory and 14 GB of SSD disk space, cf.
@@ -1079,3 +1084,62 @@ Now you can pull the image and run it::
 
   $ docker pull docker.pkg.github.com/YOUR-GITHUB-USERNAME/sage/sage-docker-fedora-31-standard-configured:f4bd671
   $ docker run -it docker.pkg.github.com/YOUR-GITHUB-USERNAME/sage/sage-docker-fedora-31-standard-configured:f4bd671 bash
+
+
+Using our pre-built Docker images published on ghcr.io
+======================================================
+
+Our portability CI on GitHub Actions builds `Docker images
+<https://github.com/orgs/sagemath/packages?tab=packages&q=with-targets-optional>`_
+for all tested Linux platforms (and system package configurations) and
+makes them available on `GitHub Packages
+<https://github.com/features/packages>`_ (ghcr.io).
+
+This makes it easy for developers to debug problems that showed up in
+the build logs for a given platform.
+
+The image version corresponding to the latest development release
+receives the additional Docker tag ``dev``, see for example the Docker
+image for the platform `ubuntu-focal-standard
+<https://github.com/sagemath/sage/pkgs/container/sage%2Fsage-docker-ubuntu-focal-standard-with-targets-optional>`_. Thus,
+for example, the following command will work::
+
+  $ docker run -it ghcr.io/sagemath/sage/sage-docker-ubuntu-focal-standard-with-targets-optional:dev bash
+  Unable to find image 'ghcr.io/sagemath/sage/sage-docker-ubuntu-focal-standard-with-targets-optional:dev' locally
+  dev: Pulling from sagemath/sage/sage-docker-ubuntu-focal-standard-with-targets-optional
+  d5fd17ec1767: Already exists 
+  67586203f0c7: Pull complete 
+  b63c529f4777: Pull complete
+  ...
+  159775d1a3d2: Pull complete 
+  Digest: sha256:e6ba5e12f59c6c4668692ef4cfe4ae5f242556482664fb347bf260f32bf8e698
+  Status: Downloaded newer image for ghcr.io/sagemath/sage/sage-docker-ubuntu-focal-standard-with-targets-optional:dev
+  root@8055a7ba0607:/sage# ./sage 
+  ┌────────────────────────────────────────────────────────────────────┐
+  │ SageMath version 9.6, Release Date: 2022-05-15                     │
+  │ Using Python 3.8.10. Type "help()" for help.                       │
+  └────────────────────────────────────────────────────────────────────┘
+  sage: 
+
+Images whose names end with the suffix ``-with-targets-optional`` are
+the results of full builds and a run of ``make ptest``. They also
+contain a copy of the source tree and the full logs of the build and
+test.
+
+Also `smaller images corresponding to earlier build stages
+<https://github.com/orgs/sagemath/packages?tab=packages&q=sage-docker-debian-bullseye-standard>`_
+are available:
+
+ * ``-with-system-packages`` provides a system installation with
+   system packages installed, no source tree,
+
+ * ``-configured`` contains a partial source tree
+   (:envvar:`SAGE_ROOT`) and has completed the bootstrapping phase and
+   the run of the ``configure`` script,
+
+ * ``-with-targets-pre`` contains the full source tree and a full
+   installation of all non-Python packages (:envvar:`SAGE_LOCAL`),
+
+ * ``-with-targets`` contains the full source tree and a full
+   installation of Sage, including the HTML documentation, but ``make
+   ptest`` has not been run yet.

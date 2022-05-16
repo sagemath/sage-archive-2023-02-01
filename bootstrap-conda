@@ -93,3 +93,21 @@ DEVELOP_SYSTEM_PACKAGES="openssh pycodestyle pytest"
         echo "  - $pkg"
     done
 ) > src/environment-optional.yml
+(
+    echo >&4 "  - pip:"
+    echo >&5 "  - pip:"
+    for PKG_BASE in $(sage-package list --has-file requirements.txt --no-file distros/conda.txt); do
+        PKG_SCRIPTS=build/pkgs/$PKG_BASE
+        SYSTEM_PACKAGES_FILE=$PKG_SCRIPTS/requirements.txt
+        PKG_TYPE=$(cat $PKG_SCRIPTS/type)
+        if [ -n "PKG_SYSTEM_PACKAGES" ]; then
+            case "$PKG_BASE:$PKG_TYPE" in
+                $DEVELOP_SPKG_PATTERN:*) FD=4;;
+                *)                       FD=5;;
+            esac
+            ${STRIP_COMMENTS} $SYSTEM_PACKAGES_FILE | while read -r line; do
+                [ -n "$line" ] && echo >&$FD "    - $line"
+            done
+        fi
+    done
+) 4>> src/environment-dev.yml 5>> src/environment-optional.yml

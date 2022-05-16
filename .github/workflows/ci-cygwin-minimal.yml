@@ -16,6 +16,9 @@ env:
   EXTRA_CONFIGURE_ARGS: --enable-fat-binary
   SAGE_LOCAL: /opt/sage-${{ github.sha }}
 
+permissions:
+  contents: read
+
 jobs:
 
 ############################################## stage-i ##########################################

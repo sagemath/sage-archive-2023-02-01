@@ -10,6 +10,9 @@ on:
       - 'ticket/**'
 
 
+permissions:
+  contents: read
+
 jobs:
   ticket_ci:
 

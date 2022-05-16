@@ -11,6 +11,9 @@ on:
   workflow_dispatch:
     # Allow to run manually
 
+permissions:
+  contents: read
+
 jobs:
   windows:
     runs-on: windows-latest

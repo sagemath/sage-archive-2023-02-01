@@ -2315,6 +2315,15 @@ cdef class MPolynomial_libsingular(MPolynomial):
             Traceback (most recent call last):
             ...
             ZeroDivisionError: rational division by zero
+
+        Ensure that :trac:`17638` is fixed::
+
+            sage: R.<x,y> = PolynomialRing(QQ, order="neglex")
+            sage: f = 1 + y
+            sage: g = 1 + x
+            sage: h = f/g
+            sage: h*g == f
+            True
         """
         cdef poly *p
         cdef MPolynomial_libsingular right = <MPolynomial_libsingular>right_ringelement

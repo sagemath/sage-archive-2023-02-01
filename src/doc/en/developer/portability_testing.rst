@@ -1153,21 +1153,27 @@ convenient for working with Docker containers thanks to the `Visual
 Studio Code Remote - Containers
 <https://code.visualstudio.com/docs/remote/containers>`_ extension.
 
-Sage provides a configuration file
-`$SAGE_ROOT/.devcontainer/devcontainer.json
-<https://github.com/sagemath/sage/tree/develop/.devcontainer/devcontainer.json>`_
+Sage provides sample ``devcontainer.json`` configuration files
+`$SAGE_ROOT/.devcontainer/devcontainer-*.json
+<https://github.com/sagemath/sage/tree/develop/.devcontainer/>`_
 for this purpose.
 
-Opening the Sage repository in the configured devcontainer pulls the
+To get started, copy (or symlink) the sample file
+`devcontainer-ubuntu-jammy-standard.json
+<https://github.com/sagemath/sage/tree/develop/.devcontainer/devcontainer-ubuntu-jammy-standard.json>`_
+to ``devcontainer.json`` in the same directory. It uses
+``ubuntu-jammy-standard`` and the most recent development version Sage
+(``dev`` tag).  You can edit a copy of the configuration file to
+change to a different platform or another version.
+
+Then, opening the Sage repository in the configured devcontainer pulls the
 image from ghcr.io, installs `additional system packages for
 development <../reference/spkg/_develop.html>`_, and builds Sage from
 source, reusing the installation (:envvar:`SAGE_LOCAL`,
 :envvar:`SAGE_VENV`) from the image.
 
-By default, it uses ``ubuntu-jammy-standard`` and the most recent
-development version Sage (``dev`` tag).  You can edit the
-configuration file to change to a different platform or another
-version.  After editing, run "Remote-Containers: Rebuild Container"
-from the Command Palette. See the `devcontainer.json reference
+After editing the configuration file (or changing the symlink), run
+"Remote-Containers: Rebuild Container" from the Command Palette. See
+the `devcontainer.json reference
 <https://code.visualstudio.com/docs/remote/devcontainerjson-reference>`_
 for more information.

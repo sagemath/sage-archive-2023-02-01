@@ -1,0 +1,12 @@
+// For format details, see https://aka.ms/devcontainer.json.
+{
+    "name": "CoCalc Docker",
+    "image": "sagemathinc/cocalc"
+    // Run commands after the container is created:
+    "postCreateCommand": ".devcontainer/post_create.sh",
+    // Run commands after the container is started.
+    "postStartCommand": "./bootstrap && ./configure --enable-build-as-root --prefix=/usr/local/sage/local --with-sage-venv && make build V=0",
+    "extensions": [
+        "ms-python.python"
+    ]
+}

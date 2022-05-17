@@ -1280,7 +1280,7 @@ class NuDyckWords(Parent):
 
     def __contains__(self, x) -> bool:
         r"""
-        Checks for containment.
+        Check for containment.
 
         TESTS::
 
@@ -1352,7 +1352,7 @@ class NuDyckWords(Parent):
 
     def _an_element_(self):
         r"""
-        Returns an element.
+        Return an element.
 
         TESTS::
 

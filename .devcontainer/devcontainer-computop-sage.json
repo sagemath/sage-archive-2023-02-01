@@ -1,0 +1,15 @@
+// For format details, see https://aka.ms/devcontainer.json.
+{
+    "name": "computop/sage Docker",
+    "image": "computop/sage"
+    "containerEnv": {
+        "MAKE": "make -j12"
+    },
+    // Run commands after the container is created:
+    "postCreateCommand": ".devcontainer/post_create.sh --sudo",
+    // Run commands after the container is started.
+    "postStartCommand": "./bootstrap && ./configure --prefix=/sage/local --with-sage-venv && make build V=0",
+    "extensions": [
+        "ms-python.python"
+    ]
+}

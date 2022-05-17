@@ -2,6 +2,9 @@
 {
     "name": "CoCalc Docker",
     "image": "sagemathinc/cocalc"
+    "containerEnv": {
+        "MAKE": "make -j12"
+    },
     // Run commands after the container is created:
     "postCreateCommand": ".devcontainer/post_create.sh",
     // Run commands after the container is started.

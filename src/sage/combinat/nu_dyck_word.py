@@ -35,8 +35,8 @@ from sage.combinat.combinat import CombinatorialElement
 from sage.structure.global_options import GlobalOptions
 from sage.structure.parent import Parent
 from sage.categories.finite_enumerated_sets import FiniteEnumeratedSets
-from sage.combinat.permutation import Permutations
 from sage.misc.latex import latex
+from copy import copy
 
 from sage.combinat.words.paths import WordPaths_north_east
 from sage.combinat.words.paths import FiniteWordPath_north_east
@@ -60,6 +60,11 @@ def update_ndw_symbols(os, cs):
         sage: update_ndw_symbols(0,1)
         sage: dw = NuDyckWord('0101001','0110010'); dw
         [0, 1, 0, 1, 0, 0, 1]
+
+        sage: dw = NuDyckWord('1010110','1001101'); dw
+        Traceback (most recent call last):
+        ...
+        ValueError: invalid nu-Dyck word
         sage: update_ndw_symbols(1,0)
     """
     global ndw_open_symbol
@@ -71,9 +76,9 @@ def update_ndw_symbols(os, cs):
 def replace_dyck_char(x):
     r"""
     A map sending an opening character (``'1'``, ``'N'``, and ``'('``) to
-    ``ndw_open_symbol`` and a closing character (``'0'``, ``'E'``, and ``')'``) to
-    ``ndw_close_symbol``, and raising an error on any input other than one of the
-    opening or closing characters.
+    ``ndw_open_symbol``, a closing character (``'0'``, ``'E'``, and ``')'``) to
+    ``ndw_close_symbol``, and raising an error on any input other than one of
+    the opening or closing characters.
 
     This is the inverse map of :func:`replace_dyck_symbol`.
 
@@ -115,8 +120,8 @@ def replace_dyck_char(x):
 
 def replace_dyck_symbol(x, open_char='N', close_char='E') -> str:
     r"""
-    A map sending ``ndw_open_symbol`` to ``open_char`` and ``ndw_close_symbol`` to
-    ``close_char``, and raising an error on any input other than
+    A map sending ``ndw_open_symbol`` to ``open_char`` and ``ndw_close_symbol``
+    to ``close_char``, and raising an error on any input other than
     ``ndw_open_symbol`` and ``ndw_close_symbol``. The values of the constants
     ``ndw_open_symbol`` and ``ndw_close_symbol`` are subject to change.
 
@@ -244,6 +249,13 @@ class NuDyckWord(CombinatorialElement):
     def __init__(self, parent, dw, latex_options=None):
         """
         Initialize a nu-Dyck word.
+
+        EXAMPLES::
+
+            sage: NuDyckWord('010', '010')
+            [0, 1, 0]
+            sage: NuDyckWord('110100','101010')
+            [1, 1, 0, 1, 0, 0]
         """
         Element.__init__(self, parent)
         self._path = to_word_path(dw)
@@ -308,6 +320,23 @@ class NuDyckWord(CombinatorialElement):
     def __le__(self, other):
         """
         Return if one path is included in another.
+
+        EXAMPLES::
+
+            sage: ND1 = NuDyckWord('101', '011')
+            sage: ND2 = NuDyckWord('110', '011')
+            sage: ND3 = NuDyckWord('011', '011')
+            sage: ND1 <= ND1
+            True
+            sage: ND1 <= ND2
+            True
+            sage: ND2 <= ND1
+            False
+            sage: ND3 <= ND2
+            True
+            sage: ND3 <= ND1
+            True
+
         """
         if self._nu == other._nu:
             return path_weakly_above_other(other._path, self._path)
@@ -316,12 +345,44 @@ class NuDyckWord(CombinatorialElement):
     def __lt__(self, other):
         """
         Return if one path is strictly included in another
+
+        EXAMPLES::
+
+            sage: ND1 = NuDyckWord('101', '011')
+            sage: ND2 = NuDyckWord('110', '011')
+            sage: ND3 = NuDyckWord('011', '011')
+            sage: ND1 < ND1
+            False
+            sage: ND1 < ND2
+            True
+            sage: ND2 < ND1
+            False
+            sage: ND3 < ND2
+            True
+            sage: ND3 < ND1
+            True
         """
         return self.__le__(other) and not self.__eq__(other)
 
     def __ge__(self, other):
         """
         Return if one path is included in another
+
+        EXAMPLES::
+
+            sage: ND1 = NuDyckWord('101', '011')
+            sage: ND2 = NuDyckWord('110', '011')
+            sage: ND3 = NuDyckWord('011', '011')
+            sage: ND1 >= ND1
+            True
+            sage: ND1 >= ND2
+            False
+            sage: ND2 >= ND1
+            True
+            sage: ND1 >= ND3
+            True
+            sage: ND2 >= ND3
+            True
         """
         if self._nu == other._nu:
             return path_weakly_above_other(self._path, other._path)
@@ -330,6 +391,22 @@ class NuDyckWord(CombinatorialElement):
     def __gt__(self, other):
         """
         Return if one path is strictly included in another
+
+        EXAMPLES::
+
+            sage: ND1 = NuDyckWord('101', '011')
+            sage: ND2 = NuDyckWord('110', '011')
+            sage: ND3 = NuDyckWord('011', '011')
+            sage: ND1 > ND1
+            False
+            sage: ND1 > ND2
+            False
+            sage: ND2 > ND1
+            True
+            sage: ND1 > ND3
+            True
+            sage: ND2 > ND3
+            True
         """
         return self.__ge__(other) and not self.__eq__(other)
 
@@ -365,8 +442,8 @@ class NuDyckWord(CombinatorialElement):
 
         - ``color`` -- (default: black) the line color.
 
-        - ``line width`` -- (default: `2 \times` ``tikz_scale``) value representing the
-          line width.
+        - ``line width`` -- (default: `2 \times` ``tikz_scale``) value
+          representing the line width.
 
         - ``nu_options`` -- (default: ``'rounded corners=1, color=red, line
           width=1'``) str to indicate what the tikz options should be for path
@@ -510,7 +587,8 @@ class NuDyckWord(CombinatorialElement):
 
         TESTS::
 
-            sage: print(NuDyckWord('00011001000100','00011001000100')._repr_lattice(style='N-E', labelling=[1,2,3,4]))
+            sage: n = NuDyckWord('00011001000100','00011001000100')
+            sage: print(n._repr_lattice(style='N-E', labelling=[1,2,3,4]))
                              ____
                        _____| . . 4
                    ___| . . . . . 3
@@ -650,30 +728,31 @@ class NuDyckWord(CombinatorialElement):
         EXAMPLES::
 
             sage: for ND in NuDyckWords('101010'): ND.pretty_print()
-             ______
-            |x x  .
-            |x  . .
-            | . . .
-               ____
-             _|x  .
-            |x  . .
-            | . . .
                  __
-             ___| .
-            |x  . .
+               _| .
+             _| . .
             | . . .
                ____
               |x  .
              _| . .
             | . . .
                  __
-               _| .
-             _| . .
+             ___| .
+            |x  . .
+            | . . .
+               ____
+             _|x  .
+            |x  . .
+            | . . .
+             ______
+            |x x  .
+            |x  . .
             | . . .
 
         ::
 
-            sage: ND = NuDyckWord([1,1,1,0,1,0,0,1,1,0,0,0],[1,0,1,0,1,0,1,0,1,0,1,0])
+            sage: nu = [1,0,1,0,1,0,1,0,1,0,1,0]
+            sage: ND = NuDyckWord([1,1,1,0,1,0,0,1,1,0,0,0],nu)
             sage: ND.pretty_print()
                    ______
                   |x x  .
@@ -1201,6 +1280,8 @@ class NuDyckWords(Parent):
 
     def __contains__(self, x) -> bool:
         r"""
+        Checks for containment.
+
         TESTS::
 
             sage: NDW = NuDyckWords([1,0,1,1])
@@ -1271,6 +1352,8 @@ class NuDyckWords(Parent):
 
     def _an_element_(self):
         r"""
+        Returns an element.
+
         TESTS::
 
             sage: NuDyckWords('101').an_element()
@@ -1278,25 +1361,65 @@ class NuDyckWords(Parent):
         """
         return self.element_class(self, self._nu)
 
-    def __iter__(self):
+    def __iter__(self, N=[], D=[], i=None, X=None):
         """
         Iterate over ``self``.
 
-        .. TODO:: make a better iterator.
+        The iterator procedes by letting `N` be the locations of all the north
+        steps in `\nu`. Then we proceed by decreasing the locations as much as
+        we can from right to left.
 
         EXAMPLES::
 
             sage: it = NuDyckWords('101010').__iter__()
             sage: [i for i in it]
-            [[1, 1, 1, 0, 0, 0],
-             [1, 1, 0, 1, 0, 0],
-             [1, 1, 0, 0, 1, 0],
+            [[1, 0, 1, 0, 1, 0],
              [1, 0, 1, 1, 0, 0],
-             [1, 0, 1, 0, 1, 0]]
+             [1, 1, 0, 0, 1, 0],
+             [1, 1, 0, 1, 0, 0],
+             [1, 1, 1, 0, 0, 0]]
         """
-        for p in Permutations(list(self._nu)):
-            if path_weakly_above_other(to_word_path(p), self._nu):
-                yield self.element_class(self, list(p))
+        # Location of all the ones
+        N = [k for k, v in enumerate(list(self._nu)) if v == 1]
+
+        # Our first return element
+        D = copy(N)
+
+        # Lambda function for adding a one in the appropriate spot
+        def X(i, N): return 1 if i in N else 0
+
+        # i is the final entry
+        i = len(N) - 1
+
+        # j is our iterator
+        j = i
+
+        # return nu first
+        nu = [X(i, D) for i in range(self._nu.length())]
+        yield self.element_class(self, nu)
+
+        # While we haven't reached the start of our list
+        while j >= 0:
+            # If the final number is more than 1 away from second to last
+            if D[i] > D[i-1] + 1:
+                D[i] -= 1
+                DW = [X(i, D) for i in range(self._nu.length())]
+                yield self.element_class(self, DW)
+            else:
+                # reset j just in case
+                j = i
+                # find the last index  where two numbers are more than 1 away.
+                while j > 0 and D[j] == D[j - 1] + 1:
+                    j -= 1
+                if j > 0 or (j == 0 and D[j] > 0):
+                    D[j] -= 1
+                    # reset all the entries above j
+                    for k in range(j + 1, len(N)):
+                        D[k] = N[k]
+                    DW = [X(i, D) for i in range(self._nu.length())]
+                    yield self.element_class(self, DW)
+                else:
+                    j = -1
 
     def cardinality(self):
         r"""
@@ -1330,16 +1453,16 @@ def to_word_path(word):
 
     EXAMPLES::
 
-            sage: from sage.combinat.nu_dyck_word import to_word_path
-            sage: wp = to_word_path('NEENENEN'); wp
-            Path: 10010101
-            sage: from sage.combinat.words.paths import FiniteWordPath_north_east
-            sage: isinstance(wp,FiniteWordPath_north_east)
-            True
-            sage: to_word_path('1001')
-            Path: 1001
-            sage: to_word_path([0,1,0,0,1,0])
-            Path: 010010
+        sage: from sage.combinat.nu_dyck_word import to_word_path
+        sage: wp = to_word_path('NEENENEN'); wp
+        Path: 10010101
+        sage: from sage.combinat.words.paths import FiniteWordPath_north_east
+        sage: isinstance(wp,FiniteWordPath_north_east)
+        True
+        sage: to_word_path('1001')
+        Path: 1001
+        sage: to_word_path([0,1,0,0,1,0])
+        Path: 010010
     """
     # If we already have the object, don't worry
     if isinstance(word, FiniteWordPath_north_east):

@@ -898,3 +898,16 @@ class WeierstrassIsomorphism(EllipticCurveHom, baseWI):
         w = baseWI(-1, 0, -a1, -a3)
         urst = baseWI.__mul__(self, w).tuple()
         return WeierstrassIsomorphism(self._domain, urst, self._codomain)
+
+    def _scaling_factor(self):
+        r"""
+        Return ``self.formal()[1]``, but faster.
+
+        EXAMPLES::
+
+            sage: E = EllipticCurve(QQbar, [0,1])
+            sage: all(f._scaling_factor() == f.formal()[1] for f in E.automorphisms())
+            True
+        """
+        return self.u
+

@@ -2768,6 +2768,32 @@ class EllipticCurveIsogeny(EllipticCurveHom):
             self.__initialize_rational_maps()
         return self.__X_coord_rational_map
 
+    def _scaling_factor(self):
+        r"""
+        Return ``self.formal()[1]``, but faster.
+
+        EXAMPLES::
+
+            sage: E = EllipticCurve(GF(257^2), [0,1])
+            sage: phi = E.isogeny(E.lift_x(240))
+            sage: phi.degree()
+            43
+            sage: phi._scaling_factor()
+            1
+            sage: phi.dual()._scaling_factor()
+            43
+
+        ALGORITHM: The "inner" isogeny is normalized by construction,
+        so we only need to account for the scaling factors of a pre-
+        and post-isomorphism.
+        """
+        sc = Integer(1)
+        if self.__pre_isomorphism is not None:
+            sc *= self.__pre_isomorphism._scaling_factor()
+        if self.__post_isomorphism is not None:
+            sc *= self.__post_isomorphism._scaling_factor()
+        return sc
+
     def kernel_polynomial(self):
         r"""
         Return the kernel polynomial of this isogeny.

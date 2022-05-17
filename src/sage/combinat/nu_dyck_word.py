@@ -32,11 +32,11 @@ from __future__ import annotations
 from sage.structure.element import Element
 from sage.rings.integer import Integer
 from sage.combinat.combinat import CombinatorialElement
+from sage.sets.recursively_enumerated_set import RecursivelyEnumeratedSet
 from sage.structure.global_options import GlobalOptions
 from sage.structure.parent import Parent
 from sage.categories.finite_enumerated_sets import FiniteEnumeratedSets
 from sage.misc.latex import latex
-from copy import copy
 
 from sage.combinat.words.paths import WordPaths_north_east
 from sage.combinat.words.paths import FiniteWordPath_north_east
@@ -259,6 +259,7 @@ class NuDyckWord(CombinatorialElement):
         """
         Element.__init__(self, parent)
         self._path = to_word_path(dw)
+        self._list = list(self._path)
 
         if parent is None:
             raise ValueError("need parent object")
@@ -268,18 +269,6 @@ class NuDyckWord(CombinatorialElement):
         if latex_options is None:
             latex_options = {}
         self._latex_options = dict(latex_options)
-
-    def _list(self):
-        """
-        Return list of ``self``.
-
-        EXAMPLES::
-
-            sage: w = NuDyckWord('110100','101010')
-            sage: w._list()
-            [1, 1, 0, 1, 0, 0]
-        """
-        return list(self._path)
 
     def __eq__(self, other):
         """
@@ -432,7 +421,7 @@ class NuDyckWord(CombinatorialElement):
             sage: hash(u)  # random
             -4577085166836515071
         """
-        return hash(''.join(str(i) for i in self._list()))
+        return hash(''.join(str(i) for i in self._list))
 
     def set_latex_options(self, D):
         r"""
@@ -732,13 +721,13 @@ class NuDyckWord(CombinatorialElement):
                _| .
              _| . .
             | . . .
-               ____
-              |x  .
-             _| . .
-            | . . .
                  __
              ___| .
             |x  . .
+            | . . .
+               ____
+              |x  .
+             _| . .
             | . . .
                ____
              _|x  .
@@ -1087,7 +1076,7 @@ class NuDyckWord(CombinatorialElement):
 
         # Find the ith north step
         level = 0
-        ndw = self._list()
+        ndw = self._list
         for j, k in enumerate(ndw):
             if k == ndw_open_symbol:
                 level += 1
@@ -1133,7 +1122,7 @@ class NuDyckWord(CombinatorialElement):
             if horiz[i] == horiz_num:
                 other_index = i
                 break
-        ndw = self._list()
+        ndw = self._list
         d = ndw[0:mutation_index - 1]
         e = ndw[mutation_index:other_index]
         f = ndw[other_index:]
@@ -1365,61 +1354,33 @@ class NuDyckWords(Parent):
         """
         Iterate over ``self``.
 
-        The iterator procedes by letting `N` be the locations of all the north
-        steps in `\nu`. Then we proceed by decreasing the locations as much as
-        we can from right to left.
+        The iterator interchanges a 0,1 pair whenever the 0 comes before a 1
 
         EXAMPLES::
 
             sage: it = NuDyckWords('101010').__iter__()
             sage: [i for i in it]
             [[1, 0, 1, 0, 1, 0],
-             [1, 0, 1, 1, 0, 0],
              [1, 1, 0, 0, 1, 0],
+             [1, 0, 1, 1, 0, 0],
              [1, 1, 0, 1, 0, 0],
              [1, 1, 1, 0, 0, 0]]
         """
-        # Location of all the ones
-        N = [k for k, v in enumerate(list(self._nu)) if v == 1]
+        # Define successor function for recursion
+        def transpose_close_open(N):
+            return [self.element_class(self,
+                                       N._list[0:k-1]
+                                       + list(reversed(N._list[k-1:k+1]))
+                                       + N._list[k+1:])
+                    for k, v in enumerate(N._list)
+                    if k > 0
+                        and v == ndw_open_symbol
+                        and N._list[k-1] == ndw_close_symbol
+                    ]
 
-        # Our first return element
-        D = copy(N)
-
-        # Lambda function for adding a one in the appropriate spot
-        def X(i, N): return 1 if i in N else 0
-
-        # i is the final entry
-        i = len(N) - 1
-
-        # j is our iterator
-        j = i
-
-        # return nu first
-        nu = [X(i, D) for i in range(self._nu.length())]
-        yield self.element_class(self, nu)
-
-        # While we haven't reached the start of our list
-        while j >= 0:
-            # If the final number is more than 1 away from second to last
-            if D[i] > D[i-1] + 1:
-                D[i] -= 1
-                DW = [X(i, D) for i in range(self._nu.length())]
-                yield self.element_class(self, DW)
-            else:
-                # reset j just in case
-                j = i
-                # find the last index  where two numbers are more than 1 away.
-                while j > 0 and D[j] == D[j - 1] + 1:
-                    j -= 1
-                if j > 0 or (j == 0 and D[j] > 0):
-                    D[j] -= 1
-                    # reset all the entries above j
-                    for k in range(j + 1, len(N)):
-                        D[k] = N[k]
-                    DW = [X(i, D) for i in range(self._nu.length())]
-                    yield self.element_class(self, DW)
-                else:
-                    j = -1
+        RES = RecursivelyEnumeratedSet([self.element_class(self, self._nu)],
+                                       transpose_close_open)
+        return RES.breadth_first_search_iterator()
 
     def cardinality(self):
         r"""

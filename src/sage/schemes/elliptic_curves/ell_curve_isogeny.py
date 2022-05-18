@@ -2768,9 +2768,16 @@ class EllipticCurveIsogeny(EllipticCurveHom):
             self.__initialize_rational_maps()
         return self.__X_coord_rational_map
 
-    def _scaling_factor(self):
+    def scaling_factor(self):
         r"""
-        Return ``self.formal()[1]``, but faster.
+        Return the Weierstrass scaling factor associated to this
+        elliptic-curve isogeny.
+
+        The scaling factor is the constant `u` (in the base field)
+        such that `\varphi^* \omega_2 = u \omega_1`, where
+        `\varphi: E_1\to E_2` is this isogeny and `\omega_i` are
+        the standard Weierstrass differentials on `E_i` defined by
+        `\mathrm dx/(2y+a_1x+a_3)`.
 
         EXAMPLES::
 
@@ -2778,9 +2785,9 @@ class EllipticCurveIsogeny(EllipticCurveHom):
             sage: phi = E.isogeny(E.lift_x(240))
             sage: phi.degree()
             43
-            sage: phi._scaling_factor()
+            sage: phi.scaling_factor()
             1
-            sage: phi.dual()._scaling_factor()
+            sage: phi.dual().scaling_factor()
             43
 
         ALGORITHM: The "inner" isogeny is normalized by construction,
@@ -2789,9 +2796,9 @@ class EllipticCurveIsogeny(EllipticCurveHom):
         """
         sc = Integer(1)
         if self.__pre_isomorphism is not None:
-            sc *= self.__pre_isomorphism._scaling_factor()
+            sc *= self.__pre_isomorphism.scaling_factor()
         if self.__post_isomorphism is not None:
-            sc *= self.__post_isomorphism._scaling_factor()
+            sc *= self.__post_isomorphism.scaling_factor()
         return sc
 
     def kernel_polynomial(self):
@@ -3346,7 +3353,7 @@ class EllipticCurveIsogeny(EllipticCurveHom):
 
         # trac 7096
         # this should take care of the case when the isogeny is not normalized.
-        u = self._scaling_factor()
+        u = self.scaling_factor()
         isom = WeierstrassIsomorphism(E2pr, (u/F(d), 0, 0, 0))
 
         E2 = isom.codomain()
@@ -3369,7 +3376,7 @@ class EllipticCurveIsogeny(EllipticCurveHom):
         # the composition has the degree as a leading coefficient in
         # the formal expansion.
 
-        phihat_sc = phi_hat._scaling_factor()
+        phihat_sc = phi_hat.scaling_factor()
 
         sc = u * phihat_sc/F(d)
 

@@ -11,12 +11,10 @@ import setuptools
 
 from distutils import log
 from distutils.command.install import install
+from setuptools.command.develop import develop
 
-class sage_install(install):
 
-    def run(self):
-        install.run(self)
-        self.install_kernel_spec()
+class install_kernel_spec_mixin:
 
     def install_kernel_spec(self):
         """
@@ -32,6 +30,21 @@ class sage_install(install):
         # setup() to install kernels and nbextensions. So we should use
         # the install_data directory for installing our Jupyter files.
         SageKernelSpec.update(prefix=self.install_data)
+
+
+class sage_install(install, install_kernel_spec_mixin):
+
+    def run(self):
+        install.run(self)
+        self.install_kernel_spec()
+
+
+class sage_develop(develop, install_kernel_spec_mixin):
+
+    def run(self):
+        develop.run(self)
+        if not self.uninstall:
+            self.install_kernel_spec()
 
 
 class sage_clean(install):

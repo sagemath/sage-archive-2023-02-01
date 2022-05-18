@@ -394,8 +394,7 @@ class EllipticCurveHom(Morphism):
             sage: phi.is_normalized()
             True
         """
-        phi_formal = self.formal(prec=5)
-        return phi_formal[1] == 1
+        return self._scaling_factor() == 1
 
 
     def is_separable(self):

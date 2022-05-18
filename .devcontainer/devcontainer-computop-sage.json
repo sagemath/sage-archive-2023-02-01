@@ -9,7 +9,10 @@
     // Install build tools, get rid of sourcing /sage/activate in non-login shells.
     "postCreateCommand": ".devcontainer/post_create.sh --sudo && sed -i.bak '/sage.*activate/d' ~/.bashrc",
     // Run commands after the container is started.
-    "postStartCommand": "./bootstrap && ./configure --prefix=/sage/local --with-sage-venv && make build V=0",
+    // Do not run configure within a sage-env (see #29485).
+    // The pari package is broken in the computop/sage 9.5 image, need to reinstall.
+    // Also libnauty is broken.
+    "postStartCommand": "./bootstrap && (export PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin && unset CFLAGS LDFLAGS CXXFLAGS CPATH LIBRARY_PATH && ./configure --prefix=/sage/local --with-sage-venv) && make pari-clean nauty-clean build V=0",
     "extensions": [
         "ms-python.python"
     ]

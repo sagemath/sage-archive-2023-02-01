@@ -37,7 +37,7 @@ AUTHORS:
 
 - Miguel Angel Marco Buzunariz
 - Amit Jamadagni
-- Sebastian Oehms (October 2020, add :meth:`get_knotinfo` and meth:`is_isotopic`)
+- Sebastian Oehms (October 2020, add :meth:`get_knotinfo` and :meth:`is_isotopic`)
 """
 
 # ****************************************************************************

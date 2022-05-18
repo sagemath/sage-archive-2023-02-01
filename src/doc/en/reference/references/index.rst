@@ -4005,6 +4005,11 @@ REFERENCES:
                and of planar binary trees.
                :arxiv:`math/0102066v1`.
 
+.. [LR2004] Dingjun Lou and Dongning Rao.
+            *Characterizing factor critical graphs and an algorithm*,
+            The Australasian Journal of Combinatorics, 30: 51–56, 2004.
+            http://ajc.maths.uq.edu.au/pdf/30/ajc_v30_p051.pdf
+
 .. [LRS2017] Julien Leroy, Michel Rigo, Manon Stipulanti, *Counting the
              number of non-zero coefficients in rows of generalized Pascal
              triangles*, Discrete Math. 340 (2017), no. 5, 862--881.

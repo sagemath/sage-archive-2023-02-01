@@ -1,0 +1,12 @@
+// For format details, see https://aka.ms/devcontainer.json.
+{
+    "name": "archlinux:latest downstream Sage",
+    "image": "archlinux:latest",
+    // Run commands after the container is created:
+    "postCreateCommand": ".devcontainer/post_create.sh && pacman -Sy --noconfirm sagemath sagemath-doc",
+    // Run commands after the container is started.
+    "postStartCommand": "./bootstrap && ln -sf /usr venv",
+    "extensions": [
+        "ms-python.python"
+    ]
+}

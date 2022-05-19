@@ -2834,7 +2834,7 @@ cdef class Matrix(Matrix1):
             sage: a = matrix([[1,2],[3,4]])
             sage: a._test_minpoly()
         """
-        if self.nrows() == self.ncols():
+        if self.nrows() == self.ncols() and self.base_ring().is_exact():
             tester = self._tester(**options)
             # At least check that the minimal polynomial kills the matrix
             tester.assertTrue(self.minpoly().subs(x=self).is_zero())

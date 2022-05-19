@@ -2825,6 +2825,20 @@ cdef class Matrix(Matrix1):
         self.cache('minpoly', mp)
         return mp
 
+    def _test_minpoly(self, **options):
+        """
+        Check that :meth:`minpoly` works.
+
+        EXAMPLES::
+
+            sage: a = matrix([[1,2],[3,4]])
+            sage: a._test_minpoly()
+        """
+        if self.nrows() == self.ncols():
+            tester = self._tester(**options)
+            # At least check that the minimal polynomial kills the matrix
+            tester.assertTrue(self.minpoly().subs(x=self).is_zero())
+
     def charpoly(self, var = 'x', algorithm = None):
         r"""
         Returns the characteristic polynomial of self, as a polynomial over

@@ -2794,20 +2794,28 @@ cdef class Matrix(Matrix1):
 
             sage: factor(A.minpoly('y'))
             (y + 1) * (y + 2)^2
-
         """
         f = self.fetch('minpoly')
         if not f is None:
             return f.change_variable_name(var)
         f = self.charpoly(var=var, **kwds)
-        if f.is_squarefree():  # is_squarefree for polys much faster than factor.
-            # Then f must be the minpoly
-            self.cache('minpoly', f)
-            return f
+        try:
+            no_sq = f.is_squarefree()
+            # is_squarefree for polys much faster than factor.
+        except (TypeError, NotImplementedError):
+            pass
+        else:
+            if no_sq:
+                # Then f must be the minpoly
+                self.cache('minpoly', f)
+                return f
 
         # Now we have to work harder.  We find the power of each
         # irreducible factor that divides the minpoly.
-        mp = f.radical()
+        try:
+            mp = f.radical()
+        except (TypeError, NotImplementedError):
+            raise NotImplementedError("minimal polynomial not implemented")
         for h, e in f.factor():
             if e > 1:
                 # Find the power of B so that the dimension

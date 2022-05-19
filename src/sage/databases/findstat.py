@@ -2028,6 +2028,14 @@ class FindStatCombinatorialStatistic(SageObject):
              2: q + 1,
              3: q^3 + q^2 + q + 1,
              4: q^6 + q^5 + 2*q^4 + 3*q^3 + 2*q^2 + q + 1}
+            sage: st.generating_functions(max_values=1252)                      # optional -- internet
+            {1: 1,
+             2: q + 1,
+             3: q^3 + q^2 + q + 1,
+             4: q^6 + q^5 + 2*q^4 + 3*q^3 + 2*q^2 + q + 1,
+             5: q^10 + q^9 + 2*q^8 + 4*q^7 + 6*q^6 + 6*q^5 + 6*q^4 + 4*q^3 + 2*q^2 + q + 1,
+             6: q^15 + q^14 + 2*q^13 + 5*q^12 + 9*q^11 + 15*q^10 + 21*q^9 + 24*q^8 + 24*q^7 + 21*q^6 + 15*q^5 + 9*q^4 + 5*q^3 + 2*q^2 + q + 1,
+             7: q^21 + q^20 + 2*q^19 + 5*q^18 + 10*q^17 + 21*q^16 + 41*q^15 + 65*q^14 + 97*q^13 + 131*q^12 + 148*q^11 + 148*q^10 + 131*q^9 + 97*q^8 + 65*q^7 + 41*q^6 + 21*q^5 + 10*q^4 + 5*q^3 + 2*q^2 + q + 1}
         """
         d = self._generating_functions_dict(max_values=max_values)
         return _generating_functions_from_dict(d, style)

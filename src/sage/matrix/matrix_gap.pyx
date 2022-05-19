@@ -416,6 +416,12 @@ cdef class Matrix_gap(Matrix_dense):
         """
         return int(self._libgap.RankMat())
 
+    def minpoly(self, var='x', **kwds):
+        po = self._libgap.MinimalPolynomial()
+        return po.sage().change_variable_name(var)
+
+    minimal_polynomial = minpoly
+
     def elementary_divisors(self):
         """
         Return the list of elementary divisors of this matrix.

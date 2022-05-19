@@ -3,7 +3,7 @@
     "name": "archlinux:latest downstream Sage",
     "image": "archlinux:latest",
     // Run commands after the container is created:
-    "postCreateCommand": ".devcontainer/post_create.sh && pacman -Sy --noconfirm sagemath sagemath-doc",
+    "postCreateCommand": ".devcontainer/post_create.sh && pacman -Sy --noconfirm sagemath sagemath-doc jupyter-notebook python-pip",
     // Run commands after the container is started.
     "postStartCommand": "./bootstrap && ln -sf /usr venv",
     "extensions": [

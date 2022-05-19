@@ -775,7 +775,7 @@ def _distribution_from_data(data, domain, max_values, generating_functions=False
           [1, 1, 2, 2, 3, 3])]
     """
     lvl_dict = {} # lvl: elts, vals
-    total = min(max_values, FINDSTAT_MAX_VALUES)
+    total = max_values
     iterator = iter(data)
     levels_with_sizes = domain.levels_with_sizes()
     while total > 0:

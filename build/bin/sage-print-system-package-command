@@ -48,10 +48,17 @@ done
 command=$1
 shift
 if [ -z "$system" -o -z "$command" ]; then
-    echo >&2 "usage: $0 {debian|arch|conda|...} [--verbose] [--sudo] [--prompt] {update|install|setup-build-env|remove|...} PACKAGES..."
+    echo >&2 "usage: $0 {auto|debian|arch|conda|...} [--verbose] [--sudo] [--prompt] {update|install|setup-build-env|remove|...} PACKAGES..."
     exit 1
 fi
 system_packages="$*"
+if [ "$system" = auto ]; then
+    system=$(sage-guess-package-system 2>/dev/null)
+    if [ "$system" = unknown ]; then
+        echo >&2 "unknown package system"
+        exit 1
+    fi
+fi
 options=
 env=
 shopt -s extglob

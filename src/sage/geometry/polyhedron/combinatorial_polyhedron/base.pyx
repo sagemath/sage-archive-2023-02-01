@@ -922,9 +922,9 @@ cdef class CombinatorialPolyhedron(SageObject):
                 # The Polyhedron has no vertex.
                 return ()
         if names and self.Vrep():
-            return tuple(self.Vrep()[i]  for i in range(self.n_Vrepresentation()) if not i in self.far_face_tuple())
+            return tuple(self.Vrep()[i] for i in range(self.n_Vrepresentation()) if i not in self.far_face_tuple())
         else:
-            return tuple(smallInteger(i) for i in range(self.n_Vrepresentation()) if not i in self.far_face_tuple())
+            return tuple(smallInteger(i) for i in range(self.n_Vrepresentation()) if i not in self.far_face_tuple())
 
     def n_facets(self):
         r"""
@@ -2162,7 +2162,8 @@ cdef class CombinatorialPolyhedron(SageObject):
             sage: C.is_simple()
             False
         """
-        if not self.is_bounded(): return False
+        if not self.is_bounded():
+            return False
 
         cdef ListOfFaces vertices = self._bitrep_Vrep
         cdef size_t n_vertices = vertices.n_faces()
@@ -2247,7 +2248,7 @@ cdef class CombinatorialPolyhedron(SageObject):
 
     @cached_method
     def is_lawrence_polytope(self):
-        """
+        r"""
         Return ``True`` if ``self`` is a Lawrence polytope.
 
         A polytope is called a Lawrence polytope if it has a centrally

@@ -860,22 +860,17 @@ class Polyhedron_QQ(Polyhedron_base):
 
         The next example shows that fixed_subpolytope works for rational polytopes::
 
-           sage: P = Polyhedron(vertices = [[0,0],[3/2,0],[3/2,3/2],[0,3/2]], backend ='normaliz') # optional - pynormaliz
-           sage: P.vertices()                                                   # optional - pynormaliz
-           (A vertex at (0, 0),
-            A vertex at (0, 3/2),
-            A vertex at (3/2, 0),
-            A vertex at (3/2, 3/2))
-           sage: G = P.restricted_automorphism_group(output = 'permutation');G  # optional - pynormaliz
-           Permutation Group with generators [(1,2), (0,1)(2,3), (0,3)]
-           sage: len(G)                                                         # optional - pynormaliz
-           8
-           sage: G[2]                                                           # optional - pynormaliz
-           (0,1)(2,3)
-           sage: fixed_set = P.fixed_subpolytope(G[2]); fixed_set               # optional - pynormaliz
-           A 1-dimensional polyhedron in QQ^2 defined as the convex hull of 2 vertices
-           sage: fixed_set.vertices()                                           # optional - pynormaliz
-           (A vertex at (0, 3/4), A vertex at (3/2, 3/4))
+           sage: P = Polyhedron(vertices=[[0],[1/2]], backend='normaliz')      # optional - pynormaliz
+           sage: P.vertices()                                                  # optional - pynormaliz
+           (A vertex at (0), A vertex at (1/2))
+           sage: G = P.restricted_automorphism_group(output='permutation');G   # optional - pynormaliz
+           Permutation Group with generators [(0,1)]
+           sage: len(G)                                                        # optional - pynormaliz
+           2
+           sage: fixed_set = P.fixed_subpolytope(G.gens()[0]); fixed_set       # optional - pynormaliz
+           A 0-dimensional polyhedron in QQ^1 defined as the convex hull of 1 vertex
+           sage: fixed_set.vertices_list()                                     # optional - pynormaliz
+           [[1/4]]
         """
         if self.is_empty():
             raise NotImplementedError('empty polyhedra are not supported')

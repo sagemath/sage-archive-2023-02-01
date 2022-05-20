@@ -1148,7 +1148,7 @@ are available:
 Developing with our pre-built Docker images as devcontainers in VS Code
 =======================================================================
 
-<a href="https://code.visualstudio.com/">VS Code</a> is very
+`VS Code <https://code.visualstudio.com/>` is very
 convenient for working with Docker containers thanks to the `Visual
 Studio Code Remote - Containers
 <https://code.visualstudio.com/docs/remote/containers>`_ extension.

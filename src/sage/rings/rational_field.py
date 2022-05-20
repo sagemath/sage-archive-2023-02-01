@@ -285,7 +285,7 @@ class RationalField(Singleton, number_field_base.NumberField):
            sage: loads(dumps(QQ)) is QQ
            True
         """
-        return RationalField, tuple([])
+        return RationalField, tuple()
 
     def __len__(self):
         """

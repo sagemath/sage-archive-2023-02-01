@@ -1778,6 +1778,9 @@ REFERENCES:
             Proceedings: F.Hess, S.Pauli and M.Pohst (eds.), ANTS VII, Lecture
             Notes in Computer Science 4076 (2006), pages 275-286.
 
+.. [CS2018] Craig Costello and Benjamin Smith: Montgomery curves and
+            their arithmetic. J. Cryptogr. Eng. 8 (2018), 227-240.
+
 .. [CST2010] Tullio Ceccherini-Silberstein, Fabio Scarabotti,
              Filippo Tolli.
              *Representation Theory of the Symmetric Groups: The
@@ -4347,6 +4350,9 @@ REFERENCES:
 
 .. [Mon2010] \T. Monteil, The asymptotic language of smooth curves, talk
              at LaCIM2010.
+
+.. [Mont1987] Peter L. Montgomery: Speeding the Pollard and elliptic curve
+              methods of factorization. Math. Comp. 48 (1987), 243-264.
 
 .. [Mo2009] \D. Moody, Des. Codes Cryptogr. (2009)
             52: 381. :doi:`10.1007/s10623-009-9287-x`

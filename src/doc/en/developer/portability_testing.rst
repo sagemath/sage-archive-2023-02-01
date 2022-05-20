@@ -1154,14 +1154,14 @@ Studio Code Remote - Containers
 <https://code.visualstudio.com/docs/remote/containers>`_ extension.
 
 Sage provides sample ``devcontainer.json`` configuration files
-`$SAGE_ROOT/.devcontainer/devcontainer-*.json
+`$SAGE_ROOT/.devcontainer/*/devcontainer.json
 <https://github.com/sagemath/sage/tree/develop/.devcontainer/>`_
 for this purpose.
 
 To get started, copy (or symlink) the sample file
-`devcontainer-ubuntu-jammy-standard.json
-<https://github.com/sagemath/sage/tree/develop/.devcontainer/devcontainer-ubuntu-jammy-standard.json>`_
-to ``devcontainer.json`` in the same directory. It uses
+`.devcontainer/ubuntu-jammy-standard/devcontainer.json
+<https://github.com/sagemath/sage/tree/develop/.devcontainer/ubuntu-jammy-standard/devcontainer.json>`_
+to ``devcontainer.json`` in the directory ``.devcontainer``. It uses
 ``ubuntu-jammy-standard`` and the most recent development version Sage
 (``dev`` tag).  You can edit a copy of the configuration file to
 change to a different platform or another version.

@@ -6,4 +6,4 @@
 export PATH=$(pwd)/build/bin:$PATH
 SYSTEM=$(sage-guess-package-system)
 eval $(sage-print-system-package-command $SYSTEM "$@" update)
-eval $(sage-print-system-package-command $SYSTEM --yes "$@" install $(sage-get-system-packages $SYSTEM _prereq _develop $(head -n 1 build/pkgs/_develop/dependencies)))
+eval $(sage-print-system-package-command $SYSTEM --yes "$@" --spkg install _prereq _develop $(head -n 1 build/pkgs/_develop/dependencies) $EXTRA_SAGE_PACKAGES)

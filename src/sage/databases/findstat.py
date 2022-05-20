@@ -2488,6 +2488,17 @@ class FindStatStatistics(UniqueRepresentation, Parent):
         for st in self._identifiers:
             yield FindStatStatistic(st)
 
+    def _an_element_(self):
+        """
+        Return a FindStat statistic.
+
+        EXAMPLES::
+
+            sage: findstat(domain="Permutations").an_element()                  # optional -- internet
+            St000001: The number of reduced words for a permutation.
+        """
+        return next(iter(self))
+
     Element = FindStatStatistic
 
 
@@ -3419,6 +3430,17 @@ class FindStatMaps(UniqueRepresentation, Parent):
 
         for mp in self._identifiers:
             yield FindStatMap(mp)
+
+    def _an_element_(self):
+        """
+        Return a FindStat map.
+
+        EXAMPLES::
+
+            sage: findmap(domain="Dyck paths", codomain="Posets").an_element()  # optional -- internet
+            Mp00232: parallelogram poset
+        """
+        return next(iter(self))
 
     Element = FindStatMap
 

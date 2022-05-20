@@ -5,7 +5,7 @@
     // Run commands after the container is created:
     "postCreateCommand": ".devcontainer/post_create.sh && mamba install --yes sage",
     // Run commands after the container is started.
-    "postStartCommand": "./bootstrap && ln -sf $CONDA_PREFIX venv",
+    "postStartCommand": "make configure && ln -sf $CONDA_PREFIX venv",
     "extensions": [
         "ms-python.python"
     ]

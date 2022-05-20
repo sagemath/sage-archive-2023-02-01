@@ -11,7 +11,7 @@
     "postCreateCommand": ".devcontainer/post_create.sh --sudo"
     // Run commands after the container is started.
     // Do not run configure within a sage-env (see #29485).
-    "postStartCommand": "./bootstrap && (export PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin && unset CFLAGS LDFLAGS CXXFLAGS CPATH LIBRARY_PATH && ./configure --prefix=/home/sage/sage/local --with-sage-venv) && make build V=0",
+    "postStartCommand": "make configure && (export PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin && unset CFLAGS LDFLAGS CXXFLAGS CPATH LIBRARY_PATH && ./configure --prefix=/home/sage/sage/local --with-sage-venv) && make build V=0",
     "extensions": [
         "ms-python.python"
     ]

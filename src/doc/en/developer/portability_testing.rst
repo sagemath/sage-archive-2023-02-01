@@ -1174,6 +1174,8 @@ source, reusing the installation (:envvar:`SAGE_LOCAL`,
 
 After editing the configuration file (or changing the symlink), run
 "Remote-Containers: Rebuild Container" from the Command Palette. See
-the `devcontainer.json reference
+the `VS Code devcontainer.json reference
 <https://code.visualstudio.com/docs/remote/devcontainerjson-reference>`_
+and the `GitHub introduction to dev containers
+<https://docs.github.com/en/enterprise-cloud@latest/codespaces/setting-up-your-project-for-codespaces/introduction-to-dev-containers>`_
 for more information.

@@ -765,13 +765,11 @@ class ModularFormsRing(Parent):
 
     def gen_forms(self, maxweight=8, start_gens=[], start_weight=2):
         r"""
-        This function calculates a list of modular forms generating this ring
-        (as an algebra over the appropriate base ring). It differs from
-        :meth:`generators` only in that it returns Sage modular form objects,
-        rather than bare `q`-expansions; and if the base ring is a finite
-        field, the modular forms returned will be forms in characteristic 0
-        with integral `q`-expansions whose reductions modulo `p` generate the
-        ring of modular forms mod `p`.
+        Returns a list of modular forms generating this ring (as an algebra over
+        the appropriate base ring).
+
+        This method differs from :meth:`generators` only in that it returns
+        graded modular form objects, rather than bare `q`-expansions.
 
         INPUT:
 
@@ -796,13 +794,17 @@ class ModularFormsRing(Parent):
         EXAMPLES::
 
             sage: A = ModularFormsRing(Gamma0(11), Zmod(5)).gen_forms(); A
-            [1 + 12*q^2 + 12*q^3 + 12*q^4 + 12*q^5 + O(q^6), q - 2*q^2 - q^3 + 2*q^4 + q^5 + O(q^6), q - 9*q^4 - 10*q^5 + O(q^6)]
+            [1 + 2*q^2 + 2*q^3 + 2*q^4 + 2*q^5 + O(q^6),
+            q + 3*q^2 + 4*q^3 + 2*q^4 + q^5 + O(q^6),
+            q + q^4 + O(q^6)]
             sage: A[0].parent()
-            Modular Forms space of dimension 2 for Congruence Subgroup Gamma0(11) of weight 2 over Rational Field
+            Ring of Modular Forms for Congruence Subgroup Gamma0(11) over Ring of integers modulo 5
         """
         sgs = tuple( (F.weight(), None, F) for F in start_gens )
         G = self._find_generators(maxweight, sgs, start_weight)
-        return [F for k,f,F in G]
+        return [self(F.parent().change_ring(self.base_ring())(F)) for k,f,F in G]
+
+    gens = gen_forms
 
     def _find_generators(self, maxweight, start_gens, start_weight):
         r"""

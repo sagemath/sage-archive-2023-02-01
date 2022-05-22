@@ -331,6 +331,39 @@ def PermutationGroup(gens=None, *args, **kwds):
         sage: G2.GeneratorsSmallest()
         [ (3,4,5), (2,3)(4,5), (1,2)(4,5) ]
 
+    We can create a permutation group from a group action::
+
+        sage: a = lambda x: (2*x) % 7
+        sage: H = PermutationGroup(action=a, domain=range(7))
+        sage: H.orbits()
+        ((0,), (1, 2, 4), (3, 6, 5))
+        sage: H.gens()
+        ((1,2,4), (3,6,5))
+
+    Note that we provide generators for the acting group.  The
+    permutation group we construct is its homomorphic image::
+
+        sage: a = lambda g, x: vector(g*x, immutable=True)
+        sage: X = [vector(x, immutable=True) for x in GF(3)^2]
+        sage: G = SL(2,3); G.gens()
+        (
+        [1 1]  [0 1]
+        [0 1], [2 0]
+        )
+        sage: H = PermutationGroup(G.gens(), action=a, domain=X)
+        sage: H.orbits()
+        (((0, 0),), ((1, 0), (2, 0), (0, 1), (1, 1), (2, 1), (0, 2), (1, 2), (2, 2)))
+        sage: H.gens()
+        (((0,1),(1,1),(2,1))((0,2),(2,2),(1,2)),
+         ((1,0),(0,2),(2,0),(0,1))((1,1),(1,2),(2,2),(2,1)))
+
+    The orbits of the conjugation action are the conjugacy classes,
+    i.e., in bijection with integer partitions::
+
+        sage: a = lambda g, x: g*x*g^-1
+        sage: [len(PermutationGroup(SymmetricGroup(n).gens(), action=a, domain=SymmetricGroup(n)).orbits()) for n in range(1, 8)]
+        [1, 2, 3, 5, 7, 11, 15]
+
     TESTS::
 
         sage: r = Permutation("(1,7,9,3)(2,4,8,6)")
@@ -350,6 +383,7 @@ def PermutationGroup(gens=None, *args, **kwds):
         ...
         DeprecationWarning: gap_group, domain, canonicalize, category will become keyword only
         See https://trac.sagemath.org/31510 for details.
+
     """
     if not is_ExpectElement(gens) and hasattr(gens, '_permgroup_'):
         return gens._permgroup_()
@@ -359,6 +393,11 @@ def PermutationGroup(gens=None, *args, **kwds):
     domain = kwds.get("domain", None)
     canonicalize = kwds.get("canonicalize", True)
     category = kwds.get("category", None)
+    action = kwds.get("action", None)
+    if action is not None:
+        if domain is None:
+            raise ValueError("you must specify the domain for an action")
+        return PermutationGroup_action(gens, action, domain, gap_group=gap_group)
     if args:
         from sage.misc.superseded import deprecation
         deprecation(31510, "gap_group, domain, canonicalize, category will become keyword only")
@@ -1299,7 +1338,7 @@ class PermutationGroup_generic(FiniteGroup):
         EXAMPLES::
 
             sage: G = PermutationGroup([[(1,2,3),(4,5)]])
-            sage: e = G.identity()
+            sage: e = G.identity()                                              # indirect doctest
             sage: e
             ()
             sage: g = G.gen(0)
@@ -5014,6 +5053,110 @@ class PermutationGroup_subgroup(PermutationGroup_generic):
 
 # Allow for subclasses to use a different subgroup class
 PermutationGroup_generic.Subgroup = PermutationGroup_subgroup
+
+class PermutationGroup_action(PermutationGroup_generic):
+    """
+    A permutation group given by a finite group action.
+
+    EXAMPLES:
+
+    A cyclic action::
+
+        sage: n = 3
+        sage: a = lambda x: SetPartition([[e % n + 1 for e in b] for b in x])
+        sage: S = SetPartitions(n)
+        sage: G = PermutationGroup(action=a, domain=S)
+        sage: G.orbits()
+        (({{1}, {2}, {3}},),
+         ({{1, 2}, {3}}, {{1}, {2, 3}}, {{1, 3}, {2}}),
+         ({{1, 2, 3}},))
+
+    The regular action of the symmetric group::
+
+        sage: a = lambda g, x: g*x*g^-1
+        sage: S = SymmetricGroup(3)
+        sage: G = PermutationGroup(S.gens(), action=a, domain=S)
+        sage: G.orbits()
+        (((),), ((1,3,2), (1,2,3)), ((2,3), (1,3), (1,2)))
+
+    The trivial action of the symmetric group::
+
+        sage: PermutationGroup(SymmetricGroup(3).gens(), action=lambda g, x: x, domain=[1])
+        Permutation Group with generators [()]
+    """
+    def __init__(self, gens, action, domain, gap_group=None, category=None, canonicalize=None):
+        """
+        Initialize ``self``.
+
+        INPUT:
+
+        - ``gens`` -- list of generators of the group or ``None`` if the action is cyclic
+
+        - ``action`` -- a group action `G \times X\to X` if ``gens``
+          is given, or a cyclic group action `X\to X` if ``gens`` is
+          ``None``
+
+        - ``domain`` -- the set the group is acting on
+
+        - ``gap_group`` -- a gap or libgap permutation group, or a string
+          defining one (default: ``None``), this is currently not supported
+
+        - ``canonicalize`` -- bool (default: ``True``); if ``True``,
+          sort generators and remove duplicates
+
+        OUTPUT:
+
+        - A finite group action given as a permutation group.
+
+        EXAMPLES::
+
+            sage: a = lambda x: (2*x) % 7
+            sage: G = PermutationGroup(action=a, domain=range(7))
+            sage: G.orbits()
+            ((0,), (1, 2, 4), (3, 6, 5))
+
+        """
+        from sage.combinat.cyclic_sieving_phenomenon import orbit_decomposition
+        from sage.sets.disjoint_set import DisjointSet
+        if gap_group is not None:
+            raise ValueError("gap_group is not supported with action")
+        if gens is None:
+            self._orbits = tuple(tuple(o) for o in orbit_decomposition(domain, action))
+            gens = [o for o in self._orbits if len(o) > 1]
+        else:
+            g_orbits = [orbit_decomposition(domain, lambda x: action(g, x))
+                        for g in gens]
+            gens = []
+            for g_orbit in g_orbits:
+                g_gens = [tuple(o) for o in g_orbit if len(o) > 1]
+                if g_gens:
+                    gens.append(g_gens)
+
+            D = DisjointSet(domain)
+            for g_orbit in g_orbits:
+                for o in g_orbit:
+                    for i in range(1, len(o)):
+                        D.union(o[0], o[i])
+            self._orbits = tuple(tuple(o) for o in D)
+
+        PermutationGroup_generic.__init__(self, gens=gens,
+                                          gap_group=gap_group, domain=domain,
+                                          category=category,
+                                          canonicalize=canonicalize)
+
+    def orbits(self):
+        """
+        Returns the orbits of the elements of the domain under the
+        default group action.
+
+        EXAMPLES::
+
+            sage: a = lambda x: (2*x) % 7
+            sage: G = PermutationGroup(action=a, domain=range(7))
+            sage: G.orbits()
+            ((0,), (1, 2, 4), (3, 6, 5))
+        """
+        return self._orbits
 
 from sage.misc.rest_index_of_methods import gen_rest_table_index
 __doc__ = __doc__.format(METHODS_OF_PermutationGroup_generic=gen_rest_table_index(PermutationGroup_generic))

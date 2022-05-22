@@ -1021,7 +1021,11 @@ def fundamental_group(f, simplified=True, projective=False):
     bm = braid_monodromy(f)
     n = bm[0].parent().strands()
     F = FreeGroup(n)
-    R = [x*b/x for x in F.gens() for b in bm]
+    @parallel
+    def relation(x,b):
+        return x*b/x
+    relations = list(relation([(x,b) for x in F.gens() for b in bm]))
+    R = [r[1] for r in relations]
     if projective:
         R.append(prod(F.gens()))
     G = F/R

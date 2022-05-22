@@ -408,9 +408,9 @@ class MPolynomialIdeal_magma_repr:
         else:
             log_parser = None
 
-        ctx = StdOutContext(magma, silent=False if prot else True, stdout=log_parser)
+        ctx = StdOutContext(magma, silent=not prot, stdout=log_parser)
         if prot:
-            magma.SetVerbose('Groebner',1)
+            magma.SetVerbose('Groebner', 1)
         with ctx:
             if deg_bound:
                 mgb = mself.GroebnerBasis(deg_bound)
@@ -1458,18 +1458,18 @@ class MPolynomialIdeal_singular_repr(
         else:
             log_parser = None
 
-        ctx = StdOutContext(singular, silent=False if prot else True, stdout=log_parser)
+        ctx = StdOutContext(singular, silent=not prot, stdout=log_parser)
 
         with ctx:
-            if algorithm=="groebner":
+            if algorithm == "groebner":
                 S = obj.groebner()
-            elif algorithm=="std":
+            elif algorithm == "std":
                 S = obj.std()
-            elif algorithm=="slimgb":
+            elif algorithm == "slimgb":
                 S = obj.slimgb()
-            elif algorithm=="stdhilb":
+            elif algorithm == "stdhilb":
                 S = obj.stdhilb()
-            elif algorithm=="stdfglm":
+            elif algorithm == "stdfglm":
                 S = obj.stdfglm()
             else:
                 raise TypeError("algorithm '%s' unknown"%algorithm)

@@ -374,7 +374,7 @@ class _mixed_key():
                 except TypeError:
                     break
             if not isinstance(det_ex, Expression):
-                    return det_ex < 0
+                return det_ex < 0
             from sage.rings.qqbar import QQbar
             try:
                 from sage.rings.qqbar import QQbar
@@ -396,7 +396,6 @@ class _mixed_key():
             raise ValueError('cannot compare {0} and {1}'.format(self.ex, other.ex))
         else:
             return num < 0
-
 
 
 cpdef mixed_sorted(expressions):
@@ -423,4 +422,3 @@ cpdef mixed_sorted(expressions):
         [1, sqrt(2), e, pi, sin(1/x), sqrt(x), x]
     """
     return sorted(expressions, key=_mixed_key)
-

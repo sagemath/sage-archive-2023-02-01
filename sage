@@ -137,9 +137,6 @@ fi
 # Run the actual Sage script
 if [ -x "$SAGE_ROOT/src/bin/sage" ]; then
     exec "$SAGE_ROOT/src/bin/sage" "$@"
-elif [ -x "$SAGE_ROOT/local/bin/sage" ]; then # if in a stripped binary
-    # Note in this case we assume that SAGE_LOCAL is the "local" subdirectory
-    exec "$SAGE_ROOT/local/bin/sage" "$@"
 else
     echo >&2 "$0: no Sage installation found in \$SAGE_ROOT=$SAGE_ROOT"
     exit 1

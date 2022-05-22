@@ -303,6 +303,9 @@ def setup_parser():
     standard.add_argument("--no-prune-empty-dirs", dest="no_prune_empty_dirs",
                           action="store_true",
                           help="do not prune empty directories in the documentation sources")
+    standard.add_argument("--use-cdns", dest="use_cdns", default=False,
+                          action="store_true",
+                          help="assume internet connection and use CDNs; in particular, use MathJax CDN")
     standard.add_argument("-N", "--no-colors", dest="color",
                           action="store_false",
                           help="do not color output; does not affect children")
@@ -471,6 +474,8 @@ def main():
         os.environ['SAGE_SKIP_PLOT_DIRECTIVE'] = 'yes'
     if args.skip_tests:
         os.environ['SAGE_SKIP_TESTS_BLOCKS'] = 'True'
+    if args.use_cdns:
+        os.environ['SAGE_USE_CDNS'] = 'yes'
 
     ABORT_ON_ERROR = not args.keep_going
 

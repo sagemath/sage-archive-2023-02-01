@@ -1074,7 +1074,7 @@ def atomic_basis_odd(n, basis, p, **kwds):
                                 okay = False
                                 break
 
-                        for ((s,t), exp) in p_mono:
+                        for ((s, t), _) in p_mono:
                             if ((len(profile[0]) > t-1 and profile[0][t-1] <= s)
                                 or (len(profile[0]) <= t-1 and trunc < Infinity)):
                                 okay = False

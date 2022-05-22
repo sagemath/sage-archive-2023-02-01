@@ -66,7 +66,7 @@ from sage.categories.enumerated_sets import EnumeratedSets
 from sage.categories.finite_enumerated_sets import FiniteEnumeratedSets
 from sage.misc.function_mangling import ArgumentFixer
 from sage.misc.lazy_list import lazy_list
-from sage.docs.instancedoc import instancedoc
+from sage.misc.instancedoc import instancedoc
 
 
 class EnumeratedSetFromIterator(Parent):

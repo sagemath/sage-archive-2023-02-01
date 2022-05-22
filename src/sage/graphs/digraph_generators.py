@@ -627,6 +627,9 @@ class DiGraphGenerators():
         .. SEEALSO::
 
             - :meth:`~sage.graphs.graph.Graph.orientations`
+            - :meth:`~sage.graphs.graph.Graph.strong_orientation`
+            - :meth:`~sage.graphs.orientations.strong_orientations_iterator`
+            - :meth:`~sage.graphs.orientations.random_orientation`
         """
         if '-u' in options or '-T' in options or '-G' in options:
             raise ValueError("directg output options [-u|-T|-G] are not allowed")

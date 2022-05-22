@@ -1190,7 +1190,7 @@ class GeneralDihedralGroup(PermutationGroup_generic):
         sage: G.order()
         18
         sage: G.gens()
-        [(4,5,6), (2,3)(5,6), (1,2,3)]
+        ((4,5,6), (2,3)(5,6), (1,2,3))
         sage: a = G.gens()[2]; b = G.gens()[0]; c = G.gens()[1]
         sage: a.order() == 3, b.order() == 3, c.order() == 2
         (True, True, True)
@@ -1211,7 +1211,7 @@ class GeneralDihedralGroup(PermutationGroup_generic):
         sage: G.order()
         16
         sage: G.gens()
-        [(7,8), (5,6), (3,4), (1,2)]
+        ((7,8), (5,6), (3,4), (1,2))
         sage: G.is_abelian()
         True
         sage: H = KleinFourGroup()
@@ -1382,10 +1382,10 @@ class DihedralGroup(PermutationGroup_unique):
             sage: DihedralGroup(2)
             Dihedral group of order 4 as a permutation group
             sage: DihedralGroup(2).gens()
-            [(3,4), (1,2)]
+            ((3,4), (1,2))
 
             sage: DihedralGroup(5).gens()
-            [(1,2,3,4,5), (1,5)(2,4)]
+            ((1,2,3,4,5), (1,5)(2,4))
             sage: sorted(DihedralGroup(5))
             [(), (2,5)(3,4), (1,2)(3,5), (1,2,3,4,5), (1,3)(4,5), (1,3,5,2,4), (1,4)(2,3), (1,4,2,5,3), (1,5,4,3,2), (1,5)(2,4)]
 
@@ -1398,7 +1398,7 @@ class DihedralGroup(PermutationGroup_unique):
             sage: G
             Dihedral group of order 10 as a permutation group
             sage: G.gens()
-            [(1,2,3,4,5), (1,5)(2,4)]
+            ((1,2,3,4,5), (1,5)(2,4))
 
             sage: DihedralGroup(0)
             Traceback (most recent call last):
@@ -1641,7 +1641,7 @@ class SemidihedralGroup(PermutationGroup_unique):
             sage: len([H for H in G.subgroups() if H.is_cyclic() and H.order() == 8])
             1
             sage: G.gens()
-            [(2,4)(3,7)(6,8), (1,2,3,4,5,6,7,8)]
+            ((2,4)(3,7)(6,8), (1,2,3,4,5,6,7,8))
             sage: x = G.gens()[1]; y = G.gens()[0]
             sage: x.order() == 2^3; y.order() == 2
             True
@@ -1781,7 +1781,7 @@ class TransitiveGroup(PermutationGroup_unique):
             sage: G = TransitiveGroup(5, 2); G
             Transitive group number 2 of degree 5
             sage: G.gens()
-            [(1,2,3,4,5), (1,4)(2,3)]
+            ((1,2,3,4,5), (1,4)(2,3))
 
             sage: G.category()
             Category of finite enumerated permutation groups
@@ -2168,7 +2168,7 @@ class PrimitiveGroup(PermutationGroup_unique):
         sage: G = PrimitiveGroup(5, 2); G
         D(2*5)
         sage: G.gens()
-        [(2,4)(3,5), (1,2,3,5,4)]
+        ((2,4)(3,5), (1,2,3,5,4))
         sage: G.category()
         Category of finite enumerated permutation groups
 

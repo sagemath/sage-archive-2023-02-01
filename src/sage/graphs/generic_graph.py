@@ -6574,7 +6574,7 @@ class GenericGraph(GenericGraph_pyx):
 
         Check the validity of the algorithms for undirected graphs::
 
-            sage: g = graphs.RandomGNP(30, .4)
+            sage: g = graphs.RandomGNP(12, .7)
             sage: k = Integer(g.edge_connectivity()) // 2
             sage: trees = g.edge_disjoint_spanning_trees(k, algorithm="MILP")
             sage: all(t.is_tree() for t in trees)

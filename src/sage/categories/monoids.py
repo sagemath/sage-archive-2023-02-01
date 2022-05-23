@@ -354,6 +354,36 @@ class Monoids(CategoryWithAxiom):
                 l.append(x)
             return l
 
+        def __invert__(self):
+            r"""
+            Return the inverse of ``self``.
+
+            The default implementation is to divide ``self.one()``.
+
+            EXAMPLES::
+
+                sage: A = Matrix([[1, 0], [1, 1]])
+                sage: ~A
+                [ 1 0]
+                [-1 1]
+            """
+            return self.parent().one()._div_(self)
+
+        def inverse(self):
+            """
+            Return the inverse of ``self``.
+
+            This an alias for inversion, defined in ``__invert__``.
+
+            Element classes should implement ``__invert__`` only.
+
+            EXAMPLES::
+
+                sage: AA(sqrt(~2)).inverse()
+                1.414213562373095?
+            """
+            return self.__invert__()
+
     class Commutative(CategoryWithAxiom):
         r"""
         Category of commutative (abelian) monoids.

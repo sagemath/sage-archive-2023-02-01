@@ -2613,18 +2613,13 @@ cdef class MultiplicativeGroupElement(MonoidElement):
         """
         return self * ~right
 
-    def __invert__(self):
-        r"""
-        Return the inverse of ``self``.
-        """
-        return self._parent.one() / self
-
 
 def is_RingElement(x):
     """
     Return ``True`` if x is of type RingElement.
     """
     return isinstance(x, RingElement)
+
 
 cdef class RingElement(ModuleElement):
     cpdef _mul_(self, other):

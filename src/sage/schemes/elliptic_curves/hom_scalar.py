@@ -378,6 +378,32 @@ class EllipticCurveHom_scalar(EllipticCurveHom):
                                     self._rational_maps[0].denominator()))
         return f / g
 
+    def scaling_factor(self):
+        r"""
+        Return the Weierstrass scaling factor associated to this
+        scalar multiplication.
+
+        The scaling factor is the constant `u` (in the base field)
+        such that `\varphi^* \omega_2 = u \omega_1`, where
+        `\varphi: E_1\to E_2` is this morphism and `\omega_i` are
+        the standard Weierstrass differentials on `E_i` defined by
+        `\mathrm dx/(2y+a_1x+a_3)`.
+
+        EXAMPLES::
+
+            sage: E = EllipticCurve('11a1')
+            sage: phi = E.scalar_multiplication(5)
+            sage: u = phi.scaling_factor()
+            sage: u == phi.formal()[1]
+            True
+            sage: u == E.multiplication_by_m_isogeny(5).scaling_factor()
+            True
+
+        ALGORITHM: The scaling factor equals the scalar that is being
+        multiplied by.
+        """
+        return self._m
+
     @cached_method
     def kernel_polynomial(self):
         r"""

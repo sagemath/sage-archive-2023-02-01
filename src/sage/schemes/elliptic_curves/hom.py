@@ -289,6 +289,7 @@ class EllipticCurveHom(Morphism):
         - :meth:`EllipticCurveIsogeny.scaling_factor`
         - :meth:`sage.schemes.elliptic_curves.weierstrass_morphism.WeierstrassIsomorphism.scaling_factor`
         - :meth:`sage.schemes.elliptic_curves.hom_composite.EllipticCurveHom_composite.scaling_factor`
+        - :meth:`sage.schemes.elliptic_curves.hom_scalar.EllipticCurveHom_scalar.scaling_factor`
 
         TESTS::
 

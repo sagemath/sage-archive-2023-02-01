@@ -7,8 +7,10 @@ interface regardless of implementation details.
 
 Current implementations of elliptic-curve morphisms (child classes):
 
-- :class:`EllipticCurveIsogeny`
-- :class:`sage.schemes.elliptic_curves.weierstrass_morphism.WeierstrassIsomorphism`
+- :class:`~sage.schemes.elliptic_curves.ell_curve_isogeny.EllipticCurveIsogeny`
+- :class:`~sage.schemes.elliptic_curves.weierstrass_morphism.WeierstrassIsomorphism`
+- :class:`~sage.schemes.elliptic_curves.hom_composite.EllipticCurveHom_composite`
+- :class:`~sage.schemes.elliptic_curves.hom_scalar.EllipticCurveHom_scalar`
 
 AUTHORS:
 

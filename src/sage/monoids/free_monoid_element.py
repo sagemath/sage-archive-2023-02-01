@@ -48,7 +48,7 @@ class FreeMonoidElement(MonoidElement):
         sage: x**(-1)
         Traceback (most recent call last):
         ...
-        NotimplementedError
+        NotImplementedError
     """
     def __init__(self, F, x, check=True):
         """
@@ -274,7 +274,7 @@ class FreeMonoidElement(MonoidElement):
             sage: x**(-1)
             Traceback (most recent call last):
             ...
-            NotimplementedError
+            NotImplementedError
         """
         raise NotImplementedError
 

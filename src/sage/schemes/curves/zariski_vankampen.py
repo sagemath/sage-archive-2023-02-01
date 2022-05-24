@@ -528,8 +528,8 @@ def roots_interval_cached(f, x0):
 
 def populate_roots_interval_cache(inputs):
     r"""
-    Call func:`roots_interval` to the inputs that have not been computed previously,
-    and cache them.
+    Call :func:`roots_interval` to the inputs that have not been
+    computed previously, and cache them.
 
     INPUT:
 

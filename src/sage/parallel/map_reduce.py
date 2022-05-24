@@ -1144,13 +1144,13 @@ class RESetMapReduce():
             sage: S = RESetMapReduce(roots=[1, 2], children=children)
             sage: S.setup_workers(2)
             sage: S.start_workers(); sleep(float(0.4))
-            Starting: 1
-            Starting: 2
+            Starting: ...
+            Starting: ...
             sage: [w.is_alive() for w in S._workers]
             [True, True]
             sage: sleep(float(1.5))
-            Finished: 1
-            Finished: 2
+            Finished: ...
+            Finished: ...
             sage: [not w.is_alive() for w in S._workers]
             [True, True]
 

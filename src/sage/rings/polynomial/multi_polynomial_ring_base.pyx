@@ -1238,7 +1238,7 @@ cdef class MPolynomialRing_base(sage.rings.ring.CommutativeRing):
             sage: R._macaulay_resultant_is_reduced([1,3,2],[2,3,3]) # the monomial x*y^3*z^2 is not reduced w.r.t. degrees vector [2,3,3]
             True
         """
-        diff = [mon_degs[i] - dlist[i] for i in xrange(0,len(dlist))]
+        diff = [mon_degs[i] - dlist[i] for i in range(len(dlist))]
         return len([1 for d in diff if d >= 0]) == 1
 
     def _macaulay_resultant_universal_polynomials(self, dlist):
@@ -1276,11 +1276,11 @@ cdef class MPolynomialRing_base(sage.rings.ring.CommutativeRing):
         for d in dlist:
             xlist = R.gens()
             degs = IntegerVectors(d, n+1)
-            mon_d = [prod([xlist[i]**(deg[i]) for i in xrange(0,len(deg))])
+            mon_d = [prod([xlist[i]**(deg[i]) for i in range(len(deg))])
                      for deg in degs]
 
-            f = sum([mon_d[i]*ulist[i] for i in xrange(0,len(mon_d))])
-            flist.append (f)
+            f = sum([mon_d[i]*ulist[i] for i in range(len(mon_d))])
+            flist.append(f)
             ulist = ulist[len(mon_d):]
         return flist, R
 

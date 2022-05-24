@@ -2351,7 +2351,7 @@ cdef class Matroid(SageObject):
             False
         """
         E = list(self.groundset())
-        for i in xrange(0, len(E) + 1):
+        for i in range(len(E) + 1):
             for X in combinations(E, i):
                 XX = frozenset(X)
                 rX = self._rank(XX)

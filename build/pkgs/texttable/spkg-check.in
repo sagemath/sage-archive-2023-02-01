@@ -1,2 +1,2 @@
 cd src
-pytest
+pytest tests.py

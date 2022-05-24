@@ -112,9 +112,9 @@ def load(*filename, compress=True, verbose=True, **kwargs):
 
     EXAMPLES::
 
-        sage: u = 'http://www.sagemath.org/files/test.sobj'
+        sage: u = 'https://www.sagemath.org/files/test.sobj'
         sage: s = load(u)                                                  # optional - internet
-        Attempting to load remote file: http://www.sagemath.org/files/test.sobj
+        Attempting to load remote file: https://www.sagemath.org/files/test.sobj
         Loading started
         Loading ended
         sage: s                                                            # optional - internet
@@ -380,7 +380,7 @@ def register_unpickle_override(module, name, callable, call_name=None):
             :meth:`__setstate__`, the state object needn't be a dictionary and these methods
             can do what they want.
 
-    .. _python pickling documentation: http://docs.python.org/library/pickle.html#pickle-protocol
+    .. _python pickling documentation: https://docs.python.org/library/pickle.html#pickle-protocol
 
     By implementing a :meth:`__setstate__` method for a class it should be
     possible to fix any unpickling problems for the class. As an example of what
@@ -531,19 +531,19 @@ def unpickle_global(module, name):
 
         sage: from sage.misc.persist import unpickle_override, register_unpickle_override
         sage: unpickle_global('sage.rings.integer', 'Integer')
-        <type 'sage.rings.integer.Integer'>
+        <class 'sage.rings.integer.Integer'>
 
     Now we horribly break the pickling system::
 
         sage: register_unpickle_override('sage.rings.integer', 'Integer', Rational, call_name=('sage.rings.rational', 'Rational'))
         sage: unpickle_global('sage.rings.integer', 'Integer')
-        <type 'sage.rings.rational.Rational'>
+        <class 'sage.rings.rational.Rational'>
 
     and we reach into the internals and put it back::
 
         sage: del unpickle_override[('sage.rings.integer', 'Integer')]
         sage: unpickle_global('sage.rings.integer', 'Integer')
-        <type 'sage.rings.integer.Integer'>
+        <class 'sage.rings.integer.Integer'>
 
     A meaningful error message with resolution instructions is displayed for
     old pickles that accidentally got broken because a class or entire module
@@ -562,6 +562,14 @@ def unpickle_global(module, name):
         ImportError: cannot import some_old_class from sage.some_old_module, call
         register_unpickle_override('sage.some_old_module', 'some_old_class', ...)
         to fix this
+
+    TESTS:
+
+    Test that :func:`register_unpickle_override` calls in lazily imported modules
+    are respected::
+
+        sage: unpickle_global('sage.combinat.root_system.type_A', 'ambient_space')
+        <class 'sage.combinat.root_system.type_A.AmbientSpace'>
     """
     unpickler = unpickle_override.get((module, name))
     if unpickler is not None:
@@ -582,6 +590,12 @@ def unpickle_global(module, name):
         __import__(module)
     except ImportError:
         error()
+
+    # Importing the module may have run register_unpickle_override.
+    unpickler = unpickle_override.get((module, name))
+    if unpickler is not None:
+        return unpickler[0]
+
     mod = sys.modules[module]
     return getattr(mod, name)
 
@@ -758,7 +772,7 @@ class SagePickler(_BasePickler):
 
     The following line demonstrates what would happen without :trac:`28444`::
 
-        sage: loads(b'x\x9ck`J\x8e\x8f\xcfM\xcc\xcc\x8b\x8f\xe7r\xcb\xcf\xe7*d\x0cej`/dj\r*d\xd6\x03\x00\x89\xc5\x08{', encoding='ASCII') #py3
+        sage: loads(b'x\x9ck`J\x8e\x8f\xcfM\xcc\xcc\x8b\x8f\xe7r\xcb\xcf\xe7*d\x0cej`/dj\r*d\xd6\x03\x00\x89\xc5\x08{', encoding='ASCII')
         Traceback (most recent call last):
         ...
         UnicodeDecodeError: 'ascii' codec can...t decode byte 0x80 in position 0: ordinal not in range(128)
@@ -948,11 +962,10 @@ def loads(s, compress=True, **kwargs):
 
     The following line demonstrates what would happen without :trac:`28444`::
 
-        sage: loads(b'x\x9ck`J\x8e\x8f\xcfM\xcc\xcc\x8b\x8f\xe7r\xcb\xcf\xe7*d\x0cej`/dj\r*d\xd6\x03\x00\x89\xc5\x08{', encoding='ASCII') #py3
+        sage: loads(b'x\x9ck`J\x8e\x8f\xcfM\xcc\xcc\x8b\x8f\xe7r\xcb\xcf\xe7*d\x0cej`/dj\r*d\xd6\x03\x00\x89\xc5\x08{', encoding='ASCII')
         Traceback (most recent call last):
         ...
         UnicodeDecodeError: 'ascii' codec can...t decode byte 0x80 in position 0: ordinal not in range(128)
-
     """
     if not isinstance(s, bytes):
         raise TypeError("s must be bytes")
@@ -1010,21 +1023,25 @@ def picklejar(obj, dir=None):
     Test an unaccessible directory::
 
         sage: import os, sys
+        sage: s = os.stat(dir)
         sage: os.chmod(dir, 0o000)
         sage: try:
         ....:     uid = os.getuid()
         ....: except AttributeError:
         ....:     uid = -1
-        sage: if uid==0:
-        ....:     raise OSError('You must not run the doctests as root, geez!')
+        sage: if uid == 0:
+        ....:     print("OK (cannot test this as root)")
         ....: elif sys.platform == 'cygwin':
-        ....:     raise OSError("This won't always behave on Cygwin depending on permission handling configuration.")
+        ....:     print("OK (cannot test this on Cygwin)")
         ....: else:
-        ....:     sage.misc.persist.picklejar(1, dir + '/noaccess')
-        Traceback (most recent call last):
-        ...
-        OSError: ...
-        sage: os.chmod(dir, 0o755)
+        ....:     try:
+        ....:         sage.misc.persist.picklejar(1, dir + '/noaccess')
+        ....:     except PermissionError:
+        ....:         print("OK (correctly raised PermissionError)")
+        ....:     else:
+        ....:         print("FAIL (did not raise an exception")
+        OK...
+        sage: os.chmod(dir, s.st_mode)
     """
     if dir is None:
         from sage.env import DOT_SAGE
@@ -1093,7 +1110,7 @@ def unpickle_all(dir, debug=False, run_test_suite=False):
     # This could use instead Python's tarfile module
     if dir.endswith('.tar.bz2'):
         # create a temporary directory
-        from sage.misc.all import tmp_dir
+        from sage.misc.temporary_file import tmp_dir
         T = tmp_dir()
         # extract tarball to it
         os.system('cd "%s"; bunzip2 -c "%s" | tar fx - '%(T, os.path.abspath(dir)))

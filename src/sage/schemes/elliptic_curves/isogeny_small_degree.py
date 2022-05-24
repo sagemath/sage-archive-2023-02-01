@@ -32,7 +32,8 @@ AUTHORS:
 
 from sage.rings.polynomial.polynomial_ring_constructor import PolynomialRing
 from sage.rings.polynomial.polynomial_ring import polygen
-from sage.rings.all import ZZ, QQ
+from sage.rings.integer_ring import ZZ
+from sage.rings.rational_field import QQ
 from sage.schemes.elliptic_curves.all import EllipticCurve
 
 from sage.misc.cachefunc import cached_function
@@ -187,7 +188,7 @@ def Psi(l, use_stored=True):
         sage: assert Psi(7, use_stored=True) == Psi(7, use_stored=False)
         sage: assert Psi(13, use_stored=True) == Psi(13, use_stored=False) # not tested (very long time)
     """
-    if not l in [2, 3, 5, 7, 13]:
+    if l not in [2, 3, 5, 7, 13]:
         raise ValueError("Genus zero primes are 2, 3, 5, 7 or 13.")
 
     R = PolynomialRing(ZZ, 2, 'Xt')
@@ -218,7 +219,7 @@ def Psi(l, use_stored=True):
     # Here the generic kernel polynomials are actually calculated:
     j = Fricke_module(l)
     k = j - 1728
-    from sage.misc.all import prod
+    from sage.misc.misc_c import prod
     f = prod([p for p, e in j.factor() if e == 3]
              + [p for p, e in k.factor() if e == 2])
     A4 = -3*t**2*j*k // f**2
@@ -275,7 +276,7 @@ def isogenies_prime_degree_genus_0(E, l=None, minimal_models=True):
         Isogeny of degree 5 from Elliptic Curve defined by y^2 + x*y + y = x^3 - x - 2 over Rational Field to Elliptic Curve defined by y^2 + x*y + y = x^3 - 76*x + 298 over Rational Field]
 
     """
-    if not l in [2, 3, 5, 7, 13, None]:
+    if l not in [2, 3, 5, 7, 13, None]:
         raise ValueError("%s is not a genus 0 prime."%l)
     F = E.base_ring()
     j = E.j_invariant()
@@ -312,7 +313,7 @@ def isogenies_prime_degree_genus_0(E, l=None, minimal_models=True):
         T = c4/(3*c6)
         jt = Fricke_module(l)
         kt = jt-1728
-        from sage.misc.all import prod
+        from sage.misc.misc_c import prod
         psi = Psi(l)
         X = t
         f = R(prod( [p for p,e in jt.factor() if e==3]
@@ -324,7 +325,7 @@ def isogenies_prime_degree_genus_0(E, l=None, minimal_models=True):
         from sage.rings.number_field.number_field_base import is_NumberField
         model = "minimal" if minimal_models and is_NumberField(F) else None
         isogs = [E1.isogeny(kernel=ker, model=model) for ker in kernels]
-        [isog.set_pre_isomorphism(w) for isog in isogs]
+        isogs = [isog * w for isog in isogs]
         return isogs
 
     if l is None:
@@ -537,7 +538,7 @@ def _sporadic_Q_data(j):
         ....:     assert g % f == 0
     """
     from sage.rings.all import RealField
-    from sage.misc.all import prod
+    from sage.misc.misc_c import prod
     ell = sporadic_j[j]
     E = EllipticCurve(j=j).short_weierstrass_model()
     a4a6 = list(E.ainvs())[3:]
@@ -660,7 +661,7 @@ def isogenies_sporadic_Q(E, l=None, minimal_models=True):
     from sage.rings.number_field.number_field_base import is_NumberField
     model = "minimal" if minimal_models and is_NumberField(F) else None
     isog = Ew.isogeny(kernel=ker, degree=l, model=model, check=False)
-    isog.set_pre_isomorphism(E_to_Ew)
+    isog = isog * E_to_Ew
     return [isog]
 
 
@@ -822,7 +823,7 @@ def isogenies_5_0(E, minimal_models=True):
     model = "minimal" if minimal_models and is_NumberField(F) else None
     isogs = [Ew.isogeny(x**2+beta*x+gamma, model=model) for beta,gamma in zip(betas,gammas)]
     iso = E.isomorphism_to(Ew)
-    [isog.set_pre_isomorphism(iso) for isog in isogs]
+    isogs = [isog * iso for isog in isogs]
     return isogs
 
 def isogenies_5_1728(E, minimal_models=True):
@@ -921,13 +922,13 @@ def isogenies_5_1728(E, minimal_models=True):
     if square1:
         i = F(-1).sqrt()
         isogs = [Ew.isogeny(f) for f in [x**2+a/(1+2*i), x**2+a/(1-2*i)]]
-        [isog.set_post_isomorphism(isog.codomain().isomorphism_to(E)) for isog in isogs]
+        isogs = [isog.codomain().isomorphism_to(E) * isog for isog in isogs]
     # Type 2: if 5 is a square we have up to 4 (non-endomorphism) isogenies
     if square5:
         betas = sorted((x**4+20*a*x**2-80*a**2).roots(multiplicities=False))
         gammas = [(beta**2-2*a)/6 for beta in betas]
         isogs += [Ew.isogeny(x**2+beta*x+gamma, model=model) for beta,gamma in zip(betas,gammas)]
-    [isog.set_pre_isomorphism(iso) for isog in isogs]
+    isogs = [isog * iso for isog in isogs]
     return isogs
 
 def isogenies_7_0(E, minimal_models=True):
@@ -1026,8 +1027,7 @@ def isogenies_7_0(E, minimal_models=True):
     kers = [7*x-(2+6*t) for t in ts]
     kers = [k(x**3/a).monic() for k in kers]
     isogs = [Ew.isogeny(k,model=model) for k in kers]
-    if isogs:
-        [endo.set_post_isomorphism(endo.codomain().isomorphism_to(E)) for endo in isogs]
+    isogs = [endo.codomain().isomorphism_to(E) * endo for endo in isogs]
 
     # we may have up to 6 other isogenies:
     ts = (x**2-21).roots(multiplicities=False)
@@ -1038,7 +1038,7 @@ def isogenies_7_0(E, minimal_models=True):
         kers = [ker(x/s).monic() for s in ss]
         isogs += [Ew.isogeny(k, model=model) for k in kers]
 
-    [isog.set_pre_isomorphism(iso) for isog in isogs]
+    isogs = [isog * iso for isog in isogs]
     return isogs
 
 def isogenies_7_1728(E, minimal_models=True):
@@ -1127,7 +1127,7 @@ def isogenies_7_1728(E, minimal_models=True):
 
         kers = [ker(x/s) for s in ss]
         isogs += [Ew.isogeny(k.monic(), model=model) for k in kers]
-    [isog.set_pre_isomorphism(iso) for isog in isogs]
+    isogs = [isog * iso for isog in isogs]
     return isogs
 
 def isogenies_13_0(E, minimal_models=True):
@@ -1236,8 +1236,7 @@ def isogenies_13_0(E, minimal_models=True):
     kers = [13*x**2 + (78*t + 26)*x + 24*t + 40 for t in ts]
     kers = [k(x**3/a).monic() for k in kers]
     isogs = [Ew.isogeny(k,model=model) for k in kers]
-    if isogs:
-        [endo.set_post_isomorphism(endo.codomain().isomorphism_to(E)) for endo in isogs]
+    isogs = [endo.codomain().isomorphism_to(E) * endo for endo in isogs]
 
     # we may have up to 12 other isogenies:
     ts = sorted((x**4 + 7*x**3 + 20*x**2 + 19*x + 1).roots(multiplicities=False))
@@ -1253,7 +1252,7 @@ def isogenies_13_0(E, minimal_models=True):
         kers = [ker(x/s).monic() for s in ss]
         isogs += [Ew.isogeny(k, model=model) for k in kers]
 
-    [isog.set_pre_isomorphism(iso) for isog in isogs]
+    isogs = [isog * iso for isog in isogs]
 
     return isogs
 
@@ -1355,8 +1354,7 @@ def isogenies_13_1728(E, minimal_models=True):
     kers = [13*x**3 + (-26*i - 13)*x**2 + (-52*i - 13)*x - 2*i - 3 for i in ts]
     kers = [k(x**2/a).monic() for k in kers]
     isogs = [Ew.isogeny(k,model=model) for k in kers]
-    if isogs:
-        [endo.set_post_isomorphism(endo.codomain().isomorphism_to(E)) for endo in isogs]
+    isogs = [endo.codomain().isomorphism_to(E) * endo for endo in isogs]
 
     # we may have up to 12 other isogenies:
 
@@ -1380,7 +1378,7 @@ def isogenies_13_1728(E, minimal_models=True):
         kers = [ker(x/s).monic() for s in ss]
         isogs += [Ew.isogeny(k, model=model) for k in kers]
 
-    [isog.set_pre_isomorphism(iso) for isog in isogs]
+    isogs = [isog * iso for isog in isogs]
 
     return isogs
 
@@ -1425,7 +1423,7 @@ def _hyperelliptic_isogeny_data(l):
         ValueError: 37 must be one of [11, 17, 19, 23, 29, 31, 41, 47, 59, 71].
 
     """
-    if not l in hyperelliptic_primes:
+    if l not in hyperelliptic_primes:
         raise ValueError("%s must be one of %s."%(l,hyperelliptic_primes))
     data = {}
     Zu = PolynomialRing(ZZ,'u')
@@ -1552,8 +1550,12 @@ def Psi2(l):
         sage: from sage.schemes.elliptic_curves.isogeny_small_degree import Psi2
         sage: Psi2(11)
         x^5 - 55*x^4*u + 994*x^3*u^2 - 8774*x^2*u^3 + 41453*x*u^4 - 928945/11*u^5 + 33*x^4 + 276*x^3*u - 7794*x^2*u^2 + 4452*x*u^3 + 1319331/11*u^4 + 216*x^3*v - 4536*x^2*u*v + 31752*x*u^2*v - 842616/11*u^3*v + 162*x^3 + 38718*x^2*u - 610578*x*u^2 + 33434694/11*u^3 - 4536*x^2*v + 73872*x*u*v - 2745576/11*u^2*v - 16470*x^2 + 580068*x*u - 67821354/11*u^2 - 185976*x*v + 14143896/11*u*v + 7533*x - 20437029/11*u - 12389112/11*v + 19964151/11
-        sage: Psi2(71)  # long time (1 second)
-        -2209380711722505179506258739515288584116147237393815266468076436521/71*u^210 + ... - 14790739586438315394567393301990769678157425619440464678252277649/71
+        sage: p = Psi2(71)                        # long time
+        sage: (x,u,v) = p.variables()             # long time
+        sage: p.coefficient({x: 0, u: 210, v: 0}) # long time
+        -2209380711722505179506258739515288584116147237393815266468076436521/71
+        sage: p.coefficient({x: 0, u: 0, v: 0})   # long time
+        -14790739586438315394567393301990769678157425619440464678252277649/71
 
     TESTS::
 
@@ -1694,7 +1696,7 @@ def isogenies_prime_degree_genus_plus_0(E, l=None, minimal_models=True):
         return sum([isogenies_prime_degree_genus_plus_0(E, ell, minimal_models=minimal_models)
                     for ell in hyperelliptic_primes],[])
 
-    if not l in hyperelliptic_primes:
+    if l not in hyperelliptic_primes:
         raise ValueError("%s must be one of %s." % (l, hyperelliptic_primes))
 
     F = E.base_ring()
@@ -1784,7 +1786,7 @@ def isogenies_prime_degree_genus_plus_0_j0(E, l, minimal_models=True):
         sage: isogenies_prime_degree_genus_plus_0_j0(E,17)
         [Isogeny of degree 17 from Elliptic Curve defined by y^2 = x^3 + 1 over Finite Field in a of size 5^6 to Elliptic Curve defined by y^2 = x^3 + 2 over Finite Field in a of size 5^6, Isogeny of degree 17 from Elliptic Curve defined by y^2 = x^3 + 1 over Finite Field in a of size 5^6 to Elliptic Curve defined by y^2 = x^3 + 2 over Finite Field in a of size 5^6, Isogeny of degree 17 from Elliptic Curve defined by y^2 = x^3 + 1 over Finite Field in a of size 5^6 to Elliptic Curve defined by y^2 = x^3 + 2 over Finite Field in a of size 5^6, Isogeny of degree 17 from Elliptic Curve defined by y^2 = x^3 + 1 over Finite Field in a of size 5^6 to Elliptic Curve defined by y^2 = x^3 + 2 over Finite Field in a of size 5^6, Isogeny of degree 17 from Elliptic Curve defined by y^2 = x^3 + 1 over Finite Field in a of size 5^6 to Elliptic Curve defined by y^2 = x^3 + 2 over Finite Field in a of size 5^6, Isogeny of degree 17 from Elliptic Curve defined by y^2 = x^3 + 1 over Finite Field in a of size 5^6 to Elliptic Curve defined by y^2 = x^3 + 2 over Finite Field in a of size 5^6, Isogeny of degree 17 from Elliptic Curve defined by y^2 = x^3 + 1 over Finite Field in a of size 5^6 to Elliptic Curve defined by y^2 = x^3 + 2 over Finite Field in a of size 5^6, Isogeny of degree 17 from Elliptic Curve defined by y^2 = x^3 + 1 over Finite Field in a of size 5^6 to Elliptic Curve defined by y^2 = x^3 + 2 over Finite Field in a of size 5^6, Isogeny of degree 17 from Elliptic Curve defined by y^2 = x^3 + 1 over Finite Field in a of size 5^6 to Elliptic Curve defined by y^2 = x^3 + 2 over Finite Field in a of size 5^6, Isogeny of degree 17 from Elliptic Curve defined by y^2 = x^3 + 1 over Finite Field in a of size 5^6 to Elliptic Curve defined by y^2 = x^3 + 2 over Finite Field in a of size 5^6, Isogeny of degree 17 from Elliptic Curve defined by y^2 = x^3 + 1 over Finite Field in a of size 5^6 to Elliptic Curve defined by y^2 = x^3 + 2 over Finite Field in a of size 5^6, Isogeny of degree 17 from Elliptic Curve defined by y^2 = x^3 + 1 over Finite Field in a of size 5^6 to Elliptic Curve defined by y^2 = x^3 + 2 over Finite Field in a of size 5^6, Isogeny of degree 17 from Elliptic Curve defined by y^2 = x^3 + 1 over Finite Field in a of size 5^6 to Elliptic Curve defined by y^2 = x^3 + 2 over Finite Field in a of size 5^6, Isogeny of degree 17 from Elliptic Curve defined by y^2 = x^3 + 1 over Finite Field in a of size 5^6 to Elliptic Curve defined by y^2 = x^3 + 2 over Finite Field in a of size 5^6, Isogeny of degree 17 from Elliptic Curve defined by y^2 = x^3 + 1 over Finite Field in a of size 5^6 to Elliptic Curve defined by y^2 = x^3 + 2 over Finite Field in a of size 5^6, Isogeny of degree 17 from Elliptic Curve defined by y^2 = x^3 + 1 over Finite Field in a of size 5^6 to Elliptic Curve defined by y^2 = x^3 + 2 over Finite Field in a of size 5^6, Isogeny of degree 17 from Elliptic Curve defined by y^2 = x^3 + 1 over Finite Field in a of size 5^6 to Elliptic Curve defined by y^2 = x^3 + 2 over Finite Field in a of size 5^6, Isogeny of degree 17 from Elliptic Curve defined by y^2 = x^3 + 1 over Finite Field in a of size 5^6 to Elliptic Curve defined by y^2 = x^3 + 2 over Finite Field in a of size 5^6]
     """
-    if not l in hyperelliptic_primes:
+    if l not in hyperelliptic_primes:
         raise ValueError("%s must be one of %s."%(l,hyperelliptic_primes))
     F = E.base_field()
     if E.j_invariant() != 0:
@@ -1875,7 +1877,7 @@ def isogenies_prime_degree_genus_plus_0_j1728(E, l, minimal_models=True):
         sage: [(p,len(isogenies_prime_degree_genus_plus_0_j1728(Emin,p))) for p in [17, 29, 41]]
         [(17, 2), (29, 2), (41, 2)]
     """
-    if not l in  hyperelliptic_primes:
+    if l not in  hyperelliptic_primes:
         raise ValueError("%s must be one of %s."%(l,hyperelliptic_primes))
     F = E.base_ring()
     if E.j_invariant() != 1728:
@@ -2204,7 +2206,7 @@ def isogenies_prime_degree_general(E, l, minimal_models=True):
     # divisors of degree d, then their product is a kernel poly, which
     # we add to the list and remove the factors used.
 
-    from sage.misc.all import prod
+    from sage.misc.misc_c import prod
     for d in list(factors_by_degree):
         if d * len(factors_by_degree[d]) == l2:
             ker.append(prod(factors_by_degree.pop(d)))
@@ -2333,6 +2335,15 @@ def isogenies_prime_degree(E, l, minimal_models=True):
         []
         sage: E.isogenies_prime_degree(73) # slower (2s)
         []
+
+    Test that :trac:`32269` is fixed::
+
+        sage: K = QuadraticField(-11)
+        sage: E = EllipticCurve(K, [0,1,0,-117,-541])
+        sage: E.isogenies_prime_degree(37)
+        [Isogeny of degree 37 from Elliptic Curve defined by y^2 = x^3 + x^2 + (-117)*x + (-541) over Number Field in a with defining polynomial x^2 + 11 with a = 3.316624790355400?*I to Elliptic Curve defined by y^2 = x^3 + x^2 + (30800*a+123963)*x + (3931312*a-21805005) over Number Field in a with defining polynomial x^2 + 11 with a = 3.316624790355400?*I,
+         Isogeny of degree 37 from Elliptic Curve defined by y^2 = x^3 + x^2 + (-117)*x + (-541) over Number Field in a with defining polynomial x^2 + 11 with a = 3.316624790355400?*I to Elliptic Curve defined by y^2 = x^3 + x^2 + (-30800*a+123963)*x + (-3931312*a-21805005) over Number Field in a with defining polynomial x^2 + 11 with a = 3.316624790355400?*I]
+
     """
     if not l.is_prime():
         raise ValueError("%s is not prime."%l)
@@ -2345,14 +2356,14 @@ def isogenies_prime_degree(E, l, minimal_models=True):
     if l==p:
         return isogenies_prime_degree_general(E,l, minimal_models=minimal_models)
 
-    if l in [5,7,13] and not p in [2,3]:
+    if l in [5,7,13] and p not in [2,3]:
         return isogenies_prime_degree_genus_0(E,l, minimal_models=minimal_models)
 
-    if l in hyperelliptic_primes and not p in [2,3]:
+    if l in hyperelliptic_primes and p not in [2,3]:
         return isogenies_prime_degree_genus_plus_0(E,l, minimal_models=minimal_models)
 
     j = E.j_invariant()
-    if j in QQ:
+    if j in QQ and E.base_field() is QQ:
         j = QQ(j)
         if j in sporadic_j:
             return isogenies_sporadic_Q(E,l, minimal_models=minimal_models)

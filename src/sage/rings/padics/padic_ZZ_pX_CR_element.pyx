@@ -5,7 +5,7 @@
 # distutils: extra_link_args = NTL_LIBEXTRA
 # distutils: language = c++
 """
-`p`-Adic ``ZZ_pX`` CR Element
+`p`-adic ``ZZ_pX`` CR Element
 
 This file implements elements of Eisenstein and unramified extensions
 of `\ZZ_p` and `\QQ_p` with capped relative precision.
@@ -1183,7 +1183,7 @@ cdef class pAdicZZpXCRElement(pAdicZZpXElement):
             sage: z = W(ntl.ZZ_pX([4,1,16],5^2), absprec = 8, relprec = 12); z # indirect doctest
             4 + w + w^2 + 3*w^7 + O(w^8)
         """
-        cdef long val, index
+        cdef long val = 0, index = 0
         ZZ_pX_min_val_coeff(val, index, poly[0], self.prime_pow.pow_ZZ_tmp(1)[0])
         if self.prime_pow.e == 1:
             self.ordp = val
@@ -1320,7 +1320,7 @@ cdef class pAdicZZpXCRElement(pAdicZZpXElement):
             sage: y._ntl_rep_unnormalized()
             [41 26 152 49 535]
         """
-        cdef long minval, mini, shift
+        cdef long minval = 0, mini = 0, shift
         if self.relprec < 0:
             if ZZ_pX_IsZero(self.unit):
                 self.ordp -= self.relprec # note that self.relprec < 0
@@ -1905,7 +1905,7 @@ cdef class pAdicZZpXCRElement(pAdicZZpXElement):
             sage: f = x^5 + 75*x^3 - 15*x^2 +125*x - 5
             sage: W.<w> = R.ext(f)
             sage: type(W(0))
-            <type 'sage.rings.padics.padic_ZZ_pX_CR_element.pAdicZZpXCRElement'>
+            <class 'sage.rings.padics.padic_ZZ_pX_CR_element.pAdicZZpXCRElement'>
             sage: W(0)^0
             1 + O(w^25)
             sage: W(0)^0 == W(1)
@@ -2859,7 +2859,7 @@ cdef class pAdicZZpXCRElement(pAdicZZpXElement):
         if self.valuation_c() < 0:
             raise ValueError("self must be integral")
         n = self.prime_pow.deg
-        from sage.matrix.all import matrix
+        from sage.matrix.constructor import matrix
         if self._is_exact_zero():
             from sage.rings.integer_ring import IntegerRing
             return matrix(IntegerRing(), n, n)

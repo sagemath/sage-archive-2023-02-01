@@ -348,7 +348,8 @@ from sage.structure.parent import Parent
 from sage.structure.element import Element
 from sage.structure.richcmp import richcmp
 from sage.structure.unique_representation import UniqueRepresentation
-from sage.rings.all import QQ, ZZ
+from sage.rings.integer_ring import ZZ
+from sage.rings.rational_field import QQ
 from sage.misc.cachefunc import cached_method
 from sage.matrix.constructor import matrix, vector
 from sage.modules.free_module import VectorSpace
@@ -393,13 +394,13 @@ class HyperplaneArrangementElement(Element):
 
         It is possible to specify a backend for polyhedral computations::
 
-            sage: R.<sqrt5> = QuadraticField(5)
-            sage: H = HyperplaneArrangements(R, names='xyz')
-            sage: x,y,z = H.gens()
-            sage: A = H(sqrt5*x+2*y+3*z, backend='normaliz')
-            sage: A.backend()
+            sage: R.<sqrt5> = QuadraticField(5)                                 # optional - sage.rings.number_field
+            sage: H = HyperplaneArrangements(R, names='xyz')                    # optional - sage.rings.number_field
+            sage: x, y, z = H.gens()                                            # optional - sage.rings.number_field
+            sage: A = H(sqrt5*x + 2*y + 3*z, backend='normaliz')                # optional - sage.rings.number_field
+            sage: A.backend()                                                   # optional - sage.rings.number_field
             'normaliz'
-            sage: A.regions()[0].backend()  # optional - pynormaliz
+            sage: A.regions()[0].backend()             # optional - pynormaliz  # optional - sage.rings.number_field
             'normaliz'
         """
         super(HyperplaneArrangementElement, self).__init__(parent)
@@ -452,6 +453,17 @@ class HyperplaneArrangementElement(Element):
             Hyperplane x + 0*y + 0
         """
         return self._hyperplanes[i]
+
+    def __hash__(self):
+        r"""
+        TESTS::
+
+            sage: H.<x,y> = HyperplaneArrangements(QQ)
+            sage: h = x|y; h
+            Arrangement <y | x>
+            sage: len_dict = {h: len(h)}
+        """
+        return hash(self.hyperplanes())
 
     def n_hyperplanes(self):
         r"""
@@ -677,7 +689,7 @@ class HyperplaneArrangementElement(Element):
         EXAMPLES::
 
             sage: L.<x, y> = HyperplaneArrangements(QQ)
-            sage: L(x, y, x+y-2).plot()
+            sage: L(x, y, x+y-2).plot()  # optional - sage.plot
             Graphics object consisting of 3 graphics primitives
         """
         from sage.geometry.hyperplane_arrangement.plot import plot
@@ -1229,7 +1241,7 @@ class HyperplaneArrangementElement(Element):
             raise TypeError('arrangement must be defined over QQ')
         if not p.is_prime():
             raise TypeError('must reduce modulo a prime number')
-        from sage.rings.all import GF
+        from sage.rings.finite_rings.finite_field_constructor import GF
         a = self.change_ring(GF(p))
         p = self.intersection_poset()
         q = a.intersection_poset()
@@ -1678,7 +1690,7 @@ class HyperplaneArrangementElement(Element):
             (6, 21, 16)
             sage: A.vertices()
             ((-2/3, 1/3), (-1/3, -1/3), (0, -1), (0, 0), (1/3, -2/3), (2/3, -1/3))
-            sage: point2d(A.vertices(), size=20) + A.plot()
+            sage: point2d(A.vertices(), size=20) + A.plot()  # optional - sage.plot
             Graphics object consisting of 7 graphics primitives
 
             sage: H.<x,y> = HyperplaneArrangements(QQ)
@@ -2926,7 +2938,7 @@ class HyperplaneArrangementElement(Element):
             (h2 - 1) * (h2 + 1) * (h1 - 1) * (h1 + 1)
         """
         from sage.matrix.constructor import identity_matrix
-        from sage.misc.all import prod
+        from sage.misc.misc_c import prod
         k = len(self)
         R = PolynomialRing(QQ, names, k)
         h = R.gens()
@@ -2973,7 +2985,7 @@ class HyperplaneArrangementElement(Element):
         from sage.matroids.constructor import Matroid
         return Matroid(matrix=matrix(norms).transpose())
 
-    def orlik_solomon_algebra(self, base_ring=None, ordering=None):
+    def orlik_solomon_algebra(self, base_ring=None, ordering=None, **kwds):
         """
         Return the Orlik-Solomon algebra of ``self``.
 
@@ -2996,9 +3008,9 @@ class HyperplaneArrangementElement(Element):
         """
         if base_ring is None:
             base_ring = self.base_ring()
-        return self.matroid().orlik_solomon_algebra(base_ring, ordering)
+        return self.matroid().orlik_solomon_algebra(base_ring, ordering,**kwds)
 
-    def orlik_terao_algebra(self, base_ring=None, ordering=None):
+    def orlik_terao_algebra(self, base_ring=None, ordering=None, **kwds):
         """
         Return the Orlik-Terao algebra of ``self``.
 
@@ -3022,7 +3034,7 @@ class HyperplaneArrangementElement(Element):
         """
         if base_ring is None:
             base_ring = self.base_ring()
-        return self.matroid().orlik_terao_algebra(base_ring, ordering)
+        return self.matroid().orlik_terao_algebra(base_ring, ordering, **kwds)
 
     @cached_method
     def minimal_generated_number(self):
@@ -3391,7 +3403,7 @@ class HyperplaneArrangements(Parent, UniqueRepresentation):
             sage: K = HyperplaneArrangements(QQ)
             sage: TestSuite(K).run()
         """
-        from sage.categories.all import Sets
+        from sage.categories.sets_cat import Sets
         from sage.rings.ring import _Fields
         if base_ring not in _Fields:
             raise ValueError('base ring must be a field')

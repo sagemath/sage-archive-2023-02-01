@@ -398,18 +398,18 @@ classes. For example, an integer in Sage is an instance of the class
 
     sage: i = 12
     sage: type(i)
-    <type 'sage.rings.integer.Integer'>
+    <class 'sage.rings.integer.Integer'>
 
 Applying an operation is generally done by *calling a method*::
 
     sage: i.factor()
     2^2 * 3
 
-    sage: x = var('x')
-    sage: p = 6*x^2 + 12*x + 6
-    sage: type(p)
-    <type 'sage.symbolic.expression.Expression'>
-    sage: p.factor()
+    sage: x = var('x')                                      # optional - sage.symbolic
+    sage: p = 6*x^2 + 12*x + 6                              # optional - sage.symbolic
+    sage: type(p)                                           # optional - sage.symbolic
+    <class 'sage.symbolic.expression.Expression'>
+    sage: p.factor()                                        # optional - sage.symbolic
     6*(x + 1)^2
 
     sage: R.<x> = PolynomialRing(QQ, sparse=True)
@@ -421,7 +421,7 @@ Applying an operation is generally done by *calling a method*::
 
     sage: pZ = ZZ['x'] ( p )
     sage: type(pZ)
-    <type 'sage.rings.polynomial.polynomial_integer_dense_flint.Polynomial_integer_dense_flint'>
+    <class 'sage.rings.polynomial.polynomial_integer_dense_flint.Polynomial_integer_dense_flint'>
     sage: pZ.factor()
     2 * 3 * (x + 1)^2
 
@@ -949,7 +949,7 @@ what to do, ask your parent); it's also a speed critical method::
     sage: x._mul_??                             # not tested
     sage: x._mul_.__module__
     'sage.categories.coercion_methods'
-    sage: x._mul_.__func__ is Magmas.ElementMethods._mul_parent  # py3
+    sage: x._mul_.__func__ is Magmas.ElementMethods._mul_parent
     True
 
 ``product`` is a mathematical method implemented by the parent::
@@ -1152,7 +1152,7 @@ code, the product method is put in the nested class
     reveal some glitches in their implementation, in particular around
     class naming and introspection. Sage currently works around the
     more annoying ones but some remain visible. See
-    e.g. :mod:`sage.misc.nested_class_test`.
+    e.g. :mod:`sage.misc.test_nested_class`.
 
 
 Let us now look at the categories of ``C``::

@@ -472,12 +472,12 @@ class TypeSpace(SageObject):
         r"""
         Calculate the action of ``g`` on the type space, in the unramified (even
         level) case. Uses the two standard generators, and a solution of the
-        word problem in `{\rm SL}_2(\ZZ / p^u \ZZ)`.
+        word problem in `\SL_2(\ZZ / p^u \ZZ)`.
 
         INPUT:
 
         - ``g`` -- 4-tuple of integers (or more generally anything that can be
-          converted into an element of the matrix group `{\rm SL}_2(\ZZ / p^u
+          converted into an element of the matrix group `\SL_2(\ZZ / p^u
           \ZZ)`).
 
         EXAMPLES::
@@ -511,34 +511,34 @@ class TypeSpace(SageObject):
         return answer
 
     def _rho_ramified(self, g):
-         r"""
-         Calculate the action of a group element on the type space in the
-         ramified (odd conductor) case.
+        r"""
+        Calculate the action of a group element on the type space in the
+        ramified (odd conductor) case.
 
-         For internal use (called by :meth:`~rho`).
+        For internal use (called by :meth:`~rho`).
 
-         EXAMPLES::
+        EXAMPLES::
 
-             sage: from sage.modular.local_comp.type_space import example_type_space
-             sage: T = example_type_space(3)
-             sage: T._rho_ramified([1,0,3,1])
-             [ 0  1]
-             [-1 -1]
-             sage: T._rho_ramified([1,3,0,1]) == 1
-             True
-         """
-         A = self.t_space.ambient()
-         g = [ZZ(_) for _ in g]
-         p = self.prime()
-         assert g[2] % p == 0
-         gg = lift_ramified(g, p, self.u(), self.tame_level())
-         g3 = [p**self.u() * gg[0], gg[1], p**(2*self.u()) * gg[2], p**self.u() * gg[3]]
-         return A._action_on_modular_symbols(g3).restrict(self.t_space.free_module()).transpose() / ZZ(p**(self.u() * (self.form().weight()-2) ) )
+            sage: from sage.modular.local_comp.type_space import example_type_space
+            sage: T = example_type_space(3)
+            sage: T._rho_ramified([1,0,3,1])
+            [ 0  1]
+            [-1 -1]
+            sage: T._rho_ramified([1,3,0,1]) == 1
+            True
+        """
+        A = self.t_space.ambient()
+        g = [ZZ(_) for _ in g]
+        p = self.prime()
+        assert g[2] % p == 0
+        gg = lift_ramified(g, p, self.u(), self.tame_level())
+        g3 = [p**self.u() * gg[0], gg[1], p**(2*self.u()) * gg[2], p**self.u() * gg[3]]
+        return A._action_on_modular_symbols(g3).restrict(self.t_space.free_module()).transpose() / ZZ(p**(self.u() * (self.form().weight()-2) ) )
 
     def _group_gens(self):
         r"""
         Return a set of generators of the group `S(K_0) / S(K_u)` (which is
-        either `{\rm SL}_2(\ZZ / p^u \ZZ)` if the conductor is even, and a
+        either `\SL_2(\ZZ / p^u \ZZ)` if the conductor is even, and a
         quotient of an Iwahori subgroup if the conductor is odd).
 
         EXAMPLES::
@@ -667,17 +667,17 @@ class TypeSpace(SageObject):
             True
         """
         if not self.is_minimal():
-            raise NotImplementedError( "Group action on non-minimal type space not implemented" )
+            raise NotImplementedError("Group action on non-minimal type space not implemented")
 
         if self.u() == 0:
-           # silly special case: rep is principal series or special, so SL2
-           # action on type space is trivial
-           raise ValueError( "Representation is not supercuspidal" )
+            # silly special case: rep is principal series or special, so SL2
+            # action on type space is trivial
+            raise ValueError("Representation is not supercuspidal")
 
         p = self.prime()
         f = p**self.u()
         g = [ZZ(_) for _ in g]
-        d = (g[0]*g[3] - g[2]*g[1])
+        d = (g[0] * g[3] - g[2] * g[1])
 
         # g is in S(K_0) (easy case)
         if d % f == 1:

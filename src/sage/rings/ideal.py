@@ -28,11 +28,9 @@ a right ideal, and ``R*[a,b,...]*R`` creates a two-sided ideal.
 
 from types import GeneratorType
 
-import sage.misc.latex as latex
 import sage.rings.ring
 from sage.structure.element import MonoidElement
 from sage.structure.richcmp import rich_to_bool, richcmp
-import sage.rings.infinity
 from sage.structure.sequence import Sequence
 
 def Ideal(*args, **kwds):
@@ -172,6 +170,7 @@ def Ideal(*args, **kwds):
 
     first = args[0]
 
+    inferred_field = False
     if not isinstance(first, sage.rings.ring.Ring):
         if isinstance(first, Ideal_generic) and len(args) == 1:
             R = first.ring()
@@ -183,6 +182,7 @@ def Ideal(*args, **kwds):
                 gens = args
             gens = Sequence(gens)
             R = gens.universe()
+            inferred_field = isinstance(R, sage.rings.ring.Field)
     else:
         R = first
         gens = args[1:]
@@ -190,7 +190,15 @@ def Ideal(*args, **kwds):
     if not isinstance(R, sage.rings.ring.CommutativeRing):
         raise TypeError("R must be a commutative ring")
 
-    return R.ideal(*gens, **kwds)
+    I = R.ideal(*gens, **kwds)
+
+    if inferred_field and not isinstance(I, Ideal_fractional):  # trac 32320
+        import warnings
+        warnings.warn(f'Constructing an ideal in {R}, which is a field.'
+                      ' Did you intend to take numerators first?'
+                      ' This warning can be muted by passing the base ring to Ideal() explicitly.')
+
+    return I
 
 def is_Ideal(x):
     r"""
@@ -536,6 +544,7 @@ class Ideal_generic(MonoidElement):
             sage: latex(3*ZZ) # indirect doctest
             \left(3\right)\Bold{Z}
         """
+        import sage.misc.latex as latex
         return '\\left(%s\\right)%s' % (", ".join(latex.latex(g)
                                                   for g in self.gens()),
                                         latex.latex(self.ring()))
@@ -693,7 +702,7 @@ class Ideal_generic(MonoidElement):
             sage: S.ideal(4).is_maximal()
             False
         """
-        from sage.rings.all import ZZ
+        from sage.rings.integer_ring import ZZ
         R = self.ring()
         if hasattr(R, 'cover_ring') and R.cover_ring() is ZZ:
             # The following test only works for quotients of Z/nZ: for
@@ -821,7 +830,7 @@ class Ideal_generic(MonoidElement):
 
             For general rings, uses the list of associated primes.
         """
-        from sage.rings.all import ZZ
+        from sage.rings.integer_ring import ZZ
         R = self.ring()
         if hasattr(R, 'cover_ring') and R.cover_ring() is ZZ and R.is_finite():
             # For quotient rings of ZZ, prime is the same as maximal.
@@ -1172,7 +1181,9 @@ class Ideal_generic(MonoidElement):
 
             sage: macaulay2(ideal(5))                       # optional - macaulay2
             ideal 5
-            sage: macaulay2(ideal(QQ(5)))                   # optional - macaulay2
+            sage: J = ideal(QQ(5))
+            ...
+            sage: macaulay2(J)                              # optional - macaulay2
             ideal 1
 
         TESTS:
@@ -1302,7 +1313,10 @@ class Ideal_principal(Ideal_generic):
         """
         if self.gen().is_zero():
             return x.is_zero()
-        return self.gen().divides(x)
+        try:
+            return self.gen().divides(x)
+        except NotImplementedError:
+            return self._contains_(self.ring()(x))
 
     def __hash__(self):
         r"""
@@ -1803,6 +1817,7 @@ def FieldIdeal(R):
 
     q = R.base_ring().order()
 
+    import sage.rings.infinity
     if q is sage.rings.infinity.infinity:
         raise TypeError("Cannot construct field ideal for R.base_ring().order()==infinity")
 

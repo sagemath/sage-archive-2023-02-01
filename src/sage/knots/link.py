@@ -310,6 +310,14 @@ class Link(SageObject):
             ...
             ValueError: invalid PD code: each segment must appear twice
 
+        Segments in PD code must be labelled by positive integers::
+
+            sage: code = [(2, 5, 3, 0), (4, 1, 5, 2), (0, 3, 1, 4)]
+            sage: Knot(code)
+            Traceback (most recent call last):
+            ...
+            ValueError: invalid PD code: segment label 0 not allowed
+
             sage: L = Link(5)
             Traceback (most recent call last):
             ...
@@ -323,21 +331,29 @@ class Link(SageObject):
             Link with 1 component represented by 4 crossings
             sage: L.braid()
             s0*s1*s0*s1^-1
+
+        PD code can be a list of 4-tuples::
+
+            sage: code = [(2, 5, 3, 6), (4, 1, 5, 2), (6, 3, 1, 4)]
+            sage: K = Knot(code); K.alexander_polynomial()
+            t^-1 - 1 + t
         """
         if isinstance(data, list):
+            # either oriented Gauss or PD code
             if len(data) != 2 or not all(isinstance(i, list) for i in data[0]):
-                for i in data:
-                    if len(i) != 4:
-                        raise ValueError("invalid PD code: crossings must be represented by four segments")
-                    else:
-                        flat = flatten(data)
-                        if any(flat.count(i) != 2 for i in set(flat)):
-                            raise ValueError("invalid PD code: each segment must appear twice")
-                self._pd_code = data
+                # PD code
+                if any(len(i) != 4 for i in data):
+                    raise ValueError("invalid PD code: crossings must be represented by four segments")
+                flat = flatten(data)
+                if 0 in flat:
+                    raise ValueError("invalid PD code: segment label 0 not allowed")
+                if any(flat.count(i) != 2 for i in set(flat)):
+                    raise ValueError("invalid PD code: each segment must appear twice")
+                self._pd_code = [list(vertex) for vertex in data]
                 self._oriented_gauss_code = None
                 self._braid = None
-
             else:
+                # oriented Gauss code
                 flat = flatten(data[0])
                 if flat:
                     a, b = max(flat), min(flat)
@@ -353,9 +369,9 @@ class Link(SageObject):
                 # Remove all unused strands
                 support = sorted(set().union(*((abs(x), abs(x) + 1) for x in data.Tietze())))
                 d = {}
-                for i,s in enumerate(support):
-                    d[s] = i+1
-                    d[-s] = -i-1
+                for i, s in enumerate(support):
+                    d[s] = i + 1
+                    d[-s] = -i - 1
                 if not support:
                     B = BraidGroup(2)
                 else:
@@ -366,6 +382,9 @@ class Link(SageObject):
 
             else:
                 raise ValueError("invalid input: data must be either a list or a braid")
+
+        self._mirror  = None  # set on invocation of :meth:`mirror_image`
+        self._reverse = None  # set on invocation of :meth:`reverse`
 
     def arcs(self, presentation='pd'):
         r"""
@@ -587,7 +606,6 @@ class Link(SageObject):
         """
         return not self.__eq__(other)
 
-
     def braid(self):
         r"""
         Return a braid representation of ``self``.
@@ -640,7 +658,7 @@ class Link(SageObject):
             n1 = b1.parent().strands()
             n2 = b2.parent().strands()
             t1 = list(b1.Tietze())
-            t2 = [sign(x)*(abs(x) + n1) for x in b2.Tietze()]
+            t2 = [sign(x) * (abs(x) + n1) for x in b2.Tietze()]
             B = BraidGroup(n1 + n2)
             self._braid = B(t1 + t2)
             return self._braid
@@ -655,16 +673,16 @@ class Link(SageObject):
         newedge = max(flatten(pd_code)) + 1
         for region in self.regions():
             n = len(region)
-            for i in range(n-1):
+            for i in range(n - 1):
                 a = region[i]
                 seifcirca = [x for x in seifert_circles if abs(a) in x]
-                for j in range(i+1,n):
+                for j in range(i + 1, n):
                     b = region[j]
                     seifcircb = [x for x in seifert_circles if abs(b) in x]
                     if seifcirca != seifcircb and sign(a) == sign(b):
                         tails, heads = self._directions_of_edges()
 
-                        newPD = deepcopy(pd_code)
+                        newPD = [list(vertex) for vertex in pd_code]
                         if sign(a) == 1:
                             C1 = newPD[newPD.index(heads[a])]
                             C1[C1.index(a)] = newedge + 1
@@ -1908,19 +1926,23 @@ class Link(SageObject):
             sage: L = Link(B([1]*16 + [2,1,2,1,2,2,2,2,2,2,2,1,2,1,2,-1,2,-2]))
             sage: L.determinant()
             65
+            sage: B = BraidGroup(3)
+            sage: Link(B([1, 2, 1, 1, 2])).determinant()
+            4
 
         TESTS::
 
+            sage: B = BraidGroup(3)
             sage: Link(B([1, 2, 1, -2, -1])).determinant()
-            Traceback (most recent call last):
-            ...
-            NotImplementedError: determinant implemented only for knots
-        """
-        if self.is_knot():
-            a = self.alexander_polynomial()
-            return Integer(abs(a(-1)))
+            0
 
-        raise NotImplementedError("determinant implemented only for knots")
+        REFERENCES:
+
+        - Definition 6.6.3 in [Cro2004]_
+        """
+        V = self.seifert_matrix()
+        m = V + V.transpose()
+        return Integer(abs(m.det()))
 
     def is_alternating(self):
         r"""
@@ -2141,13 +2163,14 @@ class Link(SageObject):
         if len(self._isolated_components()) != 1:
             raise NotImplementedError("can only have one isolated component")
         pd = self.pd_code()
-        tails, heads = self._directions_of_edges()
-        available_edges = set(flatten(pd))
         if len(pd) == 1:
             if pd[0][0] == pd[0][1]:
                 return [[-pd[0][2]], [pd[0][0]], [pd[0][2], -pd[0][0]]]
             else:
                 return [[pd[0][2]], [-pd[0][0]], [-pd[0][2], pd[0][0]]]
+
+        tails, heads = self._directions_of_edges()
+        available_edges = set(flatten(pd))
 
         loops = [i for i in available_edges if heads[i] == tails[i]]
         available_edges = available_edges.union({-i for i in available_edges})
@@ -2240,9 +2263,23 @@ class Link(SageObject):
             K = Link([[[1,-2,3,-1,2,-3]],[1,1,1]])
             K2 = K.mirror_image()
             sphinx_plot(K2.plot())
+
+        TESTS:
+
+        check that :trac:`30997` is fixed::
+
+            sage: L = Link([[6, 2, 7, 1], [5, 13, 6, 12], [8, 3, 9, 4],
+            ....:           [2, 13, 3, 14], [14, 8, 15, 7], [11, 17, 12, 16],
+            ....:           [9, 18, 10, 11], [17, 10, 18, 5], [4, 16, 1, 15]]) # L9n25{0}{0} from KnotInfo
+            sage: Lmm = L.mirror_image().mirror_image()
+            sage: L == Lmm
+            True
         """
         # Use the braid information if it is the shortest version
         #   of what we have already computed
+        if self._mirror:
+            return self._mirror
+
         if self._braid:
             lb = len(self._braid.Tietze())
 
@@ -2257,11 +2294,67 @@ class Link(SageObject):
                 logc = float('inf')
 
             if lb <= logc and lb <= lpd:
-                return type(self)(~self._braid)
+                self._mirror = type(self)(self._braid.mirror_image())
+                self._mirror._mirror = self
+                return self._mirror
 
         # Otherwise we fallback to the PD code
         pd = [[a[0], a[3], a[2], a[1]] for a in self.pd_code()]
-        return type(self)(pd)
+        self._mirror = type(self)(pd)
+        self._mirror._mirror = self
+        return self._mirror
+
+    def reverse(self):
+        r"""
+        Return the reverse of ``self``. This is the link obtained from ``self``
+        by reverting the orientation on all components.
+
+        EXAMPLES::
+
+           sage: K3 = Knot([[5, 2, 4, 1], [3, 6, 2, 5], [1, 4, 6, 3]])
+           sage: K3r = K3.reverse(); K3r.pd_code()
+           [[4, 1, 5, 2], [2, 5, 3, 6], [6, 3, 1, 4]]
+           sage: K3 == K3r
+           True
+
+        a non reversable knot::
+
+           sage: K8_17 = Knot([[6, 2, 7, 1], [14, 8, 15, 7], [8, 3, 9, 4],
+           ....:               [2, 13, 3, 14], [12, 5, 13, 6], [4, 9, 5, 10],
+           ....:               [16, 12, 1, 11], [10, 16, 11, 15]])
+           sage: K8_17r = K8_17.reverse()
+           sage: b = K8_17.braid(); b
+           s0^2*s1^-1*(s1^-1*s0)^2*s1^-1
+           sage: br = K8_17r.braid(); br
+           s0^-1*s1*s0^-2*s1^2*s0^-1*s1
+           sage: b.is_conjugated(br)
+           False
+           sage: b == br.reverse()
+           False
+           sage: b.is_conjugated(br.reverse())
+           True
+           sage: K8_17b = Link(b)
+           sage: K8_17br = K8_17b.reverse()
+           sage: bbr = K8_17br.braid(); bbr
+           (s1^-1*s0)^2*s1^-2*s0^2
+           sage: br == bbr
+           False
+           sage: br.is_conjugated(bbr)
+           True
+        """
+        if self._reverse:
+            return self._reverse
+
+        if self._braid:
+            self._reverse = type(self)(self._braid.reverse())
+            self._reverse._reverse = self
+            return self._reverse
+
+        # Otherwise we fallback to the PD code
+        pd = [[a[2], a[3], a[0], a[1]] for a in self.pd_code()]
+        self._reverse = type(self)(pd)
+        self._reverse._reverse = self
+        return self._reverse
 
     def writhe(self):
         r"""
@@ -2511,7 +2604,7 @@ class Link(SageObject):
                 return -t**3
 
         cross = pd_code[0]
-        rest = deepcopy(pd_code[1:])
+        rest = [list(vertex) for vertex in pd_code[1:]]
         [a, b, c, d] = cross
         if a == b and c == d and len(rest) > 0:
             return (~t + t**(-5)) * Link(rest)._bracket()
@@ -2538,7 +2631,7 @@ class Link(SageObject):
                     cross[cross.index(b)] = a
             return -t**(-3) * Link(rest)._bracket()
         else:
-            rest_2 = deepcopy(rest)
+            rest_2 = [list(vertex) for vertex in rest]
             for cross in rest:
                 if d in cross:
                     cross[cross.index(d)] = a
@@ -3655,40 +3748,41 @@ class Link(SageObject):
 
             sage: k11  = KnotInfo.K11n_82.link()      # optional - database_knotinfo
             sage: k11m = k11.mirror_image()           # optional - database_knotinfo
-            sage: k11m.braid()                        # optional - database_knotinfo
-            s0*s1^-1*s0*s2^-1*s1*(s1*s2^-1)^2*s2^-2
-            sage: k11m.get_knotinfo()                 # optional - database_knotinfo
+            sage: k11mr = k11m.reverse()              # optional - database_knotinfo
+            sage: k11mr.get_knotinfo()                # optional - database_knotinfo
             Traceback (most recent call last):
             ...
             NotImplementedError: mirror type of this link cannot be uniquely determined
             use keyword argument `unique` to obtain more details
 
-            sage: k11m.get_knotinfo(unique=False)     # optional - database_knotinfo
+            sage: k11mr.get_knotinfo(unique=False)    # optional - database_knotinfo
             [(<KnotInfo.K11n_82: '11n_82'>, '?')]
 
-            sage: t = (-1, 2, -1, 2, -1, 3, -2, 3, -2)
-            sage: l9 = Link(BraidGroup(4)(t))
-            sage: l9.get_knotinfo()                   # optional - database_knotinfo
+            sage: t = (1, -2, 1, 1, -2, 1, -2, -2)
+            sage: l8 = Link(BraidGroup(3)(t))
+            sage: l8.get_knotinfo()                   # optional - database_knotinfo
             Traceback (most recent call last):
             ...
             NotImplementedError: this link cannot be uniquely determined
             use keyword argument `unique` to obtain more details
 
-            sage: l9.get_knotinfo(unique=False)       # optional - database_knotinfo
-            [(<KnotInfo.L9n25_0_0: 'L9n25{0,0}'>, False),
-             (<KnotInfo.L9n25_1_1: 'L9n25{1,1}'>, False)]
+            sage: l8.get_knotinfo(unique=False)       # optional - database_knotinfo
+            [(<KnotInfo.L8a19_0_0: 'L8a19{0,0}'>, None),
+             (<KnotInfo.L8a19_1_1: 'L8a19{1,1}'>, None)]
 
-            sage: t = (1, 2, 3, -4, 3, -2, -1, 3, -2, 3, -2, 3, -4, 3, -2)
-            sage: l15 = Link(BraidGroup(5)(t))
-            sage: l15.get_knotinfo()                  # optional - database_knotinfo
+            sage: t = (2, -3, -3, -2, 3, 3, -2, 3, 1, -2, -2, 1)
+            sage: l12 = Link(BraidGroup(5)(t))
+            sage: l12.get_knotinfo()                  # optional - database_knotinfo
             Traceback (most recent call last):
             ...
             NotImplementedError: this link having more than 11 crossings cannot be uniquely determined
             use keyword argument `unique` to obtain more details
 
-            sage:l15.get_knotinfo(unique=False)       # optional - database_knotinfo
-            [(<KnotInfo.L11a1_0: 'L11a1{0}'>, False),
-             (<KnotInfo.L11a1_1: 'L11a1{1}'>, False)]
+            sage: l12.get_knotinfo(unique=False)      # optional - database_knotinfo
+            [(<KnotInfo.L10n36_0: 'L10n36{0}'>, '?'),
+             (<KnotInfo.L10n36_1: 'L10n36{1}'>, None),
+             (<KnotInfo.L10n59_0: 'L10n59{0}'>, None),
+             (<KnotInfo.L10n59_1: 'L10n59{1}'>, None)]
 
         Furthermore, if the result is a complete  series of oriented links having
         the same unoriented name (according to the note above) the option can be

@@ -16,7 +16,7 @@ from sage.structure.unique_representation import UniqueRepresentation
 from sage.structure.parent import Parent
 
 from sage.combinat.composition import Composition, Compositions
-from sage.rings.all import Integer
+from sage.rings.integer import Integer
 from sage.arith.all import divisors, gcd, moebius, multinomial
 
 from sage.combinat.necklace import _sfc
@@ -406,7 +406,7 @@ class LyndonWords_nk(UniqueRepresentation, Parent):
             sage: L([2,3,4])
             Traceback (most recent call last):
             ...
-            ValueError: 4 not in alphabet!
+            ValueError: 4 not in alphabet
             sage: L([2,1,3])
             Traceback (most recent call last):
             ...

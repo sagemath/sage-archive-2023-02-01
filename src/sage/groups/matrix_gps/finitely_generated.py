@@ -62,11 +62,11 @@ AUTHORS:
 #                  https://www.gnu.org/licenses/
 ##############################################################################
 
-from sage.rings.all import ZZ
+from sage.rings.integer_ring import ZZ
 from sage.rings.all import QQbar
 from sage.structure.element import is_Matrix
 from sage.matrix.matrix_space import MatrixSpace, is_MatrixSpace
-from sage.matrix.all import matrix
+from sage.matrix.constructor import matrix
 from sage.structure.sequence import Sequence
 from sage.misc.cachefunc import cached_method
 from sage.modules.free_module_element import vector
@@ -294,12 +294,15 @@ def MatrixGroup(*gens, **kwds):
     base_ring = MS.base_ring()
     degree = ZZ(MS.ncols())   # == MS.nrows()
     from sage.libs.gap.libgap import libgap
+    category = kwds.get('category', None)
     try:
         gap_gens = [libgap(matrix_gen) for matrix_gen in gens]
         gap_group = libgap.Group(gap_gens)
-        return FinitelyGeneratedMatrixGroup_gap(degree, base_ring, gap_group)
+        return FinitelyGeneratedMatrixGroup_gap(degree, base_ring, gap_group,
+                                                category=category)
     except (TypeError, ValueError):
-        return FinitelyGeneratedMatrixGroup_generic(degree, base_ring, gens)
+        return FinitelyGeneratedMatrixGroup_generic(degree, base_ring, gens,
+                                                    category=category)
 
 ###################################################################
 #
@@ -631,7 +634,7 @@ class FinitelyGeneratedMatrixGroup_gap(MatrixGroup_gap):
         # doctests and/or architecture
         from sage.groups.perm_gps.permgroup import PermutationGroup
         if not self.is_finite():
-            raise NotImplementedError("Group must be finite.")
+            raise NotImplementedError("group must be finite")
         if seed is not None:
             from sage.libs.gap.libgap import libgap
             libgap.set_seed(ZZ(seed))
@@ -673,7 +676,7 @@ class FinitelyGeneratedMatrixGroup_gap(MatrixGroup_gap):
         from sage.libs.gap.libgap import libgap
         F = self.base_ring()
         if not F.is_finite():
-            raise NotImplementedError("Base ring must be finite.")
+            raise NotImplementedError("base ring must be finite")
         n = self.degree()
         MS = MatrixSpace(F, n, n)
         mats = [MS(g.matrix()) for g in self.gens()]
@@ -1152,7 +1155,7 @@ class FinitelyGeneratedMatrixGroup_gap(MatrixGroup_gap):
             sage: R.<x,y> = K[]
             sage: f = -K.gen()*x
             sage: G.reynolds_operator(f)
-            (t)*x + (t)*y
+            t*x + t*y
         """
         if poly.parent().ngens() != self.degree():
             raise TypeError("number of variables in polynomial must match size of matrices")

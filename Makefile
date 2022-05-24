@@ -79,6 +79,16 @@ download:
 dist: build/make/Makefile
 	./sage --sdist
 
+pypi-sdists: sage_setup
+	./sage --sh build/pkgs/sage_conf/spkg-src
+	./sage --sh build/pkgs/sage_sws2rst/spkg-src
+	./sage --sh build/pkgs/sage_docbuild/spkg-src
+	./sage --sh build/pkgs/sage_setup/spkg-src
+	./sage --sh build/pkgs/sagelib/spkg-src
+	./sage --sh build/pkgs/sagemath_objects/spkg-src
+	./sage --sh build/pkgs/sagemath_categories/spkg-src
+	@echo "Built sdists are in upstream/"
+
 # ssl: build Sage, and also install pyOpenSSL. This is necessary for
 # running the secure notebook. This make target requires internet
 # access. Note that this requires that your system have OpenSSL
@@ -86,6 +96,47 @@ dist: build/make/Makefile
 # information.
 ssl: all
 	./sage -i pyopenssl
+
+###############################################################################
+# Cleaning up
+###############################################################################
+
+SAGE_ROOT = $(CURDIR)
+SAGE_SRC = $(SAGE_ROOT)/src
+
+clean:
+	@echo "Deleting package build directories..."
+	if [ -f "$(SAGE_SRC)"/bin/sage-env-config ]; then \
+	    . "$(SAGE_SRC)"/bin/sage-env-config; \
+	    if [ -n "$$SAGE_LOCAL" ]; then \
+	        rm -rf "$$SAGE_LOCAL/var/tmp/sage/build"; \
+	    fi; \
+	fi
+
+# "c_lib", ".cython_version", "build" in $(SAGE_SRC) are from old sage versions
+# Cleaning .so files (and .c and .cpp files associated with .pyx files) is for editable installs.
+# Also cython_debug is for editable installs.
+sagelib-clean:
+	@echo "Deleting Sage library build artifacts..."
+	if [ -d "$(SAGE_SRC)" ]; then \
+	    (cd "$(SAGE_SRC)" && \
+	     rm -rf c_lib .cython_version cython_debug; \
+	     rm -rf build; find . -name '*.pyc' -o -name "*.so" | xargs rm -f; \
+	     rm -f $$(find . -name "*.pyx" | sed 's/\(.*\)[.]pyx$$/\1.c \1.cpp/'); \
+	     rm -rf sage/ext/interpreters) \
+	    && (cd "$(SAGE_ROOT)/build/pkgs/sagelib/src/" && rm -rf build); \
+	fi
+
+sage_docbuild-clean:
+	(cd "$(SAGE_ROOT)/build/pkgs/sage_docbuild/src" && rm -rf build)
+
+sage_setup-clean:
+	(cd "$(SAGE_ROOT)/build/pkgs/sage_setup/src" && rm -rf build)
+
+build-clean: clean doc-clean sagelib-clean sage_docbuild-clean
+
+doc-clean:
+	cd "$(SAGE_SRC)/doc" && $(MAKE) clean
 
 # Deleting src/lib is to get rid of src/lib/pkgconfig
 # that was forgotten to clean in #29082.
@@ -109,6 +160,7 @@ distclean: build-clean
 	@echo "Deleting all remaining output from build system ..."
 	rm -rf local
 	rm -f src/bin/sage-env-config
+	rm -f prefix venv
 
 # Delete all auto-generated files which are distributed as part of the
 # source tarball
@@ -121,6 +173,10 @@ bootstrap-clean:
 	rm -f src/environment.yml
 	rm -f environment-optional.yml
 	rm -f src/environment-optional.yml
+	rm -f src/Pipfile
+	rm -f src/pyproject.toml
+	rm -f src/requirements.txt
+	rm -f src/setup.cfg
 
 # Remove absolutely everything which isn't part of the git repo
 maintainer-clean: distclean bootstrap-clean
@@ -138,7 +194,6 @@ micro_release:
 	@echo "Removing documentation. Inspection in IPython still works."
 	rm -rf local/share/doc local/share/*/doc local/share/*/examples local/share/singular/html
 	@echo "Removing unnecessary files & directories - make will not be functional afterwards anymore"
-	@# We need src/doc/common, src/doc/en/introspect for introspection with "??"
 	@# We keep src/sage for some doctests that it expect it to be there and
 	@# also because it does not add any weight with rdfind below.
 	@# We need src/sage/bin/ for the scripts that invoke Sage
@@ -147,7 +202,7 @@ micro_release:
 	@# We keep VERSION.txt.
 	@# We keep COPYING.txt so we ship a license with this distribution.
 	find . -name . -o -prune ! -name config.status ! -name src ! -name sage ! -name local ! -name VERSION.txt ! -name COPYING.txt ! -name build -exec rm -rf \{\} \;
-	cd src && find . -name . -o -prune ! -name sage ! -name bin ! -name doc -exec rm -rf \{\} \;
+	cd src && find . -name . -o -prune ! -name sage ! -name bin -exec rm -rf \{\} \;
 	if command -v rdfind > /dev/null; then \
 		echo "Hardlinking identical files."; \
 		rdfind -makeresultsfile false -makehardlinks true .; \
@@ -171,11 +226,10 @@ TESTALL = ./sage -t --all
 PTESTALL = ./sage -t -p --all
 
 # Flags for ./sage -t --all.
-# By default, include all tests marked 'dochtml' -- see
-# https://trac.sagemath.org/ticket/25345 and
-# https://trac.sagemath.org/ticket/26110.
-TESTALL_FLAGS = --optional=sage,dochtml,optional,external,build
-TESTALL_NODOC_FLAGS = --optional=sage,optional,external,build
+# When the documentation is installed, "optional" also includes all tests marked 'sagemath_doc_html',
+# see https://trac.sagemath.org/ticket/25345, https://trac.sagemath.org/ticket/26110, and
+# https://trac.sagemath.org/ticket/32759
+TESTALL_FLAGS = --optional=sage,optional,external
 
 test: all
 	$(TESTALL) --logfile=logs/test.log
@@ -221,25 +275,25 @@ test-nodoc: build
 check-nodoc: test-nodoc
 
 testall-nodoc: build
-	$(TESTALL) $(TESTALL_NODOC_FLAGS) --logfile=logs/testall.log
+	$(TESTALL) $(TESTALL_FLAGS) --logfile=logs/testall.log
 
 testlong-nodoc: build
 	$(TESTALL) --long --logfile=logs/testlong.log
 
 testalllong-nodoc: build
-	$(TESTALL) --long $(TESTALL_NODOC_FLAGS) --logfile=logs/testalllong.log
+	$(TESTALL) --long $(TESTALL_FLAGS) --logfile=logs/testalllong.log
 
 ptest-nodoc: build
 	$(PTESTALL) --logfile=logs/ptest.log
 
 ptestall-nodoc: build
-	$(PTESTALL) $(TESTALL_NODOC_FLAGS) --logfile=logs/ptestall.log
+	$(PTESTALL) $(TESTALL_FLAGS) --logfile=logs/ptestall.log
 
 ptestlong-nodoc: build
 	$(PTESTALL) --long --logfile=logs/ptestlong.log
 
 ptestalllong-nodoc: build
-	$(PTESTALL) --long $(TESTALL_NODOC_FLAGS) --logfile=logs/ptestalllong.log
+	$(PTESTALL) --long $(TESTALL_FLAGS) --logfile=logs/ptestalllong.log
 
 testoptional-nodoc: build
 	$(TESTALL) --logfile=logs/testoptional.log
@@ -253,7 +307,7 @@ ptestoptional-nodoc: build
 ptestoptionallong-nodoc: build
 	$(PTESTALL) --long --logfile=logs/ptestoptionallong.log
 
-configure: bootstrap src/doc/bootstrap configure.ac src/bin/sage-version.sh m4/*.m4 build/pkgs/*/spkg-configure.m4 build/pkgs/*/type build/pkgs/*/distros/*.txt
+configure: bootstrap src/doc/bootstrap configure.ac src/bin/sage-version.sh m4/*.m4 build/pkgs/*/spkg-configure.m4 build/pkgs/*/type build/pkgs/*/install-requires.txt build/pkgs/*/package-version.txt build/pkgs/*/distros/*.txt
 	./bootstrap -d
 
 install: all
@@ -275,4 +329,5 @@ list:
 	misc-clean bdist-clean distclean bootstrap-clean maintainer-clean \
 	test check testoptional testall testlong testoptionallong testallong \
 	ptest ptestoptional ptestall ptestlong ptestoptionallong ptestallong \
-	buildbot-python3 list
+	buildbot-python3 list \
+	doc-clean clean sagelib-clean build-clean

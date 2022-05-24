@@ -40,7 +40,8 @@ The Cayley graph of the Weyl Group of type ['D', 4]::
 from sage.groups.matrix_gps.finitely_generated import FinitelyGeneratedMatrixGroup_gap
 from sage.groups.matrix_gps.group_element import MatrixGroupElement_gap
 from sage.groups.perm_gps.permgroup import PermutationGroup_generic
-from sage.rings.all import ZZ, QQ
+from sage.rings.integer_ring import ZZ
+from sage.rings.rational_field import QQ
 from sage.interfaces.gap import gap
 from sage.misc.cachefunc import cached_method
 from sage.combinat.root_system.cartan_type import CartanType
@@ -241,7 +242,7 @@ class WeylGroup_gens(UniqueRepresentation,
         # FinitelyGeneratedMatrixGroup_gap takes plain matrices as input
         gens_matrix = [self.morphism_matrix(self.domain().simple_reflection(i))
                        for i in self.index_set()]
-        from sage.libs.all import libgap
+        from sage.libs.gap.libgap import libgap
         libgap_group = libgap.Group(gens_matrix)
         degree = ZZ(self.domain().dimension())
         ring = self.domain().base_ring()
@@ -1026,7 +1027,7 @@ class WeylGroup_permutation(UniqueRepresentation, PermutationGroup_generic):
         self._index_set_inverse = {ii: i for i,ii in enumerate(cartan_type.index_set())}
         self._reflection_representation = None
         self._prefix = prefix
-        #from sage.libs.all import libgap
+        #from sage.libs.gap.libgap import libgap
         Q = cartan_type.root_system().root_lattice()
         Phi = list(Q.positive_roots()) + [-x for x in Q.positive_roots()]
         p = [[Phi.index(x.weyl_action([i]))+1 for x in Phi]

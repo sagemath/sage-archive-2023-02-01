@@ -18,11 +18,13 @@ import copy
 import itertools
 
 from sage.matrix.constructor import matrix, column_matrix, vector, diagonal_matrix
-from sage.rings.all import QQ, RR, ZZ
+from sage.rings.integer_ring import ZZ
+from sage.rings.rational_field import QQ
+from sage.rings.real_mpfr import RR
 from sage.rings.integer cimport Integer
 from sage.arith.all import gcd, lcm
 from sage.combinat.permutation import Permutation
-from sage.misc.all import prod
+from sage.misc.misc_c import prod
 from sage.modules.free_module import FreeModule
 from sage.modules.vector_integer_dense cimport Vector_integer_dense
 from sage.matrix.matrix_integer_dense cimport Matrix_integer_dense
@@ -726,7 +728,7 @@ cdef loop_over_rectangular_box_points_saturated(list box_min, list box_max,
 
 
 cdef class Inequality_generic:
-    """
+    r"""
     An inequality whose coefficients are arbitrary Python/Sage objects
 
     INPUT:
@@ -839,7 +841,7 @@ cdef class Inequality_generic:
 DEF INEQ_INT_MAX_DIM = 20
 
 cdef class Inequality_int:
-    """
+    r"""
     Fast version of inequality in the case that all coefficients fit
     into machine ints.
 
@@ -1194,8 +1196,8 @@ cdef class InequalityCollection:
         Check that :trac:`21037` is fixed::
 
             sage: P = Polyhedron(vertices=((0, 0), (17,3)))
-            sage: P += 1/1000*polytopes.regular_polygon(5)
-            sage: P.integral_points()
+            sage: P += 1/1000*polytopes.regular_polygon(5)  # optional - sage.rings.number_field
+            sage: P.integral_points()                       # optional - sage.rings.number_field
             ((0, 0), (17, 3))
         """
         cdef list A

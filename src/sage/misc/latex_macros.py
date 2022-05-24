@@ -16,10 +16,7 @@ the MathJax macros are produced from the LaTeX macros.  The list of
 LaTeX macros is used in the file
 ``sage.docs.conf`` to add to the preambles of
 both the LaTeX file used to build the PDF version of the documentation
-and the LaTeX file used to build the HTML version.  The list of
-MathJax macros is used in the file
-``sagenb/notebook/tutorial.py`` to define MathJax macros for use
-in the live documentation (and also in the notebook).
+and the LaTeX file used to build the HTML version.
 
 Any macro defined here may be used in docstrings or in the tutorial
 (or other pieces of documentation).  In a docstring, for example,
@@ -171,9 +168,13 @@ macros = [["ZZ"],
           ["RLF"],
           ]
 
+# Use this list to define additional latex macros for sage documentation
+latex_macros = [r"\newcommand{\SL}{\mathrm{SL}}",
+                r"\newcommand{\PSL}{\mathrm{PSL}}"]
+
 # The following is to allow customization of typesetting of rings:
 # mathbf vs mathbb.  See latex.py for more information.
-sage_configurable_latex_macros = ["\\newcommand{\\Bold}[1]{\\mathbf{#1}}"]
+sage_configurable_latex_macros = [r"\newcommand{\Bold}[1]{\mathbf{#1}}"]
 
 def sage_latex_macros():
     r"""
@@ -188,7 +189,7 @@ def sage_latex_macros():
         sage: sage_latex_macros()
         ['\\newcommand{\\ZZ}{\\Bold{Z}}', '\\newcommand{\\NN}{\\Bold{N}}', ...
     """
-    return [produce_latex_macro(*x) for x in macros] + sage_configurable_latex_macros
+    return [produce_latex_macro(*x) for x in macros] + latex_macros + sage_configurable_latex_macros
 
 def sage_mathjax_macros():
     r"""

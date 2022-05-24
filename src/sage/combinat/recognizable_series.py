@@ -961,7 +961,7 @@ class RecognizableSeries(ModuleElement):
 
             sage: S == S
             True
-            sage: x == None
+            sage: S == None
             False
         """
         if other is None:
@@ -973,7 +973,7 @@ class RecognizableSeries(ModuleElement):
 
     def __ne__(self, other):
         r"""
-        Return whether this recognizable series is equal to ``other``.
+        Return whether this recognizable series is not equal to ``other``.
 
         INPUT:
 
@@ -1063,7 +1063,7 @@ class RecognizableSeries(ModuleElement):
 
         A :class:`RecognizableSeries`
 
-        ALOGRITHM:
+        ALGORITHM:
 
         This method implements the minimization algorithm presented in
         Chapter 2 of [BR2010a]_.
@@ -1077,7 +1077,6 @@ class RecognizableSeries(ModuleElement):
         EXAMPLES::
 
             sage: from itertools import islice
-            sage: from six.moves import zip
             sage: Rec = RecognizableSeriesSpace(ZZ, [0, 1])
 
             sage: S = Rec((Matrix([[3, 6], [0, 1]]), Matrix([[0, -6], [1, 5]])),
@@ -1681,7 +1680,7 @@ class RecognizableSeriesSpace(UniqueRepresentation, Parent):
         if coefficient_ring is None:
             raise ValueError('No coefficient ring specified.')
         from sage.categories.semirings import Semirings
-        if coefficient_ring not in Semirings:
+        if coefficient_ring not in Semirings():
             raise ValueError(
                 'Coefficient ring {} is not a semiring.'.format(coefficient_ring))
 
@@ -1852,11 +1851,11 @@ class RecognizableSeriesSpace(UniqueRepresentation, Parent):
 
     def _an_element_(self):
         r"""
-        Return an element of this recognizable series.
+        Return an element of this recognizable series space.
 
         OUTPUT:
 
-        A :class:`recognizable_series`
+        A :class:`RecognizableSeries`
 
         EXAMPLES::
 
@@ -1873,10 +1872,9 @@ class RecognizableSeriesSpace(UniqueRepresentation, Parent):
                          for i, _ in enumerate(self.alphabet())),
                     vector([z, e]), right=vector([e, z]))
 
-
     def some_elements(self):
         r"""
-        Return some elements of this recognizable series.
+        Return some elements of this recognizable series space.
 
         See :class:`TestSuite` for a typical use case.
 
@@ -1901,13 +1899,12 @@ class RecognizableSeriesSpace(UniqueRepresentation, Parent):
              210*[] + ...,
              2210*[] - 170*[0] + 170*[1] + ...)
         """
-        from itertools import count, islice
+        from itertools import islice
         from sage.matrix.matrix_space import MatrixSpace
         from sage.modules.free_module import FreeModule
         yield self.an_element()
 
         C = self.coefficient_ring()
-        some_elements_base = iter(C.some_elements())
         k = len(self.alphabet())
         for dim in range(1, 11):
             elements_M = MatrixSpace(C, dim).some_elements()
@@ -1918,7 +1915,6 @@ class RecognizableSeriesSpace(UniqueRepresentation, Parent):
                 if len(mu) != k or len(LR) != 2:
                     break
                 yield self(mu, *LR)
-
 
     @cached_method
     def one_hadamard(self):

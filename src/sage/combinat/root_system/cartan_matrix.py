@@ -8,7 +8,7 @@ AUTHORS:
 - Christian Stump, Travis Scrimshaw (2013-04-13): Created :class:`CartanMatrix`.
 - Ben Salisbury (2018-08-07): Added Borcherds-Cartan matrices.
 """
-#*****************************************************************************
+# ****************************************************************************
 #       Copyright (C) 2007 Mike Hansen <mhansen@gmail.com>,
 #       Copyright (C) 2012,2013 Travis Scrimshaw <tscrim at ucdavis.edu>,
 #       Copyright (C) 2013 Christian Stump,
@@ -23,8 +23,8 @@ AUTHORS:
 #
 #  The full text of the GPL is available at:
 #
-#                  http://www.gnu.org/licenses/
-#*****************************************************************************
+#                  https://www.gnu.org/licenses/
+# ****************************************************************************
 
 from sage.misc.cachefunc import cached_method
 from sage.matrix.constructor import matrix
@@ -34,7 +34,7 @@ from sage.misc.inherit_comparison import InheritComparisonClasscallMetaclass
 from sage.misc.classcall_metaclass import typecall
 from sage.misc.misc import powerset
 from sage.matrix.matrix_integer_sparse import Matrix_integer_sparse
-from sage.rings.all import ZZ
+from sage.rings.integer_ring import ZZ
 from sage.combinat.root_system.cartan_type import CartanType, CartanType_abstract
 from sage.combinat.root_system.root_system import RootSystem
 from sage.sets.family import Family
@@ -460,7 +460,7 @@ class CartanMatrix(Matrix_integer_sparse, CartanType_abstract,
                 gens[i] = pi
             return S.subgroup( gens[i] for i in gens )
 
-        raise ValueError("The reflection group is only available as a matrix group or as a permutation group.")
+        raise ValueError("the reflection group is only available as a matrix group or as a permutation group")
 
     def symmetrizer(self):
         """
@@ -490,7 +490,7 @@ class CartanMatrix(Matrix_integer_sparse, CartanType_abstract,
         # The result from is_symmetrizable needs to be scaled
         # to integer coefficients
         from sage.arith.all import LCM
-        from sage.rings.all import QQ
+        from sage.rings.rational_field import QQ
         scalar = LCM([QQ(x).denominator() for x in sym])
         return Family( {iset[i]: ZZ(val*scalar) for i, val in enumerate(sym)} )
 

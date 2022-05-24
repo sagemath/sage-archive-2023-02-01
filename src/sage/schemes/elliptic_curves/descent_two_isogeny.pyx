@@ -1,5 +1,3 @@
-# distutils: libraries = ratpoints
-
 r"""
 Descent on elliptic curves over `\QQ` with a 2-isogeny
 """
@@ -17,7 +15,7 @@ Descent on elliptic curves over `\QQ` with a 2-isogeny
 from cysignals.memory cimport sig_malloc, sig_free
 from cysignals.signals cimport sig_on, sig_off
 
-from sage.rings.all import ZZ
+from sage.rings.integer_ring import ZZ
 from sage.rings.polynomial.polynomial_ring import polygen
 cdef object x_ZZ = polygen(ZZ)
 from sage.rings.polynomial.real_roots import real_roots

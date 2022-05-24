@@ -334,7 +334,7 @@ class FiniteRankFreeModuleMorphism(Morphism):
         if self._latex_name is None:
             return r'\mbox{' + str(self) + r'}'
         else:
-           return self._latex_name
+            return self._latex_name
 
     def __eq__(self, other):
         r"""
@@ -1051,7 +1051,7 @@ class FiniteRankFreeModuleMorphism(Morphism):
             [-1  2  0]
             [ 5  1  2]
             sage: type(phi.matrix())
-            <type 'sage.matrix.matrix_integer_dense.Matrix_integer_dense'>
+            <class 'sage.matrix.matrix_integer_dense.Matrix_integer_dense'>
 
         Matrix in bases different from those in which the homomorphism has
         been defined::

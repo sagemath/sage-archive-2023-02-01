@@ -475,7 +475,7 @@ cdef class IdentityMorphism(Morphism):
             return x
         cdef Parent C = self._codomain
         if C._element_init_pass_parent:
-            from sage.misc.superseded import deprecation
+            from sage.misc.superseded import deprecation_cython as deprecation
             deprecation(26879, "_element_init_pass_parent=True is deprecated. This probably means that _element_constructor_ should be a method and not some other kind of callable")
             return C._element_constructor(C, x, *args, **kwds)
         else:

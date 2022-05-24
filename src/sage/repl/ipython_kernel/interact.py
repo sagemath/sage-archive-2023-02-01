@@ -19,9 +19,9 @@ EXAMPLES::
     ....: def f(x=(0,10)):
     ....:     pass
     Interactive function <function f at ...> with 1 widget
-      x: IntSlider(value=5, description=u'x', max=10)
+      x: IntSlider(value=5, description='x', max=10)
     sage: f.widget.children
-    (IntSlider(value=5, description=u'x', max=10), Output())
+    (IntSlider(value=5, description='x', max=10), Output())
 """
 
 # ****************************************************************************
@@ -41,8 +41,9 @@ from collections.abc import Iterable, Iterator
 from .widgets import EvalText, SageColorPicker
 from .widgets_sagenb import input_grid
 from sage.structure.element import parent
-from sage.symbolic.ring import SR
-from sage.plot.colors import Color
+import sage.rings.abc
+from sage.misc.lazy_import import lazy_import
+lazy_import("sage.plot.colors", "Color")
 from sage.structure.element import Matrix
 
 
@@ -57,9 +58,9 @@ class sage_interactive(interactive):
         sage: def myfunc(x=10, y="hello", z=None): pass
         sage: sage_interactive(myfunc, x=(0,100), z=["one", "two", "three"])
         Interactive function <function myfunc at ...> with 3 widgets
-          x: IntSlider(value=10, description=u'x')
-          y: Text(value=u'hello', description=u'y')
-          z: Dropdown(description=u'z', options=('one', 'two', 'three'), value=None)
+          x: IntSlider(value=10, description='x')
+          y: Text(value='hello', description='y')
+          z: Dropdown(description='z', options=('one', 'two', 'three'), value=None)
     """
     def __init__(*args, **kwds):
         """
@@ -140,9 +141,7 @@ class sage_interactive(interactive):
 
             sage: from sage.repl.ipython_kernel.interact import sage_interactive
             sage: def myfunc(x=[1,2,3], auto_update=False): pass
-            sage: sage_interactive(myfunc).signature().parameters  # py2
-            OrderedDict([('x', <Parameter ... 'x'>)])
-            sage: sage_interactive(myfunc).signature().parameters  # py3
+            sage: sage_interactive(myfunc).signature().parameters
             mappingproxy({'x': <Parameter "x=[1, 2, 3]">})
         """
         return self.__signature
@@ -160,12 +159,12 @@ class sage_interactive(interactive):
 
             sage: from sage.repl.ipython_kernel.interact import sage_interactive
             sage: sage_interactive.widget_from_single_value("sin(x)")
-            Text(value=u'sin(x)')
+            Text(value='sin(x)')
             sage: sage_interactive.widget_from_single_value(sin(x))
-            EvalText(value=u'sin(x)')
+            EvalText(value='sin(x)')
             sage: from sage.plot.colors import Color
             sage: sage_interactive.widget_from_single_value(matrix([[1, 2], [3, 4]]))
-            Grid(value=[[1, 2], [3, 4]], children=(Label(value=u''), VBox(children=(EvalText(value=u'1', layout=Layout(max_width=u'5em')), EvalText(value=u'3', layout=Layout(max_width=u'5em')))), VBox(children=(EvalText(value=u'2', layout=Layout(max_width=u'5em')), EvalText(value=u'4', layout=Layout(max_width=u'5em'))))))
+            Grid(value=[[1, 2], [3, 4]], children=(Label(value=''), VBox(children=(EvalText(value='1', layout=Layout(max_width='5em')), EvalText(value='3', layout=Layout(max_width='5em')))), VBox(children=(EvalText(value='2', layout=Layout(max_width='5em')), EvalText(value='4', layout=Layout(max_width='5em'))))))
             sage: sage_interactive.widget_from_single_value(Color('cornflowerblue'))
             SageColorPicker(value='#6495ed')
         """
@@ -200,14 +199,20 @@ class sage_interactive(interactive):
             sage: sage_interactive.widget_from_tuple( (0, 10) )
             IntSlider(value=5, max=10)
             sage: sage_interactive.widget_from_tuple( ("number", (0, 10)) )
-            IntSlider(value=5, description=u'number', max=10)
+            IntSlider(value=5, description='number', max=10)
             sage: sage_interactive.widget_from_tuple( (3, (0, 10)) )
             IntSlider(value=3, max=10)
-            sage: sage_interactive.widget_from_tuple((2, dict(one=1, two=2, three=3))) # py2
-            Dropdown(index=1, options={'three': 3, 'two': 2, 'one': 1}, value=2)
-            sage: sage_interactive.widget_from_tuple((2, dict(one=1, two=2, three=3))) # py3
+            sage: sage_interactive.widget_from_tuple((2, dict(one=1, two=2, three=3)))
             Dropdown(index=1, options={'one': 1, 'two': 2, 'three': 3}, value=2)
             sage: sage_interactive.widget_from_tuple( (sqrt(2), pi) )
+            FloatSlider(value=2.277903107981444, max=3.141592653589793, min=1.4142135623730951)
+
+        TESTS:
+
+        Symbolic subrings::
+
+            sage: SCR = SR.subring(no_variables=True)
+            sage: sage_interactive.widget_from_tuple( (SCR(sqrt(2)), SCR(pi)) )
             FloatSlider(value=2.277903107981444, max=3.141592653589793, min=1.4142135623730951)
         """
         # Support (description, abbrev)
@@ -223,7 +228,7 @@ class sage_interactive(interactive):
         # Numerically evaluate symbolic expressions
 
         def n(x):
-            if parent(x) is SR:
+            if isinstance(parent(x), sage.rings.abc.SymbolicRing):
                 return x.numerical_approx()
             else:
                 return x

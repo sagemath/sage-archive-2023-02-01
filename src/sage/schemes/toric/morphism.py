@@ -369,9 +369,9 @@ from sage.categories.morphism import Morphism
 from sage.structure.richcmp import richcmp_not_equal, richcmp
 
 from sage.structure.sequence import Sequence
-from sage.rings.all import ZZ
+from sage.rings.integer_ring import ZZ
 from sage.arith.all import gcd
-from sage.misc.all import cached_method
+from sage.misc.cachefunc import cached_method
 from sage.matrix.constructor import matrix, identity_matrix
 from sage.modules.free_module_element import vector
 from sage.geometry.all import Cone, Fan
@@ -449,7 +449,6 @@ class SchemeMorphism_point_toric_field(SchemeMorphism_point, Morphism):
             # Verify that the point satisfies the equations of X.
             X.codomain()._check_satisfies_equations(coordinates)
         self._coords = coordinates
-
 
 
 ############################################################################
@@ -1334,7 +1333,6 @@ class SchemeMorphism_fan_toric_variety(SchemeMorphism, Morphism):
         return self.domain().divisor(values)
 
 
-
 ############################################################################
 # A morphism of toric varieties determined by a dominant fan morphism
 class SchemeMorphism_fan_toric_variety_dominant(SchemeMorphism_fan_toric_variety):
@@ -2015,5 +2013,3 @@ class SchemeMorphism_fan_fiber_component_toric_variety(SchemeMorphism):
             value /= multiplicity
             values.append(value)
         return self.domain().divisor(values)
-
-

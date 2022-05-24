@@ -65,7 +65,6 @@ from cysignals.signals cimport sig_on, sig_off
 import operator
 import fractions
 
-from sage.misc.mathml import mathml
 from sage.arith.long cimport pyobject_to_long, integer_check_long_py
 from sage.cpython.string cimport char_to_str, str_to_bytes
 
@@ -76,10 +75,6 @@ import sage.rings.rational_field
 
 cimport sage.rings.integer as integer
 from .integer cimport Integer
-
-from cypari2.paridecl cimport *
-from cypari2.gen cimport Gen as pari_gen
-from sage.libs.pari.convert_gmp cimport INT_to_mpz, INTFRAC_to_mpq, new_gen_from_mpq_t
 
 from .integer_ring import ZZ
 from sage.arith.rational_reconstruction cimport mpq_rational_reconstruction
@@ -106,6 +101,17 @@ from cpython.int cimport PyInt_AS_LONG
 
 cimport sage.rings.fast_arith
 import  sage.rings.fast_arith
+
+
+try:
+    from cypari2.gen import Gen as pari_gen
+except ImportError:
+    pari_gen = ()
+
+
+set_rational_from_gen = None
+new_gen_from_rational = None
+
 
 cdef sage.rings.fast_arith.arith_int ai
 ai = sage.rings.fast_arith.arith_int()
@@ -401,7 +407,7 @@ cdef class Rational(sage.structure.element.FieldElement):
 
         sage: a = -2/3
         sage: type(a)
-        <type 'sage.rings.rational.Rational'>
+        <class 'sage.rings.rational.Rational'>
         sage: parent(a)
         Rational Field
         sage: Rational('1/0')
@@ -525,8 +531,8 @@ cdef class Rational(sage.structure.element.FieldElement):
 
         .. NOTE::
 
-           This is for demonstration purposes only, mutating rationals
-           is almost always the wrong thing to do.
+           This is for doctesting purposes only.  Rationals are defined
+           to be immutable.
         """
         if x is not None:
             self.__set_value(x, base)
@@ -647,13 +653,10 @@ cdef class Rational(sage.structure.element.FieldElement):
             mpq_canonicalize(self.value)
 
         elif isinstance(x, pari_gen):
-            x = x.simplify()
-            if is_rational_t(typ((<pari_gen>x).g)):
-                INTFRAC_to_mpq(self.value, (<pari_gen>x).g)
-            else:
-                a = integer.Integer(x)
-                mpz_set(mpq_numref(self.value), a.value)
-                mpz_set_si(mpq_denref(self.value), 1)
+            global set_rational_from_gen
+            if set_rational_from_gen is None:
+                from sage.libs.pari.convert_sage import set_rational_from_gen
+            set_rational_from_gen(self, x)
 
         elif isinstance(x, list) and len(x) == 1:
             self.__set_value(x[0], base)
@@ -893,30 +896,35 @@ cdef class Rational(sage.structure.element.FieldElement):
 
     def __copy__(self):
         """
-        Return a copy of ``self``.
-
-        OUTPUT: Rational
-
         EXAMPLES::
 
             sage: a = -17/37
             sage: copy(a) is a
-            False
+            True
 
         Coercion does not make a new copy::
 
             sage: QQ(a) is a
             True
 
-        The constructor also makes a new copy::
+        Calling the constructor directly makes a new copy::
 
             sage: Rational(a) is a
             False
         """
-        cdef Rational z
-        z = <Rational> Rational.__new__(Rational)
-        mpq_set(z.value, self.value)
-        return z
+        # immutable
+        return self
+
+    def __deepcopy__(self, memo):
+        """
+        EXAMPLES::
+
+            sage: a = -17/37
+            sage: deepcopy(a) is a
+            True
+        """
+        # immutable
+        return self
 
     def  __dealloc__(self):
         """
@@ -952,11 +960,10 @@ cdef class Rational(sage.structure.element.FieldElement):
         """
         if self.denom() == 1:
             return str(self.numer())
+        if self < 0:
+            return "-\\frac{%s}{%s}" % (-self.numer(), self.denom())
         else:
-            if self < 0:
-                return "-\\frac{%s}{%s}"%(-self.numer(), self.denom())
-            else:
-               return "\\frac{%s}{%s}"%(self.numer(), self.denom())
+            return "\\frac{%s}{%s}" % (self.numer(), self.denom())
 
     def _symbolic_(self, sring):
         """
@@ -1084,6 +1091,7 @@ cdef class Rational(sage.structure.element.FieldElement):
         if self.denom() == 1:
             return '<mn>%s</mn>'%(self.numer())
         else:
+            from sage.misc.mathml import mathml
             t = ''
             if self < 0:
                 t = t + '<mo>-</mo>'
@@ -1711,7 +1719,7 @@ cdef class Rational(sage.structure.element.FieldElement):
         return self.numer().squarefree_part() * self.denom().squarefree_part()
 
     def is_padic_square(self, p, check=True):
-        """
+        r"""
         Determines whether this rational number is a square in `\QQ_p` (or in
         `R` when ``p = infinity``).
 
@@ -1940,7 +1948,7 @@ cdef class Rational(sage.structure.element.FieldElement):
         if mpq_sgn(self.value) < 0:
             if not extend:
                 raise ValueError("square root of negative number not rational")
-            from sage.functions.other import _do_sqrt
+            from sage.misc.functional import _do_sqrt
             return _do_sqrt(self, prec=prec, all=all)
 
         cdef Rational z = <Rational> Rational.__new__(Rational)
@@ -1962,11 +1970,11 @@ cdef class Rational(sage.structure.element.FieldElement):
         if non_square:
             if not extend:
                 raise ValueError("square root of %s not a rational number" % self)
-            from sage.functions.other import _do_sqrt
+            from sage.misc.functional import _do_sqrt
             return _do_sqrt(self, prec=prec, all=all)
 
         if prec:
-            from sage.functions.other import _do_sqrt
+            from sage.misc.functional import _do_sqrt
             return _do_sqrt(self, prec=prec, all=all)
 
         if all:
@@ -2523,7 +2531,7 @@ cdef class Rational(sage.structure.element.FieldElement):
             sage: a = (0/1)^(0/1); a
             1
             sage: type(a)
-            <type 'sage.rings.rational.Rational'>
+            <class 'sage.rings.rational.Rational'>
 
         If the result is rational, it is returned as a rational::
 
@@ -2559,7 +2567,7 @@ cdef class Rational(sage.structure.element.FieldElement):
             sage: a = int(2)^(3/1); a
             8
             sage: type(a)
-            <type 'sage.rings.rational.Rational'>
+            <class 'sage.rings.rational.Rational'>
 
         The exponent must fit in a long unless the base is -1, 0, or 1::
 
@@ -3150,9 +3158,9 @@ cdef class Rational(sage.structure.element.FieldElement):
             3
             sage: (125/8).log(5/2,prec=53)
             3.00000000000000
-            
+
         TESTS::
-        
+
             sage: (25/2).log(5/2)
             log(25/2)/log(5/2)
             sage: (-1/2).log(3)
@@ -3165,7 +3173,7 @@ cdef class Rational(sage.structure.element.FieldElement):
             raise ValueError("log base must be positive")
         self_sgn = mpz_sgn(mpq_numref(self.value))
         if self_sgn < 0 and prec is None:
-            from sage.symbolic.all import SR
+            from sage.symbolic.ring import SR
             return SR(self).log(m)
         if prec:
             if self_sgn >= 0:
@@ -3249,7 +3257,7 @@ cdef class Rational(sage.structure.element.FieldElement):
             sage: (1/2).gamma(5)
             Traceback (most recent call last):
             ...
-            TypeError: gamma() takes exactly 0 positional arguments (1 given)
+            TypeError: ...gamma() takes exactly 0 positional arguments (1 given)
         """
         if prec:
             return self.n(prec).gamma()
@@ -3260,10 +3268,10 @@ cdef class Rational(sage.structure.element.FieldElement):
                 numer = self.numer()
                 rat_part = Rational((numer-2).multifactorial(2)) >> ((numer-1)//2)
                 from sage.symbolic.constants import pi
-                from sage.functions.all import sqrt
+                from sage.misc.functional import sqrt
                 return sqrt(pi) * rat_part
             else:
-                from sage.symbolic.all import SR
+                from sage.symbolic.ring import SR
                 return SR(self).gamma()
 
     def floor(self):
@@ -3479,7 +3487,7 @@ cdef class Rational(sage.structure.element.FieldElement):
             sage: (0/1)._lcm(0/1)
             0
             sage: type((2/3)._lcm(3/5))
-            <type 'sage.rings.rational.Rational'>
+            <class 'sage.rings.rational.Rational'>
         """
         if mpz_cmp_si(mpq_numref(self.value), 0) == 0 and \
                mpz_cmp_si(mpq_numref(other.value), 0) == 0:
@@ -3770,11 +3778,14 @@ cdef class Rational(sage.structure.element.FieldElement):
             sage: m = n.__pari__(); m
             9390823/17
             sage: type(m)
-            <type 'cypari2.gen.Gen'>
+            <class 'cypari2.gen.Gen'>
             sage: m.type()
             't_FRAC'
         """
-        return new_gen_from_mpq_t(self.value)
+        global new_gen_from_rational
+        if new_gen_from_rational is None:
+            from sage.libs.pari.convert_sage import new_gen_from_rational
+        return new_gen_from_rational(self)
 
     def _interface_init_(self, I=None):
         """
@@ -4144,7 +4155,7 @@ cdef class Q_to_Z(Map):
     TESTS::
 
         sage: type(ZZ.convert_map_from(QQ))
-        <type 'sage.rings.rational.Q_to_Z'>
+        <class 'sage.rings.rational.Q_to_Z'>
     """
     cpdef Element _call_(self, x):
         """
@@ -4209,12 +4220,7 @@ cdef class int_to_Q(Morphism):
             sage: f = sage.rings.rational.int_to_Q()
             sage: f(int(4)) # indirect doctest
             4
-            sage: f(4^100)  # py2 - this will crash on Python 3
-            Traceback (most recent call last):
-            ...
-            TypeError: must be a Python int object
         """
-
         cdef Rational rat
 
         if type(a) is not int:
@@ -4293,3 +4299,8 @@ cdef class long_to_Q(Morphism):
             'Native'
         """
         return "Native"
+
+
+# Support Python's numbers abstract base class
+import numbers
+numbers.Rational.register(Rational)

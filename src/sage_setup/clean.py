@@ -103,7 +103,7 @@ def _find_stale_files(site_packages, python_packages, python_modules, ext_module
     CEXTMOD_EXTS = get_extensions('extension')
     INIT_FILES = tuple('__init__' + x for x in PYMOD_EXTS)
 
-    module_files = installed_files_by_module(site_packages, ['sage', 'sage_setup'])
+    module_files = installed_files_by_module(site_packages, ['sage'])
 
     for mod in python_packages:
         try:

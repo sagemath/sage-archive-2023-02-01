@@ -3,7 +3,7 @@ The PPL (Parma Polyhedra Library) backend for polyhedral computations
 """
 
 from sage.structure.element import Element
-from sage.rings.all import ZZ
+from sage.rings.integer_ring import ZZ
 from sage.rings.integer import Integer
 from sage.arith.functions import LCM_list
 from sage.misc.functional import denominator
@@ -96,13 +96,16 @@ class Polyhedron_ppl(Polyhedron_mutable):
             sage: Polyhedron_ppl._init_from_Vrepresentation(p, [], [], [])
         """
         gs = Generator_System()
-        if vertices is None: vertices = []
+        if vertices is None:
+            vertices = []
         for v in vertices:
             gs.insert(self._convert_generator_to_ppl(v, 2))
-        if rays is None: rays = []
+        if rays is None:
+            rays = []
         for r in rays:
             gs.insert(self._convert_generator_to_ppl(r, 3))
-        if lines is None: lines = []
+        if lines is None:
+            lines = []
         for l in lines:
             gs.insert(self._convert_generator_to_ppl(l, 4))
         if gs.empty():
@@ -135,10 +138,12 @@ class Polyhedron_ppl(Polyhedron_mutable):
             sage: Polyhedron_ppl._init_from_Hrepresentation(p, [], [])
         """
         cs = Constraint_System()
-        if ieqs is None: ieqs = []
+        if ieqs is None:
+            ieqs = []
         for ieq in ieqs:
             cs.insert(self._convert_constraint_to_ppl(ieq, 0))
-        if eqns is None: eqns = []
+        if eqns is None:
+            eqns = []
         for eqn in eqns:
             cs.insert(self._convert_constraint_to_ppl(eqn, 1))
         if cs.empty():

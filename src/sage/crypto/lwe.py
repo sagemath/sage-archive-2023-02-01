@@ -92,7 +92,8 @@ REFERENCES:
 """
 
 from sage.functions.log import log
-from sage.functions.other import sqrt, floor, ceil
+from sage.functions.other import floor, ceil
+from sage.misc.functional import sqrt
 from sage.misc.functional import cyclotomic_polynomial, round
 from sage.misc.randstate import set_random_seed
 from sage.misc.prandom import randint
@@ -293,7 +294,8 @@ class LWE(SageObject):
         fix the representation and recover the correct standard deviation of the
         noise::
 
-            sage: while abs(sqrt(variance([e if e <= 200 else e-401 for e in S()]).n()) - 3.0) > 0.01:
+            sage: from numpy import std
+            sage: while abs(std([e if e <= 200 else e-401 for e in S()]) - 3.0) > 0.01:
             ....:     add_samples()
 
         If ``m`` is not ``None`` the number of available samples is restricted::

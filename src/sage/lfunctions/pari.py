@@ -262,7 +262,7 @@ def lfun_character(chi):
     """
     if not chi.is_primitive():
         chi = chi.primitive_character()
-    G, v = chi._pari_conversion()
+    G, v = chi._pari_init_()
     return pari.lfuncreate([G, v])
 
 
@@ -316,7 +316,7 @@ def lfun_number_field(K):
         sage: L(3)
         1.15202784126080
         sage: L(0)
-        0.000000000000000
+        ...0.000000000000000
     """
     return pari.lfuncreate(K)
 

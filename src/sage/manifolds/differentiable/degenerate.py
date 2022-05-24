@@ -31,8 +31,8 @@ class DegenerateManifold(DifferentiableManifold):
 
     - ``n`` -- positive integer; dimension of the manifold
     - ``name`` -- string; name (symbol) given to the manifold
-    - ``metric_name`` -- (default: ``'g'``) string; name (symbol) given to the
-      metric
+    - ``metric_name`` -- (default: ``None``) string; name (symbol) given to the
+      metric; if ``None``, ``'g'`` is used
     - ``signature`` -- (default: ``None``) signature `S` of the metric as a
       tuple: `S = (n_+, n_-, n_0)`, where `n_+` (resp. `n_-`, resp. `n_0`) is the
       number of positive terms (resp. negative terms, resp. zero tems) in any
@@ -98,12 +98,12 @@ class DegenerateManifold(DifferentiableManifold):
     - [DB1996]_
     - [DS2010]_
     """
-    def __init__(self, n, name, metric_name='g', signature=None, base_manifold=None,
-                 diff_degree=infinity, latex_name=None,
+    def __init__(self, n, name, metric_name=None, signature=None,
+                 base_manifold=None, diff_degree=infinity, latex_name=None,
                  metric_latex_name=None, start_index=0, category=None,
                  unique_tag=None):
         r"""
-        Construct a pseudo-Riemannian manifold.
+        Construct a degenerate manifold.
 
         TESTS::
 
@@ -130,7 +130,9 @@ class DegenerateManifold(DifferentiableManifold):
                                         category=category)
         self._metric = None # to be initialized by metric()
         self._metric_signature = signature
-        if not isinstance(metric_name, str):
+        if metric_name is None:
+            metric_name = 'g'
+        elif not isinstance(metric_name, str):
             raise TypeError("{} is not a string".format(metric_name))
         self._metric_name = metric_name
         if metric_latex_name is None:

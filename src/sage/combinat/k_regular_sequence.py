@@ -48,7 +48,7 @@ of Pascals's triangle::
     ....: def u(n):
     ....:     if n <= 1:
     ....:         return n
-    ....:     return 2*u(floor(n/2)) + u(ceil(n/2))
+    ....:     return 2 * u(n // 2) + u((n+1) // 2)
     sage: tuple(u(n) for n in srange(10))
     (0, 1, 3, 5, 9, 11, 15, 19, 27, 29)
 
@@ -100,39 +100,6 @@ from .recognizable_series import RecognizableSeries
 from .recognizable_series import RecognizableSeriesSpace
 from .recognizable_series import minimize_result
 from sage.misc.cachefunc import cached_function, cached_method
-
-
-def pad_right(T, length, zero=0):
-    r"""
-    Pad ``T`` to the right by using ``zero`` to have
-    at least the given ``length``.
-
-    INPUT:
-
-    - ``T`` -- A tuple, list or other iterable
-
-    - ``length`` -- a nonnegative integer
-
-    - ``zero`` -- (default: ``0``) the elements to pad with
-
-    OUTPUT:
-
-    An object of the same type as ``T``
-
-    EXAMPLES::
-
-        sage: from sage.combinat.k_regular_sequence import pad_right
-        sage: pad_right((1, 2, 3), 10)
-        (1, 2, 3, 0, 0, 0, 0, 0, 0, 0)
-        sage: pad_right((1, 2, 3), 2)
-        (1, 2, 3)
-
-    TESTS::
-
-        sage: pad_right([1, 2, 3], 10)
-        [1, 2, 3, 0, 0, 0, 0, 0, 0, 0]
-    """
-    return T + type(T)(zero for _ in range(length - len(T)))
 
 
 class kRegularSequence(RecognizableSeries):
@@ -888,32 +855,7 @@ class kRegularSequenceSpace(RecognizableSeriesSpace):
             sage: from itertools import islice
             sage: Seq2 = kRegularSequenceSpace(2, ZZ)
             sage: TestSuite(Seq2).run(  # long time
-            ....:    verbose=True,
             ....:    elements=tuple(islice(Seq2.some_elements(), 4)))
-            running ._test_additive_associativity() . . . pass
-            running ._test_an_element() . . . pass
-            running ._test_cardinality() . . . pass
-            running ._test_category() . . . pass
-            running ._test_construction() . . . pass
-            running ._test_elements() . . .
-              Running the test suite of self.an_element()
-              running ._test_category() . . . pass
-              running ._test_eq() . . . pass
-              running ._test_new() . . . pass
-              running ._test_nonzero_equal() . . . pass
-              running ._test_not_implemented_methods() . . . pass
-              running ._test_pickling() . . . pass
-              pass
-            running ._test_elements_eq_reflexive() . . . pass
-            running ._test_elements_eq_symmetric() . . . pass
-            running ._test_elements_eq_transitive() . . . pass
-            running ._test_elements_neq() . . . pass
-            running ._test_eq() . . . pass
-            running ._test_new() . . . pass
-            running ._test_not_implemented_methods() . . . pass
-            running ._test_pickling() . . . pass
-            running ._test_some_elements() . . . pass
-            running ._test_zero() . . . pass
 
         .. SEEALSO::
 
@@ -1033,7 +975,7 @@ class kRegularSequenceSpace(RecognizableSeriesSpace):
           The recurrence relations above uniquely determine a `k`-regular sequence;
           see [HKL2021]_ for further information.
 
-        - ``function`` -- symbolic function ``f`` occuring in the equations
+        - ``function`` -- symbolic function ``f`` occurring in the equations
 
         - ``var`` -- symbolic variable (``n`` in the above description of
           ``equations``)
@@ -1817,7 +1759,7 @@ class RecurrenceParser(object):
                 raise ValueError("Term %s in the equation %s: "
                                  "%s is not a power of %s."
                                  % (summand, eq,
-                                    k**m, k))
+                                    k**m, k)) from None
             return [coeff, m, d]
 
         if not equations:
@@ -1857,7 +1799,7 @@ class RecurrenceParser(object):
                 except (TypeError, ValueError):
                     raise ValueError("Initial value %s given by the equation %s "
                                      "is not in %s."
-                                     % (right_side, eq, coefficient_ring))
+                                     % (right_side, eq, coefficient_ring)) from None
                 if (polynomial_left in initial_values.keys() and
                     initial_values[polynomial_left] != right_side):
                     raise ValueError("Initial value %s is given twice."
@@ -2884,7 +2826,6 @@ class RecurrenceParser(object):
         from sage.arith.srange import srange
         from sage.functions.other import floor
         from sage.matrix.constructor import Matrix
-        from sage.matrix.matrix_space import MatrixSpace
         from sage.matrix.special import block_matrix, block_diagonal_matrix, zero_matrix
         from sage.modules.free_module_element import vector
 
@@ -2974,11 +2915,8 @@ class RecurrenceParser(object):
             for i in srange(n1):
                 J = J.stack(vector([int(j*k == i - rem) for j in srange(n1)]))
 
-            Mat = MatrixSpace(coefficient_ring, dim, dim)
-            mat = Mat(block_matrix([[mat, W],
-                                    [zero_matrix(n1, dim_without_corr), J]]))
-
-        return mat
+            Z = zero_matrix(coefficient_ring, n1, dim_without_corr)
+            return block_matrix([[mat, W], [Z, J]], subdivide=False)
 
     def left(self, recurrence_rules):
         r"""

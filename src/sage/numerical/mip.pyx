@@ -238,7 +238,7 @@ from sage.structure.parent cimport Parent
 from sage.structure.element cimport Element
 from sage.structure.element import is_Matrix
 from sage.misc.cachefunc import cached_method
-from sage.misc.superseded import deprecation
+from sage.misc.superseded import deprecation_cython as deprecation
 from sage.rings.integer_ring import ZZ
 
 
@@ -663,13 +663,13 @@ cdef class MixedIntegerLinearProgram(SageObject):
             sage: p = MixedIntegerLinearProgram(solver='ppl')
             sage: p.base_ring()
             Rational Field
-            sage: from sage.rings.all import AA
-            sage: p = MixedIntegerLinearProgram(solver='InteractiveLP', base_ring=AA)
-            sage: p.base_ring()
+            sage: from sage.rings.qqbar import AA                                      # optional - sage.rings.number_field
+            sage: p = MixedIntegerLinearProgram(solver='InteractiveLP', base_ring=AA)  # optional - sage.rings.number_field
+            sage: p.base_ring()                                                        # optional - sage.rings.number_field
             Algebraic Real Field
-            sage: d = polytopes.dodecahedron()
-            sage: p = MixedIntegerLinearProgram(base_ring=d.base_ring())
-            sage: p.base_ring()
+            sage: d = polytopes.dodecahedron()                                         # optional - sage.rings.number_field
+            sage: p = MixedIntegerLinearProgram(base_ring=d.base_ring())               # optional - sage.rings.number_field
+            sage: p.base_ring()                                                        # optional - sage.rings.number_field
             Number Field in sqrt5 with defining polynomial x^2 - 5 with sqrt5 = 2.236067977499790?
         """
         return self._backend.base_ring()
@@ -3293,17 +3293,17 @@ cdef class MIPVariable(SageObject):
             raise IndexError("{} does not index a component of {}".format(i, self))
         zero = self._p._backend.zero()
         name = self._name + "[" + str(i) + "]" if self._name else None
+
         j = self._p._backend.add_variable(
             lower_bound=self._lower_bound,
             upper_bound=self._upper_bound,
-            binary=False,
-            continuous=True,
-            integer=False,
+            binary=(self._vtype == self._p.__BINARY),
+            continuous=(self._vtype == self._p.__REAL),
+            integer=(self._vtype == self._p.__INTEGER),
             obj=zero,
             name=name)
         v = self._p.linear_functions_parent()({j : 1})
         self._p._variables[v] = j
-        self._p._backend.set_variable_type(j, self._vtype)
         self._dict[i] = v
         return v
 

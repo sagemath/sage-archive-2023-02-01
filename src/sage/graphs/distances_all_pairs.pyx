@@ -591,7 +591,7 @@ def is_distance_regular(G, parameters=False):
     for u in range(n):
         for v in range(n):
             if u == v:
-               continue
+                continue
 
             d = distance_matrix[u * n + v]
             if d == infinity:
@@ -1790,7 +1790,7 @@ def diameter(G, algorithm=None, source=None):
         sage: d1 == d2 and d1 == d3
         True
 
-    TESTS::
+    TESTS:
 
     This was causing a segfault. Fixed in :trac:`17873` ::
 
@@ -1814,7 +1814,7 @@ def diameter(G, algorithm=None, source=None):
             raise ValueError("unknown algorithm for computing the diameter of undirected graph")
 
     if algorithm == 'standard':
-       return max(G.eccentricity())
+        return max(G.eccentricity())
     if source is None:
         source = next(G.vertex_iterator())
     elif not G.has_vertex(source):

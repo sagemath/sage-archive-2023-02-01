@@ -487,6 +487,10 @@ def _test_adjacency_sequence_out():
     high = 500
     randg = DiGraph(GraphGenerators().RandomGNP(randint(low, high), random()))
     n = randg.order()
+    while n <= 1:
+        randg = DiGraph(GraphGenerators().RandomGNP(randint(low, high), random()))
+        n = randg.order()
+
     cdef DenseGraph g = DenseGraph(n,
                                    verts=randg.vertex_iterator(),
                                    arcs=randg.edge_iterator(labels=False))

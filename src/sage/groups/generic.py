@@ -665,7 +665,7 @@ def discrete_log_rho(a, base, ord=None, operation='*', hash_function=hash):
     raise ValueError("Pollard rho algorithm failed to find a logarithm")
 
 
-def discrete_log(a, base, ord=None, bounds=None, operation='*', identity=None, inverse=None, op=None):
+def discrete_log(a, base, ord=None, bounds=None, operation='*', identity=None, inverse=None, op=None, use_rho=False):
     r"""
     Totally generic discrete log function.
 
@@ -679,6 +679,8 @@ def discrete_log(a, base, ord=None, bounds=None, operation='*', identity=None, i
     - ``identity`` - the group's identity
     - ``inverse()`` - function of 1 argument ``x`` returning inverse of ``x``
     - ``op()`` - function of 2 arguments ``x``, ``y`` returning ``x*y`` in group
+    - ``use_rho`` - use Pollard's rho instead of BSGS (this option may be
+    overwritten if the base order is small)
     
     ``a`` and ``base`` must be elements of some group with identity
     given by identity, inverse of ``x`` by ``inverse(x)``, and group
@@ -818,16 +820,26 @@ def discrete_log(a, base, ord=None, bounds=None, operation='*', identity=None, i
         for i, (pi, ri) in enumerate(f):
             for j in range(ri):
                 if operation in multiplication_names:
-                    c = bsgs(base**(ord // pi),
-                             (a / base**l[i])**(ord // pi**(j + 1)),
-                             (0, pi),
-                             operation=operation)
+                    if(not use_rho):
+                        c = bsgs(base**(ord // pi),
+                                (a / base**l[i])**(ord // pi**(j + 1)),
+                                (0, pi),
+                                operation=operation)
+                    else:
+                        c = discrete_log_rho((a / base**l[i])**(ord // pi**(j + 1)),
+                                base**(ord // pi),
+                                operation=operation)
                     l[i] += c * (pi**j)
                 elif operation in addition_names:
-                    c = bsgs(base * (ord // pi),
-                             (a - base * l[i]) * (ord // pi**(j + 1)),
-                             (0, pi),
-                             operation=operation)
+                    if(not use_rho):
+                        c = bsgs(base * (ord // pi),
+                                (a - base * l[i]) * (ord // pi**(j + 1)),
+                                (0, pi),
+                                operation=operation)
+                    else:
+                        c = discrete_log_rho((a - base * l[i]) * (ord // pi**(j + 1)),
+                                base * (ord // pi),
+                                operation=operation)
                     l[i] += c * (pi**j)
         from sage.arith.all import CRT_list
         return CRT_list(l, [pi**ri for pi, ri in f])

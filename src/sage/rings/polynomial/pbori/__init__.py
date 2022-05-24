@@ -14,9 +14,10 @@ AUTHOR:
 The PolyBoRi Team, 2007-2011
 
 REFERENCES:
+
 M. Brickenstein, A. Dreyer, G. Greuel, M. Wedler, O. Wienand,
-*New developments in the theory of Groebner bases and applications*
-to formal Verification,  Preprint at :arxiv:`0801.1177`
+*New developments in the theory of Groebner bases and applications
+to formal Verification*,  Preprint at :arxiv:`0801.1177`
 
 M. Brickenstein, A. Dreyer, PolyBoRi:
 *A Groebner Basis Framework for Boolean Polynomials*,

@@ -335,14 +335,14 @@ AC_DEFUN([SAGE_SPKG_FINALIZE], [dnl
     ])
     AS_CASE(["$DEPS"], [*\|*], [], [AS_VAR_APPEND([DEPS], [" |"])])
     AS_IF([test -f "$DIR/dependencies_order_only"], [dnl
-        AS_VAR_APPEND([DEPS], [' '$(echo $(sed 's/^ *//; s/ *#.*//; q' $DIR/dependencies_order_only))])
+        ADD_DEPS=$(echo $(sed 's/^ *//; s/ *#.*//; q' $DIR/dependencies_order_only))
+        AS_VAR_APPEND([DEPS], [" $ADD_DEPS"])
     ], [dnl
         m4_case(SPKG_SOURCE, [pip], [AS_VAR_APPEND([DEPS], [' pip'])], [:])dnl
     ])
     AS_IF([test -f "$DIR/dependencies_check"], [dnl
-        AS_VAR_APPEND([DEPS], [' $(and $(filter-out no,$(SAGE_CHECK_]SPKG_NAME[)), '])
-        AS_VAR_APPEND([DEPS], [$(echo $(sed 's/^ *//; s/ *#.*//; q' $DIR/dependencies_check))])
-        AS_VAR_APPEND([DEPS], [')'])dnl
+        ADD_DEPS=$(echo $(sed 's/^ *//; s/ *#.*//; q' $DIR/dependencies_check))
+        AS_VAR_APPEND([DEPS], [' $(and $(filter-out no,$(SAGE_CHECK_]SPKG_NAME[)), '"$ADD_DEPS"')'])dnl
     ])
     dnl
     SAGE_PACKAGE_DEPENDENCIES="${SAGE_PACKAGE_DEPENDENCIES}$(printf '\ndeps_')SPKG_NAME = ${DEPS}"

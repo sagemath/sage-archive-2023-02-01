@@ -679,7 +679,7 @@ def discrete_log(a, base, ord=None, bounds=None, operation='*', identity=None, i
     - ``identity`` - the group's identity
     - ``inverse()`` - function of 1 argument ``x`` returning inverse of ``x``
     - ``op()`` - function of 2 arguments ``x``, ``y`` returning ``x*y`` in group
-
+    
     ``a`` and ``base`` must be elements of some group with identity
     given by identity, inverse of ``x`` by ``inverse(x)``, and group
     operation on ``x``, ``y`` by ``op(x,y)``.

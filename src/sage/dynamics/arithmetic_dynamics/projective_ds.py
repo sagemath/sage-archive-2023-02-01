@@ -973,7 +973,7 @@ class DynamicalSystem_projective(SchemeMorphism_polynomial_projective_space,
         else:
             PHI = H([Coord_ring.gen(i) for i in range(N)])
         while D:
-            if D&1:
+            if D & 1:
                 PHI = PHI*F
                 if normalize:
                     PHI.normalize_coordinates()
@@ -2029,7 +2029,7 @@ class DynamicalSystem_projective(SchemeMorphism_polynomial_projective_space,
             # this looks different than Wells' Algorithm because of the difference
             # between what Wells' calls H_infty,
             # and what Green's Function returns for the infinite place
-            h = f.green_function(Q, 0 , **kwds) - H + R(t).log()
+            h = f.green_function(Q, 0, **kwds) - H + R(t).log()
             # The value returned by Well's algorithm may be negative. As the canonical height
             # is always nonnegative, so if this value is within -err of 0, return 0.
             if h < 0:
@@ -3359,7 +3359,7 @@ class DynamicalSystem_projective(SchemeMorphism_polynomial_projective_space,
         num_cpus = kwds.get('num_cpus', 2)
         if self.domain().dimension_relative() != 1:
             return self.conjugating_set(self, num_cpus)
-        if self.base_ring() != QQ  and self.base_ring() != ZZ:
+        if self.base_ring() != QQ and self.base_ring() != ZZ:
             return self.conjugating_set(self, num_cpus)
         self.normalize_coordinates()
         if (self.degree() == 1) or (self.degree() == 0):
@@ -3747,7 +3747,6 @@ class DynamicalSystem_projective(SchemeMorphism_polynomial_projective_space,
         if len(set(crit_orbit)) > 3:
             return False
         return True
-
 
     def critical_point_portrait(self, check=True, use_algebraic_closure=True):
         r"""

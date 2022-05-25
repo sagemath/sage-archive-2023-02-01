@@ -394,6 +394,7 @@ class ElementaryCellularAutomata(SageObject):
 
         prev_state = self._states[-1]
         next_state = [None] * self._width
+
         def to_int(triple):
             return ZZ(list(reversed(triple)), base=2)
         if self._bdry is None:

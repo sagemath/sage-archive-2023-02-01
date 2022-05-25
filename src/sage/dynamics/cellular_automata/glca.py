@@ -475,4 +475,3 @@ class GraftalLaceCellularAutomata(SageObject):
             x -= 1
         ret += "\\end{tikzpicture}"
         return ret
-

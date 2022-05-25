@@ -757,13 +757,12 @@ def julia_plot(f=None, **kwds):
                 return interact(**widgets).widget(julia_helper)
             else:
                 return interact(**widgets).widget(fast_julia_plot)
-        elif mandelbrot: # non-interactive with mandelbrot
+        elif mandelbrot:  # non-interactive with mandelbrot
             return julia_helper(c_real, c_imag, x_center, y_center,
                                 image_width, max_iteration, pixel_count,
                                 level_sep, number_of_colors, base_color,
                                 point_color)
-        else: # non-interactive without mandelbrot
+        else:  # non-interactive without mandelbrot
             return fast_julia_plot(c_real, c_imag, x_center, y_center,
                                    image_width, max_iteration, pixel_count,
                                    level_sep, number_of_colors, base_color)
-

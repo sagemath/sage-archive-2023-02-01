@@ -465,7 +465,8 @@ def bsgs(a, b, bounds, operation='*', identity=None, inverse=None, op=None):
 
     ran = 1 + ub - lb   # the length of the interval
 
-    c = op(inverse(b), multiple(a, lb, operation=operation))
+    mult = lambda x, y: multiple(x, y, operation=operation, identity=identity, inverse=inverse, op=op)
+    c = op(inverse(b), mult(a, lb))
 
     if ran < 30:    # use simple search for small ranges
         d = c
@@ -499,7 +500,7 @@ def bsgs(a, b, bounds, operation='*', identity=None, inverse=None, op=None):
     raise ValueError("log of %s to the base %s does not exist in %s" % (b, a, bounds))
 
 
-def discrete_log_rho(a, base, ord=None, operation='*', hash_function=hash):
+def discrete_log_rho(a, base, ord=None, operation='*', identity=None, inverse=None, op=None, hash_function=hash):
     """
     Pollard Rho algorithm for computing discrete logarithm in cyclic
     group of prime order.
@@ -514,6 +515,9 @@ def discrete_log_rho(a, base, ord=None, operation='*', hash_function=hash):
       to compute it
     - ``operation`` -- a string (default: ``'*'``) denoting whether we
       are in an additive group or a multiplicative one
+    - ``identity`` - the group's identity
+    - ``inverse()`` - function of 1 argument ``x`` returning inverse of ``x``
+    - ``op()`` - function of 2 arguments ``x``, ``y`` returning ``x*y`` in group
     - ``hash_function`` -- having an efficient hash function is critical
       for this algorithm (see examples)
 
@@ -587,7 +591,8 @@ def discrete_log_rho(a, base, ord=None, operation='*', hash_function=hash):
     # should be reasonable choices
     partition_size = 20
     memory_size = 4
-
+    mult = op
+    power = lambda x, y: multiple(x, y, operation=operation, identity=identity, inverse=inverse, op=op)
     if operation in addition_names:
         mult = add
         power = mul
@@ -598,11 +603,10 @@ def discrete_log_rho(a, base, ord=None, operation='*', hash_function=hash):
         power = pow
         if ord is None:
             ord = base.multiplicative_order()
-    else:
+    elif ord is None or inverse is None or identity is None or op is None:
         raise ValueError
 
     ord = Integer(ord)
-
     if not ord.is_prime():
         raise ValueError("for Pollard rho algorithm the order of the group must be prime")
 
@@ -612,7 +616,7 @@ def discrete_log_rho(a, base, ord=None, operation='*', hash_function=hash):
     isqrtord = ord.isqrt()
 
     if isqrtord < partition_size:  # setup to costly, use bsgs
-        return bsgs(base, a, bounds=(0, ord), operation=operation)
+        return bsgs(base, a, bounds=(0, ord), identity=identity, inverse=inverse, op=op, operation=operation)
 
     reset_bound = 8 * isqrtord  # we take some margin
 
@@ -793,13 +797,22 @@ def discrete_log(a, base, ord=None, bounds=None, operation='*', identity=None, i
     - William Stein and David Joyner (2005-01-05)
     - John Cremona (2008-02-29) rewrite using ``dict()`` and make generic
     """
+    from operator import mul, add, pow
+    mult = op if op is not None else [add, mul][operation in multiplication_names]
+    power = [mul, pow][operation in multiplication_names]
+    if(op is not None):
+        power = lambda x, y: multiple(x, y, operation=operation, identity=identity, inverse=inverse, op=op)
     if ord is None:
         if operation in multiplication_names:
+            mult = mul
+            power = pow
             try:
                 ord = base.multiplicative_order()
             except Exception:
                 ord = base.order()
         elif operation in addition_names:
+            mult = add
+            power = mul
             try:
                 ord = base.additive_order()
             except Exception:
@@ -812,35 +825,20 @@ def discrete_log(a, base, ord=None, bounds=None, operation='*', identity=None, i
     try:
         from sage.rings.infinity import Infinity
         if ord == +Infinity:
-            return bsgs(base, a, bounds, operation=operation)
+            return bsgs(base, a, bounds, identity=identity, inverse=inverse, op=op, operation=operation)
         if ord == 1 and a != base:
             raise ValueError
         f = ord.factor()
         l = [0] * len(f)
         for i, (pi, ri) in enumerate(f):
             for j in range(ri):
-                if operation in multiplication_names:
-                    if(not use_rho):
-                        c = bsgs(base**(ord // pi),
-                                (a / base**l[i])**(ord // pi**(j + 1)),
-                                (0, pi),
-                                operation=operation)
-                    else:
-                        c = discrete_log_rho((a / base**l[i])**(ord // pi**(j + 1)),
-                                base**(ord // pi),
-                                operation=operation)
-                    l[i] += c * (pi**j)
-                elif operation in addition_names:
-                    if(not use_rho):
-                        c = bsgs(base * (ord // pi),
-                                (a - base * l[i]) * (ord // pi**(j + 1)),
-                                (0, pi),
-                                operation=operation)
-                    else:
-                        c = discrete_log_rho((a - base * l[i]) * (ord // pi**(j + 1)),
-                                base * (ord // pi),
-                                operation=operation)
-                    l[i] += c * (pi**j)
+                gamma = power(base, ord // pi)
+                h = power(mult(a, power(base, -l[i])), ord // pi**(j + 1))
+                if(not use_rho):
+                    c = bsgs(gamma, h, (0, pi), inverse=inverse, identity=identity, op=op, operation=operation)
+                else:
+                    c = discrete_log_rho(h, gamma, ord=pi, inverse=inverse, identity=identity, op=op, operation=operation)
+                l[i] += c * (pi**j)
         from sage.arith.all import CRT_list
         return CRT_list(l, [pi**ri for pi, ri in f])
     except ValueError:

@@ -185,7 +185,7 @@ def mandelbrot_plot(f=None, **kwds):
         sage: mandelbrot_plot(f, interact=True)
         Traceback (most recent call last):
         ...
-        NotImplementedError: Interact only implemented for z^2 + c
+        NotImplementedError: interact only implemented for z^2 + c
     """
     parameter = kwds.pop("parameter", None)
     x_center = kwds.pop("x_center", 0.0)

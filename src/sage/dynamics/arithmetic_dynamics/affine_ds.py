@@ -193,7 +193,7 @@ class DynamicalSystem_affine(SchemeMorphism_polynomial_affine_space,
         sage: DynamicalSystem_affine(x^2+1)
         Traceback (most recent call last):
         ...
-        TypeError: Symbolic Ring cannot be the base ring
+        TypeError: symbolic ring cannot be the base ring
     """
 
     @staticmethod
@@ -230,7 +230,7 @@ class DynamicalSystem_affine(SchemeMorphism_polynomial_affine_space,
             sage: f = DynamicalSystem_affine([x+y+z, y*z])
             Traceback (most recent call last):
             ...
-            ValueError: Number of polys does not match dimension of Affine Space of dimension 3 over Rational Field
+            ValueError: number of polys does not match dimension of Affine Space of dimension 3 over Rational Field
 
         ::
 

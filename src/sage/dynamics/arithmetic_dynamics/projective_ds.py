@@ -334,7 +334,7 @@ class DynamicalSystem_projective(SchemeMorphism_polynomial_projective_space,
             sage: DynamicalSystem_projective([y, x, y], domain=P1)
             Traceback (most recent call last):
             ...
-            ValueError: Number of polys does not match dimension of Projective Space of dimension 1 over Rational Field
+            ValueError: number of polys does not match dimension of Projective Space of dimension 1 over Rational Field
 
         ::
 
@@ -5164,7 +5164,7 @@ class DynamicalSystem_projective(SchemeMorphism_polynomial_projective_space,
             Traceback (most recent call last):
             ..
             ValueError: sigma polynomial dropped degree, as multiplicities were not accounted
-            for correctly. try setting chow=True and/or deform=True
+            for correctly; try setting chow=True and/or deform=True
 
         ::
 
@@ -5174,7 +5174,7 @@ class DynamicalSystem_projective(SchemeMorphism_polynomial_projective_space,
             Traceback (most recent call last):
             ..
             ValueError: sigma polynomial dropped degree, as multiplicities were not accounted
-            for correctly. try setting chow=True and/or deform=True
+            for correctly; try setting chow=True and/or deform=True
         """
         n = ZZ(n)
 
@@ -6931,7 +6931,7 @@ class DynamicalSystem_projective_field(DynamicalSystem_projective,
             sage: D8.conjugating_set(D8)
             Traceback (most recent call last):
             ...
-            ValueError: no more rational preimages. try extending the base field and trying again.
+            ValueError: no more rational preimages; try extending the base field and trying again
 
         ::
 

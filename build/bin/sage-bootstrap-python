@@ -17,7 +17,7 @@ for path in $paths
 do
     case "$path" in
         *"pyenv"*);;
-        *      ) NEW_PATH+="$path:";;
+        *      ) NEW_PATH="$NEW_PATH$path:";;
     esac
 done
 SAGE_ORIG_PATH=${NEW_PATH::-1}

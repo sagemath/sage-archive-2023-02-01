@@ -2596,7 +2596,6 @@ class RecurrenceParser(object):
         """
         from sage.arith.srange import srange
         from sage.functions.other import floor
-        from sage.modules.free_module_element import vector
 
         k = self.k
         M = recurrence_rules.M
@@ -2644,7 +2643,6 @@ class RecurrenceParser(object):
         from itertools import chain
 
         from sage.arith.srange import srange
-        from sage.functions.other import floor
         from sage.modules.free_module_element import vector
         from sage.rings.integer_ring import ZZ
 
@@ -2956,8 +2954,6 @@ class RecurrenceParser(object):
 
             :meth:`kRegularSequenceSpace.from_recurrence`
         """
-        from sage.arith.srange import srange
-        from sage.functions.other import floor
         from sage.modules.free_module_element import vector
 
         dim = recurrence_rules.dim

@@ -685,7 +685,7 @@ def discrete_log(a, base, ord=None, bounds=None, operation='*', identity=None, i
     - ``op()`` - function of 2 arguments ``x``, ``y`` returning ``x*y`` in group
     - ``use_rho`` - use Pollard's rho instead of BSGS (this option may be
     overwritten if the base order is small)
-    
+
     ``a`` and ``base`` must be elements of some group with identity
     given by identity, inverse of ``x`` by ``inverse(x)``, and group
     operation on ``x``, ``y`` by ``op(x,y)``.

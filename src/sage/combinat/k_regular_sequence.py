@@ -2914,7 +2914,9 @@ class RecurrenceParser(object):
                 J = J.stack(vector([int(j*k == i - rem) for j in srange(n1)]))
 
             Z = zero_matrix(coefficient_ring, n1, dim_without_corr)
-            return block_matrix([[mat, W], [Z, J]], subdivide=False)
+            mat = block_matrix([[mat, W], [Z, J]], subdivide=False)
+
+        return mat
 
     def left(self, recurrence_rules):
         r"""

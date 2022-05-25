@@ -15,9 +15,10 @@ paths=$(echo $SAGE_ORIG_PATH | tr ":" "\n")
 NEW_PATH=""
 for path in $paths
 do
-    if [[ $path != *"pyenv"* ]]; then
-        NEW_PATH+="$path:"
-    fi
+    case "$path" in
+        *"pyenv"*);;
+        *      ) NEW_PATH+="$path:";;
+    esac
 done
 SAGE_ORIG_PATH=${NEW_PATH::-1}
 # In particular, it is invoked by "bootstrap -d" for sage-download-file,

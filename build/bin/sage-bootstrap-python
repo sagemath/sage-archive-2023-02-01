@@ -16,12 +16,12 @@ NEW_PATH=""
 for path in $SAGE_ORIG_PATH
 do
     case "$path" in
-        *"pyenv"*);;
-        *      ) NEW_PATH="$NEW_PATH$path:";;
+        '/home/'*'/.pyenv/shims'*);;
+        *) NEW_PATH="$NEW_PATH$path:";;
     esac
 done
 IFS=' '
-SAGE_ORIG_PATH=$NEW_PATH
+SAGE_ORIG_PATH=${NEW_PATH%%':'}
 # In particular, it is invoked by "bootstrap -d" for sage-download-file,
 # i.e., before a configure run, and by "sage-spkg", also for sage-download-file.
 # So it needs to find a python that has the urllib module.

@@ -331,6 +331,6 @@ class DynamicalSystem_product_projective_finite_field(DynamicalSystem_product_pr
                 Q = self(P)
                 E.append([str(Q)])
         else:
-            raise NotImplementedError("Cyclegraph for product projective spaces not implemented for subschemes")
+            raise NotImplementedError("cyclegraph for product projective spaces not implemented for subschemes")
         from sage.graphs.digraph import DiGraph
         return DiGraph(dict(zip(V, E)), loops=True)

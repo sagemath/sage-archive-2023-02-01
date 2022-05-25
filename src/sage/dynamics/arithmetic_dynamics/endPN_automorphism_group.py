@@ -2017,7 +2017,7 @@ def conjugating_set_initializer(f, g):
             # in which all subsets of size n+1 are linearly independent,
             # then we fail as we cannot specify conjugations
             if more:
-                raise ValueError('no more rational preimages. try extending the base field and trying again.')
+                raise ValueError('no more rational preimages; try extending the base field and trying again')
 
         # if we need to add more preimages, we update loop dictionaries
         if more:

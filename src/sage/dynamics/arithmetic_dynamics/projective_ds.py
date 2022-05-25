@@ -419,7 +419,7 @@ class DynamicalSystem_projective(SchemeMorphism_polynomial_projective_space,
             except TypeError:
                 raise TypeError('coefficients of polynomial not in {}'.format(domain.base_ring()))
         if len(polys) != domain.ambient_space().coordinate_ring().ngens():
-            raise ValueError('Number of polys does not match dimension of {}'.format(domain))
+            raise ValueError(f'number of polys does not match dimension of {domain}')
         R = domain.base_ring()
         if isinstance(R, sage.rings.abc.SymbolicRing):
             raise TypeError("the base ring cannot be the Symbolic Ring or a symbolic subring")
@@ -3150,10 +3150,10 @@ class DynamicalSystem_projective(SchemeMorphism_polynomial_projective_space,
         """
         n = ZZ(n)
         if n < 1:
-            raise ValueError('Period must be positive')
+            raise ValueError('period must be positive')
         m = ZZ(m)
         if m < 0:
-            raise ValueError('Preperiod must be non-negative')
+            raise ValueError('preperiod must be non-negative')
         f = self
         CR = f.coordinate_ring()
         dom = f.domain()
@@ -3363,7 +3363,7 @@ class DynamicalSystem_projective(SchemeMorphism_polynomial_projective_space,
             return self.conjugating_set(self, num_cpus)
         self.normalize_coordinates()
         if (self.degree() == 1) or (self.degree() == 0):
-            raise NotImplementedError("Rational function of degree 1 not implemented.")
+            raise NotImplementedError("rational function of degree 1 not implemented")
         f = self.dehomogenize(1)
         R = PolynomialRing(f.base_ring(),'x')
         if is_FractionFieldElement(f[0]):
@@ -4186,8 +4186,8 @@ class DynamicalSystem_projective(SchemeMorphism_polynomial_projective_space,
             f_sub = self.change_ring(R)
             R = f_sub.base_ring() #in the case when R is an embedding
         if isinstance(R, FractionField_1poly_field) or is_FunctionField(R):
-            raise NotImplementedError('Periodic points not implemented for function fields.'
-            + 'Clear denominators and use the polynomial ring instead.')
+            raise NotImplementedError('Periodic points not implemented for function fields; '
+                'clear denominators and use the polynomial ring instead')
         CR = f_sub.coordinate_ring()
         dom = f_sub.domain()
         PS = f_sub.codomain().ambient_space()
@@ -4517,12 +4517,12 @@ class DynamicalSystem_projective(SchemeMorphism_polynomial_projective_space,
             f_sub = self.change_ring(R)
             R = f_sub.base_ring() #in the case when R is an embedding
         if isinstance(R, FractionField_1poly_field) or is_FunctionField(R):
-            raise NotImplementedError('Periodic points not implemented for fraction function fields.'
-            + 'Clear denominators and use the polynomial ring instead.')
+            raise NotImplementedError('periodic points not implemented for fraction function fields; '
+                'clear denominators and use the polynomial ring instead')
         if is_FractionField(R):
             if is_MPolynomialRing(R.ring()):
-                raise NotImplementedError('Periodic points not implemented for fraction function fields.'
-                + 'Clear denominators and use the polynomial ring instead.')
+                raise NotImplementedError('periodic points not implemented for fraction function fields; '
+                    'clear denominators and use the polynomial ring instead')
         CR = f_sub.coordinate_ring()
         dom = f_sub.domain()
         PS = f_sub.codomain().ambient_space()
@@ -5309,8 +5309,8 @@ class DynamicalSystem_projective(SchemeMorphism_polynomial_projective_space,
                 else:
                     expected_degree = sum(d**(n*i) for i in range(N+1))
                 if degree_w != expected_degree:
-                    raise ValueError('sigma polynomial dropped degree, as multiplicities were not accounted for correctly.'+
-                                    ' try setting chow=True and/or deform=True')
+                    raise ValueError('sigma polynomial dropped degree, as multiplicities were not accounted for correctly; '
+                                     'try setting chow=True and/or deform=True')
             if return_polynomial:
                 return sigma_polynomial
             # if we are returing a numerical list, read off the coefficients
@@ -8327,7 +8327,7 @@ class DynamicalSystem_projective_finite_field(DynamicalSystem_projective_field,
             z = f[0].parent().gen()
         self.normalize_coordinates()
         if (self.degree() == 1) or (self.degree() == 0):
-            raise NotImplementedError("Rational function of degree 1 not implemented.")
+            raise NotImplementedError("rational function of degree 1 not implemented")
         if f[0].denominator() != 1:
             F = f[0].numerator().polynomial(z) / f[0].denominator().polynomial(z)
         else:

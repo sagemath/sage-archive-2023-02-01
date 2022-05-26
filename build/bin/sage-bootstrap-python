@@ -16,7 +16,7 @@ NEW_PATH=""
 for path in $SAGE_ORIG_PATH
 do
     case "$path" in
-        '/home/'*'/.pyenv/shims'*);;
+        */.pyenv/shims*);;
         *) NEW_PATH="$NEW_PATH$path:";;
     esac
 done

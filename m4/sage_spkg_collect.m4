@@ -330,7 +330,7 @@ AC_DEFUN([SAGE_SPKG_FINALIZE], [dnl
     ])
     AS_IF([test -f "$DIR/dependencies_optional"], [dnl
         for a in $(sed 's/^ *//; s/ *#.*//; q' "$DIR/dependencies_optional"); do
-            AS_VAR_APPEND([DEPS], ['$(findstring '$a',$(OPTIONAL_INSTALLED_PACKAGES)) '])
+            AS_VAR_APPEND([DEPS], [' $(findstring '$a',$(OPTIONAL_INSTALLED_PACKAGES)) '])
         done
     ])
     AS_CASE(["$DEPS"], [*\|*], [], [AS_VAR_APPEND([DEPS], [" |"])])

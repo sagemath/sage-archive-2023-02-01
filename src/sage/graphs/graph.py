@@ -7696,7 +7696,7 @@ class Graph(GenericGraph):
         .. NOTE::
 
             A buggy implementation of linear time algorithm from [TCHP2008]_ was
-            removed in Sage 9.7.
+            removed in Sage 9.7, see :trac:`25872`.
 
         TESTS:
 

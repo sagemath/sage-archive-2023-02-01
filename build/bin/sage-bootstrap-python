@@ -20,7 +20,7 @@ do
         *) NEW_PATH="$NEW_PATH$path:";;
     esac
 done
-IFS=' '
+unset IFS
 SAGE_ORIG_PATH=${NEW_PATH%%':'}
 # In particular, it is invoked by "bootstrap -d" for sage-download-file,
 # i.e., before a configure run, and by "sage-spkg", also for sage-download-file.

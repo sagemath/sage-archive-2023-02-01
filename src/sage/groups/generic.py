@@ -669,7 +669,7 @@ def discrete_log_rho(a, base, ord=None, operation='*', identity=None, inverse=No
     raise ValueError("Pollard rho algorithm failed to find a logarithm")
 
 
-def discrete_log(a, base, ord=None, bounds=None, operation='*', identity=None, inverse=None, op=None, use_rho=False):
+def discrete_log(a, base, ord=None, bounds=None, operation='*', identity=None, inverse=None, op=None, algorithm='bsgs'):
     r"""
     Totally generic discrete log function.
 
@@ -683,7 +683,7 @@ def discrete_log(a, base, ord=None, bounds=None, operation='*', identity=None, i
     - ``identity`` - the group's identity
     - ``inverse()`` - function of 1 argument ``x`` returning inverse of ``x``
     - ``op()`` - function of 2 arguments ``x``, ``y`` returning ``x*y`` in group
-    - ``use_rho`` - use Pollard's rho instead of BSGS (this option may be overwritten if the base order is small)
+    - ``algorithm`` - string denoting what algorithm to use for prime-order logarithms: 'bsgs', 'rho'
 
     ``a`` and ``base`` must be elements of some group with identity
     given by identity, inverse of ``x`` by ``inverse(x)``, and group
@@ -705,7 +705,7 @@ def discrete_log(a, base, ord=None, bounds=None, operation='*', identity=None, i
        than using this function.  E.g., if ``x`` is an integer modulo
        `n`, use its log method instead!
 
-    ALGORITHM: Pohlig-Hellman and Baby step giant step.
+    ALGORITHM: Pohlig-Hellman, Baby step giant step, and Pollard's rho.
 
     EXAMPLES::
 
@@ -833,10 +833,12 @@ def discrete_log(a, base, ord=None, bounds=None, operation='*', identity=None, i
             for j in range(ri):
                 gamma = power(base, ord // pi)
                 h = power(mult(a, power(base, -l[i])), ord // pi**(j + 1))
-                if(not use_rho):
+                if algorithm == 'bsgs':
                     c = bsgs(gamma, h, (0, pi), inverse=inverse, identity=identity, op=op, operation=operation)
-                else:
+                elif algorithm == 'rho':
                     c = discrete_log_rho(h, gamma, ord=pi, inverse=inverse, identity=identity, op=op, operation=operation)
+                else:
+                    raise ValueError("unkown algorithm")
                 l[i] += c * (pi**j)
         from sage.arith.all import CRT_list
         return CRT_list(l, [pi**ri for pi, ri in f])

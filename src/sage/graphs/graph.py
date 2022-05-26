@@ -7574,7 +7574,7 @@ class Graph(GenericGraph):
             return list(core.values())
 
     @doc_index("Leftovers")
-    def modular_decomposition(self, style='tuple'):
+    def modular_decomposition(self, algorithm=None, style='tuple'):
         r"""
         Return the modular decomposition of the current graph.
 
@@ -7745,6 +7745,9 @@ class Graph(GenericGraph):
                                                                             create_prime_node,
                                                                             create_normal_node)
 
+        if algorithm is not None:
+            from sage.misc.superseded import deprecation
+            deprecation(25872, "algorithm=... parameter is obsolete and has no effect.")
         self._scream_if_not_simple()
 
         if not self.order():
@@ -8014,7 +8017,7 @@ class Graph(GenericGraph):
         return self.planar_dual().is_circumscribable(solver=solver, verbose=verbose)
 
     @doc_index("Graph properties")
-    def is_prime(self):
+    def is_prime(self, algorithm=None):
         r"""
         Test whether the current graph is prime.
 
@@ -8041,6 +8044,9 @@ class Graph(GenericGraph):
             sage: graphs.EmptyGraph().is_prime()
             True
         """
+        if algorithm is not None:
+            from sage.misc.superseded import deprecation
+            deprecation(25872, "algorithm=... parameter is obsolete and has no effect.")
         from sage.graphs.graph_decompositions.modular_decomposition import NodeType
 
         if self.order() <= 1:

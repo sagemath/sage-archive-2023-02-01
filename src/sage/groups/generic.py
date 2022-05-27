@@ -846,11 +846,11 @@ def discrete_log(a, base, ord=None, bounds=None, operation='*', identity=None, i
         raise ValueError("no discrete log of %s found to base %s" % (a, base))
 
 
-def discrete_log_generic(a, base, ord=None, bounds=None, operation='*', identity=None, inverse=None, op=None):
+def discrete_log_generic(a, base, ord=None, bounds=None, operation='*', identity=None, inverse=None, op=None, algorithm='bsgs'):
     """
     Alias for ``discrete_log``.
     """
-    return discrete_log(a, base, ord=None, bounds=None, operation='*', identity=None, inverse=None, op=None)
+    return discrete_log(a, base, ord=ord, bounds=bounds, operation=operation, identity=identity, inverse=inverse, op=op, algorithm=algorithm)
 
 
 def discrete_log_lambda(a, base, bounds, operation='*', hash_function=hash):

@@ -799,6 +799,8 @@ def discrete_log(a, base, ord=None, bounds=None, operation='*', identity=None, i
     from operator import mul, add, pow
     mult = op if op is not None else [add, mul][operation in multiplication_names]
     power = [mul, pow][operation in multiplication_names]
+    if(bounds):
+        lb, ub = bounds
     if(op is not None):
         power = lambda x, y: multiple(x, y, operation=operation, identity=identity, inverse=inverse, op=op)
     if ord is None:
@@ -834,7 +836,7 @@ def discrete_log(a, base, ord=None, bounds=None, operation='*', identity=None, i
                 gamma = power(base, ord // pi)
                 h = power(mult(a, power(base, -l[i])), ord // pi**(j + 1))
                 if algorithm == 'bsgs':
-                    c = bsgs(gamma, h, (0, pi), inverse=inverse, identity=identity, op=op, operation=operation)
+                    c = bsgs(gamma, h, (max(0, lb if bounds else 0), min(pi, ub if bounds else pi)), inverse=inverse, identity=identity, op=op, operation=operation)
                 elif algorithm == 'rho':
                     c = discrete_log_rho(h, gamma, ord=pi, inverse=inverse, identity=identity, op=op, operation=operation)
                 else:

@@ -7789,7 +7789,7 @@ def element_class(R, is_sparse):
 
 
 @richcmp_method
-class EchelonMatrixKey(object):
+class EchelonMatrixKey():
     r"""
     A total ordering on free modules for sorting.
 

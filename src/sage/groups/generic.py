@@ -385,7 +385,7 @@ def bsgs(a, b, bounds, operation='*', identity=None, inverse=None, op=None):
     - ``operation`` - string: '*', '+', 'other'
     - ``identity`` - the identity element of the group
     - ``inverse()``  - function of 1 argument ``x`` returning inverse of ``x``
-    - ``op()`` - function of 2 arguments ``x``, ``y`` returning ``x*y`` in group
+    - ``op()`` - function of 2 arguments ``x``, ``y`` returning ``x*y`` in the group
 
     OUTPUT:
 
@@ -517,7 +517,7 @@ def discrete_log_rho(a, base, ord=None, operation='*', identity=None, inverse=No
       are in an additive group or a multiplicative one
     - ``identity`` - the group's identity
     - ``inverse()`` - function of 1 argument ``x`` returning inverse of ``x``
-    - ``op()`` - function of 2 arguments ``x``, ``y`` returning ``x*y`` in group
+    - ``op()`` - function of 2 arguments ``x``, ``y`` returning ``x*y`` in the group
     - ``hash_function`` -- having an efficient hash function is critical
       for this algorithm (see examples)
 
@@ -682,7 +682,7 @@ def discrete_log(a, base, ord=None, bounds=None, operation='*', identity=None, i
     - ``operation`` - string: '*', '+', 'other'
     - ``identity`` - the group's identity
     - ``inverse()`` - function of 1 argument ``x`` returning inverse of ``x``
-    - ``op()`` - function of 2 arguments ``x``, ``y`` returning ``x*y`` in group
+    - ``op()`` - function of 2 arguments ``x``, ``y`` returning ``x*y`` in the group
     - ``algorithm`` - string denoting what algorithm to use for prime-order logarithms: 'bsgs', 'rho'
 
     ``a`` and ``base`` must be elements of some group with identity
@@ -797,32 +797,26 @@ def discrete_log(a, base, ord=None, bounds=None, operation='*', identity=None, i
     - John Cremona (2008-02-29) rewrite using ``dict()`` and make generic
     """
     from operator import mul, add, pow
-    mult = op if op is not None else [add, mul][operation in multiplication_names]
-    power = [mul, pow][operation in multiplication_names]
-    if(bounds):
-        lb, ub = bounds
-    if(op is not None):
+    power = mul if operation in addition_names else pow
+    mult = add if operation in addition_names else mul
+    if op:
+        mult = op
         power = lambda x, y: multiple(x, y, operation=operation, identity=identity, inverse=inverse, op=op)
+    if bounds:
+        lb, ub = bounds
+    if (op is None or identity is None or inverse is None or ord is None) and operation not in addition_names+multiplication_names:
+        raise ValueError("ord, op, identity, and inverse must all be specified for this operation")
     if ord is None:
         if operation in multiplication_names:
-            mult = mul
-            power = pow
             try:
                 ord = base.multiplicative_order()
             except Exception:
                 ord = base.order()
-        elif operation in addition_names:
-            mult = add
-            power = mul
+        else:
             try:
                 ord = base.additive_order()
             except Exception:
                 ord = base.order()
-        else:
-            try:
-                ord = base.order()
-            except Exception:
-                raise ValueError("ord must be specified")
     try:
         from sage.rings.infinity import Infinity
         if ord == +Infinity:
@@ -839,8 +833,6 @@ def discrete_log(a, base, ord=None, bounds=None, operation='*', identity=None, i
                     c = bsgs(gamma, h, (max(0, lb if bounds else 0), min(pi, ub if bounds else pi)), inverse=inverse, identity=identity, op=op, operation=operation)
                 elif algorithm == 'rho':
                     c = discrete_log_rho(h, gamma, ord=pi, inverse=inverse, identity=identity, op=op, operation=operation)
-                else:
-                    raise ValueError("unkown algorithm")
                 l[i] += c * (pi**j)
         from sage.arith.all import CRT_list
         return CRT_list(l, [pi**ri for pi, ri in f])

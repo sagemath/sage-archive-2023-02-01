@@ -825,17 +825,21 @@ def discrete_log(a, base, ord=None, bounds=None, operation='*', identity=None, i
             raise ValueError
         f = ord.factor()
         l = [0] * len(f)
+        running_mod = 1
         for i, (pi, ri) in enumerate(f):
             for j in range(ri):
                 gamma = power(base, ord // pi)
                 h = power(mult(a, power(base, -l[i])), ord // pi**(j + 1))
                 if algorithm == 'bsgs':
-                    c = bsgs(gamma, h, (max(0, lb if bounds else 0), min(pi, ub if bounds else pi)), inverse=inverse, identity=identity, op=op, operation=operation)
+                    c = bsgs(gamma, h, (0, pi), inverse=inverse, identity=identity, op=op, operation=operation)
                 elif algorithm == 'rho':
                     c = discrete_log_rho(h, gamma, ord=pi, inverse=inverse, identity=identity, op=op, operation=operation)
                 l[i] += c * (pi**j)
+            running_mod*=pi**ri
+            if(bounds and running_mod>ub):
+                break # we have log%running_mod. if we know that log<running_mod, then we have the value of log.
         from sage.arith.all import CRT_list
-        return CRT_list(l, [pi**ri for pi, ri in f])
+        return CRT_list(l, [pi**ri for pi, ri in f[:len(l)]])
     except ValueError:
         raise ValueError("no discrete log of %s found to base %s" % (a, base))
 

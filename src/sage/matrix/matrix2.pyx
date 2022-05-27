@@ -4407,7 +4407,7 @@ cdef class Matrix(Matrix1):
         algorithm = kwds.pop('algorithm', None)
         if algorithm is None:
             algorithm = 'default'
-        elif not algorithm in ['default', 'generic', 'flint', 'pari', 'padic', 'pluq']:
+        elif algorithm not in ['default', 'generic', 'flint', 'pari', 'padic', 'pluq']:
             raise ValueError("matrix kernel algorithm '%s' not recognized" % algorithm )
         elif algorithm == 'padic' and not (is_IntegerRing(R) or is_RationalField(R)):
             raise ValueError("'padic' matrix kernel algorithm only available over the rationals and the integers, not over %s" % R)
@@ -4424,7 +4424,7 @@ cdef class Matrix(Matrix1):
         basis = kwds.pop('basis', None)
         if basis is None:
             basis = 'echelon'
-        elif not basis in ['computed', 'echelon', 'pivot', 'LLL']:
+        elif basis not in ['computed', 'echelon', 'pivot', 'LLL']:
             raise ValueError("matrix kernel basis format '%s' not recognized" % basis )
         elif basis == 'pivot' and R not in _Fields:
             raise ValueError('pivot basis only available over a field, not over %s' % R)
@@ -5956,7 +5956,7 @@ cdef class Matrix(Matrix1):
             sage: A._eigenspace_format(None) == 'all'
             True
         """
-        if not format in [None, 'all', 'galois']:
+        if format not in [None, 'all', 'galois']:
             msg = "format keyword must be None, 'all' or 'galois', not {0}"
             raise ValueError(msg.format(format))
 
@@ -6244,7 +6244,7 @@ cdef class Matrix(Matrix1):
             ...
             ValueError: algebraic_multiplicity keyword must be True or False
         """
-        if not algebraic_multiplicity in [True, False]:
+        if algebraic_multiplicity not in [True, False]:
             msg = 'algebraic_multiplicity keyword must be True or False'
             raise ValueError(msg.format(algebraic_multiplicity))
         if not self.is_square():
@@ -6486,7 +6486,7 @@ cdef class Matrix(Matrix1):
             ...
             ValueError: algebraic_multiplicity keyword must be True or False
         """
-        if not algebraic_multiplicity in [True, False]:
+        if algebraic_multiplicity not in [True, False]:
             msg = 'algebraic_multiplicity keyword must be True or False'
             raise ValueError(msg.format(algebraic_multiplicity))
         if not self.is_square():
@@ -8163,7 +8163,7 @@ cdef class Matrix(Matrix1):
             ...
             TypeError: subdivide must be True or False, not junk
         """
-        if not subdivide in [True, False]:
+        if subdivide not in [True, False]:
             raise TypeError("subdivide must be True or False, not %s" % subdivide)
         R = self.base_ring()
         ident = self.matrix_space(self.nrows(), self.nrows()).one()
@@ -12357,7 +12357,7 @@ cdef class Matrix(Matrix1):
                 raise TypeError('polynomial variable must be a string or polynomial ring generator, not {0}'.format(var))
             elif var.base_ring() != R:
                 raise TypeError('polynomial generator must be over the same ring as the matrix entries')
-        if not basis in ['echelon', 'iterates']:
+        if basis not in ['echelon', 'iterates']:
             raise ValueError("basis format must be 'echelon' or 'iterates', not {0}".format(basis))
         if not self.is_square():
             raise TypeError('matrix must be square, not {0} x {1}'.format(self.nrows(), self.ncols()))
@@ -13249,10 +13249,10 @@ cdef class Matrix(Matrix1):
             sage: P.base_ring()
             Finite Field of size 11
         """
-        if not pivot in [None, 'partial', 'nonzero']:
+        if pivot not in [None, 'partial', 'nonzero']:
             msg = "pivot strategy must be None, 'partial' or 'nonzero', not {0}"
             raise ValueError(msg.format(pivot))
-        if not format in ['compact', 'plu']:
+        if format not in ['compact', 'plu']:
             msg = "format must be 'plu' or 'compact', not {0}"
             raise ValueError(msg.format(format))
 
@@ -13541,7 +13541,7 @@ cdef class Matrix(Matrix1):
         cdef Py_ssize_t m, i, j, k
         cdef Matrix L
 
-        if not algorithm in ['symmetric', 'hermitian']:
+        if algorithm not in ['symmetric', 'hermitian']:
             msg = "'algorithm' must be 'symmetric' or 'hermitian', not {0}"
             raise ValueError(msg.format(algorithm))
         cache_string = 'indefinite_factorization_' + algorithm
@@ -13551,7 +13551,7 @@ cdef class Matrix(Matrix1):
             if not self.is_square():
                 msg = "matrix must be square, not {0} x {1}"
                 raise ValueError(msg.format(self.nrows(), self.ncols()))
-            if not algorithm in ['symmetric', 'hermitian']:
+            if algorithm not in ['symmetric', 'hermitian']:
                 msg = "'algorithm' must be 'symmetric' or 'hermitian', not {0}"
                 raise ValueError(msg.format(algorithm))
             if not R.is_exact():

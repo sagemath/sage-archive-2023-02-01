@@ -2727,4 +2727,3 @@ def _add_strip(sub_tab, full_tab, length):
                                                    k=len(plat_list),
                                                    outer=plat_list):
                 yield list(primed_strip) + list(non_primed_strip)
-

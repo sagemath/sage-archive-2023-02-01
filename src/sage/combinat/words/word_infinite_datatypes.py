@@ -1214,4 +1214,3 @@ class WordDatatype_iter_with_caching(WordDatatype_iter):
         self._gen = iter(self)
         self._list = []
         self._last_index = -1
-

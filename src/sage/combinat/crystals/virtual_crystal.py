@@ -415,4 +415,3 @@ class VirtualCrystal(Subcrystal):
                            for i in self.index_set())
 
 # TODO: implement a devirtualization map
-

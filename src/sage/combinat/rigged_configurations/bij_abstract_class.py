@@ -542,4 +542,3 @@ class RCToKRTBijectionAbstract:
             1
         """
         return r - 1
-

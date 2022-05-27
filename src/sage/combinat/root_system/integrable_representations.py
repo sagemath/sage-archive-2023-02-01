@@ -1219,4 +1219,3 @@ class IntegrableRepresentation(UniqueRepresentation, CategoryObject):
                     ldict[contr] = x[1]
             ret.append(weyl_character_ring.char_from_weights(ldict))
         return ret
-

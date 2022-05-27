@@ -892,4 +892,3 @@ class RCToKRTBijectionTypeB(RCToKRTBijectionTypeC):
                 self.cur_partitions[n-1].rigging[j-1] = vac_num - 1
 
         return(b)
-

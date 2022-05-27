@@ -692,4 +692,3 @@ class CartanType_affine(CartanType, cartan_type.CartanType_affine):
         if letter == 'G': # D_4^{(3)}
             return CartanTypeFolded(self, ['D', 4, 1], [[0], [1, 3, 4], [2]])
         return super(CartanType, self)._default_folded_cartan_type()
-

@@ -1489,4 +1489,3 @@ def positively_parallel_weights(v, w):
         if v[i]*w[i] > 0 and v[i]*w == w[i]*v:
             return True
     return False
-

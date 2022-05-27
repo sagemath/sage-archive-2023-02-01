@@ -766,4 +766,3 @@ class RCToKRTBijectionTypeD(RCToKRTBijectionTypeA):
         n = self.n
         for i in range(len(self.cur_partitions[n-1]._list)):
             self.cur_partitions[n-1].vacancy_numbers[i] += 1
-

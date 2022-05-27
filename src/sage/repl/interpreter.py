@@ -487,11 +487,11 @@ class InterfaceShellTransformer(PrefilterTransformer):
 
     def preparse_imports_from_sage(self, line):
         """
-        Finds occurrences of strings such as ``sage()`` in
+        Finds occurrences of strings such as ``sage(object)`` in
         *line*, converts ``object`` to :attr:`shell.interface`,
         and replaces those strings with their identifier in the new
         system.  This also works with strings such as
-        ``maxima()`` if :attr:`shell.interface` is
+        ``maxima(object)`` if :attr:`shell.interface` is
         ``maxima``.
 
         :param line: the line to transform

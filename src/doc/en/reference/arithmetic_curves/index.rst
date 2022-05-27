@@ -23,6 +23,7 @@ Maps between them
    sage/schemes/elliptic_curves/isogeny_small_degree
    sage/schemes/elliptic_curves/hom_composite
    sage/schemes/elliptic_curves/hom_scalar
+   sage/schemes/elliptic_curves/hom_frobenius
 
 
 Elliptic curves over number fields

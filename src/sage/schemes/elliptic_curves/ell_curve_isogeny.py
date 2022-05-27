@@ -54,6 +54,7 @@ AUTHORS:
 - John Cremona 2014-08-08: tidying of code and docstrings, systematic
   use of univariate vs. bivariate polynomials and rational functions.
 
+- Lorenz Panny (2022): inseparable duals
 """
 
 # ****************************************************************************
@@ -767,6 +768,7 @@ class EllipticCurveIsogeny(EllipticCurveHom):
         ...
         ValueError: The two curves are not linked by a cyclic normalized isogeny of degree 5
         sage: phihat = phi.dual(); phihat
+        doctest:warning ...
         Isogeny of degree 5 from Elliptic Curve defined by y^2 + y = x^3 - x^2 - 7820*x - 263580 over Rational Field to Elliptic Curve defined by y^2 + y = x^3 - x^2 - 10*x - 20 over Rational Field
         sage: phihat.is_normalized()
         False
@@ -3317,6 +3319,33 @@ class EllipticCurveIsogeny(EllipticCurveHom):
             sage: (Xm, Ym) == E.multiplication_by_m(5)
             True
 
+        Inseparable duals should be computed correctly::
+
+            sage: z2 = GF(71^2).gen()
+            sage: E = EllipticCurve(j=57*z2+51)
+            sage: E.isogeny(3*E.lift_x(0)).dual()
+            Composite morphism of degree 71 = 71*1^2:
+              From: Elliptic Curve defined by y^2 = x^3 + (32*z2+67)*x + (24*z2+37) over Finite Field in z2 of size 71^2
+              To:   Elliptic Curve defined by y^2 = x^3 + (41*z2+56)*x + (18*z2+42) over Finite Field in z2 of size 71^2
+            sage: E.isogeny(E.lift_x(0)).dual()
+            Composite morphism of degree 213 = 71*1*3:
+              From: Elliptic Curve defined by y^2 = x^3 + (58*z2+31)*x + (34*z2+58) over Finite Field in z2 of size 71^2
+              To:   Elliptic Curve defined by y^2 = x^3 + (41*z2+56)*x + (18*z2+42) over Finite Field in z2 of size 71^2
+
+        ...even if pre- or post-isomorphisms are present::
+
+            sage: from sage.schemes.elliptic_curves.weierstrass_morphism import WeierstrassIsomorphism
+            sage: phi = E.isogeny(E.lift_x(0))
+            sage: pre = ~WeierstrassIsomorphism(phi.domain(), (z2,2,3,4))
+            sage: post = WeierstrassIsomorphism(phi.codomain(), (5,6,7,8))
+            sage: phi = post * phi * pre
+            sage: phi.dual()
+            Composite morphism of degree 213 = 71*1*3:
+              From: Elliptic Curve defined by y^2 + 17*x*y + 45*y = x^3 + 30*x^2 + (6*z2+64)*x + (48*z2+65) over Finite Field in z2 of size 71^2
+              To:   Elliptic Curve defined by y^2 + (60*z2+22)*x*y + (69*z2+37)*y = x^3 + (32*z2+48)*x^2 + (19*z2+58)*x + (56*z2+22) over Finite Field in z2 of size 71^2
+
+        TESTS:
+
         Test for :trac:`23928`::
 
             sage: E = EllipticCurve(j=GF(431**2)(4))
@@ -3357,64 +3386,76 @@ class EllipticCurveIsogeny(EllipticCurveHom):
             sage: -(phi.dual()) == (-phi).dual()
             True
         """
-        if (self.__base_field.characteristic() in [2,3]):
+        if self.__base_field.characteristic() in (2,3):
             raise NotImplementedError("Computation of dual isogenies not yet implemented in characteristics 2 and 3")
 
-        if (self.__dual is not None):
+        if self.__dual is not None:
             return self.__dual
 
         # trac 7096
-        (E1, E2pr, pre_isom, post_isom) = compute_intermediate_curves(self.codomain(), self.domain())
+        E1, E2pr, _, _ = compute_intermediate_curves(self.codomain(), self.domain())
 
         F = self.__base_field
         d = self.__degree
 
-        # trac 7096
-        if F(d) == 0:
-            raise NotImplementedError("The dual isogeny is not separable: only separable isogenies are currently implemented")
+        from sage.schemes.elliptic_curves.hom_composite import EllipticCurveHom_composite
 
-        # trac 7096
-        # this should take care of the case when the isogeny is not normalized.
-        u = self.scaling_factor()
-        isom = WeierstrassIsomorphism(E2pr, (u/F(d), 0, 0, 0))
+        if F(d) == 0:   # inseparable dual!
+            p = F.characteristic()
+            k = d.valuation(p)
+            dsep = d // p**k
 
-        E2 = isom.codomain()
+            if dsep > 1:
+                #TODO: We could also use resultants here; this is much
+                # faster in some cases (but seems worse in general).
+                # Presumably there should be a wrapper function that
+                # decides on the fly which method to use.
 
-        pre_isom = self.__E2.isomorphism_to(E1)
-        post_isom = E2.isomorphism_to(self.__E1)
+                f = self.kernel_polynomial()
 
-        phi_hat = EllipticCurveIsogeny(E1, None, E2, d)
+                psi = self._domain.division_polynomial(p)
+                mu_num = self._domain._multiple_x_numerator(p)
+                mu_den = self._domain._multiple_x_denominator(p)
 
-        phi_hat._set_pre_isomorphism(pre_isom)
-        phi_hat._set_post_isomorphism(post_isom)
-        phi_hat.__perform_inheritance_housekeeping()
+                for _ in range(k):
+                    f //= f.gcd(psi)
+                    S = f.parent().quotient_ring(f)
+                    mu = S(mu_num) / S(mu_den)
+                    f = mu.minpoly()
 
-        assert phi_hat.codomain() == self.domain()
+                sep = self._domain.isogeny(f).dual()
+
+            else:
+                sep = self._domain.multiplication_by_m_isogeny(1)
+
+            from sage.schemes.elliptic_curves.hom_frobenius import EllipticCurveHom_frobenius
+            frob = EllipticCurveHom_frobenius(self._codomain, k)
+
+            iso = frob.codomain().isomorphism_to(sep.domain())
+            phi_hat = EllipticCurveHom_composite.from_factors([frob, iso, sep])
+
+        else:
+            # trac 7096
+            # this should take care of the case when the isogeny is not normalized.
+            u = self.scaling_factor()
+            E2 = E2pr.change_weierstrass_model(u/F(d), 0, 0, 0)
+
+            phi_hat = EllipticCurveIsogeny(E1, None, E2, d)
+
+            phi_hat._set_pre_isomorphism(self._codomain.isomorphism_to(E1))
+            phi_hat._set_post_isomorphism(E2.isomorphism_to(self._domain))
+            phi_hat.__perform_inheritance_housekeeping()
 
         # trac 7096 : this adjusts a posteriori the automorphism on
         # the codomain of the dual isogeny.  we used _a_ Weierstrass
         # isomorphism to get to the original curve, but we may have to
-        # change it by an automorphism.  We impose the condition that
-        # the composition has the degree as a leading coefficient in
-        # the formal expansion.
-
-        phihat_sc = phi_hat.scaling_factor()
-
-        sc = u * phihat_sc/F(d)
-
-        if sc == 0:
-            raise RuntimeError("Bug in computing dual isogeny: sc = 0")
-
-        if sc != 1:
-            auts = self.__E1.automorphisms()
-            aut = [a for a in auts if a.u == sc]
-            if len(aut) != 1:
-                raise ValueError("There is a bug in dual().")
-            phi_hat._set_post_isomorphism(aut[0])
-
-        self.__dual = phi_hat
-
-        return phi_hat
+        # change it by an automorphism.
+        from sage.schemes.elliptic_curves.hom import find_post_isomorphism
+        mult = self._domain.scalar_multiplication(d)
+        rhs = EllipticCurveHom_composite.from_factors([self, phi_hat])
+        corr = find_post_isomorphism(mult, rhs)
+        self.__dual = corr * phi_hat
+        return self.__dual
 
 
     @staticmethod

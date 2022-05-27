@@ -53,6 +53,7 @@ of :class:`EllipticCurveHom`::
     sage: psi.kernel_polynomial()
     x^17 + 81*x^16 + 7*x^15 + 82*x^14 + 49*x^13 + 68*x^12 + 109*x^11 + 326*x^10 + 117*x^9 + 136*x^8 + 111*x^7 + 292*x^6 + 55*x^5 + 389*x^4 + 175*x^3 + 43*x^2 + 149*x + 373
     sage: psi.dual()
+    doctest:warning ...
     Composite morphism of degree 35 = 7*5:
       From: Elliptic Curve defined by y^2 = x^3 + 101*x + 285 over Finite Field of size 419
       To:   Elliptic Curve defined by y^2 = x^3 + 1 over Finite Field of size 419

@@ -681,9 +681,11 @@ class WeierstrassIsomorphism(EllipticCurveHom, baseWI):
         We should return ``NotImplemented`` when passed a combination of
         elliptic-curve morphism types that we don't handle here::
 
-            sage: E = EllipticCurve([1,0])
-            sage: phi = E.isogeny(E(0,0))
-            sage: w1._composition_impl(phi.dual(), phi)
+            sage: E1 = EllipticCurve([1,0])
+            sage: phi = E1.isogeny(E1(0,0))
+            sage: E2 = phi.codomain()
+            sage: psi = E2.isogeny(E2(0,0))
+            sage: w1._composition_impl(psi, phi)
             NotImplemented
         """
         if isinstance(left, WeierstrassIsomorphism) and isinstance(right, WeierstrassIsomorphism):

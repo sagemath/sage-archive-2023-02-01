@@ -11,6 +11,7 @@ Current implementations of elliptic-curve morphisms (child classes):
 - :class:`~sage.schemes.elliptic_curves.weierstrass_morphism.WeierstrassIsomorphism`
 - :class:`~sage.schemes.elliptic_curves.hom_composite.EllipticCurveHom_composite`
 - :class:`~sage.schemes.elliptic_curves.hom_scalar.EllipticCurveHom_scalar`
+- :class:`~sage.schemes.elliptic_curves.hom_frobenius.EllipticCurveHom_frobenius`
 
 AUTHORS:
 
@@ -73,6 +74,7 @@ class EllipticCurveHom(Morphism):
             sage: phi * iso
             Isogeny of degree 2 from Elliptic Curve defined by y^2 = x^3 + 9*x over Finite Field of size 19 to Elliptic Curve defined by y^2 = x^3 + 15*x over Finite Field of size 19
             sage: phi.dual() * phi
+            doctest:warning ...
             Composite map:
               From: Elliptic Curve defined by y^2 = x^3 + x over Finite Field of size 19
               To:   Elliptic Curve defined by y^2 = x^3 + x over Finite Field of size 19
@@ -172,6 +174,7 @@ class EllipticCurveHom(Morphism):
         - :meth:`sage.schemes.elliptic_curves.weierstrass_morphism.WeierstrassIsomorphism.degree`
         - :meth:`sage.schemes.elliptic_curves.hom_composite.EllipticCurveHom_composite.degree`
         - :meth:`sage.schemes.elliptic_curves.hom_scalar.EllipticCurveHom_scalar.degree`
+        - :meth:`sage.schemes.elliptic_curves.hom_frobenius.EllipticCurveHom_frobenius.degree`
 
         TESTS::
 
@@ -193,6 +196,7 @@ class EllipticCurveHom(Morphism):
         - :meth:`sage.schemes.elliptic_curves.weierstrass_morphism.WeierstrassIsomorphism.kernel_polynomial`
         - :meth:`sage.schemes.elliptic_curves.hom_composite.EllipticCurveHom_composite.kernel_polynomial`
         - :meth:`sage.schemes.elliptic_curves.hom_scalar.EllipticCurveHom_scalar.kernel_polynomial`
+        - :meth:`sage.schemes.elliptic_curves.hom_frobenius.EllipticCurveHom_frobenius.kernel_polynomial`
 
         TESTS::
 
@@ -214,6 +218,7 @@ class EllipticCurveHom(Morphism):
         - :meth:`sage.schemes.elliptic_curves.weierstrass_morphism.WeierstrassIsomorphism.dual`
         - :meth:`sage.schemes.elliptic_curves.hom_composite.EllipticCurveHom_composite.dual`
         - :meth:`sage.schemes.elliptic_curves.hom_scalar.EllipticCurveHom_scalar.dual`
+        - :meth:`sage.schemes.elliptic_curves.hom_frobenius.EllipticCurveHom_frobenius.dual`
 
         TESTS::
 
@@ -237,6 +242,7 @@ class EllipticCurveHom(Morphism):
         - :meth:`sage.schemes.elliptic_curves.weierstrass_morphism.WeierstrassIsomorphism.rational_maps`
         - :meth:`sage.schemes.elliptic_curves.hom_composite.EllipticCurveHom_composite.rational_maps`
         - :meth:`sage.schemes.elliptic_curves.hom_scalar.EllipticCurveHom_scalar.rational_maps`
+        - :meth:`sage.schemes.elliptic_curves.hom_frobenius.EllipticCurveHom_frobenius.rational_maps`
 
         TESTS::
 
@@ -259,6 +265,7 @@ class EllipticCurveHom(Morphism):
         - :meth:`sage.schemes.elliptic_curves.weierstrass_morphism.WeierstrassIsomorphism.x_rational_map`
         - :meth:`sage.schemes.elliptic_curves.hom_composite.EllipticCurveHom_composite.x_rational_map`
         - :meth:`sage.schemes.elliptic_curves.hom_scalar.EllipticCurveHom_scalar.x_rational_map`
+        - :meth:`sage.schemes.elliptic_curves.hom_frobenius.EllipticCurveHom_frobenius.x_rational_map`
 
         TESTS::
 
@@ -340,15 +347,15 @@ class EllipticCurveHom(Morphism):
         Eh = self._domain.formal()
         f, g = self.rational_maps()
         xh = Eh.x(prec=prec)
-        assert xh.valuation() == -2, f"xh has valuation {xh.valuation()} (should be -2)"
+        assert not self.is_separable() or xh.valuation() == -2, f"xh has valuation {xh.valuation()} (should be -2)"
         yh = Eh.y(prec=prec)
-        assert yh.valuation() == -3, f"yh has valuation {yh.valuation()} (should be -3)"
+        assert not self.is_separable() or yh.valuation() == -3, f"yh has valuation {yh.valuation()} (should be -3)"
         fh = f(xh,yh)
-        assert fh.valuation() == -2, f"fh has valuation {fh.valuation()} (should be -2)"
+        assert not self.is_separable() or fh.valuation() == -2, f"fh has valuation {fh.valuation()} (should be -2)"
         gh = g(xh,yh)
-        assert gh.valuation() == -3, f"gh has valuation {gh.valuation()} (should be -3)"
+        assert not self.is_separable() or gh.valuation() == -3, f"gh has valuation {gh.valuation()} (should be -3)"
         th = -fh/gh
-        assert th.valuation() == +1, f"th has valuation {th.valuation()} (should be +1)"
+        assert not self.is_separable() or th.valuation() == +1, f"th has valuation {th.valuation()} (should be +1)"
         return th
 
 
@@ -442,6 +449,7 @@ class EllipticCurveHom(Morphism):
         - :meth:`sage.schemes.elliptic_curves.weierstrass_morphism.WeierstrassIsomorphism.is_separable`
         - :meth:`sage.schemes.elliptic_curves.hom_composite.EllipticCurveHom_composite.is_separable`
         - :meth:`sage.schemes.elliptic_curves.hom_scalar.EllipticCurveHom_scalar.is_separable`
+        - :meth:`sage.schemes.elliptic_curves.hom_frobenius.EllipticCurveHom_frobenius.is_separable`
 
         TESTS::
 
@@ -591,3 +599,98 @@ class EllipticCurveHom(Morphism):
             Isogeny of degree 7 from Elliptic Curve defined by y^2 + x*y = x^3 - x^2 - 107*x + 552 over Rational Field to Elliptic Curve defined by y^2 + x*y = x^3 - x^2 - 5252*x - 178837 over Rational Field
         """
         return hash((self.domain(), self.codomain(), self.kernel_polynomial()))
+
+
+def find_post_isomorphism(phi, psi):
+    r"""
+    Given two isogenies `\phi: E\to E'` and `\psi: E\to E''`
+    which are equal up to post-isomorphism defined over the
+    same field, find that isomorphism.
+
+    In other words, this function computes an isomorphism
+    `\alpha: E'\to E''` such that `\alpha\circ\phi = \psi`.
+
+    ALGORITHM:
+
+    Start with a list of all isomorphisms `E'\to E''`. Then
+    repeatedly evaluate `\phi` and `\psi` at random points
+    `P` to filter the list for isomorphisms `\alpha` with
+    `\alpha(\phi(P)) = \psi(P)`. Once only one candidate is
+    left, return it. Periodically extend the base field to
+    avoid getting stuck (say, if all candidate isomorphisms
+    act the same on all rational points).
+
+    EXAMPLES::
+
+        sage: from sage.schemes.elliptic_curves.hom import find_post_isomorphism
+        sage: E = EllipticCurve(GF(7^2), [1,0])
+        sage: f = E.multiplication_by_m_isogeny(1)
+        sage: g = choice(E.automorphisms())
+        sage: find_post_isomorphism(f, g) == g
+        True
+
+    ::
+
+        sage: from sage.schemes.elliptic_curves.weierstrass_morphism import WeierstrassIsomorphism
+        sage: from sage.schemes.elliptic_curves.hom_composite import EllipticCurveHom_composite
+        sage: F.<i> = GF(883^2, modulus=x^2+1)
+        sage: E = EllipticCurve(F, [1,0])
+        sage: P = E.lift_x(117)
+        sage: Q = E.lift_x(774)
+        sage: w = WeierstrassIsomorphism(E, [i,0,0,0])
+        sage: phi = EllipticCurveHom_composite(E, [P,w(Q)]) * w
+        sage: psi = EllipticCurveHom_composite(E, [Q,w(P)])
+        sage: phi.kernel_polynomial() == psi.kernel_polynomial()
+        True
+        sage: find_post_isomorphism(phi, psi)
+        Elliptic-curve morphism:
+          From: Elliptic Curve defined by y^2 = x^3 + 320*x + 482 over Finite Field in i of size 883^2
+          To:   Elliptic Curve defined by y^2 = x^3 + 320*x + 401 over Finite Field in i of size 883^2
+          Via:  (u,r,s,t) = (882*i, 0, 0, 0)
+    """
+    E = phi.domain()
+    if psi.domain() != E:
+        raise ValueError('domains do not match')
+
+    isos = phi.codomain().isomorphisms(psi.codomain())
+    if not isos:
+        raise ValueError('codomains not isomorphic')
+
+    F = E.base_ring()
+    from sage.rings.finite_rings import finite_field_base
+    from sage.rings.number_field import number_field_base
+
+    if isinstance(F, finite_field_base.FiniteField):
+        while len(isos) > 1:
+            for _ in range(20):
+                P = E.random_point()
+                im_phi, im_psi = (phi._eval(P), psi._eval(P))
+                isos = [iso for iso in isos if iso._eval(im_phi) == im_psi]
+                if len(isos) <= 1:
+                    break
+            else:
+                E = E.base_extend(E.base_field().extension(2))
+
+    elif isinstance(F, number_field_base.NumberField):
+        for _ in range(100):
+            P = E.lift_x(F.random_element(), extend=True)
+            if P.has_finite_order():
+                continue
+            break
+        else:
+            assert False, "couldn't find a point of infinite order"
+        im_phi, im_psi = (phi._eval(P), psi._eval(P))
+        isos = [iso for iso in isos if iso._eval(im_phi) == im_psi]
+
+    else:
+        # fall back to generic method
+        sc = psi.scaling_factor() / phi.scaling_factor()
+        isos = [iso for iso in isos if iso.u == sc]
+
+    assert len(isos) <= 1
+    if isos:
+        return isos[0]
+
+    # found no suitable isomorphism -- either doesn't exist or a bug
+    raise ValueError('isogenies not equal up to post-isomorphism')
+

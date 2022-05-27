@@ -2387,6 +2387,40 @@ class EllipticCurve_generic(WithEqualityById, plane_curve.ProjectivePlaneCurve):
         from sage.schemes.elliptic_curves.hom_scalar import EllipticCurveHom_scalar
         return EllipticCurveHom_scalar(self, m)
 
+    def frobenius_isogeny(self, n=1):
+        r"""
+        Return the `n`-power Frobenius isogeny from this curve to
+        its Galois conjugate.
+
+        The Frobenius *endo*\morphism is the special case where `n`
+        is divisible by the degree of the base ring of the curve.
+
+        .. WARNING::
+
+            This method and the :class:`EllipticCurveHom_frobenius` class
+            are currently experimental. Use at your own risk.
+
+        EXAMPLES::
+
+            sage: z3, = GF(13^3).gens()
+            sage: E = EllipticCurve([z3,z3^2])
+            sage: E.frobenius_isogeny()
+            doctest:warning
+            ...
+            Frobenius isogeny of degree 13:
+              From: Elliptic Curve defined by y^2 = x^3 + z3*x + z3^2 over Finite Field in z3 of size 13^3
+              To:   Elliptic Curve defined by y^2 = x^3 + (5*z3^2+7*z3+11)*x + (5*z3^2+12*z3+1) over Finite Field in z3 of size 13^3
+            sage: E.frobenius_isogeny(3)
+            Frobenius endomorphism of degree 2197 = 13^3:
+              From: Elliptic Curve defined by y^2 = x^3 + z3*x + z3^2 over Finite Field in z3 of size 13^3
+              To:   Elliptic Curve defined by y^2 = x^3 + z3*x + z3^2 over Finite Field in z3 of size 13^3
+        """
+        p = self.base_ring().characteristic()
+        if not p:
+            raise ValueError('Frobenius isogeny only exists in positive characteristic')
+        from sage.schemes.elliptic_curves.hom_frobenius import EllipticCurveHom_frobenius
+        return EllipticCurveHom_frobenius(self, n)
+
     def isomorphism_to(self, other):
         """
         Given another weierstrass model ``other`` of self, return an

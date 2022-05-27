@@ -152,6 +152,8 @@ from sage.schemes.elliptic_curves.ell_curve_isogeny import EllipticCurveIsogeny
 from sage.schemes.elliptic_curves.hom_composite import EllipticCurveHom_composite
 from sage.schemes.elliptic_curves.hom_scalar import EllipticCurveHom_scalar
 
+from sage.misc.superseded import experimental_warning
+experimental_warning(33915, 'EllipticCurveHom_frobenius is experimental code.')
 
 class EllipticCurveHom_frobenius(EllipticCurveHom):
 

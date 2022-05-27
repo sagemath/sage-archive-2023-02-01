@@ -101,7 +101,7 @@ from sage.libs.ecl import EclObject, ecl_eval
 from .maxima_abstract import (MaximaAbstract, MaximaAbstractFunction,
     MaximaAbstractElement, MaximaAbstractFunctionElement,
     MaximaAbstractElementFunction)
-from sage.docs.instancedoc import instancedoc
+from sage.misc.instancedoc import instancedoc
 from sage.env import MAXIMA_FAS
 
 

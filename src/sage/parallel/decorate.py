@@ -9,7 +9,7 @@ from sage.rings.integer import Integer
 from .reference import parallel_iter as p_iter_reference
 from .use_fork import p_iter_fork
 from . import multiprocessing_sage
-from sage.docs.instancedoc import instancedoc
+from sage.misc.instancedoc import instancedoc
 
 
 def normalize_input(a):

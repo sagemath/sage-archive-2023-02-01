@@ -19,4 +19,9 @@
         "src"
     ],
     "python.testing.unittestEnabled": false,
+    "cSpell.words": [
+        "furo"
+        "Conda",
+        "Cython"
+    ],
 }

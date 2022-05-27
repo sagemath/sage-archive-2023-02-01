@@ -294,15 +294,17 @@ class Sigma0Element(MonoidElement):
         """
         return self._mat
 
-    def inverse(self):
+    def __invert__(self):
         r"""
-        Return the inverse of self. This will raise an error if the result is not in the monoid.
+        Return the inverse of ``self``.
+
+        This will raise an error if the result is not in the monoid.
 
         EXAMPLES::
 
             sage: from sage.modular.pollack_stevens.sigma0 import Sigma0
             sage: s = Sigma0(3)([1,4,3,13])
-            sage: s.inverse()
+            sage: s.inverse()    # indirect doctest
             [13 -4]
             [-3  1]
             sage: Sigma0(3)([1, 0, 0, 3]).inverse()

@@ -1,26 +1,33 @@
 r"""
-Quotients of finite rank free modules over a field.
+Quotients of finite rank free modules
+
+AUTHORS:
+
+- William Stein (2009): initial version
+
+- Kwankyu Lee (2022-05): added quotient module over domain
+
 """
 
-####################################################################################
+# ****************************************************************************
 #       Copyright (C) 2009 William Stein <wstein@gmail.com>
 #
-#  Distributed under the terms of the GNU General Public License (GPL)
-#
-#    This code is distributed in the hope that it will be useful,
-#    but WITHOUT ANY WARRANTY; without even the implied warranty of
-#    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
-#    General Public License for more details.
-#
-#  The full text of the GPL is available at:
-#
-#                  http://www.gnu.org/licenses/
-####################################################################################
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 2 of the License, or
+# (at your option) any later version.
+#                  https://www.gnu.org/licenses/
+# ****************************************************************************
 
 from .free_module import FreeModule_ambient_domain, FreeModule_ambient_field
 
+###############################################################################
+#
+# Quotients of ambient free modules over a domain
+#
+###############################################################################
 
-class FreeModule_ambient_domain_quotient(FreeModule_ambient_domain):
+class QuotientModule_ambient_domain(FreeModule_ambient_domain):
     """
     Quotients of ambient free modules over a domain by a submodule.
 
@@ -36,7 +43,8 @@ class FreeModule_ambient_domain_quotient(FreeModule_ambient_domain):
         sage: M = S**2
         sage: N = M.submodule([vector([x - y, z]), vector([y*z, x*z])])
         sage: M.quotient_module(N)
-        Quotient module by Submodule of Ambient free module of rank 2 over the integral domain Multivariate Polynomial Ring in x, y, z over Rational Field
+        Quotient module by Submodule of Ambient free module of rank 2 over
+        the integral domain Multivariate Polynomial Ring in x, y, z over Rational Field
         Basis matrix:
         [x - y     z]
         [  y*z   x*z]
@@ -63,7 +71,7 @@ class FreeModule_ambient_domain_quotient(FreeModule_ambient_domain):
 
     def _repr_(self):
         r"""
-        Return the rather verbose string representation of this quotient space V/W.
+        Return the string representation of this quotient module.
 
         EXAMPLES::
 
@@ -71,7 +79,8 @@ class FreeModule_ambient_domain_quotient(FreeModule_ambient_domain):
             sage: M = S**2
             sage: N = M.submodule([vector([x - y, z]), vector([y*z , x*z])])
             sage: M.quotient_module(N)
-            Quotient module by Submodule of Ambient free module of rank 2 over the integral domain Multivariate Polynomial Ring in x, y, z over Rational Field
+            Quotient module by Submodule of Ambient free module of rank 2 over
+            the integral domain Multivariate Polynomial Ring in x, y, z over Rational Field
             Basis matrix:
             [x - y     z]
             [  y*z   x*z]
@@ -92,6 +101,12 @@ class FreeModule_ambient_domain_quotient(FreeModule_ambient_domain):
         """
         return self.__hash
 
+
+###############################################################################
+#
+# Quotients of ambient free modules over a field
+#
+###############################################################################
 
 class FreeModule_ambient_field_quotient(FreeModule_ambient_field):
     """

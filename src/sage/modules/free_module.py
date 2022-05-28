@@ -776,6 +776,52 @@ class FreeModule_generic(Module):
     """
     Base class for all free modules.
 
+    This class is also used as a baseclass of submodules and quotient modules
+    constructed from free modules.
+
+    INPUT:
+
+    - ``base_ring`` -- a commutative ring
+
+    - ``rank`` -- a non-negative integer; ``None`` if undefined
+
+    - ``degree`` -- a non-negative integer
+
+    - ``sparse`` -- bool (default: False)
+
+    - ``coordinate_ring`` -- a ring containing ``base_ring``
+      (default: equal to ``base_ring``)
+
+    - ``category`` -- category (default: None)
+
+    If ``base_ring`` is a field, then the default category is the
+    category of finite-dimensional vector spaces over that field;
+    otherwise it is the category of finite-dimensional free modules
+    over that ring.  In addition, the category is intersected with the
+    category of finite enumerated sets if the ring is finite or the
+    rank is 0.
+
+    EXAMPLES::
+
+        sage: PolynomialRing(QQ,3,'x')^3
+        Ambient free module of rank 3 over the integral domain Multivariate Polynomial Ring in x0, x1, x2 over Rational Field
+
+        sage: FreeModule(GF(7),3).category()
+        Category of enumerated finite dimensional vector spaces with basis over
+         (finite enumerated fields and subquotients of monoids and quotients of semigroups)
+        sage: V = QQ^4; V.category()
+        Category of finite dimensional vector spaces with basis over
+         (number fields and quotient fields and metric spaces)
+        sage: V = GF(5)**20; V.category()
+        Category of enumerated finite dimensional vector spaces with basis over (finite enumerated fields and subquotients of monoids and quotients of semigroups)
+        sage: FreeModule(ZZ,3).category()
+        Category of finite dimensional modules with basis over
+         (euclidean domains and infinite enumerated sets
+          and metric spaces)
+        sage: (QQ^0).category()
+        Category of finite enumerated finite dimensional vector spaces with basis
+         over (number fields and quotient fields and metric spaces)
+
     TESTS:
 
     Check that :trac:`17576` is fixed::
@@ -790,49 +836,6 @@ class FreeModule_generic(Module):
         """
         Create the free module of given rank ``rank`` over the given base
         ring ``base_ring``.
-
-        INPUT:
-
-        - ``base_ring`` -- a commutative ring
-
-        - ``rank`` -- a non-negative integer; ``None`` if undefined
-
-        - ``degree`` -- a non-negative integer
-
-        - ``sparse`` -- bool (default: False)
-
-        - ``coordinate_ring`` -- a ring containing ``base_ring``
-          (default: equal to ``base_ring``)
-
-        - ``category`` -- category (default: None)
-
-        If ``base_ring`` is a field, then the default category is the
-        category of finite-dimensional vector spaces over that field;
-        otherwise it is the category of finite-dimensional free modules
-        over that ring.  In addition, the category is intersected with the
-        category of finite enumerated sets if the ring is finite or the
-        rank is 0.
-
-        EXAMPLES::
-
-            sage: PolynomialRing(QQ,3,'x')^3
-            Ambient free module of rank 3 over the integral domain Multivariate Polynomial Ring in x0, x1, x2 over Rational Field
-
-            sage: FreeModule(GF(7),3).category()
-            Category of enumerated finite dimensional vector spaces with basis over
-             (finite enumerated fields and subquotients of monoids and quotients of semigroups)
-            sage: V = QQ^4; V.category()
-            Category of finite dimensional vector spaces with basis over
-             (number fields and quotient fields and metric spaces)
-            sage: V = GF(5)**20; V.category()
-            Category of enumerated finite dimensional vector spaces with basis over (finite enumerated fields and subquotients of monoids and quotients of semigroups)
-            sage: FreeModule(ZZ,3).category()
-            Category of finite dimensional modules with basis over
-             (euclidean domains and infinite enumerated sets
-              and metric spaces)
-            sage: (QQ^0).category()
-            Category of finite enumerated finite dimensional vector spaces with basis
-             over (number fields and quotient fields and metric spaces)
 
         TESTS::
 
@@ -2932,10 +2935,11 @@ class FreeModule_generic_domain(FreeModule_generic):
 
         EXAMPLES::
 
-            sage: V = FreeModule(ZZ,2)
-            sage: V.zero_submodule()
-            Free module of degree 2 and rank 0 over Integer Ring
-            Echelon basis matrix:
+            sage: S.<x,y,z> = PolynomialRing(QQ)
+            sage: M = S**2
+            sage: M.zero_submodule()
+            Submodule of Ambient free module of rank 2 over the integral domain Multivariate Polynomial Ring in x, y, z over Rational Field
+            Basis matrix:
             []
         """
         return self.submodule([], check=False)
@@ -2953,8 +2957,8 @@ class FreeModule_generic_domain(FreeModule_generic):
         EXAMPLES::
 
             sage: S.<x,y,z> = PolynomialRing(QQ)
-            sage: A = S**2
-            sage: A.span([vector([x - y, z]), vector([y*z, x*z])])
+            sage: M = S**2
+            sage: M.span([vector([x - y, z]), vector([y*z, x*z])])
             Submodule of Ambient free module of rank 2 over the integral domain Multivariate Polynomial Ring in x, y, z over Rational Field
             Basis matrix:
             [x - y     z]
@@ -2963,7 +2967,8 @@ class FreeModule_generic_domain(FreeModule_generic):
         if isinstance(gens, FreeModule_generic):
             gens = gens.gens()
         if base_ring is None or base_ring is self.base_ring():
-            return FreeModule_submodule_domain(self.ambient_module(), gens,
+            from .submodule import Submodule_ambient_domain
+            return Submodule_ambient_domain(self.ambient_module(), gens,
                                                check=check)
         else:
             try:
@@ -2979,8 +2984,8 @@ class FreeModule_generic_domain(FreeModule_generic):
 
     def submodule(self, gens, check=True, unitriangular=False, already_echelonized=False):
         r"""
-        Create the `R`-submodule of the ambient vector space with given
-        generators, where `R` is the base ring of ``self``.
+        Create the `R`-submodule of the ambient module with given generators,
+        where `R` is the base ring of ``self``.
 
         INPUT:
 
@@ -5592,23 +5597,28 @@ class FreeModule_ambient(FreeModule_generic):
 class FreeModule_ambient_domain(FreeModule_generic_domain, FreeModule_ambient):
     """
     Ambient free module over an integral domain.
+
+    EXAMPLES::
+
+        sage: FreeModule(PolynomialRing(GF(5),'x'), 3)
+        Ambient free module of rank 3 over the principal ideal domain
+        Univariate Polynomial Ring in x over Finite Field of size 5
     """
     def __init__(self, base_ring, rank, sparse=False, coordinate_ring=None):
         """
-        Create the ambient free module of given rank over the given
-        integral domain.
+        Create the ambient free module of given rank over the given integral
+        domain.
 
-        EXAMPLES::
+        TESTS::
 
-            sage: FreeModule(PolynomialRing(GF(5),'x'), 3)
-            Ambient free module of rank 3 over the principal ideal domain
-            Univariate Polynomial Ring in x over Finite Field of size 5
+            sage: A = FreeModule(PolynomialRing(GF(5),'x'), 3)
+            sage: TestSuite(A).run()
         """
         FreeModule_ambient.__init__(self, base_ring, rank, sparse, coordinate_ring)
 
     def _repr_(self):
         """
-        The printing representation of self.
+        Return the string representation of this free module.
 
         EXAMPLES::
 
@@ -5619,8 +5629,7 @@ class FreeModule_ambient_domain(FreeModule_generic_domain, FreeModule_ambient):
             sage: print(M._repr_())
             Ambient free module of rank 7 over the integral domain Univariate Polynomial Ring in x over Integer Ring
 
-        The system representation can be overwritten, but leaves _repr_
-        unmodified.
+        The system representation can be overwritten, but leaves ``_repr_`` unmodified.
 
         ::
 
@@ -5655,8 +5664,8 @@ class FreeModule_ambient_domain(FreeModule_generic_domain, FreeModule_ambient):
 
     def ambient_vector_space(self):
         """
-        Return the ambient vector space, which is this free module
-        tensored with its fraction field.
+        Return the ambient vector space, which is this free module tensored
+        with its fraction field.
 
         EXAMPLES::
 
@@ -5664,8 +5673,8 @@ class FreeModule_ambient_domain(FreeModule_generic_domain, FreeModule_ambient):
             sage: V = M.ambient_vector_space(); V
             Vector space of dimension 3 over Rational Field
 
-        If an inner product on the module is specified, then this
-        is preserved on the ambient vector space.
+        If an inner product on the module is specified, then this is preserved
+        on the ambient vector space.
 
         ::
 
@@ -5754,15 +5763,15 @@ class FreeModule_ambient_domain(FreeModule_generic_domain, FreeModule_ambient):
 
     def quotient_module(self, sub, check=True):
         """
-        Return the quotient of ``self`` by the given subspace sub.
+        Return the quotient of this free module by the given subspace ``sub``.
 
         INPUT:
 
-        -  ``sub`` -- a submodule of self, or something that can
-           be turned into one via self.submodule(sub).
+        -  ``sub`` -- a submodule of this free module, or something that can
+           be turned into one via ``self.submodule(sub)``.
 
-        -  ``check`` -- (default: True) whether or not to check
-           that sub is a submodule.
+        -  ``check`` -- (default: True) whether or not to check that ``sub`` is
+           a submodule
 
         EXAMPLES::
 
@@ -5782,11 +5791,10 @@ class FreeModule_ambient_domain(FreeModule_generic_domain, FreeModule_ambient):
                 sub = self.submodule(sub)
             except (TypeError, ArithmeticError):
                 raise ArithmeticError("sub must be a subspace of self")
-        from . import quotient_module
-        return quotient_module.FreeModule_ambient_domain_quotient(self, sub)
+        from . quotient_module import QuotientModule_ambient_domain
+        return QuotientModule_ambient_domain(self, sub)
 
     quotient = quotient_module
-
 
 
 ###############################################################################
@@ -6019,130 +6027,9 @@ class ComplexDoubleVectorSpace_class(FreeModule_ambient_field):
 
 ###############################################################################
 #
-# Submodules of ambient modules
+# R-Submodule of K^n where K is the fraction field of a principal ideal domain R
 #
 ###############################################################################
-
-class FreeModule_submodule_domain(FreeModule_generic_domain):
-    """
-    Base class of submodules of ambient free modules over an integral domain.
-
-    INPUT:
-
-    - ``ambient`` -- an ambient free module
-
-    - ``basis`` -- vectors of the ambient free module generating this submodule
-
-    - ``check`` -- boolean; if ``True``, vectors in ``basis`` are checked whether
-      they belong to the ambient free module
-
-    A basis of a submodule over an integral domain is just a generating set of
-    the submodule, as there is no notion of linear independence about vectors
-    in modules over an integral domain.
-
-    EXAMPLES::
-
-        sage: S.<x,y,z> = PolynomialRing(QQ)
-        sage: M = S**2
-        sage: N = M.submodule([vector([x - y, z]), vector([y * z, x * z])])
-        sage: N
-        Submodule of Ambient free module of rank 2 over the integral domain Multivariate Polynomial Ring in x, y, z over Rational Field
-        Basis matrix:
-        [x - y     z]
-        [  y*z   x*z]
-    """
-    def __init__(self, ambient, basis, check=True):
-        r"""
-        Initialize.
-
-        TESTS::
-
-            sage: S.<x,y,z> = PolynomialRing(QQ)
-            sage: M = S**2
-            sage: N = M.submodule([vector([x - y, z]), vector([y * z, x * z])])
-            sage: N.is_submodule(M)
-            True
-        """
-        if not isinstance(ambient, FreeModule_ambient_domain):
-            raise TypeError("ambient (=%s) must be ambient." % ambient)
-        self.__ambient_module = ambient
-        R = ambient.base_ring()
-        R_coord = R
-
-        if check:
-            try:
-                # convert all basis elements to the ambient module
-                basis = [ambient(x) for x in basis]
-            except TypeError:
-                raise TypeError("each element of basis must be in the ambient free module")
-
-        super().__init__(base_ring=R, coordinate_ring=R_coord,
-                         rank=None, degree=ambient.degree(),
-                         sparse=ambient.is_sparse())
-
-        C = self.element_class
-        w = [C(self, x.list(), coerce=False, copy=False) for x in basis]
-        self.__basis = basis_seq(self, w)
-
-    def _repr_(self):
-        """
-        Return a string representation of ``self``.
-
-        EXAMPLES::
-
-            sage: S.<x,y,z> = PolynomialRing(QQ)
-            sage: M = S**2
-            sage: M.submodule([vector([x-y,z]), vector([y*z, x*z])])
-            Submodule of Ambient free module of rank 2 over the integral domain Multivariate Polynomial Ring in x, y, z over Rational Field
-            Basis matrix:
-            [x - y     z]
-            [  y*z   x*z]
-        """
-        return "Submodule of %s\n" % self.ambient_module() + \
-               "Basis matrix:\n%s" % self.basis_matrix()
-
-    def basis(self):
-        """
-        Return the basis of this submodule.
-
-        The basis vectors generate this submodule.
-
-        EXAMPLES::
-
-            sage: S.<x,y,z> = PolynomialRing(QQ)
-            sage: M = S**2
-            sage: N = M.submodule([vector([x - y, z]), vector([y * z, x * z])])
-            sage: N.basis()
-            [
-            (x - y, z),
-            (y*z, x*z)
-            ]
-        """
-        return self.__basis
-
-    def coordinate_vector(self, v, check=False):
-        """
-        Return the coordinate vector of ``self``.
-
-        INPUT:
-
-        - ``v`` -- a vector of this submodule
-
-        The coordinate vector of ``v`` is ``v`` itself.
-
-        EXAMPLES::
-
-            sage: S.<x,y,z> = PolynomialRing(QQ)
-            sage: M = S**2
-            sage: N = M.submodule([vector([x - y, z]), vector([y * z, x * z])])
-            sage: v = vector([x - y, z])
-            sage: N.coordinate_vector(v)
-            (x - y, z)
-        """
-        if check:
-            raise NotImplementedError
-        return v
-
 
 class FreeModule_submodule_with_basis_pid(FreeModule_generic_pid):
     r"""

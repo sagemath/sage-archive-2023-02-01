@@ -870,7 +870,7 @@ cdef _zero(expansion_mode mode, teich_ring):
     else:
         return _expansion_zero
 
-cdef class ExpansionIter(object):
+cdef class ExpansionIter():
     """
     An iterator over a `p`-adic expansion.
 
@@ -999,7 +999,7 @@ cdef class ExpansionIter(object):
         else:
             return cexpansion_next(self.curvalue, self.mode, self.curpower, pp)
 
-cdef class ExpansionIterable(object):
+cdef class ExpansionIterable():
     r"""
     An iterable storing a `p`-adic expansion of an element.
 

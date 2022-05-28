@@ -326,7 +326,7 @@ For creating a cached representation using a factory, one has to
 
 An example::
 
-    sage: class C(object):
+    sage: class C():
     ....:     def __init__(self, t):
     ....:         self.t = t
     ....:     def __repr__(self):
@@ -883,7 +883,7 @@ class CachedRepresentation(metaclass=ClasscallMetaclass):
     older pickles can still be reasonably unpickled. Let us create a
     (new style) class, and pickle one of its instances::
 
-        sage: class MyClass4(object):
+        sage: class MyClass4():
         ....:     def __init__(self, value):
         ....:         self.value = value
         sage: import __main__; __main__.MyClass4 = MyClass4  # Fake MyClass4 being defined in a python module

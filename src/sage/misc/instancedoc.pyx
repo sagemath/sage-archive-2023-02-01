@@ -261,7 +261,7 @@ cdef class InstanceDocDescriptor:
             Traceback (most recent call last):
             ...
             AttributeError: attribute '__doc__' of 'list' objects is not writable
-            sage: descr.__delete__()
+            sage: descr.__delete__(object)
             Traceback (most recent call last):
             ...
             AttributeError: attribute '__doc__' of 'type' objects is not writable

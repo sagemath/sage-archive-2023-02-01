@@ -65,6 +65,7 @@ echo "  # Additional dev tools" >> src/environment-dev.yml
 echo "  - openssh" >> src/environment-dev.yml
 echo "  - pycodestyle" >> src/environment-dev.yml
 echo "  - pytest" >> src/environment-dev.yml
+echo "  - esbonio" >> src/environment-dev.yml
 
 cp environment.yml environment-optional.yml
     echo "  # optional packages" >> environment-optional.yml

@@ -17,12 +17,3 @@ Upstream Contact
 ----------------
 
 Home page: https://www.mathjax.org/
-
-Dependencies
-------------
-
-Special Update/Build Instructions
----------------------------------
-
-Patches
--------

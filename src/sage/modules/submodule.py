@@ -1,9 +1,9 @@
 r"""
-Submodules of finite rank free modules
+Submodules of free modules
 
-Free modules and submodules of a finite rank free module over a principla ideal
-domain have well-defined notion of rank, and they are implemented in
-:module:`sage.modules.free_module`. Here submodules with no rank are
+Free modules and submodules of a free module (of finite rank) over a principal
+ideal domain have well-defined notion of rank, and they are implemented in
+:mod:`sage.modules.free_module`. Here submodules with no rank are
 implemented. For example, submodules of free modules over multivariate
 polynomial rings with more than one variables have no notion of rank.
 

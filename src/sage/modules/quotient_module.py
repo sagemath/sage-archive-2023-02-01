@@ -1,5 +1,5 @@
 r"""
-Quotients of finite rank free modules
+Quotients of free modules
 
 AUTHORS:
 

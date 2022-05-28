@@ -1527,7 +1527,7 @@ cdef class Matroid(SageObject):
         B = frozenset(B)
         if not self.is_basis(B):
             raise ValueError("input B is not a basis of the matroid.")
-        if not e in self.groundset():
+        if e not in self.groundset():
             raise ValueError("input e is not an element of the groundset.")
         return self._fundamental_circuit(B, e)
 
@@ -1897,7 +1897,7 @@ cdef class Matroid(SageObject):
         B = frozenset(B)
         if not self.is_basis(B):
             raise ValueError("input B is not a basis of the matroid.")
-        if not e in B:
+        if e not in B:
             raise ValueError("input e is not an element of B.")
         return self._fundamental_cocircuit(B, e)
 
@@ -4390,13 +4390,13 @@ cdef class Matroid(SageObject):
                 rH = self._rank(H)
                 if rH < r:
                     if rH + self._rank(FF.union(F)) == self._rank(FF) + r:
-                        if not H in final_list:
+                        if H not in final_list:
                             temp_list.add(H)
             # Check upper closure (going just one level up)
             if r < self.full_rank() - 1:
                 for e in self.groundset().difference(F):
                     FF = self.closure(F.union([e]))
-                    if self._rank(FF) > r and not FF in final_list:
+                    if self._rank(FF) > r and FF not in final_list:
                         temp_list.add(FF)
             final_list.add(F)
         return final_list
@@ -7091,7 +7091,7 @@ cdef class Matroid(SageObject):
                     out_neighbors[u] = other._circuit(Y.union([u])) - set([u])  # if u in X2 then out_neighbors[u] was set to empty
                 for y in out_neighbors[u]:
                     m2 = m + weights[y]
-                    if not y in w or w[y] > m2:
+                    if y not in w or w[y] > m2:
                         predecessor[y] = u
                         w[y] = m2
                         next_layer.add(y)
@@ -7104,7 +7104,7 @@ cdef class Matroid(SageObject):
                     out_neighbors[u] = X - self._closure(Y - set([u]))
                 for x in out_neighbors[u]:
                     m2 = m - weights[x]
-                    if not x in w or w[x] > m2:
+                    if x not in w or w[x] > m2:
                         predecessor[x] = u
                         w[x] = m2
                         next_layer.add(x)
@@ -7256,7 +7256,7 @@ cdef class Matroid(SageObject):
                     out_neighbors[u] = other._circuit(Y.union([u])) - set([u])  # if u in X2 then out_neighbors[u] was set to empty
                 for y in out_neighbors[u]:
                     m2 = m + 1
-                    if not y in w or w[y] > m2:
+                    if y not in w or w[y] > m2:
                         w[y] = m2
                         next_layer.add(y)
             todo = next_layer
@@ -7275,7 +7275,7 @@ cdef class Matroid(SageObject):
                     out_neighbors[u] = X - self._closure(Y - set([u]))
                 for x in out_neighbors[u]:
                     m2 = m - 1
-                    if not x in w or w[x] > m2:
+                    if x not in w or w[x] > m2:
                         w[x] = m2
                         next_layer.add(x)
             todo = next_layer

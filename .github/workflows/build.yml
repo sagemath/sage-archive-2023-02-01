@@ -50,6 +50,9 @@ jobs:
           ../sage -python -m pip install coverage pytest-xdist
           ../sage -python -m coverage run -m pytest -c tox.ini --doctest-modules || true
         working-directory: ./src
+        env:
+          # Increase the length of the lines in the "short summary"
+          COLUMNS: 120
 
       - name: Test
         run: |

@@ -11,12 +11,10 @@ import setuptools
 
 from distutils import log
 from distutils.command.install import install
+from setuptools.command.develop import develop
 
-class sage_install(install):
 
-    def run(self):
-        install.run(self)
-        self.install_kernel_spec()
+class install_kernel_spec_mixin:
 
     def install_kernel_spec(self):
         """
@@ -33,12 +31,27 @@ class sage_install(install):
         # the install_data directory for installing our Jupyter files.
         SageKernelSpec.update(prefix=self.install_data)
 
-class sage_install_and_clean(sage_install):
+
+class sage_install(install, install_kernel_spec_mixin):
+
+    def run(self):
+        install.run(self)
+        self.install_kernel_spec()
+
+
+class sage_develop(develop, install_kernel_spec_mixin):
+
+    def run(self):
+        develop.run(self)
+        if not self.uninstall:
+            self.install_kernel_spec()
+
+
+class sage_clean(install):
 
     all_distributions = None
 
     def run(self):
-        sage_install.run(self)
         t = time.time()
         self.clean_stale_files()
         log.info('Finished cleaning, time: %.2f seconds.' % (time.time() - t))
@@ -90,3 +103,10 @@ class sage_install_and_clean(sage_install):
                     data_files,
                     nobase_data_files,
                     distributions=self.all_distributions)
+
+
+class sage_install_and_clean(sage_install, sage_clean):
+
+    def run(self):
+        sage_install.run(self)
+        sage_clean.run(self)

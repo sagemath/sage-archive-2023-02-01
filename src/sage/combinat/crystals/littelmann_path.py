@@ -702,7 +702,7 @@ class CrystalOfProjectedLevelZeroLSPaths(CrystalOfLSPaths):
             raise ValueError("The weight should be in the non-extended weight lattice!")
         La = weight.parent().basis()
         weight = weight - weight.level() * La[0] / La[0].level()
-        return super().__classcall__(cls, weight, starting_weight_parent = weight.parent())
+        return super(CrystalOfLSPaths, cls).__classcall__(cls, weight, starting_weight_parent = weight.parent())
 
     @cached_method
     def maximal_vector(self):
@@ -1206,7 +1206,7 @@ class InfinityCrystalOfLSPaths(UniqueRepresentation, Parent):
             True
         """
         cartan_type = CartanType(cartan_type)
-        return super().__classcall__(cls, cartan_type)
+        return super(InfinityCrystalOfLSPaths, cls).__classcall__(cls, cartan_type)
 
     def __init__(self, cartan_type):
         """
@@ -1320,7 +1320,8 @@ class InfinityCrystalOfLSPaths(UniqueRepresentation, Parent):
                 sage: len(B.subcrystal(max_depth=7))
                 116
             """
-            ret = super().e(i, power=power, length_only=length_only)
+            ret = super().e(i, power=power,
+                            length_only=length_only)
             if ret is None:
                 return None
             if length_only:
@@ -1374,7 +1375,7 @@ class InfinityCrystalOfLSPaths(UniqueRepresentation, Parent):
                  2*Lambda[0] + 2*Lambda[1] + 2*Lambda[2])
             """
             dual_path = self.dualize()
-            dual_path = super().e(i, power, length_only=length_only)
+            dual_path = super(InfinityCrystalOfLSPaths.Element, dual_path).e(i, power, length_only=length_only)
             if length_only:
                 return dual_path
             if dual_path is None:

@@ -8,6 +8,7 @@ export PATH="$(pwd)/build/bin:$PATH"
 
 STRIP_COMMENTS="sed s/#.*//;"
 RECOMMENDED_SPKG_PATTERN="@(_recommended$(for a in $(head -n 1 build/pkgs/_recommended/dependencies); do echo -n "|"$a; done))"
+DEVELOP_SPKG_PATTERN="git_trac_command"
 
 BOOTSTRAP_PACKAGES=$(echo $(${STRIP_COMMENTS} build/pkgs/_bootstrap/distros/conda.txt))
 SYSTEM_PACKAGES=

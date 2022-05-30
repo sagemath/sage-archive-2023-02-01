@@ -2893,11 +2893,12 @@ class RecurrenceParser(object):
 
             mat_upper_right = Matrix([matrix_row(row) for row in srange(dim_without_corr)])
             mat_inhomog = block_diagonal_matrix([S.mu[rem]
-                                                 for S in shifted_inhomogeneities.values()])
+                                                 for S in shifted_inhomogeneities.values()],
+                                                subdivide=False)
 
             mat = block_matrix([[mat, mat_upper_right],
                                 [zero_matrix(mat_inhomog.nrows(), dim_without_corr),
-                                 mat_inhomog]])
+                                 mat_inhomog]], subdivide=False)
 
             dim_without_corr = mat.ncols()
             dim = dim_without_corr + n1

@@ -2275,8 +2275,9 @@ class Polyhedron_QQ_normaliz(Polyhedron_normaliz, Polyhedron_QQ):
 
             sage: S = polytopes.simplex(3, backend = 'normaliz'); S              # optional - pynormaliz
             A 3-dimensional polyhedron in ZZ^4 defined as the convex hull of 4 vertices
-            sage: G = S.restricted_automorphism_group(output = 'permutation'); G # optional - pynormaliz
-            Permutation Group with generators [(2,3), (1,2), (0,1)]
+            sage: G = S.restricted_automorphism_group(output = 'permutation');   # optional - pynormaliz
+            sage: G.is_isomorphic(SymmetricGroup(4))                             # optional - pynormaliz
+            True
             sage: len(G)                                                         # optional - pynormaliz
             24
             sage: Hstar = S._Hstar_function_normaliz(G); Hstar                   # optional - pynormaliz

@@ -846,13 +846,9 @@ class Polyhedron_QQ(Polyhedron_base):
 
         You can obtain non-trivial examples::
 
-            sage: fsp1 = Cube.fixed_subpolytope(reprs[8]);fsp1                  # optional - pynormaliz
-            A 0-dimensional polyhedron in QQ^3 defined as the convex hull of 1 vertex
-            sage: fsp1.vertices()                                               # optional - pynormaliz
-            (A vertex at (0, 0, 0),)
-            sage: fsp2 = Cube.fixed_subpolytope(reprs[3]);fsp2                  # optional - pynormaliz
+            sage: fsp = Cube.fixed_subpolytope(AG([(0,1),(2,3),(4,5),(6,7)]));fsp       # optional - pynormaliz
             A 2-dimensional polyhedron in QQ^3 defined as the convex hull of 4 vertices
-            sage: fsp2.vertices()                                               # optional - pynormaliz
+            sage: fsp.vertices()                                               # optional - pynormaliz
             (A vertex at (-1, -1, 0),
             A vertex at (-1, 1, 0),
             A vertex at (1, -1, 0),
@@ -938,14 +934,10 @@ class Polyhedron_QQ(Polyhedron_base):
             sage: aut_p = p.restricted_automorphism_group(output = 'permutation')   # optional - pynormaliz
             sage: aut_p.order()                                                     # optional - pynormaliz
             8
-            sage: conj_list = aut_p.conjugacy_classes_representatives(); conj_list  # optional - pynormaliz
-            [(), (1,2), (0,1)(2,3), (0,1,3,2), (0,3)(1,2)]
-            sage: p.fixed_subpolytopes(conj_list)                                   # optional - pynormaliz
-            {(): A 2-dimensional polyhedron in QQ^2 defined as the convex hull of 4 vertices,
-            (1,2): A 1-dimensional polyhedron in QQ^2 defined as the convex hull of 2 vertices,
-            (0,1)(2,3): A 1-dimensional polyhedron in QQ^2 defined as the convex hull of 2 vertices,
-            (0,1,3,2): A 0-dimensional polyhedron in QQ^2 defined as the convex hull of 1 vertex,
-            (0,3)(1,2): A 0-dimensional polyhedron in QQ^2 defined as the convex hull of 1 vertex}
+            sage: conj_list = aut_p.conjugacy_classes_representatives();            # optional - pynormaliz
+            sage: fixedpolytopes_dictionary = p.fixed_subpolytopes(conj_list)       # optional - pynormaliz
+            sage: fixedpolytopes_dictionary[aut_p([(0,3),(1,2)])]                   # optional - pynormaliz
+            A 0-dimensional polyhedron in QQ^2 defined as the convex hull of 1 vertex
 
         TESTS::
 
@@ -1020,10 +1012,9 @@ class Polyhedron_QQ(Polyhedron_base):
 
             sage: S = polytopes.simplex(3, backend = 'normaliz'); S              # optional - pynormaliz
             A 3-dimensional polyhedron in ZZ^4 defined as the convex hull of 4 vertices
-            sage: G = S.restricted_automorphism_group(output = 'permutation'); G # optional - pynormaliz
-            Permutation Group with generators [(2,3), (1,2), (0,1)]
-            sage: len(G)                                                         # optional - pynormaliz
-            24
+            sage: G = S.restricted_automorphism_group(output = 'permutation')    # optional - pynormaliz
+            sage: G.is_isomorphic(SymmetricGroup(4))                             # optional - pynormaliz
+            True
             sage: Hstar = S._Hstar_function_normaliz(G); Hstar                   # optional - pynormaliz
             chi_4
             sage: G.character_table()                                            # optional - pynormaliz
@@ -1043,7 +1034,7 @@ class Polyhedron_QQ(Polyhedron_base):
             sage: K = P.restricted_automorphism_group(output = 'permutation')            # optional - pynormaliz
             sage: G = K.subgroup(gens = [K([(0,2),(1,3),(4,6),(5,7)])])                  # optional - pynormaliz
             sage: conj_reps = G.conjugacy_classes_representatives()                      # optional - pynormaliz
-            sage: Dict = P.permutations_to_matrices(conj_reps, acting_group = G)   # optional - pynormaliz
+            sage: Dict = P.permutations_to_matrices(conj_reps, acting_group = G)         # optional - pynormaliz
             sage: list(Dict.keys())[0]                                                   # optional - pynormaliz
             (0,2)(1,3)(4,6)(5,7)
             sage: list(Dict.values())[0]                                                 # optional - pynormaliz

@@ -2136,7 +2136,7 @@ class RecurrenceParser(object):
 
             sage: Seq3 = kRegularSequenceSpace(3, ZZ)
             sage: RP.parameters(1, 0, {(0, 0): 1}, {}, 0,
-            ....:     {0: Seq3.some_elements()[0]})
+            ....:     {0: Seq3.zero()})
             Traceback (most recent call last):
             ...
             ValueError: Inhomogeneities {0: 3-regular sequence 0, 0, 0, 0, 0, 0,

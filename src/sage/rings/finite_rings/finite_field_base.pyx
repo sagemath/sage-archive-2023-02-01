@@ -1497,9 +1497,18 @@ cdef class FiniteField(Field):
             sage: F.extension(int(3), 'a')
             Finite Field in a of size 2^3
 
-            sage: F = GF(2 ** 4, 'a')
+            sage: F = GF(2^4, 'a')
             sage: F.extension(int(3), 'aa')
             Finite Field in aa of size 2^12
+
+        Randomized test for :trac:`33937`::
+
+            sage: p = random_prime(100)
+            sage: a,b = (randrange(1,10) for _ in 'ab')
+            sage: K.<u> = GF(p^a)
+            sage: L.<v> = K.extension(b)
+            sage: L(u).minpoly() == u.minpoly()
+            True
         """
         from .finite_field_constructor import GF
         from sage.rings.polynomial.polynomial_element import is_Polynomial
@@ -1525,7 +1534,7 @@ cdef class FiniteField(Field):
             elif hasattr(E, '_prefix') and hasattr(self, '_prefix'):
                 pass # coercion map is automatically found
             else:
-                if self.is_conway(): # and E is Conway
+                if self.is_conway() and E.is_conway():
                     alpha = E.gen()**((E.order()-1)//(self.order()-1))
                 else:
                     alpha = self.modulus().any_root(E)

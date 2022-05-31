@@ -14,6 +14,9 @@ This module defines the class ``EllipticCurve_field``, based on
 
 import sage.rings.all as rings
 import sage.rings.abc
+from sage.categories.number_fields import NumberFields
+from sage.categories.finite_fields import FiniteFields
+
 from sage.schemes.elliptic_curves.ell_point import EllipticCurvePoint_field
 from sage.schemes.curves.projective_curve import ProjectivePlaneCurve_field
 
@@ -764,37 +767,38 @@ class EllipticCurve_field(ell_generic.EllipticCurve_generic, ProjectivePlaneCurv
             Elist = [E.minimal_model() for E in Elist]
         return Elist
 
-    def division_field(self, p, names, map=False, **kwds):
+    def division_field(self, p, names=None, map=False, **kwds):
         r"""
-        Given an elliptic curve over a number field `F` and a prime number `p`,
-        construct the field `F(E[p])`.
+        Given an elliptic curve over a number field or finite field `F`
+        and a prime number `p`, construct the field `F(E[p])`.
 
         INPUT:
 
-        - ``p`` -- a prime number (an element of `\ZZ`)
+        - ``p`` -- a prime number (an element of `\ZZ`).
 
-        - ``names`` -- a variable name for the number field
+        - ``names`` -- (default: ``t``) a variable name for the division field.
 
         - ``map`` -- (default: ``False``) also return an embedding of
           the :meth:`base_field` into the resulting field.
 
         - ``kwds`` -- additional keywords passed to
-          :func:`sage.rings.number_field.splitting_field.splitting_field`.
+          :func:`~sage.rings.polynomial.polynomial_element.Polynomial.splitting_field`.
 
         OUTPUT:
 
         If ``map`` is ``False``, the division field as an absolute number
-        field.  If ``map`` is ``True``, a tuple ``(K, phi)`` where ``phi``
-        is an embedding of the base field in the division field ``K``.
+        field or a finite field.
+        If ``map`` is ``True``, a tuple `(K, \phi)` where `\phi` is an
+        embedding of the base field in the division field `K`.
 
         .. WARNING::
 
-            This takes a very long time when the degree of the division
+            This can take a very long time when the degree of the division
             field is large (e.g. when `p` is large or when the Galois
             representation is surjective).  The ``simplify`` flag also
-            has a big influence on the running time: sometimes
-            ``simplify=False`` is faster, sometimes ``simplify=True``
-            (the default) is faster.
+            has a big influence on the running time over number fields:
+            sometimes ``simplify=False`` is faster, sometimes
+            ``simplify=True`` (the default) is faster.
 
         EXAMPLES:
 
@@ -889,31 +893,100 @@ class EllipticCurve_field(ell_generic.EllipticCurve_generic, ProjectivePlaneCurv
               To:   Number Field in b with defining polynomial x^24 ...
               Defn: i |--> -215621657062634529/183360797284413355040732*b^23 ...
 
+        Over a finite field::
+
+            sage: E = EllipticCurve(GF(431^2), [1,0])
+            sage: E.division_field(5, map=True)
+            (Finite Field in t of size 431^4,
+             Ring morphism:
+               From: Finite Field in z2 of size 431^2
+               To:   Finite Field in t of size 431^4
+               Defn: z2 |--> 52*t^3 + 222*t^2 + 78*t + 105)
+
+        ::
+
+            sage: E = EllipticCurve(GF(433^2), [1,0])
+            sage: K.<v> = E.division_field(7); K
+            Finite Field in v of size 433^16
+
+        TESTS:
+
+        Some random testing::
+
+            sage: def check(E, l, K):
+            ....:     EE = E.change_ring(K)
+            ....:     cof = EE.order().prime_to_m_part(l)
+            ....:     pts = (cof * EE.random_point() for _ in iter(int, 1))
+            ....:     mul = lambda P: P if not l*P else mul(l*P)
+            ....:     pts = map(mul, filter(bool, pts))
+            ....:     if l == EE.base_field().characteristic():
+            ....:         if EE.is_supersingular():
+            ....:             Ps = ()
+            ....:         else:
+            ....:             assert l.divides(EE.order())
+            ....:             Ps = (next(pts),)
+            ....:     else:
+            ....:         assert l.divides(EE.order())
+            ....:         for _ in range(9999):
+            ....:             P,Q = next(pts), next(pts)
+            ....:             if P.weil_pairing(Q,l) != 1:
+            ....:                 Ps = (P,Q)
+            ....:                 break
+            ....:         else:
+            ....:             assert False
+            ....:     deg = lcm(el.minpoly().degree() for el in sum(map(list,Ps),[]))
+            ....:     assert max(deg, E.base_field().degree()) == K.degree()
+            sage: q = next_prime_power(randrange(1, 10^9))
+            sage: F.<a> = GF(q)
+            sage: while True:
+            ....:     try:
+            ....:         E = EllipticCurve([F.random_element() for _ in range(5)])
+            ....:     except ArithmeticError:
+            ....:         continue
+            ....:     break
+            sage: l = random_prime(8)
+            sage: K = E.division_field(l)
+            sage: n = E.cardinality(extension_degree=K.degree()//F.degree())
+            sage: (l^2 if q%l else 0 + E.is_ordinary()).divides(n)
+            True
+            sage: check(E, l, K)    # long time
+
         AUTHORS:
 
         - Jeroen Demeyer (2014-01-06): :trac:`11905`, use
           ``splitting_field`` method, moved from ``gal_reps.py``, make
           it work over number fields.
+        - Lorenz Panny (2022): extend to finite fields
         """
         from sage.misc.verbose import verbose
         p = rings.Integer(p)
         if not p.is_prime():
             raise ValueError("p must be a prime number")
 
+        if names is None:
+            names = 't'
+
         verbose("Adjoining X-coordinates of %s-torsion points" % p)
         F = self.base_ring()
-        f = self.division_polynomial(p)
-        if p == 2:
-            # For p = 2, the division field is the splitting field of
+        f = self.division_polynomial(l)
+        if l == 2 or f.is_constant():
+            # For l = 2, the division field is the splitting field of
             # the division polynomial.
+            # If f is a non-zero constant, the l-torsion is trivial:
+            # This means the curve must be supersingular and l == p.
             return f.splitting_field(names, map=map, **kwds)
 
         # Compute splitting field of X-coordinates.
         # The Galois group of the division field is a subgroup of GL(2,p).
         # The Galois group of the X-coordinates is a subgroup of GL(2,p)/{-1,+1}.
         # We need the map to change the elliptic curve invariants to K.
-        deg_mult = F.degree() * p * (p+1) * (p-1) * (p-1) // 2
-        K, F_to_K = f.splitting_field(names, degree_multiple=deg_mult, map=True, **kwds)
+        if F in NumberFields():
+            deg_mult = F.degree() * p * (p+1) * (p-1)**2 // 2
+            K, F_to_K = f.splitting_field(names, degree_multiple=deg_mult, map=True, **kwds)
+        elif F in FiniteFields():
+            K, F_to_K = f.splitting_field('u', map=True, **kwds)
+        else:
+            raise NotImplementedError('only number fields and finite fields are currently supported')
 
         verbose("Adjoining Y-coordinates of %s-torsion points" % p)
 
@@ -944,10 +1017,8 @@ class EllipticCurve_field(ell_generic.EllipticCurve_generic, ProjectivePlaneCurv
         X = g.map_coefficients(F_to_K).roots(multiplicities=False)[0]
 
         # Polynomial defining the corresponding Y-coordinate
-        a1,a2,a3,a4,a6 = (F_to_K(ai) for ai in self.a_invariants())
-        rhs = X*(X*(X + a2) + a4) + a6
-        RK = rings.PolynomialRing(K, 'x')
-        ypol = RK([-rhs, a1*X + a3, 1])
+        curve = self.defining_polynomial().map_coefficients(F_to_K)
+        ypol = curve(X, rings.polygen(K), 1)
         L = ypol.splitting_field(names, map=map, **kwds)
         if map:
             L, K_to_L = L

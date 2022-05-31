@@ -85,7 +85,7 @@ discuss two of those ways in this tutorial.
    ::
 
        sage: maple('(x^12-1)/(x-1)').simplify()     # optional - maple
-       x^11+x^10+x^9+x^8+x^7+x^6+x^5+x^4+x^3+x^2+x+1
+       (x+1)*(x^2+1)*(x^2+x+1)*(x^2-x+1)*(x^4-x^2+1)
 
 
 The normal command will always reduce a rational function to the
@@ -1082,13 +1082,13 @@ class MapleElement(ExtraTabCompletion, ExpectElement):
         """
         return self.parent().eval('latex(%s)' % self.name())
 
-    def op(self, i):
+    def op(self, i=None):
         """
         Return the i-th operand of this expression.
 
         INPUT:
 
-        - i -- an integer
+        - i -- an integer or ``None``
 
         EXAMPLES::
 
@@ -1098,6 +1098,8 @@ class MapleElement(ExtraTabCompletion, ExpectElement):
             sage: V.op(2)                            # optional - maple
             {1 = 4, 2 = 5, 3 = 6}
         """
+        if i is None:
+            return self.parent().op(self)
         return self.parent().op(i, self)
 
     def _sage_(self):
@@ -1170,16 +1172,34 @@ class MapleElement(ExtraTabCompletion, ExpectElement):
             sage: sq5.parent()                        # optional - maple
             Real Field with 332 bits of precision
 
-        Functions are not yet converted back correctly::
+        Functions are now sometimes converted back correctly::
 
             sage: maple(hypergeometric([3,4],[5],x))  # optional - maple
             hypergeom([3, 4],[5],x)
-            sage: _.sage()                # known bug # optional - maple
+            sage: _.sage()                            # optional - maple
             hypergeometric((3, 4), (5,), x)
+
+            sage: maple(zeta(5))                      # optional - maple
+            Zeta(5)
+            sage: _.sage()                            # optional - maple
+            zeta(5)
+
+            sage: maple(psi(2,x))                     # optional - maple
+            Psi(2,x)
+            sage: _.sage()                            # optional - maple
+            psi(2, x)
+
+            sage: maple("4+6*Zeta(3)").sage()         # optional - maple
+            6*zeta(3) + 4
+
+            sage: maple("Beta(x,y)^Zeta(9)+1").sage()   # optional - maple
+            beta(x, y)^zeta(9) + 1
         """
         from sage.matrix.constructor import matrix
         from sage.modules.free_module_element import vector
         from sage.rings.integer_ring import ZZ
+        from sage.symbolic.expression import symbol_table
+        symbol_maple = symbol_table["maple"]
         # The next few lines are a very crude excuse for a maple "parser"
         maple_type = repr(self.whattype())
         result = repr(self)
@@ -1212,15 +1232,32 @@ class MapleElement(ExtraTabCompletion, ExpectElement):
         elif maple_type == 'fraction':
             return self.op(1)._sage_() / self.op(2)._sage_()
         elif maple_type == "function":
-            pass  # TODO : here one should translate back function names
+            # TODO : better back translation of function names
+            fun = str(self.op(0))
+            try:
+                sage_fun = symbol_maple[fun]
+                if self.nops() == 1:
+                    args = [self.op()._sage_()]
+                else:
+                    args = [arg._sage_() for arg in self.op()]
+                return sage_fun(*args)
+            except (KeyError, TypeError):
+                pass
         elif maple_type == "float":
             from sage.rings.real_mpfr import RealField
             mantissa = len(repr(self.op(1)))
             prec = max(53, (mantissa * 13301) // 4004)
             R = RealField(prec)
             return R(result)
+        elif maple_type == '`+`':
+            return sum(term._sage_() for term in self.op())
+        elif maple_type == '`*`':
+            from sage.misc.misc_c import prod
+            return prod(term._sage_() for term in self.op())
+        elif maple_type == '`^`':
+            return self.op(1)._sage_()**self.op(2)._sage_()
         elif maple_type == '`=`':        # (1, 1) = 2
-            return (self.op(1)._sage_() == self.op(2)._sage())
+            return (self.op(1)._sage_() == self.op(2)._sage_())
         try:
             from sage.symbolic.ring import SR
             return SR(result)

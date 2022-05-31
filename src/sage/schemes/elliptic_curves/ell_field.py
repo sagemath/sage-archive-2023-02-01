@@ -767,14 +767,14 @@ class EllipticCurve_field(ell_generic.EllipticCurve_generic, ProjectivePlaneCurv
             Elist = [E.minimal_model() for E in Elist]
         return Elist
 
-    def division_field(self, p, names=None, map=False, **kwds):
+    def division_field(self, l, names=None, map=False, **kwds):
         r"""
         Given an elliptic curve over a number field or finite field `F`
-        and a prime number `p`, construct the field `F(E[p])`.
+        and a prime number `\ell`, construct the field `F(E[\ell])`.
 
         INPUT:
 
-        - ``p`` -- a prime number (an element of `\ZZ`).
+        - ``\ell`` -- a prime number (an element of `\ZZ`).
 
         - ``names`` -- (default: ``t``) a variable name for the division field.
 
@@ -794,7 +794,7 @@ class EllipticCurve_field(ell_generic.EllipticCurve_generic, ProjectivePlaneCurv
         .. WARNING::
 
             This can take a very long time when the degree of the division
-            field is large (e.g. when `p` is large or when the Galois
+            field is large (e.g. when `\ell` is large or when the Galois
             representation is surjective).  The ``simplify`` flag also
             has a big influence on the running time over number fields:
             sometimes ``simplify=False`` is faster, sometimes
@@ -818,8 +818,8 @@ class EllipticCurve_field(ell_generic.EllipticCurve_generic, ProjectivePlaneCurv
             sage: K.<b> = E.division_field(2); K
             Number Field in b with defining polynomial x^6 + 10*x^5 + 24*x^4 - 212*x^3 + 1364*x^2 + 24072*x + 104292
 
-        For odd primes `p`, the division field is either the splitting
-        field of the `p`-division polynomial, or a quadratic extension
+        For odd primes `\ell`, the division field is either the splitting
+        field of the `\ell`-division polynomial, or a quadratic extension
         of it. ::
 
             sage: E = EllipticCurve('50a1')
@@ -959,14 +959,14 @@ class EllipticCurve_field(ell_generic.EllipticCurve_generic, ProjectivePlaneCurv
         - Lorenz Panny (2022): extend to finite fields
         """
         from sage.misc.verbose import verbose
-        p = rings.Integer(p)
-        if not p.is_prime():
-            raise ValueError("p must be a prime number")
+        l = rings.Integer(l)
+        if not l.is_prime():
+            raise ValueError("l must be a prime number")
 
         if names is None:
             names = 't'
 
-        verbose("Adjoining X-coordinates of %s-torsion points" % p)
+        verbose("Adjoining X-coordinates of %s-torsion points" % l)
         F = self.base_ring()
         f = self.division_polynomial(l)
         if l == 2 or f.is_constant():
@@ -977,18 +977,18 @@ class EllipticCurve_field(ell_generic.EllipticCurve_generic, ProjectivePlaneCurv
             return f.splitting_field(names, map=map, **kwds)
 
         # Compute splitting field of X-coordinates.
-        # The Galois group of the division field is a subgroup of GL(2,p).
-        # The Galois group of the X-coordinates is a subgroup of GL(2,p)/{-1,+1}.
+        # The Galois group of the division field is a subgroup of GL(2,l).
+        # The Galois group of the X-coordinates is a subgroup of GL(2,l)/{-1,+1}.
         # We need the map to change the elliptic curve invariants to K.
         if F in NumberFields():
-            deg_mult = F.degree() * p * (p+1) * (p-1)**2 // 2
+            deg_mult = F.degree() * l * (l+1) * (l-1)**2 // 2
             K, F_to_K = f.splitting_field(names, degree_multiple=deg_mult, map=True, **kwds)
         elif F in FiniteFields():
             K, F_to_K = f.splitting_field('u', map=True, **kwds)
         else:
             raise NotImplementedError('only number fields and finite fields are currently supported')
 
-        verbose("Adjoining Y-coordinates of %s-torsion points" % p)
+        verbose("Adjoining Y-coordinates of %s-torsion points" % l)
 
         # THEOREM (Cremona, http://trac.sagemath.org/ticket/11905#comment:21).
         # Let K be a field, E an elliptic curve over K and p an odd

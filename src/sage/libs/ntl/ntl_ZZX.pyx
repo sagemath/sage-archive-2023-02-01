@@ -131,7 +131,7 @@ cdef class ntl_ZZX(object):
 
         if v is None:
             return
-        elif isinstance(v, list) or isinstance(v, tuple):
+        elif isinstance(v, (list, tuple)):
             for i from 0 <= i < len(v):
                 x = v[i]
                 if not isinstance(x, ntl_ZZ):
@@ -527,7 +527,7 @@ cdef class ntl_ZZX(object):
             [1 0 0 2]
         """
         if ZZX_IsZero(self.x):
-             return False
+            return False
         cdef ZZ_c lc
         lc = ZZX_LeadCoeff(self.x)
         return <bint>ZZ_IsOne(lc)

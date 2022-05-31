@@ -164,16 +164,14 @@ cdef class ProbabilityDistribution:
 
         EXAMPLES:
 
-        This saves the histogram plot to
-        ``my_general_distribution_plot.png`` in the temporary
-        directory ``SAGE_TMP``::
+        This saves the histogram plot to a temporary file::
 
             sage: from sage.probability.probability_distribution import GeneralDiscreteDistribution
-            sage: import os
+            sage: import tempfile
             sage: P = [0.3, 0.4, 0.3]
             sage: X = GeneralDiscreteDistribution(P)
-            sage: file = os.path.join(SAGE_TMP, "my_general_distribution_plot")
-            sage: X.generate_histogram_plot(file)
+            sage: with tempfile.NamedTemporaryFile() as f:
+            ....:     X.generate_histogram_plot(f.name)
         """
         import pylab
         l = [float(self.get_random_element()) for _ in range(num_samples)]
@@ -700,15 +698,15 @@ cdef class RealDistribution(ProbabilityDistribution):
         sig_free(self.parameters)
 
         if name == 'uniform':
-          self.distribution_type = uniform
-          for x in parameters:
-              try:
-                  float(x)
-              except Exception:
-                  raise TypeError("Uniform distribution requires parameters coercible to float")
-          self.parameters = <double*>sig_malloc(sizeof(double)*2)
-          self.parameters[0] = parameters[0]
-          self.parameters[1] = parameters[1]
+            self.distribution_type = uniform
+            for x in parameters:
+                try:
+                    float(x)
+                except Exception:
+                    raise TypeError("Uniform distribution requires parameters coercible to float")
+            self.parameters = <double*>sig_malloc(sizeof(double)*2)
+            self.parameters[0] = parameters[0]
+            self.parameters[1] = parameters[1]
         elif name == 'gaussian':
             try:
                 float(parameters)
@@ -1176,6 +1174,7 @@ cdef class GeneralDiscreteDistribution(ProbabilityDistribution):
             sage: [T.get_random_element() for _ in range(10)]
             [2, 2, 2, 2, 2, 1, 2, 2, 1, 2]
         """
-        if self.r != NULL: gsl_rng_free(self.r)
+        if self.r != NULL:
+            gsl_rng_free(self.r)
         self.r = gsl_rng_alloc(self.T)
         self.set_seed(self.seed)

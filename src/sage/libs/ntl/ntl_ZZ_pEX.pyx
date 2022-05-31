@@ -87,7 +87,7 @@ cdef class ntl_ZZ_pEX(object):
 
         if v is None:
             return
-        elif isinstance(v, list) or isinstance(v, tuple):
+        elif isinstance(v, (list, tuple)):
             for i from 0 <= i < len(v):
                 x = v[i]
                 if not isinstance(x, ntl_ZZ_pE):
@@ -588,7 +588,7 @@ cdef class ntl_ZZ_pEX(object):
         #return bool(ZZ_pEX_is_monic(self.x))
 
         if ZZ_pEX_IsZero(self.x):
-             return False
+            return False
         cdef ZZ_pE_c x = ZZ_pEX_LeadCoeff(self.x)
         return bool(ZZ_pE_IsOne(x))
 

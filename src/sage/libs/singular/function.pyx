@@ -531,7 +531,7 @@ cdef class Converter(SageObject):
                     isinstance(a, NCPolynomialIdeal):
                 v = self.append_ideal(a)
 
-            elif isinstance(a, int) or isinstance(a, long):
+            elif isinstance(a, int):
                 v = self.append_int(a)
 
             elif isinstance(a, str):
@@ -868,9 +868,9 @@ cdef class Converter(SageObject):
         singular_list.Init(n)
         cdef leftv* iv
         for i in xrange(n):
-          iv=c.pop_front()
-          memcpy(&singular_list.m[i],iv,sizeof(leftv))
-          omFreeBin(iv, sleftv_bin)
+            iv=c.pop_front()
+            memcpy(&singular_list.m[i],iv,sizeof(leftv))
+            omFreeBin(iv, sleftv_bin)
 
         return self._append(<void*>singular_list, LIST_CMD)
 
@@ -1427,8 +1427,7 @@ The Singular documentation for '%s' is given below.
                 continue
             elif isinstance(a, Matrix_mpolynomial_dense):
                 ring2 = a.base_ring()
-            elif isinstance(a, list) or isinstance(a, tuple)\
-                or isinstance(a, Sequence_generic):
+            elif isinstance(a, (list, tuple, Sequence_generic)):
                 #TODO: catch exception, if recursion finds no ring
                 ring2 = self.common_ring(tuple(a), ring)
             elif isinstance(a, Resolution):
@@ -1837,8 +1836,8 @@ def lib(name):
     cdef int vv = si_opt_2
 
     if get_verbose() <= 0:
-         si_opt_2 &= ~Sy_bit(V_LOAD_LIB)
-         si_opt_2 &= ~Sy_bit(V_REDEFINE)
+        si_opt_2 &= ~Sy_bit(V_LOAD_LIB)
+        si_opt_2 &= ~Sy_bit(V_REDEFINE)
 
     cdef char* cname = omStrDup(str_to_bytes(name))
     sig_on()
@@ -1890,7 +1889,7 @@ cdef inline RingWrap new_RingWrap(ring* r):
 
 
 # Add support for _instancedoc_
-from sage.docs.instancedoc import instancedoc
+from sage.misc.instancedoc import instancedoc
 instancedoc(SingularFunction)
 instancedoc(SingularLibraryFunction)
 instancedoc(SingularKernelFunction)

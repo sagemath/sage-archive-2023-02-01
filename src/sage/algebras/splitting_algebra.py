@@ -283,8 +283,8 @@ class SplittingAlgebra(PolynomialQuotientRing_domain):
             root_names_reduces.remove(root_name)
 
             P = base_ring_step[root_names_reduces[0]]
-            p  =  P(monic_polynomial.dict())
-            q, r = p.quo_rem( (P.gen()-first_root) )
+            p = P(monic_polynomial.dict())
+            q, _ = p.quo_rem((P.gen() - first_root))
 
             verbose("Invoking recursion with: %s" % (q,))
 
@@ -774,4 +774,3 @@ def solve_with_extension(monic_polynomial, root_names=None, var='x', flatten=Fal
         from sage.misc.flatten import flatten
         return flatten([[rt]*m for rt, m in roots])
     return roots
-

@@ -1335,7 +1335,7 @@ class DiffFormParal(FreeModuleAltForm, TensorFieldParal, DiffForm):
         """
         TensorFieldParal._init_derived(self)
 
-    def _del_derived(self, del_restrictions=True):
+    def _del_derived(self, del_restrictions: bool = True):
         r"""
         Delete the derived quantities.
 
@@ -1630,6 +1630,15 @@ class DiffFormParal(FreeModuleAltForm, TensorFieldParal, DiffForm):
                (x, y, z) ↦ 2*x*y^3 - 2*z^3 - 6*x - 6*z
             sage: s == a.contract(0,1,b,0,1)
             True
+
+        TESTS:
+
+        Check that :trac:`33780` is fixed::
+
+            sage: v = X.frame()[1]  # vector field d/dx
+            sage: f = X.coframe()[2]  # 1-form dy
+            sage: f.interior_product(v)
+            Scalar field zero on the 3-dimensional differentiable manifold M
 
         """
         if self._domain.is_subset(qvect._domain):

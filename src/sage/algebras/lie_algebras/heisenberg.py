@@ -178,7 +178,7 @@ class HeisenbergAlgebra_abstract(IndexedGenerators):
     class Element(LieAlgebraElement):
         pass
 
-class HeisenbergAlgebra_fd(object):
+class HeisenbergAlgebra_fd():
     """
     Common methods for finite-dimensional Heisenberg algebras.
     """
@@ -795,4 +795,3 @@ class HeisenbergAlgebra_matrix(HeisenbergAlgebra_fd, LieAlgebraFromAssociative):
                 if entry:
                     d[mon] = entry
             return d
-

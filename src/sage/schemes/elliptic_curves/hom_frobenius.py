@@ -137,7 +137,6 @@ AUTHORS:
 """
 
 from sage.misc.cachefunc import cached_method
-from sage.structure.richcmp import op_EQ, op_NE
 from sage.structure.sequence import Sequence
 
 from sage.rings.integer_ring import ZZ
@@ -147,7 +146,6 @@ from sage.schemes.elliptic_curves.ell_generic import EllipticCurve_generic
 from sage.schemes.elliptic_curves.constructor import EllipticCurve
 
 from sage.schemes.elliptic_curves.hom import EllipticCurveHom, find_post_isomorphism
-from sage.schemes.elliptic_curves.weierstrass_morphism import WeierstrassIsomorphism
 from sage.schemes.elliptic_curves.ell_curve_isogeny import EllipticCurveIsogeny
 from sage.schemes.elliptic_curves.hom_composite import EllipticCurveHom_composite
 from sage.schemes.elliptic_curves.hom_scalar import EllipticCurveHom_scalar

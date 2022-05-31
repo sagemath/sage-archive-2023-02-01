@@ -19,6 +19,7 @@ AUTHORS:
 
 from sage.structure.element cimport Element
 from sage.structure.parent cimport Parent
+from sage.rings.integer_ring import ZZ
 from sage.rings.integer import Integer
 
 def is_FiniteFieldElement(x):
@@ -670,7 +671,6 @@ cdef class FinitePolyExtElement(FiniteRingElement):
             1
         """
         if self.is_zero():
-            from sage.rings.integer import Integer
             return Integer(1)
         return self.parent().characteristic()
 
@@ -878,7 +878,6 @@ cdef class FinitePolyExtElement(FiniteRingElement):
                 else: raise ValueError
         if extend:
             raise NotImplementedError
-        from sage.rings.integer import Integer
         n = Integer(n)
         return self._nth_root_common(n, all, algorithm, cunningham)
 
@@ -982,6 +981,61 @@ cdef class FinitePolyExtElement(FiniteRingElement):
         k = k2 / 2
 
         return self.pth_power(k=k)
+
+    def to_integer(self, reverse=False):
+        r"""
+        Return an integer representation of this finite-field element
+        obtained by lifting its representative polynomial to `\ZZ` and
+        evaluating it at the characteristic `p`.
+
+        If ``reverse`` is set to ``True`` (default: ``False``),
+        the list of coefficients is reversed prior to evaluation.
+
+        Inverse of :meth:`sage.rings.finite_rings.finite_field_base.FiniteField.fetch_int`.
+
+        EXAMPLES::
+
+            sage: F.<t> = GF(7^5)
+            sage: F(5).to_integer()
+            5
+            sage: t.to_integer()
+            7
+            sage: (t^2).to_integer()
+            49
+            sage: (t^2+1).to_integer()
+            50
+            sage: (t^2+t+1).to_integer()
+            57
+
+        ::
+
+            sage: F.<t> = GF(2^8)
+            sage: u = F.fetch_int(0xd1)
+            sage: bin(u.to_integer(False))
+            '0b11010001'
+            sage: bin(u.to_integer(True))
+            '0b10001011'
+
+        TESTS::
+
+            sage: p = random_prime(2^99)
+            sage: k = randrange(2,10)
+            sage: F.<t> = GF((p, k))
+            sage: rev = bool(randrange(2))
+            sage: u = F.random_element()
+            sage: 0 <= u.to_integer(rev) < F.cardinality()
+            True
+            sage: F.fetch_int(u.to_integer(rev), rev) == u
+            True
+            sage: n = randrange(F.cardinality())
+            sage: F.fetch_int(n, rev).to_integer(rev) == n
+            True
+        """
+        p = self.parent().characteristic()
+        f = self.polynomial().change_ring(ZZ)
+        if reverse:
+            f = f.reverse(self.parent().degree()-1)
+        return f(p)
 
 cdef class Cache_base(SageObject):
     cpdef FinitePolyExtElement fetch_int(self, number):

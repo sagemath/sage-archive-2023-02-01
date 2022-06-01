@@ -1209,6 +1209,11 @@ class MapleElement(ExtraTabCompletion, ExpectElement):
             sum(-k + x, k, 1, n)
             sage: maple('Product(x-k,k=1..n)').sage() # optional - maple
             product(-k + x, k, 1, n)
+
+        Integrals::
+
+            sage: maple('Int(exp(x),x=0..y)').sage()  # optional - maple
+            integrate(e^x, x, 0, y)
         """
         from sage.matrix.constructor import matrix
         from sage.modules.free_module_element import vector
@@ -1255,6 +1260,12 @@ class MapleElement(ExtraTabCompletion, ExpectElement):
                 variable = self.op(2).op(1)._sage_()
                 bounds = [b._sage_() for b in self.op(2).op(2).op()]
                 return symbolic_sum(term, variable, *bounds, hold=True)
+            if fun == 'Int':
+                from sage.misc.functional import integral
+                term = self.op(1)._sage_()
+                variable = self.op(2).op(1)._sage_()
+                bounds = [b._sage_() for b in self.op(2).op(2).op()]
+                return integral(term, variable, *bounds, hold=True)
             if fun == 'Product':
                 from sage.misc.functional import symbolic_prod
                 term = self.op(1)._sage_()

@@ -1172,6 +1172,13 @@ class MapleElement(ExtraTabCompletion, ExpectElement):
             sage: sq5.parent()                        # optional - maple
             Real Field with 332 bits of precision
 
+        Equations::
+
+            sage: maple("x=4")                        # optional - maple
+            x = 4
+            sage: _.sage()                            # optional - maple
+            x == 4
+
         Functions are now sometimes converted back correctly::
 
             sage: maple(hypergeometric([3,4],[5],x))  # optional - maple
@@ -1192,7 +1199,7 @@ class MapleElement(ExtraTabCompletion, ExpectElement):
             sage: maple("4+6*Zeta(3)").sage()         # optional - maple
             6*zeta(3) + 4
 
-            sage: maple("Beta(x,y)^Zeta(9)+1").sage()   # optional - maple
+            sage: maple("Beta(x,y)^Zeta(9)+1").sage()  # optional - maple
             beta(x, y)^zeta(9) + 1
         """
         from sage.matrix.constructor import matrix

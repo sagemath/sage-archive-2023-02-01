@@ -2749,6 +2749,10 @@ def HanoiTowerGraph(pegs, disks, labels=True, positions=True):
     with the ``padsto`` option is a quick way to do this, though you
     may want to reverse the list that is output.
 
+    .. SEEALSO::
+
+        - :meth:`~sage.graphs.generators.families.GeneralizedSierpinskiGraph`
+
     PLOTTING:
 
     The layout computed when ``positions = True`` will
@@ -3149,12 +3153,13 @@ def SierpinskiGasketGraph(n):
 
         sphinx_plot(graphs.SierpinskiGasketGraph(4).plot(vertex_labels=False))
 
-
     .. SEEALSO::
 
-        There is another family of graphs called Sierpinski graphs,
-        where all vertices but 3 have valence 3. They are available using
-        ``graphs.HanoiTowerGraph(3, n)``.
+        - :meth:`~sage.graphs.generators.families.HanoiTowerGraph`. There is
+          another family of graphs called Sierpinski graphs, where all vertices
+          but 3 have valence 3. They are available using
+          ``graphs.HanoiTowerGraph(3, n)``.
+        - :meth:`~sage.graphs.generators.families.GeneralizedSierpinskiGraph`
 
     EXAMPLES::
 
@@ -3293,7 +3298,7 @@ def GeneralizedSierpinskiGraph(G, k):
         if kk == 1:
             return H
         I = Graph(loops=loops, multiedges=multiedges)
-        # add one copy of H pervertex of G
+        # add one copy of H per vertex of G
         for i in G:
             J = H.relabel(perm={u: (i,) + u for u in H}, inplace=False)
             I.add_vertices(J)

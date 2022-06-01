@@ -991,7 +991,7 @@ cdef class FinitePolyExtElement(FiniteRingElement):
         If ``reverse`` is set to ``True`` (default: ``False``),
         the list of coefficients is reversed prior to evaluation.
 
-        Inverse of :meth:`sage.rings.finite_rings.finite_field_base.FiniteField.fetch_int`.
+        Inverse of :meth:`sage.rings.finite_rings.finite_field_base.FiniteField.from_integer`.
 
         EXAMPLES::
 
@@ -1010,7 +1010,7 @@ cdef class FinitePolyExtElement(FiniteRingElement):
         ::
 
             sage: F.<t> = GF(2^8)
-            sage: u = F.fetch_int(0xd1)
+            sage: u = F.from_integer(0xd1)
             sage: bin(u.to_integer(False))
             '0b11010001'
             sage: bin(u.to_integer(True))
@@ -1025,10 +1025,10 @@ cdef class FinitePolyExtElement(FiniteRingElement):
             sage: u = F.random_element()
             sage: 0 <= u.to_integer(rev) < F.cardinality()
             True
-            sage: F.fetch_int(u.to_integer(rev), rev) == u
+            sage: F.from_integer(u.to_integer(rev), rev) == u
             True
             sage: n = randrange(F.cardinality())
-            sage: F.fetch_int(n, rev).to_integer(rev) == n
+            sage: F.from_integer(n, rev).to_integer(rev) == n
             True
         """
         p = self.parent().characteristic()

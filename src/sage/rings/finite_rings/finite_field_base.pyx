@@ -406,7 +406,7 @@ cdef class FiniteField(Field):
         if lim == <unsigned long>(-1):
             raise NotImplementedError("iterating over all elements of a large finite field is not supported")
 
-    def fetch_int(self, n, reverse=False):
+    def from_integer(self, n, reverse=False):
         r"""
         Return the finite-field element obtained by reinterpreting the base-`p`
         expansion of `n` as a polynomial and evaluating it at the generator of
@@ -426,25 +426,25 @@ cdef class FiniteField(Field):
             sage: p = 4091
             sage: F = GF(p^4, 'a')
             sage: n = 100*p^3 + 37*p^2 + 12*p + 6
-            sage: F.fetch_int(n)
+            sage: F.from_integer(n)
             100*a^3 + 37*a^2 + 12*a + 6
-            sage: F.fetch_int(n) in F
+            sage: F.from_integer(n) in F
             True
-            sage: F.fetch_int(n, reverse=True)
+            sage: F.from_integer(n, reverse=True)
             6*a^3 + 12*a^2 + 37*a + 100
 
         TESTS::
 
             sage: F = GF(19^5)
-            sage: F.fetch_int(0)
+            sage: F.from_integer(0)
             0
             sage: _.parent()
             Finite Field in ... of size 19^5
-            sage: F.fetch_int(-5)
+            sage: F.from_integer(-5)
             Traceback (most recent call last):
             ...
             ValueError: n must be between 0 and self.order()
-            sage: F.fetch_int(F.cardinality())
+            sage: F.from_integer(F.cardinality())
             Traceback (most recent call last):
             ...
             ValueError: n must be between 0 and self.order()
@@ -458,6 +458,8 @@ cdef class FiniteField(Field):
         for d in (digs if reverse else digs[::-1]):
             r = r * g + self(d)
         return r
+
+    fetch_int = deprecated_function_alias(33941, from_integer)
 
     def _is_valid_homomorphism_(self, codomain, im_gens, base_map=None):
         """

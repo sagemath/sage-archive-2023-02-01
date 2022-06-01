@@ -433,7 +433,7 @@ connection to a server running Maple; for hints, type
             True
             sage: m._start()           # optional - maple
             sage: m.expect()           # optional - maple
-            <pexpect.spawn instance at 0x...>
+            Maple with PID ...
             sage: m.quit()             # optional - maple
         """
         return self._expect
@@ -1106,8 +1106,9 @@ class MapleElement(ExtraTabCompletion, ExpectElement):
         r"""
         Convert a maple expression back to a Sage expression.
 
-        This currently does not implement a parser for the Maple output language,
-        therefore only very simple expressions will convert successfully.
+        This currently does not implement a serious parser
+        for the Maple output language.
+        Therefore only very simple expressions will convert successfully.
 
         REFERENCE:
 
@@ -1199,8 +1200,15 @@ class MapleElement(ExtraTabCompletion, ExpectElement):
             sage: maple("4+6*Zeta(3)").sage()         # optional - maple
             6*zeta(3) + 4
 
-            sage: maple("Beta(x,y)^Zeta(9)+1").sage()  # optional - maple
+            sage: maple("Beta(x,y)^Zeta(9)+1").sage() # optional - maple
             beta(x, y)^zeta(9) + 1
+
+        Sums and products::
+
+            sage: maple('Sum(x-k,k=1..n)').sage()     # optional - maple
+            sum(-k + x, k, 1, n)
+            sage: maple('Product(x-k,k=1..n)').sage() # optional - maple
+            product(-k + x, k, 1, n)
         """
         from sage.matrix.constructor import matrix
         from sage.modules.free_module_element import vector
@@ -1241,15 +1249,28 @@ class MapleElement(ExtraTabCompletion, ExpectElement):
         elif maple_type == "function":
             # TODO : better back translation of function names
             fun = str(self.op(0))
-            try:
-                sage_fun = symbol_maple[fun]
-                if self.nops() == 1:
-                    args = [self.op()._sage_()]
-                else:
-                    args = [arg._sage_() for arg in self.op()]
-                return sage_fun(*args)
-            except (KeyError, TypeError):
-                pass
+            if fun == 'Sum':
+                from sage.misc.functional import symbolic_sum
+                term = self.op(1)._sage_()
+                variable = self.op(2).op(1)._sage_()
+                bounds = [b._sage_() for b in self.op(2).op(2).op()]
+                return symbolic_sum(term, variable, *bounds, hold=True)
+            if fun == 'Product':
+                from sage.misc.functional import symbolic_prod
+                term = self.op(1)._sage_()
+                variable = self.op(2).op(1)._sage_()
+                bounds = [b._sage_() for b in self.op(2).op(2).op()]
+                return symbolic_prod(term, variable, *bounds, hold=True)
+            else:
+                try:
+                    sage_fun = symbol_maple[fun]
+                    if self.nops() == 1:
+                        args = [self.op()._sage_()]
+                    else:
+                        args = [arg._sage_() for arg in self.op()]
+                    return sage_fun(*args)
+                except (KeyError, TypeError):
+                    pass
         elif maple_type == "float":
             from sage.rings.real_mpfr import RealField
             mantissa = len(repr(self.op(1)))

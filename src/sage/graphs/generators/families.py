@@ -3199,6 +3199,116 @@ def SierpinskiGasketGraph(n):
     dg.relabel()
     return dg
 
+def GeneralizedSierpinskiGraph(G, k):
+    r"""
+    Return the generalized Sierpiński graph of `G` of dimension `k`.
+
+    Generalized Sierpiński graphs have been introduced in [GKP2011]_ to
+    generalize the notion of Sierpiński graphs [KM1997]_.
+
+    Given a graph `G = (V, E)` of order `n` and a parameter `k`, the generalized
+    Sierpiński graph of `G` of dimension `k`, denoted by `S(G, k)`, can be
+    constructed recursively from `G` as follows. `S(G, 1)` is isomorphic to
+    `G`. To construct `S(G, k)` for `k > 1`, copy `n` times `S(G, k - 1)`, once
+    per vertex `u \in V`, and add `u` at the beginning of the labels of each
+    vertex in the copy of `S(G, k - 1)` corresponding to vertex `u`. Then for
+    any edge `\{u, v\} \in E`, add an edge between vertex `(u, v, \ldots, v)`
+    and vertex `(v, u, \ldots, u)`.
+
+    INPUT:
+
+    - ``G`` -- a sage Graph
+
+    - ``k`` -- integer; the dimension
+
+    .. SEEALSO::
+
+        - :meth:`~sage.graphs.generators.families.SierpinskiGasketGraph`
+        - :meth:`~sage.graphs.generators.families.HanoiTowerGraph`
+
+    EXAMPLES:
+
+    The generalized Sierpiński graph of dimension 1 of any graph `G`
+    is isomorphic to `G`::
+
+        sage: G = graphs.RandomGNP(10, .5)
+        sage: S = graphs.GeneralizedSierpinskiGraph(G, 1)
+        sage: S.is_isomorphic(G)
+        True
+
+    When `G` is a clique of order 3, the generalized Sierpiński graphs
+    of `G` are isomorphic to Hanoï Tower graphs::
+
+        sage: k = randint(1, 5)
+        sage: S = graphs.GeneralizedSierpinskiGraph(graphs.CompleteGraph(3), k)
+        sage: H = graphs.HanoiTowerGraph(3, k)
+        sage: S.is_isomorphic(H)
+        True
+
+    The generalized Sierpiński graph of dimension `k` of any graph `G` with `n`
+    vertices and `m` edges has `n^k` vertices and `m\sum_{i=0}^{k-1}n^i` edges::
+
+        sage: n = randint(2, 6)
+        sage: k = randint(1, 5)
+        sage: G = graphs.RandomGNP(n, .5)
+        sage: m = G.size()
+        sage: S = graphs.GeneralizedSierpinskiGraph(G, k)
+        sage: S.order() == n**k
+        True
+        sage: S.size() == m*sum([n**i for i in range(k)])
+        True
+        sage: G = graphs.CompleteGraph(n)
+        sage: S = graphs.GeneralizedSierpinskiGraph(G, k)
+        sage: S.order() == n**k
+        True
+        sage: S.size() == (n*(n - 1)/2)*sum([n**i for i in range(k)])
+        True
+
+    TESTS::
+
+        sage: graphs.GeneralizedSierpinskiGraph(Graph(), 3)
+        Generalized Sierpinski Graph of Graph on 0 vertices of dimension 3: Graph on 0 vertices
+        sage: graphs.GeneralizedSierpinskiGraph(Graph(1), 3).vertices()
+        [(0, 0, 0)]
+        sage: G = graphs.GeneralizedSierpinskiGraph(Graph(2), 3)
+        sage: G.order(), G.size()
+        (8, 0)
+        sage: graphs.GeneralizedSierpinskiGraph("foo", 1)
+        Traceback (most recent call last):
+        ...
+        ValueError: parameter G must be a Graph
+        sage: graphs.GeneralizedSierpinskiGraph(Graph(), 0)
+        Traceback (most recent call last):
+        ...
+        ValueError: parameter k must be >= 1
+    """
+    if not isinstance(G, Graph):
+        raise ValueError("parameter G must be a Graph")
+    if k < 1:
+        raise ValueError("parameter k must be >= 1")
+    loops = G.allows_loops()
+    multiedges = G.allows_multiple_edges()
+
+    def rec(H, kk):
+        if kk == 1:
+            return H
+        I = Graph(loops=loops, multiedges=multiedges)
+        # add one copy of H pervertex of G
+        for i in G:
+            J = H.relabel(perm={u: (i,) + u for u in H}, inplace=False)
+            I.add_vertices(J)
+            I.add_edges(J.edge_iterator(labels=False, sort_vertices=False))
+        # For each edge {u, v} of G, add edge {(u, v, ..., v), (v, u, ..., u)}
+        l = len(next(H.vertex_iterator()))
+        for u, v in G.edges(labels=False):
+            I.add_edge((u,) + (v,)*l, (v,) + (u,)*l)
+        return rec(I, kk - 1)
+
+    H = G.relabel(perm={u: (u,) for u in G}, inplace=False)
+    if H and k > 1:
+        H = rec(H, k)
+    H.name("Generalized Sierpinski Graph of {} of dimension {}".format(G, k))
+    return H
 
 def WheelGraph(n):
     """

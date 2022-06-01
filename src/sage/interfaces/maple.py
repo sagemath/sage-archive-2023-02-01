@@ -1254,19 +1254,19 @@ class MapleElement(ExtraTabCompletion, ExpectElement):
         elif maple_type == "function":
             # TODO : better back translation of function names
             fun = str(self.op(0))
-            if fun == 'Sum':
+            if fun in ['Sum', 'sum']:
                 from sage.misc.functional import symbolic_sum
                 term = self.op(1)._sage_()
                 variable = self.op(2).op(1)._sage_()
                 bounds = [b._sage_() for b in self.op(2).op(2).op()]
                 return symbolic_sum(term, variable, *bounds, hold=True)
-            if fun == 'Int':
+            if fun in ['Int', 'int']:
                 from sage.misc.functional import integral
                 term = self.op(1)._sage_()
                 variable = self.op(2).op(1)._sage_()
                 bounds = [b._sage_() for b in self.op(2).op(2).op()]
                 return integral(term, variable, *bounds, hold=True)
-            if fun == 'Product':
+            if fun in ['Product', 'product']:
                 from sage.misc.functional import symbolic_prod
                 term = self.op(1)._sage_()
                 variable = self.op(2).op(1)._sage_()

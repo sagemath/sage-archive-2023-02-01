@@ -3108,7 +3108,7 @@ cdef class Matroid(SageObject):
 
     def matroid_polytope(self):
         r"""
-  src/sage/matroids/matroid.pyx      Return the matroid polytope of ``self``.
+        Return the matroid polytope of ``self``.
 
         This is defined as the convex hull of the vertices
 
@@ -8064,7 +8064,10 @@ cdef class Matroid(SageObject):
             Matroid of rank 6 on 16 elements as matroid sum of
             Binary matroid of rank 3 on 7 elements, type (3, 0)
             Matroid of rank 3 on 9 elements with circuit-closures
-            {2: {{'a', 'b', 'c'}, {'a', 'e', 'i'}, {'a', 'f', 'h'}, {'b', 'd', 'i'}, {'b', 'f', 'g'}, {'c', 'd', 'h'}, {'c', 'e', 'g'}, {'d', 'e', 'f'}, {'g', 'h', 'i'}}, 3: {{'a', 'b', 'c', 'd', 'e', 'f', 'g', 'h', 'i'}}}
+            {2: {{'a', 'b', 'c'}, {'a', 'e', 'i'}, {'a', 'f', 'h'},
+                 {'b', 'd', 'i'}, {'b', 'f', 'g'}, {'c', 'd', 'h'},
+                 {'c', 'e', 'g'}, {'d', 'e', 'f'}, {'g', 'h', 'i'}},
+             3: {{'a', 'b', 'c', 'd', 'e', 'f', 'g', 'h', 'i'}}}
             sage: len(N.independent_sets())
             6897
             sage: len(N.bases())

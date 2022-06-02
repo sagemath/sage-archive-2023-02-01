@@ -2781,6 +2781,7 @@ cdef class pAdicZZpXCRElement(pAdicZZpXElement):
             sage: list(A(0,4).expansion())
             []
         """
+        self._normalize()
         if lift_mode == 'teichmuller':
             zero = self.parent()(0)
         elif self.prime_pow.e == 1:

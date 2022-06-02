@@ -213,6 +213,7 @@ class QSystem(CombinatorialFreeModule):
         """
         if len(t) == 0:
             return '1'
+
         def repr_gen(x):
             ret = 'Q^({})[{}]'.format(*(x[0]))
             if x[1] > 1:
@@ -234,6 +235,7 @@ class QSystem(CombinatorialFreeModule):
         """
         if len(t) == 0:
             return '1'
+
         def repr_gen(x):
             ret = 'Q^{{({})}}_{{{}}}'.format(*(x[0]))
             if x[1] > 1:

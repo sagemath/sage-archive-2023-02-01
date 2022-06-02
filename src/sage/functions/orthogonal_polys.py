@@ -2793,6 +2793,7 @@ class Func_meixner(OrthogonalFunction):
              + (3*b^2 + 6*b - 3*b^2/c - 3*b/c - 3*b/c^2 - 2/c^3 + 2)*x + 2*b
         """
         from sage.misc.misc_c import prod
+
         def P(val, k):
             return prod(val + j for j in range(k))
         return sum((-1)**k * binomial(n, k) * binomial(x, k) * factorial(k)

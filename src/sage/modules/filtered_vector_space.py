@@ -1003,6 +1003,7 @@ class FilteredVectorSpace_class(FreeModule_ambient_field):
         generators = \
             [ list(v) + [base_ring.zero()]*other.dimension() for v in self_gens  ] + \
             [ [base_ring.zero()]*self.dimension() + list(v)  for v in other_gens ]
+
         # construct the filtration dictionary
         def join_indices(self_indices, other_indices):
             self_indices = tuple(self_indices)

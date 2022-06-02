@@ -950,6 +950,7 @@ class DocTestController(SageObject):
         # Filter the sources to only include those with failing doctests if the --failed option is passed
         if self.options.failed:
             self.log("Only doctesting files that failed last test.")
+
             def is_failure(source):
                 basename = source.basename
                 return basename not in self.stats or self.stats[basename].get('failed')
@@ -989,6 +990,7 @@ class DocTestController(SageObject):
         if self.options.nthreads > 1 and len(self.sources) > self.options.nthreads:
             self.log("Sorting sources by runtime so that slower doctests are run first....")
             default = dict(walltime=0)
+
             def sort_key(source):
                 basename = source.basename
                 return -self.stats.get(basename, default).get('walltime'), basename

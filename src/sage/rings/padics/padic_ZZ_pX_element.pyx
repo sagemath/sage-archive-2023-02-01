@@ -484,7 +484,7 @@ cdef class pAdicZZpXElement(pAdicExtElement):
             sage: (a+b).trace()
             4*5 + 5^2 + 5^3 + 2*5^4
  
-        TESTS::
+        TESTS:
 
         We check that :trac:`32072` is resolved::
 

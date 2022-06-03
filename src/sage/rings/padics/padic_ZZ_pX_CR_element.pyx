@@ -2785,12 +2785,15 @@ cdef class pAdicZZpXCRElement(pAdicZZpXElement):
 
         We check that :trac:`24949` is fixed::
 
-            sage: R.<a> = Zp(2).extension(x^10 + 2)
-            sage: x = a^4 + a^5
-            sage: y = a^2 + a^3
-            sage: z = x - y^2
-            sage: z.expansion(4)
+            sage: R = Zp(2)
+            sage: S.<x> = R[]
+            sage: A.<a> = R.extension(x^10 + 2)
+            sage: u = a^4 + a^5
+            sage: v = a^2 + a^3
+            sage: w = u - v^2
+            sage: w.expansion(4)
             0
+
         """
         self._normalize()
         if lift_mode == 'teichmuller':

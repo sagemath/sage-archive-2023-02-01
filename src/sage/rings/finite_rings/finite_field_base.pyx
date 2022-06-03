@@ -1577,6 +1577,7 @@ cdef class FiniteField(Field):
         d = self.degree()
         D = list(reversed(d.divisors()[:-1]))
         P = d.support()
+
         def make_family(gen, poly):
             if poly.degree() != d:
                 return False, {}

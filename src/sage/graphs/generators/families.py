@@ -3156,7 +3156,7 @@ def SierpinskiGasketGraph(n):
     .. SEEALSO::
 
         - :meth:`~sage.graphs.generators.families.HanoiTowerGraph`. There is
-          another family of graphs called Sierpinski graphs, where all vertices
+          another family of graphs called Sierpiński graphs, where all vertices
           but 3 have valence 3. They are available using
           ``graphs.HanoiTowerGraph(3, n)``.
         - :meth:`~sage.graphs.generators.families.GeneralizedSierpinskiGraph`
@@ -3204,7 +3204,7 @@ def SierpinskiGasketGraph(n):
     dg.relabel()
     return dg
 
-def GeneralizedSierpinskiGraph(G, k):
+def GeneralizedSierpinskiGraph(G, k, stretch=None):
     r"""
     Return the generalized Sierpiński graph of `G` of dimension `k`.
 
@@ -3225,6 +3225,12 @@ def GeneralizedSierpinskiGraph(G, k):
     - ``G`` -- a sage Graph
 
     - ``k`` -- integer; the dimension
+
+    - ``stretch`` -- integer (default: ``None``); stretching factor used to
+      determine the positions of the vertices of the output graph. By default
+      (``None``), this value is set to twice the maximum Euclidian distance
+      between the vertices of `G`. This parameter is used only when the vertices
+      of `G` have positions.
 
     .. SEEALSO::
 
@@ -3268,6 +3274,26 @@ def GeneralizedSierpinskiGraph(G, k):
         True
         sage: S.size() == (n*(n - 1)/2)*sum([n**i for i in range(k)])
         True
+
+    The positions of the vertices of the output graph are determined from the
+    positions of the vertices of `G`, if any::
+
+        sage: G = graphs.HouseGraph()
+        sage: G.get_pos() is not None
+        True
+        sage: H = graphs.GeneralizedSierpinskiGraph(G, 2)
+        sage: H.get_pos() is not None
+        True
+        sage: G = Graph([(0, 1)])
+        sage: G.get_pos() is not None
+        False
+        sage: H = graphs.GeneralizedSierpinskiGraph(G, 2)
+        sage: H.get_pos() is not None
+        False
+
+    .. PLOT::
+
+        sphinx_plot(graphs.GeneralizedSierpinskiGraph(graphs.HouseGraph(), 2).plot(vertex_labels=False))
 
     TESTS::
 
@@ -3313,6 +3339,19 @@ def GeneralizedSierpinskiGraph(G, k):
     if H and k > 1:
         H = rec(H, k)
     H.name("Generalized Sierpinski Graph of {} of dimension {}".format(G, k))
+
+    # If the vertices of G have positions, we set the positions of vertices of H
+    pos = G.get_pos()
+    if pos:
+        if stretch is None:
+            # Find the geometric diameter
+            from sage.modules.free_module_element import vector
+            L = [vector(p) for p in pos.values()]
+            stretch = 2 * max((u - v).norm() for u, v in combinations(L, 2))
+
+        H.set_pos({u: (sum(pos[x][0]*stretch**(k-i) for i, x in enumerate(u)),
+                       sum(pos[y][1]*stretch**(k-i) for i, y in enumerate(u)))
+                   for u in H})
     return H
 
 def WheelGraph(n):

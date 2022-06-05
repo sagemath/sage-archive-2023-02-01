@@ -50,7 +50,8 @@ if __name__ == "__main__":
              'if "optional" is listed, will also run tests for installed optional packages or detected features; '
              'if "external" is listed, will also run tests for available external software; '
              'if set to "all", then all tests will be run; '
-             'use "!FEATURE" to disable FEATURE')
+             'use "!FEATURE" to disable tests marked "# optional - FEATURE". '
+             'Note that "!" needs to be quoted or escaped in the shell.')
     parser.add_argument("--randorder", type=int, metavar="SEED", help="randomize order of tests")
     parser.add_argument("--random-seed", dest="random_seed", type=int, metavar="SEED", help="random seed (integer) for fuzzing doctests",
                         default=os.environ.get("SAGE_DOCTEST_RANDOM_SEED"))

@@ -523,10 +523,10 @@ class PullbackOfSimplicialSets_finite(PullbackOfSimplicialSets, SimplicialSet_fi
                         continue
 
                     simplex_factors = tuple(zip(simplices, tuple(degens)))
-                    s = '(' + ', '.join(['{}'.format(_[0].apply_degeneracies(*_[1]))
-                                         for _ in simplex_factors]) + ')'
-                    ls = '(' + ', '.join(['{}'.format(latex(_[0].apply_degeneracies(*_[1])))
-                                          for _ in simplex_factors]) + ')'
+                    s = '(' + ', '.join('{}'.format(_[0].apply_degeneracies(*_[1]))
+                                        for _ in simplex_factors) + ')'
+                    ls = '(' + ', '.join('{}'.format(latex(_[0].apply_degeneracies(*_[1])))
+                                         for _ in simplex_factors) + ')'
                     simplex = AbstractSimplex(d, name=s, latex_name=ls)
                     translate[simplex_factors] = simplex
                     # Now compute the faces of simplex.
@@ -968,7 +968,7 @@ class ProductOfSimplicialSets(PullbackOfSimplicialSets, Factors):
             sage: S2.product(K, B)
             S^2 x Klein bottle x Classifying space of Multiplicative Abelian group isomorphic to C2
         """
-        return ' x '.join([str(X) for X in self._factors])
+        return ' x '.join(str(X) for X in self._factors)
 
     def _latex_(self):
         r"""
@@ -983,7 +983,7 @@ class ProductOfSimplicialSets(PullbackOfSimplicialSets, Factors):
             sage: latex(S2.product(RPoo, S2))
             S^{2} \times RP^{\infty} \times S^{2}
         """
-        return ' \\times '.join([latex(X) for X in self._factors])
+        return ' \\times '.join(latex(X) for X in self._factors)
 
 
 class ProductOfSimplicialSets_finite(ProductOfSimplicialSets, PullbackOfSimplicialSets_finite):
@@ -1934,7 +1934,7 @@ class SmashProductOfSimplicialSets_finite(QuotientOfSimplicialSet_finite,
             Smash product: (S^1 ^ RP^4 ^ S^1)
         """
         s = 'Smash product: ('
-        s += ' ^ '.join([str(X) for X in self._factors])
+        s += ' ^ '.join(str(X) for X in self._factors)
         s += ')'
         return s
 
@@ -1949,7 +1949,7 @@ class SmashProductOfSimplicialSets_finite(QuotientOfSimplicialSet_finite,
             sage: latex(S1.smash_product(RP4, S1))
             S^{1} \wedge RP^{4} \wedge S^{1}
         """
-        return ' \\wedge '.join([latex(X) for X in self._factors])
+        return ' \\wedge '.join(latex(X) for X in self._factors)
 
 
 class WedgeOfSimplicialSets(PushoutOfSimplicialSets, Factors):
@@ -2039,7 +2039,7 @@ class WedgeOfSimplicialSets(PushoutOfSimplicialSets, Factors):
             Wedge: (Klein bottle v Klein bottle v Klein bottle)
         """
         s = 'Wedge: ('
-        s += ' v '.join([str(X) for X in self._factors])
+        s += ' v '.join(str(X) for X in self._factors)
         s += ')'
         return s
 
@@ -2054,7 +2054,7 @@ class WedgeOfSimplicialSets(PushoutOfSimplicialSets, Factors):
             sage: latex(S1.wedge(RP4, S1))
             S^{1} \vee RP^{4} \vee S^{1}
         """
-        return ' \\vee '.join([latex(X) for X in self._factors])
+        return ' \\vee '.join(latex(X) for X in self._factors)
 
 
 class WedgeOfSimplicialSets_finite(WedgeOfSimplicialSets, PushoutOfSimplicialSets_finite):
@@ -2245,7 +2245,7 @@ class DisjointUnionOfSimplicialSets(PushoutOfSimplicialSets, Factors):
             Disjoint union: (Torus u Torus u RP^3)
         """
         s = 'Disjoint union: ('
-        s += ' u '.join([str(X) for X in self._factors])
+        s += ' u '.join(str(X) for X in self._factors)
         s += ')'
         return s
 
@@ -2260,7 +2260,7 @@ class DisjointUnionOfSimplicialSets(PushoutOfSimplicialSets, Factors):
             sage: latex(S1.disjoint_union(RP4, S1))
             S^{1} \amalg RP^{4} \amalg S^{1}
         """
-        return ' \\amalg '.join([latex(X) for X in self._factors])
+        return ' \\amalg '.join(latex(X) for X in self._factors)
 
 
 class DisjointUnionOfSimplicialSets_finite(DisjointUnionOfSimplicialSets,

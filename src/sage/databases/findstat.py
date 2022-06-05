@@ -4594,8 +4594,8 @@ _SupportedFindStatCollections = {
     "DecoratedPermutations":
     _SupportedFindStatCollection(lambda x: DecoratedPermutation([v if v > 0 else (i if v == 0 else -i)
                                                                  for i, v in enumerate(literal_eval(x.replace("+","0").replace("-","-1")), 1)]),
-                                 lambda x: "[" + ",".join([str(v) if abs(v) != i else ("+" if v > 0 else "-")
-                                                           for i, v in enumerate(x, 1)]) + "]",
+                                 lambda x: "[" + ",".join((str(v) if abs(v) != i else ("+" if v > 0 else "-")
+                                                           for i, v in enumerate(x, 1))) + "]",
                                  DecoratedPermutations,
                                  lambda x: x.size(),
                                  lambda x: isinstance(x, DecoratedPermutation)),

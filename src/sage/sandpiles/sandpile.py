@@ -4275,10 +4275,8 @@ class SandpileDivisor(dict):
             if type(D) in [dict, SandpileDivisor, SandpileConfig]:
                 dict.__init__(self, dict(D))
             elif isinstance(D, list):
-                div = {}
-                for i, v in enumerate(S.vertices()):
-                    div[v] = D[i]
-                    dict.__init__(self, div)
+                div = {v: D[i] for i, v in enumerate(S.vertices())}
+                dict.__init__(self, div)
         else:
             raise SyntaxError(D)
 

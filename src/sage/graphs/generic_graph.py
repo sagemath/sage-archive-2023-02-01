@@ -2386,6 +2386,19 @@ class GenericGraph(GenericGraph_pyx):
             [0 0 0]
             [1 0 0]
             [1 0 0]
+
+        Check error message for non numerical edge weights (:trac:`33562`)::
+
+            sage: G = Graph([(0, 1)])
+            sage: G.weighted_adjacency_matrix()
+            Traceback (most recent call last):
+            ...
+            ValueError: the weight function cannot find the weight of (0, 1, None)
+            sage: G = Graph([(0, 1, 'a')])
+            sage: G.weighted_adjacency_matrix()
+            Traceback (most recent call last):
+            ...
+            ValueError: the weight function cannot find the weight of (0, 1, 'a')
         """
         if self.has_multiple_edges():
             raise NotImplementedError("don't know how to represent weights for a multigraph")
@@ -2395,6 +2408,15 @@ class GenericGraph(GenericGraph_pyx):
         elif (len(vertices) != self.num_verts() or
               set(vertices) != set(self.vertex_iterator())):
             raise ValueError("``vertices`` must be a permutation of the vertices")
+
+        # Check the edge weights
+        if base_ring is None:
+            def weight_function(e):
+                return e[2]
+        else:
+            def weight_function(e):
+                return base_ring(e[2])
+        self._check_weight_function(weight_function)
 
         new_indices = {v: i for i,v in enumerate(vertices)}
 

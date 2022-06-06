@@ -165,7 +165,7 @@ class CrystalOfLSPaths(UniqueRepresentation, Parent):
             if starting_weight.parent() != starting_weight_parent:
                 raise ValueError("The passed parent is not equal to parent of the inputted weight!")
 
-        return super(CrystalOfLSPaths, cls).__classcall__(cls, starting_weight, starting_weight_parent = starting_weight_parent)
+        return super().__classcall__(cls, starting_weight, starting_weight_parent = starting_weight_parent)
 
     def __init__(self, starting_weight, starting_weight_parent):
         """
@@ -1320,8 +1320,8 @@ class InfinityCrystalOfLSPaths(UniqueRepresentation, Parent):
                 sage: len(B.subcrystal(max_depth=7))
                 116
             """
-            ret = super(InfinityCrystalOfLSPaths.Element, self).e(i, power=power,
-                                                                  length_only=length_only)
+            ret = super().e(i, power=power,
+                            length_only=length_only)
             if ret is None:
                 return None
             if length_only:

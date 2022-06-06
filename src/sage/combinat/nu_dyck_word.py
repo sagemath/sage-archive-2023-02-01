@@ -1368,15 +1368,12 @@ class NuDyckWords(Parent):
         """
         # Define successor function for recursion
         def transpose_close_open(N):
-            return [self.element_class(self,
-                                       N._list[0:k-1]
-                                       + list(reversed(N._list[k-1:k+1]))
-                                       + N._list[k+1:])
-                    for k, v in enumerate(N._list)
-                    if k > 0
-                        and v == ndw_open_symbol
-                        and N._list[k-1] == ndw_close_symbol
-                    ]
+            for k, v in enumerate(N._list):
+                if k > 0 and v == ndw_open_symbol:
+                    w = N._list[k - 1]
+                    if w == ndw_close_symbol:
+                        new = N._list[:k - 1] + [v, w] + N._list[k + 1:]
+                        yield self.element_class(self, new)
 
         RES = RecursivelyEnumeratedSet([self.element_class(self, self._nu)],
                                        transpose_close_open)

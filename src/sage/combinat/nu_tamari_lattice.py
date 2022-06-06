@@ -66,7 +66,7 @@ def NuTamariLattice(nu):
 
     OUTPUT:
 
-    - a finite lattice
+    a finite lattice
 
     The elements of the lattice are
     :func:`\nu-Dyck paths<sage.combinat.nu_dyck_word.NuDyckWord>` weakly above
@@ -88,11 +88,8 @@ def NuTamariLattice(nu):
         Finite lattice containing 14 elements
         sage: NuTamariLattice([1,0,1,0,1,0,0,0,1])
         Finite lattice containing 24 elements
-
     """
-
     NDW = NuDyckWords(nu)
-
     covers = []
     elements = []
     height = NDW[0].height()

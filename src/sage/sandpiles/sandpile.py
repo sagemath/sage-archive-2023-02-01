@@ -616,21 +616,24 @@ class Sandpile(DiGraph):
                 h = g.to_dictionary(multiple_edges=True)
                 g = {i: dict(Counter(h[i])) for i in h}
             else:
-                vi = {v: g.vertices().index(v) for v in g.vertices()}
+                vi = {v: i for i, v in enumerate(g.vertices())}
                 ad = g.weighted_adjacency_matrix()
-                g = {v: {w: ad[vi[v], vi[w]] for w in g.neighbors(v)}
-                     for v in g.vertices()}
+                g = {v: {w: ad[vi[v], vi[w]] for w in g.neighbor_iterator(v)}
+                     for v in g}
         else:
             raise SyntaxError(g)
 
         # create digraph and initialize some variables
         DiGraph.__init__(self, g, weighted=True)
         self._dict = deepcopy(g)
+        vertices = self.vertices()
         if sink is None:
-            sink = self.vertices()[0]
-        self._sink = sink  # key for sink
-        self._sink_ind = self.vertices().index(sink)
-        self._nonsink_vertices = deepcopy(self.vertices())
+            self._sink = vertices[0]
+            self._sink_ind = 0
+        else:
+            self._sink = sink  # key for sink
+            self._sink_ind = vertices.index(sink)
+        self._nonsink_vertices = vertices
         del self._nonsink_vertices[self._sink_ind]
         # compute Laplacians:
         self._laplacian = self.laplacian_matrix(indegree=False)
@@ -1041,8 +1044,8 @@ class Sandpile(DiGraph):
             sage: '_in_degrees' in s.__dict__
             True
         """
-        self._in_degrees = {v: 0 for v in self.vertices()}
-        for e in self.edges():
+        self._in_degrees = {v: 0 for v in self}
+        for e in self.edge_iterator():
             self._in_degrees[e[1]] += e[2]
 
     def in_degree(self, v=None):
@@ -1977,13 +1980,10 @@ class Sandpile(DiGraph):
             sage: T.dict()
             {0: {1: 1}, 1: {0: 1, 2: 1}, 2: {0: 1}}
         """
-
-        # first order the vertices according to their distance from the sink
-        verts = sorted(self.vertices(),
-                       key=lambda v: self.distance(v, self._sink), reverse=True)
-        perm = {}
-        for i in range(len(verts)):
-            perm[verts[i]] = i
+        # first order the vertices according to their distance to the sink
+        distance_to_sink = self.reverse().shortest_path_lengths(self._sink)
+        verts = sorted(self, key=lambda v: distance_to_sink[v], reverse=True)
+        perm = {v: i for i, v in enumerate(verts)}
         old = self.dict()
         new = {}
         for i in old:
@@ -2455,12 +2455,13 @@ class Sandpile(DiGraph):
             sage: '_ring' in S.__dict__
             True
         """
-        # first order the vertices according to their distance from the sink
-        verts = sorted(self.vertices(),
-                       key=lambda v: self.distance(v, self._sink))
+        # first order the vertices according to their distance to the sink
+        distance_to_sink = self.reverse().shortest_path_lengths(self._sink)
+        verts = sorted(self, key=lambda v: distance_to_sink[v])
 
         # variable i refers to the i-th vertex in self.vertices()
-        names = [self.vertices().index(v) for v in reversed(verts)]
+        vertex_to_int = {v: i for i, v in enumerate(self.vertices())}
+        names = [vertex_to_int[v] for v in reversed(verts)]
 
         vars = ''
         for i in names:
@@ -2471,11 +2472,11 @@ class Sandpile(DiGraph):
         # create the ideal
         gens = []
         for i in self.nonsink_vertices():
-            new_gen = 'x' + str(self.vertices().index(i))
+            new_gen = 'x' + str(vertex_to_int[i])
             new_gen += '^' + str(self.out_degree(i))
             new_gen += '-'
             for j in self._dict[i]:
-                new_gen += 'x' + str(self.vertices().index(j))
+                new_gen += 'x' + str(vertex_to_int[j])
                 new_gen += '^' + str(self._dict[i][j]) + '*'
             new_gen = new_gen[:-1]
             gens.append(new_gen)
@@ -3535,7 +3536,7 @@ class SandpileConfig(dict):
         """
         c = dict(self)
         c[v] -= self._sandpile.out_degree(v)
-        for e in self._sandpile.outgoing_edges(v):
+        for e in self._sandpile.outgoing_edge_iterator(v):
             if e[1] != self._sandpile.sink():
                 c[e[1]] += e[2]
         return SandpileConfig(self._sandpile,c)
@@ -3571,7 +3572,7 @@ class SandpileConfig(dict):
         for i in range(len(sigma)):
             v = self._vertices[i]
             c[v] -= sigma[i]*self._sandpile.out_degree(v)
-            for e in self._sandpile.outgoing_edges(v):
+            for e in self._sandpile.outgoing_edge_iterator(v):
                 if e[1] != self._sandpile.sink():
                     c[e[1]] += sigma[i]*e[2]
         return SandpileConfig(self._sandpile, c)
@@ -3612,7 +3613,7 @@ class SandpileConfig(dict):
         c = dict(self)
         for v in self.unstable():
             c[v] -= self._sandpile.out_degree(v)
-            for e in self._sandpile.outgoing_edges(v):
+            for e in self._sandpile.outgoing_edge_iterator(v):
                 if e[1] != self._sandpile.sink():
                     c[e[1]] += e[2]
         return SandpileConfig(self._sandpile,c)
@@ -3638,7 +3639,7 @@ class SandpileConfig(dict):
                 dm = divmod(c[v],s.out_degree(v))
                 c[v] = dm[1]
                 firing_vector[v] += dm[0]
-                for e in s.outgoing_edges(v):
+                for e in s.outgoing_edge_iterator(v):
                     if e[1] != s.sink():
                         c[e[1]] += dm[0]* e[2]
             unstable = c.unstable()
@@ -4156,8 +4157,8 @@ class SandpileConfig(dict):
             T.delete_vertex(self.sandpile().sink())
         if heights:
             a = {}
-            for i in T.vertices():
-                if i==self.sandpile().sink():
+            for i in T:
+                if i == self.sandpile().sink():
                     a[i] = str(i)
                 else:
                     a[i] = str(i)+":"+str(self[i])
@@ -4272,12 +4273,12 @@ class SandpileDivisor(dict):
         """
         if len(D) == S.num_verts():
             if type(D) in [dict, SandpileDivisor, SandpileConfig]:
-                dict.__init__(self,dict(D))
+                dict.__init__(self, dict(D))
             elif isinstance(D, list):
                 div = {}
-                for i in range(S.num_verts()):
-                    div[S.vertices()[i]] = D[i]
-                    dict.__init__(self,div)
+                for i, v in enumerate(S.vertices()):
+                    div[v] = D[i]
+                    dict.__init__(self, div)
         else:
             raise SyntaxError(D)
 
@@ -4809,8 +4810,8 @@ class SandpileDivisor(dict):
         """
         D = dict(self)
         D[v] -= self._sandpile.out_degree(v)
-        for e in self._sandpile.outgoing_edges(v):
-            D[e[1]]+=e[2]
+        for e in self._sandpile.outgoing_edge_iterator(v):
+            D[e[1]] += e[2]
         return SandpileDivisor(self._sandpile,D)
 
     def fire_script(self, sigma):
@@ -4844,8 +4845,8 @@ class SandpileDivisor(dict):
         for i in range(len(sigma)):
             v = self._vertices[i]
             D[v] -= sigma[i]*self._sandpile.out_degree(v)
-            for e in self._sandpile.outgoing_edges(v):
-                D[e[1]]+=sigma[i]*e[2]
+            for e in self._sandpile.outgoing_edge_iterator(v):
+                D[e[1]] += sigma[i] * e[2]
         return SandpileDivisor(self._sandpile, D)
 
     def unstable(self):
@@ -4884,8 +4885,8 @@ class SandpileDivisor(dict):
         D = dict(self)
         for v in self.unstable():
             D[v] -= self._sandpile.out_degree(v)
-            for e in self._sandpile.outgoing_edges(v):
-                D[e[1]]+=e[2]
+            for e in self._sandpile.outgoing_edge_iterator(v):
+                D[e[1]] += e[2]
         return SandpileDivisor(self._sandpile,D)
 
     def _set_q_reduced(self):
@@ -6052,9 +6053,7 @@ class SandpileDivisor(dict):
             T = Graph(self.sandpile())
 
         if heights:
-            a = {}
-            for i in T.vertices():
-                a[i] = str(i) + ":" + str(T[i])
+            a = {i: str(i) + ":" + str(T[i]) for i in T}
             T.relabel(a)
         T.show(**kwds)
 

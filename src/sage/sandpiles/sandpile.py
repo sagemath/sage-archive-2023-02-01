@@ -1338,7 +1338,7 @@ class Sandpile(DiGraph):
         elif self.name() == 'Cycle sandpile graph':
             n = self.num_verts()
             one = [1] * (n - 2)
-            self._recurrents = [SandpileConfig(self, [1]*(n-1))] + [SandpileConfig(self, one[:i]+[0]+one[i:]) for i in range(n - 1)]
+            self._recurrents = [SandpileConfig(self, [1] * (n - 1))] + [SandpileConfig(self, one[:i] + [0] + one[i:]) for i in range(n - 1)]
         else:
             self._recurrents = []
             active = [self._max_stable]
@@ -1469,7 +1469,7 @@ class Sandpile(DiGraph):
         """
         D, U, _ = self.reduced_laplacian().transpose().smith_form()
         F = U.inverse()
-        self._group_gens = [SandpileConfig(self,[Integer(j) for j in F.column(i)]).equivalent_recurrent()
+        self._group_gens = [SandpileConfig(self, [Integer(j) for j in F.column(i)]).equivalent_recurrent()
                             for i in range(F.nrows()) if D[i][i] != 1]
 
     def group_gens(self, verbose=True):
@@ -1521,7 +1521,7 @@ class Sandpile(DiGraph):
             1
         """
         if self.is_undirected():
-            return self.laplacian().trace()/2 - self.num_verts() + 1
+            return self.laplacian().trace() / 2 - self.num_verts() + 1
         else:
             raise UserWarning("The underlying graph must be undirected.")
 
@@ -1562,7 +1562,7 @@ class Sandpile(DiGraph):
         else:
             rec = list(self.recurrents())
             for r in self.recurrents():
-                if exists(rec, lambda x: r>x)[0]:
+                if exists(rec, lambda x: r > x)[0]:
                     rec.remove(r)
         self._min_recurrents = rec
 
@@ -1677,7 +1677,7 @@ class Sandpile(DiGraph):
             True
         """
         n = self.num_verts() - 1
-        R = PolynomialRing(QQ,"x",n)
+        R = PolynomialRing(QQ, "x", n)
         A = R(0)
         V = []
         for i in range(n):
@@ -1687,7 +1687,7 @@ class Sandpile(DiGraph):
         for r in self.recurrents():
             for i in range(n):
                 e = tuple((r + V[i]).stabilize(True)[1].values())
-                A += R({e:1})
+                A += R({e: 1})
         self._avalanche_polynomial = A
 
     def avalanche_polynomial(self, multivariable=True):
@@ -1726,10 +1726,9 @@ class Sandpile(DiGraph):
         """
         if multivariable:
             return deepcopy(self._avalanche_polynomial)
-        else:
-            R = self._avalanche_polynomial.parent()
-            X = R.gens()
-            return self._avalanche_polynomial.subs({X[i]:X[0] for i in range(1,self.num_verts()-1)})
+        X = self._avalanche_polynomial.parent().gens()
+        return self._avalanche_polynomial.subs({X[i]: X[0]
+            for i in range(1, self.num_verts() - 1)})
 
     def nonspecial_divisors(self, verbose=True):
         r"""
@@ -1804,9 +1803,8 @@ class Sandpile(DiGraph):
             The underlying graph must be undirected.
         """
         if self.is_undirected():
-            return SandpileDivisor(self,[self.laplacian()[i][i] - 2 for i in range(self.num_verts())])
-        else:
-            raise UserWarning("Only for undirected graphs.")
+            return SandpileDivisor(self, [self.laplacian()[i][i] - 2 for i in range(self.num_verts())])
+        raise UserWarning("Only for undirected graphs.")
 
     def _set_invariant_factors(self):
         r"""
@@ -1985,15 +1983,15 @@ class Sandpile(DiGraph):
                        key=lambda v: self.distance(v, self._sink), reverse=True)
         perm = {}
         for i in range(len(verts)):
-            perm[verts[i]]=i
+            perm[verts[i]] = i
         old = self.dict()
         new = {}
         for i in old:
             entry = {}
             for j in old[i]:
-                entry[perm[j]]=old[i][j]
+                entry[perm[j]] = old[i][j]
             new[perm[i]] = entry
-        return Sandpile(new,len(verts)-1)
+        return Sandpile(new, len(verts) - 1)
 
     def _set_jacobian_representatives(self):
         r"""
@@ -2011,26 +2009,23 @@ class Sandpile(DiGraph):
         else:
             ker = self.laplacian().left_kernel().basis()
             tau = abs(ker[self._sink_ind])
-            if tau==1:
-                easy = True
-            else:
-                easy = False
+            easy = bool(tau == 1)
         if easy:
             result = []
             for r in self.superstables():
-                D = {v:r[v] for v in self._nonsink_vertices}
+                D = {v: r[v] for v in self._nonsink_vertices}
                 D[self._sink] = - r.deg()
                 result.append(SandpileDivisor(self, D))
                 self._jacobian_representatives = result
         else:
             result = []
             sr = self.superstables()
-            order = self.group_order()/tau
-            while len(result)<order:
+            order = self.group_order() / tau
+            while len(result) < order:
                 r = sr.pop()
-                active = {v:r[v] for v in self._nonsink_vertices}
+                active = {v: r[v] for v in self._nonsink_vertices}
                 active[self._sink] = -r.deg()
-                active = SandpileDivisor(self,active)
+                active = SandpileDivisor(self, active)
                 repeated = False
                 for D in result:
                     if active.is_linearly_equivalent(D):
@@ -6509,10 +6504,10 @@ def partition_sandpile(S, p):
         ------------------------------
         total:     1     6     8     3
     """
-    from sage.combinat.combination import Combinations
+    from itertools import combinations
     g = Graph()
-    g.add_vertices([tuple(i) for i in p])
-    for u, v in Combinations(g.vertices(), 2):
+    g.add_vertices(tuple(i) for i in p)
+    for u, v in combinations(g, 2):
         for i in u:
             for j in v:
                 if (i, j, 1) in S.edges():

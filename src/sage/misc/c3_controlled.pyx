@@ -1071,6 +1071,7 @@ class HierarchyElement(object, metaclass=ClasscallMetaclass):
             succ = succ.neighbors_out
         if key is None:
             key = identity
+
         @cached_function
         def f(x):
             return typecall(cls, x, [f(y) for y in succ(x)], key, f)

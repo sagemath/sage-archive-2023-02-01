@@ -50,13 +50,6 @@ else:
     log.warn('python_modules = {0}'.format(python_modules))
     log.warn('cython_modules = {0}'.format(cython_modules))
 
-    # Monkey-patch Cython 0.29.x for PEP 420 namespace packages
-    # https://github.com/cython/cython/issues/2918#issuecomment-991799049
-    import Cython.Build.Dependencies
-    import Cython.Build.Cythonize
-    import Cython.Utils
-    Cython.Utils.is_package_dir = Cython.Build.Cythonize.is_package_dir = Cython.Build.Dependencies.is_package_dir = is_package_or_namespace_package_dir
-
 setup(
     cmdclass = cmdclass,
     packages = python_packages,

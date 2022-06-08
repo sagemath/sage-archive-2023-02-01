@@ -64,6 +64,8 @@ def is_package_or_sage_namespace_package_dir(path):
 def cython_namespace_package_support():
     r"""
     Activate namespace package support in Cython 0.x
+
+    See https://github.com/cython/cython/issues/2918#issuecomment-991799049
     """
     import Cython.Build.Dependencies
     import Cython.Build.Cythonize

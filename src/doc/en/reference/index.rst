@@ -49,7 +49,7 @@ Linear Algebra
 --------------
 
 * :doc:`Matrices and Spaces of Matrices <matrices/index>`
-* :doc:`Modules and Vectors <modules/index>`
+* :doc:`Vectors and Modules <modules/index>`
 * :doc:`Tensors on Free Modules of Finite Rank <tensor_free_modules/index>`
 
 Calculus and Analysis

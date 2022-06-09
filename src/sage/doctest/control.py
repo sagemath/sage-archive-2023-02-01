@@ -1337,6 +1337,16 @@ class DocTestController(SageObject):
                     self.log("Git branch: " + branch, end="")
                 except subprocess.CalledProcessError:
                     pass
+                try:
+                    ref = subprocess.check_output(["git",
+                                                      "--git-dir=" + SAGE_ROOT_GIT,
+                                                      "describe",
+                                                      "--always",
+                                                      "--dirty"])
+                    ref = ref.decode('utf-8')
+                    self.log("Git ref: " + ref, end="")
+                except subprocess.CalledProcessError:
+                    pass
 
             self.log("Using --optional=" + self._optional_tags_string())
             available_software._allow_external = self.options.optional is True or 'external' in self.options.optional

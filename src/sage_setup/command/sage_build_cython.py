@@ -198,7 +198,7 @@ class sage_build_cython(Command):
         self.cythonized_files = list(find_extra_files(
             ".", ["sage"], self.build_dir, [],
             distributions=self.built_distributions).items())
-        log.warn(f"cythonized_files = {self.cythonized_files}")
+        log.debug(f"cythonized_files = {self.cythonized_files}")
 
         return self.cythonized_files
 

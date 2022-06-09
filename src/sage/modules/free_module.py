@@ -3106,13 +3106,15 @@ class FreeModule_generic_domain(FreeModule_generic):
         """
         return self.submodule([], check=False)
 
-    def span(self, gens, base_ring=None, check=True):
+    def span(self, gens, base_ring=None, check=True, already_echelonized=False):
         """
         Return the span of ``gens``.
 
         INPUT:
 
         - ``base_ring`` -- (optional) a ring
+
+        - ``already_echelonized`` -- boolean; ignored
 
         EXAMPLES::
 

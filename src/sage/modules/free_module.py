@@ -839,6 +839,49 @@ class FreeModule_base(Module):
         self.__degree = degree
         self.__is_sparse = sparse
 
+    def _element_constructor_(self, x, coerce=True, copy=True, check=True):
+        r"""
+        Create an element of this module from ``x``.
+
+        The ``coerce`` and ``copy`` arguments are passed on to the underlying
+        element constructor.
+
+        EXAMPLES::
+
+            sage: S.<x,y,z> = PolynomialRing(QQ)
+            sage: M = S**2
+            sage: N = M.submodule([vector([x - y, z]), vector([y*z , x*z])])
+            sage: Q = M.quotient_module(N)
+            sage: Q(0)
+            (0, 0)
+            sage: Q([x, x + y])
+            (x, x + y)
+            sage: phi = Q.coerce_map_from(M)
+            sage: phi(M.gen(1))
+            (0, 1)
+            sage: _ in Q
+            True
+        """
+        if isinstance(x, (int, sage.rings.integer.Integer)) and x == 0:
+            return self.zero_vector()
+        elif isinstance(x, free_module_element.FreeModuleElement):
+            if x.parent() is self:
+                if copy:
+                    return x.__copy__()
+                else:
+                    return x
+            x = x.list()
+        if check and self.coordinate_ring().is_exact():
+            # No check if x belongs to this module as there is no algorithm.
+            try:
+                R = self.base_ring()
+                for d in x:
+                    if d not in R:
+                        raise ArithmeticError
+            except ArithmeticError:
+                raise TypeError("element {!r} is not in free module".format(x))
+        return self.element_class(self, x, coerce, copy)
+
     def degree(self):
         """
         Return the degree of this free module. This is the dimension of the
@@ -5053,13 +5096,13 @@ class FreeModule_ambient(FreeModule_generic):
             sage: V.coerce_map_from(M)
 
         """
-        if isinstance(M, FreeModule_ambient):
+        if isinstance(M, FreeModule_base):
             from sage.modules.quotient_module import FreeModule_ambient_field_quotient
             if isinstance(M, FreeModule_ambient_field_quotient):
                 # No forgetful map.
                 return None
             elif (self.base_ring().has_coerce_map_from(M.base_ring())
-                  and self.rank() == M.rank()):
+                  and self.degree() == M.degree()):
                 # We could return M.hom(self.basis(), self), but the
                 # complexity of this is quadratic in space and time,
                 # since it constructs a matrix.

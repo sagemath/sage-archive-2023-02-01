@@ -1322,7 +1322,7 @@ class DocTestController(SageObject):
             return self.run_val_gdb()
         else:
             self.create_run_id()
-            from sage.env import SAGE_ROOT_GIT
+            from sage.env import SAGE_ROOT_GIT, SAGE_LOCAL, SAGE_VENV
             # SAGE_ROOT_GIT can be None on distributions which typically
             # only have the SAGE_LOCAL install tree but not SAGE_ROOT
             if (SAGE_ROOT_GIT is not None) and os.path.isdir(SAGE_ROOT_GIT):
@@ -1347,6 +1347,8 @@ class DocTestController(SageObject):
                     self.log("Git ref: " + ref, end="")
                 except subprocess.CalledProcessError:
                     pass
+
+            self.log(f"Running with {SAGE_LOCAL=} and {SAGE_VENV=}")
 
             self.log("Using --optional=" + self._optional_tags_string())
             available_software._allow_external = self.options.optional is True or 'external' in self.options.optional

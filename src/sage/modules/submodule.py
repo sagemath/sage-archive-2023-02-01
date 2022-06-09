@@ -36,10 +36,10 @@ AUTHORS:
 
 from sage.misc.cachefunc import cached_method
 from sage.modules.free_module import (basis_seq,
-                                      FreeModule_base,
+                                      Module_free_ambient,
                                       FreeModule_ambient_domain)
 
-class Submodule_ambient_domain(FreeModule_base):
+class Submodule_free_ambient(Module_free_ambient):
     """
     Base class of submodules of ambient free modules over an integral domain.
 

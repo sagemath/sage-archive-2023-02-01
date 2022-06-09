@@ -21,7 +21,7 @@ AUTHORS:
 
 from sage.structure.richcmp import rich_to_bool, richcmp
 
-from .free_module import (FreeModule_base,
+from .free_module import (Module_free_ambient,
                           FreeModule_ambient,
                           FreeModule_ambient_field)
 
@@ -31,7 +31,7 @@ from .free_module import (FreeModule_base,
 #
 ###############################################################################
 
-class FreeModule_ambient_domain_quotient(FreeModule_base):
+class QuotientModule_free_ambient(Module_free_ambient):
     """
     Quotients of ambient free modules over a domain by a submodule.
 

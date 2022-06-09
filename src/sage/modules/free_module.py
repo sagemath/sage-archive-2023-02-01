@@ -771,7 +771,7 @@ def is_FreeModule(M):
     return isinstance(M, FreeModule_generic)
 
 
-class FreeModule_base(Module):
+class Module_free_ambient(Module):
     """
     Base class for modules with elements represented by elements of a free
     module.
@@ -810,10 +810,6 @@ class FreeModule_base(Module):
         ]
         sage: N.degree()
         2
-        sage: N.rank()
-        Traceback (most recent call last):
-        ...
-        TypeError: no rank is defined for this module
     """
     def __init__(self, base_ring, degree, sparse=False, category=None):
         """
@@ -897,22 +893,6 @@ class FreeModule_base(Module):
             2
         """
         return self.__degree
-
-    def rank(self):
-        """
-        Raise an exception as no rank is defined for this module.
-
-        EXAMPLES::
-
-            sage: S.<x,y,z> = PolynomialRing(QQ)
-            sage: M = S**2
-            sage: N = M.submodule([vector([x - y, z]), vector([y * z, x * z])])
-            sage: N.rank()
-            Traceback (most recent call last):
-            ...
-            TypeError: no rank is defined for this module
-        """
-        raise TypeError('no rank is defined for this module')
 
     def is_sparse(self):
         """
@@ -1083,7 +1063,7 @@ class FreeModule_base(Module):
 
 
 @richcmp_method
-class FreeModule_generic(FreeModule_base):
+class FreeModule_generic(Module_free_ambient):
     """
     Base class for all free modules.
 
@@ -1642,8 +1622,6 @@ class FreeModule_generic(FreeModule_base):
             sage: L._eq(IntegralLattice("U"))
             True
         """
-        if self.rank() is None or other.rank() is None:
-            return False
         if self.rank() != other.rank():
             return False
         if self.base_ring() != other.base_ring():
@@ -3129,8 +3107,8 @@ class FreeModule_generic_domain(FreeModule_generic):
         if isinstance(gens, FreeModule_generic):
             gens = gens.gens()
         if base_ring is None or base_ring is self.base_ring():
-            from .submodule import Submodule_ambient_domain
-            return Submodule_ambient_domain(self.ambient_module(), gens,
+            from .submodule import Submodule_free_ambient
+            return Submodule_free_ambient(self.ambient_module(), gens,
                                                check=check)
         else:
             try:
@@ -3166,7 +3144,7 @@ class FreeModule_generic_domain(FreeModule_generic):
             [x - y     z]
             [  y*z   x*z]
         """
-        if isinstance(gens, FreeModule_base):
+        if isinstance(gens, Module_free_ambient):
             gens = gens.gens()
         V = self.span(gens, check=check)
         if check:
@@ -5086,7 +5064,7 @@ class FreeModule_ambient(FreeModule_generic):
 
     def _coerce_map_from_(self, M):
         """
-        Return a coercion map from `M` to ``self``, or None.
+        Return a coercion map from `M` to ``self``, or ``None``.
 
         TESTS:
 
@@ -5096,18 +5074,23 @@ class FreeModule_ambient(FreeModule_generic):
             sage: M = QQ^3 / [[1,2,3]]
             sage: V = QQ^2
             sage: V.coerce_map_from(M)
-
         """
-        if isinstance(M, FreeModule_base):
-            from sage.modules.quotient_module import FreeModule_ambient_field_quotient
-            if isinstance(M, FreeModule_ambient_field_quotient):
-                # No forgetful map.
-                return None
-            elif (self.base_ring().has_coerce_map_from(M.base_ring())
-                  and self.degree() == M.degree()):
+        from sage.modules.submodule import Submodule_free_ambient
+        from sage.modules.quotient_module import FreeModule_ambient_field_quotient
+
+        if isinstance(M, FreeModule_ambient_field_quotient):
+            # No forgetful map.
+            return None
+        if isinstance(M, FreeModule_ambient):
+            if (self.base_ring().has_coerce_map_from(M.base_ring()) and
+                self.rank() == M.rank()):
                 # We could return M.hom(self.basis(), self), but the
                 # complexity of this is quadratic in space and time,
                 # since it constructs a matrix.
+                return True
+        elif isinstance(M, Submodule_free_ambient):
+            if (self.base_ring().has_coerce_map_from(M.base_ring()) and
+                self.rank() == M.degree()):
                 return True
         return super(FreeModule_ambient, self)._coerce_map_from_(M)
 
@@ -5906,15 +5889,15 @@ class FreeModule_ambient_domain(FreeModule_generic_domain, FreeModule_ambient):
             [x - y     z]
             [  y*z   x*z]
         """
-        if isinstance(sub, FreeModule_base) and self.base_ring() != sub.base_ring():
+        if isinstance(sub, Module_free_ambient) and self.base_ring() != sub.base_ring():
             raise ValueError("base rings must be the same")
-        if check and (not isinstance(sub, FreeModule_base) or not sub.is_submodule(self)):
+        if check and (not isinstance(sub, Module_free_ambient) or not sub.is_submodule(self)):
             try:
                 sub = self.submodule(sub)
             except (TypeError, ArithmeticError):
                 raise ArithmeticError("sub must be a subspace of self")
-        from . quotient_module import FreeModule_ambient_domain_quotient
-        return FreeModule_ambient_domain_quotient(self, sub)
+        from .quotient_module import QuotientModule_free_ambient
+        return QuotientModule_free_ambient(self, sub)
 
     quotient = quotient_module
 

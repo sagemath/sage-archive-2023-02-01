@@ -4760,7 +4760,7 @@ class Permutation(CombinatorialElement):
         identity permutation.
 
         This is mostly a helper method for
-        :module:`sage.combinat.schubert_polynomial`, where it is
+        :mod:`sage.combinat.schubert_polynomial`, where it is
         used to normalize finitary permutations of
         `\{1,2,3,\ldots\}`.
 

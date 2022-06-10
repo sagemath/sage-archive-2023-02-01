@@ -2744,7 +2744,7 @@ class CoxeterGroups(Category_singleton):
             OUTPUT:
 
             The unique Bruhat-maximum element ``x`` in ``W`` such that ``x W' = w W'``
-            and ``v `\ge` ``x``.
+            and ``v`` `\ge` ``x``.
 
             .. SEEALSO:: :meth:`sage.categories.coxeter_groups.CoxeterGroups.ElementMethods.deodhar_lift_up`
 

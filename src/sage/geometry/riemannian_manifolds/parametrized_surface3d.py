@@ -825,7 +825,7 @@ class ParametrizedSurface3D(SageObject):
 
         The operator of rotation over `\pi/2` is `J^i_j = g^{ik}\omega_{jk}`,
         where `\omega` is the area form.  The operator of rotation over an
-        angle `\theta` is `\cos(\theta) I + sin(\theta) J`.
+        angle `\theta` is `\cos(\theta) I + \sin(\theta) J`.
 
         EXAMPLES::
 

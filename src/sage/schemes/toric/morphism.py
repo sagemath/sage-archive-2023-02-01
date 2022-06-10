@@ -231,7 +231,7 @@ blow-up in this single coordinate chart. Lets investigate further::
 So we see that the fiber over this point is an affine line. Together
 with another affine line in the other coordinate patch, this covers
 the exceptional `\mathbb{P}^1` of the blowup `O_{\mathbb{P}^1}(2) \to
-\CC^2/\ZZ_2$.
+\CC^2/\ZZ_2`.
 
 Here is an example with higher dimensional varieties involved::
 

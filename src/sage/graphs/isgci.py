@@ -838,8 +838,7 @@ class GraphClasses(UniqueRepresentation):
                 z.extract(_XML_FILE, GRAPHS_DATA_DIR)
                 z.extract(_SMALLGRAPHS_FILE, GRAPHS_DATA_DIR)
             except IOError:
-                z.extract(_XML_FILE, d)
-                z.extract(_SMALLGRAPHS_FILE, GRAPHS_DATA_DIR)
+                pass
 
     def _parse_db(self, directory):
         r"""

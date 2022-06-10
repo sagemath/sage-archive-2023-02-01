@@ -109,7 +109,7 @@ example when `p=5`, to multiply `\mathcal{P}(5)` and
 
 For each such matrix `M`, compute a multinomial coefficient, mod `p`:
 for each diagonal `\{m_{ij}: i+j=n\}`, compute `(\sum m_{i,j}!) /
-(m_{0,n}!  m_{1,n-1}!  ... m_{n,0}!)$.  Multiply these together for
+(m_{0,n}!  m_{1,n-1}!  ... m_{n,0}!)`.  Multiply these together for
 all `n`.
 
 Now, for each matrix with nonzero multinomial coefficient `b_M`, let
@@ -328,8 +328,8 @@ def multinomial(list):
     None if the multinomial coefficient is 0, or sum of list if it is 1
 
     Given the input `[n_1, n_2, n_3, ...]`, this computes the
-    multinomial coefficient $(n_1 + n_2 + n_3 + ...)! / (n_1! n_2!
-    n_3! ...)$, mod 2.  The method is roughly this: expand each
+    multinomial coefficient `(n_1 + n_2 + n_3 + ...)! / (n_1! n_2!
+    n_3! ...)`, mod 2.  The method is roughly this: expand each
     `n_i` in binary.  If there is a 1 in the same digit for any `n_i`
     and `n_j` with `i\neq j`, then the coefficient is 0; otherwise, it
     is 1.
@@ -579,7 +579,7 @@ def multinomial_odd(list,p):
     Associated multinomial coefficient, mod p
 
     Given the input `[n_1, n_2, n_3, ...]`, this computes the
-    multinomial coefficient $(n_1 + n_2 + n_3 + ...)! / (n_1! n_2!
+    multinomial coefficient `(n_1 + n_2 + n_3 + ...)! / (n_1! n_2!
     n_3! ...)`, mod `p`.  The method is this: expand each `n_i` in
     base `p`: `n_i = \sum_j p^j n_{ij}`.  Do the same for the sum of
     the `n_i`'s, which we call `m`: `m = \sum_j p^j m_j`.  Then the

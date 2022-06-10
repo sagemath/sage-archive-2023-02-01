@@ -3891,9 +3891,7 @@ def square_root_mod_prime_power(IntegerMod_abstract a, p, e):
 
     ALGORITHM: Compute `p`-adically by stripping off even powers of `p`
     to get a unit and lifting `\sqrt{unit} \bmod p` via Newton's method
-    whenever `p` is odd and via
-    `\sqrt{1+y} = \sum_{k=0}^\infty \binom{1/2}{k} y^k`
-    for `p = 2`.
+    whenever `p` is odd and by a variant of Hensel lifting for `p = 2`.
 
     AUTHORS:
 
@@ -3952,28 +3950,16 @@ def square_root_mod_prime_power(IntegerMod_abstract a, p, e):
         if unit.lift() % 8 != 1:
             raise ValueError("self must be a square")
 
-        if unit == 1:
-            return a.parent()(one_Z << val//2)
-
-        # sqrt(1+y) = sum_{k=0}^{oo} binomial(1/2,k) y^k
-        y = unit - 1
-        v = y.valuation(2)
-        y >>= v
-
-        # 2-valuation of y^k / binomial(1/2,k) is >= (v-2)*k
-        n = 1 + (e + v-3) // (v-2)
-
-        t = a.parent().one()    # unit part
-        s = 0                   # shift
-
-        x = a.parent().one()
-        for i in range(1, n):
-            d = Integer(i) << 1
-            c = 3 - d
-            t *= y * c.prime_to_m_part(2) / d.prime_to_m_part(2)
-            s += v + c.valuation(2) - d.valuation(2)
-#            assert t.is_unit() and s >= 0
-            x += t << s
+        u = unit.lift()
+        x = next(i for i in range(1,8,2) if i*i & 31 == u & 31)
+        t = (x*x - u) >> 5
+        for i in range(4, e-1 - val//2):
+            if t & 1:
+                x |= one_Z << i
+                t += x - (one_Z << i-1)
+            t >>= 1
+#            assert t << i+2 == x*x - u
+        x = a.parent()(x)
 
     else:
         # find square root of unit mod p

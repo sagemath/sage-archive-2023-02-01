@@ -96,9 +96,9 @@ class TachyonRT(SageObject):
 
     At the moment there are several keywords with values, that must appear
     in every scene description file. Every scene description file must begin
-    with the **BEGIN_SCENE** keyword, and end with the **END_SCENE**
+    with the ``BEGIN_SCENE`` keyword, and end with the ``END_SCENE``
     keyword. All definitions and declarations of any kind must be inside the
-    **BEGIN_SCENE**, **END_SCENE** pair. The **RESOLUTION** keyword is
+    ``BEGIN_SCENE``, ``END_SCENE`` pair. The ``RESOLUTION`` keyword is
     followed by an x resolution and a y resolution in terms of pixels on
     each axis. There are currently no limits placed on the resolution of an
     output image other than the computer’s available memory and reasonable
@@ -125,22 +125,22 @@ class TachyonRT(SageObject):
     between an average looking scene and a strikingly interesting one. There
     may be multiple camera definitions in a scene file, but the last camera
     definition overrides all previous definitions. There are several
-    parameters that control the camera in , **PROJECTION**, **ZOOM**,
-    **ASPECTRATIO**, **ANTIALIASING**, **CENTER**, **RAYDEPTH**,
-    **VIEWDIR**, and **UPDIR**.
+    parameters that control the camera in , ``PROJECTION``, ``ZOOM``,
+    ``ASPECTRATIO``, ``ANTIALIASING``, ``CENTER``, ``RAYDEPTH``,
+    ``VIEWDIR``, and ``UPDIR``.
 
     The first and last keywords required in the definition of a camera are
-    the **CAMERA** and **END_CAMERA** keywords. The **PROJECTION** keyword
+    the ``CAMERA`` and ``END_CAMERA`` keywords. The ``PROJECTION`` keyword
     is optional, the remaining camera keywords are required, and must be
     written in the sequence they are listed in the examples in this section.
 
     Camera projection modes
     ~~~~~~~~~~~~~~~~~~~~~~~
 
-    The **PROJECTION** keyword must be followed by one of the supported
-    camera projection mode identifiers **PERSPECTIVE**, **PERSPECTIVE_DOF**,
-    **ORTHOGRAPHIC**, or **FISHEYE**. The **FISHEYE** projection mode
-    requires two extra parameters **FOCALLENGTH** and **APERTURE** which
+    The ``PROJECTION`` keyword must be followed by one of the supported
+    camera projection mode identifiers ``PERSPECTIVE``, ``PERSPECTIVE_DOF``,
+    ``ORTHOGRAPHIC``, or ``FISHEYE``. The ``FISHEYE`` projection mode
+    requires two extra parameters ``FOCALLENGTH`` and ``APERTURE`` which
     precede the regular camera options.
 
     ::
@@ -161,7 +161,7 @@ class TachyonRT(SageObject):
     Common camera parameters
     ~~~~~~~~~~~~~~~~~~~~~~~~
 
-    The **ZOOM** parameter controls the camera in a way similar to a
+    The ``ZOOM`` parameter controls the camera in a way similar to a
     telephoto lens on a 35mm camera. A zoom value of 1.0 is standard, with a
     90 degree field of view. By changing the zoom factor to 2.0, the
     relative size of any feature in the frame is twice as big, while the
@@ -169,7 +169,7 @@ class TachyonRT(SageObject):
     scaling factor on the height and width of the image plane relative to
     the world.
 
-    The **ASPECTRATIO** parameter controls the aspect ratio of the resulting
+    The ``ASPECTRATIO`` parameter controls the aspect ratio of the resulting
     image. By using the aspect ratio parameter, one can produce images which
     look correct on any screen. Aspect ratio alters the relative width of
     the image plane, while keeping the height of the image plane constant.
@@ -178,12 +178,12 @@ class TachyonRT(SageObject):
     at a resolution of 512x512 and measure the ratio of its width to its
     height.
 
-    The **ANTIALIASING** parameter controls the maximum level of
+    The ``ANTIALIASING`` parameter controls the maximum level of
     supersampling used to obtain higher image quality. The parameter given
     sets the number of additional rays to trace per-pixel to attain higher
     image quality.
 
-    The **RAYDEPTH** parameter tells RAY what the maximum level of
+    The ``RAYDEPTH`` parameter tells RAY what the maximum level of
     reflections, refraction, or in general the maximum recursion depth to
     trace rays to. A value between 4 and 12 is usually good. A value of 1
     will disable rendering of reflective or transmissive objects (they’ll be
@@ -191,17 +191,17 @@ class TachyonRT(SageObject):
 
     The remaining three camera parameters are the most important, because
     they define the coordinate system of the camera, and its position in the
-    scene. The **CENTER** parameter is an X, Y, Z coordinate defining the
+    scene. The ``CENTER`` parameter is an X, Y, Z coordinate defining the
     center of the camera *(also known as the Center of Projection)*. Once
     you have determined where the camera will be placed in the scene, you
-    need to tell RAY what the camera should be looking at. The **VIEWDIR**
+    need to tell RAY what the camera should be looking at. The ``VIEWDIR``
     parameter is a vector indicating the direction the camera is facing. It
     may be useful for me to add a "Look At" type keyword in the future to
     make camera aiming easier. If people want or need the "Look At" style
     camera, let me know. The last parameter needed to completely define a
-    camera is the "up" direction. The **UPDIR** parameter is a vector which
+    camera is the "up" direction. The ``UPDIR`` parameter is a vector which
     points in the direction of the "sky". I wrote the camera so that
-    **VIEWDIR** and **UPDIR** don’t have to be perpendicular, and there
+    ``VIEWDIR`` and ``UPDIR`` don’t have to be perpendicular, and there
     shouldn’t be a need for a "right" vector although some other ray tracers
     require it. Here’s a snippet of a camera definition:
 
@@ -220,11 +220,11 @@ class TachyonRT(SageObject):
     Viewing frustum
     ~~~~~~~~~~~~~~~
 
-    An optional **FRUSTUM** parameter provides a means for rendering
+    An optional ``FRUSTUM`` parameter provides a means for rendering
     sub-images in a larger frame, and correct stereoscopic images. The
-    **FRUSTUM** keyword must be followed by four floating parameters, which
+    ``FRUSTUM`` keyword must be followed by four floating parameters, which
     indicate the top, bottom, left and right coordinates of the image plane
-    in eye coordinates. When the projection mode is set to **FISHEYE**, the
+    in eye coordinates. When the projection mode is set to ``FISHEYE``, the
     frustum parameters correspond to spherical coordinates specified in
     radians.
 
@@ -244,7 +244,7 @@ class TachyonRT(SageObject):
     Including Files
     ---------------
 
-    The **INCLUDE** keyword is used anywhere after the camera description,
+    The ``INCLUDE`` keyword is used anywhere after the camera description,
     and is immediately followed by a valid filename, for a file containing
     additional scene description information. The included file is opened,
     and processing continues as if it were part of the current file, until
@@ -267,8 +267,8 @@ class TachyonRT(SageObject):
     point light sources. The lights are actually small spheres, which are
     visible. A point light is composed of three pieces of information, a
     center, a radius (since its a sphere), and a color. To define a light,
-    simply write the **LIGHT** keyword, followed by its **CENTER** (a X, Y,
-    Z coordinate), its **RAD** (radius, a scalar), and its **COLOR** (a Red
+    simply write the ``LIGHT`` keyword, followed by its ``CENTER`` (a X, Y,
+    Z coordinate), its ``RAD`` (radius, a scalar), and its ``COLOR`` (a Red
     Green Blue triple). The radius parameter will accept any value of 0.0 or
     greater. Lights of radius 0.0 will not be directly visible in the
     rendered scene, but contribute light to the scene normally. For a light,
@@ -372,7 +372,7 @@ class TachyonRT(SageObject):
 
     Spheres are the simplest object supported by RAY and they are also the
     fastest object to render. Spheres are defined as one would expect, with
-    a **CENTER**, **RAD** (radius), and a texture. The texture may be
+    a ``CENTER``, ``RAD`` (radius), and a texture. The texture may be
     defined along with the object as discussed earlier, or it may be
     declared and assigned a name. Here’s a sphere definition using a
     previously defined "NitrogenAtom" texture:
@@ -443,7 +443,7 @@ class TachyonRT(SageObject):
 
     Useful for things like desert floors, backgrounds, skies etc, the
     infinite plane is pretty easy to use. An infinite plane only consists of
-    two pieces of information, the **CENTER** of the plane, and a **NORMAL**
+    two pieces of information, the ``CENTER`` of the plane, and a ``NORMAL``
     to the plane. The center of the plane is just any point on the plane
     such that the point combined with the surface normal define the equation
     for the plane. As with triangles, planes are double sided. Here is an
@@ -514,7 +514,7 @@ class TachyonRT(SageObject):
 
     This defines a finite cylinder with radius 1.0, going from 0.0 0.0 0.0,
     to 0.0 9.0 0.0 along the Y axis. The main difference between an infinite
-    cylinder and a finite cylinder is in the interpretation of the **AXIS**
+    cylinder and a finite cylinder is in the interpretation of the ``AXIS``
     parameter. In the case of the infinite cylinder, the length of the axis
     vector is ignored. In the case of the finite cylinder, the axis
     parameter is used to determine the length of the overall cylinder.
@@ -524,7 +524,7 @@ class TachyonRT(SageObject):
 
     Axis aligned boxes are fast, but of limited usefulness. As such, I’m not
     going to waste much time explaining ’em. An axis aligned box is defined
-    by a **MIN** point, and a **MAX** point. The volume between the min and
+    by a ``MIN`` point, and a ``MAX`` point. The volume between the min and
     max points is the box. Here’s a simple box:
 
     ::
@@ -607,28 +607,28 @@ class TachyonRT(SageObject):
 
     The simplest texture definition is a solid color with no image mapping
     or procedural texture mapping. A solid color texture is defined by the
-    **AMBIENT**, **DIFFUSE**, **SPECULAR**, **OPACITY** and **COLOR**
-    parameters. The **AMBIENT** parameter defines the ambient lighting
+    ``AMBIENT``, ``DIFFUSE``, ``SPECULAR``, ``OPACITY`` and ``COLOR``
+    parameters. The ``AMBIENT`` parameter defines the ambient lighting
     coefficient to be used when shading the object. Similarly, the
-    **DIFFUSE** parameter is the relative contribution of the diffuse
-    shading to the surface appearance. The **SPECULAR** parameter is the
+    ``DIFFUSE`` parameter is the relative contribution of the diffuse
+    shading to the surface appearance. The ``SPECULAR`` parameter is the
     contribution from perfectly reflected rays, as if on a mirrored surface.
-    **OPACITY** defines how transparent a surface is. An **OPACITY** value
-    of 0.0 renders the object completely invisible. An **OPACITY** value of
+    ``OPACITY`` defines how transparent a surface is. An ``OPACITY`` value
+    of 0.0 renders the object completely invisible. An ``OPACITY`` value of
     1.0 makes the object completely solid, and non-transmissive. In general,
     the values for the ambient, diffuse, and specular parameters should add
     up to 1.0, if they don’t then pixels may be over or underexposed quite
     easily. These parameters function in a manner similar to that of other
-    ray tracers. The **COLOR** parameter is an RGB triple with each value
+    ray tracers. The ``COLOR`` parameter is an RGB triple with each value
     ranging from 0.0 to 1.0 inclusive. If the RGB values stray from 0.0 to
     1.0, results are undefined. In the case of solid textures, a final
-    parameter, **TEXFUNC** is set to zero (integer).
+    parameter, ``TEXFUNC`` is set to zero (integer).
 
     Texture Declaration and Aliasing
     ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
     To define a simple texture for use on several objects in a scene, the
-    **TEXDEF** keyword is used. The **TEXDEF** keyword is followed by a case
+    ``TEXDEF`` keyword is used. The ``TEXDEF`` keyword is followed by a case
     sensitive texture name, which will subsequently be used while defining
     objects. If many objects in a scene use the same texture through texture
     definition, a significant amount of memory may be saved since only one
@@ -647,12 +647,12 @@ class TachyonRT(SageObject):
     check for use of keywords as texture names.
 
     When a texture is declared within an object definition, it appears in an
-    identical format to the **TEXDEF** declaration, but the **TEXTURE**
-    keyword is used instead of **TEXDEF**. If it is useful to have several
+    identical format to the ``TEXDEF`` declaration, but the ``TEXTURE``
+    keyword is used instead of ``TEXDEF``. If it is useful to have several
     names for the same texture (when you are too lazy to actually finish
     defining different variations of a wood texture for example, and just
     want to be approximately correct for example) aliases can be constructed
-    using the **TEXALIAS** keyword, along with the alias name, and the
+    using the ``TEXALIAS`` keyword, along with the alias name, and the
     original name. An example of a texture alias is:
 
     ::

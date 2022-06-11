@@ -874,10 +874,6 @@ class ProjectiveConic_field(ProjectivePlaneCurve):
             sage: f([1,1])
             (0 : 0 : 1)
             sage: g([0,0,1])
-            Traceback (most recent call last):
-            ...
-            ValueError: [0, 0] does not define a point in Projective Space of dimension 1 over Finite Field of size 2 since all entries are zero
-            sage: g.representatives()[1]([0,0,1])
             (1 : 1)
 
         An example with ``morphism = False`` ::

@@ -2768,6 +2768,36 @@ class EllipticCurveIsogeny(EllipticCurveHom):
             self.__initialize_rational_maps()
         return self.__X_coord_rational_map
 
+    def morphism(self):
+        r"""
+        Return this isogeny as a morphism of projective schemes.
+
+        EXAMPLES::
+
+            sage: k = GF(11)
+            sage: E = EllipticCurve(k, [1,1])
+            sage: Q = E(6,5)
+            sage: phi = E.isogeny(Q)
+            sage: mor = phi.morphism()
+            sage: mor.domain() == E
+            True
+            sage: mor.codomain() == phi.codomain()
+            True
+            sage: mor(Q) == phi(Q)
+            True
+
+        TESTS::
+
+            sage: mor(0*Q)
+            (0 : 1 : 0)
+            sage: mor(1*Q)
+            (0 : 1 : 0)
+        """
+        from sage.schemes.curves.constructor import Curve
+        X_affine = Curve(self.domain()).affine_patch(2)
+        Y_affine = Curve(self.codomain()).affine_patch(2)
+        return X_affine.hom(self.rational_maps(), Y_affine).homogenize(2)
+
     def kernel_polynomial(self):
         r"""
         Return the kernel polynomial of this isogeny.

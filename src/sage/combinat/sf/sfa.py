@@ -3039,6 +3039,15 @@ class SymmetricFunctionAlgebra_generic_Element(CombinatorialFreeModule.Element):
             sage: s[1,1,1](X*Y)
             s[1, 1, 1] # s[3] + s[2, 1] # s[2, 1] + s[3] # s[1, 1, 1]
 
+        One can use this to work with symmetric function in two sets of commuting
+        variables. For example, we verify the Cauchy identities (in degree 5)::
+
+            sage: m = SymmetricFunctions(QQ).m()
+            sage: sum([s[mu](X)*s[mu](Y) for mu in Partitions(5)]) == sum([m[mu](X)*h[mu](Y) for mu in Partitions(5)])
+            True
+            sage: sum([s[mu](X)*s[mu.conjugate()](Y) for mu in Partitions(5)]) == sum([m[mu](X)*e[mu](Y) for mu in Partitions(5)])
+            True
+
         .. SEEALSO::
 
             :meth:`frobenius`

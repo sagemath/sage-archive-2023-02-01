@@ -170,7 +170,7 @@ def mult_schubert_variable_symmetrica(a, i):
 def divdiff_perm_schubert_symmetrica(perm, a):
     r"""
     Returns the result of applying the divided difference operator
-    $\delta_i$ to $a$ where $a$ is either a permutation or a
+    `\delta_i` to `a` where `a` is either a permutation or a
     Schubert polynomial over QQ.
 
     EXAMPLES::
@@ -254,7 +254,7 @@ def scalarproduct_schubert_symmetrica(a, b):
 def divdiff_schubert_symmetrica(i, a):
     r"""
     Returns the result of applying the divided difference operator
-    $\delta_i$ to $a$ where $a$ is either a permutation or a
+    `\delta_i` to `a` where `a` is either a permutation or a
     Schubert polynomial over QQ.
 
     EXAMPLES::

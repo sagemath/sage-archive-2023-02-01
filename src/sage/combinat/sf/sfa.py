@@ -3043,9 +3043,10 @@ class SymmetricFunctionAlgebra_generic_Element(CombinatorialFreeModule.Element):
         variables. For example, we verify the Cauchy identities (in degree 5)::
 
             sage: m = SymmetricFunctions(QQ).m()
-            sage: sum([s[mu](X)*s[mu](Y) for mu in Partitions(5)]) == sum([m[mu](X)*h[mu](Y) for mu in Partitions(5)])
+            sage: P5 = Partitions(5)
+            sage: sum([s[mu](X)*s[mu](Y) for mu in P5]) == sum([m[mu](X)*h[mu](Y) for mu in P5])
             True
-            sage: sum([s[mu](X)*s[mu.conjugate()](Y) for mu in Partitions(5)]) == sum([m[mu](X)*e[mu](Y) for mu in Partitions(5)])
+            sage: sum([s[mu](X)*s[mu.conjugate()](Y) for mu in P5]) == sum([m[mu](X)*e[mu](Y) for mu in P5])
             True
 
         .. SEEALSO::

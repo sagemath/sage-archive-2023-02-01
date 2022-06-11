@@ -2963,7 +2963,7 @@ class RuleSylvester(Rule):
         sage: list(Sylvester(labels=G.out_labels())) == list(G)
         True
     """
-    zero = BinaryTree()  # type: ignore
+    zero = BinaryTree()  # type:ignore
 
     def normalize_vertex(self, v):
         r"""

@@ -1349,10 +1349,10 @@ class EllipticCurve_rational_field(EllipticCurve_number_field):
         """
         from sage.schemes.elliptic_curves.mod_sym_num import ModularSymbolNumerical
         M = ModularSymbolNumerical(self, sign=sign)
+
         def f(r):
             return M.approximative_value(r, prec=prec)
         return f
-
 
     def pollack_stevens_modular_symbol(self, sign=0, implementation='eclib'):
         """
@@ -2743,10 +2743,12 @@ class EllipticCurve_rational_field(EllipticCurve_number_field):
             b2      = self.b2()
             twostar = 2 if b2 else 1
             from math import log
+
             def h(x):
                 return log(max(abs(x.numerator()), abs(x.denominator())))
+
             def h_oo(x):
-                return log(max(abs(x),1))
+                return log(max(abs(x), 1))
             mu    = h(Delta)/12 + h_oo(j)/12 + h_oo(b2/12)/2 + log(twostar)/2
             lower = 2*(-h(j)/24 - mu - 0.961)
             upper = 2*(mu + 1.07)

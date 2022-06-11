@@ -1291,12 +1291,13 @@ class Func_legendre_P(GinacFunction):
         ...
         RuntimeError: derivative w.r.t. to the index is not supported yet
 
-    TESTS::
+    TESTS:
 
-        # verify that :trac:`33962` is fixed
+    Verify that :trac:`33962` is fixed::
+
         sage: [legendre_P(n, 0) for n in range(-10, 10)]
         [0, 35/128, 0, -5/16, 0, 3/8, 0, -1/2, 0, 1,
-        1, 0, -1/2, 0, 3/8, 0, -5/16, 0, 35/128, 0]
+         1, 0, -1/2, 0, 3/8, 0, -5/16, 0, 35/128, 0]
     """
     def __init__(self):
         r"""

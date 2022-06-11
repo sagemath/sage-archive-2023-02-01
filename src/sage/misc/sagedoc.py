@@ -418,6 +418,10 @@ def process_dollars(s):
         sage: process_dollars('hello')
         'hello'
         sage: process_dollars('some math: $x=y$')
+        doctest:warning...
+        DeprecationWarning: using dollar signs to mark up math in Sage docstrings
+        is deprecated; use backticks instead
+        See https://trac.sagemath.org/33973 for details.
         'some math: `x=y`'
 
     Replace \\$ with $, and don't do anything when backticks are involved::

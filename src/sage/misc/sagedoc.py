@@ -448,6 +448,7 @@ def process_dollars(s):
     """
     if s.find("$") == -1:
         return s
+    from sage.misc.superseded import deprecation
     # find how much leading whitespace s has, for later comparison:
     # ignore all $ on lines which start with more whitespace.
     whitespace = re.match(r'\s*\S', s.lstrip('\n'))
@@ -485,6 +486,9 @@ def process_dollars(s):
         while dollar.search(s, start, end):
             m = dollar.search(s, start, end)
             s = s[:m.end()-1] + "`" + s[m.end():]
+            deprecation(33973,
+                        "using dollar signs to mark up math in Sage docstrings "
+                        "is deprecated; use backticks instead")
         while slashdollar.search(s, start, end):
             m = slashdollar.search(s, start, end)
             s = s[:m.start()] + "$" + s[m.end():]

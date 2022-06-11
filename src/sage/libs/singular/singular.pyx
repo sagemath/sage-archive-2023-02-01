@@ -421,7 +421,6 @@ cdef object si2sa_transext_QQ(number *n, ring *_ring, object base):
 
     return snumer/sdenom
 
-
 cdef object si2sa_transext_FF(number *n, ring *_ring, object base):
     """
     Create a sage element of a transcendental extension of a prime field from a
@@ -504,7 +503,6 @@ cdef object si2sa_transext_FF(number *n, ring *_ring, object base):
             denom = <poly*>pNext(<poly*>denom)
 
     return snumer/sdenom
-
 
 cdef object si2sa_NF(number *n, ring *_ring, object base):
     """
@@ -1018,8 +1016,6 @@ cdef number *sa2si_transext_QQ(object elem, ring *_ring):
 
     return n1
 
-
-
 cdef number *sa2si_transext_FF(object elem, ring *_ring):
     """
     Create a singular number from a sage element of a transcendental extension
@@ -1122,7 +1118,6 @@ cdef number *sa2si_transext_FF(object elem, ring *_ring):
     _ring.cf.cfDelete(&a, _ring.cf)
 
     return n1
-
 
 cdef number *sa2si_NF(object elem, ring *_ring):
     """
@@ -1430,7 +1425,6 @@ cdef number *sa2si(Element elem, ring * _ring):
 
     raise ValueError("cannot convert to SINGULAR number")
 
-
 cdef object si2sa_intvec(intvec *v):
     r"""
     create a sage tuple from a singular vector of integers
@@ -1494,7 +1488,6 @@ cdef int overflow_check(unsigned long e, ring *_ring) except -1:
     """
     if unlikely(e > _ring.bitmask):
         raise OverflowError("exponent overflow (%d)"%(e))
-
 
 cdef init_libsingular():
     """

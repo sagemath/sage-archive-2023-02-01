@@ -861,7 +861,7 @@ class TachyonRT(SageObject):
             sage: from sage.interfaces.tachyon import TachyonRT
             sage: t = TachyonRT()
             sage: t.help(use_pager=False)
-            This help, which was written by John Stone, describes ...
+            The Tachyon Ray Tracer... This help, which was written by John Stone, describes ...
         """
         from sage.misc.sagedoc import format
         f = format(self.__doc__)

@@ -254,11 +254,11 @@ class TachyonRT(SageObject):
     Scene File Comments
     -------------------
 
-    The **:math:`\#`** keyword is used anywhere after the camera
+    The ``#`` keyword is used anywhere after the camera
     description, and will cause RAY to ignore all characters from the
-    **:math:`\#`** to the end of the input line. The **:math:`\#`**
+    ``#`` to the end of the input line. The ``#``
     character must be surrounded by whitespace in order to be recognized. A
-    sequence such as **:math:`\#\#\#`** will not be recognized as a comment.
+    sequence such as ``###`` will not be recognized as a comment.
 
     Lights
     ------
@@ -402,7 +402,7 @@ class TachyonRT(SageObject):
     three vertices of the triangle, and its texture. The order of the
     vertices isn’t important, the triangle object is "double sided", so the
     surface normal is always pointing back in the direction of the incident
-    ray. The triangle vertices are listed as **V1**, **V2**, and **V3** each
+    ray. The triangle vertices are listed as ``V1``, ``V2``, and ``V3`` each
     one is an X, Y, Z coordinate. An example of a triangle is shown below:
 
     ::

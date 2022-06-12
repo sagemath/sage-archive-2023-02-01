@@ -5662,7 +5662,7 @@ class EllipticCurve_rational_field(EllipticCurve_number_field):
             False
 
         If the model is changed, the Faltings height changes but the
-        stable height does not.  It is reduced by $\log(u)$ where $u$
+        stable height does not.  It is reduced by `\log(u)` where `u`
         is the scale factor::
 
             sage: E1 = E.change_weierstrass_model([10,0,0,0])

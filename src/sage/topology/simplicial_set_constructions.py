@@ -728,7 +728,7 @@ class Factors():
 
     def factor(self, i):
         r"""
-        Return the $i$-th factor of this construction of simplicial sets.
+        Return the `i`-th factor of this construction of simplicial sets.
 
         INPUT:
 
@@ -902,7 +902,7 @@ class ProductOfSimplicialSets(PullbackOfSimplicialSets, Factors):
 
     def factor(self, i, as_subset=False):
         r"""
-        Return the $i$-th factor of the product.
+        Return the `i`-th factor of the product.
 
         INPUT:
 
@@ -910,14 +910,14 @@ class ProductOfSimplicialSets(PullbackOfSimplicialSets, Factors):
 
         - ``as_subset`` -- boolean, optional (default ``False``)
 
-        If ``as_subset`` is ``True``, return the $i$-th factor as a
+        If ``as_subset`` is ``True``, return the `i`-th factor as a
         subsimplicial set of the product, identifying it with its
         product with the base point in each other factor. As a
         subsimplicial set, it comes equipped with an inclusion
         map. This option will raise an error if any factor does not
         have a base point.
 
-        If ``as_subset`` is ``False``, return the $i$-th factor in
+        If ``as_subset`` is ``False``, return the `i`-th factor in
         its original form as a simplicial set.
 
         EXAMPLES::
@@ -1030,7 +1030,7 @@ class ProductOfSimplicialSets_finite(ProductOfSimplicialSets, PullbackOfSimplici
 
     def projection_map(self, i):
         """
-        Return the map projecting onto the $i$-th factor.
+        Return the map projecting onto the `i`-th factor.
 
         INPUT:
 
@@ -1569,7 +1569,7 @@ class PushoutOfSimplicialSets_finite(PushoutOfSimplicialSets, SimplicialSet_fini
 
     def structure_map(self, i):
         r"""
-        Return the $i$-th structure map of the pushout.
+        Return the `i`-th structure map of the pushout.
 
         INPUT:
 
@@ -2095,7 +2095,7 @@ class WedgeOfSimplicialSets_finite(WedgeOfSimplicialSets, PushoutOfSimplicialSet
 
     def inclusion_map(self, i):
         """
-        Return the inclusion map of the $i$-th factor.
+        Return the inclusion map of the `i`-th factor.
 
         EXAMPLES::
 
@@ -2116,7 +2116,7 @@ class WedgeOfSimplicialSets_finite(WedgeOfSimplicialSets, PushoutOfSimplicialSet
 
     def projection_map(self, i):
         """
-        Return the projection map onto the $i$-th factor.
+        Return the projection map onto the `i`-th factor.
 
         EXAMPLES::
 
@@ -2300,7 +2300,7 @@ class DisjointUnionOfSimplicialSets_finite(DisjointUnionOfSimplicialSets,
 
     def inclusion_map(self, i):
         """
-        Return the inclusion map of the $i$-th factor.
+        Return the inclusion map of the `i`-th factor.
 
         EXAMPLES::
 

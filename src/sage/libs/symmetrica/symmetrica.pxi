@@ -706,11 +706,8 @@ cdef void* _op_skew_partition(object p, OP a):
     cdef OP gross, klein
     gross = callocobject()
     klein = callocobject()
-
-    #print p[0], p[1]
     _op_partition(p[0], gross)
     _op_partition(p[1], klein)
-
     b_gk_spa(gross, klein, a)
 
 cdef object _py_skew_partition(OP a):

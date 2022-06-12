@@ -1574,12 +1574,8 @@ class EllipticCurveCanonicalHeight:
                     pole_approx = abs(z) ** -2
                 else:
                     pole_approx = z ** -2
-    #            print "pole approx", pole_approx + eps(err, abs_only)
-    #            print approx in approx.intersection(pole_approx + eps(err, abs_only))
                 approx = approx.intersection(pole_approx + eps(err, abs_only))
-
             return approx
-
         return wp
 
     @cached_method

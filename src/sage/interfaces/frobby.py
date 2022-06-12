@@ -144,8 +144,8 @@ class Frobby:
 
         The Hilbert-Poincaré series of a monomial ideal is the sum of all
         monomials not in the ideal. This sum can be written as a (finite)
-        rational function with $(x_1-1)(x_2-1)...(x_n-1)$ in the denominator,
-        assuming the variables of the ring are $x_1,x2,...,x_n$. This action
+        rational function with `(x_1-1)(x_2-1)...(x_n-1)` in the denominator,
+        assuming the variables of the ring are `x_1,x2,...,x_n`. This action
         computes the polynomial in the numerator of this fraction.
 
         INPUT:

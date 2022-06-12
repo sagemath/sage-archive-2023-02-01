@@ -667,8 +667,7 @@ cdef object _py_sq_radical(OP a):
         else:
             res += _py(S_PO_K(ptr))*sqrt(_py(S_PO_S(ptr)))
 
-
-        ptr = S_L_N(ptr);
+        ptr = S_L_N(ptr)
 
     return res.radical_simplify()
 

@@ -402,6 +402,7 @@ def theta_series_degree_2(Q, prec):
         for c in range(a, c_max + 1):
             for v1 in v_list[a]:
                 v1_H = v1 * H
+
                 def B_v1(v):
                     return v1_H * v2
                 for v2 in v_list[c]:

@@ -334,6 +334,7 @@ class NumericalEigenforms(SageObject):
         x = self._easy_vector()
 
         B = self._eigenvectors()
+
         def phi(y):
             """
             Take coefficients and a basis, and return that
@@ -416,6 +417,7 @@ class NumericalEigenforms(SageObject):
                 raise ValueError('each element of primes must be prime.')
         phi_x, phi_x_inv, nzp, x_nzp = self._eigendata()
         B = self._eigenvectors()
+
         def phi(y):
             """
             Take coefficients and a basis, and return that

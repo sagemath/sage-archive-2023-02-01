@@ -2095,6 +2095,7 @@ class RightQuantumWord:
             in parallel.
         """
         M = self._algebra._indices
+
         def tuple_to_word(q_tuple):
             return M.prod(self._gens[i] ** exp
                           for i, exp in enumerate(q_tuple))

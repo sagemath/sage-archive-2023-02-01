@@ -645,6 +645,7 @@ def _data_from_iterable(iterable, mapping=False, domain=None,
         codomain = FindStatCollection(vals)
 
     all_elements = set()
+
     def sanitize_pair(elts, vals):
         if domain.is_element(elts):
             elts = [elts]
@@ -1050,6 +1051,7 @@ def findstat(query=None, values=None, distribution=None, domain=None,
         raise ValueError("the maximal number of values for a FindStat query must be a non-negative integer less than or equal to %i" % FINDSTAT_MAX_VALUES)
 
     check_collection = True
+
     def get_values(raw, domain=None):
         if callable(raw):
             known_terms = _data_from_function(raw, domain)
@@ -1272,6 +1274,7 @@ def findmap(*args, **kwargs):
         raise ValueError("the maximal number of values for a FindStat query must be a non-negative integer less than or equal to %i" % FINDSTAT_MAX_VALUES)
 
     check_collection = True
+
     def get_values(raw, domain=None, codomain=None):
         if callable(raw):
             known_terms = _data_from_function(raw, domain)

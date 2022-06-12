@@ -1129,6 +1129,7 @@ class RealSet(UniqueRepresentation, Parent, Set_base,
                 intervals.extend(arg._intervals)
             elif isinstance(arg, Expression) and arg.is_relational():
                 from operator import eq, ne, lt, gt, le, ge
+
                 def rel_to_interval(op, val):
                     """
                     Internal helper function.

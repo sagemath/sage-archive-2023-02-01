@@ -211,6 +211,7 @@ class Frobby:
         if lines[-1]=='':
             lines.pop(-1)
         lists = [[int(_) for _ in a.split()] for a in lines]
+
         def to_monomial(exps):
             return [v ** e for v, e in zip(monomial_ideal.ring().gens(), exps) if e != 0]
         return [monomial_ideal.ring().ideal(to_monomial(a)) for a in lists]
@@ -338,8 +339,9 @@ class Frobby:
                 for i in range(nrows):
                     nmatrix+=lines.pop(0)+'\n'
                 matrices.append(nmatrix)
+
         def to_ideal(exps):
-            if len(exps)==0:
+            if len(exps) == 0:
                 return ring.zero_ideal()
             gens = [prod([v ** e for v, e in zip(ring.gens(), expo) if e != 0]) for expo in exps]
             return ring.ideal(gens or ring(1))

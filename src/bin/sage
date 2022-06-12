@@ -226,7 +226,7 @@ case "$1" in
             exec "$SAGE_ROOT/build/bin/sage-site" "$@"
             # fallthrough if there is no sage-site script
         fi
-        echo "Error: unknown option: $1"
+        echo >&2 "Error: unknown option: $1"
         exit 1
         ;;
 esac

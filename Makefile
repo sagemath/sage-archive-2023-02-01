@@ -194,7 +194,6 @@ bootstrap-clean:
 	rm -rf config configure build/make/Makefile-auto.in
 	rm -f src/doc/en/installation/*.txt
 	rm -rf src/doc/en/reference/spkg/*.rst
-	rm -f src/doc/en/reference/repl/*.txt
 	rm -f environment.yml
 	rm -f src/environment.yml
 	rm -f src/environment-dev.yml

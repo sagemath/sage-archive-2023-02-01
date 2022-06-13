@@ -1,7 +1,6 @@
 """
 Number-Theoretic Functions
 """
-
 # ****************************************************************************
 #       Copyright (C) 2005 William Stein <wstein@gmail.com>
 #
@@ -16,9 +15,7 @@ Number-Theoretic Functions
 #
 #                  https://www.gnu.org/licenses/
 # ****************************************************************************
-
 import sys
-import sage.rings.complex_mpfr as complex_field
 
 from sage.rings.integer_ring import ZZ
 from sage.rings.real_mpfr import RR

@@ -34,7 +34,6 @@ AUTHORS:
 #                  https://www.gnu.org/licenses/
 # ****************************************************************************
 
-from sage.misc.cachefunc import cached_method
 from sage.modules.free_module import (basis_seq,
                                       Module_free_ambient,
                                       FreeModule_ambient_domain)

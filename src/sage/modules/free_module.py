@@ -934,7 +934,7 @@ class Module_free_ambient(Module):
 
     def _an_element_(self):
         """
-        Returns an arbitrary element of a free module.
+        Return an arbitrary element of a free module.
 
         EXAMPLES::
 
@@ -1021,7 +1021,7 @@ class Module_free_ambient(Module):
 
     def zero_vector(self):
         """
-        Returns the zero vector in this free module.
+        Return the zero vector in this free module.
 
         EXAMPLES::
 
@@ -1043,7 +1043,7 @@ class Module_free_ambient(Module):
     @cached_method
     def zero(self):
         """
-        Returns the zero vector in this free module.
+        Return the zero vector in this free module.
 
         EXAMPLES::
 

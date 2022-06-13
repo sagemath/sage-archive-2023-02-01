@@ -70,8 +70,8 @@ class Wave(SageObject):
 
     Indexing:
 
-        Getting the `n^{th}` item in a Wave object will give you the value
-        of the `n^{th}` frame.
+        Getting the `n`-th item in a Wave object will give you the value
+        of the `n`-th frame.
     """
     def __init__(self, data=None, **kwds):
         if data is not None:

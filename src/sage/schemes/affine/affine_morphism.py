@@ -876,7 +876,15 @@ class SchemeMorphism_polynomial_affine_space(SchemeMorphism_polynomial):
         polys = self._polys
         max_degree = 0
         for poly in polys:
-            if poly.degree() > max_degree:
+            # rational affine map
+            if isinstance(poly, FractionFieldElement):
+                poly_numerator = poly.numerator()
+                poly_denominator = poly.denominator()
+                degree = max(poly_numerator.degree(), poly_denominator.degree())
+                if degree > max_degree:
+                    max_degree = degree
+            # polynomial affine map
+            elif poly.degree() > max_degree:
                 max_degree = poly.degree()
         return max_degree
 

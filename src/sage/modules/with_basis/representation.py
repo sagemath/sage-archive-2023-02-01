@@ -4,7 +4,6 @@ Representations of a semigroup
 AUTHORS:
 
 - Travis Scrimshaw (2015-11-21): initial version
-
 - Siddharth Singh  (2020-03-21): signed representation
 
 """

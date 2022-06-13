@@ -188,7 +188,7 @@ class Dokchitser(SageObject):
     __init = False
 
     def __new__(cls, *args, **kwargs):
-        inst = super(Dokchitser, cls).__new__(cls, *args, **kwargs)
+        inst = super().__new__(cls, *args, **kwargs)
         inst.__instance = cls.__instance
         cls.__n_instances += 1
         cls.__instance += 1

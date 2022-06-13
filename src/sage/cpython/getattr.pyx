@@ -247,7 +247,7 @@ cpdef getattr_from_other_class(self, cls, name):
     EXAMPLES::
 
         sage: from sage.cpython.getattr import getattr_from_other_class
-        sage: class A(object):
+        sage: class A():
         ....:      def inc(self):
         ....:          return self + 1
         ....:
@@ -386,11 +386,11 @@ def dir_with_other_class(self, *cls):
 
     EXAMPLES::
 
-        sage: class A(object):
+        sage: class A():
         ....:    a = 1
         ....:    b = 2
         ....:    c = 3
-        sage: class B(object):
+        sage: class B():
         ....:    b = 2
         ....:    c = 3
         ....:    d = 4
@@ -399,7 +399,7 @@ def dir_with_other_class(self, *cls):
         sage: from sage.cpython.getattr import dir_with_other_class
         sage: dir_with_other_class(x, B)
         [..., 'a', 'b', 'c', 'd', 'e']
-        sage: class C(object):
+        sage: class C():
         ....:    f = 6
         sage: dir_with_other_class(x, B, C)
         [..., 'a', 'b', 'c', 'd', 'e', 'f']

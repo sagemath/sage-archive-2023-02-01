@@ -875,8 +875,8 @@ class DynamicalSystem_affine(SchemeMorphism_polynomial_affine_space,
 
         ::
 
-            sage: A.<x,y> = AffineSpace(QQ,2)
-            sage: f = DynamicalSystem_affine([x,y/(1+x^2)])
+            sage: A.<x,y> = AffineSpace(QQ, 2)
+            sage: f = DynamicalSystem_affine([x, y / (1 + x^2)])
             sage: f.degree()
             2
         """

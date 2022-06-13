@@ -1,1 +1,1 @@
-9.6.rc2
+src/VERSION.txt

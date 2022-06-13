@@ -1432,7 +1432,7 @@ class BruhatTitsQuotient(SageObject, UniqueRepresentation):
             sage: BruhatTitsQuotient(3,17) is BruhatTitsQuotient(3,17,1)
             True
         """
-        return super(BruhatTitsQuotient, cls).__classcall__(cls, p, Nminus, Nplus,
+        return super().__classcall__(cls, p, Nminus, Nplus,
                character, use_magma, seed, magma_session)
 
     def __init__(self, p, Nminus, Nplus=1, character=None,

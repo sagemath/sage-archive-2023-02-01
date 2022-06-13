@@ -132,11 +132,10 @@ class SubSpaceForms(FormsSpace_abstract, Module, UniqueRepresentation):
             sage: SubSpaceForms(MF, [MF.Delta().as_ring_element(), MF.gen(0)]) == SubSpaceForms(ambient_space, basis)
             True
         """
-
         (ambient_space, basis) = canonical_parameters(ambient_space, basis, check)
 
         # we return check=True to ensure only one cached instance
-        return super(SubSpaceForms,cls).__classcall__(cls, ambient_space=ambient_space, basis=basis, check=True)
+        return super().__classcall__(cls, ambient_space=ambient_space, basis=basis, check=True)
 
     def __init__(self, ambient_space, basis, check):
         r"""
@@ -291,8 +290,7 @@ class SubSpaceForms(FormsSpace_abstract, Module, UniqueRepresentation):
             sage: subspace.contains_coeff_ring()
             False
         """
-
-        return (super(SubSpaceForms, self).contains_coeff_ring() and self.dimension()==ZZ(1))
+        return (super().contains_coeff_ring() and self.dimension() == 1)
 
     @cached_method
     def basis(self):
@@ -309,7 +307,6 @@ class SubSpaceForms(FormsSpace_abstract, Module, UniqueRepresentation):
             sage: subspace.basis()[0].parent() == MF
             True
         """
-
         return self._basis
 
     @cached_method

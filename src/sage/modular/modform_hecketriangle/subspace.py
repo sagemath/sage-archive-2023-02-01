@@ -7,16 +7,14 @@ AUTHORS:
 
 """
 
-#*****************************************************************************
+# ****************************************************************************
 #       Copyright (C) 2013-2014 Jonas Jermann <jjermann2@gmail.com>
 #
 #  Distributed under the terms of the GNU General Public License (GPL)
 #  as published by the Free Software Foundation; either version 2 of
 #  the License, or (at your option) any later version.
-#                  http://www.gnu.org/licenses/
-#*****************************************************************************
-
-from sage.rings.integer_ring import ZZ
+#                  https://www.gnu.org/licenses/
+# ****************************************************************************
 
 from sage.modules.module import Module
 from sage.structure.unique_representation import UniqueRepresentation

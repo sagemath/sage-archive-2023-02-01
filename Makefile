@@ -225,73 +225,82 @@ fast-rebuild-clean: misc-clean
 	# Remove leftovers from ancient branches
 	rm -rf src/build
 
-TESTALL = ./sage -t --all --logfile=$(SAGE_ROOT_LOGS)/TEST.log
-PTESTALL = $(TESTALL) -p
+###############################################################################
+# Testing
+###############################################################################
 
-# Flags for ./sage -t --all.
+TEST_LOG = $(SAGE_ROOT_LOGS)/TEST.log
+
+TEST_FILES = --all
+
+TEST_FLAGS =
+
 # When the documentation is installed, "optional" also includes all tests marked 'sagemath_doc_html',
 # see https://trac.sagemath.org/ticket/25345, https://trac.sagemath.org/ticket/26110, and
 # https://trac.sagemath.org/ticket/32759
-TESTALL_FLAGS = --optional=sage,optional,external
+TEST_OPTIONAL = sage,optional
 
-TESTALL_NODOC_FLAGS = --optional=sage,optional,external,!sagemath_doc_html,!sagemath_doc_pdf
+TEST = ./sage -t --logfile=$(TEST_LOG) $(TEST_FLAGS) --optional=$(TEST_OPTIONAL) $(TEST_FILES)
 
 test: all
-	$(TESTALL)
+	@echo '### Running $(TEST)' >> $(TEST_LOG)
+	$(TEST)
 
 check: test
 
-testall: all
-	$(TESTALL) $(TESTALL_FLAGS)
+testall: TEST_OPTIONAL := $(TEST_OPTIONAL),external
+testall: test
 
-testlong: all
-	$(TESTALL) --long
+testlong: TEST_FLAGS += --long
+testlong: test
 
-testalllong: all
-	$(TESTALL) --long $(TESTALL_FLAGS)
+testalllong: TEST_FLAGS += --long
+testalllong: testall
 
-ptest: all
-	$(PTESTALL)
+ptest: TEST_FLAGS += -p
+ptest: test
 
-ptestall: all
-	$(PTESTALL) $(TESTALL_FLAGS)
+ptestall: TEST_OPTIONAL := $(TEST_OPTIONAL),external
+ptestall: ptest
 
-ptestlong: all
-	$(PTESTALL) --long
+ptestlong: TEST_FLAGS += --long
+ptestlong: ptest
 
-ptestalllong: all
-	$(PTESTALL) --long $(TESTALL_FLAGS)
+ptestalllong: TEST_FLAGS += --long
+ptestalllong: ptestall
 
 testoptional: test
 testoptionallong: testlong
 ptestoptional: ptest
 ptestoptionallong: ptestlong
 
+test-nodoc: TEST_OPTIONAL := $(TEST_OPTIONAL),!sagemath_doc_html,!sagemath_doc_pdf
 test-nodoc: build
-	$(TESTALL)
+	@echo '### Running $(TEST)' >> $(TEST_LOG)
+	$(TEST)
 
 check-nodoc: test-nodoc
 
-testall-nodoc: build
-	$(TESTALL) $(TESTALL_NODOC_FLAGS)
+testall-nodoc: TEST_OPTIONAL := $(TEST_OPTIONAL),external
+testall-nodoc: test-nodoc
 
-testlong-nodoc: build
-	$(TESTALL) --long
+testlong-nodoc: TEST_FLAGS += --long
+testlong-nodoc: test-nodoc
 
-testalllong-nodoc: build
-	$(TESTALL) --long $(TESTALL_NODOC_FLAGS)
+testalllong-nodoc: TEST_FLAGS += --long
+testalllong-nodoc: testall-nodoc
 
-ptest-nodoc: build
-	$(PTESTALL)
+ptest-nodoc: TEST_FLAGS += -p
+ptest-nodoc: test-nodoc
 
-ptestall-nodoc: build
-	$(PTESTALL) $(TESTALL_NODOC_FLAGS)
+ptestall-nodoc: TEST_OPTIONAL := $(TEST_OPTIONAL),external
+ptestall-nodoc: ptest-nodoc
 
-ptestlong-nodoc: build
-	$(PTESTALL) --long
+ptestlong-nodoc: TEST_FLAGS += --long
+ptestlong-nodoc: ptest-nodoc
 
-ptestalllong-nodoc: build
-	$(PTESTALL) --long $(TESTALL_NODOC_FLAGS)
+ptestalllong-nodoc: TEST_FLAGS += --long
+ptestalllong-nodoc: ptestall-nodoc
 
 testoptional-nodoc: test-nodoc
 testoptionallong-nodoc: testlong-nodoc

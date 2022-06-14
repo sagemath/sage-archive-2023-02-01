@@ -234,6 +234,8 @@ PTESTALL = ./sage -t -p --all
 # https://trac.sagemath.org/ticket/32759
 TESTALL_FLAGS = --optional=sage,optional,external
 
+TESTALL_NODOC_FLAGS = --optional=sage,optional,external,!sagemath_doc_html,!sagemath_doc_pdf
+
 test: all
 	$(TESTALL) --logfile=$(SAGE_ROOT_LOGS)/test.log
 
@@ -278,25 +280,25 @@ test-nodoc: build
 check-nodoc: test-nodoc
 
 testall-nodoc: build
-	$(TESTALL) $(TESTALL_FLAGS) --logfile=$(SAGE_ROOT_LOGS)/testall.log
+	$(TESTALL) $(TESTALL_NODOC_FLAGS) --logfile=$(SAGE_ROOT_LOGS)/testall.log
 
 testlong-nodoc: build
 	$(TESTALL) --long --logfile=$(SAGE_ROOT_LOGS)/testlong.log
 
 testalllong-nodoc: build
-	$(TESTALL) --long $(TESTALL_FLAGS) --logfile=$(SAGE_ROOT_LOGS)/testalllong.log
+	$(TESTALL) --long $(TESTALL_NODOC_FLAGS) --logfile=$(SAGE_ROOT_LOGS)/testalllong.log
 
 ptest-nodoc: build
 	$(PTESTALL) --logfile=$(SAGE_ROOT_LOGS)/ptest.log
 
 ptestall-nodoc: build
-	$(PTESTALL) $(TESTALL_FLAGS) --logfile=$(SAGE_ROOT_LOGS)/ptestall.log
+	$(PTESTALL) $(TESTALL_NODOC_FLAGS) --logfile=$(SAGE_ROOT_LOGS)/ptestall.log
 
 ptestlong-nodoc: build
 	$(PTESTALL) --long --logfile=$(SAGE_ROOT_LOGS)/ptestlong.log
 
 ptestalllong-nodoc: build
-	$(PTESTALL) --long $(TESTALL_FLAGS) --logfile=$(SAGE_ROOT_LOGS)/ptestalllong.log
+	$(PTESTALL) --long $(TESTALL_NODOC_FLAGS) --logfile=$(SAGE_ROOT_LOGS)/ptestalllong.log
 
 testoptional-nodoc: build
 	$(TESTALL) --logfile=$(SAGE_ROOT_LOGS)/testoptional.log

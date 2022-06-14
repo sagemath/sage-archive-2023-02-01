@@ -229,7 +229,7 @@ fast-rebuild-clean: misc-clean
 # Testing
 ###############################################################################
 
-TEST_LOG = $(SAGE_ROOT_LOGS)/TEST.log
+TEST_LOG = $(SAGE_ROOT_LOGS)/test.log
 
 TEST_FILES = --all
 

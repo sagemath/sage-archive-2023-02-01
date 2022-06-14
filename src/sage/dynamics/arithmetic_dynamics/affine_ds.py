@@ -867,8 +867,8 @@ class DynamicalSystem_affine(SchemeMorphism_polynomial_affine_space,
 
         ::
 
-            sage: R.<c>=QQ[]
-            sage: A.<x>=AffineSpace(R, 1)
+            sage: R.<c> = QQ[]
+            sage: A.<x> = AffineSpace(R, 1)
             sage: f = DynamicalSystem_affine([x^4])
             sage: f.degree()
             4

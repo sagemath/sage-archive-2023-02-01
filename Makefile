@@ -262,17 +262,10 @@ ptestlong: all
 ptestalllong: all
 	$(PTESTALL) --long $(TESTALL_FLAGS)
 
-testoptional: all
-	$(TESTALL)
-
-testoptionallong: all
-	$(TESTALL) --long
-
-ptestoptional: all
-	$(PTESTALL)
-
-ptestoptionallong: all
-	$(PTESTALL) --long
+testoptional: test
+testoptionallong: testlong
+ptestoptional: ptest
+ptestoptionallong: ptestlong
 
 test-nodoc: build
 	$(TESTALL)
@@ -300,17 +293,10 @@ ptestlong-nodoc: build
 ptestalllong-nodoc: build
 	$(PTESTALL) --long $(TESTALL_NODOC_FLAGS)
 
-testoptional-nodoc: build
-	$(TESTALL)
-
-testoptionallong-nodoc: build
-	$(TESTALL) --long
-
-ptestoptional-nodoc: build
-	$(PTESTALL)
-
-ptestoptionallong-nodoc: build
-	$(PTESTALL) --long
+testoptional-nodoc: test-nodoc
+testoptionallong-nodoc: testlong-nodoc
+ptestoptional-nodoc: ptest-nodoc
+ptestoptionallong-nodoc: ptestlong-nodoc
 
 configure: bootstrap src/doc/bootstrap configure.ac src/bin/sage-version.sh m4/*.m4 build/pkgs/*/spkg-configure.m4 build/pkgs/*/type build/pkgs/*/install-requires.txt build/pkgs/*/package-version.txt build/pkgs/*/distros/*.txt
 	./bootstrap -d

@@ -298,7 +298,7 @@ def FreeModule(base_ring, rank_or_basis_keys=None, sparse=False, inner_product_m
 
     -  ``basis_keys`` -- a finite or enumerated family of arbitrary objects
 
-    -  ``sparse`` -- bool; (default False)
+    -  ``sparse`` -- boolean (default ``False``)
 
     -  ``inner_product_matrix`` -- the inner product matrix (default ``None``)
 
@@ -788,9 +788,9 @@ class Module_free_ambient(Module):
 
     - ``degree`` -- a non-negative integer; degree of the ambient free module
 
-    - ``sparse`` -- bool (default: False)
+    - ``sparse`` -- boolean (default: ``False``)
 
-    - ``category`` -- category (default: None)
+    - ``category`` -- category (default: ``None``)
 
     If ``base_ring`` is a field, then the default category is the category of
     finite-dimensional vector spaces over that field; otherwise it is the
@@ -814,6 +814,13 @@ class Module_free_ambient(Module):
     def __init__(self, base_ring, degree, sparse=False, category=None):
         """
         Initialize.
+
+        TESTS::
+
+            sage: S.<x,y,z> = PolynomialRing(QQ)
+            sage: M = S**2
+            sage: N = M.submodule([vector([x - y, z]), vector([y * z, x * z])])
+            sage: TestSuite(N).run(skip=['_test_elements', '_test_pickling'])
         """
         degree = sage.rings.integer.Integer(degree)
         if degree < 0:
@@ -1075,12 +1082,12 @@ class FreeModule_generic(Module_free_ambient):
 
     - ``degree`` -- a non-negative integer
 
-    - ``sparse`` -- bool (default: False)
+    - ``sparse`` -- boolean (default: ``False``)
 
     - ``coordinate_ring`` -- a ring containing ``base_ring``
       (default: equal to ``base_ring``)
 
-    - ``category`` -- category (default: None)
+    - ``category`` -- category (default: ``None``)
 
     If ``base_ring`` is a field, then the default category is the
     category of finite-dimensional vector spaces over that field;
@@ -2119,8 +2126,8 @@ class FreeModule_generic(Module_free_ambient):
 
         - ``v`` -- vector
 
-        - ``check`` -- bool (default: True); if True, also verify that
-           `v` is really in self.
+        - ``check`` -- boolean (default: ``True``); if ``True``, also verify that
+           `v` is really in ``self``.
 
         OUTPUT: list
 
@@ -2151,8 +2158,8 @@ class FreeModule_generic(Module_free_ambient):
 
         - ``v`` -- vector
 
-        - ``check`` -- bool (default: True); if True, also verify that
-           `v` is really in self.
+        - ``check`` -- boolean (default: ``True``); if ``True``, also verify that
+           `v` is really in ``self``.
 
         OUTPUT: list
 
@@ -4234,10 +4241,10 @@ class FreeModule_generic_field(FreeModule_generic_pid):
 
         -  ``gens`` - list of vectors
 
-        -  ``check`` - bool (default: True): whether or not to
+        -  ``check`` - boolean (default: ``True``): whether or not to
            coerce entries of gens into base field
 
-        -  ``already_echelonized`` - bool (default: False):
+        -  ``already_echelonized`` - boolean (default: ``False``):
            set this if you know the gens are already in echelon form
 
 
@@ -4301,10 +4308,10 @@ class FreeModule_generic_field(FreeModule_generic_pid):
 
         -  ``basis`` - list of vectors
 
-        -  ``check`` - bool (default: True): whether or not to
+        -  ``check`` - boolean (default: ``True``): whether or not to
            coerce entries of gens into base field
 
-        -  ``already_echelonized`` - bool (default: False):
+        -  ``already_echelonized`` - boolean (default: ``False``):
            set this if you know the gens are already in echelon form
 
 
@@ -4353,10 +4360,10 @@ class FreeModule_generic_field(FreeModule_generic_pid):
 
         -  ``gens`` - list of vectors
 
-        -  ``check`` - bool (default: True) verify that gens
-           are all in self.
+        -  ``check`` - boolean (default: ``True``) verify that gens
+           are all in ``self``.
 
-        -  ``already_echelonized`` - bool (default: False) set
+        -  ``already_echelonized`` - boolean (default: ``False``) set
            to True if you know the gens are in Echelon form.
 
         EXAMPLES:
@@ -5012,7 +5019,7 @@ class FreeModule_ambient(FreeModule_generic):
 
         -  ``rank`` -- a non-negative integer
 
-        -  ``sparse`` -- bool (default: False)
+        -  ``sparse`` -- boolean (default: ``False``)
 
         - ``coordinate_ring`` -- a ring containing ``base_ring``
           (default: equal to ``base_ring``)
@@ -5496,12 +5503,10 @@ class FreeModule_ambient(FreeModule_generic):
 
         INPUT:
 
-
         -  ``v`` - vector
 
-        -  ``check`` - bool (default: True); if True, also
-           verify that v is really in self.
-
+        -  ``check`` - boolean (default: ``True``); if True, also
+           verify that `v` is really in ``self``.
 
         OUTPUT: list
 
@@ -5818,12 +5823,12 @@ class FreeModule_ambient_domain(FreeModule_generic_domain, FreeModule_ambient):
 
         - ``v`` -- vector
 
-        - ``check`` -- bool (default: True); if True, also verify that
-           `v` is really in self.
+        - ``check`` -- boolean (default: ``True``); if ``True``, also verify that
+           `v` is really in ``self``.
 
         OUTPUT: list
 
-        Returns a vector `c` such that if `B` is the basis for self, then
+        Returns a vector `c` such that if `B` is the basis for ``self``, then
 
         .. MATH::
 
@@ -5923,7 +5928,7 @@ class FreeModule_ambient_pid(FreeModule_generic_pid, FreeModule_ambient_domain):
 
         - ``rank`` -- a non-negative integer
 
-        - ``sparse`` -- bool (default: False)
+        - ``sparse`` -- boolean (default: ``False``)
 
         - ``coordinate_ring`` -- a ring containing ``base_ring``
           (default: equal to ``base_ring``)
@@ -6016,7 +6021,7 @@ class FreeModule_ambient_field(FreeModule_generic_field, FreeModule_ambient_pid)
 
         -  ``dimension`` - a non-negative integer
 
-        -  ``sparse`` - bool (default: False)
+        -  ``sparse`` - boolean (default: ``False``)
 
 
         EXAMPLES::
@@ -6533,15 +6538,15 @@ class FreeModule_submodule_with_basis_pid(FreeModule_generic_pid):
 
     def echelon_coordinates(self, v, check=True):
         r"""
-        Write `v` in terms of the echelonized basis for self.
+        Write `v` in terms of the echelonized basis for ``self``.
 
         INPUT:
 
 
         -  ``v`` - vector
 
-        -  ``check`` - bool (default: True); if True, also
-           verify that v is really in self.
+        -  ``check`` - boolean (default: ``True``); if ``True``, also
+           verify that `v` is really in ``self``.
 
 
         OUTPUT: list
@@ -6975,18 +6980,18 @@ class FreeModule_submodule_with_basis_pid(FreeModule_generic_pid):
 
     def coordinate_vector(self, v, check=True):
         """
-        Write `v` in terms of the user basis for self.
+        Write `v` in terms of the user basis for ``self``.
 
         INPUT:
 
         - ``v`` -- vector
 
-        - ``check`` -- bool (default: True); if True, also verify that
-           `v` is really in self.
+        - ``check`` -- boolean (default: ``True``); if ``True``, also verify that
+           `v` is really in ``self``.
 
         OUTPUT: list
 
-        Returns a vector `c` such that if `B` is the basis for self, then
+        Returns a vector `c` such that if `B` is the basis for ``self``, then
 
         .. MATH::
 
@@ -7033,15 +7038,15 @@ class FreeModule_submodule_with_basis_pid(FreeModule_generic_pid):
 
     def echelon_coordinate_vector(self, v, check=True):
         """
-        Write `v` in terms of the echelonized basis for self.
+        Write `v` in terms of the echelonized basis for ``self``.
 
         INPUT:
 
 
         -  ``v`` - vector
 
-        -  ``check`` - bool (default: True); if True, also
-           verify that v is really in self.
+        -  ``check`` - boolean (default: ``True``); if ``True``, also
+           verify that `v` is really in ``self``.
 
         Returns a list `c` such that if `B` is the echelonized basis
         for self, then
@@ -7184,18 +7189,18 @@ class FreeModule_submodule_pid(FreeModule_submodule_with_basis_pid):
 
     def coordinate_vector(self, v, check=True):
         """
-        Write `v` in terms of the user basis for self.
+        Write `v` in terms of the user basis for ``self``.
 
         INPUT:
 
         - ``v`` -- vector
 
-        - ``check`` -- bool (default: True); if True, also verify that
-           `v` is really in self.
+        - ``check`` -- boolean (default: ``True``); if ``True``, also verify that
+           `v` is really in ``self``.
 
         OUTPUT: list
 
-        Returns a list `c` such that if `B` is the basis for self, then
+        Returns a list `c` such that if `B` is the basis for ``self``, then
 
         .. MATH::
 
@@ -7579,20 +7584,20 @@ class FreeModule_submodule_field(FreeModule_submodule_with_basis_field):
 
     def echelon_coordinates(self, v, check=True):
         """
-        Write `v` in terms of the echelonized basis of self.
+        Write `v` in terms of the echelonized basis of ``self``.
 
         INPUT:
 
 
         -  ``v`` - vector
 
-        -  ``check`` - bool (default: True); if True, also
-           verify that v is really in self.
+        -  ``check`` - boolean (default: ``True``); if ``True``, also
+           verify that `v` is really in ``self``.
 
 
         OUTPUT: list
 
-        Returns a list `c` such that if `B` is the basis for self, then
+        Returns a list `c` such that if `B` is the basis for ``self``, then
 
         .. MATH::
 
@@ -7644,24 +7649,24 @@ class FreeModule_submodule_field(FreeModule_submodule_with_basis_field):
 
     def coordinate_vector(self, v, check=True):
         """
-        Write `v` in terms of the user basis for self.
+        Write `v` in terms of the user basis for ``self``.
 
         INPUT:
 
         - ``v`` -- vector
 
-        - ``check`` -- bool (default: True); if True, also verify that
-           `v` is really in self.
+        - ``check`` -- boolean (default: ``True``); if ``True``, also verify that
+           `v` is really in ``self``.
 
         OUTPUT: list
 
-        Returns a list `c` such that if `B` is the basis for self, then
+        Returns a list `c` such that if `B` is the basis for ``self``, then
 
         .. MATH::
 
             \\sum c_i B_i = v.
 
-        If `v` is not in self, raise an ``ArithmeticError`` exception.
+        If `v` is not in ``self``, raise an ``ArithmeticError`` exception.
 
         EXAMPLES::
 

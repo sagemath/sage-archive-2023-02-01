@@ -225,8 +225,8 @@ fast-rebuild-clean: misc-clean
 	# Remove leftovers from ancient branches
 	rm -rf src/build
 
-TESTALL = ./sage -t --all
-PTESTALL = ./sage -t -p --all
+TESTALL = ./sage -t --all --logfile=$(SAGE_ROOT_LOGS)/TEST.log
+PTESTALL = $(TESTALL) -p
 
 # Flags for ./sage -t --all.
 # When the documentation is installed, "optional" also includes all tests marked 'sagemath_doc_html',
@@ -237,80 +237,80 @@ TESTALL_FLAGS = --optional=sage,optional,external
 TESTALL_NODOC_FLAGS = --optional=sage,optional,external,!sagemath_doc_html,!sagemath_doc_pdf
 
 test: all
-	$(TESTALL) --logfile=$(SAGE_ROOT_LOGS)/test.log
+	$(TESTALL)
 
 check: test
 
 testall: all
-	$(TESTALL) $(TESTALL_FLAGS) --logfile=$(SAGE_ROOT_LOGS)/testall.log
+	$(TESTALL) $(TESTALL_FLAGS)
 
 testlong: all
-	$(TESTALL) --long --logfile=$(SAGE_ROOT_LOGS)/testlong.log
+	$(TESTALL) --long
 
 testalllong: all
-	$(TESTALL) --long $(TESTALL_FLAGS) --logfile=$(SAGE_ROOT_LOGS)/testalllong.log
+	$(TESTALL) --long $(TESTALL_FLAGS)
 
 ptest: all
-	$(PTESTALL) --logfile=$(SAGE_ROOT_LOGS)/ptest.log
+	$(PTESTALL)
 
 ptestall: all
-	$(PTESTALL) $(TESTALL_FLAGS) --logfile=$(SAGE_ROOT_LOGS)/ptestall.log
+	$(PTESTALL) $(TESTALL_FLAGS)
 
 ptestlong: all
-	$(PTESTALL) --long --logfile=$(SAGE_ROOT_LOGS)/ptestlong.log
+	$(PTESTALL) --long
 
 ptestalllong: all
-	$(PTESTALL) --long $(TESTALL_FLAGS) --logfile=$(SAGE_ROOT_LOGS)/ptestalllong.log
+	$(PTESTALL) --long $(TESTALL_FLAGS)
 
 testoptional: all
-	$(TESTALL) --logfile=$(SAGE_ROOT_LOGS)/testoptional.log
+	$(TESTALL)
 
 testoptionallong: all
-	$(TESTALL) --long --logfile=$(SAGE_ROOT_LOGS)/testoptionallong.log
+	$(TESTALL) --long
 
 ptestoptional: all
-	$(PTESTALL) --logfile=$(SAGE_ROOT_LOGS)/ptestoptional.log
+	$(PTESTALL)
 
 ptestoptionallong: all
-	$(PTESTALL) --long --logfile=$(SAGE_ROOT_LOGS)/ptestoptionallong.log
+	$(PTESTALL) --long
 
 test-nodoc: build
-	$(TESTALL) --logfile=$(SAGE_ROOT_LOGS)/test.log
+	$(TESTALL)
 
 check-nodoc: test-nodoc
 
 testall-nodoc: build
-	$(TESTALL) $(TESTALL_NODOC_FLAGS) --logfile=$(SAGE_ROOT_LOGS)/testall.log
+	$(TESTALL) $(TESTALL_NODOC_FLAGS)
 
 testlong-nodoc: build
-	$(TESTALL) --long --logfile=$(SAGE_ROOT_LOGS)/testlong.log
+	$(TESTALL) --long
 
 testalllong-nodoc: build
-	$(TESTALL) --long $(TESTALL_NODOC_FLAGS) --logfile=$(SAGE_ROOT_LOGS)/testalllong.log
+	$(TESTALL) --long $(TESTALL_NODOC_FLAGS)
 
 ptest-nodoc: build
-	$(PTESTALL) --logfile=$(SAGE_ROOT_LOGS)/ptest.log
+	$(PTESTALL)
 
 ptestall-nodoc: build
-	$(PTESTALL) $(TESTALL_NODOC_FLAGS) --logfile=$(SAGE_ROOT_LOGS)/ptestall.log
+	$(PTESTALL) $(TESTALL_NODOC_FLAGS)
 
 ptestlong-nodoc: build
-	$(PTESTALL) --long --logfile=$(SAGE_ROOT_LOGS)/ptestlong.log
+	$(PTESTALL) --long
 
 ptestalllong-nodoc: build
-	$(PTESTALL) --long $(TESTALL_NODOC_FLAGS) --logfile=$(SAGE_ROOT_LOGS)/ptestalllong.log
+	$(PTESTALL) --long $(TESTALL_NODOC_FLAGS)
 
 testoptional-nodoc: build
-	$(TESTALL) --logfile=$(SAGE_ROOT_LOGS)/testoptional.log
+	$(TESTALL)
 
 testoptionallong-nodoc: build
-	$(TESTALL) --long --logfile=$(SAGE_ROOT_LOGS)/testoptionallong.log
+	$(TESTALL) --long
 
 ptestoptional-nodoc: build
-	$(PTESTALL) --logfile=$(SAGE_ROOT_LOGS)/ptestoptional.log
+	$(PTESTALL)
 
 ptestoptionallong-nodoc: build
-	$(PTESTALL) --long --logfile=$(SAGE_ROOT_LOGS)/ptestoptionallong.log
+	$(PTESTALL) --long
 
 configure: bootstrap src/doc/bootstrap configure.ac src/bin/sage-version.sh m4/*.m4 build/pkgs/*/spkg-configure.m4 build/pkgs/*/type build/pkgs/*/install-requires.txt build/pkgs/*/package-version.txt build/pkgs/*/distros/*.txt
 	./bootstrap -d

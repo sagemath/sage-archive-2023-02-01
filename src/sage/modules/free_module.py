@@ -5828,7 +5828,8 @@ class FreeModule_ambient_domain(FreeModule_generic_domain, FreeModule_ambient):
 
         OUTPUT: list
 
-        Returns a vector `c` such that if `B` is the basis for ``self``, then
+        The output is a vector `c` such that if `B` is the basis for ``self``,
+        then
 
         .. MATH::
 
@@ -6991,7 +6992,8 @@ class FreeModule_submodule_with_basis_pid(FreeModule_generic_pid):
 
         OUTPUT: list
 
-        Returns a vector `c` such that if `B` is the basis for ``self``, then
+        The output is a vector `c` such that if `B` is the basis for ``self``,
+        then
 
         .. MATH::
 
@@ -7200,7 +7202,8 @@ class FreeModule_submodule_pid(FreeModule_submodule_with_basis_pid):
 
         OUTPUT: list
 
-        Returns a list `c` such that if `B` is the basis for ``self``, then
+        The output is a list `c` such that if `B` is the basis for ``self``,
+        then
 
         .. MATH::
 
@@ -7597,13 +7600,14 @@ class FreeModule_submodule_field(FreeModule_submodule_with_basis_field):
 
         OUTPUT: list
 
-        Returns a list `c` such that if `B` is the basis for ``self``, then
+        The output is a list `c` such that if `B` is the basis for ``self``,
+        then
 
         .. MATH::
 
             \\sum c_i B_i = v.
 
-        If `v` is not in self, raise an ``ArithmeticError`` exception.
+        If `v` is not in ``self``, raise an ``ArithmeticError`` exception.
 
         EXAMPLES::
 

@@ -258,12 +258,7 @@ class CharacterArt(SageObject):
         from sage.doctest import DOCTEST_MODE
         if DOCTEST_MODE:
             return False
-        try:
-            return os.isatty(sys.stdout.fileno())
-        except Exception:
-            # The IPython zeromq kernel uses a fake stdout that does
-            # not support fileno()
-            return False
+        return sys.stdout.isatty()
 
     def _terminal_width(self):
         """

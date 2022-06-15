@@ -258,7 +258,11 @@ class CharacterArt(SageObject):
         from sage.doctest import DOCTEST_MODE
         if DOCTEST_MODE:
             return False
-        return sys.stdout.isatty()
+        try:
+            return sys.stdout.isatty()
+        except Exception:
+            # for fake ttys that might lead to an error
+            return False
 
     def _terminal_width(self):
         """

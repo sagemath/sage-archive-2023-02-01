@@ -3045,9 +3045,9 @@ class SymmetricFunctionAlgebra_generic_Element(CombinatorialFreeModule.Element):
 
             sage: m = SymmetricFunctions(QQ).m()
             sage: P5 = Partitions(5)
-            sage: sum([s[mu](X)*s[mu](Y) for mu in P5]) == sum([m[mu](X)*h[mu](Y) for mu in P5])
+            sage: sum(s[mu](X)*s[mu](Y) for mu in P5) == sum(m[mu](X)*h[mu](Y) for mu in P5)
             True
-            sage: sum([s[mu](X)*s[mu.conjugate()](Y) for mu in P5]) == sum([m[mu](X)*e[mu](Y) for mu in P5])
+            sage: sum(s[mu](X)*s[mu.conjugate()](Y) for mu in P5) == sum(m[mu](X)*e[mu](Y) for mu in P5)
             True
 
         .. SEEALSO::

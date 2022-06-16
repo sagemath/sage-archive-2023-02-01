@@ -511,7 +511,7 @@ def process_extlinks(s, embedded=False):
     Sphinx extlinks extension. For example, replace ``:trac:`NUM```
     with ``https://trac.sagemath.org/NUM``, and similarly with
     ``:python:TEXT`` and ``:wikipedia:TEXT``, looking up the url from
-    the dictionary ``extlinks`` in ``sage.docs.conf``.
+    the dictionary ``extlinks`` in ``sage_docbuild.conf``.
     If ``TEXT`` is of the form ``blah <LINK>``, then it uses ``LINK``
     rather than ``TEXT`` to construct the url.
 
@@ -609,10 +609,10 @@ def format(s, embedded=False):
     EXAMPLES::
 
         sage: from sage.misc.sagedoc import format
-        sage: identity_matrix(2).rook_vector.__doc__[202:274]
+        sage: identity_matrix(2).rook_vector.__doc__[191:263]
         'Let `A` be an `m` by `n` (0,1)-matrix. We identify `A` with a chessboard'
 
-        sage: format(identity_matrix(2).rook_vector.__doc__[202:274])
+        sage: format(identity_matrix(2).rook_vector.__doc__[191:263])
         'Let A be an m by n (0,1)-matrix. We identify A with a chessboard\n'
 
     If the first line of the string is 'nodetex', remove 'nodetex' but
@@ -710,7 +710,11 @@ def format(s, embedded=False):
     if 'noreplace' in directives or 'nodetex' in directives:
         s = s[first_newline + len(os.linesep):]
 
-    import sage.all
+    try:
+        import sage.all
+    except ImportError:
+        pass
+
     docs = set([])
     if 'noreplace' not in directives:
         i_0 = 0
@@ -774,7 +778,12 @@ def format_src(s):
     if not isinstance(s, str):
         raise TypeError("s must be a string")
     docs = set([])
-    import sage.all
+
+    try:
+        import sage.all
+    except ImportError:
+        pass
+
     while True:
         i = s.find("<<<")
         if i == -1:
@@ -1486,7 +1495,6 @@ class _sage_doc:
     </script>
     <script type="text/javascript" src="%(static_path)s/jquery.js"></script>
     <script type="text/javascript" src="%(static_path)s/doctools.js"></script>
-    <script type="text/javascript" src="%(static_path)s/mathjax_sage.js"></script>
     <link rel="shortcut icon" href="%(static_path)s/favicon.ico" />
     <link rel="icon" href="%(static_path)s/sageicon.png" type="image/x-icon" />
   </head>

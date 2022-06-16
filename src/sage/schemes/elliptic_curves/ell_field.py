@@ -770,24 +770,25 @@ class EllipticCurve_field(ell_generic.EllipticCurve_generic, ProjectivePlaneCurv
     def division_field(self, l, names=None, map=False, **kwds):
         r"""
         Given an elliptic curve over a number field or finite field `F`
-        and a prime number `\ell`, construct the field `F(E[\ell])`.
+        and a prime number `\ell`, construct the `\ell`-division field
+        `F(E[\ell])`.
+
+        The `\ell`-division field is the smallest extension of `F` over
+        which all `\ell`-torsion points of `E` are defined.
 
         INPUT:
 
-        - ``\ell`` -- a prime number (an element of `\ZZ`).
-
-        - ``names`` -- (default: ``t``) a variable name for the division field.
-
-        - ``map`` -- (default: ``False``) also return an embedding of
-          the :meth:`base_field` into the resulting field.
-
-        - ``kwds`` -- additional keywords passed to
-          :func:`~sage.rings.polynomial.polynomial_element.Polynomial.splitting_field`.
+        - `\ell` -- a prime number (an element of `\ZZ`)
+        - ``names`` -- (default: ``t``) a variable name for the division field
+        - ``map`` -- (default: ``False``) also return an embedding of the
+          :meth:`base_field` into the resulting field
+        - ``kwds`` -- additional keyword arguments passed to
+          :func:`~sage.rings.polynomial.polynomial_element.Polynomial.splitting_field`
 
         OUTPUT:
 
-        If ``map`` is ``False``, the division field as an absolute number
-        field or a finite field.
+        If ``map`` is ``False``, the division field `K` as an absolute
+        number field or a finite field.
         If ``map`` is ``True``, a tuple `(K, \phi)` where `\phi` is an
         embedding of the base field in the division field `K`.
 
@@ -797,8 +798,8 @@ class EllipticCurve_field(ell_generic.EllipticCurve_generic, ProjectivePlaneCurv
             field is large (e.g. when `\ell` is large or when the Galois
             representation is surjective).  The ``simplify`` flag also
             has a big influence on the running time over number fields:
-            sometimes ``simplify=False`` is faster, sometimes
-            ``simplify=True`` (the default) is faster.
+            sometimes ``simplify=False`` is faster, sometimes the default
+            ``simplify=True`` is faster.
 
         EXAMPLES:
 

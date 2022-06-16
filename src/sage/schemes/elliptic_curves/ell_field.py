@@ -767,7 +767,7 @@ class EllipticCurve_field(ell_generic.EllipticCurve_generic, ProjectivePlaneCurv
             Elist = [E.minimal_model() for E in Elist]
         return Elist
 
-    def division_field(self, l, names=None, map=False, **kwds):
+    def division_field(self, l, names='t', map=False, **kwds):
         r"""
         Given an elliptic curve over a number field or finite field `F`
         and a prime number `\ell`, construct the `\ell`-division field
@@ -779,7 +779,7 @@ class EllipticCurve_field(ell_generic.EllipticCurve_generic, ProjectivePlaneCurv
         INPUT:
 
         - `\ell` -- a prime number (an element of `\ZZ`)
-        - ``names`` -- (default: ``t``) a variable name for the division field
+        - ``names`` -- (default: ``'t'``) a variable name for the division field
         - ``map`` -- (default: ``False``) also return an embedding of the
           :meth:`base_field` into the resulting field
         - ``kwds`` -- additional keyword arguments passed to
@@ -963,9 +963,6 @@ class EllipticCurve_field(ell_generic.EllipticCurve_generic, ProjectivePlaneCurv
         l = rings.Integer(l)
         if not l.is_prime():
             raise ValueError("l must be a prime number")
-
-        if names is None:
-            names = 't'
 
         verbose("Adjoining X-coordinates of %s-torsion points" % l)
         F = self.base_ring()

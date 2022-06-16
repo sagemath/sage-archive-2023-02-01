@@ -7664,7 +7664,7 @@ class FreeModule_submodule_field(FreeModule_submodule_with_basis_field):
 
         OUTPUT: list
 
-        Returns a list `c` such that if `B` is the basis for ``self``, then
+        The output is a list `c` such that if `B` is the basis for ``self``, then
 
         .. MATH::
 

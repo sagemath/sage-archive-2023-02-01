@@ -491,8 +491,6 @@ class ModularForm_abstract(ModuleElement):
         """
         return not self.element().is_zero()
 
-    
-
     def prec(self):
         """
         Return the precision to which self.q_expansion() is
@@ -1742,8 +1740,6 @@ class Newform(ModularForm_abstract):
             True
         """
         return True
-
-    
 
     def character(self):
         r"""

@@ -258,7 +258,7 @@ class OrePolynomialRing(UniqueRepresentation, Algebra):
     _fraction_field_class = None
 
     @staticmethod
-    def __classcall_private__(cls, base_ring, twist=None, names=None, sparse=False):
+    def __classcall_private__(cls, base_ring, twist=None, names=None, sparse=False, polcast=True):
         r"""
         Construct the Ore polynomial ring associated to the given parameters.
 
@@ -297,6 +297,21 @@ class OrePolynomialRing(UniqueRepresentation, Algebra):
             sage: S.<x> = SkewPolynomialRing(k, Frob)
             sage: type(S)
             <class 'sage.rings.polynomial.skew_polynomial_ring.SkewPolynomialRing_finite_field_with_category'>
+
+        If there is no twisting derivation and that the twisting morphism is
+        `None` ot the identity, a regular `PolynomialRing` is created, unless
+        specified otherwise::
+
+            sage: k.<a> = GF(5^2)
+            sage: Frob = k.frobenius_endomorphism(2)
+            sage: Frob.is_identity()
+            True
+            sage: S.<x> = OrePolynomialRing(k, Frob)
+            sage: S
+            Univariate Polynomial Ring in x over Finite Field in a of size 5^2
+            sage: S.<x> = OrePolynomialRing(k, Frob, polcast=False)
+            sage: S
+            Ore Polynomial Ring in x over Finite Field in a of size 5^2 twisted by Identity
         """
         if base_ring not in CommutativeRings():
             raise TypeError('base_ring must be a commutative ring')
@@ -304,15 +319,10 @@ class OrePolynomialRing(UniqueRepresentation, Algebra):
             if (twist.domain() is not base_ring
              or twist.codomain() is not base_ring):
                 raise TypeError("the twisting morphism must be an endomorphism of base_ring (=%s)" % base_ring)
-            ### >>> Begin modifications
-            ### Comment thi block:
-            ### if twist.is_identity():
-            ###     morphism = None
-            ### else:
-            ###     morphism = twist
-            ### Add this line:
-            morphism = twist
-            ### >>> End modifications
+            if twist.is_identity() and polcast:
+                morphism = None
+            else:
+                morphism = twist
             derivation = None
         elif isinstance(twist, RingDerivation):
             if (twist.domain() is not base_ring
@@ -332,13 +342,10 @@ class OrePolynomialRing(UniqueRepresentation, Algebra):
         except IndexError:
             raise NotImplementedError("multivariate Ore polynomials rings not supported")
 
-        ### >>> Begin modifications
-        ### Comment this block:
-        ### # If there is no twisting morphism and no twisting derivation
-        ### # we return a classical polynomial ring
-        ### if derivation is None and morphism is None:
-        ###     return PolynomialRing(base_ring, names, sparse=sparse)
-        ### >>> End modifications
+        # If `polcast` is `True` and there is no twisting morphism and no
+        # twisting derivation we return a classical polynomial ring
+        if polcast and derivation is None and morphism is None:
+            return PolynomialRing(base_ring, names, sparse=sparse)
 
         # We find the best constructor
         if sparse:

@@ -242,6 +242,27 @@ class ModularFormsRing(Parent):
         self.__cached_cusp_gens = []
         Parent.__init__(self, base=base_ring, category=GradedAlgebras(base_ring))
 
+    def change_ring(self, base_ring):
+        r"""
+        Return the ring of modular forms over the given base ring and the same
+        group as ``self``.
+
+        INPUT:
+
+        - ``base_ring`` - a base ring, which should be `\QQ`, `\ZZ`, or the
+        integers mod `p` for some prime `p`.
+
+        EXAMPLES::
+
+            sage: M = ModularFormsRing(11); M
+            Ring of Modular Forms for Congruence Subgroup Gamma0(11) over Rational Field
+            sage: M.change_ring(Zmod(7))
+            Ring of Modular Forms for Congruence Subgroup Gamma0(11) over Ring of integers modulo 7
+            sage: M.change_ring(ZZ)
+            Ring of Modular Forms for Congruence Subgroup Gamma0(11) over Integer Ring
+        """
+        return ModularFormsRing(self.group(), base_ring=base_ring)
+
     def some_elements(self):
         r"""
         Return a list of generators of ``self``.

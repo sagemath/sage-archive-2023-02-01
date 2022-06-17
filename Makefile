@@ -246,66 +246,108 @@ test: all
 	@echo '### Running $(TEST)' >> $(TEST_LOG)
 	$(TEST)
 
-check: test
+check:
+	@$(MAKE) test
 
 testall: TEST_OPTIONAL := $(TEST_OPTIONAL),external
-testall: test
+testall:
+	@$(MAKE) test
 
 testlong: TEST_FLAGS += --long
-testlong: test
+testlong:
+	@$(MAKE) test
 
 testalllong: TEST_FLAGS += --long
-testalllong: testall
+testalllong:
+	@$(MAKE) testall
 
 ptest: TEST_FLAGS += -p
-ptest: test
+ptest:
+	@$(MAKE) test
 
 ptestall: TEST_OPTIONAL := $(TEST_OPTIONAL),external
-ptestall: ptest
+ptestall:
+	@$(MAKE) ptest
 
 ptestlong: TEST_FLAGS += --long
-ptestlong: ptest
+ptestlong:
+	@$(MAKE) ptest
 
 ptestalllong: TEST_FLAGS += --long
-ptestalllong: ptestall
+ptestalllong:
+	@$(MAKE) ptestall
 
-testoptional: test
-testoptionallong: testlong
-ptestoptional: ptest
-ptestoptionallong: ptestlong
+testoptional:
+	@echo "'make $@' is deprecated; use 'make test'"
+	@$(MAKE) test
+
+testoptionallong:
+	@echo "'make $@' is deprecated; use 'make testlong'"
+	@$(MAKE) testlong
+
+ptestoptional:
+	@echo "'make $@' is deprecated; use 'make ptest'"
+	@$(MAKE) ptest
+
+ptestoptionallong:
+	@echo "'make $@' is deprecated; use 'make ptestlong'"
+	@$(MAKE) ptestlong
+
+# *test*-nodoc targets skip the docbuild and skip all tests that depend on the documentation
 
 test-nodoc: TEST_OPTIONAL := $(TEST_OPTIONAL),!sagemath_doc_html,!sagemath_doc_pdf
 test-nodoc: build
 	@echo '### Running $(TEST)' >> $(TEST_LOG)
 	$(TEST)
 
-check-nodoc: test-nodoc
+check-nodoc:
+	@$(MAKE) test-nodoc
 
 testall-nodoc: TEST_OPTIONAL := $(TEST_OPTIONAL),external
-testall-nodoc: test-nodoc
+testall-nodoc:
+	@$(MAKE) test-nodoc
 
 testlong-nodoc: TEST_FLAGS += --long
-testlong-nodoc: test-nodoc
+testlong-nodoc:
+	@$(MAKE) test-nodoc
 
 testalllong-nodoc: TEST_FLAGS += --long
-testalllong-nodoc: testall-nodoc
+testalllong-nodoc:
+	@$(MAKE) testall-nodoc
 
 ptest-nodoc: TEST_FLAGS += -p
-ptest-nodoc: test-nodoc
+ptest-nodoc:
+	@$(MAKE) test-nodoc
 
 ptestall-nodoc: TEST_OPTIONAL := $(TEST_OPTIONAL),external
-ptestall-nodoc: ptest-nodoc
+ptestall-nodoc:
+	@$(MAKE) ptest-nodoc
 
 ptestlong-nodoc: TEST_FLAGS += --long
-ptestlong-nodoc: ptest-nodoc
+ptestlong-nodoc:
+	@$(MAKE) ptest-nodoc
 
 ptestalllong-nodoc: TEST_FLAGS += --long
-ptestalllong-nodoc: ptestall-nodoc
+ptestalllong-nodoc:
+	@$(MAKE) ptestall-nodoc
 
-testoptional-nodoc: test-nodoc
-testoptionallong-nodoc: testlong-nodoc
-ptestoptional-nodoc: ptest-nodoc
-ptestoptionallong-nodoc: ptestlong-nodoc
+testoptional-nodoc:
+	@echo "'make $@' is deprecated; use 'make test-nodoc'"
+	@$(MAKE) test-nodoc
+
+testoptionallong-nodoc:
+	@echo "'make $@' is deprecated; use 'make testlong-nodoc'"
+	@$(MAKE) testlong-nodoc
+
+ptestoptional-nodoc:
+	@echo "'make $@' is deprecated; use 'make ptest-nodoc'"
+	@$(MAKE) ptest-nodoc
+
+ptestoptionallong-nodoc:
+	@echo "'make $@' is deprecated; use 'make ptestlong-nodoc'"
+	@$(MAKE) ptestlong-nodoc
+
+###############################################################################
 
 configure: bootstrap src/doc/bootstrap configure.ac src/bin/sage-version.sh m4/*.m4 build/pkgs/*/spkg-configure.m4 build/pkgs/*/type build/pkgs/*/install-requires.txt build/pkgs/*/package-version.txt build/pkgs/*/distros/*.txt
 	./bootstrap -d

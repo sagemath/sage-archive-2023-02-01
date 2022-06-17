@@ -249,8 +249,8 @@ class ModularFormsRing(Parent):
 
         INPUT:
 
-        - ``base_ring`` - a base ring, which should be `\QQ`, `\ZZ`, or the
-        integers mod `p` for some prime `p`.
+        - ``base_ring`` -- a base ring, which should be `\QQ`, `\ZZ`, or the
+          integers mod `p` for some prime `p`.
 
         EXAMPLES::
 
@@ -293,7 +293,8 @@ class ModularFormsRing(Parent):
 
         INPUT:
 
-        - ``i`` (Integer) - correspond to the `i`-th modular form generating the ``ModularFormsRing``.
+        - ``i`` (Integer) -- correspond to the `i`-th modular form generating
+          the ring of modular forms.
 
         OUTPUT: A ``GradedModularFormElement``
 
@@ -470,8 +471,9 @@ class ModularFormsRing(Parent):
 
         INPUT:
 
-        - ``forms_datum`` (dict, list, ModularFormElement, GradedModularFormElement, RingElement, Multivariate polynomial) - Try to coerce
-          ``forms_datum`` into self.
+        - ``forms_datum`` (dict, list, ModularFormElement,
+          GradedModularFormElement, RingElement, Multivariate polynomial) -- Try
+          to coerce ``forms_datum`` into self.
 
         TESTS::
 
@@ -853,12 +855,12 @@ class ModularFormsRing(Parent):
 
         INPUT:
 
-        - maxweight: maximum weight to try
-        - start_weight: minimum weight to try
-        - start_gens: a sequence of tuples of the form `(k, f, F)`, where `F` is a
-          modular form of weight `k` and `f` is its `q`-expansion coerced into
-          ``self.base_ring()`. Either (but not both) of `f` and `F` may be
-          None.
+        - ``maxweight`` -- maximum weight to try
+        - ``start_weight`` -- minimum weight to try
+        - ``start_gens`` -- a sequence of tuples of the form `(k, f, F)`, where
+          `F` is a modular form of weight `k` and `f` is its `q`-expansion
+          coerced into ``self.base_ring()`. Either (but not both) of `f` and `F`
+          may be ``None``.
 
         OUTPUT:
 

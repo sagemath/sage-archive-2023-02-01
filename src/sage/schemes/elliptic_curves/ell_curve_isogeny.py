@@ -217,12 +217,12 @@ def isogeny_codomain_from_kernel(E, kernel, degree=None):
 
     algorithm = isogeny_determine_algorithm(E, kernel)
 
-    if "velu" == algorithm:
+    if algorithm == 'velu':
         # if we are using Velu's formula, just instantiate the isogeny
         # and return the codomain
         return EllipticCurveIsogeny(E, kernel).codomain()
 
-    if "kohel" == algorithm:
+    if algorithm == 'kohel':
         return compute_codomain_kohel(E, kernel)
 
     raise NotImplementedError
@@ -999,9 +999,9 @@ class EllipticCurveIsogeny(EllipticCurveHom):
 
         self.__algorithm = algorithm
 
-        if "velu" == algorithm:
+        if algorithm == 'velu':
             self.__init_from_kernel_list(kernel)
-        elif "kohel" == algorithm:
+        elif algorithm == 'kohel':
             self.__init_from_kernel_polynomial(kernel)
         else:
             raise NotImplementedError
@@ -1165,9 +1165,9 @@ class EllipticCurveIsogeny(EllipticCurveHom):
             yP = self.__prei_ratl_maps[1](xP, yP)
             xP = self.__prei_ratl_maps[0](xP)
 
-        if "velu" == self.__algorithm:
+        if self.__algorithm == 'velu':
             outP = self.__compute_via_velu_numeric(xP, yP)
-        elif "kohel" == self.__algorithm:
+        elif self.__algorithm == 'kohel':
             outP = self.__compute_via_kohel_numeric(xP,yP)
         else:
             raise NotImplementedError
@@ -1475,9 +1475,9 @@ class EllipticCurveIsogeny(EllipticCurveHom):
             Elliptic Curve defined by y^2 = x^3 + 3*x over Finite Field of size 7
             sage: phi._EllipticCurveIsogeny__compute_E2()
         """
-        if "velu" == self.__algorithm:
+        if self.__algorithm == 'velu':
             self._codomain = self.__compute_E2_via_velu()
-        elif "kohel" == self.__algorithm:
+        elif self.__algorithm == 'kohel':
             self._codomain = self.__compute_E2_via_kohel()
         else:
             raise NotImplementedError
@@ -1517,9 +1517,9 @@ class EllipticCurveIsogeny(EllipticCurveHom):
             return
 
         if precomputed_maps is None:
-            if "velu" == self.__algorithm:
+            if self.__algorithm == 'velu':
                 X_map, Y_map = self.__initialize_rational_maps_via_velu()
-            elif "kohel" == self.__algorithm:
+            elif self.__algorithm == 'kohel':
                 X_map, Y_map = self.__initialize_rational_maps_via_kohel()
             else:
                 raise NotImplementedError
@@ -1559,7 +1559,7 @@ class EllipticCurveIsogeny(EllipticCurveHom):
             x
         """
         if self.__kernel_polynomial is None:
-            if "velu" == self.__algorithm:
+            if self.__algorithm == 'velu':
                 self.__init_kernel_polynomial_velu()
             else:
                 assert False, "the kernel polynomial should already be defined!"
@@ -1686,7 +1686,7 @@ class EllipticCurveIsogeny(EllipticCurveHom):
             if codomain is not None:
                 raise ValueError("cannot specify a codomain and model flag simultaneously")
 
-            if 'minimal' == model:
+            if model == 'minimal':
 
                 if not is_NumberField(oldE2.base_field()):
                     raise ValueError("specifying minimal for model flag only valid with curves over number fields")

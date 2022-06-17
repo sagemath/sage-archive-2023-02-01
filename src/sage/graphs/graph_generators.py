@@ -1033,12 +1033,12 @@ class GraphGenerators():
                 -l       : canonically label output graphs
 
         Options which cause ``genbg`` to use an output format different than the
-        ``graph6`` format are not listed above (-s, -a) as they will confuse the
-        creation of a Sage graph. Option ``-q`` which suppress auxiliary output
-        (except from ``-v``) should never be used as we are unable to recover
-        the partition of the vertices of the bipartite graph without the
-        auxilary output. Hence the partition of the vertices of returned
-        bipartite graphs might not respect the requirement.
+        ``graph6`` format are not listed above (``-s``, ``-a``) as they will
+        confuse the creation of a Sage graph. Option ``-q`` which suppress
+        auxiliary output (except from ``-v``) should never be used as we are
+        unable to recover the partition of the vertices of the bipartite graph
+        without the auxilary output. Hence the partition of the vertices of
+        returned bipartite graphs might not respect the requirement.
 
         The res/mod option can be useful when using the output in a routine run
         several times in parallel.

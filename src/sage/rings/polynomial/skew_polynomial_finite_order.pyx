@@ -88,7 +88,7 @@ cdef class SkewPolynomial_finite_order_dense(SkewPolynomial_generic_dense):
         cdef k = parent.base_ring()
         cdef RingElement zero = k(0)
         cdef RingElement one = k(1)
-        cdef list line, phir = [ ]
+        cdef list line, phir = []
         if r < d:
             for i from 0 <= i < d-r:
                 line = d * [zero]
@@ -139,17 +139,17 @@ cdef class SkewPolynomial_finite_order_dense(SkewPolynomial_generic_dense):
         cdef RingElement minusone = <RingElement?>base_ring(-1)
         cdef RingElement zero = <RingElement?>base_ring(0)
         cdef Polk = PolynomialRing (base_ring, 'xr')
-        cdef list M = [ ]
+        cdef list M = []
         cdef list l = self.list()
         for j in range(r):
             for i in range(r):
                 if i < j:
-                    pol = [ zero ]
+                    pol = [zero]
                     deb = i-j+r
                 else:
-                    pol = [ ]
+                    pol = []
                     deb = i-j
-                for k in range(deb, d+1, r):
+                for k from deb <= k <= d by r:
                     pol.append(l[k])
                 M.append(Polk(pol))
             for i from 0 <= i <= d:
@@ -213,11 +213,11 @@ cdef class SkewPolynomial_finite_order_dense(SkewPolynomial_generic_dense):
 
         .. SEEALSO::
 
-            :meth:`reduced_norm', :meth:`reduced_charpoly'
+            :meth:`reduced_norm`, :meth:`reduced_charpoly`
         """
         order = self.parent()._order
         twisting_morphism = self.parent().twisting_morphism()
-        coeffs = [ ]
+        coeffs = []
         for i in range(0, self.degree()+1, order):
             tr = c = self._coeffs[i]
             for _ in range(order-1):
@@ -316,7 +316,7 @@ cdef class SkewPolynomial_finite_order_dense(SkewPolynomial_generic_dense):
 
         .. SEEALSO::
 
-            :meth:`reduced_trace', :meth:`reduced_charpoly'
+            :meth:`reduced_trace`, :meth:`reduced_charpoly`
         """
         if self._norm is None:
             if self.is_zero():
@@ -342,7 +342,8 @@ cdef class SkewPolynomial_finite_order_dense(SkewPolynomial_generic_dense):
 
     def reduced_charpoly(self, var=None):
         r"""
-        Return the reduced characteristic of this skew polynomial.
+        Return the reduced characteristic polynomial of this
+        skew polynomial.
 
         INPUT:
 
@@ -387,7 +388,7 @@ cdef class SkewPolynomial_finite_order_dense(SkewPolynomial_generic_dense):
         polynomial is ``x`` and the name of central variable is usually ``z``
         (see :meth:`~sage.rings.polynomial.skew_polynomial_ring.SkewPolynomialRing_finite_order.center`
         for more details about this). 
-        The user can speciify a different names if desired::
+        The user can speciify different names if desired::
 
             sage: a.reduced_charpoly(var='T')  # variable name for the caracteristic polynomial
             T^3 + (2*z + 1)*T^2 + (3*z^2 + 4*z)*T + 4*z^3 + z^2 + 1
@@ -397,14 +398,14 @@ cdef class SkewPolynomial_finite_order_dense(SkewPolynomial_generic_dense):
 
         .. SEEALSO::
 
-            :meth:`reduced_trace', :meth:`reduced_norm'
+            :meth:`reduced_trace`, :meth:`reduced_norm`
         """
         if self._charpoly is None:
             parent = self._parent
             section = parent._embed_constants.section()
             M = self._matmul_c()
             chi = M.charpoly()
-            self._charpoly = [ tuple(c.list()) for c in chi.list() ]
+            self._charpoly = [tuple(c.list()) for c in chi.list()]
             if self._norm is not None:
                 self._norm = self._charpoly[-1]
         varcenter = None
@@ -415,7 +416,7 @@ cdef class SkewPolynomial_finite_order_dense(SkewPolynomial_generic_dense):
         else:
             varcharpoly = var
         center = self.parent().center(name=varcenter)
-        coeffs = [ center(c) for c in self._charpoly ]
+        coeffs = [center(c) for c in self._charpoly]
         return PolynomialRing(center, name=varcharpoly)(coeffs)
 
     def is_central(self):
@@ -568,7 +569,7 @@ cdef class SkewPolynomial_finite_order_dense(SkewPolynomial_generic_dense):
             except ValueError:
                 bound = self._matphir_c().minimal_polynomial()
                 section = self._parent._embed_constants.section()
-                self._optbound = [ section(x) for x in bound.list() ]
+                self._optbound = [section(x) for x in bound.list()]
         return center(self._optbound)
 
 

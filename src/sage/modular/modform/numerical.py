@@ -53,7 +53,7 @@ class NumericalEigenforms(SageObject):
 
     A numerical eigenforms object, with the following useful methods:
 
-    - :meth:`ap` - return all eigenvalues of $T_p$
+    - :meth:`ap` - return all eigenvalues of `T_p`
 
     - :meth:`eigenvalues` - list of eigenvalues corresponding
       to the given list of primes, e.g.,::

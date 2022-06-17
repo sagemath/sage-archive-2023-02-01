@@ -1351,7 +1351,7 @@ class RealSet(UniqueRepresentation, Parent, Set_base,
 
         OUTPUT:
 
-        The $i$-th connected component as a :class:`RealInterval`.
+        The ``i``-th connected component as a :class:`RealInterval`.
 
         EXAMPLES::
 

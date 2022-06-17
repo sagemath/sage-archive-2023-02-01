@@ -16,8 +16,8 @@ quadratic equations in `\mathbb{P}^3` ::
     sage: WeierstrassForm([quadratic1, quadratic2])
     (-1/4, 0)
 
-Hence, the Weierstrass form of this complete intersection is $Y^2 =
-X^3 - \frac{1}{4} X Z^4$.
+Hence, the Weierstrass form of this complete intersection is `Y^2 =
+X^3 - \frac{1}{4} X Z^4`.
 """
 
 #*****************************************************************************
@@ -128,8 +128,8 @@ def _biquadratic_syzygy_quartic(quadratic1, quadratic2, variables=None):
     The invariants and covariants of a quaternary biquadratic satisfy
     the relation
     :meth:`sage.rings.invariant_theory.TwoQuaternaryQuadratics.syzygy`,
-    which is (modulo the two quadratic equations) of the form $J^2 =
-    p_4(T, T')$ where
+    which is (modulo the two quadratic equations) of the form `J^2 =
+    p_4(T, T')` where
 
     * `J`, `T`, `T'` are the covariants of the biquadratic.
 

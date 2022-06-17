@@ -1452,9 +1452,9 @@ class ParametrizedSurface3D(SageObject):
         Computes the connection coefficients or Christoffel symbols
         `\Gamma^k_{ij}` of the surface. If the coefficients of the first
         fundamental form are given by `g_{ij}` (where `i, j = 1, 2`), then
-        $\Gamma^k_{ij} = \frac{1}{2} g^{kl} \left( \frac{\partial g_{li}}{\partial x^j}
+        `\Gamma^k_{ij} = \frac{1}{2} g^{kl} \left( \frac{\partial g_{li}}{\partial x^j}
         - \frac{\partial g_{ij}}{\partial x^l}
-        + \frac{\partial g_{lj}}{\partial x^i} \right)$.
+        + \frac{\partial g_{lj}}{\partial x^i} \right)`.
         Here, `(g^{kl})` is the inverse of the matrix `(g_{ij})`, with
         `i, j = 1, 2`.
 

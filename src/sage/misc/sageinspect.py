@@ -259,9 +259,10 @@ def _extract_embedded_position(docstring):
         ....:     print(f.read())
         cpdef test_funct(x,y): return
 
-    Ensure that the embedded filename of the compiled function is correct.  In
-    particular it should be relative to ``SPYX_TMP`` in order for certain
-    documentation functions to work properly.  See :trac:`24097`::
+    Ensure that the embedded filename of the compiled function is
+    correct.  In particular it should be relative to ``spyx_tmp()`` in
+    order for certain documentation functions to work properly.  See
+    :trac:`24097`::
 
         sage: from sage.env import DOT_SAGE
         sage: from sage.misc.sage_ostools import restore_cwd
@@ -293,10 +294,10 @@ def _extract_embedded_position(docstring):
         # Try some common path prefixes for Cython modules built by/for Sage
         # 1) Module in the sage src tree
         # 2) Module compiled by Sage's inline cython() compiler
-        from sage.misc.misc import SPYX_TMP
+        from sage.misc.temporary_file import spyx_tmp
         try_filenames = [
             os.path.join(SAGE_LIB, raw_filename),
-            os.path.join(SPYX_TMP, '_'.join(raw_filename.split('_')[:-1]),
+            os.path.join(spyx_tmp(), '_'.join(raw_filename.split('_')[:-1]),
                          raw_filename)
         ]
         for try_filename in try_filenames:
@@ -1884,7 +1885,7 @@ def _sage_getdoc_unformatted(obj):
     ``__doc__`` attribute. This should not give an error in
     ``_sage_getdoc_unformatted``, see :trac:`19671`::
 
-        sage: class NoSageDoc(object):
+        sage: class NoSageDoc():
         ....:     @property
         ....:     def __doc__(self):
         ....:         raise Exception("no doc here")
@@ -2269,7 +2270,7 @@ def sage_getsourcelines(obj):
         sage: sage_getsourcelines(cachedfib)[0][0]
         'def fibonacci(n, algorithm="pari") -> Integer:\n'
         sage: sage_getsourcelines(type(cachedfib))[0][0]
-        'cdef class CachedFunction(object):\n'
+        'cdef class CachedFunction():\n'
 
     TESTS::
 
@@ -2322,13 +2323,13 @@ def sage_getsourcelines(obj):
         (<class 'sage.misc.test_nested_class.TestNestedParent.Element'>,
          <class 'sage.categories.sets_cat.Sets.element_class'>)
         sage: print(sage_getsource(E))
-            class Element(object):
+            class Element():
                 "This is a dummy element class"
                 pass
         sage: print(sage_getsource(P))
         class TestNestedParent(UniqueRepresentation, Parent):
             ...
-            class Element(object):
+            class Element():
                 "This is a dummy element class"
                 pass
 
@@ -2430,9 +2431,9 @@ def sage_getsourcelines(obj):
             source_lines = f.readlines()
     except IOError:
         try:
-            from sage.misc.misc import SPYX_TMP
+            from sage.misc.temporary_file import spyx_tmp
             raw_name = filename.split('/')[-1]
-            newname = os.path.join(SPYX_TMP, '_'.join(raw_name.split('_')[:-1]), raw_name)
+            newname = os.path.join(spyx_tmp(), '_'.join(raw_name.split('_')[:-1]), raw_name)
             with open(newname) as f:
                 source_lines = f.readlines()
         except IOError:

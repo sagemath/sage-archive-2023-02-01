@@ -535,8 +535,8 @@ class EllipticCurveIsogeny(EllipticCurveHom):
 
     - Kohel's Formulas: Kohel's original formulas for computing
       isogenies.  This algorithm is selected by giving as the
-      ``kernel`` parameter a monic polynomial (or a coefficient list
-      in little endian) which will define the kernel of the isogeny.
+      ``kernel`` parameter a monic polynomial (or a coefficient list)
+      which will define the kernel of the isogeny.
       Kohel's algorithm is currently only implemented for cyclic
       isogenies, with the exception of `[2]`.
 

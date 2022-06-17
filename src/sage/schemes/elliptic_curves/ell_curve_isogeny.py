@@ -1283,8 +1283,7 @@ class EllipticCurveIsogeny(EllipticCurveHom):
 
     def _repr_(self):
         r"""
-        Special Sage-specific function to format information about
-        the isogeny as a string.
+        Return basic information about the isogeny as a string.
 
         EXAMPLES::
 
@@ -1302,8 +1301,7 @@ class EllipticCurveIsogeny(EllipticCurveHom):
 
     def _latex_(self):
         r"""
-        Special Sage-specific function to format information about
-        the isogeny as a LaTeX string.
+        Return the rational maps of the isogeny as a LaTeX string.
 
         This function returns a latex string representing the isogeny
         self as the `x` and `y` coordinate rational functions.

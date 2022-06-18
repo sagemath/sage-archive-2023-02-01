@@ -99,7 +99,7 @@ jobs:
         # https://cibuildwheel.readthedocs.io/en/stable/options/#before-all
         run: |
           export PATH=build/bin:$PATH
-          export CIBW_BEFORE_ALL="( $(sage-print-system-package-command debian --yes --no-install-recommends install $(sage-get-system-packages debian $SPKGS)) || $(sage-print-system-package-command fedora --yes --no-install-recommends install $(sage-get-system-packages fedora $SPKGS | sed s/pkg-config/pkgconfig/)) || ( $(sage-print-system-package-command homebrew --yes --no-install-recommends install $(sage-get-system-packages homebrew $SPKGS)) || echo error ignored) ) && ./bootstrap && ./configure --prefix=/opt/sage && make -j4 V=0 $TARGETS_PRE"
+          export CIBW_BEFORE_ALL="( $(sage-print-system-package-command debian --yes --no-install-recommends install $(sage-get-system-packages debian $SPKGS)) || $(sage-print-system-package-command fedora --yes --no-install-recommends install $(sage-get-system-packages fedora $SPKGS | sed s/pkg-config/pkgconfig/)) || ( $(sage-print-system-package-command homebrew --yes --no-install-recommends install $(sage-get-system-packages homebrew $SPKGS)) || echo error ignored) ) && ./bootstrap && ./configure --prefix=/opt/sage --enable-build-as-root && make -j4 V=0 $TARGETS_PRE"
           for pkg in sagemath-objects sagemath-categories; do
               pipx run cibuildwheel==2.7.0 pkgs/$pkg
           done

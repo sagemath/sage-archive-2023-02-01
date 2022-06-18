@@ -2108,9 +2108,12 @@ class EllipticCurveIsogeny(EllipticCurveHom):
         # that univariate polynomials automatically coerce into the
         # bivariate polynomial ring.
 
-        self.__psi, self.__phi, self.__omega = psi, phi, omega
+        self.__psi = psi
+        self.__phi = phi
+        self.__omega = omega
 
-        self.__v, self.__w = v, w
+        self.__v = v
+        self.__w = w
 
     def __init_even_kernel_polynomial(self, E, psi_G):
         r"""

@@ -259,7 +259,7 @@ def compute_codomain_formula(E, v, w):
         sage: compute_codomain_formula(E, v, w) == phi.codomain()
         True
     """
-    a1,a2,a3,a4,a6 = E.a_invariants()
+    a1, a2, a3, a4, a6 = E.a_invariants()
 
     A4 = a4 - 5*v
     A6 = a6 - (a1**2 + 4*a2)*v - 7*w
@@ -297,9 +297,9 @@ def compute_vw_kohel_even_deg1(x0, y0, a1, a2, a4):
     """
     v = 3*x0**2 + 2*a2*x0 + a4 - a1*y0
     w = x0 * v
-    return v,w
+    return v, w
 
-def compute_vw_kohel_even_deg3(b2,b4,s1,s2,s3):
+def compute_vw_kohel_even_deg3(b2, b4, s1, s2, s3):
     r"""
     Compute Vélu's `(v,w)` using Kohel's formulas for isogenies of
     degree divisible by `4`.
@@ -332,10 +332,10 @@ def compute_vw_kohel_even_deg3(b2,b4,s1,s2,s3):
     temp1 = s1**2 - 2*s2
     v = 3*temp1 + (b2*s1 + 3*b4)/2
     w = 3*(s1**3 - 3*s1*s2 + 3*s3) + (b2*temp1 + b4*s1)/2
-    return v,w
+    return v, w
 
 
-def compute_vw_kohel_odd(b2,b4,b6,s1,s2,s3,n):
+def compute_vw_kohel_odd(b2, b4, b6, s1, s2, s3, n):
     r"""
     Compute Vélu's `(v,w)` using Kohel's formulas for isogenies of odd
     degree.
@@ -369,7 +369,7 @@ def compute_vw_kohel_odd(b2,b4,b6,s1,s2,s3,n):
     """
     v = 6*(s1**2 - 2*s2) + b2*s1 + n*b4
     w = 10*(s1**3 - 3*s1*s2 + 3*s3) + 2*b2*(s1**2 - 2*s2) + 3*b4*s1 + n*b6
-    return v,w
+    return v, w
 
 
 def compute_codomain_kohel(E, kernel):
@@ -442,7 +442,7 @@ def compute_codomain_kohel(E, kernel):
 
         if n == 1: # degree divisible exactly by 2
 
-            a1,a2,a3,a4,a6 = E.a_invariants()
+            a1, a2, a3, a4, a6 = E.a_invariants()
 
             x0 = -psi_2tor.constant_coefficient()
 
@@ -454,24 +454,24 @@ def compute_codomain_kohel(E, kernel):
 
             # now (x0,y0) is the 2-torsion point in the kernel
 
-            v,w = compute_vw_kohel_even_deg1(x0,y0,a1,a2,a4)
+            v, w = compute_vw_kohel_even_deg1(x0, y0, a1, a2, a4)
 
         elif n == 3: # psi_2tor is the full 2-division polynomial
 
-            b2,b4,_,_ = E.b_invariants()
+            b2, b4, _, _ = E.b_invariants()
 
             s = psi_2tor.list()
             s1 = -s[n-1]
             s2 = s[n-2]
             s3 = -s[n-3]
 
-            v,w = compute_vw_kohel_even_deg3(b2,b4,s1,s2,s3)
+            v, w = compute_vw_kohel_even_deg3(b2, b4, s1, s2, s3)
 
     else:  # odd degree case
 
         n = psi.degree()
 
-        b2,b4,b6,_ = E.b_invariants()
+        b2, b4, b6, _ = E.b_invariants()
 
         s1 = s2 = s3 = 0
         if 1 <= n:
@@ -482,7 +482,7 @@ def compute_codomain_kohel(E, kernel):
             s3 = -kernel_list[n-3]
 
         # initializing these allows us to calculate E2.
-        v,w = compute_vw_kohel_odd(b2,b4,b6,s1,s2,s3,n)
+        v, w = compute_vw_kohel_odd(b2, b4, b6, s1, s2, s3, n)
 
     return compute_codomain_formula(E, v, w)
 
@@ -1076,7 +1076,7 @@ class EllipticCurveIsogeny(EllipticCurveHom):
         try:
             Q = compute(*Q)
         except ZeroDivisionError:
-            Q = 0,1,0
+            Q = 0, 1, 0
 
         if self.__post_isomorphism is not None:
             Q = baseWI.__call__(self.__post_isomorphism, Q)
@@ -1168,7 +1168,7 @@ class EllipticCurveIsogeny(EllipticCurveHom):
         if self.__algorithm == 'velu':
             outP = self.__compute_via_velu_numeric(xP, yP)
         elif self.__algorithm == 'kohel':
-            outP = self.__compute_via_kohel_numeric(xP,yP)
+            outP = self.__compute_via_kohel_numeric(xP, yP)
         else:
             raise NotImplementedError
 
@@ -1273,7 +1273,7 @@ class EllipticCurveIsogeny(EllipticCurveHom):
         """
         output = copy(self)
         E2 = output._codomain
-        iso = WeierstrassIsomorphism(E2, (-1,0,-E2.a1(),-E2.a3()))
+        iso = WeierstrassIsomorphism(E2, (-1, 0, -E2.a1(), -E2.a3()))
         output._set_post_isomorphism(iso)
         return output
 
@@ -1788,7 +1788,7 @@ class EllipticCurveIsogeny(EllipticCurveHom):
             Isogeny of degree 4 from Elliptic Curve defined by y^2 = x^3 + 6*x over Finite Field of size 7 to Elliptic Curve defined by y^2 = x^3 + 2*x over Finite Field of size 7
             sage: phi._EllipticCurveIsogeny__sort_kernel_list()
         """
-        a1,a2,a3,a4,_ = self._domain.a_invariants()
+        a1, a2, a3, a4, _ = self._domain.a_invariants()
 
         self.__kernel_mod_sign = dict()
         v = w = 0
@@ -2182,8 +2182,8 @@ class EllipticCurveIsogeny(EllipticCurveHom):
         n = psi_G.degree() # 1 or 3
         d = n+1            # 2 or 4
 
-        a1,a2,a3,a4,a6 = E.a_invariants()
-        b2,b4,_,_ = E.b_invariants()
+        a1, a2, a3, a4, a6 = E.a_invariants()
+        b2, b4, _, _ = E.b_invariants()
         x = self.__poly_ring.gen()
         y = self.__mpoly_ring.gen(1)
 
@@ -2196,7 +2196,7 @@ class EllipticCurveIsogeny(EllipticCurveHom):
             else:
                 y0 = -(a1*x0 + a3)/2
 
-            v,w = compute_vw_kohel_even_deg1(x0,y0,a1,a2,a4)
+            v,w = compute_vw_kohel_even_deg1(x0, y0, a1, a2, a4)
 
             phi = (x*psi_G + v)*psi_G
             omega = (y*psi_G**2 - v*(a1*psi_G + (y - y0)))*psi_G
@@ -2220,7 +2220,7 @@ class EllipticCurveIsogeny(EllipticCurveHom):
             phi *= psi_G
             omega *= psi_G
 
-            v,w = compute_vw_kohel_even_deg3(b2,b4,s1,s2,s3)
+            v,w = compute_vw_kohel_even_deg3(b2, b4, s1, s2, s3)
 
         else:
             raise ValueError(f"input polynomial must have degree 1 or 3, not {n}")
@@ -2296,7 +2296,7 @@ class EllipticCurveIsogeny(EllipticCurveHom):
             if not is_kernel_polynomial(E, d, psi):
                 raise ValueError(f"the polynomial {psi} does not define a finite subgroup of {E}")
 
-        b2,b4,b6,_ = E.b_invariants()
+        b2, b4, b6, _ = E.b_invariants()
 
         s1 = s2 = s3 = 0
         if 1 <= n:
@@ -2307,7 +2307,7 @@ class EllipticCurveIsogeny(EllipticCurveHom):
             s3 = -psi[n-3]
 
         # initializing these allows us to calculate E2.
-        v,w = compute_vw_kohel_odd(b2,b4,b6,s1,s2,s3,n)
+        v, w = compute_vw_kohel_odd(b2, b4, b6, s1, s2, s3, n)
 
         # initialize the polynomial temporary variables
 
@@ -2427,8 +2427,8 @@ class EllipticCurveIsogeny(EllipticCurveHom):
             sage: E.isogeny(ker)
             Isogeny of degree 13 from Elliptic Curve defined by y^2 + x*y = x^3 + (a^6+a^4+a^2+a) over Finite Field in a of size 2^7 to Elliptic Curve defined by y^2 + x*y = x^3 + (a^6+a^5+a^4+a^3+a^2+a)*x + (a^5+a^3) over Finite Field in a of size 2^7
         """
-        a1,a2,a3,a4,a6 = E.a_invariants()
-        b2,b4,_,_ = E.b_invariants()
+        a1, a2, a3, a4, a6 = E.a_invariants()
+        b2, b4, _, _ = E.b_invariants()
         x, y = self.__mpoly_ring.gens()
 
         n = psi.degree()
@@ -2455,7 +2455,7 @@ class EllipticCurveIsogeny(EllipticCurveHom):
         cur_x_pow = 1
 
         for j in range(n - 2):
-            psi_prprpr += (3 * binomial(j+3,3)) * psi[j+3] * cur_x_pow
+            psi_prprpr += (3 * binomial(j+3, 3)) * psi[j+3] * cur_x_pow
             cur_x_pow = x * cur_x_pow
 
         psi_2 = 2 * y + a1 * x + a3
@@ -3095,7 +3095,7 @@ class EllipticCurveIsogeny(EllipticCurveHom):
         deprecation(32388, 'Elliptic-curve isogenies will be immutable in a future release of Sage.'
                           ' Use -phi instead of phi.switch_sign() to obtain the negated isogeny.')
         E2 = self._codomain
-        self._set_post_isomorphism(WeierstrassIsomorphism(E2, (-1,0,-E2.a1(),-E2.a3())))
+        self._set_post_isomorphism(WeierstrassIsomorphism(E2, (-1, 0, -E2.a1(), -E2.a3())))
 
     def dual(self):
         r"""
@@ -3202,7 +3202,7 @@ class EllipticCurveIsogeny(EllipticCurveHom):
             sage: -phi.dual() == (-phi).dual()
             True
         """
-        if self.__base_field.characteristic() in (2,3):
+        if self.__base_field.characteristic() in (2, 3):
             raise NotImplementedError("computation of dual isogenies not yet implemented in characteristics 2 and 3")
 
         if self.__dual is not None:
@@ -3366,7 +3366,7 @@ def compute_isogeny_starks(E1, E2, ell):
         x
     """
     K = E1.base_field()
-    R,x = PolynomialRing(K, 'x').objgen()
+    R, x = PolynomialRing(K, 'x').objgen()
 
     wp1 = E1.weierstrass_p(prec=4*ell+4)  #BMSS2006 claim 2*ell is enough, but it is not M09
     wp2 = E2.weierstrass_p(prec=4*ell+4)
@@ -3581,7 +3581,7 @@ def compute_intermediate_curves(E1, E2):
          Elliptic-curve endomorphism of Elliptic Curve defined by y^2 = x^3 + 16*x over Number Field in i with defining polynomial x^2 + 1
           Via:  (u,r,s,t) = (1, 0, 0, 0))
     """
-    if E1.base_ring().characteristic() in (2,3):
+    if E1.base_ring().characteristic() in (2, 3):
         raise NotImplementedError("compute_intermediate_curves is only defined for characteristics not 2 or 3")
 
     # We cannot just use
@@ -3590,17 +3590,17 @@ def compute_intermediate_curves(E1, E2):
     # as the resulting isomorphisms would not be normalised (u=1)
 
     c4, c6 = E1.c_invariants()
-    E1w = EllipticCurve([0,0,0,-c4/48, -c6/864])
+    E1w = EllipticCurve([0, 0, 0, -c4/48, -c6/864])
     c4, c6 = E2.c_invariants()
-    E2w = EllipticCurve([0,0,0,-c4/48, -c6/864])
+    E2w = EllipticCurve([0, 0, 0, -c4/48, -c6/864])
 
     # We cannot even just use pre_iso = E1.isomorphism_to(E1w) since
     # it may have u=-1; similarly for E2
 
-    urst = [w for w in isomorphisms(E1,E1w) if w[0]==1][0]
-    pre_iso = WeierstrassIsomorphism(E1,urst,E1w)
-    urst = [w for w in isomorphisms(E2w,E2) if w[0]==1][0]
-    post_iso = WeierstrassIsomorphism(E2w,urst,E2)
+    urst = [w for w in isomorphisms(E1, E1w) if w[0] == 1][0]
+    pre_iso = WeierstrassIsomorphism(E1, urst, E1w)
+    urst = [w for w in isomorphisms(E2w, E2) if w[0] == 1][0]
+    post_iso = WeierstrassIsomorphism(E2w, urst, E2)
     return E1w, E2w, pre_iso, post_iso
 
 def compute_sequence_of_maps(E1, E2, ell):

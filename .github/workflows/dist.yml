@@ -77,6 +77,7 @@ jobs:
   build_wheels:
     name: Build wheels on ${{ matrix.os }}
     runs-on: ${{ matrix.os }}
+    needs: sdists_for_pypi
     strategy:
       fail-fast: false
       matrix:
@@ -97,13 +98,20 @@ jobs:
     steps:
       - uses: actions/checkout@v2
 
+      - uses: actions/download-artifact@v2
+        with:
+          name: dist
+          path: dist
+
       - name: Build platform wheels
+        # We build the wheels from the sdists so that MANIFEST filtering becomes effective.
+        #
         # https://cibuildwheel.readthedocs.io/en/stable/options/#before-all
         run: |
           export PATH=build/bin:$PATH
           export CIBW_BEFORE_ALL="( $(sage-print-system-package-command debian --yes --no-install-recommends install $(sage-get-system-packages debian $SPKGS)) || $(sage-print-system-package-command fedora --yes --no-install-recommends install $(sage-get-system-packages fedora $SPKGS | sed s/pkg-config/pkgconfig/)) || ( $(sage-print-system-package-command homebrew --yes --no-install-recommends install $(sage-get-system-packages homebrew $SPKGS)) || echo error ignored) ) && ./bootstrap && ./configure --enable-build-as-root && make -j4 V=0 $TARGETS_PRE"
           for pkg in sagemath-objects sagemath-categories; do
-              pipx run cibuildwheel==2.7.0 pkgs/$pkg
+              pipx run cibuildwheel==2.7.0 dist/$pkg*.tar.gz
           done
 
       - uses: actions/upload-artifact@v2

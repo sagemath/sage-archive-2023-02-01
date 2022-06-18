@@ -91,7 +91,7 @@ jobs:
       # https://cibuildwheel.readthedocs.io/en/stable/options/#requires-python
       CIBW_PROJECT_REQUIRES_PYTHON: ">=3.8"
       # Environment during wheel build
-      CIBW_ENVIRONMENT: "PATH=/opt/sage/bin:$PATH CPATH=/opt/sage/include:$CPATH LIBRARY_PATH=/opt/sage/lib:$LIBRARY_PATH PKG_CONFIG_PATH=/opt/sage/share/pkgconfig:$PKG_CONFIG_PATH"
+      CIBW_ENVIRONMENT: "PATH=/opt/sage/bin:$PATH CPATH=/opt/sage/include:$CPATH LIBRARY_PATH=/opt/sage/lib:$LIBRARY_PATH PKG_CONFIG_PATH=/opt/sage/share/pkgconfig:$PKG_CONFIG_PATH ACLOCAL_PATH=/usr/share/aclocal"
     steps:
       - uses: actions/checkout@v2
 

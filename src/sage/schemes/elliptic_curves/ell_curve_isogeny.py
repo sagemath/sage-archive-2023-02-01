@@ -560,11 +560,14 @@ class EllipticCurveIsogeny(EllipticCurveHom):
         this case, the isogeny is post-composed with an isomorphism so
         that the codomain equals the given curve.
 
-    - ``degree`` -- an integer (default: ``None``).  If ``kernel`` is
-      ``None``, then this is the degree of the isogeny from ``E`` to
-      ``codomain``.  If ``kernel`` is not ``None``, then this is used
-      to determine whether or not to skip a `\gcd` of the given kernel
-      polynomial with the two-torsion polynomial of ``E``.
+    - ``degree`` -- an integer (default: ``None``).
+
+      - If ``kernel`` is ``None``, then this is the degree of the isogeny
+        from ``E`` to ``codomain``.
+
+      - If ``kernel`` is not ``None``, then this is used to determine
+        whether or not to skip a `\gcd` of the given kernel polynomial
+        with the two-torsion polynomial of ``E``.
 
     - ``model`` -- a string (default: ``None``).  The only supported
       value is ``"minimal"``, in which case if ``E`` is a curve over
@@ -1238,7 +1241,9 @@ class EllipticCurveIsogeny(EllipticCurveHom):
 
     def __neg__(self):
         r"""
-        Implement negation of isogenies using the unary `-` syntax.
+        Return a copy of the isogeny that has been negated.
+
+        This implements the unary `-` syntax.
 
         EXAMPLES:
 

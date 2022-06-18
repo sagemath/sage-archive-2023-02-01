@@ -106,7 +106,8 @@ jobs:
 
       - name: Build platform wheels
         # We build the wheels from the sdists so that MANIFEST filtering becomes effective.
-        #
+        # But we must run cibuildwheel with the unpacked source directory, not a tarball,
+        # so that SAGE_ROOT is copied into the build containers.
       # https://cibuildwheel.readthedocs.io/en/stable/options/#before-all
         run: |
           export PATH=build/bin:$PATH

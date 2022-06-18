@@ -431,23 +431,23 @@ def compute_codomain_kohel(E, kernel):
     # next determine the even / odd part of the isogeny
     psi_2tor = two_torsion_part(E, psi)
 
-    if 0 != psi_2tor.degree(): # even degree case
+    if psi_2tor.degree() != 0: # even degree case
 
         psi_quo = psi//psi_2tor
 
-        if 0 != psi_quo.degree():
+        if psi_quo.degree() != 0:
             raise NotImplementedError("Kohel's algorithm currently only supports cyclic isogenies (except for [2])")
 
         n = psi_2tor.degree()
 
-        if 1 == n: # degree divisible exactly by 2
+        if n == 1: # degree divisible exactly by 2
 
             a1,a2,a3,a4,a6 = E.a_invariants()
 
             x0 = -psi_2tor.constant_coefficient()
 
             # determine y0
-            if 2 == base_field.characteristic():
+            if base_field.characteristic() == 2:
                 y0 = (x0**3 + a2*x0**2 + a4*x0 + a6).sqrt()
             else:
                 y0 = -(a1*x0 + a3)/2
@@ -456,7 +456,7 @@ def compute_codomain_kohel(E, kernel):
 
             v,w = compute_vw_kohel_even_deg1(x0,y0,a1,a2,a4)
 
-        elif 3 == n: # psi_2tor is the full 2-division polynomial
+        elif n == 3: # psi_2tor is the full 2-division polynomial
 
             b2,b4,_,_ = E.b_invariants()
 
@@ -2079,11 +2079,11 @@ class EllipticCurveIsogeny(EllipticCurveHom):
         #
         psi_G = two_torsion_part(E, psi).monic()
 
-        if 0 != psi_G.degree(): # even degree case
+        if psi_G.degree() != 0: # even degree case
 
             psi_quo = psi//psi_G
 
-            if 0 != psi_quo.degree():
+            if psi_quo.degree() != 0:
                 raise NotImplementedError("Kohel's algorithm currently only supports cyclic isogenies (except for [2])")
 
             phi, omega, v, w, _, d = self.__init_even_kernel_polynomial(E, psi_G)
@@ -2184,11 +2184,11 @@ class EllipticCurveIsogeny(EllipticCurveHom):
         x = self.__poly_ring.gen()
         y = self.__mpoly_ring.gen(1)
 
-        if 1 == n:
+        if n == 1:
             x0 = -psi_G.constant_coefficient()
 
             # determine y0
-            if 2 == self.__base_field.characteristic():
+            if self.__base_field.characteristic() == 2:
                 y0 = (x0**3 + a2*x0**2 + a4*x0 + a6).sqrt()
             else:
                 y0 = -(a1*x0 + a3)/2
@@ -2198,7 +2198,7 @@ class EllipticCurveIsogeny(EllipticCurveHom):
             phi = (x*psi_G + v)*psi_G
             omega = (y*psi_G**2 - v*(a1*psi_G + (y - y0)))*psi_G
 
-        elif 3 == n:
+        elif n == 3:
             s = psi_G.list()
             s1 = -s[n-1]
             s2 = s[n-2]
@@ -2318,7 +2318,7 @@ class EllipticCurveIsogeny(EllipticCurveHom):
 
         phi_pr = phi.derivative(x)
 
-        if 2 != self.__base_field.characteristic():
+        if self.__base_field.characteristic() != 2:
             omega = self.__compute_omega_fast(E, psi, psi_pr, phi, phi_pr)
         else:
             omega = self.__compute_omega_general(E, psi, psi_pr, phi, phi_pr)
@@ -2488,7 +2488,7 @@ class EllipticCurveIsogeny(EllipticCurveHom):
             ()
         """
         # first check if the point is in the kernel
-        if 0 == self.__inner_kernel_polynomial(xP):
+        if self.__inner_kernel_polynomial(xP) == 0:
             return ()
 
         return self.__compute_via_kohel(xP, yP)

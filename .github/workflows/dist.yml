@@ -88,7 +88,8 @@ jobs:
       # Non-Python packages to install as spkgs
       TARGETS_PRE: gmpy2-build-deps
       # Disable building PyPy wheels on all platforms
-      CIBW_SKIP: pp*
+      # Disable musllinux until #33083 provides alpine package information
+      CIBW_SKIP: "pp* *-musllinux*"
       # https://cibuildwheel.readthedocs.io/en/stable/options/#requires-python
       CIBW_PROJECT_REQUIRES_PYTHON: ">=3.8"
       # Environment during wheel build

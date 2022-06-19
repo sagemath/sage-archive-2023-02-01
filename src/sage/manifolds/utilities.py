@@ -1006,7 +1006,7 @@ class ExpressionNice(Expression):
             _list_functions(self, list_f)
 
             for m in list_f:
-                d = re.sub(m[1]+'\([^)]+\)', m[1], d)
+                d = re.sub(m[1] + '\([^)]+\)', m[1], d)
 
         return d
 

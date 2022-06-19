@@ -419,13 +419,9 @@ def compute_codomain_kohel(E, kernel):
     base_field = E.base_ring()
     poly_ring = PolynomialRing(base_field,'x')
 
-    if is_Polynomial(kernel):
+    try:
         psi = poly_ring(kernel)
-        kernel_list = psi.list()
-    elif isinstance(kernel, list) and kernel[0] in base_field:
-        kernel_list = kernel
-        psi = poly_ring(kernel_list)
-    else:
+    except TypeError:
         raise ValueError("invalid input to compute_codomain_kohel")
 
     # next determine the even / odd part of the isogeny
@@ -460,10 +456,9 @@ def compute_codomain_kohel(E, kernel):
 
             b2, b4, _, _ = E.b_invariants()
 
-            s = psi_2tor.list()
-            s1 = -s[n-1]
-            s2 = s[n-2]
-            s3 = -s[n-3]
+            s1 = -psi_2tor[n-1]
+            s2 =  psi_2tor[n-2]
+            s3 = -psi_2tor[n-3]
 
             v, w = compute_vw_kohel_even_deg3(b2, b4, s1, s2, s3)
 
@@ -473,13 +468,9 @@ def compute_codomain_kohel(E, kernel):
 
         b2, b4, b6, _ = E.b_invariants()
 
-        s1 = s2 = s3 = 0
-        if 1 <= n:
-            s1 = -kernel_list[n-1]
-        if 2 <= n:
-            s2 = kernel_list[n-2]
-        if 3 <= n:
-            s3 = -kernel_list[n-3]
+        s1 = -psi[n-1] if n >= 1 else 0
+        s2 =  psi[n-2] if n >= 2 else 0
+        s3 = -psi[n-3] if n >= 3 else 0
 
         # initializing these allows us to calculate E2.
         v, w = compute_vw_kohel_odd(b2, b4, b6, s1, s2, s3, n)
@@ -603,8 +594,7 @@ class EllipticCurveIsogeny(EllipticCurveHom):
         sage: phi_ker_poly = phi_v.kernel_polynomial()
         sage: phi_ker_poly
         x + 1
-        sage: ker_poly_list = phi_ker_poly.list()
-        sage: phi_k = EllipticCurveIsogeny(E, ker_poly_list)
+        sage: phi_k = EllipticCurveIsogeny(E, phi_ker_poly)
         sage: phi_k == phi_v
         True
         sage: phi_k.rational_maps()
@@ -629,8 +619,8 @@ class EllipticCurveIsogeny(EllipticCurveHom):
     We can create an isogeny whose kernel equals the full 2-torsion::
 
         sage: E = EllipticCurve(GF((3,2)), [0,0,0,1,1])
-        sage: ker_list = E.division_polynomial(2).list()
-        sage: phi = EllipticCurveIsogeny(E, ker_list); phi
+        sage: ker_poly = E.division_polynomial(2)
+        sage: phi = EllipticCurveIsogeny(E, ker_poly); phi
         Isogeny of degree 4 from Elliptic Curve defined by y^2 = x^3 + x + 1 over Finite Field in z2 of size 3^2 to Elliptic Curve defined by y^2 = x^3 + x + 1 over Finite Field in z2 of size 3^2
         sage: P1,P2,P3 = filter(bool, E(0).division_points(2))
         sage: phi(P1)
@@ -682,8 +672,7 @@ class EllipticCurveIsogeny(EllipticCurveHom):
         sage: phi_ker_poly = phi.kernel_polynomial()
         sage: phi_ker_poly
         x + 1
-        sage: ker_poly_list = phi_ker_poly.list()
-        sage: phi_k = EllipticCurveIsogeny(E, ker_poly_list); phi_k
+        sage: phi_k = EllipticCurveIsogeny(E, phi_ker_poly); phi_k
         Isogeny of degree 2 from Elliptic Curve defined by y^2 = x^3 + 3*x + 4 over Rational Field to Elliptic Curve defined by y^2 = x^3 - 27*x + 46 over Rational Field
         sage: phi_k(P) == phi(P)
         True
@@ -705,8 +694,7 @@ class EllipticCurveIsogeny(EllipticCurveHom):
         (0 : 1 : 0)
         sage: ker_poly = phi_v.kernel_polynomial(); ker_poly
         x^2 - 21*x + 80
-        sage: ker_poly_list = ker_poly.list()
-        sage: phi_k = EllipticCurveIsogeny(E, ker_poly_list); phi_k
+        sage: phi_k = EllipticCurveIsogeny(E, ker_poly); phi_k
         Isogeny of degree 5 from Elliptic Curve defined by y^2 + y = x^3 - x^2 - 10*x - 20 over Rational Field to Elliptic Curve defined by y^2 + y = x^3 - x^2 - 7820*x - 263580 over Rational Field
         sage: phi_k == phi_v
         True
@@ -731,8 +719,7 @@ class EllipticCurveIsogeny(EllipticCurveHom):
         sage: ker_poly = phi_v.kernel_polynomial()
         sage: ker_poly
         x^2 - 21*x + 80
-        sage: ker_poly_list = ker_poly.list()
-        sage: phi_k = EllipticCurveIsogeny(EK, ker_poly_list)
+        sage: phi_k = EllipticCurveIsogeny(EK, ker_poly)
         sage: phi_k
         Isogeny of degree 5 from Elliptic Curve defined by y^2 + y = x^3 + (-1)*x^2 + (-10)*x + (-20) over Number Field in alpha with defining polynomial x^3 - 2*x^2 - 40*x - 158 to Elliptic Curve defined by y^2 + y = x^3 + (-1)*x^2 + (-7820)*x + (-263580) over Number Field in alpha with defining polynomial x^3 - 2*x^2 - 40*x - 158
         sage: phi_v == phi_k
@@ -2206,10 +2193,9 @@ class EllipticCurveIsogeny(EllipticCurveHom):
             omega = (y*psi_G**2 - v*(a1*psi_G + (y - y0)))*psi_G
 
         elif n == 3:
-            s = psi_G.list()
-            s1 = -s[n-1]
-            s2 = s[n-2]
-            s3 = -s[n-3]
+            s1 = -psi_G[n-1]
+            s2 =  psi_G[n-2]
+            s3 = -psi_G[n-3]
 
             psi_G_pr = psi_G.derivative()
             psi_G_prpr = psi_G_pr.derivative()

@@ -24,7 +24,7 @@ EXAMPLES::
 
     sage: from sage.misc.instancedoc import instancedoc
     sage: @instancedoc
-    ....: class X(object):
+    ....: class X():
     ....:     "Class docstring"
     ....:     def _instancedoc_(self):
     ....:         return "Instance docstring"
@@ -89,7 +89,7 @@ Check that inheritance works (after passing the subclass to
 :func:`instancedoc`)::
 
     sage: @instancedoc
-    ....: class A(object):
+    ....: class A():
     ....:     "Class A docstring"
     ....:     def _instancedoc_(self):
     ....:         return "Instance docstring"

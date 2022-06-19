@@ -628,17 +628,16 @@ class EllipticCurveIsogeny(EllipticCurveHom):
 
     We can create an isogeny whose kernel equals the full 2-torsion::
 
-        sage: E = EllipticCurve(GF(3), [0,0,0,1,1])
+        sage: E = EllipticCurve(GF((3,2)), [0,0,0,1,1])
         sage: ker_list = E.division_polynomial(2).list()
         sage: phi = EllipticCurveIsogeny(E, ker_list); phi
-        Isogeny of degree 4 from Elliptic Curve defined by y^2 = x^3 + x + 1 over Finite Field of size 3 to Elliptic Curve defined by y^2 = x^3 + x + 1 over Finite Field of size 3
-        sage: phi(E(0))
+        Isogeny of degree 4 from Elliptic Curve defined by y^2 = x^3 + x + 1 over Finite Field in z2 of size 3^2 to Elliptic Curve defined by y^2 = x^3 + x + 1 over Finite Field in z2 of size 3^2
+        sage: P1,P2,P3 = filter(bool, E(0).division_points(2))
+        sage: phi(P1)
         (0 : 1 : 0)
-        sage: phi(E((0,1)))
-        (1 : 0 : 1)
-        sage: phi(E((0,2)))
-        (1 : 0 : 1)
-        sage: phi(E((1,0)))
+        sage: phi(P2)
+        (0 : 1 : 0)
+        sage: phi(P3)
         (0 : 1 : 0)
         sage: phi.degree()
         4

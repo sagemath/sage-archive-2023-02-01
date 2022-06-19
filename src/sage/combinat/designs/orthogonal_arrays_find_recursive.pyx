@@ -231,8 +231,9 @@ cpdef find_wilson_decomposition_with_two_truncated_groups(int k,int n):
         sage: _ = f(*args)
     """
     cdef int r,m_min,m_max,m,r1_min,r1_max,r1,r2,r1_p_r2
-    for r in [1] + list(range(k+1, n-2)): # as r*1+1+1 <= n and because we need
-                                   # an OA(k+2,r), necessarily r=1 or r >= k+1
+    for r in [1] + list(range(k+1, n-2)):
+        # as r*1+1+1 <= n and because we need
+        # an OA(k+2,r), necessarily r=1 or r >= k+1
         if not is_available(k+2,r):
             continue
         m_min = (n - (2*r-2))/r
@@ -589,7 +590,8 @@ cpdef find_thwart_lemma_3_5(int k,int N):
                 continue
 
             NN = N - n*m
-            for a in range(max(0, (NN-n+2)/3), min(n, NN)+1): # (NN-n+2)/3 <==> ceil((NN-n)/3)
+            for a in range(max(0, (NN-n+2)/3), min(n, NN)+1):
+                # (NN-n+2)/3 <==> ceil((NN-n)/3)
                 if not is_available(k,a):
                     continue
                 na = n-a

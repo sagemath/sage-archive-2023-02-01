@@ -389,7 +389,7 @@ class EnumeratedSetFromIterator(Parent):
         """
         if hasattr(self, '_cache'):
             return self._cache[i]
-        return super(EnumeratedSetFromIterator,self).unrank(i)
+        return super().unrank(i)
 
     def _element_constructor_(self, el):
         """

@@ -15,7 +15,6 @@ of undirected graphs.
 #                  http://www.gnu.org/licenses/
 # ****************************************************************************
 
-from collections import deque
 from enum import Enum
 from sage.misc.random_testing import random_testing
 

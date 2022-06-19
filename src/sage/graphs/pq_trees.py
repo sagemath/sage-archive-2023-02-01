@@ -132,6 +132,36 @@ UNALIGNED = False
 ##########################################################################
 
 def _set_contiguous(tree, x):
+    """
+    Helper function for updating ``tree``.
+
+    The objective is to ensure that the sets containing ``x`` are contiguous for
+    any admissible permutation of its subtrees.
+
+    TESTS::
+
+        sage: from sage.graphs.pq_trees import _set_contiguous, P
+        sage: p1 = P([[0, 1], [1, 2], [2, 3], [3, 0]])
+        sage: _set_contiguous(p1, 0)
+        (1, True)
+        sage: p1
+        ('P', [{1, 2}, {2, 3}, ('P', [{0, 1}, {0, 3}])])
+        sage: _set_contiguous(p1, 2)
+        (1, True)
+        sage: p1
+        ('P', [('P', [{0, 1}, {0, 3}]), ('P', [{1, 2}, {2, 3}])])
+        sage: _set_contiguous(p1, 1)
+        (1, False)
+        sage: p1
+        ('P', [('Q', [{0, 3}, {0, 1}, {1, 2}, {2, 3}])])
+        sage: p2 = P([[0, 1], [0, 2], [0, 3]])
+        sage: _set_contiguous(p2, 0)
+        (2, True)
+        sage: p2
+        ('P', [{0, 1}, {0, 2}, {0, 3}])
+        sage: _set_contiguous(p2, Set([1, 2]))
+        (0, True)
+    """
     if isinstance(tree, PQ):
         return tree.set_contiguous(x)
     elif x in tree:
@@ -140,18 +170,52 @@ def _set_contiguous(tree, x):
 
 
 def _new_P(liste):
+    """
+    Helper function returning a new P-tree.
+
+    TESTS::
+
+        sage: from sage.graphs.pq_trees import _new_P
+        sage: _new_P([[1,2], [2,3]])
+        ('P', [{1, 2}, {2, 3}])
+        sage: _new_P([[1,2]])
+        [1, 2]
+    """
     if len(liste) > 1:
         return P(liste)
     return liste[0]
 
 
 def _new_Q(liste):
+    """
+    Helper function returning a new Q-tree.
+
+    TESTS::
+
+        sage: from sage.graphs.pq_trees import _new_Q
+        sage: _new_Q([[1,2], [2,3]])
+        ('Q', [{1, 2}, {2, 3}])
+        sage: _new_Q([[1,2]])
+        [1, 2]
+    """
     if len(liste) > 1:
         return Q(liste)
     return liste[0]
 
 
 def _flatten(x):
+    """
+    Helper function returning a flatten version of ``x``, if ``x`` is a PQ-tree.
+
+    TESTS::
+
+        sage: from sage.graphs.pq_trees import P, Q, _flatten
+        sage: p = Q([P([[1,2], [2,3]])])
+        sage: _flatten(p)
+        ('P', [{1, 2}, {2, 3}])
+        sage: _flatten([p, p])
+        [('Q', [('P', [{1, 2}, {2, 3}])]), ('Q', [('P', [{1, 2}, {2, 3}])])]
+    """
     if isinstance(x, PQ):
         return x.flatten()
     return x

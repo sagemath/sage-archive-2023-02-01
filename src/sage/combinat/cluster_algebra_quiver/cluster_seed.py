@@ -1080,7 +1080,9 @@ class ClusterSeed(SageObject):
         EXAMPLES::
 
             sage: S = ClusterSeed(['F',4,[1,2]])
-            sage: S.save_image(os.path.join(SAGE_TMP, 'sage.png'))
+            sage: import tempfile
+            sage: with tempfile.NamedTemporaryFile(suffix=".png") as f:
+            ....:     S.save_image(f.name)
         """
         graph_plot = self.plot( circular=circular, mark=mark, save_pos=save_pos)
         graph_plot.save( filename=filename )

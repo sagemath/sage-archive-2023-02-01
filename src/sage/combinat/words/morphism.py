@@ -761,7 +761,9 @@ class WordMorphism(SageObject):
 
             sage: w == loads(dumps(w))
             True
-            sage: save(w, filename=os.path.join(SAGE_TMP, 'test.sobj'))
+            sage: import tempfile
+            sage: with tempfile.NamedTemporaryFile(suffix=".sobj") as f:
+            ....:     save(w, filename=f.name)
 
         The ``datatype`` argument is deprecated::
 

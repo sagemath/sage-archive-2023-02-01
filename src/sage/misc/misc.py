@@ -222,8 +222,15 @@ def SAGE_TMP():
 
         sage: from sage.misc.misc import SAGE_TMP
         sage: SAGE_TMP
+        doctest:warning...
+        DeprecationWarning: SAGE_TMP is deprecated; please use python's
+        "tempfile" module instead.
+        See https://trac.sagemath.org/33213 for details.
         l'.../temp/...'
+
     """
+    from sage.misc.superseded import deprecation
+    deprecation(33213, "SAGE_TMP is deprecated; please use python's \"tempfile\" module instead.")
     d = os.path.join(DOT_SAGE, 'temp', HOSTNAME, str(os.getpid()))
     os.makedirs(d, exist_ok=True)
     return d
@@ -273,20 +280,6 @@ def SPYX_TMP():
     from sage.misc.superseded import deprecation
     deprecation(33213, "SPYX_TMP is deprecated; use sage.misc.temporary_file.spyx_tmp instead")
     return spyx_tmp()
-
-
-@lazy_string
-def SAGE_TMP_INTERFACE():
-    """
-    EXAMPLES::
-
-        sage: from sage.misc.misc import SAGE_TMP_INTERFACE
-        sage: SAGE_TMP_INTERFACE
-        l'.../temp/.../interface'
-    """
-    d = os.path.join(str(SAGE_TMP), 'interface')
-    os.makedirs(d, exist_ok=True)
-    return d
 
 
 SAGE_DB = os.path.join(DOT_SAGE, 'db')

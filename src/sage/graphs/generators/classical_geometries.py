@@ -1202,10 +1202,10 @@ def HaemersGraph(q, hyperoval=None, hyperoval_matching=None, field=None, check_h
 
     # build the partition into independent sets
     P = [tuple(normalize(v[0] - v[1])) for v in G.vertices()]
-    O = list(set(P))
-    I_ks = {x:[] for x in range(q+2)}  # the partition into I_k's
+    Pi_to_int = {Pi: i for i, Pi in enumerate(set(P))}
+    I_ks = {x: [] for x in range(q + 2)}  # the partition into I_k's
     for i, Pi in enumerate(P):
-        I_ks[O.index(tuple(Pi))].append(i)
+        I_ks[Pi_to_int[tuple(Pi)]].append(i)
 
     # perform the adjustment of the edges, as described.
     G.relabel(range(G.order()))

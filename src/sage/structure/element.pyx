@@ -2913,11 +2913,35 @@ cdef class RingElement(ModuleElement):
             sage: RR(2).is_prime()
             False
 
-        For integers, prime numbers are redefined to be positive::
+        For integers, :meth:`is_prime` redefines prime numbers to be
+        positive::
 
+            sage: (-2).is_prime()
+            False
             sage: RingElement.is_prime(-2)
             True
-            sage: Integer.is_prime(-2)
+
+        Similarly,
+        :class:`~sage.rings.number_field.number_field_base.NumberField`
+        redefines :meth:`is_prime` to determine primality in the ring
+        of integers::
+
+            sage: (1+i).is_prime()
+            True
+            sage: K(5).is_prime()
+            False
+            sage: K(7).is_prime()
+            True
+            sage: K(7/13).is_prime()
+            False
+
+        However, for rationals, :meth:`is_prime` *does* follow the
+        general definition of prime elements in a ring (i.e., always
+        returns ``False``) since the rationals are not a
+        :class:`~sage.rings.number_field.number_field_base.NumberField`
+        in Sage::
+
+            sage: QQ(7).is_prime()
             False
         """
         if not self:  # We exclude the 0 element

@@ -19,6 +19,7 @@ AUTHORS:
 
 from sage.misc.cachefunc import cached_method
 from sage.structure.unique_representation import UniqueRepresentation
+from sage.data_structures.bitset import FrozenBitset
 from copy import copy
 
 from sage.categories.algebras_with_basis import AlgebrasWithBasis
@@ -493,7 +494,13 @@ class CliffordAlgebra(CombinatorialFreeModule):
         self._quadratic_form = Q
         R = Q.base_ring()
         category = AlgebrasWithBasis(R.category()).Super().Filtered().FiniteDimensional().or_subcategory(category)
-        indices = SubsetsSorted(range(Q.dim()))
+        format_style = f"0{Q.dim()}b"
+        from functools import partial
+        # use a slice to reverse string order because Bitset and format(x, 'b') use different conventions
+        def index_function(x):
+            return FrozenBitset(format(x, format_style)[::-1],
+                                capacity=Q.dim())
+        indices = Family(range(2**Q.dim()), partial(index_function), lazy=True)
         CombinatorialFreeModule.__init__(self, R, indices, category=category)
         self._assign_names(names)
 

@@ -4753,9 +4753,10 @@ class Permutation(CombinatorialElement):
         return RSK(self)[1].shape()
 
     def remove_extra_fixed_points(self):
-        """
+        r"""
         Return the permutation obtained by removing any fixed points at
         the end of ``self``.
+
         However, return ``[1]`` rather than ``[]`` if ``self`` is the
         identity permutation.
 

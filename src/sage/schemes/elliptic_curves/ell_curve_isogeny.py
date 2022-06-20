@@ -94,7 +94,7 @@ from sage.schemes.elliptic_curves.weierstrass_morphism \
 # Private function for parsing input to determine the type of
 # algorithm
 #
-def isogeny_determine_algorithm(E, kernel):
+def _isogeny_determine_algorithm(E, kernel):
     r"""
     Helper function to infer the algorithm to be used from the
     parameters passed to the various isogeny functions.
@@ -140,12 +140,12 @@ def isogeny_determine_algorithm(E, kernel):
     In the first two cases, Kohel's algorithm will be used, while in
     the third case it is Vélu::
 
-        sage: from sage.schemes.elliptic_curves.ell_curve_isogeny import isogeny_determine_algorithm
-        sage: isogeny_determine_algorithm(E, x+3)
+        sage: from sage.schemes.elliptic_curves.ell_curve_isogeny import _isogeny_determine_algorithm
+        sage: _isogeny_determine_algorithm(E, x+3)
         'kohel'
-        sage: isogeny_determine_algorithm(E, [3, 1])
+        sage: _isogeny_determine_algorithm(E, [3, 1])
         'kohel'
-        sage: isogeny_determine_algorithm(E, E((2,0)))
+        sage: _isogeny_determine_algorithm(E, E((2,0)))
         'velu'
     """
     kernel_is_list = isinstance(kernel, list)
@@ -163,6 +163,9 @@ def isogeny_determine_algorithm(E, kernel):
         return "velu"
 
     raise ValueError("invalid parameters to EllipticCurveIsogeny constructor")
+
+from sage.misc.superseded import deprecated_function_alias
+isogeny_determine_algorithm = deprecated_function_alias(33619, _isogeny_determine_algorithm)
 
 def isogeny_codomain_from_kernel(E, kernel, degree=None):
     r"""
@@ -215,7 +218,7 @@ def isogeny_codomain_from_kernel(E, kernel, degree=None):
         from sage.misc.superseded import deprecation
         deprecation(33619, 'The "degree" argument to isogeny_codomain_from_kernel() does nothing and will be removed.')
 
-    algorithm = isogeny_determine_algorithm(E, kernel)
+    algorithm = _isogeny_determine_algorithm(E, kernel)
 
     if algorithm == 'velu':
         # if we are using Velu's formula, just instantiate the isogeny
@@ -984,7 +987,7 @@ class EllipticCurveIsogeny(EllipticCurveHom):
 
         self.__init_algebraic_structs(E)
 
-        algorithm = isogeny_determine_algorithm(E, kernel)
+        algorithm = _isogeny_determine_algorithm(E, kernel)
 
         self.__algorithm = algorithm
 

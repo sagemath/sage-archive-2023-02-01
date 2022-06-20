@@ -760,7 +760,7 @@ class CliffordAlgebra(CombinatorialFreeModule):
             sage: Cl.one_basis()
             ()
         """
-        return ()
+        return FrozenBitset('0')
 
     def is_commutative(self):
         """

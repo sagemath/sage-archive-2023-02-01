@@ -995,7 +995,7 @@ class EllipticCurveIsogeny(EllipticCurveHom):
         else:
             raise NotImplementedError
 
-        self.__compute_E2()
+        self.__compute_codomain()
 
         self.__setup_post_isomorphism(codomain, model)
 
@@ -1444,7 +1444,7 @@ class EllipticCurveIsogeny(EllipticCurveHom):
         self.__xfield = FractionField(self.__poly_ring)
         self.__xyfield = FractionField(self.__mpoly_ring)
 
-    def __compute_E2(self):
+    def __compute_codomain(self):
         r"""
         Private function that computes and sets the isogeny codomain.
 
@@ -1456,18 +1456,18 @@ class EllipticCurveIsogeny(EllipticCurveHom):
             sage: phi = EllipticCurveIsogeny(E, E((0,0)))
             sage: phi.codomain()
             Elliptic Curve defined by y^2 = x^3 + 3*x over Finite Field of size 7
-            sage: phi._EllipticCurveIsogeny__compute_E2()
+            sage: phi._EllipticCurveIsogeny__compute_codomain()
 
             sage: R.<x> = GF(7)[]
             sage: phi = EllipticCurveIsogeny(E, x)
             sage: phi.codomain()
             Elliptic Curve defined by y^2 = x^3 + 3*x over Finite Field of size 7
-            sage: phi._EllipticCurveIsogeny__compute_E2()
+            sage: phi._EllipticCurveIsogeny__compute_codomain()
         """
         if self.__algorithm == 'velu':
-            self._codomain = self.__compute_E2_via_velu()
+            self._codomain = self.__compute_codomain_via_velu()
         elif self.__algorithm == 'kohel':
-            self._codomain = self.__compute_E2_via_kohel()
+            self._codomain = self.__compute_codomain_via_kohel()
         else:
             raise NotImplementedError
 
@@ -1814,7 +1814,7 @@ class EllipticCurveIsogeny(EllipticCurveHom):
     #
     # Velu's formula computing the codomain curve
     #
-    def __compute_E2_via_velu(self):
+    def __compute_codomain_via_velu(self):
         r"""
         Private function that computes the codomain via Vélu's
         formulas.
@@ -1828,7 +1828,7 @@ class EllipticCurveIsogeny(EllipticCurveHom):
             sage: phi = EllipticCurveIsogeny(E, P)
             sage: phi.codomain()
             Elliptic Curve defined by y^2 = x^3 + 2*x over Finite Field of size 7
-            sage: phi._EllipticCurveIsogeny__compute_E2_via_velu()
+            sage: phi._EllipticCurveIsogeny__compute_codomain_via_velu()
             Elliptic Curve defined by y^2 = x^3 + 2*x over Finite Field of size 7
         """
         return compute_codomain_formula(self._domain, self.__v, self.__w)
@@ -2536,7 +2536,7 @@ class EllipticCurveIsogeny(EllipticCurveHom):
     #
     # Kohel's formula computing the codomain curve
     #
-    def __compute_E2_via_kohel(self):
+    def __compute_codomain_via_kohel(self):
         r"""
         Private function that computes and initializes the codomain of
         the isogeny (via Kohel's.)
@@ -2550,7 +2550,7 @@ class EllipticCurveIsogeny(EllipticCurveHom):
             sage: phi = EllipticCurveIsogeny(E, x+6, degree=3)
             sage: phi.codomain()
             Elliptic Curve defined by y^2 = x^3 + 6*x^2 + 4*x + 2 over Finite Field of size 7
-            sage: phi._EllipticCurveIsogeny__compute_E2_via_kohel()
+            sage: phi._EllipticCurveIsogeny__compute_codomain_via_kohel()
             Elliptic Curve defined by y^2 = x^3 + 6*x^2 + 4*x + 2 over Finite Field of size 7
         """
         return compute_codomain_formula(self._domain, self.__v, self.__w)

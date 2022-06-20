@@ -390,7 +390,6 @@ cdef class FrozenBitset:
         else:  # an iterable
             iter = list(iter)
             if iter:
-                print(iter)
                 need_capacity = max(iter) + 1
             else:
                 need_capacity = 0

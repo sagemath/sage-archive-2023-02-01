@@ -178,7 +178,7 @@ ctypedef struct pair:
 
 def _my_subgraph(G, vertices, relabel=False, return_map=False):
     r"""
-    Return the subgraph containing the given vertices
+    Return the subgraph containing the given vertices.
 
     This method considers only the connectivity. Therefore, edge labels are
     ignored as well as any other decoration of the graph (vertex position,
@@ -339,7 +339,7 @@ cdef tuple hyperbolicity_basic_algorithm(int N,
 
 def _greedy_dominating_set(H, verbose=False):
     r"""
-    Return a greedy approximation of a dominating set
+    Return a greedy approximation of a dominating set.
 
     EXAMPLES::
 
@@ -710,13 +710,13 @@ cdef tuple hyperbolicity_BCCM(int N,
                                               &nb_p, nb_pairs_of_length)
 
     if verbose:
-        print("Current 2 connected component has %d vertices and diameter %d" %(N, D))
+        print("Current 2 connected component has %d vertices and diameter %d" % (N, D))
         if not far_apart_pairs:
-            print("Number of pairs: %d" %(nb_p))
+            print("Number of pairs: %d" % (nb_p))
             print("Repartition of pairs:",
                   [(i, nb_pairs_of_length[i]) for i in range(1, D + 1) if nb_pairs_of_length[i] > 0])
         else:
-            print("Number of far-apart pairs: %d\t(%d pairs in total)" %(nb_p, binomial(N, 2)))
+            print("Number of far-apart pairs: %d\t(%d pairs in total)" % (nb_p, binomial(N, 2)))
             print("Repartition of far-apart pairs:",
                   [(i, nb_pairs_of_length[i]) for i in range(1, D + 1) if nb_pairs_of_length[i] > 0])
 
@@ -920,13 +920,13 @@ cdef tuple hyperbolicity_CCL(int N,
                                              &nb_p, nb_pairs_of_length)
 
     if verbose:
-        print("Current 2 connected component has %d vertices and diameter %d" %(N, D))
+        print("Current 2 connected component has %d vertices and diameter %d" % (N, D))
         if not far_apart_pairs:
-            print("Number of pairs: %d" %(nb_p))
+            print("Number of pairs: %d" % (nb_p))
             print("Repartition of pairs:",
                   [(i, nb_pairs_of_length[i]) for i in range(1, D + 1) if nb_pairs_of_length[i] > 0])
         else:
-            print("Number of far-apart pairs: %d\t(%d pairs in total)" %(nb_p, binomial(N, 2)))
+            print("Number of far-apart pairs: %d\t(%d pairs in total)" % (nb_p, binomial(N, 2)))
             print("Repartition of far-apart pairs:",
                   [(i, nb_pairs_of_length[i]) for i in range(1, D + 1) if nb_pairs_of_length[i] > 0])
 
@@ -1057,7 +1057,7 @@ def hyperbolicity(G,
                   additive_gap=None,
                   verbose=False):
     r"""
-    Returns the hyperbolicity of the graph or an approximation of this value.
+    Return the hyperbolicity of the graph or an approximation of this value.
 
     The hyperbolicity of a graph has been defined by Gromov [Gro1987]_ as
     follows: Let `a, b, c, d` be vertices of the graph, let `S_1 = dist(a, b) +
@@ -1282,7 +1282,7 @@ def hyperbolicity(G,
     if not isinstance(G, Graph):
         raise ValueError("the input parameter must be a Graph")
     if algorithm not in ['basic', 'CCL', 'CCL+FA', 'BCCM', 'dom']:
-        raise ValueError("algorithm '%s' not yet implemented, please contribute" %(algorithm))
+        raise ValueError("algorithm '%s' not yet implemented, please contribute" % (algorithm))
     if approximation_factor is None:
         approximation_factor = 1.0
     elif approximation_factor == 1.0:
@@ -1292,7 +1292,7 @@ def hyperbolicity(G,
             raise ValueError("the approximation factor must be >= 1.0")
     else:
         raise ValueError("the approximation_factor is ignored when using"
-                         "the '%s' algorithm" %(algorithm))
+                         "the '%s' algorithm" % (algorithm))
     if additive_gap is None:
         additive_gap = 0.0
     elif additive_gap == 0.0:
@@ -1301,7 +1301,7 @@ def hyperbolicity(G,
         if additive_gap not in RR or additive_gap < 0.0:
             raise ValueError("the additive gap must be a real positive number")
     else:
-        raise ValueError("the additive_gap is ignored when using the '%s' algorithm." %(algorithm))
+        raise ValueError("the additive_gap is ignored when using the '%s' algorithm." % (algorithm))
 
     # The hyperbolicity is defined on connected graphs
     if not G.is_connected():
@@ -1341,7 +1341,7 @@ def hyperbolicity(G,
         if verbose:
             # we compute the distribution of size of the blocks
             L = [len(V) for V in B]
-            print("Graph with %d blocks" %(len(B)))
+            print("Graph with %d blocks" % (len(B)))
             print("Blocks size distribution:", {x: L.count(x) for x in L})
 
         for V in B:
@@ -1692,7 +1692,7 @@ def hyperbolicity_distribution(G, algorithm='sampling', sampling_size=10**6):
     elif algorithm == 'sampling':
         hdict = __hyperbolicity_sampling__(N, distances, sampling_size)
     else:
-        raise ValueError("algorithm '%s' not yet implemented, please contribute" %(algorithm))
+        raise ValueError("algorithm '%s' not yet implemented, please contribute" % (algorithm))
 
     # We release memory
     sig_free(distances)

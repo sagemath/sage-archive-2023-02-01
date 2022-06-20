@@ -855,11 +855,14 @@ class EllipticCurve_field(ell_generic.EllipticCurve_generic, ProjectivePlaneCurv
             this case, the isogeny is post-composed with an isomorphism so
             that the codomain equals the given curve.
 
-        - ``degree`` -- an integer (default: ``None``).  If ``kernel`` is
-          ``None``, then this is the degree of the isogeny from ``self``
-          to ``codomain``.  If ``kernel`` is not ``None``, then this is
-          used to determine whether or not to skip a `\gcd` of the given
-          kernel polynomial with the two-torsion polynomial of ``self``.
+        - ``degree`` -- an integer (default: ``None``).
+
+              - If ``kernel`` is ``None``, then this is the degree of the isogeny
+                from this curve to ``codomain``.
+
+              - If ``kernel`` is not ``None``, then this is used to determine
+                whether or not to skip a `\gcd` of the given kernel polynomial
+                with the two-torsion polynomial of this curve.
 
         - ``model`` -- a string (default: ``None``).  The only supported
           value is ``"minimal"``, in which case if ``self`` is a curve

@@ -1065,7 +1065,7 @@ class EllipticCurveIsogeny(EllipticCurveHom):
         try:
             Q = compute(*Q)
         except ZeroDivisionError:
-            Q = 0, 1, 0
+            Q = (0, 1, 0)
 
         if self.__post_isomorphism is not None:
             Q = baseWI.__call__(self.__post_isomorphism, Q)
@@ -1804,7 +1804,7 @@ class EllipticCurveIsogeny(EllipticCurveHom):
             else:                   # Q is not 2-torsion
                 vQ = 2*gxQ - a1*gyQ
 
-            self.__kernel_mod_sign[xQ] = yQ,gxQ,gyQ,vQ,uQ
+            self.__kernel_mod_sign[xQ] = yQ, gxQ, gyQ, vQ, uQ
 
             v += vQ
             w += uQ + xQ*vQ
@@ -1862,7 +1862,7 @@ class EllipticCurveIsogeny(EllipticCurveHom):
             sage: phi._EllipticCurveIsogeny__velu_sum_helper(0, Qvals, 0, 0, x, y)
             (1/x, y/x^2)
         """
-        yQ,gxQ,gyQ,vQ,uQ = Qvalues
+        yQ, gxQ, gyQ, vQ, uQ = Qvalues
 
         t1 = x - xQ
         inv_t1 = t1**-1
@@ -1965,16 +1965,18 @@ class EllipticCurveIsogeny(EllipticCurveHom):
         else:
             E = self.__pre_isomorphism.codomain()
 
-        a1, a3 = E.a1(), E.a3()
+        a1 = E.a1()
+        a3 = E.a3()
 
-        X, Y = xP, yP
+        X = xP
+        Y = yP
 
         for xQ, Qvalues in self.__kernel_mod_sign.items():
             tX, tY = self.__velu_sum_helper(xQ, Qvalues, a1, a3, xP, yP)
             X += tX
             Y -= tY
 
-        return X,Y
+        return X, Y
 
 
     def __initialize_rational_maps_via_velu(self):
@@ -2060,7 +2062,9 @@ class EllipticCurveIsogeny(EllipticCurveHom):
 
         # Convert to a univariate polynomial, even if it had a
         # bivariate parent, or was given as a list:
-        self.__kernel_polynomial = psi = poly_ring(kernel_polynomial)
+        psi = poly_ring(kernel_polynomial)
+
+        self.__kernel_polynomial = psi
 
         if psi.leading_coefficient() != 1:
             raise ValueError("given kernel polynomial is not monic")
@@ -2088,7 +2092,8 @@ class EllipticCurveIsogeny(EllipticCurveHom):
         # Set up the necessary instance variables
         #
 
-        self.__kernel_polynomial = self.__inner_kernel_polynomial = psi
+        self.__kernel_polynomial = psi
+        self.__inner_kernel_polynomial = psi
 
         self._degree = Integer(d)  # degree of the isogeny
 
@@ -2359,7 +2364,8 @@ class EllipticCurveIsogeny(EllipticCurveHom):
             sage: phi._EllipticCurveIsogeny__compute_omega_fast(E, psi, psi_pr, fi, fi_pr)
             x^3*y - 3*x^2*y + x*y
         """
-        a1, a3 = E.a1(), E.a3()
+        a1 = E.a1()
+        a3 = E.a3()
         x, y = self.__mpoly_ring.gens()
 
         psi_2 = 2*y + a1*x + a3
@@ -3433,8 +3439,8 @@ def split_kernel_polynomial(poly):
         True
     """
     from sage.misc.superseded import deprecation
-    deprecation(33619, 'The split_kernel_polynomial() function is obsolete.' \
-                      ' Use .radical() instead.')
+    deprecation(33619, 'The split_kernel_polynomial() function is obsolete. '
+                       'Use .radical() instead.')
     from sage.misc.misc_c import prod
     return prod([p for p,e in poly.squarefree_decomposition()])
 

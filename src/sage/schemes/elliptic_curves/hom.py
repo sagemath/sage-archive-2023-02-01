@@ -32,7 +32,6 @@ class EllipticCurveHom(Morphism):
     """
     Base class for elliptic-curve morphisms.
     """
-
     def _repr_type(self):
         """
         Return a textual representation of what kind of morphism

@@ -938,23 +938,42 @@ class LieSubalgebra_finite_dimensional_with_basis(Parent, UniqueRepresentation):
             EXAMPLES::
 
                 sage: MS = MatrixSpace(QQ, 2)
-                sage: m1 = MS([[0, -1], [1, 0]])
+                sage: m = MS([[0, -1], [1, 0]])
                 sage: L = LieAlgebra(associative=MS)
-                sage: S = L.subalgebra([m1])
+                sage: S = L.subalgebra([m])
                 sage: x = S.basis()[0]
                 sage: x.parent() is S
                 True
                 sage: x.adjoint_matrix()
                 [0]
 
+                sage: m1 = MS([[0, 1], [0, 0]])
+                sage: m2 = MS([[0, 0], [1, 0]])
+                sage: S = L.subalgebra([m1, m2])
+                sage: e,f = S.lie_algebra_generators()
+                sage: ascii_art([b.value.value for b in S.basis()])
+                [ [0 1]  [0 0]  [-1  0] ]
+                [ [0 0], [1 0], [ 0  1] ]
+                sage: E = e.adjoint_matrix(); E
+                [ 0  0  2]
+                [ 0  0  0]
+                [ 0 -1  0]
+                sage: F = f.adjoint_matrix(); F
+                [ 0  0  0]
+                [ 0  0 -2]
+                [ 1  0  0]
+                sage: h = e.bracket(f)
+                sage: E * F - F * E == h.adjoint_matrix()
+                True
+
             TESTS:
 
             Check that :trac:`34006` is fixed::
 
                 sage: MS = MatrixSpace(QQ, 2)
-                sage: m1 = MS([[0, -1], [1, 0]])
+                sage: m = MS([[0, -1], [1, 0]])
                 sage: L = LieAlgebra(associative=MS)
-                sage: S = L.subalgebra([m1])
+                sage: S = L.subalgebra([m])
                 sage: S.killing_form_matrix()
                 [0]
             """
@@ -963,5 +982,5 @@ class LieSubalgebra_finite_dimensional_with_basis(Parent, UniqueRepresentation):
             M = P.module(sparse=sparse)
             return matrix(self.base_ring(),
                           [M.coordinate_vector(P.bracket(self, b).to_vector(sparse=sparse))
-                           for b in basis], sparse=sparse)
+                           for b in basis], sparse=sparse).transpose()
 

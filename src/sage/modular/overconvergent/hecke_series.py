@@ -237,7 +237,7 @@ def low_weight_generators(N,p,m,NN):
         [1 + O(q^10)]],
         4)
     """
-    M = ModularFormsRing(N)
+    M = ModularFormsRing(N, base_ring=Zmod(p))
 
     b = M.gen_forms(maxweight=8)
 

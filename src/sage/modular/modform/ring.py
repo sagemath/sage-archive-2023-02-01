@@ -845,6 +845,8 @@ class ModularFormsRing(Parent):
         G = self._find_generators(maxweight, sgs, start_weight)
         return [F for k,f,F in G]
 
+    gens = gen_forms
+
     def _find_generators(self, maxweight, start_gens, start_weight):
         r"""
         For internal use. This function is called by :meth:`generators` and

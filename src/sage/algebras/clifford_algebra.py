@@ -19,7 +19,7 @@ AUTHORS:
 
 from sage.misc.cachefunc import cached_method
 from sage.structure.unique_representation import UniqueRepresentation
-from sage.data_structures.bitset import FrozenBitset
+from sage.data_structures.bitset import Bitset, FrozenBitset
 from copy import copy
 
 from sage.categories.algebras_with_basis import AlgebrasWithBasis
@@ -178,9 +178,9 @@ class CliffordAlgebraElement(CombinatorialFreeModule.Element):
             sage: Cl.<x,y,z> = CliffordAlgebra(Q)
             sage: elt = 5*x + y
             sage: elt.list()
-            [((0,), 5), ((1,), 1)]
+            [(1, 5), (01, 1)]
         """
-        return sorted(self._monomial_coefficients.items(), key=lambda m_c : (-len(m_c[0]), m_c[0]))
+        return sorted(self._monomial_coefficients.items(), key=lambda m_c : (-len(m_c[0]), m_c))
 
     def support(self):
         """
@@ -195,7 +195,7 @@ class CliffordAlgebraElement(CombinatorialFreeModule.Element):
             sage: Cl.<x,y,z> = CliffordAlgebra(Q)
             sage: elt = 5*x + y
             sage: elt.support()
-            [(0,), (1,)]
+            [1, 01]
         """
         return sorted(self._monomial_coefficients.keys(), key=lambda x: (-len(x), x))
 
@@ -494,13 +494,8 @@ class CliffordAlgebra(CombinatorialFreeModule):
         self._quadratic_form = Q
         R = Q.base_ring()
         category = AlgebrasWithBasis(R.category()).Super().Filtered().FiniteDimensional().or_subcategory(category)
-        format_style = f"0{Q.dim()}b"
         from functools import partial
-        # use a slice to reverse string order because Bitset and format(x, 'b') use different conventions
-        def index_function(x):
-            return FrozenBitset(format(x, format_style)[::-1],
-                                capacity=Q.dim())
-        indices = Family(range(2**Q.dim()), partial(index_function), lazy=True)
+        indices = Family(range(2**Q.dim()), partial(self._basis_index_function), lazy=True)
         CombinatorialFreeModule.__init__(self, R, indices, category=category)
         self._assign_names(names)
 
@@ -681,15 +676,57 @@ class CliffordAlgebra(CombinatorialFreeModule):
         if x in self.free_module():
             R = self.base_ring()
             if x.parent().base_ring() is R:
-                return self.element_class(self, {(i,): c for i,c in x.items()})
-            return self.element_class(self, {(i,): R(c) for i,c in x.items() if R(c) != R.zero()})
+                return self.element_class(self, {FrozenBitset((i,)): c for i,c in x.items()})
+            # if the base ring is different, attempt to coerce it into R
+            return self.element_class(self, {FrozenBitset((i,)): R(c) for i,c in x.items() if R(c) != R.zero()})
 
         if (isinstance(x, CliffordAlgebraElement)
             and self.has_coerce_map_from(x.parent())):
             R = self.base_ring()
             return self.element_class(self, {i: R(c) for i,c in x if R(c) != R.zero()})
 
-        return super()._element_constructor_(x)
+        if isinstance(x, tuple):
+            R = self.base_ring()
+            return self.element_class(self, {FrozenBitset((i,)): R.one() for i in x})
+
+        return super(CliffordAlgebra, self)._element_constructor_(x)
+
+    def _basis_index_function(self, x):
+        """
+        Given an integer indexing the basis, return the correct
+        bitset.
+
+        For backwards compatibility, tuples are also accepted.
+
+        EXAMPLES::
+
+            sage: Q = QuadraticForm(ZZ, 3, [1,2,3,4,5,6])
+            sage: Cl = CliffordAlgebra(Q)
+            sage: Cl._basis_index_function(7)
+            111
+            sage: Cl._basis_index_function(5)
+            101
+            sage: Cl._basis_index_function(4)
+            001
+
+            sage: Cl._basis_index_function((0, 1, 2))
+            111
+            sage: Cl._basis_index_function((0, 2))
+            101
+            sage: Cl._basis_index_function((2,))
+            001
+        """
+        Q = self._quadratic_form
+        format_style = f"0{Q.dim()}b"
+
+        # if the input is a tuple, assume that it has
+        # entries in {0, ..., 2**Q.dim()-1}
+        if isinstance(x, tuple):
+            return FrozenBitset(x, capacity = Q.dim())
+
+        # slice the output of format in order to make conventions
+        # of format and FrozenBitset agree.
+        return FrozenBitset(format(x, format_style)[::-1], capacity=Q.dim())
 
     def gen(self, i):
         """
@@ -706,7 +743,7 @@ class CliffordAlgebra(CombinatorialFreeModule):
             sage: [Cl.gen(i) for i in range(3)]
             [x, y, z]
         """
-        return self._from_dict({(i,): self.base_ring().one()}, remove_zeros=False)
+        return self._from_dict({FrozenBitset((i,)): self.base_ring().one()}, remove_zeros=False)
 
     def algebra_generators(self):
         """
@@ -751,14 +788,16 @@ class CliffordAlgebra(CombinatorialFreeModule):
     @cached_method
     def one_basis(self):
         """
-        Return the basis index of the element `1`.
+        Return the basis index of the element ``1``. The element ``1``
+        is indexed by the emptyset, which is represented by the
+        :class:`sage.data_structures.bitset.Bitset` ``0``.
 
         EXAMPLES::
 
             sage: Q = QuadraticForm(ZZ, 3, [1,2,3,4,5,6])
             sage: Cl.<x,y,z> = CliffordAlgebra(Q)
             sage: Cl.one_basis()
-            ()
+            0
         """
         return FrozenBitset('0')
 
@@ -1032,7 +1071,7 @@ class CliffordAlgebra(CombinatorialFreeModule):
             Cl = CliffordAlgebra(Q, names)
 
         n = self._quadratic_form.dim()
-        f = lambda x: self.prod(self._from_dict( {(j,): m[j,i] for j in range(n)},
+        f = lambda x: self.prod(self._from_dict( {FrozenBitset((j,)): m[j,i] for j in range(n)},
                                                  remove_zeros=True )
                                 for i in x)
         cat = AlgebrasWithBasis(self.category().base_ring()).Super().FiniteDimensional()

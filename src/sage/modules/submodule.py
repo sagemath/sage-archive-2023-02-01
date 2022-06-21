@@ -93,6 +93,7 @@ class Submodule_free_ambient(Module_free_ambient):
         R = ambient.base_ring()
         degree = ambient.degree()
         sparse = ambient.is_sparse()
+        self._ambient = ambient
 
         if check:
             try:
@@ -101,7 +102,7 @@ class Submodule_free_ambient(Module_free_ambient):
             except TypeError:
                 raise TypeError("each element of basis must be in the ambient free module")
 
-        super().__init__(base_ring=R, degree=degree, sparse=sparse)
+        Module_free_ambient.__init__(self, base_ring=R, degree=degree, sparse=sparse)
 
         C = self.element_class
         w = [C(self, x.list(), coerce=False, copy=False) for x in gens]
@@ -177,4 +178,22 @@ class Submodule_free_ambient(Module_free_ambient):
         if i < 0 or i >= len(self.__gens):
             raise ValueError('no generator with index %s' % i)
         return self.__gens[i]
+
+    def defining_module(self):
+        """
+        Return the defining module of ``self``.
+
+        EXAMPLES::
+
+            sage: S.<x,y,z> = PolynomialRing(QQ)
+            sage: M = S**2
+            sage: N = M.submodule([vector([x - y, z]), vector([y*z, x*z])])
+            sage: N.zero_submodule().defining_module() is M
+            True
+
+            sage: Q = M.quotient_module(N)
+            sage: Q.zero_submodule().defining_module() is Q
+            True
+        """
+        return self._ambient
 

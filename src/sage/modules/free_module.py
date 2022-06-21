@@ -1207,6 +1207,22 @@ class Module_free_ambient(Module):
             False
             sage: Q == N
             False
+            sage: Q != M
+            True
+            sage: Q != N
+            True
+
+        When equality cannot be checked, we get both ``==`` and ``!=``
+        returning ``False``::
+
+            sage: P.<x,y> = QQ[]
+            sage: M = P**2
+            sage: S1 = M.submodule([(x,y),(y,x)])
+            sage: S2 = M.submodule([(x,y),(y-x,x-y)])
+            sage: S1 == S2
+            False
+            sage: S1 != S2
+            False
 
         TESTS::
 
@@ -1389,14 +1405,33 @@ class Module_free_ambient(Module):
 
         EXAMPLES:
 
-        Since :meth:`basis` is not implemented in general, submodule
-        testing does not work for all PID's. However, trivial cases are
-        already used (and useful) for coercion, e.g.::
+        Submodule testing over general rings is not guaranteed to work in
+        all cases. However, it will raise an error when it is unable to
+        determine containment::
 
-            sage: QQ(1/2) * vector(ZZ['x']['y'],[1,2,3,4])
-            (1/2, 1, 3/2, 2)
-            sage: vector(ZZ['x']['y'],[1,2,3,4]) * QQ(1/2)
-            (1/2, 1, 3/2, 2)
+        The zero module can always be tested::
+
+            sage: S.<x,y,z> = PolynomialRing(QQ)
+            sage: M = S**2
+            sage: N = M.submodule([vector([x - y, z]), vector([y*z, x*z])])
+            sage: N.zero_submodule().is_submodule(M)
+            True
+            sage: N.zero_submodule().is_submodule(N)
+            True
+            sage: M.zero_submodule().is_submodule(N)
+            True
+
+        It also respects which module it is constructed from::
+
+            sage: Q = M.quotient_module(N)
+            sage: Q.zero_submodule().is_submodule(M)
+            False
+            sage: Q.zero_submodule().is_submodule(N)
+            False
+            sage: M.zero_submodule().is_submodule(Q)
+            False
+            sage: N.zero_submodule().is_submodule(Q)
+            False
         """
         if self is other:
             return True
@@ -1404,6 +1439,25 @@ class Module_free_ambient(Module):
             return False
         if self.base_ring() != other.base_ring():
             return False
+
+        from sage.modules.submodule import Submodule_free_ambient
+        if isinstance(self, Submodule_free_ambient):
+            if isinstance(other, Submodule_free_ambient):
+                if self.defining_module() != other.defining_module():
+                    return False
+                if not (self.defining_module() == other.defining_module()):
+                    raise NotImplementedError("could not determine containment")
+            else:
+                if self.defining_module() != other:
+                    return False
+                if not (self.defining_module() == other):
+                    raise NotImplementedError("could not determine containment")
+        elif isinstance(other, Submodule_free_ambient):
+            if other.defining_module() != self:
+                return False
+            if not (other.defining_module() == self):
+                raise NotImplementedError("could not determine containment")
+
         try:
             if self.ambient_vector_space() != other.ambient_vector_space():
                 return False
@@ -1412,6 +1466,7 @@ class Module_free_ambient(Module):
         except AttributeError:
             # Not all modules have an ambient_vector_space.
             pass
+
         from sage.modules.quotient_module import QuotientModule_free_ambient
         if isinstance(other, QuotientModule_free_ambient):
             #if the relations agree we continue with the covers.
@@ -1439,6 +1494,9 @@ class Module_free_ambient(Module):
         if not self.gens():
             # We are the zero module
             return True
+        if not other.gens():
+            # The other is the zero module
+            return False
         if self.ambient_module().is_submodule(other):
             return True
         if self.degree() == 1:

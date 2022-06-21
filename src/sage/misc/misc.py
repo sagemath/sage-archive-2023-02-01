@@ -46,7 +46,6 @@ import warnings
 
 from .lazy_string import lazy_string
 from sage.env import DOT_SAGE, HOSTNAME
-from sage.misc.cachefunc import cached_function
 from sage.misc.lazy_import import lazy_import
 
 lazy_import("sage.misc.call", ["AttrCallObject", "attrcall", "call_method"],

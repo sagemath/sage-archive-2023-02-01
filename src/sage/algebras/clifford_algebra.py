@@ -32,7 +32,7 @@ from sage.matrix.constructor import Matrix
 from sage.matrix.args import MatrixArgs
 from sage.sets.family import Family
 from sage.combinat.free_module import CombinatorialFreeModule
-from sage.combinat.subset import SubsetsSorted
+from sage.combinat.subset import Subsets
 from sage.quadratic_forms.quadratic_form import QuadraticForm
 from sage.algebras.weyl_algebra import repr_from_monomials
 from sage.misc.inherit_comparison import InheritComparisonClasscallMetaclass
@@ -657,7 +657,7 @@ class CliffordAlgebra(CombinatorialFreeModule):
             sage: Cl(2/3)
             Traceback (most recent call last):
             ...
-            TypeError: do not know how to make x (= 2/3) an element of self ...
+            TypeError: do not know how to make x=2/3 an element of self
             sage: Clp(2/3)
             2/3
             sage: Clp(x)
@@ -690,7 +690,57 @@ class CliffordAlgebra(CombinatorialFreeModule):
             R = self.base_ring()
             return self.element_class(self, {FrozenBitset((i,)): R.one() for i in x})
 
-        return super(CliffordAlgebra, self)._element_constructor_(x)
+        try:
+            return super(CliffordAlgebra, self)._element_constructor_(x)
+        except TypeError:
+            raise TypeError(f'do not know how to make {x=} an element of self')
+
+    def _basis_index_keys(self):
+        r"""
+        This gives the same values as range(2**Q.dim()),
+        but starting with elements that have 1 set bit,
+        then 2, then three, etc.
+        
+        EXAMPLES::
+
+            sage: Q = QuadraticForm(ZZ, 3, [1,2,3,4,5,6])
+            sage: Cl = CliffordAlgebra(Q)
+
+        Notice that the monomial order is strictly lexicographic,
+        not degree-lexicographic when we use `range`.
+
+            sage: for i in range(2**Q.dim()): print(Cl.basis()[i])
+            1
+            x
+            y
+            x*y
+            z
+            x*z
+            y*z
+            x*y*z
+
+        Notice that ``x*y`` comes before ``z`` if we use ``range``.
+        This isn't mathematically *wrong* but is not usually what
+        we want. On the other hand, using this method gives a
+        degree-respecting monomial order::
+
+            sage: for i in Cl.basis(): print(b) # indirect doctest
+            1
+            x
+            y
+            z
+            x*y
+            x*z
+            y*z
+            x*y*z
+        """
+        n = self._quadratic_form.dim()
+
+        for s in Subsets(range(n)): # it is ok here because this is only called when iterating over the bases, not in hash etc.
+            if not s:
+                yield 0
+                continue
+            yield FrozenBitset(s).__hash__()
 
     def _basis_index_function(self, x):
         """

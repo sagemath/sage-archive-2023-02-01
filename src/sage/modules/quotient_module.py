@@ -53,7 +53,7 @@ class QuotientModule_free_ambient(Module_free_ambient):
         [x - y     z]
         [  y*z   x*z]
     """
-    def __init__(self, module, sub):
+    def __init__(self, domain, sub):
         """
         Create this quotient module of  ``module`` by a submodule ``sub``.
 
@@ -65,13 +65,13 @@ class QuotientModule_free_ambient(Module_free_ambient):
             sage: Q = M.quotient_module(N)
             sage: TestSuite(Q).run(skip=['_test_elements', '_test_pickling', '_test_zero'])
         """
-        base_ring = module.base_ring()
-        degree = module.degree()
-        sparse = module.is_sparse()
-        self.__sub = sub
-        self.__module = module
-        self.__hash = hash((module, sub))
-        super().__init__(base_ring, degree=degree, sparse=sparse)
+        base_ring = domain.base_ring()
+        degree = domain.degree()
+        sparse = domain.is_sparse()
+        self._sub = sub
+        self._domain = domain
+        self.__hash = hash((domain, sub))
+        Module_free_ambient.__init__(self, base_ring, degree=degree, sparse=sparse)
 
     def _repr_(self):
         r"""
@@ -89,7 +89,7 @@ class QuotientModule_free_ambient(Module_free_ambient):
             [x - y     z]
             [  y*z   x*z]
         """
-        return "Quotient module by %s" % self.__sub
+        return "Quotient module by %s" % self._sub
 
     def __hash__(self):
         r"""
@@ -102,32 +102,17 @@ class QuotientModule_free_ambient(Module_free_ambient):
             sage: N = M.submodule([vector([x - y, z]), vector([y*z, x*z])])
             sage: Q = M.quotient_module(N)
             sage: d = {Q: 1}
+
+        We compute the hash of a certain 0-dimension quotient vector
+        space::
+
+            sage: A = QQ^2; V = A.span_of_basis([[1,0], [1,1]]); W = V.span([V.1, V.0])
+            sage: Q = V/W; Q.dimension()
+            0
+            sage: hash(Q) == hash((V,W))
+            True
         """
         return self.__hash
-
-    def __richcmp__(self, other, op):
-        """
-        Compare ``self`` with ``other`` with respect to ``op``.
-
-        TESTS::
-
-            sage: S.<x,y,z> = PolynomialRing(QQ)
-            sage: M = S**2
-            sage: N = M.submodule([vector([x - y, z]), vector([y*z, x*z])])
-            sage: Q = M.quotient_module(N)
-            sage: Q == Q
-            True
-            sage: Q == M
-            False
-            sage: Q == N
-            False
-        """
-        if self is other:
-            return rich_to_bool(op, 0)
-        if not isinstance(other, QuotientModule_free_ambient):
-            return NotImplemented
-
-        return richcmp((self.__module, self.__sub), (other.__module, other.__sub), op)
 
     def gens(self):
         """
@@ -142,7 +127,7 @@ class QuotientModule_free_ambient(Module_free_ambient):
             sage: Q.gens()
             ((1, 0), (0, 1))
         """
-        return tuple(self(list(g)) for g in self.__module.gens())
+        return tuple([self(list(g)) for g in self._domain.gens()])
 
     def gen(self, i=0):
         """
@@ -157,7 +142,7 @@ class QuotientModule_free_ambient(Module_free_ambient):
             sage: Q.gen(0)
             (1, 0)
         """
-        if i < 0 or i >= self.__module.degree():
+        if i < 0 or i >= self._domain.degree():
             raise ValueError('generator %s not defined' % i)
         return self.gens()[i]
 
@@ -185,6 +170,37 @@ class QuotientModule_free_ambient(Module_free_ambient):
             return (self.base_ring().has_coerce_map_from(M.base_ring()) and
                     self.degree() == M.degree())
 
+    def cover(self):
+        r"""
+        Given this quotient space `Q = V/W`, return `V`.
+
+        EXAMPLES::
+
+            sage: M = QQ^10 / [list(range(10)), list(range(2,12))]
+            sage: M.cover()
+            Vector space of dimension 10 over Rational Field
+        """
+        return self._domain
+
+    V = cover
+
+    def relations(self):
+        r"""
+        Given this quotient space `Q = V/W`, return `W`.
+
+        EXAMPLES::
+
+            sage: M = QQ^10 / [list(range(10)), list(range(2,12))]
+            sage: M.relations()
+            Vector space of degree 10 and dimension 2 over Rational Field
+            Basis matrix:
+            [ 1  0 -1 -2 -3 -4 -5 -6 -7 -8]
+            [ 0  1  2  3  4  5  6  7  8  9]
+        """
+        return self._sub
+
+    W = relations
+
 
 ###############################################################################
 #
@@ -192,7 +208,7 @@ class QuotientModule_free_ambient(Module_free_ambient):
 #
 ###############################################################################
 
-class FreeModule_ambient_field_quotient(FreeModule_ambient_field):
+class FreeModule_ambient_field_quotient(FreeModule_ambient_field, QuotientModule_free_ambient):
     """
     A quotient `V/W` of two vector spaces as a vector space.
 
@@ -306,16 +322,15 @@ class FreeModule_ambient_field_quotient(FreeModule_ambient_field):
             sage: Q( v )
             (1)
         """
-        base_field = domain.base_field()
+        QuotientModule_free_ambient.__init__(self, domain, sub)
         dimension = quotient_matrix.ncols()
-        sparse = domain.is_sparse()
-        self.__sub = sub
-        self.__domain = domain
-        self.__hash = hash((domain, sub))
-        FreeModule_ambient_field.__init__(self, base_field, dimension, sparse)
+        FreeModule_ambient_field.__init__(self, domain.base_field(), dimension, domain.is_sparse())
+
         self.__quo_map = domain.Hom(self)(quotient_matrix)
         self.__quo_map.register_as_coercion()
         self.__lift_map = self.Hom(domain)(lift_matrix)
+
+    __hash__ = QuotientModule_free_ambient.__hash__
 
     def _repr_(self):
         r"""
@@ -345,23 +360,6 @@ class FreeModule_ambient_field_quotient(FreeModule_ambient_field):
             self.dimension(), self.base_ring(),
             self.V(), self.W())
 
-    def __hash__(self):
-        """
-        Return hash of this quotient space `V/W`, which is, by definition,
-        the hash of the tuple `(V, W)`.
-
-        EXAMPLES:
-
-        We compute the hash of a certain 0-dimension quotient vector
-        space::
-
-            sage: A = QQ^2; V = A.span_of_basis([[1,0], [1,1]]); W = V.span([V.1, V.0])
-            sage: Q = V/W; Q.dimension()
-            0
-            sage: hash(Q) == hash((V,W))
-            True
-        """
-        return self.__hash
 
     def _element_constructor_(self, x):
         """
@@ -417,8 +415,8 @@ class FreeModule_ambient_field_quotient(FreeModule_ambient_field):
         """
         if isinstance(x, self.element_class) and x.parent() is self:
             return x
-        if isinstance(x, (list, tuple)) and len(x) == self.__domain.rank():
-            return self.__quo_map(self.__domain(x))
+        if isinstance(x, (list, tuple)) and len(x) == self._domain.rank():
+            return self.__quo_map(self._domain(x))
         return FreeModule_ambient_field._element_constructor_(self, x)
 
     def _coerce_map_from_(self, M):
@@ -460,14 +458,14 @@ class FreeModule_ambient_field_quotient(FreeModule_ambient_field):
         from sage.modules.free_module import FreeModule_ambient
         if (isinstance(M, FreeModule_ambient)
             and not (isinstance(M, FreeModule_ambient_field_quotient)
-                     and self.W() == M.W())):
+                     and self._sub == M._sub)):
             # No map between different quotients.
             # No map from quotient to abstract module.
             return None
         f = super(FreeModule_ambient_field, self)._coerce_map_from_(M)
         if f is not None:
             return f
-        f = self.__domain.coerce_map_from(M)
+        f = self._domain.coerce_map_from(M)
         if f is not None:
             return self.__quo_map * f
         return None
@@ -536,62 +534,4 @@ class FreeModule_ambient_field_quotient(FreeModule_ambient_field):
             (1, -2, 0)
         """
         return self.__lift_map(x)
-
-    def W(self):
-        """
-        Given this quotient space `Q = V/W`, return `W`.
-
-        EXAMPLES::
-
-            sage: M = QQ^10 / [list(range(10)), list(range(2,12))]
-            sage: M.W()
-            Vector space of degree 10 and dimension 2 over Rational Field
-            Basis matrix:
-            [ 1  0 -1 -2 -3 -4 -5 -6 -7 -8]
-            [ 0  1  2  3  4  5  6  7  8  9]
-        """
-        return self.__sub
-
-    def V(self):
-        """
-        Given this quotient space `Q = V/W`, return `V`.
-
-        EXAMPLES::
-
-            sage: M = QQ^10 / [list(range(10)), list(range(2,12))]
-            sage: M.V()
-            Vector space of dimension 10 over Rational Field
-        """
-        return self.__domain
-
-    def cover(self):
-        """
-        Given this quotient space `Q = V/W`, return `V`.
-
-        This is the same as :meth:`V`.
-
-        EXAMPLES::
-
-            sage: M = QQ^10 / [list(range(10)), list(range(2,12))]
-            sage: M.cover()
-            Vector space of dimension 10 over Rational Field
-        """
-        return self.V()
-
-    def relations(self):
-        """
-        Given this quotient space `Q = V/W`, return `W`.
-
-        This is the same as :meth:`W`.
-
-        EXAMPLES::
-
-            sage: M = QQ^10 / [list(range(10)), list(range(2,12))]
-            sage: M.relations()
-            Vector space of degree 10 and dimension 2 over Rational Field
-            Basis matrix:
-            [ 1  0 -1 -2 -3 -4 -5 -6 -7 -8]
-            [ 0  1  2  3  4  5  6  7  8  9]
-        """
-        return self.W()
 

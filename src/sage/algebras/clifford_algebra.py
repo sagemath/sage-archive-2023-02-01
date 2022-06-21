@@ -180,7 +180,7 @@ class CliffordAlgebraElement(CombinatorialFreeModule.Element):
             sage: elt.list()
             [(1, 5), (01, 1)]
         """
-        return sorted(self._monomial_coefficients.items(), key=lambda m_c : (-len(m_c[0]), m_c))
+        return sorted(self._monomial_coefficients.items(), key=lambda m : (-len(m[0]), list(m[0])))
 
     def support(self):
         """
@@ -197,7 +197,7 @@ class CliffordAlgebraElement(CombinatorialFreeModule.Element):
             sage: elt.support()
             [1, 01]
         """
-        return sorted(self._monomial_coefficients.keys(), key=lambda x: (-len(x), x))
+        return sorted(self._monomial_coefficients.keys(), key=lambda x: (-len(x), list(x)))
 
     def reflection(self):
         r"""
@@ -487,8 +487,7 @@ class CliffordAlgebra(CombinatorialFreeModule):
             sage: Q = QuadraticForm(ZZ, 9)
             sage: Cl = CliffordAlgebra(Q)
             sage: ba = Cl.basis().keys()
-            sage: all( tuple(sorted(S)) in ba
-            ....:      for S in Subsets(range(9)) )
+            sage: all(FrozenBitset(format(i,'b')[::-1]) in ba for i in range(2**9))
             True
         """
         self._quadratic_form = Q
@@ -524,6 +523,8 @@ class CliffordAlgebra(CombinatorialFreeModule):
             sage: Q = QuadraticForm(ZZ, 3, [1,2,3,4,5,6])
             sage: Cl.<x,y,z> = CliffordAlgebra(Q)
             sage: Cl._repr_term((0,2))
+            'x*z'
+            sage: Cl._repr_term(FrozenBitset('101'))
             'x*z'
             sage: Cl._repr_term(())
             '1'

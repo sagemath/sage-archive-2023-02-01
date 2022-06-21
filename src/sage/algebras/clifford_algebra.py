@@ -494,7 +494,10 @@ class CliffordAlgebra(CombinatorialFreeModule):
         R = Q.base_ring()
         category = AlgebrasWithBasis(R.category()).Super().Filtered().FiniteDimensional().or_subcategory(category)
         from functools import partial
-        indices = Family(range(2**Q.dim()), partial(self._basis_index_function), lazy=True)
+        indices = Family(self._basis_index_keys(self), #make basis_index_keys a class so I can give it a len?
+                         partial(self._basis_index_function),
+                         lazy=True,
+                         name = 'Bitsets')
         CombinatorialFreeModule.__init__(self, R, indices, category=category)
         self._assign_names(names)
 
@@ -695,7 +698,7 @@ class CliffordAlgebra(CombinatorialFreeModule):
         except TypeError:
             raise TypeError(f'do not know how to make {x=} an element of self')
 
-    def _basis_index_keys(self):
+    class _basis_index_keys:
         r"""
         This gives the same values as range(2**Q.dim()),
         but starting with elements that have 1 set bit,
@@ -734,13 +737,26 @@ class CliffordAlgebra(CombinatorialFreeModule):
             y*z
             x*y*z
         """
-        n = self._quadratic_form.dim()
 
-        for s in Subsets(range(n)): # it is ok here because this is only called when iterating over the bases, not in hash etc.
-            if not s:
-                yield 0
-                continue
-            yield FrozenBitset(s).__hash__()
+        def __init__(self, Cl):
+            self._Cl = Cl
+            self._quadratic_form = Cl._quadratic_form
+
+        def __repr__(self): # dunder b/c not a parent subclass?
+            return f"Subsets of {{1,2,...,{self._quadratic_form.dim()}}}"
+
+        def __len__(self):
+            return 2**self._quadratic_form.dim()
+
+        def __iter__(self):   
+            import itertools
+            n = self._quadratic_form.dim()
+            yield 0
+            k = 1
+            while k <= n:
+                for C in itertools.combinations(range(n),k):
+                    yield sum(1 << i for i in C)
+                k += 1
 
     def _basis_index_function(self, x):
         """

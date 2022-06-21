@@ -381,7 +381,8 @@ Ensure that :trac:`8624` is fixed::
     sage: integrate(sqrt(cos(x)^2 + sin(x)^2), x, 0, 2*pi)
     2*pi
 
-Ensure that :trac:`25626` is fixed, as the form of the answer is dependent of the giac version we simplify it (see :trac:`34037`) ::
+Ensure that :trac:`25626` is fixed. As the form of the answer is dependent of
+the giac version, we simplify it (see :trac:`34037`). ::
 
     sage: t = SR.var('t')
     sage: integrate(exp(t)/(t + 1)^2, t, algorithm="giac").full_simplify()

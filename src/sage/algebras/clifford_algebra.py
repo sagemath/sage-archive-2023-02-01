@@ -885,9 +885,15 @@ class CliffordAlgebra(CombinatorialFreeModule):
         if x in self.free_module():
             R = self.base_ring()
             if x.parent().base_ring() is R:
+<<<<<<< HEAD
                 return self.element_class(self, {FrozenBitset((i, )): c for i, c in x.items()})
             # if the base ring is different, attempt to coerce it into R
             return self.element_class(self, {FrozenBitset((i, )): R(c) for i, c in x.items() if R(c) != R.zero()})
+=======
+                return self.element_class(self, {FrozenBitset((i,)): c for i,c in x.items()})
+            # if the base ring is different, attempt to coerce it into R
+            return self.element_class(self, {FrozenBitset((i,)): R(c) for i,c in x.items() if R(c) != R.zero()})
+>>>>>>> a7cd8bf99e (Add _basis_index_function as a method, fix some doctests, and fix some type issues (tuple -> FrozenBitset))
 
         if (isinstance(x, CliffordAlgebraElement)
                 and self.has_coerce_map_from(x.parent())):
@@ -898,10 +904,55 @@ class CliffordAlgebra(CombinatorialFreeModule):
             R = self.base_ring()
             return self.element_class(self, {FrozenBitset((i,)): R.one() for i in x})
 
+<<<<<<< HEAD
         try:
             return super(CliffordAlgebra, self)._element_constructor_(x)
         except TypeError:
             raise TypeError(f'do not know how to make {x=} an element of self')
+=======
+        if isinstance(x, tuple):
+            R = self.base_ring()
+            return self.element_class(self, {FrozenBitset((i,)): R.one() for i in x})
+
+        return super(CliffordAlgebra, self)._element_constructor_(x)
+>>>>>>> a7cd8bf99e (Add _basis_index_function as a method, fix some doctests, and fix some type issues (tuple -> FrozenBitset))
+
+    def _basis_index_function(self, x):
+        """
+        Given an integer indexing the basis, return the correct
+        bitset.
+
+        For backwards compatibility, tuples are also accepted.
+
+        EXAMPLES::
+
+            sage: Q = QuadraticForm(ZZ, 3, [1,2,3,4,5,6])
+            sage: Cl = CliffordAlgebra(Q)
+            sage: Cl._basis_index_function(7)
+            111
+            sage: Cl._basis_index_function(5)
+            101
+            sage: Cl._basis_index_function(4)
+            001
+
+            sage: Cl._basis_index_function((0, 1, 2))
+            111
+            sage: Cl._basis_index_function((0, 2))
+            101
+            sage: Cl._basis_index_function((2,))
+            001
+        """
+        Q = self._quadratic_form
+        format_style = f"0{Q.dim()}b"
+
+        # if the input is a tuple, assume that it has
+        # entries in {0, ..., 2**Q.dim()-1}
+        if isinstance(x, tuple):
+            return FrozenBitset(x, capacity = Q.dim())
+
+        # slice the output of format in order to make conventions
+        # of format and FrozenBitset agree.
+        return FrozenBitset(format(x, format_style)[::-1], capacity=Q.dim())
 
     def gen(self, i):
         """
@@ -918,7 +969,11 @@ class CliffordAlgebra(CombinatorialFreeModule):
             sage: [Cl.gen(i) for i in range(3)]
             [x, y, z]
         """
+<<<<<<< HEAD
         return self._from_dict({FrozenBitset((i, )): self.base_ring().one()}, remove_zeros=False)
+=======
+        return self._from_dict({FrozenBitset((i,)): self.base_ring().one()}, remove_zeros=False)
+>>>>>>> a7cd8bf99e (Add _basis_index_function as a method, fix some doctests, and fix some type issues (tuple -> FrozenBitset))
 
     def algebra_generators(self):
         """
@@ -1247,8 +1302,14 @@ class CliffordAlgebra(CombinatorialFreeModule):
             Cl = CliffordAlgebra(Q, names)
 
         n = self._quadratic_form.dim()
+<<<<<<< HEAD
         f = lambda x: self.prod(self._from_dict({FrozenBitset((j, )): m[j, i] for j in range(n)},
                                 remove_zeros=True) for i in x)
+=======
+        f = lambda x: self.prod(self._from_dict( {FrozenBitset((j,)): m[j,i] for j in range(n)},
+                                                 remove_zeros=True )
+                                for i in x)
+>>>>>>> a7cd8bf99e (Add _basis_index_function as a method, fix some doctests, and fix some type issues (tuple -> FrozenBitset))
         cat = AlgebrasWithBasis(self.category().base_ring()).Super().FiniteDimensional()
         return Cl.module_morphism(on_basis=f, codomain=self, category=cat)
 

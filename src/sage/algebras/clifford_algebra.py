@@ -124,15 +124,16 @@ class CliffordAlgebraElement(CombinatorialFreeModule.Element):
                 # ``e[i]`` * (the element described by the dictionary ``cur``)
                 # (where ``e[i]`` is the ``i``-th standard basis vector).
                 for mr,cr in cur.items():
+
                     # Commute the factor as necessary until we are in order
-                    pos = 0
                     for j in mr:
                         if i <= j:
                             break
                         # Add the additional term from the commutation
-                        t = list(mr)
-                        t.pop(pos)
-                        t = tuple(t)
+                        # get a non-frozen bitset to manipulate
+                        t = Bitset(mr) # a mutable copy
+                        t.discard(j)
+                        t = FrozenBitset(t)
                         next[t] = next.get(t, zero) + cr * Q[i,j]
                         # Note: ``Q[i,j] == Q(e[i]+e[j]) - Q(e[i]) - Q(e[j])`` for
                         # ``i != j``, where ``e[k]`` is the ``k``-th standard
@@ -140,22 +141,21 @@ class CliffordAlgebraElement(CombinatorialFreeModule.Element):
                         cr = -cr
                         if next[t] == zero:
                             del next[t]
-                        pos += 1
 
                     # Check to see if we have a squared term or not
-                    t = list(mr)
-                    if i in t:
-                        t.remove(i)
+                    mr = Bitset(mr) # temporarily mutable
+                    if i in mr:
+                        mr.discard(i)
                         cr *= Q[i,i]
                         # Note: ``Q[i,i] == Q(e[i])`` where ``e[i]`` is the
                         # ``i``-th standard basis vector.
                     else:
-                        t.insert(pos, i)
-                        # Note that ``t`` is now sorted.
-                    t = tuple(t)
-                    next[t] = next.get(t, zero) + cr
-                    if next[t] == zero:
-                        del next[t]
+                        # mr is implicitly sorted
+                        mr.add(i)
+                    mr = FrozenBitset(mr) # refreeze it
+                    next[mr] = next.get(mr, zero) + cr
+                    if next[mr] == zero:
+                        del next[mr]
                 cur = next
 
             # Add the distributed terms to the total

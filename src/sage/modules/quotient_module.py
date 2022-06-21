@@ -124,7 +124,7 @@ class QuotientModule_free_ambient(Module_free_ambient):
         """
         if self is other:
             return rich_to_bool(op, 0)
-        if not isinstance(other, Module_free_ambient):
+        if not isinstance(other, QuotientModule_free_ambient):
             return NotImplemented
 
         return richcmp((self.__module, self.__sub), (other.__module, other.__sub), op)

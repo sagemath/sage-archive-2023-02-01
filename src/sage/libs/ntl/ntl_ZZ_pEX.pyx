@@ -51,7 +51,7 @@ from sage.arith.power cimport generic_power_pos
 #
 ##############################################################################
 
-cdef class ntl_ZZ_pEX(object):
+cdef class ntl_ZZ_pEX():
     r"""
     The class \class{ZZ_pEX} implements polynomials over finite ring extensions of $\Z / p\Z$.
 
@@ -87,7 +87,7 @@ cdef class ntl_ZZ_pEX(object):
 
         if v is None:
             return
-        elif isinstance(v, list) or isinstance(v, tuple):
+        elif isinstance(v, (list, tuple)):
             for i from 0 <= i < len(v):
                 x = v[i]
                 if not isinstance(x, ntl_ZZ_pE):

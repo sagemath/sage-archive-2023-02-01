@@ -1,4 +1,3 @@
-# cython: language_level=2
 r"""
 Elements of `\ZZ/n\ZZ`
 
@@ -462,7 +461,7 @@ cdef class IntegerMod_abstract(FiniteRingElement):
             2
         """
         # The generators are irrelevant (Zmod(n) is its own base), so we ignore base_map
-        return codomain._coerce_(self)
+        return codomain.coerce(self)
 
     def __mod__(self, modulus):
         """
@@ -1559,7 +1558,7 @@ cdef class IntegerMod_abstract(FiniteRingElement):
             if nval >= plog.valuation() + (-1 if p == 2 else 0):
                 if self == 1:
                     if all:
-                        return [s*K(p*k+m.lift()) for k in range(p**(k-(2 if p==2 else 1))) for m in modp for s in sign]
+                        return [s*K(p*a+m.lift()) for a in range(p**(k-(2 if p==2 else 1))) for m in modp for s in sign]
                     else:
                         return K(modp.lift())
                 else:
@@ -2174,7 +2173,7 @@ cdef class IntegerMod_gmp(IntegerMod_abstract):
         mpz_add(x.value, self.value, (<IntegerMod_gmp>right).value)
         if mpz_cmp(x.value, self.__modulus.sageInteger.value)  >= 0:
             mpz_sub(x.value, x.value, self.__modulus.sageInteger.value)
-        return x;
+        return x
 
     cpdef _sub_(self, right):
         """
@@ -2189,7 +2188,7 @@ cdef class IntegerMod_gmp(IntegerMod_abstract):
         mpz_sub(x.value, self.value, (<IntegerMod_gmp>right).value)
         if mpz_sgn(x.value) == -1:
             mpz_add(x.value, x.value, self.__modulus.sageInteger.value)
-        return x;
+        return x
 
     cpdef _neg_(self):
         """

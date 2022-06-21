@@ -1591,6 +1591,7 @@ def compute_model(E, name):
     INPUT:
 
     - ``E`` (elliptic curve)
+
     - ``name`` (string) -- current options:
 
       - ``"minimal"``: Return a global minimal model of ``E`` if it
@@ -1604,7 +1605,7 @@ def compute_model(E, name):
 
     OUTPUT:
 
-    elliptic curve
+    An elliptic curve of the specified type isomorphic to `E`.
 
     EXAMPLES::
 

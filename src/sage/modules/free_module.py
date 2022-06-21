@@ -1528,8 +1528,11 @@ class Module_free_ambient(Module):
             gens = gens.gens()
         if base_ring is None or base_ring is self.base_ring():
             from .submodule import Submodule_free_ambient
-            return Submodule_free_ambient(self.ambient_module(), gens,
-                                               check=check)
+            if isinstance(self, Submodule_free_ambient):
+                ambient = self.defining_module()
+            else:
+                ambient = self.ambient_module()
+            return Submodule_free_ambient(ambient, gens, check=check)
         else:
             try:
                 M = self.change_ring(base_ring)

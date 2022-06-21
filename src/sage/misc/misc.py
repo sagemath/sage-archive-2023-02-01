@@ -255,7 +255,8 @@ def ECL_TMP():
     """
     from sage.misc.superseded import deprecation
     deprecation(33213, "ECL_TMP is deprecated and is no longer used by the ECL interface in sage")
-    import atexit, tempfile
+    import atexit
+    import tempfile
     d = tempfile.TemporaryDirectory()
     result = os.path.join(d.name, 'ecl')
     atexit.register(lambda: d.cleanup())

@@ -7633,8 +7633,8 @@ cdef class Matrix(Matrix1):
             raise NotImplementedError("%s\nEchelon form not implemented over '%s'."%(msg,self.base_ring()))
 
     def echelon_form(self, algorithm="default", cutoff=0, **kwds):
-        """
-        Return the echelon form of self.
+        r"""
+        Return the echelon form of ``self``.
 
         .. NOTE::
 
@@ -9782,7 +9782,7 @@ cdef class Matrix(Matrix1):
         return img
 
     def density(self):
-        """
+        r"""
         Return the density of the matrix.
 
         By density we understand the ratio of the number of nonzero

@@ -34,10 +34,10 @@ Methods
 #                  https://www.gnu.org/licenses/
 # ****************************************************************************
 
+cimport cython
 from memory_allocator cimport MemoryAllocator
 from sage.sets.disjoint_set cimport DisjointSet_of_hashables
 from sage.misc.decorators import rename_keyword
-cimport cython
 
 
 @rename_keyword(deprecation=32805, wfunction='weight_function')

@@ -141,7 +141,7 @@ robust manner, as long as you are creating a new object.
     sage: a = gap(t)
 
 Changing which GAP is used, and how
---------------------------
+-----------------------------------
 
 Set the environment variable :envvar:`SAGE_PEXPECT_GAP_COMMAND` to specify
 how GAP executable is called. E.g.  ::

@@ -101,15 +101,7 @@ class QuotientModule_free_ambient(Module_free_ambient):
             sage: M = S**2
             sage: N = M.submodule([vector([x - y, z]), vector([y*z, x*z])])
             sage: Q = M.quotient_module(N)
-            sage: d = {Q: 1}
-
-        We compute the hash of a certain 0-dimension quotient vector
-        space::
-
-            sage: A = QQ^2; V = A.span_of_basis([[1,0], [1,1]]); W = V.span([V.1, V.0])
-            sage: Q = V/W; Q.dimension()
-            0
-            sage: hash(Q) == hash((V,W))
+            sage: hash(Q) == hash((M,N))
             True
         """
         return self.__hash
@@ -203,9 +195,12 @@ class QuotientModule_free_ambient(Module_free_ambient):
 
         EXAMPLES::
 
-            sage: M = QQ^10 / [list(range(10)), list(range(2,12))]
-            sage: M.cover()
-            Vector space of dimension 10 over Rational Field
+            sage: S.<x,y,z> = PolynomialRing(QQ)
+            sage: M = S**2
+            sage: N = M.submodule([vector([x - y, z]), vector([y*z, x*z])])
+            sage: Q = M.quotient_module(N)
+            sage: Q.cover() is M
+            True
         """
         return self._domain
 
@@ -217,12 +212,12 @@ class QuotientModule_free_ambient(Module_free_ambient):
 
         EXAMPLES::
 
-            sage: M = QQ^10 / [list(range(10)), list(range(2,12))]
-            sage: M.relations()
-            Vector space of degree 10 and dimension 2 over Rational Field
-            Basis matrix:
-            [ 1  0 -1 -2 -3 -4 -5 -6 -7 -8]
-            [ 0  1  2  3  4  5  6  7  8  9]
+            sage: S.<x,y,z> = PolynomialRing(QQ)
+            sage: M = S**2
+            sage: N = M.submodule([vector([x - y, z]), vector([y*z, x*z])])
+            sage: Q = M.quotient_module(N)
+            sage: Q.relations() is N
+            True
         """
         return self._sub
 
@@ -235,7 +230,7 @@ class QuotientModule_free_ambient(Module_free_ambient):
 #
 ###############################################################################
 
-class FreeModule_ambient_field_quotient(FreeModule_ambient_field, QuotientModule_free_ambient):
+class FreeModule_ambient_field_quotient(FreeModule_ambient_field):
     """
     A quotient `V/W` of two vector spaces as a vector space.
 
@@ -349,15 +344,16 @@ class FreeModule_ambient_field_quotient(FreeModule_ambient_field, QuotientModule
             sage: Q( v )
             (1)
         """
-        QuotientModule_free_ambient.__init__(self, domain, sub)
+        base_field = domain.base_field()
         dimension = quotient_matrix.ncols()
-        FreeModule_ambient_field.__init__(self, domain.base_field(), dimension, domain.is_sparse())
-
+        sparse = domain.is_sparse()
+        self._sub = sub
+        self._domain = domain
+        self.__hash = hash((domain, sub))
+        FreeModule_ambient_field.__init__(self, base_field, dimension, sparse)
         self.__quo_map = domain.Hom(self)(quotient_matrix)
         self.__quo_map.register_as_coercion()
         self.__lift_map = self.Hom(domain)(lift_matrix)
-
-    __hash__ = QuotientModule_free_ambient.__hash__
 
     def _repr_(self):
         r"""
@@ -387,6 +383,23 @@ class FreeModule_ambient_field_quotient(FreeModule_ambient_field, QuotientModule
             self.dimension(), self.base_ring(),
             self.V(), self.W())
 
+    def __hash__(self):
+        """
+        Return hash of this quotient space `V/W`, which is, by definition,
+        the hash of the tuple `(V, W)`.
+
+        EXAMPLES:
+
+        We compute the hash of a certain 0-dimension quotient vector
+        space::
+
+            sage: A = QQ^2; V = A.span_of_basis([[1,0], [1,1]]); W = V.span([V.1, V.0])
+            sage: Q = V/W; Q.dimension()
+            0
+            sage: hash(Q) == hash((V,W))
+            True
+        """
+        return self.__hash
 
     def _element_constructor_(self, x):
         """
@@ -561,4 +574,35 @@ class FreeModule_ambient_field_quotient(FreeModule_ambient_field, QuotientModule
             (1, -2, 0)
         """
         return self.__lift_map(x)
+
+    def cover(self):
+        r"""
+        Given this quotient space `Q = V/W`, return `V`.
+
+        EXAMPLES::
+
+            sage: M = QQ^10 / [list(range(10)), list(range(2,12))]
+            sage: M.cover()
+            Vector space of dimension 10 over Rational Field
+        """
+        return self._domain
+
+    V = cover
+
+    def relations(self):
+        r"""
+        Given this quotient space `Q = V/W`, return `W`.
+
+        EXAMPLES::
+
+            sage: M = QQ^10 / [list(range(10)), list(range(2,12))]
+            sage: M.relations()
+            Vector space of degree 10 and dimension 2 over Rational Field
+            Basis matrix:
+            [ 1  0 -1 -2 -3 -4 -5 -6 -7 -8]
+            [ 0  1  2  3  4  5  6  7  8  9]
+        """
+        return self._sub
+
+    W = relations
 

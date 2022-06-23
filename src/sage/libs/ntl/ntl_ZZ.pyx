@@ -46,7 +46,7 @@ cdef make_ZZ(ZZ_c* x):
 # ZZ: Arbitrary precision integers
 ##############################################################################
 
-cdef class ntl_ZZ(object):
+cdef class ntl_ZZ():
     r"""
     The \class{ZZ} class is used to represent signed, arbitrary length integers.
 
@@ -99,7 +99,7 @@ cdef class ntl_ZZ(object):
             if not ((v[0].isdigit() or v[0] == '-') and \
                     (v[1:-1].isdigit() or (len(v) <= 2)) and \
                     (v[-1].isdigit() or (v[-1].lower() in ['l','r']))):
-               raise ValueError("invalid integer: %s" % v)
+                raise ValueError("invalid integer: %s" % v)
             ccreadstr(self.x, v)
 
     def __repr__(self):

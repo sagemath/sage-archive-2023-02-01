@@ -101,7 +101,7 @@ from sage.libs.ecl import EclObject, ecl_eval
 from .maxima_abstract import (MaximaAbstract, MaximaAbstractFunction,
     MaximaAbstractElement, MaximaAbstractFunctionElement,
     MaximaAbstractElementFunction)
-from sage.docs.instancedoc import instancedoc
+from sage.misc.instancedoc import instancedoc
 from sage.env import MAXIMA_FAS
 
 
@@ -1271,6 +1271,8 @@ max_array = EclObject("ARRAY")
 mdiff = EclObject("%DERIVATIVE")
 max_lambert_w = sage_op_dict[sage.functions.log.lambert_w]
 max_harmo = EclObject("$GEN_HARMONIC_NUMBER")
+max_pochhammer = EclObject("$POCHHAMMER")
+
 
 def mrat_to_sage(expr):
     r"""
@@ -1466,15 +1468,34 @@ def max_harmonic_to_sage(expr):
     return sage.functions.log.harmonic_number(max_to_sr(caddr(expr)),
                                               max_to_sr(cadr(expr)))
 
-## The dictionaries
-special_max_to_sage={
-    mrat : mrat_to_sage,
-    mqapply : mqapply_to_sage,
-    mdiff : mdiff_to_sage,
-    EclObject("%INTEGRATE") : dummy_integrate,
-    max_at : max_at_to_sage,
-    mlist : mlist_to_sage,
-    max_harmo : max_harmonic_to_sage
+
+def max_pochhammer_to_sage(expr):
+    """
+    EXAMPLES::
+
+        sage: from sage.interfaces.maxima_lib import maxima_lib, max_to_sr
+        sage: c = maxima_lib('pochhammer(x,n)')
+        sage: c.ecl()
+        <ECL: (($POCHHAMMER SIMP) $X $N)>
+        sage: max_to_sr(c.ecl())
+        gamma(n + x)/gamma(x)
+    """
+    from sage.functions.gamma import gamma
+    x = max_to_sr(cadr(expr))
+    y = max_to_sr(caddr(expr))
+    return gamma(x + y) / gamma(x)
+
+
+# The dictionaries
+special_max_to_sage = {
+    mrat: mrat_to_sage,
+    mqapply: mqapply_to_sage,
+    mdiff: mdiff_to_sage,
+    EclObject("%INTEGRATE"): dummy_integrate,
+    max_at: max_at_to_sage,
+    mlist: mlist_to_sage,
+    max_harmo: max_harmonic_to_sage,
+    max_pochhammer: max_pochhammer_to_sage
 }
 
 special_sage_to_max={
@@ -1568,7 +1589,7 @@ def sr_to_max(expr):
     """
     global sage_op_dict, max_op_dict
     global sage_sym_dict, max_sym_dict
-    if isinstance(expr,list) or isinstance(expr,tuple):
+    if isinstance(expr, (list, tuple)):
         return EclObject(([mlist],[sr_to_max(e) for e in expr]))
     op = expr.operator()
     if op:

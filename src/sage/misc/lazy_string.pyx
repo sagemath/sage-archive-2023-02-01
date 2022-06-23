@@ -136,7 +136,7 @@ def _make_lazy_string(ftype, fpickle, args, kwargs):
         f = fpickle
     return _LazyString(f, args, kwargs)
 
-cdef class _LazyString(object):
+cdef class _LazyString():
     """
     Lazy class for strings created by a function call or a format string.
 
@@ -248,7 +248,7 @@ cdef class _LazyString(object):
         """
         return key in self.val()
 
-    def __nonzero__(self):
+    def __bool__(self):
         """
         EXAMPLES::
 

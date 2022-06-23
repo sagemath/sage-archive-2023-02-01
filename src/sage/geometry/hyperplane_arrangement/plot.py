@@ -106,13 +106,14 @@ EXAMPLES::
 
 from copy import copy
 from colorsys import hsv_to_rgb
-from sage.plot.plot3d.parametric_plot3d import parametric_plot3d
-from sage.plot.plot3d.shapes2 import text3d
-from sage.plot.graphics import Graphics
-from sage.plot.line import line
-from sage.plot.text import text
-from sage.plot.point import point
-from sage.plot.plot import parametric_plot
+from sage.misc.lazy_import import lazy_import
+lazy_import("sage.plot.plot3d.parametric_plot3d", "parametric_plot3d")
+lazy_import("sage.plot.plot3d.shapes2", "text3d")
+lazy_import("sage.plot.graphics", "Graphics")
+lazy_import("sage.plot.line", "line")
+lazy_import("sage.plot.text", "text")
+lazy_import("sage.plot.point", "point")
+lazy_import("sage.plot.plot", "parametric_plot")
 from sage.symbolic.ring import SR
 
 
@@ -521,4 +522,3 @@ def legend_3d(hyperplane_arrangement, hyperplane_colors, length):
             fancybox=True, font_size='x-large', ncol=2)
     p.legend(True)
     return p
-

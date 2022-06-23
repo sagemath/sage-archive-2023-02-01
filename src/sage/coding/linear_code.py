@@ -209,7 +209,7 @@ from io import StringIO
 from copy import copy
 
 from sage.cpython.string import bytes_to_str
-from sage.interfaces.all import gap
+from sage.interfaces.gap import gap
 from sage.categories.cartesian_product import cartesian_product
 from sage.categories.fields import Fields
 from sage.matrix.matrix_space import MatrixSpace
@@ -344,20 +344,6 @@ class AbstractLinearCode(AbstractLinearCodeNoMetric):
         It is thus strongly recommended to set an encoder with a generator matrix implemented
         as a default encoder.
 
-        TESTS:
-
-        This class uses the following experimental feature:
-        :class:`sage.coding.relative_finite_field_extension.RelativeFiniteFieldExtension`.
-        This test block is here only to trigger the experimental warning so it does not
-        interferes with doctests::
-
-            sage: from sage.coding.relative_finite_field_extension import *
-            sage: Fqm.<aa> = GF(16)
-            sage: Fq.<a> = GF(4)
-            sage: RelativeFiniteFieldExtension(Fqm, Fq)
-            doctest:...: FutureWarning: This class/method/function is marked as experimental. It, its functionality or its interface might change without a formal deprecation.
-            See http://trac.sagemath.org/20284 for details.
-            Relative field extension between Finite Field in aa of size 2^4 and Finite Field in a of size 2^2
     """
     _registered_encoders = {}
     _registered_decoders = {}
@@ -2012,14 +1998,14 @@ class AbstractLinearCode(AbstractLinearCodeNoMetric):
         r = n-d-dperp+2
         P_coeffs = []
         for i in range(len(b)):
-           if i == 0:
-              P_coeffs.append(b[0])
-           if i == 1:
-              P_coeffs.append(b[1] - (q+1)*b[0])
-           if i>1:
-              P_coeffs.append(b[i] - (q+1)*b[i-1] + q*b[i-2])
+            if i == 0:
+                P_coeffs.append(b[0])
+            if i == 1:
+                P_coeffs.append(b[1] - (q+1)*b[0])
+            if i > 1:
+                P_coeffs.append(b[i] - (q+1)*b[i-1] + q*b[i-2])
         P = sum([P_coeffs[i]*T**i for i in range(r+1)])
-        return RT(P)/RT(P)(1)
+        return RT(P) / RT(P)(1)
 
     def zeta_function(self, name="T"):
         r"""
@@ -2027,11 +2013,11 @@ class AbstractLinearCode(AbstractLinearCodeNoMetric):
 
         INPUT:
 
-        - ``name`` - String, variable name (default: ``"T"``)
+        - ``name`` -- String, variable name (default: ``"T"``)
 
         OUTPUT:
 
-        - Element of `\QQ(T)`
+        Element of `\QQ(T)`
 
         EXAMPLES::
 
@@ -2039,9 +2025,9 @@ class AbstractLinearCode(AbstractLinearCodeNoMetric):
             sage: C.zeta_function()
             (1/5*T^2 + 1/5*T + 1/10)/(T^2 - 3/2*T + 1/2)
         """
-        P =  self.zeta_polynomial()
-        q = (self.base_ring()).characteristic()
-        RT = PolynomialRing(QQ,"%s"%name)
+        P = self.zeta_polynomial()
+        q = self.base_ring().characteristic()
+        RT = PolynomialRing(QQ, name)
         T = RT.gen()
         return P/((1-T)*(1-q*T))
 

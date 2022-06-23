@@ -175,14 +175,14 @@ class CartanType(cartan_type.CartanType_decorator, cartan_type.CartanType_crysta
         if self.is_affine() and self.options.notation == "Kac":
             if self._type.type() == 'B':
                 if compact:
-                    return 'A%s^2'%(self.classical().rank()*2-1)
-                return "['A', %s, 2]"%(self.classical().rank()*2-1)
+                    return 'A%s^2' % (self.classical().rank()*2-1)
+                return "['A', %s, 2]" % (self.classical().rank()*2-1)
             elif self._type.type() == 'BC':
                 dual_str = '+'
             elif self._type.type() == 'C':
                 if compact:
-                    return 'D%s^2'%(self.rank())
-                return "['D', %s, 2]"%(self.rank())
+                    return 'D%s^2' % (self.rank())
+                return "['D', %s, 2]" % (self.rank())
             elif self._type.type() == 'F':
                 if compact:
                     return 'E6^2'
@@ -272,7 +272,7 @@ class CartanType(cartan_type.CartanType_decorator, cartan_type.CartanType_crysta
     def __eq__(self, other):
         """
         Return whether ``self`` is equal to ``other``.
-        
+
         EXAMPLES::
 
             sage: B41 = CartanType(['B', 4, 1])
@@ -293,7 +293,7 @@ class CartanType(cartan_type.CartanType_decorator, cartan_type.CartanType_crysta
     def __ne__(self, other):
         """
         Return whether ``self`` is equal to ``other``.
-        
+
         EXAMPLES::
 
             sage: B41 = CartanType(['B', 4, 1])
@@ -598,14 +598,14 @@ class CartanType_affine(CartanType, cartan_type.CartanType_affine):
         if self.options.notation == "Kac":
             if self._type.type() == 'B':
                 if compact:
-                    return 'A%s^2'%(self.classical().rank()*2-1)
-                return "['A', %s, 2]"%(self.classical().rank()*2-1)
+                    return 'A%s^2' % (self.classical().rank()*2-1)
+                return "['A', %s, 2]" % (self.classical().rank()*2-1)
             elif self._type.type() == 'BC':
                 pass
             elif self._type.type() == 'C':
                 if compact:
-                    return 'D%s^2'%(self.rank())
-                return "['D', %s, 2]"%(self.rank())
+                    return 'D%s^2' % (self.rank())
+                return "['D', %s, 2]" % (self.rank())
             elif self._type.type() == 'F':
                 if compact:
                     return 'E6^2'
@@ -642,11 +642,11 @@ class CartanType_affine(CartanType, cartan_type.CartanType_affine):
         """
         if self.options('notation') == "Kac":
             if self._type.type() == 'B':
-                return "A_{%s}^{(2)}"%(self.classical().rank()*2-1)
+                return "A_{%s}^{(2)}" % (self.classical().rank()*2-1)
             elif self._type.type() == 'BC':
-                return "A_{%s}^{(2)\\dagger}"%(2*self.classical().rank())
+                return "A_{%s}^{(2)\\dagger}" % (2*self.classical().rank())
             elif self._type.type() == 'C':
-                return "D_{%s}^{(2)}"%(self.rank)()
+                return "D_{%s}^{(2)}" % (self.rank)()
             elif self._type.type() == 'F':
                 return "E_6^{(2)}"
         result = self._type._latex_()
@@ -692,4 +692,3 @@ class CartanType_affine(CartanType, cartan_type.CartanType_affine):
         if letter == 'G': # D_4^{(3)}
             return CartanTypeFolded(self, ['D', 4, 1], [[0], [1, 3, 4], [2]])
         return super(CartanType, self)._default_folded_cartan_type()
-

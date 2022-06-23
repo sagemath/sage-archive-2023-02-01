@@ -224,7 +224,6 @@ class EllipticCurveHom_composite(EllipticCurveHom):
               From: Elliptic Curve defined by y^2 = x^3 + x over Finite Field of size 419
               To:   Elliptic Curve defined by y^2 = x^3 + 373*x + 126 over Finite Field of size 419
 
-
         The given kernel generators need not be independent::
 
             sage: K.<a> = NumberField(x^2 - x - 5)
@@ -260,13 +259,13 @@ class EllipticCurveHom_composite(EllipticCurveHom):
             kernel = [kernel]
 
         for P in kernel:
-            if not P in E:
+            if P not in E:
                 raise ValueError(f'given point {P} does not lie on {E}')
 
         self._phis = _compute_factored_isogeny(kernel)
 
         if not self._phis:
-            self._phis = [WeierstrassIsomorphism(E, (1,0,0,0))]
+            self._phis = [WeierstrassIsomorphism(E, (1, 0, 0, 0))]
 
         if codomain is not None:
             if not isinstance(codomain, EllipticCurve_generic):
@@ -766,6 +765,36 @@ class EllipticCurveHom_composite(EllipticCurveHom):
             res = res(phi.formal(prec=prec))
         return res
 
+    def scaling_factor(self):
+        r"""
+        Return the Weierstrass scaling factor associated to this
+        composite morphism.
+
+        The scaling factor is the constant `u` (in the base field)
+        such that `\varphi^* \omega_2 = u \omega_1`, where
+        `\varphi: E_1\to E_2` is this morphism and `\omega_i` are
+        the standard Weierstrass differentials on `E_i` defined by
+        `\mathrm dx/(2y+a_1x+a_3)`.
+
+        EXAMPLES::
+
+            sage: from sage.schemes.elliptic_curves.hom_composite import EllipticCurveHom_composite
+            sage: from sage.schemes.elliptic_curves.weierstrass_morphism import WeierstrassIsomorphism
+            sage: E = EllipticCurve(GF(65537), [1,2,3,4,5])
+            sage: P = E.lift_x(7321)
+            sage: phi = EllipticCurveHom_composite(E, P)
+            sage: phi = WeierstrassIsomorphism(phi.codomain(), [7,8,9,10]) * phi
+            sage: phi.formal()
+            7*t + 65474*t^2 + 511*t^3 + 61316*t^4 + 20548*t^5 + 45511*t^6 + 37285*t^7 + 48414*t^8 + 9022*t^9 + 24025*t^10 + 35986*t^11 + 55397*t^12 + 25199*t^13 + 18744*t^14 + 46142*t^15 + 9078*t^16 + 18030*t^17 + 47599*t^18 + 12158*t^19 + 50630*t^20 + 56449*t^21 + 43320*t^22 + O(t^23)
+            sage: phi.scaling_factor()
+            7
+
+        ALGORITHM: The scaling factor is multiplicative under
+        composition, so we return the product of the individual
+        scaling factors associated to each factor.
+        """
+        return prod(phi.scaling_factor() for phi in self._phis)
+
     def is_injective(self):
         """
         Determine whether this composite morphism has trivial kernel.
@@ -840,4 +869,3 @@ class EllipticCurveHom_composite(EllipticCurveHom):
                 return ret
             return EllipticCurveHom_composite.from_factors([other, self])
         EllipticCurveHom._composition_ = _composition_
-

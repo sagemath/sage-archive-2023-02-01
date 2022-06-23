@@ -22,7 +22,7 @@ import time
 from sage.groups.perm_gps.partn_ref.refinement_graphs import search_tree, get_orbits
 from sage.rings.integer_ring import ZZ
 from sage.rings.infinity import infinity
-from sage.graphs.all import DiGraph
+from sage.graphs.digraph import DiGraph
 from sage.combinat.cluster_algebra_quiver.quiver_mutation_type import _edge_list_to_matrix
 
 
@@ -51,7 +51,7 @@ def _principal_part(mat):
     """
     n, m = mat.ncols(), mat.nrows() - mat.ncols()
     if m < 0:
-        raise ValueError('The input matrix has more columns than rows.')
+        raise ValueError('the input matrix has more columns than rows')
     elif m == 0:
         return mat
     else:
@@ -580,7 +580,7 @@ def _is_valid_digraph_edge_set( edges, frozen=0 ):
 
         # checks if the digraph contains loops
         if dg.has_loops():
-            print("The given digraph or edge list contains loops.")
+            print("The given digraph or edge list contains loops")
             return False
 
         # checks if the digraph contains oriented 2-cycles

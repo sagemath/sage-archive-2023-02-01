@@ -809,7 +809,7 @@ cdef class RelaxedElement(pAdicGenericElement):
             return a == b
         return self.is_equal_to(other, secure=self._parent.is_secure())
 
-    def __nonzero__(self):
+    def __bool__(self):
         r"""
         Return ``True`` if this element is indistinguishable from zero.
 
@@ -2001,7 +2001,7 @@ cdef class RelaxedElement(pAdicGenericElement):
             :func:`dumps`, :func:`loads`
         """
         tester = self._tester(**options)
-        from sage.misc.all import loads, dumps
+        from sage.misc.persist import loads, dumps
         if self._precbound >= maxordp:
             tester.assertEqual(loads(dumps(self)), self.at_precision_relative())
         else:
@@ -4030,7 +4030,7 @@ cdef class RelaxedElement_zeroone(RelaxedElementWithDigits):
         return ERROR_NOTDEFINED
 
 
-cdef class ExpansionIter(object):
+cdef class ExpansionIter():
     """
     An iterator over a `p`-adic expansion.
 

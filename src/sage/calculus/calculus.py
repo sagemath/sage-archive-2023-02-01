@@ -381,6 +381,12 @@ Ensure that :trac:`8624` is fixed::
     sage: integrate(sqrt(cos(x)^2 + sin(x)^2), x, 0, 2*pi)
     2*pi
 
+Ensure that :trac:`25626` is fixed::
+
+    sage: t = SR.var('t')
+    sage: integrate(exp(t)/(t + 1)^2, t, algorithm="giac")
+    (t*Ei(t + 1) + Ei(t + 1) - e^(t + 1))/(t*e + e)
+
 Check if maxima has redundant variables defined after initialization,
 see :trac:`9538`::
 
@@ -1614,7 +1620,9 @@ def laplace(ex, t, s, algorithm='maxima'):
         91/8*e^(4*t) + 629/8*e^(-4*t)
         sage: p1 = plot(xt,0,1/2,rgbcolor=(1,0,0))
         sage: p2 = plot(yt,0,1/2,rgbcolor=(0,1,0))
-        sage: (p1+p2).save(os.path.join(SAGE_TMP, "de_plot.png"))
+        sage: import tempfile
+        sage: with tempfile.NamedTemporaryFile(suffix=".png") as f:
+        ....:     (p1+p2).save(f.name)
 
     Another example::
 
@@ -1639,9 +1647,9 @@ def laplace(ex, t, s, algorithm='maxima'):
         sage: laplace(dirac_delta(t), t, s)
         1
         sage: F, a, cond = laplace(dirac_delta(t), t, s, algorithm='sympy')
-        sage: a, cond
-        (-oo, True)
-        sage: F       # random - sympy <1.9 includes undefined heaviside(0) in answer
+        sage: a, cond  # random - sympy <1.10 gives (-oo, True)
+        (0, True)
+        sage: F        # random - sympy <1.9 includes undefined heaviside(0) in answer
         1
         sage: laplace(dirac_delta(t), t, s, algorithm='giac')
         1
@@ -1991,9 +1999,8 @@ def at(ex, *args, **kwds):
     if len(args) == 1 and isinstance(args[0], list):
         for c in args[0]:
             kwds[str(c.lhs())] = c.rhs()
-    else:
-        if len(args):
-            raise TypeError("at can take at most one argument, which must be a list")
+    elif args:
+        raise TypeError("at can take at most one argument, which must be a list")
 
     return ex.subs(**kwds)
 
@@ -2075,6 +2082,21 @@ def dummy_inverse_laplace(*args):
     """
     return _inverse_laplace(args[0], var(repr(args[1])), var(repr(args[2])))
 
+
+def dummy_pochhammer(*args):
+    """
+    This function is called to create formal wrappers of Pochhammer symbols
+
+    EXAMPLES::
+
+        sage: from sage.calculus.calculus import dummy_pochhammer
+        sage: s,t = var('s,t')
+        sage: dummy_pochhammer(s,t)
+        gamma(s + t)/gamma(s)
+    """
+    x, y = args
+    from sage.functions.gamma import gamma
+    return gamma(x + y) / gamma(x)
 
 #######################################################
 #
@@ -2268,7 +2290,7 @@ def symbolic_expression_from_maxima_string(x, equals_sub=False, maxima=maxima):
     function_syms = {k: v for k, v in symbol_table.get('maxima', {}).items()
                      if _is_function(v)}
 
-    if not len(x):
+    if not x:
         raise RuntimeError("invalid symbolic expression -- ''")
     maxima.set('_tmp_', x)
 
@@ -2352,6 +2374,7 @@ def symbolic_expression_from_maxima_string(x, equals_sub=False, maxima=maxima):
     function_syms['laplace'] = dummy_laplace
     function_syms['ilt'] = dummy_inverse_laplace
     function_syms['at'] = at
+    function_syms['pochhammer'] = dummy_pochhammer
 
     global is_simplified
     try:

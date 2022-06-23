@@ -165,7 +165,7 @@ class CrystalOfLSPaths(UniqueRepresentation, Parent):
             if starting_weight.parent() != starting_weight_parent:
                 raise ValueError("The passed parent is not equal to parent of the inputted weight!")
 
-        return super(CrystalOfLSPaths, cls).__classcall__(cls, starting_weight, starting_weight_parent = starting_weight_parent)
+        return super().__classcall__(cls, starting_weight, starting_weight_parent = starting_weight_parent)
 
     def __init__(self, starting_weight, starting_weight_parent):
         """
@@ -205,14 +205,14 @@ class CrystalOfLSPaths(UniqueRepresentation, Parent):
         self.R = RootSystem(cartan_type)
         self.weight = starting_weight
         if not self.weight.parent().base_ring().has_coerce_map_from(QQ):
-             raise ValueError("Please use the weight space, rather than weight lattice for your weights")
+            raise ValueError("Please use the weight space, rather than weight lattice for your weights")
         self._cartan_type = cartan_type
-        self._name = "The crystal of LS paths of type %s and weight %s"%(cartan_type,starting_weight)
+        self._name = "The crystal of LS paths of type %s and weight %s" % (cartan_type,starting_weight)
         if cartan_type.is_affine():
-            if all(i>=0 for i in starting_weight.coefficients()):
-                Parent.__init__( self, category=(RegularCrystals(),
-                                                 HighestWeightCrystals(),
-                                                 InfiniteEnumeratedSets()) )
+            if all(i >= 0 for i in starting_weight.coefficients()):
+                Parent.__init__(self, category=(RegularCrystals(),
+                                                HighestWeightCrystals(),
+                                                InfiniteEnumeratedSets()))
             elif starting_weight.parent().is_extended():
                 Parent.__init__(self, category=(RegularCrystals(), InfiniteEnumeratedSets()))
             else:
@@ -1320,8 +1320,8 @@ class InfinityCrystalOfLSPaths(UniqueRepresentation, Parent):
                 sage: len(B.subcrystal(max_depth=7))
                 116
             """
-            ret = super(InfinityCrystalOfLSPaths.Element, self).e(i, power=power,
-                                                                  length_only=length_only)
+            ret = super().e(i, power=power,
+                            length_only=length_only)
             if ret is None:
                 return None
             if length_only:
@@ -1489,4 +1489,3 @@ def positively_parallel_weights(v, w):
         if v[i]*w[i] > 0 and v[i]*w == w[i]*v:
             return True
     return False
-

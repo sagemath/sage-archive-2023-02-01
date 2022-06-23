@@ -181,7 +181,7 @@ class IntegralCurveClosedPoint(CurveClosedPoint):
             sage: pts[0]
             Point (x, y)
         """
-        return "Point ({})".format(', '.join([repr(g) for g in self.prime_ideal().gens()]))
+        return "Point ({})".format(', '.join(repr(g) for g in self.prime_ideal().gens()))
 
     def curve(self):
         """
@@ -421,4 +421,3 @@ class IntegralProjectiveCurveClosedPoint(IntegralCurveClosedPoint):
 
         Ca = C.affine_patch(i)
         return Ca._closed_point(Ca, prime, self.degree())
-

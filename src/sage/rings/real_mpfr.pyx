@@ -538,7 +538,7 @@ cdef class RealField_class(sage.rings.abc.RealField):
         self.rnd_str = char_to_str(rnd_str + 5)  # Strip "MPFR_"
 
         from sage.categories.fields import Fields
-        ParentWithGens.__init__(self, self, tuple([]), False, category=Fields().Infinite().Metric().Complete())
+        ParentWithGens.__init__(self, self, tuple(), False, category=Fields().Infinite().Metric().Complete())
 
         # Initialize zero and one
         cdef RealNumber rn
@@ -2092,12 +2092,12 @@ cdef class RealNumber(sage.structure.element.RingElement):
         if s is NULL:
             raise RuntimeError("unable to convert an mpfr number to a string")
         # t contains just digits (no sign, decimal point or exponent)
-        if s[0] == '-':
+        t = char_to_str(s)
+        if t[0] == '-':
             sgn = "-"
             t = char_to_str(s + 1)
         else:
             sgn = ""
-            t = char_to_str(s)
         mpfr_free_str(s)
 
         if skip_zeroes:
@@ -4027,7 +4027,7 @@ cdef class RealNumber(sage.structure.element.RingElement):
         return mpfr_inf_p(self.value) and mpfr_sgn(self.value) < 0
 
     def is_infinity(self):
-        """
+        r"""
         Return ``True`` if ``self`` is `\infty` and ``False`` otherwise.
 
         EXAMPLES::
@@ -4098,7 +4098,7 @@ cdef class RealNumber(sage.structure.element.RingElement):
         """
         return mpfr_integer_p(self.value) != 0
 
-    def __nonzero__(self):
+    def __bool__(self):
         """
         Return ``True`` if ``self`` is nonzero.
 

@@ -487,8 +487,10 @@ cdef class InteractiveLPBackend:
         """
         A, b, c, x, constraint_types, variable_types, problem_type, ring, d = self._AbcxCVPRd()
         A = A.delete_rows((i,))
-        b = list(b); del b[i]
-        constraint_types=list(constraint_types); del constraint_types[i]
+        b = list(b)
+        del b[i]
+        constraint_types = list(constraint_types)
+        del constraint_types[i]
         self.lp = InteractiveLPProblem(A, b, c, x,
                                        constraint_types, variable_types,
                                        problem_type, ring, objective_constant_term=d)
@@ -528,11 +530,11 @@ cdef class InteractiveLPBackend:
         """
         A, b, c, x, constraint_types, variable_types, problem_type, ring, d = self._AbcxCVPRd()
         if lower_bound is None:
-           if upper_bound is None:
-               raise ValueError("At least one of lower_bound and upper_bound must be provided")
-           else:
-               constraint_types = constraint_types + ("<=",)
-               b = tuple(b) + (upper_bound,)
+            if upper_bound is None:
+                raise ValueError("At least one of lower_bound and upper_bound must be provided")
+            else:
+                constraint_types = constraint_types + ("<=",)
+                b = tuple(b) + (upper_bound,)
         else:
             if upper_bound is None:
                 constraint_types = constraint_types + (">=",)

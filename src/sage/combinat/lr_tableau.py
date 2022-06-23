@@ -201,7 +201,7 @@ class LittlewoodRichardsonTableaux(SemistandardTableaux):
             sage: LittlewoodRichardsonTableaux([3,2,1],[[2,1],[2,1]])
             Littlewood-Richardson Tableaux of shape [3, 2, 1] and weight ([2, 1], [2, 1])
         """
-        return "Littlewood-Richardson Tableaux of shape %s and weight %s"%(self._shape, self._weight)
+        return "Littlewood-Richardson Tableaux of shape %s and weight %s" % (self._shape, self._weight)
 
     def __iter__(self):
         r"""
@@ -304,4 +304,3 @@ def _tableau_join(t1, t2, shift=0):
     """
     return [[e1 for e1 in row1] + [e2+shift for e2 in row2 if e2 is not None]
             for (row1, row2) in zip_longest(t1, t2, fillvalue=[])]
-

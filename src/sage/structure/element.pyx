@@ -813,7 +813,7 @@ cdef class Element(SageObject):
             sage: Integer(5).subs(x=4)
             5
         """
-        if not hasattr(self, '__call__'):
+        if not callable(self):
             return self
         parent = self._parent
         try:
@@ -823,8 +823,8 @@ cdef class Element(SageObject):
         variables=[]
         # use "gen" instead of "gens" as a ParentWithGens is not
         # required to have the latter
-        for i in xrange(0,ngens):
-            gen=parent.gen(i)
+        for i in range(ngens):
+            gen = parent.gen(i)
             if str(gen) in kwds:
                 variables.append(kwds[str(gen)])
             elif in_dict and gen in in_dict:
@@ -1004,7 +1004,7 @@ cdef class Element(SageObject):
         s = str(self)
         return s.find("+") == -1 and s.find("-") == -1 and s.find(" ") == -1
 
-    def __nonzero__(self):
+    def __bool__(self):
         r"""
         Return whether this element is equal to ``self.parent()(0)``.
 
@@ -1054,12 +1054,12 @@ cdef class Element(SageObject):
         Return ``True`` if ``self`` equals ``self.parent()(0)``.
 
         The default implementation is to fall back to ``not
-        self.__nonzero__``.
+        self.__bool__``.
 
         .. WARNING::
 
             Do not re-implement this method in your subclass but
-            implement ``__nonzero__`` instead.
+            implement ``__bool__`` instead.
         """
         return not self
 
@@ -1684,7 +1684,8 @@ cdef class Element(SageObject):
             2/3
             sage: operator.truediv(pi, 3)
             1/3*pi
-            sage: K.<i> = NumberField(x^2+1)
+            sage: x = polygen(QQ, 'x')
+            sage: K.<i> = NumberField(x^2 + 1)
             sage: operator.truediv(2, K.ideal(i+1))
             Fractional ideal (-i + 1)
 
@@ -2549,9 +2550,9 @@ cdef class MonoidElement(Element):
 
         EXAMPLES::
 
-            sage: G = SymmetricGroup(4)
-            sage: g = G([2, 3, 4, 1])
-            sage: g.powers(4)
+            sage: G = SymmetricGroup(4)                                 # optional - sage.groups
+            sage: g = G([2, 3, 4, 1])                                   # optional - sage.groups
+            sage: g.powers(4)                                           # optional - sage.groups
             [(), (1,2,3,4), (1,3)(2,4), (1,4,3,2)]
         """
         if n < 0:
@@ -2565,7 +2566,7 @@ cdef class MonoidElement(Element):
             l.append(x)
         return l
 
-    def __nonzero__(self):
+    def __bool__(self):
         return True
 
 
@@ -2736,6 +2737,72 @@ cdef class RingElement(ModuleElement):
         except AttributeError:
             raise bin_op_exception('/', self, other)
         return frac(self, other)
+
+    def __divmod__(self, other):
+        """
+        Return the quotient and remainder of ``self`` divided by ``other``.
+
+        This operation may not be defined in all rings.
+
+        EXAMPLES::
+
+            sage: divmod(5,3)
+            (1, 2)
+            sage: divmod(25r,12)
+            (2, 1)
+            sage: divmod(25,12r)
+            (2, 1)
+
+        ::
+
+            sage: R.<x> = QQ[]
+            sage: f = -19/13*x^5 - x^4 - 2/3*x^3 + 6*x^2 - 2
+            sage: g = 3*x^2 + 5
+            sage: q,r = divmod(f,g)
+            sage: q
+            -19/39*x^3 - 1/3*x^2 + 23/39*x + 23/9
+            sage: r
+            -115/39*x - 133/9
+            sage: f == q*g + r
+            True
+
+        ::
+
+            sage: R.<x> = ZZ[]
+            sage: f = -2*x^5 + x^4 - 9*x^3 - 5*x^2 + 7*x + 4
+            sage: g = x^2 + 5
+            sage: q,r = divmod(f,g)
+            sage: q
+            -2*x^3 + x^2 + x - 10
+            sage: r
+            2*x + 54
+            sage: f == q*g + r
+            True
+            sage: h = 3*x^2 + 5
+            sage: q,r = divmod(f,h)
+            sage: q
+            -3*x - 2
+            sage: r
+            -2*x^5 + x^4 + x^2 + 22*x + 14
+            sage: f == q*h + r
+            True
+
+        ::
+
+            sage: R.<x> = GF(7)[]
+            sage: divmod(x^2, x-1)
+            (x + 1, 1)
+
+        ::
+
+            sage: divmod(22./7, RR(pi))
+            (1.00040249943477, 0.000000000000000)
+        """
+        try:
+            return self.quo_rem(other)
+        except (AttributeError, NotImplementedError):
+            pass
+        return (self // other, self % other)
 
     def __invert__(self):
         return self._parent.one() / self
@@ -4013,26 +4080,6 @@ cdef class EuclideanDomainElement(PrincipalIdealDomainElement):
 
     def quo_rem(self, other):
         raise NotImplementedError
-
-    def __divmod__(self, other):
-        """
-        Return the quotient and remainder of ``self`` divided by ``other``.
-
-        EXAMPLES::
-
-            sage: divmod(5,3)
-            (1, 2)
-            sage: divmod(25r,12)
-            (2, 1)
-            sage: divmod(25,12r)
-            (2, 1)
-
-        """
-        if isinstance(self, Element):
-            return self.quo_rem(other)
-        else:
-            x, y = canonical_coercion(self, other)
-            return x.quo_rem(y)
 
     cpdef _floordiv_(self, right):
         """

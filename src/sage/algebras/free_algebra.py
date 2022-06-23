@@ -439,7 +439,7 @@ class FreeAlgebra_generic(CombinatorialFreeModule, Algebra):
             Free Algebra on 3 generators (a, b, c) over Integer Ring
         """
         if R not in Rings():
-            raise TypeError("Argument R must be a ring.")
+            raise TypeError("argument R must be a ring")
         self.__ngens = n
         indices = FreeMonoid(n, names=names)
         cat = AlgebrasWithBasis(R)
@@ -591,6 +591,7 @@ class FreeAlgebra_generic(CombinatorialFreeModule, Algebra):
             if self.has_coerce_map_from(P): # letterplace versus generic
                 ngens = P.ngens()
                 M = self._indices
+
                 def exp_to_monomial(T):
                     out = []
                     for i in range(len(T)):
@@ -600,7 +601,7 @@ class FreeAlgebra_generic(CombinatorialFreeModule, Algebra):
                 return self.element_class(self, {exp_to_monomial(T):c for T,c in x.letterplace_polynomial().dict().items()})
         # ok, not a free algebra element (or should not be viewed as one).
         if isinstance(x, str):
-            from sage.all import sage_eval
+            from sage.misc.sage_eval import sage_eval
             G = self.gens()
             d = {str(v): G[i] for i,v in enumerate(self.variable_names())}
             return self(sage_eval(x, locals=d))
@@ -706,7 +707,7 @@ class FreeAlgebra_generic(CombinatorialFreeModule, Algebra):
             x
         """
         if i < 0 or not i < self.__ngens:
-            raise IndexError("Argument i (= {}) must be between 0 and {}.".format(i, self.__ngens-1))
+            raise IndexError("argument i (= {}) must be between 0 and {}".format(i, self.__ngens - 1))
         R = self.base_ring()
         F = self._indices
         return self.element_class(self, {F.gen(i): R.one()})
@@ -1336,4 +1337,3 @@ class PBWBasisOfFreeAlgebra(CombinatorialFreeModule):
                 x + x^2*y - 2*x*y*x + y*x^2 + y^4*x
             """
             return self.parent().expansion(self)
-

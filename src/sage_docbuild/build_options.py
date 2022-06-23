@@ -1,8 +1,11 @@
-###############################################
-# Options for building the Sage documentation #
-###############################################
+r"""
+Build options
 
-import os, re
+This module defines options for building Sage documentation.
+"""
+
+import os
+import re
 
 from sage.env import SAGE_DOC_SRC, SAGE_DOC
 
@@ -16,7 +19,7 @@ if PAPER:
 else:
     PAPEROPTS = ""
 
-#Note that this needs to have the doctrees dir
+# Note that this needs to have the doctrees dir
 ALLSPHINXOPTS = SPHINXOPTS + " " + PAPEROPTS + " "
 WEBSITESPHINXOPTS = ""
 

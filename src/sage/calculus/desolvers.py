@@ -76,7 +76,8 @@ import shutil
 import os
 
 from sage.interfaces.maxima import Maxima
-from sage.plot.all import line
+from sage.misc.lazy_import import lazy_import
+lazy_import("sage.plot.all", "line")
 from sage.symbolic.expression import is_SymbolicEquation
 from sage.symbolic.ring import SR, is_SymbolicVariable
 from sage.calculus.functional import diff
@@ -573,6 +574,7 @@ def desolve(de, dvar, ics=None, ivar=None, show_method=False, contrib_ode=False,
     dvar_str=P(dvar.operator()).str()
     ivar_str=P(ivar).str()
     de00 = de00.str()
+
     def sanitize_var(exprs):
         return exprs.replace("'"+dvar_str+"("+ivar_str+")",dvar_str)
     de0 = sanitize_var(de00)
@@ -810,6 +812,7 @@ def desolve_laplace(de, dvar, ics=None, ivar=None):
     ## verbatim copy from desolve - end
 
     dvar_str = str(dvar)
+
     def sanitize_var(exprs):  # 'y(x) -> y(x)
         return exprs.replace("'"+dvar_str,dvar_str)
     de0=de._maxima_()
@@ -1679,24 +1682,24 @@ def desolve_odeint(des, ics, times, dvars, ivar=None, compute_jac=False, args=()
             variabs = dvars[:]
             variabs.append(ivar)
             for de in des:
-                desc.append(fast_float(de,*variabs))
+                desc.append(fast_float(de, *variabs))
 
-            def func(y,t):
+            def func(y, t):
                 v = list(y[:])
                 v.append(t)
                 return [dec(*v) for dec in desc]
 
             if not compute_jac:
-                Dfun=None
+                Dfun = None
             else:
-                J = jacobian(des,dvars)
+                J = jacobian(des, dvars)
                 J = [list(v) for v in J]
-                J = fast_float(J,*variabs)
-                def Dfun(y,t):
+                J = fast_float(J, *variabs)
+
+                def Dfun(y, t):
                     v = list(y[:])
                     v.append(t)
                     return [[element(*v) for element in row] for row in J]
-
 
         sol=odeint(func, ics, times, args=args, Dfun=Dfun, rtol=rtol, atol=atol,
             tcrit=tcrit, h0=h0, hmax=hmax, hmin=hmin, ixpr=ixpr, mxstep=mxstep,

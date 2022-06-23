@@ -182,7 +182,7 @@ from sage.cpython.string import bytes_to_str
 from sage.env import SAGE_EXTCODE
 from sage.misc.misc import is_in_string
 from sage.misc.cachefunc import cached_method
-from sage.docs.instancedoc import instancedoc
+from sage.misc.instancedoc import instancedoc
 from sage.interfaces.tab_completion import ExtraTabCompletion
 from sage.structure.element import ModuleElement
 
@@ -664,14 +664,14 @@ class Gap_generic(ExtraTabCompletion, Expect):
             # them (on Python 3), currently just using the default encoding
             normal, error = bytes_to_str(normal), bytes_to_str(error)
 
-            if len(error):
+            if error:
                 if 'Error, Rebuild completion files!' in error:
                     error += "\nRunning gap_reset_workspace()..."
                     self.quit()
                     gap_reset_workspace()
                 error = error.replace('\r','')
                 raise RuntimeError("%s produced error output\n%s\n   executing %s"%(self, error,line))
-            if not len(normal):
+            if not normal:
                 return ''
 
             if isinstance(wait_for_prompt, str) and normal.ends_with(wait_for_prompt):
@@ -683,7 +683,7 @@ class Gap_generic(ExtraTabCompletion, Expect):
             else:
                 n = 0
             out = normal[:-n]
-            if len(out) and out[-1] == "\n":
+            if out and out[-1] == "\n":
                 out = out[:-1]
             return out
 
@@ -936,7 +936,7 @@ class GapElement_generic(ModuleElement, ExtraTabCompletion, ExpectElement):
         P = self._check_valid()
         return self != P(0) and repr(self) != 'false'
 
-    __nonzero__ = __bool__
+    
 
     def __len__(self):
         """
@@ -1276,7 +1276,6 @@ class Gap(Gap_generic):
             ...
             <BLANKLINE>
         """
-        tmp_to_use = self._local_tmpfile()
         if self.is_remote():
             tmp_to_use = self._remote_tmpfile()
         else:

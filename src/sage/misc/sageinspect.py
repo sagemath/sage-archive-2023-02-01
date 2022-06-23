@@ -183,7 +183,8 @@ def loadable_module_extension():
     EXAMPLES::
 
         sage: from sage.misc.sageinspect import loadable_module_extension
-        sage: sage.structure.sage_object.__file__.endswith(loadable_module_extension())
+        sage: from importlib.machinery import EXTENSION_SUFFIXES
+        sage: loadable_module_extension() in EXTENSION_SUFFIXES
         True
     """
     # Return the full platform-specific extension module suffix
@@ -258,9 +259,10 @@ def _extract_embedded_position(docstring):
         ....:     print(f.read())
         cpdef test_funct(x,y): return
 
-    Ensure that the embedded filename of the compiled function is correct.  In
-    particular it should be relative to ``SPYX_TMP`` in order for certain
-    documentation functions to work properly.  See :trac:`24097`::
+    Ensure that the embedded filename of the compiled function is
+    correct.  In particular it should be relative to ``spyx_tmp()`` in
+    order for certain documentation functions to work properly.  See
+    :trac:`24097`::
 
         sage: from sage.env import DOT_SAGE
         sage: from sage.misc.sage_ostools import restore_cwd
@@ -292,10 +294,10 @@ def _extract_embedded_position(docstring):
         # Try some common path prefixes for Cython modules built by/for Sage
         # 1) Module in the sage src tree
         # 2) Module compiled by Sage's inline cython() compiler
-        from sage.misc.misc import SPYX_TMP
+        from sage.misc.temporary_file import spyx_tmp
         try_filenames = [
             os.path.join(SAGE_LIB, raw_filename),
-            os.path.join(SPYX_TMP, '_'.join(raw_filename.split('_')[:-1]),
+            os.path.join(spyx_tmp(), '_'.join(raw_filename.split('_')[:-1]),
                          raw_filename)
         ]
         for try_filename in try_filenames:
@@ -802,11 +804,11 @@ class SageArgSpecVisitor(ast.NodeVisitor):
         """
         op = node.op.__class__.__name__
         if op == 'Add':
-            return self.visit(node.left)+self.visit(node.right)
+            return self.visit(node.left) + self.visit(node.right)
         if op == 'Mult':
-            return self.visit(node.left)*self.visit(node.right)
+            return self.visit(node.left) * self.visit(node.right)
         if op == 'BitAnd':
-            return self.visit(node.left)&self.visit(node.right)
+            return self.visit(node.left) & self.visit(node.right)
         if op == 'BitOr':
             return self.visit(node.left) | self.visit(node.right)
         if op == 'BitXor':
@@ -928,7 +930,7 @@ def _grep_first_pair_of_parentheses(s):
             if level == 1:
                 return '(' + ''.join(out)
             level -= 1
-        elif c=="\\" and (single_quote or double_quote):
+        elif c == "\\" and (single_quote or double_quote):
             escaped = not escaped
         else:
             escaped = False
@@ -1341,10 +1343,12 @@ def sage_getfile(obj):
     EXAMPLES::
 
         sage: from sage.misc.sageinspect import sage_getfile
-        sage: sage_getfile(sage.rings.rational)[-23:]
-        'sage/rings/rational.pyx'
-        sage: sage_getfile(Sq)[-42:]
-        'sage/algebras/steenrod/steenrod_algebra.py'
+        sage: sage_getfile(sage.rings.rational)
+        '...sage/rings/rational.pyx'
+        sage: sage_getfile(Sq)
+        '...sage/algebras/steenrod/steenrod_algebra.py'
+        sage: sage_getfile(x)
+        '...sage/symbolic/expression.pyx'
 
     The following tests against some bugs fixed in :trac:`9976`::
 
@@ -1400,8 +1404,9 @@ def sage_getfile(obj):
         sourcefile = inspect.getabsfile(obj)
     except TypeError: # this happens for Python builtins
         return ''
-    if sourcefile.endswith(loadable_module_extension()):
-        return sourcefile[:-len(loadable_module_extension())]+os.path.extsep+'pyx'
+    for suffix in import_machinery.EXTENSION_SUFFIXES:
+        if sourcefile.endswith(suffix):
+            return sourcefile[:-len(suffix)]+os.path.extsep+'pyx'
     return sourcefile
 
 
@@ -1760,7 +1765,7 @@ def sage_formatargspec(args, varargs=None, varkw=None, defaults=None,
         sage: defaults = [3]
         sage: sage_formatargspec(args, defaults=defaults)
         '(a, b, c=3)'
-        sage: import warnings; warnings.simplefilter('ignore')  # py3: ignore DeprecationWarning
+        sage: import warnings; warnings.simplefilter('ignore')  # ignore DeprecationWarning
         sage: formatargspec(args, defaults=defaults) == sage_formatargspec(args, defaults=defaults)
         True
     """
@@ -1880,7 +1885,7 @@ def _sage_getdoc_unformatted(obj):
     ``__doc__`` attribute. This should not give an error in
     ``_sage_getdoc_unformatted``, see :trac:`19671`::
 
-        sage: class NoSageDoc(object):
+        sage: class NoSageDoc():
         ....:     @property
         ....:     def __doc__(self):
         ....:         raise Exception("no doc here")
@@ -2051,7 +2056,6 @@ def sage_getdoc(obj, obj_name='', embedded=False):
             warn = """WARNING: the enclosing module is marked '{}',
 so doctests may not pass.""".format(skip)
             s = warn + "\n\n" + s
-        pass
 
     # Fix object naming
     if obj_name != '':
@@ -2266,7 +2270,7 @@ def sage_getsourcelines(obj):
         sage: sage_getsourcelines(cachedfib)[0][0]
         'def fibonacci(n, algorithm="pari") -> Integer:\n'
         sage: sage_getsourcelines(type(cachedfib))[0][0]
-        'cdef class CachedFunction(object):\n'
+        'cdef class CachedFunction():\n'
 
     TESTS::
 
@@ -2311,21 +2315,21 @@ def sage_getsourcelines(obj):
     use a dummy parent class that has defined an element class by a
     nested class definition::
 
-        sage: from sage.misc.nested_class_test import TestNestedParent
+        sage: from sage.misc.test_nested_class import TestNestedParent
         sage: from sage.misc.sageinspect import sage_getsource
         sage: P = TestNestedParent()
         sage: E = P.element_class
         sage: E.__bases__
-        (<class 'sage.misc.nested_class_test.TestNestedParent.Element'>,
+        (<class 'sage.misc.test_nested_class.TestNestedParent.Element'>,
          <class 'sage.categories.sets_cat.Sets.element_class'>)
         sage: print(sage_getsource(E))
-            class Element(object):
+            class Element():
                 "This is a dummy element class"
                 pass
         sage: print(sage_getsource(P))
         class TestNestedParent(UniqueRepresentation, Parent):
             ...
-            class Element(object):
+            class Element():
                 "This is a dummy element class"
                 pass
 
@@ -2427,9 +2431,9 @@ def sage_getsourcelines(obj):
             source_lines = f.readlines()
     except IOError:
         try:
-            from sage.misc.misc import SPYX_TMP
+            from sage.misc.temporary_file import spyx_tmp
             raw_name = filename.split('/')[-1]
-            newname = os.path.join(SPYX_TMP, '_'.join(raw_name.split('_')[:-1]), raw_name)
+            newname = os.path.join(spyx_tmp(), '_'.join(raw_name.split('_')[:-1]), raw_name)
             with open(newname) as f:
                 source_lines = f.readlines()
         except IOError:

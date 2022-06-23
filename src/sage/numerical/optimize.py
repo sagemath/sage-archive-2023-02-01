@@ -542,8 +542,8 @@ def minimize_constrained(func,cons,x0,gradient=None,algorithm='default', **args)
     else:
         f = func
 
-    if isinstance(cons,list):
-        if isinstance(cons[0], tuple) or isinstance(cons[0], list) or cons[0] is None:
+    if isinstance(cons, list):
+        if isinstance(cons[0], (tuple, list)) or cons[0] is None:
             if gradient is not None:
                 if algorithm == 'l-bfgs-b':
                     min = optimize.fmin_l_bfgs_b(f, x0, gradient, bounds=cons, iprint=-1, **args)[0]
@@ -554,7 +554,7 @@ def minimize_constrained(func,cons,x0,gradient=None,algorithm='default', **args)
                     min = optimize.fmin_l_bfgs_b(f, x0, approx_grad=True, bounds=cons, iprint=-1, **args)[0]
                 else:
                     min = optimize.fmin_tnc(f, x0, approx_grad=True, bounds=cons, messages=0, **args)[0]
-        elif isinstance(cons[0], function_type) or isinstance(cons[0], Expression):
+        elif isinstance(cons[0], (function_type, Expression)):
             min = optimize.fmin_cobyla(f, x0, cons, **args)
     elif isinstance(cons, function_type) or isinstance(cons, Expression):
         min = optimize.fmin_cobyla(f, x0, cons, **args)
@@ -662,16 +662,16 @@ def linear_program(c, G, h, A=None, b=None, solver=None):
         sol=solvers.lp(c_,G_,h_,A_,b_,solver=solver)
     else:
         sol=solvers.lp(c_,G_,h_,solver=solver)
-    status=sol['status']
+    status = sol['status']
     if status != 'optimal':
-       return  {'primal objective':None,'x':None,'s':None,'y':None,
-              'z':None,'status':status}
-    x=vector(RDF,list(sol['x']))
-    s=vector(RDF,list(sol['s']))
-    y=vector(RDF,list(sol['y']))
-    z=vector(RDF,list(sol['z']))
-    return  {'primal objective':sol['primal objective'],'x':x,'s':s,'y':y,
-               'z':z,'status':status}
+        return {'primal objective': None, 'x': None, 's': None, 'y': None,
+                'z': None, 'status': status}
+    x = vector(RDF, list(sol['x']))
+    s = vector(RDF, list(sol['s']))
+    y = vector(RDF, list(sol['y']))
+    z = vector(RDF, list(sol['z']))
+    return {'primal objective': sol['primal objective'],
+            'x': x, 's': s, 'y': y, 'z': z, 'status': status}
 
 
 def find_fit(data, model, initial_guess = None, parameters = None, variables = None, solution_dict = False):
@@ -818,7 +818,8 @@ def find_fit(data, model, initial_guess = None, parameters = None, variables = N
     y_data = data[:, -1]
 
     from scipy.optimize import leastsq
-    estimated_params, d = leastsq(error_function, initial_guess, args = (x_data, y_data))
+    estimated_params, d = leastsq(error_function, initial_guess,
+                                  args=(x_data, y_data))
 
     if isinstance(estimated_params, float):
         estimated_params = [estimated_params]
@@ -826,12 +827,10 @@ def find_fit(data, model, initial_guess = None, parameters = None, variables = N
         estimated_params = estimated_params.tolist()
 
     if solution_dict:
-       dict = {}
-       for item in zip(parameters, estimated_params):
-           dict[item[0]] = item[1]
-       return dict
+        return {i0: i1 for i0, i1 in zip(parameters, estimated_params)}
 
     return [item[0] == item[1] for item in zip(parameters, estimated_params)]
+
 
 def binpacking(items, maximum=1, k=None, solver=None, verbose=0,
                *, integrality_tolerance=1e-3):

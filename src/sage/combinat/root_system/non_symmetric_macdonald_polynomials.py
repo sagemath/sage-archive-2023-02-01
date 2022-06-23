@@ -355,7 +355,7 @@ class NonSymmetricMacdonaldPolynomials(CherednikOperatorsEigenvectors):
 
     .. [LNSSS12] \C. Lenart, S. Naito, D. Sagaki, A. Schilling, M. Shimozono,
        A uniform model for Kirillov-Reshetikhin crystals I: Lifting
-       the parabolic quantum Bruhat graph, preprint :arXiv:`1211.2042`
+       the parabolic quantum Bruhat graph, preprint :arxiv:`1211.2042`
        [math.QA]
 
     .. RUBRIC:: More examples
@@ -1254,7 +1254,7 @@ class NonSymmetricMacdonaldPolynomials(CherednikOperatorsEigenvectors):
             sage: NonSymmetricMacdonaldPolynomials(["B", 2, 1])
             The family of the Macdonald polynomials of type ['B', 2, 1] with parameters q, q1, q2
         """
-        return "The family of the Macdonald polynomials of type %s with parameters %s, %s, %s"%(self.cartan_type(),self._q, self._q1, self._q2)
+        return "The family of the Macdonald polynomials of type %s with parameters %s, %s, %s" % (self.cartan_type(),self._q, self._q1, self._q2)
 
     # This is redundant with the cartan_type method of
     # CherednikOperatorsEigenvectors, but we need it very early in the
@@ -1817,4 +1817,3 @@ class NonSymmetricMacdonaldPolynomials(CherednikOperatorsEigenvectors):
                 Torbit[c] = v * self._T.Tw([i])(Torbit[c.simple_reflection(i)])
             s = s + Torbit[c]
         return s
-

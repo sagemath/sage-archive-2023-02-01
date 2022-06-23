@@ -16,14 +16,14 @@ that Sage supports.  The information regarding the supported versions
 can be found in the files ``build/pkgs/python3/spkg-configure.m4`` and
 ``src/setup.cfg.m4``.
 
-As of Sage 9.4, Python 3.7 is the oldest supported version.  Hence,
-all language and library features that are available in Python 3.7 can
-be used; but features introduced in Python 3.8 cannot be used.  If a
+As of Sage 9.7, Python 3.8 is the oldest supported version.  Hence,
+all language and library features that are available in Python 3.8 can
+be used; but features introduced in Python 3.9 cannot be used.  If a
 feature is deprecated in a newer supported version, it must be ensured
 that deprecation warnings issued by Python do not lead to failures in
 doctests.
 
-Some key language and library features have been backported to Python 3.7
+Some key language and library features have been backported to Python 3.8
 using one of two mechanisms:
 
 - ``from __future__ import annotations`` (see
@@ -161,7 +161,7 @@ the context.
 
 Here is an example of the ``_latex_`` and ``_repr_`` functions for the
 ``Pi`` class. It is from the file
-``SAGE_ROOT/src/sage/functions/constants.py``:
+``SAGE_ROOT/src/sage/symbolic/constants.py``:
 
 .. CODE-BLOCK:: python
 
@@ -192,7 +192,7 @@ matrix over a ring `R`. Then the Sage function ``matrix`` will work
 for this object.
 
 The following is from
-``SAGE_ROOT/src/sage/graphs/graph.py``:
+``SAGE_ROOT/src/sage/graphs/generic_graph.py``:
 
 .. CODE-BLOCK:: python
 
@@ -211,7 +211,7 @@ The following is from
 Similarly, provide a ``_vector_`` method for an object that can be
 coerced to a vector over a ring `R`. Then the Sage function ``vector``
 will work for this object. The following is from the file
-``SAGE_ROOT/sage/sage/modules/free_module_element.pyx``:
+``SAGE_ROOT/src/sage/modules/free_module_element.pyx``:
 
 .. CODE-BLOCK:: python
 

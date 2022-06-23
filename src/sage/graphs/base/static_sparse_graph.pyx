@@ -230,12 +230,13 @@ cdef int init_short_digraph(short_digraph g, G, edge_labelled=False, vertex_list
 
     cdef int isdigraph
 
-    from sage.graphs.all import Graph, DiGraph
+    from sage.graphs.graph import Graph
+    from sage.graphs.digraph import DiGraph
 
     if isinstance(G, DiGraph):
         isdigraph = 1
     elif isinstance(G, Graph):
-         isdigraph = 0
+        isdigraph = 0
     else:
         raise ValueError("The source graph must be either a DiGraph or a Graph object !")
 
@@ -1116,7 +1117,7 @@ def spectral_radius(G, prec=1e-10):
         # and the iteration is likely to reach a cycle of length 2 and hence the
         # algorithm never terminate. Here we compute the "square" reduced to
         # one component of the bipartition.
-        from sage.graphs.all import DiGraph
+        from sage.graphs.digraph import DiGraph
         H = DiGraph(loops=True, multiedges=True)
         if G.is_directed():
             neighbors_iterator = G.neighbor_out_iterator
@@ -1214,7 +1215,9 @@ def spectral_radius(G, prec=1e-10):
                     v2[i] += v1[p[0]]
                     p += 1
                 s += v2[i]
-            v3 = v1; v1 = v2; v2 = v3
+            v3 = v1
+            v1 = v2
+            v2 = v3
 
         sig_off()
     finally:

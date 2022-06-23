@@ -25,8 +25,7 @@ import shutil
 
 from sage.env import (SAGE_LOCAL, cython_aliases,
                       sage_include_directories)
-from sage.misc.misc import SPYX_TMP, sage_makedirs
-from .temporary_file import tmp_filename
+from .temporary_file import spyx_tmp, tmp_filename
 from sage.repl.user_globals import get_globals
 from sage.misc.sage_ostools import restore_cwd, redirection
 from sage.cpython.string import str_to_bytes
@@ -229,9 +228,9 @@ def cython(filename, verbose=0, compile_message=False,
     base = sanitize(base)
 
     # This is the *temporary* directory where we store the pyx file.
-    # This is deleted when Sage exits, which means pyx files must be
-    # rebuilt every time Sage is restarted at present.
-    target_dir = os.path.join(SPYX_TMP, base)
+    # spyx_tmp changes when we start Sage, so old (but not stale) pyx
+    # files must be rebuilt at the moment.
+    target_dir = os.path.join(spyx_tmp(), base)
 
     # Build directory for Cython/distutils
     build_dir = os.path.join(target_dir, "build")
@@ -258,7 +257,7 @@ def cython(filename, verbose=0, compile_message=False,
             except OSError:
                 pass
     else:
-        sage_makedirs(target_dir)
+        os.makedirs(target_dir, exist_ok=True)
 
     if create_local_so_file:
         name = base
@@ -342,7 +341,7 @@ def cython(filename, verbose=0, compile_message=False,
                     libraries=standard_libs,
                     library_dirs=standard_libdirs)
 
-    directives = dict(language_level=sys.version_info[0], cdivision=True)
+    directives = dict(language_level=3, cdivision=True)
 
     try:
         # Change directories to target_dir so that Cython produces the correct

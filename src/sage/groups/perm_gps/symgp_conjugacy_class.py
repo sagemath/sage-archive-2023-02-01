@@ -15,7 +15,7 @@ from sage.sets.set import Set
 import itertools
 
 
-class SymmetricGroupConjugacyClassMixin(object):
+class SymmetricGroupConjugacyClassMixin():
     r"""
     Mixin class which contains methods for conjugacy classes of
     the symmetric group.
@@ -361,4 +361,3 @@ def conjugacy_class_iterator(part, S=None):
         iterator = tuple(itertools.permutations(r) for r in rests)
         for r in itertools.product(*iterator):
             yield [(firsts[i],) + r[i] for i in range(m)]
-

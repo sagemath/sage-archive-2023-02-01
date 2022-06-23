@@ -240,6 +240,7 @@ class RationalCherednikAlgebra(CombinatorialFreeModule):
         keys  = ['a'+str(i) for i in self._cartan_type.index_set()]
         keys += ['s'+str(i) for i in self._cartan_type.index_set()]
         keys += ['ac'+str(i) for i in self._cartan_type.index_set()]
+
         def gen_map(k):
             if k[0] == 's':
                 i = int(k[1:])
@@ -518,4 +519,3 @@ class RationalCherednikAlgebra(CombinatorialFreeModule):
         ret = [self.zero(), self.one(), self.an_element()]
         ret += list(self.algebra_generators())
         return ret
-

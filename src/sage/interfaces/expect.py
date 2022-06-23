@@ -62,7 +62,7 @@ from sage.structure.element import RingElement
 from sage.misc.misc import SAGE_TMP_INTERFACE
 from sage.env import SAGE_EXTCODE, LOCAL_IDENTIFIER
 from sage.misc.object_multiplexer import Multiplex
-from sage.docs.instancedoc import instancedoc
+from sage.misc.instancedoc import instancedoc
 
 from sage.cpython.string import str_to_bytes, bytes_to_str
 
@@ -87,7 +87,7 @@ BAD_SESSION = -2
 # "return", "break", or "continue", raising an exception, ...)
 
 
-class gc_disabled(object):
+class gc_disabled():
     """
     This is a "with" statement context manager. Garbage collection is
     disabled within its scope. Nested usage is properly handled.
@@ -191,7 +191,7 @@ class Expect(Interface):
             sage: magma.server()
             'remote'
             sage: magma.command()
-            "sage-native-execute ssh -t remote 'mymagma'"
+            "ssh -t remote 'mymagma'"
         """
         if self._expect:
             raise RuntimeError("interface has already started")
@@ -200,9 +200,9 @@ class Expect(Interface):
         self._server = server
         if server is not None:
             if ulimit:
-                command = "sage-native-execute ssh -t %s 'ulimit %s; %s'"%(server, ulimit, command)
+                command = "ssh -t %s 'ulimit %s; %s'"%(server, ulimit, command)
             else:
-                command = "sage-native-execute ssh -t %s '%s'"%(server, command)
+                command = "ssh -t %s '%s'"%(server, command)
             self.__is_remote = True
             self._eval_using_file_cutoff = 0  # don't allow this!
             if self.__verbose_start:
@@ -440,7 +440,6 @@ If this all works, you can then make calls like:
             return False
 
     def _start(self, alt_message=None, block_during_init=True):
-        from sage.misc.misc import sage_makedirs
         self.quit()  # in case one is already running
 
         self._session_number += 1
@@ -452,7 +451,7 @@ If this all works, you can then make calls like:
             if self.__logfilename is None and 'SAGE_PEXPECT_LOG' in os.environ:
                 from sage.env import DOT_SAGE
                 logs = os.path.join(DOT_SAGE, 'pexpect_logs')
-                sage_makedirs(logs)
+                os.makedirs(logs, exist_ok=True)
 
                 filename = '{name}-{pid}-{id}-{session}'.format(
                         name=self.name(), pid=os.getpid(), id=id(self),
@@ -468,7 +467,7 @@ If this all works, you can then make calls like:
             print("Starting %s" % cmd.split()[0])
 
         if self.__remote_cleaner and self._server:
-            c = 'sage-native-execute  ssh %s "nohup sage -cleaner"  &' % self._server
+            c = 'ssh %s "nohup sage -cleaner"  &' % self._server
             os.system(c)
 
         # Unset some environment variables for the children to
@@ -498,6 +497,12 @@ If this all works, you can then make calls like:
                         # Work around https://bugs.python.org/issue1652
                         preexec_fn=lambda: signal.signal(signal.SIGPIPE, signal.SIG_DFL),
                         quit_string=self._quit_string())
+
+                # Attempt to shutdown the running process gracefully
+                # when sage terminates.
+                import atexit
+                atexit.register(self.quit)
+
             except (ExceptionPexpect, pexpect.EOF) as e:
                 # Change pexpect errors to RuntimeError
                 raise RuntimeError("unable to start %s because the command %r failed: %s\n%s" %

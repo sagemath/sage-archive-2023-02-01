@@ -11,20 +11,19 @@ AUTHORS:
 
 - Alexander Galarraga (7-2021): Added helper functions for conjugating set
 """
-
-#*****************************************************************************
+# ****************************************************************************
 #       Copyright (C) 2012
 #
 #  Distributed under the terms of the GNU General Public License (GPL)
 #  as published by the Free Software Foundation; either version 2 of
 #  the License, or (at your option) any later version.
-#                  http://www.gnu.org/licenses/
-#*****************************************************************************
-
+#                  https://www.gnu.org/licenses/
+# ****************************************************************************
 from copy import copy, deepcopy
+from itertools import permutations, combinations, product
+
 from sage.combinat.subset import Subsets
 from sage.misc.functional import sqrt
-from itertools import permutations, combinations, product
 from sage.matrix.constructor import matrix
 from sage.structure.element import is_Matrix
 from sage.misc.misc_c import prod
@@ -198,8 +197,7 @@ def automorphism_group_QQ_fixedpoints(rational_function, return_functions=False,
                     [(alpha - zeta*beta), - (alpha*beta)*(1 - zeta),
                      (1 - zeta), (alpha*zeta - beta)]))
 
-
-    #now consider 2-periodic points
+    # now consider 2-periodic points
     psi = phi(phi(z))
     f2 = psi.numerator()
     g2 = psi.denominator()
@@ -253,7 +251,7 @@ def automorphism_group_QQ_fixedpoints(rational_function, return_functions=False,
                         a = F(a)
                         d = F(d)
                         b = F(-alpha*beta)
-                        s = ( a*z  + b)/(z + d)
+                        s = (a * z + b) / (z + d)
                         if s(phi(z)) == phi(s(z)):
                             if return_functions:
                                 elements.append(K(s))
@@ -269,7 +267,7 @@ def automorphism_group_QQ_fixedpoints(rational_function, return_functions=False,
                         a = F(a)
                         d = F(d)
                         b = F(-alpha*beta)
-                        s = ( a*z  + b)/(z + d)
+                        s = (a * z + b) / (z + d)
                         if s(phi(z)) == phi(s(z)):
                             if return_functions:
                                 elements.append(K(s))
@@ -535,7 +533,7 @@ def valid_automorphisms(automorphisms_CRT, rational_function, ht_bound, M,
                         for x in init_lift]
             g = gcd(new_lift)
             new_lift = [x // g for x in new_lift]
-            if  all(abs(x) <= ht_bound for x in new_lift):
+            if all(abs(x) <= ht_bound for x in new_lift):
                 a, b, c, d = new_lift
                 f = (a*z + b) / (c*z + d)
                 if rational_function(f(z)) == f(rational_function(z)):
@@ -1005,9 +1003,10 @@ def rational_function_coefficient_descent(rational_function, sigma, poly_ring):
         return
 
     z = poly_ring.gen(0)
-    numer = sum( poly_ring(ff[i])*z**fe[i] for i in range(len(ff)) )
-    denom = sum( poly_ring(gg[i])*z**ge[i] for i in range(len(gg)) )
-    return    numer / denom
+    numer = sum(poly_ring(ff[i]) * z**fe[i] for i in range(len(ff)))
+    denom = sum(poly_ring(gg[i]) * z**ge[i] for i in range(len(gg)))
+    return numer / denom
+
 
 def rational_function_coerce(rational_function, sigma, S_polys):
     r"""
@@ -1243,13 +1242,13 @@ def automorphism_group_FF_alg2(rational_function):
             else:
                 preimage2 = R(phi(phi(z)).numerator() - y*phi(phi(z)).denominator())
                 T_poly = R(prod(x[0] for x in preimage2.factor() ) )
-                infinity_check = infinity_check = bool(preimage2.degree() < D**2)
+                infinity_check = bool(preimage2.degree() < D**2)
 
     # Define a field of definition for the absolute automorphism group
     r = lcm([x[0].degree() for x in T_poly.factor()])*F.degree()
     E = GF(p**r,'b')
     sigma = F.Hom(E)[0]
-    S = PolynomialRing(E,'w')
+    S = PolynomialRing(E, 'w')
     E_poly = rational_function_coerce(T_poly, sigma, S)
 
     T = [ [alpha, E(1)] for alpha in E_poly.roots(ring=E, multiplicities=False)]
@@ -1259,6 +1258,7 @@ def automorphism_group_FF_alg2(rational_function):
     # Coerce phi into the larger ring and call Algorithm 1
     Phi = rational_function_coerce(phi, sigma, S)
     return [S, three_stable_points(Phi, T)]
+
 
 def order_p_automorphisms(rational_function, pre_image):
     r"""
@@ -1626,7 +1626,7 @@ def automorphism_group_FF_alg3(rational_function):
         if n%p == 1:
             automorphisms = automorphisms + order_p_automorphisms(phi, pre_images)
 
-    ## nontrivial elements with order prime to p ##
+    # nontrivial elements with order prime to p #
     # case of 2 F-rational fixed points
     for pt_pair in combinations(linear_fix_pts, 2):
         x = pt_pair[0]
@@ -1756,7 +1756,7 @@ def which_group(list_of_elements):
             for i in range(n-1):
                 h = g(H[-1])
                 H.append(h)
-            H    = list(set(H))
+            H = list(set(H))
             if len(H) == n:
                 return 'Cyclic of order {0}'.format(n)
             if len(H) > max_reg_cyclic[0] and gcd(len(H), p) != p:
@@ -1902,7 +1902,6 @@ def conjugating_set_initializer(f, g):
             repeated_mult_L[repeated] = [mult_to_point_L[mult_L]]
         else:
             repeated_mult_L[repeated] += [mult_to_point_L[mult_L]]
-    r = f.domain().base_ring()
     more = True
 
     # the n+2 points to be used to specificy PGL conjugations
@@ -1954,7 +1953,7 @@ def conjugating_set_initializer(f, g):
                             Tk.append(preimage)
                 if len(Tl) != len(Tk):
                     return []
-                if len(Tl) != 0:
+                if Tl:
                     found_no_more = False
                     new_tup_L = (mult_L, level)
                     new_tup_K = (mult_L, level)
@@ -2018,7 +2017,7 @@ def conjugating_set_initializer(f, g):
             # in which all subsets of size n+1 are linearly independent,
             # then we fail as we cannot specify conjugations
             if more:
-                raise ValueError('no more rational preimages. try extending the base field and trying again.')
+                raise ValueError('no more rational preimages; try extending the base field and trying again')
 
         # if we need to add more preimages, we update loop dictionaries
         if more:
@@ -2031,6 +2030,7 @@ def conjugating_set_initializer(f, g):
     for tup in corresponding:
         possible_targets.append([mult_to_point_K[tup[0]], tup[1]])
     return source, possible_targets
+
 
 def greedy_independence_check(P, repeated_mult, point_to_mult):
     r"""

@@ -93,18 +93,15 @@ coordinates where the codomain is not implemented as a toric variety::
             [u^2 : v^2 : w^2]
 """
 
-
-
-#*****************************************************************************
+# ****************************************************************************
 #       Copyright (C) 2010 Volker Braun <vbraun.name@gmail.com>
 #       Copyright (C) 2010 Andrey Novoseltsev <novoselt@gmail.com>
 #
 #  Distributed under the terms of the GNU General Public License (GPL)
 #  as published by the Free Software Foundation; either version 2 of
 #  the License, or (at your option) any later version.
-#                  http://www.gnu.org/licenses/
-#*****************************************************************************
-
+#                  https://www.gnu.org/licenses/
+# ****************************************************************************
 
 from sage.categories.finite_fields import FiniteFields
 from sage.rings.integer_ring import ZZ
@@ -272,7 +269,6 @@ class SchemeHomset_toric_variety(SchemeHomset_generic):
 
         raise TypeError("x must be a fan morphism or a list/tuple of polynomials")
 
-
     def _an_element_(self):
         """
         Construct a sample morphism.
@@ -294,6 +290,7 @@ class SchemeHomset_toric_variety(SchemeHomset_generic):
         zero = zero_matrix(self.domain().dimension_relative(),
                            self.codomain().dimension_relative())
         return self(zero)
+
 
 class SchemeHomset_points_toric_base(SchemeHomset_points):
     """
@@ -475,8 +472,8 @@ class SchemeHomset_points_toric_field(SchemeHomset_points_toric_base):
          [1 : 3 : 6]]
 
     As for a non-compact example, the blow-up of the plane is the line
-    bundle $O_{\mathbf{P}^1}(-1)$. Its point set is the Cartesian
-    product of the points on the base $\mathbf{P}^1$ with the points
+    bundle `O_{\mathbf{P}^1}(-1)`. Its point set is the Cartesian
+    product of the points on the base `\mathbf{P}^1` with the points
     on the fiber::
 
         sage: fan = Fan([Cone([(1,0), (1,1)]), Cone([(1,1), (0,1)])])
@@ -575,7 +572,7 @@ class SchemeHomset_points_toric_field(SchemeHomset_points_toric_base):
         q = variety.base_ring().order()
         n = variety.dimension()
         d = map(len, variety.fan().cones())
-        return sum(dk * (q-1)**(n-k) for k, dk in enumerate(d))
+        return sum(dk * (q - 1)**(n - k) for k, dk in enumerate(d))
 
     def __iter__(self):
         """
@@ -669,5 +666,3 @@ class SchemeHomset_points_subscheme_toric_field(SchemeHomset_points_toric_base):
             return self._enumerator().cardinality()
         except AttributeError:
             return super(SchemeHomset_points_subscheme_toric_field, self).cardinality()
-
-

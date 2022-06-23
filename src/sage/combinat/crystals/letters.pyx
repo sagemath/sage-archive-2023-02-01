@@ -148,13 +148,13 @@ class ClassicalCrystalOfLetters(UniqueRepresentation, Parent):
         self.Element = element_class
         Parent.__init__(self, category = ClassicalCrystals())
         self._cartan_type = CartanType(cartan_type)
-        self.rename("The crystal of letters for type %s"%self._cartan_type)
+        self.rename("The crystal of letters for type %s" % self._cartan_type)
         if cartan_type.type() == 'E':
             if cartan_type.rank() == 6:
                 if dual:
                     self.module_generators = (self._element_constructor_((6,)),)
                     self._ambient = CrystalOfLetters(CartanType(['E',6]))
-                    self.rename("%s (dual)"%self)
+                    self.rename("%s (dual)" % self)
                 else:
                     self.module_generators = (self._element_constructor_((1,)),)
             elif cartan_type.rank() == 7:
@@ -509,8 +509,9 @@ cdef class Letter(Element):
             return self.value == x.value or x._parent.lt_elements(x, self)
         return False
 
+
 cdef class EmptyLetter(Element):
-    """
+    r"""
     The affine letter `\emptyset` thought of as a classical crystal letter
     in classical type `B_n` and `C_n`.
 
@@ -558,7 +559,7 @@ cdef class EmptyLetter(Element):
         return 'E'
 
     def _latex_(self):
-        """
+        r"""
         Return a latex representation of ``self``.
 
         EXAMPLES::
@@ -606,7 +607,7 @@ cdef class EmptyLetter(Element):
             False
         """
         if isinstance(left, EmptyLetter) and isinstance(right, EmptyLetter):
-           return op == Py_EQ or op == Py_LE or op == Py_GE
+            return op == Py_EQ or op == Py_LE or op == Py_GE
         return op == Py_NE
 
     def weight(self):
@@ -1182,7 +1183,7 @@ cdef class Crystal_of_letters_type_G_element(Letter):
         elif self.value == -1:
             return self._parent.weight_lattice_realization()((-1, 0, 1))
         else:
-            raise RuntimeError("G2 crystal of letters element %d not valid"%self.value)
+            raise RuntimeError("G2 crystal of letters element %d not valid" % self.value)
 
     cpdef Letter e(self, int i):
         r"""
@@ -2492,8 +2493,9 @@ cdef class BKKLetter(Letter):
             return -ret
         return ret
 
+
 class CrystalOfBKKLetters(ClassicalCrystalOfLetters):
-    """
+    r"""
     Crystal of letters for Benkart-Kang-Kashiwara supercrystals.
 
     This implements the `\mathfrak{gl}(m|n)` crystal of
@@ -2557,7 +2559,7 @@ class CrystalOfBKKLetters(ClassicalCrystalOfLetters):
             sage: crystals.Letters(['A', [2, 1]])
             The crystal of letters for type ['A', [2, 1]]
         """
-        ret = "The crystal of letters for type %s"%self._cartan_type
+        ret = "The crystal of letters for type %s" % self._cartan_type
         if self._dual:
             ret += " (dual)"
         return ret
@@ -2655,7 +2657,8 @@ class CrystalOfQueerLetters(ClassicalCrystalOfLetters):
             sage: crystals.Letters(['Q',3])
             The queer crystal of letters for q(3)
         """
-        return "The queer crystal of letters for q(%s)"%(self._cartan_type.n+1)
+        return "The queer crystal of letters for q(%s)" % (
+            self._cartan_type.n + 1)
 
     def index_set(self):
         """
@@ -2719,11 +2722,10 @@ cdef class QueerLetter_element(Letter):
             [(2, 1, 1), (3, 2, 2), (3, -2, 2), (2, -1, 1)]
         """
         if self.value == -i+1:
-           return self._parent._element_constructor_(self.value-1)
+            return self._parent._element_constructor_(self.value-1)
         if self.value == i+1:
             return self._parent._element_constructor_(self.value-1)
-        else:
-            return None
+        return None
 
     cpdef Letter f(self, int i):
         r"""
@@ -2736,11 +2738,10 @@ cdef class QueerLetter_element(Letter):
             [(1, 1, 2), (2, 2, 3), (2, -2, 3), (1, -1, 2)]
         """
         if self.value == -i:
-           return self._parent._element_constructor_(-i+1)
+            return self._parent._element_constructor_(-i+1)
         if self.value == i:
             return self._parent._element_constructor_(self.value+1)
-        else:
-            return None
+        return None
 
     cpdef int epsilon(self, int i):
         r"""
@@ -3047,4 +3048,3 @@ class ClassicalCrystalOfLettersWrapped(ClassicalCrystalOfLetters):
             False
         """
         return {elt._to_tuple(): elt for elt in self}
-

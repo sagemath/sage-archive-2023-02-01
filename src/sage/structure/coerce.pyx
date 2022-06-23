@@ -1049,7 +1049,7 @@ cdef class CoercionModel:
         base = None
         for x in args:
             if not isinstance(x, Parent) and not isinstance(x, type):
-               x = parent(x)
+                x = parent(x)
             if base is None:
                 base = x
             if isinstance(base, Parent) and (<Parent>base).has_coerce_map_from(x):
@@ -1085,8 +1085,8 @@ cdef class CoercionModel:
             sage: Zmod100 = Integers(100)
             sage: cm.division_parent(Zmod100)
             Ring of integers modulo 100
-            sage: S5 = SymmetricGroup(5)
-            sage: cm.division_parent(S5)
+            sage: S5 = SymmetricGroup(5)                                                # optional - sage.groups
+            sage: cm.division_parent(S5)                                                # optional - sage.groups
             Symmetric group of order 5! as a permutation group
         """
         try:
@@ -1142,7 +1142,7 @@ cdef class CoercionModel:
 
         TESTS::
 
-            sage: class Foo(object):
+            sage: class Foo():
             ....:     def __rmul__(self, left):
             ....:         return 'hello'
             sage: H = Foo()
@@ -1155,7 +1155,7 @@ cdef class CoercionModel:
             ...
             TypeError: unsupported operand parent(s) for *: '<class '__main__.Foo'>' and 'Integer Ring'
 
-            sage: class Nonsense(object):
+            sage: class Nonsense():
             ....:     def __init__(self, s):
             ....:         self.s = s
             ....:     def __repr__(self):
@@ -1291,7 +1291,7 @@ cdef class CoercionModel:
             sage: type(a)
             <class 'sage.rings.rational.Rational'>
 
-        We also make an exception for 0, even if $\ZZ$ does not map in::
+        We also make an exception for 0, even if `\ZZ` does not map in::
 
             sage: canonical_coercion(vector([1, 2, 3]), 0)
             ((1, 2, 3), (0, 0, 0))
@@ -1945,7 +1945,7 @@ cdef class CoercionModel:
 
         We support non-Sage types with the usual Python convention::
 
-            sage: class AlwaysEqual(object):
+            sage: class AlwaysEqual():
             ....:     def __eq__(self, other):
             ....:         return True
             sage: x = AlwaysEqual()

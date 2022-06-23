@@ -184,7 +184,7 @@ from sage.env import DOT_SAGE
 from pexpect import EOF
 from sage.misc.multireplace import multiple_replace
 from sage.interfaces.tab_completion import ExtraTabCompletion
-from sage.docs.instancedoc import instancedoc
+from sage.misc.instancedoc import instancedoc
 from sage.structure.richcmp import rich_to_bool
 
 
@@ -437,15 +437,15 @@ class PanAxiom(ExtraTabCompletion, Expect):
             E = self._expect
             # debug
             # self._synchronize(cmd='1+%s\n')
-            verbose("in = '%s'"%line,level=3)
+            verbose("in = '%s'" % line, level=3)
             E.sendline(line)
             self._expect.expect(self._prompt)
             out = self._expect.before
             # debug
-            verbose("out = '%s'"%out,level=3)
+            verbose("out = '%s'" % out, level=3)
         except EOF:
-          if self._quit_string() in line:
-             return ''
+            if self._quit_string() in line:
+                return ''
         except KeyboardInterrupt:
             self._keyboard_interrupt()
 
@@ -457,7 +457,7 @@ class PanAxiom(ExtraTabCompletion, Expect):
             return out
         if 'error' in out:
             return out
-        #out = out.lstrip()
+        # out = out.lstrip()
         i = out.find('\n')
         out = out[i+1:]
         outs = out.split("\n")
@@ -846,7 +846,7 @@ class PanAxiomElement(ExpectElement):
             from sage.rings.integer_ring import ZZ
             return ZZ(repr(self))
         elif type.startswith('Polynomial'):
-            from sage.rings.all import PolynomialRing
+            from sage.rings.polynomial.polynomial_ring_constructor import PolynomialRing
             base_ring = P(type.lstrip('Polynomial '))._sage_domain()
             vars = str(self.variables())[1:-1]
             R = PolynomialRing(base_ring, vars)

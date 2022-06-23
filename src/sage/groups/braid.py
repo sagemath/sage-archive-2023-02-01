@@ -628,8 +628,8 @@ class Braid(FiniteTypeArtinGroupElement):
         r"""
         Return the Lawrence-Krammer-Bigelow representation matrix.
 
-        The matrix is expressed in the basis $\{e_{i, j} \mid 1\leq i
-        < j \leq n\}$, where the indices are ordered
+        The matrix is expressed in the basis `\{e_{i, j} \mid 1\leq i
+        < j \leq n\}`, where the indices are ordered
         lexicographically.  It is a matrix whose entries are in the
         ring of Laurent polynomials on the given variables.  By
         default, the variables are ``'x'`` and ``'y'``.
@@ -1276,8 +1276,7 @@ class Braid(FiniteTypeArtinGroupElement):
         """
         if qagrad is None:
             return {qa: self._annular_khovanov_complex_cached(qa,ring) for qa in self._enhanced_states()}
-        else:
-           return self._annular_khovanov_complex_cached(qagrad,ring)
+        return self._annular_khovanov_complex_cached(qagrad,ring)
 
     def annular_khovanov_homology(self, qagrad=None, ring=IntegerRing()):
         r"""
@@ -1346,7 +1345,7 @@ class Braid(FiniteTypeArtinGroupElement):
 
         OUTPUT:
 
-        A tuple whose first element is the power of $\Delta$, and the
+        A tuple whose first element is the power of `\Delta`, and the
         rest are the permutations corresponding to the simple factors.
 
         EXAMPLES::
@@ -2023,7 +2022,6 @@ class RightQuantumWord:
             ....:                       q**3*bm_2*bp_1*am_0*cm_0)
             sage: for key, value in qw.tuples.items():
             ....:     print(key, value)
-            ....:
             (0, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0) q
             (1, 0, 0, 0, 0, 0, 0, 1, 1, 1, 0, 0) q^2
         """
@@ -2097,6 +2095,7 @@ class RightQuantumWord:
             in parallel.
         """
         M = self._algebra._indices
+
         def tuple_to_word(q_tuple):
             return M.prod(self._gens[i] ** exp
                           for i, exp in enumerate(q_tuple))
@@ -3082,8 +3081,8 @@ class MappingClassGroupAction(Action):
         x_{j} & \text{otherwise}
         \end{cases},
 
-    where $\sigma_i$ are the generators of the braid group on $n$
-    strands, and $x_j$ the generators of the free group of rank $n$.
+    where `\sigma_i` are the generators of the braid group on `n`
+    strands, and `x_j` the generators of the free group of rank `n`.
 
     You should left multiplication of the free group element by the
     braid to compute the action. Alternatively, use the

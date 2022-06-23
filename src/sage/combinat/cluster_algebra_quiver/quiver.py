@@ -42,7 +42,8 @@ from copy import copy
 from sage.rings.integer_ring import ZZ
 from sage.rings.cc import CC
 from sage.rings.infinity import infinity
-from sage.graphs.all import Graph, DiGraph
+from sage.graphs.digraph import DiGraph
+from sage.graphs.graph import Graph
 from sage.graphs.views import EdgesView
 from sage.arith.misc import gcd
 from sage.modules.free_module_element import vector
@@ -520,9 +521,9 @@ class ClusterQuiver(SageObject):
             else:
                 name += ' of type ' + str(self._mutation_type)
         if self._m == 1:
-            name += ' with %s frozen vertex'%self._m
+            name += ' with %s frozen vertex' % self._m
         elif self._m > 1:
-            name += ' with %s frozen vertices'%self._m
+            name += ' with %s frozen vertices' % self._m
         return name
 
     def plot(self, circular=True, center=(0, 0), directed=True, mark=None,
@@ -560,6 +561,7 @@ class ClusterQuiver(SageObject):
         from sage.all import e, pi, I
         graphs = GraphGenerators()
         # returns positions for graph vertices on two concentric cycles with radius 1 and 2
+
         def _graphs_concentric_circles(n, m):
             g1 = graphs.CycleGraph(n).get_pos()
             g2 = graphs.CycleGraph(m).get_pos()
@@ -1426,7 +1428,7 @@ class ClusterQuiver(SageObject):
                 data = getattr(self, data)()
 
         # If we get a function, execute it
-        if hasattr(data, '__call__'):
+        if callable(data):
             # function should return either integer or sequence
             data = data(self)
 

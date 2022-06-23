@@ -17,7 +17,9 @@ Schubert Polynomials
 # ****************************************************************************
 from sage.combinat.free_module import CombinatorialFreeModule
 from sage.categories.all import GradedAlgebrasWithBasis
-from sage.rings.all import Integer, PolynomialRing, ZZ
+from sage.rings.integer import Integer
+from sage.rings.integer_ring import ZZ
+from sage.rings.polynomial.polynomial_ring_constructor import PolynomialRing
 from sage.rings.polynomial.multi_polynomial import is_MPolynomial
 from sage.combinat.permutation import Permutations, Permutation
 import sage.libs.symmetrica.all as symmetrica
@@ -64,9 +66,7 @@ class SchubertPolynomial_class(CombinatorialFreeModule.Element):
         TESTS:
 
         Calling .expand() should always return an element of an
-        MPolynomialRing
-
-        ::
+        MPolynomialRing::
 
             sage: X = SchubertPolynomialRing(ZZ)
             sage: f = X([1]); f
@@ -81,10 +81,16 @@ class SchubertPolynomial_class(CombinatorialFreeModule.Element):
             sage: f = X([1,3,2,4])
             sage: type(f.expand())
             <class 'sage.rings.polynomial.multi_polynomial_libsingular.MPolynomial_libsingular'>
+
+        Now we check for correct handling of the empty
+        permutation (:trac:`23443`)::
+
+            sage: X([1]).expand() * X([2,1]).expand()
+            x0
         """
         p = symmetrica.t_SCHUBERT_POLYNOM(self)
         if not is_MPolynomial(p):
-            R = PolynomialRing(self.parent().base_ring(), 1, 'x')
+            R = PolynomialRing(self.parent().base_ring(), 1, 'x0')
             p = R(p)
         return p
 
@@ -359,6 +365,12 @@ class SchubertPolynomialRing_xbasis(CombinatorialFreeModule):
             Traceback (most recent call last):
             ...
             ValueError: The input [1, 2, 1] is not a valid permutation
+
+        Now we check for correct handling of the empty
+        permutation (:trac:`23443`)::
+
+            sage: X([])
+            X[1]
         """
         if isinstance(x, list):
             # checking the input to avoid symmetrica crashing Sage, see trac 12924

@@ -60,7 +60,7 @@ AUTHORS:
 
 cimport cython
 
-from sage.rings.all import PolynomialRing
+from sage.rings.polynomial.polynomial_ring_constructor import PolynomialRing
 from sage.rings.function_field.all import FunctionField
 
 from sage.modules.free_module_element import vector
@@ -1519,6 +1519,7 @@ cdef class Decoder_K(object):
 
         if verbose:
             width = 7 * (K.degree() + 2)
+
             # auxiliary function for verbose printing
             def vprint_g(g, s):
                 if verbose > 1:

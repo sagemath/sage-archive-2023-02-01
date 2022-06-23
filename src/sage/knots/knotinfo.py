@@ -41,8 +41,8 @@ exchanged mirror versions.
 Also, note that the braid notation is used according to Sage, even thought in
 the source where it is taken from, the braid generators are assumed to have a
 negative crossing which would be opposite to the convention in Sage (see definition
-3 of `Gittings, T., "Minimum Braids: A Complete Invariant of Knots and Links
-<https://arxiv.org/abs/math/0401051>`__).
+3 of
+:arxiv:`Gittings, T., "Minimum Braids: A Complete Invariant of Knots and Links" <math/0401051>`).
 
 For different conventions regarding normalization of the polynomial invariants see
 the according documentation of :meth:`KnotInfoBase.homfly_polynomial`,
@@ -611,6 +611,13 @@ class KnotInfoBase(Enum):
             '{3, {-2, -2, -1, 2, -1}}'
             sage: L[L.items.braid_notation_old]
             '{4, {1, -2, 3, -2, -1, -2, -3, -2}}'
+
+        TESTS:
+
+        Check that :trac:`33966` is fixed::
+
+            sage: KnotInfo.K0_1.braid_notation()
+            (1,)
         """
         braid_notation = self[self.items.braid_notation]
         if original:
@@ -618,7 +625,7 @@ class KnotInfoBase(Enum):
 
         if not braid_notation:
             # don't forget the unknot
-            return (1, -1)
+            return (1, )
 
         braid_notation = eval_knotinfo(braid_notation)
         if type(braid_notation) is list:

@@ -1500,7 +1500,7 @@ class Components(SageObject):
         """
         result = self._new_instance()
         for ind, val in self._comp.items():
-             result._comp[ind] = - val
+            result._comp[ind] = - val
         return result
 
     def __add__(self, other):
@@ -2179,13 +2179,13 @@ class Components(SageObject):
             pos2 = args[it+1:]
         ncontr = len(pos1) # number of contractions
         if len(pos2) != ncontr:
-            raise TypeError("Different number of indices for the contraction.")
+            raise TypeError("different number of indices for the contraction")
         if other._frame != self._frame:
-            raise TypeError("The two sets of components are not defined on " +
-                            "the same frame.")
+            raise TypeError("the two sets of components are not defined on " +
+                            "the same frame")
         if other._sindex != self._sindex:
-            raise TypeError("The two sets of components do not have the " +
-                            "same starting index.")
+            raise TypeError("the two sets of components do not have the " +
+                            "same starting index")
         contractions = [(pos1[i], pos2[i]) for i in range(ncontr)]
         res_nid = self._nid + other._nid - 2*ncontr
         #
@@ -2359,12 +2359,12 @@ class Components(SageObject):
                             ind_o[pos_o] = k
                             ic += 1
                         sm += this[[ind_s]] * other[[ind_o]]
-                    local_res.append([ind,sm])
+                    local_res.append([ind, sm])
                 return local_res
 
             for ii, val in make_Contraction(listParalInput):
                 for jj in val:
-                      res[[jj[0]]] = jj[1]
+                    res[[jj[0]]] = jj[1]
         else:
             # sequential computation
             for ind in res.non_redundant_index_generator():

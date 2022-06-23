@@ -300,6 +300,7 @@ class AskeyWilsonAlgebra(CombinatorialFreeModule):
         """
         if sum(t) == 0:
             return '1'
+
         def exp(l, e):
             if e == 0:
                 return ''
@@ -338,6 +339,7 @@ class AskeyWilsonAlgebra(CombinatorialFreeModule):
             [A, B, C, a, b, g]
         """
         A = self.variable_names()
+
         def build_monomial(g):
             exp = [0] * 6
             exp[A.index(g)] = 1
@@ -931,4 +933,3 @@ class AlgebraMorphism(ModuleMorphismByLinearity):
                                    [right(g) for g in self._on_generators],
                                    codomain=homset.codomain(), category=cat)
         return super(self, AlgebraMorphism)._composition_(right, homset)
-

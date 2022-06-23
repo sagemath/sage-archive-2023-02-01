@@ -334,7 +334,7 @@ class FiniteRankFreeModuleMorphism(Morphism):
         if self._latex_name is None:
             return r'\mbox{' + str(self) + r'}'
         else:
-           return self._latex_name
+            return self._latex_name
 
     def __eq__(self, other):
         r"""
@@ -1047,7 +1047,7 @@ class FiniteRankFreeModuleMorphism(Morphism):
             sage: phi.matrix()     # default bases
             [-1  2  0]
             [ 5  1  2]
-            sage: phi.matrix(e,f)  # bases explicited
+            sage: phi.matrix(e, f)  # given bases
             [-1  2  0]
             [ 5  1  2]
             sage: type(phi.matrix())

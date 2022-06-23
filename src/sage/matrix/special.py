@@ -867,7 +867,7 @@ def diagonal_matrix(arg0=None, arg1=None, arg2=None, sparse=True):
         nrows = nentries
 
     # provide a default ring for an empty list
-    if not len(entries) and ring is None:
+    if not nentries and ring is None:
         ring = ZZ
 
     # Convert entries to a list v over a common ring
@@ -1486,7 +1486,7 @@ def circulant(v, sparse=None):
     Return the circulant matrix specified by its 1st row `v`
 
     A circulant `n \times n` matrix specified by the 1st row `v=(v_0...v_{n-1})` is
-    the matrix $(c_{ij})_{0 \leq i,j\leq n-1}$, where $c_{ij}=v_{j-i \mod b}$.
+    the matrix `(c_{ij})_{0 \leq i,j\leq n-1}`, where `c_{ij}=v_{j-i \mod b}`.
 
     INPUT:
 

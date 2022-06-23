@@ -20,15 +20,15 @@ AUTHORS:
 #                  https://www.gnu.org/licenses/
 # ****************************************************************************
 
-import os
+from pathlib import Path
 import pickle
 
 from copy import copy
 
 from sage.misc.cachefunc import cached_function
 from sage.misc.flatten import flatten
-from sage.graphs.all import DiGraph
-from sage.combinat.all import Combinations
+from sage.graphs.digraph import DiGraph
+from sage.combinat.combination import Combinations
 from sage.combinat.cluster_algebra_quiver.quiver_mutation_type import QuiverMutationType
 
 
@@ -601,14 +601,14 @@ def _connected_mutation_type(dg):
     elif len( exc_labels ) == 2:
         label1, label2 = exc_labels
         if label1[1] == label2[0]:
-           pass
+            pass
         elif label2[1] == label1[0]:
             label1, label2 = label2, label1
         else:
             # the exceptional case in affine type BC_2 is checked
-            if label2[2] == (1,-2) and label1[2] == (2,-1):
+            if label2[2] == (1, -2) and label1[2] == (2, -1):
                 label1, label2 = label2, label1
-            if label1[2] == (1,-2) and label2[2] == (2,-1):
+            if label1[2] == (1, -2) and label2[2] == (2, -1):
                 if label1[1] == label2[1] and dict_in_out[label1[1]][2] == 2 and dict_in_out[label1[0]][2] == 1 and dict_in_out[label2[0]][2] == 1:
                     return QuiverMutationType(['BC',2,1])
                 elif label1[0] == label2[0] and dict_in_out[label1[0]][2] == 2 and dict_in_out[label1[1]][2] == 1 and dict_in_out[label2[1]][2] == 1:
@@ -1276,16 +1276,16 @@ def load_data(n, user=True):
     # we check
     # - if the data is stored by the user, and if this is not the case
     # - if the data is stored by the optional package install
-    paths = [SAGE_SHARE]
+    paths = [Path(SAGE_SHARE)]
     if user:
-        paths.append(DOT_SAGE)
+        paths.append(Path(DOT_SAGE))
     data = {}
     for path in paths:
-        filename = os.path.join(path, 'cluster_algebra_quiver', 'mutation_classes_%s.dig6'%n)
+        file = path / 'cluster_algebra_quiver' / f'mutation_classes_{n}.dig6'
         try:
-            with open(filename, 'rb') as fobj:
+            with open(file, 'rb') as fobj:
                 data_new = pickle.load(fobj)
-        except Exception:
+        except (OSError, FileNotFoundError, pickle.UnpicklingError):
             # File does not exist, corrupt pickle, wrong Python version...
             pass
         else:

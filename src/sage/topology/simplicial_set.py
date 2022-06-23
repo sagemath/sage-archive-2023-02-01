@@ -235,11 +235,11 @@ copy of the integers::
     sage: X.homology(1)
     Z
 """
-#*****************************************************************************
+# ****************************************************************************
 #  Copyright (C) 2016 John H. Palmieri <palmieri at math.washington.edu>
 #
 #  Distributed under the terms of the GNU General Public License (GPL)
-#                  http://www.gnu.org/licenses/
+#                  https://www.gnu.org/licenses/
 #
 #    This code is distributed in the hope that it will be useful,
 #    but WITHOUT ANY WARRANTY; without even the implied warranty
@@ -248,9 +248,9 @@ copy of the integers::
 #  See the GNU General Public License for more details; the full text
 #  is available at:
 #
-#                  http://www.gnu.org/licenses/
+#                  https://www.gnu.org/licenses/
 #
-#*****************************************************************************
+# ****************************************************************************
 
 import copy
 
@@ -868,7 +868,7 @@ class AbstractSimplex_class(SageObject):
             s_1 s_0 v
         """
         if self.degeneracies():
-            degens = ' '.join(['s_{}'.format(i) for i in self.degeneracies()])
+            degens = ' '.join(f's_{i}' for i in self.degeneracies())
             return degens + ' {}'.format(self.nondegenerate())
         return 'Delta^{}'.format(self._dim)
 
@@ -903,7 +903,7 @@ class AbstractSimplex_class(SageObject):
         else:
             simplex = "\\Delta^{{{}}}".format(self._dim)
         if self.degeneracies():
-            degens = ' '.join(['s_{{{}}}'.format(i) for i in self.degeneracies()])
+            degens = ' '.join(f's_{{{i}}}' for i in self.degeneracies())
             return degens + ' ' + simplex
         return simplex
 
@@ -4059,4 +4059,3 @@ def shrink_simplicial_complex(K):
     """
     L = K._contractible_subcomplex()
     return SimplicialSet_finite(K).quotient(L)
-

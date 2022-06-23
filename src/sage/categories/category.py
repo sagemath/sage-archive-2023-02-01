@@ -338,7 +338,7 @@ class Category(UniqueRepresentation, SageObject):
         ....:         Parent.__init__(self, category=Ds())
         ....:     def g(self):
         ....:         return "myparent"
-        ....:     class Element(object):
+        ....:     class Element():
         ....:         pass
         sage: D = myparent()
         sage: D.__class__
@@ -1561,7 +1561,7 @@ class Category(UniqueRepresentation, SageObject):
             ....:     ParentMethods = 1
             ....:     class ElementMethods(A):
             ....:         pass
-            ....:     class MorphismMethods(object):
+            ....:     class MorphismMethods():
             ....:         pass
             sage: C = BrokenCategory()
             sage: C._make_named_class("parent_class",   "ParentMethods")
@@ -2031,7 +2031,7 @@ class Category(UniqueRepresentation, SageObject):
              Category of finite additive groups)
             sage: HopfAlgebras(QQ)._with_axiom_as_tuple('FiniteDimensional')
             (Category of hopf algebras over Rational Field,
-             Category of finite dimensional modules over Rational Field)
+             Category of finite dimensional vector spaces over Rational Field)
         """
         if axiom in self.axioms():
             return (self, )
@@ -3261,6 +3261,3 @@ class JoinCategory(CategoryWithParameters):
             except ValueError:
                 pass
         return "Join of " + " and ".join(str(cat) for cat in self._super_categories)
-
-
-

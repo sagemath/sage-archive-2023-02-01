@@ -6,6 +6,12 @@ computer with a command line interface that runs when you give the ``math``
 command. The interface lets you send certain Sage objects to Mathematica,
 run Mathematica functions, import certain Mathematica expressions to Sage,
 or any combination of the above.
+The Sage command::
+
+    sage: print(mathematica._install_hints())
+    ...
+
+prints more information on Mathematica installation.
 
 To send a Sage object ``sobj`` to Mathematica, call ``mathematica(sobj)``.
 This exports the Sage object to Mathematica and returns a new Sage object
@@ -388,7 +394,7 @@ from sage.interfaces.expect import (Expect, ExpectElement, ExpectFunction,
                                     FunctionElement)
 from sage.interfaces.interface import AsciiArtString
 from sage.interfaces.tab_completion import ExtraTabCompletion
-from sage.docs.instancedoc import instancedoc
+from sage.misc.instancedoc import instancedoc
 from sage.structure.richcmp import rich_to_bool
 
 
@@ -498,28 +504,33 @@ remote connection to a server running Mathematica -- for hints, type
     print(mathematica._install_hints_ssh())
 
 
-  (1) You might have to buy Mathematica (http://www.wolfram.com/).
+  (1) You might have to buy Mathematica (https://www.wolfram.com/), or
+  install a currently (Feb 2022) free for personal use Wolfram Engine
+  (https://www.wolfram.com/engine/).
 
   (2) * LINUX: The math script usually comes standard with your Mathematica install.
-        However, on some systems it may be called wolfram, while math is absent.
-        In this case, assuming wolfram is in your PATH,
+        However, on some systems it may be called wolfram,
+        or, in case of Wolfram Engine, wolframengine, while math is absent.
+        In this case, assuming wolfram, respectively, wolframengine,
+        is in your PATH,
           (a) create a file called math (in your PATH):
               #!/bin/sh
               /usr/bin/env wolfram $@
 
+        respectively,
+          (a') create a file called math (in your PATH):
+              #!/bin/sh
+              /usr/bin/env wolframengine $@
+
           (b) Make the file executable.
                 chmod +x math
 
-      * WINDOWS:
-
-        Install Mathematica for Linux into the VMware virtual machine (sorry,
-        that's the only way at present).
-
-
-      * APPLE OS X:
+      * Apple macOS: for Mathematica,
           (a) create a file called math (in your PATH):
               #!/bin/sh
               /Applications/Mathematica.app/Contents/MacOS/MathKernel $@
+
+          (a') for Wolfram Engine, follow the Linux step (a') above.
 
           The path in the above script must be modified if you installed
           Mathematica elsewhere or installed an old version of
@@ -530,15 +541,12 @@ remote connection to a server running Mathematica -- for hints, type
 
       * WINDOWS:
 
-        Install Mathematica for Linux into the VMware virtual machine (sorry,
-        that's the only way at present).
+        Install Mathematica for Linux into the VMware virtual machine, or in
+        a WSL/WSL2 Linux installation with Sage installed there (sorry,
+        that's the only ways at present).
 """
 
-#          The following only works with Sage for Cygwin (not colinux).
-#          Note that Sage colinux is the preferred way to run Sage in Windows,
-#          and I do not know how to use Mathematica from colinux Sage (unless
-#          you install Mathematica-for-linux into the colinux machine, which
-#          is possible).
+#          The following only works with Sage for Cygwin.
 
 #          Create a file named "math", which you place in the Sage root
 #          directory.  The file contained a single line, which was the
@@ -1029,7 +1037,7 @@ class MathematicaElement(ExpectElement):
         cmd = '%s===%s' % (self._name, P._false_symbol())
         return P.eval(cmd).strip() != P._true_symbol()
 
-    __nonzero__ = __bool__
+    
 
     def n(self, *args, **kwargs):
         r"""
@@ -1132,11 +1140,12 @@ def request_wolfram_alpha(input, verbose=False):
     from urllib.request import Request, build_opener, HTTPCookieProcessor, HTTPSHandler
     import json
     from http.cookiejar import CookieJar
-    from ssl import SSLContext
+    from ssl import create_default_context as default_context
 
     # we need cookies for this...
     cj = CookieJar()
-    opener = build_opener(HTTPCookieProcessor(cj), HTTPSHandler(context=SSLContext()))
+    opener = build_opener(HTTPCookieProcessor(cj),
+                          HTTPSHandler(context=default_context()))
     # build initial query for code
     req = Request("https://www.wolframalpha.com/input/api/v1/code")
     resp = opener.open(req)
@@ -1211,7 +1220,7 @@ def parse_moutput_from_json(page_data, verbose=False):
         sage: from sage.interfaces.mathematica import parse_moutput_from_json
         sage: page_data = request_wolfram_alpha('integrate Sin[x]') # optional internet
         sage: parse_moutput_from_json(page_data)                    # optional internet
-        [u'-Cos[x]']
+        ['-Cos[x]']
 
     ::
 
@@ -1244,7 +1253,7 @@ def parse_moutput_from_json(page_data, verbose=False):
             print("    Title: {}".format(result['title']))
         if 'subpods' not in result:
             continue
-        subpods = result[u'subpods']
+        subpods = result['subpods']
         for j, subpod in enumerate(subpods):
             if verbose:
                 print("    Subpod #{}".format(j))
@@ -1272,7 +1281,7 @@ def symbolic_expression_from_mathematica_string(mexpr):
     EXAMPLES::
 
         sage: from sage.interfaces.mathematica import symbolic_expression_from_mathematica_string
-        sage: symbolic_expression_from_mathematica_string(u'-Cos[x]')
+        sage: symbolic_expression_from_mathematica_string('-Cos[x]')
         -cos(x)
     """
     from sage.symbolic.expression import symbol_table

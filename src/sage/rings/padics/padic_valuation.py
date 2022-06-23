@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 r"""
-`p`-adic valuations on number fields and their subrings and completions
+`p`-adic Valuations on Number Fields and Their Subrings and Completions
 
 EXAMPLES::
 
@@ -255,7 +255,7 @@ class PadicValuationFactory(UniqueFactory):
             v = v._base_valuation._initial_approximation.change_domain(G.parent())
         else:
             raise NotImplementedError("cannot rewrite %r which is defined on %r as a pseudo-valuation on %r"%(v, v.domain(), G.parent()))
-            
+
 
         assert(v.domain() is G.parent())
 
@@ -326,7 +326,7 @@ class PadicValuationFactory(UniqueFactory):
         # Unfortunately, the generators of I, even though defined over K have
         # their polynomial() defined over the rationals so we need to turn them
         # into polynomials over K[x] explicitly.
-        from sage.rings.all import PolynomialRing
+        from sage.rings.polynomial.polynomial_ring_constructor import PolynomialRing
         gens = I.gens()
         gens = [PolynomialRing(K, 'x')(list(g.vector())) for g in gens]
 
@@ -1183,7 +1183,7 @@ class pAdicValuation_int(pAdicValuation_base):
         coefficients is going to lead to a significant shrinking of the
         coefficients of ``x``.
 
-        EXAMPLES:: 
+        EXAMPLES::
 
             sage: v = ZZ.valuation(2)
             sage: v._relative_size(2)
@@ -1329,7 +1329,7 @@ class pAdicValuation_int(pAdicValuation_base):
         from sage.rings.infinity import infinity
         if self(x) > 0 or precision is infinity:
             raise ValueError("element has no approximate inverse in this ring")
-        
+
         from sage.rings.integer_ring import ZZ
         from sage.rings.rational_field import QQ
         return self.domain()(ZZ(x).inverse_mod(self.p() ** QQ(precision).ceil()))

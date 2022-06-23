@@ -152,8 +152,32 @@ The source directory of a distribution package, such as
 
 - ``README.rst`` -- a description of the distribution
 
-- ``VERSION.txt``, ``LICENSE.txt`` -- relative symbolic links to the same files
+- ``LICENSE.txt`` -- relative symbolic link to the same files
   in ``SAGE_ROOT/src``
+
+- ``VERSION.txt`` -- package version. This file is updated by the release manager by
+  running the ``sage-update-version`` script.
+
+  Sometimes it may be necessary to upload a hotfix for a distribution
+  package to PyPI. These should be marked by adding a suffix
+  ``.post1``, ``.post2``; see `PEP 440 on post-releases
+  <https://peps.python.org/pep-0440/#post-releases>`_. For example, if
+  the current development release is ``9.7.beta8``, then such a
+  version could be marked ``9.7.beta8.post1``.
+
+  Also sometimes when working on tickets it may be necessary to
+  increment the version because a new feature is needed in another
+  distribution package. Such versions should be marked by using the
+  version number of the anticipated next development release and
+  adding a suffix ``.dev1``, ``.dev2`` ...  (see `PEP 440 on
+  developmental releases
+  <https://peps.python.org/pep-0440/#developmental-releases>`_).
+  For example, if the current development release is ``9.7.beta8``,
+  use ``9.7.beta9.dev1``. If the current development release is
+  the stable release ``9.8``, use ``9.9.beta0.dev1``.
+
+  After the ticket is merged in the next development version, it will
+  be synchronized again with the other package versions.
 
 - ``setup.py`` -- a `setuptools <https://pypi.org/project/setuptools/>`_-based
   installation script
@@ -164,10 +188,19 @@ The technique of using symbolic links pointing into ``SAGE_ROOT/src``
 has allowed the modularization effort to keep the ``SAGE_ROOT/src``
 tree monolithic: Modularization has been happening behind the scenes
 and will not change where Sage developers find the source files.
+When adding a new distribution package that uses a symbolic link pointing into
+``SAGE_ROOT/src``, please update ``search.exclude`` in
+``SAGE_ROOT/.vscode/settings.json``.
 
 Some of these files may actually be generated from source files with suffix ``.m4`` by the
 ``SAGE_ROOT/bootstrap`` script via the ``m4`` macro processor.
 
+For every distribution package, there is also a subdirectory of ``SAGE_ROOT/build/pkgs/``,
+which contains the build infrastructure that is specific to Sage-the-distribution.
+Note that these subdirectories follows a different naming convention,
+using underscores instead of dashes, see :ref:`section-directory-structure`.
+Because the distribution packages are included in the source tree, we set them
+up as "script packages" instead of "normal packages", see :ref:`section-package-source-types`.
 
 
 
@@ -204,7 +237,7 @@ that are imposed by the build-time dependencies.
 
 We can define some meaningful small distributions that just consist of
 a single or a few Cython modules. For example, **sagemath-tdlib**
-(https://trac.sagemath.org/ticket/29864) would just package the single
+(:trac:`29864`) would just package the single
 Cython module that must be linked with ``tdlib``,
 :mod:`sage.graphs.graph_decompositions.tdlib`. Starting with the Sage
 9.6 development cycle, as soon as namespace packages are activated, we
@@ -263,18 +296,85 @@ distribution -- which then must be declared as a run-time dependency.
   provides abstract base classes for many ring (parent) classes,
   including :class:`sage.rings.abc.pAdicField`.  So we can replace::
 
-    from sage.rings.padics.generic_nodes import pAdicField  # heavy dependencies
-    isinstance(object, pAdicField)
+    from sage.rings.padics.generic_nodes import pAdicFieldGeneric  # heavy dependencies
+    isinstance(object, pAdicFieldGeneric)
 
   and::
 
-    from sage.rings.padics.generic_nodes import pAdicField  # heavy dependencies
-    is_pAdicField(object)                                   # deprecated
+    from sage.rings.padics.generic_nodes import is_pAdicField      # heavy dependencies
+    is_pAdicField(object)                                          # deprecated
 
   by::
 
-    import sage.rings.abc                                   # no dependencies
+    import sage.rings.abc                                          # no dependencies
     isinstance(object, sage.rings.abc.pAdicField)
+
+  Note that going through the abstract base class only incurs a small
+  performance penalty::
+
+    sage: object = Qp(5)
+
+    sage: from sage.rings.padics.generic_nodes import pAdicFieldGeneric
+    sage: %timeit isinstance(object, pAdicFieldGeneric)            # fast                           # not tested
+    68.7 ns ± 2.29 ns per loop (...)
+
+    sage: import sage.rings.abc
+    sage: %timeit isinstance(object, sage.rings.abc.pAdicField)    # also fast                      # not tested
+    122 ns ± 1.9 ns per loop (...)
+
+- If it is not possible or desired to create an abstract base class for
+  ``isinstance`` testing (for example, when the class is defined in some
+  external package), other solutions need to be used.
+
+  Note that Python caches successful module imports, but repeating an
+  unsuccessful module import incurs a cost every time::
+
+    sage: from sage.schemes.generic.scheme import Scheme
+    sage: sZZ = Scheme(ZZ)
+
+    sage: def is_Scheme_or_Pluffe(x):
+    ....:    if isinstance(x, Scheme):
+    ....:        return True
+    ....:    try:
+    ....:        from xxxx_does_not_exist import Pluffe            # slow on every call
+    ....:    except ImportError:
+    ....:        return False
+    ....:    return isinstance(x, Pluffe)
+
+    sage: %timeit is_Scheme_or_Pluffe(sZZ)                         # fast                           # not tested
+    111 ns ± 1.15 ns per loop (...)
+
+    sage: %timeit is_Scheme_or_Pluffe(ZZ)                          # slow                           # not tested
+    143 µs ± 2.58 µs per loop (...)
+
+  The :func:`~sage.misc.lazy_import.lazy_import` mechanism can be used to simplify
+  this pattern via the :meth:`~sage.misc.lazy_import.LazyImport.__instancecheck__`
+  method and has similar performance characteristics::
+
+    sage: lazy_import('xxxx_does_not_exist', 'Pluffe')
+
+    sage: %timeit isinstance(sZZ, (Scheme, Pluffe))                # fast                           # not tested
+    95.2 ns ± 0.636 ns per loop (...)
+
+    sage: %timeit isinstance(ZZ, (Scheme, Pluffe))                 # slow                           # not tested
+    158 µs ± 654 ns per loop (...)
+
+  It is faster to do the import only once, for example when loading the module,
+  and to cache the failure.  We can use the following idiom, which makes
+  use of the fact that ``isinstance`` accepts arbitrarily nested lists
+  and tuples of types::
+
+    sage: try:
+    ....:     from xxxx_does_not_exist import Pluffe               # runs once
+    ....: except ImportError:
+    ....:     # Set to empty tuple of types for isinstance
+    ....:     Pluffe = ()
+
+    sage: %timeit isinstance(sZZ, (Scheme, Pluffe))                # fast                           # not tested
+    95.9 ns ± 1.52 ns per loop (...)
+
+    sage: %timeit isinstance(ZZ, (Scheme, Pluffe))                 # fast                           # not tested
+    126 ns ± 1.9 ns per loop (...)
 
 
 Other runtime dependencies
@@ -383,18 +483,27 @@ Hierarchy of distribution packages
 
     def node(label, pos):
         return text(label, (3*pos[0],2*pos[1]), background_color='pink', color='black')
-    def edge(start, end):
-        return arrow((3*start[0],2*start[1]+.5),(3*end[0],2*end[1]-.5), arrowsize=2)
+    def edge(start, end, **kwds):
+        return arrow((3*start[0],2*start[1]+.5),(3*end[0],2*end[1]-.5), arrowsize=2, **kwds)
+    def extras_require(start, end):
+        return edge(start, end, linestyle='dashed')
     g = Graphics()
-    g += (node("sagemath-objects", (1,0)) + edge((1,0),(1,1)))
-    g += (node("sagemath-categories", (1,1)) + edge((1,1),(0,2)) +
-          edge((1,1),(1,2)) + edge((1,1),(2,2)))
+    g += (node("sage_conf", (0.5,0)) + extras_require((0.5,0),(0.5,1)))
+    g += (node("sagemath-objects", (1.5,0)) + edge((1.5,0),(1.5,1)))
+    g += (node("sagemath-environment", (0.5,1))
+          + edge((0.5,1),(0,2)) + edge((0.5,1),(1,2)) + edge((0.5,1),(2,2)))
+    g += (node("sagemath-categories", (1.5,1)) + edge((1.5,1),(0,2)) +
+          edge((1.5,1),(1,2)) + edge((1.5,1),(2,2)))
     g += (node("sagemath-graphs", (0,2)) + node("sagemath-polyhedra", (1,2)) + node("sagemath-singular", (2,2)) +
           edge((0,2),(0,3)) + edge((0,2),(1,3)) + edge((1,2),(1,3)) + edge((2,2),(2,3)))
     g += (node("sagemath-tdlib", (0,3)) + node("sagemath-standard-no-symbolics", (1,3)) + node("sagemath-symbolics", (2,3)) +
           edge((1,3),(1,4)) + edge((2,3),(1,4)))
     g += node("sagemath-standard", (1,4))
     sphinx_plot(g, figsize=(8, 4), axes=False)
+
+
+Solid arrows indicate ``install_requires``, i.e., a declared runtime dependency.
+Dashed arrows indicate ``extras_require``, i.e., a declared optional runtime dependency.
 
 
 Testing distribution packages

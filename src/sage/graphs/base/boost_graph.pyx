@@ -580,7 +580,7 @@ cpdef bandwidth_heuristics(g, algorithm='cuthill_mckee'):
     # Tests for errors and trivial cases
     if not isinstance(g, Graph):
         raise TypeError("the input must be a Sage Graph")
-    if not algorithm in ['cuthill_mckee', 'king']:
+    if algorithm not in ['cuthill_mckee', 'king']:
         raise ValueError(f"unknown algorithm {algorithm!r}")
     if not g.num_edges():
         return (0, list(g))
@@ -690,7 +690,7 @@ cpdef min_spanning_tree(g,
 
     if not isinstance(g, Graph):
         raise TypeError("the input must be a Sage Graph")
-    if not algorithm in ['Kruskal', 'Prim']:
+    if algorithm not in ['Kruskal', 'Prim']:
         raise ValueError("algorithm '%s' not yet implemented, please contribute" %(algorithm))
 
     if g.allows_loops() or g.allows_multiple_edges():
@@ -2567,7 +2567,7 @@ cpdef diameter(G, algorithm=None, source=None,
     if algorithm is None:  # default algorithm for diameter computation
         algorithm = 'DiFUB'
 
-    if not algorithm in ['2Dsweep', 'DiFUB']:
+    if algorithm not in ['2Dsweep', 'DiFUB']:
         raise ValueError("unknown algorithm for computing the diameter of directed graph")
 
     if source is None:
@@ -2753,8 +2753,8 @@ cpdef shortest_paths_from_vertices(g, vertex_list=None, order=None,
                     use_Bellman_Ford = True
                     break
         elif g.weighted():
-            for _,_,wt in g.edges(sort=False):
-               if float(wt) < 0:
+            for _, _, wt in g.edges(sort=False):
+                if float(wt) < 0:
                     use_Bellman_Ford = True
                     break
 

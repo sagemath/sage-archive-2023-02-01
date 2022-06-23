@@ -18,8 +18,8 @@ TESTS:
 Check that argspecs of extension function/methods appear correctly,
 see :trac:`12849`::
 
-    sage: from sage.env import SAGE_DOC  # optional - sagemath_doc_html
-    sage: docfilename = os.path.join(SAGE_DOC, 'html', 'en', 'reference', 'calculus', 'sage', 'symbolic', 'expression.html')  # optional - sagemath_doc_html
+    sage: from sage.env import SAGE_DOC
+    sage: docfilename = os.path.join(SAGE_DOC, 'html', 'en', 'reference', 'calculus', 'sage', 'symbolic', 'expression.html')
     sage: with open(docfilename) as fobj:  # optional - sagemath_doc_html
     ....:     for line in fobj:
     ....:         if "#sage.symbolic.expression.Expression.numerical_approx" in line:
@@ -418,6 +418,10 @@ def process_dollars(s):
         sage: process_dollars('hello')
         'hello'
         sage: process_dollars('some math: $x=y$')
+        doctest:warning...
+        DeprecationWarning: using dollar signs to mark up math in Sage docstrings
+        is deprecated; use backticks instead
+        See https://trac.sagemath.org/33973 for details.
         'some math: `x=y`'
 
     Replace \\$ with $, and don't do anything when backticks are involved::
@@ -448,6 +452,7 @@ def process_dollars(s):
     """
     if s.find("$") == -1:
         return s
+    from sage.misc.superseded import deprecation
     # find how much leading whitespace s has, for later comparison:
     # ignore all $ on lines which start with more whitespace.
     whitespace = re.match(r'\s*\S', s.lstrip('\n'))
@@ -485,6 +490,9 @@ def process_dollars(s):
         while dollar.search(s, start, end):
             m = dollar.search(s, start, end)
             s = s[:m.end()-1] + "`" + s[m.end():]
+            deprecation(33973,
+                        "using dollar signs to mark up math in Sage docstrings "
+                        "is deprecated; use backticks instead")
         while slashdollar.search(s, start, end):
             m = slashdollar.search(s, start, end)
             s = s[:m.start()] + "$" + s[m.end():]
@@ -495,13 +503,13 @@ def process_dollars(s):
 pythonversion = sys.version.split(' ')[0]
 extlinks = {
     'python': ('https://docs.python.org/release/'+pythonversion+'/%s', ''),
-    'trac': ('https://trac.sagemath.org/%s', 'trac ticket #'),
-    'wikipedia': ('https://en.wikipedia.org/wiki/%s', 'Wikipedia article '),
-    'arxiv': ('https://arxiv.org/abs/%s', 'arXiv '),
-    'oeis': ('https://oeis.org/%s', 'OEIS sequence '),
-    'doi': ('https://doi.org/%s', 'doi:'),
-    'pari': ('https://pari.math.u-bordeaux.fr/dochtml/help/%s', 'pari:'),
-    'mathscinet': ('https://www.ams.org/mathscinet-getitem?mr=%s', 'MathSciNet ')
+    'trac': ('https://trac.sagemath.org/%s', 'trac ticket #%s'),
+    'wikipedia': ('https://en.wikipedia.org/wiki/%s', 'Wikipedia article %s'),
+    'arxiv': ('https://arxiv.org/abs/%s', 'arXiv %s'),
+    'oeis': ('https://oeis.org/%s', 'OEIS sequence %s'),
+    'doi': ('https://doi.org/%s', 'doi:%s'),
+    'pari': ('https://pari.math.u-bordeaux.fr/dochtml/help/%s', 'pari:%s'),
+    'mathscinet': ('https://www.ams.org/mathscinet-getitem?mr=%s', 'MathSciNet %s')
 }
 
 def process_extlinks(s, embedded=False):
@@ -511,7 +519,7 @@ def process_extlinks(s, embedded=False):
     Sphinx extlinks extension. For example, replace ``:trac:`NUM```
     with ``https://trac.sagemath.org/NUM``, and similarly with
     ``:python:TEXT`` and ``:wikipedia:TEXT``, looking up the url from
-    the dictionary ``extlinks`` in ``sage.docs.conf``.
+    the dictionary ``extlinks`` in ``sage_docbuild.conf``.
     If ``TEXT`` is of the form ``blah <LINK>``, then it uses ``LINK``
     rather than ``TEXT`` to construct the url.
 
@@ -609,10 +617,10 @@ def format(s, embedded=False):
     EXAMPLES::
 
         sage: from sage.misc.sagedoc import format
-        sage: identity_matrix(2).rook_vector.__doc__[202:274]
+        sage: identity_matrix(2).rook_vector.__doc__[191:263]
         'Let `A` be an `m` by `n` (0,1)-matrix. We identify `A` with a chessboard'
 
-        sage: format(identity_matrix(2).rook_vector.__doc__[202:274])
+        sage: format(identity_matrix(2).rook_vector.__doc__[191:263])
         'Let A be an m by n (0,1)-matrix. We identify A with a chessboard\n'
 
     If the first line of the string is 'nodetex', remove 'nodetex' but
@@ -710,7 +718,11 @@ def format(s, embedded=False):
     if 'noreplace' in directives or 'nodetex' in directives:
         s = s[first_newline + len(os.linesep):]
 
-    import sage.all
+    try:
+        import sage.all
+    except ImportError:
+        pass
+
     docs = set([])
     if 'noreplace' not in directives:
         i_0 = 0
@@ -774,7 +786,12 @@ def format_src(s):
     if not isinstance(s, str):
         raise TypeError("s must be a string")
     docs = set([])
-    import sage.all
+
+    try:
+        import sage.all
+    except ImportError:
+        pass
+
     while True:
         i = s.find("<<<")
         if i == -1:
@@ -845,12 +862,12 @@ def _search_src_or_doc(what, string, extra1='', extra2='', extra3='',
 
     ::
 
-        sage: from sage.misc.sagedoc import _search_src_or_doc  # optional - sagemath_doc_html
-        sage: len(_search_src_or_doc('src', r'matrix\(', 'incidence_structures', 'self', 'combinat', interact=False).splitlines()) > 1  # optional - sagemath_doc_html
+        sage: from sage.misc.sagedoc import _search_src_or_doc
+        sage: len(_search_src_or_doc('src', r'matrix\(', 'incidence_structures', 'self', 'combinat', interact=False).splitlines()) > 1
         True
         sage: 'abvar/homology' in _search_src_or_doc('doc', 'homology', 'variety', interact=False)  # optional - sagemath_doc_html, long time (4s on sage.math, 2012)
         True
-        sage: 'divisors' in _search_src_or_doc('src', '^ *def prime', interact=False)  # optional - sagemath_doc_html
+        sage: 'divisors' in _search_src_or_doc('src', '^ *def prime', interact=False)
         True
 
     When passing ``interactive=True``, in a terminal session this will pass the
@@ -1369,7 +1386,7 @@ class _sage_doc:
 
         sage: browse_sage_doc._open("reference", testing=True)[0]  # optional - sagemath_doc_html, indirect doctest
         'http://localhost:8000/doc/live/reference/index.html'
-        sage: browse_sage_doc(identity_matrix, 'rst')[-107:-47]  # optional - sagemath_doc_html
+        sage: browse_sage_doc(identity_matrix, 'rst')[-107:-47]
         'Full MatrixSpace of 3 by 3 sparse matrices over Integer Ring'
     """
     def __init__(self):
@@ -1401,7 +1418,7 @@ class _sage_doc:
             "...**File:**...**Type:**...**Definition:** identity_matrix..."
             sage: identity_matrix.__doc__ in browse_sage_doc(identity_matrix, 'rst')
             True
-            sage: browse_sage_doc(identity_matrix, 'html', False)             # optional - sphinx
+            sage: browse_sage_doc(identity_matrix, 'html', False)             # optional - sphinx sagemath_doc_html
             '...div...File:...Type:...Definition:...identity_matrix...'
 
         In the 'text' version, double colons have been replaced with
@@ -1486,7 +1503,6 @@ class _sage_doc:
     </script>
     <script type="text/javascript" src="%(static_path)s/jquery.js"></script>
     <script type="text/javascript" src="%(static_path)s/doctools.js"></script>
-    <script type="text/javascript" src="%(static_path)s/mathjax_sage.js"></script>
     <link rel="shortcut icon" href="%(static_path)s/favicon.ico" />
     <link rel="icon" href="%(static_path)s/sageicon.png" type="image/x-icon" />
   </head>

@@ -384,6 +384,7 @@ from cpython.object cimport Py_EQ, Py_NE, Py_LE, Py_GE, Py_LT, Py_GT
 
 from sage.cpython.string cimport str_to_bytes, char_to_str
 
+from sage.structure.element cimport parent
 from sage.structure.element cimport RingElement, Element, Matrix
 from sage.structure.element cimport Expression as Expression_abc
 from sage.symbolic.complexity_measures import string_length
@@ -615,7 +616,7 @@ def _subs_make_dict(s):
             msg = "can only substitute equality, not inequalities; got {}"
             raise TypeError(msg.format(s))
         return {s.lhs(): s.rhs()}
-    elif isinstance(s, (tuple,list)):
+    elif isinstance(s, (tuple, list)):
         result = {}
         for d in s:
             _dict_update_check_duplicate(result, _subs_make_dict(d))
@@ -623,6 +624,7 @@ def _subs_make_dict(s):
     else:
         msg = "not able to determine a substitution from {}"
         raise TypeError(msg.format(s))
+
 
 def _subs_fun_make_dict(s):
     r"""
@@ -694,7 +696,7 @@ def _subs_fun_make_dict(s):
             raise TypeError(msg.format(s))
         temp_fun = s.rhs().function(*s.lhs().operands())
         return {s.lhs().operator(): temp_fun}
-    elif isinstance(s, (tuple,list)):
+    elif isinstance(s, (tuple, list)):
         result = {}
         for d in s:
             _dict_update_check_duplicate(result, _subs_fun_make_dict(d))
@@ -758,9 +760,12 @@ cdef class Expression(Expression_abc):
             return constants_name_table[ccrepr(self._gobj)]
 
         if is_a_infinity(self._gobj):
-            if (ex_to_infinity(self._gobj).is_unsigned_infinity()): return unsigned_infinity
-            if (ex_to_infinity(self._gobj).is_plus_infinity()):     return infinity
-            if (ex_to_infinity(self._gobj).is_minus_infinity()):    return minus_infinity
+            if (ex_to_infinity(self._gobj).is_unsigned_infinity()):
+                return unsigned_infinity
+            if (ex_to_infinity(self._gobj).is_plus_infinity()):
+                return infinity
+            if (ex_to_infinity(self._gobj).is_minus_infinity()):
+                return minus_infinity
             raise TypeError('Python infinity cannot have complex phase.')
 
         if not is_a_numeric(self._gobj):
@@ -929,8 +934,8 @@ cdef class Expression(Expression_abc):
         # get variables
         cdef GExList sym_lst
         for name in state[1]:
-            sym_lst.append_sym(\
-                    ex_to_symbol((<Expression>SR.symbol(name))._gobj))
+            sym_lst.append_sym(
+                ex_to_symbol((<Expression>SR.symbol(name))._gobj))
 
         # initialize archive
         cdef GArchive ar
@@ -1467,7 +1472,7 @@ cdef class Expression(Expression_abc):
             MATHML version of the string pi + 2
 
         """
-        from sage.misc.all import mathml
+        from sage.misc.mathml import mathml
         try:
             obj = self.pyobject()
         except TypeError:
@@ -1804,6 +1809,9 @@ cdef class Expression(Expression_abc):
             Traceback (most recent call last):
             ...
             TypeError: unable to convert bogus_builtin_function(1) to a ComplexBall
+
+            sage: CBF(acos(float(1/4) * sqrt(int(5))))
+            [0.97759655064526...]
         """
         cdef bint progress = False
         cdef int i
@@ -1841,7 +1849,7 @@ cdef class Expression(Expression_abc):
             # not bother trying to stay in the real field.
             try:
                 for i in range(len(args)):
-                    if args[i].parent() is not C:
+                    if parent(args[i]) is not C:
                         progress = True
                         args[i] = C(args[i])
             except (TypeError, ValueError):
@@ -2368,7 +2376,7 @@ cdef class Expression(Expression_abc):
         from sage.calculus.calculus import maxima
         if not self.is_relational():
             raise TypeError("self (=%s) must be a relational expression" % self)
-        if not self in _assumptions:
+        if self not in _assumptions:
             m = self._maxima_init_assume_()
             s = maxima.assume(m)
             pynac_assume_rel(self._gobj)
@@ -2440,10 +2448,10 @@ cdef class Expression(Expression_abc):
         l = self.lhs()._assume_str()
         r = self.rhs()._assume_str()
         op = self.operator()
-        if  op is operator.eq:
-            m = 'equal(%s, %s)'%(l, r)
+        if op is operator.eq:
+            m = 'equal(%s, %s)' % (l, r)
         elif op is operator.ne:
-            m = 'notequal(%s, %s)'%(l, r)
+            m = 'notequal(%s, %s)' % (l, r)
         else:
             m = '(%s)%s(%s)' % (l, maxima._relation_symbols()[op], r)
         return m
@@ -3296,7 +3304,7 @@ cdef class Expression(Expression_abc):
         """
         return self._gobj.is_zero()
 
-    def __nonzero__(self):
+    def __bool__(self):
         """
         Return True unless this symbolic expression can be shown by Sage
         to be zero.  Note that deciding if an expression is zero is
@@ -3512,7 +3520,6 @@ cdef class Expression(Expression_abc):
         else:
             return not bool(self == self._parent.zero())
 
-
     def test_relation(self, int ntests=20, domain=None, proof=True):
         """
         Test this relation at several random values, attempting to find
@@ -3589,6 +3596,20 @@ cdef class Expression(Expression_abc):
             False
             sage: (m==m1).test_relation()
             False
+
+        Try the examples from :trac:`31424` and :trac:`31665`::
+
+            sage: k = 26
+            sage: bool(2/(2*pi)^(2*k) <= abs(bernoulli(2*k)/factorial(2*k)))
+            True
+            sage: t = log(17179815199/17179869184) + 727717503781781876485802\
+            ....: 752874818120860129694543334299450155913077668355/2315841784\
+            ....: 74632390847141970017375815706539969331281128078915168015826\
+            ....: 259279872
+            sage: v = -53985/17179869184
+            sage: bool(abs(t) < 1.213*2^-56*v^4)
+            True
+
         """
         cdef int k, eq_count = 0
         cdef bint is_interval
@@ -3604,9 +3625,17 @@ cdef class Expression(Expression_abc):
                     from sage.rings.qqbar import AA as domain
             else:
                 if op == equal or op == not_equal:
-                    from sage.rings.qqbar import CIF as domain
+                    from sage.rings.complex_interval_field import \
+                        ComplexIntervalField
+                    # We don't want to be in the business of trying to
+                    # ensure enough precision to solve EVERY problem,
+                    # but since there are two real-life examples in
+                    # Trac tickets 31424 and 31665 that are aided by
+                    # a bump, we reluctantly enter that game.
+                    domain = ComplexIntervalField(128)
                 else:
-                    from sage.rings.real_mpfi import RIF as domain
+                    from sage.rings.real_mpfi import RealIntervalField
+                    domain = RealIntervalField(128)
         else:
             is_interval = isinstance(domain, (sage.rings.abc.RealIntervalField,
                                               sage.rings.abc.ComplexIntervalField,
@@ -3760,7 +3789,7 @@ cdef class Expression(Expression_abc):
         try:
             return <Expression?>z
         except TypeError:
-            return self._parent._coerce_(z)
+            return self._parent.coerce(z)
 
     cpdef _add_(left, right):
         """
@@ -4742,7 +4771,6 @@ cdef class Expression(Expression_abc):
         return matrix([[g.derivative(x) for x in self.arguments()]
                        for g in self.gradient()])
 
-
     def series(self, symbol, order=None):
         r"""
         Return the power series expansion of self in terms of the
@@ -5033,8 +5061,6 @@ cdef class Expression(Expression_abc):
         l = self._maxima_().taylor(B)
         return self.parent()(l)
 
-
-
     def truncate(self):
         """
         Given a power series or expression, return the corresponding
@@ -5202,7 +5228,7 @@ cdef class Expression(Expression_abc):
     expand_rational = rational_expand = expand
 
     def expand_trig(self, full=False, half_angles=False, plus=True, times=True):
-        """
+        r"""
         Expand trigonometric and hyperbolic functions of sums of angles
         and of multiple angles occurring in self. For best results, self
         should already be expanded.
@@ -5431,7 +5457,6 @@ cdef class Expression(Expression_abc):
             rdict[key] = val
             itr.inc()
         return rdict
-
 
     def find(self, pattern):
         """
@@ -6074,7 +6099,7 @@ cdef class Expression(Expression_abc):
 
             sage: x = SR.var("x")
             sage: f = function("f")
-            sage: bool(f(exp(I*x)).diff(x).demoivre() == 
+            sage: bool(f(exp(I*x)).diff(x).demoivre() ==
             ....:      f(exp(I*x)).demoivre().diff(x))
             True
         """
@@ -6344,8 +6369,8 @@ cdef class Expression(Expression_abc):
             [a, b^2, c]
         """
         from sage.symbolic.ring import SR
-        return [new_Expression_from_GEx(SR, self._gobj.op(i)) \
-                            for i from 0 <= i < self._gobj.nops()]
+        return [new_Expression_from_GEx(SR, self._gobj.op(i))
+                for i in range(self._gobj.nops())]
 
     def operator(self):
         """
@@ -6631,6 +6656,7 @@ cdef class Expression(Expression_abc):
             prec = digits_to_bits(digits)
 
         from sage.symbolic.expression_conversions import ExpressionTreeWalker
+
         class DefiniteSumExpander(ExpressionTreeWalker):
             def composition(self, ex, operator):
                 if hasattr(operator, 'name') and operator.name() == 'sum' and (
@@ -6647,8 +6673,8 @@ cdef class Expression(Expression_abc):
         kwds = {'parent': R, 'algorithm': algorithm}
         try:
             x = x._convert(kwds)
-        except TypeError: # numerical approximation for real number failed
-            pass          # try again with complex
+        except TypeError:  # numerical approximation for real number failed
+            pass           # try again with complex
             kwds['parent'] = R.complex_field()
             x = x._convert(kwds)
 
@@ -6656,7 +6682,7 @@ cdef class Expression(Expression_abc):
         # in pynac
         if is_a_numeric(x._gobj):
             res = py_object_from_numeric(x._gobj)
-        elif  is_a_constant(x._gobj):
+        elif is_a_constant(x._gobj):
             res = x.pyobject()
         else:
             raise TypeError("cannot evaluate symbolic expression numerically")
@@ -6664,7 +6690,7 @@ cdef class Expression(Expression_abc):
         # Important -- the  we get might not be a valid output for numerical_approx in
         # the case when one gets infinity.
         if isinstance(res, AnInfinity):
-            return res.n(prec=prec,digits=digits)
+            return res.n(prec=prec, digits=digits)
         return res
 
     def round(self):
@@ -7930,7 +7956,7 @@ cdef class Expression(Expression_abc):
             return new_Expression_from_GEx(self._parent, x)
 
     def gosper_term(self, n):
-        """
+        r"""
         Return Gosper's hypergeometric term for ``self``.
 
         Suppose ``f``=``self`` is a hypergeometric term such that:
@@ -9179,7 +9205,7 @@ cdef class Expression(Expression_abc):
         r"""
         Return sinh of self.
 
-        We have $\sinh(x) = (e^{x} - e^{-x})/2$.
+        We have `\sinh(x) = (e^{x} - e^{-x})/2`.
 
         EXAMPLES::
 
@@ -9237,7 +9263,7 @@ cdef class Expression(Expression_abc):
         r"""
         Return cosh of self.
 
-        We have $\cosh(x) = (e^{x} + e^{-x})/2$.
+        We have `\cosh(x) = (e^{x} + e^{-x})/2`.
 
         EXAMPLES::
 
@@ -9293,7 +9319,7 @@ cdef class Expression(Expression_abc):
         r"""
         Return tanh of self.
 
-        We have $\tanh(x) = \sinh(x) / \cosh(x)$.
+        We have `\tanh(x) = \sinh(x) / \cosh(x)`.
 
         EXAMPLES::
 
@@ -9889,12 +9915,8 @@ cdef class Expression(Expression_abc):
             sage: a = SR(5).log_gamma(hold=True); a.n()
             3.17805383034795
         """
-        cdef GEx x
-        sig_on()
-        try:
-            x = g_hold_wrapper(g_lgamma, self._gobj, hold)
-        finally:
-            sig_off()
+        # Note: g_lgamma calls back into Python, must not wrap in sig_on/sig_off
+        cdef GEx x = g_hold_wrapper(g_lgamma, self._gobj, hold)
         return new_Expression_from_GEx(self._parent, x)
 
     def default_variable(self):
@@ -10678,7 +10700,6 @@ cdef class Expression(Expression_abc):
 
     full_simplify = simplify_full
 
-
     def simplify_hypergeometric(self, algorithm='maxima'):
         """
         Simplify an expression containing hypergeometric or confluent
@@ -10752,8 +10773,7 @@ cdef class Expression(Expression_abc):
 
     hypergeometric_simplify = simplify_hypergeometric
 
-
-    def simplify_rectform(self, complexity_measure = string_length):
+    def simplify_rectform(self, complexity_measure=string_length):
         r"""
         Attempt to simplify this expression by expressing it in the
         form `a + bi` where both `a` and `b` are real. This
@@ -10936,12 +10956,11 @@ cdef class Expression(Expression_abc):
         # necessary otherwise.
         forget()
         for assumption in original_assumptions:
-            assume(assumption);
+            assume(assumption)
 
         return result
 
-
-    def simplify_trig(self,expand=True):
+    def simplify_trig(self, expand=True):
         r"""
         Optionally expand and then employ identities such as
         `\sin(x)^2 + \cos(x)^2 = 1`, `\cosh(x)^2 - \sinh(x)^2 = 1`,
@@ -12404,7 +12423,8 @@ cdef class Expression(Expression_abc):
             ret = ret[0]
         return ret
 
-    def find_root(self, a, b, var=None, xtol=10e-13, rtol=2.0**-50, maxiter=100, full_output=False):
+    def find_root(self, a, b, var=None, xtol=10e-13, rtol=2.0**-50,
+                  maxiter=100, full_output=False, imaginary_tolerance=1e-8):
         """
         Numerically find a root of self on the closed interval [a,b] (or
         [b,a]) if possible, where self is a function in the one variable.
@@ -12428,6 +12448,11 @@ cdef class Expression(Expression_abc):
         -  ``full_output`` - bool (default: False), if True,
            also return object that contains information about convergence.
 
+        - ``imaginary_tolerance`` -- (default: ``1e-8``); if an imaginary
+          number arises (due, for example, to numerical issues), this
+          tolerance specifies how large it has to be in magnitude before
+          we raise an error. In other words, imaginary parts smaller than
+          this are ignored when we are expecting a real answer.
 
         EXAMPLES:
 
@@ -12526,7 +12551,17 @@ cdef class Expression(Expression_abc):
             sage: find_root(1/t - x,0,2)
             Traceback (most recent call last):
             ...
-            NotImplementedError: root finding currently only implemented in 1 dimension.
+            NotImplementedError: root finding currently only implemented
+            in 1 dimension.
+
+        Ensure that complex expressions do not cause a problem if they
+        appear only as intermediate results as in :trac:`24536`::
+
+            sage: x = SR.symbol('x', domain='real')
+            sage: f = (sqrt(x) - I).abs()
+            sage: f.find_root(-2, 2, rtol=1e-6)  # abs tol 1e-6
+            -1.0000000049668551
+
         """
         if is_a_relational(self._gobj) and self.operator() is not operator.eq:
             raise ValueError("Symbolic equation must be an equality.")
@@ -12537,16 +12572,22 @@ cdef class Expression(Expression_abc):
             else:
                 raise RuntimeError("no zero in the interval, since constant expression is not 0.")
         elif self.number_of_arguments() == 1:
-            from sage.ext.fast_callable import fast_callable
-            # The domain=float is important for numpy if we encounter NaN.
-            f = fast_callable(self, vars=[self.default_variable()], domain=float)
-            return find_root(f, a=a, b=b, xtol=xtol,
+            # We use the plotting fast_callable() and its wrapper
+            # because numerical root finding is a lot like plotting in
+            # the sense that we usually want to tolerate intermediate
+            # complex expressions like abs(x + I), so long as the end
+            # result has a "negligible" complex part.
+            from sage.ext.fast_callable import FastCallableFloatWrapper
+            f = self._plot_fast_callable(self.default_variable())
+            ff = FastCallableFloatWrapper(f, imag_tol=imaginary_tolerance)
+            return find_root(ff, a=a, b=b, xtol=xtol,
                              rtol=rtol,maxiter=maxiter,
                              full_output=full_output)
         else:
             raise NotImplementedError("root finding currently only implemented in 1 dimension.")
 
-    def find_local_maximum(self, a, b, var=None, tol=1.48e-08, maxfun=500):
+    def find_local_maximum(self, a, b, var=None, tol=1.48e-08,
+                           maxfun=500, imaginary_tolerance=1e-8):
         r"""
         Numerically find a local maximum of the expression ``self``
         on the interval [a,b] (or [b,a]) along with the point at which the
@@ -12563,11 +12604,12 @@ cdef class Expression(Expression_abc):
             sage: f.find_local_maximum(0,5, tol=0.1, maxfun=10)
             (0.561090323458081..., 0.857926501456...)
         """
-        minval, x = (-self).find_local_minimum(a, b, var=var, tol=tol,
-                                                     maxfun=maxfun)
+        minval, x = (-self).find_local_minimum(a, b, var, tol,
+                                               maxfun, imaginary_tolerance)
         return -minval, x
 
-    def find_local_minimum(self, a, b, var=None, tol=1.48e-08, maxfun=500):
+    def find_local_minimum(self, a, b, var=None, tol=1.48e-08,
+                           maxfun=500, imaginary_tolerance=1e-8):
         r"""
         Numerically find a local minimum of the expression ``self``
         on the interval [a,b] (or [b,a]) and the point at which it attains
@@ -12590,6 +12632,12 @@ cdef class Expression(Expression_abc):
 
         -  ``maxfun`` - natural number (default: 500); maximum function
            evaluations
+
+        - ``imaginary_tolerance`` -- (default: ``1e-8``); if an imaginary
+          number arises (due, for example, to numerical issues), this
+          tolerance specifies how large it has to be in magnitude before
+          we raise an error. In other words, imaginary parts smaller than
+          this are ignored when we are expecting a real answer.
 
         OUTPUT:
 
@@ -12614,6 +12662,16 @@ cdef class Expression(Expression_abc):
             sage: f.find_local_minimum(1, 15)
             (-9.477294259479..., 9.5293344109...)
 
+        TESTS:
+
+        Ensure that complex expressions do not cause a problem if they
+        appear only as intermediate results as in :trac:`24536`::
+
+            sage: x = SR.symbol('x', domain='real')
+            sage: f = (x + I).abs()
+            sage: f.find_local_minimum(-1,1)  # abs tol 1e-7
+            (1.0, 1.6937685757340167e-08)
+
         ALGORITHM:
 
         Uses :func:`sage.numerical.optimize.find_local_minimum`.
@@ -12628,9 +12686,16 @@ cdef class Expression(Expression_abc):
         if var is None:
             var = self.default_variable()
 
-        # The domain=float is important for numpy if we encounter NaN.
-        f = fast_callable(self, vars=[var], domain=float)
-        return find_local_minimum(f, a=a, b=b, tol=tol, maxfun=maxfun)
+        # We use the plotting fast_callable() and its wrapper
+        # because numerical minimization is a lot like plotting in
+        # the sense that we usually want to tolerate intermediate
+        # complex expressions like abs(x + I), so long as the end
+        # result has a "negligible" complex part.
+        from sage.ext.fast_callable import FastCallableFloatWrapper
+        f = self._plot_fast_callable(var)
+        ff = FastCallableFloatWrapper(f, imag_tol=imaginary_tolerance)
+
+        return find_local_minimum(ff, a=a, b=b, tol=tol, maxfun=maxfun)
 
     ###################
     # Fast Evaluation #
@@ -12807,35 +12872,24 @@ cdef class Expression(Expression_abc):
         EXAMPLES::
 
             sage: x = var('x', domain='real')
-            sage: s = abs((1+I*x)^4); s
-            abs(I*x + 1)^4
-            sage: f = s._plot_fast_callable(x); f
-            <sage.ext.interpreters.wrapper_py.Wrapper_py object at ...>
-            sage: f(10)
-            10201
-            sage: abs((I*10+1)^4)
-            10201
+            sage: s = abs((1+I*x)^4)
+            sage: f = s._plot_fast_callable(x)
+            sage: f(10) == abs((I*10+1)^4)
+            True
             sage: plot(s)
             Graphics object consisting of 1 graphics primitive
 
-        Check that :trac:`19797` is fixed::
-
-            sage: b = f(10.0)
-            sage: b
-            10201.0000000000
-            sage: parent(b)
-            Real Field with 53 bits of precision
-
         Check that :trac:`15030` is fixed::
 
-            sage: abs(log(x))._plot_fast_callable(x)(-0.2)
+            sage: abs(log(x))._plot_fast_callable(x)(-0.2) # abs tol 1e-10
             3.52985761682672
             sage: f = function('f', evalf_func=lambda self,x,parent: I*x)
             sage: plot(abs(f(x)), 0,5)
             Graphics object consisting of 1 graphics primitive
         """
         from sage.ext.fast_callable import fast_callable
-        return fast_callable(self, vars=vars, expect_one_var=True)
+        from sage.rings.complex_double import CDF
+        return fast_callable(self, vars=vars, expect_one_var=True, domain=CDF)
 
     ############
     # Calculus #
@@ -13501,7 +13555,7 @@ cdef get_dynamic_class_for_function(unsigned serial):
         ....:     def __init__(self):
         ....:         BuiltinFunction.__init__(self, 'tfunc', nargs=1)
         ....:
-        ....:     class EvaluationMethods(object):
+        ....:     class EvaluationMethods():
         ....:         def argp1(self, x):
         ....:             '''
         ....:             Some documentation about a bogus function.
@@ -13546,7 +13600,7 @@ cdef get_dynamic_class_for_function(unsigned serial):
         ....:     def __init__(self):
         ....:         BuiltinFunction.__init__(self, 'tfunc', nargs=2)
         ....:
-        ....:     class EvaluationMethods(object):
+        ....:     class EvaluationMethods():
         ....:         def argsum(self, x, y):
         ....:             return x + y
         ....:
@@ -13732,7 +13786,7 @@ cpdef new_Expression_from_pyobject(parent, x, bint force=True, bint recursive=Tr
         if isinstance(x, Expression):
             return x
         try:
-            return parent._coerce_(x)
+            return parent.coerce(x)
         except TypeError:
             pass
 
@@ -13901,6 +13955,7 @@ cdef class ExpressionIterator:
     cdef Expression _ex
     cdef int _ind
     cdef int _len
+
     def __iter__(self):
         """
         Return this iterator object itself.
@@ -13967,13 +14022,13 @@ cdef operators compatible_relation(operators lop, operators rop) except <operato
     elif lop == not_equal or rop == not_equal:
         raise TypeError("incompatible relations")
     elif lop == equal:
-       return rop
+        return rop
     elif rop == equal:
-       return lop
+        return lop
     elif lop in [less, less_or_equal] and rop in [less, less_or_equal]:
-       return less
+        return less
     elif lop in [greater, greater_or_equal] and rop in [greater, greater_or_equal]:
-       return greater
+        return greater
     else:
         raise TypeError("incompatible relations")
 
@@ -14016,7 +14071,7 @@ cdef class hold_class:
             sage: SR(2)^5
             32
         """
-        g_set_state('hold', True)
+        g_set_state(b'hold', True)
 
     def __exit__(self, *args):
         """
@@ -14029,7 +14084,7 @@ cdef class hold_class:
             sage: SR(2)^5
             32
         """
-        g_set_state('hold', False)
+        g_set_state(b'hold', False)
 
     def start(self):
         """

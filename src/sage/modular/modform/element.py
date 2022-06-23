@@ -391,6 +391,32 @@ class ModularForm_abstract(ModuleElement):
         else:
             return self.q_expansion(n+1)[int(n)]
 
+    def coefficient(self, n):
+        r"""
+        Return the `n`-th coefficient of the `q`-expansion of self.
+
+        INPUT:
+
+        - ``n`` (int, Integer) - A non-negative integer.
+
+        EXAMPLES::
+
+            sage: f = ModularForms(1, 12).0; f
+            q - 24*q^2 + 252*q^3 - 1472*q^4 + 4830*q^5 + O(q^6)
+            sage: f.coefficient(0)
+            0
+            sage: f.coefficient(1)
+            1
+            sage: f.coefficient(2)
+            -24
+            sage: f.coefficient(3)
+            252
+            sage: f.coefficient(4)
+            -1472
+        """
+        n = ZZ(n)
+        return self.q_expansion(n+1)[n]
+
     def padded_list(self, n):
         """
         Return a list of length n whose entries are the first n
@@ -464,8 +490,6 @@ class ModularForm_abstract(ModuleElement):
             True
         """
         return not self.element().is_zero()
-
-    __nonzero__ = __bool__
 
     def prec(self):
         """
@@ -1716,8 +1740,6 @@ class Newform(ModularForm_abstract):
             True
         """
         return True
-
-    __nonzero__ = __bool__
 
     def character(self):
         r"""
@@ -3175,9 +3197,10 @@ class GradedModularFormElement(ModuleElement):
         r"""
         INPUT:
 
-        - ``parent`` - an object of the class ``ModularFormsRing``
-        - ``forms_datum`` - a dictionary ``{k_1:f_1, k_2:f_2, ..., k_n:f_n}`` or a list ``[f_1, f_2,..., f_n]``
-          where `f_i` is a modular form of weight `k_i`
+        - ``parent`` -- an object of the class ``ModularFormsRing``
+        - ``forms_datum`` -- a dictionary ``{k_1:f_1, k_2:f_2, ..., k_n:f_n}``
+          or a list ``[f_1, f_2,..., f_n]`` where `f_i` is a modular form of
+          weight `k_i`
 
         OUTPUT:
 
@@ -3322,7 +3345,8 @@ class GradedModularFormElement(ModuleElement):
 
     def q_expansion(self, prec=None):
         r"""
-        Compute the `q`-expansion of the graded modular form up to precision ``prec`` (default: 6).
+        Return the `q`-expansion of the graded modular form up to precision
+        ``prec`` (default: 6).
 
         An alias of this method is ``qexp``.
 
@@ -3367,8 +3391,12 @@ class GradedModularFormElement(ModuleElement):
 
     def __getitem__(self, weight):
         r"""
-        Given a graded form `F = f_1 + ... + f_r`, return the modular form of the given weight corresponding to
-        the homogeneous component.
+        Return the homogeneous component of the given graded modular form.
+
+        INPUT:
+
+        - ``weight`` -- An integer corresponding to the weight of the
+          homogeneous component of the given graded modular form.
 
         EXAMPLES::
 
@@ -3478,9 +3506,10 @@ class GradedModularFormElement(ModuleElement):
 
         INPUT:
 
-        - ``other`` - a ```GradedModularForm``
+        - ``other`` -- a ``GradedModularFormElement``
 
-        OUTPUT: the ```GradedModularForm`` corresponding to the multiplication of ```self`` and ``other``.
+        OUTPUT: the ``GradedModularFormElement`` corresponding to the
+        multiplication of ``self`` and ``other``.
 
         TESTS::
 
@@ -3789,7 +3818,7 @@ class GradedModularFormElement(ModuleElement):
 
         INPUT:
 
-        - ``name`` (str, default: 'E2') - the name of the weight 2 Eisenstein
+        - ``name`` (str, default: 'E2') -- the name of the weight 2 Eisenstein
            series generating the graded algebra of quasimodular forms over the
            ring of modular forms.
 

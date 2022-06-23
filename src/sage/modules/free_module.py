@@ -745,7 +745,7 @@ def basis_seq(V, vecs):
     """
     for z in vecs:
         z.set_immutable()
-    return Sequence(vecs, universe=V, check = False, immutable=True, cr=True)
+    return Sequence(vecs, universe=V, check=False, immutable=True, cr=True)
 
 
 ###############################################################################
@@ -916,30 +916,6 @@ class Module_free_ambient(Module):
         """
         return self.__is_sparse
 
-    def ambient_module(self):
-        """
-        Return the ambient module associated to this module.
-
-        EXAMPLES::
-
-            sage: R.<x,y> = QQ[]
-            sage: M = FreeModule(R,2)
-            sage: M.ambient_module()
-            Ambient free module of rank 2 over the integral domain
-            Multivariate Polynomial Ring in x, y over Rational Field
-
-        ::
-
-            sage: V = FreeModule(QQ, 4).span([[1,2,3,4], [1,0,0,0]]); V
-            Vector space of degree 4 and dimension 2 over Rational Field
-            Basis matrix:
-            [  1   0   0   0]
-            [  0   1 3/2   2]
-            sage: V.ambient_module()
-            Vector space of dimension 4 over Rational Field
-        """
-        return FreeModule(self.base_ring(), self.degree())
-
     def _an_element_(self):
         """
         Return an arbitrary element of a free module.
@@ -959,7 +935,7 @@ class Module_free_ambient(Module):
         try:
             return self.gen(0)
         except ValueError:
-            return self(0)
+            return self.zero()
 
     def some_elements(self):
         r"""
@@ -1083,6 +1059,36 @@ class Module_free_ambient(Module):
             []
         """
         return self.submodule([], check=False)
+
+    def relations_matrix(self):
+        r"""
+        Return the matrix of relations of ``self``.
+
+        EXAMPLES::
+
+            sage: V = GF(2)^2
+            sage: V.relations_matrix()
+            []
+            sage: W = V.subspace([[1, 0]])
+            sage: W.relations_matrix()
+            []
+
+            sage: Q = V / W
+            sage: Q.relations_matrix()
+            [1 0]
+
+            sage: S.<x,y,z> = PolynomialRing(QQ)
+            sage: M = S**2
+            sage: M.relations_matrix()
+            []
+
+            sage: N = M.submodule([vector([x - y, z]), vector([y*z, x*z])])
+            sage: Q = M.quotient_module(N)
+            sage: Q.relations_matrix()
+            [x - y     z]
+            [  y*z   x*z]
+        """
+        return self.relations().matrix()
 
     def __richcmp__(self, other, op):
         r"""
@@ -1370,6 +1376,18 @@ class Module_free_ambient(Module):
 
         EXAMPLES::
 
+            sage: S.<x,y,z> = PolynomialRing(QQ)
+            sage: M = S**2
+            sage: N = M.submodule([vector([x - y, z]), vector([y*z, x*z])])
+            sage: Q = M.quotient_module(N)
+            sage: M._eq(Q)
+            False
+            sage: M.zero_submodule()._eq(Q.zero_submodule())
+            False
+            sage: Q.zero_submodule()._eq(M.zero_submodule())
+            False
+            sage: M.zero_submodule()._eq(N.zero_submodule())
+            True
         """
         if self.degree() != other.degree():
             return False
@@ -1392,7 +1410,7 @@ class Module_free_ambient(Module):
                 rx = other.zero_submodule()
             if lx != rx:
                 return False
-        # NOTE: This method should be overwritten for free modules.
+        # NOTE: This method is overwritten for free modules.
         #   Subsequently, we know we are not an ambient free module!
 
         # self and other are not ambient.
@@ -1440,32 +1458,12 @@ class Module_free_ambient(Module):
         if self.base_ring() != other.base_ring():
             return False
 
-        from sage.modules.submodule import Submodule_free_ambient
-        if isinstance(self, Submodule_free_ambient):
-            if isinstance(other, Submodule_free_ambient):
-                if self.defining_module() != other.defining_module():
-                    return False
-                if not (self.defining_module() == other.defining_module()):
-                    raise NotImplementedError("could not determine containment")
-            else:
-                if self.defining_module() != other:
-                    return False
-                if not (self.defining_module() == other):
-                    raise NotImplementedError("could not determine containment")
-        elif isinstance(other, Submodule_free_ambient):
-            if other.defining_module() != self:
-                return False
-            if not (other.defining_module() == self):
+        if not (self.ambient_module() == other.ambient_module()):
+            if not (self.ambient_module() != other.ambient_module()):
                 raise NotImplementedError("could not determine containment")
-
-        try:
-            if self.ambient_vector_space() != other.ambient_vector_space():
-                return False
-            if other is other.ambient_vector_space():
-                return True
-        except AttributeError:
-            # Not all modules have an ambient_vector_space.
-            pass
+            return False
+        if other is self.ambient_module():
+            return True
 
         from sage.modules.quotient_module import QuotientModule_free_ambient
         if isinstance(other, QuotientModule_free_ambient):
@@ -1527,23 +1525,20 @@ class Module_free_ambient(Module):
         if isinstance(gens, FreeModule_generic):
             gens = gens.gens()
         if base_ring is None or base_ring is self.base_ring():
-            from .submodule import Submodule_free_ambient
-            if isinstance(self, Submodule_free_ambient):
-                ambient = self.defining_module()
-            else:
-                ambient = self.ambient_module()
-            return Submodule_free_ambient(ambient, gens, check=check)
-        else:
-            try:
-                M = self.change_ring(base_ring)
-            except TypeError:
-                raise ValueError("Argument base_ring (= %s) is not compatible " % base_ring +
-                                 "with the base ring (= %s)." % self.base_ring())
-            try:
-                return M.span(gens)
-            except TypeError:
-                raise ValueError("Argument gens (= %s) is not compatible " % gens +
-                                 "with base_ring (= %s)." % base_ring)
+            from sage.modules.submodule import Subquotient_free_ambient
+            return Subquotient_free_ambient(self.ambient_module(), gens, check=check)
+
+        # The base ring has changed
+        try:
+            M = self.change_ring(base_ring)
+        except TypeError:
+            raise ValueError("argument base_ring (= %s) is not compatible " % base_ring +
+                             "with the base ring (= %s)" % self.base_ring())
+        try:
+            return M.span(gens)
+        except TypeError:
+            raise ValueError("argument gens (= %s) is not compatible " % gens +
+                             "with base_ring (= %s)" % base_ring)
 
     def submodule(self, gens, check=True):
         r"""
@@ -1574,6 +1569,21 @@ class Module_free_ambient(Module):
                 raise ArithmeticError("argument gens (= %s) does not generate "
                                       "a submodule of self" % gens)
         return V
+
+    def __truediv__(self, sub):
+        """
+        Return the quotient of ``self`` by the given submodule sub.
+
+        EXAMPLES::
+
+            sage: V1 = ZZ^2; W1 = V1.span([[1,2],[3,4]])
+            sage: V1/W1
+            Finitely generated module V/W over Integer Ring with invariants (2)
+            sage: V2 = span([[1/2,1,1],[3/2,2,1],[0,0,1]],ZZ); W2 = V2.span([2*V2.0+4*V2.1, 9*V2.0+12*V2.1, 4*V2.2])
+            sage: V2/W2
+            Finitely generated module V/W over Integer Ring with invariants (4, 12)
+        """
+        return self.quotient(sub, check=True)
 
 
 class FreeModule_generic(Module_free_ambient):
@@ -3252,6 +3262,26 @@ class FreeModule_generic(Module_free_ambient):
         B = other * B if switch_sides else B * other
         return self.span(B.rows())
 
+    # Subclasses should override this method when appropriate
+    def relations(self):
+        """
+        Return the module of relations of ``self``.
+
+        EXAMPLES::
+
+            sage: V = GF(2)^2
+            sage: V.relations() == V.zero_submodule()
+            True
+            sage: W = V.subspace([[1, 0]])
+            sage: W.relations() == V.zero_submodule()
+            True
+
+            sage: Q = V / W
+            sage: Q.relations() == W
+            True
+        """
+        return self.zero_submodule()
+
 
 class FreeModule_generic_domain(FreeModule_generic):
     """
@@ -4118,21 +4148,6 @@ class FreeModule_generic_pid(FreeModule_generic_domain):
             return FGP_Module(self, sub, check=False, **kwds)
         else:
             raise NotImplementedError("quotients of modules over rings other than fields or ZZ is not fully implemented")
-
-    def __truediv__(self, sub):
-        """
-        Return the quotient of ``self`` by the given submodule sub.
-
-        EXAMPLES::
-
-            sage: V1 = ZZ^2; W1 = V1.span([[1,2],[3,4]])
-            sage: V1/W1
-            Finitely generated module V/W over Integer Ring with invariants (2)
-            sage: V2 = span([[1/2,1,1],[3/2,2,1],[0,0,1]],ZZ); W2 = V2.span([2*V2.0+4*V2.1, 9*V2.0+12*V2.1, 4*V2.2])
-            sage: V2/W2
-            Finitely generated module V/W over Integer Ring with invariants (4, 12)
-        """
-        return self.quotient(sub, check=True)
 
 
 class FreeModule_generic_field(FreeModule_generic_pid):
@@ -5268,7 +5283,7 @@ class FreeModule_ambient(FreeModule_generic):
             sage: V = QQ^2
             sage: V.coerce_map_from(M)
         """
-        from sage.modules.submodule import Submodule_free_ambient
+        from sage.modules.submodule import Subquotient_free_ambient
         from sage.modules.quotient_module import FreeModule_ambient_field_quotient
 
         if isinstance(M, FreeModule_ambient_field_quotient):
@@ -5281,7 +5296,7 @@ class FreeModule_ambient(FreeModule_generic):
                 # complexity of this is quadratic in space and time,
                 # since it constructs a matrix.
                 return True
-        elif isinstance(M, Submodule_free_ambient):
+        elif isinstance(M, Subquotient_free_ambient):
             if (self.base_ring().has_coerce_map_from(M.base_ring()) and
                 self.rank() == M.degree()):
                 return True
@@ -6722,6 +6737,26 @@ class FreeModule_submodule_with_basis_pid(FreeModule_generic_pid):
             False
         """
         return self.__ambient_module
+
+    def relations(self):
+        r"""
+        Return the submodule defining the relations of ``self`` as a
+        subquotient (considering the ambient module as a quotient module).
+
+        EXAMPLES::
+
+            sage: V = GF(2)^2
+            sage: W = V.subspace([[1, 0]])
+            sage: W.relations() == V.zero_submodule()
+            True
+
+            sage: Q = V / W
+            sage: Q.relations() == W
+            True
+            sage: Q.zero_submodule().relations() == W
+            True
+        """
+        return self.__ambient_module.relations()
 
     def echelon_coordinates(self, v, check=True):
         r"""

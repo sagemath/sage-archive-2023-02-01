@@ -39,16 +39,14 @@ from sage.modules.free_module import (basis_seq,
                                       FreeModule_ambient_domain)
 from .quotient_module import QuotientModule_free_ambient
 
-class Submodule_free_ambient(Module_free_ambient):
+class Subquotient_free_ambient(Module_free_ambient):
     """
-    Base class of submodules of ambient free modules over an integral domain.
+    Base class of subquotients of ambient free modules over an integral domain.
 
     INPUT:
 
     - ``ambient`` -- an ambient free module
-
     - ``gens`` -- vectors of the ambient free module generating this submodule
-
     - ``check`` -- boolean; if ``True``, vectors in ``gens`` are checked whether
       they belong to the ambient free module
 
@@ -105,7 +103,7 @@ class Submodule_free_ambient(Module_free_ambient):
         Module_free_ambient.__init__(self, base_ring=R, degree=degree, sparse=sparse)
 
         C = self.element_class
-        w = [C(self, x.list(), coerce=False, copy=False) for x in gens]
+        w = [C(self, x.list(), coerce=False, copy=False) for x in gens if x]
         self.__gens = basis_seq(self, w)
 
     def _repr_(self):
@@ -128,7 +126,7 @@ class Submodule_free_ambient(Module_free_ambient):
 
     def matrix(self):
         """
-        Return a string representation of ``self``.
+        Return the matrix defining ``self``.
 
         EXAMPLES::
 
@@ -145,6 +143,27 @@ class Submodule_free_ambient(Module_free_ambient):
         A = MAT(self.gens())
         A.set_immutable()
         return A
+
+    generators_matrix = matrix
+
+    def relations(self):
+        r"""
+        Return the submodule defining the relations of ``self`` as a
+        subquotient (considering the ambient module as a quotient module).
+
+        EXAMPLES::
+
+            sage: S.<x,y,z> = PolynomialRing(QQ)
+            sage: M = S**2
+            sage: N = M.submodule([vector([x - y, z]), vector([y * z, x * z])])
+            sage: N.relations() == M.zero_submodule()
+            True
+
+            sage: Q = M.quotient(N)
+            sage: Q.zero_submodule().relations() == N
+            True
+        """
+        return self._ambient.relations()
 
     def gens(self):
         """
@@ -179,20 +198,21 @@ class Submodule_free_ambient(Module_free_ambient):
             raise ValueError('no generator with index %s' % i)
         return self.__gens[i]
 
-    def defining_module(self):
+    def ambient_module(self):
         """
-        Return the defining module of ``self``.
+        Return the ambient module of ``self``.
 
         EXAMPLES::
 
             sage: S.<x,y,z> = PolynomialRing(QQ)
             sage: M = S**2
-            sage: N = M.submodule([vector([x - y, z]), vector([y*z, x*z])])
-            sage: N.zero_submodule().defining_module() is M
+            sage: N = M.submodule([vector([x - y, z]), vector([y * z, x * z])])
+            sage: N.ambient_module() is M
             True
-
-            sage: Q = M.quotient_module(N)
-            sage: Q.zero_submodule().defining_module() is Q
+            sage: N.zero_submodule().ambient_module() is M
+            True
+            sage: Q = M / N
+            sage: Q.zero_submodule().ambient_module() is Q
             True
         """
         return self._ambient

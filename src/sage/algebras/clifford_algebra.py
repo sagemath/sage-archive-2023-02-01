@@ -19,11 +19,13 @@ AUTHORS:
 
 from sage.misc.cachefunc import cached_method
 from sage.structure.unique_representation import UniqueRepresentation
+from sage.structure.parent import Parent
 from sage.data_structures.bitset import Bitset, FrozenBitset
 from copy import copy
 
 from sage.categories.algebras_with_basis import AlgebrasWithBasis
 from sage.categories.hopf_algebras_with_basis import HopfAlgebrasWithBasis
+from sage.categories.finite_enumerated_sets import FiniteEnumeratedSets
 from sage.modules.with_basis.morphism import ModuleMorphismByLinearity
 from sage.categories.poor_man_map import PoorManMap
 from sage.rings.integer_ring import ZZ
@@ -320,6 +322,60 @@ class CliffordAlgebraElement(CombinatorialFreeModule.Element):
     clifford_conjugate = conjugate
 
 
+class CliffordAlgebraIndices(Parent):
+    r"""
+    A facade parent for the Clifford algebra
+    """
+    def __call__(self, el):
+        if not isinstance(el, Element):
+            return self._element_constructor_(el)
+        else:
+            return Parent.__call__(self, el)
+
+    def __init__(self, Qdim):
+        self._nbits = Qdim
+        self._cardinality = 2**Qdim
+        # the if statement here is in case Qdim is 0.
+        self._maximal_set = FrozenBitset('1'*self._nbits) if self._nbits else FrozenBitset('0')
+        category = FiniteEnumeratedSets().Facade()
+        Parent.__init__(self, category=category, facade=True)
+
+    def __element_constructor__(self, x):
+
+        if isinstance(x, (list, tuple, set, frozenset)):
+            if len(x) > self._nbits:
+                raise ValueError(f"{x=} is too long")
+            return FrozenBitset(x)
+
+        if isinstance(x, int):
+            return FrozenBitset((x,))
+
+    def cardinality(self):
+
+        return self._cardinality
+
+    def _repr_(self):
+        return f"Subsets of {{1,2,...,{self._quadratic_form.dim()}}}"
+
+    def __len__(self):
+        return self._cardinality
+
+    def __iter__(self):
+        import itertools
+        n = self._nbits
+        yield FrozenBitset('0')
+        k = 1
+        while k <= n:
+            for C in itertools.combinations(range(n),k):
+                yield FrozenBitset(C)
+            k += 1
+
+    def __contains__(self, other):
+
+        if isinstance(other, int):
+            return (other < self._cardinality) and (other >= 0)
+        return self._maximal_set.issuperset(other)
+
 class CliffordAlgebra(CombinatorialFreeModule):
     r"""
     The Clifford algebra of a quadratic form.
@@ -493,11 +549,7 @@ class CliffordAlgebra(CombinatorialFreeModule):
         self._quadratic_form = Q
         R = Q.base_ring()
         category = AlgebrasWithBasis(R.category()).Super().Filtered().FiniteDimensional().or_subcategory(category)
-        from functools import partial
-        indices = Family(self._basis_index_keys(self), #make basis_index_keys a class so I can give it a len?
-                         partial(self._basis_index_function),
-                         lazy=True,
-                         name = 'Bitsets')
+        indices = CliffordAlgebraIndices(Q.dim())
         CombinatorialFreeModule.__init__(self, R, indices, category=category)
         self._assign_names(names)
 
@@ -697,103 +749,6 @@ class CliffordAlgebra(CombinatorialFreeModule):
             return super(CliffordAlgebra, self)._element_constructor_(x)
         except TypeError:
             raise TypeError(f'do not know how to make {x=} an element of self')
-
-    class _basis_index_keys:
-        r"""
-        This gives the same values as range(2**Q.dim()),
-        but starting with elements that have 1 set bit,
-        then 2, then three, etc.
-        
-        EXAMPLES::
-
-            sage: Q = QuadraticForm(ZZ, 3, [1,2,3,4,5,6])
-            sage: Cl = CliffordAlgebra(Q)
-
-        Notice that the monomial order is strictly lexicographic,
-        not degree-lexicographic when we use `range`.
-
-            sage: for i in range(2**Q.dim()): print(Cl.basis()[i])
-            1
-            x
-            y
-            x*y
-            z
-            x*z
-            y*z
-            x*y*z
-
-        Notice that ``x*y`` comes before ``z`` if we use ``range``.
-        This isn't mathematically *wrong* but is not usually what
-        we want. On the other hand, using this method gives a
-        degree-respecting monomial order::
-
-            sage: for i in Cl.basis(): print(b) # indirect doctest
-            1
-            x
-            y
-            z
-            x*y
-            x*z
-            y*z
-            x*y*z
-        """
-
-        def __init__(self, Cl):
-            self._Cl = Cl
-            self._quadratic_form = Cl._quadratic_form
-
-        def __repr__(self): # dunder b/c not a parent subclass?
-            return f"Subsets of {{1,2,...,{self._quadratic_form.dim()}}}"
-
-        def __len__(self):
-            return 2**self._quadratic_form.dim()
-
-        def __iter__(self):   
-            import itertools
-            n = self._quadratic_form.dim()
-            yield 0
-            k = 1
-            while k <= n:
-                for C in itertools.combinations(range(n),k):
-                    yield sum(1 << i for i in C)
-                k += 1
-
-    def _basis_index_function(self, x):
-        """
-        Given an integer indexing the basis, return the correct
-        bitset.
-
-        For backwards compatibility, tuples are also accepted.
-
-        EXAMPLES::
-
-            sage: Q = QuadraticForm(ZZ, 3, [1,2,3,4,5,6])
-            sage: Cl = CliffordAlgebra(Q)
-            sage: Cl._basis_index_function(7)
-            111
-            sage: Cl._basis_index_function(5)
-            101
-            sage: Cl._basis_index_function(4)
-            001
-
-            sage: Cl._basis_index_function((0, 1, 2))
-            111
-            sage: Cl._basis_index_function((0, 2))
-            101
-            sage: Cl._basis_index_function((2,))
-            001
-        """
-        Q = self._quadratic_form
-        format_style = f"0{Q.dim()}b"
-
-        # if the input is a tuple, assume that it has
-        # entries in {0, ..., 2**Q.dim()-1}
-        if isinstance(x, tuple):
-            return FrozenBitset(x, capacity = Q.dim())
-
-        # slice the output of format in order to make conventions
-        # of format and FrozenBitset agree.
-        return FrozenBitset(format(x, format_style)[::-1], capacity=Q.dim())
 
     def gen(self, i):
         """
@@ -1225,7 +1180,7 @@ class CliffordAlgebra(CombinatorialFreeModule):
             Cl = CliffordAlgebra(Q, names)
 
         n = Q.dim()
-        f = lambda x: Cl.prod(Cl._from_dict( {(j,): m[j,i] for j in range(n)},
+        f = lambda x: Cl.prod(Cl._from_dict( {FrozenBitset((j,)): m[j,i] for j in range(n)},
                                              remove_zeros=True )
                               for i in x)
         cat = AlgebrasWithBasis(self.category().base_ring()).Super().FiniteDimensional()
@@ -2075,26 +2030,20 @@ class ExteriorAlgebra(CliffordAlgebra):
             for ml,cl in self:
                 for mr,cr in other:
                     # Create the next term
-                    t = list(mr)
-                    for i in reversed(ml):
-                        pos = 0
-                        for j in t:
-                            if i == j:
-                                pos = None
-                                break
-                            if i < j:
-                                break
-                            pos += 1
-                            cr = -cr
-                        if pos is None:
-                            t = None
-                            break
-                        t.insert(pos, i)
+                    t = Bitset(mr)
 
-                    if t is None: # The next term is 0, move along
+                    if ml.intersection(mr):
+                        # if they intersect nontrivially, move along.
                         continue
 
-                    t = tuple(t)
+                    for i in reversed(ml):
+                        for j in t:
+                            if i < j:
+                                break
+                            cr = -cr
+                        t.add(i)
+
+                    t = FrozenBitset(t)
                     d[t] = d.get(t, zero) + cl * cr
                     if d[t] == zero:
                         del d[t]

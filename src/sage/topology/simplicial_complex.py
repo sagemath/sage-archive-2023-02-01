@@ -1520,7 +1520,7 @@ class SimplicialComplex(Parent, GenericCellComplex):
         EXAMPLES::
 
             sage: X = SimplicialComplex([[1,2,3], [3,4,5], [1,4], [1,5], [2,4], [2,5]])
-            sage: X.f_triangle()  ## this complex is not pure
+            sage: X.f_triangle()   # this complex is not pure
             [[0],
              [0, 0],
              [0, 0, 4],

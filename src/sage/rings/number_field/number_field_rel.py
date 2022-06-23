@@ -2303,27 +2303,26 @@ class NumberField_relative(NumberField_generic):
 
     def is_free(self, proof=None):
         r"""
-        Determine whether or not `L/K` is free (i.e. if `\mathcal{O}_L` is
-        a free `\mathcal{O}_K`-module).
+        Determine whether or not `L/K` is free.
+
+        (i.e. if `\mathcal{O}_L` is a free `\mathcal{O}_K`-module).
 
         INPUT:
 
-        - ``proof`` -- default: True
+        - ``proof`` -- default: ``True``
 
         EXAMPLES::
 
             sage: x = polygen(QQ)
             sage: K.<a> = NumberField(x^2+6)
             sage: x = polygen(K)
-            sage: L.<b> = K.extension(x^2 + 3)    ## extend by x^2+3
+            sage: L.<b> = K.extension(x^2 + 3)    # extend by x^2+3
             sage: L.is_free()
             False
         """
         proof = proof_flag(proof)
         base_bnf = self._pari_base_bnf(proof)
-        if base_bnf.rnfisfree(self.pari_relative_polynomial()) == 1:
-            return True
-        return False
+        return base_bnf.rnfisfree(self.pari_relative_polynomial()) == 1
 
     def _factor_univariate_polynomial(self, poly, **kwargs):
         """

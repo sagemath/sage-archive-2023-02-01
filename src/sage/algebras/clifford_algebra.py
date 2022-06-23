@@ -324,65 +324,6 @@ class CliffordAlgebraElement(CombinatorialFreeModule.Element):
 
     clifford_conjugate = conjugate
 
-    # TODO: This is a general function which should be moved to a
-    #   superalgebras category when one is implemented.
-    def supercommutator(self, x):
-        r"""
-        Return the supercommutator of ``self`` and ``x``.
-
-        Let `A` be a superalgebra. The *supercommutator* of homogeneous
-        elements `x, y \in A` is defined by
-
-        .. MATH::
-
-            [x, y\} = x y - (-1)^{|x| |y|} y x
-
-        and extended to all elements by linearity.
-
-        EXAMPLES::
-
-            sage: Q = QuadraticForm(ZZ, 3, [1,2,3,4,5,6])
-            sage: Cl.<x,y,z> = CliffordAlgebra(Q)
-            sage: a = x*y - z
-            sage: b = x - y + y*z
-            sage: a.supercommutator(b)
-            -5*x*y + 8*x*z - 2*y*z - 6*x + 12*y - 5*z
-            sage: a.supercommutator(Cl.one())
-            0
-            sage: Cl.one().supercommutator(a)
-            0
-            sage: Cl.zero().supercommutator(a)
-            0
-            sage: a.supercommutator(Cl.zero())
-            0
-
-            sage: Q = QuadraticForm(ZZ, 2, [-1,1,-3])
-            sage: Cl.<x,y> = CliffordAlgebra(Q)
-            sage: [a.supercommutator(b) for a in Cl.basis() for b in Cl.basis()]
-            [0, 0, 0, 0, 0, -2, 1, -x - 2*y, 0, 1,
-             -6, 6*x + y, 0, x + 2*y, -6*x - y, 0]
-            sage: [a*b-b*a for a in Cl.basis() for b in Cl.basis()]
-            [0, 0, 0, 0, 0, 0, 2*x*y - 1, -x - 2*y, 0,
-             -2*x*y + 1, 0, 6*x + y, 0, x + 2*y, -6*x - y, 0]
-
-        Exterior algebras inherit from Clifford algebras, so
-        supercommutators work as well. We verify the exterior algebra
-        is supercommutative::
-
-            sage: E.<x,y,z,w> = ExteriorAlgebra(QQ)
-            sage: all(b1.supercommutator(b2) == 0
-            ....:     for b1 in E.basis() for b2 in E.basis())
-            True
-        """
-        P = self.parent()
-        ret = P.zero()
-        for ms, cs in self:
-            for mx, cx in x:
-                ret += P.term(ms, cs) * P.term(mx, cx)
-                s = (-1)**(P.degree_on_basis(ms) * P.degree_on_basis(mx))
-                ret -= s * P.term(mx, cx) * P.term(ms, cs)
-        return ret
-
 
 class CliffordAlgebraIndices(Parent):
     r"""
@@ -400,7 +341,6 @@ class CliffordAlgebraIndices(Parent):
             sage: E = ExteriorAlgebra(QQ, 7)
             sage: B = E.basis()
         """
-
         if not isinstance(el, Element):
             return self._element_constructor_(el)
         else:
@@ -885,15 +825,9 @@ class CliffordAlgebra(CombinatorialFreeModule):
         if x in self.free_module():
             R = self.base_ring()
             if x.parent().base_ring() is R:
-<<<<<<< HEAD
                 return self.element_class(self, {FrozenBitset((i, )): c for i, c in x.items()})
             # if the base ring is different, attempt to coerce it into R
             return self.element_class(self, {FrozenBitset((i, )): R(c) for i, c in x.items() if R(c) != R.zero()})
-=======
-                return self.element_class(self, {FrozenBitset((i,)): c for i,c in x.items()})
-            # if the base ring is different, attempt to coerce it into R
-            return self.element_class(self, {FrozenBitset((i,)): R(c) for i,c in x.items() if R(c) != R.zero()})
->>>>>>> a7cd8bf99e (Add _basis_index_function as a method, fix some doctests, and fix some type issues (tuple -> FrozenBitset))
 
         if (isinstance(x, CliffordAlgebraElement)
                 and self.has_coerce_map_from(x.parent())):
@@ -904,18 +838,10 @@ class CliffordAlgebra(CombinatorialFreeModule):
             R = self.base_ring()
             return self.element_class(self, {FrozenBitset((i,)): R.one() for i in x})
 
-<<<<<<< HEAD
         try:
             return super(CliffordAlgebra, self)._element_constructor_(x)
         except TypeError:
             raise TypeError(f'do not know how to make {x=} an element of self')
-=======
-        if isinstance(x, tuple):
-            R = self.base_ring()
-            return self.element_class(self, {FrozenBitset((i,)): R.one() for i in x})
-
-        return super(CliffordAlgebra, self)._element_constructor_(x)
->>>>>>> a7cd8bf99e (Add _basis_index_function as a method, fix some doctests, and fix some type issues (tuple -> FrozenBitset))
 
     def _basis_index_function(self, x):
         """
@@ -969,11 +895,7 @@ class CliffordAlgebra(CombinatorialFreeModule):
             sage: [Cl.gen(i) for i in range(3)]
             [x, y, z]
         """
-<<<<<<< HEAD
         return self._from_dict({FrozenBitset((i, )): self.base_ring().one()}, remove_zeros=False)
-=======
-        return self._from_dict({FrozenBitset((i,)): self.base_ring().one()}, remove_zeros=False)
->>>>>>> a7cd8bf99e (Add _basis_index_function as a method, fix some doctests, and fix some type issues (tuple -> FrozenBitset))
 
     def algebra_generators(self):
         """
@@ -1302,14 +1224,8 @@ class CliffordAlgebra(CombinatorialFreeModule):
             Cl = CliffordAlgebra(Q, names)
 
         n = self._quadratic_form.dim()
-<<<<<<< HEAD
         f = lambda x: self.prod(self._from_dict({FrozenBitset((j, )): m[j, i] for j in range(n)},
                                 remove_zeros=True) for i in x)
-=======
-        f = lambda x: self.prod(self._from_dict( {FrozenBitset((j,)): m[j,i] for j in range(n)},
-                                                 remove_zeros=True )
-                                for i in x)
->>>>>>> a7cd8bf99e (Add _basis_index_function as a method, fix some doctests, and fix some type issues (tuple -> FrozenBitset))
         cat = AlgebrasWithBasis(self.category().base_ring()).Super().FiniteDimensional()
         return Cl.module_morphism(on_basis=f, codomain=self, category=cat)
 
@@ -1394,6 +1310,7 @@ class CliffordAlgebra(CombinatorialFreeModule):
             Cl = CliffordAlgebra(Q, names)
 
         n = Q.dim()
+
         f = lambda x: Cl.prod(Cl._from_dict({FrozenBitset((j, )): m[j, i] for j in range(n)},
                               remove_zeros=True) for i in x)
         cat = AlgebrasWithBasis(self.category().base_ring()).Super().FiniteDimensional()
@@ -2252,6 +2169,7 @@ class ExteriorAlgebra(CliffordAlgebra):
             d = {}
             n = P.ngens()
 
+<<<<<<< HEAD
             for ml, cl in self:  # ml for "monomial on the left"
                 for mr, cr in other:  # mr for "monomial on the right"
                     if ml.intersection(mr):

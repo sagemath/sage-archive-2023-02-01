@@ -49,6 +49,7 @@ class Subquotient_free_ambient(Module_free_ambient):
     - ``gens`` -- vectors of the ambient free module generating this submodule
     - ``check`` -- boolean; if ``True``, vectors in ``gens`` are checked whether
       they belong to the ambient free module
+    - ``already_echelonized`` -- ignored; for compatibility with other submodules
 
     EXAMPLES::
 
@@ -74,7 +75,7 @@ class Subquotient_free_ambient(Module_free_ambient):
           To:   Ambient free module of rank 2 over the integral domain
         Multivariate Polynomial Ring in x, y, z over Rational Field
     """
-    def __init__(self, ambient, gens, check=True):
+    def __init__(self, ambient, gens, check=True, already_echelonized=False):
         r"""
         Initialize.
 

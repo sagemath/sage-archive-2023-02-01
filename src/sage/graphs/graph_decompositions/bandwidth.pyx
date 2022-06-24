@@ -25,8 +25,8 @@ ordered as `v_1,...,v_n` in such a way that `k \times d_G(v_i,v_j) \geq |i-j|` t
 
     .. MATH::
 
-        k \times d_G(v_i,v_j) &= k\times d_G(v_i,v_{s_0}) + k\times d_G(v_{s_0},v_{s_1}) + ... + k\times d_G(v_{s_{i-1}},v_{s_i}) + k\times d_G(v_{s_i},v_j)\\
-                              &\geq |v_i-v_{s_0}| + |v_{s_0}-v_{s_1}| + ... + |v_{s_{i-1}}-v_{s_i}| + |v_{s_i}-v_j|\\
+        k \times d_G(v_i,v_j) &= k\times d_G(v_i,v_{s_0}) + k\times d_G(v_{s_0},v_{s_1}) + \cdots + k\times d_G(v_{s_{i-1}},v_{s_i}) + k\times d_G(v_{s_i},v_j)\\
+                              &\geq |v_i-v_{s_0}| + |v_{s_0}-v_{s_1}| + \cdots + |v_{s_{i-1}}-v_{s_i}| + |v_{s_i}-v_j|\\
                               &\geq |v_i-v_j|\\
 
 Satisfiability of a partial assignment

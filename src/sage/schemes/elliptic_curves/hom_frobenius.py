@@ -8,6 +8,12 @@ This class implements `\pi_n` for `n \geq 0`. Together with existing
 tools for composing isogenies (see :class:`EllipticCurveHom_composite`),
 we can therefore represent arbitrary inseparable isogenies in Sage.
 
+.. WARNING::
+
+    This module is currently considered experimental.
+    It may change in a future release without prior warning, or even
+    be removed altogether if things turn out to be unfixably broken.
+
 EXAMPLES:
 
 Constructing a Frobenius isogeny is straightforward::

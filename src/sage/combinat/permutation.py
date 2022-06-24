@@ -4756,6 +4756,13 @@ class Permutation(CombinatorialElement):
         """
         Return the permutation obtained by removing any fixed points at
         the end of ``self``.
+        However, return ``[1]`` rather than ``[]`` if ``self`` is the
+        identity permutation.
+
+        This is mostly a helper method for
+        :mod:`sage.combinat.schubert_polynomial`, where it is
+        used to normalize finitary permutations of
+        `\{1,2,3,\ldots\}`.
 
         EXAMPLES::
 
@@ -4763,11 +4770,17 @@ class Permutation(CombinatorialElement):
             [2, 1]
             sage: Permutation([1,2,3,4]).remove_extra_fixed_points()
             [1]
+            sage: Permutation([2,1]).remove_extra_fixed_points()
+            [2, 1]
+            sage: Permutation([]).remove_extra_fixed_points()
+            [1]
 
         .. SEEALSO::
 
             :meth:`retract_plain`
         """
+        if not self:
+            return Permutations()([1])
         #Strip off all extra fixed points at the end of
         #the permutation.
         i = len(self)-1
@@ -5611,7 +5624,7 @@ class Permutations_mset(Permutations):
             sage: S1 is S2
             True
         """
-        return super(Permutations_mset, cls).__classcall__(cls, tuple(mset))
+        return super().__classcall__(cls, tuple(mset))
 
     def __init__(self, mset):
         """
@@ -5971,7 +5984,7 @@ class Permutations_set(Permutations):
             sage: S1 is S2
             True
         """
-        return super(Permutations_set, cls).__classcall__(cls, tuple(s))
+        return super().__classcall__(cls, tuple(s))
 
     def __init__(self, s):
         """
@@ -6097,7 +6110,7 @@ class Permutations_msetk(Permutations_mset):
             sage: S1 is S2
             True
         """
-        return super(Permutations_msetk, cls).__classcall__(cls, tuple(mset), k)
+        return super().__classcall__(cls, tuple(mset), k)
 
     def __init__(self, mset, k):
         """
@@ -6188,7 +6201,7 @@ class Permutations_setk(Permutations_set):
             sage: S1 is S2
             True
         """
-        return super(Permutations_setk, cls).__classcall__(cls, tuple(s), k)
+        return super().__classcall__(cls, tuple(s), k)
 
     def __init__(self, s, k):
         """
@@ -6604,7 +6617,7 @@ class StandardPermutations_n(StandardPermutations_n_abstract):
             return self._from_permutation_group_element
         if isinstance(G, StandardPermutations_n) and G.n <= self.n:
             return True
-        return super(StandardPermutations_n, self)._coerce_map_from_(G)
+        return super()._coerce_map_from_(G)
 
     def _from_permutation_group_element(self, x):
         """
@@ -7619,7 +7632,7 @@ class StandardPermutations_descents(StandardPermutations_n_abstract):
             sage: P1 is P2
             True
         """
-        return super(StandardPermutations_descents, cls).__classcall__(cls, tuple(sorted(d)), n)
+        return super().__classcall__(cls, tuple(sorted(d)), n)
 
     def __init__(self, d, n):
         r"""
@@ -7845,7 +7858,7 @@ class StandardPermutations_recoilsfiner(Permutations):
             sage: S1 is S2
             True
         """
-        return super(StandardPermutations_recoilsfiner, cls).__classcall__(cls, Composition(recoils))
+        return super().__classcall__(cls, Composition(recoils))
 
     def __init__(self, recoils):
         """
@@ -7912,7 +7925,7 @@ class StandardPermutations_recoilsfatter(Permutations):
             sage: S1 is S2
             True
         """
-        return super(StandardPermutations_recoilsfatter, cls).__classcall__(cls, Composition(recoils))
+        return super().__classcall__(cls, Composition(recoils))
 
     def __init__(self, recoils):
         """
@@ -7986,7 +7999,7 @@ class StandardPermutations_recoils(Permutations):
             sage: S1 is S2
             True
         """
-        return super(StandardPermutations_recoils, cls).__classcall__(cls, Composition(recoils))
+        return super().__classcall__(cls, Composition(recoils))
 
     def __init__(self, recoils):
         """
@@ -8137,7 +8150,7 @@ class StandardPermutations_bruhat_smaller(Permutations):
             sage: S1 is S2
             True
         """
-        return super(StandardPermutations_bruhat_smaller, cls).__classcall__(cls, Permutation(p))
+        return super().__classcall__(cls, Permutation(p))
 
     def __init__(self, p):
         """
@@ -8195,7 +8208,7 @@ class StandardPermutations_bruhat_greater(Permutations):
             sage: S1 is S2
             True
         """
-        return super(StandardPermutations_bruhat_greater, cls).__classcall__(cls, Permutation(p))
+        return super().__classcall__(cls, Permutation(p))
 
     def __init__(self, p):
         """
@@ -8412,7 +8425,7 @@ class CyclicPermutations(Permutations_mset):
             Cyclic permutations of [1, 2, 3, 3]
             sage: TestSuite(CP).run() # not tested -- broken
         """
-        return super(CyclicPermutations, cls).__classcall__(cls, tuple(mset))
+        return super().__classcall__(cls, tuple(mset))
 
     def _repr_(self):
         """
@@ -8527,7 +8540,7 @@ class CyclicPermutationsOfPartition(Permutations):
             True
         """
         partition = tuple(map(tuple, partition))
-        return super(CyclicPermutationsOfPartition, cls).__classcall__(cls, partition)
+        return super().__classcall__(cls, partition)
 
     def __init__(self, partition):
         """
@@ -8658,7 +8671,7 @@ class StandardPermutations_all_avoiding(StandardPermutations_all):
             True
         """
         a = tuple(map(Permutation, a))
-        return super(StandardPermutations_all_avoiding, cls).__classcall__(cls, a)
+        return super().__classcall__(cls, a)
 
     def __init__(self, a):
         """
@@ -8704,7 +8717,7 @@ class StandardPermutations_all_avoiding(StandardPermutations_all):
             sage: [2,1,3] in Permutations(avoiding=[])
             True
         """
-        if not super(StandardPermutations_all_avoiding, self).__contains__(x):
+        if not super().__contains__(x):
             return False
         x = Permutations()(x)
         return all(x.avoids(p) for p in self._a)
@@ -8753,7 +8766,7 @@ class StandardPermutations_avoiding_generic(StandardPermutations_n_abstract):
             True
         """
         a = tuple(map(Permutation, a))
-        return super(StandardPermutations_avoiding_generic, cls).__classcall__(cls, n, a)
+        return super().__classcall__(cls, n, a)
 
     def __init__(self, n, a):
         """
@@ -8810,7 +8823,7 @@ class StandardPermutations_avoiding_generic(StandardPermutations_n_abstract):
             sage: [2,1,3] in Permutations(3, avoiding=[])
             True
         """
-        if not super(StandardPermutations_avoiding_generic, self).__contains__(x):
+        if not super().__contains__(x):
             return False
         x = Permutations()(x)
         return all(x.avoids(p) for p in self._a)
@@ -8858,7 +8871,7 @@ class StandardPermutations_avoiding_12(StandardPermutations_avoiding_generic):
             sage: P = Permutations(3, avoiding=[1, 2])
             sage: TestSuite(P).run()
         """
-        super(StandardPermutations_avoiding_12, self).__init__(n, (Permutations()([1, 2]),))
+        super().__init__(n, (Permutations()([1, 2]),))
 
     def __iter__(self):
         """
@@ -8889,7 +8902,7 @@ class StandardPermutations_avoiding_21(StandardPermutations_avoiding_generic):
             sage: P = Permutations(3, avoiding=[2, 1])
             sage: TestSuite(P).run()
         """
-        super(StandardPermutations_avoiding_21, self).__init__(n, (Permutations()([2, 1]),))
+        super().__init__(n, (Permutations()([2, 1]),))
 
     def __iter__(self):
         """
@@ -8920,7 +8933,7 @@ class StandardPermutations_avoiding_132(StandardPermutations_avoiding_generic):
             sage: P = Permutations(3, avoiding=[1, 3, 2])
             sage: TestSuite(P).run()
         """
-        super(StandardPermutations_avoiding_132, self).__init__(n, (Permutations()([1, 3, 2]),))
+        super().__init__(n, (Permutations()([1, 3, 2]),))
 
     def cardinality(self):
         """
@@ -8992,7 +9005,7 @@ class StandardPermutations_avoiding_123(StandardPermutations_avoiding_generic):
             sage: P = Permutations(3, avoiding=[2, 1, 3])
             sage: TestSuite(P).run()
         """
-        super(StandardPermutations_avoiding_123, self).__init__(n, (Permutations()([1, 2, 3]),))
+        super().__init__(n, (Permutations()([1, 2, 3]),))
 
     def cardinality(self) -> Integer:
         """
@@ -9063,7 +9076,7 @@ class StandardPermutations_avoiding_321(StandardPermutations_avoiding_generic):
             sage: P = Permutations(3, avoiding=[3, 2, 1])
             sage: TestSuite(P).run()
         """
-        super(StandardPermutations_avoiding_321, self).__init__(n, (Permutations()([3, 2, 1]),))
+        super().__init__(n, (Permutations()([3, 2, 1]),))
 
     def cardinality(self):
         """
@@ -9094,7 +9107,7 @@ class StandardPermutations_avoiding_231(StandardPermutations_avoiding_generic):
             sage: P = Permutations(3, avoiding=[2, 3, 1])
             sage: TestSuite(P).run()
         """
-        super(StandardPermutations_avoiding_231, self).__init__(n, (Permutations()([2, 3, 1]),))
+        super().__init__(n, (Permutations()([2, 3, 1]),))
 
     def cardinality(self):
         """
@@ -9126,7 +9139,7 @@ class StandardPermutations_avoiding_312(StandardPermutations_avoiding_generic):
             sage: P = Permutations(3, avoiding=[3, 1, 2])
             sage: TestSuite(P).run()
         """
-        super(StandardPermutations_avoiding_312, self).__init__(n, (Permutations()([3, 1, 2]),))
+        super().__init__(n, (Permutations()([3, 1, 2]),))
 
     def cardinality(self):
         """
@@ -9158,7 +9171,7 @@ class StandardPermutations_avoiding_213(StandardPermutations_avoiding_generic):
             sage: P = Permutations(3, avoiding=[2, 1, 3])
             sage: TestSuite(P).run()
         """
-        super(StandardPermutations_avoiding_213, self).__init__(n, (Permutations()([2, 1, 3]),))
+        super().__init__(n, (Permutations()([2, 1, 3]),))
 
     def cardinality(self):
         """

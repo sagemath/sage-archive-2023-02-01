@@ -1,5 +1,5 @@
 r"""
-Submodules of free modules and quotients of free modules
+Submodules and subquotients of free modules
 
 Free modules and submodules of a free module (of finite rank) over a principal
 ideal domain have well-defined notion of rank, and they are implemented in

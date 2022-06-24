@@ -1765,6 +1765,12 @@ class NumberField_generic(WithEqualityById, number_field_base.NumberField):
             2*I + 1
             sage: QQi(vector((RR(1), RR(2))))
             2*I + 1
+
+        Check that :trac:`34059` is fixed::
+
+            sage: K.<a> = NumberField(x)
+            sage: K([1]).parent()
+            Number Field in a with defining polynomial x
         """
         if isinstance(x, number_field_element.NumberFieldElement):
             K = x.parent()
@@ -1820,10 +1826,7 @@ class NumberField_generic(WithEqualityById, number_field_base.NumberField):
             if len(x) != self.relative_degree():
                 raise ValueError("Length must be equal to the degree of this number field")
             base = self.base_ring()
-            result = base(x[0])
-            for i in range(1, self.relative_degree()):
-                result += base(x[i])*self.gen(0)**i
-            return result
+            return sum(base(c) * g for c, g in zip(x, self.gen(0).powers(len(x))))
         return self._convert_non_number_field_element(x)
 
     def _convert_non_number_field_element(self, x):

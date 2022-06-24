@@ -223,17 +223,9 @@ class Function_HurwitzZeta(BuiltinFunction):
             \zeta\left(x, 2\right)
             sage: hurwitz_zeta(x, 2)._sympy_()
             zeta(x, 2)
-
-        Fixed conversion::
-
-            sage: hurwitz_zeta(x,2)._maple_init_()
-            'Zeta(x,2)'
-            sage: hurwitz_zeta(x,2)._maple_().sage()  # optional - maple
-            hurwitz_zeta(x, 2)
         """
         BuiltinFunction.__init__(self, 'hurwitz_zeta', nargs=2,
                                  conversions=dict(mathematica='HurwitzZeta',
-                                                  maple='Zeta',
                                                   sympy='zeta'),
                                  latex_name=r'\zeta')
 
@@ -375,7 +367,8 @@ class Function_zetaderiv(GinacFunction):
             sage: zetaderiv(b, 1)
             zetaderiv([1.500000000 +/- 1.01e-10], 1)
         """
-        GinacFunction.__init__(self, "zetaderiv", nargs=2)
+        GinacFunction.__init__(self, "zetaderiv", nargs=2,
+                               conversions=dict(maple="Zeta"))
 
     def _evalf_(self, n, x, parent=None, algorithm=None):
         r"""

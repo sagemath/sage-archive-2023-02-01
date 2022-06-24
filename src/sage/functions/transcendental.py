@@ -152,6 +152,7 @@ class Function_zeta(GinacFunction):
         GinacFunction.__init__(self, 'zeta',
                                conversions={'giac': 'Zeta',
                                             'maple': 'Zeta',
+                                            'sympy': 'zeta',
                                             'mathematica': 'Zeta'})
 
 
@@ -225,7 +226,7 @@ class Function_HurwitzZeta(BuiltinFunction):
         """
         BuiltinFunction.__init__(self, 'hurwitz_zeta', nargs=2,
                                  conversions=dict(mathematica='HurwitzZeta',
-                                                  # maple='Zeta', conflict with zeta here
+                                                  maple='Zeta',
                                                   sympy='zeta'),
                                  latex_name=r'\zeta')
 

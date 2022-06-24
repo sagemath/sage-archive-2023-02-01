@@ -303,7 +303,7 @@ If you want to convert more complicated Mathematica expressions, you can
 instead call ``mobj._sage_()`` and supply a translation dictionary::
 
     sage: m = mathematica('NewFn[x]')       # optional - mathematica
-    sage: m._sage_(locals={'NewFn': sin})   # optional - mathematica
+    sage: m._sage_(locals={('NewFn', 1): sin})   # optional - mathematica
     sin(x)
 
 For more details, see the documentation for ``._sage_()``.
@@ -770,7 +770,7 @@ class MathematicaElement(ExpectElement):
         ::
 
             sage: m = mathematica('NewFn[x]')       # optional - mathematica
-            sage: m._sage_(locals={'NewFn': sin})   # optional - mathematica
+            sage: m._sage_(locals={('NewFn', 1): sin})   # optional - mathematica
             sin(x)
 
         ::
@@ -824,7 +824,7 @@ class MathematicaElement(ExpectElement):
         # present in `res`.  Convert MMA functions and constants to their
         # Sage equivalents (if possible), using `locals` and
         # `sage.symbolic.pynac.symbol_table['mathematica']` as translation
-        # dictionaries.  If a MMA function or constant is not either
+        # dictionaries.  If a MMA function or constant is not in either
         # dictionary, then we use a variety of tactics listed in `autotrans`.
         # If a MMA variable is not in any dictionary, then create an
         # identically named Sage equivalent.

@@ -355,7 +355,7 @@ class CliffordAlgebraIndices(Parent):
         return self._cardinality
 
     def _repr_(self):
-        return f"Subsets of {{1,2,...,{self._quadratic_form.dim()}}}"
+        return f"Subsets of {{1,2,...,{self._nbits}}}"
 
     def __len__(self):
         return self._cardinality
@@ -1648,7 +1648,7 @@ class ExteriorAlgebra(CliffordAlgebra):
         n = phi.nrows()
         R = self.base_ring()
         E = ExteriorAlgebra(R, names, n)
-        f = lambda x: E.prod(E._from_dict( {(j,): phi[j,i] for j in range(n)},
+        f = lambda x: E.prod(E._from_dict( {FrozenBitset((j,)): phi[j,i] for j in range(n)},
                                            remove_zeros=True )
                              for i in x)
         cat = AlgebrasWithBasis(R).Super().FiniteDimensional()
@@ -2024,26 +2024,35 @@ class ExteriorAlgebra(CliffordAlgebra):
                 sage: (x+y) * (y+z)
                 x*y + x*z + y*z
             """
+            n = self.parent().ngens()
             zero = self.parent().base_ring().zero()
             d = {}
 
-            for ml,cl in self:
-                for mr,cr in other:
-                    # Create the next term
-                    t = Bitset(mr)
-
+            for ml,cl in self: # ml for "monomial on the left"
+                for mr,cr in other: # mr for "monomial on the right"
                     if ml.intersection(mr):
                         # if they intersect nontrivially, move along.
                         continue
 
-                    for i in reversed(ml):
-                        for j in t:
-                            if i < j:
-                                break
-                            cr = -cr
-                        t.add(i)
+                    if not mr:
+                        t = ml
+                    else:
+                        t = ml.union(mr)
+                        it = iter(mr)
+                        j = next(it)
 
-                    t = FrozenBitset(t)
+                        num_cross = 0 # keep track of the number of signs
+                        for i in ml:
+                            while i > j:
+                                num_cross += 1
+                                try:
+                                    j = next(it)
+                                except StopIteration:
+                                    break
+
+                        if num_cross % 2:
+                            cr = -cr
+
                     d[t] = d.get(t, zero) + cl * cr
                     if d[t] == zero:
                         del d[t]
@@ -2480,7 +2489,7 @@ class ExteriorAlgebraBoundary(ExteriorAlgebraDifferential):
 
             sage: E.<x,y,z> = ExteriorAlgebra(QQ)
             sage: par = E.boundary({(0,1): z, (1,2): x, (2,0): y})
-            sage: par._on_basis(())
+            sage: par._on_basis(FrozenBitset('0'))
             0
             sage: par._on_basis((0,))
             0
@@ -2491,12 +2500,22 @@ class ExteriorAlgebraBoundary(ExteriorAlgebraDifferential):
             sage: par._on_basis((0,1,2))
             0
         """
+        from itertools import combinations
         E = self.domain()
         sc = self._s_coeff
         keys = sc.keys()
-        return E.sum((-1)**b * sc[(i,j)]
-                      * E.monomial(m[:a] + m[a+1:a+b+1] + m[a+b+2:])
-                     for a,i in enumerate(m) for b,j in enumerate(m[a+1:]) if (i,j) in keys)
+
+        s = E.base_ring().zero()
+
+        for b, (i,j) in enumerate(combinations(m, 2)):
+            t = Bitset(m)
+            if (i,j) not in keys:
+                continue
+            t.discard(i)
+            t.discard(j)
+            s += (-1)**b * sc[(i,j)] * E.monomial(FrozenBitset(t))
+
+        return s
 
     @cached_method
     def chain_complex(self, R=None):

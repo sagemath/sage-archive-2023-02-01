@@ -307,7 +307,7 @@ cdef class SparseGraph(CGraph):
             self.add_vertices(verts)
 
         if arcs is not None:
-            for u,v,l in arcs:
+            for u, v, l in arcs:
                 self.add_arc_label(u, v, l)
 
     def __dealloc__(self):

@@ -2428,8 +2428,10 @@ cdef class CGraphBackend(GenericGraphBackend):
             sage: D.shortest_path(1, 2)
             []
         """
-        if u is None: u = self.add_vertex(None)
-        if v is None: v = self.add_vertex(None)
+        if u is None:
+            u = self.add_vertex(None)
+        if v is None:
+            v = self.add_vertex(None)
 
         cdef int u_int = self.check_labelled_vertex(u, False)
         cdef int v_int = self.check_labelled_vertex(v, False)

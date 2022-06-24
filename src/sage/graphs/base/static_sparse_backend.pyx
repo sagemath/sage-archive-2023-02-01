@@ -1177,7 +1177,7 @@ cdef class StaticSparseBackend(CGraphBackend):
                                 else:
                                     for label in all_arc_labels:
                                         try:
-                                            all_arc_labels_other.remove(l)
+                                            all_arc_labels_other.remove(label)
                                         except ValueError:
                                             return 0
 

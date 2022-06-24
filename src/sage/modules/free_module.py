@@ -1394,11 +1394,12 @@ class Module_free_ambient(Module):
             return False
         if self.base_ring() != other.base_ring():
             return False
+
         from sage.modules.quotient_module import QuotientModule_free_ambient
         lq = isinstance(self, QuotientModule_free_ambient)
         rq = isinstance(other, QuotientModule_free_ambient)
         if lq or rq:
-            # if the relations agree we continue with the covers.
+            # if the relations agree we continue with the covers
             if lq:
                 lx = self.relations()
                 self = self.cover()
@@ -1411,11 +1412,10 @@ class Module_free_ambient(Module):
                 rx = other.zero_submodule()
             if lx != rx:
                 return False
-        # NOTE: This method is overwritten for free modules.
-        #   Subsequently, we know we are not an ambient free module!
 
-        # self and other are not ambient.
-        # but they are contained in the same ambient space
+        # This method is overridden for free modules in FreeModule_generic.
+        # Hence we know self and other are not ambient, but they are contained
+        # in the same ambient space
         return self.is_submodule(other) and other.is_submodule(self)
 
     def is_submodule(self, other):
@@ -1426,7 +1426,7 @@ class Module_free_ambient(Module):
 
         Submodule testing over general rings is not guaranteed to work in
         all cases. However, it will raise an error when it is unable to
-        determine containment::
+        determine containment.
 
         The zero module can always be tested::
 
@@ -1468,7 +1468,7 @@ class Module_free_ambient(Module):
 
         from sage.modules.quotient_module import QuotientModule_free_ambient
         if isinstance(other, QuotientModule_free_ambient):
-            #if the relations agree we continue with the covers.
+            # if the relations agree we continue with the covers
             if isinstance(self, QuotientModule_free_ambient):
                 if other.relations() != self.relations():
                     return False
@@ -1491,20 +1491,17 @@ class Module_free_ambient(Module):
                     raise NotImplementedError("could not determine if %s is a "
                                               "subring of %s" % (R, S))
         if not self.gens():
-            # We are the zero module
+            # self is the zero module
             return True
         if not other.gens():
-            # The other is the zero module
+            # other is the zero module
             return False
         if self.ambient_module().is_submodule(other):
             return True
-        if self.degree() == 1:
-            # Simple for degree 1: just check if scalar mmultiple
-            return all(any(h[0].divides(g[0]) for h in other.gens()) for g in self.gens())
 
         raise NotImplementedError("could not determine containment")
 
-    _submodule_class = LazyImport("sage.modules.submodule", "Subquotient_free_ambient")
+    _submodule_class = LazyImport("sage.modules.submodule", "Submodule_free_ambient")
 
     def span(self, gens, base_ring=None, check=True, already_echelonized=False):
         r"""
@@ -1518,10 +1515,13 @@ class Module_free_ambient(Module):
         INPUT:
 
         - ``gens`` -- a list of vectors
+
         - ``base_ring`` -- (optional) a ring
+
         - ``check`` -- boolean (default: ``True``): whether or not to
           coerce entries of gens into base field
-        - ``already_echelonized`` -- boolean (default: ``False``):
+
+        - ``already_echelonized`` -- boolean (default: ``False``);
           set this if you know the gens are already in echelon form
 
         EXAMPLES::
@@ -1638,6 +1638,7 @@ class Module_free_ambient(Module):
         INPUT:
 
         - ``gens`` -- a list of free module elements or a free module
+
         - ``check`` -- (default: ``True``) whether or not to verify
           that the gens are in ``self``
 
@@ -1715,6 +1716,7 @@ class Module_free_ambient(Module):
 
         - ``sub`` -- a submodule of ``self`` or something that can
           be turned into one via ``self.submodule(sub)``
+
         - ``check`` -- (default: ``True``) whether or not to check that
           ``sub`` is a submodule
 
@@ -3434,7 +3436,6 @@ class FreeModule_generic(Module_free_ambient):
         B = other * B if switch_sides else B * other
         return self.span(B.rows())
 
-    # Subclasses should override this method when appropriate
     def relations(self):
         """
         Return the module of relations of ``self``.
@@ -5236,7 +5237,7 @@ class FreeModule_ambient(FreeModule_generic):
             sage: V = QQ^2
             sage: V.coerce_map_from(M)
         """
-        from sage.modules.submodule import Subquotient_free_ambient
+        from sage.modules.submodule import Submodule_free_ambient
         from sage.modules.quotient_module import FreeModule_ambient_field_quotient
 
         if isinstance(M, FreeModule_ambient_field_quotient):
@@ -5249,7 +5250,7 @@ class FreeModule_ambient(FreeModule_generic):
                 # complexity of this is quadratic in space and time,
                 # since it constructs a matrix.
                 return True
-        elif isinstance(M, Subquotient_free_ambient):
+        elif isinstance(M, Submodule_free_ambient):
             if (self.base_ring().has_coerce_map_from(M.base_ring()) and
                 self.rank() == M.degree()):
                 return True

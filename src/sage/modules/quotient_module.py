@@ -33,12 +33,13 @@ from .free_module import (Module_free_ambient,
 
 class QuotientModule_free_ambient(Module_free_ambient):
     """
-    Quotients of ambient free modules over a domain by a submodule.
+    Quotients of ambient free modules by a submodule.
 
     INPUT:
 
-    - ``domain`` -- an ambient free module
-    - ``sub`` -- a submodule of ``domain``
+    - ``module`` -- an ambient free module
+
+    - ``sub`` -- a submodule of ``module``
 
     EXAMPLES::
 
@@ -52,9 +53,9 @@ class QuotientModule_free_ambient(Module_free_ambient):
         [x - y     z]
         [  y*z   x*z]
     """
-    def __init__(self, domain, sub):
+    def __init__(self, module, sub):
         """
-        Create this quotient module of  ``module`` by a submodule ``sub``.
+        Create this quotient module of ``module`` by a submodule ``sub``.
 
         TESTS::
 
@@ -64,23 +65,23 @@ class QuotientModule_free_ambient(Module_free_ambient):
             sage: Q = M.quotient_module(N)
             sage: TestSuite(Q).run(skip=['_test_elements', '_test_pickling', '_test_zero'])
         """
-        base_ring = domain.base_ring()
-        degree = domain.degree()
-        sparse = domain.is_sparse()
+        base_ring = module.base_ring()
+        degree = module.degree()
+        sparse = module.is_sparse()
         # We store these in order to retain the information of how this was constructed
-        self._domain = domain
+        self._module = module
         self._sub = sub
-        self.__hash = hash((self._domain, self._sub))
+        self.__hash = hash((self._module, self._sub))
 
         # We then convert the data into maps from free modules
-        if isinstance(domain, QuotientModule_free_ambient):
-            self._free_cover = domain.cover()
+        if isinstance(module, QuotientModule_free_ambient):
+            self._free_cover = module.cover()
             C = self._free_cover.element_class
             v = [C(self._free_cover, x.list(), coerce=False, copy=False) for x in sub.gens()]
-            w = [C(self._free_cover, x.list(), coerce=False, copy=False) for x in domain.free_relations().gens()]
+            w = [C(self._free_cover, x.list(), coerce=False, copy=False) for x in module.free_relations().gens()]
             self._relations = self._free_cover.submodule(v + w, check=False)
-        else: # Otherwise domain should be a free module
-            self._free_cover = domain
+        else: # Otherwise module should be a free module
+            self._free_cover = module
             self._relations = sub
 
         Module_free_ambient.__init__(self, base_ring, degree=degree, sparse=sparse)
@@ -131,7 +132,7 @@ class QuotientModule_free_ambient(Module_free_ambient):
             sage: Q.gens()
             ((1, 0), (0, 1))
         """
-        return tuple([self(list(g)) for g in self._domain.gens()])
+        return tuple([self(list(g)) for g in self._module.gens()])
 
     def gen(self, i=0):
         """
@@ -146,7 +147,7 @@ class QuotientModule_free_ambient(Module_free_ambient):
             sage: Q.gen(0)
             (1, 0)
         """
-        if i < 0 or i >= self._domain.degree():
+        if i < 0 or i >= self._module.degree():
             raise ValueError('generator %s not defined' % i)
         return self.gens()[i]
 
@@ -173,9 +174,9 @@ class QuotientModule_free_ambient(Module_free_ambient):
         if isinstance(M, FreeModule_ambient):
             return (self.base_ring().has_coerce_map_from(M.base_ring()) and
                     self.degree() == M.degree())
-        from sage.modules.submodule import Subquotient_free_ambient
-        if isinstance(M, Subquotient_free_ambient):
-            return self._domain.has_coerce_map_from(self.ambient_module())
+        from sage.modules.submodule import Submodule_free_ambient
+        if isinstance(M, Submodule_free_ambient):
+            return self._module.has_coerce_map_from(self.ambient_module())
         if (isinstance(M, QuotientModule_free_ambient)
             and M.free_cover() == self.free_cover()):
             try:
@@ -211,7 +212,7 @@ class QuotientModule_free_ambient(Module_free_ambient):
             sage: Q.cover() is M
             True
         """
-        return self._domain
+        return self._module
 
     V = cover
 
@@ -261,8 +262,8 @@ class QuotientModule_free_ambient(Module_free_ambient):
 
     def free_relations(self):
         r"""
-        Given this quotient space `Q = V/W`, return the submodule
-        that generates all relations of `Q`.
+        Given this quotient space `Q = V/W`, return the submodule that
+        generates all relations of `Q`.
 
         When `V` is a free module, then this returns `W`. Otherwise this
         returns the union of `W` lifted to the cover of `V` and the relations
@@ -274,7 +275,7 @@ class QuotientModule_free_ambient(Module_free_ambient):
             sage: M = S**2
             sage: N = M.submodule([vector([x - y, z]), vector([y*z, x*z])])
             sage: Q = M / N
-            sage: NQ = Q.submodule([Q([1,x])])
+            sage: NQ = Q.submodule([Q([1, x])])
             sage: QNQ = Q / NQ
             sage: QNQ.free_relations()
             Submodule of Ambient free module of rank 2 over the integral domain Multivariate Polynomial Ring in x, y, z over Rational Field

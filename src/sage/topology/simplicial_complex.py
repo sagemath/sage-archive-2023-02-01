@@ -289,6 +289,7 @@ def lattice_paths(t1, t2, length=None):
                     [path + [(t1[-1], t2[-1])] for path
                      in lattice_paths(t1[:-1], t2[:-1], length=length-1)])
 
+
 def rename_vertex(n, keep, left=True):
     """
     Rename a vertex: the vertices from the list ``keep`` get
@@ -314,7 +315,7 @@ def rename_vertex(n, keep, left=True):
         sage: rename_vertex(3, [5, 6, 7], left=False)
         'R3'
     """
-    lookup = {i:v for v,i in enumerate(keep)}
+    lookup = {i: v for v, i in enumerate(keep)}
     try:
         return lookup[n]
     except KeyError:
@@ -322,6 +323,7 @@ def rename_vertex(n, keep, left=True):
             return "L" + str(n)
         else:
             return "R" + str(n)
+
 
 @total_ordering
 class Simplex(SageObject):
@@ -813,6 +815,7 @@ class Simplex(SageObject):
         """
         return latex(self.__tuple)
 
+
 class SimplicialComplex(Parent, GenericCellComplex):
     r"""
     Define a simplicial complex.
@@ -1051,7 +1054,7 @@ class SimplicialComplex(Parent, GenericCellComplex):
                     try:
                         normalize_names(1, v)
                     except ValueError:
-                        raise ValueError("the vertex %s does not have an appropriate name"%v)
+                        raise ValueError("the vertex %s does not have an appropriate name" % v)
             # build dictionary of generator names
             try:
                 gen_dict[v] = 'x%s' % int(v)
@@ -1850,7 +1853,7 @@ class SimplicialComplex(Parent, GenericCellComplex):
             True
         """
         return self.join(SimplicialComplex([["0"]], is_mutable=is_mutable),
-                         rename_vertices = True)
+                         rename_vertices=True)
 
     def suspension(self, n=1, is_mutable=True):
         r"""
@@ -1925,7 +1928,7 @@ class SimplicialComplex(Parent, GenericCellComplex):
                 return SimplicialComplex(new_facets)
             else:
                 return self.join(SimplicialComplex([["0"], ["1"]], is_mutable=is_mutable),
-                                 rename_vertices = True)
+                                 rename_vertices=True)
         return self.suspension(1, is_mutable).suspension(int(n-1), is_mutable)
 
     def disjoint_union(self, right, rename_vertices=True, is_mutable=True):
@@ -2367,8 +2370,8 @@ class SimplicialComplex(Parent, GenericCellComplex):
                     for (H, gen) in H_with_gens:
                         v = gen.vector(i)
                         new_gen = chains.zero()
-                        for (coeff, chain) in zip(v, chains.gens()):
-                            new_gen += coeff * chain
+                        for (coeff, chaine) in zip(v, chains.gens()):
+                            new_gen += coeff * chaine
                         new_H.append((H, new_gen))
                     answer[i] = new_H
 
@@ -4075,7 +4078,7 @@ class SimplicialComplex(Parent, GenericCellComplex):
         # don't have to worry about it. Convert spanning_tree to a set
         # to make lookup faster.
         spanning_tree = set(frozenset((int_to_v[e[0]], int_to_v[e[1]]))
-                             for e in spanning_tree)
+                            for e in spanning_tree)
         gens_dict = {frozenset(g): i for i, g in enumerate(gens)}
         FG = FreeGroup(len(gens), 'e')
         rels = []
@@ -4720,6 +4723,7 @@ class SimplicialComplex(Parent, GenericCellComplex):
             F = F + [s for s in self.faces()[k] if s in other.faces()[k]]
         return SimplicialComplex(F)
 
+
 # Miscellaneous utility functions.
 
 # The following two functions can be used to generate the facets for
@@ -4788,4 +4792,4 @@ def facets_for_K3():
     G = PermutationGroup([[(1,3,8,4,9,16,15,2,14,12,6,7,13,5,10)],
                          [(1,11,16),(2,10,14),(3,12,13),(4,9,15),(5,7,8)]])
     return ([tuple([g(i) for i in (1,2,3,8,12)]) for g in G]
-            +[tuple([g(i) for i in (1,2,5,8,14)]) for g in G])
+            + [tuple([g(i) for i in (1,2,5,8,14)]) for g in G])

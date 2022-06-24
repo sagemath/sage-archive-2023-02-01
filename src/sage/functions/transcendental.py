@@ -223,6 +223,13 @@ class Function_HurwitzZeta(BuiltinFunction):
             \zeta\left(x, 2\right)
             sage: hurwitz_zeta(x, 2)._sympy_()
             zeta(x, 2)
+
+        Fixed conversion::
+
+            sage: hurwitz_zeta(x,2)._maple_init_()
+            'Zeta(x,2)'
+            sage: hurwitz_zeta(x,2)._maple_().sage()  # optional - maple
+            hurwitz_zeta(x, 2)
         """
         BuiltinFunction.__init__(self, 'hurwitz_zeta', nargs=2,
                                  conversions=dict(mathematica='HurwitzZeta',

@@ -291,7 +291,6 @@ def cython(filename, verbose=0, compile_message=False,
     try:
         # Import setuptools before importing distutils, so that setuptools
         # can replace distutils by its own vendored copy.
-        import setuptools
         from setuptools.dist import Distribution
         from setuptools.extension import Extension
     except ImportError:

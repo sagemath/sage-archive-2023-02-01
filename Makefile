@@ -240,35 +240,38 @@ TEST_FLAGS =
 # https://trac.sagemath.org/ticket/32759
 TEST_OPTIONAL = sage,optional
 
+# Keep track of the top-level *test* Makefile target for logging.
+TEST_TARGET = $@
+
 TEST = ./sage -t --logfile=$(TEST_LOG) $(TEST_FLAGS) --optional=$(TEST_OPTIONAL) $(TEST_FILES)
 
 test: all
-	@echo '### Running $(TEST)' >> $(TEST_LOG)
+	@echo '### make $(TEST_TARGET): Running $(TEST)' >> $(TEST_LOG)
 	$(TEST)
 
 check:
 	@$(MAKE) test
 
 testall:
-	@$(MAKE) TEST_OPTIONAL="$(TEST_OPTIONAL),external" test
+	@$(MAKE) TEST_TARGET="$(TEST_TARGET)" TEST_OPTIONAL="$(TEST_OPTIONAL),external" test
 
 testlong:
-	@$(MAKE) TEST_FLAGS="$(TEST_FLAGS) --long" test
+	@$(MAKE) TEST_TARGET="$(TEST_TARGET)" TEST_FLAGS="$(TEST_FLAGS) --long" test
 
 testalllong:
-	@$(MAKE) TEST_FLAGS="$(TEST_FLAGS) --long" testall
+	@$(MAKE) TEST_TARGET="$(TEST_TARGET)" TEST_FLAGS="$(TEST_FLAGS) --long" testall
 
 ptest:
-	@$(MAKE) TEST_FLAGS="$(TEST_FLAGS) -p" test
+	@$(MAKE) TEST_TARGET="$(TEST_TARGET)" TEST_FLAGS="$(TEST_FLAGS) -p" test
 
 ptestall:
-	@$(MAKE) TEST_OPTIONAL="$(TEST_OPTIONAL),external" ptest
+	@$(MAKE) TEST_TARGET="$(TEST_TARGET)" TEST_OPTIONAL="$(TEST_OPTIONAL),external" ptest
 
 ptestlong:
-	@$(MAKE) TEST_FLAGS="$(TEST_FLAGS) --long" ptest
+	@$(MAKE) TEST_TARGET="$(TEST_TARGET)" TEST_FLAGS="$(TEST_FLAGS) --long" ptest
 
 ptestalllong:
-	@$(MAKE) TEST_FLAGS="$(TEST_FLAGS) --long" ptestall
+	@$(MAKE) TEST_TARGET="$(TEST_TARGET)" TEST_FLAGS="$(TEST_FLAGS) --long" ptestall
 
 testoptional:
 	@echo "'make $@' is deprecated; use 'make test'"
@@ -290,32 +293,32 @@ ptestoptionallong:
 
 test-nodoc: TEST_OPTIONAL := $(TEST_OPTIONAL),!sagemath_doc_html,!sagemath_doc_pdf
 test-nodoc: build
-	@echo '### Running $(TEST)' >> $(TEST_LOG)
+	@echo '### make $(TEST_TARGET): Running $(TEST)' >> $(TEST_LOG)
 	$(TEST)
 
 check-nodoc:
 	@$(MAKE) test-nodoc
 
 testall-nodoc:
-	@$(MAKE) TEST_OPTIONAL="$(TEST_OPTIONAL),external" test-nodoc
+	@$(MAKE) TEST_TARGET="$(TEST_TARGET)" TEST_OPTIONAL="$(TEST_OPTIONAL),external" test-nodoc
 
 testlong-nodoc:
-	@$(MAKE) TEST_FLAGS="$(TEST_FLAGS) --long" test-nodoc
+	@$(MAKE) TEST_TARGET="$(TEST_TARGET)" TEST_FLAGS="$(TEST_FLAGS) --long" test-nodoc
 
 testalllong-nodoc:
-	@$(MAKE) TEST_FLAGS="$(TEST_FLAGS) --long" testall-nodoc
+	@$(MAKE) TEST_TARGET="$(TEST_TARGET)" TEST_FLAGS="$(TEST_FLAGS) --long" testall-nodoc
 
 ptest-nodoc:
-	@$(MAKE) TEST_FLAGS="$(TEST_FLAGS) -p" test-nodoc
+	@$(MAKE) TEST_TARGET="$(TEST_TARGET)" TEST_FLAGS="$(TEST_FLAGS) -p" test-nodoc
 
 ptestall-nodoc:
-	@$(MAKE) TEST_OPTIONAL="$(TEST_OPTIONAL),external" ptest-nodoc
+	@$(MAKE) TEST_TARGET="$(TEST_TARGET)" TEST_OPTIONAL="$(TEST_OPTIONAL),external" ptest-nodoc
 
 ptestlong-nodoc:
-	@$(MAKE) TEST_FLAGS="$(TEST_FLAGS) --long" ptest-nodoc
+	@$(MAKE) TEST_TARGET="$(TEST_TARGET)" TEST_FLAGS="$(TEST_FLAGS) --long" ptest-nodoc
 
 ptestalllong-nodoc:
-	@$(MAKE) TEST_FLAGS="$(TEST_FLAGS) --long" ptestall-nodoc
+	@$(MAKE) TEST_TARGET="$(TEST_TARGET)" TEST_FLAGS="$(TEST_FLAGS) --long" ptestall-nodoc
 
 testoptional-nodoc:
 	@echo "'make $@' is deprecated; use 'make test-nodoc'"

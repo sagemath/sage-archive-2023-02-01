@@ -333,7 +333,7 @@ cdef class IndexedFreeModuleElement(ModuleElement):
                     elif coeff == "-1":
                         coeff = "-"
                     elif b._l > 0:
-                        if len(coeff) > 0 and monomial == 1 and strip_one:
+                        if len(coeff) > 0 and monomial == self.parent().one_basis() and strip_one:
                             b = empty_ascii_art # ""
                         else:
                             b = AsciiArt([scalar_mult]) + b

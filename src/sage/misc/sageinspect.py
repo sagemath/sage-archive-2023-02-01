@@ -1413,6 +1413,52 @@ def sage_getfile(obj):
     return sourcefile
 
 
+def sage_getfile_relative(obj):
+    r"""
+    Get the file name associated to ``obj`` as a string.
+
+    This is the same as :func:`sage_getfile`, but
+    if the source file is part of the ``sage.*`` namespace, it
+    makes the file name relative so that it starts with ``sage/``.
+
+    INPUT: ``obj``, a Sage object, module, etc.
+
+    EXAMPLES::
+
+        sage: from sage.misc.sageinspect import sage_getfile_relative
+        sage: sage_getfile_relative(sage.rings.rational)
+        'sage/rings/rational.pyx'
+        sage: sage_getfile_relative(Sq)
+        'sage/algebras/steenrod/steenrod_algebra.py'
+        sage: sage_getfile_relative(x)
+        'sage/symbolic/expression.pyx'
+        sage: sage_getfile_relative(range)
+        ''
+    """
+    filename = sage_getfile(obj)
+    if not filename:
+        return filename
+
+    from os.path import relpath, normpath, commonprefix
+
+    def directories():
+        try:
+            from sage.env import SAGE_SRC
+        except ImportError:
+            pass
+        else:
+            if SAGE_SRC:
+                yield normpath(os.path.join(SAGE_SRC, 'sage'))
+        import sage
+        yield from sage.__path__
+
+    for directory in directories():
+        if commonprefix([filename, directory]) == directory:
+            return os.path.join('sage', relpath(filename, directory))
+
+    return filename
+
+
 def sage_getargspec(obj):
     r"""
     Return the names and default values of a function's arguments.

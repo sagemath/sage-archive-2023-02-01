@@ -420,8 +420,7 @@ cdef extern from "methodobject.h":
     cdef int PyCFunction_GetFlags(object op) except -1
 
 import os
-from os.path import relpath, normpath, commonprefix
-from sage.misc.sageinspect import sage_getfile, sage_getsourcelines, sage_getargspec
+from sage.misc.sageinspect import sage_getfile_relative, sage_getsourcelines, sage_getargspec
 from inspect import isfunction
 
 from sage.misc.weak_dict cimport CachedWeakValueDictionary
@@ -875,24 +874,7 @@ cdef class CachedFunction():
         if not doc or _extract_embedded_position(doc) is None:
             try:
                 sourcelines = sage_getsourcelines(f)
-                filename = sage_getfile(f)
-
-                def directories():
-                    try:
-                        from sage.env import SAGE_SRC
-                    except ImportError:
-                        pass
-                    else:
-                        if SAGE_SRC:
-                            yield normpath(os.path.join(SAGE_SRC, 'sage'))
-                    import sage
-                    yield from sage.__path__
-
-                for directory in directories():
-                    if commonprefix([filename, directory]) == directory:
-                        filename = os.path.join('sage', relpath(filename, directory))
-                        break
-
+                filename = sage_getfile_relative(f)
                 #this is a rather expensive way of getting the line number, because
                 #retrieving the source requires reading the source file and in many
                 #cases this is not required (in cython it's embedded in the docstring,

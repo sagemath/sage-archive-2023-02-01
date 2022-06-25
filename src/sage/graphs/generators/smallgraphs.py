@@ -4581,7 +4581,6 @@ def WienerArayaGraph():
     g.add_edge((3, 4), (2, 14))
     g.add_edge((3, 1), (3, 4))
 
-    g.get_pos().pop(0)
     g.relabel()
     return g
 

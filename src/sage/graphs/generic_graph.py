@@ -2672,6 +2672,27 @@ class GenericGraph(GenericGraph_pyx):
             1
             sage: G.get_embedding()
             {0: [1, 4, 5], 1: [0, 2, 6], 2: [1, 3, 7], 3: [2, 4, 8], 4: [0, 3, 9], 5: [0, 7, 8], 6: [1, 9, 8], 7: [2, 5, 9], 8: [3, 6, 5], 9: [4, 6, 7]}
+
+        Note that the embeddings gets properly modified on vertex or edge deletion::
+
+            sage: G.delete_edge(0, 1)
+            sage: G.delete_vertex(3)
+            sage: G.get_embedding()
+            {0: [4, 5],
+             1: [2, 6],
+             2: [1, 7],
+             4: [0, 9],
+             5: [0, 7, 8],
+             6: [1, 9, 8],
+             7: [2, 5, 9],
+             8: [6, 5],
+             9: [4, 6, 7]}
+
+        But not under edge addition::
+
+            sage: G.add_edge(0, 7)
+            sage: G.get_embedding() is None
+            True
         """
         try:
             embedding = self._embedding
@@ -3510,6 +3531,20 @@ class GenericGraph(GenericGraph_pyx):
             {0: (0.0, 1.0),
              ...
              9: (0.475..., 0.154...)}
+
+        Note that the position dictionary is modified on vertex removal::
+
+            sage: G.delete_vertex(0)
+            sage: G.get_pos()
+            {1: (-0.9510565163, 0.3090169944),
+            ...
+             9: (0.47552825815, 0.1545084972)}
+
+        But is deleted on vertex addition::
+
+            sage: G.add_vertex(0)
+            sage: G.get_pos() is None
+            True
         """
         if dim == 2:
             try:
@@ -3600,11 +3635,13 @@ class GenericGraph(GenericGraph_pyx):
              ...
              9: (..., ...)}
 
+        The method :meth:`get_pos` check the position dictionary so that
+        invalid positioning are ignored::
+
             sage: G.set_pos(dict(enumerate('abcdefghi')))
-            sage: P = G.plot()
-            Traceback (most recent call last):
-            ...
-            IndexError: string index out of range
+            sage: P = G.plot()  # positions are ignored
+            sage: G.get_pos() is None
+            True
         """
         if pos is None:
             return

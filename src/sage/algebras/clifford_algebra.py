@@ -2510,7 +2510,7 @@ class ExteriorAlgebraBoundary(ExteriorAlgebraDifferential):
         sc = self._s_coeff
         keys = sc.keys()
 
-        s = E.base_ring().zero()
+        s = E.zero()
 
         for b, (i,j) in enumerate(combinations(m, 2)):
             t = Bitset(m)

@@ -3512,7 +3512,10 @@ class GenericGraph(GenericGraph_pyx):
              9: (0.475..., 0.154...)}
         """
         if dim == 2:
-            pos = self._pos
+            try:
+                pos = self._pos
+            except AttributeError:
+                pos = None
         elif dim == 3:
             try:
                 pos = self._pos3d

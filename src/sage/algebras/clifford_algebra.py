@@ -2023,8 +2023,13 @@ class ExteriorAlgebra(CliffordAlgebra):
                 0
                 sage: (x+y) * (y+z)
                 x*y + x*z + y*z
+
+                sage: E.<x,y,z,w> = ExteriorAlgebra(QQ)
+                sage: (x * y) * (w * z)
+                -x*y*z*w
+                sage: x*y*w*z
+                -x*y*z*w
             """
-            n = self.parent().ngens()
             zero = self.parent().base_ring().zero()
             d = {}
 
@@ -2592,7 +2597,10 @@ class ExteriorAlgebraBoundary(ExteriorAlgebraDifferential):
             mat = []
             for b in basis:
                 ret = self._on_basis(b)
-                mat.append([ret[p] for p in prev_basis])
+                try:
+                    mat.append([ret.coefficient(p) for p in prev_basis])
+                except AttributeError: # if ret is in E.base_ring()
+                    mat.append([E.base_ring()(ret)])
             data[deg] = Matrix(mat).transpose().change_ring(R)
             prev_basis = basis
 
@@ -2731,7 +2739,7 @@ class ExteriorAlgebraCoboundary(ExteriorAlgebraDifferential):
         zero = E.zero()
         B = E.basis()
         for k, v in dict(s_coeff).items():
-            k = B[k]
+            k = B[FrozenBitset(k)]
             for m,c in v:
                 self._cos_coeff[m] = self._cos_coeff.get(m, zero) + c * k
         ExteriorAlgebraDifferential.__init__(self, E, s_coeff)
@@ -2776,8 +2784,23 @@ class ExteriorAlgebraCoboundary(ExteriorAlgebraDifferential):
         E = self.domain()
         cc = self._cos_coeff
         keys = cc.keys()
-        return E.sum((-1)**a * E.monomial(m[:a]) * cc[(i,)] * E.monomial(m[a+1:])
-                     for a,i in enumerate(m) if (i,) in keys)
+
+        s = E.base_ring().zero()
+
+        sgn = 0
+
+        for i in m:
+            sgn += 1
+            if FrozenBitset((i,)) in keys:
+                key_basis, key_coeff = cc[FrozenBitset((i,))].list()[0]
+                m_temp = Bitset(m)
+                if key_basis.intersection(m_temp):
+                    continue
+                m_temp.discard(i)
+                m_temp.update(key_basis)
+
+                s = s + (-1)**(sgn % 2) * key_coeff * E.monomial(FrozenBitset(m_temp))
+        return s
 
     @cached_method
     def chain_complex(self, R=None):
@@ -2854,7 +2877,10 @@ class ExteriorAlgebraCoboundary(ExteriorAlgebraDifferential):
             mat = []
             for b in basis:
                 ret = self._on_basis(b)
-                mat.append([ret[p] for p in next_basis])
+                try:
+                    mat.append([ret.coefficient(p) for p in next_basis])
+                except AttributeError: # if ret is in E.base_ring()
+                    mat.append([E.base_ring()(ret)])
             data[deg] = Matrix(mat).transpose().change_ring(R)
             basis = next_basis
 

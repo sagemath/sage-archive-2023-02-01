@@ -249,33 +249,26 @@ test: all
 check:
 	@$(MAKE) test
 
-testall: TEST_OPTIONAL := $(TEST_OPTIONAL),external
 testall:
-	@$(MAKE) test
+	@$(MAKE) TEST_OPTIONAL="$(TEST_OPTIONAL),external" test
 
-testlong: TEST_FLAGS += --long
 testlong:
-	@$(MAKE) test
+	@$(MAKE) TEST_FLAGS="$(TEST_FLAGS) --long" test
 
-testalllong: TEST_FLAGS += --long
 testalllong:
-	@$(MAKE) testall
+	@$(MAKE) TEST_FLAGS="$(TEST_FLAGS) --long" testall
 
-ptest: TEST_FLAGS += -p
 ptest:
-	@$(MAKE) test
+	@$(MAKE) TEST_FLAGS="$(TEST_FLAGS) -p" test
 
-ptestall: TEST_OPTIONAL := $(TEST_OPTIONAL),external
 ptestall:
-	@$(MAKE) ptest
+	@$(MAKE) TEST_OPTIONAL="$(TEST_OPTIONAL),external" ptest
 
-ptestlong: TEST_FLAGS += --long
 ptestlong:
-	@$(MAKE) ptest
+	@$(MAKE) TEST_FLAGS="$(TEST_FLAGS) --long" ptest
 
-ptestalllong: TEST_FLAGS += --long
 ptestalllong:
-	@$(MAKE) ptestall
+	@$(MAKE) TEST_FLAGS="$(TEST_FLAGS) --long" ptestall
 
 testoptional:
 	@echo "'make $@' is deprecated; use 'make test'"
@@ -303,33 +296,26 @@ test-nodoc: build
 check-nodoc:
 	@$(MAKE) test-nodoc
 
-testall-nodoc: TEST_OPTIONAL := $(TEST_OPTIONAL),external
 testall-nodoc:
-	@$(MAKE) test-nodoc
+	@$(MAKE) TEST_OPTIONAL="$(TEST_OPTIONAL),external" test-nodoc
 
-testlong-nodoc: TEST_FLAGS += --long
 testlong-nodoc:
-	@$(MAKE) test-nodoc
+	@$(MAKE) TEST_FLAGS="$(TEST_FLAGS) --long" test-nodoc
 
-testalllong-nodoc: TEST_FLAGS += --long
 testalllong-nodoc:
-	@$(MAKE) testall-nodoc
+	@$(MAKE) TEST_FLAGS="$(TEST_FLAGS) --long" testall-nodoc
 
-ptest-nodoc: TEST_FLAGS += -p
 ptest-nodoc:
-	@$(MAKE) test-nodoc
+	@$(MAKE) TEST_FLAGS="$(TEST_FLAGS) -p" test-nodoc
 
-ptestall-nodoc: TEST_OPTIONAL := $(TEST_OPTIONAL),external
 ptestall-nodoc:
-	@$(MAKE) ptest-nodoc
+	@$(MAKE) TEST_OPTIONAL="$(TEST_OPTIONAL),external" ptest-nodoc
 
-ptestlong-nodoc: TEST_FLAGS += --long
 ptestlong-nodoc:
-	@$(MAKE) ptest-nodoc
+	@$(MAKE) TEST_FLAGS="$(TEST_FLAGS) --long" ptest-nodoc
 
-ptestalllong-nodoc: TEST_FLAGS += --long
 ptestalllong-nodoc:
-	@$(MAKE) ptestall-nodoc
+	@$(MAKE) TEST_FLAGS="$(TEST_FLAGS) --long" ptestall-nodoc
 
 testoptional-nodoc:
 	@echo "'make $@' is deprecated; use 'make test-nodoc'"

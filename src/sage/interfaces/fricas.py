@@ -257,6 +257,7 @@ FRICAS_LINENUMBER_OFF_CODE = ")lisp (setf |$IOindex| NIL)"
 FRICAS_FIRST_PROMPT = r"\(1\) -> "
 FRICAS_LINENUMBER_OFF_PROMPT = r"\(NIL\) -> "
 
+
 class FriCAS(ExtraTabCompletion, Expect):
     """
     Interface to a FriCAS interpreter.
@@ -589,10 +590,10 @@ http://fricas.sourceforge.net.
         from sage.functions.gamma import gamma
         from sage.misc.functional import symbolic_sum, symbolic_prod
         from sage.rings.infinity import infinity
-        register_symbol(pi, {'fricas': 'pi'}, 0) # %pi::INFORM is %pi, but (pi) also exists
-        register_symbol(lambda: infinity, {'fricas': 'infinity'}, 0) # %infinity::INFORM is (infinity)
-        register_symbol(lambda: infinity, {'fricas': 'plusInfinity'}, 0) # %plusInfinity::INFORM is (minusInfinity)
-        register_symbol(lambda: -infinity, {'fricas': 'minusInfinity'}, 0) # %minusInfinity::INFORM is (minusInfinity)
+        register_symbol(pi, {'fricas': 'pi'}, 0)  # %pi::INFORM is %pi, but (pi) also exists
+        register_symbol(lambda: infinity, {'fricas': 'infinity'}, 0)  # %infinity::INFORM is (infinity)
+        register_symbol(lambda: infinity, {'fricas': 'plusInfinity'}, 0)  # %plusInfinity::INFORM is (plusInfinity)
+        register_symbol(lambda: -infinity, {'fricas': 'minusInfinity'}, 0)  # %minusInfinity::INFORM is (minusInfinity)
         register_symbol(cos, {'fricas': 'cos'})
         register_symbol(sin, {'fricas': 'sin'})
         register_symbol(tan, {'fricas': 'tan'})
@@ -1143,8 +1144,6 @@ class FriCASElement(ExpectElement):
         """
         P = self._check_valid()
         return not P.new("zero?(%s)" % self._name).sage()
-
-    
 
     def __float__(self):
         """

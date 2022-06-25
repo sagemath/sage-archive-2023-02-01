@@ -3325,8 +3325,8 @@ class DiGraph(GenericGraph):
             # Sort vertices in each level in best effort mode
             for i in range(len(levels)):
                 try:
-                    l = sorted(levels[i])
-                    levels[i] = l
+                    label = sorted(levels[i])
+                    levels[i] = label
                 except TypeError:
                     continue
             if rankdir == 'down' or rankdir == 'left':
@@ -3482,25 +3482,25 @@ class DiGraph(GenericGraph):
             s = component[0]
             levels[s] = 0
             this_level = [s]
-            l = 1
+            idx = 1
             while this_level:
                 next_level = []
                 for u in this_level:
-                    # we have levels[u] == l - 1
+                    # we have levels[u] == idx - 1
                     for v in self.neighbor_out_iterator(u):
                         # ignore edges leaving the component
                         if v not in vertices_in_scc:
                             continue
                         level_v = levels[v]
                         if level_v is not None:  # Non-Tree Edge
-                            g = gcd(g, l - level_v)
+                            g = gcd(g, idx - level_v)
                             if g == 1:
                                 return 1
                         else:  # Tree Edge
                             next_level.append(v)
-                            levels[v] = l
+                            levels[v] = idx
                 this_level = next_level
-                l += 1
+                idx += 1
 
         return g
 
@@ -3960,43 +3960,43 @@ class DiGraph(GenericGraph):
             # merge multi-edges if any by concatenating their labels
             if D.has_multiple_edges():
                 merged_multiple_edges = {}
-                for u, v, l in D.multiple_edges():
-                    D.delete_edge(u, v, l)
+                for u, v, label in D.multiple_edges():
+                    D.delete_edge(u, v, label)
                     if (u, v) not in merged_multiple_edges:
-                        merged_multiple_edges[(u, v)] = l
+                        merged_multiple_edges[(u, v)] = label
                     else:
-                        merged_multiple_edges[(u, v)] += l
-                D.add_edges([(u, v, l) for (u, v), l in merged_multiple_edges.items()])
+                        merged_multiple_edges[(u, v)] += label
+                D.add_edges([(u, v, label) for (u, v), label in merged_multiple_edges.items()])
 
             # 2) Pick an edge e outgoing from the source
             try:
-                s, x, l = next(D.outgoing_edge_iterator(source))
+                s, x, label = next(D.outgoing_edge_iterator(source))
             except StopIteration:
                 return
             # 3) Find all out_branchings that do not contain e
             # by first removing it
-            D.delete_edge(s, x, l)
+            D.delete_edge(s, x, label)
             if len(list(D.depth_first_search(source))) == depth + 1:
                 for out_branch in _rec_out_branchings(depth):
                     yield out_branch
-            D.add_edge(s, x, l)
+            D.add_edge(s, x, label)
 
             # 4) Find all out_branchings that do contain e by merging
             # the end vertices of e
             # store different edges to unmerged the end vertices of e
             saved_edges = D.outgoing_edges(source)
-            saved_edges.remove((s, x, l))
+            saved_edges.remove((s, x, label))
             saved_edges += D.outgoing_edges(x)
             saved_edges += D.incoming_edges(x)
 
             D.merge_vertices((source, x))
 
-            list_merged_edges.add(l)
+            list_merged_edges.add(label)
 
             for out_branch in _rec_out_branchings(depth - 1):
                 yield out_branch
 
-            list_merged_edges.remove(l)
+            list_merged_edges.remove(label)
 
             # unmerge the end vertices of e
             D.delete_vertex(source)
@@ -4177,43 +4177,43 @@ class DiGraph(GenericGraph):
             # merge multi-edges if any by concatenating their labels
             if D.has_multiple_edges():
                 merged_multiple_edges = {}
-                for u, v, l in D.multiple_edges():
-                    D.delete_edge(u, v, l)
+                for u, v, label in D.multiple_edges():
+                    D.delete_edge(u, v, label)
                     if (u, v) not in merged_multiple_edges:
-                        merged_multiple_edges[(u, v)] = l
+                        merged_multiple_edges[(u, v)] = label
                     else:
-                        merged_multiple_edges[(u, v)] += l
-                D.add_edges([(u, v, l) for (u, v), l in merged_multiple_edges.items()])
+                        merged_multiple_edges[(u, v)] += label
+                D.add_edges([(u, v, label) for (u, v), label in merged_multiple_edges.items()])
 
             # 2) Pick an edge e incoming to the source
             try:
-                x, s, l = next(D.incoming_edge_iterator(source))
+                x, s, label = next(D.incoming_edge_iterator(source))
             except StopIteration:
                 return
             # 3) Find all in_branchings that do not contain e
             # by first removing it
-            D.delete_edge(x, s, l)
+            D.delete_edge(x, s, label)
             if len(list(D.depth_first_search(source, neighbors=D.neighbor_in_iterator))) == depth + 1:
                 for in_branch in _rec_in_branchings(depth):
                     yield in_branch
-            D.add_edge(x, s, l)
+            D.add_edge(x, s, label)
 
             # 4) Find all in_branchings that do contain e by merging
             # the end vertices of e
             # store different edges to unmerged the end vertices of e
             saved_edges = D.incoming_edges(source)
-            saved_edges.remove((x, s, l))
+            saved_edges.remove((x, s, label))
             saved_edges += D.outgoing_edges(x)
             saved_edges += D.incoming_edges(x)
 
             D.merge_vertices((source, x))
 
-            list_merged_edges.add(l)
+            list_merged_edges.add(label)
 
             for in_branch in _rec_in_branchings(depth - 1):
                 yield in_branch
 
-            list_merged_edges.remove(l)
+            list_merged_edges.remove(label)
 
             # unmerge the end vertices of e
             D.delete_vertex(source)

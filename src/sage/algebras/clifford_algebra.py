@@ -340,7 +340,7 @@ class CliffordAlgebraIndices(Parent):
         category = FiniteEnumeratedSets().Facade()
         Parent.__init__(self, category=category, facade=True)
 
-    def __element_constructor__(self, x):
+    def _element_constructor_(self, x):
 
         if isinstance(x, (list, tuple, set, frozenset)):
             if len(x) > self._nbits:
@@ -1504,7 +1504,7 @@ class ExteriorAlgebra(CliffordAlgebra):
         if len(m) == 0:
             return ascii_art('1')
         wedge = '/\\'
-        return ascii_art(*[self.variable_names()[i] for i in m], sep=wedge)
+        return ascii_art(*[repr(self.basis()[FrozenBitset((i,))]) for i in m], sep=wedge)
 
     def _unicode_art_term(self, m):
         """

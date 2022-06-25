@@ -1774,7 +1774,7 @@ class ExteriorAlgebra(CliffordAlgebra):
         """
         from sage.combinat.combinat import unshuffle_iterator
         one = self.base_ring().one()
-        return self.tensor_square().sum_of_terms(unshuffle_iterator(a, one),
+        return self.tensor_square().sum_of_terms(unshuffle_iterator(tuple(a), one),
                                                  distinct=True)
 
     def antipode_on_basis(self, m):
@@ -1982,7 +1982,7 @@ class ExteriorAlgebra(CliffordAlgebra):
                     m = len(my)
                     if m != n:
                         continue
-                    matrix_list = [M[mx[i], my[j]]
+                    matrix_list = [M[next(iter(mx)), next(iter(my))]
                                    for i in range(n)
                                    for j in range(n)]
                     MA = MatrixArgs(R, n, matrix_list)

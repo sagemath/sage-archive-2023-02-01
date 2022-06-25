@@ -619,7 +619,7 @@ http://fricas.sourceforge.net.
         register_symbol(lambda z: lambert_w(z), {'fricas': 'lambertW'}, 1)
         register_symbol(abs, {'fricas': 'abs'}, 1)
         # construct occurs in the InputForm of hypergeometricF
-        register_symbol(lambda *x: x, {'fricas': 'construct'})
+        register_symbol(lambda *x: x, {'fricas': 'construct'}, -1)
         # the following is a hack to deal with
         # integrate(sin((x^2+1)/x),x)::INFORM giving
         # (integral (sin (/ (+ (^ x 2) 1) x)) (:: x Symbol))
@@ -1366,7 +1366,11 @@ class FriCASElement(ExpectElement):
         try:
             fun = symbol_table["fricas"][(fun_string, len(args))]
         except KeyError:
-            fun = function(fun_string)
+            try:
+                # to handle the case of "construct"
+                fun = symbol_table["fricas"][(fun_string, -1)]
+            except KeyError:
+                fun = function(fun_string)
         return fun(*args), a
 
     @staticmethod

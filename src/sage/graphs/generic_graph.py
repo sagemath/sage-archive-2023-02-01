@@ -20042,9 +20042,16 @@ class GenericGraph(GenericGraph_pyx):
         c_x, c_y = center
         vertices = list(vertices)
         n = len(vertices)
-        d = self.get_pos()
-        if d is None or return_dict:
-            d = {}
+
+        if return_dict:
+            pos = {}
+        else:
+            try:
+                pos = self._pos
+            except AttributeError:
+                pass
+            if pos is None:
+                pos = self._pos = {}
 
         from math import sin, cos, pi
         for i,v in enumerate(vertices):
@@ -20053,12 +20060,10 @@ class GenericGraph(GenericGraph_pyx):
             # when asking for sin(pi)
             v_x = c_x + radius * round(cos(angle + 2*i*pi / n), 10)
             v_y = c_y + radius * round(sin(angle + 2*i*pi / n), 10)
-            d[v] = (v_x, v_y)
+            pos[v] = (v_x, v_y)
 
         if return_dict:
-            return d
-        else:
-            self.set_pos(d)
+            return pos
 
     def _line_embedding(self, vertices, first=(0, 0), last=(0, 1), return_dict=False):
         r"""
@@ -20109,9 +20114,17 @@ class GenericGraph(GenericGraph_pyx):
             {}
         """
         vertices = list(vertices)
-        d = self.get_pos()
-        if d is None or return_dict:
-            d = {}
+
+        if return_dict:
+            pos = {}
+        else:
+            pos = None
+            try:
+                pos = self._pos
+            except AttributeError:
+                pass
+            if pos is None:
+                pos = self._pos = {}
 
         n = len(vertices) - 1.
 
@@ -20124,14 +20137,12 @@ class GenericGraph(GenericGraph_pyx):
             dx = dy = 0
 
         for v in vertices:
-            d[v] = (fx, fy)
+            pos[v] = (fx, fy)
             fx += dx
             fy += dy
 
         if return_dict:
-            return d
-        else:
-            self.set_pos(d)
+            return pos
 
     def graphplot(self, **options):
         """

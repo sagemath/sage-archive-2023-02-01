@@ -29,6 +29,13 @@ import tempfile
 
 import atexit
 
+# Until tmp_dir() and tmp_filename() are removed, we use this directory
+# as the parent for all temporary files & directories created by them.
+# This lets us clean up after those two functions when sage exits normally
+# using an atexit hook
+TMP_DIR_FILENAME_BASE=tempfile.TemporaryDirectory()
+atexit.register(lambda: TMP_DIR_FILENAME_BASE.cleanup())
+
 
 def delete_tmpfiles():
     """
@@ -97,8 +104,9 @@ def tmp_dir(name="dir_", ext=""):
         0
         sage: f.close()
     """
-    from sage.misc.misc import SAGE_TMP
-    tmp = tempfile.mkdtemp(prefix=name, suffix=ext, dir=str(SAGE_TMP))
+    tmp = tempfile.mkdtemp(prefix=name,
+                           suffix=ext,
+                           dir=TMP_DIR_FILENAME_BASE.name)
     name = os.path.abspath(tmp)
     return name + os.sep
 
@@ -147,8 +155,9 @@ def tmp_filename(name="tmp_", ext=""):
         0
         sage: f.close()
     """
-    from sage.misc.misc import SAGE_TMP
-    handle, tmp = tempfile.mkstemp(prefix=name, suffix=ext, dir=str(SAGE_TMP))
+    handle, tmp = tempfile.mkstemp(prefix=name,
+                                   suffix=ext,
+                                   dir=TMP_DIR_FILENAME_BASE.name)
     os.close(handle)
     name = os.path.abspath(tmp)
     return name
@@ -157,7 +166,7 @@ def tmp_filename(name="tmp_", ext=""):
 #################################################################
 # write to a temporary file and move it in place
 #################################################################
-class atomic_write(object):
+class atomic_write():
     """
     Write to a given file using a temporary file and then rename it
     to the target file. This renaming should be atomic on modern
@@ -436,7 +445,7 @@ class atomic_write(object):
 #################################################################
 # write to a temporary directory and move it in place
 #################################################################
-class atomic_dir(object):
+class atomic_dir():
     """
     Write to a given directory using a temporary directory and then rename it
     to the target directory. This is for creating a directory whose contents

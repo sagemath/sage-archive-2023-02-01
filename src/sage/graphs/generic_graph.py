@@ -2774,7 +2774,10 @@ class GenericGraph(GenericGraph_pyx):
 
         """
         if embedding is None:
-            embedding = getattr(self, '_embedding', None)
+            try:
+                embedding = self._embedding
+            except AttributeError:
+                pass
         if embedding is None:
             if boolean:
                 return False
@@ -3565,14 +3568,12 @@ class GenericGraph(GenericGraph_pyx):
                 if v not in self:
                     del pos[v]
 
-            # take care of possible vertex addition
-            for v in self:
-                if v not in pos:
-                    if dim == 2:
-                        self._pos = None
-                    else:
-                        self._pos3d = None
-                    break
+            if self._check_pos_validity(dim=dim):
+                return pos
+            elif dim == 2:
+                pos = self._pos = None
+            else:
+                pos = self._pos3d = None
 
         return pos
 
@@ -3603,7 +3604,16 @@ class GenericGraph(GenericGraph_pyx):
             True
         """
         if pos is None:
-            pos = self.get_pos(dim=dim)
+            if dim == 2:
+                try:
+                    pos = self._pos
+                except AttributeError:
+                    pass
+            elif dim == 3:
+                try:
+                    pos = self._pos3d
+                except AttributeError:
+                    pass
         if pos is None:
             return False
         if len(pos) != self.order():

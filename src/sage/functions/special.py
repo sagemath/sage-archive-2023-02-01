@@ -493,6 +493,13 @@ class EllipticE(BuiltinFunction):
             elliptic_e
             sage: elliptic_e(x, x)._sympy_()
             elliptic_e(x, x)
+
+        Check that :trac:`34085` is fixed::
+
+            sage: _ = var("x y")
+            sage: fricas(elliptic_e(x, y))  # optional - fricas
+            ellipticE(sin(x),y)
+
         """
         BuiltinFunction.__init__(self, 'elliptic_e', nargs=2,
                                  # Maple conversion left out since it uses
@@ -500,7 +507,7 @@ class EllipticE(BuiltinFunction):
                                  conversions=dict(mathematica='EllipticE',
                                                   maxima='elliptic_e',
                                                   sympy='elliptic_e',
-                                              ))
+                                                  fricas='((x,y)+->ellipticE(sin(x), y))'))
 
     def _eval_(self, z, m):
         """

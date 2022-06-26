@@ -2663,7 +2663,12 @@ class GenericGraph(GenericGraph_pyx):
 
     def get_embedding(self):
         """
-        Return the stored embedding.
+        Return the stored embedding or ``None``.
+
+        If the stored embedding is no longer valid (because of vertex/edge
+        additions) then the stored embedding is discarded and ``None`` is
+        returned. In case some vertex/edge has been deleted, the stored
+        embedding is updated accordingly.
 
         EXAMPLES::
 

@@ -3107,7 +3107,7 @@ def petersen_family(generate=False):
         l.add(g)
         g = Graph(g)
         # All possible Delta-Y transforms
-        for t in g.subgraph_search_iterator(Graph({1: [2, 3], 2: [3]})):
+        for t in g.subgraph_search_iterator(Graph({1: [2, 3], 2: [3]}), return_graphs=False):
             l_new.append(DeltaYTrans(g, t).graph6_string())
         # All possible Y-Delta transforms
         for v in g:

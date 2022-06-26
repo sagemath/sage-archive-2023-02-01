@@ -14547,7 +14547,7 @@ class GenericGraph(GenericGraph_pyx):
 
         - ``other`` -- a Sage (Di)Graph
 
-        - ``induced`` - boolean (default: ``True``); if set to ``True`` check
+        - ``induced`` -- boolean (default: ``True``); if set to ``True`` check
           whether the graph is an *induced* subgraph of ``other`` that is if the
           vertices of the graph are also vertices of ``other``, and the edges of
           the graph are equal to the edges of ``other`` between the vertices
@@ -14557,10 +14557,10 @@ class GenericGraph(GenericGraph_pyx):
           that is if all vertices of the graph are also in ``other`` and all
           edges of the graph are also in ``other``.
 
-        - ``up_to_isomorphism`` - boolean (default: ``False``); if set to ``True``
-          check whether ``other`` is a subgraph ignoring the labeling of vertices
-          and edges. Otherwise, vertex and edge labellings must coincide in the
-          copy or induced copy.
+        - ``up_to_isomorphism`` -- boolean (default: ``False``); if set to
+          ``True`` check whether ``other`` is a subgraph ignoring the labeling
+          of vertices and edges. Otherwise, vertex and edge labellings must
+          coincide in the copy or induced copy.
 
         OUTPUT:
 
@@ -14569,8 +14569,8 @@ class GenericGraph(GenericGraph_pyx):
 
         .. SEEALSO::
 
-            For more advanced search of subgraphs isomorphic to a given graph, you
-            could consider the following methods:
+            For more advanced search of subgraphs isomorphic to a given graph,
+            you could consider the following methods:
 
             - :meth:`~GenericGraph.subgraph_search` -- find a subgraph
               isomorphic to ``other`` inside of the graph

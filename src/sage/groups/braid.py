@@ -1072,10 +1072,10 @@ class Braid(FiniteTypeArtinGroupElement):
         crossings = [None] * ncross
         for i, cr in enumerate(crossinglist):
             writhe = writhe + sgn(cr)
-            prevabove = last_crossing_in_row[abs(cr)-1]
+            prevabove = last_crossing_in_row[abs(cr) - 1]
             prevbelow = last_crossing_in_row[abs(cr)]
             if prevabove is None:
-                first_crossing_in_row[abs(cr)-1] = i
+                first_crossing_in_row[abs(cr) - 1] = i
             else:
                 if abs(cr) == abs(crossings[prevabove]["cr"]):
                     crossings[prevabove]["next_above"] = i
@@ -1093,7 +1093,7 @@ class Braid(FiniteTypeArtinGroupElement):
                             "prev_below": prevbelow,
                             "next_above": None,
                             "next_below": None}
-            last_crossing_in_row[abs(cr)-1] = i
+            last_crossing_in_row[abs(cr) - 1] = i
             last_crossing_in_row[abs(cr)] = i
         # tie up the ends of the list
         for k, i in enumerate(first_crossing_in_row):
@@ -1117,8 +1117,8 @@ class Braid(FiniteTypeArtinGroupElement):
             G = Graph()
             for j, cr in enumerate(crossings):
                 if (v[j]*2-1)*sgn(cr["cr"]) == -1:  # oriented resolution
-                    G.add_edge((j, cr["next_above"], abs(cr["cr"])-1), (j, 1))
-                    G.add_edge((cr["prev_above"], j, abs(cr["cr"])-1), (j, 1))
+                    G.add_edge((j, cr["next_above"], abs(cr["cr"]) - 1), (j, 1))
+                    G.add_edge((cr["prev_above"], j, abs(cr["cr"]) - 1), (j, 1))
                     G.add_edge((j, cr["next_below"], abs(cr["cr"])), (j, 3))
                     G.add_edge((cr["prev_below"], j, abs(cr["cr"])), (j, 3))
                 else:

@@ -369,6 +369,41 @@ as Sage's `e` (:trac:`29833`)::
     e^x
     sage: exp(x)._mathematica_().sage() # optional -- mathematica
     e^x
+
+Check that all trig/hypergolic functions and their reciprocals are correctly
+translated to Mathematica (:trac:`34087`)::
+
+    sage: x=var('x')
+    sage: FL=[sin, cos, tan, csc, sec, cot, sinh, cosh, tanh, csch, sech, coth]
+    sage: IFL=[arcsin, arccos, arctan, arccsc, arcsec, arccot, arcsinh, arccosh,
+    ....:      arctanh, arccsch, arcsech, arccoth]
+    sage: [mathematica.TrigToExp(u(x)).sage() for u in FL]
+    [-1/2*I*e^(I*x) + 1/2*I*e^(-I*x),
+     1/2*e^(I*x) + 1/2*e^(-I*x),
+     (-I*e^(I*x) + I*e^(-I*x))/(e^(I*x) + e^(-I*x)),
+     2*I/(e^(I*x) - e^(-I*x)),
+     2/(e^(I*x) + e^(-I*x)),
+     -(-I*e^(I*x) - I*e^(-I*x))/(e^(I*x) - e^(-I*x)),
+     -1/2*e^(-x) + 1/2*e^x,
+     1/2*e^(-x) + 1/2*e^x,
+         -e^(-x)/(e^(-x) + e^x) + e^x/(e^(-x) + e^x),
+     -2/(e^(-x) - e^x),
+     2/(e^(-x) + e^x),
+     -(e^(-x) + e^x)/(e^(-x) - e^x)]
+    sage: [mathematica.TrigToExp(u(x)).sage() for u in IFL]
+    [-I*log(I*x + sqrt(-x^2 + 1)),
+     1/2*pi + I*log(I*x + sqrt(-x^2 + 1)),
+     -1/2*I*log(I*x + 1) + 1/2*I*log(-I*x + 1),
+     -I*log(sqrt(-1/x^2 + 1) + I/x),
+     1/2*pi + I*log(sqrt(-1/x^2 + 1) + I/x),
+     -1/2*I*log(I/x + 1) + 1/2*I*log(-I/x + 1),
+     log(x + sqrt(x^2 + 1)),
+     log(sqrt(x + 1)*sqrt(x - 1) + x),
+     1/2*log(x + 1) - 1/2*log(-x + 1),
+     log(sqrt(1/x^2 + 1) + 1/x),
+     log(sqrt(1/x + 1)*sqrt(1/x - 1) + 1/x),
+     1/2*log(1/x + 1) - 1/2*log(-1/x + 1)]
+
 """
 
 # ****************************************************************************

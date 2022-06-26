@@ -2399,6 +2399,7 @@ def unpickle_newobj(klass, args):
     pickle = b"P0\nP1\n\x81."
 
     pers = [klass, args]
+
     def pers_load(id):
         return pers[int(id)]
 

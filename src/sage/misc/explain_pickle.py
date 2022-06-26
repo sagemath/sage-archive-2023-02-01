@@ -2087,27 +2087,49 @@ class PickleExplainer():
             sage: key = EmptyOldstyleClass()
             sage: key.recdict = recdict
             sage: recdict[key] = 'circular_key'
-            sage: test_pickle(pickle.dumps(recdict, protocol=2))
+            sage: test_pickle(pickle.dumps(recdict, protocol=2))  # py2
                 0: \x80 PROTO      2
-                2: c    GLOBAL     '_codecs encode'
-               18: q    BINPUT     0
-               20: X    BINUNICODE '\x80\x02}q\x00(X\x0e\x00\x00\x00Circular valueq\x01h\x00csage.misc.explain_pickle\nEmptyOldstyleClass\nq\x02)\x81q\x03}q\x04X\x07\x00\x00\x00recdictq\x05h\x00sbX\x0c\x00\x00\x00circular_keyq\x06u.'
-              149: q    BINPUT     1
-              151: X    BINUNICODE 'latin1'
-              162: q    BINPUT     2
-              164: \x86 TUPLE2
-              165: q    BINPUT     3
-              167: R    REDUCE
-              168: q    BINPUT     4
-              170: .    STOP
+                2: }    EMPTY_DICT
+                3: q    BINPUT     0
+                5: (    MARK
+                6: (        MARK
+                7: c            GLOBAL     'sage.misc.explain_pickle EmptyOldstyleClass'
+               52: q            BINPUT     1
+               54: o            OBJ        (MARK at 6)
+               55: q        BINPUT     2
+               57: }        EMPTY_DICT
+               58: q        BINPUT     3
+               60: U        SHORT_BINSTRING 'recdict'
+               69: q        BINPUT     4
+               71: h        BINGET     0
+               73: s        SETITEM
+               74: b        BUILD
+               75: U        SHORT_BINSTRING 'circular_key'
+               89: q        BINPUT     5
+               91: U        SHORT_BINSTRING 'Circular value'
+              107: q        BINPUT     6
+              109: h        BINGET     0
+              111: u        SETITEMS   (MARK at 5)
+              112: .    STOP
             highest protocol among opcodes = 2
             explain_pickle in_current_sage=True:
-            from _codecs import encode
-            encode('\x80\x02}q\x00(X\x0e\x00\x00\x00Circular valueq\x01h\x00csage.misc.explain_pickle\nEmptyOldstyleClass\nq\x02)\x81q\x03}q\x04X\x07\x00\x00\x00recdictq\x05h\x00sbX\x0c\x00\x00\x00circular_keyq\x06u.', 'latin1')
+            si1 = {}
+            from types import InstanceType
+            from sage.misc.explain_pickle import EmptyOldstyleClass
+            si2 = InstanceType(EmptyOldstyleClass)
+            si2.__dict__['recdict'] = si1
+            si1[si2] = 'circular_key'
+            si1['Circular value'] = si1
+            si1
             explain_pickle in_current_sage=False:
-            pg_encode = unpickle_global('_codecs', 'encode')
-            pg_encode('\x80\x02}q\x00(X\x0e\x00\x00\x00Circular valueq\x01h\x00csage.misc.explain_pickle\nEmptyOldstyleClass\nq\x02)\x81q\x03}q\x04X\x07\x00\x00\x00recdictq\x05h\x00sbX\x0c\x00\x00\x00circular_keyq\x06u.', 'latin1')
-            result: b'\x80\x02}q\x00(X\x0e\x00\x00\x00Circular valueq\x01h\x00csage.misc.explain_pickle\nEmptyOldstyleClass\nq\x02)\x81q\x03}q\x04X\x07\x00\x00\x00recdictq\x05h\x00sbX\x0c\x00\x00\x00circular_keyq\x06u.'
+            si = {}
+            pg_EmptyOldstyleClass = unpickle_global('sage.misc.explain_pickle', 'EmptyOldstyleClass')
+            pg = unpickle_instantiate(pg_EmptyOldstyleClass, ())
+            unpickle_build(pg, {'recdict':si})
+            si[pg] = 'circular_key'
+            si['Circular value'] = si
+            si
+            result: {EmptyOldstyleClass: 'circular_key', 'Circular value': {...}}
         """
         slice = self.pop_to_mark()
         self._SETITEMS_helper(slice)
@@ -2118,27 +2140,20 @@ class PickleExplainer():
 
             sage: import pickle
             sage: from sage.misc.explain_pickle import *
-            sage: test_pickle(pickle.dumps({'a': 'b'})) # indirect doctest
-                0: \x80 PROTO      2
-                2: c    GLOBAL     '_codecs encode'
-               18: q    BINPUT     0
-               20: X    BINUNICODE '\x80\x04\x95\x0c\x00\x00\x00\x00\x00\x00\x00}\x94\x8c\x01a\x94\x8c\x01b\x94s.'
-               55: q    BINPUT     1
-               57: X    BINUNICODE 'latin1'
-               68: q    BINPUT     2
-               70: \x86 TUPLE2
-               71: q    BINPUT     3
-               73: R    REDUCE
-               74: q    BINPUT     4
-               76: .    STOP
-            highest protocol among opcodes = 2
-            explain_pickle in_current_sage=True:
-            from _codecs import encode
-            encode('\x80\x04\x95\x0c\x00\x00\x00\x00\x00\x00\x00}\x94\x8c\x01a\x94\x8c\x01b\x94s.', 'latin1')
-            explain_pickle in_current_sage=False:
-            pg_encode = unpickle_global('_codecs', 'encode')
-            pg_encode('\x80\x04\x95\x0c\x00\x00\x00\x00\x00\x00\x00}\x94\x8c\x01a\x94\x8c\x01b\x94s.', 'latin1')
-            result: b'\x80\x04\x95\x0c\x00\x00\x00\x00\x00\x00\x00}\x94\x8c\x01a\x94\x8c\x01b\x94s.'
+            sage: test_pickle(pickle.dumps({'a': 'b'})) # indirect doctest  # py2
+                0: (    MARK
+                1: d        DICT       (MARK at 0)
+                2: p    PUT        0
+                5: S    STRING     'a'
+               10: p    PUT        1
+               13: S    STRING     'b'
+               18: p    PUT        2
+               21: s    SETITEM
+               22: .    STOP
+            highest protocol among opcodes = 0
+            explain_pickle in_current_sage=True/False:
+            {'a':'b'}
+            result: {'a': 'b'}
         """
         updates = []
         i = 0
@@ -2165,27 +2180,15 @@ class PickleExplainer():
         TESTS::
 
             sage: from sage.misc.explain_pickle import *
-            sage: test_pickle(dumps('hello', compress=False))
+            sage: test_pickle(dumps('hello', compress=False))  # py2
                 0: \x80 PROTO      2
-                2: c    GLOBAL     '_codecs encode'
-               18: q    BINPUT     0
-               20: X    BINUNICODE '\x80\x02X\x05\x00\x00\x00helloq\x00.'
-               41: q    BINPUT     1
-               43: X    BINUNICODE 'latin1'
-               54: q    BINPUT     2
-               56: \x86 TUPLE2
-               57: q    BINPUT     3
-               59: R    REDUCE
-               60: q    BINPUT     4
-               62: .    STOP
+                2: U    SHORT_BINSTRING 'hello'
+                9: q    BINPUT     1
+               11: .    STOP
             highest protocol among opcodes = 2
-            explain_pickle in_current_sage=True:
-            from _codecs import encode
-            encode('\x80\x02X\x05\x00\x00\x00helloq\x00.', 'latin1')
-            explain_pickle in_current_sage=False:
-            pg_encode = unpickle_global('_codecs', 'encode')
-            pg_encode('\x80\x02X\x05\x00\x00\x00helloq\x00.', 'latin1')
-            result: b'\x80\x02X\x05\x00\x00\x00helloq\x00.'
+            explain_pickle in_current_sage=True/False:
+            'hello'
+            result: 'hello'
         """
         self.push(PickleObject(s, self.share(self.sib(s))))
 

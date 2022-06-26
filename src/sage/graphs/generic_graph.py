@@ -2716,7 +2716,8 @@ class GenericGraph(GenericGraph_pyx):
             for u in embedding:
                 i = 0
                 while i < len(embedding[u]):
-                    if not self.has_edge(u, embedding[u][i]):
+                    v = embedding[u][i]
+                    if not (self.has_edge(u, v) or self.has_edge(v, u)):
                         del embedding[u][i]
                     else:
                         i += 1

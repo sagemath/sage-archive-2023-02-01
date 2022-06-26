@@ -2652,7 +2652,7 @@ class ExteriorAlgebraCoboundary(ExteriorAlgebraDifferential):
     cross product `\times` of `\RR^3`::
 
         sage: E.<x,y,z> = ExteriorAlgebra(QQ)
-        sage: d = E.coboundary({(0,1): z, (1,2): x, (2,0): y})
+        sage: d = E.coboundary({(0,1): z, (1,2): x, (0, 2): -y})
         sage: d(x)
         y*z
         sage: d(y)
@@ -2765,7 +2765,7 @@ class ExteriorAlgebraCoboundary(ExteriorAlgebraDifferential):
         cross product::
 
             sage: E.<x,y,z> = ExteriorAlgebra(QQ)
-            sage: d = E.coboundary({(0,1): z, (1,2): x, (2,0): y})
+            sage: d = E.coboundary({(0,1): z, (1,2): x, (0,2): -y})
             sage: d._on_basis(())
             0
             sage: d._on_basis((0,))

@@ -872,18 +872,17 @@ def setup(app):
     app.add_transform(SagemathTransform)
 
     # When building the standard docs, app.srcdir is set to SAGE_DOC_SRC +
-    # 'LANGUAGE/DOCNAME'
-    assert app.srcdir.startswith(SAGE_DOC_SRC)
-
-    app.add_config_value('intersphinx_mapping', {}, False)
-    app.add_config_value('intersphinx_cache_limit', 5, False)
-    app.add_config_value('intersphinx_disabled_reftypes', [], False)
-    app.connect('config-inited', set_intersphinx_mappings)
-    app.connect('builder-inited', intersphinx.load_mappings)
-    # We do *not* fully initialize intersphinx since we call it by hand
-    # in find_sage_dangling_links.
-    #   app.connect('missing-reference', missing_reference)
-    app.connect('missing-reference', find_sage_dangling_links)
-    app.connect('builder-inited', nitpick_patch_config)
-    app.connect('html-page-context', add_page_context)
+    # 'LANGUAGE/DOCNAME'.
+    if app.srcdir.startswith(SAGE_DOC_SRC):
+        app.add_config_value('intersphinx_mapping', {}, False)
+        app.add_config_value('intersphinx_cache_limit', 5, False)
+        app.add_config_value('intersphinx_disabled_reftypes', [], False)
+        app.connect('config-inited', set_intersphinx_mappings)
+        app.connect('builder-inited', intersphinx.load_mappings)
+        # We do *not* fully initialize intersphinx since we call it by hand
+        # in find_sage_dangling_links.
+        #   app.connect('missing-reference', missing_reference)
+        app.connect('missing-reference', find_sage_dangling_links)
+        app.connect('builder-inited', nitpick_patch_config)
+        app.connect('html-page-context', add_page_context)
 

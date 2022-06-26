@@ -3544,9 +3544,9 @@ class GenericGraph(GenericGraph_pyx):
 
             sage: G.delete_vertex(0)
             sage: G.get_pos()
-            {1: (-0.9510565163, 0.3090169944),
+            {1: (-0.951..., 0.309...),
             ...
-             9: (0.47552825815, 0.1545084972)}
+             9: (0.475..., 0.154...)}
 
         But is deleted on vertex addition::
 

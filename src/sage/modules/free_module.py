@@ -7383,6 +7383,7 @@ class FreeModule_submodule_pid(FreeModule_submodule_with_basis_pid):
 
 FreeModule_generic_pid._submodule_class = FreeModule_submodule_pid
 
+
 class FreeModule_submodule_with_basis_field(FreeModule_generic_field, FreeModule_submodule_with_basis_pid):
     """
     An embedded vector subspace with a distinguished user basis.

@@ -1148,7 +1148,7 @@ def is_RSHCD(int v, int k, int l, int mu):
     if SRG_from_RSHCD(v, k, l, mu, existence=True) is True:
         return [SRG_from_RSHCD, v, k, l, mu]
 
-def SRG_from_RSHCD(v, k, l, mu, existence=False,check=True):
+def SRG_from_RSHCD(v, k, l, mu, existence=False, check=True):
     r"""
     Return a `(v,k,l,mu)`-strongly regular graph from a RSHCD
 

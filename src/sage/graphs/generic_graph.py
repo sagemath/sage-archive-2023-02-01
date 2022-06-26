@@ -20051,6 +20051,7 @@ class GenericGraph(GenericGraph_pyx):
         if return_dict:
             pos = {}
         else:
+            pos = None
             try:
                 pos = self._pos
             except AttributeError:

@@ -320,7 +320,7 @@ def name_is_valid(name):
 # This string is used as the representation of a mark.
 the_mark = 'mark'
 
-class PickleObject(object):
+class PickleObject():
     r"""
     Pickles have a stack-based virtual machine.  The explain_pickle
     pickle interpreter mostly uses SageInputExpressions, from sage_input,
@@ -374,7 +374,7 @@ class PickleObject(object):
         self.immutable = True
         return self.expression
 
-class PickleDict(object):
+class PickleDict():
     r"""
     An object which can be used as the value of a PickleObject.  The items
     is a list of key-value pairs, where the keys and values are
@@ -394,7 +394,7 @@ class PickleDict(object):
         """
         self.items = items
 
-class PickleInstance(object):
+class PickleInstance():
     r"""
     An object which can be used as the value of a PickleObject.  Unlike
     other possible values of a PickleObject, a PickleInstance doesn't represent
@@ -412,7 +412,7 @@ class PickleInstance(object):
         """
         self.klass = klass
 
-class PickleExplainer(object):
+class PickleExplainer():
     r"""
     An interpreter for the pickle virtual machine, that executes
     symbolically and constructs SageInputExpressions instead of
@@ -2432,6 +2432,7 @@ def unpickle_newobj(klass, args):
     pickle = b"P0\nP1\n\x81."
 
     pers = [klass, args]
+
     def pers_load(id):
         return pers[int(id)]
 
@@ -2697,7 +2698,7 @@ class EmptyOldstyleClass:
         return 0
 
 
-class EmptyNewstyleClass(object):
+class EmptyNewstyleClass():
     r"""
     A featureless new-style class (inherits from object); used for
     testing explain_pickle.
@@ -2858,7 +2859,7 @@ class TestAppendList(list):
         raise NotImplementedError
 
 
-class TestAppendNonlist(object):
+class TestAppendNonlist():
     r"""
     A list-like class, carefully designed to test exact unpickling
     behavior.  Used for testing explain_pickle.
@@ -2942,7 +2943,7 @@ class TestAppendNonlist(object):
         return repr(self.list)
 
 
-class TestBuild(object):
+class TestBuild():
     r"""
     A simple class with a __getstate__ but no __setstate__.  Used for testing
     explain_pickle.
@@ -3001,7 +3002,7 @@ class TestBuildSetstate(TestBuild):
         self.x = state[1]['y']
         self.y = state[0]['x']
 
-class TestGlobalOldName(object):
+class TestGlobalOldName():
     r"""
     A featureless new-style class.  When you try to unpickle an instance
     of this class, it is redirected to create a TestGlobalNewName instead.
@@ -3016,7 +3017,7 @@ class TestGlobalOldName(object):
     pass
 
 
-class TestGlobalNewName(object):
+class TestGlobalNewName():
     r"""
     A featureless new-style class.  When you try to unpickle an instance
     of TestGlobalOldName, it is redirected to create an instance of this
@@ -3048,7 +3049,7 @@ class TestGlobalNewName(object):
 
 register_unpickle_override('sage.misc.explain_pickle', 'TestGlobalOldName', TestGlobalNewName, call_name=('sage.misc.explain_pickle', 'TestGlobalNewName'))
 
-class TestGlobalFunnyName(object):
+class TestGlobalFunnyName():
     r"""
     A featureless new-style class which has a name that's not a legal
     Python identifier.

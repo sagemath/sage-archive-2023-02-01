@@ -14632,25 +14632,25 @@ class GenericGraph(GenericGraph_pyx):
         if isinstance(self, DiGraph) and not isinstance(other, DiGraph):
             raise ValueError('the input parameter must be a DiGraph')
 
-        if self.num_verts() > other.num_verts():
+        if self.num_verts() > other.num_verts() or self.num_edges() > other.num_edges():
             return False
 
-        if not up_to_isomorphism:
-            if any(not other.has_vertex(v) for v in self.vertex_iterator()):
-                return False
-
-            self._scream_if_not_simple()
-            other._scream_if_not_simple()
-
-            if induced:
-                # Check whether ``self`` is contained in ``other``
-                # and whether the induced subgraph of ``other`` is contained in ``self``.
-                return (self._backend.is_subgraph(other._backend, self)
-                        and other._backend.is_subgraph(self._backend, self))
-            else:
-                return self._backend.is_subgraph(other._backend, self)
-        else:
+        if up_to_isomorphism:
             return other.subgraph_search(self, induced=induced) is not None
+
+        if not all(other.has_vertex(v) for v in self.vertex_iterator()):
+            return False
+
+        self._scream_if_not_simple()
+        other._scream_if_not_simple()
+
+        if induced:
+            # Check whether ``self`` is contained in ``other``
+            # and whether the induced subgraph of ``other`` is contained in ``self``.
+            return (self._backend.is_subgraph(other._backend, self)
+                    and other._backend.is_subgraph(self._backend, self))
+        else:
+            return self._backend.is_subgraph(other._backend, self)
 
     ### Cluster
 

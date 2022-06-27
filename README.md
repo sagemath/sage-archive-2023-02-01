@@ -243,15 +243,15 @@ in the Installation Guide.
 
 3.  [Linux, Cygwin] Install the required minimal build prerequisites.
 
-    - Compilers: `gcc`, `gfortran`, `g++` (a recent enough matching
-      set of these three will avoid building Sage-specific compilers).
+    - Compilers: `gcc`, `gfortran`, `g++` (GCC 6.3 to 12.x and recent
+      versions of Clang (LLVM) are supported).
       See the Installation Manual for a discussion of suitable compilers.
 
     - Build tools: GNU `make`, GNU `m4`, `perl` (including
       ``ExtUtils::MakeMaker``), `ranlib`, `git`, `tar`, `bc`.
 
     - Python 3.4 or later, or Python 2.7, a full installation including
-      `urllib`; but ideally version 3.7.x, 3.8.x, 3.9.x, or 3.10.x, which
+      `urllib`; but ideally version 3.8.x, 3.9.x, or 3.10.x, which
       will avoid having to build Sage's own copy of Python 3.
 
     We have collected lists of system packages that provide these build

@@ -4148,8 +4148,10 @@ class FreeModule_generic_pid(FreeModule_generic_domain):
 
         - ``sub`` -- a submodule of ``self``, or something that can
           be turned into one via ``self.submodule(sub)``
+
         - ``check`` -- (default: ``True``) whether or not to check
           that ``sub`` is a submodule
+
         - further named arguments, that are passed to the constructor
           of the quotient space
 
@@ -4960,6 +4962,7 @@ class FreeModule_generic_field(FreeModule_generic_pid):
 
         - ``sub`` -- a submodule of ``self``, or something that can
           be turned into one via ``self.submodule(sub)``
+
         - ``check`` -- (default: ``True``) whether or not to check
           that ``sub`` is a submodule
 
@@ -6137,13 +6140,11 @@ class FreeModule_ambient_field(FreeModule_generic_field, FreeModule_ambient_pid)
 
         INPUT:
 
+        -  ``base_field`` -- a field
 
-        -  ``base_field`` - a field
+        -  ``dimension`` -- a non-negative integer
 
-        -  ``dimension`` - a non-negative integer
-
-        -  ``sparse`` - boolean (default: ``False``)
-
+        -  ``sparse`` -- boolean (default: ``False``)
 
         EXAMPLES::
 
@@ -6683,12 +6684,10 @@ class FreeModule_submodule_with_basis_pid(FreeModule_generic_pid):
 
         INPUT:
 
-
         -  ``v`` - vector
 
         -  ``check`` - boolean (default: ``True``); if ``True``, also
            verify that `v` is really in ``self``.
-
 
         OUTPUT: list
 
@@ -7183,7 +7182,6 @@ class FreeModule_submodule_with_basis_pid(FreeModule_generic_pid):
         Write `v` in terms of the echelonized basis for ``self``.
 
         INPUT:
-
 
         -  ``v`` - vector
 
@@ -7733,12 +7731,10 @@ class FreeModule_submodule_field(FreeModule_submodule_with_basis_field):
 
         INPUT:
 
+        -  ``v`` -- vector
 
-        -  ``v`` - vector
-
-        -  ``check`` - boolean (default: ``True``); if ``True``, also
-           verify that `v` is really in ``self``.
-
+        -  ``check`` -- boolean (default: ``True``); if ``True``, also
+           verify that `v` is really in ``self``
 
         OUTPUT: list
 
@@ -7802,7 +7798,7 @@ class FreeModule_submodule_field(FreeModule_submodule_with_basis_field):
         - ``v`` -- vector
 
         - ``check`` -- boolean (default: ``True``); if ``True``, also verify that
-           `v` is really in ``self``.
+           `v` is really in ``self``
 
         OUTPUT: list
 

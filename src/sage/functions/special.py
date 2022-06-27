@@ -500,6 +500,12 @@ class EllipticE(BuiltinFunction):
             sage: fricas(elliptic_e(x, y))  # optional - fricas
             ellipticE(sin(x),y)
 
+        However, the conversion is only correct in the interval
+        `[-\pi/2, \pi/2]`::
+
+            sage: fricas(elliptic_e(x, y)).D(x).sage()/elliptic_e(x, y).diff(x)
+            cos(x)/sqrt(-sin(x)^2 + 1)
+
         """
         BuiltinFunction.__init__(self, 'elliptic_e', nargs=2,
                                  # Maple conversion left out since it uses

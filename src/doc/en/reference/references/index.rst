@@ -4483,6 +4483,9 @@ REFERENCES:
 .. [MW2009] Meshulam and Wallach, "Homological connectivity of random
             `k`-dimensional complexes", preprint, math.CO/0609773.
 
+.. [MW2012] Ivan Marin and Emmanuel Wagner, *A CUBIC DEFINING ALGEBRA FOR THE
+            LINKS-GOULD POLYNOMIAL* (:arxiv:`1203.5981v1` [mathGT] 27. Mar 2012)
+
 .. _ref-N:
 
 **N**

@@ -3499,7 +3499,7 @@ REFERENCES:
             J. Algebra 163, pp. 675--691, 1994.
 
 .. [KM1997] Sandi Klavžar and Uroš Milutinović. *Graphs S(n,k) and a variant of
-            the Tower of Hanoï problem*, Czechoslovak Mathematical Journal,
+            the Tower of Hano\"i problem*, Czechoslovak Mathematical Journal,
             47:95-104, 1997.
             :doi:`10.1023/A:1022444205860`
 

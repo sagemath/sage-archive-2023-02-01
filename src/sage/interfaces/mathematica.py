@@ -370,9 +370,10 @@ as Sage's `e` (:trac:`29833`)::
     sage: exp(x)._mathematica_().sage() # optional -- mathematica
     e^x
 
-Check that all trig/hypergolic functions and their reciprocals are correctly
+Check that all trig/hyperbolic functions and their reciprocals are correctly
 translated to Mathematica (:trac:`34087`)::
 
+    # optional - mathematica
     sage: x=var('x')
     sage: FL=[sin, cos, tan, csc, sec, cot, sinh, cosh, tanh, csch, sech, coth]
     sage: IFL=[arcsin, arccos, arctan, arccsc, arcsec, arccot, arcsinh, arccosh,

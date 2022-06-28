@@ -2880,7 +2880,7 @@ class ExteriorAlgebraCoboundary(ExteriorAlgebraDifferential):
                 try:
                     mat.append([ret.coefficient(p) for p in next_basis])
                 except AttributeError: # if ret is in E.base_ring()
-                    mat.append([E.base_ring()(ret)])
+                    mat.append([E.base_ring()(ret)]*len(next_basis))
             data[deg] = Matrix(mat).transpose().change_ring(R)
             basis = next_basis
 

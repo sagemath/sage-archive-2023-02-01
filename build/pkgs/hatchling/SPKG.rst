@@ -9,6 +9,8 @@ Modern, extensible Python build backend
 License
 -------
 
+MIT
+
 Upstream Contact
 ----------------
 

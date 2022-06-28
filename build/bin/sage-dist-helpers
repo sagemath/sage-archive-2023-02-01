@@ -266,9 +266,25 @@ sdh_pip_install() {
         esac
         shift
     done
-    python3 -m pip wheel --wheel-dir=dist --verbose --no-deps --no-index --isolated --ignore-requires-python $build_isolation_option "$@" || \
-        sdh_die "Error building a wheel for $PKG_NAME"
-
+    if python3 -m pip wheel --wheel-dir=dist --verbose --no-deps --no-index --isolated --ignore-requires-python $build_isolation_option "$@"; then
+        : # successful
+    else
+        case $build_isolation_option in
+            *--no-build-isolation*)
+                sdh_die "Error building a wheel for $PKG_NAME"
+                ;;
+            *)
+                echo >&2 "Warning: building with \"python3 -m pip wheel --wheel-dir=dist --verbose --no-deps --no-index --isolated --ignore-requires-python $build_isolation_option\" failed."
+                build_isolation_option="--no-build-isolation --no-binary :all:"
+                echo >&2 "Retrying with \"python3 -m pip wheel --wheel-dir=dist --verbose --no-deps --no-index --isolated --ignore-requires-python $build_isolation_option\"."
+                if python3 -m pip wheel --wheel-dir=dist --verbose --no-deps --no-index --isolated --ignore-requires-python $build_isolation_option "$@"; then
+                    echo >&2 "Warning: Wheel building needed to use \"$build_isolation_option\" to succeed. This means that a dependencies file in build/pkgs/ needs to be updated. Please report this to sage-devel@googlegroups.com, including the build log of this package."
+                else
+                    sdh_die "Error building a wheel for $PKG_NAME"
+                fi
+                ;;
+        esac
+    fi
     sdh_store_and_pip_install_wheel $install_options .
 }
 

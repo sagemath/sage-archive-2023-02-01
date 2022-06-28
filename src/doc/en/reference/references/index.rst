@@ -2573,7 +2573,7 @@ REFERENCES:
             convex lattice polytopes, :arxiv:`1301.6641`
 
 .. [GKP2011] Sylvain Gravier, Matjaz Kovse and Aline Parreau.
-             *Generalized Sierpiński graphs*. Poster, European Conference on
+             *Generalized Sierpi\'nski graphs*. Poster, European Conference on
              Combinatorics, Graph Theory and Applications (EuroComb’11),
              Budapest, 2011.
              https://www.renyi.hu/conferences/ec11/posters/parreau.pdf

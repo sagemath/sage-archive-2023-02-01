@@ -105,10 +105,10 @@ generic argspec::
 By :trac:`9976` and :trac:`14017`, introspection also works for interactively
 defined Cython code, and with rather tricky argument lines::
 
-    sage: cython('def foo(unsigned int x=1, a=\')"\', b={not (2+1==3):\'bar\'}, *args, **kwds): return')
-    sage: print(sage_getsource(foo))
+    sage: cython('def foo(unsigned int x=1, a=\')"\', b={not (2+1==3):\'bar\'}, *args, **kwds): return')    # optional - sage.misc.cython
+    sage: print(sage_getsource(foo))                                                                        # optional - sage.misc.cython
     def foo(unsigned int x=1, a=')"', b={not (2+1==3):'bar'}, *args, **kwds): return
-    sage: sage_getargspec(foo)
+    sage: sage_getargspec(foo)                                                                              # optional - sage.misc.cython
     ArgSpec(args=['x', 'a', 'b'], varargs='args', keywords='kwds', defaults=(1, ')"', {False: 'bar'}))
 
 """
@@ -253,9 +253,9 @@ def _extract_embedded_position(docstring):
 
     The following has been fixed in :trac:`13916`::
 
-        sage: cython('''cpdef test_funct(x,y): return''')
-        sage: func_doc = inspect.getdoc(test_funct)
-        sage: with open(_extract_embedded_position(func_doc)[1]) as f:
+        sage: cython('''cpdef test_funct(x,y): return''')                           # optional - sage.misc.cython
+        sage: func_doc = inspect.getdoc(test_funct)                                 # optional - sage.misc.cython
+        sage: with open(_extract_embedded_position(func_doc)[1]) as f:              # optional - sage.misc.cython
         ....:     print(f.read())
         cpdef test_funct(x,y): return
 
@@ -266,10 +266,10 @@ def _extract_embedded_position(docstring):
 
         sage: from sage.env import DOT_SAGE
         sage: from sage.misc.sage_ostools import restore_cwd
-        sage: with restore_cwd(DOT_SAGE):
+        sage: with restore_cwd(DOT_SAGE):                                           # optional - sage.misc.cython
         ....:     cython('''cpdef test_funct(x,y): return''')
-        sage: func_doc = inspect.getdoc(test_funct)
-        sage: with open(_extract_embedded_position(func_doc)[1]) as f:
+        sage: func_doc = inspect.getdoc(test_funct)                                 # optional - sage.misc.cython
+        sage: with open(_extract_embedded_position(func_doc)[1]) as f:              # optional - sage.misc.cython
         ....:     print(f.read())
         cpdef test_funct(x,y): return
 
@@ -1365,7 +1365,7 @@ def sage_getfile(obj):
 
     A problem fixed in :trac:`16309`::
 
-        sage: cython('''
+        sage: cython('''  # optional - sage.misc.cython
         ....: class Bar: pass
         ....: cdef class Foo: pass
         ....: ''')
@@ -1541,7 +1541,7 @@ def sage_getargspec(obj):
 
     The following was fixed in :trac:`16309`::
 
-        sage: cython('''
+        sage: cython('''  # optional - sage.misc.cython
         ....: class Foo:
         ....:     @staticmethod
         ....:     def join(categories, bint as_list = False, tuple ignore_axioms=(), tuple axioms=()): pass
@@ -2125,7 +2125,7 @@ def _sage_getsourcelines_name_with_dot(obj):
 
     The following was fixed in :trac:`16309`::
 
-        sage: cython('''
+        sage: cython('''  # optional - sage.misc.cython
         ....: class A:
         ....:     def __init__(self):
         ....:         "some init doc"
@@ -2274,8 +2274,8 @@ def sage_getsourcelines(obj):
 
     TESTS::
 
-        sage: cython('''cpdef test_funct(x,y): return''')
-        sage: sage_getsourcelines(test_funct)
+        sage: cython('''cpdef test_funct(x,y): return''')                           # optional - sage.misc.cython
+        sage: sage_getsourcelines(test_funct)                                       # optional - sage.misc.cython
         (['cpdef test_funct(x,y): return\n'], 1)
 
     The following tests that an instance of ``functools.partial`` is correctly

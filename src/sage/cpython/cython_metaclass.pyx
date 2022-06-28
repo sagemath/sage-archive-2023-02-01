@@ -61,7 +61,7 @@ In Python, this would be ``meta.__init__(cls, name, bases, dict)``.
 
 EXAMPLES::
 
-    sage: cython('''
+    sage: cython('''  # optional - sage.misc.cython
     ....: cimport sage.cpython.cython_metaclass
     ....: cdef class MyCustomType():
     ....:     def __getmetaclass__(_):
@@ -98,7 +98,7 @@ TESTS:
 Check that a proper exception is raised if ``__getmetaclass__``
 returns a non-type::
 
-    sage: cython('''
+    sage: cython('''  # optional - sage.misc.cython
     ....: cimport sage.cpython.cython_metaclass
     ....: cdef class MyCustomType():
     ....:     def __getmetaclass__(_):

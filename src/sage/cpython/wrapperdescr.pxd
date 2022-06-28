@@ -39,7 +39,7 @@ cdef inline wrapperbase* get_slotdef(wrapper_descriptor slotwrapper) except NULL
 
     TESTS::
 
-        sage: cython('''
+        sage: cython('''  # optional - sage.misc.cython
         ....: from sage.cpython.wrapperdescr cimport get_slotdef
         ....: from cpython.long cimport PyLong_FromVoidPtr
         ....: def py_get_slotdef(slotwrapper):

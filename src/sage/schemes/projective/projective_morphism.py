@@ -89,6 +89,7 @@ from sage.rings.quotient_ring import QuotientRing_generic
 from sage.rings.rational_field import QQ
 
 from sage.schemes.generic.morphism import SchemeMorphism_polynomial
+from sage.schemes.projective.projective_space import ProjectiveSpace
 
 from sage.categories.finite_fields import FiniteFields
 from sage.categories.number_fields import NumberFields
@@ -1346,11 +1347,14 @@ class SchemeMorphism_polynomial_projective_space(SchemeMorphism_polynomial):
         else:
             raise TypeError("Must be over a Numberfield or a Numberfield Order or QQbar")
         H = 0
+
+        coeffs = []
         for i in range(self.domain().ambient_space().dimension_relative() + 1):
-            C = f[i].coefficients()
-            h = max([c.global_height(prec) for c in C])
-            H = max(H, h)
-        return H
+            coeffs += f[i].coefficients()
+
+        P = ProjectiveSpace(K, len(coeffs))
+        proj_point = P.point(coeffs)
+        return proj_point.global_height()
 
     def local_height(self, v, prec=None):
         r"""

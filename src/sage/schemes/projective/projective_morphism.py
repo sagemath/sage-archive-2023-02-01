@@ -89,7 +89,6 @@ from sage.rings.quotient_ring import QuotientRing_generic
 from sage.rings.rational_field import QQ
 
 from sage.schemes.generic.morphism import SchemeMorphism_polynomial
-from sage.schemes.projective.projective_space import ProjectiveSpace
 
 from sage.categories.finite_fields import FiniteFields
 from sage.categories.number_fields import NumberFields
@@ -1338,6 +1337,13 @@ class SchemeMorphism_polynomial_projective_space(SchemeMorphism_polynomial):
             sage: f = H([x^2 + QQbar(I)*x*y + 3*y^2, y^2, QQbar(sqrt(5))*x*y])
             sage: f.global_height()
             1.09861228866811
+
+        ::
+
+            sage: P.<x,y>=ProjectiveSpace(QQ,1)
+            sage: f=DynamicalSystem([1/25*x^2 + 25/3*x*y+y^2,1*y^2])
+            sage: exp(f.global_height())
+            625.000000000000
         """
         K = self.domain().base_ring()
         if K in _NumberFields or is_NumberFieldOrder(K):
@@ -1351,6 +1357,8 @@ class SchemeMorphism_polynomial_projective_space(SchemeMorphism_polynomial):
         coeffs = []
         for i in range(self.domain().ambient_space().dimension_relative() + 1):
             coeffs += f[i].coefficients()
+
+        from sage.schemes.projective.projective_space import ProjectiveSpace
 
         P = ProjectiveSpace(K, len(coeffs))
         proj_point = P.point(coeffs)

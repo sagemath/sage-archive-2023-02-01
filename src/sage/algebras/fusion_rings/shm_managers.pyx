@@ -354,7 +354,7 @@ def make_KSHandler(n_slots,field,init_data):
     return KSHandler(n_slots,field,init_data=init_data)
 
 cdef class FvarsHandler:
-    def __init__(self, n_slots, field,idx_to_sextuple, init_data={}, use_mp=0,
+    def __init__(self, n_slots, field, idx_to_sextuple, init_data={}, use_mp=0,
                  pids_name=None, name=None, max_terms=20, n_bytes=32):
         """
         Return a shared memory backed dict-like structure to manage the
@@ -775,4 +775,3 @@ def make_FvarsHandler(n,field,idx_map,init_data):
         sage: f.shutdown_worker_pool()
     """
     return FvarsHandler(n, field, idx_map, init_data=init_data)
-

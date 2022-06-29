@@ -101,7 +101,7 @@ DEVELOP_SYSTEM_PACKAGES="openssh pycodestyle pytest"
         PKG_SCRIPTS=build/pkgs/$PKG_BASE
         SYSTEM_PACKAGES_FILE=$PKG_SCRIPTS/requirements.txt
         PKG_TYPE=$(cat $PKG_SCRIPTS/type)
-        if grep -q SAGERUNTIME $PKG_SCRIPTS/dependencies 2>/dev/null; then
+        if grep -q SAGERUNTIME $PKG_SCRIPTS/dependencies $PKG_SCRIPTS/dependencies_order_only 2>/dev/null; then
             : # cannot install packages that depend on the Sage library
         else
             case "$PKG_BASE:$PKG_TYPE" in

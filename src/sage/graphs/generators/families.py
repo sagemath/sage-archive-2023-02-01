@@ -3156,7 +3156,7 @@ def SierpinskiGasketGraph(n):
     .. SEEALSO::
 
         - :meth:`~sage.graphs.generators.families.HanoiTowerGraph`. There is
-          another family of graphs called Sierpiński graphs, where all vertices
+          another family of graphs called Sierpinski graphs, where all vertices
           but 3 have valence 3. They are available using
           ``graphs.HanoiTowerGraph(3, n)``.
         - :meth:`~sage.graphs.generators.families.GeneralizedSierpinskiGraph`
@@ -3206,13 +3206,13 @@ def SierpinskiGasketGraph(n):
 
 def GeneralizedSierpinskiGraph(G, k, stretch=None):
     r"""
-    Return the generalized Sierpiński graph of `G` of dimension `k`.
+    Return the generalized Sierpinski graph of `G` of dimension `k`.
 
-    Generalized Sierpiński graphs have been introduced in [GKP2011]_ to
-    generalize the notion of Sierpiński graphs [KM1997]_.
+    Generalized Sierpinski graphs have been introduced in [GKP2011]_ to
+    generalize the notion of Sierpinski graphs [KM1997]_.
 
     Given a graph `G = (V, E)` of order `n` and a parameter `k`, the generalized
-    Sierpiński graph of `G` of dimension `k`, denoted by `S(G, k)`, can be
+    Sierpinski graph of `G` of dimension `k`, denoted by `S(G, k)`, can be
     constructed recursively from `G` as follows. `S(G, 1)` is isomorphic to
     `G`. To construct `S(G, k)` for `k > 1`, copy `n` times `S(G, k - 1)`, once
     per vertex `u \in V`, and add `u` at the beginning of the labels of each
@@ -3239,7 +3239,7 @@ def GeneralizedSierpinskiGraph(G, k, stretch=None):
 
     EXAMPLES:
 
-    The generalized Sierpiński graph of dimension 1 of any graph `G`
+    The generalized Sierpinski graph of dimension 1 of any graph `G`
     is isomorphic to `G`::
 
         sage: G = graphs.RandomGNP(10, .5)
@@ -3247,7 +3247,7 @@ def GeneralizedSierpinskiGraph(G, k, stretch=None):
         sage: S.is_isomorphic(G)
         True
 
-    When `G` is a clique of order 3, the generalized Sierpiński graphs
+    When `G` is a clique of order 3, the generalized Sierpinski graphs
     of `G` are isomorphic to Hanoi Tower graphs::
 
         sage: k = randint(1, 5)
@@ -3256,7 +3256,7 @@ def GeneralizedSierpinskiGraph(G, k, stretch=None):
         sage: S.is_isomorphic(H)
         True
 
-    The generalized Sierpiński graph of dimension `k` of any graph `G` with `n`
+    The generalized Sierpinski graph of dimension `k` of any graph `G` with `n`
     vertices and `m` edges has `n^k` vertices and `m\sum_{i=0}^{k-1}n^i` edges::
 
         sage: n = randint(2, 6)

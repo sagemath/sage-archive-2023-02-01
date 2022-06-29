@@ -259,7 +259,7 @@ cdef initialize():
                       # 4096 unfortunately is the hard-coded max, but should
                       # be long enough for most cases
     cdef int argc = 10   # argv[argc] must be NULL
-    gap_mem = os.getenv('SAGE_GAP_MEMORY')
+    gap_mem = sage.env.SAGE_GAP_MEMORY
     if gap_mem is not None:
         argc += 2
         argv[10] = "-s"

@@ -2573,7 +2573,7 @@ REFERENCES:
             convex lattice polytopes, :arxiv:`1301.6641`
 
 .. [GKP2011] Sylvain Gravier, Matjaz Kovse and Aline Parreau.
-             *Generalized Sierpi\'nski graphs*. Poster, European Conference on
+             *Generalized Sierpinski graphs*. Poster, European Conference on
              Combinatorics, Graph Theory and Applications (EuroComb’11),
              Budapest, 2011.
              https://www.renyi.hu/conferences/ec11/posters/parreau.pdf
@@ -3499,7 +3499,7 @@ REFERENCES:
             J. Algebra 163, pp. 675--691, 1994.
 
 .. [KM1997] Sandi Klavžar and Uroš Milutinović. *Graphs S(n,k) and a variant of
-            the Tower of Hano\"i problem*, Czechoslovak Mathematical Journal,
+            the Tower of Hanoi problem*, Czechoslovak Mathematical Journal,
             47:95-104, 1997.
             :doi:`10.1023/A:1022444205860`
 

@@ -3248,7 +3248,7 @@ def GeneralizedSierpinskiGraph(G, k, stretch=None):
         True
 
     When `G` is a clique of order 3, the generalized Sierpiński graphs
-    of `G` are isomorphic to Hanoï Tower graphs::
+    of `G` are isomorphic to Hanoi Tower graphs::
 
         sage: k = randint(1, 5)
         sage: S = graphs.GeneralizedSierpinskiGraph(graphs.CompleteGraph(3), k)

@@ -1754,12 +1754,23 @@ cdef class FreeModuleElement(Vector):   # abstract base class
             True
             sage: vector(F, [0,0,0,0]) == vector(F, [0,2,0,y])
             False
+
+        Verify that :trac:`33697` is fixed::
+
+            sage: v = vector(SR, [x])
+            sage: w = vector(SR, [1])
+            sage: v == w
+            False
+            sage: assume(x > 0)
+            sage: v == w
+            False
+            sage: forget()
         """
         cdef Py_ssize_t i
         for i in range(left._degree):
             lx = left[i]
             rx = right[i]
-            if lx != rx:
+            if not(lx == rx):
                 return richcmp_not_equal(lx, rx, op)
         return rich_to_bool(op, 0)
 
@@ -2092,7 +2103,8 @@ cdef class FreeModuleElement(Vector):   # abstract base class
             '(theta^3 + sqrt(2) + 1/2, 1/2)'
         """
         cdef Py_ssize_t d = self._degree
-        if d == 0: return "()"
+        if d == 0:
+            return "()"
         # compute column widths
         S = [repr(x) for x in self.list(copy=False)]
         #width = max([len(x) for x in S])

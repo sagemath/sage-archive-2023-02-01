@@ -41,7 +41,7 @@ fi
 # Trac #32423: Fix 32-bit builds on x86_64
 ARCH=$($CC -dumpmachine 2>/dev/null || echo unknown)
 case "$ARCH" in
-    x86_64)
+    *x86_64*)
         ;;
     *)
         export NPY_DISABLE_SVML=1

@@ -4105,8 +4105,8 @@ cdef class CGraphBackend(GenericGraphBackend):
     def shortest_path_all_vertices(self, v, cutoff=None,
                                    distance_flag=False):
         r"""
-        Return for each vertex ``u`` a shortest ``v-u`` path or distance from
-        ``v`` to ``u``.
+        Return for each reachable vertex ``u`` a shortest ``v-u`` path or
+        distance from ``v`` to ``u``.
 
         INPUT:
 
@@ -4146,7 +4146,7 @@ cdef class CGraphBackend(GenericGraphBackend):
             sage: g._backend.shortest_path_all_vertices(0, distance_flag=True)
             {0: 0, 1: 1, 2: 2, 3: 2, 4: 1, 5: 1, 6: 2, 7: 2, 8: 2, 9: 2}
 
-        On a disconnected graph ::
+        On a disconnected graph::
 
             sage: g = 2 * graphs.RandomGNP(20, .3)
             sage: paths = g._backend.shortest_path_all_vertices(0)
@@ -4203,13 +4203,6 @@ cdef class CGraphBackend(GenericGraphBackend):
 
             current_layer = next_layer
             next_layer = []
-
-        # If the graph is not connected, vertices which have not been
-        # seen should be associated to the empty path
-
-        # for 0 <= v_int < (<CGraph>self._cg).active_vertices.size:
-        #     if bitset_in((<CGraph>self._cg).active_vertices, v_int) and not bitset_in(seen, v_int):
-        #         distances[vertex_label(v_int, self.vertex_ints, self.vertex_labels, self._cg)] = []
 
         bitset_free(seen)
         return distances

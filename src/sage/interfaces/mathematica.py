@@ -373,12 +373,14 @@ as Sage's `e` (:trac:`29833`)::
 Check that all trig/hyperbolic functions and their reciprocals are correctly
 translated to Mathematica (:trac:`34087`)::
 
-    # optional - mathematica
-    sage: x=var('x')
-    sage: FL=[sin, cos, tan, csc, sec, cot, sinh, cosh, tanh, csch, sech, coth]
-    sage: IFL=[arcsin, arccos, arctan, arccsc, arcsec, arccot, arcsinh, arccosh,
-    ....:      arctanh, arccsch, arcsech, arccoth]
-    sage: [mathematica.TrigToExp(u(x)).sage() for u in FL]
+    sage: x=var('x')                               # optional - mathematica
+    sage: FL=[sin, cos, tan, csc, sec, cot,        # optional - mathematica
+    ....:     sinh, cosh, tanh, csch, sech, coth]  # optional - mathematica
+    sage: IFL=[arcsin, arccos, arctan, arccsc,     # optional - mathematica
+    ....:      arcsec, arccot, arcsinh, arccosh,   # optional - mathematica
+    ....:      arctanh, arccsch, arcsech, arccoth] # optional - mathematica
+    sage: [mathematica.TrigToExp(u(x)).sage()      # optional - mathematica
+    ....:  for u in FL]                            # optional - mathematica
     [-1/2*I*e^(I*x) + 1/2*I*e^(-I*x),
      1/2*e^(I*x) + 1/2*e^(-I*x),
      (-I*e^(I*x) + I*e^(-I*x))/(e^(I*x) + e^(-I*x)),
@@ -387,11 +389,12 @@ translated to Mathematica (:trac:`34087`)::
      -(-I*e^(I*x) - I*e^(-I*x))/(e^(I*x) - e^(-I*x)),
      -1/2*e^(-x) + 1/2*e^x,
      1/2*e^(-x) + 1/2*e^x,
-         -e^(-x)/(e^(-x) + e^x) + e^x/(e^(-x) + e^x),
+     -e^(-x)/(e^(-x) + e^x) + e^x/(e^(-x) + e^x),
      -2/(e^(-x) - e^x),
      2/(e^(-x) + e^x),
      -(e^(-x) + e^x)/(e^(-x) - e^x)]
-    sage: [mathematica.TrigToExp(u(x)).sage() for u in IFL]
+    sage: [mathematica.TrigToExp(u(x)).sage()      # optional - mathematica
+    ....:  for u in IFL]                           # optional - mathematica
     [-I*log(I*x + sqrt(-x^2 + 1)),
      1/2*pi + I*log(I*x + sqrt(-x^2 + 1)),
      -1/2*I*log(I*x + 1) + 1/2*I*log(-I*x + 1),

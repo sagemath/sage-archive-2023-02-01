@@ -4208,8 +4208,8 @@ cdef class CGraphBackend(GenericGraphBackend):
         # seen should be associated to the empty path
 
         # for 0 <= v_int < (<CGraph>self._cg).active_vertices.size:
-        #    if bitset_in((<CGraph>self._cg).active_vertices, v_int) and not bitset_in(seen, v_int):
-        #        distances[vertex_label(v_int, self.vertex_ints, self.vertex_labels, self._cg)] = []
+        #     if bitset_in((<CGraph>self._cg).active_vertices, v_int) and not bitset_in(seen, v_int):
+        #         distances[vertex_label(v_int, self.vertex_ints, self.vertex_labels, self._cg)] = []
 
         bitset_free(seen)
         return distances

@@ -1077,7 +1077,7 @@ cdef class StaticSparseBackend(CGraphBackend):
           - ``1`` -- test whether subgraph of ``self`` induced by the vertices is a subgraph of ``other``
           - ``2`` -- as ``1`` but ignore the labels
         """
-        cdef object v, label
+        cdef object v, l
         cdef int u_int, prev_u_int, v_int, l_int, l_int_other, tmp
         cdef StaticSparseCGraph cg = self._cg
         cdef CGraph cg_other = other.cg()
@@ -1149,10 +1149,10 @@ cdef class StaticSparseBackend(CGraphBackend):
                                 # Ignore loops, if ``other`` does not allow them.
                                 continue
 
-                            label = edge_label(cg.g, cg.g.neighbors[v_int] + tmp)
+                            l = edge_label(cg.g, cg.g.neighbors[v_int] + tmp)
 
                             # Will return ``0``, if ``other`` does not support edge labels.
-                            l_int_other = other.new_edge_label(label)
+                            l_int_other = other.new_edge_label(l)
 
                             cg_other.add_arc_label_unsafe(vertices_translation[v_int], vertices_translation[u_int], l_int_other)
 
@@ -1175,19 +1175,19 @@ cdef class StaticSparseBackend(CGraphBackend):
                                     if len(all_arc_labels) > len(all_arc_labels_other):
                                         return 0
                                 else:
-                                    for label in all_arc_labels:
+                                    for l in all_arc_labels:
                                         try:
-                                            all_arc_labels_other.remove(label)
+                                            all_arc_labels_other.remove(l)
                                         except ValueError:
                                             return 0
 
                                 continue
                             prev_u_int = u_int
 
-                            label = edge_label(cg.g, cg.g.neighbors[v_int] + tmp)
+                            l = edge_label(cg.g, cg.g.neighbors[v_int] + tmp)
 
                             if modus == 1:
-                                if not other._has_labeled_edge_unsafe(vertices_translation[v_int], vertices_translation[u_int], label):
+                                if not other._has_labeled_edge_unsafe(vertices_translation[v_int], vertices_translation[u_int], l):
                                     return 0
                             else:
                                 # Ignore the label.

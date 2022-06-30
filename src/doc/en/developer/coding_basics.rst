@@ -77,7 +77,7 @@ In particular,
 
 - Use CamelCase for class names::
 
-      class SomeValue(object):
+      class SomeValue():
           def __init__(self, x):
           self._x  = 1
 
@@ -103,13 +103,9 @@ of the directory containing the Sage sources:
         sage          # the Sage launcher
         Makefile      # top level Makefile
         build/        # Sage's build system
-            deps
-            install
-            ...
             pkgs/     # install, patch, and metadata from spkgs
         src/
             setup.py
-            module_list.py
             ...
             sage/            # Sage library
                 ext_data/    # extra Sage resources (formerly src/ext)
@@ -732,10 +728,9 @@ there is not one already. That is, you can do the following:
 LaTeX Typesetting
 -----------------
 
-In Sage's documentation LaTeX code is allowed and is marked with **backticks or
-dollar signs**:
+In Sage's documentation LaTeX code is allowed and is marked with **backticks**:
 
-    ```x^2 + y^2 = 1``` and ``$x^2 + y^2 = 1$`` both yield `x^2 + y^2 = 1`.
+    ```x^2 + y^2 = 1``` yields `x^2 + y^2 = 1`.
 
 **Backslashes:** For LaTeX commands containing backslashes, either use double
 backslashes or begin the docstring with a ``r"""`` instead of ``"""``. Both of
@@ -748,7 +743,7 @@ the following are valid::
 
     def sin(x):
         r"""
-        Return $\sin(x)$.
+        Return `\sin(x)`.
         """
 
 **MATH block:** This is similar to the LaTeX syntax ``\[<math expression>\]``
@@ -1283,7 +1278,7 @@ whitespace, see https://www.emacswiki.org/emacs/DeletingWhitespace
 for various solutions.
 
 If you use another editor, we recommend to configure it so you do not
-add tabs to files.
+add tabs to files. See :ref:`section-ide`.
 
 
 Global Options

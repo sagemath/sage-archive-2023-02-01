@@ -302,10 +302,6 @@ class FMatrix():
         self.mp_thresh = 10000
         self.pool = None
 
-        #TESTS
-        # self.test_fvars = dict()
-        # self.test_ks = dict()
-
     #######################
     ### Class utilities ###
     #######################
@@ -595,7 +591,6 @@ class FMatrix():
                     if output:
                         v = self._poly_ring.gen(i)
                         ret[(a,b,c,d,x,y)] = v
-                        # idx_map[v] = (a, b, c, d, x, y)
                         idx_map[i] = (a, b, c, d, x, y)
                     i += 1
         if output:
@@ -1213,8 +1208,6 @@ class FMatrix():
             self._chkpt_status = 7
             return
         self._fvars, self._solved, self._ks, self.ideal_basis, self._chkpt_status = state
-        #TESTS:
-        # self.test_ks = {i: sq for i, sq in self._ks.items()}
         self._update_reduction_params()
 
     #################
@@ -1580,16 +1573,6 @@ class FMatrix():
         if eqns is None:
             eqns = self.ideal_basis
         self._ks.update(eqns)
-
-        #TESTS:
-        # for i in range(len(eqns)):
-        #     eq_tup = eqns[i]
-        #     if tup_fixes_sq(eq_tup):
-        #         rhs = [-v for v in eq_tup[-1][1]]
-        #         self.test_ks[variables(eq_tup)[0]] = rhs
-        # for i, sq in self._ks.items():
-        #     assert sq == self._field(self.test_ks[i]), "{}: OG sq {}, shared sq {}".format(i, sq, self.test_ks[i])
-
         for i, d in enumerate(get_variables_degrees(eqns,self._poly_ring.ngens())):
             self._var_degs[i] = d
         self._nnz = self._get_known_nonz()
@@ -1631,8 +1614,6 @@ class FMatrix():
             _backward_subs(self)
             #Compute new reduction params and update eqns
             self._update_reduction_params(eqns=eqns)
-            # n = len(eqns) // worker_pool._processes ** 2 + 1 if worker_pool is not None else len(eqns)
-            # eqns = [eqns[i:i+n] for i in range(0,len(eqns),n)]
             if self.pool is not None and len(eqns) > self.mp_thresh:
                 n = self.pool._processes
                 chunks = [[] for i in range(n)]
@@ -1765,7 +1746,6 @@ class FMatrix():
             print(graph.connected_components_sizes())
         return partition
 
-    #Try lowering larest_comp to 45... This might help w parallelism
     def _par_graph_gb(self, eqns=None, term_order="degrevlex", largest_comp=45, verbose=True):
         r"""
         Compute a Groebner basis for a list of equations partitioned
@@ -1803,22 +1783,9 @@ class FMatrix():
         if eqns is None: eqns = self.ideal_basis
         small_comps = list()
         temp_eqns = list()
-
-        # #For informative print statement
-        # nmax = self.largest_fmat_size()
-        # vars_by_size = list()
-        # for i in range(nmax+1):
-        #     vars_by_size.append(self.get_fvars_by_size(i))
-
         for comp, comp_eqns in self._partition_eqns(eqns=eqns,verbose=verbose).items():
             #Check if component is too large to process
             if len(comp) > largest_comp:
-                # fmat_size = 0
-                # #For informative print statement
-                # for i in range(1,nmax+1):
-                #     if set(comp).issubset(vars_by_size[i]):
-                #         fmat_size = i
-                # print("Component of size {} with vars in F-mats of size {} is too large to find GB".format(len(comp),fmat_size))
                 temp_eqns.extend(comp_eqns)
             else:
                 small_comps.append(comp_eqns)
@@ -2127,9 +2094,6 @@ class FMatrix():
             sage: f.fmats_are_orthogonal()
             True
 
-        # sage: f.fvars_are_real()
-        # True
-
         In any case, the F-symbols are obtained as elements of the associated
         :class:`FusionRing`'s
         :class:`Cyclotomic field<sage.rings.number_field.number_field.CyclotomicFieldFactory>`,
@@ -2164,13 +2128,8 @@ class FMatrix():
             #Report progress
             if verbose:
                 print("Set up {} hex and orthogonality constraints...".format(len(self.ideal_basis)))
+
         #Unzip _fvars and link to shared_memory structure if using multiprocessing
-        #TESTS:
-        # for k, v in self._fvars.items():
-        #     if isinstance(v, tuple):
-        #         self.test_fvars[k] = v
-        #     else:
-        #         self.test_fvars[k] = poly_to_tup(v)
         if use_mp and loads_shared_memory:
             self._fvars = self._shared_fvars
         else:
@@ -2191,14 +2150,14 @@ class FMatrix():
         if self._chkpt_status < 3:
             #Set up pentagon equations in parallel
             self.get_defining_equations('pentagons',output=False)
-            self.ideal_basis.sort(key=poly_tup_sortkey)
             #Report progress
             if verbose:
                 print("Set up {} reduced pentagons...".format(len(self.ideal_basis)))
         self._checkpoint(checkpoint,3,verbose=verbose)
 
-        #Simplify and eliminate variables
         if self._chkpt_status < 4:
+            #Simplify and eliminate variables
+            self.ideal_basis.sort(key=poly_tup_sortkey)
             self._triangular_elim(verbose=verbose)
             #Report progress
             if verbose:
@@ -2213,14 +2172,13 @@ class FMatrix():
             self.ideal_basis.sort(key=poly_tup_sortkey)
             self._triangular_elim(verbose=verbose)
         self._checkpoint(checkpoint,5,verbose=verbose)
+        self.shutdown_worker_pool()
 
         #Find numeric values for each F-symbol
-        self.shutdown_worker_pool()
         self._get_explicit_solution(verbose=verbose)
-        #The calculation was successful, so we may delete checkpoints and shared resources
+        #The calculation was successful, so we may delete checkpoints
         self._chkpt_status = 7
         self.clear_equations()
-
         if checkpoint:
             remove("fmatrix_solver_checkpoint_"+self.get_fr_str()+".pickle")
         if save_results:
@@ -2410,63 +2368,7 @@ class FMatrix():
     ### Verifications ###
     #####################
 
-    # def certify_pentagons(self,use_mp=True,verbose=False):
-    #     r"""
-    #     Obtain a certificate of satisfaction for the pentagon equations,
-    #     up to floating-point error.
-    #
-    #     This method converts the computed F-symbols (available through
-    #     :meth:`get_fvars`) to native Python floats and then checks whether
-    #     the pentagon equations are satisfied using floating point arithmetic.
-    #
-    #     When ``self.FR().basis()`` has many elements, verifying satisfaction
-    #     of the pentagon relations exactly using :meth:`get_defining_equations`
-    #     with ``option="pentagons"`` may take a long time. This method is
-    #     faster, but it cannot provide mathematical guarantees.
-    #
-    #     EXAMPLES::
-    #
-    #         sage: f = FMatrix(FusionRing("C3", 1))
-    #         sage: f.find_orthogonal_solution()      # long time
-    #         Computing F-symbols for The Fusion Ring of Type C3 and level 1 with Integer Ring coefficients with 71 variables...
-    #         Set up 134 hex and orthogonality constraints...
-    #         Partitioned 134 equations into 17 components of size:
-    #         [12, 12, 6, 6, 4, 4, 3, 3, 3, 3, 3, 3, 3, 3, 1, 1, 1]
-    #         Elimination epoch completed... 10 eqns remain in ideal basis
-    #         Elimination epoch completed... 0 eqns remain in ideal basis
-    #         Hex elim step solved for 51 / 71 variables
-    #         Set up 121 reduced pentagons...
-    #         Elimination epoch completed... 18 eqns remain in ideal basis
-    #         Elimination epoch completed... 5 eqns remain in ideal basis
-    #         Pent elim step solved for 64 / 71 variables
-    #         Partitioned 5 equations into 1 components of size:
-    #         [4]
-    #         Elimination epoch completed... 0 eqns remain in ideal basis
-    #         Partitioned 6 equations into 6 components of size:
-    #         [1, 1, 1, 1, 1, 1]
-    #         Computing appropriate NumberField...
-    #         sage: f.certify_pentagons()            # long time (~1.5s)
-    #         Success!!! Found valid F-symbols for The Fusion Ring of Type C3 and level 1 with Integer Ring coefficients
-    #     """
-    #     fvars_copy = deepcopy(self._fvars)
-    #     self._fvars = {sextuple: float(rhs) for sextuple, rhs in self.get_fvars_in_alg_field().items()}
-    #     if use_mp:
-    #         pool = Pool()
-    #     else:
-    #         pool = None
-    #     n_proc = pool._processes if pool is not None else 1
-    #     params = [(child_id,n_proc,verbose) for child_id in range(n_proc)]
-    #     pe = self._map_triv_reduce('pent_verify',params,worker_pool=pool,chunksize=1,mp_thresh=0)
-    #     if np.all(np.isclose(np.array(pe),0,atol=1e-7)):
-    #         print("Success!!! Found valid F-symbols for {}".format(self._FR))
-    #         pe = None
-    #     else:
-    #         print("Ooops... something went wrong... These pentagons remain:")
-    #         print(pe)
-    #     self._fvars = fvars_copy
-    #     return pe
-
-    def fmats_are_orthogonal(self):
+def fmats_are_orthogonal(self):
         r"""
         Verify that all F-matrices are orthogonal.
 
@@ -2485,22 +2387,3 @@ class FMatrix():
             mat = self.fmatrix(a,b,c,d)
             is_orthog.append(mat.T * mat == matrix.identity(mat.nrows()))
         return all(is_orthog)
-
-    # def fvars_are_real(self):
-    #     r"""
-    #     Test whether all F-symbols are real.
-    #
-    #     EXAMPLES::
-    #
-    #         sage: f = FMatrix(FusionRing("A1", 3))
-    #         sage: f.find_orthogonal_solution(verbose=False) # long time
-    #         sage: f.fvars_are_real()                        # long time
-    #         True
-    #     """
-    #     try:
-    #         for k, v in self._fvars.items():
-    #             AA(self._qqbar_embedding(v))
-    #     except ValueError:
-    #         print("the F-symbol {} (key {}) has a nonzero imaginary part!".format(v,k))
-    #         return False
-    #     return True

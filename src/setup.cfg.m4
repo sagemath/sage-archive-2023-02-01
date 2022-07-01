@@ -43,6 +43,7 @@ dnl From build/pkgs/sagelib/dependencies
         numpy          \
         pkgconfig      \
         pplpy          \
+        primecountpy   \
         memory_allocator \
         requests       \
         | sed "2,\$s/^/    /;"')dnl'

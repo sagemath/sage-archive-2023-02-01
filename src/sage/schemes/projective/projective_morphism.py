@@ -1287,8 +1287,7 @@ class SchemeMorphism_polynomial_projective_space(SchemeMorphism_polynomial):
 
     def global_height(self, prec=None):
         r"""
-        Returns the maximum of the absolute logarithmic heights of the coefficients
-        in any of the coordinate functions of this map.
+        Return the global height of the coefficients as a projective point.
 
         INPUT:
 
@@ -1360,9 +1359,8 @@ class SchemeMorphism_polynomial_projective_space(SchemeMorphism_polynomial):
 
         from sage.schemes.projective.projective_space import ProjectiveSpace
 
-        P = ProjectiveSpace(K, len(coeffs))
-        proj_point = P.point(coeffs)
-        return proj_point.global_height()
+        P = ProjectiveSpace(K, len(coeffs)-1)
+        return P.point(coeffs).global_height()
 
     def local_height(self, v, prec=None):
         r"""

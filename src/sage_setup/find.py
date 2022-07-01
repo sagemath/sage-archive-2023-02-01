@@ -313,6 +313,11 @@ def find_extra_files(src_dir, modules, cythonized_dir, special_filenames=[], *,
     - ``special_filenames`` -- a list of filenames to be installed from
       ``src_dir``
 
+    - ``distributions`` -- (default: ``None``) if not ``None``,
+      should be a sequence or set of strings: only find files whose
+      ``distribution`` (from a ``# sage_setup: distribution = PACKAGE``
+      directive in the file) is an element of ``distributions``.
+
     OUTPUT: dict with items ``{dir: files}`` where ``dir`` is a
     directory relative to ``src_dir`` and ``files`` is a list of
     filenames inside that directory.

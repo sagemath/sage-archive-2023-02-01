@@ -375,12 +375,12 @@ translated to Mathematica (:trac:`34087`)::
 
     sage: x=var('x')                               # optional - mathematica
     sage: FL=[sin, cos, tan, csc, sec, cot,        # optional - mathematica
-    ....:     sinh, cosh, tanh, csch, sech, coth]  # optional - mathematica
+    ....:     sinh, cosh, tanh, csch, sech, coth]
     sage: IFL=[arcsin, arccos, arctan, arccsc,     # optional - mathematica
-    ....:      arcsec, arccot, arcsinh, arccosh,   # optional - mathematica
-    ....:      arctanh, arccsch, arcsech, arccoth] # optional - mathematica
+    ....:      arcsec, arccot, arcsinh, arccosh, 
+    ....:      arctanh, arccsch, arcsech, arccoth]
     sage: [mathematica.TrigToExp(u(x)).sage()      # optional - mathematica
-    ....:  for u in FL]                            # optional - mathematica
+    ....:  for u in FL]
     [-1/2*I*e^(I*x) + 1/2*I*e^(-I*x),
      1/2*e^(I*x) + 1/2*e^(-I*x),
      (-I*e^(I*x) + I*e^(-I*x))/(e^(I*x) + e^(-I*x)),
@@ -394,7 +394,7 @@ translated to Mathematica (:trac:`34087`)::
      2/(e^(-x) + e^x),
      -(e^(-x) + e^x)/(e^(-x) - e^x)]
     sage: [mathematica.TrigToExp(u(x)).sage()      # optional - mathematica
-    ....:  for u in IFL]                           # optional - mathematica
+    ....:  for u in IFL]
     [-I*log(I*x + sqrt(-x^2 + 1)),
      1/2*pi + I*log(I*x + sqrt(-x^2 + 1)),
      -1/2*I*log(I*x + 1) + 1/2*I*log(-I*x + 1),

@@ -684,8 +684,7 @@ class SchemeMorphism_polynomial_affine_space(SchemeMorphism_polynomial):
 
     def global_height(self, prec=None):
         r"""
-        Returns the maximum of the heights of the coefficients in any
-        of the coordinate functions of the affine morphism.
+        Return the global height of the coefficients as a projective point.
 
         INPUT:
 
@@ -719,16 +718,17 @@ class SchemeMorphism_polynomial_affine_space(SchemeMorphism_polynomial):
             sage: f = H([7*x^2 + 1513]);
             sage: f.global_height()
             7.32184971378836
+
+        ::
+
+            sage: A.<x> = AffineSpace(QQ, 1)
+            sage: B.<y,z> = AffineSpace(QQ, 2)
+            sage: H = Hom(A, B)
+            sage: f = H([1/3 * x^2 + 10, 7 * x^3])
+            sage: f.global_height()
+            3.40119738166216
         """
-        H=0
-        for i in range(self.domain().ambient_space().dimension_relative()):
-            C = self[i].coefficients()
-            if not C: # to deal with the case self[i]=0
-                h=0
-            else:
-                h = max([c.global_height(prec) for c in C])
-            H = max(H,h)
-        return H
+        return self.homogenize(0).global_height()
 
     def jacobian(self):
         r"""

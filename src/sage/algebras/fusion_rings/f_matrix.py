@@ -2368,22 +2368,97 @@ class FMatrix():
     ### Verifications ###
     #####################
 
-def fmats_are_orthogonal(self):
-        r"""
-        Verify that all F-matrices are orthogonal.
+    def fmats_are_orthogonal(self):
+            r"""
+            Verify that all F-matrices are orthogonal.
 
-        This method should always return ``True`` when called after running
-        :meth:`find_orthogonal_solution`.
+            This method should always return ``True`` when called after running
+            :meth:`find_orthogonal_solution`.
+
+            EXAMPLES::
+
+                sage: f = FMatrix(FusionRing("D4", 1))
+                sage: f.find_orthogonal_solution(verbose=False)
+                sage: f.fmats_are_orthogonal()
+                True
+            """
+            is_orthog = []
+            for a,b,c,d in product(self._FR.basis(),repeat=4):
+                mat = self.fmatrix(a,b,c,d)
+                is_orthog.append(mat.T * mat == matrix.identity(mat.nrows()))
+            return all(is_orthog)
+
+    def fvars_are_real(self):
+          r"""
+          Test whether all F-symbols are real.
+
+          EXAMPLES::
+
+              sage: f = FMatrix(FusionRing("A1", 3))
+              sage: f.find_orthogonal_solution(verbose=False) # long time
+              sage: f.fvars_are_real()                        # not tested (cypari issue in doctesting framework)
+              True
+          """
+          try:
+              for k, v in self._fvars.items():
+                  AA(self._qqbar_embedding(v))
+          except ValueError:
+              print("the F-symbol {} (key {}) has a nonzero imaginary part!".format(v,k))
+              return False
+          return True
+
+    def certify_pentagons(self,use_mp=True,verbose=False):
+        r"""
+        Obtain a certificate of satisfaction for the pentagon equations,
+        up to floating-point error.
+
+        This method converts the computed F-symbols (available through
+        :meth:`get_fvars`) to native Python floats and then checks whether
+        the pentagon equations are satisfied using floating point arithmetic.
+
+        When ``self.FR().basis()`` has many elements, verifying satisfaction
+        of the pentagon relations exactly using :meth:`get_defining_equations`
+        with ``option="pentagons"`` may take a long time. This method is
+        faster, but it cannot provide mathematical guarantees.
 
         EXAMPLES::
 
-            sage: f = FMatrix(FusionRing("D4", 1))
-            sage: f.find_orthogonal_solution(verbose=False)
-            sage: f.fmats_are_orthogonal()
-            True
+            sage: f = FMatrix(FusionRing("C3", 1))
+            sage: f.find_orthogonal_solution()      # long time
+            Computing F-symbols for The Fusion Ring of Type C3 and level 1 with Integer Ring coefficients with 71 variables...
+            Set up 134 hex and orthogonality constraints...
+            Partitioned 134 equations into 17 components of size:
+            [12, 12, 6, 6, 4, 4, 3, 3, 3, 3, 3, 3, 3, 3, 1, 1, 1]
+            Elimination epoch completed... 10 eqns remain in ideal basis
+            Elimination epoch completed... 0 eqns remain in ideal basis
+            Hex elim step solved for 51 / 71 variables
+            Set up 121 reduced pentagons...
+            Elimination epoch completed... 18 eqns remain in ideal basis
+            Elimination epoch completed... 5 eqns remain in ideal basis
+            Pent elim step solved for 64 / 71 variables
+            Partitioned 5 equations into 1 components of size:
+            [4]
+            Elimination epoch completed... 0 eqns remain in ideal basis
+            Partitioned 6 equations into 6 components of size:
+            [1, 1, 1, 1, 1, 1]
+            Computing appropriate NumberField...
+            sage: f.certify_pentagons()            # not tested (long time ~1.5s, cypari issue in doctesting framework)
+            Success!!! Found valid F-symbols for The Fusion Ring of Type C3 and level 1 with Integer Ring coefficients
         """
-        is_orthog = []
-        for a,b,c,d in product(self._FR.basis(),repeat=4):
-            mat = self.fmatrix(a,b,c,d)
-            is_orthog.append(mat.T * mat == matrix.identity(mat.nrows()))
-        return all(is_orthog)
+        fvars_copy = deepcopy(self._fvars)
+        self._fvars = {sextuple: float(rhs) for sextuple, rhs in self.get_fvars_in_alg_field().items()}
+        if use_mp:
+            pool = Pool()
+        else:
+            pool = None
+        n_proc = pool._processes if pool is not None else 1
+        params = [(child_id,n_proc,verbose) for child_id in range(n_proc)]
+        pe = self._map_triv_reduce('pent_verify',params,worker_pool=pool,chunksize=1,mp_thresh=0)
+        if np.all(np.isclose(np.array(pe),0,atol=1e-7)):
+            print("Success!!! Found valid F-symbols for {}".format(self._FR))
+            pe = None
+        else:
+            print("Ooops... something went wrong... These pentagons remain:")
+            print(pe)
+        self._fvars = fvars_copy
+        return pe

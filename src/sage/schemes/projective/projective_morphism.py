@@ -1339,10 +1339,23 @@ class SchemeMorphism_polynomial_projective_space(SchemeMorphism_polynomial):
 
         ::
 
-            sage: P.<x,y>=ProjectiveSpace(QQ,1)
-            sage: f=DynamicalSystem([1/25*x^2 + 25/3*x*y+y^2,1*y^2])
+            sage: P.<x,y> = ProjectiveSpace(QQ, 1)
+            sage: f = DynamicalSystem([1/25*x^2 + 25/3*x*y + y^2, 1*y^2])
             sage: exp(f.global_height())
             625.000000000000
+
+        ::
+
+        Scaling should not change the result:
+
+            sage: P.<x,y> = ProjectiveSpace(QQ, 1)
+            sage: f = DynamicalSystem([1/25*x^2 + 25/3*x*y + y^2, 1*y^2])
+            sage: f.global_height()
+            6.43775164973640
+            sage: c = 10000
+            sage: f.scale_by(c)
+            sage: f.global_height()
+            6.43775164973640
         """
         K = self.domain().base_ring()
         if K in _NumberFields or is_NumberFieldOrder(K):
@@ -1351,7 +1364,6 @@ class SchemeMorphism_polynomial_projective_space(SchemeMorphism_polynomial):
             f = self._number_field_from_algebraics()
         else:
             raise TypeError("Must be over a Numberfield or a Numberfield Order or QQbar")
-        H = 0
 
         coeffs = []
         for i in range(self.domain().ambient_space().dimension_relative() + 1):

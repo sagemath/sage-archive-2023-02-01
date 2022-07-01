@@ -2324,6 +2324,14 @@ class MPolynomial_polydict(Polynomial_singular_repr, MPolynomial_element):
             sage: G=[y1^2 + y2^2, y1*y2 + y2^2, y2^3]
             sage: type((y2^3).reduce(G))
             <class 'sage.rings.polynomial.multi_polynomial_element.MPolynomial_polydict'>
+        
+        TESTS:
+        
+        Verify that :trac:`34105` is fixed::
+        
+            sage: R.<x,y> = AA[]
+            sage: x.reduce(R.zero_ideal())
+            x
         """
         from sage.rings.polynomial.multi_polynomial_ideal import MPolynomialIdeal
 
@@ -2353,7 +2361,7 @@ class MPolynomial_polydict(Polynomial_singular_repr, MPolynomial_element):
                 gi = I[i]
                 plm = p.lm()
                 gilm = gi.lm()
-                if P.monomial_divides(gilm, plm):
+                if gilm and P.monomial_divides(gilm, plm):
                     quot = p.lc()/gi.lc() * P.monomial_quotient(plm, gilm)
                     p -= quot*I[i]
                     break

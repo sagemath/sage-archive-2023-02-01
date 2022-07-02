@@ -46,6 +46,7 @@ import warnings
 
 from .lazy_string import lazy_string
 from sage.env import DOT_SAGE, HOSTNAME
+from sage.misc.cachefunc import cached_function
 from sage.misc.lazy_import import lazy_import
 
 lazy_import("sage.misc.call", ["AttrCallObject", "attrcall", "call_method"],
@@ -175,7 +176,7 @@ def try_read(obj, splitlines=False):
 
     Custom readable::
 
-        sage: class MyFile(object):
+        sage: class MyFile():
         ....:     def read(self): return 'Hello world!'
         sage: try_read(MyFile())
         'Hello world!'
@@ -238,23 +239,40 @@ def ECL_TMP():
 
         sage: from sage.misc.misc import ECL_TMP
         sage: ECL_TMP
-        l'.../temp/.../ecl'
+        doctest:warning...
+        DeprecationWarning: ECL_TMP is deprecated and is no longer used
+        by the ECL interface in sage
+        See https://trac.sagemath.org/33213 for details.
+        ...
+
     """
-    d = os.path.join(str(SAGE_TMP), 'ecl')
-    os.makedirs(d, exist_ok=True)
-    return d
+    from sage.misc.superseded import deprecation
+    deprecation(33213, "ECL_TMP is deprecated and is no longer used by the ECL interface in sage")
+    import atexit, tempfile
+    d = tempfile.TemporaryDirectory()
+    result = os.path.join(d.name, 'ecl')
+    atexit.register(lambda: d.cleanup())
+    return result
 
 
 @lazy_string
 def SPYX_TMP():
-    """
+    r"""
     EXAMPLES::
 
         sage: from sage.misc.misc import SPYX_TMP
         sage: SPYX_TMP
-        l'.../temp/.../spyx'
+        doctest:warning...
+        DeprecationWarning: SPYX_TMP is deprecated;
+        use sage.misc.temporary_file.spyx_tmp instead
+        See https://trac.sagemath.org/33213 for details.
+        ...
+
     """
-    return os.path.join(str(SAGE_TMP), 'spyx')
+    from sage.misc.temporary_file import spyx_tmp
+    from sage.misc.superseded import deprecation
+    deprecation(33213, "SPYX_TMP is deprecated; use sage.misc.temporary_file.spyx_tmp instead")
+    return spyx_tmp()
 
 
 @lazy_string

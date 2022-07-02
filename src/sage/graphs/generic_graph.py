@@ -216,7 +216,6 @@ can be applied on both. Here is what it can do:
     :meth:`~GenericGraph.distance` | Return the (directed) distance from u to v in the (di)graph
     :meth:`~GenericGraph.distance_all_pairs` | Return the distances between all pairs of vertices.
     :meth:`~GenericGraph.distances_distribution` | Return the distances distribution of the (di)graph in a dictionary.
-    :meth:`~GenericGraph.distance_graph` | Return the graph on the same vertex set as the original graph but vertices are adjacent in the returned graph if and only if they are at specified distances in the original graph.
     :meth:`~GenericGraph.girth` | Return the girth of the graph.
     :meth:`~GenericGraph.odd_girth` | Return the odd girth of the graph.
     :meth:`~GenericGraph.shortest_path` | Return a list of vertices representing some shortest path from `u` to `v`
@@ -6475,7 +6474,8 @@ class GenericGraph(GenericGraph_pyx):
         st.delete_vertices(v for v in g if not st.degree(v))
         return st
 
-    def edge_disjoint_spanning_trees(self, k, root=None, solver=None, verbose=0):
+    def edge_disjoint_spanning_trees(self, k, algorithm=None, root=None, solver=None, verbose=0,
+                                         *, integrality_tolerance=1e-3):
         r"""
         Return the desired number of edge-disjoint spanning trees/arborescences.
 
@@ -6484,14 +6484,27 @@ class GenericGraph(GenericGraph_pyx):
         - ``k`` -- integer; the required number of edge-disjoint spanning
           trees/arborescences
 
+        - ``algorithm`` -- string (default: ``None``); specify the
+          algorithm to use among:
+
+          * ``"Roskind-Tarjan"`` -- use the algorithm proposed by Roskind and
+            Tarjan [RT1985]_ for finding edge-disjoint spanning-trees in
+            undirected simple graphs in time `O(m\log{m} + k^2n^2)`.
+
+          * ``"MILP"`` -- use a mixed integer linear programming
+            formulation. This is the default method for directed graphs.
+
+          * ``None`` -- use ``"Roskind-Tarjan"`` for undirected graphs and
+            ``"MILP"`` for directed graphs.
+
         - ``root`` -- vertex (default: ``None``); root of the disjoint
           arborescences when the graph is directed.  If set to ``None``, the
           first vertex in the graph is picked.
 
-        - ``solver`` -- string (default: ``None``); specify a Linear Program
-          (LP) solver to be used. If set to ``None``, the default one is
-          used. For more information on LP solvers and which default solver is
-          used, see the method :meth:`solve
+        - ``solver`` -- string (default: ``None``); specify a Mixed Integer
+          Linear Programming (MILP) solver to be used. If set to ``None``, the
+          default one is used. For more information on MILP solvers and which
+          default solver is used, see the method :meth:`solve
           <sage.numerical.mip.MixedIntegerLinearProgram.solve>` of the class
           :class:`MixedIntegerLinearProgram
           <sage.numerical.mip.MixedIntegerLinearProgram>`.
@@ -6499,10 +6512,13 @@ class GenericGraph(GenericGraph_pyx):
         - ``verbose`` -- integer (default: ``0``); sets the level of
           verbosity. Set to 0 by default, which means quiet.
 
+        - ``integrality_tolerance`` -- float; parameter for use with MILP
+          solvers over an inexact base ring; see
+          :meth:`MixedIntegerLinearProgram.get_values`.
+
         ALGORITHM:
 
-        Mixed Integer Linear Program. The formulation can be found in
-        [Coh2019]_.
+        Mixed Integer Linear Program.
 
         There are at least two possible rewritings of this method which do not
         use Linear Programming:
@@ -6554,111 +6570,181 @@ class GenericGraph(GenericGraph_pyx):
             sage: trees = g.edge_disjoint_spanning_trees(k)
             sage: all(t.is_tree() for t in trees)
             True
+
+        Check the validity of the algorithms for undirected graphs::
+
+            sage: g = graphs.RandomGNP(12, .7)
+            sage: k = Integer(g.edge_connectivity()) // 2
+            sage: trees = g.edge_disjoint_spanning_trees(k, algorithm="MILP")
+            sage: all(t.is_tree() for t in trees)
+            True
+            sage: all(g.order() == t.size() + 1 for t in trees)
+            True
+            sage: trees = g.edge_disjoint_spanning_trees(k, algorithm="Roskind-Tarjan")
+            sage: all(t.is_tree() for t in trees)
+            True
+            sage: all(g.order() == t.size() + 1 for t in trees)
+            True
+
+        Example of :trac:`32169`::
+
+            sage: d6 = r'[E_S?_hKIH@eos[BSg???Q@FShGC?hTHUGM?IPug?JOEYCdOzdkQGo'
+            sage: d6 += r'@ADA@AAg?GAQW?[aIaSwHYcD@qQb@Dd?\hJTI@OHlJ_?C_OEIKoeC'
+            sage: d6 += r'R@_BC?Q??YBFosqITEA?IvCU_'
+            sage: G = DiGraph(d6, format='dig6')
+            sage: G.edge_connectivity()
+            5
+            sage: G.edge_disjoint_spanning_trees(5)  # long time
+            [Digraph on 28 vertices,
+             Digraph on 28 vertices,
+             Digraph on 28 vertices,
+             Digraph on 28 vertices,
+             Digraph on 28 vertices]
+
+        Small cases::
+
+            sage: Graph().edge_disjoint_spanning_trees(0)
+            []
+            sage: Graph(1).edge_disjoint_spanning_trees(0)
+            []
+            sage: Graph(2).edge_disjoint_spanning_trees(0)
+            []
+            sage: Graph([(0, 1)]).edge_disjoint_spanning_trees(0)
+            []
+            sage: Graph([(0, 1)]).edge_disjoint_spanning_trees(1)
+            [Graph on 2 vertices]
+            sage: Graph([(0, 1)]).edge_disjoint_spanning_trees(2)
+            Traceback (most recent call last):
+            ...
+            EmptySetError: this graph does not contain the required number of trees/arborescences
+
+        TESTS:
+
+        Choice of the algorithm::
+
+            sage: Graph().edge_disjoint_spanning_trees(0, algorithm=None)
+            []
+            sage: Graph().edge_disjoint_spanning_trees(0, algorithm="Roskind-Tarjan")
+            []
+            sage: Graph().edge_disjoint_spanning_trees(0, algorithm="MILP")
+            []
+            sage: Graph().edge_disjoint_spanning_trees(0, algorithm="foo")
+            Traceback (most recent call last):
+            ...
+            ValueError: algorithm must be None, "Rosking-Tarjan" or "MILP" for undirected graphs
+            sage: DiGraph().edge_disjoint_spanning_trees(0, algorithm=None)
+            []
+            sage: DiGraph().edge_disjoint_spanning_trees(0, algorithm="MILP")
+            []
+            sage: DiGraph().edge_disjoint_spanning_trees(0, algorithm="foo")
+            Traceback (most recent call last):
+            ...
+            ValueError: algorithm must be None or "MILP" for directed graphs
         """
-
+        self._scream_if_not_simple()
+        from sage.graphs.digraph import DiGraph
+        from sage.graphs.graph import Graph
         from sage.numerical.mip import MixedIntegerLinearProgram, MIPSolverException
-
-        p = MixedIntegerLinearProgram(solver=solver)
-        p.set_objective(None)
-
-        # The colors we can use
-        colors = list(range(k))
-
-        # edges[j,e] is equal to one if and only if edge e belongs to color j
-        edges = p.new_variable(binary=True)
-
-        if root is None:
-            root = next(self.vertex_iterator())
-
-        # r_edges is a relaxed variable greater than edges. It is used to
-        # check the presence of cycles
-        r_edges = p.new_variable(nonnegative=True)
-
-        epsilon = 1/(3*(Integer(self.order())))
+        from sage.categories.sets_cat import EmptySetError
 
         if self.is_directed():
-            # An edge belongs to at most one arborescence
-            for e in self.edge_iterator(labels=False):
-                p.add_constraint(p.sum(edges[j,e] for j in colors), max=1)
-
-
-            for j in colors:
-                # each color class has self.order()-1 edges
-                p.add_constraint(p.sum(edges[j,e] for e in self.edge_iterator(labels=None)), min=self.order()-1)
-
-                # Each vertex different from the root has indegree equals to one
-                for v in self:
-                    if v is not root:
-                        p.add_constraint(p.sum(edges[j,e] for e in self.incoming_edge_iterator(v, labels=None)), max=1, min=1)
-                    else:
-                        p.add_constraint(p.sum(edges[j,e] for e in self.incoming_edge_iterator(v, labels=None)), max=0, min=0)
-
-                # r_edges is larger than edges
-                vertex_to_int = {u:i for i,u in enumerate(self.vertex_iterator())}
-                for u,v in self.edge_iterator(labels=None):
-                    if self.has_edge(v,u):
-                        if vertex_to_int[v] < vertex_to_int[u]:
-                            p.add_constraint(r_edges[j,(u,v)] + r_edges[j,(v,u)] - edges[j,(u,v)] - edges[j,(v,u)], min=0)
-                    else:
-                        p.add_constraint(r_edges[j,(u,v)] + r_edges[j,(v,u)] - edges[j,(u,v)], min=0)
-
-                from sage.graphs.digraph import DiGraph
-                D = DiGraph()
-                D.add_vertices(self.vertex_iterator())
-                D.set_pos(self.get_pos())
-                classes = [D.copy() for j in colors]
-
+            if algorithm is not None and algorithm != "MILP":
+                raise ValueError('algorithm must be None or "MILP" for directed graphs')
         else:
-            # Turn an edge to a frozenset to ensure that (u, v) and (v, u)
-            # represent the same edge.
+            if algorithm is None or algorithm == "Roskind-Tarjan":
+                from sage.graphs.spanning_tree import edge_disjoint_spanning_trees
+                return edge_disjoint_spanning_trees(self, k)
+            elif algorithm != "MILP":
+                raise ValueError('algorithm must be None, "Rosking-Tarjan" or "MILP" '
+                                 'for undirected graphs')
 
-            # An edge belongs to at most one arborescence
-            for e in self.edge_iterator(labels=False):
-                p.add_constraint(p.sum(edges[j,frozenset(e)] for j in colors), max=1)
+        G = self
+        n = G.order()
 
+        if not n or not k:
+            return []
 
-            for j in colors:
-                # each color class has self.order()-1 edges
-                p.add_constraint(p.sum(edges[j,frozenset(e)] for e in self.edge_iterator(labels=None)), min=self.order()-1)
+        if root is None:
+            root = next(G.vertex_iterator())
 
-                # Each vertex is in the tree
-                for v in self:
-                    p.add_constraint(p.sum(edges[j,frozenset(e)] for e in self.edges_incident(v, labels=None)), min=1)
+        if k == 1:
+            E = G.min_spanning_tree(starting_vertex=root)
+            if not E:
+                raise EmptySetError("this graph does not contain the required "
+                                    "number of trees/arborescences")
+            return [DiGraph(E) if G.is_directed() else Graph(E)]
 
-                # r_edges is larger than edges
-                for u,v in self.edge_iterator(labels=None):
-                    p.add_constraint(r_edges[j,(u,v)] + r_edges[j,(v,u)] - edges[j,frozenset((u,v))], min=0)
+        D = G if G.is_directed() else DiGraph(G)
 
-                from sage.graphs.graph import Graph
-                D = Graph()
-                D.add_vertices(self.vertex_iterator())
-                D.set_pos(self.get_pos())
-                classes = [D.copy() for j in colors]
+        # The colors we can use (one color per tree)
+        colors = list(range(k))
 
-        # no cycles
-        for j in colors:
-            for v in self:
-                p.add_constraint(p.sum(r_edges[j,(u,v)] for u in self.neighbor_iterator(v)), max=1-epsilon)
+        p = MixedIntegerLinearProgram(solver=solver)
+
+        # edges[e, c] is equal to one if and only if edge e has color c
+        edge = p.new_variable(binary=True)
+
+        # Define partial ordering of the vertices in each tree to avoid cycles
+        pos = p.new_variable()
+
+        # An edge belongs to a single tree
+        if G.is_directed():
+            for e in D.edge_iterator(labels=False):
+                p.add_constraint(p.sum(edge[e, c] for c in colors) <= 1)
+        else:
+            for u, v in G.edge_iterator(labels=False):
+                p.add_constraint(p.sum(edge[(u, v), c] + edge[(v, u), c] for c in colors) <= 1)
+
+        # Constraints defining a spanning tree in D for each color c
+        for c in colors:
+            # A tree has n-1 edges
+            p.add_constraint(p.sum(edge[e, c] for e in D.edge_iterator(labels=False)) == n - 1)
+
+            # Each vertex has 1 incoming edge, except the root which has none
+            for u in D:
+                if u == root:
+                    p.add_constraint(p.sum(edge[e, c] for e in D.incoming_edge_iterator(root, labels=False)) == 0)
+                else:
+                    p.add_constraint(p.sum(edge[e, c] for e in D.incoming_edge_iterator(u, labels=False)) == 1)
+
+            # A vertex has at least one incident edge
+            for u in D:
+                p.add_constraint(p.sum(edge[e, c] for e in D.incoming_edge_iterator(u, labels=False))
+                                + p.sum(edge[e, c] for e in D.outgoing_edge_iterator(u, labels=False))
+                                >= 1)
+
+            # We use the Miller-Tucker-Zemlin subtour elimination constraints
+            # combined with the Desrosiers-Langevin strengthening constraints
+            for u, v in D.edge_iterator(labels=False):
+                if D.has_edge(v, u):
+                    # DL
+                    p.add_constraint(pos[u, c] + (n - 1)*edge[(u, v), c] + (n - 3)*edge[(v, u), c]
+                                         <= pos[v, c] + n - 2)
+                else:
+                    # MTZ: If edge uv is selected, v is after u in the partial ordering
+                    p.add_constraint(pos[u, c] + 1 - n * (1 - edge[(u, v), c]) <= pos[v, c])
+
+            # and extra strengthening constraints on the minimum distance
+            # between the root of the spanning tree and any vertex
+            BFS = dict(D.breadth_first_search(root, report_distance=True))
+            for u in D:
+                p.add_constraint(pos[root, c] + BFS[u] <= pos[u, c])
+
+        # We now solve this program and extract the solution
         try:
             p.solve(log=verbose)
-
         except MIPSolverException:
-            from sage.categories.sets_cat import EmptySetError
             raise EmptySetError("this graph does not contain the required number of trees/arborescences")
 
-        edges = p.get_values(edges)
+        H = DiGraph() if G.is_directed() else Graph()
+        H.add_vertices(G.vertex_iterator())
+        H.set_pos(G.get_pos())
+        classes = [H.copy() for c in colors]
 
-        for j,g in enumerate(classes):
-            if self.is_directed():
-                g.add_edges(e for e in self.edge_iterator(labels=False) if edges[j,e] == 1)
-            else:
-                g.add_edges(e for e in self.edge_iterator(labels=False) if edges[j,frozenset(e)] == 1)
-
-            if len(list(g.breadth_first_search(root))) != self.order():
-                raise RuntimeError("The computation seems to have gone wrong somewhere..."+
-                                   "This is probably because of the value of epsilon, but"+
-                                   " in any case please report this bug, with the graph "+
-                                   "that produced it ! ;-)")
+        edges = p.get_values(edge, convert=bool, tolerance=integrality_tolerance)
+        for (e, c), b in edges.items():
+            if b:
+                classes[c].add_edge(e)
 
         return classes
 
@@ -14994,166 +15080,6 @@ class GenericGraph(GenericGraph_pyx):
                                             weight_function=weight_function,
                                             check_weight=check_weight)[0]
 
-    def distance_graph(self, dist):
-        r"""
-        Return the graph on the same vertex set as the original graph but
-        vertices are adjacent in the returned graph if and only if they are at
-        specified distances in the original graph.
-
-        INPUT:
-
-        - ``dist`` -- a nonnegative integer or a list of nonnegative integers;
-          specified distance(s) for the connecting vertices.  ``Infinity`` may
-          be used here to describe vertex pairs in separate components.
-
-        OUTPUT:
-
-        The returned value is an undirected graph.  The vertex set is identical
-        to the calling graph, but edges of the returned graph join vertices
-        whose distance in the calling graph are present in the input ``dist``.
-        Loops will only be present if distance 0 is included.  If the original
-        graph has a position dictionary specifying locations of vertices for
-        plotting, then this information is copied over to the distance graph.
-        In some instances this layout may not be the best, and might even be
-        confusing when edges run on top of each other due to symmetries chosen
-        for the layout.
-
-        EXAMPLES::
-
-            sage: G = graphs.CompleteGraph(3)
-            sage: H = G.cartesian_product(graphs.CompleteGraph(2))
-            sage: K = H.distance_graph(2)
-            sage: K.am()
-            [0 0 0 1 0 1]
-            [0 0 1 0 1 0]
-            [0 1 0 0 0 1]
-            [1 0 0 0 1 0]
-            [0 1 0 1 0 0]
-            [1 0 1 0 0 0]
-
-        To obtain the graph where vertices are adjacent if their distance apart
-        is ``d`` or less use a ``range()`` command to create the input, using
-        ``d + 1`` as the input to ``range``.  Notice that this will include
-        distance 0 and hence place a loop at each vertex.  To avoid this, use
-        ``range(1, d + 1)``::
-
-            sage: G = graphs.OddGraph(4)
-            sage: d = G.diameter()
-            sage: n = G.num_verts()
-            sage: H = G.distance_graph(list(range(d+1)))
-            sage: H.is_isomorphic(graphs.CompleteGraph(n))
-            False
-            sage: H = G.distance_graph(list(range(1,d+1)))
-            sage: H.is_isomorphic(graphs.CompleteGraph(n))
-            True
-
-        A complete collection of distance graphs will have adjacency matrices
-        that sum to the matrix of all ones::
-
-            sage: P = graphs.PathGraph(20)
-            sage: all_ones = sum([P.distance_graph(i).am() for i in range(20)])
-            sage: all_ones == matrix(ZZ, 20, 20, [1]*400)
-            True
-
-        Four-bit strings differing in one bit is the same as
-        four-bit strings differing in three bits::
-
-            sage: G = graphs.CubeGraph(4)
-            sage: H = G.distance_graph(3)
-            sage: G.is_isomorphic(H)
-            True
-
-        The graph of eight-bit strings, adjacent if different in an odd number
-        of bits::
-
-            sage: G = graphs.CubeGraph(8) # long time
-            sage: H = G.distance_graph([1,3,5,7]) # long time
-            sage: degrees = [0]*sum([binomial(8,j) for j in [1,3,5,7]]) # long time
-            sage: degrees.append(2^8) # long time
-            sage: degrees == H.degree_histogram() # long time
-            True
-
-        An example of using ``Infinity`` as the distance in a graph that is not
-        connected::
-
-            sage: G = graphs.CompleteGraph(3)
-            sage: H = G.disjoint_union(graphs.CompleteGraph(2))
-            sage: L = H.distance_graph(Infinity)
-            sage: L.am()
-            [0 0 0 1 1]
-            [0 0 0 1 1]
-            [0 0 0 1 1]
-            [1 1 1 0 0]
-            [1 1 1 0 0]
-
-        TESTS:
-
-        Empty input, or unachievable distances silently yield empty graphs::
-
-            sage: G = graphs.CompleteGraph(5)
-            sage: G.distance_graph([]).num_edges()
-            0
-            sage: G = graphs.CompleteGraph(5)
-            sage: G.distance_graph(23).num_edges()
-            0
-
-        It is an error to provide a distance that is not an integer type::
-
-            sage: G = graphs.CompleteGraph(5)
-            sage: G.distance_graph('junk')
-            Traceback (most recent call last):
-            ...
-            TypeError: unable to convert 'junk' to an integer
-
-        It is an error to provide a negative distance::
-
-            sage: G = graphs.CompleteGraph(5)
-            sage: G.distance_graph(-3)
-            Traceback (most recent call last):
-            ...
-            ValueError: distance graph for a negative distance (d=-3) is not defined
-
-        AUTHOR:
-
-        Rob Beezer, 2009-11-25
-        """
-        from sage.rings.infinity import Infinity
-        # If input is not a list, make a list with this single object
-        if not isinstance(dist, list):
-            dist = [dist]
-        # Create a list of positive integer (or infinite) distances
-        distances = []
-        for d in dist:
-            if d == Infinity:
-                distances.append(d)
-            else:
-                dint = ZZ(d)
-                if dint < 0:
-                    raise ValueError('distance graph for a negative distance (d=%d) is not defined' % dint)
-                distances.append(dint)
-        # Build a graph on the same vertex set, with loops for distance 0
-        vertices = {v: {} for v in self}
-        positions = copy(self.get_pos())
-        if ZZ(0) in distances:
-            looped = True
-        else:
-            looped = False
-        from sage.graphs.graph import Graph
-        D = Graph(vertices, pos=positions, multiedges=False, loops=looped)
-        if len(distances) == 1:
-            dstring = "distance " + str(distances[0])
-        else:
-            dstring = "distances " + str(sorted(distances))
-        D.name("Distance graph for %s in " % dstring + self.name())
-
-        # Create the appropriate edges
-        d = self.distance_all_pairs()
-        for u in self:
-            for v in self:
-                if d[u].get(v, Infinity) in distances:
-                    D.add_edge(u, v)
-        return D
-
     def girth(self, certificate=False):
         """
         Return the girth of the graph.
@@ -21427,9 +21353,9 @@ class GenericGraph(GenericGraph_pyx):
         EXAMPLES::
 
             sage: G = Graph({0: {1: None, 2: None}, 1: {0: None, 2: None}, 2: {0: None, 1: None, 3: 'foo'}, 3: {2: 'foo'}}, sparse=True)
-            sage: tempfile = os.path.join(SAGE_TMP, 'temp_graphviz')
-            sage: G.graphviz_to_file_named(tempfile, edge_labels=True)
-            sage: with open(tempfile) as f:
+            sage: import tempfile
+            sage: with tempfile.NamedTemporaryFile(mode="a+t") as f:
+            ....:     G.graphviz_to_file_named(f.name, edge_labels=True)
             ....:     print(f.read())
             graph {
               node_0  [label="0"];
@@ -22332,17 +22258,17 @@ class GenericGraph(GenericGraph_pyx):
             sage: for g in L:
             ....:     G = g.automorphism_group()
             ....:     G.order(), G.gens()
-            (24, [(2,3), (1,2), (0,1)])
-            (4, [(2,3), (0,1)])
-            (2, [(1,2)])
-            (6, [(1,2), (0,1)])
-            (6, [(2,3), (1,2)])
-            (8, [(1,2), (0,1)(2,3)])
-            (2, [(0,1)(2,3)])
-            (2, [(1,2)])
-            (8, [(2,3), (0,1), (0,2)(1,3)])
-            (4, [(2,3), (0,1)])
-            (24, [(2,3), (1,2), (0,1)])
+            (24, ((2,3), (1,2), (0,1)))
+            (4, ((2,3), (0,1)))
+            (2, ((1,2),))
+            (6, ((1,2), (0,1)))
+            (6, ((2,3), (1,2)))
+            (8, ((1,2), (0,1)(2,3)))
+            (2, ((0,1)(2,3),))
+            (2, ((1,2),))
+            (8, ((2,3), (0,1), (0,2)(1,3)))
+            (4, ((2,3), (0,1)))
+            (24, ((2,3), (1,2), (0,1)))
             sage: C = graphs.CubeGraph(4)
             sage: G = C.automorphism_group()
             sage: M = G.character_table() # random order of rows, thus abs() below

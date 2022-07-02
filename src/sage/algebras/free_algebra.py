@@ -591,6 +591,7 @@ class FreeAlgebra_generic(CombinatorialFreeModule, Algebra):
             if self.has_coerce_map_from(P): # letterplace versus generic
                 ngens = P.ngens()
                 M = self._indices
+
                 def exp_to_monomial(T):
                     out = []
                     for i in range(len(T)):
@@ -600,7 +601,7 @@ class FreeAlgebra_generic(CombinatorialFreeModule, Algebra):
                 return self.element_class(self, {exp_to_monomial(T):c for T,c in x.letterplace_polynomial().dict().items()})
         # ok, not a free algebra element (or should not be viewed as one).
         if isinstance(x, str):
-            from sage.all import sage_eval
+            from sage.misc.sage_eval import sage_eval
             G = self.gens()
             d = {str(v): G[i] for i,v in enumerate(self.variable_names())}
             return self(sage_eval(x, locals=d))

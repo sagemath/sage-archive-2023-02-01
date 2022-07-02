@@ -72,6 +72,10 @@ from sage.schemes.generic.morphism import SchemeMorphism_polynomial
 
 from sage.ext.fast_callable import fast_callable
 
+from sage.categories.number_fields import NumberFields
+from sage.rings.number_field.order import is_NumberFieldOrder
+
+_NumberFields = NumberFields()
 _Fields = Fields()
 
 
@@ -699,7 +703,7 @@ class SchemeMorphism_polynomial_affine_space(SchemeMorphism_polynomial):
             sage: H = Hom(A, A)
             sage: f = H([1/1331*x^2 + 4000]);
             sage: f.global_height()
-            8.29404964010203
+            15.4877354584971
 
         ::
 
@@ -709,7 +713,7 @@ class SchemeMorphism_polynomial_affine_space(SchemeMorphism_polynomial):
             sage: H = Hom(A, A)
             sage: f = H([13*w*x^2 + 4*y, 1/w*y^2]);
             sage: f.global_height(prec=100)
-            3.3696683136785869233538671082
+            4.17438726989564
 
         ::
 
@@ -729,6 +733,53 @@ class SchemeMorphism_polynomial_affine_space(SchemeMorphism_polynomial):
             3.40119738166216
         """
         return self.homogenize(0).global_height()
+
+    def local_height(self, v, prec=None):
+        """
+        Return the maximum of the local heights of the coefficients in any
+        of the coordinate functions of this map.
+
+        INPUT:
+
+        - ``v`` -- a prime or prime ideal of the base ring.
+
+        - ``prec`` -- desired floating point precision (default:
+          default RealField precision).
+
+        OUTPUT:
+
+        - a real number.
+
+        EXAMPLES::
+
+            sage: P.<x,y> = AffineSpace(QQ, 2)
+            sage: H = Hom(P, P)
+            sage: f = H([1/1331 * x^2 + 1/4000 * y^2, 210 * x * y]);
+            sage: f.local_height(1331)
+            7.19368581839511
+
+        ::
+
+            sage: P.<x,y,z> = AffineSpace(QQ, 3)
+            sage: H = Hom(P, P)
+            sage: f = H([4 * x^2 + 3/100 * y^2, 8/210 * x * y, 1/10000 * z^2]);
+            sage: f.local_height(2)
+            2.77258872223978
+
+        ::
+
+            sage: R.<z> = PolynomialRing(QQ)
+            sage: K.<w> = NumberField(z^2 - 2)
+            sage: P.<x,y> = AffineSpace(K, 2)
+            sage: H = Hom(P, P)
+            sage: f = H([2 * x^2 + w/3 * y^2, 1/w * y^2])
+            sage: f.local_height(K.ideal(3))
+            1.09861228866811
+        """
+        K = FractionField(self.domain().base_ring())
+        if K not in _NumberFields or is_NumberFieldOrder(K):
+            raise TypeError("must be over a number field or a number field order")
+        return max([K(c).local_height(v, prec) for f in self for c in f.coefficients()])
 
     def jacobian(self):
         r"""

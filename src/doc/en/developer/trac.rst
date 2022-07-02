@@ -376,7 +376,7 @@ The Release Process
 The Sage Release Manager uses the following procedure to make releases, as of
 2022.
 
-**Bete Release Stage**: For preparing a new beta release or the first release
+**Beta Release Stage**: For preparing a new beta release or the first release
 candidate, all positively reviewed tickets with the forthcoming release
 milestone are considered. Tickets that have unmerged dependencies are ignored.
 The Release Manager merges tickets in batches of 10 to 20 tickets, taking the
@@ -416,5 +416,3 @@ that determines what is appropriate for "blocker" status, but
 
 - Tickets that make big changes to the code, for example refactoring tickets,
   are usually not blockers.
-
-

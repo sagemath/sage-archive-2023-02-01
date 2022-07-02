@@ -268,7 +268,7 @@ free of bugs, and perhaps never will. To do so would be an act of dishonesty.
 A Sage release cycle lasts for a few months, with several betas appearing at
 1-2 week intervals, followed by several release candidates (as of 2022). Under
 this schedule and with the limited capacity of the Sage developer community,
-the project cannot afford to make stabilization releases. However, important
+the project cannot make stabilization releases. However, important
 bug fix tickets are merged with high priority and will be available in the
 development release. Thanks to rigorous integration testing by our dedicated
 Release Manager, development releases (betas and release candidates) are

@@ -66,6 +66,7 @@ from sage.rings.finite_rings.finite_field_constructor import is_PrimeFiniteField
 from sage.rings.fraction_field import FractionField
 from sage.rings.fraction_field_element import FractionFieldElement
 from sage.rings.integer_ring import ZZ
+from sage.rings.rational_field import QQ
 from sage.rings.finite_rings.finite_field_constructor import is_FiniteField
 
 from sage.schemes.generic.morphism import SchemeMorphism_polynomial
@@ -780,6 +781,49 @@ class SchemeMorphism_polynomial_affine_space(SchemeMorphism_polynomial):
         if K not in _NumberFields or is_NumberFieldOrder(K):
             raise TypeError("must be over a number field or a number field order")
         return max([K(c).local_height(v, prec) for f in self for c in f.coefficients()])
+
+    def local_height_arch(self, i, prec=None):
+        """
+        Return the maximum of the local height at the ``i``-th infinite place
+        of the coefficients in any of the coordinate functions of this map.
+
+        INPUT:
+
+        - ``i`` -- an integer.
+
+        - ``prec`` -- desired floating point precision (default:
+          default RealField precision).
+
+        OUTPUT:
+
+        - a real number.
+
+        EXAMPLES::
+
+            sage: P.<x,y> = AffineSpace(QQ, 2)
+            sage: H = Hom(P, P)
+            sage: f = H([1/1331 * x^2 + 1/4000 * y^2, 210 * x * y]);
+            sage: f.local_height_arch(0)
+            5.34710753071747
+
+        ::
+
+            sage: R.<z> = PolynomialRing(QQ)
+            sage: K.<w> = NumberField(z^2 - 2)
+            sage: P.<x,y> = AffineSpace(K, 2)
+            sage: H = Hom(P, P)
+            sage: f = H([2 * x^2 + w/3 * y^2, 1/w * y^2])
+            sage: f.local_height_arch(1)
+            0.6931471805599453094172321214582
+        """
+        K = FractionField(self.domain().base_ring())
+        if K not in _NumberFields or is_NumberFieldOrder(K):
+            raise TypeError("must be over a number field or a number field order")
+
+        if K == QQ:
+            return max([K(c).local_height_arch(prec=prec) for f in self for c in f.coefficients()])
+        else:
+            return max([K(c).local_height_arch(i, prec=prec) for f in self for c in f.coefficients()])
 
     def jacobian(self):
         r"""

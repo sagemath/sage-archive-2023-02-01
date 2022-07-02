@@ -261,23 +261,22 @@ Guide for details.
 With so many bugs in Sage and hundreds of open tickets, why don't you produce a stabilization release?
 """"""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
 
-Any software package contains bug. With something as complex as Sage,
-neither the Sage community nor the Sage Development Team make any
-claims that Sage is free of bugs. To do so would be an act of
-dishonesty.
+Any software package contains bug. With something as complex as Sage, neither
+the Sage community nor the Sage Development Team make any claims that Sage is
+free of bugs, and perhaps never will. To do so would be an act of dishonesty.
 
-As of 2022, a Sage release cycle lasts for a few months, with several
-betas appearing at 1-2 week intervals, followed by several release
-candidates. The project does not currently have the capacity to make
-stabilization releases. However, important bug fix tickets are merged
-with high priority and will be available in the development release.
-Thanks to rigorous integration testing by our experienced Release
-Manager, development releases (betas and release candidates) are
-generally safe to use.
+A Sage release cycle lasts for a few months, with several betas appearing at
+1-2 week intervals, followed by several release candidates (as of 2022). Under
+this schedule and with the limited capacity of the Sage developer community,
+the project cannot afford to make stabilization releases. However, important
+bug fix tickets are merged with high priority and will be available in the
+development release. Thanks to rigorous integration testing by our dedicated
+Release Manager, development releases (betas and release candidates) are
+generally safe and reliable to use.
 
-If you want to help out with release management, as a starting point
-please subscribe to the `sage-release
-<http://groups.google.com/group/sage-release>`_ mailing list.
+If you want to help out with release management, as a starting point please
+subscribe to the `sage-release <http://groups.google.com/group/sage-release>`_
+mailing list.
 
 
 How can I download the Sage documentation to read it offline?

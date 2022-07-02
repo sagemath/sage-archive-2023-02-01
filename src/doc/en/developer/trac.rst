@@ -373,45 +373,48 @@ measure this properly and it is highly subjective.
 The Release Process
 ===================
 
-As of 2022, the Sage Release Manager uses the following fixed
-procedure to make releases.
+The Sage Release Manager uses the following procedure to make releases, as of
+2022.
 
-For preparing a new beta release or the first release candidate, all
-positively reviewed tickets with `a release milestone
-<https://github.com/sagemath/git-trac-command/blob/master/git_trac/releasemgr/app.py#L299>`_
-are considered. Tickets that have unmerged dependencies are
-ignored. If a merge conflict occurs, the ticket is `automatically set
-back to needs_work
-<https://github.com/sagemath/git-trac-command/blob/master/git_trac/releasemgr/app.py#L212>`_.
-The Release Manager merges tickets in batches of 10 to 20 tickets,
-taking the ticket priority into account. Each batch then undergoes
-integration testing. If problems are detected, a ticket will be set
-back to needs_work and unmerged. When a batch of tickets is ready, the
-Release Manager closes these tickets and proceeds to the next
-batch. After a few batches, a new beta release is tagged, pushed to
-the ``develop`` branch on the main git repository, and announced on
+**Bete Release Stage**: For preparing a new beta release or the first release
+candidate, all positively reviewed tickets with the forthcoming release
+milestone are considered. Tickets that have unmerged dependencies are ignored.
+The Release Manager merges tickets in batches of 10 to 20 tickets, taking the
+ticket priority into account. If a merge conflict of a ticket to the Release
+Manager's branch occurs, the ticket is set back to "needs work" status by the
+Release Manager, and the list of the tickets already merged to the Release
+Manager's branch is posted. The author of the ticket needs to identify
+conflicting tickets in the list, make merge commits and declare them as
+dependencies, before setting back to "positive review" status. Each batch of
+merged tickets then undergoes integration testing. If problems are detected, a
+ticket will be set back to "needs work" status and unmerged. When a batch of
+tickets is ready, the Release Manager closes these tickets and proceeds to the
+next batch. After a few batches, a new beta release is tagged, pushed to the
+``develop`` branch on the main git repository, and announced on
 ``sage-release``.
 
-After the first release candidate has been made, the project is in the
-**release candidate stage**, and a modified procedure is used. Now
-**only tickets with a priority set to "blocker" are
-considered**. Tickets with all other priorities, including "critical",
-are ignored. If a ticket is important enough to merit inclusion in
-this stage, it should be set to "blocker". Developers should use this
-priority sparingly and should indicate the rationale on the ticket.
+**Release Candidate Stage**: After the first release candidate has been made,
+the project is in the release candidate stage, and a modified procedure is
+used. Now **only tickets with a priority set to "blocker" are considered**.
+Tickets with all other priorities, including "critical", are ignored. Hence if
+a ticket is important enough to merit inclusion in this stage, it should be set
+to "blocker".
 
-There is not one fixed rule or authority that determines what is
-appropriate for "blocker" status. The goal of the release process is
-to make a stable release of high quality. In general, there is a
-risk/benefit trade-off to be aware of. The benefit of merging the
-ticket is the improvement that a ticket brings, such as fixing a
-bug. However, any code change has a risk of introducing unforeseen new
-problems and thus delaying the release: If a new issue triggers
-another release candidate, it delays the release by 1-2 weeks.
+**Blocker Tickets**: The goal of the release process is to make a stable
+release of high quality. Be aware that there is a risk/benefit trade-off in
+merging a ticket. The benefit of merging a ticket is the improvement that the
+ticket brings, such as fixing a bug. However, any code change has a risk of
+introducing unforeseen new problems and thus delaying the release: If a new
+issue triggers another release candidate, it delays the release by 1-2 weeks.
+Hence developers should use "blocker" priority sparingly and should indicate
+the rationale on the ticket.  Though there is no one fixed rule or authority
+that determines what is appropriate for "blocker" status, but
 
-- Tickets introducing new features are usually not blockers -- unless
-  perhaps they round out a set of features that were the focus of
-  development of this release cycle.
+- Tickets introducing new features are usually not blockers -- unless perhaps
+  they round out a set of features that were the focus of development of this
+  release cycle.
 
-- Tickets that make big changes to the code, for example refactoring
-  tickets, are usually not blockers.
+- Tickets that make big changes to the code, for example refactoring tickets,
+  are usually not blockers.
+
+

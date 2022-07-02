@@ -407,8 +407,8 @@ ticket brings, such as fixing a bug. However, any code change has a risk of
 introducing unforeseen new problems and thus delaying the release: If a new
 issue triggers another release candidate, it delays the release by 1-2 weeks.
 Hence developers should use "blocker" priority sparingly and should indicate
-the rationale on the ticket.  Though there is no one fixed rule or authority
-that determines what is appropriate for "blocker" status, but
+the rationale on the ticket. Though there is no one fixed rule or authority
+that determines what is appropriate for "blocker" status,
 
 - Tickets introducing new features are usually not blockers -- unless perhaps
   they round out a set of features that were the focus of development of this
@@ -416,3 +416,7 @@ that determines what is appropriate for "blocker" status, but
 
 - Tickets that make big changes to the code, for example refactoring tickets,
   are usually not blockers.
+
+**Final Release**: If there is no blocker ticket for the last release
+candidate, the Release Manager turns it to the final release. It is tagged with
+the release milestone, and announced on ``sage-release``.

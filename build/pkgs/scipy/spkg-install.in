@@ -7,12 +7,4 @@ cd src/
 # even when --no-isolation (--no-build-isolation) is in used. We patch it out.
 sed -i.bak '/build-system/,/project/s/^ *"numpy.*/    "numpy",/' pyproject.toml
 
-# Install: "pip wheel" fails for this package with
-#   AttributeError: module 'mesonpy' has no attribute 'prepare_metadata_for_build_wheel'.
-# We can use "build" instead.
-# (However, according to https://github.com/FFY00/meson-python/issues/55 this is just a
-#  consequence of an earlier error.)
-python3 -m build --wheel --no-isolation .
-sdh_store_and_pip_install_wheel .
-
-#sdh_pip_install --no-build-isolation .
+sdh_pip_install --no-build-isolation .

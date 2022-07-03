@@ -973,7 +973,8 @@ def _search_src_or_doc(what, string, extra1='', extra2='', extra3='',
     if not interact:
         return text_results
 
-    # html_results = format_search_as_html(title, results, [string] + extras)
+    html_results = format_search_as_html(title, results, [string] + extras)
+    # potentially used below
 
     # Pass through the IPython pager in a mime bundle
     from IPython.core.page import page

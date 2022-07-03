@@ -1982,9 +1982,7 @@ class ExteriorAlgebra(CliffordAlgebra):
                     m = len(my)
                     if m != n:
                         continue
-                    matrix_list = [M[next(iter(mx)), next(iter(my))]
-                                   for i in range(n)
-                                   for j in range(n)]
+                    matrix_list = [M[i,j] for i in mx for j in my]
                     MA = MatrixArgs(R, n, matrix_list)
                     del matrix_list
                     result += cx * cy * MA.matrix(False).determinant()
@@ -2739,6 +2737,11 @@ class ExteriorAlgebraCoboundary(ExteriorAlgebraDifferential):
         zero = E.zero()
         B = E.basis()
         for k, v in dict(s_coeff).items():
+
+            if k[0] > k[1]: #k will have length 2
+                k = sorted(k)
+                v = -v
+
             k = B[FrozenBitset(k)]
             for m,c in v:
                 self._cos_coeff[m] = self._cos_coeff.get(m, zero) + c * k

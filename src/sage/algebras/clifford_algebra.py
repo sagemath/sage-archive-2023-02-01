@@ -2793,7 +2793,6 @@ class ExteriorAlgebraCoboundary(ExteriorAlgebraDifferential):
         sgn = 0
 
         for i in m:
-            sgn += 1
             if FrozenBitset((i,)) in keys:
                 key_basis, key_coeff = cc[FrozenBitset((i,))].list()[0]
                 m_temp = Bitset(m)
@@ -2803,6 +2802,8 @@ class ExteriorAlgebraCoboundary(ExteriorAlgebraDifferential):
                 m_temp.update(key_basis)
 
                 s = s + (-1)**(sgn % 2) * key_coeff * E.monomial(FrozenBitset(m_temp))
+
+            sgn += 1
         return s
 
     @cached_method

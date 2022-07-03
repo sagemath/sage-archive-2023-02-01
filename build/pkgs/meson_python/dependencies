@@ -1,4 +1,7 @@
-$(PYTHON) | $(PYTHON_TOOLCHAIN)
+$(PYTHON) meson pyproject_metadata tomli ninja_build | $(PYTHON_TOOLCHAIN)
 
 ----------
 All lines of this file are ignored except the first.
+
+meson_python actually declares a dependency on ninja, the Python distribution package.
+But it only needs the ninja executable.

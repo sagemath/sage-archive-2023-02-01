@@ -41,4 +41,4 @@ UMFPACK="None"; export UMFPACK
 cd src/
 
 # Install:
-sdh_pip_install .
+sdh_pip_install --no-build-isolation .

@@ -41,7 +41,7 @@ from sage.structure.factory import UniqueFactory
 from sage.structure.parent import Set_generic
 
 from sage.rings.integer_ring import ZZ
-from sage.rings.ring import CommutativeRing
+from sage.categories.commutative_rings import CommutativeRings
 
 from sage.schemes.generic.scheme import AffineScheme, is_AffineScheme
 from sage.schemes.generic.morphism import (
@@ -149,14 +149,15 @@ class SchemeHomsetFactory(UniqueFactory):
              'base_ring': Integer Ring,
              'check': False}
         """
-        if isinstance(X, CommutativeRing):
+        _CommRings = CommutativeRings()
+        if X in _CommRings:
             X = AffineScheme(X)
-        if isinstance(Y, CommutativeRing):
+        if Y in _CommRings:
             Y = AffineScheme(Y)
         if is_AffineScheme(base):
             base_spec = base
             base_ring = base.coordinate_ring()
-        elif isinstance(base, CommutativeRing):
+        elif base in _CommRings:
             base_spec = AffineScheme(base)
             base_ring = base
         else:
@@ -556,9 +557,9 @@ class SchemeHomset_points(SchemeHomset_generic):
             True
         """
         target = self.codomain()
-        #ring elements can be coerced to a space if we're affine dimension 1
-        #and the base rings are coercible
-        if isinstance(other, CommutativeRing):
+        # ring elements can be coerced to a space if we're affine dimension 1
+        # and the base rings are coercible
+        if other in CommutativeRings():
             try:
                 from sage.schemes.affine.affine_space import is_AffineSpace
                 if is_AffineSpace(target.ambient_space())\

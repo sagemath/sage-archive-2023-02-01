@@ -720,7 +720,7 @@ def _single_variate(base_ring, name, sparse=None, implementation=None, order=Non
 
     # Generic implementations
     if constructor is None:
-        if not isinstance(base_ring, ring.CommutativeRing):
+        if base_ring not in _CommutativeRings:
             constructor = polynomial_ring.PolynomialRing_general
         elif base_ring in _CompleteDiscreteValuationRings:
             constructor = polynomial_ring.PolynomialRing_cdvr
@@ -928,7 +928,6 @@ def BooleanPolynomialRing_constructor(n=None, names=None, order="lex"):
         sage: x2 > x3
         True
     """
-
     if isinstance(n, str):
         names = n
         n = -1

@@ -25,6 +25,9 @@ from sage.arith.all import is_prime, lcm, primes, random_prime
 from sage.rings.integer import Integer
 from sage.rings.finite_rings.integer_mod import Mod as mod
 
+from sage.misc.lazy_import import lazy_import
+lazy_import('sage.arith.misc', ('carmichael_lambda'), deprecation=34719)
+
 def ascii_integer(B):
     r"""
     Return the ASCII integer corresponding to the binary string ``B``.

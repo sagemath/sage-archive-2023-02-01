@@ -33,6 +33,7 @@ from sage.rings.rational import Rational
 from sage.rings.abc import RealField, ComplexField
 
 from sage.rings.fast_arith import arith_int, arith_llong, prime_range
+from sage.arith.functions import LCM_list
 
 
 ##################################################################
@@ -3272,20 +3273,16 @@ def carmichael_lambda(n):
 
     # first get rid of the prime factor 2
     if n & 1 == 0:
-        e = L[0][1]
-        L = L[1:]   # now, n = 2**e * L.value()
-        if e < 3:   # for 1 <= k < 3, lambda(2**k) = 2**(k - 1)
-            e = e - 1
-        else:       # for k >= 3, lambda(2**k) = 2**(k - 2)
-            e = e - 2
-        t.append(1 << e)  # 2**e
+        two,e = L.pop(0)
+        assert two == 2
+        k = e - 2 if e >= 3 else e - 1
+        t.append(1 << k)
 
     # then other prime factors
     t += [p**(k - 1) * (p - 1) for p, k in L]
 
     # finish the job
-    from .functions import lcm
-    return lcm(t)
+    return LCM_list(t)
 
 
 def crt(a, b, m=None, n=None):

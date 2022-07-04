@@ -509,9 +509,11 @@ class QuotientRing_nc(ring.Ring, sage.structure.parent_gens.ParentWithGens):
                 names = None
         if self in _CommRings:
             return QuotientFunctor(self.__I, names=names, domain=_CommRings,
-                                   codomain=_CommRings, as_field=isinstance(self)), self.__R
+                                   codomain=_CommRings,
+                                   as_field=isinstance(self, Field)), self.__R
         else:
-            return QuotientFunctor(self.__I, names=names, as_field=isinstance(self, Field)), self.__R
+            return QuotientFunctor(self.__I, names=names,
+                                   as_field=isinstance(self, Field)), self.__R
 
     def _repr_(self):
         """

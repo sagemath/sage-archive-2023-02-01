@@ -27,13 +27,12 @@ REFERENCES: [FH2015]_, [CS1996]_, [Weh1998]_, [Hutz2007]
 
 from sage.calculus.functions import jacobian
 from sage.categories.fields import Fields
-from sage.categories.commutative_ring import CommutativeRings
+from sage.categories.commutative_rings import CommutativeRings
 from sage.categories.number_fields import NumberFields
 from sage.misc.functional import sqrt
 from sage.misc.cachefunc import cached_method
 from sage.misc.mrange import xmrange
 from sage.rings.finite_rings.finite_field_constructor import GF
-from sage.rings.finite_rings.finite_field_base import is_FiniteField
 from sage.rings.fraction_field import FractionField
 from sage.rings.integer_ring import ZZ
 from sage.rings.number_field.order import is_NumberFieldOrder

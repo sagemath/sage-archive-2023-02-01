@@ -1747,14 +1747,17 @@ class KnotInfoBase(Enum):
         from sage.rings.polynomial.laurent_polynomial_ring import LaurentPolynomialRing
         var_names = [var1, var2]
         R = LaurentPolynomialRing(base_ring, var_names)
-        ch = base_ring.characteristic()
-        if ch == 2:
-            khovanov_torsion_polynomial = self[self.items.khovanov_torsion_polynomial]
-            khovanov_torsion_polynomial = khovanov_torsion_polynomial.replace('Q', 'q')
-            khovanov_polynomial = '%s + %s' % (khovanov_polynomial, khovanov_torsion_polynomial)
 
         if not khovanov_polynomial and self.crossing_number() == 0:
             return R({(1, 0): 1, (-1, 0): 1})
+
+        ch = base_ring.characteristic()
+        if ch == 2:
+            if not self.is_knot():
+                raise NotImplementedError('Khovanov polynomial available only for knots in characteristic 2')
+            khovanov_torsion_polynomial = self[self.items.khovanov_torsion_polynomial]
+            khovanov_torsion_polynomial = khovanov_torsion_polynomial.replace('Q', 'q')
+            khovanov_polynomial = '%s + %s' % (khovanov_polynomial, khovanov_torsion_polynomial)
 
         if not khovanov_polynomial:
             # given just for links with less than 12 crossings

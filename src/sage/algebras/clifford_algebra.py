@@ -2788,23 +2788,27 @@ class ExteriorAlgebraCoboundary(ExteriorAlgebraDifferential):
         cc = self._cos_coeff
         keys = cc.keys()
 
-        s = E.base_ring().zero()
+        tot = E.zero()
 
-        sgn = 0
+        for sgn, i in enumerate(m):
+            k = FrozenBitset((i,))
+            if k in keys:
+                below = tuple(j for j in m if j < i)
+                above = tuple(j for j in m if j > i)
 
-        for i in m:
-            if FrozenBitset((i,)) in keys:
-                key_basis, key_coeff = cc[FrozenBitset((i,))].list()[0]
-                m_temp = Bitset(m)
-                if key_basis.intersection(m_temp):
-                    continue
-                m_temp.discard(i)
-                m_temp.update(key_basis)
+                # a hack to deal with empty bitsets
+                if len(below) == 0:
+                    below = FrozenBitset('0')
+                else:
+                    below = FrozenBitset(below)
+                if len(above) == 0:
+                    above = FrozenBitset('0')
+                else:
+                    above = FrozenBitset(above)
 
-                s = s + (-1)**(sgn % 2) * key_coeff * E.monomial(FrozenBitset(m_temp))
+                tot = tot + (-1)**sgn * E.monomial(below) * cc[k] * E.monomial(above)
 
-            sgn += 1
-        return s
+        return tot
 
     @cached_method
     def chain_complex(self, R=None):

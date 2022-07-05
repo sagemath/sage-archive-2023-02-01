@@ -65,13 +65,16 @@ on:
           ["minimal",
            "standard",
            ]
+      max_parallel:
+        type: string
+        default: 20
 
 jobs:
   linux:
     runs-on: ubuntu-latest
     strategy:
       fail-fast: false
-      max-parallel: 20
+      max-parallel: ${{ inputs.max_parallel }}
       matrix:
         tox_system_factor:   ${{ fromJson(inputs.tox_system_factors) }}
         tox_packages_factor: ${{ fromJson(inputs.tox_packages_factors) }}

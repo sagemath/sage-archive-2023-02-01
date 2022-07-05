@@ -2025,8 +2025,10 @@ class ExteriorAlgebra(CliffordAlgebra):
                 sage: E.<x,y,z,w> = ExteriorAlgebra(QQ)
                 sage: (x * y) * (w * z)
                 -x*y*z*w
-                sage: x*y*w*z
+                sage: x * y * w * z
                 -x*y*z*w
+                sage: (z * w) * (x * y)
+                x*y*z*w
             """
             zero = self.parent().base_ring().zero()
             d = {}

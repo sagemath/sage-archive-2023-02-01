@@ -486,7 +486,7 @@ class EllipticE(BuiltinFunction):
     - :wikipedia:`Jacobi_elliptic_functions`
     """
     def __init__(self):
-        """
+        r"""
         TESTS::
 
             sage: loads(dumps(elliptic_e))
@@ -497,13 +497,13 @@ class EllipticE(BuiltinFunction):
         Check that :trac:`34085` is fixed::
 
             sage: _ = var("x y")
-            sage: fricas(elliptic_e(x, y))  # optional - fricas
+            sage: fricas(elliptic_e(x, y))                                      # optional - fricas
             ellipticE(sin(x),y)
 
         However, the conversion is only correct in the interval
         `[-\pi/2, \pi/2]`::
 
-            sage: fricas(elliptic_e(x, y)).D(x).sage()/elliptic_e(x, y).diff(x)
+            sage: fricas(elliptic_e(x, y)).D(x).sage()/elliptic_e(x, y).diff(x) # optional - fricas
             cos(x)/sqrt(-sin(x)^2 + 1)
 
         """

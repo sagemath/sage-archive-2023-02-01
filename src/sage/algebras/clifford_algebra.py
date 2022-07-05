@@ -2798,15 +2798,16 @@ class ExteriorAlgebraCoboundary(ExteriorAlgebraDifferential):
 
                 # a hack to deal with empty bitsets
                 if len(below) == 0:
-                    below = FrozenBitset('0')
+                    below = E.one()
                 else:
-                    below = FrozenBitset(below)
+                    below = E.monomial(FrozenBitset(below))
+                    
                 if len(above) == 0:
-                    above = FrozenBitset('0')
+                    above = E.one()
                 else:
-                    above = FrozenBitset(above)
+                    above = E.monomial(FrozenBitset(above))
 
-                tot = tot + (-1)**sgn * E.monomial(below) * cc[k] * E.monomial(above)
+                tot = tot + (-1)**sgn * below * cc[k] * above
 
         return tot
 

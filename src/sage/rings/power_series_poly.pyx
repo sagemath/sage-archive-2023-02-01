@@ -4,7 +4,6 @@ Power Series Methods
 
 The class ``PowerSeries_poly`` provides additional methods for univariate power series.
 """
-
 from .power_series_ring_element cimport PowerSeries
 from sage.structure.element cimport Element, ModuleElement, RingElement
 from .infinity import infinity, is_Infinite
@@ -540,8 +539,8 @@ cdef class PowerSeries_poly(PowerSeries):
         prec = self._mul_prec(right_r)
         return PowerSeries_poly(self._parent,
                                 self.__f * (<PowerSeries_poly>right_r).__f,
-                                prec = prec,
-                                check = True)  # check, since truncation may be needed
+                                prec=prec,
+                                check=True)  # check, since truncation may be needed
 
     cpdef _rmul_(self, Element c):
         """
@@ -720,6 +719,38 @@ cdef class PowerSeries_poly(PowerSeries):
             return R(u, -self.valuation())
 
         return self._parent(self.truncate().inverse_series_trunc(prec), prec=prec)
+
+    def _floordiv_(self, c):
+        """
+        Perform the exact division of ``self`` by a coefficient ``c``.
+
+        .. WARNING::
+
+            This is not intended to be used with another power series.
+
+        EXAMPLES::
+
+            sage: A = ZZ[['t']]
+            sage: f = A([3*2**n for n in range(6)]).O(6)
+            sage: g = f//3; g
+            1 + 2*t + 4*t^2 + 8*t^3 + 16*t^4 + 32*t^5 + O(t^6)
+            sage: g.parent()
+            Power Series Ring in t over Integer Ring
+
+            sage: s = polygen(QQ,'s')
+            sage: A = s.parent()[['t']]
+            sage: f = A([(s+2)*(s+n) for n in range(5)]).O(5)
+            sage: g = f//(s+2); g
+            s + (s + 1)*t + (s + 2)*t^2 + (s + 3)*t^3 + (s + 4)*t^4 + O(t^5)
+            sage: g.parent()
+            Power Series Ring in t over Univariate Polynomial Ring in s
+            over Rational Field
+        """
+        prec = self.prec()
+        return PowerSeries_poly(self._parent,
+                                self.__f // (<PowerSeries_poly>c).__f[0],
+                                prec=prec,
+                                check=False)
 
     def truncate(self, prec=infinity):
         """

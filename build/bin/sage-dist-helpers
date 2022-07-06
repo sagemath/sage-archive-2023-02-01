@@ -247,7 +247,7 @@ sdh_pip_install() {
     while [ $# -gt 0 ]; do
         case "$1" in
             --build-isolation)
-                # Our new default: We allow the package to provision
+                # Our default after #33789 (Sage 9.7): We allow the package to provision
                 # its build environment using the stored wheels.
                 # We pass --find-links.
                 # The SPKG needs to declare "setuptools_wheel" as a dependency.

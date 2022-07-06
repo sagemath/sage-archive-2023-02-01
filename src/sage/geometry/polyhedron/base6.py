@@ -50,7 +50,10 @@ class Polyhedron_base6(Polyhedron_base5):
         sage: P = polytopes.cube()
         sage: Polyhedron_base6.plot(P)
         Graphics3d Object
-        sage: Polyhedron_base6.tikz(P)
+        sage: print(Polyhedron_base6.tikz(P, output_type='TikzPicture'))
+        \RequirePackage{luatex85}
+        \documentclass[tikz]{standalone}
+        \begin{document}
         \begin{tikzpicture}%
             [x={(1.000000cm, 0.000000cm)},
             y={(-0.000000cm, 1.000000cm)},
@@ -127,6 +130,7 @@ class Polyhedron_base6(Polyhedron_base5):
         %%
         %%
         \end{tikzpicture}
+        \end{document}
 
         sage: Q = polytopes.hypercube(4)
         sage: Polyhedron_base6.show(Q)
@@ -544,18 +548,25 @@ class Polyhedron_base6(Polyhedron_base5):
         EXAMPLES::
 
             sage: co = polytopes.cuboctahedron()
-            sage: Img = co.tikz([0,0,1], 0)
-            sage: print('\n'.join(Img.splitlines()[:9]))
+            sage: Img = co.tikz([0,0,1], 0, output_type='TikzPicture')
+            sage: Img
+            \documentclass[tikz]{standalone}
+            \begin{document}
             \begin{tikzpicture}%
-                [x={(1.000000cm, 0.000000cm)},
-                y={(0.000000cm, 1.000000cm)},
-                z={(0.000000cm, 0.000000cm)},
-                scale=1.000000,
-                back/.style={loosely dotted, thin},
-                edge/.style={color=blue!95!black, thick},
-                facet/.style={fill=blue!95!black,fill opacity=0.800000},
-                vertex/.style={inner sep=1pt,circle,draw=green!25!black,fill=green!75!black,thick}]
-            sage: print('\n'.join(Img.splitlines()[12:21]))
+                    [x={(1.000000cm, 0.000000cm)},
+                    y={(0.000000cm, 1.000000cm)},
+                    z={(0.000000cm, 0.000000cm)},
+                    scale=1.000000,
+            ...
+            Use print to see the full content.
+            ...
+            \node[vertex] at (1.00000, 0.00000, 1.00000)     {};
+            \node[vertex] at (1.00000, 1.00000, 0.00000)     {};
+            %%
+            %%
+            \end{tikzpicture}
+            \end{document}
+            sage: print('\n'.join(Img.content().splitlines()[12:21]))
             %% with the command: ._tikz_3d_in_3d and parameters:
             %% view = [0, 0, 1]
             %% angle = 0
@@ -565,7 +576,7 @@ class Polyhedron_base6(Polyhedron_base5):
             %% opacity = 0.8
             %% vertex_color = green
             %% axis = False
-            sage: print('\n'.join(Img.splitlines()[22:26]))
+            sage: print('\n'.join(Img.content().splitlines()[22:26]))
             %% Coordinate of the vertices:
             %%
             \coordinate (-1.00000, -1.00000, 0.00000) at (-1.00000, -1.00000, 0.00000);

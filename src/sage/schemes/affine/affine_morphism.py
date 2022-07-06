@@ -688,8 +688,9 @@ class SchemeMorphism_polynomial_affine_space(SchemeMorphism_polynomial):
         return DynamicalSystem_affine_field(list(self), self.domain())
 
     def global_height(self, prec=None):
-        r"""
-        Return the global height of the coefficients as a projective point.
+        """
+        Take the height of the homogenization, and return the global height of
+        the coefficients as a projective point.
 
         INPUT:
 
@@ -729,7 +730,7 @@ class SchemeMorphism_polynomial_affine_space(SchemeMorphism_polynomial):
             sage: A.<x> = AffineSpace(QQ, 1)
             sage: B.<y,z> = AffineSpace(QQ, 2)
             sage: H = Hom(A, B)
-            sage: f = H([1/3 * x^2 + 10, 7 * x^3])
+            sage: f = H([1/3*x^2 + 10, 7*x^3])
             sage: f.global_height()
             3.40119738166216
         """
@@ -755,7 +756,7 @@ class SchemeMorphism_polynomial_affine_space(SchemeMorphism_polynomial):
 
             sage: P.<x,y> = AffineSpace(QQ, 2)
             sage: H = Hom(P, P)
-            sage: f = H([1/1331 * x^2 + 1/4000 * y^2, 210 * x * y]);
+            sage: f = H([1/1331*x^2 + 1/4000*y^2, 210*x*y]);
             sage: f.local_height(1331)
             7.19368581839511
 
@@ -763,7 +764,7 @@ class SchemeMorphism_polynomial_affine_space(SchemeMorphism_polynomial):
 
             sage: P.<x,y,z> = AffineSpace(QQ, 3)
             sage: H = Hom(P, P)
-            sage: f = H([4 * x^2 + 3/100 * y^2, 8/210 * x * y, 1/10000 * z^2]);
+            sage: f = H([4*x^2 + 3/100*y^2, 8/210*x*y, 1/10000*z^2]);
             sage: f.local_height(2)
             2.77258872223978
 
@@ -773,7 +774,7 @@ class SchemeMorphism_polynomial_affine_space(SchemeMorphism_polynomial):
             sage: K.<w> = NumberField(z^2 - 2)
             sage: P.<x,y> = AffineSpace(K, 2)
             sage: H = Hom(P, P)
-            sage: f = H([2 * x^2 + w/3 * y^2, 1/w * y^2])
+            sage: f = H([2*x^2 + w/3*y^2, 1/w*y^2])
             sage: f.local_height(K.ideal(3))
             1.09861228866811
         """
@@ -802,7 +803,7 @@ class SchemeMorphism_polynomial_affine_space(SchemeMorphism_polynomial):
 
             sage: P.<x,y> = AffineSpace(QQ, 2)
             sage: H = Hom(P, P)
-            sage: f = H([1/1331 * x^2 + 1/4000 * y^2, 210 * x * y]);
+            sage: f = H([1/1331*x^2 + 1/4000*y^2, 210*x*y]);
             sage: f.local_height_arch(0)
             5.34710753071747
 
@@ -812,7 +813,7 @@ class SchemeMorphism_polynomial_affine_space(SchemeMorphism_polynomial):
             sage: K.<w> = NumberField(z^2 - 2)
             sage: P.<x,y> = AffineSpace(K, 2)
             sage: H = Hom(P, P)
-            sage: f = H([2 * x^2 + w/3 * y^2, 1/w * y^2])
+            sage: f = H([2*x^2 + w/3*y^2, 1/w*y^2])
             sage: f.local_height_arch(1)
             0.6931471805599453094172321214582
         """
@@ -822,8 +823,7 @@ class SchemeMorphism_polynomial_affine_space(SchemeMorphism_polynomial):
 
         if K == QQ:
             return max([K(c).local_height_arch(prec=prec) for f in self for c in f.coefficients()])
-        else:
-            return max([K(c).local_height_arch(i, prec=prec) for f in self for c in f.coefficients()])
+        return max([K(c).local_height_arch(i, prec=prec) for f in self for c in f.coefficients()])
 
     def jacobian(self):
         r"""

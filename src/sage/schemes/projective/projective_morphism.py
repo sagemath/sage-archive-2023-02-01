@@ -1304,7 +1304,7 @@ class SchemeMorphism_polynomial_projective_space(SchemeMorphism_polynomial):
             sage: H = Hom(P,P)
             sage: f = H([1/1331*x^2+1/4000*y^2, 210*x*y]);
             sage: f.global_height()
-            8.29404964010203
+            20.8348429892146
 
         This function does not automatically normalize::
 
@@ -1312,7 +1312,7 @@ class SchemeMorphism_polynomial_projective_space(SchemeMorphism_polynomial):
             sage: H = Hom(P,P)
             sage: f = H([4*x^2+100*y^2, 210*x*y, 10000*z^2]);
             sage: f.global_height()
-            9.21034037197618
+            8.51719319141624
             sage: f.normalize_coordinates()
             sage: f.global_height()
             8.51719319141624
@@ -1326,7 +1326,7 @@ class SchemeMorphism_polynomial_projective_space(SchemeMorphism_polynomial):
             sage: H = Hom(P,P)
             sage: f = H([2*x^2 + 3*O(w)*y^2, O(w)*y^2])
             sage: f.global_height()
-            1.44518587894808
+            1.09861228866811
 
         ::
 

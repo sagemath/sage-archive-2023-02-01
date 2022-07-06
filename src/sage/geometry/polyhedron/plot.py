@@ -1228,11 +1228,13 @@ class Projection(SageObject):
 
     def tikz(self, view=[0, 0, 1], angle=0, scale=1,
              edge_color='blue!95!black', facet_color='blue!95!black',
-             opacity=0.8, vertex_color='green', axis=False):
+             opacity=0.8, vertex_color='green', axis=False,
+             output_type=None):
         r"""
-        Return a string ``tikz_pic`` consisting of a tikz picture of ``self``
+        Return a tikz picture of ``self`` as a string or as a
+        :class:`~sage.misc.latex_standalone.TikzPicture`
         according to a projection ``view`` and an angle ``angle``
-        obtained via Jmol through the current state property.
+        obtained via the threejs viewer.
 
         INPUT:
 
@@ -1249,10 +1251,15 @@ class Projection(SageObject):
         - ``opacity`` - real number (default: 0.8) between 0 and 1 giving the opacity of
           the front facets.
         - ``axis`` - Boolean (default: False) draw the axes at the origin or not.
+        - ``output_type`` - string (default: ``None``), valid values
+          are ``None`` (deprecated), ``'LatexExpr'`` and ``'TikzPicture'``,
+          whether to return a LatexExpr object (which inherits from Python
+          str) or a ``TikzPicture`` object from module
+          :mod:`sage.misc.latex_standalone`
 
         OUTPUT:
 
-        - LatexExpr -- containing the TikZ picture.
+        - LatexExpr object or TikzPicture object
 
         .. NOTE::
 
@@ -1328,6 +1335,29 @@ class Projection(SageObject):
             ...
             NotImplementedError: The polytope has to live in 2 or 3 dimensions.
 
+        Using :class:`~sage.misc.latex_standalone.TikzPicture` as output type::
+
+            sage: P3 = Polyhedron(vertices=[[-1, -1, 2],[-1, 2, -1],[2, -1, -1]])
+            sage: t = P3.projection().tikz([0.5,-1,-0.1], 55, scale=3, edge_color='blue!95!black',facet_color='orange!95!black', opacity=0.7, vertex_color='yellow', axis=True, output_type='TikzPicture')
+            sage: t
+            \documentclass[tikz]{standalone}
+            \begin{document}
+            \begin{tikzpicture}%
+                    [x={(0.658184cm, -0.242192cm)},
+                    y={(-0.096240cm, 0.912008cm)},
+                    z={(-0.746680cm, -0.331036cm)},
+                    scale=3.000000,
+            ...
+            Use print to see the full content.
+            ...
+            \node[vertex] at (-1.00000, 2.00000, -1.00000)     {};
+            \node[vertex] at (2.00000, -1.00000, -1.00000)     {};
+            %%
+            %%
+            \end{tikzpicture}
+            \end{document}
+            sage: t.pdf(view=False)       # not tested
+
         .. TODO::
 
             Make it possible to draw Schlegel diagram for 4-polytopes. ::
@@ -1347,14 +1377,44 @@ class Projection(SageObject):
         elif self.polyhedron_dim < 2 or self.polyhedron_dim > 3:
             raise NotImplementedError("The polytope has to be 2 or 3-dimensional.")
         elif self.polyhedron_ambient_dim == 2:  # self is a polygon in 2-space
-            return self._tikz_2d(scale, edge_color, facet_color, opacity,
+            tikz_string = self._tikz_2d(scale, edge_color, facet_color, opacity,
                                  vertex_color, axis)
         elif self.polyhedron_dim == 2:  # self is a polygon in 3-space
-            return self._tikz_2d_in_3d(view, angle, scale, edge_color,
+            tikz_string = self._tikz_2d_in_3d(view, angle, scale, edge_color,
                                        facet_color, opacity, vertex_color, axis)
         else:  # self is a 3-polytope in 3-space
-            return self._tikz_3d_in_3d(view, angle, scale, edge_color,
+            tikz_string = self._tikz_3d_in_3d(view, angle, scale, edge_color,
                                        facet_color, opacity, vertex_color, axis)
+
+        # set default value
+        if output_type is None:
+            from sage.misc.superseded import deprecation
+            msg = ("Since SageMath 5.13 (ticket #12083), the method .tikz() "
+                   "of a polyhedron returns an object of type ``LatexExpr`` "
+                   "which is a Python str. Since SageMath 9.7, this "
+                   "default behavior of returning an object of type "
+                   "LatexExpr is deprecated as the default output will soon "
+                   "change to an object of type ``TikzPicture`` from the "
+                   "module sage.misc.latex_standalone (newly introduced in "
+                   "SageMath 9.6). Please update your code to specify the "
+                   "desired output type as ``.tikz(output_type='LatexExpr')`` "
+                   "to keep the old behavior or "
+                   "``.tikz(output_type='TikzPicture')`` to use "
+                   "the future default behavior.")
+            deprecation(33002, msg)
+            output_type = 'LatexExpr'
+
+        # return
+        if output_type == 'LatexExpr':
+            return tikz_string
+        elif output_type == 'TikzPicture':
+            from sage.misc.latex_standalone import TikzPicture
+            return TikzPicture(tikz_string, standalone_config=None,
+                    usepackage=None, usetikzlibrary=None, macros=None,
+                    use_sage_preamble=False)
+        else:
+            raise ValueError("output_type (='{}') must be 'LatexExpr' or"
+                    " 'TikzPicture'".format(output_type))
 
     def _tikz_2d(self, scale, edge_color, facet_color, opacity, vertex_color, axis):
         r"""

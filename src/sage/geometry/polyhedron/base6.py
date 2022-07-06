@@ -476,9 +476,10 @@ class Polyhedron_base6(Polyhedron_base5):
     def tikz(self, view=[0, 0, 1], angle=0, scale=1,
              edge_color='blue!95!black', facet_color='blue!95!black',
              opacity=0.8, vertex_color='green', axis=False,
-             output_type='LatexExpr'):
+             output_type=None):
         r"""
-        Return a string ``tikz_pic`` consisting of a tikz picture of ``self``
+        Return a tikz picture of ``self`` as a string or as a
+        :class:`~sage.misc.latex_standalone.TikzPicture`
         according to a projection ``view`` and an angle ``angle``
         obtained via the threejs viewer. ``self`` must be bounded.
 
@@ -497,10 +498,11 @@ class Polyhedron_base6(Polyhedron_base5):
         - ``opacity`` - real number (default: 0.8) between 0 and 1 giving the opacity of
           the front facets.
         - ``axis`` - Boolean (default: False) draw the axes at the origin or not.
-        - ``output_type`` - string (default: ``None``), valid values are
-          ``None``, ``'LatexExpr'`` and ``'TikzPicture'``, whether to
-          return a LatexExpr object (which inherits from Python str) or a
-          ``TikzPicture`` object from module :mod:`sage.misc.latex_standalone`
+        - ``output_type`` - string (default: ``None``), valid values
+          are ``None`` (deprecated), ``'LatexExpr'`` and ``'TikzPicture'``,
+          whether to return a LatexExpr object (which inherits from Python
+          str) or a ``TikzPicture`` object from module
+          :mod:`sage.misc.latex_standalone`
 
         OUTPUT:
 
@@ -593,27 +595,10 @@ class Polyhedron_base6(Polyhedron_base5):
             sage: path_to_file = t.pdf()     # not tested
 
         """
-        tikz_string = self.projection().tikz(view, angle, scale,
+        return self.projection().tikz(view, angle, scale,
                                       edge_color, facet_color,
-                                      opacity, vertex_color, axis)
-        # set default value
-        if output_type is None:
-            # we may want to raise a deprecation warning here
-            # to announce that the default will later change
-            # to 'TikzPicture'
-            output_type = 'LatexExpr'
-
-        # return
-        if output_type == 'LatexExpr':
-            return tikz_string
-        elif output_type == 'TikzPicture':
-            from sage.misc.latex_standalone import TikzPicture
-            return TikzPicture(tikz_string, standalone_config=None,
-                    usepackage=None, usetikzlibrary=None, macros=None,
-                    use_sage_preamble=False)
-        else:
-            raise ValueError("output_type (='{}') must be 'LatexExpr' or"
-                    " 'TikzPicture'".format(output_type))
+                                      opacity, vertex_color, axis,
+                                      output_type=output_type)
 
     def _rich_repr_(self, display_manager, **kwds):
         r"""

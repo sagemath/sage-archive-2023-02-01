@@ -1668,7 +1668,7 @@ class Newform(ModularForm_abstract):
             [ 0  1 -1  1  0]
             sage: V.0 in M.free_module()
             True
-            sage: V=N.modsym_eigenspace(-1); V
+            sage: V = N.modsym_eigenspace(-1); V
             Vector space of degree 5 and dimension 1 over Rational Field
             Basis matrix:
             [   0    0    0    1 -1/2]

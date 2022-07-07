@@ -2464,14 +2464,14 @@ class pAdicAutomorphicForms(Module, UniqueRepresentation):
 
             sage: X = BruhatTitsQuotient(13,5)
             sage: H = X.harmonic_cocycles(2,prec=10)
-            sage: h=H.an_element() # indirect doctest
+            sage: h = H.an_element()  # indirect doctest
             sage: A = X.padic_automorphic_forms(2,prec=10)
             sage: A(h)
             p-adic automorphic form of cohomological weight 0
         """
         # Code how to coerce x into the space
         # Admissible values of x?
-        if type(data) is list:
+        if isinstance(data, list):
             return self.element_class(self, [self._U(o, normalize=False) for o in data])
 
         if isinstance(data, pAdicAutomorphicFormElement):

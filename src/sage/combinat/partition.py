@@ -4578,21 +4578,21 @@ class Partition(CombinatorialElement):
 
         EXAMPLES::
 
-            sage: p=Partition([2,1,1])
+            sage: p = Partition([2,1,1])
             sage: p.from_kbounded_to_reduced_word(2)
             [2, 1, 2, 0]
-            sage: p=Partition([3,1])
+            sage: p = Partition([3,1])
             sage: p.from_kbounded_to_reduced_word(3)
             [3, 2, 1, 0]
             sage: p.from_kbounded_to_reduced_word(2)
             Traceback (most recent call last):
             ...
             ValueError: the partition must be 2-bounded
-            sage: p=Partition([])
+            sage: p = Partition([])
             sage: p.from_kbounded_to_reduced_word(2)
             []
         """
-        p=self.k_skew(k)[0]
+        p = self.k_skew(k)[0]
         result = []
         while not p.is_empty():
             corners = p.corners()
@@ -4613,18 +4613,18 @@ class Partition(CombinatorialElement):
 
         EXAMPLES::
 
-            sage: p=Partition([2,1,1])
+            sage: p = Partition([2,1,1])
             sage: p.from_kbounded_to_grassmannian(2)
             [-1  1  1]
             [-2  2  1]
             [-2  1  2]
-            sage: p=Partition([])
+            sage: p = Partition([])
             sage: p.from_kbounded_to_grassmannian(2)
             [1 0 0]
             [0 1 0]
             [0 0 1]
         """
-        return WeylGroup(['A',k,1]).from_reduced_word(self.from_kbounded_to_reduced_word(k))
+        return WeylGroup(['A', k,1 ]).from_reduced_word(self.from_kbounded_to_reduced_word(k))
 
     def to_list(self):
         r"""
@@ -5049,7 +5049,7 @@ class Partition(CombinatorialElement):
 
         A check coming from the theory of `k`-differentiable posets::
 
-            sage: k=2; core = Partition([2,1])
+            sage: k = 2; core = Partition([2,1])
             sage: all(sum(mu.dimension(core,k=2)^2
             ....:         for mu in Partitions(3+i*2) if mu.core(2) == core)
             ....:     == 2^i*factorial(i) for i in range(10))
@@ -5170,7 +5170,7 @@ class Partition(CombinatorialElement):
             sage: Partition([1]).outline()
             abs(x + 1) + abs(x - 1) - abs(x)
 
-            sage: y=sage.symbolic.ring.var("y")
+            sage: y = SR.var("y")
             sage: Partition([6,5,1]).outline(variable=y)
             abs(y + 6) - abs(y + 5) + abs(y + 4) - abs(y + 3) + abs(y - 1) - abs(y - 2) + abs(y - 3)
 

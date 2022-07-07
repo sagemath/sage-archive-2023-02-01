@@ -3372,7 +3372,7 @@ class HeegnerPointOnEllipticCurve(HeegnerPoint):
             sage: PE = P.point_exact()
             sage: PE
             (a : -4*a + 3 : 1)
-            sage: all([c.parent().disc() == -7 for c in PE])
+            sage: all(c.parent().disc() == -7 for c in PE)
             True
 
         """

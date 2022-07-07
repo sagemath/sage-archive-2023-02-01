@@ -5493,7 +5493,10 @@ cdef class MPolynomial_libsingular(MPolynomial):
 
     def global_height(self, prec=None):
         """
-        Return the projective height of the polynomial.
+        Return the (projective) global height of the polynomial.
+
+        This returns the absolute logarithmic height of the coefficients
+        thought of as a projective point.
 
         INPUT:
 
@@ -5519,9 +5522,7 @@ cdef class MPolynomial_libsingular(MPolynomial):
             sage: exp(f.global_height())
             1.00000000000000
 
-        ::
-
-        Scaling should not change the result:
+        Scaling should not change the result::
 
             sage: R.<x,y> = PolynomialRing(QQ)
             sage: f = 1/25*x^2 + 25/3*x*y + y^2

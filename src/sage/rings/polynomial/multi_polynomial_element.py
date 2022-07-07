@@ -968,7 +968,10 @@ class MPolynomial_polydict(Polynomial_singular_repr, MPolynomial_element):
 
     def global_height(self, prec=None):
         """
-        Return the projective height of the polynomial.
+        Return the (projective) global height of the polynomial.
+
+        This returns the absolute logarithmic height of the coefficients
+        thought of as a projective point.
 
         INPUT:
 
@@ -981,29 +984,20 @@ class MPolynomial_polydict(Polynomial_singular_repr, MPolynomial_element):
 
         EXAMPLES::
 
-            sage: R.<x> = PolynomialRing(QQ)
-            sage: f = 3*x^3 + 2*x^2 + x
-            sage: exp(f.global_height())
-            3.00000000000000
-
-        ::
+            sage: R.<x, y> = PolynomialRing(QQbar, 2)
+            sage: f = QQbar(i)*x^2 + 3*x*y
+            sage: f.global_height()
+            1.09861228866811
 
         Scaling should not change the result::
 
-            sage: R.<x> = PolynomialRing(QQ)
-            sage: f = 1/25*x^2 + 25/3*x + 1
+            sage: R.<x, y> = PolynomialRing(QQbar, 2)
+            sage: f = 1/25*x^2 + 25/3*x + 1 + QQbar(sqrt(2))*y^2
             sage: f.global_height()
             6.43775164973640
             sage: g = 100 * f
             sage: g.global_height()
             6.43775164973640
-
-        ::
-
-            sage: R.<x> = PolynomialRing(QQbar)
-            sage:  f = QQbar(i)*x^2 + 3*x
-            sage: f.global_height()
-            1.09861228866811
         """
         if prec is None:
             prec = 53
@@ -1011,20 +1005,15 @@ class MPolynomial_polydict(Polynomial_singular_repr, MPolynomial_element):
         from sage.rings.qqbar import QQbar, number_field_elements_from_algebraics
 
         K = self.base_ring()
-        if K in NumberFields() or is_NumberFieldOrder(K):
-            f = self
-        elif K is QQbar:
-            K_pre, P, phi = number_field_elements_from_algebraics(list(self))
+        if K is QQbar:
+            K_pre, P, phi = number_field_elements_from_algebraics(list(self.coefficients()))
+            from sage.schemes.projective.projective_space import ProjectiveSpace
+            Pr = ProjectiveSpace(K_pre, len(P)-1)
+            return Pr.point(P).global_height()
 
-            from sage.rings.number_field.number_field import NumberField
-            K = NumberField(K_pre.polynomial(), embedding=phi(K_pre.gen()), name='a')
-            f = self.change_ring(K)
-        else:
-            raise TypeError("Must be over a Numberfield or a Numberfield Order.")
+        raise TypeError("Must be over a Numberfield or a Numberfield Order.")
 
-        from sage.schemes.projective.projective_space import ProjectiveSpace
-        P = ProjectiveSpace(K, f.number_of_terms()-1)
-        return P.point(f.coefficients()).global_height()
+
 
     def local_height(self, v, prec=None):
         """

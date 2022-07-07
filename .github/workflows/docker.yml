@@ -106,9 +106,12 @@ jobs:
         tox_system_factor:   ${{ fromJson(inputs.tox_system_factors) }}
         tox_packages_factor: ${{ fromJson(inputs.tox_packages_factors) }}
     env:
-      TOX_ENV: docker-${{ matrix.tox_system_factor }}-${{ matrix.tox_packages_factor }}
+      TOX_ENV:            docker-${{ matrix.tox_system_factor }}-${{ matrix.tox_packages_factor }}
       LOGS_ARTIFACT_NAME: logs-commit-${{ github.sha }}-tox-docker-${{ matrix.tox_system_factor }}-${{ matrix.tox_packages_factor }}
-      DOCKER_TARGETS: with-system-packages configured with-targets-pre with-targets with-targets-optional
+      DOCKER_TARGETS:     with-system-packages configured with-targets-pre with-targets with-targets-optional
+      TARGETS_PRE:        ${{ inputs.targets_pre }}
+      TARGETS:            ${{ inputs.targets }}
+      TARGETS_OPTIONAL:   ${{ inputs.targets_optional }}
     steps:
       - name: Check out SageMath
         uses: actions/checkout@v2

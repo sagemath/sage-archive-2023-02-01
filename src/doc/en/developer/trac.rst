@@ -288,9 +288,8 @@ After pushing a branch to a ticket, the ticket will show badges
 linking to results of automated tests that run on the patchbot and
 other ​tests that run on GitHub Actions.
 
-* The Patch buildbot will automatically test your ticket. See `the
-  patchbot wiki <https://trac.sagemath.org/wiki/patchbot>`_ for more
-  information about its features and limitations. Make sure that you
+* The Patch buildbot will automatically test your ticket. See :trac:`wiki/patchbot`
+  for more information about its features and limitations. Make sure that you
   look at the log, especially if the patch buildbot did not give you
   the green blob.
 

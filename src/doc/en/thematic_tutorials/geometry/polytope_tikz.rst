@@ -15,8 +15,8 @@ paper. TikZ is a very versatile tool to draw in scientific documents
 and Sage can deal easily with 3-dimensional polytopes. Finally sagetex
 makes everything work together nicely between Sage, TikZ and
 LaTeX. Since version 6.3 of Sage, there is a function for (projection
-of) polytopes to output a TikZ picture of the polytope. Since Version 9.7 of SageMath,
-the tikz output can be a ``TikzPicture`` object from the sage module
+of) polytopes to output a TikZ picture of the polytope. Since version 9.7 of
+SageMath, the tikz output can be a ``TikzPicture`` object from the sage module
 ``sage.misc.latex_standalone``. This short tutorial shows how it all works.
 
 Instructions

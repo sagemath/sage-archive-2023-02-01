@@ -1421,17 +1421,12 @@ class Projection(SageObject):
         # set default value
         if output_type is None:
             from sage.misc.superseded import deprecation
-            msg = ("Since SageMath 5.13 (ticket #12083), the method .tikz() "
-                   "of a polyhedron returns an object of type ``LatexExpr`` "
-                   "which is a Python str. Since SageMath 9.7, this "
-                   "default behavior of returning an object of type "
-                   "LatexExpr is deprecated as the default output will soon "
-                   "change to an object of type ``TikzPicture`` from the "
-                   "module sage.misc.latex_standalone (newly introduced in "
-                   "SageMath 9.6). Please update your code to specify the "
-                   "desired output type as ``.tikz(output_type='LatexExpr')`` "
-                   "to keep the old behavior or "
-                   "``.tikz(output_type='TikzPicture')`` to use "
+            msg = ("The default type of the returned object will soon be "
+                   "changed from `sage.misc.latex.LatexExpr` to "
+                   "`sage.misc.latex_standalone.TikzPicture`.  Please "
+                   "update your code to specify the desired output type as "
+                   "`.tikz(output_type='LatexExpr')` to keep the old "
+                   "behavior or `.tikz(output_type='TikzPicture')` to use "
                    "the future default behavior.")
             deprecation(33002, msg)
             output_type = 'LatexExpr'

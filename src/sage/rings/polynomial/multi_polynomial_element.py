@@ -65,6 +65,8 @@ from .multi_polynomial import MPolynomial
 from sage.categories.morphism import Morphism
 from sage.misc.lazy_attribute import lazy_attribute
 
+from sage.rings.number_field.order import is_NumberFieldOrder
+from sage.categories.number_fields import NumberFields
 
 def is_MPolynomial(x):
     return isinstance(x, MPolynomial)
@@ -963,6 +965,126 @@ class MPolynomial_polydict(Polynomial_singular_repr, MPolynomial_element):
         if not looking_for:
             raise ValueError("You must pass a dictionary list or monomial.")
         return self.parent()(self.element().polynomial_coefficient(looking_for))
+
+    def global_height(self, prec=None):
+        """
+        Return the projective height of the polynomial.
+
+        INPUT:
+
+        - ``prec`` -- desired floating point precision (default:
+          default RealField precision).
+
+        OUTPUT:
+
+        - a real number.
+
+        EXAMPLES::
+
+            sage: R.<x> = PolynomialRing(QQ)
+            sage: f = 3*x^3 + 2*x^2 + x
+            sage: exp(f.global_height())
+            3.00000000000000
+
+        ::
+
+        Scaling should not change the result::
+
+            sage: R.<x> = PolynomialRing(QQ)
+            sage: f = 1/25*x^2 + 25/3*x + 1
+            sage: f.global_height()
+            6.43775164973640
+            sage: g = 100 * f
+            sage: g.global_height()
+            6.43775164973640
+
+        ::
+
+            sage: R.<x> = PolynomialRing(QQbar)
+            sage:  f = QQbar(i)*x^2 + 3*x
+            sage: f.global_height()
+            1.09861228866811
+        """
+        if prec is None:
+            prec = 53
+
+        from sage.rings.qqbar import QQbar, number_field_elements_from_algebraics
+
+        K = self.base_ring()
+        if K in NumberFields() or is_NumberFieldOrder(K):
+            f = self
+        elif K is QQbar:
+            K_pre, P, phi = number_field_elements_from_algebraics(list(self))
+
+            from sage.rings.number_field.number_field import NumberField
+            K = NumberField(K_pre.polynomial(), embedding=phi(K_pre.gen()), name='a')
+            f = self.change_ring(K)
+        else:
+            raise TypeError("Must be over a Numberfield or a Numberfield Order.")
+
+        from sage.schemes.projective.projective_space import ProjectiveSpace
+        P = ProjectiveSpace(K, f.number_of_terms()-1)
+        return P.point(f.coefficients()).global_height()
+
+    def local_height(self, v, prec=None):
+        """
+        Return the maximum of the local height of the coefficients of
+        this polynomial.
+
+        INPUT:
+
+        - ``v`` -- a prime or prime ideal of the base ring.
+
+        - ``prec`` -- desired floating point precision (default:
+          default RealField precision).
+
+        OUTPUT:
+
+        - a real number.
+
+        EXAMPLES::
+
+            sage: R.<x> = PolynomialRing(QQ)
+            sage: f = 1/1331*x^2 + 1/4000*x
+            sage: f.local_height(1331)
+            7.19368581839511
+        """
+        K = FractionField(self.base_ring())
+        if K not in NumberFields() or is_NumberFieldOrder(K):
+            raise TypeError("must be over a Numberfield or a Numberfield order")
+
+        return max([K(c).local_height(v, prec) for c in self.coefficients()])
+
+    def local_height_arch(self, i, prec=None):
+        """
+        Return the maximum of the local height at the ``i``-th infinite place
+        of the coefficients of this polynomial.
+
+        INPUT:
+
+        - ``i`` -- an integer.
+
+        - ``prec`` -- desired floating point precision (default:
+          default RealField precision).
+
+        OUTPUT:
+
+        - a real number.
+
+        EXAMPLES::
+
+            sage: R.<x> = PolynomialRing(QQ)
+            sage: f = 210*x^2
+            sage: f.local_height_arch(0)
+            5.34710753071747
+        """
+        K = FractionField(self.base_ring())
+        if K not in NumberFields() or is_NumberFieldOrder(K):
+            return TypeError("must be over a Numberfield or a Numberfield Order")
+
+        if K == QQ:
+            return max([K(c).local_height_arch(prec) for c in self.coefficients()])
+        return max([K(c).local_height_arch(i, prec) for c in self.coefficients()])
 
     @lazy_attribute
     def _exponents(self):

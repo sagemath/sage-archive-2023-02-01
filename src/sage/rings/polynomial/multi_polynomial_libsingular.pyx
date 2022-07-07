@@ -231,6 +231,9 @@ from sage.rings.integer cimport Integer
 from sage.rings.integer import GCD_list
 from sage.rings.number_field.number_field_base cimport NumberField
 
+from sage.rings.number_field.order import is_NumberFieldOrder
+from sage.categories.number_fields import NumberFields
+
 from sage.structure.element import coerce_binop
 
 from sage.structure.parent cimport Parent
@@ -242,6 +245,8 @@ from sage.structure.element cimport Element, CommutativeRingElement
 from sage.structure.richcmp cimport rich_to_bool, richcmp
 from sage.structure.factorization import Factorization
 from sage.structure.sequence import Sequence
+
+from sage.rings.fraction_field import FractionField
 
 from sage.interfaces.singular import singular as singular_default, is_SingularElement, SingularElement
 from sage.interfaces.macaulay2 import macaulay2 as macaulay2_default, is_Macaulay2Element
@@ -5485,6 +5490,119 @@ cdef class MPolynomial_libsingular(MPolynomial):
             coeffs.append(si2sa(p_GetCoeff(p, r), r, base))
             p = pNext(p)
         return coeffs
+
+    def global_height(self, prec=None):
+        """
+        Return the projective height of the polynomial.
+
+        INPUT:
+
+        - ``prec`` -- desired floating point precision (default:
+          default RealField precision).
+
+        OUTPUT:
+
+        - a real number.
+
+        EXAMPLES::
+
+            sage: R.<x,y> = PolynomialRing(QQ)
+            sage: f = 3*x^3 + 2*x*y^2
+            sage: exp(f.global_height())
+            3.00000000000000
+
+        ::
+
+            sage: K.<k> = CyclotomicField(3)
+            sage: R.<x> = PolynomialRing(K, sparse=True)
+            sage: f = k*x^2 + 1
+            sage: exp(f.global_height())
+            1.00000000000000
+
+        ::
+
+        Scaling should not change the result:
+
+            sage: R.<x,y> = PolynomialRing(QQ)
+            sage: f = 1/25*x^2 + 25/3*x*y + y^2
+            sage: f.global_height()
+            6.43775164973640
+            sage: g = 100 * f
+            sage: g.global_height()
+            6.43775164973640
+        """
+        if prec is None:
+            prec = 53
+
+        K = self.base_ring()
+        if K in NumberFields() or is_NumberFieldOrder(K):
+            f = self
+        else:
+            raise TypeError("Must be over a Numberfield or a Numberfield Order.")
+
+        from sage.schemes.projective.projective_space import ProjectiveSpace
+        P = ProjectiveSpace(K, f.number_of_terms()-1)
+        return P.point(f.coefficients()).global_height()
+
+    def local_height(self, v, prec=None):
+        """
+        Return the maximum of the local height of the coefficients of
+        this polynomial.
+
+        INPUT:
+
+        - ``v`` -- a prime or prime ideal of the base ring.
+
+        - ``prec`` -- desired floating point precision (default:
+          default RealField precision).
+
+        OUTPUT:
+
+        - a real number.
+
+        EXAMPLES::
+
+            sage: R.<x,y> = PolynomialRing(QQ)
+            sage: f = 1/1331*x^2 + 1/4000*y^2
+            sage: f.local_height(1331)
+            7.19368581839511
+        """
+        K = FractionField(self.base_ring())
+        if K not in NumberFields() or is_NumberFieldOrder(K):
+            raise TypeError("must be over a Numberfield or a Numberfield order")
+
+        return max([K(c).local_height(v, prec) for c in self.coefficients()])
+
+    def local_height_arch(self, i, prec=None):
+        """
+        Return the maximum of the local height at the ``i``-th infinite place
+        of the coefficients of this polynomial.
+
+        INPUT:
+
+        - ``i`` -- an integer.
+
+        - ``prec`` -- desired floating point precision (default:
+          default RealField precision).
+
+        OUTPUT:
+
+        - a real number.
+
+        EXAMPLES::
+
+            sage: R.<x,y> = PolynomialRing(QQ)
+            sage: f = 210*x*y
+            sage: f.local_height_arch(0)
+            5.34710753071747
+        """
+        K = FractionField(self.base_ring())
+        if K not in NumberFields() or is_NumberFieldOrder(K):
+            return TypeError("must be over a Numberfield or a Numberfield Order")
+
+        if K == QQ:
+            return max([K(c).local_height_arch(prec) for c in self.coefficients()])
+        return max([K(c).local_height_arch(i, prec) for c in self.coefficients()])
 
     def gradient(self):
         """

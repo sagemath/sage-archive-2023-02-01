@@ -69,7 +69,7 @@ on:
            "standard",
            ]
       max_parallel:
-        type: string
+        type: number
         default: 20
       #
       # Publishing to GitHub Packages

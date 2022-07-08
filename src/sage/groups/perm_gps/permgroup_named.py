@@ -837,7 +837,7 @@ class DiCyclicGroup(PermutationGroup_unique):
     A large generalized quaternion group (order is a power of 2)::
 
         sage: n = 2^10
-        sage: G=DiCyclicGroup(n)
+        sage: G = DiCyclicGroup(n)
         sage: G.order()
         4096
         sage: a = G.gen(0)
@@ -857,7 +857,7 @@ class DiCyclicGroup(PermutationGroup_unique):
     subgroup of order 2 (thus has the unique element of
     order 2 as its non-identity element). ::
 
-        sage: G=DiCyclicGroup(3*5*4)
+        sage: G = DiCyclicGroup(3*5*4)
         sage: G.order()
         240
         sage: two = [g for g in G if g.order()==2]; two
@@ -1141,10 +1141,11 @@ class QuaternionGroup(DiCyclicGroup):
         r"""
         EXAMPLES::
 
-            sage: Q=QuaternionGroup(); Q
+            sage: Q = QuaternionGroup(); Q
             Quaternion group of order 8 as a permutation group
         """
         return "Quaternion group of order 8 as a permutation group"
+
 
 class GeneralDihedralGroup(PermutationGroup_generic):
     r"""

@@ -1164,6 +1164,7 @@ class FiniteDimensionalLieAlgebrasWithBasis(CategoryWithAxiom_over_base_ring):
                 return R.one(), tuple(Y)
 
             from sage.parallel.decorate import parallel
+
             @parallel(ncpus=ncpus)
             def compute_diff(k):
                 """
@@ -1498,12 +1499,13 @@ class FiniteDimensionalLieAlgebrasWithBasis(CategoryWithAxiom_over_base_ring):
             n = len(I)
             s_coeffs = self.structure_coefficients(True)
             zero = self.base_ring().zero()
+
             def sc(i, j):
                 if i == j:
                     return zero
                 if i > j:
-                    return -s_coeffs[I[j],I[i]]
-                return s_coeffs[I[i],I[j]]
+                    return -s_coeffs[I[j], I[i]]
+                return s_coeffs[I[i], I[j]]
             d = {}
             keys = []
             if n >= 10:

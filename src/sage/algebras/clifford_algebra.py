@@ -550,7 +550,7 @@ class CliffordAlgebra(CombinatorialFreeModule):
         R = Q.base_ring()
         category = AlgebrasWithBasis(R.category()).Super().Filtered().FiniteDimensional().or_subcategory(category)
         indices = CliffordAlgebraIndices(Q.dim())
-        CombinatorialFreeModule.__init__(self, R, indices, category=category)
+        CombinatorialFreeModule.__init__(self, R, indices, category=category, sorting_key=tuple)
         self._assign_names(names)
 
     def _repr_(self):
@@ -794,6 +794,7 @@ class CliffordAlgebra(CombinatorialFreeModule):
         """
         return tuple(self.algebra_generators())
 
+    @cached_method
     def ngens(self):
         """
         Return the number of algebra generators of ``self``.
@@ -1767,15 +1768,19 @@ class ExteriorAlgebra(CliffordAlgebra):
             sage: E.coproduct_on_basis((0,))
             1 # x + x # 1
             sage: E.coproduct_on_basis((0,1))
-            1 # x*y + x # y + x*y # 1 - y # x
+            1 # x*y + x # y - y # x + x*y # 1
             sage: E.coproduct_on_basis((0,1,2))
-            1 # x*y*z + x # y*z + x*y # z + x*y*z # 1
-             - x*z # y - y # x*z + y*z # x + z # x*y
+            1 # x*y*z + x # y*z - y # x*z + x*y # z
+             + z # x*y - x*z # y + y*z # x + x*y*z # 1
+
         """
         from sage.combinat.combinat import unshuffle_iterator
         one = self.base_ring().one()
-        return self.tensor_square().sum_of_terms(unshuffle_iterator(tuple(a), one),
-                                                 distinct=True)
+        L = unshuffle_iterator(tuple(a),one)
+        return self.tensor_square()._from_dict(
+            {tuple(FrozenBitset(e) if e else FrozenBitset('0') for e in t): c for t,c in L if c},
+            coerce=False,
+            remove_zeros=False)
 
     def antipode_on_basis(self, m):
         r"""
@@ -2030,8 +2035,10 @@ class ExteriorAlgebra(CliffordAlgebra):
                 sage: (z * w) * (x * y)
                 x*y*z*w
             """
-            zero = self.parent().base_ring().zero()
+            P = self.parent()
+            zero = P.base_ring().zero()
             d = {}
+            n = P.ngens()
 
             for ml,cl in self: # ml for "monomial on the left"
                 for mr,cr in other: # mr for "monomial on the right"
@@ -2047,22 +2054,23 @@ class ExteriorAlgebra(CliffordAlgebra):
                         j = next(it)
 
                         num_cross = 0 # keep track of the number of signs
+                        tot_cross = 0
                         for i in ml:
                             while i > j:
                                 num_cross += 1
                                 try:
                                     j = next(it)
                                 except StopIteration:
-                                    break
-
-                        if num_cross % 2:
+                                    j = n + 1
+                            tot_cross += num_cross
+                        if tot_cross % 2:
                             cr = -cr
 
                     d[t] = d.get(t, zero) + cl * cr
                     if d[t] == zero:
                         del d[t]
 
-            return self.__class__(self.parent(), d)
+            return self.__class__(P, d)
 
         def interior_product(self, x):
             r"""
@@ -2270,7 +2278,11 @@ class ExteriorAlgebraDifferential(ModuleMorphismByLinearity,
             sage: par1 = ExteriorAlgebraDifferential(E, {(0,1): z, (1,2): x, (2,0): y})
             sage: par2 = ExteriorAlgebraDifferential(E, {(0,1): z, (1,2): x, (0,2): -y})
             sage: par3 = ExteriorAlgebraDifferential(E, {(1,0): {2:-1}, (1,2): {0:1}, (2,0):{1:1}})
-            sage: par1 is par2 and par2 is par3
+            sage: par1 is par2
+            True
+            sage: par1 is par3
+            True
+            sage: par2 is par3
             True
 
             sage: par4 = ExteriorAlgebraDifferential(E, {})
@@ -2287,7 +2299,7 @@ class ExteriorAlgebraDifferential(ModuleMorphismByLinearity,
 
             if isinstance(v, dict):
                 R = E.base_ring()
-                v = E._from_dict({(i,): R(c) for i, c in v.items()})
+                v = E._from_dict({FrozenBitset((i,)): R(c) for i,c in v.items()})
             else:
                 # Make sure v is in ``E``
                 v = E(v)

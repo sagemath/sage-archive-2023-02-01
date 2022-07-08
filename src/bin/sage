@@ -1014,9 +1014,6 @@ fi
 #####################################################################
 
 if [ "$1" = "-docbuild" -o "$1" = "--docbuild" ]; then
-    # Redirect stdin from /dev/null. This helps with running TeX which
-    # tends to ask interactive questions if something goes wrong. These
-    # cause the build to hang. If stdin is /dev/null, TeX just aborts.
     shift
 
     # Trac #30002: ensure an English locale so that it is possible to
@@ -1037,6 +1034,9 @@ if [ "$1" = "-docbuild" -o "$1" = "--docbuild" ]; then
     export JUPYTER_DATA_DIR=/doesnotexist
     export JUPYTER_PATH=/doesnotexist
 
+    # Redirect stdin from /dev/null. This helps with running TeX which
+    # tends to ask interactive questions if something goes wrong. These
+    # cause the build to hang. If stdin is /dev/null, TeX just aborts.
     exec sage-python -m sage_docbuild "$@" </dev/null
 fi
 

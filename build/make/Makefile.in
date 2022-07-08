@@ -637,8 +637,7 @@ $(1)-$(4)-no-deps:
 	    $$(SAGE_ROOT)/build/bin/sage-spkg-info $(1); \
 	    echo; \
 	    echo "Error: $(1) is a dummy script package and "; \
-	    echo "cannot be installed using the Sage distribution." ) | sage-logger -p cat '$$(SAGE_LOGS)/$(1)-$(2).log'; \
-	    exit 1; \
+	    echo "cannot be installed using the Sage distribution." ) | sage-logger -p 'cat; exit 1' '$$(SAGE_LOGS)/$(1)-$(2).log'; \
 	fi
 
 $(1)-no-deps: $(1)-$(4)-no-deps

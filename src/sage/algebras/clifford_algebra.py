@@ -2056,9 +2056,8 @@ class ExteriorAlgebra(CliffordAlgebra):
                         num_cross = 0 # keep track of the number of signs
                         tot_cross = 0
                         for i in ml:
-                            num_cross_new = 0
                             while i > j:
-                                num_cross_new += 1
+                                num_cross += 1
                                 try:
                                     j = next(it)
                                 except StopIteration:

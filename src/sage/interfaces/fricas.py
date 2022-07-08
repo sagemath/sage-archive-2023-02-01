@@ -1173,13 +1173,13 @@ class FriCASElement(ExpectElement):
         EXAMPLES::
 
             sage: latex(fricas("sin(x+y)/exp(z)*log(1+%e)"))                    # optional - fricas
-            {{\log \left( {{e+1}} \right)} \  {\sin \left( {{y+x}} \right)}} \over {{e} ^{z}}
+            \frac{{{\log \left( {{e+1}} \right)} \  {\sin \left( {{y+x}} \right)}}}{{{e} ^{z}}}
 
             sage: latex(fricas("matrix([[1,2],[3,4]])"))                        # optional - fricas
             \left[ \begin{array}{cc} 1 & 2 \\ 3 & 4\end{array} \right]
 
             sage: latex(fricas("integrate(sin(x+1/x),x)"))                      # optional - fricas
-            \int ^{\displaystyle x} {{\sin \left( {{{{{ \%...} ^{2}}+1} \over  \%...}} \right)} \  {d \%...}}
+            \int ^{\displaystyle x} {{\sin \left( {{\frac{{{{ \%...} ^{2}}+1}}{ \%...}}} \right)} \  {d \%...}}
         """
         replacements = [(r'\sp ', '^'),
                         (r'\sp{', '^{'),
@@ -1551,7 +1551,7 @@ class FriCASElement(ExpectElement):
             sage: psi(1.0)
             -0.577215664901533
             sage: fricas.polygamma(1, 1.0)                                      # optional - fricas
-            1.6449340668482269
+            1.644934066848226...
             sage: psi(1, 1).n()
             1.64493406684823
 

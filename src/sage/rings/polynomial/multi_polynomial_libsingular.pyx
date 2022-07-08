@@ -5517,8 +5517,8 @@ cdef class MPolynomial_libsingular(MPolynomial):
         ::
 
             sage: K.<k> = CyclotomicField(3)
-            sage: R.<x> = PolynomialRing(K, sparse=True)
-            sage: f = k*x^2 + 1
+            sage: R.<x,y> = PolynomialRing(K, sparse=True)
+            sage: f = k*x*y + 1
             sage: exp(f.global_height())
             1.00000000000000
 
@@ -5531,6 +5531,22 @@ cdef class MPolynomial_libsingular(MPolynomial):
             sage: g = 100 * f
             sage: g.global_height()
             6.43775164973640
+
+        ::
+
+            sage: R.<x> = PolynomialRing(QQ)
+            sage: K.<k> = NumberField(x^2 + 5)
+            sage: T.<t,w> = PolynomialRing(K)
+            sage: f = 1/1331 * t^2 + 5 * w + 7
+            sage: f.global_height()
+            9.13959596745043
+
+        ::
+
+            sage: R.<x,y> = QQ[]
+            sage: f = 1/123*x*y + 12
+            sage: f.global_height(prec=2)
+            8.0
         """
         if prec is None:
             prec = 53
@@ -5543,7 +5559,7 @@ cdef class MPolynomial_libsingular(MPolynomial):
 
         from sage.schemes.projective.projective_space import ProjectiveSpace
         P = ProjectiveSpace(K, f.number_of_terms()-1)
-        return P.point(f.coefficients()).global_height()
+        return P.point(f.coefficients()).global_height(prec=prec)
 
     def local_height(self, v, prec=None):
         """
@@ -5567,12 +5583,32 @@ cdef class MPolynomial_libsingular(MPolynomial):
             sage: f = 1/1331*x^2 + 1/4000*y^2
             sage: f.local_height(1331)
             7.19368581839511
+
+        ::
+
+            sage: R.<x> = QQ[]
+            sage: K.<k> = NumberField(x^2 - 5)
+            sage: T.<t,w> = K[]
+            sage: I = K.ideal(3)
+            sage: f = 1/3*t*w + 3
+            sage: f.local_height(I)
+            1.09861228866811
+
+        ::
+
+            sage: R.<x,y> = QQ[]
+            sage: f = 1/2*x*y + 2
+            sage: f.local_height(2, prec=2)
+            0.75
         """
+        if prec is None:
+            prec = 53
+
         K = FractionField(self.base_ring())
         if K not in NumberFields() or is_NumberFieldOrder(K):
             raise TypeError("must be over a Numberfield or a Numberfield order")
 
-        return max([K(c).local_height(v, prec) for c in self.coefficients()])
+        return max([K(c).local_height(v, prec=prec) for c in self.coefficients()])
 
     def local_height_arch(self, i, prec=None):
         """
@@ -5596,14 +5632,30 @@ cdef class MPolynomial_libsingular(MPolynomial):
             sage: f = 210*x*y
             sage: f.local_height_arch(0)
             5.34710753071747
+
+        ::
+
+            sage: R.<x> = QQ[]
+            sage: K.<k> = NumberField(x^2 - 5)
+            sage: T.<t,w> = K[]
+            sage: f = 1/2*t*w + 3
+            sage: f.local_height_arch(1, prec=52)
+            1.09861228866811
+
+        ::
+
+            sage: R.<x,y> = QQ[]
+            sage: f = 1/2*x*y + 3
+            sage: f.local_height_arch(0, prec=2)
+            1.0
         """
         K = FractionField(self.base_ring())
         if K not in NumberFields() or is_NumberFieldOrder(K):
             return TypeError("must be over a Numberfield or a Numberfield Order")
 
         if K == QQ:
-            return max([K(c).local_height_arch(prec) for c in self.coefficients()])
-        return max([K(c).local_height_arch(i, prec) for c in self.coefficients()])
+            return max([K(c).local_height_arch(prec=prec) for c in self.coefficients()])
+        return max([K(c).local_height_arch(i, prec=prec) for c in self.coefficients()])
 
     def gradient(self):
         """

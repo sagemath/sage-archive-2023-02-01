@@ -5785,6 +5785,22 @@ cdef class Polynomial(CommutativeAlgebraElement):
             sage: f = QQbar(i)*x^2 + 3*x
             sage: f.global_height()
             1.09861228866811
+
+        ::
+
+            sage: R.<x> = PolynomialRing(QQ)
+            sage: K.<k> = NumberField(x^2 + 5)
+            sage: T.<t> = PolynomialRing(K)
+            sage: f = 1/1331 * t^2 + 5 * t + 7
+            sage: f.global_height()
+            9.13959596745043
+
+        ::
+
+            sage: R.<x> = QQ[]
+            sage: f = 1/123*x^2 + 12
+            sage: f.global_height(prec=2)
+            8.0
         """
         if prec is None:
             prec = 53
@@ -5795,12 +5811,12 @@ cdef class Polynomial(CommutativeAlgebraElement):
         if K in NumberFields() or is_NumberFieldOrder(K):
             from sage.schemes.projective.projective_space import ProjectiveSpace
             P = ProjectiveSpace(K, self.number_of_terms()-1)
-            return P.point(self.coefficients()).global_height()
+            return P.point(self.coefficients()).global_height(prec=prec)
         elif K is QQbar:
             K_pre, P, phi = number_field_elements_from_algebraics(self.coefficients())
             from sage.schemes.projective.projective_space import ProjectiveSpace
             Pr = ProjectiveSpace(K_pre, len(P)-1)
-            return Pr.point(P).global_height()
+            return Pr.point(P).global_height(prec=prec)
         raise TypeError("Must be over a Numberfield or a Numberfield Order.")
 
 
@@ -5826,12 +5842,32 @@ cdef class Polynomial(CommutativeAlgebraElement):
             sage: f = 1/1331*x^2 + 1/4000*x
             sage: f.local_height(1331)
             7.19368581839511
+
+        ::
+
+            sage: R.<x> = QQ[]
+            sage: K.<k> = NumberField(x^2 - 5)
+            sage: T.<t> = K[]
+            sage: I = K.ideal(3)
+            sage: f = 1/3*t^2 + 3
+            sage: f.local_height(I)
+            1.09861228866811
+
+        ::
+
+            sage: R.<x> = QQ[]
+            sage: f = 1/2*x^2 + 2
+            sage: f.local_height(2, prec=2)
+            0.75
         """
+        if prec is None:
+            prec = 53
+
         K = FractionField(self.base_ring())
         if K not in NumberFields() or is_NumberFieldOrder(K):
             raise TypeError("must be over a Numberfield or a Numberfield order")
 
-        return max([K(c).local_height(v, prec) for c in self.coefficients()])
+        return max([K(c).local_height(v, prec=prec) for c in self.coefficients()])
 
     def local_height_arch(self, i, prec=None):
         """
@@ -5855,14 +5891,33 @@ cdef class Polynomial(CommutativeAlgebraElement):
             sage: f = 210*x^2
             sage: f.local_height_arch(0)
             5.34710753071747
+
+        ::
+
+            sage: R.<x> = QQ[]
+            sage: K.<k> = NumberField(x^2 - 5)
+            sage: T.<t> = K[]
+            sage: f = 1/2*t^2 + 3
+            sage: f.local_height_arch(1, prec=52)
+            1.09861228866811
+
+        ::
+
+            sage: R.<x> = QQ[]
+            sage: f = 1/2*x^2 + 3
+            sage: f.local_height_arch(0, prec=2)
+            1.0
         """
+        if prec is None:
+            prec = 53
+
         K = FractionField(self.base_ring())
         if K not in NumberFields() or is_NumberFieldOrder(K):
             return TypeError("must be over a Numberfield or a Numberfield Order")
 
         if K == QQ:
-            return max([K(c).local_height_arch(prec) for c in self.coefficients()])
-        return max([K(c).local_height_arch(i, prec) for c in self.coefficients()])
+            return max([K(c).local_height_arch(prec=prec) for c in self.coefficients()])
+        return max([K(c).local_height_arch(i, prec=prec) for c in self.coefficients()])
 
     def exponents(self):
         """

@@ -359,7 +359,7 @@ Methods
 #                     2010-2016 Nathann Cohen <nathann.cohen@gmail.com>
 #                     2010-2017 J. H. Palmieri <palmieri@math.washington.edu>
 #                     2010-2018 Christian Stump <christian.stump@univie.ac.at>
-#                               Vincent Delecroix <20100.delecroix at gmail.com>
+#                     2010-2022 Vincent Delecroix <20100.delecroix at gmail.com>
 #                     2011      Anne Schilling <anne@math.ucdavis.edu>
 #                               Diego de Estrada <destrada@dc.uba.ar>
 #                               Eviatar Bach <eviatarbach@gmail.com>
@@ -14621,23 +14621,20 @@ class GenericGraph(GenericGraph_pyx):
             return not self.size()
         return not self.subgraph(vertices).size()
 
-    def is_subgraph(self, other, induced=True):
+    def is_subgraph(self, other, induced=True, up_to_isomorphism=False):
         """
         Check whether ``self`` is a subgraph of ``other``.
 
         .. WARNING::
 
-            Please note that this method does not check whether ``self``
-            contains a subgraph *isomorphic* to ``other``, but only if it
-            directly contains it as a subgraph !
-
-            By default ``induced`` is ``True`` for backwards compatibility.
+            The arguments ``induced`` and ``up_to_isomorphism`` are set
+            respectively to ``True`` and ``False`` by default.
 
         INPUT:
 
         - ``other`` -- a Sage (Di)Graph
 
-        - ``induced`` - boolean (default: ``True``); if set to ``True`` check
+        - ``induced`` -- boolean (default: ``True``); if set to ``True`` check
           whether the graph is an *induced* subgraph of ``other`` that is if the
           vertices of the graph are also vertices of ``other``, and the edges of
           the graph are equal to the edges of ``other`` between the vertices
@@ -14647,6 +14644,11 @@ class GenericGraph(GenericGraph_pyx):
           that is if all vertices of the graph are also in ``other`` and all
           edges of the graph are also in ``other``.
 
+        - ``up_to_isomorphism`` -- boolean (default: ``False``); if set to
+          ``True`` check whether ``other`` is a subgraph ignoring the labeling
+          of vertices and edges. Otherwise, vertex and edge labellings must
+          coincide in the copy or induced copy.
+
         OUTPUT:
 
         boolean -- ``True`` iff the graph is a (possibly induced) subgraph of
@@ -14654,9 +14656,8 @@ class GenericGraph(GenericGraph_pyx):
 
         .. SEEALSO::
 
-            If you are interested in the (possibly induced) subgraphs isomorphic
-            to the graph in ``other``, you are looking for the following
-            methods:
+            For more advanced search of subgraphs isomorphic to a given graph,
+            you could consider the following methods:
 
             - :meth:`~GenericGraph.subgraph_search` -- find a subgraph
               isomorphic to ``other`` inside of the graph
@@ -14683,6 +14684,19 @@ class GenericGraph(GenericGraph_pyx):
             sage: H.is_subgraph(G, induced=False)
             False
 
+        The 4x4 grid contains a path of length 15 and an induced path of length
+        11::
+
+             sage: p11 = graphs.PathGraph(11)
+             sage: p15 = graphs.PathGraph(15)
+             sage: g = graphs.Grid2dGraph(4, 4)
+             sage: p15.is_subgraph(g, induced=False, up_to_isomorphism=True)
+             True
+             sage: p15.is_subgraph(g, induced=True, up_to_isomorphism=True)
+             False
+             sage: p11.is_subgraph(g, induced=True, up_to_isomorphism=True)
+             True
+
         TESTS:
 
         Raise an error when ``self`` and ``other`` are of different types::
@@ -14705,11 +14719,17 @@ class GenericGraph(GenericGraph_pyx):
         if isinstance(self, DiGraph) and not isinstance(other, DiGraph):
             raise ValueError('the input parameter must be a DiGraph')
 
-        if self.num_verts() > other.num_verts():
+        if self.num_verts() > other.num_verts() or self.num_edges() > other.num_edges():
             return False
 
-        if any(not other.has_vertex(v) for v in self.vertex_iterator()):
+        if up_to_isomorphism:
+            return other.subgraph_search(self, induced=induced) is not None
+
+        if not all(other.has_vertex(v) for v in self.vertex_iterator()):
             return False
+
+        self._scream_if_not_simple()
+        other._scream_if_not_simple()
 
         if induced:
             # Check whether ``self`` is contained in ``other``

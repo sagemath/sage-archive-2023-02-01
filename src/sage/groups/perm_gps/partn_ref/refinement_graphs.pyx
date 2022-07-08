@@ -288,7 +288,7 @@ def search_tree(G_in, partition, lab=True, dig=False, dict_rep=False, certificat
         sage: for i,j,_ in G.edge_iterator():
         ....:  GD.add_arc(i,j); GD.add_arc(j,i)
         ....:  GS.add_arc(i,j); GS.add_arc(j,i)
-        sage: Pi=[range(20)]
+        sage: Pi = [range(20)]
         sage: a,b = st(G, Pi)
         sage: asp,bsp = st(GS, Pi)
         sage: ade,bde = st(GD, Pi)

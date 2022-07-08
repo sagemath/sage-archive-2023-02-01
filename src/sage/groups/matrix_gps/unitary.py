@@ -224,7 +224,7 @@ def GU(n, R, var='a', invariant_form=None):
         [     1   E(5)      0]
         [E(5)^4      2      0]
         [     0      0      1]
-        sage: pm=Permutation((1,2,3)).to_matrix()
+        sage: pm = Permutation((1,2,3)).to_matrix()
         sage: g = G(pm); g in G; g
         True
         [0 0 1]
@@ -324,7 +324,7 @@ def SU(n, R, var='a', invariant_form=None):
         [         1      zeta3          0]
         [-zeta3 - 1          2          0]
         [         0          0          1]
-        sage: pm=Permutation((1,2,3)).to_matrix()
+        sage: pm = Permutation((1,2,3)).to_matrix()
         sage: G(pm)
         [0 0 1]
         [1 0 0]

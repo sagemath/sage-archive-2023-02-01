@@ -627,14 +627,17 @@ $(1)-$(4)-no-deps:
 	    touch "$$($(4))/$(SPKG_INST_RELDIR)/$(1)-$(2)"; \
 	else ( \
 	    echo; \
-	    echo "Error: $(1) is a dummy script package that the Sage distribution uses"; \
+	    echo "Note: $(1) is a dummy script package that the Sage distribution uses"; \
 	    echo "to provide information about equivalent system packages."; \
 	    echo "It cannot be installed using the Sage distribution."; \
 	    echo "Please install it manually, for example using the system packages"; \
 	    echo "recommended at the end of a run of './configure'"; \
 	    echo "See below for package-specific information."; \
 	    echo; \
-	    $$(SAGE_ROOT)/build/bin/sage-spkg-info $(1) ) | sage-logger -p cat '$$(SAGE_LOGS)/$(1)-$(2).log'; \
+	    $$(SAGE_ROOT)/build/bin/sage-spkg-info $(1); \
+	    echo; \
+	    echo "Error: $(1) is a dummy script package and "; \
+	    echo "cannot be installed using the Sage distribution." ) | sage-logger -p cat '$$(SAGE_LOGS)/$(1)-$(2).log'; \
 	    exit 1; \
 	fi
 

@@ -1,0 +1,11 @@
+// For format details, see https://aka.ms/devcontainer.json.
+{
+	"name": "Ubuntu",
+	"build": {
+		"dockerfile": "Dockerfile",
+		// Update 'VARIANT' to pick an Ubuntu version: hirsute, focal, bionic, xenial, trusty, etc.
+		"args": { "VARIANT": "jammy" }
+	},
+	// Run commands after the container is started.
+	"postStartCommand": "configure && make build"
+}

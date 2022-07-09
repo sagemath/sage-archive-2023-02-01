@@ -24,8 +24,9 @@
     "python.linting.pycodestyleEnabled": true,
     "python.linting.enabled": true,
     "cSpell.words": [
-        "furo"
+        "furo",
         "Conda",
+        "sagemath",
         "Cython"
     ],
 }

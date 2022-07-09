@@ -714,8 +714,8 @@ class SchemeMorphism_polynomial_affine_space(SchemeMorphism_polynomial):
             sage: A.<x,y> = AffineSpace(k, 2)
             sage: H = Hom(A, A)
             sage: f = H([13*w*x^2 + 4*y, 1/w*y^2]);
-            sage: f.global_height(prec=100)
-            4.17438726989564
+            sage: f.global_height(prec=2)
+            4.0
 
         ::
 
@@ -734,7 +734,7 @@ class SchemeMorphism_polynomial_affine_space(SchemeMorphism_polynomial):
             sage: f.global_height()
             3.40119738166216
         """
-        return self.homogenize(0).global_height()
+        return self.homogenize(0).global_height(prec=prec)
 
     def local_height(self, v, prec=None):
         """
@@ -770,6 +770,14 @@ class SchemeMorphism_polynomial_affine_space(SchemeMorphism_polynomial):
 
         ::
 
+            sage: P.<x,y,z> = AffineSpace(QQ, 3)
+            sage: H = Hom(P, P)
+            sage: f = H([4*x^2 + 3/100*y^2, 8/210*x*y, 1/10000*z^2]);
+            sage: f.local_height(2, prec=2)
+            3.0
+
+        ::
+
             sage: R.<z> = PolynomialRing(QQ)
             sage: K.<w> = NumberField(z^2 - 2)
             sage: P.<x,y> = AffineSpace(K, 2)
@@ -781,7 +789,7 @@ class SchemeMorphism_polynomial_affine_space(SchemeMorphism_polynomial):
         K = FractionField(self.domain().base_ring())
         if K not in _NumberFields or is_NumberFieldOrder(K):
             raise TypeError("must be over a number field or a number field order")
-        return max([K(c).local_height(v, prec) for f in self for c in f.coefficients()])
+        return max([K(c).local_height(v, prec=prec) for f in self for c in f.coefficients()])
 
     def local_height_arch(self, i, prec=None):
         """
@@ -806,6 +814,14 @@ class SchemeMorphism_polynomial_affine_space(SchemeMorphism_polynomial):
             sage: f = H([1/1331*x^2 + 1/4000*y^2, 210*x*y]);
             sage: f.local_height_arch(0)
             5.34710753071747
+
+        ::
+
+            sage: P.<x,y> = AffineSpace(QQ, 2)
+            sage: H = Hom(P, P)
+            sage: f = H([1/1331*x^2 + 1/4000*y^2, 210*x*y]);
+            sage: f.local_height_arch(0, prec=5)
+            5.2
 
         ::
 

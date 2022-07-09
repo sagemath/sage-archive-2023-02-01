@@ -14,7 +14,7 @@ fi
 set -e
 
 VERSION="1.9.0"
-VERSIONREV="5"
+VERSIONREV="15"
 PATCHSUFFIX="p0"
 
 # The upstream tarball name is: giac"$SOURCEORIG".tar.gz

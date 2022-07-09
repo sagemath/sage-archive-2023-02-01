@@ -92,14 +92,6 @@ pypi-sdists: sage_setup
 	./sage --sh build/pkgs/sagemath_repl/spkg-src
 	@echo "Built sdists are in upstream/"
 
-# ssl: build Sage, and also install pyOpenSSL. This is necessary for
-# running the secure notebook. This make target requires internet
-# access. Note that this requires that your system have OpenSSL
-# libraries and headers installed. See README.txt for more
-# information.
-ssl: all
-	./sage -i pyopenssl
-
 ###############################################################################
 # Cleaning up
 ###############################################################################

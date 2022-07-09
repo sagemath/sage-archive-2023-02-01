@@ -140,7 +140,7 @@ class PermutationGroup_unique(CachedRepresentation, PermutationGroup_generic):
             if domain not in FiniteEnumeratedSets():
                 domain = FiniteEnumeratedSet(domain)
             kwds['domain'] = domain
-        return super(PermutationGroup_unique, cls).__classcall__(cls, *args, **kwds)
+        return super().__classcall__(cls, *args, **kwds)
 
 
 class PermutationGroup_symalt(PermutationGroup_unique):
@@ -195,7 +195,7 @@ class PermutationGroup_symalt(PermutationGroup_unique):
         else:
             v = domain
 
-        return super(PermutationGroup_symalt, cls).__classcall__(cls, domain=v)
+        return super().__classcall__(cls, domain=v)
 
 
 class SymmetricGroup(PermutationGroup_symalt):
@@ -320,7 +320,7 @@ class SymmetricGroup(PermutationGroup_symalt):
         """
         if isinstance(x, SymmetricGroup):
             return richcmp((self._deg, self._domain), (x._deg, x._domain), op)
-        return super(SymmetricGroup, self).__richcmp__(x, op)
+        return super().__richcmp__(x, op)
 
     def _repr_(self):
         """
@@ -614,7 +614,7 @@ class SymmetricGroup(PermutationGroup_symalt):
         if list(domain) == list(range(1, len(domain) + 1)):
             return SymmetricGroupAlgebra(base_ring, self, category=category)
         else:
-            return super(SymmetricGroup, self).algebra(base_ring)
+            return super().algebra(base_ring)
 
     Element = SymmetricGroupElement
 

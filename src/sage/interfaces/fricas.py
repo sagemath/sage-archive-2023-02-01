@@ -572,10 +572,11 @@ http://fricas.sourceforge.net.
         """
         from sage.calculus.functional import diff
         from sage.functions.log import dilog, lambert_w
-        from sage.functions.trig import sin, cos, tan, cot, sec, csc
+        from sage.functions.trig import sin, cos, tan, cot, sec, csc, asin
         from sage.functions.hyperbolic import tanh, sinh, cosh, coth, sech, csch
         from sage.functions.other import abs
         from sage.functions.gamma import gamma
+        from sage.functions.special import elliptic_e
         from sage.misc.functional import symbolic_sum, symbolic_prod
         from sage.rings.infinity import infinity
         register_symbol(pi, {'fricas': 'pi'}, 0)  # %pi::INFORM is %pi, but (pi) also exists
@@ -596,6 +597,7 @@ http://fricas.sourceforge.net.
         register_symbol(csch, {'fricas': 'csch'})
         register_symbol(gamma, {'fricas': 'Gamma'}, 1)
         register_symbol(gamma, {'fricas': 'Gamma'}, 2)
+        register_symbol(lambda x, y: elliptic_e(asin(x), y), {'fricas': 'ellipticE'}, 2)
         register_symbol(lambda x, y: x + y, {'fricas': '+'}, 2)
         register_symbol(lambda x, y: x - y, {'fricas': '-'}, 2)
         register_symbol(lambda x, y: x * y, {'fricas': '*'}, 2)

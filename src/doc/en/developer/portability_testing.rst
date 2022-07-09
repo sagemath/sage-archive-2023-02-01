@@ -1167,8 +1167,8 @@ to ``devcontainer.json`` in the directory ``.devcontainer``. It uses
 change to a different platform or another version.
 
 Then, opening the Sage repository in the configured devcontainer pulls the
-image from ghcr.io, installs `additional system packages for
-development`_, and builds Sage from
+image from ghcr.io, installs additional system packages for
+development, and builds Sage from
 source, reusing the installation (:envvar:`SAGE_LOCAL`,
 :envvar:`SAGE_VENV`) from the image.
 

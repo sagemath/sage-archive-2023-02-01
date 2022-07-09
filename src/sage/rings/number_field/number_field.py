@@ -8918,7 +8918,7 @@ class NumberField_absolute(NumberField_generic):
         if base is None:
             base = QQ
         elif base is self:
-            return super(NumberField_absolute, self).free_module(base=base, basis=basis, map=map)
+            return super().free_module(base=base, basis=basis, map=map)
         if basis is not None or base is not QQ:
             raise NotImplementedError
         V = QQ**self.degree()
@@ -11413,7 +11413,7 @@ class NumberField_cyclotomic(NumberField_absolute, sage.rings.abc.NumberField_cy
                 v = []
             except AttributeError:
                 # zeta not defined
-                return super(NumberField_cyclotomic, self).embeddings(K)
+                return super().embeddings(K)
             else:
                 X = [m for m in range(n) if arith.gcd(m,n) == 1]
                 v = [self.hom([z**i], check=False) for i in X]

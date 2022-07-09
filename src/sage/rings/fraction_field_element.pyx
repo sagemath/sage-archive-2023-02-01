@@ -1236,8 +1236,9 @@ cdef class FractionFieldElement_1poly_field(FractionFieldElement):
         """
         if self._is_reduced:
             return
-        super(self.__class__, self).reduce()
+        super().reduce()
         self.normalize_leading_coefficients()
+
 
 def make_element(parent, numerator, denominator):
     """

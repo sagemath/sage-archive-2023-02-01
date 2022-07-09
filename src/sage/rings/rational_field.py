@@ -263,7 +263,7 @@ class RationalField(Singleton, number_field_base.NumberField):
         """
         if key == 'element_is_atomic':
             return True
-        return super(RationalField, self)._repr_option(key)
+        return super()._repr_option(key)
 
     def _latex_(self):
         r"""
@@ -452,7 +452,7 @@ class RationalField(Singleton, number_field_base.NumberField):
         elif isinstance(I, Ideal_generic) and I.base_ring() is ZZ:
             return QmodnZ(I.gen())
         else:
-            return super(RationalField, self).__truediv__(I)
+            return super().__truediv__(I)
 
     def range_by_height(self, start, end=None):
         r"""

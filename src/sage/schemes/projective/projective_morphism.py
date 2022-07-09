@@ -1344,9 +1344,7 @@ class SchemeMorphism_polynomial_projective_space(SchemeMorphism_polynomial):
             sage: exp(f.global_height())
             625.000000000000
 
-        ::
-
-        Scaling should not change the result:
+        Scaling should not change the result::
 
             sage: P.<x,y> = ProjectiveSpace(QQ, 1)
             sage: f = DynamicalSystem([1/25*x^2 + 25/3*x*y + y^2, 1*y^2])

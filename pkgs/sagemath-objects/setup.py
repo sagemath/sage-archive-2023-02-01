@@ -42,7 +42,7 @@ if sdist:
     python_modules = []
     cython_modules = []
 else:
-    from sage_setup.find import find_python_sources, is_package_or_namespace_package_dir
+    from sage_setup.find import find_python_sources
     python_packages, python_modules, cython_modules = find_python_sources(
         '.', ['sage'])   # for now, we do the filtering using MANIFEST
 

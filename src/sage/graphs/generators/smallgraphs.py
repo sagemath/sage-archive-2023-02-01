@@ -19,8 +19,8 @@ The methods defined here appear in :mod:`sage.graphs.graph_generators`.
 from sage.graphs.graph import Graph
 from sage.rings.rational_field import QQ
 from sage.misc.functional import sqrt
-
 from math import sin, cos, pi
+
 
 # ****************************************************************************
 #   Named Graphs
@@ -105,6 +105,7 @@ def HarborthGraph():
     g.name("Harborth Graph")
     return g
 
+
 def HarriesGraph(embedding=1):
     r"""
     Return the Harries Graph.
@@ -159,7 +160,7 @@ def HarriesGraph(embedding=1):
     """
     from sage.graphs.generators.families import LCFGraph
     g = LCFGraph(70, [-29, -19, -13, 13, 21, -27, 27, 33, -13, 13,
-                             19, -21, -33, 29], 5)
+                      19, -21, -33, 29], 5)
     g.name("Harries Graph")
 
     if embedding == 1:
@@ -294,22 +295,17 @@ def HarriesWongGraph(embedding=1):
 
         # Binary tree (left side)
         d[66] = (-9.5, 0)
-        g._line_embedding([37, 65, 67], first=(-8, 2.25),
-                last=(-8, -2.25))
+        g._line_embedding([37, 65, 67], first=(-8, 2.25), last=(-8, -2.25))
         g._line_embedding([36, 38, 64, 24, 68, 30], first=(-7, 3),
-                last=(-7, -3))
+                          last=(-7, -3))
         g._line_embedding([35, 39, 63, 25, 59, 29, 11, 5, 55, 23, 69, 31],
-                first=(-6, 3.5), last=(-6, -3.5))
+                          first=(-6, 3.5), last=(-6, -3.5))
 
         # Cube, corners: [9, 15, 21, 27, 45, 51, 57, 61]
-        g._circle_embedding([61, 9], center=(0, -1.5), shift=.2,
-                radius=4)
-        g._circle_embedding([27, 15], center=(0, -1.5), shift=.7,
-                radius=4*.707)
-        g._circle_embedding([51, 21], center=(0, 2.5), shift=.2,
-                radius=4)
-        g._circle_embedding([45, 57], center=(0, 2.5), shift=.7,
-                radius=4*.707)
+        g._circle_embedding([61, 9], center=(0, -1.5), shift=.2, radius=4)
+        g._circle_embedding([27, 15], center=(0, -1.5), shift=.7, radius=4*.707)
+        g._circle_embedding([51, 21], center=(0, 2.5), shift=.2, radius=4)
+        g._circle_embedding([45, 57], center=(0, 2.5), shift=.7, radius=4*.707)
 
         # Cube, subdivision
         g._line_embedding([21, 22, 43, 44, 45], first=d[21], last=d[45])
@@ -334,6 +330,7 @@ def HarriesWongGraph(embedding=1):
         return g
     else:
         raise ValueError("the value of embedding must be 1 or 2")
+
 
 def WellsGraph():
     r"""
@@ -366,7 +363,6 @@ def WellsGraph():
         4
         sage: g.is_regular(k=5)
         True
-
     """
     from .platonic_solids import DodecahedralGraph
     from .basic import CompleteBipartiteGraph
@@ -378,11 +374,11 @@ def WellsGraph():
     distance3 = dodecahedron.distance_graph([3])
 
     # Building the graph whose line graph is the dodecahedron.
-    b = CompleteBipartiteGraph(5,5)
-    b.delete_edges([(0,5), (1,6), (2,7), (3,8), (4,9)])
+    b = CompleteBipartiteGraph(5, 5)
+    b.delete_edges([(0, 5), (1, 6), (2, 7), (3, 8), (4, 9)])
 
     # Computing the isomorphism between the two
-    b = b.line_graph(labels = False)
+    b = b.line_graph(labels=False)
     _, labels = distance3.is_isomorphic(b, certificate=True)
 
     # The relabeling that the books claims to exist.
@@ -435,12 +431,13 @@ def WellsGraph():
          (3, 17, 21, 9, 24, 16, 27, 25),
          (6, 10, 8, 15, 0, 11, 19, 26)]
 
-    g._circle_embedding(p[0], radius = 1)
-    g._circle_embedding(p[1], radius = .9)
-    g._circle_embedding(p[2], radius = .8)
-    g._circle_embedding(p[3], radius = .7)
+    g._circle_embedding(p[0], radius=1)
+    g._circle_embedding(p[1], radius=.9)
+    g._circle_embedding(p[2], radius=.8)
+    g._circle_embedding(p[3], radius=.7)
 
     return g
+
 
 def Cell600(embedding=1):
     r"""
@@ -521,6 +518,7 @@ def Cell600(embedding=1):
 
     return g
 
+
 def Cell120():
     r"""
     Return the 120-Cell graph.
@@ -553,8 +551,8 @@ def Cell120():
     step = [(0, 0, K(a) * 2, K(b) * 2)
             for a in [-1, 1] for b in [-1, 1]]
     step += [(a * K(1), b * K(1), c * K(1), d * (2 * f - 1))
-            for a in [-1, 1] for b in [-1, 1]
-            for c in [-1, 1] for d in [-1, 1]]
+             for a in [-1, 1] for b in [-1, 1]
+             for c in [-1, 1] for d in [-1, 1]]
     step += [(a * (2 - f), b * f, c * f, d * f)
              for a in [-1, 1] for b in [-1, 1]
              for c in [-1, 1] for d in [-1, 1]]
@@ -569,12 +567,12 @@ def Cell120():
     step = [(0, a * (2 - f), b * K(1), c * (f + 1))
             for a in [-1, 1] for b in [-1, 1] for c in [-1, 1]]
     step += [(0, a * (f - 1), b * f, c * (2 * f - 1))
-            for a in [-1, 1] for b in [-1, 1] for c in [-1, 1]]
+             for a in [-1, 1] for b in [-1, 1] for c in [-1, 1]]
     step += [(a * (f - 1), b * K(1), c * f, d * K(2))
              for a in [-1, 1] for b in [-1, 1]
              for c in [-1, 1] for d in [-1, 1]]
     vert2 = [K4([v[s(1) - 1], v[s(2) - 1], v[s(3) - 1], v[s(4) - 1]])
-              for v in step for s in AlternatingGroup(4)]
+             for v in step for s in AlternatingGroup(4)]
 
     # all vertices together
     U = vert1 + vert2
@@ -629,6 +627,7 @@ def Cell120():
 
     return g
 
+
 def SuzukiGraph():
     r"""
     Return the Suzuki Graph.
@@ -654,6 +653,7 @@ def SuzukiGraph():
     g.relabel()
     g.name("Suzuki graph")
     return g
+
 
 def HallJankoGraph(from_string=True):
     r"""
@@ -772,6 +772,7 @@ def HallJankoGraph(from_string=True):
     g.name("Hall-Janko graph")
     return g
 
+
 def Balaban10Cage(embedding=1):
     r"""
     Return the Balaban 10-cage.
@@ -822,10 +823,10 @@ def Balaban10Cage(embedding=1):
         ValueError: the value of embedding must be 1 or 2
     """
     L = [-9, -25, -19, 29, 13, 35, -13, -29, 19, 25, 9, -29, 29, 17, 33,
-          21, 9,-13, -31, -9, 25, 17, 9, -31, 27, -9, 17, -19, -29, 27,
-          -17, -9, -29, 33, -25,25, -21, 17, -17, 29, 35, -29, 17, -17,
-          21, -25, 25, -33, 29, 9, 17, -27, 29, 19, -17, 9, -27, 31, -9,
-          -17, -25, 9, 31, 13, -9, -21, -33, -17, -29, 29]
+         21, 9, -13, -31, -9, 25, 17, 9, -31, 27, -9, 17, -19, -29, 27,
+         -17, -9, -29, 33, -25, 25, -21, 17, -17, 29, 35, -29, 17, -17,
+         21, -25, 25, -33, 29, 9, 17, -27, 29, 19, -17, 9, -27, 31, -9,
+         -17, -25, 9, 31, 13, -9, -21, -33, -17, -29, 29]
 
     from sage.graphs.generators.families import LCFGraph
     g = LCFGraph(70, L, 1)
@@ -837,25 +838,25 @@ def Balaban10Cage(embedding=1):
         raise ValueError("the value of embedding must be 1 or 2")
 
     L3 = [5, 24, 35, 46, 29, 40, 51, 34, 45, 56]
-    g._circle_embedding(L3, center=(0, 0), radius = 4.3)
+    g._circle_embedding(L3, center=(0, 0), radius=4.3)
 
-    L2  = [6, 4, 23, 25, 60, 36, 1, 47, 28, 30, 39, 41, 50, 52, 33, 9, 44,
-            20, 55, 57]
-    g._circle_embedding(L2, center=(0, 0), radius = 5, shift=-.5)
-
+    L2 = [6, 4, 23, 25, 60, 36, 1, 47, 28, 30, 39, 41, 50, 52, 33, 9, 44,
+          20, 55, 57]
+    g._circle_embedding(L2, center=(0, 0), radius=5, shift=-.5)
 
     L1a = [69, 68, 67, 66, 65, 64, 63, 62, 61, 0]
     L1b = [19, 18, 17, 16, 15, 14, 13, 12, 11, 10]
-    g._circle_embedding(L1a, center=(0, 0), radius = 6, shift = 3.25)
-    g._circle_embedding(L1b, center=(0, 0), radius = 6, shift = -1.25)
+    g._circle_embedding(L1a, center=(0, 0), radius=6, shift=3.25)
+    g._circle_embedding(L1b, center=(0, 0), radius=6, shift=-1.25)
 
     L4a = [37, 2, 31, 38, 53, 32, 21, 54, 3, 22]
-    g._circle_embedding(L4a, center=(0, 0), radius = 3, shift = 1.9)
+    g._circle_embedding(L4a, center=(0, 0), radius=3, shift=1.9)
 
     L4b = [26, 59, 48, 27, 42, 49, 8, 43, 58, 7]
-    g._circle_embedding(L4b, center=(0, 0), radius = 3, shift = 1.1)
+    g._circle_embedding(L4b, center=(0, 0), radius=3, shift=1.1)
 
     return g
+
 
 def Balaban11Cage(embedding=1):
     r"""
@@ -924,7 +925,7 @@ def Balaban11Cage(embedding=1):
         pos_dict = {}
         for j in range(8):
             for i in range(8):
-                pos_dict[str(j) + str(i)]= [
+                pos_dict[str(j) + str(i)] = [
                         0.8 * float(cos(2*((8*j + i)*pi/64 + pi/128))),
                         0.8 * float(sin(2*((8*j + i)*pi/64 + pi/128)))
                 ]
@@ -1023,28 +1024,29 @@ def Balaban11Cage(embedding=1):
               96]
 
         d = g.get_pos()
-        for i,v in enumerate(v1):
-            d[v] = (-2, 16.5-i)
+        for i, v in enumerate(v1):
+            d[v] = (-2, 16.5 - i)
 
-        for i,v in enumerate(l1):
-            d[v] = (-10, 8-i)
+        for i, v in enumerate(l1):
+            d[v] = (-10, 8 - i)
 
-        for i,v in enumerate(l2):
-            d[v] = (10, 8.5-i)
+        for i, v in enumerate(l2):
+            d[v] = (10, 8.5 - i)
 
-        for i,v in enumerate(v2):
-            d[v] = (2, 16.5-i)
+        for i, v in enumerate(v2):
+            d[v] = (2, 16.5 - i)
 
-        for i,v in enumerate([0, 111, 92, 91, 52, 51, 23, 22]):
-            d[v] = (-20, 14.5-4*i)
+        for i, v in enumerate([0, 111, 92, 91, 52, 51, 23, 22]):
+            d[v] = (-20, 14.5 - 4*i)
 
-        for i,v in enumerate([104, 103, 86, 85, 40, 39, 31, 30]):
-            d[v] = (20, 14.5-4*i)
+        for i, v in enumerate([104, 103, 86, 85, 40, 39, 31, 30]):
+            d[v] = (20, 14.5 - 4*i)
 
         return g
 
     else:
         raise ValueError("the value of embedding must be 1, 2, or 3")
+
 
 def BidiakisCube():
     r"""
@@ -1090,11 +1092,12 @@ def BidiakisCube():
         3
     """
     edge_dict = {
-        0:[1,6,11], 1:[2,5], 2:[3,10], 3:[4,9], 4:[5,8],
-        5:[6], 6:[7], 7:[8,11], 8:[9], 9:[10], 10:[11]}
+        0: [1, 6, 11], 1: [2, 5], 2: [3, 10], 3: [4, 9], 4: [5, 8],
+        5: [6], 6: [7], 7: [8, 11], 8: [9], 9: [10], 10: [11]}
     g = Graph(edge_dict, format='dict_of_lists', name="Bidiakis cube")
     g._circle_embedding(range(12), angle=pi/2)
     return g
+
 
 def BiggsSmithGraph(embedding=1):
     r"""
@@ -1182,6 +1185,7 @@ def BiggsSmithGraph(embedding=1):
 
     return g
 
+
 def BlanusaFirstSnarkGraph():
     r"""
     Return the first Blanusa Snark Graph.
@@ -1215,6 +1219,7 @@ def BlanusaFirstSnarkGraph():
     g._circle_embedding(list(range(17)), shift=0.25)
     g.get_pos()[17] = (0, 0)
     return g
+
 
 def BlanusaSecondSnarkGraph():
     r"""
@@ -1254,19 +1259,19 @@ def BlanusaSecondSnarkGraph():
     g.add_cycle([(0, 5), (0, 6), (0, 7), (1, 5), (1, 6), (1, 7)])
 
     g._circle_embedding([(0, (2 * i) % 5) for i in range(5)],
-                            center=(-1.5, 0),
-                            shift=.5)
+                        center=(-1.5, 0),
+                        shift=.5)
     g._circle_embedding([(1, (2 * i) % 5) for i in range(5)],
-                            center=(1.5, 0))
+                        center=(1.5, 0))
 
     g._circle_embedding([(0, i) for i in range(5, 8)] + [c0] * 4,
-                            center=(-1.2, 0),
-                            shift=2.5,
-                            radius=2.2)
+                        center=(-1.2, 0),
+                        shift=2.5,
+                        radius=2.2)
     g._circle_embedding([(1, i) for i in range(5, 8)] + [c0] * 4,
-                            center=(1.2, 0),
-                            shift=-1,
-                            radius=2.2)
+                        center=(1.2, 0),
+                        shift=-1,
+                        radius=2.2)
 
     g._circle_embedding([c0, c1], shift=.5)
     g.relabel()
@@ -1380,7 +1385,7 @@ def BrouwerHaemersGraph():
     F = FiniteField(q, "x")
     V = VectorSpace(F, d)
     M = Matrix(F, identity_matrix(d))
-    M[1,1] = -1
+    M[1, 1] = -1
     G = Graph([[tuple(_) for _ in V], lambda x, y: (V(x) - V(y))*(M*(V(x) - V(y))) == 0], loops=False)
     G.relabel()
     ordering = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17,

@@ -35,7 +35,7 @@ class Decoder(SageObject):
     - inherit from :class:`Decoder`
 
     - call ``Decoder.__init__`` in the subclass constructor.
-      Example: ``super(SubclassName, self).__init__(code, input_space,
+      Example: ``super().__init__(code, input_space,
       connected_encoder_name)``.
       By doing that, your subclass will have all the parameters described above initialized.
 
@@ -160,7 +160,7 @@ class Decoder(SageObject):
             ....:   def __init__(self, code):
             ....:       in_space = code.ambient_space()
             ....:       connected_enc = "GeneratorMatrix"
-            ....:       super(DecoderExample, self).__init__(code, in_space, connected_enc)
+            ....:       super().__init__(code, in_space, connected_enc)
 
         We now create a member of our brand new class::
 

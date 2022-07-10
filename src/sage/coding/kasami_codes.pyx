@@ -200,8 +200,8 @@ class KasamiCode(AbstractLinearCode):
         if extended:
             length += 1
 
-        super(KasamiCode, self).__init__(GF(2), length,
-                                         "GeneratorMatrix", "Syndrome")
+        super().__init__(GF(2), length,
+                         "GeneratorMatrix", "Syndrome")
 
     def parameters(self):
         r"""

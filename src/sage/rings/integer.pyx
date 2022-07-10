@@ -2180,7 +2180,7 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
         """
         if modulus is not None:
             from sage.rings.finite_rings.integer_mod import Mod
-            return Mod(left, modulus) ** right
+            return (Mod(left, modulus) ** right).lift()
 
         if type(left) is type(right):
             return (<Integer>left)._pow_(right)

@@ -1990,7 +1990,7 @@ class StandardSkewTableaux_shape(StandardSkewTableaux):
             sage: S is S2
             True
         """
-        return super(StandardSkewTableaux_shape, cls).__classcall__(cls, SkewPartition(skp))
+        return super().__classcall__(cls, SkewPartition(skp))
 
     def __init__(self, skp):
         """
@@ -2385,7 +2385,7 @@ class SemistandardSkewTableaux_size_weight(SemistandardSkewTableaux):
             sage: S is S2
             True
         """
-        return super(SemistandardSkewTableaux_size_weight, cls).__classcall__(cls, n, tuple(mu))
+        return super().__classcall__(cls, n, tuple(mu))
 
     def __init__(self, n, mu):
         """
@@ -2465,7 +2465,7 @@ class SemistandardSkewTableaux_shape(SemistandardSkewTableaux):
         """
         if max_entry is None:
             max_entry = sum(p[0]) - sum(p[1])
-        return super(SemistandardSkewTableaux_shape, cls).__classcall__(cls, SkewPartition(p), max_entry)
+        return super().__classcall__(cls, SkewPartition(p), max_entry)
 
     def __init__(self, p, max_entry):
         """
@@ -2544,7 +2544,7 @@ class SemistandardSkewTableaux_shape_weight(SemistandardSkewTableaux):
         """
         p = SkewPartition(p)
         mu = tuple(mu)
-        return super(SemistandardSkewTableaux_shape_weight, cls).__classcall__(cls, p, mu)
+        return super().__classcall__(cls, p, mu)
 
     def __init__(self, p, mu):
         """

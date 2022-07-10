@@ -642,7 +642,7 @@ class GelfandTsetlinPatterns(UniqueRepresentation, Parent):
             if n is not None and n != len(top_row):
                 raise ValueError("n must be the length of the specified top row")
             return GelfandTsetlinPatternsTopRow(top_row, strict)
-        return super(GelfandTsetlinPatterns, cls).__classcall__(cls, n, k, strict)
+        return super().__classcall__(cls, n, k, strict)
 
     def __init__(self, n, k, strict):
         """

@@ -592,8 +592,7 @@ class Polyhedron_polymake(Polyhedron_base):
         if self._polymake_polytope.parent() is polymake:
             # Same polymake interface, can just return our object
             return self._polymake_polytope
-        else:
-            return super(Polyhedron_polymake, self)._polymake_(polymake)
+        return super()._polymake_(polymake)
 
     def __getstate__(self):
         r"""

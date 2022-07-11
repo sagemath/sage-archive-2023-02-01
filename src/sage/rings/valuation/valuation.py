@@ -1013,7 +1013,7 @@ class DiscreteValuation(DiscretePseudoValuation):
         """
         if other.is_trivial():
             return other.is_discrete_valuation()
-        return super(DiscreteValuation, self)._ge_(other)
+        return super()._ge_(other)
 
 
 class MacLaneApproximantNode():

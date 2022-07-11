@@ -933,7 +933,7 @@ class NumberField_relative(NumberField_generic):
             return self._element_class(self, f(self.gen()).polynomial() )
 
         # Anything else: use the code for generic number fields
-        return super(NumberField_relative, self)._convert_non_number_field_element(x)
+        return super()._convert_non_number_field_element(x)
 
     def _coerce_map_from_(self, R):
         """

@@ -137,7 +137,7 @@ class QuantumCliffordAlgebra(CombinatorialFreeModule):
         psi0*psid0
         sage: psid0 * psi0
         -w0 + psi0*psid0
-        sage; w0^2
+        sage: w0^2
         1
     """
     @staticmethod
@@ -545,9 +545,9 @@ class QuantumCliffordAlgebraGeneric(QuantumCliffordAlgebra):
 
             EXAMPLES::
 
-                sage: Cl = algebras.QuantumClifford(3)
+                sage: Cl = algebras.QuantumClifford(2)
                 sage: Cl.inject_variables()
-                Defining psi0, psi1, psi2, psid0, psid1, psid2, w0, w1, w2
+                Defining psi0, psi1, psid0, psid1, w0, w1
                 sage: w0^-1
                 (q^2+1)*w0 - q^2*w0^3
                 sage: w0^-1 * w0
@@ -573,11 +573,17 @@ class QuantumCliffordAlgebraGeneric(QuantumCliffordAlgebra):
                 sage: (w0 + w1)^-1
                 Traceback (most recent call last):
                 ...
-                NotImplementedError: inverse only implemented for basis elements
+                ValueError: cannot invert self (= w1 + w0)
                 sage: (psi0 * w0)^-1
                 Traceback (most recent call last):
                 ...
-                NotImplementedError: inverse only implemented for product of w generators
+                ValueError: cannot invert self (= psi0*w0)
+
+                sage: Cl = algebras.QuantumClifford(1, 2)
+                sage: Cl.inject_variables()
+                Defining psi0, psid0, w0
+                sage: (psi0 + psid0).inverse()
+                psid0*w0^2 + q^2*psi0*w0^2
 
                 sage: Cl = algebras.QuantumClifford(2, 2)
                 sage: Cl.inject_variables()
@@ -590,12 +596,11 @@ class QuantumCliffordAlgebraGeneric(QuantumCliffordAlgebra):
             if not self:
                 raise ZeroDivisionError
             if len(self) != 1:
-                raise NotImplementedError("inverse only implemented for basis elements")
+                return super().__invert__()
             Cl = self.parent()
             ((p, w), coeff), = list(self._monomial_coefficients.items())
             if any(p[i] != 0 for i in range(Cl._n)):
-                raise NotImplementedError("inverse only implemented for"
-                                          " product of w generators")
+                return super().__invert__()
             poly = Cl._w_poly.monomial(*w)
             wp = Cl._w_poly.gens()
             q = Cl._q
@@ -904,14 +909,25 @@ class QuantumCliffordAlgebraRootUnity(QuantumCliffordAlgebra):
                 sage: (2*w0)^-1
                 1/2*w0^5
 
+                sage: Cl = algebras.QuantumClifford(3, 1, -1)
+                sage: Cl.inject_variables()
+                Defining psi0, psi1, psi2, psid0, psid1, psid2, w0, w1, w2
+
                 sage: (w0 + w1)^-1
                 Traceback (most recent call last):
                 ...
-                NotImplementedError: inverse only implemented for basis elements
+                ValueError: cannot invert self (= w1 + w0)
                 sage: (psi0 * w0)^-1
                 Traceback (most recent call last):
                 ...
-                NotImplementedError: inverse only implemented for product of w generators
+                ValueError: cannot invert self (= psi0*w0)
+
+                sage: z = CyclotomicField(6).gen()
+                sage: Cl = algebras.QuantumClifford(1, 3, z)
+                sage: Cl.inject_variables()
+                Defining psi0, psid0, w0
+                sage: (psi0 + psid0).inverse()
+                psid0*w0^3 - psi0*w0^3
 
                 sage: Cl = algebras.QuantumClifford(2, 2, -1)
                 sage: Cl.inject_variables()
@@ -924,12 +940,11 @@ class QuantumCliffordAlgebraRootUnity(QuantumCliffordAlgebra):
             if not self:
                 raise ZeroDivisionError
             if len(self) != 1:
-                raise NotImplementedError("inverse only implemented for basis elements")
+                return super().__invert__()
             Cl = self.parent()
             ((p, w), coeff), = list(self._monomial_coefficients.items())
             if any(p[i] != 0 for i in range(Cl._n)):
-                raise NotImplementedError("inverse only implemented for"
-                                          " product of w generators")
+                return super().__invert__()
             tk = 2 * Cl._k
             w = tuple([tk-val if val else 0 for val in w])
             return Cl.element_class(Cl, {(p, w) : coeff.inverse_of_unit()})

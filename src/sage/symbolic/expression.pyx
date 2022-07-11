@@ -1206,7 +1206,7 @@ cdef class Expression(Expression_abc):
         """
         if is_a_constant(self._gobj):
             return self.pyobject()._interface_(I)
-        return super(Expression, self)._interface_(I)
+        return super()._interface_(I)
 
     def _maxima_(self, session=None):
         """
@@ -1231,9 +1231,9 @@ cdef class Expression(Expression_abc):
             # This chooses the Maxima interface used by calculus
             # Maybe not such a great idea because the "default" interface is another one
             from sage.calculus.calculus import maxima
-            return super(Expression, self)._interface_(maxima)
+            return super()._interface_(maxima)
         else:
-            return super(Expression, self)._interface_(session)
+            return super()._interface_(session)
 
     def _interface_init_(self, I):
         """
@@ -4651,7 +4651,7 @@ cdef class Expression(Expression_abc):
             sage: b._derivative(x, 2)
             20*(x + y)^3
 
-            sage: foo = function('foo',nargs=2)
+            sage: foo = function('foo', nargs=2)
             sage: foo(x^2,x^2)._derivative(x)
             2*x*D[0](foo)(x^2, x^2) + 2*x*D[1](foo)(x^2, x^2)
 
@@ -6664,7 +6664,7 @@ cdef class Expression(Expression_abc):
                 and is_a_numeric((<Expression>ex.operands()[3])._gobj)):
                     from sage.calculus.calculus import symbolic_sum
                     return symbolic_sum(*(ex.operands()))
-                return super(DefiniteSumExpander, self).composition(ex, operator)
+                return super().composition(ex, operator)
 
         s = DefiniteSumExpander(self)
         cdef Expression x = self._parent(s())

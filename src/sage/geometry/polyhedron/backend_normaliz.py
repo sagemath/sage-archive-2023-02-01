@@ -1494,7 +1494,7 @@ class Polyhedron_normaliz(Polyhedron_base):
             sage: cube._volume_normaliz(measure='induced_lattice')  # optional - pynormaliz
             6
 
-        Or one can can calculate the ambient volume, which is the above multiplied by the
+        Or one can calculate the ambient volume, which is the above multiplied by the
         volume of the unimodular simplex (or zero if not full-dimensional)::
 
             sage: cube._volume_normaliz(measure='ambient')  # optional - pynormaliz

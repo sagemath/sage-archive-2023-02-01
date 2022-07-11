@@ -314,7 +314,7 @@ can be applied on both. Here is what it can do:
     :meth:`~GenericGraph.multicommodity_flow` | Solve a multicommodity flow problem.
     :meth:`~GenericGraph.disjoint_routed_paths` | Return a set of disjoint routed paths.
     :meth:`~GenericGraph.dominating_set` | Return a minimum dominating set of the graph
-    :meth:`~GenericGraph.greedy_dominating_set` | Return a greedy distance-`k` dominating set of of the graph.
+    :meth:`~GenericGraph.greedy_dominating_set` | Return a greedy distance-`k` dominating set of the graph.
     :meth:`~GenericGraph.subgraph_search` | Return a copy of ``G`` in ``self``.
     :meth:`~GenericGraph.subgraph_search_count` | Return the number of labelled occurrences of ``G`` in ``self``.
     :meth:`~GenericGraph.subgraph_search_iterator` | Return an iterator over the labelled copies of ``G`` in ``self``.
@@ -15533,7 +15533,7 @@ class GenericGraph(GenericGraph_pyx):
         INPUT:
 
         - ``odd`` -- boolean (default: ``False``); whether to compute the odd
-          girth instead instead of the girth
+          girth instead of the girth
 
         - ``certificate`` -- boolean (default: ``False``); whether to return
           ``(g, c)``, where ``g`` is the (odd) girth and ``c`` is a list

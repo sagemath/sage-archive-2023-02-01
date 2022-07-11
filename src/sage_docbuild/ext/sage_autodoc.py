@@ -786,9 +786,9 @@ class Documenter(object):
                 except PycodeError:
                     pass
             if fname is not None:
-                self.directive.filename_set.add(fname)
+                self.directive.record_dependencies.add(fname)
         else:
-            self.directive.filename_set.add(self.analyzer.srcname)
+            self.directive.record_dependencies.add(self.analyzer.srcname)
 
         # check __module__ of object (for members not given explicitly)
         if check_module:

@@ -35,8 +35,7 @@ class Decoder(SageObject):
     - inherit from :class:`Decoder`
 
     - call ``Decoder.__init__`` in the subclass constructor.
-      Example: ``super().__init__(code, input_space,
-      connected_encoder_name)``.
+      Example: ``super().__init__(code, input_space, connected_encoder_name)``.
       By doing that, your subclass will have all the parameters described above initialized.
 
     - Then, you need to override one of decoding methods, either :meth:`decode_to_code` or

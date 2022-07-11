@@ -418,7 +418,8 @@ class AbstractLinearCode(AbstractLinearCodeNoMetric):
         self._registered_decoders['InformationSet'] = LinearCodeInformationSetDecoder
 
         self._generic_constructor = LinearCode
-        super().__init__(base_field, length, default_encoder_name, default_decoder_name)
+        super().__init__(base_field, length, default_encoder_name,
+                         default_decoder_name)
 
     def _an_element_(self):
         r"""
@@ -2309,7 +2310,8 @@ class LinearCode(AbstractLinearCode):
             # Assume input is an AbstractLinearCode, extract its generator matrix
             generator = generator.generator_matrix()
 
-        super().__init__(base_ring, generator.ncols(), "GeneratorMatrix", "Syndrome")
+        super().__init__(base_ring, generator.ncols(),
+                         "GeneratorMatrix", "Syndrome")
         self._generator_matrix = generator
         self._dimension = generator.rank()
         self._minimum_distance = d
@@ -2636,8 +2638,7 @@ class LinearCodeSyndromeDecoder(Decoder):
             raise ValueError("maximum_error_weight has to be less than code's length minus its dimension")
         else:
             self._maximum_error_weight = maximum_error_weight
-        super().__init__(code, code.ambient_space(),
-                         code._default_encoder_name)
+        super().__init__(code, code.ambient_space(), code._default_encoder_name)
         self._lookup_table = self._build_lookup_table()
 
     def __eq__(self, other):
@@ -2933,8 +2934,7 @@ class LinearCodeNearestNeighborDecoder(Decoder):
             sage: D
             Nearest neighbor decoder for [7, 4] linear code over GF(2)
         """
-        super().__init__(code, code.ambient_space(),
-                         code._default_encoder_name)
+        super().__init__(code, code.ambient_space(), code._default_encoder_name)
 
     def __eq__(self, other):
         r"""

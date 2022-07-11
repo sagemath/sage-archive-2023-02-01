@@ -400,8 +400,7 @@ class CyclicCode(AbstractLinearCode):
             self._polynomial_ring = g.parent()
             self._generator_polynomial = g
             self._dimension = code.dimension()
-            super().__init__(code.base_ring(), n,
-                             "Vector", "Syndrome")
+            super().__init__(code.base_ring(), n, "Vector", "Syndrome")
 
         # Case (3) : a defining set, a length and a field are provided
         elif (D is not None and length is not None and field is not None and

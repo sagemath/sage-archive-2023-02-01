@@ -260,10 +260,11 @@ class QAryReedMullerCode(AbstractLinearCode):
         if not(isinstance(num_of_var, (Integer, int))):
             raise ValueError("The number of variables must be an integer")
         q = base_field.cardinality()
-        if (order >= q):
+        if order >= q:
             raise ValueError("The order must be less than %s" % q)
 
-        super().__init__(base_field, q**num_of_var, "EvaluationVector", "Syndrome")
+        super().__init__(base_field, q**num_of_var,
+                         "EvaluationVector", "Syndrome")
         self._order = order
         self._num_of_var = num_of_var
         self._dimension = binomial(num_of_var + order, order)
@@ -428,8 +429,7 @@ class BinaryReedMullerCode(AbstractLinearCode):
                 "The order must be less than or equal to %s" %
                 num_of_var)
 
-        super().__init__(GF(2), 2**num_of_var,
-                         "EvaluationVector", "Syndrome")
+        super().__init__(GF(2), 2**num_of_var, "EvaluationVector", "Syndrome")
         self._order = order
         self._num_of_var = num_of_var
         self._dimension = _binomial_sum(num_of_var, order)

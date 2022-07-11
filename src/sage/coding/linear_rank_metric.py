@@ -472,7 +472,8 @@ class AbstractLinearRankMetricCode(AbstractLinearCodeNoMetric):
         self._sub_field = sub_field
 
         self._generic_constructor = LinearRankMetricCode
-        super().__init__(base_field, length, default_encoder_name, default_decoder_name, "rank")
+        super().__init__(base_field, length, default_encoder_name,
+                         default_decoder_name, "rank")
 
     def sub_field(self):
         r"""
@@ -710,7 +711,8 @@ class LinearRankMetricCode(AbstractLinearRankMetricCode):
 
         self._generator_matrix = generator
         self._length = generator.ncols()
-        super().__init__(base_field, sub_field, self._length, "GeneratorMatrix", "NearestNeighbor", basis)
+        super().__init__(base_field, sub_field, self._length,
+                         "GeneratorMatrix", "NearestNeighbor", basis)
 
     def _repr_(self):
         r"""
@@ -796,8 +798,7 @@ class LinearRankMetricCodeNearestNeighborDecoder(Decoder):
             sage: D
             Nearest neighbor decoder for [3, 2] linear rank metric code over GF(64)/GF(4)
         """
-        super().__init__(code, code.ambient_space(),
-                         code._default_encoder_name)
+        super().__init__(code, code.ambient_space(), code._default_encoder_name)
 
     def __eq__(self, other):
         r"""

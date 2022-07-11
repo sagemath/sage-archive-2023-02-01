@@ -7342,6 +7342,7 @@ class GenericGraph(GenericGraph_pyx):
 
         if use_edge_labels:
             from sage.rings.real_mpfr import RR
+
             def weight(x):
                 return x if x in RR else 1
         else:
@@ -9097,6 +9098,7 @@ class GenericGraph(GenericGraph_pyx):
             from sage.rings.real_mpfr import RR
             if integer:
                 from math import floor
+
                 def capacity(z):
                     return floor(z) if z in RR else 1
             else:
@@ -20790,6 +20792,7 @@ class GenericGraph(GenericGraph_pyx):
             sage: s = g.graphviz_string()
         """
         label = {v: 'node_{0}'.format(i) for i, v in enumerate(self)}
+
         def get_label(vertex):
             return label[vertex]
         return get_label

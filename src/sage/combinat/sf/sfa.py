@@ -5465,7 +5465,7 @@ class SymmetricFunctionAlgebra_generic_Element(CombinatorialFreeModule.Element):
 
         TESTS::
 
-            sage: f=s[3,2]
+            sage: f = s[3,2]
             sage: f.skew_by([1])
             Traceback (most recent call last):
             ...

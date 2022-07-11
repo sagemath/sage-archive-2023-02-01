@@ -35,7 +35,7 @@ from docutils.statemachine import ViewList
 
 import sphinx
 from sphinx.ext.autodoc import mock, ObjectMember
-from sphinx.ext.autodoc.importer import import_object, get_object_members, get_module_members
+from sphinx.ext.autodoc.importer import import_object, get_object_members
 from sphinx.locale import _, __
 from sphinx.pycode import ModuleAnalyzer
 from sphinx.errors import PycodeError

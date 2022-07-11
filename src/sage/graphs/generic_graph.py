@@ -5219,6 +5219,13 @@ class GenericGraph(GenericGraph_pyx):
             ....:     assert (hasattr(G, '_embedding') and G._embedding is not None) == set_embedding, (set_embedding, set_pos)
             ....:     assert (hasattr(G, '_pos') and G._pos is not None) == set_pos, (set_embedding, set_pos)
 
+        :trac:`34122`::
+
+            sage: G = DiGraph([[1, 2], [1, 4], [1, 5], [2, 3], [2, 4], [2, 5],
+            ....:              [3, 4], [3, 5], [4, 5], [5, 1]])
+            sage: G.is_planar()
+            True
+
         Corner cases::
 
             sage: graphs.EmptyGraph().is_planar()
@@ -5228,7 +5235,8 @@ class GenericGraph(GenericGraph_pyx):
         """
         # Quick check first
         if (on_embedding is None and not kuratowski and not set_embedding and not set_pos
-            and not self.allows_loops() and not self.allows_multiple_edges()):
+            and not self.allows_loops() and not self.allows_multiple_edges()
+            and not self.is_directed()):
             if self.order() > 4 and self.size() > 3 * self.order() - 6:
                 return False
 
@@ -5246,7 +5254,7 @@ class GenericGraph(GenericGraph_pyx):
             G = self.to_undirected()
             if hasattr(G, '_immutable'):
                 G = copy(G)
-            planar = is_planar(G,kuratowski=kuratowski, set_pos=set_pos, set_embedding=set_embedding)
+            planar = is_planar(G, kuratowski=kuratowski, set_pos=set_pos, set_embedding=set_embedding)
             if kuratowski:
                 bool_result = planar[0]
             else:

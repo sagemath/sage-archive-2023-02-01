@@ -13453,7 +13453,7 @@ cdef class Expression(Expression_abc):
 
 cpdef _repr_Expression(x):
     r"""
-    Return the string representation of the eexpression ``x``.
+    Return the string representation of the expression ``x``.
 
     EXAMPLES::
 

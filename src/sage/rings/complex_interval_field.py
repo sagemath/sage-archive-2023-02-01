@@ -360,7 +360,7 @@ class ComplexIntervalField_class(sage.rings.abc.ComplexIntervalField):
         """
         return RealIntervalField(self._prec)
 
-    # For compatibility with with other complex number implementations
+    # For compatibility with other complex number implementations
     # such as CC.
     _real_field = real_field
 

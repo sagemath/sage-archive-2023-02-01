@@ -1101,7 +1101,7 @@ class RationalField(Singleton, number_field_base.NumberField):
         r"""
         Return a defining polynomial of `\QQ`, as for other number fields.
 
-        This is is also aliased to :meth:`self.defining_polynomial()`
+        This is also aliased to :meth:`self.defining_polynomial()`
         and :meth:`self.absolute_polynomial()`.
 
         EXAMPLES::

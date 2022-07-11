@@ -415,7 +415,7 @@ class DiscreteValuation(DiscretePseudoValuation):
           at least that valuation.
 
         - ``require_incomparability`` -- a boolean (default: ``False``);
-          whether to require require the returned valuations to be incomparable
+          whether to require the returned valuations to be incomparable
           (with respect to the partial order on valuations defined by comparing
           them pointwise.)
 

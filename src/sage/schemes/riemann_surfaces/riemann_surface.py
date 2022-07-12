@@ -1558,17 +1558,18 @@ class RiemannSurface():
         the list corresponds to an element of ``differentials``. Introducing the
         notation ``RBzg = PolynomialRing(self._R, ['z','g'])`` and 
         ``CCzg = PolynomialRing(self._CC, ['z','g'])``, we have that:
-         - ``g`` is the full rational function in ``self._R.fraction_field()`` 
-           giving the differential,
-         - ``dgdz`` is the derivative of ``g`` with respect to ``self._R.gen(0)``,
-           written in terms of ``self._R.gen(0)`` and ``g``, hence laying in 
-           ``RBzg``,
-         - ``F`` is the minimal polynomial of ``g`` over ``self._R.gen(0)``, 
-           laying in the polynomial ring ``CCzg``,
-         - ``a0_info`` is a tuple ``(lc, roots)`` where ``lc`` and ``roots`` are 
-           the leading coefficient and roots of the polynomial in ``CCzg.gen(0)``
-           that is the coefficient of the term of ``F`` of highest degree in 
-           ``CCzg.gen(1)``. 
+
+        - ``g`` is the full rational function in ``self._R.fraction_field()`` 
+          giving the differential,
+        - ``dgdz`` is the derivative of ``g`` with respect to ``self._R.gen(0)``
+          , written in terms of ``self._R.gen(0)`` and ``g``, hence laying in 
+          ``RBzg``,
+        - ``F`` is the minimal polynomial of ``g`` over ``self._R.gen(0)``, 
+          laying in the polynomial ring ``CCzg``,
+        - ``a0_info`` is a tuple ``(lc, roots)`` where ``lc`` and ``roots`` are 
+          the leading coefficient and roots of the polynomial in ``CCzg.gen(0)``
+          that is the coefficient of the term of ``F`` of highest degree in 
+          ``CCzg.gen(1)``. 
 
         EXAMPLES::
 

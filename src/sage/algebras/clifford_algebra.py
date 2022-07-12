@@ -30,6 +30,7 @@ from sage.categories.finite_enumerated_sets import FiniteEnumeratedSets
 from sage.modules.with_basis.morphism import ModuleMorphismByLinearity
 from sage.categories.poor_man_map import PoorManMap
 from sage.rings.integer_ring import ZZ
+from sage.rings.noncommutative_ideals import Ideal_nc
 from sage.modules.free_module import FreeModule, FreeModule_generic
 from sage.matrix.constructor import Matrix
 from sage.matrix.args import MatrixArgs
@@ -2238,6 +2239,16 @@ class ExteriorAlgebra(CliffordAlgebra):
 
         return G
 
+    def _ideal_class_(self, n=0):
+        """
+        Return the class that is used to implement ideals of ``self``.
+
+        TESTS::
+
+            sage: E.<x,y,z> = ExteriorAlgebra(QQ)
+            sage: E._ideal_class_()
+        """
+        return ExteriorAlgebraIdeal
 
     class Element(CliffordAlgebraElement):
         """
@@ -2314,6 +2325,41 @@ class ExteriorAlgebra(CliffordAlgebra):
                         del d[t]
 
             return self.__class__(P, d)
+
+        def reduce(self, I, left=True):
+            r"""
+            Reduce ``self`` with respect to the elements in ``I``.
+
+            INPUT:
+
+            - ``I`` -- a list of exterior algebra elements or an ideal
+            - ``side`` -- the side, ignored if ``I`` is an ideal
+            """
+            if isinstance(I, ExteriorAlgebraIdeal):
+                I = I.groebner_basis()
+                left = (I.side() == "left")
+
+            E = self.parent()
+            f = self
+            from sage.algebras.exterior_algebra_cython import leading_support
+            for g in I:
+                lm = leading_support(g)
+                reduction = True
+                while reduction:
+                    supp = f.support()
+                    reduction = False
+                    for s in supp:
+                        if lm <= s:
+                            reduction = True
+                            mon = E.monomial(s - lm)
+                            if left:
+                                gp = mon * g
+                                f = f - f[s] / gp[s] * gp
+                            else:
+                                gp = g * mon
+                                f = f - f[s] / gp[s] * gp
+                            break
+            return f
 
         def interior_product(self, x):
             r"""
@@ -3154,3 +3200,44 @@ class ExteriorAlgebraCoboundary(ExteriorAlgebraDifferential):
             basis = next_basis
 
         return ChainComplex(data, degree=1)
+
+class ExteriorAlgebraIdeal(Ideal_nc):
+    """
+    An ideal of the exterior algebra.
+    """
+    def reduce(self, f):
+        """
+        Reduce ``f`` modulo ``self``.
+        """
+        return f.reduce(self.groebner_basis())
+
+    @cached_method
+    def groebner_basis(self):
+        r"""
+        Return the reduced Gröbner basis of ``self``.
+
+        EXAMPLES:
+
+        We compute an example that was checked against Macaulay2::
+
+            sage: E.<a,b,c,d,e> = ExteriorAlgebra(QQ)
+            sage: rels = [c*d*e - b*d*e + b*c*e - b*c*d,
+            ....:         c*d*e - a*d*e + a*c*e - a*c*d,
+            ....:         b*d*e - a*d*e + a*b*e - a*b*d,
+            ....:         b*c*e - a*c*e + a*b*e - a*b*c,
+            ....:         b*c*d - a*c*d + a*b*d - a*b*c]
+            sage: I = E.ideal(rels)
+            sage: I.groebner_basis()
+            (-b*c*d + b*c*e - b*d*e + c*d*e,
+             -a*c*d + a*c*e - a*d*e + c*d*e,
+             -a*b*d + a*b*e - a*d*e + b*d*e,
+             -a*b*c + a*b*e - a*c*e + b*c*e)
+        """
+        from sage.algebras.exterior_algebra_cython import compute_groebner
+        side = 2
+        if self.side() == "left":
+            side = 0
+        elif self.side() == "right":
+            side = 1
+        return compute_groebner(self, side)
+

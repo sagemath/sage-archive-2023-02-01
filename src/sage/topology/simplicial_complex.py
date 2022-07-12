@@ -2230,7 +2230,7 @@ class SimplicialComplex(Parent, GenericCellComplex):
         :type reduced: boolean; optional, default ``True``
 
         :param generators: If ``True``, return the homology groups and
-        also generators for them.
+           also generators for them.
 
         :type reduced: boolean; optional, default ``False``
 

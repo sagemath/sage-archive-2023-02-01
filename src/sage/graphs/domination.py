@@ -513,7 +513,7 @@ def _cand_ext_enum(G, to_dom, u_next):
 
         .. WARNING::
 
-            The same output may be output several times (up to |H| times).
+            The same output may be output several times (up to ``H`` times).
 
         In order to later remove duplicates, we here output pairs ``(ext, i)``
         where ``ext`` is the output candidate extension and ``i`` counts how

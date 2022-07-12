@@ -733,6 +733,15 @@ class SchemeMorphism_polynomial_affine_space(SchemeMorphism_polynomial):
             sage: f = H([1/3*x^2 + 10, 7*x^3])
             sage: f.global_height()
             3.40119738166216
+
+        ::
+
+            sage: P.<x,y> = AffineSpace(QQ, 2)
+            sage: A.<z> = AffineSpace(QQ, 1)
+            sage: H = Hom(P, A)
+            sage: f = H([1/1331*x^2 + 4000*y])
+            sage: f.global_height()
+            15.4877354584971
         """
         return self.homogenize(0).global_height(prec=prec)
 

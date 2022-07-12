@@ -1300,50 +1300,56 @@ class SchemeMorphism_polynomial_projective_space(SchemeMorphism_polynomial):
 
         EXAMPLES::
 
-            sage: P.<x,y> = ProjectiveSpace(QQ,1)
-            sage: H = Hom(P,P)
+            sage: P.<x,y> = ProjectiveSpace(QQ, 1)
+            sage: H = Hom(P, P)
             sage: f = H([1/1331*x^2 + 1/4000*y^2, 210*x*y]);
             sage: f.global_height()
             20.8348429892146
 
         ::
 
-            sage: P.<x,y> = ProjectiveSpace(QQ,1)
-            sage: H = Hom(P,P)
+            sage: P.<x,y> = ProjectiveSpace(QQ, 1)
+            sage: H = Hom(P, P)
             sage: f = H([1/1331*x^2 + 1/4000*y^2, 210*x*y]);
             sage: f.global_height(prec=11)
             20.8
 
-        This function does not automatically normalize::
+        ::
 
-            sage: P.<x,y,z> = ProjectiveSpace(ZZ,2)
-            sage: H = Hom(P,P)
+            sage: P.<x,y,z> = ProjectiveSpace(ZZ, 2)
+            sage: H = Hom(P, P)
             sage: f = H([4*x^2 + 100*y^2, 210*x*y, 10000*z^2]);
-            sage: f.global_height()
-            8.51719319141624
-            sage: f.normalize_coordinates()
             sage: f.global_height()
             8.51719319141624
 
         ::
 
             sage: R.<z> = PolynomialRing(QQ)
-            sage: K.<w> = NumberField(z^2-2)
+            sage: K.<w> = NumberField(z^2 - 2)
             sage: O = K.maximal_order()
-            sage: P.<x,y> = ProjectiveSpace(O,1)
-            sage: H = Hom(P,P)
+            sage: P.<x,y> = ProjectiveSpace(O, 1)
+            sage: H = Hom(P, P)
             sage: f = H([2*x^2 + 3*O(w)*y^2, O(w)*y^2])
             sage: f.global_height()
             1.09861228866811
 
         ::
 
-            sage: P.<x,y> = ProjectiveSpace(QQbar,1)
-            sage: P2.<u,v,w> = ProjectiveSpace(QQbar,2)
-            sage: H = Hom(P,P2)
+            sage: P.<x,y> = ProjectiveSpace(QQbar, 1)
+            sage: P2.<u,v,w> = ProjectiveSpace(QQbar, 2)
+            sage: H = Hom(P, P2)
             sage: f = H([x^2 + QQbar(I)*x*y + 3*y^2, y^2, QQbar(sqrt(5))*x*y])
             sage: f.global_height()
             1.09861228866811
+
+        ::
+
+            sage: P.<x,y,z> = ProjectiveSpace(QQ, 2)
+            sage: A.<z,w> = ProjectiveSpace(QQ, 1)
+            sage: H = Hom(P, A)
+            sage: f = H([1/1331*x^2 + 4000*y*z, y^2])
+            sage: f.global_height()
+            15.4877354584971
 
         ::
 
@@ -1371,9 +1377,8 @@ class SchemeMorphism_polynomial_projective_space(SchemeMorphism_polynomial):
         else:
             raise TypeError("Must be over a Numberfield or a Numberfield Order or QQbar")
 
-        coeffs = []
-        for i in range(self.domain().ambient_space().dimension_relative() + 1):
-            coeffs += f[i].coefficients()
+        # Get the coefficients from all of the polynomials in the dynamical system
+        coeffs = [x for xs in [k.coefficients() for k in f] for x in xs]
 
         from sage.schemes.projective.projective_space import ProjectiveSpace
 

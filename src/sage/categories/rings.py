@@ -386,7 +386,7 @@ class Rings(CategoryWithAxiom):
             INPUT:
 
             - ``Y`` -- a ring
-            - ``category`` -- a subcategory of :class:`Rings`() or None
+            - ``category`` -- a subcategory of :class:`Rings` or None
 
             The sole purpose of this method is to construct the homset
             as a :class:`~sage.rings.homset.RingHomset`. If

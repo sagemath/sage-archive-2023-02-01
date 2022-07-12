@@ -2336,8 +2336,8 @@ class ExteriorAlgebra(CliffordAlgebra):
             - ``side`` -- the side, ignored if ``I`` is an ideal
             """
             if isinstance(I, ExteriorAlgebraIdeal):
-                I = I.groebner_basis()
                 left = (I.side() == "left")
+                I = I.groebner_basis()
 
             E = self.parent()
             f = self
@@ -3209,7 +3209,7 @@ class ExteriorAlgebraIdeal(Ideal_nc):
         """
         Reduce ``f`` modulo ``self``.
         """
-        return f.reduce(self.groebner_basis())
+        return f.reduce(self)
 
     @cached_method
     def groebner_basis(self):

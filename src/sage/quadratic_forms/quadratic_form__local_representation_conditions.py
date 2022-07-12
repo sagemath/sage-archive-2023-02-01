@@ -1,18 +1,18 @@
 """
 Local Representation Conditions
 """
-##########################################################################
-# Class for keeping track of the local conditions for representability ##
-# of numbers by a quadratic form over ZZ (and eventually QQ also).     ##
-##########################################################################
+########################################################################
+# Class for keeping track of the local conditions for representability #
+# of numbers by a quadratic form over ZZ (and eventually QQ also).     #
+########################################################################
 
 from copy import deepcopy
 
-from sage.rings.integer_ring import ZZ
 from sage.arith.all import prime_divisors, valuation, is_square
+from sage.misc.functional import numerator, denominator
 from sage.quadratic_forms.extras import least_quadratic_nonresidue
 from sage.rings.infinity import infinity
-from sage.misc.functional import numerator, denominator
+from sage.rings.integer_ring import ZZ
 from sage.rings.rational_field import QQ
 
 
@@ -165,7 +165,6 @@ class QuadraticFormLocalRepresentationConditions():
         # --------------------------------------------------
         N = Q.level()
         level_primes = prime_divisors(N)
-        prime_repn_modulus_list = [p**(valuation(4*N, p) + 2)  for p in level_primes]
 
         # Make a table of local normal forms for each p | N
         local_normal_forms = [Q.local_normal_form(p)  for p in level_primes]
@@ -381,7 +380,7 @@ class QuadraticFormLocalRepresentationConditions():
             v = [p, None, None, None, None, None, None, None, None]
             sqclass = self.squareclass_vector(p)
 
-            for i in range(len(sq_class)):
+            for i in range(len(sqclass)):
                 if QQ(self.coeff / sqclass[i]).is_padic_square(p):    # Note:This should happen only once!
                     nu = valuation(self.coeff / sqclass[i], p) / 2
                 else:
@@ -394,8 +393,6 @@ class QuadraticFormLocalRepresentationConditions():
                 return [p, infinity, infinity, infinity, infinity, None, None, None, None]
 
         raise RuntimeError("Error... The dimension stored should be a non-negative integer!")
-
-
 
     def is_universal_at_prime(self, p):
         """

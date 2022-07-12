@@ -513,7 +513,7 @@ def _cand_ext_enum(G, to_dom, u_next):
 
         .. WARNING::
 
-            The same output may be output several times (up to ``H`` times).
+            The same output may be output several times (up to `|H|` times).
 
         In order to later remove duplicates, we here output pairs ``(ext, i)``
         where ``ext`` is the output candidate extension and ``i`` counts how
@@ -593,7 +593,7 @@ def minimal_dominating_sets(G, to_dominate=None, work_on_copy=True):
     - ``work_on_copy`` -- boolean (default: ``True``); whether or not to work on
       a copy of the input graph; if set to ``False``, the input graph will be
       modified (relabeled).
-    
+
     OUTPUT:
 
     An iterator over the inclusion-minimal sets of vertices of ``G``.

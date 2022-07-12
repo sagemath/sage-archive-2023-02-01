@@ -47,8 +47,8 @@ class QuantumCliffordAlgebra(CombinatorialFreeModule):
         & \omega_a \psi^*_b & = \psi^*_b \omega_a,
         \\ \psi_a \psi_b & + \psi_b \psi_a = 0,
         & \psi^*_a \psi^*_b & + \psi^*_b \psi^*_a = 0,
-        \\ \psi_a \psi^*_a & + \q^k \psi^*_a \psi_a = \omega_a^{-k},
-        & \psi^*_a \psi_a & + \q^{-k} \psi^*_a \psi_a = \omega_a^k,
+        \\ \psi_a \psi^*_a & + q^k \psi^*_a \psi_a = \omega_a^{-k},
+        & \psi^*_a \psi_a & + q^{-k} \psi^*_a \psi_a = \omega_a^k,
         \\ \psi_a \psi^*_b & + \psi_b^* \psi_a = 0
         & & \text{if } a \neq b.
         \end{aligned}
@@ -635,7 +635,7 @@ class QuantumCliffordAlgebraRootUnity(QuantumCliffordAlgebra):
         & \omega_a \psi^*_b & = \psi^*_b \omega_a,
         \\ \psi_a \psi_b & + \psi_b \psi_a = 0,
         & \psi^*_a \psi^*_b & + \psi^*_b \psi^*_a = 0,
-        \\ \psi_a \psi^*_a + q^k \psi^*_a \psi_a & = \omega_a^k
+        \\ \psi_a \psi^*_a & + q^k \psi^*_a \psi_a = \omega_a^k
         & \psi_a \psi^*_b & + \psi_b^* \psi_a = 0 \quad (a \neq b),
         \end{aligned}
 

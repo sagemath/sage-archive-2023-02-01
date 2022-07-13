@@ -2960,11 +2960,6 @@ class ExteriorAlgebraIdeal(Ideal_nc):
              -a*b*d + a*b*e - a*d*e + b*d*e,
              -a*b*c + a*b*e - a*c*e + b*c*e)
         """
-        from sage.algebras.exterior_algebra_groebner import compute_groebner
-        side = 2
-        if self.side() == "left":
-            side = 0
-        elif self.side() == "right":
-            side = 1
-        return compute_groebner(self, side)
+        from sage.algebras.exterior_algebra_groebner import GroebnerStrategy
+        return GroebnerStrategy(self).compute_groebner()
 

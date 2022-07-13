@@ -755,7 +755,7 @@ class FileDocTestSource(DocTestSource):
         return self._create_doctests(namespace)
 
     def _test_enough_doctests(self, check_extras=True, verbose=True):
-        """
+        r"""
         This function checks to see that the doctests are not getting
         unexpectedly skipped.  It uses a different (and simpler) code
         path than the doctest creation functions, so there are a few

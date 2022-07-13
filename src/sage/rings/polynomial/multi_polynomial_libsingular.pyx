@@ -5547,7 +5547,17 @@ cdef class MPolynomial_libsingular(MPolynomial):
             sage: f = 1/123*x*y + 12
             sage: f.global_height(prec=2)
             8.0
+
+        ::
+
+            sage: R.<x,y> = QQ[]
+            sage: f = 0*x*y
+            sage: f.global_height()
+            0
         """
+        if self.is_zero():
+            return 0
+
         if prec is None:
             prec = 53
 

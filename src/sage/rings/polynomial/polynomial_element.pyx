@@ -5801,7 +5801,17 @@ cdef class Polynomial(CommutativeAlgebraElement):
             sage: f = 1/123*x^2 + 12
             sage: f.global_height(prec=2)
             8.0
+
+        ::
+
+            sage: R.<x> = QQ[]
+            sage: f = 0*x
+            sage: f.global_height()
+            0
         """
+        if self.is_zero():
+            return 0
+
         if prec is None:
             prec = 53
 

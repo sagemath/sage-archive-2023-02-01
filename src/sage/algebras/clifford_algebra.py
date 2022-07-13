@@ -2960,7 +2960,7 @@ class ExteriorAlgebraIdeal(Ideal_nc):
              -a*b*d + a*b*e - a*d*e + b*d*e,
              -a*b*c + a*b*e - a*c*e + b*c*e)
         """
-        from sage.algebras.exterior_algebra_cython import compute_groebner
+        from sage.algebras.exterior_algebra_groebner import compute_groebner
         side = 2
         if self.side() == "left":
             side = 0

@@ -1,11 +1,28 @@
 """
-Exterior algebras backend
+Exterior algebras Gröbner bases
 
-This contains the backend implementations in Cython for the exterior algebra.
+This contains the backend implementations in Cython for the Gröbner bases
+of exterior algebra.
+
+AUTHORS:
+
+- Trevor Karn, Travis Scrimshaw (July 2022): Initial implementation
 """
 
+#*****************************************************************************
+#       Copyright (C) 2022 Trevor Karn <karnx018 at umn.edu>
+#                 (C) 2022 Travis Scrimshaw <tcscrims at gmail.com>
+#
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 2 of the License, or
+# (at your option) any later version.
+#                  http://www.gnu.org/licenses/
+#*****************************************************************************
+
 from sage.libs.gmp.mpz cimport mpz_sizeinbase, mpz_setbit, mpz_tstbit, mpz_cmp_si, mpz_sgn
-from sage.data_structures.bitset_base cimport bitset_t, bitset_init, bitset_first, bitset_next, bitset_set_to
+from sage.data_structures.bitset_base cimport (bitset_t, bitset_init, bitset_first,
+                                               bitset_next, bitset_set_to, bitset_len)
 from sage.structure.parent cimport Parent
 
 cdef inline Integer bitset_to_int(FrozenBitset X):
@@ -23,7 +40,7 @@ cdef inline FrozenBitset int_to_bitset(Integer n):
     """
     Convert a nonnegative integer ``n`` to a :class:`FrozenBitset`.
     """
-    cdef unsigned long i
+    cdef Py_ssize_t i
 
     if mpz_sgn(n.value) == 0:
         return FrozenBitset()
@@ -36,20 +53,15 @@ cdef inline FrozenBitset int_to_bitset(Integer n):
     return ret
 
 
-cdef inline unsigned long degree(FrozenBitset X):
+cdef inline long degree(FrozenBitset X):
     """
     Compute the degree of ``X``.
     """
-    cdef unsigned long ret = 0
-    cdef long elt = bitset_first(X._bitset)
-    while elt >= 0:
-        ret += 1
-        elt = bitset_next(X._bitset, elt + 1)
-    return ret
+    return bitset_len(X._bitset)
 
 
 #TODO: Bring the exterior algebra elements as a cdef class and make f know its type!
-cdef inline FrozenBitset leading_supp(f):
+cdef inline FrozenBitset leading_supp(CliffordAlgebraElement f):
     """
     Return the leading support of the exterior algebra element ``f``.
     """
@@ -70,16 +82,17 @@ cpdef tuple get_leading_supports(tuple I):
     - ``I`` -- a tuple of elements of an exterior algebra
     """
     # We filter out any elements that are 0
+    cdef CliffordAlgebraElement f
     return tuple(set([leading_supp(f) for f in I if f._monomial_coefficients]))
 
 
-cdef inline build_monomial(E, supp):
+cdef inline build_monomial(Parent E, FrozenBitset supp):
     """
     Helper function for the fastest way to build a monomial.
     """
-    return E.element_class(E, {supp: (<Parent> E)._base.one()})
+    return E.element_class(E, {supp: E._base.one()})
 
-cdef inline partial_S_poly(f, g, E, int side):
+cdef inline partial_S_poly(CliffordAlgebraElement f, CliffordAlgebraElement g, Parent E, int side):
     """
     Compute one half of the `S`-polynomial for ``f`` and ``g``.
 
@@ -98,11 +111,12 @@ cdef inline partial_S_poly(f, g, E, int side):
     ret = f * build_monomial(E, D)
     return ret * (~ret[lmf._union(lmg)])
 
-cdef inline set preprocessing(list P, list G, E, int side):
+cdef inline set preprocessing(list P, list G, Parent E, int side):
     """
     Perform the preprocessing step.
     """
     #print("Start preprocessing:", P)
+    cdef CliffordAlgebraElement f
     cdef set L = set(partial_S_poly(f0, f1, E, side) for f0,f1 in P)
     L.update(partial_S_poly(f1, f0, E, side) for f0,f1 in P)
     if side == 2:
@@ -123,26 +137,28 @@ cdef inline set preprocessing(list P, list G, E, int side):
         for g in G:
             lm = leading_supp(g)
             if lm <= m:
-                f = build_monomial(E, m.difference(lm)) * g
+                f = build_monomial(E, <FrozenBitset> m.difference(lm)) * g
                 if f in L:
                     break
-                monL.update(set(f.support()) - done)
+                monL.update(set(f._monomial_coefficients) - done)
                 L.add(f)
                 break
     #print("preprocessing:", L)
     return L
 
-cdef inline list reduction(list P, list G, E, int side):
+cdef inline list reduction(list P, list G, Parent E, int side):
     """
     Perform the reduction of ``P`` mod ``G`` in ``E``.
     """
     cdef set L = preprocessing(P, G, E, side)
     cdef Py_ssize_t i
     from sage.matrix.constructor import matrix
-    M = matrix({(i, bitset_to_int(<FrozenBitset> m)): c for i,f in enumerate(L) for m,c in f._monomial_coefficients.items()},
+    M = matrix({(i, bitset_to_int(<FrozenBitset> m)): c
+                for i,f in enumerate(L)
+                for m,c in (<CliffordAlgebraElement> f)._monomial_coefficients.items()},
                sparse=True)
     M.echelonize()  # Do this in place
-    lead_supports = set(leading_supp(f) for f in L)
+    lead_supports = set(leading_supp(<CliffordAlgebraElement> f) for f in L)
     return [E.element_class(E, {int_to_bitset(Integer(j)): c for j,c in M[i].iteritems()})
             for i,p in enumerate(M.pivots())
             if int_to_bitset(Integer(p)) not in lead_supports]
@@ -157,9 +173,9 @@ def compute_groebner(I, side):
     - ``side`` -- integer; the side of the ideal: ``0`` for left, ``1`` for
       right, and ``2`` for two-sided
     """
-    E = I.ring()
+    cdef Parent E = I.ring()
     cdef FrozenBitset p0, p1
-    cdef unsigned long deg
+    cdef long deg
     cdef Py_ssize_t i, j, k
 
     cdef list G = [f for f in I.gens() if f]  # Remove 0s TODO: We should make this unnecessary here

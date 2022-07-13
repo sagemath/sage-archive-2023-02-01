@@ -302,11 +302,9 @@ def ech_form(A, p):
     INPUT:
 
     - ``A`` -- matrix over ``Zmod(p^m)`` for some m
-    - ``p`` - prime p
+    - ``p`` -- prime p
 
-    OUTPUT:
-
-    matrix over ``Zmod(p^m)``
+    OUTPUT: matrix over ``Zmod(p^m)``
 
     EXAMPLES::
 

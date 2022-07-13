@@ -74,7 +74,7 @@ class UniqueFactorizationDomains(Category_singleton):
 
         This implementation will not be needed anymore once every
         field in Sage will be properly declared in the category
-        :class:`UniqueFactorizationDomains`.
+        :class:`UniqueFactorizationDomains() <UniqueFactorizationDomains>`.
         """
         try:
             return self._contains_helper(x) or x.is_unique_factorization_domain()

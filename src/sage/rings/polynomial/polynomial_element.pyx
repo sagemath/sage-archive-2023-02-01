@@ -5807,13 +5807,13 @@ cdef class Polynomial(CommutativeAlgebraElement):
             sage: R.<x> = QQ[]
             sage: f = 0*x
             sage: f.global_height()
-            0
+            0.000000000000000
         """
-        if self.is_zero():
-            return 0
-
         if prec is None:
             prec = 53
+
+        if self.is_zero():
+            return RealField(prec).zero()
 
         from sage.rings.qqbar import QQbar, number_field_elements_from_algebraics
 

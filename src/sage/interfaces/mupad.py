@@ -165,7 +165,7 @@ class Mupad(ExtraTabCompletion, Expect):
 
             sage: filename = tmp_filename()
             sage: with open(filename, 'w') as f:
-            ....:     f.write('x := 2;\n')
+            ....:     _ = f.write('x := 2;\n')
             sage: mupad.read(filename)   # optional - MuPAD
             sage: mupad.get('x').strip() # optional - mupad
             '2'

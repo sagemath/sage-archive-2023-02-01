@@ -2060,13 +2060,14 @@ def r_version():
     """
     return r.version()
 
+
 class HelpExpression(str):
     """
     Used to improve printing of output of r.help.
     """
     def __repr__(self):
-        """
-        Return string representation of self.
+        r"""
+        Return string representation of ``self``.
 
         OUTPUT: string
 

@@ -22,8 +22,8 @@ from sage.structure.unique_representation import UniqueRepresentation
 from sage.structure.parent import Parent
 from sage.structure.element import Element
 from sage.data_structures.bitset import Bitset, FrozenBitset
-from copy import copy
 
+from sage.algebras.clifford_algebra_element import CliffordAlgebraElement, ExteriorAlgebraElement
 from sage.categories.algebras_with_basis import AlgebrasWithBasis
 from sage.categories.hopf_algebras_with_basis import HopfAlgebrasWithBasis
 from sage.categories.finite_enumerated_sets import FiniteEnumeratedSets
@@ -38,292 +38,10 @@ from sage.sets.family import Family
 from sage.combinat.free_module import CombinatorialFreeModule
 from sage.combinat.subset import Subsets
 from sage.quadratic_forms.quadratic_form import QuadraticForm
-from sage.algebras.weyl_algebra import repr_from_monomials
 from sage.misc.inherit_comparison import InheritComparisonClasscallMetaclass
 from sage.typeset.ascii_art import ascii_art
 from sage.typeset.unicode_art import unicode_art
 import unicodedata
-
-
-class CliffordAlgebraElement(CombinatorialFreeModule.Element):
-    """
-    An element in a Clifford algebra.
-
-    TESTS::
-
-        sage: Q = QuadraticForm(ZZ, 3, [1, 2, 3, 4, 5, 6])
-        sage: Cl.<x,y,z> = CliffordAlgebra(Q)
-        sage: elt = ((x^3-z)*x + y)^2
-        sage: TestSuite(elt).run()
-    """
-    def _repr_(self):
-        """
-        Return a string representation of ``self``.
-
-        TESTS::
-
-            sage: Q = QuadraticForm(ZZ, 3, [1,2,3,4,5,6])
-            sage: Cl.<x,y,z> = CliffordAlgebra(Q)
-            sage: ((x^3-z)*x + y)^2
-            -2*x*y*z - x*z + 5*x - 4*y + 2*z + 2
-            sage: Cl.zero()
-            0
-        """
-        return repr_from_monomials(self.list(), self.parent()._repr_term)
-
-    def _latex_(self):
-        r"""
-        Return a `\LaTeX` representation of ``self``.
-
-        TESTS::
-
-            sage: Q = QuadraticForm(ZZ, 3, [1,2,3,4,5,6])
-            sage: Cl.<x,y,z> = CliffordAlgebra(Q)
-            sage: latex( ((x^3-z)*x + y)^2 )
-            -2  x y z -  x z + 5  x - 4  y + 2  z + 2
-            sage: Cl.<x0,x1,x2> = CliffordAlgebra(Q)
-            sage: latex(  (x1 - x2)*x0 + 5*x0*x1*x2 )
-            5  x_{0} x_{1} x_{2} -  x_{0} x_{1} +  x_{0} x_{2} - 1
-        """
-        return repr_from_monomials(self.list(),
-                                   self.parent()._latex_term,
-                                   True)
-
-    def _mul_(self, other):
-        """
-        Return ``self`` multiplied by ``other``.
-
-        INPUT:
-
-        - ``other`` -- element of the same Clifford algebra as ``self``
-
-        EXAMPLES::
-
-            sage: Q = QuadraticForm(ZZ, 3, [1,2,3,4,5,6])
-            sage: Cl.<x,y,z> = CliffordAlgebra(Q)
-            sage: (x^3 - z*y)*x*(y*z + x*y*z)
-            x*y*z + y*z - 24*x + 12*y + 2*z - 24
-            sage: y*x
-            -x*y + 2
-            sage: z*x
-            -x*z + 3
-            sage: z*z
-            6
-            sage: x*0
-            0
-            sage: 0*x
-            0
-        """
-        Q = self.parent()._quadratic_form
-        zero = self.parent().base_ring().zero()
-        d = {}
-
-        for ml, cl in self:
-            # Distribute the current term ``cl`` * ``ml`` over ``other``.
-            cur = copy(other._monomial_coefficients)  # The current distribution of the term
-            for i in reversed(ml):
-                # Distribute the current factor ``e[i]`` (the ``i``-th
-                # element of the standard basis).
-                next = {}
-                # At the end of the following for-loop, ``next`` will be
-                # the dictionary describing the element
-                # ``e[i]`` * (the element described by the dictionary ``cur``)
-                # (where ``e[i]`` is the ``i``-th standard basis vector).
-                for mr, cr in cur.items():
-
-                    # Commute the factor as necessary until we are in order
-                    for j in mr:
-                        if i <= j:
-                            break
-                        # Add the additional term from the commutation
-                        # get a non-frozen bitset to manipulate
-                        t = Bitset(mr)  # a mutable copy
-                        t.discard(j)
-                        t = FrozenBitset(t)
-                        next[t] = next.get(t, zero) + cr * Q[i, j]
-                        # Note: ``Q[i,j] == Q(e[i]+e[j]) - Q(e[i]) - Q(e[j])`` for
-                        # ``i != j``, where ``e[k]`` is the ``k``-th standard
-                        # basis vector.
-                        cr = -cr
-                        if next[t] == zero:
-                            del next[t]
-
-                    # Check to see if we have a squared term or not
-                    mr = Bitset(mr)  # temporarily mutable
-                    if i in mr:
-                        mr.discard(i)
-                        cr *= Q[i, i]
-                        # Note: ``Q[i,i] == Q(e[i])`` where ``e[i]`` is the
-                        # ``i``-th standard basis vector.
-                    else:
-                        # mr is implicitly sorted
-                        mr.add(i)
-                    mr = FrozenBitset(mr)  # refreeze it
-                    next[mr] = next.get(mr, zero) + cr
-                    if next[mr] == zero:
-                        del next[mr]
-                cur = next
-
-            # Add the distributed terms to the total
-            for index, coeff in cur.items():
-                d[index] = d.get(index, zero) + cl * coeff
-                if d[index] == zero:
-                    del d[index]
-
-        return self.__class__(self.parent(), d)
-
-    def list(self):
-        """
-        Return the list of monomials and their coefficients in ``self``
-        (as a list of `2`-tuples, each of which has the form
-        ``(monomial, coefficient)``).
-
-        EXAMPLES::
-
-            sage: Q = QuadraticForm(ZZ, 3, [1,2,3,4,5,6])
-            sage: Cl.<x,y,z> = CliffordAlgebra(Q)
-            sage: elt = 5*x + y
-            sage: elt.list()
-            [(1, 5), (01, 1)]
-        """
-        return sorted(self._monomial_coefficients.items(), key=lambda m: (-len(m[0]), list(m[0])))
-
-    def support(self):
-        """
-        Return the support of ``self``.
-
-        This is the list of all monomials which appear with nonzero
-        coefficient in ``self``.
-
-        EXAMPLES::
-
-            sage: Q = QuadraticForm(ZZ, 3, [1,2,3,4,5,6])
-            sage: Cl.<x,y,z> = CliffordAlgebra(Q)
-            sage: elt = 5*x + y
-            sage: elt.support()
-            [1, 01]
-        """
-        return sorted(self._monomial_coefficients.keys(), key=lambda x: (-len(x), list(x)))
-
-    def reflection(self):
-        r"""
-        Return the image of the reflection automorphism on ``self``.
-
-        The *reflection automorphism* of a Clifford algebra is defined
-        as the linear endomorphism of this algebra which maps
-
-        .. MATH::
-
-            x_1 \wedge x_2 \wedge \cdots \wedge x_m \mapsto
-            (-1)^m x_1 \wedge x_2 \wedge \cdots \wedge x_m.
-
-        It is an algebra automorphism of the Clifford algebra.
-
-        :meth:`degree_negation` is an alias for :meth:`reflection`.
-
-        EXAMPLES::
-
-            sage: Q = QuadraticForm(ZZ, 3, [1,2,3,4,5,6])
-            sage: Cl.<x,y,z> = CliffordAlgebra(Q)
-            sage: elt = 5*x + y + x*z
-            sage: r = elt.reflection(); r
-            x*z - 5*x - y
-            sage: r.reflection() == elt
-            True
-
-        TESTS:
-
-        We check that the reflection is an involution::
-
-            sage: Q = QuadraticForm(ZZ, 3, [1,2,3,4,5,6])
-            sage: Cl.<x,y,z> = CliffordAlgebra(Q)
-            sage: all(x.reflection().reflection() == x for x in Cl.basis())
-            True
-        """
-        return self.__class__(self.parent(), {m: (-1)**len(m) * c for m, c in self})
-
-    degree_negation = reflection
-
-    def transpose(self):
-        r"""
-        Return the transpose of ``self``.
-
-        The transpose is an anti-algebra involution of a Clifford algebra
-        and is defined (using linearity) by
-
-        .. MATH::
-
-            x_1 \wedge x_2 \wedge \cdots \wedge x_m \mapsto
-            x_m \wedge \cdots \wedge x_2 \wedge x_1.
-
-        EXAMPLES::
-
-            sage: Q = QuadraticForm(ZZ, 3, [1,2,3,4,5,6])
-            sage: Cl.<x,y,z> = CliffordAlgebra(Q)
-            sage: elt = 5*x + y + x*z
-            sage: t = elt.transpose(); t
-            -x*z + 5*x + y + 3
-            sage: t.transpose() == elt
-            True
-            sage: Cl.one().transpose()
-            1
-
-        TESTS:
-
-        We check that the transpose is an involution::
-
-            sage: Q = QuadraticForm(ZZ, 3, [1,2,3,4,5,6])
-            sage: Cl.<x,y,z> = CliffordAlgebra(Q)
-            sage: all(x.transpose().transpose() == x for x in Cl.basis())
-            True
-
-        Zero is sent to zero::
-
-            sage: Cl.zero().transpose() == Cl.zero()
-            True
-        """
-        P = self.parent()
-        if not self._monomial_coefficients:
-            return P.zero()
-        g = P.gens()
-        return P.sum(c * P.prod(g[i] for i in reversed(m)) for m, c in self)
-
-    def conjugate(self):
-        r"""
-        Return the Clifford conjugate of ``self``.
-
-        The Clifford conjugate of an element `x` of a Clifford algebra is
-        defined as
-
-        .. MATH::
-
-            \bar{x} := \alpha(x^t) = \alpha(x)^t
-
-        where `\alpha` denotes the :meth:`reflection <reflection>`
-        automorphism and `t` the :meth:`transposition <transpose>`.
-
-        EXAMPLES::
-
-            sage: Q = QuadraticForm(ZZ, 3, [1,2,3,4,5,6])
-            sage: Cl.<x,y,z> = CliffordAlgebra(Q)
-            sage: elt = 5*x + y + x*z
-            sage: c = elt.conjugate(); c
-            -x*z - 5*x - y + 3
-            sage: c.conjugate() == elt
-            True
-
-        TESTS:
-
-        We check that the conjugate is an involution::
-
-            sage: Q = QuadraticForm(ZZ, 3, [1,2,3,4,5,6])
-            sage: Cl.<x,y,z> = CliffordAlgebra(Q)
-            sage: all(x.conjugate().conjugate() == x for x in Cl.basis())
-            True
-        """
-        return self.reflection().transpose()
-
-    clifford_conjugate = conjugate
 
 
 class CliffordAlgebraIndices(Parent):
@@ -367,7 +85,7 @@ class CliffordAlgebraIndices(Parent):
         self._nbits = Qdim
         self._cardinality = 2**Qdim
         # the if statement here is in case Qdim is 0.
-        self._maximal_set = FrozenBitset('1'*self._nbits) if self._nbits else FrozenBitset('0')
+        self._maximal_set = FrozenBitset('1'*self._nbits) if self._nbits else FrozenBitset()
         category = FiniteEnumeratedSets().Facade()
         Parent.__init__(self, category=category, facade=True)
 
@@ -446,7 +164,7 @@ class CliffordAlgebraIndices(Parent):
         """
         import itertools
         n = self._nbits
-        yield FrozenBitset('0')
+        yield FrozenBitset()
         k = 1
         while k <= n:
             for C in itertools.combinations(range(n), k):
@@ -953,7 +671,7 @@ class CliffordAlgebra(CombinatorialFreeModule):
             sage: Cl.one_basis()
             0
         """
-        return FrozenBitset('0')
+        return FrozenBitset()
 
     def is_commutative(self):
         """
@@ -1908,7 +1626,11 @@ class ExteriorAlgebra(CliffordAlgebra):
         one = self.base_ring().one()
         L = unshuffle_iterator(tuple(a), one)
         return self.tensor_square()._from_dict(
+<<<<<<< HEAD
             {tuple(FrozenBitset(e) if e else FrozenBitset('0') for e in t): c for t, c in L if c},
+=======
+            {tuple(FrozenBitset(e) if e else FrozenBitset() for e in t): c for t,c in L if c},
+>>>>>>> b0f66e328e (Cythonizing the element classes.)
             coerce=False,
             remove_zeros=False)
 
@@ -2247,9 +1969,11 @@ class ExteriorAlgebra(CliffordAlgebra):
 
             sage: E.<x,y,z> = ExteriorAlgebra(QQ)
             sage: E._ideal_class_()
+            <class 'sage.algebras.clifford_algebra.ExteriorAlgebraIdeal'>
         """
         return ExteriorAlgebraIdeal
 
+<<<<<<< HEAD
     class Element(CliffordAlgebraElement):
         """
         An element of an exterior algebra.
@@ -2534,6 +2258,9 @@ class ExteriorAlgebra(CliffordAlgebra):
                 -2*x*y + 5*x*z + y*z
             """
             return (self.transpose() * other).constant_coefficient()
+=======
+    Element = ExteriorAlgebraElement
+>>>>>>> b0f66e328e (Cythonizing the element classes.)
 
 #####################################################################
 # Differentials
@@ -2798,7 +2525,7 @@ class ExteriorAlgebraBoundary(ExteriorAlgebraDifferential):
 
             sage: E.<x,y,z> = ExteriorAlgebra(QQ)
             sage: par = E.boundary({(0,1): z, (1,2): x, (2,0): y})
-            sage: par._on_basis(FrozenBitset('0'))
+            sage: par._on_basis(FrozenBitset())
             0
             sage: par._on_basis((0,))
             0

@@ -1529,7 +1529,7 @@ class NumberField_relative(NumberField_generic):
         - ``beta`` is the image of `x \bmod g` under the inverse
           isomorphism `\phi^{-1}\colon K[x]/(g) \to K[x]/(f)`.
 
-        EXAMPLES::
+        EXAMPLES:
 
         If the defining polynomials are monic and integral, the result
         satisfies ``g = f`` and ``alpha = beta = x``::

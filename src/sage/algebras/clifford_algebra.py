@@ -2824,7 +2824,6 @@ class ExteriorAlgebraIdeal(Ideal_nc):
         """
         Initialize ``self``.
         """
-        self._groebner_basis = None
         self._groebner_strategy = None
         self._homogeneous = all(x.is_super_homogeneous() for x in gens)
         if self._homogeneous:
@@ -2835,7 +2834,24 @@ class ExteriorAlgebraIdeal(Ideal_nc):
         """
         Reduce ``f`` modulo ``self``.
         """
-        return f.reduce(self)
+        if self._groebner_strategy is None:
+            self.groebner_basis()
+        R = self.ring()
+        return self._groebner_strategy.reduce(R(f))
+
+    def _contains_(self, f):
+        r"""
+        Return ``True`` if ``f`` is in this ideal,
+        ``False`` otherwise.
+
+        EXAMPLES::
+
+        .. NOTE::
+
+            Requires computation of a Groebner basis, which can be a very
+            expensive operation.
+        """
+        return self.reduce(f).is_zero()
 
     def groebner_basis(self, term_order="neglex"):
         r"""
@@ -2903,9 +2919,9 @@ class ExteriorAlgebraIdeal(Ideal_nc):
             from sage.algebras.exterior_algebra_groebner import GroebnerStrategyDegLex as strategy
         else:
             raise ValueError("invalid term order")
-        if strategy == self._groebner_strategy:
-            return self._groebner_basis
-        self._groebner_strategy = strategy
-        self._groebner_basis = self._groebner_strategy(self).compute_groebner()
-        return self._groebner_basis
+        if strategy == type(self._groebner_strategy):
+            return self._groebner_strategy.groebner_basis
+        self._groebner_strategy = strategy(self)
+        self._groebner_strategy.compute_groebner()
+        return self._groebner_strategy.groebner_basis
 

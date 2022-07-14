@@ -51,6 +51,7 @@ cdef class GroebnerStrategy:
         Initialize ``self``.
         """
         self.ideal = I
+        self.groebner_basis = (None,)
         self.E = <Parent> I.ring()
         self.homogeneous = all(x.is_super_homogeneous() for x in I.gens())
         if self.homogeneous or I.side() == "left":
@@ -221,31 +222,14 @@ cdef class GroebnerStrategy:
 
         # Now that we have a Gröbner basis, we make this into a reduced Gröbner basis
         cdef set pairs = set((i, j) for i in range(n) for j in range(n) if i != j)
-        cdef list supp
+        cdef tuple supp
         cdef bint did_reduction
         cdef FrozenBitset lm, s
         while pairs:
             i,j = pairs.pop()
             # We perform the classical reduction algorithm here on each pair
-            # TODO: Make this faster by using the previous technique
-            f = G[i]
-            g = G[j]
-            lm = self.leading_supp(g)
-            did_reduction = True
-            while did_reduction:
-                supp = f.support()
-                did_reduction = False
-                for s in supp:
-                    if lm <= s:
-                        did_reduction = True
-                        mon = self.E.monomial(s - lm)
-                        if self.side == 0:
-                            gp = mon * g
-                            f = f - f[s] / gp[s] * gp
-                        else:
-                            gp = g * mon
-                            f = f - f[s] / gp[s] * gp
-                        break
+            # TODO: Make this faster by using the previous technique?
+            f = self.reduce_single(G[i], G[j])
             if G[i] != f:
                 G[i] = f
                 if not f:
@@ -253,7 +237,45 @@ cdef class GroebnerStrategy:
                 else:
                     pairs.update((k, i) for k in range(n) if k != i)
 
-        return tuple([~f[self.leading_supp(f)] * f for f in G if f])
+        self.groebner_basis = tuple([~f[self.leading_supp(f)] * f for f in G if f])
+
+    cpdef CliffordAlgebraElement reduce(self, CliffordAlgebraElement f):
+        """
+        Reduce ``f`` modulo the ideal with Gröbner basis ``G``.
+        """
+        for g in self.groebner_basis:
+            f = self.reduce_single(f, <CliffordAlgebraElement> g)
+        return f
+
+    cdef CliffordAlgebraElement reduce_single(self, CliffordAlgebraElement f, CliffordAlgebraElement g):
+        """
+        Reduce ``f`` by ``g``.
+
+        .. TODO::
+
+            Optimize this by doing it in-place and changing the underlying dict of ``f``.
+        """
+        cdef FrozenBitset lm, s
+        cdef tuple supp
+
+        lm = self.leading_supp(g)
+        did_reduction = True
+        while did_reduction:
+            supp = tuple(f._monomial_coefficients)
+            did_reduction = False
+            for s in supp:
+                if lm <= s:
+                    did_reduction = True
+                    mon = self.E.monomial(s - lm)
+                    if self.side == 0:
+                        gp = mon * g
+                        f -= f[s] / gp[s] * gp
+                    else:
+                        gp = g * mon
+                        f -= f[s] / gp[s] * gp
+                    break
+        return f
+
 
     cdef Integer bitset_to_int(self, FrozenBitset X):
         raise NotImplementedError

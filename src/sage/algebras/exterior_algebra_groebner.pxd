@@ -17,6 +17,7 @@ cdef class GroebnerStrategy:
     cdef int side
     cdef MonoidElement ideal
     cdef bint homogeneous
+    cdef public tuple groebner_basis
 
     cdef inline bint build_S_poly(self, CliffordAlgebraElement f, CliffordAlgebraElement g)
 
@@ -25,6 +26,9 @@ cdef class GroebnerStrategy:
     cdef inline partial_S_poly_right(self, CliffordAlgebraElement f, CliffordAlgebraElement g)
     cdef set preprocessing(self, list P, list G)
     cdef list reduction(self, list P, list G)
+
+    cpdef CliffordAlgebraElement reduce(self, CliffordAlgebraElement f)
+    cdef CliffordAlgebraElement reduce_single(self, CliffordAlgebraElement f, CliffordAlgebraElement g)
 
     # These are the methods that determine the ordering of the monomials.
     # These must be implemented in subclasses. Declare them as "inline" there.

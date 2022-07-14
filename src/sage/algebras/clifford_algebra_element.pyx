@@ -390,18 +390,19 @@ cdef class ExteriorAlgebraElement(CliffordAlgebraElement):
         INPUT:
 
         - ``I`` -- a list of exterior algebra elements or an ideal
-        - ``side`` -- the side, ignored if ``I`` is an ideal
+        - ``left`` -- boolean; if reduce as a left ideal (``True``)
+          or right ideal (``False``), ignored if ``I`` is an ideal
         """
         from sage.algebras.clifford_algebra import ExteriorAlgebraIdeal
         if isinstance(I, ExteriorAlgebraIdeal):
-            left = (I.side() == "left")
-            I = I.groebner_basis()
+            return I.reduce(self)
 
         f = self
         E = self._parent
-        from sage.algebras.exterior_algebra_cython import leading_support
+
+        cdef FrozenBitset lm, s
         for g in I:
-            lm = leading_support(g)
+            lm = g.leading_support()
             reduction = True
             while reduction:
                 supp = f.support()

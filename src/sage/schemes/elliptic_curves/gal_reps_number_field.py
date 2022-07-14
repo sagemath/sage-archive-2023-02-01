@@ -570,11 +570,14 @@ def Frobenius_filter(E, L, patience=100):
         L = [2] + L
     return L
 
+
 def _exceptionals(E, L, patience=1000):
     r"""
-    Determine which primes in L are exceptional for E, using Proposition 19
-    of Section 2.8 of Serre's ``Propriétés Galoisiennes des Points d'Ordre
-    Fini des Courbes Elliptiques'' [Ser1972]_.
+    Determine which primes in L are exceptional for E.
+
+    This is done using Proposition 19 of Section 2.8 of Serre's
+    *Propriétés Galoisiennes des Points d'Ordre Fini des Courbes Elliptiques*
+    [Ser1972]_.
 
     INPUT:
 

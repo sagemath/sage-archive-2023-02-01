@@ -37,6 +37,9 @@ export SAGE_SHARE=/doesnotexist
 # spec, which includes setting a symlink to the installed documentation.
 # export SAGE_DOC=/doesnotexist
 
+# Trac #34181: Do not allow scripts with shebang lines from old venvs leak into new venvs.
+rm -rf build/scripts-*
+
 SITEPACKAGESDIR=$(python3 -c 'import sysconfig; print(sysconfig.get_paths()["purelib"])')
 if [ "$SAGE_EDITABLE" = yes ]; then
     # In an incremental build, we may need to uninstall old versions installed by distutils

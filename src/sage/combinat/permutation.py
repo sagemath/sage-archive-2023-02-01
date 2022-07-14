@@ -7401,6 +7401,32 @@ def from_lehmer_code(lehmer, parent=None):
         parent = Permutations()
     return parent(p)
 
+def from_lehmer_cocode(lehmer, parent=Permutations()):
+    r"""
+    Return the permutation with Lehmer cocode ``lehmer``.
+
+    The Lehmer cocode of a permutation `p` is defined as the
+    list `(c_1, c_2, \ldots, c_n)`, where `c_i` is the number
+    of `j < i` such that `p(j) > p(i)`.
+
+    EXAMPLES::
+
+        sage: import sage.combinat.permutation as permutation
+        sage: lcc = Permutation([2,1,5,4,3]).to_lehmer_cocode(); lcc
+        [0, 1, 0, 1, 2]
+        sage: permutation.from_lehmer_cocode(lcc)
+        [2, 1, 5, 4, 3]
+    """
+    p = []
+    i = 1
+    lehmer.reverse()
+    open_spots = list(range(1,len(lehmer)+1))
+    for ivi in lehmer:
+        p.append(open_spots.pop(len(lehmer)-i-ivi))
+        i += 1
+    p.reverse()
+    return parent(p)
+
 def from_reduced_word(rw, parent=None):
     r"""
     Return the permutation corresponding to the reduced word ``rw``.

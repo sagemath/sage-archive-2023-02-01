@@ -160,11 +160,8 @@ class QuantumCliffordAlgebra(CombinatorialFreeModule):
             F = q.parent()
         q = F(q)
         if F not in Fields():
-            try:
-                F = F.fraction_field()
-                q = F(q)
-            except Exception:
-                raise TypeError("base ring must be a field or have a fraction field")
+            F = F.fraction_field()
+            q = F(q)
 
         if bool(q**(2*k) == 1):
             return QuantumCliffordAlgebraRootUnity(n, k, q, F)

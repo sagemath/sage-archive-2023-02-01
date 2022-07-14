@@ -118,7 +118,6 @@ cdef class GroebnerStrategy:
         """
         Perform the preprocessing step.
         """
-        #print("Start preprocessing:", P)
         cdef CliffordAlgebraElement f, g, f0, f1
 
         cdef set L = set()
@@ -159,7 +158,6 @@ cdef class GroebnerStrategy:
                     monL.update(set(f._monomial_coefficients) - done)
                     L.add(f)
                     break
-        #print("preprocessing:", L)
         return L
 
     cdef inline list reduction(self, list P, list G):
@@ -205,10 +203,8 @@ cdef class GroebnerStrategy:
                     P[deg] = [(f0, f1)]
 
         while P:
-            #print("Cur G:", G)
             Pp = P.pop(min(P))  # The selection: lowest lcm degree
             Gp = self.reduction(Pp, G)
-            #print("Reduction yielded:", Gp)
             G.extend(Gp)
             for j in range(n, len(G)):
                 f1 = G[j]
@@ -222,8 +218,6 @@ cdef class GroebnerStrategy:
                     else:
                         P[deg] = [(f0, f1)]
             n = len(G)
-
-        #print(G)
 
         # Now that we have a Gröbner basis, we make this into a reduced Gröbner basis
         cdef set pairs = set((i, j) for i in range(n) for j in range(n) if i != j)
@@ -254,13 +248,12 @@ cdef class GroebnerStrategy:
                         break
             if G[i] != f:
                 G[i] = f
-                #print("reduction:", G)
                 if not f:
                     pairs.difference_update((k, i) for k in range(n))
                 else:
                     pairs.update((k, i) for k in range(n) if k != i)
 
-        return tuple([f for f in G if f])
+        return tuple([~f[self.leading_supp(f)] * f for f in G if f])
 
     cdef Integer bitset_to_int(self, FrozenBitset X):
         raise NotImplementedError
@@ -278,7 +271,7 @@ cdef class GroebnerStrategy:
             sage: from sage.algebras.exterior_algebra_groebner import *
             sage: E.<x,y,z> = ExteriorAlgebra(QQ)
             sage: I = E.ideal([x, y])
-            sage: GroebnerStrategyNegRevLex(I).sorted_monomials()
+            sage: GroebnerStrategyNegLex(I).sorted_monomials()
             [1, x, y, x*y, z, x*z, y*z, x*y*z]
             sage: GroebnerStrategyDegLex(I).sorted_monomials()
             [1, x, y, z, x*y, x*z, y*z, x*y*z]
@@ -287,7 +280,7 @@ cdef class GroebnerStrategy:
 
             sage: E.<a,b,c,d> = ExteriorAlgebra(QQ)
             sage: I = E.ideal([a, b])
-            sage: GroebnerStrategyNegRevLex(I).sorted_monomials()
+            sage: GroebnerStrategyNegLex(I).sorted_monomials()
             [1,
              a,
              b, a*b,
@@ -324,7 +317,7 @@ cdef class GroebnerStrategy:
             sage: from sage.algebras.exterior_algebra_groebner import *
             sage: E.<a,b,c,d> = ExteriorAlgebra(QQ)
             sage: I = E.ideal([a, b])
-            sage: GroebnerStrategyDegLex(I).sorted_monomials()
+            sage: GroebnerStrategyDegLex(I).monomial_to_int()
             {1: 0,
              a: 1, b: 2, c: 3, d: 4,
              a*b: 5, a*c: 6, a*d: 7, b*c: 8, b*d: 9, c*d: 10,
@@ -340,9 +333,9 @@ cdef class GroebnerStrategy:
         B = self.E.basis()
         return {B[X]: self.bitset_to_int(X) for X in self.E._indices}
 
-cdef class GroebnerStrategyNegRevLex(GroebnerStrategy):
+cdef class GroebnerStrategyNegLex(GroebnerStrategy):
     """
-    Gröbner basis strategy implementing negrevlex ordering.
+    Gröbner basis strategy implementing neglex ordering.
     """
     cdef inline Integer bitset_to_int(self, FrozenBitset X):
         """

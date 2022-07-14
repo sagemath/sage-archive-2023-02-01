@@ -31,7 +31,7 @@ cdef class GroebnerStrategy:
     cdef Integer bitset_to_int(self, FrozenBitset X)
     cdef FrozenBitset int_to_bitset(self, Integer n)
 
-cdef class GroebnerStrategyNegRevLex(GroebnerStrategy):
+cdef class GroebnerStrategyNegLex(GroebnerStrategy):
     pass
 
 cdef class GroebnerStrategyDegRevLex(GroebnerStrategy):

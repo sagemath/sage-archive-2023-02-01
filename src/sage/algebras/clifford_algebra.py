@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 r"""
 Clifford Algebras
 
@@ -1850,118 +1849,6 @@ class ExteriorAlgebra(CliffordAlgebra):
                           codomain=self.base_ring(),
                           name="Bilinear Form")
 
-    def exterior_bitset_f4(self, I):
-        r"""
-        Return a Groebner basis for an ideal `I` of the exterior algebra.
-
-        EXAMPLES::
-
-            sage: E.<a,b,c,d,e> = ExteriorAlgebra(QQ)
-            sage: rels = [c*d*e - b*d*e + b*c*e - b*c*d,
-            ....:         c*d*e - a*d*e + a*c*e - a*c*d,
-            ....:         b*d*e - a*d*e + a*b*e - a*b*d,
-            ....:         b*c*e - a*c*e + a*b*e - a*b*c,
-            ....:         b*c*d - a*c*d + a*b*d - a*b*c]
-            sage: I = E.ideal(rels);
-            sage: exterior_bitset_f4(I)
-            (b*c*d-b*c*e+b*d*e-c*d*e,
-             a*c*d-a*c*e+a*d*e-c*d*e,
-             a*b*d-a*b*e+a*d*e-b*d*e,
-             a*b*c-a*b*e+a*c*e-b*c*e)
-
-        The example above was computed first using M2:
-
-            E = QQ[a..e, SkewCommutative => true]
-            I = ideal( c*d*e - b*d*e + b*c*e - b*c*d,
-                        c*d*e - a*d*e + a*c*e - a*c*d,
-                        b*d*e - a*d*e + a*b*e - a*b*d,
-                        b*c*e - a*c*e + a*b*e - a*b*c,
-                        b*c*d - a*c*d + a*b*d - a*b*c)
-        groebnerBasis(I)
-
-        returns:
-        o3 = | bcd-bce+bde-cde acd-ace+ade-cde abd-abe+ade-bde abc-abe+ace-bce |
-        """
-
-        # following https://pi.math.cornell.edu/~djp282/documents/math6140-2017a.pdf
-        
-        def get_pairs(pairs):
-            # this implements the `select` function of Peifer
-
-            # change pairs in here so I don't have to do it after calling get_pairs.
-            return pairs.pop() # temporarily do Buchbergers
-
-        def f4_sel(P):
-            # this is the function on page 13 of the original F4 paper.
-
-            return P
-
-            # P is a list of pairs
-            # TODO: implement the better choice.
-
-        def symbolic_preprocessing(P, G):
-            # the first/second terms of the S polynomial might
-            # have to be adjusted a la Stokes' paper
-            left = set() # the first term of the S polynomial
-            right = set() # the second term of the S polynomial
-            L = left.union(right)
-            done = set(f.monomials()[0] for f in L)
-
-            from itertools import chain
-            mon_L = set(chain.from_iterable(f.monomials() for f in L))
-
-            while done != mon_L:
-                m = sorted(mon_L.difference(done), key = lambda x: (-len(x.support_of_term()), tuple(x.support_of_term())))[0]
-                done = done.add(m)
-                for g in G:
-                    if divides(g.monomials()[0], m):
-                        L.add(m * g/g.monomials()[0])
-                        break
-            return L
-
-        def f4_reduce(P, G):
-            # given a current set of pairs P and a
-            # current basis G, return G' of new basis
-
-            L = symbolic_preprocessing(P, G)
-            lm_L = set(f.monomials()[0] for f in L)
-
-            d = dict()
-            for i, f in enumerate(F):
-                d.update(((i,hash(m)),c) for m,c in f._monomial_coefficients.items())
-            M = MatrixSpace(E.base_ring(), len(L), 2^self.ngens(), sparse=True)
-            poly_matrix = M(d).rref()
-
-            Lprime = set(E._from_dict(dict((FrozenBitset(format(k,'b')[::-1]),v) for k,v in row.dict().items())) for row in poly_matrix)
-
-            Gprime = set()
-
-            for f in Lprime:
-                if f.monomials()[0] in lm_L:
-                    continue
-                Gprime.add(f)
-
-            return Gprime
-
-        F = I.gens()
-        G = set(F)
-        k = I.ngens()
-
-        from itertools import combinations
-        pairs = set(combinations(range(k), 2)) # this is Peifer's P
-
-        while pairs:
-            P = f4_sel(pairs) # this is different from Buchbergers which would be pairs.pop()
-            Gtemp = f4_reduce(P, G)
-            pairs.difference_update(P)
-
-            for h in Gtemp:
-                G.add(h)
-                k += 1
-                pairs.update((i,k) for i in range(k))
-
-        return G
-
     def _ideal_class_(self, n=0):
         """
         Return the class that is used to implement ideals of ``self``.
@@ -2950,7 +2837,7 @@ class ExteriorAlgebraIdeal(Ideal_nc):
         """
         return f.reduce(self)
 
-    def groebner_basis(self, term_order="negrevlex"):
+    def groebner_basis(self, term_order="neglex"):
         r"""
         Return the reduced Gröbner basis of ``self``.
 
@@ -2959,13 +2846,13 @@ class ExteriorAlgebraIdeal(Ideal_nc):
         - ``term_order`` -- the term order used to compute the Gröbner basis;
           must be one of the following:
 
-          * ``"negrevlex"`` -- (default) negative reverse lex order
+          * ``"neglex"`` -- (default) negative (read right-to-left) lex order
           * ``"degrevlex"`` -- degree reverse lex order
           * ``"deglex"`` -- degree lex order
 
         EXAMPLES:
 
-        We compute an example that was checked against Macaulay2::
+        We compute an example::
 
             sage: E.<a,b,c,d,e> = ExteriorAlgebra(QQ)
             sage: rels = [c*d*e - b*d*e + b*c*e - b*c*d,
@@ -2983,19 +2870,33 @@ class ExteriorAlgebraIdeal(Ideal_nc):
         With different term orders::
 
             sage: I.groebner_basis("degrevlex")
-            (-b*c*d + b*c*e - b*d*e + c*d*e,
-             -a*c*d + a*c*e - a*d*e + c*d*e,
-             -a*b*d + a*b*e - a*d*e + b*d*e,
-             -a*b*c + a*b*e - a*c*e + b*c*e)
+            (b*c*d - b*c*e + b*d*e - c*d*e,
+             a*c*d - a*c*e + a*d*e - c*d*e,
+             a*b*d - a*b*e + a*d*e - b*d*e,
+             a*b*c - a*b*e + a*c*e - b*c*e)
 
             sage: I.groebner_basis("deglex")
             (-a*c*d + a*c*e - a*d*e + c*d*e,
              -a*b*c + a*b*d - a*c*d + b*c*d,
              -a*b*d + a*b*e - a*d*e + b*d*e,
              -a*b*c + a*b*e - a*c*e + b*c*e)
+
+        The example above was computed first using M2, which agrees with
+        the ``"degrevlex"`` ordering::
+
+            E = QQ[a..e, SkewCommutative => true]
+            I = ideal( c*d*e - b*d*e + b*c*e - b*c*d,
+                        c*d*e - a*d*e + a*c*e - a*c*d,
+                        b*d*e - a*d*e + a*b*e - a*b*d,
+                        b*c*e - a*c*e + a*b*e - a*b*c,
+                        b*c*d - a*c*d + a*b*d - a*b*c)
+            groebnerBasis(I)
+
+            returns:
+            o3 = | bcd-bce+bde-cde acd-ace+ade-cde abd-abe+ade-bde abc-abe+ace-bce |
         """
-        if term_order == "negrevlex":
-            from sage.algebras.exterior_algebra_groebner import GroebnerStrategyNegRevLex as strategy
+        if term_order == "neglex":
+            from sage.algebras.exterior_algebra_groebner import GroebnerStrategyNegLex as strategy
         elif term_order == "degrevlex":
             from sage.algebras.exterior_algebra_groebner import GroebnerStrategyDegRevLex as strategy
         elif term_order == "deglex":

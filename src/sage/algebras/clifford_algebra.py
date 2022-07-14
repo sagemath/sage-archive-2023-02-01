@@ -21,6 +21,8 @@ from sage.misc.lazy_attribute import lazy_attribute
 from sage.structure.unique_representation import UniqueRepresentation
 from sage.structure.parent import Parent
 from sage.structure.element import Element
+from sage.structure.richcmp import (richcmp_method, op_EQ, op_NE,
+                                    op_LT, op_GT, op_LE, op_GE, rich_to_bool)
 from sage.data_structures.bitset import Bitset, FrozenBitset
 
 from sage.algebras.clifford_algebra_element import CliffordAlgebraElement, ExteriorAlgebraElement
@@ -2816,6 +2818,7 @@ class ExteriorAlgebraCoboundary(ExteriorAlgebraDifferential):
 
         return ChainComplex(data, degree=1)
 
+@richcmp_method
 class ExteriorAlgebraIdeal(Ideal_nc):
     """
     An ideal of the exterior algebra.
@@ -2846,12 +2849,99 @@ class ExteriorAlgebraIdeal(Ideal_nc):
 
         EXAMPLES::
 
+            sage: E.<x,y,z> = ExteriorAlgebra(QQ)
+            sage: I = E.ideal([x, x*y*z + 2*x*z + 3*y*z])
+            sage: I.groebner_basis()
+            (x, y*z)
+            sage: x in I
+            True
+            sage: y*z in I
+            True
+            sage: x + 3*y*z in I
+            True
+            sage: x + 3*y in I
+            False
+
         .. NOTE::
 
             Requires computation of a Groebner basis, which can be a very
             expensive operation.
         """
-        return self.reduce(f).is_zero()
+        return not self.reduce(f)
+
+    def __richcmp__(self, other, op):
+        """
+        Compare ``self`` and ``other``.
+
+        EXAMPLES::
+
+            sage: E.<x,y,z> = ExteriorAlgebra(QQ)
+            sage: I = E.ideal([x, x*y*z + 2*x*z + 3*y*z])
+            sage: I == I
+            True
+            sage: Ip = E.ideal([x, y*z])
+            sage: Ip == I
+            True
+            sage: Ip <= I
+            True
+            sage: Ip < I
+            False
+            sage: Ip >= I
+            True
+            sage: Ip > I
+            False
+            sage: E.ideal([x]) < I
+            True
+            sage: E.ideal([x]) <= I
+            True
+            sage: I <= E.ideal([x])
+            False
+        """
+        if not isinstance(other, ExteriorAlgebraIdeal):
+            if op == op_EQ:
+                return False
+            if op == op_NE:
+                return True
+            return NotImplemented
+
+        if self is other:
+            return rich_to_bool(op, 0)
+
+        # comparison for >= and > : swap the arguments
+        if op == op_GE:
+            return other.__richcmp__(self, op_LE)
+        elif op == op_GT:
+            return other.__richcmp__(self, op_LT)
+
+        if self.side() == other.side():
+            s_gens = set(g for g in self.gens() if g)
+            o_gens = set(g for g in other.gens() if g)
+            if set(s_gens) == set(o_gens):
+                return rich_to_bool(op, 0)
+
+            contained = all(f in other for f in s_gens)
+            if op == op_LE:
+                return contained
+
+            contains = all(f in self for f in o_gens)
+            if op == op_EQ:
+                return contained and contains
+            if op == op_NE:
+                return not (contained and contains)
+             # remaining case <
+            return contained and not contains
+
+
+        if op in [op_LT, op_LE] and other.side() == "twosided":
+            if not all(f in other for f in set(self.gens()) if f):
+                return False
+            if op == op_LE:
+                return True
+            return self.__richcmp__(other, op_NE)
+
+        # Otherwise we will fallback to linear algebra containment
+        # TODO: Implement this
+        return NotImplemented
 
     def groebner_basis(self, term_order="neglex"):
         r"""

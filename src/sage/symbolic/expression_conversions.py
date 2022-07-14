@@ -2108,7 +2108,7 @@ class SubstituteFunction(ExpressionTreeWalker):
             sage: s(1/foo(foo(x)) + foo(2))
             1/bar(bar(x)) + bar(2)
 
-        TESTS::
+        TESTS:
 
         Check that the old syntax still works::
 

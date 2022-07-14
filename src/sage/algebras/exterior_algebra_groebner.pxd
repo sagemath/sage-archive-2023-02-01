@@ -16,6 +16,9 @@ cdef class GroebnerStrategy:
     cdef Parent E  # the exterior algebra
     cdef int side
     cdef MonoidElement ideal
+    cdef bint homogeneous
+
+    cdef inline bint build_S_poly(self, CliffordAlgebraElement f, CliffordAlgebraElement g)
 
     cdef inline FrozenBitset leading_supp(self, CliffordAlgebraElement f)
     cdef inline partial_S_poly_left(self, CliffordAlgebraElement f, CliffordAlgebraElement g)
@@ -24,8 +27,16 @@ cdef class GroebnerStrategy:
     cdef list reduction(self, list P, list G)
 
     # These are the methods that determine the ordering of the monomials.
-    # Override these for other orderings.
-    # TODO: Make them abstract methods that must be implemented in subclasses
-    cdef inline Integer bitset_to_int(self, FrozenBitset X)
-    cdef inline FrozenBitset int_to_bitset(self, Integer n)
+    # These must be implemented in subclasses. Declare them as "inline" there.
+    cdef Integer bitset_to_int(self, FrozenBitset X)
+    cdef FrozenBitset int_to_bitset(self, Integer n)
+
+cdef class GroebnerStrategyNegRevLex(GroebnerStrategy):
+    pass
+
+cdef class GroebnerStrategyDegRevLex(GroebnerStrategy):
+    cdef Integer rank
+
+cdef class GroebnerStrategyDegLex(GroebnerStrategy):
+    cdef Integer rank
 

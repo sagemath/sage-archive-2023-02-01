@@ -18,6 +18,7 @@ AUTHORS:
 #*****************************************************************************
 
 from sage.misc.cachefunc import cached_method
+from sage.misc.lazy_attribute import lazy_attribute
 from sage.structure.unique_representation import UniqueRepresentation
 from sage.structure.parent import Parent
 from sage.structure.element import Element
@@ -2932,16 +2933,35 @@ class ExteriorAlgebraIdeal(Ideal_nc):
     """
     An ideal of the exterior algebra.
     """
+    def __init__(self, ring, gens, coerce=True, side="twosided"):
+        """
+        Initialize ``self``.
+        """
+        self._groebner_basis = None
+        self._groebner_strategy = None
+        self._homogeneous = all(x.is_super_homogeneous() for x in gens)
+        if self._homogeneous:
+            side = "twosided"
+        Ideal_nc.__init__(self, ring, gens, coerce, side)
+
     def reduce(self, f):
         """
         Reduce ``f`` modulo ``self``.
         """
         return f.reduce(self)
 
-    @cached_method
-    def groebner_basis(self):
+    def groebner_basis(self, term_order="negrevlex"):
         r"""
         Return the reduced Gröbner basis of ``self``.
+
+        INPUT:
+
+        - ``term_order`` -- the term order used to compute the Gröbner basis;
+          must be one of the following:
+
+          * ``"negrevlex"`` -- (default) negative reverse lex order
+          * ``"degrevlex"`` -- degree reverse lex order
+          * ``"deglex"`` -- degree lex order
 
         EXAMPLES:
 
@@ -2955,11 +2975,36 @@ class ExteriorAlgebraIdeal(Ideal_nc):
             ....:         b*c*d - a*c*d + a*b*d - a*b*c]
             sage: I = E.ideal(rels)
             sage: I.groebner_basis()
+            (-a*c*d + a*c*e - a*d*e + c*d*e,
+             -a*b*c + a*b*d - a*c*d + b*c*d,
+             -a*b*d + a*b*e - a*d*e + b*d*e,
+             -a*b*c + a*b*e - a*c*e + b*c*e)
+
+        With different term orders::
+
+            sage: I.groebner_basis("degrevlex")
             (-b*c*d + b*c*e - b*d*e + c*d*e,
              -a*c*d + a*c*e - a*d*e + c*d*e,
              -a*b*d + a*b*e - a*d*e + b*d*e,
              -a*b*c + a*b*e - a*c*e + b*c*e)
+
+            sage: I.groebner_basis("deglex")
+            (-a*c*d + a*c*e - a*d*e + c*d*e,
+             -a*b*c + a*b*d - a*c*d + b*c*d,
+             -a*b*d + a*b*e - a*d*e + b*d*e,
+             -a*b*c + a*b*e - a*c*e + b*c*e)
         """
-        from sage.algebras.exterior_algebra_groebner import GroebnerStrategy
-        return GroebnerStrategy(self).compute_groebner()
+        if term_order == "negrevlex":
+            from sage.algebras.exterior_algebra_groebner import GroebnerStrategyNegRevLex as strategy
+        elif term_order == "degrevlex":
+            from sage.algebras.exterior_algebra_groebner import GroebnerStrategyDegRevLex as strategy
+        elif term_order == "deglex":
+            from sage.algebras.exterior_algebra_groebner import GroebnerStrategyDegLex as strategy
+        else:
+            raise ValueError("invalid term order")
+        if strategy == self._groebner_strategy:
+            return self._groebner_basis
+        self._groebner_strategy = strategy
+        self._groebner_basis = self._groebner_strategy(self).compute_groebner()
+        return self._groebner_basis
 

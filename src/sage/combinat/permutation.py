@@ -2223,7 +2223,9 @@ class Permutation(CombinatorialElement):
             [[1, 2, 6], [1, 2, 4], [1, 2, 3]]
         """
         n = self.size()
-    
+        if n == 0:
+            return([[]])
+
         # getting the column in which each element is inserted
         first_row_p_tableau = []
         columns = [[] for _ in range(self.longest_increasing_subsequence_length())]
@@ -2247,7 +2249,7 @@ class Permutation(CombinatorialElement):
                     if k < self[i]:
                         D.add_edge(k, self[i])
 
-        increasing_sequences = []
+        increasing_subsequences = []
     
         for i in columns[0]:
             D.add_edge(0, i)  # 0 is source
@@ -2255,12 +2257,12 @@ class Permutation(CombinatorialElement):
             D.add_edge(i, n+1) # n+1 is sink
 
         for p in D.all_paths(0, n+1):
-            increasing_sequences.append(p[1:-1])
+            increasing_subsequences.append(p[1:-1])
 
-        increasing_sequences.sort()
-        increasing_sequences.reverse()
+        increasing_subsequences.sort()
+        increasing_subsequences.reverse()
 
-        return increasing_sequences
+        return increasing_subsequences
 
 
     def cycle_type(self):

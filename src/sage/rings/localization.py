@@ -32,8 +32,8 @@ three elements::
     sage: u = [u0, u1, u2]
     sage: S = Set(u)
     sage: I = S.cartesian_product(S)
-    sage: add_units = u + [q, q+1] + [ui -uj for ui, uj in I if ui != uj]
-    ....:                + [q*ui -uj for ui, uj in I if ui != uj]
+    sage: add_units = u + [q, q + 1] + [ui - uj for ui, uj in I if ui != uj]
+    sage: add_units += [q*ui - uj for ui, uj in I if ui != uj]
     sage: L = R.localization(tuple(add_units)); L
     Multivariate Polynomial Ring in u0, u1, u2, q over Integer Ring localized at
     (q, q + 1, u2, u1, u1 - u2, u0, u0 - u2, u0 - u1, u2*q - u1, u2*q - u0,

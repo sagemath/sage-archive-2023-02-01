@@ -2210,10 +2210,10 @@ class Permutation(CombinatorialElement):
         A theorem of Schensted ([Sch1961]_) states that an increasing
         subsequence of length `i` ends with the value entered in the `i`-th
         column of the p-tableau. The algorithm records which column of the
-        p-tableau each value of the permutation is entered into, and
-        computes all possible combinations of one entry from each column.
-        The algorithm then checks if the combination is an increasing
-        sequence.
+        p-tableau each value of the permutation is entered into, creates a
+        digraph to record all increasing subsequences, and reads the paths
+        from a source to a sink; these are the longest increasing subsequences.
+
     
         EXAMPLES::
 
@@ -2222,51 +2222,44 @@ class Permutation(CombinatorialElement):
             sage: Permutation([5, 7, 1, 2, 6, 4, 3]).longest_increasing_subsequences()
             [[1, 2, 6], [1, 2, 4], [1, 2, 3]]
         """
-    
-        def is_subsequence_of(seq, self):
-            r"""
-            Returns whether seq is a subsequence of permutation ``self``
-            """
-        
-            j = 0
-            while j < len(seq)-1:
-                if self.index(seq[j]) < self.index(seq[j+1]):
-                    j = j+1
-                else:
-                    return False
-            return True
-
-
         n = self.size()
     
         # getting the column in which each element is inserted
         first_row_p_tableau = []
-        column = []
+        columns = [[] for _ in range(self.longest_increasing_subsequence_length())]
+        D = DiGraph(n+2)
         for i in range(n):
             inserted = False
             j = 0  # j is j-th column of p-tableau
             while j < len(first_row_p_tableau) and not inserted:
                 if first_row_p_tableau[j] > self[i]:
                     first_row_p_tableau[j] = self[i]
-                    column.append(j)
+                    columns[j].append(self[i])
+                    for k in columns[j-1]:
+                        if k < self[i]:
+                            D.add_edge(k, self[i])
                     inserted = True
                 j += 1
             if not inserted:
                 first_row_p_tableau.append(self[i])
-                column.append(j)
-            
-        # getting the sets for columns
-        s = [[] for i in range(len(first_row_p_tableau))]
-        for i in range(n):
-            s[column[i]].append(self[i])
+                columns[j].append(self[i])
+                for k in columns[j-1]:
+                    if k < self[i]:
+                        D.add_edge(k, self[i])
+
         increasing_sequences = []
     
-        # getting the increasing sequences
-        import itertools
-        for seq in itertools.product(*s):
-            seq = list(seq)
-            if seq == sorted(seq) and is_subsequence_of(seq, self):
-                increasing_sequences.append(seq)
+        for i in columns[0]:
+            D.add_edge(0, i)  # 0 is source
+        for i in columns[-1]:
+            D.add_edge(i, n+1) # n+1 is sink
+
+        for p in D.all_paths(0, n+1):
+            increasing_sequences.append(p[1:-1])
+
+        increasing_sequences.sort()
+        increasing_sequences.reverse()
+
         return increasing_sequences
 
 

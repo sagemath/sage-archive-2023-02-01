@@ -2729,10 +2729,10 @@ def floyd_warshall(gg, paths=True, distances=False):
     # All this just creates two tables prec[n][n] and dist[n][n]
     cdef MemoryAllocator mem = MemoryAllocator()
     cdef unsigned short* t_prec = NULL
-    cdef unsigned short** prec = NULL
+    cdef unsigned short**  prec = NULL
     # init dist
-    cdef unsigned short* t_dist = <unsigned short*> mem.allocarray(n * n, sizeof(unsigned short))
-    cdef unsigned short** dist = <unsigned short**> mem.allocarray(n, sizeof(unsigned short*))
+    cdef unsigned short* t_dist = <unsigned short*>  mem.allocarray(n * n, sizeof(unsigned short))
+    cdef unsigned short**  dist = <unsigned short**> mem.allocarray(n, sizeof(unsigned short*))
     dist[0] = t_dist
     cdef unsigned int i
     for i in range(1, n):

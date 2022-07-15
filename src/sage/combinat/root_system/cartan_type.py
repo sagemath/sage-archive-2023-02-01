@@ -2031,8 +2031,8 @@ class CartanType_affine(CartanType_simple, CartanType_crystallographic):
             ....:     g1 = ct.classical().dynkin_diagram()
             ....:     g2 = ct.dynkin_diagram()
             ....:     g2.delete_vertex(ct.special_node())
-            ....:     assert sorted(g1.vertices()) == sorted(g2.vertices())
-            ....:     assert sorted(g1.edges()) == sorted(g2.edges())
+            ....:     assert g1.vertices(sort=True) == g2.vertices(sort=True)
+            ....:     assert g1.edges(sort=True) == g2.edges(sort=True)
 
         """
 

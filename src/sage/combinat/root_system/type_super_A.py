@@ -612,21 +612,21 @@ class CartanType(SuperCartanType_standard):
             X
             0
             A0|0
-            sage: a.vertices(), a.edges()
+            sage: a.vertices(sort=False), a.edges(sort=False)
             ([0], [])
 
             sage: a = DynkinDiagram(['A', [1,0]]); a
             O---X
             -1  0
             A1|0
-            sage: a.vertices(), a.edges()
+            sage: a.vertices(sort=True), a.edges(sort=True)
             ([-1, 0], [(-1, 0, 1), (0, -1, 1)])
 
             sage: a = DynkinDiagram(['A', [0,1]]); a
             X---O
             0   1
             A0|1
-            sage: a.vertices(), a.edges()
+            sage: a.vertices(sort=True), a.edges(sort=True)
             ([0, 1], [(0, 1, 1), (1, 0, -1)])
         """
         from .dynkin_diagram import DynkinDiagram_class

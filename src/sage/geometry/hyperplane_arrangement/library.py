@@ -152,9 +152,9 @@ class HyperplaneArrangementLibrary():
         H = make_parent(K, n, names)
         x = H.gens()
         hyperplanes = []
-        for e in G.edges():
-            i = G.vertices().index(e[0])
-            j = G.vertices().index(e[1])
+        for e in G.edges(sort=True):
+            i = G.vertices(sort=True).index(e[0])
+            j = G.vertices(sort=True).index(e[1])
             hyperplanes.append( x[i] - x[j] - A[i][j])
             hyperplanes.append(-x[i] + x[j] - A[j][i])
         return H(*hyperplanes)
@@ -264,9 +264,9 @@ class HyperplaneArrangementLibrary():
         H = make_parent(K, n, names)
         x = H.gens()
         hyperplanes = []
-        for e in G.edges():
-            i = G.vertices().index(e[0])
-            j = G.vertices().index(e[1])
+        for e in G.edges(sort=True):
+            i = G.vertices(sort=True).index(e[0])
+            j = G.vertices(sort=True).index(e[1])
             hyperplanes.append(x[i] - x[j] - 1)
             hyperplanes.append(x[i] - x[j] + 1)
         return H(*hyperplanes)
@@ -303,9 +303,9 @@ class HyperplaneArrangementLibrary():
         H = make_parent(K, n, names)
         x = H.gens()
         hyperplanes = []
-        for e in G.edges():
-            i = G.vertices().index(e[0])
-            j = G.vertices().index(e[1])
+        for e in G.edges(sort=True):
+            i = G.vertices(sort=True).index(e[0])
+            j = G.vertices(sort=True).index(e[1])
             hyperplanes.append(x[i] - x[j])
             hyperplanes.append(x[i] - x[j] - 1)
         return H(*hyperplanes)
@@ -351,9 +351,9 @@ class HyperplaneArrangementLibrary():
         H = make_parent(K, n, names)
         x = H.gens()
         hyperplanes = []
-        for e in G.edges():
-            i = G.vertices().index(e[0])
-            j = G.vertices().index(e[1])
+        for e in G.edges(sort=True):
+            i = G.vertices(sort=True).index(e[0])
+            j = G.vertices(sort=True).index(e[1])
             hyperplanes.append(x[i] - x[j])
         A = H(*hyperplanes)
         charpoly = G.chromatic_polynomial()

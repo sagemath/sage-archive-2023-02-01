@@ -397,7 +397,7 @@ class RegularCrystals(Category_singleton):
 
                 sage: T = crystals.Tableaux(['A',4], shape=[3,1])
                 sage: G = T.dual_equivalence_graph(index_set=[1,2,3])
-                sage: G.vertices()
+                sage: G.vertices(sort=True)
                 [[[1, 3, 4], [2]], [[1, 2, 4], [3]], [[1, 2, 3], [4]]]
                 sage: G.edges()
                 [([[1, 3, 4], [2]], [[1, 2, 4], [3]], 2),
@@ -410,7 +410,7 @@ class RegularCrystals(Category_singleton):
                 sage: sorted(G.edges())
                 [([[1, 2, 4], [3]], [[1, 2, 3], [4]], 3),
                  ([[2, 4, 5], [3]], [[2, 3, 5], [4]], 3)]
-                sage: sorted(G.vertices())
+                sage: sorted(G.vertices(sort=True))
                 [[[1, 3, 4], [2]],
                  [[1, 2, 4], [3]],
                  [[2, 4, 5], [3]],

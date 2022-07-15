@@ -373,9 +373,9 @@ class PathSemigroup(UniqueRepresentation, Parent):
         if check:
             Q = self._quiver
             if start is None or start not in Q:
-                raise ValueError("startpoint {} should belong to {}".format(start, Q.vertices()))
+                raise ValueError("startpoint {} should belong to {}".format(start, Q.vertices(sort=False)))
             if end is None or end not in Q:
-                raise ValueError("endpoint {} should belong to {}".format(end, Q.vertices()))
+                raise ValueError("endpoint {} should belong to {}".format(end, Q.vertices(sort=False)))
             if not path:
                 if start != end:
                     raise ValueError("start and endpoint of a path of length 0 must coincide")

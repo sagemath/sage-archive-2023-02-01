@@ -344,7 +344,7 @@ class GraphicMatroid(Matroid):
              frozenset({4})]
         """
         star_list = []
-        for v in self._G.vertices():
+        for v in self._G.vertices(sort=False):
             star = [l for (u, v, l) in self._G.edges_incident(v)]
             star_list.append(frozenset(star))
         return frozenset(star_list)
@@ -665,7 +665,7 @@ class GraphicMatroid(Matroid):
                 from itertools import chain
                 deletions = []
                 big_vertex_list = list(chain.from_iterable(vertices_for_minor))
-                for v in G.vertices():
+                for v in G.vertices(sort=False):
                     if v not in big_vertex_list:
                         deletions.extend([l for (u0, v0, l) in G.edges_incident(v)])
 
@@ -712,7 +712,7 @@ class GraphicMatroid(Matroid):
             sage: M._corank([1,2,3])
             3
         """
-        all_vertices = self._G.vertices()
+        all_vertices = self._G.vertices(sort=False)
         not_our_edges = self.groundset_to_edges(self._groundset.difference(X))
         DS_vertices = DisjointSet(all_vertices)
         for u, v, l in not_our_edges:
@@ -782,7 +782,7 @@ class GraphicMatroid(Matroid):
         Y = self.groundset().difference(X)
         edgelist = self._groundset_to_edges(Y)
         g = self._subgraph_from_set(X)
-        V = g.vertices()
+        V = g.vertices(sort=False)
         components = g.connected_components_number()
         for e in edgelist:
             # a non-loop edge is in the closure iff both its vertices are
@@ -861,7 +861,7 @@ class GraphicMatroid(Matroid):
             [1, 2, 5]
         """
         edges = self.groundset_to_edges(X)
-        all_vertices = self._G.vertices()
+        all_vertices = self._G.vertices(sort=False)
         not_our_edges = self.groundset_to_edges(self._groundset.difference(X))
 
         our_set = set()
@@ -1371,7 +1371,7 @@ class GraphicMatroid(Matroid):
             sage: M = Matroid(range(10), graphs.PetersenGraph())
             sage: sorted(M.graphic_extension(0, 'b', 'c').graph().vertex_iterator(), key=str)
             [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 'b']
-            sage: M.graphic_extension('a', 'b', 'c').graph().vertices()
+            sage: M.graphic_extension('a', 'b', 'c').graph().vertices(sort=False)
             Traceback (most recent call last):
             ...
             ValueError: u must be an existing vertex
@@ -1462,8 +1462,8 @@ class GraphicMatroid(Matroid):
         elif element in self.groundset():
             raise ValueError("cannot extend by element already in ground set")
         if vertices is None:
-            vertices = self._G.vertices()
-        elif not set(vertices).issubset(self._G.vertices()):
+            vertices = self._G.vertices(sort=False)
+        elif not set(vertices).issubset(self._G.vertices(sort=False)):
             raise ValueError("vertices are not all in the graph")
 
         # First extend by a loop, then consider every pair of vertices.
@@ -1583,7 +1583,7 @@ class GraphicMatroid(Matroid):
             if element in self.groundset():
                 raise ValueError("cannot extend by element already in ground set")
 
-        if u not in self._G.vertices():
+        if u not in self._G.vertices(sort=False):
             raise ValueError("u must be an existing vertex")
         if v == u:
             raise ValueError("u and v must be distinct")
@@ -1592,7 +1592,7 @@ class GraphicMatroid(Matroid):
             X = []
 
         G = self.graph()
-        vertices = G.vertices()
+        vertices = G.vertices(sort=False)
         if v is None:
             v = G.add_vertex()
 
@@ -1711,8 +1711,8 @@ class GraphicMatroid(Matroid):
         elif element in self.groundset():
             raise ValueError("cannot extend by element already in groundset")
         if vertices is None:
-            vertices = self._G.vertices()
-        elif not set(vertices).issubset(self._G.vertices()):
+            vertices = self._G.vertices(sort=False)
+        elif not set(vertices).issubset(self._G.vertices(sort=False)):
             raise ValueError("vertices are not all in the graph")
 
         if v is None:

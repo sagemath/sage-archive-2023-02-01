@@ -248,7 +248,7 @@ class WeylGroups(Category_singleton):
                 sage: g = W.quantum_bruhat_graph((1,3))
                 sage: g
                 Parabolic Quantum Bruhat Graph of Weyl Group of type ['A', 3] (as a matrix group acting on the ambient space) for nodes (1, 3): Digraph on 6 vertices
-                sage: g.vertices()
+                sage: g.vertices(sort=True)
                 [s2*s3*s1*s2, s3*s1*s2, s1*s2, s3*s2, s2, 1]
                 sage: g.edges()
                 [(s2*s3*s1*s2, s2, alpha[2]),

@@ -1433,7 +1433,7 @@ class TikzPicture(Standalone):
 
         # vertices
         lines.append(r'% vertices')
-        for u in graph.vertices():
+        for u in graph.vertices(sort=False):
             line = r'\node ({}) at {} {{{}}};'.format(keys_for_vertices(u),
                                                       pos[u], u)
             lines.append(line)

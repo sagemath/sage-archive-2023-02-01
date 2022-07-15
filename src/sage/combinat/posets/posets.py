@@ -594,7 +594,7 @@ def Poset(data=None, element_labels=None, cover_relations=False, linear_extensio
         :class:`int`'s if they are :class:`Integer`'s::
 
             sage: G = DiGraph({0:[2,3], 1:[3,4], 2:[5], 3:[5], 4:[5]})
-            sage: type(G.vertices()[0])
+            sage: type(G.vertices(sort=True)[0])
             <class 'int'>
 
         This is worked around by systematically converting back the
@@ -1343,7 +1343,7 @@ class FinitePoset(UniqueRepresentation, Parent):
 
             sage: P = Poset((divisors(15), attrcall("divides")), facade=True)
             sage: H = P.hasse_diagram()
-            sage: H.vertices()
+            sage: H.vertices(sort=True)
             [1, 3, 5, 15]
             sage: H.edges()
             [(1, 3, None), (1, 5, None), (3, 15, None), (5, 15, None)]
@@ -9044,7 +9044,7 @@ def _ford_fulkerson_chronicle(G, s, t, a):
 
         # Gprime: directed graph G' from Britz-Fomin, Section 7.
         Gprime = DiGraph()
-        Gprime.add_vertices(G.vertices())
+        Gprime.add_vertices(G.vertices(sort=False))
         for (u, v, l) in G.edge_iterator():
             if pi[v] - pi[u] == a[(u, v)]:
                 if f[(u, v)] < capacity[(u, v)]:

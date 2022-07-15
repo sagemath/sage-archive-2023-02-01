@@ -847,7 +847,7 @@ class Crystals(Category_singleton):
                 sage: S = T.subcrystal(max_depth=3)
                 sage: G = T.digraph(subset=S); G
                 Digraph on 5 vertices
-                sage: sorted(G.vertices(), key=str)
+                sage: G.vertices(sort=True, key=str)
                 [(-Lambda[0] + 2*Lambda[1] - delta,),
                  (1/2*Lambda[0] + Lambda[1] - Lambda[2] - 1/2*delta, -1/2*Lambda[0] + Lambda[1] - 1/2*delta),
                  (1/2*Lambda[0] - Lambda[1] + Lambda[2] - 1/2*delta, -1/2*Lambda[0] + Lambda[1] - 1/2*delta),

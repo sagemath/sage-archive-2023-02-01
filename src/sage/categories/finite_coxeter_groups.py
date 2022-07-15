@@ -863,7 +863,7 @@ class FiniteCoxeterGroups(CategoryWithAxiom):
                 sage: W = WeylGroup(['A',4], prefix='s')
                 sage: w = W.from_reduced_word([1,2,1,3,2])
                 sage: D = w.coxeter_knuth_graph()
-                sage: D.vertices()
+                sage: D.vertices(sort=True)
                 [(1, 2, 1, 3, 2),
                 (1, 2, 3, 1, 2),
                 (2, 1, 2, 3, 2),
@@ -877,7 +877,7 @@ class FiniteCoxeterGroups(CategoryWithAxiom):
 
                 sage: w = W.from_reduced_word([1,3])
                 sage: D = w.coxeter_knuth_graph()
-                sage: D.vertices()
+                sage: D.vertices(sort=True)
                 [(1, 3), (3, 1)]
                 sage: D.edges()
                 []

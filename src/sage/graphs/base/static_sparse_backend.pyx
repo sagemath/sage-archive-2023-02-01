@@ -72,11 +72,12 @@ cdef class StaticSparseCGraph(CGraph):
         vertices of the graph ``G`` in some order.
         **Beware that no serious checks are made that this input is correct**.
 
-        If ``vertex_list`` is given, it will be used to map vertices of the
-        graph to consecutive integers. Otherwise, the result of ``G.vertices()``
-        will be used instead. Because ``G.vertices()`` only works if the
-        vertices can be sorted, using ``vertex_list`` is useful when working
-        with possibly non-sortable objects in Python 3.
+        If ``vertex_list`` is given, it will be used to map vertices
+        of the graph to consecutive integers. Otherwise, the result of
+        ``G.vertices(sort=True)`` will be used instead. Because this
+        only works if the vertices can be sorted, using
+        ``vertex_list`` is useful when working with possibly
+        non-sortable objects in Python 3.
 
         TESTS::
 
@@ -497,7 +498,7 @@ cdef class StaticSparseBackend(CGraphBackend):
             3
             sage: g.order()
             1
-            sage: g.vertices()
+            sage: g.vertices(sort=False)
             [1]
             sage: g.edges()
             [(1, 1, 1), (1, 1, 2), (1, 1, 3)]

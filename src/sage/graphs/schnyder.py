@@ -196,7 +196,7 @@ def _normal_label(g, comb_emb, external_face):
     v1_neighbors = Set(g.neighbors(v1))
 
     neighbor_count = {}
-    for v in g.vertices():
+    for v in g.vertices(sort=False):
         neighbor_count[v] = 0
     for v in g.neighbors(v1):
         neighbor_count[v] = len(v1_neighbors.intersection(Set(g.neighbors(v))))
@@ -236,7 +236,7 @@ def _normal_label(g, comb_emb, external_face):
 
     # expansion phase:
 
-    v1, v2, v3 = g.vertices()  # always in sorted order
+    v1, v2, v3 = g.vertices(sort=True)  # always in sorted order
 
     labels[v1] = {(v2, v3): 1}
     labels[v2] = {(v1, v3): 2}
@@ -516,7 +516,7 @@ def _compute_coordinates(g, x):
     coordinates[t2.label] = [0, g.order() - 2]
     coordinates[t3.label] = [1, 0]
 
-    for v in g.vertices():
+    for v in g.vertices(sort=False):
         if v not in [t1.label, t2.label, t3.label]:
             # Computing coordinates for v
             r = list((0, 0, 0))

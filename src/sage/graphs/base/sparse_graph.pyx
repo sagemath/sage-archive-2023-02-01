@@ -1174,7 +1174,7 @@ def _test_adjacency_sequence_out():
     # set all labels to 0
     E = [(u, v, 0) for u, v in randg.edges(labels=False)]
     cdef SparseGraph g = SparseGraph(n,
-                                     verts=randg.vertices(),
+                                     verts=randg.vertices(sort=False),
                                      arcs=E)
     assert g.num_verts == randg.order(), (
         "Graph order mismatch: %s vs. %s" % (g.num_verts, randg.order()))

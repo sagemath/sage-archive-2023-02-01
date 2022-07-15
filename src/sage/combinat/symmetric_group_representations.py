@@ -635,7 +635,7 @@ class YoungRepresentation_generic(SymmetricGroupRepresentation_generic_class):
         M = matrix(self._ring, digraph.num_verts())
         for g in digraph.connected_components_subgraphs():
             if g.num_verts() == 1:
-                [v] = g.vertices()
+                [v] = g.vertices(sort=True)
                 w = self._word_dict[v]
                 trivial = None
                 for j, a in enumerate(w):

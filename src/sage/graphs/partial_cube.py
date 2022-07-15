@@ -327,7 +327,7 @@ def is_partial_cube(G, certificate=False):
                     bitvec[w] |= bitvec[v]
 
         # Make graph of labeled edges and union them together
-        labeled = Graph([contracted.vertices(), []])
+        labeled = Graph([contracted.vertices(sort=False), []])
         for v, w in contracted.edge_iterator(labels=False):
             diff = bitvec[v] ^ bitvec[w]
             if not diff or not bitvec[w] &~ bitvec[v]:

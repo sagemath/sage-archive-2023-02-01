@@ -207,7 +207,7 @@ def RandomBipartite(n1, n2, p, set_position=False, seed=None):
     EXAMPLES::
 
         sage: g = graphs.RandomBipartite(5, 2, 0.5)
-        sage: g.vertices()
+        sage: g.vertices(sort=True)
         [(0, 0), (0, 1), (0, 2), (0, 3), (0, 4), (1, 0), (1, 1)]
 
     TESTS::
@@ -1316,9 +1316,9 @@ def RandomLobster(n, p, q, seed=None):
     nodes and probabilities `p = 0.7` and `q = 0.3`::
 
         sage: G = graphs.RandomLobster(12, 0.7, 0.3)
-        sage: leaves = [v for v in G.vertices() if G.degree(v) == 1]
+        sage: leaves = [v for v in G.vertices(sort=False) if G.degree(v) == 1]
         sage: G.delete_vertices(leaves)                                 # caterpillar
-        sage: leaves = [v for v in G.vertices() if G.degree(v) == 1]
+        sage: leaves = [v for v in G.vertices(sort=False) if G.degree(v) == 1]
         sage: G.delete_vertices(leaves)                                 # path
         sage: s = G.degree_sequence()
         sage: if G:
@@ -2118,8 +2118,8 @@ def RandomBicubicPlanar(n, seed=None):
         True
         sage: G.is_bipartite() and G.is_planar() and G.is_regular(3)
         True
-        sage: dic = {'red':[v for v in G.vertices() if v[0] == 'n'],
-        ....:        'blue': [v for v in G.vertices() if v[0] != 'n']}
+        sage: dic = {'red':[v for v in G.vertices(sort=False) if v[0] == 'n'],
+        ....:        'blue': [v for v in G.vertices(sort=False) if v[0] != 'n']}
         sage: G.plot(vertex_labels=False,vertex_size=20,vertex_colors=dic)
         Graphics object consisting of ... graphics primitives
 
@@ -2127,8 +2127,8 @@ def RandomBicubicPlanar(n, seed=None):
         :width: 300 px
 
         G = graphs.RandomBicubicPlanar(200)
-        V0 = [v for v in G.vertices() if v[0] == 'n']
-        V1 = [v for v in G.vertices() if v[0] != 'n']
+        V0 = [v for v in G.vertices(sort=False) if v[0] == 'n']
+        V1 = [v for v in G.vertices(sort=False) if v[0] != 'n']
         dic = {'red': V0, 'blue': V1}
         sphinx_plot(G.plot(vertex_labels=False,vertex_colors=dic))
     """

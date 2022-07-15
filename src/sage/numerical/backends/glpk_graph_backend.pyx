@@ -306,7 +306,7 @@ cdef class GLPKGraphBackend():
         cdef double rhs
         cdef glp_vertex* vert
 
-        verts = g.vertices()
+        verts = g.vertices(sort=True)
         n = len(verts)
         if n < 1:
             raise ValueError("Graph must contain vertices")

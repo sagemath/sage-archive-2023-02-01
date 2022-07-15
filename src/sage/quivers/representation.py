@@ -691,7 +691,7 @@ class QuiverRepFactory(UniqueFactory):
             # an integer is given set it as a free module of that rank, otherwise
             # assume the object is a module and assign it to the vertex.
             from sage.rings.finite_rings.integer_mod_ring import Integers
-            verts = Q.vertices()
+            verts = Q.vertices(sort=True)
             for x in verts:
                 if x not in spaces:
                     key.append(k**0)

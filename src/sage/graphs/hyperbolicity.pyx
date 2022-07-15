@@ -204,7 +204,7 @@ def _my_subgraph(G, vertices, relabel=False, return_map=False):
         sage: H = mysub(graphs.PetersenGraph(), [0,2,4,6])
         sage: H.edges(labels=None)
         [(0, 4)]
-        sage: H.vertices()
+        sage: H.vertices(sort=True)
         [0, 2, 4, 6]
     """
     from sage.graphs.graph import Graph

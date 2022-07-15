@@ -4553,7 +4553,7 @@ _SupportedFindStatCollections = {
     "Posets":
     _SupportedFindStatCollection(lambda x: (lambda R, E: Poset((list(range(E)), R)))(*literal_eval(x)),
                                  lambda X: str((sorted(X._hasse_diagram.cover_relations()),
-                                                len(X._hasse_diagram.vertices()))),
+                                                len(X._hasse_diagram.vertices(sort=False)))),
                                  Posets,
                                  lambda x: x.cardinality(),
                                  lambda x: isinstance(x, FinitePoset)),
@@ -4605,7 +4605,7 @@ _SupportedFindStatCollections = {
     "Lattices":
     _SupportedFindStatCollection(lambda x: (lambda R, E: LatticePoset((list(range(E)), R)))(*literal_eval(x)),
                                  lambda X: str((sorted(X._hasse_diagram.cover_relations()),
-                                                len(X._hasse_diagram.vertices()))),
+                                                len(X._hasse_diagram.vertices(sort=False)))),
                                  _finite_lattices,
                                  lambda x: x.cardinality(),
                                  lambda x: isinstance(x, FiniteLatticePoset))}

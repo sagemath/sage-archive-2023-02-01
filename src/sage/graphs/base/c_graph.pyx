@@ -1580,7 +1580,7 @@ cdef class CGraphBackend(GenericGraphBackend):
             sage: S.<x> = R[]
             sage: G.add_vertex(a**2)
             sage: G.add_vertex(x)
-            sage: G.vertices()
+            sage: G.vertices(sort=True)
             [a^2, x]
 
         And that the bug described in :trac:`9610` is gone::
@@ -1589,7 +1589,7 @@ cdef class CGraphBackend(GenericGraphBackend):
             sage: k = 3
             sage: g = DiGraph()
             sage: g.add_edges((i, Mod(i + j, n)) for i in range(n) for j in range(1, k + 1))
-            sage: g.vertices()
+            sage: g.vertices(sort=True)
             [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19]
             sage: g.strongly_connected_components()
             [[0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19]]
@@ -1601,7 +1601,7 @@ cdef class CGraphBackend(GenericGraphBackend):
             sage: A = Set([RDF.random_element(min=0, max=10) for k in range(10)])
             sage: G = Graph()
             sage: G.add_vertices(A)
-            sage: Set(G.vertices()) == A
+            sage: Set(G.vertices(sort=False)) == A
             True
 
         """

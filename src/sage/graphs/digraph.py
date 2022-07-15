@@ -350,7 +350,7 @@ class DiGraph(GenericGraph):
        directed edge from `i` to `j` if and only if `i` divides `j`::
 
             sage: g = DiGraph([[1..12], lambda i,j: i != j and i.divides(j)])
-            sage: g.vertices()
+            sage: g.vertices(sort=True)
             [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12]
             sage: g.adjacency_matrix()
             [0 1 1 1 1 1 1 1 1 1 1 1]
@@ -447,10 +447,10 @@ class DiGraph(GenericGraph):
        the vertex attribute ``'name'``, if available::
 
            sage: g = igraph.Graph([(0,1),(0,2)], directed=True, vertex_attrs={'name':['a','b','c']})  # optional - python_igraph
-           sage: DiGraph(g).vertices()                                                                # optional - python_igraph
+           sage: DiGraph(g).vertices(sort=True)            # optional - python_igraph
            ['a', 'b', 'c']
            sage: g = igraph.Graph([(0,1),(0,2)], directed=True, vertex_attrs={'label':['a','b','c']}) # optional - python_igraph
-           sage: DiGraph(g).vertices()                                                                # optional - python_igraph
+           sage: DiGraph(g).vertices(sort=True)            # optional - python_igraph
            [0, 1, 2]
 
        If the igraph Graph has edge attributes, they are used as edge labels::
@@ -2148,7 +2148,7 @@ class DiGraph(GenericGraph):
             sage: G = graphs.KrackhardtKiteGraph().to_directed()
             sage: G.eccentricity()
             [4, 4, 4, 4, 4, 3, 3, 2, 3, 4]
-            sage: G.vertices()
+            sage: G.vertices(sort=True)
             [0, 1, 2, 3, 4, 5, 6, 7, 8, 9]
             sage: G.eccentricity(7)
             2

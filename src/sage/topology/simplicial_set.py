@@ -1677,9 +1677,9 @@ class SimplicialSet_arbitrary(Parent):
 
             sage: CP3 = simplicial_sets.ComplexProjectiveSpace(3)
             sage: G = CP3.graph()
-            sage: len(G.vertices())
+            sage: len(G.vertices(sort=False))
             1
-            sage: len(G.edges())
+            sage: len(G.edges(sort=False))
             0
 
             sage: Sigma3 = groups.permutation.Symmetric(3)

@@ -1522,7 +1522,7 @@ class FiniteWord_class(Word_class):
             sage: g = w.rauzy_graph(3); g
             Looped digraph on 8 vertices
             sage: WordOptions(identifier='')
-            sage: g.vertices()
+            sage: g.vertices(sort=True)
             [012, 123, 234, 345, 456, 567, 678, 789]
             sage: g.edges()
             [(012, 123, 3),
@@ -1632,9 +1632,9 @@ class FiniteWord_class(Word_class):
             word: 0123456789
             sage: g = w.reduced_rauzy_graph(3); g
             Looped multi-digraph on 2 vertices
-            sage: g.vertices()
+            sage: g.vertices(sort=True)
             [word: 012, word: 789]
-            sage: g.edges()
+            sage: g.edges(sort=True)
             [(word: 012, word: 789, word: 3456789)]
 
         For the Fibonacci word::
@@ -1642,9 +1642,9 @@ class FiniteWord_class(Word_class):
             sage: f = words.FibonacciWord()[:100]
             sage: g = f.reduced_rauzy_graph(8);g
             Looped multi-digraph on 2 vertices
-            sage: g.vertices()
+            sage: g.vertices(sort=True)
             [word: 01001010, word: 01010010]
-            sage: g.edges()
+            sage: g.edges(sort=True)
             [(word: 01001010, word: 01010010, word: 010), (word: 01010010, word: 01001010, word: 01010), (word: 01010010, word: 01001010, word: 10)]
 
         For periodic words::
@@ -1671,9 +1671,9 @@ class FiniteWord_class(Word_class):
             sage: w = sigma.fixed_point('a')[:100]; w
             word: abcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcd...
             sage: g = w.reduced_rauzy_graph(5)
-            sage: g.vertices()
+            sage: g.vertices(sort=True)
             [word: abcdc, word: cdcdc]
-            sage: g.edges()
+            sage: g.edges(sort=True)
             [(word: abcdc, word: cdcdc, word: dc), (word: cdcdc, word: cdcdc, word: dc)]
 
         AUTHOR:

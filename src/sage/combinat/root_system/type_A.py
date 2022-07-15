@@ -264,7 +264,7 @@ class CartanType(CartanType_standard_finite, CartanType_simply_laced, CartanType
             O
             1
             A1
-            sage: a.vertices(), a.edges()
+            sage: a.vertices(sort=False), a.edges(sort=False)
             ([1], [])
         """
         from .dynkin_diagram import DynkinDiagram_class

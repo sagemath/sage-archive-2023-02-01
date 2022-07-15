@@ -5260,10 +5260,10 @@ class Partition(CombinatorialElement):
         TESTS::
 
             sage: G = Partition([1]).dual_equivalence_graph()
-            sage: G.vertices()
+            sage: G.vertices(sort=False)
             [[[1]]]
             sage: G = Partition([]).dual_equivalence_graph()
-            sage: G.vertices()
+            sage: G.vertices(sort=False)
             [[]]
 
             sage: P = Partition([3,1,1])

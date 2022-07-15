@@ -85,7 +85,7 @@ def removed_edge(G, edge):
         sage: G.edges()
         [(0, 1, None)]
         sage: with removed_edge(G,(0,1)) as Y:
-        ....:     G.edges(); G.vertices()
+        ....:     G.edges(sort=True); G.vertices(sort=True)
         []
         [0, 1]
         sage: G.edges()
@@ -112,7 +112,7 @@ def contracted_edge(G, unlabeled_edge):
         sage: G.edges()
         [(0, 1, 'a'), (0, 3, 'c'), (1, 2, 'b')]
         sage: with contracted_edge(G,(0,1)) as Y:
-        ....:     G.edges(); G.vertices()
+        ....:     G.edges(sort=True); G.vertices(sort=True)
         [(1, 2, 'b'), (1, 3, 'c')]
         [1, 2, 3]
         sage: G.edges()
@@ -156,7 +156,7 @@ def removed_loops(G):
         sage: G.edges()
         [(0, 0, 'c'), (0, 1, 'a'), (1, 2, 'b')]
         sage: with removed_loops(G) as Y:
-        ....:     G.edges(); G.vertices(); Y
+        ....:     G.edges(sort=True); G.vertices(sort=True); Y
         [(0, 1, 'a'), (1, 2, 'b')]
         [0, 1, 2]
         [(0, 0, 'c')]
@@ -682,7 +682,7 @@ def _tutte_polynomial_internal(G, x, y, edge_selector, cache=None):
     # Theorem 3 from Haggard, Pearce, and Royle, adapted to multi-ears
     ear = Ear.find_ear(uG)
     if ear is not None:
-        if (ear.is_cycle and ear.vertices == G.vertices()):
+        if (ear.is_cycle and ear.vertices == G.vertices(sort=True)):
             # The graph is an ear (cycle) We should never be in this
             # case since we check for multi-cycles above
             return y + sum(x**i for i in range(1, ear.s))

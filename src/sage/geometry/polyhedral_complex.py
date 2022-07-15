@@ -1027,7 +1027,7 @@ class PolyhedralComplex(GenericCellComplex):
             ....:         Polyhedron(vertices=[(1, 2), (0, 0), (0, 2)])])
             sage: g = pc.graph(); g
             Graph on 4 vertices
-            sage: g.vertices()
+            sage: g.vertices(sort=True)
             [(0, 0), (0, 2), (1, 1), (1, 2)]
             sage: g.edges(labels=False)
             [((0, 0), (0, 2)), ((0, 0), (1, 1)), ((0, 0), (1, 2)), ((0, 2), (1, 2)), ((1, 1), (1, 2))]

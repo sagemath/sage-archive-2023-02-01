@@ -334,7 +334,7 @@ class DiGraphGenerators():
         EXAMPLES::
 
             sage: g = digraphs.Path(5)
-            sage: g.vertices()
+            sage: g.vertices(sort=True)
             [0, 1, 2, 3, 4]
             sage: g.size()
             4
@@ -419,7 +419,7 @@ class DiGraphGenerators():
         EXAMPLES::
 
             sage: g = digraphs.TransitiveTournament(5)
-            sage: g.vertices()
+            sage: g.vertices(sort=True)
             [0, 1, 2, 3, 4]
             sage: g.size()
             10
@@ -853,12 +853,12 @@ class DiGraphGenerators():
         Building a de Bruijn digraph on a different alphabet::
 
             sage: g = digraphs.DeBruijn(['a', 'b'], 2)
-            sage: g.vertices()
+            sage: g.vertices(sort=True)
             ['aa', 'ab', 'ba', 'bb']
             sage: g.is_isomorphic(db)
             True
             sage: g = digraphs.DeBruijn(['AA', 'BB'], 2)
-            sage: g.vertices()
+            sage: g.vertices(sort=True)
             ['AA,AA', 'AA,BB', 'BB,AA', 'BB,BB']
             sage: g.is_isomorphic(db)
             True
@@ -875,10 +875,10 @@ class DiGraphGenerators():
         :trac:`22355`::
 
             sage: db = digraphs.DeBruijn(2, 2, vertices='strings')
-            sage: db.vertices()
+            sage: db.vertices(sort=True)
             ['00', '01', '10', '11']
             sage: h = digraphs.DeBruijn(2, 2, vertices='integers')
-            sage: h.vertices()
+            sage: h.vertices(sort=True)
             [0, 1, 2, 3]
             sage: db.is_isomorphic(h)
             True
@@ -1127,17 +1127,17 @@ class DiGraphGenerators():
         :trac:`22355`::
 
             sage: K = digraphs.Kautz(2, 2, vertices='strings')
-            sage: K.vertices()
+            sage: K.vertices(sort=True)
             ['01', '02', '10', '12', '20', '21']
             sage: h = digraphs.Kautz(2, 2, vertices='integers')
-            sage: h.vertices()
+            sage: h.vertices(sort=True)
             [0, 1, 2, 3, 4, 5]
             sage: h.is_isomorphic(K)
             True
             sage: h = digraphs.Kautz([1,'aA','BB'], 2, vertices='integers')
             sage: h.is_isomorphic(K)
             True
-            sage: h.vertices()
+            sage: h.vertices(sort=True)
             [0, 1, 2, 3, 4, 5]
             sage: digraphs.Kautz(2, 2, vertices='circles')
             Traceback (most recent call last):

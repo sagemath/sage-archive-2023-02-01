@@ -24,6 +24,7 @@ from sage.categories.fields import Fields
 from sage.combinat.free_module import CombinatorialFreeModule
 from sage.categories.cartesian_product import cartesian_product
 from sage.sets.family import Family
+from sage.rings.fraction_field import FractionField
 from sage.sets.finite_enumerated_set import FiniteEnumeratedSet
 from itertools import product
 from sage.misc.misc import powerset
@@ -160,7 +161,7 @@ class QuantumCliffordAlgebra(CombinatorialFreeModule):
             F = q.parent()
         q = F(q)
         if F not in Fields():
-            F = F.fraction_field()
+            F = FractionField(F)
             q = F(q)
 
         if bool(q**(2*k) == 1):

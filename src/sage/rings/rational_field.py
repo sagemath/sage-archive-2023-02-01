@@ -680,17 +680,18 @@ class RationalField(Singleton, number_field_base.NumberField):
         import sage.rings.all
         from sage.rings.infinity import Infinity
         if prec is None:
-            R = sage.rings.all.RR
-            C = sage.rings.all.CC
+            from sage.rings.real_mpfr import RR as R
+            from sage.rings.cc import CC as C
         elif prec == 53:
-            R = sage.rings.all.RDF
-            C = sage.rings.all.CDF
+            from sage.rings.real_double import RDF as R
+            from sage.rings.complex_double import CDF as C
         elif prec == Infinity:
-            R = sage.rings.all.AA
-            C = sage.rings.all.QQbar
+            from sage.rings.qqbar import AA as R, QQbar as C
         else:
-            R = sage.rings.all.RealField(prec)
-            C = sage.rings.all.ComplexField(prec)
+            from sage.rings.real_mpfr import RealField
+            from sage.rings.complex_mpfr import ComplexField
+            R = RealField(prec)
+            C = ComplexField(prec)
         domain = C if all_complex else R
         return [self.hom([domain(1)])]
 
@@ -1082,7 +1083,7 @@ class RationalField(Singleton, number_field_base.NumberField):
             sage: QQ.algebraic_closure()
             Algebraic Field
         """
-        from sage.rings.all import QQbar
+        from sage.rings.qqbar import QQbar
         return QQbar
 
     def order(self):
@@ -1484,7 +1485,7 @@ class RationalField(Singleton, number_field_base.NumberField):
             sage: QQ.quadratic_defect(5, 5)
             1
         """
-        from sage.rings.all import Infinity
+        from sage.rings.infinity import Infinity
         from sage.arith.misc import legendre_symbol
         if a not in self:
             raise TypeError(str(a) + " must be an element of " + str(self))

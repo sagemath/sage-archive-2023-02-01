@@ -76,6 +76,14 @@ Base classes for polyhedra
 .. toctree::
    :maxdepth: 1
 
+   sage/geometry/polyhedron/base0
+   sage/geometry/polyhedron/base1
+   sage/geometry/polyhedron/base2
+   sage/geometry/polyhedron/base3
+   sage/geometry/polyhedron/base4
+   sage/geometry/polyhedron/base5
+   sage/geometry/polyhedron/base6
+   sage/geometry/polyhedron/base7
    sage/geometry/polyhedron/base
    sage/geometry/polyhedron/base_QQ
    sage/geometry/polyhedron/base_ZZ

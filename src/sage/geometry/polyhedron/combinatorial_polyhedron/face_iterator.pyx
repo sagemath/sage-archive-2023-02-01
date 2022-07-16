@@ -1119,7 +1119,7 @@ cdef class FaceIterator_base(SageObject):
             ...
             ValueError: only possible when not in dual mode
 
-        Cannot run ``only_subfaces`` after ``ignore_subfaces::
+        Cannot run ``only_subfaces`` after ``ignore_subfaces``::
 
             sage: it = C.face_generator()
             sage: _ = next(it)

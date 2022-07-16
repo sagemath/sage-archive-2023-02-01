@@ -317,13 +317,13 @@ class GraphicMatroid(Matroid):
 
     def _vertex_stars(self):
         """
-        Computes the set of edge labels around each vertex.
+        Compute the set of edge labels around each vertex.
 
         Internal method for hashing purposes.
 
         OUTPUT:
 
-        A ``frozenset`` of ``frozenset``s containing the edge labels around
+        A ``frozenset`` of ``frozenset`` s containing the edge labels around
         each vertex.
 
         EXAMPLES::
@@ -345,7 +345,7 @@ class GraphicMatroid(Matroid):
         """
         star_list = []
         for v in self._G.vertices():
-            star = [l for (u, v, l) in self._G.edges_incident(v)]
+            star = [l for (_, _, l) in self._G.edges_incident(v)]
             star_list.append(frozenset(star))
         return frozenset(star_list)
 

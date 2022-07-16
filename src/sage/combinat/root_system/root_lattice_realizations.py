@@ -1281,7 +1281,7 @@ class RootLatticeRealizations(Category_over_base_ring):
 
                 (-1, 0, 1)
 
-            .. todo:: add a non simply laced example
+            .. TODO:: add a non simply laced example
 
             Finally, here is an affine example::
 

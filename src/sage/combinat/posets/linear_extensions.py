@@ -97,7 +97,7 @@ class LinearExtensionOfPoset(ClonableArray,
         - ``linear_extension`` -- a list of elements of ``poset``
         - ``poset`` -- a finite poset
 
-        .. todo:: check whether this method is still useful
+        .. TODO:: check whether this method is still useful
 
         TESTS::
 
@@ -654,7 +654,7 @@ class LinearExtensionsOfPoset(UniqueRepresentation, Parent):
         - ``action`` -- 'promotion' or 'tau' (default: 'promotion')
         - ``labeling`` -- 'identity' or 'source' (default: 'identity')
 
-        .. todo::
+        .. TODO::
 
             - generalize this feature by accepting a family of operators as input
             - move up in some appropriate category

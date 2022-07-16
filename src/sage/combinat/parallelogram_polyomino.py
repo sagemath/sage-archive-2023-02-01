@@ -1637,6 +1637,7 @@ class ParallelogramPolyomino(ClonableList,
             the binary tree and the virtual root.
 
             The edges are defined as follow:
+
             - if v1 is a left (resp. right) son of v2 and v2 is a right
               (resp. left) son of v3, then, in the ordered tree, v2 is the
               father of v1;
@@ -1659,6 +1660,7 @@ class ParallelogramPolyomino(ClonableList,
                       5
                        \
                         6
+
             becomes
 
             ::

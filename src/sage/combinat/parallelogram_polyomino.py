@@ -425,10 +425,9 @@ class LocalOptions:
         specifications for the options and then to add the options to the
         class.
 
-        The _dispatch method will then call:
-
-            obj.``<option name> + '_' + <current value of option>``(
-                *get_values, **set_values)
+        The ``_dispatch`` method will then call the method named
+        ``<option name> + '_' + <current value of option>`` of ``obj``
+        with arguments ``*get_values, **set_values``.
 
         Note that the argument ``self`` is necessary here because the
         dispatcher is a method of the options class and not of ``self``.

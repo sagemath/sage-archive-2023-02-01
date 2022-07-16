@@ -176,7 +176,7 @@ exclude_patterns = ['.build']
 
 # If true, sectionauthor and moduleauthor directives will be shown in the
 # output. They are ignored by default.
-#show_authors = False
+show_authors = True
 
 # Default lexer to use when highlighting code blocks, using the IPython
 # console lexers. 'ipycon' is the IPython console, which is what we want

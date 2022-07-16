@@ -47,6 +47,19 @@ Lattice polyhedra
    sage/geometry/polyhedron/ppl_lattice_polygon
    sage/geometry/polyhedron/ppl_lattice_polytope
 
+Combinatorial Polyhedra
+~~~~~~~~~~~~~~~~~~~~~~~
+
+.. toctree::
+   :maxdepth: 1
+
+   sage/geometry/polyhedron/combinatorial_polyhedron/base
+   sage/geometry/polyhedron/combinatorial_polyhedron/combinatorial_face
+   sage/geometry/polyhedron/combinatorial_polyhedron/polyhedron_face_lattice
+   sage/geometry/polyhedron/combinatorial_polyhedron/face_iterator
+   sage/geometry/polyhedron/combinatorial_polyhedron/face_list_data_structure
+   sage/geometry/polyhedron/combinatorial_polyhedron/list_of_faces
+
 Polyhedral complexes
 ~~~~~~~~~~~~~~~~~~~~
 

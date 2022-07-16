@@ -1745,7 +1745,7 @@ class DecoratedSuffixTree(ImplicitSuffixTree):
             - ``(u, v)`` -- edge on which the point is registered
             - ``l`` -- depth of the registered point on (u,v)
             - ``start`` -- beginning of the squares registered by the label
-            ``(u, v), l``
+              ``(u, v), l``
             """
             # Mark the point in labeling
             if (u, v) in labeling:

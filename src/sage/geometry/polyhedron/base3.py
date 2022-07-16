@@ -1,8 +1,7 @@
 r"""
-Base class for polyhedra, part 3
+Base class for polyhedra: Methods regarding the combinatorics of a polyhedron
 
-Define methods related to the combinatorics of a polyhedron
-excluding methods relying on :mod:`sage.graphs`.
+Excluding methods relying on :mod:`sage.graphs`.
 """
 
 # ****************************************************************************

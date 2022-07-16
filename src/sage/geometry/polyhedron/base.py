@@ -1,12 +1,11 @@
 r"""
-Base class for polyhedra
+Base class for polyhedra: Miscellaneous methods
 
 This is split into several modules, organized as follows:
 
 - :mod:`~sage.geometry.polyhedron.base0` -- basic initialization etc.
 
-- :mod:`~sage.geometry.polyhedron.base1` -- methods defined by the
-                                            :class:`~sage.geometry.convex_set.ConvexSet_base` API
+- :mod:`~sage.geometry.polyhedron.base1` -- methods defined by the :class:`~sage.geometry.convex_set.ConvexSet_base` API
 
 - :mod:`~sage.geometry.polyhedron.base2` -- lattice points
 

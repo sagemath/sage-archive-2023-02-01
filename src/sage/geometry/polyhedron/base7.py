@@ -1,7 +1,5 @@
 r"""
-Base class for polyhedra, part 7
-
-Define methods related to triangulation and volume.
+Base class for polyhedra: Methods for triangulation and volume computation
 """
 
 # ****************************************************************************

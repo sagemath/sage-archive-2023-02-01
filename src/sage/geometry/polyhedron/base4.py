@@ -1,6 +1,6 @@
 # sage.doctest: optional - sage.graphs
 r"""
-Base class for polyhedra, part 4
+Base class for polyhedra: Graph-theoretic methods
 
 Define methods relying on :mod:`sage.graphs`.
 """

@@ -1,8 +1,7 @@
 r"""
-Base class for polyhedra, part 5
+Base class for polyhedra: Methods for constructing new polyhedra
 
-Define methods constructing new polyhedra
-except for affine hull and affine hull projection.
+Except for affine hull and affine hull projection.
 """
 
 # ****************************************************************************

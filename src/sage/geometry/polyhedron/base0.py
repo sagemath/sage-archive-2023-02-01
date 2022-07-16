@@ -1,7 +1,5 @@
 r"""
-Base class for polyhedra, part 0
-
-Initialization and access to Vrepresentation and Hrepresentation.
+Base class for polyhedra: Initialization and access to Vrepresentation and Hrepresentation
 """
 
 # ****************************************************************************

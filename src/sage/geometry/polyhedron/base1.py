@@ -1,5 +1,5 @@
 r"""
-Base class for polyhedra, part 1
+Base class for polyhedra: Implementation of the :class:`ConvexSet_base` API
 
 Define methods that exist for convex sets,
 but not constructions such as dilation or product.

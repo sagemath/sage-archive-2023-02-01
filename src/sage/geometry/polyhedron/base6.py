@@ -1,7 +1,5 @@
 r"""
-Base class for polyhedra, part 6
-
-Define methods related to plotting including affine hull projection.
+Base class for polyhedra: Methods for plotting and affine hull projection
 """
 
 # ****************************************************************************

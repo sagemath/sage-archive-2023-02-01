@@ -1,7 +1,5 @@
 r"""
-Base class for polyhedra, part 2
-
-Define methods related to lattice points.
+Base class for polyhedra: Methods related to lattice points
 """
 
 # ****************************************************************************

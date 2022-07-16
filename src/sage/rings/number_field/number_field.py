@@ -128,7 +128,7 @@ from sage.misc.fast_methods import WithEqualityById
 from sage.misc.functional import is_odd, lift
 
 from sage.misc.misc_c import prod
-from sage.rings.all import Infinity
+from sage.rings.infinity import Infinity
 from sage.categories.number_fields import NumberFields
 
 import sage.rings.ring
@@ -3290,7 +3290,8 @@ class NumberField_generic(WithEqualityById, number_field_base.NumberField):
             sage: K.algebraic_closure()
             Algebraic Field
         """
-        return sage.rings.all.QQbar
+        from sage.rings.qqbar import QQbar
+        return QQbar
 
     @cached_method
     def conductor(self, check_abelian=True):
@@ -6807,7 +6808,7 @@ class NumberField_generic(WithEqualityById, number_field_base.NumberField):
         try:
             return self.__regulator
         except AttributeError:
-            from sage.rings.all import RealField
+            from sage.rings.real_mpfr import RealField
             k = self.pari_bnf(proof)
             self.__regulator = RealField(53)(k.bnf_get_reg())
             return self.__regulator
@@ -8116,7 +8117,8 @@ class NumberField_absolute(NumberField_generic):
 
         # Do not use CDF or RDF because of constraints on the
         # exponent of floating-point numbers
-        from sage.rings.all import RealField, ComplexField
+        from sage.rings.complex_mpfr import ComplexField
+        from sage.rings.real_mpfr import RealField
         CC = ComplexField(53)
         RR = RealField(53)
 
@@ -9369,8 +9371,9 @@ class NumberField_absolute(NumberField_generic):
             C = sage.rings.complex_double.CDF
 
         elif prec == Infinity:
-            R = sage.rings.all.AA
-            C = sage.rings.all.QQbar
+            from sage.rings.qqbar import AA, QQbar
+            R = AA
+            C = QQbar
 
         else:
             R = sage.rings.real_mpfr.RealField(prec)
@@ -9677,7 +9680,7 @@ class NumberField_absolute(NumberField_generic):
             L = alpha.domain()
             alpha = alpha(L.gen()) # relativize over phi's domain
             if L is QQ:
-                from sage.rings.all import polygen
+                from sage.rings.polynomial.polynomial_ring import polygen
                 f = polygen(QQ)
             else:
                 f = L.defining_polynomial() # = alpha.minpoly()
@@ -10039,7 +10042,7 @@ class NumberField_absolute(NumberField_generic):
             if P.domain() is not self:
                 raise ValueError("Domain of P (=%s) should be self (=%s) in self.hilbert_symbol" % (P, self))
             codom = P.codomain()
-            from sage.rings.all import (AA, QQbar)
+            from sage.rings.qqbar import AA, QQbar
             if isinstance(codom, (sage.rings.abc.ComplexField, sage.rings.abc.ComplexDoubleField, sage.rings.abc.ComplexIntervalField)) or \
                                          codom is QQbar:
                 if P(self.gen()).imag() == 0:

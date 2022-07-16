@@ -1036,7 +1036,7 @@ class FractionField_1poly_field(FractionField_generic):
             :meth:`sage.rings.function_field.RationalFunctionField.field`
 
         """
-        from sage.rings.all import FunctionField
+        from sage.rings.function_field.constructor import FunctionField
         return FunctionField(self.base_ring(), names=self.variable_name())
 
     def _coerce_map_from_(self, R):

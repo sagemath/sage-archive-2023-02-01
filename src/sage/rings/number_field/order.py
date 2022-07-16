@@ -2752,7 +2752,8 @@ def GaussianIntegers(names="I", latex_name="i"):
         sage: GaussianIntegers().basis()
         [1, I]
     """
-    from sage.rings.all import CDF, NumberField
+    from sage.rings.complex_double import CDF
+    from sage.rings.number_field.number_field import NumberField
     f = ZZ['x']([1, 0, 1])
     nf = NumberField(f, names, embedding=CDF(0, 1), latex_name=latex_name)
     return nf.ring_of_integers()
@@ -2780,7 +2781,8 @@ def EisensteinIntegers(names="omega"):
         sage: EisensteinIntegers().basis()
         [1, omega]
     """
-    from sage.rings.all import CDF, NumberField
+    from sage.rings.complex_double import CDF
+    from sage.rings.number_field.number_field import NumberField
     f = ZZ['x']([1, 1, 1])
     nf = NumberField(f, names, embedding=CDF(-0.5, 0.8660254037844386))
     return nf.ring_of_integers()

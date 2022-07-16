@@ -12,16 +12,14 @@ A (slightly generalized) description of the algorithm can be found in [KS2019]_.
 
 Terminology in this module:
 
-- Coatoms               -- the faces from which all others are constructed in
-                           the face iterator. This will be facets or Vrep.
-                           In non-dual mode, faces are constructed as
-                           intersections of the facets. In dual mode, the are
-                           constructed theoretically as joins of vertices.
-                           The coatoms are repsented as incidences with the
-                           atoms they contain.
-- Atoms                 -- facets or Vrep depending on application of algorithm.
-                           Atoms are repsented as incidences of coatoms they
-                           are contained in.
+- Coatoms -- the faces from which all others are constructed in the
+  face iterator. This will be facets or Vrep.  In non-dual mode, faces
+  are constructed as intersections of the facets. In dual mode, they
+  are constructed theoretically as joins of vertices.  The coatoms are
+  repsented as incidences with the atoms they contain.
+
+- Atoms -- facets or Vrep depending on application of algorithm.  Atoms are
+  represented as incidences of coatoms they are contained in.
 
 .. SEEALSO::
 
@@ -1119,7 +1117,7 @@ cdef class FaceIterator_base(SageObject):
             ...
             ValueError: only possible when not in dual mode
 
-        Cannot run ``only_subfaces`` after ``ignore_subfaces::
+        Cannot run ``only_subfaces`` after ``ignore_subfaces``::
 
             sage: it = C.face_generator()
             sage: _ = next(it)

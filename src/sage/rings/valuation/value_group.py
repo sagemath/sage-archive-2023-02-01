@@ -471,7 +471,7 @@ class DiscreteValueSemigroup(UniqueRepresentation, Parent):
             for h in generators:
                 if g == h:
                     continue
-                from sage.rings.all import NN
+                from sage.rings.semirings.non_negative_integer_semiring import NN
                 if h/g in NN:
                     simplified_generators.remove(h)
                     break
@@ -525,7 +525,7 @@ class DiscreteValueSemigroup(UniqueRepresentation, Parent):
                 return None
 
         if len(self._generators) == 1:
-            from sage.rings.all import NN
+            from sage.rings.semirings.non_negative_integer_semiring import NN
             exp = target / self._generators[0]
             if exp not in NN:
                 return None

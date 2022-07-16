@@ -1172,7 +1172,7 @@ def _test_adjacency_sequence_out():
         randg = DiGraph(GraphGenerators().RandomGNP(randint(low, high), random()))
         n = randg.order()
     # set all labels to 0
-    E = [(u, v, 0) for u, v in randg.edges(labels=False)]
+    E = [(u, v, 0) for u, v in randg.edges(sort=True, labels=False)]
     cdef SparseGraph g = SparseGraph(n,
                                      verts=randg.vertices(sort=False),
                                      arcs=E)
@@ -1219,7 +1219,7 @@ cdef class SparseGraphBackend(CGraphBackend):
 
         sage: G = Graph(30, sparse=True)
         sage: G.add_edges([(0,1), (0,3), (4,5), (9, 23)])
-        sage: G.edges(labels=False)
+        sage: G.edges(sort=True, labels=False)
         [(0, 1), (0, 3), (4, 5), (9, 23)]
 
     Note that Sage graphs using the backend are more flexible than SparseGraphs

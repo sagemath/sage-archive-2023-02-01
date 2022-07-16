@@ -179,7 +179,7 @@ class PathSemigroup(UniqueRepresentation, Parent):
             cat = FiniteEnumeratedSets()
         else:
             cat = InfiniteEnumeratedSets()
-        self._sorted_edges = tuple(sorted(Q.edges(), key=lambda x: x[2]))
+        self._sorted_edges = tuple(sorted(Q.edges(sort=True), key=lambda x: x[2]))
         self._labels = tuple([x[2] for x in self._sorted_edges])
         self._label_index = {s[2]: i for i, s in enumerate(self._sorted_edges)}
         self._nb_arrows = max(len(self._sorted_edges), 1)

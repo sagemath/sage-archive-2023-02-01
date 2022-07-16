@@ -6508,10 +6508,10 @@ def partition_sandpile(S, p):
     for u, v in combinations(g, 2):
         for i in u:
             for j in v:
-                if (i, j, 1) in S.edges():
+                if (i, j, 1) in S.edges(sort=False):
                     g.add_edge((u, v))
                     break
-    for i in g.vertices(sort=True):
+    for i in g.vertices(sort=False):
         if S.sink() in i:
             return Sandpile(g, i)
 

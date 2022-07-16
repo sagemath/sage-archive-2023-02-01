@@ -1322,7 +1322,7 @@ def generate_dense_graphs_edge_addition(int n, bint loops, G = None, depth = Non
     GS = (<GraphStruct> (<canonical_generator_data *> graph_iterator.data).object_stack[0])
     if G is not None:
         DG = GS.G
-        for u,v in G.edges(labels=False):
+        for u,v in G.edges(sort=False, labels=False):
             DG.add_arc(u,v)
             if u != v:
                 DG.add_arc(v,u)
@@ -1595,7 +1595,7 @@ def generate_dense_graphs_vert_addition(int n, base_G = None, bint construct = F
     if base_G is not None:
         for v in base_G.vertices(sort=False):
             DG.add_vertex(v)
-        for u,v in base_G.edges(labels=False):
+        for u,v in base_G.edges(sort=False, labels=False):
             DG.add_arc(u,v)
             DG.add_arc(v,u)
 

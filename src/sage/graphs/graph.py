@@ -590,7 +590,7 @@ class Graph(GenericGraph):
         Graph on 5 vertices
         sage: g.vertices(sort=True)
         [0, 1, 2, 3, 4]
-        sage: g.edges()
+        sage: g.edges(sort=False)
         []
 
     #. A dictionary of dictionaries::
@@ -638,7 +638,7 @@ class Graph(GenericGraph):
        Construct the line graph of a complete graph.::
 
           sage: g=graphs.CompleteGraph(4)
-          sage: line_graph=Graph([g.edges(labels=false), \
+          sage: line_graph=Graph([g.edges(sort=True, labels=false), \
                  lambda i,j: len(set(i).intersection(set(j)))>0], \
                  loops=False)
           sage: line_graph.vertices(sort=True)
@@ -763,13 +763,13 @@ class Graph(GenericGraph):
             [2 1 1 0 0 0]
             [0 1 1 2 2 0]
             [0 0 0 0 0 2]
-            sage: Graph(MI).edges(labels=None)
+            sage: Graph(MI).edges(sort=True, labels=None)
             [(0, 0), (0, 1), (0, 1), (1, 1), (1, 1), (2, 2)]
 
             sage: M = Matrix([[1], [-1]]); M
             [ 1]
             [-1]
-            sage: Graph(M).edges()
+            sage: Graph(M).edges(sort=True)
             [(0, 1, None)]
 
     #. A Seidel adjacency matrix::
@@ -828,7 +828,7 @@ class Graph(GenericGraph):
        If the igraph Graph has edge attributes, they are used as edge labels::
 
            sage: g = igraph.Graph([(0,1),(0,2)], edge_attrs={'name':['a','b'], 'weight':[1,3]}) # optional - python_igraph
-           sage: Graph(g).edges()                                                               # optional - python_igraph
+           sage: Graph(g).edges(sort=True)                                                               # optional - python_igraph
            [(0, 1, {'name': 'a', 'weight': 1}), (0, 2, {'name': 'b', 'weight': 3})]
 
 
@@ -896,7 +896,7 @@ class Graph(GenericGraph):
 
         sage: G = Graph([[1,2,3], [(1,2)]]); G
         Graph on 3 vertices
-        sage: G.edges()
+        sage: G.edges(sort=True)
         [(1, 2, None)]
 
     Check that :trac:`27505` is fixed::
@@ -985,7 +985,7 @@ class Graph(GenericGraph):
         Graphs returned when setting ``immutable=False`` are mutable::
 
             sage: g = graphs.PetersenGraph()
-            sage: g = Graph(g.edges(),immutable=False)
+            sage: g = Graph(g.edges(sort=True), immutable=False)
             sage: g.add_edge("Hey", "Heyyyyyyy")
 
         And their name is set::
@@ -2642,7 +2642,7 @@ class Graph(GenericGraph):
             sage: g = Graph()
             sage: g.allow_loops(True)
             sage: g.add_edge(0,0)
-            sage: g.edges()
+            sage: g.edges(sort=True)
             [(0, 0, None)]
             sage: g.is_perfect()
             Traceback (most recent call last):
@@ -3347,7 +3347,7 @@ class Graph(GenericGraph):
         d.add_edges(('s', vertices_id[v], b[v]) for v in vertices)
 
         d.add_edges(((vertices_id[u], vertices_id[v]), 't', 1)
-                     for u,v in self.edges(labels=None) )
+                     for u,v in self.edges(sort=True, labels=None) )
 
         # each v is linked to its incident edges
 
@@ -3418,10 +3418,10 @@ class Graph(GenericGraph):
             sage: G = Graph([[1,2,3], [(1, 2, 'a'), (1, 3, 'b')]], format='vertices_and_edges')
             sage: it = G.orientations()
             sage: D = next(it)
-            sage: D.edges()
+            sage: D.edges(sort=True)
             [(1, 2, 'a'), (1, 3, 'b')]
             sage: D = next(it)
-            sage: D.edges()
+            sage: D.edges(sort=True)
             [(1, 2, 'a'), (3, 1, 'b')]
 
         TESTS::
@@ -3924,7 +3924,7 @@ class Graph(GenericGraph):
             R = ZZ
         p = SymmetricFunctions(R).p()
         ret = p.zero()
-        for F in powerset(self.edges()):
+        for F in powerset(self.edges(sort=True)):
             la = _Partitions(self.subgraph(edges=F).connected_components_sizes())
             ret += (-1)**len(F) * p[la]
         return ret
@@ -4332,7 +4332,7 @@ class Graph(GenericGraph):
             Traceback (most recent call last):
             ...
             ValueError: the input is not a near perfect matching of the graph
-            sage: G.is_factor_critical(matching=G.edges())
+            sage: G.is_factor_critical(matching=G.edges(sort=True))
             Traceback (most recent call last):
             ...
             ValueError: the input is not a matching
@@ -4508,8 +4508,8 @@ class Graph(GenericGraph):
         for ug in self:
             p.add_constraint(p.sum(b[ug,uh] for uh in H) == 1)
 
-        nonedges = H.complement().edges(labels=False)
-        for ug,vg in self.edges(labels=False):
+        nonedges = H.complement().edges(sort=False, labels=False)
+        for ug,vg in self.edges(sort=False, labels=False):
             # Two adjacent vertices cannot be mapped to the same element
             for uh in H:
                 p.add_constraint(b[ug,uh] + b[vg,uh] <= 1)
@@ -6003,7 +6003,7 @@ class Graph(GenericGraph):
             Cycle graph join : Graph on 5 vertices
             sage: J.vertices(sort=True)
             [0, 1, 2, 3, 4]
-            sage: J.edges()
+            sage: J.edges(sort=True)
             [(0, 1, None), (0, 2, None), (0, 3, None), (0, 4, None), (1, 2, None), (1, 3, None), (1, 4, None), (2, 3, None), (2, 4, None)]
 
         ::
@@ -6018,7 +6018,7 @@ class Graph(GenericGraph):
             [(0, 0), (0, 1), (0, 2), (1, 0), (1, 1)]
             sage: J = G.join(H, labels='integers'); J
             Graph on 3 vertices join Graph on 2 vertices: Graph on 5 vertices
-            sage: J.edges()
+            sage: J.edges(sort=True)
             [(0, 3, None), (0, 4, None), (1, 3, None), (1, 4, None), (2, 3, None), (2, 4, None)]
         """
         G = self.disjoint_union(other, labels=labels, immutable=False)
@@ -7077,7 +7077,7 @@ class Graph(GenericGraph):
             # belongs to an optimal vertex cover
 
             # We first take a copy of the graph without multiple edges, if any.
-            g = Graph(data=self.edges(), format='list_of_edges',
+            g = Graph(data=self.edges(sort=False), format='list_of_edges',
                           multiedges=self.allows_multiple_edges())
             g.allow_multiple_edges(False)
 
@@ -7278,7 +7278,7 @@ class Graph(GenericGraph):
 
             sage: g = graphs.BullGraph()
             sage: g.allow_multiple_edges(True)
-            sage: g.add_edges(g.edges())
+            sage: g.add_edges(g.edges(sort=False))
             sage: g.allow_loops(True)
             sage: u = g.random_vertex()
             sage: g.add_edge(u, u)
@@ -7660,7 +7660,7 @@ class Graph(GenericGraph):
         Graphs with multiple edges::
 
             sage: G.allow_multiple_edges(True)
-            sage: G.add_edges(G.edges())
+            sage: G.add_edges(G.edges(sort=False))
             sage: G.cores(with_labels=True)
             {0: 4, 1: 4, 2: 4, 3: 2, 4: 2}
             sage: G.cores(k=4)
@@ -8856,7 +8856,7 @@ class Graph(GenericGraph):
         # We create a mapping from frozen unlabeled edges to (labeled) edges.
         # This ease for instance the manipulation of multiedges (if any)
         edges = {}
-        for e in G.edges(labels=labels):
+        for e in G.edges(sort=True, labels=labels):
             f = frozenset(e[:2])
             if f in edges:
                 edges[f].append(e)
@@ -9329,7 +9329,7 @@ class Graph(GenericGraph):
         verttoidx = {u: i for i, u in enumerate(verts)}
         S = self.effective_resistance_matrix(vertices=verts, nonedgesonly=nonedgesonly)
         if nonedgesonly:
-            edges = self.complement().edges(labels=False)
+            edges = self.complement().edges(sort=False, labels=False)
         else:
             edges = [(verts[i], verts[j]) for i in range(n) for j in range(i + 1, n)]
 
@@ -9589,7 +9589,7 @@ class Graph(GenericGraph):
             2
             sage: all([f.is_forest() for f in F])
             True
-            sage: len(set.union(*[set(f.edges()) for f in F])) == G.size()
+            sage: len(set.union(*[set(f.edges(sort=False)) for f in F])) == G.size()
             True
 
         TESTS::

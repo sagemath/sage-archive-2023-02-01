@@ -1524,7 +1524,7 @@ class FiniteWord_class(Word_class):
             sage: WordOptions(identifier='')
             sage: g.vertices(sort=True)
             [012, 123, 234, 345, 456, 567, 678, 789]
-            sage: g.edges()
+            sage: g.edges(sort=True)
             [(012, 123, 3),
              (123, 234, 4),
              (234, 345, 5),
@@ -1544,7 +1544,7 @@ class FiniteWord_class(Word_class):
 
             sage: w = Word('1111111')
             sage: g = w.rauzy_graph(3)
-            sage: g.edges()
+            sage: g.edges(sort=True)
             [(word: 111, word: 111, word: 1)]
 
         ::
@@ -1563,7 +1563,7 @@ class FiniteWord_class(Word_class):
             sage: w = W('abc')
             sage: w.rauzy_graph(0)
             Looped multi-digraph on 1 vertex
-            sage: _.edges()
+            sage: _.edges(sort=True)
             [(word: , word: , word: a),
              (word: , word: , word: b),
              (word: , word: , word: c)]
@@ -1652,7 +1652,7 @@ class FiniteWord_class(Word_class):
             sage: from itertools import cycle
             sage: w = Word(cycle('abcd'))[:100]
             sage: g = w.reduced_rauzy_graph(3)
-            sage: g.edges()
+            sage: g.edges(sort=True)
             [(word: abc, word: abc, word: dabc)]
 
         ::

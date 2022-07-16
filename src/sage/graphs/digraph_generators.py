@@ -224,7 +224,7 @@ class DiGraphGenerators():
 
         EXAMPLES::
 
-            sage: digraphs.ButterflyGraph(2).edges(labels=False)
+            sage: digraphs.ButterflyGraph(2).edges(sort=True, labels=False)
             [(('00', 0), ('00', 1)),
             (('00', 0), ('10', 1)),
             (('00', 1), ('00', 2)),
@@ -241,7 +241,7 @@ class DiGraphGenerators():
             (('11', 0), ('11', 1)),
             (('11', 1), ('10', 2)),
             (('11', 1), ('11', 2))]
-            sage: digraphs.ButterflyGraph(2,vertices='vectors').edges(labels=False)
+            sage: digraphs.ButterflyGraph(2,vertices='vectors').edges(sort=True, labels=False)
             [(((0, 0), 0), ((0, 0), 1)),
             (((0, 0), 0), ((1, 0), 1)),
             (((0, 0), 1), ((0, 0), 2)),
@@ -524,7 +524,7 @@ class DiGraphGenerators():
         EXAMPLES::
 
             sage: for g in digraphs.tournaments_nauty(4):
-            ....:     print(g.edges(labels = False))
+            ....:     print(g.edges(sort=True, labels = False))
             [(1, 0), (2, 0), (2, 1), (3, 0), (3, 1), (3, 2)]
             [(1, 0), (1, 3), (2, 0), (2, 1), (3, 0), (3, 2)]
             [(0, 2), (1, 0), (2, 1), (3, 0), (3, 1), (3, 2)]
@@ -1094,11 +1094,11 @@ class DiGraphGenerators():
              '120': 5, '121': 4, '201': 1, '202': 0, '210': 2, '212': 3}
 
             sage: K = digraphs.Kautz([1,'a','B'], 2)
-            sage: K.edges()
+            sage: K.edges(sort=True)
             [('1B', 'B1', '1'), ('1B', 'Ba', 'a'), ('1a', 'a1', '1'), ('1a', 'aB', 'B'), ('B1', '1B', 'B'), ('B1', '1a', 'a'), ('Ba', 'a1', '1'), ('Ba', 'aB', 'B'), ('a1', '1B', 'B'), ('a1', '1a', 'a'), ('aB', 'B1', '1'), ('aB', 'Ba', 'a')]
 
             sage: K = digraphs.Kautz([1,'aA','BB'], 2)
-            sage: K.edges()
+            sage: K.edges(sort=True)
             [('1,BB', 'BB,1', '1'), ('1,BB', 'BB,aA', 'aA'), ('1,aA', 'aA,1', '1'), ('1,aA', 'aA,BB', 'BB'), ('BB,1', '1,BB', 'BB'), ('BB,1', '1,aA', 'aA'), ('BB,aA', 'aA,1', '1'), ('BB,aA', 'aA,BB', 'BB'), ('aA,1', '1,BB', 'BB'), ('aA,1', '1,aA', 'aA'), ('aA,BB', 'BB,1', '1'), ('aA,BB', 'BB,aA', 'aA')]
 
 

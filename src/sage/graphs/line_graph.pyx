@@ -335,7 +335,7 @@ def line_graph(g, labels=True):
         (2, 3, None),
         (2, 4, None),
         (3, 4, None)]
-        sage: h.edges()
+        sage: h.edges(sort=True)
         [((1, 2, None), (2, 3, None), None),
          ((1, 2, None), (2, 4, None), None),
          ((1, 3, None), (3, 4, None), None),

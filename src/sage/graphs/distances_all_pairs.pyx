@@ -2539,7 +2539,7 @@ def antipodal_graph(G):
         ValueError: this method is defined for undirected graphs only
         sage: antipodal_graph(Graph(1))
         Antipodal graph of Graph on 1 vertex: Looped graph on 1 vertex
-        sage: antipodal_graph(Graph(2)).edges(labels=False)
+        sage: antipodal_graph(Graph(2)).edges(sort=True, labels=False)
         [(0, 1)]
     """
     if not G:

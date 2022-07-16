@@ -109,7 +109,7 @@ class SandpileExamples():
         EXAMPLES::
 
             sage: s = sandpiles.Cycle(4)
-            sage: s.edges()
+            sage: s.edges(sort=True)
             [(0, 1, 1),
              (0, 3, 1),
              (1, 0, 1),

@@ -241,7 +241,7 @@ class Semigroups(CategoryWithAxiom):
                 sage: g = S.cayley_graph(simple=True)
                 sage: g.vertices(sort=True)
                 ['a', 'ab', 'b', 'ba']
-                sage: g.edges()
+                sage: g.edges(sort=True)
                 [('a', 'ab', None), ('b', 'ba', None)]
 
             ::
@@ -249,7 +249,7 @@ class Semigroups(CategoryWithAxiom):
                 sage: g = S.cayley_graph(side="left", simple=True)
                 sage: g.vertices(sort=True)
                 ['a', 'ab', 'b', 'ba']
-                sage: g.edges()
+                sage: g.edges(sort=True)
                 [('a', 'ba', None), ('ab', 'ba', None), ('b', 'ab', None),
                 ('ba', 'ab', None)]
 
@@ -258,7 +258,7 @@ class Semigroups(CategoryWithAxiom):
                 sage: g = S.cayley_graph(side="twosided", simple=True)
                 sage: g.vertices(sort=True)
                 ['a', 'ab', 'b', 'ba']
-                sage: g.edges()
+                sage: g.edges(sort=True)
                 [('a', 'ab', None), ('a', 'ba', None), ('ab', 'ba', None),
                 ('b', 'ab', None), ('b', 'ba', None), ('ba', 'ab', None)]
 
@@ -267,7 +267,7 @@ class Semigroups(CategoryWithAxiom):
                 sage: g = S.cayley_graph(side="twosided")
                 sage: g.vertices(sort=True)
                 ['a', 'ab', 'b', 'ba']
-                sage: g.edges()
+                sage: g.edges(sort=True)
                 [('a', 'a', (0, 'left')), ('a', 'a', (0, 'right')), ('a', 'ab', (1, 'right')), ('a', 'ba', (1, 'left')), ('ab', 'ab', (0, 'left')), ('ab', 'ab', (0, 'right')), ('ab', 'ab', (1, 'right')), ('ab', 'ba', (1, 'left')), ('b', 'ab', (0, 'left')), ('b', 'b', (1, 'left')), ('b', 'b', (1, 'right')), ('b', 'ba', (0, 'right')), ('ba', 'ab', (0, 'left')), ('ba', 'ba', (0, 'right')), ('ba', 'ba', (1, 'left')), ('ba', 'ba', (1, 'right'))]
 
             ::

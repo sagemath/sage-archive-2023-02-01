@@ -870,7 +870,7 @@ class Crystals(Category_singleton):
 
                 sage: C = crystals.KirillovReshetikhin(['D',4,1], 2, 1)
                 sage: G = C.digraph(index_set=[1,3])
-                sage: len(G.edges())
+                sage: len(G.edges(sort=False))
                 20
                 sage: view(G)  # optional - dot2tex graphviz, not tested (opens external window)
 

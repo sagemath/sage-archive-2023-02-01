@@ -302,7 +302,7 @@ def is_partial_cube(G, certificate=False):
     from sage.graphs.graph import Graph
     from sage.sets.disjoint_set import DisjointSet
     contracted = DiGraph({v: {w: (v, w) for w in G[v]} for v in G})
-    unionfind = DisjointSet(contracted.edges(labels=False))
+    unionfind = DisjointSet(contracted.edges(sort=True, labels=False))
     available = n - 1
 
     # Main contraction loop in place of the original algorithm's recursion

@@ -63,7 +63,7 @@ def RandomGNP(n, p, seed=None, fast=True, algorithm='Sage'):
     probability `p = .4`::
 
         sage: set_random_seed(0)
-        sage: graphs.RandomGNP(6, .4).edges(labels=False)
+        sage: graphs.RandomGNP(6, .4).edges(sort=true, labels=False)
         [(0, 3), (1, 2), (2, 3), (2, 4)]
 
     We plot a random graph on 12 nodes with probability `p = .71`::
@@ -414,7 +414,7 @@ def RandomRegularBipartite(n1, n2, d1, set_position=False, seed=None):
 
     if complement:
         from sage.graphs.generators.basic import CompleteBipartiteGraph
-        E = E.symmetric_difference(CompleteBipartiteGraph(n1, n2).edges(labels=False))
+        E = E.symmetric_difference(CompleteBipartiteGraph(n1, n2).edges(sort=True, labels=False))
         d1, d2 = n2 - d1, n1 - d2
 
     name = "Random regular bipartite graph of order {}+{} and degrees {} and {}".format(n1, n2, d1, d2)
@@ -560,7 +560,7 @@ def RandomBlockGraph(m, k, kmax=None, incidence_structure=False, seed=None):
 
     elif kmax == 2:
         # A block graph with blocks of order 2 is a tree
-        IS = [list(e) for e in RandomTree(m + 1).edges(labels=False)]
+        IS = [list(e) for e in RandomTree(m + 1).edges(sort=True, labels=False)]
 
     else:
         # We start with a random tree of order m
@@ -573,7 +573,7 @@ def RandomBlockGraph(m, k, kmax=None, incidence_structure=False, seed=None):
         # corresponding blocks and we merge them. We use a disjoint set data
         # structure to keep a unique identifier per merged vertices
         DS = DisjointSet([i for u in B for i in B[u]])
-        for u, v in T.edges(labels=0):
+        for u, v in T.edges(sort=True, labels=0):
             DS.union(choice(B[u]), choice(B[v]))
 
         # We relabel vertices in the range [0, m*(k-1)] and build the incidence
@@ -679,7 +679,7 @@ def RandomGNM(n, m, dense=False, seed=None):
 
     We show the edge list of a random graph on 5 nodes with 10 edges::
 
-        sage: graphs.RandomGNM(5, 10).edges(labels=False)
+        sage: graphs.RandomGNM(5, 10).edges(sort=True, labels=False)
         [(0, 1), (0, 2), (0, 3), (0, 4), (1, 2), (1, 3), (1, 4), (2, 3), (2, 4), (3, 4)]
 
     We plot a random graph on 12 nodes with m = 12::

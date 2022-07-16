@@ -435,7 +435,7 @@ class YangBaxterGraph_generic(SageObject):
             sage: Y.edges()
             [((0, 2, 1, 0), (2, 0, 1, 0), Swap-if-increasing at position 0), ((2, 0, 1, 0), (2, 1, 0, 0), Swap-if-increasing at position 1)]
         """
-        return self._digraph.edges()
+        return self._digraph.edges(sort=True)
 
     def vertex_relabelling_dict(self, v, relabel_operator):
         r"""
@@ -546,7 +546,7 @@ class YangBaxterGraph_generic(SageObject):
             from copy import copy
             Y = copy(self)
         digraph = Y._digraph
-        for u, v, i in digraph.edges():
+        for u, v, i in digraph.edges(sort=True):
             digraph.set_edge_label(u, v, edge_dict[u, v])
         if not inplace:
             return Y
@@ -633,7 +633,7 @@ class YangBaxterGraph_partition(YangBaxterGraph_generic):
             [((0, 1, 0), (1, 0, 0), Swap positions 0 and 1)]
         """
         digraph = super(YangBaxterGraph_partition, self)._digraph
-        for (u, v, op) in digraph.edges():
+        for (u, v, op) in digraph.edges(sort=True):
             digraph.set_edge_label(u, v, SwapOperator(op.position()))
         return digraph
 

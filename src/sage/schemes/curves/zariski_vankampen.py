@@ -795,11 +795,11 @@ def geometric_basis(G, E, p):
     EC = [v[0] for v in orient_circuit(E.eulerian_circuit())]
     i = EC.index(p)
     EC = EC[i:]+EC[:i+1]   # A counterclockwise eulerian circuit on the boundary, based at p
-    if len(G.edges()) == len(E.edges()):
+    if len(G.edges(sort=False)) == len(E.edges(sort=False)):
         if E.is_cycle():
             return [EC]
     I = Graph()
-    for e in G.edges():
+    for e in G.edges(sort=False):
         if not E.has_edge(e):
             I.add_edge(e)   # interior graph
     # treat the case where I is empty

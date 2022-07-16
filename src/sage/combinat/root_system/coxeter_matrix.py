@@ -353,7 +353,7 @@ class CoxeterMatrix(CoxeterType, metaclass=ClasscallMetaclass):
                 else:
                     data[-1] += [2]
 
-        for e in graph.edges():
+        for e in graph.edges(sort=True):
             label = e[2]
             if label is None:
                 label = 3

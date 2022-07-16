@@ -861,7 +861,7 @@ def strongly_connected_components_digraph(G):
         ....:     g = digraphs.RandomDirectedGNM(n,m)
         ....:     scc_digraph,sccs = strongly_connected_components_digraph(g)
         ....:     assert(scc_digraph.is_directed_acyclic())
-        ....:     for e in g.edges():
+        ....:     for e in g.edges(sort=False):
         ....:         assert(sccs[e[0]]==sccs[e[1]] or scc_digraph.has_edge(sccs[e[0]],sccs[e[1]]))
         ....:         assert(sccs[e[0]] >= sccs[e[1]])
     """

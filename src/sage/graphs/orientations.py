@@ -125,7 +125,7 @@ def strong_orientations_iterator(G):
         return
 
     V = G.vertices(sort=False)
-    Dg = DiGraph([V, G.edges()], pos=G.get_pos())
+    Dg = DiGraph([V, G.edges(sort=False)], pos=G.get_pos())
 
     # compute an arbitrary spanning tree of the undirected graph
     te = G.min_spanning_tree()

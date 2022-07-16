@@ -1026,9 +1026,9 @@ def chang_graphs():
 
         sage: c3c5=graphs.CycleGraph(3).disjoint_union(graphs.CycleGraph(5))
         sage: c8=graphs.CycleGraph(8)
-        sage: s=[K8.subgraph_search(c8).edges(),
+        sage: s=[K8.subgraph_search(c8).edges(sort=False),
         ....:    [(0,1,None),(2,3,None),(4,5,None),(6,7,None)],
-        ....:    K8.subgraph_search(c3c5).edges()]
+        ....:    K8.subgraph_search(c3c5).edges(sort=False)]
         sage: list(map(lambda x,G: T8.seidel_switching(x, inplace=False).is_isomorphic(G),
         ....:                  s, chang_graphs))
         [True, True, True]
@@ -1120,7 +1120,7 @@ def CirculantGraph(n, adjacency):
 
         sage: graphs.CirculantGraph(6,1)==graphs.CycleGraph(6)
         True
-        sage: graphs.CirculantGraph(7,[1,3]).edges(labels=false)
+        sage: graphs.CirculantGraph(7,[1,3]).edges(sort=True, labels=false)
         [(0, 1),
         (0, 3),
         (0, 4),
@@ -3331,7 +3331,7 @@ def GeneralizedSierpinskiGraph(G, k, stretch=None):
             I.add_edges(J.edge_iterator(labels=False, sort_vertices=False))
         # For each edge {u, v} of G, add edge {(u, v, ..., v), (v, u, ..., u)}
         l = len(next(H.vertex_iterator()))
-        for u, v in G.edges(labels=False):
+        for u, v in G.edges(sort=True, labels=False):
             I.add_edge((u,) + (v,)*l, (v,) + (u,)*l)
         return rec(I, kk - 1)
 
@@ -4244,7 +4244,7 @@ def MuzychukS6Graph(n, d, Phi='fixed', Sigma='fixed', verbose=False):
 
     # build V
     edges = [] ###how many? *m^2*n^2
-    for (i, j) in L.edges(labels=False):
+    for (i, j) in L.edges(sort=True, labels=False):
         for hyp in phi[(i, (i, j))]:
             for x in hyp:
                 newEdges = [((i, x), (j, y))

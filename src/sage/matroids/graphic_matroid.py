@@ -772,7 +772,7 @@ class GraphicMatroid(Matroid):
 
             sage: edgelist = [(0, 0), (0, 1), (0, 2), (0, 3), (1, 2), (1, 2)]
             sage: M = Matroid(range(6), Graph(edgelist, loops=True, multiedges=True))
-            sage: M.graph().edges()
+            sage: M.graph().edges(sort=True)
             [(0, 0, 0), (0, 1, 1), (0, 2, 2), (0, 3, 3), (1, 2, 4), (1, 2, 5)]
             sage: sorted(M._closure([4]))
             [0, 4, 5]
@@ -917,7 +917,7 @@ class GraphicMatroid(Matroid):
 
             sage: edgelist = [(0,1), (1,2), (2,3), (3,4), (4,5), (4,5)]
             sage: M = Matroid(Graph(edgelist, multiedges=True))
-            sage: M.graph().edges()
+            sage: M.graph().edges(sort=True)
             [(0, 1, 0), (1, 2, 1), (2, 3, 2), (3, 4, 3), (4, 5, 4), (4, 5, 5)]
             sage: sorted(M._circuit(M.groundset()))
             [4, 5]
@@ -1197,7 +1197,7 @@ class GraphicMatroid(Matroid):
         EXAMPLES::
 
             sage: M = Matroid(Graph([(0, 1, 'a'), (0, 2, 'b'), (0, 3, 'c')]))
-            sage: M.graph().edges()
+            sage: M.graph().edges(sort=True)
             [(0, 1, 'a'), (0, 2, 'b'), (0, 3, 'c')]
             sage: M = Matroid(graphs.CompleteGraph(5))
             sage: M.graph()
@@ -1225,7 +1225,7 @@ class GraphicMatroid(Matroid):
             sage: G = Graph([(0, 1), (0, 2), (1, 2), (3, 4), (3, 5), (4, 5),
             ....: (6, 7), (6, 8), (7, 8), (8, 8), (7, 8)], multiedges=True, loops=True)
             sage: M = Matroid(range(G.num_edges()), G)
-            sage: M.graph().edges()
+            sage: M.graph().edges(sort=True)
             [(0, 1, 0),
              (0, 2, 1),
              (1, 2, 2),
@@ -1511,7 +1511,7 @@ class GraphicMatroid(Matroid):
             sage: G = Graph([(0, 1, 0), (0, 2, 1), (0, 3, 2), (0, 4, 3), (1, 2, 4), (1, 4, 5), (2, 3, 6), (3, 4, 7)])
             sage: M = Matroid(G)
             sage: M1 = M.graphic_coextension(0, X=[1,2], element='a')
-            sage: M1.graph().edges()
+            sage: M1.graph().edges(sort=True)
             [(0, 1, 0),
              (0, 4, 3),
              (0, 5, 'a'),
@@ -1526,13 +1526,13 @@ class GraphicMatroid(Matroid):
 
             sage: M = Matroid(range(3), graphs.CycleGraph(3))
             sage: M = M.graphic_extension(0, element='a')
-            sage: M.graph().edges()
+            sage: M.graph().edges(sort=True)
             [(0, 0, 'a'), (0, 1, 0), (0, 2, 1), (1, 2, 2)]
             sage: M1 = M.graphic_coextension(0, X=[1], element='b')
-            sage: M1.graph().edges()
+            sage: M1.graph().edges(sort=True)
             [(0, 0, 'a'), (0, 1, 0), (0, 3, 'b'), (1, 2, 2), (2, 3, 1)]
             sage: M2 = M.graphic_coextension(0, X=[1, 'a'], element='b')
-            sage: M2.graph().edges()
+            sage: M2.graph().edges(sort=True)
             [(0, 1, 0), (0, 3, 'a'), (0, 3, 'b'), (1, 2, 2), (2, 3, 1)]
 
         ::
@@ -1567,10 +1567,10 @@ class GraphicMatroid(Matroid):
 
             sage: M = Matroid(range(5), graphs.DiamondGraph())
             sage: N = M.graphic_coextension(u=3, v=5, element='a')
-            sage: N.graph().edges()
+            sage: N.graph().edges(sort=True)
             [(0, 1, 0), (0, 2, 1), (1, 2, 2), (1, 3, 3), (2, 3, 4), (3, 5, 'a')]
             sage: N = M.graphic_coextension(u=3, element='a')
-            sage: N.graph().edges()
+            sage: N.graph().edges(sort=True)
             [(0, 1, 0), (0, 2, 1), (1, 2, 2), (1, 3, 3), (2, 3, 4), (3, 4, 'a')]
             sage: N = M.graphic_coextension(u=3, v=3, element='a')
             Traceback (most recent call last):
@@ -1668,7 +1668,7 @@ class GraphicMatroid(Matroid):
             Graphic matroid of rank 1 on 1 elements
             sage: I = M.graphic_coextensions(element='a')
             sage: for m in I:
-            ....:     m.graph().edges()
+            ....:     m.graph().edges(sort=True)
             [(0, 1, 'a')]
             sage: N = Matroid(graphs.CycleGraph(4))
             sage: I = N.graphic_coextensions(vertices=[3, 4], element='a')
@@ -1782,7 +1782,7 @@ class GraphicMatroid(Matroid):
 
             sage: edgelist = [(0,1,0), (1,2,1), (1,2,2), (2,3,3), (2,3,4), (2,3,5), (3,0,6)]
             sage: M = Matroid(Graph(edgelist, multiedges=True))
-            sage: M1 = M.twist([0,1,2]); M1.graph().edges()
+            sage: M1 = M.twist([0,1,2]); M1.graph().edges(sort=True)
             [(0, 1, 1), (0, 1, 2), (0, 3, 6), (1, 2, 0), (2, 3, 3), (2, 3, 4), (2, 3, 5)]
             sage: M2 = M.twist([0,1,3])
             Traceback (most recent call last):
@@ -1793,7 +1793,7 @@ class GraphicMatroid(Matroid):
 
             sage: edgedict = {0: [1, 2], 1: [2, 3], 2: [3], 3: [4, 5], 4: [5]}
             sage: M = Matroid(range(8), Graph(edgedict))
-            sage: M.graph().edges()
+            sage: M.graph().edges(sort=True)
             [(0, 1, 0),
              (0, 2, 1),
              (1, 2, 2),
@@ -1802,7 +1802,7 @@ class GraphicMatroid(Matroid):
              (3, 4, 5),
              (3, 5, 6),
              (4, 5, 7)]
-            sage: M1 = M.twist([0, 1]); M1.graph().edges()
+            sage: M1 = M.twist([0, 1]); M1.graph().edges(sort=True)
             [(0, 1, 1),
              (0, 2, 0),
              (1, 2, 2),
@@ -1811,7 +1811,7 @@ class GraphicMatroid(Matroid):
              (3, 4, 5),
              (3, 5, 6),
              (4, 5, 7)]
-            sage: M2 = M1.twist([0, 1, 2]); M2.graph().edges()
+            sage: M2 = M1.twist([0, 1, 2]); M2.graph().edges(sort=True)
             [(0, 1, 0),
              (0, 2, 1),
              (1, 2, 2),
@@ -1893,7 +1893,7 @@ class GraphicMatroid(Matroid):
 
             sage: edgedict = {0:[1, 2], 1:[2, 3], 2:[3], 3:[4, 5], 6:[4, 5]}
             sage: M = Matroid(range(9), Graph(edgedict))
-            sage: M.graph().edges()
+            sage: M.graph().edges(sort=True)
             [(0, 1, 0),
              (0, 2, 1),
              (1, 2, 2),
@@ -1904,7 +1904,7 @@ class GraphicMatroid(Matroid):
              (4, 6, 7),
              (5, 6, 8)]
             sage: M1 = M.one_sum(u=3, v=1, X=[5, 6, 7, 8])
-            sage: M1.graph().edges()
+            sage: M1.graph().edges(sort=True)
             [(0, 1, 0),
              (0, 2, 1),
              (1, 2, 2),
@@ -1915,7 +1915,7 @@ class GraphicMatroid(Matroid):
              (4, 6, 7),
              (5, 6, 8)]
             sage: M2 = M.one_sum(u=4, v=3, X=[5, 6, 7, 8])
-            sage: M2.graph().edges()
+            sage: M2.graph().edges(sort=True)
             [(0, 1, 0),
              (0, 2, 1),
              (1, 2, 2),
@@ -1937,7 +1937,7 @@ class GraphicMatroid(Matroid):
         ::
 
             sage: M = Matroid(range(5), graphs.BullGraph())
-            sage: M.graph().edges()
+            sage: M.graph().edges(sort=True)
             [(0, 1, 0), (0, 2, 1), (1, 2, 2), (1, 3, 3), (2, 4, 4)]
             sage: M1 = M.one_sum(u=3, v=0, X=[3,4])
             Traceback (most recent call last):
@@ -1945,11 +1945,11 @@ class GraphicMatroid(Matroid):
             ValueError: too many vertices in the intersection
 
             sage: M1 = M.one_sum(u=3, v=2, X=[3])
-            sage: M1.graph().edges()
+            sage: M1.graph().edges(sort=True)
             [(0, 1, 0), (0, 2, 1), (1, 2, 2), (2, 4, 4), (2, 5, 3)]
 
             sage: M2 = M1.one_sum(u=5, v=0, X=[3,4])
-            sage: M2.graph().edges()
+            sage: M2.graph().edges(sort=True)
             [(0, 1, 0), (0, 2, 1), (0, 3, 3), (1, 2, 2), (3, 4, 4)]
 
             sage: M = Matroid(range(5), graphs.BullGraph())

@@ -1589,12 +1589,12 @@ class SimplicialComplex(Parent, GenericCellComplex):
 
             sage: S0 = simplicial_complexes.Sphere(0)
             sage: G = S0.flip_graph()
-            sage: G.vertices(sort=True); G.edges(labels=False)
+            sage: G.vertices(sort=True); G.edges(sort=True, labels=False)
             [(0,), (1,)]
             [((0,), (1,))]
 
             sage: G = (S0.wedge(S0)).flip_graph()
-            sage: G.vertices(sort=True); G.edges(labels=False)
+            sage: G.vertices(sort=True); G.edges(sort=True, labels=False)
             [(0,), ('L1',), ('R1',)]
             [((0,), ('L1',)), ((0,), ('R1',)), (('L1',), ('R1',))]
 
@@ -3622,7 +3622,7 @@ class SimplicialComplex(Parent, GenericCellComplex):
             sage: S = SimplicialComplex([[0,1,2,3]])
             sage: G = S.graph(); G
             Graph on 4 vertices
-            sage: G.edges()
+            sage: G.edges(sort=True)
             [(0, 1, None), (0, 2, None), (0, 3, None), (1, 2, None), (1, 3, None), (2, 3, None)]
         """
         if self._graph is None:
@@ -4062,7 +4062,8 @@ class SimplicialComplex(Parent, GenericCellComplex):
         G2 = G.copy(immutable=False)
         G2.relabel(v_to_int)
         spanning_tree = G2.min_spanning_tree()
-        gens = [(int_to_v[e[0]], int_to_v[e[1]]) for e in G2.edges()
+        gens = [(int_to_v[e[0]], int_to_v[e[1]])
+                for e in G2.edges(sort=True)
                 if e not in spanning_tree]
         if len(gens) == 0:
             return gap.TrivialGroup()

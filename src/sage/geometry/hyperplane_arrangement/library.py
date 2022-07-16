@@ -126,9 +126,9 @@ class HyperplaneArrangementLibrary():
         EXAMPLES::
 
             sage: G = graphs.CycleGraph(4)
-            sage: G.edges()
+            sage: G.edges(sort=True)
             [(0, 1, None), (0, 3, None), (1, 2, None), (2, 3, None)]
-            sage: G.edges(labels=False)
+            sage: G.edges(sort=True, labels=False)
             [(0, 1), (0, 3), (1, 2), (2, 3)]
             sage: A = {0:{1:1, 3:2}, 1:{0:3, 2:0}, 2:{1:2, 3:1}, 3:{2:0, 0:2}}
             sage: HA = hyperplane_arrangements.bigraphical(G, A)

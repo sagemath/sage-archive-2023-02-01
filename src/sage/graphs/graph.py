@@ -3347,7 +3347,7 @@ class Graph(GenericGraph):
         d.add_edges(('s', vertices_id[v], b[v]) for v in vertices)
 
         d.add_edges(((vertices_id[u], vertices_id[v]), 't', 1)
-                     for u,v in self.edges(sort=True, labels=None) )
+                     for u,v in self.edges(sort=False, labels=None) )
 
         # each v is linked to its incident edges
 
@@ -8856,7 +8856,7 @@ class Graph(GenericGraph):
         # We create a mapping from frozen unlabeled edges to (labeled) edges.
         # This ease for instance the manipulation of multiedges (if any)
         edges = {}
-        for e in G.edges(sort=True, labels=labels):
+        for e in G.edges(sort=False, labels=labels):
             f = frozenset(e[:2])
             if f in edges:
                 edges[f].append(e)

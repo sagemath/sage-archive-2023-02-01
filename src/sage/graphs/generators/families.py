@@ -2339,21 +2339,21 @@ def MycielskiStep(g):
     gg = copy(g)
 
     # rename a vertex v of gg as (1,v)
-    renamer = dict([(v, (1,v)) for v in g.vertices(sort=False)])
+    renamer = {v: (1, v) for v in g}
     gg.relabel(renamer)
 
     # add the w vertices to gg as (2,v)
-    wlist = [(2,v) for v in g.vertices(sort=False)]
+    wlist = [(2, v) for v in g]
     gg.add_vertices(wlist)
 
     # add the z vertex as (0,0)
     gg.add_vertex((0,0))
 
     # add the edges from z to w_i
-    gg.add_edges([((0,0), (2,v)) for v in g.vertices(sort=False)] )
+    gg.add_edges([((0, 0), (2, v)) for v in g] )
 
     # make the v_i w_j edges
-    for v in g.vertices(sort=False):
+    for v in g:
         gg.add_edges([((1,v),(2,vv)) for vv in g.neighbors(v)])
 
     return gg
@@ -3200,7 +3200,7 @@ def SierpinskiGasketGraph(n):
     dg.add_edges([(tuple(b), tuple(c)) for a, b, c in tri_list])
     dg.add_edges([(tuple(c), tuple(a)) for a, b, c in tri_list])
     dg.set_pos({(x, y): (x + y / 2, y * 3 / 4)
-                for (x, y) in dg.vertices(sort=False)})
+                for (x, y) in dg})
     dg.relabel()
     return dg
 

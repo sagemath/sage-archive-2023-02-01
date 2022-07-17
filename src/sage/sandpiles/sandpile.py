@@ -972,7 +972,7 @@ class Sandpile(DiGraph):
             sage: '_max_stable_div' in S.__dict__
             True
         """
-        m = {v: self.out_degree(v) - 1 for v in self.vertices(sort=True)}
+        m = {v: self.out_degree(v) - 1 for v in self.vertices(sort=False)}
         self._max_stable_div = SandpileDivisor(self, m)
 
     def max_stable_div(self):
@@ -1004,8 +1004,8 @@ class Sandpile(DiGraph):
             sage: '_out_degrees' in s.__dict__
             True
         """
-        self._out_degrees = {v: 0 for v in self.vertices(sort=True)}
-        for v in self.vertices(sort=True):
+        self._out_degrees = {v: 0 for v in self.vertices(sort=False)}
+        for v in self.vertices(sort=False):
             for e in self.edges_incident(v):
                 self._out_degrees[v] += e[2]
 

@@ -1460,7 +1460,7 @@ class BipartiteGraph(Graph):
         # We create a mapping from frozen unlabeled edges to (labeled) edges.
         # This ease for instance the manipulation of multiedges (if any)
         edges = {}
-        for e in G.edges(sort=True, labels=labels):
+        for e in G.edges(sort=False, labels=labels):
             f = frozenset(e[:2])
             if e[0] not in G.left:
                 e = (e[1], e[0], e[2]) if labels else (e[1], e[0])

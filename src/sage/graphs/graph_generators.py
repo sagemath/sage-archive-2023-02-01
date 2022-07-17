@@ -2951,7 +2951,7 @@ def canaug_traverse_edge(g, aut_gens, property, dig=False, loops=False, sparse=T
             z.add_edge(i, j)
             if not property(z):
                 continue
-            z_aut_gens, _, canonical_relabeling = search_tree(z, [z.vertices(sort=False)], certificate=True, dig=(dig or loops))
+            z_aut_gens, _, canonical_relabeling = search_tree(z, [z.vertices(sort=True)], certificate=True, dig=(dig or loops))
             relabel_inverse = [0]*n
             for ii in range(n):
                 relabel_inverse[canonical_relabeling[ii]] = ii

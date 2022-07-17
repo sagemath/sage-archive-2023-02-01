@@ -1425,6 +1425,6 @@ def edge_disjoint_spanning_trees(G, k, by_weight=False, weight_function=None, ch
         raise EmptySetError(msg_no_solution)
 
     for f in res:
-        for u, v in f.edges(sort=True, labels=False):
+        for u, v in f.edges(sort=False, labels=False):
             f.set_edge_label(u, v, G.edge_label(u, v))
     return res

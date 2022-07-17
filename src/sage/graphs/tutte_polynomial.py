@@ -191,7 +191,7 @@ def underlying_graph(G):
     from sage.graphs.graph import Graph
     g = Graph()
     g.allow_loops(True)
-    for edge in set(G.edges(sort=True, labels=False)):
+    for edge in set(G.edges(sort=False, labels=False)):
         g.add_edge(edge)
     return g
 
@@ -209,7 +209,7 @@ def edge_multiplicities(G):
         [((1, 2), 2), ((1, 3), 1), ((2, 2), 1), ((2, 4), 3), ((3, 4), 2)]
     """
     d = {}
-    for edge in G.edges(sort=True, labels=False):
+    for edge in G.edges(sort=False, labels=False):
         d[edge] = d.setdefault(edge, 0) + 1
     return d
 

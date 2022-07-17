@@ -836,7 +836,7 @@ cdef class SubgraphSearch:
         self.nh = H.order()
 
         # Storing the list of vertices
-        self.g_vertices = G.vertices(sort=False)
+        self.g_vertices = G.vertices(sort=True)
 
         # Are the graphs directed (in __init__(), we check
         # whether both are of the same type)

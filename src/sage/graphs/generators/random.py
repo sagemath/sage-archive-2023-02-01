@@ -414,7 +414,7 @@ def RandomRegularBipartite(n1, n2, d1, set_position=False, seed=None):
 
     if complement:
         from sage.graphs.generators.basic import CompleteBipartiteGraph
-        E = E.symmetric_difference(CompleteBipartiteGraph(n1, n2).edges(sort=True, labels=False))
+        E = E.symmetric_difference(CompleteBipartiteGraph(n1, n2).edges(sort=False, labels=False))
         d1, d2 = n2 - d1, n1 - d2
 
     name = "Random regular bipartite graph of order {}+{} and degrees {} and {}".format(n1, n2, d1, d2)

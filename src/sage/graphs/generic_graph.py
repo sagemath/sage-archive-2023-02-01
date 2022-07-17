@@ -19447,7 +19447,7 @@ class GenericGraph(GenericGraph_pyx):
         """
         assert dim == 2, "3D circular layout not implemented"
         from math import pi
-        return self._circle_embedding(self.vertices(sort=False), center=(0, 0),
+        return self._circle_embedding(self.vertices(sort=True), center=(0, 0),
                                       radius=1, shift=0, angle=pi/2,
                                       return_dict=True)
 
@@ -19908,11 +19908,11 @@ class GenericGraph(GenericGraph_pyx):
             sage: g._circle_embedding([0, 2, 4, 1, 3], radius=2, shift=.5)
             sage: g.show()
 
-            sage: g._circle_embedding(g.vertices(sort=False), angle=0)
+            sage: g._circle_embedding(g.vertices(sort=True), angle=0)
             sage: g._pos[0]
             (1.0, 0.0)
             sage: from math import pi
-            sage: g._circle_embedding(g.vertices(sort=False), angle=pi/2)
+            sage: g._circle_embedding(g.vertices(sort=True), angle=pi/2)
             sage: g._pos[0]
             (0.0, 1.0)
 
@@ -19926,7 +19926,7 @@ class GenericGraph(GenericGraph_pyx):
         The rounding error raised in :trac:`22050` is fixed::
 
             sage: G = Graph(4)
-            sage: G._circle_embedding(G.vertices(sort=False))
+            sage: G._circle_embedding(G.vertices(sort=True))
             sage: G._pos
             {0: (1.0, 0.0), 1: (0.0, 1.0), 2: (-1.0, 0.0), 3: (0.0, -1.0)}
         """
@@ -23797,7 +23797,7 @@ class GenericGraph(GenericGraph_pyx):
         if n == 0 :
             raise ValueError('graph is empty')
         if vertices is None:
-            vertices = self.vertices(sort=False)
+            vertices = self.vertices(sort=True)
         elif (len(vertices) != n or
               set(vertices) != set(self)):
             raise ValueError("``vertices`` must be a permutation of the vertices")

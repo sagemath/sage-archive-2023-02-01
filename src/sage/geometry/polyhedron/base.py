@@ -397,7 +397,8 @@ class Polyhedron_base(Polyhedron_base7):
 
         OUTPUT:
 
-        The square of the radius, which is in :meth:`base_ring`.
+        The square of the radius, which is in
+        :meth:`~sage.geometry.polyhedron.base0.Polyhedron_base0.base_ring`.
 
         EXAMPLES::
 
@@ -615,7 +616,7 @@ class Polyhedron_base(Polyhedron_base7):
         A :class:`hyperplane arrangement
         <sage.geometry.hyperplane_arrangement.arrangement.HyperplaneArrangementElement>`
         consisting of the hyperplanes defined by the
-        :meth:`Hrepresentation`.
+        :meth:`~sage.geometry.polyhedron.base0.Polyhedron_base0.Hrepresentation`.
         If the polytope is full-dimensional, this is the hyperplane
         arrangement spanned by the facets of the polyhedron.
 
@@ -780,7 +781,7 @@ class Polyhedron_base(Polyhedron_base7):
         r"""
         Test whether ``Y`` is a Minkowski summand.
 
-        See :meth:`minkowski_sum`.
+        See :meth:`~sage.geometry.polyhedron.base5.Polyhedron_base5.minkowski_sum`.
 
         OUTPUT:
 
@@ -936,7 +937,8 @@ class Polyhedron_base(Polyhedron_base7):
 
         The dictionary has entries for the generators of the ``acting_group``
         and the representatives of conjugacy classes in ``conj_class_reps``. By
-        default, the ``acting_group`` is the ``restricted_automorphism_group``
+        default, the ``acting_group`` is the
+        :meth:`~sage.geometry.polyhedron.base4.Polyhedron_base4.restricted_automorphism_group`
         of the polytope. Each element in ``additional_elts`` also becomes a key.
 
         INPUT:
@@ -945,16 +947,16 @@ class Polyhedron_base(Polyhedron_base7):
           conjugacy classes of the ``acting_group``.
 
         - ``acting_group`` -- a subgroup of polytope's
-          ``restricted_automorphism_group``.
+          :meth:`~sage.geometry.polyhedron.base4.Polyhedron_base4.restricted_automorphism_group`.
 
-        - ``additional_elts`` -- list (default=None). a subset of the
-          ``restricted_automorphism_group`` of the polytope expressed as
-          permutations.
+        - ``additional_elts`` -- list (default=None). A subset of the
+          :meth:`~sage.geometry.polyhedron.base4.Polyhedron_base4.restricted_automorphism_group`
+          of the polytope expressed as permutations.
 
         OUTPUT:
 
-        A dictionary between elements of ``the restricted_automorphism_group``
-        or ``acting_group`` expressed as permutations (keys) and matrices (values).
+        A dictionary between elements of the ``acting_group`` expressed as permutations
+        (keys) and matrices (values).
 
         EXAMPLES:
 

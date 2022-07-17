@@ -1,8 +1,5 @@
 r"""
-.. this line is needed to un-confuse the flake8-rst-docstrings linter
-
 Counting
-========
 
 - :ref:`sage.databases.oeis`
 - :ref:`sage.combinat.sloane_functions`

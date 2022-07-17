@@ -1,23 +1,5 @@
 r"""
 Base class for polyhedra: Miscellaneous methods
-
-This is split into several modules, organized as follows:
-
-- :mod:`~sage.geometry.polyhedron.base0` -- basic initialization etc.
-
-- :mod:`~sage.geometry.polyhedron.base1` -- methods defined by the :class:`~sage.geometry.convex_set.ConvexSet_base` API
-
-- :mod:`~sage.geometry.polyhedron.base2` -- lattice points
-
-- :mod:`~sage.geometry.polyhedron.base3` -- combinatorial methods
-
-- :mod:`~sage.geometry.polyhedron.base4` -- methods relying on graphs
-
-- :mod:`~sage.geometry.polyhedron.base5` -- constructions of new polyhedra
-
-- :mod:`~sage.geometry.polyhedron.base6` -- plotting and affine projection
-
-- :mod:`~sage.geometry.polyhedron.base7` -- triangulation and volume
 """
 
 # ****************************************************************************
@@ -122,8 +104,8 @@ class Polyhedron_base(Polyhedron_base7):
     - ``Hrep_minimal`` (optional) -- see below
 
     - ``pref_rep`` -- string (default: ``None``);
-       one of``Vrep`` or ``Hrep`` to pick this in case the backend
-       cannot initialize from complete double description
+      one of ``Vrep`` or ``Hrep`` to pick this in case the backend
+      cannot initialize from complete double description
 
     - ``mutable`` -- ignored
 
@@ -840,6 +822,7 @@ class Polyhedron_base(Polyhedron_base7):
         REFERENCE:
 
         See :wikipedia:`Barycentric_subdivision`
+
         Section 6.6, Handbook of Convex Geometry, Volume A, edited by P.M. Gruber and J.M.
         Wills. 1993, North-Holland Publishing Co..
 

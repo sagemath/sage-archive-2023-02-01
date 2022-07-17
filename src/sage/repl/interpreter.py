@@ -463,7 +463,7 @@ class InterfaceShellTransformer(PrefilterTransformer):
         Initialize this class.  All of the arguments get passed to
         :meth:`PrefilterTransformer.__init__`.
 
-        .. attr:: temporary_objects
+        .. attribute:: temporary_objects
 
            a list of hold onto interface objects and keep them from being
            garbage collected

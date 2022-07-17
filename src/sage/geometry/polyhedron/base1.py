@@ -428,7 +428,7 @@ class Polyhedron_base1(Polyhedron_base0, ConvexSet_closed):
         """
         Return points in ``self`` that are a basis for the affine span of the polytope.
 
-        This implementation of the method :meth:`ConvexSet_base.an_affine_basis`
+        This implementation of the method :meth:`~sage.geometry.convex_set.ConvexSet_base.an_affine_basis`
         for polytopes guarantees the following:
 
         - All points are vertices.

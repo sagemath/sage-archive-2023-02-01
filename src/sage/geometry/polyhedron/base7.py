@@ -216,9 +216,9 @@ class Polyhedron_base7(Polyhedron_base6):
         OUTPUT:
 
         A triangulation of the convex hull of the vertices as a
-        :class:`~sage.geometry.triangulation.point_configuration.Triangulation`. The
+        :class:`~sage.geometry.triangulation.element.Triangulation`. The
         indices in the triangulation correspond to the
-        :meth:`Vrepresentation` objects.
+        :meth:`~sage.geometry.polyhedron.base0.Polyhedron_base0.Vrepresentation` objects.
 
         EXAMPLES::
 
@@ -515,7 +515,7 @@ class Polyhedron_base7(Polyhedron_base6):
         When considering lower-dimensional polytopes, we can ask for the
         ambient (full-dimensional), the induced measure (of the affine
         hull) or, in the case of lattice polytopes, for the induced rational measure.
-        This is controlled by the parameter `measure`. Different engines
+        This is controlled by the parameter ``measure``. Different engines
         may have different ideas on the definition of volume of a
         lower-dimensional object::
 

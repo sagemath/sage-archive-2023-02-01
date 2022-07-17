@@ -57,8 +57,9 @@ Combinatorial Polyhedra
    sage/geometry/polyhedron/combinatorial_polyhedron/combinatorial_face
    sage/geometry/polyhedron/combinatorial_polyhedron/polyhedron_face_lattice
    sage/geometry/polyhedron/combinatorial_polyhedron/face_iterator
-   sage/geometry/polyhedron/combinatorial_polyhedron/face_list_data_structure
    sage/geometry/polyhedron/combinatorial_polyhedron/list_of_faces
+   sage/geometry/polyhedron/combinatorial_polyhedron/conversions
+
 
 Polyhedral complexes
 ~~~~~~~~~~~~~~~~~~~~

@@ -72,7 +72,7 @@ The infinite set of all posets can be used to find minimal examples::
     :widths: 30, 70
     :delim: |
 
-    :meth:`~sage.geometry.polyhedron.base.Polyhedron_base.face_lattice` | Return the face lattice of a polyhedron.
+    :meth:`~sage.geometry.polyhedron.base4.Polyhedron_base4.face_lattice` | Return the face lattice of a polyhedron.
     :meth:`~sage.geometry.polyhedron.combinatorial_polyhedron.base.CombinatorialPolyhedron.face_lattice` | Return the face lattice of a combinatorial polyhedron.
 
 Constructions

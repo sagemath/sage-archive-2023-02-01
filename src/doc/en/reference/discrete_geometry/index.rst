@@ -110,6 +110,7 @@ Backends for Polyhedra
    :maxdepth: 1
 
    sage/geometry/polyhedron/backend_cdd
+   sage/geometry/polyhedron/backend_cdd_rdf
    sage/geometry/polyhedron/backend_field
    sage/geometry/polyhedron/backend_normaliz
    sage/geometry/polyhedron/backend_polymake

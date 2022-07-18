@@ -36,7 +36,6 @@ from sage.misc.cachefunc import cached_method
 from sage.modules.vector_space_morphism import linear_transformation
 from sage.matrix.constructor import matrix
 from sage.modules.free_module_element import vector
-from sage.rings.qqbar import AA
 from sage.geometry.convex_set import AffineHullProjectionData
 from .base5 import Polyhedron_base5
 
@@ -967,6 +966,7 @@ class Polyhedron_base6(Polyhedron_base5):
             except TypeError:
                 if not extend:
                     raise ValueError('the base ring needs to be extended; try with "extend=True"')
+                from sage.rings.qqbar import AA
                 M = matrix(AA, M)
                 A = M.gram_schmidt(orthonormal=orthonormal)[0]
                 if minimal:
@@ -1445,21 +1445,25 @@ class Polyhedron_base6(Polyhedron_base5):
             # Avoid very long doctests.
             return
 
-        data_sets = [None]*4
-        data_sets[0] = self.affine_hull_projection(return_all_data=True)
+        try:
+            from sage.rings.qqbar import AA
+        except ImportError:
+            AA = None
+
+        data_sets = []
+        data_sets.append(self.affine_hull_projection(return_all_data=True))
         if self.is_compact():
-            data_sets[1] = self.affine_hull_projection(return_all_data=True,
-                                                       orthogonal=True,
-                                                       extend=True)
-            data_sets[2] = self.affine_hull_projection(return_all_data=True,
-                                                       orthonormal=True,
-                                                       extend=True)
-            data_sets[3] = self.affine_hull_projection(return_all_data=True,
-                                                       orthonormal=True,
-                                                       extend=True,
-                                                       minimal=True)
-        else:
-            data_sets = data_sets[:1]
+            data_sets.append(self.affine_hull_projection(return_all_data=True,
+                                                         orthogonal=True,
+                                                         extend=True))
+            if AA is not None:
+                data_sets.append(self.affine_hull_projection(return_all_data=True,
+                                                             orthonormal=True,
+                                                             extend=True))
+                data_sets.append(self.affine_hull_projection(return_all_data=True,
+                                                             orthonormal=True,
+                                                             extend=True,
+                                                             minimal=True))
 
         for i, data in enumerate(data_sets):
             if verbose:

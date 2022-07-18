@@ -30,8 +30,8 @@ import sage.features.normaliz
 lazy_import('PyNormaliz', ['NmzResult', 'NmzCompute', 'NmzCone', 'NmzConeCopy'],
             feature=sage.features.normaliz.PyNormaliz())
 
-from sage.rings.all import ZZ, QQ, QQbar
-from sage.rings.polynomial.polynomial_ring_constructor import PolynomialRing
+from sage.rings.integer_ring import ZZ
+from sage.rings.rational_field import QQ
 from sage.arith.functions import LCM_list
 from sage.misc.functional import denominator
 from sage.matrix.constructor import vector
@@ -1082,10 +1082,11 @@ class Polyhedron_normaliz(Polyhedron_base):
             sage: Pn._number_field_triple(QuadraticField(5))  # optional - sage.rings.number_field
             ['a^2 - 5', 'a', '[2.236067977499789 +/- 8.06e-16]']
         """
-        from sage.rings.real_arb import RealBallField
         R = normaliz_field
         if R is QQ:
             return None
+        from sage.rings.real_arb import RealBallField
+        from sage.rings.polynomial.polynomial_ring_constructor import PolynomialRing
         emb = RealBallField(53)(R.gen(0))
         gen = 'a'
         R_a = PolynomialRing(QQ, gen)
@@ -2336,7 +2337,7 @@ class Polyhedron_QQ_normaliz(Polyhedron_normaliz, Polyhedron_QQ):
             ((t^4 + 3*t^3 + 8*t^2 + 3*t + 1)/(t + 1), (3*t^3 + 2*t^2 + 3*t)/(t + 1))
         """
         from sage.groups.conjugacy_classes import ConjugacyClassGAP
-        from sage.rings.all import CyclotomicField
+        from sage.rings.all import CyclotomicField, QQbar
         from sage.matrix.all import MatrixSpace
         from sage.rings.polynomial.polynomial_ring_constructor import PolynomialRing
         from sage.matrix.special import identity_matrix

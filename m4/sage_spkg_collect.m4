@@ -235,19 +235,19 @@ AC_DEFUN([SAGE_SPKG_FINALIZE], [dnl
       [standard], [dnl
         m4_pushdef([SAGE_NEED_SYSTEM_PACKAGES_VAR], [SAGE_NEED_SYSTEM_PACKAGES])dnl
         AS_VAR_IF([SAGE_ENABLE_]SPKG_NAME, [yes], [dnl
-            message="SPKG_TYPE, will be installed as an SPKG"
+            message="SPKG_TYPE, SPKG version $SPKG_VERSION will be installed"
         ], [dnl
             message="SPKG_TYPE, but disabled using configure option"
         ])
       ], [dnl optional/experimental
         m4_pushdef([SAGE_NEED_SYSTEM_PACKAGES_VAR], [SAGE_NEED_SYSTEM_PACKAGES_OPTIONAL])dnl
         AS_VAR_IF([SAGE_ENABLE_]SPKG_NAME, [yes], [dnl
-            message="SPKG_TYPE, will be installed as an SPKG"
+            message="SPKG_TYPE, SPKG version $SPKG_VERSION will be installed"
         ], [dnl
             message="SPKG_TYPE"
             m4_case(SPKG_SOURCE, [none], [], [dnl
                 dnl Non-dummy optional/experimental package, advertise how to install
-                message="$message, use \"$srcdir/configure --enable-SPKG_NAME\" to install"
+                message="$message, use \"$srcdir/configure --enable-SPKG_NAME\" to install SPKG version $SPKG_VERSION"
             ])
         ])
     ])
@@ -302,7 +302,7 @@ AC_DEFUN([SAGE_SPKG_FINALIZE], [dnl
 
     dnl Trac #29124: Do not talk about underscore club
     m4_bmatch(SPKG_NAME, [^_], [], [dnl
-        formatted_message=$(printf '%-45s%s' "SPKG_NAME-$SPKG_VERSION:" "$message")
+        formatted_message=$(printf '%-32s%s' "SPKG_NAME:" "$message")
         AC_MSG_RESULT([$formatted_message])
     ])
     dnl

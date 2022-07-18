@@ -197,6 +197,7 @@ AC_DEFUN([SAGE_SPKG_FINALIZE], [dnl
     SAGE_PACKAGE_TREES="${SAGE_PACKAGE_TREES}$(printf '\ntrees_')SPKG_NAME = SPKG_TREE_VAR"
 
     dnl Determine whether it is installed already
+    AS_VAR_SET([SPKG_INSTALLED_VERSION], [])
     AS_VAR_SET([is_installed], [no])
     m4_append_uniq_w([SPKG_TREE_VAR], [SAGE_LOCAL])
     for treevar in SPKG_TREE_VAR; do
@@ -216,6 +217,8 @@ AC_DEFUN([SAGE_SPKG_FINALIZE], [dnl
                             ]))dnl
                         ])
                     ])dnl
+                    package_with_version=${f##*/}
+                    AS_VAR_SET([SPKG_INSTALLED_VERSION], [${package_with_version#*-}])
                     AS_VAR_SET([is_installed], [yes])
                 ])
             done
@@ -295,7 +298,10 @@ AC_DEFUN([SAGE_SPKG_FINALIZE], [dnl
                 [force],                     [ message="no suitable system package; this is an error"
                                                AS_VAR_APPEND([SAGE_NEED_SYSTEM_PACKAGES_VAR], [" SPKG_NAME"])
                                              ],
-                [installed],                 [ message="already installed as an SPKG$uninstall_message" ],
+                [installed],                 [ AS_IF([test "$SPKG_VERSION" = "$SPKG_INSTALLED_VERSION"],
+                                                     [message="SPKG version $SPKG_VERSION is already installed"],
+                                                     [message="installed SPKG version $SPKG_INSTALLED_VERSION will be replaced by version $SPKG_VERSION"])
+                                             ],
                                              [ message="$reason; $message" ])
             ])
         ])

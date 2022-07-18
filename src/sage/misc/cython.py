@@ -527,6 +527,8 @@ def cython_import(filename, **kwds):
     oldpath = sys.path
     try:
         sys.path.append(build_dir)
+        import importlib
+        importlib.invalidate_caches()
         return builtins.__import__(name)
     finally:
         sys.path = oldpath

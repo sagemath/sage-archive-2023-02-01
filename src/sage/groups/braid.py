@@ -764,7 +764,6 @@ class Braid(FiniteTypeArtinGroupElement):
                 M = M*rep[-i-1][1]
         return M
 
-    @cached_method
     def links_gould_matrix(self, symbolics=False):
         r"""
         Return the representation matrix of ``self`` according to the R-matrix
@@ -790,8 +789,9 @@ class Braid(FiniteTypeArtinGroupElement):
             sage: HopfLG.dimensions()
             (16, 16)
             sage: HopfLG.base_ring()
-            Quotient of Multivariate Laurent Polynomial Ring in s0r, s1r, Yr
-              over Integer Ring by the ideal (s0r^2*s1r^2 - s0r^2 - s1r^2 + Yr^2 + 1)
+            Univariate Quotient Polynomial Ring in Yrbar
+              over Multivariate Laurent Polynomial Ring in s0r, s1r
+              over Integer Ring with modulus Yr^2 + s0r^2*s1r^2 - s0r^2 - s1r^2 + 1
             sage: HopfLGs = Hopf.links_gould_matrix(symbolics=True)
             sage: HopfLGs.base_ring()
             Symbolic Ring
@@ -806,7 +806,7 @@ class Braid(FiniteTypeArtinGroupElement):
         return M
 
     @cached_method
-    def links_gould_polynomial(self, varnames='t0, t1', use_symbolics=False):
+    def links_gould_polynomial(self, varnames=None, use_symbolics=False):
         r"""
         Return the Links-Gould polynomial of the closure of ``self``.
         See [MW2012]_, section 3 and references given there.
@@ -835,6 +835,14 @@ class Braid(FiniteTypeArtinGroupElement):
 
         - [MW2012]_
         """
+        from sage.rings.integer_ring import ZZ
+        if varnames is not None:
+            poly = self.links_gould_polynomial(use_symbolics=use_symbolics)
+            R = LaurentPolynomialRing(ZZ, varnames)
+            t0, t1 = R.gens()
+            return poly(t0=t0, t1=t1)
+        varnames = 't0, t1'
+
         rep = self.parent()._links_gould_representation(symbolics=use_symbolics)
         l = len(rep)
         mu = rep[l-1] # quantum trace factor
@@ -842,7 +850,6 @@ class Braid(FiniteTypeArtinGroupElement):
         d1, d2 = M.dimensions()
         e = d1//4
         B = M.base_ring()
-        from sage.rings.integer_ring import ZZ
         R = LaurentPolynomialRing(ZZ, varnames)
 
         # partial quantum trace according to I. Marin section 2.5
@@ -855,13 +862,13 @@ class Braid(FiniteTypeArtinGroupElement):
             F = R.fraction_field() # to make coercion work
             return R(F(pstr))
         else:
-            ltemp = ptemp.lift()
+            ltemp = ptemp.lift().constant_coefficient()
             # Since the result of the calculation is known to be a Laurent polynomial
             # in t0 and t1 all exponents of ltemp must be divisable by 2
             L = ltemp.parent()
-            lred = L({(k[0]/2, k[1]/2, k[2]/2): v for k, v in ltemp.dict().items()})
+            lred = L({(k[0]/2, k[1]/2): v for k, v in ltemp.dict().items()})
             t0, t1 = R.gens()
-            return lred(t0, t1, (t0-1)*(1-t1))
+            return lred(t0, t1)
 
     def tropical_coordinates(self):
         r"""
@@ -2568,7 +2575,7 @@ class BraidGroup_class(FiniteTypeArtinGroup):
             sage: g1, g2, mu3 = B._links_gould_representation()
             sage: R1, R1I = g1
             sage: R2, R2I = g2
-            sage: (R1*R2*R1 - R2*R1*R2).is_zero()
+            sage: R1*R2*R1 == R2*R1*R2
             True
         """
         from sage.matrix.constructor import matrix
@@ -2585,12 +2592,13 @@ class BraidGroup_class(FiniteTypeArtinGroup):
             Y = sqrt(-(t0 - 1)*(t1 - 1))
             sparse = False
         else:
-            from sage.rings.polynomial.laurent_polynomial_ring import LaurentPolynomialRing
+            from sage.rings.polynomial.polynomial_ring_constructor import PolynomialRing
             from sage.rings.integer_ring import ZZ
-            LR = LaurentPolynomialRing(ZZ, 's0r, s1r, Yr')
-            s0r, s1r, Yr = LR.gens()
+            LR = LaurentPolynomialRing(ZZ, 's0r, s1r')
+            PR = PolynomialRing(LR, 'Yr')
+            s0r, s1r, Yr = PR.gens_dict_recursive().values()
             pqr = Yr**2 + (s0r**2-1)*(s1r**2 -1)
-            BR = LR.quotient_ring(pqr)
+            BR = PR.quotient_ring(pqr)
             s0 = BR(s0r)
             s1 = BR(s1r)
             t0 = BR(s0r**2)
@@ -2609,7 +2617,7 @@ class BraidGroup_class(FiniteTypeArtinGroup):
                 (11, 14): s1, (12, 3): 1, (12, 6): -Y*s0*s1, (12, 9): Y,
                 (12, 12): -(t0 - 1)*(t1 - 1), (13, 7): s1, (13, 13): t1 - 1,
                 (14, 11): s1, (14, 14): t1 - 1, (15, 15): t1}, sparse=sparse)
-            RI = R.inverse()
+            RI = (~t0 + ~t1)*(1 + R) - ~t0*~t1*(R + R**2) - 1
 
             # quantum trace operator on two fold tensor space
             E = mu.parent().one()

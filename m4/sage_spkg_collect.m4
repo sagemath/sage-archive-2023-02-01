@@ -205,21 +205,26 @@ AC_DEFUN([SAGE_SPKG_FINALIZE], [dnl
         AS_IF([test -n "$t" -a -d "$t/var/lib/sage/installed/" ], [dnl
             for f in "$t/var/lib/sage/installed/SPKG_NAME"-*; do
                 AS_IF([test -r "$f"], [dnl
-                    m4_case(SPKG_SOURCE, [normal], [dnl
-                        dnl Only run the multiple installation record test for normal packages,
-                        dnl not for script packages. We actually do not clean up after those...
-                        AS_IF([test "$is_installed" = "yes"], [dnl
+                    AS_IF([test "$is_installed" = "yes"], [dnl
+                        m4_case(SPKG_SOURCE, [normal], [dnl
+                            dnl Only issue the multiple installation record test for normal packages,
+                            dnl not for script packages. We actually do not clean up after those...
                             AC_MSG_ERROR(m4_normalize([
                                 multiple installation records for SPKG_NAME:
                                 m4_newline($(ls -l "$t/var/lib/sage/installed/SPKG_NAME"-*))
                                 m4_newline([only one should exist, so please delete some or all
                                 of these files and re-run "$srcdir/configure"])
-                            ]))dnl
+                            ]))
+                        ], [dnl
+                            AS_VAR_SET([spkg_installed_version_text], ["SPKG (multiple installation records)"])
                         ])
-                    ])dnl
+                    ])
                     package_with_version=${f##*/}
                     AS_VAR_SET([SPKG_INSTALLED_VERSION], [${package_with_version#*-}])
                     AS_VAR_SET([is_installed], [yes])
+                    AS_CASE(["$SPKG_INSTALLED_VERSION"],
+                        [none], [AS_VAR_SET([spkg_installed_version_text], ["SPKG"])],
+                                [AS_VAR_SET([spkg_installed_version_text], ["SPKG version $SPKG_INSTALLED_VERSION"])])
                 ])
             done
             dnl Only check the first existing tree, so that we do not issue "multiple installation" warnings
@@ -234,9 +239,6 @@ AC_DEFUN([SAGE_SPKG_FINALIZE], [dnl
                         [AS_VAR_SET([install_message],
                                     ["SPKG version $SPKG_VERSION will be installed"])])
     ], [dnl
-        AS_CASE(["$SPKG_INSTALLED_VERSION"],
-                [none], [AS_VAR_SET([spkg_installed_version_text], ["SPKG"])],
-                        [AS_VAR_SET([spkg_installed_version_text], ["SPKG version $SPKG_INSTALLED_VERSION"])])
         AS_IF([test "$SPKG_VERSION" = "$SPKG_INSTALLED_VERSION"],
               [AS_VAR_SET([install_message],
                           ["$spkg_installed_version_text is already installed"])],

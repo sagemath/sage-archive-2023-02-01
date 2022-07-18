@@ -227,10 +227,22 @@ AC_DEFUN([SAGE_SPKG_FINALIZE], [dnl
             break
         ])
     done
-    AS_CASE(["$SPKG_INSTALLED_VERSION"],
-        [""],   [AS_VAR_SET([spkg_installed_version_text], [""])],
-        [none], [AS_VAR_SET([spkg_installed_version_text], ["SPKG"])],
-                [AS_VAR_SET([spkg_installed_version_text], ["SPKG version $SPKG_INSTALLED_VERSION"])])
+    AS_VAR_IF(SPKG_INSTALLED_VERSION, [""], [dnl
+        AS_CASE(["$SPKG_VERSION"],
+                [none], [AS_VAR_SET([install_message],
+                                    ["SPKG will be installed"])],
+                        [AS_VAR_SET([install_message],
+                                    ["SPKG version $SPKG_VERSION will be installed"])])
+    ], [dnl
+        AS_CASE(["$SPKG_INSTALLED_VERSION"],
+                [none], [AS_VAR_SET([spkg_installed_version_text], ["SPKG"])],
+                        [AS_VAR_SET([spkg_installed_version_text], ["SPKG version $SPKG_INSTALLED_VERSION"])])
+        AS_IF([test "$SPKG_VERSION" = "$SPKG_INSTALLED_VERSION"],
+              [AS_VAR_SET([install_message],
+                          ["$spkg_installed_version_text is already installed"])],
+              [AS_VAR_SET([install_message],
+                          ["installed $spkg_installed_version_text will be replaced by version $SPKG_VERSION"])])
+    ])
     dnl
     dnl Determine whether package is enabled
     m4_pushdef([want_spkg], [SAGE_ENABLE_]SPKG_NAME)dnl
@@ -242,14 +254,14 @@ AC_DEFUN([SAGE_SPKG_FINALIZE], [dnl
       [standard], [dnl
         m4_pushdef([SAGE_NEED_SYSTEM_PACKAGES_VAR], [SAGE_NEED_SYSTEM_PACKAGES])dnl
         AS_VAR_IF([SAGE_ENABLE_]SPKG_NAME, [yes], [dnl
-            message="SPKG_TYPE, SPKG version $SPKG_VERSION will be installed"
+            message="SPKG_TYPE, $install_message"
         ], [dnl
             message="SPKG_TYPE, but disabled using configure option"
         ])
       ], [dnl optional/experimental
         m4_pushdef([SAGE_NEED_SYSTEM_PACKAGES_VAR], [SAGE_NEED_SYSTEM_PACKAGES_OPTIONAL])dnl
         AS_VAR_IF([SAGE_ENABLE_]SPKG_NAME, [yes], [dnl
-            message="SPKG_TYPE, SPKG version $SPKG_VERSION will be installed"
+            message="SPKG_TYPE, $install_message"
         ], [dnl
             message="SPKG_TYPE"
             m4_case(SPKG_SOURCE, [none], [], [dnl
@@ -302,9 +314,7 @@ AC_DEFUN([SAGE_SPKG_FINALIZE], [dnl
                 [force],                     [ message="no suitable system package; this is an error"
                                                AS_VAR_APPEND([SAGE_NEED_SYSTEM_PACKAGES_VAR], [" SPKG_NAME"])
                                              ],
-                [installed],                 [ AS_IF([test "$SPKG_VERSION" = "$SPKG_INSTALLED_VERSION"],
-                                                     [message="$spkg_installed_version_text is already installed"],
-                                                     [message="installed $spkg_installed_version_text will be replaced by version $SPKG_VERSION"])
+                [installed],                 [ message="$install_message"
                                              ],
                                              [ message="$reason; $message" ])
             ])

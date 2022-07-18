@@ -227,6 +227,10 @@ AC_DEFUN([SAGE_SPKG_FINALIZE], [dnl
             break
         ])
     done
+    AS_CASE(["$SPKG_INSTALLED_VERSION"],
+        [""],   [AS_VAR_SET([spkg_installed_version_text], [""])],
+        [none], [AS_VAR_SET([spkg_installed_version_text], ["SPKG"])],
+                [AS_VAR_SET([spkg_installed_version_text], ["SPKG version $SPKG_INSTALLED_VERSION"])])
     dnl
     dnl Determine whether package is enabled
     m4_pushdef([want_spkg], [SAGE_ENABLE_]SPKG_NAME)dnl
@@ -299,8 +303,8 @@ AC_DEFUN([SAGE_SPKG_FINALIZE], [dnl
                                                AS_VAR_APPEND([SAGE_NEED_SYSTEM_PACKAGES_VAR], [" SPKG_NAME"])
                                              ],
                 [installed],                 [ AS_IF([test "$SPKG_VERSION" = "$SPKG_INSTALLED_VERSION"],
-                                                     [message="SPKG version $SPKG_VERSION is already installed"],
-                                                     [message="installed SPKG version $SPKG_INSTALLED_VERSION will be replaced by version $SPKG_VERSION"])
+                                                     [message="$spkg_installed_version_text is already installed"],
+                                                     [message="installed $spkg_installed_version_text will be replaced by version $SPKG_VERSION"])
                                              ],
                                              [ message="$reason; $message" ])
             ])

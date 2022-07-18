@@ -136,8 +136,8 @@ class Polyhedron_base3(Polyhedron_base2):
             [1 0 1 0 0 1]
             [1 0 0 0 1 1]
 
-            sage: P = polytopes.dodecahedron().faces(2)[0].as_polyhedron()
-            sage: P.slack_matrix()
+            sage: P = polytopes.dodecahedron().faces(2)[0].as_polyhedron()                          # optional - sage.rings.number_field
+            sage: P.slack_matrix()                                                                  # optional - sage.rings.number_field
             [1/2*sqrt5 - 1/2               0               0               1 1/2*sqrt5 - 1/2               0]
             [              0               0 1/2*sqrt5 - 1/2 1/2*sqrt5 - 1/2               1               0]
             [              0 1/2*sqrt5 - 1/2               1               0 1/2*sqrt5 - 1/2               0]

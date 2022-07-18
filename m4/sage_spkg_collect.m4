@@ -208,7 +208,7 @@ AC_DEFUN([SAGE_SPKG_FINALIZE], [dnl
                     AS_IF([test "$is_installed" = "yes"], [dnl
                         m4_case(SPKG_SOURCE, [normal], [dnl
                             dnl Only issue the multiple installation record test for normal packages,
-                            dnl not for script packages. We actually do not clean up after those...
+                            dnl not for script packages.
                             AC_MSG_ERROR(m4_normalize([
                                 multiple installation records for SPKG_NAME:
                                 m4_newline($(ls -l "$t/var/lib/sage/installed/SPKG_NAME"-*))
@@ -216,6 +216,8 @@ AC_DEFUN([SAGE_SPKG_FINALIZE], [dnl
                                 of these files and re-run "$srcdir/configure"])
                             ]))
                         ], [dnl
+                            dnl Before #34193, we did not remove old installation records of
+                            dnl script packages. So no error.
                             AS_VAR_SET([spkg_installed_version_text], ["SPKG (multiple installation records)"])
                         ])
                     ])

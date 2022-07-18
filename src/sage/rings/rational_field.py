@@ -677,7 +677,6 @@ class RationalField(Singleton, number_field_base.NumberField):
               To:   Complex Field with 200 bits of precision
               Defn: 1 |--> 1.0000000000000000000000000000000000000000000000000000000000]
         """
-        import sage.rings.all
         from sage.rings.infinity import Infinity
         if prec is None:
             from sage.rings.real_mpfr import RR as R

@@ -1751,8 +1751,6 @@ class MPolynomial_polydict(Polynomial_singular_repr, MPolynomial_element):
         """
         return self._MPolynomial_element__element.dict()!={}
 
-    
-
     def _floordiv_(self, right):
         r"""
         Quotient of division of self by other. This is denoted //.
@@ -2351,8 +2349,8 @@ class MPolynomial_polydict(Polynomial_singular_repr, MPolynomial_element):
         except (NotImplementedError, TypeError):
             pass
 
+        I = [g for g in I if g]
         lI = len(I)
-        I = list(I)
         r = P.zero()
         p = self
 
@@ -2361,7 +2359,7 @@ class MPolynomial_polydict(Polynomial_singular_repr, MPolynomial_element):
                 gi = I[i]
                 plm = p.lm()
                 gilm = gi.lm()
-                if gilm and P.monomial_divides(gilm, plm):
+                if P.monomial_divides(gilm, plm):
                     quot = p.lc()/gi.lc() * P.monomial_quotient(plm, gilm)
                     p -= quot * gi
                     break

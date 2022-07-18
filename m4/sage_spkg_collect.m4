@@ -202,6 +202,8 @@ AC_DEFUN([SAGE_SPKG_FINALIZE], [dnl
     m4_append_uniq_w([SPKG_TREE_VAR], [SAGE_LOCAL])
     for treevar in SPKG_TREE_VAR; do
         AS_VAR_COPY([t], [$treevar])
+        dnl SAGE_VENV contains the literal ${SAGE_LOCAL}, eval it
+        t=$(eval echo $t)
         AS_IF([test -n "$t" -a -d "$t/var/lib/sage/installed/" ], [dnl
             for f in "$t/var/lib/sage/installed/SPKG_NAME"-*; do
                 AS_IF([test -r "$f"], [dnl

@@ -2352,7 +2352,7 @@ class CategoryWithAxiom(Category):
         additive magma is implemented as
         ``MagmasAndAdditiveMagmas.Distributive.AdditiveAssociative.AdditiveCommutative``
         and not
-        ``MagmasAndAdditiveMagmas.Distributive.AdditiveCommutative.AdditiveAssociative``::
+        ``MagmasAndAdditiveMagmas.Distributive.AdditiveCommutative.AdditiveAssociative``.
 
         EXAMPLES::
 

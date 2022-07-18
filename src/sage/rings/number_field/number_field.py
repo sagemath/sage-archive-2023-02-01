@@ -4210,7 +4210,7 @@ class NumberField_generic(WithEqualityById, number_field_base.NumberField):
         - ``beta`` is the image of `x \bmod g` under the inverse
           isomorphism `\phi^{-1}\colon K[x]/(g) \to K[x]/(f)`
 
-        EXAMPLES::
+        EXAMPLES:
 
         If `f` is monic and integral, the result satisfies ``g = f``
         and ``alpha = beta = x``::

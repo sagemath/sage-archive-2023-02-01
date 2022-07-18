@@ -2244,7 +2244,7 @@ class GenericGraph(GenericGraph_pyx):
             * :meth:`~sage.graphs.generic_graph.GenericGraph.distance_all_pairs`
               -- computes the distance between any two vertices.
 
-        TESTS::
+        TESTS:
 
         Asking for an immutable matrix::
 

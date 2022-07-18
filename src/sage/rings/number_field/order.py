@@ -1786,13 +1786,13 @@ class Order_absolute(Order):
                 self.__is_maximal = False
             elif is_maximal:
                 if self._is_maximal() is False:
-                    raise ValueError(f"cannot assume this order to be maximal because we already found it to be a non-maximal order")
+                    raise ValueError("cannot assume this order to be maximal because we already found it to be a non-maximal order")
                 self.__is_maximal = True
                 # No need to keep information at specific primes anymore.
                 self.__is_maximal_at = {}
             else:
                 if self._is_maximal() is True:
-                    raise ValueError(f"cannot assume this order to be non-maximal because we already found it to be a maximal order")
+                    raise ValueError("cannot assume this order to be non-maximal because we already found it to be a maximal order")
                 self.__is_maximal = False
         else:
             p = ZZ(p).abs()

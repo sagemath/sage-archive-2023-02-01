@@ -540,7 +540,7 @@ class RationalField(Singleton, number_field_base.NumberField):
         if B < 2:
             return
 
-        from sage.arith.all import primes
+        from sage.arith.misc import primes
         for p in primes(B+1):
             yield p
 
@@ -1071,7 +1071,7 @@ class RationalField(Singleton, number_field_base.NumberField):
             sage: a^3
             -5
         """
-        from sage.rings.number_field.all import NumberField
+        from sage.rings.number_field.number_field import NumberField
         return NumberField(poly, names=names, **kwds)
 
     def algebraic_closure(self):

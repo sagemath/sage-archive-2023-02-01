@@ -286,7 +286,8 @@ AC_DEFUN([SAGE_SPKG_FINALIZE], [dnl
     m4_case(SPKG_SOURCE,
       [pip], [dnl
         message="SPKG_TYPE pip package; use \"./sage -i SPKG_NAME\" to install"
-        uninstall_message="SPKG_TYPE pip package (installed)"
+        install_message="SPKG_TYPE pip package (installed)"
+        uninstall_message=
     ])dnl
     dnl
     SAGE_PACKAGE_VERSIONS="${SAGE_PACKAGE_VERSIONS}$(printf '\nvers_')SPKG_NAME = ${SPKG_VERSION}"
@@ -320,7 +321,7 @@ AC_DEFUN([SAGE_SPKG_FINALIZE], [dnl
                 [force],                     [ message="no suitable system package; this is an error"
                                                AS_VAR_APPEND([SAGE_NEED_SYSTEM_PACKAGES_VAR], [" SPKG_NAME"])
                                              ],
-                [installed],                 [ message="$install_message"
+                [installed],                 [ message="$install_message$uninstall_message"
                                              ],
                                              [ message="$reason; $message" ])
             ])

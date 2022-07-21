@@ -391,6 +391,27 @@ _clean-broken-gcc:
 	package=$${package%%-*}; \
 	$(MAKE) $$package-SAGE_LOCAL-uninstall $$package-SAGE_VENV-uninstall
 
+list-broken-packages: auditwheel_or_delocate
+	@broken_packages=; \
+	for tree in "$(SAGE_LOCAL)" "$(SAGE_VENV)"; do \
+	    for stampfile in $$tree/$(SPKG_INST_RELDIR)/*; do \
+		if [ -s $$stampfile ]; then \
+		    echo 2>&1 "# Checking $$stampfile"; \
+		    package_with_version=$${stampfile##*/}; \
+		    package=$${package_with_version%-*}; \
+		    if ! $(SAGE_VENV)/bin/python3 $(SAGE_ROOT)/build/bin/sage-spkg-installcheck --verbose $$package $$tree; then \
+			broken_packages="$$broken_packages $$package"; \
+			echo $$package; \
+		    fi; \
+		fi; \
+            done; \
+	done; \
+	if [ -n "$$broken_packages" ]; then \
+	    echo 2>&1 "Uninstall broken packages by typing:"; \
+	    echo 2>&1 "    make $$(for package in $$broken_packages; do echo $$package-clean; done)"; \
+	fi
+
+
 #==============================================================================
 # Setting SAGE_CHECK... variables
 #==============================================================================

@@ -67,9 +67,6 @@ def installcheck(spkg_name, sage_local, verbose=False):
                   .format(spkg_name, sage_local), file=sys.stderr)
     else:
         files = spkg_meta['files']
-        if not files:
-            print("Warning: No files to check for "
-                  "'{0}'".format(spkg_name), file=sys.stderr)
 
         for f in files:
             f = os.path.join(sage_local, f)

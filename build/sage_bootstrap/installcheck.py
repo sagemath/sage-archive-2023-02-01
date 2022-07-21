@@ -21,6 +21,7 @@ import shutil
 import subprocess
 import sys
 import argparse
+from warnings import warn
 
 from .env import SAGE_ROOT
 
@@ -74,10 +75,14 @@ def installcheck(spkg_name, sage_local, verbose=False):
                 if verbose:
                     print("Checking shared library file '{0}'"
                           .format(f), file=sys.stderr)
-                from delocate.libsana import _tree_libs_from_libraries, _filter_system_libs
-                _tree_libs_from_libraries([f],
-                                          lib_filt_func=_filter_system_libs,
-                                          copy_filt_func=lambda path: True)
+                try:
+                    from delocate.libsana import _tree_libs_from_libraries, _filter_system_libs
+                except ImportError:
+                    warnings.warn('delocate is not available, so nothing is actually checked')
+                else:
+                    _tree_libs_from_libraries([f],
+                                              lib_filt_func=_filter_system_libs,
+                                              copy_filt_func=lambda path: True)
             elif f.endswith('-any.whl'):
                 # pure Python wheel, nothing to check
                 pass
@@ -85,8 +90,12 @@ def installcheck(spkg_name, sage_local, verbose=False):
                 if verbose:
                     print("Checking wheel file '{0}'"
                           .format(f), file=sys.stderr)
-                from delocate import wheel_libs
-                wheel_libs(f)
+                try:
+                    from delocate import wheel_libs
+                except ImportError:
+                    warnings.warn('delocate is not available, so nothing is actually checked')
+                else:
+                    wheel_libs(f)
 
 
 def dir_type(path):

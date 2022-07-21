@@ -399,7 +399,7 @@ _clean-broken-gcc:
             tree=$${stampfile%%/$(SPKG_INST_RELDIR)/*}; \
 	    package_with_version=$${stampfile##*/}; \
 	    package=$${package_with_version%%-*}; \
-	    if ! $(SAGE_VENV)/bin/python3 $(SAGE_ROOT)/build/bin/sage-spkg-installcheck --verbose $$package; then \
+	    if ! $(SAGE_VENV)/bin/python3 $(SAGE_ROOT)/build/bin/sage-spkg-installcheck --verbose $$package $$tree; then \
 		case "$$tree" in \
 		    "$(SAGE_LOCAL)") echo "    make $$package-SAGE_LOCAL-uninstall;";; \
 		    "$(SAGE_VENV)")  echo "    make $$package-SAGE_VENV-uninstall;";; \

@@ -1,5 +1,5 @@
 """
-Command-line script for uninstalling an existing Sage spkg from $SAGE_LOCAL.
+Command-line script for uninstalling an existing SPKG from an installation tree ($SAGE_LOCAL, $SAGE_VENV).
 
 This performs two types of uninstallation:
 
@@ -51,8 +51,8 @@ PKGS = pth.join(SAGE_ROOT, 'build', 'pkgs')
 
 def uninstall(spkg_name, sage_local, keep_files=False, verbose=False):
     """
-    Given a package name and path to SAGE_LOCAL, uninstall that package from
-    SAGE_LOCAL if it is currently installed.
+    Given a package name and path to an installation tree (SAGE_LOCAL or SAGE_VENV,
+    uninstall that package from that tree if it is currently installed.
     """
 
     # The path to the installation records.
@@ -131,8 +131,9 @@ def legacy_uninstall(spkg_name, verbose=False):
 
 def modern_uninstall(spkg_name, sage_local, files, verbose=False):
     """
-    Remove all listed files from the given SAGE_LOCAL (all file paths should
-    be assumed relative to SAGE_LOCAL).
+    Remove all listed files from the given installation tree (SAGE_LOCAL or SAGE_VENV).
+
+    All file paths should be assumed relative to the installation tree.
 
     This is otherwise (currently) agnostic about what package is actually
     being uninstalled--all it cares about is removing a list of files.
@@ -272,7 +273,7 @@ def make_parser():
     parser.add_argument('spkg', type=str, help='the spkg to uninstall')
     parser.add_argument('sage_local', type=dir_type, nargs='?',
                         default=os.environ.get('SAGE_LOCAL'),
-                        help='the SAGE_LOCAL path (default: the $SAGE_LOCAL '
+                        help='the path of the installation tree (default: the $SAGE_LOCAL '
                              'environment variable if set)')
     parser.add_argument('-v', '--verbose', action='store_true',
                         help='verbose output showing all files removed')
@@ -291,7 +292,7 @@ def run(argv=None):
     args = parser.parse_args(argv if argv is not None else sys.argv[1:])
 
     if args.sage_local is None:
-        print('Error: SAGE_LOCAL must be specified either at the command '
+        print('Error: An installation tree must be specified either at the command '
               'line or in the $SAGE_LOCAL environment variable',
               file=sys.stderr)
         sys.exit(1)

@@ -72,14 +72,21 @@ def installcheck(spkg_name, sage_local, verbose=False):
                   "'{0}'".format(spkg_name), file=sys.stderr)
 
         for f in files:
+            f = os.path.join(sage_local, f)
             if f.endswith(('.so', '.dylib')):
                 if verbose:
                     print("Checking shared library file '{0}'"
                           .format(f), file=sys.stderr)
+                from delocate.libsana import _tree_libs_from_libraries, _filter_system_libs
+                _tree_libs_from_libraries([f],
+                                          lib_filt_func=_filter_system_libs,
+                                          copy_filt_func=lambda path: True)
             elif f.endswith('.whl'):
                 if verbose:
                     print("Checking wheel file '{0}'"
                           .format(f), file=sys.stderr)
+                from delocate import wheel_libs
+                wheel_libs(f)
 
 
 def dir_type(path):

@@ -51,7 +51,7 @@ PKGS = pth.join(SAGE_ROOT, 'build', 'pkgs')
 
 def uninstall(spkg_name, sage_local, keep_files=False, verbose=False):
     """
-    Given a package name and path to an installation tree (SAGE_LOCAL or SAGE_VENV,
+    Given a package name and path to an installation tree (SAGE_LOCAL or SAGE_VENV),
     uninstall that package from that tree if it is currently installed.
     """
 

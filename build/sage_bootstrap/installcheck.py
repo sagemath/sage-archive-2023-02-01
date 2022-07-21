@@ -78,6 +78,9 @@ def installcheck(spkg_name, sage_local, verbose=False):
                 _tree_libs_from_libraries([f],
                                           lib_filt_func=_filter_system_libs,
                                           copy_filt_func=lambda path: True)
+            elif f.endswith('-any.whl'):
+                # pure Python wheel, nothing to check
+                pass
             elif f.endswith('.whl'):
                 if verbose:
                     print("Checking wheel file '{0}'"

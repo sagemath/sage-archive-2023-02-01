@@ -32,7 +32,7 @@ To put an image of a 3D-polytope in LaTeX using TikZ and Sage, simply follow the
 - This will open an interactive view in your default browser, where you can rotate the polytope.
 - Once the desired view angle is found, click on the information icon in the lower right-hand corner and select *Get Viewpoint*. This will copy a string of the form '[x,y,z],angle' to your local clipboard.
 - Go back to Sage and type ``Img = P.tikz([x,y,z],angle,output_type='LatexExpr')``. You can paste the string here to save some typing.
-- *Img* now contains a Sage object of type ``LatexExpr`` containing the raw TikZ picture of your polytope
+- *Img* now contains a Sage object of type ``LatexExpr`` containing the raw TikZ picture of your polytope.
 
 Alternatively, you can save the tikz image to a file, by doing
 
@@ -46,7 +46,7 @@ Alternatively, you can save the tikz image to a file, by doing
 .. end of output
 
 Then in the pwd (present working directory of sage, the one of your article)
-you will have a file named ``Img_poly.tex`` and ``Img_poly.pdf`` containing the
+you will have two files named ``Img_poly.tex`` and ``Img_poly.pdf`` containing the
 tikzpicture of the polytope ``P``.
 
 Customization

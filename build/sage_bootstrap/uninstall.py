@@ -259,20 +259,6 @@ def dir_type(path):
     return path
 
 
-def spkg_type(pkg):
-    """
-    A custom argument 'type' for spkgs--checks whether the given package name
-    is a known spkg.
-    """
-    pkgbase = pth.join(PKGS, pkg)
-
-    if not pth.isdir(pkgbase):
-        raise argparse.ArgumentTypeError(
-            "'{0}' is not a known spkg".format(pkg))
-
-    return pkg
-
-
 def make_parser():
     """Returns the command-line argument parser for sage-spkg-uninstall."""
 
@@ -283,7 +269,7 @@ def make_parser():
         epilog='\n'.join(doc_lines[1:]).strip(),
         formatter_class=argparse.RawDescriptionHelpFormatter)
 
-    parser.add_argument('spkg', type=spkg_type, help='the spkg to uninstall')
+    parser.add_argument('spkg', type=str, help='the spkg to uninstall')
     parser.add_argument('sage_local', type=dir_type, nargs='?',
                         default=os.environ.get('SAGE_LOCAL'),
                         help='the SAGE_LOCAL path (default: the $SAGE_LOCAL '

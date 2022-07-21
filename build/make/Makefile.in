@@ -190,7 +190,7 @@ else
 PLUS =
 endif
 
-# List of targets that can be run using `sage -i` or `sage -f`
+# List of targets that can be run (in addition to names of packages) using `sage -i` or `sage -f`
 # These should generally have an associated -uninstall target for `sage -f` to
 # work correctly
 SAGE_I_TARGETS = sagelib doc

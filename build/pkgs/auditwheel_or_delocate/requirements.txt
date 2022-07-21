@@ -1,0 +1,2 @@
+delocate; sys_platform == 'darwin'
+auditwheel; sys_platform != 'darwin'

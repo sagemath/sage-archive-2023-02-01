@@ -371,6 +371,7 @@ _clean-broken-gcc:
 	   echo "Cleaned up old broken GCC install"; \
 	fi
 
+# Implicit rules for uninstalling packages that no longer exist in the source tree.
 %-SAGE_LOCAL-uninstall:
 	@package=$@; \
 	package=$${package%%-*}; \
@@ -384,6 +385,11 @@ _clean-broken-gcc:
 	if [ -d '$(SAGE_VENV)' ]; then \
 	    sage-spkg-uninstall $$package $(SAGE_VENV); \
 	fi
+
+%-uninstall:
+	@package=$@; \
+	package=$${package%%-*}; \
+	$(MAKE) $$package-SAGE_LOCAL-uninstall $$package-SAGE_VENV-uninstall
 
 #==============================================================================
 # Setting SAGE_CHECK... variables

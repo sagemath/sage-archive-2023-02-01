@@ -55,8 +55,8 @@ def uninstall(spkg_name, sage_local, keep_files=False, verbose=False):
     SAGE_LOCAL if it is currently installed.
     """
 
-    # The default path to this directory; however its value should be read
-    # from the environment if possible
+    # The path to the installation records.
+    # See SPKG_INST_RELDIR in SAGE_ROOT/build/make/Makefile.in
     spkg_inst = pth.join(sage_local, 'var', 'lib', 'sage', 'installed')
 
     # Find all stamp files for the package; there should be only one, but if

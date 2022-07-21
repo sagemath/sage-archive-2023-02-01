@@ -370,6 +370,21 @@ _clean-broken-gcc:
 	   rm -f "$(SAGE_ROOT)/build/make/.clean-broken-gcc"; \
 	   echo "Cleaned up old broken GCC install"; \
 	fi
+
+%-SAGE_LOCAL-uninstall:
+	@package=$@; \
+	package=$${package%%-*}; \
+	if [ -d '$(SAGE_LOCAL)' ]; then \
+	    sage-spkg-uninstall $$package; \
+	fi
+
+%-SAGE_VENV-uninstall:
+	@package=$@; \
+	package=$${package%%-*}; \
+	if [ -d '$(SAGE_VENV)' ]; then \
+	    sage-spkg-uninstall $$package $(SAGE_VENV); \
+	fi
+
 #==============================================================================
 # Setting SAGE_CHECK... variables
 #==============================================================================

@@ -401,11 +401,10 @@ _clean-broken-gcc:
 	    package=$${package_with_version%%-*}; \
 	    if ! $(SAGE_VENV)/bin/python3 $(SAGE_ROOT)/build/bin/sage-spkg-installcheck --verbose $$package; then \
 		case "$$tree" in \
-		    "$(SAGE_LOCAL)") tree="";; \
-		    "$(SAGE_VENV)")  tree="\\\$$SAGE_VENV";; \
-		    *)               tree="$$tree";; \
+		    "$(SAGE_LOCAL)") echo "    make $$package-SAGE_LOCAL-uninstall;";; \
+		    "$(SAGE_VENV)")  echo "    make $$package-SAGE_VENV-uninstall;";; \
+		    *)               echo "    ./sage --buildsh -c \"sage-spkg-uninstall $$package $$tree\";";; \
 		esac; \
-		echo "    ./sage --buildsh -c \"sage-spkg-uninstall $$package $$tree\";"; \
 	    fi; \
 	fi;
 

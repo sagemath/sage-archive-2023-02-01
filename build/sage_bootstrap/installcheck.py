@@ -1,5 +1,5 @@
 """
-Command-line script for checking an installed SPKG in $SAGE_LOCAL.
+Command-line script for checking an installed SPKG in an installation tree ($SAGE_LOCAL, $SAGE_VENV).
 """
 
 # ****************************************************************************
@@ -32,8 +32,8 @@ PKGS = pth.join(SAGE_ROOT, 'build', 'pkgs')
 
 def installcheck(spkg_name, sage_local, verbose=False):
     """
-    Given a package name and path to SAGE_LOCAL, check the installation of the package
-    in SAGE_LOCAL.
+    Given a package name and path to an installation tree (SAGE_LOCAL or SAGE_VENV),
+    check the installation of the package in that tree.
     """
 
     # The default path to this directory; however its value should be read
@@ -137,7 +137,7 @@ def make_parser():
     parser.add_argument('spkg', type=spkg_type, help='the spkg to check')
     parser.add_argument('sage_local', type=dir_type, nargs='?',
                         default=os.environ.get('SAGE_LOCAL'),
-                        help='the SAGE_LOCAL path (default: the $SAGE_LOCAL '
+                        help='the path of the installation tree (default: the $SAGE_LOCAL '
                              'environment variable if set)')
     parser.add_argument('-v', '--verbose', action='store_true',
                         help='verbose output showing all files removed')
@@ -152,7 +152,7 @@ def run(argv=None):
     args = parser.parse_args(argv if argv is not None else sys.argv[1:])
 
     if args.sage_local is None:
-        print('Error: SAGE_LOCAL must be specified either at the command '
+        print('Error: An installation tree must be specified either at the command '
               'line or in the $SAGE_LOCAL environment variable',
               file=sys.stderr)
         sys.exit(1)

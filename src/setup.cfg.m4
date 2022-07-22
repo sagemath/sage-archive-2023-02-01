@@ -105,7 +105,6 @@ scripts =
     bin/sage-env
     # sage-env-config -- installed by sage_conf
     # sage-env-config.in -- not to be installed
-    bin/sage-gdb-commands
     bin/sage-grep
     bin/sage-grepdoc
     bin/sage-inline-fortran
@@ -133,6 +132,7 @@ sage.interfaces =
     sage-maxima.lisp
 
 sage.doctest =
+    sage-gdb-commands
     tests/*
 
 sage.repl.rich_output =

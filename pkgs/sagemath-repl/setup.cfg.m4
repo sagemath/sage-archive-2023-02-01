@@ -65,7 +65,6 @@ scripts =
     bin/sage-valgrind
     bin/sage-cleaner
     # Uncategorized scripts in alphabetical order
-    bin/sage-gdb-commands
     bin/sage-inline-fortran
     bin/sage-ipynb2rst
     bin/sage-ipython
@@ -78,6 +77,7 @@ scripts =
 [options.package_data]
 
 sage.doctest =
+    sage-gdb-commands
     tests/*
 
 sage.repl.rich_output =

@@ -24,8 +24,10 @@ import random
 import os
 import sys
 import time
+import importlib.resources
 import json
 import re
+import shlex
 import types
 import sage.misc.flatten
 import sage.misc.randstate as randstate
@@ -1183,14 +1185,14 @@ class DocTestController(SageObject):
             sage: DD = DocTestDefaults(gdb=True)
             sage: DC = DocTestController(DD, ["hello_world.py"])
             sage: DC.run_val_gdb(testing=True)
-            exec gdb -x "...sage-gdb-commands" --args sage-runtests --serial --timeout=0 hello_world.py
+            exec gdb -x ...sage-gdb-commands... --args sage-runtests --serial --timeout=0 hello_world.py
 
         ::
 
             sage: DD = DocTestDefaults(valgrind=True, optional="all", timeout=172800)
             sage: DC = DocTestController(DD, ["hello_world.py"])
             sage: DC.run_val_gdb(testing=True)
-            exec valgrind --tool=memcheck --leak-resolution=high --leak-check=full --num-callers=25 --suppressions="...valgrind/pyalloc.supp" --suppressions="...valgrind/sage.supp" --suppressions="...valgrind/sage-additional.supp"  --log-file=".../valgrind/sage-memcheck.%p" sage-runtests --serial --timeout=172800 --optional=all hello_world.py
+            exec valgrind --tool=memcheck --leak-resolution=high --leak-check=full --num-callers=25 --suppressions="...valgrind/pyalloc.supp" --suppressions="...valgrind/sage.supp" --suppressions="...valgrind/sage-additional.supp"  --log-file=.../valgrind/sage-memcheck.%p... sage-runtests --serial --timeout=172800 --optional=all hello_world.py
         """
         try:
             sage_cmd = self._assemble_cmd()
@@ -1198,77 +1200,80 @@ class DocTestController(SageObject):
             self.log(sys.exc_info()[1])
             return 2
         opt = self.options
-        if opt.gdb:
-            cmd = '''exec gdb -x "%s" --args '''%(os.path.join(SAGE_VENV, "bin", "sage-gdb-commands"))
-            flags = ""
-            if opt.logfile:
-                sage_cmd += " --logfile %s"%(opt.logfile)
-        else:
-            if opt.logfile is None:
-                default_log = os.path.join(DOT_SAGE, "valgrind")
-                if os.path.exists(default_log):
-                    if not os.path.isdir(default_log):
-                        self.log("%s must be a directory"%default_log)
-                        return 2
-                else:
-                    os.makedirs(default_log)
-                logfile = os.path.join(default_log, "sage-%s")
+
+        with importlib.resources.path(__package__, 'sage-gdb-commands') as sage_gdb_commands:
+            if opt.gdb:
+                cmd = f'''exec gdb -x {shlex.quote(str(sage_gdb_commands))} --args '''
+                flags = ""
+                if opt.logfile:
+                    sage_cmd += f" --logfile {shlex.quote(opt.logfile)}"
             else:
-                logfile = opt.logfile
-            if opt.valgrind:
-                toolname = "memcheck"
-                flags = os.getenv("SAGE_MEMCHECK_FLAGS")
-                if flags is None:
-                    flags = "--leak-resolution=high --leak-check=full --num-callers=25 "
-                    flags += '''--suppressions="%s" '''%(os.path.join(SAGE_EXTCODE,"valgrind","pyalloc.supp"))
-                    flags += '''--suppressions="%s" '''%(os.path.join(SAGE_EXTCODE,"valgrind","sage.supp"))
-                    flags += '''--suppressions="%s" '''%(os.path.join(SAGE_EXTCODE,"valgrind","sage-additional.supp"))
-            elif opt.massif:
-                toolname = "massif"
-                flags = os.getenv("SAGE_MASSIF_FLAGS", "--depth=6 ")
-            elif opt.cachegrind:
-                toolname = "cachegrind"
-                flags = os.getenv("SAGE_CACHEGRIND_FLAGS", "")
-            elif opt.omega:
-                toolname = "exp-omega"
-                flags = os.getenv("SAGE_OMEGA_FLAGS", "")
-            cmd = "exec valgrind --tool=%s "%(toolname)
-            flags += ''' --log-file="%s" ''' % logfile
-            if opt.omega:
-                toolname = "omega"
-            if "%s" in flags:
-                flags %= toolname + ".%p" # replace %s with toolname
-        cmd += flags + sage_cmd
+                if opt.logfile is None:
+                    default_log = os.path.join(DOT_SAGE, "valgrind")
+                    if os.path.exists(default_log):
+                        if not os.path.isdir(default_log):
+                            self.log(f"{default_log} must be a directory")
+                            return 2
+                    else:
+                        os.makedirs(default_log)
+                    logfile = os.path.join(default_log, "sage-%s")
+                else:
+                    logfile = opt.logfile
+                if opt.valgrind:
+                    toolname = "memcheck"
+                    flags = os.getenv("SAGE_MEMCHECK_FLAGS")
+                    if flags is None:
+                        flags = "--leak-resolution=high --leak-check=full --num-callers=25 "
+                        flags += '''--suppressions="%s" '''%(os.path.join(SAGE_EXTCODE,"valgrind","pyalloc.supp"))
+                        flags += '''--suppressions="%s" '''%(os.path.join(SAGE_EXTCODE,"valgrind","sage.supp"))
+                        flags += '''--suppressions="%s" '''%(os.path.join(SAGE_EXTCODE,"valgrind","sage-additional.supp"))
+                elif opt.massif:
+                    toolname = "massif"
+                    flags = os.getenv("SAGE_MASSIF_FLAGS", "--depth=6 ")
+                elif opt.cachegrind:
+                    toolname = "cachegrind"
+                    flags = os.getenv("SAGE_CACHEGRIND_FLAGS", "")
+                elif opt.omega:
+                    toolname = "exp-omega"
+                    flags = os.getenv("SAGE_OMEGA_FLAGS", "")
+                cmd = "exec valgrind --tool=%s "%(toolname)
+                flags += f''' --log-file={shlex.quote(logfile)} '''
+                if opt.omega:
+                    toolname = "omega"
+                if "%s" in flags:
+                    flags %= toolname + ".%p" # replace %s with toolname
+            cmd += flags + sage_cmd
 
-        sys.stdout.flush()
-        sys.stderr.flush()
-        self.log(cmd)
+            sys.stdout.flush()
+            sys.stderr.flush()
+            self.log(cmd)
 
-        if testing:
-            return
+            if testing:
+                return
 
-        # Setup signal handlers.
-        # Save crash logs in temporary directory.
-        os.putenv('CYSIGNALS_CRASH_LOGS', tmp_dir("crash_logs_"))
-        init_cysignals()
+            # Setup signal handlers.
+            # Save crash logs in temporary directory.
+            os.putenv('CYSIGNALS_CRASH_LOGS', tmp_dir("crash_logs_"))
+            init_cysignals()
 
-        import signal
-        import subprocess
-        p = subprocess.Popen(cmd, shell=True)
-        if opt.timeout > 0:
-            signal.alarm(opt.timeout)
-        try:
-            return p.wait()
-        except AlarmInterrupt:
-            self.log("    Timed out")
-            return 4
-        except KeyboardInterrupt:
-            self.log("    Interrupted")
-            return 128
-        finally:
-            signal.alarm(0)
-            if p.returncode is None:
-                p.terminate()
+            import signal
+            import subprocess
+            p = subprocess.Popen(cmd, shell=True)
+
+            if opt.timeout > 0:
+                signal.alarm(opt.timeout)
+            try:
+                return p.wait()
+            except AlarmInterrupt:
+                self.log("    Timed out")
+                return 4
+            except KeyboardInterrupt:
+                self.log("    Interrupted")
+                return 128
+            finally:
+                signal.alarm(0)
+                if p.returncode is None:
+                    p.terminate()
 
     def run(self):
         """

@@ -340,9 +340,10 @@ doc-html: sagemath_doc_html
 
 # 'doc-html-no-plot': build docs without building the graphics coming
 # from the '.. plot' directive, in case you want to save a few
-# megabytes of disk space. 'doc-clean' is a prerequisite because the
-# presence of graphics is cached in src/doc/output.
-doc-html-no-plot: doc-clean
+# megabytes of disk space. Run 'make doc-clean' first because the
+# presence of graphics is cached in the built documentation.
+doc-html-no-plot:
+	(cd $(SAGE_ROOT) && $(MAKE) doc-clean)
 	+$(MAKE_REC) SAGE_DOCBUILD_OPTS="$(SAGE_DOCBUILD_OPTS) --no-plot" doc-html
 
 # Using mathjax is actually the only options, but we keep

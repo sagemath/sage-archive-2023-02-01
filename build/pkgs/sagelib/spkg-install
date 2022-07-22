@@ -60,5 +60,5 @@ fi
 rm -rf build/temp.*
 
 if [ "$UNAME" = "CYGWIN" ]; then
-    sage-rebase.sh "$SAGE_LOCAL" 2>/dev/null;
+    sage-rebase.sh "$SAGE_VENV" 2>/dev/null;
 fi

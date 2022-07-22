@@ -26,12 +26,16 @@ export SAGE_BUILD_DIR=/doesnotexist
 export PYTHON="$SAGE_LOCAL/bin/python3"
 
 # We also poison all directories below SAGE_LOCAL.
-
-export SAGE_LOCAL=/doesnotexist
 export SAGE_PKGCONFIG=/doesnotexist
 export SAGE_PKG_CONFIG_PATH=/doesnotexist
 export SAGE_SPKG_SCRIPTS=/doesnotexist
 export SAGE_SHARE=/doesnotexist
+
+# However, we only unset SAGE_LOCAL and SAGE_PKG_CONFIG_PATH
+# sage_setup.setenv receives them from sage_conf via sage.env;
+# the poisoned environment variables would override them.
+unset SAGE_LOCAL
+unset SAGE_PKG_CONFIG_PATH
 
 # Trac #30903: We cannot poison SAGE_DOC because setup.py installs the Jupyter kernel
 # spec, which includes setting a symlink to the installed documentation.

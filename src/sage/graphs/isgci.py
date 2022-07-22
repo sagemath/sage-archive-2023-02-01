@@ -831,7 +831,7 @@ class GraphClasses(UniqueRepresentation):
         """
         import tempfile
         u = urlopen('https://www.graphclasses.org/data.zip',
-                    context=SSLContext())
+                    context=default_context())
         with tempfile.NamedTemporaryFile(suffix=".zip") as f:
             f.write(u.read())
             z = zipfile.ZipFile(f.name)

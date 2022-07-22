@@ -2249,18 +2249,13 @@ class Permutation(CombinatorialElement):
                     if k < self[i]:
                         D.add_edge(k, self[i])
 
-        increasing_subsequences = []
-    
         for i in columns[0]:
             D.add_edge(0, i)  # 0 is source
         for i in columns[-1]:
             D.add_edge(i, n+1) # n+1 is sink
 
-        for p in D.all_paths(0, n+1):
-            increasing_subsequences.append(p[1:-1])
-
-        increasing_subsequences.sort()
-        increasing_subsequences.reverse()
+        increasing_subsequences = [p[1:-1] for p in D.all_paths(0, n+1)]
+        increasing_subsequences.sort(reverse=True)
 
         return increasing_subsequences
 

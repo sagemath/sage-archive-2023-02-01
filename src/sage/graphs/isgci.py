@@ -827,7 +827,7 @@ class GraphClasses(UniqueRepresentation):
 
         EXAMPLES::
 
-            sage: graph_classes._download_db() # Not tested -- requires internet
+            sage: graph_classes._download_db()  # Not tested -- requires internet
         """
         import tempfile
         u = urlopen('https://www.graphclasses.org/data.zip',
@@ -858,7 +858,6 @@ class GraphClasses(UniqueRepresentation):
             sage: graph_classes._parse_db(GRAPHS_DATA_DIR)
         """
         import xml.etree.cElementTree as ET
-        import os.path
         from sage.graphs.graph import Graph
 
         xml_file = os.path.join(GRAPHS_DATA_DIR, _XML_FILE)
@@ -903,7 +902,7 @@ class GraphClasses(UniqueRepresentation):
 
         EXAMPLES::
 
-            sage: graph_classes.update_db() # Not tested -- requires internet
+            sage: graph_classes.update_db()  # Not tested -- requires internet
         """
         self._download_db()
 
@@ -935,8 +934,6 @@ class GraphClasses(UniqueRepresentation):
 
             sage: graph_classes._get_ISGCI()  # long time (4s on sage.math, 2012)
         """
-
-        import os.path
         from sage.misc.misc import SAGE_DB
 
         try:

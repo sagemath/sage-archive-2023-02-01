@@ -68,7 +68,9 @@ else
     (cd "$SITEPACKAGESDIR" && rm -f sage/__init__.py)
     # Likewise, we should remove the egg-link that may have been installed previously.
     (cd "$SITEPACKAGESDIR" && rm -f sagemath-standard.egg-link)
-    time sdh_pip_install .
+    # Use --no-build-isolation to avoid rebuilds because of dependencies:
+    # Compiling sage/interfaces/sagespawn.pyx because it depends on /private/var/folders/38/wnh4gf1552g_crsjnv2vmmww0000gp/T/pip-build-env-609n5985/overlay/lib/python3.10/site-packages/Cython/Includes/posix/unistd.pxd
+    time sdh_pip_install --no-build-isolation .
 fi
 
 # Trac #33103: The temp.* directories are large after a full build.

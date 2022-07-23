@@ -343,7 +343,7 @@ usage_advanced() {
         echo "  --simple-prompt     -- pass the option through to IPython: use"
         echo "                         this option with sage-shell mode in emacs"
         echo "  --gdb               -- run Sage under the control of gdb"
-        echo "  --gdb-ipython       -- run Sage's IPython under the control of gdb"
+        echo "  --lldb              -- run Sage under the control of lldb"
     else
         echo "Running Sage:"
         echo "                         (not installed currently, "
@@ -1078,6 +1078,12 @@ if [ "$1" = '-gdb' -o "$1" = "--gdb" ]; then
             -args python "${SELF}-ipython" "$@" -i
     fi
     exit $?
+fi
+
+if [ "$1" = '-lldb' -o "$1" = "--lldb" ]; then
+    shift
+    sage_setup
+    lldb --one-line "process launch --tty" --one-line "cont" -- python "${SELF}-ipython" "$@"
 fi
 
 if [ "$1" = '-valgrind' -o "$1" = "--valgrind" -o "$1" = '-memcheck' -o "$1" = "--memcheck" ]; then

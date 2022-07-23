@@ -2196,7 +2196,6 @@ class Permutation(CombinatorialElement):
         """
         from bisect import bisect
         r: list[int] = []
-        np = len(self) + 1
         for x in self:
             # Search for the smallest value y larger than x
             idx = bisect(r, x)

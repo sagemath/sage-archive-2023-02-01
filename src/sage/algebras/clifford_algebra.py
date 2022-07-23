@@ -20,6 +20,7 @@ AUTHORS:
 from sage.misc.cachefunc import cached_method
 from sage.structure.unique_representation import UniqueRepresentation
 from sage.structure.parent import Parent
+from sage.structure.element import Element
 from sage.data_structures.bitset import Bitset, FrozenBitset
 from copy import copy
 
@@ -324,15 +325,44 @@ class CliffordAlgebraElement(CombinatorialFreeModule.Element):
 
 class CliffordAlgebraIndices(Parent):
     r"""
-    A facade parent for the Clifford algebra
+    A facade parent for the indices of Clifford algebra.
+    Users should not create instances of this class directly.
     """
     def __call__(self, el):
+        r"""
+        EXAMPLES::
+
+            sage: from sage.algebras.clifford_algebra import CliffordAlgebraIndices
+            sage: idx = CliffordAlgebraIndices(7)
+            sage: idx([1,3,6])
+            0101001
+            sage: E = ExteriorAlgebra(QQ, 7)
+            sage: B = E.basis()
+            
+        """
+
         if not isinstance(el, Element):
             return self._element_constructor_(el)
         else:
             return Parent.__call__(self, el)
 
     def __init__(self, Qdim):
+        r"""
+        EXAMPLES::
+
+            sage: from sage.algebras.clifford_algebra import CliffordAlgebraIndices
+            sage: idx = CliffordAlgebraIndices(7)
+            sage: idx._nbits
+            7
+            sage: idx._cardinality
+            128
+            sage: idx._maximal_set
+            1111111
+            sage: i = idx.an_element(); i
+            0
+            sage: type(i)
+            <class 'sage.data_structures.bitset.FrozenBitset'>
+        """
         self._nbits = Qdim
         self._cardinality = 2**Qdim
         # the if statement here is in case Qdim is 0.
@@ -341,7 +371,22 @@ class CliffordAlgebraIndices(Parent):
         Parent.__init__(self, category=category, facade=True)
 
     def _element_constructor_(self, x):
+        r"""
+        EXAMPLES::
 
+            sage: from sage.algebras.clifford_algebra import CliffordAlgebraIndices
+            sage: idx = CliffordAlgebraIndices(7)
+            sage: idx([1,3,6])
+            0101001
+            sage: for i in range(7): print(idx(i))
+            1
+            01
+            001
+            0001
+            00001
+            000001
+            0000001
+        """
         if isinstance(x, (list, tuple, set, frozenset)):
             if len(x) > self._nbits:
                 raise ValueError(f"{x=} is too long")
@@ -351,16 +396,53 @@ class CliffordAlgebraIndices(Parent):
             return FrozenBitset((x,))
 
     def cardinality(self):
+        r"""
+        EXAMPLES::
 
+            sage: from sage.algebras.clifford_algebra import CliffordAlgebraIndices
+            sage: idx = CliffordAlgebraIndices(7)
+            sage: idx.cardinality() == 2^7
+            True
+        """
         return self._cardinality
 
     def _repr_(self):
+        r"""
+        EXAMPLES::
+
+            sage: from sage.algebras.clifford_algebra import CliffordAlgebraIndices
+            sage: idx = CliffordAlgebraIndices(7); idx
+            Subsets of {1,2,...,7}
+        """
         return f"Subsets of {{1,2,...,{self._nbits}}}"
 
     def __len__(self):
+        r"""
+        EXAMPLES::
+
+            sage: from sage.algebras.clifford_algebra import CliffordAlgebraIndices
+            sage: idx = CliffordAlgebraIndices(7); 
+            sage: len(idx) == 2^7
+            True
+        """
         return self._cardinality
 
     def __iter__(self):
+        r"""
+        EXAMPLES::
+
+            sage: from sage.algebras.clifford_algebra import CliffordAlgebraIndices
+            sage: idx = CliffordAlgebraIndices(3); 
+            sage: for i in idx: print(i)
+            0
+            1
+            01
+            001
+            11
+            101
+            011
+            111
+        """
         import itertools
         n = self._nbits
         yield FrozenBitset('0')
@@ -371,6 +453,16 @@ class CliffordAlgebraIndices(Parent):
             k += 1
 
     def __contains__(self, other):
+        r"""
+        EXAMPLES::
+
+            sage: from sage.algebras.clifford_algebra import CliffordAlgebraIndices
+            sage: idx = CliffordAlgebraIndices(3); 
+            sage: int(8) in idx # representing the set {4}
+            False
+            sage: FrozenBitset('1') in idx
+            True
+        """
 
         if isinstance(other, int):
             return (other < self._cardinality) and (other >= 0)

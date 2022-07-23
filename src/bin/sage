@@ -1068,7 +1068,7 @@ fi
 if [ "$1" = '-gdb' -o "$1" = "--gdb" ]; then
     shift
     sage_setup
-    if [ "$SAGE_DEBUG" = "no" ]; then
+    if [ "$SAGE_DEBUG" != "yes" ]; then
         gdb --eval-command "run" \
             -args python "${SELF}-ipython" "$@" -i
     else

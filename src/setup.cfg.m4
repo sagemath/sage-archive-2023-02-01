@@ -132,7 +132,6 @@ sage.interfaces =
     sage-maxima.lisp
 
 sage.doctest =
-    sage-gdb-commands
     tests/*
 
 sage.repl.rich_output =

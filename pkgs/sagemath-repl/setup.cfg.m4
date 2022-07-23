@@ -77,7 +77,6 @@ scripts =
 [options.package_data]
 
 sage.doctest =
-    sage-gdb-commands
     tests/*
 
 sage.repl.rich_output =

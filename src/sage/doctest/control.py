@@ -1203,7 +1203,7 @@ class DocTestController(SageObject):
 
         with importlib.resources.path(__package__, 'sage-gdb-commands') as sage_gdb_commands:
             if opt.gdb:
-                cmd = f'''exec gdb -x {shlex.quote(str(sage_gdb_commands))} --args '''
+                cmd = f'''exec gdb -x {shlex.quote(str(sage_gdb_commands))} --args {sys.executable} '''
                 flags = ""
                 if opt.logfile:
                     sage_cmd += f" --logfile {shlex.quote(opt.logfile)}"

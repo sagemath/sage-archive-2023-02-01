@@ -21,13 +21,23 @@ import shutil
 import subprocess
 import sys
 import argparse
-from warnings import warn
+import warnings
 
 from .env import SAGE_ROOT
 
 pth = os.path
 PKGS = pth.join(SAGE_ROOT, 'build', 'pkgs')
 """Directory where all spkg sources are found."""
+
+
+def check_lib_auditwheel(f, verbose=False):
+    from auditwheel.lddtree import lddtree
+    for lib, info in lddtree(f)["libs"].items():
+        if verbose:
+            print('- {0}: {1}'.format(lib, info["realpath"]), file=sys.stderr)
+        if info["realpath"] is None:
+            raise RuntimeError('Shared library {0} needed by {1} is not found'
+                               .format(lib, f))
 
 
 def installcheck(spkg_name, sage_local, verbose=False):
@@ -75,14 +85,20 @@ def installcheck(spkg_name, sage_local, verbose=False):
                 if verbose:
                     print("Checking shared library file '{0}'"
                           .format(f), file=sys.stderr)
-                try:
-                    from delocate.libsana import _tree_libs_from_libraries, _filter_system_libs
-                except ImportError:
-                    warnings.warn('delocate is not available, so nothing is actually checked')
+                if sys.platform == 'darwin':
+                    try:
+                        from delocate.libsana import _tree_libs_from_libraries, _filter_system_libs
+                    except ImportError:
+                        warnings.warn('delocate is not available, so nothing is actually checked')
+                    else:
+                        _tree_libs_from_libraries([f],
+                                                  lib_filt_func=_filter_system_libs,
+                                                  copy_filt_func=lambda path: True)
                 else:
-                    _tree_libs_from_libraries([f],
-                                              lib_filt_func=_filter_system_libs,
-                                              copy_filt_func=lambda path: True)
+                    try:
+                        check_lib_auditwheel(f, verbose=False)
+                    except ImportError:
+                        warnings.warn('auditwheel is not available, so nothing is actually checked')
             elif f.endswith('-any.whl'):
                 # pure Python wheel, nothing to check
                 pass
@@ -90,12 +106,30 @@ def installcheck(spkg_name, sage_local, verbose=False):
                 if verbose:
                     print("Checking wheel file '{0}'"
                           .format(f), file=sys.stderr)
-                try:
-                    from delocate import wheel_libs
-                except ImportError:
-                    warnings.warn('delocate is not available, so nothing is actually checked')
+                if sys.platform == 'darwin':
+                    try:
+                        from delocate import wheel_libs
+                    except ImportError:
+                        warnings.warn('delocate is not available, so nothing is actually checked')
+                    else:
+                        wheel_libs(f)
                 else:
-                    wheel_libs(f)
+                    try:
+                        from delocate.tmpdirs import TemporaryDirectory
+                        from delocate.tools import zip2dir
+                    except ImportError:
+                        warnings.warn('delocate is not available, so nothing is actually checked')
+                    else:
+                        try:
+                            with TemporaryDirectory() as tmpdir:
+                                zip2dir(f, tmpdir)
+                                for dirpath, dirnames, basenames in os.walk(tmpdir):
+                                    for base in basenames:
+                                        if base.endswith('.so'):
+                                            depending_path = os.path.realpath(os.path.join(dirpath, base))
+                                            check_lib_auditwheel(depending_path, verbose=False)
+                        except ImportError:
+                            warnings.warn('auditwheel is not available, so nothing is actually checked')
 
 
 def dir_type(path):

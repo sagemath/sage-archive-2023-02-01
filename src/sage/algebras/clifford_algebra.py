@@ -84,7 +84,9 @@ class CliffordAlgebraElement(CombinatorialFreeModule.Element):
             sage: latex(  (x1 - x2)*x0 + 5*x0*x1*x2 )
             5  x_{0} x_{1} x_{2} -  x_{0} x_{1} +  x_{0} x_{2} - 1
         """
-        return repr_from_monomials(self.list(), self.parent()._latex_term, True)
+        return repr_from_monomials(self.list(),
+                                   self.parent()._latex_term,
+                                   True)
 
     def _mul_(self, other):
         """
@@ -115,9 +117,9 @@ class CliffordAlgebraElement(CombinatorialFreeModule.Element):
         zero = self.parent().base_ring().zero()
         d = {}
 
-        for ml,cl in self:
+        for ml, cl in self:
             # Distribute the current term ``cl`` * ``ml`` over ``other``.
-            cur = copy(other._monomial_coefficients) # The current distribution of the term
+            cur = copy(other._monomial_coefficients)  # The current distribution of the term
             for i in reversed(ml):
                 # Distribute the current factor ``e[i]`` (the ``i``-th
                 # element of the standard basis).
@@ -126,7 +128,7 @@ class CliffordAlgebraElement(CombinatorialFreeModule.Element):
                 # the dictionary describing the element
                 # ``e[i]`` * (the element described by the dictionary ``cur``)
                 # (where ``e[i]`` is the ``i``-th standard basis vector).
-                for mr,cr in cur.items():
+                for mr, cr in cur.items():
 
                     # Commute the factor as necessary until we are in order
                     for j in mr:
@@ -134,10 +136,10 @@ class CliffordAlgebraElement(CombinatorialFreeModule.Element):
                             break
                         # Add the additional term from the commutation
                         # get a non-frozen bitset to manipulate
-                        t = Bitset(mr) # a mutable copy
+                        t = Bitset(mr)  # a mutable copy
                         t.discard(j)
                         t = FrozenBitset(t)
-                        next[t] = next.get(t, zero) + cr * Q[i,j]
+                        next[t] = next.get(t, zero) + cr * Q[i, j]
                         # Note: ``Q[i,j] == Q(e[i]+e[j]) - Q(e[i]) - Q(e[j])`` for
                         # ``i != j``, where ``e[k]`` is the ``k``-th standard
                         # basis vector.
@@ -146,23 +148,23 @@ class CliffordAlgebraElement(CombinatorialFreeModule.Element):
                             del next[t]
 
                     # Check to see if we have a squared term or not
-                    mr = Bitset(mr) # temporarily mutable
+                    mr = Bitset(mr)  # temporarily mutable
                     if i in mr:
                         mr.discard(i)
-                        cr *= Q[i,i]
+                        cr *= Q[i, i]
                         # Note: ``Q[i,i] == Q(e[i])`` where ``e[i]`` is the
                         # ``i``-th standard basis vector.
                     else:
                         # mr is implicitly sorted
                         mr.add(i)
-                    mr = FrozenBitset(mr) # refreeze it
+                    mr = FrozenBitset(mr)  # refreeze it
                     next[mr] = next.get(mr, zero) + cr
                     if next[mr] == zero:
                         del next[mr]
                 cur = next
 
             # Add the distributed terms to the total
-            for index,coeff in cur.items():
+            for index, coeff in cur.items():
                 d[index] = d.get(index, zero) + cl * coeff
                 if d[index] == zero:
                     del d[index]
@@ -183,7 +185,7 @@ class CliffordAlgebraElement(CombinatorialFreeModule.Element):
             sage: elt.list()
             [(1, 5), (01, 1)]
         """
-        return sorted(self._monomial_coefficients.items(), key=lambda m : (-len(m[0]), list(m[0])))
+        return sorted(self._monomial_coefficients.items(), key=lambda m: (-len(m[0]), list(m[0])))
 
     def support(self):
         """
@@ -237,7 +239,7 @@ class CliffordAlgebraElement(CombinatorialFreeModule.Element):
             sage: all(x.reflection().reflection() == x for x in Cl.basis())
             True
         """
-        return self.__class__(self.parent(), {m: (-1)**len(m) * c for m,c in self})
+        return self.__class__(self.parent(), {m: (-1)**len(m) * c for m, c in self})
 
     degree_negation = reflection
 
@@ -283,7 +285,7 @@ class CliffordAlgebraElement(CombinatorialFreeModule.Element):
         if not self._monomial_coefficients:
             return P.zero()
         g = P.gens()
-        return P.sum(c * P.prod(g[i] for i in reversed(m)) for m,c in self)
+        return P.sum(c * P.prod(g[i] for i in reversed(m)) for m, c in self)
 
     def conjugate(self):
         r"""
@@ -322,6 +324,65 @@ class CliffordAlgebraElement(CombinatorialFreeModule.Element):
 
     clifford_conjugate = conjugate
 
+    # TODO: This is a general function which should be moved to a
+    #   superalgebras category when one is implemented.
+    def supercommutator(self, x):
+        r"""
+        Return the supercommutator of ``self`` and ``x``.
+
+        Let `A` be a superalgebra. The *supercommutator* of homogeneous
+        elements `x, y \in A` is defined by
+
+        .. MATH::
+
+            [x, y\} = x y - (-1)^{|x| |y|} y x
+
+        and extended to all elements by linearity.
+
+        EXAMPLES::
+
+            sage: Q = QuadraticForm(ZZ, 3, [1,2,3,4,5,6])
+            sage: Cl.<x,y,z> = CliffordAlgebra(Q)
+            sage: a = x*y - z
+            sage: b = x - y + y*z
+            sage: a.supercommutator(b)
+            -5*x*y + 8*x*z - 2*y*z - 6*x + 12*y - 5*z
+            sage: a.supercommutator(Cl.one())
+            0
+            sage: Cl.one().supercommutator(a)
+            0
+            sage: Cl.zero().supercommutator(a)
+            0
+            sage: a.supercommutator(Cl.zero())
+            0
+
+            sage: Q = QuadraticForm(ZZ, 2, [-1,1,-3])
+            sage: Cl.<x,y> = CliffordAlgebra(Q)
+            sage: [a.supercommutator(b) for a in Cl.basis() for b in Cl.basis()]
+            [0, 0, 0, 0, 0, -2, 1, -x - 2*y, 0, 1,
+             -6, 6*x + y, 0, x + 2*y, -6*x - y, 0]
+            sage: [a*b-b*a for a in Cl.basis() for b in Cl.basis()]
+            [0, 0, 0, 0, 0, 0, 2*x*y - 1, -x - 2*y, 0,
+             -2*x*y + 1, 0, 6*x + y, 0, x + 2*y, -6*x - y, 0]
+
+        Exterior algebras inherit from Clifford algebras, so
+        supercommutators work as well. We verify the exterior algebra
+        is supercommutative::
+
+            sage: E.<x,y,z,w> = ExteriorAlgebra(QQ)
+            sage: all(b1.supercommutator(b2) == 0
+            ....:     for b1 in E.basis() for b2 in E.basis())
+            True
+        """
+        P = self.parent()
+        ret = P.zero()
+        for ms, cs in self:
+            for mx, cx in x:
+                ret += P.term(ms, cs) * P.term(mx, cx)
+                s = (-1)**(P.degree_on_basis(ms) * P.degree_on_basis(mx))
+                ret -= s * P.term(mx, cx) * P.term(ms, cs)
+        return ret
+
 
 class CliffordAlgebraIndices(Parent):
     r"""
@@ -338,7 +399,6 @@ class CliffordAlgebraIndices(Parent):
             0101001
             sage: E = ExteriorAlgebra(QQ, 7)
             sage: B = E.basis()
-            
         """
 
         if not isinstance(el, Element):
@@ -421,7 +481,7 @@ class CliffordAlgebraIndices(Parent):
         EXAMPLES::
 
             sage: from sage.algebras.clifford_algebra import CliffordAlgebraIndices
-            sage: idx = CliffordAlgebraIndices(7); 
+            sage: idx = CliffordAlgebraIndices(7);
             sage: len(idx) == 2^7
             True
         """
@@ -432,7 +492,7 @@ class CliffordAlgebraIndices(Parent):
         EXAMPLES::
 
             sage: from sage.algebras.clifford_algebra import CliffordAlgebraIndices
-            sage: idx = CliffordAlgebraIndices(3); 
+            sage: idx = CliffordAlgebraIndices(3);
             sage: for i in idx: print(i)
             0
             1
@@ -448,7 +508,7 @@ class CliffordAlgebraIndices(Parent):
         yield FrozenBitset('0')
         k = 1
         while k <= n:
-            for C in itertools.combinations(range(n),k):
+            for C in itertools.combinations(range(n), k):
                 yield FrozenBitset(C)
             k += 1
 
@@ -457,7 +517,7 @@ class CliffordAlgebraIndices(Parent):
         EXAMPLES::
 
             sage: from sage.algebras.clifford_algebra import CliffordAlgebraIndices
-            sage: idx = CliffordAlgebraIndices(3); 
+            sage: idx = CliffordAlgebraIndices(3);
             sage: int(8) in idx # representing the set {4}
             False
             sage: FrozenBitset('1') in idx
@@ -467,6 +527,7 @@ class CliffordAlgebraIndices(Parent):
         if isinstance(other, int):
             return (other < self._cardinality) and (other >= 0)
         return self._maximal_set.issuperset(other)
+
 
 class CliffordAlgebra(CombinatorialFreeModule):
     r"""
@@ -609,7 +670,7 @@ class CliffordAlgebra(CombinatorialFreeModule):
         names = tuple(names)
         if len(names) != Q.dim():
             if len(names) == 1:
-                names = tuple( '{}{}'.format(names[0], i) for i in range(Q.dim()) )
+                names = tuple('{}{}'.format(names[0], i) for i in range(Q.dim()))
             else:
                 raise ValueError("the number of variables does not match the number of generators")
         return super().__classcall__(cls, Q, names)
@@ -824,14 +885,14 @@ class CliffordAlgebra(CombinatorialFreeModule):
         if x in self.free_module():
             R = self.base_ring()
             if x.parent().base_ring() is R:
-                return self.element_class(self, {FrozenBitset((i,)): c for i,c in x.items()})
+                return self.element_class(self, {FrozenBitset((i, )): c for i, c in x.items()})
             # if the base ring is different, attempt to coerce it into R
-            return self.element_class(self, {FrozenBitset((i,)): R(c) for i,c in x.items() if R(c) != R.zero()})
+            return self.element_class(self, {FrozenBitset((i, )): R(c) for i, c in x.items() if R(c) != R.zero()})
 
         if (isinstance(x, CliffordAlgebraElement)
-            and self.has_coerce_map_from(x.parent())):
+                and self.has_coerce_map_from(x.parent())):
             R = self.base_ring()
-            return self.element_class(self, {i: R(c) for i,c in x if R(c) != R.zero()})
+            return self.element_class(self, {i: R(c) for i, c in x if R(c) != R.zero()})
 
         if isinstance(x, tuple):
             R = self.base_ring()
@@ -857,7 +918,7 @@ class CliffordAlgebra(CombinatorialFreeModule):
             sage: [Cl.gen(i) for i in range(3)]
             [x, y, z]
         """
-        return self._from_dict({FrozenBitset((i,)): self.base_ring().one()}, remove_zeros=False)
+        return self._from_dict({FrozenBitset((i, )): self.base_ring().one()}, remove_zeros=False)
 
     def algebra_generators(self):
         """
@@ -870,7 +931,7 @@ class CliffordAlgebra(CombinatorialFreeModule):
             sage: Cl.algebra_generators()
             Finite family {'x': x, 'y': y, 'z': z}
         """
-        d = {x: self.gen(i) for i,x in enumerate(self.variable_names())}
+        d = {x: self.gen(i) for i, x in enumerate(self.variable_names())}
         return Family(self.variable_names(), lambda x: d[x])
 
     def gens(self):
@@ -1186,9 +1247,8 @@ class CliffordAlgebra(CombinatorialFreeModule):
             Cl = CliffordAlgebra(Q, names)
 
         n = self._quadratic_form.dim()
-        f = lambda x: self.prod(self._from_dict( {FrozenBitset((j,)): m[j,i] for j in range(n)},
-                                                 remove_zeros=True )
-                                for i in x)
+        f = lambda x: self.prod(self._from_dict({FrozenBitset((j, )): m[j, i] for j in range(n)},
+                                remove_zeros=True) for i in x)
         cat = AlgebrasWithBasis(self.category().base_ring()).Super().FiniteDimensional()
         return Cl.module_morphism(on_basis=f, codomain=self, category=cat)
 
@@ -1273,9 +1333,8 @@ class CliffordAlgebra(CombinatorialFreeModule):
             Cl = CliffordAlgebra(Q, names)
 
         n = Q.dim()
-        f = lambda x: Cl.prod(Cl._from_dict( {FrozenBitset((j,)): m[j,i] for j in range(n)},
-                                             remove_zeros=True )
-                              for i in x)
+        f = lambda x: Cl.prod(Cl._from_dict({FrozenBitset((j, )): m[j, i] for j in range(n)},
+                              remove_zeros=True) for i in x)
         cat = AlgebrasWithBasis(self.category().base_ring()).Super().FiniteDimensional()
         return self.module_morphism(on_basis=f, codomain=Cl, category=cat)
 
@@ -1347,16 +1406,16 @@ class CliffordAlgebra(CombinatorialFreeModule):
         K = list(B.keys())
         k = len(K)
         d = {}
-        for a,i in enumerate(K):
+        for a, i in enumerate(K):
             Bi = B[i]
-            for b,j in enumerate(K):
+            for b, j in enumerate(K):
                 Bj = B[j]
-                for m,c in (Bi*Bj - Bj*Bi):
+                for m, c in (Bi*Bj - Bj*Bi):
                     d[(a, K.index(m)+k*b)] = c
         m = Matrix(R, d, nrows=k, ncols=k*k, sparse=True)
-        from_vector = lambda x: self.sum_of_terms(((K[i], c) for i,c in x.items()),
+        from_vector = lambda x: self.sum_of_terms(((K[i], c) for i, c in x.items()),
                                                   distinct=True)
-        return tuple(map( from_vector, m.kernel().basis() ))
+        return tuple(map(from_vector, m.kernel().basis()))
 
     # Same as center except for superalgebras
     @cached_method
@@ -1426,22 +1485,23 @@ class CliffordAlgebra(CombinatorialFreeModule):
         K = list(B.keys())
         k = len(K)
         d = {}
-        for a,i in enumerate(K):
+        for a, i in enumerate(K):
             Bi = B[i]
-            for b,j in enumerate(K):
+            for b, j in enumerate(K):
                 Bj = B[j]
                 if len(i) % 2 and len(j) % 2:
                     supercommutator = Bi * Bj + Bj * Bi
                 else:
                     supercommutator = Bi * Bj - Bj * Bi
-                for m,c in supercommutator:
-                    d[(a, K.index(m)+k*b)] = c
-        m = Matrix(R, d, nrows=k, ncols=k*k, sparse=True)
-        from_vector = lambda x: self.sum_of_terms(((K[i], c) for i,c in x.items()),
+                for m, c in supercommutator:
+                    d[(a, K.index(m) + k * b)] = c
+        m = Matrix(R, d, nrows=k, ncols=k * k, sparse=True)
+        from_vector = lambda x: self.sum_of_terms(((K[i], c) for i, c in x.items()),
                                                   distinct=True)
-        return tuple(map( from_vector, m.kernel().basis() ))
+        return tuple(map(from_vector, m.kernel().basis()))
 
     Element = CliffordAlgebraElement
+
 
 class ExteriorAlgebra(CliffordAlgebra):
     r"""
@@ -1527,7 +1587,7 @@ class ExteriorAlgebra(CliffordAlgebra):
         names = tuple(names)
         if n is not None and len(names) != n:
             if len(names) == 1:
-                names = tuple( '{}{}'.format(names[0], i) for i in range(n) )
+                names = tuple('{}{}'.format(names[0], i) for i in range(n))
             else:
                 raise ValueError("the number of variables does not match the number of generators")
         return super().__classcall__(cls, R, names)
@@ -1597,7 +1657,7 @@ class ExteriorAlgebra(CliffordAlgebra):
         if len(m) == 0:
             return ascii_art('1')
         wedge = '/\\'
-        return ascii_art(*[repr(self.basis()[FrozenBitset((i,))]) for i in m], sep=wedge)
+        return ascii_art(*[repr(self.basis()[FrozenBitset((i, ))]) for i in m], sep=wedge)
 
     def _unicode_art_term(self, m):
         """
@@ -1741,9 +1801,8 @@ class ExteriorAlgebra(CliffordAlgebra):
         n = phi.nrows()
         R = self.base_ring()
         E = ExteriorAlgebra(R, names, n)
-        f = lambda x: E.prod(E._from_dict( {FrozenBitset((j,)): phi[j,i] for j in range(n)},
-                                           remove_zeros=True )
-                             for i in x)
+        f = lambda x: E.prod(E._from_dict({FrozenBitset((j, )): phi[j, i] for j in range(n)},
+                             remove_zeros=True) for i in x)
         cat = AlgebrasWithBasis(R).Super().FiniteDimensional()
         return self.module_morphism(on_basis=f, codomain=E, category=cat)
 
@@ -1868,9 +1927,9 @@ class ExteriorAlgebra(CliffordAlgebra):
         """
         from sage.combinat.combinat import unshuffle_iterator
         one = self.base_ring().one()
-        L = unshuffle_iterator(tuple(a),one)
+        L = unshuffle_iterator(tuple(a), one)
         return self.tensor_square()._from_dict(
-            {tuple(FrozenBitset(e) if e else FrozenBitset('0') for e in t): c for t,c in L if c},
+            {tuple(FrozenBitset(e) if e else FrozenBitset('0') for e in t): c for t, c in L if c},
             coerce=False,
             remove_zeros=False)
 
@@ -2079,7 +2138,7 @@ class ExteriorAlgebra(CliffordAlgebra):
                     m = len(my)
                     if m != n:
                         continue
-                    matrix_list = [M[i,j] for i in mx for j in my]
+                    matrix_list = [M[i, j] for i in mx for j in my]
                     MA = MatrixArgs(R, n, matrix_list)
                     del matrix_list
                     result += cx * cy * MA.matrix(False).determinant()
@@ -2132,8 +2191,8 @@ class ExteriorAlgebra(CliffordAlgebra):
             d = {}
             n = P.ngens()
 
-            for ml,cl in self: # ml for "monomial on the left"
-                for mr,cr in other: # mr for "monomial on the right"
+            for ml, cl in self:  # ml for "monomial on the left"
+                for mr, cr in other:  # mr for "monomial on the right"
                     if ml.intersection(mr):
                         # if they intersect nontrivially, move along.
                         continue
@@ -2145,7 +2204,7 @@ class ExteriorAlgebra(CliffordAlgebra):
                         it = iter(mr)
                         j = next(it)
 
-                        num_cross = 0 # keep track of the number of signs
+                        num_cross = 0  # keep track of the number of signs
                         tot_cross = 0
                         for i in ml:
                             while i > j:
@@ -2245,7 +2304,7 @@ class ExteriorAlgebra(CliffordAlgebra):
             """
             P = self.parent()
             return P.sum([c * cx * P.interior_product_on_basis(m, mx)
-                          for m,c in self for mx,cx in x])
+                          for m, c in self for mx, cx in x])
 
         antiderivation = interior_product
 
@@ -2339,10 +2398,12 @@ class ExteriorAlgebra(CliffordAlgebra):
             return (self.transpose() * other).constant_coefficient()
 
 #####################################################################
-## Differentials
+# Differentials
+
 
 class ExteriorAlgebraDifferential(ModuleMorphismByLinearity,
-        UniqueRepresentation, metaclass=InheritComparisonClasscallMetaclass):
+                                  UniqueRepresentation,
+                                  metaclass=InheritComparisonClasscallMetaclass):
     r"""
     Internal class to store the data of a boundary or coboundary of
     an exterior algebra `\Lambda(L)` defined by the structure
@@ -2386,12 +2447,12 @@ class ExteriorAlgebraDifferential(ModuleMorphismByLinearity,
         d = {}
 
         for k, v in dict(s_coeff).items():
-            if not v: # Strip terms with 0
+            if not v:  # Strip terms with 0
                 continue
 
             if isinstance(v, dict):
                 R = E.base_ring()
-                v = E._from_dict({FrozenBitset((i,)): R(c) for i,c in v.items()})
+                v = E._from_dict({FrozenBitset((i, )): R(c) for i, c in v.items()})
             else:
                 # Make sure v is in ``E``
                 v = E(v)
@@ -2465,6 +2526,7 @@ class ExteriorAlgebraDifferential(ModuleMorphismByLinearity,
              3: Vector space of dimension 1 over Rational Field}
         """
         return self.chain_complex().homology(deg, **kwds)
+
 
 class ExteriorAlgebraBoundary(ExteriorAlgebraDifferential):
     r"""
@@ -2616,13 +2678,13 @@ class ExteriorAlgebraBoundary(ExteriorAlgebraDifferential):
 
         s = E.zero()
 
-        for b, (i,j) in enumerate(combinations(m, 2)):
+        for b, (i, j) in enumerate(combinations(m, 2)):
             t = Bitset(m)
-            if (i,j) not in keys:
+            if (i, j) not in keys:
                 continue
             t.discard(i)
             t.discard(j)
-            s += (-1)**b * sc[(i,j)] * E.monomial(FrozenBitset(t))
+            s += (-1)**b * sc[(i, j)] * E.monomial(FrozenBitset(t))
 
         return s
 
@@ -2695,7 +2757,7 @@ class ExteriorAlgebraBoundary(ExteriorAlgebraDifferential):
         # Construct the transition matrices
         data = {}
         prev_basis = basis_by_deg[0]
-        for deg in range(1,n+1):
+        for deg in range(1, n+1):
             # Make sure within each basis we're sorted by lex
             basis = sorted(basis_by_deg[deg])
             mat = []
@@ -2703,12 +2765,13 @@ class ExteriorAlgebraBoundary(ExteriorAlgebraDifferential):
                 ret = self._on_basis(b)
                 try:
                     mat.append([ret.coefficient(p) for p in prev_basis])
-                except AttributeError: # if ret is in E.base_ring()
+                except AttributeError:  # if ret is in E.base_ring()
                     mat.append([E.base_ring()(ret)])
             data[deg] = Matrix(mat).transpose().change_ring(R)
             prev_basis = basis
 
         return ChainComplex(data, degree=-1)
+
 
 class ExteriorAlgebraCoboundary(ExteriorAlgebraDifferential):
     r"""
@@ -2844,12 +2907,12 @@ class ExteriorAlgebraCoboundary(ExteriorAlgebraDifferential):
         B = E.basis()
         for k, v in dict(s_coeff).items():
 
-            if k[0] > k[1]: #k will have length 2
+            if k[0] > k[1]:  # k will have length 2
                 k = sorted(k)
                 v = -v
 
             k = B[FrozenBitset(k)]
-            for m,c in v:
+            for m, c in v:
                 self._cos_coeff[m] = self._cos_coeff.get(m, zero) + c * k
         ExteriorAlgebraDifferential.__init__(self, E, s_coeff)
 
@@ -2907,7 +2970,6 @@ class ExteriorAlgebraCoboundary(ExteriorAlgebraDifferential):
                     below = E.one()
                 else:
                     below = E.monomial(FrozenBitset(below))
-                    
                 if len(above) == 0:
                     above = E.one()
                 else:
@@ -2994,7 +3056,7 @@ class ExteriorAlgebraCoboundary(ExteriorAlgebraDifferential):
                 ret = self._on_basis(b)
                 try:
                     mat.append([ret.coefficient(p) for p in next_basis])
-                except AttributeError: # if ret is in E.base_ring()
+                except AttributeError:  # if ret is in E.base_ring()
                     mat.append([E.base_ring()(ret)]*len(next_basis))
             data[deg] = Matrix(mat).transpose().change_ring(R)
             basis = next_basis

@@ -8712,6 +8712,7 @@ class Graph(GenericGraph):
                 component = self.subgraph(connected_i)
                 return component.effective_resistance(i,j)
             else:
+                from sage.rings.infinity import Infinity
                 return Infinity
 
         vert = list(self)

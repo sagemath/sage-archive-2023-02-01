@@ -403,6 +403,11 @@ cdef class IndexedFreeModuleElement(ModuleElement):
         if scalar_mult is None:
             scalar_mult = "*"
 
+        try:
+            one_basis = self.parent().one_basis()
+        except AttributeError:
+            one_basis = None
+
         for (monomial, c) in terms:
             b = repr_monomial(monomial)  # PCR
             if c != 0:
@@ -414,7 +419,7 @@ cdef class IndexedFreeModuleElement(ModuleElement):
                     elif coeff == "-1":
                         coeff = "-"
                     elif b._l > 0:
-                        if len(coeff) > 0 and monomial == 1 and strip_one:
+                        if len(coeff) > 0 and monomial == one_basis and strip_one:
                             b = empty_unicode_art  # ""
                         else:
                             b = UnicodeArt([scalar_mult]) + b

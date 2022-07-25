@@ -166,6 +166,8 @@ The following are some additional files which can be added:
     |-- distros
     |   |-- platform1.txt
     |   `-- platform2.txt
+    |-- has_nonfree_dependencies
+    |-- huge
     |-- patches
     |   |-- bar.patch
     |   `-- baz.patch
@@ -584,8 +586,9 @@ and upper bounds).  The constraints are in the format of the
 or `setup.py
 <https://packaging.python.org/discussions/install-requires-vs-requirements/#id5>`_.
 
-The files may include comments (starting with ``#``) that explain why a particular lower
-bound is warranted or why we wish to include or reject certain versions.
+It is strongly recommended to include comments (starting with ``#``)
+in the file that explain why a particular lower or upper bound is
+warranted or why we wish to include or reject certain versions.
 
 For example:
 
@@ -610,6 +613,8 @@ Developers and downstream packagers are invited to refine the version
 constraints based on their experience and tests.  When a package
 update is made in order to pick up a critical bug fix from a newer
 version, then the lower bound should be adjusted.
+Setting upper bounds to guard against incompatible future changes is
+a complex topic; see :trac:`33520`.
 
 
 .. _section-spkg-SPKG-txt:
@@ -673,7 +678,6 @@ for ``eclib``:
 
     ----------
     All lines of this file are ignored except the first.
-    It is copied by SAGE_ROOT/build/make/install into SAGE_ROOT/build/make/Makefile.
 
 For Python packages, common dependencies include ``pip``,
 ``setuptools``, and ``future``. If your package depends on any of
@@ -694,7 +698,6 @@ If there are no dependencies, you can use
 
     ----------
     All lines of this file are ignored except the first.
-    It is copied by SAGE_ROOT/build/make/install into SAGE_ROOT/build/make/Makefile.
 
 There are actually two kinds of dependencies: there are normal
 dependencies and order-only dependencies, which are weaker. The syntax
@@ -713,11 +716,21 @@ If there is no ``|``, then all dependencies are normal.
   dependency (for example, a dependency on pip simply because the
   ``spkg-install`` file uses pip).
 
+  Alternatively, you can put the order-only dependencies in a separate
+  file ``dependencies_order_only``.
+
 - If A has a **normal dependency** on B, it means additionally that A
   should be rebuilt every time that B gets updated. This is the most
   common kind of dependency. A normal dependency is what you need for
   libraries: if we upgrade NTL, we should rebuild everything which
   uses NTL.
+
+Some packages are only needed for self-tests of a package (``spkg-check``).
+These dependencies should be declared in a separate file ``dependencies_check``.
+
+Some dependencies are optional in the sense that they are only
+a dependency if they are configured to be installed. These dependencies
+should be declared in a separate file ``dependencies_optional``.
 
 In order to check that the dependencies of your package are likely
 correct, the following command should work without errors::
@@ -727,6 +740,26 @@ correct, the following command should work without errors::
 Finally, note that standard packages should only depend on standard
 packages and optional packages should only depend on standard or
 optional packages.
+
+
+.. _section-spkg-tags:
+
+Package tags
+------------
+
+You can mark a package as "huge" by placing an empty file named
+``huge`` in the package directory.  For example, the package
+``polytopes_db_4d`` is a large database whose compressed tarball has a
+size of 9 GB.
+
+For some other packages, we have placed an empty file named
+``has_nonfree_dependencies`` in the package directory. This is to
+indicate that Sage with this package installed cannot be
+redistributed, and also that the package can only be installed after
+installing some other, non-free package.
+
+We use these tags in our continuous integration scripts to filter
+out packages that we cannot or should not test automatically.
 
 
 .. _section-trees:
@@ -992,7 +1025,7 @@ In addition to these fields in ``checksums.ini``, the optional field
 ``upstream_url`` holds an URL to the upstream package archive.
 
 The Release Manager uses the information in ``upstream_url`` to
-download the upstream package archvive and to make it available on the
+download the upstream package archive and to make it available on the
 Sage mirrors when a new release is prepared.  On Trac tickets
 upgrading a package, the ticket description should no longer contain
 the upstream URL to avoid duplication of information.

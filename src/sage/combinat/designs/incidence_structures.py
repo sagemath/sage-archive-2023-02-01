@@ -38,13 +38,14 @@ Methods
 #    the License, or (at your option) any later version.                   #
 #                    https://www.gnu.org/licenses/                          #
 # **************************************************************************
+from __future__ import annotations
 from sage.rings.integer import Integer
 from sage.misc.latex import latex
 from sage.sets.set import Set
 from sage.libs.gap.libgap import libgap
 
 
-class IncidenceStructure(object):
+class IncidenceStructure():
     r"""
     A base class for incidence structures (i.e. hypergraphs, i.e. set systems)
 
@@ -901,7 +902,7 @@ class IncidenceStructure(object):
         """
         return max(len(b) for b in self._blocks)
 
-    def is_regular(self,r=None):
+    def is_regular(self, r=None) -> bool | int:
         r"""
         Test whether the incidence structure is `r`-regular.
 
@@ -941,19 +942,18 @@ class IncidenceStructure(object):
         """
         if self.num_points() == 0:
             raise ValueError("This incidence structure has no points.")
-        count = [0]*self.num_points()
+        count = [0] * self.num_points()
         for b in self._blocks:
             for x in b:
                 count[x] += 1
-        count = set(count)
-        if len(count) != 1:
+        scount = set(count)
+        if len(scount) != 1:
             return False
-        elif r is None:
-            return count.pop()
-        else:
-            return count.pop() == r
+        if r is None:
+            return scount.pop()
+        return scount.pop() == r
 
-    def is_uniform(self,k=None):
+    def is_uniform(self, k=None) -> bool | int:
         r"""
         Test whether the incidence structure is `k`-uniform
 
@@ -996,12 +996,11 @@ class IncidenceStructure(object):
         sizes = set(self.block_sizes())
         if len(sizes) != 1:
             return False
-        elif k is None:
+        if k is None:
             return sizes.pop()
-        else:
-            return sizes.pop() == k
+        return sizes.pop() == k
 
-    def is_connected(self):
+    def is_connected(self) -> bool:
         r"""
         Test whether the design is connected.
 
@@ -1016,11 +1015,11 @@ class IncidenceStructure(object):
         D = DisjointSet(self.num_points())
         for B in self._blocks:
             x = B[0]
-            for i in range(1,len(B)):
-                D.union(x,B[i])
+            for i in range(1, len(B)):
+                D.union(x, B[i])
         return D.number_of_subsets() == 1
 
-    def is_simple(self):
+    def is_simple(self) -> bool:
         r"""
         Test whether this design is simple (i.e. no repeated block).
 
@@ -1392,7 +1391,7 @@ class IncidenceStructure(object):
         else:
             self._point_to_index = {v: i for i, v in enumerate(self._points)}
 
-    __hash__ = None
+    # __hash__ = None
     # This object is mutable because of .relabel()
 
     #####################
@@ -1710,7 +1709,7 @@ class IncidenceStructure(object):
             False
 
             sage: G = graphs.CycleGraph(5)
-            sage: B = list(G.subgraph_search_iterator(graphs.PathGraph(3)))
+            sage: B = list(G.subgraph_search_iterator(graphs.PathGraph(3), return_graphs=False))
             sage: H = IncidenceStructure(B)
             sage: H.is_generalized_quadrangle(verbose=True)
             Two blocks intersect on >1 points.
@@ -2195,7 +2194,7 @@ class IncidenceStructure(object):
 
             sage: g = graphs.Grid2dGraph(5,5)
             sage: C4 = graphs.CycleGraph(4)
-            sage: sets = Set(map(Set,list(g.subgraph_search_iterator(C4))))
+            sage: sets = Set(map(Set,list(g.subgraph_search_iterator(C4, return_graphs=False))))
             sage: H = Hypergraph(sets)
             sage: view(H) # not tested
 

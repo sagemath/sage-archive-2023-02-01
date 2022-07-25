@@ -5,7 +5,25 @@ Sets
 #  Copyright (C) 2005      David Kohel <kohel@maths.usyd.edu>
 #                          William Stein <wstein@math.ucsd.edu>
 #                2008      Teresa Gomez-Diaz (CNRS) <Teresa.Gomez-Diaz@univ-mlv.fr>
-#                2008-2014 Nicolas M. Thiery <nthiery at users.sf.net>
+#                2008-2017 Nicolas M. Thiery <nthiery at users.sf.net>
+#                2009      Mike Hansen
+#                2010      Florent Hivert
+#                2010      William Laffin
+#                2012      Franco Saliola
+#                2013      Sara Billey
+#                2013      Simon King
+#                2013-2016 Julian Rüth
+#                2014      Darij Grinberg
+#                2014      Peter Bruin
+#                2014-2021 Frédéric Chapoton
+#                2014-2021 Travis Scrimshaw
+#                2015      Daniel Krenn
+#                2015      Vincent Delecroix
+#                2015-2016 Jori Mäntysalo
+#                2016      Kwankyu Lee
+#                2018      Vincent Klein
+#                2019      Markus Wageringel
+#                2020-2021 Matthias Koeppe
 #
 #  Distributed under the terms of the GNU General Public License (GPL)
 #                  https://www.gnu.org/licenses/
@@ -1089,7 +1107,7 @@ class Sets(Category_singleton):
                 an_element = self.an_element()
             except EmptySetError:
                 return
-            tester.assertTrue(an_element in self, "self.an_element() is not in self")
+            tester.assertIn(an_element, self, "self.an_element() is not in self")
 #            tester.assertTrue(self.is_parent_of(an_element), "self is not the parent of self.an_element()")
 #            tester.assertEqual(self(an_element), an_element, "element construction is not idempotent")
             if self.is_parent_of(an_element):
@@ -1259,7 +1277,7 @@ class Sets(Category_singleton):
             """
             tester = self._tester(**options)
             S = list(tester.some_elements())
-            n = tester._max_runs
+            n = max(tester._max_runs, 8)
             if (len(S)+2)**3 <= n:
                 S = list(S) + [None, 0]
             else:
@@ -1274,7 +1292,7 @@ class Sets(Category_singleton):
                     for z in S:
                         if not y == z:
                             continue
-                        tester.assertTrue(x == z,
+                        tester.assertEqual(x, z,
                             LazyFormat("non transitive equality:\n"
                                        "%s and %s but %s")%(
                                 print_compare(x, y),
@@ -1382,7 +1400,7 @@ class Sets(Category_singleton):
             #tester.assertTrue(elements != iter(elements),
             #               "self.some_elements() should return an iterable, not an iterator")
             for x in elements:
-                tester.assertTrue(x in self, LazyFormat(
+                tester.assertIn(x, self, LazyFormat(
                     "the object %s in self.some_elements() is not in self")%(x,))
 
         #Note: the four methods 'cardinality', 'is_finite_, 'is_empty' and
@@ -1453,10 +1471,10 @@ class Sets(Category_singleton):
 
         def _test_construction(self, **options):
             """
-            Test that the construction returned by self really yields self.
+            Test that the construction returned by ``self`` really yields ``self``.
 
-            :meth:`construction` either returns None or a pair ``(F,O)``,
-            and if it returns the latter, then it is supposed that ``F(O)==self`.
+            :meth:`construction` either returns None or a pair ``(F, O)``,
+            and if it returns the latter, then it is supposed that ``F(O) == self``.
             The test verifies this assumption.
 
             EXAMPLES:
@@ -1825,6 +1843,39 @@ Please use, e.g., S.algebra(QQ, category=Semigroups())""".format(self))
             if self.domain().cardinality() > self.codomain().cardinality():
                 return False
             raise NotImplementedError
+
+        def image(self, domain_subset=None):
+            r"""
+            Return the image of the domain or of ``domain_subset``.
+
+            EXAMPLES::
+
+                sage: P = Partitions(6)
+                sage: H = Hom(P, ZZ)
+                sage: f = H(ZZ.sum)
+                sage: X = f.image()
+                sage: list(X)
+                [6]
+            """
+            D = self.domain()
+            if D is None:
+                raise ValueError("this map became defunct by garbage collection")
+            if domain_subset is None or domain_subset == D:
+                try:
+                    if self.is_surjective():
+                        return D
+                except NotImplementedError:
+                    pass
+                domain_subset = D
+            from sage.sets.set import Set_base
+            from sage.sets.image_set import ImageSubobject, ImageSet
+            if isinstance(domain_subset, Set_base):
+                # Most of our parents are sets, but the mixin class Set_base
+                # provides the full kit of operators.  The image should get them too.
+                cls = ImageSet
+            else:
+                cls = ImageSubobject
+            return cls(self, domain_subset)
 
     Enumerated = LazyImport('sage.categories.enumerated_sets', 'EnumeratedSets', at_startup=True)
     Facade = LazyImport('sage.categories.facade_sets', 'FacadeSets')

@@ -51,7 +51,7 @@ from sage.misc.prandom import randint
 import sage.schemes.elliptic_curves.constructor as elliptic
 from .sql_db import SQLDatabase, verify_column
 from sage.features.databases import DatabaseCremona
-from sage.misc.all import walltime
+from sage.misc.misc import walltime
 
 import re
 import string
@@ -669,7 +669,7 @@ class MiniCremonaDatabase(SQLDatabase):
         """
         self.name = name
         name = name.replace(' ', '_')
-        db_path = DatabaseCremona(name=name).absolute_path()
+        db_path = DatabaseCremona(name=name).absolute_filename()
         if build:
             if read_only:
                 raise RuntimeError('The database must not be read_only.')

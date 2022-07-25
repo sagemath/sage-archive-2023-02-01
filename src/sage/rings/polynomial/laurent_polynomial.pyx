@@ -474,7 +474,7 @@ cdef class LaurentPolynomial_univariate(LaurentPolynomial):
         """
         return self.__u.is_zero()
 
-    def __nonzero__(self):
+    def __bool__(self):
         """
         Check if ``self`` is non-zero.
 
@@ -2358,7 +2358,7 @@ cdef class LaurentPolynomial_mpair(LaurentPolynomial):
                 if c.parent() is not P.base_ring():
                     P = P.change_ring(c.parent())
             return P({e: c})
-        return super(LaurentPolynomial_mpair, self).__invert__()
+        return super().__invert__()
 
     def __pow__(LaurentPolynomial_mpair self, n, m):
         """

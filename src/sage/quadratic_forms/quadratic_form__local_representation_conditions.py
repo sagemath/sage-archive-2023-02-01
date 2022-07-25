@@ -48,7 +48,7 @@ class QuadraticFormLocalRepresentationConditions():
              Reals:   [0, +Infinity]
              p = 2:   [0, 0, 0, +Infinity, 0, 0, 0, 0]
         sage: E = [m  for m in range(100)  if not Q3.is_locally_represented_number(m)]
-        sage: E1 = [m  for m in range(1,100)  if m / 2**(2*floor(valuation(m,2)/2)) % 8 == 7]
+        sage: E1 = [m  for m in range(1,100)  if m / 2**(2 * (valuation(m,2) // 2)) % 8 == 7]
         sage: E == E1
         True
         sage: E
@@ -210,7 +210,7 @@ class QuadraticFormLocalRepresentationConditions():
 
 
     def __repr__(self):
-        """
+        r"""
         Print the local conditions.
 
         INPUT:
@@ -602,15 +602,12 @@ class QuadraticFormLocalRepresentationConditions():
             else:   ## m == 0
                 return True
 
-        ## Check at a finite place
+        # Check at a finite place
         sqclass = self.squareclass_vector(p)
         for s in sqclass:
-            #print "m =", m, "   s =", s, "   m/s =", (QQ(m)/s)
             if (QQ(m)/s).is_padic_square(p):
                 nu = valuation(m//s, p)
                 return local_vec[sqclass.index(s) + 1] <= (nu / 2)
-
-
 
     def is_locally_represented(self, m):
         """

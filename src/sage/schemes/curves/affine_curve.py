@@ -127,8 +127,8 @@ from sage.misc.lazy_attribute import lazy_attribute
 from sage.misc.cachefunc import cached_method
 
 from sage.arith.misc import binomial
-from sage.interfaces.all import singular
-from sage.misc.all import add
+from sage.interfaces.singular import singular
+from builtins import sum as add
 
 from sage.categories.fields import Fields
 from sage.categories.finite_fields import FiniteFields
@@ -293,7 +293,7 @@ class AffinePlaneCurve(AffineCurve):
         if not (is_AffineSpace(A) and A.dimension != 2):
             raise TypeError("Argument A (= %s) must be an affine plane." % A)
 
-        super(AffinePlaneCurve, self).__init__(A, [f])
+        super().__init__(A, [f])
 
     def _repr_type(self):
         r"""
@@ -841,7 +841,7 @@ class AffineCurve_field(AffineCurve, AlgebraicScheme_subscheme_affine_field):
             sage: C = Curve([x^2 - z, z - 8*x], A); C
             Affine Curve over Finite Field of size 7 defined by x^2 - z, -x + z
         """
-        super(AffineCurve_field, self).__init__(A, X)
+        super().__init__(A, X)
 
         if not A.base_ring() in Fields():
             raise TypeError("curve not defined over a field")
@@ -2023,7 +2023,7 @@ class IntegralAffineCurve(AffineCurve_field):
             z^2
         """
         try:
-            return super(IntegralAffineCurve, self).__call__(*args)
+            return super().__call__(*args)
         except TypeError as e:
             try:
                 return self.function(*args)
@@ -2639,4 +2639,3 @@ class IntegralAffinePlaneCurve_finite_field(AffinePlaneCurve_finite_field, Integ
         Function field in y defined by y^5 + x*y + x^5 + 1
     """
     _point = IntegralAffinePlaneCurvePoint_finite_field
-

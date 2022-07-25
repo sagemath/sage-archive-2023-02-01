@@ -1679,7 +1679,7 @@ all_axioms += ("Flying", "Blue",
                "Facade", "Finite", "Infinite","Enumerated",
                "Complete",
                "Nilpotent",
-               "FiniteDimensional", "Connected",
+               "FiniteDimensional", "FinitelyPresented", "Connected",
                "FinitelyGeneratedAsLambdaBracketAlgebra",
                "WithBasis",
                "Irreducible",
@@ -1993,7 +1993,7 @@ class CategoryWithAxiom(Category):
         """
         (base_category_class, axiom) = cls._base_category_class_and_axiom
         if len(args) == 1 and not options and isinstance(args[0], base_category_class):
-            return super(CategoryWithAxiom, cls).__classcall__(cls, args[0])
+            return super().__classcall__(cls, args[0])
         else:
             # The "obvious" idiom
             ##   return cls(base_category_class(*args, **options))
@@ -2070,7 +2070,7 @@ class CategoryWithAxiom(Category):
             setattr(base_category_class, cls._axiom, cls)
 
         if base_category is None:
-             return cls
+            return cls
         # For Rings().Finite, this returns the method
         # Sets.SubcategoryMethods.Finite, with its first argument bound to Rings()
         return getattr(super(base_category.__class__.__base__, base_category), cls._axiom)
@@ -2352,7 +2352,7 @@ class CategoryWithAxiom(Category):
         additive magma is implemented as
         ``MagmasAndAdditiveMagmas.Distributive.AdditiveAssociative.AdditiveCommutative``
         and not
-        ``MagmasAndAdditiveMagmas.Distributive.AdditiveCommutative.AdditiveAssociative``::
+        ``MagmasAndAdditiveMagmas.Distributive.AdditiveCommutative.AdditiveAssociative``.
 
         EXAMPLES::
 

@@ -50,6 +50,7 @@ import sage.misc.latex as latex
 import sage.modules.free_module
 
 from sage.misc.lazy_attribute import lazy_attribute
+from sage.misc.superseded import deprecated_function_alias
 
 from sage.categories.rings import Rings
 from sage.categories.fields import Fields
@@ -335,7 +336,10 @@ def get_matrix_class(R, nrows, ncols, sparse, implementation):
             if R is sage.rings.complex_double.CDF:
                 from . import matrix_complex_double_dense
                 return matrix_complex_double_dense.Matrix_complex_double_dense
-            raise ValueError("'numpy' matrices are only available over RDF and CDF")
+            if R is sage.rings.integer_ring.ZZ:
+                from . import matrix_numpy_integer_dense
+                return matrix_numpy_integer_dense.Matrix_numpy_integer_dense
+            raise ValueError("'numpy' matrices are only available over RDF, CDF, and ZZ")
 
         if implementation == 'rational':
             if isinstance(R, sage.rings.abc.NumberField_cyclotomic):
@@ -534,7 +538,7 @@ class MatrixSpace(UniqueRepresentation, Parent):
             ...
             ValueError: unknown matrix implementation 'foobar' over Integer Ring
 
-        Check that :trac:`29466`is fixed::
+        Check that :trac:`29466` is fixed::
 
             sage: class MyMatrixSpace(MatrixSpace):
             ....:     @staticmethod
@@ -576,7 +580,7 @@ class MatrixSpace(UniqueRepresentation, Parent):
         r"""
         INPUT:
 
-        - ``base_ring`
+        - ``base_ring``
 
         -  ``nrows`` - (positive integer) the number of rows
 
@@ -1103,7 +1107,7 @@ class MatrixSpace(UniqueRepresentation, Parent):
         return self._generic_coerce_map(self.base_ring())
 
     def _coerce_map_from_(self, S):
-        """
+        r"""
         Canonical coercion from ``S`` to this matrix space.
 
         EXAMPLES::
@@ -1524,16 +1528,16 @@ class MatrixSpace(UniqueRepresentation, Parent):
                 for iv in sage.combinat.integer_vector.IntegerVectors(weight, number_of_entries):
                     yield self([base_elements[i] for i in iv])
                 weight += 1
-                base_elements.append( next(base_iter) )
+                base_elements.append(next(base_iter))
         else:
-            #In the finite case, we do a similar thing except that
-            #the "weight" of each entry is bounded by the number
-            #of elements in the base ring
+            # In the finite case, we do a similar thing except that
+            # the "weight" of each entry is bounded by the number
+            # of elements in the base ring
             order = base_ring.order()
             base_elements = list(base_ring)
-            for weight in range((order-1)*number_of_entries+1):
-                for iv in sage.combinat.integer_vector.IntegerVectors(weight, number_of_entries, max_part=(order-1)):
-                   yield self([base_elements[i] for i in iv])
+            for weight in range((order - 1) * number_of_entries + 1):
+                for iv in sage.combinat.integer_vector.IntegerVectors(weight, number_of_entries, max_part=(order - 1)):
+                    yield self([base_elements[i] for i in iv])
 
     def __getitem__(self, x):
         """
@@ -2047,7 +2051,7 @@ class MatrixSpace(UniqueRepresentation, Parent):
         One-rowed matrices over combinatorial free modules used to break
         the constructor (:trac:`17124`). Check that this is fixed::
 
-            sage: Sym = SymmetricFunctions(QQ)
+            sage: Sym = SymmetricFunctions(ZZ)
             sage: h = Sym.h()
             sage: MatrixSpace(h,1,1)([h[1]])
             [h[1]]
@@ -2402,7 +2406,7 @@ def dict_to_list(entries, nrows, ncols):
     return v
 
 
-def test_trivial_matrices_inverse(ring, sparse=True, implementation=None, checkrank=True):
+def _test_trivial_matrices_inverse(ring, sparse=True, implementation=None, checkrank=True):
     """
     Tests inversion, determinant and is_invertible for trivial matrices.
 
@@ -2438,7 +2442,7 @@ def test_trivial_matrices_inverse(ring, sparse=True, implementation=None, checkr
 
     TESTS::
 
-        sage: from sage.matrix.matrix_space import test_trivial_matrices_inverse as tinv
+        sage: from sage.matrix.matrix_space import _test_trivial_matrices_inverse as tinv
         sage: tinv(ZZ, sparse=True)
         sage: tinv(ZZ, sparse=False, implementation='flint')
         sage: tinv(ZZ, sparse=False, implementation='generic')
@@ -2516,6 +2520,9 @@ def test_trivial_matrices_inverse(ring, sparse=True, implementation=None, checkr
     assert(inv == m1)
     if checkrank:
         assert(m1.rank() == 1)
+
+
+test_trivial_matrices_inverse = deprecated_function_alias(33612, _test_trivial_matrices_inverse)
 
 
 # Fix unpickling Matrix_modn_dense and Matrix_integer_2x2

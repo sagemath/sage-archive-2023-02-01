@@ -205,7 +205,7 @@ class FiniteDimensionalInvariantModule(SubmoduleWithBasis):
         Extend when `M` does not have a basis and `S` is a permutation
         group using:
 
-        - https://arxiv.org/abs/0812.3082
+        - :arxiv:`0812.3082`
         - https://www.dmtcs.org/pdfpapers/dmAA0123.pdf
     """
     def __init__(self, M, S, action=operator.mul, side='left', *args, **kwargs):
@@ -546,6 +546,7 @@ class FiniteDimensionalInvariantModule(SubmoduleWithBasis):
                 return self
             return super()._acted_upon_(scalar, self_on_left)
 
+
 class FiniteDimensionalTwistedInvariantModule(SubmoduleWithBasis):
     r"""
     Construct the `\chi`-twisted invariant submodule of `M`.
@@ -803,9 +804,8 @@ class FiniteDimensionalTwistedInvariantModule(SubmoduleWithBasis):
                 return M.invariant_module(G, action_on_basis=action_on_basis)
             return M.invariant_module(G, action=action)
 
-        return super(FiniteDimensionalTwistedInvariantModule,
-                    cls).__classcall__(cls, M, G, chi, action=operator.mul,
-                                       side='left', **kwargs)
+        return super().__classcall__(cls, M, G, chi, action=operator.mul,
+                                     side='left', **kwargs)
 
     def __init__(self, M, G, chi, action=operator.mul, side='left', **kwargs):
         r"""

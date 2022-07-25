@@ -48,8 +48,7 @@ class Polyhedron_ZZ(Polyhedron_QQ):
         """
         if name in ['ehrhart_quasipolynomial']:
             raise AttributeError(name)
-        else:
-            return super(Polyhedron_ZZ, self).__getattribute__(name)
+        return super().__getattribute__(name)
 
     def __dir__(self):
         r"""
@@ -194,7 +193,7 @@ class Polyhedron_ZZ(Polyhedron_QQ):
             sage: p = P._ehrhart_polynomial_latte(maxdet=5, verbose=True)  # optional - latte_int
             This is LattE integrale ...
             ...
-            Invocation: count --ehrhart-polynomial '--redundancy-check=none' --cdd '--maxdet=5' /dev/stdin
+            Invocation: ...count --ehrhart-polynomial '--redundancy-check=none' --cdd '--maxdet=5' /dev/stdin
             ...
             sage: p    # optional - latte_int
             1/2*t^2 + 3/2*t + 1
@@ -202,7 +201,7 @@ class Polyhedron_ZZ(Polyhedron_QQ):
             sage: p = P._ehrhart_polynomial_latte(dual=True, verbose=True)  # optional - latte_int
             This is LattE integrale ...
             ...
-            Invocation: count --ehrhart-polynomial '--redundancy-check=none' --cdd --dual /dev/stdin
+            Invocation: ...count --ehrhart-polynomial '--redundancy-check=none' --cdd --dual /dev/stdin
             ...
             sage: p   # optional - latte_int
             1/2*t^2 + 3/2*t + 1
@@ -210,7 +209,7 @@ class Polyhedron_ZZ(Polyhedron_QQ):
             sage: p = P._ehrhart_polynomial_latte(irrational_primal=True, verbose=True)   # optional - latte_int
             This is LattE integrale ...
             ...
-            Invocation: count --ehrhart-polynomial '--redundancy-check=none' --cdd --irrational-primal /dev/stdin
+            Invocation: ...count --ehrhart-polynomial '--redundancy-check=none' --cdd --irrational-primal /dev/stdin
             ...
             sage: p   # optional - latte_int
             1/2*t^2 + 3/2*t + 1
@@ -218,7 +217,7 @@ class Polyhedron_ZZ(Polyhedron_QQ):
             sage: p = P._ehrhart_polynomial_latte(irrational_all_primal=True, verbose=True)  # optional - latte_int
             This is LattE integrale ...
             ...
-            Invocation: count --ehrhart-polynomial '--redundancy-check=none' --cdd --irrational-all-primal /dev/stdin
+            Invocation: ...count --ehrhart-polynomial '--redundancy-check=none' --cdd --irrational-all-primal /dev/stdin
             ...
             sage: p   # optional - latte_int
             1/2*t^2 + 3/2*t + 1
@@ -230,7 +229,7 @@ class Polyhedron_ZZ(Polyhedron_QQ):
             ...
             RuntimeError: LattE integrale program failed (exit code 1):
             ...
-            Invocation: count --ehrhart-polynomial '--redundancy-check=none' --cdd '--bim-bam-boum=19' /dev/stdin
+            Invocation: ...count --ehrhart-polynomial '--redundancy-check=none' --cdd '--bim-bam-boum=19' /dev/stdin
             Unknown command/option --bim-bam-boum=19
         """
         # note: the options below are explicitly written in the function
@@ -627,8 +626,8 @@ class Polyhedron_ZZ(Polyhedron_QQ):
 
         EXAMPLES::
 
-            sage: P = Polyhedron(toric_varieties.P4_11169().fan().rays(), base_ring=ZZ)
-            sage: list( P.fibration_generator(2) )
+            sage: P = Polyhedron(toric_varieties.P4_11169().fan().rays(), base_ring=ZZ)     # optional - palp
+            sage: list(P.fibration_generator(2))                                            # optional - palp
             [A 2-dimensional polyhedron in ZZ^4 defined as the convex hull of 3 vertices]
         """
         from sage.combinat.combination import Combinations
@@ -806,12 +805,13 @@ class Polyhedron_ZZ(Polyhedron_QQ):
            sage: [ len(square.dilation(i).minkowski_decompositions())
            ....:   for i in range(6) ]
            [1, 2, 5, 8, 13, 18]
-           sage: [ ceil((i^2+2*i-1)/2)+1 for i in range(10) ]
+           sage: [ integer_ceil((i^2 + 2*i - 1) / 2) + 1 for i in range(10) ]
            [1, 2, 5, 8, 13, 18, 25, 32, 41, 50]
         """
         if self.dim() > 2 or not self.is_compact():
             raise NotImplementedError('only implemented for bounded polygons')
         summands = []
+
         def is_known_summand(poly):
             for summand in summands:
                 try:
@@ -825,7 +825,7 @@ class Polyhedron_ZZ(Polyhedron_QQ):
                 continue
             Y = self - X
             Y = Y.change_ring(ZZ)  # Minkowski difference returns QQ-polyhedron
-            if X+Y != self:
+            if X + Y != self:
                 continue
             decompositions.append((X, Y))
             summands += [X, Y]

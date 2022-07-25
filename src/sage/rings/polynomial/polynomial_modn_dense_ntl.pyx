@@ -38,7 +38,7 @@ from cysignals.signals cimport sig_on, sig_off
 
 from sage.rings.polynomial.polynomial_element cimport Polynomial, _dict_to_list
 
-from sage.libs.all import pari, pari_gen
+from sage.libs.pari.all import pari, pari_gen
 
 from sage.rings.integer cimport smallInteger
 
@@ -53,7 +53,7 @@ import sage.rings.polynomial.polynomial_ring
 from sage.rings.infinity import infinity
 
 from . import polynomial_singular_interface
-from sage.interfaces.all import singular as singular_default
+from sage.interfaces.singular import singular as singular_default
 
 from sage.structure.element import coerce_binop
 
@@ -368,9 +368,8 @@ cdef class Polynomial_dense_mod_n(Polynomial):
         self.__poly = ZZ_pX(v, self.parent().modulus())
 
     # Polynomial_singular_repr stuff, copied due to lack of multiple inheritance
-    def _singular_(self, singular=singular_default, have_ring=False, force=False):
-        if not have_ring:
-            self.parent()._singular_(singular,force=force).set_ring() # this is expensive
+    def _singular_(self, singular=singular_default, force=False):
+        self.parent()._singular_(singular, force=force).set_ring()  # this is expensive
         if self.__singular is not None:
             try:
                 self.__singular._check_valid()
@@ -378,11 +377,10 @@ cdef class Polynomial_dense_mod_n(Polynomial):
                     return self.__singular
             except (AttributeError, ValueError):
                 pass
-        return self._singular_init_(singular, have_ring=have_ring)
+        return self._singular_init_(singular)
 
-    def _singular_init_(self, singular=singular_default, have_ring=False, force=False):
-        if not have_ring:
-            self.parent()._singular_(singular,force=force).set_ring() # this is expensive
+    def _singular_init_(self, singular=singular_default, force=False):
+        self.parent()._singular_(singular, force=force).set_ring()  # this is expensive
         self.__singular = singular(str(self))
         return self.__singular
 
@@ -858,7 +856,7 @@ cdef class Polynomial_dense_modn_ntl_zz(Polynomial_dense_mod_n):
             return self.parent(1)
 
         cdef Polynomial_dense_modn_ntl_zz r = self._new()
-        cdef zz_pX_Modulus_c *mod
+        cdef zz_pX_Modulus_c mod
 
         self.c.restore_c()
 
@@ -872,12 +870,12 @@ cdef class Polynomial_dense_modn_ntl_zz(Polynomial_dense_mod_n):
                 if do_sig: sig_off()
         else:
             if not isinstance(modulus, Polynomial_dense_modn_ntl_zz):
-                modulus = self.parent()._coerce_(modulus)
-            zz_pX_Modulus_build(mod[0], (<Polynomial_dense_modn_ntl_zz>modulus).x)
+                modulus = self.parent().coerce(modulus)
+            zz_pX_Modulus_build(mod, (<Polynomial_dense_modn_ntl_zz>modulus).x)
 
             do_sig = zz_pX_deg(self.x) * e * self.c.p_bits > 1e5
             if do_sig: sig_on()
-            zz_pX_PowerMod_long_pre(r.x, self.x, e, mod[0])
+            zz_pX_PowerMod_long_pre(r.x, self.x, e, mod)
             if do_sig: sig_off()
 
         if recip:
@@ -1093,7 +1091,7 @@ cdef class Polynomial_dense_modn_ntl_zz(Polynomial_dense_mod_n):
     def is_gen(self):
         return zz_pX_IsX(self.x)
 
-    def __nonzero__(self):
+    def __bool__(self):
         """
         TESTS::
 
@@ -1416,7 +1414,7 @@ cdef class Polynomial_dense_modn_ntl_ZZ(Polynomial_dense_mod_n):
         if self == 0 and e == 0:
             return self.parent(1)
         cdef Polynomial_dense_modn_ntl_ZZ r = self._new()
-        cdef ZZ_pX_Modulus_c *mod
+        cdef ZZ_pX_Modulus_c mod
 
         self.c.restore_c()
 
@@ -1430,12 +1428,12 @@ cdef class Polynomial_dense_modn_ntl_ZZ(Polynomial_dense_mod_n):
                 if do_sig: sig_off()
         else:
             if not isinstance(modulus, Polynomial_dense_modn_ntl_ZZ):
-                modulus = self.parent()._coerce_(modulus)
-            ZZ_pX_Modulus_build(mod[0], (<Polynomial_dense_modn_ntl_ZZ>modulus).x)
+                modulus = self.parent().coerce(modulus)
+            ZZ_pX_Modulus_build(mod, (<Polynomial_dense_modn_ntl_ZZ>modulus).x)
 
             do_sig = ZZ_pX_deg(self.x) * e * self.c.p_bits > 1e5
             if do_sig: sig_on()
-            ZZ_pX_PowerMod_long_pre(r.x, self.x, e, mod[0])
+            ZZ_pX_PowerMod_long_pre(r.x, self.x, e, mod)
             if do_sig: sig_off()
         if recip:
             return ~r
@@ -1677,7 +1675,7 @@ cdef class Polynomial_dense_modn_ntl_ZZ(Polynomial_dense_mod_n):
                 return n
         return infinity
 
-    def __nonzero__(self):
+    def __bool__(self):
         """
         TESTS::
 
@@ -1841,7 +1839,7 @@ cdef class Polynomial_dense_mod_p(Polynomial_dense_mod_n):
             sage: r.parent() is GF(19)
             True
         """
-        other = self.parent()._coerce_(other)
+        other = self.parent().coerce(other)
         return self.base_ring()(str(self.ntl_ZZ_pX().resultant(other.ntl_ZZ_pX())))
 
     def discriminant(self):

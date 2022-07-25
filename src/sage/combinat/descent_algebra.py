@@ -275,7 +275,7 @@ class DescentAlgebra(UniqueRepresentation, Parent):
                 ....:      for U in DescentAlgebra(QQ, 3).D().basis() )
                 True
             """
-            return tuple([])
+            return tuple()
 
         @cached_method
         def to_B_basis(self, S):
@@ -721,9 +721,9 @@ class DescentAlgebra(UniqueRepresentation, Parent):
                 sage: DescentAlgebra(QQ, 4).I().one_basis()
                 Traceback (most recent call last):
                 ...
-                TypeError: 1 is not a basis element in the I basis.
+                TypeError: 1 is not a basis element in the I basis
             """
-            raise TypeError("1 is not a basis element in the I basis.")
+            raise TypeError("1 is not a basis element in the I basis")
 
         @cached_method
         def to_B_basis(self, p):

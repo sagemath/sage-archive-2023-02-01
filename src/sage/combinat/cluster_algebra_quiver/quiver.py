@@ -42,7 +42,8 @@ from copy import copy
 from sage.rings.integer_ring import ZZ
 from sage.rings.cc import CC
 from sage.rings.infinity import infinity
-from sage.graphs.all import Graph, DiGraph
+from sage.graphs.digraph import DiGraph
+from sage.graphs.graph import Graph
 from sage.graphs.views import EdgesView
 from sage.arith.misc import gcd
 from sage.modules.free_module_element import vector
@@ -520,9 +521,9 @@ class ClusterQuiver(SageObject):
             else:
                 name += ' of type ' + str(self._mutation_type)
         if self._m == 1:
-            name += ' with %s frozen vertex'%self._m
+            name += ' with %s frozen vertex' % self._m
         elif self._m > 1:
-            name += ' with %s frozen vertices'%self._m
+            name += ' with %s frozen vertices' % self._m
         return name
 
     def plot(self, circular=True, center=(0, 0), directed=True, mark=None,
@@ -560,6 +561,7 @@ class ClusterQuiver(SageObject):
         from sage.all import e, pi, I
         graphs = GraphGenerators()
         # returns positions for graph vertices on two concentric cycles with radius 1 and 2
+
         def _graphs_concentric_circles(n, m):
             g1 = graphs.CycleGraph(n).get_pos()
             g2 = graphs.CycleGraph(m).get_pos()
@@ -713,7 +715,9 @@ class ClusterQuiver(SageObject):
         EXAMPLES::
 
             sage: Q = ClusterQuiver(['F',4,[1,2]])
-            sage: Q.save_image(os.path.join(SAGE_TMP, 'sage.png'))
+            sage: import tempfile
+            sage: with tempfile.NamedTemporaryFile(suffix=".png") as f:
+            ....:     Q.save_image(f.name)
         """
         graph_plot = self.plot(circular=circular)
         graph_plot.save(filename=filename)
@@ -736,14 +740,18 @@ class ClusterQuiver(SageObject):
         EXAMPLES::
 
             sage: Q = ClusterQuiver(['F',4,[1,2]])
-            sage: Q.qmu_save(os.path.join(SAGE_TMP, 'sage.qmu'))
+            sage: import tempfile
+            sage: with tempfile.NamedTemporaryFile(suffix=".qmu") as f:
+            ....:     Q.qmu_save(f.name)
 
         Make sure we can save quivers with `m != n` frozen variables, see :trac:`14851`::
 
             sage: S = ClusterSeed(['A',3])
             sage: T1 = S.principal_extension()
             sage: Q = T1.quiver()
-            sage: Q.qmu_save(os.path.join(SAGE_TMP, 'sage.qmu'))
+            sage: import tempfile
+            sage: with tempfile.NamedTemporaryFile(suffix=".qmu") as f:
+            ....:     Q.qmu_save(f.name)
         """
         M = self.b_matrix()
         if self.m():
@@ -1426,7 +1434,7 @@ class ClusterQuiver(SageObject):
                 data = getattr(self, data)()
 
         # If we get a function, execute it
-        if hasattr(data, '__call__'):
+        if callable(data):
             # function should return either integer or sequence
             data = data(self)
 

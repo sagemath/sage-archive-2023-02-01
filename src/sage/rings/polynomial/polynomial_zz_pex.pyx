@@ -43,7 +43,7 @@ include "sage/libs/ntl/ntl_ZZ_pEX_linkage.pxi"
 # and then the interface
 include "polynomial_template.pxi"
 
-from sage.libs.all import pari
+from sage.libs.pari.all import pari
 from sage.libs.ntl.ntl_ZZ_pE cimport ntl_ZZ_pE
 
 cdef inline ZZ_pE_c_to_list(ZZ_pE_c x):
@@ -138,7 +138,7 @@ cdef class Polynomial_ZZ_pEX(Polynomial_template):
         if isinstance(x, Polynomial):
             x = x.list()
 
-        if isinstance(x, list) or isinstance(x, tuple):
+        if isinstance(x, (list, tuple)):
             Polynomial.__init__(self, parent, is_gen=is_gen)
             (<Polynomial_template>self)._cparent = get_cparent(parent)
             celement_construct(&self.x, (<Polynomial_template>self)._cparent)

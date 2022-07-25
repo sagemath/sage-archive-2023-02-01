@@ -473,9 +473,12 @@ For example,
     sage: yl = plt.ylabel('voltage (mV)')
     sage: t = plt.title('About as simple as it gets, folks')
     sage: plt.grid(True)
-    sage: plt.savefig(os.path.join(SAGE_TMP, 'sage.png'))
+    sage: import tempfile
+    sage: with tempfile.NamedTemporaryFile(suffix=".png") as f1:
+    ....:     plt.savefig(f1.name)
     sage: plt.clf()
-    sage: plt.savefig(os.path.join(SAGE_TMP, 'blank.png'))
+    sage: with tempfile.NamedTemporaryFile(suffix=".png") as f2:
+    ....:     plt.savefig(f2.name)
     sage: plt.close()
     sage: plt.imshow([[1,2],[0,1]])
     <matplotlib.image.AxesImage object at ...>
@@ -487,7 +490,9 @@ We test that ``imshow`` works as well, verifying that
 
     sage: plt.imshow([[(0.0,0.0,0.0)]])
     <matplotlib.image.AxesImage object at ...>
-    sage: plt.savefig(os.path.join(SAGE_TMP, 'foo.png'))
+    sage: import tempfile
+    sage: with tempfile.NamedTemporaryFile(suffix=".png") as f:
+    ....:     plt.savefig(f.name)
 
 Since the above overwrites many Sage plotting functions, we reset
 the state of Sage, so that the examples below work!
@@ -681,7 +686,9 @@ def SelectiveFormatter(formatter, skip_values):
         sage: p = ax.plot(t, s)
         sage: formatter=SelectiveFormatter(ax.xaxis.get_major_formatter(),skip_values=[0,1])
         sage: ax.xaxis.set_major_formatter(formatter)
-        sage: fig.savefig(os.path.join(SAGE_TMP, 'test.png'))
+        sage: import tempfile
+        sage: with tempfile.NamedTemporaryFile(suffix=".png") as f:
+        ....:     fig.savefig(f.name)
 
     """
     global _SelectiveFormatterClass
@@ -690,7 +697,7 @@ def SelectiveFormatter(formatter, skip_values):
         from matplotlib.ticker import Formatter
 
         class _SelectiveFormatterClass(Formatter):
-            def __init__(self, formatter,skip_values):
+            def __init__(self, formatter, skip_values):
                 """
                 Initialize a SelectiveFormatter object.
 
@@ -713,10 +720,13 @@ def SelectiveFormatter(formatter, skip_values):
                     sage: line=ax.plot(t, s)
                     sage: formatter=SelectiveFormatter(ax.xaxis.get_major_formatter(),skip_values=[0,1])
                     sage: ax.xaxis.set_major_formatter(formatter)
-                    sage: fig.savefig(os.path.join(SAGE_TMP, 'test.png'))
+                    sage: from tempfile import NamedTemporaryFile
+                    sage: with NamedTemporaryFile(suffix=".png") as f:
+                    ....:     fig.savefig(f.name)
                 """
                 self.formatter=formatter
                 self.skip_values=skip_values
+
             def set_locs(self, locs):
                 """
                 Set the locations for the ticks that are not skipped.
@@ -729,6 +739,7 @@ def SelectiveFormatter(formatter, skip_values):
                     sage: formatter.set_locs([i*100 for i in range(10)])
                 """
                 self.formatter.set_locs([l for l in locs if l not in self.skip_values])
+
             def __call__(self, x, *args, **kwds):
                 """
                 Return the format for tick val *x* at position *pos*
@@ -812,9 +823,11 @@ def xydata_from_point_list(points):
                 ydata.append(float(y))
     return xdata, ydata
 
-@options(alpha=1, thickness=1, fill=False, fillcolor='automatic', fillalpha=0.5, plot_points=200,
-         adaptive_tolerance=0.01, adaptive_recursion=5, detect_poles=False, exclude=None, legend_label=None,
-         __original_opts=True, aspect_ratio='automatic')
+@options(alpha=1, thickness=1, fill=False, fillcolor='automatic',
+         fillalpha=0.5, plot_points=200, adaptive_tolerance=0.01,
+         adaptive_recursion=5, detect_poles=False, exclude=None,
+         legend_label=None, __original_opts=True,
+         aspect_ratio='automatic', imaginary_tolerance=1e-8)
 def plot(funcs, *args, **kwds):
     r"""
     Use plot by writing
@@ -848,6 +861,12 @@ def plot(funcs, *args, **kwds):
       before the adaptive refinement code considers it significant.  See the
       documentation further below for more information, starting at "the
       algorithm used to insert".
+
+    - ``imaginary_tolerance`` -- (default: ``1e-8``); if an imaginary
+      number arises (due, for example, to numerical issues), this
+      tolerance specifies how large it has to be in magnitude before
+      we raise an error.  In other words, imaginary parts smaller than
+      this are ignored in your plot points.
 
     - ``base`` -- (default: `10`); the base of the logarithm if
       a logarithmic scale is set. This must be greater than 1. The base
@@ -1125,6 +1144,24 @@ def plot(funcs, *args, **kwds):
         g1 = plot([x*exp(-n*x**2)/.4 for n in range(1,4)], (0, 2), color='blue', aspect_ratio=.8)
         g2 = plot([x*exp(-n*x**2)/.4 for n in range(1,4)], (0, 2), color=['red','red','green'], linestyle=['-','--','-.'], aspect_ratio=.8)
         sphinx_plot(graphics_array([[g1], [g2]]))
+
+    While plotting real functions, imaginary numbers that are "almost
+    real" will inevitably arise due to numerical issues. By tweaking
+    the ``imaginary_tolerance``, you can decide how large of an
+    imaginary part you're willing to sweep under the rug in order to
+    plot the corresponding point. If a particular value's imaginary
+    part has magnitude larger than ``imaginary_tolerance``, that point
+    will not be plotted. The default tolerance is ``1e-8``, so the
+    imaginary part in the first example below is ignored, but the
+    second example "fails," emits a warning, and produces an empty
+    graph::
+
+        sage: f = x + I*1e-12
+        sage: plot(f, x, -1, 1)
+        Graphics object consisting of 1 graphics primitive
+        sage: plot(f, x, -1, 1, imaginary_tolerance=0)
+        ...WARNING: ...Unable to compute ...
+        Graphics object consisting of 0 graphics primitives
 
     We can also build a plot step by step from an empty plot::
 
@@ -1890,7 +1927,7 @@ def plot(funcs, *args, **kwds):
         sage: P = plot(sin(1/x), (x,-1,3), foo=10)
         Traceback (most recent call last):
         ...
-        RuntimeError: Error in line(): option 'foo' not valid.
+        RuntimeError: error in line(): option 'foo' not valid
         sage: P = plot(x, (x,1,1)) # trac ticket #11753
         Traceback (most recent call last):
         ...
@@ -2027,13 +2064,19 @@ def _plot(funcs, xrange, parametric=False,
 
     OUTPUT: a ``Graphics`` object
 
-    EXAMPLES::
+    EXAMPLES:
 
     See :func:`plot` for many, many implicit examples.
     Here is an explicit one::
 
         sage: from sage.plot.plot import _plot
-        sage: P = _plot(e^(-x^2),(-3,3),fill=True,color='red',plot_points=50,adaptive_tolerance=2,adaptive_recursion=True,exclude=None)
+        sage: P = _plot(e^(-x^2),(-3,3), fill=True,
+        ....:                            color='red',
+        ....:                            plot_points=50,
+        ....:                            adaptive_tolerance=2,
+        ....:                            adaptive_recursion=True,
+        ....:                            exclude=None,
+        ....:                            imaginary_tolerance=1e-8)
         sage: P.show(aspect_ratio='automatic')
 
     TESTS:
@@ -2063,8 +2106,6 @@ def _plot(funcs, xrange, parametric=False,
         sage: q2
         Graphics object consisting of 2 graphics primitives
 
-    ::
-
     Make sure that we don't get multiple legend labels for plot segments
     (:trac:`11998`)::
 
@@ -2077,7 +2118,7 @@ def _plot(funcs, xrange, parametric=False,
     plot properly (:trac:`13246`)::
 
         sage: parametric_plot((x, arcsec(x)), (x, -2, 2))
-        Graphics object consisting of 2 graphics primitives
+        Graphics object consisting of 1 graphics primitive
 
     Verify that :trac:`31089` is fixed::
 
@@ -2091,7 +2132,11 @@ def _plot(funcs, xrange, parametric=False,
         return Graphics()
     orig_funcs = funcs # keep the original functions (for use in legend labels)
     excluded_points = []
-    funcs, ranges = setup_for_eval_on_grid(funcs, [xrange], options['plot_points'])
+    imag_tol = options["imaginary_tolerance"]
+    funcs, ranges = setup_for_eval_on_grid(funcs,
+                                           [xrange],
+                                           options['plot_points'],
+                                           imaginary_tolerance=imag_tol)
     xmin, xmax, delta = ranges[0]
     xrange=ranges[0][:2]
     # parametric_plot will be a list or tuple of two functions (f,g)
@@ -2244,6 +2289,7 @@ def _plot(funcs, xrange, parametric=False,
 
     adaptive_tolerance = options.pop('adaptive_tolerance')
     adaptive_recursion = options.pop('adaptive_recursion')
+    imag_tol = options.pop('imaginary_tolerance')
     plot_points = int(options.pop('plot_points'))
 
     exclude = options.pop('exclude')
@@ -2292,13 +2338,13 @@ def _plot(funcs, xrange, parametric=False,
             f_exp, log_xrange, plot_points,
             adaptive_tolerance, adaptive_recursion,
             randomize, log_initial_points,
-            excluded=True)
+            excluded=True, imaginary_tolerance=imag_tol)
     else:
         data, extra_excluded = generate_plot_points(
             f, xrange, plot_points,
             adaptive_tolerance, adaptive_recursion,
             randomize, initial_points,
-            excluded=True)
+            excluded=True, imaginary_tolerance=imag_tol)
 
     excluded_points += extra_excluded
 
@@ -2338,7 +2384,7 @@ def _plot(funcs, xrange, parametric=False,
                 base_level = min(t[1] for t in data)
             elif fill == 'max':
                 base_level = max(t[1] for t in data)
-            elif hasattr(fill, '__call__'):
+            elif callable(fill):
                 if fill == max or fill == min:
                     if fill == max:
                         fstr = 'max'
@@ -2351,8 +2397,13 @@ def _plot(funcs, xrange, parametric=False,
                 else:
                     fill_f = fill
 
-                filldata = generate_plot_points(fill_f, xrange, plot_points, adaptive_tolerance, \
-                                                adaptive_recursion, randomize)
+                filldata = generate_plot_points(fill_f,
+                                                xrange,
+                                                plot_points,
+                                                adaptive_tolerance,
+                                                adaptive_recursion,
+                                                randomize,
+                                                imaginary_tolerance=imag_tol)
                 filldata.reverse()
                 filldata += data
             else:
@@ -2361,12 +2412,17 @@ def _plot(funcs, xrange, parametric=False,
                 except TypeError:
                     base_level = 0
 
-            if not hasattr(fill, '__call__') and polar:
-                filldata = generate_plot_points(lambda x: base_level, xrange, plot_points, adaptive_tolerance, \
-                                                adaptive_recursion, randomize)
+            if not callable(fill) and polar:
+                filldata = generate_plot_points(lambda x: base_level,
+                                                xrange,
+                                                plot_points,
+                                                adaptive_tolerance,
+                                                adaptive_recursion,
+                                                randomize,
+                                                imaginary_tolerance=imag_tol)
                 filldata.reverse()
                 filldata += data
-            if not hasattr(fill, '__call__') and not polar:
+            if not callable(fill) and not polar:
                 filldata = [(data[0][0], base_level)] + data + [(data[-1][0], base_level)]
 
         if fillcolor == 'automatic':
@@ -3010,7 +3066,7 @@ def list_plot(data, plotjoined=False, **kwargs):
     try:
         if not data:
             return Graphics()
-    except ValueError: # numpy raises ValueError if it is not empty
+    except ValueError:  # numpy raises ValueError if it is not empty
         pass
     if not isinstance(plotjoined, bool):
         raise TypeError("The second argument 'plotjoined' should be boolean "
@@ -3837,7 +3893,8 @@ def adaptive_refinement(f, p1, p2, adaptive_tolerance=0.01,
 
 def generate_plot_points(f, xrange, plot_points=5, adaptive_tolerance=0.01,
                          adaptive_recursion=5, randomize=True,
-                         initial_points=None, *, excluded=False):
+                         initial_points=None, *, excluded=False,
+                         imaginary_tolerance=1e-8):
     r"""
     Calculate plot points for a function f in the interval xrange.  The
     adaptive refinement algorithm is also automatically invoked with a
@@ -3868,6 +3925,12 @@ def generate_plot_points(f, xrange, plot_points=5, adaptive_tolerance=0.01,
     - ``excluded`` -- (default: ``False``); add a list of discovered x-values, for
       which ``f`` is not defined
 
+    - ``imaginary_tolerance`` -- (default: ``1e-8``); if an imaginary
+      number arises (due, for example, to numerical issues), this
+      tolerance specifies how large it has to be in magnitude before
+      we raise an error.  In other words, imaginary parts smaller than
+      this are ignored in your plot points.
+
     OUTPUT:
 
     - a list of points (x, f(x)) in the interval xrange, which approximate
@@ -3886,23 +3949,18 @@ def generate_plot_points(f, xrange, plot_points=5, adaptive_tolerance=0.01,
         sage: generate_plot_points(lambda x: x^2, (0, 6), plot_points=2, adaptive_recursion=0, initial_points=[1,2,3])
         [(0.0, 0.0), (1.0, 1.0), (2.0, 4.0), (3.0, 9.0), (6.0, 36.0)]
 
-        sage: generate_plot_points(sin(x).function(x), (-pi, pi), randomize=False)
-        [(-3.141592653589793, -1.2246...e-16), (-2.748893571891069,
-        -0.3826834323650899), (-2.356194490192345, -0.707106781186547...),
-        (-2.1598449493429825, -0.831469612302545...), (-1.9634954084936207,
-        -0.9238795325112867), (-1.7671458676442586, -0.9807852804032304),
-        (-1.5707963267948966, -1.0), (-1.3744467859455345,
-        -0.9807852804032304), (-1.1780972450961724, -0.9238795325112867),
-        (-0.9817477042468103, -0.831469612302545...), (-0.7853981633974483,
-        -0.707106781186547...), (-0.39269908169872414, -0.3826834323650898),
-        (0.0, 0.0), (0.39269908169872414, 0.3826834323650898),
-        (0.7853981633974483, 0.707106781186547...), (0.9817477042468103,
-        0.831469612302545...), (1.1780972450961724, 0.9238795325112867),
-        (1.3744467859455345, 0.9807852804032304), (1.5707963267948966, 1.0),
-        (1.7671458676442586, 0.9807852804032304), (1.9634954084936207,
-        0.9238795325112867), (2.1598449493429825, 0.831469612302545...),
-        (2.356194490192345, 0.707106781186547...), (2.748893571891069,
-        0.3826834323650899), (3.141592653589793, 1.2246...e-16)]
+    The delta remains consistent with ``randomize=False`` and no
+    adaptive recursion::
+
+        sage: pps = generate_plot_points(sin(x).function(x),
+        ....:                            (-pi, pi),
+        ....:                            randomize=False,
+        ....:                            adaptive_recursion=0)
+        sage: [pps[k][0] - pps[k-1][0] for k in range(1,len(pps))] # abs tol 1e-10
+        [1.5707963267948966,
+         1.5707963267948966,
+         1.5707963267948966,
+         1.5707963267948966]
 
     This shows that lowering adaptive_tolerance and raising
     adaptive_recursion both increase the number of subdivision points.
@@ -3927,7 +3985,10 @@ def generate_plot_points(f, xrange, plot_points=5, adaptive_tolerance=0.01,
         ([(1.0, 0.0)], [0.0])
     """
     from sage.plot.misc import setup_for_eval_on_grid
-    ignore, ranges = setup_for_eval_on_grid([], [xrange], plot_points)
+    f, ranges = setup_for_eval_on_grid(f,
+                                       [xrange],
+                                       plot_points,
+                                       imaginary_tolerance=imaginary_tolerance)
     xmin, xmax, delta = ranges[0]
     x_values = srange(*ranges[0], include_endpoint=True)
 

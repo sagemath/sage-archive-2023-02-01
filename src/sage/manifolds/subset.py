@@ -67,7 +67,8 @@ Families of subsets after the above operations::
 # (at your option) any later version.
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
-
+from __future__ import annotations
+from typing import Optional
 from collections import defaultdict
 import itertools
 from sage.structure.parent import Parent
@@ -150,7 +151,9 @@ class ManifoldSubset(UniqueRepresentation, Parent):
 
     Element = ManifoldPoint
 
-    def __init__(self, manifold, name, latex_name=None, category=None):
+    _name: str
+
+    def __init__(self, manifold, name: str, latex_name=None, category=None):
         r"""
         Construct a manifold subset.
 
@@ -968,6 +971,7 @@ class ManifoldSubset(UniqueRepresentation, Parent):
             def vertex_family(subset):
                 return ManifoldSubsetFiniteFamily([subset])
         subset_to_vertex = {}
+
         def vertex(subset):
             try:
                 return subset_to_vertex[subset]
@@ -2153,7 +2157,7 @@ class ManifoldSubset(UniqueRepresentation, Parent):
             res._def_chart = self._def_chart
         return res
 
-    def intersection(self, *others, name=None, latex_name=None):
+    def intersection(self, *others: ManifoldSubset, name: Optional[str] = None, latex_name: Optional[str] = None) -> ManifoldSubset:
         r"""
         Return the intersection of the current subset with other subsets.
 
@@ -2304,6 +2308,7 @@ class ManifoldSubset(UniqueRepresentation, Parent):
         subsets = set(subsets)
         if not subsets:
             raise TypeError('input set must be nonempty')
+
         def reduce():
             # Greedily replace inclusion chains by their minimal element
             # and pairs with declared intersections by their intersection
@@ -2528,6 +2533,7 @@ class ManifoldSubset(UniqueRepresentation, Parent):
 
         """
         subsets = set(subsets)
+
         def reduce():
             # Greedily replace inclusion chains by their maximal element
             # and pairs with declared unions by their union

@@ -939,12 +939,11 @@ class HyperbolicIsometryPD(HyperbolicIsometry):
             Isometry in PD
             [   5/8  3/8*I]
             [-3/8*I    5/8]
-
         """
         if isinstance(other, HyperbolicIsometry):
-            M = self._cached_isometry*other._cached_isometry
+            M = self._cached_isometry * other._cached_isometry
             return M.to_model('PD')
-        return super(HyperbolicIsometryPD, self).__mul__(other)
+        return super().__mul__(other)
 
     def __pow__(self, n): #PD
         r"""
@@ -1092,4 +1091,3 @@ def moebius_transform(A, z):
         return (a * z + b) / (c * z + d)
     raise TypeError("A must be an invertible 2x2 matrix over the"
                     " complex numbers or a symbolic ring")
-

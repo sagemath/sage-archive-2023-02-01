@@ -62,7 +62,7 @@ from sage.rings.integer cimport Integer
 from sage.rings.real_mpfr cimport RealNumber, RealField_class
 from sage.rings.real_mpfi cimport RealIntervalFieldElement
 
-from sage.libs.all import pari, pari_gen
+from sage.libs.pari.all import pari, pari_gen
 from sage.structure.factorization import Factorization
 from sage.structure.element import coerce_binop
 
@@ -1136,7 +1136,7 @@ cdef class Polynomial_integer_dense_ntl(Polynomial):
             sage: r.parent() is ZZ
             True
         """
-        cdef Polynomial_integer_dense_ntl _other = <Polynomial_integer_dense_ntl>(self.parent()._coerce_(other))
+        cdef Polynomial_integer_dense_ntl _other = <Polynomial_integer_dense_ntl>(self.parent().coerce(other))
         cdef ZZ_c* temp = ZZX_resultant(&self.__poly, &_other.__poly, proof)
         cdef Integer x = Integer.__new__(Integer)
         ZZ_to_mpz(x.value, temp)

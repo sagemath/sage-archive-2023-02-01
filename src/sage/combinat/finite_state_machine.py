@@ -933,7 +933,9 @@ Methods
 from IPython.lib.pretty import pretty
 import itertools
 from collections import defaultdict, deque, namedtuple, OrderedDict
-from collections.abc import Iterator
+# Use isinstance(x, Iterable) to test whether x is iterable, and
+# use isinstance(x, Mapping) to test whether x is a dict.
+from collections.abc import Iterator, Iterable, Mapping
 from copy import copy, deepcopy
 
 from sage.calculus.var import var
@@ -1417,7 +1419,7 @@ class FSMState(SageObject):
         self.initial_probability = initial_probability
 
         if hook is not None:
-            if hasattr(hook, '__call__'):
+            if callable(hook):
                 self.hook = hook
             else:
                 raise TypeError('Wrong argument for hook.')
@@ -2010,7 +2012,7 @@ class FSMState(SageObject):
         """
         return True  # A state cannot be zero (see __init__)
 
-    __nonzero__ = __bool__
+
 
     def _epsilon_successors_(self, fsm=None):
         """
@@ -2271,7 +2273,7 @@ class FSMTransition(SageObject):
             self.word_out = []
 
         if hook is not None:
-            if hasattr(hook, '__call__'):
+            if callable(hook):
                 self.hook = hook
             else:
                 raise TypeError('Wrong argument for hook.')
@@ -2489,7 +2491,7 @@ class FSMTransition(SageObject):
         """
         return True  # A transition cannot be zero (see __init__)
 
-    __nonzero__ = __bool__
+
 
 
 # ****************************************************************************
@@ -2616,9 +2618,9 @@ def duplicate_transition_add_input(old_transition, new_transition):
         "Transition from 'a' to 'a': 1,1|-",
         but input words are assumed to be lists of length 1
     """
-    if (hasattr(old_transition.word_in, '__iter__')
+    if (isinstance(old_transition.word_in, Iterable)
         and len(old_transition.word_in) == 1
-        and hasattr(new_transition.word_in, '__iter__')
+        and isinstance(new_transition.word_in, Iterable)
         and len(new_transition.word_in) == 1):
         old_transition.word_in = [old_transition.word_in[0]
                                   + new_transition.word_in[0]]
@@ -3137,7 +3139,7 @@ class FiniteStateMachine(SageObject):
 
 
         if initial_states is not None:
-            if not hasattr(initial_states, '__iter__'):
+            if not isinstance(initial_states, Iterable):
                 raise TypeError('Initial states must be iterable '
                                 '(e.g. a list of states).')
             for s in initial_states:
@@ -3145,7 +3147,7 @@ class FiniteStateMachine(SageObject):
                 state.is_initial = True
 
         if final_states is not None:
-            if not hasattr(final_states, '__iter__'):
+            if not isinstance(final_states, Iterable):
                 raise TypeError('Final states must be iterable '
                                 '(e.g. a list of states).')
             for s in final_states:
@@ -3157,32 +3159,32 @@ class FiniteStateMachine(SageObject):
 
         if on_duplicate_transition is None:
             on_duplicate_transition = duplicate_transition_ignore
-        if hasattr(on_duplicate_transition, '__call__'):
+        if callable(on_duplicate_transition):
             self.on_duplicate_transition = on_duplicate_transition
         else:
             raise TypeError('on_duplicate_transition must be callable')
 
         if data is None:
             pass
-        elif hasattr(data, 'items'):
+        elif isinstance(data, Mapping):
             # data is a dict (or something similar),
             # format: key = from_state, value = iterator of transitions
             for (sf, iter_transitions) in data.items():
                 self.add_state(sf)
-                if hasattr(iter_transitions, 'items'):
+                if isinstance(iter_transitions, Mapping):
                     for (st, transition) in iter_transitions.items():
                         self.add_state(st)
                         if is_FSMTransition(transition):
                             self.add_transition(transition)
-                        elif hasattr(transition, 'items'):
+                        elif isinstance(transition, Mapping):
                             self.add_transition(sf, st, **transition)
-                        elif hasattr(transition, '__iter__'):
+                        elif isinstance(transition, Iterable):
                             self.add_transition(sf, st, *transition)
                         else:
                             self.add_transition(sf, st, transition)
-                elif hasattr(iter_transitions, '__iter__'):
+                elif isinstance(iter_transitions, Iterable):
                     for transition in iter_transitions:
-                        if hasattr(transition, '__iter__'):
+                        if isinstance(transition, Iterable):
                             L = [sf]
                             L.extend(transition)
                         elif is_FSMTransition(transition):
@@ -3192,19 +3194,19 @@ class FiniteStateMachine(SageObject):
                         self.add_transition(L)
                 else:
                     raise TypeError('Wrong input data for transition.')
-        elif hasattr(data, '__iter__'):
+        elif isinstance(data, Iterable):
             # data is a something that is iterable,
             # items are transitions
             for transition in data:
                 if is_FSMTransition(transition):
                     self.add_transition(transition)
-                elif hasattr(transition, 'items'):
+                elif isinstance(transition, Mapping):
                     self.add_transition(transition)
-                elif hasattr(transition, '__iter__'):
+                elif isinstance(transition, Iterable):
                     self.add_transition(transition)
                 else:
                     raise TypeError('Wrong input data for transition.')
-        elif hasattr(data, '__call__'):
+        elif callable(data):
             self.add_from_transition_function(data)
         else:
             raise TypeError('Cannot decide what to do with data.')
@@ -3381,7 +3383,7 @@ class FiniteStateMachine(SageObject):
                 if relabel:
                     if other._deepcopy_labels_ is None:
                         state._deepcopy_relabel_ = next(relabel_iter)
-                    elif hasattr(other._deepcopy_labels_, '__call__'):
+                    elif callable(other._deepcopy_labels_):
                         state._deepcopy_relabel_ = \
                             other._deepcopy_labels_(state.label())
                     elif hasattr(other._deepcopy_labels_, '__getitem__'):
@@ -3895,7 +3897,7 @@ class FiniteStateMachine(SageObject):
             raise TypeError("Called with too few arguments.")
         if is_FiniteStateMachine(args[0]):
             return self.composition(*args, **kwargs)
-        if hasattr(args[0], '__iter__'):
+        if isinstance(args[0], Iterable):
             if 'full_output' not in kwargs:
                 kwargs['full_output'] = False
             if 'list_of_outputs' not in kwargs:
@@ -3930,7 +3932,7 @@ class FiniteStateMachine(SageObject):
         """
         return bool(self._states_)
 
-    __nonzero__ = __bool__
+
 
     def __eq__(self, other):
         """
@@ -4676,24 +4678,24 @@ class FiniteStateMachine(SageObject):
             self.set_coordinates(coordinates)
 
         if format_state_label is not None:
-            if not hasattr(format_state_label, '__call__'):
+            if not callable(format_state_label):
                 raise TypeError('format_state_label must be callable.')
             self.format_state_label = format_state_label
 
         if format_letter is not None:
-            if not hasattr(format_letter, '__call__'):
+            if not callable(format_letter):
                 raise TypeError('format_letter must be callable.')
             self.format_letter = format_letter
 
         if format_transition_label is not None:
-            if not hasattr(format_transition_label, '__call__'):
+            if not callable(format_transition_label):
                 raise TypeError('format_transition_label must be callable.')
             self.format_transition_label = format_transition_label
 
         if loop_where is not None:
             permissible = list(tikz_automata_where)
             for state in self.states():
-                if hasattr(loop_where, '__call__'):
+                if callable(loop_where):
                     where = loop_where(state.label())
                 else:
                     try:
@@ -4712,7 +4714,7 @@ class FiniteStateMachine(SageObject):
         if initial_where is not None:
             permissible = list(tikz_automata_where)
             for state in self.iter_initial_states():
-                if hasattr(initial_where, '__call__'):
+                if callable(initial_where):
                     where = initial_where(state.label())
                 else:
                     try:
@@ -4743,7 +4745,7 @@ class FiniteStateMachine(SageObject):
         if accepting_where is not None:
             permissible = list(tikz_automata_where)
             for state in self.iter_final_states():
-                if hasattr(accepting_where, '__call__'):
+                if callable(accepting_where):
                     where = accepting_where(state.label())
                 else:
                     try:
@@ -6642,10 +6644,10 @@ class FiniteStateMachine(SageObject):
                     return self._add_fsm_transition_(d)
             else:
                 d = next(iter(kwargs.values()))
-            if hasattr(d, 'items'):
+            if isinstance(d, Mapping):
                 args = []
                 kwargs = d
-            elif hasattr(d, '__iter__'):
+            elif isinstance(d, Iterable):
                 args = d
                 kwargs = {}
             else:
@@ -6794,7 +6796,7 @@ class FiniteStateMachine(SageObject):
 
         if initial_states is None:
             not_done = self.initial_states()
-        elif hasattr(initial_states, '__iter__'):
+        elif isinstance(initial_states, Iterable):
             not_done = []
             for s in initial_states:
                 state = self.add_state(s)
@@ -7865,7 +7867,7 @@ class FiniteStateMachine(SageObject):
         else:
             result.input_alphabet = None
 
-        if hasattr(other, '__iter__'):
+        if isinstance(other, Iterable):
             machines = [self]
             machines.extend(other)
             if not all(is_FiniteStateMachine(m) for m in machines):
@@ -9289,7 +9291,7 @@ class FiniteStateMachine(SageObject):
                 changed = changed or len(transition_list) > 1
                 word_in = 0
                 for transition in transition_list:
-                    if hasattr(transition.word_in, '__iter__') and len(transition.word_in) == 1:
+                    if isinstance(transition.word_in, Iterable) and len(transition.word_in) == 1:
                         word_in += transition.word_in[0]
                     else:
                         raise TypeError('%s does not have a list of length 1 as word_in' % transition)
@@ -9729,7 +9731,7 @@ class FiniteStateMachine(SageObject):
         """
         if edge_labels == 'words_in_out':
             label_fct = lambda t: t._in_out_label_()
-        elif hasattr(edge_labels, '__call__'):
+        elif callable(edge_labels):
             label_fct = edge_labels
         else:
             raise TypeError('Wrong argument for edge_labels.')
@@ -10663,7 +10665,6 @@ class FiniteStateMachine(SageObject):
                 ....:     result = chain.moments_waiting_time(
                 ....:         is_zero=is_zero,
                 ....:         expectation_only=True)
-                ....:
                 ....:     R_v = PolynomialRing(
                 ....:             QQ,
                 ....:             names=['p_%d' % i for i in range(r)])
@@ -11017,11 +11018,9 @@ class Automaton(FiniteStateMachine):
             True
             sage: Automaton()._allow_composition_
             False
-
         """
-        super(Automaton, self).__init__(*args, **kwargs)
+        super().__init__(*args, **kwargs)
         self._allow_composition_ = False
-
 
     def _repr_(self):
         """
@@ -11824,7 +11823,7 @@ class Automaton(FiniteStateMachine):
             options['list_of_outputs'] = True
             options['only_accepted'] = True
 
-        result = super(Automaton, self).process(*args, **options)
+        result = super().process(*args, **options)
 
         if condensed_output:
             return any(result)
@@ -11869,7 +11868,7 @@ class Automaton(FiniteStateMachine):
             (True, 'a', [1, 0, 1])
         """
         if kwargs['always_include_output']:
-            return super(Automaton, self)._process_convert_output_(
+            return super()._process_convert_output_(
                 output_data, **kwargs)
         accept_input, current_state, output = output_data
         if kwargs['full_output']:
@@ -12993,7 +12992,7 @@ class Transducer(FiniteStateMachine):
             options['list_of_outputs'] = True
             options['only_accepted'] = True
 
-        result = super(Transducer, self).process(*args, **options)
+        result = super().process(*args, **options)
 
         if (condensed_output and not result or
               not options['full_output'] and result is None):
@@ -13733,7 +13732,7 @@ class _FSMTapeCacheDetectEpsilon_(_FSMTapeCache_):
             ....:                             [False], ((0, 0),), False)
             tape at 0
         """
-        super(_FSMTapeCacheDetectEpsilon_, self).__init__(*args, **kwargs)
+        super().__init__(*args, **kwargs)
         self._visited_states_ = set()
 
 
@@ -13751,7 +13750,7 @@ class _FSMTapeCacheDetectEpsilon_(_FSMTapeCache_):
             sage: TC3._visited_states_
             {1}
         """
-        new = super(_FSMTapeCacheDetectEpsilon_, self).__deepcopy__(memo)
+        new = super().__deepcopy__(memo)
         new._visited_states_ = copy(self._visited_states_)
         return new
 
@@ -14273,7 +14272,7 @@ class FSMProcessIterator(SageObject, Iterator):
                 tape.append(input_tape)
         if not tape:
             raise TypeError('No input tape given.')
-        if not all(hasattr(track, '__iter__') for track in tape):
+        if not all(isinstance(track, Iterable) for track in tape):
             raise TypeError('Given input tape is not iterable.')
         self._input_tape_ = tuple(iter(track) for track in tape)
         self._input_tape_ended_ = [False for _ in tape]
@@ -14607,7 +14606,7 @@ class FSMProcessIterator(SageObject, Iterator):
             if isinstance(next_transitions, FSMTransition):
                 next_transitions = [next_transitions]
             if next_transitions is not None and \
-                    not hasattr(next_transitions, '__iter__'):
+                    not isinstance(next_transitions, Iterable):
                 raise ValueError('hook of state should return a '
                                  'transition or '
                                  'a list/tuple of transitions.')
@@ -15098,7 +15097,7 @@ class _FSMProcessIteratorEpsilon_(FSMProcessIterator):
         self.TapeCache = _FSMTapeCacheDetectEpsilon_
         self.visited_states = {}
         kwargs['check_epsilon_transitions'] = False
-        return super(_FSMProcessIteratorEpsilon_, self).__init__(*args, **kwargs)
+        return super().__init__(*args, **kwargs)
 
 
     def _push_branch_(self, state, tape_cache, outputs):
@@ -15144,7 +15143,7 @@ class _FSMProcessIteratorEpsilon_(FSMProcessIterator):
         if found:
             return
 
-        super(_FSMProcessIteratorEpsilon_, self)._push_branch_(
+        super()._push_branch_(
             state, tape_cache, outputs)
 
         # As tape_cache may have been discarded because current already
@@ -15225,7 +15224,7 @@ class _FSMProcessIteratorAll_(FSMProcessIterator):
         self.TapeCache = _FSMTapeCacheDetectAll_
         self.visited_states = {}
         kwargs['check_epsilon_transitions'] = False
-        return super(_FSMProcessIteratorAll_, self).__init__(*args, **kwargs)
+        return super().__init__(*args, **kwargs)
 
 
 # ****************************************************************************

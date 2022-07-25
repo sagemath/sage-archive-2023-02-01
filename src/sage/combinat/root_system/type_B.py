@@ -177,7 +177,7 @@ class CartanType(CartanType_standard_finite, CartanType_simple, CartanType_cryst
             sage: latex(CartanType(['B',4]))
             B_{4}
         """
-        return "B_{%s}"%self.n
+        return "B_{%s}" % self.n
 
     AmbientSpace = AmbientSpace
 
@@ -341,4 +341,3 @@ class CartanType(CartanType_standard_finite, CartanType_simple, CartanType_cryst
 # For unpickling backward compatibility (Sage <= 4.1)
 from sage.misc.persist import register_unpickle_override
 register_unpickle_override('sage.combinat.root_system.type_B', 'ambient_space',  AmbientSpace)
-

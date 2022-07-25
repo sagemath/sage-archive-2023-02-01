@@ -1093,7 +1093,7 @@ class PolynomialRing_general(ring.Algebra):
         else:
             my_vars = self.variable_names()
             try:
-               return self.base_ring().variable_names_recursive(depth - len(my_vars)) + my_vars
+                return self.base_ring().variable_names_recursive(depth - len(my_vars)) + my_vars
             except AttributeError:
                 return my_vars
 
@@ -1321,7 +1321,7 @@ class PolynomialRing_general(ring.Algebra):
 
         INPUT:
 
-        -  ``degree`` - optional integer for fixing the degree or
+        -  ``degree`` - optional integer for fixing the degree
            or a tuple of minimum and maximum degrees. By default set to
            ``(-1,2)``.
 

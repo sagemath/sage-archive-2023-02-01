@@ -144,8 +144,8 @@ cdef class TensorProductOfCrystalsElement(ImmutableListWithParent):
         """
         from sage.misc.latex import latex
         if self._parent.options.convention == "Kashiwara":
-            return ' \otimes '.join(latex(c) for c in reversed(self))
-        return ' \otimes '.join(latex(c) for c in self)
+            return r' \otimes '.join(latex(c) for c in reversed(self))
+        return r' \otimes '.join(latex(c) for c in self)
 
     def _ascii_art_(self):
         """
@@ -770,7 +770,9 @@ cdef class CrystalOfTableauxElement(TensorProductOfRegularCrystalsElement):
                 the_list += col
         else:
             the_list = [i for i in args]
-        TensorProductOfRegularCrystalsElement.__init__(self, parent, [parent.letters(_) for _ in the_list])
+        TensorProductOfRegularCrystalsElement.__init__(self, parent,
+                                                       [parent.letters(i)
+                                                        for i in the_list])
 
     def _repr_(self):
         """
@@ -1528,24 +1530,24 @@ cdef class TensorProductOfQueerSuperCrystalsElement(TensorProductOfRegularCrysta
                 b = b.s(a)
             b = b.e(-1)
             if b is None:
-               return None
+                return None
             for a in range(2, j+1):
                 b = b.s(a)
             for a in range(1, j):
                 b = b.s(a)
             return b
         if i < -n:
-           j = -(i+n)
-           w = <tuple> (self._parent._long_element())
-           b = self
-           for a in w:
-               b = b.s(a)
-           b = b.f(-(n+1-j))
-           if b is None:
-               return None
-           for a in w:
-               b = b.s(a)
-           return b
+            j = -(i+n)
+            w = <tuple> (self._parent._long_element())
+            b = self
+            for a in w:
+                b = b.s(a)
+            b = b.f(-(n+1-j))
+            if b is None:
+                return None
+            for a in w:
+                b = b.s(a)
+            return b
         return None
 
     def f(self, i):
@@ -1588,24 +1590,24 @@ cdef class TensorProductOfQueerSuperCrystalsElement(TensorProductOfRegularCrysta
                 b = b.s(a)
             b = b.f(-1)
             if b is None:
-               return None
+                return None
             for a in range(2, j+1):
                 b = b.s(a)
             for a in range(1, j):
                 b = b.s(a)
             return b
         if i < -n:
-           j = -(i+n)
-           w = <tuple> (self._parent._long_element())
-           b = self
-           for a in w:
-               b = b.s(a)
-           b = b.e(-(n+1-j))
-           if b is None:
-               return None
-           for a in w:
-               b = b.s(a)
-           return b
+            j = -(i+n)
+            w = <tuple> (self._parent._long_element())
+            b = self
+            for a in w:
+                b = b.s(a)
+            b = b.e(-(n+1-j))
+            if b is None:
+                return None
+            for a in w:
+                b = b.s(a)
+            return b
         return None
 
     # Override epsilon/phi (for now)
@@ -1855,6 +1857,7 @@ cdef class InfinityQueerCrystalOfTableauxElement(TensorProductOfQueerSuperCrysta
         n = self._parent._cartan_type.n + 1
         zero = self._parent.weight_lattice_realization().zero()
         La = self._parent.weight_lattice_realization().fundamental_weights()
+
         def fwt(i):
             return zero if i == n else La[i]
         ret -= sum((self._row_lengths[i] - 1 - self._row_lengths[i+1])*(fwt(n-i)-fwt(n-i-1))
@@ -1874,4 +1877,3 @@ cdef Py_ssize_t count_leading(list row, letter):
 # for unpickling
 from sage.misc.persist import register_unpickle_override
 register_unpickle_override('sage.combinat.crystals.tensor_product', 'ImmutableListWithParent',  ImmutableListWithParent)
-

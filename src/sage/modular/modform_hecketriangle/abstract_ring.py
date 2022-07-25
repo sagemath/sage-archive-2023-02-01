@@ -52,7 +52,7 @@ class FormsRing_abstract(Parent):
 
         - ``group``      -- The Hecke triangle group (default: ``HeckeTriangleGroup(3)``)
 
-        - ``base_ring``  -- The base_ring (default: `\Z).
+        - ``base_ring``  -- The base_ring (default: `\Z`).
 
         - ``red_hom``    -- If ``True`` then results of binary operations are considered
                             homogeneous whenever it makes sense (default: ``False``).
@@ -104,7 +104,7 @@ class FormsRing_abstract(Parent):
         self.disp_prec(5)
         self.default_num_prec(53)
 
-        #super(FormsRing_abstract, self).__init__(self.coeff_ring())
+        # super().__init__(self.coeff_ring())
 
     def _repr_(self):
         r"""
@@ -1524,7 +1524,7 @@ class FormsRing_abstract(Parent):
             (x,y,z,d) = self._pol_ring.gens()
             return self.extend_type("weak", ring=True)(1/d*y*x**(self._group.n()/ZZ(2))/(x**self._group.n()-y**2)).reduce()
         else:
-           raise ArithmeticError("g_inv doesn't exist for odd n(={}).".format(self._group.n()))
+            raise ArithmeticError("g_inv doesn't exist for odd n(={}).".format(self._group.n()))
 
     @cached_method
     def E4(self):

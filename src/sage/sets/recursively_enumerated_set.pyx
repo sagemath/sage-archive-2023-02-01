@@ -273,7 +273,7 @@ convention is that the generated elements are the ``s := f(n)``, except when
     ....:     st = set(st) # make a copy
     ....:     if st:
     ....:        el = st.pop()
-    ....:        for i in range(0, len(lst)+1):
+    ....:        for i in range(len(lst)+1):
     ....:            yield (lst[0:i]+[el]+lst[i:], st)
     sage: list(children(([1,2], {3,7,9})))
     [([9, 1, 2], {3, 7}), ([1, 9, 2], {3, 7}), ([1, 2, 9], {3, 7})]
@@ -1735,16 +1735,13 @@ class RecursivelyEnumeratedSet_forest(Parent):
         ....:     def __init__(self):
         ....:         RecursivelyEnumeratedSet_forest.__init__(self, algorithm = 'breadth',
         ....:                               category=InfiniteEnumeratedSets())
-        ....:
         ....:     def roots(self):
         ....:         return [()]
-        ....:
         ....:     def children(self, x):
         ....:         if sum(x) < 3:
         ....:             return [x+(0,), x+(1,)]
         ....:         else:
         ....:             return []
-        ....:
         ....:     def post_process(self, x):
         ....:         if sum(x) == 0 or x[-1] == 0:
         ....:             return None

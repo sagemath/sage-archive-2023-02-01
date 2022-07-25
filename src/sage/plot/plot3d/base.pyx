@@ -154,11 +154,15 @@ cdef class Graphics3d(SageObject):
         if viewer is None:
             viewer = SHOW_DEFAULTS['viewer']
         # fall back to 2d image if necessary
-        if viewer == 'canvas3d' and not can_view_canvas3d:   viewer = 'jmol'
-        if viewer == 'wavefront' and not can_view_wavefront: viewer = 'jmol'
-        if viewer == 'threejs' and not can_view_threejs:     viewer = 'jmol'
-        if viewer == 'jmol' and not can_view_jmol:           viewer = 'tachyon'
-        ### Second, return the corresponding graphics file
+        if viewer == 'canvas3d' and not can_view_canvas3d:
+            viewer = 'jmol'
+        if viewer == 'wavefront' and not can_view_wavefront:
+            viewer = 'jmol'
+        if viewer == 'threejs' and not can_view_threejs:
+            viewer = 'jmol'
+        if viewer == 'jmol' and not can_view_jmol:
+            viewer = 'tachyon'
+        # Second, return the corresponding graphics file
         if viewer == 'threejs':
             return self._rich_repr_threejs(**opts)
         elif viewer == 'jmol':
@@ -218,7 +222,12 @@ cdef class Graphics3d(SageObject):
         )
 
         tachyon_args = dict((key,val) for key,val in opts.items() if key in Graphics3d.tachyon_keywords)
-        tachyon_rt(T.tachyon(**tachyon_args), filename, opts['verbosity'])
+        extra_opts = opts.get("extra_opts", "")
+        if "shade" in opts:
+            if opts["shade"] not in ["full", "medium", "low", "lowest"]:
+                raise ValueError("shade must be set to 'full', 'medium', 'low' or 'lowest'")
+            extra_opts += " -" + opts["shade"] + "shade"
+        tachyon_rt(T.tachyon(**tachyon_args), filename, opts['verbosity'], extra_opts)
         from sage.repl.rich_output.buffer import OutputBuffer
         import sage.repl.rich_output.output_catalog as catalog
         import PIL.Image as Image
@@ -448,6 +457,7 @@ cdef class Graphics3d(SageObject):
         js_options['animate'] = options.get('animate', True)
         js_options['animationControls'] = options.get('animation_controls', True)
         js_options['aspectRatio'] = options.get('aspect_ratio', [1,1,1])
+        js_options['autoScaling'] = options.get('auto_scaling', [False, False, False])
         js_options['autoPlay'] = options.get('auto_play', True)
         js_options['axes'] = options.get('axes', False)
         js_options['axesLabels'] = options.get('axes_labels', ['x','y','z'])
@@ -730,7 +740,8 @@ cdef class Graphics3d(SageObject):
             ([-1.0, -1.0, 0.0], [1.0, 1.0, 1.0])
         """
         a_min, a_max = self.bounding_box()
-        a_min = list(a_min); a_max = list(a_max)
+        a_min = list(a_min)
+        a_max = list(a_max)
         for i in range(3):
             if a_min[i] == a_max[i]:
                 a_min[i] = a_min[i] - 1
@@ -1246,7 +1257,6 @@ end_scene""".format(
             f.write('wireframe off; spacefill off\n')
             f.write('set labelOffset 0 0\n')
 
-
         # Set the scene background color
         f.write('background [%s,%s,%s]\n'%tuple([int(a*255) for a in background]))
         if spin:
@@ -1254,14 +1264,15 @@ end_scene""".format(
         else:
             f.write('spin OFF\n')
         if stereo:
-            if stereo is True: stereo = "redblue"
+            if stereo is True:
+                stereo = "redblue"
             f.write('stereo %s\n' % stereo)
         if orientation:
-            f.write('moveto 0 %s %s %s %s\n'%tuple(orientation))
+            f.write('moveto 0 %s %s %s %s\n' % tuple(orientation))
 
         f.write('centerAt absolute {0 0 0}\n')
         f.write('zoom {0}\n'.format(zoom * 100))
-        f.write('frank OFF\n') # jmol logo
+        f.write('frank OFF\n')  # jmol logo
 
         if perspective_depth:
             f.write('set perspectivedepth ON\n')
@@ -1479,8 +1490,10 @@ end_scene""".format(
         if aspect_ratio == "automatic" or aspect_ratio == [1.0]*3:
             return a_min, a_max
 
-        longest_side = 0; longest_length = a_max[0] - a_min[0]
-        shortest_side = 0; shortest_length = a_max[0] - a_min[0]
+        longest_side = 0
+        longest_length = a_max[0] - a_min[0]
+        shortest_side = 0
+        shortest_length = a_max[0] - a_min[0]
 
         for i in range(3):
             s = a_max[i] - a_min[i]
@@ -1522,7 +1535,8 @@ end_scene""".format(
 
     def _transform_to_bounding_box(self, xyz_min, xyz_max, a_min, a_max, frame, axes, thickness, labels):
 
-        a_min_orig = a_min; a_max_orig = a_max
+        a_min_orig = a_min
+        a_max_orig = a_max
 
         # Rescale in each direction
         scale = [float(xyz_max[i] - xyz_min[i]) / (a_max[i] - a_min[i]) for i in range(3)]
@@ -1685,6 +1699,24 @@ end_scene""".format(
         -  ``raydepth`` (for tachyon) -- (default: 8)
            see the :class:`sage.plot.plot3d.tachyon.Tachyon` class
 
+        -  ``shade`` (for tachyon) -- string (default: ``'full'``);
+           shading options. Admissible values are
+
+           * ``'full'``: best quality rendering (and slowest).
+             Sets tachyon command line flag ``-fullshade``.
+
+           * ``'medium``: good quality rendering, but no shadows.
+             Sets tachyon command line flag ``-mediumshade``.
+
+           * ``'low'``: low quality rendering, preview (and fast).
+             Sets tachyon command line flag ``-lowshade``.
+
+           * ``'lowest'``: worst quality rendering, preview (and fastest).
+             Sets tachyon command line flag ``-lowestshade``.
+             
+        -  ``extra_opts`` (for tachyon) -- string (default: empty string);
+           extra options that will be appended to the tachyon command line.
+
         -  ``**kwds`` -- other options, which make sense for particular
            rendering engines
 
@@ -1752,6 +1784,16 @@ end_scene""".format(
         the plot rendered inline using HTML canvas::
 
             sage: p.show(viewer='canvas3d')
+
+        Sometimes shadows in Tachyon-produced images can lead to confusing
+        plots. To remove them::
+
+            sage: p.show(viewer="tachyon", shade="medium")
+
+        One can also pass Tachyon command line flags directly. For example,
+        the following line produces the same result as the previous one::
+
+            sage: p.show(viewer="tachyon", extra_opts="-mediumshade")
         """
         from sage.repl.rich_output import get_display_manager
         dm = get_display_manager()
@@ -3218,8 +3260,10 @@ def flatten_list(L):
     if type(L) is not list:
         return [L]
     flat = []
-    L_stack = []; L_pop = L_stack.pop
-    i_stack = []; i_pop = i_stack.pop
+    L_stack = []
+    L_pop = L_stack.pop
+    i_stack = []
+    i_pop = i_stack.pop
     cdef Py_ssize_t i = 0
     while i < PyList_GET_SIZE(L) or PyList_GET_SIZE(L_stack) > 0:
         while i < PyList_GET_SIZE(L):

@@ -192,7 +192,7 @@ cdef class Matrix_modn_sparse(matrix_sparse.Matrix_sparse):
         n.ivalue = get_entry(&self.rows[i], j)
         return n
 
-    cdef bint get_is_zero_unsafe(self, Py_ssize_t i, Py_ssize_t j):
+    cdef bint get_is_zero_unsafe(self, Py_ssize_t i, Py_ssize_t j) except -1:
         """
         Return 1 if the entry ``(i, j)`` is zero, otherwise 0.
 
@@ -1025,7 +1025,7 @@ cdef class Matrix_modn_sparse(matrix_sparse.Matrix_sparse):
             ....:         x, d = m._solve_vector_linbox(b, algorithm=algo)
             ....:         assert m * x == d * b
         """
-        Vin = self._column_ambient_module().dense_module()
+        Vin = self.column_ambient_module(base_ring=None, sparse=False)
         v = Vin(v)
 
         if self._nrows == 0 or self._ncols == 0:
@@ -1056,7 +1056,7 @@ cdef class Matrix_modn_sparse(matrix_sparse.Matrix_sparse):
         elif method == METHOD_BLACKBOX:
             linbox.solve(res[0], D, A[0], b[0], linbox.Method.Blackbox())
 
-        Vout = self._row_ambient_module().dense_module()
+        Vout = self.row_ambient_module(base_ring=None, sparse=False)
         res_sage = new_sage_vector_integer_dense(Vout, res[0])
         cdef Integer d = PY_NEW(Integer)
         mpz_set(d.value, D.get_mpz_const())

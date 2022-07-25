@@ -149,7 +149,7 @@ class QuantumCliffordAlgebra(CombinatorialFreeModule):
         q = F(q)
         if F not in Fields():
             raise TypeError("base ring must be a field")
-        return super(QuantumCliffordAlgebra, cls).__classcall__(cls, n, k, q, F)
+        return super().__classcall__(cls, n, k, q, F)
 
     def __init__(self, n, k, q, F):
         r"""
@@ -547,4 +547,3 @@ class QuantumCliffordAlgebra(CombinatorialFreeModule):
             return Cl._from_dict(ret)
 
         __invert__ = inverse
-

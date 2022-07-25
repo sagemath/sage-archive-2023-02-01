@@ -238,21 +238,21 @@ class DynamicalSystem_Berkovich(Element, metaclass=InheritComparisonClasscallMet
             if not isinstance(dynamical_system, DynamicalSystem_affine):
                 try:
                     dynamical_system = DynamicalSystem_affine(dynamical_system)
-                except:
+                except (TypeError, ValueError):
                     raise TypeError('domain was affine Berkovich space, but dynamical_system did not ' + \
                         'convert to an affine dynamical system')
         if isinstance(domain, Berkovich_Cp_Projective):
             if not isinstance(dynamical_system, DynamicalSystem_projective):
                 try:
                     dynamical_system = DynamicalSystem_projective(dynamical_system)
-                except:
+                except (TypeError, ValueError):
                     raise TypeError('domain was projective Berkovich space, but dynamical_system did not convert ' + \
                         'to a projective dynamical system')
 
         if not isinstance(dynamical_system, DynamicalSystem):
             try:
                 dynamical_system = DynamicalSystem(dynamical_system)
-            except:
+            except (TypeError, ValueError):
                 raise TypeError('dynamical_system did not convert to a dynamical system')
         morphism_domain = dynamical_system.domain()
 
@@ -803,8 +803,8 @@ class DynamicalSystem_Berkovich_projective(DynamicalSystem_Berkovich):
         if not isinstance(x.parent(), Berkovich_Cp_Projective):
             try:
                 x = self.domain()(x)
-            except:
-                raise TypeError('action of dynamical system not defined on %s' %x.parent())
+            except (TypeError, ValueError):
+                raise TypeError('action of dynamical system not defined on %s' % x.parent())
         if x.parent().is_padic_base() != self.domain().is_padic_base():
             raise ValueError('x was not backed by the same type of field as f')
         if x.prime() != self.domain().prime():
@@ -858,8 +858,8 @@ class DynamicalSystem_Berkovich_projective(DynamicalSystem_Berkovich):
             num = fraction[0].quo_rem(gcd)[0]
             dem = fraction[1].quo_rem(gcd)[0]
             if dem.is_zero():
-                f = DynamicalSystem_affine(F[0]/F[1]).homogenize(1)
-                f = f.conjugate(Matrix([[0, 1], [1 , 0]]))
+                f = DynamicalSystem_affine(F[0] / F[1]).homogenize(1)
+                f = f.conjugate(Matrix([[0, 1], [1, 0]]))
                 g = DynamicalSystem_Berkovich(f)
                 return g(self.domain()(QQ(0), QQ(1))).involution_map()
             # if the reduction is not constant, the image is the Gauss point
@@ -893,7 +893,7 @@ class DynamicalSystem_Berkovich_projective(DynamicalSystem_Berkovich):
                         try:
                             factor_root_field = factor.root_field('a')
                             factor = factor.change_ring(factor_root_field)
-                        except:
+                        except (TypeError, ValueError):
                             raise NotImplementedError('cannot check if poles lie in type III disk')
                     else:
                         factor_root_field = factor.base_ring()
@@ -1078,7 +1078,7 @@ class DynamicalSystem_Berkovich_affine(DynamicalSystem_Berkovich):
         if not isinstance(x, Berkovich_Element_Cp_Affine):
             try:
                 x = self.domain()(x)
-            except:
+            except (TypeError, ValueError):
                 raise ValueError('action of dynamical system not defined on %s' %x)
         proj_system = self.homogenize(1)
         return proj_system(x.as_projective_point()).as_affine_point()

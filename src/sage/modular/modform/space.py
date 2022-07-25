@@ -282,7 +282,7 @@ class ModularFormsSpace(hecke.HeckeModule_generic):
             Congruence Subgroup Gamma1(113)
 
         Note that `\Gamma_1(1)` and `\Gamma_0(1)` are replaced by
-        `\mathrm{SL}_2(\ZZ)`.
+        `\SL_2(\ZZ)`.
 
         ::
 
@@ -1057,9 +1057,9 @@ class ModularFormsSpace(hecke.HeckeModule_generic):
             ...
             TypeError: unable to create modular form from exact non-zero polynomial
 
-            sage: E=ModularForms(3,12).cuspidal_subspace()
-            sage: f=E.gens()[0]
-            sage: g=f-f
+            sage: E = ModularForms(3,12).cuspidal_subspace()
+            sage: f = E.gens()[0]
+            sage: g = f - f
             sage: g.is_old()
             True
 

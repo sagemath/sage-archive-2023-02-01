@@ -16,8 +16,8 @@ quadratic equations in `\mathbb{P}^3` ::
     sage: WeierstrassForm([quadratic1, quadratic2])
     (-1/4, 0)
 
-Hence, the Weierstrass form of this complete intersection is $Y^2 =
-X^3 - \frac{1}{4} X Z^4$.
+Hence, the Weierstrass form of this complete intersection is `Y^2 =
+X^3 - \frac{1}{4} X Z^4`.
 """
 
 #*****************************************************************************
@@ -29,7 +29,7 @@ X^3 - \frac{1}{4} X Z^4$.
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 
-from sage.rings.all import PolynomialRing
+from sage.rings.polynomial.polynomial_ring_constructor import PolynomialRing
 from sage.rings.invariants.invariant_theory import invariant_theory
 from sage.schemes.toric.weierstrass import _check_homogeneity
 
@@ -101,10 +101,10 @@ def _check_polynomials_P3(quadratic1, quadratic2, variables):
         sage: _check_polynomials_P3(w^2, quadratic, [w,x,y,t])
         Traceback (most recent call last):
         ...
-        ValueError: The polynomial is not homogeneous with weights (1, 1, 1, 1)
+        ValueError: the polynomial is not homogeneous with weights (1, 1, 1, 1)
     """
     if quadratic1.parent() is not quadratic2.parent():
-        raise ValueError('The two quadratics must be in the same polynomial ring.')
+        raise ValueError('the two quadratics must be in the same polynomial ring')
     if variables is None:
         variables = quadratic1.variables() + quadratic2.variables()
         variables = sorted(set(variables), reverse=True)
@@ -116,25 +116,24 @@ def _check_polynomials_P3(quadratic1, quadratic2, variables):
         w, x, y = variables
         z = None
     else:
-        raise ValueError('Need three or four variables, got '+str(variables))
+        raise ValueError(f'need three or four variables, got {variables}')
     return (w, x, y, z)
-
 
 
 ######################################################################
 def _biquadratic_syzygy_quartic(quadratic1, quadratic2, variables=None):
     r"""
-    Helper function for the Weierstrass form of a biquadratic in $`\mathbb{P}^3$
+    Helper function for the Weierstrass form of a biquadratic in `\mathbb{P}^3`
 
     The invariants and covariants of a quaternary biquadratic satisfy
     the relation
     :meth:`sage.rings.invariant_theory.TwoQuaternaryQuadratics.syzygy`,
-    which is (modulo the two quadratic equations) of the form $J^2 =
-    p_4(T, T')$ where
+    which is (modulo the two quadratic equations) of the form `J^2 =
+    p_4(T, T')` where
 
-    * $J$, $T$, $T'$ are the covariants of the biquadratic.
+    * `J`, `T`, `T'` are the covariants of the biquadratic.
 
-    * $p_4$ is some quartic polynomial whose coefficients are
+    * `p_4` is some quartic polynomial whose coefficients are
       invariants of the biquadratic.
 
     INPUT:
@@ -148,7 +147,7 @@ def _biquadratic_syzygy_quartic(quadratic1, quadratic2, variables=None):
     - The quaternary biquadratic as an algebraic form
       :class:`~sage.rings.invariant_theory.TwoQuaternaryQuadratics`
 
-    - The binary quartic $p_4$ as a
+    - The binary quartic `p_4` as a
       :class:`~sage.rings.invariant_theory.BinaryQuartic`
 
     - The dictionary of variable substitutions from the variables of
@@ -289,4 +288,3 @@ def WeierstrassMap_P3(quadratic1, quadratic2, variables=None):
     g = quartic.g_covariant().subs(from_aux)
     h = quartic.h_covariant().subs(from_aux)
     return (4*g, 4*h, J)
-

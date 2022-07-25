@@ -29,7 +29,7 @@ from sage.rings.integer_ring import ZZ
 # Complete.module_morphism( coeff = coeff_pi, codomain=Psi, triangularity="finer" )
 # the difficulty is how to best describe the support of the output.
 
-def coeff_pi(J,I):
+def coeff_pi(J, I):
     r"""
     Returns the coefficient `\pi_{J,I}` as defined in [NCSF]_.
 
@@ -96,9 +96,10 @@ def coeff_ell(J,I):
         sage: coeff_ell(Composition([2,1]), Composition([3]))
         2
     """
-    return prod([len(_) for _ in J.refinement_splitting(I)])
+    return prod([len(elt) for elt in J.refinement_splitting(I)])
 
-def coeff_sp(J,I):
+
+def coeff_sp(J, I):
     r"""
     Returns the coefficient `sp_{J,I}` as defined in [NCSF]_.
 
@@ -322,4 +323,3 @@ def number_of_SSRCT(content_comp, shape_comp):
             if cond([shape_comp[0]]+list(x), shape_comp):
                 s += number_of_SSRCT(Comps(content_comp[1:]), x)
     return s
-

@@ -71,7 +71,7 @@ class SymmetricFunctionsNonCommutingVariablesDual(UniqueRepresentation, Parent):
             sage: SymmetricFunctionsNonCommutingVariables(ZZ).dual()
             Dual symmetric functions in non-commuting variables over the Integer Ring
         """
-        return "Dual symmetric functions in non-commuting variables over the %s"%self.base_ring()
+        return "Dual symmetric functions in non-commuting variables over the %s" % self.base_ring()
 
     def a_realization(self):
         r"""
@@ -229,6 +229,7 @@ class SymmetricFunctionsNonCommutingVariablesDual(UniqueRepresentation, Parent):
             P = SetPartitions()
             n = A.size()
             k = B.size()
+
             def unions(s):
                 a = sorted(s)
                 b = sorted(Set(range(1, n+k+1)).difference(s))
@@ -367,7 +368,7 @@ class SymmetricFunctionsNonCommutingVariablesDual(UniqueRepresentation, Parent):
                  + 2*w{{1, 2}, {3}, {4}} + 2*w{{1, 3}, {2}, {4}} + 2*w{{1, 4}, {2}, {3}}
             """
             la = Partition(la)
-            c = prod([factorial(_) for _ in la.to_exp()])
+            c = prod([factorial(i) for i in la.to_exp()])
             P = SetPartitions()
             return self.sum_of_terms([(P(m), c) for m in SetPartitions(sum(la), la)], distinct=True)
 
@@ -535,7 +536,7 @@ class SymmetricFunctionsNonCommutingVariablesDual(UniqueRepresentation, Parent):
                 R = self.base_ring()
                 for A, coeff in self:
                     la = A.shape()
-                    exp = prod([factorial(_) for _ in la.to_exp()])
+                    exp = prod([factorial(i) for i in la.to_exp()])
                     if la not in d:
                         if coeff / exp not in R:
                             return False
@@ -582,6 +583,6 @@ class SymmetricFunctionsNonCommutingVariablesDual(UniqueRepresentation, Parent):
                 if not self.is_symmetric():
                     raise ValueError("not a symmetric function")
                 h = SymmetricFunctions(self.parent().base_ring()).homogeneous()
-                d = {A.shape(): c for A,c in self}
-                return h.sum_of_terms([( AA, cc / prod([factorial(_) for _ in AA.to_exp()]) )
-                                        for AA,cc in d.items()], distinct=True)
+                d = {A.shape(): c for A, c in self}
+                return h.sum_of_terms([( AA, cc / prod([factorial(i) for i in AA.to_exp()]) )
+                                        for AA, cc in d.items()], distinct=True)

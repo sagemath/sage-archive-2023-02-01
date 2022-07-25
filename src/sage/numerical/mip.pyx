@@ -874,31 +874,31 @@ cdef class MixedIntegerLinearProgram(SageObject):
         return tuple(self.new_variable() for i in range(n))
 
     cpdef int number_of_constraints(self):
-      r"""
-      Returns the number of constraints assigned so far.
+        r"""
+        Return the number of constraints assigned so far.
 
-      EXAMPLES::
+        EXAMPLES::
 
             sage: p = MixedIntegerLinearProgram(solver='GLPK')
             sage: p.add_constraint(p[0] - p[2], min = 1, max = 4)
             sage: p.add_constraint(p[0] - 2*p[1], min = 1)
             sage: p.number_of_constraints()
             2
-      """
-      return self._backend.nrows()
+        """
+        return self._backend.nrows()
 
     cpdef int number_of_variables(self):
-      r"""
-      Returns the number of variables used so far.
+        r"""
+        Returns the number of variables used so far.
 
-      Note that this is backend-dependent, i.e. we count solver's
-      variables rather than user's variables. An example of the latter
-      can be seen below: Gurobi converts double inequalities,
-      i.e. inequalities like `m <= c^T x <= M`, with `m<M`, into
-      equations, by adding extra variables: `c^T x + y = M`, `0 <= y
-      <= M-m`.
+        Note that this is backend-dependent, i.e. we count solver's
+        variables rather than user's variables. An example of the latter
+        can be seen below: Gurobi converts double inequalities,
+        i.e. inequalities like `m <= c^T x <= M`, with `m<M`, into
+        equations, by adding extra variables: `c^T x + y = M`, `0 <= y
+        <= M-m`.
 
-      EXAMPLES::
+        EXAMPLES::
 
             sage: p = MixedIntegerLinearProgram(solver='GLPK')
             sage: p.add_constraint(p[0] - p[2], max = 4)
@@ -915,8 +915,8 @@ cdef class MixedIntegerLinearProgram(SageObject):
             sage: p.add_constraint(p[0] - p[2], min = 1, max = 4)  # optional - Gurobi
             sage: p.number_of_variables()                          # optional - Gurobi
             3
-      """
-      return self._backend.ncols()
+        """
+        return self._backend.ncols()
 
     def constraints(self, indices = None):
         r"""
@@ -1001,10 +1001,10 @@ cdef class MixedIntegerLinearProgram(SageObject):
 
         # If indices is None, we actually want to return all constraints
         if indices is None:
-          indices = list(xrange(b.nrows()))
+            indices = list(xrange(b.nrows()))
 
         # Only one constraint
-        if isinstance(indices, int) or isinstance(indices, Integer):
+        if isinstance(indices, (int, Integer)):
             lb, ub = b.row_bounds(indices)
             return (lb, b.row(indices), ub)
 
@@ -1018,7 +1018,7 @@ cdef class MixedIntegerLinearProgram(SageObject):
 
         # Weird Input
         else:
-          raise ValueError("constraints() requires a list of integers, though it will accommodate None or an integer.")
+            raise ValueError("constraints() requires a list of integers, though it will accommodate None or an integer.")
 
     def polyhedron(self, **kwds):
         r"""
@@ -1336,7 +1336,9 @@ cdef class MixedIntegerLinearProgram(SageObject):
             sage: x = p.new_variable(nonnegative=True)
             sage: p.set_objective(x[1] + x[2])
             sage: p.add_constraint(-3*x[1] + 2*x[2], max=2,name="OneConstraint")
-            sage: p.write_mps(os.path.join(SAGE_TMP, "lp_problem.mps"))
+            sage: import tempfile
+            sage: with tempfile.NamedTemporaryFile(suffix=".mps") as f:
+            ....:     p.write_mps(f.name)
             Writing problem data to ...
             17 records were written
 
@@ -1362,7 +1364,9 @@ cdef class MixedIntegerLinearProgram(SageObject):
             sage: x = p.new_variable(nonnegative=True)
             sage: p.set_objective(x[1] + x[2])
             sage: p.add_constraint(-3*x[1] + 2*x[2], max=2)
-            sage: p.write_lp(os.path.join(SAGE_TMP, "lp_problem.lp"))
+            sage: import tempfile
+            sage: with tempfile.NamedTemporaryFile(suffix=".lp") as f:
+            ....:     p.write_lp(f.name)
             Writing problem data to ...
             9 lines were written
 
@@ -2273,8 +2277,8 @@ cdef class MixedIntegerLinearProgram(SageObject):
             3
         """
         if self._check_redundant:
-          for i in sorted(constraints,reverse=True):
-            self._constraints.pop(i)
+            for i in sorted(constraints, reverse=True):
+                self._constraints.pop(i)
         self._backend.remove_constraints(constraints)
 
     def set_binary(self, ee):
@@ -3293,17 +3297,17 @@ cdef class MIPVariable(SageObject):
             raise IndexError("{} does not index a component of {}".format(i, self))
         zero = self._p._backend.zero()
         name = self._name + "[" + str(i) + "]" if self._name else None
+
         j = self._p._backend.add_variable(
             lower_bound=self._lower_bound,
             upper_bound=self._upper_bound,
-            binary=False,
-            continuous=True,
-            integer=False,
+            binary=(self._vtype == self._p.__BINARY),
+            continuous=(self._vtype == self._p.__REAL),
+            integer=(self._vtype == self._p.__INTEGER),
             obj=zero,
             name=name)
         v = self._p.linear_functions_parent()({j : 1})
         self._p._variables[v] = j
-        self._p._backend.set_variable_type(j, self._vtype)
         self._dict[i] = v
         return v
 

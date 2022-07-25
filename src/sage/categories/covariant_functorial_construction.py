@@ -136,7 +136,7 @@ class CovariantFunctorialConstruction(UniqueRepresentation, SageObject):
 
             sage: E = CombinatorialFreeModule(QQ, ["a", "b", "c"])
             sage: tensor.category_from_parents((E, E, E))
-            Category of tensor products of vector spaces with basis over Rational Field
+            Category of tensor products of finite dimensional vector spaces with basis over Rational Field
         """
         from sage.structure.parent import Parent
         assert(all(isinstance(parent, Parent) for parent in parents))
@@ -315,7 +315,7 @@ class FunctorialConstructionCategory(Category): # Should this be CategoryWithBas
         """
         base_category_class = cls._base_category_class[0]
         if isinstance(category, base_category_class):
-            return super(FunctorialConstructionCategory, cls).__classcall__(cls, category, *args)
+            return super().__classcall__(cls, category, *args)
         else:
             return cls.category_of(base_category_class(category, *args))
 
@@ -435,7 +435,7 @@ class FunctorialConstructionCategory(Category): # Should this be CategoryWithBas
         assert isinstance(category, Category)
         self._base_category = category
         self._args = args
-        super(FunctorialConstructionCategory, self).__init__(*args)
+        super().__init__(*args)
 
     def base_category(self):
         """
@@ -684,4 +684,5 @@ class RegressiveCovariantConstructionCategory(CovariantConstructionCategory):
             sage: C.__class__.default_super_categories(C.base_category(), *C._args)
             Category of unital subquotients of semigroups
         """
-        return Category.join([category, super(RegressiveCovariantConstructionCategory, cls).default_super_categories(category, *args)])
+        return Category.join([category,
+                              super().default_super_categories(category, *args)])

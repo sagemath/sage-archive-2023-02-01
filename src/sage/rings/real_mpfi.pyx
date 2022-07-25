@@ -959,7 +959,7 @@ cdef class RealIntervalField_class(sage.rings.abc.RealIntervalField):
             False
         """
         try:
-            s = codomain._coerce_(self(1))
+            s = codomain.coerce(self(1))
         except TypeError:
             return False
         return s == im_gens[0]
@@ -977,7 +977,7 @@ cdef class RealIntervalField_class(sage.rings.abc.RealIntervalField):
         """
         if key == 'element_is_atomic':
             return True
-        return super(RealIntervalField_class, self)._repr_option(key)
+        return super()._repr_option(key)
 
     def characteristic(self):
         """
@@ -1943,12 +1943,12 @@ cdef class RealIntervalFieldElement(RingElement):
 
         cdef long digits
         digits = strlen(lower_s)
-        if lower_s[0] == '-':
+        if lower_s[0] == b'-':
             digits -= 1
         lower_expo -= digits
 
         digits = strlen(upper_s)
-        if upper_s[0] == '-':
+        if upper_s[0] == b'-':
             digits -= 1
         upper_expo -= digits
 
@@ -2117,7 +2117,7 @@ cdef class RealIntervalFieldElement(RingElement):
             raise MemoryError("Unable to allocate memory for the mantissa of an interval")
         mpz_get_str(tmp_cstr, base, lower_mpz)
         digits = strlen(tmp_cstr)
-        if tmp_cstr[0] == '-':
+        if tmp_cstr[0] == b'-':
             digits -= 1
             mant_string = bytes_to_str(tmp_cstr+1)
             sign_string = bytes_to_str(b'-')
@@ -3902,7 +3902,7 @@ cdef class RealIntervalFieldElement(RingElement):
         elif op == Py_GE:  # >=
             return mpfr_lessequal_p(&rt.value.right, &lt.value.left)
 
-    def __nonzero__(self):
+    def __bool__(self):
         """
         Return ``True`` if ``self`` is not known to be exactly zero.
 
@@ -4413,11 +4413,11 @@ cdef class RealIntervalFieldElement(RingElement):
             return self.square()
         if isinstance(exponent, (int, long, Integer)):
             q, r = divmod (exponent, 2)
-            if r == 0: # x^(2q) = (x^q)^2
-               xq = RingElement.__pow__(self, q)
-               return xq.abs().square()
+            if r == 0:  # x^(2q) = (x^q)^2
+                xq = RingElement.__pow__(self, q)
+                return xq.abs().square()
             else:
-               return RingElement.__pow__(self, exponent)
+                return RingElement.__pow__(self, exponent)
         return (self.log() * exponent).exp()
 
     def log(self, base='e'):
@@ -4543,7 +4543,7 @@ cdef class RealIntervalFieldElement(RingElement):
         return x
 
     def exp2(self):
-        """
+        r"""
         Returns `2^\mathtt{self}`
 
         EXAMPLES::

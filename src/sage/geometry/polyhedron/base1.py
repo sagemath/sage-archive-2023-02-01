@@ -95,14 +95,14 @@ class Polyhedron_base1(Polyhedron_base0, ConvexSet_closed):
         r"""
         TESTS::
 
-            sage: K.<a> = QuadraticField(2)
-            sage: p = Polyhedron(vertices=[(0,1,a),(3,a,5)],
-            ....:                rays=[(a,2,3), (0,0,1)],
+            sage: K.<a> = QuadraticField(2)                                     # optional - sage.rings.number_field
+            sage: p = Polyhedron(vertices=[(0, 1, a), (3, a, 5)],               # optional - sage.rings.number_field
+            ....:                rays=[(a, 2, 3), (0, 0, 1)],
             ....:                base_ring=K)
-            sage: q = Polyhedron(vertices=[(3,a,5),(0,1,a)],
-            ....:                rays=[(0,0,1), (a,2,3)],
+            sage: q = Polyhedron(vertices=[(3, a, 5), (0, 1, a)],               # optional - sage.rings.number_field
+            ....:                rays=[(0, 0, 1), (a, 2, 3)],
             ....:                base_ring=K)
-            sage: hash(p) == hash(q)
+            sage: hash(p) == hash(q)                                            # optional - sage.rings.number_field
             True
         """
         # TODO: find something better *but* fast
@@ -401,11 +401,11 @@ class Polyhedron_base1(Polyhedron_base0, ConvexSet_closed):
             sage: poly_test.ambient_vector_space() is poly_test.ambient()
             True
 
-            sage: poly_test.ambient_vector_space(AA)
+            sage: poly_test.ambient_vector_space(AA)                                 # optional - sage.rings.number_field
             Vector space of dimension 4 over Algebraic Real Field
-            sage: poly_test.ambient_vector_space(RR)
-            Vector space of dimension 4 over Real Field with 53 bits of precision
-            sage: poly_test.ambient_vector_space(SR)
+            sage: poly_test.ambient_vector_space(RDF)
+            Vector space of dimension 4 over Real Double Field
+            sage: poly_test.ambient_vector_space(SR)                                 # optional - sage.symbolic
             Vector space of dimension 4 over Symbolic Ring
         """
         return self.Vrepresentation_space().vector_space(base_field=base_field)
@@ -610,13 +610,13 @@ class Polyhedron_base1(Polyhedron_base0, ConvexSet_closed):
         polyhedron::
 
             sage: ray = Polyhedron(vertices=[(0,0)], rays=[(1,0)], base_ring=QQ)
-            sage: ray.contains([sqrt(2)/3,0])        # irrational coordinates are ok
+            sage: ray.contains([sqrt(2)/3,0])        # irrational coordinates are ok    # optional - sage.symbolic
             True
-            sage: a = var('a')
-            sage: ray.contains([a,0])                # a might be negative!
+            sage: a = var('a')                                                          # optional - sage.symbolic
+            sage: ray.contains([a,0])                # a might be negative!             # optional - sage.symbolic
             False
-            sage: assume(a>0)
-            sage: ray.contains([a,0])
+            sage: assume(a>0)                                                           # optional - sage.symbolic
+            sage: ray.contains([a,0])                                                   # optional - sage.symbolic
             True
             sage: ray.contains(['hello', 'kitty'])   # no common ring for coordinates
             False

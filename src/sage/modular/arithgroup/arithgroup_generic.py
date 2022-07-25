@@ -1,5 +1,5 @@
 r"""
-Arithmetic subgroups (finite index subgroups of `{\rm SL}_2(\ZZ)`)
+Arithmetic subgroups (finite index subgroups of `\SL_2(\ZZ)`)
 """
 ################################################################################
 #
@@ -46,7 +46,7 @@ def is_ArithmeticSubgroup(x):
 
 class ArithmeticSubgroup(Group):
     r"""
-    Base class for arithmetic subgroups of `{\rm SL}_2(\ZZ)`. Not
+    Base class for arithmetic subgroups of `\SL_2(\ZZ)`. Not
     intended to be used directly, but still includes quite a few
     general-purpose routines which compute data about an arithmetic subgroup
     assuming that it has a working element testing routine.
@@ -92,7 +92,7 @@ class ArithmeticSubgroup(Group):
         """
         if key == 'element_ascii_art':
             return True
-        return super(ArithmeticSubgroup, self)._repr_option(key)
+        return super()._repr_option(key)
 
     def __reduce__(self):
         r"""
@@ -915,7 +915,7 @@ class ArithmeticSubgroup(Group):
 
     def projective_index(self):
         r"""
-        Return the index of the image of self in `{\rm PSL}_2(\ZZ)`. This is equal
+        Return the index of the image of self in `\PSL_2(\ZZ)`. This is equal
         to the index of self if self contains -1, and half of this otherwise.
 
         This is equal to the degree of the natural map from the modular curve

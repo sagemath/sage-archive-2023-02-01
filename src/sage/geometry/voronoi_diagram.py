@@ -20,7 +20,8 @@ from sage.rings.rational_field import QQ
 import sage.rings.abc
 from sage.geometry.triangulation.point_configuration import PointConfiguration
 from sage.modules.free_module_element import vector
-from sage.plot.all import line, point, rainbow, plot
+from sage.misc.lazy_import import lazy_import
+lazy_import("sage.plot.all", ["line", "point", "rainbow", "plot"])
 
 
 class VoronoiDiagram(SageObject):
@@ -133,7 +134,6 @@ class VoronoiDiagram(SageObject):
                         enormalized.append(ineq)
                     else:
                         enormalized.append([i / ineq[0] for i in ineq[1:]])
-                # print enormalized
                 hlist = [list(ineq) for ineq in p.Hrepresentation()]
                 hlistnormalized = []
                 for ineq in hlist:
@@ -141,7 +141,6 @@ class VoronoiDiagram(SageObject):
                         hlistnormalized.append(ineq)
                     else:
                         hlistnormalized.append([i / ineq[0] for i in ineq[1:]])
-                # print hlistnormalized
 
         for i in range(self._n):
             # for base ring RDF and AA, Polyhedron keeps the order of the

@@ -612,7 +612,7 @@ class Posets(metaclass=ClasscallMetaclass):
              [[4, 2], [5, 1]],
              [[5, 1], [6]]]
         """
-        from sage.rings.semirings.non_negative_integer_semiring import NN
+        from sage.rings.semirings.all import NN
         if n not in NN:
             raise ValueError('n must be an integer')
         from sage.combinat.partition import Partitions, Partition
@@ -946,7 +946,7 @@ class Posets(metaclass=ClasscallMetaclass):
             D.relabel([i-1 for i in Permutations(n).random_element()])
             return LatticePoset(D)
 
-        raise AssertionError("Bug in RandomLattice().")
+        raise AssertionError("bug in RandomLattice()")
 
     @staticmethod
     def SetPartitions(n):
@@ -963,7 +963,7 @@ class Posets(metaclass=ClasscallMetaclass):
             sage: posets.SetPartitions(4)
             Finite lattice containing 15 elements
         """
-        from sage.rings.semirings.non_negative_integer_semiring import NN
+        from sage.rings.semirings.all import NN
         if n not in NN:
             raise ValueError('n must be an integer')
         from sage.combinat.set_partition import SetPartitions
@@ -1131,9 +1131,9 @@ class Posets(metaclass=ClasscallMetaclass):
         start = Permutation(start)
         end = Permutation(end)
         if len(start) != len(end):
-            raise TypeError("Start (%s) and end (%s) must have same length." % (start, end))
+            raise TypeError("start (%s) and end (%s) must have same length" % (start, end))
         if not start.bruhat_lequal(end):
-            raise TypeError("Must have start (%s) <= end (%s) in Bruhat order." % (start, end))
+            raise TypeError("must have start (%s) <= end (%s) in Bruhat order" % (start, end))
         unseen = [start]
         nodes = {}
         while unseen:
@@ -1241,7 +1241,7 @@ class Posets(metaclass=ClasscallMetaclass):
             raise ValueError("n must be greater than 2")
         for c in colors:
             if c not in ('green', 'red', 'yellow', 'orange', 'silver', 'blue'):
-                raise ValueError("Color input must be from the following: 'green', 'red', 'yellow', 'orange', 'silver', and 'blue'.")
+                raise ValueError("color input must be from the following: 'green', 'red', 'yellow', 'orange', 'silver', and 'blue'")
         elem = [(i, j, k) for i in range(n)
                 for j in range(n-i) for k in range(n-i-j)]
         rels = []

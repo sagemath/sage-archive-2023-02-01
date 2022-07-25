@@ -613,9 +613,8 @@ class RuleRSK(Rule):
                 raise TypeError("p must be standard to have a valid permutation as output")
             from sage.combinat.permutation import Permutation
             return Permutation(reversed(lower_row))
-        else:
-            return super(RuleRSK, self)._backward_format_output(lower_row, upper_row, output,
-                                                                p_is_standard, q_is_standard)
+        return super()._backward_format_output(lower_row, upper_row, output,
+                                               p_is_standard, q_is_standard)
 
 
 class RuleEG(Rule):
@@ -798,8 +797,8 @@ class RuleEG(Rule):
             from sage.combinat.permutation import Permutations
             return Permutations(n).from_reduced_word(list(lower_row))
         else:
-            return super(RuleEG, self)._backward_format_output(lower_row, upper_row, output,
-                                                               p_is_standard, q_is_standard)
+            return super()._backward_format_output(lower_row, upper_row, output,
+                                                   p_is_standard, q_is_standard)
 
 
 class RuleHecke(Rule):
@@ -1483,8 +1482,8 @@ class RuleDualRSK(Rule):
             from sage.combinat.permutation import Permutation
             return Permutation(reversed(lower_row))
         else:
-            return super(RuleDualRSK, self)._backward_format_output(lower_row, upper_row, output,
-                                                                    p_is_standard, q_is_standard)
+            return super()._backward_format_output(lower_row, upper_row, output,
+                                                   p_is_standard, q_is_standard)
 
     def _forward_format_output(self, p, q, check_standard):
         r"""
@@ -2959,7 +2958,7 @@ class RuleStar(Rule):
                 df.append([])
             return DecreasingHeckeFactorization(df)
 
-class InsertionRules(object):
+class InsertionRules():
     r"""
     Catalog of rules for RSK-like insertion algorithms.
     """
@@ -3368,10 +3367,11 @@ def RSK_inverse(p, q, output='array', insertion=InsertionRules.RSK):
         raise TypeError("the insertion must be an instance of Rule")
 
     if p.shape() != q.shape():
-        raise ValueError("p(=%s) and q(=%s) must have the same shape" %(p, q))
+        raise ValueError(f"p(={p}) and q(={q}) must have the same shape")
 
     answer = rule.backward_rule(p, q, output)
     return answer
+
 
 robinson_schensted_knuth_inverse = RSK_inverse
 

@@ -19,7 +19,7 @@ AUTHORS:
 - Marshall Hampton (2011): Minor fixes to documentation.
 """
 
-#*****************************************************************************
+# ****************************************************************************
 #       Copyright (C) 2009 Mike Hansen <mhansen@gmail.com>
 #       Copyright (C) 2009 Bjarke Hammersholt Roune <www.broune.com>
 #
@@ -32,8 +32,8 @@ AUTHORS:
 #
 #  The full text of the GPL is available at:
 #
-#                  http://www.gnu.org/licenses/
-#*****************************************************************************
+#                  https://www.gnu.org/licenses/
+# ****************************************************************************
 
 from sage.rings.integer_ring import ZZ
 from sage.features.four_ti_2 import FourTi2Executable
@@ -41,7 +41,7 @@ from sage.features.four_ti_2 import FourTi2Executable
 import os
 
 
-class FourTi2(object):
+class FourTi2():
     r"""
     This object defines an interface to the program 4ti2. Each command
     4ti2 has is exposed as one method.
@@ -295,11 +295,11 @@ class FourTi2(object):
             [-5  3  0]
         """
         import subprocess
+        import shlex
         feature = FourTi2Executable(command)
-        feature.require()
-        executable = feature.executable
+        executable = feature.absolute_filename()
         options = " ".join(options)
-        cmd = f'{executable} {options} {project}'
+        cmd = f'{shlex.quote(executable)} {options} {project}'
         if verbose is False:
             cmd += " > /dev/null 2> /dev/null"
         subprocess.call(cmd, shell=True, cwd=self.directory())
@@ -506,11 +506,9 @@ class FourTi2(object):
             [ 1  1  0  0  0 -1  0  0 -1]
             [ 0  1  1  0 -1  0  0  0 -1]
             [ 1  1  0  0 -1  0 -1  0  0]
-
         """
         from sage.matrix.constructor import matrix
-        return matrix \
-            (ZZ, 7, 9,
+        return matrix(ZZ, 7, 9,
              [[1, 1, 1, -1, -1, -1,  0,  0,  0],
               [1, 1, 1,  0,  0,  0, -1, -1, -1],
               [0, 1, 1, -1,  0,  0, -1,  0,  0],
@@ -518,6 +516,7 @@ class FourTi2(object):
               [1, 1, 0,  0,  0, -1,  0,  0, -1],
               [0, 1, 1,  0, -1,  0,  0,  0, -1],
               [1, 1, 0,  0, -1,  0, -1,  0,  0]])
+
 
 # The instance that should be used outside this file.
 four_ti_2 = FourTi2()

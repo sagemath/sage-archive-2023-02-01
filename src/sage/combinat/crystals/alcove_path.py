@@ -8,10 +8,9 @@ AUTHORS:
 - Travis Scrimshaw (2016-06-23): implemented `\mathcal{B}(\infty)`
 
 Special thanks to: Nicolas Borie, Anne Schilling, Travis Scrimshaw, and
-Nicolas Thiery.
+Nicolas Thiéry.
 """
-
-#*****************************************************************************
+# ****************************************************************************
 #       Copyright (C) 2008 Brant Jones <brant at math.ucdavis.edu>
 #       Copyright (C) 2013 Arthur Lubovsky <alubovsky at albany.edu>
 #
@@ -19,8 +18,8 @@ Nicolas Thiery.
 # it under the terms of the GNU General Public License as published by
 # the Free Software Foundation, either version 2 of the License, or
 # (at your option) any later version.
-#                  http://www.gnu.org/licenses/
-#*****************************************************************************
+#                  https://www.gnu.org/licenses/
+# ****************************************************************************
 
 from sage.structure.parent import Parent
 from sage.structure.element import Element
@@ -29,7 +28,7 @@ from sage.structure.unique_representation import UniqueRepresentation
 from sage.structure.richcmp import richcmp
 from sage.categories.classical_crystals import ClassicalCrystals
 from sage.categories.loop_crystals import LoopCrystals
-from sage.graphs.all import DiGraph
+from sage.graphs.digraph import DiGraph
 from sage.combinat.root_system.cartan_type import CartanType
 from sage.combinat.root_system.root_system import RootSystem
 from sage.all import vector
@@ -352,8 +351,8 @@ class CrystalOfAlcovePaths(UniqueRepresentation, Parent):
             Crystal of alcove paths of type ['A', 2, 1] and weight Lambda[1]
         """
         if self._highest_weight_crystal:
-            return "Highest weight crystal of alcove paths of type %s and weight %s"%(self._cartan_type, self.weight)
-        return "Crystal of alcove paths of type %s and weight %s"%(self._cartan_type, self.weight)
+            return "Highest weight crystal of alcove paths of type %s and weight %s" % (self._cartan_type, self.weight)
+        return "Crystal of alcove paths of type %s and weight %s" % (self._cartan_type, self.weight)
 
     def _element_constructor_(self, data):
         """
@@ -1495,7 +1494,7 @@ class RootsWithHeight(UniqueRepresentation, Parent):
             sage: RootsWithHeight(['A',2],[3,2])
             Roots with height of Cartan type ['A', 2] and dominant weight 3*Lambda[1] + 2*Lambda[2]
         """
-        return "Roots with height of Cartan type %s and dominant weight %s"%(
+        return "Roots with height of Cartan type %s and dominant weight %s" % (
             self._root_system.cartan_type(), self.weight)
 
     def _max_height(self, root):

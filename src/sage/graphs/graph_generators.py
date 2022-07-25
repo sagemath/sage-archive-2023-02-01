@@ -15,7 +15,6 @@ To get a path with 4 vertices, and the house graph::
 More interestingly, one can get the list of all graphs that Sage knows how to
 build by typing ``graphs.`` in Sage and then hitting tab.
 """
-from sage.env import SAGE_NAUTY_BINS_PREFIX as nautyprefix
 
 import subprocess
 
@@ -246,6 +245,7 @@ __append_to_doc(
      "GeneralisedHexagonGraph",
      "GeneralisedOctagonGraph",
      "GeneralizedPetersenGraph",
+     "GeneralizedSierpinskiGraph",
      "GoethalsSeidelGraph",
      "GrassmannGraph",
      "HalfCube",
@@ -263,6 +263,8 @@ __append_to_doc(
      "MuzychukS6Graph",
      "MycielskiGraph",
      "MycielskiStep",
+     "nauty_geng",
+     "nauty_genbg",
      "NKStarGraph",
      "NStarGraph",
      "OddGraph",
@@ -270,6 +272,7 @@ __append_to_doc(
      "PasechnikGraph",
      "petersen_family",
      "planar_graphs",
+     "plantri_gen",
      "quadrangulations",
      "RingedTree",
      "SierpinskiGasketGraph",
@@ -277,6 +280,7 @@ __append_to_doc(
      "SwitchedSquaredSkewHadamardMatrixGraph",
      "strongly_regular_graph",
      "trees",
+     "nauty_gentreeg",
      "triangulations",
      "TuranGraph",
      "UstimenkoGraph",
@@ -775,7 +779,7 @@ class GraphGenerators():
             def property(x):
                 return True
 
-        from sage.graphs.all import Graph
+        from sage.graphs.graph import Graph
         from copy import copy as copyfun
 
         if degree_sequence is not None:
@@ -788,12 +792,14 @@ class GraphGenerators():
                 def property(x):
                     D = sorted(x.degree())
                     return all(degree_sequence[i] >= d for i, d in enumerate(D))
+
                 def extra_property(x):
                     return degree_sequence == sorted(x.degree())
             else:
                 def property(x):
                     D = sorted(x.degree() + [0] * (vertices - x.num_verts()))
                     return all(degree_sequence[i] >= d for i, d in enumerate(D))
+
                 def extra_property(x):
                     if x.num_verts() != vertices:
                         return False
@@ -956,8 +962,10 @@ class GraphGenerators():
             sage: list(graphs.nauty_geng("-c 3", debug=True))
             ['>A ...geng -cd1D2 n=3 e=2-3\n', Graph on 3 vertices, Graph on 3 vertices]
         """
-
-        sp = subprocess.Popen(nautyprefix+"geng {0}".format(options), shell=True,
+        import shlex
+        from sage.features.nauty import NautyExecutable
+        geng_path = NautyExecutable("geng").absolute_filename()
+        sp = subprocess.Popen(shlex.quote(geng_path) + " {0}".format(options), shell=True,
                               stdin=subprocess.PIPE, stdout=subprocess.PIPE,
                               stderr=subprocess.PIPE, close_fds=True,
                               encoding='latin-1')
@@ -976,6 +984,182 @@ class GraphGenerators():
             G = graph.Graph(s[:-1], format='graph6')
             yield G
 
+    def nauty_genbg(self, options="", debug=False):
+        r"""
+        Return a generator which creates bipartite graphs from nauty's ``genbg``
+        program.
+
+        INPUT:
+
+        - ``options`` -- string (default: ``""``); a string passed to ``genbg``
+          as if it was run at a system command line. At a minimum, you *must*
+          pass the number of vertices you desire in each side. Sage expects the
+          bipartite graphs to be in nauty's "graph6" format, do not set an
+          option to change this default or results will be unpredictable.
+
+        - ``debug`` -- boolean (default: ``False``); if ``True`` the first line
+          of ``geng``'s output to standard error is captured and the first call
+          to the generator's ``next()`` function will return this line as a
+          string. A line leading with ">A" indicates a successful initiation of
+          the program with some information on the arguments, while a line
+          beginning with ">E" indicates an error with the input.
+
+        The possible options, obtained as output of ``genbg --help``::
+
+                n1       : the number of vertices in the first class
+                n2       : the number of vertices in the second class
+            mine:maxe    : <int>:<int> a range for the number of edges
+                            <int>:0 means '<int> or more' except in the case 0:0
+              res/mod    : only generate subset res out of subsets 0..mod-1
+                -c       : only write connected graphs
+                -z       : all the vertices in the second class must have
+                           different neighbourhoods
+                -F       : the vertices in the second class must have at least
+                           two neighbours of degree at least 2
+                -L       : there is no vertex in the first class whose removal
+                           leaves the vertices in the second class unreachable
+                           from each other
+                -Y<int>  : two vertices in the second class must have at least
+                           <int> common neighbours
+                -Z<int>  : two vertices in the second class must have at most
+                           <int> common neighbours
+                -A       : no vertex in the second class has a neighbourhood
+                           which is a subset of another vertex's neighbourhood
+                           in the second class
+                -D<int>  : specify an upper bound for the maximum degree
+                           Example: -D6. You can also give separate maxima for
+                           the two parts, for example: -D5:6
+                -d<int>  : specify a lower bound for the minimum degree
+                           Again, you can specify it separately for the two parts,
+                           for example -d1:2
+                -v       : display counts by number of edges to stderr
+                -l       : canonically label output graphs
+
+        Options which cause ``genbg`` to use an output format different than the
+        ``graph6`` format are not listed above (``-s``, ``-a``) as they will
+        confuse the creation of a Sage graph. Option ``-q`` which suppress
+        auxiliary output (except from ``-v``) should never be used as we are
+        unable to recover the partition of the vertices of the bipartite graph
+        without the auxilary output. Hence the partition of the vertices of
+        returned bipartite graphs might not respect the requirement.
+
+        The res/mod option can be useful when using the output in a routine run
+        several times in parallel.
+
+        OUTPUT:
+
+        A generator which will produce the graphs as
+        :class:`~sage/graphs.bipartite_graph.BipartiteGraph`. These will be
+        simple bipartite graphs: no loops, no multiple edges, no directed edges.
+
+        EXAMPLES:
+
+        The generator can be used to construct biparrtite graphs for testing,
+        one at a time (usually inside a loop).  Or it can be used to
+        create an entire list all at once if there is sufficient memory
+        to contain it::
+
+            sage: gen = graphs.nauty_genbg("1 1")
+            sage: next(gen)
+            Bipartite graph on 2 vertices
+            sage: next(gen)
+            Bipartite graph on 2 vertices
+            sage: next(gen)
+            Traceback (most recent call last):
+            ...
+            StopIteration
+
+        Connected bipartite graphs of order 6 with different number of vertices
+        in each side::
+
+            sage: gen = graphs.nauty_genbg("1 5 -c")
+            sage: len(list(gen))
+            1
+            sage: gen = graphs.nauty_genbg("2 4 -c")
+            sage: len(list(gen))
+            6
+            sage: gen = graphs.nauty_genbg("3 3 -c")
+            sage: len(list(gen))
+            13
+
+        Use :meth:`nauty_geng` instead if you want the list of all bipartite
+        graphs of order `n`. For instance, the list of all connected bipartite
+        graphs of order 6, which agrees with :oeis:`A005142`::
+
+            sage: gen = graphs.nauty_geng("-b -c 6")
+            sage: len(list(gen))
+            17
+
+        The ``debug`` switch can be used to examine ``genbg``'s reaction to the
+        input in the ``options`` string. A message starting with ">A" indicates
+        success and a message starting with ">E" indicates a failure::
+
+            sage: gen = graphs.nauty_genbg("2 3", debug=True)
+            sage: print(next(gen))
+            >A ...genbg n=2+3 e=0:6 d=0:0 D=3:2
+            sage: gen = graphs.nauty_genbg("-c2 3", debug=True)
+            sage: next(gen)
+            '>E Usage: ...genbg [-c -ugs -vq -lzF] [-Z#] [-D#] [-A] [-d#|-d#:#] [-D#|-D#:#] n1 n2...
+
+        Check that the partition of the bipartite graph is consistent::
+
+            sage: gen = graphs.nauty_genbg("3 3")
+            sage: left = set(range(3))
+            sage: for g in gen:
+            ....:     if g.left != left:
+            ....:         raise ValueError('wrong partition')
+
+        TESTS:
+
+        Wrong input::
+
+            sage: list(graphs.nauty_genbg("-c1 2", debug=False))
+            Traceback (most recent call last):
+            ...
+            ValueError: wrong format of parameter options
+            sage: list(graphs.nauty_genbg("-c1 2", debug=True))
+            ['>E Usage: ...genbg [-c -ugs -vq -lzF] [-Z#] [-D#] [-A] [-d#|-d#:#] [-D#|-D#:#] n1 n2...
+            sage: list(graphs.nauty_genbg("-c 1 2", debug=True))
+            ['>A ...genbg n=1+2 e=2:2 d=1:1 D=2:1 c\n', Bipartite graph on 3 vertices]
+        """
+        import shlex
+        from sage.features.nauty import NautyExecutable
+        genbg_path = NautyExecutable("genbg").absolute_filename()
+        sp = subprocess.Popen(shlex.quote(genbg_path) + " {0}".format(options), shell=True,
+                              stdin=subprocess.PIPE, stdout=subprocess.PIPE,
+                              stderr=subprocess.PIPE, close_fds=True,
+                              encoding='latin-1')
+        msg = sp.stderr.readline()
+        if debug:
+            yield msg
+        elif msg.startswith('>E'):
+            raise ValueError('wrong format of parameter options')
+
+        if msg.startswith('>A'):
+            # We extract the partition of the vertices from the msg string
+            for s in msg.split(' '):
+                if s.startswith('n='):
+                    from sage.rings.integer import Integer
+                    n1, n2 = [Integer(t) for t in s[2:].split('+') if t.isdigit()]
+                    partition = [set(range(n1)), set(range(n1, n1 + n2))]
+                    break
+            else:
+                # should never happen
+                raise ValueError('unable to recover the partition')
+        else:
+            # Either msg starts with >E or option -q has been given
+            partition = None
+
+        gen = sp.stdout
+        from sage.graphs.bipartite_graph import BipartiteGraph
+        while True:
+            try:
+                s = next(gen)
+            except StopIteration:
+                # Exhausted list of bipartite graphs from nauty genbg
+                return
+            G = BipartiteGraph(s[:-1], format='graph6', partition=partition)
+            yield G
 
     def cospectral_graphs(self, vertices, matrix_function=lambda g: g.adjacency_matrix(), graphs=None):
         r"""
@@ -1070,7 +1254,7 @@ class GraphGenerators():
             sage: g[0][1].laplacian_matrix(normalized=True).charpoly()==g[0][1].laplacian_matrix(normalized=True).charpoly()  # optional - sage.symbolic
             True
         """
-        from sage.graphs.all import graphs as graph_gen
+        from sage.graphs.graph_generators import graphs as graph_gen
         if graphs is None:
             graph_list=graph_gen(vertices, property=lambda _: True)
         elif callable(graphs):
@@ -1292,7 +1476,9 @@ class GraphGenerators():
         from sage.features.graph_generators import Buckygen
         Buckygen().require()
 
-        command = 'buckygen -'+('I' if ipr else '')+'d {0}d'.format(order)
+        import shlex
+        command = shlex.quote(Buckygen().absolute_filename())
+        command += ' -' + ('I' if ipr else '') + 'd {0}d'.format(order)
 
         sp = subprocess.Popen(command, shell=True,
                               stdin=subprocess.PIPE, stdout=subprocess.PIPE,
@@ -1379,7 +1565,9 @@ class GraphGenerators():
         from sage.features.graph_generators import Benzene
         Benzene().require()
 
-        command = 'benzene '+('b' if benzenoids else '')+' {0} p'.format(hexagon_count)
+        import shlex
+        command = shlex.quote(Benzene().absolute_filename())
+        command += (' b' if benzenoids else '') + ' {0} p'.format(hexagon_count)
 
         sp = subprocess.Popen(command, shell=True,
                               stdin=subprocess.PIPE, stdout=subprocess.PIPE,
@@ -1390,6 +1578,194 @@ class GraphGenerators():
 
         for G in graphs._read_planar_code(sp.stdout):
             yield(G)
+
+    def plantri_gen(self, options=""):
+        r"""
+        Iterator over planar graphs created using the ``plantri`` generator.
+
+        ``plantri`` is a (optional) program that generates certain types of
+        graphs that are embedded on the sphere. It outputs exactly one member of
+        each isomorphism class, using an amount of memory almost independent of
+        the number of graphs produced. Isomorphisms are defined with respect to
+        the embeddings, so in some cases outputs may be isomorphic as abstract
+        graphs.
+
+        This method allows for passing command directly to ``plantry``,
+        similarly to method :meth:`nauty_geng`, provide that the output format
+        is not changed.
+
+        INPUT:
+
+        - ``options`` -- string (default: ``""``); a string passed to
+          ``plantri`` as if it was run at a system command line. At a minimum,
+          you *must* pass the number of vertices you desire. Sage expects the
+          output of plantri to be in "planar code" format, so do not set an
+          option to change this default or results will be unpredictable.
+
+        The possible options are::
+
+            n       : the number of vertices (the only compulsory parameter).
+                      This number must be in range `3\cdots 64`.
+                      It can also be given as "nd", where the suffix "d" means
+                      "dual", in which case it is converted by adding 4 then
+                      dividing by 2, i.e., `(28+4)/2 = 16`. In the case of
+                      triangulations, this calculation yields the number of
+                      faces, which is the number of vertices in the dual cubic
+                      graph.
+
+            -d      : output the dual instead of the original graph.
+                      Note that it is applied only at the output stage. All
+                      other switches refer to the original graph before the dual
+                      is taken.
+
+            -o      : Normally, one member of each isomorphism class is written.
+                      If this switch is given, one member of each O-P
+                      isomorphism class is written.
+
+            -V      : output only graphs with non-trivial group. If -o is
+                      given the O-P group is used, the full group otherwise.
+
+            -m<int> : lower bound on the minimum degree. The default is -m3.
+                      In the dual graph, this means a lower bound on the minimum
+                      face size.
+
+            -c<int> : lower bound on the connectivity. The default is -c3.
+
+            -x      : when used in combination with -cN, the connectivity must
+                      be exactly N rather than at least N.
+
+            -e      : used to specify bounds on the number of edges.
+                      There are four possible forms:
+                          -e<int>        exactly <int> edges
+                          -e:<int>       at most <int> edges
+                          -e<int>:       at least <int> edges
+                          -e<int>:<int>  between <int> and <int> edges
+
+            -f<int> : upper bound on the size of a face, and so on the maximum
+                      degree of the dual.
+
+            -b but not -p : select eulerian triangulations, where "eulerian"
+                            means that every vertex has even degree.
+                            This parameter can be used in combination with
+                            parameters -c and -x.
+
+            -p but not -b : select general planar simple graphs.
+                            This parameter can be used in combination with
+                            parameters -m, -c, -x, -e and -f.
+
+            -bp or -pb    : select general planar simple bipartite graphs.
+                            This parameter can be used in combination with
+                            parameters -m, -c, -x, -e and -f, except -c4, -m4,
+                            -m5 and -f3.
+
+            -P<int> : select triangulations of a disk. These are embedded simple
+                      graphs with a distinguished "outer" face. The outer face
+                      can be of any size (here called the disk size) but the
+                      other faces must be triangles.  The argument <int> to -P
+                      is the disk size. If no argument (or 0) is given, all disk
+                      sizes are permitted.
+                      This parameter can be used in combination with
+                      parameters -m, -c, and -x.
+
+            -q      : select simple quadrangulations. These are planar simple
+                      graphs for which every face has length 4.
+                      This parameter can be used in combination with parameters
+                      -c and -m.
+
+            -A      : select Appolonian networks. These are simple planar
+                      triangulations that can be formed starting with `K_4` then
+                      repeatedly dividing a face into three by addition of a new
+                      vertex. They all have minimum degree and connectivity
+                      equal to 3.
+
+            res/mod : only generate subset res out of subsets 0..mod-1.
+                      The set of objects is divided into mod disjoint classes
+                      and only the res-th class is generated.
+
+        If -b, -q, -p, -P and -A are absent, the graphs found are triangulations
+        only restricted by connectivity and minimum degree. In this case,
+        there is the possibility of connectivity lower than 3.
+
+        Other options listed in the ``plantri`` guide might cause unpredictable
+        behavior, in particular those changing the output format of ``plantri``
+        as they will confuse the creation of a Sage graph.
+
+        OUTPUT:
+
+        An iterator which yields the graphs generated by ``plantri`` as Sage
+        :class:`~sage.graphs.graph.Graph`.
+
+        .. SEEALSO::
+
+            - :meth:`planar_graphs` -- iterator over connected planar graphs
+              using the ``plantri`` generator
+            - :meth:`triangulations` -- iterator over connected planar
+              triangulations using the ``plantri`` generator
+            - :meth:`quadrangulations` -- iterator over connected planar
+              quadrangulations using the ``plantri`` generator
+
+        EXAMPLES:
+
+        The generator can be used to construct graphs for testing, one at a time
+        (usually inside a loop). Or it can be used to create an entire list all
+        at once if there is sufficient memory to contain it::
+
+            sage: gen = graphs.plantri_gen("6")  # optional plantri
+            sage: next(gen)                      # optional plantri
+            Graph on 6 vertices
+            sage: next(gen)                      # optional plantri
+            Graph on 6 vertices
+            sage: next(gen)                      # optional plantri
+            Traceback (most recent call last):
+            ...
+            StopIteration
+
+        An overview of the number of quadrangulations on up to 12 vertices. This
+        agrees with :oeis:`A113201`::
+
+            sage: for i in range(4,13):                        # optional plantri
+            ....:     cmd = '-qm2c2 {}'.format(i)              # optional plantri
+            ....:     L =  len(list(graphs.plantri_gen(cmd)))  # optional plantri
+            ....:     print("{:2d}   {:3d}".format(i, L))      # optional plantri
+             4     1
+             5     1
+             6     2
+             7     3
+             8     9
+             9    18
+            10    62
+            11   198
+            12   803
+
+        TESTS:
+
+        Wrong input, ``"-c 3"`` instead of ``"-c3"``::
+
+            sage: list(graphs.plantri_gen("6 -c3"))  # optional plantri
+            [Graph on 6 vertices, Graph on 6 vertices]
+            sage: list(graphs.plantri_gen("6 -c 3"))  # optional plantri
+            Traceback (most recent call last):
+            ...
+            AttributeError: invalid options '6 -c 3'
+        """
+        from sage.features.graph_generators import Plantri
+        Plantri().require()
+
+        import shlex
+        command = '{} {}'.format(shlex.quote(Plantri().absolute_filename()),
+                                 options)
+        sp = subprocess.Popen(command, shell=True,
+                              stdin=subprocess.PIPE, stdout=subprocess.PIPE,
+                              stderr=subprocess.PIPE, close_fds=True,
+                              encoding='latin-1')
+
+        sp.stdout.reconfigure(newline='')
+
+        try:
+            for G in graphs._read_planar_code(sp.stdout):
+                yield(G)
+        except AssertionError:
+            raise AttributeError("invalid options '{}'".format(options))
 
     def planar_graphs(self, order, minimum_degree=None,
                       minimum_connectivity=None,
@@ -1618,10 +1994,7 @@ class GraphGenerators():
                 yield(G)
             return
 
-        from sage.features.graph_generators import Plantri
-        Plantri().require()
-
-        cmd = 'plantri -p{}m{}c{}{}{} {} {} {}'
+        cmd = '-p{}m{}c{}{}{} {} {} {}'
         command = cmd.format('b' if only_bipartite else '',
                              minimum_degree,
                              minimum_connectivity,
@@ -1630,15 +2003,7 @@ class GraphGenerators():
                              edges, faces,
                              order)
 
-        sp = subprocess.Popen(command, shell=True,
-                              stdin=subprocess.PIPE, stdout=subprocess.PIPE,
-                              stderr=subprocess.PIPE, close_fds=True,
-                              encoding='latin-1')
-
-        sp.stdout.reconfigure(newline='')
-
-        for G in graphs._read_planar_code(sp.stdout):
-            yield(G)
+        yield from graphs.plantri_gen(command)
 
     def triangulations(self, order, minimum_degree=None, minimum_connectivity=None,
                        exact_connectivity=False, only_eulerian=False, dual=False):
@@ -1804,10 +2169,7 @@ class GraphGenerators():
         if only_eulerian and order < 6:
             return
 
-        from sage.features.graph_generators import Plantri
-        Plantri().require()
-
-        cmd = 'plantri -{}m{}c{}{}{} {}'
+        cmd = '-{}m{}c{}{}{} {}'
         command = cmd.format('b' if only_eulerian else '',
                              minimum_degree,
                              minimum_connectivity,
@@ -1815,15 +2177,7 @@ class GraphGenerators():
                              'd' if dual else '',
                              order)
 
-        sp = subprocess.Popen(command, shell=True,
-                              stdin=subprocess.PIPE, stdout=subprocess.PIPE,
-                              stderr=subprocess.PIPE, close_fds=True,
-                              encoding='latin-1')
-
-        sp.stdout.reconfigure(newline='')
-
-        for G in graphs._read_planar_code(sp.stdout):
-            yield(G)
+        yield from graphs.plantri_gen(command)
 
     def quadrangulations(self, order, minimum_degree=None, minimum_connectivity=None,
                          no_nonfacial_quadrangles=False, dual=False):
@@ -1950,24 +2304,13 @@ class GraphGenerators():
             # for plantri -q the option -c4 means 3-connected with no non-facial quadrangles
             minimum_connectivity = 4
 
-        from sage.features.graph_generators import Plantri
-        Plantri().require()
-
-        cmd = 'plantri -qm{}c{}{} {}'
+        cmd = '-qm{}c{}{} {}'
         command = cmd.format(minimum_degree,
                              minimum_connectivity,
                              'd' if dual else '',
                              order)
 
-        sp = subprocess.Popen(command, shell=True,
-                              stdin=subprocess.PIPE, stdout=subprocess.PIPE,
-                              stderr=subprocess.PIPE, close_fds=True,
-                              encoding='latin-1')
-
-        sp.stdout.reconfigure(newline='')
-
-        for G in graphs._read_planar_code(sp.stdout):
-            yield(G)
+        yield from graphs.plantri_gen(command)
 
 ###########################################################################
 # Basic Graphs
@@ -2148,6 +2491,7 @@ class GraphGenerators():
     GeneralisedHexagonGraph = staticmethod(distance_regular.GeneralisedHexagonGraph)
     GeneralisedOctagonGraph = staticmethod(distance_regular.GeneralisedOctagonGraph)
     GeneralizedPetersenGraph = staticmethod(families.GeneralizedPetersenGraph)
+    GeneralizedSierpinskiGraph = staticmethod(families.GeneralizedSierpinskiGraph)
     GoethalsSeidelGraph    = staticmethod(families.GoethalsSeidelGraph)
     GrassmannGraph         = staticmethod(distance_regular.GrassmannGraph)
     HalfCube               = staticmethod(distance_regular.HalfCube)
@@ -2182,6 +2526,7 @@ class GraphGenerators():
     TabacjnGraph           = staticmethod(families.TabacjnGraph)
     TadpoleGraph           = staticmethod(families.TadpoleGraph)
     trees                  = staticmethod(families.trees)
+    nauty_gentreeg         = staticmethod(families.nauty_gentreeg)
     TuranGraph             = staticmethod(families.TuranGraph)
     UstimenkoGraph         = staticmethod(distance_regular.UstimenkoGraph)
     WheelGraph             = staticmethod(families.WheelGraph)

@@ -9,6 +9,8 @@ AUTHORS:
 - Michal Bejger (2015) : class :class:`ExpressionNice`
 - Eric Gourgoulhon (2015, 2017) : simplification functions
 - Travis Scrimshaw (2016): review tweaks
+- Marius Gerbershagen (2022) : skip simplification of expressions with a single
+  number or symbolic variable
 
 """
 
@@ -593,6 +595,8 @@ def simplify_chain_real(expr):
         sage: forget()  # for doctests below
 
     """
+    if expr.number_of_operands() == 0:
+        return expr
     expr = expr.simplify_factorial()
     expr = expr.simplify_trig()
     expr = expr.simplify_rational()
@@ -666,6 +670,8 @@ def simplify_chain_generic(expr):
         sage: forget()  # for doctests below
 
     """
+    if expr.number_of_operands() == 0:
+        return expr
     expr = expr.simplify_factorial()
     expr = expr.simplify_rectform()
     expr = expr.simplify_trig()
@@ -941,10 +947,13 @@ class ExpressionNice(Expression):
             sage: ExpressionNice(fun)
             y*(z - d(h)/dz)^2 + x*d^2(f)/dxdy
 
+        Check that :trac:`33399` is fixed::
+
+            sage: ExpressionNice(function('f')(x+y, x-y).diff(y))
+            d(f)/d(x + y) - d(f)/d(x - y)
+
         """
         d = self._parent._repr_element_(self)
-
-        import re
 
         # find all occurrences of diff
         list_d = []
@@ -962,12 +971,13 @@ class ExpressionNice(Expression):
                 numargs = ""
 
             variables = m[4]
-            strv = list(str(v) for v in variables)
+            strv = [str(v) for v in variables]
 
             # checking if the variable is composite
-            for i in range(len(strv)):
-                if bool(re.search(r'[+|-|/|*|^|(|)]', strv[i])):
-                    strv[i] = "(" + strv[i] + ")"
+            comp_chars = ['+', '-', '*', '/', '^', '(']
+            for i, sv in enumerate(strv):
+                if any(c in sv for c in comp_chars):
+                    strv[i] = "(" + sv + ")"
 
             # dictionary to group multiple occurrences of differentiation: d/dxdx -> d/dx^2 etc.
             occ = dict((i, strv[i] + "^" + str(diffargs.count(i))
@@ -989,13 +999,14 @@ class ExpressionNice(Expression):
 
             d = d.replace(o, res)
 
+        import re
         from sage.manifolds.manifold import TopologicalManifold
         if TopologicalManifold.options.omit_function_arguments:
             list_f = []
             _list_functions(self, list_f)
 
             for m in list_f:
-                d = d.replace(m[1] + m[2], m[1])
+                d = re.sub(m[1] + r'\([^)]+\)', m[1], d)
 
         return d
 
@@ -1034,10 +1045,16 @@ class ExpressionNice(Expression):
             sage: latex(ExpressionNice(fun))
             \frac{\partial\,{\cal F}}{\partial y}
 
-        """
-        d = self._parent._latex_element_(self)
+        Check that :trac:`33399` is fixed::
 
-        import re
+            sage: latex(ExpressionNice(function('f')(x+y, x-y).diff(y)))
+            \frac{\partial\,f}{\partial \left( x + y \right)}
+             - \frac{\partial\,f}{\partial \left( x - y \right)}
+
+        """
+        from sage.misc.latex import latex
+
+        d = self._parent._latex_element_(self)
 
         # find all occurrences of diff
         list_d = []
@@ -1059,13 +1076,13 @@ class ExpressionNice(Expression):
 
             variables = m[4]
 
-            from sage.misc.latex import latex
             strv = [str(v) for v in variables]
             latv = [latex(v) for v in variables]
 
             # checking if the variable is composite
-            for i, val in enumerate(strv):
-                if bool(re.search(r'[+|-|/|*|^|(|)]', val)):
+            comp_chars = ['+', '-', '*', '/', '^', '(']
+            for i, sv in enumerate(strv):
+                if any(c in sv for c in comp_chars):
                     latv[i] = r"\left(" + latv[i] + r"\right)"
 
             # dictionary to group multiple occurrences of differentiation: d/dxdx -> d/dx^2 etc.

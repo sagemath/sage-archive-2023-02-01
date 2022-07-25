@@ -887,7 +887,7 @@ class SymmetricFunctions(UniqueRepresentation, Parent):
             sage: SymmetricFunctions(RR) # indirect doctest
             Symmetric Functions over Real Field with 53 bits of precision
         """
-        return "Symmetric Functions over %s"%self.base_ring()
+        return "Symmetric Functions over %s" % self.base_ring()
 
     def schur(self):
         r"""
@@ -1613,4 +1613,3 @@ class SymmetricaConversionOnBasis:
         # will have an optional optimization for the case when there
         # is no repetition in the support
         return self._codomain._from_dict(dict(self._t(self.fake_sym.monomial(partition))), coerce = True)
-

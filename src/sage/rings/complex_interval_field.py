@@ -12,7 +12,7 @@ heavily modified:
 
 - Carl Witty (2007-10-24): rewrite for intervals
 
-- Niles Johnson (2010-08): :Trac:`3893`: ``random_element()``
+- Niles Johnson (2010-08): :trac:`3893`: ``random_element()``
   should pass on ``*args`` and ``**kwds``.
 
 - Travis Scrimshaw (2012-10-18): Added documentation to get full coverage.
@@ -360,7 +360,7 @@ class ComplexIntervalField_class(sage.rings.abc.ComplexIntervalField):
         """
         return RealIntervalField(self._prec)
 
-    # For compatibility with with other complex number implementations
+    # For compatibility with other complex number implementations
     # such as CC.
     _real_field = real_field
 
@@ -401,18 +401,18 @@ class ComplexIntervalField_class(sage.rings.abc.ComplexIntervalField):
         return self._prec == other._prec
 
     def __hash__(self):
-         """
-         Return the hash.
+        """
+        Return the hash.
 
-         EXAMPLES::
+        EXAMPLES::
 
-             sage: C = ComplexIntervalField(200)
-             sage: from sage.rings.complex_interval_field import ComplexIntervalField_class
-             sage: D = ComplexIntervalField_class(200)
-             sage: hash(C) == hash(D)
-             True
-         """
-         return hash((self.__class__, self._prec))
+            sage: C = ComplexIntervalField(200)
+            sage: from sage.rings.complex_interval_field import ComplexIntervalField_class
+            sage: D = ComplexIntervalField_class(200)
+            sage: hash(C) == hash(D)
+            True
+        """
+        return hash((self.__class__, self._prec))
 
     def __ne__(self, other):
         """
@@ -723,5 +723,3 @@ class ComplexIntervalField_class(sage.rings.abc.ComplexIntervalField):
             0.025000000000000002? + 2*I
         """
         return self.real_field().scientific_notation(status)
-
-

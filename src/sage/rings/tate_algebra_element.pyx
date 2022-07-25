@@ -203,7 +203,7 @@ cdef class TateAlgebraTerm(MonoidElement):
         """
         return TateAlgebraTerm, (self.parent(), self._coeff, self._exponent)
 
-    def __nonzero__(self):
+    def __bool__(self):
         r"""
         Return ``True`` if this term is nonzero, ``False`` otherwise.
 
@@ -1535,7 +1535,7 @@ cdef class TateAlgebraElement(CommutativeAlgebraElement):
         return True
 
     def __pow__(self, exponent, modulus):
-        """
+        r"""
         Return this element raised to the power ``exponent``.
 
         INPUT:
@@ -1743,7 +1743,7 @@ cdef class TateAlgebraElement(CommutativeAlgebraElement):
             ValueError: not in the domain of convergence
 
         """
-        if not n in ZZ or n == 0:
+        if n not in ZZ or n == 0:
             raise ValueError("n must be a nonzero integer")
         n = ZZ(n)
 
@@ -2083,7 +2083,7 @@ cdef class TateAlgebraElement(CommutativeAlgebraElement):
         """
         return (<TateAlgebraElement>self)._lshift_c(-n)
 
-    def __nonzero__(self):
+    def __bool__(self):
         r"""
         Return ``True`` if this term is nonzero, ``False`` otherwise.
 
@@ -2416,6 +2416,7 @@ cdef class TateAlgebraElement(CommutativeAlgebraElement):
         cdef TateAlgebraElement ans = self._new_c()
         # Hmm, shouldn't we add a keyword argument to lift_to_precision()
         # to specify that we don't want it to raise an error
+
         def lift_without_error(elt):
             try:
                 return elt.lift_to_precision(prec)
@@ -2537,7 +2538,7 @@ cdef class TateAlgebraElement(CommutativeAlgebraElement):
         return self._prec - self.valuation()
 
     def log(self, prec=None):
-        """
+        r"""
         Return the logarithm of this series.
 
         INPUT:
@@ -2694,7 +2695,7 @@ cdef class TateAlgebraElement(CommutativeAlgebraElement):
         return total.add_bigoh(aprec)
 
     def exp(self, prec=None):
-        """
+        r"""
         Return the exponential of this series.
 
         INPUT:
@@ -3227,7 +3228,7 @@ cdef class TateAlgebraElement(CommutativeAlgebraElement):
                         break
             if in_rem:
                 if rem:
-                    if coeffs.has_key(lt._exponent):
+                    if lt._exponent in coeffs:
                         coeffs[lt._exponent] += lt._coeff
                     else:
                         coeffs[lt._exponent] = lt._coeff

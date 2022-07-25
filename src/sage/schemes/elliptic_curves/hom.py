@@ -7,8 +7,9 @@ interface regardless of implementation details.
 
 Current implementations of elliptic-curve morphisms (child classes):
 
-- :class:`EllipticCurveIsogeny`
-- :class:`sage.schemes.elliptic_curves.weierstrass_morphism.WeierstrassIsomorphism`
+- :class:`~sage.schemes.elliptic_curves.ell_curve_isogeny.EllipticCurveIsogeny`
+- :class:`~sage.schemes.elliptic_curves.weierstrass_morphism.WeierstrassIsomorphism`
+- :class:`~sage.schemes.elliptic_curves.hom_composite.EllipticCurveHom_composite`
 
 AUTHORS:
 
@@ -31,7 +32,6 @@ class EllipticCurveHom(Morphism):
     """
     Base class for elliptic-curve morphisms.
     """
-
     def _repr_type(self):
         """
         Return a textual representation of what kind of morphism
@@ -164,11 +164,40 @@ class EllipticCurveHom(Morphism):
         r"""
         Return the degree of this elliptic-curve morphism.
 
-        Implemented by child classes. For examples, see:
+        EXAMPLES::
 
-        - :meth:`EllipticCurveIsogeny.degree`
-        - :meth:`sage.schemes.elliptic_curves.weierstrass_morphism.WeierstrassIsomorphism.degree`
-        - :meth:`sage.schemes.elliptic_curves.hom_composite.EllipticCurveHom_composite.degree`
+            sage: E = EllipticCurve(QQ, [0,0,0,1,0])
+            sage: phi = EllipticCurveIsogeny(E, E((0,0)))
+            sage: phi.degree()
+            2
+            sage: phi = EllipticCurveIsogeny(E, [0,1,0,1])
+            sage: phi.degree()
+            4
+
+            sage: E = EllipticCurve(GF(31), [1,0,0,1,2])
+            sage: phi = EllipticCurveIsogeny(E, [17, 1])
+            sage: phi.degree()
+            3
+
+        Degrees are multiplicative, so the degree of a composite isogeny
+        is the product of the degrees of the individual factors::
+
+            sage: from sage.schemes.elliptic_curves.hom_composite import EllipticCurveHom_composite
+            doctest:warning ...
+            sage: E = EllipticCurve(GF(419), [1,0])
+            sage: P, = E.gens()
+            sage: phi = EllipticCurveHom_composite(E, P+P)
+            sage: phi.degree()
+            210
+            sage: phi.degree() == prod(f.degree() for f in phi.factors())
+            True
+
+        Isomorphisms always have degree `1` by definition::
+
+            sage: E1 = EllipticCurve([1,2,3,4,5])
+            sage: E2 = EllipticCurve_from_j(E1.j_invariant())
+            sage: E1.isomorphism_to(E2).degree()
+            1
 
         TESTS::
 
@@ -178,7 +207,10 @@ class EllipticCurveHom(Morphism):
             ...
             NotImplementedError: ...
         """
-        raise NotImplementedError('children must implement')
+        try:
+            return self._degree
+        except AttributeError:
+            raise NotImplementedError('children must implement')
 
     def kernel_polynomial(self):
         r"""
@@ -266,6 +298,36 @@ class EllipticCurveHom(Morphism):
         raise NotImplementedError('children must implement')
 
 
+    def scaling_factor(self):
+        r"""
+        Return the Weierstrass scaling factor associated to this
+        elliptic-curve morphism.
+
+        The scaling factor is the constant `u` (in the base field)
+        such that `\varphi^* \omega_2 = u \omega_1`, where
+        `\varphi: E_1\to E_2` is this morphism and `\omega_i` are
+        the standard Weierstrass differentials on `E_i` defined by
+        `\mathrm dx/(2y+a_1x+a_3)`.
+
+        Implemented by child classes. For examples, see:
+
+        - :meth:`EllipticCurveIsogeny.scaling_factor`
+        - :meth:`sage.schemes.elliptic_curves.weierstrass_morphism.WeierstrassIsomorphism.scaling_factor`
+        - :meth:`sage.schemes.elliptic_curves.hom_composite.EllipticCurveHom_composite.scaling_factor`
+
+        TESTS::
+
+            sage: from sage.schemes.elliptic_curves.hom import EllipticCurveHom
+            sage: EllipticCurveHom.scaling_factor(None)
+            Traceback (most recent call last):
+            ...
+            NotImplementedError: ...
+        """
+        #TODO: could have a default implementation that simply
+        #      returns .formal()[1], but it seems safer to fail
+        #      visibly to make sure we would notice regressions
+        raise NotImplementedError('children must implement')
+
     def formal(self, prec=20):
         r"""
         Return the formal isogeny associated to this elliptic-curve
@@ -320,16 +382,11 @@ class EllipticCurveHom(Morphism):
 
         .. NOTE::
 
-           An isogeny `\varphi\colon E_1\to E_2` between two given
-           Weierstrass equations is said to be *normalized* if the
-           `\varphi^*(\omega_2) = \omega_1`, where `\omega_1` and
-           `\omega_2` are the invariant differentials on `E_1` and
-           `E_2` corresponding to the given equation.
-
-        ALGORITHM:
-
-        The method checks if the leading term of the formal series
-        associated to this isogeny equals `1`.
+            An isogeny `\varphi\colon E_1\to E_2` between two given
+            Weierstrass equations is said to be *normalized* if the
+            `\varphi^*(\omega_2) = \omega_1`, where `\omega_1` and
+            `\omega_2` are the invariant differentials on `E_1` and
+            `E_2` corresponding to the given equation.
 
         EXAMPLES::
 
@@ -393,9 +450,10 @@ class EllipticCurveHom(Morphism):
             sage: phi = isom * phi
             sage: phi.is_normalized()
             True
+
+        ALGORITHM: We check if :meth:`scaling_factor` returns `1`.
         """
-        phi_formal = self.formal(prec=5)
-        return phi_formal[1] == 1
+        return self.scaling_factor() == 1
 
 
     def is_separable(self):
@@ -404,9 +462,9 @@ class EllipticCurveHom(Morphism):
 
         .. NOTE::
 
-           This method currently always returns ``True`` as Sage does
-           not yet implement inseparable isogenies. This will probably
-           change in the future.
+            This method currently always returns ``True`` as Sage does
+            not yet implement inseparable isogenies. This will probably
+            change in the future.
 
         EXAMPLES::
 
@@ -430,10 +488,10 @@ class EllipticCurveHom(Morphism):
 
         .. NOTE::
 
-           This method currently always returns ``True``, since a
-           non-constant map of algebraic curves must be surjective,
-           and Sage does not yet implement the constant zero map.
-           This will probably change in the future.
+            This method currently always returns ``True``, since a
+            non-constant map of algebraic curves must be surjective,
+            and Sage does not yet implement the constant zero map.
+            This will probably change in the future.
 
         EXAMPLES::
 
@@ -563,4 +621,3 @@ class EllipticCurveHom(Morphism):
             Isogeny of degree 7 from Elliptic Curve defined by y^2 + x*y = x^3 - x^2 - 107*x + 552 over Rational Field to Elliptic Curve defined by y^2 + x*y = x^3 - x^2 - 5252*x - 178837 over Rational Field
         """
         return hash((self.domain(), self.codomain(), self.kernel_polynomial()))
-

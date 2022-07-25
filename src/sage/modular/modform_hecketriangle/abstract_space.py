@@ -84,16 +84,15 @@ class FormsSpace_abstract(FormsRing_abstract):
             sage: MF.is_homogeneous()
             True
         """
-
         #from space import canonical_parameters
         #(group, base_ring, k, ep, n) = canonical_parameters(group, base_ring, k, ep, n)
 
-        super(FormsSpace_abstract, self).__init__(group=group, base_ring=base_ring, red_hom=True, n=n)
+        super().__init__(group=group, base_ring=base_ring, red_hom=True, n=n)
         #self.register_embedding(self.hom(lambda f: f.parent().graded_ring()(f), codomain=self.graded_ring()))
 
         self._weight = k
         self._ep = ep
-        (self._l1,self._l2) = self.weight_parameters()
+        (self._l1, self._l2) = self.weight_parameters()
         self._module = None
         self._ambient_space = self
 
@@ -1481,8 +1480,8 @@ class FormsSpace_abstract(FormsRing_abstract):
         """
 
         if (not self.is_weakly_holomorphic()):
-             from warnings import warn
-             warn("This function only determines generators of (quasi) weakly modular forms!")
+            from warnings import warn
+            warn("This function only determines generators of (quasi) weakly modular forms!")
 
         (min_exp, order_1) = self._canonical_min_exp(min_exp, order_1)
 
@@ -1586,8 +1585,8 @@ class FormsSpace_abstract(FormsRing_abstract):
         """
 
         if (not self.is_weakly_holomorphic()):
-             from warnings import warn
-             warn("This function only determines the dimension of some (quasi) weakly subspace!")
+            from warnings import warn
+            warn("This function only determines the dimension of some (quasi) weakly subspace!")
 
         (min_exp, order_1) = self._canonical_min_exp(min_exp, order_1)
 
@@ -2126,10 +2125,9 @@ class FormsSpace_abstract(FormsRing_abstract):
             [1 - 168*q^2 + 2304*q^3 - 19320*q^4 + O(q^5),
              q - 18*q^2 + 180*q^3 - 1316*q^4 + O(q^5)]
         """
-
         if (not self.is_weakly_holomorphic()):
-             from warnings import warn
-             warn("This function only determines elements / a basis of (quasi) weakly modular forms!")
+            from warnings import warn
+            warn("This function only determines elements / a basis of (quasi) weakly modular forms!")
 
         (min_exp, order_1) = self._canonical_min_exp(min_exp, order_1)
         order_inf = self._l1 - order_1

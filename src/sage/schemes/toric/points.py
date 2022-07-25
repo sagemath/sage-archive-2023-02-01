@@ -44,7 +44,7 @@ from sage.rings.polynomial.polynomial_ring_constructor import PolynomialRing
 from sage.parallel.decorate import Parallel
 
 
-class InfinitePointEnumerator(object):
+class InfinitePointEnumerator():
 
     def __init__(self, fan, ring):
         """
@@ -107,7 +107,7 @@ class InfinitePointEnumerator(object):
                 yield tuple(p)
 
 
-class NaiveFinitePointEnumerator(object):
+class NaiveFinitePointEnumerator():
 
     def __init__(self, fan, ring):
         """
@@ -288,7 +288,7 @@ class NaiveFinitePointEnumerator(object):
         result = set(free)
         for f in free:
             for t in tors:
-                phases = tuple(x*y for x, y in zip(f, t))
+                phases = tuple(x * y for x, y in zip(f, t))
                 result.add(phases)
         return tuple(sorted(result))
 
@@ -314,7 +314,7 @@ class NaiveFinitePointEnumerator(object):
         """
         result = set()
         for phases in self.rescalings():
-            p = tuple(mu*z for mu, z in zip(point, phases))
+            p = tuple(mu * z for mu, z in zip(point, phases))
             result.add(p)
         return frozenset(result)
 
@@ -525,7 +525,7 @@ class FiniteFieldPointEnumerator(NaiveFinitePointEnumerator):
         OUTPUT:
 
         A tuple containing generators for
-        $Hom(A_{d-1,\text{tors}}, F^\times)$.
+        `Hom(A_{d-1,\text{tors}}, F^\times)`.
 
         EXAMPLES::
 
@@ -758,7 +758,7 @@ class FiniteFieldPointEnumerator(NaiveFinitePointEnumerator):
         return n
 
 
-class NaiveSubschemePointEnumerator(object):
+class NaiveSubschemePointEnumerator():
 
     def __init__(self, polynomials, ambient):
         """
@@ -918,6 +918,7 @@ class FiniteFieldSubschemePointEnumerator(NaiveSubschemePointEnumerator):
         # Parallelize the outermost loop of the Cartesian product
         work = [([[r]] + log_range[1:],) for r in log_range[0]]
         parallel = Parallel()
+
         def partial_solution(work_range):
             return list(self.solutions_serial(inhomogeneous_equations, work_range))
         for partial_result in parallel(partial_solution)(work):

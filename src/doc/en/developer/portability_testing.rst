@@ -55,6 +55,10 @@ To get started, you need to install a `Docker client
 Linux, Mac, and Windows.  The clients for the latter are known as
 "Docker Desktop".
 
+Make sure that your Docker client is configured to provide enough RAM
+to the containers (8 GB are a good choice). In Docker Desktop this
+setting is in Preferences -> Resources -> Advanced.
+
 All examples in this section were obtained using Docker Desktop for
 Mac; but the `command-line user interface
 <https://docs.docker.com/engine/reference/commandline/cli/>`_ for the
@@ -893,7 +897,7 @@ The ``local-homebrew-macos-standard-python3_xcode`` environment
 installs the same packages, but uses XCode's ``/usr/bin/python3``.
 
 The ``local-homebrew-macos-standard-python3_pythonorg`` expects an
-installation of Python 3.7 in
+installation of Python 3.10 in
 ``/Library/Frameworks/Python.framework``; this is where the binary
 packages provided by python.org install themselves.
 

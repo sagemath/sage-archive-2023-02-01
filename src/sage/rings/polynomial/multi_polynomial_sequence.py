@@ -1268,18 +1268,18 @@ class PolynomialSequence_gf2(PolynomialSequence_generic):
         F = self
         reductors = []
 
-        if use_polybori and skip is None and maxlength==Infinity:
+        if use_polybori and skip is None and maxlength == Infinity:
             # faster solution based on polybori.ll.eliminate
             while True:
                 (this_step_reductors, _, higher) = eliminate(F)
                 if this_step_reductors == []:
-                   break
-                reductors.extend( this_step_reductors )
+                    break
+                reductors.extend(this_step_reductors)
                 F = higher
         else:
             # slower, more flexible solution
             if skip is None:
-                skip = lambda lm,tail: False
+                skip = lambda lm, tail: False
 
             while True:
                 linear = []
@@ -1422,8 +1422,8 @@ class PolynomialSequence_gf2(PolynomialSequence_generic):
 
         And we may use SAT-solvers if they are available::
 
-            sage: sol = S.solve(algorithm='sat') # optional - cryptominisat
-            sage: print(reproducible_repr(sol))  # optional - cryptominisat
+            sage: sol = S.solve(algorithm='sat') # optional - pycryptosat
+            sage: print(reproducible_repr(sol))  # optional - pycryptosat
             [{x: 0, y: 1, z: 0}]
             sage: S.subs( sol[0] )
             [0, 0, 0]

@@ -13,9 +13,8 @@ fi
 ## the current directory (for the source tree).
 ## Building takes places in the build/ subdirectory.
 ##
-## As a special exception, we feed SAGE_PKGS and SAGE_SPKG_INST.
-## They are needed by src/sage_setup/optional_extension.py
-## via src/sage/misc/package.py.  See meta-ticket #28815 for planned changes to this.
+## As a special exception, we feed SAGE_PKGS.
+## They are needed by src/sage/misc/package.py.  See meta-ticket #28815 for planned changes to this.
 
 export SAGE_PKGS="$SAGE_ROOT"/build/pkgs
 export SAGE_ROOT=/doesnotexist
@@ -28,15 +27,11 @@ export PYTHON="$SAGE_LOCAL/bin/python3"
 
 # We also poison all directories below SAGE_LOCAL.
 
+export SAGE_LOCAL=/doesnotexist
 export SAGE_PKGCONFIG=/doesnotexist
 export SAGE_PKG_CONFIG_PATH=/doesnotexist
 export SAGE_SPKG_SCRIPTS=/doesnotexist
 export SAGE_SHARE=/doesnotexist
-
-# Trac #29411: We cannot poison SAGE_LOCAL because the pkg-config script
-# installed by the pkgconf spkg, generated from build/pkgs/pkgconf/patches/pkg-config.in,
-# uses this variable.
-# export SAGE_LOCAL=/doesnotexist
 
 # Trac #30903: We cannot poison SAGE_DOC because setup.py installs the Jupyter kernel
 # spec, which includes setting a symlink to the installed documentation.
@@ -55,6 +50,10 @@ else
     (cd "$SITEPACKAGESDIR" && rm -f sagemath-standard.egg-link)
     time python3 -u setup.py --no-user-cfg build install || exit 1
 fi
+
+# Trac #33103: The temp.* directories are large after a full build.
+# We remove them to save space; they are not needed for fast rebuilds.
+rm -rf build/temp.*
 
 if [ "$UNAME" = "CYGWIN" ]; then
     sage-rebase.sh "$SAGE_LOCAL" 2>/dev/null;

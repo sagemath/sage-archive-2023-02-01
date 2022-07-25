@@ -84,7 +84,6 @@ def reduce_mod_q(x,amodq):
         (59, [(36, 28)]),
         (61, [(40, 35)]),
         (67, [(10, 8), (62, 28), (63, 60)])]
-
     """
     Fq = amodq.parent()
     try:
@@ -177,7 +176,6 @@ class EllipticCurveSaturator(SageObject):
             sage: saturator = EllipticCurveSaturator(E)
             sage: for q in primes(20):
             ....:     saturator.add_reductions(q)
-            ....:
             sage: saturator._reductions
             {2: {},
             3: {},
@@ -213,9 +211,9 @@ class EllipticCurveSaturator(SageObject):
 
         INPUT:
 
-        - ``Plist`` (list) - a list of independent points on one elliptic curve.
+        - ``Plist`` (list) -- a list of independent points on one elliptic curve.
 
-        - ``p`` (integer) - a prime number.
+        - ``p`` (integer) -- a prime number.
 
         OUTPUT:
 
@@ -254,7 +252,6 @@ class EllipticCurveSaturator(SageObject):
             (2869/676 : 154413/17576 : 1),
             (-7095/502681 : -366258864/356400829 : 1)],
             1)
-
         """
         if not Plist:
             return Plist, ZZ.zero()
@@ -306,14 +303,14 @@ class EllipticCurveSaturator(SageObject):
 
         INPUT:
 
-        - ``Plist`` (list) - a list of independent points on one elliptic curve.
+        - ``Plist`` (list) -- a list of independent points on one elliptic curve.
 
-        - ``p`` (integer) - a prime number.
+        - ``p`` (integer) -- a prime number.
 
-        - ``sieve`` (boolean) - if True, use a sieve (when there are at
+        - ``sieve`` (boolean) -- if True, use a sieve (when there are at
           least 2 points); otherwise test all combinations.
 
-        .. note::
+        .. NOTE::
 
             The sieve is much more efficient when the points are
             saturated and the number of points or the prime are large.
@@ -418,7 +415,6 @@ class EllipticCurveSaturator(SageObject):
             ([(10 : -38 : 1), (15/49*a + 760/49 : 675/343*a - 884/343 : 1)],
             1,
             0.123378097374749)
-
         """
         verbose = self._verbose
         # This code does a lot of elliptic curve group structure
@@ -597,24 +593,24 @@ def p_projections(Eq, Plist, p, debug=False):
 
     INPUT:
 
-    - `Eq` -  An elliptic curve over a finite field.
+    - `Eq` -- An elliptic curve over a finite field.
 
-    - `Plist` - a list of points on `Eq`.
+    - `Plist` -- a list of points on `Eq`.
 
-    - `p` - a prime number.
+    - `p` -- a prime number.
 
     OUTPUT:
 
-    A list of $r\le2$ vectors in $\GF{p^n}$, the images of the points in
-    $G \otimes \GF{p}$, where $r$ is the number of vectors is the
-    $p$-rank of `Eq`.
+    A list of `r\le2` vectors in `\GF{p^n}`, the images of the points in
+    `G \otimes \GF{p}`, where `r` is the number of vectors is the
+    `p`-rank of `Eq`.
 
     ALGORITHM:
 
-    First project onto the $p$-primary part of `Eq`.  If that has
-    $p$-rank 1 (i.e. is cyclic), use discrete logs there to define a
-    map to $\GF{p}$, otherwise use the Weil pairing to define two
-    independent maps to $\GF{p}$.
+    First project onto the `p`-primary part of `Eq`.  If that has
+    `p`-rank 1 (i.e. is cyclic), use discrete logs there to define a
+    map to `\GF{p}`, otherwise use the Weil pairing to define two
+    independent maps to `\GF{p}`.
 
     EXAMPLES:
 
@@ -622,9 +618,9 @@ def p_projections(Eq, Plist, p, debug=False):
 
         sage: E = EllipticCurve([0,0,1,-7,6])
 
-    We reduce modulo $409$ where its order is $3^2\cdot7^2$; the
-    $3$-primary part is non-cyclic while the $7$-primary part is
-    cyclic of order $49$::
+    We reduce modulo `409` where its order is `3^2\cdot7^2`; the
+    `3`-primary part is non-cyclic while the `7`-primary part is
+    cyclic of order `49`::
 
         sage: F = GF(409)
         sage: EF = E.change_ring(F)
@@ -634,9 +630,9 @@ def p_projections(Eq, Plist, p, debug=False):
         sage: G.order().factor()
         3^2 * 7^2
 
-    We construct three points and project them to the $p$-primary
-    parts for $p=2,3,5,7$, yielding 0,2,0,1 vectors of length 3 modulo
-    $p$ respectively.  The exact vectors output depend on the computed
+    We construct three points and project them to the `p`-primary
+    parts for `p=2,3,5,7`, yielding 0,2,0,1 vectors of length 3 modulo
+    `p` respectively.  The exact vectors output depend on the computed
     generators of `G`::
 
         sage: Plist = [EF([-2,3]), EF([0,2]), EF([1,0])]
@@ -706,4 +702,3 @@ def p_projections(Eq, Plist, p, debug=False):
 
     return [vector(Fp, [dlog(pt.weil_pairing(g1,p2), zeta, ord = p1, operation = '*') for pt in pts]),
         vector(Fp, [dlog(pt.weil_pairing(g2,p2), zeta, ord = p1, operation = '*') for pt in pts])]
-

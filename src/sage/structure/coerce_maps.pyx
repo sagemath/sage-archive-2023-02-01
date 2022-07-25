@@ -312,7 +312,7 @@ cdef class NamedConvertMap(Map):
 
 cdef class CallableConvertMap(Map):
     def __init__(self, domain, codomain, func, parent_as_first_arg=None):
-        """
+        r"""
         This lets one easily create maps from any callable object.
 
         This is especially useful to create maps from bound methods.
@@ -329,7 +329,7 @@ cdef class CallableConvertMap(Map):
               From: Integer Ring
               To:   Rational Field
 
-        Create a homomorphism from $\RR$ to $\RR^+$ viewed as additive groups.
+        Create a homomorphism from `\RR` to `\RR^+` viewed as additive groups.
 
         ::
 

@@ -186,7 +186,9 @@ from sage.structure.unique_representation import UniqueRepresentation
 from sage.categories.finite_enumerated_sets import FiniteEnumeratedSets
 from sage.combinat.combinat import CombinatorialElement
 from sage.combinat.partition import Partitions, Partition
-from sage.rings.all import ZZ, QQ, FractionField
+from sage.rings.fraction_field import FractionField
+from sage.rings.integer_ring import ZZ
+from sage.rings.rational_field import QQ
 from sage.misc.cachefunc import cached_in_parent_method, cached_function
 from sage.combinat.misc import IterableFunctionCall
 
@@ -612,7 +614,7 @@ class PrimarySimilarityClassTypes(UniqueRepresentation, Parent):
             min = (min[0], Partition(min[1]))
         else:
             raise ValueError("min must be a PrimarySimilarityClassType")
-        return super(PrimarySimilarityClassTypes, cls).__classcall__(cls, n, min)
+        return super().__classcall__(cls, n, min)
 
     def __init__(self, n, min):
         r"""
@@ -1025,7 +1027,7 @@ class SimilarityClassTypes(UniqueRepresentation, Parent):
             min = PrimarySimilarityClassType(min[0], min[1])
         if not isinstance(min, PrimarySimilarityClassType):
             raise ValueError("min must be a PrimarySimilarityClassType")
-        return super(SimilarityClassTypes, cls).__classcall__(cls, n, min)
+        return super().__classcall__(cls, n, min)
 
     def __init__(self, n, min):
         r"""
@@ -1199,12 +1201,12 @@ def dictionary_from_generator(gen):
     EXAMPLES::
 
         sage: from sage.combinat.similarity_class_type import dictionary_from_generator
-        sage: dictionary_from_generator(((floor(x/2), x) for x in range(10)))
+        sage: dictionary_from_generator(((x // 2, x) for x in range(10)))
         {0: 1, 1: 5, 2: 9, 3: 13, 4: 17}
 
     It also works with lists::
 
-        sage: dictionary_from_generator([(floor(x/2),x) for x in range(10)])
+        sage: dictionary_from_generator([(x // 2, x) for x in range(10)])
         {0: 1, 1: 5, 2: 9, 3: 13, 4: 17}
 
     .. NOTE::

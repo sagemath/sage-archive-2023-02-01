@@ -39,18 +39,19 @@ The code was tested afterwards by Liz Beazley and Ed Richmond.
 # ****************************************************************************
 from __future__ import annotations
 
-from sage.plot.graphics import Graphics
-from sage.plot.polygon import polygon
-from sage.plot.line import line
-from sage.plot.text import text
+from sage.misc.lazy_import import lazy_import
+lazy_import("sage.plot.graphics", "Graphics")
+lazy_import("sage.plot.polygon", "polygon")
+lazy_import("sage.plot.line", "line")
+lazy_import("sage.plot.text", "text")
 from sage.rings.polynomial.polynomial_ring_constructor import PolynomialRing
 from sage.rings.finite_rings.integer_mod_ring import Integers
-from sage.plot.plot import graphics_array
+lazy_import("sage.plot.plot", "graphics_array")
 from sage.misc.cachefunc import cached_method
 from sage.structure.unique_representation import UniqueRepresentation
 
 
-class PuzzlePiece(object):
+class PuzzlePiece():
     r"""
     Abstract class for puzzle pieces.
 
@@ -619,7 +620,7 @@ class RhombusPiece(PuzzlePiece):
         return ('north_west', 'north_east', 'south_east', 'south_west')
 
 
-class PuzzlePieces(object):
+class PuzzlePieces():
     r"""
     Construct a valid set of puzzle pieces.
 
@@ -669,8 +670,8 @@ class PuzzlePieces(object):
             ...
             TypeError: Input must be a list
         """
-        self._nabla_pieces = set([])
-        self._delta_pieces = set([])
+        self._nabla_pieces = set()
+        self._delta_pieces = set()
         if forbidden_border_labels is None:
             forbidden_border_labels = []
         if not isinstance(forbidden_border_labels, list):
@@ -864,7 +865,7 @@ class PuzzlePieces(object):
             sage: sorted([p for p in pieces.rhombus_pieces()], key=str)
             [a/\b  b\/a, b/\c  c\/b, c/\a  a\/c]
         """
-        rhombi = set([])
+        rhombi = set()
         for nabla in self._nabla_pieces:
             for delta in self._delta_pieces:
                 if delta['south'] == nabla['north']:
@@ -1065,7 +1066,7 @@ def BK_pieces(max_letter):
     return pieces
 
 
-class PuzzleFilling(object):
+class PuzzleFilling():
     r"""
     Create partial puzzles and provides methods to build puzzles from them.
     """
@@ -1985,7 +1986,7 @@ class KnutsonTaoPuzzleSolver(UniqueRepresentation):
                     puzzle_pieces = BK_pieces(max_letter)
                 else:
                     raise ValueError("max_letter needs to be specified")
-        return super(KnutsonTaoPuzzleSolver, cls).__classcall__(cls, puzzle_pieces)
+        return super().__classcall__(cls, puzzle_pieces)
 
     def __call__(self, lamda, mu, algorithm='strips'):
         r"""
@@ -2050,7 +2051,7 @@ class KnutsonTaoPuzzleSolver(UniqueRepresentation):
         """
         return self._puzzle_pieces
 
-    def _fill_piece(self, nw_label, ne_label, pieces) -> list:
+    def _fill_piece(self, nw_label, ne_label, pieces) -> list[PuzzlePiece]:
         r"""
         Fillings of a piece.
 

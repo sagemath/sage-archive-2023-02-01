@@ -37,7 +37,7 @@ class build_py(setuptools_build_py):
                 shutil.copytree('sage_root', SAGE_ROOT)  # will fail if already exists
             except Exception:
                 raise DistutilsSetupError(f"the directory SAGE_ROOT={SAGE_ROOT} already exists but it is not configured.  Please remove it and try again.")
-            cmd = f"cd {SAGE_ROOT} && {SETENV} && ./configure --prefix={SAGE_LOCAL} --with-python={sys.executable} --enable-build-as-root --enable-download-from-upstream-url --with-system-python3=force --with-sage-venv --disable-notebook --disable-sagelib"
+            cmd = f"cd {SAGE_ROOT} && {SETENV} && ./configure --prefix={SAGE_LOCAL} --with-python={sys.executable} --enable-build-as-root --enable-download-from-upstream-url --with-system-python3=force --with-sage-venv --disable-notebook --disable-sagelib --disable-sage_conf --disable-doc"
             print(f"Running {cmd}")
             sys.stdout.flush()
             if os.system(cmd) != 0:
@@ -55,16 +55,15 @@ class build_py(setuptools_build_py):
         # TODO: A target to only build wheels of tricky packages
         # (that use native libraries shared with other packages).
         SETMAKE = 'if [ -z "$MAKE" ]; then export MAKE="make -j$(PATH=build/bin:$PATH build/bin/sage-build-num-threads | cut -d" " -f 2)"; fi'
-        cmd = f'cd {SAGE_ROOT} && {SETENV} && {SETMAKE} && $MAKE V=0 build-local'
+        TARGETS = 'build'
+        cmd = f'cd {SAGE_ROOT} && {SETENV} && {SETMAKE} && $MAKE V=0 {TARGETS}'
+        print(f"Running {cmd}", flush=True)
         if os.system(cmd) != 0:
-            raise DistutilsSetupError("make build-local failed")
+            raise DistutilsSetupError(f"make {TARGETS} failed")
 
         # Install configuration
-        shutil.copyfile(os.path.join(SAGE_ROOT, 'pkgs', 'sage-conf', 'sage_conf.py'),
-                        os.path.join(HERE, 'sage_conf.py'))
-        if not self.distribution.py_modules:
-            self.py_modules = self.distribution.py_modules = []
-        self.distribution.py_modules.append('sage_conf')
+        shutil.copyfile(os.path.join(SAGE_ROOT, 'pkgs', 'sage-conf', '_sage_conf', '_conf.py'),
+                        os.path.join(HERE, '_sage_conf', '_conf.py'))
         shutil.copyfile(os.path.join(SAGE_ROOT, 'src', 'bin', 'sage-env-config'),
                         os.path.join(HERE, 'bin', 'sage-env-config'))
         setuptools_build_py.run(self)
@@ -75,9 +74,6 @@ class build_scripts(distutils_build_scripts):
         self.distribution.scripts.append(os.path.join('bin', 'sage-env-config'))
         if not self.distribution.entry_points:
             self.entry_points = self.distribution.entry_points = dict()
-        if 'console_scripts' not in self.distribution.entry_points:
-            self.distribution.entry_points['console_scripts'] = []
-        self.distribution.entry_points['console_scripts'].append('sage-config=sage_conf:_main')
         distutils_build_scripts.run(self)
 
 setup(

@@ -4687,7 +4687,7 @@ class GenericGraph(GenericGraph_pyx):
 
         """
 
-        if not self.order():
+        if self.order() == 0:
             return 0
 
         vertices = list(self)

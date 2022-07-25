@@ -2222,6 +2222,7 @@ class Permutation(CombinatorialElement):
             [[1, 2, 6], [1, 2, 4], [1, 2, 3]]
 
         .. NOTE::
+
             This algorithm could be made faster using a balanced search tree
             for each column instead of sorted lists. See discussion on
             :trac:`31451`.
@@ -2258,7 +2259,7 @@ class Permutation(CombinatorialElement):
         for i in columns[0]:
             D.add_edge(0, i)  # 0 is source
         for i in columns[-1]:
-            D.add_edge(i, n+1) # n+1 is sink
+            D.add_edge(i, n+1)  # n+1 is sink
 
         return sorted([p[1:-1] for p in D.all_paths(0, n+1)], reverse=True)
 

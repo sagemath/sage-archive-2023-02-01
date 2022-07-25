@@ -2213,7 +2213,6 @@ class Permutation(CombinatorialElement):
         p-tableau each value of the permutation is entered into, creates a
         digraph to record all increasing subsequences, and reads the paths
         from a source to a sink; these are the longest increasing subsequences.
-
     
         EXAMPLES::
 
@@ -2221,43 +2220,47 @@ class Permutation(CombinatorialElement):
             [[2, 3, 4]]
             sage: Permutation([5, 7, 1, 2, 6, 4, 3]).longest_increasing_subsequences()
             [[1, 2, 6], [1, 2, 4], [1, 2, 3]]
+
+        .. NOTE::
+            This algorithm could be made faster using a balanced search tree
+            for each column instead of sorted lists. See discussion on
+            :trac:`31451`.
         """
         n = self.size()
         if n == 0:
             return([[]])
 
+        from bisect import insort, bisect
+
         # getting the column in which each element is inserted
         first_row_p_tableau = []
-        columns = [[] for _ in range(self.longest_increasing_subsequence_length())]
+        columns = [] 
         D = DiGraph(n+2)
-        for i in range(n):
-            inserted = False
-            j = 0  # j is j-th column of p-tableau
-            while j < len(first_row_p_tableau) and not inserted:
-                if first_row_p_tableau[j] > self[i]:
-                    first_row_p_tableau[j] = self[i]
-                    columns[j].append(self[i])
+        for x in self:
+            j = bisect(first_row_p_tableau, x) 
+            if j == len(first_row_p_tableau):
+                if columns:
+                    for k in columns[-1]:
+                        if k >= x:
+                            break
+                        D.add_edge(k, x)
+                first_row_p_tableau.append(x)
+                columns.append([x])
+            else:
+                first_row_p_tableau[j] = x
+                insort(columns[j], x)
+                if j:
                     for k in columns[j-1]:
-                        if k < self[i]:
-                            D.add_edge(k, self[i])
-                    inserted = True
-                j += 1
-            if not inserted:
-                first_row_p_tableau.append(self[i])
-                columns[j].append(self[i])
-                for k in columns[j-1]:
-                    if k < self[i]:
-                        D.add_edge(k, self[i])
+                        if k > x:
+                            break
+                        D.add_edge(k, x)
 
         for i in columns[0]:
             D.add_edge(0, i)  # 0 is source
         for i in columns[-1]:
             D.add_edge(i, n+1) # n+1 is sink
 
-        increasing_subsequences = [p[1:-1] for p in D.all_paths(0, n+1)]
-        increasing_subsequences.sort(reverse=True)
-
-        return increasing_subsequences
+        return sorted([p[1:-1] for p in D.all_paths(0, n+1)], reverse=True)
 
 
     def cycle_type(self):

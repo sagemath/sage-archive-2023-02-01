@@ -938,7 +938,6 @@ from collections import defaultdict, deque, namedtuple, OrderedDict
 from collections.abc import Iterator, Iterable, Mapping
 from copy import copy, deepcopy
 
-from sage.calculus.var import var
 from sage.graphs.digraph import DiGraph
 from sage.matrix.constructor import matrix
 from sage.misc.cachefunc import cached_function
@@ -5156,11 +5155,13 @@ class FiniteStateMachine(SageObject):
 
         """
 
-        def default_function(transitions):
-            x = var('x')
-            return x**sum(transition.word_out)
-
         if entry is None:
+            from sage.symbolic.ring import SR
+            x = SR.var('x')
+
+            def default_function(transition):
+                return x**sum(transition.word_out)
+
             entry = default_function
 
         relabeledFSM = self
@@ -9829,7 +9830,7 @@ class FiniteStateMachine(SageObject):
                 done.append(s)
         return done
 
-    def number_of_words(self, variable=var('n'),
+    def number_of_words(self, variable=None,
                         base_ring=None):
         r"""
         Return the number of successful input words of given length.
@@ -9941,10 +9942,12 @@ class FiniteStateMachine(SageObject):
             NotImplementedError: Finite State Machine must be deterministic.
         """
         from sage.modules.free_module_element import vector
-        from sage.arith.all import binomial
+        from sage.arith.misc import binomial
         from sage.symbolic.ring import SR
         if base_ring is None:
             base_ring = QQbar
+        if variable is None:
+            variable = SR.symbol('n')
 
         def jordan_block_power(block, exponent):
             eigenvalue = SR(block[0, 0])
@@ -9968,7 +9971,7 @@ class FiniteStateMachine(SageObject):
         left_T = (left * T).change_ring(SR)
         return left_T * Jpower * T_inv_right
 
-    def asymptotic_moments(self, variable=var('n')):
+    def asymptotic_moments(self, variable=None):
         r"""
         Return the main terms of expectation and variance of the sum
         of output labels and its covariance with the sum of input
@@ -10353,6 +10356,9 @@ class FiniteStateMachine(SageObject):
         from sage.rings.polynomial.polynomial_ring_constructor import PolynomialRing
         from sage.rings.rational_field import QQ
         from sage.symbolic.ring import SR
+
+        if variable is None:
+            variable = SR.symbol('n')
 
         if self.input_alphabet is None:
             raise ValueError("No input alphabet is given. "

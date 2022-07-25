@@ -589,7 +589,7 @@ class QuotientRing_nc(ring.Ring, sage.structure.parent_gens.ParentWithGens):
                 return True
         except (AttributeError, NotImplementedError):
             pass
-        from sage.all import Infinity
+        from sage.rings.infinity import Infinity
         if self.ngens() == Infinity:
             raise NotImplementedError("This quotient ring has an infinite number of generators.")
         for i in range(self.ngens()):

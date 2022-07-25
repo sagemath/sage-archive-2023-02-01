@@ -440,7 +440,7 @@ TikZ is used for typesetting the graphics, see the
 
 ::
 
-    sage: print(latex(NAF))
+    sage: print(latex(NAF))  # abs tol 1e-3
     \begin{tikzpicture}[auto, initial text=, >=latex]
     \node[state, accepting, initial] (v0) at (3.000000, 0.000000) {$\text{\texttt{A}}$};
     \node[state, accepting] (v1) at (-3.000000, 0.000000) {$\text{\texttt{B}}$};
@@ -939,7 +939,6 @@ from collections.abc import Iterator, Iterable, Mapping
 from copy import copy, deepcopy
 
 from sage.calculus.var import var
-from sage.functions.trig import atan2
 from sage.graphs.digraph import DiGraph
 from sage.matrix.constructor import matrix
 from sage.misc.cachefunc import cached_function
@@ -4813,8 +4812,7 @@ class FiniteStateMachine(SageObject):
                 \path[->] (v4) edge[loop above] node {$\varepsilon\mid \varepsilon$} ();
                 \end{tikzpicture}
         """
-        from sage.functions.trig import sin, cos
-        from sage.symbolic.constants import pi
+        from math import sin, cos, pi, atan2
 
         def label_rotation(angle, both_directions):
             """
@@ -4949,8 +4947,8 @@ class FiniteStateMachine(SageObject):
                         target.coordinates[0] - source.coordinates[0]) * 180/pi
                     both_directions = (target, source) in adjacent
                     if both_directions:
-                        angle_source = ".%.2f" % ((angle + 5).n(),)
-                        angle_target = ".%.2f" % ((angle + 175).n(),)
+                        angle_source = ".%.2f" % (angle + 5)
+                        angle_target = ".%.2f" % (angle + 175)
                     else:
                         angle_source = ""
                         angle_target = ""
@@ -5030,8 +5028,7 @@ class FiniteStateMachine(SageObject):
             sage: F.state(2).coordinates
             (2, 1)
         """
-        from sage.functions.trig import sin, cos
-        from sage.symbolic.constants import pi
+        from math import sin, cos, pi
 
         states_without_coordinates = []
         for state in self.iter_states():

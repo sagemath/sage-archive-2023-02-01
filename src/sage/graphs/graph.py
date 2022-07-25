@@ -8707,7 +8707,12 @@ class Graph(GenericGraph):
 
         self._scream_if_not_simple()
         if not self.is_connected():
-            raise ValueError('the Graph is not a connected graph')
+            connected_i = self.connected_component_containing_vertex(i)
+            if j in connected_i:
+                component = self.subgraph(connected_i)
+                return component.effective_resistance(i,j)
+            else:
+                return Infinity
 
         vert = list(self)
         i1 = vert.index(i)

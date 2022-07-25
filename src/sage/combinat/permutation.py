@@ -2280,6 +2280,9 @@ class Permutation(CombinatorialElement):
 
         EXAMPLES::
 
+            sage: sum(p.longest_increasing_subsequences_number() for p in Permutations(8))
+            120770
+
             sage: p = Permutations(50).random_element()
             sage: (len(p.longest_increasing_subsequences()) ==
             ....:  p.longest_increasing_subsequences_number())
@@ -2292,37 +2295,25 @@ class Permutation(CombinatorialElement):
         from bisect import insort, bisect
 
         # getting the column in which each element is inserted
+        count = [0] * (n + 1)
         first_row_p_tableau = []
         columns = []
-        D = DiGraph(n+2)
         for x in self:
             j = bisect(first_row_p_tableau, x)
             if j == len(first_row_p_tableau):
-                if columns:
-                    for k in columns[-1]:
-                        if k >= x:
-                            break
-                        D.add_edge(k, x)
                 first_row_p_tableau.append(x)
                 columns.append([x])
             else:
                 first_row_p_tableau[j] = x
                 insort(columns[j], x)
-                if j:
-                    for k in columns[j-1]:
-                        if k > x:
-                            break
-                        D.add_edge(k, x)
-
-        for i in columns[0]:
-            D.add_edge(0, i)  # 0 is source
-        for i in columns[-1]:
-            D.add_edge(i, n+1)  # n+1 is sink
-
-        Path_matrix = (D.adjacency_matrix()
-                       **(self.longest_increasing_subsequence_length()+1))
-        return Path_matrix[0][n+1]
-
+            if j == 0:
+                count[x] = 1
+            else:
+                for k in columns[j-1]:
+                    if k > x:
+                        break
+                    count[x] += count[k]
+        return sum(count[x] for x in columns[-1])
 
     def cycle_type(self):
         r"""

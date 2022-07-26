@@ -2196,7 +2196,7 @@ class Permutation(CombinatorialElement):
         """
         from bisect import bisect
         r: list[int] = []
-        for x in self:
+        for x in self._list:
             # Search for the smallest value y larger than x
             idx = bisect(r, x)
             if idx == len(r):
@@ -2241,7 +2241,7 @@ class Permutation(CombinatorialElement):
         first_row_p_tableau = []
         columns = []
         D = DiGraph(n+2)
-        for x in self:
+        for x in self._list:
             j = bisect(first_row_p_tableau, x) 
             if j == len(first_row_p_tableau):
                 if columns:
@@ -2294,11 +2294,10 @@ class Permutation(CombinatorialElement):
 
         from bisect import insort, bisect
 
-        # getting the column in which each element is inserted
-        count = [0] * (n + 1)
+        count: list[int] = [0] * (n + 1)
         first_row_p_tableau = []
         columns = []
-        for x in self:
+        for x in self._list:
             j = bisect(first_row_p_tableau, x)
             if j == len(first_row_p_tableau):
                 first_row_p_tableau.append(x)

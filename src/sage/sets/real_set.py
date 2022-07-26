@@ -100,6 +100,8 @@ from sage.rings.real_lazy import LazyFieldElement, RLF
 from sage.rings.infinity import infinity, minus_infinity
 from sage.misc.superseded import deprecated_function_alias
 from heapq import *
+import random
+from time import process_time
 
 
 @richcmp_method
@@ -1563,24 +1565,6 @@ class RealSet(UniqueRepresentation, Parent, Set_base,
             sage: RealSet(0,0)
             {}
         """
-        # intervals = sorted(intervals)
-        # if not intervals:
-        #     return tuple()
-        # merged = []
-        # curr = intervals.pop(0)
-        # while intervals:
-        #     next = intervals.pop(0)
-        #     if curr._upper > next._lower or (
-        #             curr._upper == next._lower and
-        #             (curr._upper_closed or next._lower_closed)):
-        #         curr = curr.convex_hull(next)
-        #     else:
-        #         if not curr.is_empty():
-        #             merged.append(curr)
-        #         curr = next
-        # if not curr.is_empty():
-        #     merged.append(curr)
-        # return tuple(merged)
         scan = []
         for interval in intervals:
             scan.append(interval._scan_left_endpoint())
@@ -2079,27 +2063,40 @@ class RealSet(UniqueRepresentation, Parent, Set_base,
         OUTPUT:
 
         The set-theoretic union as a list.
-        #
-        # EXAMPLE::
-        #
-        # sage: RealSet._scan_line_union(
+
+        EXAMPLE::
+
+        sage: s = RealSet((0,1),[4, 5], RealSet.open_closed(5,6), (6,oo)); s
+        (0, 1) ∪ [4, +oo)
+        sage: list(RealSet._scan_interval(s))
+        [((0, 1), -1, None),
+         ((1, 0), 1, None),
+         ((4, 0), -1, None),
+         ((+Infinity, 0), 1, None)]
+        sage: RealSet._scan_line_union([((0, 1), -1, None), ((1, 0), 1, None), ((4, 0), -1, None), ((+Infinity, 0), 1, None)])
+        [(0, 1), [4, +oo)]
         """
         union = []
         interval_indicator = 0
         (on_x, on_epsilon) = (None, None)
         was_on = False
+        #
         for (x, epsilon), delta, index in scan:
             interval_indicator -= delta
             now_on = (interval_indicator > 0)
-            if not was_on and not now_on:
-                (on_x, on_epsilon) = (None, None)
-            elif was_on and not now_on:
-                if (x == infinity or x == minus_infinity) and x == on_x:
-                    return union
-                union.append(InternalRealInterval(on_x, on_epsilon == 0, x, epsilon > 0))
-                (on_x, on_epsilon) = (None, None)
-            elif not was_on and now_on:
-                (on_x, on_epsilon) = (x, epsilon)
+            if was_on:
+                if now_on: pass
+                else:
+                    # special case: RealSet(x >= oo)
+                    if (x == infinity or x == minus_infinity) and x == on_x:
+                        return union
+                    union.append(InternalRealInterval(on_x, on_epsilon == 0, x, epsilon > 0))
+                    (on_x, on_epsilon) = (None, None)
+            else:
+                if now_on:
+                    (on_x, on_epsilon) = (x, epsilon)
+                else:
+                    (on_x, on_epsilon) = (None, None)
             was_on = now_on
         return union
 
@@ -2173,13 +2170,38 @@ class RealSet(UniqueRepresentation, Parent, Set_base,
         other = RealSet(*other)
         intervals = self._intervals + other._intervals
         return RealSet(*intervals)
-        # other = RealSet(*other)
-        # return RealSet.union_of_realsets(self, other)
 
     @staticmethod
     def _scan_line_intersection(scan, n):
         """
-        Helper function for intersection of :class:`RealSet`
+         Helper function for intersection of :class:`RealSet` and constructor
+
+         INPUT:
+
+        - ``scan`` -- a event from the scan union result
+        - ``n`` -- number of intersection need to take intersection
+
+        OUTPUT:
+
+        The set-theoretic union as a list.
+
+        EXAMPLE::
+
+        sage: s1 = RealSet(RealSet.open_closed(0, 2), RealSet.closed_open(-11, -1), RealSet.open_closed(5,10)); s1
+        [-11, -1) ∪ (0, 2] ∪ (5, 10]
+        sage: list(RealSet._scan_interval(s1))
+        [((-11, 0), -1, None),
+         ((-1, 0), 1, None),
+         ((0, 1), -1, None),
+         ((2, 1), 1, None),
+         ((5, 1), -1, None),
+         ((10, 1), 1, None)]
+        sage: s2 = RealSet(-12,0); s2
+        (-12, 0)
+        sage: list(RealSet._scan_interval(s2))
+        [((-12, 1), -1, None), ((0, 0), 1, None)]
+        sage: RealSet._scan_line_intersection([((-12, 1), -1, None), ((-11, 0), -1, None), ((-1, 0), 1, None), ((0, 0), 1, None), ((0, 1), -1, None), ((2, 1), 1, None), ((5, 1), -1, None), ((10, 1), 1, None)],2)
+        [[-11, -1)]
         """
         intersection = []
         interval_indicator = 0
@@ -2191,8 +2213,6 @@ class RealSet(UniqueRepresentation, Parent, Set_base,
             if not was_on and not now_on:
                 (on_x, on_epsilon) = (None, None)
             elif was_on and not now_on:
-                if (x == infinity or x == minus_infinity) and x == on_x:
-                    return intersection
                 if (on_x, on_epsilon) < (x, epsilon):
                     intersection.append(InternalRealInterval(on_x, on_epsilon == 0, x, epsilon > 0))
                 (on_x, on_epsilon) = (None, None)
@@ -2375,7 +2395,35 @@ class RealSet(UniqueRepresentation, Parent, Set_base,
     @staticmethod
     def _scan_line_difference(scan):
         """
-        Helper function for difference
+         Helper function for difference of :class:`RealSet` and constructor
+
+         INPUT:
+
+        - ``scan`` -- a event from the difference()
+
+        OUTPUT:
+
+        The set-theoretic union as a list.
+
+        EXAMPLE::
+
+            sage: s1 = RealSet(RealSet.open_closed(0, 2), RealSet.closed_open(-11, -1), RealSet.open_closed(5,10)); s1
+            [-11, -1) ∪ (0, 2] ∪ (5, 10]
+            sage: list(s1._scan_interval(True))
+            [((-11, 0), -1, True),
+             ((-1, 0), 1, True),
+             ((0, 1), -1, True),
+             ((2, 1), 1, True),
+             ((5, 1), -1, True),
+             ((10, 1), 1, True)]
+            sage: s2 = RealSet(-12,0); s2
+            (-12, 0)
+            sage: list(s2._scan_interval(False))
+            [((-12, 1), -1, False), ((0, 0), 1, False)]
+            sage: RealSet._scan_line_difference([((-12, 1), -1, False), ((-11, 0), -1, True), ((-1, 0), 1, True), ((0, 0), 1, False), ((0, 1), -1, True), ((2, 1), 1, True), ((5, 1), -1, True), ((10, 1), 1, True)])
+            [(0, 2], (5, 10]]
+            sage: s1.difference(s2)
+            (0, 2] ∪ (5, 10]
         """
         interval_indicator = 0
         remove_indicator = 0
@@ -2436,7 +2484,24 @@ class RealSet(UniqueRepresentation, Parent, Set_base,
     @staticmethod
     def _scan_line_symmetric_difference(scan):
         """
-        Helper function for symmetric_difference
+        Helper function for symmetric_difference of :class:`RealSet` and constructor
+
+        INPUT:
+
+       - ``scan`` -- a event from the difference()
+
+       OUTPUT:
+
+       The set-theoretic union as a list.
+
+       EXAMPLE::
+
+            sage: s1 = RealSet(0,2); s1
+            (0, 2)
+            sage: s2 = RealSet.unbounded_above_open(1); s2
+            (1, +oo)
+            sage: RealSet._scan_line_symmetric_difference([((0, 1), -1, None),((1, 1), -1, None),((2, 0), 1, None),((+infinity, 0), 1, None)])
+            [(0, 1], [2, +oo)]
         """
         symmetric_difference = []
         interval_indicator = 0
@@ -2448,8 +2513,6 @@ class RealSet(UniqueRepresentation, Parent, Set_base,
             if not was_on and not now_on:
                 (on_x, on_epsilon) = (None, None)
             elif was_on and not now_on:
-                if (x == infinity or x == minus_infinity) and x == on_x:
-                    return symmetric_difference
                 symmetric_difference.append(InternalRealInterval(on_x, on_epsilon == 0, x, epsilon > 0))
                 (on_x, on_epsilon) = (None, None)
             elif not was_on and now_on:
@@ -2481,8 +2544,8 @@ class RealSet(UniqueRepresentation, Parent, Set_base,
         """
 
         other = RealSet(*other)
-        scan = merge(self._scan_interval(True),
-                     other._scan_interval(False))
+        scan = merge(self._scan_interval(),
+                     other._scan_interval())
         symmetric_difference = self._scan_line_symmetric_difference(scan)
         return RealSet(*symmetric_difference, normalized=True)
 
@@ -2540,28 +2603,6 @@ class RealSet(UniqueRepresentation, Parent, Set_base,
             sage: J.is_subset(K)
             False
         """
-        # other = RealSet(*other)
-        # scan = []
-        # intersection = []
-        # realsets = [self, other]
-        # for index, real_set in enumerate(realsets):
-        #     scan.append(real_set._scan_interval(tag=index))
-        # scan = merge(*scan)
-        # interval_indicators = [0 for _ in realsets]
-        # (on_x, on_epsilon) = (None, None)
-        # for (x, epsilon), delta, index in scan:
-        #     was_on = all(on > 0 for on in interval_indicators)
-        #     interval_indicators[index] -= delta
-        #     assert interval_indicators[index] >= 0
-        #     now_on = all(on > 0 for on in interval_indicators)
-        #     if was_on:
-        #         if (on_x, on_epsilon) < (x, epsilon):
-        #             intersection.append(InternalRealInterval(on_x, on_epsilon == 0, x, epsilon > 0))
-        #     if now_on:
-        #         (on_x, on_epsilon) = (x, epsilon)
-        #     else:
-        #         (on_x, on_epsilon) = (None, None)
-        # return RealSet(*intersection) == self
         return RealSet(*other).intersection(self) == self
 
     is_included_in = deprecated_function_alias(31927, is_subset)

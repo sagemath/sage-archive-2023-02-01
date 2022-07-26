@@ -169,6 +169,11 @@ cdef class GabowEdgeConnectivity:
     cdef queue[pair[int, int]] joining_edges  # queue of tuples (edge id, edge state)
     cdef queue[int] incident_edges_Q  # queue of edges
 
+    cdef int num_start_f_trees # number of f-trees at the beginning of an iteration
+    cdef bint isReverse # whether or not graph is reverses
+    cdef int* T # whether the an edge is in the proven k-intersection
+    cdef bint* visited  # for method find_dfs_tree
+
     def __init__(self, G):
         r"""
         Initialize this object.
@@ -232,6 +237,8 @@ cdef class GabowEdgeConnectivity:
         self.stack = <int*>self.mem.calloc(self.n, sizeof(int))
         self.tree_edges.resize(self.max_ec)
         self.tree_edges_incident.resize(self.n)
+        self.T = <int*>self.mem.calloc(self.m, sizeof(int))
+        self.visited = <bint*>self.mem.calloc(self.n, sizeof(bint))
 
         # Set some constants
         self.UNUSED = INT_MAX
@@ -242,6 +249,7 @@ cdef class GabowEdgeConnectivity:
             self.edge_state_1[i] = self.UNUSED  # edge i is unused
             self.edge_state_2[i] = self.UNUSED
             self.labels[i] = self.UNUSED  # edge i is unlabeled
+            self.T[i] = False # edge i doesn't belong to any k-intersection yet
 
         _ = self.compute_edge_connectivity()
         sig_check()
@@ -271,7 +279,7 @@ cdef class GabowEdgeConnectivity:
         for i in range(self.n):
             self.g_out[i].clear()
             self.g_in[i].clear()
-            
+
         cdef int x, y
         cdef int e_id = 0
         for x, u in enumerate(self.int_to_vertex):
@@ -357,8 +365,7 @@ cdef class GabowEdgeConnectivity:
 
         cdef int njoins = 0
         cdef int z
-
-        while njoins < self.n - 1:
+        while njoins < self.num_start_f_trees-1:
             # Get the root of an active subtree or INT_MAX if none exists
             z = self.choose_root()
             while z != INT_MAX:
@@ -415,13 +422,94 @@ cdef class GabowEdgeConnectivity:
             self.labeled[tree][j] = False
             self.root[j] = j
             self.forests[j] = True
+        
+        self.num_start_f_trees = 1
+        
+        # Initialize T_k to be a DFS spanning forest of G \ T
+        self.G_minus_T()
+        self.compute_dfs_tree()
 
-        # Set inactive the f_trees of the root vertex
+        # Set inactive the f-trees of the root vertex
         self.forests[self.root_vertex] = False
 
         self.L_roots[tree] = self.UNUSED
         self.tree_flag[tree] = False
 
+    cdef void G_minus_T(self):
+        """
+        Delete all edges in the proven k-intersection (T) from the graph
+        We then consider G as the subgraph of G induced by the unused edges
+
+        EXAMPLES::
+
+            sage: from sage.graphs.edge_connectivity import GabowEdgeConnectivity
+            sage: D = digraphs.Complete(5)
+            sage: GabowEdgeConnectivity(D).edge_connectivity()
+            4
+        """
+        for e_id in range(self.m):
+                self.T[e_id] = False
+        for i in range(self.max_ec):
+            edge_list = self.tree_edges[i]
+            # All True edges in T correspond to the proven complete (k−1)-intersection of G
+            for e_id in edge_list:
+                self.T[e_id] = True
+
+    cdef void compute_dfs_tree(self):
+        """
+        Find a DFS spanning forest of G \ T
+
+        EXAMPLES::
+
+            sage: from sage.graphs.edge_connectivity import GabowEdgeConnectivity
+            sage: D = digraphs.Complete(5)
+            sage: GabowEdgeConnectivity(D).edge_connectivity()
+            4
+        """
+        # Mark all vertices as unvisited
+        for i in range(self.n):
+            self.visited[i] = False
+
+        # Avoid considering the root
+        self.visited[self.root_vertex] = True
+
+        for r in range(self.n):
+            if not self.visited[r]:
+                # Make this vertex the root of the following dfs tree
+                self.root[r] = r
+                # Make the f_tree rooted at this vertex active
+                self.forests[r] = True
+                # Find connected vertices of the f-tree rooted at r
+                self.find_dfs_tree(r, r)
+                # Each call of find_dfs_tree creates an f-tree
+                self.num_start_f_trees += 1
+    
+    cdef void find_dfs_tree(self, u, r):
+        """
+        Find more vertices of the f-tree rooted at r
+
+        EXAMPLES::
+
+            sage: from sage.graphs.edge_connectivity import GabowEdgeConnectivity
+            sage: D = digraphs.Complete(5)
+            sage: GabowEdgeConnectivity(D).edge_connectivity()
+            4
+        """
+        # Mark vertex u as visited to avoid visiting it multiple times
+        self.visited[u] = True
+
+        # Visit outgoing arcs of current vertex
+        for e_id in self.g_out[u]:
+            v = self.my_to[e_id]
+            # Ensure a vertex is not visited and does not a proven k-intersection edge
+            if not self.visited[v] and not self.T[e_id]:
+                # Make current vertex belong to the f_tree rooted at r
+                self.root[v] = r
+                self.forests[v] = False
+                self.my_edge_state[e_id] = self.current_tree
+                # recursively find more vertices and grow the subtree rooted at r
+                self.find_dfs_tree(v, r)
+        
     cdef int choose_root(self):
         """
         Return the root of an active f_tree, or INT_MAX if none exists.
@@ -728,7 +816,7 @@ cdef class GabowEdgeConnectivity:
 
     cdef bint label_step(self, int e_id, int e_label):
         """
-        Label edge e_id with e_label and check wheteher edge e_id is joining.
+        Label edge e_id with e_label and check whether edge e_id is joining.
 
         EXAMPLES::
 

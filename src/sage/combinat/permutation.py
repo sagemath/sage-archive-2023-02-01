@@ -62,6 +62,7 @@ Below are listed all methods and classes defined in this file.
     :meth:`~sage.combinat.permutation.Permutation.runs` | Returns a list of the runs in the permutation ``self``.
     :meth:`~sage.combinat.permutation.Permutation.longest_increasing_subsequence_length` | Returns the length of the longest increasing subsequences of ``self``.
     :meth:`~sage.combinat.permutation.Permutation.longest_increasing_subsequences` | Returns the list of the longest increasing subsequences of ``self``.
+    :meth:`~sage.combinat.permutation.Permutation.longest_increasing_subsequences_number` | Returns the number of longest increasing subsequences
     :meth:`~sage.combinat.permutation.Permutation.cycle_type` | Returns the cycle type of ``self`` as a partition of ``len(self)``.
     :meth:`~sage.combinat.permutation.Permutation.foata_bijection` | Returns the image of the permutation ``self`` under the Foata bijection `\phi`.
     :meth:`~sage.combinat.permutation.Permutation.foata_bijection_inverse` | Returns the image of the permutation ``self`` under the inverse of the Foata bijection `\phi`.
@@ -2267,16 +2268,21 @@ class Permutation(CombinatorialElement):
 
         return sorted([p[1:-1] for p in D.all_paths(0, n+1)], reverse=True)
 
-
     def longest_increasing_subsequences_number(self):
         r"""
         Return the number of increasing subsequences of maximal length
         in ``self``.
 
         The list of longest increasing subsequences of a permutation is
-        given by ``self.longest_increasing_subsequences()``, and the
+        given by :meth:`longest_increasing_subsequences`, and the
         length of these subsequences is given by
-        ``self.longest_increasing_subsequence_length()``.
+        :meth:`longest_increasing_subsequence_length`.
+
+        The algorithm is similar to :meth:`longest_increasing_subsequences`.
+        Namely, the longest increasing subsequences are encoded as increasing
+        sequences in a ranked poset from a smallest to a largest element. Their
+        number can be obtained via dynamic programming : for each `v` in the poset
+        we compute the number of paths from a smallest element to `v`.
 
         EXAMPLES::
 

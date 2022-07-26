@@ -170,7 +170,6 @@ cdef class GabowEdgeConnectivity:
     cdef queue[int] incident_edges_Q  # queue of edges
 
     cdef int num_start_f_trees # number of f-trees at the beginning of an iteration
-    cdef bint isReverse # whether or not graph is reverses
     cdef int* T # whether the an edge is in the proven k-intersection
     cdef bint* visited  # for method find_dfs_tree
 

@@ -8692,6 +8692,12 @@ class Graph(GenericGraph):
             sage: r = G.effective_resistance(0,3)
             sage: r == fibonacci(2*(5-3)+1)*fibonacci(2*3-1)/fibonacci(2*5)
             True
+            sage: G = graphs.PathGraph(4)
+            sage: G.delete_edge(2,3)
+            sage: G.effective_resistance(0,2)
+            2
+            sage: G.effective_resistance(0,3)
+            Infinity
         """
         from sage.matrix.constructor import matrix
         if i not in self:

@@ -25,7 +25,6 @@ from sage.rings.integer import Integer
 from sage.rings.integer_ring import ZZ
 from sage.rings.rational import Rational
 from sage.rings.complex_mpfr import ComplexField
-from sage.rings.real_mpfr import RealField
 from sage.misc.latex import latex
 from sage.structure.element import Element
 import math
@@ -766,7 +765,7 @@ frac = Function_frac()
 
 
 # register sqrt in pynac symbol_table for conversion back from other systems
-register_symbol(sqrt, dict(mathematica='Sqrt'))
+register_symbol(sqrt, dict(mathematica='Sqrt'), 2)
 symbol_table['functions']['sqrt'] = sqrt
 
 Function_sqrt = type('deprecated_sqrt', (),

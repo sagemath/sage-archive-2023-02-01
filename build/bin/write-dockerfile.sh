@@ -34,6 +34,13 @@ echo "# to simplify writing scripts that customize this file"
 ADD="ADD $__CHOWN"
 RUN=RUN
 case $SYSTEM in
+    none)
+        # No system packages to install
+        cat <<EOF
+ARG BASE_IMAGE=ghcr.io/sagemath/sage/sage-docker-ubuntu-jammy-standard-with-targets
+FROM \${BASE_IMAGE} as with-system-packages
+EOF
+        ;;
     debian*|ubuntu*)
         cat <<EOF
 ARG BASE_IMAGE=ubuntu:latest
@@ -166,11 +173,15 @@ EOF
         exit 1
         ;;
 esac
-cat <<EOF
+case $SYSTEM in
+    none)
+        ;;
+    *)
+        cat <<EOF
 #:packages:
 ENV PACKAGES="$SYSTEM_PACKAGES"
 EOF
-case "$IGNORE_MISSING_SYSTEM_PACKAGES" in
+  case "$IGNORE_MISSING_SYSTEM_PACKAGES" in
     no)
         cat <<EOF
 RUN $UPDATE $INSTALL $SYSTEM_PACKAGES $CLEAN
@@ -203,13 +214,14 @@ EOF
     *)
         echo "Argument IGNORE_MISSING_SYSTEM_PACKAGES must be yes or no"
         ;;
+  esac
 esac
 cat <<EOF
 
 FROM with-system-packages as bootstrapped
 #:bootstrapping:
-RUN mkdir -p sage
-WORKDIR sage
+RUN if [ -d /sage ]; then mv /sage /sage-old && mkdir /sage && mv /sage-old/local /sage/ && rm -rf /sage-old; else mkdir -p /sage; fi
+WORKDIR /sage
 $ADD Makefile VERSION.txt COPYING.txt condarc.yml README.md bootstrap bootstrap-conda configure.ac sage .homebrew-build-env tox.ini Pipfile.m4 ./
 $ADD config/config.rpath config/config.rpath
 $ADD src/doc/bootstrap src/doc/bootstrap
@@ -223,7 +235,7 @@ $RUN sh -x -c "\${BOOTSTRAP}" $ENDRUN
 
 FROM bootstrapped as configured
 #:configuring:
-RUN mkdir -p logs/pkgs; ln -s logs/pkgs/config.log config.log
+RUN mkdir -p logs/pkgs; rm -f config.log; ln -s logs/pkgs/config.log config.log
 ARG EXTRA_CONFIGURE_ARGS=""
 EOF
 if [ ${WITH_SYSTEM_SPKG} = "force" ]; then

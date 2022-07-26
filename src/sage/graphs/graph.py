@@ -8697,7 +8697,7 @@ class Graph(GenericGraph):
             sage: G.effective_resistance(0,2)
             2
             sage: G.effective_resistance(0,3)
-            Infinity
+            +Infinity
         """
         from sage.matrix.constructor import matrix
         if i not in self:

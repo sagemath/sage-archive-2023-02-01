@@ -1,0 +1,4 @@
+cd src
+if [ "$UNAME" = "Linux" ]; then
+   sdh_pip_install .
+fi

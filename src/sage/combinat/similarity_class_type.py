@@ -213,11 +213,11 @@ def fq(n, q=None):
 
     INPUT:
 
-    - ``n`` -- A non-negative integer
+    - ``n`` -- a non-negative integer
 
     - ``q`` -- an integer or an indeterminate
 
-   OUTPUT:
+    OUTPUT:
 
     A rational function in ``q``.
 
@@ -353,14 +353,16 @@ def centralizer_group_cardinality(la, q=None):
         q = ZZ['q'].gen()
     return q**centralizer_algebra_dim(la)*prod([fq(m, q=q) for m in la.to_exp()])
 
-def invariant_subspace_generating_function(la,q=None,t=None):
+def invariant_subspace_generating_function(la, q=None, t=None):
     """
     Return the invariant subpace generating function of a nilpotent matrix with
     Jordan block sizes given by ``la``.
 
     INPUT:
 
-    ``la`` -- a partition.
+    - ``la`` -- a partition
+    - ``q`` -- (optional) an integer or an inderminate
+    - ``t`` -- (optional) an indeterminate
 
     OUTPUT:
 
@@ -379,11 +381,10 @@ def invariant_subspace_generating_function(la,q=None,t=None):
         t = PolynomialRing(S,'t').gen()
     R = t.parent()
     Rff = R.fraction_field()
-    if len(la)==0:
+    if not la:
         return Rff(1)
-    else:
-        u = invariant_subspace_generating_function(la[1:],q=q,t=t)
-        return R((t**(la[0]+1)*q**(sum(la[1:]))*u.substitute(t=t/q)-u.substitute(t=t*q))/(t-1))
+    u = invariant_subspace_generating_function(la[1:], q=q, t=t)
+    return R((t**(la[0]+1) * q**(sum(la[1:])) * u.substitute(t=t/q) - u.substitute(t=t*q)) / (t - 1))
 
     
 class PrimarySimilarityClassType(Element,
@@ -599,26 +600,26 @@ class PrimarySimilarityClassType(Element,
             q = FractionField(ZZ['q']).gen()
         return self.statistic(centralizer_group_cardinality, q=q)
 
-    def invariant_subspace_generating_function(self,q=None,t=None):
+    def invariant_subspace_generating_function(self, q=None, t=None):
         """
         Return the invariant subspace generating function of ``self``.
 
         INPUT:
 
-        - ``q`` -- an integer or an inderminate.
-        - ``t`` -- an indeterminate.
+        - ``q`` -- (optional) an integer or an inderminate
+        - ``t`` -- (optional) an indeterminate
 
         EXAMPLES::
 
-            sage: PrimarySimilarityClassType(1,[2,2]).invariant_subspace_generating_function()
+            sage: PrimarySimilarityClassType(1, [2, 2]).invariant_subspace_generating_function()
             t^4 + (q + 1)*t^3 + (q^2 + q + 1)*t^2 + (q + 1)*t + 1
         """
         if q is None:
-            q = PolynomialRing(QQ,'q').gen()
+            q = PolynomialRing(QQ, 'q').gen()
         S = q.parent()
         if t is None:
-            t = PolynomialRing(S,'t').gen()
-        return invariant_subspace_generating_function(self.partition(),q=q,t=t).substitute(q=q**self.degree()).substitute(t=t**self.degree())
+            t = PolynomialRing(S, 't').gen()
+        return invariant_subspace_generating_function(self.partition()).substitute(q=q**self.degree(), t=t**self.degree())
 
 
 class PrimarySimilarityClassTypes(UniqueRepresentation, Parent):
@@ -763,15 +764,13 @@ class SimilarityClassType(CombinatorialElement):
 
     INPUT:
 
-    - ``tau`` -- A list of primary similarity class types or a square matrix
-    over a finite field.
+    - ``tau`` -- a list of primary similarity class types or a square matrix
+      over a finite field
 
     EXAMPLES::
 
         sage: tau1 = SimilarityClassType([[3, [3, 2, 1]], [2, [2, 1]]]); tau1
         [[2, [2, 1]], [3, [3, 2, 1]]]
-
-    EXAMPLES::
 
         sage: SimilarityClassType(Matrix(GF(2), [[1,1],[0,1]]))
         [[1, [2]]]
@@ -808,15 +807,13 @@ class SimilarityClassType(CombinatorialElement):
         if is_Matrix(tau):
             n = tau.nrows()
             F = tau.base_ring()
-            R = PolynomialRing(F,'t')
+            R = PolynomialRing(F, 't')
             t = R.gen()
-            S = (t-tau).smith_form(transformation=False)
-            L = reversed([S[i,i] for i in range(n) if S[i,i]])
+            S = (t - tau).smith_form(transformation=False)
+            L = [S[i,i] for i in range(n-1, -1, -1) if S[i,i]]
             f = [dict(list(p.factor())) for p in L]
-            d = dict()
-            for p in f[0].keys():
-                d[p] = Partition([h[p] for h in f if p in h.keys()])
-            return SimilarityClassType([[p.degree(), d[p]] for p in d.keys()])
+            d = {p: Partition([h[p] for h in f if p in h]) for p in f[0]}
+            return SimilarityClassType([[p.degree(), d[p]] for p in d])
         else:
             ret = []
             for l in tau:
@@ -1060,7 +1057,7 @@ class SimilarityClassType(CombinatorialElement):
             q = FractionField(ZZ['q']).gen()
         return prod([PT.statistic(func, q=q) for PT in self])
 
-    def invariant_subspace_generating_function(self,q=None,t=None):
+    def invariant_subspace_generating_function(self, q=None, t=None):
         r"""
         Return the invariant subspace generating function of ``self``.
 
@@ -1077,18 +1074,18 @@ class SimilarityClassType(CombinatorialElement):
 
         EXAMPLES::
 
-            sage: SimilarityClassType([[1, [2,2]]]).invariant_subspace_generating_function()
+            sage: SimilarityClassType([[1, [2, 2]]]).invariant_subspace_generating_function()
             t^4 + (q + 1)*t^3 + (q^2 + q + 1)*t^2 + (q + 1)*t + 1
             sage: A = Matrix(GF(2),[(0, 1, 0, 0), (0, 1, 1, 1), (1, 0, 1, 0), (1, 1, 0, 0)])
             sage: SimilarityClassType(A).invariant_subspace_generating_function()
             t^4 + 1
         """
         if q is None:
-            q = PolynomialRing(QQ,'q').gen()
+            q = PolynomialRing(QQ, 'q').gen()
         S = q.parent()
         if t is None:
-            t = PolynomialRing(S,'t').gen()
-        return prod(p.invariant_subspace_generating_function(q=q,t=t) for p in self)
+            t = PolynomialRing(S, 't').gen()
+        return prod(p.invariant_subspace_generating_function(q=q, t=t) for p in self)
 
 
 class SimilarityClassTypes(UniqueRepresentation, Parent):

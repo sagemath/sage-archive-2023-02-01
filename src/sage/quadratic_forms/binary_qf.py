@@ -818,6 +818,8 @@ class BinaryQF(SageObject):
                          [ 1 -1]
             x^2 + 2*y^2, [ 0  1]
             )
+            sage: BinaryQF([-225, -743, -743]).reduced_form().is_reduced()
+            True
 
         Some randomized testing::
 
@@ -856,6 +858,14 @@ class BinaryQF(SageObject):
                     'quadratic forms is not implemented in Sage')
             return self._reduce_indef(transformation)
         elif algorithm == 'pari':
+            # Negative definite forms are not supported by PARI. We can
+            # work around this by reducing [-a,b,-c] instead of [a,b,c].
+            if self.is_negative_definite():
+                M = Matrix.diagonal([-1, 1])
+                r = (-self*M).reduced_form(transformation=transformation, algorithm=algorithm)
+                if transformation:
+                    return (-r[0]*M, M*r[1]*M)
+                return -r*M
             if transformation:
                 y,g = self.__pari__().qfbredsl2()
                 return BinaryQF(y), Matrix(ZZ, g)

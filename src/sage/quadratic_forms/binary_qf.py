@@ -754,7 +754,7 @@ class BinaryQF(SageObject):
         - ``algorithm`` -- String. The algorithm to use: Valid options are:
 
           * ``'default'`` -- Let Sage pick an algorithm (default).
-          * ``'pari'`` -- use PARI
+          * ``'pari'`` -- use PARI (:pari:`qfbred` or :pari:`qfbredsl2`)
           * ``'sage'`` -- use Sage
 
         .. SEEALSO::
@@ -808,6 +808,29 @@ class BinaryQF(SageObject):
                                   [ 0 -1]
             -x^2 + 2*x*y + 2*y^2, [ 1 -4]
             )
+
+        TESTS::
+
+            sage: while True:
+            ....:     f = BinaryQF([randrange(-10^3, 10^3) for _ in 'abc'])
+            ....:     if not f.discriminant().is_square():
+            ....:         break
+            sage: algos = ['default', 'pari']
+            sage: if f.discriminant() > 0:
+            ....:     algos.append('sage')
+            sage: a = choice(algos)
+            sage: g = f.reduced_form(algorithm=a)
+            sage: g.is_reduced()
+            True
+            sage: g.is_equivalent(f)
+            True
+            sage: g,M = f.reduced_form(transformation=True, algorithm=a)
+            sage: g.is_reduced()
+            True
+            sage: g.is_equivalent(f)
+            True
+            sage: f * M == g
+            True
         """
         if self.is_reduced():
             if transformation:
@@ -816,14 +839,7 @@ class BinaryQF(SageObject):
                 return self
 
         if algorithm == "default":
-            if self.is_reducible() or (self.discriminant() > 0 and transformation):
-                algorithm = 'sage'
-            elif not transformation:
-                algorithm = 'pari'
-            else:
-                raise NotImplementedError('reduction of definite binary '
-                        'quadratic forms with transformation=True is not '
-                        'implemented')
+            algorithm = 'sage' if self.is_reducible() else 'pari'
         if algorithm == 'sage':
             if self.discriminant() <= 0:
                 raise NotImplementedError('reduction of definite binary '
@@ -831,8 +847,8 @@ class BinaryQF(SageObject):
             return self._reduce_indef(transformation)
         elif algorithm == 'pari':
             if transformation:
-                raise NotImplementedError('transformation=True is not '
-                                        'supported using PARI')
+                y,g = self.__pari__().qfbredsl2()
+                return BinaryQF(y), Matrix(ZZ, g)
             elif self.is_reducible():
                 raise NotImplementedError('reducible forms are not '
                                           'supported using PARI')

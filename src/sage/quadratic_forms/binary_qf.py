@@ -213,15 +213,11 @@ class BinaryQF(SageObject):
         # ...or a 2x2 matrix...
         if (isinstance(right.parent(), MatrixSpace)
             and right.nrows() == right.ncols() == 2):
-            aa = right[0, 0]
-            bb = right[0, 1]
-            cc = right[1, 0]
-            dd = right[1, 1]
+            aa,bb,cc,dd = right.list()
             A = self.polynomial()(aa, cc)
             C = self.polynomial()(bb, dd)
             B = self.polynomial()(aa + bb, cc + dd) - A - C
-            qf = BinaryQF(A, B, C)
-            return qf
+            return BinaryQF(A, B, C)
         raise TypeError("right operand must be a binary quadratic form or 2x2 matrix")
 
     def __getitem__(self, n):
@@ -846,17 +842,18 @@ class BinaryQF(SageObject):
         """
         if self.is_reduced():
             if transformation:
-                return self, Matrix(ZZ, 2, 2, [1, 0, 0, 1])
-            else:
-                return self
+                return self, Matrix.identity(2)
+            return self
 
         if algorithm == "default":
             algorithm = 'sage' if self.is_reducible() else 'pari'
+
         if algorithm == 'sage':
             if self.discriminant() <= 0:
                 raise NotImplementedError('reduction of definite binary '
                     'quadratic forms is not implemented in Sage')
             return self._reduce_indef(transformation)
+
         elif algorithm == 'pari':
             # Negative definite forms are not supported by PARI. We can
             # work around this by reducing [-a,b,-c] instead of [a,b,c].
@@ -866,13 +863,16 @@ class BinaryQF(SageObject):
                 if transformation:
                     return (-r[0]*M, M*r[1]*M)
                 return -r*M
+
+            if self.is_reducible():
+                raise NotImplementedError('reducible forms are not '
+                                          'supported using PARI')
+
             if transformation:
                 y,g = self.__pari__().qfbredsl2()
                 return BinaryQF(y), Matrix(ZZ, g)
-            elif self.is_reducible():
-                raise NotImplementedError('reducible forms are not '
-                                          'supported using PARI')
             return BinaryQF(self.__pari__().qfbred())
+
         else:
             raise ValueError('unknown implementation for binary quadratic form '
                              'reduction: %s' % algorithm)

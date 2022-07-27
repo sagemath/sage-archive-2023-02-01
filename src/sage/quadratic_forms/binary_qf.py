@@ -454,6 +454,7 @@ class BinaryQF(SageObject):
         """
         return self.polynomial()._latex_()
 
+    @cached_method
     def content(self):
         """
         Return the content of the form, i.e., the gcd of the coefficients.
@@ -537,7 +538,7 @@ class BinaryQF(SageObject):
             sage: q.determinant()
             267/4
         """
-        return self._a*self._c - (self._b**2)/4
+        return -self.discriminant() / 4
 
     # for consistency with general quadratic form code
     det = determinant
@@ -565,7 +566,6 @@ class BinaryQF(SageObject):
         """
         return is_fundamental_discriminant(self.discriminant())
 
-    @cached_method
     def is_primitive(self):
         r"""
         Check if the form `ax^2 + bxy + cy^2` satisfies
@@ -605,10 +605,13 @@ class BinaryQF(SageObject):
             4*x^2 - x*y + 13*y^2,
             4*x^2 + x*y + 13*y^2,
             8*x^2 + 7*x*y + 8*y^2]
-        """
-        return gcd([self._a, self._b, self._c]) == 1
 
-    @cached_method
+        .. SEEALSO::
+
+            :meth:`content`
+        """
+        return self.content() == 1
+
     def is_zero(self):
         """
         Determine if ``self`` is identically zero.

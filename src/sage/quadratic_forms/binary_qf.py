@@ -77,7 +77,7 @@ class BinaryQF(SageObject):
 
     OUTPUT:
 
-    the binary quadratic form a*x^2 + b*x*y + c*y^2.
+    The binary quadratic form `a x^2 + b xy + c y^2`.
 
     EXAMPLES::
 
@@ -456,8 +456,8 @@ class BinaryQF(SageObject):
 
     @cached_method
     def content(self):
-        """
-        Return the content of the form, i.e., the gcd of the coefficients.
+        r"""
+        Return the content of the form, i.e., the `\gcd` of the coefficients.
 
         EXAMPLES::
 

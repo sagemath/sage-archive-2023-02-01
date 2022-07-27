@@ -1,5 +1,5 @@
-patchelf: A small utility to modify the dynamic linker and RPATH of ELF executables.
-====================================================================================
+patchelf: A small utility to modify the dynamic linker and RPATH of ELF executables
+===================================================================================
 
 Description
 -----------
@@ -14,5 +14,4 @@ GPL-3.0-or-later
 Upstream Contact
 ----------------
 
-https://pypi.org/project/patchelf/
-
+https://github.com/NixOS/patchelf

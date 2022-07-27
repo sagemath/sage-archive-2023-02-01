@@ -20,8 +20,6 @@ on:
            "ubuntu-xenial-toolchain-gcc_9",
            "ubuntu-bionic",
            "ubuntu-focal",
-           "ubuntu-hirsute",
-           "ubuntu-impish",
            "ubuntu-jammy",
            "ubuntu-kinetic",
            "debian-stretch",

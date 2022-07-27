@@ -37,9 +37,7 @@ AUTHORS:
 
 - William Stein (2009-09-18): make immutable.
 
-- Justin C. Walker (2011-02-06):
-
-  - Add support for indefinite forms.
+- Justin C. Walker (2011-02-06): Add support for indefinite forms.
 """
 
 # ****************************************************************************
@@ -526,7 +524,7 @@ class BinaryQF(SageObject):
             [  a  b/2]
             [b/2    c]
 
-        as a rational
+        as a rational.
 
         REMARK:
 
@@ -547,7 +545,7 @@ class BinaryQF(SageObject):
     @cached_method
     def has_fundamental_discriminant(self):
         """
-        Return if the discriminant `D` of this form is a fundamental
+        Determine if the discriminant `D` of this form is a fundamental
         discriminant (i.e. `D` is the smallest element of its
         squareclass with `D = 0` or `1` modulo `4`).
 
@@ -570,7 +568,7 @@ class BinaryQF(SageObject):
     @cached_method
     def is_primitive(self):
         r"""
-        Checks if the form `ax^2 + bxy + cy^2`  satisfies
+        Check if the form `ax^2 + bxy + cy^2` satisfies
         `\gcd(a, b, c) = 1`, i.e., is primitive.
 
         EXAMPLES::
@@ -613,7 +611,7 @@ class BinaryQF(SageObject):
     @cached_method
     def is_zero(self):
         """
-        Return if ``self`` is identically zero.
+        Determine if ``self`` is identically zero.
 
         EXAMPLES::
 
@@ -653,7 +651,7 @@ class BinaryQF(SageObject):
     @cached_method
     def is_reducible(self):
         r"""
-        Return if this form is reducible and cache the result.
+        Determine if this form is reducible and cache the result.
 
         A binary form `q` is called reducible if it is the product of
         two linear forms `q = (a x + b y) (c x + d y)`, or
@@ -664,6 +662,12 @@ class BinaryQF(SageObject):
             sage: q = BinaryQF([1, 0, -1])
             sage: q.is_reducible()
             True
+
+        .. WARNING::
+
+            Despite the similar name, this method is unrelated to
+            reduction of binary quadratic forms as implemented by
+            :meth:`reduced_form` and :meth:`is_reduced`.
         """
         return self.discriminant().is_square()
 
@@ -744,18 +748,19 @@ class BinaryQF(SageObject):
         - ``self`` -- binary quadratic form of non-square discriminant
 
         - ``transformation`` -- boolean (default: False): if ``True``, return
-          both the reduced form and a matrix transforming ``self`` into the
-          reduced form.  Currently only implemented for indefinite forms.
+          both the reduced form and a matrix whose :meth:`matrix_action_right`
+          transforms ``self`` into the reduced form.
 
-        - ``algorithm`` -- String. The algorithm to use: Valid options are:
+        - ``algorithm`` -- string; the algorithm to use. Valid options are:
 
-          * ``'default'`` -- Let Sage pick an algorithm (default).
+          * ``'default'`` -- let Sage pick an algorithm (default)
           * ``'pari'`` -- use PARI (:pari:`qfbred` or :pari:`qfbredsl2`)
           * ``'sage'`` -- use Sage
 
         .. SEEALSO::
 
-            :meth:`is_reduced`
+            - :meth:`is_reduced`
+            - :meth:`is_equivalent`
 
         EXAMPLES::
 
@@ -965,7 +970,7 @@ class BinaryQF(SageObject):
         change of variables, and then multiplying by the determinant of the
         change-of-variables matrix. It is important to note that `g` might not be
         equivalent to `f` (because of multiplying by the determinant).  However,
-        either 'g' or '-g' must be equivalent to `f`. Also note that the cycle
+        either `g` or `-g` must be equivalent to `f`. Also note that the cycle
         does contain `f`. (Under the definition in [BUVO2007]_, the cycle might
         not contain `f`, because all forms in the cycle are required to have
         positive `a`-coefficient, even if the `a`-coefficient of `f` is negative.)
@@ -1150,7 +1155,7 @@ class BinaryQF(SageObject):
 
     def is_indefinite(self):
         """
-        Return if ``self`` is indefinite, i.e., has positive discriminant.
+        Determine if ``self`` is indefinite, i.e., has positive discriminant.
 
         EXAMPLES::
 
@@ -1164,7 +1169,7 @@ class BinaryQF(SageObject):
 
     def is_singular(self):
         """
-        Return if ``self`` is singular, i.e., has zero discriminant.
+        Determine if ``self`` is singular, i.e., has zero discriminant.
 
         EXAMPLES::
 
@@ -1179,7 +1184,7 @@ class BinaryQF(SageObject):
 
     def is_nonsingular(self):
         """
-        Return if this form is nonsingular, i.e., has non-zero discriminant.
+        Determine if this form is nonsingular, i.e., has non-zero discriminant.
 
         EXAMPLES::
 
@@ -1194,7 +1199,7 @@ class BinaryQF(SageObject):
 
     def is_equivalent(self, other, proper=True):
         """
-        Return if ``self`` is equivalent to ``other``.
+        Determine if ``self`` is equivalent to ``other``.
 
         INPUT:
 
@@ -1322,7 +1327,7 @@ class BinaryQF(SageObject):
     @cached_method
     def is_reduced(self):
         r"""
-        Return if ``self`` is reduced.
+        Determine if ``self`` is reduced.
 
         Let `f = a x^2 + b xy + c y^2` be a binary quadratic form of
         discriminant `D`.
@@ -1337,8 +1342,8 @@ class BinaryQF(SageObject):
 
         - If `f` is indefinite (`D > 0`), then `f` is reduced if and
           only if `|\sqrt{D} - 2|a|| < b < \sqrt{D}`
-          or `a = 0` and `-b < 2c \leq b`
-          or `c = 0` and `-b < 2a \leq b`
+          or [`a = 0` and `-b < 2c \leq b`]
+          or [`c = 0` and `-b < 2a \leq b`].
 
         EXAMPLES::
 

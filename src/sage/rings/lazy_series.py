@@ -691,6 +691,17 @@ class LazyModuleElement(Element):
             sage: [F[i] for i in range(1, 16)]
             [1, 1, 1, 3, 1, 5, 1, 10, 3, 5, 1, 24, 1, 5, 5]
 
+        We can compute the Frobenius character of unlabeled trees::
+
+            sage: m = SymmetricFunctions(QQ).m()
+            sage: s = SymmetricFunctions(QQ).s()
+            sage: L = LazySymmetricFunctions(m)
+            sage: E = L(lambda n: s[n], valuation=0)
+            sage: X = L(s[1])
+            sage: A = L(None); A.define(X*E(A))
+            sage: A
+            m[1] + (2*m[1,1]+m[2]) + (9*m[1,1,1]+5*m[2,1]+2*m[3]) + (64*m[1,1,1,1]+34*m[2,1,1]+18*m[2,2]+13*m[3,1]+4*m[4]) + (625*m[1,1,1,1,1]+326*m[2,1,1,1]+171*m[2,2,1]+119*m[3,1,1]+63*m[3,2]+35*m[4,1]+9*m[5]) + (7776*m[1,1,1,1,1,1]+4016*m[2,1,1,1,1]+2078*m[2,2,1,1]+1077*m[2,2,2]+1433*m[3,1,1,1]+744*m[3,2,1]+268*m[3,3]+401*m[4,1,1]+209*m[4,2]+95*m[5,1]+20*m[6]) + O^7
+
         TESTS::
 
             sage: L.<z> = LazyLaurentSeriesRing(ZZ, sparse=True)
@@ -3364,7 +3375,8 @@ class LazySymmetricFunction(LazyCauchyProductSeries):
 
     EXAMPLES::
 
-        sage: L = LazySymmetricFunctions(ZZ, "x")
+        sage: s = SymmetricFunctions(ZZ).s()
+        sage: L = LazySymmetricFunctions(s)
     """
     def __call__(self, *args):
         r"""
@@ -3389,24 +3401,24 @@ class LazySymmetricFunction(LazyCauchyProductSeries):
 
             sage: P.<q> = QQ[]
             sage: s = SymmetricFunctions(P).s()
-            sage: L = LazySymmetricFunctions(P, "x")
+            sage: L = LazySymmetricFunctions(s)
             sage: f = s[2]; g = s[3]
             sage: L(f)(L(g)) - L(f(g))
-            O(x)^7
+            O^7
 
             sage: f = s[2] + s[2,1]; g = s[1] + s[2,2]
             sage: L(f)(L(g)) - L(f(g))
-            O(x)^7
+            O^7
 
             sage: f = s[2] + s[2,1]; g = s[1] + s[2,2]
             sage: L(f)(L(q*g)) - L(f(q*g))
-            O(x)^7
+            O^7
 
         The Frobenius character of the permutation action on set
         partitions is a plethysm::
 
             sage: s = SymmetricFunctions(QQ).s()
-            sage: S = LazySymmetricFunctions(QQ, "x")
+            sage: S = LazySymmetricFunctions(s)
             sage: E1 = S(lambda n: s[n], valuation=1)
             sage: E = 1 + E1
             sage: P = E(E1)
@@ -3414,7 +3426,7 @@ class LazySymmetricFunction(LazyCauchyProductSeries):
             [s[], s[1], 2*s[2], s[2, 1] + 3*s[3], 2*s[2, 2] + 2*s[3, 1] + 5*s[4]]
 
         """
-        if len(args) != len(self.parent().variable_names()):
+        if len(args) != self.parent()._arity:
             raise ValueError("arity must be equal to the number of arguments provided")
         from sage.combinat.sf.sfa import is_SymmetricFunction
         if not all(isinstance(g, LazySymmetricFunction) or is_SymmetricFunction(g) for g in args):
@@ -3423,8 +3435,11 @@ class LazySymmetricFunction(LazyCauchyProductSeries):
         if len(args) == 1:
             g = args[0]
             P = g.parent()
-            R = P._internal_poly_ring.base_ring()
             BR = P.base_ring()
+            if isinstance(g, LazySymmetricFunction):
+                R = P._laurent_poly_ring
+            else:
+                R = P
             p = R.realization_of().power()
             g_p = Stream_map_coefficients(g._coeff_stream, lambda c: c, p)
             try:
@@ -3450,7 +3465,7 @@ class LazySymmetricFunction(LazyCauchyProductSeries):
                 return c
             def g_coeff_stream(k):
                 return Stream_function(lambda n: stretched_coefficient(k, n),
-                                                              R, P._sparse, 0)
+                                       R, P._sparse, 0)
             stretched = lazy_list(lambda k: g_coeff_stream(k))
             f_p = Stream_map_coefficients(self._coeff_stream, lambda c: c, p)
             def coefficient(n):
@@ -3473,7 +3488,8 @@ class LazySymmetricFunction(LazyCauchyProductSeries):
 
         TESTS::
 
-            sage: L = LazySymmetricFunctions(QQ, "x, y")
+            sage: s = SymmetricFunctions(ZZ).s()
+            sage: L = LazySymmetricFunctions(tensor([s, s]))
         """
         P = self.parent()
         cs = self._coeff_stream
@@ -3492,7 +3508,7 @@ class LazySymmetricFunction(LazyCauchyProductSeries):
             if P._internal_poly_ring.base_ring() is P.base_ring():
                 bigO = ["O(%s)" % P._monomial(1, m)]
             else:
-                bigO = ["O(%s)^%s" % (', '.join(str(g) for g in P._names), m)]
+                bigO = ["O^%s" % m]
         else:
             bigO = []
 

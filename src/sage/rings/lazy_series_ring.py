@@ -1288,6 +1288,8 @@ class LazyTaylorSeriesRing(UniqueRepresentation, Parent):
                 raise ValueError("the valuation of a Taylor series must be positive")
             if len(self.variable_names()) > 1:
                 raise ValueError(f"valuation must not be specified for multivariate Taylor series")
+        if len(self.variable_names()) > 1:
+            valuation = 0
 
         R = self._laurent_poly_ring
         BR = self.base_ring()
@@ -1425,29 +1427,39 @@ class LazySymmetricFunctions(UniqueRepresentation, Parent):
 
     INPUT:
 
-    - ``base_ring`` -- coefficient ring
+    - ``basis`` -- the ring of symmetric functions
     - ``names`` -- name(s) of the alphabets
     - ``sparse`` -- (default: ``True``) whether we use a sparse or a dense representation
 
     EXAMPLES::
 
-        sage: LazySymmetricFunctions(ZZ, 'x')
-        Lazy Symmetric Functions Ring in x over Integer Ring
+        sage: s = SymmetricFunctions(ZZ).s()
+        sage: LazySymmetricFunctions(s)
+        Lazy Symmetric Functions over Integer Ring in the Schur basis
 
-        sage: L = LazySymmetricFunctions(QQ, "x, y"); L
-        Multialphabet Lazy Symmetric Functions Ring in x, y over Rational Field
+        sage: m = SymmetricFunctions(ZZ).m()
+        sage: LazySymmetricFunctions(tensor([s, m]))
+        Lazy Symmetric Functions over Integer Ring in the Schur basis # Symmetric Functions over Integer Ring in the monomial basis
     """
     Element = LazySymmetricFunction
 
-    def __init__(self, base_ring, names, sparse=True, category=None):
+    def __init__(self, basis, sparse=True, category=None):
         """
         Initialize ``self``.
 
         TESTS::
 
-            sage: L = LazySymmetricFunctions(ZZ, 't')
+            sage: s = SymmetricFunctions(ZZ).s()
+            sage: L = LazySymmetricFunctions(s)
             sage: TestSuite(L).run(skip=['_test_elements', '_test_associativity', '_test_distributivity', '_test_zero'])
         """
+        base_ring = basis.base_ring()
+        if basis in Algebras.TensorProducts:
+            self._arity = len(basis._sets)
+        else:
+            if basis not in Algebras.Graded:
+                raise ValueError("basis should be a graded algebra")
+            self._arity = 1
         category = Algebras(base_ring.category())
         if base_ring in Fields():
             category &= CompleteDiscreteValuationRings()
@@ -1460,16 +1472,9 @@ class LazySymmetricFunctions(UniqueRepresentation, Parent):
             category = category.Finite()
         else:
             category = category.Infinite()
-        Parent.__init__(self, base=base_ring, names=names,
-                        category=category)
+        Parent.__init__(self, base=base_ring, category=category)
         self._sparse = sparse
-        n = len(self.variable_names())
-        if n == 1:
-            self._laurent_poly_ring = SymmetricFunctions(base_ring).m()
-        else:
-            from sage.categories.tensor import tensor
-            m = SymmetricFunctions(base_ring).m()
-            self._laurent_poly_ring = tensor([m]*len(self.variable_names()))
+        self._laurent_poly_ring = basis
         self._internal_poly_ring = PolynomialRing(self._laurent_poly_ring, "DUMMY_VARIABLE")
 
     def _repr_(self):
@@ -1478,13 +1483,11 @@ class LazySymmetricFunctions(UniqueRepresentation, Parent):
 
         EXAMPLES::
 
-            sage: LazySymmetricFunctions(GF(2), 'z')
-            Lazy Symmetric Functions Ring in z over Finite Field of size 2
+            sage: s = SymmetricFunctions(GF(2)).s()
+            sage: LazySymmetricFunctions(s)
+            Lazy Symmetric Functions over Finite Field of size 2 in the Schur basis
         """
-        if len(self.variable_names()) == 1:
-            return "Lazy Symmetric Functions Ring in {} over {}".format(self.variable_name(), self.base_ring())
-        generators_rep = ", ".join(self.variable_names())
-        return "Multialphabet Lazy Symmetric Functions Ring in {} over {}".format(generators_rep, self.base_ring())
+        return "Lazy {}".format(self._laurent_poly_ring)
 
     def _latex_(self):
         r"""
@@ -1492,13 +1495,13 @@ class LazySymmetricFunctions(UniqueRepresentation, Parent):
 
         EXAMPLES::
 
-            sage: L = LazySymmetricFunctions(GF(2), 'z')
+            sage: s = SymmetricFunctions(GF(2)).s()
+            sage: L = LazySymmetricFunctions(s)
             sage: latex(L)
-            \Lambda( \Bold{F}_{2} , z)
+            \text{\texttt{Symmetric{ }Functions{ }over{ }Finite{ }Field{ }of{ }size{ }2{ }in{ }the{ }Schur{ }basis}}
         """
         from sage.misc.latex import latex
-        generators_rep = ", ".join(self.variable_names())
-        return r"\Lambda(" + latex(self.base_ring()) + r", {})".format(generators_rep)
+        return latex(self._laurent_poly_ring)
 
     def _monomial(self, c, n):
         r"""
@@ -1506,8 +1509,9 @@ class LazySymmetricFunctions(UniqueRepresentation, Parent):
 
         EXAMPLES::
 
+            sage: m = SymmetricFunctions(ZZ).m()
             sage: s = SymmetricFunctions(ZZ).s()
-            sage: L = LazySymmetricFunctions(ZZ, 'z')
+            sage: L = LazySymmetricFunctions(m)
             sage: L._monomial(s[2,1], 3)
             2*m[1, 1, 1] + m[2, 1]
 
@@ -1521,7 +1525,8 @@ class LazySymmetricFunctions(UniqueRepresentation, Parent):
 
         EXAMPLES::
 
-            sage: L = LazySymmetricFunctions(GF(2), 'z')
+            sage: s = SymmetricFunctions(GF(2)).s()
+            sage: L = LazySymmetricFunctions(s)
             sage: L.has_coerce_map_from(ZZ)
             True
             sage: L.has_coerce_map_from(GF(2))
@@ -1549,21 +1554,22 @@ class LazySymmetricFunctions(UniqueRepresentation, Parent):
 
         INPUT:
 
-        - ``x`` -- data used to the define a Taylor series
+        - ``x`` -- data used to the define a symmetric function
         - ``valuation`` -- integer (optional); integer; a lower bound for the valuation of the series
         - ``degree`` -- (optional) the degree when the symmetric function has finite support
         - ``check`` -- (optional) check that coefficients are homogeneous of the correct degree when they are retrieved
 
         EXAMPLES::
 
-            sage: L = LazySymmetricFunctions(GF(2), 'z')
+            sage: m = SymmetricFunctions(GF(2)).m()
+            sage: L = LazySymmetricFunctions(m)
             sage: L(2)
             0
             sage: L(3)
             m[]
 
             sage: m = SymmetricFunctions(ZZ).m()
-            sage: L = LazySymmetricFunctions(ZZ, 'z')
+            sage: L = LazySymmetricFunctions(m)
             sage: f = L(lambda i: m([i]), valuation=5, degree=10); f
             m[5] + m[6] + m[7] + m[8] + m[9]
 
@@ -1585,21 +1591,24 @@ class LazySymmetricFunctions(UniqueRepresentation, Parent):
 
         Finally, ``x`` can be a symmetric function::
 
+            sage: m = SymmetricFunctions(ZZ).m()
             sage: s = SymmetricFunctions(ZZ).s()
-            sage: L = LazySymmetricFunctions(ZZ, "x")
+            sage: L = LazySymmetricFunctions(m)
             sage: L(s.an_element())
             2*m[] + 2*m[1] + (3*m[1,1]+3*m[2])
 
         TESTS::
 
-            sage: L = LazySymmetricFunctions(ZZ, "x,y")
+            sage: s = SymmetricFunctions(ZZ).s()
+            sage: m = SymmetricFunctions(ZZ).m()
+            sage: L = LazySymmetricFunctions(tensor([s, m]))
             sage: L(lambda n: 0)
-            O(x,y)^7
+            O^7
 
             sage: L(lambda n: n)[3];
             Traceback (most recent call last):
             ...
-            ValueError: coefficient 3*m[] # m[] at degree 3 is not a symmetric function of the correct homogeneous degree
+            ValueError: coefficient 3*s[] # m[] at degree 3 is not a symmetric function of the correct homogeneous degree
 
             sage: L([1, 2, 3]);
             Traceback (most recent call last):
@@ -1612,9 +1621,11 @@ class LazySymmetricFunctions(UniqueRepresentation, Parent):
             ValueError: coefficients must be symmetric functions of the correct homogeneous degree
 
         """
-        if valuation is not None:
-            if valuation < 0:
-                raise ValueError("the valuation of a lazy symmetric function must be nonnegative")
+        if valuation is None:
+            valuation = 0
+        if valuation < 0:
+            raise ValueError("the valuation of a lazy symmetric function must be nonnegative")
+
 
         R = self._laurent_poly_ring
         BR = self.base_ring()
@@ -1632,7 +1643,7 @@ class LazySymmetricFunctions(UniqueRepresentation, Parent):
                 coeff_stream = Stream_zero(self._sparse)
             else:
                 p_dict = {}
-                if len(self.variable_names()) == 1:
+                if self._arity == 1:
                     for f in x.terms():
                         d = f.degree()
                         p_dict[d] = p_dict.get(d, 0) + f
@@ -1656,7 +1667,7 @@ class LazySymmetricFunctions(UniqueRepresentation, Parent):
             # TODO: Implement a way to make a self._sparse copy
             raise NotImplementedError("cannot convert between sparse and dense")
 
-        if len(self.variable_names()) == 1:
+        if self._arity == 1:
             def is_homogeneous_of_degree(f, d):
                 if not f:
                     return True
@@ -1673,8 +1684,6 @@ class LazySymmetricFunctions(UniqueRepresentation, Parent):
                         if sum(p.size() for p in t) != d:
                             return False
         if isinstance(x, (tuple, list)):
-            if valuation is None:
-                valuation = 0
             if degree is None:
                 degree = valuation + len(x)
             p = [R(e) for e in x]
@@ -1687,8 +1696,6 @@ class LazySymmetricFunctions(UniqueRepresentation, Parent):
                                                    degree=degree)
             return self.element_class(self, coeff_stream)
         if callable(x):
-            if valuation is None:
-                valuation = 0
             if degree is not None:
                 p = [R(x(i)) for i in range(valuation, degree)]
                 if not all(is_homogeneous_of_degree(e, i)
@@ -1718,7 +1725,8 @@ class LazySymmetricFunctions(UniqueRepresentation, Parent):
 
         EXAMPLES::
 
-            sage: L = LazySymmetricFunctions(ZZ, 'z')
+            sage: m = SymmetricFunctions(ZZ).m()
+            sage: L = LazySymmetricFunctions(m)
             sage: L.an_element()
             m[]
         """
@@ -1734,7 +1742,8 @@ class LazySymmetricFunctions(UniqueRepresentation, Parent):
 
         EXAMPLES::
 
-            sage: L = LazySymmetricFunctions(ZZ, 'z')
+            sage: m = SymmetricFunctions(ZZ).m()
+            sage: L = LazySymmetricFunctions(m)
             sage: L.one()
             m[]
         """
@@ -1749,7 +1758,8 @@ class LazySymmetricFunctions(UniqueRepresentation, Parent):
 
         EXAMPLES::
 
-            sage: L = LazySymmetricFunctions(ZZ, 'z')
+            sage: s = SymmetricFunctions(ZZ).s()
+            sage: L = LazySymmetricFunctions(s)
             sage: L.zero()
             0
         """

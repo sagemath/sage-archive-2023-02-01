@@ -809,7 +809,17 @@ class BinaryQF(SageObject):
             -x^2 + 2*x*y + 2*y^2, [ 1 -4]
             )
 
-        TESTS::
+        TESTS:
+
+        Check for :trac:`34229`::
+
+            sage: BinaryQF([1,2,3]).reduced_form(transformation=True)
+            (
+                         [ 1 -1]
+            x^2 + 2*y^2, [ 0  1]
+            )
+
+        Some randomized testing::
 
             sage: while True:
             ....:     f = BinaryQF([randrange(-10^3, 10^3) for _ in 'abc'])

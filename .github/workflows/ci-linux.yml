@@ -33,14 +33,110 @@ env:
 
 jobs:
 
-  docker:
+  docker-pre:
     uses: ./.github/workflows/docker.yml
     with:
+      # Build from scratch
+      docker_targets: "with-system-packages configured with-targets-pre"
       # FIXME: duplicated from env.TARGETS
       targets_pre: all-sage-local
+      tox_packages_factors: >-
+          ["minimal",
+           "standard",
+           "maximal",
+           ]
+      docker_push_repository: ghcr.io/${{ github.repository }}/
+
+  docker:
+    needs: [docker-pre]
+    uses: ./.github/workflows/docker.yml
+    with:
+      # Build incrementally from previous stage (docker-pre)
+      incremental: true
+      from_docker_repository: ghcr.io/${{ github.repository }}/
+      from_docker_target: "with-targets-pre"
+      docker_targets: "with-targets with-targets-optional"
+      # FIXME: duplicated from env.TARGETS
       targets: build doc-html
       targets_optional: ptest
       docker_push_repository: ghcr.io/${{ github.repository }}/
+
+  docker-optional-0-o:
+    needs: [docker-pre]
+    uses: ./.github/workflows/docker.yml
+    with:
+      incremental: true
+      from_docker_repository: ghcr.io/${{ github.repository }}/
+      from_docker_target: "with-targets-pre"
+      tox_packages_factors: >-
+          ["maximal"]
+      docker_targets: "with-targets-optional"
+      targets_optional: >-
+        $( echo $(export PATH=build/bin:$PATH
+                  && (for a in spkg-install.in spkg-install requirements.txt; do
+                          sage-package list :optional:
+                              --has-file $a
+                              --no-file huge
+                              --no-file has_nonfree_dependencies;
+                      done) | grep -v ^_ | grep -v sagemath_doc | grep ^[0-o] ) )
+
+  docker-optional-p-z:
+    needs: [docker-pre]
+    uses: ./.github/workflows/docker.yml
+    with:
+      incremental: true
+      from_docker_repository: ghcr.io/${{ github.repository }}/
+      from_docker_target: "with-targets-pre"
+      tox_packages_factors: >-
+          ["maximal"]
+      docker_targets: "with-targets-optional"
+      targets_optional: >-
+        $( echo $(export PATH=build/bin:$PATH
+                  && (for a in spkg-install.in spkg-install requirements.txt; do
+                          sage-package list :optional:
+                              --has-file $a
+                              --no-file huge
+                              --no-file has_nonfree_dependencies;
+                      done) | grep -v ^_ | grep -v sagemath_doc | grep ^[p-z] ) )
+
+  docker-experimental-0-o:
+    needs: [docker-pre]
+    uses: ./.github/workflows/docker.yml
+    with:
+      incremental: true
+      from_docker_repository: ghcr.io/${{ github.repository }}/
+      from_docker_target: "with-targets-pre"
+      tox_packages_factors: >-
+          ["maximal"]
+      docker_targets: "with-targets-optional"
+      targets_optional: >-
+        $( echo $(export PATH=build/bin:$PATH
+                  && (for a in spkg-install.in spkg-install requirements.txt; do
+                          sage-package list :experimental:
+                              --has-file $a
+                              --no-file huge
+                              --no-file has_nonfree_dependencies;
+                      done) | grep -v ^_ | grep -v sagemath_doc | grep ^[0-o] ) )
+
+  docker-experimental-p-z:
+    needs: [docker-pre]
+    uses: ./.github/workflows/docker.yml
+    with:
+      incremental: true
+      from_docker_repository: ghcr.io/${{ github.repository }}/
+      from_docker_target: "with-targets-pre"
+      tox_packages_factors: >-
+          ["maximal"]
+      docker_targets: "with-targets-optional"
+      targets_optional: >-
+        $( echo $(export PATH=build/bin:$PATH
+                  && (for a in spkg-install.in spkg-install requirements.txt; do
+                          sage-package list :experimental:
+                              --has-file $a
+                              --no-file huge
+                              --no-file has_nonfree_dependencies;
+                      done) | grep -v ^_ | grep -v sagemath_doc | grep ^[p-z] ) )
+
 
   local-ubuntu:
 

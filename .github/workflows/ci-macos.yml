@@ -76,7 +76,7 @@ jobs:
         # For doctesting, we use a lower parallelization to avoid timeouts.
         run: |
           case "${{ matrix.stage }}" in
-            1)               export TARGETS_PRE="all-sage-local" TARGETS="all-sage-local" TARGETS_OPTIONAL=""
+            1)               export TARGETS_PRE="all-sage-local" TARGETS="all-sage-local" TARGETS_OPTIONAL="build/make/Makefile"
                              ;;
             2)               export TARGETS_PRE="all-sage-local" TARGETS="build doc-html" TARGETS_OPTIONAL="ptest"
                              ;;

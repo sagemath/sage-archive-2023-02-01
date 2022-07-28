@@ -129,6 +129,7 @@ EOF
         ;;
     opensuse*)
         UPDATE="zypper refresh &&"
+        EXISTS="zypper --quiet install --no-confirm --auto-agree-with-licenses --no-recommends --download-only > /dev/null"
         INSTALL="zypper --ignore-unknown install --no-confirm --auto-agree-with-licenses --no-recommends --details"
         ;;
     conda*)

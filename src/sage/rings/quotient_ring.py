@@ -15,7 +15,7 @@ TESTS::
     sage: I = R.ideal([4 + 3*x + x^2, 1 + x^2])
     sage: S = R.quotient_ring(I)
 
-.. todo::
+.. TODO::
 
     The following skipped tests should be removed once :trac:`13999` is fixed::
 

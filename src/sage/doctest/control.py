@@ -26,6 +26,7 @@ import sys
 import time
 import json
 import re
+import shlex
 import types
 import sage.misc.flatten
 import sage.misc.randstate as randstate
@@ -1183,14 +1184,14 @@ class DocTestController(SageObject):
             sage: DD = DocTestDefaults(gdb=True)
             sage: DC = DocTestController(DD, ["hello_world.py"])
             sage: DC.run_val_gdb(testing=True)
-            exec gdb -x "...sage-gdb-commands" --args sage-runtests --serial --timeout=0 hello_world.py
+            exec gdb --eval-command="run" --args ...python... sage-runtests --serial --timeout=0 hello_world.py
 
         ::
 
             sage: DD = DocTestDefaults(valgrind=True, optional="all", timeout=172800)
             sage: DC = DocTestController(DD, ["hello_world.py"])
             sage: DC.run_val_gdb(testing=True)
-            exec valgrind --tool=memcheck --leak-resolution=high --leak-check=full --num-callers=25 --suppressions="...valgrind/pyalloc.supp" --suppressions="...valgrind/sage.supp" --suppressions="...valgrind/sage-additional.supp"  --log-file=".../valgrind/sage-memcheck.%p" sage-runtests --serial --timeout=172800 --optional=all hello_world.py
+            exec valgrind --tool=memcheck --leak-resolution=high --leak-check=full --num-callers=25 --suppressions="...valgrind/pyalloc.supp" --suppressions="...valgrind/sage.supp" --suppressions="...valgrind/sage-additional.supp"  --log-file=.../valgrind/sage-memcheck.%p... sage-runtests --serial --timeout=172800 --optional=all hello_world.py
         """
         try:
             sage_cmd = self._assemble_cmd()
@@ -1198,17 +1199,18 @@ class DocTestController(SageObject):
             self.log(sys.exc_info()[1])
             return 2
         opt = self.options
+
         if opt.gdb:
-            cmd = '''exec gdb -x "%s" --args '''%(os.path.join(SAGE_VENV, "bin", "sage-gdb-commands"))
+            cmd = f'''exec gdb --eval-command="run" --args {shlex.quote(sys.executable)} '''
             flags = ""
             if opt.logfile:
-                sage_cmd += " --logfile %s"%(opt.logfile)
+                sage_cmd += f" --logfile {shlex.quote(opt.logfile)}"
         else:
             if opt.logfile is None:
                 default_log = os.path.join(DOT_SAGE, "valgrind")
                 if os.path.exists(default_log):
                     if not os.path.isdir(default_log):
-                        self.log("%s must be a directory"%default_log)
+                        self.log(f"{default_log} must be a directory")
                         return 2
                 else:
                     os.makedirs(default_log)
@@ -1233,7 +1235,7 @@ class DocTestController(SageObject):
                 toolname = "exp-omega"
                 flags = os.getenv("SAGE_OMEGA_FLAGS", "")
             cmd = "exec valgrind --tool=%s "%(toolname)
-            flags += ''' --log-file="%s" ''' % logfile
+            flags += f''' --log-file={shlex.quote(logfile)} '''
             if opt.omega:
                 toolname = "omega"
             if "%s" in flags:
@@ -1255,6 +1257,7 @@ class DocTestController(SageObject):
         import signal
         import subprocess
         p = subprocess.Popen(cmd, shell=True)
+
         if opt.timeout > 0:
             signal.alarm(opt.timeout)
         try:

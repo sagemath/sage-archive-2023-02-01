@@ -2606,7 +2606,8 @@ def __internal_tests():
         sage: sage_getdoc(None)
         ''
 
-        sage: sage_getsource(sage)
+        sage: import sage.all__sagemath_objects
+        sage: sage_getsource(sage.all__sagemath_objects)
         '...all...'
 
     A cython function with default arguments (one of which is a string)::

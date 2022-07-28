@@ -168,19 +168,30 @@ cdef class GroebnerStrategy:
         cdef set L = self.preprocessing(P, G)
         cdef Py_ssize_t i
         from sage.matrix.constructor import matrix
-        M = matrix({(i, self.bitset_to_int(<FrozenBitset> m)): c
+        r = 2 ** self.E.ngens() - 1 # r for "rank" or "reverso"
+        M = matrix({(i, r - self.bitset_to_int(<FrozenBitset> m)): c
                     for i,f in enumerate(L)
                     for m,c in (<CliffordAlgebraElement> f)._monomial_coefficients.items()},
                    sparse=True)
         M.echelonize()  # Do this in place
         lead_supports = set(self.leading_supp(<CliffordAlgebraElement> f) for f in L)
-        return [self.E.element_class(self.E, {self.int_to_bitset(Integer(j)): c for j,c in M[i].iteritems()})
+        return [self.E.element_class(self.E, {self.int_to_bitset(r - Integer(j)): c for j,c in M[i].iteritems()})
                 for i,p in enumerate(M.pivots())
-                if self.int_to_bitset(Integer(p)) not in lead_supports]
+                if self.int_to_bitset(r - Integer(p)) not in lead_supports]
 
     def compute_groebner(self):
         """
         Compute the reduced ``side`` Gröbner basis for the ideal ``I``.
+
+        EXAMPLES::
+
+            sage: E.<y, x> = ExteriorAlgebra(QQ)
+            sage: I = E.ideal([x*y - x, x*y -1])
+            sage: I.groebner_basis()
+            (1,)
+            sage: J = E.ideal([x*y - x, 2*x*y - 2])
+            sage: J.groebner_basis()
+            (1,)
         """
         cdef FrozenBitset p0, p1
         cdef long deg

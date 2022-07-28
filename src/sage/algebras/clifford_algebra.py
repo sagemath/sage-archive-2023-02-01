@@ -1851,6 +1851,12 @@ class ExteriorAlgebra(CliffordAlgebra):
         """
         Return the class that is used to implement ideals of ``self``.
 
+        EXAMPLES::
+
+            sage: E.<x,y,z> = ExteriorAlgebra(QQ)
+            sage: type(E.ideal(x*y - z))
+            <class 'sage.algebras.clifford_algebra.ExteriorAlgebraIdeal'>
+
         TESTS::
 
             sage: E.<x,y,z> = ExteriorAlgebra(QQ)
@@ -2532,6 +2538,21 @@ class ExteriorAlgebraCoboundary(ExteriorAlgebraDifferential):
 class ExteriorAlgebraIdeal(Ideal_nc):
     """
     An ideal of the exterior algebra.
+
+    EXAMPLES::
+
+        sage: E.<x,y,z> = ExteriorAlgebra(QQ)
+        sage: I = E.ideal(x*y); I
+        Twosided Ideal (x*y) of The exterior algebra of rank 3 over Rational Field
+
+    We can also use it to build a quotient::
+
+        sage: Q = E.quotient(I); Q
+        Quotient of The exterior algebra of rank 3 over Rational Field by the ideal (x*y)
+        sage: Q.inject_variables()
+        Defining xbar, ybar, zbar
+        sage: xbar * ybar
+        0
     """
     def __init__(self, ring, gens, coerce=True, side="twosided"):
         """
@@ -2546,6 +2567,17 @@ class ExteriorAlgebraIdeal(Ideal_nc):
     def reduce(self, f):
         """
         Reduce ``f`` modulo ``self``.
+
+        EXAMPLES::
+
+            sage: E.<x,y,z> = ExteriorAlgebra(QQ)
+            sage: I = E.ideal(x*y);
+            sage: I.reduce(x*y + x*y*z + z)
+            z
+            sage: I.reduce(x*y + x + y)
+            x + y
+            sage: I.reduce(x*y + x*y*z)
+            0
         """
         if self._groebner_strategy is None:
             self.groebner_basis()

@@ -852,7 +852,6 @@ class InternalRealInterval(UniqueRepresentation, Parent):
 
         EXAMPLES::
 
-
             sage: I1 = RealSet.open_closed(0,2)[0]; I1
             (0, 2]
             sage: I1._scan_left_endpoint()
@@ -891,7 +890,6 @@ class InternalRealInterval(UniqueRepresentation, Parent):
         and epsilon is 1 if the interval is right closed and 0 otherwise.
 
         EXAMPLES::
-
 
             sage: I1 = RealSet.closed_open(0,2)[0]; I1
             [0, 2)
@@ -1111,7 +1109,7 @@ class RealSet(UniqueRepresentation, Parent, Set_base,
             sage: R = RealSet(RealSet.open_closed(0,1), RealSet.closed_open(2,3)); R
             (0, 1] ∪ [2, 3)
 
-        ::
+        TESTS::
 
             sage: RealSet(x != 0)
             (-oo, 0) ∪ (0, +oo)
@@ -1565,6 +1563,24 @@ class RealSet(UniqueRepresentation, Parent, Set_base,
             sage: RealSet(0,0)
             {}
         """
+        # intervals = sorted(intervals)
+        # if not intervals:
+        #     return tuple()
+        # merged = []
+        # curr = intervals.pop(0)
+        # while intervals:
+        #     next = intervals.pop(0)
+        #     if curr._upper > next._lower or (
+        #             curr._upper == next._lower and
+        #             (curr._upper_closed or next._lower_closed)):
+        #         curr = curr.convex_hull(next)
+        #     else:
+        #         if not curr.is_empty():
+        #             merged.append(curr)
+        #         curr = next
+        # if not curr.is_empty():
+        #     merged.append(curr)
+        # return tuple(merged)
         scan = []
         for interval in intervals:
             scan.append(interval._scan_left_endpoint())
@@ -1984,13 +2000,14 @@ class RealSet(UniqueRepresentation, Parent, Set_base,
         The event of the form  ``(x, epsilon), delta= -1, tag``
 
         EXAMPLES::
-        sage: s = RealSet((-oo,0), RealSet.closed_open(1,2), (2, 3), [4, 4]); s
-        (-oo, 0) ∪ [1, 2) ∪ (2, 3) ∪ {4}
-        sage: list(s._scan_left_endpoint())
-        [((-Infinity, 1), -1, None),
-        ((1, 0), -1, None),
-        ((2, 1), -1, None),
-        ((4, 0), -1, None)]
+
+            sage: s = RealSet((-oo,0), RealSet.closed_open(1,2), (2, 3), [4, 4]); s
+            (-oo, 0) ∪ [1, 2) ∪ (2, 3) ∪ {4}
+            sage: list(s._scan_left_endpoint())
+            [((-Infinity, 1), -1, None),
+            ((1, 0), -1, None),
+            ((2, 1), -1, None),
+            ((4, 0), -1, None)]
         """
         for i in self._intervals:
             yield i._scan_left_endpoint(tag)
@@ -2007,13 +2024,14 @@ class RealSet(UniqueRepresentation, Parent, Set_base,
         The event of the form  ``(x, epsilon), delta= +1, tag``
 
         EXAMPLES::
-        sage: s = RealSet(RealSet.open_closed(0,1), (2, 3), [4, 4],(5, oo)); s
-        (0, 1] ∪ (2, 3) ∪ {4} ∪ (5, +oo)
-        sage: list(s._scan_right_endpoint())
-        [((1, 1), 1, None),
-        ((3, 0), 1, None),
-        ((4, 1), 1, None),
-        ((+Infinity, 0), 1, None)]
+
+            sage: s = RealSet(RealSet.open_closed(0,1), (2, 3), [4, 4],(5, oo)); s
+            (0, 1] ∪ (2, 3) ∪ {4} ∪ (5, +oo)
+            sage: list(s._scan_right_endpoint())
+            [((1, 1), 1, None),
+            ((3, 0), 1, None),
+            ((4, 1), 1, None),
+            ((+Infinity, 0), 1, None)]
         """
         for i in self._intervals:
             yield i._scan_right_endpoint(tag)
@@ -2034,6 +2052,7 @@ class RealSet(UniqueRepresentation, Parent, Set_base,
         delta is +1 for the end of an interval ('off').
 
         EXAMPLES::
+
             sage: s = RealSet((-oo,0),RealSet.open_closed(0,1),(2, 3),[4, 5], [5,5], (6,oo)); s
             (-oo, 0) ∪ (0, 1] ∪ (2, 3) ∪ [4, 5] ∪ (6, +oo)
             sage: list(RealSet._scan_interval(s))
@@ -2047,7 +2066,6 @@ class RealSet(UniqueRepresentation, Parent, Set_base,
             ((5, 1), 1, None),
             ((6, 1), -1, None),
             ((+Infinity, 0), 1, None)]
-
         """
         return merge(self._scan_left_endpoint(tag), self._scan_right_endpoint(tag))
 
@@ -2066,30 +2084,49 @@ class RealSet(UniqueRepresentation, Parent, Set_base,
 
         EXAMPLE::
 
-        sage: s = RealSet((0,1),[4, 5], RealSet.open_closed(5,6), (6,oo)); s
-        (0, 1) ∪ [4, +oo)
-        sage: list(RealSet._scan_interval(s))
-        [((0, 1), -1, None),
-         ((1, 0), 1, None),
-         ((4, 0), -1, None),
-         ((+Infinity, 0), 1, None)]
-        sage: RealSet._scan_line_union([((0, 1), -1, None), ((1, 0), 1, None), ((4, 0), -1, None), ((+Infinity, 0), 1, None)])
-        [(0, 1), [4, +oo)]
+            sage: s = RealSet((0,1),[4, 5], RealSet.open_closed(5,6), (6,oo)); s
+            (0, 1) ∪ [4, +oo)
+            sage: list(RealSet._scan_interval(s))
+            [((0, 1), -1, None),
+             ((1, 0), 1, None),
+             ((4, 0), -1, None),+
+             ((+Infinity, 0), 1, None)]
+            sage: RealSet._scan_line_union([((0, 1), -1, None), ((1, 0), 1, None), ((4, 0), -1, None), ((+Infinity, 0), 1, None)])
+            [(0, 1), [4, +oo)]
         """
         union = []
         interval_indicator = 0
         (on_x, on_epsilon) = (None, None)
         was_on = False
-        #
+        n = len(scan)
+        (x, epsilon), delta, index = scan[-1]
+        # special case: RealSet(x=-infinity)
+        while n > 0 and x == infinity:
+            n -= 1
+            (x, epsilon), delta, index = scan[n]
+            if x == infinity and delta == -1:
+                scan.pop(n)
+                scan.pop(n-1)
+            if not scan:
+                return union
+        # special case: RealSet(x<=-infinity)
+        i = 0
+        (x, epsilon), delta, index = scan[0]
+        while i < n and x == minus_infinity:
+            (x, epsilon), delta, index = scan[i]
+            if x == minus_infinity and delta == 1:
+                scan.pop(i)
+                scan.pop(i-1)
+            i += 1
+            if not scan:
+                return union
         for (x, epsilon), delta, index in scan:
             interval_indicator -= delta
             now_on = (interval_indicator > 0)
             if was_on:
-                if now_on: pass
-                else:
-                    # special case: RealSet(x >= oo)
-                    if (x == infinity or x == minus_infinity) and x == on_x:
-                        return union
+                if not now_on:
+                    # if (x == minus_infinity or x == infinity) and x==on_x:
+                    #     return union
                     union.append(InternalRealInterval(on_x, on_epsilon == 0, x, epsilon > 0))
                     (on_x, on_epsilon) = (None, None)
             else:
@@ -2170,6 +2207,8 @@ class RealSet(UniqueRepresentation, Parent, Set_base,
         other = RealSet(*other)
         intervals = self._intervals + other._intervals
         return RealSet(*intervals)
+        # other = RealSet(*other)
+        # return RealSet.union_of_realsets(self, other)
 
     @staticmethod
     def _scan_line_intersection(scan, n):
@@ -2187,21 +2226,21 @@ class RealSet(UniqueRepresentation, Parent, Set_base,
 
         EXAMPLE::
 
-        sage: s1 = RealSet(RealSet.open_closed(0, 2), RealSet.closed_open(-11, -1), RealSet.open_closed(5,10)); s1
-        [-11, -1) ∪ (0, 2] ∪ (5, 10]
-        sage: list(RealSet._scan_interval(s1))
-        [((-11, 0), -1, None),
-         ((-1, 0), 1, None),
-         ((0, 1), -1, None),
-         ((2, 1), 1, None),
-         ((5, 1), -1, None),
-         ((10, 1), 1, None)]
-        sage: s2 = RealSet(-12,0); s2
-        (-12, 0)
-        sage: list(RealSet._scan_interval(s2))
-        [((-12, 1), -1, None), ((0, 0), 1, None)]
-        sage: RealSet._scan_line_intersection([((-12, 1), -1, None), ((-11, 0), -1, None), ((-1, 0), 1, None), ((0, 0), 1, None), ((0, 1), -1, None), ((2, 1), 1, None), ((5, 1), -1, None), ((10, 1), 1, None)],2)
-        [[-11, -1)]
+            sage: s1 = RealSet(RealSet.open_closed(0, 2), RealSet.closed_open(-11, -1), RealSet.open_closed(5,10)); s1
+            [-11, -1) ∪ (0, 2] ∪ (5, 10]
+            sage: list(RealSet._scan_interval(s1))
+            [((-11, 0), -1, None),
+             ((-1, 0), 1, None),
+             ((0, 1), -1, None),
+             ((2, 1), 1, None),
+             ((5, 1), -1, None),
+             ((10, 1), 1, None)]
+            sage: s2 = RealSet(-12,0); s2
+            (-12, 0)
+            sage: list(RealSet._scan_interval(s2))
+            [((-12, 1), -1, None), ((0, 0), 1, None)]
+            sage: RealSet._scan_line_intersection([((-12, 1), -1, None), ((-11, 0), -1, None), ((-1, 0), 1, None), ((0, 0), 1, None), ((0, 1), -1, None), ((2, 1), 1, None), ((5, 1), -1, None), ((10, 1), 1, None)],2)
+            [[-11, -1)]
         """
         intersection = []
         interval_indicator = 0
@@ -2210,14 +2249,16 @@ class RealSet(UniqueRepresentation, Parent, Set_base,
         for (x, epsilon), delta, index in scan:
             interval_indicator -= delta
             now_on = (interval_indicator == n)
-            if not was_on and not now_on:
-                (on_x, on_epsilon) = (None, None)
-            elif was_on and not now_on:
-                if (on_x, on_epsilon) < (x, epsilon):
-                    intersection.append(InternalRealInterval(on_x, on_epsilon == 0, x, epsilon > 0))
-                (on_x, on_epsilon) = (None, None)
-            elif not was_on and now_on:
-                (on_x, on_epsilon) = (x, epsilon)
+            if was_on:
+                if not  now_on:
+                    if (on_x, on_epsilon) < (x, epsilon):
+                        intersection.append(InternalRealInterval(on_x, on_epsilon == 0, x, epsilon > 0))
+                    (on_x, on_epsilon) = (None, None)
+            else:
+                if now_on:
+                    (on_x, on_epsilon) = (x, epsilon)
+                else:
+                    (on_x, on_epsilon) = (None, None)
             was_on = now_on
         return intersection
 
@@ -2235,6 +2276,7 @@ class RealSet(UniqueRepresentation, Parent, Set_base,
         The set-theoretic union as a new :class:`RealSet`.
 
         EXAMPLES::
+
             unbounded intervals
             sage: s1 = RealSet(0,2) + RealSet.unbounded_above_closed(10);  s1  #unbounded intervals
             (0, 2) ∪ [10, +oo)
@@ -2488,13 +2530,13 @@ class RealSet(UniqueRepresentation, Parent, Set_base,
 
         INPUT:
 
-       - ``scan`` -- a event from the difference()
+        - ``scan`` -- a event from the difference()
 
-       OUTPUT:
+        OUTPUT:
 
-       The set-theoretic union as a list.
+        The set-theoretic union as a list.
 
-       EXAMPLE::
+        EXAMPLE::
 
             sage: s1 = RealSet(0,2); s1
             (0, 2)
@@ -2510,13 +2552,15 @@ class RealSet(UniqueRepresentation, Parent, Set_base,
         for (x, epsilon), delta, index in scan:
             interval_indicator -= delta
             now_on = (interval_indicator == 1)
-            if not was_on and not now_on:
-                (on_x, on_epsilon) = (None, None)
-            elif was_on and not now_on:
-                symmetric_difference.append(InternalRealInterval(on_x, on_epsilon == 0, x, epsilon > 0))
-                (on_x, on_epsilon) = (None, None)
-            elif not was_on and now_on:
-                (on_x, on_epsilon) = (x, epsilon)
+            if was_on:
+                if not now_on:
+                    symmetric_difference.append(InternalRealInterval(on_x, on_epsilon == 0, x, epsilon > 0))
+                    (on_x, on_epsilon) = (None, None)
+            else:
+                if now_on:
+                    (on_x, on_epsilon) = (x, epsilon)
+                else:
+                    (on_x, on_epsilon) = (None, None)
             was_on = now_on
         return symmetric_difference
 
@@ -2746,6 +2790,7 @@ class RealSet(UniqueRepresentation, Parent, Set_base,
         The convex hull as a new :class:`RealInterval`.
 
         EXAMPLES::
+
             #unbounded set
             sage: s1 = RealSet(0,2) + RealSet.unbounded_above_closed(10);  s1
             (0, 2) ∪ [10, +oo)
@@ -3005,3 +3050,6 @@ class RealSet(UniqueRepresentation, Parent, Set_base,
         else:
             return Union(*[interval._sympy_()
                            for interval in self._intervals])
+
+
+

@@ -3445,6 +3445,12 @@ cdef class Expression(Expression_abc):
             sage: bool(f(x) - f(x) == 0)
             True
 
+        Check that :trac:`22857` is fixed::
+
+            sage: a, b = var('a b', domain='positive')
+            sage: bool((a-b)*b == 0)
+            False
+
         Check that :trac:`24658` is fixed::
 
             sage: val = pi - 2286635172367940241408/1029347477390786609545*sqrt(2)

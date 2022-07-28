@@ -62,6 +62,7 @@ Below are listed all methods and classes defined in this file.
     :meth:`~sage.combinat.permutation.Permutation.runs` | Returns a list of the runs in the permutation ``self``.
     :meth:`~sage.combinat.permutation.Permutation.longest_increasing_subsequence_length` | Returns the length of the longest increasing subsequences of ``self``.
     :meth:`~sage.combinat.permutation.Permutation.longest_increasing_subsequences` | Returns the list of the longest increasing subsequences of ``self``.
+    :meth:`~sage.combinat.permutation.Permutation.longest_increasing_subsequences_number` | Returns the number of longest increasing subsequences
     :meth:`~sage.combinat.permutation.Permutation.cycle_type` | Returns the cycle type of ``self`` as a partition of ``len(self)``.
     :meth:`~sage.combinat.permutation.Permutation.foata_bijection` | Returns the image of the permutation ``self`` under the Foata bijection `\phi`.
     :meth:`~sage.combinat.permutation.Permutation.foata_bijection_inverse` | Returns the image of the permutation ``self`` under the inverse of the Foata bijection `\phi`.
@@ -2196,7 +2197,7 @@ class Permutation(CombinatorialElement):
         """
         from bisect import bisect
         r: list[int] = []
-        for x in self:
+        for x in self._list:
             # Search for the smallest value y larger than x
             idx = bisect(r, x)
             if idx == len(r):
@@ -2217,7 +2218,7 @@ class Permutation(CombinatorialElement):
         p-tableau each value of the permutation is entered into, creates a
         digraph to record all increasing subsequences, and reads the paths
         from a source to a sink; these are the longest increasing subsequences.
-    
+
         EXAMPLES::
 
             sage: Permutation([2,3,4,1]).longest_increasing_subsequences()
@@ -2239,9 +2240,9 @@ class Permutation(CombinatorialElement):
 
         # getting the column in which each element is inserted
         first_row_p_tableau = []
-        columns = [] 
+        columns = []
         D = DiGraph(n+2)
-        for x in self:
+        for x in self._list:
             j = bisect(first_row_p_tableau, x) 
             if j == len(first_row_p_tableau):
                 if columns:
@@ -2267,6 +2268,57 @@ class Permutation(CombinatorialElement):
 
         return sorted([p[1:-1] for p in D.all_paths(0, n+1)], reverse=True)
 
+    def longest_increasing_subsequences_number(self):
+        r"""
+        Return the number of increasing subsequences of maximal length
+        in ``self``.
+
+        The list of longest increasing subsequences of a permutation is
+        given by :meth:`longest_increasing_subsequences`, and the
+        length of these subsequences is given by
+        :meth:`longest_increasing_subsequence_length`.
+
+        The algorithm is similar to :meth:`longest_increasing_subsequences`.
+        Namely, the longest increasing subsequences are encoded as increasing
+        sequences in a ranked poset from a smallest to a largest element. Their
+        number can be obtained via dynamic programming : for each `v` in the poset
+        we compute the number of paths from a smallest element to `v`.
+
+        EXAMPLES::
+
+            sage: sum(p.longest_increasing_subsequences_number() for p in Permutations(8))
+            120770
+
+            sage: p = Permutations(50).random_element()
+            sage: (len(p.longest_increasing_subsequences()) ==
+            ....:  p.longest_increasing_subsequences_number())
+            True
+        """
+        n = self.size()
+        if n == 0:
+            return 1
+
+        from bisect import insort, bisect
+
+        count: list[int] = [0] * (n + 1)
+        first_row_p_tableau = []
+        columns = []
+        for x in self._list:
+            j = bisect(first_row_p_tableau, x)
+            if j == len(first_row_p_tableau):
+                first_row_p_tableau.append(x)
+                columns.append([x])
+            else:
+                first_row_p_tableau[j] = x
+                insort(columns[j], x)
+            if j == 0:
+                count[x] = 1
+            else:
+                for k in columns[j-1]:
+                    if k > x:
+                        break
+                    count[x] += count[k]
+        return sum(count[x] for x in columns[-1])
 
     def cycle_type(self):
         r"""

@@ -4717,29 +4717,26 @@ class AlgebraicNumber_base(sage.structure.element.FieldElement):
             sage: maxima(AA(7))
             7
             sage: maxima(QQbar(sqrt(5/2)))
-            sqrt(5)/sqrt(2)
+            sqrt(10)/2
             sage: maxima(AA(-sqrt(5)))
             -sqrt(5)
-            sage: QQbar(sqrt(-2))._maxima_init_()
+            sage: maxima(QQbar(sqrt(-2)))
+            sqrt(2)*%i
+            sage: maxima(AA(2+sqrt(5)))
+            sqrt(5)+2
+            sage: maxima(QQ[x](x^7 - x - 1).roots(AA, False)[0])
             Traceback (most recent call last):
             ...
-            NotImplementedError: conversion implemented only for square roots of nonnegative rationals
+            NotImplementedError: cannot find radical expression
         """
         try:
             return self._rational_()._maxima_init_()
         except ValueError:
             pass
-        try:
-            square_QQ = (self ** 2)._rational_()
-        except ValueError:
-            raise NotImplementedError('conversion implemented only for square roots of nonnegative rationals')
-        else:
-            if square_QQ < 0:
-                raise NotImplementedError('conversion implemented only for square roots of nonnegative rationals')
-            if self >= 0:
-                return 'sqrt(' + square_QQ._maxima_init_() + ')'
-            else:
-                return '-sqrt(' + square_QQ._maxima_init_() + ')'
+        rad = self.radical_expression()
+        if isinstance(rad.parent(), sage.rings.abc.SymbolicRing):
+            return rad._maxima_init_()
+        raise NotImplementedError('cannot find radical expression')
 
 
 class AlgebraicNumber(AlgebraicNumber_base):

@@ -48,6 +48,7 @@ jobs:
       docker_push_repository: ghcr.io/${{ github.repository }}/
 
   docker:
+    if: ${{ always() }}
     needs: [docker-pre]
     uses: ./.github/workflows/docker.yml
     with:
@@ -62,6 +63,7 @@ jobs:
       docker_push_repository: ghcr.io/${{ github.repository }}/
 
   docker-optional-0-o:
+    if: ${{ always() }}
     needs: [docker-pre]
     uses: ./.github/workflows/docker.yml
     with:
@@ -81,6 +83,7 @@ jobs:
                       done) | grep -v ^_ | grep -v sagemath_doc | grep ^[0-o] ) )
 
   docker-optional-p-z:
+    if: ${{ always() }}
     needs: [docker-pre]
     uses: ./.github/workflows/docker.yml
     with:
@@ -100,6 +103,7 @@ jobs:
                       done) | grep -v ^_ | grep -v sagemath_doc | grep ^[p-z] ) )
 
   docker-experimental-0-o:
+    if: ${{ always() }}
     needs: [docker-pre]
     uses: ./.github/workflows/docker.yml
     with:
@@ -119,6 +123,7 @@ jobs:
                       done) | grep -v ^_ | grep -v sagemath_doc | grep ^[0-o] ) )
 
   docker-experimental-p-z:
+    if: ${{ always() }}
     needs: [docker-pre]
     uses: ./.github/workflows/docker.yml
     with:

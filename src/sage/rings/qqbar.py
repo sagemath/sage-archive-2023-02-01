@@ -4710,6 +4710,35 @@ class AlgebraicNumber_base(sage.structure.element.FieldElement):
             roots = candidates
             interval_field = interval_field.to_prec(interval_field.prec() * 2)
 
+    def _maxima_init_(self, I=None):
+        r"""
+        EXAMPLES::
+
+            sage: maxima(QQbar(sqrt(5/2)))
+            sqrt(5)/sqrt(2)
+            sage: maxima(AA(-sqrt(5)))
+            -sqrt(5)
+            sage: QQbar(sqrt(-2))._maxima_init_()
+            Traceback (most recent call last):
+            ...
+            NotImplementedError: conversion implemented only for square roots of nonnegative rationals
+        """
+        try:
+            return self._rational_()._maxima_init_(I)
+        except ValueError:
+            pass
+        try:
+            square_QQ = (self ** 2)._rational_()
+        except ValueError:
+            raise NotImplementedError('conversion implemented only for square roots of nonnegative rationals')
+        else:
+            if square_QQ < 0:
+                raise NotImplementedError('conversion implemented only for square roots of nonnegative rationals')
+            if self >= 0:
+                return 'sqrt(' + square_QQ._maxima_init_() + ')'
+            else:
+                return '-sqrt(' + square_QQ._maxima_init_() + ')'
+
 
 class AlgebraicNumber(AlgebraicNumber_base):
     r"""

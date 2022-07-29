@@ -4714,6 +4714,8 @@ class AlgebraicNumber_base(sage.structure.element.FieldElement):
         r"""
         EXAMPLES::
 
+            sage: maxima(AA(7))
+            7
             sage: maxima(QQbar(sqrt(5/2)))
             sqrt(5)/sqrt(2)
             sage: maxima(AA(-sqrt(5)))

@@ -4724,7 +4724,7 @@ class AlgebraicNumber_base(sage.structure.element.FieldElement):
             NotImplementedError: conversion implemented only for square roots of nonnegative rationals
         """
         try:
-            return self._rational_()._maxima_init_(I)
+            return self._rational_()._maxima_init_()
         except ValueError:
             pass
         try:

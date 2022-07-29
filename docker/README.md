@@ -43,9 +43,9 @@ Run `docker build -f docker/Dockerfile --build-arg ARTIFACT_BASE=sagemath/sagema
 
 Currently, these images are updated manually after every release. Instructions for this are at the top of `docker/Dockerfile`.
 
-Every push to our [GitLab repository](https://gitlab.com/sagemath/sage) used to trigger a pipeline in GitLab CI which pushed the actual images to Docker Hub. These pipelines are not running anymore since nobody is maintaining them or providing the CI resources for it.
+Every push to our [GitLab repository](https://gitlab.com/sagemath/sage) used to trigger a pipeline in GitLab CI which pushed the actual images to Docker Hub. These pipelines are not running anymore since nobody is maintaining them or providing the CI resources for it. (Please reach out to [sage-devel](https://groups.google.com/forum/#!forum/sage-devel) if you want to help!)
 
-Have a look at `.gitlab-ci.yml` if you want to setup CircleCI or GitLab CI for your own fork of the SageMath repository.
+Have a look at `.gitlab-ci.yml` if you want to setup GitLab CI for your own fork of the SageMath repository.
 
 # Report bugs and issues
 

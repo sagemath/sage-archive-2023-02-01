@@ -33,7 +33,7 @@ env:
 
 jobs:
 
-  docker-pre-standard:
+  standard-pre:
     uses: ./.github/workflows/docker.yml
     with:
       # Build from scratch
@@ -44,12 +44,12 @@ jobs:
           ["standard"]
       docker_push_repository: ghcr.io/${{ github.repository }}/
 
-  docker-standard:
+  standard:
     if: ${{ success() || failure() }}
-    needs: [docker-pre-standard]
+    needs: [standard-pre]
     uses: ./.github/workflows/docker.yml
     with:
-      # Build incrementally from previous stage (docker-pre)
+      # Build incrementally from previous stage (pre)
       incremental: true
       from_docker_repository: ghcr.io/${{ github.repository }}/
       from_docker_target: "with-targets-pre"
@@ -61,10 +61,10 @@ jobs:
           ["standard"]
       docker_push_repository: ghcr.io/${{ github.repository }}/
 
-  docker-pre-minimal:
+  minimal-pre:
     if: ${{ success() || failure() }}
     # It does not really "need" it.
-    needs: [docker-standard]
+    needs: [standard]
     uses: ./.github/workflows/docker.yml
     with:
       # Build from scratch
@@ -75,12 +75,12 @@ jobs:
           ["minimal"]
       docker_push_repository: ghcr.io/${{ github.repository }}/
 
-  docker-minimal:
+  minimal:
     if: ${{ success() || failure() }}
-    needs: [docker-pre-minimal]
+    needs: [minimal-pre]
     uses: ./.github/workflows/docker.yml
     with:
-      # Build incrementally from previous stage (docker-pre)
+      # Build incrementally from previous stage (pre)
       incremental: true
       from_docker_repository: ghcr.io/${{ github.repository }}/
       from_docker_target: "with-targets-pre"
@@ -92,9 +92,9 @@ jobs:
           ["minimal]
       docker_push_repository: ghcr.io/${{ github.repository }}/
 
-  docker-pre-maximal:
+  maximal-pre:
     if: ${{ success() || failure() }}
-    needs: [docker-minimal]
+    needs: [minimal]
     uses: ./.github/workflows/docker.yml
     with:
       # Build from scratch
@@ -105,9 +105,9 @@ jobs:
           ["maximal"]
       docker_push_repository: ghcr.io/${{ github.repository }}/
 
-  docker-optional-0-o:
+  optional-0-o:
     if: ${{ success() || failure() }}
-    needs: [docker-pre-maximal]
+    needs: [maximal-pre]
     uses: ./.github/workflows/docker.yml
     with:
       incremental: true
@@ -125,9 +125,9 @@ jobs:
                               --no-file has_nonfree_dependencies;
                       done) | grep -v ^_ | grep -v sagemath_doc | grep ^[0-o] ) )
 
-  docker-optional-p-z:
+  optional-p-z:
     if: ${{ success() || failure() }}
-    needs: [docker-optional-0-o]
+    needs: [optional-0-o]
     uses: ./.github/workflows/docker.yml
     with:
       incremental: true
@@ -145,9 +145,9 @@ jobs:
                               --no-file has_nonfree_dependencies;
                       done) | grep -v ^_ | grep -v sagemath_doc | grep ^[p-z] ) )
 
-  docker-experimental-0-o:
+  experimental-0-o:
     if: ${{ success() || failure() }}
-    needs: [docker-optional-p-z]
+    needs: [optional-p-z]
     uses: ./.github/workflows/docker.yml
     with:
       incremental: true
@@ -165,9 +165,9 @@ jobs:
                               --no-file has_nonfree_dependencies;
                       done) | grep -v ^_ | grep -v sagemath_doc | grep ^[0-o] ) )
 
-  docker-experimental-p-z:
+  experimental-p-z:
     if: ${{ success() || failure() }}
-    needs: [docker-experimental-0-o]
+    needs: [experimental-0-o]
     uses: ./.github/workflows/docker.yml
     with:
       incremental: true

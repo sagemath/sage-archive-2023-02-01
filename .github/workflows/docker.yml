@@ -68,7 +68,7 @@ on:
            ]
       max_parallel:
         type: number
-        default: 20
+        default: 24
       #
       # Publishing to GitHub Packages
       #

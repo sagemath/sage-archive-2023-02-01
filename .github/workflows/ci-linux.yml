@@ -33,7 +33,7 @@ env:
 
 jobs:
 
-  docker-pre:
+  docker-pre-standard:
     uses: ./.github/workflows/docker.yml
     with:
       # Build from scratch
@@ -41,15 +41,12 @@ jobs:
       # FIXME: duplicated from env.TARGETS
       targets_pre: all-sage-local
       tox_packages_factors: >-
-          ["minimal",
-           "standard",
-           "maximal",
-           ]
+          ["standard"]
       docker_push_repository: ghcr.io/${{ github.repository }}/
 
-  docker:
+  docker-standard:
     if: ${{ success() || failure() }}
-    needs: [docker-pre]
+    needs: [docker-pre-standard]
     uses: ./.github/workflows/docker.yml
     with:
       # Build incrementally from previous stage (docker-pre)
@@ -60,11 +57,57 @@ jobs:
       # FIXME: duplicated from env.TARGETS
       targets: build doc-html
       targets_optional: ptest
+      tox_packages_factors: >-
+          ["standard"]
+      docker_push_repository: ghcr.io/${{ github.repository }}/
+
+  docker-pre-minimal:
+    if: ${{ success() || failure() }}
+    # It does not really "need" it.
+    needs: [docker-standard]
+    uses: ./.github/workflows/docker.yml
+    with:
+      # Build from scratch
+      docker_targets: "with-system-packages configured with-targets-pre"
+      # FIXME: duplicated from env.TARGETS
+      targets_pre: all-sage-local
+      tox_packages_factors: >-
+          ["minimal"]
+      docker_push_repository: ghcr.io/${{ github.repository }}/
+
+  docker-minimal:
+    if: ${{ success() || failure() }}
+    needs: [docker-pre-minimal]
+    uses: ./.github/workflows/docker.yml
+    with:
+      # Build incrementally from previous stage (docker-pre)
+      incremental: true
+      from_docker_repository: ghcr.io/${{ github.repository }}/
+      from_docker_target: "with-targets-pre"
+      docker_targets: "with-targets with-targets-optional"
+      # FIXME: duplicated from env.TARGETS
+      targets: build doc-html
+      targets_optional: ptest
+      tox_packages_factors: >-
+          ["minimal]
+      docker_push_repository: ghcr.io/${{ github.repository }}/
+
+  docker-pre-maximal:
+    if: ${{ success() || failure() }}
+    needs: [docker-minimal]
+    uses: ./.github/workflows/docker.yml
+    with:
+      # Build from scratch
+      docker_targets: "with-system-packages configured with-targets-pre"
+      # FIXME: duplicated from env.TARGETS
+      targets_pre: all-sage-local
+      tox_packages_factors: >-
+          ["maximal"]
       docker_push_repository: ghcr.io/${{ github.repository }}/
 
   docker-optional-0-o:
     if: ${{ success() || failure() }}
-    needs: [docker-pre]
+    needs: [docker-pre-maximal]
     uses: ./.github/workflows/docker.yml
     with:
       incremental: true
@@ -84,7 +127,7 @@ jobs:
 
   docker-optional-p-z:
     if: ${{ success() || failure() }}
-    needs: [docker-pre]
+    needs: [docker-optional-0-o]
     uses: ./.github/workflows/docker.yml
     with:
       incremental: true
@@ -104,7 +147,7 @@ jobs:
 
   docker-experimental-0-o:
     if: ${{ success() || failure() }}
-    needs: [docker-pre]
+    needs: [docker-optional-p-z]
     uses: ./.github/workflows/docker.yml
     with:
       incremental: true
@@ -124,7 +167,7 @@ jobs:
 
   docker-experimental-p-z:
     if: ${{ success() || failure() }}
-    needs: [docker-pre]
+    needs: [docker-experimental-0-o]
     uses: ./.github/workflows/docker.yml
     with:
       incremental: true

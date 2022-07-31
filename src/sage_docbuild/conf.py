@@ -233,21 +233,21 @@ def set_intersphinx_mappings(app, config):
 
 # By default document are not master.
 multidocs_is_master = True
+
 # Options for HTML output
 # -----------------------
+
+# Add any paths that contain custom themes here, relative to this directory.
+html_theme_path = [os.path.join(SAGE_DOC_SRC, "common", "themes")]
+
 if importlib.util.find_spec("furo") is not None:
     html_theme = "furo"
-
-    # https://www.sphinx-doc.org/en/master/usage/configuration.html#confval-html_static_path
-    html_static_path = [
-        os.path.join(SAGE_DOC_SRC, "common", "themes", "sage-classic", "static")
-    ]
 
     html_theme_options = {
         # Hide project’s name in the sidebar of the documentation;
         # the logo is enough.
         # https://pradyunsg.me/furo/customisation/#sidebar-hide-name
-        "sidebar_hide_name": True,
+        "sidebar_hide_name": False,
         # Change accent (used for stylising links, sidebar’s content etc)
         "light_css_variables": {
             "color-brand-primary": "#0f0fff",
@@ -258,23 +258,27 @@ if importlib.util.find_spec("furo") is not None:
         "light_logo": "logo_sagemath_black.svg",
         "dark_logo": "logo_sagemath.svg",
     }
+
+    # The name of the Pygments (syntax highlighting) style to use. NOTE: This
+    # overrides a HTML theme's corresponding setting.
+    pygments_style = "sphinx"
+    pygments_dark_style = "monokai"
+
+    # These paths are either relative to html_static_path
+    # or fully qualified paths (eg. https://...)
+    html_css_files = [
+        'custom-furo.css',
+    ]
 else:
     # Sage default HTML theme. We use a custom theme to set a Pygments style,
     # stylesheet, and insert MathJax macros. See the directory
     # doc/common/themes/sage-classic/ for files comprising the custom theme.
     html_theme = "sage-classic"
 
-    # Add any paths that contain custom themes here, relative to this directory.
-    html_theme_path = [os.path.join(SAGE_DOC_SRC, "common", "themes")]
-
     # Theme options are theme-specific and customize the look and feel of
     # a theme further.  For a list of options available for each theme,
     # see the documentation.
     html_theme_options = {}
-
-    # The name of the Pygments (syntax highlighting) style to use.  NOTE:
-    # This overrides a HTML theme's corresponding setting (see below).
-    pygments_style = "sphinx"
 
 # HTML style sheet NOTE: This overrides a HTML theme's corresponding
 # setting.
@@ -634,6 +638,7 @@ def add_page_context(app, pagename, templatename, context, doctree):
     if 'website' in path1:
         context['title'] = 'Documentation'
         context['website'] = True
+        context['documentation_root'] = 'index.html'
 
     if 'reference' in path1 and not path1.endswith('reference'):
         path2 = os.path.join(SAGE_DOC, 'html', 'en', 'reference')

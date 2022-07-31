@@ -1,6 +1,9 @@
 # Use minimal Ubuntu installation that includes mamba
 FROM condaforge/mambaforge
 
+# Some basic system packages
+RUN apt update && apt-get install -yq --no-install-recommends sudo gpg curl
+
 # Make Docker available, like the default gitpod image does
 # from https://github.com/gitpod-io/workspace-images/blob/main/chunks/tool-docker/Dockerfile @ 3f0988f2d06768d22d0aa1454ef0e963b0db65f3
 # - removed unneccessary "sudo"

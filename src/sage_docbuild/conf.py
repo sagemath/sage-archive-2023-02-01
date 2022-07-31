@@ -639,14 +639,12 @@ def add_page_context(app, pagename, templatename, context, doctree):
         context['title'] = 'Documentation'
         context['website'] = True
         context['documentation_root'] = 'index.html'
-
     if 'reference' in path1 and not path1.endswith('reference'):
         path2 = os.path.join(SAGE_DOC, 'html', 'en', 'reference')
         relpath = os.path.relpath(path2, path1)
-        context['reference_title'] = 'Reference Manual'
+        context['reference_title'] = 'Sage {}'.format(release) + ' Reference Manual'
         context['reference_root'] = os.path.join(relpath, 'index.html')
         context['refsub'] = True
-
 
 dangling_debug = False
 

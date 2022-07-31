@@ -74,9 +74,7 @@ AUTHORS:
 
 - Volker Braun (2013-06-22): Rewrite
 
-- Yueqi Li (2022-06-27): Extend union and intersection from pairwise to multiple real sets with
-  scan-line algorithm, implement convex_hull and is_connected in RealSet. Improve
-  are_pairwise_disjoint, difference, symmetric difference with scan-line algorithm
+- Yueqi Li, Yuan Zhou (2022-07-31): Rewrite RealSet. Adapt faster operations by scan-line (merging) techniques from the code by Matthias Köppe et al. availabe at https://github.com/mkoeppe/cutgeneratingfunctionology/blob/master/cutgeneratingfunctionology/igp/intervals.py
 """
 
 # ****************************************************************************

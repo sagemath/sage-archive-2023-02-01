@@ -12878,7 +12878,7 @@ cdef class Expression(Expression_abc):
             sage: x = var('x', domain='real')
             sage: s = abs((1+I*x)^4)
             sage: f = s._plot_fast_callable(x)
-            sage: f(10) == abs((I*10+1)^4)
+            sage: abs(f(10) - abs((I*10+1)^4)) < 1e-11
             True
             sage: plot(s)
             Graphics object consisting of 1 graphics primitive

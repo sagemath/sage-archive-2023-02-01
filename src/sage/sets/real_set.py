@@ -2082,7 +2082,7 @@ class RealSet(UniqueRepresentation, Parent, Set_base,
 
         The set-theoretic union as a list.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: s = RealSet((0,1),[4, 5], RealSet.open_closed(5,6), (6,oo)); s
             (0, 1) ∪ [4, +oo)
@@ -2224,7 +2224,7 @@ class RealSet(UniqueRepresentation, Parent, Set_base,
 
         The set-theoretic union as a list.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: s1 = RealSet(RealSet.open_closed(0, 2), RealSet.closed_open(-11, -1), RealSet.open_closed(5,10)); s1
             [-11, -1) ∪ (0, 2] ∪ (5, 10]
@@ -2447,7 +2447,7 @@ class RealSet(UniqueRepresentation, Parent, Set_base,
 
         The set-theoretic union as a list.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: s1 = RealSet(RealSet.open_closed(0, 2), RealSet.closed_open(-11, -1), RealSet.open_closed(5,10)); s1
             [-11, -1) ∪ (0, 2] ∪ (5, 10]
@@ -2536,7 +2536,7 @@ class RealSet(UniqueRepresentation, Parent, Set_base,
 
         The set-theoretic union as a list.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: s1 = RealSet(0,2); s1
             (0, 2)

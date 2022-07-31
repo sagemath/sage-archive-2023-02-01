@@ -1233,18 +1233,22 @@ class RealSet(UniqueRepresentation, Parent, Set_base,
                         pass
                     val = RLF(val)
                     if op == eq:
-                        return [InternalRealInterval(val, True, val, True)]
-                    elif op == ne:
+                        i = InternalRealInterval(val, True, val, True)
+                    elif op == gt:
+                        i = InternalRealInterval(val, False, oo, False)
+                    elif op == ge:
+                        i = InternalRealInterval(val, True, oo, False)
+                    elif op == lt:
+                        i = InternalRealInterval(-oo, False, val, False)
+                    elif op == le:
+                        i = InternalRealInterval(-oo, False, val, True)
+                    else: # case op == ne. Never empty.
                         return [InternalRealInterval(-oo, False, val, False),
                                 InternalRealInterval(val, False, oo, False)]
-                    elif op == gt:
-                        return [InternalRealInterval(val, False, oo, False)]
-                    elif op == ge:
-                        return [InternalRealInterval(val, True, oo, False)]
-                    elif op == lt:
-                        return [InternalRealInterval(-oo, False, val, False)]
+                    if i.is_empty():
+                        return []
                     else:
-                        return [InternalRealInterval(-oo, False, val, True)]
+                        return [i]
 
                 if (arg.lhs().is_symbol()
                         and (arg.rhs().is_numeric() or arg.rhs().is_constant())
@@ -2093,7 +2097,7 @@ class RealSet(UniqueRepresentation, Parent, Set_base,
             sage: list(RealSet._scan_interval(s))
             [((0, 1), -1, None),
              ((1, 0), 1, None),
-             ((4, 0), -1, None),+
+             ((4, 0), -1, None),
              ((+Infinity, 0), 1, None)]
             sage: RealSet._scan_line_union([((0, 1), -1, None), ((1, 0), 1, None), ((4, 0), -1, None), ((+Infinity, 0), 1, None)])
             [(0, 1), [4, +oo)]
@@ -2102,28 +2106,6 @@ class RealSet(UniqueRepresentation, Parent, Set_base,
         interval_indicator = 0
         (on_x, on_epsilon) = (None, None)
         was_on = False
-        n = len(scan)
-        (x, epsilon), delta, index = scan[-1]
-        # special case: RealSet(x=-infinity)
-        while n > 0 and x == infinity:
-            n -= 1
-            (x, epsilon), delta, index = scan[n]
-            if x == infinity and delta == -1:
-                scan.pop(n)
-                scan.pop(n-1)
-            if not scan:
-                return union
-        # special case: RealSet(x<=-infinity)
-        i = 0
-        (x, epsilon), delta, index = scan[0]
-        while i < n and x == minus_infinity:
-            (x, epsilon), delta, index = scan[i]
-            if x == minus_infinity and delta == 1:
-                scan.pop(i)
-                scan.pop(i-1)
-            i += 1
-            if not scan:
-                return union
         for (x, epsilon), delta, index in scan:
             interval_indicator -= delta
             now_on = (interval_indicator > 0)

@@ -160,6 +160,7 @@ class InternalRealInterval(UniqueRepresentation, Parent):
                 raise ValueError('interval cannot be closed at -oo')
             if (upper_closed and upper == infinity):
                 raise ValueError('interval cannot be closed at +oo')
+            # TODO: take care of the empty set case.
 
     def is_empty(self):
         """
@@ -526,6 +527,8 @@ class InternalRealInterval(UniqueRepresentation, Parent):
             sage: RealSet.open(0, oo)[0].closure()
             [0, +oo)
         """
+        # TODO: take care of the empty set case.
+        # Bug example: RealSet.point(5).interior().closure() returns {5}.
         lower_closed = (self._lower != minus_infinity)
         upper_closed = (self._upper != infinity)
         return InternalRealInterval(self._lower, lower_closed, self._upper, upper_closed)

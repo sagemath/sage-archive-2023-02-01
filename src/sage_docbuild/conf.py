@@ -260,7 +260,7 @@ if PythonModule("furo").is_present():
 
     # The name of the Pygments (syntax highlighting) style to use. This
     # overrides a HTML theme's corresponding setting.
-    pygments_style = "sphinx"
+    pygments_style = "tango"
     pygments_dark_style = "monokai"
 
     # These paths are either relative to html_static_path
@@ -281,8 +281,7 @@ else:
 
     html_theme_options = {}
 
-# HTML style sheet NOTE: This overrides a HTML theme's corresponding
-# setting.
+# HTML style sheet. This overrides a HTML theme's corresponding setting.
 #html_style = 'default.css'
 
 # The name for this set of Sphinx documents.  If None, it defaults to

@@ -15,7 +15,7 @@ and more precisely:
     :meth:`~is_dominating` | Check whether a set of vertices dominates a graph.
     :meth:`~is_redundant` | Check whether a set of vertices has redundant vertices (with respect to domination).
     :meth:`~private_neighbors` | Return the private neighbors of a vertex with respect to other vertices.
-    :meth:`~greedy_dominating_set` | Return a greedy distance-`k` dominating set of of the graph.
+    :meth:`~greedy_dominating_set` | Return a greedy distance-`k` dominating set of the graph.
 
 
 EXAMPLES:

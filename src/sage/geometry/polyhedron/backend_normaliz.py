@@ -1050,7 +1050,7 @@ class Polyhedron_normaliz(Polyhedron_base):
             The empty polyhedron in ZZ^0
             sage: Polyhedron(backend='normaliz')._init_empty_polyhedron()  # optional - pynormaliz
         """
-        super(Polyhedron_normaliz, self)._init_empty_polyhedron()
+        super()._init_empty_polyhedron()
         # Can't seem to set up an empty _normaliz_cone.
         # For example, PyNormaliz.NmzCone(vertices=[]) gives
         # error: Some error in the normaliz input data detected: All input matrices empty!
@@ -1236,7 +1236,7 @@ class Polyhedron_normaliz(Polyhedron_base):
             sage: P._normaliz_cone is Q._normaliz_cone      # optional - pynormaliz
             False
         """
-        other = super(Polyhedron_normaliz, self).__copy__()
+        other = super().__copy__()
 
         # Make a copy of the cone.
         cone = self._normaliz_cone
@@ -1275,7 +1275,7 @@ class Polyhedron_normaliz(Polyhedron_base):
                (0, 1, 0, 0),
                (1, 0, 0, 0)]})
         """
-        state = super(Polyhedron_normaliz, self).__getstate__()
+        state = super().__getstate__()
         state = (state[0], state[1].copy())
         # Remove the unpicklable entries.
         del state[1]['_normaliz_cone']
@@ -1348,7 +1348,7 @@ class Polyhedron_normaliz(Polyhedron_base):
         else:
             vertices = None
 
-        super(Polyhedron_normaliz, self).__setstate__(state)
+        super().__setstate__(state)
 
         if self.is_empty():
             # Special case to avoid.
@@ -1494,7 +1494,7 @@ class Polyhedron_normaliz(Polyhedron_base):
             sage: cube._volume_normaliz(measure='induced_lattice')  # optional - pynormaliz
             6
 
-        Or one can can calculate the ambient volume, which is the above multiplied by the
+        Or one can calculate the ambient volume, which is the above multiplied by the
         volume of the unimodular simplex (or zero if not full-dimensional)::
 
             sage: cube._volume_normaliz(measure='ambient')  # optional - pynormaliz

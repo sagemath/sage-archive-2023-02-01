@@ -939,6 +939,9 @@ class RealSet(UniqueRepresentation, Parent, Set_base,
       keywords implies ``structure='differentiable'``.
     - ``name``, ``latex_name``, ``start_index`` -- see
       :class:`~sage.manifolds.differentiable.examples.real_line.RealLine`.
+    - ``normalized`` -- (default: ``None``) if ``True``, the input is already normalized,
+      i.e., ``*args`` is a list/tuple/iterable of sorted and disjoint
+      :class:`InternalRealInterval`s; no other keyword is provided.
 
     There are also specialized constructors for various types of intervals:
 
@@ -1141,11 +1144,18 @@ class RealSet(UniqueRepresentation, Parent, Set_base,
             Traceback (most recent call last):
             ...
             ValueError: interval cannot be closed at -oo
+            sage: r = RealSet(2,10)
+            sage: RealSet((2, 6), (4, 10)) is r
+            True
+            sage: RealSet(x > 2).intersection(RealSet(x < 10)) is RealSet(r[0], normalized=True)
+            True
         """
         normalized = kwds.pop('normalized', False)
         if normalized:
-            # Fastpass: input is a list of sorted and disjoint intervals of type InternalRealInterval.
-            return UniqueRepresentation.__classcall__(cls, *args)
+            # Fastpass: The input is already normalized: Args is a list of
+            # sorted and disjoint intervals of type InternalRealInterval.
+            # No other kwds should be provided.
+            return UniqueRepresentation.__classcall__(cls, *args, normalized=True)
         manifold_keywords = ('structure', 'ambient', 'names', 'coordinate')
         if any(kwds.get(kwd, None)
                for kwd in manifold_keywords):
@@ -1184,7 +1194,7 @@ class RealSet(UniqueRepresentation, Parent, Set_base,
             return ambient.manifold().canonical_chart().pullback(real_set, name=name, latex_name=latex_name)
 
         if kwds:
-            raise TypeError(f'unless manifold keywords {manifold_keywords} are given, RealSet constructors take no keyword arguments')
+            raise TypeError(f'RealSet constructors cannot take the keyword arguments {kwds}')
 
         from sage.structure.element import Expression
         if len(args) == 1 and isinstance(args[0], RealSet):
@@ -1283,9 +1293,9 @@ class RealSet(UniqueRepresentation, Parent, Set_base,
 
         scan = merge(*[[i._scan_left_endpoint(), i._scan_right_endpoint()] for i in intervals])
         union_intervals = tuple(RealSet._scan_to_intervals(scan, lambda i: bool(i >= 1)))
-        return UniqueRepresentation.__classcall__(cls, *union_intervals)
+        return UniqueRepresentation.__classcall__(cls, *union_intervals, normalized=True)
 
-    def __init__(self, *intervals):
+    def __init__(self, *intervals, normalized=True):
         r"""
         TESTS::
 

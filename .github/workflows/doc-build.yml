@@ -30,7 +30,7 @@ jobs:
         run: make doc-html
         env:
           MAKE: make -j2
-          SAGE_NUM_THREADS: 1
+          SAGE_NUM_THREADS: 2
 
       - name: Copy docs
         run: |

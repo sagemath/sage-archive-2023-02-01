@@ -106,10 +106,7 @@ from sage.rings.integer_ring import ZZ
 from sage.rings.real_lazy import LazyFieldElement, RLF
 from sage.rings.infinity import infinity, minus_infinity
 from sage.misc.superseded import deprecated_function_alias
-from heapq import *
-import random
-from time import process_time
-
+from heapq import merge
 
 @richcmp_method
 class InternalRealInterval(UniqueRepresentation, Parent):
@@ -1255,22 +1252,21 @@ class RealSet(UniqueRepresentation, Parent, Set_base,
                         pass
                     val = RLF(val)
                     if op == eq:
-                        i = InternalRealInterval(val, True, val, True)
+                        s = [InternalRealInterval(val, True, val, True)]
                     elif op == gt:
-                        i = InternalRealInterval(val, False, oo, False)
+                        s = [InternalRealInterval(val, False, oo, False)]
                     elif op == ge:
-                        i = InternalRealInterval(val, True, oo, False)
+                        s = [InternalRealInterval(val, True, oo, False)]
                     elif op == lt:
-                        i = InternalRealInterval(-oo, False, val, False)
+                        s = [InternalRealInterval(-oo, False, val, False)]
                     elif op == le:
-                        i = InternalRealInterval(-oo, False, val, True)
-                    else:    # case op == ne. Never empty.
-                        return [InternalRealInterval(-oo, False, val, False),
-                                InternalRealInterval(val, False, oo, False)]
-                    if i.is_empty():
-                        return []
+                        s = [InternalRealInterval(-oo, False, val, True)]
+                    elif op == ne:
+                        s = [InternalRealInterval(-oo, False, val, False),
+                             InternalRealInterval(val, False, oo, False)]
                     else:
-                        return [i]
+                        raise ValueError(str(arg) + ' does not determine real interval')
+                    return [i for i in s if not i.is_empty()]
 
                 if (arg.lhs().is_symbol()
                         and (arg.rhs().is_numeric() or arg.rhs().is_constant())

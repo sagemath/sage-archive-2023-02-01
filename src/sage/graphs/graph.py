@@ -9062,6 +9062,12 @@ class Graph(GenericGraph):
             sage: r = G.effective_resistance(0,3)
             sage: r == fibonacci(2*(5-3)+1)*fibonacci(2*3-1)/fibonacci(2*5)
             True
+            sage: G = graphs.PathGraph(4)
+            sage: G.delete_edge(2,3)
+            sage: G.effective_resistance(0,2)
+            2
+            sage: G.effective_resistance(0,3)
+            +Infinity
         """
         from sage.matrix.constructor import matrix
         if i not in self:
@@ -9077,7 +9083,13 @@ class Graph(GenericGraph):
 
         self._scream_if_not_simple()
         if not self.is_connected():
-            raise ValueError('the Graph is not a connected graph')
+            connected_i = self.connected_component_containing_vertex(i)
+            if j in connected_i:
+                component = self.subgraph(connected_i)
+                return component.effective_resistance(i,j)
+            else:
+                from sage.rings.infinity import Infinity
+                return Infinity
 
         vert = list(self)
         i1 = vert.index(i)

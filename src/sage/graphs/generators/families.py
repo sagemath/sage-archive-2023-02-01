@@ -3987,25 +3987,34 @@ def TuranGraph(n,r):
 
     INPUT:
 
-    - ``n`` (integer)-- the number of vertices in the graph.
+    - ``n`` -- integer; the number of vertices in the graph
 
-    - ``r`` (integer) -- the number of partitions of the graph.
+    - ``r`` -- integer; the number of partitions of the graph
 
     EXAMPLES:
 
-    The Turan graph is a complete multipartite graph.  ::
+    The Turan graph is a complete multipartite graph::
 
         sage: g = graphs.TuranGraph(13, 4)
         sage: k = graphs.CompleteMultipartiteGraph([3,3,3,4])
         sage: g.is_isomorphic(k)
         True
 
-    The Turan graph `T(n,r)` has `\lfloor \frac{(r-1)(n^2)}{2r} \rfloor` edges.  ::
+    The Turan graph `T(n,r)` has `\frac{(r-1)(n^2-s^2)}{2r} + \frac{s(s-1)}{2}`
+    edges, where `s = n \mod r` (:trac:`34249`)::
 
-        sage: n = 13
-        sage: r = 4
-        sage: g = graphs.TuranGraph(n,r)
-        sage: g.size() == (r-1) * (n**2) // (2*r)
+        sage: n = 12
+        sage: r = 8
+        sage: g = graphs.TuranGraph(n, r)
+        sage: def count(n, r):
+        ....:     s = n % r
+        ....:     return (r - 1) * (n**2 - s**2) / (2*r) + s*(s - 1)/2
+        sage: g.size() == count(n, r)
+        True
+        sage: n = randint(3, 100)
+        sage: r = randint(2, n - 1)
+        sage: g = graphs.TuranGraph(n, r)
+        sage: g.size() == count(n, r)
         True
 
     TESTS::
@@ -4013,18 +4022,19 @@ def TuranGraph(n,r):
         sage: g = graphs.TuranGraph(3,6)
         Traceback (most recent call last):
         ...
-        ValueError: Input parameters must satisfy "1 < r < n".
+        ValueError: input parameters must satisfy "1 < r < n"
     """
-
-    if n<1 or n<r or r<1:
-        raise ValueError('Input parameters must satisfy "1 < r < n".')
+    if n < 1 or n < r or r < 1:
+        raise ValueError('input parameters must satisfy "1 < r < n"')
 
     from sage.graphs.generators.basic import CompleteMultipartiteGraph
 
-    vertex_sets = [n//r]*(r-(n%r))+[n//r+1]*(n%r)
+    p = n // r
+    s = n % r
+    vertex_sets = [p]*(r - s) + [p + 1]*s
 
     g = CompleteMultipartiteGraph(vertex_sets)
-    g.name('Turan Graph with n: {}, r: {}'.format(n,r))
+    g.name('Turan Graph with n: {}, r: {}'.format(n, r))
 
     return g
 

@@ -1264,7 +1264,7 @@ class RealSet(UniqueRepresentation, Parent, Set_base,
                         i = InternalRealInterval(-oo, False, val, False)
                     elif op == le:
                         i = InternalRealInterval(-oo, False, val, True)
-                    else: # case op == ne. Never empty.
+                    else:    # case op == ne. Never empty.
                         return [InternalRealInterval(-oo, False, val, False),
                                 InternalRealInterval(val, False, oo, False)]
                     if i.is_empty():
@@ -2823,6 +2823,3 @@ class RealSet(UniqueRepresentation, Parent, Set_base,
         else:
             return Union(*[interval._sympy_()
                            for interval in self._intervals])
-
-
-

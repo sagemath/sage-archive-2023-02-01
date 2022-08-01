@@ -33,25 +33,12 @@ echo "# the :comments: separate the generated file into sections"
 echo "# to simplify writing scripts that customize this file"
 ADD="ADD $__CHOWN"
 RUN=RUN
+cat <<EOF
+ARG BASE_IMAGE
+FROM \${BASE_IMAGE} as with-system-packages
+EOF
 case $SYSTEM in
-    none)
-        # No system packages to install
-        cat <<EOF
-ARG BASE_IMAGE=ghcr.io/sagemath/sage/sage-docker-ubuntu-jammy-standard-with-targets
-FROM \${BASE_IMAGE} as with-system-packages
-EOF
-        ;;
     debian*|ubuntu*)
-        cat <<EOF
-ARG BASE_IMAGE=ubuntu:latest
-FROM \${BASE_IMAGE} as with-system-packages
-RUN (yes | unminimize) || echo "(ignored)"
-EOF
-        if [ -n "$DIST_UPGRADE" ]; then
-            cat <<EOF
-RUN sed -i.bak $DIST_UPGRADE /etc/apt/sources.list && apt-get update && DEBIAN_FRONTEND=noninteractive apt-get -y dist-upgrade
-EOF
-        fi
         if [ -n "$__SUDO" ]; then
             SUDO="sudo"
         else
@@ -61,46 +48,52 @@ EOF
         UPDATE="$SUDO apt-get update &&"
         INSTALL="$SUDO DEBIAN_FRONTEND=noninteractive apt-get install -qqq --no-install-recommends --yes"
         CLEAN="&& $SUDO apt-get clean"
-        if [ -n "$EXTRA_REPOSITORY" ]; then
-            cat <<EOF
-RUN $UPDATE $INSTALL software-properties-common && ($INSTALL gpg gpg-agent || echo "(ignored)")
-RUN $SUDO add-apt-repository $EXTRA_REPOSITORY
-EOF
-        fi
         if [ -n "$EXTRA_PATH" ]; then
             RUN="RUN export PATH=$EXTRA_PATH:\$PATH && "
         fi
+        case "$SKIP_SYSTEM_PKG_INSTALL" in
+            1|y*|Y*)
+                ;;
+            *)
+                cat <<EOF
+RUN (yes | unminimize) || echo "(ignored)"
+EOF
+                if [ -n "$DIST_UPGRADE" ]; then
+                    cat <<EOF
+RUN sed -i.bak $DIST_UPGRADE /etc/apt/sources.list && apt-get update && DEBIAN_FRONTEND=noninteractive apt-get -y dist-upgrade
+EOF
+                fi
+                if [ -n "$EXTRA_REPOSITORY" ]; then
+                    cat <<EOF
+RUN $UPDATE $INSTALL software-properties-common && ($INSTALL gpg gpg-agent || echo "(ignored)")
+RUN $SUDO add-apt-repository $EXTRA_REPOSITORY
+EOF
+                fi
+        esac
         ;;
     fedora*|redhat*|centos*)
-        cat <<EOF
-ARG BASE_IMAGE=fedora:latest
-FROM \${BASE_IMAGE} as with-system-packages
-EOF
         EXISTS="2>/dev/null >/dev/null yum install -y --downloadonly"
         INSTALL="yum install -y"
         if [ -n "$DEVTOOLSET" ]; then
-            cat <<EOF
+            case "$SKIP_SYSTEM_PKG_INSTALL" in
+                1|y*|Y*)
+                    ;;
+                *)
+                    cat <<EOF
 RUN $INSTALL centos-release-scl
 RUN $INSTALL devtoolset-$DEVTOOLSET
 EOF
+            esac
             RUN="RUN . /opt/rh/devtoolset-$DEVTOOLSET/enable && "
         fi
         ;;
     gentoo*)
-        cat <<EOF
-ARG BASE_IMAGE=sheerluck/sage-on-gentoo-stage4:latest
-FROM \${BASE_IMAGE} as with-system-packages
-EOF
         EXISTS="2>/dev/null >/dev/null emerge -f"
         UPDATE="" # not needed. "FROM gentoo/portage" used instead
         INSTALL="emerge -DNut --with-bdeps=y --complete-graph=y"
         ;;
     slackware*)
         # https://docs.slackware.com/slackbook:package_management
-        cat <<EOF
-ARG BASE_IMAGE=vbatts/slackware:latest
-FROM \${BASE_IMAGE} as with-system-packages
-EOF
         # slackpkg install ignores packages that it does not know, so we do not have to filter
         EXISTS="true"
         UPDATE="(yes|slackpkg update) &&"
@@ -108,54 +101,48 @@ EOF
         ;;
     arch*)
         # https://hub.docker.com/_/archlinux/
-        cat <<EOF
-ARG BASE_IMAGE=archlinux:latest
-FROM \${BASE_IMAGE} as with-system-packages
-EOF
         UPDATE="pacman -Sy &&"
         EXISTS="pacman -Si"
         INSTALL="pacman -Su --noconfirm"
         ;;
     nix*)
         # https://hub.docker.com/r/nixos/nix
-        cat <<EOF
-ARG BASE_IMAGE=nixos/nix:latest
-FROM \${BASE_IMAGE} as with-system-packages
+        case "$SKIP_SYSTEM_PKG_INSTALL" in
+            1|y*|Y*)
+                ;;
+            *)
+                cat <<EOF
 RUN nix-channel --add https://nixos.org/channels/nixpkgs-unstable nixpkgs
 RUN nix-channel --update
 EOF
+        esac
         INSTALL="nix-env --install"
         RUN="RUN nix-shell --packages \$PACKAGES --run "\'
         ENDRUN=\'
         ;;
     void*)
 	# https://hub.docker.com/r/voidlinux/masterdir-x86_64-musl
-	cat <<EOF
-ARG BASE_IMAGE=voidlinux:masterdir-x86_64-musl
-FROM \${BASE_IMAGE} as with-system-packages
-EOF
         UPDATE="xbps-install -Su &&"
         EXISTS="xbps-query"
         INSTALL="xbps-install --yes"
         ;;
     opensuse*)
-	cat <<EOF
-ARG BASE_IMAGE=opensuse/leap:latest
-FROM \${BASE_IMAGE} as with-system-packages
-EOF
         UPDATE="zypper refresh &&"
         INSTALL="zypper --ignore-unknown install --no-confirm --auto-agree-with-licenses --no-recommends --details"
         ;;
     conda*)
-        cat <<EOF
-ARG BASE_IMAGE=continuumio/miniconda3:latest
-FROM \${BASE_IMAGE} as with-system-packages
+        case "$SKIP_SYSTEM_PKG_INSTALL" in
+            1|y*|Y*)
+                ;;
+            *)
+                cat <<EOF
 ARG USE_CONDARC=condarc.yml
 ADD *condarc*.yml /tmp/
 RUN echo \${CONDARC}; cd /tmp && conda config --stdin < \${USE_CONDARC}
 RUN conda update -n base conda
 RUN ln -sf /bin/bash /bin/sh
 EOF
+        esac
         # On this image, /bin/sh -> /bin/dash;
         # but some of the scripts in /opt/conda/etc/conda/activate.d
         # from conda-forge (as of 2020-01-27) contain bash-isms:
@@ -173,11 +160,13 @@ EOF
         exit 1
         ;;
 esac
-case $SYSTEM in
-    none)
-        ;;
-    *)
-        cat <<EOF
+
+case "$SKIP_SYSTEM_PKG_INSTALL" in
+ 1|y*|Y*)
+  ;;
+
+ *)
+  cat <<EOF
 #:packages:
 ENV PACKAGES="$SYSTEM_PACKAGES"
 EOF

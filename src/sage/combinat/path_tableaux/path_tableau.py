@@ -405,7 +405,7 @@ class PathTableau(ClonableArray, metaclass=InheritComparisonClasscallMetaclass):
             [0 1 0 1 1 1 0 1 1 1 1 1 0 1]
             [0 0 0 0 1 0 1 0 0 1 1 1 1 0]
             sage: s = path_tableaux.DyckPath([0,1,2,3,2,1,0])
-            sage: sorted(s.dual_equivalence_graph().edges())
+            sage: s.dual_equivalence_graph().edges(sort=True)
             [([0, 1, 0, 1, 0, 1, 0], [0, 1, 0, 1, 2, 1, 0], '4,7'),
              ([0, 1, 0, 1, 0, 1, 0], [0, 1, 2, 1, 0, 1, 0], '2,5'),
              ([0, 1, 0, 1, 0, 1, 0], [0, 1, 2, 1, 2, 1, 0], '2,7'),

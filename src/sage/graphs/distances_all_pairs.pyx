@@ -73,7 +73,7 @@ Breadth First Search per vertex of the (di)graph.
 **Technical details**
 
 - The vertices are encoded as `1, ..., n` as they appear in the ordering of
-  ``G.vertices()``, unless another ordering is specified by the user.
+  ``G.vertices(sort=True)``, unless another ordering is specified by the user.
 
 - Because this function works on matrices whose size is quadratic compared to
   the number of vertices when computing all distances or predecessors, it uses
@@ -273,17 +273,18 @@ cdef inline all_pairs_shortest_path_BFS(gg,
     r"""
     See the module's documentation.
 
-    Optional parameter ``vertex_list`` is a list of `n` vertices specifying a
-    mapping from `(0, \ldots, n-1)` to vertex labels in ``gg``. When
-    ``vertex_list`` is ``None`` (default), the mapping is given by the ordering
-    of ``gg.vertices()``. When set, ``distances[i * n + j]`` is the shortest BFS
-    distance between vertices ``vertex_list[i]`` and ``vertex_list[j]``.
+    Optional parameter ``vertex_list`` is a list of `n` vertices
+    specifying a mapping from `(0, \ldots, n-1)` to vertex labels in
+    ``gg``. When ``vertex_list`` is ``None`` (default), the mapping is
+    given by the ordering of ``gg.vertices(sort=True)``. When set,
+    ``distances[i * n + j]`` is the shortest BFS distance between
+    vertices ``vertex_list[i]`` and ``vertex_list[j]``.
     """
     from sage.rings.infinity import Infinity
 
     cdef list int_to_vertex
     if vertex_list is None:
-        int_to_vertex = gg.vertices()
+        int_to_vertex = gg.vertices(sort=True)
     elif set(gg.vertex_iterator()) == set(vertex_list):
         int_to_vertex = vertex_list
     else:
@@ -326,7 +327,7 @@ cdef unsigned short* c_shortest_path_all_pairs(G, vertex_list=None) except NULL:
     Optional parameter ``vertex_list`` is a list of `n` vertices specifying a
     mapping from `(0, \ldots, n-1)` to vertex labels in `G`. When
     ``vertex_list`` is ``None`` (default), the mapping is given by the ordering
-    of ``G.vertices()``. When set, ``predecessors[i * n + j]`` is the
+    of ``G.vertices(sort=True)``. When set, ``predecessors[i * n + j]`` is the
     predecessor of ``vertex_list[j]`` on the shortest path from
     ``vertex_list[i]`` to ``vertex_list[j]``.
     """
@@ -413,8 +414,8 @@ cdef unsigned short * c_distances_all_pairs(G, vertex_list=None):
 
     The matrix `M` returned is of length `n^2`, and the distance between
     vertices `u` and `v` is `M[u,v]`. The integer corresponding to a vertex is
-    its index in the list ``G.vertices()`` unless parameter ``vertex_list`` is
-    set.
+    its index in the list ``G.vertices(sort=True)`` unless parameter
+    ``vertex_list`` is set.
 
     Optional parameter ``vertex_list`` is a list of `n` vertices specifying a
     mapping from `(0, \ldots, n-1)` to vertex labels in `G`. When set,
@@ -637,7 +638,7 @@ def distances_and_predecessors_all_pairs(G):
 
     Distances : the matrix `M` returned is of length `n^2`, and the distance
     between vertices `u` and `v` is `M[u,v]`. The integer corresponding to a
-    vertex is its index in the list ``G.vertices()``.
+    vertex is its index in the list ``G.vertices(sort=True)``.
 
     Predecessors : the matrix `P` returned has size `n^2`, and is such that
     vertex `P[u,v]` is a predecessor of `v` on a shortest `uv`-path. Hence, this
@@ -723,7 +724,7 @@ cdef uint32_t * c_eccentricity(G, vertex_list=None) except NULL:
     Return the vector of eccentricities in G.
 
     The array returned is of length `n`, and by default its `i`-th component is
-    the eccentricity of the `i`-th vertex in ``G.vertices()``.
+    the eccentricity of the `i`-th vertex in ``G.vertices(sort=True)``.
 
     Optional parameter ``vertex_list`` is a list of `n` vertices specifying a
     mapping from `(0, \ldots, n-1)` to vertex labels in `G`. When set,
@@ -936,7 +937,7 @@ def eccentricity(G, algorithm="standard", vertex_list=None):
     Return the vector of eccentricities in G.
 
     The array returned is of length `n`, and its `i`-th component is the
-    eccentricity of the ith vertex in ``G.vertices()``.
+    eccentricity of the ith vertex in ``G.vertices(sort=True)``.
 
     INPUT:
 
@@ -958,7 +959,7 @@ def eccentricity(G, algorithm="standard", vertex_list=None):
       specifying a mapping from `(0, \ldots, n-1)` to vertex labels in `G`. When
       set, ``ecc[i]`` is the eccentricity of vertex ``vertex_list[i]``. When
       ``vertex_list`` is ``None``, ``ecc[i]`` is the eccentricity of vertex
-      ``G.vertices()[i]``.
+      ``G.vertices(sort=True)[i]``.
 
     EXAMPLES::
 
@@ -1038,7 +1039,7 @@ def eccentricity(G, algorithm="standard", vertex_list=None):
 
     cdef list int_to_vertex
     if vertex_list is None:
-        int_to_vertex = G.vertices()
+        int_to_vertex = G.vertices(sort=True)
     elif len(vertex_list) == n and set(vertex_list) == set(G):
         int_to_vertex = vertex_list
     else:
@@ -2538,7 +2539,7 @@ def antipodal_graph(G):
         ValueError: this method is defined for undirected graphs only
         sage: antipodal_graph(Graph(1))
         Antipodal graph of Graph on 1 vertex: Looped graph on 1 vertex
-        sage: antipodal_graph(Graph(2)).edges(labels=False)
+        sage: antipodal_graph(Graph(2)).edges(sort=True, labels=False)
         [(0, 1)]
     """
     if not G:

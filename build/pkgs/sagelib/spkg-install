@@ -27,11 +27,10 @@ export PYTHON="$SAGE_LOCAL/bin/python3"
 
 # We also poison all directories below SAGE_LOCAL.
 export SAGE_PKGCONFIG=/doesnotexist
-export SAGE_PKG_CONFIG_PATH=/doesnotexist
 export SAGE_SPKG_SCRIPTS=/doesnotexist
 export SAGE_SHARE=/doesnotexist
 
-# However, we only unset SAGE_LOCAL and SAGE_PKG_CONFIG_PATH
+# However, we only unset SAGE_LOCAL and SAGE_PKG_CONFIG_PATH.
 # sage_setup.setenv receives them from sage_conf via sage.env;
 # the poisoned environment variables would override them.
 unset SAGE_LOCAL

@@ -22,16 +22,17 @@ import importlib
 import sys
 import os
 import sphinx
-
-from sage.env import SAGE_DOC_SRC, SAGE_DOC, THEBE_DIR, PPLPY_DOCS, MATHJAX_DIR
-from sage.misc.latex_macros import sage_mathjax_macros
-import sage.version
-from sage.misc.sagedoc import extlinks
-import dateutil.parser
-from sphinx import highlighting
 import sphinx.ext.intersphinx as intersphinx
+import dateutil.parser
+import sage.version
+
+from sphinx import highlighting
 from IPython.lib.lexers import IPythonConsoleLexer, IPyLexer
 
+from sage.misc.sagedoc import extlinks
+from sage.env import SAGE_DOC_SRC, SAGE_DOC, THEBE_DIR, PPLPY_DOCS, MATHJAX_DIR
+from sage.misc.latex_macros import sage_mathjax_macros
+from sage.features import PythonModule
 
 # General configuration
 # ---------------------
@@ -240,26 +241,24 @@ multidocs_is_master = True
 # Add any paths that contain custom themes here, relative to this directory.
 html_theme_path = [os.path.join(SAGE_DOC_SRC, "common", "themes")]
 
-if importlib.util.find_spec("furo") is not None:
+if PythonModule("furo").is_present():
+    # Sphinx theme "furo" does not permit an extension. Do not attempt to make
+    # a "sage-furo" theme.
     html_theme = "furo"
 
+    # Theme options are theme-specific and customize the look and feel of
+    # a theme further.  For a list of options available for each theme,
+    # see the documentation.
     html_theme_options = {
-        # Hide project’s name in the sidebar of the documentation;
-        # the logo is enough.
-        # https://pradyunsg.me/furo/customisation/#sidebar-hide-name
-        "sidebar_hide_name": False,
-        # Change accent (used for stylising links, sidebar’s content etc)
         "light_css_variables": {
             "color-brand-primary": "#0f0fff",
             "color-brand-content": "#0f0fff",
         },
-        # Add sage logo to sidebar
-        # https://pradyunsg.me/furo/customisation/logo/#different-logos-for-light-and-dark-mode
         "light_logo": "logo_sagemath_black.svg",
         "dark_logo": "logo_sagemath.svg",
     }
 
-    # The name of the Pygments (syntax highlighting) style to use. NOTE: This
+    # The name of the Pygments (syntax highlighting) style to use. This
     # overrides a HTML theme's corresponding setting.
     pygments_style = "sphinx"
     pygments_dark_style = "monokai"
@@ -269,15 +268,17 @@ if importlib.util.find_spec("furo") is not None:
     html_css_files = [
         'custom-furo.css',
     ]
+    # A list of paths that contain extra templates (or templates that overwrite
+    # builtin/theme-specific templates). Relative paths are taken as relative
+    # to the configuration directory.
+    templates_path = [os.path.join(SAGE_DOC_SRC, 'common', 'templates-furo')] + templates_path
 else:
-    # Sage default HTML theme. We use a custom theme to set a Pygments style,
-    # stylesheet, and insert MathJax macros. See the directory
-    # doc/common/themes/sage-classic/ for files comprising the custom theme.
+    # Sage default Sphinx theme.
+    #
+    # See the directory doc/common/themes/sage-classic/ for files comprising
+    # the custom theme.
     html_theme = "sage-classic"
 
-    # Theme options are theme-specific and customize the look and feel of
-    # a theme further.  For a list of options available for each theme,
-    # see the documentation.
     html_theme_options = {}
 
 # HTML style sheet NOTE: This overrides a HTML theme's corresponding

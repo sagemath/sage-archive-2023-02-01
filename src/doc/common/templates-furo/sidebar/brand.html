@@ -1,7 +1,5 @@
 {#-
-
-This is a sidebar brand html modified from Furo's default theme/furo/sidebar/brand.html
-
+    The sidebar brand template modified from theme/furo/sidebar/brand.html
 -#}
 <a class="sidebar-brand{% if logo %} centered{% endif %}" href="{% if refsub %}{{ reference_root }}{% else %}{{ documentation_root }}{% endif %}">
   {% block brand_content %}

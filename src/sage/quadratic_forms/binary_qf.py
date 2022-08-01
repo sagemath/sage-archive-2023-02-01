@@ -610,7 +610,7 @@ class BinaryQF(SageObject):
 
             :meth:`content`
         """
-        return self.content() == 1
+        return self.content().is_one()
 
     def is_zero(self):
         """
@@ -625,7 +625,7 @@ class BinaryQF(SageObject):
             sage: Q.is_zero()
             True
         """
-        return self.content() == 0
+        return self.content().is_zero()
 
     @cached_method
     def is_weakly_reduced(self):

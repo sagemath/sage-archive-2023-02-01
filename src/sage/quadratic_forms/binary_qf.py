@@ -546,9 +546,9 @@ class BinaryQF(SageObject):
     @cached_method
     def has_fundamental_discriminant(self):
         """
-        Determine if the discriminant `D` of this form is a fundamental
-        discriminant (i.e. `D` is the smallest element of its
-        squareclass with `D = 0` or `1` modulo `4`).
+        Return whether the discriminant `D` of this form is a
+        fundamental discriminant (i.e. `D` is the smallest element
+        of its squareclass with `D = 0` or `1` modulo `4`).
 
         EXAMPLES::
 
@@ -568,7 +568,7 @@ class BinaryQF(SageObject):
 
     def is_primitive(self):
         r"""
-        Check if the form `ax^2 + bxy + cy^2` satisfies
+        Return whether the form `ax^2 + bxy + cy^2` satisfies
         `\gcd(a, b, c) = 1`, i.e., is primitive.
 
         EXAMPLES::
@@ -614,7 +614,7 @@ class BinaryQF(SageObject):
 
     def is_zero(self):
         """
-        Determine if ``self`` is identically zero.
+        Return whether ``self`` is identically zero.
 
         EXAMPLES::
 
@@ -654,7 +654,7 @@ class BinaryQF(SageObject):
     @cached_method
     def is_reducible(self):
         r"""
-        Determine if this form is reducible and cache the result.
+        Return whether this form is reducible and cache the result.
 
         A binary form `q` is called reducible if it is the product of
         two linear forms `q = (a x + b y) (c x + d y)`, or
@@ -1158,7 +1158,7 @@ class BinaryQF(SageObject):
 
     def is_indefinite(self):
         """
-        Determine if ``self`` is indefinite, i.e., has positive discriminant.
+        Return whether ``self`` is indefinite, i.e., has positive discriminant.
 
         EXAMPLES::
 
@@ -1172,7 +1172,7 @@ class BinaryQF(SageObject):
 
     def is_singular(self):
         """
-        Determine if ``self`` is singular, i.e., has zero discriminant.
+        Return whether ``self`` is singular, i.e., has zero discriminant.
 
         EXAMPLES::
 
@@ -1187,7 +1187,7 @@ class BinaryQF(SageObject):
 
     def is_nonsingular(self):
         """
-        Determine if this form is nonsingular, i.e., has non-zero discriminant.
+        Return whether this form is nonsingular, i.e., has non-zero discriminant.
 
         EXAMPLES::
 
@@ -1202,7 +1202,7 @@ class BinaryQF(SageObject):
 
     def is_equivalent(self, other, proper=True):
         """
-        Determine if ``self`` is equivalent to ``other``.
+        Return whether ``self`` is equivalent to ``other``.
 
         INPUT:
 
@@ -1330,7 +1330,7 @@ class BinaryQF(SageObject):
     @cached_method
     def is_reduced(self):
         r"""
-        Determine if ``self`` is reduced.
+        Return whether ``self`` is reduced.
 
         Let `f = a x^2 + b xy + c y^2` be a binary quadratic form of
         discriminant `D`.

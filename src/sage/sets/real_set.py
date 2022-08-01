@@ -108,6 +108,7 @@ from sage.rings.infinity import infinity, minus_infinity
 from sage.misc.superseded import deprecated_function_alias
 from heapq import merge
 
+
 @richcmp_method
 class InternalRealInterval(UniqueRepresentation, Parent):
     """
@@ -2048,10 +2049,9 @@ class RealSet(UniqueRepresentation, Parent, Set_base,
                     yield InternalRealInterval(on_x, lower_closed, x, upper_closed)
             was_on = now_on
 
-    @staticmethod
-    def union_of_realsets(*real_set_collection):
+    def union(self, *real_set_collection):
         """
-        Return the union of real sets.
+        Return the union of real sets
 
         INPUT:
 
@@ -2061,37 +2061,6 @@ class RealSet(UniqueRepresentation, Parent, Set_base,
         OUTPUT:
 
         The set-theoretic union as a new :class:`RealSet`.
-
-        .. SEEALSO:: :meth:`union`
-
-        EXAMPLES::
-
-            sage: s = RealSet.union_of_realsets([1, 2], (2, 3)); s
-            [1, 3)
-            sage: RealSet.union_of_realsets((-oo, 0), x > 6, s[0], RealSet.point(5.0), RealSet.closed_open(2, 4))
-            (-oo, 0) ∪ [1, 4) ∪ {5} ∪ (6, +oo)
-            sage: RealSet.union_of_realsets(RealSet(), RealSet.real_line())
-            (-oo, +oo)
-        """
-        # Same as return RealSet(*real_set_collection). The following is a bit
-        # better when the input consists of RealSets, since they are normalized
-        scan = merge(*[RealSet(real_set)._scan() for real_set in real_set_collection])
-        intervals = tuple(RealSet._scan_to_intervals(scan, lambda i: bool(i > 0)))
-        return RealSet(*intervals, normalized=True)
-
-    def union(self, *other):
-        """
-        Return the union of the two sets
-
-        INPUT:
-
-        - ``other`` -- a :class:`RealSet` or data that defines one.
-
-        OUTPUT:
-
-        The set-theoretic union as a new :class:`RealSet`.
-
-        .. SEEALSO:: :meth:`union_of_realsets`
 
         EXAMPLES::
 
@@ -2105,13 +2074,37 @@ class RealSet(UniqueRepresentation, Parent, Set_base,
             (0, 3)
             sage: s1 + s2    # syntactic sugar
             (0, 3)
+            sage: RealSet().union(RealSet.real_line())
+            (-oo, +oo)
+            sage: s = RealSet().union([1, 2], (2, 3)); s
+            [1, 3)
+            sage: RealSet().union((-oo, 0), x > 6, s[0], RealSet.point(5.0), RealSet.closed_open(2, 4))
+            (-oo, 0) ∪ [1, 4) ∪ {5} ∪ (6, +oo)
         """
-        return RealSet.union_of_realsets(self, RealSet(*other))
+        sets = [self]
+        if len(real_set_collection) == 1 and isinstance(real_set_collection[0], RealSet):
+            sets.append(real_set_collection[0])
+        elif len(real_set_collection) == 2:
+            a, b = real_set_collection
+            # allow self.union(0,1) syntax
+            try:
+                a.n()
+                b.n()
+                sets.append(RealSet(a, b))
+            except (AttributeError, ValueError, TypeError):
+                sets.append(RealSet(a))
+                sets.append(RealSet(b))
+        else:
+            sets.extend([RealSet(_) for _ in real_set_collection])
+        # Same as return RealSet(*real_set_collection). The following is a bit
+        # better when the input consists of RealSets, since they are normalized
+        scan = merge(*[real_set._scan() for real_set in sets])
+        intervals = tuple(RealSet._scan_to_intervals(scan, lambda i: bool(i > 0)))
+        return RealSet(*intervals, normalized=True)
 
-    @staticmethod
-    def intersection_of_realsets(*real_set_collection):
+    def intersection(self, *real_set_collection):
         """
-        Return the intersection of real sets.
+        Return the intersection of real sets
 
         INPUT:
 
@@ -2121,35 +2114,6 @@ class RealSet(UniqueRepresentation, Parent, Set_base,
         OUTPUT:
 
         The set-theoretic intersection as a new :class:`RealSet`.
-
-        .. SEEALSO:: :meth:`intersection`
-
-        EXAMPLES::
-
-            sage: s = RealSet.intersection_of_realsets(x != 2, (-oo, 3), RealSet.closed_open(1, 10)); s
-            [1, 2) ∪ (2, 3)
-            sage: RealSet.intersection_of_realsets(s, RealSet.real_line(), RealSet.point(2))
-            {}
-        """
-        sets = [RealSet(_) for _ in real_set_collection]
-        n = len(sets)
-        scan = merge(*[real_set._scan() for real_set in sets])
-        intervals = tuple(RealSet._scan_to_intervals(scan, lambda i: bool(i == n)))
-        return RealSet(*intervals, normalized=True)
-
-    def intersection(self, *other):
-        """
-        Return the intersection of the two sets
-
-        INPUT:
-
-        - ``other`` -- a :class:`RealSet` or data that defines one.
-
-        OUTPUT:
-
-        The set-theoretic intersection as a new :class:`RealSet`.
-
-        .. SEEALSO:: :meth:`intersection_of_realsets`
 
         EXAMPLES::
 
@@ -2161,21 +2125,24 @@ class RealSet(UniqueRepresentation, Parent, Set_base,
             (1, 2)
             sage: s1 & s2    # syntactic sugar
             (1, 2)
-
-            sage: s1 = RealSet((0, 1), (2, 3));  s1
+            sage: s3 = RealSet((0, 1), (2, 3));  s3
             (0, 1) ∪ (2, 3)
-            sage: s2 = RealSet([0, 1], [2, 3]);  s2
+            sage: s4 = RealSet([0, 1], [2, 3]);  s4
             [0, 1] ∪ [2, 3]
-            sage: s3 = RealSet([1, 2]);  s3
-            [1, 2]
-            sage: s3.intersection(-oo, +oo)
-            [1, 2]
-            sage: s1.intersection(s2)
+            sage: s3.intersection(s4)
             (0, 1) ∪ (2, 3)
-            sage: s1.intersection(s3)
+            sage: s3.intersection([1, 2])
             {}
-            sage: s2.intersection(s3)
+            sage: s4.intersection([1, 2])
             {1} ∪ {2}
+            sage: s4.intersection(1, 2)
+            {}
+            sage: s5 = RealSet.closed_open(1, 10);  s5
+            [1, 10)
+            sage: s5.intersection(-oo, +oo)
+            [1, 10)
+            sage: s5.intersection(x != 2, (-oo, 3), RealSet.real_line()[0])
+            [1, 2) ∪ (2, 3)
 
         TESTS::
 
@@ -2195,8 +2162,25 @@ class RealSet(UniqueRepresentation, Parent, Set_base,
             sage: s4.intersection(s5)
             {}
         """
-        other = RealSet(*other)
-        return RealSet.intersection_of_realsets(self, other)
+        sets = [self]
+        if len(real_set_collection) == 1 and isinstance(real_set_collection[0], RealSet):
+            sets.append(real_set_collection[0])
+        elif len(real_set_collection) == 2:
+            a, b = real_set_collection
+            # allow self.intersection(0,1) syntax
+            try:
+                a.n()
+                b.n()
+                sets.append(RealSet(a, b))
+            except (AttributeError, ValueError, TypeError):
+                sets.append(RealSet(a))
+                sets.append(RealSet(b))
+        else:
+            sets.extend([RealSet(_) for _ in real_set_collection])
+        n = len(sets)
+        scan = merge(*[real_set._scan() for real_set in sets])
+        intervals = tuple(RealSet._scan_to_intervals(scan, lambda i: bool(i == n)))
+        return RealSet(*intervals, normalized=True)
 
     def inf(self):
         """

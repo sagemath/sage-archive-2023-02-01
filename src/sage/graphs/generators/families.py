@@ -1026,9 +1026,9 @@ def chang_graphs():
 
         sage: c3c5=graphs.CycleGraph(3).disjoint_union(graphs.CycleGraph(5))
         sage: c8=graphs.CycleGraph(8)
-        sage: s=[K8.subgraph_search(c8).edges(),
+        sage: s=[K8.subgraph_search(c8).edges(sort=False),
         ....:    [(0,1,None),(2,3,None),(4,5,None),(6,7,None)],
-        ....:    K8.subgraph_search(c3c5).edges()]
+        ....:    K8.subgraph_search(c3c5).edges(sort=False)]
         sage: list(map(lambda x,G: T8.seidel_switching(x, inplace=False).is_isomorphic(G),
         ....:                  s, chang_graphs))
         [True, True, True]
@@ -1120,7 +1120,7 @@ def CirculantGraph(n, adjacency):
 
         sage: graphs.CirculantGraph(6,1)==graphs.CycleGraph(6)
         True
-        sage: graphs.CirculantGraph(7,[1,3]).edges(labels=false)
+        sage: graphs.CirculantGraph(7,[1,3]).edges(sort=True, labels=false)
         [(0, 1),
         (0, 3),
         (0, 4),
@@ -2339,22 +2339,22 @@ def MycielskiStep(g):
     gg = copy(g)
 
     # rename a vertex v of gg as (1,v)
-    renamer = dict( [ (v, (1,v)) for v in g.vertices() ] )
+    renamer = {v: (1, v) for v in g}
     gg.relabel(renamer)
 
     # add the w vertices to gg as (2,v)
-    wlist = [ (2,v) for v in g.vertices() ]
+    wlist = [(2, v) for v in g]
     gg.add_vertices(wlist)
 
     # add the z vertex as (0,0)
     gg.add_vertex((0,0))
 
     # add the edges from z to w_i
-    gg.add_edges( [ ( (0,0) , (2,v) ) for v in g.vertices() ] )
+    gg.add_edges([((0, 0), (2, v)) for v in g] )
 
     # make the v_i w_j edges
-    for v in g.vertices():
-        gg.add_edges( [ ((1,v),(2,vv)) for vv in g.neighbors(v) ] )
+    for v in g:
+        gg.add_edges([((1,v),(2,vv)) for vv in g.neighbors(v)])
 
     return gg
 
@@ -3200,7 +3200,7 @@ def SierpinskiGasketGraph(n):
     dg.add_edges([(tuple(b), tuple(c)) for a, b, c in tri_list])
     dg.add_edges([(tuple(c), tuple(a)) for a, b, c in tri_list])
     dg.set_pos({(x, y): (x + y / 2, y * 3 / 4)
-                for (x, y) in dg.vertices()})
+                for (x, y) in dg})
     dg.relabel()
     return dg
 
@@ -3299,7 +3299,7 @@ def GeneralizedSierpinskiGraph(G, k, stretch=None):
 
         sage: graphs.GeneralizedSierpinskiGraph(Graph(), 3)
         Generalized Sierpinski Graph of Graph on 0 vertices of dimension 3: Graph on 0 vertices
-        sage: graphs.GeneralizedSierpinskiGraph(Graph(1), 3).vertices()
+        sage: graphs.GeneralizedSierpinskiGraph(Graph(1), 3).vertices(sort=False)
         [(0, 0, 0)]
         sage: G = graphs.GeneralizedSierpinskiGraph(Graph(2), 3)
         sage: G.order(), G.size()
@@ -3331,7 +3331,7 @@ def GeneralizedSierpinskiGraph(G, k, stretch=None):
             I.add_edges(J.edge_iterator(labels=False, sort_vertices=False))
         # For each edge {u, v} of G, add edge {(u, v, ..., v), (v, u, ..., u)}
         l = len(next(H.vertex_iterator()))
-        for u, v in G.edges(labels=False):
+        for u, v in G.edges(sort=True, labels=False):
             I.add_edge((u,) + (v,)*l, (v,) + (u,)*l)
         return rec(I, kk - 1)
 
@@ -3718,7 +3718,7 @@ def RingedTree(k, vertex_labels = True):
         sage: G = graphs.RingedTree(5)
         sage: P = G.plot(vertex_labels=False, vertex_size=10)
         sage: P.show() # long time
-        sage: G.vertices()
+        sage: G.vertices(sort=True)
         ['', '0', '00', '000', '0000', '0001', '001', '0010', '0011', '01',
          '010', '0100', '0101', '011', '0110', '0111', '1', '10', '100',
          '1000', '1001', '101', '1010', '1011', '11', '110', '1100', '1101',
@@ -3731,7 +3731,7 @@ def RingedTree(k, vertex_labels = True):
         ...
         ValueError: The number of levels must be >= 1.
         sage: G = graphs.RingedTree(5, vertex_labels = False)
-        sage: G.vertices()
+        sage: G.vertices(sort=True)
         [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17,
         18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30]
     """
@@ -4244,7 +4244,7 @@ def MuzychukS6Graph(n, d, Phi='fixed', Sigma='fixed', verbose=False):
 
     # build V
     edges = [] ###how many? *m^2*n^2
-    for (i, j) in L.edges(labels=False):
+    for (i, j) in L.edges(sort=True, labels=False):
         for hyp in phi[(i, (i, j))]:
             for x in hyp:
                 newEdges = [((i, x), (j, y))

@@ -3201,7 +3201,7 @@ class RootLatticeRealizations(Category_over_base_ring):
                         # TODO: Destack the multiple weights
                         G += plot_options.text(elt, positions[wt], rgbcolor=label_color)
 
-            for h,t,i in g.edges():
+            for h,t,i in g.edges(sort=True):
                 G += arrow(positions[self(h.weight())], positions[self(t.weight())],
                            zorder=1, rgbcolor=plot_options.color(i),
                            arrowsize=plot_options._arrowsize)

@@ -49,14 +49,6 @@ DEVEL = False
 if DEVEL:
     extra_compile_args.append('-ggdb')
 
-import subprocess
-# Work around GCC-4.8 bug which miscompiles some sig_on() statements:
-# * http://trac.sagemath.org/sage_trac/ticket/14460
-# * http://trac.sagemath.org/sage_trac/ticket/20226
-# * http://gcc.gnu.org/bugzilla/show_bug.cgi?id=56982
-if subprocess.call("""$CC --version | grep -i 'gcc.* 4[.]8' >/dev/null """, shell=True) == 0:
-    extra_compile_args.append('-fno-tree-copyrename')
-
 class sage_build_cython(Command):
     name = 'build_cython'
     description = "compile Cython extensions into C/C++ extensions"

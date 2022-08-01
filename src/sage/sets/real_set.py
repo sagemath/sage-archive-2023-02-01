@@ -835,35 +835,35 @@ class InternalRealInterval(UniqueRepresentation, Parent):
         """
         return self * other
 
-    def _scan_left_endpoint(self):
+    def _scan_lower(self):
         r"""
-        Return an event for scan-line method
+        Helper function for the scan-line method
 
         OUTPUT:
 
-        An event (x, epsilon), delta:
+        An event of the form ``(x, epsilon), delta``:
 
-        where x is the left endpoint,
-        epsilon is 0 if the interval is left closed and 1 otherwise,
-        and delta = -1
+        - ``x`` is the lower endpoint
+        - ``epsilon`` is 0 if the interval is lower closed and 1 otherwise,
+        - ``delta = -1``
 
         EXAMPLES::
 
             sage: I1 = RealSet.open_closed(0,2)[0]; I1
             (0, 2]
-            sage: I1._scan_left_endpoint()
+            sage: I1._scan_lower()
             ((0, 1), -1)
             sage: I2 = RealSet([0,2])[0]; I2
             [0, 2]
-            sage: I2._scan_left_endpoint()
+            sage: I2._scan_lower()
             ((0, 0), -1)
             sage: I3 = RealSet([1,1])[0]; I3
             {1}
-            sage: I3._scan_left_endpoint()
+            sage: I3._scan_lower()
             ((1, 0), -1)
             sage: I4 = RealSet((-oo,1))[0]; I4
             (-oo, 1)
-            sage: I4._scan_left_endpoint()
+            sage: I4._scan_lower()
             ((-Infinity, 1), -1)
         """
         if self._lower_closed:
@@ -871,35 +871,35 @@ class InternalRealInterval(UniqueRepresentation, Parent):
         else:
             return (self._lower, 1), -1
 
-    def _scan_right_endpoint(self):
+    def _scan_upper(self):
         r"""
-        Return an event for scan-line method
+        Helper function for the scan-line method
 
         OUTPUT:
 
-        An event (x, epsilon), delta.
+        An event of the form ``(x, epsilon), delta``:
 
-        where x is the right endpoint,
-        epsilon is 1 if the interval is right closed and 0 otherwise,
-        and delta = +1
+        - ``x`` is the upper endpoint
+        - ``epsilon`` is 1 if the interval is upper closed and 0 otherwise,
+        - ``delta = +1``
 
         EXAMPLES::
 
             sage: I1 = RealSet.closed_open(0,2)[0]; I1
             [0, 2)
-            sage: I1._scan_right_endpoint()
+            sage: I1._scan_upper()
             ((2, 0), 1)
             sage: I2 = RealSet([0,2])[0]; I2
             [0, 2]
-            sage: I2._scan_right_endpoint()
+            sage: I2._scan_upper()
             ((2, 1), 1)
             sage: I3 = RealSet([1,1])[0]; I3
             {1}
-            sage: I3._scan_right_endpoint()
+            sage: I3._scan_upper()
             ((1, 1), 1)
             sage: I4 = RealSet((0,oo))[0]; I4
             (0, +oo)
-            sage: I4._scan_right_endpoint()
+            sage: I4._scan_upper()
             ((+Infinity, 0), 1)
         """
         if self._upper_closed:
@@ -1291,7 +1291,7 @@ class RealSet(UniqueRepresentation, Parent, Set_base,
                 else:
                     raise ValueError(str(arg) + ' does not determine real interval')
 
-        scan = merge(*[[i._scan_left_endpoint(), i._scan_right_endpoint()] for i in intervals])
+        scan = merge(*[[i._scan_lower(), i._scan_upper()] for i in intervals])
         union_intervals = tuple(RealSet._scan_to_intervals(scan, lambda i: bool(i >= 1)))
         return UniqueRepresentation.__classcall__(cls, *union_intervals, normalized=True)
 
@@ -1961,8 +1961,8 @@ class RealSet(UniqueRepresentation, Parent, Set_base,
             ((+Infinity, 0), 1)]
         """
         for i in self._intervals:
-            yield i._scan_left_endpoint()
-            yield i._scan_right_endpoint()
+            yield i._scan_lower()
+            yield i._scan_upper()
 
     @staticmethod
     def _scan_to_intervals(scan, condition):
@@ -1978,9 +1978,9 @@ class RealSet(UniqueRepresentation, Parent, Set_base,
                 (on_x, on_epsilon) = (x, epsilon)
             elif was_on and not now_on:  # switched off
                 if (on_x, on_epsilon) < (x, epsilon):
-                    left_closed = on_epsilon == 0
-                    right_closed = epsilon > 0
-                    yield InternalRealInterval(on_x, left_closed, x, right_closed)
+                    lower_closed = on_epsilon == 0
+                    upper_closed = epsilon > 0
+                    yield InternalRealInterval(on_x, lower_closed, x, upper_closed)
             was_on = now_on
 
     @staticmethod
@@ -2507,21 +2507,21 @@ class RealSet(UniqueRepresentation, Parent, Set_base,
             sage: RealSet.convex_hull(s2, s3, s4)
             (-oo, 8]
         """
-        left_scan = ((infinity, 0), 1)
-        right_scan = ((minus_infinity, 1), -1)
+        lower_scan = ((infinity, 0), 1)
+        upper_scan = ((minus_infinity, 1), -1)
         for real_set in real_set_collection:
             s = RealSet(real_set)
             if s.n_components() > 0:
-                left_s = s[0]._scan_left_endpoint()
-                if left_s < left_scan:
-                    left_scan = left_s
-                right_s = s[-1]._scan_right_endpoint()
-                if right_s > right_scan:
-                    right_scan = right_s
-        if left_scan < right_scan:
-            left_x, left_closed = left_scan[0][0], left_scan[0][1] == 0
-            right_x, right_closed = right_scan[0][0], right_scan[0][1] > 0
-            return RealSet(InternalRealInterval(left_x, left_closed, right_x, right_closed))
+                lower_s = s[0]._scan_lower()
+                if lower_s < lower_scan:
+                    lower_scan = lower_s
+                upper_s = s[-1]._scan_upper()
+                if upper_s > upper_scan:
+                    upper_scan = upper_s
+        if lower_scan < upper_scan:
+            lower, lower_closed = lower_scan[0][0], lower_scan[0][1] == 0
+            upper, upper_closed = upper_scan[0][0], upper_scan[0][1] > 0
+            return RealSet(InternalRealInterval(lower, lower_closed, upper, upper_closed))
         else:
             return RealSet()
 

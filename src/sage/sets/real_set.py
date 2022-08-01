@@ -357,6 +357,8 @@ class InternalRealInterval(UniqueRepresentation, Parent):
         """
         x = (self._lower, not self._lower_closed, self._upper, self._upper_closed)
         y = (other._lower, not other._lower_closed, other._upper, other._upper_closed)
+        # same as richcmp((self._scan_lower(), self._scan_upper()),
+        #                 (other._scan_lower(), other._scan_upper()), op)
         return richcmp(x, y, op)
 
     element_class = LazyFieldElement
@@ -525,8 +527,10 @@ class InternalRealInterval(UniqueRepresentation, Parent):
             sage: RealSet.open(0, oo)[0].closure()
             [0, +oo)
         """
-        # TODO: take care of the empty set case.
         # Bug example: RealSet.point(5).interior().closure() returns {5}.
+        # TODO: take care of the empty set case.
+        # maybe not necessary because this is an interval class of
+        # :class:`RealSet` whose intervals are all non-empty.
         lower_closed = (self._lower != minus_infinity)
         upper_closed = (self._upper != infinity)
         return InternalRealInterval(self._lower, lower_closed, self._upper, upper_closed)
@@ -1292,7 +1296,7 @@ class RealSet(UniqueRepresentation, Parent, Set_base,
                     raise ValueError(str(arg) + ' does not determine real interval')
 
         scan = merge(*[[i._scan_lower(), i._scan_upper()] for i in intervals])
-        union_intervals = tuple(RealSet._scan_to_intervals(scan, lambda i: bool(i >= 1)))
+        union_intervals = tuple(RealSet._scan_to_intervals(scan, lambda i: bool(i > 0)))
         return UniqueRepresentation.__classcall__(cls, *union_intervals, normalized=True)
 
     def __init__(self, *intervals, normalized=True):
@@ -2020,8 +2024,10 @@ class RealSet(UniqueRepresentation, Parent, Set_base,
             sage: RealSet((-oo, 4.5), [4, 5], RealSet.open_closed(5, 6), (6, oo))
             (-oo, +oo)
         """
+        # Same as return RealSet(*real_set_collection). The following is a bit
+        # better when the input consists of RealSets, since they are normalized
         scan = merge(*[RealSet(real_set)._scan() for real_set in real_set_collection])
-        intervals = tuple(RealSet._scan_to_intervals(scan, lambda i: bool(i >= 1)))
+        intervals = tuple(RealSet._scan_to_intervals(scan, lambda i: bool(i > 0)))
         return RealSet(*intervals, normalized=True)
 
     def union(self, *other):
@@ -2255,7 +2261,10 @@ class RealSet(UniqueRepresentation, Parent, Set_base,
             (0, 1] ∪ [11, +oo)
         """
         remove = [(pt, -delta) for (pt, delta) in RealSet(*other)._scan()]
+        # Note: flip delta for boundary point in the removed set.
+        # turn-on lower open becomes turn-off upper closed.
         scan = merge(self._scan(), remove)
+        # Because the negative delta, indicator in def _scan_to_intervals can be negative.
         intervals = tuple(RealSet._scan_to_intervals(scan, lambda i: bool(i > 0)))
         return RealSet(*intervals, normalized=True)
 

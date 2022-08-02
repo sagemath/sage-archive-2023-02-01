@@ -3567,7 +3567,7 @@ class EllipticCurve_rational_field(EllipticCurve_number_field):
         - ``M`` -- non-negative integer; this function is only ever called on
           `M > 1`, although the algorithm works fine for the case `M = 1`
 
-        - ``invariant`` -- string (default: "both"``); options are:
+        - ``invariant`` -- string (default: ``"both"``); options are:
 
           - "both" -- both modular degree and congruence number at level `MN` are computed
 
@@ -6417,10 +6417,12 @@ class EllipticCurve_rational_field(EllipticCurve_number_field):
             Return the set of S-integers x which are x-coordinates of
             points on the curve which are linear combinations of the
             generators (basis and torsion points) with coefficients
-            bounded by `H_q`.  The bound `H_q` will be computed at
-            runtime.
+            bounded by `H_q`.
+
+            The bound `H_q` will be computed at runtime.
+
             (Modified version of integral_points_with_bounded_mw_coeffs() in
-             integral_points() )
+            integral_points())
 
             .. TODO::
 

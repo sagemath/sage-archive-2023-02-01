@@ -3543,8 +3543,8 @@ class EllipticCurvePoint_finite_field(EllipticCurvePoint_field):
         - Otherwise (if this test is inconclusive), check that the Weil
           pairing of `P` and `Q` is trivial.
 
-        For anomalous curves with `#E = p`, the `padic_elliptic_logarithm`
-        function is called.
+        For anomalous curves with `\#E = p`, the 
+        :meth:`padic_elliptic_logarithm` function is called.
 
         INPUT:
 
@@ -3561,7 +3561,7 @@ class EllipticCurvePoint_finite_field(EllipticCurvePoint_field):
         - John Cremona. Adapted to use generic functions 2008-04-05.
         - Lorenz Panny (2022): switch to PARI.
 
-        EXAMPLES:
+        EXAMPLES::
 
             sage: F = GF((3,6),'a')
             sage: a = F.gen()
@@ -3604,9 +3604,10 @@ class EllipticCurvePoint_finite_field(EllipticCurvePoint_field):
         if n*Q:
             raise ValueError('ECDLog problem has no solution (order of Q does not divide order of P)')
         E = self.curve()
-        if E.order() == E.base().order():
+        p = E.base_ring().cardinality()
+        if n == p:
             # Anomalous case
-            return self.padic_elliptic_logarithm(Q, self.curve().base().order())
+            return self.padic_elliptic_logarithm(Q, p)
         elif hasattr(E, '_order') and E._order.gcd(n**2) == n:
             pass    # cyclic rational n-torsion -> okay
         elif self.weil_pairing(Q, n) != 1:
@@ -3639,7 +3640,7 @@ class EllipticCurvePoint_finite_field(EllipticCurvePoint_field):
 
         - Sylvain Pelissier (2022).
 
-        EXAMPLES:
+        EXAMPLES::
 
             sage: p=235322474717419
             sage: b=8856682

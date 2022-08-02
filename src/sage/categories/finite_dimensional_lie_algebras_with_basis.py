@@ -1103,6 +1103,14 @@ class FiniteDimensionalLieAlgebrasWithBasis(CategoryWithAxiom_over_base_ring):
                 sage: [C.free_module_rank(i) for i in range(11)]  # long time
                 [1, 10, 45, 120, 210, 252, 210, 120, 45, 10, 1]
 
+                sage: g = lie_algebras.sl(QQ,2)
+                sage: E,F,H = g.basis()
+                sage: n = g.subalgebra([F,H])
+                sage: ascii_art(n.chevalley_eilenberg_complex())
+                                        [0]      
+                            [0 0]       [2]      
+                 0 <-- C_0 <------ C_1 <---- C_2 <-- 0
+
             REFERENCES:
 
             - :wikipedia:`Lie_algebra_cohomology#Chevalley-Eilenberg_complex`
@@ -1178,10 +1186,11 @@ class FiniteDimensionalLieAlgebrasWithBasis(CategoryWithAxiom_over_base_ring):
                     row = 0
                 else:
                     data = []
-                ell = len(indices)
+                if not sparse:
+                    zero = [zero] * len(indices)
                 for X in combinations(Ind, k):
                     if not sparse:
-                        ret = [zero] * ell
+                        ret =  list(zero)
                     for i in range(k):
                         Y = list(X)
                         Y.pop(i)

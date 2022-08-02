@@ -103,7 +103,7 @@ warnings.filterwarnings('ignore', category=DeprecationWarning,
 ################ end setup warnings ###############################
 
 
-from sage.env import SAGE_ROOT, SAGE_SRC, SAGE_DOC_SRC, SAGE_LOCAL, DOT_SAGE, SAGE_ENV
+from .all__sagemath_environment import *
 
 
 ###################################################################
@@ -272,6 +272,11 @@ sage.misc.lazy_import.save_cache_file()
 ### Debugging for Singular, see trac #10903
 # from sage.libs.singular.ring import poison_currRing
 # sys.settrace(poison_currRing)
+
+
+# Deprecated leftover of monkey-patching inspect.isfunction() to support Cython functions.
+lazy_import('sage.misc.sageinspect', 'is_function_or_cython_function',
+            as_='isfunction', namespace=sage.__dict__, deprecation=32479)
 
 
 # Set a new random number seed as the very last thing

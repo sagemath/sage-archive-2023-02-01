@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 r"""
 Clifford Algebras
 
@@ -18,305 +17,177 @@ AUTHORS:
 #*****************************************************************************
 
 from sage.misc.cachefunc import cached_method
+from sage.misc.lazy_attribute import lazy_attribute
 from sage.structure.unique_representation import UniqueRepresentation
-from copy import copy
+from sage.structure.parent import Parent
+from sage.structure.element import Element
+from sage.structure.richcmp import (richcmp_method, op_EQ, op_NE,
+                                    op_LT, op_GT, op_LE, op_GE, rich_to_bool)
+from sage.data_structures.bitset import Bitset, FrozenBitset
 
+from sage.algebras.clifford_algebra_element import CliffordAlgebraElement, ExteriorAlgebraElement
 from sage.categories.algebras_with_basis import AlgebrasWithBasis
 from sage.categories.hopf_algebras_with_basis import HopfAlgebrasWithBasis
+from sage.categories.finite_enumerated_sets import FiniteEnumeratedSets
 from sage.modules.with_basis.morphism import ModuleMorphismByLinearity
 from sage.categories.poor_man_map import PoorManMap
 from sage.rings.integer_ring import ZZ
+from sage.rings.noncommutative_ideals import Ideal_nc
 from sage.modules.free_module import FreeModule, FreeModule_generic
 from sage.matrix.constructor import Matrix
 from sage.matrix.args import MatrixArgs
 from sage.sets.family import Family
 from sage.combinat.free_module import CombinatorialFreeModule
-from sage.combinat.subset import SubsetsSorted
+from sage.combinat.subset import Subsets
 from sage.quadratic_forms.quadratic_form import QuadraticForm
-from sage.algebras.weyl_algebra import repr_from_monomials
 from sage.misc.inherit_comparison import InheritComparisonClasscallMetaclass
 from sage.typeset.ascii_art import ascii_art
 from sage.typeset.unicode_art import unicode_art
 import unicodedata
 
 
-class CliffordAlgebraElement(CombinatorialFreeModule.Element):
+class CliffordAlgebraIndices(Parent):
+    r"""
+    A facade parent for the indices of Clifford algebra.
+    Users should not create instances of this class directly.
     """
-    An element in a Clifford algebra.
-
-    TESTS::
-
-        sage: Q = QuadraticForm(ZZ, 3, [1, 2, 3, 4, 5, 6])
-        sage: Cl.<x,y,z> = CliffordAlgebra(Q)
-        sage: elt = ((x^3-z)*x + y)^2
-        sage: TestSuite(elt).run()
-    """
-    def _repr_(self):
-        """
-        Return a string representation of ``self``.
-
-        TESTS::
-
-            sage: Q = QuadraticForm(ZZ, 3, [1,2,3,4,5,6])
-            sage: Cl.<x,y,z> = CliffordAlgebra(Q)
-            sage: ((x^3-z)*x + y)^2
-            -2*x*y*z - x*z + 5*x - 4*y + 2*z + 2
-            sage: Cl.zero()
-            0
-        """
-        return repr_from_monomials(self.list(), self.parent()._repr_term)
-
-    def _latex_(self):
+    def __call__(self, el):
         r"""
-        Return a `\LaTeX` representation of ``self``.
-
-        TESTS::
-
-            sage: Q = QuadraticForm(ZZ, 3, [1,2,3,4,5,6])
-            sage: Cl.<x,y,z> = CliffordAlgebra(Q)
-            sage: latex( ((x^3-z)*x + y)^2 )
-            -2  x y z -  x z + 5  x - 4  y + 2  z + 2
-            sage: Cl.<x0,x1,x2> = CliffordAlgebra(Q)
-            sage: latex(  (x1 - x2)*x0 + 5*x0*x1*x2 )
-            5  x_{0} x_{1} x_{2} -  x_{0} x_{1} +  x_{0} x_{2} - 1
-        """
-        return repr_from_monomials(self.list(), self.parent()._latex_term, True)
-
-    def _mul_(self, other):
-        """
-        Return ``self`` multiplied by ``other``.
-
-        INPUT:
-
-        - ``other`` -- element of the same Clifford algebra as ``self``
-
         EXAMPLES::
 
-            sage: Q = QuadraticForm(ZZ, 3, [1,2,3,4,5,6])
-            sage: Cl.<x,y,z> = CliffordAlgebra(Q)
-            sage: (x^3 - z*y)*x*(y*z + x*y*z)
-            x*y*z + y*z - 24*x + 12*y + 2*z - 24
-            sage: y*x
-            -x*y + 2
-            sage: z*x
-            -x*z + 3
-            sage: z*z
-            6
-            sage: x*0
-            0
-            sage: 0*x
-            0
+            sage: from sage.algebras.clifford_algebra import CliffordAlgebraIndices
+            sage: idx = CliffordAlgebraIndices(7)
+            sage: idx([1,3,6])
+            0101001
+            sage: E = ExteriorAlgebra(QQ, 7)
+            sage: B = E.basis()
         """
-        Q = self.parent()._quadratic_form
-        zero = self.parent().base_ring().zero()
-        d = {}
+        if not isinstance(el, Element):
+            return self._element_constructor_(el)
+        else:
+            return Parent.__call__(self, el)
 
-        for ml,cl in self:
-            # Distribute the current term ``cl`` * ``ml`` over ``other``.
-            cur = copy(other._monomial_coefficients) # The current distribution of the term
-            for i in reversed(ml):
-                # Distribute the current factor ``e[i]`` (the ``i``-th
-                # element of the standard basis).
-                next = {}
-                # At the end of the following for-loop, ``next`` will be
-                # the dictionary describing the element
-                # ``e[i]`` * (the element described by the dictionary ``cur``)
-                # (where ``e[i]`` is the ``i``-th standard basis vector).
-                for mr,cr in cur.items():
-                    # Commute the factor as necessary until we are in order
-                    pos = 0
-                    for j in mr:
-                        if i <= j:
-                            break
-                        # Add the additional term from the commutation
-                        t = list(mr)
-                        t.pop(pos)
-                        t = tuple(t)
-                        next[t] = next.get(t, zero) + cr * Q[i,j]
-                        # Note: ``Q[i,j] == Q(e[i]+e[j]) - Q(e[i]) - Q(e[j])`` for
-                        # ``i != j``, where ``e[k]`` is the ``k``-th standard
-                        # basis vector.
-                        cr = -cr
-                        if next[t] == zero:
-                            del next[t]
-                        pos += 1
-
-                    # Check to see if we have a squared term or not
-                    t = list(mr)
-                    if i in t:
-                        t.remove(i)
-                        cr *= Q[i,i]
-                        # Note: ``Q[i,i] == Q(e[i])`` where ``e[i]`` is the
-                        # ``i``-th standard basis vector.
-                    else:
-                        t.insert(pos, i)
-                        # Note that ``t`` is now sorted.
-                    t = tuple(t)
-                    next[t] = next.get(t, zero) + cr
-                    if next[t] == zero:
-                        del next[t]
-                cur = next
-
-            # Add the distributed terms to the total
-            for index,coeff in cur.items():
-                d[index] = d.get(index, zero) + cl * coeff
-                if d[index] == zero:
-                    del d[index]
-
-        return self.__class__(self.parent(), d)
-
-    def list(self):
-        """
-        Return the list of monomials and their coefficients in ``self``
-        (as a list of `2`-tuples, each of which has the form
-        ``(monomial, coefficient)``).
-
-        EXAMPLES::
-
-            sage: Q = QuadraticForm(ZZ, 3, [1,2,3,4,5,6])
-            sage: Cl.<x,y,z> = CliffordAlgebra(Q)
-            sage: elt = 5*x + y
-            sage: elt.list()
-            [((0,), 5), ((1,), 1)]
-        """
-        return sorted(self._monomial_coefficients.items(), key=lambda m_c : (-len(m_c[0]), m_c[0]))
-
-    def support(self):
-        """
-        Return the support of ``self``.
-
-        This is the list of all monomials which appear with nonzero
-        coefficient in ``self``.
-
-        EXAMPLES::
-
-            sage: Q = QuadraticForm(ZZ, 3, [1,2,3,4,5,6])
-            sage: Cl.<x,y,z> = CliffordAlgebra(Q)
-            sage: elt = 5*x + y
-            sage: elt.support()
-            [(0,), (1,)]
-        """
-        return sorted(self._monomial_coefficients.keys(), key=lambda x: (-len(x), x))
-
-    def reflection(self):
+    def __init__(self, Qdim):
         r"""
-        Return the image of the reflection automorphism on ``self``.
-
-        The *reflection automorphism* of a Clifford algebra is defined
-        as the linear endomorphism of this algebra which maps
-
-        .. MATH::
-
-            x_1 \wedge x_2 \wedge \cdots \wedge x_m \mapsto
-            (-1)^m x_1 \wedge x_2 \wedge \cdots \wedge x_m.
-
-        It is an algebra automorphism of the Clifford algebra.
-
-        :meth:`degree_negation` is an alias for :meth:`reflection`.
-
         EXAMPLES::
 
-            sage: Q = QuadraticForm(ZZ, 3, [1,2,3,4,5,6])
-            sage: Cl.<x,y,z> = CliffordAlgebra(Q)
-            sage: elt = 5*x + y + x*z
-            sage: r = elt.reflection(); r
-            x*z - 5*x - y
-            sage: r.reflection() == elt
-            True
-
-        TESTS:
-
-        We check that the reflection is an involution::
-
-            sage: Q = QuadraticForm(ZZ, 3, [1,2,3,4,5,6])
-            sage: Cl.<x,y,z> = CliffordAlgebra(Q)
-            sage: all(x.reflection().reflection() == x for x in Cl.basis())
-            True
+            sage: from sage.algebras.clifford_algebra import CliffordAlgebraIndices
+            sage: idx = CliffordAlgebraIndices(7)
+            sage: idx._nbits
+            7
+            sage: idx._cardinality
+            128
+            sage: idx._maximal_set
+            1111111
+            sage: i = idx.an_element(); i
+            0
+            sage: type(i)
+            <class 'sage.data_structures.bitset.FrozenBitset'>
         """
-        return self.__class__(self.parent(), {m: (-1)**len(m) * c for m,c in self})
+        self._nbits = Qdim
+        self._cardinality = 2**Qdim
+        # the if statement here is in case Qdim is 0.
+        self._maximal_set = FrozenBitset('1'*self._nbits) if self._nbits else FrozenBitset()
+        category = FiniteEnumeratedSets().Facade()
+        Parent.__init__(self, category=category, facade=True)
 
-    degree_negation = reflection
-
-    def transpose(self):
+    def _element_constructor_(self, x):
         r"""
-        Return the transpose of ``self``.
-
-        The transpose is an anti-algebra involution of a Clifford algebra
-        and is defined (using linearity) by
-
-        .. MATH::
-
-            x_1 \wedge x_2 \wedge \cdots \wedge x_m \mapsto
-            x_m \wedge \cdots \wedge x_2 \wedge x_1.
-
         EXAMPLES::
 
-            sage: Q = QuadraticForm(ZZ, 3, [1,2,3,4,5,6])
-            sage: Cl.<x,y,z> = CliffordAlgebra(Q)
-            sage: elt = 5*x + y + x*z
-            sage: t = elt.transpose(); t
-            -x*z + 5*x + y + 3
-            sage: t.transpose() == elt
-            True
-            sage: Cl.one().transpose()
+            sage: from sage.algebras.clifford_algebra import CliffordAlgebraIndices
+            sage: idx = CliffordAlgebraIndices(7)
+            sage: idx([1,3,6])
+            0101001
+            sage: for i in range(7): print(idx(i))
             1
-
-        TESTS:
-
-        We check that the transpose is an involution::
-
-            sage: Q = QuadraticForm(ZZ, 3, [1,2,3,4,5,6])
-            sage: Cl.<x,y,z> = CliffordAlgebra(Q)
-            sage: all(x.transpose().transpose() == x for x in Cl.basis())
-            True
-
-        Zero is sent to zero::
-
-            sage: Cl.zero().transpose() == Cl.zero()
-            True
+            01
+            001
+            0001
+            00001
+            000001
+            0000001
         """
-        P = self.parent()
-        if not self._monomial_coefficients:
-            return P.zero()
-        g = P.gens()
-        return P.sum(c * P.prod(g[i] for i in reversed(m)) for m,c in self)
+        if isinstance(x, (list, tuple, set, frozenset)):
+            if len(x) > self._nbits:
+                raise ValueError(f"{x=} is too long")
+            return FrozenBitset(x)
 
-    def conjugate(self):
+        if isinstance(x, int):
+            return FrozenBitset((x,))
+
+    def cardinality(self):
         r"""
-        Return the Clifford conjugate of ``self``.
-
-        The Clifford conjugate of an element `x` of a Clifford algebra is
-        defined as
-
-        .. MATH::
-
-            \bar{x} := \alpha(x^t) = \alpha(x)^t
-
-        where `\alpha` denotes the :meth:`reflection <reflection>`
-        automorphism and `t` the :meth:`transposition <transpose>`.
-
         EXAMPLES::
 
-            sage: Q = QuadraticForm(ZZ, 3, [1,2,3,4,5,6])
-            sage: Cl.<x,y,z> = CliffordAlgebra(Q)
-            sage: elt = 5*x + y + x*z
-            sage: c = elt.conjugate(); c
-            -x*z - 5*x - y + 3
-            sage: c.conjugate() == elt
-            True
-
-        TESTS:
-
-        We check that the conjugate is an involution::
-
-            sage: Q = QuadraticForm(ZZ, 3, [1,2,3,4,5,6])
-            sage: Cl.<x,y,z> = CliffordAlgebra(Q)
-            sage: all(x.conjugate().conjugate() == x for x in Cl.basis())
+            sage: from sage.algebras.clifford_algebra import CliffordAlgebraIndices
+            sage: idx = CliffordAlgebraIndices(7)
+            sage: idx.cardinality() == 2^7
             True
         """
-        return self.reflection().transpose()
+        return self._cardinality
 
-    clifford_conjugate = conjugate
+    def _repr_(self):
+        r"""
+        EXAMPLES::
+
+            sage: from sage.algebras.clifford_algebra import CliffordAlgebraIndices
+            sage: idx = CliffordAlgebraIndices(7); idx
+            Subsets of {1,2,...,7}
+        """
+        return f"Subsets of {{1,2,...,{self._nbits}}}"
+
+    def __len__(self):
+        r"""
+        EXAMPLES::
+
+            sage: from sage.algebras.clifford_algebra import CliffordAlgebraIndices
+            sage: idx = CliffordAlgebraIndices(7);
+            sage: len(idx) == 2^7
+            True
+        """
+        return self._cardinality
+
+    def __iter__(self):
+        r"""
+        EXAMPLES::
+
+            sage: from sage.algebras.clifford_algebra import CliffordAlgebraIndices
+            sage: idx = CliffordAlgebraIndices(3);
+            sage: for i in idx: print(i)
+            0
+            1
+            01
+            001
+            11
+            101
+            011
+            111
+        """
+        import itertools
+        n = self._nbits
+        yield FrozenBitset()
+        k = 1
+        while k <= n:
+            for C in itertools.combinations(range(n), k):
+                yield FrozenBitset(C)
+            k += 1
+
+    def __contains__(self, other):
+        r"""
+        EXAMPLES::
+
+            sage: from sage.algebras.clifford_algebra import CliffordAlgebraIndices
+            sage: idx = CliffordAlgebraIndices(3);
+            sage: int(8) in idx # representing the set {4}
+            False
+            sage: FrozenBitset('1') in idx
+            True
+        """
+
+        if isinstance(other, int):
+            return (other < self._cardinality) and (other >= 0)
+        return self._maximal_set.issuperset(other)
 
 
 class CliffordAlgebra(CombinatorialFreeModule):
@@ -460,7 +331,7 @@ class CliffordAlgebra(CombinatorialFreeModule):
         names = tuple(names)
         if len(names) != Q.dim():
             if len(names) == 1:
-                names = tuple( '{}{}'.format(names[0], i) for i in range(Q.dim()) )
+                names = tuple('{}{}'.format(names[0], i) for i in range(Q.dim()))
             else:
                 raise ValueError("the number of variables does not match the number of generators")
         return super().__classcall__(cls, Q, names)
@@ -486,15 +357,14 @@ class CliffordAlgebra(CombinatorialFreeModule):
             sage: Q = QuadraticForm(ZZ, 9)
             sage: Cl = CliffordAlgebra(Q)
             sage: ba = Cl.basis().keys()
-            sage: all( tuple(sorted(S)) in ba
-            ....:      for S in Subsets(range(9)) )
+            sage: all(FrozenBitset(format(i,'b')[::-1]) in ba for i in range(2**9))
             True
         """
         self._quadratic_form = Q
         R = Q.base_ring()
         category = AlgebrasWithBasis(R.category()).Super().Filtered().FiniteDimensional().or_subcategory(category)
-        indices = SubsetsSorted(range(Q.dim()))
-        CombinatorialFreeModule.__init__(self, R, indices, category=category)
+        indices = CliffordAlgebraIndices(Q.dim())
+        CombinatorialFreeModule.__init__(self, R, indices, category=category, sorting_key=tuple)
         self._assign_names(names)
 
     def _repr_(self):
@@ -522,6 +392,8 @@ class CliffordAlgebra(CombinatorialFreeModule):
             sage: Q = QuadraticForm(ZZ, 3, [1,2,3,4,5,6])
             sage: Cl.<x,y,z> = CliffordAlgebra(Q)
             sage: Cl._repr_term((0,2))
+            'x*z'
+            sage: Cl._repr_term(FrozenBitset('101'))
             'x*z'
             sage: Cl._repr_term(())
             '1'
@@ -654,7 +526,7 @@ class CliffordAlgebra(CombinatorialFreeModule):
             sage: Cl(2/3)
             Traceback (most recent call last):
             ...
-            TypeError: do not know how to make x (= 2/3) an element of self ...
+            TypeError: do not know how to make x=2/3 an element of self
             sage: Clp(2/3)
             2/3
             sage: Clp(x)
@@ -674,15 +546,60 @@ class CliffordAlgebra(CombinatorialFreeModule):
         if x in self.free_module():
             R = self.base_ring()
             if x.parent().base_ring() is R:
-                return self.element_class(self, {(i,): c for i,c in x.items()})
-            return self.element_class(self, {(i,): R(c) for i,c in x.items() if R(c) != R.zero()})
+                return self.element_class(self, {FrozenBitset((i, )): c for i, c in x.items()})
+            # if the base ring is different, attempt to coerce it into R
+            return self.element_class(self, {FrozenBitset((i, )): R(c) for i, c in x.items() if R(c) != R.zero()})
 
         if (isinstance(x, CliffordAlgebraElement)
-            and self.has_coerce_map_from(x.parent())):
+                and self.has_coerce_map_from(x.parent())):
             R = self.base_ring()
-            return self.element_class(self, {i: R(c) for i,c in x if R(c) != R.zero()})
+            return self.element_class(self, {i: R(c) for i, c in x if R(c) != R.zero()})
 
-        return super()._element_constructor_(x)
+        if isinstance(x, tuple):
+            R = self.base_ring()
+            return self.element_class(self, {FrozenBitset((i,)): R.one() for i in x})
+
+        try:
+            return super(CliffordAlgebra, self)._element_constructor_(x)
+        except TypeError:
+            raise TypeError(f'do not know how to make {x=} an element of self')
+
+    def _basis_index_function(self, x):
+        """
+        Given an integer indexing the basis, return the correct
+        bitset.
+
+        For backwards compatibility, tuples are also accepted.
+
+        EXAMPLES::
+
+            sage: Q = QuadraticForm(ZZ, 3, [1,2,3,4,5,6])
+            sage: Cl = CliffordAlgebra(Q)
+            sage: Cl._basis_index_function(7)
+            111
+            sage: Cl._basis_index_function(5)
+            101
+            sage: Cl._basis_index_function(4)
+            001
+
+            sage: Cl._basis_index_function((0, 1, 2))
+            111
+            sage: Cl._basis_index_function((0, 2))
+            101
+            sage: Cl._basis_index_function((2,))
+            001
+        """
+        Q = self._quadratic_form
+        format_style = f"0{Q.dim()}b"
+
+        # if the input is a tuple, assume that it has
+        # entries in {0, ..., 2**Q.dim()-1}
+        if isinstance(x, tuple):
+            return FrozenBitset(x, capacity = Q.dim())
+
+        # slice the output of format in order to make conventions
+        # of format and FrozenBitset agree.
+        return FrozenBitset(format(x, format_style)[::-1], capacity=Q.dim())
 
     def gen(self, i):
         """
@@ -699,7 +616,7 @@ class CliffordAlgebra(CombinatorialFreeModule):
             sage: [Cl.gen(i) for i in range(3)]
             [x, y, z]
         """
-        return self._from_dict({(i,): self.base_ring().one()}, remove_zeros=False)
+        return self._from_dict({FrozenBitset((i, )): self.base_ring().one()}, remove_zeros=False)
 
     def algebra_generators(self):
         """
@@ -712,7 +629,7 @@ class CliffordAlgebra(CombinatorialFreeModule):
             sage: Cl.algebra_generators()
             Finite family {'x': x, 'y': y, 'z': z}
         """
-        d = {x: self.gen(i) for i,x in enumerate(self.variable_names())}
+        d = {x: self.gen(i) for i, x in enumerate(self.variable_names())}
         return Family(self.variable_names(), lambda x: d[x])
 
     def gens(self):
@@ -728,6 +645,7 @@ class CliffordAlgebra(CombinatorialFreeModule):
         """
         return tuple(self.algebra_generators())
 
+    @cached_method
     def ngens(self):
         """
         Return the number of algebra generators of ``self``.
@@ -744,16 +662,18 @@ class CliffordAlgebra(CombinatorialFreeModule):
     @cached_method
     def one_basis(self):
         """
-        Return the basis index of the element `1`.
+        Return the basis index of the element ``1``. The element ``1``
+        is indexed by the emptyset, which is represented by the
+        :class:`sage.data_structures.bitset.Bitset` ``0``.
 
         EXAMPLES::
 
             sage: Q = QuadraticForm(ZZ, 3, [1,2,3,4,5,6])
             sage: Cl.<x,y,z> = CliffordAlgebra(Q)
             sage: Cl.one_basis()
-            ()
+            0
         """
-        return ()
+        return FrozenBitset()
 
     def is_commutative(self):
         """
@@ -1025,9 +945,8 @@ class CliffordAlgebra(CombinatorialFreeModule):
             Cl = CliffordAlgebra(Q, names)
 
         n = self._quadratic_form.dim()
-        f = lambda x: self.prod(self._from_dict( {(j,): m[j,i] for j in range(n)},
-                                                 remove_zeros=True )
-                                for i in x)
+        f = lambda x: self.prod(self._from_dict({FrozenBitset((j, )): m[j, i] for j in range(n)},
+                                remove_zeros=True) for i in x)
         cat = AlgebrasWithBasis(self.category().base_ring()).Super().FiniteDimensional()
         return Cl.module_morphism(on_basis=f, codomain=self, category=cat)
 
@@ -1112,9 +1031,9 @@ class CliffordAlgebra(CombinatorialFreeModule):
             Cl = CliffordAlgebra(Q, names)
 
         n = Q.dim()
-        f = lambda x: Cl.prod(Cl._from_dict( {(j,): m[j,i] for j in range(n)},
-                                             remove_zeros=True )
-                              for i in x)
+
+        f = lambda x: Cl.prod(Cl._from_dict({FrozenBitset((j, )): m[j, i] for j in range(n)},
+                              remove_zeros=True) for i in x)
         cat = AlgebrasWithBasis(self.category().base_ring()).Super().FiniteDimensional()
         return self.module_morphism(on_basis=f, codomain=Cl, category=cat)
 
@@ -1186,16 +1105,16 @@ class CliffordAlgebra(CombinatorialFreeModule):
         K = list(B.keys())
         k = len(K)
         d = {}
-        for a,i in enumerate(K):
+        for a, i in enumerate(K):
             Bi = B[i]
-            for b,j in enumerate(K):
+            for b, j in enumerate(K):
                 Bj = B[j]
-                for m,c in (Bi*Bj - Bj*Bi):
+                for m, c in (Bi*Bj - Bj*Bi):
                     d[(a, K.index(m)+k*b)] = c
         m = Matrix(R, d, nrows=k, ncols=k*k, sparse=True)
-        from_vector = lambda x: self.sum_of_terms(((K[i], c) for i,c in x.items()),
+        from_vector = lambda x: self.sum_of_terms(((K[i], c) for i, c in x.items()),
                                                   distinct=True)
-        return tuple(map( from_vector, m.kernel().basis() ))
+        return tuple(map(from_vector, m.kernel().basis()))
 
     # Same as center except for superalgebras
     @cached_method
@@ -1265,22 +1184,23 @@ class CliffordAlgebra(CombinatorialFreeModule):
         K = list(B.keys())
         k = len(K)
         d = {}
-        for a,i in enumerate(K):
+        for a, i in enumerate(K):
             Bi = B[i]
-            for b,j in enumerate(K):
+            for b, j in enumerate(K):
                 Bj = B[j]
                 if len(i) % 2 and len(j) % 2:
                     supercommutator = Bi * Bj + Bj * Bi
                 else:
                     supercommutator = Bi * Bj - Bj * Bi
-                for m,c in supercommutator:
-                    d[(a, K.index(m)+k*b)] = c
-        m = Matrix(R, d, nrows=k, ncols=k*k, sparse=True)
-        from_vector = lambda x: self.sum_of_terms(((K[i], c) for i,c in x.items()),
+                for m, c in supercommutator:
+                    d[(a, K.index(m) + k * b)] = c
+        m = Matrix(R, d, nrows=k, ncols=k * k, sparse=True)
+        from_vector = lambda x: self.sum_of_terms(((K[i], c) for i, c in x.items()),
                                                   distinct=True)
-        return tuple(map( from_vector, m.kernel().basis() ))
+        return tuple(map(from_vector, m.kernel().basis()))
 
     Element = CliffordAlgebraElement
+
 
 class ExteriorAlgebra(CliffordAlgebra):
     r"""
@@ -1366,7 +1286,7 @@ class ExteriorAlgebra(CliffordAlgebra):
         names = tuple(names)
         if n is not None and len(names) != n:
             if len(names) == 1:
-                names = tuple( '{}{}'.format(names[0], i) for i in range(n) )
+                names = tuple('{}{}'.format(names[0], i) for i in range(n))
             else:
                 raise ValueError("the number of variables does not match the number of generators")
         return super().__classcall__(cls, R, names)
@@ -1436,7 +1356,7 @@ class ExteriorAlgebra(CliffordAlgebra):
         if len(m) == 0:
             return ascii_art('1')
         wedge = '/\\'
-        return ascii_art(*[self.variable_names()[i] for i in m], sep=wedge)
+        return ascii_art(*[repr(self.basis()[FrozenBitset((i, ))]) for i in m], sep=wedge)
 
     def _unicode_art_term(self, m):
         """
@@ -1580,9 +1500,8 @@ class ExteriorAlgebra(CliffordAlgebra):
         n = phi.nrows()
         R = self.base_ring()
         E = ExteriorAlgebra(R, names, n)
-        f = lambda x: E.prod(E._from_dict( {(j,): phi[j,i] for j in range(n)},
-                                           remove_zeros=True )
-                             for i in x)
+        f = lambda x: E.prod(E._from_dict({FrozenBitset((j, )): phi[j, i] for j in range(n)},
+                             remove_zeros=True) for i in x)
         cat = AlgebrasWithBasis(R).Super().FiniteDimensional()
         return self.module_morphism(on_basis=f, codomain=E, category=cat)
 
@@ -1699,15 +1618,19 @@ class ExteriorAlgebra(CliffordAlgebra):
             sage: E.coproduct_on_basis((0,))
             1 # x + x # 1
             sage: E.coproduct_on_basis((0,1))
-            1 # x*y + x # y + x*y # 1 - y # x
+            1 # x*y + x # y - y # x + x*y # 1
             sage: E.coproduct_on_basis((0,1,2))
-            1 # x*y*z + x # y*z + x*y # z + x*y*z # 1
-             - x*z # y - y # x*z + y*z # x + z # x*y
+            1 # x*y*z + x # y*z - y # x*z + x*y # z
+             + z # x*y - x*z # y + y*z # x + x*y*z # 1
+
         """
         from sage.combinat.combinat import unshuffle_iterator
         one = self.base_ring().one()
-        return self.tensor_square().sum_of_terms(unshuffle_iterator(a, one),
-                                                 distinct=True)
+        L = unshuffle_iterator(tuple(a), one)
+        return self.tensor_square()._from_dict(
+            {tuple(FrozenBitset(e) if e else FrozenBitset('0') for e in t): c for t, c in L if c},
+            coerce=False,
+            remove_zeros=False)
 
     def antipode_on_basis(self, m):
         r"""
@@ -1914,9 +1837,7 @@ class ExteriorAlgebra(CliffordAlgebra):
                     m = len(my)
                     if m != n:
                         continue
-                    matrix_list = [M[mx[i], my[j]]
-                                   for i in range(n)
-                                   for j in range(n)]
+                    matrix_list = [M[i, j] for i in mx for j in my]
                     MA = MatrixArgs(R, n, matrix_list)
                     del matrix_list
                     result += cx * cy * MA.matrix(False).determinant()
@@ -1926,247 +1847,34 @@ class ExteriorAlgebra(CliffordAlgebra):
                           codomain=self.base_ring(),
                           name="Bilinear Form")
 
-    class Element(CliffordAlgebraElement):
+    def _ideal_class_(self, n=0):
         """
-        An element of an exterior algebra.
+        Return the class that is used to implement ideals of ``self``.
+
+        EXAMPLES::
+
+            sage: E.<x,y,z> = ExteriorAlgebra(QQ)
+            sage: type(E.ideal(x*y - z))
+            <class 'sage.algebras.clifford_algebra.ExteriorAlgebraIdeal'>
+
+        TESTS::
+
+            sage: E.<x,y,z> = ExteriorAlgebra(QQ)
+            sage: E._ideal_class_()
+            <class 'sage.algebras.clifford_algebra.ExteriorAlgebraIdeal'>
         """
-        def _mul_(self, other):
-            """
-            Return ``self`` multiplied by ``other``.
+        return ExteriorAlgebraIdeal
 
-            INPUT:
+    Element = ExteriorAlgebraElement
 
-            - ``other`` -- element of the same exterior algebra as ``self``
-
-            EXAMPLES::
-
-                sage: E.<x,y,z> = ExteriorAlgebra(QQ)
-                sage: x*y
-                x*y
-                sage: y*x
-                -x*y
-                sage: z*y*x
-                -x*y*z
-                sage: (x*z)*y
-                -x*y*z
-                sage: (3*x + y)^2
-                0
-                sage: (x - 3*y + z/3)^2
-                0
-                sage: (x+y) * (y+z)
-                x*y + x*z + y*z
-            """
-            zero = self.parent().base_ring().zero()
-            d = {}
-
-            for ml,cl in self:
-                for mr,cr in other:
-                    # Create the next term
-                    t = list(mr)
-                    for i in reversed(ml):
-                        pos = 0
-                        for j in t:
-                            if i == j:
-                                pos = None
-                                break
-                            if i < j:
-                                break
-                            pos += 1
-                            cr = -cr
-                        if pos is None:
-                            t = None
-                            break
-                        t.insert(pos, i)
-
-                    if t is None: # The next term is 0, move along
-                        continue
-
-                    t = tuple(t)
-                    d[t] = d.get(t, zero) + cl * cr
-                    if d[t] == zero:
-                        del d[t]
-
-            return self.__class__(self.parent(), d)
-
-        def interior_product(self, x):
-            r"""
-            Return the interior product (also known as antiderivation) of
-            ``self`` with respect to ``x`` (that is, the element
-            `\iota_{x}(\text{self})` of the exterior algebra).
-
-            If `V` is an `R`-module, and if `\alpha` is a fixed element of
-            `V^*`, then the *interior product* with respect to `\alpha` is
-            an `R`-linear map
-            `i_{\alpha} \colon \Lambda(V) \to \Lambda(V)`, determined by
-            the following requirements:
-
-            - `i_{\alpha}(v) = \alpha(v)` for all `v \in V = \Lambda^1(V)`,
-            - it is a graded derivation of degree `-1`: all `x` and `y`
-              in `\Lambda(V)` satisfy
-
-            .. MATH::
-
-                i_{\alpha}(x \wedge y) = (i_{\alpha} x) \wedge y
-                + (-1)^{\deg x} x \wedge (i_{\alpha} y).
-
-            It can be shown that this map `i_{\alpha}` is graded of
-            degree `-1` (that is, sends `\Lambda^k(V)` into
-            `\Lambda^{k-1}(V)` for every `k`).
-
-            When `V` is a finite free `R`-module, the interior product can
-            also be defined by
-
-            .. MATH::
-
-                (i_{\alpha} \omega)(u_1, \ldots, u_k)
-                = \omega(\alpha, u_1, \ldots, u_k),
-
-            where `\omega \in \Lambda^k(V)` is thought of as an
-            alternating multilinear mapping from
-            `V^* \times \cdots \times V^*` to `R`.
-
-            Since Sage is only dealing with exterior powers of modules
-            of the form `R^d` for some nonnegative integer `d`, the
-            element `\alpha \in V^*` can be thought of as an element of
-            `V` (by identifying the standard basis of `V = R^d` with its
-            dual basis). This is how `\alpha` should be passed to this
-            method.
-
-            We then extend the interior product to all
-            `\alpha \in \Lambda (V^*)` by
-
-            .. MATH::
-
-                i_{\beta \wedge \gamma} = i_{\gamma} \circ i_{\beta}.
-
-            INPUT:
-
-            - ``x`` -- element of (or coercing into) `\Lambda^1(V)`
-              (for example, an element of `V`); this plays the role of
-              `\alpha` in the above definition
-
-            EXAMPLES::
-
-                sage: E.<x,y,z> = ExteriorAlgebra(QQ)
-                sage: x.interior_product(x)
-                1
-                sage: (x + x*y).interior_product(2*y)
-                -2*x
-                sage: (x*z + x*y*z).interior_product(2*y - x)
-                -2*x*z - y*z - z
-                sage: x.interior_product(E.one())
-                x
-                sage: E.one().interior_product(x)
-                0
-                sage: x.interior_product(E.zero())
-                0
-                sage: E.zero().interior_product(x)
-                0
-
-            REFERENCES:
-
-            - :wikipedia:`Exterior_algebra#Interior_product`
-            """
-            P = self.parent()
-            return P.sum([c * cx * P.interior_product_on_basis(m, mx)
-                          for m,c in self for mx,cx in x])
-
-        antiderivation = interior_product
-
-        def hodge_dual(self):
-            r"""
-            Return the Hodge dual of ``self``.
-
-            The Hodge dual of an element `\alpha` of the exterior algebra is
-            defined as `i_{\alpha} \sigma`, where `\sigma` is the volume
-            form
-            (:meth:`~sage.algebras.clifford_algebra.ExteriorAlgebra.volume_form`)
-            and `i_{\alpha}` denotes the antiderivation function with
-            respect to `\alpha` (see :meth:`interior_product` for the
-            definition of this).
-
-            .. NOTE::
-
-                The Hodge dual of the Hodge dual of a homogeneous element
-                `p` of `\Lambda(V)` equals `(-1)^{k(n-k)} p`, where
-                `n = \dim V` and `k = \deg(p) = |p|`.
-
-            EXAMPLES::
-
-                sage: E.<x,y,z> = ExteriorAlgebra(QQ)
-                sage: x.hodge_dual()
-                y*z
-                sage: (x*z).hodge_dual()
-                -y
-                sage: (x*y*z).hodge_dual()
-                1
-                sage: [a.hodge_dual().hodge_dual() for a in E.basis()]
-                [1, x, y, z, x*y, x*z, y*z, x*y*z]
-                sage: (x + x*y).hodge_dual()
-                y*z + z
-                sage: (x*z + x*y*z).hodge_dual()
-                -y + 1
-                sage: E = ExteriorAlgebra(QQ, 'wxyz')
-                sage: [a.hodge_dual().hodge_dual() for a in E.basis()]
-                [1, -w, -x, -y, -z, w*x, w*y, w*z, x*y, x*z, y*z,
-                 -w*x*y, -w*x*z, -w*y*z, -x*y*z, w*x*y*z]
-            """
-            volume_form = self.parent().volume_form()
-            return volume_form.interior_product(self)
-
-        def constant_coefficient(self):
-            """
-            Return the constant coefficient of ``self``.
-
-            .. TODO::
-
-                Define a similar method for general Clifford algebras once
-                the morphism to exterior algebras is implemented.
-
-            EXAMPLES::
-
-                sage: E.<x,y,z> = ExteriorAlgebra(QQ)
-                sage: elt = 5*x + y + x*z + 10
-                sage: elt.constant_coefficient()
-                10
-                sage: x.constant_coefficient()
-                0
-            """
-            return self._monomial_coefficients.get(self.parent().one_basis(),
-                                                   self.base_ring().zero())
-
-        def scalar(self, other):
-            r"""
-            Return the standard scalar product of ``self`` with ``other``.
-
-            The standard scalar product of `x, y \in \Lambda(V)` is
-            defined by `\langle x, y \rangle = \langle x^t y \rangle`, where
-            `\langle a \rangle` denotes the degree-0 term of `a`, and where
-            `x^t` denotes the transpose
-            (:meth:`~sage.algebras.clifford_algebra.CliffordAlgebraElement.transpose`)
-            of `x`.
-
-            .. TODO::
-
-                Define a similar method for general Clifford algebras once
-                the morphism to exterior algebras is implemented.
-
-            EXAMPLES::
-
-                sage: E.<x,y,z> = ExteriorAlgebra(QQ)
-                sage: elt = 5*x + y + x*z
-                sage: elt.scalar(z + 2*x)
-                0
-                sage: elt.transpose() * (z + 2*x)
-                -2*x*y + 5*x*z + y*z
-            """
-            return (self.transpose() * other).constant_coefficient()
 
 #####################################################################
-## Differentials
+# Differentials
+
 
 class ExteriorAlgebraDifferential(ModuleMorphismByLinearity,
-        UniqueRepresentation, metaclass=InheritComparisonClasscallMetaclass):
+                                  UniqueRepresentation,
+                                  metaclass=InheritComparisonClasscallMetaclass):
     r"""
     Internal class to store the data of a boundary or coboundary of
     an exterior algebra `\Lambda(L)` defined by the structure
@@ -2194,7 +1902,11 @@ class ExteriorAlgebraDifferential(ModuleMorphismByLinearity,
             sage: par1 = ExteriorAlgebraDifferential(E, {(0,1): z, (1,2): x, (2,0): y})
             sage: par2 = ExteriorAlgebraDifferential(E, {(0,1): z, (1,2): x, (0,2): -y})
             sage: par3 = ExteriorAlgebraDifferential(E, {(1,0): {2:-1}, (1,2): {0:1}, (2,0):{1:1}})
-            sage: par1 is par2 and par2 is par3
+            sage: par1 is par2
+            True
+            sage: par1 is par3
+            True
+            sage: par2 is par3
             True
 
             sage: par4 = ExteriorAlgebraDifferential(E, {})
@@ -2206,12 +1918,12 @@ class ExteriorAlgebraDifferential(ModuleMorphismByLinearity,
         d = {}
 
         for k, v in dict(s_coeff).items():
-            if not v: # Strip terms with 0
+            if not v:  # Strip terms with 0
                 continue
 
             if isinstance(v, dict):
                 R = E.base_ring()
-                v = E._from_dict({(i,): R(c) for i, c in v.items()})
+                v = E._from_dict({FrozenBitset((i, )): R(c) for i, c in v.items()})
             else:
                 # Make sure v is in ``E``
                 v = E(v)
@@ -2285,6 +1997,7 @@ class ExteriorAlgebraDifferential(ModuleMorphismByLinearity,
              3: Vector space of dimension 1 over Rational Field}
         """
         return self.chain_complex().homology(deg, **kwds)
+
 
 class ExteriorAlgebraBoundary(ExteriorAlgebraDifferential):
     r"""
@@ -2418,7 +2131,7 @@ class ExteriorAlgebraBoundary(ExteriorAlgebraDifferential):
 
             sage: E.<x,y,z> = ExteriorAlgebra(QQ)
             sage: par = E.boundary({(0,1): z, (1,2): x, (2,0): y})
-            sage: par._on_basis(())
+            sage: par._on_basis(FrozenBitset())
             0
             sage: par._on_basis((0,))
             0
@@ -2429,12 +2142,22 @@ class ExteriorAlgebraBoundary(ExteriorAlgebraDifferential):
             sage: par._on_basis((0,1,2))
             0
         """
+        from itertools import combinations
         E = self.domain()
         sc = self._s_coeff
         keys = sc.keys()
-        return E.sum((-1)**b * sc[(i,j)]
-                      * E.monomial(m[:a] + m[a+1:a+b+1] + m[a+b+2:])
-                     for a,i in enumerate(m) for b,j in enumerate(m[a+1:]) if (i,j) in keys)
+
+        s = E.zero()
+
+        for b, (i, j) in enumerate(combinations(m, 2)):
+            t = Bitset(m)
+            if (i, j) not in keys:
+                continue
+            t.discard(i)
+            t.discard(j)
+            s += (-1)**b * sc[(i, j)] * E.monomial(FrozenBitset(t))
+
+        return s
 
     @cached_method
     def chain_complex(self, R=None):
@@ -2505,17 +2228,21 @@ class ExteriorAlgebraBoundary(ExteriorAlgebraDifferential):
         # Construct the transition matrices
         data = {}
         prev_basis = basis_by_deg[0]
-        for deg in range(1,n+1):
+        for deg in range(1, n+1):
             # Make sure within each basis we're sorted by lex
             basis = sorted(basis_by_deg[deg])
             mat = []
             for b in basis:
                 ret = self._on_basis(b)
-                mat.append([ret[p] for p in prev_basis])
+                try:
+                    mat.append([ret.coefficient(p) for p in prev_basis])
+                except AttributeError:  # if ret is in E.base_ring()
+                    mat.append([E.base_ring()(ret)])
             data[deg] = Matrix(mat).transpose().change_ring(R)
             prev_basis = basis
 
         return ChainComplex(data, degree=-1)
+
 
 class ExteriorAlgebraCoboundary(ExteriorAlgebraDifferential):
     r"""
@@ -2563,7 +2290,7 @@ class ExteriorAlgebraCoboundary(ExteriorAlgebraDifferential):
     cross product `\times` of `\RR^3`::
 
         sage: E.<x,y,z> = ExteriorAlgebra(QQ)
-        sage: d = E.coboundary({(0,1): z, (1,2): x, (2,0): y})
+        sage: d = E.coboundary({(0,1): z, (1,2): x, (0, 2): -y})
         sage: d(x)
         y*z
         sage: d(y)
@@ -2650,8 +2377,13 @@ class ExteriorAlgebraCoboundary(ExteriorAlgebraDifferential):
         zero = E.zero()
         B = E.basis()
         for k, v in dict(s_coeff).items():
-            k = B[k]
-            for m,c in v:
+
+            if k[0] > k[1]:  # k will have length 2
+                k = sorted(k)
+                v = -v
+
+            k = B[FrozenBitset(k)]
+            for m, c in v:
                 self._cos_coeff[m] = self._cos_coeff.get(m, zero) + c * k
         ExteriorAlgebraDifferential.__init__(self, E, s_coeff)
 
@@ -2676,7 +2408,7 @@ class ExteriorAlgebraCoboundary(ExteriorAlgebraDifferential):
         cross product::
 
             sage: E.<x,y,z> = ExteriorAlgebra(QQ)
-            sage: d = E.coboundary({(0,1): z, (1,2): x, (2,0): y})
+            sage: d = E.coboundary({(0,1): z, (1,2): x, (0,2): -y})
             sage: d._on_basis(())
             0
             sage: d._on_basis((0,))
@@ -2695,8 +2427,28 @@ class ExteriorAlgebraCoboundary(ExteriorAlgebraDifferential):
         E = self.domain()
         cc = self._cos_coeff
         keys = cc.keys()
-        return E.sum((-1)**a * E.monomial(m[:a]) * cc[(i,)] * E.monomial(m[a+1:])
-                     for a,i in enumerate(m) if (i,) in keys)
+
+        tot = E.zero()
+
+        for sgn, i in enumerate(m):
+            k = FrozenBitset((i,))
+            if k in keys:
+                below = tuple(j for j in m if j < i)
+                above = tuple(j for j in m if j > i)
+
+                # a hack to deal with empty bitsets
+                if len(below) == 0:
+                    below = E.one()
+                else:
+                    below = E.monomial(FrozenBitset(below))
+                if len(above) == 0:
+                    above = E.one()
+                else:
+                    above = E.monomial(FrozenBitset(above))
+
+                tot = tot + (-1)**sgn * below * cc[k] * above
+
+        return tot
 
     @cached_method
     def chain_complex(self, R=None):
@@ -2773,8 +2525,235 @@ class ExteriorAlgebraCoboundary(ExteriorAlgebraDifferential):
             mat = []
             for b in basis:
                 ret = self._on_basis(b)
-                mat.append([ret[p] for p in next_basis])
+                try:
+                    mat.append([ret.coefficient(p) for p in next_basis])
+                except AttributeError:  # if ret is in E.base_ring()
+                    mat.append([E.base_ring()(ret)]*len(next_basis))
             data[deg] = Matrix(mat).transpose().change_ring(R)
             basis = next_basis
 
         return ChainComplex(data, degree=1)
+
+@richcmp_method
+class ExteriorAlgebraIdeal(Ideal_nc):
+    """
+    An ideal of the exterior algebra.
+
+    EXAMPLES::
+
+        sage: E.<x,y,z> = ExteriorAlgebra(QQ)
+        sage: I = E.ideal(x*y); I
+        Twosided Ideal (x*y) of The exterior algebra of rank 3 over Rational Field
+
+    We can also use it to build a quotient::
+
+        sage: Q = E.quotient(I); Q
+        Quotient of The exterior algebra of rank 3 over Rational Field by the ideal (x*y)
+        sage: Q.inject_variables()
+        Defining xbar, ybar, zbar
+        sage: xbar * ybar
+        0
+    """
+    def __init__(self, ring, gens, coerce=True, side="twosided"):
+        """
+        Initialize ``self``.
+        """
+        self._groebner_strategy = None
+        self._homogeneous = all(x.is_super_homogeneous() for x in gens)
+        if self._homogeneous:
+            side = "twosided"
+        Ideal_nc.__init__(self, ring, gens, coerce, side)
+
+    def reduce(self, f):
+        """
+        Reduce ``f`` modulo ``self``.
+
+        EXAMPLES::
+
+            sage: E.<x,y,z> = ExteriorAlgebra(QQ)
+            sage: I = E.ideal(x*y);
+            sage: I.reduce(x*y + x*y*z + z)
+            z
+            sage: I.reduce(x*y + x + y)
+            x + y
+            sage: I.reduce(x*y + x*y*z)
+            0
+        """
+        if self._groebner_strategy is None:
+            self.groebner_basis()
+        R = self.ring()
+        return self._groebner_strategy.reduce(R(f))
+
+    def _contains_(self, f):
+        r"""
+        Return ``True`` if ``f`` is in this ideal,
+        ``False`` otherwise.
+
+        EXAMPLES::
+
+            sage: E.<x,y,z> = ExteriorAlgebra(QQ)
+            sage: I = E.ideal([x, x*y*z + 2*x*z + 3*y*z])
+            sage: I.groebner_basis()
+            (x, y*z)
+            sage: x in I
+            True
+            sage: y*z in I
+            True
+            sage: x + 3*y*z in I
+            True
+            sage: x + 3*y in I
+            False
+
+        .. NOTE::
+
+            Requires computation of a Groebner basis, which can be a very
+            expensive operation.
+        """
+        return not self.reduce(f)
+
+    def __richcmp__(self, other, op):
+        """
+        Compare ``self`` and ``other``.
+
+        EXAMPLES::
+
+            sage: E.<x,y,z> = ExteriorAlgebra(QQ)
+            sage: I = E.ideal([x, x*y*z + 2*x*z + 3*y*z])
+            sage: I == I
+            True
+            sage: Ip = E.ideal([x, y*z])
+            sage: Ip == I
+            True
+            sage: Ip <= I
+            True
+            sage: Ip < I
+            False
+            sage: Ip >= I
+            True
+            sage: Ip > I
+            False
+            sage: E.ideal([x]) < I
+            True
+            sage: E.ideal([x]) <= I
+            True
+            sage: I <= E.ideal([x])
+            False
+        """
+        if not isinstance(other, ExteriorAlgebraIdeal):
+            if op == op_EQ:
+                return False
+            if op == op_NE:
+                return True
+            return NotImplemented
+
+        if self is other:
+            return rich_to_bool(op, 0)
+
+        # comparison for >= and > : swap the arguments
+        if op == op_GE:
+            return other.__richcmp__(self, op_LE)
+        elif op == op_GT:
+            return other.__richcmp__(self, op_LT)
+
+        if self.side() == other.side():
+            s_gens = set(g for g in self.gens() if g)
+            o_gens = set(g for g in other.gens() if g)
+            if set(s_gens) == set(o_gens):
+                return rich_to_bool(op, 0)
+
+            contained = all(f in other for f in s_gens)
+            if op == op_LE:
+                return contained
+
+            contains = all(f in self for f in o_gens)
+            if op == op_EQ:
+                return contained and contains
+            if op == op_NE:
+                return not (contained and contains)
+             # remaining case <
+            return contained and not contains
+
+
+        if op in [op_LT, op_LE] and other.side() == "twosided":
+            if not all(f in other for f in set(self.gens()) if f):
+                return False
+            if op == op_LE:
+                return True
+            return self.__richcmp__(other, op_NE)
+
+        # Otherwise we will fallback to linear algebra containment
+        # TODO: Implement this
+        return NotImplemented
+
+    def groebner_basis(self, term_order="neglex"):
+        r"""
+        Return the reduced Gröbner basis of ``self``.
+
+        INPUT:
+
+        - ``term_order`` -- the term order used to compute the Gröbner basis;
+          must be one of the following:
+
+          * ``"neglex"`` -- (default) negative (read right-to-left) lex order
+          * ``"degrevlex"`` -- degree reverse lex order
+          * ``"deglex"`` -- degree lex order
+
+        EXAMPLES:
+
+        We compute an example::
+
+            sage: E.<a,b,c,d,e> = ExteriorAlgebra(QQ)
+            sage: rels = [c*d*e - b*d*e + b*c*e - b*c*d,
+            ....:         c*d*e - a*d*e + a*c*e - a*c*d,
+            ....:         b*d*e - a*d*e + a*b*e - a*b*d,
+            ....:         b*c*e - a*c*e + a*b*e - a*b*c,
+            ....:         b*c*d - a*c*d + a*b*d - a*b*c]
+            sage: I = E.ideal(rels)
+            sage: I.groebner_basis()
+            (-a*c*d + a*c*e - a*d*e + c*d*e,
+             -a*b*c + a*b*d - a*c*d + b*c*d,
+             -a*b*d + a*b*e - a*d*e + b*d*e,
+             -a*b*c + a*b*e - a*c*e + b*c*e)
+
+        With different term orders::
+
+            sage: I.groebner_basis("degrevlex")
+            (b*c*d - b*c*e + b*d*e - c*d*e,
+             a*c*d - a*c*e + a*d*e - c*d*e,
+             a*b*d - a*b*e + a*d*e - b*d*e,
+             a*b*c - a*b*e + a*c*e - b*c*e)
+
+            sage: I.groebner_basis("deglex")
+            (-a*c*d + a*c*e - a*d*e + c*d*e,
+             -a*b*c + a*b*d - a*c*d + b*c*d,
+             -a*b*d + a*b*e - a*d*e + b*d*e,
+             -a*b*c + a*b*e - a*c*e + b*c*e)
+
+        The example above was computed first using M2, which agrees with
+        the ``"degrevlex"`` ordering::
+
+            E = QQ[a..e, SkewCommutative => true]
+            I = ideal( c*d*e - b*d*e + b*c*e - b*c*d,
+                        c*d*e - a*d*e + a*c*e - a*c*d,
+                        b*d*e - a*d*e + a*b*e - a*b*d,
+                        b*c*e - a*c*e + a*b*e - a*b*c,
+                        b*c*d - a*c*d + a*b*d - a*b*c)
+            groebnerBasis(I)
+
+            returns:
+            o3 = | bcd-bce+bde-cde acd-ace+ade-cde abd-abe+ade-bde abc-abe+ace-bce |
+        """
+        if term_order == "neglex":
+            from sage.algebras.exterior_algebra_groebner import GroebnerStrategyNegLex as strategy
+        elif term_order == "degrevlex":
+            from sage.algebras.exterior_algebra_groebner import GroebnerStrategyDegRevLex as strategy
+        elif term_order == "deglex":
+            from sage.algebras.exterior_algebra_groebner import GroebnerStrategyDegLex as strategy
+        else:
+            raise ValueError("invalid term order")
+        if strategy == type(self._groebner_strategy):
+            return self._groebner_strategy.groebner_basis
+        self._groebner_strategy = strategy(self)
+        self._groebner_strategy.compute_groebner()
+        return self._groebner_strategy.groebner_basis
+

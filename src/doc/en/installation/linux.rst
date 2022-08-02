@@ -6,9 +6,9 @@ Linux package managers
 SageMath is available from various distributions and can be installed
 by package managers.
 
-See <../reference/spkg/index.html>`_ for the names of packages that
-provide a standard installation of SageMath, including documentation
-and Jupyter.
+See `the _sagemath dummy package <../reference/spkg/_sagemath.html>`_
+for the names of packages that provide a standard installation of
+SageMath, including documentation and Jupyter.
 
 See also `repology.org: sagemath
 <https://repology.org/project/sagemath/versions>`_ for information

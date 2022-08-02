@@ -4,7 +4,7 @@ _sagemath: Downstream package of Sage in distributions
 SageMath is available from various distributions and can be installed
 by package managers.
 
-This dummy script package records the names of the packages that
+This dummy package records the names of the system packages that
 should be installed to provide a standard installation of SageMath,
 including documentation and Jupyter.
 

@@ -425,7 +425,6 @@ cdef class GabowEdgeConnectivity:
         self.num_start_f_trees = 1
         
         # Initialize T_k to be a DFS spanning forest of G \ T
-        self.G_minus_T()
         self.compute_dfs_tree()
 
         # Set inactive the f-trees of the root vertex
@@ -433,26 +432,6 @@ cdef class GabowEdgeConnectivity:
 
         self.L_roots[tree] = self.UNUSED
         self.tree_flag[tree] = False
-
-    cdef void G_minus_T(self):
-        """
-        Delete all edges in the proven k-intersection (T) from the graph
-        We then consider G as the subgraph of G induced by the unused edges
-
-        EXAMPLES::
-
-            sage: from sage.graphs.edge_connectivity import GabowEdgeConnectivity
-            sage: D = digraphs.Complete(5)
-            sage: GabowEdgeConnectivity(D).edge_connectivity()
-            4
-        """
-        for e_id in range(self.m):
-                self.T[e_id] = False
-        for i in range(self.max_ec):
-            edge_list = self.tree_edges[i]
-            # All True edges in T correspond to the proven complete (k−1)-intersection of G
-            for e_id in edge_list:
-                self.T[e_id] = True
 
     cdef void compute_dfs_tree(self):
         """
@@ -948,10 +927,14 @@ cdef class GabowEdgeConnectivity:
 
         # Arrange the edges of each tree
         for j in range(tree + 1):
+            for e in range(len(self.tree_edges[j])):
+                e_id = self.tree_edges[j][e]
+                self.T[e_id] = False
             self.tree_edges[j].clear()
         for j in range(self.m):
             if self.my_edge_state[j] != self.UNUSED:
                 self.tree_edges[self.my_edge_state[j]].push_back(j)
+                self.T[j] = False
 
         for j in range(tree + 1):
             if not j or j == tree or self.tree_flag[j]:

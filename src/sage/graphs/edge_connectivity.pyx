@@ -934,7 +934,8 @@ cdef class GabowEdgeConnectivity:
         for j in range(self.m):
             if self.my_edge_state[j] != self.UNUSED:
                 self.tree_edges[self.my_edge_state[j]].push_back(j)
-                self.T[j] = False
+                # All True edges in T correspond to the proven complete (k−1)-intersection of G
+                self.T[j] = True
 
         for j in range(tree + 1):
             if not j or j == tree or self.tree_flag[j]:

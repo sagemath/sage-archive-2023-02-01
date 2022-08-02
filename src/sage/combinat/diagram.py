@@ -31,11 +31,10 @@ Diagrams can be created by:
 
 Passing a list of all cells::
 
-    sage: from sage.combinat.diagram import Diagram, Diagrams
+    sage: from sage.combinat.diagram import Diagram
     sage: cells = [(0,0), (0,1), (1,0), (1,1), (4,4), (4,5), (4,6), (5,4), (7, 6)]
     sage: D = Diagram(cells); D
     [(0,0), (0,1), (1,0), (1,1), (4,4), (4,5), (4,6), (5,4), (7, 6)]
-    sage: pp(D)
     
     
 AUTHORS:
@@ -53,14 +52,23 @@ AUTHORS:
 #                  https://www.gnu.org/licenses/
 # ****************************************************************************
 
-class Diagram(CombinatorialElement):
-    def __init__(self, parent, cells):
+from sage.categories.sets_cat import Sets
+from sage.structure.unique_representation import UniqueRepresentation
+from sage.structure.list_clone import ClonableArray
+from sage.structure.parent import Parent
+
+class Diagram(ClonableArray):
+    def __init__(self, cells):
         self._cells = cells
 
 class Diagrams(UniqueRepresentation, Parent):
-    def __init__(self):
-        pass
 
-class Diagrams_all(Diagrams):
     def __init__(self):
-        pass
+
+        Parent.__init__(self)
+
+    def _element_constructor_(self, cells)
+
+        return self.element_class(self, cells)
+
+    Element = Diagram

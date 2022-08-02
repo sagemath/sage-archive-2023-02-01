@@ -17,6 +17,7 @@ cdef class GroebnerStrategy:
     cdef int side
     cdef MonoidElement ideal
     cdef bint homogeneous
+    cdef Integer rank
     cdef public tuple groebner_basis
 
     cdef inline bint build_S_poly(self, CliffordAlgebraElement f, CliffordAlgebraElement g)
@@ -39,8 +40,8 @@ cdef class GroebnerStrategyNegLex(GroebnerStrategy):
     pass
 
 cdef class GroebnerStrategyDegRevLex(GroebnerStrategy):
-    cdef Integer rank
+    pass
 
 cdef class GroebnerStrategyDegLex(GroebnerStrategy):
-    cdef Integer rank
+    pass
 

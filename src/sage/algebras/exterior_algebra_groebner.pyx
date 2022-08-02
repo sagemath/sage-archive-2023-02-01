@@ -6,11 +6,11 @@ of exterior algebra.
 
 AUTHORS:
 
-- Trevor Karn, Travis Scrimshaw (July 2022): Initial implementation
+- Trevor K. Karn, Travis Scrimshaw (July 2022): Initial implementation
 """
 
 #*****************************************************************************
-#       Copyright (C) 2022 Trevor Karn <karnx018 at umn.edu>
+#       Copyright (C) 2022 Trevor K. Karn <karnx018 at umn.edu>
 #                 (C) 2022 Travis Scrimshaw <tcscrims at gmail.com>
 #
 # This program is free software: you can redistribute it and/or modify
@@ -53,7 +53,8 @@ cdef class GroebnerStrategy:
         self.ideal = I
         self.groebner_basis = (None,)
         self.E = <Parent> I.ring()
-        self.homogeneous = all(x.is_super_homogeneous() for x in I.gens())
+        self.homogeneous = I._homogeneous
+        self.rank = Integer(self.E.ngens())
         if self.homogeneous or I.side() == "left":
             self.side = 0
         elif I.side() == "right":
@@ -120,25 +121,24 @@ cdef class GroebnerStrategy:
         Perform the preprocessing step.
         """
         cdef CliffordAlgebraElement f, g, f0, f1
+        cdef set additions
 
         cdef set L = set()
-        if self.side == 0:
+        if self.side == 1:
             for f0, f1 in P:
                 if self.build_S_poly(f0, f1):
-                    L.add(self.partial_S_poly_left(f0, f1))
-                    L.add(self.partial_S_poly_left(f1, f0))
-        elif self.side == 1:
-            for f0, f1 in P:
-                if self.build_S_poly(f0, f1):
-                    L.add(self.partial_S_poly_right(f0, f1) for f0,f1 in P)
-                    L.add(self.partial_S_poly_right(f1, f0) for f0,f1 in P)  
-        if self.side == 2:
-            for f0, f1 in P:
-                if self.build_S_poly(f0, f1):
-                    L.add(self.partial_S_poly_left(f0, f1))
-                    L.add(self.partial_S_poly_left(f1, f0))
                     L.add(self.partial_S_poly_right(f0, f1))
                     L.add(self.partial_S_poly_right(f1, f0))
+        else: # We compute a left Gröbner basis for two-sided ideals
+            for f0, f1 in P:
+                if self.build_S_poly(f0, f1):
+                    L.add(self.partial_S_poly_left(f0, f1))
+                    L.add(self.partial_S_poly_left(f1, f0))
+
+        if self.side == 2 and not self.homogeneous:
+            # Add in all S-poly times positive degree monomials
+            additions = set(f * t for t in self.E.basis() for f in L)
+            L.update(f for f in additions if f)
 
         cdef set done = set(self.leading_supp(f) for f in L)
         cdef set monL = set()
@@ -168,7 +168,7 @@ cdef class GroebnerStrategy:
         cdef set L = self.preprocessing(P, G)
         cdef Py_ssize_t i
         from sage.matrix.constructor import matrix
-        r = 2 ** self.E.ngens() - 1 # r for "rank" or "reverso"
+        cdef Integer r = Integer(2) ** self.rank - Integer(1) # r for "rank" or "reverso"
         M = matrix({(i, r - self.bitset_to_int(<FrozenBitset> m)): c
                     for i,f in enumerate(L)
                     for m,c in (<CliffordAlgebraElement> f)._monomial_coefficients.items()},
@@ -186,17 +186,28 @@ cdef class GroebnerStrategy:
         EXAMPLES::
 
             sage: E.<y, x> = ExteriorAlgebra(QQ)
-            sage: I = E.ideal([x*y - x, x*y -1])
+            sage: I = E.ideal([x*y - x, x*y - 1], side="left")
             sage: I.groebner_basis()
             (1,)
-            sage: J = E.ideal([x*y - x, 2*x*y - 2])
+            sage: J = E.ideal([x*y - x, 2*x*y - 2], side="left")
             sage: J.groebner_basis()
             (1,)
+
+            sage: E.<a,b,c,d> = ExteriorAlgebra(QQ)
+            sage: I = E.ideal([a+b*c])
+            sage: I.groebner_basis()
+            (b*c + a, a*c, a*b, a*d)
         """
         cdef FrozenBitset p0, p1
         cdef long deg
         cdef Py_ssize_t i, j, k
+        cdef set additions
         cdef list G = [f for f in self.ideal.gens() if f]  # Remove 0s
+
+        if self.side == 2 and not self.homogeneous:
+            # Add in all S-poly times positive degree monomials
+            additions = set(f * t for t in self.E.basis() for f in G)
+            G.extend(f for f in additions if f)
 
         cdef Py_ssize_t n = len(G)
         cdef dict P = {}
@@ -401,13 +412,6 @@ cdef class GroebnerStrategyDegRevLex(GroebnerStrategy):
     """
     Gröbner basis strategy implementing degree revlex ordering.
     """
-    def __init__(self, I):
-        """
-        Initialize ``self``.
-        """
-        GroebnerStrategy.__init__(self, I)
-        self.rank = Integer(self.E.ngens())
-
     cdef inline Integer bitset_to_int(self, FrozenBitset X):
         """
         Convert ``X`` to an :class:`Integer`.
@@ -451,13 +455,6 @@ cdef class GroebnerStrategyDegLex(GroebnerStrategy):
     """
     Gröbner basis strategy implementing degree lex ordering.
     """
-    def __init__(self, I):
-        """
-        Initialize ``self``.
-        """
-        GroebnerStrategy.__init__(self, I)
-        self.rank = Integer(self.E.ngens())
-
     cdef inline Integer bitset_to_int(self, FrozenBitset X):
         """
         Convert ``X`` to an :class:`Integer`.

@@ -80,15 +80,13 @@ class CliffordAlgebraIndices(Parent):
             7
             sage: idx._cardinality
             128
-            sage: idx._maximal_set
-            1111111
             sage: i = idx.an_element(); i
             0
             sage: type(i)
             <class 'sage.data_structures.bitset.FrozenBitset'>
         """
         self._nbits = Qdim
-        self._cardinality = 2**Qdim
+        self._cardinality = 2 ** Qdim
         # the if statement here is in case Qdim is 0.
         category = FiniteEnumeratedSets().Facade()
         Parent.__init__(self, category=category, facade=True)
@@ -2599,9 +2597,24 @@ class ExteriorAlgebraIdeal(Ideal_nc):
     def __init__(self, ring, gens, coerce=True, side="twosided"):
         """
         Initialize ``self``.
+
+        EXAMPLES:
+
+        We skip the category test because the ideals are not a proper
+        element class of the monoid of all ideals::
+
+            sage: E.<y, x> = ExteriorAlgebra(QQ)
+            sage: I = E.ideal([x*y - x, x*y - 1])
+            sage: TestSuite(I).run(skip="_test_category")
+
+            sage: I = E.ideal([x*y - 3, 0, 2*3])
+            sage: TestSuite(I).run(skip="_test_category")
+
+            sage: I = E.ideal([])
+            sage: TestSuite(I).run(skip="_test_category")
         """
         self._groebner_strategy = None
-        self._homogeneous = all(x.is_super_homogeneous() for x in gens)
+        self._homogeneous = all(x.is_super_homogeneous() for x in gens if x)
         if self._homogeneous:
             side = "twosided"
         Ideal_nc.__init__(self, ring, gens, coerce, side)
@@ -2619,6 +2632,11 @@ class ExteriorAlgebraIdeal(Ideal_nc):
             sage: I.reduce(x*y + x + y)
             x + y
             sage: I.reduce(x*y + x*y*z)
+            0
+
+            sage: E.<a,b,c,d> = ExteriorAlgebra(QQ)
+            sage: I = E.ideal([a+b*c])
+            sage: I.reduce(I.gen(0) * d)
             0
         """
         if self._groebner_strategy is None:
@@ -2680,6 +2698,31 @@ class ExteriorAlgebraIdeal(Ideal_nc):
             True
             sage: I <= E.ideal([x])
             False
+
+            sage: E.<a,b,c,d> = ExteriorAlgebra(QQ)
+            sage: p = a + b*c
+            sage: IT = E.ideal([p], side="twosided")
+            sage: IR = E.ideal([p], side="right")
+            sage: IL = E.ideal([p], side="left")
+            sage: IR == IL
+            False
+            sage: IR <= IL
+            False
+            sage: IR >= IL
+            False
+            sage: IL.reduce(p * d)
+            2*a*d
+            sage: IR.reduce(d * p)
+            -2*a*d
+
+            sage: IR <= IT
+            True
+            sage: IL <= IT
+            True
+            sage: IT <= IL
+            False
+            sage: IT <= IR
+            False
         """
         if not isinstance(other, ExteriorAlgebraIdeal):
             if op == op_EQ:
@@ -2697,35 +2740,41 @@ class ExteriorAlgebraIdeal(Ideal_nc):
         elif op == op_GT:
             return other.__richcmp__(self, op_LT)
 
-        if self.side() == other.side():
-            s_gens = set(g for g in self.gens() if g)
-            o_gens = set(g for g in other.gens() if g)
-            if set(s_gens) == set(o_gens):
-                return rich_to_bool(op, 0)
+        s_gens = set(g for g in self.gens() if g)
+        o_gens = set(g for g in other.gens() if g)
 
-            contained = all(f in other for f in s_gens)
-            if op == op_LE:
-                return contained
+        if self.side() != other.side():
+            if other.side() == "right":
+                X = set(t * f for t in self.ring().basis() for f in s_gens)
+                s_gens.update(X)
+            elif other.side() == "left":
+                X = set(f * t for t in self.ring().basis() for f in s_gens)
+                s_gens.update(X)
 
-            contains = all(f in self for f in o_gens)
-            if op == op_EQ:
-                return contained and contains
-            if op == op_NE:
-                return not (contained and contains)
-             # remaining case <
-            return contained and not contains
+        if set(s_gens) == set(o_gens):
+            return rich_to_bool(op, 0)
 
+        contained = all(f in other for f in s_gens)
+        if op == op_LE:
+            return contained
+        if op == op_NE and not contained:
+            return True
 
-        if op in [op_LT, op_LE] and other.side() == "twosided":
-            if not all(f in other for f in set(self.gens()) if f):
-                return False
-            if op == op_LE:
-                return True
-            return self.__richcmp__(other, op_NE)
+        if self.side() != other.side():
+            if self.side() == "right":
+                X = set(t * f for t in self.ring().basis() for f in o_gens)
+                s_gens.update(X)
+            elif self.side() == "left":
+                X = set(f * t for t in self.ring().basis() for f in o_gens)
+                s_gens.update(X)
 
-        # Otherwise we will fallback to linear algebra containment
-        # TODO: Implement this
-        return NotImplemented
+        contains = all(f in self for f in o_gens)
+        if op == op_EQ:
+            return contained and contains
+        if op == op_NE:
+            return not (contained and contains)
+         # remaining case <
+        return contained and not contains
 
     def groebner_basis(self, term_order="neglex"):
         r"""

@@ -8,7 +8,7 @@ AUTHORS:
 """
 
 #*****************************************************************************
-#       Copyright (C) 2022 Trevor Karn <karnx018 at umn.edu>
+#       Copyright (C) 2022 Trevor K. Karn <karnx018 at umn.edu>
 #                 (C) 2022 Travis Scrimshaw <tcscrims at gmail.com>
 #
 # This program is free software: you can redistribute it and/or modify

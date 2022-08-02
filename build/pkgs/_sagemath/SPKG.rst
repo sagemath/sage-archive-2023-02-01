@@ -12,4 +12,4 @@ including documentation and Jupyter.
 Downstream Contact
 ------------------
 
-See https://trac.sagemath.org/wiki/Distribution#Packagemanagers
+See :trac:`Trac wiki page Distribution <wiki/Distribution>`

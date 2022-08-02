@@ -14,28 +14,26 @@ Indexing conventions are the same as
 
 EXAMPLES:
 
-
-Diagrams can be created by:
-    - explictly passing an iterable of all the cells
-    - providing a :class:`~sage.combinat.partition.Partition`,
-      in which case the diagram is the corresponding (English notation) Ferrers
-      diagram (see also :meth:`~sage.combination.partition.Partition.ferrers_diagram`)
-    - providing a :class:`~sage.combinat.permutation.Permutation`, in which
-      case the diagram is the corresponding Rothe diagram.
-    - providing a list of *death rays* which are cells `(i_0,j_0)` not present in the
-      diagram and have the property that there are no cells in the diagram that
-      have the form `(i,j_0)` with `i > i_0` and no cells in the diagram that
-      have the form `(i_0, j)` with `j > j_0`. The death rays kill all of the
-      cells to right and below of them.
-
-
-Passing a list of all cells::
+To create an arbirtrary diagram, pass a list of all cells::
 
     sage: from sage.combinat.diagram import Diagram
     sage: cells = [(0,0), (0,1), (1,0), (1,1), (4,4), (4,5), (4,6), (5,4), (7, 6)]
     sage: D = Diagram(cells); D
-    [(0,0), (0,1), (1,0), (1,1), (4,4), (4,5), (4,6), (5,4), (7, 6)]
-    
+    [(0, 0), (0, 1), (1, 0), (1, 1), (4, 4), (4, 5), (4, 6), (5, 4), (7, 6)]
+
+We can visualize the diagram by printing ``O``'s and ``.``'s. ``O``'s are 
+present in the cells which are present in the diagram and a ``.`` represents
+the absence of a cell in the diagram::
+
+    sage: D.pp()
+    O O . . . . .
+    O O . . . . .
+    . . . . . . .
+    . . . . . . .
+    . . . . O O O
+    . . . . O . .
+    . . . . . . .
+    . . . . . . O
     
 AUTHORS:
 
@@ -52,23 +50,370 @@ AUTHORS:
 #                  https://www.gnu.org/licenses/
 # ****************************************************************************
 
+
 from sage.categories.sets_cat import Sets
+from sage.sets.non_negative_integers import NonNegativeIntegers as NN
+from sage.combinat.partition import Partition
+from sage.combinat.permutation import Permutation
 from sage.structure.unique_representation import UniqueRepresentation
 from sage.structure.list_clone import ClonableArray
 from sage.structure.parent import Parent
 
 class Diagram(ClonableArray):
-    def __init__(self, cells):
-        self._cells = cells
+    r"""
+    EXAMPLES::
+
+        sage:
+    """
+    @staticmethod
+    def __classcall_private__(self, cells, **kwargs):
+        r"""
+        Normalize the input so that it lives in the correct parent.
+
+        EXAMPLES::
+
+            sage: from sage.combinat.diagram import Diagram
+            sage: D = Diagram([(0,0), (0,3), (2,2), (2,4)])
+            sage: D.parent()
+            Combinatorial diagrams
+        """
+        return Diagrams()(cells, **kwargs)
+
+    def __init__(self, cells, **kwargs):
+        r"""
+        EXAMPLES::
+
+            sage: from sage.combinat.diagram import Diagram
+            sage: D1 = Diagram([(0,2),(0,3),(1,1),(3,2)])
+            sage: D1.cells()
+            [(0, 2), (0, 3), (1, 1), (3, 2)]
+            sage: D1.n_rows()
+            4
+            sage: D1.n_cols()
+            4
+
+        We can specify the number of rows and columns explicitly,
+        in case they are supposed to be empty::
+
+            sage: D2 = Diagram([(0,2),(0,3),(1,1),(3,2)], n_cols=5)
+            sage: D2.cells()
+            [(0, 2), (0, 3), (1, 1), (3, 2)]
+            sage: D2.n_cols()
+            5
+            sage: D2.pp()
+            . . O O .
+            . O . . .
+            . . . . .
+            . . O . .
+        """
+        self._cells = {c: True for c in cells}
+        self._n_rows = kwargs.pop('n_rows', max(c[0] for c in self._cells) + 1)
+        self._n_cols = kwargs.pop('n_cols', max(c[1] for c in self._cells) + 1)
+
+        ClonableArray.__init__(self, Diagrams(), cells, check=False)
+
+    def _hash_(self):
+        r"""
+        TESTS::
+
+            sage: from sage.combinat.diagram import Diagram
+            sage: D = Diagram([(0,2),(0,3),(1,1),(3,2)])
+            sage: hash(D)
+            5125392318921082108
+        """
+        return hash(tuple(sorted(self._cells)))
+
+    def __contains__(self, other):
+        r"""
+        EXAMPLES::
+
+            sage: from sage.combinat.diagram import Diagram
+            sage: D = Diagram([(0,2),(0,3),(1,1),(3,2)])
+            sage: (1, 2) in D
+            False
+            sage: (0, 2) in D
+            True
+            sage: (2, 1) in D
+            False
+            sage: (3, 2) in D
+            True
+        """
+        return other in self._cells
+
+    def __repr__(self):
+        r"""
+        EXAMPLES::
+
+            sage: from sage.combinat.diagram import Diagram
+            sage: D = Diagram([(0,2),(0,3),(1,1),(3,2)]); D
+            [(0, 2), (0, 3), (1, 1), (3, 2)]
+        """
+        return str(list(self._cells))
+
+    def pp(self):
+        r"""
+        EXAMPLES::
+
+            sage: from sage.combinat.diagram import Diagram
+            sage: Diagram([(0,0), (0,3), (2,2), (2,4)]).pp()
+            O . . O .
+            . . . . .
+            . . O . O
+        """
+        output_str = ''
+
+        for i in range(self._n_rows):
+            for j in range(self._n_cols):
+                if (i, j) in self:
+                    output_str += 'O '
+                else:
+                    output_str += '. '
+            output_str += '\n'
+
+        print(output_str)
+
+    def n_rows(self):
+        r"""
+        EXAMPLES::
+
+            sage: from sage.combinat.diagram import Diagram
+            sage: D1 = Diagram([(0,2),(0,3),(1,1),(3,2)])
+            sage: D1.n_rows()
+            4
+        """
+
+        return self._n_rows
+
+    def n_cols(self):
+        r"""
+        EXAMPLES::
+
+            sage: from sage.combinat.diagram import Diagram
+            sage: D1 = Diagram([(0,2),(0,3),(1,1),(3,2)])
+            sage: D1.n_cols()
+            4
+        """
+        return self._n_cols
+
+    def cells(self):
+        r"""
+        EXAMPLES::
+
+            sage: from sage.combinat.diagram import Diagram
+            sage: D1 = Diagram([(0,2),(0,3),(1,1),(3,2)])
+            sage: D1.cells()
+            [(0, 2), (0, 3), (1, 1), (3, 2)]
+        """
+        return list(self._cells.keys())
+
+    def n_cells(self):
+        r"""
+        EXAMPLES::
+
+            sage: from sage.combinat.diagram import Diagram
+            sage: D1 = Diagram([(0,2),(0,3),(1,1),(3,2)])
+            sage: D1.n_cells()
+            4
+        """
+        return len(self._cells)
+
+    def check(self):
+        r"""
+        Check that this is a valid diagram by checking that it is an iterable
+        of length-two tuples of integers.
+
+        .. WARNING::
+
+            This method is required for ``Diagram`` to be a subclass of 
+            :class:`~sage.structure.list_clone.ClonableArray`, however the check
+            is *not* automatically performed upon creation of the element.
+
+        EXAMPLES::
+
+            sage: from sage.combinat.diagram import Diagram
+            sage: D = Diagram([(0,0), (0,3), (2,2), (2,4)])
+            sage: D.check()
+            sage: notD = Diagram([(0,1,2), (0,1), (2,2)])
+            sage: notD.check()
+            Traceback (most recent call last):
+            ...
+            AssertionError
+        """
+        assert all(isinstance(c, tuple) and len(c) == 2 for c in self._cells)
 
 class Diagrams(UniqueRepresentation, Parent):
+    r"""
+    The class of combinatorial diagrams.
 
+    A *combinatorial diagram* is a set of cells indexed by pairs of natural
+    numbers. 
+    """
     def __init__(self):
+        r"""
+        EXAMPLES::
 
-        Parent.__init__(self)
+            sage: from sage.combinat.diagram import Diagrams
+            sage: Dgms = Diagrams(); Dgms
+            Combinatorial diagrams
 
-    def _element_constructor_(self, cells)
+        TESTS::
 
-        return self.element_class(self, cells)
+            sage: TestSuite(Dgms).run()
+        """
+
+        Parent.__init__(self, category=Sets())
+
+    def __repr__(self):
+        r"""
+        EXAMPLES::
+
+            sage: from sage.combinat.diagram import Diagrams
+            sage: Dgms = Diagrams(); Dgms
+            Combinatorial diagrams
+        """
+        return 'Combinatorial diagrams'
+
+    def _element_constructor_(self, cells, **kwargs):
+        r"""
+        EXAMPLES::
+
+            sage: from sage.combinat.diagram import Diagrams
+            sage: Dgms = Diagrams()
+            sage: Dgms([(0,1),(2,2)]).pp()
+            . O .
+            . . .
+            . . O
+
+        TESTS::
+
+            sage: TestSuite(Dgms).run()
+        """
+        return self.element_class(cells, **kwargs)
+
+    def _an_element_(self):
+        r"""
+        EXAMPLES::
+
+            sage: from sage.combinat.diagram import Diagrams
+            sage: Dgms = Diagrams()
+            sage: D = Dgms.an_element(); D
+            [(0, 2), (1, 1), (2, 3)]
+            sage: D.pp()
+            . . O .
+            . O . .
+            . . . O
+        """
+        return self([(0, 2), (1, 1), (2, 3)])
 
     Element = Diagram
+
+####################
+# Northwest diagrams
+####################
+
+class NorthwestDiagram(Diagram):
+    r"""
+    A diagram is a set of cells indexed by natural numbers. Such a diagram
+    has the *northwest property* if the presence of cells `(i1, j1)` and
+    `(i2, j2)` implies the presence of the cell 
+    `(\min(i1, i2), \min(j1, j2))`. Diagrams with the northwest property are
+    called *northwest diagrams*.
+
+    For general diagrams see :class:`Diagram`.
+    """
+    @staticmethod
+    def __classcall_private__(self, cells, **kwargs):
+        r"""
+        """
+        return NorthwestDiagrams()(cells, **kwargs)
+
+    def check(self):
+        r"""
+        A diagram has the northwest property if the presence of cells
+        `(i1, j1)` and `(i2, j2)` implies the presence of the cell
+        `(min(i1, i2), min(j1, j2))`
+
+        .. WARNING::
+
+            This method is required for `Diagram` to be a subclass of 
+            :class:`~sage.structure.list_clone.ClonableArray`, however the check
+            is *not* automatically performed upon creation of the element.        
+        """
+        from itertools import combinations
+        assert all((min(i1,i2), min(j1,j2)) in self
+                    for (i1, j1), (i2, j2) in combinations(self._cells, 2))
+
+class NorthwestDiagrams(Diagrams):
+    r"""
+    The class of northwest diagrams.
+
+    A diagram has the *northwest property* if the presence of cells
+    `(i1, j1)` and `(i2, j2)` implies the presence of the cell
+    `(min(i1, i2), min(j1, j2))`. For the class of general diagrams, see
+    :class:`Diagrams`.
+
+    One may create an instance of a northwest diagram either by directly
+    calling :class:`NorthwestDiagram` or by creating an instance of the
+    parent class `NorthwestDiagrams` (with an `s`) and calling it on a `list`
+    of tuples consisting of the coordinates of the diagram.
+
+    EXAMPLES::
+
+    Additionally, there are natural constructions of a northwest diagram
+    given the data of a permutation (Rothe diagrams are the protypical example
+    of northwest diagrams), or the data of a partition of an integer, or a
+    skew partition.
+
+    The Rothe diagram `D(\omega)` of a permutation `\omega` is specified by
+    the cells
+
+    .. MATH::
+
+        \{ (i, j) : i < \omega^{-1}(j) \text{ and } j < \omega(i)}
+
+    We can construct one by calling :meth:`rothe_diagram` method on the parent
+    class :class:`NorthwestDiagrams`.
+
+    EXAMPLES::
+
+        sage: from sage.combinat.diagram import NorthwestDiagrams
+        sage: NWDgms = NorthwestDiagrams
+
+    To turn a Ferrers diagram into a northwest diagram, we may call the
+    :meth:`ferrers_diagram` method. This will return a Ferrer's diagram in the
+    parent of all northwest diagrams. For many use-cases it is probably better
+    to get Ferrer's diagrams by the corresponding method on partitons, namely
+    :meth:`sage.combinat.partitions.Partitions.ferrers_diagram`.
+
+    It is also possible to turn a Ferrers diagram of a skew partition into a
+    northwest diagram, altough it is more subtle than just using the skew
+    diagram itself. 
+    """
+
+    def __repr__(self):
+        r"""
+        EXAMPLES::
+
+            sage: from sage.combinat.diagram import NorthwestDiagrams
+            sage: NWDgms = NorthwestDiagrams(); NWDgms
+            Combinatorial northwest diagrams
+        """
+        return 'Combinatorial northwest diagrams'
+
+    def _an_element_(self):
+        r"""
+        EXAMPLES::
+
+            sage: from sage.combinat.diagram import NorthwestDiagrams
+            sage: NWDgms = NorthwestDiagrams()
+            sage: NWD = NWDgms.an_element(); NWD
+            [(0, 1), (0, 2), (1, 1), (2, 3)]
+            sage: NWD.pp()
+            . O O .
+            . O . .
+            . . . O
+        """
+        return self([(0, 1), (0, 2), (1, 1), (2, 3)])
+
+
+    Element = NorthwestDiagram

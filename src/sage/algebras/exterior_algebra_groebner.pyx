@@ -49,6 +49,14 @@ cdef class GroebnerStrategy:
     def __init__(self, I):
         """
         Initialize ``self``.
+
+        EXAMPLES::
+
+            sage: from sage.algebras.exterior_algebra_groebner import GroebnerStrategy
+            sage: E.<a,b,c,d> = ExteriorAlgebra(QQ)
+            sage: I = E.ideal([a + 1], side="left")
+            sage: G = GroebnerStrategy(I)
+            sage: TestSuite(G).run(skip="_test_pickling")
         """
         self.ideal = I
         self.groebner_basis = (None,)
@@ -187,15 +195,15 @@ cdef class GroebnerStrategy:
 
             sage: E.<y, x> = ExteriorAlgebra(QQ)
             sage: I = E.ideal([x*y - x, x*y - 1], side="left")
-            sage: I.groebner_basis()
+            sage: I.groebner_basis()  # indirect doctest
             (1,)
             sage: J = E.ideal([x*y - x, 2*x*y - 2], side="left")
-            sage: J.groebner_basis()
+            sage: J.groebner_basis()  # indirect doctest
             (1,)
 
             sage: E.<a,b,c,d> = ExteriorAlgebra(QQ)
             sage: I = E.ideal([a+b*c])
-            sage: I.groebner_basis()
+            sage: I.groebner_basis()  # indirect doctest
             (b*c + a, a*c, a*b, a*d)
         """
         cdef FrozenBitset p0, p1
@@ -264,6 +272,26 @@ cdef class GroebnerStrategy:
     cpdef CliffordAlgebraElement reduce(self, CliffordAlgebraElement f):
         """
         Reduce ``f`` modulo the ideal with Gröbner basis ``G``.
+
+        EXAMPLES::
+
+            sage: E.<a,b,c,d,e> = ExteriorAlgebra(QQ)
+            sage: rels = [c*d*e - b*d*e + b*c*e - b*c*d,
+            ....:         c*d*e - a*d*e + a*c*e - a*c*d,
+            ....:         b*d*e - a*d*e + a*b*e - a*b*d,
+            ....:         b*c*e - a*c*e + a*b*e - a*b*c,
+            ....:         b*c*d - a*c*d + a*b*d - a*b*c]
+            sage: I = E.ideal(rels)
+            sage: I.reduce(a*b*e)
+            a*b*e
+            sage: I.reduce(b*d*e)
+            a*b*d - a*b*e + a*d*e
+            sage: I.reduce(c*d*e)
+            a*c*d - a*c*e + a*d*e
+            sage: I.reduce(a*b*c*d*e)
+            0
+            sage: I.reduce(a*b*c*d)
+            0
         """
         for g in self.groebner_basis:
             f = self.reduce_single(f, <CliffordAlgebraElement> g)

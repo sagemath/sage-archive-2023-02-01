@@ -392,6 +392,19 @@ cdef class ExteriorAlgebraElement(CliffordAlgebraElement):
         - ``I`` -- a list of exterior algebra elements or an ideal
         - ``left`` -- boolean; if reduce as a left ideal (``True``)
           or right ideal (``False``), ignored if ``I`` is an ideal
+
+        EXAMPLES::
+
+            sage: E.<a,b,c,d> = ExteriorAlgebra(QQ)
+            sage: f = (a + b*c) * d
+            sage: f.reduce([a + b*c], True)
+            2*a*d
+            sage: f.reduce([a + b*c], False)
+            0
+
+            sage: I = E.ideal([a + b*c])
+            sage: f.reduce(I)
+            0
         """
         from sage.algebras.clifford_algebra import ExteriorAlgebraIdeal
         if isinstance(I, ExteriorAlgebraIdeal):

@@ -19,7 +19,6 @@ AUTHORS:
 #*****************************************************************************
 
 from sage.misc.cachefunc import cached_method
-from sage.misc.lazy_attribute import lazy_attribute
 from sage.structure.unique_representation import UniqueRepresentation
 from sage.structure.parent import Parent
 from sage.structure.element import Element
@@ -30,6 +29,7 @@ from sage.data_structures.bitset import Bitset, FrozenBitset
 from sage.algebras.clifford_algebra_element import CliffordAlgebraElement, ExteriorAlgebraElement
 from sage.categories.algebras_with_basis import AlgebrasWithBasis
 from sage.categories.hopf_algebras_with_basis import HopfAlgebrasWithBasis
+from sage.categories.fields import Fields
 from sage.categories.finite_enumerated_sets import FiniteEnumeratedSets
 from sage.modules.with_basis.morphism import ModuleMorphismByLinearity
 from sage.categories.poor_man_map import PoorManMap
@@ -2905,7 +2905,18 @@ class ExteriorAlgebraIdeal(Ideal_nc):
 
             returns:
             o3 = | bcd-bce+bde-cde acd-ace+ade-cde abd-abe+ade-bde abc-abe+ace-bce |
+
+        TESTS::
+
+            sage: E.<a,b,c,d,e> = ExteriorAlgebra(ZZ)
+            sage: I = E.ideal([a+1, b*c+d])
+            sage: I.groebner_basis()
+            Traceback (most recent call last):
+            ...
+            NotImplementedError: only implemented over fields
         """
+        if self.ring().base_ring() not in Fields():
+            raise NotImplementedError("only implemented over fields")
         if term_order == "neglex":
             from sage.algebras.exterior_algebra_groebner import GroebnerStrategyNegLex as strategy
         elif term_order == "degrevlex":

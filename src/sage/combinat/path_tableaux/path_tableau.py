@@ -8,12 +8,12 @@ This is a construction of the Henriques-Kamnitzer construction of
 the action of the cactus group on tensor powers of a crystal. This is
 also a generalisation of the Fomin growth rules, which are a version of
 the operations on standard tableaux which were previously constructed
-using jeu-de-taquin.
+using jeu de taquin.
 
 The basic operations are rectification, evacuation and promotion.
 Rectification of standard skew tableaux agrees with the rectification
-by jeu-de-taquin as does evacuation. Promotion agrees with promotion
-by jeu-de-taquin on rectangular tableaux but in general they are different.
+by jeu de taquin as does evacuation. Promotion agrees with promotion
+by jeu de taquin on rectangular tableaux but in general they are different.
 
 REFERENCES:
 

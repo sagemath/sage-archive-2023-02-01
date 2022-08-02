@@ -4,10 +4,12 @@ Clifford Algebras
 AUTHORS:
 
 - Travis Scrimshaw (2013-09-06): Initial version
+- Trevor K. Karn (2022-07-27): Rewrite basis indexing using FrozenBitset
 """
 
 #*****************************************************************************
-#       Copyright (C) 2013 Travis Scrimshaw <tscrim at ucdavis.edu>
+#       Copyright (C) 2013-2022 Travis Scrimshaw <tcscrims at gmail.com>
+#                 (C) 2022 Trevor Karn <karnx018 at umn.edu>
 #
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -38,7 +40,6 @@ from sage.matrix.constructor import Matrix
 from sage.matrix.args import MatrixArgs
 from sage.sets.family import Family
 from sage.combinat.free_module import CombinatorialFreeModule
-from sage.combinat.subset import Subsets
 from sage.quadratic_forms.quadratic_form import QuadraticForm
 from sage.misc.inherit_comparison import InheritComparisonClasscallMetaclass
 from sage.typeset.ascii_art import ascii_art
@@ -69,6 +70,8 @@ class CliffordAlgebraIndices(Parent):
 
     def __init__(self, Qdim):
         r"""
+        Initialize ``self``.
+
         EXAMPLES::
 
             sage: from sage.algebras.clifford_algebra import CliffordAlgebraIndices
@@ -87,12 +90,13 @@ class CliffordAlgebraIndices(Parent):
         self._nbits = Qdim
         self._cardinality = 2**Qdim
         # the if statement here is in case Qdim is 0.
-        self._maximal_set = FrozenBitset('1'*self._nbits) if self._nbits else FrozenBitset()
         category = FiniteEnumeratedSets().Facade()
         Parent.__init__(self, category=category, facade=True)
 
     def _element_constructor_(self, x):
         r"""
+        Construct an element of ``self``.
+
         EXAMPLES::
 
             sage: from sage.algebras.clifford_algebra import CliffordAlgebraIndices
@@ -118,43 +122,79 @@ class CliffordAlgebraIndices(Parent):
 
     def cardinality(self):
         r"""
+        Return the cardinality of ``self``.
+
         EXAMPLES::
 
             sage: from sage.algebras.clifford_algebra import CliffordAlgebraIndices
             sage: idx = CliffordAlgebraIndices(7)
             sage: idx.cardinality() == 2^7
             True
-        """
-        return self._cardinality
-
-    def _repr_(self):
-        r"""
-        EXAMPLES::
-
-            sage: from sage.algebras.clifford_algebra import CliffordAlgebraIndices
-            sage: idx = CliffordAlgebraIndices(7); idx
-            Subsets of {1,2,...,7}
-        """
-        return f"Subsets of {{1,2,...,{self._nbits}}}"
-
-    def __len__(self):
-        r"""
-        EXAMPLES::
-
-            sage: from sage.algebras.clifford_algebra import CliffordAlgebraIndices
-            sage: idx = CliffordAlgebraIndices(7);
             sage: len(idx) == 2^7
             True
         """
         return self._cardinality
 
-    def __iter__(self):
+    __len__ = cardinality
+
+    def _repr_(self):
         r"""
+        Return a string representation of ``self``.
+
         EXAMPLES::
 
             sage: from sage.algebras.clifford_algebra import CliffordAlgebraIndices
-            sage: idx = CliffordAlgebraIndices(3);
-            sage: for i in idx: print(i)
+            sage: CliffordAlgebraIndices(7)
+            Subsets of {0,1,...,6}
+            sage: CliffordAlgebraIndices(0)
+            Subsets of {}
+            sage: CliffordAlgebraIndices(1)
+            Subsets of {0}
+            sage: CliffordAlgebraIndices(2)
+            Subsets of {0,1}
+        """
+        if self._nbits == 0:
+            return "Subsets of {}"
+        if self._nbits == 1:
+            return "Subsets of {0}"
+        if self._nbits == 2:
+            return "Subsets of {0,1}"
+        return f"Subsets of {{0,1,...,{self._nbits-1}}}"
+
+    def _latex_(self):
+        r"""
+        Return a latex representation of ``self``.
+
+        EXAMPLES::
+
+            sage: from sage.algebras.clifford_algebra import CliffordAlgebraIndices
+            sage: latex(CliffordAlgebraIndices(7))
+            \mathcal{P}({0,1,\ldots,6})
+            sage: latex(CliffordAlgebraIndices(0))
+            \mathcal{P}(\emptyset)
+            sage: latex(CliffordAlgebraIndices(1))
+            \mathcal{P}({0})
+            sage: latex(CliffordAlgebraIndices(2))
+            \mathcal{P}({0,1})
+        """
+        if self._nbits == 0:
+            return "\\mathcal{P}(\\emptyset)"
+        if self._nbits == 1:
+            return "\\mathcal{P}({0})"
+        if self._nbits == 2:
+            return "\\mathcal{P}({0,1})"
+        return f"\\mathcal{{P}}({{0,1,\\ldots,{self._nbits-1}}})"
+
+    def __iter__(self):
+        r"""
+        Iterate over ``self``.
+
+        EXAMPLES::
+
+            sage: from sage.algebras.clifford_algebra import CliffordAlgebraIndices
+            sage: idx = CliffordAlgebraIndices(3)
+            sage: for i in idx:
+            ....:     print(i)
             0
             1
             01
@@ -173,21 +213,28 @@ class CliffordAlgebraIndices(Parent):
                 yield FrozenBitset(C)
             k += 1
 
-    def __contains__(self, other):
+    def __contains__(self, elt):
         r"""
+        Check containment of ``elt`` in ``self``.
+
         EXAMPLES::
 
             sage: from sage.algebras.clifford_algebra import CliffordAlgebraIndices
             sage: idx = CliffordAlgebraIndices(3);
-            sage: int(8) in idx # representing the set {4}
+            sage: int(8) in idx  # representing the set {4}
             False
+            sage: int(5) in idx  # representing the set {1,3}
+            True
             sage: FrozenBitset('1') in idx
             True
+            sage: FrozenBitset('000001') in idx
+            False
         """
-
-        if isinstance(other, int):
-            return (other < self._cardinality) and (other >= 0)
-        return self._maximal_set.issuperset(other)
+        if isinstance(elt, int):
+            return elt < self._cardinality and elt >= 0
+        if not isinstance(elt, FrozenBitset):
+            return False
+        return elt.capacity() <= self._nbits
 
 
 class CliffordAlgebra(CombinatorialFreeModule):
@@ -546,9 +593,9 @@ class CliffordAlgebra(CombinatorialFreeModule):
         if x in self.free_module():
             R = self.base_ring()
             if x.parent().base_ring() is R:
-                return self.element_class(self, {FrozenBitset((i, )): c for i, c in x.items()})
+                return self.element_class(self, {FrozenBitset((i,)): c for i, c in x.items()})
             # if the base ring is different, attempt to coerce it into R
-            return self.element_class(self, {FrozenBitset((i, )): R(c) for i, c in x.items() if R(c) != R.zero()})
+            return self.element_class(self, {FrozenBitset((i,)): R(c) for i, c in x.items() if R(c) != R.zero()})
 
         if (isinstance(x, CliffordAlgebraElement)
                 and self.has_coerce_map_from(x.parent())):
@@ -616,7 +663,7 @@ class CliffordAlgebra(CombinatorialFreeModule):
             sage: [Cl.gen(i) for i in range(3)]
             [x, y, z]
         """
-        return self._from_dict({FrozenBitset((i, )): self.base_ring().one()}, remove_zeros=False)
+        return self._from_dict({FrozenBitset((i,)): self.base_ring().one()}, remove_zeros=False)
 
     def algebra_generators(self):
         """
@@ -1628,7 +1675,7 @@ class ExteriorAlgebra(CliffordAlgebra):
         one = self.base_ring().one()
         L = unshuffle_iterator(tuple(a), one)
         return self.tensor_square()._from_dict(
-            {tuple(FrozenBitset(e) if e else FrozenBitset('0') for e in t): c for t, c in L if c},
+            {tuple(FrozenBitset(e) if e else FrozenBitset() for e in t): c for t, c in L if c},
             coerce=False,
             remove_zeros=False)
 
@@ -1923,7 +1970,7 @@ class ExteriorAlgebraDifferential(ModuleMorphismByLinearity,
 
             if isinstance(v, dict):
                 R = E.base_ring()
-                v = E._from_dict({FrozenBitset((i, )): R(c) for i, c in v.items()})
+                v = E._from_dict({FrozenBitset((i,)): R(c) for i, c in v.items()})
             else:
                 # Make sure v is in ``E``
                 v = E(v)
@@ -2150,12 +2197,12 @@ class ExteriorAlgebraBoundary(ExteriorAlgebraDifferential):
         s = E.zero()
 
         for b, (i, j) in enumerate(combinations(m, 2)):
-            t = Bitset(m)
             if (i, j) not in keys:
                 continue
+            t = Bitset(m)
             t.discard(i)
             t.discard(j)
-            s += (-1)**b * sc[(i, j)] * E.monomial(FrozenBitset(t))
+            s += sc[i, j] * E.term(FrozenBitset(t), (-1)**b)
 
         return s
 
@@ -2234,10 +2281,7 @@ class ExteriorAlgebraBoundary(ExteriorAlgebraDifferential):
             mat = []
             for b in basis:
                 ret = self._on_basis(b)
-                try:
-                    mat.append([ret.coefficient(p) for p in prev_basis])
-                except AttributeError:  # if ret is in E.base_ring()
-                    mat.append([E.base_ring()(ret)])
+                mat.append([ret.coefficient(p) for p in prev_basis])
             data[deg] = Matrix(mat).transpose().change_ring(R)
             prev_basis = basis
 
@@ -2377,7 +2421,6 @@ class ExteriorAlgebraCoboundary(ExteriorAlgebraDifferential):
         zero = E.zero()
         B = E.basis()
         for k, v in dict(s_coeff).items():
-
             if k[0] > k[1]:  # k will have length 2
                 k = sorted(k)
                 v = -v
@@ -2426,27 +2469,26 @@ class ExteriorAlgebraCoboundary(ExteriorAlgebraDifferential):
         """
         E = self.domain()
         cc = self._cos_coeff
-        keys = cc.keys()
 
         tot = E.zero()
 
         for sgn, i in enumerate(m):
             k = FrozenBitset((i,))
-            if k in keys:
-                below = tuple(j for j in m if j < i)
-                above = tuple(j for j in m if j > i)
+            if k in cc:
+                below = tuple([j for j in m if j < i])
+                above = tuple([j for j in m if j > i])
 
                 # a hack to deal with empty bitsets
-                if len(below) == 0:
+                if not below:
                     below = E.one()
                 else:
                     below = E.monomial(FrozenBitset(below))
-                if len(above) == 0:
+                if not above:
                     above = E.one()
                 else:
                     above = E.monomial(FrozenBitset(above))
 
-                tot = tot + (-1)**sgn * below * cc[k] * above
+                tot += (-1)**sgn * below * cc[k] * above
 
         return tot
 

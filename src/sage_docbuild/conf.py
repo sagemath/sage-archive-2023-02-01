@@ -255,13 +255,27 @@ if PythonModule("furo").is_present():
             "color-brand-content": "#0f0fff",
         },
         "light_logo": "logo_sagemath_black.svg",
-        "dark_logo": "logo_sagemath.svg",
+        "dark_logo": "logo_sagemath_white.svg",
     }
 
     # The name of the Pygments (syntax highlighting) style to use. This
     # overrides a HTML theme's corresponding setting.
     pygments_style = "tango"
     pygments_dark_style = "monokai"
+
+    # Add siderbar/home.html to the default sidebar.
+    html_sidebars = {
+        "**": [
+            "sidebar/brand.html",
+            "sidebar/search.html",
+            "sidebar/scroll-start.html",
+            "sidebar/home.html",
+            "sidebar/navigation.html",
+            "sidebar/ethical-ads.html",
+            "sidebar/scroll-end.html",
+            "sidebar/variant-selector.html",
+        ]
+    }
 
     # These paths are either relative to html_static_path
     # or fully qualified paths (eg. https://...)
@@ -272,6 +286,7 @@ if PythonModule("furo").is_present():
     # builtin/theme-specific templates). Relative paths are taken as relative
     # to the configuration directory.
     templates_path = [os.path.join(SAGE_DOC_SRC, 'common', 'templates-furo')] + templates_path
+
 else:
     # Sage default Sphinx theme.
     #

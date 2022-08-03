@@ -55,30 +55,13 @@ database with the :meth:`~GraphClass.description` method::
     -------------------------
     id                             :  gc_32
     name                           :  chordal
-    type                           :  base
-    <BLANKLINE>
+    ...
     Problems :
     -----------
     3-Colourability                :  Linear
     Clique                         :  Polynomial
     Clique cover                   :  Polynomial
-    Cliquewidth                    :  Unbounded
-    Cliquewidth expression         :  NP-complete
-    Colourability                  :  Linear
-    Cutwidth                       :  NP-complete
-    Domination                     :  NP-complete
-    Feedback vertex set            :  Polynomial
-    Hamiltonian cycle              :  NP-complete
-    Hamiltonian path               :  NP-complete
-    Independent set                :  Linear
-    Maximum bisection              :  Unknown
-    Maximum cut                    :  NP-complete
-    Minimum bisection              :  Unknown
-    Recognition                    :  Linear
-    Treewidth                      :  Polynomial
-    Weighted clique                :  Polynomial
-    Weighted feedback vertex set   :  Unknown
-    Weighted independent set       :  Linear
+    ...
 
 It is possible to obtain the complete list of the classes stored in ISGCI by
 calling the :meth:`~GraphClasses.show_all` method (beware -- long output)::
@@ -637,30 +620,15 @@ class GraphClass(SageObject, CachedRepresentation):
             -------------------------
             id                             :  gc_32
             name                           :  chordal
-            type                           :  base
-            <BLANKLINE>
+            ...
             Problems :
             -----------
             3-Colourability                :  Linear
             Clique                         :  Polynomial
             Clique cover                   :  Polynomial
-            Cliquewidth                    :  Unbounded
-            Cliquewidth expression         :  NP-complete
-            Colourability                  :  Linear
-            Cutwidth                       :  NP-complete
-            Domination                     :  NP-complete
-            Feedback vertex set            :  Polynomial
-            Hamiltonian cycle              :  NP-complete
-            Hamiltonian path               :  NP-complete
-            Independent set                :  Linear
-            Maximum bisection              :  Unknown
-            Maximum cut                    :  NP-complete
-            Minimum bisection              :  Unknown
+            ...
             Recognition                    :  Linear
-            Treewidth                      :  Polynomial
-            Weighted clique                :  Polynomial
-            Weighted feedback vertex set   :  Unknown
-            Weighted independent set       :  Linear
+            ...
         """
         classes = GraphClasses().classes()
         cls = classes[self._gc_id]
@@ -737,7 +705,7 @@ class GraphClasses(UniqueRepresentation):
             sage: type(t)
             <... 'dict'>
             sage: sorted(t["gc_151"].keys())
-            ['id', 'name', 'problem', 'type']
+            ['id', 'name',... 'problem',... 'type']
             sage: t["gc_151"]['name']
             'cograph'
             sage: t["gc_151"]['problem']['Clique']
@@ -780,16 +748,14 @@ class GraphClasses(UniqueRepresentation):
         EXAMPLES::
 
             sage: t = graph_classes.smallgraphs()
-            sage: t
-            {'2C_4': Graph on 8 vertices,
-             '2K_2': Graph on 4 vertices,
-             '2K_3': Graph on 6 vertices,
-             '2K_3 + e': Graph on 6 vertices,
-             '2K_4': Graph on 8 vertices,
-             '2P_3': Graph on 6 vertices,
-            ...
+            sage: t['2C_4']
+            Graph on 8 vertices
+            sage: t['2K_3 + e']
+            Graph on 6 vertices
             sage: t['fish']
             Graph on 6 vertices
+            sage: t['bull']
+            Graph on 5 vertices
         """
         self._get_ISGCI()
         return self.smallgraphs()
@@ -1041,7 +1007,6 @@ def _XML_to_dict(root):
         -------------------------
         id                             :  gc_56
         name                           :  perfect
-        type                           :  base
         ...
     """
     ans = root.attrib.copy()

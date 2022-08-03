@@ -3638,7 +3638,9 @@ class EllipticCurvePoint_finite_field(EllipticCurvePoint_field):
 
         AUTHORS:
 
-        - Sylvain Pelissier (2022).
+        - Sylvain Pelissier (2022) based on Samuel Neves code_.
+
+        .. _code: https://crypto.stackexchange.com/questions/70454/why-smarts-attack-doesnt-work-on-this-ecdlp/70508#70508
 
         EXAMPLES::
 

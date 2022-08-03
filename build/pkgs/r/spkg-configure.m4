@@ -1,5 +1,6 @@
 SAGE_SPKG_CONFIGURE([r], [
-    m4_pushdef([SAGE_R_MINVER],["3.4.4"])
+    dnl https://rpy2.github.io/doc/v3.4.x/html/overview.html#requirements
+    m4_pushdef([SAGE_R_MINVER],["3.5"])
     AS_CASE([$host],
         [*-*-cygwin*], [
           dnl #29486: rpy2 2.8.x does not build against system R on cygwin.

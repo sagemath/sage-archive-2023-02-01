@@ -126,6 +126,7 @@ AUTHORS:
 
 - Mike Hansen: Initial version
 - Travis Scrimshaw (2013-02-11): Factored out ``CombinatorialClass``
+- Trevor K. Karn (2022-08-03): Add ``outside_corners``
 """
 #*****************************************************************************
 #       Copyright (C) 2007 Mike Hansen <mhansen@gmail.com>,
@@ -739,7 +740,14 @@ class SkewPartition(CombinatorialElement):
 
     def outer_corners(self):
         """
-        Return a list of the outer corners of ``self``.
+        Return a list of the outer corners of ``self``. These are corners
+        which are contained inside of the shape. For the corners which are
+        outside of the shape, use :meth:`outside_corners`.
+
+        .. SEEALSO::
+
+            - :meth:`sage.combinat.skew_partition.SkewPartition.outside_corners`
+            - :meth:`sage.combinat.partition.Partition.outside_corners`
 
         EXAMPLES::
 
@@ -1208,6 +1216,32 @@ class SkewPartition(CombinatorialElement):
                     row.append(h([v]))
             m.append(row)
         return H(m)
+
+    def outside_corners(self):
+        r"""
+        Return the outside corners of ``self``.
+
+        The outside corners are corners which are outside of the shape. This
+        should not be confused with :meth:`outer_corners` which consists of
+        corners inside the shape. It returns a result analogous to the
+        ``.outside_corners()`` method on (non-skew) ``Partitions``.
+
+        .. SEEALSO::
+
+            - :meth:`sage.combinat.skew_partition.SkewPartition.outer_corners`
+            - :meth:`sage.combinat.partition.Partition.outside_corners`
+
+        EXAMPLES::
+
+            sage: mu = SkewPartition([[3,2,1],[2,1]])
+            sage: mu.pp()
+              *
+             *
+            *
+            sage: mu.outside_corners()
+            [(0, 3), (1, 2), (2, 1), (3, 0)]
+        """
+        return self.outer().outside_corners()
 
 def row_lengths_aux(skp):
     """

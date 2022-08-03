@@ -116,14 +116,8 @@ jobs:
       tox_packages_factors: >-
           ["maximal"]
       docker_targets: "with-targets-optional"
-      targets_optional: >-
-        $( echo $(export PATH=build/bin:$PATH
-                  && (for a in spkg-install.in spkg-install requirements.txt; do
-                          sage-package list :optional:
-                              --has-file $a
-                              --no-file huge
-                              --no-file has_nonfree_dependencies;
-                      done) | grep -v ^_ | grep -v sagemath_doc | grep ^[0-o] ) )
+      targets_optional: '$(echo $(export PATH=build/bin:$PATH && sage-package list :optional: --has-file "spkg-install.in|spkg-install|requirements.txt" --no-file "huge|has_nonfree_dependencies" | grep -v sagemath_doc | grep ^[0-o]))'
+
 
   optional-p-z:
     if: ${{ success() || failure() }}
@@ -136,14 +130,7 @@ jobs:
       tox_packages_factors: >-
           ["maximal"]
       docker_targets: "with-targets-optional"
-      targets_optional: >-
-        $( echo $(export PATH=build/bin:$PATH
-                  && (for a in spkg-install.in spkg-install requirements.txt; do
-                          sage-package list :optional:
-                              --has-file $a
-                              --no-file huge
-                              --no-file has_nonfree_dependencies;
-                      done) | grep -v ^_ | grep -v sagemath_doc | grep ^[p-z] ) )
+      targets_optional: '$(echo $(export PATH=build/bin:$PATH && sage-package list :optional: --has-file "spkg-install.in|spkg-install|requirements.txt" --no-file "huge|has_nonfree_dependencies" | grep -v sagemath_doc | grep ^[p-z]))'
 
   experimental-0-o:
     if: ${{ success() || failure() }}
@@ -156,14 +143,7 @@ jobs:
       tox_packages_factors: >-
           ["maximal"]
       docker_targets: "with-targets-optional"
-      targets_optional: >-
-        $( echo $(export PATH=build/bin:$PATH
-                  && (for a in spkg-install.in spkg-install requirements.txt; do
-                          sage-package list :experimental:
-                              --has-file $a
-                              --no-file huge
-                              --no-file has_nonfree_dependencies;
-                      done) | grep -v ^_ | grep -v sagemath_doc | grep ^[0-o] ) )
+      targets_optional: '$(echo $(export PATH=build/bin:$PATH && sage-package list :experimental: --has-file "spkg-install.in|spkg-install|requirements.txt" --no-file "huge|has_nonfree_dependencies" | grep -v sagemath_doc | grep ^[0-o]))'
 
   experimental-p-z:
     if: ${{ success() || failure() }}
@@ -176,15 +156,7 @@ jobs:
       tox_packages_factors: >-
           ["maximal"]
       docker_targets: "with-targets-optional"
-      targets_optional: >-
-        $( echo $(export PATH=build/bin:$PATH
-                  && (for a in spkg-install.in spkg-install requirements.txt; do
-                          sage-package list :experimental:
-                              --has-file $a
-                              --no-file huge
-                              --no-file has_nonfree_dependencies;
-                      done) | grep -v ^_ | grep -v sagemath_doc | grep ^[p-z] ) )
-
+      targets_optional: '$(echo $(export PATH=build/bin:$PATH && sage-package list :experimental: --has-file "spkg-install.in|spkg-install|requirements.txt" --no-file "huge|has_nonfree_dependencies" | grep -v sagemath_doc | grep ^[p-z]))'
 
   local-ubuntu:
 

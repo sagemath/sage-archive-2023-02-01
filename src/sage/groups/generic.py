@@ -791,6 +791,50 @@ def discrete_log(a, base, ord=None, bounds=None, operation='*', identity=None, i
         sage: discrete_log(u,g)
         123456789
 
+    The above examples also work when the 'rho' algorithm is used::
+
+        sage: b = Mod(2,37);  a = b^20
+        sage: discrete_log(a, b, algorithm='rho')
+        20
+        sage: b = Mod(2,997);  a = b^20
+        sage: discrete_log(a, b, algorithm='rho')
+        20
+
+        sage: K = GF(3^6,'b')
+        sage: b = K.gen()
+        sage: a = b^210
+        sage: discrete_log(a, b, K.order()-1, algorithm='rho')
+        210
+
+        sage: b = Mod(1,37);  x = Mod(2,37)
+        sage: discrete_log(x, b, algorithm='rho')
+        Traceback (most recent call last):
+        ...
+        ValueError: no discrete log of 2 found to base 1
+        sage: b = Mod(1,997);  x = Mod(2,997)
+        sage: discrete_log(x, b, algorithm='rho')
+        Traceback (most recent call last):
+        ...
+        ValueError: no discrete log of 2 found to base 1
+
+        sage: F=GF(37^2,'a')
+        sage: E=EllipticCurve(F,[1,1])
+        sage: F.<a>=GF(37^2,'a')
+        sage: E=EllipticCurve(F,[1,1])
+        sage: P=E(25*a + 16 , 15*a + 7 )
+        sage: P.order()
+        672
+        sage: Q=39*P; Q
+        (36*a + 32 : 5*a + 12 : 1)
+        sage: discrete_log(Q,P,P.order(),operation='+',algorithm='rho')
+        39
+
+        sage: F.<a> = GF(2^63)
+        sage: g = F.gen()
+        sage: u = g**123456789
+        sage: discrete_log(u,g,algorithm='rho')
+        123456789
+
     AUTHORS:
 
     - William Stein and David Joyner (2005-01-05)

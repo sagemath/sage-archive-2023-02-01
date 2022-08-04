@@ -3604,10 +3604,12 @@ class EllipticCurvePoint_finite_field(EllipticCurvePoint_field):
         if n*Q:
             raise ValueError('ECDLog problem has no solution (order of Q does not divide order of P)')
         E = self.curve()
-        p = E.base_ring().cardinality()
-        if n == p and n.is_prime():
-            # Anomalous case
-            return self.padic_elliptic_logarithm(Q, p)
+        F = E.base_ring()
+        if F.is_prime_field():
+            p = F.cardinality()
+            if n == p:
+                # Anomalous case
+                return self.padic_elliptic_logarithm(Q, p)
         elif hasattr(E, '_order') and E._order.gcd(n**2) == n:
             pass    # cyclic rational n-torsion -> okay
         elif self.weil_pairing(Q, n) != 1:

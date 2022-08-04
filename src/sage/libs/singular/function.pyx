@@ -1033,7 +1033,7 @@ cdef class LibraryCallHandler(BaseCallHandler):
             sage: LibraryCallHandler()
             <sage.libs.singular.function.LibraryCallHandler object at 0x...>
         """
-        super(LibraryCallHandler, self).__init__()
+        super().__init__()
 
     cdef leftv* handle_call(self, Converter argument_list, ring *_ring=NULL):
         if _ring != currRing: rChangeCurrRing(_ring)
@@ -1075,7 +1075,7 @@ cdef class KernelCallHandler(BaseCallHandler):
             sage: KernelCallHandler(0,0)
             <sage.libs.singular.function.KernelCallHandler object at 0x...>
         """
-        super(KernelCallHandler, self).__init__()
+        super().__init__()
         self.cmd_n = cmd_n
         self.arity = arity
 
@@ -1545,7 +1545,7 @@ cdef class SingularLibraryFunction(SingularFunction):
             sage: f(I)
             [y - 1, x + 1]
         """
-        super(SingularLibraryFunction,self).__init__(name)
+        super().__init__(name)
         self.call_handler = self.get_call_handler()
 
     cdef BaseCallHandler get_call_handler(self):
@@ -1592,7 +1592,7 @@ cdef class SingularKernelFunction(SingularFunction):
             ...
             NameError: Singular kernel function 'no_such_function' is not defined
         """
-        super(SingularKernelFunction,self).__init__(name)
+        super().__init__(name)
         self.call_handler = self.get_call_handler()
 
     cdef BaseCallHandler get_call_handler(self):

@@ -4,7 +4,6 @@ Representations of a semigroup
 AUTHORS:
 
 - Travis Scrimshaw (2015-11-21): initial version
-
 - Siddharth Singh  (2020-03-21): signed representation
 
 """
@@ -200,6 +199,7 @@ class Representation_abstract(CombinatorialFreeModule):
             side = "left"
 
         return super().twisted_invariant_module(G, chi, side=side, **kwargs)
+
 
 class Representation(Representation_abstract):
     """
@@ -427,7 +427,7 @@ class Representation(Representation_abstract):
         """
         if isinstance(x, Element) and x.parent() is self._module:
             return self._from_dict(x.monomial_coefficients(copy=False), remove_zeros=False)
-        return super(Representation, self)._element_constructor_(x)
+        return super()._element_constructor_(x)
 
     def product_by_coercion(self, left, right):
         """

@@ -33,13 +33,13 @@ from .free_module import (Module_free_ambient,
 
 class QuotientModule_free_ambient(Module_free_ambient):
     """
-    Quotients of ambient free modules over a domain by a submodule.
+    Quotients of ambient free modules by a submodule.
 
     INPUT:
 
     - ``module`` -- an ambient free module
 
-    - ``sub`` -- a submodule of the ambient free module
+    - ``sub`` -- a submodule of ``module``
 
     EXAMPLES::
 
@@ -55,7 +55,7 @@ class QuotientModule_free_ambient(Module_free_ambient):
     """
     def __init__(self, module, sub):
         """
-        Create this quotient module of  ``module`` by a submodule ``sub``.
+        Create this quotient module of ``module`` by a submodule ``sub``.
 
         TESTS::
 
@@ -68,10 +68,23 @@ class QuotientModule_free_ambient(Module_free_ambient):
         base_ring = module.base_ring()
         degree = module.degree()
         sparse = module.is_sparse()
-        self.__sub = sub
-        self.__module = module
-        self.__hash = hash((module, sub))
-        super().__init__(base_ring, degree=degree, sparse=sparse)
+        # We store these in order to retain the information of how this was constructed
+        self._module = module
+        self._sub = sub
+        self.__hash = hash((self._module, self._sub))
+
+        # We then convert the data into maps from free modules
+        if isinstance(module, QuotientModule_free_ambient):
+            self._free_cover = module.cover()
+            C = self._free_cover.element_class
+            v = [C(self._free_cover, x.list(), coerce=False, copy=False) for x in sub.gens()]
+            w = [C(self._free_cover, x.list(), coerce=False, copy=False) for x in module.free_relations().gens()]
+            self._relations = self._free_cover.submodule(v + w, check=False)
+        else: # Otherwise module should be a free module
+            self._free_cover = module
+            self._relations = sub
+
+        Module_free_ambient.__init__(self, base_ring, degree=degree, sparse=sparse)
 
     def _repr_(self):
         r"""
@@ -89,7 +102,7 @@ class QuotientModule_free_ambient(Module_free_ambient):
             [x - y     z]
             [  y*z   x*z]
         """
-        return "Quotient module by %s" % self.__sub
+        return "Quotient module by %s" % self._sub
 
     def __hash__(self):
         r"""
@@ -101,33 +114,10 @@ class QuotientModule_free_ambient(Module_free_ambient):
             sage: M = S**2
             sage: N = M.submodule([vector([x - y, z]), vector([y*z, x*z])])
             sage: Q = M.quotient_module(N)
-            sage: d = {Q: 1}
+            sage: hash(Q) == hash((M,N))
+            True
         """
         return self.__hash
-
-    def __richcmp__(self, other, op):
-        """
-        Compare ``self`` with ``other`` with respect to ``op``.
-
-        TESTS::
-
-            sage: S.<x,y,z> = PolynomialRing(QQ)
-            sage: M = S**2
-            sage: N = M.submodule([vector([x - y, z]), vector([y*z, x*z])])
-            sage: Q = M.quotient_module(N)
-            sage: Q == Q
-            True
-            sage: Q == M
-            False
-            sage: Q == N
-            False
-        """
-        if self is other:
-            return rich_to_bool(op, 0)
-        if not isinstance(other, FreeModule_base):
-            return NotImplemented
-
-        return richcmp((self.__module, self.__sub), (other.__module, other.__sub), op)
 
     def gens(self):
         """
@@ -142,7 +132,7 @@ class QuotientModule_free_ambient(Module_free_ambient):
             sage: Q.gens()
             ((1, 0), (0, 1))
         """
-        return tuple(self(list(g)) for g in self.__module.gens())
+        return tuple([self(list(g)) for g in self._module.gens()])
 
     def gen(self, i=0):
         """
@@ -157,7 +147,7 @@ class QuotientModule_free_ambient(Module_free_ambient):
             sage: Q.gen(0)
             (1, 0)
         """
-        if i < 0 or i >= self.__module.degree():
+        if i < 0 or i >= self._module.degree():
             raise ValueError('generator %s not defined' % i)
         return self.gens()[i]
 
@@ -165,7 +155,7 @@ class QuotientModule_free_ambient(Module_free_ambient):
         """
         Return a coercion map from `M` to ``self``, or ``None``.
 
-        TESTS:
+        TESTS::
 
             sage: S.<x,y,z> = PolynomialRing(QQ)
             sage: M = S**2
@@ -184,6 +174,124 @@ class QuotientModule_free_ambient(Module_free_ambient):
         if isinstance(M, FreeModule_ambient):
             return (self.base_ring().has_coerce_map_from(M.base_ring()) and
                     self.degree() == M.degree())
+        from sage.modules.submodule import Submodule_free_ambient
+        if isinstance(M, Submodule_free_ambient):
+            return self._module.has_coerce_map_from(self.ambient_module())
+        if (isinstance(M, QuotientModule_free_ambient)
+            and M.free_cover() == self.free_cover()):
+            try:
+                return M.free_relations().is_submodule(self.free_relations())
+            except NotImplementedError:
+                pass
+
+    def ambient_module(self):
+        """
+        Return ``self``, since ``self`` is ambient.
+
+        EXAMPLES::
+
+            sage: S.<x,y,z> = PolynomialRing(QQ)
+            sage: M = S**2
+            sage: N = M.submodule([vector([x - y, z]), vector([y*z, x*z])])
+            sage: Q = M.quotient_module(N)
+            sage: Q.ambient_module() is Q
+            True
+        """
+        return self
+
+    def cover(self):
+        r"""
+        Given this quotient space `Q = V/W`, return `V`.
+
+        EXAMPLES::
+
+            sage: S.<x,y,z> = PolynomialRing(QQ)
+            sage: M = S**2
+            sage: N = M.submodule([vector([x - y, z]), vector([y*z, x*z])])
+            sage: Q = M.quotient_module(N)
+            sage: Q.cover() is M
+            True
+        """
+        return self._module
+
+    V = cover
+
+    def relations(self):
+        r"""
+        Given this quotient space `Q = V/W`, return `W`
+
+        EXAMPLES::
+
+            sage: S.<x,y,z> = PolynomialRing(QQ)
+            sage: M = S**2
+            sage: N = M.submodule([vector([x - y, z]), vector([y*z, x*z])])
+            sage: Q = M.quotient_module(N)
+            sage: Q.relations() is N
+            True
+        """
+        return self._sub
+
+    W = relations
+
+    def free_cover(self):
+        r"""
+        Given this quotient space `Q = V/W`, return the free module
+        that covers `V`.
+
+        EXAMPLES::
+
+            sage: S.<x,y,z> = PolynomialRing(QQ)
+            sage: M = S**2
+            sage: N = M.submodule([vector([x - y, z]), vector([y*z, x*z])])
+            sage: Q = M / N
+            sage: NQ = Q.submodule([Q([1,x])])
+            sage: QNQ = Q / NQ
+            sage: QNQ.free_cover() is Q.free_cover() is M
+            True
+
+        Note that this is different than the immediate cover::
+
+            sage: QNQ.cover() is Q
+            True
+            sage: QNQ.cover() is QNQ.free_cover()
+            False
+        """
+        return self._free_cover
+
+    V = cover
+
+    def free_relations(self):
+        r"""
+        Given this quotient space `Q = V/W`, return the submodule that
+        generates all relations of `Q`.
+
+        When `V` is a free module, then this returns `W`. Otherwise this
+        returns the union of `W` lifted to the cover of `V` and the relations
+        of `V` (repeated until `W` is a submodule of a free module).
+
+        EXAMPLES::
+
+            sage: S.<x,y,z> = PolynomialRing(QQ)
+            sage: M = S**2
+            sage: N = M.submodule([vector([x - y, z]), vector([y*z, x*z])])
+            sage: Q = M / N
+            sage: NQ = Q.submodule([Q([1, x])])
+            sage: QNQ = Q / NQ
+            sage: QNQ.free_relations()
+            Submodule of Ambient free module of rank 2 over the integral domain Multivariate Polynomial Ring in x, y, z over Rational Field
+            Generated by the rows of the matrix:
+            [    1     x]
+            [x - y     z]
+            [  y*z   x*z]
+
+        Note that this is different than the defining relations::
+
+            sage: QNQ.relations() is NQ
+            True
+            sage: QNQ.relations() == QNQ.free_relations()
+            False
+        """
+        return self._relations
 
 
 ###############################################################################
@@ -309,8 +417,8 @@ class FreeModule_ambient_field_quotient(FreeModule_ambient_field):
         base_field = domain.base_field()
         dimension = quotient_matrix.ncols()
         sparse = domain.is_sparse()
-        self.__sub = sub
-        self.__domain = domain
+        self._sub = sub
+        self._domain = domain
         self.__hash = hash((domain, sub))
         FreeModule_ambient_field.__init__(self, base_field, dimension, sparse)
         self.__quo_map = domain.Hom(self)(quotient_matrix)
@@ -417,8 +525,8 @@ class FreeModule_ambient_field_quotient(FreeModule_ambient_field):
         """
         if isinstance(x, self.element_class) and x.parent() is self:
             return x
-        if isinstance(x, (list, tuple)) and len(x) == self.__domain.rank():
-            return self.__quo_map(self.__domain(x))
+        if isinstance(x, (list, tuple)) and len(x) == self._domain.rank():
+            return self.__quo_map(self._domain(x))
         return FreeModule_ambient_field._element_constructor_(self, x)
 
     def _coerce_map_from_(self, M):
@@ -460,14 +568,14 @@ class FreeModule_ambient_field_quotient(FreeModule_ambient_field):
         from sage.modules.free_module import FreeModule_ambient
         if (isinstance(M, FreeModule_ambient)
             and not (isinstance(M, FreeModule_ambient_field_quotient)
-                     and self.W() == M.W())):
+                     and self._sub == M._sub)):
             # No map between different quotients.
             # No map from quotient to abstract module.
             return None
         f = super(FreeModule_ambient_field, self)._coerce_map_from_(M)
         if f is not None:
             return f
-        f = self.__domain.coerce_map_from(M)
+        f = self._domain.coerce_map_from(M)
         if f is not None:
             return self.__quo_map * f
         return None
@@ -537,38 +645,9 @@ class FreeModule_ambient_field_quotient(FreeModule_ambient_field):
         """
         return self.__lift_map(x)
 
-    def W(self):
-        """
-        Given this quotient space `Q = V/W`, return `W`.
-
-        EXAMPLES::
-
-            sage: M = QQ^10 / [list(range(10)), list(range(2,12))]
-            sage: M.W()
-            Vector space of degree 10 and dimension 2 over Rational Field
-            Basis matrix:
-            [ 1  0 -1 -2 -3 -4 -5 -6 -7 -8]
-            [ 0  1  2  3  4  5  6  7  8  9]
-        """
-        return self.__sub
-
-    def V(self):
-        """
-        Given this quotient space `Q = V/W`, return `V`.
-
-        EXAMPLES::
-
-            sage: M = QQ^10 / [list(range(10)), list(range(2,12))]
-            sage: M.V()
-            Vector space of dimension 10 over Rational Field
-        """
-        return self.__domain
-
     def cover(self):
-        """
+        r"""
         Given this quotient space `Q = V/W`, return `V`.
-
-        This is the same as :meth:`V`.
 
         EXAMPLES::
 
@@ -576,13 +655,13 @@ class FreeModule_ambient_field_quotient(FreeModule_ambient_field):
             sage: M.cover()
             Vector space of dimension 10 over Rational Field
         """
-        return self.V()
+        return self._domain
+
+    V = cover
 
     def relations(self):
-        """
+        r"""
         Given this quotient space `Q = V/W`, return `W`.
-
-        This is the same as :meth:`W`.
 
         EXAMPLES::
 
@@ -593,5 +672,7 @@ class FreeModule_ambient_field_quotient(FreeModule_ambient_field):
             [ 1  0 -1 -2 -3 -4 -5 -6 -7 -8]
             [ 0  1  2  3  4  5  6  7  8  9]
         """
-        return self.W()
+        return self._sub
+
+    W = relations
 

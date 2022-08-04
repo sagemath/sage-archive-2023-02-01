@@ -775,6 +775,12 @@ REFERENCES:
             of invariant theory for the symmetric group* `\mathsf{S}_n`.
             Preprint (2017). :arxiv:`1707.1410`
 
+.. [BHKP2008] Anand Bhalgat, Ramesh Hariharan, Telikepalli Kavitha and Debmalya
+              Panigrah. *Fast edge splitting and Edmonds' arborescence
+              construction for unweighted graphs*. ACM-SIAM Symposium on
+              Discrete Algorithms (SODA), pp 455-464, 2008.
+              :doi:`10.5555/1347082.1347132`
+
 .. [BHS2008] Robert Bradshaw, David Harvey and William
              Stein. strassen_window_multiply_c. strassen.pyx, Sage
              3.0, 2008. http://www.sagemath.org
@@ -968,7 +974,7 @@ REFERENCES:
 .. [BDGRTW2019] Bonderson, Delaney, Galindo, Rowell, Tran, and Wang,
         On invariants of modular categories beyond modular data.
         J. Pure Appl. Algebra 223 (2019), no. 9, 4065–4088.
-        :arXiv:`1805.05736`.
+        :arxiv:`1805.05736`.
 
 .. [BM2004] John M. Boyer and Wendy J. Myrvold, *On the Cutting Edge:
             *Simplified `O(n)` Planarity by Edge Addition*. Journal of Graph
@@ -997,6 +1003,9 @@ REFERENCES:
 .. [BMBL2008] A. Blondin-Massé, S. Brlek, S. Labbé, *Palindromic
               lacunas of the Thue-Morse word*, Proc. GASCOM 2008 (June
               16-20 2008, Bibbiena, Arezzo-Italia), 53--67.
+
+.. [BMFPR] \M. Bousquet-Melou, E. Fusy, L.-F. Preville Ratelle.
+           *The number of intervals in the m-Tamari lattices*. :arxiv:`1106.1498`
 
 .. [BMS2006] Bugeaud, Mignotte, and Siksek. "Classical and modular
              approaches to exponential Diophantine
@@ -2060,7 +2069,7 @@ REFERENCES:
 .. [Dragan2018] Feodor Dragan, Michel Habib, Laurent Viennot.
                *Revisiting Radius, Diameter, and all Eccentricity Computation
                in Graphs through Certificates*.
-               http://arxiv.org/abs/1803.04660
+               :arxiv:`1803.04660`
 
 .. [Dro1987] Carl Droms. *Isomorphisms of graph groups*. Proc. of the
              Amer. Math. Soc. **100**
@@ -2448,6 +2457,11 @@ REFERENCES:
 .. [Ga02] Shuhong Gao, A new algorithm for decoding Reed-Solomon
           Codes, January 31, 2002
 
+.. [Gabow1995] Harold N. Gabow. *A Matroid Approach to Finding Edge Connectivity
+               and Packing Arborescences*.  Journal of Computer and System Sciences,
+               50(2):259-273, 1995.
+               :doi:`10.1006/jcss.1995.1022`
+
 .. [Gallai] T. Gallai, Elementare Relationen bezueglich der
             Glieder und trennenden Punkte von Graphen, Magyar
             Tud. Akad. Mat. Kutato Int. Kozl. 9 (1964) 235-236
@@ -2568,6 +2582,18 @@ REFERENCES:
 
 .. [GK2013] Roland Grinis and Alexander Kasprzyk, Normal forms of
             convex lattice polytopes, :arxiv:`1301.6641`
+
+.. [GKLP2021] Loukas Georgiadis, Dionysios Kefallinos, Luigi Laura, Nikos
+              Parotsidis. *An Experimental Study of Algorithms for Computing the
+              Edge Connectivity of a Directed Graph*.  SIAM Symposium on
+              Algorithm Engineering and Experiments (ALENEX), pp 85-97, 2021.
+              :doi:`10.1137/1.9781611976472.7`
+
+.. [GKP2011] Sylvain Gravier, Matjaz Kovse and Aline Parreau.
+             *Generalized Sierpinski graphs*. Poster, European Conference on
+             Combinatorics, Graph Theory and Applications (EuroComb’11),
+             Budapest, 2011.
+             https://www.renyi.hu/conferences/ec11/posters/parreau.pdf
 
 .. [GKZ1994] Gelfand, I. M.; Kapranov, M. M.; and
              Zelevinsky, A. V. "Discriminants, Resultants and
@@ -3489,6 +3515,11 @@ REFERENCES:
             Crystal bases and tensor product decompositions of `U_q(G_2)`-modules.
             J. Algebra 163, pp. 675--691, 1994.
 
+.. [KM1997] Sandi Klavžar and Uroš Milutinović. *Graphs S(n,k) and a variant of
+            the Tower of Hanoi problem*, Czechoslovak Mathematical Journal,
+            47:95-104, 1997.
+            :doi:`10.1023/A:1022444205860`
+
 .. [KMAUTOM2000] Masayuki Kanda, Shiho Moriai, Kazumaro Aoki, Hiroki Ueda,
                  Youichi Takashima, Kazuo Ohta, and Tsutomu Matsumoto,
                  *E2 - a new 128-bit block cipher*; in IEICE Transactions on
@@ -3592,7 +3623,7 @@ REFERENCES:
             Springer-Verlag, 2011.
 
 .. [KP2020] Lars Kastner and Marta Panizzut, *Hyperplane arrangements
-            in polymake*, arxiv:`2003.13548`.
+            in polymake*, :arxiv:`2003.13548`.
 
 .. [KPRWZ2010] \M. H. Klin, C. Pech, S. Reichard, A. Woldar, M. Zvi-Av,
                *Examples of computer experimentation in algebraic
@@ -4483,13 +4514,16 @@ REFERENCES:
 .. [MW2009] Meshulam and Wallach, "Homological connectivity of random
             `k`-dimensional complexes", preprint, math.CO/0609773.
 
+.. [MW2012] Ivan Marin and Emmanuel Wagner, *A CUBIC DEFINING ALGEBRA FOR THE
+            LINKS-GOULD POLYNOMIAL* (:arxiv:`1203.5981v1` [mathGT] 27. Mar 2012)
+
 .. _ref-N:
 
 **N**
 
 .. [NaiRow2011] Naidu and Rowell, A finiteness property for braided fusion
                 categories. Algebr. Represent. Theory 14 (2011), no. 5, 837–855.
-                :arXiv:`0903.4157`.
+                :arxiv:`0903.4157`.
 
 .. [NAR2018] Jamie R. Nunez, Christopher R. Anderson, Ryan S. Renslow
              *Optimizing colormaps with consideration for color vision
@@ -4789,6 +4823,10 @@ REFERENCES:
              *PICARO - a block cipher allowing efficient higher-order side-channel
              resistance*; in ACNS, (2012), pp. 311-328.
 
+.. [PRV2017] \L.-F. Préville-Ratelle and X. Viennot,
+             *The enumeration of generalized Tamari intervals*.
+             Trans. Amer. Math. Soc. 369 (2017), pp 5219--5239
+
 .. [Prototype_pattern] Prototype pattern,
                        :wikipedia:`Prototype_pattern`
 
@@ -5005,7 +5043,7 @@ REFERENCES:
 .. [Row2006] Eric Rowell, *From quantum groups to unitary modular tensor categories*.
              In Representations of algebraic groups, quantum groups, and Lie algebras,
              Contemp. Math., **413**, Amer. Math. Soc., Providence, RI, 2006.
-             :arXiv:`math/0503226`.
+             :arxiv:`math/0503226`.
 
 .. [RoStWa2009] Eric Rowell, Richard Stong and Zhenghan Wang, *On classification
         of modular tensor categories*, Comm. Math. Phys. 292, 343--389, 2009.
@@ -5090,7 +5128,7 @@ REFERENCES:
 
 .. [Sag2011] Bruce E. Sagan,
              *The cyclic sieving phenomenon: a survey*,
-             :arXiv:`1008.0790v3`
+             :arxiv:`1008.0790v3`
 
 .. [Sah2000] Sartaj Sahni. *Data Structures, Algorithms, and Applications
              in Java*. McGraw-Hill, 2000.
@@ -5103,15 +5141,18 @@ REFERENCES:
              York, 1958.
 
 .. [Sal1965] \G. Salmon: "A Treatise on the Analytic Geometry of Three
-             Dimensions", Vol II, Chelsea Publishing Co., New
-             York, 1965.
+             Dimensions", Vol II, Chelsea Publishing Co., New York, 1965.
 
 .. [Sal2014] \B. Salisbury.
              The flush statistic on semistandard Young tableaux.
-             :arXiv:`1401.1185`
+             :arxiv:`1401.1185`
 
 .. [Sam2012] \P. Samanta: *Antipodal Graphs*
              :doi:`10.13140/RG.2.2.28238.46409`
+
+.. [Sch1961] Craige Schensted. *Longest increasing and decreasing
+             subsequences*, Canadian Journal of Mathematics, Vol 13
+             (1961), pp. 179--191.
 
 .. [Sch1990] Schnyder, Walter. *Embedding Planar Graphs on the Grid*.
              Proc. 1st Annual ACM-SIAM Symposium on Discrete Algorithms,

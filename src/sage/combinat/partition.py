@@ -3957,6 +3957,10 @@ class Partition(CombinatorialElement):
         where `i` and `j` are the coordinates of the respective corner.
         The coordinates are counted from `0`.
 
+        .. NOTE::
+
+            This is referred to as an "inner corner" in [Sag2001]_.
+
         EXAMPLES::
 
             sage: Partition([3,2,1]).corners()
@@ -4028,6 +4032,10 @@ class Partition(CombinatorialElement):
         The entries of the list returned are pairs of the form `(i,j)`,
         where `i` and `j` are the coordinates of the respective corner.
         The coordinates are counted from `0`.
+
+        .. NOTE::
+
+            These are called "outer corners" in [Sag2001]_.
 
         EXAMPLES::
 

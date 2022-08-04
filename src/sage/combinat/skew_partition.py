@@ -744,6 +744,13 @@ class SkewPartition(CombinatorialElement):
         which are contained inside of the shape. For the corners which are
         outside of the shape, use :meth:`outside_corners`.
 
+        .. WARNING::
+
+            In the case that `self` is an honest (rather than skew) partition,
+            these are the :meth:`~sage.combinat.partition.Partition.corners`
+            of the outer partition. In the language of [Sag2001]_ these would
+            be the "inner corners" of the outer partition.
+
         .. SEEALSO::
 
             - :meth:`sage.combinat.skew_partition.SkewPartition.outside_corners`

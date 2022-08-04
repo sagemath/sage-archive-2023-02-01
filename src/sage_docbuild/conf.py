@@ -260,7 +260,7 @@ if PythonModule("furo").is_present():
 
     # The name of the Pygments (syntax highlighting) style to use. This
     # overrides a HTML theme's corresponding setting.
-    pygments_style = "tango"
+    pygments_style = "sphinx"
     pygments_dark_style = "monokai"
 
     # Add siderbar/home.html to the default sidebar.

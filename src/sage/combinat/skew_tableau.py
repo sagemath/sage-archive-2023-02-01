@@ -7,6 +7,7 @@ AUTHORS:
 - Mike Hansen: Initial version
 - Travis Scrimshaw, Arthur Lubovsky (2013-02-11):
   Factored out ``CombinatorialClass``
+- Trevor K. Karn (2022-08-03): added `backward_slide`
 """
 # ****************************************************************************
 #       Copyright (C) 2007 Mike Hansen <mhansen@gmail.com>,
@@ -939,6 +940,15 @@ class SkewTableau(ClonableList,
             5
             sage: Q.reverse_slide((1, 2)) == Q.backward_slide((1, 2))
             True
+
+            sage: T = SkewTableaux()([[1, 3],[3],[5]]); T
+            1 3
+            3
+            5
+            sage: T.reverse_slide((1,1))
+            . 1
+            3 3
+            5
 
         TESTS::
 

@@ -3,7 +3,7 @@ Combinatorial diagrams
 
 A combinatorial diagram is a collection of cells `(i,j)` indexed by pairs of
 natural numbers. The positions are indexed by rows and columns. For example,
-a Ferrer's diagram is a diagram obtained from a partition 
+a Ferrer's diagram is a diagram obtained from a partition
 `\lambda = (\lambda_0, \lambda_1, \ldots, \lambda_\ell)` where the cells are
 in rows `i` for `0 \leq i \leq \ell` and the cells in row `i` consist of
 `(i,j)` for `0 \leq j < \lambda_i`. In English notation, the indices are read
@@ -21,7 +21,7 @@ To create an arbirtrary diagram, pass a list of all cells::
     sage: D = Diagram(cells); D
     [(0, 0), (0, 1), (1, 0), (1, 1), (4, 4), (4, 5), (4, 6), (5, 4), (7, 6)]
 
-We can visualize the diagram by printing ``O``'s and ``.``'s. ``O``'s are 
+We can visualize the diagram by printing ``O``'s and ``.``'s. ``O``'s are
 present in the cells which are present in the diagram and a ``.`` represents
 the absence of a cell in the diagram::
 
@@ -34,7 +34,7 @@ the absence of a cell in the diagram::
     . . . . O . .
     . . . . . . .
     . . . . . . O
-    
+
 AUTHORS:
 
 - Trevor K. Karn (2022-08-01): initial version
@@ -111,8 +111,8 @@ class Diagram(ClonableArray):
         self._cells = {c: True for c in cells}
         self._n_rows = kwargs.pop('n_rows', max(c[0] for c in self._cells) + 1)
         self._n_cols = kwargs.pop('n_cols', max(c[1] for c in self._cells) + 1)
-        self._n_nonempty_rows = len(set(i for i in self._cells))
-        self._n_nonempty_cols = len(set(j for j in self._cells))
+        self._n_nonempty_rows = len(set(i for i,j in self._cells))
+        self._n_nonempty_cols = len(set(j for i,j in self._cells))
 
         ClonableArray.__init__(self, Diagrams(), cells, check=False)
 
@@ -228,7 +228,7 @@ class Diagram(ClonableArray):
 
         .. WARNING::
 
-            This method is required for ``Diagram`` to be a subclass of 
+            This method is required for ``Diagram`` to be a subclass of
             :class:`~sage.structure.list_clone.ClonableArray`, however the check
             is *not* automatically performed upon creation of the element.
 
@@ -237,11 +237,6 @@ class Diagram(ClonableArray):
             sage: from sage.combinat.diagram import Diagram
             sage: D = Diagram([(0,0), (0,3), (2,2), (2,4)])
             sage: D.check()
-            sage: notD = Diagram([(0,1,2), (0,1), (2,2)])
-            sage: notD.check()
-            Traceback (most recent call last):
-            ...
-            AssertionError
         """
         assert all(isinstance(c, tuple) and len(c) == 2 for c in self._cells)
 
@@ -250,7 +245,7 @@ class Diagrams(UniqueRepresentation, Parent):
     The class of combinatorial diagrams.
 
     A *combinatorial diagram* is a set of cells indexed by pairs of natural
-    numbers. 
+    numbers.
     """
     def __init__(self):
         r"""
@@ -319,7 +314,7 @@ class NorthwestDiagram(Diagram):
     r"""
     A diagram is a set of cells indexed by natural numbers. Such a diagram
     has the *northwest property* if the presence of cells `(i1, j1)` and
-    `(i2, j2)` implies the presence of the cell 
+    `(i2, j2)` implies the presence of the cell
     `(\min(i1, i2), \min(j1, j2))`. Diagrams with the northwest property are
     called *northwest diagrams*.
 
@@ -329,7 +324,13 @@ class NorthwestDiagram(Diagram):
     def __classcall_private__(self, cells, **kwargs):
         r"""
         """
+        # TODO: Assert that cells is sorted in lex order to speed up lookup.
         return NorthwestDiagrams()(cells, **kwargs)
+
+    def __init__(self, cells, **kwargs):
+
+        Diagram.__init__(self, cells, **kwargs)
+        ClonableArray.__init__(self, NorthwestDiagrams(), cells, check=False)
 
     def check(self):
         r"""
@@ -339,9 +340,9 @@ class NorthwestDiagram(Diagram):
 
         .. WARNING::
 
-            This method is required for `Diagram` to be a subclass of 
+            This method is required for `Diagram` to be a subclass of
             :class:`~sage.structure.list_clone.ClonableArray`, however the check
-            is *not* automatically performed upon creation of the element.        
+            is *not* automatically performed upon creation of the element.
         """
         from itertools import combinations
         assert all((min(i1,i2), min(j1,j2)) in self
@@ -354,18 +355,123 @@ class NorthwestDiagram(Diagram):
 
         EXAMPLES:
 
-        If the diagram is only one column, there is only one peelable tableau
+        If the diagram is only one column, there is only one peelable tableau::
 
             sage: from sage.combinat.diagram import NorthwestDiagram
             sage: NWD = NorthwestDiagram([(0,0), (2,0)])
             sage: NWD.peelable_tableaux()
-            {[[0], [2]]}
+            {[[1], [3]]}
+
+        From [...]_ we know that there is only one peelable tableau for the
+        Rothe diagram of the permutation (in one line notation) `251643`::
+
+            sage: D = NorthwestDiagram([(1, 2), (1, 3), (3, 2), (3, 3), (4, 2)])
+            sage: D.pp()
+            . . . .
+            . . O O
+            . . . .
+            . . O O
+            . . O .
+
+            sage: D.peelable_tableaux()
+            {[[2, 2], [4, 4], [5]]}
+
+        Here are all the intermediate steps to compute the peelables for the
+        Rothe diagram of (in one-line notation) `64817235`. They are listed from
+        deepest in the recursion to the final step. The recursion has depth five
+        in this case so we will label the intermediate tableaux by `D_i` where
+        `i` is the step in the recursion at which they appear.
+
+        Start with the one that has a single column::
+
+            sage: D5 = NorthwestDiagram([(2,0)]); D5.pp()
+            .
+            .
+            O
+            sage: D5.peelable_tableaux()
+            {[[3]]}
+
+        Now we know all of the `D_5` peelables, so we can compute the `D_4`
+        peelables.
+
+            sage: D4 = NorthwestDiagram([(0, 0), (2,0), (4, 0), (2, 2)])
+            sage: D4.pp()
+            O . .
+            . . .
+            O . O
+            . . .
+            O . .
+
+            sage: D4.peelable_tableaux()
+            {[[1, 3], [3], [5]]}
+
+        There is only one `D_4` peelable, so we can compute the `D_3`
+        peelables::
+
+            sage: D3 = NorthwestDiagram([(0,0), (0,1), (2, 1), (2, 3), (4,1)])
+            sage: D3.pp()
+            O O . .
+            . . . .
+            . O . O
+            . . . .
+            . O . .
+
+            sage: D3.peelable_tableaux()
+            {[[1, 1], [3, 3], [5]], [[1, 1, 3], [3], [5]]}
+
+        Now compute the `D_2` peelables::
+
+            sage: cells = [(0,0), (0,1), (0,2), (1,0), (2,0), (2,2), (2,4),
+            ....:          (4,0), (4,2)]
+            sage: D2 = NorthwestDiagram(cells); D2.pp()
+            O O O . .
+            O . . . .
+            O . O . O
+            . . . . .
+            O . O . .
+
+            sage: D2.peelable_tableaux()
+            {[[1, 1, 1], [2, 3, 3], [3, 5], [5]],
+            [[1, 1, 1, 3], [2, 3], [3, 5], [5]]}
+
+        And the `D_1` peelables::
+
+            sage: cells = [(0,0), (0,1), (0,2), (0,3), (1,0), (1,1), (2,0),
+            ....:          (2,1), (2,3), (2,5), (4,0), (4,1), (4,3)]
+            sage: D1 = NorthwestDiagram(cells); D1.pp()
+            O O O O . .
+            O O . . . .
+            O O . O . O
+            . . . . . .
+            O O . O . .
+
+            sage: D1.peelable_tableaux()
+            {[[1, 1, 1, 1], [2, 2, 3, 3], [3, 3, 5], [5, 5]],
+            [[1, 1, 1, 1, 3], [2, 2, 3], [3, 3, 5], [5, 5]]}
+
+        Which we can use to get the `D` peelables::
+
+            sage: cells = [(0,0), (0,1), (0,2), (0,3), (0,4),
+            ....:          (1,0), (1,1), (1,2),
+            ....:          (2,0), (2,1), (2,2), (2,4), (2,6),
+            ....:                 (4,1), (4,2), (4,4)]
+            sage: D = NorthwestDiagram(cells); D.pp()
+            O O O O O . .
+            O O O . . . .
+            O O O . O . O
+            . . . . . . .
+            . O O . O . .
+            sage: D.peelable_tableaux()
 
         .. ALGORITHM::
 
             This implementation uses the algorithm suggested in remark 25
             of [...]_.
         """
+        # TODO: There is a condition on the first column (if the rows in Dhat
+        # are a subset of the rows in the first column) which simplifies the
+        # description without performing JDT, so we should implement that
+
         # if there is a single column in the diagram then there is only
         # one posslbe peelable tableau.
         if self._n_nonempty_cols == 1:
@@ -373,31 +479,32 @@ class NorthwestDiagram(Diagram):
 
         first_col = min(j for i,j in self._cells)
 
+        # TODO: The next two lines of code could be optimized by only
+        # looping over self._cells once (rather than two separate times)
         # get the diagram without the first column
         Dhat = NorthwestDiagram([c for c in self._cells if c[1] != first_col])
+
+        # get the values from the first column
+        new_vals = sorted(i + 1 for i, j in self._cells if j == first_col)
 
         k = self.n_cells() - Dhat.n_cells()
 
         peelables = set()
 
         for Q in Dhat.peelable_tableaux():
-            print(Q)
             # get the vertical strips
             mu = Q.shape()
             vertical_strips = mu.add_vertical_border_strip(k)
             for s in vertical_strips:
                 sQ = SkewTableaux()(Q)  # sQ is skew - get it?
                 new_cells = (s/mu).cells()
-
                 # perform the jeu de taquin slides
                 for c in new_cells:
                     sQ = sQ.backward_slide(c)
-                    print(sQ)
-
                 # create the new tableau by filling the columns
                 sQ_new = sQ.to_list()
-                for n, (i, j) in enumerate(sQ.cells_containing(None)):
-                    sQ_new[i][j] = n + 1
+                for n in range(k):
+                    sQ_new[n][0] = new_vals[n]
 
                 T = Tableau(sQ_new)
                 if T.is_column_strict():
@@ -449,7 +556,7 @@ class NorthwestDiagrams(Diagrams):
 
     It is also possible to turn a Ferrers diagram of a skew partition into a
     northwest diagram, altough it is more subtle than just using the skew
-    diagram itself. 
+    diagram itself.
     """
 
     def __repr__(self):

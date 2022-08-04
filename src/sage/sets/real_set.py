@@ -1580,7 +1580,7 @@ class RealSet(UniqueRepresentation, Parent, Set_base,
             ((0, 3),)
         """
         scan = merge(*[[i._scan_lower(), i._scan_upper()] for i in intervals])
-        union_intervals = tuple(RealSet._scan_to_intervals(scan, lambda i: bool(i > 0)))
+        union_intervals = tuple(RealSet._scan_to_intervals(scan, lambda i: i > 0))
         return union_intervals
 
     def _repr_(self):
@@ -2128,7 +2128,7 @@ class RealSet(UniqueRepresentation, Parent, Set_base,
         # Same as return RealSet(*real_set_collection). The following is a bit
         # better when the input consists of RealSets, since they are normalized
         scan = merge(*[real_set._scan() for real_set in sets])
-        intervals = tuple(RealSet._scan_to_intervals(scan, lambda i: bool(i > 0)))
+        intervals = tuple(RealSet._scan_to_intervals(scan, lambda i: i > 0))
         return RealSet(*intervals, normalized=True)
 
     def intersection(self, *real_set_collection):
@@ -2208,7 +2208,7 @@ class RealSet(UniqueRepresentation, Parent, Set_base,
             sets.extend([RealSet(_) for _ in real_set_collection])
         n = len(sets)
         scan = merge(*[real_set._scan() for real_set in sets])
-        intervals = tuple(RealSet._scan_to_intervals(scan, lambda i: bool(i == n)))
+        intervals = tuple(RealSet._scan_to_intervals(scan, lambda i: i == n))
         return RealSet(*intervals, normalized=True)
 
     def inf(self):
@@ -2328,7 +2328,7 @@ class RealSet(UniqueRepresentation, Parent, Set_base,
         # turn-on lower open becomes turn-off upper closed.
         scan = merge(self._scan(), remove)
         # Because the negative delta, indicator in def _scan_to_intervals can be negative.
-        intervals = tuple(RealSet._scan_to_intervals(scan, lambda i: bool(i > 0)))
+        intervals = tuple(RealSet._scan_to_intervals(scan, lambda i: i > 0))
         return RealSet(*intervals, normalized=True)
 
     def symmetric_difference(self, *other):
@@ -2354,7 +2354,7 @@ class RealSet(UniqueRepresentation, Parent, Set_base,
             (0, 1] ∪ [2, +oo)
         """
         scan = merge(self._scan(), RealSet(*other)._scan())
-        intervals = tuple(RealSet._scan_to_intervals(scan, lambda i: bool(i == 1)))
+        intervals = tuple(RealSet._scan_to_intervals(scan, lambda i: i == 1))
         return RealSet(*intervals, normalized=True)
 
     def contains(self, x):
@@ -2708,7 +2708,7 @@ class RealSet(UniqueRepresentation, Parent, Set_base,
             False
         """
         scan = merge(*[RealSet(real_set)._scan() for real_set in real_set_collection])
-        overlap_generator = RealSet._scan_to_intervals(scan, lambda i: bool(i > 1))
+        overlap_generator = RealSet._scan_to_intervals(scan, lambda i: i > 1)
         return next(overlap_generator, None) is None
 
     def _sage_input_(self, sib, coerced):

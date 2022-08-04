@@ -1309,8 +1309,7 @@ class RealSet(UniqueRepresentation, Parent, Set_base,
                 else:
                     raise ValueError(str(arg) + ' does not determine real interval')
 
-        scan = merge(*[[i._scan_lower(), i._scan_upper()] for i in intervals])
-        union_intervals = tuple(RealSet._scan_to_intervals(scan, lambda i: bool(i > 0)))
+        union_intervals = RealSet.normalize(intervals)
         return UniqueRepresentation.__classcall__(cls, *union_intervals, normalized=True)
 
     def __init__(self, *intervals, normalized=True):
@@ -1553,6 +1552,36 @@ class RealSet(UniqueRepresentation, Parent, Set_base,
         if x not in self:
             raise ValueError(f'{x} is not an element of {self}')
         return x
+
+    def normalize(intervals):
+        r"""
+        Bring a collection of intervals into canonical form
+
+        INPUT:
+
+        - ``intervals`` -- a list/tuple/iterable of intervals.
+
+        OUTPUT:
+
+        A tuple of intervals such that
+
+        * they are sorted in ascending order (by lower bound)
+
+        * there is a gap between each interval
+
+        * all intervals are non-empty
+
+        EXAMPLES::
+
+            sage: i1 = RealSet((0, 1))[0]
+            sage: i2 = RealSet([1, 2])[0]
+            sage: i3 = RealSet((2, 3))[0]
+            sage: RealSet.normalize([i1, i2, i3])
+            ((0, 3),)
+        """
+        scan = merge(*[[i._scan_lower(), i._scan_upper()] for i in intervals])
+        union_intervals = tuple(RealSet._scan_to_intervals(scan, lambda i: bool(i > 0)))
+        return union_intervals
 
     def _repr_(self):
         r"""

@@ -1171,7 +1171,7 @@ class RealSet(UniqueRepresentation, Parent, Set_base,
         """
         normalized = kwds.pop('normalized', False)
         if normalized:
-            # Fastpass: The input is already normalized: Args is a list of
+            # Fast path: The input is already normalized: Args is a list of
             # sorted and disjoint intervals of type InternalRealInterval.
             # No other kwds should be provided.
             return UniqueRepresentation.__classcall__(cls, *args, normalized=True)

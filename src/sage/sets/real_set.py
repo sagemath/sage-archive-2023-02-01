@@ -2622,8 +2622,7 @@ class RealSet(UniqueRepresentation, Parent, Set_base,
 
         OUTPUT:
 
-        Boolean. Whether the normalized form of ``self``
-        has a single connected component.
+        Boolean.
 
         EXAMPLES::
 

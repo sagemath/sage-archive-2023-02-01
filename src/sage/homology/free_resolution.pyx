@@ -1,23 +1,23 @@
-"""
+r"""
 Free resolutions
 
 The :class:`FreeResolution` implements a finite free resolution, which is a
 chain complex of free modules, terminating with a zero module at the end, whose
 homology groups are all zero.
 
-The class is intended to be subclassed for finite free resolutions in different
-subject areas. Thus :meth:`_repr_module` may be overrided by a subclass. See
-Examples below.
 
 EXAMPLES::
 
-    sage: from sage.homology.free_resolution import FreeResolution_generic
+    sage: from sage.homology.free_resolution import FreeResolution
     sage: S.<x,y,z,w> = PolynomialRing(QQ)
-    sage: m1 = matrix(S, 1, [z^2 - y*w, y*z - x*w, y^2 - x*z])
+    sage: m1 = matrix(S, 1, [z^2 - y*w, y*z - x*w, y^2 - x*z]).transpose()
     sage: m2 = matrix(S, 3, [-y, x, z, -y, -w, z])
-    sage: r = FreeResolution_generic(S, [m1, m2], name='S')
+    sage: r = FreeResolution(m1, name='S')
     sage: r
     S^1 <-- S^3 <-- S^2 <-- 0
+
+    sage: FreeResolution(m2, name='S')
+    S^2 <-- S^6 <-- S^5 <-- 0
 
 ::
 
@@ -58,7 +58,6 @@ An example of a minimal free resolution from [CLO2005]_::
 AUTHORS:
 
 - Kwankyu Lee (2022-05-13): initial version
-
 """
 
 # ****************************************************************************
@@ -77,9 +76,11 @@ from sage.libs.singular.function cimport Resolution, new_sage_polynomial, access
 from sage.libs.singular.function import singular_function
 from sage.structure.sequence import Sequence, Sequence_generic
 from sage.misc.cachefunc import cached_method
+from sage.misc.lazy_attribute import lazy_attribute
 from sage.matrix.constructor import matrix as _matrix
 from sage.matrix.matrix_mpolynomial_dense import Matrix_mpolynomial_dense
 from sage.modules.free_module_element import vector
+from sage.modules.free_module import FreeModule
 from sage.modules.free_module import Module_free_ambient
 from sage.rings.integer_ring import ZZ
 from sage.rings.ideal import Ideal_generic
@@ -88,14 +89,8 @@ from sage.structure.sage_object import SageObject
 
 
 class FreeResolution_generic(SageObject):
-    """
-    Base class of free resolutions.
-
-    INPUT:
-
-    - ``base_ring`` -- a ring
-
-    - ``maps`` -- list of matrices over the base ring
+    r"""
+    Abstract base class of finite free resolutions.
 
     The matrix at index `i` in the list defines the differential map from
     `(i+1)`-th free module to the `i`-th free module over the base ring by
@@ -104,21 +99,9 @@ class FreeResolution_generic(SageObject):
     define the ranks of the free modules in the resolution.
 
     Note that the first matrix in the list defines the differential map at
-    homological index `1`. A subclass can define ``_initial_differential``
-    attribute that contains the `0`-th differential map whose codomain is the
-    target of the free resolution.
+    homological index `1`.
 
     EXAMPLES::
-
-        sage: from sage.homology.free_resolution import FreeResolution_generic
-        sage: S.<x,y,z,w> = PolynomialRing(QQ)
-        sage: m1 = matrix(S, 1, [z^2 - y*w, y*z - x*w, y^2 - x*z])
-        sage: m2 = matrix(S, 3, [-y, x, z, -y, -w, z])
-        sage: r = FreeResolution_generic(S, [m1, m2], name='S')
-        sage: r
-        S^1 <-- S^3 <-- S^2 <-- 0
-
-    ::
 
         sage: from sage.homology.free_resolution import FreeResolution
         sage: P.<x,y,z,w> = PolynomialRing(QQ)
@@ -135,25 +118,49 @@ class FreeResolution_generic(SageObject):
         [ y*z - x*w]
         [-y^2 + x*z]
     """
-    def __init__(self, base_ring, maps, name='F'):
+    def __init__(self, base_ring, name='F'):
         """
         Initialize.
 
+        Subclasses must provide a ``_maps`` attribute that contains the
+        maps defining the resolution.
+
+        A subclass can define ``_initial_differential`` attribute that
+        contains the `0`-th differential map whose codomain is the target
+        of the free resolution.
+
+        INPUT:
+
+        - ``base_ring`` -- a ring
+
         TESTS::
 
-            sage: from sage.homology.free_resolution import FreeResolution_generic
+            sage: from sage.homology.free_resolution import FreeResolution
             sage: S.<x,y,z,w> = PolynomialRing(QQ)
             sage: m1 = matrix(S, 1, [z^2 - y*w, y*z - x*w, y^2 - x*z])
-            sage: m2 = matrix(S, 3, [-y, x, z, -y, -w, z])
-            sage: r = FreeResolution_generic(S, [m1, m2], name='S')
+            sage: r = FreeResolution(m1, name='S')
             sage: TestSuite(r).run(skip=['_test_pickling'])
         """
-        self.__base_ring = base_ring
-        self.__maps = maps
-        self.__name = name
-        self.__length = len(maps)
+        self._base_ring = base_ring
+        self._name = name
 
-    def __repr__(self):
+    @lazy_attribute
+    def _length(self):
+        """
+        The length of ``self``.
+
+        TESTS::
+
+            sage: from sage.homology.free_resolution import FreeResolution
+            sage: P.<x,y,z,w> = PolynomialRing(QQ)
+            sage: I = P.ideal([y*w - z^2, -x*w + y*z, x*z - y^2])
+            sage: r = FreeResolution(I)
+            sage: r._length
+            2
+        """
+        return len(self._maps)
+
+    def _repr_(self):
         """
         Return the string form of this resolution.
 
@@ -171,13 +178,13 @@ class FreeResolution_generic(SageObject):
             S(0) <-- S(-2)⊕S(-2)⊕S(-2) <-- S(-3)⊕S(-3) <-- 0
         """
         s = self._repr_module(0)
-        for i in range(1, self.__length + 1):
+        for i in range(1, self._length + 1):
             s += ' <-- ' + self._repr_module(i)
         s += ' <-- 0'
         return s
 
     def _repr_module(self, i):
-        """
+        r"""
         Return the string form of the `i`-th free module.
 
         INPUT:
@@ -186,30 +193,31 @@ class FreeResolution_generic(SageObject):
 
         EXAMPLES::
 
-            sage: from sage.homology.free_resolution import FreeResolution_generic
+            sage: from sage.homology.free_resolution import FreeResolution
             sage: S.<x,y,z,w> = PolynomialRing(QQ)
-            sage: m1 = matrix(S, 1, [z^2 - y*w, y*z - x*w, y^2 - x*z])
-            sage: m2 = matrix(S, 3, [-y, x, z, -y, -w, z])
-            sage: r = FreeResolution_generic(S, [m1, m2], name='S')
+            sage: m = matrix(S, 1, [y*w - z^2, -x*w + y*z, x*z - y^2])
+            sage: r = FreeResolution(m.transpose(), name='S')
+            sage: r._repr_module(2)
+            'S^2'
             sage: r  # indirect doctest
             S^1 <-- S^3 <-- S^2 <-- 0
         """
         if i == 0:
-            r = self.__maps[0].nrows()
-            s = f'{self.__name}^{r}'
+            r = self._maps[0].nrows()
+            s = f'{self._name}^{r}'
             return s
-        elif i > self.__length:
+        elif i > self._length:
             s = '0'
         else:
-            r = self.__maps[i - 1].ncols()
+            r = self._maps[i - 1].ncols()
             if r > 0:
-                s = f'{self.__name}^{r}'
+                s = f'{self._name}^{r}'
             else:
                 s = '0'
         return s
 
     def __len__(self):
-        """
+        r"""
         Return the length of this resolution.
 
         The length of a free resolution is the index of the last nonzero free module.
@@ -225,11 +233,11 @@ class FreeResolution_generic(SageObject):
             sage: len(r)
             2
         """
-        return self.__length
+        return len(self._maps)
 
     def __getitem__(self, i):
-        """
-        Return the `i`-th free module of this resolution.
+        r"""
+        Return the ``i``-th free module of this resolution.
 
         INPUT:
 
@@ -253,17 +261,17 @@ class FreeResolution_generic(SageObject):
        """
         if i < 0:
             raise IndexError('invalid index')
-        elif i > self.__length:
-            F = (self.__base_ring)**0
-        elif i == self.__length:
-            F = (self.__base_ring)**(self.__maps[i - 1].ncols())
+        elif i > self._length:
+            F = FreeModule(self._base_ring, 0)
+        elif i == self._length:
+            F = FreeModule(self._base_ring, self._maps[i - 1].ncols())
         else:
-            F = (self.__base_ring)**(self.__maps[i].nrows())
+            F = FreeModule(self._base_ring, self._maps[i].nrows())
         return F
 
     def differential(self, i):
-        """
-        Return the matrix representing the `i`-th differential map.
+        r"""
+        Return the matrix representing the ``i``-th differential map.
 
         INPUT:
 
@@ -318,23 +326,23 @@ class FreeResolution_generic(SageObject):
                 return self._initial_differential
             except AttributeError:
                 raise ValueError('0th differential map undefined')
-        elif i == self.__length + 1:
-            s = (self.__base_ring)**0
-            t = (self.__base_ring)**(self.__maps[i - 2].ncols())
+        elif i == self._length + 1:
+            s = FreeModule(self._base_ring, 0)
+            t = FreeModule(self._base_ring, self._maps[i - 2].ncols())
             m = s.hom(0, t)
-        elif i > self.__length + 1:
-            s = (self.__base_ring)**0
-            t = (self.__base_ring)**0
+        elif i > self._length + 1:
+            s = FreeModule(self._base_ring, 0)
+            t = FreeModule(self._base_ring, 0)
             m = s.hom(0, t)
         else:
-            s = (self.__base_ring)**(self.__maps[i - 1].ncols())
-            t = (self.__base_ring)**(self.__maps[i - 1].nrows())
-            m = s.hom(self.__maps[i - 1], t, side='right')
+            s = FreeModule(self._base_ring, self._maps[i - 1].ncols())
+            t = FreeModule(self._base_ring, self._maps[i - 1].nrows())
+            m = s.hom(self._maps[i - 1], t, side='right')
         return m
 
     def target(self):
-        """
-        Return the codomain of the 0-th differential map.
+        r"""
+        Return the codomain of the ``0``-th differential map.
 
         EXAMPLES::
 
@@ -355,8 +363,8 @@ class FreeResolution_generic(SageObject):
         return self.differential(0).codomain()
 
     def matrix(self, i):
-        """
-        Return the matrix representing the `i`-th differential map.
+        r"""
+        Return the matrix representing the ``i``-th differential map.
 
         INPUT:
 
@@ -380,14 +388,14 @@ class FreeResolution_generic(SageObject):
             [z^2 - y*w y*z - x*w y^2 - x*z]
         """
         if i <= 0:
-            raise IndexError(f'invalid index')
-        elif i <= self.__length:
-            return self.__maps[i - 1]
+            raise IndexError('invalid index')
+        elif i <= self._length:
+            return self._maps[i - 1]
         else:
             return self.differential(i).matrix()
 
     def chain_complex(self):
-        """
+        r"""
         Return this resolution as a chain complex.
 
         A chain complex in Sage has its own useful methods.
@@ -406,22 +414,20 @@ class FreeResolution_generic(SageObject):
         """
         from sage.homology.chain_complex import ChainComplex
         mats = {}
-        for i in range(self.__length, 0, -1):
+        for i in range(self._length, 0, -1):
             mats[i] = self.matrix(i)
         return ChainComplex(mats, degree_of_differential=-1)
 
 
 class FreeResolution(FreeResolution_generic):
-    """
+    r"""
     Minimal free resolutions of ideals of multivariate polynomial rings.
 
     INPUT:
 
     - ``ideal`` -- a homogeneous ideal of a multi-variate polynomial ring or
       a submodule of a free module `M` of rank `n` over `S`
-
     - ``name`` -- a string; name of the base ring
-
     - ``algorithm`` -- Singular algorithm to compute a resolution of ``ideal``
 
     OUTPUT: a minimal free resolution of the ideal
@@ -459,6 +465,23 @@ class FreeResolution(FreeResolution_generic):
         S^1 <-- S^3 <-- S^2 <-- 0
         sage: FreeResolution(I, algorithm='heuristic')
         S^1 <-- S^3 <-- S^2 <-- 0
+
+    We can also construct a resolution by passing in a matrix defining
+    the initial differential::
+
+        sage: m = matrix(P, 1, [z^2 - y*w, y*z - x*w, y^2 - x*z]).transpose()
+        sage: r = FreeResolution(m, name='S')
+        sage: r
+        S^1 <-- S^3 <-- S^2 <-- 0
+        sage: r.matrix(1)
+        [z^2 - y*w y*z - x*w y^2 - x*z]
+
+    An additional construction is using a submodule of a free module::
+
+        sage: M = m.image()
+        sage: r = FreeResolution(M, name='S')
+        sage: r
+        S^1 <-- S^3 <-- S^2 <-- 0
     """
     def __init__(self, ideal, name='S', algorithm='heuristic'):
         """
@@ -471,60 +494,106 @@ class FreeResolution(FreeResolution_generic):
             sage: I = P.ideal([y*w - z^2, -x*w + y*z, x*z - y^2])
             sage: r = FreeResolution(I)
             sage: TestSuite(r).run(skip=['_test_pickling'])
+
+            sage: m = matrix(P, 1, [z^2 - y*w, y*z - x*w, y^2 - x*z]).transpose()
+            sage: r = FreeResolution(m, name='S')
+            sage: TestSuite(r).run(skip=['_test_pickling'])
+
+            sage: M = m.image()
+            sage: r = FreeResolution(M, name='S')
+            sage: TestSuite(r).run(skip=['_test_pickling'])
         """
         if isinstance(ideal, Ideal_generic):
             S = ideal.ring()
-            m = ideal
-            rank = 1
         elif isinstance(ideal, Module_free_ambient):
             S = ideal.base_ring()
-            m = ideal.matrix().transpose()
-            rank = m.nrows()
         elif isinstance(ideal, Matrix_mpolynomial_dense):
             S = ideal.base_ring()
-            m = ideal.transpose()
-            rank = ideal.ncols()
         else:
             raise TypeError('no ideal, module, or matrix')
 
-        nvars = S.ngens()
+        self._ideal = ideal
+        self._algorithm = algorithm
+        super().__init__(S, name=name)
 
+    def _m(self):
+        """
+        The attribute ``m``.
+
+        TESTS::
+
+            sage: from sage.homology.free_resolution import FreeResolution
+            sage: P.<x,y,z,w> = PolynomialRing(QQ)
+            sage: I = P.ideal([y*w - z^2, -x*w + y*z, x*z - y^2])
+            sage: r = FreeResolution(I)
+            sage: r._m()
+            Ideal (-z^2 + y*w, y*z - x*w, -y^2 + x*z) of Multivariate Polynomial Ring in x, y, z, w over Rational Field
+
+            sage: m = matrix(P, 1, [z^2 - y*w, y*z - x*w, y^2 - x*z]).transpose()
+            sage: r = FreeResolution(m, name='S')
+            sage: r._m()
+            [z^2 - y*w y*z - x*w y^2 - x*z]
+
+            sage: M = m.image()
+            sage: r = FreeResolution(M, name='S')
+            sage: r._m()
+            [z^2 - y*w y*z - x*w y^2 - x*z]
+        """
+        if isinstance(self._ideal, Ideal_generic):
+            return self._ideal
+        if isinstance(self._ideal, Module_free_ambient):
+            return self._ideal.matrix().transpose()
+        if isinstance(self._ideal, Matrix_mpolynomial_dense):
+            return self._ideal.transpose()
+
+    @lazy_attribute
+    def _maps(self):
+        """
+        Return the maps that define ``self``.
+
+        TESTS::
+
+            sage: from sage.homology.free_resolution import FreeResolution
+            sage: P.<x,y,z,w> = PolynomialRing(QQ)
+            sage: I = P.ideal([y*w - z^2, -x*w + y*z, x*z - y^2])
+            sage: r = FreeResolution(I)
+            sage: r._maps
+            [
+                                             [-y  x]
+                                             [ z -y]
+            [z^2 - y*w y*z - x*w y^2 - x*z], [-w  z]
+            ]
+        """
         # This ensures the first component of the Singular resolution to be a
         # module, like the later components. This is important when the
         # components are converted to Sage modules.
         module = singular_function("module")
-        mod = module(m)
+        mod = module(self._m())
 
-        if algorithm == 'minimal':
+        if self._algorithm == 'minimal':
             mres = singular_function('mres')  # syzygy method
             r = mres(mod, 0)
-        elif algorithm == 'shreyer':
+        elif self._algorithm == 'shreyer':
             std = singular_function('std')
             sres = singular_function('sres')  # Shreyer method
             minres = singular_function('minres')
             r = minres(sres(std(mod), 0))
-        elif algorithm == 'standard':
+        elif self._algorithm == 'standard':
             nres = singular_function('nres')  # standard basis method
             minres = singular_function('minres')
             r = minres(nres(mod, 0))
-        elif algorithm == 'heuristic':
+        elif self._algorithm == 'heuristic':
             std = singular_function('std')
             res = singular_function('res')    # heuristic method
             minres = singular_function('minres')
             r = minres(res(std(mod), 0))
 
-        res_mats = to_sage_resolution(r)
+        return to_sage_resolution(r)
 
-        super().__init__(S, res_mats, name=name)
-
-        self._ideal = ideal
-        self._name = name
-
-    @property
-    @cached_method
+    @lazy_attribute
     def _initial_differential(self):
-        """
-        Defines the `0`-th differential map of this resolution.
+        r"""
+        Define the `0`-th differential map of this resolution.
 
         EXAMPLES::
 
@@ -546,7 +615,7 @@ class FreeResolution(FreeResolution_generic):
         ideal = self._ideal
         if isinstance(ideal, Ideal_generic):
             S = ideal.ring()
-            M = S**1
+            M = FreeModule(S, 1)
             N = M.submodule([vector([g]) for g in ideal.gens()])
         elif isinstance(ideal, Module_free_ambient):
             S = ideal.base_ring()
@@ -561,7 +630,7 @@ class FreeResolution(FreeResolution_generic):
 
 
 cdef singular_monomial_exponents(poly *p, ring *r):
-    """
+    r"""
     Return the list of exponents of monomial ``p``.
     """
     cdef int v
@@ -572,7 +641,7 @@ cdef singular_monomial_exponents(poly *p, ring *r):
     return ml
 
 cdef to_sage_resolution(Resolution res):
-    """
+    r"""
     Pull the data from Singular resolution ``res`` to construct a Sage
     resolution.
 
@@ -580,7 +649,7 @@ cdef to_sage_resolution(Resolution res):
 
     - ``res`` -- Singular resolution
 
-    The procedure is destructive, and ``res`` is not usable afterward.
+    The procedure is destructive and ``res`` is not usable afterward.
     """
     cdef ring *singular_ring
     cdef syStrategy singular_res
@@ -615,7 +684,7 @@ cdef to_sage_resolution(Resolution res):
         if mod == NULL:
             break
         rank = mod.rank
-        free_module = sage_ring ** rank
+        free_module = FreeModule(sage_ring, rank)
 
         nrows = rank
         ncols = mod.ncols # IDELEMS(mod)
@@ -665,3 +734,4 @@ cdef to_sage_resolution(Resolution res):
         res_mats.append(mat)
 
     return res_mats
+

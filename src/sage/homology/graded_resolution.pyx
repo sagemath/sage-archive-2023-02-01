@@ -91,6 +91,7 @@ from sage.libs.singular.function cimport Resolution, new_sage_polynomial, access
 from sage.libs.singular.function import singular_function
 from sage.structure.sequence import Sequence, Sequence_generic
 from sage.misc.cachefunc import cached_method
+from sage.misc.lazy_attribute import lazy_attribute
 from sage.matrix.constructor import matrix as _matrix
 from sage.matrix.matrix_mpolynomial_dense import Matrix_mpolynomial_dense
 from sage.modules.free_module_element import vector
@@ -163,28 +164,20 @@ class GradedFreeResolution(FreeResolution):
             sage: r = GradedFreeResolution(I)
             sage: TestSuite(r).run(skip=['_test_pickling'])
         """
-        cdef int i, j, k, ncols, nrows
-        cdef list res_shifts, prev_shifts, new_shifts
+        super().__init__(ideal, name=name, algorithm=algorithm)
 
-        if isinstance(ideal, Ideal_generic):
-            S = ideal.ring()
-            m = ideal
+        nvars = self._base_ring.ngens()
+
+        if isinstance(self._ideal, Ideal_generic):
             rank = 1
-        elif isinstance(ideal, Module_free_ambient):
-            S = ideal.base_ring()
+        elif isinstance(self._ideal, Module_free_ambient):
             m = ideal.matrix().transpose()
-            rank = m.nrows()
-        elif isinstance(ideal, Matrix_mpolynomial_dense):
-            S = ideal.base_ring()
-            m = ideal.transpose()
-            rank = ideal.ncols()
-        else:
-            raise TypeError('no ideal, module, or matrix')
-
-        nvars = S.ngens()
+            rank = self._m().nrows()
+        elif isinstance(self._ideal, Matrix_mpolynomial_dense):
+            rank = self._ideal.ncols()
 
         if degrees is None:
-            degrees = nvars*[1]  # standard grading
+            degrees = nvars * [1]  # standard grading
 
         if len(degrees) != nvars:
             raise ValueError('the length of degrees does not match the number of generators')
@@ -197,38 +190,68 @@ class GradedFreeResolution(FreeResolution):
             zero_deg = degrees[0].parent().zero()
             multigrade = True
 
+        if shifts is None:
+            shifts = rank * [zero_deg]
+
+        self._shifts = shifts
+        self._degrees = degrees
+        self._multigrade = multigrade
+        self._zero_deg = zero_deg
+
+    @lazy_attribute
+    def _maps(self):
+        """
+        The maps that define ``self``.
+
+        This also sets the attribute ``_res_shifts``.
+
+        TESTS::
+
+            sage: from sage.homology.graded_resolution import GradedFreeResolution
+            sage: S.<x,y,z,w> = PolynomialRing(QQ)
+            sage: I = S.ideal([y*w - z^2, -x*w + y*z, x*z - y^2])
+            sage: r = GradedFreeResolution(I)
+            sage: r._maps
+            [
+                                             [-y  x]
+                                             [ z -y]
+            [z^2 - y*w y*z - x*w y^2 - x*z], [-w  z]
+            ]
+        """
+        cdef int i, j, k, ncols, nrows
+        cdef list res_shifts, prev_shifts, new_shifts
+
+        S = self._base_ring
+
         # This ensures the first component of the Singular resolution to be a
         # module, like the later components. This is important when the
         # components are converted to Sage modules.
         module = singular_function("module")
-        mod = module(m)
+        mod = module(self._m())
 
-        if shifts is None:
-            shifts = rank*[zero_deg]
-
-        if algorithm == 'minimal':
+        if self._algorithm == 'minimal':
             mres = singular_function('mres')  # syzygy method
             r = mres(mod, 0)
-        elif algorithm == 'shreyer':
+        elif self._algorithm == 'shreyer':
             std = singular_function('std')
             sres = singular_function('sres')  # Shreyer method
             minres = singular_function('minres')
             r = minres(sres(std(mod), 0))
-        elif algorithm == 'standard':
+        elif self._algorithm == 'standard':
             nres = singular_function('nres')  # standard basis method
             minres = singular_function('minres')
             r = minres(nres(mod, 0))
-        elif algorithm == 'heuristic':
+        elif self._algorithm == 'heuristic':
             std = singular_function('std')
             res = singular_function('res')    # heuristic method
             minres = singular_function('minres')
             r = minres(res(std(mod), 0))
 
-        res_mats, res_degs = to_sage_resolution_graded(r, degrees)
+        res_mats, res_degs = to_sage_resolution_graded(r, self._degrees)
 
         # compute shifts of free modules in the resolution
         res_shifts = []
-        prev_shifts = list(shifts)
+        prev_shifts = list(self._shifts)
         for k in range(len(res_degs)):
             new_shifts = []
             degs = res_degs[k]
@@ -247,15 +270,8 @@ class GradedFreeResolution(FreeResolution):
             res_shifts.append(new_shifts)
             prev_shifts = new_shifts
 
-        super(FreeResolution, self).__init__(S, res_mats, name=name)
-
-        self._ideal = ideal
-        self._shifts = shifts
-        self._degrees = degrees
         self._res_shifts = res_shifts
-        self._multigrade = multigrade
-        self._zero_deg = zero_deg
-        self._name = name
+        return res_mats
 
     def _repr_module(self, i):
         """
@@ -274,6 +290,7 @@ class GradedFreeResolution(FreeResolution):
             sage: r._repr_module(3)
             '0'
         """
+        self._maps  # to set _res_shifts
         if i > len(self):
             m = '0'
         else:
@@ -319,6 +336,7 @@ class GradedFreeResolution(FreeResolution):
         elif i > len(self):
             shifts = []
         else:
+            self._maps  # to set _res_shifts
             shifts = self._res_shifts[i - 1]
 
         return shifts
@@ -397,6 +415,7 @@ class GradedFreeResolution(FreeResolution):
 
         kpoly = 1
         sign = -1
+        self._maps  # to set _res_shifts
         for j in range(len(self)):
             for v in self._res_shifts[j]:
                 if self._multigrade:
@@ -416,7 +435,6 @@ cdef to_sage_resolution_graded(Resolution res, degrees):
     INPUT:
 
     - ``res`` -- Singular resolution
-
     - ``degrees`` -- list of integers or integer vectors
 
     The procedure is destructive, and ``res`` is not usable afterward.

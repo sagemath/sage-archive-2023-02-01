@@ -1013,13 +1013,18 @@ class SkewTableau(ClonableList,
                 P_left = None
 
             # get the next cell
-            if P_left > P_up:
-                new_st[i][j] = P_left
-                i, j = (i, j-1)
-            else:  # if they are equal, we slide up
-                new_st[i][j] = P_up
-                i, j = (i-1, j)
-
+            try:
+                if P_left > P_up:
+                    new_st[i][j] = P_left
+                    i, j = (i, j-1)
+                else:  # if they are equal, we slide up
+                    new_st[i][j] = P_up
+                    i, j = (i-1, j)
+            except TypeError:
+                # if the addition of the original corner
+                # is automatically a skew partition, just
+                # return it.
+                break
         # We don't need to reset the intermediate cells inside the loop
         # because the conditional above will continue to overwrite it until
         # the while loop terminates. We do need to reset it at the end.

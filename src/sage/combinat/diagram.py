@@ -58,6 +58,8 @@ from sage.combinat.permutation import Permutation
 from sage.structure.unique_representation import UniqueRepresentation
 from sage.structure.list_clone import ClonableArray
 from sage.structure.parent import Parent
+from sage.combinat.tableau import Tableau
+from sage.combinat.skew_tableau import SkewTableaux
 
 class Diagram(ClonableArray):
     r"""
@@ -109,6 +111,8 @@ class Diagram(ClonableArray):
         self._cells = {c: True for c in cells}
         self._n_rows = kwargs.pop('n_rows', max(c[0] for c in self._cells) + 1)
         self._n_cols = kwargs.pop('n_cols', max(c[1] for c in self._cells) + 1)
+        self._n_nonempty_rows = len(set(i for i in self._cells))
+        self._n_nonempty_cols = len(set(j for j in self._cells))
 
         ClonableArray.__init__(self, Diagrams(), cells, check=False)
 
@@ -343,6 +347,64 @@ class NorthwestDiagram(Diagram):
         assert all((min(i1,i2), min(j1,j2)) in self
                     for (i1, j1), (i2, j2) in combinations(self._cells, 2))
 
+    def peelable_tableaux(self):
+        r"""
+        Given a northwest diagram `D`, a tableau `T` is said to be
+        `D`-peelable if...
+
+        EXAMPLES:
+
+        If the diagram is only one column, there is only one peelable tableau
+
+            sage: from sage.combinat.diagram import NorthwestDiagram
+            sage: NWD = NorthwestDiagram([(0,0), (2,0)])
+            sage: NWD.peelable_tableaux()
+            {[[0], [2]]}
+
+        .. ALGORITHM::
+
+            This implementation uses the algorithm suggested in remark 25
+            of [...]_.
+        """
+        # if there is a single column in the diagram then there is only
+        # one posslbe peelable tableau.
+        if self._n_nonempty_cols == 1:
+            return {Tableau([[i+1] for i,j in self._cells])}
+
+        first_col = min(j for i,j in self._cells)
+
+        # get the diagram without the first column
+        Dhat = NorthwestDiagram([c for c in self._cells if c[1] != first_col])
+
+        k = self.n_cells() - Dhat.n_cells()
+
+        peelables = set()
+
+        for Q in Dhat.peelable_tableaux():
+            print(Q)
+            # get the vertical strips
+            mu = Q.shape()
+            vertical_strips = mu.add_vertical_border_strip(k)
+            for s in vertical_strips:
+                sQ = SkewTableaux()(Q)  # sQ is skew - get it?
+                new_cells = (s/mu).cells()
+
+                # perform the jeu de taquin slides
+                for c in new_cells:
+                    sQ = sQ.backward_slide(c)
+                    print(sQ)
+
+                # create the new tableau by filling the columns
+                sQ_new = sQ.to_list()
+                for n, (i, j) in enumerate(sQ.cells_containing(None)):
+                    sQ_new[i][j] = n + 1
+
+                T = Tableau(sQ_new)
+                if T.is_column_strict():
+                    peelables.add(T)
+
+        return peelables
+
 class NorthwestDiagrams(Diagrams):
     r"""
     The class of northwest diagrams.
@@ -412,6 +474,8 @@ class NorthwestDiagrams(Diagrams):
             . O O .
             . O . .
             . . . O
+            sage: NWD.parent() is NWDgms
+            True
         """
         return self([(0, 1), (0, 2), (1, 1), (2, 3)])
 

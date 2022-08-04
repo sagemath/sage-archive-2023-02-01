@@ -3605,7 +3605,7 @@ class EllipticCurvePoint_finite_field(EllipticCurvePoint_field):
             raise ValueError('ECDLog problem has no solution (order of Q does not divide order of P)')
         E = self.curve()
         p = E.base_ring().cardinality()
-        if n == p:
+        if n == p and n.is_prime():
             # Anomalous case
             return self.padic_elliptic_logarithm(Q, p)
         elif hasattr(E, '_order') and E._order.gcd(n**2) == n:

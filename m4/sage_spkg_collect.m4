@@ -172,7 +172,7 @@ AC_DEFUN([SAGE_SPKG_FINALIZE], [dnl
     m4_case(SPKG_SOURCE,
       [normal], [dnl
         m4_define([in_sdist], [yes])dnl
-      ], [dnl pip/script/none (dummy script package)
+      ], [dnl pip/script/none (dummy package)
         dnl Since pip packages are downloaded and installed by pip, we do not
         dnl include them in the source tarball. At the time of this writing,
         dnl all pip packages are optional.

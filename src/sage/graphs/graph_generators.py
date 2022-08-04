@@ -245,6 +245,7 @@ __append_to_doc(
      "GeneralisedHexagonGraph",
      "GeneralisedOctagonGraph",
      "GeneralizedPetersenGraph",
+     "GeneralizedSierpinskiGraph",
      "GoethalsSeidelGraph",
      "GrassmannGraph",
      "HalfCube",
@@ -791,12 +792,14 @@ class GraphGenerators():
                 def property(x):
                     D = sorted(x.degree())
                     return all(degree_sequence[i] >= d for i, d in enumerate(D))
+
                 def extra_property(x):
                     return degree_sequence == sorted(x.degree())
             else:
                 def property(x):
                     D = sorted(x.degree() + [0] * (vertices - x.num_verts()))
                     return all(degree_sequence[i] >= d for i, d in enumerate(D))
+
                 def extra_property(x):
                     if x.num_verts() != vertices:
                         return False
@@ -2488,6 +2491,7 @@ class GraphGenerators():
     GeneralisedHexagonGraph = staticmethod(distance_regular.GeneralisedHexagonGraph)
     GeneralisedOctagonGraph = staticmethod(distance_regular.GeneralisedOctagonGraph)
     GeneralizedPetersenGraph = staticmethod(families.GeneralizedPetersenGraph)
+    GeneralizedSierpinskiGraph = staticmethod(families.GeneralizedSierpinskiGraph)
     GoethalsSeidelGraph    = staticmethod(families.GoethalsSeidelGraph)
     GrassmannGraph         = staticmethod(distance_regular.GrassmannGraph)
     HalfCube               = staticmethod(distance_regular.HalfCube)

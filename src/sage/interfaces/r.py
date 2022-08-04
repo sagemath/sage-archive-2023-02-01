@@ -343,7 +343,7 @@ def _setup_r_to_sage_converter():
         sage: r.options(width="60").sage()  # optional - rpy2
         {'DATA': {'width': 60}, '_Names': 'width'}
 
-    The conversion can handle "not a number", infintiy, imaginary values and
+    The conversion can handle "not a number", infinity, imaginary values and
     missing values::
 
         sage: r(-17).sqrt().sage()  # optional - rpy2

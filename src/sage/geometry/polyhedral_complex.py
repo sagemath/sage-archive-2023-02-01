@@ -723,6 +723,15 @@ class PolyhedralComplex(GenericCellComplex):
         """
         Return a plot of the polyhedral complex, if it is of dim at most 3.
 
+        INPUT:
+
+        - ``explosion_factor`` -- (default: 0) if positive, separate the cells of
+          the complex by extra space. See :func:`exploded_rainbow_plot` for
+          additional keyword arguments that can be passed in this case.
+
+        - other keyword arguments are passed on to
+          :meth:`~sage.geometry.polyhedron.base.Polyhedron_base.plot`.
+
         EXAMPLES::
 
             sage: p1 = Polyhedron(vertices=[(1, 1), (0, 0), (1, 2)])
@@ -733,6 +742,8 @@ class PolyhedralComplex(GenericCellComplex):
         """
         if self.dimension() > 3:
             raise ValueError("cannot plot in high dimension")
+        if kwds.get('explosion_factor', 0):
+            return exploded_rainbow_plot(self.maximal_cell_iterator(), **kwds)
         return sum(cell.plot(**kwds) for cell in self.maximal_cell_iterator())
 
     def is_pure(self):
@@ -2433,3 +2444,79 @@ def cells_list_to_cells_dict(cells_list):
         else:
             cells_dict[d] = set([cell])
     return cells_dict
+
+
+def exploded_rainbow_plot(polyhedra, *,
+                          center=None, explosion_factor=1, sticky_vertices=False,
+                          sticky_center=True, point=None, **kwds):
+    r"""
+    Return a plot of several ``polyhedra`` in one figure with extra space between them.
+
+    INPUT:
+
+    - ``polyhedra`` -- an iterable of :class:`~sage.geometry.polyhedron.base.Polyhedron_base` objects
+
+    - keyword arguments: see :meth:`~sage.geometry.polyhedral_complex.PolyhedralComplex.plot`
+
+    EXAMPLES::
+
+        sage: from sage.geometry.polyhedral_complex import exploded_rainbow_plot
+        sage: p1 = Polyhedron(vertices=[(1, 1), (0, 0), (1, 2)])
+        sage: p2 = Polyhedron(vertices=[(1, 2), (0, 0), (0, 2)])
+        sage: p3 = Polyhedron(vertices=[(0, 0), (1, 1), (2, 0)])
+        sage: exploded_rainbow_plot([p1, p2, p3])
+        Graphics object consisting of 20 graphics primitives
+        sage: exploded_rainbow_plot([p1, p2, p3], center=(1, 1))
+        Graphics object consisting of 19 graphics primitives
+        sage: exploded_rainbow_plot([p1, p2, p3], center=(1, 1), sticky_vertices=True)
+        Graphics object consisting of 23 graphics primitives
+    """
+    from sage.plot.colors import rainbow
+    from sage.plot.graphics import Graphics
+    from sage.plot.line import line
+    from sage.plot.point import point as plot_point
+    import itertools
+
+    polyhedra = list(polyhedra)
+    g = Graphics()
+    if not polyhedra:
+        return g
+    dim = polyhedra[0].ambient_dimension()
+    if center is None:
+        from sage.rings.rational_field import QQ
+        center = vector(QQ, dim)
+    else:
+        center = vector(center)
+    translations = [explosion_factor * (p.center() - center)
+                    for p in polyhedra]
+    vertex_translations_dict = {}
+    for P, t in zip(polyhedra, translations):
+        for v in P.vertices():
+            v = v.vector()
+            v.set_immutable()
+            vertex_translations_dict[v] = vertex_translations_dict.get(v, [])
+            vertex_translations_dict[v].append(v + t)
+    if sticky_vertices or sticky_center:
+        for vertex, vertex_translations in vertex_translations_dict.items():
+            if vertex == center:
+                if sticky_center:
+                    for vt in vertex_translations:
+                        g += line((center, vt), color='gray')
+            else:
+                if sticky_vertices:
+                    for vt1, vt2 in itertools.combinations(vertex_translations, 2):
+                        g += line((vt1, vt2), color='gray')
+
+    if point is None:
+        point = dict(size=1.5)
+    if point is not False:
+        vertex_colors_dict = {vertex: color
+                              for vertex, color in zip(vertex_translations_dict.keys(),
+                                                       rainbow(len(vertex_translations_dict.keys())))}
+        for vertex, vertex_translations in vertex_translations_dict.items():
+            g += plot_point(vertex_translations,
+                            color=vertex_colors_dict[vertex],
+                            alpha=0.5, **point)
+
+    return g + sum((p + t).plot(alpha=0.5, point=False, color=color, **kwds)
+                   for p, t, color in zip(polyhedra, translations, rainbow(len(polyhedra))))

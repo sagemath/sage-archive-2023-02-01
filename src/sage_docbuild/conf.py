@@ -266,9 +266,9 @@ if PythonModule("furo").is_present():
     # Add siderbar/home.html to the default sidebar.
     html_sidebars = {
         "**": [
+            "sidebar/scroll-start.html",
             "sidebar/brand.html",
             "sidebar/search.html",
-            "sidebar/scroll-start.html",
             "sidebar/home.html",
             "sidebar/navigation.html",
             "sidebar/ethical-ads.html",

@@ -713,7 +713,7 @@ def discrete_log(a, base, ord=None, bounds=None, operation='*', identity=None, i
         sage: discrete_log(a, b)
         20
         sage: b = Mod(2,997);  a = b^20
-        sage: discrete_log(a, b)
+        sage: discrete_log(a, b, bounds=(10, 100))
         20
 
         sage: K = GF(3^6,'b')
@@ -797,7 +797,7 @@ def discrete_log(a, base, ord=None, bounds=None, operation='*', identity=None, i
         sage: discrete_log(a, b, algorithm='rho')
         20
         sage: b = Mod(2,997);  a = b^20
-        sage: discrete_log(a, b, algorithm='rho')
+        sage: discrete_log(a, b, algorithm='rho', bounds=(10, 100))
         20
 
         sage: K = GF(3^6,'b')
@@ -869,21 +869,35 @@ def discrete_log(a, base, ord=None, bounds=None, operation='*', identity=None, i
             raise ValueError
         f = ord.factor()
         l = [0] * len(f)
+        mods = []
         running_mod = 1
+        offset = 0
+        bound = ord - 1  # to avoid putting extra if statements everywhere
+        if bounds:
+            a = mult(a, power(base, -lb))
+            offset = lb
+            bound = ub - lb
         for i, (pi, ri) in enumerate(f):
+            running_bound = min(bound, pi ** ri)
             for j in range(ri):
+                temp_bound = min(running_bound, pi)
                 gamma = power(base, ord // pi)
                 h = power(mult(a, power(base, -l[i])), ord // pi**(j + 1))
                 if algorithm == 'bsgs':
-                    c = bsgs(gamma, h, (0, pi), inverse=inverse, identity=identity, op=op, operation=operation)
+                    c = bsgs(gamma, h, (0, temp_bound), inverse=inverse, identity=identity, op=op, operation=operation)
                 elif algorithm == 'rho':
                     c = discrete_log_rho(h, gamma, ord=pi, inverse=inverse, identity=identity, op=op, operation=operation)
                 l[i] += c * (pi**j)
-            running_mod*=pi**ri
-            if(bounds and running_mod>ub):
-                break # we have log%running_mod. if we know that log<running_mod, then we have the value of log.
+                running_bound //= pi
+                running_mod *= pi
+                if running_mod > bound:
+                    break
+            mods.append(pi ** (j+1))
+            if running_mod > bound:
+                break  # we have log%running_mod. if we know that log<running_mod, then we have the value of log.
+        l = l[:i + 1]
         from sage.arith.all import CRT_list
-        return CRT_list(l, [pi**ri for pi, ri in f[:len(l)]])
+        return (CRT_list(l, mods) + offset) % ord
     except ValueError:
         raise ValueError("no discrete log of %s found to base %s" % (a, base))
 

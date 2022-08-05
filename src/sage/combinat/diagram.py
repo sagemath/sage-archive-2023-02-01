@@ -54,7 +54,7 @@ AUTHORS:
 from sage.categories.sets_cat import Sets
 from sage.sets.non_negative_integers import NonNegativeIntegers as NN
 from sage.combinat.partition import Partition
-from sage.combinat.permutation import Permutation
+from sage.combinat.permutation import Permutations
 from sage.structure.unique_representation import UniqueRepresentation
 from sage.structure.list_clone import ClonableArray
 from sage.structure.parent import Parent
@@ -588,3 +588,25 @@ class NorthwestDiagrams(Diagrams):
 
 
     Element = NorthwestDiagram
+
+def RotheDiagram(w):
+    r"""
+    A constructor to build the Rothe diagram of a permutation w as an element
+    in the parent of :class:`NorthwestDiagrams`.
+
+    EXAMPLES::
+
+        sage: w = Permutations(9)([1, 7, 4, 5, 9, 3, 2, 8, 6])
+        sage: from sage.combinat.diagram import RotheDiagram
+        sage: D = RotheDiagram(w)
+    """
+
+    from sage.misc.mrange import cartesian_product_iterator
+
+    if not w in Permutations():
+        raise ValueError('w must be a Permutation')
+
+    cells = [c for c in cartesian_product_iterator((range(9),range(9))) 
+             if c[0]+1 < w.inverse()(c[1]+1) and c[1]+1 < w(c[0]+1)]
+
+    return NorthwestDiagram(cells)

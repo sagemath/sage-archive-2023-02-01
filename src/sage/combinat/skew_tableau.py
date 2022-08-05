@@ -1007,34 +1007,33 @@ class SkewTableau(ClonableList,
             new_st.append(list())
         new_st[i].append(None)
 
+
+
         while (i, j) not in inner_outside_corners:
             # get the value of the cell above the temporarily empty cell (if
             # it exists)
             if i > 0:
                 P_up = new_st[i-1][j]
             else:
-                P_up = None
+                P_up = -1  # a dummy value less than all positive numbers
 
             # get the value of the cell to the left of the temp. empty cell
             # (if it exists)
             if j > 0:
                 P_left = new_st[i][j-1]
             else:
-                P_left = None
+                P_left = -1  # a dummy value less than all positive numbers
 
             # get the next cell
-            try:
-                if P_left > P_up:
-                    new_st[i][j] = P_left
-                    i, j = (i, j-1)
-                else:  # if they are equal, we slide up
-                    new_st[i][j] = P_up
-                    i, j = (i-1, j)
-            except TypeError:
-                # if the addition of the original corner
-                # is automatically a skew partition, just
-                # return it.
-                break
+            # p_left will always be positive, but if P_left
+            # and P_up are both None, then it will return
+            # -1, which doesn't trigger the conditional
+            if P_left > P_up:
+                new_st[i][j] = P_left
+                i, j = (i, j - 1)
+            else:  # if they are equal, we slide up
+                new_st[i][j] = P_up
+                i, j = (i - 1, j)
         # We don't need to reset the intermediate cells inside the loop
         # because the conditional above will continue to overwrite it until
         # the while loop terminates. We do need to reset it at the end.

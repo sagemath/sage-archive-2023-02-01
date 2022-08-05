@@ -957,7 +957,7 @@ class FusionRing(WeylCharacterRing):
             True
         """
         if self.Nk_ij(i, j, k) == 0:
-            return self.field().zero()
+            return self.field().zero() if (not base_coercion) or (self._basecoer is None) else self.fvars_field().zero()
         if i != j:
             ret = self.root_of_unity((k.twist(reduced=False) - i.twist(reduced=False) - j.twist(reduced=False)) / 2, base_coercion=False)
         else:

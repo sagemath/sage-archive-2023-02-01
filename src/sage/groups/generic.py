@@ -712,7 +712,7 @@ def discrete_log(a, base, ord=None, bounds=None, operation='*', identity=None, i
         sage: b = Mod(2,37);  a = b^20
         sage: discrete_log(a, b)
         20
-        sage: b = Mod(2,997);  a = b^20
+        sage: b = Mod(3,2017);  a = b^20
         sage: discrete_log(a, b, bounds=(10, 100))
         20
 
@@ -796,7 +796,7 @@ def discrete_log(a, base, ord=None, bounds=None, operation='*', identity=None, i
         sage: b = Mod(2,37);  a = b^20
         sage: discrete_log(a, b, algorithm='rho')
         20
-        sage: b = Mod(2,997);  a = b^20
+        sage: b = Mod(3,2017);  a = b^20
         sage: discrete_log(a, b, algorithm='rho', bounds=(10, 100))
         20
 

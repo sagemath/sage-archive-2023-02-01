@@ -686,15 +686,22 @@ class Triangulation(Element):
         EXAMPLES::
 
             sage: p = polytopes.cuboctahedron()
-            sage: sc = p.triangulate(engine='internal').boundary_simplicial_complex()
-            sage: sc
+            sage: triangulation = p.triangulate(engine='internal')
+            sage: bd_sc = triangulation.boundary_simplicial_complex()
+            sage: bd_sc
             Simplicial complex with 12 vertices and 20 facets
 
         The boundary of every convex set is a topological sphere, so it has
         spherical homology::
 
-            sage: sc.homology()
+            sage: bd_sc.homology()
             {0: 0, 1: 0, 2: Z}
+
+        It is a subcomplex of ``self`` as a :meth:`simplicial_complex`::
+
+            sage: sc = triangulation.simplicial_complex()
+            sage: all(f in sc for f in bd_sc.maximal_faces())
+            True
         """
         from sage.topology.simplicial_complex import SimplicialComplex
         return SimplicialComplex(self.boundary(), maximality_check=False)

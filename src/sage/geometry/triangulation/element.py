@@ -690,8 +690,11 @@ class Triangulation(Element):
             sage: sc
             Simplicial complex with 12 vertices and 20 facets
 
-        The boundary of every convex set is a topological sphere::
+        The boundary of every convex set is a topological sphere, so it has
+        spherical homology::
 
+            sage: sc.homology()
+            {0: 0, 1: 0, 2: Z}
         """
         from sage.topology.simplicial_complex import SimplicialComplex
         return SimplicialComplex(self.boundary(), maximality_check=False)

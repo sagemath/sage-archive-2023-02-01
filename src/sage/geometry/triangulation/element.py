@@ -675,6 +675,28 @@ class Triangulation(Element):
                          if len(bounded_simplices) == 1)
 
     @cached_method
+    def boundary_simplicial_complex(self):
+        r"""
+        Return the boundary of ``self`` as an (abstract) simplicial complex.
+
+        OUTPUT:
+
+        A :class:`~sage.topology.simplicial_complex.SimplicialComplex`.
+
+        EXAMPLES::
+
+            sage: p = polytopes.cuboctahedron()
+            sage: sc = p.triangulate(engine='internal').boundary_simplicial_complex()
+            sage: sc
+            Simplicial complex with 12 vertices and 20 facets
+
+        The boundary of every convex set is a topological sphere::
+
+        """
+        from sage.topology.simplicial_complex import SimplicialComplex
+        return SimplicialComplex(self.boundary(), maximality_check=False)
+
+    @cached_method
     def interior_facets(self):
         """
         Return the interior facets of the triangulation.
@@ -741,6 +763,48 @@ class Triangulation(Element):
         points = self.point_configuration().points()
         return PolyhedralComplex([Polyhedron(vertices=[points[i] for i in simplex])
                                   for simplex in self],
+                                 ambient_dim=ambient_dim,
+                                 maximality_check=False,
+                                 face_to_face_check=False,
+                                 **kwds)
+
+    def boundary_polyhedral_complex(self, **kwds):
+        r"""
+        Return the boundary of ``self`` as a :class:`~sage.geometry.polyhedral_complex.PolyhedralComplex`.
+
+        OUTPUT:
+
+        A :class:`~sage.geometry.polyhedral_complex.PolyhedralComplex` whose maximal cells
+        are the simplices of the boundary of ``self``.
+
+        EXAMPLES::
+
+            sage: P = polytopes.cube()
+            sage: pc = PointConfiguration(P.vertices())
+            sage: T = pc.placing_triangulation(); T
+            (<0,1,2,7>, <0,1,5,7>, <0,2,3,7>, <0,3,4,7>, <0,4,5,7>, <1,5,6,7>)
+            sage: C = T.boundary_polyhedral_complex(); C
+            Polyhedral complex with 12 maximal cells
+            sage: [P.vertices_list() for P in C.maximal_cells_sorted()]
+            [[[-1, -1, -1], [-1, -1, 1], [-1, 1, 1]],
+            [[-1, -1, -1], [-1, -1, 1], [1, -1, -1]],
+            [[-1, -1, -1], [-1, 1, -1], [-1, 1, 1]],
+            [[-1, -1, -1], [-1, 1, -1], [1, 1, -1]],
+            [[-1, -1, -1], [1, -1, -1], [1, 1, -1]],
+            [[-1, -1, 1], [-1, 1, 1], [1, -1, 1]],
+            [[-1, -1, 1], [1, -1, -1], [1, -1, 1]],
+            [[-1, 1, -1], [-1, 1, 1], [1, 1, -1]],
+            [[-1, 1, 1], [1, -1, 1], [1, 1, 1]],
+            [[-1, 1, 1], [1, 1, -1], [1, 1, 1]],
+            [[1, -1, -1], [1, -1, 1], [1, 1, 1]],
+            [[1, -1, -1], [1, 1, -1], [1, 1, 1]]]
+        """
+        from sage.geometry.polyhedral_complex import PolyhedralComplex
+        from sage.geometry.polyhedron.constructor import Polyhedron
+        ambient_dim = self.point_configuration().ambient_dim()
+        points = self.point_configuration().points()
+        return PolyhedralComplex([Polyhedron(vertices=[points[i] for i in simplex])
+                                  for simplex in self.boundary()],
                                  ambient_dim=ambient_dim,
                                  maximality_check=False,
                                  face_to_face_check=False,

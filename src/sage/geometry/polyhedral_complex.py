@@ -739,10 +739,10 @@ class PolyhedralComplex(GenericCellComplex):
             sage: p3 = Polyhedron(vertices=[(0, 0), (0, 2), (-1, 1)])
             sage: pc = PolyhedralComplex([p1, p2, p3, -p1, -p2, -p3])
             sage: bb = dict(xmin=-2, xmax=2, ymin=-3, ymax=3, axes=False)
-            sage: g0 = pc.plot(**bb)                                         # optional - sage.plot
-            sage: g1 = pc.plot(explosion_factor=0.5, **bb)                   # optional - sage.plot
-            sage: g2 = pc.plot(explosion_factor=1, color='rainbow', **bb)    # optional - sage.plot
-            sage: graphics_array([g0, g1, g2]).show(axes=False)              # not tested
+            sage: g0 = pc.plot(**bb)                                                  # optional - sage.plot
+            sage: g1 = pc.plot(explosion_factor=0.5, **bb)                            # optional - sage.plot
+            sage: g2 = pc.plot(explosion_factor=1, color='rainbow', alpha=0.5, **bb)  # optional - sage.plot
+            sage: graphics_array([g0, g1, g2]).show(axes=False)                       # not tested
         """
         if self.dimension() > 3:
             raise ValueError("cannot plot in high dimension")
@@ -2540,8 +2540,7 @@ def exploded_plot(polyhedra, *,
             options = copy(point)
             if color == 'rainbow':
                 options['color'] = vertex_colors_dict[vertex]
-            g += plot_point(vertex_translations,
-                            alpha=0.5, **options)
+            g += plot_point(vertex_translations, **options)
     if color == 'rainbow':
         cell_colors_dict = dict(zip(polyhedra,
                                     rainbow(len(polyhedra))))
@@ -2549,5 +2548,5 @@ def exploded_plot(polyhedra, *,
         options = copy(kwds)
         if color == 'rainbow':
             options['color'] = cell_colors_dict[p]
-        g += (p + t).plot(alpha=0.5, point=False, **options)
+        g += (p + t).plot(point=False, **options)
     return g

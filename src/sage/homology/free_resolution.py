@@ -70,19 +70,13 @@ AUTHORS:
 #                  https://www.gnu.org/licenses/
 # ****************************************************************************
 
-from sage.libs.singular.decl cimport *
-from sage.libs.singular.decl cimport ring
-from sage.libs.singular.function cimport Resolution, new_sage_polynomial, access_singular_ring
+from sage.libs.singular.singular import si2sa_resolution
 from sage.libs.singular.function import singular_function
-from sage.structure.sequence import Sequence, Sequence_generic
-from sage.misc.cachefunc import cached_method
 from sage.misc.lazy_attribute import lazy_attribute
-from sage.matrix.constructor import matrix as _matrix
 from sage.matrix.matrix_mpolynomial_dense import Matrix_mpolynomial_dense
 from sage.modules.free_module_element import vector
 from sage.modules.free_module import FreeModule
 from sage.modules.free_module import Module_free_ambient
-from sage.rings.integer_ring import ZZ
 from sage.rings.ideal import Ideal_generic
 
 from sage.structure.sage_object import SageObject
@@ -517,8 +511,8 @@ class FreeResolution(FreeResolution_generic):
         super().__init__(S, name=name)
 
     def _m(self):
-        """
-        The attribute ``m``.
+        r"""
+        The defining module of ``self``.
 
         TESTS::
 
@@ -548,7 +542,7 @@ class FreeResolution(FreeResolution_generic):
 
     @lazy_attribute
     def _maps(self):
-        """
+        r"""
         Return the maps that define ``self``.
 
         TESTS::
@@ -588,7 +582,7 @@ class FreeResolution(FreeResolution_generic):
             minres = singular_function('minres')
             r = minres(res(std(mod), 0))
 
-        return to_sage_resolution(r)
+        return si2sa_resolution(r)
 
     @lazy_attribute
     def _initial_differential(self):
@@ -627,111 +621,4 @@ class FreeResolution(FreeResolution_generic):
             M = N.ambient_module()
         Q = M.quotient(N)
         return Q.coerce_map_from(M)
-
-
-cdef singular_monomial_exponents(poly *p, ring *r):
-    r"""
-    Return the list of exponents of monomial ``p``.
-    """
-    cdef int v
-    cdef list ml = list()
-
-    for v in range(1, r.N + 1):
-        ml.append(p_GetExp(p, v, r))
-    return ml
-
-cdef to_sage_resolution(Resolution res):
-    r"""
-    Pull the data from Singular resolution ``res`` to construct a Sage
-    resolution.
-
-    INPUT:
-
-    - ``res`` -- Singular resolution
-
-    The procedure is destructive and ``res`` is not usable afterward.
-    """
-    cdef ring *singular_ring
-    cdef syStrategy singular_res
-    cdef poly *p
-    cdef poly *p_iter
-    cdef poly *first
-    cdef poly *previous
-    cdef poly *acc
-    cdef resolvente mods
-    cdef ideal *mod
-    cdef int i, j, k, idx, rank, nrows, ncols
-    cdef bint zero_mat
-
-    singular_res = res._resolution[0]
-    sage_ring = res.base_ring
-    singular_ring = access_singular_ring(res.base_ring)
-
-    if singular_res.minres != NULL:
-        mods = singular_res.minres
-    elif singular_res.fullres != NULL:
-        mods = singular_res.fullres
-    else:
-        raise ValueError('Singular resolution is not usable')
-
-    res_mats = []
-
-    # length is the length of fullres. The length of minres
-    # can be shorter. Hence we avoid SEGFAULT by stopping
-    # at NULL pointer.
-    for idx in range(singular_res.length):
-        mod = <ideal *> mods[idx]
-        if mod == NULL:
-            break
-        rank = mod.rank
-        free_module = FreeModule(sage_ring, rank)
-
-        nrows = rank
-        ncols = mod.ncols # IDELEMS(mod)
-
-        mat = _matrix(sage_ring, nrows, ncols)
-        matdegs = []
-        zero_mat = True
-        for j in range(ncols):
-            p = <poly *> mod.m[j]
-            degs = []
-            # code below copied and modified from to_sage_vector_destructive
-            # in sage.libs.singular.function.Converter
-            for i in range(1, rank + 1):
-                previous = NULL
-                acc = NULL
-                first = NULL
-                p_iter = p
-                while p_iter != NULL:
-                    if p_GetComp(p_iter, singular_ring) == i:
-                        p_SetComp(p_iter, 0, singular_ring)
-                        p_Setm(p_iter, singular_ring)
-                        if acc == NULL:
-                            first = p_iter
-                        else:
-                            acc.next = p_iter
-                        acc = p_iter
-                        if p_iter == p:
-                            p = pNext(p_iter)
-                        if previous != NULL:
-                            previous.next = pNext(p_iter)
-                        p_iter = pNext(p_iter)
-                        acc.next = NULL
-                    else:
-                        previous = p_iter
-                        p_iter = pNext(p_iter)
-
-                if zero_mat:
-                    zero_mat = first == NULL
-
-                mat[i - 1, j] = new_sage_polynomial(sage_ring, first)
-
-        # Singular sometimes leaves zero matrix in the resolution. We can stop
-        # when one is seen.
-        if zero_mat:
-            break
-
-        res_mats.append(mat)
-
-    return res_mats
 

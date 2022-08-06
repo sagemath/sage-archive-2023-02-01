@@ -2739,4 +2739,3 @@ if PythonModule("JuPyMake").is_present():
     polymake = polymake_jupymake
 else:
     polymake = polymake_expect
-

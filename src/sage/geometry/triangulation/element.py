@@ -227,8 +227,9 @@ class Triangulation(Element):
     """
     def __init__(self, triangulation, parent, check=True):
         """
-        The constructor of a ``Triangulation`` object. Note that an
-        internal reference to the underlying ``PointConfiguration`` is
+        The constructor of a ``Triangulation`` object.
+
+        Note that an internal reference to the underlying ``PointConfiguration`` is
         kept.
 
         INPUT:
@@ -236,12 +237,11 @@ class Triangulation(Element):
         - ``parent`` -- a
           :class:`~sage.geometry.triangulation.point_configuration.PointConfiguration`
 
-        - ``triangulation`` -- an iterable of integers or iterable of
-          iterables (e.g. a list of lists). In the first case, the
-          integers specify simplices via
-          :meth:`PointConfiguration.simplex_to_int`. In the second
-          case, the point indices of the maximal simplices of the
-          triangulation.
+        - ``triangulation`` -- an iterable of integers or an iterable of
+          iterables (e.g. a list of lists), specifying the maximal simplices
+          of the triangulation. In the first case, each integer specifies a simplex
+          by the correspondence :meth:`PointConfiguration.simplex_to_int`. In the second
+          case, a simplex is specified by listing the indices of the included points.
 
         - ``check`` -- boolean. Whether to perform checks that the
           triangulation is, indeed, a triangulation of the point
@@ -370,7 +370,7 @@ class Triangulation(Element):
 
     def __len__(self):
         """
-        Returns the length of the triangulation.
+        Return the length of the triangulation.
 
         TESTS::
 
@@ -597,7 +597,7 @@ class Triangulation(Element):
     @cached_method
     def _boundary_simplex_dictionary(self):
         """
-        Return facets and the simplices they bound
+        Return facets and the simplices they bound.
 
         TESTS::
 
@@ -913,7 +913,7 @@ class Triangulation(Element):
 
     def adjacency_graph(self):
         """
-        Return a graph showing which simplices are adjacent in the triangulation
+        Return a graph showing which simplices are adjacent in the triangulation.
 
         OUTPUT:
 

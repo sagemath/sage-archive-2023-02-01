@@ -726,7 +726,7 @@ class PolyhedralComplex(GenericCellComplex):
         INPUT:
 
         - ``explosion_factor`` -- (default: 0) if positive, separate the cells of
-          the complex by extra space. See :func:`exploded_rainbow_plot` for
+          the complex by extra space. See :func:`exploded_plot` for
           additional keyword arguments that can be passed in this case.
 
         - other keyword arguments are passed on to
@@ -740,14 +740,14 @@ class PolyhedralComplex(GenericCellComplex):
             sage: pc = PolyhedralComplex([p1, p2, p3, -p1, -p2, -p3])
             sage: bb = dict(xmin=-2, xmax=2, ymin=-3, ymax=3, axes=False)
             sage: g0 = pc.plot(**bb)                                         # optional - sage.plot
-            sage: g1 = pc.plot(explosion_factor=0.3, **bb)                   # optional - sage.plot
-            sage: g2 = pc.plot(explosion_factor=1, **bb)                     # optional - sage.plot
+            sage: g1 = pc.plot(explosion_factor=0.5, **bb)                   # optional - sage.plot
+            sage: g2 = pc.plot(explosion_factor=1, color='rainbow', **bb)    # optional - sage.plot
             sage: graphics_array([g0, g1, g2]).show(axes=False)              # not tested
         """
         if self.dimension() > 3:
             raise ValueError("cannot plot in high dimension")
         if kwds.get('explosion_factor', 0):
-            return exploded_rainbow_plot(self.maximal_cell_iterator(), **kwds)
+            return exploded_plot(self.maximal_cell_iterator(), **kwds)
         return sum(cell.plot(**kwds) for cell in self.maximal_cell_iterator())
 
     def is_pure(self):
@@ -2450,9 +2450,9 @@ def cells_list_to_cells_dict(cells_list):
     return cells_dict
 
 
-def exploded_rainbow_plot(polyhedra, *,
-                          center=None, explosion_factor=1, sticky_vertices=False,
-                          sticky_center=True, point=None, **kwds):
+def exploded_plot(polyhedra, *,
+                  center=None, explosion_factor=1, sticky_vertices=False,
+                  sticky_center=True, point=None, **kwds):
     r"""
     Return a plot of several ``polyhedra`` in one figure with extra space between them.
 
@@ -2471,19 +2471,22 @@ def exploded_rainbow_plot(polyhedra, *,
     - ``sticky_center`` -- (default: ``True``) boolean or dict. Whether to draw line segments between ``center``
       and the vertices of the given polyhedra. A dict gives options for :func:`sage.plot.line`.
 
+    - ``color`` -- (default: ``None``) if ``"rainbow"``, assign a different color to every maximal cell and
+      every vertex; otherwise, passed on to :meth:`~sage.geometry.polyhedron.base.Polyhedron_base.plot`.
+
     - other keyword arguments are passed on to :meth:`~sage.geometry.polyhedron.base.Polyhedron_base.plot`.
 
     EXAMPLES::
 
-        sage: from sage.geometry.polyhedral_complex import exploded_rainbow_plot
+        sage: from sage.geometry.polyhedral_complex import exploded_plot
         sage: p1 = Polyhedron(vertices=[(1, 1), (0, 0), (1, 2)])
         sage: p2 = Polyhedron(vertices=[(1, 2), (0, 0), (0, 2)])
         sage: p3 = Polyhedron(vertices=[(0, 0), (1, 1), (2, 0)])
-        sage: exploded_rainbow_plot([p1, p2, p3])                                       # optional - sage.plot
+        sage: exploded_plot([p1, p2, p3])                                       # optional - sage.plot
         Graphics object consisting of 20 graphics primitives
-        sage: exploded_rainbow_plot([p1, p2, p3], center=(1, 1))                        # optional - sage.plot
+        sage: exploded_plot([p1, p2, p3], center=(1, 1))                        # optional - sage.plot
         Graphics object consisting of 19 graphics primitives
-        sage: exploded_rainbow_plot([p1, p2, p3], center=(1, 1), sticky_vertices=True)  # optional - sage.plot
+        sage: exploded_plot([p1, p2, p3], center=(1, 1), sticky_vertices=True)  # optional - sage.plot
         Graphics object consisting of 23 graphics primitives
     """
     from sage.plot.colors import rainbow
@@ -2526,16 +2529,25 @@ def exploded_rainbow_plot(polyhedra, *,
                     for vt1, vt2 in itertools.combinations(vertex_translations, 2):
                         g += line((vt1, vt2), **sticky_vertices)
 
+    color = kwds.get('color')
     if point is None:
         point = dict(size=1.5)
     if point is not False:
-        vertex_colors_dict = {vertex: color
-                              for vertex, color in zip(vertex_translations_dict.keys(),
-                                                       rainbow(len(vertex_translations_dict.keys())))}
+        if color == 'rainbow':
+            vertex_colors_dict = dict(zip(vertex_translations_dict.keys(),
+                                          rainbow(len(vertex_translations_dict.keys()))))
         for vertex, vertex_translations in vertex_translations_dict.items():
+            options = copy(point)
+            if color == 'rainbow':
+                options['color'] = vertex_colors_dict[vertex]
             g += plot_point(vertex_translations,
-                            color=vertex_colors_dict[vertex],
-                            alpha=0.5, **point)
-
-    return g + sum((p + t).plot(alpha=0.5, point=False, color=color, **kwds)
-                   for p, t, color in zip(polyhedra, translations, rainbow(len(polyhedra))))
+                            alpha=0.5, **options)
+    if color == 'rainbow':
+        cell_colors_dict = dict(zip(polyhedra,
+                                    rainbow(len(polyhedra))))
+    for p, t in zip(polyhedra, translations):
+        options = copy(kwds)
+        if color == 'rainbow':
+            options['color'] = cell_colors_dict[p]
+        g += (p + t).plot(alpha=0.5, point=False, **options)
+    return g

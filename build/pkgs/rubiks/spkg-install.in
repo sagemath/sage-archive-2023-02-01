@@ -42,6 +42,11 @@ else
     INSTALL=install; export INSTALL
 fi
 
+if [ $UNAME = "Darwin" ]; then
+    # #34293: Work around compiler hang
+    export CXXFLAGS="$CXXFLAGS -O1"
+fi
+
 cd src
 
 echo "Building Rubiks cube solvers"

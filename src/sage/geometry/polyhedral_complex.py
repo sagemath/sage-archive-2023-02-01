@@ -2531,7 +2531,8 @@ def exploded_plot(polyhedra, *,
 
     color = kwds.get('color')
     if point is None:
-        point = dict(size=1.5)
+        # default from sage.geometry.polyhedron.plot
+        point = dict(size=10)
     if point is not False:
         if color == 'rainbow':
             vertex_colors_dict = dict(zip(vertex_translations_dict.keys(),

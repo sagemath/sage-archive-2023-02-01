@@ -572,8 +572,7 @@ class Triangulation(Element):
     @cached_method
     def simplicial_complex(self):
         r"""
-        Return a simplicial complex from a triangulation of the point
-        configuration.
+        Return ``self`` as an (abstract) simplicial complex.
 
         OUTPUT:
 
@@ -711,6 +710,42 @@ class Triangulation(Element):
                          in self._boundary_simplex_dictionary().items()
                          if len(bounded_simplices) == 2)
 
+    def polyhedral_complex(self, **kwds):
+        """
+        Return ``self`` as a :class:`~sage.geometry.polyhedral_complex.PolyhedralComplex`.
+
+        OUTPUT:
+
+        A :class:`~sage.geometry.polyhedral_complex.PolyhedralComplex` whose maximal cells
+        are the simplices of the triangulation.
+
+        EXAMPLES::
+
+            sage: P = polytopes.cube()
+            sage: pc = PointConfiguration(P.vertices())
+            sage: T = pc.placing_triangulation(); T
+            (<0,1,2,7>, <0,1,5,7>, <0,2,3,7>, <0,3,4,7>, <0,4,5,7>, <1,5,6,7>)
+            sage: C = T.polyhedral_complex(); C
+            Polyhedral complex with 6 maximal cells
+            sage: [P.vertices_list() for P in C.maximal_cells_sorted()]
+            [[[-1, -1, -1], [-1, -1, 1], [-1, 1, 1], [1, -1, -1]],
+             [[-1, -1, -1], [-1, 1, -1], [-1, 1, 1], [1, 1, -1]],
+             [[-1, -1, -1], [-1, 1, 1], [1, -1, -1], [1, 1, -1]],
+             [[-1, -1, 1], [-1, 1, 1], [1, -1, -1], [1, -1, 1]],
+             [[-1, 1, 1], [1, -1, -1], [1, -1, 1], [1, 1, 1]],
+             [[-1, 1, 1], [1, -1, -1], [1, 1, -1], [1, 1, 1]]]
+        """
+        from sage.geometry.polyhedral_complex import PolyhedralComplex
+        from sage.geometry.polyhedron.constructor import Polyhedron
+        ambient_dim = self.point_configuration().ambient_dim()
+        points = self.point_configuration().points()
+        return PolyhedralComplex([Polyhedron(vertices=[points[i] for i in simplex])
+                                  for simplex in self],
+                                 ambient_dim=ambient_dim,
+                                 maximality_check=False,
+                                 face_to_face_check=False,
+                                 **kwds)
+
     @cached_method
     def normal_cone(self):
         r"""
@@ -798,8 +833,7 @@ class Triangulation(Element):
 
     def adjacency_graph(self):
         """
-        Returns a graph showing which simplices are adjacent in the
-        triangulation
+        Return a graph showing which simplices are adjacent in the triangulation
 
         OUTPUT:
 

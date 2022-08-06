@@ -736,9 +736,13 @@ class PolyhedralComplex(GenericCellComplex):
 
             sage: p1 = Polyhedron(vertices=[(1, 1), (0, 0), (1, 2)])
             sage: p2 = Polyhedron(vertices=[(1, 2), (0, 0), (0, 2)])
-            sage: pc = PolyhedralComplex([p1, p2])
-            sage: pc.plot()  # optional - sage.plot
-            Graphics object consisting of 10 graphics primitives
+            sage: p3 = Polyhedron(vertices=[(0, 0), (0, 2), (-1, 1)])
+            sage: pc = PolyhedralComplex([p1, p2, p3])
+            sage: bb = dict(xmin=-2, xmax=2, ymin=-0.5, ymax=3, axes=False)
+            sage: g0 = pc.plot(**bb)                                         # optional - sage.plot
+            sage: g1 = pc.plot(explosion_factor=0.3, **bb)                   # optional - sage.plot
+            sage: g2 = pc.plot(explosion_factor=1, **bb)                     # optional - sage.plot
+            sage: graphics_array([g0, g1, g2]).show(axes=False)              # not tested
         """
         if self.dimension() > 3:
             raise ValueError("cannot plot in high dimension")

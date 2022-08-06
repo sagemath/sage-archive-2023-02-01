@@ -2456,7 +2456,18 @@ def exploded_rainbow_plot(polyhedra, *,
 
     - ``polyhedra`` -- an iterable of :class:`~sage.geometry.polyhedron.base.Polyhedron_base` objects
 
-    - keyword arguments: see :meth:`~sage.geometry.polyhedral_complex.PolyhedralComplex.plot`
+    - ``center`` -- (default: ``None``, denoting the origin) the center of explosion
+
+    - ``explosion_factor`` -- (default: 1) a nonnegative number; translate polyhedra by this
+      factor of the distance from ``center`` to their center
+
+    - ``sticky_vertices`` -- (default: ``False``) whether to draw line segments between shared
+      vertices of the given polyhedra
+
+    - ``sticky_center`` -- (default: ``True``) whether to draw line segments between ``center``
+      and the vertices of the given polyhedra
+
+    - other keyword arguments are passed on to :meth:`~sage.geometry.polyhedron.base.Polyhedron_base.plot`.
 
     EXAMPLES::
 
@@ -2464,11 +2475,11 @@ def exploded_rainbow_plot(polyhedra, *,
         sage: p1 = Polyhedron(vertices=[(1, 1), (0, 0), (1, 2)])
         sage: p2 = Polyhedron(vertices=[(1, 2), (0, 0), (0, 2)])
         sage: p3 = Polyhedron(vertices=[(0, 0), (1, 1), (2, 0)])
-        sage: exploded_rainbow_plot([p1, p2, p3])
+        sage: exploded_rainbow_plot([p1, p2, p3])                                       # optional - sage.plot
         Graphics object consisting of 20 graphics primitives
-        sage: exploded_rainbow_plot([p1, p2, p3], center=(1, 1))
+        sage: exploded_rainbow_plot([p1, p2, p3], center=(1, 1))                        # optional - sage.plot
         Graphics object consisting of 19 graphics primitives
-        sage: exploded_rainbow_plot([p1, p2, p3], center=(1, 1), sticky_vertices=True)
+        sage: exploded_rainbow_plot([p1, p2, p3], center=(1, 1), sticky_vertices=True)  # optional - sage.plot
         Graphics object consisting of 23 graphics primitives
     """
     from sage.plot.colors import rainbow

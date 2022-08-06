@@ -1,21 +1,9 @@
 r"""
 Graded free resolutions
 
-This module defines :class:`GradedFreeResolution` which computes a
-graded free resolution of a homogeneous ideal `I` of a graded multivariate
-polynomial ring `S`, or a homogeneous submodule of a graded free module `M`
-over `S`. The output resolution is always minimal.
-
-The degrees given to the variables of `S` are integers or integer vectors of
-the same length. In the latter case, `S` is said to be multigraded, and the
-resolution is a multigraded free resolution. The standard grading where all
-variables have degree `1` is used if the degrees are not specified.
-
-A summand of the graded free module `M` is a shifted (or twisted) module of
-rank one over `S`, denoted `S(-d)` with shift `d`.
-
-The computation of the resolution is done by the libSingular behind. Different
-Singular algorithms can be chosen for best performance.
+Let `R` be a commutative ring. A graded free resolution of a graded
+`R`-module `M` is a :mod:`free resolution <sage.homology.free_resolution>`
+such that all maps are homogeneous module homomorphisms.
 
 EXAMPLES::
 
@@ -96,25 +84,35 @@ from sage.rings.ideal import Ideal_generic
 
 from sage.homology.free_resolution import FreeResolution
 
-
 class GradedFreeResolution(FreeResolution):
     """
-    Graded free resolutions of ideals of multi-variate polynomial rings.
+    Graded free resolutions of ideals of multivariate polynomial rings.
 
     INPUT:
 
-    - ``ideal`` -- a homogeneous ideal of a multivariate polynomial ring `S`, or
-      a homogeneous submodule of a free module `M` of rank `n` over `S`
-    - ``degree`` -- a list of integers or integer vectors giving degrees of
-      variables of `S`; this is a list of 1s by default
+    - ``module`` -- a homogeneous submodule of a free module `M` of rank `n`
+      over `S` or a homogeneous ideal of a multivariate polynomial ring `S`
+    - ``degrees`` -- (default: a list with all entries `1`) a list of integers
+      or integer vectors giving degrees of variables of `S`
     - ``shifts`` -- a list of integers or integer vectors giving shifts of
       degrees of `n` summands of the free module `M`; this is a list of zero
       degrees of length `n` by default
     - ``name`` -- a string; name of the base ring
     - ``algorithm`` -- Singular algorithm to compute a resolution of ``ideal``
 
-    If ``ideal`` is an ideal of `S`, then `M = S`, a free module of rank `1`
-    over `S`.
+    If ``module`` is an ideal of `S`, it is considered as a submodule of a
+    free module of rank `1` over `S`.
+
+    The degrees given to the variables of `S` are integers or integer vectors of
+    the same length. In the latter case, `S` is said to be multigraded, and the
+    resolution is a multigraded free resolution. The standard grading where all
+    variables have degree `1` is used if the degrees are not specified.
+
+    A summand of the graded free module `M` is a shifted (or twisted) module of
+    rank one over `S`, denoted `S(-d)` with shift `d`.
+
+    The computation of the resolution is done by using ``libSingular``.
+    Different Singular algorithms can be chosen for best performance.
 
     OUTPUT: a graded minimal free resolution of ``ideal``
 
@@ -130,6 +128,10 @@ class GradedFreeResolution(FreeResolution):
         ``heuristic`` ``minres(res(std(ideal)))``
         ============= ============================
 
+    .. WARNING::
+
+        This does not check that the module is homogeneous.
+
     EXAMPLES::
 
         sage: from sage.homology.graded_resolution import GradedFreeResolution
@@ -140,8 +142,15 @@ class GradedFreeResolution(FreeResolution):
         S(0) <-- S(-2)⊕S(-2)⊕S(-2) <-- S(-3)⊕S(-3) <-- 0
         sage: len(r)
         2
+
+        sage: I = S.ideal([z^2 - y*w, y*z - x*w, y - x])
+        sage: I.is_homogeneous()
+        True
+        sage: R = GradedFreeResolution(I)
+        sage: R
+        S(0) <-- S(-1)⊕S(-2)⊕S(-2) <-- S(-3)⊕S(-3)⊕S(-4) <-- S(-5) <-- 0
     """
-    def __init__(self, ideal, degrees=None, shifts=None, name='S', algorithm='heuristic'):
+    def __init__(self, module, degrees=None, shifts=None, name='S', algorithm='heuristic'):
         """
         Initialize.
 
@@ -153,16 +162,16 @@ class GradedFreeResolution(FreeResolution):
             sage: r = GradedFreeResolution(I)
             sage: TestSuite(r).run(skip=['_test_pickling'])
         """
-        super().__init__(ideal, name=name, algorithm=algorithm)
+        super().__init__(module, name=name, algorithm=algorithm)
 
         nvars = self._base_ring.ngens()
 
-        if isinstance(self._ideal, Ideal_generic):
+        if isinstance(self._module, Ideal_generic):
             rank = 1
-        elif isinstance(self._ideal, Module_free_ambient):
+        elif isinstance(self._module, Module_free_ambient):
             rank = self._m().nrows()
-        elif isinstance(self._ideal, Matrix_mpolynomial_dense):
-            rank = self._ideal.ncols()
+        elif isinstance(self._module, Matrix_mpolynomial_dense):
+            rank = self._module.ncols()
 
         if degrees is None:
             degrees = nvars * (1,)  # standard grading
@@ -266,8 +275,8 @@ class GradedFreeResolution(FreeResolution):
         EXAMPLES::
 
             sage: from sage.homology.graded_resolution import GradedFreeResolution
-            sage: P.<x,y,z,w> = PolynomialRing(QQ)
-            sage: I = P.ideal([y*w - z^2, -x*w + y*z, x*z - y^2])
+            sage: S.<x,y,z,w> = PolynomialRing(QQ)
+            sage: I = S.ideal([y*w - z^2, -x*w + y*z, x*z - y^2])
             sage: r = GradedFreeResolution(I)
             sage: r._repr_module(0)
             'S(0)'
@@ -307,8 +316,8 @@ class GradedFreeResolution(FreeResolution):
         EXAMPLES::
 
             sage: from sage.homology.graded_resolution import GradedFreeResolution
-            sage: P.<x,y,z,w> = PolynomialRing(QQ)
-            sage: I = P.ideal([y*w - z^2, -x*w + y*z, x*z - y^2])
+            sage: S.<x,y,z,w> = PolynomialRing(QQ)
+            sage: I = S.ideal([y*w - z^2, -x*w + y*z, x*z - y^2])
             sage: r = GradedFreeResolution(I)
             sage: r.shifts(0)
             [0]
@@ -338,14 +347,13 @@ class GradedFreeResolution(FreeResolution):
         INPUT:
 
         - ``i`` -- nonnegative integer
-
         - ``a`` -- a degree; if ``None``, return Betti numbers in all degrees
 
         EXAMPLES::
 
             sage: from sage.homology.graded_resolution import GradedFreeResolution
-            sage: P.<x,y,z,w> = PolynomialRing(QQ)
-            sage: I = P.ideal([y*w - z^2, -x*w + y*z, x*z - y^2])
+            sage: S.<x,y,z,w> = PolynomialRing(QQ)
+            sage: I = S.ideal([y*w - z^2, -x*w + y*z, x*z - y^2])
             sage: r = GradedFreeResolution(I)
             sage: r.betti(0)
             {0: 1}
@@ -388,8 +396,8 @@ class GradedFreeResolution(FreeResolution):
         EXAMPLES::
 
             sage: from sage.homology.graded_resolution import GradedFreeResolution
-            sage: P.<x,y,z,w> = PolynomialRing(QQ)
-            sage: I = P.ideal([y*w - z^2, -x*w + y*z, x*z - y^2])
+            sage: S.<x,y,z,w> = PolynomialRing(QQ)
+            sage: I = S.ideal([y*w - z^2, -x*w + y*z, x*z - y^2])
             sage: r = GradedFreeResolution(I)
             sage: r.K_polynomial()
             2*t^3 - 3*t^2 + 1

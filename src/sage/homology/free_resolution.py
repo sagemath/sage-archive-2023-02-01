@@ -1,10 +1,16 @@
 r"""
 Free resolutions
 
-The :class:`FreeResolution` implements a finite free resolution, which is a
-chain complex of free modules, terminating with a zero module at the end, whose
-homology groups are all zero.
+Let `R` be a commutative ring. A finite free resolution of an `R`-module `M`
+is a chain complex of free `R`-modules
 
+.. MATH::
+
+    0 \xleftarrow{d_0} R^{n_1} \xleftarrow{d_1}  R^{n_1} \xleftarrow{d_2}
+    \cdots \xleftarrow{d_k} R^{n_k} \xleftarrow{d_{k+1}} 0
+
+terminating with a zero module at the end that is exact (all homology groups
+are zero) such that the image of `d_1` is `M`.
 
 EXAMPLES::
 
@@ -13,6 +19,11 @@ EXAMPLES::
     sage: m1 = matrix(S, 1, [z^2 - y*w, y*z - x*w, y^2 - x*z]).transpose()
     sage: m2 = matrix(S, 3, [-y, x, z, -y, -w, z])
     sage: r = FreeResolution(m1, name='S')
+    sage: r
+    S^1 <-- S^3 <-- S^2 <-- 0
+
+    sage: I = S.ideal([y*w - z^2, -x*w + y*z, x*z - y^2])
+    sage: r = FreeResolution(I)
     sage: r
     S^1 <-- S^3 <-- S^2 <-- 0
 
@@ -27,18 +38,6 @@ EXAMPLES::
     sage: r = GradedFreeResolution(I)
     sage: r
     S(0) <-- S(-2)⊕S(-2)⊕S(-2) <-- S(-3)⊕S(-3) <-- 0
-
-The :class:`FreeResolution` computes a minimal free resolution of modules
-over a multivariate polynomial ring.
-
-EXAMPLES::
-
-    sage: from sage.homology.free_resolution import FreeResolution
-    sage: P.<x,y,z,w> = PolynomialRing(QQ)
-    sage: I = P.ideal([y*w - z^2, -x*w + y*z, x*z - y^2])
-    sage: r = FreeResolution(I)
-    sage: r
-    S^1 <-- S^3 <-- S^2 <-- 0
 
 An example of a minimal free resolution from [CLO2005]_::
 
@@ -98,8 +97,8 @@ class FreeResolution_generic(SageObject):
     EXAMPLES::
 
         sage: from sage.homology.free_resolution import FreeResolution
-        sage: P.<x,y,z,w> = PolynomialRing(QQ)
-        sage: I = P.ideal([y*w - z^2, -x*w + y*z, x*z - y^2])
+        sage: S.<x,y,z,w> = PolynomialRing(QQ)
+        sage: I = S.ideal([y*w - z^2, -x*w + y*z, x*z - y^2])
         sage: r = FreeResolution(I)
         sage: r.differential(0)
         Coercion map:
@@ -146,8 +145,8 @@ class FreeResolution_generic(SageObject):
         TESTS::
 
             sage: from sage.homology.free_resolution import FreeResolution
-            sage: P.<x,y,z,w> = PolynomialRing(QQ)
-            sage: I = P.ideal([y*w - z^2, -x*w + y*z, x*z - y^2])
+            sage: S.<x,y,z,w> = PolynomialRing(QQ)
+            sage: I = S.ideal([y*w - z^2, -x*w + y*z, x*z - y^2])
             sage: r = FreeResolution(I)
             sage: r._length
             2
@@ -415,16 +414,20 @@ class FreeResolution_generic(SageObject):
 
 class FreeResolution(FreeResolution_generic):
     r"""
-    Minimal free resolutions of ideals of multivariate polynomial rings.
+    Minimal free resolutions of ideals or submodules of free modules
+    of multivariate polynomial rings.
 
     INPUT:
 
-    - ``ideal`` -- a homogeneous ideal of a multi-variate polynomial ring or
-      a submodule of a free module `M` of rank `n` over `S`
+    - ``module`` -- a submodule of a free module `M` of rank `n` over `S` or
+      an ideal of a multi-variate polynomial ring
     - ``name`` -- a string; name of the base ring
     - ``algorithm`` -- Singular algorithm to compute a resolution of ``ideal``
 
     OUTPUT: a minimal free resolution of the ideal
+
+    If ``module`` is an ideal of `S`, it is considered as a submodule of a
+    free module of rank `1` over `S`.
 
     The available algorithms and the corresponding Singular commands are shown
     below:
@@ -441,8 +444,8 @@ class FreeResolution(FreeResolution_generic):
     EXAMPLES::
 
         sage: from sage.homology.free_resolution import FreeResolution
-        sage: P.<x,y,z,w> = PolynomialRing(QQ)
-        sage: I = P.ideal([y*w - z^2, -x*w + y*z, x*z - y^2])
+        sage: S.<x,y,z,w> = PolynomialRing(QQ)
+        sage: I = S.ideal([y*w - z^2, -x*w + y*z, x*z - y^2])
         sage: r = FreeResolution(I)
         sage: r
         S^1 <-- S^3 <-- S^2 <-- 0
@@ -463,7 +466,7 @@ class FreeResolution(FreeResolution_generic):
     We can also construct a resolution by passing in a matrix defining
     the initial differential::
 
-        sage: m = matrix(P, 1, [z^2 - y*w, y*z - x*w, y^2 - x*z]).transpose()
+        sage: m = matrix(S, 1, [z^2 - y*w, y*z - x*w, y^2 - x*z]).transpose()
         sage: r = FreeResolution(m, name='S')
         sage: r
         S^1 <-- S^3 <-- S^2 <-- 0
@@ -476,20 +479,35 @@ class FreeResolution(FreeResolution_generic):
         sage: r = FreeResolution(M, name='S')
         sage: r
         S^1 <-- S^3 <-- S^2 <-- 0
+
+    A nonhomogeneous ideal::
+
+        sage: I = S.ideal([z^2 - y*w, y*z - x*w, y^2 - x])
+        sage: R = FreeResolution(I)
+        sage: R
+        S^1 <-- S^3 <-- S^3 <-- S^1 <-- 0
+        sage: R.matrix(2)
+        [ y*z - x*w    y^2 - x          0]
+        [-z^2 + y*w          0    y^2 - x]
+        [         0 -z^2 + y*w -y*z + x*w]
+        sage: R.matrix(3)
+        [   y^2 - x]
+        [-y*z + x*w]
+        [ z^2 - y*w]
     """
-    def __init__(self, ideal, name='S', algorithm='heuristic'):
+    def __init__(self, module, name='S', algorithm='heuristic'):
         """
         Initialize.
 
         TESTS::
 
             sage: from sage.homology.free_resolution import FreeResolution
-            sage: P.<x,y,z,w> = PolynomialRing(QQ)
-            sage: I = P.ideal([y*w - z^2, -x*w + y*z, x*z - y^2])
+            sage: S.<x,y,z,w> = PolynomialRing(QQ)
+            sage: I = S.ideal([y*w - z^2, -x*w + y*z, x*z - y^2])
             sage: r = FreeResolution(I)
             sage: TestSuite(r).run(skip=['_test_pickling'])
 
-            sage: m = matrix(P, 1, [z^2 - y*w, y*z - x*w, y^2 - x*z]).transpose()
+            sage: m = matrix(S, 1, [z^2 - y*w, y*z - x*w, y^2 - x*z]).transpose()
             sage: r = FreeResolution(m, name='S')
             sage: TestSuite(r).run(skip=['_test_pickling'])
 
@@ -497,16 +515,16 @@ class FreeResolution(FreeResolution_generic):
             sage: r = FreeResolution(M, name='S')
             sage: TestSuite(r).run(skip=['_test_pickling'])
         """
-        if isinstance(ideal, Ideal_generic):
-            S = ideal.ring()
-        elif isinstance(ideal, Module_free_ambient):
-            S = ideal.base_ring()
-        elif isinstance(ideal, Matrix_mpolynomial_dense):
-            S = ideal.base_ring()
+        if isinstance(module, Ideal_generic):
+            S = module.ring()
+        elif isinstance(module, Module_free_ambient):
+            S = module.base_ring()
+        elif isinstance(module, Matrix_mpolynomial_dense):
+            S = module.base_ring()
         else:
             raise TypeError('no ideal, module, or matrix')
 
-        self._ideal = ideal
+        self._module = module
         self._algorithm = algorithm
         super().__init__(S, name=name)
 
@@ -517,13 +535,13 @@ class FreeResolution(FreeResolution_generic):
         TESTS::
 
             sage: from sage.homology.free_resolution import FreeResolution
-            sage: P.<x,y,z,w> = PolynomialRing(QQ)
-            sage: I = P.ideal([y*w - z^2, -x*w + y*z, x*z - y^2])
+            sage: S.<x,y,z,w> = PolynomialRing(QQ)
+            sage: I = S.ideal([y*w - z^2, -x*w + y*z, x*z - y^2])
             sage: r = FreeResolution(I)
             sage: r._m()
             Ideal (-z^2 + y*w, y*z - x*w, -y^2 + x*z) of Multivariate Polynomial Ring in x, y, z, w over Rational Field
 
-            sage: m = matrix(P, 1, [z^2 - y*w, y*z - x*w, y^2 - x*z]).transpose()
+            sage: m = matrix(S, 1, [z^2 - y*w, y*z - x*w, y^2 - x*z]).transpose()
             sage: r = FreeResolution(m, name='S')
             sage: r._m()
             [z^2 - y*w y*z - x*w y^2 - x*z]
@@ -533,12 +551,12 @@ class FreeResolution(FreeResolution_generic):
             sage: r._m()
             [z^2 - y*w y*z - x*w y^2 - x*z]
         """
-        if isinstance(self._ideal, Ideal_generic):
-            return self._ideal
-        if isinstance(self._ideal, Module_free_ambient):
-            return self._ideal.matrix().transpose()
-        if isinstance(self._ideal, Matrix_mpolynomial_dense):
-            return self._ideal.transpose()
+        if isinstance(self._module, Ideal_generic):
+            return self._module
+        if isinstance(self._module, Module_free_ambient):
+            return self._module.matrix().transpose()
+        if isinstance(self._module, Matrix_mpolynomial_dense):
+            return self._module.transpose()
 
     @lazy_attribute
     def _maps(self):
@@ -548,8 +566,8 @@ class FreeResolution(FreeResolution_generic):
         TESTS::
 
             sage: from sage.homology.free_resolution import FreeResolution
-            sage: P.<x,y,z,w> = PolynomialRing(QQ)
-            sage: I = P.ideal([y*w - z^2, -x*w + y*z, x*z - y^2])
+            sage: S.<x,y,z,w> = PolynomialRing(QQ)
+            sage: I = S.ideal([y*w - z^2, -x*w + y*z, x*z - y^2])
             sage: r = FreeResolution(I)
             sage: r._maps
             [
@@ -592,8 +610,8 @@ class FreeResolution(FreeResolution_generic):
         EXAMPLES::
 
             sage: from sage.homology.free_resolution import FreeResolution
-            sage: P.<x,y,z,w> = PolynomialRing(QQ)
-            sage: I = P.ideal([y*w - z^2, -x*w + y*z, x*z - y^2])
+            sage: S.<x,y,z,w> = PolynomialRing(QQ)
+            sage: I = S.ideal([y*w - z^2, -x*w + y*z, x*z - y^2])
             sage: r = FreeResolution(I)
             sage: r._initial_differential
             Coercion map:
@@ -606,7 +624,7 @@ class FreeResolution(FreeResolution_generic):
             [ y*z - x*w]
             [-y^2 + x*z]
         """
-        ideal = self._ideal
+        ideal = self._module
         if isinstance(ideal, Ideal_generic):
             S = ideal.ring()
             M = FreeModule(S, 1)

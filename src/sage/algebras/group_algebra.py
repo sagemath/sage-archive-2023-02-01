@@ -172,6 +172,14 @@ class GroupAlgebra_class(CombinatorialFreeModule):
               From: Algebra of Cyclic group of order 3 as a permutation group over Integer Ring
               To:   Algebra of Dihedral group of order 6 as a permutation group over Rational Field
 
+            sage: H = PermutationGroup([ [(1,2), (3,4)], [(5,6,7),(12,14,18)] ])
+            sage: kH = H.algebra(GF(2))
+            sage: [a, b] = kH.gens()
+            sage: x = kH(a) + kH(b) + kH.one(); print(x)
+            () + (5,6,7)(12,14,18) + (1,2)(3,4)
+            sage: x*x  #checks :trac:34292
+            (5,7,6)(12,18,14)
+
         As expected, there is no coercion when restricting the
         field::
 
@@ -184,6 +192,8 @@ class GroupAlgebra_class(CombinatorialFreeModule):
             sage: ZG = G.algebra(ZZ, category=AdditiveMagmas())
             sage: ZG.has_coerce_map_from(G)
             False
+
+
         """
         G = self.basis().keys()
         K = self.base_ring()

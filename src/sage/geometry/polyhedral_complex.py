@@ -2465,11 +2465,11 @@ def exploded_rainbow_plot(polyhedra, *,
     - ``explosion_factor`` -- (default: 1) a nonnegative number; translate polyhedra by this
       factor of the distance from ``center`` to their center
 
-    - ``sticky_vertices`` -- (default: ``False``) whether to draw line segments between shared
-      vertices of the given polyhedra
+    - ``sticky_vertices`` -- (default: ``False``) boolean or dict. Whether to draw line segments between shared
+      vertices of the given polyhedra. A dict gives options for :func:`sage.plot.line`.
 
-    - ``sticky_center`` -- (default: ``True``) whether to draw line segments between ``center``
-      and the vertices of the given polyhedra
+    - ``sticky_center`` -- (default: ``True``) boolean or dict. Whether to draw line segments between ``center``
+      and the vertices of the given polyhedra. A dict gives options for :func:`sage.plot.line`.
 
     - other keyword arguments are passed on to :meth:`~sage.geometry.polyhedron.base.Polyhedron_base.plot`.
 
@@ -2512,15 +2512,19 @@ def exploded_rainbow_plot(polyhedra, *,
             vertex_translations_dict[v] = vertex_translations_dict.get(v, [])
             vertex_translations_dict[v].append(v + t)
     if sticky_vertices or sticky_center:
+        if sticky_vertices is True:
+            sticky_vertices = dict(color='gray')
+        if sticky_center is True:
+            sticky_center = dict(color='gray')
         for vertex, vertex_translations in vertex_translations_dict.items():
             if vertex == center:
                 if sticky_center:
                     for vt in vertex_translations:
-                        g += line((center, vt), color='gray')
+                        g += line((center, vt), **sticky_center)
             else:
                 if sticky_vertices:
                     for vt1, vt2 in itertools.combinations(vertex_translations, 2):
-                        g += line((vt1, vt2), color='gray')
+                        g += line((vt1, vt2), **sticky_vertices)
 
     if point is None:
         point = dict(size=1.5)

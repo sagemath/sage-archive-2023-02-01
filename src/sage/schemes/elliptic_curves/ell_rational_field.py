@@ -2607,6 +2607,14 @@ class EllipticCurve_rational_field(EllipticCurve_number_field):
             sage: S = E([-113288,-9969344])
             sage: E.saturation([P,Q,R,S])
             ([(-19992 : 16313472 : 1), (-24108 : -17791704 : 1), (-97104 : -20391840 : 1), (-113288 : -9969344 : 1)], 1, 172.792031341679)
+
+        See :trac:`34029`.  With eclib versions prior to 20220621 this failed to saturate::
+
+            sage: E = EllipticCurve([0, 0, 0, -17607, -889490])
+            sage: Q = E([-82,54])
+            sage: E.saturation([2*Q], max_prime=10)
+            ([(-82 : 54 : 1)], 2, 2.36570863272098)
+
         """
         if not isinstance(points, list):
             raise TypeError("points (=%s) must be a list." % points)
@@ -3559,7 +3567,7 @@ class EllipticCurve_rational_field(EllipticCurve_number_field):
         - ``M`` -- non-negative integer; this function is only ever called on
           `M > 1`, although the algorithm works fine for the case `M = 1`
 
-        - ``invariant`` -- string (default: "both"``); options are:
+        - ``invariant`` -- string (default: ``"both"``); options are:
 
           - "both" -- both modular degree and congruence number at level `MN` are computed
 
@@ -6409,10 +6417,12 @@ class EllipticCurve_rational_field(EllipticCurve_number_field):
             Return the set of S-integers x which are x-coordinates of
             points on the curve which are linear combinations of the
             generators (basis and torsion points) with coefficients
-            bounded by `H_q`.  The bound `H_q` will be computed at
-            runtime.
+            bounded by `H_q`.
+
+            The bound `H_q` will be computed at runtime.
+
             (Modified version of integral_points_with_bounded_mw_coeffs() in
-             integral_points() )
+            integral_points())
 
             .. TODO::
 

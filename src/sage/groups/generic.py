@@ -877,6 +877,7 @@ def discrete_log(a, base, ord=None, bounds=None, operation='*', identity=None, i
             a = mult(a, power(base, -lb))
             offset = lb
             bound = ub - lb
+        i = 0  # this corrects a bug in which the loop is never entered and i never gets assigned a value
         for i, (pi, ri) in enumerate(f):
             running_bound = min(bound, pi ** ri)
             for j in range(ri):

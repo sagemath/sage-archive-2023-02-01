@@ -97,7 +97,7 @@ DEVELOP_SYSTEM_PACKAGES="openssh pycodestyle pytest"
 (
     echo >&4 "  - pip:"
     echo >&5 "  - pip:"
-    for PKG_BASE in $(sage-package list :standard: :optional: --has-file requirements.txt --no-file distros/conda.txt) $(sage-package list :standard: :optional: --has-file install-requires.txt --no-file requirements.txt --no-file distros/conda.txt); do
+    for PKG_BASE in $((sage-package list :standard: :optional: --has-file requirements.txt --no-file distros/conda.txt --no-file src; sage-package list :standard: :optional: --has-file install-requires.txt --no-file requirements.txt --no-file distros/conda.txt --no-file src) | sort); do
         PKG_SCRIPTS=build/pkgs/$PKG_BASE
         SYSTEM_PACKAGES_FILE=$PKG_SCRIPTS/requirements.txt
         if [ ! -f $SYSTEM_PACKAGES_FILE ]; then

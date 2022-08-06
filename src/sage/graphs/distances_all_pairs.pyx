@@ -2079,7 +2079,7 @@ def wiener_index(G):
 ################
 
 cdef uint64_t c_szeged_index_low_memory(short_digraph sd):
-    """
+    r"""
     Return the Szeged index of the graph.
 
     Let `G = (V, E)` be a connected simple graph, and for any `uv\in E`, let
@@ -2185,8 +2185,9 @@ cdef uint64_t c_szeged_index_low_memory(short_digraph sd):
 
     return s
 
+
 cdef uint64_t c_szeged_index_high_memory(short_digraph sd):
-    """
+    r"""
     Return the Szeged index of the graph.
 
     Let `G = (V, E)` be a connected graph, and for any `uv\in E`, let `N_u(uv) =

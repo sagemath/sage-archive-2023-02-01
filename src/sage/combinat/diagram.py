@@ -35,6 +35,122 @@ the absence of a cell in the diagram::
     . . . . . . .
     . . . . . . O
 
+We can also check if certain cells are contained in a given diagram::
+
+    sage: (1, 0) in T
+    True
+    sage: (2, 2) in T
+    False
+
+A ``Diagram`` is an element of the parent class ``Diagrams``, so we can also
+construct a diagram by calling an instance of ``Diagrams``::
+
+    sage: from sage.combinat.diagram import Diagrams
+    sage: Dgms = Diagrams()
+    sage: D in Dgms
+    True
+    sage: Dgms([(0,1),(3,3)].pp()
+    . . . .
+    . O . .
+    . . . .
+    . . . O
+
+There are two other specific types of diagrams which are implemented in Sage,
+namely northwest diagrams (:class:`NorthwestDiagram`) and Rothe diagrams
+(:func:`RotheDiagram`, a special kind of northwest diagram).
+
+A diagram is a
+*northwest diagram* if it satsifies the property that: the presence of two
+cells `(i_1, j_1)` and `(i_2, j_2)` in a diagram `D` implies the presence of
+the cell `(\min(i_1, i_2), \min(j_1, j_2))`::
+
+    sage: from sage.combinat.diagram import NorthwestDiagram
+    sage: N = NorthwestDiagram([(0,0), (0, 10), (5,0)]); N.pp()
+    O . . . . . . . . . O
+    . . . . . . . . . . .
+    . . . . . . . . . . .
+    . . . . . . . . . . .
+    . . . . . . . . . . .
+    O . . . . . . . . . .
+
+Note that checking whether or not the northwest property is satisfied is
+automatically checked. The diagram found by adding the cell `(1,1)` to the
+diagram above is *not* a northwest diagram. The cell `(1,0)` should be
+present due to the presence of `(5,0)` and `(1,1)`::
+
+    sage: Diagram([(0, 0), (0, 10), (5, 0), (1, 1)]).pp()
+    O . . . . . . . . . O
+    . O . . . . . . . . .
+    . . . . . . . . . . .
+    . . . . . . . . . . .
+    . . . . . . . . . . .
+    O . . . . . . . . . .
+    sage: NorthwestDiagram([(0, 0), (0, 10), (5, 0), (1, 1)])
+    Traceback (most recent call last):
+    ...
+    ValueError
+
+However, this behavior can be turned off if you are confident that you are
+providing a northwest diagram::
+
+    sage: N = NorthwestDiagram([(0, 0), (0, 10), (5, 0),
+    ....:                      (1, 1), (0, 1), (1, 0)],
+    ....:                      check=False)
+    sage: N.pp()
+    O O . . . . . . . . O
+    O O . . . . . . . . .
+    . . . . . . . . . . .
+    . . . . . . . . . . .
+    . . . . . . . . . . .
+    O . . . . . . . . . .
+
+Note that arbitrary diagrams which happen to be northwest diagrams only live
+in the parent of :class:`Diagrams`::
+
+    sage: D = Diagram([(0, 0), (0, 10), (5, 0), (1, 1), (0, 1), (1, 0)])
+    sage: D.pp()
+    O O . . . . . . . . O
+    O O . . . . . . . . .
+    . . . . . . . . . . .
+    . . . . . . . . . . .
+    . . . . . . . . . . .
+    O . . . . . . . . . .
+    sage: D in NorthwestDiagrams()
+    False
+
+For a fixed northwest diagram `D`, we say that a Young tableau `T` is
+`D`-peelable if the row indices of the cells in the first column of `D` are
+the entries in an initial segment in the first column of `T`, and the
+
+One particular way of constructing a northwest diagram from a permutation is
+by constructing its Rothe diagram. Formally, if `\omega` is a permutation,
+then the Rothe diagram `D(\omega)` is the diagram whose cells are
+
+.. MATH::
+
+    D(\omega) = \{(\omega_i, j) : i<j,\, \omega_i < j \}. ## CHECK THIS!
+
+Informally, one can construct the Rothe diagram by starting with all `n^2`
+possible cells, and then deleting the cells `(i, \omega(i))` as well as all
+cells to the right and below. (These are the "death rays" of []_.) To compute
+a Rothe diagram in Sage, start with a
+:class:`~sage.combinat.permutation.Permutation`::
+
+    sage: w = Permutations(8)([2,5,4,1,3,6,7,8])
+
+Then call :func:`RotheDiagram` on ``w``::
+
+    sage: from sage.combinat.diagram import RotheDiagram
+    sage: RotheDiagram(w).pp()
+    O . . . . . . .
+    O . O O . . . .
+    O . O . . . . .
+    . . O . . . . .
+    . . . . . . . .
+    . . O . . . . .
+    . . O . . . . .
+    . . O . . . . .
+
 AUTHORS:
 
 - Trevor K. Karn (2022-08-01): initial version
@@ -63,9 +179,18 @@ from sage.combinat.skew_tableau import SkewTableaux
 
 class Diagram(ClonableArray):
     r"""
+    A class to model arbitrary combinatorial diagrams.
+
     EXAMPLES::
 
-        sage:
+        sage: from sage.combinat.diagram import Diagram
+        sage: D = Diagram([(0,0), (0,3), (2,2), (2,4)])
+
+    TESTS::
+
+        sage: from sage.combinat.diagram import Diagrams
+        sage: D = Diagrams().an_element()
+        sage: TestSuite(D).run()
     """
     @staticmethod
     def __classcall_private__(self, cells, **kwargs):
@@ -156,6 +281,10 @@ class Diagram(ClonableArray):
 
     def pp(self):
         r"""
+        Return a visualization of the diagram. Cells which are present in the
+        diagram are filled with a ``O``. Cells which are not present in the
+        diagram are filled with a ``.``.
+
         EXAMPLES::
 
             sage: from sage.combinat.diagram import Diagram
@@ -178,29 +307,69 @@ class Diagram(ClonableArray):
 
     def n_rows(self):
         r"""
-        EXAMPLES::
+        Return the total number of rows of the cell, including those which do
+        not have any cells.
+
+        EXAMPLES:
+
+        The following example has three rows which are filled, but they
+        are contained in rows 0 to 3 (for a total of four)::
 
             sage: from sage.combinat.diagram import Diagram
             sage: D1 = Diagram([(0,2),(0,3),(1,1),(3,2)])
             sage: D1.n_rows()
             4
-        """
 
+        We can also include empty rows at the end::
+
+            sage: from sage.combinat.diagram import Diagram
+            sage: D = Diagram([(0,2),(0,3),(1,1),(3,2)], n_rows=6)
+            sage: D.n_rows()
+            6
+            sage: D.pp()
+            . . O O
+            . O . .
+            . . . .
+            . . O .
+            . . . .
+            . . . .
+        """
         return self._n_rows
 
     def n_cols(self):
         r"""
-        EXAMPLES::
+        Return the total number of rows of the cell, including those which do
+        not have any cells.
+
+        EXAMPLES:
+
+        The following example has three columns which are filled, but they
+        are contained in rows 0 to 3 (for a total of four)::
 
             sage: from sage.combinat.diagram import Diagram
-            sage: D1 = Diagram([(0,2),(0,3),(1,1),(3,2)])
-            sage: D1.n_cols()
+            sage: D = Diagram([(0,2),(0,3),(1,1),(3,2)])
+            sage: D.n_cols()
             4
+
+        We can also include empty columns at the end::
+
+            sage: from sage.combinat.diagram import Diagram
+            sage: D = Diagram([(0,2),(0,3),(1,1),(3,2)], n_cols=6)
+            sage: D.n_cols()
+            6
+            sage: D.pp()
+            . . O O . .
+            . O . . . .
+            . . . . . .
+            . . O . . .
         """
+
         return self._n_cols
 
     def cells(self):
         r"""
+        Return a ``list`` of the cells contained in the diagram ``self``.
+
         EXAMPLES::
 
             sage: from sage.combinat.diagram import Diagram
@@ -212,6 +381,8 @@ class Diagram(ClonableArray):
 
     def n_cells(self):
         r"""
+        Return the total number of cells contained in the diagram ``self``.
+
         EXAMPLES::
 
             sage: from sage.combinat.diagram import Diagram
@@ -239,6 +410,7 @@ class Diagram(ClonableArray):
             sage: D.check()
         """
         assert all(isinstance(c, tuple) and len(c) == 2 for c in self._cells)
+
 
 class Diagrams(UniqueRepresentation, Parent):
     r"""
@@ -306,6 +478,7 @@ class Diagrams(UniqueRepresentation, Parent):
 
     Element = Diagram
 
+
 ####################
 # Northwest diagrams
 ####################
@@ -329,8 +502,10 @@ class NorthwestDiagram(Diagram):
 
     def __init__(self, cells, **kwargs):
 
+        check = kwargs.get('check', True)
+
         Diagram.__init__(self, cells, **kwargs)
-        ClonableArray.__init__(self, NorthwestDiagrams(), cells, check=False)
+        ClonableArray.__init__(self, NorthwestDiagrams(), cells, check=check)
 
     def check(self):
         r"""
@@ -512,6 +687,7 @@ class NorthwestDiagram(Diagram):
 
         return peelables
 
+
 class NorthwestDiagrams(Diagrams):
     r"""
     The class of northwest diagrams.
@@ -589,6 +765,7 @@ class NorthwestDiagrams(Diagrams):
 
     Element = NorthwestDiagram
 
+
 def RotheDiagram(w):
     r"""
     A constructor to build the Rothe diagram of a permutation w as an element
@@ -598,7 +775,16 @@ def RotheDiagram(w):
 
         sage: w = Permutations(9)([1, 7, 4, 5, 9, 3, 2, 8, 6])
         sage: from sage.combinat.diagram import RotheDiagram
-        sage: D = RotheDiagram(w)
+        sage: D = RotheDiagram(w); D.pp()
+        . . . . . . . . .
+        . O O O O O . . .
+        . O O . . . . . .
+        . O O . . . . . .
+        . O O . . O . O .
+        . O . . . . . . .
+        . . . . . . . . .
+        . . . . . O . . .
+        . . . . . . . . .
     """
 
     from sage.misc.mrange import cartesian_product_iterator
@@ -609,4 +795,4 @@ def RotheDiagram(w):
     cells = [c for c in cartesian_product_iterator((range(9),range(9))) 
              if c[0]+1 < w.inverse()(c[1]+1) and c[1]+1 < w(c[0]+1)]
 
-    return NorthwestDiagram(cells)
+    return NorthwestDiagram(cells, check=False)

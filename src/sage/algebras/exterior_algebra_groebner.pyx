@@ -1,4 +1,5 @@
-"""
+# cython: linetrace=True
+r"""
 Exterior algebras Gröbner bases
 
 This contains the backend implementations in Cython for the Gröbner bases
@@ -24,6 +25,7 @@ from sage.libs.gmp.mpz cimport mpz_sizeinbase, mpz_setbit, mpz_tstbit, mpz_cmp_s
 from sage.data_structures.bitset_base cimport (bitset_t, bitset_init, bitset_first,
                                                bitset_next, bitset_set_to, bitset_len)
 from sage.structure.parent cimport Parent
+from sage.structure.richcmp cimport richcmp
 
 cdef inline long degree(FrozenBitset X):
     """
@@ -37,6 +39,18 @@ cdef inline CliffordAlgebraElement build_monomial(Parent E, FrozenBitset supp):
     Helper function for the fastest way to build a monomial.
     """
     return <CliffordAlgebraElement> E.element_class(E, {supp: E._base.one()})
+
+cdef class GBElement:
+    def __init__(self, CliffordAlgebraElement x, FrozenBitset ls, Integer n):
+        self.elt = x
+        self.ls = ls
+        self.lsi = n
+
+    def __hash__(self):
+        return int(self.lsi)
+
+    def __richcmp__(self, other, int op):
+        return richcmp(self.elt, (<GBElement?> other).elt, op)
 
 cdef class GroebnerStrategy:
     """
@@ -70,14 +84,14 @@ cdef class GroebnerStrategy:
         else:
             self.side = 2
 
-    cdef inline FrozenBitset leading_supp(self, CliffordAlgebraElement f):
+    cdef inline FrozenBitset leading_support(self, CliffordAlgebraElement f):
         """
         Return the leading support of the exterior algebra element ``f``.
         """
         cdef dict mc = <dict> f._monomial_coefficients
         return self.int_to_bitset(max(self.bitset_to_int(k) for k in mc))
 
-    cdef inline partial_S_poly_left(self, CliffordAlgebraElement f, CliffordAlgebraElement g):
+    cdef inline partial_S_poly_left(self, GBElement f, GBElement g):
         """
         Compute one half of the `S`-polynomial for ``f`` and ``g``.
 
@@ -87,13 +101,14 @@ cdef class GroebnerStrategy:
 
             LCM(LM(f), LM(g)) / LT(f) \cdot f.
         """
-        cdef FrozenBitset lmf = self.leading_supp(f)
-        cdef FrozenBitset lmg = self.leading_supp(g)
-        cdef FrozenBitset D = <FrozenBitset> lmg.difference(lmf)
-        ret = build_monomial(self.E, D) * f
-        return (~ret[lmf._union(lmg)]) * ret
+        cdef FrozenBitset D = <FrozenBitset> g.ls.difference(f.ls)
+        cdef GBElement ret = self.prod_term_GB(D, f)
+        inv = ~ret.elt[ret.ls]
+        for k in ret.elt._monomial_coefficients:
+            ret.elt._monomial_coefficients[k] *= inv
+        return ret
 
-    cdef inline partial_S_poly_right(self, CliffordAlgebraElement f, CliffordAlgebraElement g):
+    cdef inline partial_S_poly_right(self, GBElement f, GBElement g):
         """
         Compute one half of the `S`-polynomial for ``f`` and ``g``.
 
@@ -103,13 +118,48 @@ cdef class GroebnerStrategy:
 
             f \cdot LCM(LM(f), LM(g)) / LT(f).
         """
-        cdef FrozenBitset lmf = self.leading_supp(f)
-        cdef FrozenBitset lmg = self.leading_supp(g)
-        cdef FrozenBitset D = <FrozenBitset> lmg.difference(lmf)
-        ret = f * build_monomial(self.E, D)
-        return ret * (~ret[lmf._union(lmg)])
+        cdef FrozenBitset D = <FrozenBitset> g.ls.difference(f.ls)
+        cdef GBElement ret = self.prod_GB_term(f, D)
+        inv = ~ret.elt[ret.ls]
+        for k in ret.elt._monomial_coefficients:
+            ret.elt._monomial_coefficients[k] *= inv
+        return ret
 
-    cdef inline bint build_S_poly(self, CliffordAlgebraElement f, CliffordAlgebraElement g):
+    cdef inline GBElement build_elt(self, CliffordAlgebraElement f):
+        """
+        Convert ``f`` into a ``GBElement``.
+        """
+        cdef dict mc = <dict> f._monomial_coefficients
+        #if not mc:
+        #    return GBElement(f, FrozenBitset(), -1)
+        cdef Integer r = <Integer> max(self.bitset_to_int(k) for k in mc)
+        return GBElement(f, self.int_to_bitset(r), r)
+
+    cdef inline GBElement prod_GB_term(self, GBElement f, FrozenBitset t):
+        """
+        Return the GBElement corresponding to ``f * t``.
+
+        .. WARNING::
+
+            This assumes the leading support is ``f.ls._union(t)``.
+        """
+        ret = f.elt * build_monomial(self.E, t)
+        cdef FrozenBitset ls = <FrozenBitset> f.ls._union(t)
+        return GBElement(ret, ls, self.bitset_to_int(ls))
+
+    cdef inline GBElement prod_term_GB(self, FrozenBitset t, GBElement f):
+        """
+        Return the GBElement corresponding to ``t * f``.
+
+        .. WARNING::
+
+            This assumes the leading support is ``f.ls._union(t)``.
+        """
+        ret = build_monomial(self.E, t) * f.elt
+        cdef FrozenBitset ls = <FrozenBitset> f.ls._union(t)
+        return GBElement(ret, ls, self.bitset_to_int(ls))
+
+    cdef inline bint build_S_poly(self, GBElement f, GBElement g):
         r"""
         Check to see if we should build the `S`-polynomial.
 
@@ -122,13 +172,13 @@ cdef class GroebnerStrategy:
         if not self.homogeneous:
             return True
 
-        return (<FrozenBitset> self.leading_supp(f).intersection(self.leading_supp(g))).isempty()
+        return (<FrozenBitset> f.ls.intersection(g.ls)).isempty()
 
     cdef inline set preprocessing(self, list P, list G):
         """
         Perform the preprocessing step.
         """
-        cdef CliffordAlgebraElement f, g, f0, f1
+        cdef GBElement f, g, f0, f1
         cdef set additions
 
         cdef set L = set()
@@ -145,13 +195,13 @@ cdef class GroebnerStrategy:
 
         if self.side == 2 and not self.homogeneous:
             # Add in all S-poly times positive degree monomials
-            additions = set(f * t for t in self.E.basis() for f in L)
-            L.update(f for f in additions if f)
+            additions = set((<GBElement> f).elt * t for t in self.E.basis() for f in L)
+            L.update(self.build_elt(f) for f in additions if f)
 
-        cdef set done = set(self.leading_supp(f) for f in L)
+        cdef set done = set((<GBElement> f).ls for f in L)
         cdef set monL = set()
         for f in L:
-            monL.update(f._monomial_coefficients)
+            monL.update(f.elt._monomial_coefficients)
         monL.difference_update(done)
 
         while monL:
@@ -159,12 +209,12 @@ cdef class GroebnerStrategy:
             done.add(m)
             monL.remove(m)
             for g in G:
-                lm = self.leading_supp(g)
+                lm = g.ls
                 if lm <= m:
-                    f = <CliffordAlgebraElement> build_monomial(self.E, <FrozenBitset> m.difference(lm)) * g
+                    f = self.prod_term_GB(<FrozenBitset> m.difference(lm), g)
                     if f in L:
                         break
-                    monL.update(set(f._monomial_coefficients) - done)
+                    monL.update(set(f.elt._monomial_coefficients) - done)
                     L.add(f)
                     break
         return L
@@ -179,13 +229,15 @@ cdef class GroebnerStrategy:
         cdef Integer r = Integer(2) ** self.rank - Integer(1) # r for "rank" or "reverso"
         M = matrix({(i, r - self.bitset_to_int(<FrozenBitset> m)): c
                     for i,f in enumerate(L)
-                    for m,c in (<CliffordAlgebraElement> f)._monomial_coefficients.items()},
+                    for m,c in (<GBElement> f).elt._monomial_coefficients.items()},
                    sparse=True)
         M.echelonize()  # Do this in place
-        lead_supports = set(self.leading_supp(<CliffordAlgebraElement> f) for f in L)
-        return [self.E.element_class(self.E, {self.int_to_bitset(r - Integer(j)): c for j,c in M[i].iteritems()})
-                for i,p in enumerate(M.pivots())
-                if self.int_to_bitset(r - Integer(p)) not in lead_supports]
+        lead_supports = set((<GBElement> f).lsi for f in L)
+        return [GBElement(self.E.element_class(self.E, {self.int_to_bitset(r - Integer(j)): c for j,c in M[i].iteritems()}),
+                          self.int_to_bitset(Integer(r - p)),
+                          Integer(r - p))
+                for i, p in enumerate(M.pivots())
+                if r - Integer(p) not in lead_supports]
 
     def compute_groebner(self):
         """
@@ -210,23 +262,24 @@ cdef class GroebnerStrategy:
         cdef long deg
         cdef Py_ssize_t i, j, k
         cdef set additions
-        cdef list G = [f for f in self.ideal.gens() if f]  # Remove 0s
+        cdef GBElement f0, f1
+        cdef list G = [self.build_elt(f) for f in self.ideal.gens() if f]  # Remove 0s
+        cdef list Gp
 
         if self.side == 2 and not self.homogeneous:
             # Add in all S-poly times positive degree monomials
-            additions = set(f * t for t in self.E.basis() for f in G)
-            G.extend(f for f in additions if f)
+            additions = set((<GBElement> f0).elt * t for t in self.E.basis() for f0 in G)
+            G.extend(self.build_elt(f) for f in additions if f)
 
         cdef Py_ssize_t n = len(G)
         cdef dict P = {}
-        cdef list Gp
 
         for i in range(n):
-            f0 = G[i]
-            p0 = self.leading_supp(f0)
+            f0 = <GBElement> G[i]
+            p0 = f0.ls
             for j in range(i+1, n):
-                f1 = G[j]
-                p1 = self.leading_supp(f1)
+                f1 = <GBElement> G[j]
+                p1 = f1.ls
                 deg = degree(<FrozenBitset> (p0._union(p1)))
                 if deg in P:
                     P[deg].append((f0, f1))
@@ -239,10 +292,10 @@ cdef class GroebnerStrategy:
             G.extend(Gp)
             for j in range(n, len(G)):
                 f1 = G[j]
-                p1 = self.leading_supp(f1)
+                p1 = f1.ls
                 for i in range(j):
                     f0 = G[i]
-                    p0 = self.leading_supp(f0)
+                    p0 = f0.ls
                     deg = degree(<FrozenBitset> (p0._union(p1)))
                     if deg in P:
                         P[deg].append((f0, f1))
@@ -250,24 +303,31 @@ cdef class GroebnerStrategy:
                         P[deg] = [(f0, f1)]
             n = len(G)
 
+        G.sort(key=lambda x: (<GBElement> x).lsi)
+
+        for i in range(len(G)):
+            G[i] = (<GBElement> G[i]).elt
+
         # Now that we have a Gröbner basis, we make this into a reduced Gröbner basis
-        cdef set pairs = set((i, j) for i in range(n) for j in range(n) if i != j)
+        cdef set pairs = set((i, j) for i in range(n) for j in range(i+1,n))
         cdef tuple supp
         cdef bint did_reduction
         cdef FrozenBitset lm, s
         while pairs:
             i,j = pairs.pop()
+            f = G[i]
+            g = G[j]
             # We perform the classical reduction algorithm here on each pair
             # TODO: Make this faster by using the previous technique?
-            f = self.reduce_single(G[i], G[j])
-            if G[i] != f:
-                G[i] = f
-                if not f:
+            fp = self.reduce_single(f, g)
+            if f != fp:
+                G[i] = fp
+                if not fp:
                     pairs.difference_update((k, i) for k in range(n))
                 else:
                     pairs.update((k, i) for k in range(n) if k != i)
 
-        self.groebner_basis = tuple([~f[self.leading_supp(f)] * f for f in G if f])
+        self.groebner_basis = tuple([~f[self.leading_support(f)] * f for f in G if f])
 
     cpdef CliffordAlgebraElement reduce(self, CliffordAlgebraElement f):
         """
@@ -294,7 +354,7 @@ cdef class GroebnerStrategy:
             0
         """
         for g in self.groebner_basis:
-            f = self.reduce_single(f, <CliffordAlgebraElement> g)
+            f = self.reduce_single(f, g)
         return f
 
     cdef CliffordAlgebraElement reduce_single(self, CliffordAlgebraElement f, CliffordAlgebraElement g):
@@ -305,20 +365,19 @@ cdef class GroebnerStrategy:
 
             Optimize this by doing it in-place and changing the underlying dict of ``f``.
         """
-        cdef FrozenBitset lm, s
+        cdef FrozenBitset lm = self.leading_support(g), s
+        cdef bint did_reduction = True
         cdef tuple supp
 
-        lm = self.leading_supp(g)
-        did_reduction = True
         while did_reduction:
             supp = tuple(f._monomial_coefficients)
             did_reduction = False
             for s in supp:
                 if lm <= s:
                     did_reduction = True
-                    mon = self.E.monomial(s - lm)
+                    mon = build_monomial(self.E, s - lm)
                     if self.side == 0:
-                        gp = mon * g
+                        gp = mon * g.elt
                         f -= f[s] / gp[s] * gp
                     else:
                         gp = g * mon

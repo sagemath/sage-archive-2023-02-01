@@ -11,6 +11,11 @@ from sage.structure.element cimport MonoidElement
 cdef long degree(FrozenBitset X)
 cdef CliffordAlgebraElement build_monomial(Parent E, FrozenBitset supp)
 
+cdef class GBElement:
+    cdef CliffordAlgebraElement elt
+    cdef FrozenBitset ls  # leading support as a bitset
+    cdef Integer lsi  # leading support as an Integer
+
 # Grobner basis functions
 cdef class GroebnerStrategy:
     cdef Parent E  # the exterior algebra
@@ -20,11 +25,14 @@ cdef class GroebnerStrategy:
     cdef Integer rank
     cdef public tuple groebner_basis
 
-    cdef inline bint build_S_poly(self, CliffordAlgebraElement f, CliffordAlgebraElement g)
+    cdef inline GBElement build_elt(self, CliffordAlgebraElement f)
+    cdef inline GBElement prod_GB_term(self, GBElement f, FrozenBitset t)
+    cdef inline GBElement prod_term_GB(self, FrozenBitset t, GBElement f)
+    cdef inline bint build_S_poly(self, GBElement f, GBElement g)
 
-    cdef inline FrozenBitset leading_supp(self, CliffordAlgebraElement f)
-    cdef inline partial_S_poly_left(self, CliffordAlgebraElement f, CliffordAlgebraElement g)
-    cdef inline partial_S_poly_right(self, CliffordAlgebraElement f, CliffordAlgebraElement g)
+    cdef inline FrozenBitset leading_support(self, CliffordAlgebraElement f)
+    cdef inline partial_S_poly_left(self, GBElement f, GBElement g)
+    cdef inline partial_S_poly_right(self, GBElement f, GBElement g)
     cdef set preprocessing(self, list P, list G)
     cdef list reduction(self, list P, list G)
 

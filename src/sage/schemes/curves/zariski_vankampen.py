@@ -1018,7 +1018,12 @@ def fundamental_group(f, simplified=True, projective=False):
         sage: fundamental_group(f) # optional - sirocco
         Finitely presented group < x0 |  >
     """
-    bm = braid_monodromy(f)
+    g = f
+    if projective:
+        x,y = g.parent().gens()
+        while g.degree(y) < g.degree():
+            g = g.subs({x : x + y})
+    bm = braid_monodromy(g)
     n = bm[0].parent().strands()
     F = FreeGroup(n)
 

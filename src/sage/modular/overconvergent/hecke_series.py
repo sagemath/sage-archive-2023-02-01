@@ -234,10 +234,9 @@ def low_weight_generators(N,p,m,NN):
         sage: low_weight_generators(11, 5, 3, 10)
         ([[1 + 12*q^2 + 12*q^3 + 12*q^4 + 12*q^5 + 24*q^6 + 24*q^7 + 36*q^8 + 36*q^9 + O(q^10),
         q + 123*q^2 + 124*q^3 + 2*q^4 + q^5 + 2*q^6 + 123*q^7 + 123*q^9 + O(q^10)],
-        [1 + O(q^10)]],
-        4)
+        [q + 116*q^4 + 115*q^5 + 102*q^6 + 121*q^7 + 96*q^8 + 106*q^9 + O(q^10)]], 4)
     """
-    M = ModularFormsRing(N)
+    M = ModularFormsRing(N, base_ring=Zmod(p))
 
     b = M.gen_forms(maxweight=8)
 
@@ -287,26 +286,25 @@ def random_solution(B,K):
 
     return a
 
+
 # AUXILIARY CODE: ECHELON FORM
 
-def ech_form(A,p):
+def ech_form(A, p):
     r"""
-    Returns echelon form of matrix ``A`` over the ring of integers modulo
+    Return echelon form of matrix ``A`` over the ring of integers modulo
     `p^m`, for some prime `p` and `m \ge 1`.
 
-    .. todo::
+    .. TODO::
 
         This should be moved to :mod:`sage.matrix.matrix_modn_dense` at some
         point.
 
     INPUT:
 
-    - ``A`` -- matrix over ``Zmod(p^m)`` for some m.
-    - ``p`` - prime p.
+    - ``A`` -- matrix over ``Zmod(p^m)`` for some m
+    - ``p`` -- prime p
 
-    OUTPUT:
-
-    - matrix over ``Zmod(p^m)``.
+    OUTPUT: matrix over ``Zmod(p^m)``
 
     EXAMPLES::
 
@@ -317,7 +315,6 @@ def ech_form(A,p):
         [0 1 2]
         [0 0 0]
     """
-
     S = A[0, 0].parent()
     a = A.nrows()
     b = A.ncols()

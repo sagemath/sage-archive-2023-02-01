@@ -232,7 +232,7 @@ for a in args[0]))
         """
         Returns the argument specification for this object, which is
         just the argument specification for the underlying function.
-        See :module:`sage.misc.sageinspect` for more information on
+        See :mod:`sage.misc.sageinspect` for more information on
         this convention.
 
         EXAMPLES::
@@ -252,7 +252,7 @@ for a in args[0]))
         """
         Returns the source code for this object, which is just the
         source code for the underlying function.  See
-        :module:`sage.misc.sageinspect` for more information on this
+        :mod:`sage.misc.sageinspect` for more information on this
         convention.
 
         EXAMPLES::
@@ -269,10 +269,10 @@ for a in args[0]))
         return sage_getsource(self.func)
 
     def _instancedoc_(self):
-        """
+        r"""
         Returns the docstring for this object, which is just the
         docstring for the underlying function.  See
-        :module:`sage.misc.sageinspect` for more information on this
+        :mod:`sage.misc.sageinspect` for more information on this
         convention.
 
         EXAMPLES::
@@ -557,10 +557,10 @@ def fork(f=None, timeout=0, verbose=False):
 
     We illustrate that segfaulting subprocesses are no trouble at all::
 
-        sage: cython('def f(): print(<char*>0)')
+        sage: cython('def f(): print(<char*>0)')                            # optional - sage.misc.cython
         sage: @fork
         ....: def g(): f()
-        sage: print("this works"); g()
+        sage: print("this works"); g()                                      # optional - sage.misc.cython
         this works...
         <BLANKLINE>
         ------------------------------------------------------------------------

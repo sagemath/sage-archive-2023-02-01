@@ -793,9 +793,9 @@ class Triangulation(Element):
             sage: pc = PointConfiguration(P.vertices())
             sage: T = pc.placing_triangulation(); T
             (<0,1,2,7>, <0,1,5,7>, <0,2,3,7>, <0,3,4,7>, <0,4,5,7>, <1,5,6,7>)
-            sage: C = T.boundary_polyhedral_complex(); C
+            sage: bd_C = T.boundary_polyhedral_complex(); bd_C
             Polyhedral complex with 12 maximal cells
-            sage: [P.vertices_list() for P in C.maximal_cells_sorted()]
+            sage: [P.vertices_list() for P in bd_C.maximal_cells_sorted()]
             [[[-1, -1, -1], [-1, -1, 1], [-1, 1, 1]],
             [[-1, -1, -1], [-1, -1, 1], [1, -1, -1]],
             [[-1, -1, -1], [-1, 1, -1], [-1, 1, 1]],
@@ -808,6 +808,12 @@ class Triangulation(Element):
             [[-1, 1, 1], [1, 1, -1], [1, 1, 1]],
             [[1, -1, -1], [1, -1, 1], [1, 1, 1]],
             [[1, -1, -1], [1, 1, -1], [1, 1, 1]]]
+
+        It is a subcomplex of ``self`` as a :meth:`polyhedral_complex`::
+
+            sage: C = T.polyhedral_complex()
+            sage: bd_C.is_subcomplex(C)
+            True
         """
         from sage.geometry.polyhedral_complex import PolyhedralComplex
         from sage.geometry.polyhedron.constructor import Polyhedron

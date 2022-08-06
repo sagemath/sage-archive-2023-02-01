@@ -1,4 +1,3 @@
-# cython: linetrace=True
 r"""
 Exterior algebras Gröbner bases
 

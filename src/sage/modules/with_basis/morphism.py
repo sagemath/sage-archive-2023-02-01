@@ -404,10 +404,10 @@ class ModuleMorphismByLinearity(ModuleMorphism):
         if self._is_module_with_basis_over_same_base_ring:
             return self.codomain().linear_combination(
                     (self._on_basis(*(before+(index,)+after)), coeff )
-                    for (index, coeff) in mc.items() if self._on_basis(index))
+                    for (index, coeff) in mc.items())
         else:
             return sum((coeff * self._on_basis(*(before+(index,)+after))
-                       for (index, coeff) in mc.items() if self._on_basis(index)), self._zero)
+                       for (index, coeff) in mc.items()), self._zero)
 
     # As per the specs of Map, we should in fact implement _call_.
     # However we currently need to abuse Map.__call__ (which strict

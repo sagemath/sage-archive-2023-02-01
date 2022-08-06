@@ -220,7 +220,8 @@ AUTHORS:
 - Travis Scrimshaw (2014-02-05): Made :class:`StandardPermutations_n` a
   finite Weyl group to make it more uniform with :class:`SymmetricGroup`.
   Added ability to compute the conjugacy classes.
-
+- Trevor K. Karn (2022-08-05): Add :meth:`Permutation.n_reduced_words` and
+  :meth:`Permutation.stanley_symmetric_function`.
 - Amrutha P, Shriya M, Divya Aggarwal (2022-08-16): Added Multimajor Index.
 
 Classes and methods
@@ -229,6 +230,7 @@ Classes and methods
 
 # ****************************************************************************
 #       Copyright (C) 2007 Mike Hansen <mhansen@gmail.com>
+#                     2022 Trevor K. Karn <karnx018 at umn.edu>
 #                     2022 Amrutha P <amruthap1916@gmail.com>
 #                     2022 Shriya M <25shriya@gmail.com>
 #                     2022 Divya Aggarwal <divyaa@iiitd.ac.in>
@@ -2993,6 +2995,32 @@ class Permutation(CombinatorialElement):
 
         return rw
 
+    def rothe_diagram(self):
+        r"""
+        Return the Rothe diagram of ``self``.
+        """
+        from sage.combinat.diagram import RotheDiagram
+        return RotheDiagram(self)
+
+    def n_reduced_words(self):
+        r"""
+        Return the number of reduced words of ``self`` without explicitly
+        computing them all.
+        """
+        Tx = self.rothe_diagram().peelable_tableaux()
+
+        return sum(map(_tableau_contribution, Tx))
+
+    def stanley_symmetric_function(self):
+        r"""
+        Return the Stanley symmetric function associated to ``self``.
+        """
+
+        from sage.combinat.sf.sf import SymmetricFunctions
+        from sage.rings.rational_field import RationalField as QQ
+
+        s = SymmetricFunctions(QQ).s()
+        return sum(s[T.shape()] for T in self.rothe_diagram().peelable_tableaux())
 
     ################
     # Fixed Points #
@@ -5242,6 +5270,11 @@ class Permutation(CombinatorialElement):
         return self.shifted_concatenation(other, "right").\
         right_permutohedron_interval(self.shifted_concatenation(other, "left"))
 
+def _tableau_contribution(T):
+    r"""
+    Get the number of SYT of shape(``T``).
+    """
+    return(StandardTableaux(T.shape()).cardinality())
 ################################################################
 # Parent classes
 ################################################################

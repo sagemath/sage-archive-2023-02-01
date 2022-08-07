@@ -167,7 +167,7 @@ class ClassicalCrystalOfLetters(UniqueRepresentation, Parent):
                 C = CrystalOfNakajimaMonomials(cartan_type, la)
                 hw = C.highest_weight_vector()
                 self.module_generators = (self._element_constructor_(hw),)
-            self._list = [x for x in super().__iter__()]
+            self._list = list(super(ClassicalCrystalOfLetters, self).__iter__())
         elif cartan_type.type() == 'F':
             from sage.combinat.crystals.monomial_crystals import CrystalOfNakajimaMonomials
             from sage.combinat.root_system.root_system import RootSystem
@@ -175,7 +175,7 @@ class ClassicalCrystalOfLetters(UniqueRepresentation, Parent):
             C = CrystalOfNakajimaMonomials(cartan_type, la)
             hw = C.highest_weight_vector()
             self.module_generators = (self._element_constructor_(hw),)
-            self._list = [x for x in super().__iter__()]
+            self._list = list(super(ClassicalCrystalOfLetters, self).__iter__())
         else:
             self.module_generators = (self._element_constructor_(1),)
             if cartan_type.type() == 'G':

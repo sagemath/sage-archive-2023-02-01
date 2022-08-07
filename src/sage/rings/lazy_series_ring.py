@@ -1599,26 +1599,29 @@ class LazySymmetricFunctions(UniqueRepresentation, Parent):
 
         TESTS::
 
-            sage: s = SymmetricFunctions(ZZ).s()
-            sage: m = SymmetricFunctions(ZZ).m()
-            sage: L = LazySymmetricFunctions(tensor([s, m]))
+            sage: e = SymmetricFunctions(ZZ).e()
+            sage: h = SymmetricFunctions(ZZ).h()
+            sage: L = LazySymmetricFunctions(tensor([h, e]))
             sage: L(lambda n: 0)
             O^7
+
+            sage: L(lambda n: tensor([h[n], e([])]) + tensor([h([]), e[n]]), degree=3)
+            (2*h[]#e[]) + (h[]#e[1]+h[1]#e[]) + (h[]#e[2]+h[2]#e[])
 
             sage: L(lambda n: n)[3];
             Traceback (most recent call last):
             ...
-            ValueError: coefficient 3*s[] # m[] at degree 3 is not a symmetric function of the correct homogeneous degree
+            ValueError: coefficient 3*h[] # e[] should be a symmetric function of homogeneous degree 3 but has degree 0
 
             sage: L([1, 2, 3]);
             Traceback (most recent call last):
             ...
-            ValueError: coefficients must be symmetric functions of the correct homogeneous degree
+            ValueError: coefficient 2*h[] # e[] should be a symmetric function of homogeneous degree 1 but has degree 0
 
             sage: L(lambda n: n, degree=3);
             Traceback (most recent call last):
             ...
-            ValueError: coefficients must be symmetric functions of the correct homogeneous degree
+            ValueError: coefficient h[] # e[] should be a symmetric function of homogeneous degree 1 but has degree 0
 
         """
         if valuation is None:
@@ -1668,51 +1671,54 @@ class LazySymmetricFunctions(UniqueRepresentation, Parent):
             raise NotImplementedError("cannot convert between sparse and dense")
 
         if self._arity == 1:
-            def is_homogeneous_of_degree(f, d):
+            def check_homogeneous_of_degree(f, d):
                 if not f:
-                    return True
+                    return
                 try:
-                    return f.homogeneous_degree() == d
+                    d1 = f.homogeneous_degree()
+                    if d1 == d:
+                        return
                 except ValueError:
-                    return False
+                    raise ValueError("coefficient %s should be a symmetric function of homogeneous degree %s" % (f, d))
+                raise ValueError("coefficient %s should be a symmetric function of homogeneous degree %s but has degree %s" % (f, d, d1))
         else:
-            def is_homogeneous_of_degree(f, d):
+            def check_homogeneous_of_degree(f, d):
                 if not f:
-                    return True
+                    return
                 for m in f.monomials():
                     for t in m.support():
-                        if sum(p.size() for p in t) != d:
-                            return False
+                        d1 = sum(p.size() for p in t)
+                        if d1 != d:
+                            raise ValueError("coefficient %s should be a symmetric function of homogeneous degree %s but has degree %s" % (f, d, d1))
+
         if isinstance(x, (tuple, list)):
             if degree is None:
                 degree = valuation + len(x)
             p = [R(e) for e in x]
-            if not all(is_homogeneous_of_degree(e, i)
-                       for i, e in enumerate(p, valuation)):
-                raise ValueError("coefficients must be symmetric functions of the correct homogeneous degree")
+            for i, e in enumerate(p, valuation):
+                check_homogeneous_of_degree(e, i)
             coeff_stream = Stream_exact(p, self._sparse,
-                                                   order=valuation,
-                                                   constant=0,
-                                                   degree=degree)
+                                        order=valuation,
+                                        constant=0,
+                                        degree=degree)
             return self.element_class(self, coeff_stream)
         if callable(x):
             if degree is not None:
                 p = [R(x(i)) for i in range(valuation, degree)]
-                if not all(is_homogeneous_of_degree(e, i)
-                           for i, e in enumerate(p, valuation)):
-                    raise ValueError("coefficients must be symmetric functions of the correct homogeneous degree")
+                for i, e in enumerate(p, valuation):
+                    check_homogeneous_of_degree(e, i)
                 coeff_stream = Stream_exact(p, self._sparse,
-                                                       order=valuation,
-                                                       constant=0,
-                                                       degree=degree)
+                                            order=valuation,
+                                            constant=0,
+                                            degree=degree)
                 return self.element_class(self, coeff_stream)
             coeff_ring = self._internal_poly_ring.base_ring()
             if check:
                 def y(n):
                     e = R(x(n))
-                    if is_homogeneous_of_degree(e, n):
-                        return e
-                    raise ValueError("coefficient %s at degree %s is not a symmetric function of the correct homogeneous degree" % (e, n))
+                    check_homogeneous_of_degree(e, n)
+                    return e
+
                 coeff_stream = Stream_function(y, coeff_ring, self._sparse, valuation)
             else:
                 coeff_stream = Stream_function(x, coeff_ring, self._sparse, valuation)

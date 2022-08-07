@@ -2488,8 +2488,9 @@ def exploded_plot(polyhedra, *,
     - ``sticky_vertices`` -- (default: ``False``) boolean or dict. Whether to draw line segments between shared
       vertices of the given polyhedra. A dict gives options for :func:`sage.plot.line`.
 
-    - ``sticky_center`` -- (default: ``True``) boolean or dict. Whether to draw line segments between ``center``
-      and the vertices of the given polyhedra. A dict gives options for :func:`sage.plot.line`.
+    - ``sticky_center`` -- (default: ``True``) boolean or dict. When ``center`` is a vertex of some
+      of the polyhedra, whether to draw line segments connecting the ``center`` to the shifted copies
+      of these vertices. A dict gives options for :func:`sage.plot.line`.
 
     - ``color`` -- (default: ``None``) if ``"rainbow"``, assign a different color to every maximal cell and
       every vertex; otherwise, passed on to :meth:`~sage.geometry.polyhedron.base.Polyhedron_base.plot`.

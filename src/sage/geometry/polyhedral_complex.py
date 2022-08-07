@@ -741,12 +741,32 @@ class PolyhedralComplex(GenericCellComplex):
             sage: p1 = Polyhedron(vertices=[(1, 1), (0, 0), (1, 2)])
             sage: p2 = Polyhedron(vertices=[(1, 2), (0, 0), (0, 2)])
             sage: p3 = Polyhedron(vertices=[(0, 0), (0, 2), (-1, 1)])
-            sage: pc = PolyhedralComplex([p1, p2, p3, -p1, -p2, -p3])
+            sage: pc1 = PolyhedralComplex([p1, p2, p3, -p1, -p2, -p3])
             sage: bb = dict(xmin=-2, xmax=2, ymin=-3, ymax=3, axes=False)
-            sage: g0 = pc.plot(color='rainbow', **bb)                                 # optional - sage.plot
-            sage: g1 = pc.plot(explosion_factor=0.5, **bb)                            # optional - sage.plot
-            sage: g2 = pc.plot(explosion_factor=1, color='rainbow', alpha=0.5, **bb)  # optional - sage.plot
-            sage: graphics_array([g0, g1, g2]).show(axes=False)                       # not tested
+            sage: g0 = pc1.plot(color='rainbow', **bb)                                 # optional - sage.plot
+            sage: g1 = pc1.plot(explosion_factor=0.5, **bb)                            # optional - sage.plot
+            sage: g2 = pc1.plot(explosion_factor=1, color='rainbow', alpha=0.5, **bb)  # optional - sage.plot
+            sage: graphics_array([g0, g1, g2]).show(axes=False)                        # not tested
+
+            sage: pc2 = PolyhedralComplex([polytopes.hypercube(3)])
+            sage: pc3 = pc2.subdivide(new_vertices=[(0, 0, 0)])
+            sage: g3 = pc3.plot(explosion_factor=1, color='rainbow',
+            ....:               alpha=0.5, axes=False, online=True)                    # optional - sage.plot
+            sage: pc4 = pc2.subdivide(make_simplicial=True)
+            sage: g4 = pc4.plot(explosion_factor=1, center=(1, -1, 1), fill='blue',
+            ....:              wireframe='white', point={'color':'red', 'size':10},
+            ....:              alpha=0.6, online=True)                                 # optional - sage.plot
+            sage: pc5 = PolyhedralComplex([
+            ....:         Polyhedron(rays=[[1,0,0], [0,1,0], [0,0,-1]]),
+            ....:         Polyhedron(rays=[[1,0,0], [0,-1,0], [0,0,-1]]),
+            ....:         Polyhedron(rays=[[1,0,0], [0,-1,0], [0,0,1]]),
+            ....:         Polyhedron(rays=[[-1,0,0], [0,-1,0], [0,0,-1]]),
+            ....:         Polyhedron(rays=[[-1,0,0], [0,-1,0], [0,0,1]]),
+            ....:         Polyhedron(rays=[[-1,0,0], [0,1,0], [0,0,-1]]),
+            ....:         Polyhedron(rays=[[-1,0,0], [0,1,0], [0,0,1]])])
+            sage: g5 = pc5.plot(explosion_factor=0.3, color='rainbow', alpha=0.8,
+            ....:               point={'size': 20}, axes=False, online=True)           # optional - sage.plot
+
         """
         if self.dimension() > 3:
             raise ValueError("cannot plot in high dimension")

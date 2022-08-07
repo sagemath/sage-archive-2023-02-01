@@ -683,7 +683,7 @@ def discrete_log(a, base, ord=None, bounds=None, operation='*', identity=None, i
     - ``identity`` - the group's identity
     - ``inverse()`` - function of 1 argument ``x`` returning inverse of ``x``
     - ``op()`` - function of 2 arguments ``x``, ``y`` returning ``x*y`` in the group
-    - ``algorithm`` - string denoting what algorithm to use for prime-order logarithms: 'bsgs', 'rho'
+    - ``algorithm`` - string denoting what algorithm to use for prime-order logarithms: 'bsgs', 'rho', 'lambda'
 
     ``a`` and ``base`` must be elements of some group with identity
     given by identity, inverse of ``x`` by ``inverse(x)``, and group
@@ -705,7 +705,7 @@ def discrete_log(a, base, ord=None, bounds=None, operation='*', identity=None, i
        than using this function.  E.g., if ``x`` is an integer modulo
        `n`, use its log method instead!
 
-    ALGORITHM: Pohlig-Hellman, Baby step giant step, and Pollard's rho.
+    ALGORITHM: Pohlig-Hellman, Baby step giant step, Pollard's lambda/kangaroo, and Pollard's rho.
 
     EXAMPLES::
 
@@ -791,13 +791,13 @@ def discrete_log(a, base, ord=None, bounds=None, operation='*', identity=None, i
         sage: discrete_log(u,g)
         123456789
 
-    The above examples also work when the 'rho' algorithm is used::
+    The above examples also work when the 'rho' and 'lambda' algorithms are used::
 
         sage: b = Mod(2,37);  a = b^20
         sage: discrete_log(a, b, algorithm='rho')
         20
         sage: b = Mod(3,2017);  a = b^20
-        sage: discrete_log(a, b, algorithm='rho', bounds=(10, 100))
+        sage: discrete_log(a, b, algorithm='lambda', bounds=(10, 100))
         20
 
         sage: K = GF(3^6,'b')
@@ -807,7 +807,7 @@ def discrete_log(a, base, ord=None, bounds=None, operation='*', identity=None, i
         210
 
         sage: b = Mod(1,37);  x = Mod(2,37)
-        sage: discrete_log(x, b, algorithm='rho')
+        sage: discrete_log(x, b, algorithm='lambda')
         Traceback (most recent call last):
         ...
         ValueError: no discrete log of 2 found to base 1
@@ -826,7 +826,7 @@ def discrete_log(a, base, ord=None, bounds=None, operation='*', identity=None, i
         672
         sage: Q=39*P; Q
         (36*a + 32 : 5*a + 12 : 1)
-        sage: discrete_log(Q,P,P.order(),operation='+',algorithm='rho')
+        sage: discrete_log(Q,P,P.order(),operation='+',algorithm='lambda')
         39
 
         sage: F.<a> = GF(2^63)
@@ -888,6 +888,8 @@ def discrete_log(a, base, ord=None, bounds=None, operation='*', identity=None, i
                     c = bsgs(gamma, h, (0, temp_bound), inverse=inverse, identity=identity, op=op, operation=operation)
                 elif algorithm == 'rho':
                     c = discrete_log_rho(h, gamma, ord=pi, inverse=inverse, identity=identity, op=op, operation=operation)
+                elif algorithm == 'lambda':
+                    c = discrete_log_lambda(h, gamma, (0, temp_bound), inverse=inverse, identity=identity, op=op, operation=operation)
                 l[i] += c * (pi**j)
                 running_bound //= pi
                 running_mod *= pi
@@ -910,7 +912,7 @@ def discrete_log_generic(a, base, ord=None, bounds=None, operation='*', identity
     return discrete_log(a, base, ord=ord, bounds=bounds, operation=operation, identity=identity, inverse=inverse, op=op, algorithm=algorithm)
 
 
-def discrete_log_lambda(a, base, bounds, operation='*', hash_function=hash):
+def discrete_log_lambda(a, base, bounds, operation='*', identity=None, inverse=None, op=None, hash_function=hash):
     """
     Pollard Lambda algorithm for computing discrete logarithms. It uses
     only a logarithmic amount of memory. It's useful if you have
@@ -923,6 +925,9 @@ def discrete_log_lambda(a, base, bounds, operation='*', hash_function=hash):
     - base -- a group element
     - bounds -- a couple (lb,ub) representing the range where we look for a logarithm
     - operation -- string: '+', '*' or 'other'
+    - identity -- the identity element of the group
+    - inverse() -- function of 1 argument ``x`` returning inverse of ``x``
+    - op() -- function of 2 arguments ``x``, ``y`` returning ``x*y`` in the group
     - hash_function -- having an efficient hash function is critical for this algorithm
 
     OUTPUT: Returns an integer `n` such that `a=base^n` (or `a=n*base`)
@@ -957,16 +962,14 @@ def discrete_log_lambda(a, base, bounds, operation='*', hash_function=hash):
 
     """
     from sage.rings.integer import Integer
-    from operator import mul, add, pow
+    from operator import mul, add
 
+    mult = op
     if operation in addition_names:
         mult = add
-        power = mul
     elif operation in multiplication_names:
         mult = mul
-        power = pow
-    else:
-        raise ValueError("unknown operation")
+    power = lambda x, y: multiple(x, y, operation=operation, identity=identity, inverse=inverse, op=op)
 
     lb, ub = bounds
     if lb < 0 or ub < lb:

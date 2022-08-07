@@ -726,8 +726,17 @@ class PolyhedralComplex(GenericCellComplex):
         INPUT:
 
         - ``explosion_factor`` -- (default: 0) if positive, separate the cells of
-          the complex by extra space. See :func:`exploded_plot` for
-          additional keyword arguments that can be passed in this case.
+          the complex by extra space. In this case, the following keyword arguments
+          can be passed to :func:`exploded_plot`:
+
+          - ``center`` -- (default: ``None``, denoting the origin) the center of explosion
+          - ``sticky_vertices`` -- (default: ``False``) boolean or dict.
+            Whether to draw line segments between shared vertices of the given polyhedra.
+            A dict gives options for :func:`sage.plot.line`.
+          - ``sticky_center`` -- (default: ``True``) boolean or dict. When ``center`` is
+            a vertex of some of the polyhedra, whether to draw line segments connecting the
+            ``center`` to the shifted copies of these vertices.
+            A dict gives options for :func:`sage.plot.line`.
 
         - ``color`` -- (default: ``None``) if ``"rainbow"``, assign a different color
           to every maximal cell; otherwise, passed on to

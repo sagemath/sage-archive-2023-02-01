@@ -38,6 +38,7 @@ cdef class GroebnerStrategy:
 
     cpdef CliffordAlgebraElement reduce(self, CliffordAlgebraElement f)
     cdef CliffordAlgebraElement reduce_single(self, CliffordAlgebraElement f, CliffordAlgebraElement g)
+    cdef int reduced_gb(self, list G) except -1
 
     # These are the methods that determine the ordering of the monomials.
     # These must be implemented in subclasses. Declare them as "inline" there.

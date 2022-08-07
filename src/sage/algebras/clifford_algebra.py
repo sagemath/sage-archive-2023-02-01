@@ -2614,6 +2614,7 @@ class ExteriorAlgebraIdeal(Ideal_nc):
             sage: TestSuite(I).run(skip="_test_category")
         """
         self._groebner_strategy = None
+        self._reduced = False
         self._homogeneous = all(x.is_super_homogeneous() for x in gens if x)
         if self._homogeneous:
             side = "twosided"
@@ -2652,7 +2653,7 @@ class ExteriorAlgebraIdeal(Ideal_nc):
         EXAMPLES::
 
             sage: E.<x,y,z> = ExteriorAlgebra(QQ)
-            sage: I = E.ideal([x, x*y*z + 2*x*z + 3*y*z])
+            sage: I = E.ideal([x, x*y*z + 2*x*z + 3*y*z], side="left")
             sage: I.groebner_basis()
             (x, y*z)
             sage: x in I
@@ -2663,6 +2664,10 @@ class ExteriorAlgebraIdeal(Ideal_nc):
             True
             sage: x + 3*y in I
             False
+            sage: x*y in I
+            True
+            sage: x + x*y + y*z + x*z in I
+            True
 
         .. NOTE::
 
@@ -2848,9 +2853,9 @@ class ExteriorAlgebraIdeal(Ideal_nc):
             return self.ring().ideal(gens, side="left")
         return self.ring().ideal(gens, side="right")
 
-    def groebner_basis(self, term_order="neglex"):
+    def groebner_basis(self, term_order=None, reduced=True):
         r"""
-        Return the reduced Gröbner basis of ``self``.
+        Return the (reduced) Gröbner basis of ``self``.
 
         INPUT:
 
@@ -2860,6 +2865,9 @@ class ExteriorAlgebraIdeal(Ideal_nc):
           * ``"neglex"`` -- (default) negative (read right-to-left) lex order
           * ``"degrevlex"`` -- degree reverse lex order
           * ``"deglex"`` -- degree lex order
+
+        - ``reduced`` -- (default: ``True``) whether or not to return the
+          reduced Gröbner basis
 
         EXAMPLES:
 
@@ -2873,10 +2881,10 @@ class ExteriorAlgebraIdeal(Ideal_nc):
             ....:         b*c*d - a*c*d + a*b*d - a*b*c]
             sage: I = E.ideal(rels)
             sage: I.groebner_basis()
-            (-a*c*d + a*c*e - a*d*e + c*d*e,
-             -a*b*c + a*b*d - a*c*d + b*c*d,
+            (-a*b*c + a*b*d - a*c*d + b*c*d,
+             -a*b*c + a*b*e - a*c*e + b*c*e,
              -a*b*d + a*b*e - a*d*e + b*d*e,
-             -a*b*c + a*b*e - a*c*e + b*c*e)
+             -a*c*d + a*c*e - a*d*e + c*d*e)
 
         With different term orders::
 
@@ -2887,10 +2895,10 @@ class ExteriorAlgebraIdeal(Ideal_nc):
              a*b*c - a*b*e + a*c*e - b*c*e)
 
             sage: I.groebner_basis("deglex")
-            (-a*c*d + a*c*e - a*d*e + c*d*e,
-             -a*b*c + a*b*d - a*c*d + b*c*d,
+            (-a*b*c + a*b*d - a*c*d + b*c*d,
+             -a*b*c + a*b*e - a*c*e + b*c*e,
              -a*b*d + a*b*e - a*d*e + b*d*e,
-             -a*b*c + a*b*e - a*c*e + b*c*e)
+             -a*c*d + a*c*e - a*d*e + c*d*e)
 
         The example above was computed first using M2, which agrees with
         the ``"degrevlex"`` ordering::
@@ -2906,6 +2914,25 @@ class ExteriorAlgebraIdeal(Ideal_nc):
             returns:
             o3 = | bcd-bce+bde-cde acd-ace+ade-cde abd-abe+ade-bde abc-abe+ace-bce |
 
+        By default, the Gröbner basis is reduced, but we can get non-reduced
+        Gröber bases (which are not unique)::
+
+            sage: E.<x,y,z> = ExteriorAlgebra(QQ)
+            sage: I = E.ideal([x+y*z])
+            sage: I.groebner_basis(reduced=False)
+            (x*y, x*z, y*z + x, y*z + x, x*y*z)
+            sage: I.groebner_basis(reduced=True)
+            (x*y, x*z, y*z + x)
+
+        However, if we have already computed a reduced Gröbner basis (with
+        a given term order), then we return that::
+
+            sage: I = E.ideal([x+y*z])  # A fresh ideal
+            sage: I.groebner_basis()
+            (x*y, x*z, y*z + x)
+            sage: I.groebner_basis(reduced=False)
+            (x*y, x*z, y*z + x)
+
         TESTS::
 
             sage: E.<a,b,c,d,e> = ExteriorAlgebra(ZZ)
@@ -2917,17 +2944,28 @@ class ExteriorAlgebraIdeal(Ideal_nc):
         """
         if self.ring().base_ring() not in Fields():
             raise NotImplementedError("only implemented over fields")
-        if term_order == "neglex":
-            from sage.algebras.exterior_algebra_groebner import GroebnerStrategyNegLex as strategy
-        elif term_order == "degrevlex":
-            from sage.algebras.exterior_algebra_groebner import GroebnerStrategyDegRevLex as strategy
-        elif term_order == "deglex":
-            from sage.algebras.exterior_algebra_groebner import GroebnerStrategyDegLex as strategy
+        if term_order is None:
+            if self._groebner_strategy is not None:
+                strategy = type(self._groebner_strategy)
+            else:
+                from sage.algebras.exterior_algebra_groebner import GroebnerStrategyNegLex as strategy
         else:
-            raise ValueError("invalid term order")
+            if term_order == "neglex":
+                from sage.algebras.exterior_algebra_groebner import GroebnerStrategyNegLex as strategy
+            elif term_order == "degrevlex":
+                from sage.algebras.exterior_algebra_groebner import GroebnerStrategyDegRevLex as strategy
+            elif term_order == "deglex":
+                from sage.algebras.exterior_algebra_groebner import GroebnerStrategyDegLex as strategy
+            else:
+                raise ValueError("invalid term order")
         if strategy == type(self._groebner_strategy):
+            if self._reduced or not reduced:
+                return self._groebner_strategy.groebner_basis
+            self._reduced = reduced
+            self._groebner_strategy.reduce_computed_gb()
             return self._groebner_strategy.groebner_basis
         self._groebner_strategy = strategy(self)
-        self._groebner_strategy.compute_groebner()
+        self._groebner_strategy.compute_groebner(reduced=reduced)
+        self._reduced = reduced
         return self._groebner_strategy.groebner_basis
 

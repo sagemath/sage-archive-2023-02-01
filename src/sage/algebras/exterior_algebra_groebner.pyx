@@ -20,6 +20,7 @@ AUTHORS:
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 
+from cysignals.signals cimport sig_check
 from sage.libs.gmp.mpz cimport mpz_sizeinbase, mpz_setbit, mpz_tstbit, mpz_cmp_si, mpz_sgn
 from sage.data_structures.bitset_base cimport (bitset_t, bitset_init, bitset_first,
                                                bitset_next, bitset_set_to, bitset_len)
@@ -238,9 +239,9 @@ cdef class GroebnerStrategy:
                 for i, p in enumerate(M.pivots())
                 if r - Integer(p) not in lead_supports]
 
-    def compute_groebner(self):
-        """
-        Compute the reduced ``side`` Gröbner basis for the ideal ``I``.
+    def compute_groebner(self, reduced=True):
+        r"""
+        Compute the (``reduced``) left/right Gröbner basis for the ideal ``I``.
 
         EXAMPLES::
 
@@ -253,9 +254,12 @@ cdef class GroebnerStrategy:
             (1,)
 
             sage: E.<a,b,c,d> = ExteriorAlgebra(QQ)
-            sage: I = E.ideal([a+b*c])
+            sage: I = E.ideal([a+b*c], side="left")
             sage: I.groebner_basis()  # indirect doctest
-            (b*c + a, a*c, a*b, a*d)
+            (b*c + a,)
+            sage: I = E.ideal([a+b*c], side="twosided")
+            sage: I.groebner_basis()  # indirect doctest
+            (a*b, a*c, b*c + a, a*d)
         """
         cdef FrozenBitset p0, p1
         cdef long deg
@@ -264,6 +268,7 @@ cdef class GroebnerStrategy:
         cdef GBElement f0, f1
         cdef list G = [self.build_elt(f) for f in self.ideal.gens() if f]  # Remove 0s
         cdef list Gp
+        cdef CliffordAlgebraElement f
 
         if self.side == 2 and not self.homogeneous:
             # Add in all S-poly times positive degree monomials
@@ -286,6 +291,7 @@ cdef class GroebnerStrategy:
                     P[deg] = [(f0, f1)]
 
         while P:
+            sig_check()
             Pp = P.pop(min(P))  # The selection: lowest lcm degree
             Gp = self.reduction(Pp, G)
             G.extend(Gp)
@@ -304,29 +310,71 @@ cdef class GroebnerStrategy:
 
         G.sort(key=lambda x: (<GBElement> x).lsi)
 
-        for i in range(len(G)):
-            G[i] = (<GBElement> G[i]).elt
+        if not reduced:
+            self.groebner_basis = tuple([(<GBElement> f0).elt for f0 in G if (<GBElement> f0).elt])
+            return
+        self.reduced_gb(G)
+
+    cdef int reduced_gb(self, list G) except -1:
+        """
+        Convert the Gröbner basis ``G`` into a reduced Gröbner basis.
+        """
+        cdef Py_ssize_t i, j, k
+        cdef GBElement f0, f1
 
         # Now that we have a Gröbner basis, we make this into a reduced Gröbner basis
-        cdef set pairs = set((i, j) for i in range(n) for j in range(i+1,n))
         cdef tuple supp
         cdef bint did_reduction
         cdef FrozenBitset lm, s
+        cdef Integer r
+        cdef Py_ssize_t num_zeros = 0
+        cdef Py_ssize_t n = len(G)
+        cdef set pairs = set((i, j) for i in range(n) for j in range(n) if i != j)
+
         while pairs:
+            sig_check()
             i,j = pairs.pop()
-            f = G[i]
-            g = G[j]
+            f0 = <GBElement> G[i]
+            f1 = <GBElement> G[j]
             # We perform the classical reduction algorithm here on each pair
             # TODO: Make this faster by using the previous technique?
-            fp = self.reduce_single(f, g)
-            if f != fp:
-                G[i] = fp
-                if not fp:
-                    pairs.difference_update((k, i) for k in range(n))
-                else:
+            f = self.reduce_single(f0.elt, f1.elt)
+            if f0.elt != f:
+                if f:
+                    G[i] = self.build_elt(f)
                     pairs.update((k, i) for k in range(n) if k != i)
+                else:
+                    G[i] = GBElement(f, FrozenBitset(), Integer(2)**self.rank + 1)
+                    num_zeros += 1
+                    pairs.difference_update((k, i) for k in range(n) if k != i)
+                    pairs.difference_update((i, k) for k in range(n) if k != i)
 
-        self.groebner_basis = tuple([~f[self.leading_support(f)] * f for f in G if f])
+        G.sort(key=lambda x: (<GBElement> x).lsi)
+        for i in range(len(G)-num_zeros):
+            f0 = <GBElement> G[i]
+            if f0.elt:
+                inv = ~f0.elt[f0.ls]
+                for key in f0.elt._monomial_coefficients:
+                    f0.elt._monomial_coefficients[key] *= inv
+        self.groebner_basis = tuple([f0.elt for f0 in G[:len(G)-num_zeros]])
+        return 0
+
+    def reduce_computed_gb(self):
+        """
+        Convert the computed Gröbner basis to a reduced Gröbner basis.
+
+            sage: E.<x,y,z> = ExteriorAlgebra(QQ)
+            sage: I = E.ideal([x+y*z])
+            sage: I.groebner_basis(reduced=False)
+            (x*y, x*z, y*z + x, y*z + x, x*y*z)
+            sage: I._groebner_strategy.reduce_computed_gb()
+            sage: I._groebner_strategy.groebner_basis
+            (x*y, x*z, y*z + x)
+        """
+        if self.groebner_basis == [(None,)]:
+            raise ValueError("Gröbner basis not yet computed")
+        cdef list G = [self.build_elt(f) for f in self.groebner_basis]
+        self.reduced_gb(G)
 
     cpdef CliffordAlgebraElement reduce(self, CliffordAlgebraElement f):
         """
@@ -341,23 +389,28 @@ cdef class GroebnerStrategy:
             ....:         b*c*e - a*c*e + a*b*e - a*b*c,
             ....:         b*c*d - a*c*d + a*b*d - a*b*c]
             sage: I = E.ideal(rels)
-            sage: I.reduce(a*b*e)
+            sage: GB = I.groebner_basis()
+            sage: I._groebner_strategy.reduce(a*b*e)
             a*b*e
-            sage: I.reduce(b*d*e)
+            sage: I._groebner_strategy.reduce(b*d*e)
             a*b*d - a*b*e + a*d*e
-            sage: I.reduce(c*d*e)
+            sage: I._groebner_strategy.reduce(c*d*e)
             a*c*d - a*c*e + a*d*e
-            sage: I.reduce(a*b*c*d*e)
+            sage: I._groebner_strategy.reduce(a*b*c*d*e)
             0
-            sage: I.reduce(a*b*c*d)
+            sage: I._groebner_strategy.reduce(a*b*c*d)
+            0
+            sage: I._groebner_strategy.reduce(E.zero())
             0
         """
+        if not f:
+            return f
         for g in self.groebner_basis:
             f = self.reduce_single(f, g)
         return f
 
     cdef CliffordAlgebraElement reduce_single(self, CliffordAlgebraElement f, CliffordAlgebraElement g):
-        """
+        r"""
         Reduce ``f`` by ``g``.
 
         .. TODO::
@@ -376,7 +429,7 @@ cdef class GroebnerStrategy:
                     did_reduction = True
                     mon = build_monomial(self.E, s - lm)
                     if self.side == 0:
-                        gp = mon * g.elt
+                        gp = mon * g
                         f -= f[s] / gp[s] * gp
                     else:
                         gp = g * mon

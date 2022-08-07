@@ -729,6 +729,10 @@ class PolyhedralComplex(GenericCellComplex):
           the complex by extra space. See :func:`exploded_plot` for
           additional keyword arguments that can be passed in this case.
 
+        - ``color`` -- (default: ``None``) if ``"rainbow"``, assign a different color
+          to every maximal cell; otherwise, passed on to
+          :meth:`~sage.geometry.polyhedron.base.Polyhedron_base.plot`.
+
         - other keyword arguments are passed on to
           :meth:`~sage.geometry.polyhedron.base.Polyhedron_base.plot`.
 
@@ -739,7 +743,7 @@ class PolyhedralComplex(GenericCellComplex):
             sage: p3 = Polyhedron(vertices=[(0, 0), (0, 2), (-1, 1)])
             sage: pc = PolyhedralComplex([p1, p2, p3, -p1, -p2, -p3])
             sage: bb = dict(xmin=-2, xmax=2, ymin=-3, ymax=3, axes=False)
-            sage: g0 = pc.plot(**bb)                                                  # optional - sage.plot
+            sage: g0 = pc.plot(color='rainbow', **bb)                                 # optional - sage.plot
             sage: g1 = pc.plot(explosion_factor=0.5, **bb)                            # optional - sage.plot
             sage: g2 = pc.plot(explosion_factor=1, color='rainbow', alpha=0.5, **bb)  # optional - sage.plot
             sage: graphics_array([g0, g1, g2]).show(axes=False)                       # not tested
@@ -748,7 +752,23 @@ class PolyhedralComplex(GenericCellComplex):
             raise ValueError("cannot plot in high dimension")
         if kwds.get('explosion_factor', 0):
             return exploded_plot(self.maximal_cell_iterator(), **kwds)
-        return sum(cell.plot(**kwds) for cell in self.maximal_cell_iterator())
+
+        from sage.plot.colors import rainbow
+        from sage.plot.graphics import Graphics
+
+        color = kwds.get('color')
+        polyhedra = self.maximal_cell_iterator()
+        if color == 'rainbow':
+            polyhedra = list(polyhedra)
+            cell_colors_dict = dict(zip(polyhedra,
+                                        rainbow(len(polyhedra))))
+        g = Graphics()
+        for cell in polyhedra:
+            options = copy(kwds)
+            if color == 'rainbow':
+                options['color'] = cell_colors_dict[cell]
+            g += cell.plot(**options)
+        return g
 
     def is_pure(self):
         """

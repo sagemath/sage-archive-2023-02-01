@@ -1252,6 +1252,6 @@ class CrystalOfNakajimaMonomials(InfinityCrystalOfNakajimaMonomials):
         """
         if not self.cartan_type().is_finite():
             return Infinity
-        return super().cardinality()
+        return super(InfinityCrystalOfNakajimaMonomials, self).cardinality()
 
     Element = CrystalOfNakajimaMonomialsElement

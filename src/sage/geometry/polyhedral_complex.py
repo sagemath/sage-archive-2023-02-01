@@ -759,12 +759,12 @@ class PolyhedralComplex(GenericCellComplex):
 
             sage: pc2 = PolyhedralComplex([polytopes.hypercube(3)])
             sage: pc3 = pc2.subdivide(new_vertices=[(0, 0, 0)])
-            sage: g3 = pc3.plot(explosion_factor=1, color='rainbow',
-            ....:               alpha=0.5, axes=False, online=True)                    # optional - sage.plot
+            sage: g3 = pc3.plot(explosion_factor=1, color='rainbow',                   # optional - sage.plot
+            ....:               alpha=0.5, axes=False, online=True)
             sage: pc4 = pc2.subdivide(make_simplicial=True)
-            sage: g4 = pc4.plot(explosion_factor=1, center=(1, -1, 1), fill='blue',
+            sage: g4 = pc4.plot(explosion_factor=1, center=(1, -1, 1), fill='blue',    # optional - sage.plot
             ....:              wireframe='white', point={'color':'red', 'size':10},
-            ....:              alpha=0.6, online=True)                                 # optional - sage.plot
+            ....:              alpha=0.6, online=True)
             sage: pc5 = PolyhedralComplex([
             ....:         Polyhedron(rays=[[1,0,0], [0,1,0], [0,0,-1]]),
             ....:         Polyhedron(rays=[[1,0,0], [0,-1,0], [0,0,-1]]),
@@ -773,8 +773,8 @@ class PolyhedralComplex(GenericCellComplex):
             ....:         Polyhedron(rays=[[-1,0,0], [0,-1,0], [0,0,1]]),
             ....:         Polyhedron(rays=[[-1,0,0], [0,1,0], [0,0,-1]]),
             ....:         Polyhedron(rays=[[-1,0,0], [0,1,0], [0,0,1]])])
-            sage: g5 = pc5.plot(explosion_factor=0.3, color='rainbow', alpha=0.8,
-            ....:               point={'size': 20}, axes=False, online=True)           # optional - sage.plot
+            sage: g5 = pc5.plot(explosion_factor=0.3, color='rainbow', alpha=0.8,      # optional - sage.plot
+            ....:               point={'size': 20}, axes=False, online=True)
 
         """
         if self.dimension() > 3:

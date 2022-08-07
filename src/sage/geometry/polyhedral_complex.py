@@ -2525,7 +2525,9 @@ def exploded_plot(polyhedra, *,
         center = vector(QQ, dim)
     else:
         center = vector(center)
-    translations = [explosion_factor * (p.center() - center)
+    translations = [explosion_factor * ((p.center()
+                                         + sum(r.vector() for r in p.rays()))
+                                        - center)
                     for p in polyhedra]
     vertex_translations_dict = {}
     for P, t in zip(polyhedra, translations):

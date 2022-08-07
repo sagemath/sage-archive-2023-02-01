@@ -2566,6 +2566,17 @@ def exploded_plot(polyhedra, *,
             v.set_immutable()
             vertex_translations_dict[v] = vertex_translations_dict.get(v, [])
             vertex_translations_dict[v].append(v + t)
+
+    color = kwds.get('color')
+    if color == 'rainbow':
+        cell_colors_dict = dict(zip(polyhedra,
+                                    rainbow(len(polyhedra))))
+    for p, t in zip(polyhedra, translations):
+        options = copy(kwds)
+        if color == 'rainbow':
+            options['color'] = cell_colors_dict[p]
+        g += (p + t).plot(point=False, **options)
+
     if sticky_vertices or sticky_center:
         if sticky_vertices is True:
             sticky_vertices = dict(color='gray')
@@ -2580,8 +2591,6 @@ def exploded_plot(polyhedra, *,
                 if sticky_vertices:
                     for vt1, vt2 in itertools.combinations(vertex_translations, 2):
                         g += line((vt1, vt2), **sticky_vertices)
-
-    color = kwds.get('color')
     if point is None:
         # default from sage.geometry.polyhedron.plot
         point = dict(size=10)
@@ -2594,12 +2603,4 @@ def exploded_plot(polyhedra, *,
             if color == 'rainbow':
                 options['color'] = vertex_colors_dict[vertex]
             g += plot_point(vertex_translations, **options)
-    if color == 'rainbow':
-        cell_colors_dict = dict(zip(polyhedra,
-                                    rainbow(len(polyhedra))))
-    for p, t in zip(polyhedra, translations):
-        options = copy(kwds)
-        if color == 'rainbow':
-            options['color'] = cell_colors_dict[p]
-        g += (p + t).plot(point=False, **options)
     return g

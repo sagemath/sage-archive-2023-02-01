@@ -696,6 +696,7 @@ class QuantumCliffordAlgebraRootUnity(QuantumCliffordAlgebra):
             5
         """
         p, v = m
+
         def ppr(i):
             val = p[i]
             if val == -1:
@@ -704,6 +705,7 @@ class QuantumCliffordAlgebraRootUnity(QuantumCliffordAlgebra):
                 return 'psi%s'%i
             elif val == 2:
                 return 'psi%s*psid%s'%(i,i)
+
         rp = '*'.join(ppr(i) for i in range(self._n) if p[i] != 0)
         gen_str = lambda e: '' if e == 1 else '^%s'%e
         rv = '*'.join('w%s'%i + gen_str(v[i]) for i in range(self._n) if v[i] != 0)
@@ -735,6 +737,7 @@ class QuantumCliffordAlgebraRootUnity(QuantumCliffordAlgebra):
             5
         """
         p, v = m
+
         def ppr(i):
             val = p[i]
             if val == -1:
@@ -742,7 +745,8 @@ class QuantumCliffordAlgebraRootUnity(QuantumCliffordAlgebra):
             elif val == 1:
                 return '\\psi_{%s}'%i
             elif val == 2:
-                return '\\psi_{%s}\\psi^{\\dagger}_{%s}'%(i,i)
+                return '\\psi_{%s}\\psi^{\\dagger}_{%s}' % (i, i)
+
         rp = ''.join(ppr(i) for i in range(self._n) if p[i] != 0)
         gen_str = lambda e: '' if e == 1 else '^{%s}'%e
         rv = ''.join('\\omega_{%s}'%i + gen_str(v[i])

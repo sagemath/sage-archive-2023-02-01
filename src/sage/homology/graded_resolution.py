@@ -1,21 +1,9 @@
 r"""
 Graded free resolutions
 
-This module defines :class:`GradedFreeResolution` which computes a
-graded free resolution of a homogeneous ideal `I` of a graded multivariate
-polynomial ring `S`, or a homogeneous submodule of a graded free module `M`
-over `S`. The output resolution is always minimal.
-
-The degrees given to the variables of `S` are integers or integer vectors of
-the same length. In the latter case, `S` is said to be multigraded, and the
-resolution is a multigraded free resolution. The standard grading where all
-variables have degree `1` is used if the degrees are not specified.
-
-A summand of the graded free module `M` is a shifted (or twisted) module of
-rank one over `S`, denoted `S(-d)` with shift `d`.
-
-The computation of the resolution is done by the libSingular behind. Different
-Singular algorithms can be chosen for best performance.
+Let `R` be a commutative ring. A graded free resolution of a graded
+`R`-module `M` is a :mod:`free resolution <sage.homology.free_resolution>`
+such that all maps are homogeneous module homomorphisms.
 
 EXAMPLES::
 
@@ -85,13 +73,9 @@ AUTHORS:
 #                  https://www.gnu.org/licenses/
 # ****************************************************************************
 
-from sage.libs.singular.decl cimport *
-from sage.libs.singular.decl cimport ring
-from sage.libs.singular.function cimport Resolution, new_sage_polynomial, access_singular_ring
+from sage.libs.singular.singular import si2sa_resolution_graded
 from sage.libs.singular.function import singular_function
-from sage.structure.sequence import Sequence, Sequence_generic
-from sage.misc.cachefunc import cached_method
-from sage.matrix.constructor import matrix as _matrix
+from sage.misc.lazy_attribute import lazy_attribute
 from sage.matrix.matrix_mpolynomial_dense import Matrix_mpolynomial_dense
 from sage.modules.free_module_element import vector
 from sage.modules.free_module import Module_free_ambient
@@ -100,20 +84,18 @@ from sage.rings.polynomial.laurent_polynomial_ring import LaurentPolynomialRing
 from sage.rings.ideal import Ideal_generic
 
 from sage.homology.free_resolution import FreeResolution
-from sage.homology.free_resolution cimport singular_monomial_exponents
-
 
 class GradedFreeResolution(FreeResolution):
     """
-    Graded free resolutions of ideals of multi-variate polynomial rings.
+    Graded free resolutions of ideals of multivariate polynomial rings.
 
     INPUT:
 
-    - ``ideal`` -- a homogeneous ideal of a multivariate polynomial ring `S`, or
-      a homogeneous submodule of a free module `M` of rank `n` over `S`
+    - ``module`` -- a homogeneous submodule of a free module `M` of rank `n`
+      over `S` or a homogeneous ideal of a multivariate polynomial ring `S`
 
-    - ``degree`` -- a list of integers or integer vectors giving degrees of
-      variables of `S`; this is a list of 1s by default
+    - ``degrees`` -- (default: a list with all entries `1`) a list of integers
+      or integer vectors giving degrees of variables of `S`
 
     - ``shifts`` -- a list of integers or integer vectors giving shifts of
       degrees of `n` summands of the free module `M`; this is a list of zero
@@ -123,8 +105,19 @@ class GradedFreeResolution(FreeResolution):
 
     - ``algorithm`` -- Singular algorithm to compute a resolution of ``ideal``
 
-    If ``ideal`` is an ideal of `S`, then `M = S`, a free module of rank `1`
-    over `S`.
+    If ``module`` is an ideal of `S`, it is considered as a submodule of a
+    free module of rank `1` over `S`.
+
+    The degrees given to the variables of `S` are integers or integer vectors of
+    the same length. In the latter case, `S` is said to be multigraded, and the
+    resolution is a multigraded free resolution. The standard grading where all
+    variables have degree `1` is used if the degrees are not specified.
+
+    A summand of the graded free module `M` is a shifted (or twisted) module of
+    rank one over `S`, denoted `S(-d)` with shift `d`.
+
+    The computation of the resolution is done by using ``libSingular``.
+    Different Singular algorithms can be chosen for best performance.
 
     OUTPUT: a graded minimal free resolution of ``ideal``
 
@@ -140,6 +133,10 @@ class GradedFreeResolution(FreeResolution):
         ``heuristic`` ``minres(res(std(ideal)))``
         ============= ============================
 
+    .. WARNING::
+
+        This does not check that the module is homogeneous.
+
     EXAMPLES::
 
         sage: from sage.homology.graded_resolution import GradedFreeResolution
@@ -150,8 +147,15 @@ class GradedFreeResolution(FreeResolution):
         S(0) <-- S(-2)⊕S(-2)⊕S(-2) <-- S(-3)⊕S(-3) <-- 0
         sage: len(r)
         2
+
+        sage: I = S.ideal([z^2 - y*w, y*z - x*w, y - x])
+        sage: I.is_homogeneous()
+        True
+        sage: R = GradedFreeResolution(I)
+        sage: R
+        S(0) <-- S(-1)⊕S(-2)⊕S(-2) <-- S(-3)⊕S(-3)⊕S(-4) <-- S(-5) <-- 0
     """
-    def __init__(self, ideal, degrees=None, shifts=None, name='S', algorithm='heuristic'):
+    def __init__(self, module, degrees=None, shifts=None, name='S', algorithm='heuristic'):
         """
         Initialize.
 
@@ -163,28 +167,19 @@ class GradedFreeResolution(FreeResolution):
             sage: r = GradedFreeResolution(I)
             sage: TestSuite(r).run(skip=['_test_pickling'])
         """
-        cdef int i, j, k, ncols, nrows
-        cdef list res_shifts, prev_shifts, new_shifts
+        super().__init__(module, name=name, algorithm=algorithm)
 
-        if isinstance(ideal, Ideal_generic):
-            S = ideal.ring()
-            m = ideal
+        nvars = self._base_ring.ngens()
+
+        if isinstance(self._module, Ideal_generic):
             rank = 1
-        elif isinstance(ideal, Module_free_ambient):
-            S = ideal.base_ring()
-            m = ideal.matrix().transpose()
-            rank = m.nrows()
-        elif isinstance(ideal, Matrix_mpolynomial_dense):
-            S = ideal.base_ring()
-            m = ideal.transpose()
-            rank = ideal.ncols()
-        else:
-            raise TypeError('no ideal, module, or matrix')
-
-        nvars = S.ngens()
+        elif isinstance(self._module, Module_free_ambient):
+            rank = self._m().nrows()
+        elif isinstance(self._module, Matrix_mpolynomial_dense):
+            rank = self._module.ncols()
 
         if degrees is None:
-            degrees = nvars*[1]  # standard grading
+            degrees = nvars * (1,)  # standard grading
 
         if len(degrees) != nvars:
             raise ValueError('the length of degrees does not match the number of generators')
@@ -193,42 +188,72 @@ class GradedFreeResolution(FreeResolution):
             zero_deg = 0
             multigrade = False
         else: # degrees are integer vectors
-            degrees = [vector(v) for v in degrees]
+            degrees = tuple([vector(v) for v in degrees])
             zero_deg = degrees[0].parent().zero()
             multigrade = True
+
+        if shifts is None:
+            shifts = rank * [zero_deg]
+
+        self._shifts = shifts
+        self._degrees = tuple(degrees)
+        self._multigrade = multigrade
+        self._zero_deg = zero_deg
+
+    @lazy_attribute
+    def _maps(self):
+        """
+        The maps that define ``self``.
+
+        This also sets the attribute ``_res_shifts``.
+
+        TESTS::
+
+            sage: from sage.homology.graded_resolution import GradedFreeResolution
+            sage: S.<x,y,z,w> = PolynomialRing(QQ)
+            sage: I = S.ideal([y*w - z^2, -x*w + y*z, x*z - y^2])
+            sage: r = GradedFreeResolution(I)
+            sage: r._maps
+            [
+                                             [-y  x]
+                                             [ z -y]
+            [z^2 - y*w y*z - x*w y^2 - x*z], [-w  z]
+            ]
+            sage: r._res_shifts
+            [[2, 2, 2], [3, 3]]
+        """
+        #cdef int i, j, k, ncols, nrows
+        #cdef list res_shifts, prev_shifts, new_shifts
 
         # This ensures the first component of the Singular resolution to be a
         # module, like the later components. This is important when the
         # components are converted to Sage modules.
         module = singular_function("module")
-        mod = module(m)
+        mod = module(self._m())
 
-        if shifts is None:
-            shifts = rank*[zero_deg]
-
-        if algorithm == 'minimal':
+        if self._algorithm == 'minimal':
             mres = singular_function('mres')  # syzygy method
             r = mres(mod, 0)
-        elif algorithm == 'shreyer':
+        elif self._algorithm == 'shreyer':
             std = singular_function('std')
             sres = singular_function('sres')  # Shreyer method
             minres = singular_function('minres')
             r = minres(sres(std(mod), 0))
-        elif algorithm == 'standard':
+        elif self._algorithm == 'standard':
             nres = singular_function('nres')  # standard basis method
             minres = singular_function('minres')
             r = minres(nres(mod, 0))
-        elif algorithm == 'heuristic':
+        elif self._algorithm == 'heuristic':
             std = singular_function('std')
             res = singular_function('res')    # heuristic method
             minres = singular_function('minres')
             r = minres(res(std(mod), 0))
 
-        res_mats, res_degs = to_sage_resolution_graded(r, degrees)
+        res_mats, res_degs = si2sa_resolution_graded(r, self._degrees)
 
         # compute shifts of free modules in the resolution
         res_shifts = []
-        prev_shifts = list(shifts)
+        prev_shifts = list(self._shifts)
         for k in range(len(res_degs)):
             new_shifts = []
             degs = res_degs[k]
@@ -247,23 +272,16 @@ class GradedFreeResolution(FreeResolution):
             res_shifts.append(new_shifts)
             prev_shifts = new_shifts
 
-        super(FreeResolution, self).__init__(S, res_mats, name=name)
-
-        self._ideal = ideal
-        self._shifts = shifts
-        self._degrees = degrees
         self._res_shifts = res_shifts
-        self._multigrade = multigrade
-        self._zero_deg = zero_deg
-        self._name = name
+        return res_mats
 
     def _repr_module(self, i):
         """
         EXAMPLES::
 
             sage: from sage.homology.graded_resolution import GradedFreeResolution
-            sage: P.<x,y,z,w> = PolynomialRing(QQ)
-            sage: I = P.ideal([y*w - z^2, -x*w + y*z, x*z - y^2])
+            sage: S.<x,y,z,w> = PolynomialRing(QQ)
+            sage: I = S.ideal([y*w - z^2, -x*w + y*z, x*z - y^2])
             sage: r = GradedFreeResolution(I)
             sage: r._repr_module(0)
             'S(0)'
@@ -274,6 +292,7 @@ class GradedFreeResolution(FreeResolution):
             sage: r._repr_module(3)
             '0'
         """
+        self._maps  # to set _res_shifts
         if i > len(self):
             m = '0'
         else:
@@ -297,11 +316,13 @@ class GradedFreeResolution(FreeResolution):
 
     def shifts(self, i):
         """
+        Return the shifts of ``self``.
+
         EXAMPLES::
 
             sage: from sage.homology.graded_resolution import GradedFreeResolution
-            sage: P.<x,y,z,w> = PolynomialRing(QQ)
-            sage: I = P.ideal([y*w - z^2, -x*w + y*z, x*z - y^2])
+            sage: S.<x,y,z,w> = PolynomialRing(QQ)
+            sage: I = S.ideal([y*w - z^2, -x*w + y*z, x*z - y^2])
             sage: r = GradedFreeResolution(I)
             sage: r.shifts(0)
             [0]
@@ -319,12 +340,13 @@ class GradedFreeResolution(FreeResolution):
         elif i > len(self):
             shifts = []
         else:
+            self._maps  # to set _res_shifts
             shifts = self._res_shifts[i - 1]
 
         return shifts
 
     def betti(self, i, a=None):
-        """
+        r"""
         Return the `i`-th Betti number in degree `a`.
 
         INPUT:
@@ -336,8 +358,8 @@ class GradedFreeResolution(FreeResolution):
         EXAMPLES::
 
             sage: from sage.homology.graded_resolution import GradedFreeResolution
-            sage: P.<x,y,z,w> = PolynomialRing(QQ)
-            sage: I = P.ideal([y*w - z^2, -x*w + y*z, x*z - y^2])
+            sage: S.<x,y,z,w> = PolynomialRing(QQ)
+            sage: I = S.ideal([y*w - z^2, -x*w + y*z, x*z - y^2])
             sage: r = GradedFreeResolution(I)
             sage: r.betti(0)
             {0: 1}
@@ -369,18 +391,19 @@ class GradedFreeResolution(FreeResolution):
             return betti[a] if a in betti else 0
 
     def K_polynomial(self, names=None):
-        """
+        r"""
         Return the K-polynomial of this resolution.
 
         INPUT:
 
-        - ``names`` -- a string of names of the variables of the K-polynomial
+        - ``names`` -- (optional) a string of names of the variables
+          of the K-polynomial
 
         EXAMPLES::
 
             sage: from sage.homology.graded_resolution import GradedFreeResolution
-            sage: P.<x,y,z,w> = PolynomialRing(QQ)
-            sage: I = P.ideal([y*w - z^2, -x*w + y*z, x*z - y^2])
+            sage: S.<x,y,z,w> = PolynomialRing(QQ)
+            sage: I = S.ideal([y*w - z^2, -x*w + y*z, x*z - y^2])
             sage: r = GradedFreeResolution(I)
             sage: r.K_polynomial()
             2*t^3 - 3*t^2 + 1
@@ -397,6 +420,7 @@ class GradedFreeResolution(FreeResolution):
 
         kpoly = 1
         sign = -1
+        self._maps  # to set _res_shifts
         for j in range(len(self)):
             for v in self._res_shifts[j]:
                 if self._multigrade:
@@ -406,119 +430,4 @@ class GradedFreeResolution(FreeResolution):
             sign = -sign
 
         return kpoly
-
-
-cdef to_sage_resolution_graded(Resolution res, degrees):
-    """
-    Pull the data from Singular resolution ``res`` to construct a Sage
-    resolution.
-
-    INPUT:
-
-    - ``res`` -- Singular resolution
-
-    - ``degrees`` -- list of integers or integer vectors
-
-    The procedure is destructive, and ``res`` is not usable afterward.
-    """
-    cdef ring *singular_ring
-    cdef syStrategy singular_res
-    cdef poly *p
-    cdef poly *p_iter
-    cdef poly *first
-    cdef poly *previous
-    cdef poly *acc
-    cdef resolvente mods
-    cdef ideal *mod
-    cdef int i, j, k, idx, rank, nrows, ncols
-    cdef int ngens = len(degrees)
-    cdef bint zero_mat
-
-    singular_res = res._resolution[0]
-    sage_ring = res.base_ring
-    singular_ring = access_singular_ring(res.base_ring)
-
-    if singular_res.minres != NULL:
-        mods = singular_res.minres
-    elif singular_res.fullres != NULL:
-        mods = singular_res.fullres
-    else:
-        raise ValueError('Singular resolution is not usable')
-
-    res_mats = []
-    res_degs = []
-
-    # length is the length of fullres. The length of minres
-    # can be shorter. Hence we avoid SEGFAULT by stopping
-    # at NULL pointer.
-    for idx in range(singular_res.length):
-        mod = <ideal *> mods[idx]
-        if mod == NULL:
-            break
-        rank = mod.rank
-        free_module = sage_ring ** rank
-
-        nrows = rank
-        ncols = mod.ncols # IDELEMS(mod)
-
-        mat = _matrix(sage_ring, nrows, ncols)
-        matdegs = []
-        zero_mat = True
-        for j in range(ncols):
-            p = <poly *> mod.m[j]
-            degs = []
-            # code below copied and modified from to_sage_vector_destructive
-            # in sage.libs.singular.function.Converter
-            for i in range(1, rank + 1):
-                previous = NULL
-                acc = NULL
-                first = NULL
-                p_iter = p
-                while p_iter != NULL:
-                    if p_GetComp(p_iter, singular_ring) == i:
-                        p_SetComp(p_iter, 0, singular_ring)
-                        p_Setm(p_iter, singular_ring)
-                        if acc == NULL:
-                            first = p_iter
-                        else:
-                            acc.next = p_iter
-                        acc = p_iter
-                        if p_iter == p:
-                            p = pNext(p_iter)
-                        if previous != NULL:
-                            previous.next = pNext(p_iter)
-                        p_iter = pNext(p_iter)
-                        acc.next = NULL
-                    else:
-                        previous = p_iter
-                        p_iter = pNext(p_iter)
-
-                if zero_mat:
-                    zero_mat = first == NULL
-
-                mat[i - 1, j] = new_sage_polynomial(sage_ring, first)
-
-                # degree of a homogeneous polynomial can be computed from the
-                # first monomial
-                if first != NULL:
-                    exps = singular_monomial_exponents(first, singular_ring)
-                    deg = 0
-                    for k in range(ngens):
-                        deg += exps[k] * degrees[k]
-                    degs.append(deg)
-                else:
-                    degs.append(None)
-
-            matdegs.append(degs)  # store degrees of the column
-
-        # Singular sometimes leaves zero matrix in the resolution. We can stop
-        # when one is seen.
-        if zero_mat:
-            break
-
-        res_mats.append(mat)
-        res_degs.append(matdegs)
-
-    return res_mats, res_degs
-
 

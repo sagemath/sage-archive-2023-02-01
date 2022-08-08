@@ -879,11 +879,12 @@ def discrete_log(a, base, ord=None, bounds=None, operation='*', identity=None, i
             bound = ub - lb
         i = 0  # this corrects a bug in which the loop is never entered and i never gets assigned a value
         for i, (pi, ri) in enumerate(f):
-            running_bound = min(bound, pi ** ri)
+            running_bound = min(bound, pi**ri - 1)
             for j in range(ri):
-                temp_bound = min(running_bound, pi)
+                temp_bound = min(running_bound, pi - 1)
                 gamma = power(base, ord // pi)
                 h = power(mult(a, power(base, -l[i])), ord // pi**(j + 1))
+                print(l[i])
                 if algorithm == 'bsgs':
                     c = bsgs(gamma, h, (0, temp_bound), inverse=inverse, identity=identity, op=op, operation=operation)
                 elif algorithm == 'rho':
@@ -1007,7 +1008,7 @@ def discrete_log_lambda(a, base, bounds, operation='*', identity=None, inverse=N
         while c - d >= lb:
             if mut:
                 H.set_immutable()
-            if ub > c - d and H in mem:
+            if ub >= c - d and H in mem:
                 return c - d
             r, e = M[hash_function(H) % k]
             H = mult(H, e)

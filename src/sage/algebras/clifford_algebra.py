@@ -47,27 +47,11 @@ from sage.typeset.unicode_art import unicode_art
 import unicodedata
 
 
-class CliffordAlgebraIndices(Parent):
+class CliffordAlgebraIndices(UniqueRepresentation, Parent):
     r"""
     A facade parent for the indices of Clifford algebra.
     Users should not create instances of this class directly.
     """
-    def __call__(self, el):
-        r"""
-        EXAMPLES::
-
-            sage: from sage.algebras.clifford_algebra import CliffordAlgebraIndices
-            sage: idx = CliffordAlgebraIndices(7)
-            sage: idx([1,3,6])
-            0101001
-            sage: E = ExteriorAlgebra(QQ, 7)
-            sage: B = E.basis()
-        """
-        if not isinstance(el, Element):
-            return self._element_constructor_(el)
-        else:
-            return Parent.__call__(self, el)
-
     def __init__(self, Qdim):
         r"""
         Initialize ``self``.
@@ -81,7 +65,7 @@ class CliffordAlgebraIndices(Parent):
             sage: idx._cardinality
             128
             sage: i = idx.an_element(); i
-            0
+            1111
             sage: type(i)
             <class 'sage.data_structures.bitset.FrozenBitset'>
         """
@@ -117,6 +101,22 @@ class CliffordAlgebraIndices(Parent):
 
         if isinstance(x, int):
             return FrozenBitset((x,))
+
+    def __call__(self, el):
+        r"""
+        EXAMPLES::
+
+            sage: from sage.algebras.clifford_algebra import CliffordAlgebraIndices
+            sage: idx = CliffordAlgebraIndices(7)
+            sage: idx([1,3,6])
+            0101001
+            sage: E = ExteriorAlgebra(QQ, 7)
+            sage: B = E.basis()
+        """
+        if not isinstance(el, Element):
+            return self._element_constructor_(el)
+        else:
+            return Parent.__call__(self, el)
 
     def cardinality(self):
         r"""
@@ -218,7 +218,7 @@ class CliffordAlgebraIndices(Parent):
         EXAMPLES::
 
             sage: from sage.algebras.clifford_algebra import CliffordAlgebraIndices
-            sage: idx = CliffordAlgebraIndices(3);
+            sage: idx = CliffordAlgebraIndices(3)
             sage: int(8) in idx  # representing the set {4}
             False
             sage: int(5) in idx  # representing the set {1,3}
@@ -234,6 +234,32 @@ class CliffordAlgebraIndices(Parent):
             return False
         return elt.capacity() <= self._nbits
 
+    def _an_element_(self):
+        """
+        Returns an element of ``self``.
+
+        EXAMPLES::
+
+            sage: from sage.algebras.clifford_algebra import CliffordAlgebraIndices
+            sage: idx = CliffordAlgebraIndices(0)
+            sage: idx._an_element_()
+            0
+            sage: idx = CliffordAlgebraIndices(1)
+            sage: idx._an_element_()
+            1
+            sage: idx = CliffordAlgebraIndices(2)
+            sage: idx._an_element_()
+            01
+            sage: idx = CliffordAlgebraIndices(3)
+            sage: idx._an_element_()
+            11
+        """
+        if not self._nbits:
+            return FrozenBitset()
+
+        from sage.combinat.subset import SubsetsSorted
+        X = SubsetsSorted(range(self._nbits))
+        return FrozenBitset(X.an_element())
 
 class CliffordAlgebra(CombinatorialFreeModule):
     r"""

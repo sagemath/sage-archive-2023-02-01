@@ -364,6 +364,12 @@ cdef class GabowEdgeConnectivity:
 
         cdef int njoins = 0
         cdef int z
+
+        # There's only one f-tree, so we already have a complete k-intersection
+        # We save the edges and advance to the next iteration
+        if self.num_start_f_trees <= 1:
+            self.re_init(tree)
+        # There are several f-trees, and we try to join them 
         while njoins < self.num_start_f_trees-1:
             # Get the root of an active subtree or INT_MAX if none exists
             z = self.choose_root()
@@ -422,7 +428,7 @@ cdef class GabowEdgeConnectivity:
             self.root[j] = j
             self.forests[j] = True
         
-        self.num_start_f_trees = 1
+        self.num_start_f_trees = 0
         
         # Initialize T_k to be a DFS spanning forest of G \ T
         self.compute_dfs_tree()
@@ -447,9 +453,6 @@ cdef class GabowEdgeConnectivity:
         # Mark all vertices as unvisited
         for i in range(self.n):
             self.visited[i] = False
-
-        # Avoid considering the root
-        self.visited[self.root_vertex] = True
 
         for r in range(self.n):
             if not self.visited[r]:
@@ -479,8 +482,9 @@ cdef class GabowEdgeConnectivity:
         # Visit outgoing arcs of current vertex
         for e_id in self.g_out[u]:
             v = self.my_to[e_id]
-            # Ensure a vertex is not visited and does not a proven k-intersection edge
-            if not self.visited[v] and not self.T[e_id]:
+            # Ensure a vertex is not visited, is not a proven k-intersection edge
+            # and root_vertex remains deficient
+            if not self.visited[v] and not self.T[e_id] and v != self.root_vertex:
                 # Make current vertex belong to the f_tree rooted at r
                 self.root[v] = r
                 self.forests[v] = False
@@ -934,7 +938,6 @@ cdef class GabowEdgeConnectivity:
         for j in range(self.m):
             if self.my_edge_state[j] != self.UNUSED:
                 self.tree_edges[self.my_edge_state[j]].push_back(j)
-                # All True edges in T correspond to the proven complete (k−1)-intersection of G
                 self.T[j] = True
 
         for j in range(tree + 1):

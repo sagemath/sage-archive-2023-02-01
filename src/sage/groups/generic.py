@@ -902,13 +902,14 @@ def discrete_log(a, base, ord=None, bounds=None, operation='*', identity=None, i
         for i, (pi, ri) in enumerate(f):
             gamma = power(base, ord // pi)
             # pohlig-hellman doesn't work with an incorrect order, and the user might have provided a bad parameter
-            while gamma == power(gamma, 0):  # identity might be None
+            while gamma == power(gamma, 0) and ord > 1:  # identity might be None
                 gamma = mult(gamma, power(base, -1))
                 ri -= 1
                 ord //= pi
             if not bounds:
                 bound = ord - 1
             running_bound = min(bound, pi**ri - 1)
+            j = 0
             for j in range(ri):
                 temp_bound = min(running_bound, pi - 1)
                 h = power(mult(a, power(base, -l[i])), ord // pi**(j + 1))

@@ -872,19 +872,24 @@ def discrete_log(a, base, ord=None, bounds=None, operation='*', identity=None, i
         mods = []
         running_mod = 1
         offset = 0
-        bound = ord - 1  # to avoid putting extra if statements everywhere
         if bounds:
             a = mult(a, power(base, -lb))
             offset = lb
             bound = ub - lb
         i = 0  # this corrects a bug in which the loop is never entered and i never gets assigned a value
         for i, (pi, ri) in enumerate(f):
+            gamma = power(base, ord // pi)
+            # pohlig-hellman doesn't work with an incorrect order, and the user might have provided a bad parameter
+            while gamma == power(gamma, 0):  # identity might be None
+                gamma = mult(gamma, power(base, -1))
+                ri -= 1
+                ord //= pi
+            if not bounds:
+                bound = ord - 1
             running_bound = min(bound, pi**ri - 1)
             for j in range(ri):
                 temp_bound = min(running_bound, pi - 1)
-                gamma = power(base, ord // pi)
                 h = power(mult(a, power(base, -l[i])), ord // pi**(j + 1))
-                print(l[i])
                 if algorithm == 'bsgs':
                     c = bsgs(gamma, h, (0, temp_bound), inverse=inverse, identity=identity, op=op, operation=operation)
                 elif algorithm == 'rho':

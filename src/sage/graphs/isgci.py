@@ -793,7 +793,7 @@ class GraphClasses(UniqueRepresentation):
 
         EXAMPLES::
 
-            sage: graph_classes._download_db()  # Not tested -- requires internet
+            sage: graph_classes._download_db()  # optional - internet
         """
         import tempfile
         u = urlopen('https://www.graphclasses.org/data.zip',
@@ -868,7 +868,7 @@ class GraphClasses(UniqueRepresentation):
 
         EXAMPLES::
 
-            sage: graph_classes.update_db()  # Not tested -- requires internet
+            sage: graph_classes.update_db()  # optional - internet
         """
         self._download_db()
 
@@ -1002,7 +1002,7 @@ def _XML_to_dict(root):
 
     EXAMPLES::
 
-        sage: graph_classes.Perfect.description() # indirect doctest
+        sage: graph_classes.Perfect.description()  # indirect doctest
         Class of graphs : Perfect
         -------------------------
         id                             :  gc_56

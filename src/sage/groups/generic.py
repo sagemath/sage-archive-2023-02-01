@@ -869,7 +869,7 @@ def discrete_log(a, base, ord=None, bounds=None, operation='*', identity=None, i
         mult = op
         power = lambda x, y: multiple(x, y, operation=operation, identity=identity, inverse=inverse, op=op)
     if bounds:
-        lb, ub = bounds
+        lb, ub = map(integer_ring.ZZ, bounds)
     if (op is None or identity is None or inverse is None or ord is None) and operation not in addition_names+multiplication_names:
         raise ValueError("ord, op, identity, and inverse must all be specified for this operation")
     if ord is None:
@@ -883,6 +883,8 @@ def discrete_log(a, base, ord=None, bounds=None, operation='*', identity=None, i
                 ord = base.additive_order()
             except Exception:
                 ord = base.order()
+    else:
+        ord = integer_ring.ZZ(ord)
     try:
         from sage.rings.infinity import Infinity
         if ord == +Infinity:

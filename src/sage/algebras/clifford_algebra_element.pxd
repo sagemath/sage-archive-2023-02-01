@@ -10,3 +10,6 @@ cdef class CliffordAlgebraElement(IndexedFreeModuleElement):
 cdef class ExteriorAlgebraElement(CliffordAlgebraElement):
     pass
 
+cdef class CohomologyRAAGElement(CliffordAlgebraElement):
+    pass
+

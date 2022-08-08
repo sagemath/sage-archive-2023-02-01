@@ -607,3 +607,63 @@ cdef class ExteriorAlgebraElement(CliffordAlgebraElement):
         """
         return (self.transpose() * other).constant_coefficient()
 
+cdef class CohomologyRAAGElement(CliffordAlgebraElement):
+    """
+    An element in the cohomology of a right-angled Artin group.
+
+    .. SEEALSO::
+
+        :class:`~sage.groups.raag.CohomologyRAAG`
+    """
+    cdef _mul_(self, other):
+        """
+        Return ``self`` multiplied by ``other``.
+
+        EXAMPLES::
+
+            sage: C4 = graphs.CycleGraph(4)
+            sage: A = groups.misc.RightAngledArtin(C4)
+            sage: H = A.cohomology()
+            sage: b = sum(H.basis())
+            sage: b * b
+            2*e0*e2 + 2*e1*e3 + 2*e0 + 2*e1 + 2*e2 + 2*e3 + 1
+        """
+        zero = self._parent._base.zero()
+        cdef frozenset I = frozenset(self._parent._indices)
+        cdef dict d = {}
+        cdef list t
+        cdef tuple tp
+        cdef tuple ml, mr
+        cdef Py_ssize_t pos, i, j
+        cdef bint negate
+
+        for ml, cl in self._monomial_coefficients.items():
+            for mr, cr in other._monomial_coefficients.items():
+                # Create the next term
+                tp = tuple(sorted(mr + ml))
+                if any(tp[i] == tp[i+1] for i in range(len(tp)-1)):  # e_i ^ e_i = 0
+                    continue
+                if tp not in I: # not an independent set, so this term is also 0
+                    continue
+
+                t = list(mr)
+                negate = False
+                for i in reversed(ml):
+                    pos = 0
+                    for j in t:
+                        assert i != j
+                        if i < j:
+                            break
+                        pos += 1
+                        negate = not negate
+                    t.insert(pos, i)
+
+                if negate:
+                    cr = -cr
+
+                d[tp] = d.get(tp, zero) + cl * cr
+                if d[tp] == zero:
+                    del d[tp]
+
+        return self.__class__(self._parent, d)
+

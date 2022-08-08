@@ -15,7 +15,7 @@ and more precisely:
     :meth:`~is_dominating` | Check whether a set of vertices dominates a graph.
     :meth:`~is_redundant` | Check whether a set of vertices has redundant vertices (with respect to domination).
     :meth:`~private_neighbors` | Return the private neighbors of a vertex with respect to other vertices.
-    :meth:`~greedy_dominating_set` | Return a greedy distance-`k` dominating set of of the graph.
+    :meth:`~greedy_dominating_set` | Return a greedy distance-`k` dominating set of the graph.
 
 
 EXAMPLES:
@@ -667,7 +667,7 @@ def minimal_dominating_sets(G, to_dominate=None, work_on_copy=True):
 
         sage: from sage.combinat.subset import Subsets
         sage: def minimal_dominating_sets_naive(G):
-        ....:     return (S for S in Subsets(G.vertices())
+        ....:     return (S for S in Subsets(G.vertices(sort=False))
         ....:             if not(G.is_redundant(S)) and G.is_dominating(S))
         sage: def big_check(n):
         ....:     for G in graphs(n):

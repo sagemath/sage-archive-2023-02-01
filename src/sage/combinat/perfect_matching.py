@@ -475,11 +475,11 @@ class PerfectMatching(SetPartition):
 
         EXAMPLES::
 
-            sage: PerfectMatching([[1,3], [4,2]]).to_graph().edges(labels=False)
+            sage: PerfectMatching([[1,3], [4,2]]).to_graph().edges(sort=True, labels=False)
             [(1, 3), (2, 4)]
-            sage: PerfectMatching([[1,4], [3,2]]).to_graph().edges(labels=False)
+            sage: PerfectMatching([[1,4], [3,2]]).to_graph().edges(sort=True, labels=False)
             [(1, 4), (2, 3)]
-            sage: PerfectMatching([]).to_graph().edges(labels=False)
+            sage: PerfectMatching([]).to_graph().edges(sort=True, labels=False)
             []
         """
         from sage.graphs.graph import Graph
@@ -603,7 +603,7 @@ class PerfectMatchings(SetPartitions_set):
             except AttributeError:
                 pass
             s = frozenset(s)
-        return super(PerfectMatchings, cls).__classcall__(cls, s)
+        return super().__classcall__(cls, s)
 
     def _repr_(self):
         """

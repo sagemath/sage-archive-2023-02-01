@@ -69,7 +69,7 @@ from sage.rings.rational_field import QQ
 from sage.rings.fraction_field import FractionField
 from sage.rings.number_field.order import is_NumberFieldOrder
 from sage.categories.number_fields import NumberFields
-
+from sage.rings.real_mpfr import RealField
 
 def is_MPolynomial(x):
     return isinstance(x, MPolynomial)
@@ -1017,9 +1017,19 @@ class MPolynomial_polydict(Polynomial_singular_repr, MPolynomial_element):
             sage: f = 1/123*x*y + 12
             sage: f.global_height(prec=2)
             8.0
+
+        ::
+
+            sage: R.<x,y> = PolynomialRing(QQ, implementation='generic')
+            sage: f = 0*x*y
+            sage: f.global_height()
+            0.000000000000000
         """
         if prec is None:
             prec = 53
+
+        if self.is_zero():
+            return RealField(prec).zero()
 
         from sage.rings.qqbar import QQbar, number_field_elements_from_algebraics
 
@@ -1751,8 +1761,6 @@ class MPolynomial_polydict(Polynomial_singular_repr, MPolynomial_element):
         """
         return self._MPolynomial_element__element.dict()!={}
 
-    
-
     def _floordiv_(self, right):
         r"""
         Quotient of division of self by other. This is denoted //.
@@ -2324,6 +2332,14 @@ class MPolynomial_polydict(Polynomial_singular_repr, MPolynomial_element):
             sage: G=[y1^2 + y2^2, y1*y2 + y2^2, y2^3]
             sage: type((y2^3).reduce(G))
             <class 'sage.rings.polynomial.multi_polynomial_element.MPolynomial_polydict'>
+
+        TESTS:
+
+        Verify that :trac:`34105` is fixed::
+
+            sage: R.<x,y> = AA[]
+            sage: x.reduce(R.zero_ideal())
+            x
         """
         from sage.rings.polynomial.multi_polynomial_ideal import MPolynomialIdeal
 
@@ -2343,8 +2359,8 @@ class MPolynomial_polydict(Polynomial_singular_repr, MPolynomial_element):
         except (NotImplementedError, TypeError):
             pass
 
+        I = [g for g in I if g]
         lI = len(I)
-        I = list(I)
         r = P.zero()
         p = self
 
@@ -2355,7 +2371,7 @@ class MPolynomial_polydict(Polynomial_singular_repr, MPolynomial_element):
                 gilm = gi.lm()
                 if P.monomial_divides(gilm, plm):
                     quot = p.lc()/gi.lc() * P.monomial_quotient(plm, gilm)
-                    p -= quot*I[i]
+                    p -= quot * gi
                     break
             else:
                 plt = p.lt()

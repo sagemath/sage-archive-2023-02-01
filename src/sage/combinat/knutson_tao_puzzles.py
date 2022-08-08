@@ -96,8 +96,8 @@ class PuzzlePiece():
 
             sage: from sage.combinat.knutson_tao_puzzles import DeltaPiece
             sage: delta = DeltaPiece('a','b','c')
-            sage: delta.border()
-            ('a', 'b', 'c')
+            sage: sorted(delta.border())
+            ['a', 'b', 'c']
         """
         return tuple(self.edge_label(edge) for edge in self.edges())
 
@@ -1986,7 +1986,7 @@ class KnutsonTaoPuzzleSolver(UniqueRepresentation):
                     puzzle_pieces = BK_pieces(max_letter)
                 else:
                     raise ValueError("max_letter needs to be specified")
-        return super(KnutsonTaoPuzzleSolver, cls).__classcall__(cls, puzzle_pieces)
+        return super().__classcall__(cls, puzzle_pieces)
 
     def __call__(self, lamda, mu, algorithm='strips'):
         r"""

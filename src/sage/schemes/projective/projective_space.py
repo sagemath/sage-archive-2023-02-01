@@ -84,13 +84,13 @@ from sage.rings.all import PolynomialRing
 from sage.rings.integer import Integer
 from sage.rings.integer_ring import ZZ
 
-from sage.rings.ring import CommutativeRing
 from sage.rings.rational_field import is_RationalField
 from sage.rings.polynomial.multi_polynomial_ring import is_MPolynomialRing
 from sage.rings.polynomial.polynomial_ring import is_PolynomialRing
 from sage.rings.finite_rings.finite_field_constructor import is_FiniteField
 
 from sage.categories.fields import Fields
+from sage.categories.rings import Rings
 from sage.categories.number_fields import NumberFields
 from sage.categories.homset import Hom
 from sage.categories.map import Map
@@ -122,6 +122,8 @@ from sage.schemes.projective.projective_morphism import (SchemeMorphism_polynomi
 
 # for better efficiency
 _Fields = Fields()
+_Rings = Rings()
+_CommRings = _Rings.Commutative()
 
 
 def is_ProjectiveSpace(x):
@@ -259,10 +261,9 @@ def ProjectiveSpace(n, R=None, names=None):
             return ProjectiveSpace_rational_field(n, R, names)
         else:
             return ProjectiveSpace_field(n, R, names)
-    elif isinstance(R, CommutativeRing):
+    elif R in _CommRings:
         return ProjectiveSpace_ring(n, R, names)
-    else:
-        raise TypeError("R (=%s) must be a commutative ring" % R)
+    raise TypeError("R (=%s) must be a commutative ring" % R)
 
 
 class ProjectiveSpace_ring(UniqueRepresentation, AmbientSpace):

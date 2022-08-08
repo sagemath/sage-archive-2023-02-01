@@ -591,6 +591,11 @@ REFERENCES:
              for Computing p-Adic Polylogarithms." Mathematics of Computation
              (2008): 1105-1134.
 
+.. [BDLS2020] Daniel J. Bernstein, Luca De Feo, Antonin Leroux, and Benjamin
+              Smith: Faster computation of isogenies of large prime degree.
+              ANTS XIV, Open Book Series Vol. 4, No. 1, 2020.
+              :arxiv:`2003.10118`
+
 .. [BD1989] \R. J. Bradford and J. H. Davenport, *Effective tests for
             cyclotomic polynomials*, Symbolic and Algebraic
             Computation (1989), pp. 244--251,
@@ -4943,6 +4948,10 @@ REFERENCES:
 .. [Reg2005] Oded Regev. On lattices, learning with errors, random
              linear codes, and cryptography. STOC, pp. 84--93,
              ACM, 2005.
+
+.. [Ren2018] Joost Renes: Computing Isogenies Between Montgomery Curves
+             Using the Action of `(0,0)`. PQCrypto 2018, pp. 229--247.
+             https://eprint.iacr.org/2017/1198.pdf
 
 .. [Reu1993] \C. Reutenauer. *Free Lie Algebras*. Number 7 in London
              Math. Soc. Monogr. (N.S.). Oxford University

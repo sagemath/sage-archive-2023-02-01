@@ -604,9 +604,9 @@ class WeierstrassIsomorphism(EllipticCurveHom, baseWI):
         """
         if self._domain.defining_polynomial()(*P):
             raise ValueError(f'{P} not on {self._domain}')
+        k = Sequence(P).universe()
 
         Q = baseWI.__call__(self, P)
-        k = Sequence(tuple(P) + tuple(Q)).universe()
         return self._codomain.base_extend(k).point(Q)
 
     def __call__(self, P):

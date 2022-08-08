@@ -1873,6 +1873,8 @@ def compute_model(E, name):
         sage: E = EllipticCurve([12/7, 405/49, 0, -81/8, 135/64])
         sage: compute_model(E, 'minimal')
         Elliptic Curve defined by y^2 = x^3 - x^2 - 7*x + 10 over Rational Field
+        sage: compute_model(E, 'short_weierstrass')
+        Elliptic Curve defined by y^2 = x^3 - 48114*x + 4035015 over Rational Field
         sage: compute_model(E, 'montgomery')
         Elliptic Curve defined by y^2 = x^3 + 5*x^2 + x over Rational Field
     """
@@ -1884,6 +1886,9 @@ def compute_model(E, name):
         if not is_NumberField(E.base_field()):
             raise ValueError('can only compute minimal model for curves over number fields')
         return E.global_minimal_model(semi_global=True)
+
+    if name == 'short_weierstrass':
+        return E.short_weierstrass_model()
 
     if name == 'montgomery':
         return E.montgomery_model()

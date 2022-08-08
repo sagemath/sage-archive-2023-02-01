@@ -1058,8 +1058,9 @@ class EllipticCurveIsogeny(EllipticCurveHom):
         if self._domain.defining_polynomial()(*P):
             raise ValueError(f"{P} not on {self._domain}")
 
+        k = Sequence(P).universe()
+
         if not P:
-            k = Sequence(tuple(P)).universe()
             return self._codomain(0).change_ring(k)
 
         Q = P.xy()
@@ -1082,7 +1083,6 @@ class EllipticCurveIsogeny(EllipticCurveHom):
         if self.__post_isomorphism is not None:
             Q = baseWI.__call__(self.__post_isomorphism, Q)
 
-        k = Sequence(tuple(P) + tuple(Q)).universe()
         return self._codomain.base_extend(k).point(Q)
 
     def _call_(self, P):

@@ -428,10 +428,12 @@ class EllipticCurveHom_composite(EllipticCurveHom):
         """
         if self._domain.defining_polynomial()(*P):
             raise ValueError(f'{P} not on {self._domain}')
+        k = Sequence(P).universe()
+
         Q = P
         for phi in self._phis:
             Q = phi._eval(Q)
-        k = Sequence(tuple(P) + tuple(Q)).universe()
+
         return self._codomain.base_extend(k)(*Q)
 
     def _repr_(self):

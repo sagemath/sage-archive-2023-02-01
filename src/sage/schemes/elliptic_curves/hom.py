@@ -10,6 +10,7 @@ Current implementations of elliptic-curve morphisms (child classes):
 - :class:`~sage.schemes.elliptic_curves.ell_curve_isogeny.EllipticCurveIsogeny`
 - :class:`~sage.schemes.elliptic_curves.weierstrass_morphism.WeierstrassIsomorphism`
 - :class:`~sage.schemes.elliptic_curves.hom_composite.EllipticCurveHom_composite`
+- :class:`~sage.schemes.elliptic_curves.hom_velusqrt.EllipticCurveHom_velusqrt`
 
 AUTHORS:
 
@@ -24,8 +25,6 @@ from sage.misc.cachefunc import cached_method
 from sage.structure.richcmp import richcmp_not_equal, richcmp
 
 from sage.categories.morphism import Morphism
-
-import sage.schemes.elliptic_curves.weierstrass_morphism as wm
 
 
 class EllipticCurveHom(Morphism):
@@ -587,6 +586,7 @@ class EllipticCurveHom(Morphism):
             sage: psi.rational_maps() == (f, -g)
             True
         """
+        import sage.schemes.elliptic_curves.weierstrass_morphism as wm
         a1,_,a3,_,_ = self.codomain().a_invariants()
         return wm.WeierstrassIsomorphism(self.codomain(), (-1,0,-a1,-a3)) * self
 

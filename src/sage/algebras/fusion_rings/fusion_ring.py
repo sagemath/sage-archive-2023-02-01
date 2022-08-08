@@ -11,14 +11,22 @@ Fusion Rings
 #                  https://www.gnu.org/licenses/
 # ****************************************************************************
 
-from sage.combinat.root_system.weyl_characters import WeylCharacterRing
+from itertools import product, zip_longest
+from multiprocessing import Pool, set_start_method
 from sage.combinat.q_analogues import q_int
-from sage.matrix.special import diagonal_matrix
+from sage.algebras.fusion_rings.fast_parallel_fusion_ring_braid_repn import (
+    executor,
+    _unflatten_entries
+)
+from sage.combinat.root_system.weyl_characters import WeylCharacterRing
 from sage.matrix.constructor import matrix
+from sage.matrix.special import diagonal_matrix
+from sage.misc.cachefunc import cached_method
+from sage.misc.lazy_attribute import lazy_attribute
 from sage.misc.misc import inject_variable
 from sage.rings.integer_ring import ZZ
 from sage.rings.number_field.number_field import CyclotomicField
-from sage.misc.cachefunc import cached_method
+from sage.rings.qqbar import QQbar
 
 class FusionRing(WeylCharacterRing):
     r"""
@@ -31,6 +39,12 @@ class FusionRing(WeylCharacterRing):
     - ``conjugate`` -- (default ``False``) set ``True`` to obtain
       the complex conjugate ring
     - ``cyclotomic_order`` -- (default computed depending on ``ct`` and ``k``)
+    - ``fusion_labels`` --  (default None) either a tuple of strings to use as labels of the
+      basis of simple objects, or a string from which the labels will be
+      constructed
+    - ``inject_variables`` -- (default ``False``): use with ``fusion_labels``.
+      If ``inject_variables`` is ``True``, the fusion labels will be variables
+      that can be accessed from the command line
 
     The cyclotomic order is an integer `N` such that all computations
     will return elements of the cyclotomic field of `N`-th roots of unity.
@@ -202,8 +216,10 @@ class FusionRing(WeylCharacterRing):
         sage: I.fusion_labels(["i0","p","s"],inject_variables=True)
         sage: b = I.basis().list(); b
         [i0, p, s]
-        sage: [[x*y for x in b] for y in b]
-        [[i0, p, s], [p, i0, s], [s, s, i0 + p]]
+        sage: Matrix([[x*y for x in b] for y in b]) # long time (.93s)
+        [    i0      p      s]
+        [     p     i0      s]
+        [     s      s i0 + p]
         sage: [x.twist() for x in b]
         [0, 1, 1/8]
         sage: [x.ribbon() for x in b]
@@ -279,7 +295,7 @@ class FusionRing(WeylCharacterRing):
         True
     """
     @staticmethod
-    def __classcall__(cls, ct, k, base_ring=ZZ, prefix=None, style="coroots", conjugate=False, cyclotomic_order=None):
+    def __classcall__(cls, ct, k, base_ring=ZZ, prefix=None, style="coroots", conjugate=False, cyclotomic_order=None, fusion_labels=None, inject_variables=False):
         """
         Normalize input to ensure a unique representation.
 
@@ -321,7 +337,9 @@ class FusionRing(WeylCharacterRing):
         return super(FusionRing, cls).__classcall__(cls, ct, base_ring=base_ring,
                                                     prefix=prefix, style=style, k=k,
                                                     conjugate=conjugate,
-                                                    cyclotomic_order=cyclotomic_order)
+                                                    cyclotomic_order=cyclotomic_order,
+                                                    fusion_labels=fusion_labels,
+                                                    inject_variables=inject_variables)
 
     def _test_verlinde(self, **options):
         """
@@ -355,9 +373,63 @@ class FusionRing(WeylCharacterRing):
             sage: G22._test_total_q_order()
         """
         tester = self._tester(**options)
-        tqo = self.total_q_order()
+        tqo = self.total_q_order(base_coercion=False)
         tester.assertTrue(tqo.is_real_positive())
-        tester.assertEqual(tqo**2, self.global_q_dimension())
+        tester.assertEqual(tqo**2, self.global_q_dimension(base_coercion=False))
+
+    def test_braid_representation(self, max_strands=6, anyon=None):
+        """
+        Check that we can compute valid braid group representations.
+
+        INPUT:
+
+        - ``max_strands`` -- (default: 6): maximum number of braid group strands
+        - ``anyon`` -- (optional) run this test on this particular simple object
+
+        Create a braid group representation using :meth:`get_braid_generators`
+        and confirms the braid relations.  This test indirectly partially
+        verifies the correctness of the orthogonal F-matrix solver. If the
+        code were incorrect the method would not be deterministic because the
+        fusing anyon is chosen randomly. (A different choice is made for each
+        number of strands tested.) However the doctest is deterministic since
+        it will always return ``True``. If the anyon parameter is omitted,
+        a random anyon is tested for each number of strands up to ``max_strands``.
+
+        EXAMPLES::
+
+            sage: A21 = FusionRing("A2",1)
+            sage: A21.test_braid_representation(max_strands=4)
+            True
+            sage: F41 = FusionRing("F4",1)             # long time
+            sage: F41.test_braid_representation()      # long time
+            True
+        """
+        if not self.is_multiplicity_free(): # Braid group representation is not available if self is not multiplicity free
+           raise NotImplementedError("only implemented for multiplicity free fusion rings")
+        b = self.basis()
+        results = []
+        #Test with different numbers of strands
+        for n_strands in range(3,max_strands+1):
+            #Randomly select a fusing anyon. Skip the identity element, since
+            #its braiding matrices are trivial
+            if anyon is not None:
+                a = anyon
+            else:
+                while True:
+                    a = b.random_element()
+                    if a != self.one():
+                        break
+            pow = a ** n_strands
+            d = pow.monomials()[0]
+            #Try to find 'interesting' braid group reps i.e. skip 1-d reps
+            for k, v in pow.monomial_coefficients().items():
+                if v > 1:
+                    d = self(k)
+                break
+            comp_basis, sig = self.get_braid_generators(a,d,n_strands,verbose=False)
+            results.append(len(comp_basis) > 0)
+            results.append(self.gens_satisfy_braid_gp_rels(sig))
+        return all(results)
 
     def fusion_labels(self, labels=None, inject_variables=False):
         r"""
@@ -442,9 +514,66 @@ class FusionRing(WeylCharacterRing):
             sage: FusionRing("B2",2).field()
             Cyclotomic Field of order 40 and degree 16
         """
+        # if self._field is None:
+        #     self._field = CyclotomicField(4 * self._cyclotomic_order)
+        # return self._field
         return CyclotomicField(4 * self._cyclotomic_order)
 
-    def root_of_unity(self, r):
+    def fvars_field(self):
+        r"""
+        Return a field containing the ``CyclotomicField`` computed by
+        :meth:`field` as well as all the F-symbols of the associated
+        ``FMatrix`` factory object.
+
+        This method is only available if ``self`` is multiplicity-free.
+
+        OUTPUT:
+
+        Depending on the ``CartanType`` associated to ``self`` and whether
+        a call to an F-matrix solver has been made, this method
+        will return the same field as :meth:`field`, a :func:`NumberField`,
+        or the :class:`QQbar<AlgebraicField>`.
+        See :meth:`FMatrix.attempt_number_field_computation` for more details.
+
+        Before running an F-matrix solver, the output of this method matches
+        that of :meth:`field`. However, the output may change upon successfully
+        computing F-symbols. Requesting braid generators triggers a call to
+        :meth:`FMatrix.find_orthogonal_solution`, so the output of this method
+        may change after such a computation.
+
+        By default, the output of methods like :meth:`r_matrix`,
+        :meth:`s_matrix`, :meth:`twists_matrix`, etc. will lie in the
+        ``fvars_field``, unless the ``base_coercion`` option is set to
+        ``False``.
+
+        This method does not trigger a solver run.
+
+        EXAMPLES::
+
+            sage: A13 = FusionRing("A1",3,fusion_labels="a",inject_variables=True)
+            sage: A13.fvars_field()
+            Cyclotomic Field of order 40 and degree 16
+            sage: A13.field()
+            Cyclotomic Field of order 40 and degree 16
+            sage: a2**4
+            2*a0 + 3*a2
+            sage: comp_basis, sig = A13.get_braid_generators(a2,a2,3,verbose=False)    # long time (<3s)
+            sage: A13.fvars_field()                                                    # long time
+            Number Field in a with defining polynomial y^32 - ... - 500*y^2 + 25
+            sage: a2.q_dimension().parent()                                            # long time
+            Number Field in a with defining polynomial y^32 - ... - 500*y^2 + 25
+            sage: A13.field()
+            Cyclotomic Field of order 40 and degree 16
+
+        In some cases, the :meth:`NumberField.optimized_representation()
+        <sage.rings.number_field.number_field.NumberField_absolute.optimized_representation>`
+        may be used to obtain a better defining polynomial for the
+        computed :func:`NumberField`.
+        """
+        if self.is_multiplicity_free():
+            return self.fmats.field()
+
+    def root_of_unity(self, r, base_coercion=True):
         r"""
         Return `e^{i\pi r}` as an element of ``self.field()`` if possible.
 
@@ -462,7 +591,10 @@ class FusionRing(WeylCharacterRing):
         """
         n = 2 * r * self._cyclotomic_order
         if n in ZZ:
-            return self.field().gen() ** n
+            ret = self.field().gen() ** n
+            if (not base_coercion) or (self._basecoer is None):
+                return ret
+            return self._basecoer(ret)
         else:
             return None
 
@@ -474,12 +606,12 @@ class FusionRing(WeylCharacterRing):
 
         EXAMPLES::
 
-            sage: A14 = FusionRing("A1",4)
-            sage: w = A14.get_order(); w
-            [(0, 0), (1/2, -1/2), (1, -1), (3/2, -3/2), (2, -2)]
-            sage: A14.set_order([w[k] for k in [0,4,1,3,2]])
-            sage: [A14(x) for x in A14.get_order()]
-            [A14(0), A14(4), A14(1), A14(3), A14(2)]
+            sage: A15 = FusionRing("A1",5)
+            sage: w = A15.get_order(); w
+            [(0, 0), (1/2, -1/2), (1, -1), (3/2, -3/2), (2, -2), (5/2, -5/2)]
+            sage: A15.set_order([w[k] for k in [0,4,1,3,5,2]])
+            sage: [A15(x) for x in A15.get_order()]
+            [A15(0), A15(4), A15(1), A15(3), A15(5), A15(2)]
 
         .. WARNING::
 
@@ -667,7 +799,7 @@ class FusionRing(WeylCharacterRing):
         return (elt_i * elt_j).monomial_coefficients(copy=False).get(elt_k.weight(), 0)
 
     @cached_method
-    def s_ij(self, elt_i, elt_j):
+    def s_ij(self, elt_i, elt_j, base_coercion=True):
         r"""
         Return the element of the S-matrix of this fusion ring corresponding to
         the given elements.
@@ -694,11 +826,53 @@ class FusionRing(WeylCharacterRing):
             [1, -zeta60^14 + zeta60^6 + zeta60^4, -zeta60^14 + zeta60^6 + zeta60^4, -1]
         """
         ijtwist = elt_i.twist() + elt_j.twist()
-        return sum(k.q_dimension() * self.Nk_ij(elt_i, k, elt_j)
-                   * self.root_of_unity(k.twist() - ijtwist)
+        ret = sum(k.q_dimension(base_coercion=False) * self.Nk_ij(elt_i, k, elt_j)
+                   * self.root_of_unity(k.twist() - ijtwist, base_coercion=False)
                    for k in self.basis())
+        if (not base_coercion) or (self._basecoer is None):
+            return ret
+        return self._basecoer(ret)
 
-    def s_matrix(self, unitary=False):
+    def s_ijconj(self, elt_i, elt_j, base_coercion=True):
+        """
+        Return the conjugate of the element of the S-matrix given by
+        ``self.s_ij(elt_i,elt_j,base_coercion=base_coercion)``.
+
+        See :meth:`s_ij`.
+
+        EXAMPLES::
+
+            sage: G21 = FusionRing("G2", 1)
+            sage: b = G21.basis()
+            sage: [G21.s_ijconj(x, y) for x in b for y in b]
+            [1, -zeta60^14 + zeta60^6 + zeta60^4, -zeta60^14 + zeta60^6 + zeta60^4, -1]
+
+        This method works with all possible types of fields returned by
+        ``self.fmats.field()``.
+
+        TESTS::
+
+            sage: E62 = FusionRing("E6",2)
+            sage: E62.fusion_labels("e", inject_variables=True)
+            sage: E62.s_ij(e8,e1).conjugate() == E62.s_ijconj(e8,e1)
+            True
+            sage: F41 = FusionRing("F4",1)
+            sage: F41.fmats.find_orthogonal_solution(verbose=False)
+            sage: b = F41.basis()
+            sage: all(F41.s_ijconj(x,y) == F41._basecoer(F41.s_ij(x,y,base_coercion=False).conjugate()) for x in b for y in b)
+            True
+            sage: G22 = FusionRing("G2",2)
+            sage: G22.fmats.find_orthogonal_solution(verbose=False)     # long time (~11 s)
+            sage: b = G22.basis()                                       # long time
+            sage: all(G22.s_ijconj(x,y) == G22.fmats.field()(G22.s_ij(x,y,base_coercion=False).conjugate()) for x in b for y in b)   # long time
+            True
+        """
+        ret = self.s_ij(elt_i, elt_j, base_coercion=False).conjugate()
+        if (not base_coercion) or (self._basecoer is None):
+            return ret
+        return self._basecoer(ret)
+
+    def s_matrix(self, unitary=False, base_coercion=True):
         r"""
         Return the S-matrix of this fusion ring.
 
@@ -730,14 +904,14 @@ class FusionRing(WeylCharacterRing):
             [0 0 0 1]
         """
         b = self.basis()
-        S = matrix([[self.s_ij(b[x], b[y]) for x in self.get_order()] for y in self.get_order()])
+        S = matrix([[self.s_ij(b[x], b[y], base_coercion=base_coercion) for x in self.get_order()] for y in self.get_order()])
         if unitary:
-            return S / self.total_q_order()
+            return S / self.total_q_order(base_coercion=base_coercion)
         else:
             return S
 
     @cached_method
-    def r_matrix(self, i, j, k):
+    def r_matrix(self, i, j, k, base_coercion=True):
         r"""
         Return the R-matrix entry corresponding to the subobject ``k``
         in the tensor product of ``i`` with ``j``.
@@ -783,32 +957,44 @@ class FusionRing(WeylCharacterRing):
             True
         """
         if self.Nk_ij(i, j, k) == 0:
-            return 0
+            return self.field().zero() if (not base_coercion) or (self._basecoer is None) else self.fvars_field().zero()
         if i != j:
-            return self.root_of_unity((k.twist(reduced=False) - i.twist(reduced=False) - j.twist(reduced=False)) / 2)
-        i0 = self.one()
-        B = self.basis()
-        return sum(y.ribbon()**2 / (i.ribbon() * x.ribbon()**2)
-                   * self.s_ij(i0,y) * self.s_ij(i,z) * self.s_ij(x,z).conjugate()
-                   * self.s_ij(k,x).conjugate() * self.s_ij(y,z).conjugate() / self.s_ij(i0,z)
-                   for x in B for y in B for z in B) / (self.total_q_order()**4)
+            ret = self.root_of_unity((k.twist(reduced=False) - i.twist(reduced=False) - j.twist(reduced=False)) / 2, base_coercion=False)
+        else:
+            i0 = self.one()
+            B = self.basis()
+            ret = sum(y.ribbon(base_coercion=False)**2 / (i.ribbon(base_coercion=False) * x.ribbon(base_coercion=False)**2)
+                   * self.s_ij(i0,y,base_coercion=False) * self.s_ij(i,z,base_coercion=False) * self.s_ijconj(x,z,base_coercion=False)
+                   * self.s_ijconj(k,x,base_coercion=False) * self.s_ijconj(y,z,base_coercion=False) / self.s_ij(i0,z,base_coercion=False)
+                   for x in B for y in B for z in B) / (self.total_q_order(base_coercion=False)**4)
+        if (not base_coercion) or (self._basecoer is None):
+            return ret
+        return self._basecoer(ret)
 
-    def global_q_dimension(self):
+    def global_q_dimension(self, base_coercion=True):
         r"""
         Return `\sum d_i^2`, where the sum is over all simple objects
-        and `d_i` is the quantum dimension. It is a positive real number.
+        and `d_i` is the quantum dimension.
+
+        The global `q`-dimension is a positive real number.
 
         EXAMPLES::
 
             sage: FusionRing("E6",1).global_q_dimension()
             3
         """
-        return sum(x.q_dimension()**2 for x in self.basis())
+        ret = sum(x.q_dimension(base_coercion=False)**2 for x in self.basis())
+        if (not base_coercion) or (self._basecoer is None):
+            return ret
+        return self._basecoer(ret)
 
-    def total_q_order(self):
+    def total_q_order(self, base_coercion=True):
         r"""
-        Return the positive square root of ``self.global_q_dimension()``
-        as an element of ``self.field()``.
+        Return the positive square root of :meth:`self.global_q_dimension()
+        <global_q_dimension>` as an element of :meth:`self.field() <field>`.
+
+        This is implemented as `D_{+}e^{-i\pi c/4}`, where `D_+` is
+        :meth:`D_plus()` and `c` is :meth:`virasoro_central_charge()`.
 
         EXAMPLES::
 
@@ -821,9 +1007,12 @@ class FusionRing(WeylCharacterRing):
             True
         """
         c = self.virasoro_central_charge()
-        return self.D_plus() * self.root_of_unity(-c/4)
+        ret = self.D_plus(base_coercion=False) * self.root_of_unity(-c/4,base_coercion=False)
+        if (not base_coercion) or (self._basecoer is None):
+            return ret
+        return self._basecoer(ret)
 
-    def D_plus(self):
+    def D_plus(self, base_coercion=True):
         r"""
         Return `\sum d_i^2\theta_i` where `i` runs through the simple objects,
         `d_i` is the quantum dimension and `\theta_i` is the twist.
@@ -844,9 +1033,12 @@ class FusionRing(WeylCharacterRing):
             sage: Dp/Dm == B31.root_of_unity(c/2)
             True
         """
-        return sum((x.q_dimension())**2 * x.ribbon() for x in self.basis())
+        ret = sum((x.q_dimension(base_coercion=False))**2 * x.ribbon(base_coercion=False) for x in self.basis())
+        if (not base_coercion) or (self._basecoer is None):
+            return ret
+        return self._basecoer(ret)
 
-    def D_minus(self):
+    def D_minus(self, base_coercion=True):
         r"""
         Return `\sum d_i^2\theta_i^{-1}` where `i` runs through the simple
         objects, `d_i` is the quantum dimension and `\theta_i` is the twist.
@@ -864,7 +1056,335 @@ class FusionRing(WeylCharacterRing):
             sage: Dp*Dm == E83.global_q_dimension()
             True
         """
-        return sum((x.q_dimension())**2 / x.ribbon() for x in self.basis())
+        ret = sum((x.q_dimension(base_coercion=False))**2 / x.ribbon(base_coercion=False) for x in self.basis())
+        if (not base_coercion) or (self._basecoer is None):
+            return ret
+        return self._basecoer(ret)
+
+    def is_multiplicity_free(self):
+        r"""
+        Return ``True`` if the fusion multiplicities
+        :meth:`Nk_ij` are bounded by 1.
+
+        The :class:`FMatrix` is available only for multiplicity free
+        instances of :class:`FusionRing`.
+
+        EXAMPLES::
+
+            sage: [FusionRing(ct,k).is_multiplicity_free() for ct in ("A1","A2","B2","C3") for k in (1,2,3)]
+            [True, True, True, True, True, False, True, True, False, True, False, False]
+        """
+        ct = self.cartan_type()
+        k = self.fusion_level()
+        if ct.letter == 'A':
+            if ct.n == 1:
+                return True
+            return k <= 2
+        # if ct.letter in ['B','D','G','F','E']:
+        if ct.letter in ['B','D','F','G']:
+            return k <= 2
+        if ct.letter == 'C':
+            if ct.n == 2:
+                return k <= 2
+            return k == 1
+        if ct.letter == 'E':
+            if ct.n == 8:
+                return k <= 3
+            return k <= 2
+
+    ###################################
+    ### Braid group representations ###
+    ###################################
+
+    def get_computational_basis(self,a,b,n_strands):
+        r"""
+        Return the so-called computational basis for `\text{Hom}(b, a^n)`.
+
+        INPUT:
+
+        - ``a`` -- a basis element
+        - ``b`` -- another basis element
+        - ``n_strands`` -- the number of strands for a braid group
+
+        Let `n=` ``n_strands`` and let `k` be the greatest integer `\leq n/2`.
+        The braid group acts on `\text{Hom}(b,a^n)`. This action
+        is computed in :meth:`get_braid_generators`. This method
+        returns the computational basis in the form of a list of
+        fusion trees. Each tree is represented by an `(n-2)`-tuple
+
+        .. MATH::
+
+            (m_1,\ldots,m_k,l_1,\ldots,l_{k-2})
+
+        such that each `m_j` is an irreducible constituent in `a \otimes a`
+        and
+
+        .. MATH::
+
+            \begin{array}{l}
+            b \in l_{k-2} \otimes m_{k},\\
+            l_{k-2} \in l_{k-3} \otimes m_{k-1},\\
+            \cdots,\\
+            l_2 \in l_1 \otimes m_3,\\
+            l_1 \in m_1 \otimes m_2,
+            \end{array}
+
+        where `z \in x \otimes y` means `N_{xy}^z \neq 0`.
+
+        As a computational device when ``n_strands`` is odd, we pad the
+        vector `(m_1, \ldots, m_k)` with an additional `m_{k+1}` equal to `a`.
+        However, this `m_{k+1}` does *not* appear in the output of this method.
+
+        The following example appears in Section 3.1 of [CW2015]_.
+
+        EXAMPLES::
+
+            sage: A14 = FusionRing("A1",4)
+            sage: A14.get_order()
+            [(0, 0), (1/2, -1/2), (1, -1), (3/2, -3/2), (2, -2)]
+            sage: A14.fusion_labels(["zero","one","two","three","four"],inject_variables=True)
+            sage: [A14(x) for x in A14.get_order()]
+            [zero, one, two, three, four]
+            sage: A14.get_computational_basis(one,two,4)
+            [(two, two), (two, zero), (zero, two)]
+        """
+        def _get_trees(fr,top_row,root):
+            if len(top_row) == 2:
+                m1, m2 = top_row
+                return [[]] if fr.Nk_ij(m1,m2,root) else []
+            else:
+                m1, m2 = top_row[:2]
+                return [tuple([l,*b]) for l in fr.basis() for b in _get_trees(fr,[l]+top_row[2:],root) if fr.Nk_ij(m1,m2,l)]
+
+        comp_basis = list()
+        for top in product((a*a).monomials(),repeat=n_strands//2):
+            #If the n_strands is odd, we must extend the top row by a fusing anyon
+            top_row = list(top)+[a]*(n_strands%2)
+            comp_basis.extend(tuple([*top,*levels]) for levels in _get_trees(self,top_row,b))
+        return comp_basis
+
+    @lazy_attribute
+    def fmats(self):
+        r"""
+        Construct an :class:`FMatrix` factory to solve the pentagon relations
+        and organize the resulting F-symbols.
+
+        We only need this attribute to compute braid group representations.
+
+        EXAMPLES::
+
+            sage: A15 = FusionRing("A1",5)
+            sage: A15.fmats
+            F-Matrix factory for The Fusion Ring of Type A1 and level 5 with Integer Ring coefficients
+        """
+        from sage.algebras.fusion_rings.f_matrix import FMatrix
+        return FMatrix(self)
+
+    def _emap(self, mapper, input_args, worker_pool=None):
+        r"""
+        Apply the given mapper to each element of the given input iterable
+        and return the results (with no duplicates) in a list.
+
+        INPUT:
+
+        - ``mapper`` -- a string specifying the name of a function defined
+          in the ``fast_parallel_fusion_ring_braid_repn`` module
+        - ``input_args`` -- a tuple of arguments to be passed to mapper
+
+        This method applies the mapper in parallel if a ``worker_pool``
+        is provided.
+
+        .. NOTE::
+
+            If ``worker_pool`` is not provided, function maps and reduces on
+            a single process. If ``worker_pool`` is provided, the function
+            attempts to determine whether it should use multiprocessing
+            based on the length of the input iterable. If it cannot determine
+            the length of the input iterable then it uses multiprocessing
+            with the default chunksize of `1` if chunksize is not
+            explicitly provided.
+
+        EXAMPLES::
+
+            sage: FR = FusionRing("A1",4)
+            sage: FR.fusion_labels(['idd','one','two','three','four'], inject_variables=True)
+            sage: FR.fmats.find_orthogonal_solution(verbose=False)      # long time
+            sage: len(FR._emap('sig_2k',(1,one,one,5)))                 # long time
+            13
+            sage: FR = FusionRing("A1",2)
+            sage: FR.fusion_labels("a",inject_variables=True)
+            sage: FR.fmats.find_orthogonal_solution(verbose=False)
+            sage: len(FR._emap('odd_one_out',(a1,a1,7)))
+            16
+        """
+        n_proc = worker_pool._processes if worker_pool is not None else 1
+        input_iter = [(child_id, n_proc, input_args) for child_id in range(n_proc)]
+        no_mp = worker_pool is None
+        #Map phase
+        input_iter = zip_longest([],input_iter,fillvalue=(mapper,id(self)))
+        results = list()
+        if no_mp:
+            mapped = map(executor,input_iter)
+        else:
+            mapped = worker_pool.imap_unordered(executor,input_iter,chunksize=1)
+        #Reduce phase
+        for worker_results in mapped:
+            results.extend(worker_results)
+        return results
+
+    def get_braid_generators(self,
+                            fusing_anyon,
+                            total_charge_anyon,
+                            n_strands,
+                            checkpoint=False,
+                            save_results="",
+                            warm_start="",
+                            use_mp=True,
+                            verbose=True):
+        r"""
+        Compute generators of the Artin braid group on ``n_strands`` strands.
+
+        If `a = ` ``fusing_anyon`` and `b = ` ``total_charge_anyon``
+        the generators are endomorphisms of `\text{Hom}(b, a^n)`.
+
+        INPUT:
+
+        - ``fusing_anyon`` -- a basis element of ``self``
+        - ``total_charge_anyon`` -- a basis element of ``self``
+        - ``n_strands`` -- a positive integer greater than 2
+        - ``checkpoint`` -- (default: ``False``) a boolean indicating
+          whether the F-matrix solver should pickle checkpoints
+        - ``save_results`` -- (optional) a string indicating the name of
+          a file in which to pickle computed F-symbols for later use
+        - ``warm_start`` -- (optional) a string indicating the name of a
+          pickled checkpoint file to "warm" start the F-matrix solver.
+          The pickle may be a checkpoint generated by the solver, or
+          a file containing solver results. If all F-symbols are known,
+          we don't run the solver again.
+        - ``use_mp`` -- (default: ``True``) a boolean indicating whether
+          to use multiprocessing to speed up the computation; this is
+          highly recommended. Python 3.8+ is required. This method will
+          raise an error if it cannot import the necessary components
+          (``shared_memory`` sub-module of ``multiprocessing``).
+        - ``verbose`` -- (default: ``True``) boolean indicating whether
+          to be verbose with the computation
+
+        For more information on the optional parameters, see
+        :meth:`FMatrix.find_orthogonal_solution`.
+
+        Given a simple object in the fusion category, here called
+        ``fusing_anyon`` allowing the universal R-matrix to act on adjacent
+        pairs in the fusion of ``n_strands`` copies of ``fusing_anyon``
+        produces an action of the braid group. This representation can
+        be decomposed over another anyon, here called ``total_charge_anyon``.
+        See [CHW2015]_.
+
+        OUTPUT:
+
+        The method outputs a pair of data ``(comp_basis,sig)`` where
+        ``comp_basis`` is a list of basis elements of the braid group
+        module, parametrized by a list of fusion ring elements describing
+        a fusion tree. For example with 5 strands the fusion tree
+        is as follows. See :meth:`get_computational_basis`
+        for more information.
+
+        .. IMAGE:: ../../../media/fusiontree.png
+           :scale: 45
+           :align: center
+
+        ``sig`` is a list of braid group generators as matrices. In
+        some cases these will be represented as sparse matrices.
+
+        In the following example we compute a 5-dimensional braid group
+        representation on 5 strands associated to the spin representation
+        in the modular tensor category `SU(2)_4 \cong SO(3)_2`.
+
+        EXAMPLES::
+
+            sage: A14 = FusionRing("A1",4)
+            sage: A14.get_order()
+            [(0, 0), (1/2, -1/2), (1, -1), (3/2, -3/2), (2, -2)]
+            sage: A14.fusion_labels(["one","two","three","four","five"],inject_variables=True)
+            sage: [A14(x) for x in A14.get_order()]
+            [one, two, three, four, five]
+            sage: two ** 5
+            5*two + 4*four
+            sage: comp_basis, sig = A14.get_braid_generators(two,two,5,verbose=False) # long time
+            sage: A14.gens_satisfy_braid_gp_rels(sig)                                 # long time
+            True
+            sage: len(comp_basis) == 5                                                # long time
+            True
+        """
+        if n_strands < 3:
+            raise ValueError("the number of strands must be an integer at least 3")
+        #Construct associated FMatrix object and solve for F-symbols
+        if self.fmats._chkpt_status < 7:
+            self.fmats.find_orthogonal_solution(checkpoint=checkpoint,
+                                                save_results=save_results,
+                                                warm_start=warm_start,
+                                                use_mp=use_mp,
+                                                verbose=verbose)
+
+        #Set multiprocessing parameters. Context can only be set once, so we try to set it
+        try:
+            set_start_method('fork')
+        except RuntimeError:
+            pass
+        #Turn off multiprocessing when field is QQbar due to pickling issues introduced by PARI upgrade in trac ticket #30537
+        pool = Pool() if use_mp and self.fvars_field() != QQbar else None
+
+        #Set up computational basis and compute generators one at a time
+        a, b = fusing_anyon, total_charge_anyon
+        comp_basis = self.get_computational_basis(a,b,n_strands)
+        d = len(comp_basis)
+        if verbose:
+            print("Computing an {}-dimensional representation of the Artin braid group on {} strands...".format(d, n_strands))
+
+        #Compute diagonal odd-indexed generators using the 3j-symbols
+        gens = {2*i+1: diagonal_matrix(self.r_matrix(a,a,c[i]) for c in comp_basis) for i in range(n_strands//2)}
+
+        #Compute even-indexed generators using F-matrices
+        for k in range(1, n_strands//2):
+            entries = self._emap('sig_2k',(k,a,b,n_strands),pool)
+
+            #Build cyclotomic field element objects from tuple of rationals repn
+            _unflatten_entries(self, entries)
+            gens[2*k] = matrix(dict(entries))
+
+        #If n_strands is odd, we compute the final generator
+        if n_strands % 2:
+            entries = self._emap('odd_one_out',(a,b,n_strands),pool)
+
+            #Build cyclotomic field element objects from tuple of rationals repn
+            _unflatten_entries(self, entries)
+            gens[n_strands-1] = matrix(dict(entries))
+
+        return comp_basis, [gens[k] for k in sorted(gens)]
+
+    def gens_satisfy_braid_gp_rels(self, sig):
+        r"""
+        Return ``True`` if the matrices in the list ``sig`` satisfy
+        the braid relations.
+
+        This if `n` is the cardinality of ``sig``, this
+        confirms that these matrices define a representation of
+        the Artin braid group on `n+1` strands. Tests correctness of
+        :meth:`get_braid_generators`.
+
+        EXAMPLES::
+
+            sage: F41 = FusionRing("F4",1,fusion_labels="f",inject_variables=True)
+            sage: f1*f1
+            f0 + f1
+            sage: comp, sig = F41.get_braid_generators(f1,f0,4,verbose=False)
+            sage: F41.gens_satisfy_braid_gp_rels(sig)
+            True
+        """
+        n = len(sig)
+        braid_rels = all(sig[i] * sig[i+1] * sig[i] == sig[i+1] * sig[i] * sig[i+1] for i in range(n-1))
+        far_comm = all(sig[i] * sig[j] == sig[j] * sig[i] for i, j in product(range(n),repeat=2) if abs(i-j) > 1 and i > j)
+        singular = any(s.is_singular() for s in sig)
+        return braid_rels and far_comm and not singular
 
     class Element(WeylCharacterRing.Element):
         """
@@ -959,7 +1479,7 @@ class FusionRing(WeylCharacterRing):
             else:
                 return twist
 
-        def ribbon(self):
+        def ribbon(self,base_coercion=True):
             r"""
             Return the twist or ribbon element of ``self``.
 
@@ -975,15 +1495,18 @@ class FusionRing(WeylCharacterRing):
                 sage: F = FusionRing("A1",3)
                 sage: [x.twist() for x in F.basis()]
                 [0, 3/10, 4/5, 3/2]
-                sage: [x.ribbon() for x in F.basis()]
+                sage: [x.ribbon(base_coercion=False) for x in F.basis()]
                 [1, zeta40^6, zeta40^12 - zeta40^8 + zeta40^4 - 1, -zeta40^10]
-                sage: [F.root_of_unity(x) for x in [0, 3/10, 4/5, 3/2]]
+                sage: [F.root_of_unity(x,base_coercion=False) for x in [0, 3/10, 4/5, 3/2]]
                 [1, zeta40^6, zeta40^12 - zeta40^8 + zeta40^4 - 1, -zeta40^10]
             """
-            return self.parent().root_of_unity(self.twist())
+            ret = self.parent().root_of_unity(self.twist(),base_coercion=False)
+            if (not base_coercion) or (self.parent()._basecoer is None):
+                return ret
+            return self.parent()._basecoer(ret)
 
         @cached_method
-        def q_dimension(self):
+        def q_dimension(self, base_coercion=True):
             r"""
             Return the quantum dimension as an element of the cyclotomic
             field of the `2\ell`-th roots of unity, where `l = m (k+h^\vee)`
@@ -1027,4 +1550,8 @@ class FusionRing(WeylCharacterRing):
             expr = R(expr)
             expr = expr.substitute(q=q**4) / (q**(2*expr.degree()))
             zet = P.field().gen() ** (P._cyclotomic_order/P._l)
-            return expr.substitute(q=zet)
+            ret = expr.substitute(q=zet)
+
+            if (not base_coercion) or (self.parent()._basecoer is None):
+                return ret
+            return self.parent()._basecoer(ret)

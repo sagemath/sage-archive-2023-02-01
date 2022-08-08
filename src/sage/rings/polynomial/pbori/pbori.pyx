@@ -182,7 +182,6 @@ and naturally the second option is faster.
 from cpython.object cimport Py_EQ, Py_NE
 from cython.operator cimport dereference as deref
 from cysignals.memory cimport sig_malloc, sig_free
-from cysignals.signals cimport sig_on, sig_off
 from sage.ext.cplusplus cimport ccrepr
 
 import operator
@@ -5037,9 +5036,7 @@ class BooleanPolynomialIdeal(MPolynomialIdeal):
         else:
             if "redsb" not in kwds:
                 kwds["redsb"]=True
-            sig_on()
             gb = self._groebner_basis(**kwds)
-            sig_off()
 
         if kwds.get("deg_bound", False) is False:
             g = GroebnerStrategy(gb[0].ring())

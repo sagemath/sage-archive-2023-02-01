@@ -750,6 +750,7 @@ cpdef tuple si2sa_resolution_graded(Resolution res, tuple degrees):
     INPUT:
 
     - ``res`` -- Singular resolution
+
     - ``degrees`` -- list of integers or integer vectors
 
     The procedure is destructive, and ``res`` is not usable afterward.
@@ -868,7 +869,6 @@ cdef number *sa2si_QQ(Rational r, ring *_ring):
 
     - ``_ ring`` - a (pointer to) a singular ring, where the resul will live
 
-
     OUTPUT:
 
     - A (pointer to) a singular number
@@ -899,7 +899,6 @@ cdef number *sa2si_GFqGivaro(int quo, ring *_ring):
 
     - ``_ ring`` - a (pointer to) a singular ring, where the resul will live
 
-
     OUTPUT:
 
     - A (pointer to) a singular number
@@ -907,7 +906,6 @@ cdef number *sa2si_GFqGivaro(int quo, ring *_ring):
     Number field elements are represented as polynomials in the number field
     generator. In this case, ``quo`` is the integer resulting from evaluating
     that polynomial in the characteristic of the field.
-
 
     TESTS::
 
@@ -968,7 +966,6 @@ cdef number *sa2si_GFqNTLGF2E(FFgf2eE elem, ring *_ring):
     - ``elem`` - a sage element of a ntl_gf2e finite field
 
     - ``_ ring`` - a (pointer to) a singular ring, where the resul will live
-
 
     OUTPUT:
 
@@ -1034,7 +1031,6 @@ cdef number *sa2si_GFq_generic(object elem, ring *_ring):
     - ``elem`` - a sage element of a generic finite field
 
     - ``_ ring`` - a (pointer to) a singular ring, where the resul will live
-
 
     OUTPUT:
 
@@ -1102,7 +1098,6 @@ cdef number *sa2si_transext_QQ(object elem, ring *_ring):
 
     - ``_ ring`` - a (pointer to) a singular ring, where the resul will live
 
-
     OUTPUT:
 
     - A (pointer to) a singular number
@@ -1150,7 +1145,6 @@ cdef number *sa2si_transext_QQ(object elem, ring *_ring):
         sage: R(f)
         x + y + 1
     """
-
     cdef int j
     cdef number *n1
     cdef number *a
@@ -1255,7 +1249,6 @@ cdef number *sa2si_transext_FF(object elem, ring *_ring):
 
     - ``_ ring`` - a (pointer to) a singular ring, where the resul will live
 
-
     OUTPUT:
 
     - A (pointer to) a singular number
@@ -1357,7 +1350,6 @@ cdef number *sa2si_NF(object elem, ring *_ring):
 
     - ``_ ring`` - a (pointer to) a singular ring, where the resul will live
 
-
     OUTPUT:
 
     - A (pointer to) a singular number
@@ -1448,7 +1440,6 @@ cdef number *sa2si_ZZ(Integer d, ring *_ring):
     - ``elem`` - a sage Integer
 
     - ``_ ring`` - a (pointer to) a singular ring, where the resul will live
-
 
     OUTPUT:
 
@@ -1659,7 +1650,7 @@ cdef object si2sa_intvec(intvec *v):
 
     INPUT:
 
-    - ``v`` - a (pointer to) a singular intvec
+    - ``v`` -- a (pointer to) a singular intvec
 
     OUTPUT:
 

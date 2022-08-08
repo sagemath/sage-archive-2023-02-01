@@ -16,9 +16,8 @@ EXAMPLES::
 
     sage: from sage.homology.free_resolution import FreeResolution
     sage: S.<x,y,z,w> = PolynomialRing(QQ)
-    sage: m1 = matrix(S, 1, [z^2 - y*w, y*z - x*w, y^2 - x*z]).transpose()
-    sage: m2 = matrix(S, 3, [-y, x, z, -y, -w, z])
-    sage: r = FreeResolution(m1, name='S')
+    sage: m = matrix(S, 1, [z^2 - y*w, y*z - x*w, y^2 - x*z]).transpose()
+    sage: r = FreeResolution(m, name='S')
     sage: r
     S^1 <-- S^3 <-- S^2 <-- 0
 
@@ -26,9 +25,6 @@ EXAMPLES::
     sage: r = FreeResolution(I)
     sage: r
     S^1 <-- S^3 <-- S^2 <-- 0
-
-    sage: FreeResolution(m2, name='S')
-    S^2 <-- S^6 <-- S^5 <-- 0
 
 ::
 
@@ -57,6 +53,7 @@ An example of a minimal free resolution from [CLO2005]_::
 AUTHORS:
 
 - Kwankyu Lee (2022-05-13): initial version
+
 """
 
 # ****************************************************************************
@@ -83,16 +80,23 @@ from sage.structure.sage_object import SageObject
 
 class FreeResolution_generic(SageObject):
     r"""
-    Abstract base class of finite free resolutions.
+    Generic base class of finite free resolutions.
+
+    A subclass must provide a ``_maps`` attribute that contains a list of the
+    maps defining the resolution.
 
     The matrix at index `i` in the list defines the differential map from
-    `(i+1)`-th free module to the `i`-th free module over the base ring by
+    `(i + 1)`-th free module to the `i`-th free module over the base ring by
     multiplication on the left. The number of matrices in the list is the
     length of the resolution. The number of rows and columns of the matrices
     define the ranks of the free modules in the resolution.
 
     Note that the first matrix in the list defines the differential map at
     homological index `1`.
+
+    A subclass can define ``_initial_differential`` attribute that
+    contains the `0`-th differential map whose codomain is the target
+    of the free resolution.
 
     EXAMPLES::
 
@@ -114,13 +118,6 @@ class FreeResolution_generic(SageObject):
     def __init__(self, base_ring, name='F'):
         """
         Initialize.
-
-        Subclasses must provide a ``_maps`` attribute that contains the
-        maps defining the resolution.
-
-        A subclass can define ``_initial_differential`` attribute that
-        contains the `0`-th differential map whose codomain is the target
-        of the free resolution.
 
         INPUT:
 
@@ -421,7 +418,9 @@ class FreeResolution(FreeResolution_generic):
 
     - ``module`` -- a submodule of a free module `M` of rank `n` over `S` or
       an ideal of a multi-variate polynomial ring
+
     - ``name`` -- a string; name of the base ring
+
     - ``algorithm`` -- Singular algorithm to compute a resolution of ``ideal``
 
     OUTPUT: a minimal free resolution of the ideal

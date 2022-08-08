@@ -60,6 +60,7 @@ An example of multigraded resolution from Example 9.1 of [MilStu2005]_::
 AUTHORS:
 
 - Kwankyu Lee (2022-05): initial version
+
 """
 
 # ****************************************************************************
@@ -92,12 +93,16 @@ class GradedFreeResolution(FreeResolution):
 
     - ``module`` -- a homogeneous submodule of a free module `M` of rank `n`
       over `S` or a homogeneous ideal of a multivariate polynomial ring `S`
+
     - ``degrees`` -- (default: a list with all entries `1`) a list of integers
       or integer vectors giving degrees of variables of `S`
+
     - ``shifts`` -- a list of integers or integer vectors giving shifts of
       degrees of `n` summands of the free module `M`; this is a list of zero
       degrees of length `n` by default
+
     - ``name`` -- a string; name of the base ring
+
     - ``algorithm`` -- Singular algorithm to compute a resolution of ``ideal``
 
     If ``module`` is an ideal of `S`, it is considered as a submodule of a
@@ -347,6 +352,7 @@ class GradedFreeResolution(FreeResolution):
         INPUT:
 
         - ``i`` -- nonnegative integer
+
         - ``a`` -- a degree; if ``None``, return Betti numbers in all degrees
 
         EXAMPLES::

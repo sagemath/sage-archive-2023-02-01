@@ -56,15 +56,10 @@ TESTS::
 AUTHORS:
 
 - Michael Brickenstein (2009-07): initial implementation, overall design
-
 - Martin Albrecht (2009-07): clean up, enhancements, etc
-
 - Michael Brickenstein (2009-10): extension to more Singular types
-
 - Martin Albrecht (2010-01): clean up, support for attributes
-
 - Simon King (2011-04): include the documentation provided by Singular as a code block
-
 - Burcin Erocal, Michael Brickenstein, Oleksandr Motsak, Alexander Dreyer, Simon King (2011-09): plural support
 
 """
@@ -757,7 +752,7 @@ cdef class Converter(SageObject):
 
         for j from 0 <= j < IDELEMS(i):
             p = self.to_sage_vector_destructive(i.m[j], free_module)
-            i.m[j]=NULL  # save it from getting freed
+            i.m[j] = NULL  # save it from getting freed
             l.append( p )
 
         return Sequence(l, check=False, immutable=True)

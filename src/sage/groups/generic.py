@@ -835,6 +835,28 @@ def discrete_log(a, base, ord=None, bounds=None, operation='*', identity=None, i
         sage: discrete_log(u,g,algorithm='rho')
         123456789
 
+    TESTS:
+
+    Random testing::
+
+        sage: G = Zmod(randrange(1, 1000))
+        sage: base = G.random_element()
+        sage: order = base.additive_order()
+        sage: assert order.divides(G.cardinality())
+        sage: sol = randrange(order)
+        sage: elem = sol * base
+        sage: args = (elem, base, order)
+        sage: kwargs = {'operation': '+'}
+        sage: kwargs['algorithm'] = choice(['bsgs', 'rho', 'lambda'])
+        sage: if randrange(2):
+        ....:     lo = randrange(-order, sol+1)
+        ....:     hi = randrange(sol+1, 2*order)
+        ....:     assert lo <= sol <= hi
+        ....:     kwargs['bounds'] = (lo, hi)
+        sage: res = discrete_log(*args, **kwargs)
+        sage: res == sol
+        True
+
     AUTHORS:
 
     - William Stein and David Joyner (2005-01-05)

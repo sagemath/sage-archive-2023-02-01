@@ -573,8 +573,8 @@ class CliffordAlgebraIndices(UniqueRepresentation, Parent):
         return elt.capacity() <= self._nbits
 
     def _an_element_(self):
-        """
-        Returns an element of ``self``.
+        r"""
+        Return an element of ``self``.
 
         EXAMPLES::
 

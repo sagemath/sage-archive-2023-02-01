@@ -65,7 +65,7 @@ class PolymakeError(RuntimeError):
 
     TESTS::
 
-        sage: polymake.eval('print foo;')    # optional polymake
+        sage: polymake.eval('print foo;')    # optional - jupymake
         Traceback (most recent call last):
         ...
         PolymakeError: Unquoted string "foo" may clash with future reserved word...
@@ -155,7 +155,7 @@ class PolymakeAbstract(ExtraTabCompletion, Interface):
 
         EXAMPLES::
 
-            sage: polymake.version()               # optional - polymake # random
+            sage: polymake.version()               # optional - jupymake # random
             '4...'
         """
         return self.get('$Polymake::Version')
@@ -178,10 +178,10 @@ class PolymakeAbstract(ExtraTabCompletion, Interface):
 
         TESTS::
 
-            sage: C = polymake('cube(3)')  # indirect doctest   # optional - polymake
-            sage: C                                             # optional - polymake
+            sage: C = polymake('cube(3)')  # indirect doctest   # optional - jupymake
+            sage: C                                             # optional - jupymake
             cube of dimension 3
-            sage: type(C)                                       # optional - polymake
+            sage: type(C)                                       # optional - jupymake
             <class 'sage.interfaces.polymake.PolymakeElement'>
 
         """
@@ -196,10 +196,10 @@ class PolymakeAbstract(ExtraTabCompletion, Interface):
         We use ellipses in the tests, to make it more robust against future
         changes in polymake::
 
-            sage: p = polymake.rand_sphere(4, 20, seed=5)    # optional - polymake
-            sage: p.get_schedule                            # optional - polymake  # indirect doctest
+            sage: p = polymake.rand_sphere(4, 20, seed=5)    # optional - jupymake
+            sage: p.get_schedule                            # optional - jupymake  # indirect doctest
             Member function 'get_schedule' of Polymake::polytope::Polytope__Rational object
-            sage: p.get_schedule('"F_VECTOR"')                # optional - polymake  # random
+            sage: p.get_schedule('"F_VECTOR"')                # optional - jupymake  # random
             CONE_DIM : RAYS | INPUT_RAYS
             precondition : BOUNDED ( POINTED : )
             POINTED :
@@ -229,7 +229,7 @@ class PolymakeAbstract(ExtraTabCompletion, Interface):
         """
         EXAMPLES::
 
-            sage: polymake.rand_sphere(4, 30, seed=15)           # optional - polymake  # indirect doctest
+            sage: polymake.rand_sphere(4, 30, seed=15)           # optional - jupymake  # indirect doctest
             Random spherical polytope of dimension 4; seed=15...
 
         """
@@ -246,15 +246,15 @@ class PolymakeAbstract(ExtraTabCompletion, Interface):
 
         EXAMPLES::
 
-            sage: polymake._function_call_string('cube', ['2','7','3'], ['group=>1']) # optional - polymake
+            sage: polymake._function_call_string('cube', ['2','7','3'], ['group=>1']) # optional - jupymake
             'cube(2,7,3, group=>1);'
-            sage: c = polymake('cube(2,7,3, group=>1)')                 # optional - polymake
-            sage: c.VERTICES                                            # optional - polymake
+            sage: c = polymake('cube(2,7,3, group=>1)')                 # optional - jupymake
+            sage: c.VERTICES                                            # optional - jupymake
             1 3 3
             1 7 3
             1 3 7
             1 7 7
-            sage: c.GROUP                                               # optional - polymake
+            sage: c.GROUP                                               # optional - jupymake
             full combinatorial group
 
         """
@@ -273,10 +273,10 @@ class PolymakeAbstract(ExtraTabCompletion, Interface):
 
         Test that dictionaries are converted to hashes::
 
-            sage: h = polymake({'"a"': 1, '"b"': 2})                   # optional - polymake
-            sage: h                                                    # optional - polymake
+            sage: h = polymake({'"a"': 1, '"b"': 2})                   # optional - jupymake
+            sage: h                                                    # optional - jupymake
             HASH(0x...)
-            sage: h['"a"']                                             # optional - polymake
+            sage: h['"a"']                                             # optional - jupymake
             1
         """
         if isinstance(x, dict):
@@ -384,13 +384,13 @@ class PolymakeAbstract(ExtraTabCompletion, Interface):
 
         TESTS::
 
-            sage: polymake._start()                         # optional - polymake
+            sage: polymake._start()                         # optional - jupymake
 
         Since 'normal_fan' is not defined in the polymake application 'polytope',
         we now get
         ::
 
-            sage: 'normal_fan' in dir(polymake)             # optional - polymake
+            sage: 'normal_fan' in dir(polymake)             # optional - jupymake
             False
 
         """
@@ -425,14 +425,14 @@ class PolymakeAbstract(ExtraTabCompletion, Interface):
 
         Force use of file::
 
-            sage: L = polymake([42] * 400)                      # optional - polymake
-            sage: len(L)                                        # optional - polymake
+            sage: L = polymake([42] * 400)                      # optional - jupymake
+            sage: len(L)                                        # optional - jupymake
             400
 
         Just below standard file cutoff of 1024::
 
-            sage: L = polymake([42] * 84)                       # optional - polymake
-            sage: len(L)                                        # optional - polymake
+            sage: L = polymake([42] * 84)                       # optional - jupymake
+            sage: len(L)                                        # optional - jupymake
             84
         """
         return 'eval read_file "{}";\n'.format(filename)
@@ -464,13 +464,13 @@ class PolymakeAbstract(ExtraTabCompletion, Interface):
 
         TESTS::
 
-            sage: c = polymake.cube(15)                 # optional - polymake
-            sage: polymake._available_vars = []         # optional - polymake
-            sage: old = c._name                         # optional - polymake
-            sage: del c                                 # optional - polymake  # indirect doctest
-            sage: len(polymake._available_vars)         # optional - polymake
+            sage: c = polymake.cube(15)                 # optional - jupymake
+            sage: polymake._available_vars = []         # optional - jupymake
+            sage: old = c._name                         # optional - jupymake
+            sage: del c                                 # optional - jupymake  # indirect doctest
+            sage: len(polymake._available_vars)         # optional - jupymake
             1
-            sage: polymake._next_var_name() in old      # optional - polymake
+            sage: polymake._next_var_name() in old      # optional - jupymake
             True
 
         """
@@ -503,13 +503,13 @@ class PolymakeAbstract(ExtraTabCompletion, Interface):
 
         EXAMPLES::
 
-            sage: polymake._create("('foo', 'bar')", name="my_array")   # optional - polymake
+            sage: polymake._create("('foo', 'bar')", name="my_array")   # optional - jupymake
             '@my_array'
-            sage: print(polymake.eval('print join(", ", @my_array);'))  # optional - polymake
+            sage: print(polymake.eval('print join(", ", @my_array);'))  # optional - jupymake
             foo, bar
-            sage: polymake._create('"foobar"', name="my_string")        # optional - polymake
+            sage: polymake._create('"foobar"', name="my_string")        # optional - jupymake
             '$my_string[0]'
-            sage: print(polymake.eval('print $my_string[0];'))          # optional - polymake
+            sage: print(polymake.eval('print $my_string[0];'))          # optional - jupymake
             foobar
 
         """
@@ -551,18 +551,18 @@ class PolymakeAbstract(ExtraTabCompletion, Interface):
 
         EXAMPLES::
 
-            sage: c = polymake('cube(3)')                       # optional - polymake # indirect doctest
-            sage: d = polymake.cube(3)                          # optional - polymake
+            sage: c = polymake('cube(3)')                       # optional - jupymake # indirect doctest
+            sage: d = polymake.cube(3)                          # optional - jupymake
 
         Equality is, for "big" objects such as polytopes, comparison by
         identity::
 
-            sage: c == d                                        # optional - polymake
+            sage: c == d                                        # optional - jupymake
             False
 
         However, the list of vertices is equal::
 
-            sage: c.VERTICES == d.VERTICES                      # optional - polymake
+            sage: c.VERTICES == d.VERTICES                      # optional - jupymake
             True
 
         TESTS:
@@ -571,13 +571,13 @@ class PolymakeAbstract(ExtraTabCompletion, Interface):
         It should, however, **never** be needed to do the following
         *explicitly*::
 
-            sage: polymake.set('myvar', 'cube(3)')              # optional - polymake
-            sage: polymake.get('$myvar[0]')                     # optional - polymake
+            sage: polymake.set('myvar', 'cube(3)')              # optional - jupymake
+            sage: polymake.get('$myvar[0]')                     # optional - jupymake
             'Polymake::polytope::Polytope__Rational=ARRAY(...)'
 
         The following tests against :trac:`22658`::
 
-            sage: P = polymake.new_object("Polytope", FACETS=[[12, -2, -3, -5, -8, -13, -21, -34, -55],   # optional - polymake
+            sage: P = polymake.new_object("Polytope", FACETS=[[12, -2, -3, -5, -8, -13, -21, -34, -55],   # optional - jupymake
             ....:  [0, 1, 0, 0, 0, 0, 0, 0, 0],
             ....:  [0, 0, 0, 0, 0, 0, 0, 0, 1],
             ....:  [0, 0, 0, 0, 0, 0, 0, 1, 0],
@@ -586,7 +586,7 @@ class PolymakeAbstract(ExtraTabCompletion, Interface):
             ....:  [0, 0, 0, 0, 1, 0, 0, 0, 0],
             ....:  [0, 0, 0, 1, 0, 0, 0, 0, 0],
             ....:  [0, 0, 1, 0, 0, 0, 0, 0, 0]])
-            sage: P.VERTICES                        # optional - polymake
+            sage: P.VERTICES                        # optional - jupymake
             1 6 0 0 0 0 0 0 0
             1 0 4 0 0 0 0 0 0
             1 0 0 0 0 0 0 0 0
@@ -596,7 +596,7 @@ class PolymakeAbstract(ExtraTabCompletion, Interface):
             1 0 0 0 0 0 4/7 0 0
             1 0 0 0 0 12/13 0 0 0
             1 0 0 0 3/2 0 0 0 0
-            sage: P.F_VECTOR                        # optional - polymake
+            sage: P.F_VECTOR                        # optional - jupymake
             9 36 84 126 126 84 36 9
 
         """
@@ -611,13 +611,13 @@ class PolymakeAbstract(ExtraTabCompletion, Interface):
 
         EXAMPLES::
 
-            sage: polymake.get('cube(3)')                     # optional - polymake
+            sage: polymake.get('cube(3)')                     # optional - jupymake
             'Polymake::polytope::Polytope__Rational=ARRAY(...)'
 
         Note that the above string representation is what polymake provides.
         In our interface, we use what polymake calls a "description"::
 
-            sage: polymake('cube(3)')                         # optional - polymake
+            sage: polymake('cube(3)')                         # optional - jupymake
             cube of dimension 3
 
 
@@ -635,7 +635,7 @@ class PolymakeAbstract(ExtraTabCompletion, Interface):
 
         EXAMPLES::
 
-            sage: print(polymake.help('Polytope', pager=False))         # optional - polymake # random
+            sage: print(polymake.help('Polytope', pager=False))         # optional - jupymake # random
             objects/Polytope:
              Not necessarily bounded or unbounded polyhedron.
              Nonetheless, the name "Polytope" is used for two reasons:
@@ -650,7 +650,7 @@ class PolymakeAbstract(ExtraTabCompletion, Interface):
         and the available help topics are displayed resp. printed, without
         user interaction::
 
-            sage: polymake.help('TRIANGULATION')                        # optional - polymake # random
+            sage: polymake.help('TRIANGULATION')                        # optional - jupymake # random
             doctest:warning
             ...
             UserWarning: Polymake expects user interaction. We abort and return the options that Polymake provides.
@@ -664,7 +664,7 @@ class PolymakeAbstract(ExtraTabCompletion, Interface):
         If an unknown help topic is requested, a :class:`PolymakeError`
         results::
 
-            sage: polymake.help('Triangulation')      # optional - polymake
+            sage: polymake.help('Triangulation')      # optional - jupymake
             Traceback (most recent call last):
             ...
             PolymakeError: unknown help topic 'Triangulation'
@@ -691,25 +691,25 @@ class PolymakeAbstract(ExtraTabCompletion, Interface):
 
         TESTS::
 
-            sage: polymake.application('fan')                   # optional - polymake
-            sage: 'normal_fan' in dir(polymake)                 # optional - polymake  # indirect doctest
+            sage: polymake.application('fan')                   # optional - jupymake
+            sage: 'normal_fan' in dir(polymake)                 # optional - jupymake  # indirect doctest
             True
-            sage: polymake.application('polytope')              # optional - polymake
+            sage: polymake.application('polytope')              # optional - jupymake
 
         Since ``'normal_fan'`` is not defined in the polymake application
         ``'polytope'``, we now get::
 
-            sage: 'normal_fan' in dir(polymake)                 # optional - polymake
+            sage: 'normal_fan' in dir(polymake)                 # optional - jupymake
             False
 
         Global functions from ``'core'`` are available::
 
-            sage: 'show_credits' in dir(polymake)               # optional - polymake
+            sage: 'show_credits' in dir(polymake)               # optional - jupymake
             True
 
         Global functions from ``'common'`` are available::
 
-            sage: 'lex_ordered' in dir(polymake)                # optional - polymake
+            sage: 'lex_ordered' in dir(polymake)                # optional - jupymake
             True
         """
         if not self.is_running():
@@ -746,20 +746,20 @@ class PolymakeAbstract(ExtraTabCompletion, Interface):
         terms of inequalities. Polymake knows to compute the f- and h-vector
         and finds that the polytope is very ample::
 
-            sage: q = polymake.new_object("Polytope", INEQUALITIES=[[5,-4,0,1],[-3,0,-4,1],[-2,1,0,0],[-4,4,4,-1],[0,0,1,0],[8,0,0,-1],[1,0,-1,0],[3,-1,0,0]]) # optional - polymake
-            sage: q.H_VECTOR                    # optional - polymake
+            sage: q = polymake.new_object("Polytope", INEQUALITIES=[[5,-4,0,1],[-3,0,-4,1],[-2,1,0,0],[-4,4,4,-1],[0,0,1,0],[8,0,0,-1],[1,0,-1,0],[3,-1,0,0]]) # optional - jupymake
+            sage: q.H_VECTOR                    # optional - jupymake
             1 5 5 1
-            sage: q.F_VECTOR                    # optional - polymake
+            sage: q.F_VECTOR                    # optional - jupymake
             8 14 8
-            sage: q.VERY_AMPLE                  # optional - polymake
+            sage: q.VERY_AMPLE                  # optional - jupymake
             true
 
         In the application 'fan', polymake can now compute the normal fan
         of `q` and its (primitive) rays::
 
-            sage: polymake.application('fan')   # optional - polymake
-            sage: g = q.normal_fan()            # optional - polymake
-            sage: g.RAYS                        # optional - polymake
+            sage: polymake.application('fan')   # optional - jupymake
+            sage: g = q.normal_fan()            # optional - jupymake
+            sage: g.RAYS                        # optional - jupymake
             -1 0 1/4
             0 -1 1/4
             1 0 0
@@ -768,7 +768,7 @@ class PolymakeAbstract(ExtraTabCompletion, Interface):
             0 0 -1
             0 -1 0
             -1 0 0
-            sage: g.RAYS.primitive()            # optional - polymake
+            sage: g.RAYS.primitive()            # optional - jupymake
             -4 0 1
             0 -4 1
             1 0 0
@@ -787,20 +787,20 @@ class PolymakeAbstract(ExtraTabCompletion, Interface):
         but only in 'tropical', the following shows the effect of changing
         the application. ::
 
-            sage: polymake.application('polytope')                   # optional - polymake
-            sage: 'trop_witness' in dir(polymake)                 # optional - polymake
+            sage: polymake.application('polytope')                   # optional - jupymake
+            sage: 'trop_witness' in dir(polymake)                 # optional - jupymake
             False
-            sage: polymake.application('tropical')                   # optional - polymake
-            sage: 'trop_witness' in dir(polymake)                 # optional - polymake
+            sage: polymake.application('tropical')                   # optional - jupymake
+            sage: 'trop_witness' in dir(polymake)                 # optional - jupymake
             True
-            sage: polymake.application('polytope')                   # optional - polymake
-            sage: 'trop_witness' in dir(polymake)                 # optional - polymake
+            sage: polymake.application('polytope')                   # optional - jupymake
+            sage: 'trop_witness' in dir(polymake)                 # optional - jupymake
             False
 
         For completeness, we show what happens when asking for an application
         that doesn't exist::
 
-            sage: polymake.application('killerapp')                  # optional - polymake
+            sage: polymake.application('killerapp')                  # optional - jupymake
             Traceback (most recent call last):
             ...
             ValueError: Unknown polymake application 'killerapp'
@@ -808,7 +808,7 @@ class PolymakeAbstract(ExtraTabCompletion, Interface):
         Of course, a different error results when we send an explicit
         command in polymake to change to an unknown application::
 
-            sage: polymake.eval('application "killerapp";')         # optional - polymake
+            sage: polymake.eval('application "killerapp";')         # optional - jupymake
             Traceback (most recent call last):
             ...
             PolymakeError: Unknown application killerapp
@@ -830,17 +830,17 @@ class PolymakeAbstract(ExtraTabCompletion, Interface):
 
         EXAMPLES::
 
-            sage: q = polymake.new_object("Polytope<Rational>", INEQUALITIES=[[4,-4,0,1],[-4,0,-4,1],[-2,1,0,0],[-4,4,4,-1],[0,0,1,0],[8,0,0,-1]]) # optional - polymake
-            sage: q.N_VERTICES                  # optional - polymake
+            sage: q = polymake.new_object("Polytope<Rational>", INEQUALITIES=[[4,-4,0,1],[-4,0,-4,1],[-2,1,0,0],[-4,4,4,-1],[0,0,1,0],[8,0,0,-1]]) # optional - jupymake
+            sage: q.N_VERTICES                  # optional - jupymake
             4
-            sage: q.BOUNDED                     # optional - polymake
+            sage: q.BOUNDED                     # optional - jupymake
             true
-            sage: q.VERTICES                    # optional - polymake
+            sage: q.VERTICES                    # optional - jupymake
             1 2 0 4
             1 3 0 8
             1 2 1 8
             1 3 1 8
-            sage: q.full_typename()             # optional - polymake
+            sage: q.full_typename()             # optional - jupymake
             'Polytope<Rational>'
 
         """
@@ -866,15 +866,15 @@ class PolymakeElement(ExtraTabCompletion, InterfaceElement):
     We support all "big" polymake types, Perl arrays of length
     different from one, and Perl scalars::
 
-        sage: p = polymake.rand_sphere(4, 20, seed=5)            # optional - polymake
-        sage: p.typename()                                      # optional - polymake
+        sage: p = polymake.rand_sphere(4, 20, seed=5)            # optional - jupymake
+        sage: p.typename()                                      # optional - jupymake
         'Polytope'
-        sage: p                                                 # optional - polymake
+        sage: p                                                 # optional - jupymake
         Random spherical polytope of dimension 4; seed=5...
 
     Now, one can work with that element in Python syntax, for example::
 
-        sage: p.VERTICES[2][2]                                  # optional - polymake
+        sage: p.VERTICES[2][2]                                  # optional - jupymake
         1450479926727001/2251799813685248
 
     """
@@ -888,21 +888,21 @@ class PolymakeElement(ExtraTabCompletion, InterfaceElement):
         of the object that is not longer than single line, it is used for
         printing::
 
-            sage: p = polymake.rand_sphere(3, 12, seed=15)           # optional - polymake
-            sage: p                                                 # optional - polymake
+            sage: p = polymake.rand_sphere(3, 12, seed=15)           # optional - jupymake
+            sage: p                                                 # optional - jupymake
             Random spherical polytope of dimension 3; seed=15...
-            sage: c = polymake.cube(4)                              # optional - polymake
-            sage: c                                                 # optional - polymake
+            sage: c = polymake.cube(4)                              # optional - jupymake
+            sage: c                                                 # optional - jupymake
             cube of dimension 4
 
         We use the print representation of scalars to display scalars::
 
-            sage: p.N_VERTICES                                      # optional - polymake
+            sage: p.N_VERTICES                                      # optional - jupymake
             12
 
         The items of a Perl arrays are shown separated by commas::
 
-            sage: p.get_member('list_properties')                   # optional - polymake  # random
+            sage: p.get_member('list_properties')                   # optional - jupymake  # random
             POINTS, CONE_AMBIENT_DIM, BOUNDED, FEASIBLE, N_POINTS, POINTED,
             CONE_DIM, FULL_DIM, LINEALITY_DIM, LINEALITY_SPACE,
             COMBINATORIAL_DIM, AFFINE_HULL, VERTICES, N_VERTICES
@@ -910,8 +910,8 @@ class PolymakeElement(ExtraTabCompletion, InterfaceElement):
         We chose to print rule chains explicitly, so that the user doesn't
         need to know how to list the rules using polymake commands::
 
-            sage: r = p.get_schedule('"H_VECTOR"')                  # optional - polymake
-            sage: r                                                 # optional - polymake  # random
+            sage: r = p.get_schedule('"H_VECTOR"')                  # optional - jupymake
+            sage: r                                                 # optional - jupymake  # random
             precondition : N_RAYS | N_INPUT_RAYS ( ppl.convex_hull.primal: FACETS, LINEAR_SPAN : RAYS | INPUT_RAYS )
             sensitivity check for FacetPerm
             ppl.convex_hull.primal: FACETS, LINEAR_SPAN : RAYS | INPUT_RAYS
@@ -922,16 +922,16 @@ class PolymakeElement(ExtraTabCompletion, InterfaceElement):
             F_VECTOR : N_FACETS, N_RAYS, COMBINATORIAL_DIM
             precondition : SIMPLICIAL ( H_VECTOR : F_VECTOR )
             H_VECTOR : F_VECTOR
-            sage: r.typeof()                                        # optional - polymake
+            sage: r.typeof()                                        # optional - jupymake
             ('Polymake::Core::Scheduler::RuleChain', 'ARRAY')
 
         Similarly, polymake matrices and vectors are explicitly listed::
 
-            sage: c.VERTICES.typename()                         # optional - polymake
+            sage: c.VERTICES.typename()                         # optional - jupymake
             'Matrix'
-            sage: c.VERTICES[0].typename()                      # optional - polymake
+            sage: c.VERTICES[0].typename()                      # optional - jupymake
             'Vector'
-            sage: c.VERTICES                                    # optional - polymake # random
+            sage: c.VERTICES                                    # optional - jupymake # random
             1 -1 -1 -1 -1
             1 1 -1 -1 -1
             1 -1 1 -1 -1
@@ -948,15 +948,15 @@ class PolymakeElement(ExtraTabCompletion, InterfaceElement):
             1 1 -1 1 1
             1 -1 1 1 1
             1 1 1 1 1
-            sage: c.VERTICES[0]                                 # optional - polymake
+            sage: c.VERTICES[0]                                 # optional - jupymake
             1 -1 -1 -1 -1
 
         For other types, we simply use the print representation offered
         by polymake::
 
-            sage: p.TWO_FACE_SIZES.typename()                   # optional - polymake
+            sage: p.TWO_FACE_SIZES.typename()                   # optional - jupymake
             'Map'
-            sage: p.TWO_FACE_SIZES                              # optional - polymake
+            sage: p.TWO_FACE_SIZES                              # optional - jupymake
             {(3 20)}
 
     """
@@ -999,25 +999,25 @@ class PolymakeElement(ExtraTabCompletion, InterfaceElement):
 
         The default for comparing equality for polytopes is *identity*::
 
-            sage: p1 = polymake.rand_sphere(3, 12, seed=15)          # optional - polymake
-            sage: p2 = polymake.rand_sphere(3, 12, seed=15)          # optional - polymake
-            sage: p1 == p2                                          # optional - polymake
+            sage: p1 = polymake.rand_sphere(3, 12, seed=15)          # optional - jupymake
+            sage: p2 = polymake.rand_sphere(3, 12, seed=15)          # optional - jupymake
+            sage: p1 == p2                                          # optional - jupymake
             False
 
         However, other data types are compared by equality, not identity::
 
-            sage: p1.VERTICES == p2.VERTICES                        # optional - polymake
+            sage: p1.VERTICES == p2.VERTICES                        # optional - jupymake
             True
 
         A computation applied to a polytope can change the available
         properties, and thus we have
         ::
 
-            sage: p1.get_member('list_properties') == p2.get_member('list_properties')  # optional - polymake
+            sage: p1.get_member('list_properties') == p2.get_member('list_properties')  # optional - jupymake
             True
-            sage: p1.F_VECTOR                                       # optional - polymake
+            sage: p1.F_VECTOR                                       # optional - jupymake
             12 30 20
-            sage: p1.get_member('list_properties') == p2.get_member('list_properties')  # optional - polymake
+            sage: p1.get_member('list_properties') == p2.get_member('list_properties')  # optional - jupymake
             False
 
         """
@@ -1037,9 +1037,9 @@ class PolymakeElement(ExtraTabCompletion, InterfaceElement):
         EXAMPLES::
 
             sage: from sage.interfaces.polymake import polymake
-            sage: bool(polymake(0))                # optional polymake
+            sage: bool(polymake(0))                # optional - jupymake
             False
-            sage: bool(polymake(1))                # optional polymake
+            sage: bool(polymake(1))                # optional - jupymake
             True
 
         """
@@ -1061,23 +1061,23 @@ class PolymakeElement(ExtraTabCompletion, InterfaceElement):
 
         EXAMPLES::
 
-            sage: c = polymake.cube(4)                      # optional - polymake
-            sage: c.known_properties()                      # optional - polymake
+            sage: c = polymake.cube(4)                      # optional - jupymake
+            sage: c.known_properties()                      # optional - jupymake
             ['AFFINE_HULL',
              'BOUNDED',
              'CONE_AMBIENT_DIM',
              'CONE_DIM',
             ...
              'VERTICES_IN_FACETS']
-            sage: c.list_properties()                       # optional - polymake
+            sage: c.list_properties()                       # optional - jupymake
             CONE_AMBIENT_DIM, CONE_DIM, FACETS, AFFINE_HULL, VERTICES_IN_FACETS,
             BOUNDED...
 
         A computation can change the list of known properties::
 
-            sage: c.F_VECTOR                                # optional - polymake
+            sage: c.F_VECTOR                                # optional - jupymake
             16 32 24 8
-            sage: c.known_properties()                      # optional - polymake
+            sage: c.known_properties()                      # optional - jupymake
             ['AFFINE_HULL',
              'BOUNDED',
              'COMBINATORIAL_DIM',
@@ -1102,8 +1102,8 @@ class PolymakeElement(ExtraTabCompletion, InterfaceElement):
 
         TESTS::
 
-            sage: c = polymake.cube(4)                          # optional - polymake
-            sage: c._member_list()                              # optional - polymake
+            sage: c = polymake.cube(4)                          # optional - jupymake
+            sage: c._member_list()                              # optional - jupymake
             ['AFFINE_HULL',
             ...
              'WEAKLY_CENTERED',
@@ -1130,10 +1130,10 @@ class PolymakeElement(ExtraTabCompletion, InterfaceElement):
 
         EXAMPLES::
 
-            sage: c = polymake.cube(4)          # optional - polymake
-            sage: c.typename()                  # optional - polymake
+            sage: c = polymake.cube(4)          # optional - jupymake
+            sage: c.typename()                  # optional - jupymake
             'Polytope'
-            sage: c.VERTICES.typename()         # optional - polymake
+            sage: c.VERTICES.typename()         # optional - jupymake
             'Matrix'
 
         """
@@ -1149,10 +1149,10 @@ class PolymakeElement(ExtraTabCompletion, InterfaceElement):
 
         EXAMPLES::
 
-            sage: c = polymake.cube(4)          # optional - polymake
-            sage: c.full_typename()             # optional - polymake
+            sage: c = polymake.cube(4)          # optional - jupymake
+            sage: c.full_typename()             # optional - jupymake
             'Polytope<Rational>'
-            sage: c.VERTICES.full_typename()    # optional - polymake
+            sage: c.VERTICES.full_typename()    # optional - jupymake
             'Matrix<Rational, NonSymmetric>'
 
         """
@@ -1168,10 +1168,10 @@ class PolymakeElement(ExtraTabCompletion, InterfaceElement):
 
         EXAMPLES::
 
-            sage: c = polymake.cube(4)              # optional - polymake
-            sage: c.qualified_typename()            # optional - polymake
+            sage: c = polymake.cube(4)              # optional - jupymake
+            sage: c.qualified_typename()            # optional - jupymake
             'polytope::Polytope<Rational>'
-            sage: c.VERTICES.qualified_typename()   # optional - polymake
+            sage: c.VERTICES.qualified_typename()   # optional - jupymake
             'common::Matrix<Rational, NonSymmetric>'
 
         """
@@ -1196,8 +1196,8 @@ class PolymakeElement(ExtraTabCompletion, InterfaceElement):
 
         EXAMPLES::
 
-            sage: c = polymake.cube(4)              # optional - polymake
-            sage: c._tab_completion()               # optional - polymake
+            sage: c = polymake.cube(4)              # optional - jupymake
+            sage: c._tab_completion()               # optional - jupymake
             ['AFFINE_HULL',
              ...
              'zero_vector',
@@ -1228,34 +1228,34 @@ class PolymakeElement(ExtraTabCompletion, InterfaceElement):
 
         A property::
 
-            sage: c = polymake.cube(3)                  # optional - polymake
-            sage: c.H_VECTOR                            # optional - polymake
+            sage: c = polymake.cube(3)                  # optional - jupymake
+            sage: c.H_VECTOR                            # optional - jupymake
             1 5 5 1
-            sage: c.N_VERTICES                          # optional - polymake
+            sage: c.N_VERTICES                          # optional - jupymake
             8
-            sage: d = polymake.cross(3)                 # optional - polymake
-            sage: d.N_VERTICES                          # optional - polymake
+            sage: d = polymake.cross(3)                 # optional - jupymake
+            sage: d.N_VERTICES                          # optional - jupymake
             6
 
         A function::
 
-            sage: c.minkowski_sum_fukuda                # optional - polymake
+            sage: c.minkowski_sum_fukuda                # optional - jupymake
             minkowski_sum_fukuda (bound to Polymake::polytope::Polytope__Rational object)
-            sage: s = c.minkowski_sum_fukuda(d)         # optional - polymake
-            sage: s.N_VERTICES                          # optional - polymake
+            sage: s = c.minkowski_sum_fukuda(d)         # optional - jupymake
+            sage: s.N_VERTICES                          # optional - jupymake
             24
-            sage: s                                     # optional - polymake
+            sage: s                                     # optional - jupymake
             Polytope<Rational>[SAGE...]
 
         A member function::
 
-            sage: c = polymake.cube(2)                          # optional - polymake
-            sage: V = polymake.new_object('Vector', [1,0,0])    # optional - polymake
-            sage: V                                             # optional - polymake
+            sage: c = polymake.cube(2)                          # optional - jupymake
+            sage: V = polymake.new_object('Vector', [1,0,0])    # optional - jupymake
+            sage: V                                             # optional - jupymake
             1 0 0
-            sage: c.contains                                    # optional - polymake
+            sage: c.contains                                    # optional - jupymake
             Member function 'contains' of Polymake::polytope::Polytope__Rational object
-            sage: c.contains(V)                                 # optional - polymake
+            sage: c.contains(V)                                 # optional - jupymake
             true
 
         """
@@ -1284,21 +1284,21 @@ class PolymakeElement(ExtraTabCompletion, InterfaceElement):
 
         EXAMPLES::
 
-            sage: c = polymake.cube(2)                                  # optional - polymake
-            sage: c.contains                                            # optional - polymake
+            sage: c = polymake.cube(2)                                  # optional - jupymake
+            sage: c.contains                                            # optional - jupymake
             Member function 'contains' of Polymake::polytope::Polytope__Rational object
-            sage: V = polymake.new_object('Vector', [1,0,0])            # optional - polymake
-            sage: V                                                     # optional - polymake
+            sage: V = polymake.new_object('Vector', [1,0,0])            # optional - jupymake
+            sage: V                                                     # optional - jupymake
             1 0 0
-            sage: c.contains(V)                                         # optional - polymake
+            sage: c.contains(V)                                         # optional - jupymake
             true
 
         Whether a member function of the given name actually exists for that
         object will only be clear when calling it::
 
-            sage: c.get_member_function("foo")                          # optional - polymake
+            sage: c.get_member_function("foo")                          # optional - jupymake
             Member function 'foo' of Polymake::polytope::Polytope__Rational object
-            sage: c.get_member_function("foo")()                        # optional - polymake
+            sage: c.get_member_function("foo")()                        # optional - jupymake
             Traceback (most recent call last):
             ...
             TypeError: Can't locate object method "foo" via package "Polymake::polytope::Polytope__Rational"
@@ -1318,31 +1318,31 @@ class PolymakeElement(ExtraTabCompletion, InterfaceElement):
 
         EXAMPLES::
 
-            sage: p = polymake.rand_sphere(4, 20, seed=5)    # optional - polymake
+            sage: p = polymake.rand_sphere(4, 20, seed=5)    # optional - jupymake
 
         Normally, a property would be accessed as follows::
 
-            sage: p.F_VECTOR                                # optional - polymake
+            sage: p.F_VECTOR                                # optional - jupymake
             20 94 148 74
 
         However, explicit access is possible as well::
 
-            sage: p.get_member('F_VECTOR')                  # optional - polymake
+            sage: p.get_member('F_VECTOR')                  # optional - jupymake
             20 94 148 74
 
         In some cases, the explicit access works better::
 
-            sage: p.type                                    # optional - polymake
+            sage: p.type                                    # optional - jupymake
             Member function 'type' of Polymake::polytope::Polytope__Rational object
-            sage: p.get_member('type')                      # optional - polymake
+            sage: p.get_member('type')                      # optional - jupymake
             Polytope<Rational>[SAGE...]
-            sage: p.get_member('type').get_member('name')   # optional - polymake
+            sage: p.get_member('type').get_member('name')   # optional - jupymake
             Polytope
 
         Note that in the last example calling the erroneously constructed
         member function ``type`` still works::
 
-            sage: p.type()                                  # optional - polymake
+            sage: p.type()                                  # optional - jupymake
             Polytope<Rational>[SAGE...]
 
         """
@@ -1357,19 +1357,19 @@ class PolymakeElement(ExtraTabCompletion, InterfaceElement):
 
         EXAMPLES::
 
-            sage: p = polymake.rand_sphere(3, 12, seed=15)  # optional - polymake
-            sage: p.VERTICES[3]                             # optional - polymake
+            sage: p = polymake.rand_sphere(3, 12, seed=15)  # optional - jupymake
+            sage: p.VERTICES[3]                             # optional - jupymake
             1 7977905618560809/18014398509481984 -1671539598851959/144115188075855872 8075083879632623/9007199254740992
-            sage: p.list_properties()[2]                    # optional - polymake
+            sage: p.list_properties()[2]                    # optional - jupymake
             BOUNDED
 
         Slicing::
 
-            sage: p.F_VECTOR[:]                             # optional - polymake
+            sage: p.F_VECTOR[:]                             # optional - jupymake
             [12, 30, 20]
-            sage: p.F_VECTOR[0:1]                           # optional - polymake
+            sage: p.F_VECTOR[0:1]                           # optional - jupymake
             [12]
-            sage: p.F_VECTOR[0:3:2]                         # optional - polymake
+            sage: p.F_VECTOR[0:3:2]                         # optional - jupymake
             [12, 20]
         """
         P = self._check_valid()
@@ -1400,8 +1400,8 @@ class PolymakeElement(ExtraTabCompletion, InterfaceElement):
 
         EXAMPLES::
 
-            sage: p = polymake.rand_sphere(3, 12, seed=15)  # optional - polymake
-            sage: [ x for x in p.VERTICES[3] ]              # optional - polymake
+            sage: p = polymake.rand_sphere(3, 12, seed=15)  # optional - jupymake
+            sage: [ x for x in p.VERTICES[3] ]              # optional - jupymake
             [1, 7977905618560809/18014398509481984, -1671539598851959/144115188075855872, 8075083879632623/9007199254740992]
         """
         for i in range(len(self)):
@@ -1411,10 +1411,10 @@ class PolymakeElement(ExtraTabCompletion, InterfaceElement):
         """
         EXAMPLES::
 
-            sage: p = polymake.rand_sphere(3, 12, seed=15)           # optional - polymake
-            sage: len(p.FACETS)                                     # optional - polymake
+            sage: p = polymake.rand_sphere(3, 12, seed=15)           # optional - jupymake
+            sage: len(p.FACETS)                                     # optional - jupymake
             20
-            sage: len(p.list_properties()) >= 12                     # optional - polymake
+            sage: len(p.list_properties()) >= 12                     # optional - jupymake
             True
 
         """
@@ -1441,19 +1441,19 @@ class PolymakeElement(ExtraTabCompletion, InterfaceElement):
 
         EXAMPLES::
 
-            sage: p = polymake.rand_sphere(3, 13, seed=12)               # optional - polymake
-            sage: p.typeof()                                            # optional - polymake
+            sage: p = polymake.rand_sphere(3, 13, seed=12)               # optional - jupymake
+            sage: p.typeof()                                            # optional - jupymake
             ('Polymake::polytope::Polytope__Rational', 'ARRAY')
-            sage: p.VERTICES.typeof()                                   # optional - polymake
+            sage: p.VERTICES.typeof()                                   # optional - jupymake
             ('Polymake::common::Matrix_A_Rational_I_NonSymmetric_Z', 'ARRAY')
-            sage: p.get_schedule('"F_VECTOR"').typeof()                   # optional - polymake
+            sage: p.get_schedule('"F_VECTOR"').typeof()                   # optional - jupymake
             ('Polymake::Core::Scheduler::RuleChain', 'ARRAY')
 
         On "small" objects, it just returns empty strings::
 
-            sage: p.N_VERTICES.typeof()                                 # optional - polymake
+            sage: p.N_VERTICES.typeof()                                 # optional - jupymake
             ('', '')
-            sage: p.list_properties().typeof()                          # optional - polymake
+            sage: p.list_properties().typeof()                          # optional - jupymake
             ('', '')
         """
         P = self._check_valid()
@@ -1469,50 +1469,50 @@ class PolymakeElement(ExtraTabCompletion, InterfaceElement):
 
         EXAMPLES::
 
-            sage: a = polymake(1/2); a    # optional - polymake
+            sage: a = polymake(1/2); a    # optional - jupymake
             1/2
-            sage: a.sage()                # optional - polymake
+            sage: a.sage()                # optional - jupymake
             1/2
-            sage: _.parent()              # optional - polymake
+            sage: _.parent()              # optional - jupymake
             Rational Field
 
         Quadratic extensions::
 
             sage: K.<sqrt5> = QuadraticField(5)
-            sage: polymake(K(0)).sage()   # optional - polymake
+            sage: polymake(K(0)).sage()   # optional - jupymake
             0
-            sage: _.parent()              # optional - polymake
+            sage: _.parent()              # optional - jupymake
             Rational Field
-            sage: polymake(sqrt5).sage()   # optional - polymake
+            sage: polymake(sqrt5).sage()   # optional - jupymake
             a
-            sage: polymake(-sqrt5).sage()   # optional - polymake
+            sage: polymake(-sqrt5).sage()   # optional - jupymake
             -a
-            sage: polymake(1/3-1/2*sqrt5).sage()   # optional - polymake
+            sage: polymake(1/3-1/2*sqrt5).sage()   # optional - jupymake
             -1/2*a + 1/3
-            sage: polymake(-1+sqrt5).sage()   # optional - polymake
+            sage: polymake(-1+sqrt5).sage()   # optional - jupymake
             a - 1
 
         Vectors::
 
-            sage: PP = polymake.cube(3)   # optional - polymake
-            sage: PP.F_VECTOR.sage()      # optional - polymake
+            sage: PP = polymake.cube(3)   # optional - jupymake
+            sage: PP.F_VECTOR.sage()      # optional - jupymake
             (8, 12, 6)
-            sage: _.parent()              # optional - polymake
+            sage: _.parent()              # optional - jupymake
             Ambient free module of rank 3 over the principal ideal domain Integer Ring
 
         Matrices::
 
-            sage: polymake.unit_matrix(2).sage()   # optional - polymake
+            sage: polymake.unit_matrix(2).sage()   # optional - jupymake
             [1 0]
             [0 1]
-            sage: _.parent()              # optional - polymake
+            sage: _.parent()              # optional - jupymake
             Full MatrixSpace of 2 by 2 dense matrices over Integer Ring
 
         Polytopes::
 
-            sage: polymake.cube(3).sage() # optional - polymake
+            sage: polymake.cube(3).sage() # optional - jupymake
             A 3-dimensional polyhedron in QQ^3 defined as the convex hull of 8 vertices
-            sage: polymake.icosahedron().sage() # optional - polymake
+            sage: polymake.icosahedron().sage() # optional - jupymake
             A 3-dimensional polyhedron in
              (Number Field in a with defining polynomial x^2 - 5 with a = 2.236067977499790?)^3
              defined as the convex hull of 12 vertices
@@ -1596,8 +1596,8 @@ class PolymakeElement(ExtraTabCompletion, InterfaceElement):
         """
         EXAMPLES::
 
-            sage: c = polymake.cube(3)                  # optional - polymake
-            sage: print(c._sage_doc_())                 # optional - polymake # random
+            sage: c = polymake.cube(3)                  # optional - jupymake
+            sage: print(c._sage_doc_())                 # optional - jupymake # random
             objects/Polytope:
              Not necessarily bounded or unbounded polyhedron.
              Nonetheless, the name "Polytope" is used for two reasons:
@@ -1609,7 +1609,7 @@ class PolymakeElement(ExtraTabCompletion, InterfaceElement):
             <BLANKLINE>
             objects/Polytope/specializations/Polytope<Rational>:
              A rational polyhedron realized in Q^d
-            sage: print(c.FACETS._sage_doc_())          # optional - polymake # random
+            sage: print(c.FACETS._sage_doc_())          # optional - jupymake # random
             property_types/Algebraic Types/SparseMatrix:
              A SparseMatrix is a two-dimensional associative array with row and column indices as keys; elements equal to the default value (ElementType(), which is 0 for most numerical types) are not stored, but implicitly encoded by the gaps in the key set. Each row and column is organized as an AVL-tree.
             <BLANKLINE>
@@ -1669,13 +1669,13 @@ class PolymakeFunctionElement(InterfaceFunctionElement):
 
     EXAMPLES::
 
-        sage: c = polymake.cube(2)                          # optional - polymake
-        sage: V = polymake.new_object('Vector', [1,0,0])    # optional - polymake
-        sage: V                                             # optional - polymake
+        sage: c = polymake.cube(2)                          # optional - jupymake
+        sage: V = polymake.new_object('Vector', [1,0,0])    # optional - jupymake
+        sage: V                                             # optional - jupymake
         1 0 0
-        sage: c.contains                                    # optional - polymake
+        sage: c.contains                                    # optional - jupymake
         Member function 'contains' of Polymake::polytope::Polytope__Rational object
-        sage: c.contains(V)                                 # optional - polymake
+        sage: c.contains(V)                                 # optional - jupymake
         true
 
     """
@@ -1691,10 +1691,10 @@ class PolymakeFunctionElement(InterfaceFunctionElement):
 
         EXAMPLES::
 
-            sage: p = polymake.rand_sphere(3, 13, seed=12)   # optional - polymake
-            sage: p.minkowski_sum_fukuda                    # optional - polymake
+            sage: p = polymake.rand_sphere(3, 13, seed=12)   # optional - jupymake
+            sage: p.minkowski_sum_fukuda                    # optional - jupymake
             minkowski_sum_fukuda (bound to Polymake::polytope::Polytope__Rational object)
-            sage: p.get_schedule                            # optional - polymake
+            sage: p.get_schedule                            # optional - jupymake
             Member function 'get_schedule' of Polymake::polytope::Polytope__Rational object
 
         """
@@ -1706,10 +1706,10 @@ class PolymakeFunctionElement(InterfaceFunctionElement):
         """
         EXAMPLES::
 
-            sage: p = polymake.rand_sphere(3, 13, seed=12)  # optional - polymake
-            sage: p.minkowski_sum_fukuda                    # optional - polymake
+            sage: p = polymake.rand_sphere(3, 13, seed=12)  # optional - jupymake
+            sage: p.minkowski_sum_fukuda                    # optional - jupymake
             minkowski_sum_fukuda (bound to Polymake::polytope::Polytope__Rational object)
-            sage: p.contains                                # optional - polymake
+            sage: p.contains                                # optional - jupymake
             Member function 'contains' of Polymake::polytope::Polytope__Rational object
 
         """
@@ -1724,11 +1724,11 @@ class PolymakeFunctionElement(InterfaceFunctionElement):
         We consider both member functions of an element and global functions
         bound to an element::
 
-            sage: p = polymake.rand_sphere(3, 13, seed=12)      # optional - polymake
-            sage: p.get_schedule('"VERTICES"')                    # optional - polymake  # random
+            sage: p = polymake.rand_sphere(3, 13, seed=12)      # optional - jupymake
+            sage: p.get_schedule('"VERTICES"')                    # optional - jupymake  # random
             sensitivity check for VertexPerm
             cdd.convex_hull.canon: POINTED, RAYS, LINEALITY_SPACE : INPUT_RAYS
-            sage: p.minkowski_sum_fukuda(p).F_VECTOR            # optional - polymake # not tested
+            sage: p.minkowski_sum_fukuda(p).F_VECTOR            # optional - jupymake # not tested
             13 33 22
 
         """
@@ -1747,8 +1747,8 @@ class PolymakeFunctionElement(InterfaceFunctionElement):
 
         EXAMPLES::
 
-            sage: p = polymake.rand_sphere(3, 13, seed=12)           # optional - polymake
-            sage: print(p.get_schedule._sage_doc_())                 # optional - polymake # random
+            sage: p = polymake.rand_sphere(3, 13, seed=12)           # optional - jupymake
+            sage: print(p.get_schedule._sage_doc_())                 # optional - jupymake # random
             objects/Core::Object/methods/get_schedule:
             get_schedule(request;  ... ) -> Core::RuleChain
             <BLANKLINE>
@@ -1764,7 +1764,7 @@ class PolymakeFunctionElement(InterfaceFunctionElement):
                 Several requests may be listed.
             <BLANKLINE>
             Returns Core::RuleChain
-            sage: print(p.minkowski_sum_fukuda._sage_doc_())        # optional - polymake # random
+            sage: print(p.minkowski_sum_fukuda._sage_doc_())        # optional - jupymake # random
             functions/Producing a polytope from polytopes/minkowski_sum_fukuda:
             minkowski_sum_fukuda(summands) -> Polytope<Scalar>
             <BLANKLINE>

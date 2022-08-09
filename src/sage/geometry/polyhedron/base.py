@@ -1116,35 +1116,35 @@ class Polyhedron_base(Polyhedron_base7):
         EXAMPLES::
 
             sage: P = polytopes.cube()
-            sage: PP = polymake(P)         # optional - polymake
-            sage: PP.N_VERTICES            # optional - polymake
+            sage: PP = polymake(P)         # optional - jupymake
+            sage: PP.N_VERTICES            # optional - jupymake
             8
 
         Lower-dimensional polyhedron::
 
             sage: P = Polyhedron(vertices=[[1, 0], [0, 1]])
-            sage: PP = polymake(P)         # optional - polymake
-            sage: PP.COMBINATORIAL_DIM     # optional - polymake
+            sage: PP = polymake(P)         # optional - jupymake
+            sage: PP.COMBINATORIAL_DIM     # optional - jupymake
             1
-            sage: PP.AFFINE_HULL           # optional - polymake
+            sage: PP.AFFINE_HULL           # optional - jupymake
             -1 1 1
 
         Empty polyhedron::
 
             sage: P = Polyhedron(ambient_dim=2, vertices=[])
-            sage: PP = polymake(P)         # optional - polymake
-            sage: PP.COMBINATORIAL_DIM     # optional - polymake
+            sage: PP = polymake(P)         # optional - jupymake
+            sage: PP.COMBINATORIAL_DIM     # optional - jupymake
             -1
 
         Pointed unbounded polyhedron::
 
             sage: P = Polyhedron(vertices=[[1, 0], [0, 1]], rays=[[1, 0]])
-            sage: PP = polymake(P)         # optional - polymake
-            sage: PP.VERTICES              # optional - polymake
+            sage: PP = polymake(P)         # optional - jupymake
+            sage: PP.VERTICES              # optional - jupymake
             1 0 1
             1 1 0
             0 1 0
-            sage: PP.FACETS                # optional - polymake
+            sage: PP.FACETS                # optional - jupymake
             1 0 -1
             -1 1 1
             0 0 1
@@ -1152,14 +1152,14 @@ class Polyhedron_base(Polyhedron_base7):
         Non-pointed polyhedron::
 
             sage: P = Polyhedron(vertices=[[1, 0], [0, 1]], lines=[[1, 0]])
-            sage: PP = polymake(P)         # optional - polymake
-            sage: PP.VERTICES              # optional - polymake
+            sage: PP = polymake(P)         # optional - jupymake
+            sage: PP.VERTICES              # optional - jupymake
             1 0 1
             1 0 0
-            sage: PP.FACETS                # optional - polymake
+            sage: PP.FACETS                # optional - jupymake
             1 0 -1
             0 0 1
-            sage: PP.LINEALITY_SPACE       # optional - polymake
+            sage: PP.LINEALITY_SPACE       # optional - jupymake
             0 1 0
 
         Algebraic polyhedron::
@@ -1169,20 +1169,20 @@ class Polyhedron_base(Polyhedron_base7):
              in (Number Field in sqrt5 with defining polynomial x^2 - 5
                  with sqrt5 = 2.236067977499790?)^3
              defined as the convex hull of 20 vertices
-            sage: print("There may be a recompilation warning"); PP = polymake(P); PP  # optional - polymake  # optional - sage.rings.number_field
+            sage: print("There may be a recompilation warning"); PP = polymake(P); PP  # optional - jupymake  # optional - sage.rings.number_field
             There may be a recompilation warning...
             Polytope<QuadraticExtension<Rational>>[...]
-            sage: sorted(PP.VERTICES[:], key=repr)[0]                                  # optional - polymake  # optional - sage.rings.number_field
+            sage: sorted(PP.VERTICES[:], key=repr)[0]                                  # optional - jupymake  # optional - sage.rings.number_field
             1 -1+1r5 -4+2r5 0
 
         Floating-point polyhedron::
 
             sage: P = polytopes.dodecahedron(exact=False); P
             A 3-dimensional polyhedron in RDF^3 defined as the convex hull of 20 vertices
-            sage: print("There may be a recompilation warning"); PP = polymake(P); PP # optional - polymake
+            sage: print("There may be a recompilation warning"); PP = polymake(P); PP # optional - jupymake
             There may be a recompilation warning...
             Polytope<Float>[...]
-            sage: sorted(PP.VERTICES[:], key=repr)[0] # optional - polymake
+            sage: sorted(PP.VERTICES[:], key=repr)[0] # optional - jupymake
             1 -0.472135955 0 -1.236067978
 
         """

@@ -194,7 +194,8 @@ def AssionGroupS(n=None, names='s'):
         sage: S3 == S3x
         True
     """
-    return CubicBraidGroup(n = n, names = names, cbg_type=CubicBraidGroup.type.AssionS)
+    return CubicBraidGroup(n=n, names=names,
+                           cbg_type=CubicBraidGroup.type.AssionS)
 
 
 def AssionGroupU(n=None, names='u'):
@@ -222,9 +223,9 @@ def AssionGroupU(n=None, names='u'):
         Assion group on 3 strands of type U
         sage: U3 == U3x
         True
-
     """
-    return CubicBraidGroup(n = n, names = names, cbg_type=CubicBraidGroup.type.AssionU)
+    return CubicBraidGroup(n=n, names=names,
+                           cbg_type=CubicBraidGroup.type.AssionU)
 
 
 
@@ -367,9 +368,9 @@ class CubicBraidElement(FinitelyPresentedGroupElement):
         braid_group = self.parent().braid_group()
         return braid_group(self)
 
-
     @cached_method
-    def burau_matrix(self, root_bur = None, domain = None, characteristic = None, var='t', reduced=False):
+    def burau_matrix(self, root_bur=None, domain=None, characteristic=None,
+                     var='t', reduced=False):
         r"""
         Return the Burau matrix of the cubic braid coset.
 
@@ -2022,10 +2023,10 @@ class CubicBraidGroup(FinitelyPresentedGroup):
         from sage.rings.infinity import infinity
         return not self.order() is infinity
 
-    # ----------------------------------------------------------------------------------
+    # ------------------------------------------------------------------
     # creating a CubicBraidGroup as subgroup of self on less strands
-    # ----------------------------------------------------------------------------------
-    def cubic_braid_subgroup(self, nstrands = None):
+    # ------------------------------------------------------------------
+    def cubic_braid_subgroup(self, nstrands=None):
         r"""
         Creates a cubic braid group as subgroup of ``self`` on the first ``nstrands`` strands.
 

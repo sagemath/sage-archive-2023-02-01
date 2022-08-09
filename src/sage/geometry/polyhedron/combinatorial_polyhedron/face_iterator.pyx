@@ -1493,13 +1493,13 @@ cdef class FaceIterator(FaceIterator_base):
 
     .. MATH::
 
-        P \supset \texttt{one_face} \supset F.
+        P \supset \texttt{one\_face} \supset F.
 
     By the diamond property, there exists a ``second_face`` with:
 
     .. MATH::
 
-        P \supset \texttt{second_face} \supset F.
+        P \supset \texttt{second\_face} \supset F.
 
     Now either ``second_face`` is not an element of ``faces``:
     Hence ``second_face`` is contained in one of ``visited_all``.

@@ -1022,7 +1022,7 @@ class SymmetricFunctionAlgebra_witt(multiplicative.SymmetricFunctionAlgebra_mult
             # the elements of the Witt basis with respect to the powersum basis
             self._p_inverse_transition_matrices = {}
 
-            self   .register_coercion(self._p._module_morphism(self._p_to_w_on_basis, codomain=self))
+            self.register_coercion(self._p._module_morphism(self._p_to_w_on_basis, codomain=self))
             from sage.rings.rational_field import RationalField
             if self.base_ring().has_coerce_map_from(RationalField):
                 self._p.register_coercion(self._module_morphism(self._w_to_p_on_basis, codomain=self._p))
@@ -1054,7 +1054,7 @@ class SymmetricFunctionAlgebra_witt(multiplicative.SymmetricFunctionAlgebra_mult
             # cache for transition matrices which contain the coordinates of
             # the elements of the Witt basis with respect to the homogeneous basis
             self._h_inverse_transition_matrices = {}
-            self   .register_coercion(self._h._module_morphism(self._h_to_w_on_basis, codomain=self))
+            self.register_coercion(self._h._module_morphism(self._h_to_w_on_basis, codomain=self))
             self._h.register_coercion(self._module_morphism(self._w_to_h_on_basis, codomain=self._h))
             if self._friendly is None:
                 self._friendly = self._h
@@ -1076,7 +1076,7 @@ class SymmetricFunctionAlgebra_witt(multiplicative.SymmetricFunctionAlgebra_mult
             # cache for transition matrices which contain the coordinates of
             # the elements of the Witt basis with respect to the elementary basis
             self._e_inverse_transition_matrices = {}
-            self   .register_coercion(self._e._module_morphism(self._e_to_w_on_basis, codomain=self))
+            self.register_coercion(self._e._module_morphism(self._e_to_w_on_basis, codomain=self))
             self._e.register_coercion(self._module_morphism(self._w_to_e_on_basis, codomain=self._e))
             if self._friendly is None:
                 self._friendly = self._e

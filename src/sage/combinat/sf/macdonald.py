@@ -758,7 +758,7 @@ class MacdonaldPolynomials_generic(sfa.SymmetricFunctionAlgebra_generic):
         if hasattr(self, "_s_cache"):
             # temporary until Hom(GradedHopfAlgebrasWithBasis work better)
             category = ModulesWithBasis(self.base_ring())
-            self   .register_coercion(SetMorphism(Hom(self._s, self, category), self._s_to_self))
+            self.register_coercion(SetMorphism(Hom(self._s, self, category), self._s_to_self))
             self._s.register_coercion(SetMorphism(Hom(self, self._s, category), self._self_to_s))
 
     def _s_to_self(self, x):
@@ -1010,7 +1010,7 @@ class MacdonaldPolynomials_p(MacdonaldPolynomials_generic):
         category = ModulesWithBasis(self.base_ring())
         phi = self._J.module_morphism(diagonal=self.c2,
                                       codomain=self, category=category)
-        self.register_coercion( phi)
+        self.register_coercion(phi)
         self._J.register_coercion(~phi)
 
     def scalar_qt_basis(self, part1, part2=None):
@@ -1082,7 +1082,7 @@ class MacdonaldPolynomials_q(MacdonaldPolynomials_generic):
         category = ModulesWithBasis(self.base_ring())
         phi = self._P.module_morphism(diagonal=self._P.scalar_qt_basis,
                                       codomain=self, category=category)
-        self.register_coercion( phi)
+        self.register_coercion(phi)
         self._P.register_coercion(~phi)
 
     class Element(MacdonaldPolynomials_generic.Element):
@@ -2026,6 +2026,7 @@ def qt_kostka(lam, mu):
             _qt_kostka_cache[(p1,p2)] = QQqt(res.coefficient(p1).numerator())
 
     return _qt_kostka_cache[(lam,mu)]
+
 
 # Backward compatibility for unpickling
 from sage.misc.persist import register_unpickle_override

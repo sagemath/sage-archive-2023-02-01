@@ -266,7 +266,7 @@ class EllipticCurveHom_frobenius(EllipticCurveHom):
         """
         if self._domain.defining_polynomial()(*P):
             raise ValueError(f'{P} not on {self._domain}')
-        k = Sequence(tuple(P)).universe()
+        k = Sequence(P).universe()
         return self._codomain.base_extend(k)(*(c**self._degree for c in P))
 
     def _repr_(self):

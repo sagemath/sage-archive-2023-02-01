@@ -866,7 +866,7 @@ class NorthwestDiagrams(Diagrams):
 
     .. MATH::
 
-        \{ (i, j) : i < \omega^{-1}(j) \text{ and } j < \omega(i)}
+        D(\omega) = \{(\omega_j, i) : i<j,\, \omega_i > \omega_j \}.
 
     We can construct one by calling :meth:`rothe_diagram` method on the parent
     class :class:`NorthwestDiagrams`::

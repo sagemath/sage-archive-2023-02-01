@@ -21809,23 +21809,47 @@ class GenericGraph(GenericGraph_pyx):
 
             sage: C = graphs.CycleGraph(8)
             sage: C.eigenvectors()
-            [(2, [
-            (1, 1, 1, 1, 1, 1, 1, 1)
-            ], 1), (-2, [
-            (1, -1, 1, -1, 1, -1, 1, -1)
-            ], 1), (0, [
-            (1, 0, -1, 0, 1, 0, -1, 0),
-            (0, 1, 0, -1, 0, 1, 0, -1)
-            ], 2), (-1.4142135623..., [(1, 0, -1, 1.4142135623..., -1, 0, 1, -1.4142135623...), (0, 1, -1.4142135623..., 1, 0, -1, 1.4142135623..., -1)], 2), (1.4142135623..., [(1, 0, -1, -1.4142135623..., -1, 0, 1, 1.4142135623...), (0, 1, 1.4142135623..., 1, 0, -1, -1.4142135623..., -1)], 2)]
+            [(2,
+              [
+              (1, 1, 1, 1, 1, 1, 1, 1)
+              ],
+              1),
+             (-2,
+              [
+              (1, -1, 1, -1, 1, -1, 1, -1)
+              ],
+              1),
+             (0,
+              [
+              (1, 0, -1, 0, 1, 0, -1, 0),
+              (0, 1, 0, -1, 0, 1, 0, -1)
+              ],
+              2),
+             (-1.4142135623...,
+              [(1, 0, -1, 1.4142135623..., -1, 0, 1, -1.4142135623...),
+               (0, 1, -1.4142135623..., 1, 0, -1, 1.4142135623..., -1)],
+              2),
+             (1.4142135623...,
+              [(1, 0, -1, -1.4142135623..., -1, 0, 1, 1.4142135623...),
+               (0, 1, 1.4142135623..., 1, 0, -1, -1.4142135623..., -1)],
+              2)]
 
         A digraph may have complex eigenvalues. Previously, the complex parts of
         graph eigenvalues were being dropped. For a 3-cycle, we have::
 
             sage: T = DiGraph({0:[1], 1:[2], 2:[0]})
             sage: T.eigenvectors()
-            [(1, [
-            (1, 1, 1)
-            ], 1), (-0.5000000000... - 0.8660254037...*I, [(1, -0.5000000000... - 0.8660254037...*I, -0.5000000000... + 0.8660254037...*I)], 1), (-0.5000000000... + 0.8660254037...*I, [(1, -0.5000000000... + 0.8660254037...*I, -0.5000000000... - 0.8660254037...*I)], 1)]
+            [(1,
+              [
+              (1, 1, 1)
+              ],
+              1),
+             (-0.5000000000... - 0.8660254037...*I,
+              [(1, -0.5000000000... - 0.8660254037...*I, -0.5000000000... + 0.8660254037...*I)],
+              1),
+             (-0.5000000000... + 0.8660254037...*I,
+              [(1, -0.5000000000... + 0.8660254037...*I, -0.5000000000... - 0.8660254037...*I)],
+              1)]
         """
         if laplacian:
             M = self.kirchhoff_matrix(vertices=list(self))
@@ -21944,7 +21968,7 @@ class GenericGraph(GenericGraph_pyx):
         # which would be a change in default behavior
         return M.right_eigenspaces(format='galois', algebraic_multiplicity=False)
 
-    ### Automorphism and isomorphism
+    # Automorphism and isomorphism
 
     def relabel(self, perm=None, inplace=True, return_map=False, check_input=True, complete_partial_function=True, immutable=None):
         r"""
@@ -22170,14 +22194,14 @@ class GenericGraph(GenericGraph_pyx):
         if not inplace:
             G = copy(self)
             perm2 = G.relabel(perm,
-                              return_map= return_map,
-                              check_input = check_input,
-                              complete_partial_function = complete_partial_function)
+                              return_map=return_map,
+                              check_input=check_input,
+                              complete_partial_function=complete_partial_function)
 
             if immutable is None:
                 immutable = self.is_immutable()
             if immutable:
-                G = self.__class__(G, immutable = True)
+                G = self.__class__(G, immutable=True)
 
             if return_map:
                 return G, perm2
@@ -22290,8 +22314,8 @@ class GenericGraph(GenericGraph_pyx):
             (0, 2)
         """
         if self._directed:
-            in_neighbors_in_cell = set([a for a,_,_ in self.incoming_edges(vertex)]) & set(cell)
-            out_neighbors_in_cell = set([a for _,a,_ in self.outgoing_edges(vertex)]) & set(cell)
+            in_neighbors_in_cell = set([a for a, _, _ in self.incoming_edges(vertex)]) & set(cell)
+            out_neighbors_in_cell = set([a for _, a, _ in self.outgoing_edges(vertex)]) & set(cell)
             return (len(in_neighbors_in_cell), len(out_neighbors_in_cell))
         else:
             neighbors_in_cell = set(self.neighbors(vertex)) & set(cell)
@@ -22351,9 +22375,9 @@ class GenericGraph(GenericGraph_pyx):
         """
         from sage.misc.flatten import flatten
         if sorted(flatten(partition, max_level=1)) != self.vertices(sort=True):
-            raise TypeError("Partition (%s) is not valid for this graph: vertices are incorrect."%partition)
-        if any(len(cell)==0 for cell in partition):
-            raise TypeError("Partition (%s) is not valid for this graph: there is a cell of length 0."%partition)
+            raise TypeError("Partition (%s) is not valid for this graph: vertices are incorrect." % partition)
+        if any(not cell for cell in partition):
+            raise TypeError("Partition (%s) is not valid for this graph: there is a cell of length 0." % partition)
         if quotient_matrix:
             from sage.matrix.constructor import Matrix
             from sage.rings.integer_ring import IntegerRing
@@ -22439,9 +22463,9 @@ class GenericGraph(GenericGraph_pyx):
         """
         from sage.misc.flatten import flatten
         if set(flatten(partition, max_level=1)) != set(self):
-            raise TypeError("partition (%s) is not valid for this graph: vertices are incorrect"%partition)
+            raise TypeError("partition (%s) is not valid for this graph: vertices are incorrect" % partition)
         if any(len(cell) == 0 for cell in partition):
-            raise TypeError("partition (%s) is not valid for this graph: there is a cell of length 0"%partition)
+            raise TypeError("partition (%s) is not valid for this graph: there is a cell of length 0" % partition)
         if self.has_multiple_edges():
             raise TypeError("refinement function does not support multiple edges")
         G = copy(self)
@@ -22697,8 +22721,8 @@ class GenericGraph(GenericGraph_pyx):
                 raise NotImplementedError("algorithm 'bliss' cannot be used for graph with multiedges")
             have_bliss = False
 
-        if (algorithm == 'bliss'           or   # explicit choice from the user; or
-            (algorithm is None             and  # by default
+        if (algorithm == 'bliss' or  # explicit choice from the user; or
+            (algorithm is None and   # by default
              have_bliss)):
 
             Bliss().require()
@@ -22723,8 +22747,7 @@ class GenericGraph(GenericGraph_pyx):
                 return ret[0]
             return ret
 
-        if (algorithm is not None and
-            algorithm != "sage"):
+        if algorithm is not None and algorithm != "sage":
             raise ValueError("'algorithm' must be equal to 'bliss', 'sage', or None")
 
         from sage.groups.perm_gps.partn_ref.refinement_graphs import search_tree
@@ -22738,21 +22761,24 @@ class GenericGraph(GenericGraph_pyx):
             partition = [list(self)]
 
         if edge_labels or self.has_multiple_edges():
-            G, partition, relabeling = graph_isom_equivalent_non_edge_labeled_graph(self, partition, return_relabeling=True, ignore_edge_labels=(not edge_labels))
+            ret = graph_isom_equivalent_non_edge_labeled_graph(self, partition,
+                                                               return_relabeling=True,
+                                                               ignore_edge_labels=(not edge_labels))
+            G, partition, relabeling = ret
             G_vertices = list(chain(*partition))
-            G_to = {u: i for i,u in enumerate(G_vertices)}
+            G_to = {u: i for i, u in enumerate(G_vertices)}
             DoDG = DiGraph if self._directed else Graph
             H = DoDG(len(G_vertices), loops=G.allows_loops())
             HB = H._backend
-            for u,v in G.edge_iterator(labels=False):
+            for u, v in G.edge_iterator(labels=False):
                 HB.add_edge(G_to[u], G_to[v], None, G._directed)
             GC = HB.c_graph()[0]
             partition = [[G_to[vv] for vv in cell] for cell in partition]
             A = search_tree(GC, partition, lab=False, dict_rep=True, dig=dig, verbosity=verbosity, order=order)
             if order:
-                a,b,c = A
+                a, b, c = A
             else:
-                a,b = A
+                a, b = A
             b_new = {v: b[G_to[v]] for v in G_to}
             b = b_new
             # b is a translation of the labellings
@@ -22781,11 +22807,11 @@ class GenericGraph(GenericGraph_pyx):
             b = translation_d
         else:
             G_vertices = list(chain(*partition))
-            G_to = {u: i for i,u in enumerate(G_vertices)}
+            G_to = {u: i for i, u in enumerate(G_vertices)}
             DoDG = DiGraph if self._directed else Graph
             H = DoDG(len(G_vertices), loops=self.allows_loops())
             HB = H._backend
-            for u,v in self.edge_iterator(labels=False):
+            for u, v in self.edge_iterator(labels=False):
                 HB.add_edge(G_to[u], G_to[v], None, self._directed)
             GC = HB.c_graph()[0]
             partition = [[G_to[vv] for vv in cell] for cell in partition]
@@ -22793,15 +22819,15 @@ class GenericGraph(GenericGraph_pyx):
             if return_group:
                 A = search_tree(GC, partition, dict_rep=True, lab=False, dig=dig, verbosity=verbosity, order=order)
                 if order:
-                    a,b,c = A
+                    a, b, c = A
                 else:
-                    a,b = A
+                    a, b = A
                 b_new = {v: b[G_to[v]] for v in G_to}
                 b = b_new
             else:
                 a = search_tree(GC, partition, dict_rep=False, lab=False, dig=dig, verbosity=verbosity, order=order)
                 if order:
-                    a,c = a
+                    a, c = a
 
         output = []
         if return_group:
@@ -22825,17 +22851,15 @@ class GenericGraph(GenericGraph_pyx):
             from sage.groups.perm_gps.partn_ref.refinement_graphs import get_orbits
             output.append([[G_from[v] for v in W] for W in get_orbits(a, self.num_verts())])
 
-        # A Python switch statement!
-        return { 0: None,
-                 1: output[0],
-                 2: tuple(output),
-                 3: tuple(output),
-                 4: tuple(output)
-               }[len(output)]
+        if len(output) == 1:
+            return output[0]
+        elif len(output) > 1:
+            return tuple(output)
+        return None
 
     def is_vertex_transitive(self, partition=None, verbosity=0,
-                           edge_labels=False, order=False,
-                           return_group=True, orbits=False):
+                             edge_labels=False, order=False,
+                             return_group=True, orbits=False):
         """
         Returns whether the automorphism group of self is transitive within
         the partition provided, by default the unit partition of the

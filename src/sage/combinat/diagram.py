@@ -146,8 +146,8 @@ then the Rothe diagram `D(\omega)` is the diagram whose cells are
 
 Informally, one can construct the Rothe diagram by starting with all `n^2`
 possible cells, and then deleting the cells `(i, \omega(i))` as well as all
-cells to the right and below. (These are the "death rays" of []_.) To compute
-a Rothe diagram in Sage, start with a
+cells to the right and below. (These are sometimes called "death rays".) To
+compute a Rothe diagram in Sage, start with a
 :class:`~sage.combinat.permutation.Permutation`::
 
     sage: w = Permutations(8)([2,5,4,1,3,6,7,8])
@@ -219,6 +219,7 @@ AUTHORS:
 from sage.categories.sets_cat import Sets
 from sage.sets.non_negative_integers import NonNegativeIntegers as NN
 from sage.combinat.partition import Partition
+from sage.combinat.skew_partition import SkewPartition
 from sage.combinat.permutation import Permutations
 from sage.structure.unique_representation import UniqueRepresentation
 from sage.structure.list_clone import ClonableArray
@@ -607,27 +608,16 @@ class NorthwestDiagram(Diagram, metaclass=InheritComparisonClasscallMetaclass):
         O . O
         . . .
         O . .
-
-    One can also create northwest diagrams from a partition::
-
-        sage: mu = Partition([5,4,3,2,1])
-        sage: mu.pp()
-        *****
-        ****
-        ***
-        **
-        *
-        sage: D = NorthwestDiagram(mu.cells()).pp()
-        O O O O O
-        O O O O .
-        O O O . .
-        O O . . .
-        O . . . .
     """
     @staticmethod
-    def __classcall_private__(self, cells, n_rows=None, n_cols=None, check=True):
+    def __classcall_private__(self, cells, n_rows=None, n_cols=None,
+                              check=True):
         """
-        Normalize input to ensure a correct parent.
+        Normalize input to ensure a correct parent. This method also allows
+        one to specify whether or not to check the northwest property for the
+        provided cells. Note that the default behavior is to check for the
+        northwest property (``check=True``), while in arbitrary diagrams, the
+        default behavior is that ``check=False``.
 
         EXAMPLES::
 
@@ -683,7 +673,7 @@ class NorthwestDiagram(Diagram, metaclass=InheritComparisonClasscallMetaclass):
             sage: NWD.peelable_tableaux()
             {[[1], [3]]}
 
-        From [...]_ we know that there is only one peelable tableau for the
+        From [RS1995]_ we know that there is only one peelable tableau for the
         Rothe diagram of the permutation (in one line notation) `251643`::
 
             sage: D = NorthwestDiagram([(1, 2), (1, 3), (3, 2), (3, 3), (4, 2)])
@@ -791,7 +781,7 @@ class NorthwestDiagram(Diagram, metaclass=InheritComparisonClasscallMetaclass):
         .. ALGORITHM::
 
             This implementation uses the algorithm suggested in remark 25
-            of [...]_.
+            of [RS1995]_.
         """
         # TODO: There is a condition on the first column (if the rows in Dhat
         # are a subset of the rows in the first column) which simplifies the
@@ -849,10 +839,22 @@ class NorthwestDiagrams(Diagrams):
 
     One may create an instance of a northwest diagram either by directly
     calling :class:`NorthwestDiagram` or by creating an instance of the
-    parent class `NorthwestDiagrams` (with an `s`) and calling it on a `list`
-    of tuples consisting of the coordinates of the diagram.
+    parent class ``NorthwestDiagrams`` (with an `s`) and calling it on a 
+    ``list`` of ``tuple``s consisting of the coordinates of the diagram.
 
     EXAMPLES::
+
+        sage: from sage.combinat.diagram import NorthwestDiagram, NorthwestDiagrams
+        sage: D = NorthwestDiagram([(0,1), (0,2), (1,1)]); D.pp()
+        . O O
+        . O .
+        sage: NWDgms = NorthwestDiagrams()
+        sage: D = NWDgms([(1,1), (1,2), (2,1)]); D.pp()
+        . . .
+        . O O
+        . O .
+        sage: D.parent()
+        Combinatorial northwest diagrams
 
     Additionally, there are natural constructions of a northwest diagram
     given the data of a permutation (Rothe diagrams are the protypical example
@@ -867,22 +869,51 @@ class NorthwestDiagrams(Diagrams):
         \{ (i, j) : i < \omega^{-1}(j) \text{ and } j < \omega(i)}
 
     We can construct one by calling :meth:`rothe_diagram` method on the parent
-    class :class:`NorthwestDiagrams`.
+    class :class:`NorthwestDiagrams`::
 
-    EXAMPLES::
-
-        sage: from sage.combinat.diagram import NorthwestDiagrams
-        sage: NWDgms = NorthwestDiagrams
+        sage: w = Permutations(4)([4,3,2,1])
+        sage: NorthwestDiagrams().rothe_diagram(w).pp()
+        O O O .
+        O O . .
+        O . . .
+        . . . .
 
     To turn a Ferrers diagram into a northwest diagram, we may call the
-    :meth:`ferrers_diagram` method. This will return a Ferrer's diagram in the
+    :meth:`from_partition` method. This will return a Ferrer's diagram in the
     parent of all northwest diagrams. For many use-cases it is probably better
     to get Ferrer's diagrams by the corresponding method on partitons, namely
-    :meth:`sage.combinat.partitions.Partitions.ferrers_diagram`.
+    :meth:`sage.combinat.partitions.Partitions.ferrers_diagram`::
+
+        sage: mu = Partition([7,3,1,1])
+        sage: mu.pp()
+        *******
+        ***
+        *
+        *
+        sage: NorthwestDiagrams().from_partition(mu).pp()
+        O O O O O O O
+        O O O . . . .
+        O . . . . . .
+        O . . . . . .
 
     It is also possible to turn a Ferrers diagram of a skew partition into a
     northwest diagram, altough it is more subtle than just using the skew
-    diagram itself.
+    diagram itself. One must first reflect the partition about a vertical axis
+    so that the skew partition looks "backwards"::
+
+        sage: mu, nu = Partition([5,4,3,2,1]), Partition([3,2,1])
+        sage: s = mu/nu; s.pp()
+           **
+          **
+         **
+        **
+        *
+        sage: NorthwestDiagrams().from_skew_partition(s).pp()
+        O O . . .
+        . O O . .
+        . . O O .
+        . . . O O
+        . . . . O
     """
 
     def _repr_(self):
@@ -911,6 +942,102 @@ class NorthwestDiagrams(Diagrams):
             True
         """
         return self([(0, 1), (0, 2), (1, 1), (2, 3)])
+
+    def rothe_diagram(self, w):
+        r"""
+        Return the Rothe diagram of ``w``.
+
+        EXAMPLES::
+
+            sage: w = Permutations(3)([2,1,3])
+            sage: from sage.combinat.diagram import NorthwestDiagrams
+            sage: NorthwestDiagrams().rothe_diagram(w).pp()
+            O . .
+            . . .
+            . . .
+        """
+        return RotheDiagram(w)
+
+    def from_partition(self, mu):
+        r"""
+        Return the Ferrer's diagram of ``mu`` as an element of the parent
+        ``NorthwestDiagrams``
+
+        EXAMPLES::
+
+            sage: mu = Partition([5,2,1]); mu.pp()
+            *****
+            **
+            *
+            sage: mu.parent()
+            Partitions
+            sage: from sage.combinat.diagram import NorthwestDiagrams
+            sage: D = NorthwestDiagrams().from_partition(mu)
+            sage: D.pp()
+            O O O O O
+            O O . . .
+            O . . . .
+            sage: D.parent()
+            Combinatorial northwest diagrams
+
+        TESTS::
+
+            sage: from sage.combinat.diagram import NorthwestDiagrams
+            sage: mu = [5, 2, 1]
+            sage: D = NorthwestDiagrams().from_partition(mu)
+            Traceback (most recent call last):
+            ...
+            ValueError: mu must be a Partition
+        """
+        if not isinstance(mu, Partition):
+            raise ValueError("mu must be a Partition")
+        return self.element_class(self, mu.cells(), check=False)
+
+    def from_skew_partition(self, s):
+        r"""
+        Get the northwest diagram found by reflecting a skew shape across
+        a vertical plane.
+
+        EXAMPLES::
+
+            sage: mu, nu = Partition([3,2,1]), Partition([2,1])
+            sage: s = mu/nu; s.pp()
+              *
+             *
+            *
+            sage: from sage.combinat.diagram import NorthwestDiagrams
+            sage: D = NorthwestDiagrams().from_skew_partition(s)
+            sage: D.pp()
+            O . .
+            . O .
+            . . O
+
+            sage: mu, nu = Partition([3,3,2]), Partition([2,2,2])
+            sage: s = mu/nu; s.pp()
+              *
+              *
+            sage: NorthwestDiagrams().from_skew_partition(s).pp()
+            O . .
+            O . .
+            . . .
+
+        TESTS::
+
+            sage: mu = Partition([3,2,1])
+            sage: NorthwestDiagrams().from_skew_partition(mu)
+            Traceback (most recent call last):
+            ...
+            ValueError: mu must be a SkewPartition
+        """
+        if not isinstance(s, SkewPartition):
+            raise ValueError("mu must be a SkewPartition")
+
+        n_cols = s.outer()[0] 
+        n_rows = len(s.outer())
+
+        cells = [(i, n_cols - 1 - j) for i, j in s.cells()]
+
+        return self.element_class(self, cells, n_rows, n_cols, check=False)
 
     Element = NorthwestDiagram
 

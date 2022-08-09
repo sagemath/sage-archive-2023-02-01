@@ -843,7 +843,7 @@ def discrete_log(a, base, ord=None, bounds=None, operation='*', identity=None, i
         sage: base = G.random_element()
         sage: order = choice([base.additive_order(), G.order()])
         sage: assert order.divides(G.cardinality())
-        sage: sol = randrange(order)
+        sage: sol = randrange(base.additive_order())
         sage: elem = sol * base
         sage: args = (elem, base, order)
         sage: kwargs = {'operation': '+'}
@@ -854,8 +854,8 @@ def discrete_log(a, base, ord=None, bounds=None, operation='*', identity=None, i
         ....:     assert lo <= sol <= hi
         ....:     kwargs['bounds'] = (lo, hi)
         sage: res = discrete_log(*args, **kwargs)
-        sage: if not res == sol:
-        ....:     print(args, kwargs, G, res, sol)
+        sage: res == sol
+        True
 
     AUTHORS:
 
@@ -900,7 +900,7 @@ def discrete_log(a, base, ord=None, bounds=None, operation='*', identity=None, i
             a = mult(a, power(base, -lb))
             offset = lb
             bound = ub - lb
-        i = 0  # this corrects a bug in which the loop is never entered and i never gets assigned a value
+        i = -1  # this corrects a bug in which the loop is never entered and i never gets assigned a value
         for i, (pi, ri) in enumerate(f):
             gamma = power(base, ord // pi)
             # pohlig-hellman doesn't work with an incorrect order, and the user might have provided a bad parameter
@@ -911,7 +911,7 @@ def discrete_log(a, base, ord=None, bounds=None, operation='*', identity=None, i
             if not bounds:
                 bound = ord - 1
             running_bound = min(bound, pi**ri - 1)
-            j = 0
+            j = -1
             for j in range(ri):
                 temp_bound = min(running_bound, pi - 1)
                 h = power(mult(a, power(base, -l[i])), ord // pi**(j + 1))

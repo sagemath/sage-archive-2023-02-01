@@ -1326,7 +1326,7 @@ cdef class CoercionModel:
                 return x_elt,y_elt
             elif x_elt._parent == y_elt._parent:
                 # TODO: Non-uniqueness of parents strikes again!
-                x_elt = parent(y_elt)(x_elt)
+                y_elt = parent(x_elt)(y_elt)
                 if x_elt._parent is y_elt._parent:
                     return x_elt,y_elt
 

@@ -25,7 +25,7 @@ classifiers =
     Topic :: Scientific/Engineering :: Mathematics
 
 [options]
-python_requires = >=3.7, <3.11
+python_requires = >=3.8, <3.12
 install_requires =
     esyscmd(`sage-get-system-packages install-requires \
         | sed "2,\$s/^/    /;"')dnl

@@ -465,14 +465,9 @@ class Polyhedron_base1(Polyhedron_base0, ConvexSet_closed):
             sage: p.an_affine_basis()
             [A vertex at (2, 1), (3, 1), (2, 2)]
             sage: p = Polyhedron(vertices=[(2, 1)], rays=[(1,0)], lines=[(0,1)])
-            sage: p.an_affine_basis()  # FIXME
-            Traceback (most recent call last):
-            ...
-            NameError: free variable 'vertex' referenced before assignment in enclosing scope
+            sage: p.an_affine_basis()
+            [(2, 1), A vertex at (2, 0), (3, 0)]
         """
-        ## if not self.is_compact():
-        ##     raise NotImplementedError("this function is not implemented for unbounded polyhedra")
-
         chain = self.a_maximal_chain()[1:]  # we exclude the empty face
         chain_indices = [face.ambient_V_indices() for face in chain]
         basis_indices = []
@@ -482,8 +477,8 @@ class Polyhedron_base1(Polyhedron_base0, ConvexSet_closed):
         # Thus for each two faces we can easily find the first Vrep that differs.
         for dim, face in enumerate(chain_indices):
             if dim == 0:
-                # Append the V-index.
-                basis_indices.append(face[0])
+                # Append the V-indices of the minimal face.
+                basis_indices.extend(face[:])
                 continue
 
             prev_face = chain_indices[dim-1]

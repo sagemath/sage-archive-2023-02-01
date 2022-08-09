@@ -3538,10 +3538,8 @@ class ConvexRationalPolyhedralCone(IntegralRayCollection, Container, ConvexSet_c
             sage: ray.an_affine_basis()
             [(0, 0), (1, 1)]
             sage: line = Cone([(1,0), (-1,0)])
-            sage: line.an_affine_basis()  # FIXME
-            Traceback (most recent call last):
-            ...
-            NameError: free variable 'vertex' referenced before assignment in enclosing scope
+            sage: line.an_affine_basis()
+            [(1, 0), (0, 0)]
         """
         return [vector(v) for v in self.polyhedron().an_affine_basis()]
 

@@ -764,7 +764,6 @@ class ConvexSet_base(SageObject, Set_base):
             raise NotImplementedError
         return list(self._some_elements_())
 
-    @abstract_method(optional=True)
     def _some_elements_(self):
         r"""
         Generate some points of ``self``.
@@ -775,11 +774,12 @@ class ConvexSet_base(SageObject, Set_base):
 
             sage: from sage.geometry.convex_set import ConvexSet_base
             sage: C = ConvexSet_base()
-            sage: C._some_elements_(C)
+            sage: list(C._some_elements_())
             Traceback (most recent call last):
             ...
             TypeError: 'NotImplementedType' object is not callable
         """
+        yield self.representative_point()
 
     @abstract_method(optional=True)
     def cartesian_product(self, other):

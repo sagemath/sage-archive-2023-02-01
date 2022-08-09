@@ -1204,7 +1204,8 @@ def SRG_from_RSHCD(v, k, l, mu, existence=False, check=True):
         ValueError: I do not know how to build a (784, 0, 14, 38)-SRG from a RSHCD
     """
     from sage.combinat.matrices.hadamard_matrix import regular_symmetric_hadamard_matrix_with_constant_diagonal
-    sgn = lambda x: 1 if x >= 0 else -1
+    def sgn(x):
+        return 1 if x >= 0 else -1
     n = v
     a = (n-4*mu)//2
     e = 2*k - n + 1 + a
@@ -1649,7 +1650,7 @@ def is_switch_OA_srg(int v, int k, int l, int mu):
     cdef int n_2_p_1 = v
     cdef int n = <int> floor(sqrt(n_2_p_1 - 1))
 
-    if n*n != n_2_p_1-1: # is it a square?
+    if n*n != n_2_p_1 - 1:  # is it a square?
         return None
 
     cdef int c = k//n

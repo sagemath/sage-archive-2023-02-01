@@ -7517,12 +7517,12 @@ def from_lehmer_cocode(lehmer, parent=Permutations()):
         [2, 1, 5, 4, 3]
     """
     p = []
-    i = 1
-    lehmer.reverse()
-    open_spots = list(range(1,len(lehmer)+1))
-    for ivi in lehmer:
-        p.append(open_spots.pop(len(lehmer)-i-ivi))
-        i += 1
+    ell = len(lehmer)
+    i = ell-1
+    open_spots = list(range(1, ell+1))
+    for ivi in reversed(lehmer):
+        p.append(open_spots.pop(i-ivi))
+        i -= 1
     p.reverse()
     return parent(p)
 

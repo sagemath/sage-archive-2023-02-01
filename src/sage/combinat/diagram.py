@@ -56,7 +56,7 @@ diagram, you can manually pass them with keyword arguments ``n_rows=`` or
     . . O . O .
     . . . . . .
     . . . . . .
-    . . . . . .       
+    . . . . . .
 
 
 A ``Diagram`` is an element of the parent class ``Diagrams``, so we can also
@@ -226,6 +226,7 @@ from sage.structure.parent import Parent
 from sage.combinat.tableau import Tableau
 from sage.combinat.skew_tableau import SkewTableaux
 
+
 class Diagram(ClonableArray):
     r"""
     A class to model arbitrary combinatorial diagrams.
@@ -286,8 +287,8 @@ class Diagram(ClonableArray):
         self._cells = {c: True for c in cells}
         self._n_rows = kwargs.pop('n_rows', max(c[0] for c in self._cells) + 1)
         self._n_cols = kwargs.pop('n_cols', max(c[1] for c in self._cells) + 1)
-        self._n_nonempty_rows = len(set(i for i,j in self._cells))
-        self._n_nonempty_cols = len(set(j for i,j in self._cells))
+        self._n_nonempty_rows = len(set(i for i, j in self._cells))
+        self._n_nonempty_cols = len(set(j for i, j in self._cells))
 
         ClonableArray.__init__(self, Diagrams(), cells, check=False)
 
@@ -452,7 +453,7 @@ class Diagram(ClonableArray):
     def check(self):
         r"""
         Check that this is a valid diagram by checking that it is an iterable
-        of length-two tuples. (The fact that each tuple is length-two is 
+        of length-two tuples. (The fact that each tuple is length-two is
         implicitly checked during creation of the diagram).
 
         .. WARNING::
@@ -468,7 +469,7 @@ class Diagram(ClonableArray):
             sage: D.check()
 
         In the next two examples, the diagram ``D`` is initialized but with
-        bad information that is not detected untill we call ``D.check()``. 
+        bad information that is not detected untill we call ``D.check()``.
         The first example fails because one cells is indexed by negative
         integers::
 
@@ -487,7 +488,7 @@ class Diagram(ClonableArray):
             ...
             AssertionError
         """
-        from sage.sets.non_negative_integers import NonNegativeIntegers 
+        from sage.sets.non_negative_integers import NonNegativeIntegers
         NN = NonNegativeIntegers()
         assert all(all(list(i in NN for i in c)) for c in self._cells.keys())
 
@@ -660,8 +661,8 @@ class NorthwestDiagram(Diagram):
             sage: D.check()
         """
         from itertools import combinations
-        assert all((min(i1,i2), min(j1,j2)) in self
-                    for (i1, j1), (i2, j2) in combinations(self._cells, 2))
+        assert all((min(i1, i2), min(j1, j2)) in self
+                   for (i1, j1), (i2, j2) in combinations(self._cells, 2))
 
     def peelable_tableaux(self):
         r"""
@@ -777,6 +778,10 @@ class NorthwestDiagram(Diagram):
             . . . . . . .
             . O O . O . .
             sage: D.peelable_tableaux()
+            {[[1, 1, 1, 1, 1], [2, 2, 2, 3, 3], [3, 3, 3], [5, 5, 5]],
+             [[1, 1, 1, 1, 1], [2, 2, 2, 3, 3], [3, 3, 3, 5], [5, 5]],
+             [[1, 1, 1, 1, 1, 3], [2, 2, 2, 3], [3, 3, 3], [5, 5, 5]],
+             [[1, 1, 1, 1, 1, 3], [2, 2, 2, 3], [3, 3, 3, 5], [5, 5]]}
 
         .. ALGORITHM::
 
@@ -790,9 +795,9 @@ class NorthwestDiagram(Diagram):
         # if there is a single column in the diagram then there is only
         # one posslbe peelable tableau.
         if self._n_nonempty_cols == 1:
-            return {Tableau([[i+1] for i,j in self._cells])}
+            return {Tableau([[i+1] for i, j in self._cells])}
 
-        first_col = min(j for i,j in self._cells)
+        first_col = min(j for i, j in self._cells)
 
         # TODO: The next two lines of code could be optimized by only
         # looping over self._cells once (rather than two separate times)
@@ -902,7 +907,6 @@ class NorthwestDiagrams(Diagrams):
         """
         return self([(0, 1), (0, 2), (1, 1), (2, 3)])
 
-
     Element = NorthwestDiagram
 
 
@@ -927,7 +931,7 @@ def RotheDiagram(w):
         . . . . . . . . .
 
 
-    Currently, only elements of the parent 
+    Currently, only elements of the parent
     :class:`sage.combinat.permutations.Permutations` are supported. In
     particular, elements of permutation groups are not supported::
 
@@ -940,12 +944,12 @@ def RotheDiagram(w):
 
     from sage.misc.mrange import cartesian_product_iterator
 
-    if not w in Permutations():
+    if w not in Permutations():
         raise ValueError('w must be a Permutation')
 
     N = w.size()
 
-    cells = [c for c in cartesian_product_iterator((range(N),range(N))) 
+    cells = [c for c in cartesian_product_iterator((range(N), range(N)))
              if c[0]+1 < w.inverse()(c[1]+1) and c[1]+1 < w(c[0]+1)]
 
     return NorthwestDiagram(cells, n_rows=N, n_cols=N, check=False)

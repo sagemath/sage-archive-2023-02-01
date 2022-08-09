@@ -854,8 +854,8 @@ def discrete_log(a, base, ord=None, bounds=None, operation='*', identity=None, i
         ....:     assert lo <= sol <= hi
         ....:     kwargs['bounds'] = (lo, hi)
         sage: res = discrete_log(*args, **kwargs)
-        sage: res == sol
-        True
+        sage: if not res == sol:
+        ....:     print(args, kwargs, G, res, sol)
 
     AUTHORS:
 
@@ -889,7 +889,7 @@ def discrete_log(a, base, ord=None, bounds=None, operation='*', identity=None, i
         from sage.rings.infinity import Infinity
         if ord == +Infinity:
             return bsgs(base, a, bounds, identity=identity, inverse=inverse, op=op, operation=operation)
-        if ord == 1 and a != base:
+        if base == power(base, 0) and a != base:
             raise ValueError
         f = ord.factor()
         l = [0] * len(f)

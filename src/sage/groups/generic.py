@@ -841,7 +841,7 @@ def discrete_log(a, base, ord=None, bounds=None, operation='*', identity=None, i
 
         sage: G = Zmod(randrange(1, 1000))
         sage: base = G.random_element()
-        sage: order = base.additive_order()
+        sage: order = choice([base.additive_order(), G.order()])
         sage: assert order.divides(G.cardinality())
         sage: sol = randrange(order)
         sage: elem = sol * base

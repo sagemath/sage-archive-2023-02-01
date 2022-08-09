@@ -225,9 +225,10 @@ from sage.structure.list_clone import ClonableArray
 from sage.structure.parent import Parent
 from sage.combinat.tableau import Tableau
 from sage.combinat.skew_tableau import SkewTableaux
+from sage.misc.inherit_comparison import InheritComparisonClasscallMetaclass
 
 
-class Diagram(ClonableArray):
+class Diagram(ClonableArray, metaclass=InheritComparisonClasscallMetaclass):
     r"""
     A class to model arbitrary combinatorial diagrams.
 
@@ -244,7 +245,7 @@ class Diagram(ClonableArray):
         sage: TestSuite(D).run()
     """
     @staticmethod
-    def __classcall_private__(self, cells, **kwargs):
+    def __classcall_private__(self, cells, n_rows=None, n_cols=None, check=False):
         r"""
         Normalize the input so that it lives in the correct parent.
 
@@ -255,9 +256,9 @@ class Diagram(ClonableArray):
             sage: D.parent()
             Combinatorial diagrams
         """
-        return Diagrams()(cells, **kwargs)
+        return Diagrams()(cells, n_rows, n_cols, check)
 
-    def __init__(self, cells, **kwargs):
+    def __init__(self, parent, cells, n_rows=None, n_cols=None, check=False):
         r"""
         EXAMPLES::
 
@@ -301,8 +302,7 @@ class Diagram(ClonableArray):
         self._n_nonempty_rows = len(set(i for i, j in self._cells))
         self._n_nonempty_cols = len(set(j for i, j in self._cells))
 
-
-        ClonableArray.__init__(self, Diagrams(), cells, check=False)
+        ClonableArray.__init__(self, parent, cells, check=False)
 
     def _hash_(self):
         r"""
@@ -332,7 +332,7 @@ class Diagram(ClonableArray):
         """
         return other in self._cells
 
-    def __repr__(self):
+    def _repr_(self):
         r"""
         EXAMPLES::
 
@@ -537,7 +537,7 @@ class Diagrams(UniqueRepresentation, Parent):
 
         Parent.__init__(self, category=Sets())
 
-    def __repr__(self):
+    def _repr_(self):
         r"""
         EXAMPLES::
 
@@ -547,7 +547,7 @@ class Diagrams(UniqueRepresentation, Parent):
         """
         return 'Combinatorial diagrams'
 
-    def _element_constructor_(self, cells, **kwargs):
+    def _element_constructor_(self, cells, n_rows=None, n_cols=None, check=False):
         r"""
         EXAMPLES::
 
@@ -562,7 +562,7 @@ class Diagrams(UniqueRepresentation, Parent):
 
             sage: TestSuite(Dgms).run()
         """
-        return self.element_class(cells, **kwargs)
+        return self.element_class(self, cells, n_rows, n_cols, check)
 
     def _an_element_(self):
         r"""
@@ -586,7 +586,7 @@ class Diagrams(UniqueRepresentation, Parent):
 # Northwest diagrams
 ####################
 
-class NorthwestDiagram(Diagram):
+class NorthwestDiagram(Diagram, metaclass=InheritComparisonClasscallMetaclass):
     r"""
     A diagram is a set of cells indexed by natural numbers. Such a diagram
     has the *northwest property* if the presence of cells `(i1, j1)` and
@@ -625,60 +625,25 @@ class NorthwestDiagram(Diagram):
         O . . . .
     """
     @staticmethod
-    def __classcall_private__(self, cells, **kwargs):
+    def __classcall_private__(self, cells, n_rows=None, n_cols=None, check=True):
         """
         Normalize input to ensure a correct parent.
 
         EXAMPLES::
 
-            sage: from sage.combinat.diagram import NorthwestDiagram
+            sage: from sage.combinat.diagram import NorthwestDiagram, NorthwestDiagrams
             sage: N1 = NorthwestDiagram([(0,1), (0,2)])
             sage: N2 = NorthwestDiagram([(0,1), (0,3)])
             sage: N1.parent() is N2.parent()
             True
+            sage: N3 = NorthwestDiagrams()([(0,1), (0,2)])
+            sage: N3.parent() is NorthwestDiagrams()
+            True
+            sage: N1.parent() is NorthwestDiagrams()
+            True
         """
         # TODO: Assert that cells is sorted in lex order to speed up lookup.
-        return NorthwestDiagrams()(cells, **kwargs)
-
-    def __init__(self, cells, n_rows=None, n_cols=None, check=True):
-        r"""
-        Initialize ``self``.
-
-        EXAMPLES::
-
-            sage: from sage.combinat.diagram import NorthwestDiagram
-            sage: N = NorthwestDiagram([(0,1), (0,2)])
-
-        TESTS::
-
-            sage: TestSuite(N).run()
-            sage: N = NorthwestDiagram([(0,1), (0,2)], n_cols = 1)
-            Traceback (most recent call last):
-            ...
-            ValueError: n_cols is too small
-            sage: N = NorthwestDiagram([(0,0), (1,0)], n_rows = 1)
-            Traceback (most recent call last):
-            ...
-            ValueError: n_rows is too small
-        """
-        self._cells = {c: True for c in cells}
-        if n_rows is not None:
-            if n_rows < max(c[0] for c in self._cells) + 1:
-                raise ValueError('n_rows is too small')
-            self._n_rows = n_rows
-        else:
-            self._n_rows = max(c[0] for c in self._cells) + 1
-        if n_cols is not None:
-            if n_cols < max(c[1] for c in self._cells) + 1:
-                raise ValueError('n_cols is too small')
-            self._n_cols = n_cols
-        else:
-            self._n_cols = max(c[1] for c in self._cells) + 1
-
-        self._n_nonempty_rows = len(set(i for i, j in self._cells))
-        self._n_nonempty_cols = len(set(j for i, j in self._cells))
-
-        ClonableArray.__init__(self, NorthwestDiagrams(), cells, check=check)
+        return NorthwestDiagrams()(cells, n_rows, n_cols, check)
 
     def check(self):
         r"""
@@ -689,9 +654,16 @@ class NorthwestDiagram(Diagram):
 
         EXAMPLES::
 
-            sage: from sage.combinat.diagram import Diagram
-            sage: D = Diagram([(0,0), (0,3), (2,2), (2,4)])
-            sage: D.check()
+            sage: from sage.combinat.diagram import NorthwestDiagram
+            sage: N = NorthwestDiagram([(0,0), (0,3), (3,0)])
+            sage: N.check()
+
+        Here is a non-example::
+
+            sage: notN = NorthwestDiagram([(0,1), (1,0)])  #.check() is implicit
+            Traceback (most recent call last):
+            ...
+            AssertionError
         """
         from itertools import combinations
         assert all((min(i1, i2), min(j1, j2)) in self

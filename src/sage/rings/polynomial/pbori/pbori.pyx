@@ -411,7 +411,7 @@ cdef class BooleanPolynomialRing(MPolynomialRing_base):
             pbnames = tuple(names)
             names = [name.replace('(', '').replace(')', '') for name in pbnames]
 
-        MPolynomialRing_base.__init__(self, GF(2), n, names, order)
+        MPolynomialRing_base.__init__(self, GF((2,1)), n, names, order)
 
         counter = 0
         for i in range(len(order.blocks()) - 1):
@@ -1928,7 +1928,7 @@ class BooleanMonomialMonoid(UniqueRepresentation, Monoid_class):
         cdef BooleanMonomial m
         self._ring = polring
         from sage.categories.monoids import Monoids
-        Parent.__init__(self, GF(2), names=polring._names, category=Monoids().Commutative())
+        Parent.__init__(self, GF((2,1)), names=polring._names, category=Monoids().Commutative())
 
         m = new_BM(self, polring)
         m._pbmonom = PBMonom(polring._pbring)

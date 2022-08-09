@@ -693,14 +693,14 @@ def p_projections(Eq, Plist, p, debug=False):
     # roots of unity with p1|p2, together with discrete log in the
     # multiplicative group.
 
-    zeta = g1.weil_pairing(g2,p2) # a primitive p1'th root of unity
+    zeta = g1.weil_pairing(g2, p2)  # a primitive p1'th root of unity
     if debug:
         print("wp of gens = {} with order {}".format(zeta, zeta.multiplicative_order()))
-        assert zeta.multiplicative_order() == p1, "Weil pairing error during saturation: p={}, G={}, Plist={}".format(p,G,Plist)
+        assert zeta.multiplicative_order() == p1, "Weil pairing error during saturation: p={}, G={}, Plist={}".format(p, G, Plist)
 
     # logs are well-defined mod p1, hence mod p
 
-    return [vector(Fp, [dlog(pt.weil_pairing(g1,p2), zeta,
+    return [vector(Fp, [dlog(pt.weil_pairing(g1, p2), zeta,
                              ord=p1, operation='*') for pt in pts]),
-        vector(Fp, [dlog(pt.weil_pairing(g2,p2), zeta,
-                         ord=p1, operation='*') for pt in pts])]
+            vector(Fp, [dlog(pt.weil_pairing(g2, p2), zeta,
+                             ord=p1, operation='*') for pt in pts])]

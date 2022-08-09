@@ -19,8 +19,9 @@ AUTHORS:
 #*****************************************************************************
 
 from sage.structure.parent cimport Parent
-from sage.data_structures.bitset cimport FrozenBitset, Bitset
+from sage.data_structures.bitset cimport Bitset
 from sage.algebras.weyl_algebra import repr_from_monomials
+from sage.data_structures.blas_dict cimport scal
 from copy import copy
 
 cdef class CliffordAlgebraElement(IndexedFreeModuleElement):
@@ -95,8 +96,25 @@ cdef class CliffordAlgebraElement(IndexedFreeModuleElement):
         cdef dict next_level, cur, d = {}
         cdef FrozenBitset ml, mr, t
         cdef Py_ssize_t i, j
+        cdef CliffordAlgebraElement rhs = <CliffordAlgebraElement> other
 
-        for ml,cl in self:
+        # Special case when multiplying by 0
+        if not self._monomial_coefficients:
+            return self
+        if not rhs._monomial_coefficients:
+            return rhs
+
+        # Special case when multiplying by an element of the base ring
+        if len(self._monomial_coefficients) == 1:
+            ml, cl = next(iter(self._monomial_coefficients.items()))
+            if ml.isempty():
+                return rhs._mul_term_self(ml, cl)
+        if len(rhs._monomial_coefficients) == 1:
+            mr, cr = next(iter(self._monomial_coefficients.items()))
+            if mr.isempty():
+                return self._mul_self_term(mr, cr)
+
+        for ml, cl in self:
             # Distribute the current term ``cl`` * ``ml`` over ``other``.
             cur = copy(other._monomial_coefficients) # The current distribution of the term
             for i in reversed(ml):
@@ -149,6 +167,76 @@ cdef class CliffordAlgebraElement(IndexedFreeModuleElement):
                     del d[index]
 
         return self.__class__(self.parent(), d)
+
+    cdef CliffordAlgebraElement _mul_self_term(self, FrozenBitset supp, coeff):
+        r"""
+        Multiply ``self * term`` with the ``term`` having support ``supp``
+        and coefficient ``coeff``.
+
+        EXAMPLES::
+
+            sage: E.<x,y,z> = ExteriorAlgebra(QQ)
+            sage: r = sum(E.basis())
+            sage: x * y  # indirect doctest
+            x*y
+            sage: y * x  # indirect doctest
+            -x*y
+            sage: r * x  # indirect doctest
+            x*y*z - x*y - x*z + x
+            sage: r * -x  # indirect doctest
+            -x*y*z + x*y + x*z - x
+            sage: r * (2*x)  # indirect doctest
+            2*x*y*z - 2*x*y - 2*x*z + 2*x
+            sage: r * y  # indirect doctest
+            -x*y*z + x*y - y*z + y
+            sage: r * z  # indirect doctest
+            x*y*z + x*z + y*z + z
+            sage: r * (x*y)  # indirect doctest
+            x*y*z + x*y
+            sage: r * (-x*y)  # indirect doctest
+            -x*y*z - x*y
+            sage: r * (x*y*z)  # indirect doctest
+            x*y*z
+            sage: r * 1 == r  # indirect doctest
+            True
+            sage: r * -1 == -r  # indirect doctest
+            True
+            sage: r * 2  # indirect doctest
+            2*x*y*z + 2*x*y + 2*x*z + 2*y*z + 2*x + 2*y + 2*z + 2
+        """
+        cdef dict d
+        cdef list to_remove
+        cdef Py_ssize_t num_cross, tot_cross, i, j
+        cdef FrozenBitset ml
+
+        if supp.isempty():  # Multiplication by a base ring element
+            if coeff == self._parent._base.one():
+                return self
+            if coeff == -self._parent._base.one():
+                return self._neg_()
+
+            return type(self)(self._parent,
+                              scal(coeff, self._monomial_coefficients,
+                                   factor_on_left=False))
+
+        return type(self)(self._parent, {supp: coeff}) * self
+
+    cdef CliffordAlgebraElement _mul_term_self(self, FrozenBitset supp, coeff):
+        r"""
+        Multiply ``term * self`` with the ``term`` having support ``supp``
+        and coefficient ``coeff``.
+        """
+        if supp.isempty():  # Multiplication by a base ring element
+            if coeff == self._parent._base.one():
+                return self
+            if coeff == -self._parent._base.one():
+                return self._neg_()
+
+            return type(self)(self._parent,
+                              scal(coeff, self._monomial_coefficients,
+                                   factor_on_left=True))
+
+        return type(self)(self._parent, {supp: coeff}) * self
 
     def list(self):
         """
@@ -352,15 +440,30 @@ cdef class ExteriorAlgebraElement(CliffordAlgebraElement):
         cdef Parent P = self._parent
         zero = P._base.zero()
         cdef dict d
-        cdef Py_ssize_t n = P.ngens()
         cdef ExteriorAlgebraElement rhs = <ExteriorAlgebraElement> other
         cdef list to_remove
 
         cdef FrozenBitset ml, mr, t
-        cdef Py_ssize_t num_cross, tot_cross, i, j
+        cdef Py_ssize_t n, num_cross, tot_cross, i, j
 
+        # Special case: one of them is zero
+        if not self._monomial_coefficients:
+            return self
+        if not rhs._monomial_coefficients:
+            return rhs
+
+        # Special case: other is a single term
+        if len(rhs._monomial_coefficients) == 1:
+            mr, cr = next(iter(rhs._monomial_coefficients.items()))
+            return self._mul_self_term(mr, cr)
+
+        # Special case: self is a single term
+        if len(self._monomial_coefficients) == 1:
+            ml, cl = next(iter(self._monomial_coefficients.items()))
+            return rhs._mul_term_self(ml, cl)
+
+        # Do some special processing for the constant monomial in ml
         ml = FrozenBitset()
-
         if ml in self._monomial_coefficients:
             const_coeff = self._monomial_coefficients[ml]
             d = dict(rhs._monomial_coefficients) # Make a shallow copy
@@ -375,11 +478,12 @@ cdef class ExteriorAlgebraElement(CliffordAlgebraElement):
         else:
             d = {}
 
-        for ml,cl in self._monomial_coefficients.items(): # ml for "monomial on the left"
-            if not ml:  # We already handled the trivial element
+        n = P.ngens()
+        for ml, cl in self._monomial_coefficients.items(): # ml for "monomial on the left"
+            if ml.isempty():  # We already handled the trivial element
                 continue
             for mr,cr in rhs._monomial_coefficients.items(): # mr for "monomial on the right"
-                if not mr:
+                if mr.isempty():
                     t = ml
                 else:
                     if not ml.isdisjoint(mr):
@@ -402,11 +506,198 @@ cdef class ExteriorAlgebraElement(CliffordAlgebraElement):
                     if tot_cross % 2:
                         cr = -cr
 
-                d[t] = d.get(t, zero) + cl * cr
-                if not d[t]:
+                val = d.get(t, zero) + cl * cr
+                if not val:
                     del d[t]
+                else:
+                    d[t] = val
 
         return self.__class__(P, d)
+
+    cdef CliffordAlgebraElement _mul_self_term(self, FrozenBitset supp, coeff):
+        r"""
+        Multiply ``self * term`` with the ``term`` having support ``supp``
+        and coefficient ``coeff``.
+
+        EXAMPLES::
+
+            sage: E.<x,y,z> = ExteriorAlgebra(QQ)
+            sage: r = sum(E.basis())
+            sage: x * y  # indirect doctest
+            x*y
+            sage: y * x  # indirect doctest
+            -x*y
+            sage: r * x  # indirect doctest
+            x*y*z - x*y - x*z + x
+            sage: r * -x  # indirect doctest
+            -x*y*z + x*y + x*z - x
+            sage: r * (2*x)  # indirect doctest
+            2*x*y*z - 2*x*y - 2*x*z + 2*x
+            sage: r * y  # indirect doctest
+            -x*y*z + x*y - y*z + y
+            sage: r * z  # indirect doctest
+            x*y*z + x*z + y*z + z
+            sage: r * (x*y)  # indirect doctest
+            x*y*z + x*y
+            sage: r * (-x*y)  # indirect doctest
+            -x*y*z - x*y
+            sage: r * (x*y*z)  # indirect doctest
+            x*y*z
+            sage: r * 1 == r  # indirect doctest
+            True
+            sage: r * -1 == -r  # indirect doctest
+            True
+            sage: r * 2  # indirect doctest
+            2*x*y*z + 2*x*y + 2*x*z + 2*y*z + 2*x + 2*y + 2*z + 2
+        """
+        cdef dict d
+        cdef list to_remove
+        cdef Py_ssize_t num_cross, tot_cross, i, j
+        cdef FrozenBitset ml
+
+        if supp.isempty():  # Multiplication by a base ring element
+            if coeff == self._parent._base.one():
+                return self
+            if coeff == -self._parent._base.one():
+                return self._neg_()
+
+            return type(self)(self._parent,
+                              scal(coeff, self._monomial_coefficients,
+                                   factor_on_left=False))
+
+        n = self._parent.ngens()
+        d = {}
+        for ml, cl in self._monomial_coefficients.items(): # ml for "monomial on the left"
+            if not ml.isdisjoint(supp):
+                # if they intersect nontrivially, move along.
+                continue
+            t = <FrozenBitset> ml._union(supp)
+            it = iter(supp)
+            j = next(it)
+
+            num_cross = 0 # keep track of the number of signs
+            tot_cross = 0
+            for i in ml:
+                while i > j:
+                    num_cross += 1
+                    try:
+                        j = next(it)
+                    except StopIteration:
+                        j = n + 1
+                tot_cross += num_cross
+            if tot_cross % 2:
+                d[t] = -cl
+            else:
+                d[t] = cl
+
+        if coeff == -self._parent._base.one():
+            for k in d:
+                d[k] = -d[k]
+        elif coeff != self._parent._base.one():
+            to_remove = []
+            for k in d:
+                d[k] *= coeff
+                if not d[k]:  # there might be zero divisors
+                    to_remove.append(k)
+            for k in to_remove:
+                del d[k]
+        return type(self)(self._parent, d)
+
+    cdef CliffordAlgebraElement _mul_term_self(self, FrozenBitset supp, coeff):
+        r"""
+        Multiply ``term * self`` with the ``term`` having support ``supp``
+        and coefficient ``coeff``.
+
+        EXAMPLES::
+
+            sage: E.<x,y,z> = ExteriorAlgebra(QQ)
+            sage: r = sum(E.basis())
+            sage: x * r  # indirect doctest
+            x*y*z + x*y + x*z + x
+            sage: (-x) * r  # indirect doctest
+            -x*y*z - x*y - x*z - x
+            sage: (2*x) * r  # indirect doctest
+            2*x*y*z + 2*x*y + 2*x*z + 2*x
+            sage: y * r  # indirect doctest
+            -x*y*z - x*y + y*z + y
+            sage: z * r  # indirect doctest
+            x*y*z - x*z - y*z + z
+            sage: (x*y) * r  # indirect doctest
+            x*y*z + x*y
+            sage: (-x*y) * r  # indirect doctest
+            -x*y*z - x*y
+            sage: (x*y*z) * r  # indirect doctest
+            x*y*z
+            sage: 1 * r == r  # indirect doctest
+            True
+            sage: -1 * r == -r  # indirect doctest
+            True
+            sage: 2 * r  # indirect doctest
+            2*x*y*z + 2*x*y + 2*x*z + 2*y*z + 2*x + 2*y + 2*z + 2
+        """
+        cdef dict d
+        cdef list to_remove
+        cdef Py_ssize_t n, num_cross, tot_cross, i, j
+        cdef FrozenBitset mr, t
+
+        if supp.isempty():  # Multiplication by a base ring element
+            if coeff == self._parent._base.one():
+                return self
+            if coeff == -self._parent._base.one():
+                return self._neg_()
+
+            return type(self)(self._parent,
+                              scal(coeff, self._monomial_coefficients,
+                                   factor_on_left=True))
+
+        n = self._parent.ngens()
+        d = {}
+        mr = FrozenBitset()
+        # We need to special case the constant coefficient
+        const_coeff = None
+        if mr in self._monomial_coefficients:
+            const_coeff = self._monomial_coefficients.pop(mr)
+            d[supp] = const_coeff
+
+        for mr, cr in self._monomial_coefficients.items(): # mr for "monomial on the right"
+            if not supp.isdisjoint(mr):
+                # if they intersect nontrivially, move along.
+                continue
+            t = <FrozenBitset> supp._union(mr)
+            it = iter(mr)
+            j = next(it)  # We assume mr is non-empty here
+
+            num_cross = 0 # keep track of the number of signs
+            tot_cross = 0
+            for i in supp:
+                while i > j:
+                    num_cross += 1
+                    try:
+                        j = next(it)
+                    except StopIteration:
+                        j = n + 1
+                tot_cross += num_cross
+            if tot_cross % 2:
+                d[t] = -cr
+            else:
+                d[t] = cr
+
+        if coeff == -self._parent._base.one():
+            for k in d:
+                d[k] = -d[k]
+        elif coeff != self._parent._base.one():
+            to_remove = []
+            for k in d:
+                d[k] = coeff * d[k]  # This will work for non-commutative base rings
+                if not d[k]:  # there might be zero divisors
+                    to_remove.append(k)
+            for k in to_remove:
+                del d[k]
+
+        # Add back the constant coefficient since we removed it for the special case
+        if const_coeff is not None:
+            self._monomial_coefficients[FrozenBitset()] = const_coeff
+        return type(self)(self._parent, d)
 
     def reduce(self, I, left=True):
         r"""

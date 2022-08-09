@@ -26,6 +26,7 @@ from sage.data_structures.bitset_base cimport (bitset_t, bitset_init, bitset_fir
                                                bitset_next, bitset_set_to, bitset_len)
 from sage.structure.parent cimport Parent
 from sage.structure.richcmp cimport richcmp
+from sage.data_structures.blas_dict cimport iaxpy, remove_zeros
 
 cdef inline long degree(FrozenBitset X):
     """
@@ -143,9 +144,9 @@ cdef class GroebnerStrategy:
 
             This assumes the leading support is ``f.ls._union(t)``.
         """
-        ret = f.elt * build_monomial(self.E, t)
+        ret = f.elt._mul_self_term(self.E, self.E._base.one())
         cdef FrozenBitset ls = <FrozenBitset> f.ls._union(t)
-        return GBElement(ret, ls, self.bitset_to_int(ls))
+        return GBElement(<CliffordAlgebraElement> ret, ls, self.bitset_to_int(ls))
 
     cdef inline GBElement prod_term_GB(self, FrozenBitset t, GBElement f):
         """
@@ -155,9 +156,9 @@ cdef class GroebnerStrategy:
 
             This assumes the leading support is ``f.ls._union(t)``.
         """
-        ret = build_monomial(self.E, t) * f.elt
+        ret = f.elt._mul_term_self(t, self.E._base.one())
         cdef FrozenBitset ls = <FrozenBitset> f.ls._union(t)
-        return GBElement(ret, ls, self.bitset_to_int(ls))
+        return GBElement(<CliffordAlgebraElement> ret, ls, self.bitset_to_int(ls))
 
     cdef inline bint build_S_poly(self, GBElement f, GBElement g):
         r"""
@@ -195,7 +196,8 @@ cdef class GroebnerStrategy:
 
         if self.side == 2 and not self.homogeneous:
             # Add in all S-poly times positive degree monomials
-            additions = set((<GBElement> f).elt * t for t in self.E.basis() for f in L)
+            one = self.E._base.one()
+            additions = set((<GBElement> f).elt._mul_self_term(t, one) for t in self.E._indices for f in L)
             L.update(self.build_elt(f) for f in additions if f)
 
         cdef set done = set((<GBElement> f).ls for f in L)
@@ -272,7 +274,8 @@ cdef class GroebnerStrategy:
 
         if self.side == 2 and not self.homogeneous:
             # Add in all S-poly times positive degree monomials
-            additions = set((<GBElement> f0).elt * t for t in self.E.basis() for f0 in G)
+            one = self.E._base.one()
+            additions = set((<GBElement> f0).elt._mul_self_term(t, one) for t in self.E._indices for f0 in G)
             G.extend(self.build_elt(f) for f in additions if f)
 
         cdef Py_ssize_t n = len(G)
@@ -420,20 +423,24 @@ cdef class GroebnerStrategy:
         cdef FrozenBitset lm = self.leading_support(g), s
         cdef bint did_reduction = True
         cdef tuple supp
+        cdef CliffordAlgebraElement gp
 
+        one = self.E._base.one()
         while did_reduction:
             supp = tuple(f._monomial_coefficients)
             did_reduction = False
             for s in supp:
                 if lm <= s:
                     did_reduction = True
-                    mon = build_monomial(self.E, s - lm)
                     if self.side == 0:
-                        gp = mon * g
-                        f -= f[s] / gp[s] * gp
+                        gp = g._mul_term_self(s - lm, one)
                     else:
-                        gp = g * mon
-                        f -= f[s] / gp[s] * gp
+                        gp = g._mul_self_term(s - lm, one)
+                    coeff = f[s] / gp._monomial_coefficients[s]
+                    for k in gp._monomial_coefficients:
+                        gp._monomial_coefficients[k] *= coeff
+                    remove_zeros(gp._monomial_coefficients)
+                    f -= gp
                     break
         return f
 

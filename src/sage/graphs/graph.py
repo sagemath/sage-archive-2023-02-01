@@ -4304,7 +4304,7 @@ class Graph(GenericGraph):
 
         Bipartite graphs are not factor-critical::
 
-            sage: G = graphs.RandomBipartite(randint(1, 10), randint(1, 10), .5) 
+            sage: G = graphs.RandomBipartite(randint(1, 10), randint(1, 10), .5)
             sage: G.is_factor_critical()
             False
 
@@ -4351,7 +4351,7 @@ class Graph(GenericGraph):
         # The graph must have an odd number of vertices, be 2-edge connected, so
         # without bridges, and not bipartite
         if (not self.order() % 2 or not self.is_connected() or
-            list(self.bridges()) or self.is_bipartite()):
+                list(self.bridges()) or self.is_bipartite()):
             return False
 
         if matching:
@@ -4416,7 +4416,7 @@ class Graph(GenericGraph):
                             even.add(a)
                             odd.discard(a)
                             Q.put(a)
-                else: # y has not been visited yet
+                else:  # y has not been visited yet
                     z = next(M.neighbor_iterator(y))
                     odd.add(y)
                     even.add(z)
@@ -4509,18 +4509,18 @@ class Graph(GenericGraph):
 
         # Each vertex has an image
         for ug in self:
-            p.add_constraint(p.sum(b[ug,uh] for uh in H) == 1)
+            p.add_constraint(p.sum(b[ug, uh] for uh in H) == 1)
 
         nonedges = H.complement().edges(sort=False, labels=False)
-        for ug,vg in self.edges(sort=False, labels=False):
+        for ug, vg in self.edges(sort=False, labels=False):
             # Two adjacent vertices cannot be mapped to the same element
             for uh in H:
-                p.add_constraint(b[ug,uh] + b[vg,uh] <= 1)
+                p.add_constraint(b[ug, uh] + b[vg, uh] <= 1)
 
             # Two adjacent vertices cannot be mapped to no adjacent vertices
-            for uh,vh in nonedges:
-                p.add_constraint(b[ug,uh] + b[vg,vh] <= 1)
-                p.add_constraint(b[ug,vh] + b[vg,uh] <= 1)
+            for uh, vh in nonedges:
+                p.add_constraint(b[ug, uh] + b[vg, vh] <= 1)
+                p.add_constraint(b[ug, vh] + b[vg, uh] <= 1)
 
         # Minimize the mapping's size
         if core:
@@ -4529,7 +4529,7 @@ class Graph(GenericGraph):
             m = p.new_variable(nonnegative=True)
             for uh in H:
                 for ug in self:
-                    p.add_constraint(b[ug,uh] <= m[uh])
+                    p.add_constraint(b[ug, uh] <= m[uh])
 
             p.set_objective(p.sum(m[vh] for vh in H))
 
@@ -4541,7 +4541,6 @@ class Graph(GenericGraph):
         b = p.get_values(b, convert=bool, tolerance=integrality_tolerance)
         mapping = dict(x[0] for x in b.items() if x[1])
         return mapping
-
 
     @doc_index("Clique-related methods")
     def fractional_clique_number(self, solver='PPL', verbose=0,
@@ -4672,7 +4671,7 @@ class Graph(GenericGraph):
         d = p.new_variable(nonnegative=True)
         one = p.new_variable(nonnegative=True)
 
-        for u,v in g.edge_iterator(labels=False):
+        for u, v in g.edge_iterator(labels=False):
             fuv = frozenset((u, v))
             p.add_constraint(one[fuv] - 2 * d[u], max=0)
             p.add_constraint(one[fuv] - 2 * d[v], max=0)
@@ -4692,9 +4691,9 @@ class Graph(GenericGraph):
 
         # setting the minimum to 1/(10 * size of the whole graph )
         # should be safe :-)
-        m = 1/(10 *Integer(g.order()))
+        m = 1/(10 * Integer(g.order()))
         d_val = p.get_values(d)
-        g_mad = g.subgraph(v for v,l in d_val.items() if l > m)
+        g_mad = g.subgraph(v for v, l in d_val.items() if l > m)
 
         if value_only:
             return g_mad.average_degree()
@@ -4787,21 +4786,21 @@ class Graph(GenericGraph):
 
         # Associates to the vertices the classes to which they belong
         lists = {v: [] for v in self}
-        for i,f in enumerate(family):
+        for i, f in enumerate(family):
             for v in f:
                 lists[v].append(i)
 
             # a classss has exactly one representative
-            p.add_constraint(p.sum(classss[v,i] for v in f), max=1, min=1)
+            p.add_constraint(p.sum(classss[v, i] for v in f), max=1, min=1)
 
         # A vertex represents at most one classss (vertex_taken is binary), and
         # vertex_taken[v]==1 if v is the representative of some classss
         for v in self:
-            p.add_constraint(p.sum(classss[v,i] for i in lists[v]) - vertex_taken[v], max=0)
+            p.add_constraint(p.sum(classss[v, i] for i in lists[v]) - vertex_taken[v], max=0)
 
         # Two adjacent vertices can not both be representatives of a set
 
-        for u,v in self.edge_iterator(labels=None):
+        for u, v in self.edge_iterator(labels=None):
             p.add_constraint(vertex_taken[u] + vertex_taken[v], max=1)
 
         p.set_objective(None)
@@ -4814,9 +4813,9 @@ class Graph(GenericGraph):
         classss = p.get_values(classss, convert=bool, tolerance=integrality_tolerance)
 
         repr = []
-        for i,f in enumerate(family):
+        for i, f in enumerate(family):
             for v in f:
-                if classss[v,i]:
+                if classss[v, i]:
                     repr.append(v)
                     break
 
@@ -4924,7 +4923,7 @@ class Graph(GenericGraph):
         rs = p.new_variable(binary=True)
 
         for v in self:
-            p.add_constraint(p.sum(rs[h,v] for h in H), max=1)
+            p.add_constraint(p.sum(rs[h, v] for h in H), max=1)
 
         # We ensure that the set of representatives of a
         # vertex h contains a tree, and thus is connected
@@ -4934,29 +4933,29 @@ class Graph(GenericGraph):
 
         # there can be a edge for h between two vertices
         # only if those vertices represent h
-        for u,v in self.edge_iterator(labels=None):
+        for u, v in self.edge_iterator(labels=None):
             fuv = frozenset((u, v))
             for h in H:
-                p.add_constraint(edges[h,fuv] - rs[h,u], max=0)
-                p.add_constraint(edges[h,fuv] - rs[h,v], max=0)
+                p.add_constraint(edges[h, fuv] - rs[h, u], max=0)
+                p.add_constraint(edges[h, fuv] - rs[h, v], max=0)
 
         # The number of edges of the tree in h is exactly the cardinal
         # of its representative set minus 1
 
         for h in H:
-            p.add_constraint(  p.sum(edges[h,frozenset(e)] for e in self.edge_iterator(labels=None))
-                             - p.sum(rs[h,v] for v in self), min=-1, max=-1)
+            p.add_constraint(p.sum(edges[h, frozenset(e)] for e in self.edge_iterator(labels=None))
+                             - p.sum(rs[h, v] for v in self), min=-1, max=-1)
 
         # a tree  has no cycle
         epsilon = 1/(5*Integer(self.order()))
         r_edges = p.new_variable(nonnegative=True)
 
         for h in H:
-            for u,v in self.edge_iterator(labels=None):
-                p.add_constraint(r_edges[h,(u,v)] + r_edges[h,(v,u)] - edges[h,frozenset((u,v))], min=0)
+            for u, v in self.edge_iterator(labels=None):
+                p.add_constraint(r_edges[h, (u, v)] + r_edges[h, (v, u)] - edges[h, frozenset((u, v))], min=0)
 
             for v in self:
-                p.add_constraint(p.sum(r_edges[h,(u,v)] for u in self.neighbor_iterator(v)), max=1-epsilon)
+                p.add_constraint(p.sum(r_edges[h, (u, v)] for u in self.neighbor_iterator(v)), max=1-epsilon)
 
         # Once the representative sets are described, we must ensure
         # there are arcs corresponding to those of H between them
@@ -4966,14 +4965,14 @@ class Graph(GenericGraph):
 
             for v1, v2 in self.edge_iterator(labels=None):
                 fv1v2 = frozenset((v1, v2))
-                p.add_constraint(h_edges[(h1,h2),fv1v2] - rs[h2,v2], max=0)
-                p.add_constraint(h_edges[(h1,h2),fv1v2] - rs[h1,v1], max=0)
+                p.add_constraint(h_edges[(h1, h2), fv1v2] - rs[h2, v2], max=0)
+                p.add_constraint(h_edges[(h1, h2), fv1v2] - rs[h1, v1], max=0)
 
-                p.add_constraint(h_edges[(h2,h1),fv1v2] - rs[h1,v2], max=0)
-                p.add_constraint(h_edges[(h2,h1),fv1v2] - rs[h2,v1], max=0)
+                p.add_constraint(h_edges[(h2, h1), fv1v2] - rs[h1, v2], max=0)
+                p.add_constraint(h_edges[(h2, h1), fv1v2] - rs[h2, v1], max=0)
 
-            p.add_constraint(p.sum(h_edges[(h1,h2),frozenset(e)] + h_edges[(h2,h1),frozenset(e)]
-                                       for e in self.edge_iterator(labels=None)), min=1)
+            p.add_constraint(p.sum(h_edges[(h1, h2), frozenset(e)] + h_edges[(h2, h1), frozenset(e)]
+                                   for e in self.edge_iterator(labels=None)), min=1)
 
         p.set_objective(None)
 
@@ -4986,11 +4985,11 @@ class Graph(GenericGraph):
 
         rs_dict = {}
         for h in H:
-            rs_dict[h] = [v for v in self if rs[h,v]]
+            rs_dict[h] = [v for v in self if rs[h, v]]
 
         return rs_dict
 
-    ### Convexity
+    # Convexity
 
     @doc_index("Algorithmically hard stuff")
     def convexity_properties(self):
@@ -5080,7 +5079,7 @@ class Graph(GenericGraph):
         else:
             return self.degree(v)/n_minus_one
 
-    ### Distances
+    # Distances
 
     @doc_index("Distances")
     def eccentricity(self, v=None, by_weight=False, algorithm=None,
@@ -5278,7 +5277,7 @@ class Graph(GenericGraph):
                 if with_labels:
                     return dict(zip(v, eccentricity(self, algorithm=algo, vertex_list=v)))
                 else:
-                    return eccentricity(self, algorithm=algo,vertex_list=v)
+                    return eccentricity(self, algorithm=algo, vertex_list=v)
 
             if algorithm == 'DHV':
                 if by_weight:
@@ -5305,7 +5304,7 @@ class Graph(GenericGraph):
                                                          check_weight)[0]
                 algorithm = 'From_Dictionary'
 
-        elif algorithm in ['Floyd-Warshall-Python', 'Floyd-Warshall-Cython', 'Johnson_Boost','DHV']:
+        elif algorithm in ['Floyd-Warshall-Python', 'Floyd-Warshall-Cython', 'Johnson_Boost', 'DHV']:
             raise ValueError("algorithm '" + algorithm + "' works only if all" +
                              " eccentricities are needed")
 
@@ -5866,7 +5865,7 @@ class Graph(GenericGraph):
             D.add_edges((u, u) for u in self)
         return D
 
-    ### Constructors
+    # Constructors
 
     @doc_index("Basic methods")
     def to_directed(self, data_structure=None, sparse=None):
@@ -5938,18 +5937,18 @@ class Graph(GenericGraph):
             else:
                 data_structure = "static_sparse"
         from sage.graphs.digraph import DiGraph
-        D = DiGraph(name           = self.name(),
-                    pos            = self.get_pos(),
-                    multiedges     = self.allows_multiple_edges(),
-                    loops          = self.allows_loops(),
-                    data_structure = (data_structure if data_structure!="static_sparse"
-                                      else "sparse")) # we need a mutable copy
+        D = DiGraph(name=self.name(),
+                    pos=self.get_pos(),
+                    multiedges=self.allows_multiple_edges(),
+                    loops=self.allows_loops(),
+                    data_structure=(data_structure if data_structure != "static_sparse"
+                                    else "sparse"))  # we need a mutable copy
 
         D.add_vertices(self.vertex_iterator())
         D.set_vertices(self.get_vertices())
-        for u,v,l in self.edge_iterator():
-            D.add_edge(u,v,l)
-            D.add_edge(v,u,l)
+        for u, v, l in self.edge_iterator():
+            D.add_edge(u, v, l)
+            D.add_edge(v, u, l)
         if hasattr(self, '_embedding'):
             D._embedding = copy(self._embedding)
         D._weighted = self._weighted
@@ -6031,7 +6030,7 @@ class Graph(GenericGraph):
         else:
             G.add_edges(((0, u), (1, v)) for u in self for v in other)
 
-        G.name('%s join %s'%(self.name(), other.name()))
+        G.name('%s join %s' % (self.name(), other.name()))
 
         if immutable is None:
             immutable = self.is_immutable() and other.is_immutable()
@@ -6190,11 +6189,11 @@ class Graph(GenericGraph):
                 T.append([x, y, z])
 
         T = TwoGraph(T)
-        T.relabel({i: v for i,v in enumerate(self.vertices(sort=False))})
+        T.relabel({i: v for i, v in enumerate(self)})
 
         return T
 
-    ### Visualization
+    # Visualization
 
     @doc_index("Basic methods")
     def write_to_eps(self, filename, **options):
@@ -6226,7 +6225,7 @@ class Graph(GenericGraph):
         if filename[-4:] != '.eps':
             filename += '.eps'
         f = open(filename, 'w')
-        f.write( print_graph_eps(self.vertices(sort=False), self.edge_iterator(), pos) )
+        f.write(print_graph_eps(self, self.edge_iterator(), pos))
         f.close()
 
     @doc_index("Algorithmically hard stuff")

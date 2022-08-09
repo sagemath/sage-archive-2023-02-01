@@ -37,10 +37,27 @@ the absence of a cell in the diagram::
 
 We can also check if certain cells are contained in a given diagram::
 
-    sage: (1, 0) in T
+    sage: (1, 0) in D
     True
-    sage: (2, 2) in T
+    sage: (2, 2) in D
     False
+
+If you know that there are entire empty rows or columns at the end of the
+diagram, you can manually pass them with keyword arguments ``n_rows=`` or
+``n_cols=``::
+
+    sage: Diagram([(0,0), (0,3), (2,2), (2,4)]).pp()
+    O . . O .
+    . . . . .
+    . . O . O
+    sage: Diagram([(0,0), (0,3), (2,2), (2,4)], n_rows=6, n_cols=6).pp()
+    O . . O . .
+    . . . . . .
+    . . O . O .
+    . . . . . .
+    . . . . . .
+    . . . . . .       
+
 
 A ``Diagram`` is an element of the parent class ``Diagrams``, so we can also
 construct a diagram by calling an instance of ``Diagrams``::
@@ -49,9 +66,9 @@ construct a diagram by calling an instance of ``Diagrams``::
     sage: Dgms = Diagrams()
     sage: D in Dgms
     True
-    sage: Dgms([(0,1),(3,3)].pp()
-    . . . .
+    sage: Dgms([(0,1),(3,3)]).pp()
     . O . .
+    . . . .
     . . . .
     . . . O
 
@@ -88,7 +105,7 @@ present due to the presence of `(5,0)` and `(1,1)`::
     sage: NorthwestDiagram([(0, 0), (0, 10), (5, 0), (1, 1)])
     Traceback (most recent call last):
     ...
-    ValueError
+    AssertionError
 
 However, this behavior can be turned off if you are confident that you are
 providing a northwest diagram::
@@ -115,12 +132,9 @@ in the parent of :class:`Diagrams`::
     . . . . . . . . . . .
     . . . . . . . . . . .
     O . . . . . . . . . .
+    sage: from sage.combinat.diagram import NorthwestDiagrams
     sage: D in NorthwestDiagrams()
     False
-
-For a fixed northwest diagram `D`, we say that a Young tableau `T` is
-`D`-peelable if the row indices of the cells in the first column of `D` are
-the entries in an initial segment in the first column of `T`, and the
 
 One particular way of constructing a northwest diagram from a permutation is
 by constructing its Rothe diagram. Formally, if `\omega` is a permutation,
@@ -128,7 +142,7 @@ then the Rothe diagram `D(\omega)` is the diagram whose cells are
 
 .. MATH::
 
-    D(\omega) = \{(\omega_i, j) : i<j,\, \omega_i < j \}. ## CHECK THIS!
+    D(\omega) = \{(\omega_j, i) : i<j,\, \omega_i > \omega_j \}.
 
 Informally, one can construct the Rothe diagram by starting with all `n^2`
 possible cells, and then deleting the cells `(i, \omega(i))` as well as all
@@ -145,11 +159,47 @@ Then call :func:`RotheDiagram` on ``w``::
     O . . . . . . .
     O . O O . . . .
     O . O . . . . .
-    . . O . . . . .
     . . . . . . . .
-    . . O . . . . .
-    . . O . . . . .
-    . . O . . . . .
+    . . . . . . . .
+    . . . . . . . .
+    . . . . . . . .
+    . . . . . . . .
+
+For a fixed northwest diagram `D`, we say that a Young tableau `T` is
+`D`-peelable if:
+
+- the row indices of the cells in the first column of `D` are
+the entries in an initial segment in the first column of `T` and
+
+- the tableau `Q` obtained by removing those cells from `T` and playing jeu de
+taquin is `D-C`-peelable, where `D-C` is the diagram formed by forgetting the
+first column of `D`.
+
+Reiner and Shimozono [RS1995]_ showed that the number `\operatorname{red}(w)`
+of reduced words of a permutation `w` may be computed using the peelable
+tableaux of the Rothe diagram `D(w)`. Explicitly,
+
+.. MATH::
+
+    \operatorname{red}(w) = \sum_{T} f_{\operatorname{shape} T}
+
+where the sum runs over the `D(w)`-peelable tableaux `T` and `f_\lambda` is the
+number of standard Young tableaux of shape `\lambda` (which may be computed
+using the hook-length formula).
+
+We can compute the `D`-peelable diagrams for a northwest diagram `D`::
+
+    sage: cells = [(0,0), (0,1), (0,2), (1,0), (2,0), (2,2), (2,4),
+    ....:          (4,0), (4,2)]
+    sage: D = NorthwestDiagram(cells); D.pp()
+    O O O . .
+    O . . . .
+    O . O . O
+    . . . . .
+    O . O . .
+    sage: D.peelable_tableaux()
+    {[[1, 1, 1], [2, 3, 3], [3, 5], [5]],
+    [[1, 1, 1, 3], [2, 3], [3, 5], [5]]}
 
 AUTHORS:
 
@@ -157,7 +207,7 @@ AUTHORS:
 """
 
 # ****************************************************************************
-#       Copyright (C) 2013 Trevor K. Karn <karnx018 (at) umn.edu>
+#       Copyright (C) 2022 Trevor K. Karn <karnx018 (at) umn.edu>
 #
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -165,7 +215,6 @@ AUTHORS:
 # (at your option) any later version.
 #                  https://www.gnu.org/licenses/
 # ****************************************************************************
-
 
 from sage.categories.sets_cat import Sets
 from sage.sets.non_negative_integers import NonNegativeIntegers as NN
@@ -184,7 +233,8 @@ class Diagram(ClonableArray):
     EXAMPLES::
 
         sage: from sage.combinat.diagram import Diagram
-        sage: D = Diagram([(0,0), (0,3), (2,2), (2,4)])
+        sage: D = Diagram([(0,0), (0,3), (2,2), (2,4)]); D
+        [(0, 0), (0, 3), (2, 2), (2, 4)]
 
     TESTS::
 
@@ -292,6 +342,13 @@ class Diagram(ClonableArray):
             O . . O .
             . . . . .
             . . O . O
+            sage: Diagram([(0,0), (0,3), (2,2), (2,4)], n_rows=6, n_cols=6).pp()
+            O . . O . .
+            . . . . . .
+            . . O . O .
+            . . . . . .
+            . . . . . .
+            . . . . . .
         """
         output_str = ''
 
@@ -395,7 +452,8 @@ class Diagram(ClonableArray):
     def check(self):
         r"""
         Check that this is a valid diagram by checking that it is an iterable
-        of length-two tuples of integers.
+        of length-two tuples. (The fact that each tuple is length-two is 
+        implicitly checked during creation of the diagram).
 
         .. WARNING::
 
@@ -408,8 +466,30 @@ class Diagram(ClonableArray):
             sage: from sage.combinat.diagram import Diagram
             sage: D = Diagram([(0,0), (0,3), (2,2), (2,4)])
             sage: D.check()
+
+        In the next two examples, the diagram ``D`` is initialized but with
+        bad information that is not detected untill we call ``D.check()``. 
+        The first example fails because one cells is indexed by negative
+        integers::
+
+            sage: D = Diagram([(0,0), (0,-3), (2,2), (2,4)])
+            sage: D.check()
+            Traceback (most recent call last):
+            ...
+            AssertionError
+
+        The next example fails because one cell is indexed by rational
+        numbers::
+
+            sage: D = Diagram([(0,0), (0,3), (2/3,2), (2,4)])
+            sage: D.check()
+            Traceback (most recent call last):
+            ...
+            AssertionError
         """
-        assert all(isinstance(c, tuple) and len(c) == 2 for c in self._cells)
+        from sage.sets.non_negative_integers import NonNegativeIntegers 
+        NN = NonNegativeIntegers()
+        assert all(all(list(i in NN for i in c)) for c in self._cells.keys())
 
 
 class Diagrams(UniqueRepresentation, Parent):
@@ -417,7 +497,17 @@ class Diagrams(UniqueRepresentation, Parent):
     The class of combinatorial diagrams.
 
     A *combinatorial diagram* is a set of cells indexed by pairs of natural
-    numbers.
+    numbers. Calling an instance of :class:`Diagrams` is one way to construct
+    diagrams.
+
+    EXAMPLES::
+
+        sage: from sage.combinat.diagram import Diagrams
+        sage: Dgms = Diagrams()
+        sage: D = Dgms([(0,0), (0,3), (2,2), (2,4)])
+        sage: D.parent()
+        Combinatorial diagrams
+
     """
     def __init__(self):
         r"""
@@ -492,15 +582,64 @@ class NorthwestDiagram(Diagram):
     called *northwest diagrams*.
 
     For general diagrams see :class:`Diagram`.
+
+    EXAMPLES::
+
+        sage: from sage.combinat.diagram import NorthwestDiagram
+        sage: N = NorthwestDiagram([(0,0), (0, 2), (2,0)])
+
+    To visualize them, use the ``.pp()`` method::
+
+        sage: N.pp()
+        O . O
+        . . .
+        O . .
+
+    One can also create northwest diagrams from a partition::
+
+        sage: mu = Partition([5,4,3,2,1])
+        sage: mu.pp()
+        *****
+        ****
+        ***
+        **
+        *
+        sage: D = NorthwestDiagram(mu.cells()).pp()
+        O O O O O
+        O O O O .
+        O O O . .
+        O O . . .
+        O . . . .
     """
     @staticmethod
     def __classcall_private__(self, cells, **kwargs):
-        r"""
+        """
+        Normalize input to ensure a correct parent.
+
+        EXAMPLES::
+
+            sage: from sage.combinat.diagram import NorthwestDiagram
+            sage: N1 = NorthwestDiagram([(0,1), (0,2)])
+            sage: N2 = NorthwestDiagram([(0,1), (0,3)])
+            sage: N1.parent() is N2.parent()
+            True
         """
         # TODO: Assert that cells is sorted in lex order to speed up lookup.
         return NorthwestDiagrams()(cells, **kwargs)
 
     def __init__(self, cells, **kwargs):
+        r"""
+        Initialize ``self``.
+
+        EXAMPLES::
+
+            sage: from sage.combinat.diagram import NorthwestDiagram
+            sage: N = NorthwestDiagram([(0,1), (0,2)])
+
+        TESTS::
+
+            sage: TestSuite(N).run()
+        """
 
         check = kwargs.get('check', True)
 
@@ -511,13 +650,14 @@ class NorthwestDiagram(Diagram):
         r"""
         A diagram has the northwest property if the presence of cells
         `(i1, j1)` and `(i2, j2)` implies the presence of the cell
-        `(min(i1, i2), min(j1, j2))`
+        `(min(i1, i2), min(j1, j2))`. This method checks if the northwest
+        property is satisfied for ``self``
 
-        .. WARNING::
+        EXAMPLES::
 
-            This method is required for `Diagram` to be a subclass of
-            :class:`~sage.structure.list_clone.ClonableArray`, however the check
-            is *not* automatically performed upon creation of the element.
+            sage: from sage.combinat.diagram import Diagram
+            sage: D = Diagram([(0,0), (0,3), (2,2), (2,4)])
+            sage: D.check()
         """
         from itertools import combinations
         assert all((min(i1,i2), min(j1,j2)) in self
@@ -785,6 +925,17 @@ def RotheDiagram(w):
         . . . . . . . . .
         . . . . . O . . .
         . . . . . . . . .
+
+
+    Currently, only elements of the parent 
+    :class:`sage.combinat.permutations.Permutations` are supported. In
+    particular, elements of permutation groups are not supported::
+
+        sage: w = SymmetricGroup(9).an_element()
+        sage: RotheDiagram(w)
+        Traceback (most recent call last):
+        ...
+        ValueError: w must be a Permutation
     """
 
     from sage.misc.mrange import cartesian_product_iterator
@@ -792,7 +943,9 @@ def RotheDiagram(w):
     if not w in Permutations():
         raise ValueError('w must be a Permutation')
 
-    cells = [c for c in cartesian_product_iterator((range(9),range(9))) 
+    N = w.size()
+
+    cells = [c for c in cartesian_product_iterator((range(N),range(N))) 
              if c[0]+1 < w.inverse()(c[1]+1) and c[1]+1 < w(c[0]+1)]
 
-    return NorthwestDiagram(cells, check=False)
+    return NorthwestDiagram(cells, n_rows=N, n_cols=N, check=False)

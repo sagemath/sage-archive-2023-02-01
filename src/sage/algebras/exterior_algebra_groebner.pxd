@@ -37,7 +37,7 @@ cdef class GroebnerStrategy:
     cdef list reduction(self, list P, list G)
 
     cpdef CliffordAlgebraElement reduce(self, CliffordAlgebraElement f)
-    cdef CliffordAlgebraElement reduce_single(self, CliffordAlgebraElement f, CliffordAlgebraElement g)
+    cdef bint reduce_single(self, CliffordAlgebraElement f, CliffordAlgebraElement g) except -1
     cdef int reduced_gb(self, list G) except -1
 
     # These are the methods that determine the ordering of the monomials.

@@ -2946,7 +2946,7 @@ class ExteriorAlgebraIdeal(Ideal_nc):
             sage: E.<x,y,z> = ExteriorAlgebra(QQ)
             sage: I = E.ideal([x+y*z])
             sage: I.groebner_basis(reduced=False)
-            (x*y, x*z, y*z + x, y*z + x, x*y*z)
+            (x*y, x*z, y*z + x, x*y*z)
             sage: I.groebner_basis(reduced=True)
             (x*y, x*z, y*z + x)
 

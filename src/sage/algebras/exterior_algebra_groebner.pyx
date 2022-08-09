@@ -25,8 +25,9 @@ from sage.libs.gmp.mpz cimport mpz_sizeinbase, mpz_setbit, mpz_tstbit, mpz_cmp_s
 from sage.data_structures.bitset_base cimport (bitset_t, bitset_init, bitset_first,
                                                bitset_next, bitset_set_to, bitset_len)
 from sage.structure.parent cimport Parent
-from sage.structure.richcmp cimport richcmp
-from sage.data_structures.blas_dict cimport iaxpy, remove_zeros
+from sage.structure.richcmp cimport richcmp, rich_to_bool
+from sage.data_structures.blas_dict cimport iaxpy
+from copy import copy
 
 cdef inline long degree(FrozenBitset X):
     """
@@ -42,16 +43,59 @@ cdef inline CliffordAlgebraElement build_monomial(Parent E, FrozenBitset supp):
     return <CliffordAlgebraElement> E.element_class(E, {supp: E._base.one()})
 
 cdef class GBElement:
+    """
+    Helper class for storing an element with its leading support both as
+    a :class:`FrozenBitset` and an :class:`Integer`.
+    """
     def __init__(self, CliffordAlgebraElement x, FrozenBitset ls, Integer n):
+        """
+        Initialize ``self``.
+
+        EXAMPLES::
+
+            sage: from sage.algebras.exterior_algebra_groebner import GBElement
+            sage: E.<a,b,c,d> = ExteriorAlgebra(QQ)
+            sage: X = GBElement(a, a.leading_support(), 1)
+            sage: TestSuite(X).run(skip="_test_pickling")
+        """
         self.elt = x
         self.ls = ls
         self.lsi = n
 
     def __hash__(self):
+        """
+        Return the hash of ``self``.
+
+        EXAMPLES::
+
+            sage: from sage.algebras.exterior_algebra_groebner import GBElement
+            sage: E.<a,b,c,d> = ExteriorAlgebra(QQ)
+            sage: X = GBElement(a, a.leading_support(), 1)
+            sage: hash(X) == 1
+            True
+        """
         return int(self.lsi)
 
     def __richcmp__(self, other, int op):
-        return richcmp(self.elt, (<GBElement?> other).elt, op)
+        """
+        Rich compare ``self`` with ``other`` by ``op``.
+
+        EXAMPLES::
+
+            sage: from sage.algebras.exterior_algebra_groebner import GBElement
+            sage: E.<a,b,c,d> = ExteriorAlgebra(QQ)
+            sage: X = GBElement(a, a.leading_support(), 1)
+            sage: Y = GBElement(a*b, (a*b).leading_support(), 3)
+            sage: X == X
+            True
+            sage: X == Y
+            False
+            sage: X != Y
+            True
+        """
+        if self is other:
+            return rich_to_bool(op, 0)
+        return richcmp(self.elt, (<GBElement> other).elt, op)
 
 cdef class GroebnerStrategy:
     """
@@ -268,15 +312,38 @@ cdef class GroebnerStrategy:
         cdef Py_ssize_t i, j, k
         cdef set additions
         cdef GBElement f0, f1
-        cdef list G = [self.build_elt(f) for f in self.ideal.gens() if f]  # Remove 0s
-        cdef list Gp
+        cdef list G = [], Gp
+        cdef dict constructed = {}
         cdef CliffordAlgebraElement f
+
+        for f in self.ideal.gens():
+            if not f:  # Remove 0s
+                continue
+            f0 = self.build_elt(f)
+            if f0.lsi in constructed:
+                if f0 in constructed[f0.lsi]: # Already there
+                    continue
+                constructed[f0.lsi].add(f0)
+            else:
+                constructed[f0.lsi] = set([f0])
+            G.append(f0)
 
         if self.side == 2 and not self.homogeneous:
             # Add in all S-poly times positive degree monomials
             one = self.E._base.one()
-            additions = set((<GBElement> f0).elt._mul_self_term(t, one) for t in self.E._indices for f0 in G)
-            G.extend(self.build_elt(f) for f in additions if f)
+            for t in self.E._indices:
+                for f0 in G:
+                    f = f0.elt._mul_self_term(t, one)
+                    if not f:
+                        continue
+                    f1 = self.build_elt(f)
+                    if f1.lsi in constructed:
+                        if f1 in constructed[f1.lsi]: # Already there
+                            continue
+                        constructed[f1.lsi].add(f1)
+                    else:
+                        constructed[f1.lsi] = set([f1])
+                    G.append(f1)
 
         cdef Py_ssize_t n = len(G)
         cdef dict P = {}
@@ -297,7 +364,16 @@ cdef class GroebnerStrategy:
             sig_check()
             Pp = P.pop(min(P))  # The selection: lowest lcm degree
             Gp = self.reduction(Pp, G)
-            G.extend(Gp)
+            # Add the elements Gp to G when a new element is found
+            for f0 in Gp:
+                if f0.lsi in constructed:
+                    if f0 in constructed[f0.lsi]: # Already there
+                        continue
+                    constructed[f0.lsi].add(f0)
+                else:
+                    constructed[f0.lsi] = set([f0])
+                G.append(f0)
+            # Find the degress of the new pairs
             for j in range(n, len(G)):
                 f1 = G[j]
                 p1 = f1.ls
@@ -339,15 +415,15 @@ cdef class GroebnerStrategy:
             i,j = pairs.pop()
             f0 = <GBElement> G[i]
             f1 = <GBElement> G[j]
+            assert f0.elt._monomial_coefficients is not f1.elt._monomial_coefficients, (i,j)
             # We perform the classical reduction algorithm here on each pair
             # TODO: Make this faster by using the previous technique?
-            f = self.reduce_single(f0.elt, f1.elt)
-            if f0.elt != f:
-                if f:
-                    G[i] = self.build_elt(f)
+            if self.reduce_single(f0.elt, f1.elt):
+                if f0.elt:
+                    G[i] = self.build_elt(f0.elt)
                     pairs.update((k, i) for k in range(n) if k != i)
                 else:
-                    G[i] = GBElement(f, FrozenBitset(), Integer(2)**self.rank + 1)
+                    G[i] = GBElement(f0.elt, FrozenBitset(), Integer(2)**self.rank + 1)
                     num_zeros += 1
                     pairs.difference_update((k, i) for k in range(n) if k != i)
                     pairs.difference_update((i, k) for k in range(n) if k != i)
@@ -369,7 +445,7 @@ cdef class GroebnerStrategy:
             sage: E.<x,y,z> = ExteriorAlgebra(QQ)
             sage: I = E.ideal([x+y*z])
             sage: I.groebner_basis(reduced=False)
-            (x*y, x*z, y*z + x, y*z + x, x*y*z)
+            (x*y, x*z, y*z + x, x*y*z)
             sage: I._groebner_strategy.reduce_computed_gb()
             sage: I._groebner_strategy.groebner_basis
             (x*y, x*z, y*z + x)
@@ -408,41 +484,42 @@ cdef class GroebnerStrategy:
         """
         if not f:
             return f
+        # Make a copy to mutate
+        f = type(f)(f._parent, copy(f._monomial_coefficients))
         for g in self.groebner_basis:
-            f = self.reduce_single(f, g)
+            self.reduce_single(f, g)
         return f
 
-    cdef CliffordAlgebraElement reduce_single(self, CliffordAlgebraElement f, CliffordAlgebraElement g):
+    cdef bint reduce_single(self, CliffordAlgebraElement f, CliffordAlgebraElement g) except -1:
         r"""
         Reduce ``f`` by ``g``.
 
-        .. TODO::
+        .. WARNING::
 
-            Optimize this by doing it in-place and changing the underlying dict of ``f``.
+            This modifies the element ``f``.
         """
-        cdef FrozenBitset lm = self.leading_support(g), s
-        cdef bint did_reduction = True
+        cdef FrozenBitset lm = self.leading_support(g), s, t
+        cdef bint did_reduction = True, was_reduced=False
         cdef tuple supp
         cdef CliffordAlgebraElement gp
 
         one = self.E._base.one()
         while did_reduction:
-            supp = tuple(f._monomial_coefficients)
             did_reduction = False
-            for s in supp:
-                if lm <= s:
+            for s in f._monomial_coefficients:
+                if lm.issubset(s):
+                    t = s
                     did_reduction = True
-                    if self.side == 0:
-                        gp = g._mul_term_self(s - lm, one)
-                    else:
-                        gp = g._mul_self_term(s - lm, one)
-                    coeff = f[s] / gp._monomial_coefficients[s]
-                    for k in gp._monomial_coefficients:
-                        gp._monomial_coefficients[k] *= coeff
-                    remove_zeros(gp._monomial_coefficients)
-                    f -= gp
+                    was_reduced = True
                     break
-        return f
+            if did_reduction:
+                if self.side == 0:
+                    gp = g._mul_term_self(t - lm, one)
+                else:
+                    gp = g._mul_self_term(t - lm, one)
+                coeff = f[t] / gp._monomial_coefficients[t]
+                iaxpy(-coeff, gp._monomial_coefficients, f._monomial_coefficients)
+        return was_reduced
 
 
     cdef Integer bitset_to_int(self, FrozenBitset X):

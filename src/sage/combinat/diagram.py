@@ -285,10 +285,22 @@ class Diagram(ClonableArray):
             . . O . .
         """
         self._cells = {c: True for c in cells}
-        self._n_rows = kwargs.pop('n_rows', max(c[0] for c in self._cells) + 1)
-        self._n_cols = kwargs.pop('n_cols', max(c[1] for c in self._cells) + 1)
+        if n_rows is not None:
+            if n_rows < max(c[0] for c in self._cells) + 1:
+                raise ValueError('n_rows is too small')
+            self._n_rows = n_rows
+        else:
+            self._n_rows = max(c[0] for c in self._cells) + 1
+        if n_cols is not None:
+            if n_cols < max(c[1] for c in self._cells) + 1:
+                raise ValueError('n_cols is too small')
+            self._n_cols = n_cols
+        else:
+            self._n_cols = max(c[1] for c in self._cells) + 1
+
         self._n_nonempty_rows = len(set(i for i, j in self._cells))
         self._n_nonempty_cols = len(set(j for i, j in self._cells))
+
 
         ClonableArray.__init__(self, Diagrams(), cells, check=False)
 
@@ -628,7 +640,7 @@ class NorthwestDiagram(Diagram):
         # TODO: Assert that cells is sorted in lex order to speed up lookup.
         return NorthwestDiagrams()(cells, **kwargs)
 
-    def __init__(self, cells, **kwargs):
+    def __init__(self, cells, n_rows=None, n_cols=None, check=True):
         r"""
         Initialize ``self``.
 
@@ -640,11 +652,32 @@ class NorthwestDiagram(Diagram):
         TESTS::
 
             sage: TestSuite(N).run()
+            sage: N = NorthwestDiagram([(0,1), (0,2)], n_cols = 1)
+            Traceback (most recent call last):
+            ...
+            ValueError: n_cols is too small
+            sage: N = NorthwestDiagram([(0,0), (1,0)], n_rows = 1)
+            Traceback (most recent call last):
+            ...
+            ValueError: n_rows is too small
         """
+        self._cells = {c: True for c in cells}
+        if n_rows is not None:
+            if n_rows < max(c[0] for c in self._cells) + 1:
+                raise ValueError('n_rows is too small')
+            self._n_rows = n_rows
+        else:
+            self._n_rows = max(c[0] for c in self._cells) + 1
+        if n_cols is not None:
+            if n_cols < max(c[1] for c in self._cells) + 1:
+                raise ValueError('n_cols is too small')
+            self._n_cols = n_cols
+        else:
+            self._n_cols = max(c[1] for c in self._cells) + 1
 
-        check = kwargs.get('check', True)
+        self._n_nonempty_rows = len(set(i for i, j in self._cells))
+        self._n_nonempty_cols = len(set(j for i, j in self._cells))
 
-        Diagram.__init__(self, cells, **kwargs)
         ClonableArray.__init__(self, NorthwestDiagrams(), cells, check=check)
 
     def check(self):
@@ -880,7 +913,7 @@ class NorthwestDiagrams(Diagrams):
     diagram itself.
     """
 
-    def __repr__(self):
+    def _repr_(self):
         r"""
         EXAMPLES::
 

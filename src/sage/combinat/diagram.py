@@ -302,7 +302,7 @@ class Diagram(ClonableArray, metaclass=InheritComparisonClasscallMetaclass):
         self._n_nonempty_rows = len(set(i for i, j in self._cells))
         self._n_nonempty_cols = len(set(j for i, j in self._cells))
 
-        ClonableArray.__init__(self, parent, cells, check=False)
+        ClonableArray.__init__(self, parent, cells, check)
 
     def _hash_(self):
         r"""
@@ -373,7 +373,7 @@ class Diagram(ClonableArray, metaclass=InheritComparisonClasscallMetaclass):
                     output_str += '. '
             output_str += '\n'
 
-        print(output_str)
+        print(output_str, end='')  # don't double up on `\n`'ss
 
     def n_rows(self):
         r"""
@@ -934,7 +934,6 @@ def RotheDiagram(w):
         . . . . . . . . .
         . . . . . O . . .
         . . . . . . . . .
-
 
     Currently, only elements of the parent
     :class:`sage.combinat.permutations.Permutations` are supported. In

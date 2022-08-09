@@ -1300,6 +1300,7 @@ def is_unitary_polar(int v, int k, int l, int mu):
         from sage.graphs.generators.classical_geometries import UnitaryPolarGraph
         return (UnitaryPolarGraph, 2*d, p**t)
 
+
 @cached_function
 def is_unitary_dual_polar(int v, int k, int l, int mu):
     r"""
@@ -1339,18 +1340,19 @@ def is_unitary_dual_polar(int v, int k, int l, int mu):
     q = mu - 1
     if q < 2:
         return
-    p,t = is_prime_power(q, get_data=True)
+    p, t = is_prime_power(q, get_data=True)
     if p**t != q or t % 2:
         return
     if (r < 0 and q != -r - 1) or (s < 0 and q != -s - 1):
         return
     t //= 2
     # we have correct mu, negative eigenvalue, and q=p^(2t)
-    if (v == (q**2*p**t + 1)*(q*p**t + 1)  and
-        k == q*p**t*(q + 1)                and
-        l == k - 1 - q**2*p**t):
+    if (v == (q**2*p**t + 1)*(q*p**t + 1) and
+            k == q*p**t*(q + 1) and
+            l == k - 1 - q**2*p**t):
         from sage.graphs.generators.classical_geometries import UnitaryDualPolarGraph
         return (UnitaryDualPolarGraph, 5, p**t)
+
 
 @cached_function
 def is_GQqmqp(int v, int k, int l, int mu):
@@ -1410,24 +1412,25 @@ def is_GQqmqp(int v, int k, int l, int mu):
     """
     # do we have GQ(s,t)? we must have mu=t+1, s=l+1,
     # v=(s+1)(st+1), k=s(t+1)
-    S=l+1
-    T=mu-1
+    S = l + 1
+    T = mu - 1
     q = (S+T)//2
     p, w = is_prime_power(q, get_data=True)
-    if (v == (S+1)*(S*T+1)      and
-        k == S*(T+1)            and
-        q == p**w               and
-        (S+T)//2 == q):
+    if (v == (S+1)*(S*T+1) and
+            k == S*(T+1) and
+            q == p**w and
+            (S+T)//2 == q):
         if p % 2 == 0:
             from sage.graphs.generators.classical_geometries\
                     import T2starGeneralizedQuadrangleGraph as F
         else:
             from sage.graphs.generators.classical_geometries\
                     import AhrensSzekeresGeneralizedQuadrangleGraph as F
-        if (S,T) == (q-1, q+1):
+        if (S, T) == (q-1, q+1):
             return (F, q, False)
-        elif (S,T) == (q+1, q-1):
+        elif (S, T) == (q+1, q-1):
             return (F, q, True)
+
 
 @cached_function
 def is_twograph_descendant_of_srg(int v, int k0, int l, int mu):
@@ -1475,23 +1478,23 @@ def is_twograph_descendant_of_srg(int v, int k0, int l, int mu):
         (279, 150, 85, 75)
     """
     cdef int b, k, s
-    if k0 != 2*mu or v % 2 == 0:
+    if k0 != 2*mu or not v % 2:
         return
     b = v+1+4*mu
     D = sqrt(b**2-16*v*mu)
-    if int(D)==D:
+    if int(D) == D:
         for kf in [(-D+b)//4, (D+b)//4]:
             k = int(kf)
-            if k == kf and \
-                strongly_regular_graph(v+1, k, l - 2*mu + k , k - mu,  existence=True) is True:
+            if (k == kf and
+                    strongly_regular_graph(v+1, k, l - 2*mu + k, k - mu,  existence=True) is True):
                 try:
-                    g = strongly_regular_graph_lazy(v+1, k, l - 2*mu + k) # Sage might not know how to build g
+                    g = strongly_regular_graph_lazy(v+1, k, l - 2*mu + k)  # Sage might not know how to build g
 
                     def la(*gr):
                         from sage.combinat.designs.twographs import twograph_descendant
                         gg = g[0](*gr)
                         if (gg.name() is None) or (gg.name() == ''):
-                            gg = Graph(gg, name=str((v+1, k, l - 2*mu + k , k - mu))+"-strongly regular graph")
+                            gg = Graph(gg, name=str((v+1, k, l - 2*mu + k, k - mu))+"-strongly regular graph")
                         return twograph_descendant(gg, next(gg.vertex_iterator()),
                                                    name=True)
                     return (la, *g[1:])
@@ -1538,7 +1541,7 @@ def is_taylor_twograph_srg(int v, int k, int l, int mu):
     r, s = eigenvalues(v, k, l, mu)
     if r is None:
         return
-    p,t = is_prime_power(v-1, get_data=True)
+    p, t = is_prime_power(v-1, get_data=True)
     if p**t+1 != v or t % 3 != 0 or p % 2 == 0:
         return
     q = p**(t//3)
@@ -1546,6 +1549,7 @@ def is_taylor_twograph_srg(int v, int k, int l, int mu):
         from sage.graphs.generators.classical_geometries import TaylorTwographSRG
         return (TaylorTwographSRG, q)
     return
+
 
 def is_switch_skewhad(int v, int k, int l, int mu):
     r"""
@@ -1584,14 +1588,15 @@ def is_switch_skewhad(int v, int k, int l, int mu):
     r, s = eigenvalues(v, k, l, mu)
     if r is None:
         return
-    if r<s:
+    if r < s:
         r, s = s, r
     n = -s // 2
-    if  int(r) == 2*n-1         and \
-        v == (4*n-1)**2 + 1     and \
-        k == (4*n-1)*(2*n-1)    and \
-        skew_hadamard_matrix(4*n, existence=True) is True:
-            return (SwitchedSquaredSkewHadamardMatrixGraph, n)
+    if (int(r) == 2*n-1 and
+            v == (4*n-1)**2 + 1 and
+            k == (4*n-1)*(2*n-1) and
+            skew_hadamard_matrix(4*n, existence=True) is True):
+        return (SwitchedSquaredSkewHadamardMatrixGraph, n)
+
 
 def is_switch_OA_srg(int v, int k, int l, int mu):
     r"""
@@ -1632,24 +1637,21 @@ def is_switch_OA_srg(int v, int k, int l, int mu):
         (<cyfunction is_switch_OA_srg.<locals>.switch_OA_srg at ..., 12, 25)
         sage: is_switch_OA_srg(842, 406, 195, 196)
         (<cyfunction is_switch_OA_srg.<locals>.switch_OA_srg at ..., 14, 29)
-
     """
     cdef int n_2_p_1 = v
-    cdef int n = <int> floor(sqrt(n_2_p_1-1))
+    cdef int n = <int> floor(sqrt(n_2_p_1 - 1))
 
     if n*n != n_2_p_1-1: # is it a square?
         return None
 
     cdef int c = k//n
-    if (k % n                            or
-        l != c*c-1                       or
-        k != 1+(c-1)*(c+1)+(n-c)*(n-c-1) or
-        not orthogonal_array(c+1,n,existence=True,resolvable=True) is True):
+    if (k % n or l != c*c-1 or k != 1+(c-1)*(c+1)+(n-c)*(n-c-1) or
+            orthogonal_array(c+1, n, existence=True, resolvable=True) is not True):
         return None
 
     def switch_OA_srg(c, n):
         OA = [tuple(x) for x in orthogonal_array(c+1, n, resolvable=True)]
-        g = Graph([OA, lambda x,y: any(xx==yy for xx,yy in zip(x,y))],
+        g = Graph([OA, lambda x, y: any(xx == yy for xx, yy in zip(x, y))],
                   loops=False)
         g.add_vertex(0)
         g.seidel_switching(OA[:c*n])
@@ -1692,14 +1694,15 @@ def is_nowhere0_twoweight(int v, int k, int l, int mu):
     r, s = eigenvalues(v, k, l, mu)
     if r is None:
         return
-    if r<s:
+    if r < s:
         r, s = s, r
     q = r*2
-    if  q > 4 and is_prime_power(q) and 0==r%2 and \
-        v    ==  r*(q-1)**2                    and \
-        4*k  == q*(q-2)*(q-3)                  and \
-        8*mu == q*(q-3)*(q-4):
+    if (q > 4 and is_prime_power(q) and not r % 2 and
+            v == r*(q-1)**2 and
+            4*k == q*(q-2)*(q-3) and
+            8*mu == q*(q-3)*(q-4)):
         return (Nowhere0WordsTwoWeightCodeGraph, q)
+
 
 cdef eigenvalues(int v, int k, int l, int mu):
     r"""
@@ -1719,7 +1722,7 @@ cdef eigenvalues(int v, int k, int l, int mu):
     c = (mu-k)
     D = b**2-4*c
     if not is_square(D):
-        return [None,None]
+        return [None, None]
     return [(-b+sqrt(D))/2.0,
             (-b-sqrt(D))/2.0]
 
@@ -1807,9 +1810,10 @@ def eigenmatrix(int v, int k, int l, int mu):
     from sage.rings.integer_ring import ZZ
     r, s = eigenvalues(v, k, l, mu)
     if r is not None:
-        return Matrix(ZZ, [[1,k,v-k-1],[1,r,-r-1],[1,s,-s-1]])
+        return Matrix(ZZ, [[1, k, v-k-1], [1, r, -r-1], [1, s, -s-1]])
 
-cpdef latin_squares_graph_parameters(int v,int k, int l,int mu):
+
+cpdef latin_squares_graph_parameters(int v, int k, int l,int mu):
     r"""
     Check whether (v,k,l,mu)-strongly regular graph has parameters of an `L_g(n)` s.r.g.
 
@@ -1839,9 +1843,10 @@ cpdef latin_squares_graph_parameters(int v,int k, int l,int mu):
         r, s = s, r
     g = -s
     n = r+g
-    if v==n**2 and k==g*(n-1) and l==(g-1)*(g-2)+n-2 and mu==g*(g-1):
+    if v == n**2 and k == g*(n-1) and l == (g-1)*(g-2)+n-2 and mu == g*(g-1):
         return g, n
     return
+
 
 def _H_3_cayley_graph(L):
     r"""
@@ -1861,15 +1866,16 @@ def _H_3_cayley_graph(L):
     from sage.groups.free_group import FreeGroup
     from sage.groups.finitely_presented import FinitelyPresentedGroup
     G = FreeGroup('x,y,z')
-    x,y,z = G.gens()
-    rels = (x**5,y**5,z**4,x*y*x**(-1)*y**(-1),z*x*z**(-1)*x**(-2),z*y*z**(-1)*y**(-2))
-    G = FinitelyPresentedGroup(G,rels)
-    x,y,z = G.gens()
+    x, y, z = G.gens()
+    rels = (x**5, y**5, z**4, x*y*x**(-1)*y**(-1), z*x*z**(-1)*x**(-2), z*y*z**(-1)*y**(-2))
+    G = FinitelyPresentedGroup(G, rels)
+    x, y, z = G.gens()
     H = G.as_permutation_group()
     L = [[int(u) for u in x] for x in L]
     x, y, z = (H.gen(0), H.gen(1), H.gen(2))
     L = [H(x**xx*y**yy*z**zz) for xx, yy, zz in L]
     return Graph(H.cayley_graph(generators=L, simple=True))
+
 
 def SRG_100_44_18_20():
     r"""
@@ -1885,11 +1891,13 @@ def SRG_100_44_18_20():
         sage: G.is_strongly_regular(parameters=True) # long time
         (100, 44, 18, 20)
     """
-    return _H_3_cayley_graph(["100","110","130","140","200","230","240","300",
-             "310","320","400","410","420","440","041","111","221","231","241",
-             "321","331","401","421","441","002","042","112","122","142","212",
-             "232","242","322","342","033","113","143","223","303","333","343",
-             "413","433","443"])
+    L = ['100', '110', '130', '140', '200', '230', '240', '300', '310', '320',
+         '400', '410', '420', '440', '041', '111', '221', '231', '241', '321',
+         '331', '401', '421', '441', '002', '042', '112', '122', '142', '212',
+         '232', '242', '322', '342', '033', '113', '143', '223', '303', '333',
+         '343', '413', '433', '443']
+    return _H_3_cayley_graph(L)
+
 
 def SRG_100_45_20_20():
     r"""
@@ -1905,11 +1913,12 @@ def SRG_100_45_20_20():
         sage: G.is_strongly_regular(parameters=True) # long time
         (100, 45, 20, 20)
     """
-    return _H_3_cayley_graph(["120","140","200","210","201","401","411","321",
-             "002","012","022","042","303","403","013","413","240","031","102",
-             "323","300","231","132","133","310","141","142","233","340","241",
-             "202","333","410","341","222","433","430","441","242","302","312",
-             "322","332","442","143"])
+    L = ['120', '140', '200', '210', '201', '401', '411', '321', '002', '012',
+         '022', '042', '303', '403', '013', '413', '240', '031', '102', '323',
+         '300', '231', '132', '133', '310', '141', '142', '233', '340', '241',
+         '202', '333', '410', '341', '222', '433', '430', '441', '242', '302',
+         '312', '322', '332', '442', '143']
+    return _H_3_cayley_graph(L)
 
 
 def SRG_105_32_4_12():
@@ -1966,6 +1975,7 @@ def SRG_120_77_52_44():
     g.name('PG(2,2)s in PG(2,4)')
     return g
 
+
 def SRG_144_39_6_12():
     r"""
     Return a `(144,39,6,12)`-strongly regular graph.
@@ -1990,11 +2000,12 @@ def SRG_144_39_6_12():
         if len(o) != 39:
             continue
         h = Graph()
-        h.add_edges(G.Orbit([1,o[0]],libgap.OnSets))
+        h.add_edges(G.Orbit([1, o[0]], libgap.OnSets))
         if h.is_strongly_regular():
             h.relabel()
             h.name('PGL_3(3) on cosets of 13:3')
             return h
+
 
 def SRG_176_49_12_14():
     r"""
@@ -2017,7 +2028,7 @@ def SRG_176_49_12_14():
     from sage.combinat.designs.database import HigmanSimsDesign
     d = HigmanSimsDesign()
     g = d.incidence_graph(labels=True)
-    ag=g.automorphism_group().conjugacy_classes_representatives()
+    ag = g.automorphism_group().conjugacy_classes_representatives()
 
     # Looking for an involution that maps a point of the design to one of the
     # blocks that contains it. It is called a polarity with only absolute
@@ -2030,9 +2041,10 @@ def SRG_176_49_12_14():
         if (aut.order() == 2 and
                 all(i in aut(i) for i in d.ground_set())):
             g = Graph()
-            g.add_edges(((u,v) for u in d.ground_set() for v in aut(u)), loops=False)
+            g.add_edges(((u, v) for u in d.ground_set() for v in aut(u)), loops=False)
             g.name('Higman symmetric 2-design')
             return g
+
 
 def SRG_176_105_68_54():
     r"""
@@ -2057,6 +2069,7 @@ def SRG_176_105_68_54():
     g = H.intersection_graph(3)
     g.name('Witt 3-(22,7,4)')
     return g
+
 
 def SRG_210_99_48_45():
     r"""
@@ -2091,12 +2104,12 @@ def SRG_210_99_48_45():
                    (7, 3, 1, 4, 5, 6), (7, 2, 4, 3, 5, 6),
                    (7, 3, 2, 4, 5, 1), (7, 2, 4, 3, 5, 1)]))
     s = libgap.SymmetricGroup(7)
-    O = s.Orbit(kd[0],libgap.OnSetsTuples)
-    sa = s.Action(O,libgap.OnSetsTuples)
+    O = s.Orbit(kd[0], libgap.OnSetsTuples)
+    sa = s.Action(O, libgap.OnSetsTuples)
     G = Graph()
     for g in kd[1:]:
-        G.add_edges(libgap.Orbit(sa,[libgap.Position(O,kd[0]),\
-                                     libgap.Position(O,g)],libgap.OnSets))
+        G.add_edges(libgap.Orbit(sa, [libgap.Position(O, kd[0]),
+                                      libgap.Position(O, g)], libgap.OnSets))
     G.name('merging of S_7 on Circulant(6,[1,4])s')
     return G
 
@@ -2126,9 +2139,10 @@ def SRG_243_110_37_60():
     from sage.coding.golay_code import GolayCode
     M = GolayCode(GF(3), False).generator_matrix()
     V = list(M.right_kernel())
-    g = Graph([list(xrange(len(V))), lambda x,y:(V[x]-V[y]).hamming_weight() == 9 ])
+    g = Graph([list(xrange(len(V))), lambda x, y: (V[x] - V[y]).hamming_weight() == 9])
     g.name('Ternary Golay code')
     return g
+
 
 def SRG_253_140_87_65():
     r"""
@@ -2152,6 +2166,7 @@ def SRG_253_140_87_65():
     g = W.intersection_graph(3)
     g.name('Witt 4-(23,7,1)')
     return g
+
 
 def SRG_196_91_42_42():
     r"""

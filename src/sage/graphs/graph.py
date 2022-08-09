@@ -6333,11 +6333,11 @@ class Graph(GenericGraph):
 
         # Exactly one representative per vertex of H
         for h in H:
-            p.add_constraint(p.sum(v_repr[h,g] for g in G), min=1, max=1)
+            p.add_constraint(p.sum(v_repr[h, g] for g in G), min=1, max=1)
 
         # A vertex of G can only represent one vertex of H
         for g in G:
-            p.add_constraint(p.sum(v_repr[h,g] for h in H), max=1)
+            p.add_constraint(p.sum(v_repr[h, g] for h in H), max=1)
 
         ###################
         # Is representent #
@@ -6349,7 +6349,7 @@ class Graph(GenericGraph):
 
         for g in G:
             for h in H:
-                p.add_constraint(v_repr[h,g] - is_repr[g], max=0)
+                p.add_constraint(v_repr[h, g] - is_repr[g], max=0)
 
         ###################################
         # paths between the representents #
@@ -6368,21 +6368,21 @@ class Graph(GenericGraph):
         # These functions return the balance of flow corresponding to
         # commodity C at vertex v
         def flow_in(C, v):
-            return p.sum(flow[C,(v,u)] for u in G.neighbor_iterator(v))
+            return p.sum(flow[C, (v, u)] for u in G.neighbor_iterator(v))
 
         def flow_out(C, v):
-            return p.sum(flow[C,(u,v)] for u in G.neighbor_iterator(v))
+            return p.sum(flow[C, (u, v)] for u in G.neighbor_iterator(v))
 
         def flow_balance(C, v):
-            return flow_in(C,v) - flow_out(C,v)
+            return flow_in(C, v) - flow_out(C, v)
 
-        for h1,h2 in H.edge_iterator(labels=False):
+        for h1, h2 in H.edge_iterator(labels=False):
 
             for v in G:
 
                 # The flow balance depends on whether the vertex v is a
                 # representative of h1 or h2 in G, or a representative of none
-                p.add_constraint(flow_balance((h1,h2),v) == v_repr[h1,v] - v_repr[h2,v])
+                p.add_constraint(flow_balance((h1, h2), v) == v_repr[h1, v] - v_repr[h2, v])
 
         #############################
         # Internal vertex of a path #
@@ -6396,7 +6396,7 @@ class Graph(GenericGraph):
         # When is a vertex internal for a commodity ?
         for C in H.edge_iterator(labels=False):
             for g in G:
-                p.add_constraint(flow_in(C,g) + flow_out(C,g) - is_internal[C,g], max=1)
+                p.add_constraint(flow_in(C, g) + flow_out(C, g) - is_internal[C, g], max=1)
 
         ############################
         # Two paths do not cross ! #
@@ -6406,8 +6406,8 @@ class Graph(GenericGraph):
         # the vertex is a representent
 
         for g in G:
-            p.add_constraint(p.sum(is_internal[C,g] for C in H.edge_iterator(labels=False))
-                              + is_repr[g], max=1)
+            p.add_constraint(p.sum(is_internal[C, g] for C in H.edge_iterator(labels=False))
+                             + is_repr[g], max=1)
 
         # (The following inequalities are not necessary, but they seem to be of
         # help (the solvers find the answer quicker when they are added)
@@ -6415,21 +6415,17 @@ class Graph(GenericGraph):
         # The flow on one edge can go in only one direction. Besides, it can
         # belong to at most one commodity and has a maximum intensity of 1.
 
-        for g1,g2 in G.edge_iterator(labels=None):
-
-            p.add_constraint(   p.sum(flow[C,(g1,g2)] for C in H.edge_iterator(labels=False))
-                              + p.sum(flow[C,(g2,g1)] for C in H.edge_iterator(labels=False)),
-                                max=1)
-
+        for g1, g2 in G.edge_iterator(labels=None):
+            p.add_constraint(p.sum(flow[C, (g1, g2)] for C in H.edge_iterator(labels=False)) +
+                             p.sum(flow[C, (g2, g1)] for C in H.edge_iterator(labels=False)),
+                             max=1)
 
         # Now we can solve the problem itself !
 
         try:
             p.solve(log=verbose)
-
         except MIPSolverException:
             return False
-
 
         minor = G.subgraph(immutable=False)
 
@@ -6437,11 +6433,11 @@ class Graph(GenericGraph):
         v_repr = p.get_values(v_repr, convert=bool, tolerance=integrality_tolerance)
         flow = p.get_values(flow, convert=bool, tolerance=integrality_tolerance)
 
-        for u,v in minor.edge_iterator(labels=False):
+        for u, v in minor.edge_iterator(labels=False):
             used = False
             for C in H.edge_iterator(labels=False):
 
-                if flow[C,(u,v)] or flow[C,(v,u)]:
+                if flow[C, (u, v)] or flow[C, (v, u)]:
                     used = True
                     minor.set_edge_label(u, v, C)
                     break
@@ -6453,13 +6449,13 @@ class Graph(GenericGraph):
         for g in minor:
             if is_repr[g]:
                 for h in H:
-                    if v_repr[h,v]:
+                    if v_repr[h, v]:
                         minor.set_vertex(g, h)
                         break
 
         return minor
 
-    ### Cliques
+    # Cliques
 
     @doc_index("Clique-related methods")
     def cliques_maximal(self, algorithm="native"):
@@ -6911,9 +6907,9 @@ class Graph(GenericGraph):
             sphinx_plot(g.plot(partition=[g.independent_set()]))
         """
         my_cover = self.vertex_cover(algorithm=algorithm, value_only=value_only,
-                                         reduction_rules=reduction_rules,
-                                         solver=solver, verbose=verbose,
-                                         integrality_tolerance=integrality_tolerance)
+                                     reduction_rules=reduction_rules,
+                                     solver=solver, verbose=verbose,
+                                     integrality_tolerance=integrality_tolerance)
         if value_only:
             return self.order() - my_cover
         else:
@@ -7081,7 +7077,7 @@ class Graph(GenericGraph):
 
             # We first take a copy of the graph without multiple edges, if any.
             g = Graph(data=self.edges(sort=False), format='list_of_edges',
-                          multiedges=self.allows_multiple_edges())
+                      multiedges=self.allows_multiple_edges())
             g.allow_multiple_edges(False)
 
             degree_at_most_two = {u for u in g if g.degree(u) <= 2}
@@ -7115,7 +7111,7 @@ class Graph(GenericGraph):
                     degree_at_most_two.discard(v)
 
                 elif du == 2:
-                    v,w  = g.neighbors(u)
+                    v, w = g.neighbors(u)
 
                     if g.has_edge(v, w):
                         # RULE 3: If the neighbors v and w of a degree 2 vertex
@@ -7142,7 +7138,7 @@ class Graph(GenericGraph):
                         g.delete_vertex(v)
                         g.delete_vertex(w)
                         for z in neigh:
-                            g.add_edge(u,z)
+                            g.add_edge(u, z)
 
                         folded_vertices.append((u, v, w))
 
@@ -7152,10 +7148,8 @@ class Graph(GenericGraph):
                     degree_at_most_two.discard(v)
                     degree_at_most_two.discard(w)
 
-
                 # RULE 5:
                 # TODO: add extra reduction rules
-
 
         ##################
         # Main Algorithm #
@@ -7187,7 +7181,7 @@ class Graph(GenericGraph):
             p.set_objective(p.sum(b[v] for v in g))
 
             # an edge contains at least one vertex of the minimum vertex cover
-            for u,v in g.edge_iterator(labels=None):
+            for u, v in g.edge_iterator(labels=None):
                 p.add_constraint(b[u] + b[v], min=1)
 
             p.solve(log=verbose)
@@ -7211,7 +7205,7 @@ class Graph(GenericGraph):
             cover_g.update(ppset)
             # RULE 4:
             folded_vertices.reverse()
-            for u,v,w in folded_vertices:
+            for u, v, w in folded_vertices:
                 if u in cover_g:
                     cover_g.discard(u)
                     cover_g.add(v)
@@ -7366,9 +7360,9 @@ class Graph(GenericGraph):
         # Perform ear decomposition on each connected component of input graph.
         for v in self:
             if v not in seen:
-              # Start the depth first search from first vertex
+                # Start the depth first search from first vertex
                 DFS(v)
-                value = {u:i for i,u in enumerate(dfs_order)}
+                value = {u: i for i, u in enumerate(dfs_order)}
 
                 # Traverse all the non Tree edges, according to DFS order
                 for u in dfs_order:
@@ -7557,9 +7551,9 @@ class Graph(GenericGraph):
         number_of = [0]*(self.order() + 1)
         for x in IndependentSets(self, complement=True):
             number_of[len(x)] += 1
-        return sum(coeff*t**i for i,coeff in enumerate(number_of) if coeff)
+        return sum(coeff*t**i for i, coeff in enumerate(number_of) if coeff)
 
-    ### Miscellaneous
+    # Miscellaneous
 
     @doc_index("Leftovers")
     def cores(self, k=None, with_labels=False):
@@ -7724,11 +7718,11 @@ class Graph(GenericGraph):
                 return verts, []
             bin_boundaries = [0]
             curr_degree = 0
-            for i,v in enumerate(verts):
+            for i, v in enumerate(verts):
                 if degrees[v] > curr_degree:
                     bin_boundaries.extend([i] * (degrees[v] - curr_degree))
                     curr_degree = degrees[v]
-            vert_pos = {v: pos for pos,v in enumerate(verts)}
+            vert_pos = {v: pos for pos, v in enumerate(verts)}
             # Lists of neighbors.
             nbrs = {v: set(self.neighbors(v)) for v in self}
             # form vertex core building up from smallest
@@ -7752,7 +7746,7 @@ class Graph(GenericGraph):
                         bin_start = bin_boundaries[core[u]]
                         vert_pos[u] = bin_start
                         vert_pos[verts[bin_start]] = pos
-                        verts[bin_start],verts[pos] = verts[pos],verts[bin_start]
+                        verts[bin_start], verts[pos] = verts[pos], verts[bin_start]
                         bin_boundaries[core[u]] += 1
                         core[u] -= 1
 
@@ -8287,15 +8281,16 @@ class Graph(GenericGraph):
 
         # Take any two vertices (u,v)
         it = iter(vertices)
-        u,v = next(it),next(it)
+        u, v = next(it), next(it)
 
         # Compute a uv min-edge-cut.
         #
         # The graph is split into U,V with u \in U and v\in V.
-        flow,edges,[U,V] = self.edge_cut(u, v, use_edge_labels=True, vertices=True, algorithm=algorithm)
+        flow, edges, [U, V] = self.edge_cut(u, v, use_edge_labels=True,
+                                            vertices=True, algorithm=algorithm)
 
         # One graph for each part of the previous one
-        gU,gV = self.subgraph(U, immutable=False), self.subgraph(V, immutable=False)
+        gU, gV = self.subgraph(U, immutable=False), self.subgraph(V, immutable=False)
 
         # A fake vertex fU (resp. fV) to represent U (resp. V)
         fU = frozenset(U)
@@ -8308,12 +8303,12 @@ class Graph(GenericGraph):
         # If the same edge is added several times their capacities add up.
 
         from sage.rings.real_mpfr import RR
-        for uu,vv,capacity in edges:
+        for uu, vv, capacity in edges:
             capacity = capacity if capacity in RR else 1
 
             # Assume uu is in gU
             if uu in V:
-                uu,vv = vv,uu
+                uu, vv = vv, uu
 
             # Create the new edges if necessary
             if not gU.has_edge(uu, fV):
@@ -8513,7 +8508,7 @@ class Graph(GenericGraph):
         # and have to be translated back to (u,v)
         classes_b = []
         for c in classes:
-            classes_b.append([(u,v) for ((uu,u),(vv,v)) in c])
+            classes_b.append([(u, v) for ((uu, u), (vv, v)) in c])
 
         return classes_b
 
@@ -9078,7 +9073,7 @@ class Graph(GenericGraph):
         if base_ring is None:
             base_ring = ZZ
 
-        if i == j :
+        if i == j:
             return base_ring(0)
 
         self._scream_if_not_simple()
@@ -9086,7 +9081,7 @@ class Graph(GenericGraph):
             connected_i = self.connected_component_containing_vertex(i)
             if j in connected_i:
                 component = self.subgraph(connected_i)
-                return component.effective_resistance(i,j)
+                return component.effective_resistance(i, j)
             else:
                 from sage.rings.infinity import Infinity
                 return Infinity
@@ -9935,7 +9930,7 @@ class Graph(GenericGraph):
             G.add_edges(((v, 0), (v, 1)) for v in self)
 
         prefix = "Extended " if extended else ""
-        G.name("%sBipartite Double of %s"%(prefix, self.name()))
+        G.name("%sBipartite Double of %s" % (prefix, self.name()))
         return G
 
     # Aliases to functions defined in other modules
@@ -9975,6 +9970,7 @@ class Graph(GenericGraph):
     from sage.graphs.graph_coloring import fractional_chromatic_number
     from sage.graphs.graph_coloring import fractional_chromatic_index
     from sage.graphs.hyperbolicity import hyperbolicity
+
 
 _additional_categories = {
     "is_long_hole_free"         : "Graph properties",
@@ -10024,4 +10020,4 @@ _additional_categories = {
     "hyperbolicity"              : "Distances",
     }
 
-__doc__ = __doc__.replace("{INDEX_OF_METHODS}",gen_thematic_rest_table_index(Graph,_additional_categories))
+__doc__ = __doc__.replace("{INDEX_OF_METHODS}", gen_thematic_rest_table_index(Graph, _additional_categories))

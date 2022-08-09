@@ -622,6 +622,24 @@ class ConvexSet_base(SageObject, Set_base):
             return self
         raise NotImplementedError
 
+    @cached_method
+    def representative_point(self):
+        """
+        Return a "generic" point of ``self``.
+
+        OUTPUT:
+
+        A point in the relative interior of ``self`` as a coordinate vector.
+
+        EXAMPLES::
+
+            sage: C = Cone([[1, 2, 0], [2, 1, 0]])
+            sage: C.representative_point()
+            (1, 1, 0)
+        """
+        affine_basis = self.an_affine_basis()
+        return sum(affine_basis) / len(affine_basis)
+
     def _test_convex_set(self, tester=None, **options):
         """
         Run some tests on the methods of :class:`ConvexSet_base`.

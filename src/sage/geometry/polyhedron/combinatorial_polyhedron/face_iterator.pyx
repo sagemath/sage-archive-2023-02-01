@@ -1484,7 +1484,7 @@ cdef class FaceIterator(FaceIterator_base):
             while facets:
                 one_face = faces.pop()
                 maybe_new_faces = [one_face.intersection(face) for face in faces]
-                ...
+        ...
 
     At this point we claim that ``maybe_new_faces`` contains all facets of ``one_face``,
     which we have not visited before.
@@ -1517,13 +1517,13 @@ cdef class FaceIterator(FaceIterator_base):
     Hence, in the following loop, an element ``face1`` in ``maybe_new_faces``
     is a facet of ``one_face`` if and only if it is not contained in another facet::
 
-                ...
+        ...
                 maybe_new_faces2 = []
                 for i, face1 in enumerate(maybe_new_faces):
                     if (all(not face1 < face2 for face2 in maybe_new_faces[:i])
                             and all(not face1 <= face2 for face2 in maybe_new_faces[i+1:])):
                         maybe_new_faces2.append(face1)
-                ...
+        ...
 
     Now ``maybe_new_faces2`` contains only facets of ``one_face``
     and some faces contained in any of ``visited_all``.
@@ -1532,23 +1532,23 @@ cdef class FaceIterator(FaceIterator_base):
     We construct ``new_faces`` as the list of all facets of ``one_face``
     not contained in any of ``visited_all``::
 
-                ...
+        ...
                 new_faces = []
                 for face1 in maybe_new_faces2:
                     if all(not face1 < face2 for face2 in visited_all):
                         new_faces.append(face1)
-                ...
+        ...
 
     By induction we can apply the algorithm, to visit all
     faces of ``one_face`` not contained in ``visited_all``::
 
-                ...
+        ...
                 face_iterator(new_faces, visited_all)
-                ...
+        ...
 
     Finally we visit ``one_face`` and add it to ``visited_all``::
 
-                ...
+        ...
                 visit(one_face)
                 visited_all.append(one_face)
 

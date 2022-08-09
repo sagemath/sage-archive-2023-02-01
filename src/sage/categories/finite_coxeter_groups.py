@@ -474,11 +474,12 @@ class FiniteCoxeterGroups(CategoryWithAxiom):
             from sage.combinat.posets.posets import Poset
             from sage.combinat.posets.lattices import LatticePoset
             if side == "twosided":
-                covers = tuple([u, v] for u in self for v in u.upper_covers(side="left")+u.upper_covers(side="right") )
-                return Poset((self, covers), cover_relations = True, facade = facade)
-            else:
-                covers = tuple([u, v] for u in self for v in u.upper_covers(side=side) )
-                return LatticePoset((self, covers), cover_relations = True, facade = facade)
+                covers = tuple([u, v] for u in self for v in u.upper_covers(side="left") + u.upper_covers(side="right"))
+                return Poset((self, covers), cover_relations=True,
+                             facade=facade)
+            covers = tuple([u, v] for u in self for v in u.upper_covers(side=side))
+            return LatticePoset((self, covers), cover_relations=True,
+                                facade=facade)
 
         weak_lattice = weak_poset
 

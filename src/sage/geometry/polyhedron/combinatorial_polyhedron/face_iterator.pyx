@@ -1490,16 +1490,9 @@ cdef class FaceIterator(FaceIterator_base):
     which we have not visited before.
 
     Proof: Let `F` be a facet of ``one_face``. We have a chain:
-
-    .. MATH::
-
-        P \supset \texttt{one\_face} \supset F.
-
-    By the diamond property, there exists a ``second_face`` with:
-
-    .. MATH::
-
-        P \supset \texttt{second\_face} \supset F.
+    `P \supset{}` ``one_face`` `{}\supset F`.
+    By the diamond property, there exists a ``second_face`` with
+    `P \supset{}` ``second_face`` `{}\supset F`.
 
     Now either ``second_face`` is not an element of ``faces``:
     Hence ``second_face`` is contained in one of ``visited_all``.

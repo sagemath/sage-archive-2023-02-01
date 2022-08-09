@@ -341,25 +341,50 @@ cdef class ExteriorAlgebraElement(CliffordAlgebraElement):
             -x*y*z*w
             sage: (z * w) * (x * y)
             x*y*z*w
+
+            sage: E.<a,b,c,d> = ExteriorAlgebra(QQ)
+            sage: r = sum(E.basis())
+            sage: r*r
+            4*a*b*c*d + 4*a*b*c + 4*a*b*d + 4*a*c*d + 4*b*c*d
+             + 2*a*b + 2*a*c + 2*a*d + 2*b*c + 2*b*d + 2*c*d
+             + 2*a + 2*b + 2*c + 2*d + 1
         """
         cdef Parent P = self._parent
         zero = P._base.zero()
-        cdef dict d = {}
+        cdef dict d
         cdef Py_ssize_t n = P.ngens()
         cdef ExteriorAlgebraElement rhs = <ExteriorAlgebraElement> other
+        cdef list to_remove
 
         cdef FrozenBitset ml, mr, t
         cdef Py_ssize_t num_cross, tot_cross, i, j
 
-        for ml,cl in self._monomial_coefficients.items(): # ml for "monomial on the left"
-            for mr,cr in rhs._monomial_coefficients.items(): # mr for "monomial on the right"
-                if ml.intersection(mr):
-                    # if they intersect nontrivially, move along.
-                    continue
+        ml = FrozenBitset()
 
+        if ml in self._monomial_coefficients:
+            const_coeff = self._monomial_coefficients[ml]
+            d = dict(rhs._monomial_coefficients) # Make a shallow copy
+            to_remove = []
+            if const_coeff != P._base.one():
+                for k in d:
+                    d[k] *= const_coeff
+                    if not d[k]:  # there might be zero divisors
+                        to_remove.append(k)
+                for k in to_remove:
+                    del d[k]
+        else:
+            d = {}
+
+        for ml,cl in self._monomial_coefficients.items(): # ml for "monomial on the left"
+            if not ml:  # We already handled the trivial element
+                continue
+            for mr,cr in rhs._monomial_coefficients.items(): # mr for "monomial on the right"
                 if not mr:
                     t = ml
                 else:
+                    if not ml.isdisjoint(mr):
+                        # if they intersect nontrivially, move along.
+                        continue
                     t = <FrozenBitset> ml._union(mr)
                     it = iter(mr)
                     j = next(it)

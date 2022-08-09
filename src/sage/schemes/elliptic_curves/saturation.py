@@ -674,10 +674,10 @@ def p_projections(Eq, Plist, p, debug=False):
         if debug:
             print("Cyclic case, taking dlogs to base {} of order {}".format(g,pp))
         # logs are well-defined mod pp, hence mod p
-        v = [dlog(pt, g, ord = pp, operation = '+') for pt in pts]
+        v = [dlog(pt, g, ord=pp, operation='+') for pt in pts]
         if debug:
             print("dlogs: {}".format(v))
-        return [vector(Fp,v)]
+        return [vector(Fp, v)]
 
     # We make no assumption about which generator order divides the
     # other, since conventions differ!
@@ -700,5 +700,7 @@ def p_projections(Eq, Plist, p, debug=False):
 
     # logs are well-defined mod p1, hence mod p
 
-    return [vector(Fp, [dlog(pt.weil_pairing(g1,p2), zeta, ord = p1, operation = '*') for pt in pts]),
-        vector(Fp, [dlog(pt.weil_pairing(g2,p2), zeta, ord = p1, operation = '*') for pt in pts])]
+    return [vector(Fp, [dlog(pt.weil_pairing(g1,p2), zeta,
+                             ord=p1, operation='*') for pt in pts]),
+        vector(Fp, [dlog(pt.weil_pairing(g2,p2), zeta,
+                         ord=p1, operation='*') for pt in pts])]

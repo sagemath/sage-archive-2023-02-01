@@ -2602,7 +2602,7 @@ class ConvexRationalPolyhedralCone(IntegralRayCollection, Container, ConvexSet_c
 
                 self._face_lattice = lattice_from_incidences(
                                     atom_to_facets, facet_to_atoms, ConeFace,
-                                    key = id(self))
+                                    key=id(self))
             else:
                 # Get face lattice as a sublattice of the ambient one
                 allowed_indices = frozenset(self._ambient_ray_indices)
@@ -2642,7 +2642,7 @@ class ConvexRationalPolyhedralCone(IntegralRayCollection, Container, ConvexSet_c
                         L.add_edge(face_to_index[face], next_index)
                 D = {i:f for i,f in enumerate(faces)}
                 L.relabel(D)
-                self._face_lattice = FinitePoset(L, faces, key = id(self))
+                self._face_lattice = FinitePoset(L, faces, key=id(self))
         return self._face_lattice
 
     # Internally we use this name for a uniform behaviour of cones and fans.

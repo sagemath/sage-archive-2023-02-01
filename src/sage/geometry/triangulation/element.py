@@ -193,21 +193,17 @@ def triangulation_render_3d(triangulation, **kwds):
     exterior_triangs = [l for l in all_triangs if l not in interior_triangs]
 
     plot_interior_triangs = \
-        sum([ polygon3d([coord[t[0]], coord[t[1]], coord[t[2]]],
-                        texture = triang_int, **kwds)
-              for t in interior_triangs ])
+        sum([polygon3d([coord[t[0]], coord[t[1]], coord[t[2]]],
+                       texture=triang_int, **kwds)
+             for t in interior_triangs])
     plot_exterior_triangs = \
-        sum([ polygon3d([coord[t[0]], coord[t[1]], coord[t[2]]],
-                        texture = triang_ext, **kwds)
-              for t in exterior_triangs ])
+        sum([polygon3d([coord[t[0]], coord[t[1]], coord[t[2]]],
+                       texture=triang_ext, **kwds)
+              for t in exterior_triangs])
 
-    return \
-        plot_points + \
+    return plot_points + \
         plot_interior_lines + plot_exterior_lines + \
         plot_interior_triangs + plot_exterior_triangs
-
-
-
 
 
 ########################################################################

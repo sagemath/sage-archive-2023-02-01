@@ -1191,15 +1191,16 @@ class Polyhedron_base(Polyhedron_base7):
         polymake_class = "Polytope<{}>".format(polymake_field)
         if self.is_empty():
             # Polymake 3.1 cannot enter an empty polyhedron using
-            # FACETS and AFFINE_HULL.  Use corresponding input properties instead.
+            # FACETS and AFFINE_HULL.
+            # Use corresponding input properties instead.
             # https://forum.polymake.org/viewtopic.php?f=8&t=545
             return polymake.new_object(polymake_class,
                                        INEQUALITIES=self.inequalities_list(),
                                        EQUATIONS=self.equations_list())
-        else:
-            return polymake.new_object(polymake_class,
-                                       FACETS=self.inequalities_list(),
-                                       AFFINE_HULL=self.equations_list(),
-                                       VERTICES=   [ [1] + v for v in self.vertices_list() ] \
-                                                 + [ [0] + r for r in self.rays_list() ],
-                                       LINEALITY_SPACE=[ [0] + l for l in self.lines_list() ])
+
+        return polymake.new_object(polymake_class,
+                                   FACETS=self.inequalities_list(),
+                                   AFFINE_HULL=self.equations_list(),
+                                   VERTICES=[[1] + v for v in self.vertices_list()] \
+                                   + [[0] + r for r in self.rays_list()],
+                                   LINEALITY_SPACE=[[0] + l for l in self.lines_list()])

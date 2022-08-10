@@ -865,6 +865,7 @@ def discrete_log(a, base, ord=None, bounds=None, operation='*', identity=None, i
 
     - William Stein and David Joyner (2005-01-05)
     - John Cremona (2008-02-29) rewrite using ``dict()`` and make generic
+    - Julien Grijalva (2022-08-09) rewrite to make more generic, more algorithm options, and more effective use of bounds
     """
     from operator import mul, add, pow
     power = mul if operation in addition_names else pow

@@ -1339,10 +1339,10 @@ cdef class LaurentPolynomial_univariate(LaurentPolynomial):
         return ret
 
     @coerce_binop
-    def quo_rem(self, right_r):
+    def quo_rem(self, other):
         """
-        Attempts to divide ``self`` by ``right`` and returns a quotient
-        ``q`` and a remainder ``r`` such that ``self = q*other + r``.
+        Divide ``self`` by ``other`` and return a quotient ``q``
+        and a remainder ``r`` such that ``self == q * other + r``.
 
         EXAMPLES::
 
@@ -1367,7 +1367,7 @@ cdef class LaurentPolynomial_univariate(LaurentPolynomial):
             sage: num == q * den + r
             True
         """
-        cdef LaurentPolynomial_univariate right = <LaurentPolynomial_univariate> right_r
+        cdef LaurentPolynomial_univariate right = <LaurentPolynomial_univariate> other
         q, r = self.__u.quo_rem(right.__u)
         cdef LaurentPolynomial_univariate ql, qr
         ql = <LaurentPolynomial_univariate> self._new_c()

@@ -396,19 +396,19 @@ class Singular(ExtraTabCompletion, Expect):
         prompt = '> '
         Expect.__init__(self,
                         terminal_echo=False,
-                        name = 'singular',
-                        prompt = prompt,
+                        name='singular',
+                        prompt=prompt,
                         # no tty, fine grained cputime()
                         # and do not display CTRL-C prompt
-                        command = "{} -t --ticks-per-sec 1000 --cntrlc=a".format(
+                        command="{} -t --ticks-per-sec 1000 --cntrlc=a".format(
                             shlex.quote(sage.features.singular.Singular().absolute_filename())),
-                        server = server,
-                        server_tmpdir = server_tmpdir,
-                        script_subdirectory = script_subdirectory,
-                        restart_on_ctrlc = True,
-                        verbose_start = False,
-                        logfile = logfile,
-                        eval_using_file_cutoff=100 if os.uname()[0]=="SunOS" else 1000)
+                        server=server,
+                        server_tmpdir=server_tmpdir,
+                        script_subdirectory=script_subdirectory,
+                        restart_on_ctrlc=True,
+                        verbose_start=False,
+                        logfile=logfile,
+                        eval_using_file_cutoff=100 if os.uname()[0] == "SunOS" else 1000)
         self.__libs  = []
         self._prompt_wait = prompt
         self.__to_clear = []   # list of variable names that need to be cleared.

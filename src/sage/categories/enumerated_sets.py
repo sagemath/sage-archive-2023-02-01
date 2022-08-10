@@ -650,11 +650,21 @@ class EnumeratedSets(CategoryWithAxiom):
                 sage: C = FiniteEnumeratedSets().example()
                 sage: C.unrank(2) # indirect doctest
                 3
+
+            TESTS::
+
+                sage: ZZ._unrank_from_iterator(-1)
+                Traceback (most recent call last):
+                ...
+                ValueError: the value must be greater than or equal to 0
                 sage: C._unrank_from_iterator(5)
                 Traceback (most recent call last):
                 ...
                 ValueError: the value must be between 0 and 2 inclusive
+            
             """
+            if r < 0:
+                raise ValueError("the value must be greater than or equal to 0")
             counter = 0
             for u in self:
                 if counter == r:

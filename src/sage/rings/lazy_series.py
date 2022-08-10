@@ -1,6 +1,5 @@
 # -*- coding: utf-8 -*-
-r"""
-Lazy Series
+r"""Lazy Series
 
 A lazy series is a series whose coefficients are computed on demand.
 Therefore, unlike the usual Laurent/power/etc. series in Sage,
@@ -56,6 +55,13 @@ We can do arithmetic with lazy power series::
     2 + z^2 + 3*z^3 + 5*z^4 + 8*z^5 + 13*z^6 + O(z^7)
     sage: g = (f + f^-1)*(f - f^-1); g
     4*z + 6*z^2 + 8*z^3 + 19*z^4 + 38*z^5 + 71*z^6 + O(z^7)
+
+We call lazy power series whose coefficients are known to be
+eventually constant 'exact'.  In some cases, computations with such
+series are much faster.  Moreover, these are the series where
+equality can be decided.  For example::
+
+    sage: f = 1/(1 - z)
 
 We can change the base ring::
 
@@ -319,12 +325,12 @@ class LazyModuleElement(Element):
             sage: L.<z> = LazyLaurentSeriesRing(ZZ, sparse=False)
             sage: alpha = 1/(1-z)
             sage: alpha
-            1 + z + z^2 + z^3 + z^4 + z^5 + z^6 + O(z^7)
+            1 + z + z^2 + O(z^3)
             sage: beta = alpha.truncate(5)
             sage: beta
             1 + z + z^2 + z^3 + z^4
             sage: alpha - beta
-            z^5 + z^6 + O(z^7)
+            z^5 + z^6 + z^7 + O(z^8)
             sage: M = L(lambda n: n, valuation=0); M
             z + 2*z^2 + 3*z^3 + 4*z^4 + 5*z^5 + 6*z^6 + O(z^7)
             sage: M.truncate(4)
@@ -2021,14 +2027,14 @@ class LazyCauchyProductSeries(LazyModuleElement):
         sage: L.<z> = LazyLaurentSeriesRing(ZZ)
         sage: f = 1 / (1 - z)
         sage: f
-        1 + z + z^2 + z^3 + z^4 + z^5 + z^6 + O(z^7)
+        1 + z + z^2 + O(z^3)
         sage: f * (1 - z)
-        1 + O(z^7)
+        1
 
         sage: L.<z> = LazyLaurentSeriesRing(ZZ, sparse=True)
         sage: f = 1 / (1 - z)
         sage: f
-        1 + z + z^2 + z^3 + z^4 + z^5 + z^6 + O(z^7)
+        1 + z + z^2 + O(z^3)
     """
     def valuation(self):
         r"""
@@ -2358,8 +2364,11 @@ class LazyCauchyProductSeries(LazyModuleElement):
         Lazy Laurent series that have a dense implementation can be divided::
 
             sage: L.<z> = LazyLaurentSeriesRing(ZZ, sparse=False)
-            sage: z/(1 - z)
-            z + z^2 + z^3 + z^4 + z^5 + z^6 + z^7 + O(z^8)
+            sage: z / (1 - z)
+            z + z^2 + z^3 + O(z^4)
+            sage: 1 / (z*(1-z))
+            z^-1 + 1 + z + O(z^2)
+
             sage: M = L(lambda n: n, 0); M
             z + 2*z^2 + 3*z^3 + 4*z^4 + 5*z^5 + 6*z^6 + O(z^7)
             sage: N = L(lambda n: 1, 0); N
@@ -2380,8 +2389,9 @@ class LazyCauchyProductSeries(LazyModuleElement):
         If the division of exact Lazy Laurent series yields a Laurent
         polynomial, it is represented as an exact series::
 
-            sage: 1/z
-            z^-1
+            sage: L.<z> = LazyLaurentSeriesRing(QQ)
+            sage: (3*z^-3 + 3*z^-2 + 2*z^2 + 2*z^3) / (6*z + 4*z^6)
+            1/2*z^-4 + 1/2*z^-3
 
             sage: m = z^2 + 2*z + 1
             sage: n = z + 1
@@ -2396,6 +2406,15 @@ class LazyCauchyProductSeries(LazyModuleElement):
             e[] + e[1]*z + e[1, 1]*z^2 + e[1, 1, 1]*z^3 + e[1, 1, 1, 1]*z^4
              + e[1, 1, 1, 1, 1]*z^5 + e[1, 1, 1, 1, 1, 1]*z^6 + O(e[]*z^7)
 
+        An example for multivariate Taylor series::
+
+            sage: L.<x, y> = LazyTaylorSeriesRing(QQ)
+            sage: 1 / (1 - y) # should be exact, but isn't
+            1 + y + y^2 + y^3 + y^4 + y^5 + y^6 + O(x,y)^7
+
+            sage: (x + y) / (1 - y) 
+            (x+y) + (x*y+y^2) + (x*y^2+y^3) + (x*y^3+y^4) + (x*y^4+y^5) + (x*y^5+y^6) + (x*y^6+y^7) + O(x,y)^8
+
         """
         if isinstance(other._coeff_stream, Stream_zero):
             raise ZeroDivisionError("cannot divide by 0")
@@ -2405,24 +2424,58 @@ class LazyCauchyProductSeries(LazyModuleElement):
         if isinstance(left, Stream_zero):
             return P.zero()
         right = other._coeff_stream
+        R = P._internal_poly_ring
         if (isinstance(left, Stream_exact)
-            and isinstance(right, Stream_exact)):
-            if not left._constant and not right._constant:
-                R = P._internal_poly_ring
-                pl = left._polynomial_part(R)
-                pr = right._polynomial_part(R)
-                try:
-                    ret = pl / pr
-                    ret = R(ret)
-                except (TypeError, ValueError, NotImplementedError):
-                    # We cannot divide the polynomials, so the result must be a series
-                    pass
-                else:
-                    initial_coefficients = [ret[i] for i in range(ret.valuation(), ret.degree() + 1)]
-                    return P.element_class(P, Stream_exact(initial_coefficients,
+            and isinstance(right, Stream_exact)
+            and hasattr(R, "_gcd_univariate_polynomial")):
+            z = R.gen()
+            num = left._polynomial_part(R) * (1-z) + left._constant * z**left._degree
+            den = right._polynomial_part(R) * (1-z) + right._constant * z**right._degree
+            # num / den is not necessarily reduced, but gcd and // seems to work:
+            # sage: a = var("a"); R.<z> = SR[]
+            # sage: (a*z - a)/(z - 1)
+            # (a*z - a)/(z - 1)
+            # sage: gcd((a*z - a), (z - 1))
+            # z - 1
+            g = num.gcd(den)
+            # apparently, the gcd is chosen so that den // g is is
+            # actually a polynomial, but we do not rely on this
+            num = num // g
+            den = den // g
+            exponents = den.exponents()
+            if len(exponents) == 1:
+                d = den[exponents[0]]
+                initial_coefficients = [c / d for c in num]
+                order = num.valuation() - den.valuation()
+                return P.element_class(P, Stream_exact(initial_coefficients,
+                                                       P._sparse,
+                                                       order=order,
+                                                       constant=0))
+
+            if (len(exponents) == 2
+                and exponents[0] + 1 == exponents[1]
+                and den[exponents[0]] == -den[exponents[1]]):
+                quo, rem = num.quo_rem(den)
+                # rem is a unit, i.e., in the Laurent case c*z^v
+                c, v_rem = rem.polynomial_construction()
+                constant = P.base_ring()(c / den[exponents[0]])
+                v = v_rem - exponents[0]
+                if quo:
+                    d = quo.degree()
+                    m = d - v + 1
+                    if m > 0:
+                        quo += R([constant]*m).shift(v)
+                        v = d + 1
+                    return P.element_class(P, Stream_exact(list(quo),
                                                            P._sparse,
-                                                           order=ret.valuation(),
-                                                           constant=left._constant))
+                                                           order=quo.valuation(),
+                                                           degree=v,
+                                                           constant=constant))
+                return P.element_class(P, Stream_exact([],
+                                                       P._sparse,
+                                                       order=v,
+                                                       degree=v,
+                                                       constant=constant))
 
         return P.element_class(P, Stream_cauchy_mul(left, Stream_cauchy_invert(right)))
 
@@ -2675,19 +2728,19 @@ class LazyLaurentSeries(LazyCauchyProductSeries):
 
             sage: f = z^-2 + 1 + z
             sage: g = 1/(y*(1-y)); g
-            y^-1 + 1 + y + y^2 + y^3 + y^4 + y^5 + O(y^6)
+            y^-1 + 1 + y + O(y^2)
             sage: f(g)
-            y^-1 + 2 + y + 2*y^2 - y^3 + 2*y^4 + y^5 + O(y^6)
-            sage: g^-2 + 1 + g
-            y^-1 + 2 + y + 2*y^2 - y^3 + 2*y^4 + y^5 + O(y^6)
+            y^-1 + 2 + y + 2*y^2 - y^3 + 2*y^4 + y^5 + y^6 + y^7 + O(y^8)
+            sage: g^-2 + 1 + g == f(g)
+            True
 
             sage: f = z^-3 + z^-2 + 1
             sage: g = 1/(y^2*(1-y)); g
-            y^-2 + y^-1 + 1 + y + y^2 + y^3 + y^4 + O(y^5)
+            y^-2 + y^-1 + 1 + O(y)
             sage: f(g)
-            1 + y^4 - 2*y^5 + 2*y^6 + O(y^7)
-            sage: g^-3 + g^-2 + 1
-            1 + y^4 - 2*y^5 + 2*y^6 + O(y^7)
+            1 + y^4 - 2*y^5 + 2*y^6 - 3*y^7 + 3*y^8 - y^9
+            sage: g^-3 + g^-2 + 1 == f(g)
+            True
             sage: z(y)
             y
 
@@ -3068,7 +3121,7 @@ class LazyLaurentSeries(LazyCauchyProductSeries):
             sage: z = L.gen()
             sage: f = (1 + z)/(z^3 - z^5)
             sage: f
-            z^-3 + z^-2 + z^-1 + 1 + z + z^2 + z^3 + O(z^4)
+            z^-3 + z^-2 + z^-1 + O(1)
             sage: f.polynomial(5)
             z^-3 + z^-2 + z^-1 + 1 + z + z^2 + z^3 + z^4 + z^5
             sage: f.polynomial(0)
@@ -3855,9 +3908,9 @@ class LazyDirichletSeries(LazyModuleElement):
             sage: L.<z> = LazyLaurentSeriesRing(QQ)
             sage: D = LazyDirichletSeriesRing(L, "s")
             sage: f = D([2, 0, 1/(1-z), 3]); f
-            (2)/1^s + ((1+z+z^2+z^3+z^4+z^5+z^6+O(z^7))/3^s) + (3)/4^s
+            (2)/1^s + ((1+z+z^2+O(z^3))/3^s) + (3)/4^s
             sage: f._format_series(ascii_art)
-            ((2)/1^s) + ((1 + z + z^2 + z^3 + z^4 + z^5 + z^6 + O(z^7))/3^s) + ((3)/4^s)
+            ((2)/1^s) + ((1 + z + z^2 + O(z^3))/3^s) + ((3)/4^s)
         """
         P = self.parent()
         cs = self._coeff_stream

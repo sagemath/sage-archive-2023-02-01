@@ -1,4 +1,4 @@
-"""
+r"""
 Shared memory managers for F-symbol attributes.
 
 This module provides an implementation for shared dictionary like
@@ -7,6 +7,7 @@ state attributes required by the orthogonal F-matrix solver.
 Currently, the attributes only work when the base field of the FMatrix
 factory is a cyclotomic field.
 """
+
 # ****************************************************************************
 #  Copyright (C) 2021 Guillermo Aboumrad <gh_willieab>
 #
@@ -15,8 +16,8 @@ factory is a cyclotomic field.
 # ****************************************************************************
 
 cimport cython
-from cysignals.memory cimport sig_malloc
 cimport numpy as np
+from cysignals.memory cimport sig_malloc
 from sage.algebras.fusion_rings.poly_tup_engine cimport poly_to_tup, tup_fixes_sq, _flatten_coeffs
 from sage.rings.integer cimport Integer
 from sage.rings.rational cimport Rational
@@ -27,51 +28,80 @@ import numpy as np
 from os import getpid
 
 cdef class KSHandler:
+    r"""
+    A shared memory backed dict-like structure to manage the
+    ``_ks`` attribute of an F-matrix.
+
+    This structure implements a representation of the known squares dictionary
+    using a structured NumPy array backed by a contiguous shared memory
+    object.
+
+    The structure mimics a dictionary of ``(idx, known_sq)`` pairs. Each
+    integer index corresponds to a variable and each ``known_sq`` is an
+    element of the F-matrix factory's base cyclotomic field.
+
+    Each cyclotomic coefficient is stored as a list of numerators and a
+    list of denominators representing the rational coefficients. The
+    structured array also maintains ``known`` attribute that indicates
+    whether the structure contains an entry corresponding to the given index.
+
+    The parent process should construct this object without a
+    ``name`` attribute. Children processes use the ``name`` attribute,
+    accessed via ``self.shm.name`` to attach to the shared memory block.
+
+    INPUT:
+
+    - ``n_slots`` -- the total number of F-symbols
+    - ``field`` -- F-matrix's base cyclotomic field
+    - ``use_mp`` -- a boolean indicating whether to construct a shared
+      memory block to back ``self``. Requires Python 3.8+, since we
+      must import the ``multiprocessing.shared_memory`` module. Attempting
+      to initialize when ``multiprocessing.shared_memory`` is not available
+      results in an ``ImportError``.
+    - ``name`` -- the name of a shared memory object
+      (used by child processes for attaching)
+    - ``init_data`` -- a dictionary or :class:`KSHandler` object containing
+      known squares for initialization, e.g., from a solver checkpoint
+
+    .. NOTE::
+
+        To properly dispose of shared memory resources,
+        ``self.shm.unlink()`` must be called before exiting.
+
+    .. WARNING::
+
+        This structure *cannot* modify an entry that
+        has already been set.
+
+    EXAMPLES::
+
+        sage: from sage.algebras.fusion_rings.shm_managers import KSHandler
+        sage: #Create shared data structure
+        sage: f = FMatrix(FusionRing("A1",2), inject_variables=True)
+        creating variables fx1..fx14
+        Defining fx0, fx1, fx2, fx3, fx4, fx5, fx6, fx7, fx8, fx9, fx10, fx11, fx12, fx13
+        sage: n = f._poly_ring.ngens()
+        sage: is_shared_memory_available = f.start_worker_pool()
+        sage: ks = KSHandler(n,f._field,use_mp=is_shared_memory_available)
+        sage: #In the same shell or in a different shell, attach to fvars
+        sage: name = ks.shm.name if is_shared_memory_available else None
+        sage: ks2 = KSHandler(n,f._field,name=name,use_mp=is_shared_memory_available)
+        sage: if not is_shared_memory_available:
+        ....:     ks2 = ks
+        sage: from sage.algebras.fusion_rings.poly_tup_engine import poly_to_tup
+        sage: eqns = [fx1**2 - 4, fx3**2 + f._field.gen()**4 - 1/19*f._field.gen()**2]
+        sage: ks.update([poly_to_tup(p) for p in eqns])
+        sage: for idx, sq in ks.items():
+        ....:     print("Index: {}, square: {}".format(idx, sq))
+        ....:
+        Index: 1, square: 4
+        Index: 3, square: -zeta32^4 + 1/19*zeta32^2
+        sage: if is_shared_memory_available: ks.shm.unlink()
+        sage: f.shutdown_worker_pool()
+    """
     def __init__(self, n_slots, field, use_mp=False, init_data={}, name=None):
-        """
-        Return a shared memory backed dict-like structure to manage the
-        ``_ks`` attribute of an F-matrix factory object.
-
-        This structure implements a representation of the known squares dictionary
-        using a structured NumPy array backed by a contiguous shared memory
-        object.
-
-        The structure mimics a dictionary of ``(idx, known_sq)`` pairs. Each
-        integer index corresponds to a variable and each ``known_sq`` is an
-        element of the F-matrix factory's base cyclotomic field.
-
-        Each cyclotomic coefficient is stored as a list of numerators and a
-        list of denominators representing the rational coefficients. The
-        structured array also maintains ``known`` attribute that indicates
-        whether the structure contains an entry corresponding to the given index.
-
-        The parent process should construct this object without a
-        ``name`` attribute. Children processes use the ``name`` attribute,
-        accessed via ``self.shm.name`` to attach to the shared memory block.
-
-        INPUT:
-
-        - ``n_slots`` -- The total number of F-symbols.
-        - ``field`` -- F-matrix factory's base cyclotomic field.
-        - ``use_mp`` -- a boolean indicating whether to construct a shared
-          memory block to back ``self``. Requires Python 3.8+, since we
-          must import the ``multiprocessing.shared_memory`` module. Attempting
-          to initialize when ``multiprocessing.shared_memory`` is not available
-          results in an ``ImportError``.
-        - ``name`` -- the name of a shared memory object
-          (used by child processes for attaching).
-        - ``init_data`` -- a dictionary or :class:`KSHandler` object containing
-          known squares for initialization, e.g. from a solver checkpoint.
-
-        .. NOTE::
-
-            To properly dispose of shared memory resources,
-            ``self.shm.unlink()`` must be called before exiting.
-
-        .. WARNING::
-
-            This structure *cannot* modify an entry that
-            has already been set.
+        r"""
+        Initialize ``self``.
 
         EXAMPLES::
 
@@ -81,21 +111,9 @@ cdef class KSHandler:
             creating variables fx1..fx14
             Defining fx0, fx1, fx2, fx3, fx4, fx5, fx6, fx7, fx8, fx9, fx10, fx11, fx12, fx13
             sage: n = f._poly_ring.ngens()
-            sage: is_shared_memory_available = f.start_worker_pool()     # Requires Python 3.8+
+            sage: is_shared_memory_available = f.start_worker_pool()
             sage: ks = KSHandler(n,f._field,use_mp=is_shared_memory_available)
-            sage: #In the same shell or in a different shell, attach to fvars
-            sage: name = ks.shm.name if is_shared_memory_available else None
-            sage: ks2 = KSHandler(n,f._field,name=name,use_mp=is_shared_memory_available)
-            sage: if not is_shared_memory_available:
-            ....:     ks2 = ks
-            sage: from sage.algebras.fusion_rings.poly_tup_engine import poly_to_tup
-            sage: eqns = [fx1**2 - 4, fx3**2 + f._field.gen()**4 - 1/19*f._field.gen()**2]
-            sage: ks.update([poly_to_tup(p) for p in eqns])
-            sage: for idx, sq in ks.items():
-            ....:     print("Index: {}, square: {}".format(idx, sq))
-            ....:
-            Index: 1, square: 4
-            Index: 3, square: -zeta32^4 + 1/19*zeta32^2
+            sage: TestSuite(ks).run()
             sage: if is_shared_memory_available: ks.shm.unlink()
             sage: f.shutdown_worker_pool()
         """
@@ -134,7 +152,7 @@ cdef class KSHandler:
     @cython.wraparound(False)
     @cython.boundscheck(False)
     cdef NumberFieldElement_absolute get(self, int idx):
-        """
+        r"""
         Retrieve the known square corresponding to the given index,
         if it exists.
         """
@@ -259,14 +277,14 @@ cdef class KSHandler:
             denoms[i] = denom
 
     cdef bint contains(self, int idx):
-        """
+        r"""
         Determine whether ``self`` contains entry corresponding to given
         ``idx``.
         """
         return self.ks_dat[idx]['known']
 
     def __eq__(self, KSHandler other):
-        """
+        r"""
         Test for equality.
 
         TESTS::
@@ -276,7 +294,7 @@ cdef class KSHandler:
             sage: f.get_orthogonality_constraints(output=False)
             sage: from sage.algebras.fusion_rings.shm_managers import KSHandler
             sage: n = f._poly_ring.ngens()
-            sage: is_shared_memory_available = f.start_worker_pool()     # Requires Python 3.8+
+            sage: is_shared_memory_available = f.start_worker_pool()
             sage: ks = KSHandler(n,f._field,use_mp=is_shared_memory_available,init_data=f._ks)
             sage: #In the same shell or in a different one, attach to shared memory handler
             sage: name = ks.shm.name if is_shared_memory_available else None
@@ -288,13 +306,10 @@ cdef class KSHandler:
             sage: if is_shared_memory_available: ks.shm.unlink()
             sage: f.shutdown_worker_pool()
         """
-        ret = True
-        for idx, sq in self.items():
-            ret &= other.get(idx) == sq
-        return ret
+        return all(other.get(idx) == sq for idx, sq in self.items())
 
     def __reduce__(self):
-        """
+        r"""
         Provide pickling / unpickling support for ``self.``
 
         TESTS::
@@ -308,10 +323,10 @@ cdef class KSHandler:
             True
         """
         d = {i: sq for i, sq in self.items()}
-        return make_KSHandler, (self.ks_dat.size,self.field,d)
+        return make_KSHandler, (self.ks_dat.size, self.field, d)
 
     def items(self):
-        """
+        r"""
         Iterate through existing entries using Python dict-style syntax.
 
         EXAMPLES::
@@ -338,91 +353,122 @@ cdef class KSHandler:
                 yield i, self.get(i)
 
 def make_KSHandler(n_slots,field,init_data):
-    """
+    r"""
     Provide pickling / unpickling support for :class:`KSHandler`.
 
     TESTS::
 
         sage: f = FMatrix(FusionRing("B4",1))
         sage: f._reset_solver_state()
-        sage: loads(dumps(f._ks)) == f._ks                 #indirect doctest
+        sage: loads(dumps(f._ks)) == f._ks                 # indirect doctest
         True
-        sage: f.find_orthogonal_solution(verbose=False)    #long time
-        sage: loads(dumps(f._ks)) == f._ks                 #indirect doctest
+        sage: f.find_orthogonal_solution(verbose=False)    # long time
+        sage: loads(dumps(f._ks)) == f._ks                 # indirect doctest
         True
     """
-    return KSHandler(n_slots,field,init_data=init_data)
+    return KSHandler(n_slots, field, init_data=init_data)
 
 cdef class FvarsHandler:
+    r"""
+    A shared memory backed dict-like structure to manage the
+    ``_fvars`` attribute of an F-matrix.
+
+    This structure implements a representation of the F-symbols dictionary
+    using a structured NumPy array backed by a contiguous shared memory
+    object.
+
+    The monomial data is stored in the ``exp_data`` structure. Monomial
+    exponent data is stored contiguously and ``ticks`` are used to
+    indicate different monomials.
+
+    Coefficient data is stored in the ``coeff_nums`` and ``coeff_denom``
+    arrays. The ``coeff_denom`` array stores the value
+    ``d = coeff.denominator()`` for each cyclotomic coefficient. The
+    ``coeff_nums`` array stores the values
+    ``c.numerator() * d for c in coeff._coefficients()``, the abridged
+    list representation of the cyclotomic coefficient ``coeff``.
+
+    Each entry also has a boolean ``modified`` attribute, indicating
+    whether it has been modified by the parent process. Entry retrieval
+    is cached in each process, so each process must check whether
+    entries have been modified before attempting retrieval.
+
+    The parent process should construct this object without a
+    ``name`` attribute. Children processes use the ``name`` attribute,
+    accessed via ``self.shm.name`` to attach to the shared memory block.
+
+    INPUT:
+
+    - ``factory`` -- an F-matrix
+    - ``name`` -- the name of a shared memory object
+      (used by child processes for attaching)
+    - ``max_terms`` -- maximum number of terms in each entry; since
+      we use contiguous C-style memory blocks, the size of the block
+      must be known in advance
+    - ``use_mp`` -- an integer indicating the number of child processes
+      used for multiprocessing; if running serially, use 0.
+
+      Multiprocessing requires Python 3.8+, since we must import the
+      ``multiprocessing.shared_memory`` module. Attempting to initialize
+      when ``multiprocessing.shared_memory`` is not available results in
+      an ``ImportError``.
+
+    - ``pids_name`` -- the name of a ``ShareableList`` contaning the
+      process ``pid``'s for every process in the pool (including the
+      parent process)
+    - ``n_bytes`` -- the number of bytes that should be allocated for
+      each numerator and each denominator stored by the structure
+
+    .. NOTE::
+
+        To properly dispose of shared memory resources,
+        ``self.shm.unlink()`` must be called before exiting.
+
+    .. NOTE::
+
+        If you ever encounter an ``OverflowError`` when running the
+        :meth:`FMatrix.find_orthogonal_solution` solver, consider
+        increasing the parameter ``n_bytes``.
+
+    .. WARNING::
+
+        The current data structure supports up to `2^16` entries,
+        with each monomial in each entry having at most 254
+        nonzero terms. On average, each of the ``max_terms`` monomials
+        can have at most 30 terms.
+
+    EXAMPLES::
+
+        sage: from sage.algebras.fusion_rings.shm_managers import FvarsHandler
+        sage: #Create shared data structure
+        sage: f = FMatrix(FusionRing("A2",1), inject_variables=True)
+        creating variables fx1..fx8
+        Defining fx0, fx1, fx2, fx3, fx4, fx5, fx6, fx7
+        sage: is_shared_memory_available = f.start_worker_pool()     # Requires Python 3.8+
+        sage: if is_shared_memory_available:
+        ....:     n_proc = f.pool._processes
+        ....:     pids_name = f._pid_list.shm.name
+        ....: else:
+        ....:     n_proc = 0
+        ....:     pids_name = None
+        sage: fvars = FvarsHandler(8, f._field, f._idx_to_sextuple, use_mp=n_proc, pids_name=pids_name)
+        sage: #In the same shell or in a different shell, attach to fvars
+        sage: name = fvars.shm.name if is_shared_memory_available else None
+        sage: fvars2 = FvarsHandler(8, f._field, f._idx_to_sextuple, name=name ,use_mp=n_proc, pids_name=pids_name)
+        sage: if not is_shared_memory_available:
+        ....:     fvars2 = fvars
+        sage: from sage.algebras.fusion_rings.poly_tup_engine import poly_to_tup
+        sage: rhs = tuple((exp, tuple(c._coefficients())) for exp, c in poly_to_tup(fx5**5))
+        sage: fvars[f2, f1, f2, f2, f0, f0] = rhs
+        sage: f._tup_to_fpoly(fvars2[f2, f1, f2, f2, f0, f0])
+        fx5^5
+        sage: if is_shared_memory_available: fvars.shm.unlink()
+        sage: f.shutdown_worker_pool()
+    """
     def __init__(self, n_slots, field, idx_to_sextuple, init_data={}, use_mp=0,
                  pids_name=None, name=None, max_terms=20, n_bytes=32):
-        """
-        Return a shared memory backed dict-like structure to manage the
-        ``_fvars`` attribute of an F-matrix factory object.
-
-        This structure implements a representation of the F-symbols dictionary
-        using a structured NumPy array backed by a contiguous shared memory
-        object.
-
-        The monomial data is stored in the ``exp_data`` structure. Monomial
-        exponent data is stored contiguously and ``ticks`` are used to
-        indicate different monomials.
-
-        Coefficient data is stored in the ``coeff_nums`` and ``coeff_denom``
-        arrays. The ``coeff_denom`` array stores the value
-        ``d = coeff.denominator()`` for each cyclotomic coefficient. The
-        ``coeff_nums`` array stores the values
-        ``c.numerator() * d for c in coeff._coefficients()``, the abridged
-        list representation of the cyclotomic coefficient ``coeff``.
-
-        Each entry also has a boolean ``modified`` attribute, indicating
-        whether it has been modified by the parent process. Entry retrieval
-        is cached in each process, so each process must check whether
-        entries have been modified before attempting retrieval.
-
-        The parent process should construct this object without a
-        ``name`` attribute. Children processes use the ``name`` attribute,
-        accessed via ``self.shm.name`` to attach to the shared memory block.
-
-        INPUT:
-
-        - ``factory`` -- an F-matrix factory object
-        - ``name`` -- the name of a shared memory object
-          (used by child processes for attaching)
-        - ``max_terms`` -- maximum number of terms in each entry; since
-          we use contiguous C-style memory blocks, the size of the block
-          must be known in advance
-        - ``use_mp`` -- an integer indicating the number of child processes
-          used for multiprocessing; if running serially, use 0.
-
-          Multiprocessing requires Python 3.8+, since we must import the
-          ``multiprocessing.shared_memory`` module. Attempting to initialize
-          when ``multiprocessing.shared_memory`` is not available results in
-          an ``ImportError``.
-
-        - ``pids_name`` -- the name of a ``ShareableList`` contaning the
-          process ``pid``'s for every process in the pool (including the
-          parent process)
-        - ``n_bytes`` -- the number of bytes that should be allocated for
-          each numerator and each denominator stored by the structure
-
-        .. NOTE::
-
-            To properly dispose of shared memory resources,
-            ``self.shm.unlink()`` must be called before exiting.
-
-        .. NOTE::
-
-            If you ever encounter an ``OverflowError`` when running the
-            :meth:`FMatrix.find_orthogonal_solution`` solver, consider
-            increasing the parameter ``n_bytes``.
-
-        .. WARNING::
-
-            The current data structure supports up to `2^16` entries,
-            with each monomial in each entry having at most 254
-            nonzero terms. On average, each of the ``max_terms`` monomials
-            can have at most 30 terms.
+        r"""
+        Initialize ``self``.
 
         EXAMPLES::
 
@@ -439,16 +485,7 @@ cdef class FvarsHandler:
             ....:     n_proc = 0
             ....:     pids_name = None
             sage: fvars = FvarsHandler(8,f._field,f._idx_to_sextuple,use_mp=n_proc,pids_name=pids_name)
-            sage: #In the same shell or in a different shell, attach to fvars
-            sage: name = fvars.shm.name if is_shared_memory_available else None
-            sage: fvars2 = FvarsHandler(8,f._field,f._idx_to_sextuple,name=name,use_mp=n_proc,pids_name=pids_name)
-            sage: if not is_shared_memory_available:
-            ....:     fvars2 = fvars
-            sage: from sage.algebras.fusion_rings.poly_tup_engine import poly_to_tup
-            sage: rhs = tuple((exp, tuple(c._coefficients())) for exp, c in poly_to_tup(fx5**5))
-            sage: fvars[f2, f1, f2, f2, f0, f0] = rhs
-            sage: f._tup_to_fpoly(fvars2[f2, f1, f2, f2, f0, f0])
-            fx5^5
+            sage: TestSuite(fvars).run()
             sage: if is_shared_memory_available: fvars.shm.unlink()
             sage: f.shutdown_worker_pool()
         """
@@ -611,7 +648,7 @@ cdef class FvarsHandler:
     @cython.nonecheck(False)
     @cython.wraparound(False)
     def __setitem__(self, sextuple, fvar):
-        """
+        r"""
         Given a sextuple of labels and a tuple of ``(ETuple, cyc_coeff)`` pairs,
         create or overwrite an entry in the shared data structure
         corresponding to the given sextuple.
@@ -623,7 +660,7 @@ cdef class FvarsHandler:
             sage: f = FMatrix(FusionRing("A3", 1), inject_variables=True)
             creating variables fx1..fx27
             Defining fx0, ..., fx26
-            sage: is_shared_memory_available = f.start_worker_pool()     # Requires Python 3.8+
+            sage: is_shared_memory_available = f.start_worker_pool()
             sage: if is_shared_memory_available:
             ....:     n_proc = f.pool._processes
             ....:     pids_name = f._pid_list.shm.name
@@ -700,7 +737,7 @@ cdef class FvarsHandler:
         modified[:] = 1
 
     def __reduce__(self):
-        """
+        r"""
         Provide pickling / unpickling support for ``self.``
 
         TESTS::
@@ -708,7 +745,7 @@ cdef class FvarsHandler:
             sage: f = FMatrix(FusionRing("F4",1))
             sage: from sage.algebras.fusion_rings.shm_managers import FvarsHandler
             sage: n = f._poly_ring.ngens()
-            sage: is_shared_memory_available = f.start_worker_pool()     # Requires Python 3.8+
+            sage: is_shared_memory_available = f.start_worker_pool()
             sage: if is_shared_memory_available:
             ....:     n_proc = f.pool._processes
             ....:     pids_name = f._pid_list.shm.name
@@ -728,7 +765,7 @@ cdef class FvarsHandler:
         return make_FvarsHandler, (n,self.field,idx_map,d)
 
     def items(self):
-        """
+        r"""
         Iterates through key-value pairs in the data structure as if it
         were a Python dict.
 
@@ -752,7 +789,7 @@ cdef class FvarsHandler:
             yield sextuple, self[sextuple]
 
 def make_FvarsHandler(n,field,idx_map,init_data):
-    """
+    r"""
     Provide pickling / unpickling support for :class:`FvarsHandler`.
 
     TESTS::
@@ -760,7 +797,7 @@ def make_FvarsHandler(n,field,idx_map,init_data):
         sage: f = FMatrix(FusionRing("G2",1))
         sage: from sage.algebras.fusion_rings.shm_managers import FvarsHandler
         sage: n = f._poly_ring.ngens()
-        sage: is_shared_memory_available = f.start_worker_pool()     # Requires Python 3.8+
+        sage: is_shared_memory_available = f.start_worker_pool()
         sage: if is_shared_memory_available:
         ....:     n_proc = f.pool._processes
         ....:     pids_name = f._pid_list.shm.name

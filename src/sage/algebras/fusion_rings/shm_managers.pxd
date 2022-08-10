@@ -1,5 +1,4 @@
 cimport numpy as np
-import numpy as np
 from sage.rings.number_field.number_field_base cimport NumberField
 from sage.rings.number_field.number_field_element cimport NumberFieldElement_absolute
 
@@ -22,3 +21,4 @@ cdef class FvarsHandler:
     cdef object fvars_t, pid_list
     cdef Py_ssize_t child_id
     cdef public object shm
+

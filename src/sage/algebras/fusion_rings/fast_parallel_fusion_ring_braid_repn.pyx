@@ -77,7 +77,7 @@ cdef odd_one_out_ij_cache = dict()
 cdef mid_sig_ij_cache = dict()
 
 cdef cached_mid_sig_ij(fusion_ring,row,col,a,b):
-    """
+    r"""
     Cached version of :meth:`mid_sig_ij`.
     """
     if (row,col,a,b) in mid_sig_ij_cache:
@@ -87,7 +87,7 @@ cdef cached_mid_sig_ij(fusion_ring,row,col,a,b):
     return entry
 
 cdef cached_odd_one_out_ij(fusion_ring,xi,xj,a,b):
-    """
+    r"""
     Cached version of :meth:`odd_one_out_ij`.
     """
     if (xi,xj,a,b) in odd_one_out_ij_cache:
@@ -178,7 +178,7 @@ cdef sig_2k(fusion_ring, tuple args):
 @cython.nonecheck(False)
 @cython.cdivision(True)
 cdef odd_one_out(fusion_ring, tuple args):
-    """
+    r"""
     Compute entries of the rightmost braid generator, in case we have an
     odd number of strands.
     """
@@ -304,7 +304,7 @@ cpdef executor(tuple params):
 ######################################
 
 cpdef _unflatten_entries(fusion_ring, list entries):
-    """
+    r"""
     Restore cyclotomic coefficient object from its tuple of rational
     coefficients representation.
 

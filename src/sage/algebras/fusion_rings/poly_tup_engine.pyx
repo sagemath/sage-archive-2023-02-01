@@ -150,7 +150,7 @@ cdef inline int has_appropriate_linear_term(tuple eq_tup):
 ######################
 
 cpdef inline tup_to_univ_poly(tuple eq_tup, univ_poly_ring):
-    """
+    r"""
     Given a tuple of pairs representing a univariate polynomial and a univariate
     polynomial ring, return a univariate polynomial object.
 
@@ -178,7 +178,7 @@ cpdef inline tup_to_univ_poly(tuple eq_tup, univ_poly_ring):
     return univ_poly_ring({exp._data[1] if exp._nonzero else 0: c for exp, c in eq_tup})
 
 cpdef inline tuple resize(tuple eq_tup, dict idx_map, int nvars):
-    """
+    r"""
     Return a tuple representing a polynomial in a ring with
     ``len(sorted_vars)`` generators.
 

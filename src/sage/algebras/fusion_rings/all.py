@@ -3,7 +3,7 @@ Fusion Rings
 """
 
 # ****************************************************************************
-#       Copyright (C) 2021 Travis Scrimshaw <tscrim at ucdavis.edu>
+#       Copyright (C) 2022 Guillermo Aboumrad <gh_willieab>
 #
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by

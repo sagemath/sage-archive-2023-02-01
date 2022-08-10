@@ -1,5 +1,5 @@
 r"""
-F-Matrix Factory for FusionRings
+F-Matries of fusion rings
 """
 # ****************************************************************************
 #  Copyright (C) 2019 Daniel Bump <bump at match.stanford.edu>
@@ -43,239 +43,244 @@ from sage.graphs.graph import Graph
 from sage.matrix.constructor import matrix
 from sage.misc.misc import get_main_globals
 from sage.rings.ideal import Ideal
-from sage.rings.polynomial.all import PolynomialRing
+from sage.structure.sage_object import SageObject
+from sage.rings.polynomial.polynomial_ring_constructor import PolynomialRing
 from sage.rings.polynomial.polydict import ETuple
 from sage.rings.qqbar import AA, QQbar, number_field_elements_from_algebraics
 
-class FMatrix():
+class FMatrix(SageObject):
+    r"""
+    Return an F-Matrix factory for a :class:`FusionRing`.
+
+    INPUT:
+
+    - ``FR`` -- a :class:`FusionRing`
+    - ``fusion_label`` -- (optional) a string used to label basis elements
+      of the :class:`FusionRing` associated to ``self``
+      (see :meth:`FusionRing.fusion_labels`)
+    - ``var_prefix`` -- (optional) a string indicating the desired prefix
+      for variables denoting F-symbols to be solved
+    - ``inject_variables`` -- (default: ``False``) a boolean indicating
+      whether to inject variables (:class:`FusionRing` basis element
+      labels and F-symbols) into the global namespace
+
+    The :class:`FusionRing` or Verlinde algebra is the
+    Grothendieck ring of a modular tensor category [BaKi2001]_.
+    Such categories arise in conformal field theory or in the
+    representation theories of affine Lie algebras, or
+    quantum groups at roots of unity. They have applications
+    to low dimensional topology and knot theory, to conformal
+    field theory and to topological quantum computing. The
+    :class:`FusionRing` captures much information about a fusion
+    category, but to complete the picture, the F-matrices or
+    6j-symbols are needed. For example these are required in
+    order to construct braid group representations. This
+    can be done using the :class:`FusionRing` method
+    :meth:`FusionRing.get_braid_generators`, which uses
+    the F-matrix.
+
+    We only undertake to compute the F-matrix if the
+    :class:`FusionRing` is *multiplicity free* meaning that
+    the Fusion coefficients `N^{ij}_k` are bounded
+    by 1. For Cartan Types `X_r` and level `k`,
+    the multiplicity-free cases are given by the
+    following table.
+
+    +------------------------+----------+
+    | Cartan Type            | `k`      |
+    +========================+==========+
+    | `A_1`                  | any      |
+    +------------------------+----------+
+    | `A_r, r\geq 2`         | `\leq 2` |
+    +------------------------+----------+
+    | `B_r, r\geq 2`         | `\leq 2` |
+    +------------------------+----------+
+    | `C_2`                  | `\leq 2` |
+    +------------------------+----------+
+    | `C_r, r\geq 3`         | `\leq 1` |
+    +------------------------+----------+
+    | `D_r, r\geq 4`         | `\leq 2` |
+    +------------------------+----------+
+    | `G_2,F_4,E_6,E_7`      | `\leq 2` |
+    +------------------------+----------+
+    | `E_8`                  | `\leq 3` |
+    +------------------------+----------+
+
+    Beyond this limitation, computation of the F-matrix
+    can involve very large systems of equations. A
+    rule of thumb is that this code can compute the
+    F-matrix for systems with `\leq 14` simple objects
+    (primary fields) on a machine with 16 GB of memory.
+    (Larger examples can be quite time consuming.)
+
+    The :class:`FusionRing` and its methods capture much
+    of the structure of the underlying tensor category.
+    But an important aspect that is not encoded in the
+    fusion ring is the associator, which is a homomorphism
+    `(A\otimes B)\otimes C\to A\otimes(B\otimes C)` that
+    requires an additional tool, the F-matrix or 6j-symbol.
+    To specify this, we fix a simple object `D`
+    and represent the transformation
+
+    .. MATH::
+
+        \text{Hom}(D,(A\otimes B)\otimes C)
+        \to \text{Hom}(D,A\otimes(B\otimes C))
+
+    by a matrix `F^{ABC}_D`. This depends on a pair of
+    additional simple objects `X` and `Y`. Indeed, we can
+    get a basis for `\text{Hom}(D,(A\otimes B)\otimes C)`
+    indexed by simple objects `X` in which the corresponding
+    homomorphism factors through `X\otimes C`, and similarly
+    `\text{Hom}(D,A\otimes(B\otimes C))` has a basis indexed
+    by `Y`, in which the basis vector factors through `A\otimes Y`.
+
+    See [TTWL2009]_ for an introduction to this topic,
+    [EGNO2015]_ Section 4.9 for a precise mathematical
+    definition, and [Bond2007]_ Section 2.5 for a discussion
+    of how to compute the F-matrix. In addition to
+    [Bond2007]_, worked out F-matrices may be found in
+    [RoStWa2009]_ and [CHW2015]_.
+
+    The F-matrix is only determined up to a *gauge*. This
+    is a family of embeddings `C \to A\otimes B` for
+    simple objects `A,B,C` such that `\text{Hom}(C, A\otimes B)`
+    is nonzero. Changing the gauge changes the F-matrix though
+    not in a very essential way. By varying the gauge it is
+    possible to make the F-matrices unitary, or it is possible
+    to make them cyclotomic.
+
+    Due to the large number of equations we may fail to find a
+    Groebner basis if there are too many variables.
+
+    EXAMPLES::
+
+        sage: I = FusionRing("E8", 2, conjugate=True)
+        sage: I.fusion_labels(["i0","p","s"],inject_variables=True)
+        sage: f = FMatrix(I,inject_variables=True); f
+        creating variables fx1..fx14
+        Defining fx0, fx1, fx2, fx3, fx4, fx5, fx6, fx7, fx8, fx9, fx10, fx11, fx12, fx13
+        F-Matrix factory for The Fusion Ring of Type E8 and level 2 with Integer Ring coefficients
+
+    We have injected two sets of variables to the global namespace.
+    We created three variables ``i0, p, s`` to represent the
+    primary fields (simple elements) of the :class:`FusionRing`. Creating
+    the :class:`FMatrix` factory also created variables
+    ``fx1, fx2, ..., fx14`` in order to solve the hexagon and pentagon
+    equations describing the F-matrix. Since we called :class:`FMatrix`
+    with the parameter ``inject_variables=True``, these have been injected
+    into the global namespace. This is not necessary for the code to work
+    but if you want to run the code experimentally you may want access
+    to these variables.
+
+    EXAMPLES::
+
+        sage: f.fmatrix(s,s,s,s)
+        [fx10 fx11]
+        [fx12 fx13]
+
+    The F-matrix has not been computed at this stage, so
+    the F-matrix `F^{sss}_s` is filled with variables
+    ``fx10``, ``fx11``, ``fx12``, ``fx13``. The task is
+    to solve for these.
+
+    As explained above The F-matrix `(F^{ABC}_D)_{X,Y}`
+    two other variables `X` and `Y`. We have methods to
+    tell us (depending on `A,B,C,D`) what the possibilities
+    for these are. In this example with `A=B=C=D=s`
+    both `X` and `Y` are allowed to be `i_0` or `s`.
+
+    ::
+
+        sage: f.f_from(s,s,s,s), f.f_to(s,s,s,s)
+        ([i0, p], [i0, p])
+
+    The last two statments show that the possible values of
+    `X` and `Y` when `A = B = C = D = s` are `i_0` and `p`.
+
+    The F-matrix is computed by solving the so-called
+    pentagon and hexagon equations. The *pentagon equations*
+    reflect the Mac Lane pentagon axiom in the definition
+    of a monoidal category. The hexagon relations
+    reflect the axioms of a *braided monoidal category*,
+    which are constraints on both the F-matrix and on
+    the R-matrix. Optionally, orthogonality constraints
+    may be imposed to obtain an orthogonal F-matrix.
+
+    ::
+
+        sage: sorted(f.get_defining_equations("pentagons"))[1:3]
+        [fx9*fx12 - fx2*fx13, fx4*fx11 - fx2*fx13]
+        sage: sorted(f.get_defining_equations("hexagons"))[1:3]
+        [fx6 - 1, fx2 + 1]
+        sage: sorted(f.get_orthogonality_constraints())[1:3]
+        [fx10*fx11 + fx12*fx13, fx10*fx11 + fx12*fx13]
+
+    There are two methods available to compute an F-matrix.
+    The first, :meth:`find_cyclotomic_solution` uses only
+    the pentagon and hexagon relations. The second,
+    :meth:`find_orthogonal_solution` uses additionally
+    the orthogonality relations. There are some differences
+    that should be kept in mind.
+
+    :meth:`find_cyclotomic_solution` currently works only with
+    smaller examples. For example the :class:`FusionRing` for `G_2`
+    at level 2 is too large. When it is available, this method
+    produces an F-matrix whose entries are in the same
+    cyclotomic field as the underlying :class:`FusionRing`.
+
+    ::
+
+        sage: f.find_cyclotomic_solution()
+        Setting up hexagons and pentagons...
+        Finding a Groebner basis...
+        Solving...
+        Fixing the gauge...
+        adding equation... fx1 - 1
+        adding equation... fx11 - 1
+        Done!
+
+    We now have access to the values of the F-matrix using
+    the methods :meth:`fmatrix` and :meth:`fmat`::
+
+        sage: f.fmatrix(s,s,s,s)
+        [(-1/2*zeta128^48 + 1/2*zeta128^16)                                  1]
+        [                               1/2  (1/2*zeta128^48 - 1/2*zeta128^16)]
+        sage: f.fmat(s,s,s,s,p,p)
+        (1/2*zeta128^48 - 1/2*zeta128^16)
+
+    :meth:`find_orthogonal_solution` is much more powerful
+    and is capable of handling large cases, sometimes
+    quickly but sometimes (in larger cases) after hours of
+    computation. Its F-matrices are not always in the
+    cyclotomic field that is the base ring of the underlying
+    :class:`FusionRing`, but sometimes in an extension field adjoining
+    some square roots. When this happens, the :class:`FusionRing` is
+    modified, adding an attribute ``_basecoer`` that is
+    a coercion from the cyclotomic field to the field
+    containing the F-matrix. The field containing the F-matrix
+    is available through :meth:`field`.
+
+    ::
+
+        sage: f = FMatrix(FusionRing("B3",2))
+        sage: f.find_orthogonal_solution(verbose=False,checkpoint=True)     # not tested (~100 s)
+        sage: all(v in CyclotomicField(56) for v in f.get_fvars().values()) # not tested
+        True
+
+        sage: f = FMatrix(FusionRing("G2",2))
+        sage: f.find_orthogonal_solution(verbose=False) # long time (~11 s)
+        sage: f.field()                                 # long time
+        Algebraic Field
+    """
     def __init__(self, fusion_ring, fusion_label="f", var_prefix='fx', inject_variables=False):
         r"""
-        Return an F-Matrix factory for a :class:`FusionRing`.
-
-        INPUT:
-
-        - ``FR`` -- a :class:`FusionRing`
-
-        - ``fusion_label`` -- (optional) a string used to label basis elements
-          of the :class:`FusionRing` associated to ``self``
-
-          See :meth:`FusionRing.fusion_labels`
-
-        - ``var_prefix`` -- (optional) a string indicating the desired prefix
-          for variables denoting F-symbols to be solved
-
-        - ``inject_variables`` -- (default: ``False``) a boolean indicating
-          whether to inject variables (:class:`FusionRing` basis element
-          labels and F-symbols) into the global namespace
-
-        The :class:`FusionRing` or Verlinde algebra is the
-        Grothendieck ring of a modular tensor category [BaKi2001]_.
-        Such categories arise in conformal field theory or in the
-        representation theories of affine Lie algebras, or
-        quantum groups at roots of unity. They have applications
-        to low dimensional topology and knot theory, to conformal
-        field theory and to topological quantum computing. The
-        :class:`FusionRing` captures much information about a fusion
-        category, but to complete the picture, the F-matrices or
-        6j-symbols are needed. For example these are required in
-        order to construct braid group representations. This
-        can be done using the :class:`FusionRing` method
-        :meth:`FusionRing.get_braid_generators`, which uses
-        the F-matrix.
-
-        We only undertake to compute the F-matrix if the
-        :class:`FusionRing` is *multiplicity free* meaning that
-        the Fusion coefficients `N^{ij}_k` are bounded
-        by 1. For Cartan Types `X_r` and level `k`,
-        the multiplicity-free cases are given by the
-        following table.
-
-        +------------------------+----------+
-        | Cartan Type            | `k`      |
-        +========================+==========+
-        | `A_1`                  | any      |
-        +------------------------+----------+
-        | `A_r, r\geq 2`         | `\leq 2` |
-        +------------------------+----------+
-        | `B_r, r\geq 2`         | `\leq 2` |
-        +------------------------+----------+
-        | `C_2`                  | `\leq 2` |
-        +------------------------+----------+
-        | `C_r, r\geq 3`         | `\leq 1` |
-        +------------------------+----------+
-        | `D_r, r\geq 4`         | `\leq 2` |
-        +------------------------+----------+
-        | `G_2,F_4,E_6,E_7`      | `\leq 2` |
-        +------------------------+----------+
-        | `E_8`                  | `\leq 3` |
-        +------------------------+----------+
-
-        Beyond this limitation, computation of the F-matrix
-        can involve very large systems of equations. A
-        rule of thumb is that this code can compute the
-        F-matrix for systems with `\leq 14` simple objects
-        (primary fields) on a machine with 16 GB of memory.
-        (Larger examples can be quite time consuming.)
-
-        The :class:`FusionRing` and its methods capture much
-        of the structure of the underlying tensor category.
-        But an important aspect that is not encoded in the
-        fusion ring is the associator, which is a homomorphism
-        `(A\otimes B)\otimes C\to A\otimes(B\otimes C)` that
-        requires an additional tool, the F-matrix or 6j-symbol.
-        To specify this, we fix a simple object `D`
-        and represent the transformation
-
-        .. MATH::
-
-            \text{Hom}(D,(A\otimes B)\otimes C)
-            \to \text{Hom}(D,A\otimes(B\otimes C))
-
-        by a matrix `F^{ABC}_D`. This depends on a pair of
-        additional simple objects `X` and `Y`. Indeed, we can
-        get a basis for `\text{Hom}(D,(A\otimes B)\otimes C)`
-        indexed by simple objects `X` in which the corresponding
-        homomorphism factors through `X\otimes C`, and similarly
-        `\text{Hom}(D,A\otimes(B\otimes C))` has a basis indexed
-        by `Y`, in which the basis vector factors through `A\otimes Y`.
-
-        See [TTWL2009]_ for an introduction to this topic,
-        [EGNO2015]_ Section 4.9 for a precise mathematical
-        definition, and [Bond2007]_ Section 2.5 for a discussion
-        of how to compute the F-matrix. In addition to
-        [Bond2007]_, worked out F-matrices may be found in
-        [RoStWa2009]_ and [CHW2015]_.
-
-        The F-matrix is only determined up to a *gauge*. This
-        is a family of embeddings `C \to A\otimes B` for
-        simple objects `A,B,C` such that `\text{Hom}(C, A\otimes B)`
-        is nonzero. Changing the gauge changes the F-matrix though
-        not in a very essential way. By varying the gauge it is
-        possible to make the F-matrices unitary, or it is possible
-        to make them cyclotomic.
-
-        Due to the large number of equations we may fail to find a
-        Groebner basis if there are too many variables.
+        Initialize ``self``.
 
         EXAMPLES::
-
-            sage: I = FusionRing("E8",2,conjugate=True)
-            sage: I.fusion_labels(["i0","p","s"],inject_variables=True)
-            sage: f = FMatrix(I,inject_variables=True); f
-            creating variables fx1..fx14
-            Defining fx0, fx1, fx2, fx3, fx4, fx5, fx6, fx7, fx8, fx9, fx10, fx11, fx12, fx13
-            F-Matrix factory for The Fusion Ring of Type E8 and level 2 with Integer Ring coefficients
-
-        We have injected two sets of variables to the global namespace.
-        We created three variables ``i0, p, s`` to represent the
-        primary fields (simple elements) of the :class:`FusionRing`. Creating
-        the :class:`FMatrix` factory also created variables
-        ``fx1, fx2, ..., fx14`` in order to solve the hexagon and pentagon
-        equations describing the F-matrix. Since we called :class:`FMatrix`
-        with the parameter ``inject_variables=True``, these have been injected
-        into the global namespace. This is not necessary for the code to work
-        but if you want to run the code experimentally you may want access
-        to these variables.
-
-        EXAMPLES::
-
-            sage: f.fmatrix(s,s,s,s)
-            [fx10 fx11]
-            [fx12 fx13]
-
-        The F-matrix has not been computed at this stage, so
-        the F-matrix `F^{sss}_s` is filled with variables
-        ``fx10``, ``fx11``, ``fx12``, ``fx13``. The task is
-        to solve for these.
-
-        As explained above The F-matrix `(F^{ABC}_D)_{X,Y}`
-        two other variables `X` and `Y`. We have methods to
-        tell us (depending on `A,B,C,D`) what the possibilities
-        for these are. In this example with `A=B=C=D=s`
-        both `X` and `Y` are allowed to be `i_0` or `s`.
-
-        ::
-
-            sage: f.f_from(s,s,s,s), f.f_to(s,s,s,s)
-            ([i0, p], [i0, p])
-
-        The last two statments show that the possible values of
-        `X` and `Y` when `A = B = C = D = s` are `i_0` and `p`.
-
-        The F-matrix is computed by solving the so-called
-        pentagon and hexagon equations. The *pentagon equations*
-        reflect the Mac Lane pentagon axiom in the definition
-        of a monoidal category. The hexagon relations
-        reflect the axioms of a *braided monoidal category*,
-        which are constraints on both the F-matrix and on
-        the R-matrix. Optionally, orthogonality constraints
-        may be imposed to obtain an orthogonal F-matrix.
-
-        ::
-
-            sage: sorted(f.get_defining_equations("pentagons"))[1:3]
-            [fx9*fx12 - fx2*fx13, fx4*fx11 - fx2*fx13]
-            sage: sorted(f.get_defining_equations("hexagons"))[1:3]
-            [fx6 - 1, fx2 + 1]
-            sage: sorted(f.get_orthogonality_constraints())[1:3]
-            [fx10*fx11 + fx12*fx13, fx10*fx11 + fx12*fx13]
-
-        There are two methods available to compute an F-matrix.
-        The first, :meth:`find_cyclotomic_solution` uses only
-        the pentagon and hexagon relations. The second,
-        :meth:`find_orthogonal_solution` uses additionally
-        the orthogonality relations. There are some differences
-        that should be kept in mind.
-
-        :meth:`find_cyclotomic_solution` currently works only with
-        smaller examples. For example the :class:`FusionRing` for `G_2`
-        at level 2 is too large. When it is available, this method
-        produces an F-matrix whose entries are in the same
-        cyclotomic field as the underlying :class:`FusionRing`.
-
-        ::
-
-            sage: f.find_cyclotomic_solution()
-            Setting up hexagons and pentagons...
-            Finding a Groebner basis...
-            Solving...
-            Fixing the gauge...
-            adding equation... fx1 - 1
-            adding equation... fx11 - 1
-            Done!
-
-        We now have access to the values of the F-matrix using
-        the methods :meth:`fmatrix` and :meth:`fmat`::
-
-            sage: f.fmatrix(s,s,s,s)
-            [(-1/2*zeta128^48 + 1/2*zeta128^16)                                  1]
-            [                               1/2  (1/2*zeta128^48 - 1/2*zeta128^16)]
-            sage: f.fmat(s,s,s,s,p,p)
-            (1/2*zeta128^48 - 1/2*zeta128^16)
-
-        :meth:`find_orthogonal_solution` is much more powerful
-        and is capable of handling large cases, sometimes
-        quickly but sometimes (in larger cases) after hours of
-        computation. Its F-matrices are not always in the
-        cyclotomic field that is the base ring of the underlying
-        :class:`FusionRing`, but sometimes in an extension field adjoining
-        some square roots. When this happens, the :class:`FusionRing` is
-        modified, adding an attribute ``_basecoer`` that is
-        a coercion from the cyclotomic field to the field
-        containing the F-matrix. The field containing the F-matrix
-        is available through :meth:`field`.
-
-        ::
 
             sage: f = FMatrix(FusionRing("B3",2))
-            sage: f.find_orthogonal_solution(verbose=False,checkpoint=True)     # not tested (~100 s)
-            sage: all(v in CyclotomicField(56) for v in f.get_fvars().values()) # not tested
-            True
-
-            sage: f = FMatrix(FusionRing("G2",2))
-            sage: f.find_orthogonal_solution(verbose=False) # long time (~11 s)
-            sage: f.field()                                 # long time
-            Algebraic Field
+            sage: TestSuite(f).run()
         """
         self._FR = fusion_ring
         if inject_variables and (self._FR._fusion_labels is None):
@@ -306,8 +311,10 @@ class FMatrix():
     ### Class utilities ###
     #######################
 
-    def __repr__(self):
+    def _repr_(self):
         """
+        Return a string representation of ``self``.
+
         EXAMPLES::
 
             sage: FMatrix(FusionRing("B2", 1))
@@ -329,7 +336,7 @@ class FMatrix():
             sage: len(f.ideal_basis) == 0
             True
         """
-        self.ideal_basis = list()
+        self.ideal_basis = []
 
     def clear_vars(self):
         r"""
@@ -350,12 +357,14 @@ class FMatrix():
             fx0
         """
         self._fvars = {t: self._poly_ring.gen(idx) for idx, t in self._idx_to_sextuple.items()}
-        self._solved = [False]*self._poly_ring.ngens()
+        self._solved = [False] * self._poly_ring.ngens()
 
     def _reset_solver_state(self):
         r"""
-        Reset solver state and clear relevant cache. Used to ensure
-        state variables are the same for each orthogonal solver run.
+        Reset solver state and clear relevant cache.
+
+        Used to ensure state variables are the same for each
+        orthogonal solver run.
 
         EXAMPLES::
 
@@ -380,7 +389,6 @@ class FMatrix():
             True
             sage: for k, v in f._ks.items():
             ....:     k
-            ....:
             sage: len(f._nnz.nonzero_positions()) == 1
             True
             sage: all(len(x.q_dimension.cache) == 0 for x in f.FR().basis())
@@ -392,14 +400,14 @@ class FMatrix():
         """
         self._FR._basecoer = None
         self._field = self._FR.field()
-        self._non_cyc_roots = list()
+        self._non_cyc_roots = []
         self._poly_ring = self._poly_ring.change_ring(self._field)
         self._chkpt_status = -1
         self.clear_vars()
         self.clear_equations()
         n = self._poly_ring.ngens()
-        self._var_degs = [0]*n
-        self._kp = dict()
+        self._var_degs = [0] * n
+        self._kp = {}
         self._ks = KSHandler(n,self._field)
         self._singles = self.get_fvars_by_size(1,indices=True)
         self._nnz = self._get_known_nonz()
@@ -436,7 +444,8 @@ class FMatrix():
              (-zeta60^14 + zeta60^6 + zeta60^4 - 1),
              (zeta60^14 - zeta60^6 - zeta60^4 + 1)]
         """
-        if self._FR.Nk_ij(a,b,x) == 0 or self._FR.Nk_ij(x,c,d) == 0 or self._FR.Nk_ij(b,c,y) == 0 or self._FR.Nk_ij(a,y,d) == 0:
+        if (self._FR.Nk_ij(a,b,x) == 0 or self._FR.Nk_ij(x,c,d) == 0
+            or self._FR.Nk_ij(b,c,y) == 0 or self._FR.Nk_ij(a,y,d) == 0):
             return 0
 
         #Some known zero F-symbols
@@ -471,7 +480,7 @@ class FMatrix():
 
         INPUT:
 
-        - ``a,b,c,d`` -- basis elements of the associated :class:`FusionRing`
+        - ``a, b, c, d`` -- basis elements of the associated :class:`FusionRing`
 
         EXAMPLES::
 
@@ -601,11 +610,11 @@ class FMatrix():
     def f_from(self,a,b,c,d):
         r"""
         Return the possible `x` such that there are morphisms
-        `d \to x \otimes c \to (a\otimes b)\otimes c`.
+        `d \to x \otimes c \to (a \otimes b) \otimes c`.
 
         INPUT:
 
-        - ``a,b,c,d`` -- basis elements of the associated :class:`FusionRing`
+        - ``a, b, c, d`` -- basis elements of the associated :class:`FusionRing`
 
         EXAMPLES::
 
@@ -625,11 +634,11 @@ class FMatrix():
     def f_to(self,a,b,c,d):
         r"""
         Return the possible `y` such that there are morphisms
-        `d\to a\otimes y\to a\otimes(b\otimes c)`.
+        `d \to a \otimes y \to a \otimes (b \otimes c)`.
 
         INPUT:
 
-        - ``a,b,c,d`` -- basis elements of the associated :class:`FusionRing`
+        - ``a, b, c, d`` -- basis elements of the associated :class:`FusionRing`
 
         EXAMPLES::
 
@@ -677,7 +686,7 @@ class FMatrix():
 
     def get_poly_ring(self):
         r"""
-        Return the polynomial ring whose generators denote F-symbols we seek.
+        Return the polynomial ring whose generators denote the desired F-symbols.
 
         EXAMPLES::
 
@@ -1238,8 +1247,8 @@ class FMatrix():
         INPUT:
 
         - ``processes`` -- an integer indicating the number of workers
-          in the pool. If left unspecified, the number of workers is
-          equals the number of processors available.
+          in the pool; if left unspecified, the number of workers is
+          equals the number of processors available
 
         OUTPUT:
 
@@ -1319,7 +1328,7 @@ class FMatrix():
         return True
 
     def shutdown_worker_pool(self):
-        """
+        r"""
         Shutdown the given worker pool and dispose of shared memory resources
         created when the pool was set up using :meth:`start_worker_pool`.
 
@@ -1327,8 +1336,8 @@ class FMatrix():
 
             Failure to call this method after using :meth:`start_worker_pool`
             to create a process pool may result in a memory
-            leak, since shared memory resources outlive the process that created
-            them.
+            leak, since shared memory resources outlive the process that
+            created them.
 
         EXAMPLES::
 
@@ -1354,7 +1363,7 @@ class FMatrix():
 
         INPUT:
 
-        -``mapper`` -- string specifying the name of a function defined in
+        - ``mapper`` -- string specifying the name of a function defined in
           the ``fast_parallel_fmats_methods`` module
 
         .. NOTE::
@@ -1839,7 +1848,9 @@ class FMatrix():
     ### Solution method ###
     #######################
 
-    #TODO: this can probably be improved by constructing a set of defining polynomials and checking, one by one, if it's irreducible over the current field. If it is, we construct an extension. Perhaps it's best to go one by one here...
+    # TODO: this can probably be improved by constructing a set of defining polynomials
+    #   and checking, one by one, if it's irreducible over the current field.
+    #   If it is, we construct an extension. Perhaps it's best to go one by one here...
     def attempt_number_field_computation(self):
         r"""
         Based on the ``CartanType`` of ``self`` and data
@@ -1895,6 +1906,8 @@ class FMatrix():
 
     def _get_explicit_solution(self,eqns=None,verbose=True):
         r"""
+        Construct an explicit solution of ``self``.
+
         When this method is called, the solution is already found in
         terms of Groeber basis. A few degrees of freedom remain.
         By specializing the free variables and back substituting, a
@@ -2210,7 +2223,7 @@ class FMatrix():
             adding equation... fx18 - 1
             adding equation... fx21 - 1
         """
-        while sum(1 for v in self._solved if not v) > 0:
+        while not all(v for v in self._solved):
             #Get a variable that has not been fixed
             #In ascending index order, for consistent results
             for i, var in enumerate(self._poly_ring.gens()):
@@ -2283,7 +2296,7 @@ class FMatrix():
             sage: f.ideal_basis
             {fx3}
         """
-        special_values = {known : self._fvars[self._var_to_sextuple[known]] for known in self._solved if known}
+        special_values = {known: self._fvars[self._var_to_sextuple[known]] for known in self._solved if known}
         self.ideal_basis = set(eq.subs(special_values) for eq in self.ideal_basis)
         self.ideal_basis.discard(0)
 
@@ -2369,45 +2382,45 @@ class FMatrix():
     #####################
 
     def fmats_are_orthogonal(self):
-            r"""
-            Verify that all F-matrices are orthogonal.
+        r"""
+        Verify that all F-matrices are orthogonal.
 
-            This method should always return ``True`` when called after running
-            :meth:`find_orthogonal_solution`.
+        This method should always return ``True`` when called after running
+        :meth:`find_orthogonal_solution`.
 
-            EXAMPLES::
+        EXAMPLES::
 
-                sage: f = FMatrix(FusionRing("D4", 1))
-                sage: f.find_orthogonal_solution(verbose=False)
-                sage: f.fmats_are_orthogonal()
-                True
-            """
-            is_orthog = []
-            for a,b,c,d in product(self._FR.basis(),repeat=4):
-                mat = self.fmatrix(a,b,c,d)
-                is_orthog.append(mat.T * mat == matrix.identity(mat.nrows()))
-            return all(is_orthog)
+            sage: f = FMatrix(FusionRing("D4", 1))
+            sage: f.find_orthogonal_solution(verbose=False)
+            sage: f.fmats_are_orthogonal()
+            True
+        """
+        is_orthog = []
+        for a,b,c,d in product(self._FR.basis(),repeat=4):
+            mat = self.fmatrix(a,b,c,d)
+            is_orthog.append(mat.T * mat == matrix.identity(mat.nrows()))
+        return all(is_orthog)
 
     def fvars_are_real(self):
-          r"""
-          Test whether all F-symbols are real.
+        r"""
+        Test whether all F-symbols are real.
 
-          EXAMPLES::
+        EXAMPLES::
 
-              sage: f = FMatrix(FusionRing("A1", 3))
-              sage: f.find_orthogonal_solution(verbose=False) # long time
-              sage: f.fvars_are_real()                        # not tested (cypari issue in doctesting framework)
-              True
-          """
-          try:
-              for k, v in self._fvars.items():
-                  AA(self._qqbar_embedding(v))
-          except ValueError:
-              print("the F-symbol {} (key {}) has a nonzero imaginary part!".format(v,k))
-              return False
-          return True
+            sage: f = FMatrix(FusionRing("A1", 3))
+            sage: f.find_orthogonal_solution(verbose=False) # long time
+            sage: f.fvars_are_real()                        # not tested (cypari issue in doctesting framework)
+            True
+        """
+        try:
+            for k, v in self._fvars.items():
+                AA(self._qqbar_embedding(v))
+        except ValueError:
+            print("the F-symbol {} (key {}) has a nonzero imaginary part".format(v,k))
+            return False
+        return True
 
-    def certify_pentagons(self,use_mp=True,verbose=False):
+    def certify_pentagons(self,use_mp=True, verbose=False):
         r"""
         Obtain a certificate of satisfaction for the pentagon equations,
         up to floating-point error.
@@ -2442,8 +2455,8 @@ class FMatrix():
             Partitioned 6 equations into 6 components of size:
             [1, 1, 1, 1, 1, 1]
             Computing appropriate NumberField...
-            sage: f.certify_pentagons()            # not tested (long time ~1.5s, cypari issue in doctesting framework)
-            Success!!! Found valid F-symbols for The Fusion Ring of Type C3 and level 1 with Integer Ring coefficients
+            sage: f.certify_pentagons()  is None        # not tested (long time ~1.5s, cypari issue in doctesting framework)
+            True
         """
         fvars_copy = deepcopy(self._fvars)
         self._fvars = {sextuple: float(rhs) for sextuple, rhs in self.get_fvars_in_alg_field().items()}
@@ -2452,13 +2465,15 @@ class FMatrix():
         else:
             pool = None
         n_proc = pool._processes if pool is not None else 1
-        params = [(child_id,n_proc,verbose) for child_id in range(n_proc)]
-        pe = self._map_triv_reduce('pent_verify',params,worker_pool=pool,chunksize=1,mp_thresh=0)
+        params = [(child_id, n_proc, verbose) for child_id in range(n_proc)]
+        pe = self._map_triv_reduce('pent_verify', params, worker_pool=pool, chunksize=1, mp_thresh=0)
         if np.all(np.isclose(np.array(pe),0,atol=1e-7)):
-            print("Success!!! Found valid F-symbols for {}".format(self._FR))
+            if verbose:
+                print("Found valid F-symbols for {}".format(self._FR))
             pe = None
         else:
-            print("Ooops... something went wrong... These pentagons remain:")
-            print(pe)
+            if verbose:
+                print("Something went wrong. Pentagons remain.")
         self._fvars = fvars_copy
         return pe
+

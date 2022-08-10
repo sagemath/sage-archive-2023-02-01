@@ -168,7 +168,7 @@ from copy import deepcopy
 
 class PseudolineArrangement:
 
-    def __init__(self, seq, encoding "auto"):
+    def __init__(self, seq, encoding="auto"):
         r"""
         Creates an arrangement of pseudolines.
 

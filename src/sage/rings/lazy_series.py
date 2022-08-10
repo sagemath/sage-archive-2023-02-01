@@ -61,7 +61,25 @@ eventually constant 'exact'.  In some cases, computations with such
 series are much faster.  Moreover, these are the series where
 equality can be decided.  For example::
 
-    sage: f = 1/(1 - z)
+    sage: L.<z> = LazyTaylorSeriesRing(ZZ)
+    sage: f = 1 + 2*z^2 / (1 - z)
+    sage: f - 2 / (1 - z) + 1 + 2*z
+    0
+
+However, multivariate Taylor series are actually represented as
+streams of multivariate polynomials.  Therefore, the only exact
+series in this case are polynomials::
+
+    sage: L.<x,y> = LazyTaylorSeriesRing(ZZ)
+    sage: 1 / (1-x)
+    1 + x + x^2 + x^3 + x^4 + x^5 + x^6 + O(x,y)^7
+
+A similar statement is true for lazy symmetric functions::
+
+    sage: h = SymmetricFunctions(QQ).h()
+    sage: L = LazySymmetricFunctions(h)
+    sage: 1 / (1-L(h[1]))
+    h[] + h[1] + (h[1,1]) + (h[1,1,1]) + (h[1,1,1,1]) + (h[1,1,1,1,1]) + (h[1,1,1,1,1,1]) + O^7
 
 We can change the base ring::
 
@@ -2406,13 +2424,13 @@ class LazyCauchyProductSeries(LazyModuleElement):
             e[] + e[1]*z + e[1, 1]*z^2 + e[1, 1, 1]*z^3 + e[1, 1, 1, 1]*z^4
              + e[1, 1, 1, 1, 1]*z^5 + e[1, 1, 1, 1, 1, 1]*z^6 + O(e[]*z^7)
 
-        An example for multivariate Taylor series::
+        Examples for multivariate Taylor series::
 
             sage: L.<x, y> = LazyTaylorSeriesRing(QQ)
-            sage: 1 / (1 - y) # should be exact, but isn't
+            sage: 1 / (1 - y)
             1 + y + y^2 + y^3 + y^4 + y^5 + y^6 + O(x,y)^7
 
-            sage: (x + y) / (1 - y) 
+            sage: (x + y) / (1 - y)
             (x+y) + (x*y+y^2) + (x*y^2+y^3) + (x*y^3+y^4) + (x*y^4+y^5) + (x*y^5+y^6) + (x*y^6+y^7) + O(x,y)^8
 
         """
@@ -2457,7 +2475,8 @@ class LazyCauchyProductSeries(LazyModuleElement):
                 and den[exponents[0]] == -den[exponents[1]]):
                 quo, rem = num.quo_rem(den)
                 # rem is a unit, i.e., in the Laurent case c*z^v
-                c, v_rem = rem.polynomial_construction()
+                v_rem = rem.exponents()[0]
+                c = rem[v_rem]
                 constant = P.base_ring()(c / den[exponents[0]])
                 v = v_rem - exponents[0]
                 if quo:
@@ -2466,9 +2485,13 @@ class LazyCauchyProductSeries(LazyModuleElement):
                     if m > 0:
                         quo += R([constant]*m).shift(v)
                         v = d + 1
+                    if quo:
+                        order = quo.valuation()
+                    else:
+                        order = 0
                     return P.element_class(P, Stream_exact(list(quo),
                                                            P._sparse,
-                                                           order=quo.valuation(),
+                                                           order=order,
                                                            degree=v,
                                                            constant=constant))
                 return P.element_class(P, Stream_exact([],
@@ -3075,12 +3098,12 @@ class LazyLaurentSeries(LazyCauchyProductSeries):
             name = S.variable_name()
 
         if self.valuation() < 0:
-            from sage.rings.all import LaurentSeriesRing
+            from sage.rings.laurent_series_ring import LaurentSeriesRing
             R = LaurentSeriesRing(S.base_ring(), name=name)
             n = self.valuation()
             return R([self[i] for i in range(n, prec)], n).add_bigoh(prec)
         else:
-            from sage.rings.all import PowerSeriesRing
+            from sage.rings.power_series_ring import PowerSeriesRing
             R = PowerSeriesRing(S.base_ring(), name=name)
             return R([self[i] for i in range(prec)]).add_bigoh(prec)
 

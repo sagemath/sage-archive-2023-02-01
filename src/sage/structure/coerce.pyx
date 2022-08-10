@@ -1329,7 +1329,6 @@ cdef class CoercionModel:
                 y_elt = parent(x_elt)(y_elt)
                 if x_elt._parent is y_elt._parent:
                     return x_elt,y_elt
-
             self._coercion_error(x, x_map, x_elt, y, y_map, y_elt)
 
         cdef bint x_numeric = isinstance(x, (int, long, float, complex))

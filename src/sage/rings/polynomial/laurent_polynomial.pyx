@@ -1341,8 +1341,8 @@ cdef class LaurentPolynomial_univariate(LaurentPolynomial):
     @coerce_binop
     def quo_rem(self, right_r):
         """
-        Attempts to divide ``self`` by ``right`` and returns a quotient ``q``and
-        a remainder ``r`` such that ``self = q*other + r``.
+        Attempts to divide ``self`` by ``right`` and returns a quotient
+        ``q`` and a remainder ``r`` such that ``self = q*other + r``.
 
         EXAMPLES::
 

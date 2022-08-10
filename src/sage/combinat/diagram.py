@@ -287,18 +287,27 @@ class Diagram(ClonableArray, metaclass=InheritComparisonClasscallMetaclass):
             . . O . .
         """
         self._cells = {c: True for c in cells}
+
+        if self._cells:
+            # minimum possible number of rows/cols
+            N_rows = max(c[0] for c in self._cells)
+            N_cols = max(c[1] for c in self._cells)
+        else: # if there are no cells
+            N_rows = 0
+            N_cols = 0
+
         if n_rows is not None:
-            if n_rows < max(c[0] for c in self._cells) + 1:
+            if n_rows < N_rows + 1:
                 raise ValueError('n_rows is too small')
             self._n_rows = n_rows
         else:
-            self._n_rows = max(c[0] for c in self._cells) + 1
+            self._n_rows = N_rows + 1
         if n_cols is not None:
-            if n_cols < max(c[1] for c in self._cells) + 1:
+            if n_cols < N_cols + 1:
                 raise ValueError('n_cols is too small')
             self._n_cols = n_cols
         else:
-            self._n_cols = max(c[1] for c in self._cells) + 1
+            self._n_cols = N_cols + 1
 
         self._n_nonempty_rows = len(set(i for i, j in self._cells))
         self._n_nonempty_cols = len(set(j for i, j in self._cells))
@@ -1071,6 +1080,18 @@ def RotheDiagram(w):
         Traceback (most recent call last):
         ...
         ValueError: w must be a Permutation
+
+
+    TESTS::
+
+        sage: w = Permutations(5)([1,2,3,4,5])
+        sage: from sage.combinat.diagram import RotheDiagram
+        sage: RotheDiagram(w).pp()
+        . . . . .
+        . . . . .
+        . . . . .
+        . . . . .
+        . . . . .
     """
 
     from sage.misc.mrange import cartesian_product_iterator

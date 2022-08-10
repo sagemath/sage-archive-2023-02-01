@@ -853,9 +853,13 @@ def discrete_log(a, base, ord=None, bounds=None, operation='*', identity=None, i
         ....:     hi = randrange(sol+1, 2*order)
         ....:     assert lo <= sol <= hi
         ....:     kwargs['bounds'] = (lo, hi)
-        sage: res = discrete_log(*args, **kwargs)
-        sage: res == sol
-        True
+        sage: try:
+        ....:     res = discrete_log(*args, **kwargs)
+        ....: except ValueError:
+        ....:     # lambda can fail randomly
+        ....:     assert kwargs['algorithm'] == 'lambda'
+        ....: else:
+        ....:     assert res == sol
 
     AUTHORS:
 

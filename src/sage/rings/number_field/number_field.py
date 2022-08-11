@@ -9317,31 +9317,31 @@ class NumberField_absolute(NumberField_generic):
 
         OUTPUT:
 
-        - a tuple of real numbers.
+        - the morphism of ``self`` under the logarithmic embedding in the category Set.
 
         EXAMPLES::
 
-            sage: CF.<a> = CyclotomicField(97)
+            sage: CF.<a> = CyclotomicField(5)
             sage: f = CF.logarithmic_embedding()
             sage: f(0)
-            (-1)
+            (-1, -1)
             sage: f(7)
-            (1.94591014905531)
+            (3.89182029811063, 3.89182029811063)
 
         ::
 
             sage: K.<a> = NumberField(x^3 + 5)
             sage: f = K.logarithmic_embedding()
             sage: f(0)
-            (-1)
+            (-1, -1)
             sage: f(7)
-            (1.94591014905531)
+            (1.94591014905531, 3.89182029811063)
         """
         def closure_map(x, prec=53):
             """
             The function closure of the logarithmic embedding.
             """
-            K = self.base_ring()
+            K = self
             K_embeddings = K.places(prec)
             r1, r2 = K.signature()
             r = r1 + r2 - 1
@@ -9362,9 +9362,8 @@ class NumberField_absolute(NumberField_generic):
 
             return vector(x_logs)
 
-        log_map = closure_map(self(0), prec)
-        hom = Hom(self, VectorSpace(RR, len(log_map)), Sets())
-        return hom(log_map)
+        hom = Hom(self, VectorSpace(RR, len(closure_map(self(0), prec))), Sets())
+        return hom(closure_map)
 
     def places(self, all_complex=False, prec=None):
         r"""

@@ -1179,3 +1179,17 @@ the `VS Code devcontainer.json reference
 and the `GitHub introduction to dev containers
 <https://docs.github.com/en/enterprise-cloud@latest/codespaces/setting-up-your-project-for-codespaces/introduction-to-dev-containers>`_
 for more information.
+
+In addition to the ``.devcontainer/portability-.../devcontainer.json`` files, Sage also
+provides several other sample ``devcontainer.json`` configuration files:
+
+- `.devcontainer/downstream-archlinux-latest/devcontainer.json
+  <https://github.com/sagemath/sage/tree/develop/.devcontainer/downstream-archlinux-latest/devcontainer.json>`_
+  configures a container with an installation of `Arch Linux <https://archlinux.org/>`
+  and its SageMath package. (Arch Linux packaging is downstream from the Sage project,
+  hence the prefix ``downstream-...``; the suffix ``latest`` indicates
+  the most recent version of Arch Linux as available on Docker Hub.)
+
+- `.devcontainer/downstream-conda-forge-latest/devcontainer.json
+  <https://github.com/sagemath/sage/tree/develop/.devcontainer/downstream-conda-forge-latest/devcontainer.json>`_
+  similarly configures a container with an installation of conda-forge and its SageMath package.

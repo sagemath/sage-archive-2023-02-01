@@ -1,4 +1,4 @@
-// For format details, see https://aka.ms/devcontainer.json.
+// See https://aka.ms/devcontainer.json for format details.
 {
     "name": "computop/sage Docker",
     "image": "computop/sage"

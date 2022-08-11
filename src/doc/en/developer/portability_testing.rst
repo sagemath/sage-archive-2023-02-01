@@ -1185,7 +1185,7 @@ provides several other sample ``devcontainer.json`` configuration files:
 
 - `.devcontainer/downstream-archlinux-latest/devcontainer.json
   <https://github.com/sagemath/sage/tree/develop/.devcontainer/downstream-archlinux-latest/devcontainer.json>`_
-  configures a container with an installation of `Arch Linux <https://archlinux.org/>`
+  configures a container with an installation of `Arch Linux <https://archlinux.org/>`_
   and its SageMath package. (Arch Linux packaging is downstream from the Sage project,
   hence the prefix ``downstream-...``; the suffix ``latest`` indicates
   the most recent version of Arch Linux as available on Docker Hub.)
@@ -1193,3 +1193,26 @@ provides several other sample ``devcontainer.json`` configuration files:
 - `.devcontainer/downstream-conda-forge-latest/devcontainer.json
   <https://github.com/sagemath/sage/tree/develop/.devcontainer/downstream-conda-forge-latest/devcontainer.json>`_
   similarly configures a container with an installation of conda-forge and its SageMath package.
+
+- `.devcontainer/cocalc/devcontainer.json
+  <https://github.com/sagemath/sage/tree/develop/.devcontainer/cocalc/devcontainer.json>`_
+  configures a container with `the CoCalc Docker image <https://doc.cocalc.com/docker-image.html>`_.
+  It then updates the installation of SageMath in this container by building from
+  the current source tree.
+
+- `.devcontainer/computop-sage/devcontainer.json
+  <https://github.com/sagemath/sage/tree/develop/.devcontainer/computop-sage/devcontainer.json>`_
+  configures a container with the `Docker image from the 3-manifolds
+  project <https://hub.docker.com/r/computop/sage/>`_, providing
+  SnapPy, Regina, PHCPack, etc. It then updates the installation of
+  SageMath in this container by building from the current source tree.
+
+- `.devcontainer/sagemath-sagemath/devcontainer.json
+  <https://github.com/sagemath/sage/tree/develop/.devcontainer/sagemath-sagemath/devcontainer.json>`_
+  configures a container with `SageMath's official Docker image <https://hub.docker.com/r/sagemath/sagemath/>`_.
+  It then updates the installation of SageMath in this container by building from
+  the current source tree.
+
+These ``devcontainer.json`` configuration files are useful for testing
+user scripts on these deployments of SageMath. You may also find it
+useful to copy these configurations into your own projects or to adapt them to your needs.

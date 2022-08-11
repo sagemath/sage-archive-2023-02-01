@@ -4752,6 +4752,60 @@ class Partition(CombinatorialElement):
             res.append(_Partitions(tmp))
         return res
 
+    def horizontal_border_strip_cells(self, k):
+        """
+        Return a list of all the horizontal border strips of length ``k``
+        which can be added to ``self``, where each horizontal border strip is
+        represented as a list of cells.
+
+        EXAMPLES::
+
+            sage: Partition([]).horizontal_border_strip_cells(0)
+            []
+            sage: Partition([3,2,1]).horizontal_border_strip_cells(0)
+            []
+            sage: Partition([]).horizontal_border_strip_cells(2)
+            [[(0, 0), (0, 1)]]
+            sage: Partition([2,2]).horizontal_border_strip_cells(2)
+            [[(0, 2), (0, 3)], [(0, 2), (2, 0)], [(2, 0), (2, 1)]]
+            sage: Partition([3,2,2]).horizontal_border_strip_cells(2)
+            [[(0, 3), (0, 4)],
+             [(0, 3), (1, 2)],
+             [(0, 3), (3, 0)],
+             [(1, 2), (3, 0)],
+             [(3, 0), (3, 1)]]
+        """
+        if k == 0:
+            return list()
+
+        L = self._list
+        res = []
+        shelf = [k]  # the number of boxes which will fit in a row
+        mapping = [0]  # a record of the rows
+        for i in range(len(L)-1):
+            val = L[i] - L[i+1]
+            if not val:
+                continue
+            mapping.append(i+1)
+            shelf.append(val)
+
+        # add the last shelf
+        if L:
+            mapping.append(len(L))
+            shelf.append(L[-1])
+
+        L.append(0) # add room on the bottom
+        # list all of the positions for cells
+        # filling each self from the top to bottom
+        for iv in IntegerListsBackend_invlex(k, length=len(shelf), ceiling=shelf, check=False)._iter():
+            tmp = []
+            # mapping[i] is the row index, val is the number of cells added to the row.
+            for i, val in enumerate(iv):
+                tmp.extend((mapping[i], L[mapping[i]] + j) for j in range(val))
+            res.append(tmp)
+        return res
+
+
     def remove_horizontal_border_strip(self, k):
         """
         Return the partitions obtained from ``self`` by removing an

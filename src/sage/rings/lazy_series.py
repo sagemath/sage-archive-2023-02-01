@@ -723,7 +723,7 @@ class LazyModuleElement(Element):
             sage: L = LazySymmetricFunctions(m)
             sage: E = L(lambda n: s[n], valuation=0)
             sage: X = L(s[1])
-            sage: A = L(None); A.define(X*E(A))
+            sage: A = L(None); A.define(X*E(A, check=False))
             sage: A
             m[1] + (2*m[1,1]+m[2]) + (9*m[1,1,1]+5*m[2,1]+2*m[3]) + (64*m[1,1,1,1]+34*m[2,1,1]+18*m[2,2]+13*m[3,1]+4*m[4]) + (625*m[1,1,1,1,1]+326*m[2,1,1,1]+171*m[2,2,1]+119*m[3,1,1]+63*m[3,2]+35*m[4,1]+9*m[5]) + (7776*m[1,1,1,1,1,1]+4016*m[2,1,1,1,1]+2078*m[2,2,1,1]+1077*m[2,2,2]+1433*m[3,1,1,1]+744*m[3,2,1]+268*m[3,3]+401*m[4,1,1]+209*m[4,2]+95*m[5,1]+20*m[6]) + O^7
 

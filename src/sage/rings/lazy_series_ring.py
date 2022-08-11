@@ -441,7 +441,7 @@ class LazySeriesRing(UniqueRepresentation, Parent):
 
         raise ValueError(f"unable to convert {x} into {self}")
 
-    def unknown(self, valuation=None):
+    def undefined(self, valuation=None):
         """
         Return an uninitialized series.
 
@@ -456,12 +456,14 @@ class LazySeriesRing(UniqueRepresentation, Parent):
         EXAMPLES::
 
             sage: L.<z> = LazyTaylorSeriesRing(QQ)
-            sage: s = L.unknown(1)
+            sage: s = L.undefined(1)
             sage: s.define(z + (s^2+s(z^2))/2)
             sage: s
             z + z^2 + z^3 + 2*z^4 + 3*z^5 + 6*z^6 + 11*z^7 + O(z^8)
         """
         return self(None, valuation=valuation)
+
+    unknown = undefined
 
     class options(GlobalOptions):
         r"""
@@ -478,6 +480,11 @@ class LazySeriesRing(UniqueRepresentation, Parent):
         EXAMPLES::
 
             sage: LLS.<z> = LazyLaurentSeriesRing(QQ)
+            sage: LLS.options
+            Current options for lazy series rings
+              - constant_length: 3
+              - display_length:  7
+
             sage: LLS.options.display_length
             7
             sage: f = 1 / (1 + z)
@@ -501,7 +508,7 @@ class LazySeriesRing(UniqueRepresentation, Parent):
             sage: LazyLaurentSeriesRing.options.display_length
             7
         """
-#        NAME = 'LazyLaurentSeriesRing'
+        NAME = 'lazy series rings'
         module = 'sage.rings.lazy_series_ring'
         display_length = dict(default=7,
                               description='the number of coefficients to display from the valuation',
@@ -509,6 +516,161 @@ class LazySeriesRing(UniqueRepresentation, Parent):
         constant_length = dict(default=3,
                                description='the number of coefficients to display for nonzero constant series',
                                checker=lambda x: x in ZZ and x > 0)
+
+    @cached_method
+    def one(self):
+        r"""
+        Return the constant series `1`.
+
+        EXAMPLES::
+
+            sage: L = LazyLaurentSeriesRing(ZZ, 'z')
+            sage: L.one()
+            1
+
+            sage: L = LazyTaylorSeriesRing(ZZ, 'z')
+            sage: L.one()
+            1
+
+            sage: m = SymmetricFunctions(ZZ).m()
+            sage: L = LazySymmetricFunctions(m)
+            sage: L.one()
+            m[]
+
+        """
+        R = self.base_ring()
+        coeff_stream = Stream_exact([R.one()], self._sparse, constant=R.zero(), order=0)
+        return self.element_class(self, coeff_stream)
+
+    @cached_method
+    def zero(self):
+        r"""
+        Return the zero series.
+
+        EXAMPLES::
+
+            sage: L = LazyLaurentSeriesRing(ZZ, 'z')
+            sage: L.zero()
+            0
+
+            sage: s = SymmetricFunctions(ZZ).s()
+            sage: L = LazySymmetricFunctions(s)
+            sage: L.zero()
+            0
+
+            sage: L = LazyDirichletSeriesRing(ZZ, 'z')
+            sage: L.zero()
+            0
+
+            sage: L = LazyTaylorSeriesRing(ZZ, 'z')
+            sage: L.zero()
+            0
+        """
+        return self.element_class(self, Stream_zero(self._sparse))
+
+    def characteristic(self):
+        """
+        Return the characteristic of this lazy power series ring, which
+        is the same as the characteristic of its base ring.
+
+        EXAMPLES::
+
+            sage: L.<t> = LazyLaurentSeriesRing(ZZ)
+            sage: L.characteristic()
+            0
+
+            sage: R.<w> = LazyLaurentSeriesRing(GF(11)); R
+            Lazy Laurent Series Ring in w over Finite Field of size 11
+            sage: R.characteristic()
+            11
+
+            sage: R.<x, y> = LazyTaylorSeriesRing(GF(7)); R
+            Multivariate Lazy Taylor Series Ring in x, y over Finite Field of size 7
+            sage: R.characteristic()
+            7
+
+            sage: L = LazyDirichletSeriesRing(ZZ, "s")
+            sage: L.characteristic()
+            0
+        """
+        return self.base_ring().characteristic()
+
+    def _coerce_map_from_(self, S):
+        """
+        Return ``True`` if a coercion from ``S`` exists.
+
+        EXAMPLES::
+
+            sage: L = LazyLaurentSeriesRing(GF(2), 'z')
+            sage: L.has_coerce_map_from(ZZ)
+            True
+            sage: L.has_coerce_map_from(GF(2))
+            True
+
+            sage: L = LazyTaylorSeriesRing(GF(2), 'z')
+            sage: L.has_coerce_map_from(ZZ)
+            True
+            sage: L.has_coerce_map_from(GF(2))
+            True
+
+            sage: s = SymmetricFunctions(GF(2)).s()
+            sage: L = LazySymmetricFunctions(s)
+            sage: L.has_coerce_map_from(ZZ)
+            True
+            sage: L.has_coerce_map_from(GF(2))
+            True
+        """
+        if self.base_ring().has_coerce_map_from(S):
+            return True
+
+        R = self._laurent_poly_ring
+        return R.has_coerce_map_from(S)
+
+    def _coerce_map_from_base_ring(self):
+        """
+        Return a coercion map from the base ring of ``self``.
+
+        EXAMPLES::
+
+            sage: L = LazyLaurentSeriesRing(QQ, 'z')
+            sage: phi = L._coerce_map_from_base_ring()
+            sage: phi(2)
+            2
+            sage: phi(2, valuation=-2)
+            2*z^-2
+            sage: phi(2, valuation=-2, constant=3, degree=1)
+            2*z^-2 + 3*z + 3*z^2 + 3*z^3 + O(z^4)
+
+            sage: L = LazyDirichletSeriesRing(QQ, 'z')
+            sage: phi = L._coerce_map_from_base_ring()
+            sage: phi(2)
+            2
+            sage: phi(2, valuation=2)
+            2/2^z
+            sage: phi(2, valuation=2, constant=4)
+            2/2^z + 4/3^z + 4/4^z + 4/5^z + O(1/(6^z))
+        """
+        # Return a DefaultConvertMap_unique; this can pass additional
+        # arguments to _element_constructor_, unlike the map returned
+        # by UnitalAlgebras.ParentMethods._coerce_map_from_base_ring.
+        return self._generic_coerce_map(self.base_ring())
+
+    def is_sparse(self):
+        """
+        Return whether ``self`` is sparse or not.
+
+        EXAMPLES::
+
+            sage: L = LazyLaurentSeriesRing(ZZ, 'z', sparse=False)
+            sage: L.is_sparse()
+            False
+
+            sage: L = LazyLaurentSeriesRing(ZZ, 'z', sparse=True)
+            sage: L.is_sparse()
+            True
+        """
+        return self._sparse
+
 
 class LazyLaurentSeriesRing(LazySeriesRing):
     """
@@ -732,40 +894,6 @@ class LazyLaurentSeriesRing(LazySeriesRing):
         from sage.misc.latex import latex
         return latex(self.base_ring()) + r"(\!({})\!)".format(self.variable_name())
 
-    def characteristic(self):
-        """
-        Return the characteristic of this lazy power series ring, which
-        is the same as the characteristic of its base ring.
-
-        EXAMPLES::
-
-            sage: L.<t> = LazyLaurentSeriesRing(ZZ)
-            sage: L.characteristic()
-            0
-            sage: R.<w> = LazyLaurentSeriesRing(GF(11)); R
-            Lazy Laurent Series Ring in w over Finite Field of size 11
-            sage: R.characteristic()
-            11
-
-        """
-        return self.base_ring().characteristic()
-
-    def is_sparse(self):
-        """
-        Return whether ``self`` is sparse or not.
-
-        EXAMPLES::
-
-            sage: L = LazyLaurentSeriesRing(ZZ, 'z', sparse=False)
-            sage: L.is_sparse()
-            False
-
-            sage: L = LazyLaurentSeriesRing(ZZ, 'z', sparse=True)
-            sage: L.is_sparse()
-            True
-        """
-        return self._sparse
-
     @cached_method
     def gen(self, n=0):
         r"""
@@ -817,44 +945,6 @@ class LazyLaurentSeriesRing(LazySeriesRing):
         """
         return tuple([self.gen(n) for n in range(self.ngens())])
 
-    def _coerce_map_from_(self, S):
-        """
-        Return ``True`` if a coercion from ``S`` exists.
-
-        EXAMPLES::
-
-            sage: L = LazyLaurentSeriesRing(GF(2), 'z')
-            sage: L.has_coerce_map_from(ZZ)
-            True
-            sage: L.has_coerce_map_from(GF(2))
-            True
-        """
-        if self.base_ring().has_coerce_map_from(S):
-            return True
-
-        R = self._laurent_poly_ring
-        return R.has_coerce_map_from(S)
-
-    def _coerce_map_from_base_ring(self):
-        """
-        Return a coercion map from the base ring of ``self``.
-
-        EXAMPLES::
-
-            sage: L = LazyLaurentSeriesRing(QQ, 'z')
-            sage: phi = L._coerce_map_from_base_ring()
-            sage: phi(2)
-            2
-            sage: phi(2, valuation=-2)
-            2*z^-2
-            sage: phi(2, valuation=-2, constant=3, degree=1)
-            2*z^-2 + 3*z + 3*z^2 + 3*z^3 + O(z^4)
-        """
-        # Return a DefaultConvertMap_unique; this can pass additional
-        # arguments to _element_constructor_, unlike the map returned
-        # by UnitalAlgebras.ParentMethods._coerce_map_from_base_ring.
-        return self._generic_coerce_map(self.base_ring())
-
     def _an_element_(self):
         """
         Return a Laurent series in ``self``.
@@ -904,34 +994,6 @@ class LazyLaurentSeriesRing(LazySeriesRing):
         elts = [self.zero(), self.one(), z, (z-3)*(z**-2+2+z)**2, self.an_element(),
                 (1 - 2*z**-3)/(1 - z + 3*z**2), self(lambda n: n**2, valuation=-2)]
         return elts
-
-    @cached_method
-    def one(self):
-        r"""
-        Return the constant series `1`.
-
-        EXAMPLES::
-
-            sage: L = LazyLaurentSeriesRing(ZZ, 'z')
-            sage: L.one()
-            1
-        """
-        R = self.base_ring()
-        coeff_stream = Stream_exact([R.one()], self._sparse, constant=R.zero(), degree=1)
-        return self.element_class(self, coeff_stream)
-
-    @cached_method
-    def zero(self):
-        r"""
-        Return the zero series.
-
-        EXAMPLES::
-
-            sage: L = LazyLaurentSeriesRing(ZZ, 'z')
-            sage: L.zero()
-            0
-        """
-        return self.element_class(self, Stream_zero(self._sparse))
 
     def series(self, coefficient, valuation, degree=None, constant=None):
         r"""
@@ -1188,34 +1250,6 @@ class LazyTaylorSeriesRing(LazySeriesRing):
         """
         return tuple([self.gen(n) for n in range(self.ngens())])
 
-    def _coerce_map_from_(self, S):
-        """
-        Return ``True`` if a coercion from ``S`` exists.
-
-        EXAMPLES::
-
-            sage: L = LazyTaylorSeriesRing(GF(2), 'z')
-            sage: L.has_coerce_map_from(ZZ)
-            True
-            sage: L.has_coerce_map_from(GF(2))
-            True
-        """
-        if self.base_ring().has_coerce_map_from(S):
-            return True
-
-        R = self._laurent_poly_ring
-        return R.has_coerce_map_from(S)
-
-    def _coerce_map_from_base_ring(self):
-        """
-        Return a coercion map from the base ring of ``self``.
-
-        """
-        # Return a DefaultConvertMap_unique; this can pass additional
-        # arguments to _element_constructor_, unlike the map returned
-        # by UnitalAlgebras.ParentMethods._coerce_map_from_base_ring.
-        return self._generic_coerce_map(self.base_ring())
-
     def _element_constructor_(self, x=None, valuation=None, constant=None, degree=None, check=True):
         """
         Construct a Taylor series from ``x``.
@@ -1426,33 +1460,6 @@ class LazyTaylorSeriesRing(LazySeriesRing):
         coeff_stream = Stream_exact([R.one()], self._sparse, order=1, constant=c)
         return self.element_class(self, coeff_stream)
 
-    @cached_method
-    def one(self):
-        r"""
-        Return the constant series `1`.
-
-        EXAMPLES::
-
-            sage: L = LazyTaylorSeriesRing(ZZ, 'z')
-            sage: L.one()
-            1
-        """
-        R = self._laurent_poly_ring
-        coeff_stream = Stream_exact([R.one()], self._sparse, constant=ZZ.zero(), degree=1)
-        return self.element_class(self, coeff_stream)
-
-    @cached_method
-    def zero(self):
-        r"""
-        Return the zero series.
-
-        EXAMPLES::
-
-            sage: L = LazyTaylorSeriesRing(ZZ, 'z')
-            sage: L.zero()
-            0
-        """
-        return self.element_class(self, Stream_zero(self._sparse))
 
 ######################################################################
 
@@ -1553,35 +1560,6 @@ class LazySymmetricFunctions(LazySeriesRing):
         """
         L = self._laurent_poly_ring
         return L(c)
-
-    def _coerce_map_from_(self, S):
-        """
-        Return ``True`` if a coercion from ``S`` exists.
-
-        EXAMPLES::
-
-            sage: s = SymmetricFunctions(GF(2)).s()
-            sage: L = LazySymmetricFunctions(s)
-            sage: L.has_coerce_map_from(ZZ)
-            True
-            sage: L.has_coerce_map_from(GF(2))
-            True
-        """
-        if self.base_ring().has_coerce_map_from(S):
-            return True
-
-        R = self._laurent_poly_ring
-        return R.has_coerce_map_from(S)
-
-    def _coerce_map_from_base_ring(self):
-        """
-        Return a coercion map from the base ring of ``self``.
-
-        """
-        # Return a DefaultConvertMap_unique; this can pass additional
-        # arguments to _element_constructor_, unlike the map returned
-        # by UnitalAlgebras.ParentMethods._coerce_map_from_base_ring.
-        return self._generic_coerce_map(self.base_ring())
 
     def _element_constructor_(self, x=None, valuation=None, degree=None, check=True):
         """
@@ -1774,36 +1752,6 @@ class LazySymmetricFunctions(LazySeriesRing):
         coeff_stream = Stream_exact([R.one()], self._sparse, order=1, constant=0)
         return self.element_class(self, coeff_stream)
 
-    @cached_method
-    def one(self):
-        r"""
-        Return the constant `1`.
-
-        EXAMPLES::
-
-            sage: m = SymmetricFunctions(ZZ).m()
-            sage: L = LazySymmetricFunctions(m)
-            sage: L.one()
-            m[]
-        """
-        R = self._laurent_poly_ring
-        coeff_stream = Stream_exact([R.one()], self._sparse, constant=ZZ.zero(), degree=1)
-        return self.element_class(self, coeff_stream)
-
-    @cached_method
-    def zero(self):
-        r"""
-        Return the zero series.
-
-        EXAMPLES::
-
-            sage: s = SymmetricFunctions(ZZ).s()
-            sage: L = LazySymmetricFunctions(s)
-            sage: L.zero()
-            0
-        """
-        return self.element_class(self, Stream_zero(self._sparse))
-
 ######################################################################
 
 class LazyDirichletSeriesRing(LazySeriesRing):
@@ -1860,18 +1808,22 @@ class LazyDirichletSeriesRing(LazySeriesRing):
         """
         return "Lazy Dirichlet Series Ring in {} over {}".format(self.variable_name(), self.base_ring())
 
-    def characteristic(self):
-        """
-        Return the characteristic of this lazy power series ring, which
-        is the same as the characteristic of its base ring.
+    @cached_method
+    def one(self):
+        r"""
+        Return the constant series `1`.
 
         EXAMPLES::
 
-            sage: L = LazyDirichletSeriesRing(ZZ, "s")
-            sage: L.characteristic()
-            0
+            sage: L = LazyDirichletSeriesRing(ZZ, 'z')
+            sage: L.one()
+            1
+            sage: ~L.one()
+            1 + O(1/(8^z))
         """
-        return self.base_ring().characteristic()
+        R = self.base_ring()
+        coeff_stream = Stream_exact([R.one()], self._sparse, constant=R.zero(), order=1)
+        return self.element_class(self, coeff_stream)
 
     def _coerce_map_from_(self, S):
         """
@@ -1887,28 +1839,7 @@ class LazyDirichletSeriesRing(LazySeriesRing):
         """
         if self.base_ring().has_coerce_map_from(S):
             return True
-
         return False
-
-    def _coerce_map_from_base_ring(self):
-        r"""
-        Return a coercion map from the base ring of ``self``.
-
-        EXAMPLES::
-
-            sage: L = LazyDirichletSeriesRing(QQ, 'z')
-            sage: phi = L._coerce_map_from_base_ring()
-            sage: phi(2)
-            2
-            sage: phi(2, valuation=2)
-            2/2^z
-            sage: phi(2, valuation=2, constant=4)
-            2/2^z + 4/3^z + 4/4^z + 4/5^z + O(1/(6^z))
-        """
-        # Return a DefaultConvertMap_unique; this can pass additional
-        # arguments to _element_constructor_, unlike the map returned
-        # by UnitalAlgebras.ParentMethods._coerce_map_from_base_ring.
-        return self._generic_coerce_map(self.base_ring())
 
     def _element_constructor_(self, x=None, valuation=None, degree=None, constant=None, coefficients=None):
         r"""
@@ -2036,35 +1967,6 @@ class LazyDirichletSeriesRing(LazySeriesRing):
         """
         c = self.base_ring().an_element()
         return self.element_class(self, Stream_exact([], self._sparse, constant=c, order=4))
-
-    @cached_method
-    def one(self):
-        """
-        Return the constant series `1`.
-
-        EXAMPLES::
-
-            sage: L = LazyDirichletSeriesRing(ZZ, 'z')
-            sage: L.one()
-            1
-            sage: ~L.one()
-            1 + O(1/(8^z))
-        """
-        R = self.base_ring()
-        return self.element_class(self, Stream_exact([R.one()], self._sparse, order=1))
-
-    @cached_method
-    def zero(self):
-        """
-        Return the zero series.
-
-        EXAMPLES::
-
-            sage: L = LazyDirichletSeriesRing(ZZ, 'z')
-            sage: L.zero()
-            0
-        """
-        return self.element_class(self, Stream_zero(self._sparse))
 
     def _monomial(self, c, n):
         r"""

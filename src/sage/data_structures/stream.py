@@ -505,7 +505,7 @@ class Stream_exact(Stream):
     """
     def __init__(self, initial_coefficients, is_sparse, constant=None, degree=None, order=None):
         """
-        Initialize a series that is known to be eventually geometric.
+        Initialize a stream with eventually constant coefficients.
 
         TESTS::
 

@@ -837,6 +837,7 @@ class Stream_uninitialized(Stream_inexact):
             sage: TestSuite(C).run(skip="_test_pickling")
         """
         self._target = None
+        assert approximate_order is not None, "calling Stream_uninitialized with None as approximate order"
         super().__init__(is_sparse, approximate_order)
 
     def get_coefficient(self, n):

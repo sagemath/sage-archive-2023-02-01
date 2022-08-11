@@ -1,9 +1,16 @@
 # -*- coding: utf-8 -*-
-r"""Lazy Series
+r"""
+Lazy Series
 
-A lazy series is a series whose coefficients are computed on demand.
-Therefore, unlike the usual Laurent/power/etc. series in Sage,
-lazy series have infinite precision.
+Coefficients of lazy series are computed on demand.  They have
+infinite precision, although equality can only be decided in special
+cases.
+
+AUTHORS:
+
+- Kwankyu Lee (2019-02-24): initial version
+- Tejasvi Chebrolu, Martin Rubey, Travis Scrimshaw (2021-08):
+  refactored and expanded functionality
 
 EXAMPLES:
 
@@ -92,12 +99,6 @@ We can change the base ring::
     1/4*z^-1 - 3/8 + 1/16*z - 17/32*z^2 + 5/64*z^3 - 29/128*z^4 + 165/256*z^5 + O(z^6)
     sage: hinv.valuation()
     -1
-
-AUTHORS:
-
-- Kwankyu Lee (2019-02-24): initial version
-- Tejasvi Chebrolu, Martin Rubey, Travis Scrimshaw (2021-08):
-  refactored and expanded functionality
 
 """
 
@@ -761,6 +762,9 @@ class LazyModuleElement(Element):
         if not isinstance(self._coeff_stream, Stream_uninitialized) or self._coeff_stream._target is not None:
             raise ValueError("series already defined")
         self._coeff_stream._target = s._coeff_stream
+
+    # an alias for compatibility with padics
+    set = define
 
     def _repr_(self):
         r"""

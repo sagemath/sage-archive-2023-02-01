@@ -1,6 +1,18 @@
 r"""
 Lazy Series Rings
 
+We provide lazy implementations for various `\NN`-graded rings.
+
+.. csv-table::
+    :class: contentstable
+    :widths: 30, 70
+    :delim: |
+
+    :class:`LazyLaurentSeriesRing` | The ring of lazy Laurent series.
+    :class:`LazyTaylorSeriesRing` | The ring of (possibly multivariate) lazy Taylor series.
+    :class:`LazySymmetricFunctions` | The ring of (possibly multivariate) lazy symmetric functions.
+    :class:`LazyDirichletSeriesRing` | The ring of lazy Dirichlet series.
+
 AUTHORS:
 
 - Kwankyu Lee (2019-02-24): initial version
@@ -34,7 +46,6 @@ from sage.misc.cachefunc import cached_method
 from sage.rings.integer_ring import ZZ
 from sage.rings.polynomial.laurent_polynomial_ring import LaurentPolynomialRing
 from sage.rings.polynomial.polynomial_ring_constructor import PolynomialRing
-from sage.combinat.sf.sf import SymmetricFunctions
 from sage.rings.lazy_series import (LazyModuleElement,
                                     LazyLaurentSeries,
                                     LazyTaylorSeries,
@@ -430,6 +441,74 @@ class LazySeriesRing(UniqueRepresentation, Parent):
 
         raise ValueError(f"unable to convert {x} into {self}")
 
+    def unknown(self, valuation=None):
+        """
+        Return an uninitialized series.
+
+        INPUT:
+
+        - ``valuation`` -- integer; a lower bound for the valuation of the series
+
+        Power series can be defined recursively (see
+        :meth:`sage.rings.lazy_series.LazyModuleElement.define()` for
+        more examples)::
+
+        EXAMPLES::
+
+            sage: L.<z> = LazyTaylorSeriesRing(QQ)
+            sage: s = L.unknown(1)
+            sage: s.define(z + (s^2+s(z^2))/2)
+            sage: s
+            z + z^2 + z^3 + 2*z^4 + 3*z^5 + 6*z^6 + 11*z^7 + O(z^8)
+        """
+        return self(None, valuation=valuation)
+
+    class options(GlobalOptions):
+        r"""
+        Set and display the options for Lazy Laurent series.
+
+        If no parameters are set, then the function returns a copy of
+        the options dictionary.
+
+        The ``options`` to Lazy Laurent series can be accessed as using
+        :class:`LazyLaurentSeriesRing.options` of :class:`LazyLaurentSeriesRing`.
+
+        @OPTIONS@
+
+        EXAMPLES::
+
+            sage: LLS.<z> = LazyLaurentSeriesRing(QQ)
+            sage: LLS.options.display_length
+            7
+            sage: f = 1 / (1 + z)
+            sage: f
+            1 - z + z^2 - z^3 + z^4 - z^5 + z^6 + O(z^7)
+            sage: LLS.options.display_length = 10
+            sage: f
+            1 - z + z^2 - z^3 + z^4 - z^5 + z^6 - z^7 + z^8 - z^9 + O(z^10)
+            sage: g = LLS(lambda n: n^2, valuation=-2, degree=5, constant=42)
+            sage: g
+            4*z^-2 + z^-1 + z + 4*z^2 + 9*z^3 + 16*z^4 + 42*z^5 + 42*z^6 + 42*z^7 + O(z^8)
+            sage: h = 1 / (1 - z)  # This is exact
+            sage: h
+            1 + z + z^2 + O(z^3)
+            sage: LLS.options.constant_length = 1
+            sage: g
+            4*z^-2 + z^-1 + z + 4*z^2 + 9*z^3 + 16*z^4 + 42*z^5 + O(z^6)
+            sage: h
+            1 + O(z)
+            sage: LazyLaurentSeriesRing.options._reset()
+            sage: LazyLaurentSeriesRing.options.display_length
+            7
+        """
+#        NAME = 'LazyLaurentSeriesRing'
+        module = 'sage.rings.lazy_series_ring'
+        display_length = dict(default=7,
+                              description='the number of coefficients to display from the valuation',
+                              checker=lambda x: x in ZZ and x > 0)
+        constant_length = dict(default=3,
+                               description='the number of coefficients to display for nonzero constant series',
+                               checker=lambda x: x in ZZ and x > 0)
 
 class LazyLaurentSeriesRing(LazySeriesRing):
     """
@@ -537,7 +616,8 @@ class LazyLaurentSeriesRing(LazySeriesRing):
         sage: L(f, valuation=1, degree=4, constant=5)
         z - z^2 + z^3 + 5*z^4 + 5*z^5 + 5*z^6 + O(z^7)
 
-    Power series can be defined recursively (see :meth:`define()` for
+    Power series can be defined recursively (see
+    :meth:`sage.rings.lazy_series.LazyModuleElement.define()` for
     more examples)::
 
         sage: L.<z> = LazyLaurentSeriesRing(ZZ)
@@ -576,6 +656,7 @@ class LazyLaurentSeriesRing(LazySeriesRing):
         sage: L.<z> = LazyLaurentSeriesRing(ZZ, sparse=False)
         sage: L.is_sparse()
         False
+
     """
     Element = LazyLaurentSeries
 
@@ -852,54 +933,6 @@ class LazyLaurentSeriesRing(LazySeriesRing):
         """
         return self.element_class(self, Stream_zero(self._sparse))
 
-    # add options to class
-    class options(GlobalOptions):
-        r"""
-        Set and display the options for Lazy Laurent series.
-
-        If no parameters are set, then the function returns a copy of
-        the options dictionary.
-
-        The ``options`` to Lazy Laurent series can be accessed as using
-        :class:`LazyLaurentSeriesRing.options` of :class:`LazyLaurentSeriesRing`.
-
-        @OPTIONS@
-
-        EXAMPLES::
-
-            sage: LLS.<z> = LazyLaurentSeriesRing(QQ)
-            sage: LLS.options.display_length
-            7
-            sage: f = 1 / (1 + z)
-            sage: f
-            1 - z + z^2 - z^3 + z^4 - z^5 + z^6 + O(z^7)
-            sage: LLS.options.display_length = 10
-            sage: f
-            1 - z + z^2 - z^3 + z^4 - z^5 + z^6 - z^7 + z^8 - z^9 + O(z^10)
-            sage: g = LLS(lambda n: n^2, valuation=-2, degree=5, constant=42)
-            sage: g
-            4*z^-2 + z^-1 + z + 4*z^2 + 9*z^3 + 16*z^4 + 42*z^5 + 42*z^6 + 42*z^7 + O(z^8)
-            sage: h = 1 / (1 - z)  # This is exact
-            sage: h
-            1 + z + z^2 + O(z^3)
-            sage: LLS.options.constant_length = 1
-            sage: g
-            4*z^-2 + z^-1 + z + 4*z^2 + 9*z^3 + 16*z^4 + 42*z^5 + O(z^6)
-            sage: h
-            1 + O(z)
-            sage: LazyLaurentSeriesRing.options._reset()
-            sage: LazyLaurentSeriesRing.options.display_length
-            7
-        """
-        NAME = 'LazyLaurentSeriesRing'
-        module = 'sage.rings.lazy_series_ring'
-        display_length = dict(default=7,
-                              description='the number of coefficients to display from the valuation',
-                              checker=lambda x: x in ZZ and x > 0)
-        constant_length = dict(default=3,
-                               description='the number of coefficients to display for nonzero constant series',
-                               checker=lambda x: x in ZZ and x > 0)
-
     def series(self, coefficient, valuation, degree=None, constant=None):
         r"""
         Return a lazy Laurent series.
@@ -1003,9 +1036,9 @@ class LazyLaurentSeriesRing(LazySeriesRing):
 
 ######################################################################
 
-class LazyTaylorSeriesRing(UniqueRepresentation, Parent):
+class LazyTaylorSeriesRing(LazySeriesRing):
     """
-    Lazy Taylor series ring.
+    The ring of (possibly multivariate) lazy Taylor series.
 
     INPUT:
 
@@ -1292,7 +1325,7 @@ class LazyTaylorSeriesRing(UniqueRepresentation, Parent):
             if valuation < 0:
                 raise ValueError("the valuation of a Taylor series must be positive")
             if len(self.variable_names()) > 1:
-                raise ValueError(f"valuation must not be specified for multivariate Taylor series")
+                raise ValueError("valuation must not be specified for multivariate Taylor series")
         if len(self.variable_names()) > 1:
             valuation = 0
 
@@ -1311,7 +1344,7 @@ class LazyTaylorSeriesRing(UniqueRepresentation, Parent):
             constant, degree = constant
         if constant is not None:
             if len(self.variable_names()) > 1 and constant:
-                raise ValueError(f"constant must be zero for multivariate Taylor series")
+                raise ValueError("constant must be zero for multivariate Taylor series")
             constant = BR(constant)
         if x in R:
             if not x and not constant:
@@ -1353,7 +1386,6 @@ class LazyTaylorSeriesRing(UniqueRepresentation, Parent):
             if degree is not None:
                 if constant is None:
                     constant = ZZ.zero()
-                z = R.gen()
                 if len(self.variable_names()) == 1:
                     p = [BR(x(i)) for i in range(valuation, degree)]
                 else:
@@ -1422,13 +1454,11 @@ class LazyTaylorSeriesRing(UniqueRepresentation, Parent):
         """
         return self.element_class(self, Stream_zero(self._sparse))
 
-    options = LazyLaurentSeriesRing.options
-
 ######################################################################
 
-class LazySymmetricFunctions(UniqueRepresentation, Parent):
+class LazySymmetricFunctions(LazySeriesRing):
     """
-    Lazy symmetric functions.
+    The ring of lazy symmetric functions.
 
     INPUT:
 
@@ -1636,7 +1666,6 @@ class LazySymmetricFunctions(UniqueRepresentation, Parent):
 
 
         R = self._laurent_poly_ring
-        BR = self.base_ring()
         if x is None:
             assert degree is None
             coeff_stream = Stream_uninitialized(self._sparse, valuation)
@@ -1741,7 +1770,6 @@ class LazySymmetricFunctions(UniqueRepresentation, Parent):
             sage: L.an_element()
             m[]
         """
-        c = self.base_ring()(1)
         R = self._laurent_poly_ring
         coeff_stream = Stream_exact([R.one()], self._sparse, order=1, constant=0)
         return self.element_class(self, coeff_stream)
@@ -1776,13 +1804,11 @@ class LazySymmetricFunctions(UniqueRepresentation, Parent):
         """
         return self.element_class(self, Stream_zero(self._sparse))
 
-    options = LazyLaurentSeriesRing.options
-
 ######################################################################
 
 class LazyDirichletSeriesRing(LazySeriesRing):
     """
-    Lazy Dirichlet series ring.
+    The ring of lazy Dirichlet series.
 
     INPUT:
 
@@ -2055,5 +2081,3 @@ class LazyDirichletSeriesRing(LazySeriesRing):
             return L(c) * L(n) ** -L(self.variable_name())
         except (ValueError, TypeError):
             return '({})/{}^{}'.format(self.base_ring()(c), n, self.variable_name())
-
-    options = LazyLaurentSeriesRing.options

@@ -311,11 +311,11 @@ class Polyhedron_base(Polyhedron_base7):
 
         for ineqn in self.inequalities_list():
             b = -ineqn.pop(0)
-            p.add_constraint(p.sum([x[i]*ineqn[i] for i in range(len(ineqn))]) >= b)
+            p.add_constraint(p.sum([x[i] * ineqn[i] for i in range(len(ineqn))]) >= b)
 
         for eqn in self.equations_list():
             b = -eqn.pop(0)
-            p.add_constraint(p.sum([x[i]*eqn[i] for i in range(len(eqn))]) == b)
+            p.add_constraint(p.sum([x[i] * eqn[i] for i in range(len(eqn))]) == b)
 
         if return_variable:
             return p, x
@@ -402,7 +402,7 @@ class Polyhedron_base(Polyhedron_base7):
         if self.dim() == 0:
             return self.vertices()[0].vector()
         else:
-            vertex_sum = vector(self.base_ring(), [0]*self.ambient_dim())
+            vertex_sum = vector(self.base_ring(), [0] * self.ambient_dim())
             for v in self.vertex_generator():
                 vertex_sum += v.vector()
             vertex_sum.set_immutable()
@@ -1198,9 +1198,10 @@ class Polyhedron_base(Polyhedron_base7):
                                        INEQUALITIES=self.inequalities_list(),
                                        EQUATIONS=self.equations_list())
 
+        verts_and_rays = [[1] + v for v in self.vertices_list()]
+        verts_and_rays += [[0] + r for r in self.rays_list()]
         return polymake.new_object(polymake_class,
                                    FACETS=self.inequalities_list(),
                                    AFFINE_HULL=self.equations_list(),
-                                   VERTICES=[[1] + v for v in self.vertices_list()] \
-                                   + [[0] + r for r in self.rays_list()],
+                                   VERTICES=verts_and_rays,
                                    LINEALITY_SPACE=[[0] + l for l in self.lines_list()])

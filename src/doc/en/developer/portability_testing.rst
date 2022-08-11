@@ -1181,19 +1181,24 @@ does not, use the command palette (:kbd:`Ctrl` + :kbd:`Shift` +
 :kbd:`P`) to run the command "Remote-Containers: Reopen Folder in
 Container". By clicking on "Show Log", you can see what it does:
 
-- It pulls the prebuilt image from ghcr.io; note that these
-  are multi-gigabyte images, so it may take a while.
+- It pulls the prebuilt image from ghcr.io (via
+  `.devcontainer/portability-Dockerfile
+  <https://github.com/sagemath/sage/tree/develop/.devcontainer/portability-Dockerfile>`_);
+  note that these are multi-gigabyte images, so it may take a while.
 
 - As part of the "postCreateCommand", it installs additional system packages to
-  support VS Code and for development. Then it bootstraps and configures
-  the source tree and starts to build Sage from
-  source, reusing the installation (:envvar:`SAGE_LOCAL`,
-  :envvar:`SAGE_VENV`) from the prebuilt image.
+  support VS Code and for development.
 
-This sample file uses ``ubuntu-jammy-standard`` and the most recent
-development version of Sage (``dev`` tag).  You can edit a copy of the
-configuration file to change to a different platform or another
-version.  After editing the configuration file (or changing the
+- Then, as part of the "postStartCommand", it bootstraps and
+  configures the source tree and starts to build Sage from source,
+  reusing the installation (:envvar:`SAGE_LOCAL`, :envvar:`SAGE_VENV`)
+  from the prebuilt image.
+
+This sample file uses ``ubuntu-jammy-standard``, the most recent
+development version of Sage (``dev`` tag), and a full installation of
+the Sage distribution (``with-targets``).  You can edit a copy of the
+configuration file to change to a different platform, another
+version, or build stage.  After editing the configuration file (or changing the
 symlink), run "Remote-Containers: Rebuild Container" from the Command
 Palette. See the `VS Code devcontainer.json reference
 <https://code.visualstudio.com/docs/remote/devcontainerjson-reference>`_

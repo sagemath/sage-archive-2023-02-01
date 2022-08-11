@@ -20,7 +20,8 @@ AUTHORS:
 # ****************************************************************************
 
 from sage.misc.lazy_import import lazy_import
-from sage.misc.all import prod, cached_method
+from sage.misc.misc_c import prod
+from sage.misc.cachefunc import cached_method
 from sage.arith.all import LCM, fundamental_discriminant
 from sage.matrix.matrix_space import MatrixSpace
 from sage.matrix.constructor import matrix
@@ -490,7 +491,7 @@ def is_2_adic_genus(genus_symbol_quintuple_list):
 
         sage: A = Matrix(ZZ, 2, 2, [1,1,1,2])
         sage: G3 = LocalGenusSymbol(A, 3)
-        sage: is_2_adic_genus(G3.symbol_tuple_list())  ## This raises an error
+        sage: is_2_adic_genus(G3.symbol_tuple_list())  # This raises an error
         Traceback (most recent call last):
         ...
         TypeError: The genus symbols are not quintuples, so it's not a genus symbol for the prime p=2.
@@ -500,15 +501,15 @@ def is_2_adic_genus(genus_symbol_quintuple_list):
         sage: is_2_adic_genus(G2.symbol_tuple_list())
         True
     """
-    ## TO DO: Add explicit checking for the prime p here to ensure it's p=2... not just the quintuple checking below
+    # TO DO: Add explicit checking for the prime p here to ensure it's p=2... not just the quintuple checking below
 
     for s in genus_symbol_quintuple_list:
 
-        ## Check that we have a quintuple (i.e. that p=2 and not p >2)
+        # Check that we have a quintuple (i.e. that p=2 and not p >2)
         if len(s) != 5:
             raise TypeError("The genus symbols are not quintuples, so it's not a genus symbol for the prime p=2.")
 
-        ## Check the Conway-Sloane conditions
+        # Check the Conway-Sloane conditions
         if s[1] == 1:
             if s[3] == 0 or s[2] != s[4]:
                 return False
@@ -570,7 +571,7 @@ def canonical_2_adic_compartments(genus_symbol_quintuple_list):
         sage: A = Matrix(ZZ, 2, 2, [2,1,1,2])
         sage: G2 = LocalGenusSymbol(A, 2); G2.symbol_tuple_list()
         [[0, 2, 3, 0, 0]]
-        sage: canonical_2_adic_compartments(G2.symbol_tuple_list())   ## No compartments here!
+        sage: canonical_2_adic_compartments(G2.symbol_tuple_list())   # No compartments here!
         []
 
     .. NOTE::
@@ -732,13 +733,13 @@ def canonical_2_adic_reduction(genus_symbol_quintuple_list):
         sage: A = Matrix(ZZ, 2, 2, [1, 0, 0, 2])
         sage: G2 = LocalGenusSymbol(A, 2); G2.symbol_tuple_list()
         [[0, 1, 1, 1, 1], [1, 1, 1, 1, 1]]
-        sage: canonical_2_adic_reduction(G2.symbol_tuple_list())   ## Oddity fusion occurred here!
+        sage: canonical_2_adic_reduction(G2.symbol_tuple_list())   # Oddity fusion occurred here!
         [[0, 1, 1, 1, 2], [1, 1, 1, 1, 0]]
 
         sage: A = DiagonalQuadraticForm(ZZ, [1, 2, 3, 4]).Hessian_matrix()
         sage: G2 = LocalGenusSymbol(A, 2); G2.symbol_tuple_list()
         [[1, 2, 3, 1, 4], [2, 1, 1, 1, 1], [3, 1, 1, 1, 1]]
-        sage: canonical_2_adic_reduction(G2.symbol_tuple_list())   ## Oddity fusion occurred here!
+        sage: canonical_2_adic_reduction(G2.symbol_tuple_list())   # Oddity fusion occurred here!
         [[1, 2, -1, 1, 6], [2, 1, 1, 1, 0], [3, 1, 1, 1, 0]]
 
         sage: A = Matrix(ZZ, 2, 2, [2, 1, 1, 2])
@@ -817,21 +818,20 @@ def basis_complement(B):
     F = B.parent().base_ring()
     m = B.nrows()
     n = B.ncols()
-    C = MatrixSpace(F,n-m,n,sparse=True)(0)
+    C = MatrixSpace(F, n - m, n, sparse=True)(0)
     k = 0
     l = 0
     for i in range(m):
-        for j in range(k,n):
-             if B[i,j] == 0:
-                 C[l,j] = 1
-                 l += 1
-             else:
-                 k = j+1
-                 break
-    for j in range(k,n):
-        C[l+j-k,j] = 1
+        for j in range(k, n):
+            if B[i, j] == 0:
+                C[l, j] = 1
+                l += 1
+            else:
+                k = j + 1
+                break
+    for j in range(k, n):
+        C[l + j - k, j] = 1
     return C
-
 
 
 def signature_pair_of_matrix(A):
@@ -1024,13 +1024,13 @@ def split_odd(A):
         sage: A = Matrix(ZZ, 2, 2, [1, 1, 1, 1])
         sage: is_even_matrix(A)
         (False, 0)
-        sage: split_odd(A)      ## This fails because no such splitting exists. =(
+        sage: split_odd(A)      # This fails because no such splitting exists. =(
         Traceback (most recent call last):
         ...
         RuntimeError: The matrix A does not admit a non-even splitting.
 
         sage: A = Matrix(ZZ, 2, 2, [1, 2, 2, 6])
-        sage: split_odd(A)      ## This fails because no such splitting exists. =(
+        sage: split_odd(A)      # This fails because no such splitting exists. =(
         Traceback (most recent call last):
         ...
         RuntimeError: The matrix A does not admit a non-even splitting.
@@ -1168,24 +1168,24 @@ def two_adic_symbol(A, val):
     K_2 = A_2.kernel()
     R_8 = ZZ.quotient_ring(Integer(8))
 
-    ## Deal with the matrix being non-degenerate mod 2.
+    # Deal with the matrix being non-degenerate mod 2.
     if K_2.dimension() == 0:
         A_8 = MatrixSpace(R_8, n)(A)
         n0 = A.nrows()
         # d0 = ZZ(A_8.determinant()) # no determinant over Z/8Z
         d0 = ZZ(R_8(MatrixSpace(ZZ, n)(A_8).determinant()))
-        if d0 == 0:    ## SANITY CHECK: The mod 8 determinant shouldn't be zero.
+        if d0 == 0:    # SANITY CHECK: The mod 8 determinant shouldn't be zero.
             print("A:")
             print(A)
             assert False
-        even, i = is_even_matrix(A_2)    ## Determine whether the matrix is even or odd.
+        even, i = is_even_matrix(A_2)    # Determine whether the matrix is even or odd.
         if even:
             return [[m0, n0, d0, 0, 0]]
         else:
-            tr8 = trace_diag_mod_8(A_8)  ## Here we already know that A_8 is odd and diagonalizable mod 8.
+            tr8 = trace_diag_mod_8(A_8)  # Here we already know that A_8 is odd and diagonalizable mod 8.
             return [[m0, n0, d0, 1, tr8]]
 
-    ## Deal with the matrix being degenerate mod 2.
+    # Deal with the matrix being degenerate mod 2.
     else:
         B_2 = K_2.echelonized_basis_matrix()
         C_2 = basis_complement(B_2)
@@ -1222,7 +1222,7 @@ def two_adic_symbol(A, val):
     return [ [s[0]+m0] + s[1:] for s in sym + two_adic_symbol(A, val) ]
 
 
-class Genus_Symbol_p_adic_ring(object):
+class Genus_Symbol_p_adic_ring():
     r"""
     Local genus symbol over a p-adic ring.
 
@@ -1309,7 +1309,7 @@ class Genus_Symbol_p_adic_ring(object):
             True
         """
         if check:
-           pass
+            pass
         self._prime = ZZ(prime)
         self._symbol = symbol
         self._canonical_symbol = None
@@ -1524,13 +1524,13 @@ class Genus_Symbol_p_adic_ring(object):
         return not self == other
 
 
-    ## Added these two methods to make this class iterable...
+    # Added these two methods to make this class iterable...
     #def  __getitem__(self, i):
     #    return self._symbol[i]
     #
     #def len(self):
     #    return len(self._symbol)
-    ## ------------------------------------------------------
+    # ------------------------------------------------------
 
     def automorphous_numbers(self):
         r"""
@@ -1612,7 +1612,7 @@ class Genus_Symbol_p_adic_ring(object):
             for r in I:
                 # We need to consider all pairs in I
                 # since at most 2 elements are part of a pair
-                # we need need at most 2 of each type
+                # we need at most 2 of each type
                 if I.count(r) > 2:
                     I.remove(r)
             # products of all pairs
@@ -1650,7 +1650,7 @@ class Genus_Symbol_p_adic_ring(object):
         L = I + II
         # We need to consider all pairs in L
         # since at most 2 elements are part of a pair
-        # we need need at most 2 of each type
+        # we need at most 2 of each type
         for r in L:     # remove triplicates
             if L.count(r) > 2:
                 L.remove(r)
@@ -1723,14 +1723,14 @@ class Genus_Symbol_p_adic_ring(object):
             sage: p = 2
             sage: G2 = Genus_Symbol_p_adic_ring(p, p_adic_symbol(A, p, 2)); G2.symbol_tuple_list()
             [[0, 1, 1, 1, 1], [1, 1, 1, 1, 1]]
-            sage: G2.canonical_symbol()   ## Oddity fusion occurred here!
+            sage: G2.canonical_symbol()   # Oddity fusion occurred here!
             [[0, 1, 1, 1, 2], [1, 1, 1, 1, 0]]
 
             sage: A = DiagonalQuadraticForm(ZZ, [1,2,3,4]).Hessian_matrix()
             sage: p = 2
             sage: G2 = Genus_Symbol_p_adic_ring(p, p_adic_symbol(A, p, 2)); G2.symbol_tuple_list()
             [[1, 2, 3, 1, 4], [2, 1, 1, 1, 1], [3, 1, 1, 1, 1]]
-            sage: G2.canonical_symbol()   ## Oddity fusion occurred here!
+            sage: G2.canonical_symbol()   # Oddity fusion occurred here!
             [[1, 2, -1, 1, 6], [2, 1, 1, 1, 0], [3, 1, 1, 1, 0]]
 
             sage: A = Matrix(ZZ, 2, 2, [2, 1, 1, 2])
@@ -1798,7 +1798,7 @@ class Genus_Symbol_p_adic_ring(object):
         # check calculation
         if check:
             symG = p_adic_symbol(G, p, symbol[-1][0])
-            assert Genus_Symbol_p_adic_ring(p, symG) == self, "oops"
+            assert Genus_Symbol_p_adic_ring(p, symG) == self
         return G
 
     def mass(self):
@@ -2234,17 +2234,17 @@ class Genus_Symbol_p_adic_ring(object):
         """
         p = self._prime
         if self._prime == 2:
-           k = 0
-           for s in self._symbol:
-               if s[0] % 2 == 1 and s[2] in (3, 5):
-                   k += 1
-           return Integer(sum([ s[4] for s in self._symbol ]) + 4*k).mod(8)
+            k = 0
+            for s in self._symbol:
+                if s[0] % 2 == 1 and s[2] in (3, 5):
+                    k += 1
+            return Integer(sum([ s[4] for s in self._symbol ]) + 4*k).mod(8)
         else:
-           k = 0
-           for s in self._symbol:
-               if s[0] % 2 == 1 and s[2] == -1:
-                   k += 1
-           return Integer(sum([ s[1] * (p**s[0]-1) for s in self._symbol]) + 4*k).mod(8)
+            k = 0
+            for s in self._symbol:
+                if s[0] % 2 == 1 and s[2] == -1:
+                    k += 1
+            return Integer(sum([ s[1] * (p**s[0]-1) for s in self._symbol]) + 4*k).mod(8)
 
     def scale(self):
         r"""
@@ -2333,7 +2333,7 @@ class Genus_Symbol_p_adic_ring(object):
             [[0, 1, 2]]
 
         """
-        ## Check that p = 2
+        # Check that p = 2
         if self._prime != 2:
             raise TypeError("trains() only makes sense when the prime of the p_adic_Genus_Symbol is p=2")
         symbol = self._symbol
@@ -2363,13 +2363,14 @@ class Genus_Symbol_p_adic_ring(object):
             [[0, 1, 2]]
 
         """
-        ## Check that p = 2
+        # Check that p = 2
         if self._prime != 2:
             raise TypeError("compartments() only makes sense when the prime of the p_adic_Genus_Symbol is p=2")
         symbol = self._symbol
         return canonical_2_adic_compartments(symbol)
 
-class GenusSymbol_global_ring(object):
+
+class GenusSymbol_global_ring():
     r"""
     This represents a collection of local genus symbols (at primes)
     and signature information which represent the genus of a
@@ -2697,9 +2698,13 @@ class GenusSymbol_global_ring(object):
             Subgroup of Group of SpinorOperators at primes (2,) generated by (1, 1, f2))
             sage: gram = matrix(ZZ, 4, [3,0,1,-1, 0,3,-1,-1, 1,-1,6,0, -1,-1,0,6])
             sage: genus = Genus(gram)
-            sage: genus._improper_spinor_kernel()
-            (Group of SpinorOperators at primes (2,),
-            Subgroup of Group of SpinorOperators at primes (2,) generated by (1, 1, f2, f1))
+            sage: A, K = genus._improper_spinor_kernel()
+            sage: A
+            Group of SpinorOperators at primes (2,)
+            sage: K
+            Subgroup of Group of SpinorOperators at primes (2,) generated by (1, 1, f2, ...)
+            sage: sorted([K.generators()[3], K.generators()[2] * K.generators()[3]])
+            [f1, f1*f2]
         """
         A, K = self._proper_spinor_kernel()
         if A.order() == K.order():
@@ -2763,16 +2768,20 @@ class GenusSymbol_global_ring(object):
 
             sage: gram = matrix(ZZ, 4, [2,0,1,0, 0,2,1,0, 1,1,5,0, 0,0,0,16])
             sage: genus = Genus(gram)
-            sage: genus._proper_is_improper()
-            (True, [2:1])
+            sage: b, j = genus._proper_is_improper(); b
+            True
+            sage: j.exponents() in ((0, 0), (0, 1))
+            True
 
         This genus consists of only on (improper) class, hence spinor genus and
         improper spinor genus differ::
 
             sage: gram = matrix(ZZ, 4, [3,0,1,-1, 0,3,-1,-1, 1,-1,6,0, -1,-1,0,6])
             sage: genus = Genus(gram)
-            sage: genus._proper_is_improper()
-            (False, [2:7])
+            sage: b, j = genus._proper_is_improper(); b
+            False
+            sage: j.exponents() in ((1, 0), (1, 1))
+            True
         """
         G = self.representative()
         d = self.dimension()

@@ -16,7 +16,9 @@ AUTHORS:
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 
-from sage.rings.all import ZZ, infinity, LaurentSeries, O
+from sage.rings.integer_ring import ZZ
+from sage.rings.infinity import infinity
+from sage.rings.all import LaurentSeries, O
 from sage.functions.all import exp
 from sage.rings.number_field.number_field import QuadraticField
 from sage.symbolic.all import pi
@@ -64,11 +66,10 @@ class FormsRingElement(CommutativeAlgebraElement, UniqueRepresentation,
             sage: el.rat().parent()
             Fraction Field of Multivariate Polynomial Ring in x, y, z, d over Integer Ring
         """
-
         rat = parent.rat_field()(rat)
         # rat.reduce() <- maybe add this for the nonexact case
 
-        return super(FormsRingElement,cls).__classcall__(cls, parent, rat)
+        return super().__classcall__(cls, parent, rat)
 
     def __init__(self, parent, rat):
         r"""
@@ -121,16 +122,14 @@ class FormsRingElement(CommutativeAlgebraElement, UniqueRepresentation,
             sage: el.parent()
             QuasiModularFormsRing(n=+Infinity) over Integer Ring
         """
-
         self._rat = rat
         (elem, homo, self._weight, self._ep, self._analytic_type) = rational_type(rat, parent.hecke_n(), parent.base_ring())
 
-        if not (
-            elem and\
-            self._analytic_type <= parent.analytic_type() ):
-                raise ValueError("{} does not correspond to an element of the {}.".format(rat, parent))
+        if not (elem and
+                self._analytic_type <= parent.analytic_type()):
+            raise ValueError("{} does not correspond to an element of the {}.".format(rat, parent))
 
-        super(FormsRingElement, self).__init__(parent)
+        super().__init__(parent)
 
     # Unfortunately the polynomial ring does not give unique
     # representations of elements (with respect to ==)
@@ -1044,7 +1043,7 @@ class FormsRingElement(CommutativeAlgebraElement, UniqueRepresentation,
             sage: from sage.modular.modform_hecketriangle.graded_ring import QuasiMeromorphicModularFormsRing
             sage: MR = QuasiMeromorphicModularFormsRing(n=8, red_hom=True)
             sage: (X,Y,Z,dX,dY,dZ) = MR.diff_alg().gens()
-            sage: n=MR.hecke_n()
+            sage: n = MR.hecke_n()
             sage: mul_op = 4/(n-2)*X*dX + 2*n/(n-2)*Y*dY + 2*Z*dZ
             sage: der_op = MR._derivative_op()
             sage: ser_op = MR._serre_derivative_op()
@@ -1460,7 +1459,7 @@ class FormsRingElement(CommutativeAlgebraElement, UniqueRepresentation,
             sage: ModularFormsRing(n=7)(x+1).reduce(force=True).parent()
             ModularFormsRing(n=7) over Integer Ring
 
-            sage: y=var("y")
+            sage: y = var("y")
             sage: ModularFormsRing(n=infinity)(x-y^2).reduce(force=True)
             64*q - 512*q^2 + 1792*q^3 - 4096*q^4 + O(q^5)
         """
@@ -1491,7 +1490,7 @@ class FormsRingElement(CommutativeAlgebraElement, UniqueRepresentation,
             sage: el.reduced_parent()
             ModularFormsRing(n=3) over Integer Ring
 
-            sage: y=var("y")
+            sage: y = var("y")
             sage: QuasiMeromorphicModularFormsRing(n=infinity)(x-y^2).reduced_parent()
             ModularForms(n=+Infinity, k=4, ep=1) over Integer Ring
             sage: QuasiMeromorphicModularFormsRing(n=infinity)(x*(x-y^2)).reduced_parent()
@@ -1545,10 +1544,7 @@ class FormsRingElement(CommutativeAlgebraElement, UniqueRepresentation,
             sage: J_inv._q_expansion_cached(prec=5, fix_d=True, subs_d=None, d_num_prec=53, fix_prec=False) == J_inv.q_expansion_fixed_d()
             True
         """
-
         if not fix_prec:
-            #if (prec <1):
-            #    print "Warning: non-positive precision!"
             if ((not self.is_zero()) and prec <= self.order_at(infinity)):
                 from warnings import warn
                 warn("precision too low to determine any coefficient!")
@@ -2149,7 +2145,7 @@ class FormsRingElement(CommutativeAlgebraElement, UniqueRepresentation,
 
         # if tau is a point of HyperbolicPlane then we use it's coordinates in the UHP model
         if (tau in HyperbolicPlane()):
-           tau = tau.to_model('UHP').coordinates()
+            tau = tau.to_model('UHP').coordinates()
 
         if (prec is None):
             prec = self.parent().default_prec()
@@ -2158,14 +2154,12 @@ class FormsRingElement(CommutativeAlgebraElement, UniqueRepresentation,
 
         # In case the order is known
         try:
-            if (check or\
-                    tau == infinity or\
-                    tau == i or\
-                    tau == self.group().rho() or\
+            if (check or tau == infinity or tau == i or
+                    tau == self.group().rho() or
                     tau == -self.group().rho().conjugate()):
                 order_tau = self.order_at(tau)
 
-                if (order_tau > 0):
+                if order_tau > 0:
                     return ZZ(0)
                 elif (order_tau < 0):
                     return infinity

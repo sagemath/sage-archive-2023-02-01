@@ -226,7 +226,7 @@ from sage.env import SAGE_EXTCODE, DOT_SAGE
 import sage.misc.misc
 import sage.misc.sage_eval
 from sage.interfaces.tab_completion import ExtraTabCompletion
-from sage.docs.instancedoc import instancedoc
+from sage.misc.instancedoc import instancedoc
 
 INTRINSIC_CACHE = '%s/magma_intrinsic_cache.sobj' % DOT_SAGE
 EXTCODE_DIR = None
@@ -373,7 +373,7 @@ class Magma(ExtraTabCompletion, Expect):
             sage: m.set_seed(1) # optional - magma
             1
             sage: [m.Random(100) for i in range(5)] # optional - magma
-            [13, 55, 84, 100, 37]
+            [14, 81, 45, 75, 67]
         """
         if seed is None:
             seed = self.rand_seed()
@@ -1042,13 +1042,13 @@ class Magma(ExtraTabCompletion, Expect):
 
         EXAMPLES::
 
-            sage: filename = os.path.join(SAGE_TMP, 'a.m')
-            sage: with open(filename, 'w') as f:
+            sage: from tempfile import NamedTemporaryFile as NTF
+            sage: with NTF(mode="w+t", suffix=".m") as f:  # optional - magma
             ....:     _ = f.write('function f(n) return n^2; end function;\nprint "hi";')
-            sage: print(magma.load(filename))      # optional - magma
+            ....:     print(magma.load(f.name))
             Loading ".../a.m"
             hi
-            sage: magma('f(12)')       # optional - magma
+            sage: magma('f(12)')  # optional - magma
             144
         """
         return self.eval('load "%s"' % filename)
@@ -1154,10 +1154,10 @@ class Magma(ExtraTabCompletion, Expect):
         if len(params) == 0:
             par = ''
         else:
-            par = ' : ' + ','.join(['%s:=%s' % (a, b.name())
-                                    for a, b in params.items()])
+            par = ' : ' + ','.join('%s:=%s' % (a, b.name())
+                                   for a, b in params.items())
 
-        fun = "%s(%s%s)" % (function, ",".join([s.name() for s in args]), par)
+        fun = "%s(%s%s)" % (function, ",".join(s.name() for s in args), par)
 
         return self._do_call(fun, nvals)
 
@@ -1266,9 +1266,9 @@ class Magma(ExtraTabCompletion, Expect):
         magma = self
         # coerce each arg to be a Magma element
         if isinstance(gens, (list, tuple)):
-            gens = [magma(z) for z in gens]
+            gens = (magma(z) for z in gens)
             # make comma separated list of names (in Magma) of each of the gens
-            v = ', '.join([w.name() for w in gens])
+            v = ', '.join(w.name() for w in gens)
         else:
             gens = magma(gens)
             v = gens.name()
@@ -1982,7 +1982,7 @@ class MagmaElement(ExtraTabCompletion, ExpectElement):
             sage: m.sage()                           # optional - magma
             [1 2 3]
             [4 5 6]
-            
+
         Multivariate polynomials::
 
             sage: R.<x,y,z> = QQ[]                   # optional - magma
@@ -2057,9 +2057,9 @@ class MagmaElement(ExtraTabCompletion, ExpectElement):
             sage: R = Zmod(137)
             sage: magma(R).sage()  # optional - magma
             Ring of integers modulo 137
-            
+
         TESTS:
-        
+
         Tests for :trac:`30341`::
 
             sage: P.<t> = PolynomialRing(QQ)
@@ -2067,7 +2067,7 @@ class MagmaElement(ExtraTabCompletion, ExpectElement):
             sage: u = P(l)
             sage: u == P(magma(u).sage()) # optional - magma
             True
-            
+
             sage: P.<x,y> = PolynomialRing(QQ, 2)
             sage: u = x + 27563611963/4251528*y
             sage: magma(u).sage() # optional - magma
@@ -2318,7 +2318,7 @@ class MagmaElement(ExtraTabCompletion, ExpectElement):
             sage: R.<x> = QQ[]
             sage: f = magma(x^2 + 2/3*x + 5)                 # optional - magma
             sage: f                                          # optional - magma
-            x^2 + 2/3*x + 5
+            t^2 + 2/3*t + 5
             sage: f.Type()                                   # optional - magma
             RngUPolElt
             sage: f._polynomial_(R)                          # optional - magma
@@ -2626,18 +2626,32 @@ class MagmaElement(ExtraTabCompletion, ExpectElement):
             True
             sage: bool(magma(0))                          # optional - magma
             False
+
+        TESTS:
+
+        Verify that :trac:`32602` is fixed::
+
+            sage: magma("1 eq 0").bool()                  # optional - magma
+            False
+            sage: magma("1 eq 1").bool()                  # optional - magma
+            True
+            sage: Q.<x> = PolynomialRing(GF(3))
+            sage: u = x^6+x^4+2*x^3+2*x+1
+            sage: F0 = magma.FunctionField(GF(3))         # optional - magma
+            sage: bool(F0.1)                              # optional - magma
+            True
         """
         try:
-            return not self.parent()("%s eq 0" % self.name()).bool()
+            return str(self.parent()("%s eq 0" % self.name())) == "false"
         except TypeError:
-            # comparing with 0 didn't work; try comparing with
+            # comparing with 0 didn't work; try comparing with false
             try:
-                return not self.parent()("%s eq false" % self.name()).bool()
+                return str(self.parent()("%s eq false" % self.name())) == "false"
             except TypeError:
                 pass
         return True
 
-    __nonzero__ = __bool__
+    
 
     def sub(self, gens):
         """
@@ -2771,7 +2785,7 @@ def magma_console():
     from sage.repl.rich_output.display_manager import get_display_manager
     if not get_display_manager().is_in_terminal():
         raise RuntimeError('Can use the console only in the terminal. Try %%magma magics instead.')
-    console('sage-native-execute magma')
+    console('magma')
 
 
 class MagmaGBLogPrettyPrinter:
@@ -2970,7 +2984,7 @@ class MagmaGBDefaultContext:
             0
         """
         if magma is None:
-            from sage.interfaces.all import magma as magma_default
+            from sage.interfaces.magma import magma as magma_default
             magma = magma_default
 
         self.magma = magma

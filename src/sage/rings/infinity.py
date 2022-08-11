@@ -220,13 +220,14 @@ from sage.rings.ring import Ring
 from sage.structure.element import RingElement, InfinityElement
 from sage.structure.richcmp import rich_to_bool, richcmp
 from sage.misc.fast_methods import Singleton
+import sage.rings.abc
 import sage.rings.integer
 import sage.rings.rational
 
 import sage.rings.integer_ring
 
 _obj = {}
-class _uniq(object):
+class _uniq():
     def __new__(cls, *args):
         """
         This ensures uniqueness of these objects.
@@ -242,7 +243,7 @@ class _uniq(object):
         return O
 
 
-class AnInfinity(object):
+class AnInfinity():
     """
     TESTS::
 
@@ -710,9 +711,13 @@ class UnsignedInfinityRing_class(Singleton, Ring):
             True
         """
         # Lazy elements can wrap infinity or not, unwrap first
-        from sage.rings.real_lazy import LazyWrapper
-        if isinstance(x, LazyWrapper):
-            x = x._value
+        try:
+            from sage.rings.real_lazy import LazyWrapper
+        except ImportError:
+            pass
+        else:
+            if isinstance(x, LazyWrapper):
+                x = x._value
 
         # Handle all ways to represent infinity first
         if isinstance(x, InfinityElement):
@@ -720,7 +725,7 @@ class UnsignedInfinityRing_class(Singleton, Ring):
         elif isinstance(x, float):
             if x in [float('+inf'), float('-inf')]:
                 return self.gen()
-        elif isinstance(x, sage.rings.real_mpfi.RealIntervalFieldElement):
+        elif isinstance(x, RingElement) and isinstance(x.parent(), sage.rings.abc.RealIntervalField):
             if x.upper().is_infinity() or x.lower().is_infinity():
                 return self.gen()
         else:
@@ -1166,9 +1171,13 @@ class InfinityRing_class(Singleton, Ring):
             ValueError: infinite but not with +/- phase
         """
         # Lazy elements can wrap infinity or not, unwrap first
-        from sage.rings.real_lazy import LazyWrapper
-        if isinstance(x, LazyWrapper):
-            x = x._value
+        try:
+            from sage.rings.real_lazy import LazyWrapper
+        except ImportError:
+            pass
+        else:
+            if isinstance(x, LazyWrapper):
+                x = x._value
 
         # Handle all ways to represent infinity first
         if isinstance(x, InfinityElement):
@@ -1181,7 +1190,7 @@ class InfinityRing_class(Singleton, Ring):
                 return self.gen(0)
             if x == float('-inf'):
                 return self.gen(1)
-        elif isinstance(x, sage.rings.real_mpfi.RealIntervalFieldElement):
+        elif isinstance(x, RingElement) and isinstance(x.parent(), sage.rings.abc.RealIntervalField):
             if x.upper().is_positive_infinity():
                 return self.gen(0)
             if x.lower().is_negative_infinity():
@@ -1261,15 +1270,8 @@ class InfinityRing_class(Singleton, Ring):
         from sage.structure.coerce import parent_is_real_numerical
         if parent_is_real_numerical(R):
             return True
-        from sage.rings.real_mpfi import RealIntervalField_class
-        if isinstance(R, RealIntervalField_class):
+        if isinstance(R, (sage.rings.abc.RealIntervalField, sage.rings.abc.RealBallField)):
             return True
-        try:
-            from sage.rings.real_arb import RealBallField
-            if isinstance(R, RealBallField):
-                return True
-        except ImportError:
-            pass
         return False
 
     def _pushout_(self, other):
@@ -1349,12 +1351,20 @@ class FiniteNumber(RingElement):
             SignError: cannot add positive finite value to negative finite value
             sage: P(44) - P(-1)
             A positive finite number
+
+        TESTS:
+
+        Check that :trac:`34231` is fixed::
+
+            sage: R = InfinityRing
+            sage: all(R(0) + x == x + R(0) == x for x in [-oo, R(-1), R(0), R(1), oo])
+            True
         """
         if isinstance(other, InfinityElement):
             return other
         if self.value * other.value < 0:
             raise SignError("cannot add positive finite value to negative finite value")
-        return FiniteNumber(self.parent(), self.value)
+        return FiniteNumber(self.parent(), self.value + other.value)
 
     def _mul_(self, other):
         """

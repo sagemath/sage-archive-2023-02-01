@@ -80,9 +80,9 @@ AUTHORS:
 # ****************************************************************************
 
 from sage.arith.all import gcd, binomial, srange
-from sage.rings.all import (PolynomialRing,
-                            Integer,
-                            ZZ)
+from sage.rings.all import PolynomialRing
+from sage.rings.integer import Integer
+from sage.rings.integer_ring import ZZ
 
 from sage.rings.ring import CommutativeRing
 from sage.rings.rational_field import is_RationalField
@@ -94,9 +94,9 @@ from sage.categories.fields import Fields
 from sage.categories.number_fields import NumberFields
 from sage.categories.homset import Hom
 from sage.categories.map import Map
-from sage.misc.all import (latex,
-                           prod)
-from sage.misc.all import cartesian_product_iterator
+from sage.misc.latex import latex
+from sage.misc.misc_c import prod
+from sage.misc.mrange import cartesian_product_iterator
 from sage.misc.persist import register_unpickle_override
 
 from sage.structure.category_object import normalize_names
@@ -106,6 +106,7 @@ from sage.combinat.integer_vector_weighted import WeightedIntegerVectors
 from sage.combinat.permutation import Permutation
 from sage.combinat.tuple import Tuples
 from sage.combinat.tuple import UnorderedTuples
+from sage.combinat.subset import Subsets
 from sage.matrix.constructor import matrix
 from sage.modules.free_module_element import prepare
 from sage.schemes.generic.ambient_space import AmbientSpace
@@ -324,7 +325,7 @@ class ProjectiveSpace_ring(UniqueRepresentation, AmbientSpace):
             True
         """
         normalized_names = normalize_names(n + 1, names)
-        return super(ProjectiveSpace_ring, cls).__classcall__(cls, n, R, normalized_names)
+        return super().__classcall__(cls, n, R, normalized_names)
 
     def __init__(self, n, R=ZZ, names=None):
         """
@@ -852,7 +853,7 @@ class ProjectiveSpace_ring(UniqueRepresentation, AmbientSpace):
         """
         if v is None:
             v = self.gens()
-        return '(%s)' % (" : ".join([repr(f) for f in v]))
+        return '(%s)' % (" : ".join(repr(f) for f in v))
 
     def _latex_generic_point(self, v=None):
         """
@@ -1531,7 +1532,7 @@ class ProjectiveSpace_ring(UniqueRepresentation, AmbientSpace):
         Return a PGL element sending ``plane_1`` to ``plane_2``.
 
         ``plane_1`` and ``plane_2`` must be hyperplanes (subschemes of
-        codimension 1, each defined by a single linear homogenous equation).
+        codimension 1, each defined by a single linear homogeneous equation).
 
         INPUT:
 
@@ -1692,10 +1693,10 @@ class ProjectiveSpace_ring(UniqueRepresentation, AmbientSpace):
                 if len(source_points) == N:
                     try:
                         plane(point)
-                    except:
+                    except (ValueError, TypeError):
                         source_points.append(self(point))
                         base_list = [list(s) for s in source_points]
-                elif len(source_points) == N+1:
+                elif len(source_points) == N + 1:
                     Ms = matrix(base_list + [point])
                     if not any([m == 0 for m in Ms.minors(N + 1)]):
                         source_points.append(self(point))
@@ -1706,6 +1707,101 @@ class ProjectiveSpace_ring(UniqueRepresentation, AmbientSpace):
             points.append(source_points)
         return self.point_transformation_matrix(points[0], points[1])
 
+    def is_linearly_independent(self, points, n=None):
+        r"""
+        Return whether the set of points is linearly independent.
+
+        Alternatively, specify ``n`` to check if every subset of
+        size ``n`` is linearly independent.
+
+        INPUT:
+
+        - ``points`` -- a list of points in this projective space.
+
+        - ``n`` -- (Optional) A positive integer less than or equal to the length
+          of ``points``. Specifies the size of the subsets to check for
+          linear independence.
+
+        OUTPUT:
+
+        - ``True`` if ``points`` is linearly independent, ``False`` otherwise.
+
+        EXAMPLES::
+
+            sage: P.<x,y,z> = ProjectiveSpace(QQ, 2)
+            sage: points = [P((1, 0, 1)), P((1, 2, 1)), P((1, 3, 4))]
+            sage: P.is_linearly_independent(points)
+            True
+
+        ::
+
+            sage: P.<x,y,z> = ProjectiveSpace(GF(5), 2)
+            sage: points = [P((1, 0, 1)), P((1, 2, 1)), P((1, 3, 4)), P((0, 0 ,1))]
+            sage: P.is_linearly_independent(points, 2)
+            True
+
+        ::
+
+            sage: R.<c> = QQ[]
+            sage: P.<x,y,z> = ProjectiveSpace(R, 2)
+            sage: points = [P((c, 0, 1)), P((0, c, 1)), P((1, 0, 4)), P((0, 0 ,1))]
+            sage: P.is_linearly_independent(points, 3)
+            False
+
+        ::
+
+            sage: R.<c> = QQ[]
+            sage: P.<x,y,z> = ProjectiveSpace(FractionField(R), 2)
+            sage: points = [P((c, 0, 1)), P((0, c, 1)), P((1, 3, 4)), P((0, 0 ,1))]
+            sage: P.is_linearly_independent(points, 3)
+            True
+
+        ::
+
+            sage: K.<k> = CyclotomicField(3)
+            sage: P.<x,y,z> = ProjectiveSpace(K, 2)
+            sage: points = [P((k, k^2, 1)), P((0, k, 1)), P((1, 0, 4)), P((0, 0 ,1))]
+            sage: P.is_linearly_independent(points, 3)
+            True
+
+        ::
+
+            sage: P.<x,y> = ProjectiveSpace(QQ, 1)
+            sage: points = [P((1, 0)), P((1, 1))]
+            sage: P.is_linearly_independent(points)
+            True
+
+        TESTS::
+
+            sage: points = [P(1, 0), P(1, 1), P(2, 1)]
+            sage: P.is_linearly_independent(points, 5)
+            Traceback (most recent call last):
+            ...
+            ValueError: n must be a non negative integer not greater than the length of points
+        """
+        if not isinstance(points, list):
+            raise TypeError("points must be a list")
+        if any(not isinstance(point, SchemeMorphism_point_projective_ring) for point in points):
+            raise TypeError("points must be a list of projective points")
+        if any(x.codomain() != self for x in points):
+            raise ValueError("points not in this projective space")
+        if n is None:
+            M = matrix([list(t) for t in points])
+            return M.rank() == len(points)
+        n = Integer(n)
+        if n < 1 or n > len(points):
+            raise ValueError('n must be a non negative integer not greater than the length of points')
+        all_subsets = Subsets(range(len(points)), n)
+        linearly_independent = True
+        for subset in all_subsets:
+            point_list = []
+            for index in subset:
+                point_list.append(list(points[index]))
+            M = matrix(point_list)
+            if M.rank() != n:
+                linearly_independent = False
+                break
+        return linearly_independent
 
 class ProjectiveSpace_field(ProjectiveSpace_ring):
     def _point_homset(self, *args, **kwds):

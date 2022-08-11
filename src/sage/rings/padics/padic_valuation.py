@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 r"""
-`p`-adic valuations on number fields and their subrings and completions
+`p`-adic Valuations on Number Fields and Their Subrings and Completions
 
 EXAMPLES::
 
@@ -48,7 +48,7 @@ from sage.rings.valuation.mapped_valuation import FiniteExtensionFromLimitValuat
 from sage.structure.factory import UniqueFactory
 from sage.misc.cachefunc import cached_method
 
-from sage.rings.all import infinity
+from sage.rings.infinity import infinity
 
 class PadicValuationFactory(UniqueFactory):
     r"""
@@ -119,7 +119,8 @@ class PadicValuationFactory(UniqueFactory):
             2-adic valuation
 
         """
-        from sage.rings.all import ZZ, QQ
+        from sage.rings.integer_ring import ZZ
+        from sage.rings.rational_field import QQ
         from sage.rings.padics.padic_generic import pAdicGeneric
         from sage.rings.number_field.number_field import is_NumberField
         from sage.rings.polynomial.polynomial_quotient_ring import is_PolynomialQuotientRing
@@ -148,7 +149,7 @@ class PadicValuationFactory(UniqueFactory):
             2-adic valuation
 
         """
-        from sage.rings.all import ZZ
+        from sage.rings.integer_ring import ZZ
         if prime is None:
             raise ValueError("prime must be specified for this ring")
         from sage.rings.valuation.valuation import DiscretePseudoValuation
@@ -254,7 +255,7 @@ class PadicValuationFactory(UniqueFactory):
             v = v._base_valuation._initial_approximation.change_domain(G.parent())
         else:
             raise NotImplementedError("cannot rewrite %r which is defined on %r as a pseudo-valuation on %r"%(v, v.domain(), G.parent()))
-            
+
 
         assert(v.domain() is G.parent())
 
@@ -325,7 +326,7 @@ class PadicValuationFactory(UniqueFactory):
         # Unfortunately, the generators of I, even though defined over K have
         # their polynomial() defined over the rationals so we need to turn them
         # into polynomials over K[x] explicitly.
-        from sage.rings.all import PolynomialRing
+        from sage.rings.polynomial.polynomial_ring_constructor import PolynomialRing
         gens = I.gens()
         gens = [PolynomialRing(K, 'x')(list(g.vector())) for g in gens]
 
@@ -389,7 +390,8 @@ class PadicValuationFactory(UniqueFactory):
             5-adic valuation
 
         """
-        from sage.rings.all import ZZ, QQ
+        from sage.rings.integer_ring import ZZ
+        from sage.rings.rational_field import QQ
         from sage.rings.padics.padic_generic import pAdicGeneric
         from sage.rings.valuation.valuation_space import DiscretePseudoValuationSpace
         from sage.rings.polynomial.polynomial_quotient_ring import is_PolynomialQuotientRing
@@ -462,7 +464,7 @@ class pAdicValuation_base(DiscreteValuation):
         """
         DiscreteValuation.__init__(self, parent)
 
-        from sage.rings.all import ZZ
+        from sage.rings.integer_ring import ZZ
         self._p = ZZ(p)
 
     def p(self):
@@ -808,7 +810,7 @@ class pAdicValuation_base(DiscreteValuation):
                     return [pAdicValuation(ring, approximant, approximants) for approximant in approximants]
                 if ring.base_ring() is not ring and self.domain().is_subring(ring.base_ring()):
                     return sum([w.extensions(ring) for w in self.extensions(ring.base_ring())], [])
-        return super(pAdicValuation_base, self).extensions(ring)
+        return super().extensions(ring)
 
     def restriction(self, ring):
         r"""
@@ -956,7 +958,8 @@ class pAdicValuation_padic(pAdicValuation_base):
             y^3 + O(y^43)
 
         """
-        from sage.rings.all import QQ, ZZ
+        from sage.rings.integer_ring import ZZ
+        from sage.rings.rational_field import QQ
         v = QQ(v)
         if v not in self.value_semigroup():
             raise ValueError("%r is not in the value semigroup of %r"%(v, self))
@@ -1065,7 +1068,7 @@ class pAdicValuation_padic(pAdicValuation_base):
 
         if error is None:
             error = self(x)
-        from sage.rings.all import infinity
+        from sage.rings.infinity import infinity
         if error is infinity:
             return x
         # we need to scale by the ramification index because p-adics use a
@@ -1146,7 +1149,7 @@ class pAdicValuation_int(pAdicValuation_base):
             Finite Field of size 3
 
         """
-        from sage.rings.all import GF
+        from sage.rings.finite_rings.finite_field_constructor import GF
         return GF(self.p())
 
     def _ge_(self, other):
@@ -1180,7 +1183,7 @@ class pAdicValuation_int(pAdicValuation_base):
         coefficients is going to lead to a significant shrinking of the
         coefficients of ``x``.
 
-        EXAMPLES:: 
+        EXAMPLES::
 
             sage: v = ZZ.valuation(2)
             sage: v._relative_size(2)
@@ -1242,14 +1245,14 @@ class pAdicValuation_int(pAdicValuation_base):
         v = self(x)
         if error is None:
             error = v
-        from sage.rings.all import infinity
+        from sage.rings.infinity import infinity
         if error is infinity:
             return x
         if error < v:
             return self.domain().zero()
 
-        from sage.rings.all import QQ
-        from sage.rings.all import Qp
+        from sage.rings.rational_field import QQ
+        from sage.rings.padics.factory import Qp
         precision_ring = Qp(self.p(), QQ(error).floor() + 1 - v)
         reduced = precision_ring(x)
         lift = (reduced >> v).lift()
@@ -1323,11 +1326,12 @@ class pAdicValuation_int(pAdicValuation_base):
         if precision <= 0:
             return self.domain().one()
 
-        from sage.rings.all import infinity
+        from sage.rings.infinity import infinity
         if self(x) > 0 or precision is infinity:
             raise ValueError("element has no approximate inverse in this ring")
-        
-        from sage.rings.all import ZZ, QQ
+
+        from sage.rings.integer_ring import ZZ
+        from sage.rings.rational_field import QQ
         return self.domain()(ZZ(x).inverse_mod(self.p() ** QQ(precision).ceil()))
 
 

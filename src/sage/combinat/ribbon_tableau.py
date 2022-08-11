@@ -21,7 +21,8 @@ from sage.structure.element import parent
 from sage.structure.unique_representation import UniqueRepresentation
 from sage.categories.finite_enumerated_sets import FiniteEnumeratedSets
 from sage.categories.sets_cat import Sets
-from sage.rings.all import QQ, ZZ
+from sage.rings.integer_ring import ZZ
+from sage.rings.rational_field import QQ
 from sage.rings.integer import Integer
 from sage.combinat.combinat import CombinatorialElement
 from sage.combinat.skew_partition import SkewPartition, SkewPartitions
@@ -1063,7 +1064,7 @@ class SemistandardMultiSkewTableaux(MultiSkewTableaux):
             sage: SemistandardMultiSkewTableaux([ [[2,1],[]], [[2,2],[1]] ], [2,2,2])
             Semistandard multi skew tableaux of shape [[2, 1] / [], [2, 2] / [1]] and weight [2, 2, 2]
         """
-        return "Semistandard multi skew tableaux of shape %s and weight %s"%(list(self._shape), self._weight)
+        return "Semistandard multi skew tableaux of shape %s and weight %s" % (list(self._shape), self._weight)
 
     def __contains__(self, x):
         """

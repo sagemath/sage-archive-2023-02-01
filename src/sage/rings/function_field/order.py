@@ -1266,8 +1266,9 @@ class FunctionFieldMaximalOrder_polymod(FunctionFieldMaximalOrder):
                 row.append(self._coordinate_vector(basis[i] * basis[j]))
             self._mtable.append(row)
 
-        zero = vector(R._ring,n*[0])
-        def mul_vecs(f,g):
+        zero = vector(R._ring, n * [0])
+
+        def mul_vecs(f, g):
             s = zero
             for i in range(n):
                 if f[i].is_zero():
@@ -1772,7 +1773,7 @@ class FunctionFieldMaximalOrder_polymod(FunctionFieldMaximalOrder):
         finite-dimensional algebra, a construct for which we do
         support primary decomposition.
 
-        See https://trac.sagemath.org/attachment/ticket/28094/decomposition.pdf
+        See :trac:`attachment/ticket/28094/decomposition.pdf`
 
         .. TODO::
 
@@ -1997,7 +1998,7 @@ class FunctionFieldMaximalOrder_global(FunctionFieldMaximalOrder_polymod):
                 row.append( V([to(e) for e in self._mtable[i][j]]) )
             mtable.append(row)
 
-        if not p in self._kummer_places:
+        if p not in self._kummer_places:
             #####################################
             # Decomposition by Kummer's theorem #
             #####################################

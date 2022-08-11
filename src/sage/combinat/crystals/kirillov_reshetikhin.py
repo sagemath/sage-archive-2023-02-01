@@ -24,7 +24,6 @@ Kirillov-Reshetikhin Crystals
 from sage.misc.cachefunc import cached_method
 from sage.misc.lazy_attribute import lazy_attribute
 from sage.misc.functional import is_even, is_odd
-from sage.functions.other import floor
 from sage.combinat.combinat import CombinatorialObject
 from sage.structure.parent import Parent
 from sage.categories.crystals import CrystalMorphism
@@ -32,7 +31,7 @@ from sage.categories.loop_crystals import KirillovReshetikhinCrystals
 from sage.categories.homset import Hom
 from sage.categories.map import Map
 from sage.rings.integer import Integer
-from sage.rings.all import QQ
+from sage.rings.rational_field import QQ
 from sage.combinat.crystals.affine import (AffineCrystalFromClassical,
                                            AffineCrystalFromClassicalElement,
                                            AffineCrystalFromClassicalAndPromotion,
@@ -1577,7 +1576,7 @@ class KR_type_A2(KirillovReshetikhinGenericCrystal):
         sage: G = K.digraph()
         sage: Gdual = Kdual.digraph()
         sage: f = {0:2, 1:1, 2:0}
-        sage: Gnew = DiGraph(); Gnew.add_vertices(Gdual.vertices()); Gnew.add_edges([(u,v,f[i]) for (u,v,i) in Gdual.edges()])
+        sage: Gnew = DiGraph(); Gnew.add_vertices(Gdual.vertices(sort=True)); Gnew.add_edges([(u,v,f[i]) for (u,v,i) in Gdual.edges(sort=True)])
         sage: G.is_isomorphic(Gnew, edge_labels = True)
         True
     """
@@ -2196,7 +2195,7 @@ class KR_type_Bn(KirillovReshetikhinGenericCrystal):
         """
         s = self.s()
         r = self.r()
-        shapes = vertical_dominoes_removed(r,floor(s/2))
+        shapes = vertical_dominoes_removed(r, s // 2)
         if is_odd(s):
             shapes = [[i+QQ(1)/QQ(2) for i in sh] + [QQ(1)/QQ(2)]*(r-len(sh))
                       for sh in shapes]
@@ -3125,8 +3124,9 @@ class KR_type_spin(KirillovReshetikhinCrystalFromPromotion):
         hw_dual = [t for t in T_dual if t.is_highest_weight(index_set=ind)]
         dic_weight = {tuple(t.weight().to_vector()): t for t in hw}
         dic_weight_dual = {tuple(t.weight().to_vector()): t for t in hw_dual}
+
         def neg(x):
-            y = list(x) # map a (shallow) copy
+            y = list(x)  # map a (shallow) copy
             y[0] = -y[0]
             return tuple(y)
         return {dic_weight[w]: dic_weight_dual[neg(w)] for w in dic_weight}
@@ -4159,4 +4159,3 @@ class CrystalDiagramAutomorphism(CrystalMorphism):
     is_embedding = is_isomorphism
     is_strict = is_isomorphism
     __bool__ = is_isomorphism
-    __nonzero__ = is_isomorphism

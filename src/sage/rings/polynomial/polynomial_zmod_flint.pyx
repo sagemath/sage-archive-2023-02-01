@@ -16,10 +16,10 @@ EXAMPLES::
 
     sage: R.<a> = PolynomialRing(Integers(100))
     sage: type(a)
-    <type 'sage.rings.polynomial.polynomial_zmod_flint.Polynomial_zmod_flint'>
+    <class 'sage.rings.polynomial.polynomial_zmod_flint.Polynomial_zmod_flint'>
     sage: R.<a> = PolynomialRing(Integers(5*2^64))
     sage: type(a)
-    <type 'sage.rings.polynomial.polynomial_modn_dense_ntl.Polynomial_dense_modn_ntl_ZZ'>
+    <class 'sage.rings.polynomial.polynomial_modn_dense_ntl.Polynomial_dense_modn_ntl_ZZ'>
     sage: R.<a> = PolynomialRing(Integers(5*2^64), implementation="FLINT")
     Traceback (most recent call last):
     ...
@@ -100,7 +100,7 @@ cdef class Polynomial_zmod_flint(Polynomial_template):
         """
         cdef long nlen
 
-        if isinstance(x, list) or isinstance(x, tuple):
+        if isinstance(x, (list, tuple)):
             k = parent._base
             if check:
                 lst = [k(i) for i in x]
@@ -237,8 +237,13 @@ cdef class Polynomial_zmod_flint(Polynomial_template):
 
             sage: a = ZZ['x'](range(100000))
             sage: R = Integers(3)['x']
-            sage: R(a)  # long time (7s on sage.math, 2013)
-            2*x^99998 + ... + x
+            sage: p = R(a)
+            sage: d, v = p.degree(), p.valuation()
+            sage: d, v
+            (99998, 1)
+            sage: p[d], p[v]
+            (2, 1)
+
         """
         sig_on()
         fmpz_poly_get_nmod_poly(&self.x, x)
@@ -451,7 +456,7 @@ cdef class Polynomial_zmod_flint(Polynomial_template):
         NOTE: This function is a technology preview. It might
         disappear or be replaced without a deprecation warning.
         """
-        cdef Polynomial_zmod_flint _other = <Polynomial_zmod_flint>self._parent._coerce_(other)
+        cdef Polynomial_zmod_flint _other = <Polynomial_zmod_flint>self._parent.coerce(other)
 
         cdef type t = type(self)
         cdef Polynomial_zmod_flint r = <Polynomial_zmod_flint>t.__new__(t)

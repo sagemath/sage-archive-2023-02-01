@@ -132,11 +132,11 @@ class AffineGroupElement(MultiplicativeGroupElement):
             if not is_Matrix(A):
                 raise TypeError('A must be a matrix')
             if not (A.parent() is parent.matrix_space()):
-                raise TypeError('A must be an element of '+str(parent.matrix_space()))
+                raise TypeError('A must be an element of ' + str(parent.matrix_space()))
             if not (b.parent() is parent.vector_space()):
-                raise TypeError('b must be an element of '+str(parent.vector_space()))
+                raise TypeError('b must be an element of ' + str(parent.vector_space()))
             parent._element_constructor_check(A, b)
-        super(AffineGroupElement, self).__init__(parent)
+        super().__init__(parent)
         self._A = A
         self._b = b
 
@@ -422,12 +422,12 @@ class AffineGroupElement(MultiplicativeGroupElement):
         from sage.rings.polynomial.multi_polynomial import is_MPolynomial
         if is_MPolynomial(v) and parent.degree() == v.parent().ngens():
             ring = v.parent()
-            from sage.modules.all import vector
+            from sage.modules.free_module_element import vector
             image_coords = self._A * vector(ring, ring.gens()) + self._b
             return v(*image_coords)
 
-        from sage.geometry.polyhedron.base import is_Polyhedron
-        if is_Polyhedron(v):
+        import sage.geometry.abc
+        if isinstance(v, sage.geometry.abc.Polyhedron):
             return self._A*v + self._b
 
         # otherwise, coerce v into the vector space
@@ -533,4 +533,3 @@ class AffineGroupElement(MultiplicativeGroupElement):
             [[1, 2, 3, 10], [4, 5, 6, 11], [7, 8, 0, 12], [0, 0, 0, 1]]
         """
         return [r.list() for r in self.matrix().rows()]
-

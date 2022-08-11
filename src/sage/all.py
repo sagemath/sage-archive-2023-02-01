@@ -21,6 +21,7 @@ except for the known bad apples::
     sage: allowed = [
     ....:     'IPython', 'prompt_toolkit', 'jedi',     # sage dependencies
     ....:     'threading', 'multiprocessing',  # doctest dependencies
+    ....:     'pytz', 'importlib.resources',   # doctest dependencies
     ....:     '__main__', 'sage.doctest',      # doctesting
     ....:     'signal', 'enum', 'types'        # may appear in Python 3
     ....: ]
@@ -31,17 +32,10 @@ except for the known bad apples::
     sage: [inspect.getmodule(f).__name__ for f in frames if is_not_allowed(f)]
     []
 
-Check that the Sage Notebook is not imported at startup (see :trac:`15335`)::
-
-    sage: sagenb
-    Traceback (most recent call last):
-    ...
-    NameError: name 'sagenb' is not defined
-
 Check lazy import of ``interacts``::
 
     sage: type(interacts)
-    <type 'sage.misc.lazy_import.LazyImport'>
+    <class 'sage.misc.lazy_import.LazyImport'>
     sage: interacts
     <module 'sage.interacts.all' from '...'>
 """
@@ -75,14 +69,6 @@ else:
     if deprecationWarning in warnings.filters:
         warnings.filters.remove(deprecationWarning)
 
-# The psutil swap_memory() function tries to collect some statistics
-# that may not be available and that we don't need. Hide the warnings
-# that are emitted if the stats aren't available (Trac #28329). That
-# function is called in two places, so let's install this filter
-# before the first one is imported from sage.misc.all below.
-warnings.filterwarnings('ignore', category=RuntimeWarning,
-  message=r"'sin' and 'sout' swap memory stats couldn't be determined")
-
 # Ignore all deprecations from IPython etc.
 warnings.filterwarnings('ignore', category=DeprecationWarning,
     module='(IPython|ipykernel|jupyter_client|jupyter_core|nbformat|notebook|ipywidgets|storemagic|jedi)')
@@ -94,10 +80,6 @@ warnings.filterwarnings('ignore', category=DeprecationWarning,
 warnings.filterwarnings('ignore', category=DeprecationWarning,
     module='(scipy|networkx)')
 
-# Ignore collections.abc warnings, there are a lot of them but they are
-# harmless.
-warnings.filterwarnings('ignore', category=DeprecationWarning,
-    message='.*collections[.]abc.*')
 # However, be sure to keep OUR deprecation warnings
 warnings.filterwarnings('default', category=DeprecationWarning,
     message=r'[\s\S]*See https?://trac\.sagemath\.org/[0-9]* for details.')
@@ -110,10 +92,18 @@ warnings.filterwarnings('ignore', category=DeprecationWarning,
 warnings.filterwarnings('ignore', category=DeprecationWarning,
     module='(.*[.]_vendor[.])?packaging')
 
+# Ignore numpy warnings triggered by pythran
+warnings.filterwarnings('ignore', category=DeprecationWarning,
+                        module='pythran')
+
+warnings.filterwarnings('ignore', category=DeprecationWarning,
+                        message='The distutils(.sysconfig module| package) is deprecated',
+                        module='Cython|distutils|numpy|sage.env|sage.features')
+
 ################ end setup warnings ###############################
 
 
-from sage.env import SAGE_ROOT, SAGE_SRC, SAGE_DOC_SRC, SAGE_LOCAL, DOT_SAGE, SAGE_ENV
+from .all__sagemath_environment import *
 
 
 ###################################################################
@@ -182,13 +172,14 @@ from sage.geometry.riemannian_manifolds.all   import *
 from sage.dynamics.all   import *
 
 from sage.homology.all   import *
+
 from sage.topology.all   import *
 
 from sage.quadratic_forms.all import *
 
 from sage.games.all      import *
 
-from sage.media.all      import *
+lazy_import('sage.media.wav', 'Wave', as_='wave', deprecation=12673)
 
 from sage.logic.all      import *
 
@@ -197,7 +188,7 @@ from sage.numerical.all  import *
 from sage.stats.all      import *
 import sage.stats.all as stats
 
-import sage.finance.all  as finance
+lazy_import("sage.finance", "all", as_="finance", deprecation=32427)
 
 from sage.parallel.all   import *
 
@@ -256,41 +247,11 @@ _wall_time_ = walltime()
 
 def quit_sage(verbose=True):
     """
-    If you use Sage in library mode, you should call this function
-    when your application quits.
-
-    It makes sure any child processes are also killed, etc.
+    Does nothing. Code that needs cleanup should register its own
+    handler using the atexit module.
     """
-    if verbose:
-        t1 = cputime(_cpu_time_)
-        t1m = int(t1) // 60
-        t1s = t1 - t1m * 60
-        t2 = walltime(_wall_time_)
-        t2m = int(t2) // 60
-        t2s = t2 - t2m * 60
-        print("Exiting Sage (CPU time %sm%.2fs, Wall time %sm%.2fs)." %
-              (t1m, t1s, t2m, t2s))
-
-    import gc
-    gc.collect()
-
-    from sage.interfaces.quit import expect_quitall
-    expect_quitall(verbose=verbose)
-
-    import sage.matrix.matrix_mod2_dense
-    sage.matrix.matrix_mod2_dense.free_m4ri()
-
-    import sage.libs.flint.flint
-    sage.libs.flint.flint.free_flint_stack()
-
-    # Free globally allocated mpir integers.
-    import sage.rings.integer
-    sage.rings.integer.free_integer_pool()
-    import sage.algebras.quatalg.quaternion_algebra_element
-    sage.algebras.quatalg.quaternion_algebra_element._clear_globals()
-
-    from sage.libs.all import symmetrica
-    symmetrica.end()
+    from sage.misc.superseded import deprecation
+    deprecation(8784, 'quit_sage is deprecated and now does nothing; please simply delete it')
 
 
 from sage.misc.persist import register_unpickle_override
@@ -313,6 +274,11 @@ sage.misc.lazy_import.save_cache_file()
 # sys.settrace(poison_currRing)
 
 
+# Deprecated leftover of monkey-patching inspect.isfunction() to support Cython functions.
+lazy_import('sage.misc.sageinspect', 'is_function_or_cython_function',
+            as_='isfunction', namespace=sage.__dict__, deprecation=32479)
+
+
 # Set a new random number seed as the very last thing
 # (so that printing initial_seed() and using that seed
 # in set_random_seed() will result in the same sequence you got at
@@ -322,6 +288,7 @@ set_random_seed()
 
 # From now on it is ok to resolve lazy imports
 sage.misc.lazy_import.finish_startup()
+
 
 def sage_globals():
     r"""

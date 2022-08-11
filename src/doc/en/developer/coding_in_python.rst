@@ -16,14 +16,14 @@ that Sage supports.  The information regarding the supported versions
 can be found in the files ``build/pkgs/python3/spkg-configure.m4`` and
 ``src/setup.cfg.m4``.
 
-As of Sage 9.4, Python 3.7 is the oldest supported version.  Hence,
-all language and library features that are available in Python 3.7 can
-be used; but features introduced in Python 3.8 cannot be used.  If a
+As of Sage 9.7, Python 3.8 is the oldest supported version.  Hence,
+all language and library features that are available in Python 3.8 can
+be used; but features introduced in Python 3.9 cannot be used.  If a
 feature is deprecated in a newer supported version, it must be ensured
 that deprecation warnings issued by Python do not lead to failures in
 doctests.
 
-Some key language and library features have been backported to Python 3.7
+Some key language and library features have been backported to Python 3.8
 using one of two mechanisms:
 
 - ``from __future__ import annotations`` (see
@@ -161,7 +161,7 @@ the context.
 
 Here is an example of the ``_latex_`` and ``_repr_`` functions for the
 ``Pi`` class. It is from the file
-``SAGE_ROOT/src/sage/functions/constants.py``:
+``SAGE_ROOT/src/sage/symbolic/constants.py``:
 
 .. CODE-BLOCK:: python
 
@@ -192,7 +192,7 @@ matrix over a ring `R`. Then the Sage function ``matrix`` will work
 for this object.
 
 The following is from
-``SAGE_ROOT/src/sage/graphs/graph.py``:
+``SAGE_ROOT/src/sage/graphs/generic_graph.py``:
 
 .. CODE-BLOCK:: python
 
@@ -211,7 +211,7 @@ The following is from
 Similarly, provide a ``_vector_`` method for an object that can be
 coerced to a vector over a ring `R`. Then the Sage function ``vector``
 will work for this object. The following is from the file
-``SAGE_ROOT/sage/sage/modules/free_module_element.pyx``:
+``SAGE_ROOT/src/sage/modules/free_module_element.pyx``:
 
 .. CODE-BLOCK:: python
 
@@ -261,7 +261,7 @@ replacements are made:
       <... 'int'>
       sage: b = 393939
       sage: type(b)
-      <type 'sage.rings.integer.Integer'>
+      <class 'sage.rings.integer.Integer'>
       sage: a == b
       True
 
@@ -465,11 +465,39 @@ Note that the syntax in ``except`` is to list all the exceptions that
 are caught as a tuple, followed by an error message.
 
 
+Integer Return Values
+=====================
+
+Many functions and methods in Sage return integer values.
+Those should usually be returned as Sage integers of class
+:class:`Integer <sage.rings.integer.Integer>` rather than
+as Python integers of class :class:`int`, as users may want
+to explore the resulting integers' number-theoretic properties
+such as prime factorization. Exceptions should be made when
+there are good reasons such as performance or compatibility
+with Python code, for instance in methods such as
+``__hash__``, ``__len__``, and ``__int__``.
+
+To return a Python integer ``i`` as a Sage integer, use:
+
+.. CODE-BLOCK:: python
+
+    from sage.rings.integer import Integer
+    return Integer(i)
+
+To return a Sage integer ``i`` as a Python ineger, use:
+
+.. CODE-BLOCK:: python
+
+    return int(i)
+
+
 Importing
 =========
 
 We mention two issues with importing: circular imports and importing
-large third-party modules.
+large third-party modules. See also :ref:`section_dependencies_distributions`
+for a discussion of imports from the viewpoint of modularization.
 
 First, you must avoid circular imports. For example, suppose that the
 file ``SAGE_ROOT/src/sage/algebras/steenrod_algebra.py``
@@ -515,7 +543,7 @@ look like this (omitting the documentation string):
         return steenrod_algebra_basis(n, basis=self._basis_name, p=self.prime)
 
 Second, do not import at the top level of your module a third-party
-module that will take a long time to initialize (e.g. matplotlib). As
+module that will take a long time to initialize (e.g. :mod:`matplotlib`). As
 above, you might instead import specific components of the module when
 they are needed, rather than at the top level of your file.
 
@@ -527,6 +555,27 @@ import but delay it until the object is actually used. See
 :mod:`sage.misc.lazy_import` for more details of lazy imports, and
 :ref:`chapter-directory-structure` for an example using lazy imports
 for a new module.
+
+If your module needs to make some precomputed data available at the top level,
+you can reduce its load time (and thus startup time, unless your module is
+imported using :mod:`sage.misc.lazy_import`) by using the decorator
+:func:`sage.misc.cachefunc.cached_function` instead. For example, replace
+
+.. CODE-BLOCK:: python
+
+    big_data = initialize_big_data()  # bad: runs at module load time
+
+by
+
+.. CODE-BLOCK:: python
+
+    from sage.misc.cachefunc import cached_function
+
+    @cached_function                  # good: runs on first use
+    def big_data():
+        return initialize_big_data()
+
+
 
 
 Deprecation

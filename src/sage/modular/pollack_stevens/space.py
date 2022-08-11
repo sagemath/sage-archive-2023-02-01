@@ -658,15 +658,16 @@ class PollackStevensModularSymbolspace(Module):
 
         OUTPUT:
 
-        An element of the modular symbol space.
+        an element of the modular symbol space
 
-        Returns a "typical" element of this space; in this case the constant
-        map sending every element to an element of the coefficient module.
+        This returns a "typical" element of this space; in this case
+        the constant map sending every element to an element of the
+        coefficient module.
 
         .. WARNING::
 
-        This is not really an element of the space because it does not satisfy
-        the Manin relations.
+            This is not really an element of the space because it does
+            not satisfy the Manin relations.
 
         EXAMPLES::
 
@@ -749,7 +750,7 @@ class PollackStevensModularSymbolspace(Module):
         ## now we compute nu_infty of Prop 5.1 of [PS1]
         t = self.coefficient_module().zero()
         for g in manin.gens()[1:]:
-            if (not g in manin.reps_with_two_torsion()) and (not g in manin.reps_with_three_torsion()):
+            if (g not in manin.reps_with_two_torsion()) and (g not in manin.reps_with_three_torsion()):
                 t += D[g] * manin.gammas[g] - D[g]
             else:
                 # this was previously MR.reps_with_two_torsion() but there is no variable MR defined...
@@ -823,7 +824,7 @@ def cusps_from_mat(g):
     You can also just give the matrix of ``g``::
 
         sage: type(g)
-        <type 'sage.modular.arithgroup.arithgroup_element.ArithmeticSubgroupElement'>
+        <class 'sage.modular.arithgroup.arithgroup_element.ArithmeticSubgroupElement'>
         sage: cusps_from_mat(g.matrix())
         (+Infinity, 0)
 

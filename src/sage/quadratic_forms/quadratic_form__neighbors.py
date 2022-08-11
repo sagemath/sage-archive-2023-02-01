@@ -26,9 +26,9 @@ def find_primitive_p_divisible_vector__random(self, p):
     EXAMPLES::
 
         sage: Q = QuadraticForm(ZZ, 2, [10,1,4])
-        sage: v = Q.find_primitive_p_divisible_vector__random(5)    # random
-        sage: v
-        (3, 3)
+        sage: v = Q.find_primitive_p_divisible_vector__random(5)
+        sage: tuple(v) in ((1, 0), (1, 1), (2, 0), (2, 2), (3, 0), (3, 3), (4, 0), (4, 4))
+        True
         sage: 5.divides(Q(v))
         True
         sage: Q = QuadraticForm(QQ,matrix.diagonal([1,1,1,1]))
@@ -183,12 +183,12 @@ def find_p_neighbor_from_vec(self, p, y):
     R = self.base_ring()
     odd = False
     if R is QQ:
-      odd = True
-      if G.denominator() != 1:
-        raise ValueError("the associated bilinear form q(x+y)-q(x)-q(y) must be integral.")
+        odd = True
+        if G.denominator() != 1:
+            raise ValueError("the associated bilinear form q(x+y)-q(x)-q(y) must be integral.")
     b = y*G*y
     if not b % p == 0:
-        raise ValueError("y^2 must be divisible by p=%s"%p)
+        raise ValueError("y^2 must be divisible by p=%s" % p)
     y_dual = y*G
     if p != 2 and b % p**2 != 0:
         for k in range(n):
@@ -312,12 +312,12 @@ def neighbor_iteration(seeds, p, mass=None, max_classes=ZZ(10)**3,
                 k = k + 1
                 v = Q.find_primitive_p_divisible_vector__next(p, v)
                 if v is not None:
-                  yield v
+                    yield v
     elif algorithm == 'random':
         def p_divisible_vectors(Q, max_neighbors):
             k = 0
             while k < max_neighbors:
-                k = k +1
+                k += 1
                 v = Q.find_primitive_p_divisible_vector__random(p)
                 yield v
     else:
@@ -394,14 +394,6 @@ def orbits_lines_mod_p(self, p):
         reps:= List(orb, g->g[1]);
         return reps;
         end;""")
-    # run this at startup if you need more memory...
-    #from sage.interfaces.gap import get_gap_memory_pool_size, set_gap_memory_pool_size
-    #memory_gap = get_gap_memory_pool_size()
-    #set_gap_memory_pool_size(1028*memory_gap)
     orbs_reps = orbs(gens, p)
-    #set_gap_memory_pool_size(memory_gap)
     M = GF(p)**self.dim()
     return [M(m.sage()) for m in orbs_reps if not m.IsZero()]
-
-
-

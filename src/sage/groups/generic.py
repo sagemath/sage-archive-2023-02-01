@@ -111,7 +111,7 @@ Some examples in the group of points of an elliptic curve over a finite field:
 
 from copy import copy
 
-from sage.misc.all import prod
+from sage.misc.misc_c import prod
 import sage.rings.integer_ring as integer_ring
 import sage.rings.integer
 from sage.arith.srange import xsrange
@@ -159,14 +159,12 @@ def multiple(a, n, operation='*', identity=None, inverse=None, op=None):
         sage: multiple(1,10^1000)
         1
 
-        sage: E=EllipticCurve('389a1')
-        sage: P=E(-1,1)
+        sage: E = EllipticCurve('389a1')
+        sage: P = E(-1,1)
         sage: multiple(P,10,'+')
         (645656132358737542773209599489/22817025904944891235367494656 : 525532176124281192881231818644174845702936831/3446581505217248068297884384990762467229696 : 1)
         sage: multiple(P,-10,'+')
         (645656132358737542773209599489/22817025904944891235367494656 : -528978757629498440949529703029165608170166527/3446581505217248068297884384990762467229696 : 1)
-
-
     """
     from operator import inv, mul, neg, add
 
@@ -254,8 +252,8 @@ class multiples:
         sage: list(multiples(1,10,100))
         [100, 101, 102, 103, 104, 105, 106, 107, 108, 109]
 
-        sage: E=EllipticCurve('389a1')
-        sage: P=E(-1,1)
+        sage: E = EllipticCurve('389a1')
+        sage: P = E(-1,1)
         sage: for Q in multiples(P,5): print((Q, Q.height()/P.height()))
         ((0 : 1 : 0), 0.000000000000000)
         ((-1 : 1 : 1), 1.00000000000000)
@@ -263,7 +261,7 @@ class multiples:
         ((26/361 : -5720/6859 : 1), 9.00000000000000)
         ((47503/16641 : 9862190/2146689 : 1), 16.0000000000000)
 
-        sage: R.<x>=ZZ[]
+        sage: R.<x> = ZZ[]
         sage: list(multiples(x,5))
         [0, x, 2*x, 3*x, 4*x]
         sage: list(multiples(x,5,operation='*'))
@@ -408,8 +406,8 @@ def bsgs(a, b, bounds, operation='*', identity=None, inverse=None, op=None):
         sage: bsgs(b, a, (0,36))
         20
 
-        sage: p=next_prime(10^20)
-        sage: a=Mod(2,p); b=a^(10^25)
+        sage: p = next_prime(10^20)
+        sage: a = Mod(2,p); b = a^(10^25)
         sage: bsgs(a, b, (10^25-10^6,10^25+10^6)) == 10^25
         True
 
@@ -419,8 +417,8 @@ def bsgs(a, b, bounds, operation='*', identity=None, inverse=None, op=None):
         sage: bsgs(a, b, (0,K.order()-1))
         210
 
-        sage: K.<z>=CyclotomicField(230)
-        sage: w=z^500
+        sage: K.<z> = CyclotomicField(230)
+        sage: w = z^500
         sage: bsgs(z,w,(0,229))
         40
 
@@ -461,7 +459,7 @@ def bsgs(a, b, bounds, operation='*', identity=None, inverse=None, op=None):
         raise ValueError("bsgs() requires 0<=lb<=ub")
 
     if a.is_zero() and not b.is_zero():
-        raise ValueError("No solution in bsgs()")
+        raise ValueError("no solution in bsgs()")
 
     ran = 1 + ub - lb   # the length of the interval
 
@@ -475,7 +473,7 @@ def bsgs(a, b, bounds, operation='*', identity=None, inverse=None, op=None):
             if identity == d:        # identity == b^(-1)*a^i, so return i
                 return Z(i)
             d = op(a, d)
-        raise ValueError("No solution in bsgs()")
+        raise ValueError("no solution in bsgs()")
 
     m = ran.isqrt() + 1  # we need sqrt(ran) rounded up
     table = dict()       # will hold pairs (a^(lb+i),lb+i) for i in range(m)
@@ -496,7 +494,7 @@ def bsgs(a, b, bounds, operation='*', identity=None, inverse=None, op=None):
             return Z(i * m + j)
         d = op(c, d)
 
-    raise ValueError("Log of %s to the base %s does not exist in %s." % (b, a, bounds))
+    raise ValueError("log of %s to the base %s does not exist in %s" % (b, a, bounds))
 
 
 def discrete_log_rho(a, base, ord=None, operation='*', hash_function=hash):
@@ -721,12 +719,12 @@ def discrete_log(a, base, ord=None, bounds=None, operation='*', identity=None, i
         sage: discrete_log(x, b)
         Traceback (most recent call last):
         ...
-        ValueError: No discrete log of 2 found to base 1
+        ValueError: no discrete log of 2 found to base 1
         sage: b = Mod(1,997);  x = Mod(2,997)
         sage: discrete_log(x, b)
         Traceback (most recent call last):
         ...
-        ValueError: No discrete log of 2 found to base 1
+        ValueError: no discrete log of 2 found to base 1
 
     See :trac:`2356`::
 
@@ -735,8 +733,8 @@ def discrete_log(a, base, ord=None, bounds=None, operation='*', identity=None, i
         sage: v.log(w)
         0
 
-        sage: K.<z>=CyclotomicField(230)
-        sage: w=z^50
+        sage: K.<z> = CyclotomicField(230)
+        sage: w = z^50
         sage: discrete_log(w,z)
         50
 
@@ -757,7 +755,7 @@ def discrete_log(a, base, ord=None, bounds=None, operation='*', identity=None, i
         sage: discrete_log(eta,eps,bounds=(0,100))
         Traceback (most recent call last):
         ...
-        ValueError: No discrete log of -11515*a - 55224 found to base 5*a - 24
+        ValueError: no discrete log of -11515*a - 55224 found to base 5*a - 24
 
     But we can invert the base (and negate the result) instead::
 
@@ -766,14 +764,14 @@ def discrete_log(a, base, ord=None, bounds=None, operation='*', identity=None, i
 
     An additive example: elliptic curve DLOG::
 
-        sage: F=GF(37^2,'a')
-        sage: E=EllipticCurve(F,[1,1])
-        sage: F.<a>=GF(37^2,'a')
-        sage: E=EllipticCurve(F,[1,1])
-        sage: P=E(25*a + 16 , 15*a + 7 )
+        sage: F = GF(37^2,'a')
+        sage: E = EllipticCurve(F,[1,1])
+        sage: F.<a> = GF(37^2,'a')
+        sage: E = EllipticCurve(F,[1,1])
+        sage: P = E(25*a + 16 , 15*a + 7 )
         sage: P.order()
         672
-        sage: Q=39*P; Q
+        sage: Q = 39*P; Q
         (36*a + 32 : 5*a + 12 : 1)
         sage: discrete_log(Q,P,P.order(),operation='+')
         39
@@ -832,7 +830,7 @@ def discrete_log(a, base, ord=None, bounds=None, operation='*', identity=None, i
         from sage.arith.all import CRT_list
         return CRT_list(l, [pi**ri for pi, ri in f])
     except ValueError:
-        raise ValueError("No discrete log of %s found to base %s" % (a, base))
+        raise ValueError("no discrete log of %s found to base %s" % (a, base))
 
 
 def discrete_log_generic(a, base, ord=None, bounds=None, operation='*', identity=None, inverse=None, op=None):
@@ -975,10 +973,10 @@ def linear_relation(P, Q, operation='+', identity=None, inverse=None, op=None):
 
     An additive example (in an elliptic curve group)::
 
-        sage: F.<a>=GF(3^6,'a')
-        sage: E=EllipticCurve([a^5 + 2*a^3 + 2*a^2 + 2*a, a^4 + a^3 + 2*a + 1])
-        sage: P=E(a^5 + a^4 + a^3 + a^2 + a + 2 , 0)
-        sage: Q=E(2*a^3 + 2*a^2 + 2*a , a^3 + 2*a^2 + 1)
+        sage: F.<a> = GF(3^6,'a')
+        sage: E = EllipticCurve([a^5 + 2*a^3 + 2*a^2 + 2*a,a^4 + a^3 + 2*a + 1])
+        sage: P = E(a^5 + a^4 + a^3 + a^2 + a + 2 , 0)
+        sage: Q = E(2*a^3 + 2*a^2 + 2*a , a^3 + 2*a^2 + 1)
         sage: linear_relation(P,Q,'+')
         (1, 2)
         sage: P == 2*Q
@@ -986,11 +984,11 @@ def linear_relation(P, Q, operation='+', identity=None, inverse=None, op=None):
 
     A multiplicative example (in a finite field's multiplicative group)::
 
-        sage: F.<a>=GF(3^6,'a')
+        sage: F.<a> = GF(3^6,'a')
         sage: a.multiplicative_order().factor()
         2^3 * 7 * 13
-        sage: b=a^7
-        sage: c=a^13
+        sage: b = a^7
+        sage: c = a^13
         sage: linear_relation(b,c,'*')
         (13, 7)
         sage: b^13==c^7
@@ -1091,14 +1089,14 @@ def order_from_multiple(P, m, plist=None, factorization=None, check=True,
         sage: order_from_multiple(Q, M, factorization=F, operation='+')
         7
 
-        sage: K.<z>=CyclotomicField(230)
-        sage: w=z^50
+        sage: K.<z> = CyclotomicField(230)
+        sage: w = z^50
         sage: order_from_multiple(w,230,operation='*')
         23
 
-        sage: F=GF(2^1279,'a')
-        sage: n=F.cardinality()-1 # Mersenne prime
-        sage: order_from_multiple(F.random_element(),n,factorization=[(n,1)],operation='*')==n
+        sage: F = GF(2^1279,'a')
+        sage: n = F.cardinality()-1  # Mersenne prime
+        sage: order_from_multiple(F.random_element(),n,factorization=[(n,1)],operation='*') == n
         True
 
         sage: K.<a> = GF(3^60)
@@ -1228,10 +1226,9 @@ def order_from_bounds(P, bounds, d=None, operation='+',
         3227
 
         sage: K.<z>=CyclotomicField(230)
-        sage: w=z^50
+        sage: w = z^50
         sage: order_from_bounds(w,(200,250),operation='*')
         23
-
     """
     from operator import mul, add
 
@@ -1302,11 +1299,11 @@ def merge_points(P1, P2, operation='+',
         sage: od == lcm(ob,oc)
         True
 
-        sage: E=EllipticCurve([a^5 + 2*a^3 + 2*a^2 + 2*a, a^4 + a^3 + 2*a + 1])
-        sage: P=E(2*a^5 + 2*a^4 + a^3 + 2 , a^4 + a^3 + a^2 + 2*a + 2)
+        sage: E = EllipticCurve([a^5 + 2*a^3 + 2*a^2 + 2*a,a^4 + a^3 + 2*a + 1])
+        sage: P = E(2*a^5 + 2*a^4 + a^3 + 2 , a^4 + a^3 + a^2 + 2*a + 2)
         sage: P.order()
         7
-        sage: Q=E(2*a^5 + 2*a^4 + 1 , a^5 + 2*a^3 + 2*a + 2 )
+        sage: Q = E(2*a^5 + 2*a^4 + 1 , a^5 + 2*a^3 + 2*a + 2 )
         sage: Q.order()
         4
         sage: R,m = merge_points((P,7),(Q,4), operation='+')
@@ -1402,7 +1399,7 @@ def structure_description(G, latex=False):
     Works for finitely presented groups (:trac:`17573`)::
 
         sage: F.<x, y> = FreeGroup()
-        sage: G=F / [x^2*y^-1, x^3*y^2, x*y*x^-1*y^-1]
+        sage: G = F / [x^2*y^-1, x^3*y^2, x*y*x^-1*y^-1]
         sage: G.structure_description()
         'C7'
 

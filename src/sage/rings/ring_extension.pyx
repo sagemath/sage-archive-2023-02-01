@@ -378,7 +378,7 @@ class RingExtensionFactory(UniqueFactory):
                 From: Integer Ring
                 To:   Rational Field
                 Defn: 1 |--> 1, (), ()),
-             {'constructors': [(<type 'sage.rings.ring_extension.RingExtension_generic'>,
+             {'constructors': [(<class 'sage.rings.ring_extension.RingExtension_generic'>,
                 {'is_backend_exposed': True,
                  'print_options': {'print_elements_as': None, 'print_parent_as': None}})]})
 
@@ -387,7 +387,7 @@ class RingExtensionFactory(UniqueFactory):
                 From: Finite Field in z2 of size 5^2
                 To:   Finite Field in z4 of size 5^4
                 Defn: z2 |--> z4^3 + z4^2 + z4 + 3, (z4,), ('a',)),
-             {'constructors': [(<type 'sage.rings.ring_extension.RingExtensionWithGen'>,
+             {'constructors': [(<class 'sage.rings.ring_extension.RingExtensionWithGen'>,
                 {'gen': z4, 'is_backend_exposed': True, 'names': ('a',)})]})
         """
         use_generic_constructor = True
@@ -507,7 +507,7 @@ cdef class RingExtension_generic(CommutativeAlgebra):
         Rational Field over its base
 
         sage: type(Q)
-        <type 'sage.rings.ring_extension.RingExtension_generic'>
+        <class 'sage.rings.ring_extension.RingExtension_generic'>
 
         sage: TestSuite(Q).run()
 
@@ -643,6 +643,7 @@ cdef class RingExtension_generic(CommutativeAlgebra):
             method = getattr(self._backend, name)
         if not callable(method):
             raise AttributeError(AttributeErrorMessage(self, name))
+
         def wrapper(*args, **kwargs):
             output = method(*to_backend(args), **to_backend(kwargs))
             return from_backend(output, self)
@@ -705,7 +706,7 @@ cdef class RingExtension_generic(CommutativeAlgebra):
 
             sage: K = GF(7^3).over()
             sage: type(K)
-            <type 'sage.rings.ring_extension.RingExtensionWithGen'>
+            <class 'sage.rings.ring_extension.RingExtensionWithGen'>
             sage: loads(dumps(K)) is K
             True
         """
@@ -841,7 +842,7 @@ cdef class RingExtension_generic(CommutativeAlgebra):
             sage: E.print_options(over=ZZ)
             Traceback (most recent call last):
             ...
-            TypeError: unable to coerce <type 'sage.rings.integer_ring.IntegerRing_class'> to an integer
+            TypeError: unable to coerce <class 'sage.rings.integer_ring.IntegerRing_class'> to an integer
         """
         if over is not None and over is not Infinity:
             over = ZZ(over)
@@ -1177,7 +1178,7 @@ cdef class RingExtension_generic(CommutativeAlgebra):
 
         .. SEEALSO::
 
-            !meth:`base`, :meth:`bases`, :meth:`absolute_base`
+            :meth:`base`, :meth:`bases`, :meth:`absolute_base`
         """
         cdef CommutativeRing b
         b = self
@@ -1900,7 +1901,7 @@ cdef class RingExtensionFractionField(RingExtension_generic):
         Fraction Field of Integer Ring over its base
 
         sage: type(Q)
-        <type 'sage.rings.ring_extension.RingExtensionFractionField'>
+        <class 'sage.rings.ring_extension.RingExtensionFractionField'>
 
         sage: TestSuite(Q).run()
 
@@ -2457,7 +2458,7 @@ cdef class RingExtensionWithGen(RingExtensionWithBasis):
         sage: K = A.over()
 
         sage: type(K)
-        <type 'sage.rings.ring_extension.RingExtensionWithGen'>
+        <class 'sage.rings.ring_extension.RingExtensionWithGen'>
 
         sage: TestSuite(K).run()
 
@@ -2601,7 +2602,7 @@ cdef class RingExtensionWithGen(RingExtensionWithBasis):
         if base is None:
             return (self(self._gen),)
         base = self._check_base(base)
-        gens = tuple([])
+        gens = tuple()
         b = self
         while b is not base:
             gens += b.gens()

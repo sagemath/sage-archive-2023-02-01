@@ -16,7 +16,10 @@ AUTHORS:
 #                  https://www.gnu.org/licenses/
 # ****************************************************************************
 
-from sage.rings.all import ZZ, QQ, AA, AlgebraicField, infinity, I, PolynomialRing, NumberField
+from sage.rings.integer_ring import ZZ
+from sage.rings.rational_field import QQ
+from sage.rings.infinity import infinity
+from sage.rings.all import AA, AlgebraicField, I, PolynomialRing, NumberField
 from sage.functions.all import cos, exp, sec
 from sage.functions.gamma import psi1
 from sage.symbolic.all import pi
@@ -49,7 +52,6 @@ class HeckeTriangleGroup(FinitelyGeneratedMatrixGroup_generic,
             sage: HeckeTriangleGroup(QQ(3)) == HeckeTriangleGroup(int(3))
             True
         """
-
         if (n == infinity):
             n = infinity
         else:
@@ -57,11 +59,12 @@ class HeckeTriangleGroup(FinitelyGeneratedMatrixGroup_generic,
             if (n < 3):
                 raise AttributeError("n has to be infinity or an Integer >= 3.")
 
-        return super(HeckeTriangleGroup, cls).__classcall__(cls, n)
+        return super().__classcall__(cls, n)
 
     def __init__(self, n):
         r"""
         Hecke triangle group (2, n, infinity).
+
         Namely the von Dyck group corresponding to the triangle group
         with angles (pi/2, pi/n, 0).
 

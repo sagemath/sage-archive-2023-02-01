@@ -22,7 +22,8 @@ AUTHORS:
 #
 #                  https://www.gnu.org/licenses/
 # ****************************************************************************
-from typing import NewType, Iterator, Tuple
+from __future__ import annotations
+from typing import Iterator
 
 from sage.structure.list_clone import ClonableArray
 from sage.misc.inherit_comparison import InheritComparisonClasscallMetaclass
@@ -31,11 +32,10 @@ from sage.structure.parent import Parent
 from sage.categories.finite_enumerated_sets import FiniteEnumeratedSets
 from sage.combinat.posets.posets import Poset
 from sage.rings.integer import Integer
-from sage.misc.all import prod
+from sage.misc.misc_c import prod
 from sage.combinat.tableau import Tableau
-
-
-PP = NewType('PP', 'PlanePartition')
+from sage.misc.lazy_import import lazy_import
+lazy_import("sage.plot.plot3d.platonic", "cube")
 
 
 class PlanePartition(ClonableArray,
@@ -140,7 +140,7 @@ class PlanePartition(ClonableArray,
             sage: PP.to_tableau()
             [[4, 3, 3, 1], [2, 1, 1], [1, 1]]
         """
-        return Tableau(self)
+        return Tableau(self)  # type:ignore
 
     def z_tableau(self):
         r"""
@@ -187,7 +187,7 @@ class PlanePartition(ClonableArray,
             X[C[1]][C[2]] += 1
         return X
 
-    def cells(self) -> list:
+    def cells(self) -> list[list[int]]:
         r"""
         Return the list of cells inside ``self``.
 
@@ -451,7 +451,7 @@ class PlanePartition(ClonableArray,
                         ret += f(r, c, tab[r][c])
         return ret + "\\end{tikzpicture}"
 
-    def plot(self, show_box=False, colors=["white", "lightgray", "darkgray"]):
+    def plot(self, show_box=False, colors=None):
         r"""
         Return a plot of ``self``.
 
@@ -473,6 +473,8 @@ class PlanePartition(ClonableArray,
         from sage.plot.polygon import polygon
         from sage.symbolic.constants import pi
         from sage.plot.plot import plot
+        if colors is None:
+            colors = ["white", "lightgray", "darkgray"]
         Uside = [[0, 0], [cos(-pi / 6), sin(-pi / 6)],
                  [0, -1], [cos(7 * pi / 6), sin(7 * pi / 6)]]
         Lside = [[0, 0], [cos(-pi / 6), sin(-pi / 6)],
@@ -514,6 +516,27 @@ class PlanePartition(ClonableArray,
                     TP += add_leftside(self.x_tableau()[r][c], r, c)
         TP.axes(show=False)
         return TP
+
+    def plot3d(self, colors=None):
+        r"""
+        Return a 3D-plot of ``self``.
+
+        INPUT:
+
+        - ``colors`` -- (default: ``["white", "lightgray", "darkgray"]``)
+          list ``[A, B, C]`` of 3 strings representing colors
+
+        EXAMPLES::
+
+            sage: PP = PlanePartition([[4,3,3,1],[2,1,1],[1,1]])
+            sage: PP.plot3d()
+            Graphics3d Object
+        """
+        if colors is None:
+            colors = ["white", "lightgray", "darkgray"]
+        return sum(cube(c, color=colors, frame_thickness=2,
+                        frame_color='black', frame=False)
+                   for c in self.cells())
 
     def complement(self, tableau_only=False):
         r"""
@@ -744,6 +767,9 @@ class PlanePartition(ClonableArray,
         return self.is_TSPP() and self.is_SCPP()
 
 
+PP = PlanePartition
+
+
 class PlanePartitions(UniqueRepresentation, Parent):
     r"""
     All plane partitions inside a rectangular box of given side lengths.
@@ -780,7 +806,7 @@ class PlanePartitions(UniqueRepresentation, Parent):
             sage: P1 is P2
             True
         """
-        return super(PlanePartitions, cls).__classcall__(cls, tuple(box_size))
+        return super().__classcall__(cls, tuple(box_size))
 
     def __init__(self, box_size):
         r"""
@@ -808,7 +834,7 @@ class PlanePartitions(UniqueRepresentation, Parent):
         return "Plane partitions inside a {} x {} x {} box".format(
             self._box[0], self._box[1], self._box[2])
 
-    def __iter__(self) -> Iterator:
+    def __iter__(self) -> Iterator[PP]:
         """
         Iterate over ``self``.
 
@@ -822,9 +848,9 @@ class PlanePartitions(UniqueRepresentation, Parent):
         A = self._box[0]
         B = self._box[1]
         C = self._box[2]
-        from sage.combinat.tableau import SemistandardTableaux
-        for T in SemistandardTableaux([B for i in range(A)], max_entry=C + A):
-            PP = [[0 for i in range(B)] for j in range(A)]
+        from sage.combinat.tableau import SemistandardTableaux as SST
+        for T in SST([B for i in range(A)], max_entry=C + A):  # type:ignore
+            PP = [[0 for _ in range(B)] for _ in range(A)]
             for r in range(A):
                 for c in range(B):
                     PP[A - 1 - r][B - 1 - c] = T[r][c] - r - 1
@@ -856,7 +882,7 @@ class PlanePartitions(UniqueRepresentation, Parent):
                             for j in range(1, B + 1)
                             for k in range(1, C + 1)))
 
-    def box(self) -> Tuple:
+    def box(self) -> tuple:
         """
         Return the sizes of the box of the plane partitions of ``self``
         are contained in.

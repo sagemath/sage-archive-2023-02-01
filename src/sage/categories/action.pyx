@@ -4,7 +4,7 @@ Group, ring, etc. actions on objects
 The terminology and notation used is suggestive of groups acting on sets,
 but this framework can be used for modules, algebras, etc.
 
-A group action $G \times S \rightarrow S$ is a functor from $G$ to Sets.
+A group action `G \times S \rightarrow S` is a functor from `G` to Sets.
 
 .. WARNING::
 
@@ -304,7 +304,7 @@ cdef class Action(Functor):
         return S
 
     def codomain(self):
-       return self.underlying_set()
+        return self.underlying_set()
 
     def domain(self):
         return self.underlying_set()
@@ -454,7 +454,7 @@ cdef class PrecomposedAction(Action):
         if right_precomposition is not None:
             rco = right_precomposition._codomain
             if rco is not right:
-              right_precomposition = homset.Hom(rco, right).natural_map() * right_precomposition
+                right_precomposition = homset.Hom(rco, right).natural_map() * right_precomposition
             right = right_precomposition.domain()
         if action._is_left:
             Action.__init__(self, left, US, 1)

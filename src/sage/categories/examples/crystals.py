@@ -1,20 +1,20 @@
 r"""
 Example of a crystal
 """
-#*****************************************************************************
+# ****************************************************************************
 #  Copyright (C) 2010 Anne Schilling <anne at math.ucdavis.edu>
 #
 #  Distributed under the terms of the GNU General Public License (GPL)
-#                  http://www.gnu.org/licenses/
-#******************************************************************************
-
+#                  https://www.gnu.org/licenses/
+# *****************************************************************************
 from sage.structure.parent import Parent
 from sage.structure.element_wrapper import ElementWrapper
 from sage.structure.unique_representation import UniqueRepresentation
 from sage.categories.classical_crystals import ClassicalCrystals
-from sage.graphs.all import DiGraph
+from sage.graphs.digraph import DiGraph
 from sage.categories.enumerated_sets import EnumeratedSets
 from sage.combinat.root_system.cartan_type import CartanType
+
 
 class HighestWeightCrystalOfTypeA(UniqueRepresentation, Parent):
     r"""
@@ -211,9 +211,9 @@ class NaiveCrystal(UniqueRepresentation, Parent):
                 [[1, 1, 0], [2, 1, 1], [3, 1, 2], [5, 1, 3], [4, 2, 0], [5, 2, 4]]
             """
             assert i in self.index_set()
-            for edge in self.parent().G.edges():
-               if edge[1]==int(str(self)) and edge[2]==i:
-                   return self.parent()(edge[0])
+            for edge in self.parent().G.edges(sort=False):
+                if edge[1] == int(str(self)) and edge[2] == i:
+                    return self.parent()(edge[0])
             return None
 
         def f(self, i):
@@ -231,5 +231,3 @@ class NaiveCrystal(UniqueRepresentation, Parent):
                 if edge[2] == i:
                     return self.parent()(edge[1])
             return None
-
-

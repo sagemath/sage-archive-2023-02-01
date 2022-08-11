@@ -109,14 +109,14 @@ from sage.rings.integer cimport Integer
 from sage.rings.ring import is_Ring
 from sage.rings.integer_ring import ZZ, is_IntegerRing
 from sage.rings.finite_rings.finite_field_constructor import FiniteField as GF
-from sage.rings.finite_rings.integer_mod_ring import is_IntegerModRing
+import sage.rings.abc
 from sage.rings.rational_field import QQ
 from sage.arith.all import gcd
 
 from .matrix2 import decomp_seq
 from .matrix0 import Matrix as Matrix_base
 
-from sage.misc.all import prod
+from sage.misc.misc_c import prod
 from sage.misc.verbose import verbose, get_verbose
 
 #########################################################
@@ -139,7 +139,7 @@ cdef class Matrix_rational_dense(Matrix_dense):
             sage: from sage.matrix.matrix_rational_dense import Matrix_rational_dense
             sage: a = Matrix_rational_dense.__new__(Matrix_rational_dense, Mat(ZZ,3), 0,0,0)
             sage: type(a)
-            <type 'sage.matrix.matrix_rational_dense.Matrix_rational_dense'>
+            <class 'sage.matrix.matrix_rational_dense.Matrix_rational_dense'>
 
         .. WARNING::
 
@@ -267,7 +267,7 @@ cdef class Matrix_rational_dense(Matrix_dense):
         fmpq_get_mpq(x.value, fmpq_mat_entry(self._matrix, i, j))
         return x
 
-    cdef bint get_is_zero_unsafe(self, Py_ssize_t i, Py_ssize_t j):
+    cdef bint get_is_zero_unsafe(self, Py_ssize_t i, Py_ssize_t j) except -1:
         """
         Return 1 if the entry (i, j) is zero, otherwise 0.
 
@@ -381,7 +381,7 @@ cdef class Matrix_rational_dense(Matrix_dense):
                     num, den = [str_to_bytes(n) for n in s.split('/')]
                     if fmpz_set_str(fmpq_mat_entry_num(self._matrix, i, j), num, 32) or \
                        fmpz_set_str(fmpq_mat_entry_den(self._matrix, i, j), den, 32):
-                           raise RuntimeError("invalid pickle data")
+                        raise RuntimeError("invalid pickle data")
                 else:
                     s = str_to_bytes(s)
                     if fmpz_set_str(fmpq_mat_entry_num(self._matrix, i, j), s, 32):
@@ -507,16 +507,14 @@ cdef class Matrix_rational_dense(Matrix_dense):
         return rich_to_bool(op, 0)
 
     cdef _vector_times_matrix_(self, Vector v):
-        """
-        Returns the vector times matrix product.
+        r"""
+        Return the vector times matrix product.
 
         INPUT:
 
+        - ``v`` -- a free module element
 
-        -  ``v`` - a free module element.
-
-
-        OUTPUT: The vector times matrix product v\*A.
+        OUTPUT: The vector times matrix product v\*A
 
         EXAMPLES::
 
@@ -530,7 +528,7 @@ cdef class Matrix_rational_dense(Matrix_dense):
         cdef Py_ssize_t i, j
         cdef mpq_t x, y, z
 
-        M = self._row_ambient_module()
+        M = self.row_ambient_module()
         w = <Vector_rational_dense> v
         ans = M.zero_vector()
 
@@ -920,16 +918,14 @@ cdef class Matrix_rational_dense(Matrix_dense):
         return 0
 
     def _clear_denom(self):
-        """
+        r"""
         INPUT:
 
-
-        -  ``self`` - a matrix
-
+        - ``self`` -- a matrix
 
         OUTPUT: D\*self, D
 
-        The product is a matrix over ZZ
+        The product is a matrix over `\ZZ`.
 
         EXAMPLES::
 
@@ -976,7 +972,7 @@ cdef class Matrix_rational_dense(Matrix_dense):
         return X
 
     def charpoly(self, var='x', algorithm=None):
-        """
+        r"""
         Return the characteristic polynomial of this matrix.
 
         .. NOTE::
@@ -985,8 +981,7 @@ cdef class Matrix_rational_dense(Matrix_dense):
 
         INPUT:
 
-
-        -  ``var`` - (optional) name of the variable as a string
+        -  ``var`` -- (optional) name of the variable as a string
 
         -  ``algorithm`` -- an optional specification of an algorithm. It can be
            one of:
@@ -1022,7 +1017,7 @@ cdef class Matrix_rational_dense(Matrix_dense):
             sage: M = MatrixSpace(QQ, 2)
             sage: A = M(range(0, 2^2))
             sage: type(A)
-            <type 'sage.matrix.matrix_rational_dense.Matrix_rational_dense'>
+            <class 'sage.matrix.matrix_rational_dense.Matrix_rational_dense'>
             sage: A.charpoly('x')
             x^2 - 3*x - 2
             sage: A.charpoly('y')
@@ -1187,16 +1182,15 @@ cdef class Matrix_rational_dense(Matrix_dense):
         return ans
 
     def _multiply_over_integers(self, Matrix_rational_dense right, algorithm='default'):
-        """
+        r"""
         Multiply this matrix by right using a multimodular algorithm and
         return the result.
 
         INPUT:
 
+        -  ``self`` -- matrix over QQ
 
-        -  ``self`` - matrix over QQ
-
-        -  ``right`` - matrix over QQ
+        -  ``right`` -- matrix over QQ
 
         -  ``algorithm``
 
@@ -1204,7 +1198,6 @@ cdef class Matrix_rational_dense(Matrix_dense):
              are over ZZ.
 
            - 'multimodular': use a multimodular algorithm
-
 
         EXAMPLES::
 
@@ -1487,7 +1480,7 @@ cdef class Matrix_rational_dense(Matrix_dense):
             return A
 
         from .matrix_modn_dense_double import MAX_MODULUS
-        if is_IntegerModRing(R) and R.order() < MAX_MODULUS:
+        if isinstance(R, sage.rings.abc.IntegerModRing) and R.order() < MAX_MODULUS:
             b = R.order()
             A, d = self._clear_denom()
             if not b.gcd(d).is_one():
@@ -2358,6 +2351,13 @@ cdef class Matrix_rational_dense(Matrix_dense):
             False
             sage: any(b[i,j].is_zero() for i in range(10) for j in range(10))
             False
+
+        Check that :trac:`34103` is fixed::
+
+            sage: a = matrix(QQ, 10, 10, 1)
+            sage: a.randomize(nonzero=True, distribution='1/n')
+            sage: bool(a)
+            True
         """
         density = float(density)
         if density <= 0.0:
@@ -2548,7 +2548,7 @@ cdef class Matrix_rational_dense(Matrix_dense):
 
             sage: A = matrix(QQ, 2, 3, range(6))
             sage: type(A)
-            <type 'sage.matrix.matrix_rational_dense.Matrix_rational_dense'>
+            <class 'sage.matrix.matrix_rational_dense.Matrix_rational_dense'>
             sage: B = A.transpose()
             sage: print(B)
             [0 3]
@@ -2599,7 +2599,7 @@ cdef class Matrix_rational_dense(Matrix_dense):
 
             sage: A = matrix(QQ,2,3,range(6))
             sage: type(A)
-            <type 'sage.matrix.matrix_rational_dense.Matrix_rational_dense'>
+            <class 'sage.matrix.matrix_rational_dense.Matrix_rational_dense'>
             sage: A.antitranspose()
             [5 2]
             [4 1]
@@ -2889,8 +2889,7 @@ cdef class Matrix_rational_dense(Matrix_dense):
             raise IndexError("row index out of range")
 
         cdef Py_ssize_t j
-        from sage.modules.free_module import FreeModule
-        parent = FreeModule(self._base_ring, self._ncols)
+        parent = self.row_ambient_module()
         cdef Vector_rational_dense v = Vector_rational_dense.__new__(Vector_rational_dense)
         v._init(self._ncols, parent)
         for j in range(self._ncols):
@@ -2934,8 +2933,7 @@ cdef class Matrix_rational_dense(Matrix_dense):
             raise IndexError("column index out of range")
 
         cdef Py_ssize_t j
-        from sage.modules.free_module import FreeModule
-        parent = FreeModule(self._base_ring, self._nrows)
+        parent = self.column_ambient_module()
         cdef Vector_rational_dense v = Vector_rational_dense.__new__(Vector_rational_dense)
         v._init(self._nrows, parent)
         for j in range(self._nrows):

@@ -1,5 +1,5 @@
 """
-`p`-Adic Generic Nodes
+`p`-adic Generic Nodes
 
 This file contains a bunch of intermediate classes for the `p`-adic
 parents, allowing a function to be implemented at the right level of
@@ -23,7 +23,7 @@ AUTHORS:
 
 from sage.rings.padics.local_generic import LocalGeneric
 from sage.rings.padics.padic_generic import pAdicGeneric
-from sage.rings.ring import EuclideanDomain, Field
+import sage.rings.abc
 from sage.rings.padics.padic_base_generic import pAdicBaseGeneric
 from sage.rings.integer_ring import ZZ
 from sage.rings.rational_field import QQ
@@ -1027,7 +1027,7 @@ class pAdicRelaxedGeneric(pAdicGeneric):
         of the previous ones. This method is used to declare a self-referent
         number (and optionally, to set its first digits).
         The definition of the number itself will be given afterwords using
-        to method meth:`sage.rings.padics.relaxed_template.RelaxedElement_unknown.set`
+        to method :meth:`sage.rings.padics.relaxed_template.RelaxedElement_unknown.set`
         of the element.
 
         EXAMPLES:
@@ -1044,7 +1044,7 @@ class pAdicRelaxedGeneric(pAdicGeneric):
             sage: a
             O(5^0)
 
-        We can now use the method meth:`sage.rings.padics.relaxed_template.RelaxedElement_unknown.set`
+        We can now use the method :meth:`sage.rings.padics.relaxed_template.RelaxedElement_unknown.set`
         to define `a`. Below, for example, we say that the digits of `a` have to
         agree with the digits of `1 + 5 a`. Note that the factor `5` shifts the
         digits; the `n`-th digit of `a` is then defined by the previous ones::
@@ -1187,13 +1187,19 @@ def is_pAdicRing(R):
     EXAMPLES::
 
         sage: is_pAdicRing(Zp(5))
+        doctest:warning...
+        DeprecationWarning: is_pAdicRing is deprecated; use isinstance(..., sage.rings.abc.pAdicRing) instead
+        See https://trac.sagemath.org/32750 for details.
         True
         sage: is_pAdicRing(RR)
         False
     """
+    from sage.misc.superseded import deprecation
+    deprecation(32750, "is_pAdicRing is deprecated; use isinstance(..., sage.rings.abc.pAdicRing) instead")
     return isinstance(R, pAdicRingGeneric)
 
-class pAdicRingGeneric(pAdicGeneric, EuclideanDomain):
+
+class pAdicRingGeneric(pAdicGeneric, sage.rings.abc.pAdicRing):
     def is_field(self, proof = True):
         """
         Return whether this ring is actually a field, ie ``False``.
@@ -1327,14 +1333,19 @@ def is_pAdicField(R):
     EXAMPLES::
 
         sage: is_pAdicField(Zp(17))
+        doctest:warning...
+        DeprecationWarning: is_pAdicField is deprecated; use isinstance(..., sage.rings.abc.pAdicField) instead
+        See https://trac.sagemath.org/32750 for details.
         False
         sage: is_pAdicField(Qp(17))
         True
     """
+    from sage.misc.superseded import deprecation
+    deprecation(32750, "is_pAdicField is deprecated; use isinstance(..., sage.rings.abc.pAdicField) instead")
     return isinstance(R, pAdicFieldGeneric)
 
 
-class pAdicFieldGeneric(pAdicGeneric, Field):
+class pAdicFieldGeneric(pAdicGeneric, sage.rings.abc.pAdicField):
     pass
 
     #def class_field(self, group=None, map=None, generators=None):
@@ -1436,12 +1447,12 @@ class pAdicRingBaseGeneric(pAdicBaseGeneric, pAdicRingGeneric):
 
         EXAMPLES::
 
-            sage: Zp(5,6).random_element()
-            3 + 3*5 + 2*5^2 + 3*5^3 + 2*5^4 + 5^5 + O(5^6)
-            sage: ZpCA(5,6).random_element()
-            4*5^2 + 5^3 + O(5^6)
-            sage: ZpFM(5,6).random_element()
-            2 + 4*5^2 + 2*5^4 + 5^5
+            sage: Zp(5,6).random_element().parent() is Zp(5,6)
+            True
+            sage: ZpCA(5,6).random_element().parent() is ZpCA(5,6)
+            True
+            sage: ZpFM(5,6).random_element().parent() is ZpFM(5,6)
+            True
         """
         if (algorithm == 'default'):
             if self.is_capped_relative():

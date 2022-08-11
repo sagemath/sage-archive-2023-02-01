@@ -26,7 +26,6 @@ import sphinx
 from sphinx.application import Sphinx
 from sphinx.util.console import bold
 from sage.env import SAGE_DOC
-from sage.misc.misc import sage_makedirs
 from pathlib import Path
 
 logger = sphinx.util.logging.getLogger(__name__)
@@ -117,8 +116,7 @@ def get_env(app, curdoc):
     try:
         f = open(filename, 'rb')
     except IOError:
-        logger.info("")
-        logger.warning("Unable to fetch %s " % filename)
+        logger.debug(f"Unable to load pickled environment '{filename}'", exc_info=True)
         return None
     docenv = pickle.load(f)
     f.close()
@@ -207,6 +205,7 @@ def fix_path_html(app, pagename, templatename, ctx, event_arg):
     # def pathto(otheruri, resource=False,
     #            baseuri=self.get_target_uri(pagename)):
     old_pathto = ctx['pathto']
+
     def sage_pathto(otheruri, *args, **opts):
         if otheruri in mustbefixed:
             otheruri = os.path.join("..", otheruri)
@@ -228,10 +227,10 @@ def citation_dir(app: Sphinx) -> Path:
         if dirs[0] == '/':
             dirs.pop(0)
         tail = dirs[1:]
-        citedir = (sage_doc / "inventory").joinpath(*tail) 
+        citedir = (sage_doc / "inventory").joinpath(*tail)
     else:
         citedir = outdir / "inventory"
-    sage_makedirs(citedir)
+    os.makedirs(citedir, exist_ok=True)
     return citedir
 
 
@@ -305,6 +304,10 @@ def init_subdoc(app):
                     shutil.rmtree(static_dir)
                 except OSError:
                     os.unlink(static_dir)
+            # This ensures that the symlink we are creating points to an
+            # existing directory. See trac #33608.
+            os.makedirs(os.path.join(app.builder.outdir, master_static_dir),
+                        exist_ok=True)
             os.symlink(master_static_dir, static_dir)
 
         app.builder.copy_static_files = link_static_files
@@ -315,10 +318,9 @@ def init_subdoc(app):
         app.emit('env-check-consistency', app.env)
 
 
-
 def setup(app: Sphinx):
     app.add_config_value('multidocs_is_master', True, True)
     app.add_config_value('multidocs_subdoc_list', [], True)
     app.add_config_value('multidoc_first_pass', 0, False)   # 1 = deactivate the loading of the inventory
     app.connect('builder-inited', init_subdoc)
-    return {'parallel_read_safe': True} 
+    return {'parallel_read_safe': True}

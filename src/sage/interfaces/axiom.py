@@ -132,7 +132,7 @@ following sum but with a much bigger range, and hit control-C.
     sage:  f = axiom('(x^5 - y^5)^10000')       # not tested
     Interrupting Axiom...
     ...
-    <type 'exceptions.TypeError'>: Ctrl-c pressed while running Axiom
+    <class 'exceptions.TypeError'>: Ctrl-c pressed while running Axiom
 
 ::
 
@@ -184,7 +184,7 @@ from sage.env import DOT_SAGE
 from pexpect import EOF
 from sage.misc.multireplace import multiple_replace
 from sage.interfaces.tab_completion import ExtraTabCompletion
-from sage.docs.instancedoc import instancedoc
+from sage.misc.instancedoc import instancedoc
 from sage.structure.richcmp import rich_to_bool
 
 
@@ -437,15 +437,15 @@ class PanAxiom(ExtraTabCompletion, Expect):
             E = self._expect
             # debug
             # self._synchronize(cmd='1+%s\n')
-            verbose("in = '%s'"%line,level=3)
+            verbose("in = '%s'" % line, level=3)
             E.sendline(line)
             self._expect.expect(self._prompt)
             out = self._expect.before
             # debug
-            verbose("out = '%s'"%out,level=3)
+            verbose("out = '%s'" % out, level=3)
         except EOF:
-          if self._quit_string() in line:
-             return ''
+            if self._quit_string() in line:
+                return ''
         except KeyboardInterrupt:
             self._keyboard_interrupt()
 
@@ -457,7 +457,7 @@ class PanAxiom(ExtraTabCompletion, Expect):
             return out
         if 'error' in out:
             return out
-        #out = out.lstrip()
+        # out = out.lstrip()
         i = out.find('\n')
         out = out[i+1:]
         outs = out.split("\n")
@@ -702,16 +702,15 @@ class PanAxiomElement(ExpectElement):
             sage: a = axiom(1/2) #optional - axiom
             sage: latex(a)       #optional - axiom
             \frac{1}{2}
-
         """
         self._check_valid()
         P = self.parent()
-        s = P._eval_line('outputAsTex(%s)'%self.name(), reformat=False)
-        if not '$$' in s:
+        s = P._eval_line('outputAsTex(%s)' % self.name(), reformat=False)
+        if '$$' not in s:
             raise RuntimeError("Error texing axiom object.")
         i = s.find('$$')
         j = s.rfind('$$')
-        s = s[i+2:j]
+        s = s[i + 2:j]
         s = multiple_replace({'\r':'', '\n':' ',
                               ' \\sp ':'^',
                               '\\arcsin ':'\\sin^{-1} ',
@@ -841,13 +840,13 @@ class PanAxiomElement(ExpectElement):
             x,e,b = self.unparsed_input_form().lstrip('float(').rstrip(')').split(',')
             return R(ZZ(x)*ZZ(b)**ZZ(e))
         elif type == "DoubleFloat":
-            from sage.rings.all import RDF
+            from sage.rings.real_double import RDF
             return RDF(repr(self))
         elif type in ["PositiveInteger", "Integer"]:
-            from sage.rings.all import ZZ
+            from sage.rings.integer_ring import ZZ
             return ZZ(repr(self))
         elif type.startswith('Polynomial'):
-            from sage.rings.all import PolynomialRing
+            from sage.rings.polynomial.polynomial_ring_constructor import PolynomialRing
             base_ring = P(type.lstrip('Polynomial '))._sage_domain()
             vars = str(self.variables())[1:-1]
             R = PolynomialRing(base_ring, vars)
@@ -886,10 +885,10 @@ class PanAxiomElement(ExpectElement):
         P = self._check_valid()
         name = str(self)
         if name == 'Integer':
-            from sage.rings.all import ZZ
+            from sage.rings.integer_ring import ZZ
             return ZZ
         elif name == 'DoubleFloat':
-            from sage.rings.all import RDF
+            from sage.rings.real_double import RDF
             return RDF
         elif name.startswith('Fraction '):
             return P(name.lstrip('Fraction '))._sage_domain().fraction_field()

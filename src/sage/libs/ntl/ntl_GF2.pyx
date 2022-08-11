@@ -34,7 +34,7 @@ from sage.rings.integer_ring cimport IntegerRing_class
 # GF2: Bits
 ##############################################################################
 
-cdef class ntl_GF2(object):
+cdef class ntl_GF2():
     r"""
     The \class{GF2} represents the field GF(2). Computationally
     speaking, it is not a particularly useful class.  Its main use is
@@ -56,7 +56,7 @@ cdef class ntl_GF2(object):
         """
         if isinstance(v, ntl_GF2):
             self.x = (<ntl_GF2>v).x
-        elif isinstance(v, int) or isinstance(v, long) or isinstance(v, Integer):
+        elif isinstance(v, (int, Integer)):
             GF2_conv_long(self.x, int(v) % 2)
         elif v is not None:
             ccreadstr(self.x, str(v))
@@ -250,7 +250,7 @@ def unpickle_class_value(cls, x):
         sage: sage.libs.ntl.ntl_GF2.unpickle_class_value(ntl.GF2,1)
         1
         sage: type(sage.libs.ntl.ntl_GF2.unpickle_class_value(ntl.GF2,1))
-        <type 'sage.libs.ntl.ntl_GF2.ntl_GF2'>
+        <class 'sage.libs.ntl.ntl_GF2.ntl_GF2'>
     """
     return cls(x)
 
@@ -263,7 +263,7 @@ def unpickle_class_args(cls, x):
         sage: sage.libs.ntl.ntl_GF2.unpickle_class_args(ntl.GF2,[1])
         1
         sage: type(sage.libs.ntl.ntl_GF2.unpickle_class_args(ntl.GF2,[1]))
-        <type 'sage.libs.ntl.ntl_GF2.ntl_GF2'>
+        <class 'sage.libs.ntl.ntl_GF2.ntl_GF2'>
     """
     return cls(*x)
 

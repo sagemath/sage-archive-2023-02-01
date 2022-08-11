@@ -161,7 +161,7 @@ def unimod_matrices_from_infty(r, s):
         return []
 
 
-class ManinMap(object):
+class ManinMap():
     r"""
     Map from a set of right coset representatives of `\Gamma_0(N)` in
     `SL_2(\ZZ)` to a coefficient module that satisfies the Manin
@@ -367,7 +367,7 @@ class ManinMap(object):
             38
         """
         for B in self._manin.reps():
-            if not B in self._dict:
+            if B not in self._dict:
                 self._dict[B] = self._compute_image_from_gens(B)
 
     def __add__(self, right):

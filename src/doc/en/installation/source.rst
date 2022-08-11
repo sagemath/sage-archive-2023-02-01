@@ -13,43 +13,25 @@ Install from Source Code
 
 .. contents:: Table of contents
    :depth: 2
+   :class: this-will-duplicate-information-and-it-is-still-useful-here
 
-More familiarity with computers may be required to build Sage from
-the `source code <https://en.wikipedia.org/wiki/Source_code>`_.
-If you do have all the :ref:`pre-requisite tools <section-prereqs>`,
-the process should be completely
-painless, basically consisting in extracting the source tarball and typing
-``make``.  It can take your computer a while to build Sage from the source code,
-although the procedure is fully automated and should need no human
-intervention.
+Some familiarity with the use of the Unix command line may be required to
+build Sage from the :wikipedia:`source code <Source_code>`.
 
 Building Sage from the source code has the major advantage that your install
 will be optimized for your particular computer and should therefore offer
 better performance and compatibility than a binary install.
+
 Moreover, it offers you full development capabilities:
 you can change absolutely any part of Sage or the programs on which it depends,
 and recompile the modified parts.
 
-`Download the Sage source code <https://www.sagemath.org/download-source.html>`_
-or get it from the `git repository <https://github.com/sagemath/sage>`_.
-Note: if you  are installing Sage for development, you should rather follow
-the instructions in
-`The Sage Developer's Guide <https://doc.sagemath.org/html/en/developer/walk_through.html#chapter-walkthrough>`_.
+See the file `README.md <https://github.com/sagemath/sage/#readme>`_
+in ``SAGE_ROOT`` for information on supported platforms and
+step-by-step instructions.
 
-It is also possible to download a
-`binary distribution <https://www.sagemath.org/download.html>`_
-for some operating systems, rather than compiling from source.
-
-Supported platforms
--------------------
-
-Sage runs on all major `Linux <https://en.wikipedia.org/wiki/Linux>`_
-distributions, `macOS <https://www.apple.com/macosx/>`_ , and Windows
-(via the `Cygwin <https://cygwin.com/>`_ Linux API layer).
-
-Other installation options for Windows are using the Windows Subsystem
-for Linux (WSL), or with the aid of a `virtual machine
-<https://en.wikipedia.org/wiki/Virtual_machine>`_.
+The following sections provide some additional details. Most users
+will not need to read them.
 
 .. _section-prereqs:
 
@@ -72,16 +54,13 @@ with less (be sure to have some swap space in this case).
 Command-line tools
 ^^^^^^^^^^^^^^^^^^
 
-In addition to standard `POSIX <https://en.wikipedia.org/wiki/POSIX>`_ utilities
-and the `bash <https://en.wikipedia.org/wiki/Bash_(Unix_shell)>`_ shell,
+In addition to standard :wikipedia:`POSIX <POSIX>` utilities
+and the :wikipedia:`bash <Bash_(Unix_shell)>` shell,
 the following standard command-line development tools must be installed on your
 computer:
 
-- A **C/C++ compiler**: Since SageMath builds its own GCC if needed,
-  a wide variety of C/C++ compilers is supported.
-  Many GCC versions work,
-  from as old as version 4.8 (but we recommend at least 5.1) to the most recent release.
-  Clang also works.
+- A **C/C++ compiler**: GCC versions 6.3 to 12.x are supported.
+  Clang (LLVM) is also supported.
   See also `Using alternative compilers`_.
 - **make**: GNU make, version 3.80 or later. Version 3.82 or later is recommended.
 - **m4**: GNU m4 1.4.2 or later (non-GNU or older versions might also work).
@@ -93,31 +72,6 @@ computer:
   build system, which is referred to as ``sage-bootstrap-python``.)
 
 Other versions of these may work, but they are untested.
-
-Libraries
-^^^^^^^^^
-
-Some Sage components (and among them, most notably, Python) *"use the
-OpenSSL library for added performance if made available by the
-operating system"* (literal quote from the Python license). Testing
-has proved that:
-
-   * Sage can be successfully built against other SSL libraries (at
-     least GnuTLS).
-
-   * Sage's ``-pip`` facility (used to install some Sage packages) is
-     disabled when Sage is compiled against those libraries.
-
-Furthermore, the Sage license mention that the ``hashlib`` library
-(used in Sage) uses OpenSSL.
-
-Therefore, the OpenSSL library is recommended. However, Sage's license
-seems to clash with OpenSSL license, which makes the distribution of
-OpenSSL along with Sage sources dubious. However, there is no problem
-for Sage using a systemwide-installed OpenSSL library.
-
-In any case, you must install systemwide your chosen library and its
-development files.
 
 
 Fortran and compiler suites
@@ -173,24 +127,26 @@ Python for venv
 ^^^^^^^^^^^^^^^
 
 By default, Sage will try to use system's `python3` to set up a virtual
-environment, a.k.a. `venv <https://docs.python.org/3.7/library/venv.html>`_
+environment, a.k.a. `venv <https://docs.python.org/3.10/library/venv.html>`_
 rather than building a Python 3 installation from scratch.
-Use the configure option ``--without-system-python3`` in case you want Python 3
+Use the ``configure`` option ``--without-system-python3`` in case you want Python 3
 built from scratch.
 
-Sage will accept versions 3.7.x to 3.9.x.
+Sage will accept versions 3.8.x to 3.10.x.
 
 You can also use ``--with-python=/path/to/python3_binary`` to tell Sage to use
 ``/path/to/python3_binary`` to set up the venv. Note that setting up venv requires
 a number of Python modules to be available within the Python in question. Currently,
-for Sage 9.2, these modules are as follows: sqlite3, ctypes, math, hashlib, crypt,
-readline, socket, zlib, distutils.core - they will be checked for by configure.
+for Sage 9.6, these modules are as follows: ``sqlite3``, ``ctypes``, ``math``,
+``hashlib``, ``crypt``, ``socket``, ``zlib``, ``distutils.core``, ``ssl`` -
+they will be checked for by the ``configure`` script.
 
 Other notes
 ^^^^^^^^^^^
 
-After extracting the Sage tarball, the subdirectory :file:`upstream`
+After extracting the Sage source tarball, the subdirectory :file:`upstream`
 contains the source distributions for everything on which Sage depends.
+
 If cloned from a git repository, the upstream tarballs will be downloaded,
 verified, and cached as part of the Sage installation process.
 We emphasize that all of this software is included with Sage, so you do not
@@ -212,8 +168,7 @@ On Redhat-derived systems not all perl components are installed by
 default and you might have to install the ``perl-ExtUtils-MakeMaker``
 package.
 
-On Cygwin, the ``lapack`` and ``liblapack-devel`` packages are required to
-provide ATLAS support as the Sage package for ATLAS is not built by default.
+On Cygwin, the ``lapack`` and ``liblapack-devel`` packages are required.
 
 Installing prerequisites
 ~~~~~~~~~~~~~~~~~~~~~~~~
@@ -229,7 +184,7 @@ or::
 
 on the command line. If it gives an error (or returns nothing), then
 either ``perl`` is not installed, or it is installed but not in your
-`PATH <https://en.wikipedia.org/wiki/PATH_%28variable%29>`_.
+:wikipedia:`PATH <PATH_%28variable%29>`.
 
 .. _sec-installation-from-sources-linux-recommended-installation:
 
@@ -250,18 +205,11 @@ The method of installing additional software varies from distribution to
 distribution, but on a `Debian <https://www.debian.org/>`_ based system (e.g.
 `Ubuntu <https://www.ubuntu.com/>`_ or `Mint <https://www.linuxmint.com/>`_),
 you would use
-`apt-get <https://en.wikipedia.org/wiki/Advanced_Packaging_Tool>`_.
+:wikipedia:`apt-get <Advanced_Packaging_Tool>`.
 
 On Debian ("buster" or newer) or Ubuntu ("bionic" or newer):
 
 .. literalinclude:: debian.txt
-
-.. WARNING::
-
-     Note: in this documentation, commands like these are
-     autogenerated. They may as such include duplications. The
-     duplications are certainly not necessary for the commands to
-     function properly, but they don't cause any harm, either.
 
 On Fedora / Redhat / CentOS:
 
@@ -270,8 +218,6 @@ On Fedora / Redhat / CentOS:
 On Arch Linux:
 
 .. literalinclude:: arch.txt
-
-(These examples suppose that you choose to use a systemwide OpenSSL library.)
 
 In addition to these, if you don't want Sage to build optional packages that might
 be available from your OS, cf. the growing list of such packages on :trac:`27330`,
@@ -288,8 +234,8 @@ On Arch Linux:
 .. literalinclude:: arch-optional.txt
 
 On other Linux systems, you might use
-`rpm <https://en.wikipedia.org/wiki/RPM_Package_Manager>`_,
-`yum <https://en.wikipedia.org/wiki/Yellowdog_Updater,_Modified>`_,
+:wikipedia:`rpm <RPM_Package_Manager>`,
+:wikipedia:`yum <Yellowdog_Updater,_Modified>`,
 or other package managers.
 
 .. _section_macprereqs:
@@ -301,22 +247,14 @@ On macOS systems, you need a recent version of
 `Command Line Tools <https://developer.apple.com/downloads/index.action?=command%20line%20tools>`_.
 It provides all the above requirements.
 
+Run the command ``xcode-select --install`` from a Terminal window and click "Install"
+in the pop-up dialog box.
+
 If you have already installed `Xcode <https://developer.apple.com/xcode/>`_
 (which at the time of writing is freely available in the Mac App Store,
 or through https://developer.apple.com/downloads/ provided you registered for an
 Apple Developer account), you can install the command line tools from
 there as well.
-
-- With OS X Mavericks or Yosemite, run the command
-  ``xcode-select --install`` from a Terminal window and click "Install"
-  in the pop-up dialog box.
-
-- Using OS X Mountain Lion or earlier, run Xcode, open its "Downloads"
-  preference pane and install the command line tools from there.
-
-- On pre-Lion macOS systems, the command line tools are not available as a
-  separate download and you have to install the full-blown Xcode supporting your
-  system version.
 
 If you have not installed `Xcode <https://developer.apple.com/xcode/>`_
 you can get these tools as a relatively small download, but it does require
@@ -375,7 +313,8 @@ Cygwin prerequisite installation
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 Sage can be built only on the 64-bit version of Cygwin.  See
-``README.md`` for the most up-to-date instructions for building Sage
+the file `README.md <https://github.com/sagemath/sage/#readme>`_
+in ``SAGE_ROOT`` for the most up-to-date instructions for building Sage
 on Cygwin.
 
 Although it is possible to install Sage's dependencies using the Cygwin
@@ -408,14 +347,14 @@ include:
 Ubuntu on Windows Subsystem for Linux (WSL) prerequisite installation
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-Sage can be installed onto linux running on Windows Subsystem for Linux (WSL). These instructions describe a fresh install of Ubuntu 20.10, but other distibutions or installation methods should work too, though have not been tested.
+Sage can be installed onto Linux running on Windows Subsystem for Linux (WSL). These instructions describe a fresh install of Ubuntu 20.10, but other distributions or installation methods should work too, though have not been tested.
 
 - Enable hardware-assisted virtualization in the EFI or BIOS of your system. Refer to your system (or motherboard) maker's documentation for instructions on how to do this.
 
 - Set up WSL by following the `official WSL setup guide <https://docs.microsoft.com/en-us/windows/wsl/install-win10>`_. Be sure to do the steps to install WSL2 and set it as default.
 
 - Go to the Microsoft Store and install Ubuntu.
-            
+
 - Start Ubuntu from the start menu. Update all packages to the latest version.
 
 - Reboot the all running WSL instances one of the following ways:
@@ -428,6 +367,12 @@ Sage can be installed onto linux running on Windows Subsystem for Linux (WSL). T
 - `Upgrade to the Ubuntu 20.10 <https://linuxconfig.org/how-to-upgrade-ubuntu-to-20-10>`_. This step will not be necessary once Ubuntu 20.10 is available in the Microsoft Store.
 
 From this point on, follow the instructions in the :ref:`sec-installation-from-sources-linux-recommended-installation` section.
+It is strongly recommended to put the Sage source files in the Linux file system, for example, in the ``/home/username/sage`` directory, and not in the Windows file system (e.g. ``/mnt/c/...``).
+
+You may encounter permission errors of the kind ``"[Errno 13] Permission denied: 'build/bdist.linux-x86_64/wheel/<package>.dist-info'"`` during ``make``.
+This usually comes from a permission conflict between the Windows and Linux file system.
+To fix it create a temporary build folder in the Linux file system using ``mkdir -p ~/tmp/sage`` and use it for building by ``eval SAGE_BUILD_DIR="~/tmp/sage" make``.
+Also see the `related Github issue <https://github.com/pypa/packaging-problems/issues/258>`_ for other workarounds.
 
 When the installation is complete, you may be interested in :ref:`sec-launching-wsl-post-installation`.
 
@@ -441,72 +386,6 @@ On other systems, check the documentation for your particular operating system.
 
 .. _section_conda_compilers:
 
-Using conda to provide system dependencies
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-
-If Conda is installed (check by typing ``conda info``), there are two ways to
-prepare for installing SageMath from source:
-
-  - If you are using a git checkout::
-
-      $ ./bootstrap
-
-  - Create a new empty environment and activate::
-
-      $ conda create -n sage-build
-      $ conda activate sage-build
-
-  - Install standard packages recognized by sage's ``spkg-configure`` mechanism::
-
-      $ conda env update --file environment.yml -n sage-build
-
-  - Or install all standard and optional packages recognized by sage::
-
-      $ conda env update --file environment-optional.yml -n sage-build
-
-  - Then SageMath will be built using the compilers provided by Conda::
-
-      $ ./bootstrap
-      $ ./configure --prefix=$CONDA_PREFIX
-      $ make
-
-Using conda to provide all SPKGs
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-
-Note that this is an experimental feature and may not work as intended.
-
-  - If you are using a git checkout::
-
-      $ ./bootstrap
-
-  - Create a new empty environment and activate::
-
-      $ conda create -n sage
-      $ conda activate sage
-
-  - Install standard packages::
-
-      $ conda env update --file src/environment.yml -n sage
-
-  - Or install all standard and optional packages::
-
-      $ conda env update --file src/environment-optional.yml -n sage
-
-  - Then SageMath will be built using the compilers provided by Conda::
-
-      $ ./bootstrap
-      $ ./configure --prefix=$CONDA_PREFIX
-      $ cd src
-      $ python setup.py install
-
-Note that ``make`` is not used at all.  All dependencies
-(including all Python packages) are provided by conda.
-
-Thus, you will get a working version of Sage much faster.  However,
-note that this will invalidate the use of Sage-the-distribution
-commands such as ``sage -i`` because sage-the-distribution does not
-know about the dependencies unlike in the previous section where
-it did.
 
 
 Notes on using conda
@@ -533,27 +412,6 @@ Specific notes for ``make`` and ``tar``
 
 On macOS, the system-wide BSD ``tar`` supplied will build Sage, so there is no
 need to install the GNU ``tar``.
-
-On Solaris or OpenSolaris, the Sun/Oracle versions of ``make`` and ``tar`` are
-unsuitable for building Sage.
-Therefore, you must have the GNU versions of ``make`` and ``tar`` installed and
-they must be the first ``make`` and ``tar`` in your :envvar:`PATH`.
-
-On Solaris 10, a version of GNU ``make`` may be found at
-:file:`/usr/sfw/bin/gmake`,
-but you will need to copy it somewhere else and rename it to ``make``.
-The same is true for GNU ``tar``; a version of GNU ``tar`` may be found at
-:file:`/usr/sfw/bin/gtar`,
-but it will need to be copied somewhere else and renamed to ``tar``.
-It is recommended to create a directory :file:`$HOME/bins-for-sage` and to put
-the GNU versions of ``tar`` and ``make`` in that directory.
-Then ensure that :file:`$HOME/bins-for-sage` is first in your :envvar:`PATH`.
-That's because Sage also needs :file:`/usr/ccs/bin` in your :envvar:`PATH` to
-execute programs like ``ar`` and ``ranlib``, but :file:`/usr/ccs/bin` has the
-Sun/Oracle versions of ``make`` and ``tar`` in it.
-
-If you attempt to build Sage on AIX or HP-UX, you will need to install both
-GNU ``make`` and GNU ``tar``.
 
 .. _section_compilers:
 
@@ -610,7 +468,7 @@ but provide additional capabilities:
 - **LaTeX**: highly recommended.
 
 It is highly recommended that you have
-`LaTeX <https://en.wikipedia.org/wiki/LaTeX>`_
+:wikipedia:`LaTeX <LaTeX>`
 installed, but it is not required.
 The most popular packaging is `TeX Live <https://www.tug.org/texlive/>`_,
 which can be installed following the directions on their web site.
@@ -649,43 +507,6 @@ On Debian/Ubuntu, the following system packages are recommended.
 - ``ffmpeg`` (to produce animations)
 
 - ``libavdevice-dev`` (to produce animations)
-
-Notebook additional features
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-**attention: Sage's notebook is deprecated, and notebook() command has been removed. Use Jupyter notebook instead**
-
-By default, the Sage notebook uses the
-`HTTP <https://en.wikipedia.org/wiki/HTTP>`_
-protocol when you type the command ``notebook()``.
-To run the notebook in secure mode by typing ``notebook(secure=True)`` which
-uses the `HTTPS <https://en.wikipedia.org/wiki/HTTPS>`_ protocol,
-or to use `OpenID <https://en.wikipedia.org/wiki/OpenID>`_ authentication,
-you need to follow specific installation steps described in
-:ref:`section_notebook_ssl`.
-
-Although all necessary components are provided through Sage optional
-packages, i.e., even if you choose not to install a systemwide version
-of OpenSSL, you can install a local (Sage_specific) version of
-`OpenSSL <https://www.openssl.org>`_ by using Sage's **openssl**
-package and running ``sage -i openssl`` as suggested in
-:ref:`section_notebook_ssl` (this requires an Internet
-connection). Alternatively, you might prefer to install OpenSSL and
-the OpenSSL development headers globally on your system, as described
-above.
-
-Finally, if you intend to distribute the notebook load onto several Sage
-servers, you will surely want to setup an
-`SSH <https://en.wikipedia.org/wiki/SSH>`_ server and generate SSH keys.
-This can be achieved using `OpenSSH <https://www.openssh.com/>`_.
-
-On Linux systems, the OpenSSH server, client and utilities are usually provided
-by the **openssh-server** and **openssh-client** packages and can be installed
-using::
-
-    $ sudo apt-get install openssh-server openssh-client
-
-or similar commands.
 
 Tcl/Tk
 ~~~~~~
@@ -730,100 +551,15 @@ Step-by-step installation procedure
 General procedure
 ~~~~~~~~~~~~~~~~~
 
-Installation from source is (potentially) very easy, because the distribution
-contains (essentially) everything on which Sage depends.
+#. Follow the procedure in the file `README.md <https://github.com/sagemath/sage/#readme>`_
+   in ``SAGE_ROOT``.
 
-Make sure there are **no spaces** in the path name for the directory in which
-you build:
-several of Sage's components will not build if there are spaces in the path.
-Running Sage from a directory with spaces in its name will also fail.
-
-#. Go to https://www.sagemath.org/download-source.html, select a mirror,
-   and download the file :file:`sage-x.y.tar.gz`.
-
-   This compressed archive file contains the source code for Sage and
-   the source for all programs on which Sage depends.
-
-   Download it into any directory you have write access to, preferably on a
-   fast filesystem, avoiding
-   `NFS <https://en.wikipedia.org/wiki/Network_File_System>`_ and the like.
-   On personal computers, any subdirectory of your :envvar:`HOME` directory
-   should do. Note that once you have built Sage (by running ``make``,
-   as described below), you will not be able to move or rename its
-   directory without breaking Sage.
-
-#. Extract the archive::
-
-       $ tar xvf sage-x.y.tar.gz
-
-   This creates a directory :file:`sage-x.y`.
-
-#. Change into that directory::
-
-       $ cd sage-x.y
-
-   This is Sage's home directory.
-   It is also referred to as :envvar:`SAGE_ROOT` or the top level Sage
-   directory.
-
-#. Optional, but highly recommended:
-   Read the :file:`README.md` file there.
-
-#. Optional:  Set various other environment variables that influence the
-   build process; see :ref:`section_envvar`.
-
-   Some environment variables deserve a special mention: :envvar:`CC`,
-   :envvar:`CXX` and :envvar:`FC`;
-   and on macOS, :envvar:`OBJC` and :envvar:`OBJCXX`. Those variables
-   defining your compilers
-   can be set at configuration time and their values will be recorded for
-   further use at runtime. Those initial values are over-ridden if Sage builds
-   its own compiler or they are set to a different value again before calling
-   Sage. Note that some packages will ignore the compiler settings and use
-   values deemed safe for that package on a particular OS.
-
-#. Run the configure script to set some options that
-   influence the build process.
-
-   - Choose the installation hierarchy (:envvar:`SAGE_LOCAL`).
-     The default is the ``local`` subdirectory of :envvar:`SAGE_ROOT`::
-
-       $ ./configure --prefix=SAGE_LOCAL
-
-     Note that in Sage's build process, ``make`` builds **and**
-     installs (``make install`` is a no-op).  Therefore the
-     installation hierarchy must be writable by the user.
-
-   - Other options are available; see::
-
-       $ ./configure --help
-
-#. Start the build process::
-
-       $ make
-
-   or if your system supports multiprocessing and you want to use several
-   processes to build Sage::
-
-       $ MAKE='make -jNUM' make
-
-   to tell the ``make`` program to run ``NUM`` jobs in parallel when building
-   Sage. This compiles Sage and all its dependencies.
-
-   .. NOTE::
-
-      macOS allows changing directories without using exact capitalization.
-      Beware of this convenience when compiling for macOS. Ignoring exact
-      capitalization when changing into :envvar:`SAGE_ROOT` can lead to build
-      errors for dependencies requiring exact capitalization in path names.
-
-   Note that you do not need to be logged in as root, since no files are
+#. Additional remarks:
+   You do not need to be logged in as root, since no files are
    changed outside of the :file:`sage-x.y` directory.
    In fact, **it is inadvisable to build Sage as root**, as the root account
    should only be used when absolutely necessary and mistyped commands can have
    serious consequences if you are logged in as root.
-   There has been a bug reported (see :trac:`9551`) in Sage which would have
-   overwritten a system file had the user been logged in as root.
 
    Typing ``make`` performs the usual steps for each Sage's dependency,
    but installs all the resulting files into the local build tree.
@@ -848,11 +584,9 @@ Running Sage from a directory with spaces in its name will also fail.
    (There are no formal requirements for bug reports -- just send them;
    we appreciate everything.)
 
-   See :ref:`section_make` for some targets for the ``make`` command,
+   See :ref:`section_make` for some targets for the ``make`` command and
    :ref:`section_envvar` for additional information on useful environment
-   variables used by Sage,
-   and :ref:`section_notebook_ssl` for additional instruction on how to build
-   the notebook with SSL support.
+   variables used by Sage.
 
 #. To start Sage, you can now simply type from Sage's home directory::
 
@@ -863,7 +597,7 @@ Running Sage from a directory with spaces in its name will also fail.
        $ sage
        ┌────────────────────────────────────────────────────────────────────┐
        │ SageMath version 8.8, Release Date: 2019-06-26                     │
-       │ Using Python 3.7.3. Type "help()" for help.                        │
+       │ Using Python 3.10.4. Type "help()" for help.                       │
        └────────────────────────────────────────────────────────────────────┘
        sage:
 
@@ -999,55 +733,7 @@ Running Sage from a directory with spaces in its name will also fail.
    Then type ``sage -i <package-name>`` to automatically download and install
    a given package.
 
-#. Optional:
-   Run the ``install_scripts`` command from within Sage to create GAP, GP,
-   Maxima, Singular, etc., scripts in your :envvar:`PATH`.
-   Type ``install_scripts?`` in Sage for details.
-
 #. Have fun! Discover some amazing conjectures!
-
-.. _section_notebook_ssl:
-
-Building the notebook with SSL support
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-Read this section if you are intending to run a Sage notebook server for
-multiple users.
-
-For security, you may wish users to access the server using the HTTPS protocol
-(i.e., to run ``notebook(secure=True)``).
-You also may want to use OpenID for user authentication.
-The first of these requires you to install
-`pyOpenSSL <https://pyopenssl.org/>`_,
-and they both require OpenSSL.
-
-If you have OpenSSL and the OpenSSL development headers installed on your
-system, you can install pyOpenSSL by building Sage and then typing::
-
-    $ ./sage -i pyopenssl
-
-Alternatively, ``make ssl`` builds Sage and installs pyOpenSSL at once.
-Note that these commands require Internet access.
-
-If you are missing either OpenSSL or OpenSSL's development headers,
-you can install a local copy of both into your Sage installation first.
-Ideally, this should be done before installing Sage; otherwise, you should at
-least rebuild Sage's Python, and ideally any part of Sage relying on it.
-The procedure is as follows (again, with a computer connected to the
-Internet).
-Starting from a fresh Sage tarball::
-
-    $ ./sage -i openssl
-    $ make ssl
-
-And if you've already built Sage::
-
-    $ ./sage -i openssl
-    $ ./sage -f python3
-    $ make ssl
-
-The third line will rebuild all parts of Sage that depend on Python;
-this can take a while.
 
 Rebasing issues on Cygwin
 ~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -1096,7 +782,7 @@ Make targets
 ------------
 
 To build Sage from scratch, you would typically execute ``make`` in Sage's home
-directory to build Sage and its `HTML <https://en.wikipedia.org/wiki/HTML>`_
+directory to build Sage and its :wikipedia:`HTML <HTML>`
 documentation.
 The ``make`` command is pretty smart, so if your build of Sage is interrupted,
 then running ``make`` again should cause it to pick up where it left off.
@@ -1124,7 +810,7 @@ how it is built:
   plots, adding about 4M to the :file:`local/share/doc/sage/` directory.
   In the future, this may grow, of course. Note: after using this, if you
   want to build the documentation and include the pictures, you should
-  run ``make doc-clean``, because the presence, or lack, of pictures
+  run ``make doc-uninstall``, because the presence, or lack, of pictures
   is cached in the documentation output.
   You can benefit from this no-plot feature with other make targets by doing
   ``export SAGE_DOCBUILD_OPTS+=' --no-plot'``
@@ -1140,8 +826,8 @@ how it is built:
   software, you can use ``make testall``, ``make ptestall``,
   ``make testalllong``, or ``make ptestalllong``.
 
-- ``make doc-clean`` removes several directories which are produced
-  when building the documentation.
+- ``make doc-uninstall`` and ``make doc-clean`` each remove several
+  directories which are produced when building the documentation.
 
 - ``make distclean`` restores the Sage directory to its state before doing any
   building: it is almost equivalent to deleting Sage's entire home directory and
@@ -1183,7 +869,7 @@ Here are some of the more commonly used variables affecting the build process:
 - :envvar:`MAKE` - one useful setting for this variable when building Sage is
   ``MAKE='make -jNUM'`` to tell the ``make`` program to run ``NUM`` jobs in
   parallel when building.
-  Note that not all Sage packages (e.g. ATLAS) support this variable.
+  Note that some Sage packages may not support this variable.
 
   Some people advise using more jobs than there are CPU cores, at least if the
   system is not heavily loaded and has plenty of RAM; for example, a good
@@ -1234,8 +920,8 @@ Here are some of the more commonly used variables affecting the build process:
   An entry ``package-name`` means to run the test suite for the named package
   regardless of the setting of :envvar:`SAGE_CHECK`.
   An entry ``!package-name`` means to skip its test suite.
-  So if this is set to ``mpir,!python3``, then always run the test suite for
-  MPIR, but always skip the test suite for Python 3.
+  So if this is set to ``ppl,!python3``, then always run the test suite for
+  PPL, but always skip the test suite for Python 3.
 
   .. note::
 
@@ -1292,14 +978,6 @@ Here are some of the more commonly used variables affecting the build process:
   Some spkgs might also assume that certain programs are available on the
   system (for example, ``latex`` or ``pdflatex``).
 
-- :envvar:`SAGE_DOC_MATHJAX` - by default, any LaTeX code in Sage's
-  documentation is processed by MathJax.
-  If this variable is set to ``no``, then MathJax is not used -- instead,
-  math is processed using LaTeX and converted by dvipng to image files,
-  and then those files are included into the documentation.
-  Typically, building the documentation using LaTeX and dvipng takes longer
-  and uses more memory and disk space than using MathJax.
-
 - :envvar:`SAGE_DOCBUILD_OPTS` - the value of this variable is passed as an
   argument to ``sage --docbuild all html`` or ``sage --docbuild all pdf`` when
   you run ``make``, ``make doc``, or ``make doc-pdf``.
@@ -1311,11 +989,11 @@ Here are some of the more commonly used variables affecting the build process:
 
 - :envvar:`SAGE_BUILD_DIR` - the default behavior is to build each spkg in a
   subdirectory of :file:`$SAGE_ROOT/local/var/tmp/sage/build/`; for
-  example, build version 3.8.3.p12 of
-  :file:`atlas` in the directory
-  :file:`$SAGE_ROOT/local/var/tmp/sage/build/atlas-3.8.3.p12/`.
+  example, build version 7.27.0 of
+  :file:`ipython` in the directory
+  :file:`$SAGE_ROOT/local/var/tmp/sage/build/ipython-7.27.0/`.
   If this variable is set, then build in
-  :file:`$SAGE_BUILD_DIR/atlas-3.8.3.p12/` instead.
+  :file:`$SAGE_BUILD_DIR/ipython-7.27.0/` instead.
   If the directory :file:`$SAGE_BUILD_DIR` does not exist, it is created.
   As of this writing (Sage 4.8), when building the standard Sage packages,
   1.5 gigabytes of free space are required in this directory (or more if
@@ -1391,71 +1069,6 @@ Here are some of the more commonly used variables affecting the build process:
   hierarchy (:envvar:`SAGE_LOCAL`).
 
 Environment variables dealing with specific Sage packages:
-
-- :envvar:`SAGE_MP_LIBRARY` - to use an alternative library in place of ``MPIR``
-  for multiprecision integer arithmetic. Supported values are
-
-    ``MPIR`` (default choice), ``GMP``.
-
-- :envvar:`SAGE_ATLAS_ARCH` - if you are compiling ATLAS (in particular,
-  if :envvar:`SAGE_ATLAS_LIB` is not set), you can use this environment
-  variable to set a particular architecture and instruction set extension,
-  to control the maximum number of threads ATLAS can use, and to trigger the
-  installation of a static library (which is disabled by default unless
-  building our custom shared libraries fails).
-  The syntax is
-
-    ``SAGE_ATLAS_ARCH=[threads:n,][static,]arch[,isaext1][,isaext2]...[,isaextN]``.
-
-  While ATLAS comes with precomputed timings for a variety of CPUs, it only
-  uses them if it finds an exact match.
-  Otherwise, ATLAS runs through a lengthy automated tuning process in order
-  to optimize performance for your particular system, which can take several
-  days on slow and unusual systems.
-  You drastically reduce the total Sage compile time if you manually select a
-  suitable architecture.
-  It is recommended to specify a suitable architecture on laptops or other
-  systems with CPU throttling or if you want to distribute the binaries.
-  Available architectures are
-
-    ``POWER3``, ``POWER4``, ``POWER5``, ``PPCG4``, ``PPCG5``,
-    ``POWER6``, ``POWER7``, ``IBMz9``, ``IBMz10``, ``IBMz196``,
-    ``x86x87``, ``x86SSE1``, ``x86SSE2``, ``x86SSE3``, ``P5``,
-    ``P5MMX``, ``PPRO``, ``PII``, ``PIII``, ``PM``, ``CoreSolo``,
-    ``CoreDuo``, ``Core2Solo``, ``Core2``, ``Corei1``, ``Corei2``,
-    ``Atom``, ``P4``, ``P4E``, ``Efficeon``, ``K7``, ``HAMMER``,
-    ``AMD64K10h``, ``AMDDOZER``, ``UNKNOWNx86``, ``IA64Itan``,
-    ``IA64Itan2``, ``USI``, ``USII``, ``USIII``, ``USIV``, ``UST2``,
-    ``UnknownUS``, ``MIPSR1xK``, ``MIPSICE9``, ``ARMv7``.
-
-  and instruction set extensions are
-
-    ``VSX``, ``AltiVec``, ``AVXMAC``, ``AVXFMA4``, ``AVX``, ``SSE3``,
-    ``SSE2``, ``SSE1``, ``3DNow``, ``NEON``.
-
-  In addition, you can also set
-
-  - ``SAGE_ATLAS_ARCH=fast`` which picks defaults for a modern (2-3 year old)
-    CPU of your processor line, and
-
-  - ``SAGE_ATLAS_ARCH=base`` which picks defaults that should work for a ~10
-    year old CPU.
-
-  For example,
-
-    ``SAGE_ATLAS_ARCH=Corei2,AVX,SSE3,SSE2,SSE1``
-
-  would be appropriate for a Core i7 CPU.
-
-- :envvar:`SAGE_ATLAS_LIB` - if you have an installation of ATLAS on your
-  system and you want Sage to use it instead of building and installing its
-  own version of ATLAS, set this variable to be the directory containing your
-  ATLAS installation.
-  It should contain the files :file:`libatlas`, :file:`liblapack`,
-  :file:`libcblas`, :file:`libf77blas` (and optionally :file:`libptcblas` and
-  :file:`libptf77blas` for multi-threaded computations), with extensions ``.a``,
-  ``.so``, or ``.dylib``.  For backward compatibility, the libraries may also be
-  in the subdirectory :file:`SAGE_ATLAS_LIB/lib/`.
 
 - :envvar:`SAGE_MATPLOTLIB_GUI` - if set to anything non-empty except ``no``,
   then Sage will attempt to build the graphical backend when it builds the
@@ -1587,60 +1200,35 @@ Installation in a Multiuser Environment
 This section addresses the question of how a system administrator can install
 a single copy of Sage in a multi-user computer network.
 
-System-wide install
-~~~~~~~~~~~~~~~~~~~
+#. Using ``sudo``, create the installation directory, for example,
+   ``/opt/sage/sage-x.y``. We refer to it as ``SAGE_LOCAL`` in the
+   instructions below. Do not try to install into a directory that
+   already contains other software, such as ``/usr/local``::
 
-In the instructions below, we assume that ``/path/to/sage-x.y`` is
-the directory where you want to install Sage.
+       $ sudo mkdir -p SAGE_LOCAL
 
-#. First of all, extract the Sage source tarball in ``/path/to``
-   (this will create the directory ``/path/to/sage-x.y``).
-   After extracting, you can change the directory name if you do not
-   like ``sage-x.y``.
+#. Make the directory writable for you and readable by everyone::
 
-#. Change the ownership of the ``/path/to/sage-x.y`` directory tree
-   to your normal user account (as opposed to ``root``). This is because
-   Sage will refuse to compile as ``root``. ::
+       $ sudo chown $(id -un) SAGE_LOCAL
+       $ sudo chmod 755 SAGE_LOCAL
 
-       $ chown -R user:group /path/to/sage-x.y
+#. Build and install Sage, following the instructions in `README.md
+   <https://github.com/sagemath/sage/#readme>`_, using the
+   ``configure`` option ``--prefix=SAGE_LOCAL``.
 
-#. Using your normal user account, build Sage.
-   See the :ref:`build-from-source-step-by-step` above.
+   Do not use ``sudo`` for this step; building Sage must be done using
+   your normal user account.
 
-#. Make a symbolic link to the ``sage`` script in :file:`/usr/local/bin`::
+#. Optionally, create a symbolic link to the installed ``sage`` script
+   in a directory that is in the users' :envvar:`PATH`, for example
+   ``/usr/local/bin``::
 
-       $ ln -s /path/to/sage-x.y/sage /usr/local/bin/sage
+       $ sudo ln -s SAGE_LOCAL/bin/sage /usr/local/bin/sage
 
-   Alternatively, copy the Sage script::
+#. Optionally, change permissions to prevent accidental changes to
+   the installation by yourself::
 
-       $ cp /path/to/sage-x.y/sage /usr/local/bin/sage
-
-   If you do this, make sure you edit the line:
-
-   .. CODE-BLOCK:: bash
-
-       #SAGE_ROOT=/path/to/sage-version
-
-   at the beginning of the copied ``sage`` script according to the direction
-   given there to something like:
-
-   .. CODE-BLOCK:: bash
-
-       SAGE_ROOT=<SAGE_ROOT>
-
-   (note that you have to change ``<SAGE_ROOT>`` above!).
-   It is recommended not to edit the original ``sage`` script, only the copy at
-   :file:`/usr/local/bin/sage`.
-
-#. Optionally, you can test Sage by running::
-
-       $ make testlong
-
-   or ``make ptestlong`` which tests files in parallel using multiple
-   processes.
-   You can also omit ``long`` to skip tests which take a long time.
+       $ sudo chown -R root SAGE_LOCAL
 
 
-
-
-**This page was last updated in December 2020 (Sage 9.3).**
+**This page was last updated in May 2022 (Sage 9.7).**

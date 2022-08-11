@@ -19,7 +19,7 @@ AUTHORS:
 - Marshall Hampton (2011): Minor fixes to documentation.
 """
 
-#*****************************************************************************
+# ****************************************************************************
 #       Copyright (C) 2009 Mike Hansen <mhansen@gmail.com>
 #       Copyright (C) 2009 Bjarke Hammersholt Roune <www.broune.com>
 #
@@ -32,14 +32,16 @@ AUTHORS:
 #
 #  The full text of the GPL is available at:
 #
-#                  http://www.gnu.org/licenses/
-#*****************************************************************************
+#                  https://www.gnu.org/licenses/
+# ****************************************************************************
 
 from sage.rings.integer_ring import ZZ
+from sage.features.four_ti_2 import FourTi2Executable
+
 import os
 
 
-class FourTi2(object):
+class FourTi2():
     r"""
     This object defines an interface to the program 4ti2. Each command
     4ti2 has is exposed as one method.
@@ -271,7 +273,7 @@ class FourTi2(object):
     # Commands #
     ############
 
-    def call(self, command, project, verbose=True):
+    def call(self, command, project, verbose=True, *, options=()):
         r"""
         Run the 4ti2 program ``command`` on the project named
         ``project`` in the directory ``directory()``.
@@ -281,6 +283,7 @@ class FourTi2(object):
         - command -- The 4ti2 program to run.
         - project -- The file name of the project to run on.
         - verbose -- Display the output of 4ti2 if ``True``.
+        - options -- A list of strings to pass to the program.
 
         EXAMPLES::
 
@@ -292,8 +295,11 @@ class FourTi2(object):
             [-5  3  0]
         """
         import subprocess
-
-        cmd = '%s %s' % (command, project)
+        import shlex
+        feature = FourTi2Executable(command)
+        executable = feature.absolute_filename()
+        options = " ".join(options)
+        cmd = f'{shlex.quote(executable)} {options} {project}'
         if verbose is False:
             cmd += " > /dev/null 2> /dev/null"
         subprocess.call(cmd, shell=True, cwd=self.directory())
@@ -326,7 +332,7 @@ class FourTi2(object):
 
         """
         project = self._process_input(locals())
-        self.call('zsolve -q', project)
+        self.call('zsolve', project, options=['-q'])
         return [self.read_matrix(project+'.'+ext) for ext in
                 ['zinhom', 'zhom', 'zfree']]
 
@@ -343,7 +349,7 @@ class FourTi2(object):
             [[], [ 1 -2  1]]
         """
         project = self._process_input(locals())
-        self.call('qsolve -q -parbitrary', project)
+        self.call('qsolve', project, options=['-q', '-parbitrary'])
         return [self.read_matrix(project+'.'+ext) for ext in
                 ['qhom', 'qfree']]
 
@@ -362,7 +368,7 @@ class FourTi2(object):
             [2 0 1 0 1 2 1 2 0]
         """
         project = self._process_input(locals())
-        self.call('rays -q -parbitrary', project)
+        self.call('rays', project, options=['-q', '-parbitrary'])
         return self.read_matrix(project+'.ray')
 
     def hilbert(self, mat=None, lat=None, project=None):
@@ -385,7 +391,7 @@ class FourTi2(object):
             [1 1 1]
         """
         project = self._process_input(locals())
-        self.call('hilbert -q', project)
+        self.call('hilbert', project, options=['-q'])
         return self.read_matrix(project+'.hil')
 
     def graver(self, mat=None, lat=None, project=None):
@@ -409,7 +415,7 @@ class FourTi2(object):
             [ 2  1  0]
         """
         project = self._process_input(locals())
-        self.call('graver -q', project)
+        self.call('graver', project, options=['-q'])
         return self.read_matrix(project+'.gra')
 
     def ppi(self, n):
@@ -428,7 +434,7 @@ class FourTi2(object):
             [ 1 -2  1]
 
         """
-        self.call('ppi 2> /dev/null', n)
+        self.call('ppi', f'{n} 2> /dev/null')
         return self.read_matrix('ppi%s.gra'%n)
 
     def circuits(self, mat=None, project=None):
@@ -445,7 +451,7 @@ class FourTi2(object):
             [ 3  0 -1]
         """
         project = self._process_input(locals())
-        self.call('circuits -q -parbitrary', project)
+        self.call('circuits', project, options=['-q', '-parbitrary'])
         return self.read_matrix(project+'.cir')
 
     def minimize(self, mat=None, lat=None):
@@ -482,7 +488,7 @@ class FourTi2(object):
             [ 2  1  0]
         """
         project = self._process_input(locals())
-        self.call('groebner -q -parbitrary', project)
+        self.call('groebner', project, options=['-q', '-parbitrary'])
         return self.read_matrix(project+'.gro')
 
     def _magic3x3(self):
@@ -500,11 +506,9 @@ class FourTi2(object):
             [ 1  1  0  0  0 -1  0  0 -1]
             [ 0  1  1  0 -1  0  0  0 -1]
             [ 1  1  0  0 -1  0 -1  0  0]
-
         """
         from sage.matrix.constructor import matrix
-        return matrix \
-            (ZZ, 7, 9,
+        return matrix(ZZ, 7, 9,
              [[1, 1, 1, -1, -1, -1,  0,  0,  0],
               [1, 1, 1,  0,  0,  0, -1, -1, -1],
               [0, 1, 1, -1,  0,  0, -1,  0,  0],
@@ -512,6 +516,7 @@ class FourTi2(object):
               [1, 1, 0,  0,  0, -1,  0,  0, -1],
               [0, 1, 1,  0, -1,  0,  0,  0, -1],
               [1, 1, 0,  0, -1,  0, -1,  0,  0]])
+
 
 # The instance that should be used outside this file.
 four_ti_2 = FourTi2()

@@ -1103,13 +1103,18 @@ def hnf(A, include_zero_rows=True, proof=True):
             return H.matrix_from_rows(range(len(pivots))), pivots
 
     while True:
-        H, pivots = probable_hnf(A, include_zero_rows=include_zero_rows,
+        try:
+            H, pivots = probable_hnf(A, include_zero_rows=include_zero_rows,
                                  proof=True)
+        except ValueError:
+            verbose("The attempt failed since the pivots must have been wrong. We try again.")
+            continue
+
         if is_in_hnf_form(H, pivots):
             if not include_zero_rows and len(pivots) > H.nrows():
                 H = H.matrix_from_rows(range(len(pivots)))
             return H, pivots
-        verbose("After attempt the return matrix is not in HNF form since pivots must have been wrong.  We try again.")
+        verbose("After attempt the return matrix is not in HNF form since pivots must have been wrong. We try again.")
 
 
 def hnf_with_transformation(A, proof=True):
@@ -1206,7 +1211,7 @@ def benchmark_magma_hnf(nrange, bits=4):
         ('magma', 50, 32, ...),
         ('magma', 100, 32, ...),
     """
-    from sage.interfaces.all import magma
+    from sage.interfaces.magma import magma
     b = 2**bits
     for n in nrange:
         a = magma('MatrixAlgebra(IntegerRing(),%s)![Random(%s,%s) : i in [1..%s]]' % (n, -b, b, n**2))
@@ -1256,7 +1261,7 @@ def sanity_checks(times=50, n=8, m=5, proof=True, stabilize=2,
         0 1 2 3 4  (done)
     """
     if check_using_magma:
-        from sage.interfaces.all import magma
+        from sage.interfaces.magma import magma
 
     def __do_check(v):
         """

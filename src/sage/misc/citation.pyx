@@ -3,7 +3,7 @@
 Dependency usage tracking for citations
 """
 
-from sage.misc.all import tmp_filename
+from sage.misc.temporary_file import tmp_filename
 from sage.env import SAGE_LOCAL, SAGE_VENV
 
 systems = {}
@@ -81,7 +81,9 @@ def get_systems(cmd):
         sage: get_systems('I.primary_decomposition()')
         ['Singular']
     """
-    import cProfile, pstats, re
+    import cProfile
+    import pstats
+    import re
 
     if not cython_profile_enabled():
         from warnings import warn

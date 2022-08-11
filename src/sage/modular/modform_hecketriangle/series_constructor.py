@@ -20,7 +20,10 @@ AUTHORS:
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 
-from sage.rings.all import ZZ, QQ, infinity, PowerSeriesRing
+from sage.rings.integer_ring import ZZ
+from sage.rings.rational_field import QQ
+from sage.rings.infinity import infinity
+from sage.rings.all import PowerSeriesRing
 from sage.rings.big_oh import O
 from sage.arith.all import bernoulli, sigma, rising_factorial
 
@@ -63,20 +66,19 @@ class MFSeriesConstructor(SageObject,UniqueRepresentation):
             sage: MFSeriesConstructor(group=5, prec=12).prec()
             12
         """
-
-        if (group==infinity):
+        if (group == infinity):
             group = HeckeTriangleGroup(infinity)
         else:
             try:
                 group = HeckeTriangleGroup(ZZ(group))
             except TypeError:
                 group = HeckeTriangleGroup(group.n())
-        prec=ZZ(prec)
+        prec = ZZ(prec)
         # We don't need this assumption the precision may in principle also be negative.
         # if (prec<1):
         #     raise Exception("prec must be an Integer >=1")
 
-        return super(MFSeriesConstructor,cls).__classcall__(cls, group, prec)
+        return super().__classcall__(cls, group, prec)
 
     def __init__(self, group, prec):
         r"""

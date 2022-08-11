@@ -71,7 +71,7 @@ def ntl_GF2E_random(ntl_GF2EContext_class ctx):
     r.x = GF2E_random()
     return r
 
-cdef class ntl_GF2E(object):
+cdef class ntl_GF2E():
     r"""
     The \\class{GF2E} represents a finite extension field over GF(2)
     using NTL. Elements are represented as polynomials over GF(2)
@@ -403,7 +403,7 @@ cdef class ntl_GF2E(object):
             sage: a.rep()
             [1 0 0 0 0 0 1 1]
             sage: type(a.rep())
-            <type 'sage.libs.ntl.ntl_GF2X.ntl_GF2X'>
+            <class 'sage.libs.ntl.ntl_GF2X.ntl_GF2X'>
         """
         cdef ntl_GF2X x = ntl_GF2X.__new__(ntl_GF2X)
         x.x = GF2E_rep(self.x)

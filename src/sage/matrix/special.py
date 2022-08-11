@@ -399,9 +399,9 @@ def random_matrix(ring, nrows, ncols=None, algorithm='randomize', implementation
 
         sage: K.<a> = FiniteField(2^8)
         sage: type(random_matrix(K, 2, 5))
-        <type 'sage.matrix.matrix_gf2e_dense.Matrix_gf2e_dense'>
+        <class 'sage.matrix.matrix_gf2e_dense.Matrix_gf2e_dense'>
         sage: type(random_matrix(K, 2, 5, implementation="generic"))
-        <type 'sage.matrix.matrix_generic_dense.Matrix_generic_dense'>
+        <class 'sage.matrix.matrix_generic_dense.Matrix_generic_dense'>
 
     Random rational matrices.  Now ``num_bound`` and ``den_bound`` control the
     generation of random elements, by specifying limits on the absolute value of
@@ -867,7 +867,7 @@ def diagonal_matrix(arg0=None, arg1=None, arg2=None, sparse=True):
         nrows = nentries
 
     # provide a default ring for an empty list
-    if not len(entries) and ring is None:
+    if not nentries and ring is None:
         ring = ZZ
 
     # Convert entries to a list v over a common ring
@@ -1486,7 +1486,7 @@ def circulant(v, sparse=None):
     Return the circulant matrix specified by its 1st row `v`
 
     A circulant `n \times n` matrix specified by the 1st row `v=(v_0...v_{n-1})` is
-    the matrix $(c_{ij})_{0 \leq i,j\leq n-1}$, where $c_{ij}=v_{j-i \mod b}$.
+    the matrix `(c_{ij})_{0 \leq i,j\leq n-1}`, where `c_{ij}=v_{j-i \mod b}`.
 
     INPUT:
 
@@ -3238,7 +3238,7 @@ def vector_on_axis_rotation_matrix(v, i, ring=None):
 
     INPUT:
 
-    - ``v``` -- vector
+    - ``v`` -- vector
     - ``i`` -- integer
     - ``ring`` -- ring (optional, default: ``None``) of the resulting matrix
 
@@ -3308,7 +3308,7 @@ def ith_to_zero_rotation_matrix(v, i, ring=None):
 
     INPUT:
 
-    - ``v``` -- vector
+    - ``v`` -- vector
     - ``i`` -- integer
     - ``ring`` -- ring (optional, default: ``None``) of the resulting matrix
 
@@ -3402,7 +3402,7 @@ def ith_to_zero_rotation_matrix(v, i, ring=None):
     a, b = v[j], v[i]
     if b == 0:
         return identity_matrix(dim, sparse=True)
-    from sage.functions.all import sqrt
+    from sage.misc.functional import sqrt
     norm = sqrt(a * a + b * b)
     aa = a / norm
     bb = b / norm

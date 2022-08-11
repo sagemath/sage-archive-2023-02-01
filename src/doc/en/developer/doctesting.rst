@@ -106,11 +106,11 @@ Sage to test its own modules. Even if we have a system-wide Sage
 installation, using that version to doctest the modules of a local
 installation is a recipe for confusion.
 
-If your system Python has the ``tox`` package, you can also run the Sage
-doctester as follows::
+You can also run the Sage doctester as follows::
 
-   [jdemeyer@sage sage-6.0]$ cd src
-   [jdemeyer@sage src]$ tox -- sage/games/sudoku.py
+   [jdemeyer@sage sage-6.0]$ ./sage -tox -e doctest -- src/sage/games/sudoku.py
+
+See :ref:`chapter-tools` for more information about tox.
 
 
 Troubleshooting
@@ -256,7 +256,7 @@ that shown above to achieve this::
         [320 tests, 9.1 s]
     sage -t src/sage/crypto/mq/mpolynomialsystemgenerator.py
         [42 tests, 0.1 s]
-    sage -t src/sage/crypto/sbox.py
+    sage -t src/sage/crypto/sbox.pyx
         [124 tests, 0.8 s]
     sage -t src/sage/crypto/mq/sr.py
         [435 tests, 5.5 s]
@@ -317,7 +317,7 @@ argument ``--long``::
         [320 tests, 7.5 s]
     sage -t --long src/sage/crypto/mq/mpolynomialsystemgenerator.py
         [42 tests, 0.1 s]
-    sage -t --long src/sage/crypto/sbox.py
+    sage -t --long src/sage/crypto/sbox.pyx
         [124 tests, 0.7 s]
     sage -t --long src/sage/crypto/mq/sr.py
         [437 tests, 82.4 s]
@@ -382,7 +382,7 @@ Now we doctest the same directory in parallel using 4 threads::
         [429 tests, 1.1 s]
     sage -t src/sage/crypto/mq/sr.py
         [432 tests, 5.7 s]
-    sage -t src/sage/crypto/sbox.py
+    sage -t src/sage/crypto/sbox.pyx
         [123 tests, 0.8 s]
     sage -t src/sage/crypto/block_cipher/sdes.py
         [289 tests, 0.6 s]
@@ -438,7 +438,7 @@ Now we doctest the same directory in parallel using 4 threads::
         [252 tests, 3.7 s]
     sage -t --long src/sage/crypto/block_cipher/miniaes.py
         [429 tests, 1.0 s]
-    sage -t --long src/sage/crypto/sbox.py
+    sage -t --long src/sage/crypto/sbox.pyx
         [123 tests, 0.8 s]
     sage -t --long src/sage/crypto/block_cipher/sdes.py
         [289 tests, 0.6 s]
@@ -675,7 +675,7 @@ function in the global namespace, passing it either a string or a module:
     sage: run_doctests(sage.combinat.affine_permutation)
     Running doctests with ID 2018-02-07-13-23-13-89fe17b1.
     Git branch: develop
-    Using --optional=dochtml,sage
+    Using --optional=sagemath_doc_html,sage
     Doctesting 1 file.
     sage -t /opt/sage/sage_stable/src/sage/combinat/affine_permutation.py
         [338 tests, 4.32 s]
@@ -803,7 +803,33 @@ You can also pass in an explicit amount of time::
 Finally, you can disable any warnings about long tests with
 ``--warn-long 0``.
 
-Doctests may start from a random seed::
+Doctests start from a random seed::
+
+    [kliem@sage sage-9.2]$ sage -t src/sage/doctest/tests/random_seed.rst
+    Running doctests with ID 2020-06-23-23-22-59-49f37a55.
+    ...
+    Doctesting 1 file.
+    sage -t --warn-long 89.5 --random-seed=112986622569797306072457879734474628454 src/sage/doctest/tests/random_seed.rst
+    **********************************************************************
+    File "src/sage/doctest/tests/random_seed.rst", line 3, in sage.doctest.tests.random_seed
+    Failed example:
+        randint(5, 10)
+    Expected:
+        9
+    Got:
+        8
+    **********************************************************************
+    1 item had failures:
+       1 of   2 in sage.doctest.tests.random_seed
+        [1 test, 1 failure, 0.00 s]
+    ----------------------------------------------------------------------
+    sage -t --warn-long 89.5 --random-seed=112986622569797306072457879734474628454 src/sage/doctest/tests/random_seed.rst  # 1 doctest failed
+    ----------------------------------------------------------------------
+    Total time for all tests: 0.0 seconds
+        cpu time: 0.0 seconds
+        cumulative wall time: 0.0 seconds
+
+This seed can be set explicitly to reproduce possible failures::
 
     [kliem@sage sage-9.2]$ sage -t --warn-long 89.5 --random-seed=112986622569797306072457879734474628454 src/sage/doctest/tests/random_seed.rst
     Running doctests with ID 2020-06-23-23-24-28-14a52269.
@@ -829,6 +855,9 @@ Doctests may start from a random seed::
         cpu time: 0.0 seconds
         cumulative wall time: 0.0 seconds
 
+It can also be set explicitly using the environment variable
+``SAGE_DOCTEST_RANDOM_SEED``.
+
 .. _section-optional-doctest-flag:
 
 Run Optional Doctests
@@ -842,7 +871,7 @@ optional packages.
 
 By default, Sage only runs doctests that are not marked with the ``optional`` tag.  This is equivalent to running ::
 
-    [roed@sage sage-6.0]$ sage -t --optional=dochtml,sage src/sage/rings/real_mpfr.pyx
+    [roed@sage sage-6.0]$ sage -t --optional=sagemath_doc_html,sage src/sage/rings/real_mpfr.pyx
     Running doctests with ID 2012-06-21-16-18-30-a368a200.
     Doctesting 1 file.
     sage -t src/sage/rings/real_mpfr.pyx
@@ -856,7 +885,7 @@ By default, Sage only runs doctests that are not marked with the ``optional`` ta
 
 If you want to also run tests that require magma, you can do the following::
 
-    [roed@sage sage-6.0]$ sage -t --optional=dochtml,sage,magma src/sage/rings/real_mpfr.pyx
+    [roed@sage sage-6.0]$ sage -t --optional=sagemath_doc_html,sage,magma src/sage/rings/real_mpfr.pyx
     Running doctests with ID 2012-06-21-16-18-30-a00a7319
     Doctesting 1 file.
     sage -t src/sage/rings/real_mpfr.pyx
@@ -868,7 +897,7 @@ If you want to also run tests that require magma, you can do the following::
         cpu time: 4.0 seconds
         cumulative wall time: 8.4 seconds
 
-In order to just run the tests that are marked as requiring magma, omit ``sage`` and ``dochtml``::
+In order to just run the tests that are marked as requiring magma, omit ``sage`` and ``sagemath_doc_html``::
 
     [roed@sage sage-6.0]$ sage -t --optional=magma src/sage/rings/real_mpfr.pyx
     Running doctests with ID 2012-06-21-16-18-33-a2bc1fdf
@@ -1041,7 +1070,7 @@ appear in real time use the ``--verbose`` flag).  To have doctests run
 under the control of gdb, use the ``--gdb`` flag::
 
     [roed@sage sage-6.0]$ sage -t --gdb src/sage/schemes/elliptic_curves/constructor.py
-    gdb -x /home/roed/sage-6.0.b5/local/bin/sage-gdb-commands --args python /home/roed/sage-6.0.b5/local/bin/sage-runtests --serial --nthreads 1 --timeout 1048576 --optional dochtml,sage --stats_path /home/roed/.sage/timings2.json src/sage/schemes/elliptic_curves/constructor.py
+    gdb -x /home/roed/sage-6.0.b5/local/bin/sage-gdb-commands --args python /home/roed/sage-6.0.b5/local/bin/sage-runtests --serial --nthreads 1 --timeout 1048576 --optional sagemath_doc_html,sage --stats_path /home/roed/.sage/timings2.json src/sage/schemes/elliptic_curves/constructor.py
     GNU gdb 6.8-debian
     Copyright (C) 2008 Free Software Foundation, Inc.
     License GPLv3+: GNU GPL version 3 or later <http://gnu.org/licenses/gpl.html>

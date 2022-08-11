@@ -56,7 +56,7 @@ REFERENCES:
 Functions
 ---------
 """
-
+from __future__ import annotations
 from sage.combinat.designs.orthogonal_arrays import (OA_from_quasi_difference_matrix,
                                                      QDM_from_Vmt,
                                                      OA_from_PBD,
@@ -1484,7 +1484,7 @@ def OA_17_560():
     m     = 16
     n     = p**alpha
 
-    G = GF(p**alpha,prefix='x')
+    G = GF((p, alpha), prefix='x')
     G_set = sorted(G) # sorted by lexicographic order, G[1] = 1
     G_to_int = {v:i for i,v in enumerate(G_set)}
     # Builds an OA(n+1,n) whose last n-1 columns are
@@ -2457,7 +2457,7 @@ def QDM_57_9_1_1_8():
 #         }
 # }
 
-QDM = {}
+QDM: dict[tuple[int, int], dict] = {}
 for ((n,k,lmbda,mu,u),f) in [((19,6,1,1,1), QDM_19_6_1_1_1),
                              ((21,5,1,1,1), QDM_21_5_1_1_1),
                              ((21,6,1,1,5), QDM_21_6_1_1_5),
@@ -4206,7 +4206,7 @@ def BIBD_45_9_8(from_code=False):
          '7up5z9m9u', '7w7esu6fm', '7zmqtlrpd', '81tsbnzsw', '8kofgi1he', '8mhi35nc1', '9cv1pjiaw', '9d6ef1dah',
          '9dftsor9c', '9du8c1vcw', '9jr5vsnj4', 'a8b405mps', 'ajqhmxkj4', 'ax2xsvfic']
     B = [Integer(x, base=36) for x in B]
-    return [[i for i in range(45) if x&(1<<i)]
+    return [[i for i in range(45) if x & (1 << i)]
             for x in B]
 
 
@@ -4500,12 +4500,11 @@ def HigmanSimsDesign():
           if (b     in B and
               a not in B)]
 
-    H = [[i for i,A in enumerate(Wa) if len(A&B) != 2]
+    H = [[i for i, A in enumerate(Wa) if len(A & B) != 2]
          for B in Wb]
 
-    H = IncidenceStructure(H)
+    return IncidenceStructure(H)
 
-    return H
 
 def BIBD_196_6_1():
     r"""

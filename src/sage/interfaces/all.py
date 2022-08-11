@@ -7,7 +7,7 @@ from .four_ti_2 import four_ti_2
 from .axiom import Axiom, axiom
 from .fricas import FriCAS, fricas
 
-from .gap import gap, gap_reset_workspace, set_gap_memory_pool_size, Gap
+from .gap import gap, gap_reset_workspace, Gap
 from .gap3 import gap3, gap3_version, Gap3
 lazy_import('sage.interfaces.genus2reduction', ['genus2reduction', 'Genus2reduction'])
 from .gfan import gfan,  Gfan
@@ -24,6 +24,7 @@ from .maxima import maxima, Maxima
 # import problems
 #from maxima_lib import maxima_lib
 from .mathematica import mathematica, Mathematica
+from .mathics import mathics, Mathics
 from .matlab import matlab, matlab_version, Matlab
 from .mupad import mupad, Mupad  # NOT functional yet
 from .mwrank import mwrank, Mwrank
@@ -47,29 +48,33 @@ interfaces = ['gap', 'gap3', 'giac', 'gp', 'mathematica', 'gnuplot', \
               'mathematica', 'mwrank', 'octave', 'r', \
               'singular', 'sage0', 'sage']
 
-
-from sage.repl.rich_output.display_manager import get_display_manager
-if get_display_manager().is_in_terminal():
-    from .axiom import axiom_console
-    from .fricas import fricas_console
-    from .gap import gap_console
-    from .gap3 import gap3_console
-    from .giac import giac_console
-    from .gp import gp_console
-    from .gnuplot import gnuplot_console
-    from .kash import  kash_console
-    from .lisp import lisp_console
-    from .magma import magma_console
-    from .macaulay2 import macaulay2_console
-    from .maple import maple_console
-    from .maxima_abstract import maxima_console
-    from .mathematica import mathematica_console
-    from .matlab import matlab_console
-    from .mupad import mupad_console
-    from .mwrank import mwrank_console
-    from .octave import octave_console
-    from .qepcad import qepcad_console
-    from .singular import singular_console
-    from .sage0 import sage0_console
-    from .lie import lie_console
-    from .r import r_console
+try:
+    from sage.repl.rich_output.display_manager import get_display_manager as _get_display_manager
+except ImportError:
+    pass
+else:
+    if _get_display_manager().is_in_terminal():
+        from .axiom import axiom_console
+        from .fricas import fricas_console
+        from .gap import gap_console
+        from .gap3 import gap3_console
+        from .giac import giac_console
+        from .gp import gp_console
+        from .gnuplot import gnuplot_console
+        from .kash import  kash_console
+        from .lisp import lisp_console
+        from .magma import magma_console
+        from .macaulay2 import macaulay2_console
+        from .maple import maple_console
+        from .maxima_abstract import maxima_console
+        from .mathematica import mathematica_console
+        from .mathics import mathics_console
+        from .matlab import matlab_console
+        from .mupad import mupad_console
+        from .mwrank import mwrank_console
+        from .octave import octave_console
+        from .qepcad import qepcad_console
+        from .singular import singular_console
+        from .sage0 import sage0_console
+        from .lie import lie_console
+        from .r import r_console

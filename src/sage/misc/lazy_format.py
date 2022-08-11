@@ -29,7 +29,7 @@ class LazyFormat(str):
     To demonstrate the lazyness, let us build an object with a broken
     ``__repr__`` method::
 
-        sage: class IDontLikeBeingPrinted(object):
+        sage: class IDontLikeBeingPrinted():
         ....:     def __repr__(self):
         ....:         raise ValueError("Don't ever try to print me !")
 
@@ -52,7 +52,7 @@ class LazyFormat(str):
     constructed but not actually printed. This includes error handling
     messages in :mod:`unittest` or :class:`TestSuite` executions::
 
-        sage: QQ._tester().assertTrue(0 in QQ,
+        sage: QQ._tester().assertIn(0, QQ,
         ....:                "%s doesn't contain 0"%QQ)
 
     In the above ``QQ.__repr__()`` has been called, and the result

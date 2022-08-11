@@ -139,7 +139,7 @@ class SemimonomialTransformationGroup(FiniteGroup, UniqueRepresentation):
         self._len = len
 
         from sage.categories.finite_groups import FiniteGroups
-        super(SemimonomialTransformationGroup, self).__init__(category=FiniteGroups())
+        super().__init__(category=FiniteGroups())
 
     def _element_constructor_(self, arg1, v=None, perm=None, autom=None, check=True):
         r"""
@@ -318,7 +318,7 @@ class SemimonomialTransformationGroup(FiniteGroup, UniqueRepresentation):
             sage: SemimonomialTransformationGroup(F, 5).order() == (4-1)**5 * factorial(5) * 2
             True
         """
-        from sage.functions.other import factorial
+        from sage.arith.misc import factorial
         from sage.categories.homset import End
         n = self.degree()
         R = self.base_ring()

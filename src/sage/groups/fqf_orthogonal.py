@@ -51,8 +51,8 @@ AUTHORS:
 from sage.libs.gap.libgap import libgap
 from sage.groups.abelian_gps.abelian_aut import AbelianGroupAutomorphismGroup_subgroup, AbelianGroupAutomorphism, AbelianGroupAutomorphismGroup_gap
 from sage.modules.torsion_quadratic_module import TorsionQuadraticModule
-from sage.rings.all import ZZ
-from sage.matrix.all import matrix
+from sage.rings.integer_ring import ZZ
+from sage.matrix.constructor import matrix
 from sage.categories.action import Action
 
 
@@ -546,7 +546,7 @@ def _isom_fqf(A, B=None):
     # separating the different primes here would speed things up
     b_cand = [[b for b in B if b.q()==a.q() and b.order() == a.order()] for a in A.smith_form_gens()]
 
-    G = B.orthogonal_group(tuple([]))
+    G = B.orthogonal_group(tuple())
     ambient = G.ambient()
     waiting = [[]]
     while len(waiting) > 0:
@@ -558,7 +558,7 @@ def _isom_fqf(A, B=None):
             if not automorphisms:
                 return f
             g = ambient(matrix(f))
-            if not g in G:
+            if g not in G:
                 G = B.orthogonal_group(tuple(ambient(s.matrix()) for s in G.gens())+(g,))
                 waiting = orbits(G, waiting)
             continue

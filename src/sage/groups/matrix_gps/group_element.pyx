@@ -84,7 +84,7 @@ from sage.groups.libgap_wrapper cimport ElementLibGAP
 from sage.structure.element import is_Matrix
 from sage.structure.factorization import Factorization
 from sage.misc.cachefunc import cached_method
-from sage.rings.all import ZZ
+from sage.rings.integer_ring import ZZ
 
 
 cpdef is_MatrixGroupElement(x):
@@ -162,7 +162,7 @@ cdef class MatrixGroupElement_generic(MultiplicativeGroupElement):
             if M.parent() is not parent.matrix_space():
                 raise TypeError('M must be a in the matrix space of the group')
             parent._check_matrix(M)
-        super(MatrixGroupElement_generic, self).__init__(parent)
+        super().__init__(parent)
         if M.is_immutable():
             self._matrix = M
         else:

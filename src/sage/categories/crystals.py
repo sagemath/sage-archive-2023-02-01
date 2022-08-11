@@ -554,7 +554,7 @@ class Crystals(Category_singleton):
             if category is None:
                 category = FiniteCrystals()
             else:
-               category = FiniteCrystals() & category
+                category = FiniteCrystals() & category
 
             if self in FiniteCrystals() and len(subset) == self.cardinality():
                 if index_set == self.index_set():
@@ -847,7 +847,7 @@ class Crystals(Category_singleton):
                 sage: S = T.subcrystal(max_depth=3)
                 sage: G = T.digraph(subset=S); G
                 Digraph on 5 vertices
-                sage: sorted(G.vertices(), key=str)
+                sage: G.vertices(sort=True, key=str)
                 [(-Lambda[0] + 2*Lambda[1] - delta,),
                  (1/2*Lambda[0] + Lambda[1] - Lambda[2] - 1/2*delta, -1/2*Lambda[0] + Lambda[1] - 1/2*delta),
                  (1/2*Lambda[0] - Lambda[1] + Lambda[2] - 1/2*delta, -1/2*Lambda[0] + Lambda[1] - 1/2*delta),
@@ -870,7 +870,7 @@ class Crystals(Category_singleton):
 
                 sage: C = crystals.KirillovReshetikhin(['D',4,1], 2, 1)
                 sage: G = C.digraph(index_set=[1,3])
-                sage: len(G.edges())
+                sage: len(G.edges(sort=False))
                 20
                 sage: view(G)  # optional - dot2tex graphviz, not tested (opens external window)
 
@@ -889,7 +889,7 @@ class Crystals(Category_singleton):
 
             .. TODO:: Add more tests.
             """
-            from sage.graphs.all import DiGraph
+            from sage.graphs.digraph import DiGraph
             d = {}
 
             # Parse optional arguments
@@ -1977,7 +1977,7 @@ class CrystalMorphism(Morphism):
         """
         if x is None:
             return None
-        return super(CrystalMorphism, self).__call__(x, *args, **kwds)
+        return super().__call__(x, *args, **kwds)
 
     def virtualization(self):
         r"""
@@ -2198,7 +2198,7 @@ class CrystalMorphismByGenerators(CrystalMorphism):
         """
         return any(self._on_gens(mg) is not None for mg in self._gens)
 
-    __nonzero__ = __bool__
+    
 
     # TODO: Does this belong in the element_class of the Crystals() category?
     def to_module_generator(self, x):
@@ -2610,4 +2610,3 @@ class CrystalHomset(Homset):
         return self.element_class(self, lambda x: None)
 
     Element = CrystalMorphismByGenerators
-

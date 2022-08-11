@@ -160,18 +160,14 @@ classical) does not apply.
     3^9 + 2*3^12 + 3^15 + 3^17 + 3^18 + 3^19 + 3^20 + 2*3^22 + 2*3^23 + 2*3^27 + 2*3^28 + 3^32 + 3^33 + 2*3^34 + 3^38 + 2*3^39 + 3^40 + 2*3^41 + 3^44 + 3^45 + 3^46 + 2*3^47 + 2*3^48 + 3^49 + 3^50 + 2*3^51 + 2*3^52 + 3^53 + 2*3^54 + 3^55 + 3^56 + 3^57 + 2*3^58 + 2*3^59 + 3^60 + 2*3^61 + 2*3^63 + 2*3^64 + 3^65 + 2*3^67 + 3^68 + 2*3^69 + 2*3^71 + 3^72 + 2*3^74 + 3^75 + 3^76 + 3^79 + 3^80 + 2*3^83 + 2*3^84 + 3^85 + 2*3^87 + 3^88 + 2*3^89 + 2*3^90 + 2*3^91 + 3^92 + O(3^98)
     sage: efuncs[3].slope()
     9
-
------------
 """
-
-#*****************************************************************************
+# ****************************************************************************
 #       Copyright (C) 2008 William Stein <wstein@gmail.com>
 #                     2008-9 David Loeffler <d.loeffler.01@cantab.net>
 #
 #  Distributed under the terms of the GNU General Public License (GPL)
 #                  https://www.gnu.org/licenses/
-#*****************************************************************************
-
+# ****************************************************************************
 from sage.matrix.all        import matrix, MatrixSpace, diagonal_matrix
 from sage.misc.verbose      import verbose
 from sage.misc.cachefunc    import cached_method
@@ -184,7 +180,10 @@ from sage.modules.module    import Module
 from sage.structure.element import Vector, ModuleElement
 from sage.structure.richcmp import richcmp
 from sage.plot.plot         import plot
-from sage.rings.all         import (O, Infinity, ZZ, QQ, pAdicField, PolynomialRing, PowerSeriesRing, is_pAdicField)
+from sage.rings.integer_ring import ZZ
+from sage.rings.rational_field import QQ
+import sage.rings.abc
+from sage.rings.all         import (O, Infinity, pAdicField, PolynomialRing, PowerSeriesRing)
 import weakref
 
 from .weightspace import WeightSpace_constructor as WeightSpace, WeightCharacter
@@ -295,7 +294,7 @@ class OverconvergentModularFormsSpace(Module):
 
         self._p = prime
 
-        if not ( base_ring == QQ or is_pAdicField(base_ring) ):
+        if not ( base_ring == QQ or isinstance(base_ring, sage.rings.abc.pAdicField) ):
             raise TypeError("Base ring must be QQ or a p-adic field")
 
         if base_ring != QQ and base_ring.prime() != self._p:
@@ -684,7 +683,7 @@ class OverconvergentModularFormsSpace(Module):
 
             sage: M = OverconvergentModularForms(3, 0, 1/2, prec=5)
             sage: R.<q> = QQ[[]]
-            sage: f=M(q + q^2 - q^3 + O(q^16)); f
+            sage: f = M(q + q^2 - q^3 + O(q^16)); f
             3-adic overconvergent modular form of weight-character 0 with q-expansion q + q^2 - q^3 + O(q^5)
             sage: M.coordinate_vector(f)
             (0, 1/27, -11/729, 173/19683, -3172/531441)
@@ -1033,9 +1032,9 @@ class OverconvergentModularFormsSpace(Module):
             [0, 2, 4, 6, 8]
         """
         if self.base_ring() == QQ:
-            slopelist=self.cps_u(n).truncate().newton_slopes(self.prime())
-        elif is_pAdicField(self.base_ring()):
-            slopelist=self.cps_u(n).truncate().newton_slopes()
+            slopelist = self.cps_u(n).truncate().newton_slopes(self.prime())
+        elif isinstance(self.base_ring(), sage.rings.abc.pAdicField):
+            slopelist = self.cps_u(n).truncate().newton_slopes()
         else:
             print("slopes are only defined for base field QQ or a p-adic field")
         return [-i for i in slopelist]
@@ -1532,11 +1531,11 @@ class OverconvergentModularFormElement(ModuleElement):
 
     def _repr_(self):
         r"""
-        String representation of self.
+        String representation of ``self``.
 
         EXAMPLES::
 
-            sage: o=OverconvergentModularForms(3, 0, 1/2)
+            sage: o = OverconvergentModularForms(3, 0, 1/2)
             sage: o([1, 0, 1, 3])._repr_()
             '3-adic overconvergent modular form of weight-character 0 with q-expansion 1 + 729*q^2 + 76545*q^3 + O(q^4)'
         """
@@ -1562,7 +1561,7 @@ class OverconvergentModularFormElement(ModuleElement):
 
         EXAMPLES::
 
-            sage: o=OverconvergentModularForms(3, 0, 1/2)
+            sage: o = OverconvergentModularForms(3, 0, 1/2)
             sage: t = o([1, 1, 1/3])
             sage: t.r_ord(1/2)
             1
@@ -1574,7 +1573,7 @@ class OverconvergentModularFormElement(ModuleElement):
         s = self.parent().radius()
 
         F = self.parent().base_ring()
-        if not is_pAdicField(F):
+        if not isinstance(F, sage.rings.abc.pAdicField):
             F = pAdicField(p)
 
         for i in range(self.prec()):
@@ -1595,7 +1594,7 @@ class OverconvergentModularFormElement(ModuleElement):
             sage: (3^18 * (M.2)).valuation()
             18
         """
-        if is_pAdicField(self.parent().base_ring()):
+        if isinstance(self.parent().base_ring(), sage.rings.abc.pAdicField):
             v = lambda u: u.normalized_valuation()
         else:
             v = lambda u: u.valuation(self.parent().prime())
@@ -1607,14 +1606,14 @@ class OverconvergentModularFormElement(ModuleElement):
 
         EXAMPLES::
 
-            sage: o=OverconvergentModularForms(3, 0, 1/2)
-            sage: f=o.eigenfunctions(10)[1]
+            sage: o = OverconvergentModularForms(3, 0, 1/2)
+            sage: f = o.eigenfunctions(10)[1]
             sage: f.governing_term(1/2)
             1
         """
         p = self.prime()
         F = self.parent().base_ring()
-        if not is_pAdicField(F):
+        if not isinstance(F, sage.rings.abc.pAdicField):
             F = pAdicField(p)
         s = self.parent().radius()
         p = self.prime()
@@ -1632,8 +1631,8 @@ class OverconvergentModularFormElement(ModuleElement):
 
         EXAMPLES::
 
-            sage: o=OverconvergentModularForms(3, 0, 1/2)
-            sage: f=o.eigenfunctions(4)[1]
+            sage: o = OverconvergentModularForms(3, 0, 1/2)
+            sage: f = o.eigenfunctions(4)[1]
             sage: f.valuation_plot()
             Graphics object consisting of 1 graphics primitive
         """

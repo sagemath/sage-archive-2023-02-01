@@ -27,11 +27,15 @@ import sage.modules.free_module as free_module
 import sage.matrix.matrix_space as matrix_space
 from sage.modules.free_module_element import FreeModuleElement
 from sage.modules.free_module import EchelonMatrixKey
-from sage.misc.all import prod
+from sage.misc.misc_c import prod
 import sage.modular.hecke.all as hecke
 from sage.arith.all import divisors, next_prime
 from sage.rings.fast_arith import prime_range
-from sage.rings.all import PowerSeriesRing, Integer, QQ, ZZ, infinity, Zmod
+from sage.rings.integer_ring import ZZ
+from sage.rings.rational_field import QQ
+from sage.rings.integer import Integer
+from sage.rings.infinity import infinity
+from sage.rings.all import PowerSeriesRing, Zmod
 from sage.rings.number_field.number_field_base import is_NumberField
 from sage.structure.all import Sequence, SageObject
 from sage.structure.richcmp import (richcmp_method, richcmp,
@@ -445,8 +449,7 @@ class ModularSymbolsSpace(hecke.HeckeModule_free_module):
             Modular Symbols subspace of dimension 2 of Modular Symbols space of dimension 6 for Gamma_0(33) of weight 2 with sign 1 over Rational Field,
             Modular Symbols subspace of dimension 3 of Modular Symbols space of dimension 6 for Gamma_0(33) of weight 2 with sign 1 over Rational Field
             ]
-            sage: C=ModularSymbols(1,14,0,GF(5)).cuspidal_submodule()
-            sage: C
+            sage: C = ModularSymbols(1,14,0,GF(5)).cuspidal_submodule(); C
             Modular Symbols subspace of dimension 1 of Modular Symbols space of dimension 2 for Gamma_0(1) of weight 14 with sign 0 over Finite Field of size 5
             sage: C.is_simple()
             True

@@ -79,7 +79,7 @@ class PBWCrystalElement(Element):
             sage: latex(b)
             f_{\alpha_{4}}^{2}
              f_{\alpha_{3}}
-             f_{\alpha_{1} + \alpha_{2} + 2\alpha_{3}}
+             f_{\alpha_{1} + \alpha_{2} + 2 \alpha_{3}}
              f_{\alpha_{1} + \alpha_{2}}
              f_{\alpha_{2}}^{2}
         """
@@ -506,4 +506,3 @@ class PBWCrystal(Parent, UniqueRepresentation):
         self._default_word = tuple(word)
 
     Element = PBWCrystalElement
-

@@ -41,6 +41,14 @@ development!
   <http://doc.sagemath.org/html/en/installation/source.html#prerequisites>`_ on your
   system.
 
+  As an easy way to get started, you can run and edit Sage's code and contribute
+  your changes using `Gitpod <https://www.gitpod.io>`_,
+  a free online development environment based on VS Code.
+  It will launch a pre-made workspace with all dependencies and tools installed 
+  so that you can start contributing straight away.
+  Start by `going to Gitpod <https://gitpod.io/#https://github.com/sagemath/sage>`_,
+  and read :ref:`our Gitpod guidelines <section-gitpod>` to learn more.
+
 - **Conventions:** read our :ref:`conventions and guidelines
   <section-writing-code-for-sage>` for code and documentation.
 
@@ -51,13 +59,12 @@ development!
   need to learn about revision control; we use the software Git for this
   purpose.
 
-  - :ref:`Here is <chapter-walkthrough>` an overview of our development flow.
-  - :ref:`Unfamiliar with Git or revision control? <chapter-git_trac>`
   - :ref:`How to install it? <section-git-install>`
   - :ref:`How to configure it for use with Trac? <section-git-setup-name>`
+  - :ref:`Here is <chapter-walkthrough>` an overview of our development flow.
 
-Git for Sage development
-========================
+Git and Trac for Sage development
+=================================
 
 First Steps with Git
 --------------------
@@ -70,41 +77,24 @@ Sage uses git for version control.
    git_setup
    walk_through
 
-The git-trac command
---------------------
-
-Putting your local changes on a Trac ticket.
-
-.. toctree::
-   :maxdepth: 2
-
-   git_trac
-
 .. _section-git-tricks-and-tips:
 
-Git Tricks & Tips
------------------
+Using Git with Trac
+-------------------
 
-When ``git trac`` is not enough.
-
-.. toctree::
-   :maxdepth: 2
-
-   manual_git
-   git_background
-   advanced_git
-   workflows
-
-Sage Trac and tickets
-=====================
-
-All changes to Sage source code require a ticket on the
+To contribute back your changes to Sage source code to the project,
+you will need a ticket on the
 `Sage trac server <http://trac.sagemath.org>`_.
 
 .. toctree::
    :maxdepth: 2
 
    trac
+   manual_git
+   git_background
+   advanced_git
+   workflows
+   git_trac
 
 
 .. _section-writing-code-for-sage:
@@ -115,6 +105,7 @@ Writing Code for Sage
 .. toctree::
    :maxdepth: 3
 
+   workspace
    coding_basics
    reviewer_checklist
 
@@ -160,6 +151,14 @@ Sage Coding Details
    coding_in_cython
    coding_in_other
 
+Packaging the Sage Library
+--------------------------
+
+.. toctree::
+   :maxdepth: 3
+
+   packaging_sage_library
+
 Packaging Third-Party Code
 --------------------------
 
@@ -173,7 +172,6 @@ Indices and tables
 ==================
 
 * :ref:`genindex`
-* :ref:`modindex`
 * :ref:`search`
 
 This work is licensed under a `Creative Commons Attribution-Share Alike

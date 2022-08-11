@@ -209,7 +209,7 @@ from io import StringIO
 from copy import copy
 
 from sage.cpython.string import bytes_to_str
-from sage.interfaces.all import gap
+from sage.interfaces.gap import gap
 from sage.categories.cartesian_product import cartesian_product
 from sage.categories.fields import Fields
 from sage.matrix.matrix_space import MatrixSpace
@@ -223,7 +223,7 @@ from sage.rings.integer_ring import ZZ
 from sage.rings.polynomial.polynomial_ring_constructor import PolynomialRing
 from sage.rings.integer import Integer
 from sage.rings.finite_rings.finite_field_constructor import FiniteField as GF
-from sage.misc.all import prod
+from sage.misc.misc_c import prod
 from sage.misc.functional import is_even
 from sage.misc.cachefunc import cached_method
 from sage.misc.randstate import current_randstate
@@ -298,7 +298,7 @@ class AbstractLinearCode(AbstractLinearCodeNoMetric):
     - inherit from AbstractLinearCode
 
     - call AbstractLinearCode ``__init__`` method in the subclass constructor. Example:
-      ``super(SubclassName, self).__init__(base_field, length, "EncoderName", "DecoderName")``.
+      ``super().__init__(base_field, length, "EncoderName", "DecoderName")``.
       By doing that, your subclass will have its ``length`` parameter
       initialized and will be properly set as a member of the category framework.
       You need of course to complete the constructor by adding any additional parameter
@@ -344,20 +344,6 @@ class AbstractLinearCode(AbstractLinearCodeNoMetric):
         It is thus strongly recommended to set an encoder with a generator matrix implemented
         as a default encoder.
 
-        TESTS:
-
-        This class uses the following experimental feature:
-        :class:`sage.coding.relative_finite_field_extension.RelativeFiniteFieldExtension`.
-        This test block is here only to trigger the experimental warning so it does not
-        interferes with doctests::
-
-            sage: from sage.coding.relative_finite_field_extension import *
-            sage: Fqm.<aa> = GF(16)
-            sage: Fq.<a> = GF(4)
-            sage: RelativeFiniteFieldExtension(Fqm, Fq)
-            doctest:...: FutureWarning: This class/method/function is marked as experimental. It, its functionality or its interface might change without a formal deprecation.
-            See http://trac.sagemath.org/20284 for details.
-            Relative field extension between Finite Field in aa of size 2^4 and Finite Field in a of size 2^2
     """
     _registered_encoders = {}
     _registered_decoders = {}
@@ -432,7 +418,8 @@ class AbstractLinearCode(AbstractLinearCodeNoMetric):
         self._registered_decoders['InformationSet'] = LinearCodeInformationSetDecoder
 
         self._generic_constructor = LinearCode
-        super(AbstractLinearCode, self).__init__(base_field, length, default_encoder_name, default_decoder_name)
+        super().__init__(base_field, length, default_encoder_name,
+                         default_decoder_name)
 
     def _an_element_(self):
         r"""
@@ -837,7 +824,7 @@ class AbstractLinearCode(AbstractLinearCodeNoMetric):
         - Chinen, K. "An abundance of invariant polynomials satisfying the
           Riemann hypothesis", April 2007 preprint.
         """
-        from sage.functions.all import sqrt
+        from sage.misc.functional import sqrt
         C = self
         n = C.length()
         RT = PolynomialRing(QQ,2,"Ts")
@@ -1137,8 +1124,8 @@ class AbstractLinearCode(AbstractLinearCodeNoMetric):
                 sage: Cx.minimum_distance()
                 7
         """
-        if other.is_subcode(self) == False:
-            raise ValueError("%s is not a subcode of %s"%(self,other))
+        if not other.is_subcode(self):
+            raise ValueError("%s is not a subcode of %s" % (self, other))
 
         G2 = self.generator_matrix()
         left = other.generator_matrix()  # G1
@@ -2012,14 +1999,14 @@ class AbstractLinearCode(AbstractLinearCodeNoMetric):
         r = n-d-dperp+2
         P_coeffs = []
         for i in range(len(b)):
-           if i == 0:
-              P_coeffs.append(b[0])
-           if i == 1:
-              P_coeffs.append(b[1] - (q+1)*b[0])
-           if i>1:
-              P_coeffs.append(b[i] - (q+1)*b[i-1] + q*b[i-2])
+            if i == 0:
+                P_coeffs.append(b[0])
+            if i == 1:
+                P_coeffs.append(b[1] - (q+1)*b[0])
+            if i > 1:
+                P_coeffs.append(b[i] - (q+1)*b[i-1] + q*b[i-2])
         P = sum([P_coeffs[i]*T**i for i in range(r+1)])
-        return RT(P)/RT(P)(1)
+        return RT(P) / RT(P)(1)
 
     def zeta_function(self, name="T"):
         r"""
@@ -2027,11 +2014,11 @@ class AbstractLinearCode(AbstractLinearCodeNoMetric):
 
         INPUT:
 
-        - ``name`` - String, variable name (default: ``"T"``)
+        - ``name`` -- String, variable name (default: ``"T"``)
 
         OUTPUT:
 
-        - Element of `\QQ(T)`
+        Element of `\QQ(T)`
 
         EXAMPLES::
 
@@ -2039,9 +2026,9 @@ class AbstractLinearCode(AbstractLinearCodeNoMetric):
             sage: C.zeta_function()
             (1/5*T^2 + 1/5*T + 1/10)/(T^2 - 3/2*T + 1/2)
         """
-        P =  self.zeta_polynomial()
-        q = (self.base_ring()).characteristic()
-        RT = PolynomialRing(QQ,"%s"%name)
+        P = self.zeta_polynomial()
+        q = self.base_ring().characteristic()
+        RT = PolynomialRing(QQ, name)
         T = RT.gen()
         return P/((1-T)*(1-q*T))
 
@@ -2080,9 +2067,9 @@ class AbstractLinearCode(AbstractLinearCodeNoMetric):
             sage: M = matrix.identity(GF(3), 7)
             sage: C = LinearCode(M)
             sage: G = C.cosetGraph()
-            sage: G.vertices()
+            sage: G.vertices(sort=False)
             [0]
-            sage: G.edges()
+            sage: G.edges(sort=False)
             []
         """
         from sage.matrix.constructor import matrix
@@ -2288,9 +2275,10 @@ class LinearCode(AbstractLinearCode):
             sage: C.minimum_distance()
             3
 
-        We can construct a linear code directly from a vector space
-            sage: VS = matrix(GF(2), [[1,0,1],\
-                                      [1,0,1]]).row_space()
+        We can construct a linear code directly from a vector space::
+
+            sage: VS = matrix(GF(2), [[1,0,1],
+            ....:                     [1,0,1]]).row_space()
             sage: C = LinearCode(VS); C
             [3, 1] linear code over GF(2)
 
@@ -2309,12 +2297,12 @@ class LinearCode(AbstractLinearCode):
 
         try:
             basis = None
-            if hasattr(generator,"nrows"): # generator matrix case
+            if hasattr(generator, "nrows"):  # generator matrix case
                 if generator.rank() < generator.nrows():
                     basis = generator.row_space().basis()
             else:
-                basis = generator.basis() # vector space etc. case
-            if not basis is None:
+                basis = generator.basis()  # vector space etc. case
+            if basis is not None:
                 from sage.matrix.constructor import matrix
                 generator = matrix(base_ring, basis)
                 if generator.nrows() == 0:
@@ -2323,7 +2311,8 @@ class LinearCode(AbstractLinearCode):
             # Assume input is an AbstractLinearCode, extract its generator matrix
             generator = generator.generator_matrix()
 
-        super(LinearCode, self).__init__(base_ring, generator.ncols(), "GeneratorMatrix", "Syndrome")
+        super().__init__(base_ring, generator.ncols(),
+                         "GeneratorMatrix", "Syndrome")
         self._generator_matrix = generator
         self._dimension = generator.rank()
         self._minimum_distance = d
@@ -2390,7 +2379,7 @@ class LinearCode(AbstractLinearCode):
         if encoder_name is None or encoder_name == 'GeneratorMatrix':
             g = self._generator_matrix
         else:
-            g = super(LinearCode, self).generator_matrix(encoder_name, **kwargs)
+            g = super().generator_matrix(encoder_name, **kwargs)
         g.set_immutable()
         return g
 
@@ -2419,7 +2408,7 @@ class LinearCodeGeneratorMatrixEncoder(Encoder):
             sage: E
             Generator matrix-based encoder for [7, 4] linear code over GF(2)
         """
-        super(LinearCodeGeneratorMatrixEncoder, self).__init__(code)
+        super().__init__(code)
 
     def __eq__(self, other):
         r"""
@@ -2650,8 +2639,7 @@ class LinearCodeSyndromeDecoder(Decoder):
             raise ValueError("maximum_error_weight has to be less than code's length minus its dimension")
         else:
             self._maximum_error_weight = maximum_error_weight
-        super(LinearCodeSyndromeDecoder, self).__init__(code, code.ambient_space(),\
-                code._default_encoder_name)
+        super().__init__(code, code.ambient_space(), code._default_encoder_name)
         self._lookup_table = self._build_lookup_table()
 
     def __eq__(self, other):
@@ -2947,8 +2935,7 @@ class LinearCodeNearestNeighborDecoder(Decoder):
             sage: D
             Nearest neighbor decoder for [7, 4] linear code over GF(2)
         """
-        super(LinearCodeNearestNeighborDecoder, self).__init__(code, code.ambient_space(), \
-                code._default_encoder_name)
+        super().__init__(code, code.ambient_space(), code._default_encoder_name)
 
     def __eq__(self, other):
         r"""

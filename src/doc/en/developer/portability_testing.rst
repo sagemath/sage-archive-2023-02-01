@@ -55,6 +55,10 @@ To get started, you need to install a `Docker client
 Linux, Mac, and Windows.  The clients for the latter are known as
 "Docker Desktop".
 
+Make sure that your Docker client is configured to provide enough RAM
+to the containers (8 GB are a good choice). In Docker Desktop this
+setting is in Preferences -> Resources -> Advanced.
+
 All examples in this section were obtained using Docker Desktop for
 Mac; but the `command-line user interface
 <https://docs.docker.com/engine/reference/commandline/cli/>`_ for the
@@ -220,10 +224,10 @@ Using Sage's database of equivalent distribution packages
 At the end of the ``./configure`` run, Sage issued a message like the
 following::
 
-  configure: notice: the following SPKGs did not find equivalent system packages: arb boost boost_cropped bzip2 ... yasm zeromq zlib
+  configure: notice: the following SPKGs did not find equivalent system packages: arb boost_cropped bzip2 ... zeromq zlib
   checking for the package system in use... debian
   configure: hint: installing the following system packages is recommended and may avoid building some of the above SPKGs from source:
-  configure:   $ sudo apt-get install libflint-arb-dev ... yasm libzmq3-dev libz-dev
+  configure:   $ sudo apt-get install libflint-arb-dev ... libzmq3-dev libz-dev
   configure: After installation, re-run configure using:
   configure:   $ ./config.status --recheck && ./config.status
 
@@ -248,7 +252,7 @@ system, in particular a list of installed packages and their versions.
 
 Let us install a subset of these packages::
 
-  root@39d693b2a75d:/sage# apt-get install libbz2-dev bzip2 yasm libz-dev
+  root@39d693b2a75d:/sage# apt-get install libbz2-dev bzip2 libz-dev
   Reading package lists... Done
   ...
   Setting up zlib1g-dev:amd64 (1:1.2.11.dfsg-0ubuntu2) ...
@@ -285,8 +289,8 @@ have no access to the worktree::
   root@73987568712c:/# cd sage
   root@73987568712c:/sage# command -v gcc
   /usr/bin/gcc
-  root@73987568712c:/sage# command -v yasm
-  /usr/bin/yasm
+  root@73987568712c:/sage# command -v bunzip2
+  /usr/bin/bunzip2
   root@73987568712c:/sage# ^D
   [mkoeppe@sage worktree-ubuntu-latest]$
 
@@ -337,7 +341,7 @@ image...::
 Then, to install system packages...::
 
   ...
-  RUN apt-get update && DEBIAN_FRONTEND=noninteractive apt-get install -qqq --no-install-recommends --yes binutils make m4 perl python3 ... yasm libzmq3-dev libz-dev && apt-get clean
+  RUN apt-get update && DEBIAN_FRONTEND=noninteractive apt-get install -qqq --no-install-recommends --yes binutils make m4 perl python3 ... libzmq3-dev libz-dev && apt-get clean
 
 Then, to bootstrap and configure...::
 
@@ -358,7 +362,7 @@ Finally, to build and test...::
   ENV MAKE="make -j${NUMPROC}"
   ARG USE_MAKEFLAGS="-k"
   RUN make ${USE_MAKEFLAGS} base-toolchain
-  ARG TARGETS_PRE="sagelib-build-deps"
+  ARG TARGETS_PRE="all-sage-local"
   RUN make ${USE_MAKEFLAGS} ${TARGETS_PRE}
   ADD src src
   ARG TARGETS="build ptest"
@@ -462,7 +466,7 @@ might not work on all platforms, ``surf``, which was marked as
   Step 2/28 : FROM ${BASE_IMAGE}
    ---> 549b9b86cb8d
   ...
-  Step 24/28 : ARG TARGETS_PRE="sagelib-build-deps"
+  Step 24/28 : ARG TARGETS_PRE="all-sage-local"
    ---> Running in 17d0ddb5ad7b
   Removing intermediate container 17d0ddb5ad7b
    ---> 7b51411520c3
@@ -637,7 +641,7 @@ for a non-silent build (``make V=1``), use::
   [mkoeppe@sage sage]$ EXTRA_DOCKER_BUILD_ARGS="--build-arg USE_MAKEFLAGS=\"V=1\"" \
     tox -e docker-ubuntu-bionic-standard
 
-By default, tox uses ``TARGETS_PRE=sagelib-build-deps`` and
+By default, tox uses ``TARGETS_PRE=all-sage-local`` and
 ``TARGETS=build``, leading to a complete build of Sage without the
 documentation.  If you pass positional arguments to tox (separated
 from tox options by ``--``), then both ``TARGETS_PRE`` and ``TARGETS``
@@ -707,7 +711,7 @@ other prerequisites installed in your system.  See
 ``build/pkgs/_bootstrap/distros/*.txt`` for a list of system packages that
 provide these prerequisites.
 
-We start by creating a fresh (distclean) git worktree.
+We start by creating a fresh (distclean) git worktree::
 
   [mkoeppe@sage sage] git worktree add worktree-local
   [mkoeppe@sage sage] cd worktree-local
@@ -852,10 +856,10 @@ an isolated copy of Homebrew with all prerequisites for bootstrapping::
   checking for a BSD-compatible install... /usr/bin/install -c
   checking whether build environment is sane... yes
   ...
-  configure: notice: the following SPKGs did not find equivalent system packages: arb cbc cliquer ... tachyon xz yasm zeromq
+  configure: notice: the following SPKGs did not find equivalent system packages: arb cbc cliquer ... tachyon xz zeromq
   checking for the package system in use... homebrew
   configure: hint: installing the following system packages is recommended and may avoid building some of the above SPKGs from source:
-  configure:   $ brew install cmake gcc gsl mpfi ninja openblas gpatch r readline xz yasm zeromq
+  configure:   $ brew install cmake gcc gsl mpfi ninja openblas gpatch r readline xz zeromq
   ...
   sage-logger -p 'sage-spkg -y -o  lrslib-062+autotools-2017-03-03.p1' '.../worktree-local/logs/pkgs/lrslib-062+autotools-2017-03-03.p1.log'
   [lrslib-062+autotools-2017-03-03.p1] installing. Log file: .../worktree-local/logs/pkgs/lrslib-062+autotools-2017-03-03.p1.log
@@ -893,7 +897,7 @@ The ``local-homebrew-macos-standard-python3_xcode`` environment
 installs the same packages, but uses XCode's ``/usr/bin/python3``.
 
 The ``local-homebrew-macos-standard-python3_pythonorg`` expects an
-installation of Python 3.7 in
+installation of Python 3.10 in
 ``/Library/Frameworks/Python.framework``; this is where the binary
 packages provided by python.org install themselves.
 
@@ -1053,25 +1057,25 @@ place. To view details, click on one of the items in the pane. This
 changes the right pane to a log viewer.
 
 The ``docker`` workflows automatically push images to
-``docker.pkg.github.com``.  You find them in the Packages tab of your
+``ghcr.io``.  You find them in the Packages tab of your
 GitHub repository.
 
 In order to pull them for use on your computer, you need to first
 generate a Personal Access Token providing the ``read:packages`` scope
 as follows.  Visit https://github.com/settings/tokens/new (this may
 prompt you for your GitHub password).  As "Note", type "Access
-docker.pkg.github.com"; then in "Select scopes", select the checkbox
+ghcr.io"; then in "Select scopes", select the checkbox
 for ``read:packages``.  Finally, push the "Generate token" button at
 the bottom.  This will lead to a page showing your token, such as
 ``de1ec7ab1ec0ffee5ca1dedbaff1ed0ddba11``.  Copy this token and paste
 it to the command line::
 
-  $ echo de1ec7ab1ec0ffee5ca1dedbaff1ed0ddba11 | docker login docker.pkg.github.com --username YOUR-GITHUB-USERNAME
+  $ echo de1ec7ab1ec0ffee5ca1dedbaff1ed0ddba11 | docker login ghcr.io --username YOUR-GITHUB-USERNAME
 
 where you replace the token by your token, of course, and
 ``YOUR-GITHUB-USERNAME`` by your GitHub username.
 
 Now you can pull the image and run it::
 
-  $ docker pull docker.pkg.github.com/YOUR-GITHUB-USERNAME/sage/sage-docker-fedora-31-standard-configured:f4bd671
-  $ docker run -it docker.pkg.github.com/YOUR-GITHUB-USERNAME/sage/sage-docker-fedora-31-standard-configured:f4bd671 bash
+  $ docker pull ghcr.io/YOUR-GITHUB-USERNAME/sage/sage-docker-fedora-31-standard-configured:f4bd671
+  $ docker run -it ghcr.io/YOUR-GITHUB-USERNAME/sage/sage-docker-fedora-31-standard-configured:f4bd671 bash

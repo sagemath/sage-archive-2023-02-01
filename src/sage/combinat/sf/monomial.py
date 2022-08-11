@@ -23,8 +23,8 @@ import sage.libs.symmetrica.all as symmetrica
 from sage.rings.integer import Integer
 from sage.rings.infinity import infinity
 from sage.combinat.partition import Partition, _Partitions
-from sage.functions.other import factorial, binomial
-from sage.arith.misc import multinomial
+from sage.arith.misc import multinomial, factorial, binomial
+
 
 class SymmetricFunctionAlgebra_monomial(classical.SymmetricFunctionAlgebra_classical):
     def __init__(self, Sym):
@@ -472,13 +472,14 @@ class SymmetricFunctionAlgebra_monomial(classical.SymmetricFunctionAlgebra_class
             if q == 1:
                 if t is None:
                     t = get_variable(self.base_ring(), 't')
+
                 def f(partition):
                     n = 0
                     for part in partition:
                         if part != 1:
                             return 0
                         n += 1
-                    return t**n/factorial(n)
+                    return t**n / factorial(n)
 
                 return self.parent()._apply_module_morphism(self, f, t.parent())
 

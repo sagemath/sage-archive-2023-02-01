@@ -56,7 +56,7 @@ cdef class MemoryAllocator:
 
         TESTS::
 
-            sage: cython('''
+            sage: cython('''  # optional - sage.misc.cython
             ....: from sage.ext.memory_allocator cimport MemoryAllocator
             ....: cdef MemoryAllocator mem = MemoryAllocator()
             ....: cdef void* ptr
@@ -85,14 +85,18 @@ cdef class MemoryAllocator:
 
         TESTS::
 
-            sage: cython('''
+            sage: cython('''  # optional - sage.misc.cython
             ....: from sage.ext.memory_allocator cimport MemoryAllocator
-            ....: cdef MemoryAllocator mem = MemoryAllocator()
-            ....: cdef void* ptr
-            ....: for i in range(12):
-            ....:     ptr = mem.aligned_calloc(2**i, i, 2**i)
-            ....:     assert <size_t> ptr == (<size_t> ptr) & ~(2**i-1)
+            ....: def foo():
+            ....:     cdef MemoryAllocator mem = MemoryAllocator()
+            ....:     cdef void* ptr
+            ....:     for i in range(12):
+            ....:         ptr = mem.aligned_calloc(2**i, i, 2**i)
+            ....:         assert <size_t> ptr == (<size_t> ptr) & ~(2**i-1)
             ....: ''')
+            sage: foo()
+            doctest:...: DeprecationWarning: this class is deprecated; use the class from the python package `memory_allocator`
+            See https://trac.sagemath.org/31591 for details.
         """
         # Find extra such that (nmemb + extra) * size >= nmemb * size + alignment - 1
         # ⇔ extra * size >= alignment - 1
@@ -116,14 +120,17 @@ cdef class MemoryAllocator:
 
         TESTS::
 
-            sage: cython('''
+            sage: cython('''  # optional - sage.misc.cython
             ....: from sage.ext.memory_allocator cimport MemoryAllocator
-            ....: cdef MemoryAllocator mem = MemoryAllocator()
-            ....: cdef void* ptr
-            ....: for i in range(12):
-            ....:     ptr = mem.aligned_allocarray(2**i, i, 2**i)
-            ....:     assert <size_t> ptr == (<size_t> ptr) & ~(2**i-1)
+            ....: def foo():
+            ....:     cdef MemoryAllocator mem = MemoryAllocator()
+            ....:     cdef void* ptr
+            ....:     for i in range(12):
+            ....:         ptr = mem.aligned_allocarray(2**i, i, 2**i)
+            ....:         assert <size_t> ptr == (<size_t> ptr) & ~(2**i-1)
             ....: ''')
+            sage: foo()  # random  # might raise deprecation warning
+            sage: foo()
         """
         # Find extra such that (nmemb + extra) * size >= nmemb * size + alignment - 1
         # ⇔ extra * size >= alignment - 1

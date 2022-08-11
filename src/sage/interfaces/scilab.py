@@ -132,7 +132,7 @@ TESTS::
     sage: M = scilab(x)                                     # optional - scilab
     Traceback (most recent call last):
     ...
-    TypeError: _interface_init_() takes exactly one argument (0 given)
+    TypeError: ..._interface_init_() takes exactly one argument (0 given)
     sage: M = scilab(matrix(3,range(9))); M                 # optional - scilab
         0.    1.    2.
         3.    4.    5.
@@ -190,7 +190,7 @@ AUTHORS:
 import os
 
 from .expect import Expect, ExpectElement
-from sage.docs.instancedoc import instancedoc
+from sage.misc.instancedoc import instancedoc
 
 
 class Scilab(Expect):

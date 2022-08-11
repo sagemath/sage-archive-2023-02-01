@@ -11,7 +11,7 @@ EXAMPLES::
 
     sage: lazy_import('sage.rings.all', 'ZZ')
     sage: type(ZZ)
-    <type 'sage.misc.lazy_import.LazyImport'>
+    <class 'sage.misc.lazy_import.LazyImport'>
     sage: ZZ(4.0)
     4
 
@@ -31,7 +31,8 @@ it is actually resolved after the startup, so that the developer knows
 that (s)he can remove the flag::
 
     sage: ZZ
-    Option ``at_startup=True`` for lazy import ZZ not needed anymore
+    doctest:warning...
+    UserWarning: Option ``at_startup=True`` for lazy import ZZ not needed anymore
     Integer Ring
 
 .. SEEALSO:: :func:`lazy_import`, :class:`LazyImport`
@@ -63,10 +64,10 @@ cdef extern from *:
 
 import os
 import pickle
+from warnings import warn
 import inspect
 from . import sageinspect
 
-from .lazy_import_cache import get_cache_file
 from sage.features import FeatureNotPresentError
 
 cdef inline obj(x):
@@ -79,11 +80,15 @@ cdef inline obj(x):
 # boolean to determine whether Sage is still starting up
 cdef bint startup_guard = True
 
+cdef bint finish_startup_called = False
+
 
 cpdef finish_startup():
     """
+    Finish the startup phase.
+
     This function must be called exactly once at the end of the Sage
-    import process
+    import process (:mod:`~sage.all`).
 
     TESTS::
 
@@ -93,9 +98,27 @@ cpdef finish_startup():
         ...
         AssertionError: finish_startup() must be called exactly once
     """
-    global startup_guard
+    global startup_guard, finish_startup_called
     assert startup_guard, 'finish_startup() must be called exactly once'
     startup_guard = False
+    finish_startup_called = True
+
+
+cpdef ensure_startup_finished():
+    """
+    Make sure that the startup phase is finished.
+
+    In contrast to :func:`finish_startup`, this function can
+    be called repeatedly.
+
+    TESTS::
+
+        sage: from sage.misc.lazy_import import ensure_startup_finished
+        sage: ensure_startup_finished()
+    """
+    global startup_guard
+    startup_guard = False
+
 
 cpdef bint is_during_startup():
     """
@@ -114,6 +137,7 @@ cpdef bint is_during_startup():
     global startup_guard
     return startup_guard
 
+
 cpdef test_fake_startup():
     """
     For testing purposes only.
@@ -125,16 +149,18 @@ cpdef test_fake_startup():
         sage: sage.misc.lazy_import.test_fake_startup()
         sage: lazy_import('sage.rings.all', 'ZZ', 'my_ZZ')
         sage: my_ZZ(123)
-        Resolving lazy import ZZ during startup
+        doctest:warning...
+        UserWarning: Resolving lazy import ZZ during startup
         123
         sage: sage.misc.lazy_import.finish_startup()
     """
-    global startup_guard
+    global startup_guard, finish_startup_called
     startup_guard = True
+    finish_startup_called = False
 
 
 @cython.final
-cdef class LazyImport(object):
+cdef class LazyImport():
     """
     EXAMPLES::
 
@@ -207,18 +233,20 @@ cdef class LazyImport(object):
             Integer Ring
             sage: my_integer_ring._object is None
             False
-            sage: my_integer_ring = LazyImport('sage.rings.all', 'ZZ', at_startup=True)
-            sage: my_integer_ring
-            Option ``at_startup=True`` for lazy import ZZ not needed anymore
-            Integer Ring
+            sage: my_rats = LazyImport('sage.rings.rational_field', 'QQ', at_startup=True)
+            sage: my_rats
+            doctest:warning...
+            UserWarning: Option ``at_startup=True`` for lazy import QQ not needed anymore
+            Rational Field
         """
         if self._object is not None:
             return self._object
 
         if startup_guard and not self._at_startup:
-            print(f"Resolving lazy import {self._name} during startup")
+            warn(f"Resolving lazy import {self._name} during startup")
         elif self._at_startup and not startup_guard:
-            print(f"Option ``at_startup=True`` for lazy import {self._name} not needed anymore")
+            if finish_startup_called:
+                warn(f"Option ``at_startup=True`` for lazy import {self._name} not needed anymore")
 
         try:
             self._object = getattr(__import__(self._module, {}, {}, [self._name]), self._name)
@@ -227,18 +255,19 @@ cdef class LazyImport(object):
                 raise FeatureNotPresentError(self._feature, reason=f'Importing {self._name} failed: {e}')
             raise
 
-        name = self._as_name
         if self._deprecation is not None:
-            from sage.misc.superseded import deprecation
+            from sage.misc.superseded import deprecation_cython as deprecation
             try:
                 trac_number, message = self._deprecation
             except TypeError:
                 trac_number = self._deprecation
-                message = ('\nImporting {name} from here is deprecated. ' +
-                    'If you need to use it, please import it directly from' +
-                    ' {module_name}').format(name=name, module_name=self._module)
+                import_command = f'from {self._module} import {self._name}'
+                if self._as_name != self._name:
+                    import_command += f' as {self._as_name}'
+                message = f'\nImporting {self._as_name} from here is deprecated; please use "{import_command}" instead.'
             deprecation(trac_number, message)
         # Replace the lazy import in the namespace by the actual object
+        name = self._as_name
         if self._namespace is not None:
             if self._namespace.get(name) is self:
                 self._namespace[name] = self._object
@@ -387,17 +416,6 @@ cdef class LazyImport(object):
         """
         return str(self.get_object())
 
-    def __unicode__(self):
-        """
-        TESTS::
-
-            sage: from sage.misc.lazy_import import LazyImport
-            sage: lazy_ZZ = LazyImport('sage.rings.all', 'ZZ')
-            sage: str(lazy_ZZ) == str(ZZ)
-            True
-        """
-        return unicode(self.get_object())
-
     def __bool__(self):
         """
         TESTS::
@@ -439,7 +457,7 @@ cdef class LazyImport(object):
 
             sage: lazy_import('sys', 'version_info')
             sage: type(version_info)
-            <type 'sage.misc.lazy_import.LazyImport'>
+            <class 'sage.misc.lazy_import.LazyImport'>
             sage: len(version_info)
             5
         """
@@ -459,20 +477,16 @@ cdef class LazyImport(object):
         Now we lazy import it as a method of a new class ``Foo``::
 
             sage: from sage.misc.lazy_import import LazyImport
-            sage: class Foo(object):
+            sage: class Foo():
             ....:     my_method = LazyImport('sage.all', 'my_method')
 
         Now we can use it as a usual method::
 
             sage: Foo().my_method()
             <__main__.Foo object at ...>
-            sage: Foo.my_method  # py2
-            <unbound method Foo.my_method>
-            sage: Foo.my_method  # py3
+            sage: Foo.my_method
             <function my_method at 0x...>
-            sage: Foo().my_method  # py2
-            <bound method Foo.my_method of <__main__.Foo object at ...>>
-            sage: Foo().my_method  # py3
+            sage: Foo().my_method
             <bound method my_method of <__main__.Foo object at ...>>
 
         When a :class:`LazyImport` method is a method (or attribute)
@@ -489,18 +503,16 @@ cdef class LazyImport(object):
            definition is not the one that actually gets used. Thus,
            ``__get__`` needs to manually modify the class dict::
 
-               sage: class Foo(object):
+               sage: class Foo():
                ....:     lazy_import('sage.all', 'plot')
                sage: class Bar(Foo):
                ....:     pass
                sage: type(Foo.__dict__['plot'])
-               <type 'sage.misc.lazy_import.LazyImport'>
+               <class 'sage.misc.lazy_import.LazyImport'>
 
            We access the ``plot`` method::
 
-               sage: Bar.plot  # py2
-               <unbound method Bar.plot>
-               sage: Bar.plot  # py3
+               sage: Bar.plot
                <function plot at 0x...>
 
            Now ``plot`` has been replaced in the dictionary of ``Foo``::
@@ -823,12 +835,7 @@ cdef class LazyImport(object):
 
             sage: sage.all.foo = 10
             sage: lazy_import('sage.all', 'foo')
-            sage: oct(foo)  # py2
-            doctest:warning...:
-            DeprecationWarning: use the method .oct instead
-            See https://trac.sagemath.org/26756 for details.
-            '12'
-            sage: oct(foo)  # py3
+            sage: oct(foo)
             '0o12'
         """
         return self.get_object().__oct__()
@@ -839,12 +846,7 @@ cdef class LazyImport(object):
 
             sage: sage.all.foo = 10
             sage: lazy_import('sage.all', 'foo')
-            sage: hex(foo)  # py2
-            doctest:warning...:
-            DeprecationWarning: use the method .hex instead
-            See https://trac.sagemath.org/26756 for details.
-            'a'
-            sage: hex(foo)  # py3
+            sage: hex(foo)
             '0xa'
         """
         return self.get_object().__hex__()
@@ -910,8 +912,17 @@ cdef class LazyImport(object):
             sage: lazy_import('sage.rings.rational_field', 'RationalField')
             sage: isinstance(QQ, RationalField)
             True
+
+        No object is an instance of a class that cannot be imported::
+
+            sage: lazy_import('sage.xxxxx_does_not_exist', 'DoesNotExist')
+            sage: isinstance(QQ, DoesNotExist)
+            False
         """
-        return isinstance(x, self.get_object())
+        try:
+            return isinstance(x, self.get_object())
+        except ImportError:
+            return False
 
     def __subclasscheck__(self, x):
         """
@@ -922,8 +933,17 @@ cdef class LazyImport(object):
             sage: lazy_import('sage.structure.parent', 'Parent')
             sage: issubclass(RationalField, Parent)
             True
+
+        No class is a subclass of a class that cannot be imported::
+
+            sage: lazy_import('sage.xxxxx_does_not_exist', 'DoesNotExist')
+            sage: issubclass(RationalField, DoesNotExist)
+            False
         """
-        return issubclass(x, self.get_object())
+        try:
+            return issubclass(x, self.get_object())
+        except ImportError:
+            return False
 
 
 def lazy_import(module, names, as_=None, *,
@@ -965,7 +985,7 @@ def lazy_import(module, names, as_=None, *,
 
         sage: lazy_import('sage.rings.all', 'ZZ')
         sage: type(ZZ)
-        <type 'sage.misc.lazy_import.LazyImport'>
+        <class 'sage.misc.lazy_import.LazyImport'>
         sage: ZZ(4.0)
         4
         sage: lazy_import('sage.rings.all', 'RDF', 'my_RDF')
@@ -993,12 +1013,12 @@ def lazy_import(module, names, as_=None, *,
 
     We check that :func:`lazy_import` also works for methods::
 
-        sage: class Foo(object):
+        sage: class Foo():
         ....:     lazy_import('sage.all', 'plot')
         sage: class Bar(Foo):
         ....:     pass
         sage: type(Foo.__dict__['plot'])
-        <type 'sage.misc.lazy_import.LazyImport'>
+        <class 'sage.misc.lazy_import.LazyImport'>
         sage: 'EXAMPLES' in Bar.plot.__doc__
         True
         sage: type(Foo.__dict__['plot'])
@@ -1009,7 +1029,7 @@ def lazy_import(module, names, as_=None, *,
         sage: lazy_import('sage.all', 'Qp', 'my_Qp', deprecation=14275)
         sage: my_Qp(5)
         doctest:...: DeprecationWarning:
-        Importing my_Qp from here is deprecated. If you need to use it, please import it directly from sage.all
+        Importing my_Qp from here is deprecated; please use "from sage.all import Qp as my_Qp" instead.
         See http://trac.sagemath.org/14275 for details.
         5-adic Field with capped relative precision 20
 
@@ -1067,8 +1087,8 @@ def save_cache_file():
         sage: import sage.misc.lazy_import
         sage: sage.misc.lazy_import.save_cache_file()
     """
-    from sage.misc.misc import sage_makedirs
     from sage.misc.temporary_file import atomic_write
+    from .lazy_import_cache import get_cache_file
 
     global star_imports
     if star_imports is None:
@@ -1076,7 +1096,7 @@ def save_cache_file():
     cache_file = get_cache_file()
     cache_dir = os.path.dirname(cache_file)
 
-    sage_makedirs(cache_dir)
+    os.makedirs(cache_dir, exist_ok=True)
     with atomic_write(cache_file, binary=True) as f:
         pickle.dump(star_imports, f)
 
@@ -1101,7 +1121,8 @@ def get_star_imports(module_name):
         7
         sage: os.close(fd)
         sage: import sage.misc.lazy_import as lazy
-        sage: lazy.get_cache_file = (lambda: cache_file)
+        sage: import sage.misc.lazy_import_cache as cache
+        sage: cache.get_cache_file = (lambda: cache_file)
         sage: lazy.star_imports = None
         sage: lazy.get_star_imports('sage.schemes.all')
         doctest:...: UserWarning: star_imports cache is corrupted
@@ -1110,6 +1131,7 @@ def get_star_imports(module_name):
     """
     global star_imports
     if star_imports is None:
+        from .lazy_import_cache import get_cache_file
         star_imports = {}
         try:
             with open(get_cache_file(), "rb") as cache_file:
@@ -1132,5 +1154,5 @@ def get_star_imports(module_name):
 
 
 # Add support for _instancedoc_
-from sage.docs.instancedoc import instancedoc
+from sage.misc.instancedoc import instancedoc
 instancedoc(LazyImport)

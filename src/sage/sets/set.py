@@ -645,12 +645,6 @@ class Set_object(Set_generic, Set_base, Set_boolean_operators, Set_add_sub_opera
             True
             sage: Primes() == Set(QQ)
             False
-
-        The following is random, illustrating that comparison of
-        sets is not the subset relation, when they are not equal::
-
-            sage: Primes() < Set(QQ)             # random  # py2
-            True or False
         """
         if not isinstance(right, Set_object):
             return NotImplemented

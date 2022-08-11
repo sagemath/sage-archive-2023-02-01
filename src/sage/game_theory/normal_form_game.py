@@ -636,7 +636,7 @@ from itertools import product
 from .parser import Parser
 from sage.misc.latex import latex
 from sage.misc.misc import powerset
-from sage.rings.all import QQ
+from sage.rings.rational_field import QQ
 from sage.structure.sage_object import SageObject
 from sage.matrix.constructor import matrix
 from sage.matrix.constructor import vector
@@ -744,7 +744,7 @@ class NormalFormGame(SageObject, MutableMapping):
             sage: error = NormalFormGame(p1, p2)
             Traceback (most recent call last):
             ...
-            TypeError: __init__() takes from 1 to 2 positional arguments but 3 were given
+            TypeError: ...__init__() takes from 1 to 2 positional arguments but 3 were given
 
         When initiating, argument passed must be a list or nothing::
 
@@ -1137,7 +1137,7 @@ class NormalFormGame(SageObject, MutableMapping):
             { "" 3, 5, 8 }
             { "" 2, 6, 4 }
             }
-            1 2 3 4 5 6 7 8 
+            1 2 3 4 5 6 7 8
             <BLANKLINE>
         """
         from decimal import Decimal
@@ -1754,14 +1754,10 @@ class NormalFormGame(SageObject, MutableMapping):
         with open(game_name, 'w') as game_file:
             game_file.write(game_str)
 
-        try:
-            process = Popen(['lrsnash', game_name],
-                    stdout=PIPE,
-                    stderr=PIPE)
-        except OSError as e:
-            from sage.features.lrs import Lrs
-            from sage.features import FeatureNotPresentError
-            raise FeatureNotPresentError(Lrs(), reason=f'Calling lrsnash failed with {e}')
+        from sage.features.lrs import LrsNash
+        LrsNash().require()
+        process = Popen([LrsNash().absolute_filename(), game_name],
+                        stdout=PIPE, stderr=PIPE)
 
         lrs_output = [bytes_to_str(row) for row in process.stdout]
         process.terminate()
@@ -2319,7 +2315,7 @@ class NormalFormGame(SageObject, MutableMapping):
         return s, t
 
     def _lrs_nash_format(self, m1, m2):
-        """
+        r"""
         Create the input format for ``lrsnash``, version 6.1 or newer.
 
         EXAMPLES:

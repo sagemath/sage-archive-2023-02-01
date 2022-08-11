@@ -40,7 +40,8 @@ The Cayley graph of the Weyl Group of type ['D', 4]::
 from sage.groups.matrix_gps.finitely_generated import FinitelyGeneratedMatrixGroup_gap
 from sage.groups.matrix_gps.group_element import MatrixGroupElement_gap
 from sage.groups.perm_gps.permgroup import PermutationGroup_generic
-from sage.rings.all import ZZ, QQ
+from sage.rings.integer_ring import ZZ
+from sage.rings.rational_field import QQ
 from sage.interfaces.gap import gap
 from sage.misc.cachefunc import cached_method
 from sage.combinat.root_system.cartan_type import CartanType
@@ -241,7 +242,7 @@ class WeylGroup_gens(UniqueRepresentation,
         # FinitelyGeneratedMatrixGroup_gap takes plain matrices as input
         gens_matrix = [self.morphism_matrix(self.domain().simple_reflection(i))
                        for i in self.index_set()]
-        from sage.libs.all import libgap
+        from sage.libs.gap.libgap import libgap
         libgap_group = libgap.Group(gens_matrix)
         degree = ZZ(self.domain().dimension())
         ring = self.domain().base_ring()
@@ -375,6 +376,7 @@ class WeylGroup_gens(UniqueRepresentation,
             NotImplementedError: only implemented for finite and affine Cartan types
         """
         prr = self.domain().positive_real_roots()
+
         def to_elt(alp):
             ref = self.domain().reflection(alp)
             m = Matrix([ref(x).to_vector() for x in self.domain().basis()])
@@ -390,7 +392,7 @@ class WeylGroup_gens(UniqueRepresentation,
             sage: WeylGroup(['A', 3, 1])
             Weyl Group of type ['A', 3, 1] (as a matrix group acting on the root space)
         """
-        return "Weyl Group of type %s (as a matrix group acting on the %s)"%(self.cartan_type(),
+        return "Weyl Group of type %s (as a matrix group acting on the %s)" % (self.cartan_type(),
                                                                            self._domain._name_string(capitalize=False,
                                                                                                       base_ring=False,
                                                                                                       type=False))
@@ -635,7 +637,7 @@ class ClassicalWeylSubgroup(WeylGroup_gens):
             sage: RootSystem(['C',4,1]).coweight_lattice().weyl_group().classical()
             Parabolic Subgroup of the Weyl Group of type ['C', 4, 1]^* (as a matrix group acting on the coweight lattice)
         """
-        return "Parabolic Subgroup of the Weyl Group of type %s (as a matrix group acting on the %s)"%(self.domain().cartan_type(),
+        return "Parabolic Subgroup of the Weyl Group of type %s (as a matrix group acting on the %s)" % (self.domain().cartan_type(),
                                                                            self._domain._name_string(capitalize=False,
                                                                                                       base_ring=False,
                                                                                                       type=False))
@@ -738,8 +740,8 @@ class WeylGroupElement(MatrixGroupElement_gap):
             else:
                 ret = ""
                 for i in redword[:-1]:
-                    ret += "%s%d*"%(self._parent._prefix, i)
-            return ret + "%s%d"%(self._parent._prefix, redword[-1])
+                    ret += "%s%d*" % (self._parent._prefix, i)
+            return ret + "%s%d" % (self._parent._prefix, redword[-1])
 
     def _latex_(self):
         r"""
@@ -1026,7 +1028,7 @@ class WeylGroup_permutation(UniqueRepresentation, PermutationGroup_generic):
         self._index_set_inverse = {ii: i for i,ii in enumerate(cartan_type.index_set())}
         self._reflection_representation = None
         self._prefix = prefix
-        #from sage.libs.all import libgap
+        #from sage.libs.gap.libgap import libgap
         Q = cartan_type.root_system().root_lattice()
         Phi = list(Q.positive_roots()) + [-x for x in Q.positive_roots()]
         p = [[Phi.index(x.weyl_action([i]))+1 for x in Phi]
@@ -1296,6 +1298,7 @@ class WeylGroup_permutation(UniqueRepresentation, PermutationGroup_generic):
         Q = self._cartan_type.root_system().root_lattice()
         pos_roots = list(Q.positive_roots())
         Phi = pos_roots + [-x for x in pos_roots]
+
         def build_elt(index):
             r = pos_roots[index]
             perm = [Phi.index(x.reflection(r))+1 for x in Phi]
@@ -1337,8 +1340,8 @@ class WeylGroup_permutation(UniqueRepresentation, PermutationGroup_generic):
             redword = self.reduced_word()
             if not redword:
                 return "1"
-            else:
-                return "*".join("%s%d"%(self.parent()._prefix, i) for i in redword)
+            return "*".join("%s%d" % (self.parent()._prefix, i)
+                            for i in redword)
 
         def _latex_(self):
             """
@@ -1358,6 +1361,5 @@ class WeylGroup_permutation(UniqueRepresentation, PermutationGroup_generic):
             redword = self.reduced_word()
             if not redword:
                 return "1"
-            else:
-                return "".join("%s_{%d}"%(self.parent()._prefix, i) for i in redword)
-
+            return "".join("%s_{%d}" % (self.parent()._prefix, i)
+                           for i in redword)

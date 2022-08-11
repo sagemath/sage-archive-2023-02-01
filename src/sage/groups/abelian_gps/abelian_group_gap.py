@@ -161,10 +161,10 @@ class AbelianGroupElement_gap(ElementLibGAP):
         orders = P.gens_orders()
         i = 0
         for k in range(len(P.gens())):
-            if not k+1 in Lgens:
+            if k + 1 not in Lgens:
                 exp.append(0)
             else:
-                i = Lgens.index(k+1)
+                i = Lgens.index(k + 1)
                 exp.append(Lexpo[i] % orders[k])
         return tuple(exp)
 
@@ -287,7 +287,7 @@ class AbelianGroup_gap(UniqueRepresentation, GroupMixinLibGAP, ParentLibGAP, Abe
         """
         if isinstance(S, AbelianGroup_gap):
             return S.is_subgroup_of(self)
-        return super(AbelianGroup_gap, self)._coerce_map_from_(S)
+        return super()._coerce_map_from_(S)
 
     def _element_constructor_(self, x, check=True):
         r"""
@@ -673,7 +673,7 @@ class AbelianGroupGap(AbelianGroup_gap):
         generator_orders = tuple([ZZ(e) for e in generator_orders])
         if any(e < 0 for e in generator_orders):
             return ValueError("generator orders must be nonnegative")
-        return super(AbelianGroupGap, cls).__classcall__(cls, generator_orders)
+        return super().__classcall__(cls, generator_orders)
 
     def __init__(self, generator_orders):
         r"""

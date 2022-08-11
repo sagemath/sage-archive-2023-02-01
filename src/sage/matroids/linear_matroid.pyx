@@ -321,7 +321,7 @@ cdef class LinearMatroid(BasisExchangeMatroid):
             if keep_initial_representation:
                 self._representation = A.copy()   # Deprecated Sage matrix operation
             P = gauss_jordan_reduce(A, xrange(A.ncols()))
-            self._A = A.matrix_from_rows_and_columns(range(len(P)), [c for c in xrange(matrix.ncols()) if not c in P])
+            self._A = A.matrix_from_rows_and_columns(range(len(P)), [c for c in xrange(matrix.ncols()) if c not in P])
         else:
             reduced = True
             if not isinstance(reduced_matrix, LeanMatrix):
@@ -578,11 +578,7 @@ cdef class LinearMatroid(BasisExchangeMatroid):
             sage: R = GF(7)
             sage: A = Matrix(R, [[1, 0, 6, 1, 2],[6, 1, 0, 0, 1],[0, 6, 3, 6, 0]])
             sage: M = LinearMatroid(reduced_matrix = A)
-            sage: M.representation(lift_map=lift_map('sru')) # py2
-            [     1      0      0      1      0      1      1      1]
-            [     0      1      0 -z + 1      1      0      0      1]
-            [     0      0      1      0     -1      1 -z + 1      0]
-            sage: M.representation(lift_map=lift_map('sru')) # py3
+            sage: M.representation(lift_map=lift_map('sru'))
             [     1      0      0      1      0      1      1      1]
             [     0      1      0 -z + 1      1      0      0      1]
             [     0      0      1      0     -z      z      1      0]
@@ -2835,7 +2831,7 @@ cdef class LinearMatroid(BasisExchangeMatroid):
             return True, None
         return True
 
-    def orlik_terao_algebra(self, R=None, ordering=None):
+    def orlik_terao_algebra(self, R=None, ordering=None, **kwargs):
         """
         Return the Orlik-Terao algebra of ``self``.
 
@@ -2860,9 +2856,40 @@ cdef class LinearMatroid(BasisExchangeMatroid):
             Integer Ring
             sage: M.orlik_terao_algebra(QQ).base_ring()
             Rational Field
-        """
+
+            sage: G = SymmetricGroup(3);
+            sage: OTG = M.orlik_terao_algebra(QQ, invariant=G)
+
+            sage: G = SymmetricGroup(4)
+            sage: action = lambda g,x: g(x+1)-1
+            sage: OTG1 = M.orlik_terao_algebra(QQ, invariant=(G,action))
+            sage: OTG2 = M.orlik_terao_algebra(QQ, invariant=(action,G))
+            sage: OTG1 is OTG2
+            True
+
+         """
         if R is None:
             R = self.base_ring()
+
+        if 'invariant' in kwargs:
+            G_action = kwargs.pop('invariant')
+
+            from sage.categories.semigroups import Semigroups
+            if len(G_action) > 1 and G_action not in Semigroups:
+                G, action = G_action
+                if action in Semigroups:
+                    G, action = action, G
+            else:
+                G, action = G_action, None # the None action is g.__call__
+
+
+            from sage.algebras.orlik_terao import OrlikTeraoInvariantAlgebra
+
+            return OrlikTeraoInvariantAlgebra(R, self, G,
+                                              action_on_groundset=action,
+                                              ordering=ordering,
+                                              **kwargs)
+
         from sage.algebras.orlik_terao import OrlikTeraoAlgebra
         return OrlikTeraoAlgebra(R, self, ordering)
 
@@ -5758,7 +5785,7 @@ cdef class RegularMatroid(LinearMatroid):
             if keep_initial_representation:
                 self._representation = A.copy()   # Deprecated Sage matrix operation
             P = gauss_jordan_reduce(A, xrange(A.ncols()))
-            self._A = A.matrix_from_rows_and_columns(range(len(P)), [c for c in xrange(matrix.ncols()) if not c in P])
+            self._A = A.matrix_from_rows_and_columns(range(len(P)), [c for c in xrange(matrix.ncols()) if c not in P])
         else:
             reduced = True
             if not isinstance(reduced_matrix, PlusMinusOneMatrix):
@@ -6005,7 +6032,8 @@ cdef class RegularMatroid(LinearMatroid):
             Digraph on 55 vertices
         """
         # NEW VERSION, Uses Sage'S Graph Isomorphism
-        from sage.graphs.all import Graph, DiGraph
+        from sage.graphs.graph import Graph
+        from sage.graphs.digraph import DiGraph
         if self._r_hypergraph is not None:
             return (self._hypergraph_vertex_partition, self._hypergraph_tuples, self._r_hypergraph)
         cdef Matrix P = self._projection()

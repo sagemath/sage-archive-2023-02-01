@@ -67,7 +67,7 @@ A triangulation of it::
     (2, 3, 4)
     sage: list(t)
     [(1, 3, 4), (2, 3, 4)]
-    sage: t.plot(axes=False)
+    sage: t.plot(axes=False)  # optional - sage.plot
     Graphics object consisting of 12 graphics primitives
 
 .. PLOT::
@@ -98,7 +98,7 @@ A 3-dimensional point configuration::
     sage: p = [[0,-1,-1],[0,0,1],[0,1,0], [1,-1,-1],[1,0,1],[1,1,0]]
     sage: points = PointConfiguration(p)
     sage: triang = points.triangulate()
-    sage: triang.plot(axes=False)
+    sage: triang.plot(axes=False)  # optional - sage.plot
     Graphics3d Object
 
 .. PLOT::
@@ -119,7 +119,7 @@ The standard example of a non-regular triangulation (requires TOPCOM)::
     16
     sage: len(nonregular)  # optional - topcom
     2
-    sage: nonregular[0].plot(aspect_ratio=1, axes=False)   # optional - topcom
+    sage: nonregular[0].plot(aspect_ratio=1, axes=False)   # optional - topcom  # optional - sage.plot
     Graphics object consisting of 25 graphics primitives
     sage: PointConfiguration.set_engine('internal')   # to make doctests independent of TOPCOM
 
@@ -184,9 +184,10 @@ from sage.structure.unique_representation import UniqueRepresentation
 from sage.misc.cachefunc import cached_method
 
 from sage.combinat.combination import Combinations
-from sage.rings.all import QQ, ZZ
+from sage.rings.integer_ring import ZZ
+from sage.rings.rational_field import QQ
 from sage.matrix.constructor import matrix
-from sage.modules.all import vector
+from sage.modules.free_module_element import vector
 
 from copy import copy
 import sys
@@ -324,9 +325,8 @@ class PointConfiguration(UniqueRepresentation, PointConfiguration_base):
             if len(star_point)<len(points[0]):
                 star_point = tuple(star)+(1,)
             star = points.index(star_point)
-        return super(PointConfiguration, cls)\
-            .__classcall__(cls, points, connected, fine, regular, star, defined_affine)
-
+        return super().__classcall__(cls, points, connected, fine,
+                                     regular, star, defined_affine)
 
     def __init__(self, points, connected, fine, regular, star, defined_affine):
         """
@@ -345,24 +345,23 @@ class PointConfiguration(UniqueRepresentation, PointConfiguration_base):
         # first, test if we have TOPCOM and set up class variables accordingly
         PointConfiguration._have_TOPCOM()
 
-        assert connected in [True, False], 'Unknown value: connected='+str(connected)
+        assert connected in [True, False], 'Unknown value: connected=' + str(connected)
         self._connected = connected
         if not connected and not PointConfiguration._have_TOPCOM():
             raise ValueError('You must install TOPCOM to find non-connected triangulations.')
 
-        assert fine in [True, False], 'Unknown value: fine='+str(fine)
+        assert fine in [True, False], 'Unknown value: fine=' + str(fine)
         self._fine = fine
 
-        assert regular in [True, False, None], 'Unknown value: regular='+str(regular)
+        assert regular in [True, False, None], 'Unknown value: regular=' + str(regular)
         self._regular = regular
         if regular is not None and not PointConfiguration._have_TOPCOM():
-           raise ValueError('You must install TOPCOM to test for regularity.')
+            raise ValueError('You must install TOPCOM to test for regularity.')
 
-        assert star is None or star in ZZ, 'Unknown value: fine='+str(star)
+        assert star is None or star in ZZ, 'Unknown value: fine=' + str(star)
         self._star = star
 
         PointConfiguration_base.__init__(self, points, defined_affine)
-
 
     @classmethod
     def set_engine(cls, engine='auto'):
@@ -1272,15 +1271,14 @@ class PointConfiguration(UniqueRepresentation, PointConfiguration_base):
             sage: p.exclude_points( p.face_interior(codim=1) ).points()
             (P(-1, 0), P(0, 0), P(1, -1), P(1, 1))
         """
-        points = [ self.point(i) for i in range(self.n_points())
-                   if not i in point_idx_list ]
+        points = [self.point(i) for i in range(self.n_points())
+                  if i not in point_idx_list]
         return PointConfiguration(points,
                                   projective=False,
                                   connected=self._connected,
                                   fine=self._fine,
                                   regular=self._regular,
                                   star=self._star)
-
 
     def volume(self, simplex=None):
         """
@@ -1554,9 +1552,9 @@ class PointConfiguration(UniqueRepresentation, PointConfiguration_base):
             sage: pc.bistellar_flips()
             (((<0,1,3>, <0,2,3>), (<0,1,2>, <1,2,3>)),)
             sage: Tpos, Tneg = pc.bistellar_flips()[0]
-            sage: Tpos.plot(axes=False)
+            sage: Tpos.plot(axes=False)  # optional - sage.plot
             Graphics object consisting of 11 graphics primitives
-            sage: Tneg.plot(axes=False)
+            sage: Tneg.plot(axes=False)  # optional - sage.plot
             Graphics object consisting of 11 graphics primitives
 
         The 3d analog::
@@ -1571,7 +1569,7 @@ class PointConfiguration(UniqueRepresentation, PointConfiguration_base):
             sage: pc.bistellar_flips()
             (((<0,1,3>, <0,2,3>), (<0,1,2>, <1,2,3>)),)
             sage: Tpos, Tneg = pc.bistellar_flips()[0]
-            sage: Tpos.plot(axes=False)
+            sage: Tpos.plot(axes=False)  # optional - sage.plot
             Graphics3d Object
         """
         flips = []
@@ -1654,9 +1652,11 @@ class PointConfiguration(UniqueRepresentation, PointConfiguration_base):
                     triangulation.update([ frozenset([head]).union(tail) ])
 
             nonminimal = set()
-            for rel in Combinations(triangulation,2):
-                if rel[0].issubset(rel[1]): nonminimal.update([rel[1]])
-                if rel[1].issubset(rel[0]): nonminimal.update([rel[0]])
+            for rel in Combinations(triangulation, 2):
+                if rel[0].issubset(rel[1]):
+                    nonminimal.update([rel[1]])
+                if rel[1].issubset(rel[0]):
+                    nonminimal.update([rel[0]])
             triangulation.difference_update(nonminimal)
 
             triangulation = [ [len(t)]+sorted(t) for t in triangulation ] # decorate
@@ -1977,6 +1977,7 @@ class PointConfiguration(UniqueRepresentation, PointConfiguration_base):
             (<0,2,4>, <0,3,4>, <1,2,4>, <1,3,4>)
         """
         facet_normals = dict()
+
         def facets_of_simplex(simplex):
             """
             Return the facets of the simplex and store the normals in facet_normals
@@ -2040,7 +2041,7 @@ class PointConfiguration(UniqueRepresentation, PointConfiguration_base):
                 origin = next(iter(facet))
                 normal = facet_normals[facet]
                 v = point.reduced_affine_vector() - origin.reduced_affine_vector()
-                if v*normal>0:
+                if v * normal > 0:
                     visible_facets.append(facet)
 
             # construct simplices over each visible facet
@@ -2049,7 +2050,8 @@ class PointConfiguration(UniqueRepresentation, PointConfiguration_base):
                 simplex = frozenset(list(facet) + [point])
                 simplices.append(simplex)
                 for facet in facets_of_simplex(simplex):
-                    if facet in visible_facets: continue
+                    if facet in visible_facets:
+                        continue
                     if facet in new_facets:
                         new_facets.remove(facet)
                         continue
@@ -2110,7 +2112,7 @@ class PointConfiguration(UniqueRepresentation, PointConfiguration_base):
         EXAMPLES::
 
             sage: p = PointConfiguration([[0,0],[0,1],[1,0],[1,1],[-1,-1]])
-            sage: p.plot(axes=False)
+            sage: p.plot(axes=False)  # optional - sage.plot
             Graphics object consisting of 5 graphics primitives
 
         .. PLOT::

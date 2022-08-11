@@ -16,7 +16,7 @@ version 2, or later.
 TESTS:
 
     sage: type(polygen(ComplexBallField(140)))
-    <type 'sage.rings.polynomial.polynomial_complex_arb.Polynomial_complex_arb'>
+    <class 'sage.rings.polynomial.polynomial_complex_arb.Polynomial_complex_arb'>
     sage: Pol.<x> = CBF[]
     sage: (x+1/2)^3
     x^3 + 1.500000000000000*x^2 + 0.7500000000000000*x + 0.1250000000000000
@@ -45,7 +45,7 @@ cdef class Polynomial_complex_arb(Polynomial):
 
         sage: Pol.<x> = CBF[]
         sage: type(x)
-        <type 'sage.rings.polynomial.polynomial_complex_arb.Polynomial_complex_arb'>
+        <class 'sage.rings.polynomial.polynomial_complex_arb.Polynomial_complex_arb'>
 
         sage: Pol(), Pol(1), Pol([0,1,2]), Pol({1: pi, 3: i})
         (0,
@@ -184,6 +184,23 @@ cdef class Polynomial_complex_arb(Polynomial):
                 ball = Coeff(x)
                 acb_poly_set_coeff_acb(self.__poly, 0, ball.value)
 
+    def __reduce__(self):
+        r"""
+        Serialize a polynomial for pickling.
+
+        TESTS::
+
+            sage: Pol.<x> = ComplexBallField(42)[]
+            sage: pol = (x + i)/3
+            sage: pol2 = loads(dumps(pol))
+            sage: pol.degree() == pol2.degree()
+            True
+            sage: all(a.identical(b) for (a, b) in zip(pol, pol2))
+            True
+        """
+        return (self.__class__,
+               (self.parent(), self.list(), False, self.is_gen()))
+
     # Access
 
     def degree(self):
@@ -227,7 +244,7 @@ cdef class Polynomial_complex_arb(Polynomial):
         cdef unsigned long length = acb_poly_length(self.__poly)
         return [self.get_unsafe(n) for n in range(length)]
 
-    def __nonzero__(self):
+    def __bool__(self):
         r"""
         Return ``False`` if this polynomial is exactly zero, ``True`` otherwise.
 
@@ -863,6 +880,13 @@ cdef class Polynomial_complex_arb(Polynomial):
             sage: pol(matrix([[1,2],[3,4]]))
             [6.000000000000000 10.00000000000000]
             [15.00000000000000 21.00000000000000]
+
+        TESTS::
+
+            sage: P.<x> = CBF[]
+            sage: Q.<y> = CBF[]
+            sage: x(y)
+            y
         """
         cdef ComplexBall ball
         cdef Polynomial_complex_arb poly
@@ -878,7 +902,7 @@ cdef class Polynomial_complex_arb(Polynomial):
                 sig_off()
                 return ball
             elif isinstance(point, Polynomial_complex_arb):
-                poly = self._new()
+                poly = (<Polynomial_complex_arb> point)._new()
                 sig_on()
                 acb_poly_compose(poly.__poly, self.__poly,
                         (<Polynomial_complex_arb> point).__poly, prec(self))

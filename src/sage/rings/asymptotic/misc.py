@@ -141,13 +141,19 @@ def parent_to_repr_short(P):
         sage: parent_to_repr_short(Zmod(3)['g'])
         'Univariate Polynomial Ring in g over Ring of integers modulo 3'
     """
-    from sage.rings.all import RR, CC, RIF, CIF, RBF, CBF
+    from sage.rings.cc import CC
+    from sage.rings.cif import CIF
+    from sage.rings.complex_arb import CBF
     from sage.rings.integer_ring import ZZ
     from sage.rings.rational_field import QQ
+    from sage.rings.real_arb import RBF
+    from sage.rings.real_mpfi import RIF
+    from sage.rings.real_mpfr import RR
     from sage.symbolic.ring import SR
     from sage.rings.polynomial.polynomial_ring import is_PolynomialRing
     from sage.rings.polynomial.multi_polynomial_ring_base import is_MPolynomialRing
     from sage.rings.power_series_ring import is_PowerSeriesRing
+
     def abbreviate(P):
         try:
             return P._repr_short_()
@@ -838,6 +844,76 @@ class NotImplementedOZero(NotImplementedError):
         self.exact_part = exact_part
 
         super(NotImplementedOZero, self).__init__(message)
+
+
+class NotImplementedBZero(NotImplementedError):
+    r"""
+    A special :python:`NotImplementedError<library/exceptions.html#exceptions.NotImplementedError>`
+    which is raised when the result is B(0) which means 0
+    for sufficiently large values of the variable.
+    """
+    def __init__(self, asymptotic_ring=None, var=None, exact_part=0):
+        r"""
+        INPUT:
+
+        - ``asymptotic_ring`` -- (default: ``None``) an :class:`AsymptoticRing` or ``None``.
+
+        - ``var`` -- (default: ``None``) a string.
+
+        Either ``asymptotic_ring`` or ``var`` has to be specified.
+
+        - ``exact_part`` -- (default: ``0``) asymptotic expansion
+
+        EXAMPLES::
+
+            sage: A = AsymptoticRing('n^ZZ', ZZ)
+            sage: from sage.rings.asymptotic.misc import NotImplementedBZero
+
+            sage: raise NotImplementedBZero(A)
+            Traceback (most recent call last):
+            ...
+            NotImplementedBZero: got B(0)
+            The error term B(0) means 0 for sufficiently large n.
+
+            sage: raise NotImplementedBZero(var='m')
+            Traceback (most recent call last):
+            ...
+            NotImplementedBZero: got B(0)
+            The error term B(0) means 0 for sufficiently large m.
+
+            sage: AR.<n> = AsymptoticRing('n^QQ', QQ)
+            sage: AR(0).B(42)
+            Traceback (most recent call last):
+            ...
+            NotImplementedBZero: got B(0)
+            The error term B(0) means 0 for sufficiently large n.
+
+        TESTS::
+
+            sage: raise NotImplementedBZero(A, var='m')
+            Traceback (most recent call last):
+            ...
+            ValueError: specify either 'asymptotic_ring' or 'var'
+            sage: raise NotImplementedBZero()
+            Traceback (most recent call last):
+            ...
+            ValueError: specify either 'asymptotic_ring' or 'var'
+        """
+        if (asymptotic_ring is None) == (var is None):
+            raise ValueError("specify either 'asymptotic_ring' or 'var'")
+
+        if var is None:
+            var = ', '.join(str(g) for g in asymptotic_ring.gens())
+        message = ('got {}\n'.format(('{} + '.format(exact_part) if exact_part else '')
+                                     + 'B(0)') +
+                   'The error term B(0) '
+                   'means 0 for sufficiently large {}.'.format(var))
+
+        if asymptotic_ring is not None and isinstance(exact_part, int) and exact_part == 0:
+            exact_part = asymptotic_ring.zero()
+        self.exact_part = exact_part
+
+        super(NotImplementedBZero, self).__init__(message)
 
 
 def transform_category(category,

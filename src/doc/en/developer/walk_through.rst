@@ -8,19 +8,27 @@ Sage Development Process
 
 This section is a concise overview of the Sage development process. In
 it, we will see how to make changes to the Sage source code and record
-them in the git revision control system.
+them in the ``git`` revision control system.
 
-In the following section on :ref:`chapter-git_trac` we will look at
-communicating these changes back to the Sage project.  We also have a handy
-`one-page "cheat sheet"
+We also have a handy `one-page "cheat sheet"
 <http://github.com/sagemath/git-trac-command/raw/master/doc/git-cheat-sheet.pdf>`_
 of commonly used git commands that you can print out and leave on your
 desk.  We have some :ref:`recommended references and tutorials
 <section-git-tutorials>` as well.
 
-You can alternatively fork and create a merge request at
-`GitLab <https://gitlab.com/sagemath/sage>`_ which will automatically fetch
-your code and open a ticket on our trac server.
+In the following sections on :ref:`chapter-sage-trac` and
+:ref:`section-git-tricks-and-tips` we will look at communicating these
+changes back to the Sage project.  All changes to Sage source code
+have to go through the `Sage Trac development server
+<https://trac.sagemath.org>`_.
+
+As an alternative to using the Trac server directly, you can fork and
+create a Merge Request (MR) at `GitLab <https://gitlab.com/sagemath/sage>`_
+which will automatically fetch your code and open a ticket on our trac
+server.
+
+Pull Requests (PR) on GitHub are currently not supported by the
+SageMath project.
 
 
 .. _section-walkthrough-setup-git:
@@ -64,12 +72,12 @@ before you forget!
 
 .. _section-walkthrough-sage-source:
 
-Obtaining the Sage Source Code
-==============================
+Obtaining and Compiling the Sage Source Code
+============================================
 
 Obviously one needs the Sage source code to develop.  You can use your
-local installation of Sage, or (to start without Sage) download it
-from github which is a public read-only mirror (=faster) of our
+local installation of Sage, or (to start from scratch) download it
+from GitHub which is a public read-only mirror (=faster) of our
 internal git repository::
 
     [user@localhost ~]$ git clone https://github.com/sagemath/sage.git
@@ -84,27 +92,18 @@ to the develop branch (latest development release)::
     [user@localhost ~]$ cd sage
     [user@localhost sage]$ git checkout develop
 
-You will then need to `compile Sage
-<http://doc.sagemath.org/html/en/installation/source.html>`_ in order to use it. If
-you cloned, you will need to remain on the internet for it to download various
-packages of Sage::
-
-    [user@localhost sage]$ make
-
-.. NOTE::
-
-    If your system supports multiprocessing and you want to use multiple
-    processors to build Sage, replace the last line above by::
-
-    [user@localhost sage]$ MAKE='make -jNUM' make
-
-    to tell the ``make`` program to run ``NUM`` jobs in parallel when
-    building Sage.
+Next, compile Sage, following the instruction in the file
+`README.md <https://github.com/sagemath/sage/#readme>`_ in ``SAGE_ROOT``.
+Additional details can be found in the
+`section on installation from source <../installation/source.html>`_
+in the Sage installation guide.
+If you wish to use conda-forge, see the `section on conda
+<../installation/conda.html>`_.
 
 .. NOTE::
 
-    Mac OS X allows changing directories without using exact capitalization.
-    Beware of this convenience when compiling for OS X. Ignoring exact
+    macOS allows changing directories without using exact capitalization.
+    Beware of this convenience when compiling for macOS. Ignoring exact
     capitalization when changing into :envvar:`SAGE_ROOT` can lead to build
     errors for dependencies requiring exact capitalization in path names.
 
@@ -125,7 +124,7 @@ Sage source code and which you can upload to trac tickets.
 
 To begin with, type the command ``git branch``. You will see the following::
 
-    [user@localhost]$ git branch
+    [user@localhost sage]$ git branch
     * develop
       master
 
@@ -153,7 +152,7 @@ to it. For this, you have to use ``git checkout``::
 
 Now if you use the command ``git branch``, you will see the following::
 
-    [user@localhost]$ git branch
+    [user@localhost sage]$ git branch
       develop
     * last_twin_prime
       master
@@ -243,7 +242,7 @@ to rebuild the Sage library and then start Sage. This should be quite
 fast. If you made changes to
 :ref:`third-party packages <chapter-packaging>`, then you have to run ::
 
-    [user@localhost sage]$ make
+    [user@localhost sage]$ make build
 
 as if you were `installing Sage from scratch
 <http://doc.sagemath.org/html/en/installation/source.html>`_.
@@ -258,13 +257,13 @@ the first time.
     <http://doc.sagemath.org/html/en/developer/manual_git.html#checking-out-tickets>`_,
     it may depend on changes to third-party packages, so ``./sage -br``
     may fail.  If this happens (and you believe the code in this branch
-    should compile), try running ``make``.
+    should compile), try running ``make build``.
 
 Rarely there are conflicts with other packages,
 or with the already-installed older version of the package that you
 changed, in that case you do have to recompile everything using::
 
-    [user@localhost sage]$ make distclean && make
+    [user@localhost sage]$ make distclean && make build
 
 Also, don't forget to run the tests (see :ref:`chapter-doctesting`)
 and build the documentation (see :ref:`chapter-sage_manuals`).

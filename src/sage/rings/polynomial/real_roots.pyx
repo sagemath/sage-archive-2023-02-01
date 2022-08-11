@@ -134,14 +134,21 @@ from https://wiki.sagemath.org/days4schedule .
 from copy import copy
 import time
 
-from sage.rings.all import ZZ, QQ, RR, AA, RealField, RealIntervalField, RIF, RDF, infinity
-from sage.arith.all import binomial, factorial
+from sage.rings.integer_ring import ZZ
+from sage.rings.rational_field import QQ
+from sage.rings.infinity import infinity
+from sage.rings.qqbar import AA
+from sage.rings.real_double import RDF
+from sage.rings.real_mpfi import RealIntervalField, RIF
+from sage.rings.real_mpfr import RR, RealField
+from sage.arith.misc import binomial, factorial
 from sage.misc.randstate import randstate
 from sage.modules.all import vector, FreeModule
-from sage.matrix.all import MatrixSpace
+from sage.matrix.matrix_space import MatrixSpace
 from sage.rings.polynomial.polynomial_ring_constructor import PolynomialRing
 from sage.rings.polynomial.polynomial_ring import polygen
-from sage.misc.all import numerator, denominator, prod
+from sage.misc.functional import numerator, denominator
+from sage.misc.misc_c import prod
 
 from sage.matrix.matrix_integer_dense cimport Matrix_integer_dense
 from sage.modules.vector_integer_dense cimport Vector_integer_dense
@@ -325,9 +332,9 @@ cdef class interval_bernstein_polynomial:
         on bp2 (or bp1).
         """
         if self.max_variations - bp1.min_variations < bp2.max_variations:
-           bp2.max_variations = self.max_variations - bp1.min_variations
+            bp2.max_variations = self.max_variations - bp1.min_variations
         if self.max_variations - bp2.min_variations < bp1.max_variations:
-           bp1.max_variations = self.max_variations - bp2.min_variations
+            bp1.max_variations = self.max_variations - bp2.min_variations
 
     def try_split(self, context ctx, logging_note):
         """
@@ -405,9 +412,9 @@ cdef class interval_bernstein_polynomial:
         # A different algorithm here might be more efficient.
 
         div = 1024
-        while self.degree() >= div//4:
+        while self.degree() >= (div // 4):
             div = div * 2
-        qdiv = div/4
+        qdiv = div // 4  # divides evenly since div = 1024*2^k
         rand = Integer(ctx.random.randrange(qdiv, 3*qdiv)) / div
         (p1, p2, ok) = self.de_casteljau(ctx, rand)
         ctx.dc_log_append(("div" + self._type_code(), self.scale_log2, self.bitsize, rand, ok, logging_note))
@@ -2105,14 +2112,14 @@ def bernstein_up(d1, d2, s=None):
     MS = MatrixSpace(QQ, s, d1+1, sparse=False)
     m = MS()
     scale = factorial(d2)/factorial(d2-d1)
-    for b in range(0, d1+1):
+    for b in range(d1 + 1):
         scale2 = scale / binomial(d1, b)
         if (d1 - b) & 1 == 1:
             scale2 = -scale2
         scale2 = ~scale2
-        for a in range(0, s):
+        for a in range(s):
             ra = ZZ(subsample_vec(a, s, d2 + 1))
-            m[a, b] = prod([ra-i for i in range(0, b)]) * prod([ra-i for i in range(d2-d1+b+1, d2+1)]) * scale2
+            m[a, b] = prod([ra-i for i in range(b)]) * prod([ra-i for i in range(d2-d1+b+1, d2+1)]) * scale2
 
     return m
 
@@ -4365,7 +4372,7 @@ def to_bernstein(p, low=0, high=1, degree=None):
         raise ValueError('Bernstein degree must be at least polynomial degree')
     vs = ZZ ** (degree + 1)
     c = vs(0)
-    for i in range(0, p.degree() + 1):
+    for i in range(p.degree() + 1):
         c[i] = p[i]
     scale = ZZ(1)
     if low == 0:
@@ -4381,7 +4388,8 @@ def to_bernstein(p, low=0, high=1, degree=None):
     reverse_intvec(c)
     taylor_shift1_intvec(c)
     reverse_intvec(c)
-    return ([c[k] / binomial(degree, k) for k in range(0, degree+1)], scale)
+    return ([c[k] / binomial(degree, k) for k in range(degree + 1)], scale)
+
 
 def to_bernstein_warp(p):
     """
@@ -4395,13 +4403,11 @@ def to_bernstein_warp(p):
         sage: to_bernstein_warp(1 + x + x^2 + x^3 + x^4 + x^5)
         [1, 1/5, 1/10, 1/10, 1/5, 1]
     """
-
     c = p.list()
-
     for i in range(len(c)):
         c[i] = c[i] / binomial(len(c) - 1, i)
-
     return c
+
 
 def bernstein_expand(Vector_integer_dense c, int d2):
     """

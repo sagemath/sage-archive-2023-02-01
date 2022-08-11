@@ -29,16 +29,16 @@ complementary representations of the same data:
 
     where
 
-    * **vertices** `v_1`, `\dots`, `v_k` are a finite number of
+    * **vertices** `v_1,\dots,v_k` are a finite number of
       points. Each vertex is specified by an arbitrary vector, and two
       points are equal if and only if the vector is the same.
 
-    * **rays** `r_1`, `\dots`, `r_m` are a finite number of directions
+    * **rays** `r_1,\dots,r_m` are a finite number of directions
       (directions of infinity). Each ray is specified by a non-zero
       vector, and two rays are equal if and only if the vectors are
       the same up to rescaling with a positive constant.
 
-    * **lines** `\ell_1`, `\dots`, `\ell_n` are a finite number of
+    * **lines** `\ell_1,\dots,\ell_n` are a finite number of
       unoriented directions. In other words, a line is equivalent to
       the set `\{r, -r\}` for a ray `r`. Each line is specified by a
       non-zero vector, and two lines are equivalent if and only if the
@@ -131,7 +131,7 @@ EXAMPLES::
     sage: type(v)
     <class 'sage.geometry.polyhedron.representation.Vertex'>
     sage: type( v() )
-    <type 'sage.modules.vector_rational_dense.Vector_rational_dense'>
+    <class 'sage.modules.vector_rational_dense.Vector_rational_dense'>
     sage: v.polyhedron()
     A 2-dimensional polyhedron in QQ^2 defined as the convex hull of 2 vertices and 2 rays
     sage: r = next(trunc_quadr.ray_generator())
@@ -159,11 +159,10 @@ Base Rings
 
 The base ring of the polyhedron can be specified by the ``base_ring``
 optional keyword argument. If not specified, a suitable common base
-ring for all coordinates/coefficients will be chosen
+ring for all coordinates and coefficients will be chosen
 automatically. Important cases are:
 
-* ``base_ring=QQ`` uses a fast implementation for exact rational
-  numbers.
+* ``base_ring=QQ`` uses a fast implementation for exact rational numbers.
 
 * ``base_ring=ZZ`` is similar to ``QQ``, but the resulting polyhedron
   object will have extra methods for lattice polyhedra.
@@ -174,11 +173,11 @@ automatically. Important cases are:
 Polyhedra with symmetries often are defined over some algebraic field
 extension of the rationals. As a simple example, consider the
 equilateral triangle whose vertex coordinates involve `\sqrt{3}`. An
-exact way to work with roots in Sage is the :mod:`Algebraic Real Field
-<sage.rings.qqbar>` ::
+exact way to work with roots in Sage is the
+:mod:`Algebraic Real Field <sage.rings.qqbar>` ::
 
-    sage: triangle = Polyhedron([(0,0), (1,0), (1/2, sqrt(3)/2)], base_ring=AA)
-    sage: triangle.Hrepresentation()
+    sage: triangle = Polyhedron([(0,0), (1,0), (1/2, sqrt(3)/2)], base_ring=AA) # optional - sage.rings.number_field  # optional - sage.symbolic
+    sage: triangle.Hrepresentation()                                            # optional - sage.rings.number_field  # optional - sage.symbolic
     (An inequality (-1, -0.5773502691896258?) x + 1 >= 0,
      An inequality (1, -0.5773502691896258?) x + 0 >= 0,
      An inequality (0, 1.154700538379252?) x + 0 >= 0)
@@ -187,27 +186,27 @@ Without specifying the ``base_ring``, the ``sqrt(3)`` would be a
 symbolic ring element and, therefore, the polyhedron defined over the
 symbolic ring. This is currently not supported as SR is not exact::
 
-    sage: Polyhedron([(0,0), (1,0), (1/2, sqrt(3)/2)])
+    sage: Polyhedron([(0,0), (1,0), (1/2, sqrt(3)/2)])                          # optional - sage.symbolic
     Traceback (most recent call last):
     ...
     ValueError: no default backend for computations with Symbolic Ring
 
-    sage: SR.is_exact()
+    sage: SR.is_exact()                                                         # optional - sage.symbolic
     False
 
 Even faster than all algebraic real numbers (the field ``AA``) is
 to take the smallest extension field. For the equilateral
 triangle, that would be::
 
-    sage: K.<sqrt3> = NumberField(x^2 - 3, embedding=AA(3)**(1/2))
-    sage: Polyhedron([(0,0), (1,0), (1/2, sqrt3/2)])
+    sage: K.<sqrt3> = NumberField(x^2 - 3, embedding=AA(3)**(1/2))              # optional - sage.rings.number_field
+    sage: Polyhedron([(0,0), (1,0), (1/2, sqrt3/2)])                            # optional - sage.rings.number_field
     A 2-dimensional polyhedron in (Number Field in sqrt3 with defining polynomial x^2 - 3 with sqrt3 = 1.732050807568878?)^2 defined as the convex hull of 3 vertices
 
 .. WARNING::
 
     Be careful when you construct polyhedra with floating point numbers. The only
     available backend for such computation is ``cdd`` which uses machine floating
-    point numbers which have have limited precision. If the input consists of
+    point numbers which have limited precision. If the input consists of
     floating point numbers and the ``base_ring`` is not specified, the base ring is
     set to be the ``RealField`` with the precision given by the minimal bit precision
     of the input. Then, if the obtained minimum is 53 bits of precision, the
@@ -292,7 +291,9 @@ AUTHORS:
 #                  https://www.gnu.org/licenses/
 ########################################################################
 
-from sage.rings.all import ZZ, RDF, RR
+from sage.rings.integer_ring import ZZ
+from sage.rings.real_double import RDF
+from sage.rings.real_mpfr import RR
 
 from .misc import _make_listlist, _common_length_of
 
@@ -441,24 +442,25 @@ def Polyhedron(vertices=None, rays=None, lines=None,
     by the cyclic shifts of `(0, \pm 1, \pm (1+\sqrt(5))/2)`, cf.
     :wikipedia:`Regular_icosahedron`. It needs a number field::
 
-        sage: R0.<r0> = QQ[]
-        sage: R1.<r1> = NumberField(r0^2-5, embedding=AA(5)**(1/2))
-        sage: gold = (1+r1)/2
-        sage: v = [[0, 1, gold], [0, 1, -gold], [0, -1, gold], [0, -1, -gold]]
-        sage: pp = Permutation((1, 2, 3))
-        sage: icosah = Polyhedron([(pp^2).action(w) for w in v]
-        ....:             + [pp.action(w) for w in v] + v, base_ring=R1)
-        sage: len(icosah.faces(2))
+        sage: R0.<r0> = QQ[]                                                    # optional - sage.rings.number_field
+        sage: R1.<r1> = NumberField(r0^2-5, embedding=AA(5)**(1/2))             # optional - sage.rings.number_field
+        sage: gold = (1+r1)/2                                                   # optional - sage.rings.number_field
+        sage: v = [[0, 1, gold], [0, 1, -gold], [0, -1, gold], [0, -1, -gold]]  # optional - sage.rings.number_field
+        sage: pp = Permutation((1, 2, 3))          # optional - sage.combinat   # optional - sage.rings.number_field
+        sage: icosah = Polyhedron(                 # optional - sage.combinat   # optional - sage.rings.number_field
+        ....:    [(pp^2).action(w) for w in v] + [pp.action(w) for w in v] + v,
+        ....:    base_ring=R1)
+        sage: len(icosah.faces(2))                 # optional - sage.combinat   # optional - sage.rings.number_field
         20
 
     When the input contains elements of a Number Field, they require an
     embedding::
 
-        sage: K = NumberField(x^2-2,'s')
-        sage: s = K.0
-        sage: L = NumberField(x^3-2,'t')
-        sage: t = L.0
-        sage: P = Polyhedron(vertices = [[0,s],[t,0]])
+        sage: K = NumberField(x^2-2,'s')                                        # optional - sage.rings.number_field
+        sage: s = K.0                                                           # optional - sage.rings.number_field
+        sage: L = NumberField(x^3-2,'t')                                        # optional - sage.rings.number_field
+        sage: t = L.0                                                           # optional - sage.rings.number_field
+        sage: P = Polyhedron(vertices = [[0,s],[t,0]])                          # optional - sage.rings.number_field
         Traceback (most recent call last):
         ...
         ValueError: invalid base ring
@@ -615,7 +617,8 @@ def Polyhedron(vertices=None, rays=None, lines=None,
     # figure out base_ring
     from sage.misc.flatten import flatten
     from sage.structure.element import parent
-    from sage.categories.all import Rings, Fields
+    from sage.categories.fields import Fields
+    from sage.categories.rings import Rings
 
     values = flatten(vertices + rays + lines + ieqs + eqns)
     if base_ring is not None:
@@ -649,7 +652,10 @@ def Polyhedron(vertices=None, rays=None, lines=None,
         if base_ring not in Rings():
             raise ValueError('invalid base ring')
 
-        from sage.symbolic.ring import SR
+        try:
+            from sage.symbolic.ring import SR
+        except ImportError:
+            SR = None
         if base_ring is not SR and not base_ring.is_exact():
             # TODO: remove this hack?
             if base_ring is RR:

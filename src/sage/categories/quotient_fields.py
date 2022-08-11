@@ -215,7 +215,7 @@ class QuotientFields(Category_singleton):
                 sage: (1/2).lcm(2)
                 2
                 sage: type((1/2).lcm(2))
-                <type 'sage.rings.rational.Rational'>
+                <class 'sage.rings.rational.Rational'>
             """
             P = self.parent()
             try:
@@ -518,15 +518,15 @@ class QuotientFields(Category_singleton):
             This was fixed in :trac:`16240`::
 
                 sage: R.<x> = QQ['x']
-                sage: p=1/(-x + 1)
+                sage: p = 1/(-x + 1)
                 sage: whole,parts = p.partial_fraction_decomposition()
                 sage: p == sum(parts)
                 True
-                sage: p=3/(-x^4 + 1)
+                sage: p = 3/(-x^4 + 1)
                 sage: whole,parts = p.partial_fraction_decomposition()
                 sage: p == sum(parts)
                 True
-                sage: p=(6*x^2 - 9*x + 5)/(-x^3 + 3*x^2 - 3*x + 1)
+                sage: p = (6*x^2 - 9*x + 5)/(-x^3 + 3*x^2 - 3*x + 1)
                 sage: whole,parts = p.partial_fraction_decomposition()
                 sage: p == sum(parts)
                 True
@@ -710,4 +710,3 @@ class QuotientFields(Category_singleton):
 
             return self.__class__(R, num, den,
                 coerce=False, reduce=False)
-

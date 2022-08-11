@@ -5,15 +5,15 @@ AUTHOR:
     - William Stein, 2009
 """
 
-#*****************************************************************************
+# ****************************************************************************
 #       Copyright (C) 2009 William Stein <wstein@gmail.com>
 #
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
 # the Free Software Foundation, either version 2 of the License, or
 # (at your option) any later version.
-#                  http://www.gnu.org/licenses/
-#*****************************************************************************
+#                  https://www.gnu.org/licenses/
+# ****************************************************************************
 
 from sage.structure.element import ModuleElement
 from sage.structure.richcmp import richcmp
@@ -233,7 +233,6 @@ class FGP_Element(ModuleElement):
             sage: x._rmul_(1/4)
             (1/4, 0)
         """
-        # print "_rmul_"
         P = self.parent()
         return P.element_class(P, self._x._rmul_(c))
 
@@ -279,10 +278,8 @@ class FGP_Element(ModuleElement):
             sage: x._lmul_(1/4)
             (1/4, 0)
         """
-        # print '_lmul_'
         P = self.parent()
         return P.element_class(P, self._x._lmul_(s))
-
 
     def _repr_(self):
         """
@@ -440,7 +437,7 @@ class FGP_Element(ModuleElement):
             sage: Q.0.additive_order()
             12
             sage: type(Q.0.additive_order())
-            <type 'sage.rings.integer.Integer'>
+            <class 'sage.rings.integer.Integer'>
             sage: Q.1.additive_order()
             +Infinity
         """
@@ -448,7 +445,9 @@ class FGP_Element(ModuleElement):
         I = Q.invariants()
         v = self.vector()
 
-        from sage.rings.all import infinity, Mod, Integer
+        from sage.rings.infinity import infinity
+        from sage.rings.finite_rings.integer_mod import Mod
+        from sage.rings.integer import Integer
         from sage.arith.all import lcm
         n = Integer(1)
         for i, a in enumerate(I):

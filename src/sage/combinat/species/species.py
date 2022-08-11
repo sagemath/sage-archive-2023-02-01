@@ -51,7 +51,7 @@ three internal nodes.
 #                  https://www.gnu.org/licenses/
 # ****************************************************************************
 from .generating_series import OrdinaryGeneratingSeriesRing, ExponentialGeneratingSeriesRing, CycleIndexSeriesRing
-from sage.rings.all import QQ
+from sage.rings.rational_field import QQ
 from sage.structure.sage_object import SageObject
 from sage.misc.cachefunc import cached_method
 from sage.combinat.species.misc import accept_size
@@ -458,7 +458,7 @@ class GenericCombinatorialSpecies(SageObject):
             ...
             ValueError: only positive exponents are currently supported
         """
-        from sage.rings.all import Integer
+        from sage.rings.integer import Integer
         import operator
         n = Integer(n)
         if n <= 0:
@@ -722,7 +722,7 @@ class GenericCombinatorialSpecies(SageObject):
 
             sage: d = {sp: i for i, sp in enumerate(g)}
             sage: g.relabel(d)
-            sage: g.canonical_label().edges()
+            sage: g.canonical_label().edges(sort=True)
             [(0, 3, None), (2, 0, None), (2, 0, None), (3, 1, None), (3, 2, None)]
         """
         from sage.graphs.digraph import DiGraph
@@ -745,7 +745,7 @@ class GenericCombinatorialSpecies(SageObject):
             Multi-digraph on 1 vertex
             sage: (X+X)._add_to_digraph(d); d
             Multi-digraph on 2 vertices
-            sage: d.edges()
+            sage: d.edges(sort=True)
             [(Sum of (Singleton species) and (Singleton species), Singleton species, None),
              (Sum of (Singleton species) and (Singleton species), Singleton species, None)]
         """
@@ -771,7 +771,7 @@ class GenericCombinatorialSpecies(SageObject):
 
             sage: B = species.BinaryTreeSpecies()
             sage: B.algebraic_equation_system()
-            [-node3^2 + node1, -node1 + node3 - z]
+            [-node3^2 + node1, -node1 + node3 + (-z)]
 
         ::
 

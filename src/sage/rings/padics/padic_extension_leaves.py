@@ -1,5 +1,5 @@
 """
-p-Adic Extension Leaves
+`p`-adic Extension Leaves
 
 The final classes for extensions of Zp and Qp (ie classes that are not
 just designed to be inherited from).
@@ -220,13 +220,14 @@ class UnramifiedExtensionFieldCappedRelative(UnramifiedExtensionGeneric, pAdicCa
               To:   3-adic Unramified Extension Field in a defined by x^3 + 2*x + 1
         """
         if isinstance(R, UnramifiedExtensionRingCappedRelative) and R.fraction_field() is self:
-           from sage.rings.padics.qadic_flint_CR import pAdicCoercion_CR_frac_field
-           return pAdicCoercion_CR_frac_field(R, self)
+            from sage.rings.padics.qadic_flint_CR import pAdicCoercion_CR_frac_field
+            return pAdicCoercion_CR_frac_field(R, self)
         if isinstance(R, UnramifiedExtensionRingCappedAbsolute) and R.fraction_field() is self:
-           from sage.rings.padics.qadic_flint_CA import pAdicCoercion_CA_frac_field
-           return pAdicCoercion_CA_frac_field(R, self)
+            from sage.rings.padics.qadic_flint_CA import pAdicCoercion_CA_frac_field
+            return pAdicCoercion_CA_frac_field(R, self)
 
-        return super(UnramifiedExtensionFieldCappedRelative, self)._coerce_map_from_(R)
+        return super()._coerce_map_from_(R)
+
 
 class UnramifiedExtensionRingCappedAbsolute(UnramifiedExtensionGeneric, pAdicCappedAbsoluteRingGeneric):
     """
@@ -685,8 +686,8 @@ class EisensteinExtensionRingFixedMod(EisensteinExtensionGeneric, pAdicFixedModR
         """
         unram_prec = (prec + poly.degree() - 1) // poly.degree()
         ntl_poly = ntl_ZZ_pX([a.lift() for a in poly.list()], poly.base_ring().prime()**unram_prec)
-        shift_poly = ntl_ZZ_pX([a.lift() for a in shift_seed.list()], shift_seed.base_ring().prime()**unram_prec)
-        #print poly.base_ring().prime(), prec, poly.degree(), ntl_poly
+        shift_poly = ntl_ZZ_pX([a.lift() for a in shift_seed.list()],
+                               shift_seed.base_ring().prime()**unram_prec)
         # deal with prec not a multiple of e better.
         self.prime_pow = PowComputer_ext_maker(poly.base_ring().prime(), max(min(unram_prec - 1, 30), 1), unram_prec, prec, False, ntl_poly, "FM", "e", shift_poly)
         self._shift_seed = shift_seed

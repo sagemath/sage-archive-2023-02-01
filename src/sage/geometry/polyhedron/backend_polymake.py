@@ -96,9 +96,12 @@ class Polyhedron_polymake(Polyhedron_base):
 
     Quadratic fields work::
 
-        sage: V = polytopes.dodecahedron().vertices_list()
-        sage: Polyhedron(vertices=V, backend='polymake')                   # optional - polymake
-        A 3-dimensional polyhedron in (Number Field in sqrt5 with defining polynomial x^2 - 5 with sqrt5 = 2.236067977499790?)^3 defined as the convex hull of 20 vertices
+        sage: V = polytopes.dodecahedron().vertices_list()                                        # optional - sage.rings.number_field
+        sage: Polyhedron(vertices=V, backend='polymake')                   # optional - polymake  # optional - sage.rings.number_field
+        A 3-dimensional polyhedron
+         in (Number Field in sqrt5 with defining polynomial x^2 - 5
+             with sqrt5 = 2.236067977499790?)^3
+         defined as the convex hull of 20 vertices
 
     TESTS:
 
@@ -589,8 +592,7 @@ class Polyhedron_polymake(Polyhedron_base):
         if self._polymake_polytope.parent() is polymake:
             # Same polymake interface, can just return our object
             return self._polymake_polytope
-        else:
-            return super(Polyhedron_polymake, self)._polymake_(polymake)
+        return super()._polymake_(polymake)
 
     def __getstate__(self):
         r"""
@@ -598,29 +600,29 @@ class Polyhedron_polymake(Polyhedron_base):
 
         TESTS::
 
-        sage: P = polytopes.simplex(backend='polymake')   # optional - polymake
-        sage: P.__getstate__()                            # optional - polymake
-        (Polyhedra in QQ^4,
-         {'_Hrepresentation': (An inequality (0, -1, -1, -1) x + 1 >= 0,
-           An inequality (0, 1, 0, 0) x + 0 >= 0,
-           An inequality (0, 0, 1, 0) x + 0 >= 0,
-           An inequality (0, 0, 0, 1) x + 0 >= 0,
-           An equation (1, 1, 1, 1) x - 1 == 0),
-          '_Vrepresentation': (A vertex at (1, 0, 0, 0),
-           A vertex at (0, 1, 0, 0),
-           A vertex at (0, 0, 1, 0),
-           A vertex at (0, 0, 0, 1)),
-          '_pickle_equations': [(-1, 1, 1, 1, 1)],
-          '_pickle_inequalities': [(1, 0, -1, -1, -1),
-           (0, 0, 1, 0, 0),
-           (0, 0, 0, 1, 0),
-           (0, 0, 0, 0, 1)],
-          '_pickle_lines': [],
-          '_pickle_rays': [],
-          '_pickle_vertices': [(1, 0, 0, 0),
-           (0, 1, 0, 0),
-           (0, 0, 1, 0),
-           (0, 0, 0, 1)]})
+            sage: P = polytopes.simplex(backend='polymake')   # optional - polymake
+            sage: P.__getstate__()                            # optional - polymake
+            (Polyhedra in QQ^4,
+             {'_Hrepresentation': (An inequality (0, -1, -1, -1) x + 1 >= 0,
+               An inequality (0, 1, 0, 0) x + 0 >= 0,
+               An inequality (0, 0, 1, 0) x + 0 >= 0,
+               An inequality (0, 0, 0, 1) x + 0 >= 0,
+               An equation (1, 1, 1, 1) x - 1 == 0),
+              '_Vrepresentation': (A vertex at (1, 0, 0, 0),
+               A vertex at (0, 1, 0, 0),
+               A vertex at (0, 0, 1, 0),
+               A vertex at (0, 0, 0, 1)),
+              '_pickle_equations': [(-1, 1, 1, 1, 1)],
+              '_pickle_inequalities': [(1, 0, -1, -1, -1),
+               (0, 0, 1, 0, 0),
+               (0, 0, 0, 1, 0),
+               (0, 0, 0, 0, 1)],
+              '_pickle_lines': [],
+              '_pickle_rays': [],
+              '_pickle_vertices': [(1, 0, 0, 0),
+               (0, 1, 0, 0),
+               (0, 0, 1, 0),
+               (0, 0, 0, 1)]})
         """
         state = super().__getstate__()
         state = (state[0], state[1].copy())
@@ -662,11 +664,11 @@ class Polyhedron_polymake(Polyhedron_base):
             sage: P2 = Polyhedron_polymake(P1.parent(), None, None, P1._polymake_polytope)                          # optional - polymake
             sage: P._test_polymake_pickling(other=P2)                                                               # optional - polymake
 
-            sage: print("Possible output"); P = polytopes.dodecahedron(backend='polymake')  # optional - polymake
+            sage: print("Possible output"); P = polytopes.dodecahedron(backend='polymake')  # optional - polymake  # optional - sage.rings.number_field
             Possible output...
-            sage: P1 = loads(dumps(P))                                                      # optional - polymake
-            sage: P2 = Polyhedron_polymake(P1.parent(), None, None, P1._polymake_polytope)  # optional - polymake
-            sage: P._test_polymake_pickling(other=P2)                                       # optional - polymake
+            sage: P1 = loads(dumps(P))                                                      # optional - polymake  # optional - sage.rings.number_field
+            sage: P2 = Polyhedron_polymake(P1.parent(), None, None, P1._polymake_polytope)  # optional - polymake  # optional - sage.rings.number_field
+            sage: P._test_polymake_pickling(other=P2)                                       # optional - polymake  # optional - sage.rings.number_field
         """
         if "_pickle_vertices" in state[1]:
             vertices = state[1].pop("_pickle_vertices")
@@ -763,4 +765,3 @@ class Polyhedron_ZZ_polymake(Polyhedron_polymake, Polyhedron_ZZ):
         sage: TestSuite(p).run()                                           # optional - polymake
     """
     pass
-

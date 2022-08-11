@@ -15,13 +15,15 @@ Hasse diagrams of posets
 # (at your option) any later version.
 #                  https://www.gnu.org/licenses/
 # ****************************************************************************
+from __future__ import annotations
+
 from sage.graphs.digraph import DiGraph
 from sage.matrix.constructor import matrix
 from sage.rings.integer_ring import ZZ
 from sage.rings.finite_rings.finite_field_constructor import GF
 from sage.misc.lazy_attribute import lazy_attribute
 from sage.misc.cachefunc import cached_method
-from sage.functions.other import binomial
+from sage.arith.all import binomial
 from sage.misc.rest_index_of_methods import gen_rest_table_index
 from sage.combinat.posets.hasse_cython import (moebius_matrix_fast,
                                                coxeter_matrix_fast,
@@ -1852,7 +1854,7 @@ class HasseDiagram(DiGraph):
         result.pop()  # Remove the top element.
         return result
 
-    def is_complemented(self) -> bool:
+    def is_complemented(self) -> int | None:
         """
         Return an element of the lattice that has no complement.
 
@@ -2016,7 +2018,7 @@ class HasseDiagram(DiGraph):
         for chain 0-1-6-11 would be 11-7-8-0, which is not a chain::
 
             sage: H = HasseDiagram('KTGG_?AAC?O?o?@?@?E?@?@??')
-            sage: list([_ for _ in H.orthocomplementations_iterator()])
+            sage: list(H.orthocomplementations_iterator())
             []
         """
         n = self.order()
@@ -2223,7 +2225,8 @@ class HasseDiagram(DiGraph):
             sage: H = P._hasse_diagram
             sage: H.are_incomparable(1,2)
             True
-            sage: [ (i,j) for i in H.vertices() for j in H.vertices() if H.are_incomparable(i,j)]
+            sage: V = H.vertices(sort=True)
+            sage: [ (i,j) for i in V for j in V if H.are_incomparable(i,j)]
             [(1, 2), (1, 3), (2, 1), (3, 1)]
         """
         if i == j:
@@ -2247,7 +2250,8 @@ class HasseDiagram(DiGraph):
             sage: H = P._hasse_diagram
             sage: H.are_comparable(1,2)
             False
-            sage: [ (i,j) for i in H.vertices() for j in H.vertices() if H.are_comparable(i,j)]
+            sage: V = H.vertices(sort=True)
+            sage: [ (i,j) for i in V for j in V if H.are_comparable(i,j)]
             [(0, 0), (0, 1), (0, 2), (0, 3), (0, 4), (1, 0), (1, 1), (1, 4), (2, 0), (2, 2), (2, 3), (2, 4), (3, 0), (3, 2), (3, 3), (3, 4), (4, 0), (4, 1), (4, 2), (4, 3), (4, 4)]
         """
         if i == j:
@@ -2289,7 +2293,7 @@ class HasseDiagram(DiGraph):
             sage: TestSuite(A).run()
         """
         from sage.combinat.subsets_pairwise import PairwiseCompatibleSubsets
-        return PairwiseCompatibleSubsets(self.vertices(),
+        return PairwiseCompatibleSubsets(self.vertices(sort=True),
                                          self.are_incomparable,
                                          element_class=element_class)
 
@@ -2353,6 +2357,64 @@ class HasseDiagram(DiGraph):
         """
         return IncreasingChains(self._leq_storage, element_class, exclude, conversion)
 
+    def is_linear_interval(self, t_min, t_max) -> bool:
+        """
+        Return whether the interval ``[t_min, t_max]`` is linear.
+
+        This means that this interval is a total order.
+
+        EXAMPLES::
+
+            sage: P = posets.PentagonPoset()
+            sage: H = P._hasse_diagram
+            sage: H.is_linear_interval(0, 4)
+            False
+            sage: H.is_linear_interval(0, 3)
+            True
+            sage: H.is_linear_interval(1, 3)
+            False
+            sage: H.is_linear_interval(1, 1)
+            True
+
+        TESTS::
+
+            sage: P = posets.TamariLattice(3)
+            sage: H = P._hasse_diagram
+            sage: D = H._leq_storage
+            sage: a, b = H.bottom(), H.top()
+            sage: H.is_linear_interval(a, b)
+            False
+            sage: H.is_linear_interval(a, a)
+            True
+        """
+        if '_leq_storage' in self.__dict__:
+            if not self.is_lequal(t_min, t_max):  # very quick check
+                return False
+            t = t_max
+            while t != t_min:
+                found = False
+                for u in self.neighbor_in_iterator(t):
+                    if self.is_lequal(t_min, u):
+                        if not found:
+                            found = True
+                            t = u
+                        else:
+                            return False
+            return True
+
+        # fall back to default implementation
+        it = self.all_paths_iterator([t_min], [t_max],
+                                     simple=True, trivial=True)
+        try:
+            next(it)
+        except StopIteration:  # not comparable
+            return False
+        try:
+            next(it)
+        except StopIteration:  # one path
+            return True
+        return False
+
     def diamonds(self):
         r"""
         Return the list of diamonds of ``self``.
@@ -2390,7 +2452,7 @@ class HasseDiagram(DiGraph):
         """
         diamonds = []
         all_diamonds_completed = True
-        for w in self.vertices():
+        for w in self.vertices(sort=True):
             covers = self.neighbors_out(w)
             for i, x in enumerate(covers):
                 for y in covers[i + 1:]:
@@ -3281,7 +3343,7 @@ class HasseDiagram(DiGraph):
                 D[ab] = cong
                 P[ab] = cong_
 
-        # Todo: Make a function that creates the poset from a set
+        # TODO: Make a function that creates the poset from a set
         # by comparison function with minimal number of comparisons.
 
         T = SetPartitions(n)
@@ -3362,18 +3424,18 @@ class HasseDiagram(DiGraph):
         from sage.combinat.set_partition import SetPartition
 
         n = self.order()
-        congs_ji = {}
+        congs_ji: dict[SetPartition, list] = {}
 
         for ji in range(n):
             if self.in_degree(ji) == 1:
-                cong = SetPartition(self.congruence([[ji, next(self.neighbor_in_iterator(ji))]]))
+                cong = SetPartition(self.congruence([[ji, next(self.neighbor_in_iterator(ji))]]))  # type:ignore
                 if cong not in congs_ji:
                     congs_ji[cong] = []
                 congs_ji[cong].append(ji)
 
         for mi in range(n):
             if self.out_degree(mi) == 1:
-                cong = SetPartition(self.congruence([[mi, next(self.neighbor_out_iterator(mi))]]))
+                cong = SetPartition(self.congruence([[mi, next(self.neighbor_out_iterator(mi))]]))  # type:ignore
                 if any(self.is_lequal(ji, mi) for ji in congs_ji[cong]):
                     return False
 

@@ -67,7 +67,8 @@ Families of subsets after the above operations::
 # (at your option) any later version.
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
-
+from __future__ import annotations
+from typing import Optional
 from collections import defaultdict
 import itertools
 from sage.structure.parent import Parent
@@ -150,7 +151,9 @@ class ManifoldSubset(UniqueRepresentation, Parent):
 
     Element = ManifoldPoint
 
-    def __init__(self, manifold, name, latex_name=None, category=None):
+    _name: str
+
+    def __init__(self, manifold, name: str, latex_name=None, category=None):
         r"""
         Construct a manifold subset.
 
@@ -505,7 +508,7 @@ class ManifoldSubset(UniqueRepresentation, Parent):
     ambient = manifold
 
     def is_open(self):
-        """
+        r"""
         Return if ``self`` is an open set.
 
         This method always returns ``False``, since open subsets must be
@@ -524,7 +527,7 @@ class ManifoldSubset(UniqueRepresentation, Parent):
         return False
 
     def is_closed(self):
-        """
+        r"""
         Return if ``self`` is a closed set.
 
         EXAMPLES::
@@ -968,6 +971,7 @@ class ManifoldSubset(UniqueRepresentation, Parent):
             def vertex_family(subset):
                 return ManifoldSubsetFiniteFamily([subset])
         subset_to_vertex = {}
+
         def vertex(subset):
             try:
                 return subset_to_vertex[subset]
@@ -1147,11 +1151,6 @@ class ManifoldSubset(UniqueRepresentation, Parent):
 
         .. NOTE::
 
-            To get the equal subsets as a family, sorted by name, use the method
-            :meth:`equal_subset_family` instead.
-
-        .. NOTE::
-
             If you only need to iterate over the equal sets in arbitrary order,
             you can use the generator method :meth:`equal_subsets` instead.
 
@@ -1216,7 +1215,7 @@ class ManifoldSubset(UniqueRepresentation, Parent):
         return ManifoldSubsetFiniteFamily(self.supersets())
 
     def superset_digraph(self, loops=False, quotient=False, open_covers=False, points=False, upper_bound=None):
-        """
+        r"""
         Return the digraph whose arcs represent subset relations among the supersets of ``self``.
 
         INPUT:
@@ -1996,7 +1995,7 @@ class ManifoldSubset(UniqueRepresentation, Parent):
         An open subset is a set that is (i) included in the manifold and (ii)
         open with respect to the manifold's topology. It is a topological
         manifold by itself. Hence the returned object is an instance of
-        :class:`TopologicalManifold`.
+        :class:`~sage.manifolds.manifold.TopologicalManifold`.
 
         INPUT:
 
@@ -2012,7 +2011,8 @@ class ManifoldSubset(UniqueRepresentation, Parent):
 
         OUTPUT:
 
-        - the open subset, as an instance of :class:`TopologicalManifold`
+        - the open subset, as an instance of
+          :class:`~sage.manifolds.manifold.TopologicalManifold`
           or one of its subclasses
 
         EXAMPLES::
@@ -2067,7 +2067,7 @@ class ManifoldSubset(UniqueRepresentation, Parent):
 
         INPUT:
 
-        - ``resu`` -- an instance of ``:class:`TopologicalManifold` or
+        - ``resu`` -- an instance of :class:`TopologicalManifold` or
           a subclass.
 
         - ``coord_def`` -- (default: {}) definition of the subset in
@@ -2157,7 +2157,7 @@ class ManifoldSubset(UniqueRepresentation, Parent):
             res._def_chart = self._def_chart
         return res
 
-    def intersection(self, *others, name=None, latex_name=None):
+    def intersection(self, *others: ManifoldSubset, name: Optional[str] = None, latex_name: Optional[str] = None) -> ManifoldSubset:
         r"""
         Return the intersection of the current subset with other subsets.
 
@@ -2308,6 +2308,7 @@ class ManifoldSubset(UniqueRepresentation, Parent):
         subsets = set(subsets)
         if not subsets:
             raise TypeError('input set must be nonempty')
+
         def reduce():
             # Greedily replace inclusion chains by their minimal element
             # and pairs with declared intersections by their intersection
@@ -2532,6 +2533,7 @@ class ManifoldSubset(UniqueRepresentation, Parent):
 
         """
         subsets = set(subsets)
+
         def reduce():
             # Greedily replace inclusion chains by their maximal element
             # and pairs with declared unions by their union

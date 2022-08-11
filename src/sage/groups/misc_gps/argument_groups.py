@@ -46,7 +46,7 @@ from sage.structure.factory import UniqueFactory
 from sage.structure.parent import Parent
 from sage.structure.richcmp import richcmp_by_eq_and_lt
 from sage.structure.unique_representation import UniqueRepresentation
-
+import sage.rings.abc
 
 class AbstractArgument(MultiplicativeGroupElement):
     r"""
@@ -86,7 +86,7 @@ class AbstractArgument(MultiplicativeGroupElement):
         """
         if parent is None:
             raise ValueError('parent must be provided')
-        super(AbstractArgument, self).__init__(parent=parent)
+        super().__init__(parent=parent)
 
         try:
             element = parent.base()(element)
@@ -324,8 +324,7 @@ class AbstractArgumentGroup(UniqueRepresentation, Parent):
             Category of commutative groups
         """
         category = cls._determine_category_(category)
-        return super(AbstractArgumentGroup, cls).__classcall__(
-            cls, base, category)
+        return super().__classcall__(cls, base, category)
 
     @staticmethod
     def _determine_category_(category):
@@ -364,8 +363,7 @@ class AbstractArgumentGroup(UniqueRepresentation, Parent):
             sage: UnitCircleGroup(RR).base()  # indirect doctest
             Real Field with 53 bits of precision
         """
-        super(AbstractArgumentGroup, self).__init__(category=category,
-                                                    base=base)
+        super().__init__(category=category, base=base)
 
     def __hash__(self):
         r"""
@@ -735,9 +733,9 @@ class UnitCircleGroup(AbstractArgumentGroup):
             zeta2^5
         """
         from sage.groups.generic import discrete_log
+        import sage.rings.abc
         from sage.rings.asymptotic.misc import combine_exceptions
         from sage.rings.rational_field import QQ
-        from sage.rings.number_field.number_field import NumberField_cyclotomic
 
         if exponent is None:
             if isinstance(data, int) and data == 0:
@@ -769,7 +767,7 @@ class UnitCircleGroup(AbstractArgumentGroup):
                 elif isinstance(P, UnitCircleGroup):
                     exponent = data.exponent
 
-                elif isinstance(P, NumberField_cyclotomic):
+                elif isinstance(P, sage.rings.abc.NumberField_cyclotomic):
                     zeta = P.gen()
                     n = zeta.multiplicative_order()
                     try:
@@ -1024,8 +1022,8 @@ class RootsOfUnityGroup(UnitCircleGroup):
             Rational Field
         """
         from sage.rings.rational_field import QQ
-        return super(RootsOfUnityGroup, self).__init__(base=QQ,
-                                                         category=category)
+        return super().__init__(base=QQ, category=category)
+
     def _repr_(self):
         r"""
         Return a representation string of this roots of unity group.
@@ -1075,7 +1073,7 @@ class ArgumentByElement(AbstractArgument):
             sage: C(1+2*I)  # indirect doctest
             e^(I*arg(1.00000000000000 + 2.00000000000000*I))
         """
-        super(ArgumentByElement, self).__init__(parent, element, normalize=normalize)
+        super().__init__(parent, element, normalize=normalize)
         if self._element_ == 0:
             raise ValueError('{} is not allowed'.format(element))
 
@@ -1422,7 +1420,7 @@ class Sign(AbstractArgument):
             sage: S.an_element()  # indirect doctest
             -1
         """
-        super(Sign, self).__init__(parent, int(element), normalize=normalize)
+        super().__init__(parent, int(element), normalize=normalize)
         if self._element_ not in (-1, 1):
             raise ValueError('{} is not allowed '
                              '(only -1 or 1 is)'.format(element))
@@ -1534,7 +1532,7 @@ class Sign(AbstractArgument):
             sage: S(-1) * int(4)
             -4
             sage: type(_)
-            <type 'int'>
+            <class 'int'>
             sage: S(-1) * QQ(4)
             -4
             sage: _.parent()
@@ -1641,10 +1639,9 @@ class SignGroup(AbstractArgumentGroup):
             sage: from sage.groups.misc_gps.argument_groups import SignGroup
             sage: S = SignGroup()
             sage: S.base()  # indirect doctest
-            <type 'int'>
+            <class 'int'>
         """
-        return super(SignGroup, self).__init__(base=int,
-                                               category=category)
+        return super().__init__(base=int, category=category)
 
     def _repr_(self):
         r"""
@@ -1825,16 +1822,10 @@ class ArgumentGroupFactory(UniqueFactory):
             sage: ArgumentGroup('Arg_CC') is ArgumentGroup(domain=CC)  # indirect doctest
             True
         """
-        from sage.rings.complex_arb import ComplexBallField
-        from sage.rings.complex_mpfr import ComplexField_class
-        from sage.rings.complex_interval_field import ComplexIntervalField_class
         from sage.rings.integer_ring import ZZ
         from sage.misc.misc import exactly_one_is_true
         from sage.rings.qqbar import AA
         from sage.rings.rational_field import QQ
-        from sage.rings.real_arb import RealBallField
-        from sage.rings.real_mpfr import RealField_class
-        from sage.rings.real_mpfi import RealIntervalField_class
 
         if not exactly_one_is_true(
                 (data is not None,
@@ -1870,13 +1861,13 @@ class ArgumentGroupFactory(UniqueFactory):
 
         if domain is not None:
             if domain in (ZZ, QQ, AA) \
-               or isinstance(domain, (RealField_class,
-                                      RealIntervalField_class,
-                                      RealBallField)):
+               or isinstance(domain, (sage.rings.abc.RealField,
+                                      sage.rings.abc.RealIntervalField,
+                                      sage.rings.abc.RealBallField)):
                 return (SignGroup, ()), kwds
-            elif isinstance(domain, (ComplexField_class,
-                                     ComplexIntervalField_class,
-                                     ComplexBallField)):
+            elif isinstance(domain, (sage.rings.abc.ComplexField,
+                                     sage.rings.abc.ComplexIntervalField,
+                                     sage.rings.abc.ComplexBallField)):
                 return (UnitCircleGroup, (domain._real_field(),)), kwds
             else:
                 return (ArgumentByElementGroup, (domain,)), kwds

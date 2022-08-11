@@ -42,13 +42,13 @@ from sage.structure.sage_object import SageObject
 
 from sage.matrix.all import matrix, identity_matrix
 from sage.geometry.all import Fan, LatticePolytope, ToricLattice
-from sage.rings.all import ZZ, QQ
+from sage.rings.integer_ring import ZZ
+from sage.rings.rational_field import QQ
 from sage.arith.all import gcd
 from sage.schemes.toric.variety import (DEFAULT_PREFIX,
                                         ToricVariety,
                                         normalize_names)
 from sage.schemes.toric.fano_variety import CPRFanoToricVariety
-
 
 
 # The combinatorial data of the toric varieties is stored separately here
@@ -173,7 +173,6 @@ toric_varieties_rays_cones = {
         [[0, 1, 2, 3], [0, 1, 3, 4], [0, 1, 2, 4], [1, 3, 4, 5], [0, 3, 4, 5],
          [1, 2, 4, 5], [0, 2, 4, 5], [1, 2, 3, 5], [0, 2, 3, 5]] ]
 }
-
 
 
 class ToricVarietyFactory(SageObject):
@@ -1489,5 +1488,6 @@ class ToricVarietyFactory(SageObject):
         N = ToricLattice(n)
         fan = Fan([], lattice=N)
         return ToricVariety(fan, coordinate_names=names, base_field=base_ring)
+
 
 toric_varieties = ToricVarietyFactory()

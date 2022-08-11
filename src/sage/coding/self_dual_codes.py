@@ -87,7 +87,7 @@ REFERENCES:
 
 from sage.rings.finite_rings.finite_field_constructor import FiniteField as GF
 from sage.matrix.matrix_space import MatrixSpace
-from sage.matrix.all import matrix
+from sage.matrix.constructor import matrix
 from sage.matrix.constructor import block_diagonal_matrix
 from sage.rings.integer_ring import ZZ
 from sage.groups.perm_gps.permgroup import PermutationGroup
@@ -226,16 +226,16 @@ def _H8():
 
     EXAMPLES::
 
-    sage: from sage.coding.self_dual_codes import _H8
-    sage: _H8()
-    [ 1  1  1  1  1  1  1  1]
-    [ 1 -1  1 -1  1 -1  1 -1]
-    [ 1  1 -1 -1  1  1 -1 -1]
-    [ 1 -1 -1  1  1 -1 -1  1]
-    [ 1  1  1  1 -1 -1 -1 -1]
-    [ 1 -1  1 -1 -1  1 -1  1]
-    [ 1  1 -1 -1 -1 -1  1  1]
-    [ 1 -1 -1  1 -1  1  1 -1]
+        sage: from sage.coding.self_dual_codes import _H8
+        sage: _H8()
+        [ 1  1  1  1  1  1  1  1]
+        [ 1 -1  1 -1  1 -1  1 -1]
+        [ 1  1 -1 -1  1  1 -1 -1]
+        [ 1 -1 -1  1  1 -1 -1  1]
+        [ 1  1  1  1 -1 -1 -1 -1]
+        [ 1 -1  1 -1 -1  1 -1  1]
+        [ 1  1 -1 -1 -1 -1  1  1]
+        [ 1 -1 -1  1 -1  1  1 -1]
     """
     return matrix(ZZ, [[1, 1, 1, 1, 1, 1, 1, 1],\
                     [1, -1, 1, -1, 1, -1, 1, -1],\

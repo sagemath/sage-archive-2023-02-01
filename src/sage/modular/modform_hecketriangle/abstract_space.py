@@ -16,14 +16,17 @@ AUTHORS:
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 
-from sage.rings.all import ZZ, QQ, infinity, AlgebraicField, I
+from sage.rings.integer_ring import ZZ
+from sage.rings.rational_field import QQ
+from sage.rings.infinity import infinity
+from sage.rings.all import AlgebraicField, I
 from sage.rings.polynomial.polynomial_ring import is_PolynomialRing
 from sage.rings.power_series_ring import is_PowerSeriesRing
 from sage.rings.laurent_series_ring import is_LaurentSeriesRing
 from sage.modules.free_module_element import is_FreeModuleElement
 from sage.matrix.constructor import matrix
 from sage.modules.free_module_element import vector
-from sage.rings.all import Integer
+from sage.rings.integer import Integer
 from sage.structure.all import parent
 
 from sage.misc.cachefunc import cached_method
@@ -81,16 +84,15 @@ class FormsSpace_abstract(FormsRing_abstract):
             sage: MF.is_homogeneous()
             True
         """
-
         #from space import canonical_parameters
         #(group, base_ring, k, ep, n) = canonical_parameters(group, base_ring, k, ep, n)
 
-        super(FormsSpace_abstract, self).__init__(group=group, base_ring=base_ring, red_hom=True, n=n)
+        super().__init__(group=group, base_ring=base_ring, red_hom=True, n=n)
         #self.register_embedding(self.hom(lambda f: f.parent().graded_ring()(f), codomain=self.graded_ring()))
 
         self._weight = k
         self._ep = ep
-        (self._l1,self._l2) = self.weight_parameters()
+        (self._l1, self._l2) = self.weight_parameters()
         self._module = None
         self._ambient_space = self
 
@@ -1158,8 +1160,8 @@ class FormsSpace_abstract(FormsRing_abstract):
 
             sage: MF.F_basis_pol(2)
             x^13*y*d^2 - 2*x^8*y^3*d^2 + x^3*y^5*d^2
-            sage: MF.F_basis_pol(1)
-            (-81*x^13*y*d + 62*x^8*y^3*d + 19*x^3*y^5*d)/(-100)
+            sage: MF.F_basis_pol(1) * 100
+            81*x^13*y*d - 62*x^8*y^3*d - 19*x^3*y^5*d
             sage: MF.F_basis_pol(0)
             (141913*x^13*y + 168974*x^8*y^3 + 9113*x^3*y^5)/320000
 
@@ -1478,8 +1480,8 @@ class FormsSpace_abstract(FormsRing_abstract):
         """
 
         if (not self.is_weakly_holomorphic()):
-             from warnings import warn
-             warn("This function only determines generators of (quasi) weakly modular forms!")
+            from warnings import warn
+            warn("This function only determines generators of (quasi) weakly modular forms!")
 
         (min_exp, order_1) = self._canonical_min_exp(min_exp, order_1)
 
@@ -1583,8 +1585,8 @@ class FormsSpace_abstract(FormsRing_abstract):
         """
 
         if (not self.is_weakly_holomorphic()):
-             from warnings import warn
-             warn("This function only determines the dimension of some (quasi) weakly subspace!")
+            from warnings import warn
+            warn("This function only determines the dimension of some (quasi) weakly subspace!")
 
         (min_exp, order_1) = self._canonical_min_exp(min_exp, order_1)
 
@@ -2123,10 +2125,9 @@ class FormsSpace_abstract(FormsRing_abstract):
             [1 - 168*q^2 + 2304*q^3 - 19320*q^4 + O(q^5),
              q - 18*q^2 + 180*q^3 - 1316*q^4 + O(q^5)]
         """
-
         if (not self.is_weakly_holomorphic()):
-             from warnings import warn
-             warn("This function only determines elements / a basis of (quasi) weakly modular forms!")
+            from warnings import warn
+            warn("This function only determines elements / a basis of (quasi) weakly modular forms!")
 
         (min_exp, order_1) = self._canonical_min_exp(min_exp, order_1)
         order_inf = self._l1 - order_1
@@ -2276,7 +2277,7 @@ class FormsSpace_abstract(FormsRing_abstract):
         """
 
         from sage.rings.all import prime_range
-        from sage.misc.all import prod
+        from sage.misc.misc_c import prod
         from warnings import warn
 
         denom_factor = ZZ(denom_factor)

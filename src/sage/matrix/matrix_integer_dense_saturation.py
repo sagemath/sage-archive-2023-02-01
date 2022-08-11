@@ -111,14 +111,14 @@ def random_sublist_of_size(k, n):
     w = set([])
     while len(w) < n:
         z = randrange(k)
-        if not z in w:
+        if z not in w:
             w.add(z)
     return sorted(w)
 
 
 def solve_system_with_difficult_last_row(B, A):
     """
-    Solve the matrix equation B*Z = A when the last row of $B$
+    Solve the matrix equation B*Z = A when the last row of `B`
     contains huge entries.
 
     INPUT:

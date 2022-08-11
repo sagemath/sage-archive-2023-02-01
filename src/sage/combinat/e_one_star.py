@@ -215,10 +215,11 @@ from sage.structure.sage_object import SageObject
 from sage.combinat.words.morphism import WordMorphism
 from sage.matrix.constructor import matrix
 from sage.modules.free_module_element import vector
-from sage.plot.all import Graphics
-from sage.plot.colors import Color
-from sage.plot.polygon import polygon
-from sage.plot.line import line
+from sage.misc.lazy_import import lazy_import
+lazy_import("sage.plot.all", "Graphics")
+lazy_import("sage.plot.colors", "Color")
+lazy_import("sage.plot.polygon", "polygon")
+lazy_import("sage.plot.line", "line")
 from sage.rings.integer_ring import ZZ
 from sage.misc.latex import LatexExpr
 from sage.misc.cachefunc import cached_method
@@ -617,11 +618,11 @@ class Patch(SageObject):
 
         else:
             self._face_contour = {
-                1: [vector(_) for _ in [(0, 0, 0), (0, 1, 0),
+                1: [vector(t) for t in [(0, 0, 0), (0, 1, 0),
                                         (0, 1, 1), (0, 0, 1)]],
-                2: [vector(_) for _ in [(0, 0, 0), (0, 0, 1),
+                2: [vector(t) for t in [(0, 0, 0), (0, 0, 1),
                                         (1, 0, 1), (1, 0, 0)]],
-                3: [vector(_) for _ in [(0, 0, 0), (1, 0, 0),
+                3: [vector(t) for t in [(0, 0, 0), (1, 0, 0),
                                         (1, 1, 0), (0, 1, 0)]]
             }
 
@@ -881,7 +882,7 @@ class Patch(SageObject):
         """
         return self._dimension
 
-    def faces_of_vector(self, v) -> list:
+    def faces_of_vector(self, v) -> list[Face]:
         r"""
         Return a list of the faces whose vector is ``v``.
 
@@ -899,7 +900,7 @@ class Patch(SageObject):
         v = vector(v)
         return [f for f in self if f.vector() == v]
 
-    def faces_of_type(self, t) -> list:
+    def faces_of_type(self, t) -> list[Face]:
         r"""
         Return a list of the faces that have type ``t``.
 
@@ -916,7 +917,7 @@ class Patch(SageObject):
         """
         return [f for f in self if f.type() == t]
 
-    def faces_of_color(self, color) -> list:
+    def faces_of_color(self, color) -> list[Face]:
         r"""
         Return a list of the faces that have the given color.
 
@@ -1066,7 +1067,7 @@ class Patch(SageObject):
             global cm
             if cm is None:
                 from matplotlib import cm
-
+            assert cm is not None
             if cmap not in cm.datad:
                 raise RuntimeError("Color map %s not known (type sorted(colors) for valid names)" % cmap)
             cmap = cm.__dict__[cmap]

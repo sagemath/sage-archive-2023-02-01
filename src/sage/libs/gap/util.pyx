@@ -36,7 +36,7 @@ from sage.interfaces.gap_workspace import prepare_workspace_dir
 ############################################################################
 
 
-cdef class ObjWrapper(object):
+cdef class ObjWrapper():
     """
     Wrapper for GAP master pointers
 
@@ -214,7 +214,10 @@ MakeImmutable(libgap_errout);
 cdef initialize():
     """
     Initialize the GAP library, if it hasn't already been
-    initialized.  It is safe to call this multiple times.
+    initialized.  It is safe to call this multiple times. One can set
+    :envvar:`SAGE_GAP_MEMORY` to a particular value, as desribed in
+    `GAP Manual <https://www.gap-system.org/Manuals/doc/ref/chap3.html>`_
+    Specifically, the value is for `-s` and `-o` options.
 
     TESTS::
 
@@ -238,33 +241,31 @@ cdef initialize():
     dlclose(handle)
 
     # Define argv variable, which we will pass in to
-    # initialize GAP. Note that we must pass define the memory pool
-    # size!
-    cdef char* argv[18]
+    # initialize GAP.
+    cdef char* argv[16]
     argv[0] = "sage"
     argv[1] = "-l"
     s = str_to_bytes(gap_root(), FS_ENCODING, "surrogateescape")
     argv[2] = s
 
-    from sage.interfaces.gap import _get_gap_memory_pool_size_MB
-    memory_pool = str_to_bytes(_get_gap_memory_pool_size_MB())
-    argv[3] = "-o"
-    argv[4] = memory_pool
-    argv[5] = "-s"
-    argv[6] = memory_pool
+    argv[3] = "-m"
+    argv[4] = "64m"
 
-    argv[7] = "-m"
-    argv[8] = "64m"
-
-    argv[9] = "-q"    # no prompt!
-    argv[10] = "-E"   # don't use readline as this will interfere with Python
-    argv[11] = "--nointeract"  # Implies -T
-    argv[12] = "-x"    # set the "screen" width so that GAP is less likely to
-    argv[13] = "4096"  # insert newlines when printing objects
-                       # 4096 unfortunately is the hard-coded max, but should
-                       # be long enough for most cases
-
-    cdef int argc = 14   # argv[argc] must be NULL
+    argv[5] = "-q"    # no prompt!
+    argv[6] = "-E"   # don't use readline as this will interfere with Python
+    argv[7] = "--nointeract"  # Implies -T
+    argv[8] = "-x"    # set the "screen" width so that GAP is less likely to
+    argv[9] = "4096"  # insert newlines when printing objects
+                      # 4096 unfortunately is the hard-coded max, but should
+                      # be long enough for most cases
+    cdef int argc = 10   # argv[argc] must be NULL
+    gap_mem = sage.env.SAGE_GAP_MEMORY
+    if gap_mem is not None:
+        argc += 2
+        argv[10] = "-s"
+        s1 = str_to_bytes(gap_mem, FS_ENCODING, "surrogateescape")
+        argv[11] = s1
+        argv[4] = s1
 
     from .saved_workspace import workspace
     workspace, workspace_is_up_to_date = workspace()

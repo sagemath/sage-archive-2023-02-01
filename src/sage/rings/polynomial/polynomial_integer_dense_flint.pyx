@@ -55,7 +55,7 @@ from sage.libs.ntl.ntl_ZZX cimport ntl_ZZX
 from sage.rings.integer_ring import ZZ
 from sage.rings.rational_field import QQ
 
-from sage.libs.all import pari, pari_gen
+from sage.libs.pari.all import pari, pari_gen
 from sage.structure.factorization import Factorization
 
 from sage.rings.fraction_field_element import FractionFieldElement
@@ -182,11 +182,11 @@ cdef class Polynomial_integer_dense_flint(Polynomial):
             sage: f = R([-1, 2, 5]); f
             5*x^2 + 2*x - 1
             sage: type(f)
-            <type 'sage.rings.polynomial.polynomial_integer_dense_flint.Polynomial_integer_dense_flint'>
+            <class 'sage.rings.polynomial.polynomial_integer_dense_flint.Polynomial_integer_dense_flint'>
             sage: type(pari(f))
-            <type 'cypari2.gen.Gen'>
+            <class 'cypari2.gen.Gen'>
             sage: type(R(pari(f)))
-            <type 'sage.rings.polynomial.polynomial_integer_dense_flint.Polynomial_integer_dense_flint'>
+            <class 'sage.rings.polynomial.polynomial_integer_dense_flint.Polynomial_integer_dense_flint'>
             sage: R(pari(f))
             5*x^2 + 2*x - 1
 
@@ -205,7 +205,7 @@ cdef class Polynomial_integer_dense_flint(Polynomial):
 
             sage: f = (x^3 - 1) / (x - 1)
             sage: type(f)
-            <type 'sage.rings.fraction_field_element.FractionFieldElement'>
+            <class 'sage.rings.fraction_field_element.FractionFieldElement'>
             sage: g = R(f); g
             x^2 + x + 1
 
@@ -794,7 +794,7 @@ cdef class Polynomial_integer_dense_flint(Polynomial):
         """
         return fmpz_poly_is_one(self.__poly)
 
-    def __nonzero__(self):
+    def __bool__(self):
         """
         Check if self is not zero.
 
@@ -1389,7 +1389,7 @@ cdef class Polynomial_integer_dense_flint(Polynomial):
         TESTS::
 
             sage: type(x.degree())
-            <type 'sage.rings.integer.Integer'>
+            <class 'sage.rings.integer.Integer'>
         """
         return smallInteger(fmpz_poly_degree(self.__poly))
 

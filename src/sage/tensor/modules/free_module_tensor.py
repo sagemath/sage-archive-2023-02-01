@@ -192,6 +192,9 @@ tensor ``t`` acts on pairs formed by a linear form and a module element::
 #  the License, or (at your option) any later version.
 #                  https://www.gnu.org/licenses/
 # *****************************************************************************
+from __future__ import annotations
+
+from typing import TYPE_CHECKING, Dict
 
 from sage.rings.integer import Integer
 from sage.structure.element import ModuleElementWithMutability
@@ -200,10 +203,11 @@ from sage.tensor.modules.comp import (Components, CompWithSym, CompFullySym,
 from sage.tensor.modules.tensor_with_indices import TensorWithIndices
 from sage.parallel.decorate import parallel
 from sage.parallel.parallelism import Parallelism
-from sage.manifolds.chart import Chart
 
-# TODO: remove the import of Chart after _preparse_display has been redefined
-# in tensor fields
+if TYPE_CHECKING:
+    from sage.tensor.modules.finite_rank_free_module import FiniteRankFreeModule
+    from sage.tensor.modules.free_module_basis import FreeModuleBasis
+
 
 class FreeModuleTensor(ModuleElementWithMutability):
     r"""
@@ -254,8 +258,18 @@ class FreeModuleTensor(ModuleElementWithMutability):
         True
 
     """
-    def __init__(self, fmodule, tensor_type, name=None, latex_name=None,
-                 sym=None, antisym=None, parent=None):
+    _fmodule: FiniteRankFreeModule
+
+    def __init__(
+        self,
+        fmodule: FiniteRankFreeModule,
+        tensor_type,
+        name=None,
+        latex_name=None,
+        sym=None,
+        antisym=None,
+        parent=None,
+    ):
         r"""
         TESTS::
 
@@ -291,7 +305,7 @@ class FreeModuleTensor(ModuleElementWithMutability):
             self._latex_name = self._name
         else:
             self._latex_name = latex_name
-        self._components = {}  # dict. of the sets of components on various
+        self._components: Dict[FreeModuleBasis, Components] = {}  # dict. of the sets of components on various
                               # bases, with the bases as keys (initially empty)
 
         # Treatment of symmetry declarations:
@@ -350,7 +364,7 @@ class FreeModuleTensor(ModuleElementWithMutability):
             sage: t.add_comp(e)
             3-indices components w.r.t. Basis (e_0,e_1,e_2) on the
              Rank-3 free module M over the Integer Ring
-            sage: bool(t)  # unitialized components are zero
+            sage: bool(t)  # uninitialized components are zero
             False
             sage: t == 0
             True
@@ -583,13 +597,6 @@ class FreeModuleTensor(ModuleElementWithMutability):
         """
         if basis is None:
             basis = self._fmodule._def_basis
-        elif isinstance(basis, Chart):
-             # a coordinate chart has been passed instead of a basis;
-             # the basis is then assumed to be the coordinate frame
-             # associated to the chart:
-            if format_spec is None:
-                format_spec = basis
-            basis = basis.frame()
         return (basis, format_spec)
 
     def display(self, basis=None, format_spec=None):
@@ -698,10 +705,10 @@ class FreeModuleTensor(ModuleElementWithMutability):
 
         Check that the bug reported in :trac:`22520` is fixed::
 
-            sage: M = FiniteRankFreeModule(SR, 3, name='M')
-            sage: e = M.basis('e')
-            sage: t = SR.var('t', domain='real')
-            sage: (t*e[0]).display()
+            sage: M = FiniteRankFreeModule(SR, 3, name='M')  # optional - sage.symbolic
+            sage: e = M.basis('e')                           # optional - sage.symbolic
+            sage: t = SR.var('t', domain='real')             # optional - sage.symbolic
+            sage: (t*e[0]).display()                         # optional - sage.symbolic
             t e_0
 
         """
@@ -1021,7 +1028,7 @@ class FreeModuleTensor(ModuleElementWithMutability):
                            output_formatter=fmodule._output_formatter,
                            sym=self._sym, antisym=self._antisym)
 
-    def components(self, basis=None, from_basis=None):
+    def components(self, basis=None, from_basis=None) -> Components:
         r"""
         Return the components of ``self`` w.r.t to a given module basis.
 
@@ -1142,6 +1149,7 @@ class FreeModuleTensor(ModuleElementWithMutability):
                 local_list = lol(ind_list, ind_step)
                 # list of input parameters
                 listParalInput = [(old_comp, ppinv, pp, n_con, rank, ii) for ii in local_list]
+
                 @parallel(p_iter='multiprocessing', ncpus=nproc)
                 def paral_newcomp(old_comp, ppinv, pp, n_con, rank, local_list_ind):
                     partial = []
@@ -1516,7 +1524,7 @@ class FreeModuleTensor(ModuleElementWithMutability):
         for other_basis in to_be_deleted:
             del self._components[other_basis]
 
-    def __getitem__(self, args):
+    def __getitem__(self, args) -> Components:
         r"""
         Return a component w.r.t. some basis.
 
@@ -1716,12 +1724,11 @@ class FreeModuleTensor(ModuleElementWithMutability):
             [ 0  0  2]
             sage: t1 == t
             False
-
         """
         resu = self._new_instance()
         resu.set_name(name=name, latex_name=latex_name)
         for basis, comp in self._components.items():
-             resu._components[basis] = comp.copy()
+            resu._components[basis] = comp.copy()
         resu._is_zero = self._is_zero
         return resu
 
@@ -2141,7 +2148,7 @@ class FreeModuleTensor(ModuleElementWithMutability):
             True
 
         """
-        # No need for consistency check since self and other are guaranted
+        # No need for consistency check since self and other are guaranteed
         # to belong to the same tensor module
         #
         # Case zero:
@@ -3040,7 +3047,7 @@ class FreeModuleTensor(ModuleElementWithMutability):
             Traceback (most recent call last):
             ...
             TypeError: 0 is a contravariant position, while 1 is a covariant position;
-            symmetrization is meaningfull only on tensor arguments of the same type
+            symmetrization is meaningful only on tensor arguments of the same type
             sage: s = t.symmetrize(1,2) # OK: both 1 and 2 are covariant positions
 
         The order of positions does not matter::
@@ -3078,7 +3085,7 @@ class FreeModuleTensor(ModuleElementWithMutability):
                     raise TypeError(
                         str(pos[0]) + " is a contravariant position, while " +
                         str(pos[k]) + " is a covariant position; \n"
-                        "symmetrization is meaningfull only on tensor " +
+                        "symmetrization is meaningful only on tensor " +
                         "arguments of the same type")
         else:  # pos0 is a covariant position
             for k in range(1,len(pos)):
@@ -3086,7 +3093,7 @@ class FreeModuleTensor(ModuleElementWithMutability):
                     raise TypeError(
                         str(pos[0]) + " is a covariant position, while " + \
                         str(pos[k]) + " is a contravariant position; \n"
-                        "symmetrization is meaningfull only on tensor " +
+                        "symmetrization is meaningful only on tensor " +
                         "arguments of the same type")
         if 'basis' in kwargs:
             basis = kwargs['basis']
@@ -3287,7 +3294,7 @@ class FreeModuleTensor(ModuleElementWithMutability):
             Traceback (most recent call last):
             ...
             TypeError: 0 is a contravariant position, while 1 is a covariant position;
-            antisymmetrization is meaningfull only on tensor arguments of the same type
+            antisymmetrization is meaningful only on tensor arguments of the same type
             sage: s = t.antisymmetrize(1,2) # OK: both 1 and 2 are covariant positions
 
         The order of positions does not matter::
@@ -3319,7 +3326,7 @@ class FreeModuleTensor(ModuleElementWithMutability):
                     raise TypeError(
                         str(pos[0]) + " is a contravariant position, while " +
                         str(pos[k]) + " is a covariant position; \n"
-                        "antisymmetrization is meaningfull only on tensor " +
+                        "antisymmetrization is meaningful only on tensor " +
                         "arguments of the same type")
         else:  # pos0 is a covariant position
             for k in range(1,len(pos)):
@@ -3327,7 +3334,7 @@ class FreeModuleTensor(ModuleElementWithMutability):
                     raise TypeError(
                         str(pos[0]) + " is a covariant position, while " + \
                         str(pos[k]) + " is a contravariant position; \n"
-                        "antisymmetrization is meaningfull only on tensor " +
+                        "antisymmetrization is meaningful only on tensor " +
                         "arguments of the same type")
         if 'basis' in kwargs:
             basis = kwargs['basis']

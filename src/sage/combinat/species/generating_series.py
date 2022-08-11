@@ -63,30 +63,31 @@ REFERENCES:
 .. [BLL] \F. Bergeron, G. Labelle, and P. Leroux.
    "Combinatorial species and tree-like structures".
    Encyclopedia of Mathematics and its Applications, vol. 67, Cambridge Univ. Press. 1998.
-.. [BLL-Intro] Francois Bergeron, Gilbert Labelle, and Pierre Leroux.
+.. [BLL-Intro] François Bergeron, Gilbert Labelle, and Pierre Leroux.
    "Introduction to the Theory of Species of Structures", March 14, 2008.
 """
 
-#*****************************************************************************
+# ****************************************************************************
 #       Copyright (C) 2008 Mike Hansen <mhansen@gmail.com>
 #
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
 # the Free Software Foundation, either version 2 of the License, or
 # (at your option) any later version.
-#                  http://www.gnu.org/licenses/
-#*****************************************************************************
+#                  https://www.gnu.org/licenses/
+# ****************************************************************************
 
 from sage.rings.lazy_laurent_series import LazyTaylorSeries, LazySymmetricFunction
 from sage.rings.lazy_laurent_series_ring import LazyTaylorSeriesRing, LazySymmetricFunctions
 from .stream import Stream, _integers_from
-from sage.rings.all import Integer, RationalField
+from sage.rings.integer import Integer
+from sage.rings.rational_field import RationalField
 from sage.arith.all import moebius, gcd, lcm, divisors
 from sage.combinat.partition import Partition, Partitions
 from functools import partial
 from sage.combinat.sf.sf import SymmetricFunctions
-from sage.misc.cachefunc import cached_function, cached_method
-from sage.functions.other import factorial
+from sage.misc.cachefunc import cached_function
+from sage.arith.misc import factorial
 
 
 class OrdinaryGeneratingSeries(LazyTaylorSeries):
@@ -609,7 +610,7 @@ class CycleIndexSeries(LazySymmetricFunction):
         """
         # return self._new(partial(self._functorial_compose_gen, g), lambda a,b: 0, self, g)
         P = self.parent()
-        return P(lambda n: self._functorial_compose_gen(g, n, self._coeff_stream._approximate_order), 0) 
+        return P(lambda n: self._functorial_compose_gen(g, n, self._coeff_stream._approximate_order), 0)
 
     def _functorial_compose_gen(self, g, n, ao):
         """
@@ -1249,7 +1250,7 @@ class CycleIndexSeriesRing(LazySymmetricFunctions):
 
         sage: R is CycleIndexSeriesRing(QQ, 'z')
         True
-        
+
     """
     Element = CycleIndexSeries
 
@@ -1356,4 +1357,3 @@ def LogarithmCycleIndexSeries(R = RationalField()):
     """
     CIS = CycleIndexSeriesRing(R, 'z')
     return CIS(lambda n: _cl_term(n))
-

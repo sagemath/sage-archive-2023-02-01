@@ -58,7 +58,7 @@ AUTHORS:
 from sage.schemes.generic.scheme import is_Scheme
 from sage.schemes.product_projective.space import is_ProductProjectiveSpaces
 from sage.misc.mrange import xmrange
-from sage.misc.all import prod
+from sage.misc.misc_c import prod
 from sage.arith.all import next_prime, previous_prime, crt
 from sage.rings.all import ZZ, RR
 from sage.rings.finite_rings.finite_field_constructor import FiniteField as GF
@@ -494,11 +494,12 @@ def sieve(X, bound):
                 continue
 
             try:
-                rat_points.add(X(point)) # checks if this point lies on X or not
-            except:
+                # checks if this point lies on X or not
+                rat_points.add(X(point))
+            except (TypeError, ValueError):
                 pass
 
-        return [list(_) for _ in rat_points]
+        return [list(pt) for pt in rat_points]
 
     def lift_all_points():
         r"""

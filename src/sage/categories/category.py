@@ -338,7 +338,7 @@ class Category(UniqueRepresentation, SageObject):
         ....:         Parent.__init__(self, category=Ds())
         ....:     def g(self):
         ....:         return "myparent"
-        ....:     class Element(object):
+        ....:     class Element():
         ....:         pass
         sage: D = myparent()
         sage: D.__class__
@@ -348,9 +348,9 @@ class Category(UniqueRepresentation, SageObject):
         sage: D.__class__.mro()
         [<class '__main__.myparent_with_category'>,
         <class '__main__.myparent'>,
-        <type 'sage.structure.parent.Parent'>,
-        <type 'sage.structure.category_object.CategoryObject'>,
-        <type 'sage.structure.sage_object.SageObject'>,
+        <class 'sage.structure.parent.Parent'>,
+        <class 'sage.structure.category_object.CategoryObject'>,
+        <class 'sage.structure.sage_object.SageObject'>,
         <class '__main__.Ds.parent_class'>,
         <class '__main__.Cs.parent_class'>,
         <class '__main__.Bs.parent_class'>,
@@ -444,7 +444,7 @@ class Category(UniqueRepresentation, SageObject):
         """
         if isinstance(cls, DynamicMetaclass):
             cls = cls.__base__
-        return super(Category, cls).__classcall__(cls, *args, **options)
+        return super().__classcall__(cls, *args, **options)
 
     def __init__(self, s=None):
         """
@@ -1392,7 +1392,7 @@ class Category(UniqueRepresentation, SageObject):
             method resolution order of the parent and element
             classes. This method checks this.
 
-        .. todo:: currently, this won't work for hom categories.
+        .. TODO:: currently, this won't work for hom categories.
 
         EXAMPLES::
 
@@ -1561,7 +1561,7 @@ class Category(UniqueRepresentation, SageObject):
             ....:     ParentMethods = 1
             ....:     class ElementMethods(A):
             ....:         pass
-            ....:     class MorphismMethods(object):
+            ....:     class MorphismMethods():
             ....:         pass
             sage: C = BrokenCategory()
             sage: C._make_named_class("parent_class",   "ParentMethods")
@@ -1765,16 +1765,12 @@ class Category(UniqueRepresentation, SageObject):
 
         EXAMPLES::
 
-            sage: Algebras(QQ).required_methods() # py2
-            {'element': {'optional': ['_add_', '_mul_'], 'required': ['__nonzero__']},
-             'parent': {'optional': ['algebra_generators'], 'required': ['__contains__']}}
-            sage: Algebras(QQ).required_methods() # py3
+            sage: Algebras(QQ).required_methods()
             {'element': {'optional': ['_add_', '_mul_'], 'required': ['__bool__']},
              'parent': {'optional': ['algebra_generators'], 'required': ['__contains__']}}
         """
-        return { "parent"  : abstract_methods_of_class(self.parent_class),
-                 "element" : abstract_methods_of_class(self.element_class) }
-
+        return {"parent": abstract_methods_of_class(self.parent_class),
+                "element": abstract_methods_of_class(self.element_class)}
 
     # Operations on the lattice of categories
     def is_subcategory(self, c):
@@ -2035,7 +2031,7 @@ class Category(UniqueRepresentation, SageObject):
              Category of finite additive groups)
             sage: HopfAlgebras(QQ)._with_axiom_as_tuple('FiniteDimensional')
             (Category of hopf algebras over Rational Field,
-             Category of finite dimensional modules over Rational Field)
+             Category of finite dimensional vector spaces over Rational Field)
         """
         if axiom in self.axioms():
             return (self, )
@@ -2643,7 +2639,7 @@ def category_graph(categories = None):
     EXAMPLES::
 
         sage: G = sage.categories.category.category_graph(categories = [Groups()])
-        sage: G.vertices()
+        sage: G.vertices(sort=True)
         ['groups', 'inverse unital magmas', 'magmas', 'monoids', 'objects',
          'semigroups', 'sets', 'sets with partial maps', 'unital magmas']
         sage: G.plot()
@@ -3261,10 +3257,7 @@ class JoinCategory(CategoryWithParameters):
         """
         if not as_join:
             try:
-                return super(JoinCategory, self)._repr_()
+                return super()._repr_()
             except ValueError:
                 pass
         return "Join of " + " and ".join(str(cat) for cat in self._super_categories)
-
-
-

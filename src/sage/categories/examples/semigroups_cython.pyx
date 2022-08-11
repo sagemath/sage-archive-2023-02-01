@@ -79,7 +79,7 @@ cdef class LeftZeroSemigroupElement(Element):
             sage: S = LeftZeroSemigroup()
             sage: x = S(3)
             sage: x.__reduce__()
-            (<type 'sage.categories.examples.semigroups_cython.LeftZeroSemigroupElement'>,
+            (<class 'sage.categories.examples.semigroups_cython.LeftZeroSemigroupElement'>,
              (An example of a semigroup: the left zero semigroup, 3))
         """
         return LeftZeroSemigroupElement, (self._parent, self._value)
@@ -151,7 +151,7 @@ class LeftZeroSemigroup(LeftZeroSemigroupPython):
         sage: S.some_elements()
         [3, 42, 'a', 3.4, 'raton laveur']
 
-    with product rule is given by $a \times b = a$ for all $a,b$. ::
+    with product rule given by `a \times b = a` for all `a,b`. ::
 
         sage: S('hello') * S('world')
         'hello'
@@ -189,17 +189,17 @@ class LeftZeroSemigroup(LeftZeroSemigroupPython):
     That's really the only method which is obtained from the category ... ::
 
         sage: S(42).is_idempotent
-        <bound method IdempotentSemigroups.element_class.is_idempotent of 42>
+        <bound method IdempotentSemigroups.ElementMethods.is_idempotent of 42>
         sage: S(42).is_idempotent()
         True
 
         sage: S(42)._pow_int
-        <bound method IdempotentSemigroups.element_class._pow_int of 42>
+        <bound method IdempotentSemigroups.ElementMethods._pow_int of 42>
         sage: S(42)^10
         42
 
         sage: S(42).is_idempotent
-        <bound method IdempotentSemigroups.element_class.is_idempotent of 42>
+        <bound method IdempotentSemigroups.ElementMethods.is_idempotent of 42>
         sage: S(42).is_idempotent()
         True
     """

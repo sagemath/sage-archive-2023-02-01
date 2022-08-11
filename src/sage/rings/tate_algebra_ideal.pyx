@@ -225,13 +225,9 @@ class TateAlgebraIdeal(Ideal_generic):
             False
             sage: I < A.ideal([1])  # indirect doctest
             True
-
         """
-        rgb = self.groebner_basis()
-        for f in I.gens():
-            if not f in self:
-                return False
-        return True
+        self.groebner_basis()
+        return all(f in self for f in I.gens())
 
     def _richcmp_(self, other, op):
         r"""
@@ -629,7 +625,7 @@ cdef TateAlgebraElement regular_reduce(sgb, TateAlgebraTerm s, TateAlgebraElemen
 
     TESTS::
 
-        sage: cython('''
+        sage: cython('''  # optional - sage.misc.cython
         ....: from sage.rings.tate_algebra_ideal cimport regular_reduce
         ....: def python_regular_reduce(gb, s, v, stopval):
         ....:     return regular_reduce(gb, s, v, stopval)
@@ -682,7 +678,7 @@ cdef TateAlgebraElement regular_reduce(sgb, TateAlgebraTerm s, TateAlgebraElemen
                     index = 0
                     break
         else:
-            if coeffs.has_key(lt._exponent):
+            if lt._exponent in coeffs:
                 coeffs[lt._exponent] += lt._coeff
             else:
                 coeffs[lt._exponent] = lt._coeff
@@ -707,7 +703,7 @@ cdef TateAlgebraElement reduce(gb, TateAlgebraElement v, stopval):
 
     TESTS::
 
-        sage: cython('''
+        sage: cython('''  # optional - sage.misc.cython
         ....: from sage.rings.tate_algebra_ideal cimport reduce
         ....: def python_reduce(gb, v, stopval):
         ....:     return reduce(gb, v, stopval)
@@ -747,7 +743,7 @@ cdef TateAlgebraElement reduce(gb, TateAlgebraElement v, stopval):
                 index = 0
                 break
         else:
-            if coeffs.has_key(lt._exponent):
+            if lt._exponent in coeffs:
                 coeffs[lt._exponent] += lt._coeff
             else:
                 coeffs[lt._exponent] = lt._coeff
@@ -956,7 +952,6 @@ def groebner_basis_pote(I, prec, verbose=0):
             if not v or v.valuation() >= prec:
                 # We have a new element in (I0:f) whose signature
                 # could be useful to strengthen the syzygy criterium
-                #print ("| add signature for syzygy criterium: %s" % s)
                 gb0.append(s)
             else:
                 # We update the current strong Grobner basis
@@ -1292,11 +1287,11 @@ def groebner_basis_vapote(I, prec, verbose=0, interrupt_red_with_val=False, inte
             else:
                 i += 1
         if verbose > 0:
-             if verbose > 1:
-                 aft = " after minimization"
-             else:
-                 aft = ""
-             print("%s elements in GB%s" % (len(gb), aft))
+            if verbose > 1:
+                aft = " after minimization"
+            else:
+                aft = ""
+            print("%s elements in GB%s" % (len(gb), aft))
         if verbose > 3:
             for g in gb:
                 print("| %s" % g)

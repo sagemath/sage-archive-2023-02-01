@@ -397,7 +397,7 @@ cdef class LeanMatrix:
                 return (<LeanMatrix>left)._matrix_times_matrix_(right)
             else:
                 return NotImplemented
-        if not left in (<LeanMatrix>right).base_ring():
+        if left not in (<LeanMatrix>right).base_ring():
             try:
                 left = (<LeanMatrix>right).base_ring()(left)
             except (TypeError, NotImplemented, ValueError):
@@ -1745,6 +1745,7 @@ cdef class TernaryMatrix(LeanMatrix):
         Change number of rows to ``k``. Preserves data.
         """
         cdef long i
+        cdef mp_bitcnt_t c
         if k < self._nrows:
             for i from k <= i < self._nrows:
                 bitset_free(self._M0[i])
@@ -2346,6 +2347,7 @@ cdef class QuaternaryMatrix(LeanMatrix):
         """
         Change number of rows to ``k``. Preserves data.
         """
+        cdef mp_bitcnt_t c
         if k < self._nrows:
             for i from k <= i < self._nrows:
                 bitset_free(self._M0[i])

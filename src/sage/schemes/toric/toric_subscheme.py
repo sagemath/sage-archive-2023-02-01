@@ -11,18 +11,19 @@ AUTHORS:
 
 """
 
-#*****************************************************************************
+# ****************************************************************************
 # Copyright (C) 2005 William Stein <wstein@gmail.com>
 #
 # Distributed under the terms of the GNU General Public License (GPL)
 # as published by the Free Software Foundation; either version 2 of
 # the License, or (at your option) any later version.
-# http://www.gnu.org/licenses/
-#*****************************************************************************
+# https://www.gnu.org/licenses/
+# ****************************************************************************
 
 from sage.calculus.functions import jacobian
-from sage.rings.all import ZZ
+from sage.rings.integer_ring import ZZ
 from sage.schemes.generic.algebraic_scheme import AlgebraicScheme_subscheme
+
 
 class AlgebraicScheme_subscheme_toric(AlgebraicScheme_subscheme):
     r"""
@@ -94,8 +95,7 @@ class AlgebraicScheme_subscheme_toric(AlgebraicScheme_subscheme):
               x^3 + y^3
         """
         # Just to make sure that keyword arguments will be passed correctly
-        super(AlgebraicScheme_subscheme_toric, self).__init__(toric_variety,
-                                                              polynomials)
+        super().__init__(toric_variety, polynomials)
 
     def _morphism(self, *args, **kwds):
         r"""
@@ -309,8 +309,8 @@ class AlgebraicScheme_subscheme_toric(AlgebraicScheme_subscheme):
               z0*z2 - z1*z3,
               z1 + z3 + 1
         """
-        from sage.modules.all import vector
-        from sage.misc.all import prod
+        from sage.modules.free_module_element import vector
+        from sage.misc.misc_c import prod
         ambient = self.ambient_space()
         fan = ambient.fan()
         if cone is None:
@@ -324,11 +324,12 @@ class AlgebraicScheme_subscheme_toric(AlgebraicScheme_subscheme):
         # inhomogenize the Cox homogeneous polynomial with respect to the given cone
         inhomogenize = dict( (ambient.coordinate_ring().gen(i), 1)
                              for i in range(0,fan.nrays())
-                             if not i in cone.ambient_ray_indices() )
-        polynomials = [ p.subs(inhomogenize) for p in self.defining_polynomials() ]
+                             if i not in cone.ambient_ray_indices() )
+        polynomials = [p.subs(inhomogenize) for p in self.defining_polynomials()]
 
         # map the monomial x^{D_m} to m, see reference.
         n_rho_matrix = cone.rays().matrix()
+
         def pullback_polynomial(p):
             result = R.zero()
             for coefficient, monomial in p:
@@ -581,7 +582,7 @@ class AlgebraicScheme_subscheme_toric(AlgebraicScheme_subscheme):
             sage: Y.is_smooth()
             True
         """
-        if not point is None:
+        if point is not None:
             toric_patch = self.neighborhood(point)
             return toric_patch.is_smooth(toric_patch.embedding_center())
 
@@ -726,6 +727,7 @@ class AlgebraicScheme_subscheme_toric(AlgebraicScheme_subscheme):
         """
         return self.is_nondegenerate()
 
+
 class AlgebraicScheme_subscheme_affine_toric(AlgebraicScheme_subscheme_toric):
     r"""
     Construct an algebraic subscheme of an affine toric variety.
@@ -793,8 +795,7 @@ class AlgebraicScheme_subscheme_affine_toric(AlgebraicScheme_subscheme_toric):
         """
         assert toric_variety.is_affine(), 'The toric variety must be affine!'
         # Just to make sure that keyword arguments will be passed correctly
-        super(AlgebraicScheme_subscheme_affine_toric, self).__init__(toric_variety,
-                                                                     polynomials)
+        super().__init__(toric_variety, polynomials)
 
     def dimension(self):
         """
@@ -886,7 +887,7 @@ class AlgebraicScheme_subscheme_affine_toric(AlgebraicScheme_subscheme_toric):
             sage: Y.is_smooth([0,0])
             True
         """
-        if not point is None:
+        if point is not None:
             self._check_satisfies_equations(point)
             if self.ambient_space().is_smooth():
                 R = self.ambient_space().coordinate_ring()

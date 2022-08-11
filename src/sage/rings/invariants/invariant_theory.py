@@ -256,9 +256,9 @@ def transvectant(f, g, h=1, scale='default'):
         sage: S.<x> = R[]
         sage: quintic = invariant_theory.binary_quintic(x^5+x^3+2*x^2+y^5, x)
         sage: transvectant(quintic, quintic, 2)
-        Binary sextic given by 1/5*x^6 + 6/5*x^5*h + (-3/25)*x^4*h^2
-        + (2*y^5 - 8/25)*x^3*h^3 + (-12/25)*x^2*h^4 + 3/5*y^5*x*h^5
-        + 2/5*y^5*h^6
+        Binary sextic given by 1/5*x^6 + 6/5*x^5*h - 3/25*x^4*h^2
+        + (50*y^5 - 8)/25*x^3*h^3 - 12/25*x^2*h^4 + (3*y^5)/5*x*h^5
+        + (2*y^5)/5*h^6
     """
     f = f.homogenized()
     g = g.homogenized()
@@ -541,7 +541,7 @@ class AlgebraicForm(FormsBase):
                              str(n-1)+' variables, got '+str(variables))
         ring = polynomial.parent()
         homogeneous = variables[-1] is not None
-        super(AlgebraicForm, self).__init__(n, homogeneous, ring, variables)
+        super().__init__(n, homogeneous, ring, variables)
         self._check()
 
     def _check(self):
@@ -602,7 +602,7 @@ class AlgebraicForm(FormsBase):
             sage: quartic._check_covariant('EisensteinE', invariant=True)
             sage: quartic._check_covariant('h_covariant')
 
-            sage: quartic._check_covariant('h_covariant', invariant=True)
+            sage: quartic._check_covariant('h_covariant', invariant=True)  # not tested, known bug (see :trac:`32118`)
             Traceback (most recent call last):
             ...
             AssertionError: not invariant
@@ -756,7 +756,7 @@ class AlgebraicForm(FormsBase):
             R = polynomial.parent()
             variables = [R(_) for _ in self._variables[0:-1]] + [R(var)]
         except AttributeError:
-            from sage.rings.all import PolynomialRing
+            from sage.rings.polynomial.polynomial_ring_constructor import PolynomialRing
             R = PolynomialRing(self._ring.base_ring(), [str(self._ring.gen(0)), str(var)])
             polynomial = R(self._polynomial).homogenize(var)
             variables = R.gens()
@@ -928,7 +928,7 @@ class AlgebraicForm(FormsBase):
         if isinstance(g, dict):
             transform = g
         else:
-            from sage.modules.all import vector
+            from sage.modules.free_module_element import vector
             v = vector(self._ring, self._variables)
             g_v = vector(self._ring, g*v)
             transform = dict( (v[i], g_v[i]) for i in range(self._n) )
@@ -989,8 +989,7 @@ class QuadraticForm(AlgebraicForm):
             Ternary quadratic with coefficients (1, 1, 0, 0, 0, 0)
         """
         assert d == 2
-        super(QuadraticForm, self).__init__(n, 2, polynomial, *args)
-
+        super().__init__(n, 2, polynomial, *args)
 
     @classmethod
     def from_invariants(cls, discriminant, x, z, *args, **kwargs):
@@ -1363,10 +1362,9 @@ class BinaryQuartic(AlgebraicForm):
             Binary quartic with coefficients (1, 0, 0, 0, 1)
         """
         assert n == 2 and d == 4
-        super(BinaryQuartic, self).__init__(2, 4, polynomial, *args)
+        super().__init__(2, 4, polynomial, *args)
         self._x = self._variables[0]
         self._y = self._variables[1]
-
 
     @cached_method
     def monomials(self):
@@ -1689,7 +1687,7 @@ class BinaryQuintic(AlgebraicForm):
             Binary quintic with coefficients (0, 3, 0, 2, 0, 1)
         """
         assert n == 2 and d == 5
-        super(BinaryQuintic, self).__init__(2, 5, polynomial, *args)
+        super().__init__(2, 5, polynomial, *args)
         self._x = self._variables[0]
         self._y = self._variables[1]
 
@@ -2587,11 +2585,10 @@ class TernaryQuadratic(QuadraticForm):
             Ternary quadratic with coefficients (1, 1, 1, 0, 0, 0)
         """
         assert n == 3 and d == 2
-        super(QuadraticForm, self).__init__(3, 2, polynomial, *args)
+        super().__init__(3, 2, polynomial, *args)
         self._x = self._variables[0]
         self._y = self._variables[1]
         self._z = self._variables[2]
-
 
     @cached_method
     def monomials(self):
@@ -2765,11 +2762,10 @@ class TernaryCubic(AlgebraicForm):
             sage: cubic._check_covariant('J_covariant')
         """
         assert n == d == 3
-        super(TernaryCubic, self).__init__(3, 3, polynomial, *args)
+        super().__init__(3, 3, polynomial, *args)
         self._x = self._variables[0]
         self._y = self._variables[1]
         self._z = self._variables[2]
-
 
     @cached_method
     def monomials(self):
@@ -3170,7 +3166,7 @@ class SeveralAlgebraicForms(FormsBase):
         """
         forms = tuple(forms)
         f = forms[0]
-        super(SeveralAlgebraicForms, self).__init__(f._n, f._homogeneous, f._ring, f._variables)
+        super().__init__(f._n, f._homogeneous, f._ring, f._variables)
         s = set(f._variables)
         if not all(set(f._variables) == s for f in forms):
             raise ValueError('all forms must be in the same variables')
@@ -4058,7 +4054,7 @@ class TwoQuaternaryQuadratics(TwoAlgebraicForms):
 
 ######################################################################
 
-class InvariantTheoryFactory(object):
+class InvariantTheoryFactory():
     """
     Factory object for invariants of multilinear forms.
 
@@ -4454,7 +4450,7 @@ class InvariantTheoryFactory(object):
         if as_form:
             from sage.rings.fraction_field import FractionField
             from sage.structure.sequence import Sequence
-            from sage.rings.all import PolynomialRing
+            from sage.rings.polynomial.polynomial_ring_constructor import PolynomialRing
             K = FractionField(Sequence(list(invariants)).universe())
             if variables is None:
                 x,z = PolynomialRing(K, 'x,z').gens()

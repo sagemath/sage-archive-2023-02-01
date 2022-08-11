@@ -121,7 +121,7 @@ class QuiverHomSpace(Homset):
         # variable located at (0, 0) in the matrix assigned to the
         # ith vertex. (So varstart[0] will be 0.)
         eqs = 0
-        verts = domain._quiver.vertices()
+        verts = domain._quiver.vertices(sort=True)
         varstart = [0] * (len(verts) + 1)
 
         # First assign to varstart the dimension of the matrix assigned to the
@@ -199,10 +199,10 @@ class QuiverHomSpace(Homset):
 
     def _coerce_map_from_(self, other):
         r"""
-        A coercion exists if and only if ``other``` is also a
-        QuiverHomSpace and there is a coercion from the domain of ``self``
-        to the domain of ``other`` and from the codomain of ``other`` to
-        the codomain of ``self```.
+        A coercion exists if and only if ``other`` is also a
+        :class:`QuiverHomSpace` and there is a coercion from the
+        domain of ``self`` to the domain of ``other`` and from the
+        codomain of ``other`` to the codomain of ``self``.
 
         EXAMPLES::
 
@@ -332,7 +332,7 @@ class QuiverHomSpace(Homset):
             True
         """
         if kwds or len(data) > 1:
-            return super(Homset, self).__call__(*data, **kwds)
+            return super().__call__(*data, **kwds)
 
         if not data:
             return self.natural_map()
@@ -343,7 +343,7 @@ class QuiverHomSpace(Homset):
         try:
             return self.element_class(self._domain, self._codomain, data0)
         except (TypeError, ValueError):
-            return super(QuiverHomSpace, self).__call__(*data, **kwds)
+            return super().__call__(*data, **kwds)
 
     def _repr_(self):
         """

@@ -19,10 +19,11 @@ from sage.combinat.partition import _Partitions, Partitions_n
 from sage.combinat.tableau import Tableau, StandardTableaux_size, StandardTableaux_shape, StandardTableaux
 from sage.algebras.group_algebra import GroupAlgebra_class
 from sage.categories.weyl_groups import WeylGroups
-from sage.rings.all import QQ, PolynomialRing
+from sage.rings.polynomial.polynomial_ring_constructor import PolynomialRing
+from sage.rings.rational_field import QQ
 from sage.arith.all import factorial
-from sage.matrix.all import matrix
-from sage.modules.all import vector
+from sage.matrix.constructor import matrix
+from sage.modules.free_module_element import vector
 from sage.groups.perm_gps.permgroup_element import PermutationGroupElement
 from sage.misc.persist import register_unpickle_override
 
@@ -214,7 +215,7 @@ def SymmetricGroupAlgebra(R, W, category=None):
         sage: SGg.group().conjugacy_classes_representatives()
         [(), (1,2), (1,2,3)]
     """
-    from sage.rings.semirings.non_negative_integer_semiring import NN
+    from sage.rings.semirings.all import NN
     if W in NN:
         W = Permutations(W)
     if category is None:
@@ -367,7 +368,7 @@ class SymmetricGroupAlgebra_n(GroupAlgebra_class):
                 phi = S.to_symmetric_group_algebra
                 return phi.codomain().canonical_embedding(self) * phi
 
-        return super(SymmetricGroupAlgebra_n, self)._coerce_map_from_(S)
+        return super()._coerce_map_from_(S)
 
     def _element_constructor_(self, x):
         """
@@ -391,7 +392,7 @@ class SymmetricGroupAlgebra_n(GroupAlgebra_class):
             return self.monomial_from_smaller_permutation(
                 from_permutation_group_element(x))
 
-        return super(SymmetricGroupAlgebra_n, self)._element_constructor_(x)
+        return super()._element_constructor_(x)
 
     def _sibling(self, n):
         r"""
@@ -756,7 +757,7 @@ class SymmetricGroupAlgebra_n(GroupAlgebra_class):
         """
         la = _Partitions(la)
         kwds['bracket'] = kwds.get('bracket', False)
-        return super(SymmetricGroupAlgebra_n, self).cell_module(la, **kwds)
+        return super().cell_module(la, **kwds)
 
     def retract_plain(self, f, m):
         r"""
@@ -2806,7 +2807,7 @@ class HeckeAlgebraSymmetricGroup_t(HeckeAlgebraSymmetricGroup_generic):
             sage: HeckeAlgebraSymmetricGroupT(QQ,3).algebra_generators()
             [T[2, 1, 3], T[1, 3, 2]]
         """
-        return [self.t(_) for _ in range(1, self.n)]
+        return [self.t(i) for i in range(1, self.n)]
 
     def jucys_murphy(self, k):
         r"""

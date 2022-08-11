@@ -80,8 +80,8 @@ from sage.misc.latex import latex
 from sage.sets.set import Set_object
 from sage.rings.infinity import infinity
 from sage.rings.integer_ring import ZZ
-from sage.functions.other import binomial
-from sage.symbolic.ring import SR
+from sage.rings.power_series_ring import PowerSeriesRing
+from sage.arith.all import binomial
 
 from sage.combinat.subset import Subsets_sk
 from sage.combinat.composition import Composition, Compositions, composition_iterator_fast
@@ -188,7 +188,7 @@ class OrderedMultisetPartitionIntoSets(ClonableArray,
         # Delete empty blocks
         co = [block for block in data if block]
         if not _has_nonempty_sets(co):
-            raise ValueError("cannot view %s as an ordered partition of %s"%(co, parent._Xtup))
+            raise ValueError("cannot view %s as an ordered partition of %s" % (co, parent._Xtup))
 
         ClonableArray.__init__(self, parent, [frozenset(k) for k in co])
         self._multiset = _get_multiset(co)
@@ -1408,7 +1408,7 @@ class OrderedMultisetPartitionsIntoSets(UniqueRepresentation, Parent):
                 else:
                     w = {i+1: w[i] for i in range(len(w)) if w[i] > 0}
             if not all((a in ZZ and a > 0) for a in w.values()):
-                raise ValueError("%s must be a dictionary of letter-frequencies or a weak composition"%w)
+                raise ValueError("%s must be a dictionary of letter-frequencies or a weak composition" % w)
             else:
                 constraints["weight"] = tuple(w.items())
 
@@ -1543,14 +1543,14 @@ class OrderedMultisetPartitionsIntoSets(UniqueRepresentation, Parent):
             constraints.pop("max_length", None)
         min_k = constraints.get("min_length", 0)
         max_k = constraints.get("max_length", infinity)
-        assert min_k <= max_k, "min_length=%s <= max_length=%s"%(min_k, max_k)
+        assert min_k <= max_k, "min_length=%s <= max_length=%s" % (min_k, max_k)
         if min_k == max_k:
             constraints["length"] = constraints.pop("min_length",
                                                     constraints.pop("max_length"))
 
         if "order" in constraints:
-           constraints.pop("min_order", None)
-           constraints.pop("max_order", None)
+            constraints.pop("min_order", None)
+            constraints.pop("max_order", None)
         min_ord = constraints.get("min_order", 0)
         max_ord = constraints.get("max_order", infinity)
         assert min_ord <= max_ord, "min_order=%s <= max_order=%s"%(min_ord, max_ord)
@@ -1786,7 +1786,7 @@ class OrderedMultisetPartitionsIntoSets(UniqueRepresentation, Parent):
             True
         """
         if all(a in ZZ for a in lst) and any(a < 0 for a in lst):
-            raise ValueError("Something is wrong: `_from_list` does not expect to see negative integers; received {}.".format(str(lst)))
+            raise ValueError("`_from_list` does not expect to see negative integers; received {}".format(str(lst)))
         if 0 in list(lst) or '0' in list(lst):
             return self._from_list_with_zeros(lst)
 
@@ -1838,7 +1838,7 @@ class OrderedMultisetPartitionsIntoSets(UniqueRepresentation, Parent):
             else:
                 return c
         else:
-            raise ValueError("ordered multiset partitions into sets do not have repeated entries within blocks (%s received)"%str(co))
+            raise ValueError("ordered multiset partitions into sets do not have repeated entries within blocks (%s received)" % str(co))
 
     def __iter__(self):
         """
@@ -2060,18 +2060,18 @@ class OrderedMultisetPartitionsIntoSets_n(OrderedMultisetPartitionsIntoSets):
         """
         # Dispense with the complex computation for small orders.
         if self._n <= 5:
-            orders = {0:1, 1:1, 2:2, 3:5, 4:11, 5:25}
+            orders = {0: 1, 1: 1, 2: 2, 3: 5, 4: 11, 5: 25}
             return ZZ(orders[self._n])
 
         # We view an ordered multiset partition into sets as a list of 2-regular integer partitions.
         #
         # The 2-regular partitions have a nice generating function (see OEIS:A000009).
         # Below, we take (products of) coefficients of polynomials to compute cardinality.
-        t = SR.var('t')
-        partspoly = prod(1+t**k for k in range(1,self._n+1)).coefficients()
+        t = PowerSeriesRing(ZZ, 't').gen().O(self._n + 1)
+        partspoly = prod(1 + t**k for k in range(1, self._n + 1)).dict()
         deg = 0
         for alpha in composition_iterator_fast(self._n):
-            deg += prod(partspoly[d][0] for d in alpha)
+            deg += prod(partspoly[d] for d in alpha)
         return ZZ(deg)
 
     def _an_element_(self):
@@ -2623,6 +2623,7 @@ def _has_nonempty_sets(x):
                 and block and len(set(block)) == len(block))
                for block in x)
 
+
 def _union_of_sets(list_of_sets):
     """
     Return the union of a list of iterables as a frozenset.
@@ -2634,7 +2635,9 @@ def _union_of_sets(list_of_sets):
         sage: _union_of_sets(L)
         frozenset({1, 2, 3, 5, 6, 7})
     """
-    return reduce(lambda a,b: frozenset(a)|frozenset(b), list_of_sets, frozenset())
+    return reduce(lambda a, b: frozenset(a) | frozenset(b),
+                  list_of_sets, frozenset())
+
 
 def _concatenate(list_of_iters):
     """
@@ -3041,7 +3044,7 @@ def _refine_block(S, strong=False):
         ValueError: S (=[]) must be nonempty
     """
     if not S:
-        raise ValueError("S (=%s) must be nonempty"%S)
+        raise ValueError("S (=%s) must be nonempty" % S)
 
     if all(s in ZZ for s in S):
         X = sorted(S)
@@ -3354,7 +3357,7 @@ class MinimajCrystal(UniqueRepresentation, Parent):
         if mu in self:
             return self(mu)
         else:
-            raise ValueError("%s is not an element of %s"%(mu, self))
+            raise ValueError("%s is not an element of %s" % (mu, self))
 
     def val(self, q='q'):
         r"""
@@ -3505,4 +3508,3 @@ class MinimajCrystal(UniqueRepresentation, Parent):
                 return None
             w = w.f(i)
             return P.element_class(P, (w, breaks))
-

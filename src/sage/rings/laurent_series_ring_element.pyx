@@ -86,7 +86,7 @@ def is_LaurentSeries(x):
 
 
 cdef class LaurentSeries(AlgebraElement):
-    """
+    r"""
     A Laurent Series.
 
     We consider a Laurent series of the form `t^n \cdot f` where `f` is a
@@ -141,8 +141,8 @@ cdef class LaurentSeries(AlgebraElement):
             ## adjusting n to match.
             n1 = min(f.keys())
             if n1 < 0:
-               f = {e-n1: c for e,c in f.items()}
-               n += n1
+                f = {e - n1: c for e, c in f.items()}
+                n += n1
             f = parent._power_series_ring(f)
         elif not isinstance(f, PowerSeries):
             f = parent._power_series_ring(f)
@@ -254,7 +254,7 @@ cdef class LaurentSeries(AlgebraElement):
         """
         return self.__u.is_monomial()
 
-    def __nonzero__(self):
+    def __bool__(self):
         """
         EXAMPLES::
 
@@ -1753,6 +1753,12 @@ cdef class LaurentSeries(AlgebraElement):
             Traceback (most recent call last):
             ...
             TypeError: self is not a power series
+
+        Test for :trac:`32440`::
+
+            sage: L.<x> = LaurentSeriesRing(QQ, implementation='pari')
+            sage: (x + O(x^3)).power_series()
+            x + O(x^3)
         """
         if self.__n < 0:
             if self.__u.is_zero() and self.__u.prec() >= - self.__n:
@@ -1812,8 +1818,8 @@ cdef class LaurentSeries(AlgebraElement):
 
         Test for :trac:`23928`::
 
-            sage: R.<x> = PowerSeriesRing(QQ, implementation='pari')
-            sage: f = LaurentSeries(R, x).add_bigoh(7)
+            sage: R.<x> = LaurentSeriesRing(QQ, implementation='pari')
+            sage: f = x.add_bigoh(7)
             sage: f(x)
             x + O(x^7)
             """
@@ -1844,3 +1850,28 @@ cdef class LaurentSeries(AlgebraElement):
             x = x[0]
 
         return self.__u(*x)*(x[0]**self.__n)
+
+    def __pari__(self):
+        """
+        Convert ``self`` to a PARI object.
+
+        TESTS::
+
+            sage: L.<x> = LaurentSeriesRing(QQ)
+            sage: f = x + 1/x + O(x^2); f
+            x^-1 + x + O(x^2)
+            sage: f.__pari__()
+            x^-1 + x + O(x^2)
+
+        Check that :trac:`32437` is fixed::
+
+            sage: F.<u> = GF(257^2)
+            sage: R.<t> = LaurentSeriesRing(F)
+            sage: g = t + O(t^99)
+            sage: f = u*t + O(t^99)
+            sage: g(f)  # indirect doctest
+            u*t + O(t^99)
+        """
+        f = self.__u
+        x = f.parent().gen()
+        return f.__pari__() * x.__pari__()**self.__n

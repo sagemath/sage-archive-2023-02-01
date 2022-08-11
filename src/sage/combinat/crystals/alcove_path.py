@@ -8,10 +8,9 @@ AUTHORS:
 - Travis Scrimshaw (2016-06-23): implemented `\mathcal{B}(\infty)`
 
 Special thanks to: Nicolas Borie, Anne Schilling, Travis Scrimshaw, and
-Nicolas Thiery.
+Nicolas Thiéry.
 """
-
-#*****************************************************************************
+# ****************************************************************************
 #       Copyright (C) 2008 Brant Jones <brant at math.ucdavis.edu>
 #       Copyright (C) 2013 Arthur Lubovsky <alubovsky at albany.edu>
 #
@@ -19,8 +18,8 @@ Nicolas Thiery.
 # it under the terms of the GNU General Public License as published by
 # the Free Software Foundation, either version 2 of the License, or
 # (at your option) any later version.
-#                  http://www.gnu.org/licenses/
-#*****************************************************************************
+#                  https://www.gnu.org/licenses/
+# ****************************************************************************
 
 from sage.structure.parent import Parent
 from sage.structure.element import Element
@@ -29,7 +28,7 @@ from sage.structure.unique_representation import UniqueRepresentation
 from sage.structure.richcmp import richcmp
 from sage.categories.classical_crystals import ClassicalCrystals
 from sage.categories.loop_crystals import LoopCrystals
-from sage.graphs.all import DiGraph
+from sage.graphs.digraph import DiGraph
 from sage.combinat.root_system.cartan_type import CartanType
 from sage.combinat.root_system.root_system import RootSystem
 from sage.all import vector
@@ -102,7 +101,7 @@ class CrystalOfAlcovePaths(UniqueRepresentation, Parent):
         ....:     })
         sage: G.is_isomorphic(GG)
         True
-        sage: for (u,v,i) in G.edges():
+        sage: for (u,v,i) in G.edges(sort=True):
         ....:     print((u.integer_sequence() , v.integer_sequence(), i))
         ([], [0], 2)
         ([0], [0, 8], 1)
@@ -194,7 +193,7 @@ class CrystalOfAlcovePaths(UniqueRepresentation, Parent):
         sage: K = crystals.KirillovReshetikhin(['B',3,1],2,1)
         sage: T = crystals.TensorProduct(K,K)
         sage: g = T.digraph() #long time
-        sage: for e in g.edges(): #long time
+        sage: for e in g.edges(sort=False): #long time
         ....:     if e[0].phi(0) == 1 and e[2] == 0: #long time
         ....:         g.delete_edge(e)  #long time
 
@@ -352,8 +351,8 @@ class CrystalOfAlcovePaths(UniqueRepresentation, Parent):
             Crystal of alcove paths of type ['A', 2, 1] and weight Lambda[1]
         """
         if self._highest_weight_crystal:
-            return "Highest weight crystal of alcove paths of type %s and weight %s"%(self._cartan_type, self.weight)
-        return "Crystal of alcove paths of type %s and weight %s"%(self._cartan_type, self.weight)
+            return "Highest weight crystal of alcove paths of type %s and weight %s" % (self._cartan_type, self.weight)
+        return "Crystal of alcove paths of type %s and weight %s" % (self._cartan_type, self.weight)
 
     def _element_constructor_(self, data):
         """
@@ -1495,7 +1494,7 @@ class RootsWithHeight(UniqueRepresentation, Parent):
             sage: RootsWithHeight(['A',2],[3,2])
             Roots with height of Cartan type ['A', 2] and dominant weight 3*Lambda[1] + 2*Lambda[2]
         """
-        return "Roots with height of Cartan type %s and dominant weight %s"%(
+        return "Roots with height of Cartan type %s and dominant weight %s" % (
             self._root_system.cartan_type(), self.weight)
 
     def _max_height(self, root):
@@ -1912,7 +1911,7 @@ def compare_graphs(g1, g2, node1, node2):
         sage: G1 = crystals.Tableaux(['A',3], shape=[1,1]).digraph()
         sage: C = crystals.AlcovePaths(['A',3],[0,1,0])
         sage: G2 = C.digraph()
-        sage: compare_graphs(G1, G2, C( () ), G2.vertices()[0])
+        sage: compare_graphs(G1, G2, C( () ), G2.vertices(sort=True)[0])
         True
     """
     for out_edge in g1.outgoing_edges( node1 ):
@@ -1975,7 +1974,7 @@ def _test_against_tableaux(R, N, k, clss=CrystalOfAlcovePaths):
         if cc != ct:
             print("FAIL: number of nodes differ.", cc, ct)
             return
-        print("  Compare graphs: ", compare_graphs(G, H, C(()), H.vertices()[0]))
+        print("  Compare graphs: ", compare_graphs(G, H, C(()), H.vertices(sort=True)[0]))
 
 def _test_with_lspaths_crystal(cartan_type, weight, depth=10):
     r"""

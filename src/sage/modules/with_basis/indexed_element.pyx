@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 r"""
-An element in an indexed free module.
+An element in an indexed free module
 
 AUTHORS:
 
@@ -306,6 +306,13 @@ cdef class IndexedFreeModuleElement(ModuleElement):
                *                      *
             sage: ascii_art(M.zero())
             0
+            sage: DA = DescentAlgebra(QQ, 4)
+            sage: ascii_art(DA.an_element())
+            2*B  + 2*B   + 3*B
+               *      **       *
+               *      *       **
+               *      *       *
+               *
         """
         from sage.misc.repr import coeff_repr
         terms = self._sorted_items_for_printing()
@@ -322,6 +329,11 @@ cdef class IndexedFreeModuleElement(ModuleElement):
         if scalar_mult is None:
             scalar_mult = "*"
 
+        try:
+            one_basis = self.parent().one_basis()
+        except AttributeError:
+            one_basis = None
+
         for (monomial,c) in terms:
             b = repr_monomial(monomial) # PCR
             if c != 0:
@@ -333,7 +345,7 @@ cdef class IndexedFreeModuleElement(ModuleElement):
                     elif coeff == "-1":
                         coeff = "-"
                     elif b._l > 0:
-                        if len(coeff) > 0 and monomial == 1 and strip_one:
+                        if len(coeff) > 0 and monomial == one_basis and strip_one:
                             b = empty_ascii_art # ""
                         else:
                             b = AsciiArt([scalar_mult]) + b
@@ -391,6 +403,11 @@ cdef class IndexedFreeModuleElement(ModuleElement):
         if scalar_mult is None:
             scalar_mult = "*"
 
+        try:
+            one_basis = self.parent().one_basis()
+        except AttributeError:
+            one_basis = None
+
         for (monomial, c) in terms:
             b = repr_monomial(monomial)  # PCR
             if c != 0:
@@ -402,7 +419,7 @@ cdef class IndexedFreeModuleElement(ModuleElement):
                     elif coeff == "-1":
                         coeff = "-"
                     elif b._l > 0:
-                        if len(coeff) > 0 and monomial == 1 and strip_one:
+                        if len(coeff) > 0 and monomial == one_basis and strip_one:
                             b = empty_unicode_art  # ""
                         else:
                             b = UnicodeArt([scalar_mult]) + b
@@ -435,14 +452,14 @@ cdef class IndexedFreeModuleElement(ModuleElement):
             sage: B = F.basis()
             sage: f = B['a'] + 3*B['c']
             sage: latex(f)
-            B_{a} + 3B_{c}
+            B_{a} + 3 B_{c}
 
         ::
 
             sage: QS3 = SymmetricGroupAlgebra(QQ,3)
             sage: a = 2 + QS3([2,1,3])
             sage: latex(a) #indirect doctest
-            2[1, 2, 3] + [2, 1, 3]
+            2 [1, 2, 3] + [2, 1, 3]
 
        ::
 
@@ -451,7 +468,7 @@ cdef class IndexedFreeModuleElement(ModuleElement):
             sage: x
             2*beta['a'] + 2*beta['b']
             sage: latex(x)
-            2\beta_{a} + 2\beta_{b}
+            2 \beta_{a} + 2 \beta_{b}
 
         Controling the order of terms by providing a comparison
         function on elements of the support::
@@ -460,13 +477,13 @@ cdef class IndexedFreeModuleElement(ModuleElement):
             ....:                             sorting_reverse=True)
             sage: e = F.basis()
             sage: latex(e['a'] + 3*e['b'] + 2*e['c'])
-            2B_{c} + 3B_{b} + B_{a}
+            2 B_{c} + 3 B_{b} + B_{a}
 
             sage: F = CombinatorialFreeModule(QQ, ['ac', 'ba', 'cb'],
             ....:                             sorting_key=lambda x: x[1])
             sage: e = F.basis()
             sage: latex(e['ac'] + 3*e['ba'] + 2*e['cb'])
-            3B_{ba} + 2B_{cb} + B_{ac}
+            3 B_{ba} + 2 B_{cb} + B_{ac}
         """
         return repr_lincomb(self._sorted_items_for_printing(),
                             scalar_mult       = self._parent._print_options['scalar_mult'],
@@ -664,16 +681,18 @@ cdef class IndexedFreeModuleElement(ModuleElement):
             return self.base_ring().zero()
         return res
 
-    def _vector_(self, new_base_ring=None, order=None):
-        """
-        Returns ``self`` as a dense vector
+    def _vector_(self, new_base_ring=None, order=None, sparse=False):
+        r"""
+        Return ``self`` as a vector.
 
         INPUT:
 
         - ``new_base_ring`` -- a ring (default: ``None``)
         - ``order`` -- (optional) an ordering of the support of ``self``
+        - ``sparse`` -- (default: ``False``) whether to return a sparse
+          vector or a dense vector
 
-        OUTPUT: a dense :func:`FreeModule` vector
+        OUTPUT: a :func:`FreeModule` vector
 
         .. WARNING:: This will crash/run forever if ``self`` is infinite dimensional!
 
@@ -711,6 +730,8 @@ cdef class IndexedFreeModuleElement(ModuleElement):
             (2, 0, 0, 0, 0, 4)
             sage: a == QS3.from_vector(a.to_vector())
             True
+            sage: a.to_vector(sparse=True)
+            (2, 0, 0, 0, 0, 4)
 
         If ``new_base_ring`` is specified, then a vector over
         ``new_base_ring`` is returned::
@@ -733,14 +754,23 @@ cdef class IndexedFreeModuleElement(ModuleElement):
              Other use cases may call for different or further
              optimizations.
         """
-        dense_free_module = self._parent._dense_free_module(new_base_ring)
+        free_module = self._parent._dense_free_module(new_base_ring)
+        if sparse:
+            free_module = free_module.sparse_module()
         d = self._monomial_coefficients
-        zero = dense_free_module.base_ring().zero()
-        if order is None:
-            order = self._parent.get_order()
-        return dense_free_module.element_class(dense_free_module,
-                                               [d.get(m, zero) for m in order],
-                                               coerce=True, copy=False)
+        zero = free_module.base_ring().zero()
+        if sparse:
+            if order is None:
+                order = {k: i for i,k in enumerate(self._parent.get_order())}
+            return free_module.element_class(free_module,
+                                             {order[k]: c for k, c in d.items()},
+                                             coerce=True, copy=False)
+        else:
+            if order is None:
+                order = self._parent.get_order()
+            return free_module.element_class(free_module,
+                                             [d.get(m, zero) for m in order],
+                                             coerce=True, copy=False)
 
     to_vector = _vector_
 

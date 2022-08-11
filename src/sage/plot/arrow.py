@@ -143,7 +143,7 @@ class CurveArrow(GraphicPrimitive):
         elif head == 2:
             style = '<|-|>'
         else:
-            raise KeyError('head parameter must be one of 0 (start), 1 (end) or 2 (both).')
+            raise KeyError('head parameter must be one of 0 (start), 1 (end) or 2 (both)')
         arrowsize = float(options.get('arrowsize', 5))
         head_width = arrowsize
         head_length = arrowsize * 2.0
@@ -368,7 +368,7 @@ class Arrow(GraphicPrimitive):
         elif head == 2:
             style = '<|-|>'
         else:
-            raise KeyError('head parameter must be one of 0 (start), 1 (end) or 2 (both).')
+            raise KeyError('head parameter must be one of 0 (start), 1 (end) or 2 (both)')
         width = float(options['width'])
         arrowshorten_end = float(options.get('arrowshorten', 0)) / 2.0
         arrowsize = float(options.get('arrowsize', 5))
@@ -395,7 +395,7 @@ class Arrow(GraphicPrimitive):
 
             import matplotlib.patheffects as pe
 
-            class CheckNthSubPath(object):
+            class CheckNthSubPath():
                 def __init__(self, patch, n):
                     """
                     creates an callable object that returns True if the
@@ -405,7 +405,11 @@ class Arrow(GraphicPrimitive):
                     self._n = n
 
                 def get_paths(self, renderer):
-                    paths, fillables = self._patch.get_path_in_displaycoord()
+                    # get_path_in_displaycoord was made private in matplotlib 3.5
+                    try:
+                        paths, fillables = self._patch._get_path_in_displaycoord()
+                    except AttributeError:
+                        paths, fillables = self._patch.get_path_in_displaycoord()
                     return paths
 
                 def __call__(self, renderer, gc, tpath, affine, rgbFace):
@@ -639,7 +643,7 @@ def arrow2d(tailpoint=None, headpoint=None, path=None, **options):
     elif tailpoint is None and headpoint is None:
         return g
     else:
-        raise TypeError('Arrow requires either both headpoint and tailpoint or a path parameter.')
+        raise TypeError('arrow requires either both headpoint and tailpoint or a path parameter')
     if options['legend_label']:
         g.legend(True)
         g._legend_colors = [options['legend_color']]

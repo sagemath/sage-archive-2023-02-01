@@ -47,7 +47,7 @@ from sage.structure.richcmp import rich_to_bool
 
 import sage.misc.sage_eval
 from sage.misc.fast_methods import WithEqualityById
-from sage.docs.instancedoc import instancedoc
+from sage.misc.instancedoc import instancedoc
 
 
 class AsciiArtString(str):
@@ -126,11 +126,11 @@ class Interface(WithEqualityById, ParentWithBase):
             sage: from sage.interfaces.interface import Interface
             sage: i = Interface("")
             sage: i.rand_seed() # random
-            318491487L
+            318491487
 
             sage: s = Singular()
             sage: s.rand_seed() # random
-            365260051L
+            365260051
         """
         import sage.doctest
         if sage.doctest.DOCTEST_MODE:
@@ -248,15 +248,16 @@ class Interface(WithEqualityById, ParentWithBase):
         return self.eval(*args, **kwds)
 
     def __call__(self, x, name=None):
-
         r"""
-        Create a new object in self from x.
+        Create a new object in ``self`` from ``x``.
 
-        The object X returned can be used like any Sage object, and
-        wraps an object in self.  The standard arithmetic operators
-        work.  Moreover if foo is a function then
-                      X.foo(y,z,...)
-        calls foo(X, y, z, ...) and returns the corresponding object.
+        The object ``X`` returned can be used like any Sage object, and
+        wraps an object in ``self``.  The standard arithmetic operators
+        work.  Moreover if ``foo`` is a function then::
+
+            ``X.foo(y,z,...)``
+
+        calls ``foo(X, y, z, ...)`` and returns the corresponding object.
 
         EXAMPLES::
 
@@ -446,7 +447,7 @@ class Interface(WithEqualityById, ParentWithBase):
 
     def _exponent_symbol(self):
         """
-        Return the symbol used to denote *10^ in floats, e.g 'e' in 1.5e6
+        Return the symbol used to denote ``*10^`` in floats, e.g 'e' in 1.5e6
 
         EXAMPLES::
 
@@ -734,20 +735,20 @@ class InterfaceElement(Element):
                 raise TypeError(x)
 
     def _latex_(self):
-#        return "\\begin{verbatim}%s\\end{verbatim}"%self
+        #        return "\\begin{verbatim}%s\\end{verbatim}"%self
         string = str(self)
-        if not '|' in string:
+        if '|' not in string:
             delim = '|'
-        elif not '#' in string:
+        elif '#' not in string:
             delim = '#'
-        elif not '@' in string:
+        elif '@' not in string:
             delim = '@'
-        elif not '~' in string:
+        elif '~' not in string:
             delim = '~'
-        return "\\verb%s%s%s"%(delim, string, delim)
+        return "\\verb%s%s%s" % (delim, string, delim)
 
     def __iter__(self):
-        for i in range(1, len(self)+1):
+        for i in range(1, len(self) + 1):
             yield self[i]
 
     def __len__(self):
@@ -1337,7 +1338,7 @@ class InterfaceElement(Element):
                             P._false_symbol())
         return P.eval(cmd) != P._true_symbol()
 
-    __nonzero__ = __bool__
+    
 
     def __float__(self):
         """

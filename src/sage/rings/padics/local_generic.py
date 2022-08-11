@@ -380,6 +380,7 @@ class LocalGeneric(CommutativeRing):
         for atr in ('print_mode', 'print_pos', 'print_sep', 'print_alphabet'):
             if atr in kwds:
                 kwds[atr[6:]] = kwds.pop(atr)
+
         def get_unramified_modulus(q, res_name):
             from sage.rings.finite_rings.finite_field_constructor import FiniteField as GF
             return GF(q, res_name).modulus().change_ring(ZZ)
@@ -1055,7 +1056,7 @@ class LocalGeneric(CommutativeRing):
         tester = self._tester(**options)
         for x in tester.some_elements():
             tester.assertEqual(x.add_bigoh(x.precision_absolute()), x)
-            from sage.rings.all import infinity
+            from sage.rings.infinity import infinity
             tester.assertEqual(x.add_bigoh(infinity), x)
             tester.assertEqual(x.add_bigoh(x.precision_absolute()+1), x)
 
@@ -1276,7 +1277,7 @@ class LocalGeneric(CommutativeRing):
             [O(5^10) O(5^10)]
             [O(5^10) O(5^10)]
         """
-        from sage.rings.all import infinity
+        from sage.rings.infinity import infinity
         from .precision_error import PrecisionError
         from copy import copy
         n = M.nrows()
@@ -1458,7 +1459,7 @@ class LocalGeneric(CommutativeRing):
         tester.assertEqual(self.residue_field().characteristic(), self.residue_characteristic())
 
         from itertools import chain
-        from sage.all import MatrixSpace
+        from sage.matrix.matrix_space import MatrixSpace
         from .precision_error import PrecisionError
         matrices = chain(*[MatrixSpace(self, n, m).some_elements() for n in (1,3,7) for m in (1,4,7)])
         for M in tester.some_elements(matrices):

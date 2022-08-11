@@ -27,7 +27,7 @@ EXAMPLES::
 from copy import copy
 from sage.dynamics.arithmetic_dynamics.generic_ds import DynamicalSystem
 from sage.dynamics.arithmetic_dynamics.projective_ds import DynamicalSystem_projective
-from sage.rings.all import ZZ
+from sage.rings.integer_ring import ZZ
 from sage.rings.quotient_ring import QuotientRing_generic
 from sage.schemes.product_projective.morphism import ProductProjectiveSpaces_morphism_ring
 
@@ -278,17 +278,17 @@ class DynamicalSystem_product_projective(DynamicalSystem,
             PHI = list(Coord_ring.gens())
 
         while D:
-            if D&1:
+            if D & 1:
                 PHI = [poly(*F) for poly in PHI]
-            if D > 1: #avoid extra iterate
-                F = [poly(*F) for poly in F] #'square'
+            if D > 1:  # avoid extra iterate
+                F = [poly(*F) for poly in F]  # 'square'
             D >>= 1
         return DynamicalSystem_projective(PHI, domain=self.domain())
 
 
 class DynamicalSystem_product_projective_field(DynamicalSystem_product_projective):
-
     pass
+
 
 class DynamicalSystem_product_projective_finite_field(DynamicalSystem_product_projective_field):
 
@@ -325,13 +325,12 @@ class DynamicalSystem_product_projective_finite_field(DynamicalSystem_product_pr
         V = []
         E = []
         from sage.schemes.product_projective.space import is_ProductProjectiveSpaces
-        if is_ProductProjectiveSpaces(self.domain()) == True:
+        if is_ProductProjectiveSpaces(self.domain()):
             for P in self.domain():
                 V.append(str(P))
                 Q = self(P)
                 E.append([str(Q)])
         else:
-            raise NotImplementedError("Cyclegraph for product projective spaces not implemented for subschemes")
+            raise NotImplementedError("cyclegraph for product projective spaces not implemented for subschemes")
         from sage.graphs.digraph import DiGraph
-        g = DiGraph(dict(zip(V, E)), loops=True)
-        return g
+        return DiGraph(dict(zip(V, E)), loops=True)

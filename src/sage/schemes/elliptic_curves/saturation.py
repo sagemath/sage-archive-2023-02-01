@@ -50,8 +50,8 @@ AUTHORS:
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 
-from sage.rings.finite_rings.all import GF
-from sage.rings.all import ZZ
+from sage.rings.finite_rings.finite_field_constructor import GF
+from sage.rings.integer_ring import ZZ
 from sage.arith.all import kronecker_symbol as kro
 from sage.structure.sage_object import SageObject
 
@@ -84,7 +84,6 @@ def reduce_mod_q(x,amodq):
         (59, [(36, 28)]),
         (61, [(40, 35)]),
         (67, [(10, 8), (62, 28), (63, 60)])]
-
     """
     Fq = amodq.parent()
     try:
@@ -123,7 +122,7 @@ class EllipticCurveSaturator(SageObject):
         self._N = E.discriminant().norm()
         self._field = K = E.base_field()
         if K.absolute_degree() == 1:
-            from sage.rings.all import QQ
+            from sage.rings.rational_field import QQ
             from sage.rings.polynomial.all import polygen
             self._Kpol = polygen(QQ)
         else:
@@ -177,7 +176,6 @@ class EllipticCurveSaturator(SageObject):
             sage: saturator = EllipticCurveSaturator(E)
             sage: for q in primes(20):
             ....:     saturator.add_reductions(q)
-            ....:
             sage: saturator._reductions
             {2: {},
             3: {},
@@ -213,9 +211,9 @@ class EllipticCurveSaturator(SageObject):
 
         INPUT:
 
-        - ``Plist`` (list) - a list of independent points on one elliptic curve.
+        - ``Plist`` (list) -- a list of independent points on one elliptic curve.
 
-        - ``p`` (integer) - a prime number.
+        - ``p`` (integer) -- a prime number.
 
         OUTPUT:
 
@@ -254,7 +252,6 @@ class EllipticCurveSaturator(SageObject):
             (2869/676 : 154413/17576 : 1),
             (-7095/502681 : -366258864/356400829 : 1)],
             1)
-
         """
         if not Plist:
             return Plist, ZZ.zero()
@@ -306,14 +303,14 @@ class EllipticCurveSaturator(SageObject):
 
         INPUT:
 
-        - ``Plist`` (list) - a list of independent points on one elliptic curve.
+        - ``Plist`` (list) -- a list of independent points on one elliptic curve.
 
-        - ``p`` (integer) - a prime number.
+        - ``p`` (integer) -- a prime number.
 
-        - ``sieve`` (boolean) - if True, use a sieve (when there are at
+        - ``sieve`` (boolean) -- if True, use a sieve (when there are at
           least 2 points); otherwise test all combinations.
 
-        .. note::
+        .. NOTE::
 
             The sieve is much more efficient when the points are
             saturated and the number of points or the prime are large.
@@ -418,7 +415,6 @@ class EllipticCurveSaturator(SageObject):
             ([(10 : -38 : 1), (15/49*a + 760/49 : 675/343*a - 884/343 : 1)],
             1,
             0.123378097374749)
-
         """
         verbose = self._verbose
         # This code does a lot of elliptic curve group structure
@@ -463,7 +459,7 @@ class EllipticCurveSaturator(SageObject):
 
         if verbose:
             print("Using sieve method to saturate...")
-        from sage.matrix.all import matrix
+        from sage.matrix.constructor import matrix
         from sage.sets.primes import Primes
 
         A = matrix(GF(p), 0, n)
@@ -597,24 +593,24 @@ def p_projections(Eq, Plist, p, debug=False):
 
     INPUT:
 
-    - `Eq` -  An elliptic curve over a finite field.
+    - `Eq` -- An elliptic curve over a finite field.
 
-    - `Plist` - a list of points on `Eq`.
+    - `Plist` -- a list of points on `Eq`.
 
-    - `p` - a prime number.
+    - `p` -- a prime number.
 
     OUTPUT:
 
-    A list of $r\le2$ vectors in $\GF{p^n}$, the images of the points in
-    $G \otimes \GF{p}$, where $r$ is the number of vectors is the
-    $p$-rank of `Eq`.
+    A list of `r\le2` vectors in `\GF{p^n}`, the images of the points in
+    `G \otimes \GF{p}`, where `r` is the number of vectors is the
+    `p`-rank of `Eq`.
 
     ALGORITHM:
 
-    First project onto the $p$-primary part of `Eq`.  If that has
-    $p$-rank 1 (i.e. is cyclic), use discrete logs there to define a
-    map to $\GF{p}$, otherwise use the Weil pairing to define two
-    independent maps to $\GF{p}$.
+    First project onto the `p`-primary part of `Eq`.  If that has
+    `p`-rank 1 (i.e. is cyclic), use discrete logs there to define a
+    map to `\GF{p}`, otherwise use the Weil pairing to define two
+    independent maps to `\GF{p}`.
 
     EXAMPLES:
 
@@ -622,9 +618,9 @@ def p_projections(Eq, Plist, p, debug=False):
 
         sage: E = EllipticCurve([0,0,1,-7,6])
 
-    We reduce modulo $409$ where its order is $3^2\cdot7^2$; the
-    $3$-primary part is non-cyclic while the $7$-primary part is
-    cyclic of order $49$::
+    We reduce modulo `409` where its order is `3^2\cdot7^2`; the
+    `3`-primary part is non-cyclic while the `7`-primary part is
+    cyclic of order `49`::
 
         sage: F = GF(409)
         sage: EF = E.change_ring(F)
@@ -634,9 +630,9 @@ def p_projections(Eq, Plist, p, debug=False):
         sage: G.order().factor()
         3^2 * 7^2
 
-    We construct three points and project them to the $p$-primary
-    parts for $p=2,3,5,7$, yielding 0,2,0,1 vectors of length 3 modulo
-    $p$ respectively.  The exact vectors output depend on the computed
+    We construct three points and project them to the `p`-primary
+    parts for `p=2,3,5,7`, yielding 0,2,0,1 vectors of length 3 modulo
+    `p` respectively.  The exact vectors output depend on the computed
     generators of `G`::
 
         sage: Plist = [EF([-2,3]), EF([0,2]), EF([1,0])]
@@ -667,7 +663,7 @@ def p_projections(Eq, Plist, p, debug=False):
         print("gens for {}-primary part of G: {}".format(p, gens))
         print("{}*points: {}".format(m,pts))
     from sage.groups.generic import discrete_log as dlog
-    from sage.modules.all import vector
+    from sage.modules.free_module_element import vector
     Fp = GF(p)
 
     # If the p-primary part is cyclic we use elliptic discrete logs directly:
@@ -706,4 +702,3 @@ def p_projections(Eq, Plist, p, debug=False):
 
     return [vector(Fp, [dlog(pt.weil_pairing(g1,p2), zeta, ord = p1, operation = '*') for pt in pts]),
         vector(Fp, [dlog(pt.weil_pairing(g2,p2), zeta, ord = p1, operation = '*') for pt in pts])]
-

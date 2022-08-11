@@ -1,5 +1,5 @@
 r"""
-Arithmetic subgroups (finite index subgroups of `{\rm SL}_2(\ZZ)`)
+Arithmetic subgroups (finite index subgroups of `\SL_2(\ZZ)`)
 """
 ################################################################################
 #
@@ -15,7 +15,7 @@ Arithmetic subgroups (finite index subgroups of `{\rm SL}_2(\ZZ)`)
 
 from sage.groups.old import Group
 from sage.categories.groups import Groups
-from sage.rings.all import ZZ
+from sage.rings.integer_ring import ZZ
 from sage.arith.all import lcm
 from sage.misc.cachefunc import cached_method
 from copy import copy # for making copies of lists of cusps
@@ -46,7 +46,7 @@ def is_ArithmeticSubgroup(x):
 
 class ArithmeticSubgroup(Group):
     r"""
-    Base class for arithmetic subgroups of `{\rm SL}_2(\ZZ)`. Not
+    Base class for arithmetic subgroups of `\SL_2(\ZZ)`. Not
     intended to be used directly, but still includes quite a few
     general-purpose routines which compute data about an arithmetic subgroup
     assuming that it has a working element testing routine.
@@ -92,7 +92,7 @@ class ArithmeticSubgroup(Group):
         """
         if key == 'element_ascii_art':
             return True
-        return super(ArithmeticSubgroup, self)._repr_option(key)
+        return super()._repr_option(key)
 
     def __reduce__(self):
         r"""
@@ -915,7 +915,7 @@ class ArithmeticSubgroup(Group):
 
     def projective_index(self):
         r"""
-        Return the index of the image of self in `{\rm PSL}_2(\ZZ)`. This is equal
+        Return the index of the image of self in `\PSL_2(\ZZ)`. This is equal
         to the index of self if self contains -1, and half of this otherwise.
 
         This is equal to the degree of the natural map from the modular curve
@@ -952,7 +952,7 @@ class ArithmeticSubgroup(Group):
 
     def genus(self):
         r"""
-        Return the genus of the modular curve of self.
+        Return the genus of the modular curve of ``self``.
 
         EXAMPLES::
 
@@ -960,6 +960,7 @@ class ArithmeticSubgroup(Group):
             0
             sage: Gamma1(31).genus()
             26
+            sage: from sage.modular.dims import dimension_cusp_forms
             sage: Gamma1(157).genus() == dimension_cusp_forms(Gamma1(157), 2)
             True
             sage: GammaH(7, [2]).genus()
@@ -968,10 +969,7 @@ class ArithmeticSubgroup(Group):
             [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 1, 1, 0, 1, 0, 1, 1, 1, 2, 2]
             sage: [n for n in [1..200] if Gamma0(n).genus() == 1]
             [11, 14, 15, 17, 19, 20, 21, 24, 27, 32, 36, 49]
-
-
         """
-
         return ZZ(1 + (self.projective_index()) / ZZ(12)  - (self.nu2())/ZZ(4) - (self.nu3())/ZZ(3) - self.ncusps()/ZZ(2))
 
     def farey_symbol(self):

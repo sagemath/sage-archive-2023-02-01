@@ -22,7 +22,7 @@ from sage.structure.unique_representation import UniqueRepresentation
 from sage.libs.symmetrica.all import hall_littlewood
 from . import sfa
 import sage.combinat.partition
-from sage.matrix.all import matrix
+from sage.matrix.constructor import matrix
 from sage.categories.morphism import SetMorphism
 from sage.categories.homset import Hom
 from sage.rings.rational_field import QQ
@@ -71,7 +71,7 @@ class HallLittlewood(UniqueRepresentation):
             sage: SymmetricFunctions(QQ).hall_littlewood(1)
             Hall-Littlewood polynomials with t=1 over Rational Field
         """
-        return self._name+ " over %s"%self._sym.base_ring()
+        return self._name + " over %s" % self._sym.base_ring()
 
     def __init__(self, Sym, t = 't'):
         """

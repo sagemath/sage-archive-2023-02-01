@@ -121,11 +121,11 @@ class ShiftedPrimedTableau(ClonableArray,
 
             sage: ShiftedPrimedTableau([])
             []
-            sage: ShiftedPrimedTableau([tuple([])])
+            sage: ShiftedPrimedTableau([tuple()])
             []
             sage: ShiftedPrimedTableau([], primed_diagonal=True)
             []
-            sage: ShiftedPrimedTableau([tuple([])], primed_diagonal=True)
+            sage: ShiftedPrimedTableau([tuple()], primed_diagonal=True)
             []
         """
         if (isinstance(T, ShiftedPrimedTableau) and T._skew == skew
@@ -176,9 +176,10 @@ class ShiftedPrimedTableau(ClonableArray,
     def _preprocess(T, skew=None):
         """
         Preprocessing list ``T`` to initialize the tableau.
+
         The output is a list of rows as tuples, with explicit
-        ``None``'s to indicate the skew shape, and entries being
-        ``PrimedEntry``s.
+        ``None`` to indicate the skew shape, and entries being
+        ``PrimedEntry`` instances.
 
         Trailing empty rows are removed.
 
@@ -685,8 +686,8 @@ class ShiftedPrimedTableau(ClonableArray,
         """
         t = self[:]
         n = PrimedEntry(n)
-        return ShiftedPrimedTableau([z for z in [[y for y in x if y is not None and y <= n]
-                                                 for x in t] if z], skew=self._skew)
+        loop = ([y for y in x if y is not None and y <= n] for x in t)
+        return ShiftedPrimedTableau([z for z in loop if z], skew=self._skew)
 
     def restriction_outer_shape(self, n):
         """
@@ -2162,7 +2163,7 @@ class ShiftedPrimedTableaux_shape(ShiftedPrimedTableaux):
             True
         """
         shape = _Partitions(shape)
-        return super(ShiftedPrimedTableaux_shape, cls).__classcall__(cls,
+        return super().__classcall__(cls,
                      shape=shape, max_entry=max_entry, skew=skew, primed_diagonal=primed_diagonal)
 
     def __init__(self, shape, max_entry=None, skew=None, primed_diagonal=False):
@@ -2252,7 +2253,7 @@ class ShiftedPrimedTableaux_shape(ShiftedPrimedTableaux):
            ....:                      primed_diagonal=True)._contains_tableau(t)
            True
         """
-        if not super(ShiftedPrimedTableaux_shape, self)._contains_tableau(T):
+        if not super()._contains_tableau(T):
             return False
 
         shape = [len(row) for row in T]
@@ -2299,7 +2300,7 @@ class ShiftedPrimedTableaux_shape(ShiftedPrimedTableaux):
             1504
         """
         if not self._primed_diagonal:
-            for T in super(ShiftedPrimedTableaux_shape, self).__iter__():
+            for T in super().__iter__():
                 yield T
             return
 
@@ -2432,7 +2433,7 @@ class ShiftedPrimedTableaux_weight(ShiftedPrimedTableaux):
             sage: ShiftedPrimedTableaux(weight=(1,2))._contains_tableau(u)
             False
         """
-        if not super(ShiftedPrimedTableaux_weight, self)._contains_tableau(T):
+        if not super()._contains_tableau(T):
             return False
 
         flat = [item.integer() for sublist in T for item in sublist]
@@ -2565,7 +2566,7 @@ class ShiftedPrimedTableaux_weight_shape(ShiftedPrimedTableaux):
             sage: ShiftedPrimedTableaux([], weight=())._contains_tableau(u)
             True
         """
-        if not super(ShiftedPrimedTableaux_weight_shape, self)._contains_tableau(T):
+        if not super()._contains_tableau(T):
             return False
 
         flat = [item.integer() for sublist in T for item in sublist]
@@ -2726,4 +2727,3 @@ def _add_strip(sub_tab, full_tab, length):
                                                    k=len(plat_list),
                                                    outer=plat_list):
                 yield list(primed_strip) + list(non_primed_strip)
-

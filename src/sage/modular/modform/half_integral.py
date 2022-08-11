@@ -128,11 +128,7 @@ def half_integral_weight_modform_basis(chi, k, prec):
     B   = C.basis()
 
     # This computation of S below -- of course --dominates the whole function.
-    #from sage.misc.all import cputime
-    #tm  = cputime()
-    #print "Computing basis..."
-    S   = [f.q_expansion(prec) for f in B]
-    #print "Time to compute basis", cputime(tm)
+    S = [f.q_expansion(prec) for f in B]
 
     T2  = theta2_qexp(prec)
     T3  = theta_qexp(prec)
@@ -154,4 +150,3 @@ def half_integral_weight_modform_basis(chi, k, prec):
     R = a_vec[0].parent()
     t3 = R(T3)
     return [R(a) / t3 for a in a_vec]
-

@@ -96,7 +96,7 @@ cdef class Matrix_cyclo_dense(Matrix_dense):
             sage: from sage.matrix.matrix_cyclo_dense import Matrix_cyclo_dense
             sage: A = Matrix_cyclo_dense.__new__(Matrix_cyclo_dense, MatrixSpace(CyclotomicField(3),2), [0,1,2,3], True, True)
             sage: type(A)
-            <type 'sage.matrix.matrix_cyclo_dense.Matrix_cyclo_dense'>
+            <class 'sage.matrix.matrix_cyclo_dense.Matrix_cyclo_dense'>
 
         Note that the entries of A haven't even been set yet above; that doesn't
         happen until ``__init__`` is called::
@@ -409,7 +409,7 @@ cdef class Matrix_cyclo_dense(Matrix_dense):
 
         return x
 
-    cdef bint get_is_zero_unsafe(self, Py_ssize_t i, Py_ssize_t j):
+    cdef bint get_is_zero_unsafe(self, Py_ssize_t i, Py_ssize_t j) except -1:
         r"""
         Return 1 if the entry ``(i, j)`` is zero, otherwise 0.
 
@@ -922,7 +922,7 @@ cdef class Matrix_cyclo_dense(Matrix_dense):
             sage: A.coefficient_bound()
             16
 
-        The above bound is just $9 + 7$, coming from the lower left entry.
+        The above bound is just `9 + 7`, coming from the lower left entry.
         A better bound would be the following::
 
             sage: (A[1,0]).abs()
@@ -1309,7 +1309,7 @@ cdef class Matrix_cyclo_dense(Matrix_dense):
     def _charpoly_mod(self, p):
         """
         Return the characteristic polynomial of self*denom modulo all
-        primes over $p$.
+        primes over `p`.
 
         This is used internally by the multimodular charpoly algorithm.
 
@@ -1356,9 +1356,9 @@ cdef class Matrix_cyclo_dense(Matrix_dense):
 
         INPUT:
             proof -- bool (default: global flag); if False, compute
-                     using primes $p_i$ until the lift modulo all
-                     primes up to $p_i$ is the same as the lift modulo
-                     all primes up to $p_{i+3}$ or the bound is
+                     using primes `p_i` until the lift modulo all
+                     primes up to `p_i` is the same as the lift modulo
+                     all primes up to `p_{i+3}` or the bound is
                      reached.
 
         EXAMPLES::

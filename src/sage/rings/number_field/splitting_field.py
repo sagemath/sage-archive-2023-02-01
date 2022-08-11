@@ -46,10 +46,11 @@ class SplittingFieldAbort(Exception):
         self.degree_divisor = div
         self.degree_multiple = mult
         if div == mult:
-            msg = "degree of splitting field equals %s"%div
+            msg = "degree of splitting field equals %s" % div
         else:
-            msg = "degree of splitting field is a multiple of %s"%div
-        super(SplittingFieldAbort, self).__init__(msg)
+            msg = "degree of splitting field is a multiple of %s" % div
+        super().__init__(msg)
+
 
 class SplittingData:
     """
@@ -339,7 +340,7 @@ def splitting_field(poly, name, map=False, degree_multiple=None, abort_degree=No
           To:   Number Field in x with defining polynomial x
           Defn: 1 |--> 1)
     """
-    from sage.misc.all import cputime
+    from sage.misc.misc import cputime
     from sage.misc.verbose import verbose
 
     degree_multiple = Integer(degree_multiple or 0)

@@ -28,8 +28,10 @@ AUTHORS:
 from sage.structure.sage_object import SageObject
 from sage.structure.richcmp import richcmp_method, richcmp
 import sage.databases.cremona
-from sage.rings.all import ZZ, QQ
-from sage.misc.all import flatten, cached_method
+from sage.rings.integer_ring import ZZ
+from sage.rings.rational_field import QQ
+from sage.misc.flatten import flatten
+from sage.misc.cachefunc import cached_method
 from sage.schemes.elliptic_curves.ell_field import EllipticCurve_field
 from sage.schemes.elliptic_curves.ell_number_field import EllipticCurve_number_field
 
@@ -39,12 +41,12 @@ class IsogenyClass_EC(SageObject):
     r"""
     Isogeny class of an elliptic curve.
 
-    .. note::
+    .. NOTE::
 
-       The current implementation chooses a curve from each isomorphism
-       class in the isogeny class. Over `\QQ` this is a unique reduced
-       minimal model in each isomorphism class.  Over number fields the
-       model chosen may change in future.
+        The current implementation chooses a curve from each isomorphism
+        class in the isogeny class. Over `\QQ` this is a unique reduced
+        minimal model in each isomorphism class.  Over number fields the
+        model chosen may change in future.
     """
 
     def __init__(self, E, label=None, empty=False):
@@ -95,7 +97,7 @@ class IsogenyClass_EC(SageObject):
 
     def __getitem__(self, i):
         """
-        Return the `i`th curve in the class.
+        Return the `i`-th curve in the class.
 
         EXAMPLES::
 
@@ -180,13 +182,13 @@ class IsogenyClass_EC(SageObject):
         r"""
         The string representation of this isogeny class.
 
-        .. note::
+        .. NOTE::
 
-           Over `\QQ`, the string representation depends on whether an
-           LMFDB or Cremona label for the curve is known when this
-           isogeny class is constructed.  Over general number fields,
-           instead of labels the representation uses that of the curve
-           initially used to create the class.
+            Over `\QQ`, the string representation depends on whether an
+            LMFDB or Cremona label for the curve is known when this
+            isogeny class is constructed.  Over general number fields,
+            instead of labels the representation uses that of the curve
+            initially used to create the class.
 
         EXAMPLES:
 
@@ -240,10 +242,10 @@ class IsogenyClass_EC(SageObject):
         - boolean -- ``True`` iff ``x`` is an elliptic curve in this
           isogeny class.
 
-        .. note::
+        .. NOTE::
 
-           If the input is isomorphic but not identical to a curve in
-           the class, then ``False`` will be returned.
+            If the input is isomorphic but not identical to a curve in
+            the class, then ``False`` will be returned.
 
         EXAMPLES::
 
@@ -325,8 +327,6 @@ class IsogenyClass_EC(SageObject):
             sage: C = E.isogeny_class()
             sage: C.qf_matrix()
             [[[1], [2, 2, 3]], [[2, 2, 3], [1]]]
-
-
         """
         if self._qfmat is None:
             raise ValueError("qf_matrix only defined for isogeny classes with rational CM")
@@ -353,10 +353,10 @@ class IsogenyClass_EC(SageObject):
 
         .. WARNING::
 
-           The domains and codomains of the isogenies will have the same
-           Weierstrass equation as the curves in this class, but they
-           may not be identical python objects in the current
-           implementation.
+            The domains and codomains of the isogenies will have the same
+            Weierstrass equation as the curves in this class, but they
+            may not be identical python objects in the current
+            implementation.
 
         EXAMPLES::
 
@@ -380,7 +380,7 @@ class IsogenyClass_EC(SageObject):
         Return a graph whose vertices correspond to curves in this
         class, and whose edges correspond to prime degree isogenies.
 
-        .. note::
+        .. NOTE::
 
             There are only finitely many possible isogeny graphs for
             curves over `\QQ` [Maz1978b].  This function tries to lay out
@@ -388,7 +388,7 @@ class IsogenyClass_EC(SageObject):
             This could also be done over other number fields, such as
             quadratic fields.
 
-        .. note::
+        .. NOTE::
 
             The vertices are labeled 1 to n rather than 0 to n-1 to
             match LMFDB and Cremona labels for curves over `\QQ`.
@@ -406,7 +406,7 @@ class IsogenyClass_EC(SageObject):
             M = self.matrix(fill = False)
             n = len(self)
             G = Graph(M, format='weighted_adjacency_matrix')
-            D = dict([(v,self.curves[v]) for v in G.vertices()])
+            D = dict([(v,self.curves[v]) for v in G.vertices(sort=False)])
             G.set_vertices(D)
             if self._qfmat: # i.e. self.E.has_rational_cm():
                 for i in range(n):
@@ -421,7 +421,7 @@ class IsogenyClass_EC(SageObject):
         n = M.nrows() # = M.ncols()
         G = Graph(M, format='weighted_adjacency_matrix')
         N = self.matrix(fill = True)
-        D = dict([(v,self.curves[v]) for v in G.vertices()])
+        D = dict([(v,self.curves[v]) for v in G.vertices(sort=False)])
         # The maximum degree classifies the shape of the isogeny
         # graph, though the number of vertices is often enough.
         # This only holds over Q, so this code will need to change
@@ -768,7 +768,6 @@ class IsogenyClass_EC_NumberField(IsogenyClass_EC):
             sage: isos = C.isogenies()
             sage: isos[0][3].codomain() == curves[3]
             True
-
         """
         from sage.schemes.elliptic_curves.ell_curve_isogeny import fill_isogeny_matrix
         from sage.matrix.all import MatrixSpace
@@ -801,7 +800,7 @@ class IsogenyClass_EC_NumberField(IsogenyClass_EC):
 
         def add_tup(t):
             for T in [t, [t[1], t[0], t[2], 0]]:
-                if not T in tuples:
+                if T not in tuples:
                     tuples.append(T)
                     if verbose:
                         sys.stdout.write(" -added tuple %s..." % T[:3])
@@ -817,7 +816,7 @@ class IsogenyClass_EC_NumberField(IsogenyClass_EC):
                     sys.stdout.flush()
                 add_tup([0,ncurves,d,phi])
                 ncurves += 1
-                if not d in degs:
+                if d not in degs:
                     degs.append(d)
         if verbose:
             sys.stdout.write("... relevant degrees: %s..." % degs)
@@ -840,8 +839,7 @@ class IsogenyClass_EC_NumberField(IsogenyClass_EC):
                 if js: # seen codomain already -- up to isomorphism
                     j = js[0]
                     if phi.codomain()!=curves[j]:
-                        iso = E2.isomorphism_to(curves[j])
-                        phi.set_post_isomorphism(iso)
+                        phi = E2.isomorphism_to(curves[j]) * phi
                     assert phi.domain()==curves[i] and phi.codomain()==curves[j]
                     add_tup([i,j,d,phi])
                 else:
@@ -906,11 +904,12 @@ class IsogenyClass_EC_NumberField(IsogenyClass_EC):
         if verbose:
             print("Creating degree matrix (CM case)")
 
-        allQs = {} # keys: discriminants d
-                   # values: lists of equivalence classes of
-                   # primitive forms of discriminant d
-        def find_quadratic_form(d,n):
-            if not d in allQs:
+        allQs = {}  # keys: discriminants d
+                    # values: lists of equivalence classes of
+                    # primitive forms of discriminant d
+
+        def find_quadratic_form(d, n):
+            if d not in allQs:
                 from sage.quadratic_forms.binary_qf import BinaryQF_reduced_representatives
 
                 allQs[d] = BinaryQF_reduced_representatives(d, primitive_only=True)

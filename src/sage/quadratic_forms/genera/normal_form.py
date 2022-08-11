@@ -159,7 +159,7 @@ def p_adic_normal_form(G, p, precision=None, partial=False, debug=False):
         [1 2]
 
     For `p=2` the partial normal form is a block diagonal matrix with blocks
-    `2^k G_k` such that $G_k$ is a block diagonal matrix of the form
+    `2^k G_k` such that `G_k` is a block diagonal matrix of the form
     `[U`, ... , `U`, `V`, `Wa`, `Wb]`
     where we allow `V`, `Wa`, `Wb` to be `0 \times 0` matrices.
 
@@ -531,7 +531,7 @@ def _homogeneous_normal_form(G, w):
             e2 = D[-1,-1].unit_part()
             e = {e1, e2}
             E = [{1,3}, {1,7}, {5,7}, {3,5}]
-            if not e in E:
+            if e not in E:
                 B[-4:,:] = _relations(D[-4:,-4:], 5) * B[-4:,:]
                 D = B * G * B.T
         e1 = D[-2,-2].unit_part()
@@ -894,7 +894,7 @@ def _normalize_2x2(G):
         [2^4 2^3]
         [2^3 2^4]
     """
-    from sage.rings.all import PolynomialRing
+    from sage.rings.polynomial.polynomial_ring_constructor import PolynomialRing
     from sage.modules.free_module_element import vector
     B = copy(G.parent().identity_matrix())
     R = G.base_ring()

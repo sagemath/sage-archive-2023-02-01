@@ -92,7 +92,8 @@ REFERENCES:
 """
 
 from sage.functions.log import log
-from sage.functions.other import sqrt, floor, ceil
+from sage.functions.other import floor, ceil
+from sage.misc.functional import sqrt
 from sage.misc.functional import cyclotomic_polynomial, round
 from sage.misc.randstate import set_random_seed
 from sage.misc.prandom import randint
@@ -273,7 +274,7 @@ class LWE(SageObject):
 
             sage: from sage.crypto.lwe import LWE
             sage: lwe = LWE(n=20, q=next_prime(400), D=D); lwe
-            LWE(20, 401, Discrete Gaussian sampler over the Integers with sigma = 3.000000 and c = 0, 'uniform', None)
+            LWE(20, 401, Discrete Gaussian sampler over the Integers with sigma = 3.000000 and c = 0.000000, 'uniform', None)
 
         and sample 1000 samples::
 
@@ -293,7 +294,8 @@ class LWE(SageObject):
         fix the representation and recover the correct standard deviation of the
         noise::
 
-            sage: while abs(sqrt(variance([e if e <= 200 else e-401 for e in S()]).n()) - 3.0) > 0.01:
+            sage: from numpy import std
+            sage: while abs(std([e if e <= 200 else e-401 for e in S()]) - 3.0) > 0.01:
             ....:     add_samples()
 
         If ``m`` is not ``None`` the number of available samples is restricted::
@@ -333,10 +335,10 @@ class LWE(SageObject):
             sage: from sage.crypto.lwe import LWE
             sage: D = DiscreteGaussianDistributionIntegerSampler(3.0)
             sage: lwe = LWE(n=20, q=next_prime(400), D=D); lwe
-            LWE(20, 401, Discrete Gaussian sampler over the Integers with sigma = 3.000000 and c = 0, 'uniform', None)
+            LWE(20, 401, Discrete Gaussian sampler over the Integers with sigma = 3.000000 and c = 0.000000, 'uniform', None)
 
             sage: lwe = LWE(n=20, q=next_prime(400), D=D, secret_dist=(-3, 3)); lwe
-            LWE(20, 401, Discrete Gaussian sampler over the Integers with sigma = 3.000000 and c = 0, (-3, 3), None)
+            LWE(20, 401, Discrete Gaussian sampler over the Integers with sigma = 3.000000 and c = 0.000000, (-3, 3), None)
         """
         if isinstance(self.secret_dist, str):
             return "LWE(%d, %d, %s, '%s', %s)"%(self.n,self.K.order(),self.D,self.secret_dist, self.m)
@@ -386,7 +388,7 @@ class Regev(LWE):
 
             sage: from sage.crypto.lwe import Regev
             sage: Regev(n=20)
-            LWE(20, 401, Discrete Gaussian sampler over the Integers with sigma = 1.915069 and c = 401, 'uniform', None)
+            LWE(20, 401, Discrete Gaussian sampler over the Integers with sigma = 1.915069 and c = 401.000000, 'uniform', None)
         """
         q = ZZ(next_prime(n**2))
         s = RR(1/(RR(n).sqrt() * log(n, 2)**2) * q)
@@ -416,7 +418,7 @@ class LindnerPeikert(LWE):
 
             sage: from sage.crypto.lwe import LindnerPeikert
             sage: LindnerPeikert(n=20)
-            LWE(20, 2053, Discrete Gaussian sampler over the Integers with sigma = 3.600954 and c = 0, 'noise', 168)
+            LWE(20, 2053, Discrete Gaussian sampler over the Integers with sigma = 3.600954 and c = 0.000000, 'noise', 168)
         """
         if m is None:
             m = 2*n + 128

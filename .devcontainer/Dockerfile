@@ -1,3 +1,5 @@
+# This Dockerfile is used by all portability-.../devcontainer.json files,
+# which provide the actual values for the 4 arguments defined below.
 ARG SYSTEM_FACTOR="ubuntu-jammy"
 ARG PACKAGE_FACTOR="standard"
 ARG DOCKER_TARGET="with-system-packages"

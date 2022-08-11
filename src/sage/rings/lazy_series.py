@@ -2076,9 +2076,10 @@ class LazyCauchyProductSeries(LazyModuleElement):
             1
             sage: (M - M).valuation()
             +Infinity
-
         """
-        return self._coeff_stream.order()
+        if isinstance(self._coeff_stream, Stream_zero):
+            return self._coeff_stream.order()
+        return ZZ(self._coeff_stream.order())
 
     def _mul_(self, other):
         """
@@ -3697,8 +3698,10 @@ class LazyDirichletSeries(LazyModuleElement):
             sage: (g*g).valuation()
             2*log(2)
         """
+        if isinstance(self._coeff_stream, Stream_zero):
+            return self._coeff_stream.order()
         from sage.functions.log import log
-        return log(self._coeff_stream.order())
+        return log(ZZ(self._coeff_stream.order()))
 
     def _mul_(self, other):
         """

@@ -1340,7 +1340,7 @@ cdef class LaurentPolynomial_univariate(LaurentPolynomial):
 
     @coerce_binop
     def quo_rem(self, right_r):
-        """
+        r"""
         Attempts to divide ``self`` by ``right`` and returns a quotient
         ``q`` and a remainder ``r`` such that ``self = q*other + r``.
 
@@ -1352,7 +1352,8 @@ cdef class LaurentPolynomial_univariate(LaurentPolynomial):
             sage: (t^-2 + 3 + t).quo_rem(t^-4)
             (t^2 + 3*t^4 + t^5, 0)
 
-            sage: num, den = t^-2 + t, t^-2 + 1
+            sage: num = t^-2 + t
+            sage: den = t^-2 + 1
             sage: q, r = num.quo_rem(den)
             sage: num == q * den + r
             True
@@ -1361,9 +1362,16 @@ cdef class LaurentPolynomial_univariate(LaurentPolynomial):
 
         Check that :trac:`34330` is fixed::
 
-            sage: num, den = t^-2 + 3 + t, t^-4 + t
+            sage: num = t^-2 + 3 + t
+            sage: den = t^-4 + t
             sage: q, r = num.quo_rem(den); q, r
             (0, t^-2 + 3 + t)
+            sage: num == q * den + r
+            True
+
+            sage: num = 2*t^-4 + t^-3 + t^-2 + 2*t + 2*t^2
+            sage: q, r = num.quo_rem(den); q, r
+            (2 + 2*t, -t^-3 + t^-2)
             sage: num == q * den + r
             True
         """

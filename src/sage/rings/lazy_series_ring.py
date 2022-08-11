@@ -236,14 +236,14 @@ class LazySeriesRing(UniqueRepresentation, Parent):
             sage: L(L(1), valuation=-4)
             z^-4
             sage: L(1/(1-z), valuation=-4)
-            z^-4 + z^-3 + z^-2 + z^-1 + 1 + z + z^2 + O(z^3)
+            z^-4 + z^-3 + z^-2 + O(z^-1)
             sage: L(z^-3/(1-z), valuation=-4)
-            z^-4 + z^-3 + z^-2 + z^-1 + 1 + z + z^2 + O(z^3)
+            z^-4 + z^-3 + z^-2 + O(z^-1)
             sage: L(z^3/(1-z), valuation=-4)
-            z^-4 + z^-3 + z^-2 + z^-1 + 1 + z + z^2 + O(z^3)
+            z^-4 + z^-3 + z^-2 + O(z^-1)
 
             sage: L(z^3/(1-z), valuation=0)
-            1 + z + z^2 + z^3 + z^4 + z^5 + z^6 + O(z^7)
+            1 + z + z^2 + O(z^3)
 
             sage: L = LazyLaurentSeriesRing(ZZ, 'z')
             sage: L(lambda n: 1/(n+1), degree=3)
@@ -449,7 +449,7 @@ class LazyLaurentSeriesRing(LazySeriesRing):
 
         sage: L.<z> = LazyLaurentSeriesRing(QQ)
         sage: 1 / (1 - z)
-        1 + z + z^2 + z^3 + z^4 + z^5 + z^6 + O(z^7)
+        1 + z + z^2 + O(z^3)
         sage: 1 / (1 - z) == 1 / (1 - z)
         True
         sage: L in Fields
@@ -732,7 +732,7 @@ class LazyLaurentSeriesRing(LazySeriesRing):
             sage: L.gens()
             (z,)
             sage: 1/(1 - z)
-            1 + z + z^2 + z^3 + z^4 + z^5 + z^6 + O(z^7)
+            1 + z + z^2 + O(z^3)
         """
         return tuple([self.gen(n) for n in range(self.ngens())])
 
@@ -816,7 +816,7 @@ class LazyLaurentSeriesRing(LazySeriesRing):
             [0, 1, z,
              z^-3 + z^-1 + 2 + z + z^2 + z^3,
              z^2 + z^3 + z^4 + z^5 + O(z^6),
-             z^-3 + z^-2 + z^-1 + 2 + 2*z + 2*z^2 + 2*z^3 + O(z^4),
+             z^-3 + z^-2 + z^-1 + 2 + 2*z + 2*z^2 + O(z^3),
              z^-2 + z^-1 + z + z^2 + z^4 + O(z^5)]
         """
         z = self.gen()
@@ -870,18 +870,23 @@ class LazyLaurentSeriesRing(LazySeriesRing):
             sage: LLS.<z> = LazyLaurentSeriesRing(QQ)
             sage: LLS.options.display_length
             7
-            sage: f = 1/(1-z)
+            sage: f = 1 / (1 + z)
             sage: f
-            1 + z + z^2 + z^3 + z^4 + z^5 + z^6 + O(z^7)
+            1 - z + z^2 - z^3 + z^4 - z^5 + z^6 + O(z^7)
             sage: LLS.options.display_length = 10
             sage: f
-            1 + z + z^2 + z^3 + z^4 + z^5 + z^6 + z^7 + z^8 + z^9 + O(z^10)
+            1 - z + z^2 - z^3 + z^4 - z^5 + z^6 - z^7 + z^8 - z^9 + O(z^10)
             sage: g = LLS(lambda n: n^2, valuation=-2, degree=5, constant=42)
             sage: g
             4*z^-2 + z^-1 + z + 4*z^2 + 9*z^3 + 16*z^4 + 42*z^5 + 42*z^6 + 42*z^7 + O(z^8)
+            sage: h = 1 / (1 - z)  # This is exact
+            sage: h
+            1 + z + z^2 + O(z^3)
             sage: LLS.options.constant_length = 1
             sage: g
             4*z^-2 + z^-1 + z + 4*z^2 + 9*z^3 + 16*z^4 + 42*z^5 + O(z^6)
+            sage: h
+            1 + O(z)
             sage: LazyLaurentSeriesRing.options._reset()
             sage: LazyLaurentSeriesRing.options.display_length
             7

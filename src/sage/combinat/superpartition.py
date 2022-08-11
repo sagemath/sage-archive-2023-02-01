@@ -678,19 +678,19 @@ class SuperPartition(ClonableArray,
         EXAMPLES::
 
             sage: SuperPartition([[4,1],[3]]).add_horizontal_border_strip_star(3)
-            [[4, 1; 3, 3],
-             [4, 1; 4, 2],
-             [3, 1; 5, 2],
-             [4, 1; 5, 1],
-             [3, 1; 6, 1],
-             [4, 0; 4, 3],
-             [3, 0; 5, 3],
-             [4, 0; 5, 2],
-             [3, 0; 6, 2],
+            [[3, 1; 7],
              [4, 1; 6],
-             [3, 1; 7]]
+             [3, 0; 6, 2],
+             [3, 1; 6, 1],
+             [4, 0; 5, 2],
+             [4, 1; 5, 1],
+             [3, 0; 5, 3],
+             [3, 1; 5, 2],
+             [4, 0; 4, 3],
+             [4, 1; 4, 2],
+             [4, 1; 3, 3]]
             sage: SuperPartition([[2,1],[3]]).add_horizontal_border_strip_star(2)
-            [[2, 1; 3, 2], [2, 1; 4, 1], [2, 0; 3, 3], [2, 0; 4, 2], [2, 1; 5]]
+            [[2, 1; 5], [2, 0; 4, 2], [2, 1; 4, 1], [2, 0; 3, 3], [2, 1; 3, 2]]
         """
         sp1, circ_list = self.to_circled_diagram()
         nsp = [list(la) + [0] for la in sp1.add_horizontal_border_strip(h)]
@@ -726,29 +726,29 @@ class SuperPartition(ClonableArray,
         EXAMPLES::
 
             sage: SuperPartition([[4,1],[5,4]]).add_horizontal_border_strip_star_bar(3)
-            [[4, 3; 5, 4, 1],
-             [4, 1; 5, 4, 3],
-             [4, 2; 5, 5, 1],
-             [4, 1; 5, 5, 2],
+            [[4, 1; 8, 4],
+             [4, 1; 7, 5],
+             [4, 2; 7, 4],
+             [4, 1; 7, 4, 1],
+             [4, 2; 6, 5],
+             [4, 1; 6, 5, 1],
+             [4, 3; 6, 4],
              [4, 2; 6, 4, 1],
              [4, 1; 6, 4, 2],
-             [4, 1; 6, 5, 1],
-             [4, 1; 7, 4, 1],
              [4, 3; 5, 5],
-             [4, 3; 6, 4],
-             [4, 2; 6, 5],
-             [4, 2; 7, 4],
-             [4, 1; 7, 5],
-             [4, 1; 8, 4]]
+             [4, 2; 5, 5, 1],
+             [4, 1; 5, 5, 2],
+             [4, 3; 5, 4, 1],
+             [4, 1; 5, 4, 3]]
             sage: SuperPartition([[3,1],[5]]).add_horizontal_border_strip_star_bar(2)
-            [[3, 2; 5, 1],
-             [3, 1; 5, 2],
-             [4, 1; 5, 1],
+            [[3, 1; 7],
+             [4, 1; 6],
+             [3, 2; 6],
              [3, 1; 6, 1],
              [4, 2; 5],
-             [3, 2; 6],
-             [4, 1; 6],
-             [3, 1; 7]]
+             [4, 1; 5, 1],
+             [3, 2; 5, 1],
+             [3, 1; 5, 2]]
         """
         sp1, circ_list = self.to_circled_diagram()
         nsp = [list(la) + [0] for la in sp1.add_horizontal_border_strip(h)]

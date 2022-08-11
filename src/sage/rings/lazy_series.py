@@ -722,9 +722,13 @@ class LazyModuleElement(Element):
             sage: L = LazySymmetricFunctions(m)
             sage: E = L(lambda n: s[n], valuation=0)
             sage: X = L(s[1])
-            sage: A = L(None); A.define(X*E(A))
+            sage: A = L(None, valuation=1); A.define(X*E(A))
             sage: A
-            m[1] + (2*m[1,1]+m[2]) + (9*m[1,1,1]+5*m[2,1]+2*m[3]) + (64*m[1,1,1,1]+34*m[2,1,1]+18*m[2,2]+13*m[3,1]+4*m[4]) + (625*m[1,1,1,1,1]+326*m[2,1,1,1]+171*m[2,2,1]+119*m[3,1,1]+63*m[3,2]+35*m[4,1]+9*m[5]) + (7776*m[1,1,1,1,1,1]+4016*m[2,1,1,1,1]+2078*m[2,2,1,1]+1077*m[2,2,2]+1433*m[3,1,1,1]+744*m[3,2,1]+268*m[3,3]+401*m[4,1,1]+209*m[4,2]+95*m[5,1]+20*m[6]) + O^7
+            m[1] + (2*m[1,1]+m[2]) + (9*m[1,1,1]+5*m[2,1]+2*m[3])
+             + (64*m[1,1,1,1]+34*m[2,1,1]+18*m[2,2]+13*m[3,1]+4*m[4])
+             + (625*m[1,1,1,1,1]+326*m[2,1,1,1]+171*m[2,2,1]+119*m[3,1,1]+63*m[3,2]+35*m[4,1]+9*m[5])
+             + (7776*m[1,1,1,1,1,1]+4016*m[2,1,1,1,1]+2078*m[2,2,1,1]+1077*m[2,2,2]+1433*m[3,1,1,1]+744*m[3,2,1]+268*m[3,3]+401*m[4,1,1]+209*m[4,2]+95*m[5,1]+20*m[6])
+             + O^7
 
         TESTS::
 
@@ -3170,11 +3174,12 @@ class LazyLaurentSeries(LazyCauchyProductSeries):
         """
         S = self.parent()
 
+        if isinstance(self._coeff_stream, Stream_zero):
+            from sage.rings.polynomial.polynomial_ring_constructor import PolynomialRing
+            return PolynomialRing(S.base_ring(), name=name).zero()
+
         if degree is None:
-            if isinstance(self._coeff_stream, Stream_zero):
-                from sage.rings.polynomial.polynomial_ring_constructor import PolynomialRing
-                return PolynomialRing(S.base_ring(), name=name).zero()
-            elif isinstance(self._coeff_stream, Stream_exact) and not self._coeff_stream._constant:
+            if isinstance(self._coeff_stream, Stream_exact) and not self._coeff_stream._constant:
                 m = self._coeff_stream._degree
             else:
                 raise ValueError("not a polynomial")
@@ -3327,13 +3332,13 @@ class LazyTaylorSeries(LazyCauchyProductSeries):
         if len(g) == 1:
             # we assume that the valuation of self[i](g) is at least i
             def coefficient(n):
-                r = R(0)
+                r = R.zero()
                 for i in range(n+1):
                     r += self[i]*(g0 ** i)[n]
                 return r
         else:
             def coefficient(n):
-                r = R(0)
+                r = R.zero()
                 for i in range(n+1):
                     r += self[i](g)[n]
                 return r
@@ -3456,11 +3461,11 @@ class LazyTaylorSeries(LazyCauchyProductSeries):
         if names is None:
             names = S.variable_names()
         R = PolynomialRing(S.base_ring(), names=names)
+        if isinstance(self._coeff_stream, Stream_zero):
+            return R.zero()
 
         if degree is None:
-            if isinstance(self._coeff_stream, Stream_zero):
-                return R.zero()
-            elif (isinstance(self._coeff_stream, Stream_exact)
+            if (isinstance(self._coeff_stream, Stream_exact)
                   and not self._coeff_stream._constant):
                 m = self._coeff_stream._degree
             else:
@@ -3507,20 +3512,23 @@ class LazySymmetricFunction(LazyCauchyProductSeries):
             sage: P.<q> = QQ[]
             sage: s = SymmetricFunctions(P).s()
             sage: L = LazySymmetricFunctions(s)
-            sage: f = s[2]; g = s[3]
+            sage: f = s[2]
+            sage: g = s[3]
             sage: L(f)(L(g)) - L(f(g))
-            O^7
+            0
 
-            sage: f = s[2] + s[2,1]; g = s[1] + s[2,2]
+            sage: f = s[2] + s[2,1]
+            sage: g = s[1] + s[2,2]
             sage: L(f)(L(g)) - L(f(g))
-            O^7
+            0
 
             sage: L(f)(g) - L(f(g))
-            O^7
+            0
 
-            sage: f = s[2] + s[2,1]; g = s[1] + s[2,2]
+            sage: f = s[2] + s[2,1]
+            sage: g = s[1] + s[2,2]
             sage: L(f)(L(q*g)) - L(f(q*g))
-            O^7
+            0
 
         The Frobenius character of the permutation action on set
         partitions is a plethysm::
@@ -3533,21 +3541,63 @@ class LazySymmetricFunction(LazyCauchyProductSeries):
             sage: [s(x) for x in P[:5]]
             [s[], s[1], 2*s[2], s[2, 1] + 3*s[3], 2*s[2, 2] + 2*s[3, 1] + 5*s[4]]
 
+        TESTS::
+
+            sage: s = SymmetricFunctions(QQ).s()
+            sage: S = LazySymmetricFunctions(s)
+            sage: f = 1 / (1 - S(s[2]))
+            sage: g = f(s[2]); g
+            s[] + (s[2,2]+s[4]) + O^7
+            sage: S(sum(f[i](s[2]) for i in range(5))).truncate(10) == g.truncate(10)
+            True
+            sage: f(0)
+            1
+            sage: f(s(1))
+            Traceback (most recent call last):
+            ...
+            ValueError: can only compose with a positive valuation series
         """
         if len(args) != self.parent()._arity:
             raise ValueError("arity must be equal to the number of arguments provided")
         from sage.combinat.sf.sfa import is_SymmetricFunction
-        if not all(isinstance(g, LazySymmetricFunction) or is_SymmetricFunction(g) for g in args):
+        if not all(isinstance(g, LazySymmetricFunction) or is_SymmetricFunction(g) or not g for g in args):
             raise ValueError("all arguments must be (possibly lazy) symmetric functions")
-        from sage.misc.lazy_list import lazy_list
+
+        if isinstance(self._coeff_stream, Stream_zero):
+            return self
+
         if len(args) == 1:
             g = args[0]
             P = g.parent()
+
+            # Handle other types of 0s
+            if not isinstance(g, LazySymmetricFunction) and not g:
+                return P(self[0].leading_coefficient())
+
+            if isinstance(self._coeff_stream, Stream_exact) and not self._coeff_stream._constant:
+                f = self.symmetric_function()
+                if is_SymmetricFunction(g):
+                    return f(g)
+                # g must be a LazySymmetricFunction
+                if isinstance(g._coeff_stream, Stream_exact) and not g._coeff_stream._constant:
+                    gs = g.symmetric_function()
+                    return P(f(gs))
+
             BR = P.base_ring()
             if isinstance(g, LazySymmetricFunction):
                 R = P._laurent_poly_ring
             else:
-                R = P
+                from sage.rings.lazy_series_ring import LazySymmetricFunctions
+                R = g.parent()
+                P = LazySymmetricFunctions(R)
+                g = P(g)
+
+            # self has (potentially) infinitely many terms
+            if g._coeff_stream._approximate_order == 0:
+                if g[0]:
+                    raise ValueError("can only compose with a positive valuation series")
+                g._coeff_stream._approximate_order = 1
+
             p = R.realization_of().power()
             g_p = Stream_map_coefficients(g._coeff_stream, lambda c: c, p)
             try:
@@ -3574,6 +3624,7 @@ class LazySymmetricFunction(LazyCauchyProductSeries):
             def g_coeff_stream(k):
                 return Stream_function(lambda n: stretched_coefficient(k, n),
                                        R, P._sparse, 0)
+            from sage.misc.lazy_list import lazy_list
             stretched = lazy_list(lambda k: g_coeff_stream(k))
             f_p = Stream_map_coefficients(self._coeff_stream, lambda c: c, p)
             def coefficient(n):
@@ -3656,6 +3707,71 @@ class LazySymmetricFunction(LazyCauchyProductSeries):
                 poly = unicode_art(*([parenthesize(m) for m in mons] + bigO), sep = " + ")
 
         return poly
+
+    def symmetric_function(self, degree=None):
+        r"""
+        Return ``self`` as a symmetric function if ``self`` is actually so.
+
+        INPUT:
+
+        - ``degree`` -- ``None`` or an integer
+
+        OUTPUT:
+
+        If ``degree`` is not ``None``, the terms of the series of degree greater
+        than ``degree`` are truncated first. If ``degree`` is ``None`` and the
+        series is not a polynomial polynomial, a ``ValueError`` is raised.
+
+        EXAMPLES::
+
+            sage: s = SymmetricFunctions(QQ).s()
+            sage: S = LazySymmetricFunctions(s)
+            sage: elt = S(s[2])
+            sage: elt.symmetric_function()
+            s[2]
+
+        TESTS::
+
+            sage: s = SymmetricFunctions(QQ).s()
+            sage: S = LazySymmetricFunctions(s)
+            sage: elt = S(s[2])
+            sage: elt.symmetric_function()
+            s[2]
+            sage: f = 1 / (1 - elt)
+            sage: f
+            s[] + s[2] + (s[2,2]+s[3,1]+s[4]) + (s[2,2,2]+2*s[3,2,1]+s[3,3]+s[4,1,1]+3*s[4,2]+2*s[5,1]+s[6]) + O^7
+            sage: f.symmetric_function()
+            Traceback (most recent call last):
+            ...
+            ValueError: not a symmetric function
+
+            sage: f4 = f.truncate(5); f4
+            s[] + s[2] + (s[2,2]+s[3,1]+s[4])
+            sage: f4.symmetric_function()
+            s[] + s[2] + s[2, 2] + s[3, 1] + s[4]
+            sage: f4.symmetric_function() == f.symmetric_function(4)
+            True
+            sage: S.zero().symmetric_function()
+            0
+            sage: f4.symmetric_function(0)
+            s[]
+        """
+        S = self.parent()
+        R = S._laurent_poly_ring
+
+        if isinstance(self._coeff_stream, Stream_zero):
+            return R.zero()
+
+        if degree is None:
+            if (isinstance(self._coeff_stream, Stream_exact)
+                  and not self._coeff_stream._constant):
+                m = self._coeff_stream._degree
+            else:
+                raise ValueError("not a symmetric function")
+        else:
+            m = degree + 1
+
+        return R.sum(self[:m])
 
 class LazyDirichletSeries(LazyModuleElement):
     r"""
@@ -3985,3 +4101,4 @@ class LazyDirichletSeries(LazyModuleElement):
                 poly = formatter(*([parenthesize(mo) for mo in mons] + bigO), sep=" + ")
 
         return poly
+

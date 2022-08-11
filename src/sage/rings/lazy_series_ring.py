@@ -2057,3 +2057,4 @@ class LazyDirichletSeriesRing(LazySeriesRing):
             return '({})/{}^{}'.format(self.base_ring()(c), n, self.variable_name())
 
     options = LazyLaurentSeriesRing.options
+

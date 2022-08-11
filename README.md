@@ -36,7 +36,7 @@ Supported Platforms
 -------------------
 
 Sage attempts to support all major Linux distributions, recent versions of
-macOS, and Windows (using Windows Subsystem for Linux, Cygwin, or
+macOS, and Windows (using Windows Subsystem for Linux or
 virtualization).
 
 Detailed information on supported platforms for a specific version of Sage

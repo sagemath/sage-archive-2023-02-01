@@ -1983,3 +1983,4 @@ class LazyDirichletSeriesRing(LazySeriesRing):
             return L(c) * L(n) ** -L(self.variable_name())
         except (ValueError, TypeError):
             return '({})/{}^{}'.format(self.base_ring()(c), n, self.variable_name())
+

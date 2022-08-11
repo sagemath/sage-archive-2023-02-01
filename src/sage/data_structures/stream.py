@@ -2195,3 +2195,4 @@ class Stream_shift(Stream_inexact):
             True
         """
         return self._series.is_nonzero()
+

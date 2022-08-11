@@ -1039,7 +1039,7 @@ class SkewTableau(ClonableList,
         # the while loop terminates. We do need to reset it at the end.
         new_st[i][j] = None
 
-        return SkewTableau(new_st)
+        return SkewTableaux()(new_st)
 
     reverse_slide = backward_slide
 

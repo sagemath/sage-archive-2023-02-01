@@ -2,7 +2,7 @@
 {
 	"name": "Ubuntu jammy",
 	"build": {
-		"dockerfile": "Dockerfile",
+		"dockerfile": "portability-Dockerfile",
 	    // See tox.ini for definitions
 	    "args": { "SYSTEM_FACTOR":	"ubuntu-jammy",
 		      "PACKAGE_FACTOR": "standard",

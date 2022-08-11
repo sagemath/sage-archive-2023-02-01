@@ -16,7 +16,7 @@
 	// Run commands after the container is created:
 	"postCreateCommand": ".devcontainer/post_create.sh",
 	// Run commands after the container is started.
-	"postStartCommand": "make configure && ./configure --enable-build-as-root --prefix=/sage/local --with-sage-venv && make build V=0",
+	"postStartCommand": ".devcontainer/portability-post_start.sh",
 	"extensions": [
 	    "ms-python.python"
         ]

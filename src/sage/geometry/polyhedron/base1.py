@@ -426,7 +426,7 @@ class Polyhedron_base1(Polyhedron_base0, ConvexSet_closed):
 
     def an_affine_basis(self):
         """
-        Return points in ``self`` that are a basis for the affine span of the polytope.
+        Return points in ``self`` that form a basis for the affine span of ``self``.
 
         This implementation of the method :meth:`ConvexSet_base.an_affine_basis`
         for polytopes guarantees the following:
@@ -437,6 +437,9 @@ class Polyhedron_base1(Polyhedron_base0, ConvexSet_closed):
           in the face lattice and picking for each cover relation
           one vertex that is in the difference. Thus this method
           is independent of the concrete realization of the polytope.
+
+        For unbounded polyhedra, the result may contain arbitrary points of ``self``,
+        not just vertices.
 
         EXAMPLES::
 
@@ -455,8 +458,7 @@ class Polyhedron_base1(Polyhedron_base0, ConvexSet_closed):
              A vertex at (4, 1, 3, 5, 2),
              A vertex at (4, 2, 5, 3, 1)]
 
-        For unbounded polyhedra, the result may contain arbitrary points of ``self``,
-        not just vertices::
+        Unbounded polyhedra::
 
             sage: p = Polyhedron(vertices=[(0, 0)], rays=[(1,0), (0,1)])
             sage: p.an_affine_basis()

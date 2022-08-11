@@ -157,6 +157,7 @@ from sage.categories.homset import Hom
 from sage.categories.sets_cat import Sets
 from sage.modules.free_module import VectorSpace
 from sage.modules.free_module_element import vector
+from sage.rings.real_mpfr import RR
 
 _NumberFields = NumberFields()
 
@@ -9302,7 +9303,7 @@ class NumberField_absolute(NumberField_generic):
         return sage.matrix.all.matrix(d)
 
     def logarithmic_embedding(self, prec=53):
-        """
+        r"""
         Return the morphism of ``self`` under the logarithmic embedding
         in the category Set.
 
@@ -9362,7 +9363,8 @@ class NumberField_absolute(NumberField_generic):
             return vector(x_logs)
 
         log_map = closure_map(self(0), prec)
-        return Hom(self, VectorSpace(QQ, len(log_map)), Sets())
+        hom = Hom(self, VectorSpace(RR, len(log_map)), Sets())
+        return hom(log_map)
 
     def places(self, all_complex=False, prec=None):
         r"""

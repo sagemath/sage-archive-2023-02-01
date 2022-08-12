@@ -6,7 +6,7 @@
 #
 # If "config.log" or "logs" are symlinks (for example, created by 'tox -e local-...',
 # or after https://trac.sagemath.org/ticket/33262), they might point outside of
-# the devcontainer, so remove them. Likewise for upstream.
+# the dev container, so remove them. Likewise for upstream.
 for f in config.log logs upstream; do
     if [ -L $f ]; then
         rm -f $f

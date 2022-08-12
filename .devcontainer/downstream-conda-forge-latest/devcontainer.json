@@ -2,7 +2,7 @@
 {
     "name": "condaforge/mambaforge:latest downstream Sage",
     "image": "condaforge/mambaforge:latest",
-    // Run commands after the container is created:
+    // Run commands after the container is created.
     "postCreateCommand": ".devcontainer/post_create.sh && mamba install --yes sage",
     // Run commands after the container is started.
     "postStartCommand": "make configure && ln -sf $CONDA_PREFIX venv",

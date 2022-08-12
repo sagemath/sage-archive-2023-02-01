@@ -1181,7 +1181,7 @@ Now start VS Code::
   [mkoeppe@sage sage] $ code .
 
 Then VS Code may prompt you whether you would like to open the current
-directory in the configured devcontainer (yes).  If it does not, use the command palette
+directory in the dev container (yes).  If it does not, use the command palette
 (:kbd:`Ctrl` + :kbd:`Shift` + :kbd:`P`), enter the command "Remote-Containers:
 Reopen Folder in Container" , and hit :kbd:`Enter`.
 
@@ -1189,7 +1189,7 @@ If the above ``code .`` command does not work, start VS Code as a regular applic
 command palette of VS Code, enter "Remote-Containers: Open Folder in Container",
 and hit :kbd:`Enter`, and choose the Sage repository ``$SAGE_ROOT``.
 
-Once VS Code starts running the configured devcontainer, by clicking on "Show Log",
+Once VS Code starts running the dev container, by clicking on "show log",
 you can see what it does:
 
 - It pulls the prebuilt image from ghcr.io (via

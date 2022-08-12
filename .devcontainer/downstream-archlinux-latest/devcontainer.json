@@ -2,7 +2,7 @@
 {
     "name": "archlinux:latest downstream Sage",
     "image": "archlinux:latest",
-    // Run commands after the container is created:
+    // Run commands after the container is created.
     "postCreateCommand": "EXTRA_SYSTEM_PACKAGES='sagemath sagemath-doc' EXTRA_SAGE_PACKAGES='notebook pip' .devcontainer/post_create.sh",
     // Run commands after the container is started.
     "postStartCommand": "make configure && ln -sf /usr venv",

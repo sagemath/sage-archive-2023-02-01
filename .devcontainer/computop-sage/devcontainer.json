@@ -5,7 +5,7 @@
     "containerEnv": {
         "MAKE": "make -j12"
     },
-    // Run commands after the container is created:
+    // Run commands after the container is created.
     // Install build tools, get rid of sourcing /sage/activate in non-login shells.
     "postCreateCommand": ".devcontainer/post_create.sh --sudo && sed -i.bak '/sage.*activate/d' ~/.bashrc",
     // Run commands after the container is started.

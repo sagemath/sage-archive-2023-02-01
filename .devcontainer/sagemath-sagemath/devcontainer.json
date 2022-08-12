@@ -6,8 +6,8 @@
     "containerEnv": {
         "MAKE": "make -j12"
     },
-    // Run commands after the container is created:
-    // Install build tools
+    // Run commands after the container is created.
+    // Install build tools.
     "postCreateCommand": ".devcontainer/post_create.sh --sudo"
     // Run commands after the container is started.
     // Do not run configure within a sage-env (see #29485).

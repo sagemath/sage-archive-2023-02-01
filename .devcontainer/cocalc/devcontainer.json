@@ -5,7 +5,7 @@
     "containerEnv": {
         "MAKE": "make -j12"
     },
-    // Run commands after the container is created:
+    // Run commands after the container is created.
     "postCreateCommand": ".devcontainer/post_create.sh",
     // Run commands after the container is started.
     "postStartCommand": "make configure && ./configure --enable-build-as-root --prefix=/usr/local/sage/local --with-sage-venv && make build V=0",

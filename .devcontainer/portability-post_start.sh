@@ -14,7 +14,7 @@ for f in config.log logs upstream; do
 done
 # If possible (ensured after https://trac.sagemath.org/ticket/33262), keep the
 # logs in the container.
-if [ ! -f logs ]; then
+if [ ! -d logs ]; then
     ln -s /sage/logs logs
 fi
 # Bootstrap, configure, and build the Sage distribution, reusing the Sage

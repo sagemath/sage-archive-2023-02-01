@@ -1153,10 +1153,16 @@ convenient for developing with Docker containers thanks to the `Visual
 Studio Code Remote - Containers
 <https://code.visualstudio.com/docs/remote/containers>`_ extension.
 
-Sage provides sample ``devcontainer.json`` configuration files
+If the extension is not already installed, then in VS Code, click the
+"Extension" icon on the left (or press :kbd:`Ctrl` + :kbd:`Shift` + :kbd:`X`;
+on macOS, :kbd:`Command` + :kbd:`Shift` + :kbd:`X`) to open a list of
+extensions. Search for "Remote - Containers" and install it.
+
+The extension needs a ``devcontainer.json`` configuration file to work. Sage
+provides sample ``devcontainer.json`` configuration files
 `$SAGE_ROOT/.devcontainer/*/devcontainer.json
-<https://github.com/sagemath/sage/tree/develop/.devcontainer/>`_
-for this purpose.
+<https://github.com/sagemath/sage/tree/develop/.devcontainer/>`_ for this
+purpose.
 
 To get started, symlink (or copy) one of the sample files to
 ``$SAGE_ROOT/.devcontainer/devcontainer.json``. For example, choose
@@ -1166,28 +1172,28 @@ the most recent
 development version of Sage (``dev`` tag), and a full installation of
 the Sage distribution (``with-targets``).
 
-For example, in macOS, you can do this using the shell as follows::
+In macOS for example, you can do this using the shell as follows::
 
   [mkoeppe@sage sage] $ (cd .devcontainer && ln -s portability-ubuntu-jammy-standard/devcontainer.json .)
 
-Then, start VS Code::
+Now start VS Code::
 
   [mkoeppe@sage sage] $ code .
 
-In VS Code, click the "Extension" icon on the left (or press
-:kbd:`Ctrl` + :kbd:`Shift` + :kbd:`X`; on macOS, :kbd:`Command` +
-:kbd:`Shift` + :kbd:`X`) to open a list of extensions. Search for
-"Remote - Containers" and install it if it is not already installed.
+Then VS Code may prompt you whether you would like to open the current
+directory in the configured devcontainer (yes).  If it does not, use the command palette
+(:kbd:`Ctrl` + :kbd:`Shift` + :kbd:`P`), enter the command "Remote-Containers:
+Reopen Folder in Container" , and hit :kbd:`Enter`.
 
-With the extension installed, VS Code may prompt you whether you would
-like to open the current directory in the devcontainer (yes).  If it
-does not, use the command palette (:kbd:`Ctrl` + :kbd:`Shift` +
-:kbd:`P`), enter the command "Remote-Containers: Reopen Folder in
-Container" , and hit :kbd:`Enter`.
-By clicking on "Show Log", you can see what it does:
+If the above ``code .`` command does not work, start VS Code as a regular application, then in the
+command palette of VS Code, enter "Remote-Containers: Open Folder Container",
+and hit :kbd:`Enter`, and choose the Sage repository ``$SAGE_ROOT``.
+
+Once VS Code starts running the configured devcontainer, by clicking on "Show Log",
+you can see what it does:
 
 - It pulls the prebuilt image from ghcr.io (via
-  `.devcontainer/portability-Dockerfile
+  `$SAGE_ROOT/.devcontainer/portability-Dockerfile
   <https://github.com/sagemath/sage/tree/develop/.devcontainer/portability-Dockerfile>`_);
   note that these are multi-gigabyte images, so it may take a while.
 
@@ -1201,8 +1207,8 @@ By clicking on "Show Log", you can see what it does:
 
 You can edit a copy of the configuration file to change to a different platform, another
 version, or build stage.  After editing the configuration file (or changing the
-symlink), run "Remote-Containers: Rebuild Container" from the Command
-Palette. See the `VS Code devcontainer.json reference
+symlink), run "Remote-Containers: Rebuild Container" from the command
+palette. See the `VS Code devcontainer.json reference
 <https://code.visualstudio.com/docs/remote/devcontainerjson-reference>`_
 and the `GitHub introduction to dev containers
 <https://docs.github.com/en/enterprise-cloud@latest/codespaces/setting-up-your-project-for-codespaces/introduction-to-dev-containers>`_

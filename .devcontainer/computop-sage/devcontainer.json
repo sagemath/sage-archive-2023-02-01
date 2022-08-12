@@ -1,7 +1,7 @@
 // See https://aka.ms/devcontainer.json for format details.
 {
     "name": "computop/sage Docker",
-    "image": "computop/sage"
+    "image": "computop/sage",
     "containerEnv": {
         "MAKE": "make -j12"
     },

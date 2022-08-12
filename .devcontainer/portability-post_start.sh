@@ -1,5 +1,6 @@
 #! /bin/sh
-# The portability-.../devcontainer.json configurations run this script after the container is started.
+# The portability-.../devcontainer.json configurations run this script after
+# the container is started.
 #
 # The script assumes that it is run from SAGE_ROOT.
 #
@@ -11,11 +12,13 @@ for f in config.log logs upstream; do
         rm -f $f
     fi
 done
-# If possible (ensured after https://trac.sagemath.org/ticket/33262), keep the logs in the container.
+# If possible (ensured after https://trac.sagemath.org/ticket/33262), keep the
+# logs in the container.
 if [ ! -f logs ]; then
     ln -s /sage/logs logs
 fi
-# Bootstrap, configure, and build the Sage distribution, reusing the Sage installation from the prebuilt image.
+# Bootstrap, configure, and build the Sage distribution, reusing the Sage
+# installation from the prebuilt image.
 set -e
 set -x
 make configure

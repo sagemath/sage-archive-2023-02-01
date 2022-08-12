@@ -2,7 +2,7 @@
 {
     "name": "sagemath/sagemath Docker",
     // sagemath/sagemath-dev as of 9.5 is broken?
-    "image": "sagemath/sagemath:develop"
+    "image": "sagemath/sagemath:develop",
     "containerEnv": {
         "MAKE": "make -j12"
     },

@@ -1186,7 +1186,7 @@ directory in the configured devcontainer (yes).  If it does not, use the command
 Reopen Folder in Container" , and hit :kbd:`Enter`.
 
 If the above ``code .`` command does not work, start VS Code as a regular application, then in the
-command palette of VS Code, enter "Remote-Containers: Open Folder Container",
+command palette of VS Code, enter "Remote-Containers: Open Folder in Container",
 and hit :kbd:`Enter`, and choose the Sage repository ``$SAGE_ROOT``.
 
 Once VS Code starts running the configured devcontainer, by clicking on "Show Log",

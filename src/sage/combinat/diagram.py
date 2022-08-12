@@ -818,12 +818,11 @@ class NorthwestDiagram(Diagram, metaclass=InheritComparisonClasscallMetaclass):
         for Q in Dhat.peelable_tableaux():
             # get the vertical strips
             mu = Q.shape()
-            vertical_strips = mu.add_vertical_border_strip(k)
-            for s in vertical_strips:
+            vertical_strip_cells = mu.vertical_border_strip_cells(k)
+            for s in vertical_strip_cells:
                 sQ = SkewTableaux()(Q)  # sQ is skew - get it?
-                new_cells = (s/mu).cells()
                 # perform the jeu de taquin slides
-                for c in new_cells:
+                for c in s:
                     sQ = sQ.backward_slide(c)
                 # create the new tableau by filling the columns
                 sQ_new = sQ.to_list()

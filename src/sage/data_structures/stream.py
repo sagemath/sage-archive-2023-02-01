@@ -96,6 +96,7 @@ AUTHORS:
 from sage.rings.integer_ring import ZZ
 from sage.rings.infinity import infinity
 from sage.arith.misc import divisors
+from sage.combinat.integer_vector_weighted import iterator_fast as wt_int_vec_iter
 
 class Stream():
     """
@@ -1599,7 +1600,7 @@ class Stream_cauchy_compose(Stream_binary):
             sage: g = Stream_function(lambda n: n^2, ZZ, True, 1)
             sage: h = Stream_cauchy_compose(f, g)
         """
-        assert g._approximate_order > 0
+        #assert g._approximate_order > 0
         self._fv = f._approximate_order
         self._gv = g._approximate_order
         if self._fv < 0:
@@ -1643,6 +1644,132 @@ class Stream_cauchy_compose(Stream_binary):
             ret += self._left[0]
         return ret + sum(self._left[i] * self._pos_powers[i][n] for i in range(1, n // self._gv+1))
 
+
+class Stream_plethysm(Stream_binary):
+    r"""
+    Return the plethysm of ``f`` composed by ``g``.
+
+    This is the plethysm `f \circ g = f(g)` when `g` is an element of
+    the ring of symmetric functions.
+
+    INPUT:
+
+    - ``f`` -- a :class:`Stream`
+    - ``g`` -- a :class:`Stream` with positive order
+    - ``p`` -- the powersum symmetric functions
+
+    EXAMPLES::
+
+        sage: from sage.data_structures.stream import Stream_function,  Stream_plethysm
+        sage: s = SymmetricFunctions(QQ).s()
+        sage: p = SymmetricFunctions(QQ).p()
+        sage: f = Stream_function(lambda n: s[n], s, True, 1)
+        sage: g = Stream_function(lambda n: s[[1]*n], s, True, 1)
+        sage: h = Stream_plethysm(f, g, p)
+        sage: [s(h[i]) for i in range(5)]
+        [0,
+         s[1],
+         s[1, 1] + s[2],
+         2*s[1, 1, 1] + s[2, 1] + s[3],
+         3*s[1, 1, 1, 1] + 2*s[2, 1, 1] + s[2, 2] + s[3, 1] + s[4]]
+        sage: u = Stream_plethysm(g, f, p)
+        sage: [s(u[i]) for i in range(5)]
+        [0,
+         s[1],
+         s[1, 1] + s[2],
+         s[1, 1, 1] + s[2, 1] + 2*s[3],
+         s[1, 1, 1, 1] + s[2, 1, 1] + 3*s[3, 1] + 2*s[4]]
+    """
+    def __init__(self, f, g, p):
+        r"""
+        Initialize ``self``.
+
+        TESTS::
+
+            sage: from sage.data_structures.stream import Stream_function, Stream_plethysm
+            sage: s = SymmetricFunctions(QQ).s()
+            sage: p = SymmetricFunctions(QQ).p()
+            sage: f = Stream_function(lambda n: s[n], s, True, 1)
+            sage: g = Stream_function(lambda n: s[n-1,1], s, True, 2)
+            sage: h = Stream_plethysm(f, g, p)
+        """
+        #assert g._approximate_order > 0
+        self._fv = f._approximate_order
+        self._gv = g._approximate_order
+        self._p = p
+        val = self._fv * self._gv
+        super().__init__(f, g, f._is_sparse, val)
+
+    def get_coefficient(self, n):
+        r"""
+        Return the ``n``-th coefficient of ``self``.
+
+        INPUT:
+
+        - ``n`` -- integer; the degree for the coefficient
+
+        EXAMPLES::
+
+            sage: from sage.data_structures.stream import Stream_function, Stream_plethysm
+            sage: s = SymmetricFunctions(QQ).s()
+            sage: p = SymmetricFunctions(QQ).p()
+            sage: f = Stream_function(lambda n: s[n], s, True, 1)
+            sage: g = Stream_function(lambda n: s[[1]*n], s, True, 1)
+            sage: h = Stream_plethysm(f, g, p)
+            sage: s(h.get_coefficient(5))
+            4*s[1, 1, 1, 1, 1] + 4*s[2, 1, 1, 1] + 2*s[2, 2, 1] + 2*s[3, 1, 1] + s[3, 2] + s[4, 1] + s[5]
+            sage: [s(h.get_coefficient(i)) for i in range(6)]
+            [0,
+             s[1],
+             s[1, 1] + s[2],
+             2*s[1, 1, 1] + s[2, 1] + s[3],
+             3*s[1, 1, 1, 1] + 2*s[2, 1, 1] + s[2, 2] + s[3, 1] + s[4],
+             4*s[1, 1, 1, 1, 1] + 4*s[2, 1, 1, 1] + 2*s[2, 2, 1] + 2*s[3, 1, 1] + s[3, 2] + s[4, 1] + s[5]]
+        """
+        if not n: # special case of 0
+            return self._left[0]
+
+        # We assume n > 0
+        p = self._p
+        ret = p.zero()
+        for k in range(n+1):
+            temp = p(self._left[k])
+            for la, c in temp:
+                inner = self._compute_product(n, la, c)
+                if inner is not None:
+                    ret += inner
+        return ret
+
+    def _compute_product(self, n, la, c):
+        """
+        Compute the product ``c * p[la](self._right)`` in degree ``n``.
+
+        EXAMPLES::
+
+            sage: from sage.data_structures.stream import Stream_plethysm, Stream_exact, Stream_function
+            sage: s = SymmetricFunctions(QQ).s()
+            sage: p = SymmetricFunctions(QQ).p()
+            sage: f = Stream_function(lambda n: s[n], s, True, 1)
+            sage: g = Stream_exact([s[2], s[3]], False, 0, 4, 2)
+            sage: h = Stream_plethysm(f, g, p)
+            sage: ret = h._compute_product(7, [2, 1], 1); ret
+            1/12*p[2, 2, 1, 1, 1] + 1/4*p[2, 2, 2, 1] + 1/6*p[3, 2, 2]
+             + 1/12*p[4, 1, 1, 1] + 1/4*p[4, 2, 1] + 1/6*p[4, 3]
+            sage: ret == p[2,1](s[2] + s[3]).homogeneous_component(7)
+            True
+        """
+        p = self._p
+        ret = p.zero()
+        for mu in wt_int_vec_iter(n, la):
+            temp = c
+            for i, j in zip(la, mu):
+                gs = self._right[j]
+                if not gs:
+                    temp = p.zero()
+                    break
+                temp *= p[i](gs)
+            ret += temp
+        return ret
 
 #####################################################################
 # Unary operations

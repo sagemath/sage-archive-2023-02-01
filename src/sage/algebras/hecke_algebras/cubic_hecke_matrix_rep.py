@@ -403,6 +403,10 @@ class CubicHeckeMatrixRep(Matrix_generic_dense):
         [ 0  w  0]
         sage: len(_.block_diagonal_list())
         1
+
+    TEST:
+
+        sage: TestSuite(m1).run(skip='_test_minpoly')
     """
 
     @cached_method
@@ -611,7 +615,7 @@ class CubicHeckeMatrixSpace(MatrixSpace):
             sage: import sage.algebras.hecke_algebras.cubic_hecke_matrix_rep as chmr
             sage: CHA2.<c1> = algebras.CubicHecke(2)
             sage: MS = chmr.CubicHeckeMatrixSpace(CHA2)
-            sage: TestSuite(MS).run()
+            sage: TestSuite(MS).run(skip='_test_elements')
         """
         from sage.algebras.hecke_algebras.cubic_hecke_algebra import CubicHeckeAlgebra
 

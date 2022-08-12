@@ -3743,43 +3743,6 @@ class LazySymmetricFunction(LazyCauchyProductSeries):
 
             ps = P._laurent_poly_ring.realization_of().p()
             coeff_stream = Stream_plethysm(self._coeff_stream, g._coeff_stream, ps)
-            g_p = Stream_map_coefficients(g._coeff_stream, lambda c: c, ps)
-            try:
-                degree_one = [BR(x) for x in BR.variable_names_recursive()]
-            except AttributeError:
-                try:
-                    degree_one = BR.gens()
-                except NotImplementedError:
-                    degree_one = []
-            def raise_c(n):
-                return lambda c: c.subs(**{str(x): x ** n for x in degree_one})
-            def scale_part(n):
-                return lambda m: m.__class__(m.parent(), [i * n for i in m])
-            def pn_pleth(f, n):
-                return f.map_support(scale_part(n))
-            def stretched_coefficient(k, n):
-                q, r = ZZ(n).quo_rem(k)
-                if r:
-                    return 0
-                c = g_p[q]
-                if c:
-                    return pn_pleth(c.map_coefficients(raise_c(k)), k)
-                return c
-            def g_coeff_stream(k):
-                return Stream_function(lambda n: stretched_coefficient(k, n),
-                                       R, P._sparse, 0)
-            from sage.misc.lazy_list import lazy_list
-            stretched = lazy_list(lambda k: g_coeff_stream(k))
-            f_p = Stream_map_coefficients(self._coeff_stream, lambda c: c, ps)
-            def coefficient(n):
-                r = R(0)
-                for i in range(n+1):
-                    r += ps._apply_module_morphism(f_p[i],
-                                                   lambda part: ps.prod(sum(stretched[j][h] for h in range(n+1))
-                                                                        for j in part),
-                                                   codomain=ps).homogeneous_component(n)
-                return r
-            #coeff_stream = Stream_function(coefficient, P._internal_poly_ring.base_ring(), P._sparse, 0)
         else:
             raise NotImplementedError("only implemented for arity 1")
 

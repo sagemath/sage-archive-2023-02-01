@@ -671,6 +671,20 @@ class LazySeriesRing(UniqueRepresentation, Parent):
         """
         return self._sparse
 
+    def is_exact(self):
+        """
+        Return if ``self`` is exact or not.
+
+        EXAMPLES::
+
+            sage: L = LazyLaurentSeriesRing(ZZ, 'z')
+            sage: L.is_exact()
+            True
+            sage: L = LazyLaurentSeriesRing(RR, 'z')
+            sage: L.is_exact()
+            False
+        """
+        return self.base_ring().is_exact()
 
 class LazyLaurentSeriesRing(LazySeriesRing):
     """

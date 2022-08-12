@@ -22,5 +22,9 @@ fi
 set -e
 set -x
 make configure
-./configure --enable-build-as-root --prefix=/sage/local --with-sage-venv
+if [ -x /sage/config.status ]; then
+    eval ./configure $(/sage/config.status --config) --enable-build-as-root --prefix=/sage/local --with-sage-venv
+else
+    ./configure --enable-build-as-root --prefix=/sage/local --with-sage-venv
+fi
 make build V=0

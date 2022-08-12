@@ -398,8 +398,7 @@ class Ideal_nc(Ideal_generic):
             NotImplementedError: cannot multiply non-commutative ideals
         """
         if isinstance(other, Ideal_nc) and self.ring() == other.ring():
-            if (self.side() == "left" and other.side() == "right"
-                or self.side() == other.side() == "twosided"):
+            if self.side() == "left" and other.side() == "right":
                 gens = [z for z in (x * y for x in self.gens() for y in other.gens()) if z]
                 return self.ring().ideal(gens, side='twosided')
             raise NotImplementedError("cannot multiply non-commutative ideals")

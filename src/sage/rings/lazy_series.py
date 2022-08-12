@@ -3727,7 +3727,6 @@ class LazySymmetricFunction(LazyCauchyProductSeries):
                     gs = g.symmetric_function()
                     return P(f(gs))
 
-            BR = P.base_ring()
             if isinstance(g, LazySymmetricFunction):
                 R = P._laurent_poly_ring
             else:
@@ -4219,4 +4218,3 @@ class LazyDirichletSeries(LazyModuleElement):
                 poly = formatter(*([parenthesize(mo) for mo in mons] + bigO), sep=" + ")
 
         return poly
-

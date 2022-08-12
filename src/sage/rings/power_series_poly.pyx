@@ -720,7 +720,7 @@ cdef class PowerSeries_poly(PowerSeries):
 
         return self._parent(self.truncate().inverse_series_trunc(prec), prec=prec)
 
-    def _floordiv_(self, c):
+    def _floor_division_by_coefficient_(self, c):
         """
         Perform the exact division of ``self`` by a coefficient ``c``.
 
@@ -748,9 +748,13 @@ cdef class PowerSeries_poly(PowerSeries):
         """
         prec = self.prec()
         return PowerSeries_poly(self._parent,
-                                self.__f // (<PowerSeries_poly>c).__f[0],
+                                self.__f // c,
                                 prec=prec,
                                 check=False)
+
+    cpdef _acted_upon_(self, other, bint self_on_left):
+        if self_on_left and other in self.base_ring():
+            return self._floor_division_by_coefficient_(other)
 
     def truncate(self, prec=infinity):
         """

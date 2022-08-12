@@ -1288,6 +1288,12 @@ class PowerSeriesRing_domain(PowerSeriesRing_generic, ring.IntegralDomain):
         laurent = self.laurent_series_ring()
         return laurent.change_ring(self.base_ring().fraction_field())
 
+    def _get_action_(self, other, op, self_is_left):
+        import operator
+        from sage.structure.coerce_actions import ActedUponAction
+        if op is operator.floordiv and self_is_left and other is self.base_ring():
+            # Floor division by coefficient.
+            return ActedUponAction(other, self, not self_is_left)
 
 class PowerSeriesRing_over_field(PowerSeriesRing_domain):
     _default_category = CompleteDiscreteValuationRings()

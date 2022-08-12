@@ -104,6 +104,8 @@ We can change the base ring::
 
 # ****************************************************************************
 #       Copyright (C) 2019 Kwankyu Lee <ekwankyu@gmail.com>
+#                     2022 Martin Rubey <martin.rubey at tuwien.ac.at>
+#                     2022 Travis Scrimshaw <tcscrims at gmail.com>
 #
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -1474,7 +1476,7 @@ class LazyModuleElement(Element):
         r"""
         Return the tangent of ``self``.
 
-        EXAMPLES:
+        EXAMPLES::
 
             sage: L.<z> = LazyLaurentSeriesRing(QQ)
             sage: tan(z)
@@ -3281,7 +3283,7 @@ class LazyTaylorSeries(LazyCauchyProductSeries):
 
         INPUT:
 
-        - ``g`` -- other series, all of the same parent.
+        - ``g`` -- other series, all can be coerced into the same parent
 
         EXAMPLES::
 
@@ -3638,7 +3640,7 @@ class LazySymmetricFunction(LazyCauchyProductSeries):
 
         INPUT:
 
-        - ``args`` -- other (lazy) symmetric functions.
+        - ``args`` -- other (lazy) symmetric functions
 
         EXAMPLES::
 

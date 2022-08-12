@@ -22,6 +22,8 @@ AUTHORS:
 
 # ****************************************************************************
 #       Copyright (C) 2019 Kwankyu Lee <ekwankyu@gmail.com>
+#                     2022 Martin Rubey <martin.rubey at tuwien.ac.at>
+#                     2022 Travis Scrimshaw <tcscrims at gmail.com>
 #
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -442,7 +444,7 @@ class LazySeriesRing(UniqueRepresentation, Parent):
         raise ValueError(f"unable to convert {x} into {self}")
 
     def undefined(self, valuation=None):
-        """
+        r"""
         Return an uninitialized series.
 
         INPUT:
@@ -451,7 +453,7 @@ class LazySeriesRing(UniqueRepresentation, Parent):
 
         Power series can be defined recursively (see
         :meth:`sage.rings.lazy_series.LazyModuleElement.define()` for
-        more examples)::
+        more examples).
 
         EXAMPLES::
 
@@ -467,13 +469,13 @@ class LazySeriesRing(UniqueRepresentation, Parent):
 
     class options(GlobalOptions):
         r"""
-        Set and display the options for Lazy Laurent series.
+        Set and display the options for lazy series.
 
         If no parameters are set, then the function returns a copy of
         the options dictionary.
 
-        The ``options`` to Lazy Laurent series can be accessed as using
-        :class:`LazyLaurentSeriesRing.options` of :class:`LazyLaurentSeriesRing`.
+        The ``options`` to lazy series can be accessed as using
+        :class:`LazySeriesRing.options`.
 
         @OPTIONS@
 

@@ -1233,7 +1233,15 @@ for more information.
 In addition to the
 ``$SAGE_ROOT/.devcontainer/portability-.../devcontainer.json`` files, Sage also
 provides several other sample ``devcontainer.json`` configuration files in the
-directory ``$SAGE_ROOT/.devcontainer``:
+directory ``$SAGE_ROOT/.devcontainer``.
+
+Files named ``$SAGE_ROOT/.devcontainer/downstream-.../devcontainer.json`` configure
+containers with an installation of downstream packages providing SageMath from a
+package manager, or from a public Docker image that provides SageMath.
+These ``devcontainer.json`` configuration files are useful for testing
+user scripts on these deployments of SageMath. You may also find it
+useful to copy these configurations into your own projects (they should
+work without change) or to adapt them to your needs.
 
 - `downstream-archlinux-latest/devcontainer.json
   <https://github.com/sagemath/sage/tree/develop/.devcontainer/downstream-archlinux-latest/devcontainer.json>`_
@@ -1254,17 +1262,21 @@ directory ``$SAGE_ROOT/.devcontainer``:
   <https://github.com/sagemath/sage/tree/develop/.devcontainer/downstream-docker-cocalc/devcontainer.json>`_
   configures a container with `the CoCalc Docker image <https://doc.cocalc.com/docker-image.html>`_.
 
-- `develop-docker-cocalc/devcontainer.json
-  <https://github.com/sagemath/sage/tree/develop/.devcontainer/develop-docker-cocalc/devcontainer.json>`_
-  configures a container with `the CoCalc Docker image <https://doc.cocalc.com/docker-image.html>`_.
-  It then updates the installation of SageMath in this container by building from
-  the current source tree.
-
 - `downstream-docker-computop/devcontainer.json
   <https://github.com/sagemath/sage/tree/develop/.devcontainer/develop-docker-computop/devcontainer.json>`_
   configures a container with the `Docker image from the 3-manifolds
   project <https://hub.docker.com/r/computop/sage/>`_, providing
   SnapPy, Regina, PHCPack, etc.
+
+Files named ``$SAGE_ROOT/.devcontainer/develop-.../devcontainer.json`` configure
+containers from a public Docker image that provides SageMath and then updates the
+installation of SageMath in this container by building from the current source tree.
+
+- `develop-docker-cocalc/devcontainer.json
+  <https://github.com/sagemath/sage/tree/develop/.devcontainer/develop-docker-cocalc/devcontainer.json>`_
+  configures a container with `the CoCalc Docker image <https://doc.cocalc.com/docker-image.html>`_.
+  It then updates the installation of SageMath in this container by building from
+  the current source tree.
 
 - `develop-docker-computop/devcontainer.json
   <https://github.com/sagemath/sage/tree/develop/.devcontainer/develop-docker-computop/devcontainer.json>`_
@@ -1272,8 +1284,3 @@ directory ``$SAGE_ROOT/.devcontainer``:
   project <https://hub.docker.com/r/computop/sage/>`_, providing
   SnapPy, Regina, PHCPack, etc. It then updates the installation of
   SageMath in this container by building from the current source tree.
-
-These ``devcontainer.json`` configuration files are useful for testing
-user scripts on these deployments of SageMath. You may also find it
-useful to copy these configurations into your own projects or to adapt them to your needs.
-

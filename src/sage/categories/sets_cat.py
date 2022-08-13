@@ -2223,7 +2223,7 @@ Please use, e.g., S.algebra(QQ, category=Semigroups())""".format(self))
                 it uses the lexicographic order.
 
                 Otherwise, the iterator enumerates the elements in increasing
-                order of sum-of-ranks, refined by the lexicographic order
+                order of sum-of-ranks, refined by the reverse lexicographic order
                 (see :func:`~sage.misc.mrange.cantor_product`).
 
                 EXAMPLES:

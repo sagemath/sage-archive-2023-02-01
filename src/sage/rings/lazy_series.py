@@ -3469,6 +3469,7 @@ class LazyTaylorSeries(LazyCauchyProductSeries):
 
         # The arity is at least 2
         gv = min(h._coeff_stream._approximate_order for h in g)
+
         def coefficient(n):
             r = R.zero()
             for i in range(n//gv+1):

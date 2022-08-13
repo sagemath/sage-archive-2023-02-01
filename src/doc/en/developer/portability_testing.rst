@@ -1237,8 +1237,10 @@ directory ``$SAGE_ROOT/.devcontainer``.
 
 Files named ``$SAGE_ROOT/.devcontainer/downstream-.../devcontainer.json`` configure
 containers with an installation of downstream packages providing SageMath from a
-package manager (see `the _sagemath dummy package <../reference/spkg/_sagemath.html>`_),
-or from a public Docker image that provides SageMath.
+package manager (``downstream-archlinux-...``, ``downstream-conda-forge``;
+see also `the _sagemath dummy package <../reference/spkg/_sagemath.html>`_),
+or from a public Docker image that provides SageMath (``docker-sagemath``,
+``docker-cocalc``, ``docker-computop``).
 These ``devcontainer.json`` configuration files are useful for testing
 user scripts on these deployments of SageMath. You may also find it
 useful to copy these configurations into your own projects (they should

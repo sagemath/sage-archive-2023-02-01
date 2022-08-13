@@ -986,7 +986,7 @@ system configurations.
 For more information, see the `GitHub documentation <https://docs.github.com/en/free-pro-team@latest/actions/managing-workflow-runs/manually-running-a-workflow>`_.
 
 Alternatively, you can create and push a custom tag in order to trigger a run of tests as follows.
-Let's assume that ``github`` is the name of
+Let's assume that ``my-github`` is the name of
 the remote corresponding to your GitHub fork of the Sage repository::
 
   $ git remote -v | grep /my-github
@@ -1185,9 +1185,10 @@ directory in the dev container (yes).  If it does not, use the command palette
 (:kbd:`Ctrl` + :kbd:`Shift` + :kbd:`P`), enter the command "Remote-Containers:
 Reopen Folder in Container" , and hit :kbd:`Enter`.
 
-If the above ``code .`` command does not work, start VS Code as a regular application, then in the
-command palette of VS Code, enter "Remote-Containers: Open Folder in Container",
-and hit :kbd:`Enter`, and choose the Sage repository ``$SAGE_ROOT``.
+If the above ``code .`` command does not work, start VS Code as a regular
+application, then in the command palette of VS Code, enter "Remote-Containers:
+Open Folder in Container", and hit :kbd:`Enter`, and choose the directory
+``$SAGE_ROOT`` of your local Sage repository.
 
 Once VS Code starts running the dev container, by clicking on "show log",
 you can see what it does:
@@ -1204,6 +1205,17 @@ you can see what it does:
   configures the source tree and starts to build Sage from source,
   reusing the installation (:envvar:`SAGE_LOCAL`, :envvar:`SAGE_VENV`)
   from the prebuilt image.
+
+After VS Code finished configuring the dev container, your local Sage
+repository at ``$SAGE_ROOT`` is available in the container at the directory
+``/workspaces/<repository name>``. You may need to open a new Terminal to start
+working from the directory.
+
+.. NOTE::
+
+   Your Sage at ``$SAGE_ROOT`` was configured and rebuilt inside the dev
+   container. Hence after working with VS Code, you may want to rebuild the Sage
+   for your local platform.
 
 You can edit a copy of the configuration file to change to a different platform, another
 version, or build stage.  After editing the configuration file (or changing the

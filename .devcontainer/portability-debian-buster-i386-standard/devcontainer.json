@@ -3,7 +3,7 @@
 	"name": "Debian buster 32-bit",
 	"build": {
 		"dockerfile": "portability-Dockerfile",
-	    // See tox.ini for definitions
+	    // See tox.ini for definitions.
 	    "args": { "SYSTEM_FACTOR":	"debian-buster-i386",
 		      "PACKAGE_FACTOR": "standard",
 		      "DOCKER_TARGET":	"with-targets",

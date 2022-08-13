@@ -3,7 +3,7 @@
 	"name": "Centos 7",
 	"build": {
 		"dockerfile": "portability-Dockerfile",
-	    // See tox.ini for definitions
+	    // See tox.ini for definitions.
 	    "args": { "SYSTEM_FACTOR":	"centos-7-devtoolset-gcc_11",
 		      "PACKAGE_FACTOR": "standard",
 		      "DOCKER_TARGET":	"with-targets",

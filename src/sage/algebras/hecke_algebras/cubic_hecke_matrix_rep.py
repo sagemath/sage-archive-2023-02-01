@@ -654,7 +654,7 @@ class CubicHeckeMatrixSpace(MatrixSpace):
             sage: import sage.algebras.hecke_algebras.cubic_hecke_matrix_rep as chmr
             sage: CHA3.<c1, c2> = algebras.CubicHecke(3)
             sage: MS = chmr.CubicHeckeMatrixSpace(CHA3, original=True)
-            sage: TestSuite(MS).run()     # long time
+            sage: TestSuite(MS).run(skip='_test_elements')     # long time
         """
         from sage.algebras.hecke_algebras.cubic_hecke_algebra import CubicHeckeAlgebra
 

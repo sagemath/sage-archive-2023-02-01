@@ -1214,8 +1214,12 @@ working from the directory.
 .. NOTE::
 
    Your Sage at ``$SAGE_ROOT`` was configured and rebuilt inside the dev
-   container. Hence after working with VS Code, you may want to rebuild the Sage
-   for your local platform.
+   container. In particular, ``$SAGE_ROOT/venv``, ``$SAGE_ROOT/prefix``, and
+   (possibly) ``$SAGE_ROOT/logs`` will be symbolic links that work inside the dev
+   container, but not in your local file system; and also the script
+   ``$SAGE_ROOT/sage`` will not work. Hence after working with the dev container,
+   you will want to remove ``logs`` if it is a symbolic link, and to re-run the
+   ``configure`` script.
 
 You can edit a copy of the configuration file to change to a different platform, another
 version, or build stage.  After editing the configuration file (or changing the

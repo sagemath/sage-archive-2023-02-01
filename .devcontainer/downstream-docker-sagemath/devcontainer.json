@@ -7,7 +7,7 @@
     "postCreateCommand": ".devcontainer/post_create.sh --sudo"
     // Run commands after the container is started.
     // Do not run configure within a sage-env (see #29485).
-    "postStartCommand": "if [ -d pkgs/sagemath-standard ]; then ln -s /home/sage/sage/venv venv && ln -s /home/sage/sage/local prefix; else echo 'Edit .devcontainer/devcontainer.json (postStartCommand) to run project-specific startup commands'; fi",
+    "postStartCommand": "if [ -d pkgs/sagemath-standard ]; then ln -sf /home/sage/sage/venv venv && ln -sf /home/sage/sage/local prefix; else echo 'Edit .devcontainer/devcontainer.json (postStartCommand) to run project-specific startup commands'; fi",
     "extensions": [
         "ms-python.python"
     ]

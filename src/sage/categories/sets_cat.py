@@ -2267,7 +2267,7 @@ Please use, e.g., S.algebra(QQ, category=Semigroups())""".format(self))
                      [1, 2, 3, 4, 5, 6, 7, 8, 9, 10],
                      [1, 2, 3, 4, 5, 6, 7, 8, 10, 9])
 
-                When the first factor is infinite (or not known to be finite), it still
+                When all factors (except possibly the first factor) are known to be finite, it
                 uses the lexicographic order::
 
                     sage: it = iter(cartesian_product([ZZ, GF(2)]))

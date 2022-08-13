@@ -17116,17 +17116,33 @@ class GenericGraph(GenericGraph_pyx):
             sage: G.plot(edge_labels=True).show() # long time
             sage: dist, pred = G.shortest_path_all_pairs(by_weight = True)
             sage: dist
-            {0: {0: 0, 1: 1, 2: 2, 3: 3, 4: 2}, 1: {0: 1, 1: 0, 2: 1, 3: 2, 4: 3}, 2: {0: 2, 1: 1, 2: 0, 3: 1, 4: 3}, 3: {0: 3, 1: 2, 2: 1, 3: 0, 4: 2}, 4: {0: 2, 1: 3, 2: 3, 3: 2, 4: 0}}
+            {0: {0: 0, 1: 1, 2: 2, 3: 3, 4: 2},
+             1: {0: 1, 1: 0, 2: 1, 3: 2, 4: 3},
+             2: {0: 2, 1: 1, 2: 0, 3: 1, 4: 3},
+             3: {0: 3, 1: 2, 2: 1, 3: 0, 4: 2},
+             4: {0: 2, 1: 3, 2: 3, 3: 2, 4: 0}}
             sage: pred
-            {0: {0: None, 1: 0, 2: 1, 3: 2, 4: 0}, 1: {0: 1, 1: None, 2: 1, 3: 2, 4: 0}, 2: {0: 1, 1: 2, 2: None, 3: 2, 4: 3}, 3: {0: 1, 1: 2, 2: 3, 3: None, 4: 3}, 4: {0: 4, 1: 0, 2: 3, 3: 4, 4: None}}
+            {0: {0: None, 1: 0, 2: 1, 3: 2, 4: 0},
+             1: {0: 1, 1: None, 2: 1, 3: 2, 4: 0},
+             2: {0: 1, 1: 2, 2: None, 3: 2, 4: 3},
+             3: {0: 1, 1: 2, 2: 3, 3: None, 4: 3},
+             4: {0: 4, 1: 0, 2: 3, 3: 4, 4: None}}
             sage: pred[0]
             {0: None, 1: 0, 2: 1, 3: 2, 4: 0}
             sage: G = Graph( { 0: {1: {'weight':1}}, 1: {2: {'weight':1}}, 2: {3: {'weight':1}}, 3: {4: {'weight':2}}, 4: {0: {'weight':2}} }, sparse=True)
             sage: dist, pred = G.shortest_path_all_pairs(weight_function = lambda e:e[2]['weight'])
             sage: dist
-            {0: {0: 0, 1: 1, 2: 2, 3: 3, 4: 2}, 1: {0: 1, 1: 0, 2: 1, 3: 2, 4: 3}, 2: {0: 2, 1: 1, 2: 0, 3: 1, 4: 3}, 3: {0: 3, 1: 2, 2: 1, 3: 0, 4: 2}, 4: {0: 2, 1: 3, 2: 3, 3: 2, 4: 0}}
+            {0: {0: 0, 1: 1, 2: 2, 3: 3, 4: 2},
+             1: {0: 1, 1: 0, 2: 1, 3: 2, 4: 3},
+             2: {0: 2, 1: 1, 2: 0, 3: 1, 4: 3},
+             3: {0: 3, 1: 2, 2: 1, 3: 0, 4: 2},
+             4: {0: 2, 1: 3, 2: 3, 3: 2, 4: 0}}
             sage: pred
-            {0: {0: None, 1: 0, 2: 1, 3: 2, 4: 0}, 1: {0: 1, 1: None, 2: 1, 3: 2, 4: 0}, 2: {0: 1, 1: 2, 2: None, 3: 2, 4: 3}, 3: {0: 1, 1: 2, 2: 3, 3: None, 4: 3}, 4: {0: 4, 1: 0, 2: 3, 3: 4, 4: None}}
+            {0: {0: None, 1: 0, 2: 1, 3: 2, 4: 0},
+             1: {0: 1, 1: None, 2: 1, 3: 2, 4: 0},
+             2: {0: 1, 1: 2, 2: None, 3: 2, 4: 3},
+             3: {0: 1, 1: 2, 2: 3, 3: None, 4: 3},
+             4: {0: 4, 1: 0, 2: 3, 3: 4, 4: None}}
 
         So for example the shortest weighted path from `0` to `3` is obtained as
         follows. The predecessor of `3` is ``pred[0][3] == 2``, the predecessor
@@ -17347,8 +17363,8 @@ class GenericGraph(GenericGraph_pyx):
             dist = {int_to_vertex[i]: {int_to_vertex[j]: dd[i, j] for j in range(n) if dd[i, j] != +Infinity}
                         for i in range(n)}
             pred = {int_to_vertex[i]: {int_to_vertex[j]: (int_to_vertex[pp[i, j]] if i != j else None)
-                                           for j in range(n) if (i == j or pp[i, j] != -9999)}
-                        for i in range(n)}
+                                       for j in range(n) if (i == j or pp[i, j] != -9999)}
+                    for i in range(n)}
             return dist, pred
 
         elif algorithm == "Johnson_Boost":
@@ -17367,9 +17383,9 @@ class GenericGraph(GenericGraph_pyx):
             dist = dict()
             pred = dict()
             for u in self:
-                paths=self.shortest_paths(u, by_weight=by_weight,
-                                          algorithm=algorithm,
-                                          weight_function=weight_function)
+                paths = self.shortest_paths(u, by_weight=by_weight,
+                                            algorithm=algorithm,
+                                            weight_function=weight_function)
                 dist[u] = {v: self._path_length(p, by_weight=by_weight,
                                                 weight_function=weight_function)
                            for v, p in paths.items()}

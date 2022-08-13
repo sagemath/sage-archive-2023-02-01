@@ -10,12 +10,9 @@
     "postCreateCommand": ".devcontainer/post_create.sh && rm -f /usr/local/sage/local/lib/libgmp.a",
     // Run commands after the container is started.
     // * If the workspace directory looks like a copy of the Sage source tree (SAGE_ROOT):
-    //   - it bootstraps and configures the Sage distribution,
-    //   - thus, the script ``./sage`` and the symlinks ``prefix``, ``venv`` are set as expected,
-    //   - the source tree is prepared for rebuilding Sage based from the source tree on
-    //     top of the existing installation from the Docker image.
-    //   - however, do not start the build.
-    // * Otherwise, do nothing. This is so that users can copy this devcontainer.json file as is
+    //   - it bootstraps the Sage distribution,
+    //   - sets the symlink ``venv`` as expected,
+    // * Otherwise, it does nothing. This is so that users can copy this devcontainer.json file as is
     //   into their projects.
     "postStartCommand": "if [ -d pkgs/sagemath-standard ]; then make configure && ./configure --enable-build-as-root --prefix=/usr/local/sage/local --with-sage-venv; else echo 'Edit .devcontainer/devcontainer.json (postStartCommand) to run project-specific startup commands'; fi",
     "extensions": [

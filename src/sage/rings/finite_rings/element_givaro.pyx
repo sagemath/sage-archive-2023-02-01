@@ -1362,6 +1362,10 @@ cdef class FiniteField_givaroElement(FinitePolyExtElement):
 
         OUTPUT: A Python ``int``.
 
+        .. SEEALSO::
+
+            :meth:`sage.rings.finite_rings.element_base.FinitePolyExtElement.to_integer`
+
         EXAMPLES::
 
             sage: k.<b> = GF(5^2); k

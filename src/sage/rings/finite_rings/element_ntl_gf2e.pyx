@@ -940,6 +940,10 @@ cdef class FiniteField_ntl_gf2eElement(FinitePolyExtElement):
         for `e \in \GF{p}[x]` with `e = a_0 + a_1 x + a_2 x^2 + \cdots`,
         `e` is represented as: `n = a_0 + a_1  p + a_2  p^2 + \cdots`.
 
+        .. SEEALSO::
+
+            :meth:`sage.rings.finite_rings.element_base.FinitePolyExtElement.to_integer`
+
         EXAMPLES::
 
             sage: k.<a> = GF(2^20)

@@ -6,7 +6,8 @@
         "MAKE": "make -j12"
     },
     // Run commands after the container is created.
-    "postCreateCommand": ".devcontainer/post_create.sh",
+    // libgmp.a is broken and leads to a build failure of ecm.
+    "postCreateCommand": ".devcontainer/post_create.sh && rm -f /usr/local/sage/local/lib/libgmp.a",
     // Run commands after the container is started.
     "postStartCommand": "make configure && ./configure --enable-build-as-root --prefix=/usr/local/sage/local --with-sage-venv && make build V=0",
     "extensions": [

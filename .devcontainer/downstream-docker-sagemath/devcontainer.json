@@ -1,17 +1,13 @@
 // See https://aka.ms/devcontainer.json for format details.
 {
     "name": "sagemath/sagemath Docker",
-    // sagemath/sagemath-dev as of 9.5 is broken?
     "image": "sagemath/sagemath:develop",
-    "containerEnv": {
-        "MAKE": "make -j12"
-    },
     // Run commands after the container is created.
     // Install build tools.
     "postCreateCommand": ".devcontainer/post_create.sh --sudo"
     // Run commands after the container is started.
     // Do not run configure within a sage-env (see #29485).
-    "postStartCommand": "make configure && (export PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin && unset CFLAGS LDFLAGS CXXFLAGS CPATH LIBRARY_PATH && ./configure --prefix=/home/sage/sage/local --with-sage-venv) && make build V=0",
+    "postStartCommand": "if [ -d pkgs/sagemath-standard ]; then ln -s /home/sage/sage/venv venv && ln -s /home/sage/sage/local prefix; else echo 'Edit .devcontainer/devcontainer.json (postStartCommand) to run project-specific startup commands'; fi",
     "extensions": [
         "ms-python.python"
     ]

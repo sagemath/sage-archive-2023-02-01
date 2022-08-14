@@ -1092,7 +1092,7 @@ class FriCASElement(ExpectElement):
                 raise
             else:
                 n += l
-                if not(0 <= n < l):
+                if not (0 <= n < l):
                     raise IndexError("index out of range")
         # use "elt" instead of "." here because then the error
         # message is clearer

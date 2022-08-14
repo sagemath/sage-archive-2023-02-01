@@ -1170,7 +1170,7 @@ class Polyhedron_base3(Polyhedron_base2):
             ...
             NotImplementedError: this function is implemented for polytopes only
         """
-        if not(self.is_compact()):
+        if not self.is_compact():
             raise NotImplementedError("this function is implemented for polytopes only")
         return self.combinatorial_polyhedron().simplicity()
 
@@ -1221,7 +1221,7 @@ class Polyhedron_base3(Polyhedron_base2):
             ...
             NotImplementedError: this function is implemented for polytopes only
         """
-        if not(self.is_compact()):
+        if not self.is_compact():
             raise NotImplementedError("this function is implemented for polytopes only")
         return self.combinatorial_polyhedron().simpliciality()
 
@@ -1260,7 +1260,7 @@ class Polyhedron_base3(Polyhedron_base2):
             ...
             NotImplementedError: this function is implemented for polytopes only
         """
-        if not(self.is_compact()):
+        if not self.is_compact():
             raise NotImplementedError("this function is implemented for polytopes only")
         return self.combinatorial_polyhedron().is_simplicial()
 

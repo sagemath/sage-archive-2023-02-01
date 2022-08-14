@@ -487,7 +487,7 @@ class CubicBraidElement(FinitelyPresentedGroupElement):
             def find_root(domain):
                 min_pol = min_pol_root_bur.change_ring(domain)
                 root_list = min_pol.roots()
-                if not(root_list):
+                if not root_list:
                     domain = min_pol.splitting_field(min_pol_root_bur.variable_name())
                     min_pol = min_pol_root_bur.change_ring(domain)
                 root_list = min_pol.roots()

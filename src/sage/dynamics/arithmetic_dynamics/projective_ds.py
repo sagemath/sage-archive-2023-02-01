@@ -5726,7 +5726,7 @@ class DynamicalSystem_projective(SchemeMorphism_polynomial_projective_space,
                     pp_d = pts_poly.degree()
                     pts_poly_CF = pts_poly_CF.subs({pts_poly_CF.parent().gen(1):1}).univariate_polynomial()
                     max_mult = max([pp_d - pts_poly_CF.degree()] + [ex for p,ex in pts_poly_CF.roots()])
-            assert(n<=4), "n > 4, failed to find usable poly"
+            assert (n<=4), "n > 4, failed to find usable poly"
             G,m = pts_poly.reduced_form(prec=prec, emb=emb, smallest_coeffs=False)
             sm_f = self.conjugate(m)
 
@@ -5913,7 +5913,7 @@ class DynamicalSystem_projective(SchemeMorphism_polynomial_projective_space,
         post_critical_list = []
         for point in critical_points:
             next_point = f(point)
-            while not(next_point in post_critical_list):
+            while next_point not in post_critical_list:
                 post_critical_list.append(next_point)
                 next_point = f(next_point)
         return post_critical_list

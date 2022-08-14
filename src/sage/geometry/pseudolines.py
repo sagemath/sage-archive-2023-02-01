@@ -510,4 +510,4 @@ class PseudolineArrangement:
             sage: p1 != p2
             False
         """
-        return not(self == other)
+        return not (self == other)

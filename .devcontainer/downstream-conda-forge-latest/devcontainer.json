@@ -3,7 +3,7 @@
     "name": "condaforge/mambaforge:latest downstream Sage",
     "image": "condaforge/mambaforge:latest",
     // Run commands after the container is created.
-    "postCreateCommand": ".devcontainer/post_create.sh && mamba install --yes sage",
+    "postCreateCommand": "mamba install --yes sage",
     // Run commands after the container is started.
     // * If the workspace directory looks like a copy of the Sage source tree (SAGE_ROOT):
     //   - it bootstraps and configures the Sage distribution,

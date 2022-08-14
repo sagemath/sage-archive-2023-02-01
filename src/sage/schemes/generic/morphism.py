@@ -482,7 +482,7 @@ class SchemeMorphism(Element):
     def base_ring(self):
         r"""
         Return the base ring of ``self``, that is, the ring over which
-        the coefficients of ``self`` are given as polynomials.
+        the defining polynomials of ``self`` are defined.
 
         OUTPUT:
 
@@ -490,31 +490,31 @@ class SchemeMorphism(Element):
 
         EXAMPLES::
 
-            sage: P.<x,y>=ProjectiveSpace(QQ,1)
-            sage: H=Hom(P,P)
-            sage: f=H([3/5*x^2,6*y^2])
+            sage: P.<x,y> = ProjectiveSpace(QQ, 1)
+            sage: H = Hom(P,P)
+            sage: f = H([3/5*x^2, 6*y^2])
             sage: f.base_ring()
             Rational Field
 
         ::
 
-            sage: R.<t>=PolynomialRing(ZZ,1)
-            sage: P.<x,y>=ProjectiveSpace(R,1)
-            sage: H=Hom(P,P)
-            sage: f=H([3*x^2,y^2])
+            sage: R.<t> = PolynomialRing(ZZ, 1)
+            sage: P.<x,y> = ProjectiveSpace(R, 1)
+            sage: H = Hom(P, P)
+            sage: f = H([3*x^2, y^2])
             sage: f.base_ring()
             Multivariate Polynomial Ring in t over Integer Ring
 
         Points have correct base rings too (:trac:`34336`)::
 
-            sage: x = P(t,5); x
+            sage: x = P(t, 5); x
             (t : 5)
             sage: x.base_ring()
             Multivariate Polynomial Ring in t over Integer Ring
 
         ::
 
-            sage: E = EllipticCurve(GF(17^2), [1,2,3,4,5])
+            sage: E = EllipticCurve(GF((17,2)), [1,2,3,4,5])
             sage: P = E.random_point()
             sage: P.base_ring()
             Finite Field in z2 of size 17^2

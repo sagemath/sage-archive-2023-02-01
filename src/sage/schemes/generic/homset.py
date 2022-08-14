@@ -154,7 +154,7 @@ class SchemeHomsetFactory(UniqueFactory):
         if isinstance(Y, CommutativeRing):
             Y = AffineScheme(Y)
         if base is None:
-            from sage.structure.all import coercion_model
+            from sage.structure.element import coercion_model
             base = coercion_model.common_parent(X.base_ring(), Y.base_ring())
         if is_AffineScheme(base):
             base_spec = base

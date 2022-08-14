@@ -207,7 +207,7 @@ def width_of_cut_decomposition(G, L):
 
         sage: from sage.graphs.graph_decompositions import cutwidth
         sage: G = graphs.CycleGraph(6)
-        sage: L = G.vertices()
+        sage: L = G.vertices(sort=False)
         sage: cutwidth.width_of_cut_decomposition(G, L)
         2
 
@@ -522,12 +522,11 @@ def cutwidth_dyn(G, lower_bound=0):
                 if exists(g, neighborhoods, 0, 0, i, k) <= k:
                     order = find_order(g, neighborhoods, k)
                     return k, [g.int_to_vertices[i] for i in order]
+
+        order = find_order(g, neighborhoods, k)
+        return k, [g.int_to_vertices[i] for i in order]
     finally:
         sig_free(neighborhoods)
-
-    order = find_order(g, neighborhoods, k)
-    return k, [g.int_to_vertices[i] for i in order]
-
 
 cdef inline int exists(FastDigraph g, uint8_t* neighborhoods, int S, int cost_S, int v, int k):
     r"""

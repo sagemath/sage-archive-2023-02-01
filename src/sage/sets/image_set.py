@@ -60,7 +60,7 @@ class ImageSubobject(Parent):
         ...
         ValueError: The map <built-in function abs> from Integer Ring is not injective: 1
     """
-    def __init__(self, map, domain_subset, *, category=None, is_injective=None):
+    def __init__(self, map, domain_subset, *, category=None, is_injective=None, inverse=None):
         """
         Initialize ``self``.
 
@@ -119,8 +119,45 @@ class ImageSubobject(Parent):
         Parent.__init__(self, category=category)
 
         self._map = map
+        self._inverse = inverse
         self._domain_subset = domain_subset
         self._is_injective = is_injective
+
+    def _element_constructor_(self, x):
+        """
+        EXAMPLES::
+
+            sage: import itertools
+            sage: from sage.sets.image_set import ImageSubobject
+            sage: D = ZZ
+            sage: I = ImageSubobject(lambda x: 2 * x, ZZ, inverse=lambda x: x/2)
+            sage: I(8/2)
+            4
+            sage: _.parent()
+            Integer Ring
+            sage: I(10/2)
+            Traceback (most recent call last):
+            ...
+            ValueError: 5 is not in Image of Integer Ring by The map <function <lambda> at ...> from Integer Ring
+            sage: 6 in I
+            True
+            sage: 7 in I
+            False
+        """
+        # Same as ImageManifoldSubset.__contains__
+        codomain = self._map.codomain()
+        if codomain is not None and x not in codomain:
+            raise ValueError(f"{x} is not in {self}")
+        if self._inverse is not None:
+            preimage = self._inverse(x)
+            if preimage not in self._domain_subset:
+                raise ValueError(f"{x} is not in {self}")
+            preimage = self._map.domain()(preimage)
+            y = self._map(preimage)
+            if y == x:
+                return y
+            raise ValueError(f"{x} is not in {self}")
+        raise NotImplementedError
 
     def ambient(self):
         """

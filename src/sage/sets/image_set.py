@@ -18,14 +18,15 @@ Image Sets
 
 from typing import Iterator
 
-from sage.structure.parent import Parent, is_Parent
 from sage.categories.map import is_Map
 from sage.categories.poor_man_map import PoorManMap
 from sage.categories.sets_cat import Sets
 from sage.categories.enumerated_sets import EnumeratedSets
+from sage.misc.cachefunc import cached_method
 from sage.rings.integer import Integer
 from sage.modules.free_module import FreeModule
 from sage.structure.element import Expression
+from sage.structure.parent import Parent, is_Parent
 
 from .set import Set_base, Set_add_sub_operators, Set_boolean_operators
 
@@ -39,6 +40,25 @@ class ImageSubobject(Parent):
     .. MATH::
 
         \{ f(x) | x \in X \} \subseteq Y.
+
+    INPUT:
+
+    - ``is_injective``: whether the ``map`` is injective:
+      - ``None`` (default): infer from ``map`` or default to ``False``
+      - ``False``: ``map`` is known to be non-injective
+      - ``True``: ``map`` is known to be injective
+      - ``"check"``: raise an error when ``map`` is not injective
+
+    EXAMPLES::
+
+        sage: import itertools
+        sage: from sage.sets.image_set import ImageSubobject
+        sage: D = ZZ
+        sage: I = ImageSubobject(abs, ZZ, is_injective='check')
+        sage: list(itertools.islice(I, 10))
+        Traceback (most recent call last):
+        ...
+        ValueError: The map <built-in function abs> from Integer Ring is not injective: 1
     """
     def __init__(self, map, domain_subset, *, category=None, is_injective=None):
         """
@@ -176,6 +196,7 @@ class ImageSubobject(Parent):
         """
         return f"Image of {self._domain_subset} by {self._map}"
 
+    @cached_method
     def cardinality(self) -> Integer:
         r"""
         Return the cardinality of ``self``.
@@ -186,7 +207,7 @@ class ImageSubobject(Parent):
             sage: R.cardinality()
             3628800
         """
-        if self._is_injective:
+        if self._is_injective and self._is_injective != 'check':
             return self._domain_subset.cardinality()
         return super().cardinality()
 
@@ -204,7 +225,7 @@ class ImageSubobject(Parent):
             sage: [next(it) for _ in range(5)]
             [0, 1, 2, 3, 4]
         """
-        if self._is_injective:
+        if self._is_injective and self._is_injective != 'check':
             for x in self._domain_subset:
                 yield self._map(x)
         else:
@@ -212,6 +233,8 @@ class ImageSubobject(Parent):
             for x in self._domain_subset:
                 y = self._map(x)
                 if y in visited:
+                    if self._is_injective == 'check':
+                        raise ValueError(f'{self._map} is not injective: {y}')
                     continue
                 visited.add(y)
                 yield y

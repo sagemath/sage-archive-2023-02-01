@@ -130,8 +130,11 @@ In the cloud
 - `CoCalc <https://cocalc.com/>`_: an online service that provides SageMath and
   many other tools.
 
-- On any system that allows you to bring your own Docker images to run in
-  a container:  Use the `Docker image sagemathinc/cocalc <https://hub.docker.com/r/sagemathinc/cocalc>`_.
+- On any system that allows you to bring your own Docker images to run
+  in a container: Use the `Docker image sagemathinc/cocalc
+  <https://hub.docker.com/r/sagemathinc/cocalc>`_ or `another Docker
+  image providing SageMath
+  <https://trac.sagemath.org/wiki/Distribution#Dockerimages>`_.
 
 - `Sage Cell Server <https://sagecell.sagemath.org/>`_: an online service for
   elementary SageMath computations.

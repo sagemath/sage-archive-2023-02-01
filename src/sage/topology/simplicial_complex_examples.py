@@ -242,9 +242,7 @@ class UniqueSimplicialComplex(SimplicialComplex, UniqueRepresentation):
                 maximal_faces = C.facets()
             # Now convert maximal_faces to a tuple of tuples, so that it is hashable.
             maximal_faces = tuple(tuple(mf) for mf in maximal_faces)
-        return super(UniqueSimplicialComplex, self).__classcall__(self, maximal_faces,
-                                                                  name=name,
-                                                                  **kwds)
+        return super().__classcall__(self, maximal_faces, name=name, **kwds)
 
     def __init__(self, maximal_faces=None, name=None, **kwds):
         """

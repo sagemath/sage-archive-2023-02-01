@@ -1239,8 +1239,7 @@ Files named ``$SAGE_ROOT/.devcontainer/downstream-.../devcontainer.json`` config
 containers with an installation of downstream packages providing SageMath from a
 package manager (``downstream-archlinux-...``, ``downstream-conda-forge``;
 see also `the _sagemath dummy package <../reference/spkg/_sagemath.html>`_),
-or from a public Docker image that provides SageMath (``docker-sagemath``,
-``docker-cocalc``, ``docker-computop``).
+or from a public Docker image that provides SageMath (``docker-cocalc``, ``docker-computop``).
 These ``devcontainer.json`` configuration files are useful for testing
 user scripts on these deployments of SageMath. You may also find it
 useful to copy these configurations into your own projects (they should
@@ -1256,10 +1255,6 @@ work without change) or to adapt them to your needs.
 - `downstream-conda-forge-latest/devcontainer.json
   <https://github.com/sagemath/sage/tree/develop/.devcontainer/downstream-conda-forge-latest/devcontainer.json>`_
   similarly configures a container with an installation of conda-forge and its SageMath package.
-
-- `downstream-docker-sagemath/devcontainer.json
-  <https://github.com/sagemath/sage/tree/develop/.devcontainer/develop-docker-sagemath/devcontainer.json>`_
-  configures a container with `SageMath's official Docker image <https://hub.docker.com/r/sagemath/sagemath/>`_.
 
 - `downstream-docker-cocalc/devcontainer.json
   <https://github.com/sagemath/sage/tree/develop/.devcontainer/downstream-docker-cocalc/devcontainer.json>`_

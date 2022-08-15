@@ -11,7 +11,7 @@
 		    }
 	},
 	"containerEnv": {
-	    "MAKE": "make -j12"
+	    "MAKE": "make -j4"
 	},
 	// Run commands after the container is created.
 	"postCreateCommand": ".devcontainer/post_create.sh",

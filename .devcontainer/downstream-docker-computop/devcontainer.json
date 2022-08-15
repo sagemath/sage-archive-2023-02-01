@@ -3,7 +3,7 @@
     "name": "computop/sage Docker",
     "image": "computop/sage",
     "containerEnv": {
-        "MAKE": "make -j12"
+        "MAKE": "make -j4"
     },
     // Run commands after the container is created.
     // Install build tools, get rid of sourcing /sage/activate in non-login shells.

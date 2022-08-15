@@ -3,7 +3,7 @@
     "name": "CoCalc Docker",
     "image": "sagemathinc/cocalc",
     "containerEnv": {
-        "MAKE": "make -j12"
+        "MAKE": "make -j4"
     },
     // Run commands after the container is created.
     // libgmp.a is broken and leads to a build failure of ecm.

@@ -21,12 +21,14 @@ Getting Started
 
 The [Sage Installation Guide](https://doc.sagemath.org/html/en/installation/index.html)
 provides a decision tree that guides you to the type of installation
-that will work best for you.
+that will work best for you. This includes building from source,
+obtaining Sage from a package manager, using a container image, or using
+Sage in the cloud.
 
-If you have already cloned the git repository or downloaded the
+**This README contains self-contained instructions for building Sage from source.**
+It assumes that you have already cloned the git repository or downloaded the
 [sources](https://www.sagemath.org/download-source.html) in the form
-of a tarball, please read the self-contained instructions below on how
-to build Sage and work around common issues.
+of a tarball.
 
 If you have questions or encounter problems, please do not hesitate
 to email the [sage-support mailing list](https://groups.google.com/group/sage-support)
@@ -46,11 +48,6 @@ can be found in the section "Availability and installation help" of the
 We highly appreciate contributions to Sage that fix portability bugs
 and help port Sage to new platforms; let us know at the [sage-devel
 mailing list](https://groups.google.com/group/sage-devel).
-
-Docker Images
--------------
-
-SageMath is also available through the [Docker image sagemathinc/cocalc](https://hub.docker.com/r/sagemathinc/cocalc).
 
 [Windows] Preparing the Platform
 --------------------------------

@@ -56,7 +56,7 @@ We can also check the properties listed in :wikipedia:`Schubert_polynomial`::
     sage: X([2,4,5,3,1]).expand()
     x0^2*x1^2*x2*x3 + x0^2*x1*x2^2*x3 + x0*x1^2*x2^2*x3
 
-    sage: w = [4,5,1,2,3]  # r = 2
+    sage: w = [4,5,1,2,3]
     sage: s = SymmetricFunctions(QQ).schur()
     sage: s[3,3].expand(2)
     x0^3*x1^3

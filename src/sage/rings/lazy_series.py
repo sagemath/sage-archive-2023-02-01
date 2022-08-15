@@ -117,9 +117,11 @@ We can change the base ring::
 from sage.structure.element import Element, parent
 from sage.structure.richcmp import op_EQ, op_NE
 from sage.functions.other import factorial
+from sage.misc.misc_c import prod
 from sage.arith.power import generic_power
 from sage.rings.infinity import infinity
 from sage.rings.integer_ring import ZZ
+from sage.rings.rational_field import QQ
 from sage.rings.polynomial.laurent_polynomial_ring import LaurentPolynomialRing
 from sage.rings.polynomial.polynomial_ring_constructor import PolynomialRing
 from sage.data_structures.stream import (
@@ -2014,7 +2016,12 @@ class LazyModuleElement(Element):
 
         from .lazy_series_ring import LazyLaurentSeriesRing
         P = LazyLaurentSeriesRing(self.base_ring(), "z", sparse=self.parent()._sparse)
-        exp = P(lambda k: 1/factorial(ZZ(k)), valuation=0)
+
+        if n in QQ or n in self.base_ring():
+            f = P(lambda k: prod(n - i for i in range(k)) / ZZ(k).factorial(), valuation=0)
+            return f(self - 1)
+
+        exp = P(lambda k: 1 / ZZ(k).factorial(), valuation=0)
         return exp(self.log() * n)
 
     def sqrt(self):
@@ -2045,7 +2052,7 @@ class LazyModuleElement(Element):
             sage: f*f - Z
             O(1/(8^s))
         """
-        return self ** (1/ZZ(2))
+        return self ** QQ((1, 2)) # == 1/2
 
 
 class LazyCauchyProductSeries(LazyModuleElement):

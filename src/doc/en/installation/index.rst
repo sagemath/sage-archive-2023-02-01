@@ -131,7 +131,7 @@ In the cloud
   many other tools.
 
 - On any system that allows you to bring your own Docker images to run in
-  a container:  Use the `Docker image sagemath/sagemath <https://hub.docker.com/r/sagemath/sagemath/>`_.
+  a container:  Use the `Docker image sagemathinc/cocalc <https://hub.docker.com/r/sagemathinc/cocalc>`_.
 
 - `Sage Cell Server <https://sagecell.sagemath.org/>`_: an online service for
   elementary SageMath computations.

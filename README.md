@@ -50,11 +50,7 @@ mailing list](https://groups.google.com/group/sage-devel).
 Docker Images
 -------------
 
-You can also have a look at our Docker images to run Sage.
-To use these images,
-[install Docker](https://www.docker.com/community-edition#/download)
-and follow the instructions on
-[our Docker Hub page](https://hub.docker.com/r/sagemath/sagemath/).
+SageMath is also available through the [Docker image sagemathinc/cocalc](https://hub.docker.com/r/sagemathinc/cocalc).
 
 [Windows] Preparing the Platform
 --------------------------------

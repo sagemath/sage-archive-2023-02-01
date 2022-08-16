@@ -238,15 +238,32 @@ class ImageSubobject(Parent):
         r"""
         Return the cardinality of ``self``.
 
-        EXAMPLES::
+        EXAMPLES:
+
+        Injective case (note that
+        :meth:`~sage.categories.enumerated_sets.EnumeratedSets.ParentMethods.map`
+        defaults to ``is_injective=True``):
 
             sage: R = Permutations(10).map(attrcall('reduced_word'))
             sage: R.cardinality()
             3628800
+
+            sage: Evens = ZZ.map(lambda x: 2 * x)
+            sage: Evens.cardinality()
+            +Infinity
+
+        Non-injective case::
+
+            sage: Z4 = Set(range(4))
+            sage: from sage.sets.image_set import ImageSet
+            sage: Z4711 = ImageSet(lambda x: x**7 % 11, Z4, is_injective=False)
+            sage: Z4711.cardinality()
+            4
         """
         if self._is_injective and self._is_injective != 'check':
             return self._domain_subset.cardinality()
-        return super().cardinality()
+        # Fallback like EnumeratedSets.ParentMethods.__len__
+        return Integer(len(list(self)))
 
     def __iter__(self) -> Iterator:
         r"""

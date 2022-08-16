@@ -260,11 +260,11 @@ class ImageSubobject(Parent):
 
         Non-injective case::
 
-            sage: Z4 = Set(range(4))
+            sage: Z7 = Set(range(7))
             sage: from sage.sets.image_set import ImageSet
-            sage: Z4711 = ImageSet(lambda x: x**7 % 11, Z4, is_injective=False)
+            sage: Z4711 = ImageSet(lambda x: x**4 % 11, Z7, is_injective=False)
             sage: Z4711.cardinality()
-            4
+            6
         """
         if self._is_injective and self._is_injective != 'check':
             return self._domain_subset.cardinality()

@@ -10871,7 +10871,7 @@ class GenericGraph(GenericGraph_pyx):
         except AttributeError:
             assoc = self._assoc = {}
 
-        self._assoc[vertex] = object
+        assoc[vertex] = object
 
     def get_vertex(self, vertex):
         """

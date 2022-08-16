@@ -3271,6 +3271,7 @@ class EllipticCurveIsogeny(EllipticCurveHom):
                 # faster in some cases (but seems worse in general).
                 # Presumably there should be a wrapper function that
                 # decides on the fly which method to use.
+                # Eventually this should become a .separable_part() method.
 
                 f = self.kernel_polynomial()
 
@@ -3295,6 +3296,13 @@ class EllipticCurveIsogeny(EllipticCurveHom):
             iso = frob.codomain().isomorphism_to(sep.domain())
             phi_hat = EllipticCurveHom_composite.from_factors([frob, iso, sep])
 
+            from sage.schemes.elliptic_curves.hom import find_post_isomorphism
+            mult = self._domain.scalar_multiplication(d)
+            rhs = EllipticCurveHom_composite.from_factors([self, phi_hat])
+            corr = find_post_isomorphism(mult, rhs)
+            self.__dual = corr * phi_hat
+            return self.__dual
+
         else:
             # trac 7096
             # this should take care of the case when the isogeny is not normalized.
@@ -3303,20 +3311,21 @@ class EllipticCurveIsogeny(EllipticCurveHom):
 
             phi_hat = EllipticCurveIsogeny(E1, None, E2, d)
 
-            phi_hat._set_pre_isomorphism(self._codomain.isomorphism_to(E1))
-            phi_hat._set_post_isomorphism(E2.isomorphism_to(self._domain))
-            phi_hat.__perform_inheritance_housekeeping()
+            pre_iso = self._codomain.isomorphism_to(E1)
+            post_iso = E2.isomorphism_to(self._domain)
 
-        # trac 7096 : this adjusts a posteriori the automorphism on
-        # the codomain of the dual isogeny.  we used _a_ Weierstrass
-        # isomorphism to get to the original curve, but we may have to
-        # change it by an automorphism.
-        from sage.schemes.elliptic_curves.hom import find_post_isomorphism
-        mult = self._domain.scalar_multiplication(d)
-        rhs = EllipticCurveHom_composite.from_factors([self, phi_hat])
-        corr = find_post_isomorphism(mult, rhs)
-        self.__dual = corr * phi_hat
-        return self.__dual
+#            assert phi_hat.scaling_factor() == 1
+            sc = u * pre_iso.scaling_factor() * post_iso.scaling_factor() / F(d)
+            if not sc.is_one():
+                auts = self._codomain.automorphisms()
+                aut = [a for a in auts if a.u == sc]
+                assert len(aut) == 1, "bug in dual()"
+                pre_iso *= aut[0]
+
+            phi_hat._set_pre_isomorphism(pre_iso)
+            phi_hat._set_post_isomorphism(post_iso)
+            phi_hat.__perform_inheritance_housekeeping()
+            return phi_hat
 
 
     @staticmethod

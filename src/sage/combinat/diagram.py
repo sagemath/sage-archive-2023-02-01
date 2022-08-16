@@ -58,20 +58,6 @@ diagram, you can manually pass them with keyword arguments ``n_rows=`` or
     . . . . . .
     . . . . . .
 
-
-A ``Diagram`` is an element of the parent class ``Diagrams``, so we can also
-construct a diagram by calling an instance of ``Diagrams``::
-
-    sage: from sage.combinat.diagram import Diagrams
-    sage: Dgms = Diagrams()
-    sage: D in Dgms
-    True
-    sage: Dgms([(0,1),(3,3)]).pp()
-    . O . .
-    . . . .
-    . . . .
-    . . . O
-
 There are two other specific types of diagrams which are implemented in Sage,
 namely northwest diagrams (:class:`NorthwestDiagram`) and Rothe diagrams
 (:func:`RotheDiagram`, a special kind of northwest diagram).
@@ -267,9 +253,9 @@ class Diagram(ClonableArray, metaclass=InheritComparisonClasscallMetaclass):
             sage: D1 = Diagram([(0,2),(0,3),(1,1),(3,2)])
             sage: D1.cells()
             [(0, 2), (0, 3), (1, 1), (3, 2)]
-            sage: D1.n_rows()
+            sage: D1.nrows()
             4
-            sage: D1.n_cols()
+            sage: D1.ncols()
             4
 
         We can specify the number of rows and columns explicitly,
@@ -278,7 +264,7 @@ class Diagram(ClonableArray, metaclass=InheritComparisonClasscallMetaclass):
             sage: D2 = Diagram([(0,2),(0,3),(1,1),(3,2)], n_cols=5)
             sage: D2.cells()
             [(0, 2), (0, 3), (1, 1), (3, 2)]
-            sage: D2.n_cols()
+            sage: D2.ncols()
             5
             sage: D2.pp()
             . . O O .
@@ -286,7 +272,7 @@ class Diagram(ClonableArray, metaclass=InheritComparisonClasscallMetaclass):
             . . . . .
             . . O . .
         """
-        self._cells = {c: True for c in cells}
+        self._cells = frozenset(cells)
 
         if self._cells:
             # minimum possible number of rows/cols
@@ -350,7 +336,7 @@ class Diagram(ClonableArray, metaclass=InheritComparisonClasscallMetaclass):
             sage: D = Diagram([(0,2),(0,3),(1,1),(3,2)]); D
             [(0, 2), (0, 3), (1, 1), (3, 2)]
         """
-        return str(list(self._cells))
+        return str(sorted(self._cells))
 
     def pp(self):
         r"""
@@ -385,7 +371,7 @@ class Diagram(ClonableArray, metaclass=InheritComparisonClasscallMetaclass):
 
         print(output_str, end='')  # don't double up on `\n`'ss
 
-    def n_rows(self):
+    def number_of_rows(self):
         r"""
         Return the total number of rows of the cell, including those which do
         not have any cells.
@@ -397,14 +383,16 @@ class Diagram(ClonableArray, metaclass=InheritComparisonClasscallMetaclass):
 
             sage: from sage.combinat.diagram import Diagram
             sage: D1 = Diagram([(0,2),(0,3),(1,1),(3,2)])
-            sage: D1.n_rows()
+            sage: D1.number_of_rows()
+            4
+            sage: D1.nrows()
             4
 
         We can also include empty rows at the end::
 
             sage: from sage.combinat.diagram import Diagram
             sage: D = Diagram([(0,2),(0,3),(1,1),(3,2)], n_rows=6)
-            sage: D.n_rows()
+            sage: D.number_of_rows()
             6
             sage: D.pp()
             . . O O
@@ -416,7 +404,9 @@ class Diagram(ClonableArray, metaclass=InheritComparisonClasscallMetaclass):
         """
         return self._n_rows
 
-    def n_cols(self):
+    nrows = number_of_rows
+
+    def number_of_cols(self):
         r"""
         Return the total number of rows of the cell, including those which do
         not have any cells.
@@ -428,14 +418,16 @@ class Diagram(ClonableArray, metaclass=InheritComparisonClasscallMetaclass):
 
             sage: from sage.combinat.diagram import Diagram
             sage: D = Diagram([(0,2),(0,3),(1,1),(3,2)])
-            sage: D.n_cols()
+            sage: D.number_of_cols()
+            4
+            sage: D.ncols()
             4
 
         We can also include empty columns at the end::
 
             sage: from sage.combinat.diagram import Diagram
             sage: D = Diagram([(0,2),(0,3),(1,1),(3,2)], n_cols=6)
-            sage: D.n_cols()
+            sage: D.number_of_cols()
             6
             sage: D.pp()
             . . O O . .
@@ -445,6 +437,8 @@ class Diagram(ClonableArray, metaclass=InheritComparisonClasscallMetaclass):
         """
 
         return self._n_cols
+
+    ncols = number_of_cols
 
     def cells(self):
         r"""
@@ -457,9 +451,9 @@ class Diagram(ClonableArray, metaclass=InheritComparisonClasscallMetaclass):
             sage: D1.cells()
             [(0, 2), (0, 3), (1, 1), (3, 2)]
         """
-        return list(self._cells.keys())
+        return sorted(self._cells)
 
-    def n_cells(self):
+    def number_of_cells(self):
         r"""
         Return the total number of cells contained in the diagram ``self``.
 
@@ -467,10 +461,16 @@ class Diagram(ClonableArray, metaclass=InheritComparisonClasscallMetaclass):
 
             sage: from sage.combinat.diagram import Diagram
             sage: D1 = Diagram([(0,2),(0,3),(1,1),(3,2)])
+            sage: D1.number_of_cells()
+            4
             sage: D1.n_cells()
             4
         """
         return len(self._cells)
+
+    n_cells = number_of_cells
+    
+    size = number_of_cells
 
     def check(self):
         r"""
@@ -499,7 +499,7 @@ class Diagram(ClonableArray, metaclass=InheritComparisonClasscallMetaclass):
             sage: D.check()
             Traceback (most recent call last):
             ...
-            AssertionError
+            ValueError: Diagrams must be indexed by non-negative integers
 
         The next example fails because one cell is indexed by rational
         numbers::
@@ -508,11 +508,12 @@ class Diagram(ClonableArray, metaclass=InheritComparisonClasscallMetaclass):
             sage: D.check()
             Traceback (most recent call last):
             ...
-            AssertionError
+            ValueError: Diagrams must be indexed by non-negative integers
         """
         from sage.sets.non_negative_integers import NonNegativeIntegers
         NN = NonNegativeIntegers()
-        assert all(all(list(i in NN for i in c)) for c in self._cells.keys())
+        if not all(all(list(i in NN for i in c)) for c in self._cells):
+            raise ValueError("Diagrams must be indexed by non-negative integers")
 
 
 class Diagrams(UniqueRepresentation, Parent):
@@ -557,7 +558,7 @@ class Diagrams(UniqueRepresentation, Parent):
         """
         return 'Combinatorial diagrams'
 
-    def _element_constructor_(self, cells, n_rows=None, n_cols=None, check=False):
+    def _element_constructor_(self, cells, n_rows=None, n_cols=None, check=True):
         r"""
         EXAMPLES::
 
@@ -619,14 +620,12 @@ class NorthwestDiagram(Diagram, metaclass=InheritComparisonClasscallMetaclass):
         O . .
     """
     @staticmethod
-    def __classcall_private__(self, cells, n_rows=None, n_cols=None,
-                              check=True):
+    def __classcall_private__(self, cells, n_rows=None,
+                              n_cols=None, check=True):
         """
         Normalize input to ensure a correct parent. This method also allows
         one to specify whether or not to check the northwest property for the
-        provided cells. Note that the default behavior is to check for the
-        northwest property (``check=True``), while in arbitrary diagrams, the
-        default behavior is that ``check=False``.
+        provided cells.
 
         EXAMPLES::
 
@@ -641,7 +640,6 @@ class NorthwestDiagram(Diagram, metaclass=InheritComparisonClasscallMetaclass):
             sage: N1.parent() is NorthwestDiagrams()
             True
         """
-        # TODO: Assert that cells is sorted in lex order to speed up lookup.
         return NorthwestDiagrams()(cells, n_rows, n_cols, check)
 
     def check(self):
@@ -799,7 +797,7 @@ class NorthwestDiagram(Diagram, metaclass=InheritComparisonClasscallMetaclass):
         # if there is a single column in the diagram then there is only
         # one posslbe peelable tableau.
         if self._n_nonempty_cols == 1:
-            return {Tableau([[i+1] for i, j in self._cells])}
+            return {Tableau([[i+1] for i, j in self.cells()])}
 
         first_col = min(j for i, j in self._cells)
 

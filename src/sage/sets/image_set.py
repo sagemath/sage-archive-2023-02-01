@@ -43,11 +43,17 @@ class ImageSubobject(Parent):
 
     INPUT:
 
-    - ``is_injective``: whether the ``map`` is injective:
+    - ``map`` -- a function
+
+    - ``domain_subset`` -- the set `X`; optional if `f` has a domain
+
+    - ``is_injective`` -- whether the ``map`` is injective:
       - ``None`` (default): infer from ``map`` or default to ``False``
       - ``False``: ``map`` is known to be non-injective
       - ``True``: ``map`` is known to be injective
       - ``"check"``: raise an error when ``map`` is not injective
+
+    - ``inverse`` -- a function (optional); a map from `f(X)` to `X`
 
     EXAMPLES::
 

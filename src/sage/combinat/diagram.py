@@ -91,7 +91,7 @@ present due to the presence of `(5,0)` and `(1,1)`::
     sage: NorthwestDiagram([(0, 0), (0, 10), (5, 0), (1, 1)])
     Traceback (most recent call last):
     ...
-    AssertionError
+    ValueError: diagram is not northwest
 
 However, this behavior can be turned off if you are confident that you are
 providing a northwest diagram::
@@ -660,11 +660,20 @@ class NorthwestDiagram(Diagram, metaclass=InheritComparisonClasscallMetaclass):
             sage: notN = NorthwestDiagram([(0,1), (1,0)])  #.check() is implicit
             Traceback (most recent call last):
             ...
-            AssertionError
+            ValueError: diagram is not northwest
+
+        TESTS::
+
+            sage: NorthwestDiagram([(0,1/2)])
+            Traceback (most recent call last):
+            ...
+            ValueError: Diagrams must be indexed by non-negative integers
         """
         from itertools import combinations
-        assert all((min(i1, i2), min(j1, j2)) in self
-                   for (i1, j1), (i2, j2) in combinations(self._cells, 2))
+        Diagram.check(self)
+        if not all((min(i1, i2), min(j1, j2)) in self
+                   for (i1, j1), (i2, j2) in combinations(self._cells, 2)):
+            raise ValueError("diagram is not northwest")
 
     def peelable_tableaux(self):
         r"""

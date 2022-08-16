@@ -2998,14 +2998,31 @@ class Permutation(CombinatorialElement):
     def rothe_diagram(self):
         r"""
         Return the Rothe diagram of ``self``.
+
+        EXAMPLES::
+
+            sage: p = Permutation([4,2,1,3])
+            sage: D = p.rothe_diagram(); D
+            [(0, 0), (0, 1), (0, 2), (1, 0)]
+            sage: D.pp()
+            O O O .
+            O . . .
+            . . . .
+            . . . .
         """
         from sage.combinat.diagram import RotheDiagram
         return RotheDiagram(self)
 
-    def n_reduced_words(self):
+    def number_of_reduced_words(self):
         r"""
         Return the number of reduced words of ``self`` without explicitly
         computing them all.
+
+        EXAMPLES::
+
+            sage: p = Permutation([6,4,2,5,1,8,3,7])
+            sage: len(p.reduced_words()) == p.number_of_reduced_words()
+            True
         """
         Tx = self.rothe_diagram().peelable_tableaux()
 
@@ -3014,13 +3031,22 @@ class Permutation(CombinatorialElement):
     def stanley_symmetric_function(self):
         r"""
         Return the Stanley symmetric function associated to ``self``.
+
+        EXAMPLES::
+
+            sage: p = Permutation([4,5,2,3,1])
+            sage: p.stanley_symmetric_function()
+            56*m[1, 1, 1, 1, 1, 1, 1, 1] + 30*m[2, 1, 1, 1, 1, 1, 1]
+             + 16*m[2, 2, 1, 1, 1, 1] + 9*m[2, 2, 2, 1, 1] + 6*m[2, 2, 2, 2]
+             + 10*m[3, 1, 1, 1, 1, 1] + 5*m[3, 2, 1, 1, 1] + 3*m[3, 2, 2, 1]
+             + m[3, 3, 1, 1] + m[3, 3, 2] + 2*m[4, 1, 1, 1, 1] + m[4, 2, 1, 1]
+             + m[4, 2, 2]
         """
-
         from sage.combinat.sf.sf import SymmetricFunctions
-        from sage.rings.rational_field import RationalField as QQ
-
+        from sage.rings.rational_field import QQ
         s = SymmetricFunctions(QQ).s()
-        return sum(s[T.shape()] for T in self.rothe_diagram().peelable_tableaux())
+        m = SymmetricFunctions(QQ).m()
+        return m(sum(s[T.shape()] for T in self.rothe_diagram().peelable_tableaux()))
 
     ################
     # Fixed Points #
@@ -5273,8 +5299,17 @@ class Permutation(CombinatorialElement):
 def _tableau_contribution(T):
     r"""
     Get the number of SYT of shape(``T``).
+
+    EXAMPLES::
+
+        sage: T = Tableau([[1,1,1],[2]])
+        sage: from sage.combinat.permutation import _tableau_contribution
+        sage: _tableau_contribution(T)
+        3
     """
+    from sage.combinat.tableau import StandardTableaux
     return(StandardTableaux(T.shape()).cardinality())
+
 ################################################################
 # Parent classes
 ################################################################

@@ -4,7 +4,7 @@ Streams
 This module provides lazy implementations of basic operators on
 streams. The classes implemented in this module can be used to build
 up more complex streams for different kinds of series (Laurent,
-Dirichlet, etc).
+Dirichlet, etc.).
 
 EXAMPLES:
 
@@ -85,6 +85,8 @@ AUTHORS:
 
 # ****************************************************************************
 #       Copyright (C) 2019 Kwankyu Lee <ekwankyu@gmail.com>
+#                     2022 Martin Rubey <martin.rubey at tuwien.ac.at>
+#                     2022 Travis Scrimshaw <tcscrims at gmail.com>
 #
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -1025,7 +1027,7 @@ class Stream_binary(Stream_inexact):
 
         INPUT:
 
-        - ``other`` -- a stream of coefficients
+        - ``other`` -- a :class:`Stream` of coefficients
 
         EXAMPLES::
 
@@ -1088,7 +1090,7 @@ class Stream_binaryCommutative(Stream_binary):
 
         INPUT:
 
-        - ``other`` -- a stream of coefficients
+        - ``other`` -- a :class:`Stream` of coefficients
 
         EXAMPLES::
 
@@ -1213,8 +1215,8 @@ class Stream_add(Stream_binaryCommutative):
 
     INPUT:
 
-    - ``left`` -- stream of coefficients on the left side of the operator
-    - ``right`` -- stream of coefficients on the right side of the operator
+    - ``left`` -- :class:`Stream` of coefficients on the left side of the operator
+    - ``right`` -- :class:`Stream` of coefficients on the right side of the operator
 
     EXAMPLES::
 
@@ -1273,8 +1275,8 @@ class Stream_sub(Stream_binary):
 
     INPUT:
 
-    - ``left`` -- stream of coefficients on the left side of the operator
-    - ``right`` -- stream of coefficients on the right side of the operator
+    - ``left`` -- :class:`Stream` of coefficients on the left side of the operator
+    - ``right`` -- :class:`Stream` of coefficients on the right side of the operator
 
     EXAMPLES::
 
@@ -1338,8 +1340,8 @@ class Stream_cauchy_mul(Stream_binary):
 
     INPUT:
 
-    - ``left`` -- stream of coefficients on the left side of the operator
-    - ``right`` -- stream of coefficients on the right side of the operator
+    - ``left`` -- :class:`Stream` of coefficients on the left side of the operator
+    - ``right`` -- :class:`Stream` of coefficients on the right side of the operator
 
     EXAMPLES::
 
@@ -1424,8 +1426,8 @@ class Stream_dirichlet_convolve(Stream_binary):
 
     INPUT:
 
-    - ``left`` -- stream of coefficients on the left side of the operator
-    - ``right`` -- stream of coefficients on the right side of the operator
+    - ``left`` -- :class:`Stream` of coefficients on the left side of the operator
+    - ``right`` -- :class:`Stream` of coefficients on the right side of the operator
 
     The coefficient of `n^{-s}` in the convolution of `l` and `r`
     equals `\sum_{k | n} l_k r_{n/k}`.

@@ -67,7 +67,7 @@ class RepresentationType(Enum):
     - ``SplitIrredMarin`` -- split irreducible representations obtained from
       Ivan Marin's data
     - ``SplitIrredChevie`` -- the split irreducible representations obtained
-      from CHEVIE via the *GAP3*-interface
+      from CHEVIE via the ``GAP3`` interface
 
     EXAMPLES::
 
@@ -148,7 +148,7 @@ class RepresentationType(Enum):
 class AbsIrreducibeRep(Enum):
     r"""
     Enum class to select an absolutely irreducible representation for the cubic
-    Hecke algebra (``CHAn``) on n-strands.
+    Hecke algebra (``CHAn``) on `n`-strands.
 
     The names are build as follows: Take the determinant of one of the
     generators of the ``CHAn``. This is a monomial in the generic extension
@@ -158,12 +158,12 @@ class AbsIrreducibeRep(Enum):
     monomial might be looked as the weight of the representation. Therefore we
     use it as a name:
 
-    ``Wn_ijk``
+        ``Wn_ijk``
 
     The only ambiguity among the available irreducible representations occurs for the two nine-dimensional modules, which
     are conjugated to each other and distinguished by these names:
 
-    ``W4_333`` and ``W4_333bar``
+        ``W4_333`` and ``W4_333bar``
 
     Examples of names:
 
@@ -173,8 +173,8 @@ class AbsIrreducibeRep(Enum):
     - ``W4_242`` -- eight dimensional irreducible representation of the cubic Hecke algebra on 4 strands having the second
       root of the cubic equation as weight of dimension 4
 
-
-    Alternative names are taken from [MW2012]_ and can be shown by :meth:`alternative_name`.
+    Alternative names are taken from [MW2012]_ and can be shown by
+    :meth:`alternative_name`.
 
     EXAMPLES::
 
@@ -191,12 +191,12 @@ class AbsIrreducibeRep(Enum):
 
     REFERENCES:
 
-    [MW2012]_
+    - [MW2012]_
     """
     def alternative_name(self):
         r"""
-        Return the name of the split irreducible representation for cubic Hecke algebras for up to four strands
-        as given in [MW2012]_.
+        Return the name of the split irreducible representation for cubic Hecke
+        algebras for up to four strands as given in [MW2012]_.
 
         EXAMPLES::
 
@@ -249,8 +249,8 @@ class AbsIrreducibeRep(Enum):
 
     def gap_index(self):
         r"""
-        Return the array index of this representation for the access to the *GAP3*
-        package *CHEVIE*.
+        Return the array index of this representation for the access
+        to the ``GAP3`` package ``CHEVIE``.
 
         EXAMPLES::
 
@@ -372,8 +372,8 @@ class AbsIrreducibeRep(Enum):
 # --------------------------------------------------------------------------------------------------------
 class CubicHeckeMatrixRep(Matrix_generic_dense):
     r"""
-    Class to supervise the diagonal block matrix structure arising from cubic Hecke algebra-representations.
-    I is the element class of :class:`CubicHeckeMatrixSpace`.
+    Class to supervise the diagonal block matrix structure arising from
+    cubic Hecke algebra-representations.
 
     EXAMPLES::
 
@@ -404,7 +404,9 @@ class CubicHeckeMatrixRep(Matrix_generic_dense):
         sage: len(_.block_diagonal_list())
         1
 
-    TEST:
+    TESTS:
+
+    The minpoly does not work over more generic rings::
 
         sage: TestSuite(m1).run(skip='_test_minpoly')
     """
@@ -412,15 +414,18 @@ class CubicHeckeMatrixRep(Matrix_generic_dense):
     @cached_method
     def _get_block(self, ind):
         r"""
-        Return the ``ind``-th sub-matrix block of ``self`` considered as block diagonal matrix.
+        Return the ``ind``-th sub-matrix block of ``self`` considered
+        as block diagonal matrix.
 
         INPUT:
 
-        - ``ind`` -- integer specifying the list index according to :meth:`internal_index` respectively :meth:`gap_index`
+        - ``ind`` -- integer specifying the list index according to
+          :meth:`internal_index` respectively :meth:`gap_index`
 
         OUTPUT:
 
-        An instance of :class:`Matrix_generic_dense` representing the specified block of ``self``.
+        An instance of :class:`Matrix_generic_dense` representing
+        the specified block of ``self``.
 
         EXAMPLES::
 
@@ -442,12 +447,13 @@ class CubicHeckeMatrixRep(Matrix_generic_dense):
     @cached_method
     def _irr_to_ind(self, irr):
         r"""
-        Return the index if the given split irreducible representation of ``self``.
+        Return the index if the given split irreducible representation
+        of ``self``.
 
         INPUT:
 
-        - ``irr`` -- an instance of :class:`AbsIrreducibeRep` specifying an absolute irreducible
-          representation of the cubic Hecke algebra
+        - ``irr`` -- an instance of :class:`AbsIrreducibeRep` specifying an
+          absolute irreducible representation of the cubic Hecke algebra
 
         EXAMPLES::
 
@@ -476,19 +482,22 @@ class CubicHeckeMatrixRep(Matrix_generic_dense):
     @cached_method
     def __getitem__(self, item):
         r"""
-        Return the sub-matrix block of ``self`` considered as block diagonal matrix specified by `item`.
+        Return the sub-matrix block of ``self`` considered as block diagonal
+        matrix specified by `item`.
+
         Overloading builtin-method to select a list-item.
 
         INPUT:
 
-        - ``item`` -- an instance of :class:`AbsIrreducibeRep` specifying an absolute irreducible
-          representation of the cubic Hecke algebra. Alternatively, it can be specified by list index
-          (see :meth:`internal_index` repectively :meth:`gap_index`).
+        - ``item`` -- an :class:`AbsIrreducibeRep` specifying an
+          absolute irreducible representation of the cubic Hecke algebra;
+          alternatively, it can be specified by list index
+          (see :meth:`internal_index` repectively :meth:`gap_index`)
 
         OUTPUT:
 
-        An instance of :class:`Matrix_generic_dense` representing the specified block of ``self``.
-
+        An instance of :class:`Matrix_generic_dense` representing
+        the specified block of ``self``.
 
         EXAMPLES::
 
@@ -509,11 +518,13 @@ class CubicHeckeMatrixRep(Matrix_generic_dense):
     @cached_method
     def block_diagonal_list(self):
         r"""
-        Return the list of sub-matrix blocks of ``self`` considered as block diagonal matrix.
+        Return the list of sub-matrix blocks of ``self`` considered
+        as block diagonal matrix.
 
         OUTPUT:
 
-        A list of instances of :class:`Matrix_generic_dense` each of which represents a diagonal block of ``self``.
+        A list of instances of :class:`Matrix_generic_dense` each of
+        which represents a diagonal block of ``self``.
 
         EXAMPLES::
 
@@ -534,9 +545,9 @@ class CubicHeckeMatrixRep(Matrix_generic_dense):
 
         INPUT:
 
-        - ``irr`` -- an instance of :class:`AbsIrreducibeRep` specifying an
-          absolute irreducible representation of the cubic Hecke algebra.
-          Alternatively, it can be specified by list index (see
+        - ``irr`` -- an :class:`AbsIrreducibeRep` specifying an
+          absolute irreducible representation of the cubic Hecke algebra;
+          alternatively, it can be specified by list index (see
           :meth:`internal_index` respectively :meth:`gap_index`)
 
         OUTPUT:
@@ -572,20 +583,20 @@ class CubicHeckeMatrixRep(Matrix_generic_dense):
 # --------------------------------------------------------------------------------------------------------
 class CubicHeckeMatrixSpace(MatrixSpace):
     r"""
-    This class defines the matrix space of cubic Hecke algebra-representations.
+    The matrix space of cubic Hecke algebra representations.
 
-    INPUT (to the python constructor):
+    INPUT:
 
-    - ``cubic_hecke_algebra``  -- (default = None) instance of :class:`~sage.algebras.hecke_algebras.cubic_hecke_algebra.cubicHeckeAlgebra` must be given if
-      `element` fails to be an instance of its element class.
+    - ``cubic_hecke_algebra``  -- (optional)
+      :class:`~sage.algebras.hecke_algebras.cubic_hecke_algebra.CubicHeckeAlgebra`
+      must be given if ``element`` fails to be an instance of its element class
+    - ``representation_type`` -- (default: ``RepresentationType.SplitIrredChevie``)
+      :class:`RepresentationType` specifying the type of the representation
+    - ``subdivide`` -- boolean (default: ``False``); whether or not to subdivide
+      the resulting matrices
 
-    - ``representation_type`` -- (default RepresentationType.SplitIrredChevie) instance of :class:`RepresentationType`
-      specifying the type of the representation.
-
-    - ``subdivide`` -- boolean (default False) passed to :func:`~sage.matrix.special.block_diagonal_matrix`.
-
-    - ``original`` -- boolean (default False) if set to True the matrix will coefficients in the generic
-      base / extension ring.
+    - ``original`` -- boolean (default: ``False``) if ``True``, the matrix
+      will have coefficients in the generic base / extension ring
 
     EXAMPLES::
 
@@ -615,7 +626,9 @@ class CubicHeckeMatrixSpace(MatrixSpace):
             sage: import sage.algebras.hecke_algebras.cubic_hecke_matrix_rep as chmr
             sage: CHA2.<c1> = algebras.CubicHecke(2)
             sage: MS = chmr.CubicHeckeMatrixSpace(CHA2)
-            sage: TestSuite(MS).run(skip='_test_elements')
+            sage: MS2 = chmr.CubicHeckeMatrixSpace(CHA2, representation_type=CHA2.repr_type.SplitIrredMarin, subdivide=False)
+            sage: MS is MS2
+            True
         """
         from sage.algebras.hecke_algebras.cubic_hecke_algebra import CubicHeckeAlgebra
 
@@ -635,25 +648,28 @@ class CubicHeckeMatrixSpace(MatrixSpace):
         if representation_type.is_split():
             dimension = cubic_hecke_algebra._dim_irr_rep
             base_ring = cubic_hecke_algebra.extension_ring(generic=original)
-        return super(CubicHeckeMatrixSpace, cls).__classcall__(cls, base_ring, dimension,
-                                                               cubic_hecke_algebra=cubic_hecke_algebra,
-                                                               representation_type=representation_type,
-                                                               subdivide=subdivide, sparse=True,
-                                                               implementation=Matrix_generic_dense)
+        # Bypass the MatrixSpace.__classcall__
+        return super(MatrixSpace, cls).__classcall__(cls, base_ring, int(dimension),
+                                                     cubic_hecke_algebra=cubic_hecke_algebra,
+                                                     representation_type=representation_type,
+                                                     subdivide=subdivide)
 
-    def __init__(self, base_ring, dimension, cols, sparse=True,
-                 implementation=Matrix_generic_dense,
-                 cubic_hecke_algebra=None,
-                 representation_type=RepresentationType.SplitIrredChevie,
-                 subdivide=False):
+    def __init__(self, base_ring,
+                 dimension,
+                 cubic_hecke_algebra,
+                 representation_type,
+                 subdivide):
         r"""
-        Python constructor.
+        Initialize ``self``.
 
         TESTS::
 
             sage: import sage.algebras.hecke_algebras.cubic_hecke_matrix_rep as chmr
             sage: CHA3.<c1, c2> = algebras.CubicHecke(3)
             sage: MS = chmr.CubicHeckeMatrixSpace(CHA3, original=True)
+
+        The minpoly does not work over more generic rings::
+
             sage: TestSuite(MS).run(skip='_test_elements')     # long time
         """
         from sage.algebras.hecke_algebras.cubic_hecke_algebra import CubicHeckeAlgebra
@@ -681,9 +697,7 @@ class CubicHeckeMatrixSpace(MatrixSpace):
         self._original_base_ring = original_base_ring
         self._specialize = specialize
 
-        super(CubicHeckeMatrixSpace, self).__init__(base_ring, dimension, cols, sparse=sparse, implementation=implementation)
-        self.Element = CubicHeckeMatrixRep
-        return
+        super().__init__(base_ring, dimension, dimension, sparse=True, implementation=CubicHeckeMatrixRep)
 
     def construction(self):
         r"""
@@ -715,8 +729,9 @@ class CubicHeckeMatrixSpace(MatrixSpace):
         r"""
         INPUT:
 
-        - ``x``     -- instance of the element class of :class:`~sage.algebras.hecke_algebras.cubic_hecke_algebra.CubicHeckeAlgebra` or an instance
-          whose parent is in instance of :class:`MatrixSpace`
+        - ``x`` -- an element of a
+          :class:`~sage.algebras.hecke_algebras.cubic_hecke_algebra.CubicHeckeAlgebra`
+          or an element whose parent is a :class:`MatrixSpace`
 
         EXAMLPES::
 
@@ -742,7 +757,7 @@ class CubicHeckeMatrixSpace(MatrixSpace):
         ele_parent = x.parent()
         ori_base_ring = self._original_base_ring
         if isinstance(ele_parent, MatrixSpace):
-            # ToDo:  - Find preimage in cubic hecke algebra
+            # TODO: Find preimage in cubic hecke algebra
             d1, d2 = x.dimensions()
             if d1 != self.ncols() or d2 != self.nrows():
                 raise ValueError('incompatible dimensions!')
@@ -756,21 +771,21 @@ class CubicHeckeMatrixSpace(MatrixSpace):
             matrix = block_diagonal_matrix(matrix_list, subdivide=self._subdivide, sparse=True)
             if matrix != x:
                 raise TypeError('incompatible block structure')
+            return self.element_class(self, matrix)
 
-        elif ele_parent == ch_algebra:
+        if ele_parent == ch_algebra:
             mat = ch_algebra._apply_module_morphism(x, self._image_on_basis)
             return self(mat)
 
-        else:
-            raise TypeError('element must be an instance of CubicHeckeElement or a matrix')
-
-        return self.element_class(self, matrix)
+        raise TypeError('element must be an instance of CubicHeckeElement or a matrix')
 
     @cached_method
     def __call__(self, entries=None, coerce=True, copy=None):
         r"""
-        Perform the instance call. This method needs to be overloaded here
-        since :class:`MatrixSpace` has an own implementation of it.
+        Construct an element of ``self``.
+
+        This method needs to be overloaded here since
+        :class:`MatrixSpace` has an own implementation of it.
 
         EXAMLPES::
 
@@ -831,13 +846,15 @@ class CubicHeckeMatrixSpace(MatrixSpace):
     @cached_method
     def _image_on_gen(self, gen_ind):
         r"""
-        Return the matrix list corresponding to the generator given by ``(gen_ind,)`` in Tietze form
-        under the representation_type of ``self`` from the data-file or via the *GAP3* interface
+        Return the matrix list corresponding to the generator given by
+        ``(gen_ind,)`` in Tietze form under the representation_type of
+        ``self`` from the data-file or via the ``GAP3`` interface
 
         INPUT:
 
-        - ``gen_ind`` -- integer, index of a generator of the cubic Hecke algebra attached to ``self`` + 1.
-          Negative values correspond to the according inverses.
+        - ``gen_ind`` -- integer; index of a generator of the cubic Hecke
+          algebra attached to ``self + 1``; negative values correspond to
+          the according inverses
 
         EXAMPLES::
 
@@ -863,7 +880,6 @@ class CubicHeckeMatrixSpace(MatrixSpace):
             [     1      0    v/w]
             ]
         """
-
         representation_type = self._representation_type
         original_base_ring = self._original_base_ring
         ch_algebra = self._cubic_hecke_algebra
@@ -896,14 +912,12 @@ class CubicHeckeMatrixSpace(MatrixSpace):
         num_rep = representation_type.number_of_representations(n)
 
         if representation_type == RepresentationType.SplitIrredChevie:
-
             rep_list = [ch_algebra._fetch_matrix_list_from_chevie(i+1) for i in range(num_rep)]
             if gen_ind > 0:
                 matrix_list = [rep[gen_ind - 1] for rep in rep_list]
             else:
                 matrix_list = [invert_gen(rep[-gen_ind - 1]) for rep in rep_list]
         else:
-
             database = ch_algebra._database
             matrix_list = database.read_matrix_representation(representation_type, gen_ind, n, original_base_ring)
         return matrix_list
@@ -916,9 +930,9 @@ class CubicHeckeMatrixSpace(MatrixSpace):
 
         INPUT:
 
-        - ``basis_element`` -- instance of
+        - ``basis_element`` -- a
           :class:`~sage.algebras.hecke_algebras.cubic_hecke_algebra.CubicHeckeElement`
-          which is a monomial
+          that is a monomial
 
         EXAMPLES::
 
@@ -1050,16 +1064,19 @@ class CubicHeckeMatrixSpace(MatrixSpace):
         EXAMPLES::
 
             sage: CHA2.<c1> = algebras.CubicHecke(2, cubic_equation_roots=(2, 3, 5))
-            sage: c1.matrix()
+            sage: M = c1.matrix(); M
             [2 0 0]
             [0 3 0]
             [0 0 5]
-            sage: list(_.parent().some_elements())
-            [
+            sage: MS = M.parent()
+            sage: MS.some_elements()
+            (
             [ 94/3     0     0]
             [    0 187/3     0]
             [    0     0 373/3]
-            ]
+            )
+            sage: MS.some_elements() == tuple(MS(x) for x in CHA2.some_elements())
+            True
         """
-        for x in self._cubic_hecke_algebra.some_elements():
-            yield self(x)
+        return tuple([self(x) for x in self._cubic_hecke_algebra.some_elements()])
+

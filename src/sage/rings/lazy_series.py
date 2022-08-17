@@ -1911,14 +1911,15 @@ class LazyModuleElement(Element):
               valuation=0)
         return f(self)
 
+    # === named special functions ===
+
     def q_pochhammer(self, q=None):
         r"""
         Return the infinite ``q``-Pochhammer symbol `(a; q)_{\infty}`,
         where `a` is ``self``.
 
-        This is also one version of the quantum dilogarithm (see
-        :wikipedia:`Quantum_dilogarithm`) or
-        the `q`-Exponential function (see :wikipedia:`Q-exponential`).
+        This is also one version of the quantum dilogarithm or
+        the `q`-Exponential function.
 
         INPUT:
 
@@ -1950,6 +1951,19 @@ class LazyModuleElement(Element):
             sage: qpoch / qpoch(q^4*z)
             1 + (-q^3 - q^2 - q - 1)*z + (q^5 + q^4 + 2*q^3 + q^2 + q)*z^2
              + (-q^6 - q^5 - q^4 - q^3)*z^3 + q^6*z^4 + O(z^7)
+
+        We can also construct part of Euler's function::
+
+            sage: M.<a> = LazyLaurentSeriesRing(QQ)
+            sage: phi = sum(qpoch[i](q=a)*a^i for i in range(10))
+            sage: phi[:20] == a.euler()[:20]
+            True
+
+        REFERENCES:
+
+        - :wikipedia:`Q-Pochhammer_symbol`
+        - :wikipedia:`Quantum_dilogarithm`
+        - :wikipedia:`Q-exponential`
         """
         if q is None:
             q = ZZ['q'].fraction_field().gen()
@@ -1959,9 +1973,54 @@ class LazyModuleElement(Element):
         L = LazyLaurentSeriesRing(qP, "z", sparse=self.parent()._sparse)
         one = qP.one()
         def coeff(n):
-            return (-1)**n * q**binomial(n,2) / qP.prod(one - q**i for i in range(1, n+1))
+            return (-1)**n * q**binomial(n, 2) / qP.prod(one - q**i for i in range(1, n+1))
         f = L(coeff, valuation=0)
         return f(self)
+
+    def euler(self, q=None):
+        r"""
+        Return the Euler function evaluated at ``self``.
+
+        The *Euler function* is defined as
+
+        .. MATH::
+
+            \phi(z) = (z; z)_{\infty}
+            = \sum_{n=0}^{\infty} (-1)^n q^{(3n^2-n)/2}.
+
+        INPUT:
+
+        - ``q`` -- (default: `q \in \QQ(q)`) the parameter `q`
+
+        EXAMPLES::
+
+            sage: L.<q> = LazyLaurentSeriesRing(ZZ)
+            sage: phi = q.euler()
+            sage: phi
+            1 - q - q^2 + q^5 + O(q^7)
+
+        We verify that `1 / phi` gives the generating function
+        for all partitions::
+
+            sage: P = 1 / phi; P
+            1 + q + 2*q^2 + 3*q^3 + 5*q^4 + 7*q^5 + 11*q^6 + O(q^7)
+            sage: P[:20] == [Partitions(n).cardinality() for n in range(20)]
+            True
+
+        REFERENCES:
+
+        - :wikipedia:`Euler_function`
+        """
+        from .lazy_series_ring import LazyLaurentSeriesRing
+        L = LazyLaurentSeriesRing(ZZ, "q", sparse=self.parent()._sparse)
+        def coeff(n):
+            k = ZZ(24 * n + 1)
+            m, rem = k.sqrtrem()
+            if rem:
+                return ZZ.zero()
+            return (-1) ** ((m + 1) // 6)
+        phi = L(coeff, valuation=0)
+        return phi(self)
 
     # === powers ===
 

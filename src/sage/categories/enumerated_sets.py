@@ -669,7 +669,7 @@ class EnumeratedSets(CategoryWithAxiom):
                 if counter == r:
                     return u
                 counter += 1
-            raise ValueError("the rank must be between %s and %s inclusive"%(0,counter-1))
+            raise ValueError("the rank must be in the range from %s to %s"%(0,counter-1))
         unrank = _unrank_from_iterator
 
         def _rank_from_iterator(self, x):

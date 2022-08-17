@@ -1795,7 +1795,7 @@ class Module_free_ambient(Module):
             sage: M = S**2
             sage: N = M.submodule([vector([x - y, z]), vector([y * z, x * z])])
             sage: N.graded_free_resolution(shifts=[1, -1])
-            S(-1)⊕S(--1) <-- S(-2)⊕S(-3) <-- 0
+            S(-1)⊕S(1) <-- S(-2)⊕S(-3) <-- 0
             sage: N.graded_free_resolution(shifts=[2, 3])
             S(-2)⊕S(-3) <-- S(-3)⊕S(-4) <-- 0
 

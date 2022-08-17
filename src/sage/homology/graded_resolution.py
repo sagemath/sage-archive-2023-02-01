@@ -53,7 +53,7 @@ An example of multigraded resolution from Example 9.1 of [MilStu2005]_::
     sage: C = P3.subscheme(I)  # twisted cubic curve
     sage: r = GradedFreeResolution(I, degrees=[(1,0), (1,1), (1,2), (1,3)])
     sage: r
-    S(0) <-- S(-(2, 4))⊕S(-(2, 3))⊕S(-(2, 2)) <-- S(-(3, 5))⊕S(-(3, 4)) <-- 0
+    S((0, 0)) <-- S((-2, -4))⊕S((-2, -3))⊕S((-2, -2)) <-- S((-3, -5))⊕S((-3, -4)) <-- 0
     sage: r.K_polynomial(names='s,t')
     s^3*t^5 + s^3*t^4 - s^2*t^4 - s^2*t^3 - s^2*t^2 + 1
 
@@ -368,28 +368,24 @@ class GradedFreeResolution(FreeResolution):
             'S(-3)⊕S(-3)'
             sage: r._repr_module(3)
             '0'
+
+            sage: r = GradedFreeResolution(I, shifts=[-1])
+            sage: r._repr_module(0)
+            'S(1)'
         """
         self._maps  # to set _res_shifts
         if i > len(self):
-            m = '0'
-        else:
-            if i == 0:
-                shifts = self._shifts
-            else:
-                shifts = self._res_shifts[i - 1]
+            return '0'
 
-            if len(shifts) > 0:
-                for j in range(len(shifts)):
-                    shift = shifts[j]
-                    if j == 0:
-                        m = f'{self._name}' + \
-                            (f'(-{shift})' if shift != self._zero_deg else '(0)')
-                    else:
-                        m += f'\u2295{self._name}' + \
-                             (f'(-{shift})' if shift != self._zero_deg else '(0)')
-            else:
-                m = '0'
-        return m
+        if i == 0:
+            shifts = self._shifts
+        else:
+            shifts = self._res_shifts[i - 1]
+        if not shifts:
+            return '0'
+
+        return '\u2295'.join(f'{self._name}' + '({})'.format(-sh)
+                             for sh in shifts)
 
     def shifts(self, i):
         """

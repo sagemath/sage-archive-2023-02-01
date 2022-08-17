@@ -3189,7 +3189,7 @@ class EllipticCurveIsogeny(EllipticCurveHom):
               From: Elliptic Curve defined by y^2 = x^3 + (32*z2+67)*x + (24*z2+37) over Finite Field in z2 of size 71^2
               To:   Elliptic Curve defined by y^2 = x^3 + (41*z2+56)*x + (18*z2+42) over Finite Field in z2 of size 71^2
             sage: E.isogeny(E.lift_x(0)).dual()
-            Composite morphism of degree 213 = 71*1*3:
+            Composite morphism of degree 213 = 71*3:
               From: Elliptic Curve defined by y^2 = x^3 + (58*z2+31)*x + (34*z2+58) over Finite Field in z2 of size 71^2
               To:   Elliptic Curve defined by y^2 = x^3 + (41*z2+56)*x + (18*z2+42) over Finite Field in z2 of size 71^2
 
@@ -3201,7 +3201,7 @@ class EllipticCurveIsogeny(EllipticCurveHom):
             sage: post = WeierstrassIsomorphism(phi.codomain(), (5,6,7,8))
             sage: phi = post * phi * pre
             sage: phi.dual()
-            Composite morphism of degree 213 = 71*1*3:
+            Composite morphism of degree 213 = 71*3:
               From: Elliptic Curve defined by y^2 + 17*x*y + 45*y = x^3 + 30*x^2 + (6*z2+64)*x + (48*z2+65) over Finite Field in z2 of size 71^2
               To:   Elliptic Curve defined by y^2 + (60*z2+22)*x*y + (69*z2+37)*y = x^3 + (32*z2+48)*x^2 + (19*z2+58)*x + (56*z2+22) over Finite Field in z2 of size 71^2
 
@@ -3264,8 +3264,11 @@ class EllipticCurveIsogeny(EllipticCurveHom):
         if F(d) == 0:   # inseparable dual!
             p = F.characteristic()
             k = d.valuation(p)
-            dsep = d // p**k
 
+            from sage.schemes.elliptic_curves.hom_frobenius import EllipticCurveHom_frobenius
+            frob = EllipticCurveHom_frobenius(self._codomain, k)
+
+            dsep = d // p**k
             if dsep > 1:
                 #TODO: We could also use resultants here; this is much
                 # faster in some cases (but seems worse in general).
@@ -3285,20 +3288,16 @@ class EllipticCurveIsogeny(EllipticCurveHom):
                     mu = S(mu_num) / S(mu_den)
                     f = mu.minpoly()
 
-                sep = self._domain.isogeny(f).dual()
+                sep = self._domain.isogeny(f, codomain=frob.codomain()).dual()
 
             else:
-                sep = self._domain.multiplication_by_m_isogeny(1)
+                sep = frob.codomain().isomorphism_to(self._domain)
 
-            from sage.schemes.elliptic_curves.hom_frobenius import EllipticCurveHom_frobenius
-            frob = EllipticCurveHom_frobenius(self._codomain, k)
-
-            iso = frob.codomain().isomorphism_to(sep.domain())
-            phi_hat = EllipticCurveHom_composite.from_factors([frob, iso, sep])
+            phi_hat = EllipticCurveHom_composite.from_factors([frob, sep])
 
             from sage.schemes.elliptic_curves.hom import find_post_isomorphism
             mult = self._domain.scalar_multiplication(d)
-            rhs = EllipticCurveHom_composite.from_factors([self, phi_hat])
+            rhs = phi_hat * self
             corr = find_post_isomorphism(mult, rhs)
             self.__dual = corr * phi_hat
             return self.__dual

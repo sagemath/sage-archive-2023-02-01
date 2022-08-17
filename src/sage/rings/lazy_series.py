@@ -1911,6 +1911,58 @@ class LazyModuleElement(Element):
               valuation=0)
         return f(self)
 
+    def q_pochhammer(self, q=None):
+        r"""
+        Return the infinite ``q``-Pochhammer symbol `(a; q)_{\infty}`,
+        where `a` is ``self``.
+
+        This is also one version of the quantum dilogarithm (see
+        :wikipedia:`Quantum_dilogarithm`) or
+        the `q`-Exponential function (see :wikipedia:`Q-exponential`).
+
+        INPUT:
+
+        - ``q`` -- (default: `q \in \QQ(q)`) the parameter `q`
+
+        EXAMPLES::
+
+            sage: q = ZZ['q'].fraction_field().gen()
+            sage: L.<z> = LazyLaurentSeriesRing(q.parent())
+            sage: qpoch = z.q_pochhammer(q)
+            sage: qpoch
+            1
+             + (-1/(-q + 1))*z
+             + (q/(q^3 - q^2 - q + 1))*z^2
+             + (-q^3/(-q^6 + q^5 + q^4 - q^2 - q + 1))*z^3
+             + (q^6/(q^10 - q^9 - q^8 + 2*q^5 - q^2 - q + 1))*z^4
+             + (-q^10/(-q^15 + q^14 + q^13 - q^10 - q^9 - q^8 + q^7 + q^6 + q^5 - q^2 - q + 1))*z^5
+             + (q^15/(q^21 - q^20 - q^19 + q^16 + 2*q^14 - q^12 - q^11 - q^10 - q^9 + 2*q^7 + q^5 - q^2 - q + 1))*z^6
+             + O(z^7)
+
+        We show that `(z; q)_n = \frac{(z; q)_{\infty}}{(q^n z; q)_{\infty}}`::
+
+            sage: qpoch / qpoch(q*z)
+            1 - z + O(z^7)
+            sage: qpoch / qpoch(q^2*z)
+            1 + (-q - 1)*z + q*z^2 + O(z^7)
+            sage: qpoch / qpoch(q^3*z)
+            1 + (-q^2 - q - 1)*z + (q^3 + q^2 + q)*z^2 - q^3*z^3 + O(z^7)
+            sage: qpoch / qpoch(q^4*z)
+            1 + (-q^3 - q^2 - q - 1)*z + (q^5 + q^4 + 2*q^3 + q^2 + q)*z^2
+             + (-q^6 - q^5 - q^4 - q^3)*z^3 + q^6*z^4 + O(z^7)
+        """
+        if q is None:
+            q = ZZ['q'].fraction_field().gen()
+        from .lazy_series_ring import LazyLaurentSeriesRing
+        from sage.arith.misc import binomial
+        qP = q.parent()
+        L = LazyLaurentSeriesRing(qP, "z", sparse=self.parent()._sparse)
+        one = qP.one()
+        def coeff(n):
+            return (-1)**n * q**binomial(n,2) / qP.prod(one - q**i for i in range(1, n+1))
+        f = L(coeff, valuation=0)
+        return f(self)
+
     # === powers ===
 
     def __pow__(self, n):

@@ -221,12 +221,18 @@ AUTHORS:
   finite Weyl group to make it more uniform with :class:`SymmetricGroup`.
   Added ability to compute the conjugacy classes.
 
+- Amrutha P, Shriya M, Divya Aggarwal (2022-08-16): Added Multimajor Index.
+
 Classes and methods
 ===================
 """
 
 # ****************************************************************************
 #       Copyright (C) 2007 Mike Hansen <mhansen@gmail.com>
+#                     2022 Amrutha P <amruthap1916@gmail.com>
+#                     2022 Shriya M <25shriya@gmail.com>
+#                     2022 Divya Aggarwal <divyaa@iiitd.ac.in>
+#
 #
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -3364,6 +3370,37 @@ class Permutation(CombinatorialElement):
         """
         descents = self.descents(final_descent)
         return sum(descents)
+
+    def multi_major_index(self, composition):
+        r"""
+        Return the multimajor index of this permutation with respect to ``composition``.
+
+        INPUT:
+
+        - ``composition`` -- a :class:`Composition` of :meth:`size`
+
+        EXAMPLES::
+
+            sage: Permutation([5, 6, 2, 1, 3, 7, 4]).multi_major_index(Composition([3, 2, 2]))
+            [2, 0, 1]
+
+        REFERENCES:
+
+        - [JS2000]_
+        """
+        if self.size() == composition.size():
+            D = self.descents()
+            s = [0]
+            for i, qi in enumerate(q):
+                maj_qp = [0] * len(s)
+                s.append(s[i] + qi)
+                for j in range(len(s)):   
+                    for d in D:
+                        if s[j - 1] < d < s[j]:
+                            maj_qp[j - 1] += d - s[j - 1]
+            return maj_qp
+        raise ValueError("Invalid Input")
+
 
     def imajor_index(self, final_descent=False) -> Integer:
         """

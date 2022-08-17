@@ -1294,12 +1294,6 @@ Files named ``$SAGE_ROOT/.devcontainer/develop-.../devcontainer.json`` configure
 containers from a public Docker image that provides SageMath and then updates the
 installation of SageMath in this container by building from the current source tree.
 
-- `develop-docker-cocalc/devcontainer.json
-  <https://github.com/sagemath/sage/tree/develop/.devcontainer/develop-docker-cocalc/devcontainer.json>`_
-  configures a container with `the CoCalc Docker image <https://doc.cocalc.com/docker-image.html>`_.
-  It then updates the installation of SageMath in this container by building from
-  the current source tree.
-
 - `develop-docker-computop/devcontainer.json
   <https://github.com/sagemath/sage/tree/develop/.devcontainer/develop-docker-computop/devcontainer.json>`_
   configures a container with the `Docker image from the 3-manifolds

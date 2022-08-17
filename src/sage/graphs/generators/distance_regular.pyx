@@ -1220,7 +1220,7 @@ def is_from_GQ_spread(list arr):
 
 def graph_from_GQ_spread(const int s, const int t):
     r"""
-    Return the point graph of the generalised quandrangle with
+    Return the point graph of the generalised quadrangle with
     order `(s, t)` after removing one of its spreads.
 
     These graphs are antipodal covers of complete graphs and, in particular,

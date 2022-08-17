@@ -1648,8 +1648,7 @@ class Stream_cauchy_compose(Stream_binary):
 
 class Stream_scalar(Stream_inexact):
     """
-    Base class for operators multiplying a coeffeicient stream
-    by a scalar.
+    Base class for operators multiplying a coefficient stream by a scalar.
     """
     def __init__(self, series, scalar):
         """

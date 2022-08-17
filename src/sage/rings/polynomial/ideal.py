@@ -84,3 +84,4 @@ class Ideal_1poly_field(Ideal_pid):
         gb = self.gens_reduced()
         from sage.rings.polynomial.multi_polynomial_sequence import PolynomialSequence_generic
         return PolynomialSequence_generic([gb], self.ring(), immutable=True)
+

@@ -69,10 +69,12 @@ AUTHORS:
 from sage.libs.singular.singular import si2sa_resolution
 from sage.libs.singular.function import singular_function
 from sage.misc.lazy_attribute import lazy_attribute
-from sage.matrix.matrix_mpolynomial_dense import Matrix_mpolynomial_dense
+from sage.structure.element import Matrix
+from sage.categories.principal_ideal_domains import PrincipalIdealDomains
+from sage.categories.integral_domains import IntegralDomains
 from sage.modules.free_module_element import vector
 from sage.modules.free_module import FreeModule
-from sage.modules.free_module import Module_free_ambient
+from sage.modules.free_module import Module_free_ambient, FreeModule_generic
 from sage.rings.ideal import Ideal_generic
 
 from sage.structure.sage_object import SageObject
@@ -513,15 +515,60 @@ class FreeResolution(FreeResolution_generic):
             sage: M = m.image()
             sage: r = FreeResolution(M, name='S')
             sage: TestSuite(r).run(skip=['_test_pickling'])
+
+            sage: R.<x,y> = QQ[]
+            sage: I = R.ideal([x^2, y^3])
+            sage: Q = R.quo(I)
+            sage: Q.is_integral_domain()
+            False
+            sage: xb, yb = Q.gens()
+            sage: FreeResolution(Q.ideal([xb]))  # has torsion
+            Traceback (most recent call last):
+            ...
+            NotImplementedError: the ring must be a polynomial ring that can be constructed in Singular
+
+        An overdetermined system over a PID::
+
+            sage: M = matrix([[x^2, 2],
+            ....:             [3*x^2, 5],
+            ....:             [5*x^2, 4]])
+            sage: res = FreeResolution(M)
+            sage: res
+            S^2 <-- S^2 <-- 0
+            sage: res._m()
+            [  x^2 3*x^2 5*x^2]
+            [    2     5     4]
+            sage: res._maps
+            [
+            [x^2   0]
+            [  0   1]
+            ]
         """
+        # The module might still be free even if _is_free_module is False.
+        # This is just to handle the cases when we trivially know it is.
+        self._is_free_module = False
         if isinstance(module, Ideal_generic):
             S = module.ring()
+            if len(module.gens()) == 1 and S in IntegralDomains():
+                self._is_free_module = True
         elif isinstance(module, Module_free_ambient):
             S = module.base_ring()
-        elif isinstance(module, Matrix_mpolynomial_dense):
+            self._is_free_module = (S in PrincipalIdealDomains()
+                                    or isinstance(module, FreeModule_generic))
+        elif isinstance(module, Matrix):
             S = module.base_ring()
+            if S in PrincipalIdealDomains():
+                self._is_free_module = True
+                module = module.echelon_form()
+                if module.nrows() > module.rank():
+                    module = module.submatrix(nrows=module.rank())
         else:
-            raise TypeError('no ideal, module, or matrix')
+            raise TypeError('no module, matrix, or ideal')
+
+        if not self._is_free_module:
+            from sage.rings.polynomial.multi_polynomial_libsingular import MPolynomialRing_libsingular
+            if not isinstance(S, MPolynomialRing_libsingular):
+                raise NotImplementedError("the ring must be a polynomial ring that can be constructed in Singular")
 
         self._module = module
         self._algorithm = algorithm
@@ -554,7 +601,7 @@ class FreeResolution(FreeResolution_generic):
             return self._module
         if isinstance(self._module, Module_free_ambient):
             return self._module.matrix().transpose()
-        if isinstance(self._module, Matrix_mpolynomial_dense):
+        if isinstance(self._module, Matrix):
             return self._module.transpose()
 
     @lazy_attribute
@@ -574,7 +621,37 @@ class FreeResolution(FreeResolution_generic):
                                              [ z -y]
             [z^2 - y*w y*z - x*w y^2 - x*z], [-w  z]
             ]
+
+            sage: R.<x> = QQ[]
+            sage: M = R^3
+            sage: v = M([x^2, 2*x^2, 3*x^2])
+            sage: w = M([0, x, 2*x])
+            sage: S = M.submodule([v, w])
+            sage: S
+            Free module of degree 3 and rank 2 over Univariate Polynomial Ring in x over Rational Field
+            Echelon basis matrix:
+            [  x^2 2*x^2 3*x^2]
+            [    0     x   2*x]
+            sage: res = S.free_resolution()
+            sage: res
+            S^3 <-- S^2 <-- 0
+            sage: ascii_art(res.chain_complex())
+                        [  x^2     0]
+                        [2*x^2     x]
+                        [3*x^2   2*x]
+             0 <-- C_0 <-------------- C_1 <-- 0
+            sage: res._maps
+            [
+            [  x^2     0]
+            [2*x^2     x]
+            [3*x^2   2*x]
+            ]
         """
+        if self._is_free_module:
+            if isinstance(self._module, Ideal_generic):
+                return matrix([[self._module.gen()]])
+            return [self._m()]
+
         # This ensures the first component of the Singular resolution to be a
         # module, like the later components. This is important when the
         # components are converted to Sage modules.
@@ -632,7 +709,7 @@ class FreeResolution(FreeResolution_generic):
             S = ideal.base_ring()
             M = ideal.ambient_module()
             N = ideal
-        elif isinstance(ideal, Matrix_mpolynomial_dense):
+        elif isinstance(ideal, Matrix):
             S = ideal.base_ring()
             N = ideal.row_space()
             M = N.ambient_module()

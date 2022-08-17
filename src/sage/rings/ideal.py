@@ -1203,6 +1203,38 @@ class Ideal_generic(MonoidElement):
             gens = ['0']
         return macaulay2.ideal(gens)
 
+    def free_resolution(self, *args, **kwds):
+        r"""
+        Return a free resolution of ``self``.
+
+        For input options, see
+        :class:`~sage.homology.free_resolution.FreeResolution`.
+
+        EXAMPLES::
+
+            sage: R.<x> = PolynomialRing(QQ)
+            sage: I = R.ideal([x^4 + 3*x^2 + 2])
+            sage: I.free_resolution()
+        """
+        from sage.homology.free_resolution import FreeResolution
+        return FreeResolution(self, *args, **kwds)
+
+    def graded_free_resolution(self, *args, **kwds):
+        r"""
+        Return a graded free resolution of ``self``.
+
+        For input options, see
+        :class:`~sage.homology.graded_resolution.GradedFreeResolution`.
+
+        EXAMPLES::
+
+            sage: R.<x> = PolynomialRing(QQ)
+            sage: I = R.ideal([x^3])
+            sage: I.graded_free_resolution()
+        """
+        from sage.homology.graded_resolution import GradedFreeResolution
+        return GradedFreeResolution(self, *args, **kwds)
+
 
 class Ideal_principal(Ideal_generic):
     """
@@ -1257,10 +1289,11 @@ class Ideal_principal(Ideal_generic):
         """
         return True
 
-    def gen(self):
+    def gen(self, i=0):
         r"""
-        Returns the generator of the principal ideal. The generators are
-        elements of the ring containing the ideal.
+        Return the generator of the principal ideal.
+
+        The generator is an element of the ring containing the ideal.
 
         EXAMPLES:
 
@@ -1288,6 +1321,8 @@ class Ideal_principal(Ideal_generic):
             sage: b.base_ring()
             Rational Field
         """
+        if i:
+            raise ValueError(f"i (={i}) must be 0")
         return self.gens()[0]
 
     def __contains__(self, x):
@@ -1816,3 +1851,4 @@ def FieldIdeal(R):
         raise TypeError("Cannot construct field ideal for R.base_ring().order()==infinity")
 
     return R.ideal([x**q - x for x in R.gens() ])
+

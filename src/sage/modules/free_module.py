@@ -1759,6 +1759,53 @@ class Module_free_ambient(Module):
         """
         return self.quotient(sub, check=True)
 
+    def free_resolution(self, *args, **kwds):
+        r"""
+        Return a free resolution of ``self``.
+
+        For input options, see
+        :class:`~sage.homology.free_resolution.FreeResolution`.
+
+        EXAMPLES::
+
+            sage: S.<x,y,z> = PolynomialRing(QQ)
+            sage: M = S**2
+            sage: N = M.submodule([vector([x - y, z]), vector([y * z, x * z])])
+            sage: res = N.free_resolution()
+            sage: res
+            S^2 <-- S^2 <-- 0
+            sage: ascii_art(res.chain_complex())
+                        [x - y   y*z]
+                        [    z   x*z]
+             0 <-- C_0 <-------------- C_1 <-- 0 
+        """
+        from sage.homology.free_resolution import FreeResolution
+        return FreeResolution(self, *args, **kwds)
+
+    def graded_free_resolution(self, *args, **kwds):
+        r"""
+        Return a graded free resolution of ``self``.
+
+        For input options, see
+        :class:`~sage.homology.graded_resolution.GradedFreeResolution`.
+
+        EXAMPLES::
+
+            sage: S.<x,y,z> = PolynomialRing(QQ)
+            sage: M = S**2
+            sage: N = M.submodule([vector([x - y, z]), vector([y * z, x * z])])
+            sage: N.graded_free_resolution(shifts=[1, -1])
+            S(-1)⊕S(--1) <-- S(-2)⊕S(-3) <-- 0
+            sage: N.graded_free_resolution(shifts=[2, 3])
+            S(-2)⊕S(-3) <-- S(-3)⊕S(-4) <-- 0
+
+            sage: N = M.submodule([vector([x^3 - y^6, z^2]), vector([y * z, x])])
+            sage: N.graded_free_resolution(degrees=[2, 1, 3], shifts=[2, 3])
+            S(-2)⊕S(-3) <-- S(-6)⊕S(-8) <-- 0
+        """
+        from sage.homology.graded_resolution import GradedFreeResolution
+        return GradedFreeResolution(self, *args, **kwds)
+
 
 class FreeModule_generic(Module_free_ambient):
     """

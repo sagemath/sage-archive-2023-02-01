@@ -1775,6 +1775,60 @@ class MPolynomialIdeal_singular_repr(
         S = syz(self)
         return matrix(self.ring(), S)
 
+    @require_field
+    def free_resolution(self, *args, **kwds):
+        r"""
+        Return a free resolution of ``self``.
+
+        For input options, see
+        :class:`~sage.homology.free_resolution.FreeResolution`.
+
+        EXAMPLES::
+
+            sage: R.<x,y> = PolynomialRing(QQ)
+            sage: f = 2*x^2 + y
+            sage: g = y
+            sage: h = 2*f + g
+            sage: I = R.ideal([f,g,h])
+            sage: res = I.free_resolution()
+            sage: res
+            S^1 <-- S^2 <-- S^1 <-- 0
+            sage: ascii_art(res.chain_complex())
+                                        [-x^2]      
+                        [  y x^2]       [   y]      
+             0 <-- C_0 <---------- C_1 <------- C_2 <-- 0
+        """
+        from sage.homology.free_resolution import FreeResolution
+        return FreeResolution(self, *args, **kwds)
+
+    @require_field
+    def graded_free_resolution(self, *args, **kwds):
+        r"""
+        Return a graded free resolution of ``self``.
+
+        For input options, see
+        :class:`~sage.homology.graded_resolution.GradedFreeResolution`.
+
+        EXAMPLES::
+
+            sage: R.<x,y> = PolynomialRing(QQ)
+            sage: f = 2*x^2 + y^2
+            sage: g = y^2
+            sage: h = 2*f + g
+            sage: I = R.ideal([f,g,h])
+            sage: I.graded_free_resolution(shifts=[1])
+            S(-1) <-- S(-3)⊕S(-3) <-- S(-5) <-- 0
+
+            sage: f = 2*x^2 + y
+            sage: g = y
+            sage: h = 2*f + g
+            sage: I = R.ideal([f,g,h])
+            sage: I.graded_free_resolution(degrees=[1,2])
+            S(0) <-- S(-2)⊕S(-2) <-- S(-4) <-- 0
+        """
+        from sage.homology.graded_resolution import GradedFreeResolution
+        return GradedFreeResolution(self, *args, **kwds)
+
     @handle_AA_and_QQbar
     @singular_gb_standard_options
     @libsingular_gb_standard_options
@@ -5224,7 +5278,6 @@ class MPolynomialIdeal_quotient(MPolynomialIdeal):
         Ideal (w^2 + x + z - 1) of Quotient of Multivariate Polynomial Ring
         in x, y, z, w over Rational Field by the ideal (x*y - z^2, y^2 - w^2)
     """
-
     def reduce(self, f):
         r"""
         Reduce an element modulo a Gröbner basis for this ideal.
@@ -5330,3 +5383,4 @@ class MPolynomialIdeal_quotient(MPolynomialIdeal):
                 return not (contained and contains)
             else:  # remaining case <
                 return contained and not contains
+

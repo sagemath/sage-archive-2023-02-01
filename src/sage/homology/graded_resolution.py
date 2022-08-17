@@ -76,7 +76,7 @@ AUTHORS:
 from sage.libs.singular.singular import si2sa_resolution_graded
 from sage.libs.singular.function import singular_function
 from sage.misc.lazy_attribute import lazy_attribute
-from sage.matrix.matrix_mpolynomial_dense import Matrix_mpolynomial_dense
+from sage.structure.element import Matrix
 from sage.modules.free_module_element import vector
 from sage.modules.free_module import Module_free_ambient
 from sage.rings.integer_ring import ZZ
@@ -86,7 +86,7 @@ from sage.rings.ideal import Ideal_generic
 from sage.homology.free_resolution import FreeResolution
 
 class GradedFreeResolution(FreeResolution):
-    """
+    r"""
     Graded free resolutions of ideals of multivariate polynomial rings.
 
     INPUT:
@@ -166,23 +166,29 @@ class GradedFreeResolution(FreeResolution):
             sage: I = S.ideal([y*w - z^2, -x*w + y*z, x*z - y^2])
             sage: r = GradedFreeResolution(I)
             sage: TestSuite(r).run(skip=['_test_pickling'])
+
+        An overdetermined system over a PID::
+
+            sage: M = matrix([[x^2, 2],
+            ....:             [3*x^2, 5],
+            ....:             [5*x^2, 4]])
+            sage: res = GradedFreeResolution(M)
+            sage: res
+            S(0)⊕S(0) <-- S(-2)⊕S(0) <-- 0
+            sage: res._res_shifts
+            [[2, 0]]
         """
         super().__init__(module, name=name, algorithm=algorithm)
 
         nvars = self._base_ring.ngens()
-
-        if isinstance(self._module, Ideal_generic):
-            rank = 1
-        elif isinstance(self._module, Module_free_ambient):
-            rank = self._m().nrows()
-        elif isinstance(self._module, Matrix_mpolynomial_dense):
-            rank = self._module.ncols()
 
         if degrees is None:
             degrees = nvars * (1,)  # standard grading
 
         if len(degrees) != nvars:
             raise ValueError('the length of degrees does not match the number of generators')
+        if self._is_free_module and len(degrees) > 1 and any(d != 1 for d in degrees):
+            raise NotImplementedError("only the natural grading supported when more than one generator")
 
         if degrees[0] in ZZ:
             zero_deg = 0
@@ -193,6 +199,13 @@ class GradedFreeResolution(FreeResolution):
             multigrade = True
 
         if shifts is None:
+            if isinstance(self._module, Ideal_generic):
+                rank = 1
+            elif isinstance(self._module, Module_free_ambient):
+                rank = self._m().nrows()
+            elif isinstance(self._module, Matrix):
+                rank = self._module.ncols()
+
             shifts = rank * [zero_deg]
 
         self._shifts = shifts
@@ -221,7 +234,71 @@ class GradedFreeResolution(FreeResolution):
             ]
             sage: r._res_shifts
             [[2, 2, 2], [3, 3]]
+
+            sage: R.<x> = QQ[]
+            sage: M = matrix([[x^3, 3*x^3, 5*x^3],
+            ....:             [0, x, 2*x]])
+            sage: res = GradedFreeResolution(M)
+            sage: res
+            S(0)⊕S(0)⊕S(0) <-- S(-3)⊕S(-1) <-- 0
+            sage: res._maps
+            [
+            [  x^3     0]
+            [3*x^3     x]
+            [5*x^3   2*x]
+            ]
+            sage: res._res_shifts
+            [[3, 1]]
+
+            sage: M = matrix([[x^2, 2],
+            ....:             [3*x^2, 5],
+            ....:             [5*x^2, 4]])
+            sage: res = GradedFreeResolution(M)
+            sage: res
+            S(0)⊕S(0) <-- S(-2)⊕S(0) <-- 0
+            sage: res._res_shifts
+            [[2, 0]]
+
+            sage: I = R.ideal([x^4])
+            sage: res = I.graded_free_resolution(shifts=[1], degrees=[2])
+            sage: res
+            S(-1) <-- S(-9) <-- 0
+            sage: res._maps
+            [[x^4]]
+            sage: res._res_shifts
+            [[9]]
         """
+        if self._is_free_module:
+
+            def compute_degree(base, i):
+                """
+                Compute the degree by ``base * deg + shift``,
+                where ``*`` is entry-wise multiplication, ``deg`` and
+                ``shift`` are the ``i``-th index.
+                """
+                deg = self._degrees[0]
+                shift = self._shifts[i]
+                if self._multigrade:
+                    return vector([val * d + s for val, d, s in zip(base, deg, shift)])
+                return base * deg + shift
+
+            if isinstance(self._module, Ideal_generic):
+                from sage.matrix.constructor import matrix
+                val = self._module.gen(0)
+                self._res_shifts = [[compute_degree(val.degree(), 0)]]
+                return [matrix([[val]])]
+
+            M = self._m()
+            def find_deg(i):
+                for j in range(M.nrows()):
+                    ret = M[j,i].degree() 
+                    if ret != -1:
+                        return ret
+                raise NotImplementedError("a generator maps to 0")
+            self._res_shifts = [[compute_degree(find_deg(i), i)
+                                 for i in range(M.ncols())]]
+            return [M]
+
         #cdef int i, j, k, ncols, nrows
         #cdef list res_shifts, prev_shifts, new_shifts
 

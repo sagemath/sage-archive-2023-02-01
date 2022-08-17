@@ -7,11 +7,7 @@ See :wikipedia:`Schubert_polynomial` and
 Schubert polynomials are representatives of cohomology classes in flag varieties.
 In `n` variables, they are indexed by permutations `w \in S_n`. They also form
 a basis for the coinvariant ring of the `S_n` action on
-`\\Bold{Z}[x_1, x_2, \ldots, x_n]`.
-
-In Sage, they are modeled in the :class:`SchubertPolynomial_class`. Instances of
-this class can be created by creating an instance ``X`` of a Schubert polynomial
-ring using the constructor :func:`SchubertPolynomialRing`. 
+`\ZZ[x_1, x_2, \ldots, x_n]`.
 
 EXAMPLES::
 

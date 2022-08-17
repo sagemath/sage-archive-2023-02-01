@@ -497,7 +497,7 @@ class CubicHeckeElement(CombinatorialFreeModule.Element):
             Currently it is not known if all linear forms of this sub-module
             belong to a Markov trace, i.e. can be extended to the full tower
             of cubic Hecke algebras. Anyway, at least the four basis elements
-            (``U1``, ``U2, ``U3`` and ``K4``) can be reconstructed form
+            (``U1``, ``U2``, ``U3`` and ``K4``) can be reconstructed form
             the HOMFLY-PT and Kauffman polynomial.
 
         INPUT:
@@ -557,8 +557,10 @@ class CubicHeckeElement(CombinatorialFreeModule.Element):
             True
 
             sage: f = MT.specialize_links_gould()
-            sage: sum(f(LK3_1.coefficient(b)) * b.links_gould_polynomial() for b in sup)
+            sage: g = sum(f(LK3_1.coefficient(b)) * b.links_gould_polynomial() for b in sup); g
             -t0^2*t1 - t0*t1^2 + t0^2 + 2*t0*t1 + t1^2 - t0 - t1 + 1
+            sage: g == K3_1.link().links_gould_polynomial()
+            True
         """
         cha = self.parent()
         vs = self.to_vector()
@@ -2577,7 +2579,7 @@ class CubicHeckeAlgebra(CombinatorialFreeModule):
 
         - ``cubic_braid``  -- :class:`~sage.groups.cubic_braid.CubicBraid`
           whose image in ``self`` should be returned
-        - ``check`` -- boolean (default: ``True``); check in the given cubic
+        - ``check`` -- boolean (default: ``True``); check if the given cubic
           braid is already registered in the finite sub basis; if set to
           ``False`` duplicate entries can occur.
 
@@ -3457,7 +3459,7 @@ class CubicHeckeAlgebra(CombinatorialFreeModule):
         - ``irr`` -- (optional) instance of :class:`AbsIrreducibeRep`
           selecting the irreducible representation corresponding to the
           character; if not given a list of all characters is returned
-        - ``original`` -- (default ``True``) see description above
+        - ``original`` -- (default: ``True``) see description above
 
         OUTPUT:
 

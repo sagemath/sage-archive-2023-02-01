@@ -191,6 +191,7 @@ import sage.rings.rational_field
 import sage.rings.infinity
 import sage.rings.integer
 from sage.categories.principal_ideal_domains import PrincipalIdealDomains
+from sage.categories.integral_domains import IntegralDomains
 from sage.categories.infinite_enumerated_sets import InfiniteEnumeratedSets
 from sage.misc.randstate import current_randstate
 from sage.structure.factory import UniqueFactory
@@ -236,6 +237,17 @@ class FreeModuleFactory(UniqueFactory):
 
             sage: TestSuite(ZZ^6).run()
             sage: TestSuite(RDF^3).run()
+
+        Check that :trac:`34380` is fixed::
+
+            sage: R.<x,y> = QQ[]
+            sage: Q = R.quo(R.ideal([x^2 - y^2 - 1]))
+            sage: Q.is_integral_domain()
+            True
+            sage: Q2 = FreeModule(Q, 2)
+            sage: from sage.modules.free_module import FreeModule_ambient_domain
+            sage: isinstance(Q2, FreeModule_ambient_domain)
+            True
         """
         base_ring, rank, sparse, inner_product_matrix = key
 
@@ -254,29 +266,29 @@ class FreeModuleFactory(UniqueFactory):
                  "done from the right side.")
             #raise TypeError, "The base_ring must be a commutative ring."
 
+        if not sparse and isinstance(base_ring, sage.rings.abc.RealDoubleField):
+            return RealDoubleVectorSpace_class(rank)
+
+        if not sparse and isinstance(base_ring, sage.rings.abc.ComplexDoubleField):
+            return ComplexDoubleVectorSpace_class(rank)
+
         try:
-            if not sparse and isinstance(base_ring, sage.rings.abc.RealDoubleField):
-                return RealDoubleVectorSpace_class(rank)
-
-            elif not sparse and isinstance(base_ring, sage.rings.abc.ComplexDoubleField):
-                return ComplexDoubleVectorSpace_class(rank)
-
-            elif base_ring.is_field():
+            if base_ring.is_field():
                 return FreeModule_ambient_field(base_ring, rank, sparse=sparse)
-
-            elif base_ring in PrincipalIdealDomains():
-                return FreeModule_ambient_pid(base_ring, rank, sparse=sparse)
-
-            elif isinstance(base_ring, sage.rings.abc.Order) \
-                and base_ring.is_maximal() and base_ring.class_number() == 1:
-                return FreeModule_ambient_pid(base_ring, rank, sparse=sparse)
-
-            elif isinstance(base_ring, ring.IntegralDomain) or base_ring.is_integral_domain():
-                return FreeModule_ambient_domain(base_ring, rank, sparse=sparse)
-            else:
-                return FreeModule_ambient(base_ring, rank, sparse=sparse)
         except NotImplementedError:
-            return FreeModule_ambient(base_ring, rank, sparse=sparse)
+            pass
+
+        if base_ring in PrincipalIdealDomains():
+            return FreeModule_ambient_pid(base_ring, rank, sparse=sparse)
+
+        if (isinstance(base_ring, sage.rings.abc.Order)
+            and base_ring.is_maximal() and base_ring.class_number() == 1):
+            return FreeModule_ambient_pid(base_ring, rank, sparse=sparse)
+
+        if isinstance(base_ring, ring.IntegralDomain) or base_ring in IntegralDomains():
+            return FreeModule_ambient_domain(base_ring, rank, sparse=sparse)
+
+        return FreeModule_ambient(base_ring, rank, sparse=sparse)
 
 FreeModuleFactory_with_standard_basis = FreeModuleFactory("FreeModule")
 

@@ -50,7 +50,7 @@ class ImageSubobject(Parent):
 
     - ``is_injective`` -- whether the ``map`` is injective:
       - ``None`` (default): infer from ``map`` or default to ``False``
-      - ``False``: ``map`` is known to be non-injective
+      - ``False``: do not assume that ``map`` is injective
       - ``True``: ``map`` is known to be injective
       - ``"check"``: raise an error when ``map`` is not injective
 

@@ -653,21 +653,23 @@ class EnumeratedSets(CategoryWithAxiom):
                 sage: C._unrank_from_iterator(5)
                 Traceback (most recent call last):
                 ...
-                ValueError: the value must be between 0 and 2 inclusive
+                ValueError: the rank must be between 0 and 2 inclusive
                 sage: ZZ._unrank_from_iterator(-1)
                 Traceback (most recent call last):
                 ...
-                ValueError: the value must be greater than or equal to 0
-            
+                ValueError: the rank must be greater than or equal to 0
             """
+            from sage.rings.integer_ring import ZZ
             if r < 0:
-                raise ValueError("the value must be greater than or equal to 0")
+                raise ValueError("the rank must be greater than or equal to 0")
+            if r not in ZZ:
+                raise ValueError(f"{r=} must be an integer")
             counter = 0
             for u in self:
                 if counter == r:
                     return u
                 counter += 1
-            raise ValueError("the value must be between %s and %s inclusive"%(0,counter-1))
+            raise ValueError("the rank must be between %s and %s inclusive"%(0,counter-1))
         unrank = _unrank_from_iterator
 
         def _rank_from_iterator(self, x):

@@ -23,6 +23,7 @@ from sage.categories.poor_man_map import PoorManMap
 from sage.categories.sets_cat import Sets
 from sage.categories.enumerated_sets import EnumeratedSets
 from sage.misc.cachefunc import cached_method
+from sage.rings.infinity import Infinity
 from sage.rings.integer import Integer
 from sage.modules.free_module import FreeModule
 from sage.structure.element import Expression
@@ -265,11 +266,27 @@ class ImageSubobject(Parent):
             sage: Z4711 = ImageSet(lambda x: x**4 % 11, Z7, is_injective=False)
             sage: Z4711.cardinality()
             6
+
+            sage: Squares = ImageSet(lambda x: x^2, ZZ, is_injective=False,
+            ....:                    category=Sets().Infinite())
+            sage: Squares.cardinality()
+            +Infinity
+
+            sage: Mod2 = ZZ.map(lambda x: x % 2, is_injective=False)
+            sage: Mod2.cardinality()
+            Traceback (most recent call last):
+            ...
+            NotImplementedError: cannot determine cardinality of a non-injective image of an infinite set
         """
+        domain_cardinality = self._domain_subset.cardinality()
         if self._is_injective and self._is_injective != 'check':
-            return self._domain_subset.cardinality()
+            return domain_cardinality
+        if self in Sets().Infinite():
+            return Infinity
+        if domain_cardinality == Infinity:
+            raise NotImplementedError('cannot determine cardinality of a non-injective image of an infinite set')
         # Fallback like EnumeratedSets.ParentMethods.__len__
-        return Integer(len(list(self)))
+        return Integer(len(list(iter(self))))
 
     def __iter__(self) -> Iterator:
         r"""

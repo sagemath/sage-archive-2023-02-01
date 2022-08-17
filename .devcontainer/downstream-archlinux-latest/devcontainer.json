@@ -6,7 +6,7 @@
     "postCreateCommand": "EXTRA_SYSTEM_PACKAGES='sagemath sagemath-doc' EXTRA_SAGE_PACKAGES='notebook pip' .devcontainer/post_create.sh",
     // Run commands after the container is started.
     // There's no SAGE_LOCAL, so remove the symlink 'prefix'.
-    "postStartCommand": "make configure && rm -f prefix && ln -sf /usr venv",
+    "postStartCommand": "rm -f prefix && ln -sf /usr venv",
     "extensions": [
         "ms-python.python"
     ]

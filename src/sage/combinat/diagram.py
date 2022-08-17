@@ -245,7 +245,7 @@ class Diagram(ClonableArray, metaclass=InheritComparisonClasscallMetaclass):
         """
         return Diagrams()(cells, n_rows, n_cols, check)
 
-    def __init__(self, parent, cells, n_rows=None, n_cols=None, check=False):
+    def __init__(self, parent, cells, n_rows=None, n_cols=None, check=True):
         r"""
         EXAMPLES::
 
@@ -589,6 +589,86 @@ class Diagrams(UniqueRepresentation, Parent):
             . . . O
         """
         return self([(0, 2), (1, 1), (2, 3)])
+
+    def from_polyomino(self, p):
+        r"""
+        Create the diagram corresponding to a 2d
+        :class:`~sage.combinat.tiling.Polyomino.`
+
+        EXAMPLES::
+
+            sage: from sage.combinat.tiling import Polyomino
+            sage: p = Polyomino([(0,0),(1,0),(1,1),(1,2)])
+            sage: from sage.combinat.diagram import Diagrams
+            sage: Diagrams().from_polyomino(p).pp()
+            O . .
+            O O O
+            sage: p = Polyomino([(0,0,0), (0,1,0), (1,1,0), (1,1,1)], color='blue')
+            sage: Diagrams().from_polyomino(p)
+            Traceback (most recent call last):
+            ...
+            ValueError: Dimension of the polyomino must be 2
+        """
+        if not p._dimension == 2:
+            raise ValueError("Dimension of the polyomino must be 2")
+        cells = map(tuple, list(p))
+        return self.element_class(self, cells)
+
+    def from_composition(self, alpha):
+        r"""
+        Create the diagram corresponding to a weak composition `alpha \vDash n`.
+
+        EXAMPLES::
+
+            sage: alpha = Composition([3,0,2,1,4,4])
+            sage: from sage.combinat.diagram import Diagrams
+            sage: Diagrams().from_composition(alpha).pp()
+            O O O .
+            . . . .
+            O O . .
+            O . . .
+            O O O O
+            O O O O
+        """
+        cells = []
+        for i, n in enumerate(alpha):
+            cells.extend((i, j) for j in range(n))
+        return self.element_class(self, cells, check=False)
+
+    def from_zero_one_matrix(self, M, check=True):
+        r"""
+        Get a diagram from a matrix with entries in `\{0, 1\}`, where
+        positions of cells are indicated by the `1`'s.
+
+        EXAMPLES::
+
+            sage: M = matrix([[1,0,1,1],[0,1,1,0]])
+            sage: from sage.combinat.diagram import Diagrams
+            sage: Diagrams().from_zero_one_matrix(M).pp()
+            O . O O
+            . O O .
+
+            sage: M = matrix([[1, 0, 0], [1, 0, 0], [0, 0, 0]])
+            sage: Diagrams().from_zero_one_matrix(M).pp()
+            O . .
+            O . .
+            . . .
+
+        """
+        # check matrix is zero-one
+        n_rows, n_cols = M.dimensions()
+
+        zero = M.base_ring().zero()
+        one = M.base_ring().one()
+
+        if check:
+            for i in range(n_rows):
+                for j in range(n_cols):
+                    if not (M[i,j] == zero or M[i,j] == one):
+                        raise ValueError("Matrix entries must be 0 or 1")
+        cells = [(i, j) for i in range(n_rows) for j in range(n_cols) if M[i,j]]
+
+        return self.element_class(self, cells, n_rows, n_cols, check=False)
 
     Element = Diagram
 
@@ -970,8 +1050,14 @@ class NorthwestDiagrams(Diagrams):
             O . .
             . . .
             . . .
+            sage: NorthwestDiagrams().from_permutation(w).pp()
+            O . .
+            . . .
+            . . .
         """
         return RotheDiagram(w)
+
+    from_permutation = rothe_diagram
 
     def from_partition(self, mu):
         r"""
@@ -1053,6 +1139,27 @@ class NorthwestDiagrams(Diagrams):
         cells = [(i, n_cols - 1 - j) for i, j in s.cells()]
 
         return self.element_class(self, cells, n_rows, n_cols, check=False)
+
+    def from_parallelogram_polyomino(self, p):
+        r"""
+        Create the diagram corresponding to a
+        :class:`~sage.combinat.parallelogram_polyomino.ParallelogramPolyomino`.
+
+        EXAMPLES::
+
+            sage: p = ParallelogramPolyomino([[0, 0, 1, 0, 0, 0, 1, 1],
+            ....:                              [1, 1, 0, 1, 0, 0, 0, 0]])
+            sage: from sage.combinat.diagram import NorthwestDiagrams
+            sage: NorthwestDiagrams().from_parallelogram_polyomino(p).pp()
+            O O .
+            O O O
+            . O O
+            . O O
+            . O O
+        """
+        from sage.matrix.constructor import Matrix
+        M = Matrix(p.get_array())
+        return self.from_zero_one_matrix(M)
 
     Element = NorthwestDiagram
 

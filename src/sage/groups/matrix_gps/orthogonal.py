@@ -142,7 +142,7 @@ def normalize_args_e(degree, ring, e):
 def _OG(n, R, special, e=0, var='a', invariant_form=None):
     r"""
     This function is commonly used by the functions GO and SO to avoid
-    unecessarily duplicated code. For documentation and examples see
+    unnecessarily duplicated code. For documentation and examples see
     the individual functions.
 
     TESTS:

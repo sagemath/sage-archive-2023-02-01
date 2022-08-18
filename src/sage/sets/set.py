@@ -1358,12 +1358,22 @@ class Set_object_union(Set_object_binary):
             sage: T = Set(ZZ)
             sage: X = S.union(T); X
             Set-theoretic union of Set of elements of Vector space of dimension 2 over Rational Field and Set of elements of Integer Ring
+            sage: X.category()
+            Category of infinite sets
 
             sage: latex(X)
             \Bold{Q}^{2} \cup \Bold{Z}
 
             sage: TestSuite(X).run()
         """
+        if category is None:
+            category = Sets()
+        if all(S in Sets().Finite() for S in (X, Y)):
+            category = category.Finite()
+        if all(S in Sets().Enumerated() for S in (X, Y)):
+            category = category.Enumerated()
+        if any(S in Sets().Infinite() for S in (X, Y)):
+            category = category.Infinite()
         Set_object_binary.__init__(self, X, Y, "union", "\\cup", category=category)
 
     def is_finite(self):
@@ -1501,15 +1511,46 @@ class Set_object_intersection(Set_object_binary):
             sage: T = Set(ZZ)
             sage: X = S.intersection(T); X
             Set-theoretic intersection of Set of elements of Vector space of dimension 2 over Rational Field and Set of elements of Integer Ring
+            sage: X.category()
+            Category of enumerated sets
             sage: latex(X)
             \Bold{Q}^{2} \cap \Bold{Z}
 
             sage: X = Set(IntegerRange(100)).intersection(Primes())
             sage: X.is_finite()
             True
+            sage: X.category()
+            Category of finite enumerated sets
             sage: TestSuite(X).run()
         """
+        if category is None:
+            category = Sets()
+        if any(S in Sets().Finite() for S in (X, Y)):
+            category = category.Finite()
+        if any(S in Sets().Enumerated() for S in (X, Y)):
+            category = category.Enumerated()
         Set_object_binary.__init__(self, X, Y, "intersection", "\\cap", category=category)
+
+    def cardinality(self):
+        r"""
+        Return the cardinality of this set.
+
+        EXAMPLES::
+
+            sage: X = Set(IntegerRange(100)).intersection(Primes())
+            sage: X.cardinality()
+            25
+
+            sage: X = Set(Primes(), category=Sets()).intersection(Set(IntegerRange(200)))
+            sage: X.cardinality()
+            46
+        """
+        if self in Sets().Infinite():
+            return Infinity
+        if self in Sets().Finite():
+            from sage.rings.integer import Integer
+            return Integer(len(list(iter(self))))
+        return super().cardinality()
 
     def is_finite(self):
         r"""
@@ -1663,11 +1704,21 @@ class Set_object_difference(Set_object_binary):
             sage: T = Set(ZZ)
             sage: X = S.difference(T); X
             Set-theoretic difference of Set of elements of Rational Field and Set of elements of Integer Ring
+            sage: X.category()
+            Category of sets
             sage: latex(X)
             \Bold{Q} - \Bold{Z}
 
             sage: TestSuite(X).run()
         """
+        if category is None:
+            category = Sets()
+        if X in Sets().Finite():
+            category = category.Finite()
+        if X in Sets().Enumerated():
+            category = category.Enumerated()
+        if X in Sets().Infinite() and Y in Sets().Finite():
+            category = category.Infinite()
         Set_object_binary.__init__(self, X, Y, "difference", "-", category=category)
 
     def is_finite(self):
@@ -1797,6 +1848,8 @@ class Set_object_difference(Set_object_binary):
             Set-theoretic difference of
              Set of elements of Rational Field and
              Set of elements of Integer Ring
+            sage: X.category()
+            Category of sets
             sage: X._sympy_()
             Complement(Rationals, Integers)
 
@@ -1804,6 +1857,8 @@ class Set_object_difference(Set_object_binary):
             Set-theoretic difference of
              Set of elements of Integer Ring and
              Set of elements of Rational Field
+            sage: X.category()
+            Category of enumerated sets
             sage: X._sympy_()
             EmptySet
         """
@@ -1827,11 +1882,19 @@ class Set_object_symmetric_difference(Set_object_binary):
             sage: T = Set(ZZ)
             sage: X = S.symmetric_difference(T); X
             Set-theoretic symmetric difference of Set of elements of Rational Field and Set of elements of Integer Ring
+            sage: X.category()
+            Category of sets
             sage: latex(X)
             \Bold{Q} \bigtriangleup \Bold{Z}
 
             sage: TestSuite(X).run()
         """
+        if category is None:
+            category = Sets()
+        if all(S in Sets().Finite() for S in (X, Y)):
+            category = category.Finite()
+        if all(S in Sets().Enumerated() for S in (X, Y)):
+            category = category.Enumerated()
         Set_object_binary.__init__(self, X, Y, "symmetric difference", "\\bigtriangleup", category=category)
 
     def is_finite(self):

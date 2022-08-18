@@ -17,8 +17,8 @@ The class also provides facilities for computing the endomorphism ring of the
 period lattice numerically, by determining integer (near) solutions to the
 relevant approximate linear equations.
 
-One can also calculate the Abel-Jacobi map on the Riemann surface, and there 
-is basic functionality to interface with divisors of curves to facilitate this. 
+One can also calculate the Abel-Jacobi map on the Riemann surface, and there
+is basic functionality to interface with divisors of curves to facilitate this.
 
 AUTHORS:
 
@@ -137,6 +137,7 @@ from sage.rings.rational_field import QQ
 from sage.rings.real_mpfr import RealField
 from sage.schemes.curves.constructor import Curve
 import sage.libs.mpmath.all as mpall
+
 
 def voronoi_ghost(cpoints, n=6, CC=CDF):
     r"""
@@ -1837,8 +1838,9 @@ class RiemannSurface(object):
 
         A tuple ``(Rzg, [(g, dgdz, F, a0_info), ...])`` where each element of 
         the list corresponds to an element of ``differentials``. Introducing the
-        notation ``RBzg = PolynomialRing(self._R, ['z','g'])`` and
+        notation ``RBzg = PolynomialRing(self._R, ['z','g'])`` and 
         ``CCzg = PolynomialRing(self._CC, ['z','g'])``, we have that:
+
          - ``Rzg`` is either ``RBzg`` or ``CCzg`` depending on the value of 
            ``exact``,
          - ``g`` is the full rational function in ``self._R.fraction_field()`` 
@@ -2834,6 +2836,7 @@ class RiemannSurface(object):
             mp_list = [CCzg(mp) for mp in mp_list]
             J = 1/z_end
             endscale = -z_end**(-2)
+
             def initialise(z, i):
                 DF = ComplexField(2*self._prec)
                 DFw = PolynomialRing(DF,'wbar')
@@ -2851,6 +2854,7 @@ class RiemannSurface(object):
             CCzg = mp_list[0].parent()
             J = z_end-z_start
             endscale = 1
+
             def initialise(z, i):
                 newg = self.cohomology_basis()[i](z_start, w_start)/self._dfdw(z_start, w_start)
                 err = mp_list[i](z, newg).abs()
@@ -2892,11 +2896,13 @@ class RiemannSurface(object):
             cutoff_individually = bool(not all(ai<=0 for ai in aes) and cutoff_individually)
         
         if raise_errors:
-            n_steps = self._prec-1 
+            n_steps = self._prec-1
+ 
             def error_handle(out):
                 raise ConvergenceError("Newton iteration fails to converge")
         else:
             n_steps = 15
+
             def error_handle(out):
                 return out
 
@@ -3582,6 +3588,7 @@ class RiemannSurface(object):
             print(dl)
             raise ValueError("Numerical instability, list of wrong degree")
         return dl
+
 
 def integer_matrix_relations(M1, M2, b=None, r=None):
     r"""

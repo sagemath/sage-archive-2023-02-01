@@ -1072,11 +1072,11 @@ class SymmetricFunctionsBases(Category_realization_of_parent):
                 sage: s = Sym.s()
                 sage: pi_2 = (s.gessel_reutenauer(2)).omega_involution()
                 sage: pi_1 = (s.gessel_reutenauer(1)).omega_involution()
-                sage: s.lehrer_solomon([2,1]) == pi_2 * pi_1 # since h_1, e_1 are pletistic identities
+                sage: s.lehrer_solomon([2,1]) == pi_2 * pi_1 # since h_1, e_1 are plethystic identities
                 True
 
             Note that this also gives the `S_n`-equivariant structure of the
-            Orlik-Solmon algebra of the braid arrangement (also known as the
+            Orlik-Solomon algebra of the braid arrangement (also known as the
             type-`A` reflection arrangement).
 
             The representation corresponding to `\mathbf{LS}_\lambda` exhibits

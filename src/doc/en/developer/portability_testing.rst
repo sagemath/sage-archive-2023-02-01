@@ -1216,9 +1216,8 @@ in a terminal, `open a new terminal in VS Code
 
 .. NOTE::
 
-   If you restart VS Code after configuring a dev container, VS Code starts
-   again configuring a new dev container. If you want to reuse the previous dev
-   container, you need to enter "Remote-Containers: Attach to Running
+   If you want VS Code to use a previously configured dev container, first run
+   the dev container in Docker and enter "Remote-Containers: Attach to Running
    Container" in the command palette of VS Code and choose the dev container.
 
 .. NOTE::

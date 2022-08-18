@@ -1368,12 +1368,12 @@ class Set_object_union(Set_object_binary):
         """
         if category is None:
             category = Sets()
-        if all(S in Sets().Finite() for S in (X, Y)):
-            category = category.Finite()
         if all(S in Sets().Enumerated() for S in (X, Y)):
             category = category.Enumerated()
         if any(S in Sets().Infinite() for S in (X, Y)):
             category = category.Infinite()
+        elif all(S in Sets().Finite() for S in (X, Y)):
+            category = category.Finite()
         Set_object_binary.__init__(self, X, Y, "union", "\\cup", category=category)
 
     def is_finite(self):
@@ -1713,11 +1713,11 @@ class Set_object_difference(Set_object_binary):
         """
         if category is None:
             category = Sets()
-        if X in Sets().Finite():
-            category = category.Finite()
         if X in Sets().Enumerated():
             category = category.Enumerated()
-        if X in Sets().Infinite() and Y in Sets().Finite():
+        if X in Sets().Finite():
+            category = category.Finite()
+        elif X in Sets().Infinite() and Y in Sets().Finite():
             category = category.Infinite()
         Set_object_binary.__init__(self, X, Y, "difference", "-", category=category)
 

@@ -1361,7 +1361,7 @@ class Sets(Category_singleton):
                 sage: S.some_elements()
                 [47]
                 sage: S = Set([])
-                sage: S.some_elements()
+                sage: list(S.some_elements())
                 []
 
             This method should return an iterable, *not* an iterator.

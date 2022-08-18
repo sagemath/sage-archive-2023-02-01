@@ -1216,6 +1216,13 @@ in a terminal, `open a new terminal in VS Code
 
 .. NOTE::
 
+   If you restart VS Code after configuring a dev container, VS Code starts
+   again configuring a new dev container. If you want to reuse the previous dev
+   container, you need to enter "Remote-Containers: Attach to Running
+   Container" in the command palette of VS Code and choose the dev container.
+
+.. NOTE::
+
    Your Sage at ``$SAGE_ROOT`` was configured and rebuilt inside the dev
    container. In particular, ``$SAGE_ROOT/venv``, ``$SAGE_ROOT/prefix``, and
    (possibly) ``$SAGE_ROOT/logs`` will be symbolic links that work inside the dev

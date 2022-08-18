@@ -77,7 +77,7 @@ class CartanType(CartanType_standard_affine):
             O=<=O---O=<=O
             0   1   2   3
             BC3~
-            sage: sorted(c.edges())
+            sage: c.edges(sort=True)
             [(0, 1, 1), (1, 0, 2), (1, 2, 1), (2, 1, 1), (2, 3, 1), (3, 2, 2)]
 
             sage: c = CartanType(["A", 6, 2]).dynkin_diagram() # should be the same as above; did fail at some point!
@@ -85,7 +85,7 @@ class CartanType(CartanType_standard_affine):
             O=<=O---O=<=O
             0   1   2   3
             BC3~
-            sage: sorted(c.edges())
+            sage: c.edges(sort=True)
             [(0, 1, 1), (1, 0, 2), (1, 2, 1), (2, 1, 1), (2, 3, 1), (3, 2, 2)]
 
             sage: c = CartanType(['BC',2,2]).dynkin_diagram()
@@ -93,7 +93,7 @@ class CartanType(CartanType_standard_affine):
             O=<=O=<=O
             0   1   2
             BC2~
-            sage: sorted(c.edges())
+            sage: c.edges(sort=True)
             [(0, 1, 1), (1, 0, 2), (1, 2, 1), (2, 1, 2)]
 
             sage: c = CartanType(['BC',1,2]).dynkin_diagram()
@@ -102,7 +102,7 @@ class CartanType(CartanType_standard_affine):
             O=<=O
             0   1
             BC1~
-            sage: sorted(c.edges())
+            sage: c.edges(sort=True)
             [(0, 1, 1), (1, 0, 4)]
 
         """
@@ -282,4 +282,3 @@ class CartanType(CartanType_standard_affine):
         n = self.n
         return CartanTypeFolded(self, ['A', 2*n - 1, 1],
             [[0]] + [[i, 2*n-i] for i in range(1, n)] + [[n]])
-

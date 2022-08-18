@@ -473,9 +473,12 @@ For example,
     sage: yl = plt.ylabel('voltage (mV)')
     sage: t = plt.title('About as simple as it gets, folks')
     sage: plt.grid(True)
-    sage: plt.savefig(os.path.join(SAGE_TMP, 'sage.png'))
+    sage: import tempfile
+    sage: with tempfile.NamedTemporaryFile(suffix=".png") as f1:
+    ....:     plt.savefig(f1.name)
     sage: plt.clf()
-    sage: plt.savefig(os.path.join(SAGE_TMP, 'blank.png'))
+    sage: with tempfile.NamedTemporaryFile(suffix=".png") as f2:
+    ....:     plt.savefig(f2.name)
     sage: plt.close()
     sage: plt.imshow([[1,2],[0,1]])
     <matplotlib.image.AxesImage object at ...>
@@ -487,7 +490,9 @@ We test that ``imshow`` works as well, verifying that
 
     sage: plt.imshow([[(0.0,0.0,0.0)]])
     <matplotlib.image.AxesImage object at ...>
-    sage: plt.savefig(os.path.join(SAGE_TMP, 'foo.png'))
+    sage: import tempfile
+    sage: with tempfile.NamedTemporaryFile(suffix=".png") as f:
+    ....:     plt.savefig(f.name)
 
 Since the above overwrites many Sage plotting functions, we reset
 the state of Sage, so that the examples below work!
@@ -512,6 +517,11 @@ Verify that a clean sage startup does *not* import matplotlib::
 
     sage: os.system("sage -c \"if 'matplotlib' in sys.modules: sys.exit(1)\"") # long time
     0
+
+Verify that :trac:`10980` is fixed::
+
+    sage: plot(x,0,2,gridlines=([sqrt(2)],[]))
+    Graphics object consisting of 1 graphics primitive
 
 AUTHORS:
 
@@ -681,7 +691,9 @@ def SelectiveFormatter(formatter, skip_values):
         sage: p = ax.plot(t, s)
         sage: formatter=SelectiveFormatter(ax.xaxis.get_major_formatter(),skip_values=[0,1])
         sage: ax.xaxis.set_major_formatter(formatter)
-        sage: fig.savefig(os.path.join(SAGE_TMP, 'test.png'))
+        sage: import tempfile
+        sage: with tempfile.NamedTemporaryFile(suffix=".png") as f:
+        ....:     fig.savefig(f.name)
 
     """
     global _SelectiveFormatterClass
@@ -690,7 +702,7 @@ def SelectiveFormatter(formatter, skip_values):
         from matplotlib.ticker import Formatter
 
         class _SelectiveFormatterClass(Formatter):
-            def __init__(self, formatter,skip_values):
+            def __init__(self, formatter, skip_values):
                 """
                 Initialize a SelectiveFormatter object.
 
@@ -713,10 +725,13 @@ def SelectiveFormatter(formatter, skip_values):
                     sage: line=ax.plot(t, s)
                     sage: formatter=SelectiveFormatter(ax.xaxis.get_major_formatter(),skip_values=[0,1])
                     sage: ax.xaxis.set_major_formatter(formatter)
-                    sage: fig.savefig(os.path.join(SAGE_TMP, 'test.png'))
+                    sage: from tempfile import NamedTemporaryFile
+                    sage: with NamedTemporaryFile(suffix=".png") as f:
+                    ....:     fig.savefig(f.name)
                 """
                 self.formatter=formatter
                 self.skip_values=skip_values
+
             def set_locs(self, locs):
                 """
                 Set the locations for the ticks that are not skipped.
@@ -729,6 +744,7 @@ def SelectiveFormatter(formatter, skip_values):
                     sage: formatter.set_locs([i*100 for i in range(10)])
                 """
                 self.formatter.set_locs([l for l in locs if l not in self.skip_values])
+
             def __call__(self, x, *args, **kwds):
                 """
                 Return the format for tick val *x* at position *pos*
@@ -2053,7 +2069,7 @@ def _plot(funcs, xrange, parametric=False,
 
     OUTPUT: a ``Graphics`` object
 
-    EXAMPLES::
+    EXAMPLES:
 
     See :func:`plot` for many, many implicit examples.
     Here is an explicit one::
@@ -2094,8 +2110,6 @@ def _plot(funcs, xrange, parametric=False,
         2
         sage: q2
         Graphics object consisting of 2 graphics primitives
-
-    ::
 
     Make sure that we don't get multiple legend labels for plot segments
     (:trac:`11998`)::

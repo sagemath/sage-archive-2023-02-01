@@ -728,7 +728,8 @@ class Standalone(SageObject):
         # move the pdf into the good location
         if filename:
             filename = os.path.abspath(filename)
-            os.rename(temp_filename_pdf, filename)
+            import shutil
+            shutil.move(temp_filename_pdf, filename)
             return filename
 
         # open the tmp pdf
@@ -816,7 +817,8 @@ class Standalone(SageObject):
         # move the png into the good location
         if filename:
             filename = os.path.abspath(filename)
-            os.rename(temp_filename_png, filename)
+            import shutil
+            shutil.move(temp_filename_png, filename)
             return filename
 
         # open the tmp png
@@ -915,7 +917,8 @@ class Standalone(SageObject):
         # move the svg into the good location
         if filename:
             filename = os.path.abspath(filename)
-            os.rename(temp_filename_svg, filename)
+            import shutil
+            shutil.move(temp_filename_svg, filename)
             return filename
 
         # open the tmp svg
@@ -1319,7 +1322,7 @@ class TikzPicture(Standalone):
         if merge_multiedges and graph.has_multiple_edges():
             from collections import defaultdict
             d = defaultdict(list)
-            for (u, v, label) in graph.edges():
+            for (u, v, label) in graph.edges(sort=False):
                 d[(u, v)].append(label)
             edges = [(u, v, merge_label_function(label_list)) for (u, v), label_list in d.items()]
             loops = graph.has_loops()
@@ -1411,7 +1414,7 @@ class TikzPicture(Standalone):
         if merge_multiedges and graph.has_multiple_edges():
             from collections import defaultdict
             d = defaultdict(list)
-            for (u, v, label) in graph.edges():
+            for (u, v, label) in graph.edges(sort=True):
                 d[(u, v)].append(label)
             edges = [(u, v, merge_label_function(label_list)) for (u, v), label_list in d.items()]
             loops = graph.has_loops()
@@ -1430,7 +1433,7 @@ class TikzPicture(Standalone):
 
         # vertices
         lines.append(r'% vertices')
-        for u in graph.vertices():
+        for u in graph.vertices(sort=False):
             line = r'\node ({}) at {} {{{}}};'.format(keys_for_vertices(u),
                                                       pos[u], u)
             lines.append(line)
@@ -1438,7 +1441,7 @@ class TikzPicture(Standalone):
         # edges
         lines.append(r'% edges')
         arrow = '->' if graph.is_directed() else ''
-        for (u, v, label) in graph.edges():
+        for (u, v, label) in graph.edges(sort=True):
             if u == v:
                 # loops are done below
                 continue

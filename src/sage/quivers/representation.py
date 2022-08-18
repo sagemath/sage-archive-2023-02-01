@@ -25,7 +25,7 @@ additional paths as listed by the :class:`~sage.graphs.digraph.DiGraph`
 class; for example only two paths are listed from 1 to 3 in ``Q``::
 
     sage: Q = DiGraph({1:{2:['a','b'], 3:['c']}, 2:{3:['d']}})
-    sage: Q.edges()
+    sage: Q.edges(sort=True)
     [(1, 2, 'a'), (1, 2, 'b'), (1, 3, 'c'), (2, 3, 'd')]
     sage: Q.all_paths(1, 3)
     [[1, 2, 3], [1, 3]]
@@ -599,7 +599,7 @@ class QuiverRepFactory(UniqueFactory):
         has `n` vertices then the next `n` entries are the vector spaces
         to be assigned to those vertices.  After that are the matrices of
         the maps assigned to edges, listed in the same order that
-        ``Q.edges()`` uses.  If the option is ``'paths'`` or ``'dual paths'``
+        ``Q.edges(sort=True)`` uses.  If the option is ``'paths'`` or ``'dual paths'``
         then the next entry is a tuple containing a sorted list of the
         paths that form a basis of the quiver.
 
@@ -691,7 +691,7 @@ class QuiverRepFactory(UniqueFactory):
             # an integer is given set it as a free module of that rank, otherwise
             # assume the object is a module and assign it to the vertex.
             from sage.rings.finite_rings.integer_mod_ring import Integers
-            verts = Q.vertices()
+            verts = Q.vertices(sort=True)
             for x in verts:
                 if x not in spaces:
                     key.append(k**0)
@@ -703,7 +703,7 @@ class QuiverRepFactory(UniqueFactory):
             # The preferred method of specifying an edge is as a tuple
             # (i, t, l) where i is the initial vertex, t is the terminal
             # vertex, and l is the label.  This is the form in which
-            # quiver.edges() and other such functions give the edge.  But here
+            # quiver.edges(sort=True) and other such functions give the edge.  But here
             # edges can be specified by giving only the two vertices or giving
             # only the edge label.
             #
@@ -754,7 +754,7 @@ class QuiverRepFactory(UniqueFactory):
         vertices then the next `n` entries are the vector spaces to be
         assigned to those vertices.  After that are the matrices
         of the maps assigned to edges, listed in the same order that
-        ``Q.edges()`` uses.  If the option is ``'paths'`` or ``'dual paths'``
+        ``Q.edges(sort=True)`` uses.  If the option is ``'paths'`` or ``'dual paths'``
         then the next entry is a tuple containing a sorted list of the
         paths that form a basis of the quiver.
 
@@ -899,7 +899,7 @@ class QuiverRepElement(ModuleElement):
         # * _quiver
         #      The quiver of the representation.
 
-        super(QuiverRepElement, self).__init__(parent)
+        super().__init__(parent)
 
         self._elems = {}
         self._quiver = parent._quiver
@@ -1429,7 +1429,7 @@ class QuiverRep_generic(WithEqualityById, Module):
 
         # The preferred method of specifying an edge is as a tuple (i, t, l)
         # where i is the initial vertex, t is the terminal vertex, and l is the
-        # label.  This is the form in which quiver.edges() and other such
+        # label.  This is the form in which quiver.edges(sort=True) and other such
         # functions give the edge.  But here edges can be specified by giving
         # only the two vertices or giving only the edge label.
         for x in P._sorted_edges:
@@ -1454,7 +1454,7 @@ class QuiverRep_generic(WithEqualityById, Module):
 
         self._assert_valid_quiverrep()
 
-        super(QuiverRep_generic, self).__init__(k)  # Or explicitly Module.__init__(self, k)?
+        super().__init__(k)  # Or explicitly Module.__init__(self, k)?
 
     def _assert_valid_quiverrep(self):
         r"""
@@ -2815,7 +2815,7 @@ class QuiverRep_with_path_basis(QuiverRep_generic):
 
         # Create the spaces and then the representation
         spaces = dict((v, len(self._bases[v])) for v in Q)
-        super(QuiverRep_with_path_basis, self).__init__(k, P, spaces, maps)
+        super().__init__(k, P, spaces, maps)
 
         # Try and create the matrices for the left edge action of edges.  If it
         # fails just return, there's no edge action and the construction is
@@ -3032,4 +3032,4 @@ class QuiverRep_with_dual_path_basis(QuiverRep_generic):
 
         # Create the spaces and then the representation
         spaces = {v: len(self._bases[v]) for v in Q}
-        super(QuiverRep_with_dual_path_basis, self).__init__(k, P, spaces, maps)
+        super().__init__(k, P, spaces, maps)

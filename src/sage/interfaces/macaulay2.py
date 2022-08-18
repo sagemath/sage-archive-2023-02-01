@@ -126,7 +126,7 @@ from sage.interfaces.interface import AsciiArtString
 from sage.misc.multireplace import multiple_replace
 from sage.misc.superseded import deprecated_function_alias
 from sage.interfaces.tab_completion import ExtraTabCompletion
-from sage.docs.instancedoc import instancedoc
+from sage.misc.instancedoc import instancedoc
 from sage.structure.global_options import GlobalOptions
 
 
@@ -1632,7 +1632,7 @@ class Macaulay2Element(ExtraTabCompletion, ExpectElement):
                     graph_cls = DiGraph
                 adj_mat = self.adjacencyMatrix().sage()
                 g = graph_cls(adj_mat, format='adjacency_matrix')
-                g.relabel(self.vertices())
+                g.relabel(self.vertices(sort=True))
                 return g
             elif cls_str == "ChainComplex":
                 from sage.homology.chain_complex import ChainComplex

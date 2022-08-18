@@ -84,7 +84,7 @@ def IntervalGraph(intervals, points_ordered=False):
         sage: h = graphs.IntervalGraph(rev_intervals,False)
         sage: h.get_vertices()
         {0: (2, 1), 1: (2, 1), 2: (2, 1), 3: (3, 2), 4: (4, 3)}
-        sage: g.edges() == h.edges()
+        sage: g.edges(sort=True) == h.edges(sort=True)
         True
     """
     intervals = list(intervals)
@@ -92,21 +92,22 @@ def IntervalGraph(intervals, points_ordered=False):
     g = Graph(n)
 
     if points_ordered:
-        for i in range(n-1):
-            li,ri = intervals[i]
-            for j in range(i+1,n):
-                lj,rj = intervals[j]
+        for i in range(n - 1):
+            li, ri = intervals[i]
+            for j in range(i + 1, n):
+                lj, rj = intervals[j]
                 if ri < lj or rj < li:
                     continue
-                g.add_edge(i,j)
+                g.add_edge(i, j)
     else:
-        for i in range(n-1):
-            I = intervals[i]
-            for j in range(i+1,n):
+        for i in range(n - 1):
+            min_I = min(intervals[i])
+            max_I = max(intervals[i])
+            for j in range(i + 1, n):
                 J = intervals[j]
-                if max(I) < min(J) or max(J) < min(I):
+                if max_I < min(J) or max(J) < min_I:
                     continue
-                g.add_edge(i,j)
+                g.add_edge(i, j)
 
     rep = dict(zip(range(n), intervals))
     g.set_vertices(rep)
@@ -194,12 +195,12 @@ def PermutationGraph(second_permutation, first_permutation=None):
 
         sage: p = Permutations(5).random_element()
         sage: PG = graphs.PermutationGraph(p)
-        sage: edges = PG.edges(labels=False)
+        sage: edges = PG.edges(sort=True, labels=False)
         sage: set(edges) == set(p.inverse().inversions())
         True
 
         sage: PG = graphs.PermutationGraph([3,4,5,1,2])
-        sage: sorted(PG.edges())
+        sage: sorted(PG.edges(sort=True))
         [(1, 3, None),
          (1, 4, None),
          (1, 5, None),
@@ -207,7 +208,7 @@ def PermutationGraph(second_permutation, first_permutation=None):
          (2, 4, None),
          (2, 5, None)]
         sage: PG = graphs.PermutationGraph([3,4,5,1,2], [1,4,2,5,3])
-        sage: sorted(PG.edges())
+        sage: sorted(PG.edges(sort=True))
         [(1, 3, None),
          (1, 4, None),
          (1, 5, None),
@@ -216,7 +217,7 @@ def PermutationGraph(second_permutation, first_permutation=None):
          (3, 4, None),
          (3, 5, None)]
         sage: PG = graphs.PermutationGraph([1,4,2,5,3], [3,4,5,1,2])
-        sage: sorted(PG.edges())
+        sage: sorted(PG.edges(sort=True))
         [(1, 3, None),
          (1, 4, None),
          (1, 5, None),
@@ -226,16 +227,16 @@ def PermutationGraph(second_permutation, first_permutation=None):
          (3, 5, None)]
 
         sage: PG = graphs.PermutationGraph(Permutation([1,3,2]), Permutation([1,2,3]))
-        sage: sorted(PG.edges())
+        sage: sorted(PG.edges(sort=True))
         [(2, 3, None)]
 
-        sage: graphs.PermutationGraph([]).edges()
+        sage: graphs.PermutationGraph([]).edges(sort=True)
         []
-        sage: graphs.PermutationGraph([], []).edges()
+        sage: graphs.PermutationGraph([], []).edges(sort=True)
         []
 
         sage: PG = graphs.PermutationGraph("graph", "phrag")
-        sage: sorted(PG.edges())
+        sage: sorted(PG.edges(sort=True))
         [('a', 'g', None),
          ('a', 'h', None),
          ('a', 'p', None),
@@ -256,13 +257,13 @@ def PermutationGraph(second_permutation, first_permutation=None):
         first_permutation = sorted(second_permutation)
     else:
         if set(second_permutation) != set(first_permutation):
-            raise ValueError("The two permutations do not contain the same "+
-                             "set of elements ! It is going to be pretty "+
+            raise ValueError("The two permutations do not contain the same "
+                             "set of elements ! It is going to be pretty "
                              "hard to define a permutation graph from that !")
 
     vertex_to_index = {}
     for i, v in enumerate(first_permutation):
-        vertex_to_index[v] = i+1
+        vertex_to_index[v] = i + 1
 
     from sage.combinat.permutation import Permutation
     p2 = Permutation([vertex_to_index[x] for x in second_permutation])
@@ -271,8 +272,8 @@ def PermutationGraph(second_permutation, first_permutation=None):
     g = Graph(name="Permutation graph for "+str(second_permutation))
     g.add_vertices(second_permutation)
 
-    for u,v in p2.inversions():
-        g.add_edge(first_permutation[u-1], first_permutation[v-1])
+    for u, v in p2.inversions():
+        g.add_edge(first_permutation[u - 1], first_permutation[v - 1])
 
     return g
 
@@ -362,7 +363,7 @@ def ToleranceGraph(tolrep):
         for j in range(i + 1, n):
             lj, rj, tj = tolrep[j]
             if min(ri, rj) - max(li, lj) >= min(ti, tj):
-                g.add_edge(i,j)
+                g.add_edge(i, j)
 
     rep = dict(zip(range(n), tolrep))
     g.set_vertices(rep)
@@ -483,31 +484,31 @@ def OrthogonalArrayBlockGraph(k, n, OA=None):
         ...
         ValueError: There is no OA(8,2). Beware, Brouwer's website uses OA(n,k) instead of OA(k,n) !
     """
-    if n>1 and k>=n+2:
-        raise ValueError("There is no OA({},{}). Beware, Brouwer's website uses OA(n,k) instead of OA(k,n) !".format(k,n))
+    if n > 1 and k >= n + 2:
+        raise ValueError("There is no OA({},{}). Beware, Brouwer's website uses OA(n,k) instead of OA(k,n) !".format(k, n))
 
     from itertools import combinations
 
     if OA is None:
         from sage.combinat.designs.orthogonal_arrays import orthogonal_array
-        OA = orthogonal_array(k,n)
+        OA = orthogonal_array(k, n)
     else:
         assert len(OA) == n**2
         assert n == 0 or k == len(OA[0])
 
-    OA = map(tuple,OA)
+    OA = map(tuple, OA)
 
     d = [[[] for j in range(n)] for i in range(k)]
     for R in OA:
-        for i,x in enumerate(R):
+        for i, x in enumerate(R):
             d[i][x].append(R)
 
     g = Graph()
-    for l in d:
-        for ll in l:
-            g.add_edges(combinations(ll,2))
+    for L in d:
+        for ll in L:
+            g.add_edges(combinations(ll, 2))
 
-    g.name("OA({},{})".format(k,n))
+    g.name("OA({},{})".format(k, n))
 
     return g
 

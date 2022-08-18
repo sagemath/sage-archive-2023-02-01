@@ -103,17 +103,25 @@ the following source types:
 
    - the file ``package-version.txt`` is optional;
 
-   - installing the package runs the build and install scripts
+   - installing the package runs the installation script ``spkg-install``
      (see :ref:`section-spkg-install`);
 
    - Sage records the version number of the package installed using a file in
      ``$SAGE_LOCAL/var/lib/sage/installed/`` and will re-run the installation
      if ``package-version.txt`` changes.
 
+#. A ``dummy`` package:
+
+   - is only used for recording the names of equivalent system packages;
+
+   - there is no ``spkg-install`` script, and attempts to install the package
+     using Sage will give an error message.
+
 To summarize: the package source type is determined as follows: if
 there is a file ``requirements.txt``, it is a ``pip`` package. If not,
-then if there is a ``checksums.ini`` file, it is ``normal``;
-otherwise, it is a ``script`` package.
+then if there is a ``checksums.ini`` file, it is ``normal``.
+Otherwise, if it has an ``spkg-install`` script, it is a ``script`` package,
+and if it does not, then it is a ``dummy`` package.
 
 
 .. _section-directory-structure:
@@ -678,7 +686,6 @@ for ``eclib``:
 
     ----------
     All lines of this file are ignored except the first.
-    It is copied by SAGE_ROOT/build/make/install into SAGE_ROOT/build/make/Makefile.
 
 For Python packages, common dependencies include ``pip``,
 ``setuptools``, and ``future``. If your package depends on any of
@@ -699,7 +706,6 @@ If there are no dependencies, you can use
 
     ----------
     All lines of this file are ignored except the first.
-    It is copied by SAGE_ROOT/build/make/install into SAGE_ROOT/build/make/Makefile.
 
 There are actually two kinds of dependencies: there are normal
 dependencies and order-only dependencies, which are weaker. The syntax
@@ -718,11 +724,21 @@ If there is no ``|``, then all dependencies are normal.
   dependency (for example, a dependency on pip simply because the
   ``spkg-install`` file uses pip).
 
+  Alternatively, you can put the order-only dependencies in a separate
+  file ``dependencies_order_only``.
+
 - If A has a **normal dependency** on B, it means additionally that A
   should be rebuilt every time that B gets updated. This is the most
   common kind of dependency. A normal dependency is what you need for
   libraries: if we upgrade NTL, we should rebuild everything which
   uses NTL.
+
+Some packages are only needed for self-tests of a package (``spkg-check``).
+These dependencies should be declared in a separate file ``dependencies_check``.
+
+Some dependencies are optional in the sense that they are only
+a dependency if they are configured to be installed. These dependencies
+should be declared in a separate file ``dependencies_optional``.
 
 In order to check that the dependencies of your package are likely
 correct, the following command should work without errors::

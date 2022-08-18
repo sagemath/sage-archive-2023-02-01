@@ -868,7 +868,7 @@ class AbstractSimplex_class(SageObject):
             s_1 s_0 v
         """
         if self.degeneracies():
-            degens = ' '.join(['s_{}'.format(i) for i in self.degeneracies()])
+            degens = ' '.join(f's_{i}' for i in self.degeneracies())
             return degens + ' {}'.format(self.nondegenerate())
         return 'Delta^{}'.format(self._dim)
 
@@ -903,7 +903,7 @@ class AbstractSimplex_class(SageObject):
         else:
             simplex = "\\Delta^{{{}}}".format(self._dim)
         if self.degeneracies():
-            degens = ' '.join(['s_{{{}}}'.format(i) for i in self.degeneracies()])
+            degens = ' '.join(f's_{{{i}}}' for i in self.degeneracies())
             return degens + ' ' + simplex
         return simplex
 
@@ -1661,7 +1661,7 @@ class SimplicialSet_arbitrary(Parent):
 
             sage: Delta3 = simplicial_sets.Simplex(3)
             sage: G = Delta3.graph()
-            sage: G.edges()
+            sage: G.edges(sort=True)
             [((0,), (1,), (0, 1)),
              ((0,), (2,), (0, 2)),
              ((0,), (3,), (0, 3)),
@@ -1672,14 +1672,14 @@ class SimplicialSet_arbitrary(Parent):
             sage: T = simplicial_sets.Torus()
             sage: T.graph()
             Looped multi-graph on 1 vertex
-            sage: len(T.graph().edges())
+            sage: len(T.graph().edges(sort=False))
             3
 
             sage: CP3 = simplicial_sets.ComplexProjectiveSpace(3)
             sage: G = CP3.graph()
-            sage: len(G.vertices())
+            sage: len(G.vertices(sort=False))
             1
-            sage: len(G.edges())
+            sage: len(G.edges(sort=False))
             0
 
             sage: Sigma3 = groups.permutation.Symmetric(3)

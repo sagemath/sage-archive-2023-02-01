@@ -323,7 +323,7 @@ cdef class MixedIntegerLinearProgram(SageObject):
          sage: p = MixedIntegerLinearProgram(maximization=True,solver='GLPK')
          sage: b = p.new_variable(binary=True)
          sage: p.set_objective(sum([b[v] for v in g]))
-         sage: for (u,v) in g.edges(labels=None):
+         sage: for (u,v) in g.edges(sort=False, labels=None):
          ....:     p.add_constraint(b[u] + b[v], max=1)
          sage: p.solve(objective_only=True)
          4.0
@@ -1004,7 +1004,7 @@ cdef class MixedIntegerLinearProgram(SageObject):
             indices = list(xrange(b.nrows()))
 
         # Only one constraint
-        if isinstance(indices, int) or isinstance(indices, Integer):
+        if isinstance(indices, (int, Integer)):
             lb, ub = b.row_bounds(indices)
             return (lb, b.row(indices), ub)
 
@@ -1336,7 +1336,9 @@ cdef class MixedIntegerLinearProgram(SageObject):
             sage: x = p.new_variable(nonnegative=True)
             sage: p.set_objective(x[1] + x[2])
             sage: p.add_constraint(-3*x[1] + 2*x[2], max=2,name="OneConstraint")
-            sage: p.write_mps(os.path.join(SAGE_TMP, "lp_problem.mps"))
+            sage: import tempfile
+            sage: with tempfile.NamedTemporaryFile(suffix=".mps") as f:
+            ....:     p.write_mps(f.name)
             Writing problem data to ...
             17 records were written
 
@@ -1362,7 +1364,9 @@ cdef class MixedIntegerLinearProgram(SageObject):
             sage: x = p.new_variable(nonnegative=True)
             sage: p.set_objective(x[1] + x[2])
             sage: p.add_constraint(-3*x[1] + 2*x[2], max=2)
-            sage: p.write_lp(os.path.join(SAGE_TMP, "lp_problem.lp"))
+            sage: import tempfile
+            sage: with tempfile.NamedTemporaryFile(suffix=".lp") as f:
+            ....:     p.write_lp(f.name)
             Writing problem data to ...
             9 lines were written
 
@@ -2534,7 +2538,7 @@ cdef class MixedIntegerLinearProgram(SageObject):
             sage: p = MixedIntegerLinearProgram(maximization=True, solver='GLPK')
             sage: b = p.new_variable(nonnegative=True)
             sage: p.set_objective(sum([b[v] for v in g]))
-            sage: for (u,v) in g.edges(labels=None):
+            sage: for (u,v) in g.edges(sort=False, labels=None):
             ....:     p.add_constraint(b[u] + b[v], max=1)
             sage: p.set_binary(b)
             sage: p.solve(objective_only=True)

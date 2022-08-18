@@ -22,6 +22,7 @@ from copy import copy
 from math import sin, cos, pi
 from sage.graphs.graph import Graph
 from itertools import combinations
+import subprocess
 
 
 def JohnsonGraph(n, k):
@@ -1025,9 +1026,9 @@ def chang_graphs():
 
         sage: c3c5=graphs.CycleGraph(3).disjoint_union(graphs.CycleGraph(5))
         sage: c8=graphs.CycleGraph(8)
-        sage: s=[K8.subgraph_search(c8).edges(),
+        sage: s=[K8.subgraph_search(c8).edges(sort=False),
         ....:    [(0,1,None),(2,3,None),(4,5,None),(6,7,None)],
-        ....:    K8.subgraph_search(c3c5).edges()]
+        ....:    K8.subgraph_search(c3c5).edges(sort=False)]
         sage: list(map(lambda x,G: T8.seidel_switching(x, inplace=False).is_isomorphic(G),
         ....:                  s, chang_graphs))
         [True, True, True]
@@ -1119,7 +1120,7 @@ def CirculantGraph(n, adjacency):
 
         sage: graphs.CirculantGraph(6,1)==graphs.CycleGraph(6)
         True
-        sage: graphs.CirculantGraph(7,[1,3]).edges(labels=false)
+        sage: graphs.CirculantGraph(7,[1,3]).edges(sort=True, labels=false)
         [(0, 1),
         (0, 3),
         (0, 4),
@@ -1850,10 +1851,10 @@ def RoseWindowGraph(n, a, r):
 
     - ``n`` -- the number of nodes is `2 * n`
 
-    - ``a`` -- integer such that `1 \leq a < n` determing a-spoke edges
+    - ``a`` -- integer such that `1 \leq a < n` determining a-spoke edges
 
-    - ``r`` -- integer such that `1 \leq r < n` and `r \neq n / 2` determing how
-      inner vertices are connected
+    - ``r`` -- integer such that `1 \leq r < n` and `r \neq n / 2` determining
+      how inner vertices are connected
 
     PLOTTING: Upon construction, the position dictionary is filled to override
     the spring-layout algorithm. By convention, the rose window graphs are
@@ -2338,22 +2339,22 @@ def MycielskiStep(g):
     gg = copy(g)
 
     # rename a vertex v of gg as (1,v)
-    renamer = dict( [ (v, (1,v)) for v in g.vertices() ] )
+    renamer = {v: (1, v) for v in g}
     gg.relabel(renamer)
 
     # add the w vertices to gg as (2,v)
-    wlist = [ (2,v) for v in g.vertices() ]
+    wlist = [(2, v) for v in g]
     gg.add_vertices(wlist)
 
     # add the z vertex as (0,0)
     gg.add_vertex((0,0))
 
     # add the edges from z to w_i
-    gg.add_edges( [ ( (0,0) , (2,v) ) for v in g.vertices() ] )
+    gg.add_edges([((0, 0), (2, v)) for v in g] )
 
     # make the v_i w_j edges
-    for v in g.vertices():
-        gg.add_edges( [ ((1,v),(2,vv)) for vv in g.neighbors(v) ] )
+    for v in g:
+        gg.add_edges([((1,v),(2,vv)) for vv in g.neighbors(v)])
 
     return gg
 
@@ -2748,6 +2749,10 @@ def HanoiTowerGraph(pegs, disks, labels=True, positions=True):
     with the ``padsto`` option is a quick way to do this, though you
     may want to reverse the list that is output.
 
+    .. SEEALSO::
+
+        - :meth:`~sage.graphs.generators.families.GeneralizedSierpinskiGraph`
+
     PLOTTING:
 
     The layout computed when ``positions = True`` will
@@ -3063,11 +3068,11 @@ def petersen_family(generate=False):
         g = Graph('Fs\\zw')
         g._circle_embedding([1, 2, 3])
         g._circle_embedding([4, 5, 6], radius=.7)
-        g.get_pos()[0] = (0, 0)
+        g._pos[0] = (0, 0)
         l.append(g)
         g = Graph('GYQ[p{')
         g._circle_embedding([1, 4, 6, 0, 5, 7, 3], shift=0.25)
-        g.get_pos()[2] = (0, 0)
+        g._pos[2] = (0, 0)
         l.append(g)
         return l
 
@@ -3106,7 +3111,7 @@ def petersen_family(generate=False):
         l.add(g)
         g = Graph(g)
         # All possible Delta-Y transforms
-        for t in g.subgraph_search_iterator(Graph({1: [2, 3], 2: [3]})):
+        for t in g.subgraph_search_iterator(Graph({1: [2, 3], 2: [3]}), return_graphs=False):
             l_new.append(DeltaYTrans(g, t).graph6_string())
         # All possible Y-Delta transforms
         for v in g:
@@ -3148,12 +3153,13 @@ def SierpinskiGasketGraph(n):
 
         sphinx_plot(graphs.SierpinskiGasketGraph(4).plot(vertex_labels=False))
 
-
     .. SEEALSO::
 
-        There is another family of graphs called Sierpinski graphs,
-        where all vertices but 3 have valence 3. They are available using
-        ``graphs.HanoiTowerGraph(3, n)``.
+        - :meth:`~sage.graphs.generators.families.HanoiTowerGraph`. There is
+          another family of graphs called Sierpinski graphs, where all vertices
+          but 3 have valence 3. They are available using
+          ``graphs.HanoiTowerGraph(3, n)``.
+        - :meth:`~sage.graphs.generators.families.GeneralizedSierpinskiGraph`
 
     EXAMPLES::
 
@@ -3194,10 +3200,159 @@ def SierpinskiGasketGraph(n):
     dg.add_edges([(tuple(b), tuple(c)) for a, b, c in tri_list])
     dg.add_edges([(tuple(c), tuple(a)) for a, b, c in tri_list])
     dg.set_pos({(x, y): (x + y / 2, y * 3 / 4)
-                for (x, y) in dg.vertices()})
+                for (x, y) in dg})
     dg.relabel()
     return dg
 
+def GeneralizedSierpinskiGraph(G, k, stretch=None):
+    r"""
+    Return the generalized Sierpinski graph of `G` of dimension `k`.
+
+    Generalized Sierpinski graphs have been introduced in [GKP2011]_ to
+    generalize the notion of Sierpinski graphs [KM1997]_.
+
+    Given a graph `G = (V, E)` of order `n` and a parameter `k`, the generalized
+    Sierpinski graph of `G` of dimension `k`, denoted by `S(G, k)`, can be
+    constructed recursively from `G` as follows. `S(G, 1)` is isomorphic to
+    `G`. To construct `S(G, k)` for `k > 1`, copy `n` times `S(G, k - 1)`, once
+    per vertex `u \in V`, and add `u` at the beginning of the labels of each
+    vertex in the copy of `S(G, k - 1)` corresponding to vertex `u`. Then for
+    any edge `\{u, v\} \in E`, add an edge between vertex `(u, v, \ldots, v)`
+    and vertex `(v, u, \ldots, u)`.
+
+    INPUT:
+
+    - ``G`` -- a sage Graph
+
+    - ``k`` -- integer; the dimension
+
+    - ``stretch`` -- integer (default: ``None``); stretching factor used to
+      determine the positions of the vertices of the output graph. By default
+      (``None``), this value is set to twice the maximum Euclidian distance
+      between the vertices of `G`. This parameter is used only when the vertices
+      of `G` have positions.
+
+    .. SEEALSO::
+
+        - :meth:`~sage.graphs.generators.families.SierpinskiGasketGraph`
+        - :meth:`~sage.graphs.generators.families.HanoiTowerGraph`
+
+    EXAMPLES:
+
+    The generalized Sierpinski graph of dimension 1 of any graph `G`
+    is isomorphic to `G`::
+
+        sage: G = graphs.RandomGNP(10, .5)
+        sage: S = graphs.GeneralizedSierpinskiGraph(G, 1)
+        sage: S.is_isomorphic(G)
+        True
+
+    When `G` is a clique of order 3, the generalized Sierpinski graphs
+    of `G` are isomorphic to Hanoi Tower graphs::
+
+        sage: k = randint(1, 5)
+        sage: S = graphs.GeneralizedSierpinskiGraph(graphs.CompleteGraph(3), k)
+        sage: H = graphs.HanoiTowerGraph(3, k)
+        sage: S.is_isomorphic(H)
+        True
+
+    The generalized Sierpinski graph of dimension `k` of any graph `G` with `n`
+    vertices and `m` edges has `n^k` vertices and `m\sum_{i=0}^{k-1}n^i` edges::
+
+        sage: n = randint(2, 6)
+        sage: k = randint(1, 5)
+        sage: G = graphs.RandomGNP(n, .5)
+        sage: m = G.size()
+        sage: S = graphs.GeneralizedSierpinskiGraph(G, k)
+        sage: S.order() == n**k
+        True
+        sage: S.size() == m*sum([n**i for i in range(k)])
+        True
+        sage: G = graphs.CompleteGraph(n)
+        sage: S = graphs.GeneralizedSierpinskiGraph(G, k)
+        sage: S.order() == n**k
+        True
+        sage: S.size() == (n*(n - 1)/2)*sum([n**i for i in range(k)])
+        True
+
+    The positions of the vertices of the output graph are determined from the
+    positions of the vertices of `G`, if any::
+
+        sage: G = graphs.HouseGraph()
+        sage: G.get_pos() is not None
+        True
+        sage: H = graphs.GeneralizedSierpinskiGraph(G, 2)
+        sage: H.get_pos() is not None
+        True
+        sage: G = Graph([(0, 1)])
+        sage: G.get_pos() is not None
+        False
+        sage: H = graphs.GeneralizedSierpinskiGraph(G, 2)
+        sage: H.get_pos() is not None
+        False
+
+    .. PLOT::
+
+        sphinx_plot(graphs.GeneralizedSierpinskiGraph(graphs.HouseGraph(), 2).plot(vertex_labels=False))
+
+    TESTS::
+
+        sage: graphs.GeneralizedSierpinskiGraph(Graph(), 3)
+        Generalized Sierpinski Graph of Graph on 0 vertices of dimension 3: Graph on 0 vertices
+        sage: graphs.GeneralizedSierpinskiGraph(Graph(1), 3).vertices(sort=False)
+        [(0, 0, 0)]
+        sage: G = graphs.GeneralizedSierpinskiGraph(Graph(2), 3)
+        sage: G.order(), G.size()
+        (8, 0)
+        sage: graphs.GeneralizedSierpinskiGraph("foo", 1)
+        Traceback (most recent call last):
+        ...
+        ValueError: parameter G must be a Graph
+        sage: graphs.GeneralizedSierpinskiGraph(Graph(), 0)
+        Traceback (most recent call last):
+        ...
+        ValueError: parameter k must be >= 1
+    """
+    if not isinstance(G, Graph):
+        raise ValueError("parameter G must be a Graph")
+    if k < 1:
+        raise ValueError("parameter k must be >= 1")
+    loops = G.allows_loops()
+    multiedges = G.allows_multiple_edges()
+
+    def rec(H, kk):
+        if kk == 1:
+            return H
+        I = Graph(loops=loops, multiedges=multiedges)
+        # add one copy of H per vertex of G
+        for i in G:
+            J = H.relabel(perm={u: (i,) + u for u in H}, inplace=False)
+            I.add_vertices(J)
+            I.add_edges(J.edge_iterator(labels=False, sort_vertices=False))
+        # For each edge {u, v} of G, add edge {(u, v, ..., v), (v, u, ..., u)}
+        l = len(next(H.vertex_iterator()))
+        for u, v in G.edges(sort=True, labels=False):
+            I.add_edge((u,) + (v,)*l, (v,) + (u,)*l)
+        return rec(I, kk - 1)
+
+    H = G.relabel(perm={u: (u,) for u in G}, inplace=False)
+    if H and k > 1:
+        H = rec(H, k)
+    H.name("Generalized Sierpinski Graph of {} of dimension {}".format(G, k))
+
+    # If the vertices of G have positions, we set the positions of vertices of H
+    pos = G.get_pos()
+    if pos:
+        if stretch is None:
+            # Find the geometric diameter
+            from sage.modules.free_module_element import vector
+            L = [vector(p) for p in pos.values()]
+            stretch = 2 * max((u - v).norm() for u, v in combinations(L, 2))
+
+        H.set_pos({u: (sum(pos[x][0]*stretch**(k-i) for i, x in enumerate(u)),
+                       sum(pos[y][1]*stretch**(k-i) for i, y in enumerate(u)))
+                   for u in H})
+    return H
 
 def WheelGraph(n):
     """
@@ -3414,6 +3569,129 @@ def trees(vertices):
     from sage.graphs.trees import TreeIterator
     return iter(TreeIterator(vertices))
 
+def nauty_gentreeg(options="", debug=False):
+    r"""
+    Return a generator which creates non-isomorphic trees from nauty's gentreeg
+    program.
+
+    INPUT:
+
+    - ``options`` -- string (default: ``""``); a string passed to ``gentreeg``
+      as if it was run at a system command line. At a minimum, you *must* pass
+      the number of vertices you desire. Sage expects the graphs to be in
+      nauty's "sparse6" format, do not set an option to change this default or
+      results will be unpredictable.
+
+    - ``debug`` -- boolean (default: ``False``); if ``True`` the first line of
+      ``gentreeg``'s output to standard error is captured and the first call to
+      the generator's ``next()`` function will return this line as a string. A
+      line leading with ">A" indicates a successful initiation of the program
+      with some information on the arguments, while a line beginning with ">E"
+      indicates an error with the input.
+
+    The possible options, obtained as output of ``gentreeg -help``::
+
+           n            : the number of vertices. Must be in range 1..128
+        res/mod         : only generate subset res out of subsets 0..mod-1
+          -D<int>       : an upper bound for the maximum degree
+          -Z<int>:<int> : bounds on the diameter
+          -q            : suppress auxiliary output
+
+    Options which cause ``gentreeg`` to use an output format different than the
+    sparse6 format are not listed above (-p, -l, -u) as they will confuse the
+    creation of a Sage graph. The res/mod option can be useful when using the
+    output in a routine run several times in parallel.
+
+    OUTPUT:
+
+    A generator which will produce the graphs as Sage graphs. These will be
+    simple graphs: no loops, no multiple edges, no directed edges.
+
+    .. SEEALSO::
+
+        :meth:`trees` -- another generator of trees
+
+    EXAMPLES:
+
+    The generator can be used to construct trees for testing, one at a time
+    (usually inside a loop). Or it can be used to create an entire list all at
+    once if there is sufficient memory to contain it::
+
+        sage: gen = graphs.nauty_gentreeg("4")
+        sage: next(gen)
+        Graph on 4 vertices
+        sage: next(gen)
+        Graph on 4 vertices
+        sage: next(gen)
+        Traceback (most recent call last):
+        ...
+        StopIteration
+
+    The number of trees on the first few vertex counts. This agrees with
+    :oeis:`A000055`::
+
+        sage: [len(list(graphs.nauty_gentreeg(str(i)))) for i in range(1, 15)]
+        [1, 1, 1, 2, 3, 6, 11, 23, 47, 106, 235, 551, 1301, 3159]
+
+    The ``debug`` switch can be used to examine ``gentreeg``'s reaction to the
+    input in the ``options`` string.  We illustrate success. (A failure will be
+    a string beginning with ">E".)  Passing the "-q" switch to ``gentreeg`` will
+    suppress the indicator of a successful initiation, and so the first returned
+    value might be an empty string if ``debug`` is ``True``::
+
+        sage: gen = graphs.nauty_gentreeg("4", debug=True)
+        sage: print(next(gen))
+        >A ...gentreeg Z=2:3 D=3 n=4
+        sage: gen = graphs.nauty_gentreeg("4 -q", debug=True)
+        sage: next(gen)
+        ''
+
+    TESTS:
+
+    The number `n` of vertices must be in range 1..128::
+
+        sage: list(graphs.nauty_gentreeg("0", debug=False))
+        Traceback (most recent call last):
+        ...
+        ValueError: wrong format of parameter options
+        sage: list(graphs.nauty_gentreeg("0", debug=True))
+        ['>E gentreeg: n must be in the range 1..128\n']
+        sage: list(graphs.nauty_gentreeg("200", debug=True))
+        ['>E gentreeg: n must be in the range 1..128\n']
+
+    Wrong input::
+
+        sage: list(graphs.nauty_gentreeg("3 -x", debug=False))
+        Traceback (most recent call last):
+        ...
+        ValueError: wrong format of parameter options
+        sage: list(graphs.nauty_gentreeg("3 -x", debug=True))
+        ['>E Usage: ...gentreeg [-D#] [-Z#:#] [-ulps] [-q] n [res/mod] ...
+        sage: list(graphs.nauty_gentreeg("3", debug=True))
+        ['>A ...gentreeg Z=2:2 D=2 n=3\n', Graph on 3 vertices]
+    """
+    import shlex
+    from sage.features.nauty import NautyExecutable
+    gen_path = NautyExecutable("gentreeg").absolute_filename()
+    sp = subprocess.Popen(shlex.quote(gen_path) + " {0}".format(options), shell=True,
+                          stdin=subprocess.PIPE, stdout=subprocess.PIPE,
+                          stderr=subprocess.PIPE, close_fds=True,
+                          encoding='latin-1')
+    msg = sp.stderr.readline()
+    if debug:
+        yield msg
+    elif msg.startswith('>E'):
+        raise ValueError('wrong format of parameter options')
+    gen = sp.stdout
+    while True:
+        try:
+            s = next(gen)
+        except StopIteration:
+            # Exhausted list of graphs from nauty geng
+            return
+        G = Graph(s[:-1], format='sparse6', loops=False, multiedges=False)
+        yield G
+
 def RingedTree(k, vertex_labels = True):
     r"""
     Return the ringed tree on k-levels.
@@ -3440,7 +3718,7 @@ def RingedTree(k, vertex_labels = True):
         sage: G = graphs.RingedTree(5)
         sage: P = G.plot(vertex_labels=False, vertex_size=10)
         sage: P.show() # long time
-        sage: G.vertices()
+        sage: G.vertices(sort=True)
         ['', '0', '00', '000', '0000', '0001', '001', '0010', '0011', '01',
          '010', '0100', '0101', '011', '0110', '0111', '1', '10', '100',
          '1000', '1001', '101', '1010', '1011', '11', '110', '1100', '1101',
@@ -3453,7 +3731,7 @@ def RingedTree(k, vertex_labels = True):
         ...
         ValueError: The number of levels must be >= 1.
         sage: G = graphs.RingedTree(5, vertex_labels = False)
-        sage: G.vertices()
+        sage: G.vertices(sort=True)
         [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17,
         18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30]
     """
@@ -3477,7 +3755,7 @@ def RingedTree(k, vertex_labels = True):
         g._circle_embedding(vertices, radius = radius, shift = shift)
 
     # Specific position for the central vertex
-    g.get_pos()[0] = (0,0.2)
+    g._pos[0] = (0,0.2)
 
     # Relabel vertices as binary words
     if not vertex_labels:
@@ -3709,25 +3987,34 @@ def TuranGraph(n,r):
 
     INPUT:
 
-    - ``n`` (integer)-- the number of vertices in the graph.
+    - ``n`` -- integer; the number of vertices in the graph
 
-    - ``r`` (integer) -- the number of partitions of the graph.
+    - ``r`` -- integer; the number of partitions of the graph
 
     EXAMPLES:
 
-    The Turan graph is a complete multipartite graph.  ::
+    The Turan graph is a complete multipartite graph::
 
         sage: g = graphs.TuranGraph(13, 4)
         sage: k = graphs.CompleteMultipartiteGraph([3,3,3,4])
         sage: g.is_isomorphic(k)
         True
 
-    The Turan graph `T(n,r)` has `\lfloor \frac{(r-1)(n^2)}{2r} \rfloor` edges.  ::
+    The Turan graph `T(n,r)` has `\frac{(r-1)(n^2-s^2)}{2r} + \frac{s(s-1)}{2}`
+    edges, where `s = n \mod r` (:trac:`34249`)::
 
-        sage: n = 13
-        sage: r = 4
-        sage: g = graphs.TuranGraph(n,r)
-        sage: g.size() == (r-1) * (n**2) // (2*r)
+        sage: n = 12
+        sage: r = 8
+        sage: g = graphs.TuranGraph(n, r)
+        sage: def count(n, r):
+        ....:     s = n % r
+        ....:     return (r - 1) * (n**2 - s**2) / (2*r) + s*(s - 1)/2
+        sage: g.size() == count(n, r)
+        True
+        sage: n = randint(3, 100)
+        sage: r = randint(2, n - 1)
+        sage: g = graphs.TuranGraph(n, r)
+        sage: g.size() == count(n, r)
         True
 
     TESTS::
@@ -3735,18 +4022,19 @@ def TuranGraph(n,r):
         sage: g = graphs.TuranGraph(3,6)
         Traceback (most recent call last):
         ...
-        ValueError: Input parameters must satisfy "1 < r < n".
+        ValueError: input parameters must satisfy "1 < r < n"
     """
-
-    if n<1 or n<r or r<1:
-        raise ValueError('Input parameters must satisfy "1 < r < n".')
+    if n < 1 or n < r or r < 1:
+        raise ValueError('input parameters must satisfy "1 < r < n"')
 
     from sage.graphs.generators.basic import CompleteMultipartiteGraph
 
-    vertex_sets = [n//r]*(r-(n%r))+[n//r+1]*(n%r)
+    p = n // r
+    s = n % r
+    vertex_sets = [p]*(r - s) + [p + 1]*s
 
     g = CompleteMultipartiteGraph(vertex_sets)
-    g.name('Turan Graph with n: {}, r: {}'.format(n,r))
+    g.name('Turan Graph with n: {}, r: {}'.format(n, r))
 
     return g
 
@@ -3966,7 +4254,7 @@ def MuzychukS6Graph(n, d, Phi='fixed', Sigma='fixed', verbose=False):
 
     # build V
     edges = [] ###how many? *m^2*n^2
-    for (i, j) in L.edges(labels=False):
+    for (i, j) in L.edges(sort=True, labels=False):
         for hyp in phi[(i, (i, j))]:
             for x in hyp:
                 newEdges = [((i, x), (j, y))

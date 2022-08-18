@@ -648,7 +648,7 @@ cdef class CoxGroup(SageObject):
             sage: W = CoxGroup(['A', 5])                                         # optional - coxeter3
             sage: W.coxeter_graph()                                              # optional - coxeter3
             Graph on 5 vertices
-            sage: sorted(W.coxeter_graph().edges())                              # optional - coxeter3
+            sage: W.coxeter_graph().edges(sort=True)                             # optional - coxeter3
             [(1, 2, None), (2, 3, None), (3, 4, None), (4, 5, None)]
         """
         from sage.graphs.graph import Graph
@@ -1144,7 +1144,7 @@ cdef LFlags_to_list(CoxGroup parent, LFlags f):
         f1 = f1 & (f1-1)
     return l
 
-class CoxGroupIterator(object):
+class CoxGroupIterator():
     def __init__(self, group):
         """
         A class used to iterate over all of the elements of a Coxeter group.

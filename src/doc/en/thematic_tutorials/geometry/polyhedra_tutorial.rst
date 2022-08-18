@@ -27,7 +27,8 @@ Preparation of this document was supported in part by the OpenDreamKit project a
 during the SageDays 84 in Olot (Spain).
 
 .. contents:: Lectures Menu
-    :depth: 2
+   :depth: 2
+   :class: this-will-duplicate-information-and-it-is-still-useful-here
 
 Lecture 0: Basic definitions and constructions
 ==============================================
@@ -658,7 +659,8 @@ An example with quadratic field:
     sage: V = polytopes.dodecahedron().vertices_list()                                    # optional - sage.rings.number_field
     sage: Polyhedron(vertices=V, backend='polymake')               # optional - polymake  # optional - sage.rings.number_field
     A 3-dimensional polyhedron
-     in (Number Field in sqrt5 with defining polynomial x^2 - 5)^3
+     in (Number Field in sqrt5 with defining polynomial x^2 - 5
+     with sqrt5 = 2.236067977499790?)^3
      defined as the convex hull of 20 vertices
 
 .. end of output

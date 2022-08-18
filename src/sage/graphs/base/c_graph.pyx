@@ -53,8 +53,10 @@ from sage.rings.integer_ring import ZZ
 from cysignals.memory cimport check_allocarray, sig_free
 from sage.data_structures.bitset cimport FrozenBitset
 
+
 cdef extern from "Python.h":
     int unlikely(int) nogil  # Defined by Cython
+
 
 cdef class CGraph:
     """
@@ -327,7 +329,7 @@ cdef class CGraph:
                 "requested vertex is past twice the allocated range: "
                 "use realloc")
         if (k >= <int>self.active_vertices.size or
-            (k == -1 and self.active_vertices.size == <mp_bitcnt_t>self.num_verts)):
+                (k == -1 and self.active_vertices.size == <mp_bitcnt_t>self.num_verts)):
             self.realloc(2 * self.active_vertices.size)
         return self.add_vertex_unsafe(k)
 
@@ -520,7 +522,6 @@ cdef class CGraph:
         """
         if self.has_vertex(v):
             self.del_vertex_unsafe(v)
-
 
     cpdef int current_allocation(self):
         r"""
@@ -1003,7 +1004,7 @@ cdef class CGraph:
         self.check_vertex(v)
         if l < 0:
             raise ValueError("Label ({0}) must be a nonnegative integer.".format(l))
-        self.del_arc_label_unsafe(u,v,l)
+        self.del_arc_label_unsafe(u, v, l)
 
     cpdef bint has_arc_label(self, int u, int v, int l):
         """
@@ -1035,7 +1036,7 @@ cdef class CGraph:
         self.check_vertex(v)
         if l < 0:
             raise ValueError("Label ({0}) must be a nonnegative integer.".format(l))
-        return self.has_arc_label_unsafe(u,v,l) == 1
+        return self.has_arc_label_unsafe(u, v, l) == 1
 
     ###################################
     # Neighbor Functions
@@ -1349,7 +1350,7 @@ cdef class CGraphBackend(GenericGraphBackend):
 
         sage: G = Graph(30)
         sage: G.add_edges([(0,1), (0,3), (4,5), (9, 23)])
-        sage: G.edges(labels=False)
+        sage: G.edges(sort=True, labels=False)
         [(0, 1), (0, 3), (4, 5), (9, 23)]
 
     This class handles the labels of vertices and edges. For vertices it uses
@@ -1459,37 +1460,37 @@ cdef class CGraphBackend(GenericGraphBackend):
 
             sage: G = Graph({1:[1]}); G
             Looped graph on 1 vertex
-            sage: G.edges(labels=False)
+            sage: G.edges(sort=True, labels=False)
             [(1, 1)]
             sage: G.size()
             1
             sage: G = Graph({1:[2,2]}); G
             Multi-graph on 2 vertices
-            sage: G.edges(labels=False)
+            sage: G.edges(sort=True, labels=False)
             [(1, 2), (1, 2)]
             sage: G.size()
             2
             sage: G = Graph({1:[1,1]}); G
             Looped multi-graph on 1 vertex
-            sage: G.edges(labels=False)
+            sage: G.edges(sort=True, labels=False)
             [(1, 1), (1, 1)]
             sage: G.size()
             2
             sage: D = DiGraph({1:[1]}); D
             Looped digraph on 1 vertex
-            sage: D.edges(labels=False)
+            sage: D.edges(sort=True, labels=False)
             [(1, 1)]
             sage: D.size()
             1
             sage: D = DiGraph({1:[2,2], 2:[1,1]}); D
             Multi-digraph on 2 vertices
-            sage: D.edges(labels=False)
+            sage: D.edges(sort=True, labels=False)
             [(1, 2), (1, 2), (2, 1), (2, 1)]
             sage: D.size()
             4
             sage: D = DiGraph({1:[1,1]}); D
             Looped multi-digraph on 1 vertex
-            sage: D.edges(labels=False)
+            sage: D.edges(sort=True, labels=False)
             [(1, 1), (1, 1)]
             sage: D.size()
             2
@@ -1580,7 +1581,7 @@ cdef class CGraphBackend(GenericGraphBackend):
             sage: S.<x> = R[]
             sage: G.add_vertex(a**2)
             sage: G.add_vertex(x)
-            sage: G.vertices()
+            sage: G.vertices(sort=True)
             [a^2, x]
 
         And that the bug described in :trac:`9610` is gone::
@@ -1589,7 +1590,7 @@ cdef class CGraphBackend(GenericGraphBackend):
             sage: k = 3
             sage: g = DiGraph()
             sage: g.add_edges((i, Mod(i + j, n)) for i in range(n) for j in range(1, k + 1))
-            sage: g.vertices()
+            sage: g.vertices(sort=True)
             [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19]
             sage: g.strongly_connected_components()
             [[0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19]]
@@ -1601,11 +1602,10 @@ cdef class CGraphBackend(GenericGraphBackend):
             sage: A = Set([RDF.random_element(min=0, max=10) for k in range(10)])
             sage: G = Graph()
             sage: G.add_vertices(A)
-            sage: Set(G.vertices()) == A
+            sage: Set(G.vertices(sort=False)) == A
             True
-
         """
-        cdef dict vertex_ints   = self.vertex_ints
+        cdef dict vertex_ints = self.vertex_ints
         cdef dict vertex_labels = self.vertex_labels
         cdef CGraph G = self.cg()
         cdef long u_long
@@ -1735,9 +1735,9 @@ cdef class CGraphBackend(GenericGraphBackend):
         retval = None
         if name is None:
             name = 0
-            while name in self.vertex_ints or (
-                name not in self.vertex_labels and
-                bitset_in(self.cg().active_vertices, <mp_bitcnt_t> name)):
+            while (name in self.vertex_ints or
+                   (name not in self.vertex_labels and
+                    bitset_in(self.cg().active_vertices, <mp_bitcnt_t> name))):
                 name += 1
             retval = name
 
@@ -1921,8 +1921,8 @@ cdef class CGraphBackend(GenericGraphBackend):
             i = bitset_first(self.cg().active_vertices)
             while i != <size_t>-1:
                 if (i not in self.vertex_labels
-                    and i not in self.vertex_ints):
-                        yield i
+                        and i not in self.vertex_ints):
+                    yield i
                 i = bitset_next(self.cg().active_vertices, i + 1)
             return
 
@@ -1955,7 +1955,7 @@ cdef class CGraphBackend(GenericGraphBackend):
 
             sage: G = Graph(graphs.PetersenGraph())
             sage: G._backend.relabel(range(9,-1,-1), False)
-            sage: G.edges()
+            sage: G.edges(sort=True)
             [(0, 2, None),
              (0, 3, None),
              (0, 5, None),
@@ -2019,7 +2019,7 @@ cdef class CGraphBackend(GenericGraphBackend):
             ....:         G.add_edge(u, v)
             sage: G = Graph({1:[1]}); G
             Looped graph on 1 vertex
-            sage: G.edges(labels=False)
+            sage: G.edges(sort=True, labels=False)
             [(1, 1)]
             sage: G.degree(); G.size()
             [2]
@@ -2033,7 +2033,7 @@ cdef class CGraphBackend(GenericGraphBackend):
             True
             sage: G = Graph({1:[2,2], 2:[3]}); G
             Multi-graph on 3 vertices
-            sage: G.edges(labels=False)
+            sage: G.edges(sort=True, labels=False)
             [(1, 2), (1, 2), (2, 3)]
             sage: G.degree(); G.size()
             [2, 3, 1]
@@ -2047,7 +2047,7 @@ cdef class CGraphBackend(GenericGraphBackend):
             True
             sage: D = DiGraph({1:[2], 2:[1,3]}); D
             Digraph on 3 vertices
-            sage: D.edges(labels=False)
+            sage: D.edges(sort=True, labels=False)
             [(1, 2), (2, 1), (2, 3)]
             sage: D.degree(); D.size()
             [2, 3, 1]
@@ -2067,12 +2067,12 @@ cdef class CGraphBackend(GenericGraphBackend):
             sage: G.allow_loops(True)
             sage: G.add_edge(1,1)
             sage: G.add_edge(1,1)
-            sage: G.edges(labels=False)
+            sage: G.edges(sort=True, labels=False)
             [(1, 1), (1, 1), (1, 2), (1, 2), (1, 2)]
             sage: G.degree(1)
             7
             sage: G.allow_loops(False)
-            sage: G.edges(labels=False)
+            sage: G.edges(sort=True, labels=False)
             [(1, 2), (1, 2), (1, 2)]
             sage: G.degree(1)
             3
@@ -2087,7 +2087,7 @@ cdef class CGraphBackend(GenericGraphBackend):
             sage: G.degree(1)
             11
             sage: G.allow_loops(False)
-            sage: G.edges()
+            sage: G.edges(sort=True)
             [(1, 2, 'a'), (1, 2, 'a'), (1, 2, 'a')]
             sage: G.degree(1)
             3
@@ -2095,12 +2095,12 @@ cdef class CGraphBackend(GenericGraphBackend):
             sage: G.allow_loops(True)
             sage: G.add_edge(1,1,'b')
             sage: G.add_edge(1,1,'b')
-            sage: G.edges()
+            sage: G.edges(sort=True)
             [(1, 1, 'b'), (1, 1, 'b'), (1, 2, 'a'), (1, 2, 'a'), (1, 2, 'a')]
             sage: G.degree(1)
             7
             sage: G.allow_loops(False)
-            sage: G.edges()
+            sage: G.edges(sort=True)
             [(1, 2, 'a'), (1, 2, 'a'), (1, 2, 'a')]
             sage: G.degree(1)
             3
@@ -2345,16 +2345,16 @@ cdef class CGraphBackend(GenericGraphBackend):
              (5, 6, None)]
 
         """
-        cdef object u,v,l,e
+        cdef object u, v, l, e
         for e in edges:
             if len(e) == 3:
-                u,v,l = e
+                u, v, l = e
             else:
-                u,v = e
+                u, v = e
                 l = None
             if unlikely(remove_loops and u == v):
                 continue
-            self.add_edge(u,v,l,directed)
+            self.add_edge(u, v, l, directed)
 
     cpdef add_edge(self, object u, object v, object l, bint directed):
         """
@@ -2392,7 +2392,7 @@ cdef class CGraphBackend(GenericGraphBackend):
             sage: D = DiGraph(sparse=True)
             sage: D.add_edge(0,1,2)
             sage: D.add_edge(0,1,3)
-            sage: D.edges()
+            sage: D.edges(sort=True)
             [(0, 1, 3)]
 
         Check :trac:`22991` for sparse backend::
@@ -2403,7 +2403,7 @@ cdef class CGraphBackend(GenericGraphBackend):
             ...
             ValueError: cannot add edge from 0 to 0 in graph without loops
             sage: G = Graph(3, sparse=True, loops=True)
-            sage: G.add_edge(0,0); G.edges()
+            sage: G.add_edge(0,0); G.edges(sort=True)
             [(0, 0, None)]
 
         Check :trac:`22991` for dense backend::
@@ -2414,7 +2414,7 @@ cdef class CGraphBackend(GenericGraphBackend):
             ...
             ValueError: cannot add edge from 0 to 0 in graph without loops
             sage: G = Graph(3, sparse=True, loops=True)
-            sage: G.add_edge(0, 0); G.edges()
+            sage: G.add_edge(0, 0); G.edges(sort=True)
             [(0, 0, None)]
 
         Remove edges correctly when multiedges are not allowed (:trac:`28077`)::
@@ -2428,8 +2428,10 @@ cdef class CGraphBackend(GenericGraphBackend):
             sage: D.shortest_path(1, 2)
             []
         """
-        if u is None: u = self.add_vertex(None)
-        if v is None: v = self.add_vertex(None)
+        if u is None:
+            u = self.add_vertex(None)
+        if v is None:
+            v = self.add_vertex(None)
 
         cdef int u_int = self.check_labelled_vertex(u, False)
         cdef int v_int = self.check_labelled_vertex(v, False)
@@ -2477,14 +2479,14 @@ cdef class CGraphBackend(GenericGraphBackend):
             []
 
         """
-        cdef object u,v,l,e
+        cdef object u, v, l, e
         for e in edges:
             if len(e) == 3:
-                u,v,l = e
+                u, v, l = e
             else:
-                u,v = e
+                u, v = e
                 l = None
-            self.del_edge(u,v,l,directed)
+            self.del_edge(u, v, l, directed)
 
     cpdef del_edge(self, object u, object v, object l, bint directed):
         """
@@ -2546,22 +2548,22 @@ cdef class CGraphBackend(GenericGraphBackend):
             sage: G = Graph(sparse=True)
             sage: G.add_edge(0,1,2)
             sage: G.delete_edge(0,1)
-            sage: G.edges()
+            sage: G.edges(sort=True)
             []
 
             sage: G = Graph(multiedges=True, sparse=True)
             sage: G.add_edge(0,1,2)
             sage: G.add_edge(0,1,None)
             sage: G.delete_edge(0,1)
-            sage: G.edges()
+            sage: G.edges(sort=True)
             [(0, 1, 2)]
 
         Do we remove loops correctly? (:trac:`12135`)::
 
             sage: g=Graph({0:[0,0,0]}, sparse=True)
-            sage: g.edges(labels=False)
+            sage: g.edges(sort=True, labels=False)
             [(0, 0), (0, 0), (0, 0)]
-            sage: g.delete_edge(0,0); g.edges(labels=False)
+            sage: g.delete_edge(0,0); g.edges(sort=True, labels=False)
             [(0, 0), (0, 0)]
         """
         cdef int u_int = self.get_vertex_checked(u)
@@ -2870,7 +2872,7 @@ cdef class CGraphBackend(GenericGraphBackend):
                     # Yield the arc/arcs.
                     v_copy = v
                     if _reorganize_edge(v, u, modus):
-                        u,v = v,u
+                        u, v = v, u
 
                     if not self._multiple_edges:
                         if labels:
@@ -3198,7 +3200,6 @@ cdef class CGraphBackend(GenericGraphBackend):
             # Avoiding "Bitset must not be empty"
             # in this case there is nothing to do
             return 1
-
 
         cdef int length = len(b_vertices)
         cdef int i
@@ -3657,9 +3658,9 @@ cdef class CGraphBackend(GenericGraphBackend):
         return []
 
     def bidirectional_dijkstra_special(self, x, y, weight_function=None,
-                               exclude_vertices=None, exclude_edges=None,
-                               include_vertices=None, distance_flag=False,
-                               reduced_weight=None):
+                                       exclude_vertices=None, exclude_edges=None,
+                                       include_vertices=None, distance_flag=False,
+                                       reduced_weight=None):
         r"""
         Return the shortest path or distance from ``x`` to ``y`` using a
         bidirectional version of Dijkstra's algorithm.
@@ -3931,7 +3932,7 @@ cdef class CGraphBackend(GenericGraphBackend):
         EXAMPLES::
 
             sage: G = Graph(graphs.PetersenGraph())
-            sage: for (u, v) in G.edges(labels=None):
+            sage: for (u, v) in G.edges(sort=True, labels=None):
             ....:    G.set_edge_label(u, v, 1)
             sage: G.shortest_path(0, 1, by_weight=True)
             [0, 1]
@@ -4104,8 +4105,8 @@ cdef class CGraphBackend(GenericGraphBackend):
     def shortest_path_all_vertices(self, v, cutoff=None,
                                    distance_flag=False):
         r"""
-        Return for each vertex ``u`` a shortest ``v-u`` path or distance from
-        ``v`` to ``u``.
+        Return for each reachable vertex ``u`` a shortest ``v-u`` path or
+        distance from ``v`` to ``u``.
 
         INPUT:
 
@@ -4145,7 +4146,7 @@ cdef class CGraphBackend(GenericGraphBackend):
             sage: g._backend.shortest_path_all_vertices(0, distance_flag=True)
             {0: 0, 1: 1, 2: 2, 3: 2, 4: 1, 5: 1, 6: 2, 7: 2, 8: 2, 9: 2}
 
-        On a disconnected graph ::
+        On a disconnected graph::
 
             sage: g = 2 * graphs.RandomGNP(20, .3)
             sage: paths = g._backend.shortest_path_all_vertices(0)
@@ -4202,13 +4203,6 @@ cdef class CGraphBackend(GenericGraphBackend):
 
             current_layer = next_layer
             next_layer = []
-
-        # If the graph is not connected, vertices which have not been
-        # seen should be associated to the empty path
-
-        #for 0 <= v_int < (<CGraph>self._cg).active_vertices.size:
-        #    if bitset_in((<CGraph>self._cg).active_vertices, v_int) and not bitset_in(seen, v_int):
-        #        distances[vertex_label(v_int, self.vertex_ints, self.vertex_labels, self._cg)] = []
 
         bitset_free(seen)
         return distances
@@ -4588,7 +4582,7 @@ cdef class CGraphBackend(GenericGraphBackend):
             sage: def random_acyclic(n, p):
             ....:  g = graphs.RandomGNP(n, p)
             ....:  h = DiGraph()
-            ....:  h.add_edges([ ((u,v) if u<v else (v,u)) for u,v,_ in g.edges() ])
+            ....:  h.add_edges([ ((u,v) if u<v else (v,u)) for u,v,_ in g.edges(sort=True) ])
             ....:  return h
             ...
             sage: all( random_acyclic(100, .2).is_directed_acyclic()    # long time
@@ -4688,7 +4682,7 @@ cdef class CGraphBackend(GenericGraphBackend):
 
                         tmp = u
                         while u != uu:
-                            u = parent.get(u,uu)
+                            u = parent.get(u, uu)
                             cycle.append(self.vertex_label(u))
 
                         cycle.reverse()

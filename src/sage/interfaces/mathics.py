@@ -389,7 +389,7 @@ import os
 from sage.misc.cachefunc import cached_method
 from sage.interfaces.interface import Interface, InterfaceElement, InterfaceFunction, InterfaceFunctionElement
 from sage.interfaces.tab_completion import ExtraTabCompletion
-from sage.docs.instancedoc import instancedoc
+from sage.misc.instancedoc import instancedoc
 from sage.structure.richcmp import rich_to_bool
 
 
@@ -979,17 +979,20 @@ class MathicsElement(ExtraTabCompletion, InterfaceElement):
 
         This method works successfully when Mathics returns a result
         or list of results that consist only of:
+
         - numbers, i.e. integers, floats, complex numbers;
         - functions and named constants also present in Sage, where:
             - Sage knows how to translate the function or constant's name
-            from Mathics's naming scheme, or
+              from Mathics's naming scheme, or
             - you provide a translation dictionary `locals`, or
             - the Sage name for the function or constant is simply the
-             Mathics name in lower case;
-        - symbolic variables whose names don't pathologically overlap with
+              Mathics name in lower case;
+
+        - symbolic variables whose names do not pathologically overlap with
           objects already defined in Sage.
 
         This method will not work when Mathics's output includes:
+
         - strings;
         - functions unknown to Sage;
         - Mathics functions with different parameters/parameter order to

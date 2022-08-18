@@ -62,6 +62,7 @@ Below are listed all methods and classes defined in this file.
     :meth:`~sage.combinat.permutation.Permutation.runs` | Returns a list of the runs in the permutation ``self``.
     :meth:`~sage.combinat.permutation.Permutation.longest_increasing_subsequence_length` | Returns the length of the longest increasing subsequences of ``self``.
     :meth:`~sage.combinat.permutation.Permutation.longest_increasing_subsequences` | Returns the list of the longest increasing subsequences of ``self``.
+    :meth:`~sage.combinat.permutation.Permutation.longest_increasing_subsequences_number` | Returns the number of longest increasing subsequences
     :meth:`~sage.combinat.permutation.Permutation.cycle_type` | Returns the cycle type of ``self`` as a partition of ``len(self)``.
     :meth:`~sage.combinat.permutation.Permutation.foata_bijection` | Returns the image of the permutation ``self`` under the Foata bijection `\phi`.
     :meth:`~sage.combinat.permutation.Permutation.foata_bijection_inverse` | Returns the image of the permutation ``self`` under the inverse of the Foata bijection `\phi`.
@@ -1643,7 +1644,7 @@ class Permutation(CombinatorialElement):
                         break
             stack.append(j)
         sorted_p.extend(reversed(stack))
-        return Permutation(sorted_p)  # type: ignore
+        return Permutation(sorted_p)  # type:ignore
 
     def to_digraph(self) -> DiGraph:
         r"""
@@ -1652,7 +1653,7 @@ class Permutation(CombinatorialElement):
         EXAMPLES::
 
             sage: d = Permutation([3, 1, 2]).to_digraph()
-            sage: d.edges(labels=False)
+            sage: d.edges(sort=True, labels=False)
             [(1, 3), (2, 1), (3, 2)]
             sage: P = Permutations(range(1, 10))
             sage: d = Permutation(P.random_element()).to_digraph()
@@ -1662,7 +1663,7 @@ class Permutation(CombinatorialElement):
         TESTS::
 
             sage: d = Permutation([1]).to_digraph()
-            sage: d.edges(labels=False)
+            sage: d.edges(sort=True, labels=False)
             [(1, 1)]
         """
         return DiGraph([self, enumerate(self, start=1)],
@@ -2194,22 +2195,29 @@ class Permutation(CombinatorialElement):
             sage: Permutation([]).longest_increasing_subsequence_length()
             0
         """
+        from bisect import bisect
         r: list[int] = []
-        for x in self:
-            if max(r+[0]) > x:
-                y = min(z for z in r if z > x)
-                r[r.index(y)] = x
-            else:
+        for x in self._list:
+            # Search for the smallest value y larger than x
+            idx = bisect(r, x)
+            if idx == len(r):
+                # We have max(r) < x
                 r.append(x)
+            else:
+                # We replace y by x
+                r[idx] = x
         return len(r)
 
     def longest_increasing_subsequences(self):
         r"""
-        Return the list of the longest increasing subsequences of ``self``.
-
-        .. NOTE::
-
-            The algorithm is not optimal.
+        Return the list of the longest increasing subsequences of ``self``
+        
+        A theorem of Schensted ([Sch1961]_) states that an increasing
+        subsequence of length `i` ends with the value entered in the `i`-th
+        column of the p-tableau. The algorithm records which column of the
+        p-tableau each value of the permutation is entered into, creates a
+        digraph to record all increasing subsequences, and reads the paths
+        from a source to a sink; these are the longest increasing subsequences.
 
         EXAMPLES::
 
@@ -2217,9 +2225,100 @@ class Permutation(CombinatorialElement):
             [[2, 3, 4]]
             sage: Permutation([5, 7, 1, 2, 6, 4, 3]).longest_increasing_subsequences()
             [[1, 2, 6], [1, 2, 4], [1, 2, 3]]
+
+        .. NOTE::
+
+            This algorithm could be made faster using a balanced search tree
+            for each column instead of sorted lists. See discussion on
+            :trac:`31451`.
         """
-        patt = list(range(1,self.longest_increasing_subsequence_length()+1))
-        return [[self[i] for i in m] for m in self.pattern_positions(patt)]
+        n = self.size()
+        if n == 0:
+            return([[]])
+
+        from bisect import insort, bisect
+
+        # getting the column in which each element is inserted
+        first_row_p_tableau = []
+        columns = []
+        D = DiGraph(n+2)
+        for x in self._list:
+            j = bisect(first_row_p_tableau, x) 
+            if j == len(first_row_p_tableau):
+                if columns:
+                    for k in columns[-1]:
+                        if k >= x:
+                            break
+                        D.add_edge(k, x)
+                first_row_p_tableau.append(x)
+                columns.append([x])
+            else:
+                first_row_p_tableau[j] = x
+                insort(columns[j], x)
+                if j:
+                    for k in columns[j-1]:
+                        if k > x:
+                            break
+                        D.add_edge(k, x)
+
+        for i in columns[0]:
+            D.add_edge(0, i)  # 0 is source
+        for i in columns[-1]:
+            D.add_edge(i, n+1)  # n+1 is sink
+
+        return sorted([p[1:-1] for p in D.all_paths(0, n+1)], reverse=True)
+
+    def longest_increasing_subsequences_number(self):
+        r"""
+        Return the number of increasing subsequences of maximal length
+        in ``self``.
+
+        The list of longest increasing subsequences of a permutation is
+        given by :meth:`longest_increasing_subsequences`, and the
+        length of these subsequences is given by
+        :meth:`longest_increasing_subsequence_length`.
+
+        The algorithm is similar to :meth:`longest_increasing_subsequences`.
+        Namely, the longest increasing subsequences are encoded as increasing
+        sequences in a ranked poset from a smallest to a largest element. Their
+        number can be obtained via dynamic programming : for each `v` in the poset
+        we compute the number of paths from a smallest element to `v`.
+
+        EXAMPLES::
+
+            sage: sum(p.longest_increasing_subsequences_number() for p in Permutations(8))
+            120770
+
+            sage: p = Permutations(50).random_element()
+            sage: (len(p.longest_increasing_subsequences()) ==
+            ....:  p.longest_increasing_subsequences_number())
+            True
+        """
+        n = self.size()
+        if n == 0:
+            return 1
+
+        from bisect import insort, bisect
+
+        count: list[int] = [0] * (n + 1)
+        first_row_p_tableau = []
+        columns = []
+        for x in self._list:
+            j = bisect(first_row_p_tableau, x)
+            if j == len(first_row_p_tableau):
+                first_row_p_tableau.append(x)
+                columns.append([x])
+            else:
+                first_row_p_tableau[j] = x
+                insort(columns[j], x)
+            if j == 0:
+                count[x] = 1
+            else:
+                for k in columns[j-1]:
+                    if k > x:
+                        break
+                    count[x] += count[k]
+        return sum(count[x] for x in columns[-1])
 
     def cycle_type(self):
         r"""
@@ -4106,7 +4205,7 @@ class Permutation(CombinatorialElement):
         if side == "left":
             return self.inverse().permutohedron_join(other.inverse()).inverse()
         n = self.size()
-        xs = []
+        xs: list[int] = []
         for i in range(1, n + 1):
             u = self.index(i)
             must_be_right = [f for f in self[u + 1:] if f < i]
@@ -4753,9 +4852,17 @@ class Permutation(CombinatorialElement):
         return RSK(self)[1].shape()
 
     def remove_extra_fixed_points(self):
-        """
+        r"""
         Return the permutation obtained by removing any fixed points at
         the end of ``self``.
+
+        However, return ``[1]`` rather than ``[]`` if ``self`` is the
+        identity permutation.
+
+        This is mostly a helper method for
+        :mod:`sage.combinat.schubert_polynomial`, where it is
+        used to normalize finitary permutations of
+        `\{1,2,3,\ldots\}`.
 
         EXAMPLES::
 
@@ -4763,11 +4870,17 @@ class Permutation(CombinatorialElement):
             [2, 1]
             sage: Permutation([1,2,3,4]).remove_extra_fixed_points()
             [1]
+            sage: Permutation([2,1]).remove_extra_fixed_points()
+            [2, 1]
+            sage: Permutation([]).remove_extra_fixed_points()
+            [1]
 
         .. SEEALSO::
 
             :meth:`retract_plain`
         """
+        if not self:
+            return Permutations()([1])
         #Strip off all extra fixed points at the end of
         #the permutation.
         i = len(self)-1
@@ -5611,7 +5724,7 @@ class Permutations_mset(Permutations):
             sage: S1 is S2
             True
         """
-        return super(Permutations_mset, cls).__classcall__(cls, tuple(mset))
+        return super().__classcall__(cls, tuple(mset))
 
     def __init__(self, mset):
         """
@@ -5971,7 +6084,7 @@ class Permutations_set(Permutations):
             sage: S1 is S2
             True
         """
-        return super(Permutations_set, cls).__classcall__(cls, tuple(s))
+        return super().__classcall__(cls, tuple(s))
 
     def __init__(self, s):
         """
@@ -6097,7 +6210,7 @@ class Permutations_msetk(Permutations_mset):
             sage: S1 is S2
             True
         """
-        return super(Permutations_msetk, cls).__classcall__(cls, tuple(mset), k)
+        return super().__classcall__(cls, tuple(mset), k)
 
     def __init__(self, mset, k):
         """
@@ -6188,7 +6301,7 @@ class Permutations_setk(Permutations_set):
             sage: S1 is S2
             True
         """
-        return super(Permutations_setk, cls).__classcall__(cls, tuple(s), k)
+        return super().__classcall__(cls, tuple(s), k)
 
     def __init__(self, s, k):
         """
@@ -6604,7 +6717,7 @@ class StandardPermutations_n(StandardPermutations_n_abstract):
             return self._from_permutation_group_element
         if isinstance(G, StandardPermutations_n) and G.n <= self.n:
             return True
-        return super(StandardPermutations_n, self)._coerce_map_from_(G)
+        return super()._coerce_map_from_(G)
 
     def _from_permutation_group_element(self, x):
         """
@@ -7619,7 +7732,7 @@ class StandardPermutations_descents(StandardPermutations_n_abstract):
             sage: P1 is P2
             True
         """
-        return super(StandardPermutations_descents, cls).__classcall__(cls, tuple(sorted(d)), n)
+        return super().__classcall__(cls, tuple(sorted(d)), n)
 
     def __init__(self, d, n):
         r"""
@@ -7845,7 +7958,7 @@ class StandardPermutations_recoilsfiner(Permutations):
             sage: S1 is S2
             True
         """
-        return super(StandardPermutations_recoilsfiner, cls).__classcall__(cls, Composition(recoils))
+        return super().__classcall__(cls, Composition(recoils))
 
     def __init__(self, recoils):
         """
@@ -7912,7 +8025,7 @@ class StandardPermutations_recoilsfatter(Permutations):
             sage: S1 is S2
             True
         """
-        return super(StandardPermutations_recoilsfatter, cls).__classcall__(cls, Composition(recoils))
+        return super().__classcall__(cls, Composition(recoils))
 
     def __init__(self, recoils):
         """
@@ -7986,7 +8099,7 @@ class StandardPermutations_recoils(Permutations):
             sage: S1 is S2
             True
         """
-        return super(StandardPermutations_recoils, cls).__classcall__(cls, Composition(recoils))
+        return super().__classcall__(cls, Composition(recoils))
 
     def __init__(self, recoils):
         """
@@ -8137,7 +8250,7 @@ class StandardPermutations_bruhat_smaller(Permutations):
             sage: S1 is S2
             True
         """
-        return super(StandardPermutations_bruhat_smaller, cls).__classcall__(cls, Permutation(p))
+        return super().__classcall__(cls, Permutation(p))
 
     def __init__(self, p):
         """
@@ -8195,7 +8308,7 @@ class StandardPermutations_bruhat_greater(Permutations):
             sage: S1 is S2
             True
         """
-        return super(StandardPermutations_bruhat_greater, cls).__classcall__(cls, Permutation(p))
+        return super().__classcall__(cls, Permutation(p))
 
     def __init__(self, p):
         """
@@ -8412,7 +8525,7 @@ class CyclicPermutations(Permutations_mset):
             Cyclic permutations of [1, 2, 3, 3]
             sage: TestSuite(CP).run() # not tested -- broken
         """
-        return super(CyclicPermutations, cls).__classcall__(cls, tuple(mset))
+        return super().__classcall__(cls, tuple(mset))
 
     def _repr_(self):
         """
@@ -8527,7 +8640,7 @@ class CyclicPermutationsOfPartition(Permutations):
             True
         """
         partition = tuple(map(tuple, partition))
-        return super(CyclicPermutationsOfPartition, cls).__classcall__(cls, partition)
+        return super().__classcall__(cls, partition)
 
     def __init__(self, partition):
         """
@@ -8658,7 +8771,7 @@ class StandardPermutations_all_avoiding(StandardPermutations_all):
             True
         """
         a = tuple(map(Permutation, a))
-        return super(StandardPermutations_all_avoiding, cls).__classcall__(cls, a)
+        return super().__classcall__(cls, a)
 
     def __init__(self, a):
         """
@@ -8704,7 +8817,7 @@ class StandardPermutations_all_avoiding(StandardPermutations_all):
             sage: [2,1,3] in Permutations(avoiding=[])
             True
         """
-        if not super(StandardPermutations_all_avoiding, self).__contains__(x):
+        if not super().__contains__(x):
             return False
         x = Permutations()(x)
         return all(x.avoids(p) for p in self._a)
@@ -8753,7 +8866,7 @@ class StandardPermutations_avoiding_generic(StandardPermutations_n_abstract):
             True
         """
         a = tuple(map(Permutation, a))
-        return super(StandardPermutations_avoiding_generic, cls).__classcall__(cls, n, a)
+        return super().__classcall__(cls, n, a)
 
     def __init__(self, n, a):
         """
@@ -8810,7 +8923,7 @@ class StandardPermutations_avoiding_generic(StandardPermutations_n_abstract):
             sage: [2,1,3] in Permutations(3, avoiding=[])
             True
         """
-        if not super(StandardPermutations_avoiding_generic, self).__contains__(x):
+        if not super().__contains__(x):
             return False
         x = Permutations()(x)
         return all(x.avoids(p) for p in self._a)
@@ -8858,7 +8971,7 @@ class StandardPermutations_avoiding_12(StandardPermutations_avoiding_generic):
             sage: P = Permutations(3, avoiding=[1, 2])
             sage: TestSuite(P).run()
         """
-        super(StandardPermutations_avoiding_12, self).__init__(n, (Permutations()([1, 2]),))
+        super().__init__(n, (Permutations()([1, 2]),))
 
     def __iter__(self):
         """
@@ -8889,7 +9002,7 @@ class StandardPermutations_avoiding_21(StandardPermutations_avoiding_generic):
             sage: P = Permutations(3, avoiding=[2, 1])
             sage: TestSuite(P).run()
         """
-        super(StandardPermutations_avoiding_21, self).__init__(n, (Permutations()([2, 1]),))
+        super().__init__(n, (Permutations()([2, 1]),))
 
     def __iter__(self):
         """
@@ -8920,7 +9033,7 @@ class StandardPermutations_avoiding_132(StandardPermutations_avoiding_generic):
             sage: P = Permutations(3, avoiding=[1, 3, 2])
             sage: TestSuite(P).run()
         """
-        super(StandardPermutations_avoiding_132, self).__init__(n, (Permutations()([1, 3, 2]),))
+        super().__init__(n, (Permutations()([1, 3, 2]),))
 
     def cardinality(self):
         """
@@ -8992,7 +9105,7 @@ class StandardPermutations_avoiding_123(StandardPermutations_avoiding_generic):
             sage: P = Permutations(3, avoiding=[2, 1, 3])
             sage: TestSuite(P).run()
         """
-        super(StandardPermutations_avoiding_123, self).__init__(n, (Permutations()([1, 2, 3]),))
+        super().__init__(n, (Permutations()([1, 2, 3]),))
 
     def cardinality(self) -> Integer:
         """
@@ -9063,7 +9176,7 @@ class StandardPermutations_avoiding_321(StandardPermutations_avoiding_generic):
             sage: P = Permutations(3, avoiding=[3, 2, 1])
             sage: TestSuite(P).run()
         """
-        super(StandardPermutations_avoiding_321, self).__init__(n, (Permutations()([3, 2, 1]),))
+        super().__init__(n, (Permutations()([3, 2, 1]),))
 
     def cardinality(self):
         """
@@ -9094,7 +9207,7 @@ class StandardPermutations_avoiding_231(StandardPermutations_avoiding_generic):
             sage: P = Permutations(3, avoiding=[2, 3, 1])
             sage: TestSuite(P).run()
         """
-        super(StandardPermutations_avoiding_231, self).__init__(n, (Permutations()([2, 3, 1]),))
+        super().__init__(n, (Permutations()([2, 3, 1]),))
 
     def cardinality(self):
         """
@@ -9126,7 +9239,7 @@ class StandardPermutations_avoiding_312(StandardPermutations_avoiding_generic):
             sage: P = Permutations(3, avoiding=[3, 1, 2])
             sage: TestSuite(P).run()
         """
-        super(StandardPermutations_avoiding_312, self).__init__(n, (Permutations()([3, 1, 2]),))
+        super().__init__(n, (Permutations()([3, 1, 2]),))
 
     def cardinality(self):
         """
@@ -9158,7 +9271,7 @@ class StandardPermutations_avoiding_213(StandardPermutations_avoiding_generic):
             sage: P = Permutations(3, avoiding=[2, 1, 3])
             sage: TestSuite(P).run()
         """
-        super(StandardPermutations_avoiding_213, self).__init__(n, (Permutations()([2, 1, 3]),))
+        super().__init__(n, (Permutations()([2, 1, 3]),))
 
     def cardinality(self):
         """

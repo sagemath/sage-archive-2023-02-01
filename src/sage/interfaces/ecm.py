@@ -336,8 +336,8 @@ class ECM(SageObject):
         r'(?P<primality>.*) cofactor (?P<cofactor>\d+) has [\s]*(?P<digits>\d+) digits')
 
     def _parse_output(self, n, out):
-        """
-        Parse the ECM output
+        r"""
+        Parse the ECM output.
 
         INPUT:
 
@@ -348,10 +348,9 @@ class ECM(SageObject):
         OUTPUT:
 
         List of pairs ``(integer, bool)`` consisting of factors of the
-        ECM input and whether they are deemed to be probable
-        prime. Note that ECM is not a good primality test, and there
-        is a sizeable probability that the "probable prime" is
-        actually composite.
+        ECM input and whether they are deemed to be probable prime.
+        Note that ECM is not a good primality test, and there is a
+        sizeable probability that the "probable prime" is actually composite.
 
         EXAMPLES::
 
@@ -754,7 +753,7 @@ class ECM(SageObject):
             <BLANKLINE>
             Expected curves: 4911, Expected time: 32.25m
         """
-        title_curves = 'Expected number of curves to find a factor of n digits:'
+        title_curves = 'Expected number of curves to find a factor of n digits'
         title_time = 'Expected time to find a factor of n digits:'
         n = self._validate(n)
         B1 = self.recommended_B1(factor_digits)
@@ -767,7 +766,7 @@ class ECM(SageObject):
             return
 
         out_lines = iter(out.splitlines())
-        while next(out_lines) != title_curves:
+        while next(out_lines)[:len(title_curves)] != title_curves:
             pass
         header_curves = next(out_lines)
         curve_count_table = next(out_lines)

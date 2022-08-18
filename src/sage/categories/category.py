@@ -338,7 +338,7 @@ class Category(UniqueRepresentation, SageObject):
         ....:         Parent.__init__(self, category=Ds())
         ....:     def g(self):
         ....:         return "myparent"
-        ....:     class Element(object):
+        ....:     class Element():
         ....:         pass
         sage: D = myparent()
         sage: D.__class__
@@ -444,7 +444,7 @@ class Category(UniqueRepresentation, SageObject):
         """
         if isinstance(cls, DynamicMetaclass):
             cls = cls.__base__
-        return super(Category, cls).__classcall__(cls, *args, **options)
+        return super().__classcall__(cls, *args, **options)
 
     def __init__(self, s=None):
         """
@@ -1392,7 +1392,7 @@ class Category(UniqueRepresentation, SageObject):
             method resolution order of the parent and element
             classes. This method checks this.
 
-        .. todo:: currently, this won't work for hom categories.
+        .. TODO:: currently, this won't work for hom categories.
 
         EXAMPLES::
 
@@ -1561,7 +1561,7 @@ class Category(UniqueRepresentation, SageObject):
             ....:     ParentMethods = 1
             ....:     class ElementMethods(A):
             ....:         pass
-            ....:     class MorphismMethods(object):
+            ....:     class MorphismMethods():
             ....:         pass
             sage: C = BrokenCategory()
             sage: C._make_named_class("parent_class",   "ParentMethods")
@@ -2639,7 +2639,7 @@ def category_graph(categories = None):
     EXAMPLES::
 
         sage: G = sage.categories.category.category_graph(categories = [Groups()])
-        sage: G.vertices()
+        sage: G.vertices(sort=True)
         ['groups', 'inverse unital magmas', 'magmas', 'monoids', 'objects',
          'semigroups', 'sets', 'sets with partial maps', 'unital magmas']
         sage: G.plot()
@@ -3257,7 +3257,7 @@ class JoinCategory(CategoryWithParameters):
         """
         if not as_join:
             try:
-                return super(JoinCategory, self)._repr_()
+                return super()._repr_()
             except ValueError:
                 pass
         return "Join of " + " and ".join(str(cat) for cat in self._super_categories)

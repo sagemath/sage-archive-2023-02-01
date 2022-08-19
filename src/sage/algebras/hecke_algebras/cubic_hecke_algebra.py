@@ -9,11 +9,12 @@ such that the images `s_i` of the braid generators satisfy a cubic equation:
 
     s_i^3 = u s_i^2 - v s_i + w.
 
-Here `u, v, w` are elements in an arbitrary integral domain and `i` is a positive
-integer less than `n`, the number of the braid group's strands. By the analogue
-to the *Iwahori Hecke algebras* (see :class:`~sage.algebras.iwahori_hecke_algebra.IwahoriHeckeAlgebra`),
-in which the braid generators satisfy a quadratic relation these algebras have been
-called *cubic Hecke algebras*. The relations inherited from the braid group are:
+Here `u, v, w` are elements in an arbitrary integral domain and `i` is a
+positive integer less than `n`, the number of the braid group's strands.
+By the analogue to the *Iwahori Hecke algebras* (see
+:class:`~sage.algebras.iwahori_hecke_algebra.IwahoriHeckeAlgebra`), in which the
+braid generators satisfy a quadratic relation these algebras have been called
+*cubic Hecke algebras*. The relations inherited from the braid group are:
 
 .. MATH::
 
@@ -51,23 +52,23 @@ of these cases see [Mar2012]_) there exists a finite free basis of the cubic
 Hecke algebra which is in bijection to the cubic braid group and compatible
 with the specialization to the cubic braid group algebra as explained above.
 
-For the algebras corresponding to braid groups of less than five strands such a
-basis has been calculated by Ivan Marin. This one is used here. In the case of 5
-strands such a basis is not available, right now. Instead the elements of the cubic
-braid group class themselves are used as basis elements. This is also the case when
-the cubic braid group is infinite, even though it is not known if these elements
-span all of the cubic Hecke algebra.
+For the algebras corresponding to braid groups of less than five strands such
+a basis has been calculated by Ivan Marin. This one is used here. In the case
+of 5 strands such a basis is not available, right now. Instead the elements
+of the cubic braid group class themselves are used as basis elements. This
+is also the case when the cubic braid group is infinite, even though it is
+not known if these elements span all of the cubic Hecke algebra.
 
-Accordingly, be aware that the module embedding of the group algebra of the cubic
-braid groups is known to be an isomorphism of free modules only in the cases of less
-than five strands.
+Accordingly, be aware that the module embedding of the group algebra of the
+cubicbraid groups is known to be an isomorphism of free modules only in the
+cases of less than five strands.
 
 EXAMPLES:
 
-1. Consider the obstruction ``b`` of the *triple quadratic algebra* from Section
-   2.6 of [Mar2018]_. We verify that the third power of it is a scalar multiple
-   of itself (explicitly ``2*w^2`` times the *Schur element* of the three
-   dimensional irreducible representation)::
+Consider the obstruction ``b`` of the *triple quadratic algebra* from Section 2.6
+of [Mar2018]_. We verify that the third power of it is a scalar multiple
+of itself (explicitly ``2*w^2`` times the *Schur element* of the three
+dimensional irreducible representation)::
 
     sage: CHA3 = algebras.CubicHecke(3)
     sage: c1, c2 = CHA3.gens()
@@ -81,25 +82,25 @@ EXAMPLES:
     sage: f =  BR(b3.coefficients()[0]/w)
     sage: try:
     ....:     sh = CHA3.schur_element(CHA3.irred_repr.W3_111)
-    ....: except NotImplementedError:  # for the case GAP3 / CHEVIE not available
+    ....: except NotImplementedError:    # for the case GAP3 / CHEVIE not available
     ....:     sh = ER(f/(2*w^2))
     sage: ER(f/(2*w^2)) == sh
     True
     sage: b3 == f*b
     True
 
-2. Defining the cubic Hecke algebra on 6 strands will need some seconds for
-   initializing. But than you can do calculations inside the infinite algebra
-   as well::
+Defining the cubic Hecke algebra on 6 strands will need some seconds for
+initializing. However, you can do calculations inside the infinite
+algebra as well::
 
-    sage: CHA6 = algebras.CubicHecke(6) # optional - database_cubic_hecke
-    sage: CHA6.inject_variables()       # optional - database_cubic_hecke
+    sage: CHA6 = algebras.CubicHecke(6)  # optional - database_cubic_hecke # long time
+    sage: CHA6.inject_variables()        # optional - database_cubic_hecke # long time
     Defining c0, c1, c2, c3, c4
-    sage: s = c0*c1*c2*c3*c4; s         # optional - database_cubic_hecke
+    sage: s = c0*c1*c2*c3*c4; s          # optional - database_cubic_hecke # long time
     c0*c1*c2*c3*c4
-    sage: s^2                           # optional - database_cubic_hecke
+    sage: s^2                            # optional - database_cubic_hecke # long time
     (c0*c1*c2*c3*c4)^2
-    sage: t = CHA6.an_element()*c4; t   # optional - database_cubic_hecke
+    sage: t = CHA6.an_element() * c4; t  # optional - database_cubic_hecke # long time
     (-w)*c0*c1^-1*c4 + v*c0*c2^-1*c4 + u*c2*c1*c4 + ((-v*w+u)/w)*c4
 
 REFERENCES:
@@ -576,7 +577,8 @@ class CubicHeckeElement(CombinatorialFreeModule.Element):
                 vs = vs.change_ring(RI)
             mtcf = [M.from_vector(cf.to_vector()) for cf in mtcf]
 
-        return sum(vs[i] * mtcf[i] for i in range(len(vs)))
+        R = M.base_ring()
+        return M.linear_combination((mtcf[i], R(val)) for i, val in vs.iteritems())
 
 
 class CubicHeckeAlgebra(CombinatorialFreeModule):

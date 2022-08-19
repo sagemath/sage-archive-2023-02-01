@@ -743,6 +743,10 @@ class Set_object(Set_generic, Set_base, Set_boolean_operators, Set_add_sub_opera
             sage: Set([1,'a',ZZ]).is_finite()
             True
         """
+        if self in Sets().Finite():
+            return True
+        if self in Sets().Infinite():
+            return False
         obj = self.__object
         try:
             is_finite = obj.is_finite

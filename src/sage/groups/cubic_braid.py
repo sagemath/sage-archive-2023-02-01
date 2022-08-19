@@ -1628,7 +1628,7 @@ class CubicBraidGroup(FinitelyPresentedGroup):
         Create an isomorphic image of ``self`` as a classical group according
         to the construction given by Coxeter resp. Assion.
 
-        INPU:
+        INPUT:
 
         - ``embedded`` -- boolean (default: ``False``); this boolean effects the
           cases of Assion groups when they are realized as projective groups only.

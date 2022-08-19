@@ -676,6 +676,9 @@ class Set_object(Set_generic, Set_base, Set_boolean_operators, Set_add_sub_opera
             sage: Set(GF(5^2,'a')).cardinality()
             25
         """
+        if self in Sets().Infinite():
+            return sage.rings.infinity.infinity
+
         if not self.is_finite():
             return sage.rings.infinity.infinity
 

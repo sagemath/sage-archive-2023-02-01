@@ -12075,7 +12075,7 @@ class GenericGraph(GenericGraph_pyx):
         if self.allows_multiple_edges():
             if len(self.edge_label(u, v)) > 1:
                 raise RuntimeError("cannot set edge label, since there are "
-                                   "multiple edges from %s to %s" % (u,v))
+                                   "multiple edges from %s to %s" % (u, v))
         self._backend.set_edge_label(u, v, l, self._directed)
 
     def has_edge(self, u, v=None, label=None):

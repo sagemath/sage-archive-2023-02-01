@@ -2,9 +2,8 @@
 {
     "name": "condaforge/mambaforge:latest downstream Sage",
     "image": "condaforge/mambaforge:latest",
-    // Run commands after the container is created.
-    "postCreateCommand": "mamba install --yes sage",
-    // Run commands after the container is started.
+    // Install Sage from the conda-forge package.
+    "onCreateCommand": "mamba install --yes sage",
     // * If the workspace directory looks like a copy of the Sage source tree (SAGE_ROOT):
     //   - it bootstraps and configures the Sage distribution,
     //   - thus, the script ``./sage`` and the symlinks ``prefix``, ``venv`` are set as expected,
@@ -13,7 +12,7 @@
     //   - however, it does not start the build.
     // * Otherwise, it does nothing. This is so that users can copy this devcontainer.json file as is
     //   into their projects.
-    "postStartCommand": "if [ -d pkgs/sagemath-standard ]; then make configure && ln -sf $CONDA_PREFIX venv; else echo 'Edit .devcontainer/devcontainer.json (postStartCommand) to run project-specific startup commands'; fi",
+    "updateContentCommand": "if [ -d pkgs/sagemath-standard ]; then make configure && ln -sf $CONDA_PREFIX venv; else echo 'Edit .devcontainer/devcontainer.json (updateContentCommand) to run project-specific startup commands'; fi",
     "extensions": [
         "ms-python.python"
     ]

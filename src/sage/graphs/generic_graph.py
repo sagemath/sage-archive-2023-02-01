@@ -14411,8 +14411,8 @@ class GenericGraph(GenericGraph_pyx):
         Test certificate on a larger graph by re-doing isomorphic graph::
 
             sage: s6 = ':S__@_@A_@AB_@AC_@ACD_@ACDE_ACDEF_ACDEFG_ACDEGH_ACDEGHI'
-            ....:      '_ACDEGHIJ_ACDEGIJK_ACDEGIJKL_ACDEGIJKLMaCEGIJKNaCEGIJKN'
-            ....:      'aCGIJKNPaCIP'
+            sage: s6 += '_ACDEGHIJ_ACDEGIJK_ACDEGIJKL_ACDEGIJKLMaCEGIJKNaCEGIJK'
+            sage: s6 += 'NaCGIJKNPaCIP'
             sage: g = Graph(s6, loops=False, multiedges=False)
             sage: d = g.is_interval(certificate=True)[1]
             sage: g2 = graphs.IntervalGraph(d.values())

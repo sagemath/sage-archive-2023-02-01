@@ -1,7 +1,7 @@
 r"""
-√élu Formulas for Elliptic-Curve Isogenies
+√élu Algorithm for Elliptic-Curve Isogenies
 
-The √élu formulas compute isogenies of elliptic curves in time
+The √élu algorithm computes isogenies of elliptic curves in time
 `\tilde O(\sqrt\ell)` rather than naïvely `O(\ell)`, where `\ell`
 is the degree.
 
@@ -97,7 +97,8 @@ Curves without a short Weierstraß model exist in characteristics
     NotImplementedError: only implemented for curves having a short Weierstrass model
 
 Furthermore, the implementation is restricted to finite fields,
-since this is the most relevant application::
+since this appears to be the most relevant application for the
+√élu algorithm::
 
     sage: E = EllipticCurve('26b1')
     sage: P = E(1,0)
@@ -194,6 +195,10 @@ class ProductTree:
         Initialize a product tree having the given ring elements
         as its leaves.
 
+        INPUT:
+
+        - ``leaves`` -- a sequence of elements in a common ring
+
         EXAMPLES::
 
             sage: from sage.schemes.elliptic_curves.hom_velusqrt import ProductTree
@@ -249,6 +254,13 @@ class ProductTree:
         Given a value `x`, return a list of all remainders of `x`
         modulo the leaves of this product tree.
 
+        The base ring must support the ``%`` operator for this
+        method to work.
+
+        INPUT:
+
+        - `x` -- an element of the base ring of this product tree
+
         EXAMPLES::
 
             sage: from sage.schemes.elliptic_curves.hom_velusqrt import ProductTree
@@ -272,6 +284,15 @@ def prod_with_derivative(pairs):
     the pair `(\prod f, \partial \prod f)`, assuming `\partial` is an
     operator obeying the standard product rule.
 
+    This function is entirely algebraic, hence still works when the
+    elements `f` and `\partial f` are all passed through some ring
+    homomorphism first. (See the polynomial-evaluation example below.)
+
+    INPUT:
+
+    - ``pairs`` -- a sequence of tuples `(f, \partial f)` of elements
+      of a common ring
+
     ALGORITHM:
 
     This function wraps the given pairs in a thin helper class that
@@ -294,8 +315,8 @@ def prod_with_derivative(pairs):
         240*x^9 + 702*x^8 + 1056*x^7 + 630*x^6 + 128*x^3 + 420*x^2 + 586*x + 318
 
     The main reason for this function to exist is that it allows us to
-    compute the *value* of the derivative at a point `\alpha` without
-    ever fully expanding the product *as a polynomial*::
+    *evaluate* the derivative of a product of polynomials at a point
+    `\alpha` without ever fully expanding the product *as a polynomial*::
 
         sage: alpha = 42
         sage: F(alpha)
@@ -322,6 +343,10 @@ def _choose_IJK(n):
     r"""
     Helper function to choose an "index system" for the set
     `\{1,3,5,7,...,n-2\}` where `n \geq 5` is an odd integer.
+
+    INPUT:
+
+    - `n` -- odd integer `\geq 5`
 
     REFERENCES: [BDLS2020]_, Examples 4.7 and 4.12
 
@@ -354,6 +379,12 @@ def _points_range(rr, P, Q=None):
     r"""
     Return an iterator yielding all points `Q + [i]P` where `i` runs
     through the :class:`range` object ``rr``.
+
+    INPUT:
+
+    - ``rr`` -- :class:`range` object defining a sequence `S \subseteq \ZZ`
+    - `P` -- element of an additive abelian group
+    - `Q` -- element of the same group, or ``None``
 
     EXAMPLES::
 
@@ -421,7 +452,7 @@ class FastEllipticPolynomial:
         sage: E = EllipticCurve(GF(71), [5,5])
         sage: P = E(4, 35)
         sage: hP = FastEllipticPolynomial(E, P.order(), P); hP
-        Fast elliptic polynomial prod(Z - x(i*P)) for i in range(1,n,2)) with n = 19, P = (4 : 35 : 1)
+        Fast elliptic polynomial prod(Z - x(i*P) for i in range(1,n,2)) with n = 19, P = (4 : 35 : 1)
         sage: hP(7)
         19
         sage: prod(7 - (i*P).xy()[0] for i in range(1,P.order(),2))
@@ -476,13 +507,20 @@ class FastEllipticPolynomial:
         Initialize this elliptic polynomial and precompute some
         input-independent data required for evaluation.
 
+        INPUT:
+
+        - `E` -- an elliptic curve in short Weierstraß form
+        - `n` -- an odd integer `\geq 5`
+        - `P` -- a point on `E`
+        - `Q` -- a point on `E`, or ``None``
+
         EXAMPLES::
 
             sage: from sage.schemes.elliptic_curves.hom_velusqrt import FastEllipticPolynomial
             sage: E = EllipticCurve(GF(71), [5,5])
             sage: P = E(0, 17)
             sage: FastEllipticPolynomial(E, P.order(), P)
-            Fast elliptic polynomial prod(Z - x(i*P)) for i in range(1,n,2)) with n = 57, P = (0 : 17 : 1)
+            Fast elliptic polynomial prod(Z - x(i*P) for i in range(1,n,2)) with n = 57, P = (0 : 17 : 1)
         """
         if any(E.a_invariants()[:-2]):
             raise NotImplementedError('only implemented for short Weierstrass curves')
@@ -519,9 +557,9 @@ class FastEllipticPolynomial:
         self.dhK = self.hK.derivative()
 
         if Q is None:
-            self._repr = f"Fast elliptic polynomial prod(Z - x(i*P)) for i in range(1,n,2)) with {n = }, {P = }"
+            self._repr = f"Fast elliptic polynomial prod(Z - x(i*P) for i in range(1,n,2)) with {n = }, {P = }"
         else:
-            self._repr = f"Fast elliptic polynomial prod(Z - x(Q+i*P)) for i in range(n)) with {n = }, {P = }, {Q = }"
+            self._repr = f"Fast elliptic polynomial prod(Z - x(Q+i*P) for i in range(n)) with {n = }, {P = }, {Q = }"
 
     def __call__(self, alpha, *, derivative=False):
         r"""
@@ -529,13 +567,18 @@ class FastEllipticPolynomial:
         and if ``derivative`` is set to ``True`` also return
         the evaluation of the derivative at `\alpha`.
 
+        INPUT:
+
+        - ``alpha`` -- an element of any algebra over the base ring
+        - ``derivative`` -- boolean (default: ``False``)
+
         EXAMPLES::
 
             sage: from sage.schemes.elliptic_curves.hom_velusqrt import FastEllipticPolynomial
             sage: E = EllipticCurve(GF(71), [5,5])
             sage: P = E(4, 35)
             sage: hP = FastEllipticPolynomial(E, P.order(), P); hP
-            Fast elliptic polynomial prod(Z - x(i*P)) for i in range(1,n,2)) with n = 19, P = (4 : 35 : 1)
+            Fast elliptic polynomial prod(Z - x(i*P) for i in range(1,n,2)) with n = 19, P = (4 : 35 : 1)
             sage: hP(7)
             19
             sage: hP(7, derivative=True)
@@ -578,6 +621,12 @@ class FastEllipticPolynomial:
         Internal helper function to evaluate a resultant with `h_I` quickly,
         using the product tree constructed in :meth:`__init__`.
 
+        INPUT:
+
+        - ``poly`` -- an element of the base ring of this product tree,
+          which must be a polynomial ring supporting ``%``
+        - ``rems`` -- result of ``self.hItree.remainders(poly)``, or ``None``
+
         EXAMPLES::
 
             sage: from sage.schemes.elliptic_curves.hom_velusqrt import FastEllipticPolynomial
@@ -613,14 +662,16 @@ class FastEllipticPolynomial:
         r"""
         Return a string representation of this elliptic polynomial.
 
+        EXAMPLES::
+
             sage: from sage.schemes.elliptic_curves.hom_velusqrt import FastEllipticPolynomial
             sage: E = EllipticCurve(GF(71), [5,5])
             sage: P = E(4, 35)
             sage: FastEllipticPolynomial(E, P.order(), P)
-            Fast elliptic polynomial prod(Z - x(i*P)) for i in range(1,n,2)) with n = 19, P = (4 : 35 : 1)
+            Fast elliptic polynomial prod(Z - x(i*P) for i in range(1,n,2)) with n = 19, P = (4 : 35 : 1)
             sage: Q = E(0, 17)
             sage: FastEllipticPolynomial(E, P.order(), P, Q)
-            Fast elliptic polynomial prod(Z - x(Q+i*P)) for i in range(n)) with n = 19, P = (4 : 35 : 1), Q = (0 : 17 : 1)
+            Fast elliptic polynomial prod(Z - x(Q+i*P) for i in range(n)) with n = 19, P = (4 : 35 : 1), Q = (0 : 17 : 1)
         """
         return self._repr
 
@@ -630,6 +681,10 @@ def _point_outside_subgroup(P):
     Simple helper function to return a point on an elliptic
     curve `E` that is not a multiple of a given point `P`.
     The base field is extended if (and only if) necessary.
+
+    INPUT:
+
+    - `P` -- a point on an elliptic curve over a finite field
 
     EXAMPLES::
 
@@ -698,7 +753,7 @@ def _point_outside_subgroup(P):
 class EllipticCurveHom_velusqrt(EllipticCurveHom):
     r"""
     This class implements separable odd-degree isogenies of elliptic
-    curves over finite fields using the √élu formulas.
+    curves over finite fields using the √élu algorithm.
 
     The complexity is `\tilde O(\sqrt{\ell})` base-field operations,
     where `\ell` is the degree.
@@ -779,6 +834,14 @@ class EllipticCurveHom_velusqrt(EllipticCurveHom):
     def __init__(self, E, P, *, model=None, Q=None):
         r"""
         Initialize this √élu isogeny from a kernel point of odd order.
+
+        INPUT:
+
+        - `E` -- an elliptic curve over a finite field
+        - `P` -- a point on `E` of odd order `\geq 5`
+        - ``model`` -- string (optional); input to
+          :meth:`~sage.schemes.elliptic_curves.ell_field.compute_model`
+        - `Q` -- a point on `E` outside `\langle P\rangle`, or ``None``
 
         EXAMPLES::
 
@@ -897,7 +960,13 @@ class EllipticCurveHom_velusqrt(EllipticCurveHom):
         r"""
         Helper method to compute the codomain of this √élu isogeny
         once the data for :meth:`_raw_eval` has been initialized.
+
         Called by the constructor.
+
+        INPUT:
+
+        - ``model`` -- string (optional); input to
+          :meth:`~sage.schemes.elliptic_curves.ell_field.compute_model`
 
         EXAMPLES::
 
@@ -951,6 +1020,10 @@ class EllipticCurveHom_velusqrt(EllipticCurveHom):
     def _eval(self, P):
         r"""
         Evaluate this √élu isogeny at a point.
+
+        INPUT:
+
+        - `P` -- point on the domain, defined over any algebra over the base field
 
         EXAMPLES::
 
@@ -1047,7 +1120,7 @@ def _random_example_for_testing():
         sage: E                 # random
         Elliptic Curve defined by y^2 + (t^3+6*t^2)*x*y + (t^3+3*t^2+2*t+2)*y = x^3 + (6*t^3+2*t^2+t)*x^2 + (3*t^3+2*t^2+6*t+1)*x + (t^3+2*t^2+2) over Finite Field in t of size 7^4
         sage: E.short_weierstrass_model()
-        Elliptic Curve defined by y^2 = x^3 + ...*x... over Finite Field ...
+        Elliptic Curve defined by y^2 = x^3 + ... over Finite Field ...
         sage: K                 # random
         (3*t^3 + 4*t^2 + 4*t + 3 : 6*t^3 + 5*t^2 + 5*t : 1)
         sage: K.order()         # random

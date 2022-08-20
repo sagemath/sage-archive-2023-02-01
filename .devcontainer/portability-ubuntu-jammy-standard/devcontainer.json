@@ -13,10 +13,8 @@
 	"containerEnv": {
 	    "MAKE": "make -j4"
 	},
-	// Run commands after the container is created.
-	"postCreateCommand": ".devcontainer/post_create.sh",
-	// Run commands after the container is started.
-	"postStartCommand": ".devcontainer/portability-post_start.sh",
+	"onCreateCommand": ".devcontainer/post_create.sh",
+	"updateContentCommand": ".devcontainer/portability-post_start.sh",
 	"extensions": [
 	    "ms-python.python"
         ]

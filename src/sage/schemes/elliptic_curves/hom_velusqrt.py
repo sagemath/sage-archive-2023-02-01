@@ -50,12 +50,8 @@ Note that the isogeny is usually not identical to the one computed by
 However, they are certainly separable isogenies with the same kernel
 and must therefore be equal *up to post-isomorphism*::
 
-    sage: sum(iso * psi == phi for iso in isos)  # TODO: comparison is not implemented yet
-    1
-    sage: Q = E.gens()[0]
-    sage: phiQ, psiQ = phi(Q), psi(Q)
     sage: isos = psi.codomain().isomorphisms(phi.codomain())
-    sage: sum(iso(psiQ) == phiQ for iso in isos)
+    sage: sum(iso * psi == phi for iso in isos)
     1
 
 Just like
@@ -140,9 +136,11 @@ from sage.structure.all import coercion_model as cm
 
 from sage.misc.misc_c import prod
 
+from sage.structure.richcmp import op_EQ
+
 from sage.schemes.elliptic_curves.constructor import EllipticCurve
 from sage.schemes.elliptic_curves.ell_finite_field import EllipticCurve_finite_field
-from sage.schemes.elliptic_curves.hom import EllipticCurveHom
+from sage.schemes.elliptic_curves.hom import EllipticCurveHom, compare_via_evaluation
 
 from sage.misc.superseded import experimental_warning
 experimental_warning(34303, 'This module is experimental.')
@@ -1106,6 +1104,40 @@ class EllipticCurveHom_velusqrt(EllipticCurveHom):
         return f'Elliptic-curve isogeny (using √élu) of degree {self._degree}:' \
                 f'\n  From: {self._domain}' \
                 f'\n  To:   {self._codomain}'
+
+    @staticmethod
+    def _comparison_impl(left, right, op):
+        r"""
+        Compare a √élu isogeny to another elliptic-curve morphism.
+
+        Called by :meth:`EllipticCurveHom._richcmp_`.
+
+        INPUT:
+
+        - ``left, right`` -- :class:`~sage.schemes.elliptic_curves.hom.EllipticCurveHom` objects
+
+        ALGORITHM:
+
+        :func:`~sage.schemes.elliptic_curves.hom.compare_via_evaluation`
+
+        EXAMPLES::
+
+            sage: from sage.schemes.elliptic_curves.hom_velusqrt import EllipticCurveHom_velusqrt
+            sage: E = EllipticCurve(GF(101), [5,5,5,5,5])
+            sage: phi = EllipticCurveHom_velusqrt(E, E.lift_x(11)); phi
+            Elliptic-curve isogeny (using √élu) of degree 59:
+              From: Elliptic Curve defined by y^2 + 5*x*y + 5*y = x^3 + 5*x^2 + 5*x + 5 over Finite Field of size 101
+              To:   Elliptic Curve defined by y^2 = x^3 + 15*x + 25 over Finite Field of size 101
+            sage: psi = EllipticCurveHom_velusqrt(E, E.lift_x(-1)); psi
+            Elliptic-curve isogeny (using √élu) of degree 59:
+              From: Elliptic Curve defined by y^2 + 5*x*y + 5*y = x^3 + 5*x^2 + 5*x + 5 over Finite Field of size 101
+              To:   Elliptic Curve defined by y^2 = x^3 + 15*x + 25 over Finite Field of size 101
+            sage: phi == psi
+            True
+        """
+        if op != op_EQ:
+            return NotImplemented
+        return compare_via_evaluation(left, right)
 
 
 def _random_example_for_testing():

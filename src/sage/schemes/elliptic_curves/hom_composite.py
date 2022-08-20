@@ -79,7 +79,7 @@ AUTHORS:
   documentation and tests, equality testing
 """
 
-from sage.structure.richcmp import op_EQ, op_NE
+from sage.structure.richcmp import op_EQ
 from sage.misc.cachefunc import cached_method
 from sage.structure.sequence import Sequence
 
@@ -480,6 +480,8 @@ class EllipticCurveHom_composite(EllipticCurveHom):
         return self._phis
 
 
+    # EllipticCurveHom methods
+
     @staticmethod
     def _composition_impl(left, right):
         """
@@ -528,23 +530,19 @@ class EllipticCurveHom_composite(EllipticCurveHom):
                 return EllipticCurveHom_composite.from_factors(right.factors() + (left,))
         return NotImplemented
 
-
-    # EllipticCurveHom methods
-
-    def _richcmp_(self, other, op):
+    @staticmethod
+    def _comparison_impl(left, right, op):
         r"""
-        Compare this composite isogeny to another elliptic-curve morphism.
+        Compare a composite isogeny to another elliptic-curve morphism.
+
+        Called by :meth:`EllipticCurveHom._richcmp_`.
 
         ALGORITHM:
 
         If possible, we use
-        :func:`~sage.schemes.elliptic_curves.hom.compare_via_evaluation`
+        :func:`~sage.schemes.elliptic_curves.hom.compare_via_evaluation`.
         The complexity in that case is polynomial in the representation
         size of this morphism.
-
-        Over more general base fields, we fall back to comparing the
-        results of :meth:`rational_maps`, which takes time at least
-        linear in the degree.
 
         TESTS::
 
@@ -570,16 +568,12 @@ class EllipticCurveHom_composite(EllipticCurveHom):
             sage: phi2 * phi1 == psi2 * psi1
             True
         """
-        if op == op_NE:
-            return not self._richcmp_(other, op_EQ)
         if op != op_EQ:
             return NotImplemented
-
         try:
-            return compare_via_evaluation(self, other)
+            return compare_via_evaluation(left, right)
         except NotImplementedError:
-            # fall back to generic method
-            return self.rational_maps() == other.rational_maps()
+            return NotImplemented
 
     def rational_maps(self):
         """

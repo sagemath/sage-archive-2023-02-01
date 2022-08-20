@@ -22,7 +22,7 @@ AUTHORS:
 """
 
 from sage.misc.cachefunc import cached_method
-from sage.structure.richcmp import richcmp_not_equal, richcmp
+from sage.structure.richcmp import richcmp_not_equal, richcmp, op_EQ, op_NE
 
 from sage.categories.morphism import Morphism
 
@@ -97,13 +97,29 @@ class EllipticCurveHom(Morphism):
         return Morphism._composition_(self, other, homset)
 
 
+    @staticmethod
+    def _comparison_impl(left, right, op):
+        """
+        Called by :meth:`_richcmp_`.
+
+        TESTS::
+
+            sage: from sage.schemes.elliptic_curves.hom import EllipticCurveHom
+            sage: EllipticCurveHom._comparison_impl(None, None, None)
+            NotImplemented
+        """
+        return NotImplemented
+
     def _richcmp_(self, other, op):
         r"""
         Compare :class:`EllipticCurveHom` objects.
 
         ALGORITHM:
 
-        This method compares domains, codomains, and :meth:`rational_maps`.
+        The method first makes sure that domain, codomain and degree match.
+        Then, it determines if there is a specialized comparison method by
+        trying :meth:`_comparison_impl` on either input. If not, it falls
+        back to comparing :meth:`rational_maps`.
 
         EXAMPLES::
 
@@ -144,14 +160,16 @@ class EllipticCurveHom(Morphism):
 
         .. SEEALSO::
 
-            :func:`compare_via_evaluation`
+            - :meth:`_comparison_impl`
+            - :func:`compare_via_evaluation`
         """
-        # We cannot just compare kernel polynomials, as was done until
-        # Trac #11327, as then phi and -phi compare equal, and
-        # similarly with phi and any composition of phi with an
-        # automorphism of its codomain, or any post-isomorphism.
-        # Comparing domains, codomains and rational maps seems much
-        # safer.
+        if not isinstance(self, EllipticCurveHom) or not isinstance(other, EllipticCurveHom):
+            raise TypeError(f'cannot compare {type(self)} to {type(other)}')
+
+        if op == op_NE:
+            return not self._richcmp_(other, op_EQ)
+
+        # We first compare domain, codomain, and degree; cf. Trac #11327
 
         lx, rx = self.domain(), other.domain()
         if lx != rx:
@@ -164,6 +182,18 @@ class EllipticCurveHom(Morphism):
         lx, rx = self.degree(), other.degree()
         if lx != rx:
             return richcmp_not_equal(lx, rx, op)
+
+        # Do self or other have specialized comparison methods?
+
+        ret = self._comparison_impl(self, other, op)
+        if ret is not NotImplemented:
+            return ret
+
+        ret = other._comparison_impl(self, other, op)
+        if ret is not NotImplemented:
+            return ret
+
+        # If not, fall back to comparing rational maps; cf. Trac #11327
 
         return richcmp(self.rational_maps(), other.rational_maps(), op)
 

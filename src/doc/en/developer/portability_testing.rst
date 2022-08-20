@@ -1190,7 +1190,7 @@ application, then in the command palette of VS Code, enter "Remote-Containers:
 Open Folder in Container", and hit :kbd:`Enter`, and choose the directory
 ``$SAGE_ROOT`` of your local Sage repository.
 
-Once VS Code starts running the dev container, by clicking on "show log",
+Once VS Code starts configuring the dev container, by clicking on "show log",
 you can see what it does:
 
 - It pulls the prebuilt image from ghcr.io (via
@@ -1216,9 +1216,10 @@ in a terminal, `open a new terminal in VS Code
 
 .. NOTE::
 
-   If you want VS Code to use a previously configured dev container, first run
-   the dev container in Docker and enter "Remote-Containers: Attach to Running
-   Container" in the command palette of VS Code and choose the dev container.
+   If you want VS Code to use a previously configured dev container, first
+   start the dev container in Docker and enter "Remote-Containers: Attach to
+   Running Container" in the command palette of VS Code and choose the dev
+   container.
 
 .. NOTE::
 

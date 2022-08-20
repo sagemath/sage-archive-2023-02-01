@@ -3450,7 +3450,7 @@ class GenericGraph(GenericGraph_pyx):
                             else:
                                 multi_edges.extend((u, v) for _ in L_uv)
                                 multi_edges.extend((v, u) for _ in L_vu)
-                                
+
                     elif not self.has_edge(v, u):
                         L = self.edge_label(u, v)
                         if len(L) > 1:
@@ -3773,7 +3773,7 @@ class GenericGraph(GenericGraph_pyx):
         else:
             return bool(self._weighted)
 
-    ### Properties
+    # Properties
 
     def antisymmetric(self):
         r"""
@@ -3928,8 +3928,9 @@ class GenericGraph(GenericGraph_pyx):
                         return False
 
         color = {}
-        tree = {}  # inheritance of colors along the DFS to recover an odd
-                   # cycle when certificate=True
+        # inheritance of colors along the DFS to recover an odd
+        # cycle when certificate=True
+        tree = {}
 
         # For any uncolored vertex in the graph (to ensure we do the right job
         # when the graph is not connected !)
@@ -3988,7 +3989,6 @@ class GenericGraph(GenericGraph_pyx):
             return True, color
         else:
             return True
-
 
     def is_eulerian(self, path=False):
         r"""
@@ -4077,7 +4077,7 @@ class GenericGraph(GenericGraph_pyx):
                         else:
                             # if there was another vertex with the same sign of difference...
                             if uv[(diff + 1) // 2] is not None:
-                                return False # ... the graph is not semi-Eulerian
+                                return False  # ... the graph is not semi-Eulerian
                             else:
                                 uv[(diff + 1) // 2] = v
                     else:
@@ -4140,7 +4140,7 @@ class GenericGraph(GenericGraph_pyx):
 
     num_edges = size
 
-    ### Orientations
+    # Orientations
 
     def eulerian_orientation(self):
         r"""
@@ -4376,8 +4376,9 @@ class GenericGraph(GenericGraph_pyx):
             else:
                 next_edge = next(g_edge_iter(v))
 
-                if next_edge[0] == v:  # in the undirected case we want to
-                                       # save the direction of traversal
+                if next_edge[0] == v:
+                    # in the undirected case we want to save the
+                    # direction of traversal
                     next_edge_new = (next_edge[1], next_edge[0], next_edge[2])
                 else:
                     next_edge_new = next_edge
@@ -4654,7 +4655,10 @@ class GenericGraph(GenericGraph_pyx):
             # contains fringe_vertex: (weight, vertex_in_tree) for each
             # fringe vertex.
             fringe_list = {e[0] if e[0] != v else e[1]: (wfunction_float(e), v) for e in self.edges_incident(v)}
-            cmp_fun = lambda x: fringe_list[x][0]
+
+            def cmp_fun(x):
+                return fringe_list[x][0]
+
             for i in range(self.order() - 1):
                 # find the smallest-weight fringe vertex
                 u = min(fringe_list, key=cmp_fun)
@@ -4667,7 +4671,7 @@ class GenericGraph(GenericGraph_pyx):
                 fringe_list.pop(u)
                 # update fringe list
                 for e in self.edges_incident(u):
-                    neighbor = e[0] if e[0] !=u else e[1]
+                    neighbor = e[0] if e[0] != u else e[1]
                     if neighbor in tree:
                         continue
                     w = wfunction_float(e)
@@ -4712,7 +4716,7 @@ class GenericGraph(GenericGraph_pyx):
             G = networkx.Graph([(e[0], e[1], {'weight': wfunction_float(e)}) for e in self.edge_iterator()])
             E = networkx.minimum_spanning_edges(G, data=False)
             return [(u, v, self.edge_label(u, v)) if hash(u) < hash(v) else (v, u, self.edge_label(u, v))
-                               for u, v in E]
+                    for u, v in E]
         else:
             raise NotImplementedError("minimum spanning tree algorithm '%s' is not implemented" % algorithm)
 
@@ -4780,9 +4784,7 @@ class GenericGraph(GenericGraph_pyx):
             1
             sage: D.spanning_trees_count(2)
             2
-
         """
-
         if not self.order():
             return 0
 
@@ -4797,7 +4799,7 @@ class GenericGraph(GenericGraph_pyx):
                 root_vertex = vertices[0]
                 index = 0
             elif root_vertex not in vertices:
-                raise ValueError("vertex (%s) not in the graph"%root_vertex)
+                raise ValueError("vertex (%s) not in the graph" % root_vertex)
             else:
                 index = vertices.index(root_vertex)
 
@@ -4934,8 +4936,7 @@ class GenericGraph(GenericGraph_pyx):
             raise ValueError('output must be either vertex or edge')
 
         if self.is_directed():
-                raise NotImplementedError('not implemented for directed '
-                                          'graphs')
+            raise NotImplementedError('not implemented for directed graphs')
 
         if self.allows_multiple_edges():
             if not self.is_connected():
@@ -5064,7 +5065,7 @@ class GenericGraph(GenericGraph_pyx):
         else:
             raise NotImplementedError("only 'NetworkX' and Cython implementation is supported")
 
-    ### Planarity
+    # Planarity
 
     def is_planar(self, on_embedding=None, kuratowski=False, set_embedding=False, set_pos=False):
         r"""
@@ -5237,8 +5238,8 @@ class GenericGraph(GenericGraph_pyx):
         """
         # Quick check first
         if (on_embedding is None and not kuratowski and not set_embedding and not set_pos
-            and not self.allows_loops() and not self.allows_multiple_edges()
-            and not self.is_directed()):
+                and not self.allows_loops() and not self.allows_multiple_edges()
+                and not self.is_directed()):
             if self.order() > 4 and self.size() > 3 * self.order() - 6:
                 return False
 
@@ -5249,7 +5250,7 @@ class GenericGraph(GenericGraph_pyx):
                 return self.to_simple().is_planar(kuratowski=kuratowski)
 
         if on_embedding is not None:
-            self._check_embedding_validity(on_embedding,boolean=False)
+            self._check_embedding_validity(on_embedding, boolean=False)
             return (0 == self.genus(minimal=False, set_embedding=False, on_embedding=on_embedding))
         else:
             from sage.graphs.planarity import is_planar
@@ -5403,8 +5404,8 @@ class GenericGraph(GenericGraph_pyx):
 
         # Quick check first
         if (on_embedding is None and not kuratowski and set_embedding and
-            boundary is None and not ordered and not set_pos and
-            not self.allows_loops() and not self.allows_multiple_edges()):
+                boundary is None and not ordered and not set_pos and
+                not self.allows_loops() and not self.allows_multiple_edges()):
             if self.order() > 3 and self.size() > 2 * self.order() - 3:
                 return False
 
@@ -5630,11 +5631,11 @@ class GenericGraph(GenericGraph_pyx):
             embedding = dict()
             if len(G) >= 1:
                 v1 = next(verts)
-                pos[v1] = [0,0]
+                pos[v1] = [0, 0]
                 embedding[v1] = []
             if len(G) == 2:
                 v2 = next(verts)
-                pos[v2] = [0,1]
+                pos[v2] = [0, 1]
                 embedding[v1] = [v2]
                 embedding[v2] = [v1]
             if set_embedding:
@@ -5666,25 +5667,29 @@ class GenericGraph(GenericGraph_pyx):
         embedding_copy = None
         if set_embedding:
             if not G.is_planar(set_embedding=True):
-                raise ValueError('%s is not a planar graph'%self)
+                raise ValueError('%s is not a planar graph' % self)
             embedding_copy = {v: neighbors[:] for v, neighbors in G._embedding.items()}
         else:
             if on_embedding is not None:
                 G._check_embedding_validity(on_embedding, boolean=False)
                 if not G.is_planar(on_embedding=on_embedding):
-                    raise ValueError('provided embedding is not a planar embedding for %s'%self )
+                    raise ValueError('provided embedding is not a planar '
+                                     'embedding for %s' % self)
                 G.set_embedding(on_embedding)
             else:
-                if hasattr(G,'_embedding'):
+                if hasattr(G, '_embedding'):
                     if G._check_embedding_validity():
                         if not G.is_planar(on_embedding=G._embedding):
-                            raise ValueError('%s has nonplanar _embedding attribute.  Try putting set_embedding=True'%self)
+                            raise ValueError('%s has nonplanar _embedding attribute. '
+                                             'Try putting set_embedding=True' % self)
                         embedding_copy = {v: neighbors[:] for v, neighbors in G._embedding.items()}
                     else:
-                        raise ValueError('provided embedding is not a valid embedding for %s. Try putting set_embedding=True'%self)
+                        raise ValueError('provided embedding is not a valid '
+                                         'embedding for %s. Try putting '
+                                         'set_embedding=True' % self)
                 else:
                     if not G.is_planar(set_embedding=True):
-                        raise ValueError('%s is not a planar graph'%self)
+                        raise ValueError('%s is not a planar graph' % self)
 
         if external_face:
             if not self.has_edge(external_face):
@@ -5698,11 +5703,12 @@ class GenericGraph(GenericGraph_pyx):
         if test:
             if G._check_embedding_validity():
                 if not G.is_planar(on_embedding=G._embedding):
-                    raise ValueError('%s has nonplanar _embedding attribute. Try putting set_embedding=True' % self)
+                    raise ValueError('%s has nonplanar _embedding attribute. '
+                                     'Try putting set_embedding=True' % self)
             test_faces = G.faces(G._embedding)
             for face in test_faces:
                 if len(face) != 3:
-                    raise RuntimeError('BUG: Triangulation returned face: %s'%face)
+                    raise RuntimeError('BUG: Triangulation returned face: %s' % face)
 
         faces = G.faces(G._embedding)
         outer_face = faces[0]
@@ -5780,7 +5786,7 @@ class GenericGraph(GenericGraph_pyx):
                     t = (da * Rational(p1[1] - q1[1]) + db * Rational(q1[0] - p1[0])) / (db * dx - da * dy)
 
                     if 0 <= s and s <= 1 and 0 <= t and t <= 1:
-                        print('fail on', p1, p2, ' : ',q1, q2)
+                        print('fail on', p1, p2, ' : ', q1, q2)
                         print(edge1, edge2)
                         return False
         return True
@@ -5938,7 +5944,7 @@ class GenericGraph(GenericGraph_pyx):
             verts += 1
 
             extra_edges = []
-            if ordered: # WHEEL
+            if ordered:  # WHEEL
                 for e in zip(boundary[-1], boundary[1:]):
                     if not G.has_edge(e):
                         G.add_edge(e)
@@ -5963,14 +5969,14 @@ class GenericGraph(GenericGraph_pyx):
                 except AttributeError:
                     raise AttributeError('graph must have attribute _embedding set to compute current (embedded) genus')
                 return (2 - verts + edges - faces) // 2
-        else: # then compute either maximal or minimal genus of all embeddings
+        else:  # then compute either maximal or minimal genus of all embeddings
             from . import genus
 
             if set_embedding:
                 if self.has_loops() or self.is_directed() or self.has_multiple_edges():
                     raise NotImplementedError("cannot work with embeddings of non-simple graphs")
                 if minimal:
-                    B,C = G.blocks_and_cut_vertices()
+                    B, C = G.blocks_and_cut_vertices()
                     embedding = {}
                     g = 0
                     for block in B:
@@ -5991,7 +5997,7 @@ class GenericGraph(GenericGraph_pyx):
                 if maximal and (self.has_multiple_edges() or self.has_loops()):
                     raise NotImplementedError("cannot compute the maximal genus of a graph with loops or multiple edges")
                 if minimal:
-                    B,C = G.blocks_and_cut_vertices()
+                    B, C = G.blocks_and_cut_vertices()
                     g = 0
                     for block in B:
                         H = G.subgraph(block)
@@ -6207,7 +6213,7 @@ class GenericGraph(GenericGraph_pyx):
 
         # Establish set of possible edges
         edgeset = set()
-        for u,v in self.edge_iterator(labels=0):
+        for u, v in self.edge_iterator(labels=0):
             edgeset.add((u, v))
             edgeset.add((v, u))
 
@@ -6219,7 +6225,7 @@ class GenericGraph(GenericGraph_pyx):
 
         # Trace faces
         while edgeset:
-            u,v = path[-1]
+            u, v = path[-1]
             neighbors = embedding[v]
             next_node = neighbors[(neighbors.index(u) + 1) % len(neighbors)]
             e = (v, next_node)
@@ -6417,8 +6423,7 @@ class GenericGraph(GenericGraph_pyx):
                 edges.append([v1, v2, self.edge_label(e[0], e[1])])
         return Graph([verts, edges])
 
-
-    ### Connectivity
+    # Connectivity
 
     def steiner_tree(self, vertices, weighted=False, solver=None, verbose=0,
                      *, integrality_tolerance=1e-3):
@@ -6520,7 +6525,9 @@ class GenericGraph(GenericGraph_pyx):
         cc = g.connected_component_containing_vertex(vertices[0])
         if any(v not in cc for v in vertices):
             from sage.categories.sets_cat import EmptySetError
-            raise EmptySetError("the given vertices do not all belong to the same connected component. This problem has no solution !")
+            raise EmptySetError("the given vertices do not all belong to the "
+                                "same connected component. This problem has "
+                                "no solution !")
 
         # Can it be solved using the min spanning tree algorithm ?
         if not weighted:
@@ -6551,22 +6558,22 @@ class GenericGraph(GenericGraph_pyx):
             p.add_constraint(p.sum(edges[frozenset(e)] for e in g.edges_incident(v, labels=False)), min=1)
 
         # The number of edges is equal to the number of vertices in our tree minus 1
-        p.add_constraint(   p.sum(vertex[v] for v in g)
-                          - p.sum(edges[frozenset(e)] for e in g.edge_iterator(labels=False)), max=1, min=1)
+        p.add_constraint(p.sum(vertex[v] for v in g)
+                         - p.sum(edges[frozenset(e)] for e in g.edge_iterator(labels=False)), max=1, min=1)
 
         # There are no cycles in our graph
 
-        for u,v in g.edge_iterator(labels=False):
-            p.add_constraint(r_edges[u,v]+ r_edges[v,u] - edges[frozenset((u,v))], min=0)
+        for u, v in g.edge_iterator(labels=False):
+            p.add_constraint(r_edges[u, v] + r_edges[v, u] - edges[frozenset((u, v))], min=0)
 
-        eps = 1/(5*Integer(g.order()))
+        eps = 1 / (5 * Integer(g.order()))
         for v in g:
-            p.add_constraint(p.sum(r_edges[u,v] for u in g.neighbor_iterator(v)), max=1-eps)
-
+            p.add_constraint(p.sum(r_edges[u, v] for u in g.neighbor_iterator(v)), max=1 - eps)
 
         # Objective
         if weighted:
-            p.set_objective(p.sum((l if l is not None else 1)*edges[frozenset((u,v))] for u,v,l in g.edge_iterator()))
+            p.set_objective(p.sum((l if l is not None else 1) * edges[frozenset((u, v))]
+                                  for u, v, l in g.edge_iterator()))
         else:
             p.set_objective(p.sum(edges[frozenset(e)] for e in g.edge_iterator(labels=False)))
 
@@ -6574,13 +6581,13 @@ class GenericGraph(GenericGraph_pyx):
 
         edges = p.get_values(edges, convert=bool, tolerance=integrality_tolerance)
 
-        st =  g.subgraph(edges=[e for e in g.edge_iterator(labels=False) if edges[frozenset(e)]],
-                         immutable=False)
+        st = g.subgraph(edges=[e for e in g.edge_iterator(labels=False) if edges[frozenset(e)]],
+                        immutable=False)
         st.delete_vertices(v for v in g if not st.degree(v))
         return st
 
     def edge_disjoint_spanning_trees(self, k, algorithm=None, root=None, solver=None, verbose=0,
-                                         *, integrality_tolerance=1e-3):
+                                     *, integrality_tolerance=1e-3):
         r"""
         Return the desired number of edge-disjoint spanning trees/arborescences.
 
@@ -6815,8 +6822,8 @@ class GenericGraph(GenericGraph_pyx):
             # A vertex has at least one incident edge
             for u in D:
                 p.add_constraint(p.sum(edge[e, c] for e in D.incoming_edge_iterator(u, labels=False))
-                                + p.sum(edge[e, c] for e in D.outgoing_edge_iterator(u, labels=False))
-                                >= 1)
+                                 + p.sum(edge[e, c] for e in D.outgoing_edge_iterator(u, labels=False))
+                                 >= 1)
 
             # We use the Miller-Tucker-Zemlin subtour elimination constraints
             # combined with the Desrosiers-Langevin strengthening constraints
@@ -6824,7 +6831,7 @@ class GenericGraph(GenericGraph_pyx):
                 if D.has_edge(v, u):
                     # DL
                     p.add_constraint(pos[u, c] + (n - 1)*edge[(u, v), c] + (n - 3)*edge[(v, u), c]
-                                         <= pos[v, c] + n - 2)
+                                     <= pos[v, c] + n - 2)
                 else:
                     # MTZ: If edge uv is selected, v is after u in the partial ordering
                     p.add_constraint(pos[u, c] + 1 - n * (1 - edge[(u, v), c]) <= pos[v, c])
@@ -7021,10 +7028,10 @@ class GenericGraph(GenericGraph_pyx):
 
             flow_value, flow_graph = self.flow(s, t, value_only=value_only, use_edge_labels=use_edge_labels, algorithm=algorithm)
 
-            for u,v,l in flow_graph.edge_iterator():
+            for u, v, l in flow_graph.edge_iterator():
                 g.add_edge(v, u)
                 if (not use_edge_labels or
-                    (weight(g.edge_label(u, v)) == weight(l))):
+                        weight(g.edge_label(u, v)) == weight(l)):
                     g.delete_edge(u, v)
 
             return_value = [flow_value]
@@ -7067,22 +7074,22 @@ class GenericGraph(GenericGraph_pyx):
 
             # Adjacent vertices can belong to different parts only if the
             # edge that connects them is part of the cut
-            for x,y in g.edge_iterator(labels=None):
+            for x, y in g.edge_iterator(labels=None):
                 p.add_constraint(v[x] + b[good_edge((x, y))] - v[y], min=0)
 
         else:
             # we minimize the number of edges
-            p.set_objective(p.sum(weight(w) * b[good_edge((x,y))] for x, y, w in g.edge_iterator()))
+            p.set_objective(p.sum(weight(w) * b[good_edge((x, y))] for x, y, w in g.edge_iterator()))
             # Adjacent vertices can belong to different parts only if the
             # edge that connects them is part of the cut
-            for x,y in g.edge_iterator(labels=None):
+            for x, y in g.edge_iterator(labels=None):
                 p.add_constraint(v[x] + b[good_edge((x, y))] - v[y], min=0)
                 p.add_constraint(v[y] + b[good_edge((x, y))] - v[x], min=0)
 
         p.solve(log=verbose)
         b = p.get_values(b, convert=bool, tolerance=integrality_tolerance)
         if use_edge_labels:
-            obj = sum(weight(w) for x, y, w in g.edge_iterator() if b[good_edge((x,y))])
+            obj = sum(weight(w) for x, y, w in g.edge_iterator() if b[good_edge((x, y))])
         else:
             obj = Integer(sum(1 for e in g.edge_iterator(labels=False) if b[good_edge(e)]))
 

@@ -82,7 +82,9 @@ Weierstraß curves, but it performs the conversion automatically::
       From: Elliptic Curve defined by y^2 + x*y + 3*y = x^3 + 2*x^2 + 4*x + 5 over Finite Field of size 101
       To:   Elliptic Curve defined by y^2 = x^3 + 66*x + 86 over Finite Field of size 101
 
-However, this does imply not all elliptic curves are supported::
+However, this does imply not all elliptic curves are supported.
+Curves without a short Weierstraß model exist in characteristics
+`2` and `3`::
 
     sage: F.<t> = GF(3^3)
     sage: E = EllipticCurve(F, [1,1,1,1,1])

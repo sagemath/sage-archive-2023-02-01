@@ -98,7 +98,7 @@ Nous nous limiterons ici à quelques remarques.
    La documentation de SageTeX se trouve dans le répertoire
    ``$SAGE_ROOT/venv/share/texmf/tex/latex/sagetex/``, où
    "``$SAGE_ROOT``" est le répertoire où vous avez installé Sage, par
-   exemple ``/opt/sage-4.3.4``.
+   exemple ``/opt/sage-9.6``.
 
 Les différentes manières d'utiliser Sage
 ========================================

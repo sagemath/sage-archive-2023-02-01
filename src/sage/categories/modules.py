@@ -551,6 +551,42 @@ class Modules(Category_module):
                 """
                 return [self.base_category()]
 
+            class ParentMethods:
+                """
+                Implement operations on tensor products of modules.
+                """
+                def construction(self):
+                    """
+                    Return the construction of ``self``.
+
+                    EXAMPLES::
+
+                        sage: A = algebras.Free(QQ,2)
+                        sage: T = A.tensor(A)
+                        sage: T.construction()
+                        [The tensor functorial construction,
+                         (Free Algebra on 2 generators (None0, None1) over Rational Field,
+                          Free Algebra on 2 generators (None0, None1) over Rational Field)]
+                    """
+                    return [tensor, self._sets]
+
+                def tensor_factors(self):
+                    """
+                    Return the tensor factors of this tensor product.
+
+                    EXAMPLES::
+
+                        sage: F = CombinatorialFreeModule(ZZ, [1,2])
+                        sage: F.__custom_name = "F"
+                        sage: G = CombinatorialFreeModule(ZZ, [3,4])
+                        sage: G.__custom_name = "G"
+                        sage: T = tensor([F, G]); T
+                        F # G
+                        sage: T.tensor_factors()
+                        (F, G)
+                    """
+                    return self._sets
+
     class FinitelyPresented(CategoryWithAxiom_over_base_ring):
 
         def extra_super_categories(self):

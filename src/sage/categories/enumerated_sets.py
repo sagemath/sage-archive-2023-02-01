@@ -46,8 +46,12 @@ class EnumeratedSets(CategoryWithAxiom):
 
        - ``iter(S)``: an iterator for the elements of the set;
 
-       - ``S.list()``: the list of the elements of the set, when
+       - ``S.list()``: a fresh list of the elements of the set, when
          possible; raises a NotImplementedError if the list is
+         predictably too large to be expanded in memory.
+
+       - ``S.tuple()``: a tuple of the elements of the set, when
+         possible; raises a NotImplementedError if the tuple is
          predictably too large to be expanded in memory.
 
        - ``S.unrank(n)``: the  ``n-th`` element of the set when ``n`` is a sage
@@ -312,8 +316,7 @@ class EnumeratedSets(CategoryWithAxiom):
                         return
                     start = 0
                 elif start < 0:
-                    for x in self.list()[start::step]:
-                        yield x
+                    yield from self.tuple()[start::step]
                     return
                 if step is None:
                     step = 1
@@ -325,8 +328,7 @@ class EnumeratedSets(CategoryWithAxiom):
                     start += step
 
             elif stop < 0:
-                for x in self.list()[start:stop:step]:
-                    yield x
+                yield from self.tuple()[start:stop:step]
                 return
 
             if start is None:
@@ -337,9 +339,7 @@ class EnumeratedSets(CategoryWithAxiom):
                     return
                 start = 0
             elif start < 0:
-                for x in self.list()[start:stop:step]:
-                    yield x
-                return
+                yield from self.tuple()[start:stop:step]
             if step is None:
                 step = 1
             for j in range(start, stop, step):
@@ -381,13 +381,13 @@ class EnumeratedSets(CategoryWithAxiom):
                 NotImplementedError: cannot list an infinite set
             """
             if stop is None:
-                return self.list()[start::step]
+                return list(self.tuple()[start::step])
 
             if stop < 0:
-                return self.list()[start:stop:step]
+                return list(self.tuple()[start:stop:step])
 
             if start is not None and start < 0:
-                return self.list()[start:stop:step]
+                return list(self.tuple()[start:stop:step])
 
             return list(self.iterator_range(start, stop, step))
 
@@ -479,13 +479,46 @@ class EnumeratedSets(CategoryWithAxiom):
                     raise NotImplementedError('infinite set')
                 return int(c)
             except AttributeError:
-                return len(self.list())
+                return len(self.tuple())
+
+        def tuple(self):
+            r"""
+            Return a tuple of the elements of ``self``.
+            """
+            try: # shortcut
+                if self._list is not None:
+                    return self._tuple_from_list()
+            except AttributeError:
+                pass
+
+            if self.list != self._list_default:
+                return tuple(self.list())
+
+            from sage.rings.infinity import Infinity
+            try:
+                if self.cardinality() is Infinity:
+                    raise NotImplementedError('cannot list an infinite set')
+                else: # finite cardinality
+                    return self._tuple_from_iterator()
+            except AttributeError:
+                raise NotImplementedError('unknown cardinality')
+        _tuple_default = tuple
+
+        def _tuple_from_iterator(self):
+            # This creates one throw-away list.
+            return tuple(self._list_from_iterator())
+
+        def _tuple_from_list(self):
+            # Implementation classes may put any Sequence type in self._list.
+            # Traditionally, self._list was an actual list.
+            # When self._list is already a tuple, calling tuple on it is a no-op.
+            return tuple(self._list)
 
         def list(self):
             r"""
             Return a list of the elements of ``self``.
 
-            The elements of set ``x`` are created and cached on the fist call
+            The elements of set ``x`` are created and cached on the first call
             of ``x.list()``. Then each call of ``x.list()`` returns a new list
             from the cached result. Thus in looping, it may be better to do
             ``for e in x:``, not ``for e in x.list():``.
@@ -506,21 +539,11 @@ class EnumeratedSets(CategoryWithAxiom):
                 sage: R.list()
                 [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10]
 
+                sage: C = FiniteEnumeratedSets().example()
+                sage: C.list()
+                [1, 2, 3]
             """
-            try: # shortcut
-                if self._list is not None:
-                    return list(self._list)
-            except AttributeError:
-                pass
-
-            from sage.rings.infinity import Infinity
-            try:
-                if self.cardinality() is Infinity:
-                    raise NotImplementedError('cannot list an infinite set')
-                else: # finite cardinality
-                    return self._list_from_iterator()
-            except AttributeError:
-                raise NotImplementedError('unknown cardinality')
+            return list(self.tuple())
         _list_default  = list # needed by the check system.
 
         def _list_from_iterator(self):
@@ -579,7 +602,7 @@ class EnumeratedSets(CategoryWithAxiom):
                     return list(self._list)
             except AttributeError:
                 pass
-            result = list(self.__iter__())
+            result = tuple(self.__iter__())
             try:
                 self._list = result
             except AttributeError:
@@ -711,7 +734,7 @@ class EnumeratedSets(CategoryWithAxiom):
                 sage: [next(it), next(it), next(it)]
                 [1, 2, 3]
             """
-            for x in self.list():
+            for x in self.tuple():
                 yield x
 
         def _iterator_from_next(self):

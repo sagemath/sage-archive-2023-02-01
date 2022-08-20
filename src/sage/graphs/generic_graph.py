@@ -17360,8 +17360,9 @@ class GenericGraph(GenericGraph_pyx):
                                     return_predecessors=True, unweighted=not by_weight)
 
             # and format the result
-            dist = {int_to_vertex[i]: {int_to_vertex[j]: dd[i, j] for j in range(n) if dd[i, j] != +Infinity}
-                        for i in range(n)}
+            dist = {int_to_vertex[i]: {int_to_vertex[j]: dd[i, j]
+                                       for j in range(n) if dd[i, j] != +Infinity}
+                    for i in range(n)}
             pred = {int_to_vertex[i]: {int_to_vertex[j]: (int_to_vertex[pp[i, j]] if i != j else None)
                                        for j in range(n) if (i == j or pp[i, j] != -9999)}
                     for i in range(n)}

@@ -26,6 +26,11 @@ from sage.structure.richcmp import richcmp_not_equal, richcmp
 
 from sage.categories.morphism import Morphism
 
+from sage.arith.misc import integer_floor
+
+from sage.rings.finite_rings import finite_field_base
+from sage.rings.number_field import number_field_base
+
 
 class EllipticCurveHom(Morphism):
     """
@@ -136,6 +141,10 @@ class EllipticCurveHom(Morphism):
             [True, True]
             sage: [a == b for a in (wE,mE) for b in (wF,mF)]
             [False, False, False, False]
+
+        .. SEEALSO::
+
+            :func:`compare_via_evaluation`
         """
         # We cannot just compare kernel polynomials, as was done until
         # Trac #11327, as then phi and -phi compare equal, and
@@ -621,3 +630,72 @@ class EllipticCurveHom(Morphism):
             Isogeny of degree 7 from Elliptic Curve defined by y^2 + x*y = x^3 - x^2 - 107*x + 552 over Rational Field to Elliptic Curve defined by y^2 + x*y = x^3 - x^2 - 5252*x - 178837 over Rational Field
         """
         return hash((self.domain(), self.codomain(), self.kernel_polynomial()))
+
+
+def compare_via_evaluation(left, right):
+    r"""
+    Test if two elliptic-curve morphisms are equal by evaluating
+    them at enough points.
+
+    INPUT:
+
+    - ``left``, ``right`` -- :class:`EllipticCurveHom` objects
+
+    ALGORITHM:
+
+    We use the fact that two isogenies of equal degree `d` must be
+    the same if and only if they behave identically on more than
+    `4d` points. (It suffices to check this on a few points that
+    generate a large enough subgroup.)
+
+    If the domain curve does not have sufficiently many rational
+    points, the base field is extended first: Taking an extension
+    of degree `O(\log(d))` suffices.
+
+    EXAMPLES::
+
+        sage: E = EllipticCurve(GF(83), [1,0])
+        sage: phi = E.isogeny(12*E.0, model='montgomery'); phi
+        Isogeny of degree 7 from Elliptic Curve defined by y^2 = x^3 + x over Finite Field of size 83 to Elliptic Curve defined by y^2 = x^3 + 70*x^2 + x over Finite Field of size 83
+        sage: psi = phi.dual(); psi
+        Isogeny of degree 7 from Elliptic Curve defined by y^2 = x^3 + 70*x^2 + x over Finite Field of size 83 to Elliptic Curve defined by y^2 = x^3 + x over Finite Field of size 83
+        sage: from sage.schemes.elliptic_curves.hom_composite import EllipticCurveHom_composite
+        sage: mu = EllipticCurveHom_composite.from_factors([phi, psi])
+        sage: from sage.schemes.elliptic_curves.hom import compare_via_evaluation
+        sage: compare_via_evaluation(mu, E.multiplication_by_m_isogeny(7))
+        True
+
+    .. SEEALSO::
+
+        - :meth:`sage.schemes.elliptic_curves.hom_composite.EllipticCurveHom_composite._richcmp_`
+    """
+    if left.domain() != right.domain():
+        return False
+    if left.codomain() != right.codomain():
+        return False
+    if left.degree() != right.degree():
+        return False
+
+    E = left.domain()
+    F = E.base_ring()
+
+    if isinstance(F, finite_field_base.FiniteField):
+        q = F.cardinality()
+        d = left.degree()
+        e = integer_floor(1 + 2 * (2*d.sqrt() + 1).log(q))  # from Hasse bound
+        e = next(i for i,n in enumerate(E.count_points(e+1), 1) if n > 4*d)
+        EE = E.base_extend(F.extension(e))
+        Ps = EE.gens()
+        return all(left._eval(P) == right._eval(P) for P in Ps)
+
+    elif isinstance(F, number_field_base.NumberField):
+        for _ in range(100):
+            P = E.lift_x(F.random_element(), extend=True)
+            if not P.has_finite_order():
+                return left._eval(P) == right._eval(P)
+        else:
+            assert False, "couldn't find a point of infinite order"
+
+    else:
+        raise NotImplementedError('not implemented for this base field')
+

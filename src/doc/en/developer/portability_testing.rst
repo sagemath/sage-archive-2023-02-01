@@ -1227,7 +1227,7 @@ in a terminal, `open a new terminal in VS Code
    (possibly) ``$SAGE_ROOT/logs`` will be symbolic links that work inside the dev
    container, but not in your local file system; and also the script
    ``$SAGE_ROOT/sage`` will not work. Hence after working with the dev container,
-   you will want to remove ``logs`` if it is a symbolic link, and to re-run the
+   you will want to remove ``logs`` if it is a symbolic link, and rerun the
    ``configure`` script.
 
 You can edit a copy of the configuration file to change to a different platform, another

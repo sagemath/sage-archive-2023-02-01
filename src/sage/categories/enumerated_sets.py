@@ -523,7 +523,8 @@ class EnumeratedSets(CategoryWithAxiom):
 
         def _tuple_from_iterator(self):
             # This creates one throw-away list.
-            return tuple(self._list_from_iterator())
+            self._list_from_iterator()
+            return self._tuple_from_list()
 
         def _tuple_from_list(self):
             r"""

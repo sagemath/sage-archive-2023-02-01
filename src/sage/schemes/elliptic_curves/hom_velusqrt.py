@@ -986,6 +986,16 @@ class EllipticCurveHom_velusqrt(EllipticCurveHom):
             Elliptic-curve isogeny (using √élu) of degree 19:
               From: Elliptic Curve defined by y^2 = x^3 + 5*x^2 + x over Finite Field of size 71
               To:   Elliptic Curve defined by y^2 = x^3 + 40*x^2 + x over Finite Field of size 71
+
+        TESTS::
+
+            sage: F.<t> = GF(5^2)
+            sage: E = EllipticCurve([3*t, 2*t+4, 3*t+2, t+4, 3*t])
+            sage: K = E(3*t, 2)
+            sage: EllipticCurveHom_velusqrt(E, K)   # indirect doctest
+            Elliptic-curve isogeny (using √élu) of degree 19:
+              From: Elliptic Curve defined by y^2 + 3*t*x*y + (3*t+2)*y = x^3 + (2*t+4)*x^2 + (t+4)*x + 3*t over Finite Field in t of size 5^2
+              To:   Elliptic Curve defined by y^2 = x^3 + (4*t+3)*x + 2 over Finite Field in t of size 5^2
         """
         poly = self._raw_domain.two_division_polynomial().monic()
         R, Z = poly.parent().objgen()
@@ -1001,6 +1011,7 @@ class EllipticCurveHom_velusqrt(EllipticCurveHom):
                     imX0 = imX0.polynomial()(Z) # K is a FiniteField
                 except AttributeError:
                     imX0 = imX0.lift()          # K is a PolynomialQuotientRing
+                    imX0 = imX0.change_ring(R.base_ring())
                 V = R['V'].gen()
                 f *= (Z - imX0(V)).resultant(g(V))
 

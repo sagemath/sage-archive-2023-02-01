@@ -163,7 +163,7 @@ class lualatex(LaTeX):
         super().__init__("lualatex")
 
 
-class TeXFile(StaticFile, JoinFeature):
+class TeXFile(StaticFile):
     r"""
     A :class:`sage.features.Feature` describing the presence of a TeX file
 
@@ -172,19 +172,16 @@ class TeXFile(StaticFile, JoinFeature):
         sage: from sage.features.latex import TeXFile
         sage: TeXFile('x', 'x.tex').is_present()  # optional - latex
         FeatureTestResult('x', True)
-        sage: TeXFile('nonexisting', 'xxxxxx-nonexisting-file.tex').is_present()  # optional - latex
-        FeatureTestResult('nonexisting', False)
     """
     def __init__(self, name, filename, **kwds):
         r"""
-        EXAMPLES::
+        Initialize.
 
-            sage: from sage.features.latex import LaTeXPackage
-            sage: LaTeXPackage("tkz-graph")._features
-            [Feature('latex')]
+        TESTS::
+
+            sage: TeXFile('nonexisting', 'xxxxxx-nonexisting-file.tex').is_present()  # optional - latex
+            FeatureTestResult('nonexisting', False)
         """
-        JoinFeature.__init__(self, name, [latex()],
-                             spkg=latex_spkg, url=latex_url)  # see :trac:`34282`
         StaticFile.__init__(self, name, filename, search_path=[], **kwds)
 
     def absolute_filename(self) -> str:
@@ -205,8 +202,8 @@ class TeXFile(StaticFile, JoinFeature):
                        universal_newlines=True, check=True)
             return proc.stdout.strip()
         except CalledProcessError:
-            raise FeatureNotPresentError(self,
-                                         reason="{filename!r} not found by kpsewhich".format(filename=self.filename))
+            reason = "{filename!r} not found by kpsewhich".format(filename=self.filename)
+            raise FeatureNotPresentError(self, reason)
 
     def _is_present(self):
         r"""
@@ -220,7 +217,7 @@ class TeXFile(StaticFile, JoinFeature):
             sage: not f.is_present() or bool(g.is_present())  # indirect doctest
             True
         """
-        return JoinFeature._is_present(self) and StaticFile._is_present(self)
+        return latex().is_present() and super()._is_present()
 
 
 class LaTeXPackage(TeXFile):

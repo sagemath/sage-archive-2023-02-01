@@ -37,7 +37,7 @@ class LaTeX(Executable):
             sage: isinstance(latex(), latex)
             True
         """
-        Executable.__init__(self, name, executable=name, spkg=latex_spkg, url=latex_url)
+        super().__init__(name, executable=name, spkg=latex_spkg, url=latex_url)
 
     def is_functional(self):
         r"""
@@ -97,7 +97,7 @@ class latex(LaTeX):
             sage: isinstance(latex(), latex)
             True
         """
-        LaTeX.__init__(self, "latex")
+        super().__init__("latex")
 
 
 class pdflatex(LaTeX):
@@ -118,7 +118,7 @@ class pdflatex(LaTeX):
             sage: isinstance(pdflatex(), pdflatex)
             True
         """
-        LaTeX.__init__(self, "pdflatex")
+        super().__init__("pdflatex")
 
 
 class xelatex(LaTeX):
@@ -139,7 +139,7 @@ class xelatex(LaTeX):
             sage: isinstance(xelatex(), xelatex)
             True
         """
-        LaTeX.__init__(self, "xelatex")
+        super().__init__("xelatex")
 
 
 class lualatex(LaTeX):
@@ -160,7 +160,7 @@ class lualatex(LaTeX):
             sage: isinstance(lualatex(), lualatex)
             True
         """
-        LaTeX.__init__(self, "lualatex")
+        super().__init__("lualatex")
 
 
 class TeXFile(StaticFile, JoinFeature):
@@ -170,20 +170,20 @@ class TeXFile(StaticFile, JoinFeature):
     EXAMPLES::
 
         sage: from sage.features.latex import TeXFile
-        sage: TeXFile('x', 'x.tex').is_present()  # optional: pdflatex
+        sage: TeXFile('x', 'x.tex').is_present()  # optional - latex
         FeatureTestResult('x', True)
-        sage: TeXFile('nonexisting', 'xxxxxx-nonexisting-file.tex').is_present()  # optional - pdflatex
+        sage: TeXFile('nonexisting', 'xxxxxx-nonexisting-file.tex').is_present()  # optional - latex
         FeatureTestResult('nonexisting', False)
     """
     def __init__(self, name, filename, **kwds):
         r"""
         EXAMPLES::
 
-            sage: from sage.features.latex import LaTeXPackage, pdflatex
+            sage: from sage.features.latex import LaTeXPackage
             sage: LaTeXPackage("tkz-graph")._features
-            [Feature('pdflatex')]
+            [Feature('latex')]
         """
-        JoinFeature.__init__(self, name, [pdflatex()],
+        JoinFeature.__init__(self, name, [latex()],
                              spkg=latex_spkg, url=latex_url)  # see :trac:`34282`
         StaticFile.__init__(self, name, filename, search_path=[], **kwds)
 
@@ -195,7 +195,7 @@ class TeXFile(StaticFile, JoinFeature):
 
             sage: from sage.features.latex import TeXFile
             sage: feature = TeXFile('latex_class_article', 'article.cls')
-            sage: feature.absolute_filename()  # optional - pdflatex
+            sage: feature.absolute_filename()  # optional - latex
             '.../latex/base/article.cls'
         """
         from subprocess import run, CalledProcessError, PIPE
@@ -214,16 +214,13 @@ class TeXFile(StaticFile, JoinFeature):
 
         EXAMPLES::
 
-            sage: from sage.features.latex import LaTeXPackage, pdflatex
+            sage: from sage.features.latex import LaTeXPackage, latex
             sage: f = LaTeXPackage("tkz-graph")
-            sage: g = pdflatex()
-            sage: bool(f.is_present()) == bool(g.is_present())  # indirect doctest
+            sage: g = latex()
+            sage: not f.is_present() or bool(g.is_present())  # indirect doctest
             True
         """
-        test = JoinFeature._is_present(self)
-        if not test:
-            return test
-        return super(TeXFile, self)._is_present()
+        return JoinFeature._is_present(self) and StaticFile._is_present(self)
 
 
 class LaTeXPackage(TeXFile):
@@ -234,7 +231,7 @@ class LaTeXPackage(TeXFile):
     EXAMPLES::
 
         sage: from sage.features.latex import LaTeXPackage
-        sage: LaTeXPackage('graphics').is_present()  # optional - pdflatex
+        sage: LaTeXPackage('graphics').is_present()  # optional - latex
         FeatureTestResult('latex_package_graphics', True)
     """
     @staticmethod

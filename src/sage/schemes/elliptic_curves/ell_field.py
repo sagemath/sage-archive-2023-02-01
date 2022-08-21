@@ -1090,6 +1090,14 @@ class EllipticCurve_field(ell_generic.EllipticCurve_generic, ProjectivePlaneCurv
           Kohel's algorithm is currently only implemented for cyclic
           isogenies, with the exception of `[2]`.
 
+        - √élu Algorithm (*experimental* --- see
+          :mod:`~sage.schemes.elliptic_curves.hom_velusqrt`):
+          A variant of Vélu's formulas with essentially square-root
+          instead of linear complexity (in the degree). Currently only
+          available over finite fields. The input must be a single
+          kernel point of odd order `\geq 5`.
+          This algorithm is selected using ``algorithm="velusqrt"``.
+
         - Factored Isogenies (*experimental* --- see
           :mod:`~sage.schemes.elliptic_curves.hom_composite`):
           Given a list of points which generate a composite-order
@@ -1137,14 +1145,26 @@ class EllipticCurve_field(ell_generic.EllipticCurve_generic, ProjectivePlaneCurv
         - ``check`` (default: ``True``) -- check whether the input is valid.
           Setting this to ``False`` can lead to significant speedups.
 
-        - ``algorithm`` (optional) -- When ``algorithm="factored"`` is
-          passed, decompose the isogeny into prime-degree steps.
-          The ``degree`` parameter is not supported by
-          ``algorithm="factored"``.
+        - ``algorithm`` -- string (optional). By default (when ``algorithm``
+          is omitted), the "traditional" implementation
+          :class:`~sage.schemes.elliptic_curves.ell_curve_isogeny.EllipticCurveIsogeny`
+          is used. The other choices are:
+
+          - ``"velusqrt"``: Use
+            :class:`~sage.schemes.elliptic_curves.hom_velusqrt.EllipticCurveHom_velusqrt`.
+
+          - ``"factored"``: Use
+            :class:`~sage.schemes.elliptic_curves.hom_composite.EllipticCurveHom_composite`
+            to decompose the isogeny into prime-degree steps.
+
+          The ``degree`` parameter is not supported when an ``algorithm``
+          is specified.
 
         OUTPUT:
 
         An isogeny between elliptic curves. This is a morphism of curves.
+        (In all cases, the returned object will be an instance of
+        :class:`~sage.schemes.elliptic_curves.hom.EllipticCurveHom`.)
 
         EXAMPLES::
 
@@ -1221,9 +1241,12 @@ class EllipticCurve_field(ell_generic.EllipticCurve_generic, ProjectivePlaneCurv
             sage: phi.codomain()._order
             170141183460469231746191640949390434666
         """
+        if algorithm is not None and degree is not None:
+            raise TypeError('cannot pass "degree" and "algorithm" parameters simultaneously')
+        if algorithm == "velusqrt":
+            from sage.schemes.elliptic_curves.hom_velusqrt import EllipticCurveHom_velusqrt
+            return EllipticCurveHom_velusqrt(self, kernel, codomain=codomain, model=model)
         if algorithm == "factored":
-            if degree is not None:
-                raise TypeError('algorithm="factored" does not support the "degree" parameter')
             from sage.schemes.elliptic_curves.hom_composite import EllipticCurveHom_composite
             return EllipticCurveHom_composite(self, kernel, codomain=codomain, model=model)
         try:

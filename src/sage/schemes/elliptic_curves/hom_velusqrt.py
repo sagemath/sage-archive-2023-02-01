@@ -829,7 +829,7 @@ class EllipticCurveHom_velusqrt(EllipticCurveHom):
 
         :class:`~sage.schemes.elliptic_curves.ell_curve_isogeny.EllipticCurveIsogeny`
     """
-    def __init__(self, E, P, *, model=None, Q=None):
+    def __init__(self, E, P, *, codomain=None, model=None, Q=None):
         r"""
         Initialize this √élu isogeny from a kernel point of odd order.
 
@@ -837,6 +837,7 @@ class EllipticCurveHom_velusqrt(EllipticCurveHom):
 
         - `E` -- an elliptic curve over a finite field
         - `P` -- a point on `E` of odd order `\geq 5`
+        - ``codomain`` -- codomain elliptic curve (optional)
         - ``model`` -- string (optional); input to
           :meth:`~sage.schemes.elliptic_curves.ell_field.compute_model`
         - `Q` -- a point on `E` outside `\langle P\rangle`, or ``None``
@@ -850,9 +851,30 @@ class EllipticCurveHom_velusqrt(EllipticCurveHom):
             Elliptic-curve isogeny (using √élu) of degree 19:
               From: Elliptic Curve defined by y^2 = x^3 + 5*x + 5 over Finite Field of size 71
               To:   Elliptic Curve defined by y^2 = x^3 + 13*x + 11 over Finite Field of size 71
+
+        ::
+
+            sage: E.<P> = EllipticCurve(GF(419), [1,0])
+            sage: K = 4*P
+            sage: EllipticCurveHom_velusqrt(E, K)
+            Elliptic-curve isogeny (using √élu) of degree 105:
+              From: Elliptic Curve defined by y^2 = x^3 + x over Finite Field of size 419
+              To:   Elliptic Curve defined by y^2 = x^3 + 301*x + 86 over Finite Field of size 419
+            sage: E2 = EllipticCurve(GF(419), [0,6,0,385,42])
+            sage: EllipticCurveHom_velusqrt(E, K, codomain=E2)
+            Elliptic-curve isogeny (using √élu) of degree 105:
+              From: Elliptic Curve defined by y^2 = x^3 + x over Finite Field of size 419
+              To:   Elliptic Curve defined by y^2 = x^3 + 6*x^2 + 385*x + 42 over Finite Field of size 419
+            sage: EllipticCurveHom_velusqrt(E, K, model="montgomery")
+            Elliptic-curve isogeny (using √élu) of degree 105:
+              From: Elliptic Curve defined by y^2 = x^3 + x over Finite Field of size 419
+              To:   Elliptic Curve defined by y^2 = x^3 + 6*x^2 + x over Finite Field of size 419
         """
         if not isinstance(E, EllipticCurve_finite_field):
             raise NotImplementedError('only implemented for elliptic curves over finite fields')
+
+        if codomain is not None and model is not None:
+            raise ValueError('cannot specify a codomain curve and model name simultaneously')
 
         try:
             self._raw_domain = E.short_weierstrass_model()
@@ -885,6 +907,10 @@ class EllipticCurveHom_velusqrt(EllipticCurveHom):
 
         self._domain = E
         self._compute_codomain(model=model)
+
+        if codomain is not None:
+            self._post_iso = self._codomain.isomorphism_to(codomain) * self._post_iso
+            self._codomain = codomain
 
         super().__init__(self._domain, self._codomain)
 

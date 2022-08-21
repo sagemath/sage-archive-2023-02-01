@@ -120,6 +120,7 @@ cdef class GabowEdgeConnectivity:
     cdef vector[vector[int]] g_out
     cdef vector[vector[int]] g_in
     cdef vector[vector[int]] my_g  # either g_out or g_in
+    cdef vector[vector[int]] my_g_reversed # either g_out or g_in
 
     # values associated to edges
     cdef int* tail  # source of edge j
@@ -343,6 +344,7 @@ cdef class GabowEdgeConnectivity:
         if reverse:
             # Search for a spanning tree in g-reversed
             self.my_g = self.g_out
+            self.my_g_reversed = self.g_in
             self.my_from = self.head
             self.my_to = self.tail
             self.my_parent = self.parent_2
@@ -352,6 +354,7 @@ cdef class GabowEdgeConnectivity:
         else:
             # Search for a spanning tree in g using incoming arcs
             self.my_g = self.g_in
+            self.my_g_reversed = self.g_out
             self.my_from = self.tail
             self.my_to = self.head
             self.my_parent = self.parent_1
@@ -367,28 +370,29 @@ cdef class GabowEdgeConnectivity:
 
         # There's only one f-tree, so we already have a complete k-intersection
         # We save the edges and advance to the next iteration
-        if self.num_start_f_trees <= 1:
+        if self.num_start_f_trees < self.n-1:
             self.re_init(tree)
-        # There are several f-trees, and we try to join them 
-        while njoins < self.num_start_f_trees-1:
-            # Get the root of an active subtree or INT_MAX if none exists
-            z = self.choose_root()
-            while z != INT_MAX:
-                if self.search_joining(z):
-                    # We have augmented the root of the corresponding f_tree
-                    njoins += 1
-                else:
-                    # We cannot find a tree
-                    return False
-
+        else:
+            # There are several f-trees, and we try to join them 
+            while njoins < self.num_start_f_trees-1:
+                # Get the root of an active subtree or INT_MAX if none exists
                 z = self.choose_root()
+                while z != INT_MAX:
+                    if self.search_joining(z):
+                        # We have augmented the root of the corresponding f_tree
+                        njoins += 1
+                    else:
+                        # We cannot find a tree
+                        return False
 
-            # Trace the paths in order to transfer the edges to the appropriate
-            # tree Ti
-            self.augmentation_algorithm()
-            # Reinitialize data structures and make all f_trees active for next round
-            self.re_init(tree)
-            sig_check()
+                    z = self.choose_root()
+
+                # Trace the paths in order to transfer the edges to the appropriate
+                # tree Ti
+                self.augmentation_algorithm()
+                # Reinitialize data structures and make all f_trees active for next round
+                self.re_init(tree)
+                sig_check()
 
         return True
 
@@ -480,7 +484,7 @@ cdef class GabowEdgeConnectivity:
         self.visited[u] = True
 
         # Visit outgoing arcs of current vertex
-        for e_id in self.g_out[u]:
+        for e_id in self.my_g_reversed[u]:
             v = self.my_to[e_id]
             # Ensure a vertex is not visited, is not a proven k-intersection edge
             # and root_vertex remains deficient

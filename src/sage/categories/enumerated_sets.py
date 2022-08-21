@@ -47,14 +47,14 @@ class EnumeratedSets(CategoryWithAxiom):
        - ``iter(S)``: an iterator for the elements of the set;
 
        - ``S.list()``: a fresh list of the elements of the set, when
-         possible; raises a NotImplementedError if the list is
+         possible; raises a :class:`NotImplementedError` if the list is
          predictably too large to be expanded in memory.
 
        - ``S.tuple()``: a tuple of the elements of the set, when
-         possible; raises a NotImplementedError if the tuple is
+         possible; raises a :class:`NotImplementedError` if the tuple is
          predictably too large to be expanded in memory.
 
-       - ``S.unrank(n)``: the  ``n-th`` element of the set when ``n`` is a sage
+       - ``S.unrank(n)``: the  ``n``-th element of the set when ``n`` is a sage
          ``Integer``. This is the equivalent for ``l[n]`` on a list.
 
        - ``S.rank(e)``: the position of the element ``e`` in the set;
@@ -65,8 +65,8 @@ class EnumeratedSets(CategoryWithAxiom):
        - ``S.first()``: the first object of the set; it is equivalent to
          ``S.unrank(0)``.
 
-       - ``S.next(e)``: the object of the set which follows ``e``; It is
-         equivalent to ``S.unrank(S.rank(e)+1)``.
+       - ``S.next(e)``: the object of the set which follows ``e``; it is
+         equivalent to ``S.unrank(S.rank(e) + 1)``.
 
        - ``S.random_element()``: a random generator for an element of
          the set. Unless otherwise stated, and for finite enumerated
@@ -484,6 +484,23 @@ class EnumeratedSets(CategoryWithAxiom):
         def tuple(self):
             r"""
             Return a tuple of the elements of ``self``.
+
+            The tuple of elements of ``x`` is created and cached on the first call
+            of ``x.tuple()``. Each following call of ``x.tuple()`` returns the same tuple.
+
+            For looping, it may be better to do ``for e in x:``, not ``for e in x.tuple():``.
+
+            If ``x`` is not known to be finite, then an exception is raised.
+
+            EXAMPLES::
+
+                sage: (GF(3)^2).tuple()
+                ((0, 0), (1, 0), (2, 0), (0, 1), (1, 1), (2, 1), (0, 2), (1, 2), (2, 2))
+                sage: R = Integers(11)
+                sage: l = R.tuple(); l
+                (0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10)
+                sage: l is R.tuple()
+                True
             """
             try: # shortcut
                 if self._list is not None:
@@ -509,6 +526,9 @@ class EnumeratedSets(CategoryWithAxiom):
             return tuple(self._list_from_iterator())
 
         def _tuple_from_list(self):
+            r"""
+            Return a tuple of the elements of ``self``.
+            """
             # Implementation classes may put any Sequence type in self._list.
             # Traditionally, self._list was an actual list.
             # When self._list is already a tuple, calling tuple on it is a no-op.

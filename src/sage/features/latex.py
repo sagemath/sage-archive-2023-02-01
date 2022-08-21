@@ -207,7 +207,7 @@ class TeXFile(StaticFile):
 
     def _is_present(self):
         r"""
-        Test for the presence of the TeX-file.
+        Test for the presence of the TeX file.
 
         EXAMPLES::
 

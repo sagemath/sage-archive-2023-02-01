@@ -1822,7 +1822,8 @@ class VectorFunctor(ConstructionFunctor):
     rank = 10 # ranking of functor, not rank of module.
     # This coincides with the rank of the matrix construction functor, but this is OK since they cannot both be applied in any order
 
-    def __init__(self, n, is_sparse=False, inner_product_matrix=None):
+    def __init__(self, n=None, is_sparse=False, inner_product_matrix=None, *,
+                 with_basis='standard', basis_keys=None):
         """
         INPUT:
 
@@ -1830,6 +1831,7 @@ class VectorFunctor(ConstructionFunctor):
         - ``is_sparse`` (optional bool, default ``False``), create sparse implementation of modules
         - ``inner_product_matrix``: ``n`` by ``n`` matrix, used to compute inner products in the
           to-be-created modules
+        - other keywords: see :func:`~sage.modules.free_module.FreeModule`
 
         TESTS::
 
@@ -1860,6 +1862,8 @@ class VectorFunctor(ConstructionFunctor):
         self.n = n
         self.is_sparse = is_sparse
         self.inner_product_matrix = inner_product_matrix
+        self.with_basis = with_basis
+        self.basis_keys = basis_keys
 
     def _apply_functor(self, R):
         """
@@ -1887,7 +1891,8 @@ class VectorFunctor(ConstructionFunctor):
 
         """
         from sage.modules.free_module import FreeModule
-        return FreeModule(R, self.n, sparse=self.is_sparse, inner_product_matrix=self.inner_product_matrix)
+        return FreeModule(R, self.n, sparse=self.is_sparse, inner_product_matrix=self.inner_product_matrix,
+                          with_basis=self.with_basis, basis_keys=self.basis_keys)
 
     def _apply_functor_to_morphism(self, f):
         """
@@ -1924,7 +1929,9 @@ class VectorFunctor(ConstructionFunctor):
         """
         if isinstance(other, VectorFunctor):
             return (self.n == other.n and
-                    self.inner_product_matrix == other.inner_product_matrix)
+                    self.inner_product_matrix == other.inner_product_matrix and
+                    self.with_basis == other.with_basis and
+                    self.basis_keys == other.basis_keys)
         return False
 
     def __ne__(self, other):
@@ -2000,16 +2007,38 @@ class VectorFunctor(ConstructionFunctor):
         """
         if not isinstance(other, VectorFunctor):
             return None
-        if self.inner_product_matrix is None:
-            return VectorFunctor(self.n, self.is_sparse and other.is_sparse, other.inner_product_matrix)
-        if other.inner_product_matrix is None:
-            return VectorFunctor(self.n, self.is_sparse and other.is_sparse, self.inner_product_matrix)
-        # At this point, we know that the user wants to take care of the inner product.
-        # So, we only merge if both coincide:
-        if self.inner_product_matrix != other.inner_product_matrix:
+
+        if self.with_basis != other.with_basis:
             return None
         else:
-            return VectorFunctor(self.n, self.is_sparse and other.is_sparse, self.inner_product_matrix)
+            with_basis = self.with_basis
+
+        if self.basis_keys != other.basis_keys:
+            # TODO: If both are enumerated families, should we try to take the union of the families?
+            return None
+        else:
+            basis_keys = self.basis_keys
+
+        is_sparse = self.is_sparse and other.is_sparse
+
+        if self.inner_product_matrix is None:
+            inner_product_matrix = other.inner_product_matrix
+        elif other.inner_product_matrix is None:
+            inner_product_matrix = self.inner_product_matrix
+        elif self.inner_product_matrix != other.inner_product_matrix:
+            # At this point, we know that the user wants to take care of the inner product.
+            # So, we only merge if both coincide:
+            return None
+        else:
+            inner_product_matrix = None
+
+        if self.n != other.n:
+            return None
+        else:
+            n = self.n
+
+        return VectorFunctor(n, is_sparse, inner_product_matrix,
+                             with_basis=with_basis, basis_keys=basis_keys)
 
 
 class SubspaceFunctor(ConstructionFunctor):

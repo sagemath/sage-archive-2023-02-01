@@ -1198,10 +1198,10 @@ you can see what it does:
   <https://github.com/sagemath/sage/tree/develop/.devcontainer/portability-Dockerfile>`_);
   note that these are multi-gigabyte images, so it may take a while.
 
-- As part of the "postCreateCommand", it installs additional system packages to
+- As part of the "onCreateCommand", it installs additional system packages to
   support VS Code and for development.
 
-- Then, as part of the "postStartCommand", it bootstraps and
+- Then, as part of the "updateContentCommand", it bootstraps and
   configures the source tree and starts to build Sage from source,
   reusing the installation (:envvar:`SAGE_LOCAL`, :envvar:`SAGE_VENV`)
   from the prebuilt image.

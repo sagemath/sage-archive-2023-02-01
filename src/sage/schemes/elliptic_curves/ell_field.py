@@ -1090,7 +1090,7 @@ class EllipticCurve_field(ell_generic.EllipticCurve_generic, ProjectivePlaneCurv
           Kohel's algorithm is currently only implemented for cyclic
           isogenies, with the exception of `[2]`.
 
-        - √élu Algorithm (*experimental* --- see
+        - √élu Algorithm (see
           :mod:`~sage.schemes.elliptic_curves.hom_velusqrt`):
           A variant of Vélu's formulas with essentially square-root
           instead of linear complexity (in the degree). Currently only

@@ -25,7 +25,6 @@ REFERENCES: [BDLS2020]_
 EXAMPLES::
 
     sage: from sage.schemes.elliptic_curves.hom_velusqrt import EllipticCurveHom_velusqrt
-    ...
     sage: E = EllipticCurve(GF(6666679), [5,5])
     sage: K = E(9970, 1003793, 1)
     sage: K.order()
@@ -111,11 +110,6 @@ since this appears to be the most relevant application for the
     all methods of :class:`EllipticCurveHom`. This will hopefully
     change in the future.
 
-.. WARNING::
-
-    This module is currently considered experimental.
-    It may change in a future release without prior warning.
-
 AUTHORS:
 
 - Lorenz Panny (2022)
@@ -143,9 +137,6 @@ from sage.rings.integer import Integer
 from sage.schemes.elliptic_curves.constructor import EllipticCurve
 from sage.schemes.elliptic_curves.ell_finite_field import EllipticCurve_finite_field
 from sage.schemes.elliptic_curves.hom import EllipticCurveHom, compare_via_evaluation
-
-from sage.misc.superseded import experimental_warning
-experimental_warning(34303, 'This module is experimental.')
 
 
 #TODO: This is general. It should be elsewhere.

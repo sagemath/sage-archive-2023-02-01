@@ -259,7 +259,7 @@ class ProductTree:
 
         INPUT:
 
-        - `x` -- an element of the base ring of this product tree
+        - ``x`` -- an element of the base ring of this product tree
 
         EXAMPLES::
 
@@ -346,7 +346,7 @@ def _choose_IJK(n):
 
     INPUT:
 
-    - `n` -- odd :class:`~sage.rings.integer.Integer` `\geq 5`
+    - ``n`` -- odd :class:`~sage.rings.integer.Integer` `\geq 5`
 
     REFERENCES: [BDLS2020]_, Examples 4.7 and 4.12
 
@@ -383,8 +383,8 @@ def _points_range(rr, P, Q=None):
     INPUT:
 
     - ``rr`` -- :class:`range` object defining a sequence `S \subseteq \ZZ`
-    - `P` -- element of an additive abelian group
-    - `Q` -- element of the same group, or ``None``
+    - ``P`` -- element of an additive abelian group
+    - ``Q`` -- element of the same group, or ``None``
 
     EXAMPLES::
 
@@ -442,10 +442,10 @@ class FastEllipticPolynomial:
 
     INPUT:
 
-    - `E` -- an elliptic curve in short Weierstraß form
-    - `n` -- an odd integer `\geq 5`
-    - `P` -- a point on `E`
-    - `Q` -- a point on `E`, or ``None``
+    - ``E`` -- an elliptic curve in short Weierstraß form
+    - ``n`` -- an odd integer `\geq 5`
+    - ``P`` -- a point on `E`
+    - ``Q`` -- a point on `E`, or ``None``
 
     ALGORITHM: [BDLS2020]_, Algorithm 2
 
@@ -686,7 +686,7 @@ def _point_outside_subgroup(P):
 
     INPUT:
 
-    - `P` -- a point on an elliptic curve over a finite field
+    - ``P`` -- a point on an elliptic curve over a finite field
 
     EXAMPLES::
 
@@ -764,12 +764,12 @@ class EllipticCurveHom_velusqrt(EllipticCurveHom):
 
     INPUT:
 
-    - `E` -- an elliptic curve over a finite field
-    - `P` -- a point on `E` of odd order `\geq 5`
+    - ``E`` -- an elliptic curve over a finite field
+    - ``P`` -- a point on `E` of odd order `\geq 5`
     - ``codomain`` -- codomain elliptic curve (optional)
     - ``model`` -- string (optional); input to
       :meth:`~sage.schemes.elliptic_curves.ell_field.compute_model`
-    - `Q` -- a point on `E` outside `\langle P\rangle`, or ``None``
+    - ``Q`` -- a point on `E` outside `\langle P\rangle`, or ``None``
 
     EXAMPLES::
 
@@ -1062,7 +1062,7 @@ class EllipticCurveHom_velusqrt(EllipticCurveHom):
 
         INPUT:
 
-        - `P` -- point on the domain, defined over any algebra over the base field
+        - ``P`` -- point on the domain, defined over any algebra over the base field
 
         EXAMPLES::
 

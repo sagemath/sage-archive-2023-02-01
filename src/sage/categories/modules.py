@@ -569,7 +569,7 @@ class Modules(Category_module):
                          (Free Algebra on 2 generators (None0, None1) over Rational Field,
                           Free Algebra on 2 generators (None0, None1) over Rational Field)]
                     """
-                    return (TensorProductFunctor(self.category()),
+                    return (TensorProductFunctor(),
                             self.tensor_factors())
 
                 @abstract_method

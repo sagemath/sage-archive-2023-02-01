@@ -1823,7 +1823,7 @@ class VectorFunctor(ConstructionFunctor):
     # This coincides with the rank of the matrix construction functor, but this is OK since they cannot both be applied in any order
 
     def __init__(self, n=None, is_sparse=False, inner_product_matrix=None, *,
-                 with_basis='standard', basis_keys=None):
+                 with_basis='standard', basis_keys=None, name_mapping=None, latex_name_mapping=None):
         """
         INPUT:
 
@@ -1831,6 +1831,7 @@ class VectorFunctor(ConstructionFunctor):
         - ``is_sparse`` (optional bool, default ``False``), create sparse implementation of modules
         - ``inner_product_matrix``: ``n`` by ``n`` matrix, used to compute inner products in the
           to-be-created modules
+        - ``name_mapping``, ``latex_name_mapping``: Dictionaries from base rings to names
         - other keywords: see :func:`~sage.modules.free_module.FreeModule`
 
         TESTS::
@@ -1864,6 +1865,12 @@ class VectorFunctor(ConstructionFunctor):
         self.inner_product_matrix = inner_product_matrix
         self.with_basis = with_basis
         self.basis_keys = basis_keys
+        if name_mapping is None:
+            name_mapping = {}
+        self.name_mapping = name_mapping
+        if latex_name_mapping is None:
+            latex_name_mapping = {}
+        self.latex_name_mapping = latex_name_mapping
 
     def _apply_functor(self, R):
         """
@@ -1871,7 +1878,7 @@ class VectorFunctor(ConstructionFunctor):
 
         TESTS::
 
-            sage: from sage.categories.pushout import VectorFunctor
+            sage: from sage.categories.pushout import VectorFunctor, pushout
             sage: F1 = VectorFunctor(3, inner_product_matrix = Matrix(3,3,range(9)))
             sage: M1 = F1(ZZ)   # indirect doctest
             sage: M1.is_sparse()
@@ -1889,10 +1896,29 @@ class VectorFunctor(ConstructionFunctor):
             sage: v.inner_product(v)
             14
 
+            sage: M = FreeModule(ZZ, 4, with_basis=None, name='M')
+            sage: latex(M)
+            M
+            sage: M_QQ = pushout(M, QQ)
+
         """
         from sage.modules.free_module import FreeModule
+        name = self.name_mapping.get(R, None)
+        latex_name = self.latex_name_mapping.get(R, None)
+        if name is None:
+            for base_ring, name in self.name_mapping.items():
+                name = f'{name}_base_ext'
+                break
+        if latex_name is None:
+            from sage.misc.latex import latex
+            for base_ring, latex_name in self.latex_name_mapping.items():
+                latex_name = fr'{latex_name} \otimes {latex(R)}'
+                break
+        if name is None and latex_name is None:
+            return FreeModule(R, self.n, sparse=self.is_sparse, inner_product_matrix=self.inner_product_matrix,
+                              with_basis=self.with_basis, basis_keys=self.basis_keys)
         return FreeModule(R, self.n, sparse=self.is_sparse, inner_product_matrix=self.inner_product_matrix,
-                          with_basis=self.with_basis, basis_keys=self.basis_keys)
+                              with_basis=self.with_basis, basis_keys=self.basis_keys, name=name, latex_name=latex_name)
 
     def _apply_functor_to_morphism(self, f):
         """

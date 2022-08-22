@@ -864,14 +864,18 @@ class FiniteRankFreeModule(UniqueRepresentation, Parent):
         if c is not None:
             return c
         # Implementation restrictions:
-        if self._latex_name != self._name:
+        if self._output_formatter:
             return None
         from sage.categories.pushout import VectorFunctor
+        kwds = dict(is_sparse=False,
+                    inner_product_matrix=None,
+                    with_basis=None,
+                    name_mapping={self.base_ring(): self._name},
+                    latex_name_mapping={self.base_ring(): self._latex_name})
         if self._sindex:
-            return (VectorFunctor(None, False, None, with_basis=None,
-                                  basis_keys=list(self.irange())),
+            return (VectorFunctor(basis_keys=list(self.irange()), **kwds),
                     self.base_ring())
-        return (VectorFunctor(self.rank(), False, None, with_basis=None),
+        return (VectorFunctor(n=self.rank(), **kwds),
                 self.base_ring())
 
     #### Parent methods

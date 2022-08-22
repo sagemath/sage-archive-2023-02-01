@@ -14,8 +14,8 @@
     "containerEnv": {
         "MAKE": "make -j4"
     },
-    "onCreateCommand": ".devcontainer/post_create.sh",
-    "updateContentCommand": ".devcontainer/portability-post_start.sh",
+    "onCreateCommand": ".devcontainer/onCreate.sh",
+    "updateContentCommand": ".devcontainer/portability-updateContent.sh",
     "extensions": [
         "ms-python.python"
     ]

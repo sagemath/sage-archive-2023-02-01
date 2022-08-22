@@ -7,7 +7,7 @@
     },
     // Install build tools, get rid of sourcing /sage/activate in non-login shells.
     // libgmp.a is broken and leads to a build failure of ecm.
-    "onCreateCommand": ".devcontainer/post_create.sh --sudo && sudo rm -f /sage/local/lib/libgmp.a && sed -i.bak '/sage.*activate/d' ~/.bashrc",
+    "onCreateCommand": ".devcontainer/onCreate.sh --sudo && sudo rm -f /sage/local/lib/libgmp.a && sed -i.bak '/sage.*activate/d' ~/.bashrc",
     // Do not run configure within a sage-env (see #29485).
     // The pari package is broken in the computop/sage 9.5 image, need to reinstall.
     // Also libnauty is broken.

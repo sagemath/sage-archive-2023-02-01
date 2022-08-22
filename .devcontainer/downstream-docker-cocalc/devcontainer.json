@@ -6,7 +6,7 @@
         "MAKE": "make -j4"
     },
     // libgmp.a is broken and leads to a build failure of ecm.
-    "onCreateCommand": ".devcontainer/post_create.sh && rm -f /usr/local/sage/local/lib/libgmp.a",
+    "onCreateCommand": ".devcontainer/onCreate.sh && rm -f /usr/local/sage/local/lib/libgmp.a",
     // * If the workspace directory looks like a copy of the Sage source tree (SAGE_ROOT):
     //   - it bootstraps the Sage distribution,
     //   - sets the symlink ``venv`` as expected,

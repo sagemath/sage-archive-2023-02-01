@@ -804,11 +804,11 @@ class LazyLaurentSeriesRing(LazySeriesRing):
         sage: s
         1 + z + 2*z^2 + 5*z^3 + 14*z^4 + 42*z^5 + 132*z^6 + O(z^7)
 
-    If we do not explcitly know the exact value of every coefficient,
-    then equality checking will depend on the computed coefficients.
-    If at a certain point we cannot prove two series are different
-    (which involves the coefficients we have computed), then we will
-    raise an error::
+    If we do not explicitly know the exact value of every
+    coefficient, then equality checking will depend on the computed
+    coefficients.  If at a certain point we cannot prove two series
+    are different (which involves the coefficients we have computed),
+    then we will raise an error::
 
         sage: f = 1 / (z + z^2); f
         z^-1 - 1 + z - z^2 + z^3 - z^4 + z^5 + O(z^6)
@@ -1476,7 +1476,6 @@ class LazyTaylorSeriesRing(LazySeriesRing):
         coeff_stream = Stream_exact([R.one()], self._sparse, order=1, constant=c)
         return self.element_class(self, coeff_stream)
 
-
 ######################################################################
 
 class LazySymmetricFunctions(LazySeriesRing):
@@ -1999,4 +1998,3 @@ class LazyDirichletSeriesRing(LazySeriesRing):
             return L(c) * L(n) ** -L(self.variable_name())
         except (ValueError, TypeError):
             return '({})/{}^{}'.format(self.base_ring()(c), n, self.variable_name())
-

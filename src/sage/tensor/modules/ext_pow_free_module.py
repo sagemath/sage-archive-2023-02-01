@@ -253,6 +253,21 @@ class ExtPowerFreeModule(FiniteRankFreeModule):
                              output_formatter=fmodule._output_formatter)
         fmodule._all_modules.add(self)
 
+    def construction(self):
+        r"""
+        TESTS::
+
+            sage: from sage.tensor.modules.ext_pow_free_module import ExtPowerFreeModule
+            sage: M = FiniteRankFreeModule(ZZ, 3, name='M')
+            sage: e = M.basis('e')
+            sage: A = ExtPowerFreeModule(M, 2)
+            sage: A.construction() is None
+            True
+        """
+        # No construction until https://trac.sagemath.org/ticket/30242
+        # makes this a quotient of TensorFreeModule
+        return None
+
     #### Parent methods
 
     def _element_constructor_(self, comp=[], basis=None, name=None,
@@ -653,6 +668,21 @@ class ExtPowerDualFreeModule(FiniteRankFreeModule):
                                       start_index=fmodule._sindex,
                                     output_formatter=fmodule._output_formatter)
         fmodule._all_modules.add(self)
+
+    def construction(self):
+        r"""
+        TESTS::
+
+            sage: from sage.tensor.modules.ext_pow_free_module import ExtPowerDualFreeModule
+            sage: M = FiniteRankFreeModule(ZZ, 3, name='M')
+            sage: e = M.basis('e')
+            sage: A = ExtPowerDualFreeModule(M, 2)
+            sage: A.construction() is None
+            True
+        """
+        # No construction until https://trac.sagemath.org/ticket/30242
+        # makes this a quotient of TensorFreeModule
+        return None
 
     #### Parent methods
 

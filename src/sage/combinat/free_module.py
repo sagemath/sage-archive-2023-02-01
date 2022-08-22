@@ -290,8 +290,9 @@ class CombinatorialFreeModule(UniqueRepresentation, Module, IndexedGenerators):
             sage: F3 = CombinatorialFreeModule(QQ, ['a','b'], category = (ModulesWithBasis(QQ),))
             sage: F4 = CombinatorialFreeModule(QQ, ['a','b'], category = (ModulesWithBasis(QQ),CommutativeAdditiveSemigroups()))
             sage: F5 = CombinatorialFreeModule(QQ, ['a','b'], category = (ModulesWithBasis(QQ),Category.join((LeftModules(QQ), RightModules(QQ)))))
-            sage: F1 is F, F2 is F, F3 is F, F4 is F, F5 is F
-            (True, True, True, True, True)
+            sage: F6 = CombinatorialFreeModule(QQ, ['a','b'], category=ModulesWithBasis(QQ).FiniteDimensional())
+            sage: F1 is F, F2 is F, F3 is F, F4 is F, F5 is F, F6 is F
+            (True, True, True, True, True, True)
 
             sage: G  = CombinatorialFreeModule(QQ, ['a','b'], category = AlgebrasWithBasis(QQ))
             sage: F is G
@@ -302,6 +303,8 @@ class CombinatorialFreeModule(UniqueRepresentation, Module, IndexedGenerators):
         if isinstance(basis_keys, (list, tuple)):
             basis_keys = FiniteEnumeratedSet(basis_keys)
         category = ModulesWithBasis(base_ring).or_subcategory(category)
+        if basis_keys in Sets().Finite():
+            category = category.FiniteDimensional()
         # bracket or latex_bracket might be lists, so convert
         # them to tuples so that they're hashable.
         bracket = keywords.get('bracket', None)

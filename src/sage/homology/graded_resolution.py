@@ -289,6 +289,7 @@ class GradedFreeResolution(FreeResolution):
                 return [matrix([[val]])]
 
             M = self._m()
+
             def find_deg(i):
                 for j in range(M.nrows()):
                     ret = M[j,i].degree() 

@@ -646,10 +646,17 @@ class FreeResolution(FreeResolution_generic):
             [2*x^2     x]
             [3*x^2   2*x]
             ]
+
+            sage: R.<x> = PolynomialRing(QQ)
+            sage: I = R.ideal([x^4 + 3*x^2 + 2])
+            sage: res = I.free_resolution()
+            sage: res._maps
+            [[x^4 + 3*x^2 + 2]]
         """
         if self._is_free_module:
             if isinstance(self._module, Ideal_generic):
-                return matrix([[self._module.gen()]])
+                from sage.matrix.constructor import matrix
+                return [matrix([[self._module.gen()]])]
             return [self._m()]
 
         # This ensures the first component of the Singular resolution to be a

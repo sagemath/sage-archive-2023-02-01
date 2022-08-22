@@ -1215,6 +1215,7 @@ class Ideal_generic(MonoidElement):
             sage: R.<x> = PolynomialRing(QQ)
             sage: I = R.ideal([x^4 + 3*x^2 + 2])
             sage: I.free_resolution()
+            S^1 <-- S^1 <-- 0
         """
         from sage.homology.free_resolution import FreeResolution
         return FreeResolution(self, *args, **kwds)
@@ -1231,6 +1232,7 @@ class Ideal_generic(MonoidElement):
             sage: R.<x> = PolynomialRing(QQ)
             sage: I = R.ideal([x^3])
             sage: I.graded_free_resolution()
+            S(0) <-- S(-3) <-- 0
         """
         from sage.homology.graded_resolution import GradedFreeResolution
         return GradedFreeResolution(self, *args, **kwds)

@@ -1268,8 +1268,14 @@ cdef class BaseRingFloorDivAction(Action):
             sage: g.parent()
             Power Series Ring in t over Univariate Polynomial Ring in s
             over Rational Field
+
+            sage: R.<t> = PowerSeriesRing(QQ)
+            sage: t // 2
+            1/2*t
         """
         cdef PowerSeries_poly elt = <PowerSeries_poly> x
         prec = x.prec()
-        return type(x)(self.US(), elt.__f // g, prec=prec, check=False)
+        P = self.US()
+        g = P.base_ring()(g)
+        return type(x)(P, elt.__f // g, prec=prec, check=False)
 

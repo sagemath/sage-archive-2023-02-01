@@ -1302,9 +1302,13 @@ class PowerSeriesRing_domain(PowerSeriesRing_generic, ring.IntegralDomain):
             <class 'sage.rings.power_series_poly.BaseRingFloorDivAction'>
             sage: coercion_model.get_action(ZZ, R, operator.floordiv) is None
             True
+
+            sage: R.<t> = PowerSeriesRing(QQ)
+            sage: coercion_model.get_action(R, ZZ, operator.floordiv)
+            Right action by Integer Ring on Power Series Ring in t over Rational Field
         """
         import operator
-        if op is operator.floordiv and self_is_left and other is self.base_ring():
+        if op is operator.floordiv and self_is_left and self.base_ring().has_coerce_map_from(other):
             from sage.rings.power_series_poly import BaseRingFloorDivAction
             # Floor division by coefficient.
             return BaseRingFloorDivAction(other, self, is_left=False)

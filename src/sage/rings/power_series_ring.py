@@ -1289,11 +1289,26 @@ class PowerSeriesRing_domain(PowerSeriesRing_generic, ring.IntegralDomain):
         return laurent.change_ring(self.base_ring().fraction_field())
 
     def _get_action_(self, other, op, self_is_left):
+        r"""
+        Return the actions on ``self`` by ``other`` under ``op``.
+
+        EXAMPLES::
+
+            sage: R.<t> = PowerSeriesRing(ZZ)
+            sage: import operator
+            sage: act = coercion_model.get_action(R, ZZ, operator.floordiv); act
+            Right action by Integer Ring on Power Series Ring in t over Integer Ring
+            sage: type(act)
+            <class 'sage.rings.power_series_poly.BaseRingFloorDivAction'>
+            sage: coercion_model.get_action(ZZ, R, operator.floordiv) is None
+            True
+        """
         import operator
-        from sage.structure.coerce_actions import ActedUponAction
         if op is operator.floordiv and self_is_left and other is self.base_ring():
+            from sage.rings.power_series_poly import BaseRingFloorDivAction
             # Floor division by coefficient.
-            return ActedUponAction(other, self, not self_is_left)
+            return BaseRingFloorDivAction(other, self, is_left=False)
+        return super()._get_action_(other, op, self_is_left)
 
 class PowerSeriesRing_over_field(PowerSeriesRing_domain):
     _default_category = CompleteDiscreteValuationRings()

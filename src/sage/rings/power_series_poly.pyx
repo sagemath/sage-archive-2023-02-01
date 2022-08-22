@@ -720,42 +720,6 @@ cdef class PowerSeries_poly(PowerSeries):
 
         return self._parent(self.truncate().inverse_series_trunc(prec), prec=prec)
 
-    def _floor_division_by_coefficient_(self, c):
-        """
-        Perform the exact division of ``self`` by a coefficient ``c``.
-
-        .. WARNING::
-
-            This is not intended to be used with another power series.
-
-        EXAMPLES::
-
-            sage: A = ZZ[['t']]
-            sage: f = A([3*2**n for n in range(6)]).O(6)
-            sage: g = f//3; g
-            1 + 2*t + 4*t^2 + 8*t^3 + 16*t^4 + 32*t^5 + O(t^6)
-            sage: g.parent()
-            Power Series Ring in t over Integer Ring
-
-            sage: s = polygen(QQ,'s')
-            sage: A = s.parent()[['t']]
-            sage: f = A([(s+2)*(s+n) for n in range(5)]).O(5)
-            sage: g = f//(s+2); g
-            s + (s + 1)*t + (s + 2)*t^2 + (s + 3)*t^3 + (s + 4)*t^4 + O(t^5)
-            sage: g.parent()
-            Power Series Ring in t over Univariate Polynomial Ring in s
-            over Rational Field
-        """
-        prec = self.prec()
-        return PowerSeries_poly(self._parent,
-                                self.__f // c,
-                                prec=prec,
-                                check=False)
-
-    cpdef _acted_upon_(self, other, bint self_on_left):
-        if self_on_left and other in self.base_ring():
-            return self._floor_division_by_coefficient_(other)
-
     def truncate(self, prec=infinity):
         """
         The polynomial obtained from power series by truncation at
@@ -1265,3 +1229,47 @@ def make_powerseries_poly_v0(parent, f, prec, is_gen):
         t
     """
     return PowerSeries_poly(parent, f, prec, 0, is_gen)
+
+cdef class BaseRingFloorDivAction(Action):
+    """
+    The floor division action of the base ring on a formal power series.
+    """
+    cpdef _act_(self, g, x):
+        r"""
+        Let ``g`` act on ``x`` under ``self``.
+
+        Regardless of whether this is a left or right action, the acting
+        element comes first.
+
+        INPUT:
+
+        - ``g`` -- an object with parent ``self.G``
+        - ``x`` -- an object with parent ``self.US()``
+
+        .. WARNING::
+
+            This is meant to be a fast internal function, so the
+            conditions on the input are not checked!
+
+        EXAMPLES::
+
+            sage: A = ZZ[['t']]
+            sage: f = A([3*2**n for n in range(6)]).O(6)
+            sage: g = f // 3; g
+            1 + 2*t + 4*t^2 + 8*t^3 + 16*t^4 + 32*t^5 + O(t^6)
+            sage: g.parent()
+            Power Series Ring in t over Integer Ring
+
+            sage: s = polygen(QQ,'s')
+            sage: A = s.parent()[['t']]
+            sage: f = A([(s+2)*(s+n) for n in range(5)]).O(5)
+            sage: g = f // (s + 2); g
+            s + (s + 1)*t + (s + 2)*t^2 + (s + 3)*t^3 + (s + 4)*t^4 + O(t^5)
+            sage: g.parent()
+            Power Series Ring in t over Univariate Polynomial Ring in s
+            over Rational Field
+        """
+        cdef PowerSeries_poly elt = <PowerSeries_poly> x
+        prec = x.prec()
+        return type(x)(self.US(), elt.__f // g, prec=prec, check=False)
+

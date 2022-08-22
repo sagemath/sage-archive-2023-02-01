@@ -1,0 +1,16 @@
+name: Build & publish Docker images
+on: push
+
+jobs:
+  build-from-clean:
+    runs-on: ubuntu-latest
+    steps:
+    - name: Check out SageMath
+      uses: actions/checkout@v2
+      with:
+        repository: ${{ inputs.sage_repo }}
+        ref: ${{ inputs.sage_ref }}
+        fetch-depth: 2000
+    - name: Build Docker image
+      run: |
+        .ci/build-docker.sh

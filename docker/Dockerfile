@@ -46,7 +46,7 @@ ARG ARTIFACT_BASE=source-clean
 ################################################################################
 # Image containing the run-time dependencies for Sage                          #
 ################################################################################
-FROM ubuntu:impish as run-time-dependencies
+FROM ubuntu:22.04 as run-time-dependencies
 LABEL maintainer="Erik M. Bray <erik.bray@lri.fr>, Julian Rüth <julian.rueth@fsfe.org>"
 # Set sane defaults for common environment variables.
 ENV LC_ALL C.UTF-8

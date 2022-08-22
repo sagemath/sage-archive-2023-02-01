@@ -1214,6 +1214,8 @@ def _random_example_for_testing():
             E.short_weierstrass_model()
         except ValueError:
             continue
+        if E.cardinality() < 5:
+            continue
         A = E.abelian_group()
         ds = max(A.invariants()).prime_to_m_part(2).divisors()
         ds = [d for d in ds if 5 <= d < 1000]

@@ -855,15 +855,22 @@ class FiniteRankFreeModule(UniqueRepresentation, Parent):
             sage: M = FiniteRankFreeModule(ZZ, 3, name='M')
             sage: M.construction()
             (VectorFunctor, Integer Ring)
+            sage: N = FiniteRankFreeModule(ZZ, 3, name='N', start_index=17)
+            sage: N.construction()
+            (VectorFunctor, Integer Ring)
         """
         # Try to take it from the category
         c = super().construction()
         if c is not None:
             return c
         # Implementation restrictions:
-        if self._sindex:
+        if self._latex_name != self._name:
             return None
         from sage.categories.pushout import VectorFunctor
+        if self._sindex:
+            return (VectorFunctor(None, False, None, with_basis=None,
+                                  basis_keys=list(self.irange())),
+                    self.base_ring())
         return (VectorFunctor(self.rank(), False, None, with_basis=None),
                 self.base_ring())
 

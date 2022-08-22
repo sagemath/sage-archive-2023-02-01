@@ -151,6 +151,10 @@ class ProductTree:
     r"""
     A simple product tree.
 
+    INPUT:
+
+    - ``leaves`` -- a sequence of elements in a common ring
+
     EXAMPLES::
 
         sage: from sage.schemes.elliptic_curves.hom_velusqrt import ProductTree
@@ -192,10 +196,6 @@ class ProductTree:
         r"""
         Initialize a product tree having the given ring elements
         as its leaves.
-
-        INPUT:
-
-        - ``leaves`` -- a sequence of elements in a common ring
 
         EXAMPLES::
 
@@ -438,6 +438,13 @@ class FastEllipticPolynomial:
     - If `Q` is omitted, then `S = \{1,3,5,...,n-2\}`. Note that in this case,
       `h_{\{1,2,3,...,n-1\}}` can be computed as `h_S^2` since `n` is odd.
 
+    INPUT:
+
+    - `E` -- an elliptic curve in short Weierstraß form
+    - `n` -- an odd integer `\geq 5`
+    - `P` -- a point on `E`
+    - `Q` -- a point on `E`, or ``None``
+
     ALGORITHM: [BDLS2020]_, Algorithm 2
 
     .. NOTE::
@@ -504,13 +511,6 @@ class FastEllipticPolynomial:
         r"""
         Initialize this elliptic polynomial and precompute some
         input-independent data required for evaluation.
-
-        INPUT:
-
-        - `E` -- an elliptic curve in short Weierstraß form
-        - `n` -- an odd integer `\geq 5`
-        - `P` -- a point on `E`
-        - `Q` -- a point on `E`, or ``None``
 
         EXAMPLES::
 
@@ -758,6 +758,15 @@ class EllipticCurveHom_velusqrt(EllipticCurveHom):
 
     REFERENCES: [BDLS2020]_
 
+    INPUT:
+
+    - `E` -- an elliptic curve over a finite field
+    - `P` -- a point on `E` of odd order `\geq 5`
+    - ``codomain`` -- codomain elliptic curve (optional)
+    - ``model`` -- string (optional); input to
+      :meth:`~sage.schemes.elliptic_curves.ell_field.compute_model`
+    - `Q` -- a point on `E` outside `\langle P\rangle`, or ``None``
+
     EXAMPLES::
 
         sage: from sage.schemes.elliptic_curves.hom_velusqrt import EllipticCurveHom_velusqrt
@@ -832,15 +841,6 @@ class EllipticCurveHom_velusqrt(EllipticCurveHom):
     def __init__(self, E, P, *, codomain=None, model=None, Q=None):
         r"""
         Initialize this √élu isogeny from a kernel point of odd order.
-
-        INPUT:
-
-        - `E` -- an elliptic curve over a finite field
-        - `P` -- a point on `E` of odd order `\geq 5`
-        - ``codomain`` -- codomain elliptic curve (optional)
-        - ``model`` -- string (optional); input to
-          :meth:`~sage.schemes.elliptic_curves.ell_field.compute_model`
-        - `Q` -- a point on `E` outside `\langle P\rangle`, or ``None``
 
         EXAMPLES::
 

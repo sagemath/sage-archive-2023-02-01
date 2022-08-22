@@ -1248,7 +1248,7 @@ installation of SageMath in this container by building from the current source t
   project <https://hub.docker.com/r/computop/sage/>`_, providing
   SnapPy, Regina, PHCPack, etc.
 
-If you want to use one of these ``devcontainer.json`` files, copy (or symlink)
+If you want to use one of these ``devcontainer.json`` files, symlink (or copy)
 it and start VS Code as explained above. After VS Code finished configuring the
 dev container, to use Sage in a terminal, `open a new terminal in VS Code
 <https://code.visualstudio.com/docs/terminal/basics>`_, type ``./sage`` and hit
@@ -1284,7 +1284,7 @@ work without change) or to adapt them to your needs.
   project <https://hub.docker.com/r/computop/sage/>`_, providing
   SnapPy, Regina, PHCPack, etc.
 
-If you want to use one of these ``devcontainer.json`` files, copy (or symlink)
+If you want to use one of these ``devcontainer.json`` files, symlink (or copy)
 it and start VS Code as explained above. After VS Code finished configuring the
 dev container, to use Sage in a terminal, `open a new terminal in VS Code
 <https://code.visualstudio.com/docs/terminal/basics>`_, type ``sage`` and hit

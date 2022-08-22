@@ -221,7 +221,6 @@ class EllipticCurveHom(Morphism):
         is the product of the degrees of the individual factors::
 
             sage: from sage.schemes.elliptic_curves.hom_composite import EllipticCurveHom_composite
-            doctest:warning ...
             sage: E = EllipticCurve(GF(419), [1,0])
             sage: P, = E.gens()
             sage: phi = EllipticCurveHom_composite(E, P+P)

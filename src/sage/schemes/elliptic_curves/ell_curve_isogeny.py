@@ -571,6 +571,9 @@ class EllipticCurveIsogeny(EllipticCurveHom):
         over a number field, then the codomain is a global minimal
         model where this exists.
 
+      - ``"short_weierstrass"``: The codomain is a short Weierstrass curve,
+        assuming one exists.
+
       - ``"montgomery"``: The codomain is an (untwisted) Montgomery
         curve, assuming one exists over this field.
 

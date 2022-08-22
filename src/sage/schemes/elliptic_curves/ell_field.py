@@ -1139,6 +1139,9 @@ class EllipticCurve_field(ell_generic.EllipticCurve_generic, ProjectivePlaneCurv
             over a number field, then the codomain is a global minimal
             model where this exists.
 
+          - ``"short_weierstrass"``: The codomain is a short Weierstrass curve,
+            assuming one exists.
+
           - ``"montgomery"``: The codomain is an (untwisted) Montgomery
             curve, assuming one exists over this field.
 
@@ -1881,6 +1884,10 @@ def compute_model(E, name):
         exists, and a semi-global minimal model otherwise.
         For this choice, ``E`` must be defined over a number field.
         See :meth:`~sage.schemes.elliptic_curves.ell_number_field.EllipticCurve_number_field.global_minimal_model`.
+
+      - ``"short_weierstrass"``: Return a short Weierstrass model of ``E``
+        assuming one exists.
+        See :meth:`~sage.schemes.elliptic_curves.ell_generic.EllipticCurve_generic.short_weierstrass_model`.
 
       - ``"montgomery"``: Return an (untwisted) Montgomery model of ``E``
         assuming one exists over this field.

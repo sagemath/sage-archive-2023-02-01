@@ -3,7 +3,7 @@
 # the commit hash below is the latest as of 2022-07-31
 # For updating gnulib, change this hash and run
 #
-# ./sage -sh -c 'build/pkgs/gnulib/spkg-src
+# ./sage -sh -c 'build/pkgs/gnulib/spkg-src'
 #
 # Then commit the results.
 

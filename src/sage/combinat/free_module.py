@@ -461,24 +461,6 @@ class CombinatorialFreeModule(UniqueRepresentation, Module, IndexedGenerators):
 
         self._order = None
 
-    def construction(self):
-        """
-        The construction functor and base ring for self.
-
-        EXAMPLES::
-
-            sage: F = CombinatorialFreeModule(QQ, ['a','b','c'], category=AlgebrasWithBasis(QQ))
-            sage: F.construction()
-            (VectorFunctor, Rational Field)
-        """
-        # Try to take it from the category
-        c = super().construction()
-        if c is not None:
-            return c
-        from sage.categories.pushout import VectorFunctor
-        return VectorFunctor(None, True, None, with_basis='standard',
-                             basis_keys=self.basis().keys()), self.base_ring()
-
     # For backwards compatibility
     _repr_term = IndexedGenerators._repr_generator
     _latex_term = IndexedGenerators._latex_generator
@@ -1170,6 +1152,28 @@ class CombinatorialFreeModule(UniqueRepresentation, Module, IndexedGenerators):
         if remove_zeros:
             d = {key: coeff for key, coeff in d.items() if coeff}
         return self.element_class(self, d)
+
+
+class CombinatorialFreeModule_with_construction(CombinatorialFreeModule):
+
+    def construction(self):
+        """
+        The construction functor and base ring for self.
+
+        EXAMPLES::
+
+            sage: F = CombinatorialFreeModule(QQ, ['a','b','c'], category=AlgebrasWithBasis(QQ))
+            sage: F.construction()
+            (VectorFunctor, Rational Field)
+        """
+        # Try to take it from the category
+        c = super().construction()
+        if c is not None:
+            return c
+        from sage.categories.pushout import VectorFunctor
+        return VectorFunctor(None, True, None, with_basis='standard',
+                             basis_keys=self.basis().keys()), self.base_ring()
+
 
 
 class CombinatorialFreeModule_Tensor(CombinatorialFreeModule):

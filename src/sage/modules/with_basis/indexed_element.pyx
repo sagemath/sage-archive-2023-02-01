@@ -900,7 +900,7 @@ cdef class IndexedFreeModuleElement(ModuleElement):
             sage: truediv("hello", x)
             Traceback (most recent call last):
             ...
-            TypeError: unsupported operand type(s) for /: 'str' and 'CombinatorialFreeModule_with_category.element_class'
+            TypeError: unsupported operand type(s) for /: 'str' and 'CombinatorialFreeModule_with_construction_with_category.element_class'
         """
         if not isinstance(left, IndexedFreeModuleElement):
             return NotImplemented

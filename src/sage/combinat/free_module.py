@@ -507,7 +507,7 @@ class CombinatorialFreeModule(UniqueRepresentation, Module, IndexedGenerators):
 
             sage: F = CombinatorialFreeModule(QQ, ['a','b','c'])
             sage: F._element_class
-            <class 'sage.combinat.free_module.CombinatorialFreeModule_with_category.element_class'>
+            <class 'sage.combinat.free_module.CombinatorialFreeModule_with_construction_with_category.element_class'>
         """
         return self.element_class
 

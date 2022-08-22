@@ -1027,8 +1027,8 @@ class EllipticCurveHom_velusqrt(EllipticCurveHom):
               From: Elliptic Curve defined by y^2 + 3*t*x*y + (3*t+2)*y = x^3 + (2*t+4)*x^2 + (t+4)*x + 3*t over Finite Field in t of size 5^2
               To:   Elliptic Curve defined by y^2 = x^3 + (4*t+3)*x + 2 over Finite Field in t of size 5^2
         """
-        poly = self._raw_domain.two_division_polynomial().monic()
-        R, Z = poly.parent().objgen()
+        R, Z = self._base_ring['Z'].objgen()
+        poly = self._raw_domain.two_division_polynomial().monic()(Z)
 
         f = 1
         for g,_ in poly.factor():
@@ -1038,10 +1038,9 @@ class EllipticCurveHom_velusqrt(EllipticCurveHom):
                 K, X0 = self._base_ring.extension(g,'T').objgen()
                 imX0 = self._raw_eval(X0)
                 try:
-                    imX0 = imX0.polynomial()(Z) # K is a FiniteField
+                    imX0 = imX0.polynomial()    # K is a FiniteField
                 except AttributeError:
                     imX0 = imX0.lift()          # K is a PolynomialQuotientRing
-                    imX0 = imX0.change_ring(R.base_ring())
                 V = R['V'].gen()
                 f *= (Z - imX0(V)).resultant(g(V))
 

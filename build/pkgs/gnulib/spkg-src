@@ -37,3 +37,4 @@ if [ ! -x "$gnulibtool" ]; then
 fi
 eval $gnulibtool --import iconv ${quietquiet}
 rm -rf lib/
+echo "${gnulibcommit}" > build/pkgs/gnulib/package-version.txt

@@ -580,9 +580,9 @@ class Modules(Category_module):
                     EXAMPLES::
 
                         sage: F = CombinatorialFreeModule(ZZ, [1,2])
-                        sage: F.__custom_name = "F"
+                        sage: F.rename("F")
                         sage: G = CombinatorialFreeModule(ZZ, [3,4])
-                        sage: G.__custom_name = "G"
+                        sage: G.rename("G")
                         sage: T = tensor([F, G]); T
                         F # G
                         sage: T.tensor_factors()

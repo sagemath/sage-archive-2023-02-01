@@ -813,18 +813,15 @@ class EllipticCurveIsogeny(EllipticCurveHom):
         sage: phi.codomain()
         Elliptic Curve defined by y^2 + x*y = x^3 + 24*x + 6 over Finite Field of size 31
 
-    Composition tests (see :trac:`16245`)::
+    Composition tests (see :trac:`16245`, cf. :trac:`34410`)::
 
         sage: E = EllipticCurve(j=GF(7)(0))
         sage: phi = E.isogeny([E(0), E((0,1)), E((0,-1))]); phi
         Isogeny of degree 3 from Elliptic Curve defined by y^2 = x^3 + 1 over Finite Field of size 7 to Elliptic Curve defined by y^2 = x^3 + 1 over Finite Field of size 7
         sage: phi2 = phi * phi; phi2
-        Composite map:
+        Composite morphism of degree 9 = 3^2:
           From: Elliptic Curve defined by y^2 = x^3 + 1 over Finite Field of size 7
           To:   Elliptic Curve defined by y^2 = x^3 + 1 over Finite Field of size 7
-          Defn:   Isogeny of degree 3 from Elliptic Curve defined by y^2 = x^3 + 1 over Finite Field of size 7 to Elliptic Curve defined by y^2 = x^3 + 1 over Finite Field of size 7
-                then
-                  Isogeny of degree 3 from Elliptic Curve defined by y^2 = x^3 + 1 over Finite Field of size 7 to Elliptic Curve defined by y^2 = x^3 + 1 over Finite Field of size 7
 
     Examples over relative number fields used not to work (see :trac:`16779`)::
 

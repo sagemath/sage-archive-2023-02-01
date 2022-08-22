@@ -75,12 +75,9 @@ class EllipticCurveHom(Morphism):
             sage: phi * iso
             Isogeny of degree 2 from Elliptic Curve defined by y^2 = x^3 + 9*x over Finite Field of size 19 to Elliptic Curve defined by y^2 = x^3 + 15*x over Finite Field of size 19
             sage: phi.dual() * phi
-            Composite map:
+            Composite morphism of degree 4 = 2^2:
               From: Elliptic Curve defined by y^2 = x^3 + x over Finite Field of size 19
               To:   Elliptic Curve defined by y^2 = x^3 + x over Finite Field of size 19
-              Defn:   Isogeny of degree 2 from Elliptic Curve defined by y^2 = x^3 + x over Finite Field of size 19 to Elliptic Curve defined by y^2 = x^3 + 15*x over Finite Field of size 19
-                    then
-                      Isogeny of degree 2 from Elliptic Curve defined by y^2 = x^3 + 15*x over Finite Field of size 19 to Elliptic Curve defined by y^2 = x^3 + x over Finite Field of size 19
         """
         if not isinstance(self, EllipticCurveHom) or not isinstance(other, EllipticCurveHom):
             raise TypeError(f'cannot compose {type(self)} with {type(other)}')
@@ -93,8 +90,8 @@ class EllipticCurveHom(Morphism):
         if ret is not NotImplemented:
             return ret
 
-        # fall back to generic formal composite map
-        return Morphism._composition_(self, other, homset)
+        from sage.schemes.elliptic_curves.hom_composite import EllipticCurveHom_composite
+        return EllipticCurveHom_composite.from_factors([other, self])
 
 
     @staticmethod

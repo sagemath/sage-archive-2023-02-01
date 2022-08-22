@@ -2252,7 +2252,7 @@ class SchemeMorphism_polynomial_projective_subscheme_field(SchemeMorphism_polyno
 
         - ``x`` -- a point in the domain of definition
 
-        OUTPUT: a point in the codomain
+        OUTPUT: the image of the point ``x`` under the morphism
 
         TESTS::
 
@@ -2266,7 +2266,12 @@ class SchemeMorphism_polynomial_projective_subscheme_field(SchemeMorphism_polyno
             sage: _ == C([0, -1, 2])
             True
         """
-        for m in self.representatives():
+        try:
+            reprs = self.representatives()
+        except NotImplementedError:
+            reprs = [self.defining_polynomials()]
+
+        for m in reprs:
             try:
                 return super(SchemeMorphism_polynomial_projective_subscheme_field, m).__call__(x)
             except ValueError:

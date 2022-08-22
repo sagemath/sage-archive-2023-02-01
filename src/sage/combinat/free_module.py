@@ -1306,6 +1306,23 @@ class CombinatorialFreeModule_Tensor(CombinatorialFreeModule):
             return symb.join("%s" % module for module in self._sets)
             # TODO: make this overridable by setting _name
 
+        def tensor_factors(self):
+            """
+            Return the tensor factors of this tensor product.
+
+            EXAMPLES::
+
+                sage: F = CombinatorialFreeModule(ZZ, [1,2])
+                sage: F.__custom_name = "F"
+                sage: G = CombinatorialFreeModule(ZZ, [3,4])
+                sage: G.__custom_name = "G"
+                sage: T = tensor([F, G]); T
+                F # G
+                sage: T.tensor_factors()
+                (F, G)
+            """
+            return self._sets
+
         def _ascii_art_(self, term):
             """
             TESTS::

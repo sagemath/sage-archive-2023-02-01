@@ -12,6 +12,7 @@ Modules
 # *****************************************************************************
 
 from sage.misc.cachefunc import cached_method
+from sage.misc.abstract_method import abstract_method
 from sage.misc.lazy_import import LazyImport
 from sage.categories.category_with_axiom import CategoryWithAxiom_over_base_ring
 from sage.categories.morphism import SetMorphism
@@ -19,7 +20,7 @@ from sage.categories.homsets import HomsetsCategory
 from sage.categories.homset import Hom
 from .category import Category
 from .category_types import Category_module
-from sage.categories.tensor import TensorProductsCategory, tensor
+from sage.categories.tensor import TensorProductsCategory, TensorProductFunctor, tensor
 from .dual import DualObjectsCategory
 from sage.categories.cartesian_product import CartesianProductsCategory
 from sage.categories.sets_cat import Sets
@@ -568,8 +569,10 @@ class Modules(Category_module):
                          (Free Algebra on 2 generators (None0, None1) over Rational Field,
                           Free Algebra on 2 generators (None0, None1) over Rational Field)]
                     """
-                    return [tensor, self._sets]
+                    return (TensorProductFunctor(self.category()),
+                            self.tensor_factors())
 
+                @abstract_method
                 def tensor_factors(self):
                     """
                     Return the tensor factors of this tensor product.
@@ -585,7 +588,6 @@ class Modules(Category_module):
                         sage: T.tensor_factors()
                         (F, G)
                     """
-                    return self._sets
 
     class FinitelyPresented(CategoryWithAxiom_over_base_ring):
 

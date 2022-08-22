@@ -1900,6 +1900,8 @@ class VectorFunctor(ConstructionFunctor):
             sage: latex(M)
             M
             sage: M_QQ = pushout(M, QQ)
+            sage: latex(M_QQ)
+            M \otimes \Bold{Q}
 
         """
         from sage.modules.free_module import FreeModule

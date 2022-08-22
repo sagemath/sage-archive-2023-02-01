@@ -346,7 +346,7 @@ def _choose_IJK(n):
 
     INPUT:
 
-    - `n` -- odd integer `\geq 5`
+    - `n` -- odd :class:`~sage.rings.integer.Integer` `\geq 5`
 
     REFERENCES: [BDLS2020]_, Examples 4.7 and 4.12
 
@@ -368,11 +368,11 @@ def _choose_IJK(n):
     """
     if n % 2 != 1 or n < 5:
         raise ValueError('n must be odd and >= 5')
-    b = int((n-1).sqrt() / 2)
-    b_ = (n-1) // (4*b)
-    I = range(2*b, 2*b*(2*b_-1)+1, 4*b)
+    b = (n-1).isqrt() // 2
+    c = (n-1) // (4*b)
+    I = range(2*b, 2*b*(2*c-1)+1, 4*b)
     J = range(1, 2*b, 2)
-    K = range(4*b*b_+1, n, 2)
+    K = range(4*b*c+1, n, 2)
     return I, J, K
 
 def _points_range(rr, P, Q=None):

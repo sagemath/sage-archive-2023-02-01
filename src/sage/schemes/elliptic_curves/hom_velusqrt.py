@@ -138,6 +138,8 @@ from sage.misc.misc_c import prod
 
 from sage.structure.richcmp import op_EQ
 
+from sage.rings.integer import Integer
+
 from sage.schemes.elliptic_curves.constructor import EllipticCurve
 from sage.schemes.elliptic_curves.ell_finite_field import EllipticCurve_finite_field
 from sage.schemes.elliptic_curves.hom import EllipticCurveHom, compare_via_evaluation
@@ -522,6 +524,8 @@ class FastEllipticPolynomial:
         """
         if any(E.a_invariants()[:-2]):
             raise NotImplementedError('only implemented for short Weierstrass curves')
+
+        n = Integer(n)
 
         if Q is None:
             IJK = _choose_IJK(n)        # [1,3,5,7,...,n-4,n-2]

@@ -469,7 +469,12 @@ class CombinatorialFreeModule(UniqueRepresentation, Module, IndexedGenerators):
 
             sage: F = CombinatorialFreeModule(QQ, ['a','b','c'], category=AlgebrasWithBasis(QQ))
             sage: F.construction()
+            (VectorFunctor, Rational Field)
         """
+        # Try to take it from the category
+        c = super().construction()
+        if c is not None:
+            return c
         from sage.categories.pushout import VectorFunctor
         return VectorFunctor(None, True, None, with_basis='standard',
                              basis_keys=self.basis().keys()), self.base_ring()

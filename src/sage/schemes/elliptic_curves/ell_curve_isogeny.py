@@ -2652,7 +2652,7 @@ class EllipticCurveIsogeny(EllipticCurveHom):
             sc *= self.__post_isomorphism.scaling_factor()
         return sc
 
-    def morphism(self):
+    def as_morphism(self):
         r"""
         Return this isogeny as a morphism of projective schemes.
 
@@ -2662,7 +2662,7 @@ class EllipticCurveIsogeny(EllipticCurveHom):
             sage: E = EllipticCurve(k, [1,1])
             sage: Q = E(6,5)
             sage: phi = E.isogeny(Q)
-            sage: mor = phi.morphism()
+            sage: mor = phi.as_morphism()
             sage: mor.domain() == E
             True
             sage: mor.codomain() == phi.codomain()

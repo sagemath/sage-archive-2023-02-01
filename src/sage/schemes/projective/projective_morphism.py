@@ -2268,8 +2268,11 @@ class SchemeMorphism_polynomial_projective_subscheme_field(SchemeMorphism_polyno
         """
         try:
             reprs = self.representatives()
-        except NotImplementedError:
-            reprs = [self.defining_polynomials()]
+        except NotImplementedError:  # Singular does not support the base field
+            try:
+                return super(SchemeMorphism_polynomial_projective_subscheme_field, self).__call__(x)
+            except ValueError:
+                raise ValueError('cannot apply the morphism to this point')
 
         for m in reprs:
             try:
@@ -2382,12 +2385,12 @@ class SchemeMorphism_polynomial_projective_subscheme_field(SchemeMorphism_polyno
                 reprs.append(hom([f / f0 for f in r[1:]]))
             return reprs
 
-        if not X.is_irreducible():
-            raise ValueError("domain is not an irreducible scheme")
-
         if not (X.base_ring() in _NumberFields or
                 X.base_ring() in _FiniteFields):
             raise NotImplementedError("base ring {} is not supported by Singular".format(X.base_ring()))
+
+        if not X.is_irreducible():
+            raise ValueError("domain is not an irreducible scheme")
 
         # prepare homogeneous coordinate ring of X in Singular
         from sage.rings.polynomial.term_order import TermOrder
@@ -2595,6 +2598,7 @@ class SchemeMorphism_polynomial_projective_subscheme_field(SchemeMorphism_polyno
         gens = [g.subs(dict(zip(R.gens()[n:],T.gens()))) for g in j]
         return AY.subscheme(gens)
 
+    @cached_method
     def graph(self):
         """
         Return the graph of this morphism.
@@ -2648,13 +2652,15 @@ class SchemeMorphism_polynomial_projective_subscheme_field(SchemeMorphism_polyno
         #    I + (y_iF_j - y_jF_i : 0 <= i, j <= m)
         #
         # saturated with respect to (F_0, F_1, ..., F_m).
-        n1 = n + 1; m1 = m + 1
+        n1 = n + 1
+        m1 = m + 1
         I = X.defining_ideal().change_ring(R)
         h = [g[n1 + i] * F[j] - g[n1 + j] * F[i] for i in range(m1) for j in range(i + 1, m1)]
         J, _ = (I + R.ideal(h)).saturation(R.ideal(F))
 
         return AXY.subscheme(J)
 
+    @cached_method
     def projective_degrees(self):
         """
         Return the projective degrees of this rational map.
@@ -2665,9 +2671,9 @@ class SchemeMorphism_polynomial_projective_subscheme_field(SchemeMorphism_polyno
             sage: E = EllipticCurve(k,[1,1])
             sage: Q = E(6,5)
             sage: phi = E.multiplication_by_m_isogeny(2)
-            sage: mor = phi.morphism()
+            sage: mor = phi.as_morphism()
             sage: mor.projective_degrees()
-            [12, 3]
+            (12, 3)
         """
         X = self.domain()
         Y = self.codomain()
@@ -2695,7 +2701,7 @@ class SchemeMorphism_polynomial_projective_subscheme_field(SchemeMorphism_polyno
         n = AX.dimension()
         m = AY.dimension()
         k = X.dimension()
-        return [poly.monomial_coefficient(L.monomial(n - i, m - k + i)) for i in range(k + 1)]
+        return tuple(poly.monomial_coefficient(L.monomial(n - i, m - k + i)) for i in range(k + 1))
 
     def degree(self):
         """
@@ -2707,7 +2713,7 @@ class SchemeMorphism_polynomial_projective_subscheme_field(SchemeMorphism_polyno
             sage: E = EllipticCurve(k,[1,1])
             sage: Q = E(6,5)
             sage: phi = E.multiplication_by_m_isogeny(2)
-            sage: mor = phi.morphism()
+            sage: mor = phi.as_morphism()
             sage: mor.degree()
             4
         """

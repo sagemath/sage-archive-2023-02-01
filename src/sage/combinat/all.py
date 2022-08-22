@@ -83,7 +83,7 @@ from sage.combinat.dlx import DLXMatrix, AllExactCovers, OneExactCover
 from sage.combinat.designs.all import *
 
 # Free modules and friends
-from .free_module import CombinatorialFreeModule
+from .free_module import CombinatorialFreeModule_with_construction as CombinatorialFreeModule
 from .debruijn_sequence import DeBruijnSequences
 
 from .schubert_polynomial import SchubertPolynomialRing

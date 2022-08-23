@@ -1217,8 +1217,8 @@ class Ideal_generic(MonoidElement):
             sage: I.free_resolution()
             S^1 <-- S^1 <-- 0
         """
-        from sage.homology.free_resolution import FreeResolution
-        return FreeResolution(self, *args, **kwds)
+        from sage.homology.free_resolution import FiniteFreeResolution_free_module
+        return FiniteFreeResolution_free_module(self, *args, **kwds)
 
     def graded_free_resolution(self, *args, **kwds):
         r"""
@@ -1234,8 +1234,8 @@ class Ideal_generic(MonoidElement):
             sage: I.graded_free_resolution()
             S(0) <-- S(-3) <-- 0
         """
-        from sage.homology.graded_resolution import GradedFreeResolution
-        return GradedFreeResolution(self, *args, **kwds)
+        from sage.homology.graded_resolution import GradedFiniteFreeResolution_free_module
+        return GradedFiniteFreeResolution_free_module(self, *args, **kwds)
 
 
 class Ideal_principal(Ideal_generic):

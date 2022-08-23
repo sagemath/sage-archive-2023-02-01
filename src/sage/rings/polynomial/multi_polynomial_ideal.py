@@ -1798,8 +1798,8 @@ class MPolynomialIdeal_singular_repr(
                         [  y x^2]       [   y]      
              0 <-- C_0 <---------- C_1 <------- C_2 <-- 0
         """
-        from sage.homology.free_resolution import FreeResolution
-        return FreeResolution(self, *args, **kwds)
+        from sage.homology.free_resolution import FiniteFreeResolution_singular
+        return FiniteFreeResolution_singular(self, *args, **kwds)
 
     @require_field
     def graded_free_resolution(self, *args, **kwds):
@@ -1826,8 +1826,8 @@ class MPolynomialIdeal_singular_repr(
             sage: I.graded_free_resolution(degrees=[1,2])
             S(0) <-- S(-2)⊕S(-2) <-- S(-4) <-- 0
         """
-        from sage.homology.graded_resolution import GradedFreeResolution
-        return GradedFreeResolution(self, *args, **kwds)
+        from sage.homology.graded_resolution import GradedFiniteFreeResolution_singular
+        return GradedFiniteFreeResolution_singular(self, *args, **kwds)
 
     @handle_AA_and_QQbar
     @singular_gb_standard_options

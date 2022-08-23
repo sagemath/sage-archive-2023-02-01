@@ -906,9 +906,9 @@ class Modules(Category_module):
                     sage: A = algebras.Free(QQ,2)
                     sage: T = A.tensor(A)
                     sage: T.construction()
-                    [The tensor functorial construction,
+                    (The tensor functorial construction,
                      (Free Algebra on 2 generators (None0, None1) over Rational Field,
-                      Free Algebra on 2 generators (None0, None1) over Rational Field)]
+                      Free Algebra on 2 generators (None0, None1) over Rational Field))
                 """
                 try:
                     factors = self.tensor_factors()

@@ -552,58 +552,6 @@ class Modules(Category_module):
                 """
                 return [self.base_category()]
 
-            class ParentMethods:
-                """
-                Implement operations on tensor products of modules.
-                """
-                def construction(self):
-                    """
-                    Return the construction of ``self``.
-
-                    EXAMPLES::
-
-                        sage: A = algebras.Free(QQ,2)
-                        sage: T = A.tensor(A)
-                        sage: T.construction()
-                        [The tensor functorial construction,
-                         (Free Algebra on 2 generators (None0, None1) over Rational Field,
-                          Free Algebra on 2 generators (None0, None1) over Rational Field)]
-                    """
-                    try:
-                        factors = self.tensor_factors()
-                    except (TypeError, NotImplementedError):
-                        from sage.misc.superseded import deprecation
-                        deprecation(34393, "implementations of Modules().TensorProducts() now must define the method tensor_factors")
-                        return None
-                    return (TensorProductFunctor(),
-                            factors)
-
-                @abstract_method(optional=True)
-                def tensor_factors(self):
-                    """
-                    Return the tensor factors of this tensor product.
-
-                    EXAMPLES::
-
-                        sage: F = CombinatorialFreeModule(ZZ, [1,2])
-                        sage: F.rename("F")
-                        sage: G = CombinatorialFreeModule(ZZ, [3,4])
-                        sage: G.rename("G")
-                        sage: T = tensor([F, G]); T
-                        F # G
-                        sage: T.tensor_factors()
-                        (F, G)
-
-                    TESTS::
-
-                        sage: M = CombinatorialFreeModule(ZZ, ((1, 1), (1, 2), (2, 1), (2, 2)),
-                        ....:                             category=ModulesWithBasis(ZZ).FiniteDimensional().TensorProducts())
-                        sage: M.construction()
-                        doctest:warning...
-                        DeprecationWarning: implementations of Modules().TensorProducts() now must define the method tensor_factors
-                        See https://trac.sagemath.org/34393 for details.
-                    """
-
     class FinitelyPresented(CategoryWithAxiom_over_base_ring):
 
         def extra_super_categories(self):
@@ -944,3 +892,55 @@ class Modules(Category_module):
                 [Category of modules over Integer Ring]
             """
             return [self.base_category()]
+
+        class ParentMethods:
+            """
+            Implement operations on tensor products of modules.
+            """
+            def construction(self):
+                """
+                Return the construction of ``self``.
+
+                EXAMPLES::
+
+                    sage: A = algebras.Free(QQ,2)
+                    sage: T = A.tensor(A)
+                    sage: T.construction()
+                    [The tensor functorial construction,
+                     (Free Algebra on 2 generators (None0, None1) over Rational Field,
+                      Free Algebra on 2 generators (None0, None1) over Rational Field)]
+                """
+                try:
+                    factors = self.tensor_factors()
+                except (TypeError, NotImplementedError):
+                    from sage.misc.superseded import deprecation
+                    deprecation(34393, "implementations of Modules().TensorProducts() now must define the method tensor_factors")
+                    return None
+                return (TensorProductFunctor(),
+                        factors)
+
+            @abstract_method(optional=True)
+            def tensor_factors(self):
+                """
+                Return the tensor factors of this tensor product.
+
+                EXAMPLES::
+
+                    sage: F = CombinatorialFreeModule(ZZ, [1,2])
+                    sage: F.rename("F")
+                    sage: G = CombinatorialFreeModule(ZZ, [3,4])
+                    sage: G.rename("G")
+                    sage: T = tensor([F, G]); T
+                    F # G
+                    sage: T.tensor_factors()
+                    (F, G)
+
+                TESTS::
+
+                    sage: M = CombinatorialFreeModule(ZZ, ((1, 1), (1, 2), (2, 1), (2, 2)),
+                    ....:                             category=ModulesWithBasis(ZZ).FiniteDimensional().TensorProducts())
+                    sage: M.construction()
+                    doctest:warning...
+                    DeprecationWarning: implementations of Modules().TensorProducts() now must define the method tensor_factors
+                    See https://trac.sagemath.org/34393 for details.
+                """

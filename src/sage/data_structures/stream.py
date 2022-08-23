@@ -1611,18 +1611,16 @@ class Stream_cauchy_compose(Stream_binary):
             sage: h = Stream_cauchy_compose(f, g)
         """
         #assert g._approximate_order > 0
-        self._fv = f._approximate_order
-        self._gv = g._approximate_order
-        if self._fv < 0:
+        if f._approximate_order < 0:
             ginv = Stream_cauchy_invert(g)
             # The constant part makes no contribution to the negative.
             # We need this for the case so self._neg_powers[0][n] => 0.
             self._neg_powers = [Stream_zero(f._is_sparse), ginv]
-            for i in range(1, -self._fv):
+            for i in range(1, -f._approximate_order):
                 self._neg_powers.append(Stream_cauchy_mul(self._neg_powers[-1], ginv))
         # Placeholder None to make this 1-based.
         self._pos_powers = [None, g]
-        val = self._fv * self._gv
+        val = f._approximate_order * g._approximate_order
         super().__init__(f, g, f._is_sparse, val)
 
     def get_coefficient(self, n):
@@ -1644,15 +1642,18 @@ class Stream_cauchy_compose(Stream_binary):
             sage: [h.get_coefficient(i) for i in range(10)]
             [0, 1, 6, 28, 124, 527, 2172, 8755, 34704, 135772]
         """
+        fv = self._left._approximate_order
+        gv = self._right._approximate_order
         if n < 0:
-            return sum(self._left[i] * self._neg_powers[-i][n] for i in range(self._fv, n // self._gv + 1))
+            return sum(self._left[i] * self._neg_powers[-i][n]
+                       for i in range(fv, n // gv + 1))
         # n > 0
-        while len(self._pos_powers) <= n // self._gv:
+        while len(self._pos_powers) <= n // gv:
             self._pos_powers.append(Stream_cauchy_mul(self._pos_powers[-1], self._right))
-        ret = sum(self._left[i] * self._neg_powers[-i][n] for i in range(self._fv, 0))
+        ret = sum(self._left[i] * self._neg_powers[-i][n] for i in range(fv, 0))
         if n == 0:
             ret += self._left[0]
-        return ret + sum(self._left[i] * self._pos_powers[i][n] for i in range(1, n // self._gv+1))
+        return ret + sum(self._left[i] * self._pos_powers[i][n] for i in range(1, n // gv+1))
 
 
 class Stream_plethysm(Stream_binary):

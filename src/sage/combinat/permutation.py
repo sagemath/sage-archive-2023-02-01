@@ -3388,18 +3388,20 @@ class Permutation(CombinatorialElement):
 
         - [JS2000]_
         """
-        if self.size() == composition.size():
-            D = self.descents()
-            s = [0]
-            for i, qi in enumerate(q):
-                maj_qp = [0] * len(s)
-                s.append(s[i] + qi)
-                for j in range(len(s)):   
-                    for d in D:
-                        if s[j - 1] < d < s[j]:
-                            maj_qp[j - 1] += d - s[j - 1]
-            return maj_qp
-        raise ValueError("Invalid Input")
+        composition = Composition(composition)
+        if self.size() != composition.size():
+            raise ValueError("size of the composition should be equal to length of the permutation")
+        descents = self.descents()
+        partial_sum = [0] + composition.partial_sums()
+        multimajor_index = []
+        for j in range(1, len(partial_sum)):
+            a = partial_sum[j-1]
+            b = partial_sum[j]
+            from bisect import bisect_right, bisect_left
+            start = bisect_right(descents, a)
+            end = bisect_left(descents, b)
+            multimajor_index.append(sum(descents[start: end])-(end-start)*a)
+        return multimajor_index
 
 
     def imajor_index(self, final_descent=False) -> Integer:

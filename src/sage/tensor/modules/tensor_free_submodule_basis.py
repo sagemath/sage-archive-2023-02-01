@@ -24,15 +24,15 @@ class TensorFreeSubmoduleBasis_comp(Basis_abstract):
         sage: T11 = M.tensor_module(1,1)
         sage: e11 = T11.basis('e')
         sage: for a in e11: a.display()
-        e_0*e^0
-        e_0*e^1
-        e_0*e^2
-        e_1*e^0
-        e_1*e^1
-        e_1*e^2
-        e_2*e^0
-        e_2*e^1
-        e_2*e^2
+        e_0⊗e^0
+        e_0⊗e^1
+        e_0⊗e^2
+        e_1⊗e^0
+        e_1⊗e^1
+        e_1⊗e^2
+        e_2⊗e^0
+        e_2⊗e^1
+        e_2⊗e^2
 
     """
 
@@ -69,18 +69,18 @@ class TensorFreeSubmoduleBasis_comp(Basis_abstract):
             sage: T11 = M.tensor_module(1,1)
             sage: e11 = T11.basis('e')
             sage: e11[1, 2].display()
-            e_1*e^2
+            e_1⊗e^2
 
             sage: from sage.tensor.modules.tensor_free_submodule import TensorFreeSubmodule_comp
             sage: Sym2M = TensorFreeSubmodule_comp(M, (2, 0), sym=range(2)); Sym2M
             Free module of type-(2,0) tensors
-            with Fully symmetric 2-indices components w.r.t. [0, 1, 2]
+            with Fully symmetric 2-indices components w.r.t. (0, 1, 2)
             on the Rank-3 free module M over the Integer Ring
             sage: eSym2M = Sym2M.basis('e')
             sage: eSym2M[1, 1].display()
-            e_1*e_1
+            e_1⊗e_1
             sage: eSym2M[1, 2].display()
-            e_1*e_2 + e_2*e_1
+            e_1⊗e_2 + e_2⊗e_1
 
         """
         tensor_module = self._fmodule

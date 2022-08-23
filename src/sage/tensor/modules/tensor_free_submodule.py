@@ -29,7 +29,7 @@ class TensorFreeSubmodule_comp(TensorFreeModule):
         sage: M = FiniteRankFreeModule(ZZ, 3, name='M')
         sage: Sym2M = TensorFreeSubmodule_comp(M, (2, 0), sym=range(2)); Sym2M
         Free module of type-(2,0) tensors
-        with Fully symmetric 2-indices components w.r.t. [0, 1, 2]
+        with Fully symmetric 2-indices components w.r.t. (0, 1, 2)
         on the Rank-3 free module M over the Integer Ring
 
     Canonical injections from submodules are coercions::
@@ -87,7 +87,7 @@ class TensorFreeSubmodule_comp(TensorFreeModule):
             sage: M = FiniteRankFreeModule(ZZ, 3, name='M')
             sage: Sym2M = TensorFreeSubmodule_comp(M, (2, 0), sym=range(2)); Sym2M
             Free module of type-(2,0) tensors
-            with Fully symmetric 2-indices components w.r.t. [0, 1, 2]
+            with Fully symmetric 2-indices components w.r.t. (0, 1, 2)
             on the Rank-3 free module M over the Integer Ring
 
         """
@@ -217,7 +217,7 @@ class TensorFreeSubmodule_comp(TensorFreeModule):
             sage: Sym0123x45M.lift
             Generic morphism:
               From: Free module of type-(6,0) tensors
-                    with 6-indices components w.r.t. [0, 1, 2],
+                    with 6-indices components w.r.t. (0, 1, 2),
                     with symmetry on the index positions (0, 1, 2, 3),
                     with symmetry on the index positions (4, 5)
                     on the Rank-3 free module M over the Integer Ring

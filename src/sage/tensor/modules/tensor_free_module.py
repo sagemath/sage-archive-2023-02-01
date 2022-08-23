@@ -724,27 +724,27 @@ class TensorFreeModule(FiniteRankFreeModule):
             sage: e_T = T.basis('e'); e_T
             <sage.tensor.modules.tensor_free_submodule_basis.TensorFreeSubmoduleBasis_comp object at ...>
             sage: for a in e_T: a.display()
-            e_0*e^0
-            e_0*e^1
-            e_0*e^2
-            e_1*e^0
-            e_1*e^1
-            e_1*e^2
-            e_2*e^0
-            e_2*e^1
-            e_2*e^2
+            e_0⊗e^0
+            e_0⊗e^1
+            e_0⊗e^2
+            e_1⊗e^0
+            e_1⊗e^1
+            e_1⊗e^2
+            e_2⊗e^0
+            e_2⊗e^1
+            e_2⊗e^2
 
             sage: from sage.tensor.modules.tensor_free_submodule import TensorFreeSubmodule_comp
             sage: Sym2M = TensorFreeSubmodule_comp(M, (2, 0), sym=range(2))
             sage: e_Sym2M = Sym2M.basis('e'); e_Sym2M
             <sage.tensor.modules.tensor_free_submodule_basis.TensorFreeSubmoduleBasis_comp object at ...>
             sage: for a in e_Sym2M: a.display()
-            e_0*e_0
-            e_0*e_1
-            e_0*e_2
-            e_1*e_1
-            e_1*e_2
-            e_2*e_2
+            e_0⊗e_0
+            e_0⊗e_1
+            e_0⊗e_2
+            e_1⊗e_1
+            e_1⊗e_2
+            e_2⊗e_2
         """
         return TensorFreeSubmoduleBasis_comp(self, symbol)
 

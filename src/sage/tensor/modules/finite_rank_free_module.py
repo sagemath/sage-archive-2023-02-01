@@ -1407,6 +1407,7 @@ class FiniteRankFreeModule(UniqueRepresentation, Parent):
             <BLANKLINE>
               Running the test suite of self.basis('test')
               running ._test_category() . . . pass
+              running ._test_iter_len() . . . pass
               running ._test_new() . . . pass
               running ._test_not_implemented_methods() . . . pass
               running ._test_pickling() . . . pass

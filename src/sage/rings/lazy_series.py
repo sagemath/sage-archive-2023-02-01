@@ -3992,6 +3992,66 @@ class LazySymmetricFunction(LazyCauchyProductSeries):
     plethystic_inverse = revert
     compositional_inverse = revert
 
+    def derivative_with_respect_to_p1(self, n=1):
+        r"""
+        Return the symmetric function obtained by taking the
+        derivative of ``self`` with respect to the power-sum
+        symmetric function `p_1` when the expansion of ``self`` in
+        the power-sum basis is considered as a polynomial in `p_k`'s
+        (with `k \geq 1`).
+
+        This is the same as skewing ``self`` by the first power-sum
+        symmetric function `p_1`.
+
+        INPUT:
+
+        - ``n`` -- (default: 1) nonnegative integer which determines
+          which power of the derivative is taken
+
+
+        EXAMPLES:
+
+        The species `E` of sets satisfies the relationship `E' = E`::
+
+            sage: h = SymmetricFunctions(QQ).h()
+            sage: T = LazySymmetricFunctions(h)
+            sage: E = T(lambda n: h[n])
+            sage: E - E.derivative_with_respect_to_p1()
+            O^6
+
+        The species `C` of cyclic orderings and the species `L` of linear
+        orderings satisfy the relationship `C' = L`::
+
+            sage: p = SymmetricFunctions(QQ).p()
+            sage: C = T(lambda n: (sum(euler_phi(k)*p([k])**(n//k) for k in divisors(n))/n if n > 0 else 0))
+            sage: L = T(lambda n: p([1]*n))
+            sage: L - C.derivative_with_respect_to_p1()
+            O^6
+
+        TESTS::
+
+            sage: T = LazySymmetricFunctions(p)
+            sage: a = T(p([1,1,1]))
+            sage: a.derivative_with_respect_to_p1()
+            (3*p[1,1]) + O^9
+            sage: a.derivative_with_respect_to_p1(1)
+            (3*p[1,1]) + O^9
+            sage: a.derivative_with_respect_to_p1(2)
+            6*p[1] + O^8
+            sage: a.derivative_with_respect_to_p1(3)
+            6*p[] + O^7
+        """
+        P = self.parent()
+        if P._arity != 1:
+            raise ValueError("arity must be equal to 1")
+
+        coeff_stream = Stream_shift(Stream_map_coefficients(self._coeff_stream,
+                                                            lambda c: c.derivative_with_respect_to_p1(n),
+                                                            P._laurent_poly_ring),
+                                    -n)
+        return P.element_class(P, coeff_stream)
+
+
     def _format_series(self, formatter, format_strings=False):
         r"""
         Return nonzero ``self`` formatted by ``formatter``.

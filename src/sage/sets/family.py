@@ -38,6 +38,7 @@ from copy import copy
 from pprint import pformat, saferepr
 from collections.abc import Iterable
 
+from sage.misc.abstract_method import abstract_method
 from sage.misc.cachefunc import cached_method
 from sage.structure.parent import Parent
 from sage.categories.enumerated_sets import EnumeratedSets

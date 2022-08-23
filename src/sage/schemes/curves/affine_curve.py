@@ -1785,7 +1785,9 @@ class AffinePlaneCurve_field(AffinePlaneCurve, AffineCurve_field):
             Riemann surface defined by polynomial f = x^3 + 3*y^3 + 5 = 0, with 53 bits of precision
         """
         from sage.schemes.riemann_surfaces.riemann_surface import RiemannSurface
-        return RiemannSurface(self.defining_polynomial(),**kwargs)
+        S = RiemannSurface(self.defining_polynomial(),**kwargs)
+        S._curve = self
+        return S
 
 
 class AffinePlaneCurve_finite_field(AffinePlaneCurve_field):

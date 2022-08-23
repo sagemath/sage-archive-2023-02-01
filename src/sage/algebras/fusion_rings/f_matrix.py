@@ -280,7 +280,7 @@ class FMatrix(SageObject):
         EXAMPLES::
 
             sage: f = FMatrix(FusionRing("B3",2))
-            sage: TestSuite(f).run()
+            sage: TestSuite(f).run(skip="_test_pickling")
         """
         self._FR = fusion_ring
         if inject_variables and (self._FR._fusion_labels is None):
@@ -2476,4 +2476,3 @@ class FMatrix(SageObject):
                 print("Something went wrong. Pentagons remain.")
         self._fvars = fvars_copy
         return pe
-

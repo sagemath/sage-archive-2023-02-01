@@ -58,10 +58,10 @@ cdef class KSHandler:
       must import the ``multiprocessing.shared_memory`` module. Attempting
       to initialize when ``multiprocessing.shared_memory`` is not available
       results in an ``ImportError``.
-    - ``name`` -- the name of a shared memory object
-      (used by child processes for attaching)
     - ``init_data`` -- a dictionary or :class:`KSHandler` object containing
       known squares for initialization, e.g., from a solver checkpoint
+    - ``name`` -- the name of a shared memory object (used by child processes
+        for attaching)
 
     .. NOTE::
 
@@ -397,25 +397,29 @@ cdef class FvarsHandler:
     ``name`` attribute. Children processes use the ``name`` attribute,
     accessed via ``self.shm.name`` to attach to the shared memory block.
 
+    Multiprocessing requires Python 3.8+, since we must import the
+    ``multiprocessing.shared_memory`` module. Attempting to initialize
+    when ``multiprocessing.shared_memory`` is not available results in
+    an ``ImportError``.
+
     INPUT:
 
-    - ``factory`` -- an F-matrix
+    - ``n_slots`` -- number of generators of the underlying polynomial ring
+    - ``field`` -- base field for polynomial ring
+    - ``idx_to_sextuple`` -- map relating a single integer index to a sextuple
+      of ``FusionRing`` elements
+    - ``init_data`` -- a dictionary or :class:`FvarsHandler` object containing
+      known squares for initialization, e.g., from a solver checkpoint
+    - ``use_mp`` -- an integer indicating the number of child processes
+      used for multiprocessing; if running serially, use 0.
+    - ``pids_name`` -- the name of a ``ShareableList`` contaning the
+      process ``pid``'s for every process in the pool (including the
+      parent process)
     - ``name`` -- the name of a shared memory object
       (used by child processes for attaching)
     - ``max_terms`` -- maximum number of terms in each entry; since
       we use contiguous C-style memory blocks, the size of the block
       must be known in advance
-    - ``use_mp`` -- an integer indicating the number of child processes
-      used for multiprocessing; if running serially, use 0.
-
-      Multiprocessing requires Python 3.8+, since we must import the
-      ``multiprocessing.shared_memory`` module. Attempting to initialize
-      when ``multiprocessing.shared_memory`` is not available results in
-      an ``ImportError``.
-
-    - ``pids_name`` -- the name of a ``ShareableList`` contaning the
-      process ``pid``'s for every process in the pool (including the
-      parent process)
     - ``n_bytes`` -- the number of bytes that should be allocated for
       each numerator and each denominator stored by the structure
 
@@ -485,7 +489,7 @@ cdef class FvarsHandler:
             ....:     n_proc = 0
             ....:     pids_name = None
             sage: fvars = FvarsHandler(8,f._field,f._idx_to_sextuple,use_mp=n_proc,pids_name=pids_name)
-            sage: TestSuite(fvars).run()
+            sage: TestSuite(fvars).run(skip="_test_pickling")
             sage: if is_shared_memory_available: fvars.shm.unlink()
             sage: f.shutdown_worker_pool()
         """

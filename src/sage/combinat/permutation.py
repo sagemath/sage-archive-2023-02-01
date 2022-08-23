@@ -3397,7 +3397,7 @@ class Permutation(CombinatorialElement):
         """
         composition = Composition(composition)
         if self.size() != composition.size():
-            raise ValueError("size of the composition should be equal to length of the permutation")
+            raise ValueError("size of the composition should be equal to size of the permutation")
         descents = self.descents()
         partial_sum = [0] + composition.partial_sums()
         multimajor_index = []
@@ -3409,7 +3409,6 @@ class Permutation(CombinatorialElement):
             end = bisect_left(descents, b)
             multimajor_index.append(sum(descents[start: end])-(end-start)*a)
         return multimajor_index
-
 
     def imajor_index(self, final_descent=False) -> Integer:
         """

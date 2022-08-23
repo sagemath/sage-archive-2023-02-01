@@ -118,6 +118,7 @@ from sage.structure.element import Element, parent
 from sage.structure.richcmp import op_EQ, op_NE
 from sage.functions.other import factorial
 from sage.arith.power import generic_power
+from sage.misc.misc_c import prod
 from sage.rings.infinity import infinity
 from sage.rings.integer_ring import ZZ
 from sage.rings.polynomial.laurent_polynomial_ring import LaurentPolynomialRing
@@ -137,6 +138,7 @@ from sage.data_structures.stream import (
     Stream_uninitialized,
     Stream_shift,
     Stream_function,
+    Stream_derivative,
     Stream_dirichlet_convolve,
     Stream_dirichlet_invert,
     Stream_plethysm
@@ -323,10 +325,10 @@ class LazyModuleElement(Element):
             if not any(initial_coefficients) and not c:
                 return P.zero()
             coeff_stream = Stream_exact(initial_coefficients,
-                                                   self._coeff_stream._is_sparse,
-                                                   order=coeff_stream._approximate_order,
-                                                   degree=coeff_stream._degree,
-                                                   constant=BR(c))
+                                        self._coeff_stream._is_sparse,
+                                        order=coeff_stream._approximate_order,
+                                        degree=coeff_stream._degree,
+                                        constant=BR(c))
             return P.element_class(P, coeff_stream)
         R = P._internal_poly_ring.base_ring()
         coeff_stream = Stream_map_coefficients(self._coeff_stream, func, R)
@@ -3080,6 +3082,48 @@ class LazyLaurentSeries(LazyCauchyProductSeries):
         raise ValueError("cannot determine whether the compositional inverse exists")
 
     compositional_inverse = revert
+
+    def derivative(self, order=1):
+        """
+        Return the derivative of the Laurent series.
+
+        INPUT:
+
+        - ``order`` -- optional integer (default 1)
+
+        EXAMPLES::
+
+            sage: L.<z> = LazyLaurentSeriesRing(ZZ)
+            sage: z.derivative()
+            1
+            sage: (1+z+z^2).derivative(3)
+            0
+            sage: (1/z).derivative()
+            -z^-2
+            sage: (1/(1-z)).derivative()
+            1 + 2*z + 3*z^2 + 4*z^3 + 5*z^4 + 6*z^5 + 7*z^6 + O(z^7)
+
+        """
+        P = self.parent()
+        coeff_stream = self._coeff_stream
+        if isinstance(coeff_stream, Stream_zero):
+            return self
+        BR = P.base_ring()
+        if (isinstance(coeff_stream, Stream_exact)
+            and not coeff_stream._constant):
+            if coeff_stream._approximate_order >= 0 and coeff_stream._degree <= order:
+                return P.zero()
+            initial_coefficients = [prod(i-k for k in range(order)) * c
+                                    for i, c in enumerate(coeff_stream._initial_coefficients,
+                                                          coeff_stream._approximate_order)]
+            coeff_stream = Stream_exact(initial_coefficients,
+                                        self._coeff_stream._is_sparse,
+                                        order=coeff_stream._approximate_order - order,
+                                        constant=coeff_stream._constant)
+            return P.element_class(P, coeff_stream)
+
+        coeff_stream = Stream_derivative(self._coeff_stream, order)
+        return P.element_class(P, coeff_stream)
 
     def approximate_series(self, prec, name=None):
         r"""

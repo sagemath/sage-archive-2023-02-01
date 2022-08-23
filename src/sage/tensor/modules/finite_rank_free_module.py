@@ -2824,3 +2824,16 @@ class FiniteRankFreeModule(UniqueRepresentation, Parent):
                     latex_name = name
                 self._identity_map.set_name(name=name, latex_name=latex_name)
         return self._identity_map
+
+    def tensor_type(self):
+        r"""
+        Return the tensor type of ``self``, the pair `(1, 0)`.
+
+        EXAMPLES::
+
+            sage: M = FiniteRankFreeModule(ZZ, 3)
+            sage: M.tensor_type()
+            (1, 0)
+
+        """
+        return (1, 0)
